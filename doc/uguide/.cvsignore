@@ -24,4 +24,4 @@ uguide_pdf.log
 uguide_pdf.pdf
 uguide_pdf.toc
 texput_pdf.log
-version.tex
+auto_version.tex
