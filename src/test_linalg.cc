@@ -27,7 +27,6 @@
   
 */
 
-#include <iostream>
 #include "lin_alg.h"
 
 int main(void)
@@ -178,71 +177,15 @@ int main(void)
    
    cout << "\n";
  
-   /*============================================================
-     Now test the function lusolve, which combines LU-
-     decomposition and backsubstitution to solve linear equation
-     systems.
-     ============================================================*/
-
-   // assign matrix elements
   
-   Matrix K(4,4);
-   
-   K(0,0) = 1;
-   K(0,1) = 3;
-   K(0,2) = 5;
-   K(0,3) = 6;
-   K(1,0) = 2;
-   K(1,1) = 3;
-   K(1,2) = 4;
-   K(1,3) = 4;
-   K(2,0) = 1;
-   K(2,1) = 2;
-   K(2,2) = 5;
-   K(2,3) = 1;
-   K(3,0) = 7;
-   K(3,1) = 2;
-   K(3,2) = 4;
-   K(3,3) = 3;
 
-   // assign vector elements
-   Vector y2(4);
-   
-   y2[0] = 2;
-   y2[1] = 5;
-   y2[2] = 6;
-   y2[3] = 7;
-   
-    Vector x2(4);
-
-   lusolve(x2,K,y2);
-
-   cout << "\n Test lusolve function:";
-   for (Index i=0; i<4; i++)
-     {
-       cout << "\n";
-       cout << x2[i];
-     }
-    cout << "\n";
-   
-
-   // test solution:
-   Vector y_test(4);
-   
-   mult(y_test,K,x2);
-
-   cout << "\n Test lusolve function:";
-   for (Index i=0; i<4; i++)
-     {
-       cout << "\n";
-       cout << y_test[i];
-     }
-    cout << "\n";
-
-    /* Test the matrix exponential function */
-
+    /*----------------------------------------------------
+      Test the matrix exponential function 
+   ------------------------------------------------------*/
     Matrix F(4,4);
-    matrix_exp(F,K);
+    /* set parameter for accuracy */
+    Index q = 8;
+    matrix_exp(F,a,q);
 
     
     cout << "\n Exponential of Matrix K";

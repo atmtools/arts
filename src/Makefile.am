@@ -148,7 +148,9 @@ test_linalg_SOURCES = \
 	make_vector.cc\
 	lin_alg.cc \
 	lin_alg.h \
-	test_linalg.cc
+	test_linalg.cc\
+	logic.h\
+	logic.cc
 
 test_poly_SOURCES = \
 	array.h \
