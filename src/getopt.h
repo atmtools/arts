@@ -99,7 +99,8 @@ struct option
 #define optional_argument	2
 
 #if defined (__STDC__) && __STDC__
-#if defined (__GNU_LIBRARY__) || defined (_INCLUDE_HPUX_SOURCE)
+#if defined (__GNU_LIBRARY__) || defined (_INCLUDE_HPUX_SOURCE) \
+    || defined (__EXTENSIONS__)
 /* Many other libraries have conflicting prototypes for getopt, with
    differences in the consts, in stdlib.h.  To avoid compilation
    errors, only prototype getopt for the GNU C library.  */
