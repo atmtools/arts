@@ -1,7 +1,9 @@
+# vim: expandtab sw=2
 ## Copyright (C) 2000, 2001, 2002 
 # Stefan Buehler   <sbuehler@uni-bremen.de>
 # Patrick Eriksson <patrick@rss.chalmers.se>
 # Oliver Lemke     <olemke@uni-bremen.de>
+#
 #
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without 
@@ -16,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.277)
+AM_INIT_AUTOMAKE(arts,1.1.278)
 
 AM_MAINTAINER_MODE
 
@@ -35,15 +37,6 @@ AC_PROG_CPP
 AC_PROG_CXX
 # C++ Preprocessor:
 AC_PROG_CXXCPP
-
-# LF_CONFIGURE_CC
-
-# Configure the C++ Compiler
-# LF_CONFIGURE_CXX
-# LF_HOST_TYPE
-
-# Allow --with-warnings flag to configure:
-#LF_SET_WARNINGS
 
 # Determine the name of the ranlib program
 AC_PROG_RANLIB
@@ -73,7 +66,6 @@ AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
 #
 AC_CHECK_LIB(m, sin, ,
   AC_MSG_ERROR(function $func not found in math library) )
-
 
 #
 # Check for sstream header
@@ -113,6 +105,7 @@ if test x$ac_hdf = xyes; then
 fi
 
 AM_CONDITIONAL(HDF_SUPPORT, test x$ac_hdf_support = xyes)
+
 
 #
 # Default floating-point type
@@ -163,11 +156,7 @@ AC_ARG_WITH(arts-data,
 esac], [ac_arts_data=default])
 
 if test x$ac_arts_data = xdefault; then
-  if test "`hostname | grep smiles`"; then
-    ac_arts_data="/pool/lookup2/arts-data"
-  else
-    ac_arts_data="${prefix}/share/arts-data"
-  fi
+  ac_arts_data="${prefix}/share/arts-data"
 fi
 
 if test ! x$ac_arts_data = xno; then
@@ -210,31 +199,16 @@ AC_SUBST(ac_arts_data)
 
 
 #
-# Enable/disable maintainer-mode
-#
-AC_MSG_CHECKING(whether maintainer-mode should be activated)
-AC_ARG_ENABLE(maintainer-mode,
-[  --enable-maintainer-mode   Activate maintainer-mode (default=no)],
-[case "${enableval}" in
-  yes) ac_maintainer_mode=yes ;;
-   no) ac_maintainer_mode=no ;;
-    *) AC_MSG_ERROR(bad value ${enableval} for --enable-maintainer-mode) ;;
-esac],[ ac_maintainer_mode=no ])
-AM_CONDITIONAL(ARTS_MAINTAINER_MODE, test x$ac_maintainer_mode = xyes)
-AC_MSG_RESULT([$ac_maintainer_mode])
-
-
-#
 # Enable/disable debugging
 #
 AC_MSG_CHECKING(whether debugging should be activated)
 AC_ARG_ENABLE(debug,
-[  --enable-debug   Activate debugging mode (default=yes)],
+[  --enable-debug   Activate debugging mode (default=no)],
 [case "${enableval}" in
   yes) ac_debug=yes ;;
    no) ac_debug=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-esac],[ ac_debug=yes ])
+esac],[ ac_debug=$USE_MAINTAINER_MODE ])
 AM_CONDITIONAL(DEBUGGING, test x$ac_debug = xyes)
 AC_MSG_RESULT([$ac_debug])
 
@@ -249,14 +223,14 @@ AC_ARG_ENABLE(more-warnings,
   yes) ac_more_warnings=yes ;;
    no) ac_more_warnings=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-more-warnings) ;;
-esac],[ ac_more_warnings=$ac_maintainer_mode ])
+esac],[ ac_more_warnings=$USE_MAINTAINER_MODE ])
 AC_MSG_RESULT([$ac_more_warnings])
 
 
 #
 # Toggle documentation
 #
-if test x$ac_maintainer_mode = xyes; then
+if test x$USE_MAINTAINER_MODE = xyes; then
   ac_docgen=yes
 else
   ac_docgen=no
@@ -316,7 +290,7 @@ esac
 #
 # Compile flags switches
 #
-if test x$ac_maintainer_mode = xyes; then
+if test x$USE_MAINTAINER_MODE = xyes; then
   CFLAGS="$WARNING_FLAGS"
   CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
   CXXFLAGS_FIXED="$CXXFLAGS"
@@ -375,7 +349,7 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([*******************************************************])
 AC_MSG_RESULT([              ARTS configuration summary])
 AC_MSG_RESULT()
-AC_MSG_RESULT([  Maintainer mode          : $ac_maintainer_mode])
+AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
 AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
 AC_MSG_RESULT([  Integer type             : $ac_integer_type])
