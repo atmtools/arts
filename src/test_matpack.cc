@@ -252,7 +252,7 @@ void test10()
   // At the moment doing this with a non-const Vector will result in a
   // warning message. 
   Vector v(1,8,1);
-  Matrix M(static_cast<const Vector>(v));
+  Matrix M((const Vector)v);
   cout << "M = " << M << "\n";
 }
 
