@@ -184,6 +184,7 @@ noinst_PROGRAMS = \
 	make_auto_wsv_pointers_cc \
 	test_binaryio \
 	test_matpack \
+	test_sparse \
 	test_poly \
 	test_tensor \
 	test_linalg \
@@ -384,6 +385,13 @@ test_matpack_SOURCES = \
 	describe.h \
 	describe.cc \
 	test_matpack.cc
+
+test_sparse_SOURCES = \
+	matpackI.cc \
+	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
+	test_sparse.cc
 
 test_xml_SOURCES = \
 	arts.cc \
