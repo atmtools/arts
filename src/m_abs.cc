@@ -59,7 +59,7 @@
 void lines_per_tgSetEmpty(// WS Output:
                           ArrayOfArrayOfLineRecord& lines_per_tg,
                           // WS Input:
-                          const TagGroups& tgs)
+                          const ArrayOfArrayOfSpeciesTag& tgs)
 {
   // Make lines_per_tg the right size:
   lines_per_tg.resize( tgs.nelem() );
@@ -329,7 +329,7 @@ void linesElowToJoule(// WS Output:
 void lines_per_tgReadFromCatalogues(// WS Output:
 				    ArrayOfArrayOfLineRecord& lines_per_tg,
 				    // WS Input:
-				    const TagGroups& tgs,
+				    const ArrayOfArrayOfSpeciesTag& tgs,
                                     // Control Parameters:
                                     const ArrayOfString& filenames,
                                     const ArrayOfString& formats,
@@ -509,7 +509,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
       // We need to make subset tgs for the groups that should
       // be read from this catalogue.
-      TagGroups  these_tgs(real_tgs[i].nelem());
+      ArrayOfArrayOfSpeciesTag  these_tgs(real_tgs[i].nelem());
       for ( Index s=0; s<real_tgs[i].nelem(); ++s )
 	{
 	  these_tgs[s] = tgs[real_tgs[i][s]];
@@ -532,7 +532,7 @@ void lines_per_tgCreateFromLines(// WS Output:
                                   ArrayOfArrayOfLineRecord& lines_per_tg,
                                   // WS Input:
                                   const ArrayOfLineRecord&   lines,
-                                  const TagGroups&           tgs)
+                                  const ArrayOfArrayOfSpeciesTag&           tgs)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -582,7 +582,7 @@ void lines_per_tgCreateFromLines(// WS Output:
 	    {
 	      // Get a reference to the current tag (not really
 	      // necessary, but makes for nicer notation below):
-	      const OneTag& this_tag = tgs[j][k];
+	      const SpeciesTag& this_tag = tgs[j][k];
 
 	      // Now we will test different attributes of the line
 	      // against matching attributes of the tag. If any
@@ -835,7 +835,7 @@ void lines_per_tgWriteAscii(// WS Input:
 
 
 void tgsDefine(// WS Output:
-	       TagGroups& tgs,
+	       ArrayOfArrayOfSpeciesTag& tgs,
 	       // Control Parameters:
 	       const ArrayOfString& tags)
 {
@@ -882,7 +882,7 @@ void tgsDefine(// WS Output:
 	  while ( ' '  == tag_def[s][0] ||
 		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
 
-	  OneTag this_tag(tag_def[s]);
+	  SpeciesTag this_tag(tag_def[s]);
 
 	  // Safety check: For s>0 check that the tags belong to the same species.
 	  if (s>0)
@@ -909,7 +909,7 @@ void tgsDefine(// WS Output:
 }
 
 void tgsDefineAllInScenario(// WS Output:
-			    TagGroups& tgs,
+			    ArrayOfArrayOfSpeciesTag& tgs,
                             // Control Parameters:
                             const String& basename)
 {
@@ -937,11 +937,11 @@ void tgsDefineAllInScenario(// WS Output:
 	  // Add to included list:
 	  included.push_back(specname);
 
-	  // Convert name of species to a OneTag object:
-	  OneTag this_tag(specname);
+	  // Convert name of species to a SpeciesTag object:
+	  SpeciesTag this_tag(specname);
 
-	  // Create Array of OneTags with length 1 (our tag group has only one tag):
-	  Array<OneTag> this_group(1);
+	  // Create Array of SpeciesTags with length 1 (our tag group has only one tag):
+	  Array<SpeciesTag> this_group(1);
 	  this_group[0] = this_tag;
 
 	  // Add this tag group to tgs:
@@ -967,7 +967,7 @@ void tgsDefineAllInScenario(// WS Output:
 void lineshapeDefine(// WS Output:
 		     ArrayOfLineshapeSpec&    lineshape,
 		     // WS Input:
-		     const TagGroups&         tgs,
+		     const ArrayOfArrayOfSpeciesTag&         tgs,
 		     const String&            shape,
 		     const String&            normalizationfactor,
 		     const Numeric&           cutoff)
@@ -1029,7 +1029,7 @@ void lineshapeDefine(// WS Output:
 void lineshape_per_tgDefine(// WS Output:
 			    ArrayOfLineshapeSpec& lineshape,
 			    // WS Input:
-			    const TagGroups&      tgs,
+			    const ArrayOfArrayOfSpeciesTag&      tgs,
 			    const ArrayOfString&  shape,
 			    const ArrayOfString&  normalizationfactor,
 			    const Vector&         cutoff )
@@ -1115,7 +1115,7 @@ void lineshape_per_tgDefine(// WS Output:
 void raw_vmrsReadFromScenario(// WS Output:
                               ArrayOfMatrix&   raw_vmrs,
                               // WS Input:
-                              const TagGroups&     tgs,
+                              const ArrayOfArrayOfSpeciesTag&     tgs,
                               // Control Parameters:
                                const String&    basename)
 {
@@ -1159,7 +1159,7 @@ void raw_vmrsReadFromScenario(// WS Output:
 void raw_vmrsReadFromFiles(// WS Output:
 		           ArrayOfMatrix&   raw_vmrs,
 			   // WS Input:
-			   const TagGroups& tgs,
+			   const ArrayOfArrayOfSpeciesTag& tgs,
 			   // Control Parameters:
 			   const ArrayOfString&  seltags,
 			   const ArrayOfString&  filenames,
@@ -1284,7 +1284,7 @@ void WaterVaporSaturationInClouds( // WS Input/Output
 				  Vector&           p_abs, // manipulates this WS
 				  // WS Input
 				  const Vector&     t_abs, // constant
-				  const TagGroups&  tgs  ) // constant
+				  const ArrayOfArrayOfSpeciesTag&  tgs  ) // constant
 {
 
   // make sure that the VMR and pressure grid are the same
@@ -1421,7 +1421,7 @@ void AtmFromRaw(// WS Output:
 		  Vector& 	 z_abs,
 		  Matrix&        vmrs,
 		  // WS Input:      
-		  const TagGroups&       tgs,
+		  const ArrayOfArrayOfSpeciesTag&       tgs,
 		  const Vector&  	 p_abs,
 		  const Matrix&  	 raw_ptz,
 		  const ArrayOfMatrix&   raw_vmrs)
@@ -1548,7 +1548,7 @@ void AtmFromRaw(// WS Output:
 */
 void h2o_absSet(
 		Vector&          h2o_abs,
-		const TagGroups& tgs,
+		const ArrayOfArrayOfSpeciesTag& tgs,
 		const Matrix&    vmrs )
 {
   const Index   n = tgs.nelem();
@@ -1585,7 +1585,7 @@ void h2o_absSet(
 */
 void vmrsScale(
 	       Matrix&                vmrs,
-	       const TagGroups&       tgs,
+	       const ArrayOfArrayOfSpeciesTag&       tgs,
 	       const ArrayOfString&   scaltgs,
 	       const Vector&          scalfac)
 {
@@ -1623,7 +1623,7 @@ void vmrsScale(
 */
 void n2_absSet(
 	       Vector&            n2_abs,
-	       const   TagGroups& tgs,
+	       const   ArrayOfArrayOfSpeciesTag& tgs,
 	       const   Matrix&    vmrs )
 {
   const Index   n = tgs.nelem();
@@ -1681,7 +1681,7 @@ void absCalc(// WS Output:
              Matrix&        		     abs,
              ArrayOfMatrix& 		     abs_per_tg,
              // WS Input:		  
-	     const TagGroups&                tgs,
+	     const ArrayOfArrayOfSpeciesTag&                tgs,
              const Vector&  		     f_mono,
              const Vector&  		     p_abs,
              const Vector&  		     t_abs,
@@ -1828,7 +1828,7 @@ void absCalcFromXsec(// WS Output:
 void xsec_per_tgInit(// WS Output:
 		     ArrayOfMatrix&   xsec_per_tg,
 		     // WS Input:
-		     const TagGroups& tgs,
+		     const ArrayOfArrayOfSpeciesTag& tgs,
 		     const Vector&    f_mono,
 		     const Vector&    p_abs
 		     )
@@ -1871,7 +1871,7 @@ void xsec_per_tgInit(// WS Output:
 void xsec_per_tgAddLines(// WS Output:
 			 ArrayOfMatrix& 		  xsec_per_tg,
 			 // WS Input:		  
-			 const TagGroups&                 tgs,
+			 const ArrayOfArrayOfSpeciesTag&                 tgs,
 			 const Vector&  		  f_mono,
 			 const Vector&  		  p_abs,
 			 const Vector&  		  t_abs,
@@ -2084,7 +2084,7 @@ void xsec_per_tgAddLines(// WS Output:
 void xsec_per_tgAddConts(// WS Output:
 			 ArrayOfMatrix& 		  xsec_per_tg,
 			 // WS Input:		  
-			 const TagGroups&                 tgs,
+			 const ArrayOfArrayOfSpeciesTag&                 tgs,
 			 const Vector&  		  f_mono,
 			 const Vector&  		  p_abs,
 			 const Vector&  		  t_abs,
@@ -2262,8 +2262,8 @@ void xsec_per_tgAddConts(// WS Output:
 void abs_per_tgReduce(// WS Output:
                       ArrayOfMatrix&         abs_per_tg,
                       // WS Input:
-                      const TagGroups&       tgs,
-                      const TagGroups&       wfs_tgs)
+                      const ArrayOfArrayOfSpeciesTag&       tgs,
+                      const ArrayOfArrayOfSpeciesTag&       wfs_tgs)
 {
 
   // Make a safety check that the dimensions of tgs and

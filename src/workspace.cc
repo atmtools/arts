@@ -672,12 +672,12 @@ void define_wsv_data()
        (
 	"Tag groups for scalar gas absorption.\n"
 	"\n"
-	"This is an array of arrays of OneTag tag definitions. It defines the\n"
+	"This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
 	"available tag groups for the calculation of scalar gas absorption\n"
 	"coefficients.  See online documentation of method *gas_tgsDefine* for\n"
 	"more detailed information how tag groups work and some examples."
 	), 
-       GROUP( TagGroups_ )));
+       GROUP( ArrayOfArrayOfSpeciesTag_ )));
 
   wsv_data.push_back
     (WsvRecord

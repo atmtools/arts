@@ -23,9 +23,9 @@
   \file   xml_io.cc
   \author Oliver Lemke <olemke@uni-bremen.de>
   \date   Fri May 10 09:43:57 2002
-  
+
   \brief This file contains basic functions to handle XML data files.
-  
+
 */
 
 
@@ -43,6 +43,7 @@
 #include "ppath.h"
 #include "agenda_class.h"
 #include "absorption.h"
+#include "gas_abs_lookup.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -89,6 +90,12 @@ xml_read_from_stream (istream& is, ArrayOfVector& avector);
 
 void
 xml_write_to_stream (ostream& os, const ArrayOfVector& avector);
+
+void
+xml_read_from_stream (istream& is, GasAbsLookup& gal);
+
+void
+xml_write_to_stream (ostream& os, const GasAbsLookup& gal);
 
 void
 xml_read_from_stream (istream& is, GridPos& gp);
@@ -157,10 +164,10 @@ void
 xml_write_to_stream (ostream& os, const Vector& vector);
 
 void
-xml_read_from_stream (istream& is, TagGroups& ataggroup);
+xml_read_from_stream (istream& is, ArrayOfArrayOfSpeciesTag& taggroups);
 
 void
-xml_write_to_stream (ostream& os, const TagGroups& ataggroup);
+xml_write_to_stream (ostream& os, const ArrayOfArrayOfSpeciesTag& taggroups);
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes
@@ -1429,7 +1436,71 @@ xml_write_to_stream (ostream&             os,
   os << '\n';
 }
 
-//=== Index ===========================================================
+//=== GasAbsLookup ===========================================================
+
+//! Reads GasAbsLookup from XML input stream
+/*!
+  Checks whether the next tag in input stream is <GasAbsLookup>
+  and if so, verifies the order of the components and writes them
+  to the 'gal' parameter.
+
+  \param is  Input stream
+  \param gal GasAbsLookup return value
+*/
+void
+xml_read_from_stream (istream&      is,
+                      GasAbsLookup& gal)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is);
+  tag.check_name ("GasAbsLookup");
+
+  xml_read_from_stream (is, gal.gas_tgs);
+  xml_read_from_stream (is, gal.f_grid);
+  xml_read_from_stream (is, gal.p_grid);
+  xml_read_from_stream (is, gal.vmrs);
+  xml_read_from_stream (is, gal.t_ref);
+  xml_read_from_stream (is, gal.t_pert);
+  xml_read_from_stream (is, gal.h2o_pert);
+  xml_read_from_stream (is, gal.abs);
+
+  tag.read_from_stream (is);
+  tag.check_name ("/GasAbsLookup");
+}
+
+
+//! Writes GasAbsLookup to XML output stream
+/*!
+  \param os Output stream
+  \param gas GasAbsLookup
+*/
+void
+xml_write_to_stream (ostream&            os,
+                     const GasAbsLookup& gal)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GasAbsLookup");
+  open_tag.write_to_stream (os);
+
+  xml_write_to_stream (os, gal.gas_tgs);
+  xml_write_to_stream (os, gal.f_grid);
+  xml_write_to_stream (os, gal.p_grid);
+  xml_write_to_stream (os, gal.vmrs);
+  xml_write_to_stream (os, gal.t_ref);
+  xml_write_to_stream (os, gal.t_pert);
+  xml_write_to_stream (os, gal.h2o_pert);
+  xml_write_to_stream (os, gal.abs);
+
+  close_tag.set_name ("/GasAbsLookup");
+  close_tag.write_to_stream (os);
+  os << '\n';
+}
+
+
+//=== Index ==================================================================
 
 //! Reads Index from XML input stream
 /*!
@@ -1682,7 +1753,88 @@ xml_write_to_stream (ostream&     os,
   os << '\n';
 }
 
-//=== Tensor3 =========================================================
+
+//=== ArrayOfArrayOfSpeciesTag ================================================
+
+//! Reads ArrayOfArrayOfSpeciesTag from XML input stream
+/*!
+  Checks whether the next tag in input stream is <ArrayOfArrayOfSpeciesTag> and if so,
+  write the values to 'tensor' parameter.
+
+  \param is        Input stream
+  \param taggroups ArrayOfArrayOfSpeciesTag return value
+*/
+void
+xml_read_from_stream (istream& is,
+                      ArrayOfArrayOfSpeciesTag& taggroups)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+  String str;
+
+  throw runtime_error("Method not implemented!");
+
+  tag.read_from_stream (is);
+  tag.check_name ("ArrayOfArrayOfSpeciesTag");
+
+  tag.get_attribute_value ("nelem", nelem);
+  taggroups.resize (nelem);
+
+  for (Index i = 0; i < nelem; i++)
+    {
+      is >> str;
+      if (is.fail ())
+        {
+          ostringstream os;
+          os << "Error reading TagGroup:"
+            << "Near token: " << str;
+          xml_parse_error (os.str());
+        }
+       taggroups[i] = SpeciesTag (str);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/ArrayOfArrayOfSpeciesTag");
+
+  throw runtime_error("Method not implemented!");
+}
+
+
+//! Writes ArrayOfArrayOfSpeciesTag to XML output stream
+/*!
+  \param os Output stream
+  \param taggroups Tensor
+*/
+void
+xml_write_to_stream (ostream&     os,
+                     const ArrayOfArrayOfSpeciesTag& taggroups)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+  ostringstream v;
+
+  throw runtime_error("Method not implemented!");
+  //
+  // Convert nelem to string
+  v << taggroups.nelem ();
+
+  open_tag.set_name ("ArrayOfArrayOfSpeciesTag");
+  open_tag.add_attribute ("nelem", v.str ());
+
+  open_tag.write_to_stream (os);
+
+/*  for (Index i = 0; i < taggroups.nelem(); i++)
+    {
+      os << taggroups[i].Name ();
+    }*/
+
+  close_tag.set_name ("/ArrayOfArrayOfSpeciesTag");
+  close_tag.write_to_stream (os);
+  os << '\n';
+}
+
+
+//=== Tensor3 ================================================================
 
 //! Reads Tensor3 from XML input stream
 /*!
@@ -2331,6 +2483,9 @@ template void
 xml_read_from_file<ArrayOfVector> (const String&, ArrayOfVector&);
 
 template void
+xml_read_from_file<GasAbsLookup> (const String&, GasAbsLookup&);
+
+template void
 xml_read_from_file<GridPos> (const String&, GridPos&);
 
 template void
@@ -2367,8 +2522,7 @@ template void
 xml_read_from_file<Vector> (const String&, Vector&);
 
 template void
-xml_read_from_file<TagGroups> (const String&, TagGroups&);
-
+xml_read_from_file<ArrayOfArrayOfSpeciesTag> (const String&, ArrayOfArrayOfSpeciesTag&);
 
 template void
 xml_write_to_file<Agenda> (const String&, const Agenda&);
@@ -2398,6 +2552,9 @@ xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&);
 
 template void
 xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&);
+
+template void
+xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&);
 
 template void
 xml_write_to_file<GridPos> (const String&, const GridPos&);
@@ -2436,7 +2593,7 @@ template void
 xml_write_to_file<Vector> (const String&, const Vector&);
 
 template void
-xml_write_to_file<TagGroups> (const String&, const TagGroups&);
+xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&, const ArrayOfArrayOfSpeciesTag&);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -2488,17 +2645,4 @@ xml_write_to_stream (ostream&     os,
   throw runtime_error("Method not implemented!");
 }
 
-void
-xml_read_from_stream (istream& is,
-                      TagGroups& ataggroup)
-{
-  throw runtime_error("Method not implemented!");
-}
-
-void
-xml_write_to_stream (ostream&     os,
-                     const TagGroups& ataggroup)
-{
-  throw runtime_error("Method not implemented!");
-}
 

@@ -1276,7 +1276,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 
 
 
-OneTag::OneTag(String def) 
+SpeciesTag::SpeciesTag(String def) 
 {
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1452,7 +1452,7 @@ OneTag::OneTag(String def)
 }
 
 
-String OneTag::Name() const 
+String SpeciesTag::Name() const 
 {
   // Species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1512,7 +1512,7 @@ String OneTag::Name() const
   return os.str();
 }
 
-ostream& operator << (ostream& os, const OneTag& ot)
+ostream& operator << (ostream& os, const SpeciesTag& ot)
 {
   return os << ot.Name();
 }
@@ -1543,12 +1543,12 @@ ostream& operator << (ostream& os, const OneTag& ot)
 */
 void get_tagindex_for_Strings( 
 			      ArrayOfIndex&   tags1_index, 
-			      const TagGroups&      tags1, 
+			      const ArrayOfArrayOfSpeciesTag&      tags1, 
 			      const ArrayOfString&  tags2_Strings )
 {
   const Index   n1 = tags1.nelem();
   const Index   n2 = tags2_Strings.nelem();
-     TagGroups   tags2;                // Internal tag names for tag_Strings
+     ArrayOfArrayOfSpeciesTag   tags2;                // Internal tag names for tag_Strings
         Index   i1, i2, nj, j, found, ok;
 
   tags1_index.resize(n2);
@@ -1599,8 +1599,8 @@ void get_tagindex_for_Strings(
     \author Patrick Eriksson, Axel von Engeln, and Stefan Buehler
     \date 2001-01-31 */
 void get_tag_group_index_for_tag_group( Index&               tgs1_index, 
-				        const TagGroups&      tgs1, 
-				        const Array<OneTag>&  tg2 )
+				        const ArrayOfArrayOfSpeciesTag&      tgs1, 
+				        const Array<SpeciesTag>&  tg2 )
 {
   bool found = false;
 
@@ -1640,7 +1640,7 @@ void get_tag_group_index_for_tag_group( Index&               tgs1_index,
 /**
    Print the name of a tag group. 
 
-   A tag group consists of several elementary OneTags. This functions
+   A tag group consists of several elementary SpeciesTags. This functions
    returns a String with the name of the entire tag group. This is
    nice for informational output messages, for example in the
    absorption routines.
@@ -1651,7 +1651,7 @@ void get_tag_group_index_for_tag_group( Index&               tgs1_index,
    \author Stefan Buehler
    \date   2001-03-13
 */
-String get_tag_group_name( const Array<OneTag>& tg )
+String get_tag_group_name( const Array<SpeciesTag>& tg )
 {
   String name;
   Index i;

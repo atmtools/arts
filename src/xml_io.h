@@ -23,9 +23,9 @@
   \file   xml_io.h
   \author Oliver Lemke <olemke@uni-bremen.de>
   \date   Fri May 10 09:43:57 2002
-  
+
   \brief This file contains basic functions to handle XML data files.
-  
+
 */
 
 

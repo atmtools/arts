@@ -25,10 +25,10 @@ public:
   void Extract( Tensor3 sga,
 		ConstVectorView& p,
 		ConstVectorView& T);
-private:
+//private:
 
   //! This contains the tag groups for which the table is valid:
-  TagGroups gas_tgs; 
+  ArrayOfArrayOfSpeciesTag gas_tgs; 
 
   //! The frequency grid [Hz].
   /*! Must be sorted in ascending order. */

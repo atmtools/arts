@@ -793,17 +793,17 @@ void define_species_map();
 /** A tag group can consist of the sum of several of these.
 
     \author Stefan Buehler */
-class OneTag {
+class SpeciesTag {
 public:
   /** Default constructor. */
-  OneTag() { /* Nothing to be done here. */ }
+  SpeciesTag() { /* Nothing to be done here. */ }
 
   /** Constructor from a tag definition String (Bredbeck
       notation). For examples see member function Name(). 
 
       \exception runtime_error The given String could not be mapped to
       a sensible tag description. */
-  OneTag(String def); 
+  SpeciesTag(String def); 
 
   /** Return the full name of this tag according to Bredbeck
       convention. Examples:
@@ -846,10 +846,10 @@ private:
 };
 
 
-/** Output operator for OneTag. 
+/** Output operator for SpeciesTag. 
 
     \author Stefan Buehler */
-ostream& operator << (ostream& os, const OneTag& ot);
+ostream& operator << (ostream& os, const SpeciesTag& ot);
 
 
 /** Contains the available tag groups. Contrary to the Bredbeck
@@ -858,20 +858,20 @@ ostream& operator << (ostream& os, const OneTag& ot);
     associated with each tag group.
 
     \author Stefan Buehler */
-typedef  Array< Array<OneTag> > TagGroups;
+typedef  Array< Array<SpeciesTag> > ArrayOfArrayOfSpeciesTag;
 
 
 void get_tagindex_for_Strings( 
               ArrayOfIndex&   tags1_index, 
-        const TagGroups&      tags1, 
+        const ArrayOfArrayOfSpeciesTag&      tags1, 
         const ArrayOfString&  tags2_Strings );
 
 void get_tag_group_index_for_tag_group( 
               Index&         tags1_index, 
-        const TagGroups&      tags1, 
-        const Array<OneTag>&  tags2 );
+        const ArrayOfArrayOfSpeciesTag&      tags1, 
+        const Array<SpeciesTag>&  tags2 );
 
-String get_tag_group_name( const Array<OneTag>& tg );
+String get_tag_group_name( const Array<SpeciesTag>& tg );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,

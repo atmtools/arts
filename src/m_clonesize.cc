@@ -325,16 +325,16 @@ void CloneSize(// WS Generic Output:
 }
 
 void CloneSize(// WS Generic Output:
-               TagGroups& out,
+               ArrayOfArrayOfSpeciesTag& out,
                // WS Generic Output Names:
                const String& outname,
                // WS Generic Input:
-               const TagGroups& in,
+               const ArrayOfArrayOfSpeciesTag& in,
                // WS Generic Input Names:
                const String& inname)
 {
   out.resize( in.nelem() );
-  out2 << "  Created an Array of empty TagGroups.\n";
+  out2 << "  Created an Array of empty ArrayOfArrayOfSpeciesTag.\n";
 }
 
 void CloneSize(// WS Generic Output:

@@ -1,6 +1,6 @@
-/* Copyright (C) 2002 
+/* Copyright (C) 2002
    Oliver Lemke <olemke@uni-bremen.de>
-                            
+
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -20,9 +20,9 @@
   \file   m_xml.h
   \author Stefan Buehler <sbuehler@uni-bremen.de>
   \date   Tue Jun 18 18:32:43 2002
-  
+
   \brief  Template functions for supergeneric XML IO.
-    
+
 */
 
 #ifndef m_xml_h
@@ -32,15 +32,15 @@
 
 template<typename T> void
 ReadXML (// WS Generic Output:
-	 T&            v,
-	 // WS Generic Output Names:
-	 const String& v_name,
-	 // Control Parameters:
-	 const String& f)
+         T&            v,
+         // WS Generic Output Names:
+         const String& v_name,
+         // Control Parameters:
+         const String& f)
 {
   String filename = f;
 
-  // Create default filename if empty  
+  // Create default filename if empty
   filename_xml (filename, v_name);
 
   xml_read_from_file (filename, v);
@@ -49,15 +49,15 @@ ReadXML (// WS Generic Output:
 
 template<typename T> void
 WriteXML (// WS Generic Output:
-	  const T&            v,
-	  // WS Generic Output Names:
-	  const String& v_name,
-	  // Control Parameters:
-	  const String& f)
+          const T&            v,
+          // WS Generic Output Names:
+          const String& v_name,
+          // Control Parameters:
+          const String& f)
 {
   String filename = f;
 
-  // Create default filename if empty  
+  // Create default filename if empty
   filename_xml (filename, v_name);
 
   xml_write_to_file (filename, v);
