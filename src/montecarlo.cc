@@ -370,12 +370,12 @@ void Cloudbox_ppath_rteCalc(
                              const Agenda&         rte_agenda,
                              const Agenda&         iy_space_agenda,
                              const Agenda&         iy_surface_agenda,
-			     const Agenda&         iy_cloudbox_agenda,
+                             const Agenda&         iy_cloudbox_agenda,
                              const Vector&         f_grid,
                              const Index&          photon_number,
                              const Index&          scattering_order,
                              const Tensor4&        pnd_field,
-			     const ArrayOfSingleScatteringData& scat_data_mono
+                             const ArrayOfSingleScatteringData& scat_data_mono
 )
 
 {
@@ -402,8 +402,8 @@ void Cloudbox_ppath_rteCalc(
                    cloudbox_limits, rte_pos,rte_los);
   
   //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-  //			 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
-  //		 cloudbox_limits, rte_pos,rte_los,0);
+  //                     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+  //             cloudbox_limits, rte_pos,rte_los,0);
   if (record_ppathcloud)
     {
       //Record ppathcloud.  This is useful for debugging and educational 
@@ -421,7 +421,7 @@ void Cloudbox_ppath_rteCalc(
   
   //Calculate array of transmittance matrices
   TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
-	     rte_pressure, rte_temperature, 
+             rte_pressure, rte_temperature, 
              rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
              scalar_gas_absorption_agenda, stokes_dim, 
              p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
@@ -447,10 +447,10 @@ void Cloudbox_ppath_rteCalc(
   //         f_grid,stokes_dim, antenna_dim_dummy,
   //         mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
   iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
-	  rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-	  iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
-	  lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
-	  pos, los, f_grid,stokes_dim, 1);
+          rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
+          iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
+          lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
+          pos, los, f_grid,stokes_dim, 1);
 
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
   
@@ -752,16 +752,16 @@ Vector interp( ConstVectorView itw,
 }               
 
 void interp_scat_angle_temperature(//Output:
-				   VectorView pha_mat_int,
-				   Numeric& theta_rad,
-				   //Input:
-				   const SingleScatteringData& scat_data,
-				   const Numeric& za_sca,
-				   const Numeric& aa_sca,
-				   const Numeric& za_inc,
-				   const Numeric& aa_inc,
-				   const Numeric& rte_temperature
-				   )
+                                   VectorView pha_mat_int,
+                                   Numeric& theta_rad,
+                                   //Input:
+                                   const SingleScatteringData& scat_data,
+                                   const Numeric& za_sca,
+                                   const Numeric& aa_sca,
+                                   const Numeric& za_inc,
+                                   const Numeric& aa_inc,
+                                   const Numeric& rte_temperature
+                                   )
 {
   Numeric ANG_TOL=1e-7;
 
@@ -884,9 +884,9 @@ void interpTArray(Matrix& T,
   else if ( is_diagonal( opt_depth_mat))
     {
       for ( Index i=0;i<stokes_dim;i++)
-	{
-	  incT(i,i)=exp(opt_depth_mat(i,i));
-	}
+        {
+          incT(i,i)=exp(opt_depth_mat(i,i));
+        }
     }
   else
     {
@@ -969,7 +969,7 @@ void montecarloGetIncoming(
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
                            const Agenda&         iy_surface_agenda,
-			   const Agenda&         iy_cloudbox_agenda,
+                           const Agenda&         iy_cloudbox_agenda,
                            //const Tensor3&        t_field,
                            const Vector&         p_grid,
                            const Vector&         lat_grid,
@@ -1021,10 +1021,10 @@ void montecarloGetIncoming(
   //          f_grid,stokes_dim, antenna_dim_dummy,
   //        mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
   iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
-	  rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-	  iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
-	  lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
-	  pos, los, f_grid,stokes_dim, 1);
+          rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
+          iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
+          lon_grid, z_field,r_geoid, z_surface, cloudbox_on_dummy, cloudbox_limits,
+          pos, los, f_grid,stokes_dim, 1);
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
 }
@@ -1049,15 +1049,15 @@ from scat_data_mono
 */
 
 void opt_propCalc(
-		  MatrixView& K,
-		  VectorView& K_abs,
-		  const Numeric za,
-		  const Numeric aa,
-		  const ArrayOfSingleScatteringData& scat_data_mono,
-		  const Index&          stokes_dim,
-		  const VectorView& pnd_vec,
-		  const Numeric& rte_temperature
-		  )
+                  MatrixView& K,
+                  VectorView& K_abs,
+                  const Numeric za,
+                  const Numeric aa,
+                  const ArrayOfSingleScatteringData& scat_data_mono,
+                  const Index&          stokes_dim,
+                  const VectorView& pnd_vec,
+                  const Numeric& rte_temperature
+                  )
 {
   const Index N_pt = scat_data_mono.nelem();
 
@@ -1075,14 +1075,14 @@ void opt_propCalc(
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       if (pnd_vec[i_pt]>0)
-	{
-	  opt_propExtract(K_spt,K_abs_spt,scat_data_mono[i_pt],za,aa,
-			  rte_temperature,stokes_dim);
-	  K_spt*=pnd_vec[i_pt];
-	  K_abs_spt*=pnd_vec[i_pt];
-	  K+=K_spt;
-	  K_abs+=K_abs_spt;
-	}
+        {
+          opt_propExtract(K_spt,K_abs_spt,scat_data_mono[i_pt],za,aa,
+                          rte_temperature,stokes_dim);
+          K_spt*=pnd_vec[i_pt];
+          K_abs_spt*=pnd_vec[i_pt];
+          K+=K_spt;
+          K_abs+=K_abs_spt;
+        }
     }
 
 }
@@ -1108,14 +1108,14 @@ void opt_propCalc(
 */
 
 void opt_propExtract(
-		     MatrixView& K_spt,
-		     VectorView& K_abs_spt,
-		     const SingleScatteringData& scat_data,
-		     const Numeric& za,
-		     const Numeric& aa,
-		     const Numeric& rte_temperature,
-		     const Index& stokes_dim
-		     )
+                     MatrixView& K_spt,
+                     VectorView& K_abs_spt,
+                     const SingleScatteringData& scat_data,
+                     const Numeric& za,
+                     const Numeric& aa,
+                     const Numeric& rte_temperature,
+                     const Index& stokes_dim
+                     )
 {
 
   GridPos t_gp;
@@ -1203,7 +1203,7 @@ void opt_propExtract(
       Kjj=interp(itw,scat_data.ext_mat_data(0,joker,joker,0,0),t_gp,za_gp);
       K_spt(0,0)=Kjj;
       K_abs_spt[0] = interp(itw,scat_data.abs_vec_data(0,joker,joker,0,0),
-			    t_gp,za_gp);
+                            t_gp,za_gp);
       if( stokes_dim == 1 ){
         break;
       }
@@ -1213,7 +1213,7 @@ void opt_propExtract(
       K_spt(0,1)=K12;
       K_spt(1,0)=K12;
       K_abs_spt[1] = interp(itw,scat_data.abs_vec_data(0,joker,joker,0,1),
-			    t_gp,za_gp);
+                            t_gp,za_gp);
 
       if( stokes_dim == 2 ){
         break;
@@ -1278,7 +1278,7 @@ void pha_mat_singleCalc(
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          stokes_dim,
                         const VectorView& pnd_vec,
-			const Numeric& rte_temperature
+                        const Numeric& rte_temperature
                         )
 {
   Index N_pt=pnd_vec.nelem();
@@ -1292,12 +1292,12 @@ void pha_mat_singleCalc(
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       if (pnd_vec[i_pt]>0)
-	{
-	  pha_mat_singleExtract(Z_spt,scat_data_mono[i_pt],za_sca,aa_sca,za_inc,
-				aa_inc,rte_temperature,stokes_dim);
-	  Z_spt*=pnd_vec[i_pt];
-	  Z+=Z_spt;
-	}
+        {
+          pha_mat_singleExtract(Z_spt,scat_data_mono[i_pt],za_sca,aa_sca,za_inc,
+                                aa_inc,rte_temperature,stokes_dim);
+          Z_spt*=pnd_vec[i_pt];
+          Z+=Z_spt;
+        }
     }
 }
 
@@ -1322,15 +1322,15 @@ void pha_mat_singleCalc(
 
 */
 void pha_mat_singleExtract(
-			   MatrixView& Z_spt,
-			   const SingleScatteringData& scat_data,
-			   const Numeric& za_sca,
-			   const Numeric& aa_sca,
-			   const Numeric& za_inc,
-			   const Numeric& aa_inc,
-			   const Numeric& rte_temperature,
-			   const Index& stokes_dim
-			   )			   
+                           MatrixView& Z_spt,
+                           const SingleScatteringData& scat_data,
+                           const Numeric& za_sca,
+                           const Numeric& aa_sca,
+                           const Numeric& za_inc,
+                           const Numeric& aa_inc,
+                           const Numeric& rte_temperature,
+                           const Index& stokes_dim
+                           )                       
 {
   switch (scat_data.ptype){
 
@@ -1349,8 +1349,8 @@ void pha_mat_singleExtract(
             
       // Interpolation of the data on the scattering angle:
       interp_scat_angle_temperature(pha_mat_int, theta_rad, 
-				    scat_data, za_sca, aa_sca, 
-				    za_inc, aa_inc, rte_temperature);
+                                    scat_data, za_sca, aa_sca, 
+                                    za_inc, aa_inc, rte_temperature);
       
       // Caclulate the phase matrix in the laboratory frame:
       pha_mat_labCalc(Z_spt, pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, theta_rad);
@@ -1584,7 +1584,7 @@ void Sample_los (
                    const bool& anyptype30,
                    const VectorView& Z11maxvector,
                    Numeric Csca,
-		   const Numeric& rte_temperature
+                   const Numeric& rte_temperature
                    )
 {
   Numeric Z11max=0;
@@ -1676,12 +1676,12 @@ void Sample_ppathlength (
     {
       T11vector[i]=TArray[i](0,0);
       if (T11vector[i] < 1e-12)
-	{
-	  //then we need to truncate T11vector at this point
-	  T11vector=T11vector[Range(0,i+1)];
-	  npoints=i;
-	  break;
-	}
+        {
+          //then we need to truncate T11vector at this point
+          T11vector=T11vector[Range(0,i+1)];
+          npoints=i;
+          break;
+        }
     }
   GridPos gp;
   //  Vector itw(2);
@@ -1743,12 +1743,12 @@ void Sample_ppathlengthLOS (
     {
       T11vector[i]=TArray[i](0,0);
       if (T11vector[i] < 1e-12)
-	{
-	  //then we need to truncate T11vector at this point
-	  T11vector=T11vector[Range(0,i+1)];
-	  npoints=i;
-	  break;
-	}
+        {
+          //then we need to truncate T11vector at this point
+          T11vector=T11vector[Range(0,i+1)];
+          npoints=i;
+          break;
+        }
     }
   GridPos gp;
   //Vector itw(2);
@@ -1803,8 +1803,8 @@ void TArrayCalc(
                 const Tensor4&   vmr_field,
                 const Index&     atmosphere_dim,
                 const Tensor4&   pnd_field,
-		const ArrayOfSingleScatteringData& scat_data_mono
-		)
+                const ArrayOfSingleScatteringData& scat_data_mono
+                )
 { 
   const Index np=ppath.np;  
   const Index   ns = vmr_field.nbooks();
@@ -1895,8 +1895,8 @@ void TArrayCalc(
       //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
       
       opt_propCalc(ext_mat_part,abs_vec_part,scat_za_grid[scat_za_index],
-		   scat_aa_grid[scat_aa_index],scat_data_mono,stokes_dim,
-		   pnd_ppath(joker, scat_za_index),rte_temperature);
+                   scat_aa_grid[scat_aa_index],scat_data_mono,stokes_dim,
+                   pnd_ppath(joker, scat_za_index),rte_temperature);
 
       ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
       abs_vec(0,Range(joker)) += abs_vec_part;
@@ -1915,20 +1915,20 @@ void TArrayCalc(
       opt_depth_mat*=-ppath.l_step[i-1]/2;
       incT=0;
       if ( stokes_dim == 1 )
-	{
-	  incT(0,0)=exp(opt_depth_mat(0,0));
-	}
+        {
+          incT(0,0)=exp(opt_depth_mat(0,0));
+        }
       else if ( is_diagonal( opt_depth_mat))
-	{
-	  for ( Index j=0;j<stokes_dim;j++)
-	    {
-	      incT(j,j)=exp(opt_depth_mat(j,j));
-	    }
-	}
+        {
+          for ( Index j=0;j<stokes_dim;j++)
+            {
+              incT(j,j)=exp(opt_depth_mat(j,j));
+            }
+        }
       else
-	{
-	  matrix_exp(incT,opt_depth_mat,10);
-	}
+        {
+          matrix_exp(incT,opt_depth_mat,10);
+        }
       TArray[i]=zeroMatrix;
       mult(TArray[i],TArray[i-1],incT);
     }

@@ -1,3 +1,17 @@
+2004-10-11  Cory Davis  <cory@fog>
+
+	* arts-1-1-898
+
+	* src/rng.cc: untabified.
+
+	* src/rng.h: untabified.
+
+	* src/m_montecarlo.cc: untabified.
+
+	* src/montecarlo.cc: untabified.
+
+	* src/montecarlo.h: untabified.
+
 2004-10-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-897

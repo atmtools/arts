@@ -147,14 +147,14 @@ static inline unsigned long int mt_get (void *vstate);
 static double mt_get_double (void *vstate);
 static void mt_set (void *state, unsigned long int s);
 
-#define N 624	/* Period parameters */
+#define N 624   /* Period parameters */
 #define M 397
 
 /* most significant w-r bits */
-static const unsigned long UPPER_MASK = 0x80000000UL;	
+static const unsigned long UPPER_MASK = 0x80000000UL;   
 
 /* least significant r bits */
-static const unsigned long LOWER_MASK = 0x7fffffffUL;	
+static const unsigned long LOWER_MASK = 0x7fffffffUL;   
 
 typedef struct
   {
@@ -174,23 +174,23 @@ mt_get (void *vstate)
 #define MAGIC(y) (((y)&0x1) ? 0x9908b0dfUL : 0)
 
   if (state->mti >= N)
-    {	/* generate N words at one time */
+    {   /* generate N words at one time */
       int kk;
 
       for (kk = 0; kk < N - M; kk++)
-	{
-	  unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-	  mt[kk] = mt[kk + M] ^ (y >> 1) ^ MAGIC(y);
-	}
+        {
+          unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+          mt[kk] = mt[kk + M] ^ (y >> 1) ^ MAGIC(y);
+        }
       for (; kk < N - 1; kk++)
-	{
-	  unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
-	  mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ MAGIC(y);
-	}
+        {
+          unsigned long y = (mt[kk] & UPPER_MASK) | (mt[kk + 1] & LOWER_MASK);
+          mt[kk] = mt[kk + (M - N)] ^ (y >> 1) ^ MAGIC(y);
+        }
 
       {
-	unsigned long y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
-	mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ MAGIC(y);
+        unsigned long y = (mt[N - 1] & UPPER_MASK) | (mt[0] & LOWER_MASK);
+        mt[N - 1] = mt[M - 1] ^ (y >> 1) ^ MAGIC(y);
       }
 
       state->mti = 0;
@@ -222,7 +222,7 @@ mt_set (void *vstate, unsigned long int s)
   int i;
 
   if (s == 0)
-    s = 4357;	/* the default seed is 4357 */
+    s = 4357;   /* the default seed is 4357 */
 
   state->mt[0]= s & 0xffffffffUL;
 
@@ -243,9 +243,9 @@ mt_set (void *vstate, unsigned long int s)
 
 
 static const gsl_rng_type mt_type =
-{"mt19937",			/* name */
- 0xffffffffUL,			/* RAND_MAX  */
- 0,			        /* RAND_MIN  */
+{"mt19937",                     /* name */
+ 0xffffffffUL,                  /* RAND_MAX  */
+ 0,                             /* RAND_MIN  */
  sizeof (mt_state_t),
  &mt_set,
  &mt_get,
@@ -381,7 +381,7 @@ gsl_stream_handler_t * gsl_stream_handler = NULL;
 
 void
 gsl_stream_printf (const char *label, const char *file, int line, 
-		   const char *reason)
+                   const char *reason)
 {
   if (gsl_stream == NULL)
     {
@@ -523,22 +523,22 @@ gsl_rng_alloc (const gsl_rng_type * T)
   if (r == 0)
     {
       GSL_ERROR_VAL ("failed to allocate space for rng struct",
-			GSL_ENOMEM, 0);
+                        GSL_ENOMEM, 0);
     };
 
   r->state = malloc (T->size);
 
   if (r->state == 0)
     {
-      free (r);		/* exception in constructor, avoid memory leak */
+      free (r);         /* exception in constructor, avoid memory leak */
 
       GSL_ERROR_VAL ("failed to allocate space for rng state",
-			GSL_ENOMEM, 0);
+                        GSL_ENOMEM, 0);
     };
 
   r->type = T;
 
-  gsl_rng_set (r, gsl_rng_default_seed);	/* seed the generator */
+  gsl_rng_set (r, gsl_rng_default_seed);        /* seed the generator */
 
   return r;
 }
@@ -564,17 +564,17 @@ gsl_rng_clone (const gsl_rng * q)
   if (r == 0)
     {
       GSL_ERROR_VAL ("failed to allocate space for rng struct",
-			GSL_ENOMEM, 0);
+                        GSL_ENOMEM, 0);
     };
 
   r->state = malloc (q->type->size);
 
   if (r->state == 0)
     {
-      free (r);		/* exception in constructor, avoid memory leak */
+      free (r);         /* exception in constructor, avoid memory leak */
 
       GSL_ERROR_VAL ("failed to allocate space for rng state",
-			GSL_ENOMEM, 0);
+                        GSL_ENOMEM, 0);
     };
 
   r->type = q->type;
@@ -627,7 +627,7 @@ gsl_rng_uniform_int (const gsl_rng * r, unsigned long int n)
   if (n > range) 
     {
       GSL_ERROR_VAL ("n exceeds maximum value of generator",
-			GSL_EINVAL, 0) ;
+                        GSL_EINVAL, 0) ;
     }
 
   do

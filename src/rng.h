@@ -278,7 +278,7 @@ gsl_rng_uniform_int (const gsl_rng * r, unsigned long int n)
   if (n > range) 
     {
       GSL_ERROR_VAL ("n exceeds maximum value of generator",
-			GSL_EINVAL, 0) ;
+                        GSL_EINVAL, 0) ;
     }
 
   do
@@ -371,21 +371,21 @@ enum {
 } ;
 
 void gsl_error (const char * reason, const char * file, int line,
-		int gsl_errno);
+                int gsl_errno);
 
 void gsl_warning (const char * reason, const char * file, int line,
-		  int gsl_errno) ;
+                  int gsl_errno) ;
 
 void gsl_stream_printf (const char *label, const char *file,
-			int line, const char *reason);
+                        int line, const char *reason);
 
 const char * gsl_strerror (const int gsl_errno);
 
 typedef void gsl_error_handler_t (const char * reason, const char * file,
-				  int line, int gsl_errno);
+                                  int line, int gsl_errno);
 
 typedef void gsl_stream_handler_t (const char * label, const char * file,
-				   int line, const char * reason);
+                                   int line, const char * reason);
 
 gsl_error_handler_t * 
 gsl_set_error_handler (gsl_error_handler_t * new_handler);
@@ -521,7 +521,7 @@ __BEGIN_DECLS
  * by defining GSL_MESSAGING_OFF.  */
 
 void gsl_message(const char * message, const char * file, int line,
-		 unsigned int mask);
+                 unsigned int mask);
 
 #ifndef GSL_MESSAGE_MASK
 #define GSL_MESSAGE_MASK 0xffffffffu /* default all messages allowed */
@@ -548,7 +548,7 @@ enum {
 #define GSL_MESSAGE(message, mask) \
        do { \
        if (mask & GSL_MESSAGE_MASK) \
-	 gsl_message (message, __FILE__, __LINE__, mask) ; \
+         gsl_message (message, __FILE__, __LINE__, mask) ; \
        } while (0)
 #endif
 

@@ -149,7 +149,7 @@ void ScatteringMonteCarlo (
                            GridPos&              rte_gp_p,
                            GridPos&              rte_gp_lat,
                            GridPos&              rte_gp_lon,
-			   // Matrix&               i_space,
+                           // Matrix&               i_space,
                            //Matrix&               surface_emission,
                            //Matrix&               surface_los, 
                            //Tensor4&              surface_refl_coeffs,
@@ -286,7 +286,7 @@ void ScatteringMonteCarlo (
                          scalar_gas_absorption_agenda, stokes_dim, t_field, 
                          vmr_field, rte_agenda, iy_space_agenda, 
                          iy_surface_agenda, iy_cloudbox_agenda,f_grid, 0, 0,
-			 pnd_field,scat_data_mono);
+                         pnd_field,scat_data_mono);
  
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],iy(0,joker));
 
@@ -324,11 +324,11 @@ void ScatteringMonteCarlo (
               //able to take some shortcuts here
               Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
                                  p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-	                          cloudbox_limits, rte_pos,rte_los);
-	      //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-	      //		 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
-	      //	 cloudbox_limits, rte_pos,rte_los,0);
-	      
+                                  cloudbox_limits, rte_pos,rte_los);
+              //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+              //                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+              //         cloudbox_limits, rte_pos,rte_los,0);
+              
               if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
                                                    photon_number,scattering_order);}
                               
@@ -336,7 +336,7 @@ void ScatteringMonteCarlo (
   
               //Calculate array of transmittance matrices
               TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
-			 rte_pressure, rte_temperature, 
+                         rte_pressure, rte_temperature, 
                          rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
                          scalar_gas_absorption_agenda, stokes_dim, 
                          p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
@@ -363,9 +363,9 @@ void ScatteringMonteCarlo (
               //Get incoming//////
               montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
                         rte_gp_lat,rte_gp_lon,ppath,ppath_step,
-			ppath_step_agenda,
+                        ppath_step_agenda,
                         rte_agenda,iy_space_agenda,iy_surface_agenda,
-				    iy_cloudbox_agenda,
+                                    iy_cloudbox_agenda,
                         p_grid,lat_grid,lon_grid,z_field,r_geoid,
                         z_surface,cloudbox_limits,ppathcloud,atmosphere_dim,
                         f_grid,stokes_dim);
