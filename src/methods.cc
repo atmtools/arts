@@ -1879,19 +1879,27 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ppath_stepRefractionStd" ),
+      ( NAME( "ppath_stepRefractionEuler" ),
 	DESCRIPTION
         (
-	 "Calculates a propagation path step, taking refraction into\n"
-	 "account.\n"
+	 "Calculates a propagation path step, considering refraction by an\n"
+	 "Euler approach.\n"
 	 "\n"
-	 "This function considers refraction by making ray tracing steps \n"
-	 "through the atmosphere. where the conditions are assumed to be\n"
-	 "constant along the ray tracing steps. The upper length of the ray\n"
-	 "tracing steps is set bu the keyword argument. The algorithm for\n"
-	 "the different dimensionalities is described in the user guide.\n"
+	 "Refraction is taken into account by probably the simplest approach\n"
+	 "possible. The path is treated to consist of piece-wise geometric \n"
+	 "steps. A geometric path step is calculated from each point by \n"
+	 "using the local line-of-sight. Snell's law for a case with \n"
+	 "spherical symmetry is used for 1D to calculate the zenith angles. \n"
+	 "For 2D and 3D, the zenith angles, and for 3D also the azimuth \n"
+	 "angles, are propagated by solving the differential equation by the\n"
+	 "Euler method. See the user guide for more details on the \n"
+	 "algorithms used.\n"
 	 "\n"
-	 "See further general comments for *ppath_stepGeometric*.\n"
+	 "The maximum length of each ray tracing step is given by the \n"
+	 "keyword argument *lraytrace*. The length will never exceed the \n" 
+	 "given maximum value, but can be smaller. The ray tracing steps are\n"
+	 "only used to determine the path, points to describe the path for \n" 
+	 "*RteCalc* are included as for *ppath_stepGeometric*. \n"
 	 "\n"
          "Keywords: \n"
          "   lraytrace : Maximum length of ray tracing steps.\n"
@@ -1906,21 +1914,23 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "ppath_stepRefractionStdWithLmax" ),
+      ( NAME( "ppath_stepRefractionEulerWithLmax" ),
 	DESCRIPTION
         (
 	 "As *ppath_stepRefractionStd* but with a length criterion for the\n"
          "distance between the path points.\n"
 	 "\n"
-	 "This function works as *ppath_stepRefractionStd* but additional\n"
-	 "points are included in the propagation path to ensure that the\n"
-	 "distance along the path between the points does not exceed the\n"
-	 "selected maximum length. The length criterion is set by the\n"
-	 "keyword argument *lmax*. The length of the ray tracing steps are\n"
-	 "determined by *lraytrace* as for *ppath_stepRefractionStd*.\n"
+	 "This function works as *ppath_stepRefractionEuler* but additional\n"
+	 "points are included in the returned propagation path to ensure \n"
+	 "that the distance along the path between the points does not\n"
+	 "exceed the selected maximum length. The length criterion is set \n"
+	 "by the keyword argument *lmax*. The length of the ray tracing \n"
+	 "steps are determined by *lraytrace* as for \n"
+	 "*ppath_stepRefractionStd*.\n"
 	 "\n"
          "Keywords: \n"
-         "   lmax : Maximum allowed length between path points.\n"
+         "   lraytrace : Maximum length of ray tracing steps.\n"
+         "   lmax      : Maximum allowed length between path points.\n"
         ),
 	OUTPUT( ppath_step_ ),
 	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 

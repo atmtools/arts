@@ -136,7 +136,7 @@ void ppath_step_geom_2d(
         ConstVectorView   z_ground,
 	const Numeric&    lmax );
 
-void ppath_step_refr_std_1d(
+void ppath_step_refr_euler_1d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
@@ -146,7 +146,7 @@ void ppath_step_refr_std_1d(
 	const Numeric&    lraytrace,
 	const Numeric&    lmax );
 
-void ppath_step_refr_std_2d(
+void ppath_step_refr_euler_2d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,

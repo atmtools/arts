@@ -360,7 +360,7 @@ void RteEmissionStd(
 	  for( Index iv=0; iv<nf; iv++ )
 	    {
 	      // Calculate an effective blackbody radiation for the step
-	      // The mean of the temperature at the ned points is used.
+	      // The mean of the temperature at the end points is used.
 	      Numeric planck_value = 
                            planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
 

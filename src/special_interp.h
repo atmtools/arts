@@ -128,7 +128,7 @@ Numeric interp_atmsurface_by_gp(
 void itw2p(
               VectorView       p_values,
         ConstVectorView        p_grid,
-	const ArrayOfGridPos   gp,
+	const ArrayOfGridPos&  gp,
 	ConstMatrixView        itw );
 
 void z_at_lat_2d(

@@ -537,14 +537,14 @@ void ppath_stepGeometricWithLmax(
 
 
 
-//! ppath_stepRefractionStd
+//! ppath_stepRefractionEuler
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-11-14
 */
-void ppath_stepRefractionStd(
+void ppath_stepRefractionEuler(
         // WS Output:
               Ppath&     ppath_step,
         // WS Input:
@@ -566,11 +566,11 @@ void ppath_stepRefractionStd(
   // Note that lmax is here set to -1.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_std_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+    { ppath_step_refr_euler_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
        t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, -1 );
     }
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_std_2d( ppath_step, p_grid, lat_grid,
+    { ppath_step_refr_euler_2d( ppath_step, p_grid, lat_grid,
                                  z_field(Range(joker),Range(joker),0), 
                                  t_field(Range(joker),Range(joker),0), 
             r_geoid(Range(joker),0), z_ground(Range(joker),0), lraytrace, -1 );
@@ -583,14 +583,14 @@ void ppath_stepRefractionStd(
 
 
 
-//! ppath_stepRefractionStdWithLmax
+//! ppath_stepRefractionEulerWithLmax
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-28
 */
-void ppath_stepRefractionStdWithLmax(
+void ppath_stepRefractionEulerWithLmax(
         // WS Output:
               Ppath&     ppath_step,
         // WS Input:
@@ -611,11 +611,11 @@ void ppath_stepRefractionStdWithLmax(
   // here. This commented in the on-line information for ppath_stepGeometric.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_std_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+    { ppath_step_refr_euler_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
      t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, lmax );
     }
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_std_2d( ppath_step, p_grid, lat_grid,
+    { ppath_step_refr_euler_2d( ppath_step, p_grid, lat_grid,
                                  z_field(Range(joker),Range(joker),0), 
                                  t_field(Range(joker),Range(joker),0), 
           r_geoid(Range(joker),0), z_ground(Range(joker),0), lraytrace, lmax );

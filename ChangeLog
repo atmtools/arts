@@ -1,3 +1,30 @@
+2002-11-26  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-311
+
+	* src/ppath.cc: A short report on quite a lot of work.
+	I have been working on a basic function for 1D ppath steps with 
+	refraction. I was not happy with the result for the first algorith so
+	I tried several improvements. Now I understand that there are inherent
+	problems and I finally selected an algorithm that can be extended to
+	2D and 3D. This would help to check the implementation for the
+	different dimensions. The WSM is now called ppath_stepRefractionEuler
+	as the method used is basically an Euler solution of the differential
+	problem.
+
+	I will write this down sometime in AUG, but I take it shortly here.
+	Unfortunately, the path calculations do not converge to some result
+	when making the ray tracing steps smaller. It seems to converge when
+	going down to step length of maybe 100 m, but then the results start
+	to move away again. I can't find any bugs in my calculations (the
+	result when setting the refractive index to 1 is perfect). It must be
+	the case that when making the ray tracing step very small, rounding
+	errors start to be noticed, making the final result to slide away.
+
+	Several improvements are possible, but I will take that later. I will
+	now implement the same approach for 2D, as a reference case for later,
+	more elaborated, schemes.
+
 2002-11-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-310
