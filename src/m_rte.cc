@@ -79,7 +79,7 @@ void RteCalc(
               GridPos&        a_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
-              Matrix&         ground_los, 
+              Matrix&         ground_los,
               Tensor4&        ground_refl_coeffs,
         // WS Input:
         const Agenda&         ppath_step_agenda,
@@ -101,6 +101,7 @@ void RteCalc(
         const Tensor7&        scat_i_lon,
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid,
+        const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
         const Vector&         f_grid,
@@ -110,16 +111,18 @@ void RteCalc(
         const Vector&         mblock_aa_grid )
 {
   const bool   check_input = true;
+  const bool   apply_sensor = true;
 
-  rte_calc( y_rte, ppath, ppath_step, i_rte, mblock_index, a_pos, a_los, 
+  rte_calc( y_rte, ppath, ppath_step, i_rte, mblock_index, a_pos, a_los,
             a_gp_p, a_gp_lat, a_gp_lon, i_space, 
             ground_emission, ground_los, ground_refl_coeffs, 
             ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda,
             atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
             r_geoid, z_ground, cloudbox_on,  cloudbox_limits, 
             scat_i_p, scat_i_lat, scat_i_lon, scat_za_grid, scat_aa_grid, 
-            sensor_pos, sensor_los, f_grid, stokes_dim, 
-            antenna_dim, mblock_za_grid, mblock_aa_grid, check_input );
+            sensor_response, sensor_pos, sensor_los, f_grid, stokes_dim,
+            antenna_dim, mblock_za_grid, mblock_aa_grid, 
+            check_input, apply_sensor );
 }
 
 

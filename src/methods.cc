@@ -2786,7 +2786,7 @@ void define_md_data_raw()
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                t_field_, r_geoid_, z_ground_, cloudbox_on_, cloudbox_limits_, 
                scat_i_p_, scat_i_lat_, scat_i_lon_, 
-               scat_za_grid_, scat_aa_grid_,
+               scat_za_grid_, scat_aa_grid_, sensor_response_,
                sensor_pos_, sensor_los_, f_grid_, stokes_dim_,
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),

@@ -596,7 +596,7 @@ test_sensor_SOURCES = \
 	matpackVII.h \
 	sensor.h \
 	sensor.cc \
-	test_sensor.cc
+	test_sensor.cc 
 
 test_integration_SOURCES = \
 	matpackI.cc \

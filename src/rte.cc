@@ -111,7 +111,7 @@ void get_radiative_background(
               GridPos&        a_gp_lat,
               GridPos&        a_gp_lon,
               Matrix&         i_space,
-              Matrix&         ground_emission, 
+              Matrix&         ground_emission,
               Matrix&         ground_los, 
               Tensor4&        ground_refl_coeffs,
         const Ppath&          ppath,
@@ -236,17 +236,21 @@ void get_radiative_background(
             // Use some local variables to avoid unwanted  side effects
             Ppath    ppath_local;
             Matrix   y_rte_local;
+            
+            // Use a dummy variable for the sensor_response
+            Sparse sensor_response_dummy;
 
-            RteCalc( y_rte_local, ppath_local, ppath_step, i_rte, 
+            rte_calc( y_rte_local, ppath_local, ppath_step, i_rte,
                  mblock_index_local, a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
                  i_space, ground_emission, ground_los, ground_refl_coeffs, 
                  ppath_step_agenda, rte_agenda, i_space_agenda, 
                  ground_refl_agenda, atmosphere_dim, p_grid, lat_grid, 
                  lon_grid, z_field, t_field, r_geoid, z_ground, 
                  cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
-                 scat_i_lon, scat_za_grid, scat_aa_grid, sensor_pos, 
-                 sensor_los, f_grid, stokes_dim, antenna_dim, 
-                 mblock_za_grid, mblock_aa_grid );
+                 scat_i_lon, scat_za_grid, scat_aa_grid, 
+                 sensor_response_dummy, sensor_pos,
+                 sensor_los, f_grid, stokes_dim, antenna_dim,
+                 mblock_za_grid, mblock_aa_grid, false, false );
 
 
             // Add the the calculated spectra (y_rte_local) to *i_rte*, 
@@ -533,6 +537,7 @@ void rte_calc(
         const Tensor7&        scat_i_lon,
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid,
+        const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
         const Vector&         f_grid,
@@ -540,12 +545,18 @@ void rte_calc(
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
-        const bool&           check_input )
+        const bool&           check_input,
+        const bool&           apply_sensor )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
   const Index nmblock = sensor_pos.nrows();
   const Index nza     = mblock_za_grid.nelem();
+  
+  // Number of azimuthal direction for pencil beam calculations
+  Index naa = mblock_aa_grid.nelem();
+  if( antenna_dim == 1 )
+    { naa = 1; }
 
 
   //--- Check input -----------------------------------------------------------
@@ -594,14 +605,14 @@ void rte_calc(
         {
           for( Index col=0; col<z_ground.ncols(); col++ )
             {
-              if( z_ground(row,col)<z_field(0,row,col) || 
+              if( z_ground(row,col)<z_field(0,row,col) ||
                        z_ground(row,col)>=z_field(z_field.npages()-1,row,col) )
                 {
                   ostringstream os;
                   os << "The ground altitude (*z_ground*) cannot be outside "
                      << "of the altitudes in *z_field*.";
                   if( atmosphere_dim > 1 )
-                    os << "\nThis was found to be the case for:\n" 
+                    os << "\nThis was found to be the case for:\n"
                        << "latitude " << lat_grid[row];
                   if( atmosphere_dim > 2 )
                     os << "\nlongitude " << lon_grid[col];
@@ -640,10 +651,21 @@ void rte_calc(
             throw runtime_error( "2D antennas (antenna_dim=2) can only be "
                                                  "used with 3D atmospheres." );
           if( mblock_aa_grid.nelem() == 0 )
-            throw runtime_error( 
+            throw runtime_error(
                       "The measurement block azimuthal angle grid is empty." );
           chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
         }
+
+      // Sensor
+      //
+      if( apply_sensor && sensor_response.ncols() != nf * nza * naa ) {
+        ostringstream os;
+        os << "The *sensor_response* matrix does not have the right size, either\n"
+           << "the method *sensor_responseInit* has not been run prior to the call\n"
+           << "to *RteCalc* or some of the other sensor response methods has not\n"
+           << "been correctly configured.";
+        throw runtime_error( os.str() );
+      }
 
       // Stokes
       //
@@ -673,24 +695,22 @@ void rte_calc(
     }
   //--- End: Check input ------------------------------------------------------
 
-
-  // Number of azimuthal direction for pencil beam calculations
-  Index naa = mblock_aa_grid.nelem();
-  if( antenna_dim == 1 )
-    { naa = 1; }
-  
   // Resize *y_rte* to have the correct size.
   // This size must be changed later when Hb is introduced
   y_rte.resize( nmblock * nf * nza * naa, stokes_dim );
 
   // Create a matrix to hold the spectra for one measurement block
-  Matrix ib( nf * nza * naa, stokes_dim );
+  Index    nblock;        // Number of spectral values of 1 block
+  if( apply_sensor )
+    nblock = sensor_response.nrows();
+  else
+    nblock = nf*nza*naa;
+  Matrix ib( nblock, stokes_dim );
 
   // Loop:  measurement block / zenith angle / azimuthal angle
   //
   Index    nydone = 0;                 // Number of positions in y_rte done
   Index    nbdone;                     // Number of positions in ib done
-  Index    nblock = nf*nza*naa;        // Number of spectral values of 1 block
   Vector   los( sensor_los.ncols() );  // LOS of interest
   Index    iaa, iza;
   //
@@ -741,13 +761,17 @@ void rte_calc(
             }
         }
 
-      // Copy ib to y_rte
-      // The matrix Hb shall be applied here
-      y_rte(Range(nydone,nblock),joker) = ib;
+      //y_rte(Range(nydone,nblock),joker) = ib;
+      if( apply_sensor )
+        // Multiply ib with sensor_response and store the result in y_rte
+        mult( y_rte(Range(nydone,nblock),joker), sensor_response, ib);
+      else
+        // Copy ib to y_rte
+        y_rte(Range(nydone,nblock),joker) = ib;
 
       // Increase nbdone
       nydone += nblock;
-    } 
+    }
 }
 
 

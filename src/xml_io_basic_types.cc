@@ -455,12 +455,12 @@ xml_write_to_stream (ostream& os_xml,
 
   col_tag.write_to_stream (os_xml);
   os_xml << '\n';
-  for( size_t i=0; i<sparse.mcolptr->size()-1;  ++i) {
+  for( size_t i=0; i<sparse.mcolptr->size()-1;  i++) {
         for( Index j=0; j<(*sparse.mcolptr)[i+1]-(*sparse.mcolptr)[i]; j++) {
               if (pbofs)
-                *pbofs << (*sparse.mcolptr)[i];
+                *pbofs << (Index)i;
               else
-                os_xml << (*sparse.mcolptr)[i] << '\n';
+                os_xml << (Index)i << '\n';
         }
   }
   close_tag.set_name ("/ColIndex");

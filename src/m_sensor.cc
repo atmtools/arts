@@ -113,19 +113,20 @@ void sensor_responseAntenna1D(// WS Output:
   Index n = f_grid.nelem() * mblock_za_grid.nelem();
   if( sensor_response.nrows() != n ) {
     ostringstream os;
-    os << "The sensor block response matrix *sensor_response* has not been\n"
-       << "initialised or some sensor in front of the antenna has not been\n"
-       << "considered.";
+    os << "The sensor block response matrix *sensor_response* does not have the\n"
+       << "right size. The number of rows has to equal the product of the number\n"
+       << "of elements of the frequency grid and the measurement block zenith angle\n"
+       << "grid. Check that at least *sensor_responseInit* has been run prior to\n"
+       << "this method.";
     throw runtime_error( os.str() );
   }
 
 
-  //Check that the backend response matrix has been initialised
+  //Check that the antenna response matrix has been initialised
   if( srm.ncols()!=2 ) {
     ostringstream os;
     os << "The antenna response matrix *" << srm_name << "* has not"
-       << " been\n correctly initialised. A two column matrix is expected,\n"
-       << "and can be created by *GaussianResponse*.\n";
+       << " been\n correctly initialised. A two column matrix is expected.\n";
     throw runtime_error( os.str() );
   }
 
@@ -135,7 +136,10 @@ void sensor_responseAntenna1D(// WS Output:
   Sparse antenna_response( f_grid.nelem(), n);
   antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
 
-  //cout << "sensor_response (pre):\n" << sensor_response << "\n";
+  cout << "sensor_response (pre):\n" << sensor_response << "\n";
+  xml_write_to_file ("sensor_response.xml", sensor_response);
+  Sparse sr_t( sensor_response.ncols(), sensor_response.nrows() );
+  transpose( sr_t, sensor_response );
 
   Sparse sensor_response_tmp(sensor_response);
   sensor_response.resize( f_grid.nelem(), n);
@@ -145,8 +149,10 @@ void sensor_responseAntenna1D(// WS Output:
 
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
-  
+
   //cout << "antenna_response:\n" << antenna_response << "\n";
+  xml_write_to_file ("antenna_response.xml", antenna_response);
+  xml_write_to_file ("sensor_response_tmp.xml", sensor_response_tmp);
 }
 
 void sensor_responseBackend(// WS Output:
@@ -208,7 +214,7 @@ void sensor_responseInit(// WS Output:
 
   //Set matrix to identity matrix
   for( Index i=0; i<n; i++) {
-    sensor_response(i,i) = 1;
+    sensor_response(i,i) = 1.0;
   }
 
   out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";

@@ -50,10 +50,6 @@
   === Functions from sensor.cc
   ===========================================================================*/
 
-void antenna_diagram_gaussian(
-           MatrixView   srm,
-       const Numeric&   theta );
-
 void antenna_transfer_matrix(
            SparseView   H,
       ConstVectorView   m_za,

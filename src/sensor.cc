@@ -53,37 +53,6 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! antenna_diagram_gaussian
-/*!
-   Sets up a matrix containing a standardised Gaussian antenna diagram,
-   described for a certain frequency. The function is called with the
-   half-power beam width that determines the shape of the curve for the
-   reference frequency, and a matrix that must contain the grid that sets
-   up the antenna diagram as the first column. The antenna diagram values
-   will the be put in the second column.
-
-   \param   srm     The antenna diagram matrix.
-   \param   theta   The antenna average width
-
-   \author Mattias Ekström
-   \date   2003-03-11
-*/
-void antenna_diagram_gaussian(
-           MatrixView   srm,
-       const Numeric&   theta )
-{
-  //Assert that a has the right size
-  assert( srm.ncols()==2 );
-
-  //Initialise variables
-  Numeric ln2 = log(2.0);
-
-  //Loop over grid points to calculate antenna diagram
-  for (Index i=0; i<srm.nrows(); i++) {
-    srm(i,1)=exp(-4*ln2*pow(srm(i,0)*DEG2RAD/theta,2));
-  }
-}
-
 //! antenna_transfer_matrix
 /*!
    Constructs the sparse matrix that multiplied with the spectral values

@@ -509,8 +509,21 @@ void mult( SparseView A,
       Index beginBt = (*Bt.mcolptr)[cBt];
       Index endBt = (*Bt.mcolptr)[cBt+1];
 
+      /*
+      cout << "Test: "<<(*Bt.mcolptr)[cBt]<<":"<<(*Bt.mcolptr)[cBt+1]<<"-"<<(*C.mcolptr)[cC]<<":"<<(*C.mcolptr)[cC+1]<<" ";
+      if( endBt-beginBt!=0 )
+        cout << "Bt ok";
+      if( endC-beginC!=0 )
+        cout << ", C ok";
+      if( (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC] )
+        cout << ", Bt(end)>C(first) ok";
+      if( (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1] )
+        cout << ", Bt(first)<C(end) ok";
+      cout << "\n";
+      */
+
       //Check that the columns are non-empty, ...
-     if ( endBt-beginBt!=0 && endC-beginC!=0
+      if ( endBt-beginBt!=0 && endC-beginC!=0
           // (NB: last index actually points to next columns first)
           // that they are overlapping and ...
           && (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
@@ -522,17 +535,21 @@ void mult( SparseView A,
         //Go through columns and find matching indices
         Index i=beginBt, j=beginC;
         while ( j<endC && i<endBt ) {
+          //cout<<"B("<<cBt<<","<<i<<")*C("<<j<<","<<cC<<")="<<Bt.ro(i,cBt)<<"*"<<C.ro(j,cC)<<"="<<Bt.ro(i,cBt)*C.ro(j,cC)<<endl;
+          cout <<"i="<<(*Bt.mrowind)[i]<<",j="<<(*C.mrowind)[j]<<",";
           if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
             i++;
+            cout << "i++,";
           } else if ((*C.mrowind)[j]<(*Bt.mrowind)[i]) {
             j++;
+            cout << "j++,";
           } else {
             tempA += (*Bt.mdata)[i] * (*C.mdata)[j];
             i++;
             j++;
           }
         }
-        //cout << "tempA " << tempA << "\n";
+        cout << " tempA " << tempA << "\n";
 
         //Did we get a sum?
         if (tempA!=0.0) {

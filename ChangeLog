@@ -1,3 +1,29 @@
+2003-06-18  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-577
+
+	* src/methods.cc: Added sensor_response to input list of RteCalc.
+
+	* src/m_rte.{cc,h}: Added variables sensor_response and apply_sensor. 
+	NB: This means that the WSM sensor_responseInit has to be added to the
+	controlfiles, before running RteCalc.
+
+	* src/rte.{cc,h}: Implemented the sensor_response and apply_sensor variables in
+	method rte_calc and changed call for RteCalc to rte_calc in method
+    get_radiative_background.
+
+	* src/m_cloudbox.cc: Added sensor_reponse as dummy variable and set apply_sensor
+	to false for the rte_calc calls.
+
+	* src/xml_io_basic_types.cc: Fixed bug in Sparse xml_write_to_stream function.
+
+	* src/m_sensor.cc: Minor changes to runtime error output.
+
+	* src/sensor.{cc,h}: Removed antenna_diagram_gaussian, which has been replaced by
+	WSM GaussianResponse.
+
+	* src/test_sensor.cc: Moved antenna_diagram_gaussian from sensor.cc here.
+
 2003-06-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-576

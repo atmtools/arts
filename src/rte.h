@@ -141,6 +141,7 @@ void rte_calc(
         const Tensor7&        scat_i_lon,
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid,
+        const Sparse&         sensor_response,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los,
         const Vector&         f_grid,
@@ -148,7 +149,8 @@ void rte_calc(
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
-        const bool&           check_input );
+        const bool&           check_input,
+        const bool&           apply_sensor );
 
 void
 rte_step(//Output and Input:
