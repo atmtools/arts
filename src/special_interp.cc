@@ -54,6 +54,7 @@
 */
 
 #include <cmath>
+#include <iostream>
 #include "check_input.h"
 #include "special_interp.h"
 
