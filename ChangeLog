@@ -1,3 +1,18 @@
+2003-09-04  Mattias Ekström  <ekstrom@chalmers.se>
+
+	* arts-1-1-683
+
+	* arts/src/sensor.cc: Corrected loop in spectrometer_transfer_matrix.
+
+	* arts/src/methods.cc: Added keyword "multiply" to the sensor response
+	functions for antenna and backend. This keyword tells arts whether it
+	should multiply the current sensor_response with the particular
+	antenna/backend response. If not, the antenna/backend response is
+	returned as *sensor_response*. This is only a temporary solution.
+
+	* arts/src/m_sensor.cc: Included the multiply kewyword in
+	sensor_responseAntenna1D and sensor_responseBackend.
+
 2003-09-04  Nikolay Koulev  <nkoulev@bremen.de>
 
 	* arts-1-1-682

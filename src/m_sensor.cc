@@ -263,7 +263,9 @@ void sensor_responseAntenna1D(
        const Vector&                antenna_za,
        // WS Generic Input Names:
        const String&                diag_name,
-       const String&                antenna_za_name )
+       const String&                antenna_za_name,
+       // Control Parameters:
+       const Index&                 multiply )
 {
   // Check that the antenna has the right dimension, this implies that the
   // mblock_aa_grid is empty (as set by AntennaSet1D).
@@ -336,6 +338,16 @@ void sensor_responseAntenna1D(
            << "frequencies plus one.\n";
         error_found = true;
       }
+      /* FIXME: Debugging
+      cout << "za_dlow =" <<za_dlow<< " (diag[i])[j](0,0):"<<(diag[i])[j](0,0)
+           <<" antenna_za[i]:"<<antenna_za[i]<<" mblock_za_grid[0]:"<<mblock_za_grid[0]
+           <<" sum:"<<((diag[i])[j](0,0)+antenna_za[i])-mblock_za_grid[0]<<endl;
+      cout << "za_dhigh =" <<za_dhigh<< " last(mblock_za_grid):"<<last(mblock_za_grid)
+           <<" (diag[i])[j]((diag[i])[j].nrows()-1,0):"<<(diag[i])[j]((diag[i])[j].nrows()-1,0)
+           <<" last(antenna_za):"<<last(antenna_za)<<" sum:"<<last(mblock_za_grid)
+           -(diag[i])[j]((diag[i])[j].nrows()-1,0)-last(antenna_za)<<endl;
+      */
+
       // Also get the difference between the relative zenith angle grid
       // (modified by the antenna viewing directions) and mblock_za_grid,
       // store the value if it is lower than previous differences.
@@ -343,7 +355,8 @@ void sensor_responseAntenna1D(
         ((diag[i])[j](0,0)+antenna_za[i])-mblock_za_grid[0]);
       za_dhigh = min(za_dhigh,
         last(mblock_za_grid)-(diag[i])[j]((diag[i])[j].nrows()-1,0)
-        -antenna_za[i]);
+        -last(antenna_za));
+
     }
   }
 
@@ -353,7 +366,7 @@ void sensor_responseAntenna1D(
     os << "The *mblock_za_grid* is too narrow, it has to be expanded in the\n"
        << "lower end by " << -za_dlow << " degree(s).\n";
     error_found = true;
-  } 
+  }
   if (za_dhigh<0) {
     os << "The *mblock_za_grid* is too narrow, it has to be expanded in the\n"
        << "upper end by " << -za_dhigh << " degree(s).\n";
@@ -366,8 +379,8 @@ void sensor_responseAntenna1D(
     throw runtime_error(os.str());
 
   // Tell the user what is happening
-  out2 << "  Calculating the antenna response using values and grids from *"
-       << diag_name << "*.\n";
+  out2 << "  Calculating the antenna response using values and grids from\n"
+       << "*" << diag_name << "*.\n";
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.
@@ -376,18 +389,31 @@ void sensor_responseAntenna1D(
   antenna_transfer_matrix(antenna_response,mblock_za_grid,diag,f_grid,
     antenna_za,sensor_pol.nrows());
 
-  // It's forbidden to have same matrix as input twice to mult and we
-  // want to multiply antenna_response with sensor_response and store the
-  // result in sensor_response. So we need to create a temporary copy
-  // of sensor_response matrix.
-  Sparse sensor_response_tmp(sensor_response);
-  sensor_response.resize(nout, n);
-  mult( sensor_response, antenna_response, sensor_response_tmp);
+  // FIXME: This should only be here because mult doesn't work properly
+  // Check if we want to return the total sensor_response or the
+  // antenna response
+  if (multiply==1) {
+    // It's forbidden to have same matrix as input twice to mult and we
+    // want to multiply antenna_response with sensor_response and store the
+    // result in sensor_response. So we need to create a temporary copy
+    // of sensor_response matrix.
+    Sparse sensor_response_tmp(sensor_response);
+    sensor_response.resize(nout, n);
+    mult( sensor_response, antenna_response, sensor_response_tmp);
+
+    // Some extra information to the user
+    out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+         << "x" << sensor_response.ncols() << "\n";
+  } else {
+    // Don't multiply antenna_response with sensor_response, just 
+    // return antenna_response
+    sensor_response = antenna_response;
+  }
 
   // Some extra information to the user
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
-       
+
   // Update some descriptive variables
   sensor_response_za = antenna_za;
   out3 << "  *sensor_response_za* set to "<<antenna_za_name<<".\n";
@@ -410,7 +436,9 @@ void sensor_responseBackend(// WS Output:
                             // WS Generic Input:
                             const ArrayOfMatrix&  ch_response,
                             // WS Generic Input Names:
-                            const String&         ch_response_name)
+                            const String&         ch_response_name,
+                            // Control Parameters:
+                            const Index&          multiply)
 {
   // Initialise a output stream for runtime errors, a flag for errors
   // and counters for difference between sensor_response_f and the
@@ -473,8 +501,8 @@ void sensor_responseBackend(// WS Output:
   }
 
   // Give some output to the user.
-  out2 << "  Calculating the backend response using values and grid from *"
-       << ch_response_name << "*.\n";
+  out2 << "  Calculating the backend response using values and grid from\n"
+       << "*" << ch_response_name << "*.\n";
 
   // Call the function that calculates the sensor transfer matrix.
   Sparse backend_response(f_backend.nelem()*n_za_pol,
@@ -483,13 +511,22 @@ void sensor_responseBackend(// WS Output:
     f_backend,sensor_response_f,sensor_response_za.nelem(),
     sensor_pol.nrows());
 
-  // Here we need a temporary sparse that is copy of the sensor_response
-  // sparse matrix. We need it since the multiplication function can not
-  // take the same object as both input and output.
-  Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize(f_backend.nelem()*n_za_pol,
-    sensor_response_tmp.ncols());
-  mult(sensor_response,backend_response,sensor_response_tmp);
+  // FIXME: This should only be here because mult doesn't work properly
+  // Check if we should multiply backend_response with sensor_response
+  // and return the product or if we just return the backend_response
+  if (multiply==1) {
+
+    // Here we need a temporary sparse that is copy of the sensor_response
+    // sparse matrix. We need it since the multiplication function can not
+    // take the same object as both input and output.
+    Sparse sensor_response_tmp = sensor_response;
+    sensor_response.resize(f_backend.nelem()*n_za_pol,
+      sensor_response_tmp.ncols());
+    mult(sensor_response,backend_response,sensor_response_tmp);
+  } else {
+    // Just return the backend_response
+    sensor_response = backend_response;
+  }
 
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()

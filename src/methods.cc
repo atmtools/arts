@@ -3317,14 +3317,19 @@ md_data_raw.push_back
          "\n"
          "Generic Input: \n"
          "ArrayOfArrayOfMatrix : The antenna diagram(s).\n"
-         "              Vector : The antenna/beam zenith angle grid."
+         "              Vector : The antenna/beam zenith angle grid.\n"
+         "\n"
+         "Keyword:\n"
+         "       multiply : 0 - no sensor_response multiplication\n"
+         "                  the returned sparse is the antenna response\n"
+         "                  1 - the total sensor response is returned."
         ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
         INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_ ),
         GOUTPUT( ),
         GINPUT( ArrayOfArrayOfMatrix_, Vector_ ),
-        KEYWORDS( ),
-        TYPES( )));
+        KEYWORDS( "multiply" ),
+        TYPES( Index_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3350,14 +3355,19 @@ md_data_raw.push_back
          "matrices, the first, of a relative frequency grid.\n"
          "\n"
          "Generic Input: \n"
-         "  ArrayOfMatrix : The backend channel response."
+         "  ArrayOfMatrix : The backend channel response.\n"
+         "\n"
+         "Keyword:\n"
+         "       multiply : 0 - no sensor_response multiplication\n"
+         "                  the returned sparse is the backend response\n"
+         "                  1 - the total sensor response is returned."
         ),
         OUTPUT( sensor_response_, sensor_response_f_ ),
         INPUT( f_backend_, sensor_pol_, sensor_response_za_ ),
         GOUTPUT( ),
         GINPUT( ArrayOfMatrix_ ),
-        KEYWORDS(),
-        TYPES()));
+        KEYWORDS( "multiply" ),
+        TYPES( Index_t )));
 
   md_data_raw.push_back
     ( MdRecord
