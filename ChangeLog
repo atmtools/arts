@@ -1,3 +1,23 @@
+2000-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-51
+
+	* absorption.cc: Corrected the internal unit of line intensity
+	S. It is now Hz * m^2, consistent with the simple formula
+	
+	alpha = n * x * S * F,
+	
+	where alpha is the absorption coefficient (1/m), n is the total
+	number density (1/m^3), x is the volume mixing ratio
+	(dimensionless), and F is the line shape function (1/Hz). 
+
+	The intensity also already includes the isotope ratio, since this
+	is computationally more efficient. 
+
+	* Verified that we still get the same absorption results.
+
+	* Moved some doxygen headers from absorption.h to absorption.cc
+
 2000-09-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-50
@@ -6,7 +26,7 @@
 	instead of .h files (when appropiate). This partly to make it easier
  	to put in histories. 
 
-	* Following this decesion, I moved doxy headers from atm_funcs.h and
+	* Following this decision, I moved doxy headers from atm_funcs.h and
 	math_funcs.h to corresponding .cc files.
 	
 

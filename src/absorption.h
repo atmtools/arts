@@ -387,9 +387,7 @@ public:
   /*! The pressure shift parameter in <b> Hz/Pa</b>. */
   Numeric Psf() const   { return mpsf; }
 
-  /*! The line intensity in <b> m^2/Hz</b> at the reference temperature \c Ti0. 
-
-    FIXME: Check above unit!
+  /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
     The line intensity \f$I_0\f$ is defined by:
     
@@ -691,35 +689,12 @@ ostream& operator << (ostream& os, const OneTag& ot);
     \author Stefan Buehler */
 typedef  ARRAY< ARRAY<OneTag> > TagGroups;
 
-
-/*! A helper function that writes lines in a line list to a stream. 
-
-    \retval os      The stream to write to.
-    \param  lines   The line list to write.
-
-    \author Stefan Buehler 
-    \date 2000-06-12 */
+// Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines);
 
 
-/*! Calculate absorption coefficients for one tag group. All lines in
-    the line list must belong to the same species. This must be
-    ensured by lines_per_tgCreateFromLines, so it is only verified
-    with assert. Also, the input vectors p_abs, t_abs, and vmr must
-    all have the same dimension.
-
-    This is a strongly simplified routine which seves mainly
-    the purpose of demonstration.
-
-    \retval abs   Absorption coefficients.
-    \param f_mono Frequency grid.
-    \param p_abs  Pressure grid.
-    \param t_abs  Temperatures associated with p_abs.
-    \param vmrs   Volume mixing ratios of the species.
-    \param lines  The spectroscopic line list.
-
-    \author Stefan Buehler 16.06.2000. */
+// Doc header in absorption.cc
 void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,

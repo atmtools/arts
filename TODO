@@ -47,5 +47,3 @@ AvE 2000-08-22: Check that partition funciton coefficients are valid,
 SAB 2000-09-13: Remove `1D' from WSV names.
 
 SAB 2000-09-13: Change names of automatically generated files to _auto...
-
-SAB 2000-09-13: Add emacs macros.

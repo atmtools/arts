@@ -1,5 +1,6 @@
+*.gif
+*.html
 Makefile
 Makefile.in
 doxygen.css
-*.html
-*.gif
+formula.repository

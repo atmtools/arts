@@ -15,9 +15,10 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*!
+/**
   \file   absorption.cc
-  \brief  Physical absorption routines. 
+
+  Physical absorption routines. 
 
   The absorption workspace methods are
   in file m_abs.cc
@@ -341,22 +342,25 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
   // Intensity.
   {
-    // HITRAN intensity in cm-1/(molec * cm-2) at 296 Kelvin.
-    // Includes isotpic ratio!
+    extern const Numeric SPEED_OF_LIGHT; // in [m/s]
+
+    // HITRAN intensity is in cm-1/(molec * cm-2) at 296 Kelvin.
+    // It already includes the isotpic ratio.
+    // The first cm-1 is the frequency unit (it cancels with the
+    // 1/frequency unit of the line shape function). 
+    //
+    // We need to do the following:
+    // 1. Convert frequency from wavenumber to Hz (factor 1e2 * c)
+    // 2. Convert [molec * cm-2] to [molec * m-2] (factor 1e-4)
+
+    const Numeric hi2arts = 1e-2 * SPEED_OF_LIGHT;
+
     Numeric s;
-    // Conversion from HITRAN intensities to JPL intensities 
-    // (nm^2 MHz). This factor is given in the JPL documentation. 
-    const Numeric hi2jpl = 2.99792458e18;
-    // Because we want SI units m and Hz instead of nm and MHz, we
-    // need to shift the decimals a bit.
-    // More importantly, we have to take out the isotope ratio, which
-    // is included in the HITRAN intensity.
-    const Numeric hi2arts = hi2jpl * 1e-12 / IsotopeData().Abundance();
 
     // Extract HITRAN intensity:
     extract(s,line,10);
 
-    // ARTS intensity in m^2/Hz:
+    // Convert to ARTS units (Hz / (molec * m-2) ), or shorter: Hz*m^2
     mi0 = s * hi2arts;
 //    cout << "mi0 = " << mi0 << endl;
   }
@@ -706,6 +710,13 @@ ostream& operator << (ostream& os, const OneTag& ot)
 }
 
 
+/*! A helper function that writes lines in a line list to a stream. 
+
+    \retval os      The stream to write to.
+    \param  lines   The line list to write.
+
+    \author Stefan Buehler 
+    \date 2000-06-12 */
 void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines)
 {
@@ -716,6 +727,23 @@ void write_lines_to_stream(ostream& os,
 }
 
 
+/*! Calculate absorption coefficients for one tag group. All lines in
+    the line list must belong to the same species. This must be
+    ensured by lines_per_tgCreateFromLines, so it is only verified
+    with assert. Also, the input vectors p_abs, t_abs, and vmr must
+    all have the same dimension.
+
+    This is a strongly simplified routine which serves mainly
+    the purpose of demonstration.
+
+    \retval abs   Absorption coefficients.
+    \param f_mono Frequency grid.
+    \param p_abs  Pressure grid.
+    \param t_abs  Temperatures associated with p_abs.
+    \param vmrs   Volume mixing ratios of the species.
+    \param lines  The spectroscopic line list.
+
+    \author Stefan Buehler 16.06.2000. */
 void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,
@@ -769,57 +797,35 @@ void abs_species( MATRIX&                  abs,
   for ( size_t i=1; i<=p_abs.dim(); ++i )
   {
     out3 << "  p = " << p_abs(i) << " Pa\n";
+
+    // Calculate total number density from pressure and
+    // temperature. 
+    // n = n0*T0/p0 * p/T, ideal gas law
+    Numeric n;
+    {
+      // FOXME: Should these be moved to constants.cc?
+      const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
+      const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
+      const Numeric n_0   = 2.686763E25;         /* Loschmidt constant [m^-3] */
+      n = n_0 * T_0_C / p_0 * p_abs(i) / t_abs(i);
+    }
+
+    // For the pressure broadening, we also need the partial pressure:
+    const Numeric p_partial = p_abs(i) * vmr(i);
+
+
     // Loop all lines:
     for ( size_t l=0; l<lines.dim(); ++l )
       {
-	// 1. Convert intensity to units of [ m^-1 * Hz / Pa ]
+	// Intensity is already in the right units (Hz*m^2). It also
+	// includes already the isotopic ratio. Needs
+	// only to be multiplied by total number density, VMR, and lineshape. 
 	Numeric intensity = lines[l].I0();
-	// FIXME: Move the constants here to constants.cc?
-	  {
-	    // I have no time to find out about the correct intensity
-	    // conversion. So, as a quick hack, we will convert to
-	    // MYTRAN intensiy (HITRAN, except isotopic ratio is taken
-	    // out, and then use the old conversion from abs_my.c. See
-	    // LineRecord::ReadFromHitranStream for the below two
-	    // conversions. 
 
-	    // Conversion from HITRAN intensities to JPL intensities 
-	    // (nm^2 MHz). This factor is given in the JPL documentation. 
-	    const Numeric hi2jpl = 2.99792458e18;
-	    // Because we want SI units m and Hz instead of nm and MHz, we
-	    // need to shift the decimals a bit.
-	    // More importantly, we have to take out the isotope ratio, which
-	    // is included in the HITRAN intensity.
-	    const Numeric hi2arts = hi2jpl * 1e-12;
-
-	    intensity = intensity / hi2arts;
-
-	    // intensity is now MYTRAN intensity.
-
-	    // From abs_my.c:
-	    const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
-	    const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
-	    const Numeric n_0   = 2.686763E19;         /* Loschmidt constant [cm^-3] */
-	    const Numeric c     = 29.9792458;          /*  	     [ GHz / cm^-1 ] */
-
-	    intensity = intensity * n_0 * T_0_C / (p_0*t_abs(i));
-	    /* n = n0*T0/p0 * p/T, ideal gas law
-	       ==> [intensity] = [cm^2 / Pa] */
-
-	    intensity = intensity * c; 			/* [cm^-1 * GHz / Pa] */
-	    intensity = intensity * 1E5; 		/* [km^-1 * GHz / Pa] */
-	    intensity = intensity * 1e6; 		/* [m^-1 * Hz / Pa] */
-	  }
-
-	// FIXME: Are the units of the intensity correct?
-	
 	// FIXME: We should calculate the temperature dependence of the
 	// intensities here.
 
-	// Scale with isotopic ratio. FIXME: This is inefficient. The
-	// scaled intensities could be stored in lines.
-	intensity = intensity * lines[l].IsotopeData().Abundance();
-
+	  
 	// 2. Get pressure broadened line width:
 	// (Agam is in Hz/Pa, p_abs is in Pa, f_mono is in Hz,
 	// gamma is in Hz/Pa)
@@ -827,8 +833,6 @@ void abs_species( MATRIX&                  abs,
 	// stored in lines.
 
 	const Numeric theta = lines[l].Tgam() / t_abs(i);
-
-	const Numeric p_partial = p_abs(i) * vmr(i);
 
 	Numeric gamma
 	  = lines[l].Agam() * pow(theta, lines[l].Nair())  * (p_abs(i) - p_partial)
@@ -848,7 +852,7 @@ void abs_species( MATRIX&                  abs,
 	for ( size_t j=1; j<=f_mono.dim(); ++j )
 	  {
 	    abs(j,i) = abs(j,i)
-	      + p_partial * intensity * ls(j);
+	      + n * vmr(i) * intensity * ls(j);
 	  }
       }
   }
