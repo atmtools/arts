@@ -2917,49 +2917,45 @@ void refraction_gradient_2d(
         const Numeric&   r4, 
         const Numeric&   lat1,
         const Numeric&   lat3,
-        const Numeric&   n1, 
-        const Numeric&   n2, 
-        const Numeric&   n3,
-        const Numeric&   n4,
         const Numeric&   r,
         const Numeric&   lat )
 {
   // Slopes of pressure surfaces
-  const Numeric   c2 = psurface_slope_2d( lat1, lat3, r1, r2 );
-  const Numeric   c4 = psurface_slope_2d( lat1, lat3, r4, r3 );
+  //  const Numeric   c2 = psurface_slope_2d( lat1, lat3, r1, r2 );
+  //const Numeric   c4 = psurface_slope_2d( lat1, lat3, r4, r3 );
 
   // Help variables to avoid duplication of calculations
-  const Numeric   xlat  = lat - lat1;
-  const Numeric   rlow  = r1 + xlat * c2;
-  const Numeric   rhigh = r4 + xlat * c4;
-  const Numeric   dr    = rhigh - rlow;
-  const Numeric   dlat  = lat3 - lat1;
-        Numeric   na, nb;
+  //const Numeric   xlat  = lat - lat1;
+  //const Numeric   rlow  = r1 + xlat * c2;
+  //const Numeric   rhigh = r4 + xlat * c4;
+  //const Numeric   dr    = rhigh - rlow;
+  //const Numeric   dlat  = lat3 - lat1;
+  //      Numeric   na, nb;
 
-  assert( r1 < r4 );
-  assert( lat1 < lat3 );
-  assert( lat >= lat1 );
-  assert( lat <= lat3 );
-  assert( r >= rlow );
-  assert( r <= rhigh );
+  //assert( r1 < r4 );
+  //assert( lat1 < lat3 );
+  //assert( lat >= lat1 );
+  //assert( lat <= lat3 );
+  //assert( r >= rlow );
+  //assert( r <= rhigh );
 
   // Fractional distance for latitude
-  Numeric   fd = xlat / dlat;
+  //Numeric   fd = xlat / dlat;
 
-  na = fd*n2 + (1-fd)*n1;
-  nb = fd*n3 + (1-fd)*n4;
+  //na = fd*n2 + (1-fd)*n1;
+  //nb = fd*n3 + (1-fd)*n4;
 
   // Derivative in the radius direction
-  dndr = ( nb - na ) / dr; 
+  //dndr = ( nb - na ) / dr; 
 
   // Fractional distance for radius
-  fd   = ( r - rlow ) / dr; 
+  //fd   = ( r - rlow ) / dr; 
 
   // Refractive index at the point
-  n = fd * nb + (1-fd) * na;
+  //n = fd * nb + (1-fd) * na;
 
   // Derivative in the latitude direction
-  dndlat = ( ( fd*n3 + (1-fd)*n2 ) - ( fd*n4 + (1-fd)*n1 ) ) / dlat; 
+  //dndlat = ( ( fd*n3 + (1-fd)*n2 ) - ( fd*n4 + (1-fd)*n1 ) ) / dlat; 
 }
 
 
@@ -4213,18 +4209,20 @@ void raytrace_1d_linear_euler(
               Numeric           r,
               Numeric           lat,
               Numeric           za,
+              Numeric&          a_pressure,
+              Numeric&          a_temperature,
+              Vector&           a_vmr_list,
+              Numeric&          refr_index,
         const Numeric&          ppc,
         const Numeric&          lraytrace,
         const Numeric&          r1,
         const Numeric&          r3,
-        const Numeric&          n1,
-        const Numeric&          n3,
         ConstVectorView         p_grid,
         ConstVectorView         z_field,
         ConstVectorView         t_field,
+        ConstMatrixView         vmr_field,
         const Numeric&          r_geoid,
-        const Numeric&          zground,
-        const String&           refrindex )
+        const Numeric&          zground )
 {
   // Loop boolean
   bool ready = false;
@@ -4280,11 +4278,7 @@ void raytrace_1d_linear_euler(
         {
           // Refractive index at r_new
           Numeric n_new;
-          if( refrindex == "calc" )
-            { n_new = get_refr_index_1d( p_grid, z_field, t_field, 
-                                                             r_new-r_geoid ); }
-          else
-            { n_new = n1 + (r_new-r1)*(n3-n1)/(r3-r1); }
+          n_new = get_refr_index_1d( p_grid, z_field, t_field, r_new-r_geoid );
 
           const Numeric   ppc_local = ppc / n_new; 
 
@@ -4366,6 +4360,10 @@ void raytrace_2d_linear_euler(
               Numeric           r,
               Numeric           lat,
               Numeric           za,
+              Numeric&          a_pressure,
+              Numeric&          a_temperature,
+              Vector&           a_vmr_list,
+              Numeric&          refr_index,
         const Numeric&          lraytrace,
         const Numeric&          r1,
         const Numeric&          r2,
@@ -4373,10 +4371,6 @@ void raytrace_2d_linear_euler(
         const Numeric&          r4,
         const Numeric&          lat1,
         const Numeric&          lat3,
-        const Numeric&          n1, 
-        const Numeric&          n2, 
-        const Numeric&          n3,
-        const Numeric&          n4,
         const Numeric&          rground1,
         const Numeric&          rground2 )
 {
@@ -4433,7 +4427,7 @@ void raytrace_2d_linear_euler(
         {
           Numeric   n, dndr, dndlat;
           refraction_gradient_2d( n, dndr, dndlat, r1, r2, r3, r4, lat1, lat3, 
-                                                      n1, n2, n3, n4, r, lat );
+                                                                      r, lat );
           const Numeric   za_rad = DEG2RAD * za;
           za += -dlat + RAD2DEG * lstep / n * 
                           ( -sin(za_rad) * dndr + cos(za_rad) * dndlat / r );
@@ -4649,14 +4643,14 @@ void ppath_step_refr_1d_special(
         { method = "special 1D linear Euler, with length criterion"; }
 
       Index dummy;
-      raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, dummy,
-            r, lat_start, za, ppc, lraytrace, r_geoid+z_field[ip],
-                         r_geoid+z_field[ip+1], -1, -1, 
-                                p_grid,
-                                z_field,
-                                t_field,
-                                r_geoid,
-                                0, "calc" );
+      //      raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, dummy,
+      //      r, lat_start, za, ppc, lraytrace, r_geoid+z_field[ip],
+      //                  r_geoid+z_field[ip+1], -1, -1, 
+      //                          p_grid,
+      //                          z_field,
+      //                          t_field,
+      //                          r_geoid,
+      //                          0, "calc" );
     }
   else
     {
@@ -4731,15 +4725,19 @@ void ppath_step_refr_1d_special(
 */
 void ppath_step_refr_1d(
               Ppath&      ppath,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
         const String&     rtrace_method,
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex )
+        const Numeric&    lmax )
 {
   // Starting radius, zenith angle and latitude
   Numeric   r_start, lat_start, za_start;
@@ -4754,6 +4752,7 @@ void ppath_step_refr_1d(
 
   // Assert not done for geometrical calculations
   assert( t_field.nelem() == p_grid.nelem() );
+  assert( vmr_field.ncols() == p_grid.nelem() );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -4769,15 +4768,6 @@ void ppath_step_refr_1d(
     }
   else
     { ppc = ppath.constant; }
-
-
-  // Refractive index at lower and upper pressure surface of the grid range.
-  Numeric   nlow = -1, nupp = -1;
-  if( refrindex == "interp" )
-    {
-      nlow = get_refr_index_1d( p_grid, z_field, t_field, z_field[ip] );
-      nupp = get_refr_index_1d( p_grid, z_field, t_field, z_field[ip+1] );
-    }
 
 
   // Perform the ray tracing
@@ -4805,9 +4795,10 @@ void ppath_step_refr_1d(
         { method = "1D linear Euler, with length criterion"; }
 
       raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, endface,
-            r_start, lat_start, za_start, ppc, lraytrace, r_geoid+z_field[ip],
-            r_geoid+z_field[ip+1], nlow, nupp, p_grid, z_field, t_field, 
-                                                r_geoid, z_ground, refrindex );
+            r_start, lat_start, za_start, a_pressure, a_temperature, 
+            a_vmr_list, refr_index, ppc, lraytrace, r_geoid+z_field[ip],
+            r_geoid+z_field[ip+1], p_grid, z_field, t_field, vmr_field, 
+                                                           r_geoid, z_ground );
     }
   else
     {
@@ -4842,8 +4833,9 @@ void ppath_step_refr_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_refr_1d( ppath2, p_grid, z_field, t_field, r_geoid, 
-                         z_ground, rtrace_method, lraytrace, lmax, refrindex );
+      ppath_step_refr_1d( ppath2, a_pressure, a_temperature, a_vmr_list,
+                      refr_index, p_grid, z_field, t_field, vmr_field, r_geoid,
+                                    z_ground, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -4881,16 +4873,20 @@ void ppath_step_refr_1d(
 */
 void ppath_step_refr_2d(
               Ppath&      ppath,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
+        ConstTensor3View  vmr_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
         const String&     rtrace_method,
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex )
+        const Numeric&    lmax )
 {
   // Radius, zenith angle and latitude of start point.
   Numeric   r_start, lat_start, za_start;
@@ -4912,29 +4908,10 @@ void ppath_step_refr_2d(
   // Assert not done for geometrical calculations
   assert( t_field.nrows() == p_grid.nelem() );
   assert( t_field.ncols() == lat_grid.nelem() );
-
+  assert( vmr_field.nrows() == p_grid.nelem() );
+  assert( vmr_field.ncols() == lat_grid.nelem() );
 
   // No constant for the path is valid here.
-
-
-  // Refractive index for the corner points of the grid cell
-  Numeric   n1 = -1, n2 = -1, n3 = -1, n4 = -1;
-  if( refrindex == "interp" )
-    {
-      n1 = get_refr_index_2d( p_grid, lat_grid, r_geoid, 
-                                                  z_field, t_field, r1, lat1 );
-      n2 = get_refr_index_2d( p_grid, lat_grid, r_geoid,
-                                                  z_field, t_field, r2, lat3 );
-      n3 = get_refr_index_2d( p_grid, lat_grid, r_geoid,
-                                                  z_field, t_field, r3, lat3 );
-      n4 = get_refr_index_2d( p_grid, lat_grid, r_geoid,
-                                                  z_field, t_field, r4, lat1 );
-    }
-  else
-    {
-      throw runtime_error(
-               "The option *refrindex* = \"calc\" is not yet implemented.\n" );
-    }
 
   // Perform the ray tracing
   //
@@ -4961,8 +4938,9 @@ void ppath_step_refr_2d(
         { method = "2D linear Euler, with length criterion"; }
 
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
-                 r_start, lat_start, za_start, lraytrace, r1, r2, r3, r4, 
-                              lat1, lat3, n1, n2, n3, n4, rground1, rground2 );
+                 r_start, lat_start, za_start, a_pressure, a_temperature, 
+            a_vmr_list, refr_index, lraytrace, r1, r2, r3, r4, 
+                                              lat1, lat3, rground1, rground2 );
     }
   else
     {
@@ -4997,8 +4975,9 @@ void ppath_step_refr_2d(
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       // Call this function recursively
-      ppath_step_refr_2d( ppath2, p_grid, lat_grid, z_field, t_field,
-                r_geoid, z_ground, rtrace_method, lraytrace, lmax, refrindex );
+      ppath_step_refr_2d( ppath2, a_pressure, a_temperature, a_vmr_list,
+                     refr_index, p_grid, lat_grid, z_field, t_field, vmr_field,
+                           r_geoid, z_ground, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -5037,17 +5016,21 @@ void ppath_step_refr_2d(
 */
 void ppath_step_refr_3d(
               Ppath&      ppath,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
         ConstMatrixView   r_geoid,
         ConstMatrixView   z_ground,
         const String&     rtrace_method,
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex )
+        const Numeric&    lmax )
 {
 }
 

@@ -399,30 +399,32 @@ void ppath_stepRefractionEuler(
         const Matrix&     z_ground,
         // Control Parameters:
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex )
+        const Numeric&    lmax )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we do only asserts. The keywords are checked here,
   // other input in the sub-functions to make them as simple as possible.
 
   assert( lraytrace > 0 );
-  assert( refrindex == "calc"  ||  refrindex == "interp" );
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d( ppath_step, p_grid, z_field(joker,0,0), 
-                   t_field(joker,0,0), r_geoid(0,0), z_ground(0,0), 
-                                "linear_euler", lraytrace, lmax, refrindex ); }
+    { ppath_step_refr_1d( ppath_step, a_pressure, a_temperature, a_vmr_list,
+                          refr_index, p_grid, z_field(joker,0,0), 
+                          t_field(joker,0,0), vmr_field(joker,joker,0,0),
+              r_geoid(0,0), z_ground(0,0), "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_2d( ppath_step, p_grid, lat_grid, z_field(joker,joker,0),
-                 t_field(joker,joker,0), r_geoid(joker,0), z_ground(joker,0), 
-                                "linear_euler", lraytrace, lmax, refrindex ); }
+    { ppath_step_refr_2d( ppath_step, a_pressure, a_temperature, a_vmr_list,
+                          refr_index, p_grid, lat_grid, z_field(joker,joker,0),
+                       t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
+                          r_geoid(joker,0), z_ground(joker,0), 
+                                           "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 3 )
-    { ppath_step_refr_3d( ppath_step, p_grid, lat_grid, lon_grid, z_field, 
-                                t_field, r_geoid, z_ground, 
-                                "linear_euler", lraytrace, lmax, refrindex ); }
+    { ppath_step_refr_3d( ppath_step, a_pressure, a_temperature, a_vmr_list,
+                          refr_index, p_grid, lat_grid, lon_grid, z_field, 
+                          t_field, vmr_field, r_geoid, z_ground, 
+                                           "linear_euler", lraytrace, lmax ); }
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }

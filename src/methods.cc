@@ -2386,19 +2386,9 @@ md_data_raw.push_back
          "*RteCalc* are included as for *ppath_stepGeometric*, this\n"
          "including the functionality for the keyword *lmax*.\n"
          "\n"
-         "There exist two options for how to treat the refraction. It can be\n"
-         "calculated for each ray tracing point. This is selected by setting\n"
-         "*refrindex* to \"calc\". The other option, *refrindex*=\"interp\",\n"
-         "means that refraction is calculated for the boundary of grid\n"
-         "ranges (1D) and cells (2D and 3D) and is then interpolated inside\n"
-         "the range/cell. The latter option can be much faster, but accurate\n"
-         "calculations involving zenith angles around 90 degrees requieres\n"
-         "a fine pressure grid.\n"
-         "\n"
          "Keywords: \n"
          "   lraytrace : Maximum length of ray tracing steps.\n"
-         "   lmax      : Maximum allowed length between path points.\n"
-         "   refrindex : \"calc\" or \"interp\". See further above."
+         "   lmax      : Maximum allowed length between path points."
         ),
         OUTPUT( ppath_step_, a_pressure_, a_temperature_, a_vmr_list_, 
                 refr_index_ ),
@@ -2406,8 +2396,8 @@ md_data_raw.push_back
                z_field_, t_field_, vmr_field_, r_geoid_, z_ground_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "lraytrace", "lmax",    "refrindex" ),
-        TYPES(    Numeric_t,   Numeric_t, String_t    )));
+        KEYWORDS( "lraytrace", "lmax"    ),
+        TYPES(    Numeric_t,   Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

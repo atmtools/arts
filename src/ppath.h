@@ -202,42 +202,54 @@ void ppath_step_geom_3d(
 
 void ppath_step_refr_1d(
               Ppath&      ppath,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
         const String&     rtrace_method,
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex );
+        const Numeric&    lmax );
 
 void ppath_step_refr_2d(
               Ppath&      ppath,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
+        ConstTensor3View  vmr_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
         const String&     rtrace_method,
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex );
+        const Numeric&    lmax );
 
 void ppath_step_refr_3d(
               Ppath&      ppath,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+              Numeric&    refr_index,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
+        ConstTensor4View  vmr_field,
         ConstMatrixView   r_geoid,
         ConstMatrixView   z_ground,
         const String&     rtrace_method,
         const Numeric&    lraytrace,
-        const Numeric&    lmax,
-        const String&     refrindex );
+        const Numeric&    lmax );
 
 void ppath_calc(
               Ppath&          ppath,

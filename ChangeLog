@@ -1,3 +1,11 @@
+2003-01-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-377
+
+	* src/ppath.cc (varoius functions): Continued to change input and 
+	output arguments to send the variables needed for refr_index_agenda
+	all the way down through all levels of functions.
+
 2003-01-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-376
