@@ -51,31 +51,36 @@ void
 xml_read_from_stream (istream&, Agenda&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const Agenda&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const Agenda&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, GasAbsLookup&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const GasAbsLookup&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const GasAbsLookup&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, GriddedField3&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const GriddedField3&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const GriddedField3&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, GridPos&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const GridPos&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const GridPos&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, Ppath&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const Ppath&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const Ppath&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, SingleScatteringData&,
@@ -83,18 +88,21 @@ xml_read_from_stream (istream&, SingleScatteringData&,
 
 void
 xml_write_to_stream (ostream&, const SingleScatteringData&,
-                     bofstream * = NULL);
+                     bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, SpeciesRecord&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const SpeciesRecord&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const SpeciesRecord&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, SpeciesTag&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const SpeciesTag&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const SpeciesTag&, bofstream * = NULL,
+                     const String& = "");
 
 #endif  /* xml_io_compound_types_h */

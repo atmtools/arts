@@ -58,79 +58,91 @@ void
 xml_read_from_stream (istream&, Array<SpeciesRecord>&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const Array<SpeciesRecord>&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const Array<SpeciesRecord>&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfArrayOfSpeciesTag&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfSpeciesTag&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfArrayOfSpeciesTag&,
+                     bofstream * = NULL, const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfSingleScatteringData&, bifstream * = NULL);
 
 void
 xml_write_to_stream (ostream&, const ArrayOfSingleScatteringData&,
-                     bofstream * = NULL);
+                     bofstream * = NULL, const String & = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfArrayOfTensor3&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor3&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor3&,
+                     bofstream * = NULL, const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfArrayOfTensor6&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor6&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfArrayOfTensor6&,
+                     bofstream * = NULL, const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfGridPos&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfGridPos&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfGridPos&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfIndex&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfIndex&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfIndex&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfMatrix&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfMatrix&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfMatrix&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfSpeciesTag&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfSpeciesTag&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfSpeciesTag&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfString&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfString&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfString&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfTensor3&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfTensor3&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfTensor3&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfTensor6&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfTensor6&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfTensor6&, bofstream * = NULL,
+                     const String& = "");
 
 void
 xml_read_from_stream (istream&, ArrayOfVector&, bifstream * = NULL);
 
 void
-xml_write_to_stream (ostream&, const ArrayOfVector&, bofstream * = NULL);
+xml_write_to_stream (ostream&, const ArrayOfVector&, bofstream * = NULL,
+                     const String& = "");
 
 #endif  /* xml_io_array_types_h */

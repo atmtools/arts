@@ -98,12 +98,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Array<SpeciesRecord>& asrecord,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "SpeciesData");
   open_tag.add_attribute ("nelem", asrecord.nelem ());
@@ -180,12 +183,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfSpeciesTag& aastag,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "ArrayOfSpeciesTag");
   open_tag.add_attribute ("nelem", aastag.nelem ());
@@ -261,12 +267,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfTensor3& aatensor3,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "ArrayOfTensor3");
   open_tag.add_attribute ("nelem", aatensor3.nelem ());
@@ -341,12 +350,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfArrayOfTensor6& aatensor6,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "ArrayOfTensor6");
   open_tag.add_attribute ("nelem", aatensor6.nelem ());
@@ -422,12 +434,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfGridPos& agpos,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "GridPos");
   open_tag.add_attribute ("nelem", agpos.nelem ());
@@ -503,12 +518,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfIndex& aindex,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "Index");
   open_tag.add_attribute ("nelem", aindex.nelem ());
@@ -583,12 +601,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfMatrix& amatrix,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "Matrix");
   open_tag.add_attribute ("nelem", amatrix.nelem ());
@@ -663,12 +684,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfSpeciesTag& astag,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "SpeciesTag");
   open_tag.add_attribute ("nelem", astag.nelem ());
@@ -743,12 +767,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfSingleScatteringData& assdata,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "SingleScatteringData");
   open_tag.add_attribute ("nelem", assdata.nelem ());
@@ -824,12 +851,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfTensor3& atensor3,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "Tensor3");
   open_tag.add_attribute ("nelem", atensor3.nelem ());
@@ -904,12 +934,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfTensor6& atensor6,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "Tensor6");
   open_tag.add_attribute ("nelem", atensor6.nelem ());
@@ -984,12 +1017,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfString& astring,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "String");
   open_tag.add_attribute ("nelem", astring.nelem ());
@@ -1064,12 +1100,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const ArrayOfVector& avector,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.add_attribute ("type", "Vector");
   open_tag.add_attribute ("nelem", avector.nelem ());

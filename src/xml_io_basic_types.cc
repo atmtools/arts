@@ -92,12 +92,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Index& index,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Index");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.write_to_stream (os_xml);
 
@@ -183,12 +186,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Matrix& matrix,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Matrix");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("nrows", matrix.nrows ());
   open_tag.add_attribute ("ncols", matrix.ncols ());
 
@@ -276,12 +282,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Numeric& numeric,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Numeric");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.write_to_stream (os_xml);
 
@@ -419,7 +428,8 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Sparse& sparse,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag sparse_tag;
   ArtsXMLTag row_tag;
@@ -428,6 +438,8 @@ xml_write_to_stream (ostream& os_xml,
   ArtsXMLTag close_tag;
 
   sparse_tag.set_name ("Sparse");
+  if (name.length ())
+    sparse_tag.add_attribute ("name", name);
   sparse_tag.add_attribute ("nrows", sparse.nrows());
   sparse_tag.add_attribute ("ncols", sparse.ncols());
   //sparse_tag.add_attribute ("nnz", sparse.nnz());
@@ -559,13 +571,16 @@ xml_read_from_stream (istream& is_xml,
 */
 void
 xml_write_to_stream (ostream& os_xml,
-                     const String& str,
-                     bofstream * /* pbofs */)
+                     const String &str,
+                     bofstream * /* pbofs */,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("String");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
 
   open_tag.write_to_stream (os_xml);
 
@@ -654,12 +669,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor3& tensor,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Tensor3");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("npages", tensor.npages ());
   open_tag.add_attribute ("nrows", tensor.nrows ());
   open_tag.add_attribute ("ncols", tensor.ncols ());
@@ -780,12 +798,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor4& tensor,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Tensor4");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("nbooks", tensor.nbooks ());
   open_tag.add_attribute ("npages", tensor.npages ());
   open_tag.add_attribute ("nrows", tensor.nrows ());
@@ -916,12 +937,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor5& tensor,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Tensor5");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("nshelves", tensor.nshelves ());
   open_tag.add_attribute ("nbooks", tensor.nbooks ());
   open_tag.add_attribute ("npages", tensor.npages ());
@@ -1062,12 +1086,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor6& tensor,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Tensor6");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("nvitrines", tensor.nvitrines ());
   open_tag.add_attribute ("nshelves", tensor.nshelves ());
   open_tag.add_attribute ("nbooks", tensor.nbooks ());
@@ -1218,12 +1245,15 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Tensor7& tensor,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
 
   open_tag.set_name ("Tensor7");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("nlibraries", tensor.nlibraries ());
   open_tag.add_attribute ("nvitrines", tensor.nvitrines ());
   open_tag.add_attribute ("nshelves", tensor.nshelves ());
@@ -1342,7 +1372,8 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Vector& vector,
-                     bofstream *pbofs)
+                     bofstream *pbofs,
+                     const String &name)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -1353,6 +1384,8 @@ xml_write_to_stream (ostream& os_xml,
   v << n;
 
   open_tag.set_name ("Vector");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
   open_tag.add_attribute ("nelem", v.str ());
 
   open_tag.write_to_stream (os_xml);
