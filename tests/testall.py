@@ -31,11 +31,13 @@ class MonteCarloTest(unittest.TestCase):
     def test2(self):
         """Total radiance should be close to 201.8 K"""
         I=self.MCrun.get_val('y')[0]
-        assert abs(I-201.8) < 4, 'I (='+str(I)+'K) is too far away from 201.8 K'
+        dI=self.MCrun.get_val('mc_error')[0]
+        assert abs(I-201.8) < 4*dI, 'I (='+str(I)+'K) is too far away from 201.8 K'
     def test3(self):
         """Polarization difference should be close to 7.6 K"""
         Q=self.MCrun.get_val('y')[1]
-        assert abs(Q-7.6) < 1, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
+        dQ=self.MCrun.get_val('mc_error')[1]
+        assert abs(Q-7.6) < 4*Q, 'Q (='+str(Q)+'K) is too far away from 7.6 K'
         
 
 

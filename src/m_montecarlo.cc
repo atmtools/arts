@@ -59,6 +59,9 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
+extern const Numeric BOLTZMAN_CONST;
+extern const Numeric SPEED_OF_LIGHT;
+
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -142,7 +145,8 @@ void ScatteringMonteCarlo (
                            // WS Output:
                            Ppath&                ppath,
                            Ppath&                ppath_step,
-                           Vector&               i_montecarlo_error,
+                           Vector&               mc_error,
+                           Index&                mc_iteration_count,
                            Vector&               rte_pos,
                            Vector&               rte_los,
                            //Stuff needed by RteCalc
@@ -189,16 +193,27 @@ void ScatteringMonteCarlo (
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const Tensor4& pnd_field,
                            // Control Parameters:
-                           const Index& maxiter,
-                           const Index& rng_seed,
-                           const Index& record_ppathcloud,
-                           const Index& record_ppath,
-                           const Index& silent,
-                           const Index& record_histdata,
-                           const String& histdata_filename
+                           const Numeric& std_err,
+                           const Index& max_time,
+                           const Index& max_iter,
+                           const Index& rng_seed
                            )
 
-{               
+{ 
+  /*These used to be keyword parameters, but they are so seldom used that they 
+    are now hard coded. The next step would be to remove all of the code that 
+    they refer to.*/
+  const Index& record_ppathcloud=0;
+  const Index& record_ppath=0;
+  const Index& silent=1;
+  const Index& record_histdata=0;
+  const String& histdata_filename="";
+                           
+  //Check keyword input
+  if (max_time<0 && max_iter<0 && rng_seed<0){
+    throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
+  }
+              
   //INTERNAL DECLARATIONS/////////////////////////////////////////////////
   Matrix identity(stokes_dim,stokes_dim,0.0); //The identity matrix
   for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
@@ -208,7 +223,6 @@ void ScatteringMonteCarlo (
   Matrix K(stokes_dim,stokes_dim);//extinction matrix
   bool keepgoing; // flag indicating whether to stop tracing a photons path
   Index scattering_order;       //k in ref1
-  Index photon_number;          //i in ref1
   Vector new_rte_los(2);        //Stores new line of sight
   Ppath ppathLOS;               // propagation path in the original line of sight
   Ppath ppathcloud;             //prop. path inside cloud box
@@ -243,7 +257,7 @@ void ScatteringMonteCarlo (
                                 //path according to pathlength
   Vector K_abs(stokes_dim);//absorption coefficient vector
   Vector I(stokes_dim);//Cloudbox exit Stokes Vector
-  i_montecarlo_error.resize(stokes_dim);//Error in Cloudbox exit Stokes vector
+  mc_error.resize(stokes_dim);//Error in Cloudbox exit Stokes vector
   Rng rng;                      //Random Nuimber generator
   Vector I_i(stokes_dim);//photon contribution to Stokes vector
   Vector boundarycontri(stokes_dim);//eq 16 ref1
@@ -257,6 +271,16 @@ void ScatteringMonteCarlo (
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
   //particle type. Used in Rejection method for sampling incident direction
   //////////////////////////////////////////////////////////////////////////////
+  //Calculate the clea-sky transmittance between cloud box and sensor using the
+  //existing ppath.
+  Numeric transmittance=exp(-opt_depth_calc(ext_mat, rte_pressure, rte_temperature, 
+                                       rte_vmr_list, ppath, opt_prop_gas_agenda,
+                                       scalar_gas_absorption_agenda, p_grid,
+                                       lat_grid, lon_grid, t_field, vmr_field,
+                                       atmosphere_dim));
+  Numeric std_err_i=f_grid[0]*f_grid[0]*2*BOLTZMAN_CONST/SPEED_OF_LIGHT/SPEED_OF_LIGHT*
+    std_err/transmittance;
+                            
   bool anyptype30=is_anyptype30(scat_data_mono);
   if (anyptype30)
     {
@@ -296,9 +320,11 @@ void ScatteringMonteCarlo (
 
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(IboundaryLOScontri[i]));}
   
+  mc_iteration_count=0;
   //Begin Main Loop
-  for (photon_number=1; photon_number<=maxiter; photon_number++)
+  while (true)
     {
+      mc_iteration_count+=1;
       keepgoing=true; //flag indicating whether to continue tracing a photon path
       scattering_order=0;       //scattering order
       Q=identity;               //identity matrix
@@ -315,7 +341,7 @@ void ScatteringMonteCarlo (
       pnd_ppath=pnd_ppathLOS;
       dist_to_boundary=cum_l_step[ppathcloud.np-1];
          
-      if (silent==0){cout<<"photon_number = "<<photon_number<<"\n";}
+      if (silent==0){cout<<"mc_iteration_count = "<<mc_iteration_count<<"\n";}
       while (keepgoing)
         {
            if (scattering_order>0)
@@ -330,7 +356,7 @@ void ScatteringMonteCarlo (
                        r_geoid,z_surface,1,cloudbox_limits, rte_pos,rte_los,0);
           
               if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
-                                                   photon_number,scattering_order);}
+                                                   mc_iteration_count,scattering_order);}
                               
               cum_l_stepCalc(cum_l_step,ppathcloud);
   
@@ -372,7 +398,7 @@ void ScatteringMonteCarlo (
               
               if (record_ppath)
                 {
-                  ppathRecordMC(ppath,"ppath",photon_number,scattering_order);
+                  ppathRecordMC(ppath,"ppath",mc_iteration_count,scattering_order);
                 }
               
               f_index=0;//For some strange reason f_index is set to -1 in RteStandard
@@ -426,7 +452,7 @@ void ScatteringMonteCarlo (
                   scattering_order+=1;
                   za_scat=180-rte_los[0];
                   rte_los=new_rte_los;
-                  if (silent==0){cout <<"photon_number = "<<photon_number << 
+                  if (silent==0){cout <<"mc_iteration_count = "<<mc_iteration_count << 
                                    ", scattering_order = " <<scattering_order <<"\n";}
                 }
 
@@ -440,24 +466,20 @@ void ScatteringMonteCarlo (
           assert(!isnan(I_i[j]));
           Isquaredsum[j] += I_i[j]*I_i[j];
         }
-      
-      
-      if (photon_number==500)
+      I=Isum;
+      I/=mc_iteration_count;
+      for(Index j=0; j<stokes_dim; j++) 
         {
-          cout <<"Estimated execution time for ScatteringMonteCarlo: " << 
-            (Numeric)(time(NULL)-start_time)*maxiter/500 <<" seconds.\n";
+          mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-I[j]*I[j])/mc_iteration_count);
         }
-    }
-  
-  I=Isum;
-  I/=maxiter;
-  for(Index j=0; j<stokes_dim; j++) 
-    {
-      i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
+      if (std_err>0 && mc_iteration_count>1 && mc_error[0]<std_err_i){break;}
+      if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
+      if (max_iter>0 && mc_iteration_count>=max_iter){break;}
     }
   
   I+=IboundaryLOScontri;
   iy(0,joker)=I;
+  mc_error*=transmittance;
 }               
 
 

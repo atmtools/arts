@@ -958,21 +958,6 @@ wsv_data.push_back
        ),
       GROUP( Tensor6_ )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "i_montecarlo_error" ),
-       DESCRIPTION
-       (
-        "Error in *I* from ScatteringMonteCarlo.\n"
-        "\n"
-        "\n"
-        "Usage: Output from ScatteringMonteCArlo.. \n"
-        "\n"
-        "Units: W / (m^2 Hz sr)\n"
-        "\n"
-        "Size:  [ stokes_dim ]"
-        ), 
-       GROUP( Vector_ )));
  
   wsv_data.push_back
    (WsvRecord
@@ -1372,6 +1357,35 @@ wsv_data.push_back
        "Unit:  degrees "
        ),
       GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_error" ),
+       DESCRIPTION
+       (
+        "Error in simulated *y* from cloudy-sky arts simulations using ScatteringMonteCarlo.\n"
+        "\n"
+        "\n"
+        "Usage: Output from ScatteringMonteCarlo.. \n"
+        "\n"
+        "Units: W / (m^2 Hz sr)\n"
+        "\n"
+        "Size:  [ stokes_dim ]"
+        ), 
+       GROUP( Vector_ )));
+
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_iteration_count" ),
+       DESCRIPTION
+       (
+        "Counts the number of iterations (or photons) used in the MC\n "
+        "scattering algorithm.\n"
+        "\n"
+        "Usage: Set by ScatteringMonteCarlo.\n"
+        ),
+       GROUP( Index_)));
 
   wsv_data.push_back
    (WsvRecord
@@ -2074,8 +2088,8 @@ wsv_data.push_back
          "\n"
          "This variable holds the single scattering properties for all \n"
          "hydrometeor species. It is calculated from scat_data_raw by \n"
-	 "*scat_data_monoCalc*, which interpolates scat_data_raw for the \n"
-	 "required frequency.\n"
+         "*scat_data_monoCalc*, which interpolates scat_data_raw for the \n"
+         "required frequency.\n"
          "\n"
          ),
         GROUP( ArrayOfSingleScatteringData_ ))); 
@@ -2711,21 +2725,21 @@ wsv_data.push_back
    wsv_data.push_back
      (WsvRecord
       ( NAME( "surface_emission" ),
-	DESCRIPTION
-	( "The emission from the surface at a specified position.\n"
-	  "\n"
+        DESCRIPTION
+        ( "The emission from the surface at a specified position.\n"
+          "\n"
       "The position is normally specified by *rte_pos* or the combination of\n"
       "*rte_gp_p*, *rte_gp_lat* and *rte_gp_lon*.\n"
-	  "\n"
-	  "See further *surfaceCalc* and the user guide.\n"
-	  "\n"
+          "\n"
+          "See further *surfaceCalc* and the user guide.\n"
+          "\n"
       "Usage:      Input to methods for *iy_surface_agenda*."
-	  "\n"
-	  "Unit:       W / (m^2 Hz sr)\n"
-	  "\n"
-	  "Dimensions: [ f_grid, stokes_dim ]"
-	 ), 
-	GROUP( Matrix_ )));
+          "\n"
+          "Unit:       W / (m^2 Hz sr)\n"
+          "\n"
+          "Dimensions: [ f_grid, stokes_dim ]"
+         ), 
+        GROUP( Matrix_ )));
 
   wsv_data.push_back
     (WsvRecord

@@ -170,7 +170,7 @@ void define_md_data_raw()
          "\n"
          "CKD version MT 1.00 self continuum absorption coefficient.\n"
          "The original  code is taken from the FORTRAN77 code of\n"
-	 "Atmospheric and Environmental Research Inc. (AER),\n"
+         "Atmospheric and Environmental Research Inc. (AER),\n"
          "    Radiation and Climate Group\n"
          "    131 Hartwell Avenue\n"
          "    Lexington, MA 02421, USA\n"
@@ -217,7 +217,7 @@ void define_md_data_raw()
          "\n"
          "CKD version MT 1.00 foreign continuum absorption coefficient.\n"
          "The original  code is taken from the FORTRAN77 code of\n"
-	 "Atmospheric and Environmental Research Inc. (AER),\n"
+         "Atmospheric and Environmental Research Inc. (AER),\n"
          "    Radiation and Climate Group\n"
          "    131 Hartwell Avenue\n"
          "    Lexington, MA 02421, USA\n"
@@ -318,7 +318,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
-	 " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
+         " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
          "Output:\n"
          "   abs    : absorption coefficients [1/m], \n"
          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
@@ -335,12 +335,12 @@ void define_md_data_raw()
          "   abs_user_parameters : Only used if abs_model==\"user\" or \"*Scaling\". \n"
          "                         In that case, abs_user_parameters must have \n"
          "                         4 or 1 element(s) respectively.\n"
-	 "                         abs_model==\"user\": \n"
+         "                         abs_model==\"user\": \n"
          "                         1. O2 Continuum scaling factor\n"
          "                         2. O2 line strength scaling factor\n"
          "                         3. O2 line pressure broadening scaling factor\n"
          "                         4. O2 line mixing scaling factor\n"
-	 "                         abs_model==\"*Scaling\": \n"
+         "                         abs_model==\"*Scaling\": \n"
          "                         1. O2 absorption overall scaling factor\n"
          "                         Note:\n"
          "                         abs_user_parameters must be empty if one of the\n"
@@ -361,7 +361,7 @@ void define_md_data_raw()
         DESCRIPTION
         (
          "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
-	 " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
+         " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
          "Output:\n"
          "   abs    : absorption coefficients [1/m], \n"
          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
@@ -379,12 +379,12 @@ void define_md_data_raw()
          "   abs_user_parameters : Only used if abs_model==\"user\" or \"*Scaling\". \n"
          "                         In that case, abs_user_parameters must have \n"
          "                         4 or 1 element(s) respectively.\n"
-	 "                         abs_model==\"user\": \n"
+         "                         abs_model==\"user\": \n"
          "                         1. O2 Continuum scaling factor\n"
          "                         2. O2 line strength scaling factor\n"
          "                         3. O2 line pressure broadening scaling factor\n"
          "                         4. O2 line mixing scaling factor\n"
-	 "                         abs_model==\"*Scaling\": \n"
+         "                         abs_model==\"*Scaling\": \n"
          "                         1. O2 absorption overall scaling factor\n"
          "                         Note:\n"
          "                         abs_user_parameters must be empty if one of the\n"
@@ -394,7 +394,7 @@ void define_md_data_raw()
         INPUT(  geomag_los_, f_grid_, 
                 zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_,
                 ppath_index_, rte_pressure_, 
-		rte_temperature_,rte_vmr_list_, species_index_,
+                rte_temperature_,rte_vmr_list_, species_index_,
                 abs_model_, abs_user_parameters_, stokes_dim_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -493,7 +493,7 @@ void define_md_data_raw()
         (
          "Add zeeman absorption to the elements of absorption vector.\n"
          "\n"
-	 ),
+         ),
         OUTPUT(abs_vec_),
         INPUT(abs_vec_, abs_vec_zee_),
         GOUTPUT(),
@@ -1458,7 +1458,7 @@ void define_md_data_raw()
         (
          "Add Zeeman extinction  to the elements of extinction matrix.\n"
          " \n"
-	 ),
+         ),
         OUTPUT(ext_mat_),
         INPUT(ext_mat_, ext_mat_zee_),
         GOUTPUT( ),
@@ -2916,7 +2916,7 @@ void define_md_data_raw()
          "conbination with *ScatteringDataPrepareDOITOpt*. \n"
          "\n"
          ),
-	OUTPUT(pha_mat_spt_),
+        OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_data_mono_, 
               za_grid_size_,
               scat_aa_grid_, 
@@ -3545,19 +3545,20 @@ void define_md_data_raw()
          "calculation using a Monte Carlo algorithm \n"
          "\n"
          "\n"
-         "The main output variables *iy* and *i_montecarlo_error* represent the \n"
-         "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
+         "The main output variables *iy* and *mc_error* represent the \n"
+         "Stokes vector leaving the cloudbox, and the estimated error in the \n"
+         "Stokes vector (at the sensor!- not the cloudbox exit) respectively.\n"
          "The keyword parameter `maxiter\' describes the number of `photons\'\n"
-         "used in the simulation (more photons means smaller *Ierror*).\n"
-         "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
-         "enable the saving of internal and external ppath data for diagnostic purposes.\n"
-         "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
-         " max_iter.\n Negative values of rng_seed seed the random number generator \n "
+         "used in the simulation (more photons means smaller *mc_error*).\n"
+         "std_err is the desired value of mc_error, and max_time is the maximum\n"
+         "allowed number of seconds for ScatteringMonteCarlo.  ScatteringMonteCarlo\n"
+         "will terminate once any of the max_iter, std_err, max_time criteria are\n"
+         "met.  If negative values are given for these parameters then it is ignored.\n"
+         " Negative values of rng_seed seed the random number generator \n "
          "according to system time, positive rng_seed values are taken literally.\n"
-          "if keyword parameter silent is non-zero iterative output showing the photon\n"
-         "number and scattering order are suppressed" ),
-        OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
-               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
+          ),
+        OUTPUT(ppath_, ppath_step_, mc_error_, mc_iteration_count_, 
+               rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
                rte_pressure_, rte_temperature_, 
                rte_vmr_list_, ext_mat_, abs_vec_, f_index_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
@@ -3568,9 +3569,8 @@ void define_md_data_raw()
               scat_data_mono_, pnd_field_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
-                 "record_histdata", "histdata_filename"),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t)));
+        KEYWORDS("std_err","max_time","max_iter","rng_seed"),
+        TYPES( Numeric_t, Index_t, Index_t, Index_t)));
 
   md_data_raw.push_back
     ( MdRecord
@@ -5000,11 +5000,11 @@ md_data_raw.push_back
          "from the profiles inside the function\n"
          ),
         OUTPUT( ybatch_, y_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-		pnd_field_raw_,	 p_grid_, sensor_los_,cloudbox_on_, 
-		cloudbox_limits_, z_surface_),
+                pnd_field_raw_,  p_grid_, sensor_los_,cloudbox_on_, 
+                cloudbox_limits_, z_surface_),
         INPUT(gas_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
-	      sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
-	      scat_data_raw_),
+              sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
+              scat_data_raw_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("nelem_p_grid", "met_profile_path", "met_profile_pnd_path"),
@@ -5107,8 +5107,8 @@ md_data_raw.push_back
       ( NAME("test_zeeman"),
         DESCRIPTION(
                     "\n"
-		    ),
-	OUTPUT(),
+                    ),
+        OUTPUT(),
         INPUT(opt_prop_gas_agenda_),
         GOUTPUT( ),
         GINPUT(),

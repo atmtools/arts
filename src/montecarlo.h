@@ -24,6 +24,7 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
+
 void Cloudbox_ppathCalc(
         //  Output:
               Ppath&          ppath,
@@ -39,7 +40,8 @@ void Cloudbox_ppathCalc(
         const Matrix&         z_surface,
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,
-              const Vector&         rte_los);
+	const Vector&         rte_los);
+
 
 void Cloudbox_ppath_rteCalc(
                              Ppath&                ppathcloud,
@@ -109,6 +111,7 @@ void cloudbox_ppath_start_stepping(
                                    ConstVectorView       rte_pos,
                                    ConstVectorView       rte_los );
           
+
 
 void cum_l_stepCalc(
                       Vector& cum_l_step,
@@ -192,6 +195,21 @@ void montecarloGetIncoming(
                            const Vector&         f_grid,
                            const Index&          stokes_dim
                            );
+
+Numeric opt_depth_calc(
+		       Tensor3& ext_mat,
+		       Numeric&   rte_pressure,
+		       Numeric&   rte_temperature,
+		       Vector&    rte_vmr_list,
+		       const Ppath&     ppath,
+		       const Agenda& opt_prop_gas_agenda,
+		       const Agenda& scalar_gas_absorption_agenda,
+		       const Vector&    p_grid,
+		       const Vector&    lat_grid,
+		       const Vector&    lon_grid,
+		       const Tensor3&   t_field,
+		       const Tensor4&   vmr_field,
+		       const Index&     atmosphere_dim);
 
 void opt_propCalc(
                   MatrixView& K,

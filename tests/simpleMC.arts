@@ -149,19 +149,10 @@ AgendaSet(rte_agenda){
 
 AgendaSet( iy_cloudbox_agenda ){
   ScatteringMonteCarlo{
-    maxiter=10000
+    std_err=-1
+    max_time=20
+    max_iter=-1
     rng_seed=-1
-    record_ppathcloud=0
-    record_ppath=0
-    silent=1
-    record_histdata=0
-    histdata_filename=""
-  }
-  Print(iy){
-    level=1
-  }
-  Print(i_montecarlo_error){
-    level=1
   }
 }
 
@@ -205,6 +196,19 @@ VectorToTbByRJ(y,y){
 Print(y){
 level=1
 }
+
+VectorToTbByRJ(mc_error,mc_error){
+}
+
+Print(mc_error){
+level=1
+}
+
+
+Print(mc_iteration_count){
+level=1
+}
+
 
 }
 

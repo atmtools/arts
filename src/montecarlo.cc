@@ -57,8 +57,8 @@
    
 \author Cory Davis
 \date 2003-06-19
-  
-*/
+*/  
+
 void Cloudbox_ppathCalc(
         //  Output:
               Ppath&          ppath,
@@ -395,13 +395,13 @@ void Cloudbox_ppath_rteCalc(
   Tensor7 scat_i_lon_dummy;
  
   //  cout << "Cloudbox_ppathCalc\n";
-  //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-  //                   p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-  //                   cloudbox_limits, rte_pos,rte_los);
+  Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+                     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
+                     cloudbox_limits, rte_pos,rte_los);
   
-  ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-             p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
-             cloudbox_limits, rte_pos,rte_los,0);
+  //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+  //           p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+  //           cloudbox_limits, rte_pos,rte_los,0);
 
   if (record_ppathcloud)
     {
@@ -469,10 +469,10 @@ void Cloudbox_ppath_rteCalc(
 }
 
 
-
+/*
 //! cloudbox_ppath_start_stepping
 
-/*!
+
    This function was derived from Patrick's 'ppath_start_stepping' function.  
    It has been adapted for use within the cloud box and is intended for a 
    3D atmosphere only
@@ -1028,6 +1028,70 @@ void montecarloGetIncoming(
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(iy(0,i)));}
 }
 
+
+Numeric opt_depth_calc(
+                       Tensor3& ext_mat,
+                       Numeric&   rte_pressure,
+                       Numeric&   rte_temperature,
+                       Vector&    rte_vmr_list,
+                       const Ppath&     ppath,
+                       const Agenda& opt_prop_gas_agenda,
+                       const Agenda& scalar_gas_absorption_agenda,
+                       const Vector&    p_grid,
+                       const Vector&    lat_grid,
+                       const Vector&    lon_grid,
+                       const Tensor3&   t_field,
+                       const Tensor4&   vmr_field,
+                       const Index&     atmosphere_dim)
+{
+  const Index np=ppath.np;  
+  const Index   ns = vmr_field.nbooks();
+  Vector t_ppath(np);
+                
+  Vector kvector(np);
+  Numeric opt_depth=0;
+  // Determine the pressure at each propagation path point
+  Vector   p_ppath(np);
+  Matrix   itw_p(np,2);
+  //
+  interpweights( itw_p, ppath.gp_p );      
+  itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
+  
+  // Determine the atmospheric temperature and species VMR at 
+  // each propagation path point
+  Matrix   vmr_ppath(ns,np), itw_field;
+  //
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+  //
+  interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
+                          lon_grid, t_field, "t_field", 
+                          ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+  // 
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
+                              p_grid, lat_grid, lon_grid, 
+                              vmr_field(is, joker, joker,  joker), 
+                              "vmr_field", ppath.gp_p, ppath.gp_lat, 
+                              ppath.gp_lon, itw_field );
+    }
+  //Create array of extinction cefficients corresponding to each point in ppath
+  for (Index i=0; i<ppath.np; i++)
+    { 
+      rte_pressure    = p_ppath[i];
+      rte_temperature = t_ppath[i];
+      rte_vmr_list    = vmr_ppath(joker,i);
+      scalar_gas_absorption_agenda.execute( true );
+      opt_prop_gas_agenda.execute( true );
+      kvector[i]=ext_mat(0,0,0);
+    }
+  for (Index i=1; i<ppath.np;i++)
+    {
+      opt_depth+=(kvector[i-1]+kvector[i])*ppath.l_step[i-1]/2;
+    }
+  return opt_depth;
+}
 
 //! opt_propCalc
 /*!
@@ -1826,7 +1890,7 @@ void TArrayCalc(
   Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
   Vector abs_vec_part(stokes_dim, 0.0);
 
-//use propagation angles from ppath to form scat_za_grid, scat_aa_grid
+  //use propagation angles from ppath to form scat_za_grid, scat_aa_grid
 
   scat_za_grid=ppath.los(Range(joker),0);
   scat_za_grid*=-1.0;
