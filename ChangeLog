@@ -1,3 +1,10 @@
+2002-12-19  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-343
+
+	* src/xml_io.cc: Bug fix in reading of SpeciesTag. Did not work when
+	opening tag was not followed by whitespace.
+
 2002-12-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* src/absorption.cc (SpeciesTag): Added white space removal to
