@@ -1282,6 +1282,15 @@ i_fieldUpdate3D(// WS Output:
   const Index N_scat_za = scat_za_grid.nelem();
   const Index N_scat_aa = scat_aa_grid.nelem();
 
+  // Grid ranges inside cloudbox:
+  const Range p_range = Range(cloudbox_limits[0],
+                              (cloudbox_limits[1] - cloudbox_limits[0]+1) );
+  const Range lat_range = Range(cloudbox_limits[2],
+                                (cloudbox_limits[3] - cloudbox_limits[2]+1) );
+  const Range lon_range = Range(cloudbox_limits[4],
+                                (cloudbox_limits[5] - cloudbox_limits[4]+1) );
+
+
   //=======================================================================
   // Calculate coefficients for all positions in the cloudbox 
   //=======================================================================
@@ -1521,19 +1530,52 @@ i_fieldUpdate3D(// WS Output:
                         (cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
                         (cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
                          (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-                          ppath_step.gp_p[1].fd[0] == 0.)) &&
+                          fabs(ppath_step.gp_p[1].fd[0]) < 1e-6)) &&
                         // inside latitude boundaries 
                         (cloudbox_limits[2] <= ppath_step.gp_lat[1].idx) &&
                         (cloudbox_limits[3] > ppath_step.gp_lat[1].idx ||
                          (cloudbox_limits[3] == ppath_step.gp_lat[1].idx &&
-                          ppath_step.gp_lat[1].fd[0] == 0.)) &&
+                          fabs(ppath_step.gp_lat[1].fd[0]) < 1e-6)) &&
                         // inside longitude boundaries 
                         (cloudbox_limits[4] <= ppath_step.gp_lon[1].idx) &&
                          (cloudbox_limits[5] > ppath_step.gp_lon[1].idx ||
                          (cloudbox_limits[5] == ppath_step.gp_lon[1].idx &&
-                          ppath_step.gp_lon[1].fd[0] == 0.)) 
+                          fabs(ppath_step.gp_lon[1].fd[0]) < 1e-6 )) 
                         )
                       {
+
+                        // If the intersection points lies exactly on a 
+                        // upper boundary the gridposition index is 
+                        // reduced by one and the first interpolation weight 
+                        // is set to 1.
+                        
+                        for( Index i = 0; i<2; i++)
+                          { 
+                            if (cloudbox_limits[1] == ppath_step.gp_p[i].idx &&
+                                fabs(ppath_step.gp_p[i].fd[0]) < 1e-6)
+                              {
+                                ppath_step.gp_p[i].idx -= 1;
+                                ppath_step.gp_p[i].fd[0] = 1;
+                                ppath_step.gp_p[i].fd[1] = 0;
+                              }
+                            
+                            if (cloudbox_limits[3]==ppath_step.gp_lat[i].idx &&
+                                fabs(ppath_step.gp_lat[i].fd[0]) < 1e-6)
+                              {
+                                ppath_step.gp_lat[i].idx -= 1;
+                                ppath_step.gp_lat[i].fd[0] = 1;
+                                ppath_step.gp_lat[i].fd[1] = 0;
+                              }
+                            
+                            if (cloudbox_limits[5]==ppath_step.gp_lon[i].idx &&
+                                fabs(ppath_step.gp_lon[i].fd[0]) < 1e-6)
+                              {
+                                ppath_step.gp_lon[i].idx -= 1;
+                                ppath_step.gp_lon[i].fd[0] = 1;
+                                ppath_step.gp_lon[i].fd[1] = 0;
+                              }
+                          }
+                        
                         // Gridpositions inside the cloudbox.
                         // The optical properties are stored only inside the
                         // cloudbox. For interpolation we use grids
@@ -1555,11 +1597,14 @@ i_fieldUpdate3D(// WS Output:
                         interp_atmfield_gp2itw
                           (itw_field, atmosphere_dim,
                            p_grid[ Range( cloudbox_limits[0], 
-                                          cloudbox_limits[1])],
+                                          (cloudbox_limits[1]-
+                                          cloudbox_limits[0]+1))],
                            lat_grid[ Range( cloudbox_limits[2], 
-                                          cloudbox_limits[3])],
+                                            (cloudbox_limits[3]-
+                                             cloudbox_limits[2]+1))],
                            lon_grid[ Range( cloudbox_limits[4], 
-                                           cloudbox_limits[5])],
+                                            (cloudbox_limits[5]-
+                                             cloudbox_limits[4]+1))],
                            cloud_gp_p, cloud_gp_lat, cloud_gp_lon );
 
                         // Ppath_step always has 2 points, the starting
@@ -1579,21 +1624,23 @@ i_fieldUpdate3D(// WS Output:
                         
                         for (Index i = 0; i < stokes_dim; i++)
                           {
+                            
                             // Extinction matrix requires a second loop 
                             // over stokes_dim
+                            out3 << "Interpolate ext_mat:\n";
                             for (Index j = 0; j < stokes_dim; j++)
                               {
                                 // Interpolation of ext_mat
                                 //
+                                cout << "p_grid_range" << 
+                                  p_grid[p_range]<< endl;
+
                                 interp_atmfield_by_itw
                                   (ext_mat_int(i, j, joker),
                                    atmosphere_dim,
-                                   p_grid[Range(cloudbox_limits[0], 
-                                                cloudbox_limits[1])],
-                                   lat_grid[Range( cloudbox_limits[2], 
-                                                   cloudbox_limits[3])],
-                                   lon_grid[Range( cloudbox_limits[4], 
-                                                   cloudbox_limits[5])],
+                                   p_grid[p_range],
+                                   lat_grid[lat_range],
+                                   lon_grid[lon_range],
                                    ext_mat_array( joker, joker, joker, i , j),
                                    "ext_mat_array",
                                    cloud_gp_p, cloud_gp_lat, cloud_gp_lon,
@@ -1609,15 +1656,13 @@ i_fieldUpdate3D(// WS Output:
                             //
                             // Interpolation of abs_vec
                             //
+                            out3 << "Interpolate abs_vec:\n";
                             interp_atmfield_by_itw
                                   (abs_vec_int(i,joker),
                                    atmosphere_dim,
-                                   p_grid[Range(cloudbox_limits[0], 
-                                                cloudbox_limits[1])],
-                                   lat_grid[Range( cloudbox_limits[2], 
-                                                   cloudbox_limits[3])],
-                                   lon_grid[Range( cloudbox_limits[4], 
-                                                   cloudbox_limits[5])],
+                                   p_grid[p_range],
+                                   lat_grid[lat_range],
+                                   lon_grid[lon_range],
                                    abs_vec_array( joker, joker, joker, i),
                                    "abs_vec_array",
                                    cloud_gp_p, cloud_gp_lat, cloud_gp_lon,
@@ -1632,36 +1677,43 @@ i_fieldUpdate3D(// WS Output:
                             //
                             // Interpolation of sca_vec:
                             //
+                            out3 << "Interpolate scat_field:\n";
+                            cout << "fjeowö#1" << endl;
                             interp_atmfield_by_itw
                               (sca_vec_int(i, joker),
                                atmosphere_dim,
-                               p_grid, lat_grid, lon_grid,
+                               p_grid[p_range], lat_grid[lat_range],
+                               lon_grid[lon_range],
                                scat_field(joker, joker, joker, scat_za_index,
                                          scat_aa_index, i),
                                "scat_field",
-                               ppath_step.gp_p,
-                               ppath_step.gp_lat,
-                               ppath_step.gp_lon,
+                               cloud_gp_p,
+                               cloud_gp_lat,
+                               cloud_gp_lon,
                                itw_field);
                             //
                             // Averaging of sca_vec:
                             //
+                            cout <<"nfwerjoöhfrp #2"<<endl;
                             sca_vec_av[i] =  0.5*
                               (sca_vec_int(i,0) + sca_vec_int(i,1));
                             //
                             // Stokes vector:
                             //
                             // Interpolation of i_field.
+                            out3 << "Interpolate i_field:\n";
                             interp_atmfield_by_itw
                               (sto_vec_int(i, joker),
                                atmosphere_dim,
-                               p_grid, lat_grid, lon_grid,
+                               p_grid[p_range],
+                               lat_grid[lat_range],
+                               lon_grid[lon_range],
                                i_field(joker, joker, joker, scat_za_index,
                                        scat_aa_index, i),
                                "i_field",
-                               ppath_step.gp_p,
-                               ppath_step.gp_lat,
-                               ppath_step.gp_lon,
+                               cloud_gp_p,
+                               cloud_gp_lat,
+                               cloud_gp_lon,
                                itw_field);
                             // 
                             // For the radiative transfer equation we 
@@ -1675,10 +1727,12 @@ i_fieldUpdate3D(// WS Output:
                         // 
                         // Interpolate temperature field
                         //
+                        out3 << "Interpolate temperature field\n";
                         interp_atmfield_by_itw
                           (t_int,
                            atmosphere_dim,
-                           p_grid, lat_grid, lon_grid,
+                           p_grid, lat_grid,
+                           lon_grid,
                            t_field(joker, joker, joker),
                            "t_field",
                            ppath_step.gp_p,

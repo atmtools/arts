@@ -1454,11 +1454,11 @@ void CloudboxGetIncoming(// WS Output:
        <<"Get clearsky field on cloudbox boundary. \n"
        <<"---------------------------------------- \n" ;
 
-  Index Nza = scat_za_grid.nelem();
   Index Nf = f_grid.nelem();
-  Index Np = p_grid.nelem();
-  Index Nlat = lat_grid.nelem();
-  Index Nlon = lon_grid.nelem();
+  Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+  Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1; 
+  Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+  Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
   Index Ni = stokes_dim;
@@ -1480,10 +1480,11 @@ void CloudboxGetIncoming(// WS Output:
       // then Nlat, Nlon, Naa is 0.
       scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, Ni);
 
-      // Dummies for interface variables scat_i_p, scat_i_lat, scat_i_lon.
-      Tensor7 scat_i_p_dummy(Nf, 2, 1, 1, Nza, 1, Ni);
-      Tensor7 scat_i_lat_dummy(Nf, Np, 2, 1, Nza, 1, Ni);
-      Tensor7 scat_i_lon_dummy(Nf, Np, 1, 2, Nza, 1, Ni);
+      // Empty dummies for interface variables scat_i_p, scat_i_lat,
+      // scat_i_lon.
+      Tensor7 scat_i_p_dummy;
+      Tensor7 scat_i_lat_dummy;
+      Tensor7 scat_i_lon_dummy;
            
       //Define the variables for position and direction. 
       Matrix sensor_los(1,1);
@@ -1544,10 +1545,7 @@ void CloudboxGetIncoming(// WS Output:
                     Range(joker)) = i_rte;
           
            } 
-          
-    
-          scat_i_lat = 0;
-          scat_i_lon = 0;
+     
     }
 
   // atmosphere_dim = 3:
@@ -1560,10 +1558,16 @@ void CloudboxGetIncoming(// WS Output:
       for(Index i = 0; i<Naa; i++)
         aa_grid[i] = scat_aa_grid[i] - 180;
 
-       // Dummies for interface variables scat_i_p, scat_i_lat, scat_i_lon.
-      Tensor7 scat_i_p_dummy(Nf, 2, Nlat, Nlon, Nza, Naa, Ni);
-      Tensor7 scat_i_lat_dummy(Nf, Np, 2, Nlon, Nza, Naa, Ni);
-      Tensor7 scat_i_lon_dummy(Nf, Np, Nlat, 2, Nza, Naa, Ni);
+      // Resize interface variables:
+      scat_i_p.resize(Nf, 2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ni);
+      scat_i_lat.resize(Nf, Np_cloud, 2, Nlon_cloud, Nza, Naa, Ni);
+      scat_i_lon.resize(Nf, Np_cloud, Nlat_cloud, 2, Nza, Naa, Ni);
+
+      // Empty dummies for interface variables scat_i_p, scat_i_lat,
+      // scat_i_lon.
+      Tensor7 scat_i_p_dummy;
+      Tensor7 scat_i_lat_dummy;
+      Tensor7 scat_i_lon_dummy;
 
       // Define the variables for position and direction.
       // LOS for 1 measurement block defined by zenith angle and azimuth angle.
@@ -1574,16 +1578,18 @@ void CloudboxGetIncoming(// WS Output:
 
       // Get scat_i_p at lower boundary
 
-      for (Index lat_index = cloudbox_limits[2]; 
-                 lat_index < cloudbox_limits[3]; lat_index++ )
+      for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
         {
-          for (Index lon_index = cloudbox_limits[4];
-                     lon_index < cloudbox_limits[5]; lon_index++ )
+          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
             {
-              sensor_pos(0,0) = r_geoid(lat_index,lon_index) 
-                             + z_field(cloudbox_limits[0],lat_index,lon_index);
-              sensor_pos(0,1) = lat_grid[lat_index];
-              sensor_pos(0,2) = lon_grid[lon_index];
+       
+              sensor_pos(0,0) = r_geoid(lat_index + cloudbox_limits[2],
+                                        lon_index + cloudbox_limits[4]) 
+                + z_field(cloudbox_limits[0],
+                          lat_index + cloudbox_limits[2],
+                          lon_index + cloudbox_limits[4]);
+              sensor_pos(0,1) = lat_grid[lat_index + cloudbox_limits[2]];
+              sensor_pos(0,2) = lon_grid[lon_index + cloudbox_limits[4]];
 
               for (Index scat_za_index = 0; scat_za_index < Nza;
                    scat_za_index ++)
@@ -1614,6 +1620,9 @@ void CloudboxGetIncoming(// WS Output:
 
                       IndexPrint( i_rte.nrows(), "nrows" );
                       IndexPrint( i_rte.ncols(), "ncols" );
+                      IndexPrint( lat_index, "lat_index" );
+                      IndexPrint( lon_index, "lon_index" );
+                      
 
                       scat_i_p( Range(joker), 0, lat_index, lon_index, 
                                 scat_za_index, scat_aa_index,
@@ -1628,16 +1637,17 @@ void CloudboxGetIncoming(// WS Output:
       
       // Get scat_i_p at upper boundary
       
-      for (Index lat_index = cloudbox_limits[2];
-                 lat_index < cloudbox_limits[3]; lat_index++ )
+       for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
         {
-          for (Index lon_index = cloudbox_limits[4];
-                     lon_index < cloudbox_limits[5]; lon_index++ )
+          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
             {
-              sensor_pos(0,0) = r_geoid(lat_index,lon_index) + 
-                               z_field(cloudbox_limits[1],lat_index,lon_index);
-              sensor_pos(0,1) = lat_grid[lat_index];
-              sensor_pos(0,2) = lon_grid[lon_index];
+              sensor_pos(0,0) = r_geoid(lat_index + cloudbox_limits[2],
+                                        lon_index + cloudbox_limits[4]) 
+                + z_field(cloudbox_limits[1],
+                          lat_index + cloudbox_limits[2],
+                          lon_index + cloudbox_limits[4]);
+              sensor_pos(0,1) = lat_grid[lat_index + cloudbox_limits[2]];
+              sensor_pos(0,2) = lon_grid[lon_index + cloudbox_limits[4]];
 
               for (Index scat_za_index = 0; scat_za_index < Nza;
                    scat_za_index ++)
@@ -1680,16 +1690,17 @@ void CloudboxGetIncoming(// WS Output:
        
       // Get scat_i_lat (1st boundary):
       
-      for (Index p_index = cloudbox_limits[0];
-                 p_index < cloudbox_limits[1]; p_index++ )
+      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
-          for (Index lon_index = cloudbox_limits[4];
-                     lon_index < cloudbox_limits[5]; lon_index++ )
+          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
             {
-              sensor_pos(0,0) = r_geoid(cloudbox_limits[2],lon_index) +
-                                 z_field(p_index,cloudbox_limits[2],lon_index);
+              sensor_pos(0,0) = r_geoid(cloudbox_limits[2],
+                                        lon_index + cloudbox_limits[4]) +
+                z_field(p_index + cloudbox_limits[0],
+                        cloudbox_limits[2],
+                        lon_index + cloudbox_limits[4]);
               sensor_pos(0,1) = lat_grid[cloudbox_limits[2]];
-              sensor_pos(0,2) = lon_grid[lon_index];
+              sensor_pos(0,2) = lon_grid[lon_index + cloudbox_limits[4]];
 
               for (Index scat_za_index = 0; scat_za_index < Nza;
                    scat_za_index ++)
@@ -1731,16 +1742,17 @@ void CloudboxGetIncoming(// WS Output:
       
       // Get scat_i_lat (2nd boundary)
       
-       for (Index p_index = cloudbox_limits[0];
-                  p_index < cloudbox_limits[1]; p_index++ )
-         {
-           for (Index lon_index = cloudbox_limits[4];
-                      lon_index < cloudbox_limits[5]; lon_index++ )
-             {
-               sensor_pos(0,0) = r_geoid(cloudbox_limits[3],lon_index) 
-                               + z_field(p_index,cloudbox_limits[3],lon_index);
+      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
+        {
+          for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
+            {
+              sensor_pos(0,0) = r_geoid(cloudbox_limits[3],
+                                        lon_index + cloudbox_limits[4]) +
+                 z_field(p_index + cloudbox_limits[0],
+                         cloudbox_limits[3],
+                         lon_index + cloudbox_limits[4]);
                sensor_pos(0,1) = lat_grid[cloudbox_limits[3]];
-               sensor_pos(0,2) = lon_grid[lon_index];                         
+               sensor_pos(0,2) = lon_grid[lon_index + cloudbox_limits[4]];
                
                for (Index scat_za_index = 0; scat_za_index < Nza;
                     scat_za_index ++)
@@ -1782,15 +1794,16 @@ void CloudboxGetIncoming(// WS Output:
 
        // Get scat_i_lon (1st boundary):
        
-       for (Index p_index = cloudbox_limits[0];
-                  p_index < cloudbox_limits[1]; p_index++ )
+      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
-          for (Index lat_index = cloudbox_limits[2];
-                     lat_index < cloudbox_limits[3]; lat_index++ )
+          for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
             {
-              sensor_pos(0,0) = r_geoid(lat_index,cloudbox_limits[4]) + 
-                                 z_field(p_index,lat_index,cloudbox_limits[4]);
-              sensor_pos(0,1) = lat_grid[lat_index];
+              sensor_pos(0,0) = r_geoid(lat_index + cloudbox_limits[2],
+                                        cloudbox_limits[4]) + 
+                                 z_field(p_index + cloudbox_limits[0],
+                                         lat_index + cloudbox_limits[2],
+                                         cloudbox_limits[4]);
+              sensor_pos(0,1) = lat_grid[lat_index + cloudbox_limits[2]];
               sensor_pos(0,2) = lon_grid[cloudbox_limits[4]];
 
               for (Index scat_za_index = 0; scat_za_index < Nza;
@@ -1833,17 +1846,18 @@ void CloudboxGetIncoming(// WS Output:
       
       // Get scat_i_lon (2nd boundary)
       
-       for (Index p_index = cloudbox_limits[0]; 
-                  p_index < cloudbox_limits[1]; p_index++ )
+      for (Index p_index = 0; p_index < Np_cloud; p_index++ )
         {
-          for (Index lat_index = cloudbox_limits[2];
-                     lat_index < cloudbox_limits[3]; lat_index++ )
+          for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
             {
-              sensor_pos(0,0) = r_geoid(lat_index,cloudbox_limits[5]) + 
-                                 z_field(p_index,lat_index,cloudbox_limits[5]);
-              sensor_pos(0,1) = lat_grid[lat_index];
+              sensor_pos(0,0) = r_geoid(lat_index + cloudbox_limits[2],
+                                        cloudbox_limits[5]) + 
+                                 z_field(p_index + cloudbox_limits[0],
+                                         lat_index + cloudbox_limits[2],
+                                         cloudbox_limits[5]);
+              sensor_pos(0,1) = lat_grid[lat_index + cloudbox_limits[2]];
               sensor_pos(0,2) = lon_grid[cloudbox_limits[5]];
-
+              
               for (Index scat_za_index = 0; scat_za_index < Nza;
                    scat_za_index ++)
                 {

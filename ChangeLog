@@ -1,3 +1,27 @@
+2003-01-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-399
+
+	* src/rte.cc (rte_step): Change condition for unpolarized case 
+	(extinction matrix diagonal). The
+	problem is, that if you do a calculation for 2 Stokes dimensions,
+	the extinction matrix can be diagonal although the radiation is 
+	polarised. Now the unpolarised calculation is performed if the
+	extinction matrix is diagonal AND all components except the first
+	of the absorption vector are zero.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Changed the size of the
+	interface variables scat_i_XXX. So far they were defined on the
+	full atmospheric grids which is not necessary. Now they are only
+	defined inside the cloudbox boundaries. Loop indices had to be adapted 
+	according to this change.
+
+	* src/scat_rte.cc (ScatteringMain): Commented CloudboxGetIncoming. 
+	For testing constant values for the boundary variables are used.
+	(i_fieldUpdate3D): Fixed bugs in the radiative transfer part. 
+	The function runs without crashes but I have to do some tests before
+	I can assure that it works.
+	
 2003-01-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-398

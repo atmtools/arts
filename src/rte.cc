@@ -532,6 +532,13 @@ void rte_step(//Output and Input:
   assert( a_planck_value >= 0 );
   assert( l_step >= 0 );
 
+  // Check, if only the first component of abs_vec is non-zero:
+  bool unpol_abs_vec = true;
+
+  for (Index i = 1; i < stokes_dim; i++)
+    if (abs_vec_av[i] != 0)
+      unpol_abs_vec = false;
+
 
   // Scalar case: 
   if( stokes_dim == 1 )
@@ -541,37 +548,37 @@ void rte_step(//Output and Input:
         * (1 - exp(-ext_mat_av(0,0) * l_step));
     }
   // Vector case: 
-  else
-    {
+    
       // We have here two cases, diagonal or non-diagonal ext_mat_gas
       // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
       // non-zero value in position 1.
     
       // Unpolarised
-      if( is_diagonal(ext_mat_av) )
-        {
-           // Stokes dim 1
-          assert( ext_mat_av(0,0) == abs_vec_av[0] );
+  else if( is_diagonal(ext_mat_av) && unpol_abs_vec )
+    {
+      // Stokes dim 1
+      //    assert( ext_mat_av(0,0) == abs_vec_av[0] );
           Numeric transm = exp( -l_step * abs_vec_av[0] );
           stokes_vec[0] = stokes_vec[0] * transm + 
-                                                ( 1- transm ) * a_planck_value;
-
+            ( 1- transm ) * a_planck_value;
+          
           // Stokes dims > 1
           for( Index i=1; i<stokes_dim; i++ )
             {
-            assert( abs_vec_av[i] == 0.);
-            stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); 
+              //      assert( abs_vec_av[i] == 0.);
+              stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); 
             }
-        }
-      
-      //General case
-      else
-        {
-          stokes_vecGeneral(stokes_vec, ext_mat_av, abs_vec_av, sca_vec_av,
-                            l_step, a_planck_value);
-        }
+    }
+  
+  
+  //General case
+  else
+    {
+      stokes_vecGeneral(stokes_vec, ext_mat_av, abs_vec_av, sca_vec_av,
+                        l_step, a_planck_value);
     }
 }
+
 
 
 
