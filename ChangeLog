@@ -1,3 +1,13 @@
+2003-05-23  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-0-80
+
+	* doc/uguide/absorption.tex: Added references to the major
+	equations in the resonant absorption part. Also some other minor
+	text changes.
+
+	* doc/uguide/references.bib: Added new references.
+
 2003-05-23  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-79
