@@ -144,36 +144,40 @@ int main()
           // vector as generic output, this does not mean that it is
           // the same vector!
 
-          if ( mdd.Supergeneric() )
             {
-              ofs << "void " << mdd.Name()
-                  << "_sg_" << wsv_group_names[mdd.ActualGroup()]
-                  << "_g(WorkSpace& ws, const MRecord& mr)\n"
-                  << "{\n";
-            }
-          else
-            {
-              ofs << "void " << mdd.Name()
-                  << "_g(WorkSpace& ws, const MRecord& mr)\n"
-                  << "{\n";
-            }
 
-          // Add call to dummy function touch of WorkSpace if ws is not
-          // used in method.
-          if (0 == vo.nelem ()
-              && 0 == vi.nelem ())
-            {
-              ofs << "  ws.touch ();\n";
-            }
+              String ws, mr;
 
-          // Add call to dummy function touch of MRecord if mr is not
-          // used in method.
-          if ( 0 == vgo.nelem ()
-               && 0 == vgi.nelem ()
-               && 0 == mdd.Keywords().nelem()
-               && !mdd.AgendaMethod())
-            {
-              ofs << "  mr.touch ();\n";
+              // Use parameter name only if it is used inside the function
+              // to avoid warnings
+              if (vo.nelem () || vi.nelem ())
+                {
+                  ws = " ws";
+                }
+
+              // Use parameter name only if it is used inside the function
+              // to avoid warnings
+              if ( vgo.nelem () || vgi.nelem ()
+                   || mdd.Keywords().nelem() || mdd.AgendaMethod())
+                {
+                  mr = " mr";
+                }
+
+              if ( mdd.Supergeneric() )
+                {
+                  ofs << "void " << mdd.Name()
+                    << "_sg_" << wsv_group_names[mdd.ActualGroup()]
+                    << "_g(WorkSpace&" << ws
+                    << ", const MRecord&" << mr << ")\n"
+                    << "{\n";
+                }
+              else
+                {
+                  ofs << "void " << mdd.Name()
+                    << "_g(WorkSpace&" << ws
+                    << ", const MRecord&" << mr << ")\n"
+                    << "{\n";
+                }
             }
 
           // Define generic output pointers
