@@ -1,3 +1,21 @@
+2003-05-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-554
+
+	* src/Makefile.am: Added matpackII.{cc,h} to sources of most targets.
+
+	* src/matpackII.{cc,h}: Added dummy resize function to Sparse.
+	Move implementation of rw and ro to operator(). Make rw, ro wrappers
+	calling operator().
+
+	* src/m_sensor.cc (sensor_responseBackend, sensor_responseAntenna1D):
+	Changed type of sensor_response_tmp and ws output to Sparse.
+
+	* src/workspace.cc: Changed group of sensor_response to Sparse.
+
+	* src/test_matpack.cc: Include matpackII.h instead of matpackII.cc.
+	Never include cc files!!! -> duplicate defined symbols.
+
 2003-05-26  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-553
