@@ -1,3 +1,12 @@
+2002-01-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-5
+
+	* doc/arts-splash.gif: Added.
+
+	* doc/Makefile.am (EXTRA_DIST), doc/index.html.in: Added
+	arts-splash.gif.
+
 2002-01-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-4
