@@ -70,7 +70,7 @@ box\\
 % Definition of new commands:
 % ====================================================================
 \newcommand{\DirFre} {(\PDir, \Frq, \Tmp)}
-\newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \PDir, \Frq, \Tmp)}}
+\newcommand{\DirFrePr} {\ensuremath{(\PDir, \PDir^\prime, \Frq, \Tmp)}}
 
 
 \levelb{General radiative transfer equation}
@@ -78,7 +78,10 @@ box\\
 \label{sec:scattering:general_rte}
  
 
-The radiative transfer equation is \citep{mishchenko00:_light_scatt_nonsp_partic}: 
+The radiative transfer equation for a medium with thermal emission
+comprising sparseley and randomly distributed, spherical or
+arbitrarily oriented nonspherical particles is 
+\citep{mishchenko00:_light_scatt_nonsp_partic}: 
 \begin{eqnarray}
      \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq, \Tmp) =
      -\ExtMat\DirFre\StoVec(\PDir, \Frq, \Tmp)+\AbsVec\DirFre
@@ -87,22 +90,38 @@ The radiative transfer equation is \citep{mishchenko00:_light_scatt_nonsp_partic
      \StoVec(\PDir^\prime, \Frq, \Tmp) 
 \label{eq:scattering:RTE} 
 \end{eqnarray} 
-Formally it is a four dimensional vector equation where \StoVec
-$(I,Q,U,V)$ is the Stokes vector.
-Its first component $I$ is the monochromatic flux, the
-second and third components $Q$ and $U$ describe the state of linear
-polarization and the last component $V$ denotes the state of circular
-polarization of the radiation propagating in the direction \PDir.
-\DiffD $s$ denotes the pathlength element along direction \PDir. \Frq\ 
-is the frequency of the radiation.
+Formally it is an inhomogeneous four dimensional vector differential
+ equation for the Stokes vector \StoVec
+$(I,Q,U,V)$. To describe the full state of an
+electromagnetic wave you could use the electromagetic field
+vector, which consists of two complex numbers. This is the common
+notation in Maxwell's theory. An alternative notation is the Stokes
+vector which is more convienient for experimental purposes, as it
+consists of real numbers which can be associated more directly with the
+measurements.
+The first component of the Stokes vector $I$ signifies the monochromatic flux
+or the intensity of
+the radiation. The other components describe the polarization state: the
+second and third components $Q$ and $U$ signify the state of linear
+polarization and the last component $V$ signifies the state of circular
+polarization. More details about the physical meaning of the Stokes
+vector and about possibilities to measure the Stokes components
+can be
+found in Chapter \ref{sec:polarization}.\\
+In Equation  (\ref{eq:scattering:RTE})
+\PDir\ denotes the propagation direction and
+\DiffD $s$ the pathlength element along this direction. The radiation
+field depends on frequency \Frq\ and temperature \Tmp.
 
+\vspace{1ex}
 The first term of Equation (\ref{eq:scattering:RTE}) corresponds to the extinction of
 radiation determined by the extinction coefficient matrix \ExtMat
-. For microwave radiation traveling through the atmosphere we
-have extinction due to gaseous
+. For microwave radiation traveling through the atmosphere there is
+extinction due to gaseous
 absorption, particle absorption and  particle scattering. Lambert's law
 states that the extinction process is
-proportional to the amount of matter. Accordingly \ExtMat can be written as
+proportional to the amount of matter. Therefore
+\ExtMat\ can be written as
 a sum of two matrices, the first for particle extinction ( \aExtMat{p})
 and the second for gaseous extinction (\aExtMat{g}):
 \begin{eqnarray}
@@ -123,7 +142,7 @@ extinction cross section matrix of the
 
 The second term in Equation (\ref{eq:scattering:RTE})  describes the thermal
 emission. Therefore \Planck\  is the Planck
-function at temperature \Tmp and \AbsVec\  is the absorption
+function at temperature \Tmp\ and \AbsVec\  is the absorption
 coefficient vector which can be written as
  \begin{eqnarray}
   \AbsVec \DirFre  &=& \aAbsVec{p} \DirFre + \aAbsVec{g} \DirFre 
@@ -143,9 +162,9 @@ vector.
 
 The last term in Equation (\ref{eq:scattering:RTE}) is the scattering source
 term. It is the 
-amount of radiation which is scattered from all other directions \PDir$^\prime$   
-into direction \PDir.  The scattering efficiency matrix
-\SEfMat is the sum of products  
+amount of radiation which is scattered from all directions \PDir$^\prime$   
+into the propagation direction \PDir.  The scattering efficiency matrix
+\SEfMat\ is the sum of products  
 of the particle densities \PDen\  and the phase matrices \PhaMat
 \begin{eqnarray}
 \SEfMat(\PDir, \PDir', \Frq, \Tmp) = \sum_i{\PDen_i\PhaMat_i(\PDir,
@@ -382,7 +401,7 @@ method. Applying Mishchenko's FORTRAN code, which is explained in
 the amplitude matrix can be calculated. The
 amplitude matrix ${\bf S}$ is a 2x2 complex matrix, which linearly transforms 
 the electric field vector components of the incident wave into the
-electric field vector components of the scattered wave.  
+electric field vector components of the scattered wave:  
 \begin{eqnarray}
   \label{eq:ampl_matrix}
   \left[{E^{\rm sca}_{\theta}\atop E^{\rm sca}_{\phi}}\right] =
@@ -390,36 +409,38 @@ electric field vector components of the scattered wave.
       n'};\epsilon_1,\epsilon_2,\epsilon_3)\left[{E^{\rm inc}_{\theta
           0}\atop E^{\rm inc}_{\phi 0}}\right] 
 \end{eqnarray}
-The amplitude matrix depends on the directions of incidence  $(\theta,
+It depends on the directions of incidence  $(\theta,
 \phi)$  and
 scattering $(\theta', \phi')$ as  well as on size, morphology and composition of the
-scattering material, also on the orientation of the particles which
+scattering material, furthermore on the orientation of the particles which
 is specified by the Euler angles of rotation $\epsilon _i$. 
-The equation above is valid for a monochromatic wave.  Furthermore the
-amplitude matrix is frequency dependent.
+The equation above is valid for a monochromatic wave, generally the
+amplitude matrix is also frequency dependent.
 
-The amplitude matrix contains all information about the optical
-properties of the scattering medium. Extinction cross section
+All information about the optical
+properties of the scattering medium are contained in the amplitude
+matrix. Extinction cross section
 matrix, absorption cross section vector and phase matrix can be
-obtained from the amplitude matrix (see Sections
+obtained by simple additions or multiplications of amplitude matrix
+components (see Sections
 \ref{sec:scattering:ext_mat_spt}, \ref{sec:scattering:pha_mat_spt}  and
 \ref{sec:scattering:abs_vec_spt}).
 For this reason, it is sufficient to store only the amplitude matrices
-in the scattering data base. 
+in the scattering data base instead of storing all coefficients. 
 
-For each particle type there is one file in the database.
-The particle type is determined by the particle size, the particle
+For each particle type determined by the particle size, the particle
 shape and the
-orientation. We consider only ice crystals, which means that the
-material of the
-particles is always identical. If there is a cloud consisting of
-different particles, the scattering properties for that particles
-distribution can be derived from the single scattering properties.
-
-Each file in the scattering database contains the amplitude matrix for
-one particular particle type. The files are stored in xml-format. The
-datatype of each file is a 6D gridded field (cp. Section
-%\ref{sec:gridded_fields}). 
+orientation there is one file in the database  containing the
+amplitude matrix for this type.
+So far we have only considered ice particles as we are mainly
+interested in cirrus clouds.\\
+The methods to read from the database allow to construct homogeneous
+clouds as well as inhomogeneous clouds, which may consist of various
+particle types. 
+All data files are stored in xml-format. The
+datatype of each file is a 6D gridded field (cp. Section FIXME
+%\ref{sec:gridded_fields}
+). 
 The following example shows the datafile
 for spherical particles having 200 $\mu$m equal volume sphere radius:
 
@@ -506,19 +527,21 @@ $S^{real}_{21}$, $S^{real}_{22}$) and the imaginary components
 %==========================================================
 \label{sec:scattering:pnd_data}
 
-A second database contains the particle number density fields. The
-data is stored in xml-format. The datatype contained in each file is a
+A second database contains the particle number density fields. 
+The datatype contained in each data file is a
 3D gridded field. It contains three elements corresponding to 
 pressure, latitude and longitude grid. The forth element contains the
-data for the particle number density. As for the amplitude matrix data
-base, the particle number density database contains one file for each
-particle type which can be considered.
+data for the particle number density. Each chosen particle type 
+has to be defined together with a
+particle number density field.
 
 \levelc{Reading the databases}
 %===========================================================
 \label{sec:scattering:read_data}
 
-Two workspace methods are implemented for reading the database. They
+Two workspace methods are implemented for reading the database. These
+functions are used to define the clouds, the horizontal and vertical
+extension and the particle distribution inside the cloud. They
 are called \wsmindex{ParticleTypeInit} and \wsmindex{ParticleTypeAdd}. 
 
 The workspace variable containing the amplitude matrix data is
@@ -585,16 +608,16 @@ particle shape and the aspect ratio for non-spherical particles.
 As we know from the previous section \ref{sec:scattering:read_data} 
 the workspace variable containing the amplitude matrix data is 
 \artsstyle{amp\_mat\_raw} which is an array of gridded
-fields. Amplitude matrix data given by the seventh element of the
+fields. The amplitude matrix data given by the seventh element of the
 workspace variable \artsstyle{amp\_mat\_raw} is calculated for
 frequencies given by the first element  and angles given by the
 second, third,  fourth and fifth elements.  The method
 \wsmindex{amp\_matCalc} takes \artsstyle{amp\_mat\_raw} as input and
-interpolate the amplitude matrix data onto the respective frequency
+interpolates the amplitude matrix data onto the respective frequency
 and angular grids necessary for the calculation.  The output of this
 method is \artsstyle{amp\_mat}.  The size of \artsstyle{amp\_mat} is  
 [$N_{pt}, N_{za}, N_{aa}, N_{za}, N_{aa}, 8$]. Here $N_{pt}$ gives
-the number of particle types considered for the study which is
+the number of particle types considered for the calculation which is
 specified from the input \artsstyle{amp\_mat\_raw}. $N_{za}$ gives
 the number of zenith angles considered for scattering calculation 
 which is specified by the input \wsvindex{scat\_za\_grid}, and $N_{aa}$
@@ -636,8 +659,8 @@ is the new field.
 
 The agenda \wsvindex{ext\_mat\_agenda} calculates the total extinction
 matrix \ExtMat{}
-for each grid point. It is the physical extinction matrix, that means
-that it includes the gaseous extinction and the particle
+for each grid point. This is the physical extinction matrix, that means
+that it includes gaseous extinction and particle
 extinction.\\
 Output is the variable \wsvindex{ext\_mat} which is given
 as a $N_I$x $N_I$ Matrix, i.e. one dimension for each Stokes component. If the
@@ -655,6 +678,7 @@ propagation direction given by zenith angle (\wsvindex{scat\_za\_grid}) and
 azimuth angle (\wsvindex{scat\_aa\_grid}) are needed.\\
 The agenda can for example be defined in the following manner:
 
+\vspace{1ex}
 \begin{minipage}{0.9\hsize}
 \begin{verbatim}
 AgendaDefine(ext_mat_agenda)
@@ -686,12 +710,15 @@ particle extinction matrix \aExtMat{p} stored in the variable
 \wsvindex{ext\_mat\_part} which has the chosen Stokes dimension. So in
 the most general case it is a 4x4 matrix.\\
 First input is the workspace variable \wsvindex{ext\_mat\_spt} (see Section
-\ref{sec:scattering:ext_mat_spt}). The second input variable is the
-local particle number densities \artsstyle{pnd\_field} for all particle types,
-that means \artsstyle{pnd\_field} is a Tensor4 with dimension 
-[$N_{pt}, N_{p}, N_{lat}, N_{lon}$]. The other workspace variable
-inputs required are \wsvindex{atmosphere\_dim}, \wsvindex{scat\_p\_index},
-\wsvindex{scat\_lat\_index}, and \wsvindex{scat\_lon\_index}. \\
+\ref{sec:scattering:ext_mat_spt}). Second input is the
+local particle number density field for all particle types
+\artsstyle{pnd\_field}, which
+ is a Tensor4 with dimension 
+[$N_{pt}, N_{p}, N_{lat}, N_{lon}$]. Furthermore the  workspace
+variables
+\wsvindex{atmosphere\_dim}, \wsvindex{scat\_p\_index},
+\wsvindex{scat\_lat\_index} and \wsvindex{scat\_lon\_index} are
+required as input. \\
 The method sums up the extinction matrices for all particle types
 weighted with the particle number density:
 \begin{eqnarray}
@@ -795,11 +822,22 @@ The phase matrices \PhaMat{} are
 calculated for all particle types chosen in the control
 file using the following equations: 
 \begin{eqnarray}
-   Z_{11} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2+|S_{21}|^2+|S_{22}|^2)\\
-   Z_{21} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2-|S_{21}|^2-|S_{22}|^2)\\
-   Z_{31} &=& -Re(S_{11}S_{21}^*+S_{22}S_{12}^*)\\
-   Z_{41} &=& -Im(S_{21}S_{11}^*+S_{22}S_{12}^*)\\
-\cdots ... {\rm to be completed}
+  Z_{11} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2+|S_{21}|^2+|S_{22}|^2)\\
+  Z_{12} &=& \frac{1}{2}(|S_{11}|^2-|S_{12}|^2+|S_{21}|^2-|S_{22}|^2)\\
+  Z_{13} &=& -Re(S_{11}S_{12}^*+S_{22}S_{21}^*)\\
+  Z_{41} &=& -Im(S_{11}S_{12}^*-S_{22}S_{21}^*)\\
+  Z_{21} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2-|S_{21}|^2-|S_{22}|^2)\\
+  Z_{22} &=& \frac{1}{2}(|S_{11}|^2-|S_{12}|^2-|S_{21}|^2+|S_{22}|^2)\\
+  Z_{23} &=& -Re(S_{11}S_{12}^*-S_{22}S_{21}^*)\\
+  Z_{41} &=& -Im(S_{11}S_{12}^*+S_{22}S_{21}^*)\\
+  Z_{31} &=& -Re(S_{11}S_{21}^*+S_{22}S_{12}^*)\\
+  Z_{32} &=& -Re(S_{11}S_{21}^*-S_{22}S_{12}^*)\\
+  Z_{33} &=& Re(S_{11}S_{22}^*+S_{12}S_{21}^*)\\
+  Z_{34} &=& Im(S_{11}S_{22}^*+S_{21}S_{12}^*)\\
+  Z_{41} &=& -Im(S_{21}S_{11}^*+S_{22}S_{12}^*)\\
+  Z_{42} &=& -Im(S_{21}S_{11}^*-S_{22}S_{12}^*)\\
+  Z_{43} &=& Im(S_{22}S_{11}^*-S_{12}S_{21}^*)\\
+  Z_{44} &=& Re(S_{22}S_{11}^*-S_{12}S_{21}^*)
 \end{eqnarray}
 
 
@@ -871,7 +909,7 @@ particle absorption vector \aAbsVec{p} stored in the variable
 general a four component vector.\\
 First input is the workspace variable \wsvindex{abs\_vec\_spt} (see Section
 \ref{sec:scattering:abs_vec_spt}). The second input variable is the
-local particle number densities \artsstyle{pnd\_field} for all particle types,
+local particle number density field \artsstyle{pnd\_field} for all particle types,
 that means \artsstyle{pnd\_field} is a Tensor4 with dimension 
 [$N_{pt}, N_{p}, N_{lat}, N_{lon}$]. The other workspace variable
 inputs required are \wsvindex{atmosphere\_dim}, \wsvindex{scat\_p\_index},
@@ -913,12 +951,12 @@ file. The following formulas are used:
   b^p_3({\bf n}) &=&  L^p_{31}({\bf n}) - \int_{4\pi} d{\bf n'}
   Z_{31}({\bf n, n'})\\
   b^p_4({\bf n}) &=&  L^p_{41}({\bf n}) - \int_{4\pi} d{\bf n'}
-  Z_{41}({\bf n, n'})
+  Z_{41}({\bf n, n'}) \\
 \end{eqnarray}
 These equations show, that the first column of extinction and phase
-matrix are needed. So it is obligatory to execute the agendas
-\funcindex{ext\_mat\_agenda} and 
-\funcindex{pha\_mat\_agenda} before executing
+matrix are needed. So it is obligatory to execute the agenda
+\funcindex{ext\_mat\_agenda} and the method
+\funcindex{pha\_matCalc} before executing
 \funcindex{abs\_vec\_agenda}. 
 
 
@@ -942,7 +980,7 @@ The concept of a cloud box is explained in Section
 \ref{sec:fm_defs:cloudbox}. It is activated by setting the flag
 \wsvindex{cloudbox\_on} to 1. The
 limits of the cloud box are stored in \wsvindex{cloudbox\_limits}
-which in an array of indices, containing the lower and the upper
+which is an array of indices, containing the lower and the upper
 pressure index, the lower and upper latitude index and the lower and
 upper longitude index. 
 
@@ -992,7 +1030,7 @@ size is in the 1D case
 N( \artsstyle{scat\_i\_p} ) = $[N_\Frq, 2, 1, 1,  N_\ScaZa, 1,  N_I]$
 \end{center}  
 Inside the scattering box we need to specify only  
-\wsvindex{scat\_za\_grid} (???? really ????). 
+\wsvindex{scat\_za\_grid}. 
 
 As interface between the clear sky calculation and the cloud box calculation only 
   \begin{center}
@@ -1105,11 +1143,11 @@ described in Section
 \artsstyle{i\_field}.  This is generated by integrating the product of
 intensity field \artsstyle{i\_field} and phase matrix
 \artsstyle{pha\_mat} over all incident zenith and azimuth angles.  In
-addition to \artsstyle{i\_field}, phase matrix for single 
+addition to \artsstyle{i\_field}, the phase matrix for single 
 particle \artsstyle{pha\_mat\_spt}, the particle number density field
-\artsstyle{pnd\_field} are also inputs to this method.  They are used
+\artsstyle{pnd\_field} are inputs to this method.  They are used
 to calculate the phase matrix \artsstyle{pha\_mat} by calling the
-method \artsstyle{pha\_mat\_partCalc}(see Section
+method \artsstyle{pha\_mat\_partCalc}\ (see Section
 \ref{sec:scattering:pha_mat} ). \\ 
 The integration method used is the trapezoidal integration implemented
 by the function \artsstyle{AngIntegrate\_trapezoid} in the file
@@ -1162,7 +1200,7 @@ performed:
 %=================================================================
 In the agenda \wsvindex{scat\_rte\_agenda} the method for doing a
 radiative step calculation through one grid cell for a 3D atmosphere
-or one layer for a 1D atmosphere is defined. The following methods can
+or one layer for a 1D atmosphere. The following methods can
 be chosen:
 
 \begin{itemize}
@@ -1195,8 +1233,8 @@ Finally the method sums up the two terms to get the updated Stokes Vector.
  
 \item {\bf Method \artsstyle{stokes\_vecScalar}:}\\
 For the scalar case it is straightforward to compute a radiative
-transfer step through one grid cell/layer. Only equation
-(\ref{eq:scattering:scalar_rte_sol}) has to be computed. We only
+transfer step through one grid cell/layer according to equation
+(\ref{eq:scattering:scalar_rte_sol}). We only
 have to compute the scalar exponential function and do not need the
 matrix inverse, such that the standard C math library is sufficient.
 \end{itemize}
