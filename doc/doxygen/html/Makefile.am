@@ -11,8 +11,8 @@ artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/doxygen/html
 
-thisdoc_DATA         = $(wildcard *.html *.gif *.css)
+thisdoc_DATA         = $(wildcard *.html *.gif *.png *.css)
 
-EXTRA_DIST           = $(wildcard *.html *.gif *.css)
+EXTRA_DIST           = $(wildcard *.html *.gif *.png *.css)
 
-MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.css)
+MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.png *.css)
