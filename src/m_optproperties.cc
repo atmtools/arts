@@ -575,15 +575,23 @@ void abs_vecAddPart(
 */
 void ext_matInit( Tensor3&      ext_mat,
                   const Vector& f_grid,
-                  const Index&  stokes_dim )
+                  const Index&  stokes_dim,
+                  const Index&   f_index)
 {
-  ext_mat.resize( f_grid.nelem(),
+  Index freq_dim;
+
+  if( f_index < 0 )
+    freq_dim = f_grid.nelem();
+  else
+    freq_dim = 1;
+ 
+  ext_mat.resize( freq_dim,
                   stokes_dim,
                   stokes_dim );
   ext_mat = 0;                  // Initialize to zero!
 
   out2 << "Set dimensions of ext_mat as ["
-       << f_grid.nelem() << ","
+       << freq_dim << ","
        << stokes_dim << ","
        << stokes_dim << "] and initialized to 0.\n";
 }
@@ -662,14 +670,22 @@ void ext_matAddGas( Tensor3&      ext_mat,
 */
 void abs_vecInit( Matrix&       abs_vec,
                   const Vector& f_grid,
-                  const Index&  stokes_dim )
+                  const Index&  stokes_dim,
+                  const Index&  f_index)
 {
-  abs_vec.resize( f_grid.nelem(),
+  Index freq_dim;
+
+  if( f_index < 0 )
+    freq_dim = f_grid.nelem();
+  else
+    freq_dim = 1;
+ 
+  abs_vec.resize( freq_dim,
                   stokes_dim );
   abs_vec = 0;                  // Initialize to zero!
 
   out2 << "Set dimensions of abs_vec as ["
-       << f_grid.nelem() << ","
+       << freq_dim << ","
        << stokes_dim << "] and initialized to 0.\n";
 }
 

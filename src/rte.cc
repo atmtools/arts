@@ -457,118 +457,6 @@ void ground_specular_los(
 }
 
 
-
-//! rte_step_clearsky_with_emission
-/*!
-    Performs monochromatic radiative transfer for an atmospheric slab 
-    with constant conditions, no scattering and having emission.
-
-    The function is best explained by considering a homogenous layer. That is,
-    the physical conditions inside the layer are constant. The absorption
-    inside the layer is described by *ext_mat_gas* and *abs_vec_gas*,
-    the blackbdoy radiation of the layer is given by *a_planck_value*
-    and the propagation path length through the layer is *l_step*. 
-
-    When calling the function, the vector *stokes_vec* shall contain the
-    Stopkes vector for the incoming radiation. The function returns this
-    vector, then containing the outgoing radiation on the other side of the 
-    layer.
-
-    The function performs the calculations differently depending on the
-    conditions to improve the speed. There are three cases: <br>
-       1. Scalar absorption (stokes_dim = 1). <br>
-       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
-       3. The total general case.
-
-    \param   stokes_vec         Input/Output: A Stokes vector.
-    \param   stokes_dim         Input: As the WSV with the same name.
-    \param   ext_mat_gas        Input: As the WSV with the same name.
-    \param   abs_vec_gas        Input: As the WSV with the same name.
-    \param   l_step             Input: The length of the RTE step.
-    \param   a_planck_value     Input: Blackbody radiation.
-
-    \author Patrick Eriksson 
-    \date   2002-09-16
-*/
-void rte_step_clearsky_with_emission(
-              VectorView    stokes_vec,                
-        const Index&        stokes_dim,
-        ConstMatrixView     ext_mat_gas,
-        ConstVectorView     abs_vec_gas,
-        const Numeric&      l_step,
-        const Numeric&      a_planck_value )
-{
-  // Asserts
-  assert( stokes_dim >= 1  &  stokes_dim <= 4 );
-  assert( stokes_vec.nelem() == stokes_dim );
-  assert( ext_mat_gas.nrows() == stokes_dim );
-  assert( ext_mat_gas.ncols() == stokes_dim );
-  assert( abs_vec_gas.nelem() == stokes_dim );
-  assert( a_planck_value >= 0 );
-
-  // Scalar case
-  if( stokes_dim == 1 )
-    { 
-      assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
-      Numeric transm = exp( -l_step * abs_vec_gas[0] );
-      stokes_vec[0] = stokes_vec[0] * transm + ( 1- transm ) * a_planck_value;
-    }
-
-  // Vector case
-  else
-    {
-      // We have here two cases, diagonal or non-diagonal ext_mat_gas
-      // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
-      // non-zero value in position 1.
-      // 
-      bool diagonal = true;
-      //
-      for( Index i=1; diagonal  && i<stokes_dim; i++ )
-        {
-          for( Index j=0; diagonal && j<i; j++ )
-            {
-              if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) != 0 )
-                { diagonal = false; }
-            }
-          assert( !diagonal  ||  ( diagonal  && abs_vec_gas[i] == 0 ) );
-        }
-
-
-      // Unpolarised
-      if( diagonal )
-        {
-          // Stokes dim 1
-          assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
-          Numeric transm = exp( -l_step * abs_vec_gas[0] );
-          stokes_vec[0] = stokes_vec[0] * transm + 
-                                                ( 1- transm ) * a_planck_value;
-
-          // Stokes dims > 1
-          for( Index i=1; i<stokes_dim; i++ )
-            { stokes_vec[i] *= exp( -l_step * ext_mat_gas(i,i) ); }
-        }
-
-
-      // Polarised
-      else
-        {
-          // Here we use the general method for the cloud box.
-          // As this is a WSM and stokes_vec there is defined as Vector (and
-          // not VectorView), stokes_vec must be copied to a vector
-          //
-          Vector sv(stokes_dim);
-          sv = stokes_vec;
-          //
-          stokes_vecGeneral( sv, ext_mat_gas, abs_vec_gas, 
-                    Vector(stokes_dim,0), l_step, a_planck_value );
-          //
-          stokes_vec = sv;
-        }
-    }
-}
-
-
-
 //! rte_step
 /*!
     Solves monochromatic VRTE for an atmospheric slab with constant 
@@ -579,9 +467,9 @@ void rte_step_clearsky_with_emission(
     The function is best explained by considering a homogenous layer. That is,
     the physical conditions inside the layer are constant. In reality they
     are not constant, so in practical all coefficients have to be averaged 
-    before calling this function. Total extinction and absorption 
-    inside the layer are described by *ext_mat_av* and *abs_vec_av* 
-    respectively,
+    before calling this function. 
+    Total extinction and absorption inside the layer are described by
+    *ext_mat_av* and *abs_vec_av* respectively,
     the blackbdody radiation of the layer is given by *a_planck_value*
     and the propagation path length through the layer is *l_step*.
 
@@ -632,7 +520,7 @@ rte_step(//Output and Input:
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
   assert( a_planck_value >= 0 );
-  assert( l_step > 0 );
+  assert( l_step >= 0 );
 
 
   // Scalar case: 

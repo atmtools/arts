@@ -42,7 +42,6 @@ void test_lusolve1D(void)
 {
   Matrix a(1,1);
   ArrayOfIndex indx(1);
-  Numeric d;
   Matrix orig(1,1);
   Matrix b(1,1);
 
@@ -103,7 +102,6 @@ void test_lusolve4D(void)
 {
   Matrix a(4,4);
   ArrayOfIndex indx(4);
-  Numeric d;
   Matrix orig(4,4);
   Matrix b(4,4);
 

@@ -355,6 +355,9 @@ i_fieldIterate(
                     Index& scat_za_index,
                     Index& scat_aa_index,
                     Matrix& abs_scalar_gas,
+                    Numeric& a_pressure,
+		    Numeric& a_temperature,
+		    Vector& a_vmr_list,	
                     // WS Input:
                     const Agenda& spt_calc_agenda,
                     const Agenda& opt_prop_part_agenda,
@@ -371,6 +374,7 @@ i_fieldIterate(
                     const Vector& lon_grid,
                     const Tensor3& t_field,
                     const Tensor3& z_field,
+		    const Tensor4& vmr_field,	
                     const Matrix& r_geoid,
                     const Vector& f_grid,
                     const Index& f_index,
@@ -522,14 +526,14 @@ i_fieldIterate(
                         sca_vec, a_planck_value, l_step,  
                         abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
                         abs_vec,  scat_p_index, scat_za_index, scat_aa_index,
-                        abs_scalar_gas,
+                        abs_scalar_gas, a_pressure, a_temperature, a_vmr_list,
                         //Input:
                         spt_calc_agenda,
                         opt_prop_part_agenda, opt_prop_gas_agenda,
                         scalar_gas_absorption_agenda, ppath_step_agenda,
                         amp_mat, scat_field,
                         cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
-                        t_field, z_field, r_geoid, f_grid, f_index, 
+                        t_field, z_field, vmr_field, r_geoid, f_grid, f_index, 
                         pnd_field, stokes_dim, atmosphere_dim, part_types);
       }
     
@@ -623,6 +627,9 @@ i_fieldUpdate1D(// WS Output:
                 Index& scat_za_index,
                 Index& scat_aa_index,
                 Matrix& abs_scalar_gas,
+                Numeric& a_pressure,
+	        Numeric& a_temperature,
+		Vector& a_vmr_list,
                 // WS Input:
                 const Agenda& spt_calc_agenda,
                 const Agenda& opt_prop_part_agenda,
@@ -637,6 +644,7 @@ i_fieldUpdate1D(// WS Output:
                 const Vector& p_grid,
                 const Tensor3& t_field,
                 const Tensor3& z_field,
+		const Tensor4& vmr_field,
                 const Matrix& r_geoid,
                 const Vector& f_grid,
                 const Index& f_index,
@@ -715,6 +723,9 @@ i_fieldUpdate1D(// WS Output:
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
+      a_pressure = p_grid[p_index];
+      a_temperature = t_field(p_index, 0, 0);	
+      a_vmr_list = vmr_field( joker, p_index, 0, 0);	
       scalar_gas_absorption_agenda.execute(p_index - cloudbox_limits[0]);
 
       // We don't know how many gas species we have before the first
@@ -773,15 +784,13 @@ i_fieldUpdate1D(// WS Output:
           abs_scalar_gas(0,joker)
             = scalar_gas_array( p_index - cloudbox_limits[0], joker );
           
-          ext_mat = 0.;
-          abs_vec = 0.;
-
+        
           // Calculate total ext_mat and abs_vec.
           // The required workspace variable is scat_p_index.
           scat_p_index = p_index; 
           
-        //   opt_prop_gas_agenda.execute();
-//           opt_prop_part_agenda.execute();
+          //   opt_prop_gas_agenda.execute();
+          //           opt_prop_part_agenda.execute();
            
           // Execute agendas silently, only the first call is output on
           // the screen (no other reason for argument in agenda.execute).
@@ -807,12 +816,9 @@ i_fieldUpdate1D(// WS Output:
       // Define variables which hold averaged coefficients:
 
       Vector sca_vec_av(stokes_dim,0.);
-      Vector stokes_vec_av(stokes_dim,0.);
       Matrix ext_mat_av(stokes_dim, stokes_dim,0.);
       Vector abs_vec_av(stokes_dim,0.);
               
-
-
       // Upward propagating direction, 90° is uplooking in the spherical 
       // geometry
       if(scat_za_grid[scat_za_index] <= 90.)
@@ -1303,7 +1309,6 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
       // Define variables which hold averaged coefficients:
 
       Vector sca_vec_av(stokes_dim,0.);
-      Vector stokes_vec_av(stokes_dim,0.);
       Matrix ext_mat_av(stokes_dim, stokes_dim,0.);
       Vector abs_vec_av(stokes_dim,0.);
               

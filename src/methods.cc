@@ -334,7 +334,7 @@ void define_md_data_raw()
          "leading frequency dimension."
          ),
         OUTPUT(abs_vec_),
-        INPUT(f_grid_, stokes_dim_),
+        INPUT(f_grid_, stokes_dim_, f_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1138,7 +1138,7 @@ void define_md_data_raw()
          "leading frequency dimension."
          ),
         OUTPUT(ext_mat_ ),
-        INPUT(f_grid_, stokes_dim_),
+        INPUT(f_grid_, stokes_dim_, f_index_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -1424,13 +1424,14 @@ void define_md_data_raw()
                convergence_flag_, pha_mat_, pha_mat_spt_, abs_vec_spt_,
                ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
                scat_lat_index_, scat_lon_index_, scat_za_index_,
-               scat_aa_index_, abs_scalar_gas_),
+               scat_aa_index_, abs_scalar_gas_, a_pressure_, a_temperature_,
+               a_vmr_list_),
         INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_, 
               scalar_gas_absorption_agenda_, convergence_test_agenda_,
               ppath_step_agenda_, amp_mat_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, 
               p_grid_, lat_grid_, lon_grid_, t_field_, z_field_,
-              r_geoid_, f_grid_, f_index_, 
+              vmr_field_, r_geoid_, f_grid_, f_index_, 
               stokes_dim_, atmosphere_dim_, pnd_field_, part_types_),
         GOUTPUT(),
         GINPUT(),
@@ -1506,12 +1507,13 @@ md_data_raw.push_back
         OUTPUT(i_field_, ppath_step_, stokes_vec_, 
                sca_vec_, a_planck_value_, l_step_,
                abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
-               scat_p_index_, scat_za_index_, scat_aa_index_, abs_scalar_gas_),
+               scat_p_index_, scat_za_index_, scat_aa_index_, abs_scalar_gas_,
+               a_pressure_, a_temperature_, a_vmr_list_),
         INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_,
               scalar_gas_absorption_agenda_, ppath_step_agenda_,
               amp_mat_, scat_field_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
-              r_geoid_, f_grid_, f_index_, 
+              vmr_field_, r_geoid_, f_grid_, f_index_, 
               pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
         GOUTPUT(),
         GINPUT(),
@@ -2417,13 +2419,23 @@ md_data_raw.push_back
       ( NAME( "RteEmissionStd" ),
         DESCRIPTION
         (
-         "A temporary version of a standard RTE function with emission.\n"
+         "Standard RTE function with emission.\n"
          "\n"
-         "More text will be written (PE)."
+         "This function does a clearsky radiative transfer calculation for\n"
+         "a given propagation path. \n"
+         "Gaseous emission and absorption is calculated for each propagation\n"
+         " path point using the agenda *gas_absorption_agenda*. \n"
+         "Absorption vector and extinction matrix are created using \n" 
+         "*opt_prop_part_agenda*.\n"
+         "The coefficients for the radiative transfer are averaged between\n" 
+         "two successive propagation path points. \n"
         ),
-        OUTPUT( i_rte_ ),
+        OUTPUT( i_rte_, abs_vec_, ext_mat_, a_pressure_, a_temperature_,
+                a_vmr_list_, f_index_, abs_scalar_gas_),
         INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
+               vmr_field_, scalar_gas_absorption_agenda_, 
+               opt_prop_gas_agenda_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

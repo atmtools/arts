@@ -1,3 +1,31 @@
+2003-01-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-363
+
+	* src/m_optproperties.cc (ext_matInit), (abs_vecInit): Modified
+	these functions. The scattering calculations are monochromatic. So
+	the frequency dimension of these two variables has to be 1. 
+	*f_index* can be used for determine, whether the initialisaition is
+	done in a clearsky calculation or in a cloudbox calculation. 
+	If f_index > 0 it is done in a cloudbox calculation.
+
+	* src/m_rte.cc (RteEmissionStd): Rewritten this function. Now 
+	absorption is calculated for all ppath points using 
+	*scalar_gas_abs_agenda*. 
+
+	* src/m_scatrte.cc (i_fieldUpdate1D): Executing the finished
+	*scalar_gas_absorption_agenda* required some modifications and 
+	additional variables.
+
+	* src/methods.cc: Modified interfaces of (RteEmissionStd), 
+	(i_fieldUpdate1D),  (ext_matInit) and (abs_vecInit).
+
+	* src/rte.cc (rte_clearsky_with_emission): Removed. The general
+	RT function (rte_step) can handle this special case and is 
+	used everywhere, now.
+
+	* src/test_linalg.cc: Removed unused variables.
+
 2003-01-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-362
