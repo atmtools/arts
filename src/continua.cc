@@ -1116,7 +1116,7 @@ void CP98H2OAbsModel( MATRIX&           xsec,
 	  // continuum term
 	  Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
 	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
-	  //cout << "CP98:  TC =" << TC << "\n";
+
 	  // Loop over input frequency
 	  for ( size_t s=0; s<n_f; ++s )
 	    {
@@ -1284,6 +1284,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
   const size_t n_lines = 40; // number of O2 lines in this model (range: 50-850 GHz)
 
   // lines are arranged 1-,1+,3-,3+,etc. in spin-rotation spectrum
+  // line center frequency in [GHz]
   const Numeric F[n_lines] = { 118.7503,  56.2648,  62.4863,  58.4466, 
                            60.3061,  59.5910,  59.1642,  60.4348, 
                            58.3239,  61.1506,  57.6125,  61.8002,
@@ -1294,7 +1295,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
                            52.5424,  66.8368,  52.0214,  67.3696, 
                            51.5034,  67.9009, 368.4984, 424.7631,
 			  487.2494, 715.3932, 773.8397, 834.1453};
-
+  // line strength at T=300K in [cm^2 * Hz]
   const Numeric S300[n_lines] = { 0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14,
 			     0.3351E-14, 0.3292E-14, 0.3721E-14, 0.3891E-14,
 			     0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
@@ -1305,7 +1306,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 		             0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16,
 		             0.8191E-17, 0.1423E-16, 0.6460E-15, 0.7047E-14, 
 		             0.3011E-14, 0.1826E-14, 0.1152E-13, 0.3971E-14};
-
+  // temperature exponent of the line strength in [1]
   const Numeric BE[n_lines] = {   0.009,   0.015,   0.083,   0.084, 
                              0.212,   0.212,   0.391,   0.391, 
                              0.626,   0.626,   0.915,   0.915, 
@@ -1317,10 +1318,10 @@ void PWR93O2AbsModel( MATRIX&           xsec,
                              7.744,   7.744,   0.048,   0.044, 
 	      		     0.049,   0.145,   0.141,   0.145};
 
-  // widths in MHz/mbar
-  const Numeric WB300 = 0.56;
-  const Numeric X     = 0.80;
-
+  // widths in MHz/mbar for the O2 continuum
+  const Numeric WB300 = 0.56; // [MHz/mbar]
+  const Numeric X     = 0.80; // [1]
+  // line width parameter [GHz/bar]
   const Numeric W300[n_lines] = { 1.630, 1.646, 1.468, 1.449, 
                              1.382, 1.360, 1.319, 1.297, 
                              1.266, 1.248, 1.221, 1.207, 
@@ -1331,7 +1332,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 			     0.940, 0.940, 0.920, 0.920,
                              0.890, 0.890, 1.920, 1.920, 
                              1.920, 1.810, 1.810, 1.810};
-
+  // y parameter for the calculation of Y [1/bar]
   const Numeric Y300[n_lines] = { -0.0233,  0.2408, -0.3486,  0.5227,
 			     -0.5430,  0.5877, -0.3970,  0.3237, 
                              -0.1348,  0.0311,  0.0725, -0.1663, 
@@ -1343,7 +1344,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
                               0.8439, -0.8529,  0.0000,  0.0000,
                               0.0000,  0.0000,  0.0000,  0.0000};
 
-
+  // v parameter for the calculation of Y [1/bar]
   const Numeric V[n_lines] ={  0.0079, -0.0978,  0.0844, -0.1273,
 			  0.0699, -0.0776,  0.2309, -0.2825, 
                           0.0436, -0.0584,  0.6056, -0.6619, 
@@ -1382,10 +1383,11 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 	  Numeric PRESWV = 0.01 * p_abs[i] * vmrh2o[i];
 	  Numeric PRESDA = 0.01 * p_abs[i] * (1.000 - vmrh2o[i]);
 	  //cout << "PRESWV,PRESDA=" << PRESWV << ", " << PRESDA << "\n";
-	  Numeric DEN    = .001*(PRESDA*B + 1.1*PRESWV*TH);
+	  Numeric DEN    = 0.001*(PRESDA*B + 1.1*PRESWV*TH);
 	  Numeric DFNR   = WB300*DEN;
 	  // initial O2 line absorption at position ff 
 	  Numeric O2ABS = 0.000;
+          Numeric SUM   = 0.000;
 
 	    // Loop over input frequency
 	    for ( size_t s=0; s<n_f; ++s )
@@ -1393,7 +1395,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 		// input frequency in [GHz]
 		Numeric ff  = f_mono[s] * 1.00e-9; 
 		// continuum absorption [Neper/km]
-		Numeric SUM = CC * 1.6e-17 * ff * ff * DFNR / ( TH*(ff*ff + DFNR*DFNR) );
+		SUM = CC * 1.6e-17 * ff * ff * DFNR / ( TH*(ff*ff + DFNR*DFNR) );
 		//cout << "DEN,DFNR,SUM=" << DEN  << ", " << DFNR  << ", " << SUM << "\n";
 
 		//cout << "ff =" << ff << ",  O2ABS=" << O2ABS << ",  SUM=" << SUM << "\n";
@@ -1405,12 +1407,12 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 		    Numeric STR  = CL * S300[l] * exp(-BE[l] * TH1);
 		    Numeric SF1  = ( DF + (ff-F[l])*Y ) / ( (ff-F[l])*(ff-F[l]) + DF*DF );
 		    Numeric SF2  = ( DF - (ff+F[l])*Y ) / ( (ff+F[l])*(ff+F[l]) + DF*DF );
-		            SUM += STR * (SF1+SF2) * pow((ff/F[l]), 2.0);
+		            SUM += STR * (SF1+SF2) * (ff/F[l]) * (ff/F[l]);
 		    //cout << "k,DF,Y,STR,SF1,SF2=" << l << ", " << DF << ", " << Y << ", " << STR
 		    //<< ", " << SF1  << ", " << SF2 << "\n";
 		  }
 		// O2 absorption [Neper/km] 
-		O2ABS += 0.5034e12 * SUM * PRESDA * pow(TH, 3.0) / 3.14159;
+		O2ABS = 0.5034e12 * SUM * PRESDA * pow(TH, 3.0) / 3.14159;
 		//cout << "O2ABS=" << O2ABS << "\n";
 		// unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
 		// xsec [1/m]  1.000e-3
@@ -1613,7 +1615,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	  return;
 
     }
-  else if ( "H2O-CP98Model"==name ) // ------------------------------
+  else if ( "H2O-CP98"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 3 != parameters.size() )
@@ -1652,7 +1654,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 		       t_abs,
 		       vmr );
     }
-  else if ( "H2O-MPM87Model"==name ) // ------------------------------
+  else if ( "H2O-MPM87"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 3 != parameters.size() )
@@ -1691,7 +1693,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			t_abs,
 			vmr );
     }
-  else if ( "H2O-MPM89Model"==name ) // ------------------------------
+  else if ( "H2O-MPM89"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 3 != parameters.size() )
@@ -1730,7 +1732,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			t_abs,
 			vmr );
     }
-  else if ( "H2O-MPM93Model"==name ) // ------------------------------
+  else if ( "H2O-MPM93"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 3 != parameters.size() )
@@ -1769,7 +1771,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			t_abs,
 			vmr );
     }
-  else if ( "H2O-PWR98Model"==name ) // ------------------------------
+  else if ( "H2O-PWR98"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 3 != parameters.size() )
@@ -1852,7 +1854,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			       h2o_abs,
 			       vmr );
     }
-  else if ( "O2-PWR93O2Model"==name )
+  else if ( "O2-PWR93O2"==name )
     {
       //  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
       //  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
@@ -2098,7 +2100,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			   vmr );
     }
   // ============= ice particle absorption from MPM93 ============================
-  else if ( "icecloud-MPM93ice"==name )
+  else if ( "icecloud-MPM93"==name )
     {
       // Ice particle absorption parameterization from MPM93 model
       // H. J. Liebe and G. A. Hufford and M. G. Cotton,

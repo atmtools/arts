@@ -1461,6 +1461,45 @@ void hseCalc(
 
 
 /**
+   This method sets the H2o VMR profile to the saturated H2O VMR profile
+   according to the saturation pressure calculated with WVSatPressureLiquidWater 
+   for vapor-water and WVSatPressureIce for vapor-ice phase mixtures.
+
+   \author Thomas Kuhn
+   \date   2001-06-22
+*/
+void h2o_SatVMR( const TagGroups&       tgs,
+                 const ARRAYofVECTOR&   vmrs )
+{
+  const INDEX   n = tgs.size();
+  int   found = -1;
+  string  s;
+  VECTOR  h2o_sat;
+  for( INDEX i=0; i<n && found<0; i++ ) 
+  {
+    s = tgs[i][0].Name();
+    
+    if ( s.substr(0,3) == "H2O" )
+      found = int(i);
+  }
+
+  if ( found < 0 )
+    throw runtime_error("h2o_SatVMR: No tag group contains water vapor!");
+  
+  // set the appropriate size of the h2o_sat vector
+  resize( h2o_sat, vmrs[found].size() );
+
+  //
+
+
+  // copy the saturation water vapor VMR to the VMR matrix
+  copy( h2o_sat, vmrs[found] );
+}
+
+
+
+
+/**
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -1484,7 +1523,7 @@ void h2o_absSet(
   }
 
   if ( found < 0 )
-    throw runtime_error("No tag group contains water");
+    throw runtime_error("h2o_absSet: No tag group contains water!");
   
   resize( h2o_abs, vmrs[found].size() );
   copy( vmrs[found], h2o_abs );
@@ -1519,7 +1558,7 @@ void n2_absSet(
   }
 
   if ( found < 0 )
-    throw runtime_error("No tag group contains nitrogen");
+    throw runtime_error("n2_absSet: No tag group contains nitrogen!");
   
   resize( n2_abs, vmrs[found].size() );
   copy( vmrs[found], n2_abs );

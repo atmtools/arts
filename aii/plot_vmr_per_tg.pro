@@ -1,3 +1,63 @@
+;; #################################################################################
+;; functions to calculate saturation water pressure over liquid water
+;; and ice
+;; history:  alpha version,  2001-06-05, TKS
+FUNCTION WVSatPressureLiquidWater, t
+; ---------------------------------------------------------------------
+  ;  Rosenkranz approximation
+  ;  COMPUTES SATURATION H2O VAPOR PRESSURE (OVER LIQUID)
+  ;  USING LIEBE'S APPROXIMATION (CORRECTED)
+  ;  input : T  in Kelvin
+  ;  ouput : es in Pa
+  ;  PWR 4/8/92
+  ;
+   TH       = 300.0 / t;
+   es_PWR98 = 100.00 * 35.3 * EXP(22.64*(1.-TH)) * TH^5; saturation pressure in Pa
+  ;
+; ---------------------------------------------------------------------
+
+  ; MPM93 calculation
+   theta    = 373.16 / t;
+
+   a = (11.344*(1.00-(1.00/theta)))
+   b = a * ALOG(10.00)
+   c = (-3.49149*(theta-1.00))
+   d = c * ALOG(10.00)
+
+   exponent = ( -7.90298 * (theta-1.000) +       $
+		5.02808 * ALOG10(theta) -        $
+	        1.3816e-7 * ( EXP(b) - 1.000 ) + $
+	        8.1328e-3 * ( EXP(d) - 1.000) +  $
+	        ALOG10(1013.246) );
+
+   es_MPM93 = 100.000 * EXP(exponent * ALOG(10.00))
+
+   return, es_MPM93 ; saturation pressure in Pa
+end
+;
+; #################################################################################
+;
+; from MPM93 model
+; saturation water vapor pressure over ice,
+; calculated according to Goff and Gratch formula.
+; The saturation water vapor pressure is in units of Pa
+; input is the temperature in Kelvin
+FUNCTION WVSatPressureIce, t
+  ; MPM93 calculation
+   theta    = 273.16 / t
+
+   exponent = (-9.09718  * (theta-1.000) -          $
+	        3.56654  * ALOG10(theta)  +         $
+		0.876793 * (1.000-(1.000/theta)) +  $
+	        ALOG10(6.1071) )
+
+   es_MPM93 = 100.000 * EXP(exponent * ALOG(10.00))
+
+  return, es_MPM93 ; saturation pressure in Pa
+  end
+;
+; #################################################################################
+;
 function aii_file_exists, filename
 ;; checks whether the file filename exists and returns 1 for yes and 0
 ;; for no
@@ -167,6 +227,7 @@ if not keyword_set(read) then begin
 ;    aii_readfile,jobdirname+'.abs_per_tg.aa',abs
     aii_readfile,jobdirname+'.t_abs.aa',temperature
     aii_readfile,jobdirname+'.z_abs.aa',alt
+    aii_readfile,jobdirname+'.p_abs.aa',pre
     aii_readfile,jobdirname+'.vmrs.aa',vmr
 endif
 
@@ -324,6 +385,7 @@ for k = 0,N_ELEMENTS(tg)-1 do begin ; loop over all tags
         xmin = xmin *  0.100
         xmax = xmax * 10.000
     endif
+
     ax = 'volume mixing ratio '+vmrunit
     al = 'linestyle = ls[index], '
     if ( STRPOS(tg[k],'liquidcloud') GE 0) then begin
@@ -375,14 +437,63 @@ plot, $
   yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])],$
   xrange=[xmin, xmax],$
   xtitle='temperaure [K]',$
-  ytitle='altitude ['+zunit+']',$
+  ytitle='altitude '+zunit,$
   color=colors[0],$
   linestyle=ls[0],$
   thick=thick,$
   xstyle=1,$
   ystyle=1, $
   POSITION=[posvec[0:3,posi]]
+posi = posi+ 1
+if (posi GE 6) then begin
+    posi = 0
+    !P.multi  = [0,2,3]
+endif
 
+;; relative humidity calculation if H2O is calculated in RT.
+rhfound = 1
+for k = 0,N_ELEMENTS(tg)-1 do begin
+    if ( STRPOS(tg[k],'H2O') GE 0) then begin
+        print, 'H2O tag found for RH calculation: ', tg[k]
+        rhfound = 0
+        tt = dblarr(N_ELEMENTS(alt))
+        pp = dblarr(N_ELEMENTS(alt))
+        zz = dblarr(N_ELEMENTS(alt))
+        vv = dblarr(N_ELEMENTS(alt))
+        for z = 0, N_ELEMENTS(alt)-1 do begin
+            s1='vv['+string(z,format='(I)')+'] = vmr.mat'+$
+               string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
+            r1 = execute(s1)
+        endfor
+        goto, firh
+    endif
+endfor
+firh:
+if (rhfound EQ 0) then begin
+    RH = dblarr(N_ELEMENTS(alt))
+    for z = 0, N_ELEMENTS(alt)-1 do begin
+        es = 0.000
+        if (tt[z] LT 273.16) then es = WVSatPressureLiquidWater(temperature[0,z])
+        if (tt[z] LT 273.16) then es = WVSatPressureIce(temperature[0,z])
+        RH[z] = 100.00 * pre[z] * vv[z] / es
+        ;print, z,' T=', temperature[0,z], ', vmr= ', vv[z],', es= ',  es,', RH=', RH[z]
+    endfor
+endif
+; plot RH:
+plot, $
+  RH[0:N_ELEMENTS(alt)-1],$
+  alt[0:N_ELEMENTS(alt)-1],$
+  title='relative humidity profile',$
+  yrange=[min(alt[0:N_ELEMENTS(alt)-1]), max(alt[0:N_ELEMENTS(alt)-1])],$
+  xrange=[0.0, 110.0],$
+  xtitle='relative humidity [%]',$
+  ytitle='altitude '+zunit,$
+  color=colors[0],$
+  linestyle=ls[0],$
+  thick=thick,$
+  xstyle=1,$
+  ystyle=1, $
+  POSITION=[posvec[0:3,posi]]
 
 ;; close plot output file
 aii_plot_file, action='end', show='yes', print='no'

@@ -1426,6 +1426,19 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("h2o_SatVMR"),
+	DESCRIPTION(
+          "Sets h2o VMR to saturation values.\n"
+	  "water."),
+	OUTPUT(),
+	INPUT( 	tgs_, vmrs_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("h2o_absSet"),
 	DESCRIPTION(
           "Sets h2o_abs to the profile of the first tag group containing\n"

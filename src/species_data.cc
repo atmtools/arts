@@ -198,14 +198,12 @@ void define_basic_species_data()
   	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDSelf"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDForeign"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "CP98Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "MPM87Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "MPM89Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "MPM93Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "PWR98Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 REC( "CP98"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM87"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM89"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM93"	                ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "PWR98"	                ,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
-  //	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-  //	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 
   // CO2 
   // (missing mainly in JPL, latest version (7/00) includes some isotopes)
@@ -313,7 +311,7 @@ void define_basic_species_data()
 	 REC("68"	,0.00399141	,34.	,72	,72	,TAGS(34001)),
 	 REC("67"	,0.000742	,33.	,73	,73	,TAGS(33002)),
 	 REC( "ContRosenkranz"	,-1.	,-1.	,-1	,-1	,TAGS()),
-	 REC( "PWR93O2Model"	,-1.	,-1.	,-1	,-1	,TAGS())
+	 REC( "PWR93O2"	,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // NO
@@ -840,7 +838,7 @@ void define_basic_species_data()
 	ISOTOPES
 	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //			|		|	|	|	|
-	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 REC( "MPM93droplet"	,-1.	        ,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // You also have to change the entry in the file
@@ -852,7 +850,7 @@ void define_basic_species_data()
 	ISOTOPES
 	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //			|		|	|	|	|
-	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 REC( "MPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
 
 }

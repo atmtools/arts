@@ -52,6 +52,7 @@ pa = ptrarr(nmat)  ; returns a pointer array
 
 nrow = intarr(nmat) & ncol = intarr(nmat)
 
+;; loop over all matrices
 FOR i = 0, nmat - 1 DO BEGIN
   ; Read size
   s = '#'

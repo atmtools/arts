@@ -246,13 +246,11 @@ void define_partition_species_data()
   iso(it_isotope,	"ContMPM93",             Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContCKDSelf",           Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContCKDForeign",        Qcoeff( 0	,0		,0		,0          ) );
-  // iso(it_isotope,	"MPM93droplet",          Qcoeff( 0	,0		,0		,0          ) );
-  // iso(it_isotope,	"MPM93ice",              Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"CP98Model",             Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"MPM87Model",            Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"MPM89Model",            Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"MPM93Model",            Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"PWR98Model",            Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"CP98", Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM87",Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM89",Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM93",Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"PWR98",Qcoeff( 0	,0		,0		,0          ) );
 
 
   // CO2
@@ -339,7 +337,7 @@ void define_partition_species_data()
   iso(it_isotope,	"68",	Qcoeff(	-4.0039E+00	,1.5595E+00	,-1.5357E-04	,3.0969E-07) );
   iso(it_isotope,	"67",	Qcoeff(	-2.3325E+01	,9.0981E+00	,-8.4435E-04	,1.7062E-06) );
   iso(it_isotope,	"ContRosenkranz",   Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"PWR93O2Model",     Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"PWR93O2",          Qcoeff( 0	,0		,0		,0          ) );
 
 
   // NO
@@ -740,7 +738,7 @@ void define_partition_species_data()
   spec(it_species, it_isotope, "liquidcloud");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
-  iso(it_isotope,	"MPM93droplet", Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM93droplet", Qcoeff( 0	,0		,0		,0  ) );
 
   // particle
   // Coeff:       1      1
@@ -748,7 +746,7 @@ void define_partition_species_data()
   spec(it_species, it_isotope, "icecloud");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
-  iso(it_isotope,	"MPM93ice",     Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM93",Qcoeff( 0	       ,0		,0		,0  ) );
 
 }
 
