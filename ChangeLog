@@ -1,3 +1,71 @@
+2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-144
+
+	* autogen.sh: Sync with arts 1.1.
+
+	* configure.in: Sync with arts 1.1.
+	Added wfs_spectro_example.arts to AC_OUTPUT.
+
+	* COPYING: Updated.
+
+	* doc/examples/wfs_spectro_example.arts: Removed.
+
+	* doc/examples/wfs_spectro_example.arts.in: Added. Replaced absolute
+	paths to arts-data with @ac_arts_data@.
+
+	* doc/examples/Makefile.am: Added wfs_spectro_example.arts*.
+
+	* src/methods.h (operator=): Removed name of dummy parameter.
+
+	* src/make_auto_md_cc.cc (main): Omit name for unused function
+	parameters. Backported from arts 1.1.
+
+	* src/continua.cc (PWR98H2OAbsModel), (XINT_FUN), (CKD_222_self_h2o),
+	(CKD_222_foreign_h2o), (CKD_242_self_h2o), (CKD_242_foreign_h2o),
+	(CKD_mt_100_self_h2o), (CKD_mt_100_foreign_h2o), (CKD_241_co2),
+	(CKD_mt_co2), (CKD_mt_CIArot_n2), (CKD_mt_CIAfun_n2),
+	(CKD_mt_CIAfun_o2), (CKD_mt_v0v0_o2), (CKD_mt_v1v0_o2),
+	(PWR93O2AbsModel), (Standard_O2_continuum), (MPM93_N2_continuum),
+	(MPM93RainExt), (addspec_), (artsckd_), (swv24_), (swv_mpmf87s93__):
+	Commented out all unused parameters and variables. Put a FIXME in
+	commented lines.
+	Initialize member fill_3 of struct n2part_ with 0 to avoid warning.
+	Fixed initialization of structures in f2c to fix gcc2 warning
+	'aggregate has a partly bracketed initializer'. f2c sucks.
+
+	* src/lineshapes.cc (lineshape_no_shape), (lineshape_lorentz),
+	(lineshape_doppler), (lineshape_CO2_lorentz),
+	(lineshape_norm_no_norm), (lineshape_norm_linear),
+	(lineshape_norm_quadratic): Commented out names of unused parameters.
+	(lineshape_norm_quadratic): Removed unused constant PI.
+
+	* src/m_abs.cc (AtmFromRaw): Removed unused variable species_data.
+
+	* src/m_hdf.cc (binfile_read1), (binfile_read2), (binfile_read3):
+	Commented out unused parameter filename.
+
+	* src/m_io.cc (VectorWriteAscii): Removed static_cast.
+	(VectorSetLengthFromVector), (VectorPressuresForLinAltitudes),
+	(VectorPlanck), (VectorMatrixMultiply), (MatrixMatrixMultiply),
+	(MatrixMatrixAdd): Commented out names of unused parameters.
+
+	* src/m_los.cc (los_refraction), (zaFromZtan), (zaFromDeltat):
+	Commented out names of unused parameters.
+	Include cmath instead of math.h.
+
+	* src/m_wfs.cc (sourceloswfs), (kb_spectro), (kSpectro),
+	(kCalibration), (kxAllocate): Commented out names of unused parameters.
+
+	* src/m_method_list.cc (MethodListDefine): Commented out name of
+	unused parameter.
+
+	* src/matpackI.h (Range::Range): Comment out name of unused Joker
+	parameter in two constructors.
+
+	* src/test_matpack.cc (test10): Replaced static_cast by cast to const
+	Vector.
+
 2003-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-143
