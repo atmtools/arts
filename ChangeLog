@@ -1,5 +1,8 @@
 2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* src/Makefile.am: Set the appropriate LD_FLAGS depending on
+	HDF_SUPPORT.
+
 	* src/wsv.txt: Renamed to auto_wsv.txt and removed from
 	repository.
 
