@@ -1,3 +1,18 @@
+2003-01-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-410
+
+	* src/m_cloudbox.cc (i_fieldSetClearsky): Pressure interpolation 
+	changed from linear to logarithmic.
+
+	* src/m_atmosphere.cc (AtmFieldsCalc): Also changed the pressure
+	interpolation to logarithmic.
+
+	* src/workspace.cc: Changed documentation of *tensor6_1*, it is a dummy
+	variable to be used when you need a tensor6 somewhere.
+
+	* doc/uguide/scattering.tex: Started updating this chapter. 
+
 2003-01-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-409

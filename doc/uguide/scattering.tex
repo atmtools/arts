@@ -760,12 +760,12 @@ There is no convention for the filenames. All needed information about the parti
 %=====================================
 \label{sec:scattering:main_function}
 For a scattering calculation only the workspace method \wsmindex{ScatteringMain} has to be executed in the control file. 
-But before executing the main fuction, agendas required for a scattering calculation must be defined. 
+But before executing the main fuction, agendas required for a scattering calculation have to be defined. 
 The following example shows a part of a controlfile where a scattering calculation is performed:
 \begin{verbatim}
 
 #===========================================================
-# Agendas for calculating the sigle scattering properties
+# Agendas for calculating the single scattering properties
 # from the amplitude matrix data:
 #===========================================================
 
@@ -775,24 +775,11 @@ The following example shows a part of a controlfile where a scattering calculati
       abs_vec_sptCalc{}
   }
 
-  AgendaSet( abs_vec_agenda ) {
-      abs_vec_partCalc{}
-      abs_vec_gasExample{}
-      abs_vecCalc{}
+  AgendaSet( opt_prop_part_agenda ) {
+      ext_matAddPart{}
+      abs_vecAddPart{}
   }
-
-  AgendaSet( ext_mat_agenda ){
-        ext_mat_partCalc{}
-        ext_mat_gasExample{}
-        ext_matCalc{}
-  }
-
-#===========================================================
-# Define the method for the radiative transfer calculation:
-#===========================================================
-
-  AgendaSet( scat_rte_agenda ) { stokes_vecGeneral{}}
-
+ 
 #===========================================================
 # Define the method for the convergence test:
 #===========================================================
@@ -806,6 +793,7 @@ The following example shows a part of a controlfile where a scattering calculati
 # Methods for monochromatic scattering calculation:
 #==========================================================
   AgendaSet(scat_mono_agenda){
+  amp_matCalc{}
   i_fieldSetClearsky{}
   WriteXML(i_field){"initial_field.xml"}        
   i_fieldIterate{}
@@ -825,7 +813,7 @@ All listed agendas are described in detail in the next sections.\\
 
 The first step in the scattering main function is the calculation of the clearsky field on the cloudbox boundary using the method \wsmindex{CloudboxGetIncoming}. 
 
-Then it  executes the agenda 
+Then it  executes  
 \wsvindex{scat\_mono\_agenda}(see Section \ref{sec:scattering:scat_mono_ag})
  inside a loop over all frequencies defined in \wsvindex{f\_grid}.
 
@@ -834,16 +822,17 @@ Then it  executes the agenda
 \label{sec:scattering:grids}
 The calculations inside the cloudbox are performed on the common 
 atmospheric grids: the pressure grid
-\wsvindex{p\_grid}, the latitude grid  \wsvindex{lat\_grid}
-and the longitude grid \wsvindex{lon\_grid}.
-For calculation the gaseous absorption and  also \wsvindex{t\_field} and \wsvindex{vmr\_field} are required. More atmospheric grids and fields (cp. section  \ref{sec:fm_defs:grids}) are needed for the ray tracing.
-Furthermore anglular grids are required for the scattering calculations  
+(\wsvindex{p\_grid}), the latitude grid  (\wsvindex{lat\_grid})
+and the longitude grid (\wsvindex{lon\_grid}).
+For the  calculation  gaseous absorption (see Section \ref{sec:absorption}) and atmospheric fields (\wsvindex{t\_field} and \wsvindex{vmr\_field}) are required. More atmospheric grids and fields (cp. section  \ref{sec:fm_defs:grids}) are needed for the ray tracing.
+Furthermore anglular grids are necessary for the scattering calculations  
 as the radiation field, the scattering efficiency matrix etc. depend
 on the propagation and incident direction of the radiation. For this purpose  the workspace  
 variables \wsvindex{scat\_za\_grid} and \wsvindex{scat\_aa\_grid}
-have been defined in the control file. They hold a zenith angle grid and a azimuthal angle grid. These angles are defined in the same manner as the angles which describe the viewing direction of the sensor (cp. section \ref{sec:fm_defs:los}).
+have to be defined in the control file. They hold a zenith angle grid and a azimuthal angle grid. These angles are defined in the same manner as the angles which describe the viewing direction of the sensor (cp. section \ref{sec:fm_defs:los}).
 The user has to find a compromise. The grids should not be too coarse for accuracy reasons but they also can not be very fine as there is only limited random acces memory available.
-The grids do not neccesarily have to be equidistant. It is reasonble to take a finer resolution around zenith angle equal 90° because here a high variability of the radiation field is found. The zenith angles up to an angle a bit higher than 90° correspond to uplooking angles and the angles above correspond to downlooking angles. Of course the intensity of the radiation coming from below is much higher than the intensity of the radiation coming from above as in the lower atmosphere the density is much higher.\\
+The grids do not neccesarily have to be equidistant. It is reasonble to take a finer resolution around zenith angle equal 90\degree\ because here the radiation field shows a high variability. The zenith angles up to an angle a bit higher than 90\degree\ correspond to uplooking angles and the angles above correspond to downlooking angles. Of course the intensity of the radiation coming from below is much higher than the intensity of the radiation coming from above as in the lower atmosphere the density is much higher, which corresponds to higher thermal emission.\newline
+
 \vspace{1ex}
 The radiation field in the cloudbox is stored in the workspace variable 
  \wsvindex{i\_field} which has the dimension:
@@ -858,7 +847,7 @@ It has to be noted that \wsvindex{i\_field} is defined only in the cloudbox whic
               &\artsstyle{cloudbox\_limits}[5] -\artsstyle{cloudbox\_limits}[4] + 1,  \\
               & N_{za}, N_{aa}, N_{I} ] 
 \end{array}\]
-The first three numbers give the sizes of the pressure grid, latitude grid
+The first three numbers give the sizes of pressure grid, latitude grid
 and longitude grid respectively inside the cloud box. $N_{za}$ and
 $N_{aa}$ are the size of the zenith and azimuth angle grids and
 $N_{I}$ is the Stokes dimension.  
@@ -867,7 +856,7 @@ $N_{I}$ is the Stokes dimension.
 \levelc{Interface between cloudbox and clearsky}
 %================================================================
 \label{sec:scattering:interface}
-The interface between the clearsky part and the cloudbox part of the radiative transfer calulation is the cloudbox boundary. The scattering calculation requires the incloming clearsky radiation field on the boundary as initial condition and the clearsky part needs the outcoming radiation field on the boundary, which is propagated from there to the sensor.
+The interface between the clearsky part and the cloudbox part of the radiative transfer calulation is the cloudbox boundary. The scattering calculation requires the incloming clearsky radiation field on the boundary as initial condition.For the clearsky calculation the outcoming radiation field on the boundary, which is propagated from there to the sensor, is needed.
 The interface variables are  \wsvindex{scat\_i\_p}, \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}. They have the dimensions 
 \begin{center}
@@ -887,7 +876,8 @@ size:
   N(\artsstyle{scat\_i\_p}) = $[N_\Frq, 2, N_\Lat, N_\Lon, N_\ScaZa,
   N_\ScaAa, N_I]$
 \end{center} 
- 
+
+Here $N_\Lat$ and $N_\Lon$ are the number of latitude and longitude gridponts inside the cloudbox region. $N_\ScaZa$ and $N_\ScaAa$ are the number of grid points in the angular grids for scattering calculations, $N_I$ is the number of Stokes components, and $N_\Frq$ the number of points in the frequency grid. 
 There are no special workspace variables for 1D calculations. The
 variables which are not needed, e.g. \wsvindex{scat\_i\_lat} and
 \wsvindex{scat\_i\_lon}, are still in the workspace but they are
@@ -899,12 +889,7 @@ N( \artsstyle{scat\_i\_p} ) = $[N_\Frq, 2, 1, 1,  N_\ScaZa, 1,  N_I]$
 Inside the scattering box we need to specify only  
 \wsvindex{scat\_za\_grid}. 
 
-As interface between the clear sky calculation and the cloud box calculation only 
-  \begin{center}
-  \artsstyle{scat\_i\_p} = \artsstyle{scat\_i\_p} (\Frq, 2(two surfaces), 1 , 1, \ScaZa,
-1, i$_I$)
-\end{center}
-is required. The other interface variables are empty. 
+
 
 \leveld{Clearsky field on cloudbox boundary}
 The method \wsmindex{CloudboxGetIncoming} calculates
@@ -927,6 +912,7 @@ The agenda is a list of methods which solve the monochromatic VRTE and it must b
 
 \begin{verbatim}
 AgendaSet(scat_mono_agenda) {
+  amp_matCalc{}
   i_fieldSetConst{}
   i_fieldIterate1D{}
   scat_iPut{}
@@ -951,15 +937,14 @@ corresponding to the actual frequency out of the variables
 \wsvindex{scat\_i\_lon}. Output of the method is the initial field 
 stored in the workspace variable \wsvindex{i\_field}. 
 The workspace method \wsmindex{i\_fieldSetClearsky} is implemented in such
-a way that the method should be able to adapt itself for 1D or 3D
-atmosphere.  Only the 1D atmosphere case is in proper shape now. In
-this case the main input is the interface field \artsstyle{scat\_i\_p},
-the pressure grid \artsstyle{p\_grid}, the frequency grid
-\artsstyle{f\_grid} and frequency index \artsstyle{scat\_f\_index} and
-of course the \artsstyle{cloudbox\_limits}.  An interpolation of
-\artsstyle{scat\_i\_p} which is defined only at the
-\artsstyle{cloudbox\_limits} to all points inside the cloud box is
-done to get the initial field, \artsstyle{i\_field}. \\
+a way that the method should adapt itself for  1D or 3D
+atmosphere. In
+this case the main input is the interface (\artsstyle{scat\_i\_p}, \artsstyle{scat\_i\_lat}, \artsstyle{scat\_i\_lon})
+the pressure grid (\artsstyle{p\_grid}), the frequency grid
+(\artsstyle{f\_grid}), the frequency index (\artsstyle{scat\_f\_index}) and
+of course the boundary of the cloudbox defined in \artsstyle{cloudbox\_limits}.  An interpolation of
+\artsstyle{scat\_i\_p} which is defined only on the cloudbox boundary to all points inside the cloud box is
+done to get the initial field. \\
 
 \vspace*{1ex}
 Another method to set the first guess field is \wsmindex{i\_fieldSetConst}. Using this method the user can assign a constant value for each Stokes component of the first guess field. On the boundary of course the clearsky field has to be taken, as this is the boundary condition for the scattering calculation.
@@ -972,7 +957,7 @@ The method \wsmindex{i\_fieldIterate} solves the VRTE using the
 iterative method.  The function has
 included switches to adapt automatically to the atmospheric
 dimensionality specified
-in the workspace variable \wsvindex{atmosphere\_dim}. Note that only
+by the workspace variable \wsvindex{atmosphere\_dim}. Note that only
 1D or 3D scattering calculations are possible. 
 The following steps are performed in each iteration until the solution
 of the radiation field converges.
@@ -997,27 +982,28 @@ using the variable \artsstyle{i\_field}.
 \levelc{Computation of the scattered field}
 %=========================================
 \label{sec:scattering:sca_fieldCalc}
-The method \wsmindex{scat\_integralCalc} does exactly what is
+The method \wsmindex{scat\_fieldCalc} does exactly what is
 described in Section 
-\ref{sec:scattering:solution_rte}.  The output of this method is
-\wsvindex{scat\_field} which has the same dimension as
-\artsstyle{i\_field}.  This is generated by integrating the product of
-intensity field \artsstyle{i\_field} and phase matrix
+\ref{sec:scattering:solution_rte}.  Output of this method is the scattered field
+(\wsvindex{scat\_field}) which has the same dimension as the intensity field
+(\artsstyle{i\_field}).  It is generated by integrating the product of
+intensity field (\artsstyle{i\_field}) and phase matrix
 \artsstyle{pha\_mat} over all incident zenith and azimuth angles.  In
-addition to \artsstyle{i\_field}, the phase matrix for single 
-particle \artsstyle{pha\_mat\_spt}, the particle number density field
-\artsstyle{pnd\_field} are inputs to this method.  They are used
+addition to \artsstyle{i\_field}, the phase matrix for the single 
+particles (\artsstyle{pha\_mat\_spt}) and the particle number density field
+(\artsstyle{pnd\_field}) are inputs to this method.  They are used
 to calculate the phase matrix \artsstyle{pha\_mat} by calling the
 method \artsstyle{pha\_mat\_partCalc}\ (see Section
-\ref{sec:scattering:pha_mat} ). \\ 
-The integration method used is the trapezoidal integration implemented
-by the function \artsstyle{AngIntegrate\_trapezoid} in the file
-\artsstyle{math\_funcs.cc}.  This explains why we need this
-computation of scattered field to be
-put in as an agenda since there can be different methods by which we
-can perform the integral. 
-The output \artsstyle{scat\_field} is used in the
-methods \artsstyle{i\_fieldUpdate1D} and \artsstyle{i\_fieldIterate}.
+\ref{sec:scattering:pha_mat} ). How the phase matrices for the individual particles are calculated is desribed in detail in Section \ref{sec:scattering:pha_mat_spt} \\ 
+\artsstyle{scat\_fieldCalc} uses the trapezoidal integration method. More sophisticated integration methods are not implemented yet.
+%The integration method used is the trapezoidal integration implemented
+%by the function \artsstyle{AngIntegrate\_trapezoid} in the file
+%\artsstyle{math\_funcs.cc}.  This explains why we need this
+%computation of scattered field to be
+%put in as an agenda since there can be different methods by which we
+%can perform the integral. 
+%The output \artsstyle{scat\_field} is used in the
+%methods \artsstyle{i\_fieldUpdate1D} and \artsstyle{i\_fieldIterate}.
 
 
 \levelc{Solving the VRTE with fixed scattering integral}
@@ -1214,9 +1200,9 @@ obtained using the reading routine \wsmindex{get\_amp\_fromDb} which is
 explained in Section \ref{sec:scattering:database}.
 
 
-The extinction cross section matrices \SExMat{} are
-calculated for all particle types chosen in the control
-file. The following formulas are used:
+The extinction cross section matrices \SExMat{} are calculated for all
+particle types chosen in the control file. The following formulas are
+used:
 \begin{eqnarray}
   \label{eq:gen_ext_matrix}
   L^p_{jj}({\bf n}) &=& \frac{c}{\nu} \Im[S_{11}({\bf n},{\bf

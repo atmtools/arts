@@ -163,7 +163,7 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate t_field:
       
       // Calculate grid positions:
-      gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
+      p2gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
 
       // Interpolation weights:
       Matrix itw(p_grid.nelem(), 2);
@@ -178,7 +178,7 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate z_field:
       
       // Calculate grid positions:
-      gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
+      p2gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
      
       // Interpolation weights:
       interpweights( itw, gp_p );
@@ -193,7 +193,7 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
       
           // Interpolation weights:
           interpweights( itw, gp_p);
@@ -244,7 +244,7 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate t_field:
       
       // Calculate grid positions:
-      gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
+      p2gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
       gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid );
       //gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid_dummy );
       
@@ -260,7 +260,7 @@ void AtmFieldsCalc(//WS Output:
       
       // Interpolate z_field:
       // Calculate grid positions:
-      gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
+      p2gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
       gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid );
       //gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid_dummy );
       
@@ -277,7 +277,7 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
           gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0), 
                   lat_grid);
           //   gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)), 
@@ -331,7 +331,7 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate t_field:
       
       // Calculate grid positions:
-      gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
+      p2gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
       gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid );
       gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid );
       
@@ -347,7 +347,7 @@ void AtmFieldsCalc(//WS Output:
       // Interpolate z_field:
       
       // Calculate grid positions:
-      gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
+      p2gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
       gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid );
       gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid );
       
@@ -363,7 +363,7 @@ void AtmFieldsCalc(//WS Output:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
           // Calculate grid positions:
-          gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
+          p2gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
           gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0), 
                   lat_grid);
           gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)), 

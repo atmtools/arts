@@ -51,6 +51,8 @@
 #include "gridded_fields.h"
 #include "logic.h"
 #include "rte.h"
+#include "interpolation.h"
+#include "special_interp.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -281,7 +283,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 
       ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
       
-      gridpos(p_gp,
+      p2gridpos(p_gp,
               p_grid[Range(cloudbox_limits[0], 
                            2,
                            (cloudbox_limits[1]- cloudbox_limits[0]))],
@@ -416,7 +418,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
         cloudbox_limits and the new grid have elements corresponding to
         all grid points inside the cloudbox plus the cloud_box_limits*/
       
-      gridpos(p_gp,
+      p2gridpos(p_gp,
               p_grid[Range(cloudbox_limits[0], 
                            2,
                            (cloudbox_limits[1]- cloudbox_limits[0]))],
@@ -1905,6 +1907,4 @@ void CloudboxGetIncoming(// WS Output:
     }// End atmosphere_dim = 3.
   //
   out3 << "Finished calculation of incoming field on cloudbox boundary.\n";
-  exit(0);
-
 }

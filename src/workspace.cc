@@ -854,24 +854,6 @@ void define_wsv_data()
        ),
       GROUP( Tensor6_ )));
 
- wsv_data.push_back
-    (WsvRecord
-     ( NAME( "tensor6_1" ), 
-       DESCRIPTION
-      (
-       "The *i_field* expressed in brightness temperature units.\n"
-       "\n"
-       "Usage: Input to Tensor6ToTbByPlanck. \n"    
-       "\n"
-       "Unit: Kelvin.\n"
-       "\n"
-       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
-       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
-       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
-       "        N_za, N_aa, N_i ]"
-       ),
-       GROUP( Tensor6_ )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "i_rte" ),
@@ -1916,6 +1898,21 @@ void define_wsv_data()
        "Usage: Set by user."
        ),
       GROUP( Tensor4_ )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "tensor6_1" ), 
+       DESCRIPTION
+      (
+       "An arbitrary tensor6. \n"
+       "\n"
+       "This variable is a general variable of type Tensor6.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+       GROUP( Tensor6_ )));
 
   wsv_data.push_back
    (WsvRecord
