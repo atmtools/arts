@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.237)
+AM_INIT_AUTOMAKE(arts,0.0.238)
 
 
 #
@@ -67,13 +67,10 @@ AC_CHECK_HEADER(math.h, , AC_MSG_ERROR(required header file <math.h> missing))
 
 
 #
-# Check for necessary functions in math library
+# Check for math library
 #
-for func in fabs exp asin sin cos sqrt
-do
-    AC_CHECK_LIB(m, $func, ,
-        AC_MSG_ERROR(function $func not found in math library) )
-done
+AC_CHECK_LIB(m, sin, ,
+  AC_MSG_ERROR(function $func not found in math library) )
 
 
 #
@@ -93,9 +90,12 @@ if test $ac_hdf_support = no; then
 else
   AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
   AC_CHECK_LIB(mfhdf, Hopen,, ac_hdf=no, -ldf -ljpeg -lz )
+  AC_CHECK_LIB(df, DFopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
+  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lmfhdf -ldf -lz )
+  AC_CHECK_LIB(z, gzopen,, ac_hdf=no, -lmfhdf -ldf -ljpeg )
 fi
 
-if test $ac_hdf = yes; then
+if test $ac_hdf_support = yes; then
   AC_DEFINE_UNQUOTED(HDF_SUPPORT, , Compile with HDF support)
 fi
 
@@ -266,17 +266,24 @@ if test $ac_maintainer_mode = yes; then
   # Turn on debugging
   CFLAGS=""
   CXXFLAGS="-ftemplate-depth-20"
+  CXXFLAGS_FIXED="$CXXFLAGS"
 else
   CFLAGS="$CFLAGS"
   CXXFLAGS="$CXXFLAGS -ftemplate-depth-20"
+  CXXFLAGS_FIXED="-ftemplate-depth-20"
 fi
 	
 if test $ac_debug = yes; then
   CFLAGS="$CFLAGS -g"
-else
   CXXFLAGS="$CXXFLAGS -g"
+  CXXFLAGS_FIXED="-ftemplate-depth-20"
+else
+  CFLAGS="$CFLAGS -DNDEBUG"
+  CXXFLAGS="$CXXFLAGS -DNDEBUG"
+  CXXFLAGS_FIXED="$CXXFLAGS_FIXED -DNDEBUG"
 fi
 
+AC_SUBST(CXXFLAGS_FIXED)
 
 #
 # Create list of example control files depending on arts-data package
@@ -334,7 +341,7 @@ if test $ac_hdf_support = autodetect; then
 else
   AC_MSG_RESULT([  HDF support              : $ac_hdf])
 fi
-if test $ac_hdf_support = no; then
+if test $ac_hdf = no; then
   AC_MSG_RESULT([  WARNING: Without HDF you cannot use Qpack!!!])
 fi
 AC_MSG_RESULT()
