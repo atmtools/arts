@@ -1,3 +1,12 @@
+2002-11-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-315
+
+	* src/ppath.cc: No functionality changed, despite some small steps
+	forward for 2D refraction, but the code has been restructured to
+	make the code more compact and simplify the implementation of other
+	ray tracing schemes.
+
 2002-11-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-314

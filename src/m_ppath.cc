@@ -566,14 +566,16 @@ void ppath_stepRefractionEuler(
   // Note that lmax is here set to -1.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_euler_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-       t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, -1 );
+    { ppath_step_refr_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+                t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
+                                               "linear_euler", lraytrace, -1 );
     }
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_euler_2d( ppath_step, p_grid, lat_grid,
-                                 z_field(Range(joker),Range(joker),0), 
-                                 t_field(Range(joker),Range(joker),0), 
-            r_geoid(Range(joker),0), z_ground(Range(joker),0), lraytrace, -1 );
+    { ppath_step_refr_2d( ppath_step, p_grid, lat_grid,
+                        z_field(Range(joker),Range(joker),0), 
+                        t_field(Range(joker),Range(joker),0), 
+                        r_geoid(Range(joker),0), z_ground(Range(joker),0), 
+                                               "linear_euler", lraytrace, -1 );
     }
   else
     {
@@ -611,14 +613,16 @@ void ppath_stepRefractionEulerWithLmax(
   // here. This commented in the on-line information for ppath_stepGeometric.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_refr_euler_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-     t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, lmax );
+    { ppath_step_refr_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+                   t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
+                                             "linear_euler", lraytrace, lmax );
     }
   else if( atmosphere_dim == 2 )
-    { ppath_step_refr_euler_2d( ppath_step, p_grid, lat_grid,
-                                 z_field(Range(joker),Range(joker),0), 
-                                 t_field(Range(joker),Range(joker),0), 
-          r_geoid(Range(joker),0), z_ground(Range(joker),0), lraytrace, lmax );
+    { ppath_step_refr_2d( ppath_step, p_grid, lat_grid,
+                       z_field(Range(joker),Range(joker),0), 
+                       t_field(Range(joker),Range(joker),0), 
+                       r_geoid(Range(joker),0), z_ground(Range(joker),0), 
+                                             "linear_euler", lraytrace, lmax );
     }
   else
     {
