@@ -1,3 +1,33 @@
+2002-06-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-154
+		
+	* src/workspace.cc: Added variables *amp_mat_raw* and
+	*pnd_field_raw*.
+		
+	* src/groups.cc: Included ArrayOfTensor3 and ArrayOfTensor6 to be
+	able to include the variables above.
+
+	* src/xml_io.cc: Added reading and writing routines for
+	ArrayOfTensor3 and ArrayOfTensor6.
+
+	* src/m_clonesize.cc: Included ArrayOfTensor3 and ArrayOfTensor6.
+
+	* src/m_scatrte.cc: Included this file. It should contain all
+	functions concerning the radiative transfer inside the scattering
+	box. 
+	Worked on (i_fieldUpdate1D). Tried to put in Sreerekhas functions.
+	This is not finished yet.
+
+	* src/methods.cc: Modifications of the interfaces of
+	(i_fieldUpdate1D) and (i_fieldIterate).
+	
+	* src/Makefile.am: Included m_scatrte.cc.
+
+	* src/m_cloudbox.cc: Shifted a lot of functions to m_scatrte.cc.
+
+	* src/agendas.cc: Only small modifications in the documentation.
+
 2002-06-19  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-153	

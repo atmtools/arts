@@ -262,14 +262,13 @@ void define_wsv_data()
        "\n"
        "Size: Array[N_pt] \n "
        "      [N_f+1, N_za+1, N_aa+1, N_za+1, N_aa+1, 8] \n"
+       "\n"
        "Dimensions: Array [part_types] \n"
        "            [f_grid, scat_za_grid, scat_aa_grid, scat_za_grid, \n"
        "             scat_aa_grid, amplitude matrix element]\n"
        "\n"
-       "Later the variable type has to be changed!!!! (when Array of Tensors\n"
-       "will be defined"
        ),
-      GROUP( Tensor6_ )));
+      GROUP(ArrayOfTensor6_ )));
 
   
   wsv_data.push_back
@@ -484,8 +483,8 @@ void define_wsv_data()
        "\n"
        "This variable is initialized with 0 inside the method \n"
        "*i_fieldIterate*.\n"
-       "If after an iteration the convergence test is fulfilled 1 is \n"
-       "assigned which means that the iteration in completed. \n"
+       "If after an iteration the convergence test is fulfilled, 1 is \n"
+       "assigned which means that the iteration is completed. \n"
       ), 
       GROUP( Index_ ))); 
 
@@ -1137,13 +1136,37 @@ void define_wsv_data()
        "\"workspace variables\".\n"
        "\n"
        "\n"
-       "Usage:      Set by the user.\n"
+       "Usage:      Calculated internally.\n"
        "\n"
        "Unit:        m^-3\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid, part_types]\n"
+       "Dimensions: [part_types, p_grid, lat_grid, lon_grid]\n"
         ),
       GROUP( Tensor4_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "pnd_field_raw" ),
+      DESCRIPTION
+      (
+       "The particle number density field data.\n"
+       "\n"
+       "This variable contains the particle number densities for all \n"
+       "chosen particle types. It includes the grids corresponding to the \n"
+       "grids in the database. \n"
+       "\n"
+       "\n"
+       "Usage:      Reading routine.\n"
+       "\n"
+       "Unit:        m^-3\n"
+       "\n"
+       "Size:  Array[N_pt] \n "
+       "       [N_p, N_lat, N_lon] \n"
+       "\n"
+       "Dimensions: Array[part_types]\n" 
+       "           [p_grid, lat_grid, lon_grid]\n"
+        ),
+      GROUP( ArrayOfTensor3_ )));
 
   wsv_data.push_back
    (WsvRecord

@@ -933,6 +933,139 @@ xml_write_to_stream (ostream&             os,
   os << '\n';
 }
 
+
+//=== ArrayOfTensor3=========================================================
+
+//! Reads ArrayOfTensor3 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="Tensor3">
+  and if so, write the values to 'atensor3' parameter.
+
+  \param is Input stream
+  \param atensor3 ArrayOfTensor3 return value
+*/
+void
+xml_read_from_stream (istream&       is,
+                      ArrayOfTensor3& atensor3)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Tensor3");
+  
+  tag.get_attribute_value ("nelem", nelem);
+  atensor3.resize (nelem);
+
+  for (Index n = 0; n < nelem; n++)
+    {
+      xml_read_from_stream (is, atensor3[n]);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfTensor3 to XML output stream
+/*!
+  \param os Output stream
+  \param atensor3 ArrayOfTensor3
+*/
+void
+xml_write_to_stream (ostream&             os,
+                     const ArrayOfTensor3& atensor3)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "Tensor3");
+  open_tag.add_attribute ("nelem", atensor3.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << '\n';
+
+  for (Index n = 0; n < atensor3.nelem (); n++)
+    {
+      xml_write_to_stream (os, atensor3[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << '\n';
+}
+
+
+//=== ArrayOfTensor6=========================================================
+
+//! Reads ArrayOfTensor6 from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Array type="Tensor6">
+  and if so, write the values to 'atensor6' parameter.
+
+  \param is Input stream
+  \param atensor6 ArrayOfTensor6 return value
+*/
+void
+xml_read_from_stream (istream&       is,
+                      ArrayOfTensor6& atensor6)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "Tensor6");
+  
+  tag.get_attribute_value ("nelem", nelem);
+  atensor6.resize (nelem);
+
+  for (Index n = 0; n < nelem; n++)
+    {
+      xml_read_from_stream (is, atensor6[n]);
+    }
+
+  tag.read_from_stream (is);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfTensor6 to XML output stream
+/*!
+  \param os Output stream
+  \param atensor6 ArrayOfTensor6
+*/
+void
+xml_write_to_stream (ostream&             os,
+                     const ArrayOfTensor6& atensor6)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "Tensor6");
+  open_tag.add_attribute ("nelem", atensor6.nelem ());
+
+  open_tag.write_to_stream (os);
+  os << '\n';
+
+  for (Index n = 0; n < atensor6.nelem (); n++)
+    {
+      xml_write_to_stream (os, atensor6[n]);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os);
+
+  os << '\n';
+}
+
+
 //=== ArrayOfString ==========================================================
 
 //! Reads ArrayOfString from XML input stream
@@ -1912,6 +2045,12 @@ template void
 xml_read_from_file<ArrayOfMatrix> (const String&, ArrayOfMatrix&);
 
 template void
+xml_read_from_file<ArrayOfTensor3> (const String&, ArrayOfTensor3&);
+
+template void
+xml_read_from_file<ArrayOfTensor6> (const String&, ArrayOfTensor6&);
+
+template void
 xml_read_from_file<ArrayOfString> (const String&, ArrayOfString&);
 
 template void
@@ -1959,6 +2098,12 @@ xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&);
 
 template void
 xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&);
+
+template void
+xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&);
+
+template void
+xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&);
 
 template void
 xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&);

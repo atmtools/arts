@@ -60,11 +60,11 @@ VectorNLinSpace( scat_za_grid ) {
      n     = 18
   }  
 
-VectorNLinSpace( scat_aa_grid ) {
-     start = 0
-     stop  = 10
-     n     = 2
-  }  
+VectorSet( scat_aa_grid ) {
+	length = 1
+	value = 0
+}	
+
 
   VectorNLinSpace( vector1 ) {
      start = 0
@@ -137,9 +137,9 @@ VectorNLinSpace( scat_aa_grid ) {
 Tensor6Set ( amp_mat ) {	
 	nvitrines = 3
 	nshelfs = 18
-	nbooks = 2
+	nbooks = 1
 	npages = 18
-	nrows = 2
+	nrows = 1
 	ncols = 8
 	value = 1
 	}
@@ -149,10 +149,19 @@ Tensor6Set (i_field){
 	nshelfs = 1
 	nbooks = 1
 	npages = 18
-	nrows = 2
+	nrows = 1
 	ncols = 4
 	value = 1
 	}
+
+Tensor4Set (pnd_field){
+	nbooks = 3
+	npages = 16
+	nrows = 18
+	ncols = 2
+	value = 1
+	}
+
 
 VectorSet (part_types){
 	length = 3
@@ -162,6 +171,16 @@ VectorSet (part_types){
 IndexSet ( scat_f_index ) {
 	value = 1
 	}	
+
+AgendaSet( ext_mat_agenda ){
+	ext_mat_partCalc{}
+	ext_matCalc{}
+}
+
+AgendaSet( abs_vec_agenda ) {
+	abs_vec_partCalc{}
+	abs_vecCalc{}
+}
 
 AgendaSet( ppath_step_agenda ) { ppath_stepGeometric{} } 
 

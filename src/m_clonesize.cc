@@ -245,6 +245,35 @@ void CloneSize(// WS Generic Output:
   out2 << "  Created an Array of empty Matrices.\n";
 }
 
+
+void CloneSize(// WS Generic Output:
+               ArrayOfTensor3& out,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const ArrayOfTensor3& in,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out.resize( in.nelem() );
+  out2 << "  Created an Array of empty Tensor3.\n";
+}
+
+
+void CloneSize(// WS Generic Output:
+               ArrayOfTensor6& out,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const ArrayOfTensor6& in,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out.resize( in.nelem() );
+  out2 << "  Created an Array of empty Tensor6.\n";
+}
+
+
 void CloneSize(// WS Generic Output:
                ArrayOfLineRecord& out,
                // WS Generic Output Names:

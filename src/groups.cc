@@ -72,6 +72,8 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfVector");
   wsv_group_names.push_back("ArrayOfMatrix");
+  wsv_group_names.push_back("ArrayOfTensor3");
+  wsv_group_names.push_back("ArrayOfTensor6");
 //   wsv_group_names.push_back("ArrayOfLineRecord");
 //   wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
 //   wsv_group_names.push_back("TagGroups");

@@ -300,7 +300,7 @@ void define_agenda_data()
        "\n"
        "There are different possibilities to compute the RTE with a fixed value \n"
        "for the scattering integral. These are implemented in the workspace \n"
-       "methods:"
+       "methods: \n"
        "sto_vecGeneral: This method uses the Pade approximation to compute the \n"
        "         matrix exponential function and a LU decomposition method \n"
        "         to compute the matrix inverse. This method should not be \n"
@@ -319,7 +319,7 @@ void define_agenda_data()
        "   abs_vec     : Absorption coefficient vector. \n"
        "   sca_vec     : Scattered field vector. \n"
        "   l_step      : Pathlength through a grid cell/ layer.\n"
-       "   planck      : Planck function. \n"
+       "   planck_function: Planck function. \n"
        "   stokes_dim  : Stokes dimension. \n"
        ""
 	),
