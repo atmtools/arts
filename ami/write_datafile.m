@@ -44,7 +44,7 @@ function write_datafile(filename,x,artstype,prec,heading,toascii)
 
 
 %=== Check input and set default values
-if ~isstr(filename)
+if ~ischar(filename)
   error('The file name must be given as a string');
 end
 if ~exist('toascii')
@@ -146,7 +146,7 @@ if toascii
   %=== Open file for writing
   fid = fopen(filename,'w');
   if fid < 0
-    error('Error while opening file for writing.');
+    error(sprintf('Error while opening file for writing:\n%s',filename));
   end
   
   %=== Print heading

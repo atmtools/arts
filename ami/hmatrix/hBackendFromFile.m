@@ -35,7 +35,7 @@ function [H,f_y,za_y,f_sensor] = ...
 
 
 %=== Read the file defining the channel response
-A = read_datafile(filename);
+A = read_datafile( filename, 'MATRIX' );
 
 
 %=== Get H for the backend
@@ -44,8 +44,8 @@ A = read_datafile(filename);
 
 
 %=== Include Hback in H
-H = h_x_h(Hback,H);
+H = h_x_h( Hback, H );
 
 
 %=== Create new F_Y and ZA_Y
-[f_y,za_y] = h_fix_ys(f_sensor,za_sensor);
+[f_y,za_y] = h_fix_ys( f_sensor, za_sensor );

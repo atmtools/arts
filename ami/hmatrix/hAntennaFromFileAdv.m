@@ -42,17 +42,17 @@ function [H,f_y,za_y,za_sensor] = hAntennaFromFileAdv(H,f_sensor,za_sensor,...
 
 
 %=== Read the antenna file
-A = read_datafile(filename);
+A = read_datafile( filename, 'MATRIX' );
  
 
 %=== Get H for the antenna pattern
 [Hant,za_sensor] = h_antenna(f_sensor,za_sensor,za_obs,A(:,1),A(:,2),...
-                                               o_ant,o_y,fscale,f0,move,dza);
+                                                o_ant,o_y,fscale,f0,move,dza);
 
 
 %=== Include Hant in H
-H = h_x_h(Hant,H);
+H = h_x_h( Hant, H );
 
 
 %=== Create new F_Y and ZA_Y
-[f_y,za_y] = h_fix_ys(f_sensor,za_sensor);
+[f_y,za_y] = h_fix_ys( f_sensor, za_sensor );

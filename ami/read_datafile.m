@@ -32,10 +32,10 @@ function x = read_datafile(filename,artstype,isascii)
 
 
 %== Check input
-if ~isstr(filename)
+if ~ischar(filename)
   error('The file name must be given as a string');
 end
-if ~isstr(artstype)
+if ~ischar(artstype)
   error('The ARTS data type name must be given as a string');
 end
 
@@ -74,7 +74,8 @@ if isascii
   %=== Open file for reading
   fid = fopen(filename,'r');
   if fid < 0
-    error('Error while opening file for reading. Does the file exist?');
+    error(sprintf(...
+  'Error while opening file for reading:\n%s\nDoes the file exist?',filename));
   end
 
   %== Read until line not begins with #

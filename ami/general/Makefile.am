@@ -21,6 +21,7 @@ EXTRA_DIST = \
         isinteger.m \
         isodd.m \
         last.m \
+        out.m \
         planck.m \
         rand_test.m \
         vec2col.m \

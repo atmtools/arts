@@ -23,6 +23,7 @@
 %          filename    name on file with sideband filtering specification
 %          o_filter    linear (=1) or cubic (=3) treatment of the
 %                      sideband filter
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %------------------------------------------------------------------------
 
 % HISTORY: 00.08.25  Created by Patrick Eriksson 
@@ -30,21 +31,21 @@
 
 
 function [H,f_y,za_y,f_sensor] = ...
-         hMixerFromFileAdv(H,f_sensor,za_sensor,lo,fprimary,filename,o_filter)
+        hMixerFromFile(H,f_sensor,za_sensor,lo,fprimary,filename,o_filter,o_y)
 
 
 %=== Read the sideband-mixer file
-A = read_datafile(filename);
+A = read_datafile( filename, 'MATRIX' );
  
 
 %=== Get H
 [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,A(:,1),A(:,2),...
-                                                                     o_filter);
+                                                                 o_filter,o_y);
 
 
 %=== Include Hant in H
-H = h_x_h(Hmix,H);
+H = h_x_h( Hmix, H );
 
 
 %=== Create new F_Y and ZA_Y
-[f_y,za_y] = h_fix_ys(f_sensor,za_sensor);
+[f_y,za_y] = h_fix_ys( f_sensor, za_sensor );

@@ -37,17 +37,17 @@ bname = sprintf('%s.%s.ab',basename,varname);;
 
 
 %=== Select file type
-if exist('force')
+if exist( 'force', 'var' )
   if force(1) == 'a'
     name = aname;
   else
     name = bname;
   end
 else
-  aexist = exist(aname);
-  bexist = exist(bname);
+  aexist = exist( aname, 'file' );
+  bexist = exist( bname, 'file' );
   if ~aexist & ~bexist
-    error(['No file for ',varname,' is found.'])
+    error(['No file for ',varname,' is found with basename ',basename,'.'])
   elseif aexist & ~bexist
     name = aname;
   elseif ~aexist & bexist

@@ -13,7 +13,7 @@
 %          y = (b(1,1)*x^n+b(1,2)*x^(n-1)+...+b(1,n))*y(1) +
 %              (b(2,1)*x^n+b(2,2)*x^(n-1)+...+b(2,n))*y(2) +
 %              ...
-%              (b(n,1)*x^n+b(n,2)*x^(n-1)+...+b(n,n))*y(n) +
+%              (b(n,1)*x^n+b(n,2)*x^(n-1)+...+b(n,n))*y(n)
 %
 %          The size of B is accordingly N x N and the column order matches
 %          the order of POLYFIT.
@@ -33,8 +33,8 @@
 % If someone can find a general solution (i.e. valid for any N),
 % please go ahead and implemented it.
 
-% This function does not use the full potential of Matlab for consistency
-% reasons when it will be ported to ARTS.
+% This function does not use the full potential of Matlab to faciliate
+% porting to ARTS.
 
 
 function b = pbasis(x)

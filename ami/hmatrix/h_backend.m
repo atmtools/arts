@@ -45,11 +45,6 @@ if ( nback <= o_ch )
 end
 
 
-%=== Allocate H and create F_NEW
-H      = sparse(nza*nf2,nza*nf1);
-f_new  = vec2col(f2);
-
-
 %=== Convert to GHz to avoid numerical problems
 f1     = f1/1e9;
 f2     = f2/1e9;
@@ -66,21 +61,59 @@ if f1(nf1) < f2(nf2)+f_back(nback)
 end
 
 
+out(1,1);
+out(1,'Setting up backend transfer matrix (H).');
+
+
+%=== Allocate vectors for row and col index and vector for weights
+%=== Assume that the channel response is described with, on average, 12 values.
+lrow = 12 * nf2 * nza;     % This variable is used as length for these vectors
+nrow = 0;                  % Number of values in the vectors
+rows = zeros( 1, lrow );
+cols = zeros( 1, lrow );
+wgts = zeros( 1, lrow );
+
+
 %=== Fill H
 %
 ind1      = 1:nf1;
 %
 for i = 1:nf2
-     
+ 
+  out(2,sprintf('Doing frequency %d of %d',i,nf2));
+    
   f   = f1 - f2(i);
 
   w    = h_weights_integr(f,o_y,f_back,o_ch,w_back);
   w    = w/sum(w);
   ind3 = find(w~=0);
+  nw   = length(ind3);
 
   for j = 1:nza
     ind2 = ind1 + (j-1)*nf1;
-    H(i+(j-1)*nf2,ind2(ind3)) = w(ind3);
+    if (nrow+nw) > lrow
+      out(2,'Reallocates the vectors to set-up H (can take some time).');
+      %=== Estimate the extra space needed. Overestimate with 25% to be safe.
+      nextra = round( lrow * (nf2/i-1) * 1.25 );
+      zvec   = zeros( 1, nextra );
+      rows   = [ rows, zvec ];        
+      cols   = [ cols, zvec ];        
+      wgts   = [ wgts, zvec ];        
+      lrow   = lrow + nextra ;
+    end
+    irow = nrow + (1:nw);
+    rows(irow) = i+(j-1)*nf2;
+    cols(irow) = ind2(ind3);
+    wgts(irow) = w(ind3);
+    nrow       = nrow + nw;
+    %H(i+(j-1)*nf2,ind2(ind3)) = w(ind3);
   end
 end
 
+
+%=== Allocate H and create F_NEW
+H      = sparse( rows(1:nrow), cols(1:nrow), wgts(1:nrow), nza*nf2, nza*nf1 );
+f_new  = vec2col(f2);
+
+
+out(1,-1);

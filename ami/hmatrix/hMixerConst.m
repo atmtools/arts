@@ -20,23 +20,24 @@
 %          lo          LO frequency
 %          fprimary    a frequency inside the primary band (!=LO)
 %          ratio       relative sideband response
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %------------------------------------------------------------------------
 
 % HISTORY: 00.08.25  Created by Patrick Eriksson 
 
 
 function [H,f_y,za_y,f_sensor] = ...
-                    hMixerFromFileAdv(H,f_sensor,za_sensor,lo,fprimary,ratio)
+                 hMixerFromFileAdv(H,f_sensor,za_sensor,lo,fprimary,ratio,o_y)
 
 
 %=== Get H
 nf = length(f_sensor);
 if fprimary > lo
   [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,...
-         [f_sensor(1) lo lo+0.1 f_sensor(nf)],[ratio ratio 1-ratio 1-ratio],1);
+     [f_sensor(1) lo lo+0.1 f_sensor(nf)],[ratio ratio 1-ratio 1-ratio],1,o_y);
 else
   [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,...
-         [f_sensor(1) lo-0.1 lo f_sensor(nf)],[1-ratio 1-ratio ratio ratio],1);
+     [f_sensor(1) lo-0.1 lo f_sensor(nf)],[1-ratio 1-ratio ratio ratio],1,o_y);
 end
 
 

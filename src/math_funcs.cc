@@ -1304,7 +1304,7 @@ void rand_uniform(
   const Numeric dx = x_high-x_low;
 
   // Init seed in a "random" way
-  srand( (unsigned int) time( NULL );
+  srand( (unsigned int) time( NULL ) );
 
   r.resize(n);
   for ( size_t i=1; i<=n; i ++)

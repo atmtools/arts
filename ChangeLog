@@ -1,3 +1,12 @@
+2001-01-02  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-96
+
+	* Version 0-95 did not compile due to a missing ) in math_funcs.cc. 
+
+	* An out-function added to AMI. 
+	
+
 2000-12-20  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-95
