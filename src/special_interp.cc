@@ -533,7 +533,7 @@ Numeric interp_atmsurface_by_gp(
 
 
 /*===========================================================================
-  === Conversion of altitudes to pressure
+  === Conversion altitudes / pressure
   ===========================================================================*/
 
 //! itw2p
@@ -575,6 +575,42 @@ void itw2p(
   interp( p_values, itw, logpgrid, gp ); 
 
   transform( p_values, exp, p_values );
+}
+
+
+
+//! p2gridpos
+/*!
+   Calculates grid positions for pressure values.
+
+   This function works as *gridpos*, but is adapted to handle pressure
+   grids. The ARTS defintions result in that pressures shall not be
+   interpolated directly, it is the log of the pressure that shall be
+   interpolated. This means that if some values shall be interpolated
+   to some given pressures, the grid positions shall be calculated
+   with this function. The interpolation can then be performed as
+   usual.
+
+   \param   gp          Output: Grid position Array.
+   \param   old_pgrid   The original pressure grid.
+   \param   new_pgrid   The new pressure grid.
+
+   \author Patrick Eriksson
+   \date   2003-01-20
+*/
+void p2gridpos(
+             ArrayOfGridPos&   gp,
+      ConstVectorView          old_pgrid,
+      ConstVectorView          new_pgrid )
+{
+  // Local variable to store log of the pressure grids
+  Vector logold( old_pgrid.nelem() );
+  Vector lognew( new_pgrid.nelem() );
+
+  transform( logold, log, old_pgrid );
+  transform( lognew, log, new_pgrid );
+  
+  gridpos( gp, logold, lognew );
 }
 
 

@@ -45,6 +45,7 @@
 #include "check_input.h"
 #include "matpackI.h"
 #include "refraction.h"
+#include "special_interp.h"
 
 
 
@@ -121,12 +122,55 @@ void RefrIndexFieldAndGradients(
       out.resize(4,np,nlat,nlon);
     }
 
-  for( Index ip=0; ip<np; ip++ )
+  // Create a tensor with radius of the pressure surfaces
+  Tensor3   r_field(np,nlat,nlon);
+  //
+  for( Index ilon=0; ilon<nlon; ilon++ )
     {
       for( Index ilat=0; ilat<nlat; ilat++ )
         {
-          for( Index ilon=0; ilon<nlon; ilon++ )
+          for( Index ip=0; ip<np; ip++ )
             {
+              r_field(ip,ilat,ilon) = r_geoid(ilat,ilon) + 
+                                                         z_field(ip,ilat,ilon);
+            }
+        }
+    }
+
+
+  for( Index ilon=0; ilon<nlon; ilon++ )
+    {
+      for( Index ilat=0; ilat<nlat; ilat++ )
+        {
+          ArrayOfGridPos   gp_p(np), gp_lat(1), gp_lon(1);
+          Vector           r_grid( p_grid.nelem() ), r(np);
+          Matrix           itw(np,2);
+
+          if( atmosphere_dim == 1 )
+            { 
+              r_grid = r_field(joker,0,0);
+            }
+          else if( atmosphere_dim == 2 )
+            { 
+              gridpos( gp_lat, lat_grid, lat_values[ilat] );
+              z_at_lat_2d( r_grid, p_grid, lat_grid, r_field(joker,joker,0), 
+                                                                   gp_lat[0] );
+            }
+          else
+            { 
+              gridpos( gp_lat, lat_grid, lat_values[ilat] );
+              gridpos( gp_lon, lon_grid, lon_values[ilon] );
+              z_at_latlon( r_grid, p_grid, lat_grid, lon_grid, r_field, 
+                                                        gp_lat[0], gp_lon[0] );
+            }
+
+          p2gridpos( gp_p, p_grid, p_values );
+          interpweights( itw, gp_p );
+          interp( r, itw, r_grid, gp_p );
+
+          for( Index ip=0; ip<np; ip++ )
+            {
+
               if( atmosphere_dim == 1 )
                 {
                 }
@@ -138,12 +182,18 @@ void RefrIndexFieldAndGradients(
                                p_grid, lat_grid, r_geoid(joker,0), 
                                z_field(joker,joker,0), t_field(joker,joker,0), 
                                vmr_field(joker,joker,joker,0),
-                                              p_values[ip], lat_values[ilat] );
+                                                     r[ip], lat_values[ilat] );
                   out(2,ip,ilat,ilon) = dndlat;
                 }
               
               else
                 {
+                  refr_gradients_3d( refr_index, dndr, dndlat, dndlon,
+                               a_pressure, 
+                               a_temperature, a_vmr_list, refr_index_agenda, 1,
+                               p_grid, lat_grid, lon_grid, r_geoid, 
+                               z_field, t_field, vmr_field,
+                                   r[ip], lat_values[ilat], lon_values[ilon] );
                   out(2,ip,ilat,ilon) = dndlat;
                   out(3,ip,ilat,ilon) = dndlon;
                 }

@@ -1,5 +1,24 @@
 2003-01-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-405
+
+	* src/refraction.cc (refr_gradients_2d/3d): Changed the definition
+	of the lat and lon gradients. The returned values are now the change
+	of the refractive index over 1m, not 1 radian.
+
+	* src/ppath.cc (raytrace_2d/3d_linear_euler): Adapted to change above.
+
+	* src/special_interp.cc (p2gridpos): Created this function. This
+	function SHALL be used when interpolating in pressure. See email
+	to arts-dev.
+
+	* src/m_refraction.cc (RefrIndexFieldAndGradients): Function basically
+	finished, but there is not yet any function for 1D giving the radial
+	gradient (which is not needed to calculate the paths, but can be 
+	interesting to plot).
+
+2003-01-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-404
 
 	* src/refraction.cc: Changes in most functions to change vertical

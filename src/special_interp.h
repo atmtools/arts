@@ -131,6 +131,11 @@ void itw2p(
         const ArrayOfGridPos&  gp,
         ConstMatrixView        itw );
 
+void p2gridpos(
+             ArrayOfGridPos&   gp,
+      ConstVectorView          old_pgrid,
+      ConstVectorView          new_pgrid );
+
 void z_at_lat_2d(
              VectorView   z,
         ConstVectorView   p_grid,

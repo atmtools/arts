@@ -4418,7 +4418,7 @@ void raytrace_2d_linear_euler(
                              vmr_field, r, lat );
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
-                                                    cos(za_rad) * dndlat / r );
+                                                        cos(za_rad) * dndlat );
         }
 
       r   = r_new;
@@ -4621,12 +4621,11 @@ void raytrace_3d_linear_euler(
               if( za == 0  ||  za == 180 )
                 { aa = RAD2DEG * atan2( dndlon, dndlat); }
               else
-                { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ) / 
-                                                ( r * cos( DEG2RAD * lat ) ); }
+                { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
             }
 
-          za += aterm * ( -sinza * dndr +
-                       cos(za_rad) * ( cosaa * dndlat + sinaa * dndlon ) / r );
+          za += aterm * ( -sinza * dndr + cos(za_rad) * 
+                                         ( cosaa * dndlat + sinaa * dndlon ) );
         }
 
       r   = r_new;

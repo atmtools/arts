@@ -39,6 +39,9 @@
 #include "refraction.h"
 #include "special_interp.h"
 
+extern const Numeric DEG2RAD;
+extern const Numeric RAD2DEG;
+
 
 
 /*===========================================================================
@@ -326,6 +329,11 @@ void get_refr_index_3d(
    latitude and the difference to the refractive index at the given
    point determines the gradient.
 
+   The latitude gradient is scaled with the radius to obtain the same
+   unit ([1/m]) for both gradients. That is, the returned value is the
+   change of the refractive index for a movement of 1m in the latitude
+   direction.
+
    The atmosphere is given by its 2D view. That is, the longitude
    dimension is removed from the atmospheric fields. For example,
    the temperature is given as a matrix.
@@ -388,7 +396,7 @@ void refr_gradients_2d(
                       refr_index_agenda, agenda_verb, p_grid, 
                  lat_grid, r_geoid, z_field, t_field, vmr_field, r, lat+dlat );
 
-   dndlat = ( refr_index - n0 ) / dlat; 
+   dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
    refr_index = n0;
 }
@@ -403,6 +411,12 @@ void refr_gradients_2d(
    refractive index is calculated for slightly shifted radius,
    latitude or longitude and the difference to the refractive index at
    the given point determines the gradient.
+
+   The latitude and longitude gradients are scaled with the
+   (effective) radius to obtain the same unit ([1/m]) for all
+   gradients. That is, the returned values are the change of the
+   refractive index for a movement of 1m in the latitude or longitude
+   direction.
 
    \param   refr_index          Output: As the WSV with the same name.
    \param   dndr                Output: Radial gradient of refractive index.
@@ -465,17 +479,19 @@ void refr_gradients_3d(
 
    get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, lat_grid, 
-             lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat+dlat, lon);
+                      lon_grid, r_geoid, z_field, t_field, vmr_field, 
+                      r, lat+dlat, lon );
 
-   dndlat = ( refr_index - n0 ) / dlat; 
+   dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
    const Numeric   dlon = 1e-4;
 
    get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
                       refr_index_agenda, agenda_verb, p_grid, lat_grid, 
-             lon_grid, r_geoid, z_field, t_field, vmr_field, r, lat, lon+dlon);
+                      lon_grid, r_geoid, z_field, t_field, vmr_field, 
+                      r, lat, lon+dlon);
 
-   dndlon = ( refr_index - n0 ) / dlon; 
+   dndlon = ( refr_index - n0 ) / ( DEG2RAD * dlon * r * cos( DEG2RAD*lat ) ); 
 
    refr_index = n0;
 }
