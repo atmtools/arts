@@ -1,3 +1,16 @@
+2003-08-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-679
+
+	* src/sensor.cc (antenna_transfer_matrix): Corrections to indexing, in
+	distribution of vector elements into the sparse matrix.
+
+	* src/m_sensor.cc (sensor_responseAntenna1D): Correction again to index
+	but this time setting the size of the output matrix.
+
+	* src/test_sensor.cc (test1): Changed the test to a more 'realistic'
+	scenario.
+ 
 2003-08-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-678

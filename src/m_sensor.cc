@@ -482,19 +482,13 @@ void sensor_responseBackend(// WS Output:
   spectrometer_transfer_matrix(backend_response,ch_response,
     f_backend,sensor_response_f,sensor_response_za.nelem(),
     sensor_pol.nrows());
-  
-  //FIXME: debugging
-  cout << "sensor_response["<<sensor_response.nrows()<<":"
-       << sensor_response.ncols()<<"]:\n"<<sensor_response
-       << "backend_response["<<backend_response.nrows()<<":"
-       << backend_response.ncols()<<"]\n"<<backend_response;
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
   Sparse sensor_response_tmp = sensor_response;
   sensor_response.resize(f_backend.nelem()*n_za_pol,
-    sensor_response_tmp.nrows());
+    sensor_response_tmp.ncols());
   mult(sensor_response,backend_response,sensor_response_tmp);
 
   // Some extra output.

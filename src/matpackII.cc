@@ -828,7 +828,7 @@ void mult( Sparse& A,
                   // mrowind vector from the iterators that points to the
                   // values in colintersec. We then get the number of steps 
                   // from the start of the both vectors mrowind and mdata to
-                  // the intersecting values and can add them to the 
+                  // the intersecting values and can add them to the
                   // iterator that points to the beginning of mdata.
                   std::vector<Index>::iterator rowindBt_it =
                     find(Bt.mrowind->begin()+*(Bt.mcolptr->begin()+b),

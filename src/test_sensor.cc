@@ -32,9 +32,9 @@ extern const Numeric DEG2RAD;
 extern const Numeric PI;
 
 //! antenna_diagram_gaussian
-/*! 
+/*!
   This function has moved here from sensor.cc where it became obsolete.
-  
+
   Sets up a matrix containing a standardised Gaussian antenna diagram,
   described for a certain frequency. The function is called with the
   half-power beam width that determines the shape of the curve for the
@@ -44,7 +44,7 @@ extern const Numeric PI;
 
   \param   srm     The antenna diagram matrix.
   \param   theta   The antenna average width.
-  
+
   \author Mattias Ekström
   \date   2003-06-18
 */
@@ -54,7 +54,7 @@ void antenna_diagram_gaussian(
 {
   //Assert that srm has the rigth size
   assert( srm.ncols()==2 );
-  
+
   //Initialise variables
   Numeric ln2 = log(2.0);
 
@@ -68,15 +68,23 @@ void test1()
   //Test antenna_transfer_matrix with ArrayOfArrayOfMatrix
   cout << "\nTest 1:\n";
 
-  Vector ant_za(-10,3,10);
-  Vector f(1,5,1);
-  Vector m_za(-18,13,3);
-  Vector a_grid(-7.5,7,2.5);
+  Vector ant_za(-0.03,2,0.06);
+  cout << "ant_za:\n" <<ant_za<<endl;
+  Vector f(3.175e11,8,1e9);
+  cout << "f:\n"<<f<<endl;
+  Vector m_za(-0.1,9,0.025);
+  cout << "m_za:\n" << m_za << endl;
+  Vector a_grid(-0.05,11,0.01);
+  cout << "a_grid:\n" << a_grid << endl;
   ArrayOfMatrix adiag1, adiag2, adiag3;
   ArrayOfArrayOfMatrix aadiag;
   Index n_pol = 2;
 
-  Matrix diag1(7,6);
+  Matrix diag(a_grid.nelem(), 2);
+  diag(joker,0) = a_grid;
+  antenna_diagram_gaussian(diag(joker,Range(0,2,1)),0.09);
+
+  Matrix diag1(a_grid.nelem(),6);
   diag1(joker,0) = a_grid;
   antenna_diagram_gaussian(diag1(joker,Range(0,2,1)),1.8);
   antenna_diagram_gaussian(diag1(joker,Range(0,2,2)),1.9);
@@ -84,7 +92,7 @@ void test1()
   antenna_diagram_gaussian(diag1(joker,Range(0,2,4)),2.1);
   antenna_diagram_gaussian(diag1(joker,Range(0,2,5)),2.2);
 
-  Matrix diag2(7,6);
+  Matrix diag2(a_grid.nelem(),6);
   diag2(joker,0) = a_grid;
   antenna_diagram_gaussian(diag2(joker,Range(0,2,1)),2.3);
   antenna_diagram_gaussian(diag2(joker,Range(0,2,2)),2.4);
@@ -92,7 +100,7 @@ void test1()
   antenna_diagram_gaussian(diag2(joker,Range(0,2,4)),2.6);
   antenna_diagram_gaussian(diag2(joker,Range(0,2,5)),2.7);
 
-  Matrix diag3(7,6);
+  Matrix diag3(a_grid.nelem(),6);
   diag3(joker,0) = a_grid;
   antenna_diagram_gaussian(diag3(joker,Range(0,2,1)),2.8);
   antenna_diagram_gaussian(diag3(joker,Range(0,2,2)),2.9);
@@ -100,18 +108,47 @@ void test1()
   antenna_diagram_gaussian(diag3(joker,Range(0,2,4)),3.1);
   antenna_diagram_gaussian(diag3(joker,Range(0,2,5)),3.2);
 
-  adiag1.push_back(diag1);
+  adiag1.push_back(diag);
+  //adiag1.push_back(diag1);
   adiag2.push_back(diag2);
   adiag3.push_back(diag3);
   aadiag.push_back(adiag1);
-  aadiag.push_back(adiag2);
-  aadiag.push_back(adiag3);
+  //aadiag.push_back(adiag1);
+  //aadiag.push_back(adiag2);
+  //aadiag.push_back(adiag3);
 
-  Sparse H(f.nelem()*ant_za.nelem()*n_pol,m_za.nelem()*f.nelem());
+  cout << " Initialising H...";
+  Sparse H(f.nelem()*ant_za.nelem()*n_pol,m_za.nelem()*f.nelem()*n_pol);
+  cout << "done.\n";
 
+  cout << " Calculating antenna transfer matrix H...";
   antenna_transfer_matrix(H,m_za,aadiag,f,ant_za,n_pol);
+  cout << "done.\n";
 
-  cout << "H:["<<H.nrows()<<","<<H.ncols()<<"]:"<<H<<"\n";
+  cout << "H:["<<H.nrows()<<","<<H.ncols()<<"]:\n"<<H<<"\n";
+
+  cout << " Initialising identity matrix I...";
+  Sparse I(H.ncols(),H.ncols());
+  for (Index i=0;i<I.ncols(); i++)
+    I.rw(i,i)=1;
+  cout << "done.\n";
+
+  cout << " Initialising R...";
+  Sparse R;
+  cout << "done.\n";
+
+  cout << " Resizing R...";
+  R.resize(H.nrows(),H.ncols());
+  cout << "done.\n";
+
+  cout << "R:["<<R.nrows()<<","<<R.ncols()<<"]:\n"<<R<<"\n";
+  
+  cout << " Multiplying H and I, store product in R...";
+  mult(R,H,I);
+  cout << "done.\n";
+
+  cout << "R:["<<R.nrows()<<","<<R.ncols()<<"]:\n"<<R<<"\n";
+
 }
 
 void test2()
@@ -272,8 +309,8 @@ void test7()
 
 int main()
 {
-//  test1();
-  test2();
+  test1();
+//  test2();
 //  test3();
 //  test4();
 //  test5();

@@ -15,7 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*!
+/*!a
   \file   sensor.cc
   \author Mattias Ekström <ekstrom@rss.chalmers.se>
   \date   2003-02-27
@@ -77,7 +77,7 @@
    \param   m_za   The measurement block grid of zenith angles.
    \param   srm	   The sensor response matrix, i.e. the antenna diagram
    \param   x_f    The frequency grid points.
-   \param   n_ant  The number of antennas/beams to consider.
+   \param   ant_za The antenna zenith angle grid.
    \param   n_pol  The number of polarisations to consider.
 
    \author Mattias Ekström
@@ -92,11 +92,11 @@ void antenna_transfer_matrix( Sparse&   H,
 {
   // Calculate number of antennas/beams
   const Index n_ant = ant_za.nelem();
-  
+
   // Check that the output matrix the right size
   assert(H.nrows()==x_f.nelem()*n_ant*n_pol);
-  assert(H.ncols()==m_za.nelem()*x_f.nelem());
-
+  assert(H.ncols()==m_za.nelem()*x_f.nelem()*n_pol);
+  
   // Check the size of the antenna diagram array of arrays and set a flag
   // if only one angle is given or if there is a complete set for each
   // angle. Initialise also flags for polarisation and frequency.
@@ -123,7 +123,7 @@ void antenna_transfer_matrix( Sparse&   H,
   Vector temp(H.ncols(), 0.0);
   Vector temp_za(m_za.nelem(), 0.0);
   for (Index a=0; a<n_ant; a++) {
-  Index a_this = a*a_step;
+    Index a_this = a*a_step;
 
     // Check the size of this element of diag and set a flag if only one
     // polarisation is given or if there is a complete set for each
@@ -133,13 +133,14 @@ void antenna_transfer_matrix( Sparse&   H,
       p_step = 1;
 
     // Loop through the polarisation antenna diagrams.
-    for (Index p=0; p<diag[a_this].nelem(); p++) {
+    for (Index p=0; p<n_pol; p++) {
+      Index p_this = p*p_step;
 
       // Check the number of columns in this matrix and set flag if one
       // column is given or if there is a complete set for each frequency.
-      assert((diag[a_this])[p].ncols()==2 ||
-             (diag[a_this])[p].ncols()==x_f.nelem()+1);
-      if ((diag[a_this])[p].ncols()!=2)
+      assert((diag[a_this])[p_this].ncols()==2 ||
+             (diag[a_this])[p_this].ncols()==x_f.nelem()+1);
+      if ((diag[a_this])[p_this].ncols()!=2)
         f_step = 1;
 
       // Loop through x_f and calculate the sensor integration vector
@@ -147,12 +148,10 @@ void antenna_transfer_matrix( Sparse&   H,
       // we use vectorviews where the elements are separated by number
       // of frequencies in x_f.
       for (Index f=0; f<x_f.nelem(); f++) {
-        // Update the antenna diagram grid points
-        Index p_this = p*p_step;
         Index f_this = f*f_step;
 
         // Check if the antenna pointer still points to the same antenna
-        //diagram, if so don't recalculate the integration vector.
+        // diagram, if so don't recalculate the integration vector.
         // Add the angle offset of this antenna/beam.
         Vector za_rel = (diag[a_this])[p_this](joker, 0);
         za_rel += ant_za[a];
@@ -171,10 +170,13 @@ void antenna_transfer_matrix( Sparse&   H,
         Index p_tmp = p_this;
         if (p_step==0)
           p_step_tmp = n_pol-1;
-        temp[Range(f,m_za.nelem(),x_f.nelem())] = temp_za;
-        for (p_tmp; p_tmp<=p_step_tmp; p_tmp++)
-          H.insert_row(a*n_pol*x_f.nelem()+f*n_pol+p_tmp, temp);
-        temp = 0.0;
+        //for (p_tmp; p_tmp<=p_step_tmp; p_tmp++) {
+          temp[Range(f*n_pol+p,m_za.nelem(),x_f.nelem()*n_pol)]
+          //temp[Range(f*n_pol+p_tmp,m_za.nelem(),x_f.nelem()*n_pol)]
+            = temp_za;
+          H.insert_row(a*n_pol*x_f.nelem()+f*n_pol+p, temp);
+          temp = 0.0;
+        //}
 
         // Store antenna diagram index for this loop so that we can
         // compare it with next step.
