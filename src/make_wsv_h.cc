@@ -92,7 +92,7 @@ int main()
 
       // Now the workspace itself:
 
-      ofs << "/*! The declaration of the (great) workspace. */\n";
+      ofs << "/** The declaration of the (great) workspace. */\n";
       ofs << "class WorkSpace {\n"
 	  << "public:\n";
       for (size_t i=0; i<n_wsv; ++i)
@@ -139,9 +139,6 @@ int main()
 	      }
 	  }
 
-// 	  ofs << "  /*! \\verbatim\n"
-// 	      << wsv_data[i].Description() << "\n"
-// 	      << "\\endverbatim */\n"
 	  ofs << "  "
 	      << wsv_group_names[wsv_data[i].Group()]
 	      << " "

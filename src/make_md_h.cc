@@ -154,59 +154,6 @@ int main()
       ofs << "// Method function declarations:\n\n";
       for (size_t i=0; i<n_md; ++i)
 	{
-	  // First of all write the comment as a doc++ header.
-	  // For this we have to make some small replacements for
-	  // indendation and to handle special latex characters correctly.
-	  {
-	    // Local copy of the description string:
-	    string s = md_data[i].Description();
-
-	    // Add indentation:
-	    replace_all(s,"\n","\n    "); 
-	    // Replace special latex characters.
-	    // Not necessary any more, because we use a verbatim
-	    // environment.  
-// 	    replace_all(s,"#","\\#");      
-// 	    replace_all(s,"$","\\$");      
-// 	    replace_all(s,"%","\\%");      
-// 	    replace_all(s,"&","\\&");      
-// 	    replace_all(s,"_","\\_");      
-// 	    replace_all(s,"{","\\{");      
-// 	    replace_all(s,"}","\\}");      
-
-	    // Look for the end of the first sentence. There we have
-	    // to include the beginning of the verbatim
-	    // environment. Not earlier, because the first sentence
-	    // has a special meaning.
-	    size_t full_stop = s.find('.') + 1;
-	    string first(s,0,full_stop);
-	    string rest (s,full_stop);
-// 	    cout << '!' << first << '!' << endl
-// 		 << '!' << rest << '!' << endl
-// 		 << "-----------------\n";
-
-	    // Remove leading whitespace and linebreaks in rest:
-	    while (
-		   0 < rest.size() &&
-		   ( ' ' == rest[0] || '\n' == rest[0] )
-		   )
-	      {
-		rest.erase(0,1);
-	      }
-
-	    ofs << "/** " << first;
-	    if ( 0==rest.size() )
-	      {
-		ofs << " */\n";
-	      }
-	    else
-	      {
-		ofs << '\n'
-		    << "    \\verbatim\n"
-		    << "    " << rest << '\n'
-		    << "    \\endverbatim */\n";
-	      }
-	  }
 
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
@@ -592,12 +539,12 @@ int main()
 	  ofs << "}\n\n";
 	}
 
-      // Add getaway, the array that hold pointers to the getaway functions:
+      // Add getaways, the array that hold pointers to the getaway functions:
       {
 	string indent = "     ";
 	bool is_first_parameter = true;
 
-	ofs << "/** The array holding the pointers to the getaway functions. */\n"
+	ofs << "// The array holding the pointers to the getaway functions.\n"
 	    << "void (*getaways[])(WorkSpace&, const MRecord&)\n"
 	    << "  = {";
 	for (size_t i=0; i<n_md; ++i)

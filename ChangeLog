@@ -1,3 +1,19 @@
+2001-06-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-177
+
+	* src/make_wsv_h.cc (main): Fixed bug that prevented the correct
+	generation of Doxygen headers for WSVs from online documentation.
+
+	* src/make_md_h.cc (main): Do no longer generate Doxygen headers
+	from the online documentation of workspace methods. Doxygen
+	headers have to be created manually!
+
+	Also removed doxygen header for the array getaways in md.cc, which
+	holds the pointers to the getaway functions, because this lead to
+	a Doxygen error message.
+	
+
 2001-06-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-176
