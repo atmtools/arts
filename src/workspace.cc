@@ -689,6 +689,22 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     (NAME( "output_file_format" ),
+      DESCRIPTION
+      (
+       "Output file format. \n"
+       "\n"
+       "This variable sets the format for output files. It could be set to\n"
+       "\"ascii\" or \"binary\".\n"
+       "\n"
+       "To change the value of this variable use the workspace methods\n"
+       "*output_file_formatSetAscii* and *output_file_formatSetBinary*\n"
+       "\n"
+       ),
+      GROUP( String_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "gas_abs_lookup" ),
        DESCRIPTION
        (
