@@ -579,10 +579,43 @@ test_matpack_SOURCES = \
 	test_matpack.cc
 
 test_sparse_SOURCES = \
+	arts.cc \
+	arts.h \
+	absorption.cc \
+	absorption.h \
+	bifstream.h \
+	bifstream.cc \
+	bofstream.h \
+	bofstream.cc \
+	binio.h \
+	binio.cc \
+	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.cc \
 	matpackII.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
+	xml_io.h \
+	xml_io_instantiation.h \
+	xml_io_private.h \
+	xml_io_basic_types.cc \
+	xml_io_basic_types.h \
+	xml_io_compound_types.cc \
+	xml_io_compound_types.h \
+	xml_io_array_types.cc \
+	xml_io_array_types.h \
+	xml_io.cc \
+	messages.cc \
+	species_data.cc \
 	test_sparse.cc
 
 test_xml_SOURCES = \
