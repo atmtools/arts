@@ -1,3 +1,12 @@
+2003-12-08  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-750
+
+	* doc/uguide/matrix_vector.tex: This should have been along with the
+	last commit. Sorry. Added section for make_I method for sparse matrix.
+
+	* doc/uguide/sensor.tex: Started on the sensor part of the user guide.
+
 2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-749
