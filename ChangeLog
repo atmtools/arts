@@ -1,3 +1,15 @@
+2003-01-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-408
+
+	* src/refraction.cc (refr_gradients_1d): Created this function.
+
+	* src/m_refraction.cc (RefrIndexFieldAndGradients): Finished this
+	function.
+	
+	* src/refraction.cc: 
+	* src/ppath.cc: Changes to get a nice verbosity for refr_index_agenda. 
+
 2003-01-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-407

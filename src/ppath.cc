@@ -4205,6 +4205,7 @@ void raytrace_1d_linear_euler(
   // Variables for output from do_gridrange_1d
   Vector    r_v, lat_v, za_v;
   Numeric   lstep, dlat = 9999;
+  Index     agenda_verb = 0;
 
   while( !ready )
     {
@@ -4248,9 +4249,11 @@ void raytrace_1d_linear_euler(
       //
       // Refractive index at *r*
       get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                         refr_index_agenda, 1, p_grid, r_geoid, z_field, 
-                         t_field, vmr_field, r );
-      
+                         refr_index_agenda, agenda_verb, p_grid, r_geoid, 
+                         z_field, t_field, vmr_field, r );
+
+      agenda_verb = 1;
+
       const Numeric   ppc_local = ppc / refr_index; 
 
       if( ready  &&  tanpoint )
@@ -4357,6 +4360,7 @@ void raytrace_2d_linear_euler(
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, za_v;
   Numeric   lstep, dlat = 9999, r_new, lat_new;
+  Index     agenda_verb = 0;
 
   while( !ready )
     {
@@ -4413,9 +4417,12 @@ void raytrace_2d_linear_euler(
           const Numeric   za_rad = DEG2RAD * za;
 
           refr_gradients_2d( refr_index, dndr, dndlat, a_pressure, 
-                             a_temperature, a_vmr_list, refr_index_agenda, 1, 
+                             a_temperature, a_vmr_list, refr_index_agenda,
+                             agenda_verb,
                              p_grid, lat_grid, r_geoid, z_field, t_field, 
                              vmr_field, r, lat );
+
+          agenda_verb = 1;
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
                                                         cos(za_rad) * dndlat );
@@ -4528,6 +4535,7 @@ void raytrace_3d_linear_euler(
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
   Numeric   lstep, r_new, lat_new, lon_new;
+  Index     agenda_verb = 0;
 
   while( !ready )
     {
@@ -4605,9 +4613,12 @@ void raytrace_3d_linear_euler(
           Numeric   dndr, dndlat, dndlon;
 
           refr_gradients_3d( refr_index, dndr, dndlat, dndlon, a_pressure, 
-                             a_temperature, a_vmr_list, refr_index_agenda, 1,
+                             a_temperature, a_vmr_list, refr_index_agenda, 
+                             agenda_verb,
                              p_grid, lat_grid, lon_grid, r_geoid, z_field, 
                              t_field, vmr_field, r, lat, lon );
+
+          agenda_verb = 1;
 
           const Numeric   aterm = RAD2DEG * lstep / refr_index;
           const Numeric   za_rad = DEG2RAD * za;

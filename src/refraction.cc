@@ -320,6 +320,70 @@ void get_refr_index_3d(
 
 
 
+//! refr_gradients_1d
+/*! 
+   Determines the refractive index, and the radial gradient.
+
+   The gradient is calculated in pure numerical way. That is, the
+   refractive index is calculated for slightly shifted radius and the
+   difference to the refractive index at the given point determines
+   the gradient.
+
+   The atmosphere is given by its 1D view. That is, the latitude and
+   longitude dimensions are removed from the atmospheric fields. For
+   example, the temperature is given as a vector.
+
+   \param   refr_index          Output: As the WSV with the same name.
+   \param   dndr                Output: Radial gradient of refractive index.
+   \param   a_pressure          Output: As the WSV with the same name.
+   \param   a_temperature       Output: As the WSV with the same name.
+   \param   a_vmr_list          Output: As the WSV with the same name.
+   \param   refr_index_agenda   As the WSV with the same name.
+   \param   agenda_verb         This argument is given as input to the agenda
+                                above to control the verbosity.
+   \param   p_grid              As the WSV with the same name.
+   \param   r_geoid             As the WSV with the same name.
+   \param   z_field             The geometric altitude of each pressure surface
+                                at each latitude.
+   \param   t_field             The temperature 2D field.
+   \param   vmr_field           The VMR 2D field for each species.
+   \param   r                   The radius of the position of interest.
+
+   \author Patrick Eriksson
+   \date   2003-01-20
+*/
+void refr_gradients_1d(
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
+        ConstVectorView   p_grid,
+        const Numeric&    r_geoid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
+        const Numeric&    r )
+{ 
+   get_refr_index_1d( refr_index, a_pressure,  a_temperature, a_vmr_list, 
+                      refr_index_agenda, agenda_verb, p_grid, 
+                      r_geoid, z_field, t_field, vmr_field, r );
+
+   const Numeric   n0 = refr_index;
+
+   get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
+                      refr_index_agenda, 1, p_grid, 
+                      r_geoid, z_field, t_field, vmr_field, r+1 );
+
+   dndr = refr_index - n0;
+
+   refr_index = n0;
+}
+
+
+
 //! refr_gradients_2d
 /*! 
    Determines the refractive index, and its gradients, for the given position.
@@ -379,22 +443,22 @@ void refr_gradients_2d(
         const Numeric&    lat )
 { 
    get_refr_index_2d( refr_index, a_pressure,  a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, 
-                      lat_grid, r_geoid, z_field, t_field, vmr_field, r, lat );
+                      refr_index_agenda, agenda_verb, p_grid, lat_grid,
+                      r_geoid, z_field, t_field, vmr_field, r, lat );
 
    const Numeric   n0 = refr_index;
 
    get_refr_index_2d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, 
-                    lat_grid, r_geoid, z_field, t_field, vmr_field, r+1, lat );
+                      refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
+                      z_field, t_field, vmr_field, r+1, lat );
 
    dndr = refr_index - n0;
 
    const Numeric   dlat = 1e-4;
 
    get_refr_index_2d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, 
-                 lat_grid, r_geoid, z_field, t_field, vmr_field, r, lat+dlat );
+                      refr_index_agenda, 1, p_grid, lat_grid, r_geoid, 
+                      z_field, t_field, vmr_field, r, lat+dlat );
 
    dndlat = ( refr_index - n0 ) / ( DEG2RAD * dlat * r ); 
 
@@ -470,7 +534,7 @@ void refr_gradients_3d(
    const Numeric   n0 = refr_index;
 
    get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, lat_grid, 
+                      refr_index_agenda, 1, p_grid, lat_grid, 
                lon_grid, r_geoid, z_field, t_field, vmr_field, r+1, lat, lon );
 
    dndr = refr_index - n0;
@@ -478,7 +542,7 @@ void refr_gradients_3d(
    const Numeric   dlat = 1e-4;
 
    get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, lat_grid, 
+                      refr_index_agenda, 1, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat+dlat, lon );
 
@@ -487,7 +551,7 @@ void refr_gradients_3d(
    const Numeric   dlon = 1e-4;
 
    get_refr_index_3d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                      refr_index_agenda, agenda_verb, p_grid, lat_grid, 
+                      refr_index_agenda, 1, p_grid, lat_grid, 
                       lon_grid, r_geoid, z_field, t_field, vmr_field, 
                       r, lat, lon+dlon);
 

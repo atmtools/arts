@@ -91,6 +91,21 @@ void get_refr_index_3d(
         const Numeric&    lat,
         const Numeric&    lon );
 
+void refr_gradients_1d(
+              Numeric&    refr_index,
+              Numeric&    dndr,
+              Numeric&    a_pressure,
+              Numeric&    a_temperature,
+              Vector&     a_vmr_list,
+        const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
+        ConstVectorView   p_grid,
+        const Numeric&    r_geoid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
+        ConstMatrixView   vmr_field,
+        const Numeric&    r );
+
 void refr_gradients_2d(
               Numeric&    refr_index,
               Numeric&    dndr,
