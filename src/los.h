@@ -48,13 +48,13 @@
 
     The LOS structure has the fields:
     \verbatim
-       ARRAYofVECTOR  p
-       ARRAYofVECTOR  psi
-       ARRAYofVECTOR  z
-       VECTOR         l_step
-       ARRAYofsizet   ground
-       ARRAYofsizet   start
-       ARRAYofsizet   stop
+       ArrayofVector  p
+       ArrayofVector  psi
+       ArrayofVector  z
+       Vector         l_step
+       Arrayofsizet   ground
+       Arrayofsizet   start
+       Arrayofsizet   stop
     where 
        p        The pressure of each point of the LOS.
        psi      The angle in the observation plane between the vectors going
@@ -107,19 +107,19 @@
     \date   07.06.00 
 */
 struct LOS {
-  ARRAYofVECTOR  p;
-  ARRAYofVECTOR  psi;
-  ARRAYofVECTOR  z;
-  VECTOR         l_step;
-  ARRAYofsizet   ground;
-  ARRAYofsizet   start;
-  ARRAYofsizet   stop;
+  ArrayofVector  p;
+  ArrayofVector  psi;
+  ArrayofVector  z;
+  Vector         l_step;
+  Arrayofsizet   ground;
+  Arrayofsizet   start;
+  Arrayofsizet   stop;
 };
 
 
 // A little function to check if there is any ground intersection 
 // The function is placed in m_los.cc
 //
-bool any_ground( const ARRAYofsizet& ground );
+bool any_ground( const Arrayofsizet& ground );
 
 #endif  // los_h

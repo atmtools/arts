@@ -20,15 +20,15 @@
 /*!
   \file   make_array.h
   \brief  The make_array objects can be used to initialize
-          ARRAYS in the source code. 
+          ArrayS in the source code. 
 
   Usage is as simple as:
 
   \code
-     ARRAY<string> y = make_array<string>("ab", "cde");
+     Array<string> y = make_array<string>("ab", "cde");
   \endcode
 
-  which will make an ARRAY with the desired arguments. At the
+  which will make an Array with the desired arguments. At the
   moment, up to 20 arguments are possible. If more are needed this
   can be easily extended.
 
@@ -1012,12 +1012,12 @@ class make_array {
     v[29] = a30;  
   }
 
-  // Conversion operator to ARRAY:
-  operator ARRAY<T>() const {
+  // Conversion operator to Array:
+  operator Array<T>() const {
     return v;
   }
  private:
-  ARRAY<T> v;
+  Array<T> v;
 };
 
 

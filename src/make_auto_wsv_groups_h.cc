@@ -10,7 +10,7 @@ int main()
       define_wsv_group_names();
 
       // Make the names visible.
-      extern const ARRAY<string> wsv_group_names;
+      extern const Array<string> wsv_group_names;
 
       const size_t n_wsv_groups = wsv_group_names.size();
 

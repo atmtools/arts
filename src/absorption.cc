@@ -47,7 +47,7 @@ Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
   Numeric result = 0.;
   Numeric exponent = 1.;
 
-  ARRAY<Numeric>::const_iterator it;
+  Array<Numeric>::const_iterator it;
 
   for (it=mqcoeff.begin(); it != mqcoeff.end(); it++)
     {
@@ -59,7 +59,7 @@ Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
 
 void define_species_map()
 {
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
   extern std::map<string, size_t> SpeciesMap;
 
   for ( size_t i=0 ; i<species_data.size() ; ++i)
@@ -141,7 +141,7 @@ void extract(T&      x,
 bool LineRecord::ReadFromHitranStream(istream& is)
 {
   // Global species lookup data:
-  extern ARRAY<SpeciesRecord> species_data;
+  extern Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
   // isotope lists. Could be any number, it just has to be made sure
@@ -153,18 +153,18 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // species index is hind[<HITRAN tag>]. 
   //
   // Allow for up to 100 species in HITRAN in the future.
-  static ARRAY< size_t >        hspec(100);
+  static Array< size_t >        hspec(100);
 
   // This is  an array of arrays for each hitran tag. It contains the
   // ARTS indices of the HITRAN isotopes. 
-  static ARRAY< ARRAY<size_t> > hiso(100);
+  static Array< Array<size_t> > hiso(100);
 
   // Remeber if this stuff has already been initialized:
   static bool hinit = false;
 
   // Remember, about which missing species we have already issued a
   // warning: 
-  static ARRAY<size_t> warned_missing;
+  static Array<size_t> warned_missing;
 
   if ( !hinit )
     {
@@ -194,7 +194,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	  
 	      // Get a nicer to handle array of HITRAN iso tags:
 	      size_t n_iso = sr.Isotope().size();
-	      ARRAY<int> iso_tags;
+	      Array<int> iso_tags;
 	      resize(iso_tags,n_iso);
 	      for ( size_t j=0; j<n_iso; ++j )
 		{
@@ -208,7 +208,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	      // 	  cout << "iso_tags = " << iso_tags << endl;
 	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
 	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
-	      hiso[mo] = ARRAY<size_t>( max(iso_tags)%10 + 1 );
+	      hiso[mo] = Array<size_t>( max(iso_tags)%10 + 1 );
 	      setto(hiso[mo], missing);
 
 	      // Set the isotope tags:
@@ -504,7 +504,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 bool LineRecord::ReadFromMytran2Stream(istream& is)
 {
   // Global species lookup data:
-  extern ARRAY<SpeciesRecord> species_data;
+  extern Array<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
   // isotope lists. Could be any number, it just has to be made sure
@@ -517,18 +517,18 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   // missing means that we don't have this species.
   //
   // Allow for up to 100 species in MYTRAN in the future.
-  static ARRAY< size_t >        hspec(100,missing);	
+  static Array< size_t >        hspec(100,missing);	
 
   // This is  an array of arrays for each mytran tag. It contains the
   // ARTS indices of the MYTRAN isotopes. 
-  static ARRAY< ARRAY<size_t> > hiso(100);
+  static Array< Array<size_t> > hiso(100);
 
   // Remeber if this stuff has already been initialized:
   static bool hinit = false;
 
   // Remember, about which missing species we have already issued a
   // warning: 
-  static ARRAY<size_t> warned_missing;
+  static Array<size_t> warned_missing;
 
   if ( !hinit )
     {
@@ -554,7 +554,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 	  
 	      // Get a nicer to handle array of MYTRAN iso tags:
 	      size_t n_iso = sr.Isotope().size();
-	      ARRAY<int> iso_tags;
+	      Array<int> iso_tags;
 	      resize(iso_tags,n_iso);
 	      for ( size_t j=0; j<n_iso; ++j )
 		{
@@ -568,7 +568,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 	      // 	  cout << "iso_tags = " << iso_tags << endl;
 	      // 	  cout << "static_cast<size_t>(max(iso_tags))%10 + 1 = "
 	      // 	       << static_cast<size_t>(max(iso_tags))%10 + 1 << endl;
-	      hiso[mo] = ARRAY<size_t>( max(iso_tags)%10 + 1 );
+	      hiso[mo] = Array<size_t>( max(iso_tags)%10 + 1 );
 	      setto(hiso[mo], missing);
 
 	      // Set the isotope tags:
@@ -848,7 +848,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 bool LineRecord::ReadFromJplStream(istream& is)
 {
   // Global species lookup data:
-  extern ARRAY<SpeciesRecord> species_data;
+  extern Array<SpeciesRecord> species_data;
 
   // We need a species index sorted by JPL tag. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -1100,7 +1100,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
 bool LineRecord::ReadFromArtsStream(istream& is)
 {
   // Global species lookup data:
-  extern ARRAY<SpeciesRecord> species_data;
+  extern Array<SpeciesRecord> species_data;
 
   // We need a species index sorted by Arts identifier. Keep this in a
   // static variable, so that we have to do this only once.  The ARTS
@@ -1272,7 +1272,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 OneTag::OneTag(string def) 
 {
   // Species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
   // The species map. This is used to find the species id.
   extern std::map<string, size_t> SpeciesMap;
   // Name of species and isotope (aux variables):
@@ -1362,7 +1362,7 @@ OneTag::OneTag(string def)
   else
     {
       // Make an array containing the isotope names:
-      ARRAY<string> ins;
+      Array<string> ins;
       for ( size_t i=0; i<spr.Isotope().size(); ++i )
 	ins.push_back( spr.Isotope()[i].Name() );
 
@@ -1448,7 +1448,7 @@ OneTag::OneTag(string def)
 string OneTag::Name() const 
 {
   // Species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
   // A reference to the relevant record of the species data:
   const  SpeciesRecord& spr = species_data[mspecies];
   // For return value:
@@ -1535,9 +1535,9 @@ ostream& operator << (ostream& os, const OneTag& ot)
    \date 2000-12-06
 */
 void get_tagindex_for_strings( 
-              ARRAYofsizet&   tags1_index, 
+              Arrayofsizet&   tags1_index, 
         const TagGroups&      tags1, 
-	const ARRAYofstring&  tags2_strings )
+	const Arrayofstring&  tags2_strings )
 {
   const size_t   n1 = tags1.size();
   const size_t   n2 = tags2_strings.size();
@@ -1593,7 +1593,7 @@ void get_tagindex_for_strings(
     \date 2001-01-31 */
 void get_tag_group_index_for_tag_group( size_t&               tgs1_index, 
 				        const TagGroups&      tgs1, 
-				        const ARRAY<OneTag>&  tg2 )
+				        const Array<OneTag>&  tg2 )
 {
   bool found = false;
 
@@ -1644,7 +1644,7 @@ void get_tag_group_index_for_tag_group( size_t&               tgs1_index,
    \author Stefan Buehler
    \date   2001-03-13
 */
-string get_tag_group_name( const ARRAY<OneTag>& tg )
+string get_tag_group_name( const Array<OneTag>& tg )
 {
   string name;
   size_t i;
@@ -1668,7 +1668,7 @@ string get_tag_group_name( const ARRAY<OneTag>& tg )
     \author Stefan Buehler 
 */
 void write_lines_to_stream(ostream& os,
-			   const ARRAYofLineRecord& lines)
+			   const ArrayofLineRecord& lines)
 {
   // We need this dummy line record, so that we can get the catalogue
   // version tag from dummy.Version, even if the line list is empty.
@@ -1686,20 +1686,20 @@ void write_lines_to_stream(ostream& os,
 }
 
 
-void xsec_species( MATRIX&                  xsec,
-		   const VECTOR&  	    f_mono,
-		   const VECTOR&  	    p_abs,
-		   const VECTOR&  	    t_abs,
-		   const VECTOR&  	    h2o_abs,
-		   const VECTOR&            vmr,
-		   const ARRAYofLineRecord& lines,
+void xsec_species( Matrix&                  xsec,
+		   const Vector&  	    f_mono,
+		   const Vector&  	    p_abs,
+		   const Vector&  	    t_abs,
+		   const Vector&  	    h2o_abs,
+		   const Vector&            vmr,
+		   const ArrayofLineRecord& lines,
 		   const size_t             ind_ls,
 		   const size_t             ind_lsn,
 		   const Numeric            cutoff)
 {
   // Make lineshape and species lookup data visible:
-  extern const ARRAY<LineshapeRecord> lineshape_data;
-  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
+  extern const Array<LineshapeRecord> lineshape_data;
+  extern const Array<LineshapeNormRecord> lineshape_norm_data;
 
   // speed of light constant
   extern const Numeric SPEED_OF_LIGHT;
@@ -1721,21 +1721,21 @@ void xsec_species( MATRIX&                  xsec,
 					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
   // dimension of f_mono, lines
-  INDEX nf = f_mono.size();
-  INDEX nl = lines.size();
+  Index nf = f_mono.size();
+  Index nl = lines.size();
 
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
   // so many free store allocations.  the last element is used to
   // calculate the value at the cutoff frequency
-  VECTOR ls(nf+1);
-  VECTOR fac(nf+1);
+  Vector ls(nf+1);
+  Vector fac(nf+1);
 
   // we need a local copy of f_mono, because we append a possible
   // cutoff to it, dimension nf or nf+1
   long cut = (cutoff != -1) ? 1 : 0;
   long nfl = nf+cut;
-  VECTOR f_local( nfl );
+  Vector f_local( nfl );
   copy(f_mono(0,nf),f_local(0,nf));
   // the baseline to substract for cutoff frequency
   Numeric base=0.0;
@@ -1749,8 +1749,8 @@ void xsec_species( MATRIX&                  xsec,
   // the lineshape (e.g., overlap, ...). Consequently we have to
   // assure that aux has a dimension not less then the number of
   // parameters passed.
-  INDEX ii = (nf < 10) ? 10 : nf;
-  VECTOR aux(ii);
+  Index ii = (nf < 10) ? 10 : nf;
+  Vector aux(ii);
 
   // Check that p_abs, t_abs, and h2o_abs all have the same
   // dimension. This could be a user error, so we throw a
@@ -1906,8 +1906,8 @@ void xsec_species( MATRIX&                  xsec,
 
 	// iterators pointing at begin/end frequencies of f_mono or at
 	// the elements that have to be calculated in case of cutoff
-	VECTOR::const_iterator it_min = f_mono.begin();
-	VECTOR::const_iterator it_max = f_mono.end();
+	Vector::const_iterator it_min = f_mono.begin();
+	Vector::const_iterator it_max = f_mono.end();
 	long it_min_ind = it_min.index();
 	long it_max_ind = it_max.index();
 
@@ -2021,17 +2021,17 @@ void xsec_species( MATRIX&                  xsec,
    \date   2001-02-16
 */
 void refr_indexBoudourisDryAir (
-                    VECTOR&   refr_index,
-              const VECTOR&   p_abs,
-              const VECTOR&   t_abs )
+                    Vector&   refr_index,
+              const Vector&   p_abs,
+              const Vector&   t_abs )
 {
-  const INDEX   n = p_abs.size();
+  const Index   n = p_abs.size();
   resize( refr_index, n );
 
   assert ( n == t_abs.size() );
 
   // N = 77.593e-2 * p / t ppm
-  for ( INDEX i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
     refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
 }
 
@@ -2053,12 +2053,12 @@ void refr_indexBoudourisDryAir (
    \date   2001-02-16
 */
 void refr_indexBoudouris (
-                    VECTOR&   refr_index,
-              const VECTOR&   p_abs,
-              const VECTOR&   t_abs,
-              const VECTOR&   h2o_abs )
+                    Vector&   refr_index,
+              const Vector&   p_abs,
+              const Vector&   t_abs,
+              const Vector&   h2o_abs )
 {
-  const INDEX   n = p_abs.size();
+  const Index   n = p_abs.size();
   resize( refr_index, n );
 
   assert ( n == t_abs.size() );
@@ -2067,7 +2067,7 @@ void refr_indexBoudouris (
   Numeric   e;     // Partial pressure of water in Pa
   Numeric   p;     // Partial pressure of the dry air: p = p_tot - e 
 
-  for ( INDEX i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
   {
     e = p_abs[i] * h2o_abs[i];
     p = p_abs[i] - e;

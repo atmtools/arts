@@ -527,7 +527,7 @@ void parse_numeric(Numeric& n, SourceText& text)
     inside strings are not allowed. 
    
     @see parse_string */
-void parse_stringvector(ARRAY<string>& res, SourceText& text)
+void parse_stringvector(Array<string>& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
   resize(res,0);			// Clear the result vector (just in case).
@@ -571,7 +571,7 @@ void parse_stringvector(ARRAY<string>& res, SourceText& text)
     inside numbers are not allowed. 
    
     @see parse_integer */
-void parse_intvector(ARRAY<int>& res, SourceText& text)
+void parse_intvector(Array<int>& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
   resize(res,0);			// Clear the result vector (just in case).
@@ -615,7 +615,7 @@ void parse_intvector(ARRAY<int>& res, SourceText& text)
     inside numbers are not allowed. 
    
     @see parse_numeric */
-void parse_numvector(VECTOR& res, SourceText& text)
+void parse_numvector(Vector& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
   resize(res,0);			// Clear the result vector (just in case).
@@ -676,16 +676,16 @@ void parse_numvector(VECTOR& res, SourceText& text)
 
    @author Stefan Buehler  */
 bool parse_method(size_t& id, 
-		  ARRAY<TokVal>& values,
-		  ARRAY<size_t>& output,
-		  ARRAY<size_t>& input,
+		  Array<TokVal>& values,
+		  Array<size_t>& output,
+		  Array<size_t>& input,
 		  SourceText& text,
 		  const std::map<string, size_t> MdMap,
 		  const std::map<string, size_t> WsvMap)
 {
-  extern const ARRAY<WsvRecord> wsv_data;
-  extern const ARRAY<MdRecord> md_data;
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<WsvRecord> wsv_data;
+  extern const Array<MdRecord> md_data;
+  extern const Array<string> wsv_group_names;
 
   size_t wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
@@ -863,7 +863,7 @@ bool parse_method(size_t& id,
 
       // Now parse the key value. This can be:
       // string_t,    int_t,    Numeric_t,
-      // ARRAY_string_t, ARRAY_int_t, VECTOR_t,
+      // Array_string_t, Array_int_t, Vector_t,
       switch (md_data[id].Types()[i]) 
 	{
 	case string_t:
@@ -887,23 +887,23 @@ bool parse_method(size_t& id,
 	    values.push_back(n);
 	    break;
 	  }
-	case ARRAY_string_t:
+	case Array_string_t:
 	  {
-	    ARRAY<string> dummy;
+	    Array<string> dummy;
 	    parse_stringvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
-	case ARRAY_int_t:
+	case Array_int_t:
 	  {
-	    ARRAY<int> dummy;
+	    Array<int> dummy;
 	    parse_intvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
-	case VECTOR_t:
+	case Vector_t:
 	  {
-	    VECTOR dummy;
+	    Vector dummy;
 	    parse_numvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
@@ -948,21 +948,21 @@ bool parse_method(size_t& id,
    @see parse_method
          
    @author Stefan Buehler */
-void parse(ARRAY<MRecord>& tasklist,
+void parse(Array<MRecord>& tasklist,
 	   SourceText& text,
 	   const std::map<string, size_t> MdMap,
 	   const std::map<string, size_t> WsvMap)
 {
-  extern const ARRAY<MdRecord> md_data;
+  extern const Array<MdRecord> md_data;
   bool last = false;
   // For method ids:
   size_t id;		
  // For keyword parameter values:
-  ARRAY<TokVal> values;
+  Array<TokVal> values;
   // Output workspace variables (for generic methods):
-  ARRAY<size_t> output;		
+  Array<size_t> output;		
   // Input workspace variables (for generic methods):
-  ARRAY<size_t> input;
+  Array<size_t> input;
 
   out3 << "\nParsing:\n";
 
@@ -980,7 +980,7 @@ void parse(ARRAY<MRecord>& tasklist,
       {
 	// Everything in this block is just to generate some
 	// informative output.  
-	extern const ARRAY<WsvRecord> wsv_data;
+	extern const Array<WsvRecord> wsv_data;
 
 	out3 << "- " << md_data[id].Name() << "\n";
 
@@ -1024,10 +1024,10 @@ void parse(ARRAY<MRecord>& tasklist,
     }
 }
 
-void parse_main(ARRAY<MRecord>& tasklist, SourceText& text)
+void parse_main(Array<MRecord>& tasklist, SourceText& text)
 {
-  //  extern const ARRAY<MdRecord> md_data;
-  //  extern const ARRAY<WsvRecord> wsv_data;
+  //  extern const Array<MdRecord> md_data;
+  //  extern const Array<WsvRecord> wsv_data;
   extern const std::map<string, size_t> MdMap;
   extern const std::map<string, size_t> WsvMap;
 

@@ -12,3 +12,9 @@ profiles. They could be on different horizontal grids. In fact one
 must somehow specify the horizontal coordinate to do proper horizontal
 interpolation. 
 
+
+Matpack:
+
+Basic types:
+
+Numeric, Index, Vector, Matrix, Array

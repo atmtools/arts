@@ -54,22 +54,22 @@
 // typedef mtl::matrix< Numeric, 
 //   rectangle<>, 
 //   dense<>, 
-//   row_major>::type MATRIX; 
+//   row_major>::type Matrix; 
 
-typedef mtl::dense1D<Numeric> VECTOR;
+typedef mtl::dense1D<Numeric> Vector;
 
-typedef mtl::matrix<Numeric>::type MATRIX;
+typedef mtl::matrix<Numeric>::type Matrix;
 
 typedef mtl::matrix<Numeric,mtl::rectangle<>,mtl::compressed<> >::type SPARSE;
 
 typedef mtl::matrix<Numeric,mtl::symmetric<mtl::upper>,mtl::banded<> >::type SYMMETRIC;
 
 
-//#define ARRAY mtl::dense1D       
-#define ARRAY std::vector
+//#define Array mtl::dense1D       
+#define Array std::vector
 
 
-/** Output function for vectors (for example VECTOR and ARRAY).
+/** Output function for vectors (for example Vector and Array).
 
     This function is taken initially from MTL, with the main difference
     that it can print to any output stream, not just to stdout. Also
@@ -135,7 +135,7 @@ print_all_matrix(OS& os, const Matrix& A)
 }
 
 
-/** Input function for vectors (for example VECTOR and ARRAY).
+/** Input function for vectors (for example Vector and Array).
 
     This functions reads an MTL vector from an input stream. The format is
     very simple, first there should be an integer indicating the
@@ -153,11 +153,11 @@ template <class Vector>
 inline void
 read_vector_from_stream(Vector& x, istream& is)
 {
-  INDEX n;
+  Index n;
   is >> n;
   //  cout << "n: " << n << "\n";
   resize(x,n);
-  for(INDEX i=0; i<n; ++i)
+  for(Index i=0; i<n; ++i)
     {
       //      cout << "- " << i << "\n";
       is >> x[i];
@@ -185,13 +185,13 @@ template <class M>
 inline void
 read_matrix_from_stream(M& A, istream& is)
 {
-  INDEX nr,nc;
+  Index nr,nc;
   is >> nr >> nc;
 //   cout << "nr: " << nr << "\n";
 //   cout << "nc: " << nc << "\n";
   resize(A,nr,nc);
-  for(INDEX ir=0; ir<nr; ++ir)
-    for(INDEX ic=0; ic<nc; ++ic)
+  for(Index ir=0; ir<nr; ++ir)
+    for(Index ic=0; ic<nc; ++ic)
     {
       //      cout << "- " << i << "\n";
       is >> A[ir][ic];
@@ -202,27 +202,27 @@ read_matrix_from_stream(M& A, istream& is)
 // Output and Input operators are not as general as the algorithms
 // defined above. Nevertheless, they are needed for the most common
 // cases. Otherwise, we would for example have to explicitly program
-// all input cases for ARRAYS of MATRICES or ARRAYS of ARRAYS.
+// all input cases for ArrayS of MATRICES or ArrayS of ArrayS.
 
-// Output operator for ARRAY:
+// Output operator for Array:
 template <class T>
-std::ostream& operator<<(std::ostream& s, const ARRAY<T>& A)
+std::ostream& operator<<(std::ostream& s, const Array<T>& A)
 {
   print_vector(s, A);
   return s;
 }
 
-// Output operator for VECTOR:
-std::ostream& operator<<(std::ostream& s, const VECTOR& A);
+// Output operator for Vector:
+std::ostream& operator<<(std::ostream& s, const Vector& A);
 
-// Output operator for VECTOR subrange:
-std::ostream& operator<<(std::ostream& s, const VECTOR::subrange_type& A);
+// Output operator for Vector subrange:
+std::ostream& operator<<(std::ostream& s, const Vector::subrange_type& A);
 
-// Output operator for MATRIX:
-std::ostream& operator<<(std::ostream& s, const MATRIX& A);
+// Output operator for Matrix:
+std::ostream& operator<<(std::ostream& s, const Matrix& A);
 
-// Output operator for sub MATRIX:
-std::ostream& operator<<(std::ostream& s, const MATRIX::submatrix_type& A);
+// Output operator for sub Matrix:
+std::ostream& operator<<(std::ostream& s, const Matrix::submatrix_type& A);
 
 // Output operator for SPARSE:
 std::ostream& operator<<(std::ostream& s, const SPARSE& A);
@@ -231,22 +231,22 @@ std::ostream& operator<<(std::ostream& s, const SPARSE& A);
 std::ostream& operator<<(std::ostream& s, const SYMMETRIC& A);
 
 
-// Input operator for ARRAY:
+// Input operator for Array:
 template <class T>
-std::istream& operator>>(std::istream& s, ARRAY<T>& A)
+std::istream& operator>>(std::istream& s, Array<T>& A)
 {
   read_vector_from_stream(A,s);
   return s;
 }
 
-// Input operator for VECTOR:
-std::istream& operator>>(std::istream& s, VECTOR& A);
+// Input operator for Vector:
+std::istream& operator>>(std::istream& s, Vector& A);
 
-// Input operator for MATRIX:
-std::istream& operator>>(std::istream& s, MATRIX& A);
+// Input operator for Matrix:
+std::istream& operator>>(std::istream& s, Matrix& A);
 
 
-/** Erase an element of a vector (for example VECTOR and ARRAY). This
+/** Erase an element of a vector (for example Vector and Array). This
     functionality is missing in MTL vectors, but we need in some
     places. 
 
@@ -259,7 +259,7 @@ std::istream& operator>>(std::istream& s, MATRIX& A);
  **/
 template <class Vector>
 inline void
-erase_vector_element(Vector& x, INDEX k)
+erase_vector_element(Vector& x, Index k)
 {
   Vector y(x.size()-1);
   copy(x(0,k),y(0,k));
@@ -269,14 +269,14 @@ erase_vector_element(Vector& x, INDEX k)
 
 
 
-// Implement some MTL functionality for STL based ARRAY.
+// Implement some MTL functionality for STL based Array.
 // -----------------------------------------------------
 
-// Copy algorithm for ARRAYs:
+// Copy algorithm for Arrays:
 
 template<class T>
 inline void 
-copy(const ARRAY<T>& a, ARRAY<T>& b)
+copy(const Array<T>& a, Array<T>& b)
 {
   assert( a.size()==b.size() );
   std::copy( a.begin(), a.end(), b.begin() );
@@ -289,7 +289,7 @@ copy(const ARRAY<T>& a, ARRAY<T>& b)
 
 template<class T>
 inline void 
-setto(ARRAY<T>& a, const T& x)
+setto(Array<T>& a, const T& x)
 {
   std::fill( a.begin(), a.end(), x );
 }
@@ -298,23 +298,23 @@ setto(ARRAY<T>& a, const T& x)
 //
 // template<class T>
 // inline void 
-// addto(ARRAY<T>& a, const T& x)
+// addto(Array<T>& a, const T& x)
 // {
 //   // FIXME: Can this be made more efficient?
-//   ARRAY<T> dummy( a.size(), x );
+//   Array<T> dummy( a.size(), x );
 //   mtl::add( dummy, a );
 // }
 
 // Same for MTL based types for consistency
 
 inline void 
-setto(VECTOR& a, Numeric x)
+setto(Vector& a, Numeric x)
 {
   mtl::set(a,x);
 }
 
 inline void 
-setto(MATRIX& A, Numeric x)
+setto(Matrix& A, Numeric x)
 {
   mtl::set(A,x);
 }
@@ -335,18 +335,18 @@ setto(SPARSE& A, Numeric x)
 // Not general, therefor not so useful.
 //
 // inline void 
-// addto(VECTOR& a, Numeric x)
+// addto(Vector& a, Numeric x)
 // {
 //   // FIXME: Can this be made more efficient?
-//   VECTOR dummy( a.size(), x );
+//   Vector dummy( a.size(), x );
 //   mtl::add( dummy, a );
 // }
 
 // inline void 
-// addto(MATRIX& a, Numeric x)
+// addto(Matrix& a, Numeric x)
 // {
 //   // FIXME: Can this be made more efficient?
-//   MATRIX dummy( a.nrows(), a.ncols() );
+//   Matrix dummy( a.nrows(), a.ncols() );
 //   setto( dummy, x );
 //   mtl::add( dummy, a );
 // }
@@ -355,41 +355,41 @@ setto(SPARSE& A, Numeric x)
 
 template<class T>
 inline T 
-max(const ARRAY<T>& a)
+max(const Array<T>& a)
 {
   return *std::max_element( a.begin(), a.end() );
 }
 
 template<class T>
 inline T 
-min(const ARRAY<T>& a)
+min(const Array<T>& a)
 {
   return *std::min_element( a.begin(), a.end() );
 }
 
 
-// Resize functions for ARRAY, VECTOR, MATRIX, SPARSE and SYMMETRIC
+// Resize functions for Array, Vector, Matrix, SPARSE and SYMMETRIC
 
 template <class T>
-void resize(ARRAY<T>& x, INDEX n)
+void resize(Array<T>& x, Index n)
 {
   //  x.resize(n);   DANGEROUS!
 
   // We have to do it like that here, otherwise we get problems with
-  // the initialization of ARRAYs of ARRAYs. This would be inefficient
-  // for STL based ARRAYs!
-  x = ARRAY<T>(n);
+  // the initialization of Arrays of Arrays. This would be inefficient
+  // for STL based Arrays!
+  x = Array<T>(n);
 }
 
-void resize(VECTOR& x, 	  INDEX n);
-void resize(string& x,    INDEX n);
+void resize(Vector& x, 	  Index n);
+void resize(string& x,    Index n);
 
-void resize(MATRIX& x, 	  INDEX r, INDEX c);
-void resize(SPARSE& x, 	  INDEX r, INDEX c);
-void resize(SYMMETRIC& x, INDEX r, INDEX c);
+void resize(Matrix& x, 	  Index r, Index c);
+void resize(SPARSE& x, 	  Index r, Index c);
+void resize(SYMMETRIC& x, Index r, Index c);
 
 
-// Like-like operations (MATRIX-MATRIX or VECTOR-VECTOR). These
+// Like-like operations (Matrix-Matrix or Vector-Vector). These
 // templates should work for both cases!
 
 // Element-vise multiplication and division. 
@@ -455,18 +455,18 @@ void resize(SYMMETRIC& x, INDEX r, INDEX c);
 //   return c;
 // }
 
-void transf( const VECTOR& x,
+void transf( const Vector& x,
 	     double (&my_func)(double),
-	     VECTOR& y );
+	     Vector& y );
 
-VECTOR transf( const VECTOR& x,
+Vector transf( const Vector& x,
 	       double (&my_func)(double) );
 
-void transf( const MATRIX& x,
+void transf( const Matrix& x,
 	     double (&my_func)(double),
-	     MATRIX& y );
+	     Matrix& y );
 
-MATRIX transf( const MATRIX& x,
+Matrix transf( const Matrix& x,
 	       double (&my_func)(double) );
 
 
@@ -476,16 +476,16 @@ MATRIX transf( const MATRIX& x,
 ////////////////////////////////////////////////////////////////////////////
 
 /** An array of matrices. */
-typedef ARRAY<MATRIX> ARRAYofMATRIX;
+typedef Array<Matrix> ArrayofMatrix;
 
 /** An array of vectors. */
-typedef ARRAY<VECTOR> ARRAYofVECTOR;
+typedef Array<Vector> ArrayofVector;
 
 /** An array of integers. */
-typedef ARRAY<size_t> ARRAYofsizet;
+typedef Array<size_t> Arrayofsizet;
 
 /** An array of strings. */
-typedef ARRAY<string> ARRAYofstring;
+typedef Array<string> Arrayofstring;
 
 
 

@@ -51,13 +51,13 @@
     \date   2001-01-16 
     \author Stefan Buehler 
 */
-void lineshape_no_shape(  VECTOR&       ls,
-			  VECTOR&       X,
+void lineshape_no_shape(  Vector&       ls,
+			  Vector&       X,
 			  Numeric	f0,
 			  Numeric       gamma,
 			  Numeric       sigma,
-			  VECTOR::subrange_type f_mono,
-			  const INDEX  nf)
+			  Vector::subrange_type f_mono,
+			  const Index  nf)
 {
   // This function should never be called so throw an error here: 
   throw runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
@@ -77,13 +77,13 @@ void lineshape_no_shape(  VECTOR&       ls,
 
     \author Stefan Buehler 
     \date 2000-06-16 */
-void lineshape_lorentz(VECTOR&       ls,
-		       VECTOR&       X,
+void lineshape_lorentz(Vector&       ls,
+		       Vector&       X,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       VECTOR::subrange_type f_mono,
-		       const INDEX  nf)
+		       Vector::subrange_type f_mono,
+		       const Index  nf)
 {
   // PI:
   extern const Numeric PI;
@@ -93,7 +93,7 @@ void lineshape_lorentz(VECTOR&       ls,
   Numeric gamma2 = gamma * gamma;
   Numeric fac = gamma/PI;
 
-  for ( INDEX i=0; i<nf; ++i )
+  for ( Index i=0; i<nf; ++i )
     {
       ls[i] =  fac / ( (f_mono[i]-f0) * (f_mono[i]-f0) + gamma2 );
     }
@@ -111,13 +111,13 @@ void lineshape_lorentz(VECTOR&       ls,
 
     \author Axel von Engeln
     \date 2000-12-06 */
-void lineshape_doppler(VECTOR&       ls,
-		       VECTOR&       x,
+void lineshape_doppler(Vector&       ls,
+		       Vector&       x,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       VECTOR::subrange_type f_mono,
-		       const INDEX  nf)
+		       Vector::subrange_type f_mono,
+		       const Index  nf)
 {
   // SQRT(PI):
   extern const Numeric PI;
@@ -128,7 +128,7 @@ void lineshape_doppler(VECTOR&       ls,
   Numeric sigma2 = sigma * sigma;
   Numeric fac = 1.0 / (sqrtPI * sigma);
   
-  for ( INDEX i=0; i<nf ; ++i )
+  for ( Index i=0; i<nf ; ++i )
     {
       ls[i] = fac * exp( - pow( f_mono[i]-f0, 2) / sigma2 );
     }
@@ -223,13 +223,13 @@ long bfun6_(Numeric y, Numeric x)
     \author Oliver Lemke and Axel von Engeln
     \date 2000-09-27 */ 
 
-void lineshape_voigt_kuntz6(VECTOR&       ls,
-			    VECTOR&       x,
+void lineshape_voigt_kuntz6(Vector&       ls,
+			    Vector&       x,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    VECTOR::subrange_type f_mono,
-			    const INDEX  nf)
+			    Vector::subrange_type f_mono,
+			    const Index  nf)
 
 {
 
@@ -282,7 +282,7 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
     }
 
   /* Parameter adjustments */
-  // this does not work for variables type VECTOR, corrected by
+  // this does not work for variables type Vector, corrected by
   // adjusting the index to array ls and x
   //--ls;
   //--x;
@@ -634,13 +634,13 @@ long int bfun3_(Numeric y, Numeric x)
 
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
-void lineshape_voigt_kuntz3(VECTOR&       ls,
-			    VECTOR&       x,
+void lineshape_voigt_kuntz3(Vector&       ls,
+			    Vector&       x,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    VECTOR::subrange_type f_mono,
-			    const INDEX  nf)
+			    Vector::subrange_type f_mono,
+			    const Index  nf)
 
 {
 
@@ -693,7 +693,7 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
 
 
   /* Parameter adjustments */
-  // this does not work for variables type VECTOR, corrected by
+  // this does not work for variables type Vector, corrected by
   // adjusting the index to array ls and x
   //--ls;
   //--x;
@@ -1004,13 +1004,13 @@ long bfun4_(Numeric y, Numeric x)
 
     \author Oliver Lemke and Axel von Engeln
     \date 2000-12-07 */ 
-void lineshape_voigt_kuntz4(VECTOR&       ls,
-			    VECTOR&       x,
+void lineshape_voigt_kuntz4(Vector&       ls,
+			    Vector&       x,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    VECTOR::subrange_type f_mono,
-			    const INDEX   nf)
+			    Vector::subrange_type f_mono,
+			    const Index   nf)
 {
 
   // seems not necessary for Doppler correction
@@ -1063,7 +1063,7 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
 
 
   /* Parameter adjustments */
-  // this does not work for variables type VECTOR, corrected by
+  // this does not work for variables type Vector, corrected by
   // adjusting the index to array ls and x
   //--ls;
   //--x;
@@ -1385,13 +1385,13 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
 
 /***  ROUTINE COMPUTES THE VOIGT FUNCTION Y/PI*INTEGRAL FROM ***/
 /***   - TO + INFINITY OF EXP(-T*T)/(Y*Y+(X-T)*(X-T)) DT     ***/
-void lineshape_voigt_drayson(VECTOR&       ls,
-			     VECTOR&       x,
+void lineshape_voigt_drayson(Vector&       ls,
+			     Vector&       x,
 			     Numeric	     f0,
 			     Numeric       gamma,
 			     Numeric       sigma,
-			     VECTOR::subrange_type f_mono,
-			     const INDEX   nf)
+			     Vector::subrange_type f_mono,
+			     const Index   nf)
 
 {
   // seems not necessary for Doppler correction
@@ -1546,13 +1546,13 @@ L104: for (K=0; K<(int) nf; K++)
 
   \author Axel von Engeln
   \date 2001-01-06 */ 
-void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
-				       VECTOR&       x,
+void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
+				       Vector&       x,
 				       Numeric	     f0,
 				       Numeric       gamma,
 				       Numeric       sigma,
-				       VECTOR::subrange_type f_mono,
-				       const INDEX   nf)
+				       Vector::subrange_type f_mono,
+				       const Index   nf)
 {
 
   // seems not necessary for Doppler correction
@@ -1614,7 +1614,7 @@ void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
   else
     {
       Numeric FD, FS, SF1, SF2;
-      for (INDEX J=0; J<(INDEX) nf; J++)
+      for (Index J=0; J<(Index) nf; J++)
 	{
 	  FD = f_mono[J] - f0;
 	  FS = f_mono[J] + f0;
@@ -1650,13 +1650,13 @@ void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
 
   \author Axel von Engeln
   \date 2001-01-06 */ 
-void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
-					VECTOR&       x,
+void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
+					Vector&       x,
 					Numeric	     f0,
 					Numeric       gamma,
 					Numeric       sigma,
-					VECTOR::subrange_type f_mono,
-					const INDEX   nf)
+					Vector::subrange_type f_mono,
+					const Index   nf)
 {
 
   // seems not necessary for Doppler correction
@@ -1722,7 +1722,7 @@ void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
       // FIXME: Clarify whether this is correct and if yes use the
       // normalization used in controlfile
       Numeric f0_2 = f0 * f0;
-      for (INDEX J=0; J<(INDEX) nf; J++)
+      for (Index J=0; J<(Index) nf; J++)
   	{
   	  ls[J] *= f0_2 / (f_mono[J] * f_mono[J]);
   	}
@@ -1730,7 +1730,7 @@ void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
   else
     {
       Numeric FD, FS, SF1, SF2;
-      for (INDEX J=0; J<(INDEX) nf; J++)
+      for (Index J=0; J<(Index) nf; J++)
 	{
 	  FD = f_mono[J] - f0;
 	  FS = f_mono[J] + f0;
@@ -1759,17 +1759,17 @@ void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
     \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
-void lineshape_norm_no_norm(VECTOR&       fac,
+void lineshape_norm_no_norm(Vector&       fac,
 			    Numeric	  f0,
-			    VECTOR::subrange_type f_mono,
-			    const INDEX   nf)
+			    Vector::subrange_type f_mono,
+			    const Index   nf)
 {
 
   // we can not use this assert anymore, because we pass subranges of
   // f_mono here 
   // assert( fac.size() == nf );
 
-  for ( INDEX i=0; i<nf; ++i )
+  for ( Index i=0; i<nf; ++i )
     {
       fac[i] = 1.0;
     }
@@ -1785,17 +1785,17 @@ void lineshape_norm_no_norm(VECTOR&       fac,
     \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
-void lineshape_norm_linear(VECTOR&       fac,
+void lineshape_norm_linear(Vector&       fac,
 			   Numeric	 f0,
-			   VECTOR::subrange_type f_mono,
-			   const INDEX   nf)
+			   Vector::subrange_type f_mono,
+			   const Index   nf)
 {
 
   // we can not use this assert anymore, because we pass subranges of
   // f_mono here 
   // assert( fac.size() == nf );
 
-  for ( INDEX i=0; i<nf; ++i )
+  for ( Index i=0; i<nf; ++i )
     {
       fac[i] = f_mono[i] / f0;
     }
@@ -1810,10 +1810,10 @@ void lineshape_norm_linear(VECTOR&       fac,
 
 
     \author Axel von Engeln 30.11.2000 */
-void lineshape_norm_quadratic(VECTOR&       fac,
+void lineshape_norm_quadratic(Vector&       fac,
 			      Numeric	    f0,
-			      VECTOR::subrange_type f_mono,
-			      const INDEX   nf)
+			      Vector::subrange_type f_mono,
+			      const Index   nf)
 {
 
   // we can not use this assert anymore, because we pass subranges of
@@ -1823,7 +1823,7 @@ void lineshape_norm_quadratic(VECTOR&       fac,
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
 
-  for ( INDEX i=0; i<nf; ++i )
+  for ( Index i=0; i<nf; ++i )
     {
       fac[i] = (f_mono[i] * f_mono[i]) / f0_2;
     }
@@ -1837,7 +1837,7 @@ void lineshape_norm_quadratic(VECTOR&       fac,
 //------------------------------------------------------------------------
 
 /*! The lookup data for the different lineshapes. */
-ARRAY<LineshapeRecord> lineshape_data;
+Array<LineshapeRecord> lineshape_data;
 
 void define_lineshape_data()
 {
@@ -1905,7 +1905,7 @@ void define_lineshape_data()
 
 /*! The lookup data for the different normalization factors to the
   lineshapes. */
-ARRAY<LineshapeNormRecord> lineshape_norm_data;
+Array<LineshapeNormRecord> lineshape_norm_data;
 
 void define_lineshape_norm_data()
 {

@@ -7,9 +7,9 @@
 int
 main()
 {
-  INDEX n = 5;
-  ARRAY<string> a(n);
-  ARRAY<bool>   b(n);
+  Index n = 5;
+  Array<string> a(n);
+  Array<bool>   b(n);
 
   cout << "Int limits: " << INT_MIN << ", " << INT_MAX << "\n";
   cout << "Long limits: " << LONG_MIN << ", " << LONG_MAX << "\n";
@@ -21,10 +21,10 @@ main()
   cout << "----------------\n";
 
   // Define and initialize:
-  VECTOR x(n,3);
+  Vector x(n,3);
   cout << "x: " << x << "\n";
 
-  for (INDEX i = 0; i < n; ++i)
+  for (Index i = 0; i < n; ++i)
     {
       x[i] = i;
       a[i] = "aa";
@@ -45,7 +45,7 @@ main()
   cout << "New size of x: " << x.size() << "\n";
   cout << "x: " << x << "\n";
 
-  for (INDEX i = 0; i < x.size(); ++i)
+  for (Index i = 0; i < x.size(); ++i)
     x[i] = i;
   
   cout << "Re-initialize, x: " << x << "\n";
@@ -57,17 +57,17 @@ main()
   cout << "a: " << a << "\n";
 
   // Copy a:
-  ARRAY<string> aa(n);
+  Array<string> aa(n);
   copy(a,aa);
   cout << "aa: " << aa << "\n";
   
   cout << "b: " << b << "\n";
   //  cout << one_norm(a) << "\n";
 
-  INDEX i = max_index(x);
+  Index i = max_index(x);
   cout << "max_index(x): " << i << "\n";
 
-  // This proves that you can use ARRAYs like any STL container:
+  // This proves that you can use Arrays like any STL container:
   cout << "Index of a==Stefan: "
 	    << std::find(a.begin(), a.end(), "Stefan") - a.begin()
 	    << "\n";
@@ -76,7 +76,7 @@ main()
   cout << "x(2:5): " << x(2,5) << "\n";
 
   // Same with explicit storage of the subrange:
-  VECTOR::subrange_type xs(x(2,5));
+  Vector::subrange_type xs(x(2,5));
   cout << "Same: " << xs << "\n";
 
   x(2,5)[1] = 9999;
@@ -89,12 +89,12 @@ main()
   cout << "Matrix features:\n";
   cout << "----------------\n";
 
-  MATRIX A(n, 2*n);
+  Matrix A(n, 2*n);
 
   {
     Numeric s = 0;
-    for (INDEX i = 0; i < A.nrows(); ++i)
-      for (INDEX j = 0; j < A.ncols(); ++j)
+    for (Index i = 0; i < A.nrows(); ++i)
+      for (Index j = 0; j < A.ncols(); ++j)
 	{
 	  A[i][j] = s;
 	  ++s;
@@ -105,7 +105,7 @@ main()
 
 
   // Demonstrate row selection:
-  // A[3] is of type MATRIX::OneD, therefore assigning it to a vector
+  // A[3] is of type Matrix::OneD, therefore assigning it to a vector
   // with `=' will not work. However, you can use all vector
   // algorithms on it, for example copy(). See also next example
   // below. Here, we use the print_vector() algorithm directly:
@@ -121,7 +121,7 @@ main()
   // on the vector.
   // Fazit, you can use A[3] and columns(A)[4] like vectors, but you
   // cannot assign them to a vector directly, you have to use copy.
-  VECTOR ac(A.nrows());
+  Vector ac(A.nrows());
   copy(columns(A)[4],ac);
   cout << "A(*,4): " << ac << "\n";
 
@@ -129,12 +129,12 @@ main()
   cout << "A(0:3,0:2):\n" << A.sub_matrix(0,3,0,2) << "\n";
 
   // How to copy a submatrix to a matrix:
-  MATRIX::submatrix_type S1 = A.sub_matrix(0,3,0,2);
+  Matrix::submatrix_type S1 = A.sub_matrix(0,3,0,2);
 
   // Test [][] indexing for submatrix:
   cout << "S1[1][1]:\n" << S1[1][1] << "\n";
 
-  MATRIX S2(S1.nrows(),S1.ncols());
+  Matrix S2(S1.nrows(),S1.ncols());
   copy(S1,S2);
   cout << "A copy of S1:\n" << S2 << "\n";
 
@@ -166,12 +166,12 @@ main()
   cout << "S.nnz():\n" << S.nnz() << "\n";
   cout << "S:\n" << S << "\n";
 
-  MATRIX At(2*n,n);
+  Matrix At(2*n,n);
   copy(trans(A),At);
   cout << "At:\n" << At << "\n";
 
   // Calculate S*transpose(A):
-  MATRIX Z(n,n);
+  Matrix Z(n,n);
   cout << "Capacity of Z:\n" << Z.capacity() << "\n";
 
   mult(S,At,Z);
@@ -191,7 +191,7 @@ main()
   cout << "x: " << x << "\n";
   
   // Non-return version of math functions:
-  VECTOR y(x.size());
+  Vector y(x.size());
   transf(x,sqrt,y);
   cout << "Sqrt(x): " << y << "\n";
 
@@ -214,8 +214,8 @@ main()
   // Linear interpolation:
   x = nlinspace(1,2,5);
   y = make_vector(10,20,30,40,50);
-  VECTOR xi = nlinspace(1,2,10);
-  VECTOR yi(10);
+  Vector xi = nlinspace(1,2,10);
+  Vector yi(10);
   interp_lin_vector(yi,x,y,xi);
   cout << "y interpolated: " << yi << "\n";
 
@@ -277,7 +277,7 @@ main()
   cout << "C:\n"       << C              << "\n";
 
   // Getting the Choleski factor of C
-  MATRIX R(4,4);
+  Matrix R(4,4);
   chol(R,C);
   cout << "R:\n"       << R              << "\n";
   

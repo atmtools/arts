@@ -36,7 +36,7 @@ std::map<string, size_t> WsvMap;
 
 void define_wsv_map()
 {
-  extern const ARRAY<WsvRecord> wsv_data;
+  extern const Array<WsvRecord> wsv_data;
   extern std::map<string, size_t> WsvMap;
 
   for ( size_t i=0 ; i<wsv_data.size() ; ++i)
@@ -48,7 +48,7 @@ void define_wsv_map()
 
 ostream& operator<<(ostream& os, const WsvRecord& wr)
 {
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<string> wsv_group_names;
 
   os << "Name = "         << wr.Name() << '\n'
      << "Description =\n" << wr.Description() << '\n'

@@ -201,21 +201,21 @@
   \author Axel von Engeln  
   \date 2000-08-21 */
 
-void spec(ARRAY<SpeciesRecord>::iterator& is,
-	  ARRAY<IsotopeRecord>::iterator& ii,
+void spec(Array<SpeciesRecord>::iterator& is,
+	  Array<IsotopeRecord>::iterator& ii,
 	  string name);
 
-void iso(ARRAY<IsotopeRecord>::iterator& ii,
+void iso(Array<IsotopeRecord>::iterator& ii,
 	 string name,
-	 const ARRAY<Numeric>& coeff);
+	 const Array<Numeric>& coeff);
 
 
 void define_partition_species_data()
 {
-  extern ARRAY<SpeciesRecord> species_data;
+  extern Array<SpeciesRecord> species_data;
 
-  ARRAY<SpeciesRecord>::iterator it_species = species_data.begin();
-  ARRAY<IsotopeRecord>::iterator it_isotope;
+  Array<SpeciesRecord>::iterator it_species = species_data.begin();
+  Array<IsotopeRecord>::iterator it_isotope;
 
 
   // H2O
@@ -754,8 +754,8 @@ void define_partition_species_data()
 }
 
 
-void spec(ARRAY<SpeciesRecord>::iterator& is,
-	  ARRAY<IsotopeRecord>::iterator& ii,
+void spec(Array<SpeciesRecord>::iterator& is,
+	  Array<IsotopeRecord>::iterator& ii,
 	  string name)
 {
   
@@ -772,9 +772,9 @@ void spec(ARRAY<SpeciesRecord>::iterator& is,
 }
 
 
-void iso(ARRAY<IsotopeRecord>::iterator& ii,
+void iso(Array<IsotopeRecord>::iterator& ii,
 	 string name,
-	 const ARRAY<Numeric>& coeff)
+	 const Array<Numeric>& coeff)
 {
 #ifndef NDEBUG
   {

@@ -35,7 +35,7 @@
 
 void define_md_map()
 {
-  extern const ARRAY<MdRecord> md_data;
+  extern const Array<MdRecord> md_data;
   extern std::map<string, size_t> MdMap;
 
   for ( size_t i=0 ; i<md_data.size() ; ++i)
@@ -48,7 +48,7 @@ void define_md_map()
 ostream& MdRecord::PrintTemplate(ostream& os,
 				 bool show_description=true) const
 {
-  extern const  ARRAY<string> wsv_group_names;
+  extern const  Array<string> wsv_group_names;
 
   if (show_description)
     {
@@ -108,8 +108,8 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
-  extern const ARRAY<WsvRecord> wsv_data;
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<WsvRecord> wsv_data;
+  extern const Array<string> wsv_group_names;
   extern const string TokValTypeName[];
   bool first;
 

@@ -66,9 +66,9 @@
     \date   2000-10-22 
 */
 void h_apply (
-              VECTOR&     y2, 
+              Vector&     y2, 
         const Hmatrix&    h,
-        const VECTOR&     y1 )
+        const Vector&     y1 )
 {
   if ( h.issparse == 0 )
   {
@@ -109,9 +109,9 @@ void h_apply (
     \date   2000-10-06 
 */
 void h_apply (
-              MATRIX&     k2, 
+              Matrix&     k2, 
         const Hmatrix&    h,
-        const MATRIX&     k1 )
+        const Matrix&     k1 )
 {
   if ( h.issparse == 0 )
   {
@@ -181,10 +181,10 @@ void h_diff (
 
 
 void VectorApplyH(
-              VECTOR&     y2, 
+              Vector&     y2, 
         const string&     name_y2,
         const Hmatrix&    h,
-        const VECTOR&     y1,
+        const Vector&     y1,
         const string&     name_h,
         const string&     name_y1 )
 {
@@ -200,7 +200,7 @@ void VectorApplyH(
   // be copied.
   if ( name_y1 == name_y2 )
   {
-    VECTOR y(n);
+    Vector y(n);
     h_apply( y, h, y1 );
     y2 = y;
   }
@@ -214,10 +214,10 @@ void VectorApplyH(
 
 
 void MatrixApplyH(
-              MATRIX&     k2, 
+              Matrix&     k2, 
         const string&     name_k2,
         const Hmatrix&    h,
-        const MATRIX&     k1,
+        const Matrix&     k1,
         const string&     name_h,
         const string&     name_k1 )
 {
@@ -225,7 +225,7 @@ void MatrixApplyH(
 
   if ( name_k1 == name_k2 )
   {
-    MATRIX k(h.full.nrows(),k1.ncols());
+    Matrix k(h.full.nrows(),k1.ncols());
     // FIXME: This has to be adapted for sparse matrices!
     h_apply( k, h, k1 );
     k2 = k;

@@ -24,7 +24,7 @@
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
 string TokValTypeName[7] = {"string", "int", "Numeric",
-			    "ARRAY<string>", "ARRAY<int>", "VECTOR",
+			    "Array<string>", "Array<int>", "Vector",
                             "undefined"};
 
 
@@ -46,18 +46,18 @@ TokVal::operator Numeric() const {
 }
 
 
-TokVal::operator ARRAY<string>() const {
-  assert (mtype == ARRAY_string_t);
+TokVal::operator Array<string>() const {
+  assert (mtype == Array_string_t);
   return msv;
 }
 
-TokVal::operator ARRAY<int>() const {
-  assert (mtype == ARRAY_int_t);
+TokVal::operator Array<int>() const {
+  assert (mtype == Array_int_t);
   return mnv;
 }
   
-TokVal::operator VECTOR() const {
-  assert (mtype == VECTOR_t);
+TokVal::operator Vector() const {
+  assert (mtype == Vector_t);
   return mxv;
 }
 
@@ -75,13 +75,13 @@ ostream& operator<<(ostream& os, const TokVal& a)
     case Numeric_t:
       os << a.mx;
       break;
-    case ARRAY_string_t:
+    case Array_string_t:
       print_vector(os,a.msv);
       break;
-    case ARRAY_int_t:
+    case Array_int_t:
       print_vector(os,a.mnv);
       break;
-    case VECTOR_t:
+    case Vector_t:
       print_vector(os,a.mxv);
       break;
     default:

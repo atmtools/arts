@@ -48,7 +48,7 @@ WorkSpace workspace;
 //                     ---------------
 
 /** The lookup information for the workspace methods. */
-ARRAY<MdRecord> md_data;
+Array<MdRecord> md_data;
 
 /** The map associated with md_data. */
 std::map<string, size_t> MdMap;

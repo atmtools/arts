@@ -43,12 +43,12 @@ public:
       fields. */
   MdRecord(const char 		    name[],
 	   const char 		    description[],
-	   const ARRAY<size_t>&     output,
-	   const ARRAY<size_t>&     input,   
-	   const ARRAY<size_t>&     goutput,
-	   const ARRAY<size_t>&     ginput,   
-	   const ARRAY<string>&     keywords,
-	   const ARRAY<TokValType>& types) :
+	   const Array<size_t>&     output,
+	   const Array<size_t>&     input,   
+	   const Array<size_t>&     goutput,
+	   const Array<size_t>&     ginput,   
+	   const Array<string>&     keywords,
+	   const Array<TokValType>& types) :
     mname(        name            ),
     mdescription( description     ),
     moutput(      output.size()   ),  
@@ -58,7 +58,7 @@ public:
     mkeywords(    keywords.size() ),
     mtypes(       types.size()    )
     { 
-      // We need to use copy to initialize the ARRAY members. If we use
+      // We need to use copy to initialize the Array members. If we use
       // the assignment operator they end up all pointing to the same
       // data!
       copy( output   , moutput   );
@@ -76,12 +76,12 @@ public:
   
   const string&            Name()         const { return mname;        }   
   const string&            Description()  const { return mdescription; }
-  const ARRAY<size_t>&     Output()       const { return moutput;      }
-  const ARRAY<size_t>&     Input()        const { return minput;       }
-  const ARRAY<size_t>&     GOutput()      const { return mgoutput;      }
-  const ARRAY<size_t>&     GInput()       const { return mginput;       }
-  const ARRAY<string>&     Keywords()     const { return mkeywords;    }
-  const ARRAY<TokValType>& Types()        const { return mtypes;       }
+  const Array<size_t>&     Output()       const { return moutput;      }
+  const Array<size_t>&     Input()        const { return minput;       }
+  const Array<size_t>&     GOutput()      const { return mgoutput;      }
+  const Array<size_t>&     GInput()       const { return mginput;       }
+  const Array<string>&     Keywords()     const { return mkeywords;    }
+  const Array<TokValType>& Types()        const { return mtypes;       }
 
   /** Print method template for the control file. This prints the
       method data exactly in the same way how it can be included in
@@ -100,22 +100,22 @@ private:
   string mdescription;
 
   /** Workspace Output. */
-  ARRAY<size_t> moutput;
+  Array<size_t> moutput;
 
   /** Workspace Input. */
-  ARRAY<size_t> minput;
+  Array<size_t> minput;
 
   /** Generic Workspace Output. */
-  ARRAY<size_t> mgoutput;
+  Array<size_t> mgoutput;
 
   /** Generic Workspace Input. */
-  ARRAY<size_t> mginput;
+  Array<size_t> mginput;
 
   /** Keywords. */
-  ARRAY<string> mkeywords;
+  Array<string> mkeywords;
 
   /** Types associated with keywords. */
-  ARRAY<TokValType> mtypes;
+  Array<TokValType> mtypes;
 
 };
 

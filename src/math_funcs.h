@@ -57,9 +57,9 @@
 //// mean and standard deviation ////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-void mean_row( VECTOR& m, const MATRIX& x );
+void mean_row( Vector& m, const Matrix& x );
 
-void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m );
+void std_row( Vector& s, const Matrix& x, const Vector& m );
 
 
 
@@ -67,9 +67,9 @@ void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m );
 //// first and last /////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////
 
-Numeric first( const VECTOR& x );
+Numeric first( const Vector& x );
 
-Numeric last( const VECTOR& x );
+Numeric last( const Vector& x );
 
 
 
@@ -77,7 +77,7 @@ Numeric last( const VECTOR& x );
 //// Logical functions
 ////////////////////////////////////////////////////////////////////////////
 
-bool any( const ARRAYofsizet& x ); 
+bool any( const Arrayofsizet& x ); 
 
 bool isbool( const int& x );
 
@@ -87,34 +87,34 @@ bool isbool( const int& x );
 ////////////////////////////////////////////////////////////////////////////
 
 void linspace(                      
-              VECTOR&     x,           
+              Vector&     x,           
         const Numeric  start,    
         const Numeric  stop,        
         const Numeric  step );
 
-VECTOR linspace(             
+Vector linspace(             
         const Numeric  start, 
         const Numeric  stop,  
         const Numeric  step );
 
 void nlinspace(         
-              VECTOR&     x, 
+              Vector&     x, 
         const Numeric     start,     
         const Numeric     stop,        
         const int         n );
 
-VECTOR nlinspace(         
+Vector nlinspace(         
         const Numeric     start, 
         const Numeric     stop,  
         const int         n );
 
 void nlogspace(         
-              VECTOR&     x, 
+              Vector&     x, 
         const Numeric     start,     
         const Numeric     stop,        
         const int         n );
 
-VECTOR nlogspace(  
+Vector nlogspace(  
         const Numeric     start, 
         const Numeric     stop,  
         const int         n );
@@ -128,27 +128,27 @@ VECTOR nlogspace(
 
 // Template below.
 // void rand_uniform(
-//               VECTOR&    r,
+//               Vector&    r,
 //         const Numeric&   x_low,
 //         const Numeric&   x_high );
 
 // Template below.
 // void rand_gaussian(
-//               VECTOR&    r,
+//               Vector&    r,
 //         const Numeric&   s );
 
 void rand_matrix_uniform(
-              MATRIX&    m,
+              Matrix&    m,
         const Numeric&   x_low,
         const Numeric&   x_high );
 
 void rand_matrix_gaussian(
-              MATRIX&    r,
+              Matrix&    r,
         const Numeric&   s );
 
 void rand_data_gaussian(
-              MATRIX&    z,
-        const VECTOR&    z0,
+              Matrix&    z,
+        const Vector&    z0,
         const SYMMETRIC&    s );
 
 
@@ -212,11 +212,11 @@ void rand_gaussian(
 		   T     r,
 		   const Numeric&   s )
 {
-  VECTOR  z(2);    // A vector of length 2 with uniform PDF between -1 and 1
+  Vector  z(2);    // A vector of length 2 with uniform PDF between -1 and 1
   Numeric rad;     // The radius cooresponding to z
   Numeric fac;     // Normalisation factor
  
-  const INDEX n = r.size();
+  const Index n = r.size();
 
   for ( size_t i=0; i<n; )
   {
@@ -240,10 +240,10 @@ void rand_gaussian(
 
 
 /////////////////////////////////////////////////////////////////////////////
-//   Conversions between VECTOR and MATRIX types
+//   Conversions between Vector and Matrix types
 /////////////////////////////////////////////////////////////////////////////
 
-void to_vector(VECTOR& x, const MATRIX& W);
+void to_vector(Vector& x, const Matrix& W);
 
 
 
@@ -382,17 +382,17 @@ void interp_lin_matrix(
   // Check grids and get order of grids
   int order = interp_check( x, xi, Y.ncols() ); 
 
-  INDEX      j=0, n=xi.size(), nrow=Y.nrows();
+  Index      j=0, n=xi.size(), nrow=Y.nrows();
   Numeric    w;
 
   assert( nrow == Yi.nrows() );
   assert( n    == Yi.ncols() );
 
-  for (INDEX i=0; i<n; i++ )
+  for (Index i=0; i<n; i++ )
   {
     for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
     w = (xi[i]-x[j]) / (x[j+1]-x[j]);
-    for( INDEX k=0; k<nrow; k++ )
+    for( Index k=0; k<nrow; k++ )
     {
       Yi(k,i) = Y(k,j) + w * (Y(k,j+1)-Y(k,j));
       // Caution: [][] indexing does not work here, because Y and Yi can
@@ -404,8 +404,8 @@ void interp_lin_matrix(
 
 
 Numeric interp_lin(         
-        const VECTOR&  x, 
-        const VECTOR&  y, 
+        const Vector&  x, 
+        const Vector&  y, 
         const Numeric  xi );
 
 
@@ -415,7 +415,7 @@ Numeric interp_lin(
 /////////////////////////////////////////////////////////////////////////////
 
 void chol(
-                MATRIX&    r, 
+                Matrix&    r, 
 	  const SYMMETRIC& c );
 
 /////////////////////////////////////////////////////////////////////////////
@@ -432,8 +432,8 @@ void chol(
 // Not needed anymore, this can be done easier and more efficiently
 // using standard MTL functionality. (Use the copy() algorithm.)
 // Example:
-// MATRIX A,B;
-// VECTOR x;
+// Matrix A,B;
+// Vector x;
 // copy( A[i], x );    // Copies row i to x.
 // copy( columns(A)[i], x );    // Copies column i to x.
 // copy( A.submatrix(0,A.nrows(),0,3), B );    // Copies columns 1 to 3 to B.
@@ -442,37 +442,37 @@ void chol(
 // match. You can also use copy in the other direction, hence
 // put_in_col is also obsolete.
 
-// void row(VECTOR& x,
+// void row(Vector& x,
 // 	 size_t i,
-// 	 const MATRIX& A);
+// 	 const Matrix& A);
 
-// VECTOR row(size_t i,
-// 	   const MATRIX& A);
+// Vector row(size_t i,
+// 	   const Matrix& A);
 
-// void col(VECTOR& x,
+// void col(Vector& x,
 // 	 size_t i,
-// 	 const MATRIX& A);
+// 	 const Matrix& A);
 
-// VECTOR col(size_t i,
-// 	   const MATRIX& A);
+// Vector col(size_t i,
+// 	   const Matrix& A);
 
-// void row(MATRIX& X,
-// 	 size_t i,
-// 	 size_t k,
-// 	 const MATRIX& A);
-
-// MATRIX row(size_t i,
-// 	   size_t k,
-// 	   const MATRIX& A);
-
-// void col(MATRIX& X,
+// void row(Matrix& X,
 // 	 size_t i,
 // 	 size_t k,
-// 	 const MATRIX& A);
+// 	 const Matrix& A);
 
-// MATRIX col(size_t i,
+// Matrix row(size_t i,
 // 	   size_t k,
-// 	   const MATRIX& A);
+// 	   const Matrix& A);
+
+// void col(Matrix& X,
+// 	 size_t i,
+// 	 size_t k,
+// 	 const Matrix& A);
+
+// Matrix col(size_t i,
+// 	   size_t k,
+// 	   const Matrix& A);
 
 
 
@@ -483,9 +483,9 @@ void chol(
 // Obsolete (see comment above).
 
 // void put_in_col(
-//               MATRIX& A,
+//               Matrix& A,
 // 	      size_t  i, 
-//         const VECTOR& x );
+//         const Vector& x );
 
 
 

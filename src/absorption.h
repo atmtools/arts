@@ -31,13 +31,13 @@
 
 /** The type that is used to store pointers to lineshape
     functions.  */
-typedef void (*lsf_type)(VECTOR&,
-			 VECTOR&,
+typedef void (*lsf_type)(Vector&,
+			 Vector&,
 			 Numeric,
 			 Numeric,
 			 Numeric,
-			 VECTOR::subrange_type,
-			 const INDEX);
+			 Vector::subrange_type,
+			 const Index);
 
 /** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
@@ -73,10 +73,10 @@ private:
 
 /** The type that is used to store pointers to lineshape
     normalization functions.  */
-typedef void (*lsnf_type)(VECTOR&,
+typedef void (*lsnf_type)(Vector&,
 			  Numeric,
-			  VECTOR::subrange_type,
-			  const INDEX);
+			  Vector::subrange_type,
+			  const Index);
 
 /** Lineshape related normalization function information. There is one
     LineshapeNormRecord for each available lineshape normalization
@@ -154,7 +154,7 @@ private:
 
 /** Holds a list of lineshape specifications: function, normalization, cutoff.
     \author Axel von Engeln */
-typedef ARRAY<LineshapeSpec> ARRAYofLineshapeSpec;
+typedef Array<LineshapeSpec> ArrayofLineshapeSpec;
 
 
 
@@ -170,7 +170,7 @@ public:
 		const Numeric& 	  mass,
 		const int&     	  mytrantag,
 		const int&     	  hitrantag,
-		const ARRAY<int>& jpltags)
+		const Array<int>& jpltags)
     : mname(name),
       mabundance(abundance),
       mmass(mass),
@@ -178,7 +178,7 @@ public:
       mhitrantag(hitrantag),
       mjpltags(jpltags.size())
   {
-    // We need to use copy to initialize the ARRAY members. If we use
+    // We need to use copy to initialize the Array members. If we use
     // the assignment operator they end up all pointing to the same
     // data!
     copy(jpltags,mjpltags);
@@ -209,9 +209,9 @@ public:
   /** JPL tag numbers for all isotopes. Empty array means not included. There
       can be more than one JPL tag for an isotopic species, because in
       JPL different vibrational states have different tags. */
-  const ARRAY<int>&   JplTags()      const { return mjpltags;      }
+  const Array<int>&   JplTags()      const { return mjpltags;      }
 
-  void SetPartitionFctCoeff( const ARRAY<Numeric>& qcoeff )
+  void SetPartitionFctCoeff( const Array<Numeric>& qcoeff )
   {
     mqcoeff = qcoeff;
     mqcoeff_at_t_ref = -1.;
@@ -250,8 +250,8 @@ private:
   Numeric mmass;
   int mmytrantag;
   int mhitrantag;
-  ARRAY<int> mjpltags;
-  ARRAY<Numeric> mqcoeff;
+  Array<int> mjpltags;
+  Array<Numeric> mqcoeff;
   Numeric mqcoeff_at_t_ref;
 };
 
@@ -268,12 +268,12 @@ public:
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
 		const int degfr,
-		const ARRAY<IsotopeRecord>& isotope)
+		const Array<IsotopeRecord>& isotope)
     : mname(name),
       mdegfr(degfr),
       misotope(isotope.size())
   {
-    // We need to use copy to initialize the ARRAY members. If we use
+    // We need to use copy to initialize the Array members. If we use
     // the assignment operator they end up all pointing to the same
     // data!
     copy(isotope,misotope);
@@ -315,8 +315,8 @@ public:
 
   const string&               Name()     const { return mname;     }   
   int                         Degfr()    const { return mdegfr;    }
-  const ARRAY<IsotopeRecord>& Isotope()  const { return misotope;  }
-  ARRAY<IsotopeRecord>&       Isotope()        { return misotope;  }
+  const Array<IsotopeRecord>& Isotope()  const { return misotope;  }
+  Array<IsotopeRecord>&       Isotope()        { return misotope;  }
   
 private:
   /** Species name. */
@@ -324,7 +324,7 @@ private:
   /** Degrees of freedom. */
   int mdegfr;
   /** Isotope data. */
-  ARRAY<IsotopeRecord> misotope;
+  Array<IsotopeRecord> misotope;
 };
 
 /** Spectral line catalog data. Here is a description of the ARTS
@@ -430,7 +430,7 @@ public:
   /** Make the helper function linesElowToJoule a friend, so that it
       can change the lower state energy. FIXME: Remove this when we
       don't need the helper function anymore. */
-  friend void linesElowToJoule(ARRAY<LineRecord>& lines);
+  friend void linesElowToJoule(Array<LineRecord>& lines);
 
   /** Default constructor. Initialize to default values. The indices
       are initialized to large numbers, so that we at least get range
@@ -467,7 +467,7 @@ public:
 	      Numeric 	     	    nair,
 	      Numeric 	     	    nself,
 	      Numeric 	     	    tgam,
-	      const ARRAY<Numeric>& aux       )
+	      const Array<Numeric>& aux       )
     : mspecies (species	   ),
       misotope (isotope	   ),
       mf       (f      	   ),
@@ -482,14 +482,14 @@ public:
       mtgam    (tgam   	   ),  
       maux     (aux.size() )
   {
-    // We need to use copy to initialize the ARRAY members. If we use
+    // We need to use copy to initialize the Array members. If we use
     // the assignment operator they end up all pointing to the same
     // data!
     copy(aux,maux);
 
     // Check if this species is legal, i.e., if species and isotope
     // data exists.
-    extern ARRAY<SpeciesRecord> species_data;
+    extern Array<SpeciesRecord> species_data;
     assert( mspecies < species_data.size() );
     assert( misotope < species_data[mspecies].Isotope().size() );
     // if ever this constructor is used, here is the calculation of
@@ -519,7 +519,7 @@ public:
       using the species and isotope index. */
   string Name() const {
     // The species lookup data:
-    extern const ARRAY<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
     const SpeciesRecord& sr = species_data[mspecies];
     return sr.Name() + "-" + sr.Isotope()[misotope].Name();
   }
@@ -535,7 +535,7 @@ public:
       variable species_data. */
   const SpeciesRecord& SpeciesData() const {
     // The species lookup data:
-    extern const ARRAY<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
     return species_data[mspecies];
   }
 
@@ -552,7 +552,7 @@ public:
       species_data. */
   const IsotopeRecord& IsotopeData() const {
     // The species lookup data:
-    extern const ARRAY<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
     return species_data[mspecies].Isotope()[misotope];
   }
 
@@ -608,7 +608,7 @@ public:
   size_t Naux() const   { return maux.size(); }
 
   /** Auxiliary parameters. */
-  const ARRAY<Numeric>& Aux() const { return maux; }
+  const Array<Numeric>& Aux() const { return maux; }
 
   /** Read one line from a stream associated with a HITRAN file. The HITRAN
     format is as follows (directly from the HITRAN documentation):
@@ -851,7 +851,7 @@ private:
   // Reference temperature for AGAM and SGAM in K:
   Numeric mtgam;
   // Array to hold auxiliary parameters:
-  ARRAY<Numeric> maux;
+  Array<Numeric> maux;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts
@@ -878,12 +878,12 @@ private:
 
 /** Holds a list of spectral line data.
     \author Stefan Buehler */
-typedef ARRAY<LineRecord> ARRAYofLineRecord;
+typedef Array<LineRecord> ArrayofLineRecord;
 
 /** Holds a lists of spectral line data for each tag group.
     Dimensions: (tag_groups.size()) (number of lines for this tag)
     \author Stefan Buehler */
-typedef ARRAY< ARRAY<LineRecord> > ARRAYofARRAYofLineRecord;
+typedef Array< Array<LineRecord> > ArrayofArrayofLineRecord;
 
 
 
@@ -972,24 +972,24 @@ ostream& operator << (ostream& os, const OneTag& ot);
     associated with each tag group.
 
     \author Stefan Buehler */
-typedef  ARRAY< ARRAY<OneTag> > TagGroups;
+typedef  Array< Array<OneTag> > TagGroups;
 
 
 void get_tagindex_for_strings( 
-              ARRAYofsizet&   tags1_index, 
+              Arrayofsizet&   tags1_index, 
         const TagGroups&      tags1, 
-        const ARRAYofstring&  tags2_strings );
+        const Arrayofstring&  tags2_strings );
 
 void get_tag_group_index_for_tag_group( 
               size_t&         tags1_index, 
         const TagGroups&      tags1, 
-        const ARRAY<OneTag>&  tags2 );
+        const Array<OneTag>&  tags2 );
 
-string get_tag_group_name( const ARRAY<OneTag>& tg );
+string get_tag_group_name( const Array<OneTag>& tg );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
-			   const ARRAYofLineRecord& lines);
+			   const ArrayofLineRecord& lines);
 
 
 /** Calculate line absorption cross sections for one tag group. All
@@ -1017,13 +1017,13 @@ void write_lines_to_stream(ostream& os,
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 */
-void xsec_species( MATRIX&                 xsec,
-		   const VECTOR&  	   f_mono,
-		   const VECTOR&  	   p_abs,
-		   const VECTOR&  	   t_abs,           
-		   const VECTOR&  	   h2o_abs,           
-		   const VECTOR&            vmr,
-		   const ARRAYofLineRecord& lines,
+void xsec_species( Matrix&                 xsec,
+		   const Vector&  	   f_mono,
+		   const Vector&  	   p_abs,
+		   const Vector&  	   t_abs,           
+		   const Vector&  	   h2o_abs,           
+		   const Vector&            vmr,
+		   const ArrayofLineRecord& lines,
 		   const size_t             ind_ls,
 		   const size_t             ind_lsn,
 		   const Numeric            cutoff);
@@ -1038,14 +1038,14 @@ Numeric wavenumber_to_joule(Numeric e);
 //======================================================================
 
 void refr_indexBoudourisDryAir (
-                    VECTOR&   refr_index,
-              const VECTOR&   p_abs,
-	      const VECTOR&   t_abs );
+                    Vector&   refr_index,
+              const Vector&   p_abs,
+	      const Vector&   t_abs );
 
 void refr_indexBoudouris (
-                    VECTOR&   refr_index,
-              const VECTOR&   p_abs,
-              const VECTOR&   t_abs,
-	      const VECTOR&   h2o_abs );
+                    Vector&   refr_index,
+              const Vector&   p_abs,
+              const Vector&   t_abs,
+	      const Vector&   h2o_abs );
 
 #endif // absorption_h

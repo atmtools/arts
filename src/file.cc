@@ -187,7 +187,7 @@ void open_input_file(ifstream& file, const string& name)
    @exception IOError Some error occured during the read
    @version   1
    @author Stefan Buehler */
-void read_text_from_stream(ARRAY<string>& text, istream& is)
+void read_text_from_stream(Array<string>& text, istream& is)
 {
   string linebuffer;
 
@@ -228,7 +228,7 @@ void read_text_from_stream(ARRAY<string>& text, istream& is)
    @exception IOError
    @version   1
    @author Stefan Buehler */
-void read_text_from_file(ARRAY<string>& text, const string& name)
+void read_text_from_file(Array<string>& text, const string& name)
 {
   ifstream ifs;
 
@@ -277,13 +277,13 @@ void replace_all(string& s, const string& what, const string& with)
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   MATRIX/VECTOR IO routines for ASCII files
+//   Matrix/Vector IO routines for ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
 //// write_array_of_matrix_to_stream ///////////////////////////////////////
 /** A helper function that writes an array of matrix to a stream. This
-    is the generic output function for VECTORs, MATRIXs, and ARRAYof
-    both. All these are converted first to ARRAYofMATRIX, and then
+    is the generic output function for Vectors, Matrixs, and Arrayof
+    both. All these are converted first to ArrayofMatrix, and then
     written by this function.
 
     @param os   Output. The stream to write to.
@@ -291,7 +291,7 @@ void replace_all(string& s, const string& what, const string& with)
 
     @author Stefan Buehler */
 void write_array_of_matrix_to_stream(ostream& os,
-                                     const ARRAYofMATRIX& am)
+                                     const ArrayofMatrix& am)
 {
   extern const string full_name;
 
@@ -345,7 +345,7 @@ void write_array_of_matrix_to_stream(ostream& os,
 
     @author Stefan Buehler */
 void write_array_of_matrix_to_file(const string& filename,
-                                   const ARRAYofMATRIX& am)
+                                   const ArrayofMatrix& am)
 {
   ofstream of;
 
@@ -365,7 +365,7 @@ void write_array_of_matrix_to_file(const string& filename,
     @param is   Output. The input stream.
 
     @author Stefan Buehler */
-void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
+void read_array_of_matrix_from_stream(ArrayofMatrix& am,
                                       istream& is)
 {
   // First, skip all the lines that have a # at the beginning. (Maybe
@@ -388,9 +388,9 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
     }
 
   // Read the array of matrix. The function read_vector_from_stream
-  // will call the >> operator for each element of the ARRAY. In the
+  // will call the >> operator for each element of the Array. In the
   // name it says vector, refering to MTL vector. That function works
-  // for both VEC and ARRAY.
+  // for both VEC and Array.
   read_vector_from_stream(am, is);
 
   if ( is.fail() || is.bad() )
@@ -418,7 +418,7 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
     @param filename  The name of the file to read.
 
     @author Stefan Buehler */
-void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
+void read_array_of_matrix_from_file(ArrayofMatrix& am,
                                     const string& filename)
 {
   ifstream ifs;
@@ -464,7 +464,7 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
 */
 void write_array_of_string_to_stream(
               ostream&         os,
-        const ARRAYofstring&   as )
+        const Arrayofstring&   as )
 {
   extern const string full_name;
 
@@ -492,7 +492,7 @@ void write_array_of_string_to_stream(
 */
 void write_array_of_string_to_file(
         const string&          filename,
-        const ARRAYofstring&   as )
+        const Arrayofstring&   as )
 {
   ofstream of;
 
@@ -516,7 +516,7 @@ void write_array_of_string_to_file(
    \date   2000-11-04
 */
 void read_array_of_string_from_stream(
-        ARRAYofstring&   as,
+        Arrayofstring&   as,
         istream&         is )
 {
   // First, skip all the lines that have a # at the beginning. (Maybe
@@ -565,7 +565,7 @@ void read_array_of_string_from_stream(
    \date   2000-11-04
 */
 void read_array_of_string_from_file(
-           ARRAYofstring&   as,
+           Arrayofstring&   as,
      const string&          filename )
 {
   ifstream ifs;
@@ -603,7 +603,7 @@ void read_array_of_string_from_file(
 /**
    Checks that some data types have the expected length.
 
-   The following data types are checked: INDEX, float and double.
+   The following data types are checked: Index, float and double.
 
    @exception runtime_error  Some data type has an unexpected length.
 
@@ -613,7 +613,7 @@ void read_array_of_string_from_file(
 void check_data_types()
 {
   if ( sizeof(size_t) != 4 )
-    throw runtime_error("An INDEX is expected to be 4 bytes.");
+    throw runtime_error("An Index is expected to be 4 bytes.");
   if ( sizeof(float) != 4 )
     throw runtime_error("A float is expected to be 4 bytes.");
   if ( sizeof(double) != 8 )
@@ -800,7 +800,7 @@ void binfile_write_size(
    \param    fid          file identifier
    \param    filename     file name
    \param    dataname     name on the data
-   \param    storagetype  SCALAR, VECTOR, MATRIX etc.
+   \param    storagetype  SCALAR, Vector, Matrix etc.
    \param    nrows0       expected number of data rows
    \param    ncols0       expected number of data columns
 
@@ -939,13 +939,13 @@ void binfile_get_datatype(
 /**
    Core function for writing to binary files.
 
-   The data can be a scalar, a vector or a matrix holding INDEX or NUMERIC.   
+   The data can be a scalar, a vector or a matrix holding Index or NUMERIC.   
 
    \param    fid          file identifier
    \param    filename     file name
    \param    dataname     name on data set
-   \param    storagetype  type of data container (e.g. VECTOR or MATRIX)
-   \param    atomictype   basic data type (INDEX or NUMERIC)
+   \param    storagetype  type of data container (e.g. Vector or Matrix)
+   \param    atomictype   basic data type (Index or NUMERIC)
    \param    nrows        number of data rows
    \param    ncols        number of data columns
    \param    dpointer     pointer to the start of the data to store
@@ -993,7 +993,7 @@ void binfile_write(
   // Create the field
   int    status1, status2;
   //
-  if ( atomictype == "INDEX" ) 
+  if ( atomictype == "Index" ) 
   {
     status1 = VSsetclass( vdata_id, "UINT"  );
     status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_UINT32, 1);
@@ -1092,7 +1092,7 @@ void binfile_write(
    \date   2000-11-01
 */
 void binfile_read1(
-              ARRAYofsizet&   x,
+              Arrayofsizet&   x,
         const int&            vdata_id,
         const size_t&         n,
         const string&         filename,
@@ -1161,7 +1161,7 @@ void binfile_read1(
    \author Stefan Buehler
 */
 void binfile_read2(
-              MATRIX&   x,
+              Matrix&   x,
         const int&      vdata_id,
         const size_t&   nrows,
         const size_t&   ncols,
@@ -1304,7 +1304,7 @@ void binfile_read3(
 
 //// binfile_write_index ///////////////////////////////////////////////////
 /**
-   Writes a value of type INDEX to a binary file.
+   Writes a value of type Index to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1323,10 +1323,10 @@ void binfile_write_index(
   /*
   size_t  a[1];
   a[0] = x;
-  binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
+  binfile_write( fid,  filename, dataname, "SCALAR", "Index", 1, 1, 
                                                                 (uint8*)a );
   */
-  binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
+  binfile_write( fid,  filename, dataname, "SCALAR", "Index", 1, 1, 
                                                                (uint8*)&x );
 }
 
@@ -1334,7 +1334,7 @@ void binfile_write_index(
 
 //// binfile_read_index ///////////////////////////////////////////////////
 /**
-   Reads a value of type INDEX from a binary file.
+   Reads a value of type Index from a binary file.
 
    \param    x            the read index
    \param    filename     file name
@@ -1352,7 +1352,7 @@ void binfile_read_index(
 {
   int     vdata_id;
   size_t  nrows, ncols;
-  ARRAYofsizet  a;
+  Arrayofsizet  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
@@ -1409,7 +1409,7 @@ void binfile_read_numeric(
 {
   int     vdata_id;
   size_t  nrows, ncols;
-  MATRIX  a;
+  Matrix  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
@@ -1435,7 +1435,7 @@ void binfile_read_numeric(
 void binfile_write_vector(
         const string&   filename,
         const int&      fid,
-        const VECTOR&   x,
+        const Vector&   x,
         const string&   dataname )
 {
   const size_t  n = x.size();
@@ -1444,7 +1444,7 @@ void binfile_write_vector(
   for ( size_t i=0; i<n; i++ )
     a[i] = x[i];
   */
-  binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
+  binfile_write( fid,  filename, dataname, "Vector", "NUMERIC", n, 1, 
                                                                (uint8*)&x[0] );
 }
 
@@ -1463,17 +1463,17 @@ void binfile_write_vector(
    \date   2000-11-01
 */
 void binfile_read_vector(
-              VECTOR&   x,
+              Vector&   x,
         const string&   filename,
         const int&      fid,
         const string&   dataname )
 {
   int     vdata_id;
   size_t  nrows, ncols;
-  MATRIX  a;
+  Matrix  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
-                                                           "VECTOR", 0, 1 );
+                                                           "Vector", 0, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
   resize(x,nrows);
   for ( size_t i=0; i<nrows; i++ )
@@ -1502,13 +1502,13 @@ void binfile_read_vector(
 void binfile_write_matrix(
         const string&   filename,
         const int&      fid,
-        const MATRIX&   x,
+        const Matrix&   x,
         const string&   dataname )
 {
   const size_t  nrows = x.nrows();
   const size_t  ncols = x.ncols();
 
-  binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
+  binfile_write( fid,  filename, dataname, "Matrix", "NUMERIC", nrows, ncols, 
                                                             (uint8*)&x[0][0] );
 }
 
@@ -1527,7 +1527,7 @@ void binfile_write_matrix(
    \date   2000-11-01
 */
 void binfile_read_matrix(
-              MATRIX&   x,
+              Matrix&   x,
         const string&   filename,
         const int&      fid,
         const string&   dataname )
@@ -1536,7 +1536,7 @@ void binfile_read_matrix(
   size_t  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
-                                                           "MATRIX", 0, 0 );
+                                                           "Matrix", 0, 0 );
   binfile_read2( x, vdata_id, nrows, ncols, filename, dataname );
   binfile_read_end( vdata_id, filename, dataname );
 }
@@ -1545,7 +1545,7 @@ void binfile_read_matrix(
 
 //// binfile_write_indexarray //////////////////////////////////////////////
 /**
-   Writes an ARRAYofINDEX to a binary file.
+   Writes an ArrayofIndex to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1558,7 +1558,7 @@ void binfile_read_matrix(
 void binfile_write_indexarray(
         const string&         filename,
         const int&            fid,
-        const ARRAYofsizet&   x,
+        const Arrayofsizet&   x,
         const string&         dataname )
 {
   const size_t  n = x.size();
@@ -1567,10 +1567,10 @@ void binfile_write_indexarray(
   size_t a[n];
   for ( size_t i=0; i<n; i++ )
     a[i] = x[i];
-  binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
+  binfile_write( fid,  filename, dataname, "Array", "Index", n, 1, 
                                                                 (uint8*)a );
   */
-  binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
+  binfile_write( fid,  filename, dataname, "Array", "Index", n, 1, 
                                                                (uint8*)&x[0] );
 }
 
@@ -1578,7 +1578,7 @@ void binfile_write_indexarray(
 
 //// binfile_read_indexarray ///////////////////////////////////////////////
 /**
-   Reads a ARRAYofINDEX from a binary file.
+   Reads a ArrayofIndex from a binary file.
 
    \param    x            the read index array
    \param    filename     file name
@@ -1589,7 +1589,7 @@ void binfile_write_indexarray(
    \date   2000-11-01
 */
 void binfile_read_indexarray(
-              ARRAYofsizet&   x,
+              Arrayofsizet&   x,
         const string&         filename,
         const int&            fid,
         const string&         dataname )
@@ -1598,7 +1598,7 @@ void binfile_read_indexarray(
   size_t  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
-                                                           "ARRAY", 0, 1 );
+                                                           "Array", 0, 1 );
   binfile_read1( x, vdata_id, nrows, filename, dataname );
   binfile_read_end( vdata_id, filename, dataname );
 }
@@ -1607,7 +1607,7 @@ void binfile_read_indexarray(
 
 //// binfile_write_vectorarray //////////////////////////////////////////////
 /**
-   Writes an ARRAYofVECTOR to a binary file.
+   Writes an ArrayofVector to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1620,7 +1620,7 @@ void binfile_read_indexarray(
 void binfile_write_vectorarray(
         const string&          filename,
         const int&             fid,
-        const ARRAYofVECTOR&   x,
+        const ArrayofVector&   x,
         const string&          dataname )
 {
   const size_t  n = x.size();
@@ -1641,7 +1641,7 @@ void binfile_write_vectorarray(
 
 //// binfile_read_vectorarray ///////////////////////////////////////////////
 /**
-   Reads a ARRAYofVECTOR from a binary file.
+   Reads a ArrayofVector from a binary file.
 
    \param    x            the read vector array
    \param    filename     file name
@@ -1652,7 +1652,7 @@ void binfile_write_vectorarray(
    \date   2000-11-01
 */
 void binfile_read_vectorarray(
-              ARRAYofVECTOR&   x,
+              ArrayofVector&   x,
         const string&          filename,
         const int&             fid,
         const string&          dataname )
@@ -1675,7 +1675,7 @@ void binfile_read_vectorarray(
 
 //// binfile_write_matrixarray //////////////////////////////////////////////
 /**
-   Writes an ARRAYofMATRIX to a binary file.
+   Writes an ArrayofMatrix to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1688,7 +1688,7 @@ void binfile_read_vectorarray(
 void binfile_write_matrixarray(
         const string&          filename,
         const int&             fid,
-        const ARRAYofMATRIX&   x,
+        const ArrayofMatrix&   x,
         const string&          dataname )
 {
   const size_t  n = x.size();
@@ -1709,7 +1709,7 @@ void binfile_write_matrixarray(
 
 //// binfile_read_matrixarray ///////////////////////////////////////////////
 /**
-   Reads a ARRAYofMATRIX from a binary file.
+   Reads a ArrayofMatrix from a binary file.
 
    \param    x            the read matrix array
    \param    filename     file name
@@ -1720,7 +1720,7 @@ void binfile_write_matrixarray(
    \date   2000-11-01
 */
 void binfile_read_matrixarray(
-              ARRAYofMATRIX&   x,
+              ArrayofMatrix&   x,
         const string&          filename,
         const int&             fid,
         const string&          dataname )
@@ -1798,7 +1798,7 @@ void binfile_read_string(
 
 //// binfile_write_stringarray //////////////////////////////////////////////
 /**
-   Writes an ARRAYofSTRING to a binary file.
+   Writes an ArrayofSTRING to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1811,7 +1811,7 @@ void binfile_read_string(
 void binfile_write_stringarray(
         const string&          filename,
         const int&             fid,
-        const ARRAYofstring&   x,
+        const Arrayofstring&   x,
         const string&          dataname )
 {
   const size_t  n = x.size();
@@ -1832,7 +1832,7 @@ void binfile_write_stringarray(
 
 //// binfile_read_stringarray ///////////////////////////////////////////////
 /**
-   Reads a ARRAYofSTRING from a binary file.
+   Reads a ArrayofSTRING from a binary file.
 
    \param    x            the read string array
    \param    filename     file name
@@ -1843,7 +1843,7 @@ void binfile_write_stringarray(
    \date   2000-11-01
 */
 void binfile_read_stringarray(
-              ARRAYofstring&   x,
+              Arrayofstring&   x,
         const string&          filename,
         const int&             fid,
         const string&          dataname )

@@ -37,7 +37,7 @@
 #include "wsv_aux.h"
 
 /*! The lookup information for the workspace variables. */
-ARRAY<WsvRecord> wsv_data;
+Array<WsvRecord> wsv_data;
 
 void define_wsv_data()
 {
@@ -53,14 +53,14 @@ void define_wsv_data()
     (WsvRecord
      ("lines",
       "A list of spectral line data.", 
-      ARRAYofLineRecord_));
+      ArrayofLineRecord_));
 
   wsv_data.push_back
     (WsvRecord
      ("lines_per_tg",
       "A list of spectral line data for each tag.\n"
       "Dimensions: (tag_groups.size()) (# of lines for this tag)", 
-      ARRAYofARRAYofLineRecord_));
+      ArrayofArrayofLineRecord_));
 
   wsv_data.push_back
     (WsvRecord
@@ -89,7 +89,7 @@ void define_wsv_data()
       "each abs_tag, not for each species. This means if you have several\n"
       "abs_tags for different isotopes or transitions of a species, you\n"
       "may use different lineshapes.",
-      ARRAYofLineshapeSpec_));
+      ArrayofLineshapeSpec_));
 
 
   //--------------------< Continuum Stuff >--------------------
@@ -105,7 +105,7 @@ void define_wsv_data()
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.\n"
       "H2O-ContStandardForeign: Foreign component of a simple empirical\n"
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.",
-      ARRAYofstring_));
+      Arrayofstring_));
 
   wsv_data.push_back
     (WsvRecord
@@ -114,7 +114,7 @@ void define_wsv_data()
       "for a detailed description of the allowed continuum models. There\n"
       "should be one parameter vector here for each entry in\n"
       "`cont_description_names'.",
-      ARRAYofVECTOR_));
+      ArrayofVector_));
 
 
   //--------------------< 1D Input Atmosphere Stuff >--------------------
@@ -126,7 +126,7 @@ void define_wsv_data()
       "1. Pressure in Pa\n"
       "2. Temperature in K\n"
       "3. Altitude in m", 
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -138,7 +138,7 @@ void define_wsv_data()
       "1. Pressure in Pa\n"
       "2. VMR profile (absolute number)\n"
       "The array dimension is determined by the number of tag groups.", 
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
 
   //--------------------< General Absorption Stuff >--------------------
@@ -151,14 +151,14 @@ void define_wsv_data()
       "in the 1D and 2D case. Therefore it remains a vector, even in 2D.\n"
       "The \"raw\" atmospheric data shall be interpolated to p_abs before\n"
       "the absorption calculations starts.",
-      VECTOR_));
+      Vector_));
   
   wsv_data.push_back
     (WsvRecord
      ("f_mono",
       "The monochromatic frequency grid [Hz]. This grid is used when\n"
       "calculating absorption and pencil b",
-      VECTOR_));
+      Vector_));
     
 
   //--------------------< 2D Absorption Stuff >--------------------
@@ -170,7 +170,7 @@ void define_wsv_data()
       "Array coordinate is the profile index, i.e., the horizontal\n"
       "dimension. This dimension must be consistent with z_abs_2d,\n"
       "vmr_2d, and abs_2d.", 
-      ARRAYofVECTOR_));
+      ArrayofVector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -179,7 +179,7 @@ void define_wsv_data()
       "Array coordinate is the profile index, i.e., the horizontal\n"
       "dimension. This dimension must be consistent with t_abs_2d,\n"
       "vmr_2d, and abs_2d.", 
-      ARRAYofVECTOR_));
+      ArrayofVector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -190,7 +190,7 @@ void define_wsv_data()
       "z_abs_2d, and abs_2d."
       "\n"
       "The matrix dimensions are [tag_groups.size(),p_abs.size()].", 
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -201,7 +201,7 @@ void define_wsv_data()
       "and z_abs_2d."
       "\n"
       "The matrix dimensions are [f_mono.size(),p_abs.size()].", 
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
 
   //--------------------< 1D Absorption Stuff >--------------------
@@ -210,55 +210,55 @@ void define_wsv_data()
     (WsvRecord
      ("t_abs",
       "Temperature associated with the pressures in p_abs [K]",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("z_abs",
       "Vertical altitudes associated with the pressures in p_abs [m]",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("h2o_abs",
       "The total water profile associated with the pressures in p_abs [-]",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("n2_abs",
       "The total nitrogen profile associated with the pressures in p_abs [-]",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("vmrs",
       "The VMRs (unit: absolute number) on the p_abs grid.\n"
       "Dimensions: [tag_groups.size(), p_abs.size()]",
-      ARRAYofVECTOR_));
+      ArrayofVector_));
 
   wsv_data.push_back
     (WsvRecord
      ("abs",
       "The matrix of absorption coefficients (in units of [1/m]).\n"
       "Dimensions: [f_mono.size(), p_abs.size()]",
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("abs_per_tg",
       "These are the absorption coefficients individually for each\n"
-      "tag group. The ARRAY contains one matrix for each tag group,\n"
+      "tag group. The Array contains one matrix for each tag group,\n"
       "the matrix format is the same as that of abs",
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("xsec_per_tg",
       "These are the cross sections individually for each tag\n"
-      "group. The ARRAY contains one matrix for each tag group,\n"
+      "group. The Array contains one matrix for each tag group,\n"
       "the matrix format is the same as that of abs",
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
 
   //--------------------< Hydrostatic equilibrium >--------------------
@@ -276,7 +276,7 @@ void define_wsv_data()
       "  5: Number of iterations of the calculations.\n"
       "If the on/off flag is set to 1, the length of the vector must be 5,\n"
       "while if the flag is 0 a length of 1 is OK.", 
-      VECTOR_));
+      Vector_));
 
 
   //--------------------< RT Stuff >--------------------
@@ -296,7 +296,7 @@ void define_wsv_data()
      ("za_pencil",
       "Pencil beam zenith angle, the angle between zenith and the LOS [deg].\n"
       "This grid is applied when calculating pencil beam spectra.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -307,7 +307,7 @@ void define_wsv_data()
       "below the ground is applied to determine the tangent altitude. \n"
       "For upward observations where there are no tangent altitudes, \n" 
       "z_tan is set to 999 km.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -357,7 +357,7 @@ void define_wsv_data()
     (WsvRecord
      ("refr_index",
       "The refractive index associated with the pressures in p_refr [-].\n",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -381,7 +381,7 @@ void define_wsv_data()
     (WsvRecord
      ("e_ground",
       "The ground emission factor for the frequencies in f_mono [0-1].",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -393,33 +393,33 @@ void define_wsv_data()
     (WsvRecord
      ("source",
       "Mean source functions between the points of the LOS.",
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("trans",
       "The transmissions between the points of the LOS [-].",
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("y_space",
       "Radiation entering the atmosphere at the start of the LOS,\n"
       "typically cosmic background radiation.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("y",
       "The working spectrum.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("y0",
       "A reference spectrum. This variable can be used e.g. to save a copy\n"
       "of y or to compare the spectra before and after some operation(s).",
-      VECTOR_));
+      Vector_));
 
 
   //--------------------< WF Stuff >--------------------
@@ -428,7 +428,7 @@ void define_wsv_data()
     (WsvRecord
      ("absloswfs",
       "Line of sight weighting functions.",
-      ARRAYofMATRIX_));
+      ArrayofMatrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -436,19 +436,19 @@ void define_wsv_data()
       "Grid for the retrieval identity for which weighting functions (WFS)\n"
       "shall be calculated (when applicable).\n"
       "For example, pressure altitude grid for species WFs.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("k",
       "The weighting functions (WFs) for a single retrieval/error identity.",
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("k_names",
       "Name(s) on the retrieval identity associated with k.",
-      ARRAYofstring_));
+      Arrayofstring_));
 
   wsv_data.push_back
     (WsvRecord
@@ -459,57 +459,57 @@ void define_wsv_data()
       "The columns hold different quantities:\n"
       "  Col 1: retrieval grid (or correspondingly)\n"
       "  Col 2: a priori values",
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx",
       "The state weighting function matrix.",
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx_names",
       "Names on the retrieval identities associated with kx.",
-      ARRAYofstring_));
+      Arrayofstring_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx_lengths",
       "The length of the state vector for each retrieval identity in kx.",
-      ARRAYofsizet_));
+      Arrayofsizet_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx_aux",
       "Auxiliary data for kx. As k_aux but with the data of the different\n"
       "retrieval identies appended vertically.",
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb",
       "The model parameters weighting function matrix.",
-      MATRIX_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb_names",
       "Names on the model parameter identities associated with kb.",
-      ARRAYofstring_));
+      Arrayofstring_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb_lengths",
       "The length of the model vector for each retrieval identity in kb.",
-      ARRAYofsizet_));
+      Arrayofsizet_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb_aux",
       "Auxiliary data for kb. As k_aux but with the data of the different\n"
       "forward model identies appended vertically.",
-      MATRIX_));
+      Matrix_));
 
 
   //-----------------< Sensor and data reduction stuff >------------------
@@ -520,14 +520,14 @@ void define_wsv_data()
       "The centre frequency of the sensor's backend channels [Hz].\n"
       "That is, the frequency vector before any data reduction.\n"
       "It is assumed that the same backend is used for all za_sensor.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("za_sensor",
       "The centre zenith angle for the spectra recorded by the sensor [deg].\n"
       "That is, the zenith angle vector before any data reduction.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -539,7 +539,7 @@ void define_wsv_data()
       "angles. With data reduction there is no general relationship between\n"
       "f_y and f_sensor. If the data reduction is performed using some\n"
       "eigenvectors, f_y can be set to [1;2;3;...;n]",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -551,7 +551,7 @@ void define_wsv_data()
       "the number of frequencies. With data reduction there is no general\n"
       "relationship between za_y and za_sensor. If the data reduction is\n"
       "performed using some eigenvectors, za_y can be set to [1;1;1;...;1]",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -577,7 +577,7 @@ void define_wsv_data()
       "A first calibration spectrum. This spectrum is assumed to be used for\n"
       "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
       "See for example yLoadCalibration for usage of this spectrum.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -585,21 +585,21 @@ void define_wsv_data()
       "A first calibration spectrum. This spectrum is assumed to be used for\n"
       "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
       "See for example yLoadCalibration for usage of this spectrum.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("i_cal1",
       "The intensity or brightness temperature corresponding to y_cal1.\n"
       "See for example yLoadCalibration for usage.",
-      VECTOR_));
+      Vector_));
 
   wsv_data.push_back
     (WsvRecord
      ("i_cal2",
       "The intensity or brightness temperature corresponding to y_cal2.\n"
       "See for example yLoadCalibration for usage.",
-      VECTOR_));
+      Vector_));
 
 
 
@@ -639,6 +639,6 @@ void define_wsv_data()
      ("ybatch",
       "A batch of spectra.\n"
       "The spectra are stored as columns in a matrix",
-      MATRIX_));
+      Matrix_));
 
 }

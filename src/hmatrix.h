@@ -62,7 +62,7 @@
     The H matrix structure has the fields:
     \verbatim
        size_t         issparse
-       MATRIX         full
+       Matrix         full
        SPARSE         sparse
     where 
        issparse  a flag to indicate if the matrix is sparse or "full"
@@ -80,7 +80,7 @@
 */
 struct Hmatrix {
   size_t         issparse;
-  MATRIX         full;
+  Matrix         full;
   // Here we should have a field for sparse matrix
 };
 
@@ -91,14 +91,14 @@ struct Hmatrix {
 ////////////////////////////////////////////////////////////////////////////
 
 void h_apply (
-              VECTOR&     y2, 
+              Vector&     y2, 
         const Hmatrix&    h,
-        const VECTOR&     y1 );
+        const Vector&     y1 );
 
 void h_apply (
-              MATRIX&     k2, 
+              Matrix&     k2, 
         const Hmatrix&    h,
-        const MATRIX&     k1 );
+        const Matrix&     k1 );
 
 void h_diff (
               Hmatrix&    hd, 

@@ -72,9 +72,9 @@ extern const Numeric BOLTZMAN_CONST;
     \author Stefan Buehler
 */
 void planck (
-              MATRIX&     B, 
-        const VECTOR&     f,
-        const VECTOR&     t )
+              Matrix&     B, 
+        const Vector&     f,
+        const Vector&     t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
@@ -129,8 +129,8 @@ void planck (
     \author Patrick Eriksson
 */
 void planck (
-             VECTOR&    B,
-       const VECTOR&    f,
+             Vector&    B,
+       const Vector&    f,
        const Numeric&   t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
@@ -183,12 +183,12 @@ Numeric number_density (
     \date 2000-12-25
     \author Stefan Buehler
 */
-VECTOR number_density (
-       const VECTOR&    p,
-       const VECTOR&    t )
+Vector number_density (
+       const Vector&    p,
+       const Vector&    t )
 {
   assert( p.size()==t.size() );
-  VECTOR dummy(p.size());
+  Vector dummy(p.size());
   // ediv(p,t)/BOLTZMAN_CONST;
   ele_div(p,scaled(t,BOLTZMAN_CONST),dummy);
   return dummy; 
@@ -243,11 +243,11 @@ Numeric g_of_z (
     \date   2000-04-08 
 */
 void rte_iterate (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   tr,
-       const MATRIX&   s,
+       const Matrix&   tr,
+       const Matrix&   s,
        const size_t    n_f )
 {
         size_t   i_f;        // frequency index
@@ -290,15 +290,15 @@ void rte_iterate (
     \date   2000-04-08 
 */
 void rte (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   tr,
-       const MATRIX&   s,
-       const VECTOR&   y_space,
-       const INDEX&    ground,
-       const VECTOR&   e_ground,
-       const VECTOR&   y_ground )
+       const Matrix&   tr,
+       const Matrix&   s,
+       const Vector&   y_space,
+       const Index&    ground,
+       const Vector&   e_ground,
+       const Vector&   y_ground )
 {
   const size_t   n_f = tr.nrows();              // number of frequencies
         size_t   i_f;                           // frequency index
@@ -308,7 +308,7 @@ void rte (
   // Init Y with Y_SPACE
   copy( y_space, y );
 
-  // Check if LOS inside the atmosphere (if START_INDEX=0 -> Y=Y_SPACE)
+  // Check if LOS inside the atmosphere (if START_Index=0 -> Y=Y_SPACE)
   if ( start_index > 0 )
   {
     // Determine break index for looping, either 1 or the ground
@@ -322,7 +322,7 @@ void rte (
 
     // We are now at the sensor, the ground or the tangent point
     // We are ready only if we are at the sensor.
-    // If at sensor, we have that STOP_INDEX=0 and GROUND=0
+    // If at sensor, we have that STOP_Index=0 and GROUND=0
     if ( !(stop_index==0 && ground==0) )
     {
       // Set most common values for I_START and I_BREAK
@@ -373,10 +373,10 @@ void rte (
     \date   2000-04-08 
 */
 void bl_iterate (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   tr,
+       const Matrix&   tr,
        const size_t    n_f )
 {
   size_t   i_f;        // frequency index
@@ -415,12 +415,12 @@ void bl_iterate (
     \date   2000-04-08 
 */
 void bl (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   tr,
-       const INDEX&    ground,
-       const VECTOR&   e_ground )
+       const Matrix&   tr,
+       const Index&    ground,
+       const Vector&   e_ground )
 {
   const size_t   nf = tr.nrows();      // number of frequencies
         size_t   iy;                   // frequency index
@@ -477,10 +477,10 @@ void bl (
     \author Stefan Buehler
 */
 void z2p(
-              VECTOR&     p,
-        const VECTOR&     z0,
-        const VECTOR&     p0,
-        const VECTOR&     z )
+              Vector&     p,
+        const Vector&     z0,
+        const Vector&     p0,
+        const Vector&     z )
 {
   assert( p.size()==z.size() );
   if ( z.size() > 0 )
@@ -514,10 +514,10 @@ void z2p(
     \author Stefan Buehler
 */
 void interpp(
-              VECTOR&     x, 
-        const VECTOR&     p0,
-        const VECTOR&     x0,
-        const VECTOR&     p )
+              Vector&     x, 
+        const Vector&     p0,
+        const Vector&     x0,
+        const Vector&     p )
 {
   assert( x.size()==p.size() );
   //interp_lin( x, transf(p0,log), x0, transf(p,log) );
@@ -525,10 +525,10 @@ void interpp(
 }
 
 void interpp_cloud(
-              VECTOR&     x, 
-        const VECTOR&     p0,
-        const VECTOR&     x0,
-        const VECTOR&     p )
+              Vector&     x, 
+        const Vector&     p0,
+        const Vector&     x0,
+        const Vector&     p )
 {
   assert( x.size()==p.size() );
   //interp_lin( x, p0, x0, p );
@@ -559,10 +559,10 @@ void interpp_cloud(
     \author Stefan Buehler
 */
 void interpp(
-              MATRIX&  A,
-        const VECTOR&  p0, 
-        const MATRIX&  A0, 
-        const VECTOR&  p )
+              Matrix&  A,
+        const Vector&  p0, 
+        const Matrix&  A0, 
+        const Vector&  p )
 {
   assert( A.nrows()==A0.nrows() );
   assert( A.ncols()==p.size() ); 
@@ -590,8 +590,8 @@ void interpp(
     \author Stefan Buehler
 */
 Numeric interpp(
-        const VECTOR&     p0,
-        const VECTOR&     x0,
+        const Vector&     p0,
+        const Vector&     x0,
         const Numeric&    p )
 {
   return interp_lin( transf(p0,log), x0, log(p) );
@@ -621,14 +621,14 @@ Numeric interpp(
     \date   2000-10-02 
 */
 void interpz(
-	     VECTOR&     x, 
-	     const VECTOR&     p0,
-	     const VECTOR&     z0,
-	     const VECTOR&     x0,
-	     const VECTOR&     z )
+	     Vector&     x, 
+	     const Vector&     p0,
+	     const Vector&     z0,
+	     const Vector&     x0,
+	     const Vector&     z )
 {
   assert( x.size()==z.size() ); 
-  VECTOR p(z.size());
+  Vector p(z.size());
   z2p( p, z0, p0, z );
   interpp( x, p0, x0, p );
 }
@@ -657,13 +657,13 @@ void interpz(
     \date   2000-10-02 
 */
 Numeric interpz(
-        const VECTOR&     p0,
-        const VECTOR&     z0,
-        const VECTOR&     x0,
+        const Vector&     p0,
+        const Vector&     z0,
+        const Vector&     x0,
         const Numeric&    z )
 {
-  VECTOR x(1);
-  interpz( x, p0, z0, x0, VECTOR(1,z) );
+  Vector x(1);
+  interpz( x, p0, z0, x0, Vector(1,z) );
   return x[0];
 }
 
@@ -718,9 +718,9 @@ Numeric ztan_geom(
 */
 Numeric n_for_z(
         const Numeric&      z,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
-        const VECTOR&       refr_index,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
+        const Vector&       refr_index,
         const Numeric&      atm_limit )
 
 {
@@ -757,10 +757,10 @@ Numeric refr_constant(
         const Numeric&      r_geoid,
         const Numeric&      za,
         const Numeric&      z_plat,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
         const Numeric&      atm_limit,
-        const VECTOR&       refr_index )
+        const Vector&       refr_index )
 {
   Numeric n_plat = n_for_z( z_plat, p_abs, z_abs, refr_index, atm_limit );
 
@@ -790,9 +790,9 @@ Numeric ztan_refr(
         const Numeric&   za,
         const Numeric&   z_plat,
         const Numeric&   z_ground,
-        const VECTOR&    p_abs,
-        const VECTOR&    z_abs,
-        const VECTOR&    refr_index,
+        const Vector&    p_abs,
+        const Vector&    z_abs,
+        const Vector&    refr_index,
         const Numeric&   r_geoid )
 {
   const Numeric atm_limit = last(z_abs);
@@ -816,7 +816,7 @@ Numeric ztan_refr(
       return ztan_geom( za, z_plat, r_geoid );
     else               //=== z_tan inside the atmosphere =================
     {
-      VECTOR zs(2), cs(2);
+      Vector zs(2), cs(2);
       zs[0] = z_abs[i];
       zs[1] = z_abs[i+1];
       cs[0] = (r_geoid+z_abs[i])*refr_index[i];

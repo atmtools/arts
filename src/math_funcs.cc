@@ -69,11 +69,11 @@
     \author Stefan Buehler
     \date   2000-12-24
 */
-void mean_row( VECTOR& m, const MATRIX& x )
+void mean_row( Vector& m, const Matrix& x )
 {
-  m = VECTOR(x.nrows());
+  m = Vector(x.nrows());
 
-  for ( INDEX i=0; i<x.nrows(); ++i ) 
+  for ( Index i=0; i<x.nrows(); ++i ) 
     {
       m[i] = mtl::sum(x[i])/x.ncols();
     }
@@ -92,18 +92,18 @@ void mean_row( VECTOR& m, const MATRIX& x )
     \author Stefan Buehler
     \date   2000-12-24
 */
-void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  )
+void std_row( Vector& s, const Matrix& x, const Vector& m  )
 {
-  VECTOR d(x.ncols());		// We need this to store the deviation
+  Vector d(x.ncols());		// We need this to store the deviation
 				// from the mean.
 
   if ( x.nrows() != m.size() )
     throw runtime_error("std_row: The size of the given mean profile "
 			"does not match the data.");
   
-  s = VECTOR(x.nrows());
+  s = Vector(x.nrows());
   
-  for ( INDEX i=0; i<x.nrows(); ++i ) 
+  for ( Index i=0; i<x.nrows(); ++i ) 
     {
       // Store -mean in d:
       setto(d,-m[i]);
@@ -125,7 +125,7 @@ void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  )
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Numeric first( const VECTOR& x )
+Numeric first( const Vector& x )
 {
   return x[0]; 
 }
@@ -138,7 +138,7 @@ Numeric first( const VECTOR& x )
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Numeric last( const VECTOR& x )
+Numeric last( const Vector& x )
 {
   return x[x.size()-1]; 
 }
@@ -163,7 +163,7 @@ Numeric last( const VECTOR& x )
    \date 2000-12-25
    \author Stefan Buehler
 */
-bool any( const ARRAYofsizet& x ) 
+bool any( const Arrayofsizet& x ) 
 {
   for ( size_t i=0; i<x.size(); i++ ) {
     if ( x[i] )
@@ -220,7 +220,7 @@ bool isbool( const int& x )
     \author Stefan Buehler
 */
 void linspace(                      
-              VECTOR&     x,           
+              Vector&     x,           
 	      const Numeric     start,    
 	      const Numeric     stop,        
 	      const Numeric     step )
@@ -228,7 +228,7 @@ void linspace(
   int n = (int) floor( (stop-start)/step ) + 1;
   if ( n<1 )
     n=1;
-  x = VECTOR(n);
+  x = Vector(n);
   for ( int i=0; i<n; i++ )
     x[i] = start + i*step;
 }
@@ -249,12 +249,12 @@ void linspace(
     \author Patrick Eriksson
     \date   2000-06-27
 */
-VECTOR linspace(  
+Vector linspace(  
 		const Numeric start, 
 		const Numeric stop,  
 		const Numeric step )
 {
-  VECTOR x;
+  Vector x;
   linspace( x, start, stop, step );
   return x; 
 }
@@ -279,14 +279,14 @@ VECTOR linspace(
     \author Stefan Buehler
 */
 void nlinspace(         
-	       VECTOR&     x, 
+	       Vector&     x, 
 	       const Numeric     start,     
 	       const Numeric     stop,        
 	       const int         n )
 {
   if ( n<2 )
     throw runtime_error("nlinspace: The number of points must be > 1"); 
-  x = VECTOR(n);
+  x = Vector(n);
   Numeric step = (stop-start)/(n-1) ;
   for ( int i=0; i<n; i++ )
     x[i] = start + i*step;
@@ -307,12 +307,12 @@ void nlinspace(
     \author Patrick Eriksson
     \date   2000-06-27
 */
-VECTOR nlinspace(                 // As above but return version
+Vector nlinspace(                 // As above but return version
 		 const Numeric start, 
 		 const Numeric stop,  
 		 const int     n )
 {
-  VECTOR x;
+  Vector x;
   nlinspace( x, start, stop, n );
   return x; 
 }                     
@@ -340,7 +340,7 @@ VECTOR nlinspace(                 // As above but return version
     \author Stefan Buehler
 */
 void nlogspace(         
-	       VECTOR&     x, 
+	       Vector&     x, 
 	       const Numeric     start,     
 	       const Numeric     stop,        
 	       const int         n )
@@ -349,7 +349,7 @@ void nlogspace(
     throw runtime_error("nlogspace: The number of points must be > 1"); 
   if ( (start<=0) || (stop<=0) )
     throw runtime_error("nlogspace: Only positive numbers are allowed"); 
-  x = VECTOR(n);
+  x = Vector(n);
   Numeric a = log(start);
   Numeric step = (log(stop)-a)/(n-1) ;
   x[0] = start;
@@ -374,12 +374,12 @@ void nlogspace(
     \author Patrick Eriksson
     \date   2000-06-27
 */
-VECTOR nlogspace(  
+Vector nlogspace(  
 		 const Numeric start, 
 		 const Numeric stop,  
 		 const int     n )
 {
-  VECTOR x;
+  Vector x;
   nlogspace( x, start, stop, n );
   return x; 
 }                     
@@ -412,11 +412,11 @@ VECTOR nlogspace(
    \date   2000-12-07
 */
 void rand_matrix_uniform(
-		  MATRIX&    m,
+		  Matrix&    m,
 		  const Numeric&   x_low,
 		  const Numeric&   x_high )
 {
-  for ( INDEX i=0; i<m.nrows(); ++i )
+  for ( Index i=0; i<m.nrows(); ++i )
   {
     rand_uniform( m[i], x_low, x_high );
   }
@@ -440,10 +440,10 @@ void rand_matrix_uniform(
    \date   2000-12-07
 */
 void rand_matrix_gaussian(
-		         MATRIX&    m,
+		         Matrix&    m,
 		   const Numeric&   s )
 {
-  for ( INDEX i=0; i<m.nrows(); ++i )
+  for ( Index i=0; i<m.nrows(); ++i )
   {
     rand_gaussian( m[i], s );
   }
@@ -474,11 +474,11 @@ void rand_matrix_gaussian(
    \author Stefan Buehler
 */
 void rand_data_gaussian(
-		              MATRIX&       z,
-			const VECTOR&       z0,
+		              Matrix&       z,
+			const Vector&       z0,
 			const SYMMETRIC&    s )
 {
-  INDEX n = z.ncols();
+  Index n = z.ncols();
 
   const size_t   nrows = z0.size();
         size_t   col;
@@ -487,12 +487,12 @@ void rand_data_gaussian(
     throw runtime_error("The length of the mean vector and the size of the covariance matrix do not match."); 
 
   // Make Cholesky decomposition of s, l'*l=s
-  MATRIX   l(nrows,nrows);
+  Matrix   l(nrows,nrows);
   setto(l,0.0);
   chol(l,s);
 
   // Create matrix with gaussian data having zero mean and standard deviation 1
-  MATRIX   r(nrows,n);
+  Matrix   r(nrows,n);
   rand_matrix_gaussian( r, 1 );
 
   // Multiply l and r to get z
@@ -506,7 +506,7 @@ void rand_data_gaussian(
 
 
 /////////////////////////////////////////////////////////////////////////////
-//   Conversions between VECTOR and MATRIX types
+//   Conversions between Vector and Matrix types
 /////////////////////////////////////////////////////////////////////////////
 
 //// to_vector //////////////////////////////////////////////////////////////
@@ -525,7 +525,7 @@ void rand_data_gaussian(
     \author Stefan Buehler 
     \date   2001-01-06
 */
-void to_vector(VECTOR& x, const MATRIX& W)
+void to_vector(Vector& x, const Matrix& W)
 {
   // Check if one of the dimensions of W is 1:
   if ( 1 == W.ncols() )
@@ -564,11 +564,11 @@ void to_vector(VECTOR& x, const MATRIX& W)
     \date   2000-06-29
 */
 Numeric interp_lin(
-        const VECTOR&  x, 
-        const VECTOR&  y, 
+        const Vector&  x, 
+        const Vector&  y, 
         const Numeric  xi )
 {
-  VECTOR yi(1); 
+  Vector yi(1); 
   interp_lin_vector( yi, x, y, make_vector(xi) );
   return yi[0];
 }        
@@ -598,11 +598,11 @@ Numeric interp_lin(
 */
 
 void chol(
-                MATRIX&       r, 
+                Matrix&       r, 
           const SYMMETRIC&    c )
 {
-  const INDEX nrows = c.nrows(), ncols = c.ncols();
-  INDEX j, i, k;
+  const Index nrows = c.nrows(), ncols = c.ncols();
+  Index j, i, k;
   Numeric a = 0;
 
   assert( nrows == r.nrows());

@@ -23,7 +23,7 @@
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
 enum TokValType { string_t,    int_t,    Numeric_t,
-	          ARRAY_string_t, ARRAY_int_t, VECTOR_t,
+	          Array_string_t, Array_int_t, Vector_t,
                   undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only
@@ -61,23 +61,23 @@ public:
   }
 
   /** To set TokVal from an array of strings. */
-  TokVal(ARRAY<string> sv) : msv(sv.size())
+  TokVal(Array<string> sv) : msv(sv.size())
   {
-    mtype = ARRAY_string_t;
+    mtype = Array_string_t;
     copy(sv, msv);
   }
 
   /** To set TokVal from an array of integers. */
-  TokVal(ARRAY<int> nv) : mnv(nv.size())
+  TokVal(Array<int> nv) : mnv(nv.size())
   {
-    mtype = ARRAY_int_t;
+    mtype = Array_int_t;
     copy(nv, mnv);
   }
 
-  /** To set TokVal from a VECTOR. */
-  TokVal(VECTOR xv) : mxv(xv.size())
+  /** To set TokVal from a Vector. */
+  TokVal(Vector xv) : mxv(xv.size())
   {
-    mtype = VECTOR_t;
+    mtype = Vector_t;
     copy(xv, mxv);
   }
 
@@ -91,11 +91,11 @@ public:
   operator Numeric() const;
 
   /** Return array of strings. */
-  operator ARRAY<string>() const;
+  operator Array<string>() const;
   /** Return array of integers. */
-  operator ARRAY<int>() const;
-  /** Return VECTOR. */
-  operator VECTOR() const;
+  operator Array<int>() const;
+  /** Return Vector. */
+  operator Vector() const;
 
   /** Output operator. */
   friend ostream& operator<<(ostream& os, const TokVal& a);
@@ -105,14 +105,14 @@ private:
   string       ms;
   int          mn;
   Numeric      mx;   
-  ARRAY<string>  msv;
-  ARRAY<int>     mnv;
-  VECTOR         mxv;
+  Array<string>  msv;
+  Array<int>     mnv;
+  Vector         mxv;
 };
 
 
-// typedef ARRAY<TokValType> TokValTypeVector;
-// typedef ARRAY<TokVal>     TokValVector;
+// typedef Array<TokValType> TokValTypeVector;
+// typedef Array<TokVal>     TokValVector;
 
 
 

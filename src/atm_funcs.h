@@ -49,22 +49,22 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void planck (
-              MATRIX&     B, 
-        const VECTOR&     f,
-        const VECTOR&     t );
+              Matrix&     B, 
+        const Vector&     f,
+        const Vector&     t );
 
 void planck (
-              VECTOR&     B, 
-        const VECTOR&     f,
+              Vector&     B, 
+        const Vector&     f,
         const Numeric&    t );
 
 Numeric number_density (
        const Numeric&   p,
        const Numeric&   t );
 
-VECTOR number_density (
-       const VECTOR&    p,
-       const VECTOR&    t );
+Vector number_density (
+       const Vector&    p,
+       const Vector&    t );
 
 Numeric g_of_z (
        const Numeric&   r_geoid,
@@ -77,38 +77,38 @@ Numeric g_of_z (
 ////////////////////////////////////////////////////////////////////////////
 
 void rte_iterate (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   Tr,
-       const MATRIX&   S,
+       const Matrix&   Tr,
+       const Matrix&   S,
        const size_t    n_f );
 
 void rte (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   Tr,
-       const MATRIX&   S,
-       const VECTOR&   y_space,
-       const INDEX&    ground,
-       const VECTOR&   e_ground,
-       const VECTOR&   y_ground );
+       const Matrix&   Tr,
+       const Matrix&   S,
+       const Vector&   y_space,
+       const Index&    ground,
+       const Vector&   e_ground,
+       const Vector&   y_ground );
 
 void bl_iterate (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   Tr,
+       const Matrix&   Tr,
        const size_t    n_f );
 
 void bl (
-             VECTOR&   y,
+             Vector&   y,
        const size_t&   start_index,
        const size_t&   stop_index,
-       const MATRIX&   Tr,
-       const INDEX&    ground,
-       const VECTOR&   e_ground );
+       const Matrix&   Tr,
+       const Index&    ground,
+       const Vector&   e_ground );
 
 
 
@@ -117,45 +117,45 @@ void bl (
 ////////////////////////////////////////////////////////////////////////////
 
 void z2p(
-              VECTOR&     p,
-        const VECTOR&     z0,
-        const VECTOR&     p0,
-        const VECTOR&     z );
+              Vector&     p,
+        const Vector&     z0,
+        const Vector&     p0,
+        const Vector&     z );
 
 void interpp(
-              VECTOR&     x,
-        const VECTOR&     p0,
-        const VECTOR&     x0,
-        const VECTOR&     p );
+              Vector&     x,
+        const Vector&     p0,
+        const Vector&     x0,
+        const Vector&     p );
 
 void interpp_cloud(
-              VECTOR&     x,
-        const VECTOR&     p0,
-        const VECTOR&     x0,
-        const VECTOR&     p );
+              Vector&     x,
+        const Vector&     p0,
+        const Vector&     x0,
+        const Vector&     p );
 
 void interpp(
-              MATRIX&  A,
-        const VECTOR&  p0, 
-        const MATRIX&  A0, 
-        const VECTOR&  p );
+              Matrix&  A,
+        const Vector&  p0, 
+        const Matrix&  A0, 
+        const Vector&  p );
 
 Numeric interpp(
-        const VECTOR&     p0,
-        const VECTOR&     x0,
+        const Vector&     p0,
+        const Vector&     x0,
         const Numeric&    p );
 
 void interpz(
-              VECTOR&     x, 
-        const VECTOR&     p0,
-        const VECTOR&     z0,
-        const VECTOR&     x0,
-        const VECTOR&     z );
+              Vector&     x, 
+        const Vector&     p0,
+        const Vector&     z0,
+        const Vector&     x0,
+        const Vector&     z );
 
 Numeric interpz(
-        const VECTOR&     p0,
-        const VECTOR&     z0,
-        const VECTOR&     x0,
+        const Vector&     p0,
+        const Vector&     z0,
+        const Vector&     x0,
         const Numeric&    z );
 
 
@@ -171,28 +171,28 @@ Numeric ztan_geom(
 
 Numeric n_for_z(
         const Numeric&      z,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
-        const VECTOR&       refr_index,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
+        const Vector&       refr_index,
         const Numeric&      atm_limit );
 
 Numeric refr_constant( 
         const Numeric&      r_geoid,
         const Numeric&      za,
         const Numeric&      z_plat,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
         const Numeric&      atm_limit,
-        const VECTOR&       refr_index );
+        const Vector&       refr_index );
 
 Numeric ztan_refr(
         const Numeric&   c,
         const Numeric&   za,
         const Numeric&   z_plat,
         const Numeric&   z_ground,
-        const VECTOR&    p_abs,
-        const VECTOR&    z_abs,
-        const VECTOR&    refr_index,
+        const Vector&    p_abs,
+        const Vector&    z_abs,
+        const Vector&    refr_index,
         const Numeric&   r_geoid );
 
 #endif // atmfuncs_h

@@ -17,29 +17,29 @@
 
 #include "make_vector.h"
 
-// For VECTORs:
+// For Vectors:
 // ------------
 
-VECTOR make_vector()
+Vector make_vector()
 {
-  VECTOR v(0);
+  Vector v(0);
 
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1)
+Vector make_vector(const Numeric& a1)
 {
-  VECTOR v(1);
+  Vector v(1);
 
   v[0] = a1;
 
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2)
 {
-  VECTOR v(2);
+  Vector v(2);
 
   v[0] = a1;
   v[1] = a2;
@@ -47,11 +47,11 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3)
 {
-  VECTOR v(3);
+  Vector v(3);
 
   v[0] = a1;
   v[1] = a2;
@@ -60,12 +60,12 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4)
 {
-  VECTOR v(4);
+  Vector v(4);
 
   v[0] = a1;
   v[1] = a2;
@@ -75,13 +75,13 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
 		   const Numeric& a5)
 {
-  VECTOR v(5);
+  Vector v(5);
 
   v[0] = a1;
   v[1] = a2;
@@ -92,14 +92,14 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
 		   const Numeric& a5,
 		   const Numeric& a6)
 {
-  VECTOR v(6);
+  Vector v(6);
 
   v[0] = a1;
   v[1] = a2;
@@ -111,7 +111,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -119,7 +119,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a6,
 		   const Numeric& a7)
 {
-  VECTOR v(7);
+  Vector v(7);
 
   v[0] = a1;
   v[1] = a2;
@@ -132,7 +132,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -141,7 +141,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a7,
 		   const Numeric& a8)
 {
-  VECTOR v(8);
+  Vector v(8);
 
   v[0] = a1;
   v[1] = a2;
@@ -155,7 +155,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -165,7 +165,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a8,
 		   const Numeric& a9)
 {
-  VECTOR v(9);
+  Vector v(9);
 
   v[0] = a1;
   v[1] = a2;
@@ -180,7 +180,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -191,7 +191,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a9,
 		   const Numeric& a10)
 {
-  VECTOR v(10);
+  Vector v(10);
 
   v[0] = a1;
   v[1] = a2;
@@ -207,7 +207,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -219,7 +219,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a10,
 		   const Numeric& a11)
 {
-  VECTOR v(11);
+  Vector v(11);
 
   v[0] = a1;
   v[1] = a2;
@@ -236,7 +236,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -249,7 +249,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a11,
 		   const Numeric& a12)
 {
-  VECTOR v(12);
+  Vector v(12);
 
   v[0] = a1;
   v[1] = a2;
@@ -267,7 +267,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -281,7 +281,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a12,
 		   const Numeric& a13)
 {
-  VECTOR v(13);
+  Vector v(13);
 
   v[0] = a1;
   v[1] = a2;
@@ -300,7 +300,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -315,7 +315,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a13,
 		   const Numeric& a14)
 {
-  VECTOR v(14);
+  Vector v(14);
 
   v[0] = a1;
   v[1] = a2;
@@ -335,7 +335,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -351,7 +351,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a14,
 		   const Numeric& a15)
 {
-  VECTOR v(15);
+  Vector v(15);
 
   v[0] = a1;
   v[1] = a2;
@@ -372,7 +372,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -389,7 +389,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a15,
 		   const Numeric& a16)
 {
-  VECTOR v(16);
+  Vector v(16);
 
   v[0] = a1;
   v[1] = a2;
@@ -411,7 +411,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -429,7 +429,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a16,
 		   const Numeric& a17)
 {
-  VECTOR v(17);
+  Vector v(17);
 
   v[0] = a1;
   v[1] = a2;
@@ -452,7 +452,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -471,7 +471,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a17,
 		   const Numeric& a18)
 {
-  VECTOR v(18);
+  Vector v(18);
 
   v[0] = a1;
   v[1] = a2;
@@ -495,7 +495,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -515,7 +515,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a18,
 		   const Numeric& a19)
 {
-  VECTOR v(19);
+  Vector v(19);
 
   v[0] = a1;
   v[1] = a2;
@@ -540,7 +540,7 @@ VECTOR make_vector(const Numeric& a1,
   return v;
 }
 
-VECTOR make_vector(const Numeric& a1,
+Vector make_vector(const Numeric& a1,
 		   const Numeric& a2,
 		   const Numeric& a3,
 		   const Numeric& a4,
@@ -561,7 +561,7 @@ VECTOR make_vector(const Numeric& a1,
 		   const Numeric& a19,
 		   const Numeric& a20)
 {
-  VECTOR v(20);
+  Vector v(20);
 
   v[0] = a1;
   v[1] = a2;
@@ -589,21 +589,21 @@ VECTOR make_vector(const Numeric& a1,
 
 
 
-// For ARRAYs:
+// For Arrays:
 // -----------
 
 // template<class T>
-// ARRAY<T> make_array()
+// Array<T> make_array()
 // {
-//   ARRAY<T> v(0,T());
+//   Array<T> v(0,T());
 
 //   return v;
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1)
+// Array<T> make_array(const T& a1)
 // {
-//   ARRAY<T> v(1,T());
+//   Array<T> v(1,T());
 
 //   v[0] = a1;
 
@@ -611,10 +611,10 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2)
 // {
-//   ARRAY<T> v(2,T());
+//   Array<T> v(2,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -623,11 +623,11 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3)
 // {
-//   ARRAY<T> v(3,T());
+//   Array<T> v(3,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -637,12 +637,12 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4)
 // {
-//   ARRAY<T> v(4,T());
+//   Array<T> v(4,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -653,13 +653,13 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
 // 		    const T& a5)
 // {
-//   ARRAY<T> v(5,T());
+//   Array<T> v(5,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -671,14 +671,14 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
 // 		    const T& a5,
 // 		    const T& a6)
 // {
-//   ARRAY<T> v(6,T());
+//   Array<T> v(6,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -691,7 +691,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -699,7 +699,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a6,
 // 		    const T& a7)
 // {
-//   ARRAY<T> v(7,T());
+//   Array<T> v(7,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -713,7 +713,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -722,7 +722,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a7,
 // 		    const T& a8)
 // {
-//   ARRAY<T> v(8,T());
+//   Array<T> v(8,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -737,7 +737,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -747,7 +747,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a8,
 // 		    const T& a9)
 // {
-//   ARRAY<T> v(9,T());
+//   Array<T> v(9,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -763,7 +763,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -774,7 +774,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a9,
 // 		    const T& a10)
 // {
-//   ARRAY<T> v(10,T());
+//   Array<T> v(10,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -791,7 +791,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -803,7 +803,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a10,
 // 		    const T& a11)
 // {
-//   ARRAY<T> v(11,T());
+//   Array<T> v(11,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -821,7 +821,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -834,7 +834,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a11,
 // 		    const T& a12)
 // {
-//   ARRAY<T> v(12,T());
+//   Array<T> v(12,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -853,7 +853,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -867,7 +867,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a12,
 // 		    const T& a13)
 // {
-//   ARRAY<T> v(13,T());
+//   Array<T> v(13,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -887,7 +887,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -902,7 +902,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a13,
 // 		    const T& a14)
 // {
-//   ARRAY<T> v(14,T());
+//   Array<T> v(14,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -923,7 +923,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -939,7 +939,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a14,
 // 		    const T& a15)
 // {
-//   ARRAY<T> v(15,T());
+//   Array<T> v(15,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -961,7 +961,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -978,7 +978,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a15,
 // 		    const T& a16)
 // {
-//   ARRAY<T> v(16,T());
+//   Array<T> v(16,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -1001,7 +1001,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -1019,7 +1019,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a16,
 // 		    const T& a17)
 // {
-//   ARRAY<T> v(17,T());
+//   Array<T> v(17,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -1043,7 +1043,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -1062,7 +1062,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a17,
 // 		    const T& a18)
 // {
-//   ARRAY<T> v(18,T());
+//   Array<T> v(18,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -1087,7 +1087,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -1107,7 +1107,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a18,
 // 		    const T& a19)
 // {
-//   ARRAY<T> v(19,T());
+//   Array<T> v(19,T());
 
 //   v[0] = a1;
 //   v[1] = a2;
@@ -1133,7 +1133,7 @@ VECTOR make_vector(const Numeric& a1,
 // }
 
 // template<class T>
-// ARRAY<T> make_array(const T& a1,
+// Array<T> make_array(const T& a1,
 // 		    const T& a2,
 // 		    const T& a3,
 // 		    const T& a4,
@@ -1154,7 +1154,7 @@ VECTOR make_vector(const Numeric& a1,
 // 		    const T& a19,
 // 		    const T& a20)
 // {
-//   ARRAY<T> v(20,T());
+//   Array<T> v(20,T());
 
 //   v[0] = a1;
 //   v[1] = a2;

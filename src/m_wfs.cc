@@ -72,13 +72,13 @@ extern const Numeric BOLTZMAN_CONST;
    \date   2000-10-20
 */
 void k_append (
-		    MATRIX&          kx,
-		    ARRAYofstring&   kx_names,
-		    ARRAYofsizet&    kx_lengths,
-		    MATRIX&          kx_aux,
-              const MATRIX&          k,
-              const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux )
+		    Matrix&          kx,
+		    Arrayofstring&   kx_names,
+		    Arrayofsizet&    kx_lengths,
+		    Matrix&          kx_aux,
+              const Matrix&          k,
+              const Arrayofstring&   k_names,
+              const Matrix&          k_aux )
 {
   // Size of Kx and K
   const size_t  ny1  = kx.nrows();         // length of measurement vector (y)
@@ -89,9 +89,9 @@ void k_append (
   const size_t  nri2 = k_names.size();
         size_t  iri;
 
-         MATRIX   ktemp(ny1,nx1), ktemp_aux(nx1,2);
-  ARRAYofstring   ktemp_names(nri1);
-   ARRAYofsizet   ktemp_lengths(nri1);
+         Matrix   ktemp(ny1,nx1), ktemp_aux(nx1,2);
+  Arrayofstring   ktemp_names(nri1);
+   Arrayofsizet   ktemp_lengths(nri1);
   
   if ( nx1 > 0 )
   {
@@ -157,8 +157,8 @@ void k_append (
    \date   2001-01-15
 */
 void p2grid(
-	      VECTOR&   grid,
-        const VECTOR&   pgrid )
+	      Vector&   grid,
+        const Vector&   pgrid )
 {
   resize( grid, pgrid.size() );
   copy( pgrid, grid );
@@ -224,9 +224,9 @@ void p2grid(
    \date   2000-09-15
 */
 void grid2grid_index (
-                    MATRIX&   is,
-              const VECTOR&   x0,
-              const VECTOR&   xp )
+                    Matrix&   is,
+              const Vector&   x0,
+              const Vector&   xp )
 {
   const size_t n0 = x0.size();        // length of original grid
   const size_t np = xp.size();        // length if retrieval grid
@@ -320,11 +320,11 @@ void grid2grid_index (
    \date   2000-09-15
 */
 void grid2grid_weights (
-                    VECTOR&   w,
-              const VECTOR&   x0,
+                    Vector&   w,
+              const Vector&   x0,
               const size_t&   i1,
               const size_t&   i2,
-              const VECTOR&   xp,
+              const Vector&   xp,
               const size_t&   ip )
 {
   const size_t   np = xp.size();        // number of retrieval points
@@ -392,20 +392,20 @@ void grid2grid_weights (
    \date   2000-09-15
 */
 void absloswfs_rte_1pass (
-                    MATRIX&   k,
-                    VECTOR    y,
+                    Matrix&   k,
+                    Vector    y,
               const size_t&   start_index,
 	      const size_t&   stop_index,   // this variable is used by
               const Numeric&  lstep,        // absloswfs_down
-              const MATRIX&   tr,
-              const MATRIX&   s,
-              const INDEX&    ground,
-              const VECTOR&   e_ground,
-              const VECTOR&   y_ground )
+              const Matrix&   tr,
+              const Matrix&   s,
+              const Index&    ground,
+              const Vector&   e_ground,
+              const Vector&   y_ground )
 {
   const size_t   nf = tr.nrows();     // number of frequencies
         size_t   iv;                  // frequency index
-        VECTOR   t(nf,1.0);           // transmission to the sensor
+        Vector   t(nf,1.0);           // transmission to the sensor
         size_t   q;                   // LOS index (same notation as in AUG)
 
   if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
@@ -492,23 +492,23 @@ void absloswfs_rte_1pass (
    \date   2000-09-15
 */
 void absloswfs_rte_limb (
-                    MATRIX&   k,
-                    VECTOR    y,              // = y_q^q
-              const VECTOR&   y_space,             
+                    Matrix&   k,
+                    Vector    y,              // = y_q^q
+              const Vector&   y_space,             
               const size_t&   start_index,
               const Numeric&  lstep,
-              const MATRIX&   tr,
-              const MATRIX&   s,
-              const INDEX&    ground,
-              const VECTOR&   e_ground )
+              const Matrix&   tr,
+              const Matrix&   s,
+              const Index&    ground,
+              const Vector&   e_ground )
 {
   const size_t   nf = tr.nrows();     // number of frequencies
         size_t   iv;                  // frequency index
-        VECTOR   t1q;                 // transmission tangent point - q squared
-        VECTOR   tqn(nf,1.0);         // transmission q - sensor
+        Vector   t1q;                 // transmission tangent point - q squared
+        Vector   tqn(nf,1.0);         // transmission q - sensor
         size_t   q;                   // LOS index (same notation as in AUG)
        Numeric   tv, tv1;             // transmission value for q and q-1
-        VECTOR   yn(nf);              // = y_space
+        Vector   yn(nf);              // = y_space
 
   copy( y_space, yn );
 
@@ -587,24 +587,24 @@ void absloswfs_rte_limb (
    \date   2000-09-15
 */
 void absloswfs_rte_down (
-                    MATRIX&   k,
-              const VECTOR&   y,
-              const VECTOR&   y_space,
+                    Matrix&   k,
+              const Vector&   y,
+              const Vector&   y_space,
               const size_t&   start_index,
               const size_t&   stop_index,
               const Numeric&  lstep,
-              const MATRIX&   tr,
-              const MATRIX&   s,
-              const INDEX&    ground,
-              const VECTOR&   e_ground,
-              const VECTOR&   y_ground )
+              const Matrix&   tr,
+              const Matrix&   s,
+              const Index&    ground,
+              const Vector&   e_ground,
+              const Vector&   y_ground )
 {
   const size_t   nf = tr.nrows(); // number of frequencies
         size_t   iv;              // frequency index
         size_t   q;               // LOS index (same notation as in AUG)
-        VECTOR   y0(nf);          // see below
-        MATRIX   k2;              // matrix for calling other LOS WFs functions
-        VECTOR   tr0;             // see below
+        Vector   y0(nf);          // see below
+        Matrix   k2;              // matrix for calling other LOS WFs functions
+        Vector   tr0;             // see below
 
   // Resize K
   resize( k, nf, start_index+1 );
@@ -640,8 +640,8 @@ void absloswfs_rte_down (
   // The platform altitude must be treated seperately
   //
   // Calculate the intensity generated below point q-1, YQQ
-  VECTOR yqq(nf);
-  rte( yqq, stop_index-1, stop_index-1, tr, s, VECTOR(nf,0.0), 
+  Vector yqq(nf);
+  rte( yqq, stop_index-1, stop_index-1, tr, s, Vector(nf,0.0), 
                                             ground, e_ground, y_ground );
   //
   // Y0 is moved one step upwards and TR0 one step downwards
@@ -664,23 +664,23 @@ void absloswfs_rte_down (
    \date   2000-09-15
 */
 void absloswfs_rte (
-                    ARRAYofMATRIX&   absloswfs,
+                    ArrayofMatrix&   absloswfs,
               const LOS&             los,   
-              const ARRAYofMATRIX&   source,
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          y,
-              const VECTOR&          y_space,
-              const VECTOR&          f_mono,
-              const VECTOR&          e_ground,
+              const ArrayofMatrix&   source,
+              const ArrayofMatrix&   trans,
+              const Vector&          y,
+              const Vector&          y_space,
+              const Vector&          f_mono,
+              const Vector&          e_ground,
               const Numeric&         t_ground )
 {
   const size_t  nza = los.start.size();   // number of zenith angles  
   const size_t  nf  = f_mono.size();      // number of frequencies  
-        VECTOR  yp(nf);                   // part of Y
+        Vector  yp(nf);                   // part of Y
         size_t  iy0=0;                    // y index
 
   // Set up vector for ground blackbody radiation
-  VECTOR   y_ground(f_mono.size()); 
+  Vector   y_ground(f_mono.size()); 
   if ( any_ground(los.ground) )
     planck( y_ground, f_mono, t_ground );
 
@@ -737,14 +737,14 @@ void absloswfs_rte (
    \date   2001-03-30
 */
 void absloswfs_tau (
-                    ARRAYofMATRIX&   absloswfs,
+                    ArrayofMatrix&   absloswfs,
 	      const LOS&             los,
-	      const VECTOR&          f_mono )
+	      const Vector&          f_mono )
 {
   const size_t  nza = los.start.size();   // number of zenith angles  
   const size_t  nf  = f_mono.size();      // number of frequencies  
         Numeric kw, kw2;
-        INDEX   row, col, np;
+        Index   row, col, np;
 
   // Resize the LOS WFs array
   resize( absloswfs, nza );
@@ -843,16 +843,16 @@ void absloswfs_tau (
    \date   2000-09-15
 */
 void sourceloswfs_1pass (
-                    MATRIX&   k,
+                    Matrix&   k,
               const size_t&   start_index,
 	      const size_t&   stop_index,   // this variable is used by 1D down
-              const MATRIX&   tr,
-              const INDEX&    ground,
-              const VECTOR&   e_ground )
+              const Matrix&   tr,
+              const Index&    ground,
+              const Vector&   e_ground )
 {
   const size_t   nf = tr.nrows();     // number of frequencies
         size_t   iv;                  // frequency index
-        VECTOR   t(nf,1.0);           // transmission to the sensor
+        Vector   t(nf,1.0);           // transmission to the sensor
         size_t   q;                   // LOS index (same notation as in AUG) 
 
   if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
@@ -923,16 +923,16 @@ void sourceloswfs_1pass (
    \date   2000-09-15
 */
 void sourceloswfs_limb (
-                    MATRIX&   k,
+                    Matrix&   k,
               const size_t&   start_index,
-              const MATRIX&   tr,
-              const INDEX&    ground,
-              const VECTOR&   e_ground )
+              const Matrix&   tr,
+              const Index&    ground,
+              const Vector&   e_ground )
 {
   const size_t   nf = tr.nrows();      // number of frequencies
         size_t   iv;                  // frequency index
-        VECTOR   t1q;                 // transmission tangent point - q squared
-        VECTOR   tqn(nf,1);           // transmission q - sensor
+        Vector   t1q;                 // transmission tangent point - q squared
+        Vector   tqn(nf,1);           // transmission q - sensor
         size_t   q;                   // LOS index (same notation as in AUG)
 
   // Calculate the total transmission
@@ -988,18 +988,18 @@ void sourceloswfs_limb (
    \date   2000-09-15
 */
 void sourceloswfs_down (
-                    MATRIX&   k,
+                    Matrix&   k,
               const size_t&   start_index,
               const size_t&   stop_index,
-              const MATRIX&   tr,
-              const INDEX&    ground,
-              const VECTOR&   e_ground )
+              const Matrix&   tr,
+              const Index&    ground,
+              const Vector&   e_ground )
 {
   const size_t   nf = tr.nrows(); // number of frequencies
         size_t   iv;             // frequency index
         size_t   q;              // LOS index (same notation as in AUG)
-        MATRIX   k2;             // matrix for calling other LOS WFs functions
-        VECTOR   tr0;            // see below
+        Matrix   k2;             // matrix for calling other LOS WFs functions
+        Vector   tr0;            // see below
 
   // Resize K
   resize( k, nf, start_index+1 );
@@ -1057,11 +1057,11 @@ void sourceloswfs_down (
    \date   2000-09-15
 */
 void sourceloswfs (
-                    ARRAYofMATRIX&   sourceloswfs,
+                    ArrayofMatrix&   sourceloswfs,
               const LOS&             los,   
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          f_mono,
-              const VECTOR&          e_ground )
+              const ArrayofMatrix&   trans,
+              const Vector&          f_mono,
+              const Vector&          e_ground )
 {
   const size_t  nza = los.start.size();   // number of zenith angles  
 
@@ -1147,18 +1147,18 @@ void sourceloswfs (
     \author Stefan Buehler
 */
 void k_species (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,             
+              const ArrayofMatrix&   absloswfs,
+              const Vector&          p_abs,
+              const Vector&          t_abs,             
               const TagGroups&       tags,
-              const ARRAYofMATRIX&   abs_per_tg,
-              const ARRAYofVECTOR&   vmrs,
-              const VECTOR&          k_grid,
-              const ARRAYofsizet&    tg_nr,
+              const ArrayofMatrix&   abs_per_tg,
+              const ArrayofVector&   vmrs,
+              const Vector&          k_grid,
+              const Arrayofsizet&    tg_nr,
               const string&          unit )
 {
   // Main sizes
@@ -1169,9 +1169,9 @@ void k_species (
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
-  VECTOR  lgrid;                      // -log of the retrieval pressures
+  Vector  lgrid;                      // -log of the retrieval pressures
   p2grid( lgrid, k_grid );
-  VECTOR  lplos;                      // -log of the LOS pressures
+  Vector  lplos;                      // -log of the LOS pressures
 
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
@@ -1182,13 +1182,13 @@ void k_species (
         size_t  i1, iw;                    // weight indices
 
   // Other variables
-        MATRIX  abs;                       // absorption at k_grid
-        MATRIX  is;                        // matrix for storing LOS index
-        VECTOR  w;                         // weights for LOS WFs
-        VECTOR  a(nv);                     // temporary vector
+        Matrix  abs;                       // absorption at k_grid
+        Matrix  is;                        // matrix for storing LOS index
+        Vector  w;                         // weights for LOS WFs
+        Vector  a(nv);                     // temporary vector
         size_t  tg;                        // present tag nr
-        VECTOR  vmr, p, t;                 // for conversion to VMR and ND 
-        VECTOR  nd;                        // number density
+        Vector  vmr, p, t;                 // for conversion to VMR and ND 
+        Vector  nd;                        // number density
 
   // Set up K and additional data. Set all values of K to 0
   resize(k,nza*nv,ntg*np);
@@ -1355,13 +1355,13 @@ void k_species (
    \author Patrick Eriksson
 */
 void k_contabs (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          f_mono,
-              const VECTOR&          k_grid,
+              const ArrayofMatrix&   absloswfs,
+              const Vector&          f_mono,
+              const Vector&          k_grid,
               const size_t&          order,
               const Numeric&         flow,
               const Numeric&         fhigh )
@@ -1374,9 +1374,9 @@ void k_contabs (
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
-  VECTOR  lgrid;
+  Vector  lgrid;
   p2grid( lgrid, k_grid );
-  VECTOR  lplos;                      // -log of the LOS pressures
+  Vector  lplos;                      // -log of the LOS pressures
 
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
@@ -1398,18 +1398,18 @@ void k_contabs (
        "The upper frequency limit is below all values of f_mono." ); 
 
   // Determine first and last frequency index inside given limits
-  INDEX   ilow, ihigh;
+  Index   ilow, ihigh;
   for( ilow=0; ilow<nv && f_mono[ilow] < flow; ilow++ )
     {}
   for( ihigh=ilow; ihigh<nv && f_mono[ihigh] <= fhigh; ihigh++ )
     {}
 
   // Other variables
-        VECTOR  fpoints;                   // frequencies of the off-set points
-        VECTOR  b(nv);                     // fit base function
-        MATRIX  is;                        // matrix for storing LOS index
-        VECTOR  w;                         // weights for LOS WFs
-        VECTOR  a(nv);                     // temporary vector
+        Vector  fpoints;                   // frequencies of the off-set points
+        Vector  b(nv);                     // fit base function
+        Matrix  is;                        // matrix for storing LOS index
+        Vector  w;                         // weights for LOS WFs
+        Vector  a(nv);                     // temporary vector
 
   // Check that the selected polynomial order
   if ( order < 0 )
@@ -1567,26 +1567,26 @@ void k_contabs (
    \date   2000-09-15
 */
 void k_temp_nohydro (
-		           MATRIX&                        k,
-		           ARRAYofstring&                 k_names,
-		           MATRIX&                        k_aux,
+		           Matrix&                        k,
+		           Arrayofstring&                 k_names,
+		           Matrix&                        k_aux,
 		     const TagGroups&                     tag_groups,
 		     const LOS&                           los,           
-		     const ARRAYofMATRIX&                 absloswfs,
-		     const VECTOR&                        f_mono,
-		     const VECTOR&                        p_abs,
-		     const VECTOR&                        t_abs,
-		     const VECTOR&                        n2_abs,	   
-		     const VECTOR&                        h2o_abs,	   
-		     const ARRAYofVECTOR&                 vmrs,
-		     const ARRAYofARRAYofLineRecord&      lines_per_tg,
-		     const ARRAYofLineshapeSpec&          lineshape,
-		     const MATRIX&                        abs,            
-		     const ARRAYofMATRIX&                 trans,
-		     const VECTOR&                        e_ground,
-		     const VECTOR&                        k_grid,
-		     const ARRAYofstring&         cont_description_names,
-                     const ARRAYofVECTOR& 	  cont_description_parameters )
+		     const ArrayofMatrix&                 absloswfs,
+		     const Vector&                        f_mono,
+		     const Vector&                        p_abs,
+		     const Vector&                        t_abs,
+		     const Vector&                        n2_abs,	   
+		     const Vector&                        h2o_abs,	   
+		     const ArrayofVector&                 vmrs,
+		     const ArrayofArrayofLineRecord&      lines_per_tg,
+		     const ArrayofLineshapeSpec&          lineshape,
+		     const Matrix&                        abs,            
+		     const ArrayofMatrix&                 trans,
+		     const Vector&                        e_ground,
+		     const Vector&                        k_grid,
+		     const Arrayofstring&         cont_description_names,
+                     const ArrayofVector& 	  cont_description_parameters )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
@@ -1595,10 +1595,10 @@ void k_temp_nohydro (
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
-  //  const VECTOR  lgrid=-1.0*log(k_grid);
-  VECTOR  lgrid;
+  //  const Vector  lgrid=-1.0*log(k_grid);
+  Vector  lgrid;
   p2grid( lgrid, k_grid );
-  VECTOR  lplos;                     // -log of the LOS pressures
+  Vector  lplos;                     // -log of the LOS pressures
 
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
@@ -1608,14 +1608,14 @@ void k_temp_nohydro (
         size_t  i1, iw;                    // weight indices
 
   // Other variables
-        VECTOR  t(k_grid.size());          // temperature at retrieval points
-        MATRIX  abs1k;                     // absorption for t_abs+1K
-        MATRIX  dabs_dt;                   // see below
- ARRAYofMATRIX  abs_dummy;                 // dummy absorption array
- ARRAYofMATRIX  sloswfs;                   // source LOS WFs
-	MATRIX  is;                        // matrix for storing LOS index
-        VECTOR  w;                         // weights for LOS WFs
-        VECTOR  a(nv), b(nv), pl(f_mono.size());  // temporary vectors
+        Vector  t(k_grid.size());          // temperature at retrieval points
+        Matrix  abs1k;                     // absorption for t_abs+1K
+        Matrix  dabs_dt;                   // see below
+ ArrayofMatrix  abs_dummy;                 // dummy absorption array
+ ArrayofMatrix  sloswfs;                   // source LOS WFs
+	Matrix  is;                        // matrix for storing LOS index
+        Vector  w;                         // weights for LOS WFs
+        Vector  a(nv), b(nv), pl(f_mono.size());  // temporary vectors
 
  // The scalars are declared to be double to avoid possible numerical problems
  // when using float
@@ -1641,7 +1641,7 @@ void k_temp_nohydro (
   out2 << "  ----- Messages from absCalc: -----\n";
   //
   {
-    VECTOR dummy(t_abs.size(),1.0);
+    Vector dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
 
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, 
@@ -1749,7 +1749,7 @@ void k_temp_nohydro (
 void wfs_tgsDefine(// WS Output:
 		   TagGroups& wfs_tag_groups,
 		   // Control Parameters:
-		   const ARRAYofstring& tags)
+		   const Arrayofstring& tags)
 {
   wfs_tag_groups = TagGroups(tags.size());
 
@@ -1759,7 +1759,7 @@ void wfs_tgsDefine(// WS Output:
     {
       // There can be a comma separated list of tag definitions, so we
       // need to break the string apart at the commas.
-      ARRAY<string> tag_def;
+      Array<string> tag_def;
 
       bool go_on = true;
       string these_tags = tags[i];
@@ -1780,9 +1780,9 @@ void wfs_tgsDefine(// WS Output:
 	}
 
       // Unfortunately, MTL conatains a bug that leads to all elements of
-      // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
+      // the outer Array of an Array<Array>> pointing to the same data
       // after creation. So we need to fix this explicitly:
-      wfs_tag_groups[i] = ARRAY<OneTag>();
+      wfs_tag_groups[i] = Array<OneTag>();
 
       for ( size_t s=0; s<tag_def.size(); ++s )
 	{
@@ -1825,15 +1825,15 @@ void wfs_tgsDefine(// WS Output:
    \date   2001-03-30
 */
 void absloswfsCalc (
-                    ARRAYofMATRIX&   absloswfs,
+                    ArrayofMatrix&   absloswfs,
 	      const int&             emission,
               const LOS&             los,   
-              const ARRAYofMATRIX&   source,
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          y,
-              const VECTOR&          y_space,
-              const VECTOR&          f_mono,
-              const VECTOR&          e_ground,
+              const ArrayofMatrix&   source,
+              const ArrayofMatrix&   trans,
+              const Vector&          y,
+              const Vector&          y_space,
+              const Vector&          f_mono,
+              const Vector&          e_ground,
               const Numeric&         t_ground )
 {
   if ( !isbool( emission ) )  
@@ -1848,9 +1848,9 @@ void absloswfsCalc (
   // The equations used can produce NaNs and Infs when the optical thickness
   // is very high. This corresponds to extremly low values for the ABS LOS WFs
   // so we set NaNs and Infs to zero.
-  INDEX     irow, icol, ncol;
+  Index     irow, icol, ncol;
   Numeric   w;
-  for( INDEX im=0; im<absloswfs.size(); im++ )
+  for( Index im=0; im<absloswfs.size(); im++ )
   {
     for( irow=0; irow<absloswfs[im].nrows(); irow++ )
     {
@@ -1874,10 +1874,10 @@ void absloswfsCalc (
    \date   2001-03-30
 */
 void absloswfsTau (
-                    ARRAYofMATRIX&   absloswfs,
+                    ArrayofMatrix&   absloswfs,
 	      const int&             emission,
 	      const LOS&             los,
-              const VECTOR&          f_mono )
+              const Vector&          f_mono )
 {
   if ( !isbool( emission ) )  
     throw runtime_error("The emission flag must either be 0 or 1.");
@@ -1899,27 +1899,27 @@ void absloswfsTau (
    \date   2000-?-?
 */
 void kSpecies (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,             
+              const ArrayofMatrix&   absloswfs,
+              const Vector&          p_abs,
+              const Vector&          t_abs,             
               const TagGroups&       wfs_tgs,
-              const ARRAYofMATRIX&   abs_per_tg,
-              const ARRAYofVECTOR&   vmrs,
-              const VECTOR&          k_grid,
+              const ArrayofMatrix&   abs_per_tg,
+              const ArrayofVector&   vmrs,
+              const Vector&          k_grid,
               const string&          tag,
               const string&          unit )
 {
   if ( wfs_tgs.size() != abs_per_tg.size() )
     throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
 
-  ARRAYofstring  tag_name(1);
+  Arrayofstring  tag_name(1);
   tag_name[0] = tag;
 
-  ARRAYofsizet   tg_nr; 
+  Arrayofsizet   tg_nr; 
   get_tagindex_for_strings( tg_nr, wfs_tgs, tag_name );
   
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
@@ -1935,21 +1935,21 @@ void kSpecies (
    \date   2000-?-?
 */
 void kSpeciesAll (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,             
+              const ArrayofMatrix&   absloswfs,
+              const Vector&          p_abs,
+              const Vector&          t_abs,             
               const TagGroups&       wfs_tgs,
-              const ARRAYofMATRIX&   abs_per_tg,
-              const ARRAYofVECTOR&   vmrs,
-              const VECTOR&          k_grid,
+              const ArrayofMatrix&   abs_per_tg,
+              const ArrayofVector&   vmrs,
+              const Vector&          k_grid,
               const string&          unit )
 {
   const size_t  ntg = wfs_tgs.size();     // number of retrieval tags
-  ARRAYofsizet  tg_nr(ntg);
+  Arrayofsizet  tg_nr(ntg);
 
   if ( ntg != abs_per_tg.size() )
     throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
@@ -1970,13 +1970,13 @@ void kSpeciesAll (
    \date   2000-?-?
 */
 void kContAbs (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          f_mono,
-              const VECTOR&          k_grid,
+              const ArrayofMatrix&   absloswfs,
+              const Vector&          f_mono,
+              const Vector&          k_grid,
               const int&             order )
 {
   k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
@@ -1992,13 +1992,13 @@ void kContAbs (
    \date   2000-01-21
 */
 void kContAbsSpecifiedLimits (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          f_mono,
-              const VECTOR&          k_grid,
+              const ArrayofMatrix&   absloswfs,
+              const Vector&          f_mono,
+              const Vector&          k_grid,
 	      const int&             order,
               const Numeric&         f_low,
               const Numeric&         f_high )
@@ -2016,36 +2016,36 @@ void kContAbsSpecifiedLimits (
    \date   2000-04-18
 */
 void kTemp (
-                MATRIX&                   k,
-                ARRAYofstring&            k_names,
-                MATRIX&                   k_aux,
+                Matrix&                   k,
+                Arrayofstring&            k_names,
+                Matrix&                   k_aux,
           const TagGroups&                tgs,
-          const VECTOR&                   f_mono,
-          const VECTOR&                   p_abs,
-          const VECTOR&                   t_abs,
-          const VECTOR&                   n2_abs,
-          const VECTOR&                   h2o_abs,
-          const ARRAYofVECTOR&            vmrs,
-	  const MATRIX&                   abs0,
-          const ARRAYofARRAYofLineRecord& lines_per_tg,
-          const ARRAYofLineshapeSpec&     lineshape,
-          const VECTOR&                   e_ground,
+          const Vector&                   f_mono,
+          const Vector&                   p_abs,
+          const Vector&                   t_abs,
+          const Vector&                   n2_abs,
+          const Vector&                   h2o_abs,
+          const ArrayofVector&            vmrs,
+	  const Matrix&                   abs0,
+          const ArrayofArrayofLineRecord& lines_per_tg,
+          const ArrayofLineshapeSpec&     lineshape,
+          const Vector&                   e_ground,
           const int&                      emission,
-          const VECTOR&                   k_grid,
-          const ARRAYofstring&            cont_description_names,
-          const ARRAYofVECTOR& 	          cont_description_parameters,
+          const Vector&                   k_grid,
+          const Arrayofstring&            cont_description_names,
+          const ArrayofVector& 	          cont_description_parameters,
     	  const Numeric&    		  z_plat,
-    	  const VECTOR&     		  za,
+    	  const Vector&     		  za,
     	  const Numeric&    		  l_step,
-    	  const VECTOR&     		  z_abs,
+    	  const Vector&     		  z_abs,
     	  const int&        		  refr,
     	  const int&        		  refr_lfac,
-    	  const VECTOR&     		  refr_index,
+    	  const Vector&     		  refr_index,
     	  const Numeric&    		  z_ground,
           const Numeric&                  t_ground,
-    	  const VECTOR&     		  y_space,
+    	  const Vector&     		  y_space,
     	  const Numeric&    		  r_geoid,
-          const VECTOR&     		  hse0 )
+          const Vector&     		  hse0 )
 {
   // Check input
   if ( hse0[0] == 0 )
@@ -2058,10 +2058,10 @@ void kTemp (
   const size_t  nabs = p_abs.size();       // number of absorption altitudes
 
   // Vectors for the reference state
-  VECTOR z0(nabs), y0, t0(np);
+  Vector z0(nabs), y0, t0(np);
 
   // Local copy of hse
-  VECTOR hse( hse0.size() );
+  Vector hse( hse0.size() );
   copy( hse0, hse );
 
   // Calculate reference z_abs with a high number of iterations
@@ -2074,12 +2074,12 @@ void kTemp (
   out1 << "  Calculating reference spectrum\n";
   out2 << "  ----- Messages from losCalc: --------\n";
   LOS    los;
-  VECTOR z_tan;
+  Vector z_tan;
   losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from sourceCalc: -----\n";
-  ARRAYofMATRIX source, trans;
+  ArrayofMatrix source, trans;
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from transCalc: ------\n";
@@ -2096,36 +2096,36 @@ void kTemp (
   k_names[0] = "Temperature: with hydrostatic eq.";
   resize(k_aux,np,2);
   interpp( t0, p_abs, t_abs, k_grid ); 
-  for ( INDEX ip=0; ip<np; ip++ )
+  for ( Index ip=0; ip<np; ip++ )
   {
      k_aux[ip][0] = k_grid[ip];
      k_aux[ip][1] = t0[ip];
   }
 
   // Determine conversion between grids        
-  MATRIX is;
-  VECTOR lpabs, lgrid;
+  Matrix is;
+  Vector lpabs, lgrid;
   p2grid( lpabs, p_abs );
   p2grid( lgrid, k_grid );
   grid2grid_index( is, lpabs, lgrid );
 
   // Loop retrieval altitudes and calculate new spectra
   //
-  MATRIX         abs;
-  ARRAYofMATRIX  abs_dummy;
-  VECTOR y, t(nabs), w;
-  INDEX  i1, iw, iv;
+  Matrix         abs;
+  ArrayofMatrix  abs_dummy;
+  Vector y, t(nabs), w;
+  Index  i1, iw, iv;
   //
-  for ( INDEX ip=0; ip<np; ip++ )
+  for ( Index ip=0; ip<np; ip++ )
   {
     out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
 
     // Create disturbed temperature profile
-    grid2grid_weights( w, lpabs, INDEX(is[ip][0]), INDEX(is[ip][1]), 
+    grid2grid_weights( w, lpabs, Index(is[ip][0]), Index(is[ip][1]), 
 		                                                  lgrid, ip );
-    i1 = INDEX( is[ip][0] );       // first p_abs point to consider
+    i1 = Index( is[ip][0] );       // first p_abs point to consider
     copy( t_abs, t );
-    for ( iw=i1; iw<=INDEX(is[ip][1]); iw++ )
+    for ( iw=i1; iw<=Index(is[ip][1]); iw++ )
       t[iw] += w[iw-i1];
 
     out2 << "  ----- Messages from absCalc: --------\n";
@@ -2137,7 +2137,7 @@ void kTemp (
                                               refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
-    ARRAYofMATRIX source, trans;
+    ArrayofMatrix source, trans;
     sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from transCalc: ------\n";
@@ -2163,36 +2163,36 @@ void kTemp (
    \date   2000-04-21
 */
 void kTempFast (
-                MATRIX&                   k,
-                ARRAYofstring&            k_names,
-                MATRIX&                   k_aux,
+                Matrix&                   k,
+                Arrayofstring&            k_names,
+                Matrix&                   k_aux,
           const TagGroups&                tgs,
-          const VECTOR&                   f_mono,
-          const VECTOR&                   p_abs,
-          const VECTOR&                   t_abs,
-          const VECTOR&                   n2_abs,
-          const VECTOR&                   h2o_abs,
-          const ARRAYofVECTOR&            vmrs,
-	  const MATRIX&                   abs0,
-          const ARRAYofARRAYofLineRecord& lines_per_tg,
-          const ARRAYofLineshapeSpec&     lineshape,
-          const VECTOR&                   e_ground,
+          const Vector&                   f_mono,
+          const Vector&                   p_abs,
+          const Vector&                   t_abs,
+          const Vector&                   n2_abs,
+          const Vector&                   h2o_abs,
+          const ArrayofVector&            vmrs,
+	  const Matrix&                   abs0,
+          const ArrayofArrayofLineRecord& lines_per_tg,
+          const ArrayofLineshapeSpec&     lineshape,
+          const Vector&                   e_ground,
           const int&                      emission,
-          const VECTOR&                   k_grid,
-          const ARRAYofstring&            cont_description_names,
-          const ARRAYofVECTOR& 	          cont_description_parameters,
+          const Vector&                   k_grid,
+          const Arrayofstring&            cont_description_names,
+          const ArrayofVector& 	          cont_description_parameters,
     	  const Numeric&    		  z_plat,
-    	  const VECTOR&     		  za,
+    	  const Vector&     		  za,
     	  const Numeric&    		  l_step,
-    	  const VECTOR&     		  z_abs,
+    	  const Vector&     		  z_abs,
     	  const int&        		  refr,
     	  const int&        		  refr_lfac,
-    	  const VECTOR&     		  refr_index,
+    	  const Vector&     		  refr_index,
     	  const Numeric&    		  z_ground,
           const Numeric&                  t_ground,
-    	  const VECTOR&     		  y_space,
+    	  const Vector&     		  y_space,
     	  const Numeric&    		  r_geoid,
-          const VECTOR&     		  hse0 )
+          const Vector&     		  hse0 )
 {
   // Check input
   if ( hse0[0] == 0 )
@@ -2205,10 +2205,10 @@ void kTempFast (
   const size_t  nabs = p_abs.size();       // number of absorption altitudes
 
   // Vectors for the reference state
-  VECTOR z0(nabs), y0, t0(np);
+  Vector z0(nabs), y0, t0(np);
 
   // Local copy of hse
-  VECTOR hse( hse0.size() );
+  Vector hse( hse0.size() );
   copy( hse0, hse );
 
   // Calculate reference z_abs with a high number of iterations
@@ -2218,14 +2218,14 @@ void kTempFast (
   hse[4] = hse0[4];
 
   // Calculate absorption for + 1K
-  MATRIX         abs1k, abs(nv,nabs);
-  ARRAYofMATRIX  abs_dummy;
+  Matrix         abs1k, abs(nv,nabs);
+  ArrayofMatrix  abs_dummy;
   //
   {
-    VECTOR  t(nabs);
+    Vector  t(nabs);
     copy( t_abs, t );
-    //VECTOR dummy(nabs,1.0);
-    add( VECTOR(nabs,1.0), t );
+    //Vector dummy(nabs,1.0);
+    add( Vector(nabs,1.0), t );
     //
     out1 << "  Calculating absorption for t_abs + 1K \n";
     out2 << "  ----- Messages from absCalc: --------\n";
@@ -2237,12 +2237,12 @@ void kTempFast (
   out1 << "  Calculating reference spectrum\n";
   out2 << "  ----- Messages from losCalc: --------\n";
   LOS    los;
-  VECTOR z_tan;
+  Vector z_tan;
   losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from sourceCalc: -----\n";
-  ARRAYofMATRIX source, trans;
+  ArrayofMatrix source, trans;
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from transCalc: ------\n";
@@ -2259,34 +2259,34 @@ void kTempFast (
   k_names[0] = "Temperature: with hydrostatic eq.";
   resize(k_aux,np,2);
   interpp( t0, p_abs, t_abs, k_grid ); 
-  for ( INDEX ip=0; ip<np; ip++ )
+  for ( Index ip=0; ip<np; ip++ )
   {
      k_aux[ip][0] = k_grid[ip];
      k_aux[ip][1] = t0[ip];
   }
 
   // Determine conversion between grids        
-  MATRIX is;
-  VECTOR lpabs, lgrid;
+  Matrix is;
+  Vector lpabs, lgrid;
   p2grid( lpabs, p_abs );
   p2grid( lgrid, k_grid );
   grid2grid_index( is, lpabs, lgrid );
 
   // Loop retrieval altitudes and calculate new spectra
   //
-  VECTOR y, w;
-  INDEX  i1, iw, iv;
+  Vector y, w;
+  Index  i1, iw, iv;
   //
-  for ( INDEX ip=0; ip<np; ip++ )
+  for ( Index ip=0; ip<np; ip++ )
   {
     out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
 
     // Create absorption matrix corresponding to temperature disturbance
-    grid2grid_weights( w, lpabs, INDEX(is[ip][0]), INDEX(is[ip][1]), 
+    grid2grid_weights( w, lpabs, Index(is[ip][0]), Index(is[ip][1]), 
 		                                                  lgrid, ip );
-    i1 = INDEX( is[ip][0] );       // first p_abs point to consider
+    i1 = Index( is[ip][0] );       // first p_abs point to consider
     copy( abs0, abs );
-    for ( iw=i1; iw<=INDEX(is[ip][1]); iw++ )
+    for ( iw=i1; iw<=Index(is[ip][1]); iw++ )
     {
       for ( iv=0; iv<nv; iv++ )
         abs[iv][iw] = (1-w[iw-i1])*abs0[iv][iw] + w[iw-i1]*abs1k[iv][iw];
@@ -2297,7 +2297,7 @@ void kTempFast (
                                               refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
-    ARRAYofMATRIX source, trans;
+    ArrayofMatrix source, trans;
     sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from transCalc: ------\n";
@@ -2323,26 +2323,26 @@ void kTempFast (
    \date   2000-?-?
 */
 void kTempNoHydro (
-                  MATRIX&                   k,
-                  ARRAYofstring&            k_names,
-                  MATRIX&                   k_aux,
+                  Matrix&                   k,
+                  Arrayofstring&            k_names,
+                  Matrix&                   k_aux,
             const TagGroups&                tag_groups,
 	    const LOS&                      los,           
-	    const ARRAYofMATRIX&            absloswfs,
-	    const VECTOR&                   f_mono,
-	    const VECTOR&                   p_abs,
-	    const VECTOR&                   t_abs,
-	    const VECTOR&                   n2_abs,
-	    const VECTOR&                   h2o_abs,
-	    const ARRAYofVECTOR&            vmrs,
-	    const ARRAYofARRAYofLineRecord& lines_per_tg,
-	    const ARRAYofLineshapeSpec&     lineshape,
-	    const MATRIX&                   abs,            
-	    const ARRAYofMATRIX&            trans,
-	    const VECTOR&                   e_ground,
-	    const VECTOR&                   k_grid,
-	    const ARRAYofstring&            cont_description_names,
-            const ARRAYofVECTOR& 	    cont_description_parameters )
+	    const ArrayofMatrix&            absloswfs,
+	    const Vector&                   f_mono,
+	    const Vector&                   p_abs,
+	    const Vector&                   t_abs,
+	    const Vector&                   n2_abs,
+	    const Vector&                   h2o_abs,
+	    const ArrayofVector&            vmrs,
+	    const ArrayofArrayofLineRecord& lines_per_tg,
+	    const ArrayofLineshapeSpec&     lineshape,
+	    const Matrix&                   abs,            
+	    const ArrayofMatrix&            trans,
+	    const Vector&                   e_ground,
+	    const Vector&                   k_grid,
+	    const Arrayofstring&            cont_description_names,
+            const ArrayofVector& 	    cont_description_parameters )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
                   t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
@@ -2359,64 +2359,64 @@ void kTempNoHydro (
    \date   2001-01-21
  */
 void kPointingOffSet(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const Numeric&         z_plat,
-              const VECTOR&          za_pencil,
+              const Vector&          za_pencil,
               const Numeric&         l_step,
-              const VECTOR&          p_abs,
-              const VECTOR&          z_abs,
-              const VECTOR&          t_abs,
-              const VECTOR&          f_mono,
+              const Vector&          p_abs,
+              const Vector&          z_abs,
+              const Vector&          t_abs,
+              const Vector&          f_mono,
               const int&             refr,
               const int&             refr_lfac,
-              const VECTOR&          refr_index,
+              const Vector&          refr_index,
               const Numeric&         z_ground,
               const Numeric&         r_geoid,
-              const MATRIX&          abs,
+              const Matrix&          abs,
   	      const int&             emission,
-              const VECTOR&          y_space,
-              const VECTOR&          e_ground,
+              const Vector&          y_space,
+              const Vector&          e_ground,
               const Numeric&         t_ground,
-              const VECTOR&          y,
+              const Vector&          y,
               const Numeric&         delta )
 {
   if ( !isbool( emission ) )  
     throw runtime_error("The emission flag must either be 0 or 1.");
 
   // Create new zenith angle grid
-  const INDEX  nza = za_pencil.size();
-  VECTOR za_new( nza );
+  const Index  nza = za_pencil.size();
+  Vector za_new( nza );
   copy( za_pencil, za_new );
-  add( za_new, VECTOR(nza,delta), za_new );
+  add( za_new, Vector(nza,delta), za_new );
 
   out2 << "  ----- Messages from losCalc: --------\n";
   LOS    los;
-  VECTOR z_tan;
+  Vector z_tan;
   losCalc( los, z_tan, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
 
-  ARRAYofMATRIX source, trans;
+  ArrayofMatrix source, trans;
   out2 << "  ----- Messages from sourceCalc: -----\n";
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from transCalc: ------\n";
   transCalc( trans, los, p_abs, abs );
   out2 << "  -------------------------------------\n";
-  VECTOR y_new;
+  Vector y_new;
   out2 << "  ----- Messages from yRte: -----------\n";
   yCalc( y_new, emission, los, f_mono, y_space, source, trans, 
                                                          e_ground, t_ground );
   out2 << "  -------------------------------------\n";
 
   // Make k one-column matrix of the right size:
-  const INDEX   nv = y.size();
+  const Index   nv = y.size();
   resize( k, nv, 1 );
 
   // k = (y_new - y) / delta
-  VECTOR dummy( nv );
+  Vector dummy( nv );
   add( y_new, scaled(y,-1), dummy );
   copy( scaled(dummy,1/delta), columns(k)[0] );
 
@@ -2435,16 +2435,16 @@ void kPointingOffSet(
    \date   2001-01-21
  */
 void kCalibration(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-              const VECTOR&          y,
-              const VECTOR&          y_ref,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
+              const Vector&          y,
+              const Vector&          y_ref,
        	      const string&          name )
 {
-  const INDEX   ny = y.size();
-  const INDEX   nf = y_ref.size();
-  const INDEX   nza = INDEX( floor(ny/nf) );
+  const Index   ny = y.size();
+  const Index   nf = y_ref.size();
+  const Index   nza = Index( floor(ny/nf) );
 
   if ( nza*nf != ny )
     throw runtime_error("The length of y_ref does not match the length of y");
@@ -2453,7 +2453,7 @@ void kCalibration(
   resize( k, ny, 1 );
 
   // k = y - y_ref
-  INDEX j,i,i0;
+  Index j,i,i0;
   for ( j=0; j<nza; j++ )    
   {
     i0 = j*nf;
@@ -2480,18 +2480,18 @@ void kCalibration(
    \author Stefan Buehler
  */
 void kManual(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-              const VECTOR&          y0,      
-              const VECTOR&          y,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
+              const Vector&          y0,      
+              const Vector&          y,
               const string&          name,
               const Numeric&         delta,
               const Numeric&         grid,
               const Numeric&         apriori )
 {
   assert( y.size()==y0.size() );
-  VECTOR dummy(y.size());		// To store intermediate result.
+  Vector dummy(y.size());		// To store intermediate result.
 
   // Put y-y0 in dummy:
   add( y, scaled(y0,-1), dummy );
@@ -2522,23 +2522,23 @@ void kManual(
    \author Stefan Buehler
  */
 void kDiffHSmall(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const Hmatrix&         h1,      
               const Hmatrix&         h2,      
-              const VECTOR&          y,
+              const Vector&          y,
               const string&          name,
               const Numeric&         delta,
               const Numeric&         grid,
               const Numeric&         apriori )
 {
-  VECTOR y1, y2;
+  Vector y1, y2;
   h_apply( y1, h1, y );
   h_apply( y2, h2, y );
 
   assert( y1.size()==y2.size() );
-  VECTOR dummy(y1.size());
+  Vector dummy(y1.size());
 
   // Put y2-y1 in dummy:
   add( y2, scaled(y1,-1), dummy );
@@ -2568,18 +2568,18 @@ void kDiffHSmall(
    \author Stefan Buehler
  */
 void kDiffHFast(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
+                    Matrix&          k,
+                    Arrayofstring&   k_names,
+                    Matrix&          k_aux,
               const Hmatrix&         h1,      
               const Hmatrix&         h2,      
-              const VECTOR&          y,
+              const Vector&          y,
               const string&          name,
               const Numeric&         delta,
               const Numeric&         grid,
               const Numeric&         apriori )
 {
-  VECTOR yd;
+  Vector yd;
   Hmatrix hd;
   h_diff( hd, h2, h1 );
   h_apply( yd, hd, y );
@@ -2606,10 +2606,10 @@ void kDiffHFast(
    \date   2000-?-?
 */
 void kxInit (
-                    MATRIX&          kx,
-                    ARRAYofstring&   kx_names,
-                    ARRAYofsizet&    kx_lengths,
-                    MATRIX&          kx_aux )
+                    Matrix&          kx,
+                    Arrayofstring&   kx_names,
+                    Arrayofsizet&    kx_lengths,
+                    Matrix&          kx_aux )
 {
   resize( kx,         0, 0 );
   resize( kx_names,   0    );
@@ -2626,10 +2626,10 @@ void kxInit (
    \date   2000-?-?
 */
 void kbInit (
-                    MATRIX&          kb,
-                    ARRAYofstring&   kb_names,
-                    ARRAYofsizet&    kb_lengths,
-                    MATRIX&          kb_aux )
+                    Matrix&          kb,
+                    Arrayofstring&   kb_names,
+                    Arrayofsizet&    kb_lengths,
+                    Matrix&          kb_aux )
 {
   kxInit( kb, kb_names, kb_lengths, kb_aux );
 }
@@ -2643,13 +2643,13 @@ void kbInit (
    \date   2000-?-?
 */
 void kxAppend (
-		    MATRIX&          kx,
-		    ARRAYofstring&   kx_names,
-		    ARRAYofsizet&    kx_lengths,
-		    MATRIX&          kx_aux,
-              const MATRIX&          k,
-              const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux )
+		    Matrix&          kx,
+		    Arrayofstring&   kx_names,
+		    Arrayofsizet&    kx_lengths,
+		    Matrix&          kx_aux,
+              const Matrix&          k,
+              const Arrayofstring&   k_names,
+              const Matrix&          k_aux )
 {
   k_append( kx, kx_names, kx_lengths, kx_aux, k, k_names, k_aux );
 }
@@ -2663,13 +2663,13 @@ void kxAppend (
    \date   2000-?-?
 */
 void kbAppend (
-		    MATRIX&          kb,
-		    ARRAYofstring&   kb_names,
-		    ARRAYofsizet&    kb_lengths,
-		    MATRIX&          kb_aux,
-              const MATRIX&          k,
-              const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux )
+		    Matrix&          kb,
+		    Arrayofstring&   kb_names,
+		    Arrayofsizet&    kb_lengths,
+		    Matrix&          kb_aux,
+              const Matrix&          k,
+              const Arrayofstring&   k_names,
+              const Matrix&          k_aux )
 {
   k_append( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
 }
@@ -2683,16 +2683,16 @@ void kbAppend (
    \date   2001-01-21
 */
 void kxAllocate (
-                    MATRIX&          kx,
-                    ARRAYofstring&   kx_names,
-                    ARRAYofsizet&    kx_lengths,
-                    MATRIX&          kx_aux,
-              const VECTOR&          y,
+                    Matrix&          kx,
+                    Arrayofstring&   kx_names,
+                    Arrayofsizet&    kx_lengths,
+                    Matrix&          kx_aux,
+              const Vector&          y,
               const string&          y_name,
               const int&             ni,
               const int&             nx )
 {
-  const INDEX  ny = y.size();
+  const Index  ny = y.size();
 
   out2 << "  Allocates memory for a weighting function matrix having:\n" 
        << "    " << ny << " frequency points\n"
@@ -2717,11 +2717,11 @@ void kxAllocate (
    \date   2001-01-21
 */
 void kbAllocate (
-                    MATRIX&          kb,
-                    ARRAYofstring&   kb_names,
-                    ARRAYofsizet&    kb_lengths,
-                    MATRIX&          kb_aux,
-              const VECTOR&          y,
+                    Matrix&          kb,
+                    Arrayofstring&   kb_names,
+                    Arrayofsizet&    kb_lengths,
+                    Matrix&          kb_aux,
+              const Vector&          y,
               const string&          y_name,
               const int&             ni,
               const int&             nx )
@@ -2738,25 +2738,25 @@ void kbAllocate (
    \date   2001-01-21
 */
 void kxPutInK (
-		    MATRIX&          kx,
-		    ARRAYofstring&   kx_names,
-		    ARRAYofsizet&    kx_lengths,
-		    MATRIX&          kx_aux,
-              const MATRIX&          k,
-              const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux )
+		    Matrix&          kx,
+		    Arrayofstring&   kx_names,
+		    Arrayofsizet&    kx_lengths,
+		    Matrix&          kx_aux,
+              const Matrix&          k,
+              const Arrayofstring&   k_names,
+              const Matrix&          k_aux )
 {
-  const INDEX  ny  = kx.nrows();
-  const INDEX  nx  = kx.ncols();
-  const INDEX  ni  = kx_names.size();
-  const INDEX  nx2 = k.ncols();
-  const INDEX  ni2 = k_names.size();
+  const Index  ny  = kx.nrows();
+  const Index  nx  = kx.ncols();
+  const Index  ni  = kx_names.size();
+  const Index  nx2 = k.ncols();
+  const Index  ni2 = k_names.size();
 
   if ( ny != k.nrows() )
     throw runtime_error("The two WF matrices have different number of rows.");
 
   // Determine old length of x and number of identities
-  INDEX  ni1, nx1=0;
+  Index  ni1, nx1=0;
   for( ni1=0; ni1<ni && kx_lengths[ni1]>0; ni1++ )
     nx1 += kx_lengths[ni1];
   if ( ni1 == ni )
@@ -2788,7 +2788,7 @@ void kxPutInK (
   // Move K to Kx
   copy( k,       kx.sub_matrix( 0, ny, nx1, nx1+nx2 ) );
   copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 2 ) );
-  for ( INDEX iri=0; iri<ni2; iri++ )
+  for ( Index iri=0; iri<ni2; iri++ )
   {
     kx_names[ni1+iri]   = k_names[iri];
     kx_lengths[ni1+iri] = l;
@@ -2804,24 +2804,24 @@ void kxPutInK (
    \date   2001-01-21
 */
 void kbPutInK (
-		    MATRIX&          kb,
-		    ARRAYofstring&   kb_names,
-		    ARRAYofsizet&    kb_lengths,
-		    MATRIX&          kb_aux,
-              const MATRIX&          k,
-              const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux )
+		    Matrix&          kb,
+		    Arrayofstring&   kb_names,
+		    Arrayofsizet&    kb_lengths,
+		    Matrix&          kb_aux,
+              const Matrix&          k,
+              const Arrayofstring&   k_names,
+              const Matrix&          k_aux )
 {
   kxPutInK( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
 }
 
 void LinAltsFromPres(// WS Generic Output:
-                     VECTOR&         p,
+                     Vector&         p,
                      // WS Generic Output Names:
                      const string&   p_name,
                      // WS Input:
-                     const VECTOR&   p_abs,
-                     const VECTOR&   z_abs,
+                     const Vector&   p_abs,
+                     const Vector&   z_abs,
                      // Control Parameters:
                      const Numeric&  delta_z,
                      const Numeric&  p_start,
@@ -2829,13 +2829,13 @@ void LinAltsFromPres(// WS Generic Output:
 
 {
       
-  VECTOR p_lim(2), z_lim(2);
+  Vector p_lim(2), z_lim(2);
   p_lim[0] = p_start; 
   p_lim[1] = p_stop; 
   
   interpp(z_lim,p_abs,z_abs,p_lim);
 
-  VECTOR z = linspace(z_lim[0],z_lim[1],delta_z);
+  Vector z = linspace(z_lim[0],z_lim[1],delta_z);
   resize(p, z.size());
   z2p(p, z_abs, p_abs, z);
   

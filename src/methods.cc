@@ -37,7 +37,7 @@
 void define_md_data()
 {
   // The variable md_data is defined in file methods_aux.cc.
-  extern ARRAY<MdRecord> md_data;
+  extern Array<MdRecord> md_data;
 
   // Initialize to zero, just in case:
   resize(md_data,0);
@@ -91,9 +91,9 @@ void define_md_data()
 //=== IO methods
 //======================================================================
 
-//=== INDEX ============================================================
+//=== Index ============================================================
 
- // These functions should be changed to handle INDEX
+ // These functions should be changed to handle Index
 
   md_data.push_back     
     ( MdRecord
@@ -184,7 +184,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Numeric_ ),
-	GINPUT(  VECTOR_ ),
+	GINPUT(  Vector_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -244,7 +244,7 @@ void define_md_data()
 
 
 
-//=== VECTOR ==========================================================
+//=== Vector ==========================================================
 
   md_data.push_back
     ( MdRecord
@@ -253,7 +253,7 @@ void define_md_data()
                     "and initializes the vector with the given value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS( "length", "value"   ),
 	TYPES(    int_t,    Numeric_t )));
@@ -267,8 +267,8 @@ void define_md_data()
                     " VectorSetLengthFromVector(e_ground,f_mono){value=0.75}"),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "value"   ),
 	TYPES(    Numeric_t )));
 
@@ -283,7 +283,7 @@ void define_md_data()
 		    "The step can be both positive and negative."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS( "start",   "stop",    "step"    ),
 	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
@@ -296,7 +296,7 @@ void define_md_data()
 		    "The length must be larger than 1."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(VECTOR_),
+	GOUTPUT(Vector_),
 	GINPUT(),
 	KEYWORDS( "start",   "stop",    "n"   ),
 	TYPES(    Numeric_t, Numeric_t, int_t )));
@@ -309,7 +309,7 @@ void define_md_data()
 		    "The length must be larger than 1."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(VECTOR_),
+	GOUTPUT(Vector_),
 	GINPUT(),
 	KEYWORDS( "start",   "stop",    "n"   ),
 	TYPES(    Numeric_t, Numeric_t, int_t )));
@@ -320,8 +320,8 @@ void define_md_data()
 	DESCRIPTION("Copies a vector."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -332,8 +332,8 @@ void define_md_data()
            "Flips a vector. The result is the vector in reversed order"),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -346,8 +346,8 @@ void define_md_data()
           "  index : The index of the vector in the array to copy. " ),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( ARRAYofVECTOR_),
+	GOUTPUT( Vector_ ),
+	GINPUT( ArrayofVector_),
 	KEYWORDS( "index" ),
 	TYPES( int_t )));
 
@@ -361,7 +361,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -374,7 +374,7 @@ void define_md_data()
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -388,7 +388,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -400,7 +400,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -414,8 +414,8 @@ void define_md_data()
           "   VectorPlanck(y_space,f_mono){temp=2.7}"),
 	OUTPUT( ),
 	INPUT( ),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "temp"    ),
 	TYPES(    Numeric_t )));
 
@@ -427,8 +427,8 @@ void define_md_data()
           "The result can either be stored in the same or another vector."),
 	OUTPUT( ),
 	INPUT( ),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -439,8 +439,8 @@ void define_md_data()
 	  "Adds a scalar to all elements of a vector."),
 	OUTPUT( ),
 	INPUT( ),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "value" ),
 	TYPES( Numeric_t )));
 
@@ -451,13 +451,13 @@ void define_md_data()
 	  "Scales all elements of a vector with the same value."),
 	OUTPUT( ),
 	INPUT( ),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "value" ),
 	TYPES( Numeric_t )));
 
 
-//=== MATRIX ==========================================================
+//=== Matrix ==========================================================
 
   md_data.push_back
     ( MdRecord
@@ -466,7 +466,7 @@ void define_md_data()
                     "and initializes the matrix with the given value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( MATRIX_ ),
+	GOUTPUT( Matrix_ ),
 	GINPUT(),
 	KEYWORDS( "nrows", "ncols", "value"   ),
 	TYPES(    int_t,   int_t,   Numeric_t )));
@@ -477,8 +477,8 @@ void define_md_data()
 	DESCRIPTION("Copies a matrix."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( MATRIX_ ),
-	GINPUT( MATRIX_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -489,8 +489,8 @@ void define_md_data()
                     "in each column."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( MATRIX_ ),
-	GINPUT( VECTOR_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "n"   ),
 	TYPES(    int_t )));
 
@@ -504,7 +504,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( MATRIX_ ),
+	GINPUT( Matrix_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -517,7 +517,7 @@ void define_md_data()
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( MATRIX_ ),
+	GOUTPUT( Matrix_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -531,7 +531,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( MATRIX_ ),
+	GINPUT( Matrix_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -543,7 +543,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( MATRIX_ ),
+	GOUTPUT( Matrix_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -555,14 +555,14 @@ void define_md_data()
           "Scales all elements of a matrix with the same value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( MATRIX_ ),
-	GINPUT( MATRIX_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_ ),
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t   )));
 
 
 
-//=== ARRAYofINDEX =====================================================
+//=== ArrayofIndex =====================================================
 
   md_data.push_back
     ( MdRecord
@@ -574,7 +574,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofsizet_ ),
+	GINPUT( Arrayofsizet_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -587,7 +587,7 @@ void define_md_data()
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofsizet_ ),
+	GOUTPUT( Arrayofsizet_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -601,7 +601,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofsizet_ ),
+	GINPUT( Arrayofsizet_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -613,39 +613,39 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofsizet_ ),
+	GOUTPUT( Arrayofsizet_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
 
 
-//=== ARRAYofVECTOR ====================================================
+//=== ArrayofVector ====================================================
 
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteAscii"),
-	DESCRIPTION("Writes an ARRAYofVECTOR to an ASCII file.\n"
+	DESCRIPTION("Writes an ArrayofVector to an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofVECTOR_ ),
+	GINPUT( ArrayofVector_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadAscii"),
-	DESCRIPTION("Reads an ARRAYofVECTOR from an ASCII file.\n"
+	DESCRIPTION("Reads an ArrayofVector from an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofVECTOR_ ),
+	GOUTPUT( ArrayofVector_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -659,7 +659,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofVECTOR_ ),
+	GINPUT( ArrayofVector_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -671,7 +671,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofVECTOR_ ),
+	GOUTPUT( ArrayofVector_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -679,12 +679,12 @@ void define_md_data()
 
 
 
-//=== ARRAYofMATRIX ====================================================
+//=== ArrayofMatrix ====================================================
 
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteAscii"),
-	DESCRIPTION("Writes an ARRAYofMATRIX to an ASCII file.\n"
+	DESCRIPTION("Writes an ArrayofMatrix to an ASCII file.\n"
 		    "The filename can also be an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "The format is as follows:\n\n"
@@ -708,20 +708,20 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofMATRIX_ ),
+	GINPUT( ArrayofMatrix_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadAscii"),
-	DESCRIPTION("Reads an ARRAYofMATRIX from an ASCII file.\n"
+	DESCRIPTION("Reads an ArrayofMatrix from an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofMATRIX_ ),
+	GOUTPUT( ArrayofMatrix_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -735,7 +735,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofMATRIX_ ),
+	GINPUT( ArrayofMatrix_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -747,7 +747,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofMATRIX_ ),
+	GOUTPUT( ArrayofMatrix_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -821,7 +821,7 @@ void define_md_data()
 	TYPES(    string_t   )));
 
 
-//=== ARRAYofSTRING =========================================================
+//=== ArrayofSTRING =========================================================
 
   md_data.push_back
     ( MdRecord
@@ -830,10 +830,10 @@ void define_md_data()
                     "The format is text = [\"string1\",\"string2\",...]"),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofstring_ ),
+	GOUTPUT( Arrayofstring_ ),
 	GINPUT(),
 	KEYWORDS( "text"         ),
-	TYPES(    ARRAY_string_t )));
+	TYPES(    Array_string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -855,7 +855,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofstring_ ),
+	GINPUT( Arrayofstring_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -868,7 +868,7 @@ void define_md_data()
 		    "See `ArrayOfStringWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofstring_ ),
+	GOUTPUT( Arrayofstring_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -882,7 +882,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( ARRAYofstring_ ),
+	GINPUT( Arrayofstring_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -894,7 +894,7 @@ void define_md_data()
 		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( ARRAYofstring_ ),
+	GOUTPUT( Arrayofstring_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -1083,7 +1083,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
-	TYPES(    ARRAY_string_t, ARRAY_string_t, VECTOR_t, VECTOR_t)));
+	TYPES(    Array_string_t, Array_string_t, Vector_t, Vector_t)));
 
   md_data.push_back
     ( MdRecord
@@ -1281,7 +1281,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "tags" ),
-	TYPES(    ARRAY_string_t   )));
+	TYPES(    Array_string_t   )));
 
   md_data.push_back
     ( MdRecord
@@ -1324,7 +1324,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(  "shape",           "normalizationfactor",    "cutoff" ),
-	TYPES(   ARRAY_string_t,         ARRAY_string_t,        VECTOR_t )));
+	TYPES(   Array_string_t,         Array_string_t,        Vector_t )));
 
 
 //=== Continuum methods ============================================
@@ -1337,7 +1337,7 @@ void define_md_data()
 	  "`cont_description_names' and `cont_description_parameters'.\n"  
 	  "\n"
 	  "This method does not really do anything, except setting the two\n"
-	  "variables to empty ARRAYs. It is just necessary\n"
+	  "variables to empty Arrays. It is just necessary\n"
 	  "because the method `cont_descriptionAppend' wants to append to the\n"
 	  "variables.\n"
 	  "\n"
@@ -1363,7 +1363,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "name",   "parameters" ),
-	TYPES(    string_t, VECTOR_t     )));
+	TYPES(    string_t, Vector_t     )));
 
 
 //=== Input Atmosphere methods ===========================================
@@ -1381,7 +1381,7 @@ void define_md_data()
         GOUTPUT(                       ),
         GINPUT(                        ),
         KEYWORDS( "seltags",       "filenames",    "basename"),
-        TYPES(    ARRAY_string_t,  ARRAY_string_t, string_t)));
+        TYPES(    Array_string_t,  Array_string_t, string_t)));
 
   md_data.push_back
     ( MdRecord
@@ -1567,7 +1567,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "scaltgs", "scalfac"),
-	TYPES( ARRAY_string_t, VECTOR_t)));
+	TYPES( Array_string_t, Vector_t)));
 
 
 //=== 1D absorption methods ===============================================
@@ -1735,7 +1735,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, refr_, refr_index_, r_geoid_,
                z_ground_ ),
-	GOUTPUT(VECTOR_ ),
+	GOUTPUT(Vector_ ),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
@@ -1760,10 +1760,10 @@ void define_md_data()
 	OUTPUT(),
 	INPUT( z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, refr_index_, r_geoid_,
                z_ground_ ),
-	GOUTPUT(VECTOR_ ),
+	GOUTPUT(Vector_ ),
 	GINPUT(),
 	KEYWORDS("delta_t","z_tan_lim"),
-	TYPES(   Numeric_t, VECTOR_t )));
+	TYPES(   Numeric_t, Vector_t )));
 
   md_data.push_back
     ( MdRecord
@@ -2012,8 +2012,8 @@ void define_md_data()
 		    "be used on ybatch or on k-matrices."),
 	OUTPUT(),
 	INPUT(   f_sensor_, za_sensor_ ),
-	GOUTPUT( MATRIX_ ),
-	GINPUT(  MATRIX_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT(  Matrix_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -2026,8 +2026,8 @@ void define_md_data()
 		    "be used on ybatch or on k-matrices."),
 	OUTPUT(),
 	INPUT(   f_sensor_, za_sensor_ ),
-	GOUTPUT( MATRIX_ ),
-	GINPUT(  MATRIX_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT(  Matrix_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -2072,7 +2072,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "wfs_tgs" ),
-	TYPES(    ARRAY_string_t   )));
+	TYPES(    Array_string_t   )));
 
   md_data.push_back
     ( MdRecord
@@ -2270,7 +2270,7 @@ void define_md_data()
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( y_ ),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -2410,7 +2410,7 @@ void define_md_data()
 	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "ni",  "nx"  ),
 	TYPES(    int_t, int_t )));
 
@@ -2430,7 +2430,7 @@ void define_md_data()
 	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "ni",  "nx"  ),
 	TYPES(    int_t, int_t )));
 
@@ -2482,7 +2482,7 @@ void define_md_data()
            "     p_stop    : stopping pressure."  ),
 	OUTPUT(),
 	INPUT( p_abs_, z_abs_ ),
-	GOUTPUT(VECTOR_ ),
+	GOUTPUT(Vector_ ),
 	GINPUT(),
 	KEYWORDS("delta_z","p_start","p_stop"),
 	TYPES(   Numeric_t, Numeric_t, Numeric_t )));
@@ -2501,8 +2501,8 @@ void define_md_data()
           "Applies a H matrix on a vector."),
 	OUTPUT(),
         INPUT(),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( Hmatrix_, VECTOR_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Hmatrix_, Vector_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -2513,8 +2513,8 @@ void define_md_data()
           "Applies a H matrix on a matrix."),
 	OUTPUT(),
         INPUT(),
-	GOUTPUT( MATRIX_ ),
-	GINPUT( Hmatrix_, MATRIX_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Hmatrix_, Matrix_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -2552,7 +2552,7 @@ void define_md_data()
 	OUTPUT( s_ ),
         INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "stddev"  ),
 	TYPES(    Numeric_t )));
 
@@ -2573,7 +2573,7 @@ void define_md_data()
 	OUTPUT( s_ ),
         INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_, VECTOR_ ),
+	GINPUT( Vector_, Vector_ ),
 	KEYWORDS( "stddev"  ),
 	TYPES(    Numeric_t )));
 
@@ -2626,7 +2626,7 @@ void define_md_data()
 	OUTPUT( s_ ),
         INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "stddev",  "corrfun", "cutoff",  "corrlength" ),
 	TYPES(    Numeric_t, int_t,     Numeric_t, Numeric_t  )));
 
@@ -2661,7 +2661,7 @@ void define_md_data()
 	OUTPUT( s_ ),
         INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_, VECTOR_ ),
+	GINPUT( Vector_, Vector_ ),
 	KEYWORDS( "stddev",  "corrfun", "cutoff",  "corrlength" ),
 	TYPES(    Numeric_t, int_t,  Numeric_t, Numeric_t  )));
 
@@ -2675,7 +2675,7 @@ void define_md_data()
           "Only the ASCII files are allowed.\n"
           "The covaraince matrix can be constructed as a sum of an arbitrary\n"
           "number of covariance matrices.\n"
-          "The definition data shall be stored as a ARRAYofMATRIX.\n"
+          "The definition data shall be stored as a ArrayofMatrix.\n"
           "The first row of the first matrix gives the correlation function\n"
           "flag for each covariance matrix. See sSimple.\n"
           "The second row of the first matrix gives the correlation cut-off\n"
@@ -2707,7 +2707,7 @@ void define_md_data()
 	OUTPUT( s_ ),
         INPUT(),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
@@ -2781,7 +2781,7 @@ void define_md_data()
           "also be given. The random data is uncorrelated."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS( "low",     "high",    "n" ),
 	TYPES(    Numeric_t, Numeric_t, int_t )));
@@ -2795,7 +2795,7 @@ void define_md_data()
           "also be given. The random data is uncorrelated."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( VECTOR_ ),
+	GOUTPUT( Vector_ ),
 	GINPUT(),
 	KEYWORDS( "stddev",  "n" ),
 	TYPES(    Numeric_t, int_t )));
@@ -2824,7 +2824,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT( batchname_ ),
 	GOUTPUT(),
-	GINPUT( VECTOR_, VECTOR_ ),
+	GINPUT( Vector_, Vector_ ),
 	KEYWORDS( "n", "stddev" ),
 	TYPES(    int_t, Numeric_t )));
 
@@ -2917,7 +2917,7 @@ void define_md_data()
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "n",   "do_tags",      "unit"   ),
-	TYPES(    int_t, ARRAY_string_t, string_t    )));
+	TYPES(    int_t, Array_string_t, string_t    )));
 
   md_data.push_back
     ( MdRecord
@@ -2936,7 +2936,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT( batchname_ ),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "n",   "stddev"  ),
 	TYPES(    int_t, Numeric_t )));
 
@@ -2960,7 +2960,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT( batchname_ ),
 	GOUTPUT(),
-	GINPUT( VECTOR_ ),
+	GINPUT( Vector_ ),
 	KEYWORDS( "n",   "low",    "high"     ),
 	TYPES(    int_t, Numeric_t, Numeric_t )));
 
@@ -2997,7 +2997,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT( batchname_ ),
 	GOUTPUT(),
-	GINPUT( VECTOR_, VECTOR_ ),
+	GINPUT( Vector_, Vector_ ),
 	KEYWORDS( "n",   "period", "amplitude", "pdf",    "varname" ),
 	TYPES(    int_t, Numeric_t, Numeric_t,  string_t, string_t  )));
 
@@ -3067,7 +3067,7 @@ void define_md_data()
                  "do_tags", "tag_files",
                  "do_f", "f_file", "do_za", "za_file"),
 	TYPES(   int_t,   int_t,  string_t, int_t,  string_t, 
-                 ARRAY_string_t, ARRAY_string_t,
+                 Array_string_t, Array_string_t,
                  int_t,  string_t, int_t,   string_t  )));
 
 //   md_data.push_back

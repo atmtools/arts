@@ -33,7 +33,7 @@
 
 
 /*! The lookup information for all the different species. */
-ARRAY<SpeciesRecord> species_data;
+Array<SpeciesRecord> species_data;
 
 
 /*! \name Some #defines for better readability */
@@ -135,7 +135,7 @@ void define_species_data()
 
 void define_basic_species_data()
 {
-  extern ARRAY<SpeciesRecord> species_data;
+  extern Array<SpeciesRecord> species_data;
 
   // Initialize to zero, just in case:
   resize(species_data,0);

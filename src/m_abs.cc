@@ -43,7 +43,7 @@
 #include "continua.h"
 
 void linesReadFromHitran(// WS Output:
-                         ARRAYofLineRecord& lines,
+                         ArrayofLineRecord& lines,
                           // Control Parameters:
                          const string& filename,
                          const Numeric& fmin,
@@ -80,7 +80,7 @@ void linesReadFromHitran(// WS Output:
 
 
 void linesReadFromMytran2(// WS Output:
-			  ARRAYofLineRecord& lines,
+			  ArrayofLineRecord& lines,
                           // Control Parameters:
 			  const string& filename,
 			  const Numeric& fmin,
@@ -113,7 +113,7 @@ void linesReadFromMytran2(// WS Output:
 }
 
 void linesReadFromJpl(// WS Output:
-		      ARRAYofLineRecord& lines,
+		      ArrayofLineRecord& lines,
 		      // Control Parameters:
 		      const string& filename,
 		      const Numeric& fmin,
@@ -151,7 +151,7 @@ void linesReadFromJpl(// WS Output:
 
 
 void linesReadFromArts(// WS Output:
-		       ARRAYofLineRecord& lines,
+		       ArrayofLineRecord& lines,
 		       // Control Parameters:
 		       const string& filename,
 		       const Numeric& fmin,
@@ -221,7 +221,7 @@ void linesReadFromArts(// WS Output:
 }
 
 void linesElowToJoule(// WS Output:
-		      ARRAYofLineRecord& lines )
+		      ArrayofLineRecord& lines )
 {
   for ( size_t i=0; i<lines.size(); ++i )
     lines[i].melow = wavenumber_to_joule(lines[i].melow); 
@@ -272,14 +272,14 @@ void linesElowToJoule(// WS Output:
   \author Stefan Buehler
   \date 2000-01-19 */
 void lines_per_tgReadFromCatalogues(// WS Output:
-				    ARRAYofARRAYofLineRecord& lines_per_tg,
+				    ArrayofArrayofLineRecord& lines_per_tg,
 				    // WS Input:
 				    const TagGroups& tgs,
                                     // Control Parameters:
-                                    const ARRAY<string>& filenames,
-                                    const ARRAY<string>& formats,
-                                    const VECTOR& fmin,
-                                    const VECTOR& fmax)
+                                    const Array<string>& filenames,
+                                    const Array<string>& formats,
+                                    const Vector& fmin,
+                                    const Vector& fmax)
 {
   const size_t n_tg   = tgs.size();	// # tag groups
   const size_t n_cat = filenames.size();	// # tag Catalogues
@@ -335,12 +335,12 @@ void lines_per_tgReadFromCatalogues(// WS Output:
   // real catalogues, along with an data structure that tells us which
   // tag groups should use this catalogue.
 
-  ARRAY< string > real_filenames ( 1, filenames[0]    );
-  ARRAY< string > real_formats   ( 1, formats[0]      );
-  VECTOR real_fmin               ( 1, fmin[0]         );
-  VECTOR real_fmax               ( 1, fmax[0]         );
+  Array< string > real_filenames ( 1, filenames[0]    );
+  Array< string > real_formats   ( 1, formats[0]      );
+  Vector real_fmin               ( 1, fmin[0]         );
+  Vector real_fmax               ( 1, fmax[0]         );
 
-  ARRAY< ARRAY <size_t> > real_tgs( 1, make_array<size_t>(0) );
+  Array< Array <size_t> > real_tgs( 1, make_array<size_t>(0) );
 
   // The last specified catalogue, to which we should assign all
   // remaining lines. Index of this one in real_ arrays.
@@ -421,7 +421,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
   // Loop through the catalogues to read:
   for ( size_t i=0; i<n_real_cat; ++i )
     {
-      ARRAYofLineRecord   lines;
+      ArrayofLineRecord   lines;
 
       // Read catalogue:
 
@@ -459,7 +459,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	}
 
       // Create these_lines_per_tg:
-      ARRAYofARRAYofLineRecord these_lines_per_tg;
+      ArrayofArrayofLineRecord these_lines_per_tg;
       lines_per_tgCreateFromLines( these_lines_per_tg, lines, these_tgs );
 
       // Put these lines in the right place in lines_per_tg:
@@ -472,33 +472,33 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
 
 void lines_per_tgCreateFromLines(// WS Output:
-                                  ARRAYofARRAYofLineRecord& lines_per_tg,
+                                  ArrayofArrayofLineRecord& lines_per_tg,
                                   // WS Input:
-                                  const ARRAYofLineRecord&   lines,
+                                  const ArrayofLineRecord&   lines,
                                   const TagGroups&           tgs)
 {
   // The species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // As a safety feature, we will watch out for the case that a
   // species is included in the calculation, but not all lines are
   // used. For this we need an array to flag the used species:
   
-  // For some weird reason, ARRAYs of bool do not work, although all
+  // For some weird reason, Arrays of bool do not work, although all
   // other types seem to work fine. So in this single case, I'll use
   // the stl vector directly. The other place where this is done is in
   // the function executor in main.cc.
-  // FIXME: Fix this when ARRAY<bool> works.
+  // FIXME: Fix this when Array<bool> works.
   std::vector<bool> species_used (species_data.size(),false);
       
   // Make lines_per_tg the right size:
-  lines_per_tg = ARRAYofARRAYofLineRecord(tgs.size());
+  lines_per_tg = ArrayofArrayofLineRecord(tgs.size());
 
   // Unfortunately, MTL conatains a bug that leads to all elements of
-  // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
+  // the outer Array of an Array<Array>> pointing to the same data
   // after creation. So we need to fix this explicitly:
   for ( size_t i=0; i<lines_per_tg.size(); ++i )
-    lines_per_tg[i] = ARRAYofLineRecord();
+    lines_per_tg[i] = ArrayofLineRecord();
 
   // Loop all lines in the input line list:
   for ( size_t i=0; i<lines.size(); ++i )
@@ -617,7 +617,7 @@ void lines_per_tgCreateFromLines(// WS Output:
     
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgAddMirrorLines(// WS Output:
-                                ARRAYofARRAYofLineRecord& lines_per_tg)
+                                ArrayofArrayofLineRecord& lines_per_tg)
 {
   // We will simply append the mirror lines after the original
   // lines. This way we don't have to make a backup copy of the
@@ -626,7 +626,7 @@ void lines_per_tgAddMirrorLines(// WS Output:
   for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {
       // Get a reference to the current list of lines to save typing:
-      ARRAYofLineRecord& ll = lines_per_tg[i];
+      ArrayofLineRecord& ll = lines_per_tg[i];
       
       // For increased efficiency, reserve the necessary space:
       ll.reserve(2*ll.size());
@@ -661,10 +661,10 @@ void lines_per_tgAddMirrorLines(// WS Output:
 
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgCompact(// WS Output:
-			 ARRAYofARRAYofLineRecord& lines_per_tg,
+			 ArrayofArrayofLineRecord& lines_per_tg,
 			 // WS Input:
-			 const ARRAYofLineshapeSpec& lineshape,
-			 const VECTOR& f_mono)
+			 const ArrayofLineshapeSpec& lineshape,
+			 const Vector& f_mono)
 {
 
   // Make sure lines_per_tg and lineshape have the same dimension:
@@ -677,7 +677,7 @@ void lines_per_tgCompact(// WS Output:
     }
   
   // Make sure that the frequency grid is properly sorted:
-  for ( INDEX s=0; s<f_mono.size()-1; ++s )
+  for ( Index s=0; s<f_mono.size()-1; ++s )
     {
       if ( f_mono[s+1] <= f_mono[s] )
 	{
@@ -690,7 +690,7 @@ void lines_per_tgCompact(// WS Output:
     }
 
   // Cycle through all tag groups:
-  for ( INDEX i=0; i<lines_per_tg.size(); ++i )
+  for ( Index i=0; i<lines_per_tg.size(); ++i )
     {
       // Get cutoff frequency of this tag group:
       Numeric cutoff = lineshape[i].Cutoff();
@@ -699,14 +699,14 @@ void lines_per_tgCompact(// WS Output:
       if ( cutoff != -1)
 	{
 	  // Get a reference to the current list of lines to save typing:
-	  ARRAYofLineRecord& ll = lines_per_tg[i];
+	  ArrayofLineRecord& ll = lines_per_tg[i];
 
 	  // Calculate the borders:
 	  Numeric upp = f_mono[f_mono.size()-1] + cutoff;
 	  Numeric low = f_mono[0] - cutoff;
 
 	  // Cycle through all lines within this tag group. 
-	  for ( ARRAYofLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
+	  for ( ArrayofLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
 	    {
 	      // Center frequency:
 	      const Numeric F0 = j->F();
@@ -726,7 +726,7 @@ void lines_per_tgCompact(// WS Output:
 
 
 void linesWriteAscii(// WS Input:
-		      const ARRAYofLineRecord& lines,
+		      const ArrayofLineRecord& lines,
 		      // Control Parameters:
 		      const string& f)
 {
@@ -749,7 +749,7 @@ void linesWriteAscii(// WS Input:
 
 
 void lines_per_tgWriteAscii(// WS Input:
-			      const ARRAYofARRAYofLineRecord& lines_per_tg,
+			      const ArrayofArrayofLineRecord& lines_per_tg,
 			      // Control Parameters:
 			      const string& f)
 {
@@ -771,7 +771,7 @@ void lines_per_tgWriteAscii(// WS Input:
 
   for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {
-      const ARRAYofLineRecord& lines = lines_per_tg[i];
+      const ArrayofLineRecord& lines = lines_per_tg[i];
       write_lines_to_stream( os, lines );
     }
 }
@@ -780,7 +780,7 @@ void lines_per_tgWriteAscii(// WS Input:
 void tgsDefine(// WS Output:
 	       TagGroups& tgs,
 	       // Control Parameters:
-	       const ARRAYofstring& tags)
+	       const Arrayofstring& tags)
 {
   tgs = TagGroups(tags.size());
 
@@ -792,7 +792,7 @@ void tgsDefine(// WS Output:
     {
       // There can be a comma separated list of tag definitions, so we
       // need to break the string apart at the commas.
-      ARRAY<string> tag_def;
+      Array<string> tag_def;
 
       bool go_on = true;
       string these_tags = tags[i];
@@ -818,9 +818,9 @@ void tgsDefine(// WS Output:
 
 
       // Unfortunately, MTL conatains a bug that leads to all elements of
-      // the outer ARRAY of an ARRAY<ARRAY>> pointing to the same data
+      // the outer Array of an Array<Array>> pointing to the same data
       // after creation. So we need to fix this explicitly:
-      tgs[i] = ARRAY<OneTag>();
+      tgs[i] = Array<OneTag>();
 
       for ( size_t s=0; s<tag_def.size(); ++s )
 	{
@@ -857,7 +857,7 @@ void tgsDefine(// WS Output:
 
 
 void lineshapeDefine(// WS Output:
-		     ARRAYofLineshapeSpec&    lineshape,
+		     ArrayofLineshapeSpec&    lineshape,
 		     // WS Input:
 		     const TagGroups&         tgs,
 		     const string&            shape,
@@ -865,8 +865,8 @@ void lineshapeDefine(// WS Output:
 		     const Numeric&           cutoff)
 {
   // Make lineshape and normalization factor data visible:
-  extern const ARRAY<LineshapeRecord> lineshape_data;
-  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
+  extern const Array<LineshapeRecord> lineshape_data;
+  extern const Array<LineshapeNormRecord> lineshape_norm_data;
 
 
   // generate the right number of elements
@@ -919,16 +919,16 @@ void lineshapeDefine(// WS Output:
 }
 
 void lineshape_per_tgDefine(// WS Output:
-			    ARRAYofLineshapeSpec& lineshape,
+			    ArrayofLineshapeSpec& lineshape,
 			    // WS Input:
 			    const TagGroups&      tgs,
-			    const ARRAYofstring&  shape,
-			    const ARRAYofstring&  normalizationfactor,
-			    const VECTOR&         cutoff )
+			    const Arrayofstring&  shape,
+			    const Arrayofstring&  normalizationfactor,
+			    const Vector&         cutoff )
 {
   // Make lineshape and normalization factor data visible:
-  extern const ARRAY<LineshapeRecord> lineshape_data;
-  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
+  extern const Array<LineshapeRecord> lineshape_data;
+  extern const Array<LineshapeNormRecord> lineshape_norm_data;
 
   // check that the number of elements are equal
   size_t tg_sz = tgs.size();
@@ -1005,14 +1005,14 @@ void lineshape_per_tgDefine(// WS Output:
 
 
 void raw_vmrs_1dReadFromScenario(// WS Output:
-                                 ARRAYofMATRIX&   raw_vmrs_1d,
+                                 ArrayofMatrix&   raw_vmrs_1d,
                                  // WS Input:
                                  const TagGroups&     tgs,
                                  // Control Parameters:
                                  const string&    basename)
 {
   // The species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // We need to read one profile for each tag group.
   for ( size_t i=0; i<tgs.size(); ++i )
@@ -1023,7 +1023,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
 	species_data[tgs[i][0].Species()].Name() + ".am";
       
       // Add an element for this tag group to the vmr profiles:
-      raw_vmrs_1d.push_back(MATRIX());
+      raw_vmrs_1d.push_back(Matrix());
       
       // Read the VMR:
       // (We use the workspace method MatrixReadAscii for this.)
@@ -1048,16 +1048,16 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
    \date 2001-08-02
  */ 
 void raw_vmrs_1dReadFromFiles(// WS Output:
-			      ARRAYofMATRIX&   raw_vmrs_1d,
+			      ArrayofMatrix&   raw_vmrs_1d,
 			      // WS Input:
 			      const TagGroups& tgs,
 			      // Control Parameters:
-			      const ARRAYofstring&  seltags,
-			      const ARRAYofstring&  filenames,
+			      const Arrayofstring&  seltags,
+			      const Arrayofstring&  filenames,
 			      const string&         basename)
 {
   // The species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
   //int isoflag = 0;  // wilde card set for isotope -> all isotopes
   const string wildcard = "*";
 
@@ -1112,7 +1112,7 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 		  
 		  string fname = filenames[s];
 		  // Add an element for this tag group to the vmr profiles:
-		  raw_vmrs_1d.push_back(MATRIX());
+		  raw_vmrs_1d.push_back(Matrix());
 		  
 		  // Read the VMR:
 		  // (We use the workspace method MatrixReadAscii for this.)
@@ -1129,7 +1129,7 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
 	  // Determine the name.
 	  string aname = basename + "." + tname + ".am";
 	  // Add an element for this tag group to the vmr profiles:
-	  raw_vmrs_1d.push_back(MATRIX());
+	  raw_vmrs_1d.push_back(Matrix());
 	  
 	  // Read the VMR:
 	  // (We use the workspace method MatrixReadAscii for this.)
@@ -1155,15 +1155,15 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
    \author Thomas Kuhn
    \date 2001-08-02
  */ 
-size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
-		      const VECTOR&     t_abs, // constant
-		      const VECTOR&     p_abs, // constant
+size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
+		      const Vector&     t_abs, // constant
+		      const Vector&     p_abs, // constant
 		      const TagGroups&  tgs  ) // constant
 {
 
 
   // The species lookup data
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
   // cloud tag numbers:
   size_t liquid_index = 1+tgs.size();
   size_t ice_index    = 1+tgs.size();
@@ -1252,13 +1252,13 @@ size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
 } // end of WVsatinClouds --------------------------------------------------------------------
 
 // void Atm2dFromRaw1D(// WS Output:
-//                     ARRAYofVECTOR& 	 t_abs_2d,
-//                     ARRAYofVECTOR& 	 z_abs_2d,
-//                     ARRAYofMATRIX& 	 vmrs_2d,
+//                     ArrayofVector& 	 t_abs_2d,
+//                     ArrayofVector& 	 z_abs_2d,
+//                     ArrayofMatrix& 	 vmrs_2d,
 //                     // WS Input:      
-//                     const VECTOR&  	 p_abs,
-//                     const MATRIX&  	 raw_ptz_1d,
-//                     const ARRAYofMATRIX& raw_vmrs_1d)
+//                     const Vector&  	 p_abs,
+//                     const Matrix&  	 raw_ptz_1d,
+//                     const ArrayofMatrix& raw_vmrs_1d)
 // {
 //   // FIXME: This function is terrible! Make this better using MTL functionality.
 //   // Does this function work at all? Has it ever been used? I think this is garbage. 
@@ -1293,26 +1293,26 @@ size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
 //     // more efficient.
 
 //     // p_raw is column 1:
-//     VECTOR p_raw;
+//     Vector p_raw;
 //     col( p_raw, 1, raw_ptz_1d );
 
 //     // tz_raw is column 2-3:
-//     MATRIX tz_raw;
+//     Matrix tz_raw;
 //     col( tz_raw, 2, 3, raw_ptz_1d );
 
 //     // Now interpolate tz_raw to p_abs grid:
-//     MATRIX tz_intp( p_abs.size(), tz_raw.ncols() );
+//     Matrix tz_intp( p_abs.size(), tz_raw.ncols() );
 //     interp_lin_col( tz_intp,
 // 		    p_raw, tz_raw, p_abs );
 
 //     // Extract t_abs_2d:
 //     resize(t_abs_2d,0);
-//     t_abs_2d.push_back(VECTOR());
+//     t_abs_2d.push_back(Vector());
 //     col( t_abs_2d[0], 1, tz_intp );
 
 //     // Extract z_abs_2d:
 //     resize(z_abs_2d,0);
-//     z_abs_2d.push_back(VECTOR());
+//     z_abs_2d.push_back(Vector());
 //     col( z_abs_2d[0], 2, tz_intp );
 //   }
 
@@ -1323,10 +1323,10 @@ size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
 
 //     // Get room for our results:
 //     resize(vmrs_2d,0);
-//     vmrs_2d.push_back(MATRIX());
+//     vmrs_2d.push_back(Matrix());
   
 //     // Get a convenient reference:
-//     MATRIX& intp = vmrs_2d[0];
+//     Matrix& intp = vmrs_2d[0];
 
 //     // Set dimensions.
 //     // The first dimension is the number of profiles (= the number of
@@ -1338,7 +1338,7 @@ size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
 //     for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
 //       {
 // 	// Get a reference to the profile we are concerned with
-// 	const MATRIX& raw = raw_vmrs_1d[j];
+// 	const Matrix& raw = raw_vmrs_1d[j];
 
 // 	// Raw should be a matrix with dimension [x,2], the first column
 // 	// is the raw pressure grid, the second column the VMR values.
@@ -1364,14 +1364,14 @@ size_t WVsatinClouds( ARRAYofVECTOR&    vmrs,  // manipulates this array
 // }
 
 void AtmFromRaw1D(// WS Output:
-		  VECTOR& 	 t_abs,
-		  VECTOR& 	 z_abs,
-		  ARRAYofVECTOR& vmrs,
+		  Vector& 	 t_abs,
+		  Vector& 	 z_abs,
+		  ArrayofVector& vmrs,
 		  // WS Input:      
 		  const TagGroups&       tgs,
-		  const VECTOR&  	 p_abs,
-		  const MATRIX&  	 raw_ptz_1d,
-		  const ARRAYofMATRIX&   raw_vmrs_1d,
+		  const Vector&  	 p_abs,
+		  const Matrix&  	 raw_ptz_1d,
+		  const ArrayofMatrix&   raw_vmrs_1d,
 		  // Control Parameters:
 		  const string&          CloudSatWV)
 {
@@ -1396,17 +1396,17 @@ void AtmFromRaw1D(// WS Output:
     // more efficient.
 
     // We need to make temporary copies of things. Unnefficient!
-    // FIXME: Improve this when we have better MATRIX functionality.
+    // FIXME: Improve this when we have better Matrix functionality.
 
     // For the interpolated profiles:
-    MATRIX tz_intp( 2, p_abs.size() );
+    Matrix tz_intp( 2, p_abs.size() );
 
     // The original pressure grid:
-    VECTOR p0( raw_ptz_1d.nrows() );
+    Vector p0( raw_ptz_1d.nrows() );
     copy(columns(raw_ptz_1d)[0],p0);
 
     // The matrix to interpolate:
-    MATRIX tz( 2, raw_ptz_1d.nrows() );
+    Matrix tz( 2, raw_ptz_1d.nrows() );
     copy(trans(raw_ptz_1d.sub_matrix(0,
 				     raw_ptz_1d.nrows(),
 				     1,
@@ -1432,7 +1432,7 @@ void AtmFromRaw1D(// WS Output:
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
     // The species lookup data
-    extern const ARRAY<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
 
     // check size of input string vectors.
     assert ( tgs.size() == raw_vmrs_1d.size() ); 
@@ -1445,7 +1445,7 @@ void AtmFromRaw1D(// WS Output:
       {
 
 	// Get a reference to the profile we are concerned with:
-	const MATRIX& raw = raw_vmrs_1d[j];
+	const Matrix& raw = raw_vmrs_1d[j];
 
 	// Raw should be a matrix with dimension [x,2], the first column
 	// is the raw pressure grid, the second column the VMR values.
@@ -1462,7 +1462,7 @@ void AtmFromRaw1D(// WS Output:
 	  }
 
 	// Split the matrix into pressure and vmr vector:
-	VECTOR p_raw(raw.nrows()), vmr_raw(raw.nrows());
+	Vector p_raw(raw.nrows()), vmr_raw(raw.nrows());
 	copy(columns(raw)[0],p_raw);
 	copy(columns(raw)[1],vmr_raw);
 
@@ -1523,7 +1523,7 @@ void AtmFromRaw1D(// WS Output:
    \date   2001-04-18
 */
 void hseSet(
-          VECTOR&    hse,
+          Vector&    hse,
     const Numeric&   pref,
     const Numeric&   zref,
     const Numeric&   g0,
@@ -1547,9 +1547,9 @@ void hseSet(
    \date   2001-04-18
 */
 void hseFromBottom(
-          VECTOR&    hse,
-    const VECTOR&    p_abs,
-    const VECTOR&    z_abs,
+          Vector&    hse,
+    const Vector&    p_abs,
+    const Vector&    z_abs,
     const Numeric&   g0,
     const int&       niter )
 {
@@ -1565,7 +1565,7 @@ void hseFromBottom(
    \date   2001-04-18
 */
 void hseOff(
-	  VECTOR&    hse )
+	  Vector&    hse )
 {
   resize( hse, 1 );
   hse[0] = 0;
@@ -1583,12 +1583,12 @@ void hseOff(
    \date   2001-04-19
 */
 void hseCalc(
-          VECTOR&    z_abs,
-    const VECTOR&    p_abs,
-    const VECTOR&    t_abs,
-    const VECTOR&    h2o_abs,
+          Vector&    z_abs,
+    const Vector&    p_abs,
+    const Vector&    t_abs,
+    const Vector&    h2o_abs,
     const Numeric&   r_geoid,   
-    const VECTOR&    hse )
+    const Vector&    hse )
 {
   if ( !isbool( int(hse[0]) ) )  
     throw runtime_error(
@@ -1606,13 +1606,13 @@ void hseCalc(
 	  Numeric  r;                     // water mixing ratio in gram/gram
 	  Numeric  tv;                    // virtual temperature
 	  Numeric  dz;                    // step geometrical altitude
-	  VECTOR   ztmp(np);              // temporary storage for z_abs
+	  Vector   ztmp(np);              // temporary storage for z_abs
   
     // Pick out values from hse
     const Numeric   pref  = hse[1];
     const Numeric   zref  = hse[2];
     const Numeric   g0    = hse[3];
-    const INDEX     niter = INDEX( hse[4] );
+    const Index     niter = Index( hse[4] );
   
     if ( (z_abs.size()!=np) || (t_abs.size()!=np) || (h2o_abs.size()!=np) )
       throw runtime_error(
@@ -1620,7 +1620,7 @@ void hseCalc(
     if ( niter < 1 )
       throw runtime_error("The number of iterations must be > 0.");
   
-    for ( INDEX iter=0; iter<niter; iter++ )
+    for ( Index iter=0; iter<niter; iter++ )
     {
       // Init ztmp
       ztmp[0] = z_abs[0];
@@ -1660,15 +1660,15 @@ void hseCalc(
    \date   2001-01-18
 */
 void h2o_absSet(
-              VECTOR&          h2o_abs,
+              Vector&          h2o_abs,
         const TagGroups&       tgs,
-        const ARRAYofVECTOR&   vmrs )
+        const ArrayofVector&   vmrs )
 {
-  const INDEX   n = tgs.size();
+  const Index   n = tgs.size();
   int   found = -1;
   string  s;
 
-  for( INDEX i=0; i<n && found<0; i++ ) 
+  for( Index i=0; i<n && found<0; i++ ) 
   {
     s = tgs[i][0].Name();
     
@@ -1693,20 +1693,20 @@ void h2o_absSet(
    \date   2001-08-14
 */
 void vmrsScale(
-        ARRAYofVECTOR&         vmrs,
+        ArrayofVector&         vmrs,
         const TagGroups&       tgs,
-        const ARRAY<string>&   scaltgs,
-        const VECTOR&          scalfac)
+        const Array<string>&   scaltgs,
+        const Vector&          scalfac)
 {
-  INDEX                            itag;
-  ARRAYofsizet                     tagindex;      
+  Index                            itag;
+  Arrayofsizet                     tagindex;      
 
   if ( scalfac.size() != scaltgs.size()  )
     throw runtime_error("vmrScale: Number of tgs and fac are different!");
   
   get_tagindex_for_strings( tagindex, tgs, scaltgs );
 
-  const INDEX   n = tagindex.size();
+  const Index   n = tagindex.size();
 
   for ( itag=0; itag<n; itag++ )
     {
@@ -1731,15 +1731,15 @@ void vmrsScale(
    \date   2001-01-18
 */
 void n2_absSet(
-	       VECTOR&          n2_abs,
+	       Vector&          n2_abs,
          const TagGroups&       tgs,
-         const ARRAYofVECTOR&   vmrs )
+         const ArrayofVector&   vmrs )
 {
-  const INDEX   n = tgs.size();
+  const Index   n = tgs.size();
   int     found = -1;
   string  s;
 
-  for( INDEX i=0; i<n && found<0; i++ ) 
+  for( Index i=0; i<n && found<0; i++ ) 
   {
     s = tgs[i][0].Name();
     
@@ -1783,25 +1783,25 @@ void n2_absSet(
    \date 2001-03-13
  */
 void absCalc(// WS Output:
-             MATRIX&        		     abs,
-             ARRAYofMATRIX& 		     abs_per_tg,
+             Matrix&        		     abs,
+             ArrayofMatrix& 		     abs_per_tg,
              // WS Input:		  
 	     const TagGroups&                tgs,
-             const VECTOR&  		     f_mono,
-             const VECTOR&  		     p_abs,
-             const VECTOR&  		     t_abs,
-	     const VECTOR&  		     n2_abs,
-	     const VECTOR&  		     h2o_abs,
-             const ARRAYofVECTOR&            vmrs,
-             const ARRAYofARRAYofLineRecord& lines_per_tg,
-	     const ARRAYofLineshapeSpec&     lineshape,
-	     const ARRAYofstring&            cont_description_names,
-	     const ARRAYofVECTOR& 	     cont_description_parameters)
+             const Vector&  		     f_mono,
+             const Vector&  		     p_abs,
+             const Vector&  		     t_abs,
+	     const Vector&  		     n2_abs,
+	     const Vector&  		     h2o_abs,
+             const ArrayofVector&            vmrs,
+             const ArrayofArrayofLineRecord& lines_per_tg,
+	     const ArrayofLineshapeSpec&     lineshape,
+	     const Arrayofstring&            cont_description_names,
+	     const ArrayofVector& 	     cont_description_parameters)
 {
   // Dimension checks are performed in the executed functions
 
   // allocate local variable to hold the cross sections per tag group
-  ARRAYofMATRIX xsec_per_tg;
+  ArrayofMatrix xsec_per_tg;
 
   xsec_per_tgInit( xsec_per_tg, tgs, f_mono, p_abs );
 
@@ -1850,14 +1850,14 @@ void absCalc(// WS Output:
    \date   2001-01-11
 */
 void absCalcFromXsec(// WS Output:
-		     MATRIX&        		     abs,
-		     ARRAYofMATRIX& 		     abs_per_tg,
+		     Matrix&        		     abs,
+		     ArrayofMatrix& 		     abs_per_tg,
 		     // WS Input:		  
-		     const ARRAYofMATRIX&            xsec_per_tg,
-		     const ARRAYofVECTOR&            vmrs)
+		     const ArrayofMatrix&            xsec_per_tg,
+		     const ArrayofVector&            vmrs)
 {
   // Check that vmrs and xsec_per_tg really have compatible
-  // dimensions. In vmrs there should be one VECTOR for each tg:
+  // dimensions. In vmrs there should be one Vector for each tg:
   if ( vmrs.size() != xsec_per_tg.size() )
     {
       ostringstream os;
@@ -1889,7 +1889,7 @@ void absCalcFromXsec(// WS Output:
   out2 << "  Computing abs and abs_per_tg from xsec_per_tg.\n";
 
   // Loop through all tag groups
-  for ( INDEX i=0; i<xsec_per_tg.size(); ++i )
+  for ( Index i=0; i<xsec_per_tg.size(); ++i )
     {
       out2 << "  Tag group " << i << '\n';
 
@@ -1898,11 +1898,11 @@ void absCalcFromXsec(// WS Output:
       setto( abs_per_tg[i], 0 );
 
       // Loop through all altitudes
-      for ( INDEX j=0; j<xsec_per_tg[i].ncols(); j++)
+      for ( Index j=0; j<xsec_per_tg[i].ncols(); j++)
 	{
 
 	  // Loop through all frequencies
-	  for ( INDEX k=0; k<xsec_per_tg[i].nrows(); k++)
+	  for ( Index k=0; k<xsec_per_tg[i].nrows(); k++)
 	    {
 	      abs_per_tg[i][k][j] = xsec_per_tg[i][k][j] * vmrs[i][j];
 	    }
@@ -1928,11 +1928,11 @@ void absCalcFromXsec(// WS Output:
    \date   2001-03-12
 */
 void xsec_per_tgInit(// WS Output:
-		     ARRAYofMATRIX&   xsec_per_tg,
+		     ArrayofMatrix&   xsec_per_tg,
 		     // WS Input:
 		     const TagGroups& tgs,
-		     const VECTOR&    f_mono,
-		     const VECTOR&    p_abs
+		     const Vector&    f_mono,
+		     const Vector&    p_abs
 		     )
 {
   // Initialize xsec_per_tg. The array dimension of xsec_per_tg
@@ -1971,16 +1971,16 @@ void xsec_per_tgInit(// WS Output:
    \date   2001-01-11
 */
 void xsec_per_tgAddLines(// WS Output:
-			 ARRAYofMATRIX& 		  xsec_per_tg,
+			 ArrayofMatrix& 		  xsec_per_tg,
 			 // WS Input:		  
 			 const TagGroups&                 tgs,
-			 const VECTOR&  		  f_mono,
-			 const VECTOR&  		  p_abs,
-			 const VECTOR&  		  t_abs,
-			 const VECTOR&  		  h2o_abs,
-			 const ARRAYofVECTOR&             vmrs,
-			 const ARRAYofARRAYofLineRecord&  lines_per_tg,
-			 const ARRAYofLineshapeSpec&      lineshape)
+			 const Vector&  		  f_mono,
+			 const Vector&  		  p_abs,
+			 const Vector&  		  t_abs,
+			 const Vector&  		  h2o_abs,
+			 const ArrayofVector&             vmrs,
+			 const ArrayofArrayofLineRecord&  lines_per_tg,
+			 const ArrayofLineshapeSpec&      lineshape)
 {
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -2048,7 +2048,7 @@ void xsec_per_tgAddLines(// WS Output:
       // Get a pointer to the line list for the current species. This
       // is just so that we don't have to type lines_per_tg[i] over
       // and over again.
-      const ARRAYofLineRecord& ll = lines_per_tg[i];
+      const ArrayofLineRecord& ll = lines_per_tg[i];
 
       // Also get a pointer to the lineshape specification:
       const LineshapeSpec& ls = lineshape[i];
@@ -2062,7 +2062,7 @@ void xsec_per_tgAddLines(// WS Output:
 	  // it is for us more convenient to get the species index
 	  // from the LineRecord member function Species(), and then
 	  // use this to look up the species name in species_data.
-	  extern const ARRAY<SpeciesRecord> species_data;
+	  extern const Array<SpeciesRecord> species_data;
 	  string species_name = species_data[ll[0].Species()].Name();
 
 	  // Get the name of the lineshape. For that we use the member
@@ -2070,7 +2070,7 @@ void xsec_per_tgAddLines(// WS Output:
 	  // an index. With that index we can go into lineshape_data
 	  // to get the name.
 	  // We will need this for safety checks later on.
-	  extern const ARRAY<LineshapeRecord> lineshape_data;
+	  extern const Array<LineshapeRecord> lineshape_data;
 	  string lineshape_name = lineshape_data[ls.Ind_ls()].Name();
 
 
@@ -2181,17 +2181,17 @@ void xsec_per_tgAddLines(// WS Output:
    \date   2001-03-12
 */
 void xsec_per_tgAddConts(// WS Output:
-			 ARRAYofMATRIX& 		  xsec_per_tg,
+			 ArrayofMatrix& 		  xsec_per_tg,
 			 // WS Input:		  
 			 const TagGroups&                 tgs,
-			 const VECTOR&  		  f_mono,
-			 const VECTOR&  		  p_abs,
-			 const VECTOR&  		  t_abs,
-			 const VECTOR&  		  n2_abs,
-			 const VECTOR&  		  h2o_abs,
-			 const ARRAYofVECTOR&             vmrs,
-                         const ARRAYofstring&             cont_description_names,
-                         const ARRAYofVECTOR& 		  cont_description_parameters )
+			 const Vector&  		  f_mono,
+			 const Vector&  		  p_abs,
+			 const Vector&  		  t_abs,
+			 const Vector&  		  n2_abs,
+			 const Vector&  		  h2o_abs,
+			 const ArrayofVector&             vmrs,
+                         const Arrayofstring&             cont_description_names,
+                         const ArrayofVector& 		  cont_description_parameters )
 {
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -2234,7 +2234,7 @@ void xsec_per_tgAddConts(// WS Output:
   // Loop tag groups:
   for ( size_t i=0; i<tgs.size(); ++i )
     {
-      extern const ARRAY<SpeciesRecord> species_data; 
+      extern const Array<SpeciesRecord> species_data; 
 
       // Go through the tags in the current tag group to see if they
       // are continuum tags:  
@@ -2339,7 +2339,7 @@ void xsec_per_tgAddConts(// WS Output:
 
     \author Axel von Engeln and Stefan Buehler */
 void abs_per_tgReduce(// WS Output:
-                      ARRAYofMATRIX&         abs_per_tg,
+                      ArrayofMatrix&         abs_per_tg,
                       // WS Input:
                       const TagGroups&       tgs,
                       const TagGroups&       wfs_tgs)
@@ -2356,7 +2356,7 @@ void abs_per_tgReduce(// WS Output:
   // behind the erased one are copied in order to fill the
   // gap. Therefore, we will construct a new abs_per_tg, and finally
   // use it to replace the old one.
-  ARRAYofMATRIX abs_per_tg_out( wfs_tgs.size() );
+  ArrayofMatrix abs_per_tg_out( wfs_tgs.size() );
 
   // Go through the weighting function tag groups:
   for ( size_t i=0; i<wfs_tgs.size(); ++i )
@@ -2433,10 +2433,10 @@ void refrOff(
    \date   2001-04-19
 */
 void refrCalc (
-                    VECTOR&   refr_index,
-              const VECTOR&   p_abs,
-              const VECTOR&   t_abs,
-              const VECTOR&   h2o_abs,
+                    Vector&   refr_index,
+              const Vector&   p_abs,
+              const Vector&   t_abs,
+              const Vector&   h2o_abs,
               const int&      refr,
               const string&   refr_model )
 {
@@ -2451,7 +2451,7 @@ void refrCalc (
     if ( refr_model == "Unity" )
     {
       cout << "DOING Unity \n";
-      const INDEX n = p_abs.size();
+      const Index n = p_abs.size();
       resize( refr_index, n );
       setto( refr_index, 1.0 );
     }
@@ -2483,7 +2483,7 @@ void refrCalc (
    `cont_description_names' and `cont_description_parameters'.  
 
    This method does not really do anything, except setting the two
-   variables to empty ARRAYs. It is just necessary because the method
+   variables to empty Arrays. It is just necessary because the method
    `cont_descriptionAppend' wants to append to the variables.
 
    Formally, the continuum description WSVs are required by the
@@ -2495,8 +2495,8 @@ void refrCalc (
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionInit(// WS Output:
-                          ARRAYofstring& names,
-                          ARRAYofVECTOR& parameters)
+                          Arrayofstring& names,
+                          ArrayofVector& parameters)
 {
   resize(names,0);
   resize(parameters,0);
@@ -2515,11 +2515,11 @@ void cont_descriptionInit(// WS Output:
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionAppend(// WS Output:
-		       ARRAYofstring& cont_description_names,
-		       ARRAYofVECTOR& cont_description_parameters,
+		       Arrayofstring& cont_description_names,
+		       ArrayofVector& cont_description_parameters,
 		       // Control Parameters:
 		       const string& name,
-		       const VECTOR& parameters)
+		       const Vector& parameters)
 {
 
   // First we have to check that name matches a continuum species tag.

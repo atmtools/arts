@@ -64,28 +64,28 @@ void open_output_file(ofstream& file, const string& name);
 
 void open_input_file(ifstream& file, const string& name);
 
-void read_text_from_stream(ARRAY<string>& text, istream& is);
+void read_text_from_stream(Array<string>& text, istream& is);
 
-void read_text_from_file(ARRAY<string>& text, const string& name);
+void read_text_from_file(Array<string>& text, const string& name);
 
 void replace_all(string& s, const string& what, const string& with);
 
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   MATRIX/VECTOR IO routines for ASCII files
+//   Matrix/Vector IO routines for ASCII files
 ////////////////////////////////////////////////////////////////////////////
 
 void write_array_of_matrix_to_stream(ostream& os,
-                                     const ARRAYofMATRIX& am);
+                                     const ArrayofMatrix& am);
 
 void write_array_of_matrix_to_file(const string& filename,
-                                   const ARRAYofMATRIX& am);
+                                   const ArrayofMatrix& am);
 
-void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
+void read_array_of_matrix_from_stream(ArrayofMatrix& am,
                                       istream& is);
 
-void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
+void read_array_of_matrix_from_file(ArrayofMatrix& am,
                                     const string& filename);
 
 
@@ -96,18 +96,18 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
 
 void write_array_of_string_to_stream(
               ostream&         os,
-        const ARRAYofstring&   as );
+        const Arrayofstring&   as );
 
 void write_array_of_string_to_file(
         const string&          filename,
-        const ARRAYofstring&   as );
+        const Arrayofstring&   as );
 
 void read_array_of_string_from_stream(
-        ARRAYofstring&   as,
+        Arrayofstring&   as,
         istream&         is );
 
 void read_array_of_string_from_file(
-           ARRAYofstring&   as,
+           Arrayofstring&   as,
      const string&          filename );
 
 
@@ -161,11 +161,11 @@ void binfile_read_numeric(
 void binfile_write_vector(
         const string&   filename,
         const int&      fid,
-        const VECTOR&   x,
+        const Vector&   x,
         const string&   dataname );
 
 void binfile_read_vector(
-              VECTOR&   x,
+              Vector&   x,
         const string&   filename,
         const int&      fid,
         const string&   dataname );
@@ -173,11 +173,11 @@ void binfile_read_vector(
 void binfile_write_matrix(
         const string&   filename,
         const int&      fid,
-        const MATRIX&   x,
+        const Matrix&   x,
         const string&   dataname );
 
 void binfile_read_matrix(
-              MATRIX&   x,
+              Matrix&   x,
         const string&   filename,
         const int&      fid,
         const string&   dataname );
@@ -185,11 +185,11 @@ void binfile_read_matrix(
 void binfile_write_indexarray(
         const string&         filename,
         const int&            fid,
-        const ARRAYofsizet&   x,
+        const Arrayofsizet&   x,
         const string&         dataname );
 
 void binfile_read_indexarray(
-              ARRAYofsizet&   x,
+              Arrayofsizet&   x,
         const string&         filename,
         const int&            fid,
         const string&         dataname );
@@ -197,11 +197,11 @@ void binfile_read_indexarray(
 void binfile_write_vectorarray(
         const string&          filename,
         const int&             fid,
-        const ARRAYofVECTOR&   x,
+        const ArrayofVector&   x,
         const string&          dataname );
 
 void binfile_read_vectorarray(
-              ARRAYofVECTOR&   x,
+              ArrayofVector&   x,
         const string&          filename,
         const int&             fid,
 	const string&          dataname );
@@ -209,11 +209,11 @@ void binfile_read_vectorarray(
 void binfile_write_matrixarray(
         const string&          filename,
         const int&             fid,
-        const ARRAYofMATRIX&   x,
+        const ArrayofMatrix&   x,
         const string&          dataname );
 
 void binfile_read_matrixarray(
-              ARRAYofMATRIX&   x,
+              ArrayofMatrix&   x,
         const string&          filename,
         const int&             fid,
         const string&          dataname );
@@ -233,11 +233,11 @@ void binfile_read_string(
 void binfile_write_stringarray(
         const string&          filename,
         const int&             fid,
-        const ARRAYofstring&   x,
+        const Arrayofstring&   x,
         const string&          dataname );
 
 void binfile_read_stringarray(
-              ARRAYofstring&   x,
+              Arrayofstring&   x,
         const string&          filename,
         const int&             fid,
         const string&          dataname );

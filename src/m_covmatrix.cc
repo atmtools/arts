@@ -88,16 +88,16 @@
 */
 void setup_covmatrix(
                 SYMMETRIC&    s,
-             const VECTOR&    kg,
+             const Vector&    kg,
              const size_t&    corrfun,
              const Numeric&   cutoff,
-             const VECTOR&    kp,
-             const VECTOR&    sdev,
-             const VECTOR&    clength )
+             const Vector&    kp,
+             const Vector&    sdev,
+             const Vector&    clength )
 {
   const size_t   n = kg.size();
         size_t   row, col;
-        VECTOR   sd(n), cl(n);
+        Vector   sd(n), cl(n);
         Numeric  c;          // correlation
 
   if ( sdev.size() != clength.size() )
@@ -218,13 +218,13 @@ void sDiagonal(
         const int&       n,
         const Numeric&   stddev)
 {
-  const VECTOR   sdev(2,stddev);
-  const VECTOR   clength(2,0.0);
-        VECTOR   kp(2);
+  const Vector   sdev(2,stddev);
+  const Vector   clength(2,0.0);
+        Vector   kp(2);
 
   kp[0] = 0.0;
   kp[1] = 1.0;
-  setup_covmatrix( s, VECTOR(n,0.5), 0, 0, kp, sdev, clength );
+  setup_covmatrix( s, Vector(n,0.5), 0, 0, kp, sdev, clength );
 }
 
 
@@ -237,13 +237,13 @@ void sDiagonal(
 */
 void sDiagonalLengthFromVector(
         SYMMETRIC&          s,
-        const VECTOR&    grid,
+        const Vector&    grid,
         const string&    grid_name,
         const Numeric&   stddev)
 {
-  const VECTOR   sdev(2,stddev);
-  const VECTOR   clength(2,0.0);
-        VECTOR   kp(2);
+  const Vector   sdev(2,stddev);
+  const Vector   clength(2,0.0);
+        Vector   kp(2);
 
   kp[0] = grid[0];
   kp[1] = grid[grid.size()-1];
@@ -264,19 +264,19 @@ void sDiagonalLengthFromVector(
 */
 void sDiagonalLengthFromVectors(
         SYMMETRIC&          s,
-        const VECTOR&    grid1,
-        const VECTOR&    grid2,
+        const Vector&    grid1,
+        const Vector&    grid2,
         const string&    grid1_name,
         const string&    grid2_name,
         const Numeric&   stddev)
 {
-  const VECTOR   sdev(2,stddev);
-  const VECTOR   clength(2,0.0);
-        VECTOR   kp(2);
+  const Vector   sdev(2,stddev);
+  const Vector   clength(2,0.0);
+        Vector   kp(2);
 
   kp[0] = 0.0;
   kp[1] = 1.0;
-  setup_covmatrix( s, VECTOR(grid1.size()*grid2.size(),0.5), 0, 0, kp, sdev, 
+  setup_covmatrix( s, Vector(grid1.size()*grid2.size(),0.5), 0, 0, kp, sdev, 
                                                                     clength );
 }
 
@@ -296,9 +296,9 @@ void sSimple(
         const Numeric&   cutoff,
         const Numeric&   corrlength )
 {
-  const VECTOR   sdev(2,stddev);
-  const VECTOR   clength(2,corrlength);
-        VECTOR   kp(2);
+  const Vector   sdev(2,stddev);
+  const Vector   clength(2,corrlength);
+        Vector   kp(2);
 
   kp[0] = 1;
   kp[1] = n;
@@ -315,16 +315,16 @@ void sSimple(
 */
 void sSimpleLengthFromVector(
            SYMMETRIC&    s,
-        const VECTOR&    grid,
+        const Vector&    grid,
         const string&    grid_name,
         const Numeric&   stddev,
         const int&       corrfun,
         const Numeric&   cutoff,
         const Numeric&   corrlength )
 {
-  const VECTOR   sdev(2,stddev);
-  const VECTOR   clength(2,corrlength);
-        VECTOR   kp(2);
+  const Vector   sdev(2,stddev);
+  const Vector   clength(2,corrlength);
+        Vector   kp(2);
 
   kp[0] = grid[0];
   kp[1] = grid[grid.size()-1];
@@ -341,8 +341,8 @@ void sSimpleLengthFromVector(
 */
 void sSimpleLengthFromVectors(
            SYMMETRIC&    s,
-        const VECTOR&    grid1,
-        const VECTOR&    grid2,
+        const Vector&    grid1,
+        const Vector&    grid2,
         const string&    grid1_name,
         const string&    grid2_name,
         const Numeric&   stddev,
@@ -384,12 +384,12 @@ void sSimpleLengthFromVectors(
 */
 void sFromFile(
            SYMMETRIC&    s,
-        const VECTOR&    grid,
+        const Vector&    grid,
         const string&    grid_name,
         const string&    filename )
 {
-  ARRAYofMATRIX   am;
-         VECTOR   kp, sdev, clength;
+  ArrayofMatrix   am;
+         Vector   kp, sdev, clength;
          size_t   i, j, np;
  
   // Read the array of matrix from the file:

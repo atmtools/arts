@@ -1,10 +1,10 @@
 VARIABLE : lines
-DATA TYPE: ARRAYofLineRecord
+DATA TYPE: ArrayofLineRecord
 DESCRIPTION:
 A list of spectral line data.
 
 VARIABLE : lines_per_tg
-DATA TYPE: ARRAYofARRAYofLineRecord
+DATA TYPE: ArrayofArrayofLineRecord
 DESCRIPTION:
 A list of spectral line data for each tag.
 Dimensions: (tag_groups.size()) (# of lines for this tag)
@@ -28,7 +28,7 @@ functions. The selected tag groups must be a subgroup of the
 tag groups defined for the absorption coefficient calculation.
 
 VARIABLE : lineshape
-DATA TYPE: ARRAYofLineshapeSpec
+DATA TYPE: ArrayofLineshapeSpec
 DESCRIPTION:
 Lineshape specification: function, norm, cutoff. There is one entry for
 each abs_tag, not for each species. This means if you have several
@@ -36,7 +36,7 @@ abs_tags for different isotopes or transitions of a species, you
 may use different lineshapes.
 
 VARIABLE : cont_description_names
-DATA TYPE: ARRAYofstring
+DATA TYPE: Arrayofstring
 DESCRIPTION:
 Continuum model names. This variable should contain a list of
 names of continuum models. Associated with this WSV is the WSV
@@ -49,7 +49,7 @@ H2O-ContStandardForeign: Foreign component of a simple empirical
    continuum model a la Liebe/Rosenkranz. Needs two parameters.
 
 VARIABLE : cont_description_parameters
-DATA TYPE: ARRAYofVECTOR
+DATA TYPE: ArrayofVector
 DESCRIPTION:
 Continuum model parameters. See the WSV `cont_description_names'
 for a detailed description of the allowed continuum models. There
@@ -57,7 +57,7 @@ should be one parameter vector here for each entry in
 `cont_description_names'.
 
 VARIABLE : raw_ptz_1d
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 Matrix has rows:
 1. Pressure in Pa
@@ -65,7 +65,7 @@ Matrix has rows:
 3. Altitude in m
 
 VARIABLE : raw_vmrs_1d
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 The individual VMR profiles. Each species VMR profile comes with a
 pressure profile. The different species can hence be on different
@@ -76,7 +76,7 @@ The matrix has rows:
 The array dimension is determined by the number of tag groups.
 
 VARIABLE : p_abs
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The pressure grid for the absorption coefficients [Pa]. This
 is the basic independent grid for the absorption calculation, both
@@ -85,13 +85,13 @@ The "raw" atmospheric data shall be interpolated to p_abs before
 the absorption calculations starts.
 
 VARIABLE : f_mono
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The monochromatic frequency grid [Hz]. This grid is used when
 calculating absorption and pencil b
 
 VARIABLE : t_abs_2d
-DATA TYPE: ARRAYofVECTOR
+DATA TYPE: ArrayofVector
 DESCRIPTION:
 2D temperatures associated with the pressures in p_abs [K].
 Array coordinate is the profile index, i.e., the horizontal
@@ -99,14 +99,14 @@ dimension. This dimension must be consistent with z_abs_2d,
 vmr_2d, and abs_2d.
 
 VARIABLE : z_abs_2d
-DATA TYPE: ARRAYofVECTOR
+DATA TYPE: ArrayofVector
 DESCRIPTION:
 2D vertical altitudes associated with the pressures in p_abs [m].Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d,
 vmr_2d, and abs_2d.
 
 VARIABLE : vmrs_2d
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 2D VMRs associated with the pressures in p_abs [absolute number].Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d
@@ -114,7 +114,7 @@ z_abs_2d, and abs_2d.
 The matrix dimensions are [tag_groups.size(),p_abs.size()].
 
 VARIABLE : abs_2d
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 The array of absorption coefficient matrices.Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d
@@ -122,53 +122,53 @@ and z_abs_2d.
 The matrix dimensions are [f_mono.size(),p_abs.size()].
 
 VARIABLE : t_abs
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 Temperature associated with the pressures in p_abs [K]
 
 VARIABLE : z_abs
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 Vertical altitudes associated with the pressures in p_abs [m]
 
 VARIABLE : h2o_abs
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The total water profile associated with the pressures in p_abs [-]
 
 VARIABLE : n2_abs
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The total nitrogen profile associated with the pressures in p_abs [-]
 
 VARIABLE : vmrs
-DATA TYPE: ARRAYofVECTOR
+DATA TYPE: ArrayofVector
 DESCRIPTION:
 The VMRs (unit: absolute number) on the p_abs grid.
 Dimensions: [tag_groups.size(), p_abs.size()]
 
 VARIABLE : abs
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 The matrix of absorption coefficients (in units of [1/m]).
 Dimensions: [f_mono.size(), p_abs.size()]
 
 VARIABLE : abs_per_tg
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 These are the absorption coefficients individually for each
-tag group. The ARRAY contains one matrix for each tag group,
+tag group. The Array contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
 VARIABLE : xsec_per_tg
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 These are the cross sections individually for each tag
-group. The ARRAY contains one matrix for each tag group,
+group. The Array contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
 VARIABLE : hse
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 This vector holds the parameters for calculating hydrostatic 
 equilibrium (HSE). The length of the vector is either 1 or 5, where
@@ -190,13 +190,13 @@ be simulated and, for example, yCalc will give optical thicknesses
 instead of intensities.
 
 VARIABLE : za_pencil
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 Pencil beam zenith angle, the angle between zenith and the LOS [deg].
 This grid is applied when calculating pencil beam spectra.
 
 VARIABLE : z_tan
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 Tangent altitude for the different LOS [m].
 These tangent altitudes include the effect of refraction (if set). 
@@ -245,7 +245,7 @@ A string giving what refraction model (or parameterization) to use
 for the calculation of refractive index.
 
 VARIABLE : refr_index
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The refractive index associated with the pressures in p_refr [-].
 
@@ -266,7 +266,7 @@ DESCRIPTION:
 The physical temperature of the ground [K].
 
 VARIABLE : e_ground
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The ground emission factor for the frequencies in f_mono [0-1].
 
@@ -276,56 +276,56 @@ DESCRIPTION:
 Structure to define the line of sight (LOS). See los.h.
 
 VARIABLE : source
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 Mean source functions between the points of the LOS.
 
 VARIABLE : trans
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 The transmissions between the points of the LOS [-].
 
 VARIABLE : y_space
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 Radiation entering the atmosphere at the start of the LOS,
 typically cosmic background radiation.
 
 VARIABLE : y
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The working spectrum.
 
 VARIABLE : y0
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 A reference spectrum. This variable can be used e.g. to save a copy
 of y or to compare the spectra before and after some operation(s).
 
 VARIABLE : absloswfs
-DATA TYPE: ARRAYofMATRIX
+DATA TYPE: ArrayofMatrix
 DESCRIPTION:
 Line of sight weighting functions.
 
 VARIABLE : k_grid
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 Grid for the retrieval identity for which weighting functions (WFS)
 shall be calculated (when applicable).
 For example, pressure altitude grid for species WFs.
 
 VARIABLE : k
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 The weighting functions (WFs) for a single retrieval/error identity.
 
 VARIABLE : k_names
-DATA TYPE: ARRAYofstring
+DATA TYPE: Arrayofstring
 DESCRIPTION:
 Name(s) on the retrieval identity associated with k.
 
 VARIABLE : k_aux
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 Auxiliary data for k. The number of rows of this matrix equals the
 length of the state vector for the retrieval identity (the number of
@@ -335,62 +335,62 @@ The columns hold different quantities:
   Col 2: a priori values
 
 VARIABLE : kx
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 The state weighting function matrix.
 
 VARIABLE : kx_names
-DATA TYPE: ARRAYofstring
+DATA TYPE: Arrayofstring
 DESCRIPTION:
 Names on the retrieval identities associated with kx.
 
 VARIABLE : kx_lengths
-DATA TYPE: ARRAYofsizet
+DATA TYPE: Arrayofsizet
 DESCRIPTION:
 The length of the state vector for each retrieval identity in kx.
 
 VARIABLE : kx_aux
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 Auxiliary data for kx. As k_aux but with the data of the different
 retrieval identies appended vertically.
 
 VARIABLE : kb
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 The model parameters weighting function matrix.
 
 VARIABLE : kb_names
-DATA TYPE: ARRAYofstring
+DATA TYPE: Arrayofstring
 DESCRIPTION:
 Names on the model parameter identities associated with kb.
 
 VARIABLE : kb_lengths
-DATA TYPE: ARRAYofsizet
+DATA TYPE: Arrayofsizet
 DESCRIPTION:
 The length of the model vector for each retrieval identity in kb.
 
 VARIABLE : kb_aux
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 Auxiliary data for kb. As k_aux but with the data of the different
 forward model identies appended vertically.
 
 VARIABLE : f_sensor
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The centre frequency of the sensor's backend channels [Hz].
 That is, the frequency vector before any data reduction.
 It is assumed that the same backend is used for all za_sensor.
 
 VARIABLE : za_sensor
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The centre zenith angle for the spectra recorded by the sensor [deg].
 That is, the zenith angle vector before any data reduction.
 
 VARIABLE : f_y
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The frequency for every element of y [Hz]. This vector has the same
 length as y and is mainly for display purposes.
@@ -401,7 +401,7 @@ f_y and f_sensor. If the data reduction is performed using some
 eigenvectors, f_y can be set to [1;2;3;...;n]
 
 VARIABLE : za_y
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The zenith_angle for every element of y [deg]. This vector has the
 same length as y and is mainly for display purposes.
@@ -428,27 +428,27 @@ This matrix includes typically only effects of the data reduction.
 See further h1.
 
 VARIABLE : y_cal1
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 A first calibration spectrum. This spectrum is assumed to be used for
 all zenith angles. This vector corresponds accordingly to f_sensor.
 See for example yLoadCalibration for usage of this spectrum.
 
 VARIABLE : y_cal2
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 A first calibration spectrum. This spectrum is assumed to be used for
 all zenith angles. This vector corresponds accordingly to f_sensor.
 See for example yLoadCalibration for usage of this spectrum.
 
 VARIABLE : i_cal1
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The intensity or brightness temperature corresponding to y_cal1.
 See for example yLoadCalibration for usage.
 
 VARIABLE : i_cal2
-DATA TYPE: VECTOR
+DATA TYPE: Vector
 DESCRIPTION:
 The intensity or brightness temperature corresponding to y_cal2.
 See for example yLoadCalibration for usage.
@@ -474,7 +474,7 @@ DESCRIPTION:
 Default basename for batch data.
 
 VARIABLE : ybatch
-DATA TYPE: MATRIX
+DATA TYPE: Matrix
 DESCRIPTION:
 A batch of spectra.
 The spectra are stored as columns in a matrix

@@ -42,9 +42,9 @@ int main()
   try
     {
       // Make the global data visible:
-      extern ARRAY<MdRecord> md_data;
-      extern const ARRAY<string> wsv_group_names;
-      extern const ARRAY<WsvRecord> wsv_data;
+      extern Array<MdRecord> md_data;
+      extern const Array<string> wsv_group_names;
+      extern const Array<WsvRecord> wsv_data;
 
       // Initialize method data.
       define_md_data();
@@ -87,10 +87,10 @@ int main()
 
       // Declare wsv_data:
       ofs << "// The workspace variable pointers:\n"
-	  << "extern const ARRAY<WsvP*> wsv_pointers;\n\n"
+	  << "extern const Array<WsvP*> wsv_pointers;\n\n"
 
 	  << "// Other wsv data:\n"
-	  << "extern const ARRAY<WsvRecord> wsv_data;\n\n";
+	  << "extern const Array<WsvRecord> wsv_data;\n\n";
 
 
       // Write all get-away functions:
@@ -106,18 +106,18 @@ int main()
 	  
 	  // There are four lists of parameters that we have to
 	  // write. 
-	  ARRAY<size_t>  vo=md_data[i].Output();   // Output 
-	  ARRAY<size_t>  vi=md_data[i].Input();    // Input
-	  ARRAY<size_t>  vgo=md_data[i].GOutput();   // Generic Output 
-	  ARRAY<size_t>  vgi=md_data[i].GInput();    // Generic Input
+	  Array<size_t>  vo=md_data[i].Output();   // Output 
+	  Array<size_t>  vi=md_data[i].Input();    // Input
+	  Array<size_t>  vgo=md_data[i].GOutput();   // Generic Output 
+	  Array<size_t>  vgi=md_data[i].GInput();    // Generic Input
 	  // vo and vi contain handles of workspace variables, 
 	  // vgo and vgi handles of workspace variable groups.
 
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (ARRAY<size_t>::const_iterator j=vo.begin(); j<vo.end(); ++j)
-	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
+	  for (Array<size_t>::const_iterator j=vo.begin(); j<vo.end(); ++j)
+	    for (Array<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
 	      if ( *j == *k )
 		{
 		  //		  erase_vector_element(vi,k);

@@ -94,7 +94,7 @@ typedef double Numeric;
 /** The type to use for all integer numbers and indices. You should never
     use int or size_t explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef size_t INDEX;
+typedef size_t Index;
 
 
 //--------------------< Set NDEBUG? >--------------------

@@ -44,8 +44,8 @@ int main()
       define_wsv_group_names();
 
       // Make the data visible.
-      extern const ARRAY<WsvRecord> wsv_data;
-      extern const ARRAY<string> wsv_group_names;
+      extern const Array<WsvRecord> wsv_data;
+      extern const Array<string> wsv_group_names;
 
       const size_t n_wsv = wsv_data.size();
 

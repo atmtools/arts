@@ -18,17 +18,17 @@
 void test_math()
 {
   Numeric     a = 1;
-  VECTOR      x(4),            // Gives a vector of length 4
+  Vector      x(4),            // Gives a vector of length 4
               y(3,5.0),        // Gives the vector [5,5,5]
               z(3,"1 2 3");    // Gives the vector [1,2,3]
-  MATRIX      A(9,7),          // Gives a matrix with 9 rows and 7 columns
+  Matrix      A(9,7),          // Gives a matrix with 9 rows and 7 columns
               B(2,3,2.3),      // 2 rows, 3 columns, all elements 2.3
               C(2, 3,"1 2 3"   // Gives the matrix |1,2,3|
                      "4 5 6"); //                  |4,5,6|
 
   // Reallocation
   x.resize(9);            // Gives a vector of length 9
-  A = MATRIX(4,5);        // Gives a matrix with 4 rows and 5 columns
+  A = Matrix(4,5);        // Gives a matrix with 4 rows and 5 columns
   A = transpose(B);       // Transpose of matrix
 
   // To get dimensions

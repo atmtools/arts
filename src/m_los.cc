@@ -78,9 +78,9 @@ extern const Numeric EARTH_GRAV_CONST;
    \author Patrick Eriksson
    \date   2000-12-12
 */
-bool any_ground( const ARRAYofsizet& ground )  
+bool any_ground( const Arrayofsizet& ground )  
 {
-  for ( INDEX i=0; i<ground.size(); i++ )
+  for ( Index i=0; i<ground.size(); i++ )
   {
     if ( ground[i] )
       return 1;
@@ -119,8 +119,8 @@ bool any_ground( const ARRAYofsizet& ground )
    \date   2001-02-15
 */
 void los_geometric(
-		    VECTOR&     z,
-                    VECTOR&     psi,
+		    Vector&     z,
+                    Vector&     psi,
                     Numeric&    l_step,
               const Numeric&    z_plat,
               const Numeric&    za,
@@ -130,8 +130,8 @@ void los_geometric(
   // A safety check
   assert( za <= 90 );
 
-  VECTOR    l;      // Lengths along the LOS from the tangent point
-  INDEX     nz;     // Length of z and psi
+  Vector    l;      // Lengths along the LOS from the tangent point
+  Index     nz;     // Length of z and psi
 
   // Some temporary values are always double to avoid numerical problems
   // (this is especially a problem where r_geoid is squared).
@@ -158,7 +158,7 @@ void los_geometric(
   b = r_geoid + z_plat;  
   a = b * b;
   //
-  for ( INDEX i=0; i<nz; i++ )
+  for ( Index i=0; i<nz; i++ )
   {
     z[i]   = sqrt( a + l[i]*l[i] + 2.0*b*l[i]*cos(DEG2RAD*za) );
     psi[i] = RAD2DEG * acos( (a+z[i]*z[i]-l[i]*l[i]) / (2.0*b*z[i]) ); 
@@ -198,18 +198,18 @@ void los_geometric(
    \date   2001-02-18
 */
 void los_refraction(
-		    VECTOR&     z,
-                    VECTOR&     psi,
+		    Vector&     z,
+                    Vector&     psi,
                     Numeric&    l_step,
               const Numeric&    z_plat,
               const Numeric&    za,
               const Numeric&    atm_limit,
 	      const Numeric&    r_geoid,
-	      const VECTOR&     p_abs,
-	      const VECTOR&     z_abs,
+	      const Vector&     p_abs,
+	      const Vector&     z_abs,
               const int&        refr,
               const int&        refr_lfac,
-              const VECTOR&     refr_index,
+              const Vector&     refr_index,
               const Numeric&    c )
 {
   // A safety check
@@ -217,7 +217,7 @@ void los_refraction(
 
   // Allocate memory for temporary z and psi. To be safe, make vectors 50 %
   // as long than for the geometric case
-  INDEX np;
+  Index np;
   {
     // Distance from the lowest point of the LOS to the atmospheric limit
     double  a    = r_geoid + atm_limit;
@@ -228,13 +228,13 @@ void los_refraction(
     if ( llim < l_step )         
       l_step = llim*0.9999;       // *0.9999 to avoid problem in interpolations
 
-    np = INDEX( ceil( 1.5 * ( llim/l_step + 1) ) );
+    np = Index( ceil( 1.5 * ( llim/l_step + 1) ) );
   }
-  VECTOR   zv(np), pv(np); 
+  Vector   zv(np), pv(np); 
 
   // Double is used here instead of Numeric to avoid nuerical problems
   const double l = l_step / refr_lfac;   // Step length of ray tracing
-  INDEX    i = refr_lfac;                // Ray tracing step counter
+  Index    i = refr_lfac;                // Ray tracing step counter
   double   z1;                           // Old altitude of the LOS
   double   z2 = z_plat;                  // New altitude of the LOS
   double   rz1, rz2;                     // As z1 and z2 but + r_geoid
@@ -243,7 +243,7 @@ void los_refraction(
   double   n1, n2;                       // Refractive index at z1 and z2
   double   n;                            // Either n1 or the mean of n1 and n2
   double   c2=c; c2 = c2 * c2;           // Square of the LOS constant
-  INDEX    j;                            // See below
+  Index    j;                            // See below
   double   d, e, f;                      // Some temporary values
 
   np = 0;
@@ -251,8 +251,8 @@ void los_refraction(
   // To save computational time, the interpolation is handled locally so
   // the indeces for the refr_index vector can be remembered from one 
   // interpolation to next.
-  const INDEX   nz = z_abs.size();
-        INDEX   iz; 
+  const Index   nz = z_abs.size();
+        Index   iz; 
   for ( iz=0; (iz<nz) && (z_abs[iz]<=z2); iz++ ) {}
   if ( iz < nz )
     n2 = refr_index[iz-1] + (refr_index[iz]-refr_index[iz-1])*
@@ -267,7 +267,7 @@ void los_refraction(
     psi1 = psi2;
     n1   = n2;
 
-    if ( i == INDEX(refr_lfac) )
+    if ( i == Index(refr_lfac) )
     {    
       zv[np] = z2;
       pv[np] = RAD2DEG * psi2;
@@ -365,23 +365,23 @@ void los_refraction(
    \date   2001-02-18
 */
 void los_1za(
-		    VECTOR&     z,
-                    VECTOR&     psi,
+		    Vector&     z,
+                    Vector&     psi,
                     Numeric&    l_step,
-                    INDEX&      ground,
-                    INDEX&      start,
-                    INDEX&      stop,
+                    Index&      ground,
+                    Index&      start,
+                    Index&      stop,
                     Numeric&    z_tan,
               const Numeric&    z_plat,
               const Numeric&    za,
               const Numeric&    l_step_max,
               const Numeric&    z_ground,
 	      const Numeric&    r_geoid,
-	      const VECTOR&     p_abs,
-	      const VECTOR&     z_abs,
+	      const Vector&     p_abs,
+	      const Vector&     z_abs,
               const int&        refr,
               const int&        refr_lfac,
-              const VECTOR&     refr_index )
+              const Vector&     refr_index )
 {
   Numeric   c;        // LOS constant when considering refraction
 
@@ -405,7 +405,7 @@ void los_1za(
   //=== Observation from space ================================================
   if ( z_plat >= atm_limit )
   {
-    INDEX     nz;          // Length of z and psi
+    Index     nz;          // Length of z and psi
     Numeric   psi0 = 0;    // Correction value for psi
 
     out3 << " (z_tan = " << z_tan/1e3 << " km)";
@@ -479,7 +479,7 @@ void los_1za(
     }
 
     if ( psi0 != 0 )
-      add( VECTOR( nz, psi0 ), psi );
+      add( Vector( nz, psi0 ), psi );
   
     start = stop = nz - 1;
   }
@@ -522,7 +522,7 @@ void los_1za(
         if ( l1 > l_step_max/10 )
 	{
   	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
 	  l_step = l1 / Numeric(stop);
 	}
 
@@ -551,7 +551,7 @@ void los_1za(
         if ( l1 > l_step_max/10 )
 	{
   	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
 	  l_step = l1 / Numeric(stop);
 	}
   
@@ -571,7 +571,7 @@ void los_1za(
 
       // The angular distance between the sensor and the tangent point 
       // is psi[stop]
-      add( VECTOR( start, psi[stop] ), psi );
+      add( Vector( start, psi[stop] ), psi );
     }
 
     // Intersection with the ground
@@ -593,7 +593,7 @@ void los_1za(
         if ( l1 > l_step_max/10 )
 	{
 	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
 	  l_step = l1 / Numeric(stop);
 	}
   
@@ -626,7 +626,7 @@ void los_1za(
         if ( l1 > l_step_max/10 )
 	{
 	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
 	  l_step = l1 / Numeric(stop);
 	}
 
@@ -646,7 +646,7 @@ void los_1za(
 
       // The angular distance between the sensor and the ground
       // is psi[stop]
-      add( VECTOR( start, psi[stop] ), psi );
+      add( Vector( start, psi[stop] ), psi );
     }
   }
 }
@@ -662,19 +662,19 @@ void los_1za(
    \date   2000-??-??
 */
 void y_rte (
-                    VECTOR&          y,
+                    Vector&          y,
               const LOS&             los,   
-              const VECTOR&          f_mono,
-              const VECTOR&          y_space,
-              const ARRAYofMATRIX&   source,
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground,
+              const Vector&          f_mono,
+              const Vector&          y_space,
+              const ArrayofMatrix&   source,
+              const ArrayofMatrix&   trans,
+              const Vector&          e_ground,
               const Numeric&         t_ground )
 {
   // Some variables
   const size_t   n=los.start.size();  // Number of zenith angles 
   const size_t   nf=f_mono.size();    // Number of frequencies 
-        VECTOR   y_tmp(nf);           // Temporary storage for spectra
+        Vector   y_tmp(nf);           // Temporary storage for spectra
         size_t   iy0=0;               // Reference index for output vector
 
   out2 << "  Integrating the radiative transfer eq. with emission.\n";
@@ -684,7 +684,7 @@ void y_rte (
         
   // Set up vector for ground blackbody radiation if any ground intersection
   // Check also if the ground emission vector has the correct length
-  VECTOR   y_ground(f_mono.size()); 
+  Vector   y_ground(f_mono.size()); 
   if ( any_ground(los.ground) )  
   {
     if ( t_ground <= 0 )
@@ -728,16 +728,16 @@ void y_rte (
    \date   2000-??-??
 */
 void y_tau (
-                    VECTOR&          y,
+                    Vector&          y,
               const LOS&             los,   
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground )
+              const ArrayofMatrix&   trans,
+              const Vector&          e_ground )
 {
   // Some variables
   const size_t   n=los.start.size();    // Number of zenith angles 
   const size_t   nf=trans[0].nrows();   // Number of frequencies 
         size_t   iy, iy0=0;             // Index for output vector
-        VECTOR   y_tmp;                 // Temporary storage for spectra
+        Vector   y_tmp;                 // Temporary storage for spectra
 
   out2 << "  Calculating optical thicknesses.\n";
 
@@ -835,11 +835,11 @@ void r_geoidWGS84(
 void groundSet( 
               Numeric&   z_ground,
               Numeric&   t_ground,
-              VECTOR&    e_ground,
-        const VECTOR&    p_abs,
-        const VECTOR&    t_abs,
-        const VECTOR&    z_abs,
-        const VECTOR&    f_mono,
+              Vector&    e_ground,
+        const Vector&    p_abs,
+        const Vector&    t_abs,
+        const Vector&    z_abs,
+        const Vector&    f_mono,
 	const Numeric&   z,
 	const Numeric&   e )
 {
@@ -860,10 +860,10 @@ void groundSet(
 void groundAtBottom( 
               Numeric&   z_ground,
               Numeric&   t_ground,
-              VECTOR&    e_ground,
-        const VECTOR&    t_abs,
-        const VECTOR&    z_abs,
-        const VECTOR&    f_mono,
+              Vector&    e_ground,
+        const Vector&    t_abs,
+        const Vector&    z_abs,
+        const Vector&    f_mono,
 	const Numeric&   e )
 {
   z_ground = z_abs[0];
@@ -883,8 +883,8 @@ void groundAtBottom(
 void groundOff( 
               Numeric&   z_ground,
               Numeric&   t_ground,
-              VECTOR&    e_ground,
-        const VECTOR&    z_abs )
+              Vector&    e_ground,
+        const Vector&    z_abs )
 {
   z_ground = z_abs[0];
   t_ground = 0;
@@ -926,15 +926,15 @@ void emissionOff( int&   emission )
 */
 void zaFromZtan(
         // WS Goutput
-              VECTOR&       za,
+              Vector&       za,
         const string&       za_name,
 	 // WS input
-	const VECTOR&       z_tan,
+	const Vector&       z_tan,
         const Numeric&      z_plat,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
 	const int&          refr,
-	const VECTOR&       refr_index,
+	const Vector&       refr_index,
 	const Numeric&      r_geoid,
         const Numeric&      z_ground )
 {
@@ -993,19 +993,19 @@ void zaFromZtan(
    \date   2001-02-15
 */
 void losCalc(       LOS&        los,
-                    VECTOR&     z_tan,
+                    Vector&     z_tan,
               const Numeric&    z_plat,
-              const VECTOR&     za,
+              const Vector&     za,
               const Numeric&    l_step,
-              const VECTOR&     p_abs,
-              const VECTOR&     z_abs,
+              const Vector&     p_abs,
+              const Vector&     z_abs,
               const int&        refr,
               const int&        refr_lfac,
-              const VECTOR&     refr_index,
+              const Vector&     refr_index,
               const Numeric&    z_ground,
               const Numeric&    r_geoid )
 {     
-  INDEX   n = za.size();  // number of zenith angles
+  Index   n = za.size();  // number of zenith angles
 
   // Some checks                                                      
   if ( !isbool( refr ) )  
@@ -1048,7 +1048,7 @@ void losCalc(       LOS&        los,
   out3 << "     z_plat: " << z_plat/1e3 << " km\n";
 
   // Loop the zenith angles
-  for ( INDEX i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
   {
     out3 << "         za: " << za[i] << " degs.";
 
@@ -1072,12 +1072,12 @@ void losCalc(       LOS&        los,
    \date   2000-?-?
 */
 void sourceCalc(
-                    ARRAYofMATRIX&   source,
+                    ArrayofMatrix&   source,
 	      const int&             emission,
               const LOS&             los,   
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,
-              const VECTOR&          f_mono )
+              const Vector&          p_abs,
+              const Vector&          t_abs,
+              const Vector&          f_mono )
 {
   if ( !isbool( emission ) )  
     throw runtime_error("The emission flag must either be 0 or 1.");
@@ -1090,11 +1090,11 @@ void sourceCalc(
 
   else
   {     
-	  VECTOR   tlos;                  // temperatures along the LOS
+	  Vector   tlos;                  // temperatures along the LOS
     const size_t   nza=los.start.size();  // the number of zenith angles  
     const size_t   nf=f_mono.size();      // the number of frequencies
 	  size_t   nlos;                  // the number of pressure points
-	  MATRIX   b;                     // the Planck function for TLOS  
+	  Matrix   b;                     // the Planck function for TLOS  
 	  size_t   iv, ilos;              // frequency and LOS point index
   
     out2 << "  Calculating the source function for LTE and no scattering.\n";
@@ -1141,17 +1141,17 @@ void sourceCalc(
    \date   2000-?-?
 */
 void transCalc(
-                    ARRAYofMATRIX&   trans,
+                    ArrayofMatrix&   trans,
               const LOS&             los,   
-              const VECTOR&          p_abs,
-              const MATRIX&          abs )
+              const Vector&          p_abs,
+              const Matrix&          abs )
 {    
   // Some variables
   const size_t   n = los.start.size(); // the number of zenith angles
   const size_t   nf = abs.nrows();     // the number of frequencies
         size_t   np;                   // the number of pressure points
         size_t   row, col;             // counters
-        MATRIX   abs2 ;                // matrix to store interpolated absorp.
+        Matrix   abs2 ;                // matrix to store interpolated absorp.
        Numeric   w;                    // = -l_step/2
 
   out2 << "  Calculating transmissions WITHOUT scattering.\n";
@@ -1195,8 +1195,8 @@ void transCalc(
    \date   2000-?-?
 */
 void y_spaceStd(
-                    VECTOR&   y_space,
-              const VECTOR&   f,
+                    Vector&   y_space,
+              const Vector&   f,
               const string&   choice )
 {
   resize( y_space, f.size() );
@@ -1232,14 +1232,14 @@ void y_spaceStd(
    \date   2001-03-30
 */
 void yCalc (
-                    VECTOR&          y,
+                    Vector&          y,
 	      const int&             emission,
               const LOS&             los,   
-              const VECTOR&          f_mono,
-              const VECTOR&          y_space,
-              const ARRAYofMATRIX&   source,
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground,
+              const Vector&          f_mono,
+              const Vector&          y_space,
+              const ArrayofMatrix&   source,
+              const ArrayofMatrix&   trans,
+              const Vector&          e_ground,
               const Numeric&         t_ground )
 {
   if ( !isbool( emission ) )  
@@ -1273,11 +1273,11 @@ void yCalc (
    \date   2001-03-30
 */
 void yTau (
-                    VECTOR&          y,
+                    Vector&          y,
 	      const int&             emission,
               const LOS&             los,   
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground )
+              const ArrayofMatrix&   trans,
+              const Vector&          e_ground )
 {
   if ( emission != 0 )
     throw runtime_error(
@@ -1304,9 +1304,9 @@ void yTau (
    \date   2000-?-?
 */
 void yTB (
-                    VECTOR&          y,
-              const VECTOR&          f_sensor,
-              const VECTOR&          za_sensor )
+                    Vector&          y,
+              const Vector&          f_sensor,
+              const Vector&          za_sensor )
 {
   const size_t   nf  = f_sensor.size();
   const size_t   nza = za_sensor.size();
@@ -1348,9 +1348,9 @@ void yTB (
    \date   2000-?-?
 */
 void yTRJ (
-                    VECTOR&          y,
-              const VECTOR&          f_sensor,
-              const VECTOR&          za_sensor )
+                    Vector&          y,
+              const Vector&          f_sensor,
+              const Vector&          za_sensor )
 {
   const size_t   nf  = f_sensor.size();
   const size_t   nza = za_sensor.size();
@@ -1397,14 +1397,14 @@ void yTRJ (
    \date   2001-05-02
 */
 void MatrixTRJ (// WS Generic Output:
-                MATRIX& kout,
+                Matrix& kout,
                 // WS Generic Output Names:
                 const string& kout_name,
                 // WS Input:
-                const VECTOR& f_sensor,
-                const VECTOR& za_sensor,
+                const Vector& f_sensor,
+                const Vector& za_sensor,
                 // WS Generic Input:
-                const MATRIX& kin,
+                const Matrix& kin,
                 // WS Generic Input Names:
                 const string& kin_name)
 {
@@ -1413,7 +1413,7 @@ void MatrixTRJ (// WS Generic Output:
       kout.ncols()!=kin.ncols())
     resize(kout,kin.nrows(),kin.ncols());
   
-  VECTOR y(kin.nrows());
+  Vector y(kin.nrows());
   for ( size_t i=0; i<kin.ncols(); i++ )
   {
     copy( columns(kin)[i], y );    
@@ -1430,14 +1430,14 @@ void MatrixTRJ (// WS Generic Output:
    \date   2001-05-02
 */
 void MatrixTB (// WS Generic Output:
-                MATRIX& kout,
+                Matrix& kout,
                 // WS Generic Output Names:
                 const string& kout_name,
                 // WS Input:
-                const VECTOR& f_sensor,
-                const VECTOR& za_sensor,
+                const Vector& f_sensor,
+                const Vector& za_sensor,
                 // WS Generic Input:
-                const MATRIX& kin,
+                const Matrix& kin,
                 // WS Generic Input Names:
                 const string& kin_name)
 {
@@ -1446,7 +1446,7 @@ void MatrixTB (// WS Generic Output:
       kout.ncols()!=kin.ncols())
     resize(kout,kin.nrows(),kin.ncols());
   
-  VECTOR y(kin.nrows());
+  Vector y(kin.nrows());
   for ( size_t i=0; i<kin.ncols(); i++ )
   {
     copy( columns(kin)[i], y );    
@@ -1463,12 +1463,12 @@ void MatrixTB (// WS Generic Output:
    \date   2000-?-?
 */
 void yLoadCalibration (
-                    VECTOR&          y,
-              const VECTOR&          i_cal1,
-              const VECTOR&          i_cal2,
-              const VECTOR&          y_cal1,
-              const VECTOR&          y_cal2,
-              const VECTOR&          za_sensor )
+                    Vector&          y,
+              const Vector&          i_cal1,
+              const Vector&          i_cal2,
+              const Vector&          y_cal1,
+              const Vector&          y_cal2,
+              const Vector&          za_sensor )
 {
   const size_t   nf  = i_cal1.size();
   const size_t   nza = za_sensor.size();
@@ -1510,22 +1510,22 @@ void yLoadCalibration (
 
 void zaFromDeltat(
         // WS Generic Output:
-        VECTOR&             za,
+        Vector&             za,
         // WS Generic Output Names:
         const string&       za_name,
         // WS Input:
         const Numeric&      z_plat,
-        const VECTOR&       p_abs,
-        const VECTOR&       z_abs,
+        const Vector&       p_abs,
+        const Vector&       z_abs,
         const Numeric&      l_step,
 	const int&          refr,
 	const int&          refr_lfac,
-	const VECTOR&       refr_index,
+	const Vector&       refr_index,
 	const Numeric&      r_geoid,
         const Numeric&      z_ground,
         // Control Parameters:
         const Numeric&      delta_t,
-        const VECTOR&       z_tan_lim )
+        const Vector&       z_tan_lim )
 
 {
  
@@ -1542,8 +1542,8 @@ void zaFromDeltat(
   {
 
     // Geometric calculations
-    VECTOR phi(2);
-    VECTOR za_lim(2);
+    Vector phi(2);
+    Vector za_lim(2);
     string zastr = "za_lim";
 
     zaFromZtan(za_lim, zastr, z_tan_lim, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
@@ -1556,25 +1556,25 @@ void zaFromDeltat(
     if (((phi[0]-phi[1])/ang_step) <=0)
       throw runtime_error("The time given is too large to have any cross-link in the given altitude range");     
 
-    const INDEX n=INDEX(floor((phi[0]-phi[1])/ang_step));
+    const Index n=Index(floor((phi[0]-phi[1])/ang_step));
 
     resize(za,n);
-    for ( INDEX j=0;j<n;j++ )
+    for ( Index j=0;j<n;j++ )
       za[j] = 90 + phi[0] - (j * ang_step);
   }
   // Refraction
   else
   {  
   
-    const INDEX ztanstep = 100;  // 100 meters step
-    const INDEX n=INDEX(floor((z_tan_lim[1]-z_tan_lim[0])/ztanstep));
+    const Index ztanstep = 100;  // 100 meters step
+    const Index n=Index(floor((z_tan_lim[1]-z_tan_lim[0])/ztanstep));
     
-    VECTOR z_tan_1(n);
-    VECTOR z_tan_2(n);
+    Vector z_tan_1(n);
+    Vector z_tan_2(n);
     resize(za,n);
 
     // ztan altitudes for later doing the interpolation
-    for ( INDEX j=0;j<n;j++ )
+    for ( Index j=0;j<n;j++ )
       z_tan_1[j]=z_tan_lim[0]+j*ztanstep;
     
     // corresponding zenith angles
@@ -1585,8 +1585,8 @@ void zaFromDeltat(
     LOS los;
     losCalc(los,z_tan_2,z_plat,za,l_step,p_abs,z_abs,refr,refr_lfac,refr_index,z_ground,r_geoid);   
     // psi corresponding to the ztan defined for interpolation
-    VECTOR psizb(n);
-    for ( INDEX j=0;j<n;j++ )
+    Vector psizb(n);
+    for ( Index j=0;j<n;j++ )
       psizb[j]=los.psi[j][0];
     // lower and higer psi
     const Numeric psitop = psizb[n-1];
@@ -1598,16 +1598,16 @@ void zaFromDeltat(
     // number of cross links in the ztan range specified for the given deltat
     if (((psibot-psitop)/ang_step)<=0)
       throw runtime_error("The time given is too large to have any cross-link in the given altitude range");  
-    const INDEX np=INDEX(floor((psibot-psitop)/ang_step));
+    const Index np=Index(floor((psibot-psitop)/ang_step));
     // corresponding psi (in that z_tan_lim[1]-z_tan_lim[0])
-    VECTOR psit(n);
-    for ( INDEX j=0;j<np;j++ )
+    Vector psit(n);
+    for ( Index j=0;j<np;j++ )
       psit[j]=psibot-j*ang_step;
 
 
     // ztan for psi for deltat from  psi and ztan for interpolation        
     resize(z_tan_1,np);
-    for ( INDEX j=0;j<np;j++ )
+    for ( Index j=0;j<np;j++ )
     {
       z_tan_1[j]=interp_lin(psizb,z_tan_2,psit[j]);
     }

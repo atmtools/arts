@@ -91,8 +91,8 @@ void RandSetSeed( )
 void Test( )
 {
   // This function can be used to test stuff.
-  MATRIX z(5,3);
-  VECTOR z0(5,1.0);
+  Matrix z(5,3);
+  Vector z0(5,1.0);
   SYMMETRIC s;
 
   SymmetricDiagonal( s, "xxx", 5, 2 );
@@ -116,9 +116,9 @@ void Test( )
 // The ASCII functions are created by Stefan Buehler around 00????
 // The binary functions are created by Patrick Eriksson around 001102
 
-//=== INDEX ============================================================
+//=== Index ============================================================
 
-// This function shall be modified to handle INDEX
+// This function shall be modified to handle Index
 void IndexWriteAscii(
         const int&      v,
         const string&   v_name,
@@ -129,15 +129,15 @@ void IndexWriteAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Store the value in an ARRAYofMATRIX and write to file
-  ARRAYofMATRIX am(1);
+  // Store the value in an ArrayofMatrix and write to file
+  ArrayofMatrix am(1);
   resize( am[0], 1, 1 );
   setto( am[0], (Numeric) v);
   write_array_of_matrix_to_file(filename,am);
 }
 
 
-// This function shall be modified to handle INDEX
+// This function shall be modified to handle Index
 void IndexReadAscii(
 	      int&      v,
         const string&   v_name,
@@ -148,8 +148,8 @@ void IndexReadAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Read the value as ARRAYofMATRIX and move to Numeric
-  ARRAYofMATRIX am;
+  // Read the value as ArrayofMatrix and move to Numeric
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
   if ( (am.size()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
   {
@@ -176,7 +176,7 @@ void IndexReadAscii(
    \author Patrick Eriksson
    \date   2000-?-?
 */
-// This function shall be modified to handle INDEX
+// This function shall be modified to handle Index
 void IndexWriteBinary(
 	const int&      v,
         const string&   var_name,
@@ -186,7 +186,7 @@ void IndexWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_index( filename, fid, v, "INDEX" );
+  binfile_write_index( filename, fid, v, "Index" );
   binfile_close( fid, filename );
 }
 
@@ -198,7 +198,7 @@ void IndexWriteBinary(
    \author Patrick Eriksson
    \date   2000-?-?
 */
-// This function shall be modified to handle INDEX
+// This function shall be modified to handle Index
 void IndexReadBinary(
 	      int&      v,
         const string&   var_name,
@@ -209,7 +209,7 @@ void IndexReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_index( vtemp, filename, fid, "INDEX" );
+  binfile_read_index( vtemp, filename, fid, "Index" );
   v = (int) vtemp;
   binfile_close( fid, filename );
 }
@@ -228,8 +228,8 @@ void NumericWriteAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Store the value in an ARRAYofMATRIX and write to file
-  ARRAYofMATRIX am(1);
+  // Store the value in an ArrayofMatrix and write to file
+  ArrayofMatrix am(1);
   resize( am[0], 1, 1 );
   setto( am[0], v);
   write_array_of_matrix_to_file(filename,am);
@@ -246,8 +246,8 @@ void NumericReadAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Read the value as ARRAYofMATRIX and move to Numeric
-  ARRAYofMATRIX am;
+  // Read the value as ArrayofMatrix and move to Numeric
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
   if ( (am.size()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
   {
@@ -303,10 +303,10 @@ void NumericReadBinary(
 
 
 
-//=== VECTOR ==========================================================
+//=== Vector ==========================================================
 
 void VectorWriteAscii(// WS Output:
-		       const VECTOR& v,
+		       const Vector& v,
 		       // WS Variable Names:
 		       const string& v_name,
 		       // Control Parameters:
@@ -319,11 +319,11 @@ void VectorWriteAscii(// WS Output:
 
   // Convert the vector to a matrix:
   //  to_matrix(m,v);
-  MATRIX m(v.size(),1);
+  Matrix m(v.size(),1);
   copy( v, columns(m)[0] );
 
   // Convert the matrix to an array of matrix:
-  ARRAYofMATRIX am(1,m);
+  ArrayofMatrix am(1,m);
 
   // Write the array of matrix to the file.
   write_array_of_matrix_to_file(filename,am);
@@ -332,7 +332,7 @@ void VectorWriteAscii(// WS Output:
 
 
 void VectorReadAscii(// WS Generic Output:
-			VECTOR& v,
+			Vector& v,
 			// WS Generic Output Names:
 			const string& v_name,
 			// Control Parameters:
@@ -344,14 +344,14 @@ void VectorReadAscii(// WS Generic Output:
   filename_ascii( filename, v_name );
 
   // Read an array of matrix from the file:
-  ARRAYofMATRIX am;
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to a matrix.
   if ( 1 != am.size() )
    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
                        "but the dimension of the array is not 1.");
-  MATRIX m(am[0]);
+  Matrix m(am[0]);
 
   // Convert the matrix to a vector:
   to_vector(v,m);
@@ -366,7 +366,7 @@ void VectorReadAscii(// WS Generic Output:
    \date   2000-?-?
 */
 void VectorWriteBinary(
-        const VECTOR&  v,
+        const Vector&  v,
         const string&  var_name,
 	const string&  f )
 {
@@ -374,7 +374,7 @@ void VectorWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_vector( filename, fid, v, "VECTOR" );
+  binfile_write_vector( filename, fid, v, "Vector" );
   binfile_close( fid, filename );
 }
 
@@ -387,7 +387,7 @@ void VectorWriteBinary(
    \date   2000-?-?
 */
 void VectorReadBinary(
-	      VECTOR&  v,
+	      Vector&  v,
         const string&  var_name,
 	const string&  f )
 {
@@ -395,16 +395,16 @@ void VectorReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_vector( v, filename, fid, "VECTOR" );
+  binfile_read_vector( v, filename, fid, "Vector" );
   binfile_close( fid, filename );
 }
 
 
 
-//=== MATRIX ==========================================================
+//=== Matrix ==========================================================
 
 void MatrixWriteAscii(// WS Generic Input:
-		       const MATRIX& m,
+		       const Matrix& m,
 		       // WS Generic Input Names:
 		       const string& m_name,
 		       // Control Parameters:
@@ -416,7 +416,7 @@ void MatrixWriteAscii(// WS Generic Input:
   filename_ascii( filename, m_name );
 
   // Convert the matrix to an array of matrix:
-  ARRAYofMATRIX am(1,m);
+  ArrayofMatrix am(1,m);
 
   // Write the array of matrix to the file.
   write_array_of_matrix_to_file(filename,am);
@@ -425,7 +425,7 @@ void MatrixWriteAscii(// WS Generic Input:
 
 
 void MatrixReadAscii(// WS Generic Output:
-			MATRIX& m,
+			Matrix& m,
 			// WS Generic Output Names:
 			const string& m_name,
 			// Control Parameters:
@@ -437,7 +437,7 @@ void MatrixReadAscii(// WS Generic Output:
   filename_ascii( filename, m_name );
 
   // Read the array of matrix from the file:
-  ARRAYofMATRIX am;
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   //  cout << "am.size(): " << am.size() << "\n";
@@ -459,7 +459,7 @@ void MatrixReadAscii(// WS Generic Output:
    \date   2000-?-?
 */
 void MatrixWriteBinary(
-        const MATRIX&  v,
+        const Matrix&  v,
         const string&  var_name,
 	const string&  f )
 {
@@ -467,7 +467,7 @@ void MatrixWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_matrix( filename, fid, v, "MATRIX" );
+  binfile_write_matrix( filename, fid, v, "Matrix" );
   binfile_close( fid, filename );
 }
 
@@ -480,7 +480,7 @@ void MatrixWriteBinary(
    \date   2000-?-?
 */
 void MatrixReadBinary(
-	      MATRIX&  v,
+	      Matrix&  v,
         const string&  var_name,
 	const string&  f )
 {
@@ -488,17 +488,17 @@ void MatrixReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_matrix( v, filename, fid, "MATRIX" );
+  binfile_read_matrix( v, filename, fid, "Matrix" );
   binfile_close( fid, filename );
 }
 
 
 
-//=== ARRAYofINDEX =====================================================
+//=== ArrayofIndex =====================================================
 
-// This function shall be modified to handle ARRAYofINDEX
+// This function shall be modified to handle ArrayofIndex
 void ArrayOfIndexWriteAscii(
-        const ARRAYofsizet&   v,
+        const Arrayofsizet&   v,
         const string&         v_name,
 	const string&         f )
 {
@@ -507,9 +507,9 @@ void ArrayOfIndexWriteAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Store the value in an ARRAYofMATRIX and write to file
+  // Store the value in an ArrayofMatrix and write to file
   const size_t  n = v.size();
-  ARRAYofMATRIX am(1);
+  ArrayofMatrix am(1);
   resize(am[0],n,1);
   for ( size_t i=0; i<n; i++ )
     am[0][i][0] = (Numeric) v[i];
@@ -517,9 +517,9 @@ void ArrayOfIndexWriteAscii(
 }
 
 
-// This function shall be modified to handle INDEX
+// This function shall be modified to handle Index
 void ArrayOfIndexReadAscii(
-	      ARRAYofsizet&   v,
+	      Arrayofsizet&   v,
         const string&         v_name,
 	const string&         f )
 {
@@ -528,8 +528,8 @@ void ArrayOfIndexReadAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Read the value as ARRAYofMATRIX 
-  ARRAYofMATRIX am;
+  // Read the value as ArrayofMatrix 
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
   if ( (am.size()!=1) )
   {
@@ -539,7 +539,7 @@ void ArrayOfIndexReadAscii(
   }
 
   // Move values to v using a vector
-  VECTOR x;
+  Vector x;
   to_vector( x, am[0] );
   const size_t  n = x.size();
   resize(v,n);
@@ -562,7 +562,7 @@ void ArrayOfIndexReadAscii(
    \date   2000-?-?
 */
 void ArrayOfIndexWriteBinary(
-        const ARRAYofsizet&  v,
+        const Arrayofsizet&  v,
         const string&        var_name,
 	const string&        f )
 {
@@ -570,7 +570,7 @@ void ArrayOfIndexWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_indexarray( filename, fid, v, "INDEXARRAY" );
+  binfile_write_indexarray( filename, fid, v, "IndexArray" );
   binfile_close( fid, filename );
 }
 
@@ -583,7 +583,7 @@ void ArrayOfIndexWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfIndexReadBinary(
-	      ARRAYofsizet&  v,
+	      Arrayofsizet&  v,
         const string&        var_name,
 	const string&        f )
 {
@@ -591,16 +591,16 @@ void ArrayOfIndexReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_indexarray( v, filename, fid, "INDEXARRAY" );
+  binfile_read_indexarray( v, filename, fid, "IndexArray" );
   binfile_close( fid, filename );
 }
 
 
 
-//=== ARRAYofVECTOR ====================================================
+//=== ArrayofVector ====================================================
 
 void ArrayOfVectorWriteAscii(// WS Output:
-			      const ARRAYofVECTOR& av,
+			      const ArrayofVector& av,
 			      // WS Variable Names:
 			      const string& av_name,
 			      // Control Parameters:
@@ -612,7 +612,7 @@ void ArrayOfVectorWriteAscii(// WS Output:
   filename_ascii( filename, av_name );
 
   // Convert the array of vector to an array of matrix:
-  ARRAYofMATRIX am(av.size());
+  ArrayofMatrix am(av.size());
   for (size_t i=0; i<av.size(); ++i)
     {
       //      to_matrix(am[i],av[i]);
@@ -627,7 +627,7 @@ void ArrayOfVectorWriteAscii(// WS Output:
 
 
 void ArrayOfVectorReadAscii(// WS Generic Output:
-			       ARRAYofVECTOR& av,
+			       ArrayofVector& av,
 			       // WS Generic Output Names:
 			       const string& av_name,
 			       // Control Parameters:
@@ -639,7 +639,7 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
   filename_ascii( filename, av_name );
 
   // Read an array of matrix from the file:
-  ARRAYofMATRIX am;
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to an array of vector.
@@ -659,7 +659,7 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfVectorWriteBinary(
-        const ARRAYofVECTOR&  v,
+        const ArrayofVector&  v,
         const string&         var_name,
 	const string&         f )
 {
@@ -667,7 +667,7 @@ void ArrayOfVectorWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_vectorarray( filename, fid, v, "VECTOR" );
+  binfile_write_vectorarray( filename, fid, v, "Vector" );
   binfile_close( fid, filename );
 }
 
@@ -680,7 +680,7 @@ void ArrayOfVectorWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfVectorReadBinary(
-	      ARRAYofVECTOR&  v,
+	      ArrayofVector&  v,
         const string&         var_name,
 	const string&         f )
 {
@@ -688,16 +688,16 @@ void ArrayOfVectorReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_vectorarray( v, filename, fid, "VECTOR" );
+  binfile_read_vectorarray( v, filename, fid, "Vector" );
   binfile_close( fid, filename );
 }
 
 
 
-//=== ARRAYofMATRIX ====================================================
+//=== ArrayofMatrix ====================================================
 
 void ArrayOfMatrixWriteAscii(// WS Generic Input:
-			      const ARRAYofMATRIX& am,
+			      const ArrayofMatrix& am,
 			      // WS Generic Input Names:
 			      const string& am_name,
 			      // Control Parameters:
@@ -715,7 +715,7 @@ void ArrayOfMatrixWriteAscii(// WS Generic Input:
 
 
 void ArrayOfMatrixReadAscii(// WS Generic Output:
-			       ARRAYofMATRIX& am,
+			       ArrayofMatrix& am,
 			       // WS Generic Output Names:
 			       const string& am_name,
 			       // Control Parameters:
@@ -739,7 +739,7 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfMatrixWriteBinary(
-        const ARRAYofMATRIX&  v,
+        const ArrayofMatrix&  v,
         const string&         var_name,
 	const string&         f )
 {
@@ -747,7 +747,7 @@ void ArrayOfMatrixWriteBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_matrixarray( filename, fid, v, "MATRIX" );
+  binfile_write_matrixarray( filename, fid, v, "Matrix" );
   binfile_close( fid, filename );
 }
 
@@ -760,7 +760,7 @@ void ArrayOfMatrixWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfMatrixReadBinary(
-	      ARRAYofMATRIX&  v,
+	      ArrayofMatrix&  v,
         const string&         var_name,
 	const string&         f )
 {
@@ -768,7 +768,7 @@ void ArrayOfMatrixReadBinary(
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_matrixarray( v, filename, fid, "MATRIX" );
+  binfile_read_matrixarray( v, filename, fid, "Matrix" );
   binfile_close( fid, filename );
 }
 
@@ -789,7 +789,7 @@ void StringWriteAscii( // WS Generic Input:
   filename_ascii( filename, s_name );
 
   // Convert the string to an array of string:
-  ARRAYofstring as(1);
+  Arrayofstring as(1);
   as[0] = s;
 
   // Write the array of matrix to the file.
@@ -811,7 +811,7 @@ void StringReadAscii(   // WS Generic Output:
   filename_ascii( filename, s_name );
 
   // Read the array of matrix from the file:
-  ARRAYofstring as;
+  Arrayofstring as;
   read_array_of_string_from_file(as,filename);
 
   // Convert the array of string to a string.
@@ -866,10 +866,10 @@ void StringReadBinary(
 
 
 
-//=== ARRAYofstring ====================================================
+//=== Arrayofstring ====================================================
 
 void ArrayOfStringWriteAscii( // WS Generic Input:
-			      const ARRAYofstring& as,
+			      const Arrayofstring& as,
 			      // WS Generic Input Names:
 			      const string& as_name,
 			      // Control Parameters:
@@ -887,7 +887,7 @@ void ArrayOfStringWriteAscii( // WS Generic Input:
 
 
 void ArrayOfStringReadAscii(   // WS Generic Output:
-			       ARRAYofstring& as,
+			       Arrayofstring& as,
 			       // WS Generic Output Names:
 			       const string& as_name,
 			       // Control Parameters:
@@ -911,7 +911,7 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfStringWriteBinary(
-        const ARRAYofstring&  v,
+        const Arrayofstring&  v,
         const string&         var_name,
 	const string&         f )
 {
@@ -932,7 +932,7 @@ void ArrayOfStringWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfStringReadBinary(
-	      ARRAYofstring&  v,
+	      Arrayofstring&  v,
         const string&         var_name,
 	const string&         f )
 {
@@ -955,9 +955,9 @@ void SymmetricWriteAscii(// WS Generic Input:
 		       // Control Parameters:
 		       const string& f)
 {
-  const INDEX   n = m.nrows();
+  const Index   n = m.nrows();
   
-  MATRIX   x(n,n);
+  Matrix   x(n,n);
 
   copy( m, x );
 
@@ -973,11 +973,11 @@ void SymmetricReadAscii(// WS Generic Output:
 			// Control Parameters:
 			const string& f)
 {
-  MATRIX   x;
+  Matrix   x;
 
   MatrixReadAscii( x, m_name, f );
 
-  const INDEX   n = x.nrows();
+  const Index   n = x.nrows();
   
   assert( n == x.ncols() );
 
@@ -993,9 +993,9 @@ void SymmetricWriteBinary(// WS Generic Input:
 		       // Control Parameters:
 		       const string& f)
 {
-  const INDEX   n = m.nrows();
+  const Index   n = m.nrows();
   
-  MATRIX   x(n,n);
+  Matrix   x(n,n);
 
   copy( m, x );
 
@@ -1011,11 +1011,11 @@ void SymmetricReadBinary(// WS Generic Output:
 			// Control Parameters:
 			const string& f)
 {
-  MATRIX   x;
+  Matrix   x;
 
   MatrixReadBinary( x, m_name, f );
 
-  const INDEX   n = x.nrows();
+  const Index   n = x.nrows();
   
   assert( n == x.ncols() );
 
@@ -1045,7 +1045,7 @@ void HmatrixReadAscii(// WS Generic Output:
   filename_ascii( filename, h_name );
 
   // Read the array of matrix from the file:
-  ARRAYofMATRIX am;
+  ArrayofMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   h.issparse = 0;
@@ -1121,7 +1121,7 @@ void LosReadBinary(
 //
 //**************************************************************************
 
-//=== INDEX ============================================================
+//=== Index ============================================================
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -1174,7 +1174,7 @@ void NumericCopyFirstOfVector(
                 // WS Generic Output Names:
                 const string&   x_name,
                 // Control Parameters:
-                const VECTOR&   v,
+                const Vector&   v,
                 const string&   v_name )
 {
   x = v[0];
@@ -1183,7 +1183,7 @@ void NumericCopyFirstOfVector(
 
 
 
-//=== VECTOR ==========================================================
+//=== Vector ==========================================================
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -1191,7 +1191,7 @@ void NumericCopyFirstOfVector(
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void VectorSet(           VECTOR&  x, 
+void VectorSet(           Vector&  x, 
                     const string&  x_name,
                     const int&     n,
                     const Numeric& value )
@@ -1212,9 +1212,9 @@ void VectorSet(           VECTOR&  x,
    \date   2000-?-?
 */
 void VectorSetLengthFromVector(
-              VECTOR&  x, 
+              Vector&  x, 
         const string&  x_name,
-        const VECTOR&  z,
+        const Vector&  z,
         const string&  z_name,
         const Numeric& value )
 {
@@ -1234,7 +1234,7 @@ void VectorSetLengthFromVector(
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void VectorLinSpace(      VECTOR&  x, 
+void VectorLinSpace(      Vector&  x, 
                     const string&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
@@ -1259,7 +1259,7 @@ void VectorLinSpace(      VECTOR&  x,
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void VectorNLinSpace(     VECTOR&  x, 
+void VectorNLinSpace(     Vector&  x, 
                     const string&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
@@ -1284,7 +1284,7 @@ void VectorNLinSpace(     VECTOR&  x,
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void VectorNLogSpace(     VECTOR&  x, 
+void VectorNLogSpace(     Vector&  x, 
                     const string&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
@@ -1301,9 +1301,9 @@ void VectorNLogSpace(     VECTOR&  x,
 
 
 void VectorCopy(
-                      VECTOR&   y2,
+                      Vector&   y2,
                 const string&   name_y2,
-                const VECTOR&   y1,
+                const Vector&   y1,
                 const string&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
@@ -1319,17 +1319,17 @@ void VectorCopy(
    \author Patrick Eriksson
    \date   2001-06-12
 */void VectorFlip(
-                      VECTOR&   y2,
+                      Vector&   y2,
                 const string&   name_y2,
-                const VECTOR&   y1,
+                const Vector&   y1,
                 const string&   name_y1 )
 {
   out2 << "  Flips " << name_y2 << " to create " << name_y1 << "\n";
 
-  INDEX n = y1.size();
+  Index n = y1.size();
 
-  VECTOR dum( n );
-  for ( INDEX i=0; i<n; i++ )
+  Vector dum( n );
+  for ( Index i=0; i<n; i++ )
     dum[n-1-i] = y1[i];
 
   resize( y2, n );
@@ -1339,9 +1339,9 @@ void VectorCopy(
 
 
 void VectorCopyFromArrayOfVector(
-                      VECTOR&          v,
+                      Vector&          v,
                 const string&          v_name,
-                const ARRAYofVECTOR&   va,
+                const ArrayofVector&   va,
                 const string&          va_name,
                 const int&             i )
 {
@@ -1369,9 +1369,9 @@ void VectorCopyFromArrayOfVector(
    \date   2000-?-?
 */
 void VectorPlanck(
-                    VECTOR&   y,
+                    Vector&   y,
               const string&   y_name,
-              const VECTOR&   f,
+              const Vector&   f,
               const string&   f_name,
               const Numeric&  t )
 {
@@ -1394,9 +1394,9 @@ void VectorPlanck(
    \date   2000-?-?
 */
 void VectorCalcLog10(
-                    VECTOR&   out,
+                    Vector&   out,
               const string&   out_name,
-              const VECTOR&   in,
+              const Vector&   in,
               const string&   in_name )
 {
   out2<<"  " << out_name << " = log10( " << in_name << " )\n";
@@ -1414,9 +1414,9 @@ void VectorCalcLog10(
    \date   2001-01-17
 */
 void VectorAdd(
-                    VECTOR&   out,
+                    Vector&   out,
               const string&   out_name,
-              const VECTOR&   in,
+              const Vector&   in,
               const string&   in_name,
               const Numeric&  value )
 {
@@ -1425,10 +1425,10 @@ void VectorAdd(
   const size_t  n = in.size();
 
   // Note that in and out can be the same vector
-  VECTOR dummy(n);
+  Vector dummy(n);
   copy( in, dummy );
   resize( out, n );
-  add ( dummy, VECTOR(n,value), out );
+  add ( dummy, Vector(n,value), out );
 }
 
 
@@ -1440,9 +1440,9 @@ void VectorAdd(
    \date   2001-01-17
 */
 void VectorScale(
-                    VECTOR&   out,
+                    Vector&   out,
               const string&   out_name,
-              const VECTOR&   in,
+              const Vector&   in,
               const string&   in_name,
               const Numeric&  value )
 {
@@ -1451,10 +1451,10 @@ void VectorScale(
   const size_t  n = in.size();
 
   // Note that in and out can be the same vector
-  VECTOR dummy(n);
+  Vector dummy(n);
   copy( in, dummy );
   resize( out, n );
-  for ( INDEX i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
     out[i] = dummy[i] * value;
 }
 
@@ -1467,7 +1467,7 @@ void VectorScale(
    \date   2000-?-?
 */
 void VectorRandUniform(
-                    VECTOR&   y,
+                    Vector&   y,
               const string&   y_name,
               const Numeric&  x_low,
               const Numeric&  x_high,
@@ -1487,7 +1487,7 @@ void VectorRandUniform(
    \date   2000-?-?
 */
 void VectorRandGaussian(
-                    VECTOR&   y,
+                    Vector&   y,
               const string&   y_name,
               const Numeric&  stddev,
               const int&      n )
@@ -1499,7 +1499,7 @@ void VectorRandGaussian(
 
 
 
-//=== MATRIX ==========================================================
+//=== Matrix ==========================================================
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -1507,7 +1507,7 @@ void VectorRandGaussian(
    \author Patrick Eriksson
    \date   2001-02-21
 */
-void MatrixSet(           MATRIX&  x, 
+void MatrixSet(           Matrix&  x, 
                     const string&  x_name,
                     const int&     nrows,
                     const int&     ncols,
@@ -1524,9 +1524,9 @@ void MatrixSet(           MATRIX&  x,
 
 
 void MatrixCopy(
-              MATRIX&   y2,
+              Matrix&   y2,
         const string&   name_y2,
-        const MATRIX&   y1,
+        const Matrix&   y1,
         const string&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
@@ -1537,16 +1537,16 @@ void MatrixCopy(
 
 
 void MatrixFillWithVector(
-              MATRIX&   m,
+              Matrix&   m,
         const string&   name_m,
-        const VECTOR&   y,
+        const Vector&   y,
         const string&   name_y,
         const int&      n )
 {
   out2 << "  Creates" << name_m << " by copying " << name_y << n << "times.\n";
   const size_t nrows = y.size();
   resize( m, nrows, n );
-  for ( INDEX row=0; row<nrows; row++ ) 
+  for ( Index row=0; row<nrows; row++ ) 
     mtl::set(m[row],y[row]);
 }
 
@@ -1559,9 +1559,9 @@ void MatrixFillWithVector(
    \date   2001-01-17
 */
 void MatrixScale(
-                    MATRIX&   out,
+                    Matrix&   out,
               const string&   out_name,
-              const MATRIX&   in,
+              const Matrix&   in,
               const string&   in_name,
               const Numeric&  value )
 {
@@ -1571,7 +1571,7 @@ void MatrixScale(
   const size_t  n2 = in.ncols();
 
   // Note that in and out can be the same matrix
-  MATRIX dummy(n1,n2);
+  Matrix dummy(n1,n2);
   copy( in, dummy );
   resize( out, n1, n2 );
   size_t i,j;
@@ -1602,7 +1602,7 @@ void StringSet(           string&  s,
 
 
 
-//=== ARRAYofSTRING ========================================================
+//=== ArrayofSTRING ========================================================
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -1611,9 +1611,9 @@ void StringSet(           string&  s,
    \date   2000-?-?
 */
 void ArrayOfStringSet(    
-              ARRAYofstring&  sa, 
+              Arrayofstring&  sa, 
         const string&         sa_name,
-        const ARRAYofstring&  sa2 )
+        const Arrayofstring&  sa2 )
 {
   resize(sa,sa2.size());
   copy(sa2,sa);
@@ -1637,7 +1637,7 @@ void SymmetricDiagonal(
                     const Numeric&    value )
 {
   resize( x, nrows, nrows );
-  for ( INDEX i=0; i<INDEX(nrows); i++ )
+  for ( Index i=0; i<Index(nrows); i++ )
     x[i][i] = value;
 
   out2 << "  Creating " << x_name << " as a diagonal (symmetric) matrix\n"; 

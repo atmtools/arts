@@ -8,8 +8,8 @@ int main()
   try
     {
       // We need group names and WSV data:
-      extern const ARRAY<string> wsv_group_names;
-      extern const ARRAY<WsvRecord> wsv_data;
+      extern const Array<string> wsv_group_names;
+      extern const Array<WsvRecord> wsv_data;
 
       // Initialize:
       define_wsv_group_names();
@@ -40,9 +40,9 @@ int main()
 
       ofs << "/** The array of WSV pointers.\n"
 	  << "    This can be used to access a WSV by its index. */\n"
-	  << "ARRAY<WsvP*> wsv_pointers;\n\n";
+	  << "Array<WsvP*> wsv_pointers;\n\n";
       
-      ofs << "void define_wsv_pointers(ARRAY<WsvP*>&    wsv_pointers,\n"
+      ofs << "void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,\n"
 	  << "                         WorkSpace&       workspace)\n"
 	  << "{\n\n";
 

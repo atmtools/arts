@@ -36,15 +36,15 @@
 class MRecord {
 public:
   MRecord(const int id,
-	  const ARRAY<TokVal>& values,
-	  const ARRAY<size_t>& output,
-	  const ARRAY<size_t>& input)
+	  const Array<TokVal>& values,
+	  const Array<size_t>& output,
+	  const Array<size_t>& input)
     : mid(id),
       mvalues( values.size() ),
       moutput( output.size() ),
       minput(  input.size()  )
   { 
-    // We need to use copy to initialize the ARRAY members. If we use
+    // We need to use copy to initialize the Array members. If we use
     // the assignment operator they end up all pointing to the same
     // data!
     copy(values, mvalues);
@@ -52,20 +52,20 @@ public:
     copy(input,  minput);
   }
   int                  Id()     const { return mid;     }
-  const ARRAY<TokVal>& Values() const { return mvalues; }
-  const ARRAY<size_t>& Output() const { return moutput; }
-  const ARRAY<size_t>& Input()  const { return minput;  }
+  const Array<TokVal>& Values() const { return mvalues; }
+  const Array<size_t>& Output() const { return moutput; }
+  const Array<size_t>& Input()  const { return minput;  }
 
 private:
   /** Method id. */
   int mid;
   /** List of parameter values (see methods.h for definition of
       TokVal). */
-  ARRAY<TokVal> mvalues;
+  Array<TokVal> mvalues;
   /** Output workspace variables (for generic methods). */
-  ARRAY<size_t> moutput;
+  Array<size_t> moutput;
   /** Input workspace variables (for generic methods). */
-  ARRAY<size_t> minput;
+  Array<size_t> minput;
 };
 
 
@@ -134,7 +134,7 @@ public:
 private:
 
   /** The text. */
-  ARRAY<string> mText;
+  Array<string> mText;
 
   /** Line position in the text. (0 based!) */
   size_t mLine;
@@ -161,7 +161,7 @@ private:
     @param text The control text
 
     @author Stefan Buehler */
-void parse_main(ARRAY<MRecord>& tasklist, SourceText& text);
+void parse_main(Array<MRecord>& tasklist, SourceText& text);
 
 
 #endif

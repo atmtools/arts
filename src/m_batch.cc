@@ -86,7 +86,7 @@ void filename_batch(
    \date   2000-12-06
 */
 void read_batchdata( 
-              MATRIX&   x, 
+              Matrix&   x, 
         const string&   batchname, 
         const string&   filename, 
         const string&   varname,
@@ -113,7 +113,7 @@ void read_batchdata(
   // Remove a possible excess of data
   if ( x.ncols() > n )
   {
-    MATRIX dummy( x.nrows(), n );
+    Matrix dummy( x.nrows(), n );
     copy( x.sub_matrix( 0, x.nrows(), 0, n ), dummy );
     resize( x, x.nrows(), n );
     copy( dummy, x );
@@ -123,9 +123,9 @@ void read_batchdata(
 
 // Part common for both versions of BatchdataGaussianTemperatureProfiles
 void temperature_profiles(
-              MATRIX&   t,
+              Matrix&   t,
               string&   fname,
-        const VECTOR&   t_abs,
+        const Vector&   t_abs,
         const SYMMETRIC&   s,
         const string&   batchname,
         const int&      n )
@@ -154,8 +154,8 @@ void BatchdataGaussianNoiseNoCorrelation(
      // WS Input
         const string&   batchname,
      // GInput
-        const VECTOR&   grid1,
-        const VECTOR&   grid2,
+        const Vector&   grid1,
+        const Vector&   grid2,
         const string&   grid1_name,
         const string&   grid2_name,
      // Control Parameters
@@ -163,7 +163,7 @@ void BatchdataGaussianNoiseNoCorrelation(
         const Numeric&  stddev)
 {
   string fname = "";
-  MATRIX m(grid1.size()*grid2.size(),n);
+  Matrix m(grid1.size()*grid2.size(),n);
   setto( m, 0);
 
   filename_batch( fname,  batchname, "noise" );
@@ -190,12 +190,12 @@ void BatchdataGaussianZeroMean(
 {
   const size_t   l = s.nrows();
         string   fname = "";
-        MATRIX   zs;
+        Matrix   zs;
 
   filename_batch( fname, batchname, varname );
   out2 << "  Creating " << n << " vectors with gaussian random data.\n";
   resize(zs,1,n);
-  rand_data_gaussian( zs, VECTOR(l,0.0), s );
+  rand_data_gaussian( zs, Vector(l,0.0), s );
   MatrixWriteBinary( zs, "", fname );
 
 }
@@ -210,21 +210,21 @@ void BatchdataGaussianZeroMean(
 */
 void BatchdataGaussianTemperatureProfiles(
       // WS Input:
-        const VECTOR&    p_abs,
-        const VECTOR&    t_abs,
-        const VECTOR&    z_abs,
-        const VECTOR&    h2o_abs,
+        const Vector&    p_abs,
+        const Vector&    t_abs,
+        const Vector&    z_abs,
+        const Vector&    h2o_abs,
         const SYMMETRIC& s,
         const string&    batchname,
         const Numeric&   r_geoid,
-        const VECTOR&    hse,
+        const Vector&    hse,
         const int&       n )
 {
   string fname;
-  MATRIX ts;
+  Matrix ts;
   temperature_profiles( ts, fname, t_abs, s, batchname, n );
-  MATRIX zs(t_abs.size(),n);
-  VECTOR z, t;
+  Matrix zs(t_abs.size(),n);
+  Vector z, t;
   fname = "";
   filename_batch( fname, batchname, "z_abs" );
   out2 << "  Filling the file " << fname << "\n"
@@ -255,13 +255,13 @@ void BatchdataGaussianTemperatureProfiles(
    \date   2000-12-06
 */
 void BatchdataGaussianTemperatureProfilesNoHydro(
-        const VECTOR&     t_abs,
+        const Vector&     t_abs,
         const SYMMETRIC&  s,
         const string&     batchname,
         const int&        n )
 {
   string fname;
-  MATRIX t;
+  Matrix t;
   temperature_profiles( t, fname, t_abs, s, batchname, n );
 }
 
@@ -276,20 +276,20 @@ void BatchdataGaussianTemperatureProfilesNoHydro(
 void BatchdataGaussianSpeciesProfiles(
       // WS Input:
         const TagGroups&       tgs,
-        const ARRAYofVECTOR&   vmrs,
-        const VECTOR&          p_abs,
-        const VECTOR&          t_abs,
+        const ArrayofVector&   vmrs,
+        const Vector&          p_abs,
+        const Vector&          t_abs,
         const SYMMETRIC&          s,
         const string&          batchname,
       // Control Parameters:
         const int&             n,
-        const ARRAYofstring&   do_tags,
+        const Arrayofstring&   do_tags,
         const string&          unit )
 {
   const size_t   ntags = do_tags.size();    // Number of tags to do here 
-  ARRAYofsizet   tagindex;                  // Index in tags for do_tags 
+  Arrayofsizet   tagindex;                  // Index in tags for do_tags 
         string   fname;
-        MATRIX   x;
+        Matrix   x;
    
   // Check if do_tags can be found in tag_groups and store indeces
   if ( ntags == 0 )
@@ -302,7 +302,7 @@ void BatchdataGaussianSpeciesProfiles(
   {
     // Determine the name of the molecule for itag
     // The species lookup data:
-    extern const ARRAY<SpeciesRecord> species_data;
+    extern const Array<SpeciesRecord> species_data;
     string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
 
     // Create filename
@@ -320,7 +320,7 @@ void BatchdataGaussianSpeciesProfiles(
       size_t   np = vmrs[tagindex[itag]].size();
       size_t   row, col;
       Numeric  a;
-      rand_data_gaussian( x, VECTOR(np,1.0), s );
+      rand_data_gaussian( x, Vector(np,1.0), s );
       for ( row=0; row<np; row++ )
       {
         a = vmrs[tagindex[itag]][row];
@@ -337,7 +337,7 @@ void BatchdataGaussianSpeciesProfiles(
       size_t   np = vmrs[tagindex[itag]].size();
       size_t   row, col;
       Numeric  a;
-      rand_data_gaussian( x, VECTOR(np,0.0), s );
+      rand_data_gaussian( x, Vector(np,0.0), s );
       for ( row=0; row<np; row++ )
       {
         a = number_density ( p_abs[row], t_abs[row] );
@@ -370,15 +370,15 @@ void BatchdataGaussianOffSets(
       // WS Input:
         const string&  batchname,
       // WS Generic Input:
-        const VECTOR&  z0,
+        const Vector&  z0,
       // WS Generic Input Names:
         const string&  z_name,
       // Control Parameters:
         const int&     n,
         const Numeric& stddev)
 {
-  VECTOR   r(n);
-  MATRIX   a(1,n);
+  Vector   r(n);
+  Matrix   a(1,n);
 
   string fname = "";
   filename_batch( fname, batchname, z_name );
@@ -401,7 +401,7 @@ void BatchdataUniformOffSets(
       // WS Input:
         const string&  batchname,
       // WS Generic Input:
-        const VECTOR&  z0,
+        const Vector&  z0,
       // WS Generic Input Names:
         const string&  z_name,
       // Control Parameters:
@@ -409,8 +409,8 @@ void BatchdataUniformOffSets(
         const Numeric& low,
         const Numeric& high )
 {
-  VECTOR   r(n);
-  MATRIX   a(1,n);
+  Vector   r(n);
+  Matrix   a(1,n);
 
   string fname = "";
   filename_batch( fname, batchname, z_name );
@@ -433,8 +433,8 @@ void BatchdataSinusoidalRippleNoCorrelations(
       // WS Input:
         const string&    batchname,
       // WS Generic Input:
-        const VECTOR&    f,
-        const VECTOR&    za,
+        const Vector&    f,
+        const Vector&    za,
       // WS Generic Input Names:
         const string&    f_name,
         const string&    za_name,
@@ -448,8 +448,8 @@ void BatchdataSinusoidalRippleNoCorrelations(
   extern const Numeric PI;
   const size_t   nza = za.size();
   const size_t   nf  = f.size();
-        MATRIX   phase, amp;
-        MATRIX   rs(nf*nza,n);
+        Matrix   phase, amp;
+        Matrix   rs(nf*nza,n);
 
   out2 << "  Creating " << n << " vectors sinusoidal baseline ripple.\n";
 
@@ -475,7 +475,7 @@ void BatchdataSinusoidalRippleNoCorrelations(
   rand_matrix_uniform( phase, 0, 2*PI );
 
   size_t   i, iv, iza, if0;
-  VECTOR   r(nf*nza);
+  Vector   r(nf*nza);
   Numeric  a, p, b=2*PI/period;
 
   for ( i=0; i<size_t(n); i++ )
@@ -509,41 +509,41 @@ void BatchdataSinusoidalRippleNoCorrelations(
 */
 void ybatchAbsAndRte(
       // WS Output:
-              MATRIX&                     ybatch,
+              Matrix&                     ybatch,
       // WS Input:
-        const VECTOR&                     f_mono,
-        const VECTOR&                     p_abs, 
-        const VECTOR&                     t_abs,
-	const VECTOR&                     n2_abs,
-	const VECTOR&                     h2o_abs,
-        const ARRAYofVECTOR&              vmrs,
-        const ARRAYofARRAYofLineRecord&   lines_per_tag,
-        const ARRAYofLineshapeSpec&       lineshape,
-        const VECTOR&                     z_abs,
+        const Vector&                     f_mono,
+        const Vector&                     p_abs, 
+        const Vector&                     t_abs,
+	const Vector&                     n2_abs,
+	const Vector&                     h2o_abs,
+        const ArrayofVector&              vmrs,
+        const ArrayofArrayofLineRecord&   lines_per_tag,
+        const ArrayofLineshapeSpec&       lineshape,
+        const Vector&                     z_abs,
         const Numeric&                    z_plat,
-        const VECTOR&                     za_pencil,
+        const Vector&                     za_pencil,
         const Numeric&                    l_step,
         const int&                        refr,
         const int&                        refr_lfac,
-        const VECTOR&                     refr_index,
+        const Vector&                     refr_index,
         const Numeric&                    z_ground,
         const Numeric&                    r_geoid,
 	const int&                        emission,
-        const VECTOR&                     y_space,
-        const VECTOR&                     e_ground,
+        const Vector&                     y_space,
+        const Vector&                     e_ground,
         const Numeric&                    t_ground,
         const string&                     batchname,
         const TagGroups&                  tgs,
-	const ARRAYofstring&              cont_description_names,
-	const ARRAYofVECTOR& 		  cont_description_parameters,
+	const Arrayofstring&              cont_description_names,
+	const ArrayofVector& 		  cont_description_parameters,
       // Control Parameters:
         const int&                        ncalc,
         const int&                        do_t,
         const string&                     t_file,
         const int&                        do_z,
         const string&                     z_file,
-        const ARRAYofstring&              do_tags,
-        const ARRAYofstring&              tag_files,
+        const Arrayofstring&              do_tags,
+        const Arrayofstring&              tag_files,
         const int&                        do_f,
         const string&                     f_file,
         const int&                        do_za,
@@ -552,7 +552,7 @@ void ybatchAbsAndRte(
   const size_t   np = p_abs.size();         // Number of pressure levels
   const size_t   ntgs = tgs.size();         // Number of absorption tags
   const size_t   ndo = do_tags.size();      // Number of tags to do here 
-  ARRAYofsizet   tagindex;                  // Index in tgs for do_tags 
+  Arrayofsizet   tagindex;                  // Index in tgs for do_tags 
    
   if ( ndo != tag_files.size() )
   {
@@ -571,36 +571,36 @@ void ybatchAbsAndRte(
   // Read data from file(s) or use the workspace varaible
   //
   // Temperature
-  VECTOR t(t_abs.size());
+  Vector t(t_abs.size());
   copy( t_abs, t );
-  MATRIX Ts;
+  Matrix Ts;
   if ( do_t )
     read_batchdata( Ts, batchname, t_file, "t_abs", np, ncalc );
   //
   // Altitudes
-  VECTOR z(z_abs.size());
+  Vector z(z_abs.size());
   copy( z_abs, z );
-  MATRIX Zs;
+  Matrix Zs;
   if ( do_z )
     read_batchdata( Zs, batchname, z_file, "z_abs", np, ncalc );
   //
   // Frequencies
-  VECTOR f(f_mono.size());
+  Vector f(f_mono.size());
   copy( f_mono, f );
-  MATRIX f_oss;
+  Matrix f_oss;
   if ( do_f )
     read_batchdata( f_oss, batchname, f_file, "f_mono", 1, ncalc );
   //
   // Zenith angles
-  VECTOR za(za_pencil.size());
+  Vector za(za_pencil.size());
   copy( za_pencil, za );
-  MATRIX za_oss;
+  Matrix za_oss;
   if ( do_za )
     read_batchdata( za_oss, batchname, za_file, "za_pencil", 1, ncalc );
   //
   // Species profiles
          size_t itag;
-  ARRAYofVECTOR vs(ntgs);
+  ArrayofVector vs(ntgs);
 
   for ( itag=0; itag<ntgs; itag++ )
   {
@@ -609,8 +609,8 @@ void ybatchAbsAndRte(
     copy( vmrs[itag], vs[itag] );
   }
 
-  ARRAYofMATRIX VMRs(ndo);
-  extern const ARRAY<SpeciesRecord> species_data; // The species lookup data:
+  ArrayofMatrix VMRs(ndo);
+  extern const Array<SpeciesRecord> species_data; // The species lookup data:
   for ( itag=0; itag<ndo; itag++ )
   {
     // Determine the name of the molecule for itag
@@ -621,11 +621,11 @@ void ybatchAbsAndRte(
 
 
   //--- Loop and calculate the spectra --------------------------------------
-         MATRIX   abs;
-  ARRAYofMATRIX   abs_per_tag;
+         Matrix   abs;
+  ArrayofMatrix   abs_per_tag;
             LOS   los;
-  ARRAYofMATRIX   trans, source;
-         VECTOR   y, z_tan;
+  ArrayofMatrix   trans, source;
+         Vector   y, z_tan;
 
   out2 << "  Calculating spectra.\n";
 
@@ -695,14 +695,14 @@ void ybatchAbsAndRte(
    \date   2000-12-06
 */
 void ybatchLoadCalibration (
-                    MATRIX&   ybatch,
-              const VECTOR&   i_cal1,
-              const VECTOR&   i_cal2,
-              const VECTOR&   y_cal1,
-              const VECTOR&   y_cal2,
-              const VECTOR&   za_sensor )
+                    Matrix&   ybatch,
+              const Vector&   i_cal1,
+              const Vector&   i_cal2,
+              const Vector&   y_cal1,
+              const Vector&   y_cal2,
+              const Vector&   za_sensor )
 {
-  VECTOR y(ybatch.nrows());
+  Vector y(ybatch.nrows());
   for ( size_t i=0; i<ybatch.ncols(); i++ )
   {
     //    col ( y, i+1, ybatch );
@@ -722,13 +722,13 @@ void ybatchLoadCalibration (
    \date   2000-12-06
 */
 void ybatchAdd (
-                    MATRIX&    ybatch,
+                    Matrix&    ybatch,
               const string&    batchname,
               const string&    varname )
 {
   const size_t   l = ybatch.nrows();
   const size_t   n = ybatch.ncols();
-  MATRIX x;
+  Matrix x;
   read_batchdata( x, batchname, "", varname, l, n );
   add( x, ybatch );
 }
@@ -742,14 +742,14 @@ void ybatchAdd (
    \date   2000-12-06
 */
 void ybatchAddScaled (
-                    MATRIX&    ybatch,
+                    Matrix&    ybatch,
               const string&    batchname,
               const string&    varname,
               const Numeric&   scalefac )
 {
   const size_t   l = ybatch.nrows();
   const size_t   n = ybatch.ncols();
-  MATRIX x;
+  Matrix x;
   read_batchdata( x, batchname, "", varname, l, n );
   add( scaled(x,scalefac), ybatch); 	// ybatch = ybatch + scalefac*x; 
 }

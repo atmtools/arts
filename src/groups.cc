@@ -32,7 +32,7 @@
 
 /*! The names associated with Wsv groups as strings.
   See function define_wsv_group_names for more information. */
-ARRAY<string> wsv_group_names;
+Array<string> wsv_group_names;
 
 
 //! Define the array of workspace variable group names.
@@ -58,18 +58,18 @@ void define_wsv_group_names()
   wsv_group_names.push_back("size_t");
   wsv_group_names.push_back("int");
   wsv_group_names.push_back("Numeric");
-  wsv_group_names.push_back("VECTOR");
-  wsv_group_names.push_back("MATRIX");
+  wsv_group_names.push_back("Vector");
+  wsv_group_names.push_back("Matrix");
   wsv_group_names.push_back("SYMMETRIC");
-  wsv_group_names.push_back("ARRAYofstring");
-  wsv_group_names.push_back("ARRAYofsizet");
-  wsv_group_names.push_back("ARRAYofVECTOR");
-  wsv_group_names.push_back("ARRAYofMATRIX");
+  wsv_group_names.push_back("Arrayofstring");
+  wsv_group_names.push_back("Arrayofsizet");
+  wsv_group_names.push_back("ArrayofVector");
+  wsv_group_names.push_back("ArrayofMatrix");
   wsv_group_names.push_back("LOS");
-  wsv_group_names.push_back("ARRAYofLineRecord");
-  wsv_group_names.push_back("ARRAYofARRAYofLineRecord");
+  wsv_group_names.push_back("ArrayofLineRecord");
+  wsv_group_names.push_back("ArrayofArrayofLineRecord");
   wsv_group_names.push_back("TagGroups");
   wsv_group_names.push_back("Hmatrix");
-  wsv_group_names.push_back("ARRAYofLineshapeSpec");
+  wsv_group_names.push_back("ArrayofLineshapeSpec");
 }
 

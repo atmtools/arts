@@ -144,13 +144,13 @@
    \author Thomas Kuhn
    \date 2001-08-03
  */ 
-void Rosenkranz_H2O_self_continuum( MATRIX&           xsec,
+void Rosenkranz_H2O_self_continuum( Matrix&           xsec,
 				    Numeric	      C,
 				    Numeric	      x,
-				    const VECTOR&     f_mono,
-				    const VECTOR&     p_abs,
-				    const VECTOR&     t_abs,
-				    const VECTOR&     vmr	 )
+				    const Vector&     f_mono,
+				    const Vector&     p_abs,
+				    const Vector&     t_abs,
+				    const Vector&     vmr	 )
 {
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
@@ -205,13 +205,13 @@ void Rosenkranz_H2O_self_continuum( MATRIX&           xsec,
    \author Thomas Kuhn
    \date 2001-08-03
  */ 
-void Rosenkranz_H2O_foreign_continuum( MATRIX&           xsec,
+void Rosenkranz_H2O_foreign_continuum( Matrix&           xsec,
 				       Numeric	         C,
 				       Numeric	         x,
-				       const VECTOR&     f_mono,
-				       const VECTOR&     p_abs,
-				       const VECTOR&     t_abs,
-				       const VECTOR&     vmr	 )
+				       const Vector&     f_mono,
+				       const Vector&     p_abs,
+				       const Vector&     t_abs,
+				       const Vector&     vmr	 )
 {
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
@@ -320,12 +320,12 @@ Numeric MPMLineShapeO2Function( Numeric gamma,
 //
 // #################################################################################
 //
-void MPM93O2AbsModel( MATRIX&           xsec,
-		      const VECTOR&     f_mono,
-		      const VECTOR&     p_abs,
-		      const VECTOR&     t_abs,
-		      const VECTOR&     h2o_abs,
-		      const VECTOR&     vmr )
+void MPM93O2AbsModel( Matrix&           xsec,
+		      const Vector&     f_mono,
+		      const Vector&     p_abs,
+		      const Vector&     t_abs,
+		      const Vector&     h2o_abs,
+		      const Vector&     vmr )
 {
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -474,11 +474,11 @@ void MPM93O2AbsModel( MATRIX&           xsec,
 			  // Numeric	    MPM93b4pcl, // default: 30.5
 			  // Numeric	    MPM93b5pcl, // default: 2
 			  // Numeric	    MPM93b6pcl, // default: 5
-void MPM93_H2O_continuum( MATRIX&           xsec,
-			  const VECTOR&     f_mono,
-			  const VECTOR&     p_abs,
-			  const VECTOR&     t_abs,
-			  const VECTOR&     vmr	 )
+void MPM93_H2O_continuum( Matrix&           xsec,
+			  const Vector&     f_mono,
+			  const Vector&     p_abs,
+			  const Vector&     t_abs,
+			  const Vector&     vmr	 )
 {
 
   // pseudo continuum line parameters for MPM93:
@@ -531,12 +531,12 @@ void MPM93_H2O_continuum( MATRIX&           xsec,
 //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
 // and ftp side for downloading the MPM93 original source code:
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-void MPM93_O2_continuum( MATRIX&           xsec,
-			 const VECTOR&     f_mono,
-			 const VECTOR&     p_abs,
-			 const VECTOR&     t_abs,
-			 const VECTOR&     h2o_abs,
-			 const VECTOR&     vmr	 )
+void MPM93_O2_continuum( Matrix&           xsec,
+			 const Vector&     f_mono,
+			 const Vector&     p_abs,
+			 const Vector&     t_abs,
+			 const Vector&     h2o_abs,
+			 const Vector&     vmr	 )
 {
 
   // O2 continuum parameters of MPM93:
@@ -593,12 +593,12 @@ void MPM93_O2_continuum( MATRIX&           xsec,
 //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
 // and ftp side for downloading the MPM93 original source code:
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-void MPM93_N2_continuum( MATRIX&           xsec,
-			 const VECTOR&     f_mono,
-			 const VECTOR&     p_abs,
-			 const VECTOR&     t_abs,
-			 const VECTOR&     h2o_abs,
-			 const VECTOR&     vmr	 )
+void MPM93_N2_continuum( Matrix&           xsec,
+			 const Vector&     f_mono,
+			 const Vector&     p_abs,
+			 const Vector&     t_abs,
+			 const Vector&     h2o_abs,
+			 const Vector&     vmr	 )
 {
 
   // N2 continuum parameters of MPM93:
@@ -653,12 +653,12 @@ void MPM93_N2_continuum( MATRIX&           xsec,
 //               John Wiley & Sons, Inc., 1993. Also stated in 
 //               Liebe et al. JQSRT, Vol 48, Nr 5/6, pp. 629-643, 1992.
 //               Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
-void Rosenkranz_O2_continuum( MATRIX&           xsec,
-			      const VECTOR&  	f_mono,
-			      const VECTOR&  	p_abs,
-			      const VECTOR&  	t_abs,
-			      const VECTOR&     h2o_abs,
-			      const VECTOR&     vmr	 )
+void Rosenkranz_O2_continuum( Matrix&           xsec,
+			      const Vector&  	f_mono,
+			      const Vector&  	p_abs,
+			      const Vector&  	t_abs,
+			      const Vector&     h2o_abs,
+			      const Vector&     vmr	 )
 {
   const Numeric C = 1.108e-14; // default: 1.108*10^-14 K^2/(Hz*Pa*m)
   const Numeric x = 0.8;       // default: 0.8
@@ -702,11 +702,11 @@ void Rosenkranz_O2_continuum( MATRIX&           xsec,
 // 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_N2_self_continuum( MATRIX&           xsec,
-				   const VECTOR&     f_mono,
-				   const VECTOR&     p_abs,
-				   const VECTOR&     t_abs,
-				   const VECTOR&     vmr	 )
+void Rosenkranz_N2_self_continuum( Matrix&           xsec,
+				   const Vector&     f_mono,
+				   const Vector&     p_abs,
+				   const Vector&     t_abs,
+				   const Vector&     vmr	 )
 {
   const Numeric	C = 1.05e-38; // default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
   const Numeric	x = 3.55;     // default: 3.55
@@ -746,15 +746,15 @@ void Rosenkranz_N2_self_continuum( MATRIX&           xsec,
 // 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void General_N2_self_continuum(    MATRIX&           xsec,
+void General_N2_self_continuum(    Matrix&           xsec,
                                    Numeric           C,
                                    Numeric           xf,
                                    Numeric           xt,
                                    Numeric           xp,
-				   const VECTOR&     f_mono,
-				   const VECTOR&     p_abs,
-				   const VECTOR&     t_abs,
-				   const VECTOR&     vmr	 )
+				   const Vector&     f_mono,
+				   const Vector&     p_abs,
+				   const Vector&     t_abs,
+				   const Vector&     vmr	 )
 {
   // C default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
   // xf default: 2
@@ -797,11 +797,11 @@ void General_N2_self_continuum(    MATRIX&           xsec,
 // 5) CO2-CO2: P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_CO2_self_continuum( MATRIX&           xsec,
-				    const VECTOR&     f_mono,
-				    const VECTOR&     p_abs,
-				    const VECTOR&     t_abs,
-				    const VECTOR&     vmr	 )
+void Rosenkranz_CO2_self_continuum( Matrix&           xsec,
+				    const Vector&     f_mono,
+				    const Vector&     p_abs,
+				    const Vector&     t_abs,
+				    const Vector&     vmr	 )
 {
 
   const Numeric	C = 7.43e-37; // default: 7.43*10^-37 1/(Pa^2*Hz^2*m)
@@ -842,12 +842,12 @@ void Rosenkranz_CO2_self_continuum( MATRIX&           xsec,
 // 6) CO2-N2 : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_CO2_foreign_continuum( MATRIX&           xsec,
-				       const VECTOR&     f_mono,
-				       const VECTOR&     p_abs,
-				       const VECTOR&     t_abs,
-				       const VECTOR&     n2_abs,
-				       const VECTOR&     vmr	 )
+void Rosenkranz_CO2_foreign_continuum( Matrix&           xsec,
+				       const Vector&     f_mono,
+				       const Vector&     p_abs,
+				       const Vector&     t_abs,
+				       const Vector&     n2_abs,
+				       const Vector&     vmr	 )
 {
 
   const Numeric C = 2.71e-37; // default: 2.71*10^-37 1/(Pa^2*Hz^2*m)
@@ -959,11 +959,11 @@ Numeric WVSatPressureIce(Numeric t)
 //      vmr: suspended water droplet density, valid range: 0-10.00e-3 kg/m3
 //      The internal numerical values (and units) are the same as in MPM93
 //
-void MPM93WaterDropletAbs( MATRIX&           xsec,
-			   const VECTOR&   f_mono, // frequency vector
-			   const VECTOR&    p_abs, // pressure vector
-			   const VECTOR&    t_abs, // temperature vector
-			   const VECTOR&      vmr) // suspended water droplet density vector
+void MPM93WaterDropletAbs( Matrix&           xsec,
+			   const Vector&   f_mono, // frequency vector
+			   const Vector&    p_abs, // pressure vector
+			   const Vector&    t_abs, // temperature vector
+			   const Vector&      vmr) // suspended water droplet density vector
 {
 
   const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
@@ -1057,11 +1057,11 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
 //      input parameters:
 //      The internal numerical values (and units) are the same as in MPM93
 //
-void MPM93IceCrystalAbs( MATRIX&           xsec,
-			 const VECTOR&   f_mono,   // frequency vector
-			 const VECTOR&    p_abs,   // pressure vector
-			 const VECTOR&    t_abs,   // temperature vector
-			 const VECTOR&      vmr	 ) // suspended ice particle density vector, 
+void MPM93IceCrystalAbs( Matrix&           xsec,
+			 const Vector&   f_mono,   // frequency vector
+			 const Vector&    p_abs,   // pressure vector
+			 const Vector&    t_abs,   // temperature vector
+			 const Vector&      vmr	 ) // suspended ice particle density vector, 
                                                    // valid range: 0-10.0e-3 kg/m3
 {
   const Numeric m = 0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m3
@@ -1153,11 +1153,11 @@ void MPM93IceCrystalAbs( MATRIX&           xsec,
 // 
 // #################################################################################
 //
-void MPM87H2OAbsModel( MATRIX&           xsec,
-		       const VECTOR&   f_mono,
-		       const VECTOR&    p_abs,
-		       const VECTOR&    t_abs,
-		       const VECTOR&      vmr )
+void MPM87H2OAbsModel( Matrix&           xsec,
+		       const Vector&   f_mono,
+		       const Vector&    p_abs,
+		       const Vector&    t_abs,
+		       const Vector&      vmr )
 {
   //
   // Coefficients are from Liebe, Radio Science, 20(5), 1985, 1069
@@ -1263,11 +1263,11 @@ void MPM87H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
-void MPM89H2OAbsModel( MATRIX&           xsec,
-		       const VECTOR&   f_mono,
-		       const VECTOR&    p_abs,
-		       const VECTOR&    t_abs,
-		       const VECTOR&      vmr )
+void MPM89H2OAbsModel( Matrix&           xsec,
+		       const Vector&   f_mono,
+		       const Vector&    p_abs,
+		       const Vector&    t_abs,
+		       const Vector&      vmr )
 {
   //
   // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
@@ -1374,11 +1374,11 @@ void MPM89H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
-void MPM93H2OAbsModel( MATRIX&           xsec,
-		       const VECTOR&   f_mono,
-		       const VECTOR&    p_abs,
-		       const VECTOR&    t_abs,
-		       const VECTOR&      vmr )
+void MPM93H2OAbsModel( Matrix&           xsec,
+		       const Vector&   f_mono,
+		       const Vector&    p_abs,
+		       const Vector&    t_abs,
+		       const Vector&      vmr )
 {
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -1503,11 +1503,11 @@ void MPM93H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
-void CP98H2OAbsModel( MATRIX&           xsec,
-		      const VECTOR&   f_mono,
-		      const VECTOR&    p_abs,
-		      const VECTOR&    t_abs,
-		      const VECTOR&      vmr )
+void CP98H2OAbsModel( Matrix&           xsec,
+		      const Vector&   f_mono,
+		      const Vector&    p_abs,
+		      const Vector&    t_abs,
+		      const Vector&      vmr )
 {
   //
   // Coefficients are from S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998
@@ -1565,11 +1565,11 @@ void CP98H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
-void PWR98H2OAbsModel( MATRIX&           xsec,
-		       const VECTOR&   f_mono,
-		       const VECTOR&    p_abs,
-		       const VECTOR&    t_abs,
-		       const VECTOR&      vmr )
+void PWR98H2OAbsModel( Matrix&           xsec,
+		       const Vector&   f_mono,
+		       const Vector&    p_abs,
+		       const Vector&    t_abs,
+		       const Vector&      vmr )
 {
   //   REFERENCES:
   //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
@@ -1699,12 +1699,12 @@ void PWR98H2OAbsModel( MATRIX&           xsec,
 //   AND H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
 //   (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
 //
-void PWR93O2AbsModel( MATRIX&           xsec,
-		      const VECTOR&   f_mono,
-		      const VECTOR&    p_abs,
-		      const VECTOR&    t_abs,
-		      const VECTOR&   vmrh2o,
-                      const VECTOR&      vmr )
+void PWR93O2AbsModel( Matrix&           xsec,
+		      const Vector&   f_mono,
+		      const Vector&    p_abs,
+		      const Vector&    t_abs,
+		      const Vector&   vmrh2o,
+                      const Vector&      vmr )
 {
   const size_t n_lines = 40; // number of O2 lines in this model (range: 50-850 GHz)
 
@@ -1878,15 +1878,15 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 
     \date   2001-01-16
     \author Stefan Buehler */
-void xsec_continuum_tag( MATRIX&                    xsec,
+void xsec_continuum_tag( Matrix&                    xsec,
 			 const string&              name,
-			 const VECTOR&              parameters,
-			 const VECTOR&  	    f_mono,
-			 const VECTOR&  	    p_abs,
-			 const VECTOR&  	    t_abs,
-			 const VECTOR&  	    n2_abs,
-			 const VECTOR&  	    h2o_abs,
-			 const VECTOR&              vmr )
+			 const Vector&              parameters,
+			 const Vector&  	    f_mono,
+			 const Vector&  	    p_abs,
+			 const Vector&  	    t_abs,
+			 const Vector&  	    n2_abs,
+			 const Vector&  	    h2o_abs,
+			 const Vector&              vmr )
 {
   //
   // out3 << "  Continuum paramters are: " << parameters << "\n";
@@ -2774,22 +2774,22 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 void check_continuum_model(const string& name)
 {
   // The species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern const Array<SpeciesRecord> species_data;
 
   // For the list of valid continuum models:
-  ARRAY<string> valid_models;
+  Array<string> valid_models;
 
   bool found = false;
 
   // Loop all species:
-  for ( ARRAY<SpeciesRecord>::const_iterator i=species_data.begin();
+  for ( Array<SpeciesRecord>::const_iterator i=species_data.begin();
 	i<species_data.end();
 	++i )
     {
       string specnam = i->Name();
 
       // Loop all isotopes:
-      for ( ARRAY<IsotopeRecord>::const_iterator j=i->Isotope().begin();
+      for ( Array<IsotopeRecord>::const_iterator j=i->Isotope().begin();
 	    j<i->Isotope().end();
 	    ++j )
 	{
@@ -2824,7 +2824,7 @@ void check_continuum_model(const string& name)
       ostringstream os;
       os << "The string `" << name << "' matches none of the known\n"
 	 << "continuum models. Known continuum models are:";
-      for ( ARRAY<string>::const_iterator i=valid_models.begin();
+      for ( Array<string>::const_iterator i=valid_models.begin();
 	    i<valid_models.end();
 	    ++i )
 	{

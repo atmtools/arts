@@ -1,3 +1,28 @@
+2001-09-04  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-201
+
+	* Major change: Globally replaced:
+	INDEX  by Index
+	VECTOR by Vector
+	MATRIX by Matrix
+	ARRAY  by Array
+
+	This is the first step toward putting in the new Vector/Matrix
+	data types.
+
+	WARNING: I will try to do this work in the next two weeks. This
+	means there will be changes all over the code. I have to start
+	now, otherwise it will be too late to meet the deadline given by
+	the HWK workshop in October. Keep your fingers crossed...
+
+	* src/matpackI.h: Added
+
+	* src/matpackII.h: Added
+
+	* src/test_matpack.cc: Added
+
+	
 2001-09-03  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-200
@@ -19,12 +44,14 @@
 	of neural nests. Just implemented, ergo no bugs free,
 	use with caution.
 
+	
 2001-08-24  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-198
 
 	* Added functions axes_1xn/nx1 to ami/plot
 
+	
 2001-08-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-197
@@ -53,6 +80,7 @@
 	effect on a satellite-satellite transmission link at
 	low altitudes, that seems to correspond to an attenuation
 	in the signal independent of frequency.
+
 	
 2001-08-22  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
@@ -87,6 +115,7 @@
 	* Commenting out a line printing out O2ABS, kind of 
 	bothering
 
+	
 2001-08-07  Thomas Kuhn  <tkuhn@uni-bremen.de>
 	
         * arts-0-0-191
@@ -100,6 +129,7 @@
 	    This is implemented in AtmFromRaw1D, hwere one has now 
 	    the option of AtmFromRaw1D{CloudSatWV = "yes"} to do this
 	    VMP profile modification.
+
 	
 2001-07-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
@@ -113,6 +143,7 @@
 	* adding /ami/hmatrix/hRedKx to do reduction based on 
 	weighting functions
 
+	
 2001-07-26  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-189

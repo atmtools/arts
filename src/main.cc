@@ -40,8 +40,8 @@
 
 
 // This must be here rather than in arts.h, because arts.h does not
-// know about ARRAY.
-void define_wsv_pointers(ARRAY<WsvP*>&    wsv_pointers,
+// know about Array.
+void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,
                          WorkSpace&       workspace);
 
 
@@ -62,13 +62,13 @@ void give_up(const string& message)
     \param tasklist The list of methods to execute (including keyword data).
 
     \author Stefan Buehler  */
-void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
+void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
 {
   // The method description lookup table:
-  extern const ARRAY<MdRecord> md_data;
+  extern const Array<MdRecord> md_data;
 
   // The workspace variable lookup table:
-  extern const ARRAY<WsvRecord> wsv_data;
+  extern const Array<WsvRecord> wsv_data;
   
   // The array holding the pointers to the getaway functions:
   extern const void (*getaways[])(WorkSpace&, const MRecord&);
@@ -76,11 +76,11 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
   // We need a place to remember which workspace variables are
   // occupied and which aren't.
   // 
-  // For some weird reason, ARRAYs of bool do not work, although all
+  // For some weird reason, Arrays of bool do not work, although all
   // other types seem to work fine. So in this case, I'll use
   // the stl vector directly. The other place where this is done is in
   // the function lines_per_tgCreateFromLines in m_abs.cc.
-  // FIXME: Fix this when ARRAY<bool> works.
+  // FIXME: Fix this when Array<bool> works.
   std::vector<bool> occupied(wsv_data.size(),false);
 
   out3 << "\nExecuting methods:\n";
@@ -102,7 +102,7 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
       // Method data for this method:
       const MdRecord& mdd = md_data[mrr.Id()];
       // Needed to store variable lists:
-      ARRAY<size_t> v;
+      Array<size_t> v;
       
       try
 	{
@@ -217,11 +217,11 @@ void set_reporting_level(int r)
 void option_methods(const string& methods)
 {
   // Make global data visible:
-  extern const ARRAY<MdRecord>  md_data;
-  extern const ARRAY<WsvRecord> wsv_data;
+  extern const Array<MdRecord>  md_data;
+  extern const Array<WsvRecord> wsv_data;
   //  extern const std::map<string, size_t> MdMap;
   extern const std::map<string, size_t> WsvMap;
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<string> wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -346,11 +346,11 @@ void option_methods(const string& methods)
 void option_input(const string& input)
 {
   // Make global data visible:
-  extern const ARRAY<MdRecord>  md_data;
-  extern const ARRAY<WsvRecord> wsv_data;
+  extern const Array<MdRecord>  md_data;
+  extern const Array<WsvRecord> wsv_data;
   //  extern const std::map<string, size_t> MdMap;
   extern const std::map<string, size_t> WsvMap;
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<string> wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -463,11 +463,11 @@ void option_input(const string& input)
 void option_workspacevariables(const string& workspacevariables)
 {
   // Make global data visible:
-  extern const ARRAY<MdRecord>  md_data;
-  extern const ARRAY<WsvRecord> wsv_data;
+  extern const Array<MdRecord>  md_data;
+  extern const Array<WsvRecord> wsv_data;
   extern const std::map<string, size_t> MdMap;
   //  extern const std::map<string, size_t> WsvMap;
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<string> wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
@@ -537,11 +537,11 @@ void option_workspacevariables(const string& workspacevariables)
 void option_describe(const string& describe)
 {
   // Make global data visible:
-  extern const ARRAY<MdRecord>  md_data;
-  extern const ARRAY<WsvRecord> wsv_data;
+  extern const Array<MdRecord>  md_data;
+  extern const Array<WsvRecord> wsv_data;
   extern const std::map<string, size_t> MdMap;
   extern const std::map<string, size_t> WsvMap;
-  //  extern const ARRAY<string> wsv_group_names;
+  //  extern const Array<string> wsv_group_names;
 
   // Let's first assume it is a method that the user wants to have
   // described.
@@ -590,9 +590,9 @@ void option_describe(const string& describe)
 void check_built_headers()
 {
   // Make lookup data visible:
-  //  extern const ARRAY<MdRecord>  md_data;
-  extern const ARRAY<string> wsv_group_names;
-  extern const ARRAY<WsvRecord> wsv_data;
+  //  extern const Array<MdRecord>  md_data;
+  extern const Array<string> wsv_group_names;
+  extern const Array<WsvRecord> wsv_data;
 
   // Checks:
   assert( N_WSV_GROUPS == wsv_group_names.size() );
@@ -666,7 +666,7 @@ int main (int argc, char **argv)
     // workspaces, which have their own pointers associated with
     // them. 
     extern WorkSpace workspace;
-    extern ARRAY<WsvP*> wsv_pointers;
+    extern Array<WsvP*> wsv_pointers;
     define_wsv_pointers(wsv_pointers,workspace);
   }
 
@@ -690,11 +690,11 @@ int main (int argc, char **argv)
   define_lineshape_norm_data();
 
   // Make all these data visible:
-  //  extern const ARRAY<MdRecord>  md_data;
-  //  extern const ARRAY<WsvRecord> wsv_data;
+  //  extern const Array<MdRecord>  md_data;
+  //  extern const Array<WsvRecord> wsv_data;
   //  extern const std::map<string, size_t> MdMap;
   //  extern const std::map<string, size_t> WsvMap;
-  extern const ARRAY<string> wsv_group_names;
+  extern const Array<string> wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
   // switches. 
@@ -806,8 +806,8 @@ int main (int argc, char **argv)
     {
       // Some global variables that we need:
       extern WorkSpace workspace;
-      //      extern ARRAY<WsvRecord> wsv_data;
-      //      extern ARRAY<MdRecord> md_data;
+      //      extern Array<WsvRecord> wsv_data;
+      //      extern Array<MdRecord> md_data;
 
       {
 	// Output program name and version number: 
@@ -825,7 +825,7 @@ int main (int argc, char **argv)
 
       // The list of methods to execute and their keyword data from
       // the control file. 
-      ARRAY<MRecord> tasklist;
+      Array<MRecord> tasklist;
 
       // The text of the controlfile.
       SourceText text;

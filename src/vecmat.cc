@@ -24,7 +24,7 @@
 /**
   \file   vecmat.cc
   
-   Implementation of some MATRIX/VECTOR functions.
+   Implementation of some Matrix/Vector functions.
 
   \date   2001-01-08
   \author Stefan Buehler
@@ -41,29 +41,29 @@
 ////////////////////////////////////////////////////////////////////////////
 
 
-// Output operator for VECTOR:
-std::ostream& operator<<(std::ostream& s, const VECTOR& A)
+// Output operator for Vector:
+std::ostream& operator<<(std::ostream& s, const Vector& A)
 {
   print_vector(s, A);
   return s;
 }
 
-// Output operator for VECTOR subrange:
-std::ostream& operator<<(std::ostream& s, const VECTOR::subrange_type& A)
+// Output operator for Vector subrange:
+std::ostream& operator<<(std::ostream& s, const Vector::subrange_type& A)
 {
   print_vector(s, A);
   return s;
 }
 
-// Output operator for MATRIX:
-std::ostream& operator<<(std::ostream& s, const MATRIX& A)
+// Output operator for Matrix:
+std::ostream& operator<<(std::ostream& s, const Matrix& A)
 {
   print_all_matrix(s, A);
   return s;
 }
 
-// Output operator for sub MATRIX:
-std::ostream& operator<<(std::ostream& s, const MATRIX::submatrix_type& A)
+// Output operator for sub Matrix:
+std::ostream& operator<<(std::ostream& s, const Matrix::submatrix_type& A)
 {
   print_all_matrix(s, A);
   return s;
@@ -85,42 +85,42 @@ std::ostream& operator<<(std::ostream& s, const SYMMETRIC& A)
 
 
 
-// Input operator for VECTOR:
-std::istream& operator>>(std::istream& s, VECTOR& A)
+// Input operator for Vector:
+std::istream& operator>>(std::istream& s, Vector& A)
 {
   read_vector_from_stream(A,s);
   return s;
 }
 
-// Input operator for MATRIX:
-std::istream& operator>>(std::istream& s, MATRIX& A)
+// Input operator for Matrix:
+std::istream& operator>>(std::istream& s, Matrix& A)
 {
   read_matrix_from_stream(A,s);
   return s;
 }
 
-// Resize functions for VECTOR
+// Resize functions for Vector
 
-void resize(VECTOR& x, INDEX n)
+void resize(Vector& x, Index n)
 {
   if ( n!=x.size() )
-    x = VECTOR(n);
+    x = Vector(n);
 }
 
 // Resize function for string. This is just for consistent notation within ARTS.
 
-void resize(string& x, INDEX n)
+void resize(string& x, Index n)
 {
   if ( n!=x.size() )
     x.resize(n);
 }
 
-// Resize functions for MATRIX
+// Resize functions for Matrix
 
-void resize(MATRIX& x, INDEX r, INDEX c)
+void resize(Matrix& x, Index r, Index c)
 {
   if ( r!=x.nrows() || c!=x.ncols() )
-    x = MATRIX(r,c);
+    x = Matrix(r,c);
 }
 
 // Resize functions for SPARSE
@@ -134,7 +134,7 @@ void resize(SPARSE& x, int r, int c)
 
 // Resize functions for SYMMETRIC
 
-void resize(SYMMETRIC& x, INDEX r, INDEX c)
+void resize(SYMMETRIC& x, Index r, Index c)
 {
   if ( r!=x.nrows() || c!=x.ncols() )
     x = SYMMETRIC(r,c);
@@ -158,9 +158,9 @@ void resize(SYMMETRIC& x, INDEX r, INDEX c)
     
     \date   2000-12-27
     \author Stefan Buehler */
-void transf( const VECTOR& x,
+void transf( const Vector& x,
 		       double (&my_func)(double),
-		       VECTOR& y )
+		       Vector& y )
 {
   assert( x.size()==y.size() );
   mtl_algo::transform(x.begin(),x.end(),y.begin(),my_func);
@@ -174,10 +174,10 @@ void transf( const VECTOR& x,
     
     \date   2000-12-27
     \author Stefan Buehler */
-VECTOR transf( const VECTOR& x,
+Vector transf( const Vector& x,
 			 double (&my_func)(double) )
 {
-  VECTOR y(x.size());
+  Vector y(x.size());
   transf( x, my_func, y );
   return y; 
 }
@@ -198,9 +198,9 @@ VECTOR transf( const VECTOR& x,
     
     \date   2000-12-27
     \author Stefan Buehler */
-void transf( const MATRIX& x,
+void transf( const Matrix& x,
 	     double (&my_func)(double),
-	     MATRIX& y )
+	     Matrix& y )
 {
   // This code is adapted from the function twod_copy_default in file
   // mtl.h. The algorithm should also work for sparse
@@ -210,8 +210,8 @@ void transf( const MATRIX& x,
   assert( y.nrows()==x.nrows() );
   assert( y.ncols()==x.ncols() );
 
-  MATRIX::const_iterator i;
-  MATRIX::OneD::const_iterator j, jend;
+  Matrix::const_iterator i;
+  Matrix::OneD::const_iterator j, jend;
 
   for (i = x.begin(); i != x.end(); ++i)
     {
@@ -229,10 +229,10 @@ void transf( const MATRIX& x,
     
     \date   2000-12-27
     \author Stefan Buehler */
-MATRIX transf( const MATRIX& x,
+Matrix transf( const Matrix& x,
 	       double (&my_func)(double) )
 {
-  MATRIX y( x.nrows(), x.ncols() );
+  Matrix y( x.nrows(), x.ncols() );
   transf( x, my_func, y );
   return y;
 }

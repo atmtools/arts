@@ -68,7 +68,7 @@ struct Parameters {
   string basename;
   /** The filenames of the controlfiles. Can be only one or as many as
       you want. */
-  ARRAY<string> controlfiles;
+  Array<string> controlfiles;
   /** This should be a two digit integer. The first digit specifies
       the output level for stdout (stderr for error messages), the
       second digit the output level for the report file. The levels
