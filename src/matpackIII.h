@@ -1154,7 +1154,8 @@ inline Tensor3::Tensor3(Index p, Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  for ( Numeric *x=mdata; x<mdata+p*r*c; ++x )
+  const Numeric *stop = mdata+p*r*c;
+  for ( Numeric *x=mdata; x<stop; ++x )
     *x = fill;
 }
 

@@ -1390,7 +1390,8 @@ inline Vector::Vector(Index n, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  for ( Numeric *x=mdata; x<mdata+n; ++x )
+  const Numeric *stop = mdata+n;
+  for ( Numeric *x=mdata; x<stop; ++x )
     *x = fill;
 }
 
@@ -2179,7 +2180,8 @@ inline Matrix::Matrix(Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  for ( Numeric *x=mdata; x<mdata+r*c; ++x )
+  const Numeric *stop = mdata+r*c;
+  for ( Numeric *x=mdata; x<stop; ++x )
     *x = fill;
 }
 

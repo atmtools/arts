@@ -1688,7 +1688,8 @@ inline Tensor4::Tensor4(Index b, Index p, Index r, Index c, Numeric fill) :
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  for ( Numeric *x = mdata; x < mdata + b*p*r*c; ++x )
+  const Numeric *stop = mdata + b*p*r*c;
+  for ( Numeric *x = mdata; x < stop; ++x )
     *x = fill;
 }
 

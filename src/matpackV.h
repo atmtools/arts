@@ -151,6 +151,7 @@ public:
   friend class Tensor5View;
   friend class ConstIterator6D;
   friend class ConstTensor6View;
+  friend class ConstTensor7View;
 
 protected:
   // Constructors:
@@ -2789,7 +2790,8 @@ inline Tensor5::Tensor5(Index s, Index b, Index p, Index r, Index c, Numeric fil
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  for ( Numeric *x = mdata; x < mdata + s*b*p*r*c; ++x )
+  const Numeric *stop = mdata + s*b*p*r*c;
+  for ( Numeric *x = mdata; x < stop; ++x )
     *x = fill;
 }
 

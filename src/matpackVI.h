@@ -315,8 +315,9 @@ public:
   ConstIterator6D end() const;
   
   // Friends:
+  friend class ConstIterator7D;
   friend class Tensor6View;
-
+  friend class ConstTensor7View;
 
 protected:
   // Constructors:
@@ -802,9 +803,8 @@ public:
   Tensor6View& operator-=(const ConstTensor6View& x);
 
   // Friends:
-//   friend class Iterator4D;
-//   friend class Tensor4View;
-//   friend class Tensor5View;
+  friend class Iterator7D;
+  friend class Tensor7View;
 
 protected:
   // Constructors:
@@ -1887,6 +1887,7 @@ inline Numeric          ConstTensor6View::operator()
   ( Index        v, Index        s, Index        b,
     Index        p, Index        r, Index        c) const
 {
+  CHECK(v);
   CHECK(s);
   CHECK(b);
   CHECK(p);
@@ -3739,7 +3740,8 @@ inline Tensor6::Tensor6(Index v, Index s, Index b,
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
-  for ( Numeric *x=mdata; x<mdata+v*s*b*p*r*c; ++x )
+  const Numeric *stop = mdata+v*s*b*p*r*c;
+  for ( Numeric *x=mdata; x<stop; ++x )
     *x = fill;
 }
 

@@ -17,7 +17,7 @@
    USA. */
 
 #include "array.h"
-#include "matpackVI.h"
+#include "matpackVII.h"
 
 /** Define the global joker objekt. */
 Joker joker;
@@ -244,8 +244,63 @@ void test6()
   cout << "a(1,1,1,1,Range(joker),1) = " << a(1,1,1,1,Range(joker),1) << "\n\n";
 }
 
+/*********************
+ * Tests for Tensor7 *
+ *********************/
+
+void fill_tensor7(Tensor7& x,
+		  Index l,
+		  Index v, Index s, Index b,
+		  Index p, Index r, Index c)
+{
+  // Lets fill the tensor with special values, so that we can
+  // immediately see the vitrine, shelf, etc.
+  // 345123 shall mean vitrine 3, shelf 4, book 5, and so on.
+  //
+  // Will work only if all dimensions are smaller 10.
+
+  x.resize(l,v,s,b,p,r,c);
+
+  for (Index il = 0; il < l; il++)
+    for (Index is = 0; is < s; is++)
+      for (Index iv = 0; iv < v; iv++)
+	for (Index ib = 0; ib < b; ib++)
+	  for (Index ip = 0; ip < p; ip++)
+	    for (Index ir = 0; ir < r; ir++)
+	      for (Index ic = 0; ic < c; ic++)
+		x(il, iv, is, ib, ip, ir, ic)
+		  = ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000 + il*1000000;
+}
+
+void test7()
+{
+  cout << "Test Tensor7:\n\n";
+
+  Tensor7 a;
+  fill_tensor7(a,
+	       2, 3, 2, 2, 3, 3, 4);  // 2 libraries,
+                                      // 3 vitrines, 2 shelves,
+                                      // 2 books, 3 pages,
+                                      // 3 rows, 4 columns
+
+  cout << "Dimensions of tensor a:\n"
+       << "libraries = " << a.nlibraries() << "\n"
+       << "vitrine   = " << a.nvitrines() << "\n"
+       << "shelf     = " << a.nshelves()  << "\n"
+       << "book      = " << a.nbooks()    << "\n"
+       << "page      = " << a.npages()    << "\n"
+       << "row       = " << a.nrows()     << "\n"
+       << "column    = " << a.ncols()     << "\n\n";
+
+  cout << "a(1,1,1,1,1,1,1) = " << setprecision(10)
+       << a(1,1,1,1,1,1,1) << "\n\n";
+
+  cout << "a(1,1,1,1,1,Range(joker),1) = " << setprecision(10)
+       << a(1,1,1,1,1,Range(joker),1) << "\n\n";
+}
+
 int main()
 {
-  test6();
+  test7();
   return 0;
 }

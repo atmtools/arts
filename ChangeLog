@@ -1,3 +1,20 @@
+2002-03-22  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-37
+
+	* src/matpackVII.h: First implementation of Tensor7 finished. This
+	seems to push my present concept to the limit, since I had to
+	manually edit the 128 different index functions. Higher order
+	tensors are only feasible with some kind of automatic code
+	generation system. 
+
+        * src/matpackI.h, src/matpackIII.h, src/matpackIV.h,
+	src/matpackV.h, src/matpackVI.h: Adjusted for Tensor7. (Mainly
+	added friend declarations.)
+
+	* src/test_tensor.cc: Added simple test for Tensor7. There should
+	be some more thorough and systematic testing...
+
 2002-03-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-36
