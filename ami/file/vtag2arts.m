@@ -77,3 +77,12 @@ if maxl < 1
 end
 
 name	= S(:,1:(maxl-1));
+
+
+if strcmp(name,'-')
+  error(['The species with tag ',num2str(tag),' is not included in Verdandi']);
+end
+
+if isempty(name)
+  error('Something seems to be wrong with vtag2arts.data');
+end
