@@ -39,6 +39,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <cmath>
 #include <stdexcept>
 #include "arts.h"
 #include "auto_md.h"
@@ -71,11 +72,15 @@ void i_spaceCBR(
               const Index&    stokes_dim )
 {
   const Index n = f_grid.nelem();
+
   if( n == 0 )
     throw runtime_error( "The frequency grid is empty." );
+
   out2 << "  Setting *i_space* to hold cosmic background radiation.\n";
+
   i_space.resize(n,stokes_dim);
   i_space = 0;
+
   for( Index i=0; i<n; i++ )
     { i_space(i,0) = planck( f_grid[i], COSMIC_BG_TEMP ); }
 }
@@ -87,7 +92,7 @@ void i_spaceCBR(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-05-29
+   \date   2002-08-09
 */
 void RteCalc(
         // WS Output:
@@ -116,9 +121,7 @@ void RteCalc(
         const Vector&         mblock_za_grid,
 	const Vector&         mblock_aa_grid )
 {
-
   // Some sizes
-  //
   const Index nf      = f_grid.nelem();
   const Index nmblock = sensor_pos.nrows();
   const Index nza     = mblock_za_grid.nelem();
@@ -228,21 +231,19 @@ void RteCalc(
 	 << "while sensor_los has " << sensor_los.nrows() << " rows.";
       throw runtime_error( os.str() );
     }
+
   //--- End: Check input ------------------------------------------------------
 
 
   // Number of azimuthal direction for pencil beam calculations
-  //
   Index naa = mblock_aa_grid.nelem();
   if( antenna_dim == 1 )
     { naa = 1; }
   
   // Resize *y_rte* to have the correct size.
-  //
   y_rte.resize( nmblock * nf * nza * naa, stokes_dim );
 
   // Variables needed below
-  //
   Vector los( sensor_los.ncols() );   // LOS for a MPB calculation
   Index  nfdone=0;                    // Number of frequencies done
 
@@ -278,4 +279,153 @@ void RteCalc(
 	    }
 	}
     } 
+}
+
+
+
+//! RteEmissionStd
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-08-16
+*/
+void RteEmissionStd(
+        // WS Output:
+              Matrix&         i_rte,
+	      Matrix&         i_space,
+        // WS Input:
+	const Agenda&         i_space_agenda,
+	const Ppath&          ppath,
+        const Vector&         f_grid,
+        const Index&          stokes_dim )
+{
+  // Some sizes
+  const Index nf      = f_grid.nelem();
+  const Index np      = ppath.np;
+
+  // Resize i_rte to have the correct the size
+  i_rte.resize( nf, stokes_dim );
+
+  // Initialize i_rte to the radiative background
+  switch ( ppath_what_background( ppath ) )
+    {
+    case 1:   //--- Space ---------------------------------------------------- 
+      i_space_agenda.execute();
+      i_rte = i_space;
+      break;
+    default:
+      {
+	ostringstream os;
+	os << "Unknown radiative background (code nr. " 
+	   << ppath_what_background( ppath ) << ")";
+	throw runtime_error( os.str() );
+      }
+    }
+
+  // If the number of propagation path points is > 2, we are already ready,
+  // the observed spectrum equals the radiative background.
+  if( np >= 2 )
+    {
+
+      // Determine the atmospheric temperature at each propagation path point
+      // As a temporary solution, the temperature is set to 200 K.
+      Vector t_ppath(np,200);
+	 
+      // Determine the total absorption at each propagation path point
+      // As a temporary solution, the absorption is set to 1-e6 1/m.
+      Matrix abs_ppath(nf,np,1e-6);
+
+      // Some variables used below
+      Index     iv;      // Frequency index
+      Numeric   trans;   // Transmission for a path step for one frequency
+      Numeric   source;  // Effective source value for one step and 1 frequency
+
+      // Loop the propagation path steps
+      //
+      // The number of path steps is np-1.
+      // The path points are stored in such way that index 0 corresponds to
+      // the point closest to the sensor.
+      //
+      for( Index ip=np-1; ip>0; ip-- )
+	{
+	  // A ground reflection at point ip?
+	  if( ppath.ground  && ppath.i_ground == ip )
+	    {
+	      throw runtime_error("Ground reflections are not yet handled.");
+	    }
+	  
+	  // Consider absorption and emission from point ip to ip-1 for
+	  // all frequencies
+	  for( iv=0; iv<nf; iv++ )
+	    {
+	      // Transmission along the path for the step
+	      trans = exp( -ppath.l_step[ip-1] * 
+			       ( abs_ppath(iv,ip) + abs_ppath(iv,ip-1) ) / 2 );
+
+	      // The Planck function for the mean of the end temperatures
+	      source = planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
+	      
+	      // Go from point ip to point ip-1 using the constant source term
+	      // approximation.
+	      i_rte(iv,0) = i_rte(iv,0) * trans + source * ( 1 - trans );
+	    }
+	}
+    }
+}
+
+
+
+//! VectorToTbByRJ
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-08-09
+*/
+void VectorToTbByRJ(
+        // WS Generic Output:
+              Vector&   y_out,
+        // WS Generic Output Names:
+        const String&   y_out_name,
+        // WS Generic Input:
+        const Vector&   y_in,
+        const Vector&   y_in_name,
+        // WS Generic Input Names:
+        const String&   f_grid,
+        const String&   f_grid_name )
+{
+  // Length of y_in
+  const Index nin = y_in.nelem();
+
+  throw runtime_error("The implementation of this function is not yet ready");
+
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << "," 
+       << f_grid_name << ")\n" ;
+
+  // Note that y_in and y_out can be the same vector
+  if ( &y_out != &y_in )
+    { y_out.resize(nin); }
+
+  
+}
+
+
+
+//! yNoPolarisation
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-08-09
+*/
+void yNoPolarisation(
+        // WS Output:
+              Vector&         y,
+        // WS Input:
+        const Matrix&         y_rte )
+{
+  y.resize( y_rte.nrows() );
+
+  y = y_rte( Range(joker), 0 );
 }

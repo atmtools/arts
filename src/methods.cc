@@ -1054,7 +1054,12 @@ void define_md_data_raw()
       ( NAME("i_spaceCBR"),
 	DESCRIPTION
 	(
-	 "Sets *i_space* to hold cosmic background radiation."
+	 "Sets *i_space* to hold cosmic background radiation (CBR).\n"
+	 "\n"
+	 "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
+	 "are zero. The cosmic radiation is modelled as a blackbody\n"
+	 "radiation for a temperature given by the global constant\n"
+	 "COSMIC_BG_TEMP, set in the file constants.cc."
 	),
 	OUTPUT( i_space_ ),
 	INPUT( f_grid_, stokes_dim_ ),
@@ -1543,6 +1548,23 @@ void define_md_data_raw()
 	       cloudbox_limits_, sensor_pos_, sensor_los_, f_grid_, 
 	       stokes_dim_,
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "RteEmissionStd" ),
+	DESCRIPTION
+        (
+	 "A temporary version of a standard RTE function with emission.\n"
+         "\n"
+         "More text will be written (PE)."
+        ),
+	OUTPUT( i_rte_, i_space_ ),
+	INPUT( i_space_agenda_, 
+	       ppath_, f_grid_, stokes_dim_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2104,6 +2126,46 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "VectorToTbByRJ" ),
+	DESCRIPTION
+        (
+	 "Converts a vector of intensities to brightness temperatures by \n"
+	 "the Rayleigh-Jeans approximation of the Planck function.\n"
+	 "\n"
+	 "This function performs a linear transformation of spectral \n"
+	 "intensities to an approximative temperature scale. The advantage \n"
+	 "of this linear transformation is that the obtained values can be \n"
+	 "used for retrievals if the weighting functions are handled \n" 
+	 "likewise. This is not the case if the intensities are converted \n"
+	 "to temparatures by the Planck function directly. \n"
+	 "\n"
+	 "The conversion requieres that the frequency of each intensity \n"
+	 "value is known. The last general input vector is assumed to be a \n"
+	 "set of frequencies. It is further assumed that the frequencies of \n"
+	 "the first general input vector are obtained by repeating the last \n"
+	 "vector an integer number of times. \n"
+	 "\n"
+	 "If *y* shall be converted from intensities to brightness \n"
+	 "temperatures and no instrument response has been applied, the \n"
+	 "conversion is done as: \n"
+	 "   VectorToTbByRJ(y,y,f_grid){} \n"
+	 "\n"
+         "Generic output: \n"
+         "   Vector : A vector with brightness temperature values. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : A vector with intensity values. \n"
+         "   Vector : A set of frequencies." 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_, Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("WriteXML"),
 	DESCRIPTION
         (
@@ -2133,6 +2195,24 @@ md_data_raw.push_back
 	TYPES(    String_t   ),
 	AGENDAMETHOD(   false ),
 	SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "yNoPolarisation" ),
+	DESCRIPTION
+        (
+	 "Converts *y_rte* to *y* assuming an unpolarised instrument.\n"
+	 "\n"
+	 "This function assumes that the instrument is equally sensitive for\n"
+	 "all polarisations. This corresponds to that *y* simply equals the \n"
+	 "first column of *y_rte*."
+        ),
+	OUTPUT( y_ ),
+	INPUT( y_rte_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
 
 
