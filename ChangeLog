@@ -1,3 +1,13 @@
+2002-05-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-93
+	
+	* src/mystring.h (class my_basic_string): Make size_t of type
+	Index.
+
+	* src/xml_io.cc: Added documentation.
+	(read_from_stream): Casting of String::npos no longer needed.
+
 2002-05-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-92
