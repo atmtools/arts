@@ -51,7 +51,7 @@ MdRecord::MdRecord(const char 		        name[],
 		   const MakeArray<Index>&      ginput,   
 		   const MakeArray<String>&     keywords,
 		   const MakeArray<TokValType>& types,
-		   bool                         agenda_method = false) :
+		   bool                         agenda_method) :
     mname(          name            	  ),
     mdescription(   description     	  ),    
     moutput(        output       	  ),  
