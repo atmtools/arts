@@ -1,5 +1,12 @@
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-0-1-30
+	
+	* reconf: Added option --copy to automake
+	
+	
+2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-0-1-29
 	
 	* README: Added documentation for configure options.
