@@ -1,3 +1,25 @@
+2002-11-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-310
+	
+	* src/methods.cc (i_fieldUpdate1D) and (i_fieldIterate): Included 
+	*abs_scalar_gas* in interface.
+	
+	* src/rte.cc (rte_step): Bug fixed. Assertion in check, if matrix is 
+	diagonal had to be outside the loop.
+	
+	* src/m_scatrte.cc (i_fieldUpdate1D): Modified.
+	
+	* src/agendas.cc (scalar_gas_absorption_agenda): Removed f_index 
+	from input list for testing purposes.
+		
+	* src/m_optproperties.cc (abs_vecAddGas): Bug fixed.
+
+	Now scattering calculations can be performed again for an example 
+	absorption, which can be defined in the control file by setting
+	the variable *abs_scalar_gas* in scalar_gas_absorption_agenda.
+	
+
 2002-11-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-309
