@@ -43,11 +43,8 @@ arts_SOURCES = \
 	lineshapes.cc \
 	los.h \
 	m_abs.cc \
-	m_batch.cc \
 	m_hdf.cc \
 	m_io.cc \
-	m_los.cc \
-	m_wfs.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \

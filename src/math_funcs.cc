@@ -73,24 +73,6 @@ Index is_bool(
 //   Functions for Vector
 ////////////////////////////////////////////////////////////////////////////
 
-//// first ////////////////////////////////////////////////////////////////////
-/** 
-    Returns the first value of a vector.
-
-    \return       The first value of x.
-    \param    x   A vector.
-
-    \author Patrick Eriksson 
-    \date   2000-06-27
-*/
-Numeric first( ConstVectorView x )
-{
-  assert( x.nelem() > 0 );
-  return x[0]; 
-}
-
-
-
 //// last /////////////////////////////////////////////////////////////////////
 /** 
     Returns the last value of a vector.
@@ -186,6 +168,28 @@ Index is_decreasing(
 	}
     }
   return 1;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions for ArrayOfIndex
+////////////////////////////////////////////////////////////////////////////
+
+//// last /////////////////////////////////////////////////////////////////////
+/** 
+    Returns the last value of an index array.
+
+    \return      The last value of x.
+    \param   x   An index array.
+
+    \author Patrick Eriksson 
+    \date   2000-06-27
+*/
+Index last( const ArrayOfIndex& x )
+{
+  assert( x.nelem() > 0 );
+  return x[x.nelem()-1]; 
 }
 
 

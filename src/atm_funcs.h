@@ -79,46 +79,6 @@ Numeric g_of_z (
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Core functions for RTE and BL
-////////////////////////////////////////////////////////////////////////////
-
-void rte_iterate (
-             VectorView   y,
-       const Index   start_index,
-       const Index   stop_index,
-       ConstMatrixView   Tr,
-       ConstMatrixView   S,
-       const Index    n_f );
-
-void rte (
-             VectorView   y,
-       const Index   start_index,
-       const Index   stop_index,
-       ConstMatrixView   Tr,
-       ConstMatrixView   S,
-       ConstVectorView   y_space,
-       const Index    ground,
-       ConstVectorView   e_ground,
-       ConstVectorView   y_ground );
-
-void bl_iterate (
-             VectorView   y,
-       const Index   start_index,
-       const Index   stop_index,
-       ConstMatrixView   Tr,
-       const Index    n_f );
-
-void bl (
-             Vector&   y,
-       const Index   start_index,
-       const Index   stop_index,
-       ConstMatrixView   Tr,
-       const Index    ground,
-       ConstVectorView   e_ground );
-
-
-
-////////////////////////////////////////////////////////////////////////////
 //   Conversion and interpolation of pressure and altitude grids.
 ////////////////////////////////////////////////////////////////////////////
 
@@ -164,41 +124,5 @@ Numeric interpz(
         ConstVectorView     x0,
         const Numeric    z );
 
-
-
-////////////////////////////////////////////////////////////////////////////
-//   Tangent altitudes
-////////////////////////////////////////////////////////////////////////////
-
-Numeric ztan_geom(
-        const Numeric   za,
-        const Numeric   z_plat,
-        const Numeric   r_geoid );
-
-Numeric n_for_z(
-        const Numeric      z,
-        ConstVectorView       p_abs,
-        ConstVectorView       z_abs,
-        ConstVectorView       refr_index,
-        const Numeric      atm_limit );
-
-Numeric refr_constant( 
-        const Numeric      r_geoid,
-        const Numeric      za,
-        const Numeric      z_plat,
-        ConstVectorView       p_abs,
-        ConstVectorView       z_abs,
-        const Numeric      atm_limit,
-        ConstVectorView       refr_index );
-
-Numeric ztan_refr(
-        const Numeric   c,
-        const Numeric   za,
-        const Numeric   z_plat,
-        const Numeric   z_ground,
-        ConstVectorView    p_abs,
-        ConstVectorView    z_abs,
-        ConstVectorView    refr_index,
-        const Numeric   r_geoid );
 
 #endif // atmfuncs_h

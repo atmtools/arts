@@ -83,45 +83,6 @@ Numeric geomppath_constant (
 
 
 
-//// geomppath_alpha_tan //////////////////////////////////////////////////////
-/**
-   Calculates the angular position in the observation plane of the tangent
-   point. The angular distance in the observation plane is denoted as 
-   the latitude for 1D and 2D cases.
-
-   For upward observations (abs(psi)>=90), the tangent point is found along
-   an imaginary path behind the sensor. 
-
-   Negative zenith angles means that the sensor is directed towards lower
-   latitudes.
-
-   See further the ARTS user guide (AUG). Use the index to find where
-   this function is discussed. The function is listed as a subentry to
-   "internal ARTS functions".
-
-   \return                  The latitude of the tangent point.
-   \param    alpha_sensor   The latitude of the sensor position.
-   \param    psi_sensor     The zenith angle of the sensor line-of-sight.
-
-   \author Patrick Eriksson
-   \date   2002-04-15
-*/
-Numeric geomppath_alpha_tan (
-	const Numeric&   alpha_sensor,
-        const Numeric&   psi_sensor )
-{
-  assert( fabs(psi_sensor) <= 180 );
-
-  Numeric dalpha = psi_sensor - 90; 
-
-  if( fabs( psi_sensor ) > 90 )
-    dalpha = -dalpha;
-
-  return alpha_sensor + dalpha;
-}
-
-
-
 //// geomppath_r2l ////////////////////////////////////////////////////////////
 /**
    Calculates the length along the propagation path from the tangent point
@@ -142,12 +103,16 @@ Numeric geomppath_alpha_tan (
    \date   2002-04-15
 */
 Numeric geomppath_r2l (
-	const double&   ppc,     // double is hard-coded here to avoid
-        const double&   r )      // possible numerical problems with float.
+	const Numeric&   ppc, 
+        const Numeric&   r )  
 {
+  assert( ppc >= 0 );
   assert( r >= ppc );
 
-  return sqrt( r*r - ppc*ppc );
+  // Double is hard-coded here to avoid numerical problems
+  double a=r*r, b=ppc*ppc;
+
+  return sqrt( a - b );
 }
 
 
@@ -168,10 +133,15 @@ Numeric geomppath_r2l (
    \date   2002-04-15
 */
 Numeric geomppath_l2r (
-	const double&   ppc,     // double is hard-coded here to avoid
-        const double&   l )      // possible numerical problems with float.
+	const Numeric&   ppc, 
+        const Numeric&   l )
 {
-  return sqrt( ppc*ppc + l*l );
+  assert( ppc >= 0 );
+
+  // Double is hard-coded here to avoid numerical problems
+  double a=l*l, b=ppc*ppc;
+
+  return sqrt( a + b );
 }
 
 
@@ -198,6 +168,7 @@ Numeric geomppath_r2psi (
 	const Numeric&   ppc, 
         const Numeric&   r )
 {
+  assert( ppc >= 0 );
   assert( r >= ppc );
 
   return RAD2DEG * asin( ppc / r );
@@ -218,10 +189,6 @@ Numeric geomppath_r2psi (
    The structure is then basicfally empty. The field *background* is set to
    ""Cosmic background radiation".
 
-   See further the ARTS user guide (AUG). Use the index to find where
-   this function is discussed. The function is listed as a subentry to
-   "internal ARTS functions".
-
    \retval   ppath   A Ppath structure.
    \param    dim     The atmospheric dimensionality.
 
@@ -232,6 +199,9 @@ void empty_Ppath(
 	      Ppath&      ppath,
 	const Index&      dim )
 {
+  assert( dim >= 1 );
+  assert( dim <= 3 );
+
   ppath.dim        = dim;
   ppath.np         = 0;
   ppath.pos.resize(0,dim);
@@ -253,6 +223,185 @@ void empty_Ppath(
 //   Main functions for 1D paths
 ////////////////////////////////////////////////////////////////////////////
 
+//// ppath_1d_geom_upward /////////////////////////////////////////////////////
+/**
+   Calculates the path for a 1D atmosphere, no refraction, an upward
+   observation and no cloud box.
+
+   The lowest point of the path (r_start) and the sensor radius (r_sensor),
+   if inside the atmosphere, are included as points of the path.
+
+   If the path starts below an active cloud box, the z_field shall be cut at
+   the lower limit of the box.
+
+   The returned latitudes give the angular distance to the lowest point of the
+   path.
+
+   See further the ARTS user guide (AUG). Use the index to find where
+   this function is discussed. The function is listed as a subentry to
+   "internal ARTS functions".
+
+   \retval   r            Radius for the points along the path.
+   \retval   l_step       The distance along the path between the points.
+   \retval   psi          Zenith angle for the points along the path.
+   \retval   alpha        The angular distance for the points along the path.
+                          Calculated with respect to the lowest point.
+   \retval   gridindex    Grid index for the points along the path.
+   \param    ppc          The ppath constant.
+   \param    r_start      Radius for the starting point of the path.
+   \param    psi_start    Zenith angle at the starting point of the path.
+   \param    r_greoid     Geoid radius.
+   \param    z_field      The geometricalk altitude of the pressure surfaces.
+   \param    ppath_lmax   Maximum allowed length between path points.
+   \param    r_sensor     Radius of the sensor position.
+
+   \author Patrick Eriksson
+   \date   2002-04-17
+*/
+void ppath_1d_geom_upward ( 
+	      Vector&   r, 
+	      Vector&   l_step, 
+	      Vector&   psi, 
+	      Vector&   alpha, 
+	      Vector&   gridindex,
+	const Numeric&  ppc,
+	const Numeric&  r_start, 
+	const Numeric&  psi_start, 
+	const Numeric&  r_geoid, 
+	const Vector&   z_field, 
+	const Numeric&  ppath_lmax, 
+	const Numeric&  r_sensor )
+{
+  // Number of z_field levels
+  const Index nz = z_field.nelem();
+
+  assert( ppc >= 0 );
+  assert( r_start >= r_geoid+z_field[0] );
+  assert( r_start < r_geoid+z_field[nz-1] );
+  assert( psi_start >= 0 );
+  assert( psi_start <= 180 );
+  assert( ppath_lmax > 0 );
+  assert( r_sensor >= r_geoid+z_field[0] );
+
+  // Create a vector holding r_start and the z_field levels passed by the path.
+  // If the sensor is inside the atmosphere, the sensor position is also 
+  // included. Duplicates of radii are avoided. Store on the same time the 
+  // integer part of gridindex.
+  //
+  // Find first z_field level above r_start (it cannot be 0).
+  Index i_first;
+  for( i_first=1; r_geoid+z_field[i_first]<=r_start; i_first++ ) {}
+  //
+  // Shall the sensor be put in? Setting i_sensor=nz, means no.
+  Index i_sensor = nz;
+  if( r_sensor < r_geoid + z_field[nz-1] )
+    {
+      for( i_sensor=i_first-1; r_geoid+z_field[i_sensor]<r_sensor; i_sensor++ )
+        {}
+      if( r_geoid+z_field[i_sensor] == r_sensor )
+        i_sensor = nz;
+    }
+  //
+  Vector       r1( nz - i_first + 1 + (i_sensor<nz) );
+  ArrayOfIndex i1( r1.nelem() );
+  //
+  r1[0] = r_start;
+  i1[0] = i_first - 1;
+  for( Index i=i_first; i<i_sensor; i++ )
+    {
+      r1[i-i_first+1] = r_geoid + z_field[i];
+      i1[i-i_first+1] = i;
+    }
+  if( i_sensor < nz )
+    {
+      r1[i_sensor-i_first+1] = r_sensor;
+      i1[i_sensor-i_first+1] = i_sensor - 1;
+      for( Index i=i_sensor; i<nz; i++ )
+	{
+          r1[i-i_first+2] = r_geoid + z_field[i];
+	  i1[i-i_first+2] = i;
+	}
+    }
+
+
+  // Determine how many points that are needed between the points in r1 to 
+  // fulfill the length criterium set by ppath_lmax. The distance along the
+  // path from the (imaginary) tangent point is stored in l1.
+  //
+  ArrayOfIndex n1( r1.nelem() - 1 );
+  Vector       l1( r1.nelem() );
+  Index        ntot=0;   // The total number of points
+  //
+  l1[0] = geomppath_r2l( ppc, r1[0] );
+  //
+  for( Index i=0; i<n1.nelem(); i++ )
+    {
+      l1[i+1] = geomppath_r2l( ppc, r1[i+1] );
+      n1[i]   = Index( ceil( (l1[i+1]-l1[i]) / ppath_lmax ) );
+      ntot   += n1[i];
+    }
+  ntot += 1;   // To include the point at the uppermost z_field level
+
+  // We are now ready to create the output vectors.
+  //
+  r.resize( ntot );
+  l_step.resize( ntot - 1 );
+  psi.resize( ntot );
+  alpha.resize( ntot );
+  gridindex.resize( ntot );
+  //
+  ntot = 0;   // Now used as a counter for nummer of points done
+  //
+  for( Index i=0; i<n1.nelem(); i++ )
+    {
+      l_step[ntot] = ( l1[i+1] - l1[i] ) / n1[i];
+      for( Index j=0; j<n1[i]; j++ )
+	{
+	  l_step[ntot]    = l_step[ntot-j];
+	  r[ntot]         = geomppath_l2r( ppc, l1[i]+j*l_step[ntot] );
+	  psi[ntot]       = geomppath_r2psi( ppc, r[ntot] );
+	  alpha[ntot]     = psi[0] - psi[ntot];
+	  gridindex[ntot] = i1[i] + ( r[ntot] - (r_geoid+z_field[i1[i]]) ) /
+	                                 ( z_field[i1[i]+1] - z_field[i1[i]] );
+	  ntot++;
+	}
+    }
+  // The uppermost z_field level must be handled seperately
+  r[ntot]         = last( r1 );
+  psi[ntot]       = geomppath_r2psi( ppc, r[ntot] );
+  alpha[ntot]     = psi[0] - psi[ntot];
+  gridindex[ntot] = Numeric( last( i1 ) );
+  ntot++;
+
+  // All values fild?
+  assert( r.nelem() == ntot );
+}
+
+
+
+//// ppath_1d /////////////////////////////////////////////////////////////////
+/**
+   Performs the logistics for determining the path for 1D cases, with or
+   without refraction.
+
+   The actual calculations are mainly performed by ppath_1d_geom_upward and
+   ppath_1d_refr_upward.
+
+   \retval   ppath          Propagation path structure with all fields set.
+   \param    p_grid         Pressure grid.
+   \param    z_field        The geometricalk altitude of the pressure surfaces.
+   \param    r_greoid       Geoid radius.
+   \param    refr_on        Refraction flag.
+   \param    blackbody_ground Flag to indicate a blackbody ground.
+   \param    cloudbox_on    Cloud box flag.
+   \param    cloudbox_limits Vertical limits of the cloud box.
+   \param    ppath_lmax     Maximum allowed length between path points.
+   \param    r_sensor       Radius of the sensor position.
+   \param    psi_sensor     Zenith angle of the sensor line-of-sight.
+
+   \author Patrick Eriksson
+   \date   2002-04-17
+*/
 void ppath_1d (
 	      Ppath&          ppath,
 	ConstVectorView       p_grid,
@@ -267,7 +416,7 @@ void ppath_1d (
 	const Numeric&        r_sensor,
         const Numeric&        psi_sensor )
 {
-  // Asserts. Variables are also asserted in ???.
+  // Asserts.
   assert( p_grid.nelem() == z_field.nelem() );
   assert( z_field.nelem() > 1 );
   assert( z_ground >= z_field[0] );
@@ -280,12 +429,11 @@ void ppath_1d (
       assert( cloudbox_limits.nelem() == 2 );
       assert( cloudbox_limits[0] < cloudbox_limits[1] );
       assert( cloudbox_limits[0] >= 0 );
-      if( ~blackbody_ground )
+      if( !blackbody_ground )
         assert( cloudbox_limits[0] == 0 );
       assert( cloudbox_limits[1] < p_grid.nelem() );
     }
   assert( ppath_lmax > 0 );
-  assert( r_sensor >= r_geoid + z_ground );
   assert( psi_sensor >= 0 );
   assert( psi_sensor <= 180 );
 
@@ -328,22 +476,22 @@ void ppath_1d (
   Index do_path = 1, put_in_sensor = 0;
   //
   // Path totally outside the atmosphere?. If yes, then ppath is already OK.
-  if( r_sensor>=r_top && ppc>=r_top )
+  if( r_sensor>=r_top && ( psi_sensor<=90 || ( psi_sensor>90 && ppc>=r_top ) ))
     {
       do_path = 0;
     }
   // Standing on the ground looking and looking down into a blackbody ground?
-  if( r_sensor>=(r_geoid+z_ground) && psi_sensor>90 && blackbody_ground )
+  if( r_sensor==(r_geoid+z_ground) && psi_sensor>90 && blackbody_ground )
     {
       do_path          = 0;
-      put_in_sensor    = 0;
+      put_in_sensor    = 1;
       ppath.background = "Blackbody ground";
     }
   // The sensor is inside an active cloud box?
   if( cloudbox_on && r_sensor>r_cb_low && r_sensor<r_cb_upp )
     {
       do_path          = 0;
-      put_in_sensor    = 0;
+      put_in_sensor    = 1;
       ppath.background = "Inside cloud box";
     }
   // The sensor is on the boundary of an active cloud box and looks into 
@@ -352,7 +500,7 @@ void ppath_1d (
                                || ( r_sensor==r_cb_upp && psi_sensor>90 ) ) )
     {
       do_path          = 0;
-      put_in_sensor    = 0;
+      put_in_sensor    = 1;
       ppath.background = "Surface of cloud box";
     }
 
@@ -392,13 +540,14 @@ void ppath_1d (
       // The case when the sensor is below a cloud box is handled below.
       //
       Numeric r_low, psi_low;
-      String  background;
-      Numeric r_tan = -1;      // Radius of tangent point. -1 means upward obs.
-      if( psi_sensor >= 90 )
+      Numeric r_tan;
+      Index stops_at_rlow = 0;        // True for downward obs. but no symmetry
+      //
+      if( psi_sensor <= 90 )
 	{
 	  r_low      = r_sensor;
 	  psi_low    = psi_sensor;
-	  background = "Cosmic background radiation";
+	  ppath.background = "Cosmic background radiation";
 	}
       else
 	{
@@ -415,7 +564,8 @@ void ppath_1d (
 		{} // FIX THIS
 	      else
 		psi_low = geomppath_r2psi ( ppc, r_low );
-	      background = "Surface of cloud box";
+	      ppath.background = "Surface of cloud box";
+	      stops_at_rlow = 1;
 	    }
 	  //
 	  // Intersection with the ground?
@@ -427,12 +577,15 @@ void ppath_1d (
 	      else
 		psi_low = geomppath_r2psi ( ppc, r_low );
 	      if( blackbody_ground )
-		background = "Blackbody ground";
+		{
+		  ppath.background = "Blackbody ground";
+		  stops_at_rlow = 1;
+		}
 	      else
 		{
 		  ppath.ground   = 1;
 		  ppath.symmetry = 1;
-		  background     = "Cosmic background radiation";
+		  ppath.background     = "Cosmic background radiation";
 		}
 	    }
 	  //
@@ -442,7 +595,7 @@ void ppath_1d (
 	      r_low          = r_tan;
 	      psi_low        = 90;
 	      ppath.symmetry = 1;
-  	      background     = "Cosmic background radiation";
+  	      ppath.background     = "Cosmic background radiation";
 	    }
 	}
 
@@ -454,8 +607,8 @@ void ppath_1d (
       if( cloudbox_on && r_sensor<=r_cb_low )
 	{
 	  i_max      = cloudbox_limits[0];
-	  if( background == "Cosmic background radiation" )
-	    background = "Surface of cloud box";
+	  if( ppath.background == "Cosmic background radiation" )
+	    ppath.background = "Surface of cloud box";
 	}
 
 
@@ -463,69 +616,103 @@ void ppath_1d (
       // If the sensor is inside the atmosphere and looks down, the sensor
       // position is included as a point of the path.
       // This path is described by the radii (r_path1), the zenith angle 
-      // (psi_path1) and lengths along the path(l_path1).
+      // (psi_path1) and lengths along the path(l_path1). Grid indexes are
+      // calculated on the same time.
       //
-      Vector r_path1, psi_path1, l_path1;
+      Vector r_path1, psi_path1, alpha_path1, l_path1, gi_path1;
       //
       if( refr_on )
 	{} // FIX THIS
       else
-	{}
+ 	ppath_1d_geom_upward( r_path1, l_path1, psi_path1, alpha_path1, 
+                    gi_path1, ppc, r_low, psi_low,  r_geoid, 
+                             z_field[Range(0,i_max+1)], ppath_lmax, r_sensor );
 
       
       // Determine at what index of r_path1 the sensor is placed. If the
       // sensor is above the atmosphere, the upper end index is used.
       // The index is then used to mirror the path if a symmetry point exist.
+      // The latitude difference between the sensor and r_low is alpha0.
       //
-      Index i_sensor = 0;   // This is correct if an upward observation.
+      Index   i_sensor = 0;      // This is correct if an upward observation.
+      Numeric alpha0   = 0;      // Again correct for upward observation.
       //
-      if( ppath.symmetry )
+      if( psi_sensor > 90 )
 	{
 	  if( r_sensor > r_top )   
-	    i_sensor = r_path1.nelem() - 1;
+	    {
+	      i_sensor = r_path1.nelem() - 1;
+	      alpha0  = last(alpha_path1) + psi_sensor - 180 + last(psi_path1);
+	    }
 	  else   // The sensor is somewhere in there
-	    for( i_sensor=0; r_sensor!=r_path1[i_sensor]; i_sensor++ ) {}
+	    {
+	      for( i_sensor=0; r_sensor!=r_path1[i_sensor]; i_sensor++ ) {}
+	      alpha0 = alpha_path1[i_sensor];
+	    }
 	  ppath.i_symmetry = i_sensor;	    
 	}
       //
       // Resize fields z, los and l_step. The field z is used as temporary
       // storage for the radii.
-      Index n_path1 = r_path1.nelem();
-      ppath.np = n_path1 + i_sensor;
-      ppath.z.resize(ppath.np);
-      ppath.l_step.resize(ppath.np);
-      ppath.los.resize(ppath.np,1);
+      Index n_path1  = r_path1.nelem();
+      if( stops_at_rlow )
+	ppath.np = i_sensor + 1;
+      else
+	ppath.np = n_path1 + i_sensor;
+      ppath.pos.resize(ppath.np,2);
+      ppath.z.resize( ppath.np );
+      ppath.l_step.resize( ppath.np - 1 );
+      ppath.los.resize( ppath.np, 1 );
+      ppath.gridindex.resize( ppath.np, 1 );
       //
       // If i_sensor>0, put in part between sensor and the lowest point.
       // The zenith angle is here 180 - psi_path1.
+      // Latitudes give here the angular distance to the lowest point.
       if( i_sensor > 0 )
 	{
 	  ppath.z[ Range(0,i_sensor) ] = 
                                         r_path1[ Range(i_sensor,i_sensor,-1) ];
 	  ppath.l_step[ Range(0,i_sensor) ] = 
-                                        l_path1[ Range(i_sensor,i_sensor,-1) ];
-	  for( Index i; i<i_sensor; i++ )
-	    ppath.los( i, 0 ) = 180 - psi_path1[ i ];
+                                      l_path1[ Range(i_sensor-1,i_sensor,-1) ];
+	  for( Index i=0; i<i_sensor; i++ )
+	    {
+	      ppath.pos( i, 1 ) = -alpha_path1[ i_sensor-i ];
+	      ppath.los( i, 0 ) = 180 - psi_path1[ i_sensor-i ];
+	    }
+	  ppath.gridindex( Range(0,i_sensor), 0 ) = 
+                                       gi_path1[ Range(i_sensor,i_sensor,-1) ];
 	}
       //
-      ppath.z[ Range(i_sensor,n_path1) ]      = r_path1;
-      ppath.l_step[ Range(i_sensor,n_path1) ] = l_path1;
-      ppath.los( Range(i_sensor,n_path1), 0 ) = psi_path1;
-
-      // Fill remaining fields of ppath
-      ppath.pos.resize(ppath.np,2);
-      for( Index i; i<ppath.np; i++ )
+      if( stops_at_rlow )
 	{
-	  ppath.pos( i, 0 ) = ppath.z[i] - r_geoid;
-	  ppath.pos( i, 1 ) = ppath.los( i, 0 ) - 90;
+	  ppath.z[ i_sensor ]            = r_path1[0];
+	  ppath.pos( i_sensor, 1 )       = alpha_path1[0];
+	  ppath.los( i_sensor, 0 )       = psi_path1[0];
+	  ppath.gridindex( i_sensor, 0 ) = gi_path1[0];
+	}
+      else
+	{
+	  ppath.z[ Range(i_sensor,n_path1) ]            = r_path1;
+	  ppath.l_step[ Range(i_sensor,n_path1-1) ]     = l_path1;
+	  ppath.pos( Range(i_sensor,n_path1), 1 )       = alpha_path1;
+	  ppath.los( Range(i_sensor,n_path1), 0 )       = psi_path1;
+	  ppath.gridindex( Range(i_sensor,n_path1), 0 ) = gi_path1;
+	}
+
+      // Fill remaining fields of ppath and adjust latitudes with alpha0.
+      for( Index i=0; i<ppath.np; i++ )
+	{
+	  ppath.z[i] -= r_geoid;
+	  ppath.pos( i, 0 )  = ppath.z[i];
+	  ppath.pos( i, 1 ) += alpha0;
 	}
       if( ppath.ground )
-	ppath.i_ground = ppath.symmetry;
-      if( r_tan > 0 )
+	ppath.i_ground = ppath.i_symmetry;
+      if( psi_sensor > 90 )
 	{
 	  ppath.tan_pos.resize(2);
 	  ppath.tan_pos[0] = r_tan - r_geoid;
-	  ppath.tan_pos[1] = ppath.pos( i_sensor, 1 );
+	  ppath.tan_pos[1] = ppath.pos(i_sensor,1) + 90 -ppath.los(i_sensor,0);
 	}
 
     } // do_path=1.
@@ -538,6 +725,32 @@ void ppath_1d (
 //   ppath_calculate
 ////////////////////////////////////////////////////////////////////////////
 
+//// ppath_calculate //////////////////////////////////////////////////////////
+/**
+   The main function for determining the propagation path for a single
+   combination observation position and direction.
+
+   The main task of this function is to check the input.
+
+   \retval   ppath          Propagation path structure with all fields set.
+   \param    dim            Atmospheric dimensionality.
+   \param    p_grid         Pressure grid.
+   \param    alpha_grid     Latitude grid.
+   \param    beta_grid      Longitude grid.
+   \param    z_field        The geometricalk altitude of the pressure surfaces.
+   \param    r_greoid       Geoid radius.
+   \param    z_ground       Ground altitude.
+   \param    e_ground       Emissivity of the ground.
+   \param    refr_on        Refraction flag.
+   \param    cloudbox_on    Cloud box flag.
+   \param    cloudbox_limits Vertical limits of the cloud box.
+   \param    ppath_lmax     Maximum allowed length between path points.
+   \param    sensor_pos     Sensor position.
+   \param    sensor_los     Sensor line-of-sight.
+
+   \author Patrick Eriksson
+   \date   2002-04-17
+*/
 void ppath_calculate(
 	      Ppath&          ppath,
 	const Index&          dim,
@@ -581,7 +794,7 @@ void ppath_calculate(
       for( Index col=0; col<z_ground.ncols(); col++ )
 	{
 	  if( z_ground(row,col)<z_field(0,row,col) || 
-                         z_ground(row,col)>z_field(z_field.npages(),row,col) )
+                       z_ground(row,col)>=z_field(z_field.npages()-1,row,col) )
 	    {
 	      ostringstream os;
 	      os << "The ground altitude (*z_ground*) cannot be outside of the"
@@ -628,16 +841,16 @@ void ppath_calculate(
 	{
 	  ostringstream os;
 	  os << "The array *cloudbox_limits* has incorrect length.\n"
-	     << "For dim = " << dim << "the length shall be " << dim*2
-	     << "but it is " << cloudbox_limits.nelem() << ".";
+	     << "For dim = " << dim << " the length shall be " << dim*2
+	     << " but it is " << cloudbox_limits.nelem() << ".";
 	  throw runtime_error( os.str() );
 	}
       if( !blackbody_ground && cloudbox_limits[0]!=0 )
 	{
 	  ostringstream os;
-	  os << "The lower pressure limit for cloud box must be 0 when the\n"
-             << "ground is not treated to be a blackbody, but the limit is\n"
-	     << "set to " << cloudbox_limits[0] << ".";
+	  os << "The lower pressure limit for cloud box must be 0 when the"
+             << "ground\nis not treated to be a blackbody, but the limit is"
+	     << "set to be " << cloudbox_limits[0] << ".";
 	  throw runtime_error( os.str() );
 	}
        if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||
@@ -647,8 +860,8 @@ void ppath_calculate(
 	  os << "Incorrect value(s) for cloud box pressure limit(s) found."
 	     << "\nValues are either out of range or upper limit is not "
 	     << "greater than lower limit.\nWith present length of "
-             << "*p_grid*, OK values are 0 - " << alpha_grid.nelem()-1
-             << ".\nThe latitude index limits are set to " 
+             << "*p_grid*, OK values are 0 - " << p_grid.nelem()-1
+             << ".\nThe pressure index limits are set to " 
 	     << cloudbox_limits[0] << " - " << cloudbox_limits[1] << ".";
 	  throw runtime_error( os.str() );
 	}
@@ -720,34 +933,33 @@ void test_new_ppath()
   Numeric r0 = 6.378e6;
   r_geoid(0,0)  = r0;
   z_ground(0,0) = 0;
-  e_ground      = 0.8;
+  e_ground      = 0.1;
 
   // Booleans
   Index refr_on = 0;
 
   // Cloud box
   Index cloudbox_on;
-  ArrayOfIndex   cloudbox_limits;
-  cloudbox_on = 0;
-  cloudbox_limits.resize(2);
+  ArrayOfIndex   cloudbox_limits(2);
+  cloudbox_on = 1;
   cloudbox_limits[0] = 0;
-  cloudbox_limits[0] = 4;
+  cloudbox_limits[1] = 4;
 
   // Path step length
   Numeric ppath_lmax;
-  ppath_lmax = 50e3;
+  ppath_lmax = 20e3;
 
   // Sensor  
   Vector sensor_pos(1), sensor_los(1);
-  sensor_pos[0] = r0 + 20e3;
-  sensor_los[0] = 98;
+  sensor_pos[0] = r0 + 0e3;
+  sensor_los[0] = 90.1;
 
   ppath_calculate( ppath, dim, p_grid, alpha_grid, beta_grid, z_field, r_geoid,
  	         z_ground, e_ground, refr_on, cloudbox_on, cloudbox_limits,
                                           ppath_lmax, sensor_pos, sensor_los );
 
-  cout << "z = \n" << ppath.z << "\n";
-  cout << "gridindex = \n" << ppath.gridindex << "\n";
+  //  cout << "z = \n" << ppath.z << "\n";
+  //  cout << "gridindex = \n" << ppath.gridindex << "\n";
   cout << "pos = \n" << ppath.pos << "\n";
   cout << "los = \n" << ppath.los << "\n";
   cout << "l_step = \n" << ppath.l_step << "\n";

@@ -49,8 +49,6 @@
 Index is_bool( 
        const Index&    x );
 
-Numeric first( ConstVectorView x );
-
 Numeric last( ConstVectorView x );
 
 Index is_sorted( 
@@ -62,6 +60,7 @@ Index is_increasing(
 Index is_decreasing( 
         ConstVectorView&    x );
 
+Index last( const ArrayOfIndex& x );
 
 
 

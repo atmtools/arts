@@ -326,7 +326,11 @@ are:
      cloud box, the position (in $\mathbf{pos}$) and the line-of-sight
      with index $\mathbf{np-1}$ give the relevant information needed
      when extracting the radiative background from the cloud box
-     intensity field.
+     intensity field. The line-of-sight is valid for the path leaving
+     the point of concern. For example, the zenith angle changes when
+     a ground reflection takes place, but this corresponds to a single
+     path point, and the given zenith angle is valid for the path after
+     the reflection.
      
    \item[background] [String] The radiative background for the
      propagation path, that is, [**] in Equation~[**]. The possible
@@ -344,10 +348,12 @@ are:
      $\mathbf{pos}$ gives the position of the ground reflection, which
      is needed for determining the ground emissivity for 2D and 3D cases.
 
-  \item[tan\_pos] [Vector] The position of the tangent point, if such exists.
-     The vector has otherwise length 0. If a tangent point exists, this point
-     is included in $\mathbf{pos}$ but is also stored here for simplicity
-     reasons.
+  \item[tan\_pos] [Vector] The position of the tangent point. This vector is
+      only set for downwards oberservation, the length of the vector is
+      otherwise 0. If the path intersects with the ground or the cloud box,
+      a geometrical prolongation of the path is used below this intersection
+      to find the position of the tangent point. The tangent point can thus
+      be found below the ground level.
      
    \item[symmetry] [Index] A boolean to indicate that the atmospheric
      conditions are symmetric around some point. This will the case

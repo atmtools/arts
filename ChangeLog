@@ -1,3 +1,19 @@
+2002-04-17  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-54
+
+	* src/m_los.cc,m_wfs.cc,m_batch.cc: Removed these files as everything
+	will be rewritten anyhow. I think it is a good idea to remove as much 
+	as possible. It is no big danger to remove things as they still exist
+	in arts-1 and can be copied back. So, PLEASE DO SOME CLEANING.
+	
+	* src/atm_funcs.cc: Removed obselete functions.
+
+	* src/ppath.cc: Works now for 1D and no refraction. As soon as it is
+	clear how refraction will be calculated (there should be an agenda
+	as for absorption), it should be a rather quick thing to put in 1D
+	with refraction.
+
 2002-04-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-53
