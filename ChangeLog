@@ -1,3 +1,20 @@
+2002-11-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-302
+
+	* src/rte.cc/.h (rte_step): Created the general radiative transfer step
+	function. The diagonal case I have taken from Patricks function 
+	(rte_step_clearsky_with_emission). 
+	Shifted (stokes_vecGeneral) from scat_rte.cc to this file. 
+
+	* src/scat_rte.cc/.h: Removed these files. All radiative transfer 
+	functions are now in rte.cc.
+
+	* src/Makefile.am: Removed files above.
+
+	* src/m_scatrte.cc: Modified (i_fieldUpdate1D), it uses the general
+	RT function, now.
+
 2002-11-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-301
