@@ -1,10 +1,3 @@
-%
-% To start the document, use
-%  \levela{...}
-% For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
-%
 \levela{Sensor modeling}
  \label{sec:sensor}
 
@@ -18,8 +11,7 @@
 %  \stophistory
 %
 \starthistory
-  000321 & Started by Patrick Eriksson.\\
-  000826 & First version finished by Patrick Eriksson.\\
+  000826 & Written for ARTS-1 by Patrick Eriksson.\\
 \stophistory
 
 
@@ -42,396 +34,392 @@
 %
 % Introduction
 %
-{\it Modeling of the sensor is not yet part of ARTS. Sensor modeling is so
-far covered by Qpack} but this chapter is included here for
-completness. On the other hand, conversion of radiances to brightness
-temperatures is part ARTS and this issue is also discussed here.
 
-A sensor model is needed because a practical instrument gives
-consistently spectra deviating from the hypothetical monochromatic
-pencil beam spectra provided by the atmospheric part of the forward
-model (that is $\y\neq\iv$ always). For a radio (heterodyne)
-instrument, the most influential sensor parts are the antenna, the
-mixer, the sideband filter and the spectrometer. Limb sounding
-observations are also affected by Doppler shifts, but this effect is
-not considered here, it is assumed to be treated separately.
-Conversion of radiances to brightness temperatures is also treated
-here.
+%A sensor model is needed because a practical instrument gives
+%consistently spectra deviating from the hypothetical monochromatic
+%pencil beam spectra provided by the atmospheric part of the forward
+%model (that is $\y\neq\iv$ always). For a radio (heterodyne)
+%instrument, the most influential sensor parts are the antenna, the
+%mixer, the sideband filter and the spectrometer. Limb sounding
+%observations are also affected by Doppler shifts, but this effect is
+%not considered here, it is assumed to be treated separately.
+%Conversion of radiances to brightness temperatures is also treated
+%here.
 
 
 
 
-\levelb{Implementation strategy}
- \label{sec:sensor:strategy}
+%\levelb{Implementation strategy}
+% \label{sec:sensor:strategy}
 
-\levelc{The sensor transfer matrix}
- \label{sec:sensor:strategy:h}
+%\levelc{The sensor transfer matrix}
+% \label{sec:sensor:strategy:h}
  
- The modeling of a sensor part is either a summation of different
- frequency components (mixer), or a weighting of the spectra as a
- function of frequency (spectrometer) or viewing direction (antenna)
- with the instrument response of concern. In all cases it is
- possible to describe the sensor influence by an analytical
- expression. See for example \citet{eriksson:97a} for more details.
- These analytical expressions can be implemented and solved for each
- run of the sensor model, but this would be relatively computationally
- demanding for cases when the settings are kept constant, as the
- calculations are duplicated in an unnecessary manner, and we want to
- find a better implementation strategy.
+% The modeling of a sensor part is either a summation of different
+% frequency components (mixer), or a weighting of the spectra as a
+% function of frequency (spectrometer) or viewing direction (antenna)
+% with the instrument response of concern. In all cases it is
+% possible to describe the sensor influence by an analytical
+% expression. See for example \citet{eriksson:97a} for more details.
+% These analytical expressions can be implemented and solved for each
+% run of the sensor model, but this would be relatively computationally
+% demanding for cases when the settings are kept constant, as the
+% calculations are duplicated in an unnecessary manner, and we want to
+% find a better implementation strategy.
  
- Summation and weighting of the spectral components are both linear
- operations, and thus it is possible to model the effect of the
- different sensor parts as subsequent matrix multiplications of the
- monochromatic pencil beam spectrum, as suggested in \citet{eriksson:00a}:
- \begin{eqnarray}
-   \y = \Hm_n\dots\Hm_2\Hm_1\iv + \merr
- \end{eqnarray}
- where $n$ is the number of sensor parts to consider, and this results
- in that the sensor model can be expressed as a single matrix
- multiplication (Eq. \ref{eq:formalism:H})
- \begin{eqnarray}
-   \y = \Hm\iv + \merr                     \nonumber
- \end{eqnarray}
- Applying Equation \ref{eq:formalism:H} for the sensor model will
- clearly give very rapid calculations, and we must find ways to
- calculate $\Hm$.
+% Summation and weighting of the spectral components are both linear
+% operations, and thus it is possible to model the effect of the
+% different sensor parts as subsequent matrix multiplications of the
+% monochromatic pencil beam spectrum, as suggested in \citet{eriksson:00a}:
+% \begin{eqnarray}
+%   \y = \Hm_n\dots\Hm_2\Hm_1\iv + \merr
+% \end{eqnarray}
+% where $n$ is the number of sensor parts to consider, and this results
+% in that the sensor model can be expressed as a single matrix
+% multiplication (Eq. \ref{eq:formalism:H})
+% \begin{eqnarray}
+%   \y = \Hm\iv + \merr                     \nonumber
+% \end{eqnarray}
+% Applying Equation \ref{eq:formalism:H} for the sensor model will
+% clearly give very rapid calculations, and we must find ways to
+% calculate $\Hm$.
 
 
-\levelc{Normalization of \Hm}
- \label{sec:sensor:strategy:norm}
+%\levelc{Normalization of \Hm}
+% \label{sec:sensor:strategy:norm}
  
- It is important that the transfer matrix for
- each sensor part is normalized in such way that a unit response is
- obtained. A unit response signifies here that a constant intensity
- (as a function of frequency or zenith angle) is preserved, that is
- \begin{equation}
-   \mat{u}_2 = \Hm\mat{u}_1
- \end{equation}
- where $\mat{u}_1$ and $\mat{u}_2$ are vectors of appropriate length
- where each element is $1$. This criterion equals that the sum of 
- the elements of each row of \Hm\ is 1.
+% It is important that the transfer matrix for
+% each sensor part is normalized in such way that a unit response is
+% obtained. A unit response signifies here that a constant intensity
+% (as a function of frequency or zenith angle) is preserved, that is
+% \begin{equation}
+%   \mat{u}_2 = \Hm\mat{u}_1
+% \end{equation}
+% where $\mat{u}_1$ and $\mat{u}_2$ are vectors of appropriate length
+% where each element is $1$. This criterion equals that the sum of 
+% the elements of each row of \Hm\ is 1.
 
 
-\levelb{Integration as vector multiplication} 
- \label{sec:sensor:integr}
+%\levelb{Integration as vector multiplication} 
+% \label{sec:sensor:integr}
   
- The effect of both the antenna and the spectrometer can be expressed
- as an integral \citep[e.g.][Eq. 86 and 94]{eriksson:97a}, and the
- question is how to transform these integrals into matrix operations.
+% The effect of both the antenna and the spectrometer can be expressed
+% as an integral \citep[e.g.][Eq. 86 and 94]{eriksson:97a}, and the
+% question is how to transform these integrals into matrix operations.
   
- The problem at hand is that the antenna and spectrometer responses
- and the zenith angle and frequency grids are known, while the spectral
- values are unknown. This problem corresponds to determine a (row)
- vector $\mat{h}$ that multiplied with an unknown (column) vector,
- $\mat{g}$, approximates the integral of the product between the
- functions $g$ and $f$:
- \begin{equation} 
-   \mat{hg} = \int{f(x)g(x) \dd x}
-   \label{eq:sensor:integral_problem}
- \end{equation}
- where $\mat{g}$ contains values of $g$ at some discrete points. The
- functions $f$ is here the response for some sensor part, and $g$
- holds the spectral values. The shape of $f$ and $g$ between the grid
- points must be known to solve this problem.
+% The problem at hand is that the antenna and spectrometer responses
+% and the zenith angle and frequency grids are known, while the spectral
+% values are unknown. This problem corresponds to determine a (row)
+% vector $\mat{h}$ that multiplied with an unknown (column) vector,
+% $\mat{g}$, approximates the integral of the product between the
+% functions $g$ and $f$:
+% \begin{equation} 
+%   \mat{hg} = \int{f(x)g(x) \dd x}
+%   \label{eq:sensor:integral_problem}
+% \end{equation}
+% where $\mat{g}$ contains values of $g$ at some discrete points. The
+% functions $f$ is here the response for some sensor part, and $g$
+% holds the spectral values. The shape of $f$ and $g$ between the grid
+% points must be known to solve this problem.
 
 
-\levelc{Piecewise linear functions} 
- \label{sec:sensor:integr:lins}
+%\levelc{Piecewise linear functions} 
+% \label{sec:sensor:integr:lins}
  
- In this section the problem of
- Equation~\ref{eq:sensor:integral_problem} is solved analytically when
- both functions are piecewise linear. The practical solution used
- Qpack is discussed in next section.
+% In this section the problem of
+% Equation~\ref{eq:sensor:integral_problem} is solved analytically when
+% both functions are piecewise linear. The practical solution used
+% Qpack is discussed in next section.
   
- Following Figure \ref{fig:sensor:vecintegr}, the function $g$ can between
- the points $x_1$ and $x_4$ be expressed as a sum of the two unknown
- values $g_1$ and $g_2$:
- \begin{equation}
-   g(x) = g_1 + (g_2-g_1)\frac{x-x_1}{x_4-x_1} =
-           g_1 \frac{x_4-x}{x_4-x_1} + g_2\frac{x-x_1}{x_4-x_1}
- \end{equation}
- which can be rewritten as
- \begin{equation}
-   g(x) = g_1(a+bx)+g_2(c-bx), \qquad x_1 \leq x \leq x_4
-   \label{eq:sensor:glin}
- \end{equation}
- where
- \begin{eqnarray}
-    a=\frac{x_4}{x_4-x_1}, \qquad b=\frac{-1}{x_4-x_1}, \qquad 
-    c=\frac{-x_1}{x_4-x_1}   \nonumber
- \end{eqnarray} 
- A shorter expression can be obtained for the function $f$ as the
- values $f_1$ and $f_2$ are known:
- \begin{equation}
-   f(x) = (d+ex), \qquad x_2 \leq x \leq x_3
- \end{equation}
- where 
- \begin{eqnarray}
-    d=f_1-x_2\frac{f_2-f1}{x_3-x_2} \qquad e=\frac{f_2-f_1}{x_3-x_2} \nonumber
- \end{eqnarray}
- \begin{figure}[tb]
-    \begin{center}
-      \includegraphics*{Figs/vecintegr}
-      \caption{The quantities used in Section \ref{sec:sensor:integr}.}  
-      \label{fig:sensor:vecintegr} 
-    \end{center} 
- \end{figure}
- The integral in Equation \ref{eq:sensor:integral_problem} can now for
- ranges between $x_2$ and $x_3$ be calculated analytically in a
- straightforward manner:
- \begin{eqnarray}
-    \int_{x_a}^{x_b}{f(x)g(x) \dd x} =
-    \int_{x_a}^{x_b}{\big(d+ex\big)\big(g_1(a+bx)+g_2(c-bx)\big) \dd x}  
-    =\dots= \nonumber\\
-    \bigg[ g_1x\Big(ad+\frac{x}{2}(bd+ae)+\frac{x^2}{3}be\Big) + 
-           g_2x\Big(cd+\frac{x}{2}(ce-bd)-\frac{x^2}{3}be \Big)
-           \bigg]_{x_a}^{x_b}
-    \label{eq:sensor:integr_weights}
- \end{eqnarray}
- For the practical calculations, the integral is solved from one grid
- point to next, of either $\mat{f}$ or $\mat{g}$. The functions are 
- assumed to be zero outside their defined ranges (for example, $f=0$ 
- for $x<x_2$).
- For the case
- shown in Figure \ref{fig:sensor:vecintegr}, the integration order would be
- $(x_a,x_b)=(x_2,x_3)$, $(x_a,x_b)=(x_3,x_4)$, $(x_a,x_b)=(x_4,x_5)$
- \ldots\
+% Following Figure \ref{fig:sensor:vecintegr}, the function $g$ can between
+% the points $x_1$ and $x_4$ be expressed as a sum of the two unknown
+% values $g_1$ and $g_2$:
+% \begin{equation}
+%   g(x) = g_1 + (g_2-g_1)\frac{x-x_1}{x_4-x_1} =
+%           g_1 \frac{x_4-x}{x_4-x_1} + g_2\frac{x-x_1}{x_4-x_1}
+% \end{equation}
+% which can be rewritten as
+% \begin{equation}
+%   g(x) = g_1(a+bx)+g_2(c-bx), \qquad x_1 \leq x \leq x_4
+%   \label{eq:sensor:glin}
+% \end{equation}
+% where
+% \begin{eqnarray}
+%    a=\frac{x_4}{x_4-x_1}, \qquad b=\frac{-1}{x_4-x_1}, \qquad 
+%    c=\frac{-x_1}{x_4-x_1}   \nonumber
+% \end{eqnarray} 
+% A shorter expression can be obtained for the function $f$ as the
+% values $f_1$ and $f_2$ are known:
+% \begin{equation}
+%   f(x) = (d+ex), \qquad x_2 \leq x \leq x_3
+% \end{equation}
+% where 
+% \begin{eqnarray}
+%    d=f_1-x_2\frac{f_2-f1}{x_3-x_2} \qquad e=\frac{f_2-f_1}{x_3-x_2} \nonumber
+% \end{eqnarray}
+% \begin{figure}[tb]
+%    \begin{center}
+%      \includegraphics*{Figs/vecintegr}
+%      \caption{The quantities used in Section \ref{sec:sensor:integr}.}  
+%      \label{fig:sensor:vecintegr} 
+%    \end{center} 
+% \end{figure}
+% The integral in Equation \ref{eq:sensor:integral_problem} can now for
+% ranges between $x_2$ and $x_3$ be calculated analytically in a
+% straightforward manner:
+% \begin{eqnarray}
+%    \int_{x_a}^{x_b}{f(x)g(x) \dd x} =
+%    \int_{x_a}^{x_b}{\big(d+ex\big)\big(g_1(a+bx)+g_2(c-bx)\big) \dd x}  
+%    =\dots= \nonumber\\
+%    \bigg[ g_1x\Big(ad+\frac{x}{2}(bd+ae)+\frac{x^2}{3}be\Big) + 
+%           g_2x\Big(cd+\frac{x}{2}(ce-bd)-\frac{x^2}{3}be \Big)
+%           \bigg]_{x_a}^{x_b}
+%    \label{eq:sensor:integr_weights}
+% \end{eqnarray}
+% For the practical calculations, the integral is solved from one grid
+% point to next, of either $\mat{f}$ or $\mat{g}$. The functions are 
+% assumed to be zero outside their defined ranges (for example, $f=0$ 
+% for $x<x_2$).
+% For the case
+% shown in Figure \ref{fig:sensor:vecintegr}, the integration order would be
+% $(x_a,x_b)=(x_2,x_3)$, $(x_a,x_b)=(x_3,x_4)$, $(x_a,x_b)=(x_4,x_5)$
+% \ldots\
   
- Using Equation \ref{eq:sensor:integr_weights}, we can now determine how to
- calculate $\mat{h}$. For each integration step, $\mat{h}_i$ and
- $\mat{h_{i+1}}$ are increased as
- \begin{eqnarray}
-    \mat{h}_i \!\! &=& \!\! \mat{h}_i +    
-              x_b\Big(ad+\frac{x_b}{2}(bd+ae)+\frac{x_b^2}{3}be\Big) - 
-              x_a\Big(ad+\frac{x_a}{2}(bd+ae)+\frac{x_a^2}{3}be\Big) 
-    \nonumber \\
-    \mat{h}_{i+1} \!\! &=& \!\! \mat{h}_{i+1} +
-              x_b\Big(cd+\frac{x_b}{2}(ce-bd)-\frac{x_b^2}{3}be\Big) - 
-              x_a\Big(cd+\frac{x_a}{2}(ce-bd)-\frac{x_a^2}{3}be\Big) 
-    \nonumber
- \end{eqnarray}
- where $i$ is the index for which $\mat{x}^i \leq x_a$ and $x_b \leq
- \mat{x}^{i+1}$. The vector $\mat{h}$ is initialized with
- zeros before the calculation starts.
+% Using Equation \ref{eq:sensor:integr_weights}, we can now determine how to
+% calculate $\mat{h}$. For each integration step, $\mat{h}_i$ and
+% $\mat{h_{i+1}}$ are increased as
+% \begin{eqnarray}
+%    \mat{h}_i \!\! &=& \!\! \mat{h}_i +    
+%              x_b\Big(ad+\frac{x_b}{2}(bd+ae)+\frac{x_b^2}{3}be\Big) - 
+%              x_a\Big(ad+\frac{x_a}{2}(bd+ae)+\frac{x_a^2}{3}be\Big) 
+%    \nonumber \\
+%    \mat{h}_{i+1} \!\! &=& \!\! \mat{h}_{i+1} +
+%              x_b\Big(cd+\frac{x_b}{2}(ce-bd)-\frac{x_b^2}{3}be\Big) - 
+%              x_a\Big(cd+\frac{x_a}{2}(ce-bd)-\frac{x_a^2}{3}be\Big) 
+%    \nonumber
+% \end{eqnarray}
+% where $i$ is the index for which $\mat{x}^i \leq x_a$ and $x_b \leq
+% \mat{x}^{i+1}$. The vector $\mat{h}$ is initialized with
+% zeros before the calculation starts.
 
 
-\levelc{Practical solution} 
- \label{sec:sensor:integr:practical}
+%\levelc{Practical solution} 
+% \label{sec:sensor:integr:practical}
  
- The functions $f$ and $g$ can in Qpack be treated to be piecewice
- linear or cubic functions. The polynomial order of the two functions
- is set individually. When a function is assumed to be piecewise
- cubic, two points on each side of the range of interest (that is, in
- total 4 points) are used to determine the polynomial. For the end
- ranges, a quadratic polynomial is used as there exists only a single
- point on one of the sides. 
+% The functions $f$ and $g$ can in Qpack be treated to be piecewice
+% linear or cubic functions. The polynomial order of the two functions
+% is set individually. When a function is assumed to be piecewise
+% cubic, two points on each side of the range of interest (that is, in
+% total 4 points) are used to determine the polynomial. For the end
+% ranges, a quadratic polynomial is used as there exists only a single
+% point on one of the sides. 
  
- Accordingly, Equation~\ref{eq:sensor:integral_problem} must be
- handled in Qpack for combinations of piecewise linear, quadratic and
- cubic functions. Instead of repeating the calculations in Section
- \ref{sec:sensor:integr:lins} for all possible polynomial
- combinations, a more general solution was implemented. The polynomial
- coefficents for $f$ are simply obtained by doing a polynomial fit to
- the considered points (by the Matlab function \verb|polyfit|). The
- polynomial basis for $g$ ($a$, $b$ and $c$ in Equation
- \ref{eq:sensor:glin}) is obtained by Lagrange's formula (Equation
- \ref{eq:wfuns:lagrange}), which expresses the polynomial that passes
- a fixed set of points. The Lagrange's formula can be written as:
- \begin{eqnarray}
-  g(x) &=& (a_{11}+a_{12}x+\dots+a_{1N}x^N)*g_1 + \nonumber \\
-       & & (a_{21}+a_{22}x+\dots+a_{2N}x^N)*g_2 + \nonumber \\
-       & & \dots \nonumber \\
-       & & (a_{N1}+a_{N2}x+\dots+a_{NN}x^N)*g_N 
-  \label{eq:sensor:pbasis}
- \end{eqnarray}
- With the obtained coefficients for $f$ and $g$, Equation
- \ref{eq:sensor:integr_weights} can easily be solved analytically in a
- general manner. The polynomial pasis is determined by the AMI
- function \verb|pbasis|, the both set of coefficients are
- multiplicated in the function \verb|pbasis_x_pol| and the integral is
- solved by the function \verb|pbasis_integrate|.
+% Accordingly, Equation~\ref{eq:sensor:integral_problem} must be
+% handled in Qpack for combinations of piecewise linear, quadratic and
+% cubic functions. Instead of repeating the calculations in Section
+% \ref{sec:sensor:integr:lins} for all possible polynomial
+% combinations, a more general solution was implemented. The polynomial
+% coefficents for $f$ are simply obtained by doing a polynomial fit to
+% the considered points (by the Matlab function \verb|polyfit|). The
+% polynomial basis for $g$ ($a$, $b$ and $c$ in Equation
+% \ref{eq:sensor:glin}) is obtained by Lagrange's formula (Equation
+% \ref{eq:wfuns:lagrange}), which expresses the polynomial that passes
+% a fixed set of points. The Lagrange's formula can be written as:
+% \begin{eqnarray}
+%  g(x) &=& (a_{11}+a_{12}x+\dots+a_{1N}x^N)*g_1 + \nonumber \\
+%       & & (a_{21}+a_{22}x+\dots+a_{2N}x^N)*g_2 + \nonumber \\
+%       & & \dots \nonumber \\
+%       & & (a_{N1}+a_{N2}x+\dots+a_{NN}x^N)*g_N 
+%  \label{eq:sensor:pbasis}
+% \end{eqnarray}
+% With the obtained coefficients for $f$ and $g$, Equation
+% \ref{eq:sensor:integr_weights} can easily be solved analytically in a
+% general manner. The polynomial pasis is determined by the AMI
+% function \verb|pbasis|, the both set of coefficients are
+% multiplicated in the function \verb|pbasis_x_pol| and the integral is
+% solved by the function \verb|pbasis_integrate|.
 
 
-\levelb{Summation as vector multiplication}
- \label{sec:sensor:mixer}
+%\levelb{Summation as vector multiplication}
+% \label{sec:sensor:mixer}
   
- The influence of the mixer and sideband filter of the sensor
- correspond to a summation of pairs of frequency components. The two
- frequencies of the pair are related as
- \begin{equation}
-    \f' = 2\f_{LO}-\f
- \end{equation}
- where $\f_{LO}$ is the frequence of the local oscillator signal, and
- $\f'$ is denoted as the image frequency.
+% The influence of the mixer and sideband filter of the sensor
+% correspond to a summation of pairs of frequency components. The two
+% frequencies of the pair are related as
+% \begin{equation}
+%    \f' = 2\f_{LO}-\f
+% \end{equation}
+% where $\f_{LO}$ is the frequence of the local oscillator signal, and
+% $\f'$ is denoted as the image frequency.
 
- \begin{figure}[tb]
-  \begin{center}
-    \includegraphics*[width=0.8\hsize]{Figs/sideband}
-    \caption{Schematic description of image frequency and sideband filtering.}
-   \label{fig:sensor:sideband} 
-  \end{center} 
- \end{figure}
+% \begin{figure}[tb]
+%  \begin{center}
+%    \includegraphics*[width=0.8\hsize]{Figs/sideband}
+%    \caption{Schematic description of image frequency and sideband filtering.}
+%   \label{fig:sensor:sideband} 
+%  \end{center} 
+% \end{figure}
  
- The intensity correspondence after the mixer and the sideband filter
- can be written as
- \begin{equation}
-   I_{IF}(\f) = \frac{f_s(\f)I(\f)+f_s(\f')I(\f')}{f_s(\f)+f_s(\f')}
-  \label{eq:sensor:sband}
- \end{equation}
- where $I(\f)$ is the intensity for frequency $\f$ and $f_s$ the response
- of the sideband filter as a function of frequency.
+% The intensity correspondence after the mixer and the sideband filter
+% can be written as
+% \begin{equation}
+%   I_{IF}(\f) = \frac{f_s(\f)I(\f)+f_s(\f')I(\f')}{f_s(\f)+f_s(\f')}
+%  \label{eq:sensor:sband}
+% \end{equation}
+% where $I(\f)$ is the intensity for frequency $\f$ and $f_s$ the response
+% of the sideband filter as a function of frequency.
 
- The frequency grid after the mixer consists of the frequencies inside
- the primary band of the grid before the mixer. To include frequencies
- from the image band (mirrored to the primary band) would need an 
- interpolation in the primary band that could cause unexpected effects.  
-
-
-\levelc{Piecewise linear functions} 
- \label{sec:sensor:mixer:lins}
-
- If the intensity is assumed to vary linearly between the points of the
- frequency grid, Equation \ref{eq:sensor:sband} can be written as
- \begin{eqnarray}
-   I_{IF}(\f^i) &=& \frac{1}{f_s(\f_i)+f_s(\f_i')} \bigg[ f_s(\f_i)I(\f_i)+ \nonumber \\ 
-      & & + \frac{f_s(\f_i')}{\f_{j+1}-\f_j} \Big( I(\f_j)(\f_{j+1}-\f_i')
-           + I(\f_{j+1})(\f_i'-\f_j) \Big)  \bigg]
-  \label{eq:sensor:mixer}
- \end{eqnarray}
- where $f_s$ for the different frequencies is obtained by linear
- interpolation, and $\f_j$ and $\f_{j+1}$ are the two
- points of the frequency grid surrounding the image frequency,
- $\f_i'$. The row of the $\Hm$ matrix corresponding to $\f^i$ is then
- \begin{eqnarray}
-    \label{eq:sensor:mixer:hi}
-    \mat{h}^i &=& \frac{f_s(\f_i)}{f_s(\f_i)+f_s(\f_i')}  \\
-    \mat{h}^j &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}
-                  \frac{\f_{j+1}-\f_i'}{\f_{j+1}-\f_j}     \nonumber \\
-    \mat{h}^{j+1} &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}
-                  \frac{\f_i'-\f_j}{\f_{j+1}-\f_j}     \nonumber
- \end{eqnarray}
- where $\mat{h}^i$ is the value of $\mat{h}$ for frequency $\f_i$ etc.
- Remaining values of $\Hm$ are zero.
-
- For the special case when the image frequency matches perfectly a frequency
- grid point, the equations above can be simplified to give
- \begin{eqnarray}
-    \mat{h}^i &=& \frac{f_s(\f_i)}{f_s(\f_i)+f_s(\f_i')}    \nonumber \\
-    \mat{h}^j &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}    \nonumber
- \end{eqnarray}
+% The frequency grid after the mixer consists of the frequencies inside
+% the primary band of the grid before the mixer. To include frequencies
+% from the image band (mirrored to the primary band) would need an 
+% interpolation in the primary band that could cause unexpected effects.  
 
 
-\levelc{Practical solution} 
- \label{sec:sensor:mixer:practical}
+%\levelc{Piecewise linear functions} 
+% \label{sec:sensor:mixer:lins}
+
+% If the intensity is assumed to vary linearly between the points of the
+% frequency grid, Equation \ref{eq:sensor:sband} can be written as
+% \begin{eqnarray}
+%   I_{IF}(\f^i) &=& \frac{1}{f_s(\f_i)+f_s(\f_i')} \bigg[ f_s(\f_i)I(\f_i)+ \nonumber \\ 
+%      & & + \frac{f_s(\f_i')}{\f_{j+1}-\f_j} \Big( I(\f_j)(\f_{j+1}-\f_i')
+%           + I(\f_{j+1})(\f_i'-\f_j) \Big)  \bigg]
+%  \label{eq:sensor:mixer}
+% \end{eqnarray}
+% where $f_s$ for the different frequencies is obtained by linear
+% interpolation, and $\f_j$ and $\f_{j+1}$ are the two
+% points of the frequency grid surrounding the image frequency,
+% $\f_i'$. The row of the $\Hm$ matrix corresponding to $\f^i$ is then
+% \begin{eqnarray}
+%    \label{eq:sensor:mixer:hi}
+%    \mat{h}^i &=& \frac{f_s(\f_i)}{f_s(\f_i)+f_s(\f_i')}  \\
+%    \mat{h}^j &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}
+%                  \frac{\f_{j+1}-\f_i'}{\f_{j+1}-\f_j}     \nonumber \\
+%    \mat{h}^{j+1} &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}
+%                  \frac{\f_i'-\f_j}{\f_{j+1}-\f_j}     \nonumber
+% \end{eqnarray}
+% where $\mat{h}^i$ is the value of $\mat{h}$ for frequency $\f_i$ etc.
+% Remaining values of $\Hm$ are zero.
+
+% For the special case when the image frequency matches perfectly a frequency
+% grid point, the equations above can be simplified to give
+% \begin{eqnarray}
+%    \mat{h}^i &=& \frac{f_s(\f_i)}{f_s(\f_i)+f_s(\f_i')}    \nonumber \\
+%    \mat{h}^j &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}    \nonumber
+% \end{eqnarray}
+
+
+%\levelc{Practical solution} 
+% \label{sec:sensor:mixer:practical}
  
- The responses of the sideband filter is determined by linear or cubic
- interpolation, dependent on the selected order.
- As the frequency in the primary band always equals one of the points
- of the monochromatic frequency grid, Equation
- \ref{eq:sensor:mixer:hi} can be used throughout. The weights for the
- image band are found by evaluating the polynomial basis from Equation
- \ref{eq:sensor:pbasis} at $\f_i'$ and multiplicate with 
- $f_s(\f_i') / (f_s(\f_i)+f_s(\f_i'))$. These calculations are 
- performed in the AMI function \verb|h_matrix|.
+% The responses of the sideband filter is determined by linear or cubic
+% interpolation, dependent on the selected order.
+% As the frequency in the primary band always equals one of the points
+% of the monochromatic frequency grid, Equation
+% \ref{eq:sensor:mixer:hi} can be used throughout. The weights for the
+% image band are found by evaluating the polynomial basis from Equation
+% \ref{eq:sensor:pbasis} at $\f_i'$ and multiplicate with 
+% $f_s(\f_i') / (f_s(\f_i)+f_s(\f_i'))$. These calculations are 
+% performed in the AMI function \verb|h_matrix|.
 
  
-\levelb{Brightness temperature} 
- \label{sec:sensor:tb}
+%\levelb{Brightness temperature} 
+% \label{sec:sensor:tb}
 
- Some kind of calibration process, either in absolute or relative units,
- is always needed. For mm and sub-mm receivers, the calibration normally
- presents the measured intensity in some temperature scale, and conversion
- to brightness and Rayleigh-Jeans temperatures is also treated in this section.
+% Some kind of calibration process, either in absolute or relative units,
+% is always needed. For mm and sub-mm receivers, the calibration normally
+% presents the measured intensity in some temperature scale, and conversion
+% to brightness and Rayleigh-Jeans temperatures is also treated in this section.
 
 
-\levelc{Conversion to Planck brightness temperature} 
- \label{sec:sensor:tb_planck}
+%\levelc{Conversion to Planck brightness temperature} 
+% \label{sec:sensor:tb_planck}
 
- The brightness temperature is defined as the temperature a blackbody 
- shall have to give the same intensity magnitude as observed. The 
- brightness temperature is thus calculated as
- \begin{equation}
-   T_b = \frac{h\f}{k_B} \frac{1}{\ln{ \left( \frac{2h\f^3}{c^2\mpbi}+1 \right)}}
-   \label{eq:sensor:cal:tb}
- \end{equation}
- where \mpbi\ is the radiative intensity.
+% The brightness temperature is defined as the temperature a blackbody 
+% shall have to give the same intensity magnitude as observed. The 
+% brightness temperature is thus calculated as
+% \begin{equation}
+%   T_b = \frac{h\f}{k_B} \frac{1}{\ln{ \left( \frac{2h\f^3}{c^2\mpbi}+1 \right)}}
+%   \label{eq:sensor:cal:tb}
+% \end{equation}
+% where \mpbi\ is the radiative intensity.
  
- It should be noted that the conversion from intensity to brightness
- temperature is non-linear. This non-linearity has (at least) two important
- consequences:
- \begin{itemize}
-  \item The conversion from intensity to brightness temperature cannot be
-        included in \Hm.
-  \item \bf{Brightness temperature cannot be used for retrievals.}
- \end{itemize}
- Accordingly, the main reason to convert a spectrum to brightness
- temperatures is to display the spectrum in an unit that gives a more
- intuitive understanding of the emission magnitude.
+% It should be noted that the conversion from intensity to brightness
+% temperature is non-linear. This non-linearity has (at least) two important
+% consequences:
+% \begin{itemize}
+%  \item The conversion from intensity to brightness temperature cannot be
+%        included in \Hm.
+%  \item \bf{Brightness temperature cannot be used for retrievals.}
+% \end{itemize}
+% Accordingly, the main reason to convert a spectrum to brightness
+% temperatures is to display the spectrum in an unit that gives a more
+% intuitive understanding of the emission magnitude.
 
 
-\levelc{Conversion to Rayleigh-Jean temperature} 
- \label{sec:sensor:tb:rj}
+%\levelc{Conversion to Rayleigh-Jean temperature} 
+% \label{sec:sensor:tb:rj}
 
- For lower frequencies where $h\f \ll k_BT$ the Planck function can
- be approximated by the Rayleigh-Jean (RJ) formula:
- \begin{equation}
-   B \approx \frac{2\f^2k_BT}{c^2}
- \end{equation}
- This relationship holds rather well in the microwave region. For example,
- for $T=50$~K, $h\f = k_BT$ at 1.04~THz. The RJ approximation of the Planck
- function gives a natural definition on a ``brightness temperature'' with
- that has a linear relationship to the intensity:
- \begin{equation}
-   T_{rj} = \frac{c^2}{2\f^2k_B} \mpbi
-   \label{eq:sensor:cal:rj}
- \end{equation}
- This intensity unit is often referred to as the brightness temperature but
- to avoid confusion it is here denoted as the RJ temperature.
+% For lower frequencies where $h\f \ll k_BT$ the Planck function can
+% be approximated by the Rayleigh-Jean (RJ) formula:
+% \begin{equation}
+%   B \approx \frac{2\f^2k_BT}{c^2}
+% \end{equation}
+% This relationship holds rather well in the microwave region. For example,
+% for $T=50$~K, $h\f = k_BT$ at 1.04~THz. The RJ approximation of the Planck
+% function gives a natural definition on a ``brightness temperature'' with
+% that has a linear relationship to the intensity:
+% \begin{equation}
+%   T_{rj} = \frac{c^2}{2\f^2k_B} \mpbi
+%   \label{eq:sensor:cal:rj}
+% \end{equation}
+% This intensity unit is often referred to as the brightness temperature but
+% to avoid confusion it is here denoted as the RJ temperature.
  
- As the intensity from intensity to RJ temperature is linear, this
- conversion can be included in \Hm\ and weighting functions can be
- converted using \ref{eq:sensor:cal:rj}, that is, retrievals are
- possible using RJ temperatures.
- On the other hand, the RJ temperature shall not be mistaken for the
- ``physical'' brightness temperature $(T_b)$ as the deviation between
- $T_b$ and $T_{rj}$ is not negligible \citep{eriksson:97a}.
+% As the intensity from intensity to RJ temperature is linear, this
+% conversion can be included in \Hm\ and weighting functions can be
+% converted using \ref{eq:sensor:cal:rj}, that is, retrievals are
+% possible using RJ temperatures.
+% On the other hand, the RJ temperature shall not be mistaken for the
+% ``physical'' brightness temperature $(T_b)$ as the deviation between
+% $T_b$ and $T_{rj}$ is not negligible \citep{eriksson:97a}.
 
 
-\levelb{Control file examples}
- \label{sec:sensor:cfe}
+%\levelb{Control file examples}
+% \label{sec:sensor:cfe}
 
- The following sequence of ARTS functions can be used to store the
- spectra in both brightness temperature units:
+% The following sequence of ARTS functions can be used to store the
+% spectra in both brightness temperature units:
 
- {\footnotesize
- \begin{verbatim}
-VectorCopy( y0, y ) {
-}
-yTRJ{
-}
-VectorWriteAscii( y ) {
-   "ytb_rj.aa"
-}
-VectorCopy( y, y0 ) {
-}
-yTB{
-}
-VectorWriteAscii( y ) {
-   "ytb_planck.aa"
-}
- \end{verbatim}
- }
- \noindent
- A weighting function matrix is converted to Rayleigh-Jean temperature
- as:
+% {\footnotesize
+% \begin{verbatim}
+%VectorCopy( y0, y ) {
+%}
+%yTRJ{
+%}
+%VectorWriteAscii( y ) {
+%   "ytb_rj.aa"
+%}
+%VectorCopy( y, y0 ) {
+%}
+%yTB{
+%}
+%VectorWriteAscii( y ) {
+%   "ytb_planck.aa"
+%}
+% \end{verbatim}
+% }
+% \noindent
+% A weighting function matrix is converted to Rayleigh-Jean temperature
+% as:
 
- {\footnotesize
- \begin{verbatim}
-MatrixTRJ( kx, kx ) {
-}
+% {\footnotesize
+% \begin{verbatim}
+%MatrixTRJ( kx, kx ) {
+%}
 
- \end{verbatim}
- }
+% \end{verbatim}
+% }
  
 
 

@@ -1,5 +1,22 @@
 2003-03-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-474
+
+	* doc/uguide/los1d.tex: Removed this file.
+	
+	* doc/uguide/fm_definitions.tex: Polished the text, and put in some
+	details about ground reflections.
+
+	* doc/uguide/rte_theory.tex: Created this chapter by copying text from
+	a compendium I have written (originally from a old report).
+
+	* doc/uguide/sensor.tex: Commented out all old text. 
+
+	* doc/uguide/main.tex: Activated sensor chapter, and added chapter
+	on radiative transfer theory.
+
+2003-03-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-473
 
 	* doc/uguide/fm_definitions.tex: Improved and updated text.

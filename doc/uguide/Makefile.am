@@ -35,9 +35,10 @@ texfiles = \
 	integration.tex \
 	matrix_vector.tex \
 	formats.tex \
-	los1d.tex \
+	rte_theory.tex \
 	main.tex \
 	measerr.tex \
+        ppath.tex \
 	polarization.tex \
 	reduction.tex \
 	rte.tex \
