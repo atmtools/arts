@@ -637,14 +637,14 @@ i_fieldUpdate1D(// WS Output:
               ArrayOfGridPos cloud_gp_p = ppath_step.gp_p;
               ArrayOfGridPos dummy_gp;
               Vector dummy_grid(0);
-              
+               cout << "cloud_gp_p.nelem in i_fieldUpdate" <<cloud_gp_p.nelem()<<"\n";
 
-              for(Index i = 0; i<2; i++ )
-                cloud_gp_p[i].idx -= cloudbox_limits[0];
-              
-              Matrix itw_field;
-
-              interp_atmfield_gp2itw(
+	       for(Index kk = 0; kk<2; kk++ )//FIXME STR changed i to k
+		 cloud_gp_p[kk].idx -= cloudbox_limits[0];
+	       
+	       Matrix itw_field;
+	       cout << "cloud_gp_p.nelem in i_fieldUpdate" <<cloud_gp_p.nelem()<<"\n";
+	       interp_atmfield_gp2itw(
                                      itw_field, atmosphere_dim,
                                      p_grid[ Range(p_range)], dummy_grid,
                                      dummy_grid,
@@ -669,6 +669,8 @@ i_fieldUpdate1D(// WS Output:
                             
                   // Extinction matrix requires a second loop 
                   // over stokes_dim
+		  cout << "It comes here" <<"\n";
+		 
                   out3 << "Interpolate ext_mat:\n";
                   for (Index j = 0; j < stokes_dim; j++)
                     {
@@ -687,7 +689,7 @@ i_fieldUpdate1D(// WS Output:
                       //
                       ext_mat_av(i,j) = 0.5 *
                         (ext_mat_int(i,j,0) + ext_mat_int(i,j,1));
-
+		      cout << "It comes here" <<"\n";
                     }
                   // Absorption vector:
                   //

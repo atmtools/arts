@@ -1,3 +1,10 @@
+2003-03-07  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-485
+	
+	* src/m_cloudbox.cc (CloudboxGetOutgoing): Fixed bug in this
+	function. 
+
 2003-03-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-484

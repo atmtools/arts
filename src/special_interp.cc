@@ -200,6 +200,8 @@ void interp_atmfield_by_itw(
   // Check consistency between field and grids
   chk_atm_field( x_field_name, x_field, atmosphere_dim, p_grid, lat_grid, 
                                                                     lon_grid );
+  cout << "x.nelem in iterp_atmfield_by_itw" <<x.nelem()<<"\n";
+   cout << "gp_p.nelem in iterp_atmfield_by_itw" <<gp_p.nelem()<<"\n";
   assert( x.nelem() == gp_p.nelem() );
 
   if( atmosphere_dim == 1 )
