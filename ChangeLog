@@ -1,3 +1,17 @@
+2002-07-02  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-179
+	
+	* src/m_scatproperties.cc (amp_matCalc): Added the method
+	amp_matCalc which calculates the workspace variable
+	amp_mat from amp_mat_raw.  amp_mat_raw is in this
+	method an ArrayOfArrayOfTensor6.
+
+	* src/methods.cc : Added this method.
+
+	* src/m_scatrte.cc : Fixed some bugs in the method 
+	scat_fieldCalc.
+
 2002-07-02  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-178
