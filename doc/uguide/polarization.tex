@@ -18,6 +18,7 @@
 %
 \starthistory
    260602 & Created and written by Christian Melsheimer.\\
+   260304 & Subsection on antenna added by Christian Melsheimer.\\
 \stophistory
 
 
@@ -219,7 +220,7 @@ or right-elliptic polarization).
 %which corresponds to left-handed
 Since $|\tan\beta|$ is the ratio of the semi-minor and semi-major axes
 of the ellipse (the ellipticity), $\beta$ is called the ellipticity
-angle.
+angle.\label{def:ellipticity-angle}
 \begin{figure}[!h]
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
@@ -239,7 +240,7 @@ To have the major axis of the ellipse enclose an arbitrary angle
 $\zeta$ ($0 \leq \zeta < 180\degree$) with the $h$-axis, we apply a
 rotation matrix and get the equation for an ellipse with arbitrary
 shape (ellipticity) and orientation (cf.\
-Figure~\ref{fig:polarization:ellipse_arbitrary}):
+Figure~\ref{fig:polarization:ellipse_arbitrary})\label{def:orientation-angle}:
 \begin{eqnarray}
   \label{eq:polarization:ellipse_rotated1}
  \tilde{E}_v (t) &=&  a_0(  \sin\beta \cos(\omega t) \cos\zeta
@@ -356,10 +357,10 @@ Jackson and others); thus $V>0$. This conflicts with Mishchenko's book
 Thus, we can get the orientation angle $\zeta$ of the ellipse from
 \begin{equation}
   \label{eq:polarization:tan2zeta}
- \tan(2\zeta) = \frac{U}{V}
+ \tan(2\zeta) = \frac{U}{Q}
 \end{equation}
 Since $0 \leq 2\zeta < 360\degree$, there are 2 solutions for $\zeta$ for a
-given pair $U,V$. This ambiguity is resolved by looking at
+given pair $U,Q$. This ambiguity is resolved by looking at
 Eq.~\ref{eq:polarization:stokesparam_alt2_Q}, taking into account that
 $|\beta| \leq 45\degree$ and thus $\cos(2\beta) \geq 0$:
 The sign of $\cos(2\zeta)$ must be the same as the sign of $-Q$.
@@ -837,6 +838,116 @@ FIXME: Give some typical numbers for the relative magnitude of $I$,
 $Q$, $U$, $V$
 for realistic radiation in relevant cases ($I \gg Q \gg U,V$ when?)
 
+
+\subsection{Antenna Polarization}
+\label{sec:polarization:antenna}
+Finally we want to know what an antenna of arbitrary polarization
+response (antenna polarization)
+measures if radiation of some other arbitrary polarization is incident
+on it.
+
+In order to clarify the concept, we first consider some trivial examples:
+We assume an antenna that receives only vertically polarized
+radiation.
+\begin{itemize}
+\item If the incident radiation is fully horizontally polarized, the
+  antenna will measure nothing.
+\item If the incident radiation is fully vertically polarized, the
+  antenna will measure the full intensity of the radiation.
+\item If the radiation is fully left- or right-circularly polarized,
+  the antenna will measure half of the full intensity, for circularly
+  polarized radiation is made up of equal portions of vertically and
+  horizontally polarized radiation, superimposed with a phase lag of
+  90\degree.
+\end{itemize}
+
+In order to be able to describe the general case, we first have to
+formalize the description of the antenna polarization.  Polarized
+radiation is described by
+\begin{enumerate}
+\item 
+the Jones vector, or 
+\item the Stokes
+vector, or
+\item intensity, $I$, orientation angle, $\zeta$
+(i.e. the angle between the major axis of the polarization ellipse and
+the horizontal polarization direction), %see \pageref{def:orientation-angle}), 
+and ellipticity angle, $\beta$ (see
+p.~\pageref{def:ellipticity-angle}).
+\end{enumerate}
+Since the intensity of the
+radiation is the absolute square (the squared ``length'') of the
+complex Jones vector, or, in other words, the first Stokes component,
+$I$, the polarization alone is defined by
+\begin{enumerate}
+\item a normalized Jones
+vector, or
+\item three normalized Stokes components $Q$, $U$, and $V$
+(where $Q^2 + U^2 + V^2 = 1$), or 
+\item the orientation angle $\zeta$
+and the ellipticity angle $\beta$ (see
+Eq.~\ref{eq:polarization:tan2zeta} to \ref{eq:polarization:tan2beta}).
+\end{enumerate}
+
+In the same way, the polarization of the antenna can be described in
+one of three ways:
+\begin{enumerate}
+\item a normalized Jones vector
+\begin{equation}
+\VctStl{e}= \left[e_v \atop e_h\right]\qquad
+   \mbox{where}\quad \VctStl{e}\cdot\VctStl{e}^\ast = 1
+ \end{equation}
+(note  that in the scalar product of two complex vectors, the second one
+has to be complex-conjugated.)
+
+\item a normalized Stokes vector 
+\begin{equation}
+\VctStl{i} = (1, q, u, v)\qquad
+   \mbox{where}\quad q^2+u^2+v^2=1
+ \end{equation}
+ 
+\item the
+  two angles $\zeta$ and $\beta$.  According to
+  Eq.~\ref{eq:polarization:stokesparam_alt2_I}
+  to~\ref{eq:polarization:stokesparam_alt2_V}, we have:
+\begin{eqnarray}
+  \label{eq:polarization:antenna-q}
+ q &=&  - \cos(2\zeta)\cos(2\beta)\\ 
+  \label{eq:polarization:antenna-u}
+ u &=& - \sin(2\zeta)\cos(2\beta)\\
+  \label{eq:polarization:antenna-v}
+ v &=& - \sin(2\beta)
+\end{eqnarray}
+\end{enumerate}
+
+Now we can calculate the intensity $I^\prime$ 
+the antenna measures. In terms of the electrical fields, 
+i.e., Jones vectors,  we just have to
+project the Jones vector \VctStl{E} of the incident radiation onto the
+normalized Jones vector \VctStl{e} of the antenna,
+\begin{equation}
+  \label{eq:polarization:antenna-projection}
+   \VctStl{E}^\prime =  (\VctStl{E}\cdot\VctStl{e}^\ast) \VctStl{E}
+\end{equation}
+(this is in effect like passing through a polarizer) and then take its
+absolute square
+\begin{equation}
+  \label{eq:polarization:antenna:intensity-jones}
+  I^\prime =  \left| \VctStl{E}^{\prime} \right| ^2 
+   = \left|(\VctStl{E}\cdot\VctStl{e}^\ast) \right| ^2 
+\end{equation}
+
+With some elementary algebra (mainly using that $E_v E_v^\ast =
+(I+Q)/2$, $E_h E_h^\ast = (I-Q)/2$, $E_v E_h^\ast = -(U - \mi V)/2$
+which follow immediately from Eq.~\ref{eq:polarization:stokesparam_I}
+to~\ref{eq:polarization:stokesparam_V} ) this can be rewritten in
+terms of the of the  Stokes vector \VctStl{I} of the incident
+radiation and the Stokes vector \VctStl{i} of the antenna.
+It turns out to be just a scalar product:
+\begin{equation}
+  \label{eq:polarization:antenna:intensity-stokes}
+  I^\prime = \frac{1}{2}\VctStl{i}\cdot\VctStl{I}
+\end{equation}
 
 %This is $S_{\mathrm{H_2 O}}$.
 
