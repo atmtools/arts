@@ -140,6 +140,21 @@ legendre_poly_norm (Index l, Index m, Numeric x)
 }
 
 
+//! legendre_poly_deriv
+/*!
+    Returns the derivative of the associated Legendre polynomial Plm(x).
+
+    The input parameters must fulfill the following conditions:
+    0 <= m <= l and |x| < 1
+
+    \return      dPlm
+    \param   l   Index
+    \param   m   Index
+    \param   x   Value
+
+    \author Oliver Lemke
+    \date   2003-08-18
+*/
 Numeric
 legendre_poly_deriv (Index l, Index m, Numeric x)
 {
