@@ -781,12 +781,13 @@ i_fieldUpdate1D(// WS Output:
                 {		
                   for (Index j = 0; j < stokes_dim; j++)
                     {
-                      // Radiation travelling upwards from the upper boundary
-                      // is set to be 0 as not needed for the iteration.
+                      // Radiation travelling upwards from the upper boundary.
+                   
                       if (p_index == cloudbox_limits[1])
-                        ext_mat(i,j) = 0;
+                        ext_mat(i,j) = ext_mat_0(i,j);
                       else
-                        ext_mat = 0.5*( ext_mat_0(i,j) + ext_mat_above(i,j));
+                        ext_mat(i,j) = 0.5*( ext_mat_0(i,j) +
+                                             ext_mat_above(i,j));
 
                     }//loop over j
                 }// loop over i
@@ -799,12 +800,12 @@ i_fieldUpdate1D(// WS Output:
 		{
                   for (Index j = 0; j < stokes_dim; j++)
                     {
-                      // Radiation travelling downwards from the upper boundary
-                      // is set to be 0 as not needed for the iteration.
-                      if (p_index == cloudbox_limits[1])
-                        ext_mat(i,j) = 0;
+                      // Radiation travelling downwards from the lower boundary
+                   
+                      if (p_index == cloudbox_limits[0])
+                        ext_mat(i,j) = ext_mat_0(i,j);
                       else
-                        ext_mat = 0.5*( ext_mat_0(i,j) + ext_mat_below(i,j));
+                        ext_mat(i,j) = 0.5*( ext_mat_0(i,j) + ext_mat_below(i,j));
                    }//loop over j
                 }// loop over i
             } // Closes 'if' for downward propagation direction.
@@ -828,14 +829,17 @@ i_fieldUpdate1D(// WS Output:
           if ( ppath_step.z[0] < ppath_step.z[1] )
 	    { 
 	      for (Index i = 0; i < stokes_dim; i++)
-                {		
-                  // Radiation travelling upwards from the upper boundary
-                  // is set to be 0 as not needed for the iteration.
+                {
+                   // On the upper boundary we take the boundary values 
+                  // for upward propagation. It is not possible to take 0 
+                  // as the RTE functions do not work in that case.
                   if (p_index == cloudbox_limits[1])
                     {
-                      abs_vec[i] = 0;
-                      sca_vec[i] = 0;
-		      stokes_vec[i] = 0;
+                      abs_vec[i] = abs_vec_0[i];
+                      sca_vec[i] =  scat_field((p_index-cloudbox_limits[1]),
+					 0, 0, scat_za_index, 0, i); 
+		      stokes_vec[i] = i_field((p_index-cloudbox_limits[1]),
+					 0, 0, scat_za_index, 0, i);
                     }
                   // Inside the cloudbox:
 		  else
@@ -869,12 +873,14 @@ i_fieldUpdate1D(// WS Output:
                   // lower boundary of the cloudbox
 		  if (p_index == cloudbox_limits[0])
 		    {
-                      // Radiation travelling downwards from the lowest
-                      // pressure value is not needed for the iteration, 
-                      // therefore these values are set to 0.
-                      abs_vec[i] = 0;
-                      sca_vec[i] = 0; 
-                      stokes_vec[i] = 0;
+                      // On the lower boundary we take the boundary values 
+                      // for downward propagation. It is not possible to take
+                      //  0 as the RTE functions do not work in that case.
+                      abs_vec[i] = abs_vec_0[i];
+                      sca_vec[i] =  scat_field((p_index-cloudbox_limits[0]),
+					 0, 0, scat_za_index, 0, i); 
+                      stokes_vec[i] = i_field((p_index-cloudbox_limits[0]),
+					 0, 0, scat_za_index, 0, i);
                     }
                   //inside the cloudbox
                   else		 
@@ -892,6 +898,8 @@ i_fieldUpdate1D(// WS Output:
 				      0, 0,	scat_za_index, 0, i)
 			      +i_field((p_index-cloudbox_limits[0]) - 1,
 				       0, 0, scat_za_index, 0, i));
+                      cout << "sca_vec: ...." << sca_vec[i] << endl;
+                      cout << "stokes_vec: ...." << stokes_vec[i] << endl; 
 		    }
                 }//loop over stokes dimensions
             }//downward propagation direction, closes 'else if'
