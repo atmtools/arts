@@ -1,3 +1,10 @@
+2002-01-10  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-76
+
+	* ami/retrieval/loggrid.m: The obtained spacing could be poorer than 
+	the specified spacing. Fixed.
+
 2002-01-09  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-75

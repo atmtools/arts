@@ -27,19 +27,12 @@ np = length( ppoints );
 if np ~= ( length(n_pr_decade) + 1 )
   error('The lengths of the two given vectors do not match.')
 end
-%
-%for i = 1:(np-1)
-%  if ~isinteger( ...
-%         (log10(ppoints(i+1))-log10(ppoints(i))) / (1/n_pr_decade(i)), 5 )
-%    error('A consistent grid cannot be created (the ppoints are not seperated as needed for n_scaleheight).');
-%  end
-%end
 
 
 %=== Create the grid
 g = [];
 for i = 1:(np-1)
-  n = round(abs(log10(ppoints(i))-log10(ppoints(i+1))) * n_pr_decade(i) + 1);
+  n = ceil(abs(log10(ppoints(i))-log10(ppoints(i+1))) * n_pr_decade(i) + 1);
   g = [g;logspace(log10(ppoints(i)),log10(ppoints(i+1)),n)'];
 end
 
