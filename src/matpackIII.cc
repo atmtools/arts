@@ -157,7 +157,10 @@ ConstIterator3D ConstTensor3View::end() const
 
 /** Special constructor to make a Tensor3 view of a matrix. */
 ConstTensor3View::ConstTensor3View(const ConstMatrixView& a) :
-  mpr(0,1,a.mrr.mextent*a.mcr.mextent), mrr(a.mrr), mcr(a.mcr), mdata(a.mdata) 
+  mpr(0,1,a.mrr.mextent*a.mcr.mextent),
+  mrr(a.mrr),
+  mcr(a.mcr),
+  mdata(a.mdata) 
 {
   // Nothing to do here.
 }

@@ -237,8 +237,8 @@ ConstVectorView::ConstVectorView() :
 
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
-ConstVectorView::ConstVectorView(Numeric *data,
-                                        const Range& range) :
+ConstVectorView::ConstVectorView( Numeric *data,
+                                  const Range& range) :
   mrange(range),
   mdata(data)
 {
@@ -255,9 +255,9 @@ ConstVectorView::ConstVectorView(Numeric *data,
     \param *data The actual data.
     \param p Previous range.
     \param n New Range.  */
-ConstVectorView::ConstVectorView(Numeric *data,
-                                        const Range& p,
-                                        const Range& n) :
+ConstVectorView::ConstVectorView( Numeric *data,
+                                  const Range& p,
+                                  const Range& n) :
   mrange(p,n),
   mdata(data)
 {
@@ -814,9 +814,9 @@ ConstMatrixView::ConstMatrixView() :
 /** Explicit constructor. This one is used by Matrix to initialize its
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
-ConstMatrixView::ConstMatrixView(Numeric *data,
-                                        const Range& rr,
-                                        const Range& cr) :
+ConstMatrixView::ConstMatrixView( Numeric *data,
+                                  const Range& rr,
+                                  const Range& cr) :
   mrr(rr),
   mcr(cr),
   mdata(data)
@@ -835,9 +835,9 @@ ConstMatrixView::ConstMatrixView(Numeric *data,
     \param *data The actual data.
     \param p Previous range.
     \param n New Range.  */
-ConstMatrixView::ConstMatrixView(Numeric *data,
-                                        const Range& pr, const Range& pc,
-                                        const Range& nr, const Range& nc) :
+ConstMatrixView::ConstMatrixView( Numeric *data,
+                                  const Range& pr, const Range& pc,
+                                  const Range& nr, const Range& nc) :
   mrr(pr,nr),
   mcr(pc,nc),
   mdata(data)

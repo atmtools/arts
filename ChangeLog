@@ -1,3 +1,52 @@
+2003-02-27  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-462
+
+	* src/gas_abs_lookup.cc: I'm still working on the gas absorption
+	lookup table. Beware! This is not yet the final version. I want to
+	do some tests tomorrow, in order to see if temperature
+	interpolation works. The case without temperature variations is
+	tested and is believed to work correctly.
+	IMPORTANT: We are now storing absorption cross-sections, rather
+	than absorption coefficients in the table. Old tables will not
+	work anymore, unfortunately. However, this is worth the
+	inconvenience since it decreases interpolation error by two orders
+	of magnitude! (See my email to arts-dev.)
+
+	* src/gas_abs_lookup.h: Updated.
+
+	* src/m_absorption.cc (abs_scalar_gas_fieldCalc): This method now
+	takes f_index as input. Depending on f_index, the field will be
+	calculated for all frequencies, or just for one frequency.
+
+	* src/methods.cc: Updated record for abs_scalar_gas_fieldCalc.
+
+	* src/agendas.cc (define_agenda_data): Added f_index in the input
+	list of scalar_gas_absorption_agenda.
+
+	* src/xml_io.cc (xml_read_from_stream): Read .xml instead of .abs.
+	(xml_write_to_stream): Write .xml instead of .abs.
+
+	* src/describe.cc: Added. This file contains a set of helper
+	functions called \c describe, which you can use to output the
+	dimensions of a tensor. This is just for testing purposes.
+
+	* src/describe.h: Added. Header file for describe.cc.
+
+	* src/test_matpack.cc: Modified some tests.
+
+	* src/matpackIII.cc: Only linebreak changes.
+
+	* src/matpackI.h: Only whitespace removed.
+
+	* src/matpackI.cc: Only indentation changes.
+
+	* src/m_scatrte.cc: Updated copyright notice.
+
+	* src/m_cloudbox.cc: Updated copyright notice.
+
+	* src/Makefile.am (test_matpack_SOURCES): Added describe.
+
 2003-02-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 	
 	* arts-1-1-461
@@ -47,7 +96,7 @@
 
 	* arts-1-1-459
 
-	* src/m_basic_types.cc: Added VSM Tenso3Scale, Tensor4Scale,
+	* src/m_basic_types.cc: Added VSM Tensor3Scale, Tensor4Scale,
   	Tensor5Scale, Tensor6Scale and Tensor7Scale.
 
   	* src/m_sensor.cc: Added this file for sensor modelling.
@@ -177,7 +226,8 @@
 	* src/zeemanproperties.cc: Fixed a bug in the calculation of the
 	relative intensities of individual Zeeman components. Added two
 	more output variables in order to save the frequencies and the
-	corresponding relative intensities of the components as matrixes in xml 	format.
+	corresponding relative intensities of the components as matrixes
+	in xml format.
 
 	* src/zeemanproperties.h: Modified the file according the changes
 	in the zeemanproperties.cc.

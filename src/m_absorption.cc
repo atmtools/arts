@@ -170,6 +170,7 @@ void abs_scalar_gas_fieldCalc(// WS Output:
                               Vector&  a_vmr_list,
                               // WS Input:
                               const Agenda&  sga_agenda,
+                              const Index&   f_index,
                               const Vector&  f_grid,
                               const Index&   atmosphere_dim,
                               const Vector&  p_grid,
@@ -218,18 +219,44 @@ void abs_scalar_gas_fieldCalc(// WS Output:
                  lat_grid,
                  lon_grid );
 
+  // We also set the start and extent for the frequency loop.
+  Index f_extent;
+
+  if ( f_index < 0 )
+    {
+      // This means we should extract for all frequencies.
+
+      f_extent = n_frequencies;
+    }
+  else
+    {
+      // This means we should extract only for one frequency.
+
+      // Make sure that f_index is inside f_grid:
+      if ( f_index >= n_frequencies )
+        {
+          ostringstream os;
+          os << "The frequency index f_index points to a frequency outside"
+             << "the frequency grid. (f_index = " << f_index
+             << ", n_frequencies = " << n_frequencies << ")";
+          throw runtime_error( os.str() );
+        }
+
+      f_extent = 1;
+    }
+
   // Resize output field.
   // The dimension in lat and lon must be at least one, even if these
   // grids are empty.
   out2 << "  Creating field with dimensions:\n"
-       << "    " << n_species << " gas species,\n"
-       << "    " << n_frequencies << " frequencies,\n"
-       << "    " << n_pressures << " pressures,\n"
-       << "    " << n_latitudes << " latitudes,\n"
+       << "    " << n_species << "    gas species,\n"
+       << "    " << f_extent << "     frequencies,\n"
+       << "    " << n_pressures << "  pressures,\n"
+       << "    " << n_latitudes << "  latitudes,\n"
        << "    " << n_longitudes << " longitudes.\n";
 
   asg_field.resize( n_species,
-                    n_frequencies,
+                    f_extent,
                     n_pressures,
                     n_latitudes,
                     n_longitudes );
@@ -251,8 +278,8 @@ void abs_scalar_gas_fieldCalc(// WS Output:
             a_vmr_list    = vmr_field( Range(joker),
                                        ipr, ila, ilo );
 
-            // Execute agenda for to calculate local absorption.
-            // Agenda input:  a_pressure, a_temperature, a_vmr_list
+            // Execute agenda to calculate local absorption.
+            // Agenda input:  f_index, a_pressure, a_temperature, a_vmr_list
             // Agenda output: asg
             sga_agenda.execute(count);
 
@@ -269,11 +296,11 @@ void abs_scalar_gas_fieldCalc(// WS Output:
               }
 
             // Verify, that the number of frequencies in asg is
-            // constistent with f_grid:
-            if ( n_frequencies != asg.nrows() )
+            // constistent with f_extent:
+            if ( f_extent != asg.nrows() )
               {
                 ostringstream os;
-                os << "The number of frequencies in f_grid is "
+                os << "The number of frequencies desired is "
                    << n_frequencies << ",\n"
                    << "but the number of frequencies returned by the agenda is "
                    << asg.nrows() << ".";

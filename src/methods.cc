@@ -249,11 +249,19 @@ void define_md_data_raw()
         (
          "Calculate scalar gas absorption for all points in the atmosphere.\n"
          "\n"
-         "This is mainly for testing and plotting gas absorption. For RT\n"
-         "calculations, gas absorption is calculated or extracted locally,\n"
-         "therefore there is no need to calculate a global field. But this\n"
-         "method is handy for easy plotting of absorption vs. pressure, for\n"
-         "example.\n"
+         "This is useful in two different contexts:\n"
+         "\n"
+         "1. For testing and plotting gas absorption. (For RT calculations, gas\n"
+         "absorption is calculated or extracted locally, therefore there is no\n"
+         "need to calculate a global field. But this method is handy for easy\n"
+         "plotting of absorption vs. pressure, for example.)\n"
+         "\n"
+         "2. Inside the scattering region, monochromatic absorption is\n"
+         "pre-calculated for the entire atmospheric field.\n"
+         "\n"
+         "Because of the different contexts, the method can calculate absorption\n"
+         "either for all frequencies in the frequency grid (f_index<0), or just\n"
+         "for the frequency indicated by f_index (f_index>=0).\n"
          "\n"
          "The calculation itself is performed by the\n"
          "*scalar_gas_absorption_agenda*, which needs the input variables\n"
@@ -264,6 +272,7 @@ void define_md_data_raw()
                 abs_scalar_gas_,
                 a_pressure_, a_temperature_, a_vmr_list_),
         INPUT(  scalar_gas_absorption_agenda_,
+                f_index_,
                 f_grid_,
                 atmosphere_dim_,
                 p_grid_, lat_grid_, lon_grid_,

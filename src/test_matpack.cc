@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2001, 2002, 2003 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -23,7 +23,7 @@
 #include "mystring.h"
 #include "make_vector.h"
 #include "math_funcs.h"
-
+#include "describe.h"
 
 /** Define the global joker objekt. */
 Joker joker;
@@ -617,35 +617,43 @@ void test33()
     Numeric a = 3.1415;         // Just any number here.
     VectorView av(a);
     cout << "a, viewed as a vector: " << av << "\n";
+    cout << "Describe a: " << describe(a) << "\n";
     av[0] += 1;
     cout << "a, after the first element\n"
          << "of the vector has been increased by 1: " << a << "\n";
   }
 
   {
-    cout << "\n2. Make a vector look like a matrix:\n";
+    cout << "\n2. Make a vector look like a matrix:\n"
+         << "This is an exception, because the new dimension is added at the end.\n";
     MakeVector a(1,2,3,4,5);
     MatrixView am = a;
     cout << "a, viewed as a matrix:\n" << am << "\n";
     cout << "Trasnpose view:\n" << transpose(am) << "\n";
+    cout << "Describe transpose(am): " << describe(transpose(am)) << "\n";
 
     cout << "\n3. Make a matrix look like a tensor3:\n";
     Tensor3View at3 = am;
     cout << "at3 = \n" << at3 << "\n";
+    cout << "Describe at3: " << describe(at3) << "\n";
     at3 (0,2,0) += 1;
     cout << "a after Increasing element at3(0,2,0) by 1: \n" << a << "\n\n";
 
     Tensor4View at4 = at3;
     cout << "at4 = \n" << at4 << "\n";
+    cout << "Describe at4: " << describe(at4) << "\n";
 
     Tensor5View at5 = at4;
     cout << "at5 = \n" << at5 << "\n";
+    cout << "Describe at5: " << describe(at5) << "\n";
 
     Tensor6View at6 = at5;
     cout << "at6 = \n" << at6 << "\n";
+    cout << "Describe at6: " << describe(at6) << "\n";
 
     Tensor7View at7 = at6;
     cout << "at7 = \n" << at7 << "\n";
+    cout << "Describe at7: " << describe(at7) << "\n";
 
     at7(0,0,0,0,0,2,0) -=1 ;
 
@@ -667,25 +675,29 @@ void test33()
                               )
                   );
     cout << "bt7:\n" << bt7 << "\n";
+    cout << "Describe bt7: " << describe(bt7) << "\n";
   }
 }
 
 void junk4(Tensor4View a)
 {
-  cout << "Dimensions: "
-       << a.nbooks() << ", "
-       << a.npages() << ", "
-       << a.nrows()  << ", "
-       << a.ncols()  << "\n";
-    
+  cout << "Describe a: " << describe(a) << "\n";
+}
+
+void junk2(ConstVectorView a)
+{
+  cout << "Describe a: " << describe(a) << "\n";
 }
 
 void test34()
 {
   cout << "Test, if dimension expansion works implicitly.\n";
-  Tensor3 t3(2,3,4);
 
+  Tensor3 t3(2,3,4);
   junk4(t3);
+
+  Numeric x;
+  junk2(ConstVectorView(x));
 }
 
 void test35()
@@ -716,6 +728,21 @@ void test36()
   cout << "a = " << a << "\n";
   cout << "b = " << b << "\n";
 }
+
+// void test37()
+// {
+//   cout << "Test inflate for Vector.\n";
+
+//   Numeric x=7;
+//   describe(cout,x);
+  
+// //   ConstVectorView v1 = inflate(x);
+// //   cout << "v1 = " << v1 << "\n";
+
+// //   VectorView v2 = inflate(x);
+// //   v2[0] += 1;
+// //   cout << "x, after increasing v2 by 1 = " << x << "\n";
+// }
 
 int main()
 {
@@ -750,9 +777,10 @@ int main()
 //   test30();
 //   test31();
 //   test32();
-//   test33();
-//   test34();
-//  test35();
-  test36();
+   test33();
+   test34();
+//   test35();
+//   test36();
+//  test37();
   return 0;
 }

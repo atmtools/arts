@@ -29,6 +29,10 @@
 #include "matpackIV.h"
 #include "absorption.h"
 
+// Declare existance of some classes:
+class bifstream;
+class bofstream;
+
 //! An absorption lookup table.
 /*! This class holds an absorption lookup table, as well as all
     information that is necessary to use the table to extract
@@ -41,12 +45,28 @@ public:
 
   // Documentation is with the implementation!
   void Extract( Matrix&         sga,
-                const Index&    f_index,
-                const Numeric&  p,
-                const Numeric&  T,
+                            const Index&    f_index,
+                            const Numeric&  p,
+                            const Numeric&  T,
                 ConstVectorView vmrs ) const;
 
-//private:
+    // Obsolete try for a function to extract for the entire field:
+    //   void Extract( Tensor5View      sga,
+    //                 const Index&     f_index,
+    //                 ConstVectorView  p,
+    //                 ConstTensor3View T,
+    //                 ConstTensor4View vmrs ) const;
+
+  // IO functions must be friends:
+  friend void xml_read_from_stream( istream& is_xml,
+                                    GasAbsLookup& gal,
+                                    bifstream *pbifs );
+  friend void xml_write_to_stream ( ostream& os_xml,
+                                    const GasAbsLookup& gal,
+                                    bofstream *pbofs );
+
+
+private:
 
   //! The species tags for which the table is valid.
   ArrayOfArrayOfSpeciesTag species; 
@@ -65,11 +85,12 @@ public:
   /*! Must be sorted in decreasing order. */
   Vector    p_grid;  
 
-  //! The base 10 logarithm of the pressure grid.
-  /*! This is not stored along with the table, but calculated when the
-    table is initialized with Adapt. The reason to have this is that
-    vertical interpolation should be linear in log(p). */
-  Vector   log_p_grid;  
+  // Obsolete!
+  //   //! The base 10 logarithm of the pressure grid.
+  //   /*! This is not stored along with the table, but calculated when the
+  //     table is initialized with Adapt. The reason to have this is that
+  //     vertical interpolation should be linear in log(p). */
+  //   Vector   log_p_grid;  
 
   //! The reference VMR profiles.
   /*! The VMRs for all species, associated with p_grid. Dimension:
@@ -115,9 +136,14 @@ public:
   */
   Vector    nls_pert;
 
-  //! Absorption coefficients.
+  //! Absorption cross sections.
   /*!
-    Physical unit: 1/m
+    Physical unit: m^2
+
+    \attention We want to interpolate these beasts in pressure. To
+    keep interpolation errors small it is better to store
+    cross-sections, not coefficients. The absorption coefficient alpha
+    is given by alpha = xsec * n, where n is the number density.
 
     Dimension: [ a, b, c, d ]
 
@@ -143,7 +169,7 @@ public:
     dimensions of abs_per_tg in ARTS-1-0. This should simplify
     computation of the lookup table with this old ARTS version.
   */
-  Tensor4 abs;
+  Tensor4 xsec;
 
 };
 

@@ -179,8 +179,6 @@ public:
   friend class Tensor7;
   friend std::ostream& operator<<(std::ostream& os, const SparseMatrixView& v);
 
-
-
 private:
   /** The start index. */
   Index mstart;

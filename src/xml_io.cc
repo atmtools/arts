@@ -1655,7 +1655,7 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, gal.t_ref, pbifs);
   xml_read_from_stream (is_xml, gal.t_pert, pbifs);
   xml_read_from_stream (is_xml, gal.nls_pert, pbifs);
-  xml_read_from_stream (is_xml, gal.abs, pbifs);
+  xml_read_from_stream (is_xml, gal.xsec, pbifs);
 
   tag.read_from_stream (is_xml);
   tag.check_name ("/GasAbsLookup");
@@ -1687,7 +1687,7 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, gal.t_ref, pbofs);
   xml_write_to_stream (os_xml, gal.t_pert, pbofs);
   xml_write_to_stream (os_xml, gal.nls_pert, pbofs);
-  xml_write_to_stream (os_xml, gal.abs, pbofs);
+  xml_write_to_stream (os_xml, gal.xsec, pbofs);
 
   close_tag.set_name ("/GasAbsLookup");
   close_tag.write_to_stream (os_xml);

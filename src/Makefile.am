@@ -310,6 +310,8 @@ test_matpack_SOURCES = \
 	matpackVII.cc \
 	matpackVII.h \
 	mystring.h \
+	describe.h \
+	describe.cc \
 	test_matpack.cc
 
 test_xml_SOURCES = \

@@ -363,11 +363,22 @@ void define_agenda_data()
         "This agenda should calculate absorption coefficients for all gas\n"
         "species as a function of the given atmospheric state for one point in\n"
         "the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
-        "atmospheric state has to be speciefies by *a_pressure*,\n"
-        "*a_temperature*, and *a_vmr_list*"
+        "atmospheric state has to be specified by *a_pressure*,\n"
+        "*a_temperature*, and *a_vmr_list*\n"
+        "\n"
+        "A mandatory input parameter is f_index, which is used as follows:\n"
+        "\n"
+        "1. f_index < 0 : Return absorption for all frequencies (in f_grid).\n"
+        "\n"
+        "2. f_index >= 0 : Return absorption for the frequency indicated by\n"
+        "   f_index. \n"
+        "\n"
+        "The methods inside this agenda may require a lot of additional input\n"
+        "variables, such as *f_grid*, *species*, etc.."
         ),
        OUTPUT( abs_scalar_gas_ ),
-       INPUT(  a_pressure_, a_temperature_, a_vmr_list_ )));
+       INPUT(  f_index_,
+               a_pressure_, a_temperature_, a_vmr_list_ )));
 
   agenda_data.push_back
     (AgRecord
