@@ -28,6 +28,7 @@ test_complex
 test_griddedtensorcheck
 test_integration
 test_interpolation
+test_legendre
 test_linalg
 test_matpack
 test_mpi
