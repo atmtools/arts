@@ -980,6 +980,7 @@ void ppath_append(
    Fills a 1D Ppath structure with position and LOS values.
 
    The function fills the fields: pos, los, z, l_step and gp_p.
+   The pressure grid positions (gp_p) are filtered through gridpos_check_fd.
 
    The structure fields must be allocated to correct size before calling the 
    function. The field size must be at least as large as the length of r,
@@ -1831,9 +1832,15 @@ void ppath_step_geom_1d(
   ppath.constant   = ppc;
   //
   ppath_fill_1d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_grid, ip );
-  //
+
+
+  // Different options depending on position of end point of step:
+
+  //--- End point is the ground
   if( ground )
     { ppath_set_background( ppath, 2 ); }
+
+  //--- End point is a tangent point
   else if( tanpoint )
     {
       ppath.tan_pos.resize(2);
@@ -1857,6 +1864,11 @@ void ppath_step_geom_1d(
       ppath_append( ppath, ppath2 );
     }
 
+  //--- End point is on top of a pressure surface
+  else
+    {
+      gridpos_force_end_fd( ppath.gp_p[ilast] );
+    }
 }
 
 

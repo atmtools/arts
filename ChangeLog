@@ -1,3 +1,13 @@
+2002-10-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-270
+
+	* src/ppath.cc (ppath_step_geom_1d): Added a call of
+	gridpos_force_end_fd for path steps ending on a pressure surface.
+	The function was not working without this call.
+
+	* src/interpolation.cc: Reverted to version before version 1-1-264.
+
 2002-10-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-269

@@ -428,14 +428,22 @@ bool is_gridpos_at_index_i(
        const GridPos&   gp,
        const Index&     i )
 {
-  //(CE:) The grid positions have to be converted to index and also rounded 
-  // (+0.5)!!
-
-  if( ( Index(gp.fd[0]+0.5) == 0  ||  Index(gp.fd[0]+0.5) == 1 )  &&  
-      ( gp.idx + Index(gp.fd[0]+0.5) ) == i )
+  if( ( gp.fd[0] == 0  ||  gp.fd[0] == 1 )  &&  
+                                            ( gp.idx + Index(gp.fd[0]) ) == i )
     { return true; }
   else
     { return false; }
+
+  // Alternative version by Claudia:
+
+  //(CE:) The grid positions have to be converted to index and also rounded 
+  // (+0.5)!!
+
+  //if( ( Index(gp.fd[0]+0.5) == 0  ||  Index(gp.fd[0]+0.5) == 1 )  &&  
+  //    ( gp.idx + Index(gp.fd[0]+0.5) ) == i )
+  //  { return true; }
+  //else
+  //  { return false; }
 }
 
 
@@ -467,21 +475,14 @@ Index gridpos2gridrange(
   assert( gp.fd[0] <= 1 );
   assert( is_bool( upwards ) );
 
-
-  // (CE:) This condition is always true as the weights are numerics.
-  // You have to include the uncertainties which are there due to rounding 
-  // errors (double precision.)
-
   // Not at a grid point
- //  if( gp.fd[0] > 0   &&  gp.fd[0] < 1 )
-//     {
-//       return gp.idx;
-//     }
-
-
+  if( gp.fd[0] > 0   &&  gp.fd[0] < 1 )
+    {
+      return gp.idx;
+    }
 
   // Fractional distance 0
-  if( Index(gp.fd[0]+0.5) == 0 ) //(CE:) You had compared Index with Numeric!!
+  else if( gp.fd[0] == 0 )
     {
       if( upwards )
 	return gp.idx;
@@ -497,6 +498,30 @@ Index gridpos2gridrange(
       else
 	return gp.idx;
     }
+
+  // Alternative version by Claudia:
+
+  // (CE:) This condition is always true as the weights are numerics.
+  // You have to include the uncertainties which are there due to rounding 
+  // errors (double precision.)
+
+  // Fractional distance 0
+  //if( Index(gp.fd[0]+0.5) == 0 ) //(CE:) You had compared Index with Numeric!!
+  //  {
+  //    if( upwards )
+  //	return gp.idx;
+  //    else
+  //	return gp.idx - 1;
+  //  }
+
+  // Fractional distance 1
+  //else
+  //  {
+  //    if( upwards )
+  //	return gp.idx + 1;
+  //    else
+  //	return gp.idx;
+  //  }
 }
 
 
