@@ -1,3 +1,6 @@
+A lot of outdated stuff in this file. Somebody should clean this up one day. :-)
+
+
 SAB 2000-01-30: Oliver: Turn off all debugging options with ./configure flag.
                 (Do not give the -g flag to the compiler, set NDEBUG.)
 
@@ -100,3 +103,74 @@ PE 2001-09-26:  The variable *vmrs* shall also be reduced along with
                 *abs_per_tgs*.
 
 PE 2001-10-05:  Check file functions for negative Index.
+
+PE 2002-10-03: Plans for AUG:
+
+	       Hi             
+
+	       I sat down to catch up with the writing in AUG, but I started to look
+	       around and then noticed some things. I started to write down what I
+	       found. The list is found in Sec. 1.1, but I have also included it below.
+	       Please, try to keep the list updated, and write down what you plan to
+	       do.
+
+	       I don't bring this up because I think we have been very lazy. On the
+	       contrary, I think we have been quite good. However, it would be very
+	       good to fix the last pieces to make the user guide a proper document,
+	       without to many FIXME. And the longer we wait to fix these details the
+	       more booring it will be, and the risk increases that we don't care so
+	       much about the user guide.
+
+	       I have assigned a person, or two, for the different points. This is just
+	       a starting point for the division of work. But don't just remove your
+	       name from the list in AUG, with out having someone else to put there.
+
+	       Note especially the first point. We have once decided to have
+	       sub-folders in Fig/. One for each LaTeX file. Please, let's try to fix
+	       this rather quickly and so we can clean up Figs/ from old figire not
+	       used anymore.
+
+
+	       * Create sub-folders to /Fig, one folder for each file. The folders
+	         shall have the same name as the corresponding file. [All]
+	       * Write this section. [Stefan/Patrick]
+	       * Section 2 is marked as under construction. Correct? Update or
+	         remove comment. [Stefan]
+	       * A short introduction about math should be put into Sec. 3.1. 
+	         Is this section sufficient, or shall more details be given somewhere
+	         else?
+	         [ Stefan ]
+	       * Introduction to absorption and refractive index has to be written.
+	         The corresponding chapter in Part 1 is empty.
+	         [???]
+	       * Something shall be written about polarisation and Stokes in Section
+	          3.3. [Christian/Claudia]
+	       * Section 3.5.3 on Sensor polarisation to be written. Finer details
+	         shall be put in a chapter on Sensor characteristics in Part 1. 
+	         [Patrick/Christian]
+	       * The theory we use for radiative transfer shall be described in Part
+	         IV in as general terms as possible. The start of the scattering
+	         chapter
+	         should be moved to the new chapter. The case without scattering can
+	         then
+	         be described as a special case of the general expression. To gather
+	         the
+	         description of radiative transfer should be better than to describe it 
+	         in parts at different places in the user guide. [Claudia/Christian]
+	       * Finish Section 3.6 (Clear sky radiative transfer) [Patrick]
+	       * An introductory part on scattering calculations shall be found
+	         in Sec. 3.8 [Claudia/Shreerekha]
+	       * The chapter on propagation paths is not up to date. [Patrick]
+	       * Start a chapter on clear sky radiative transfer for Part I. [Patrick]
+	       * Is scattering chapter OK? [Claudia/Shreerekha]
+	       * Fix chapter on agendas. [Stefan]
+	       * There are some FIXME in chapter on Polarisation and Stokes Parameters.
+	         [Christian]
+	       * In the appendix for WSM: The method names appear strange (starts
+	         with levelb). The list of input and output varaibles needs a row
+	         break.
+	         [Oliver]
+
+PE 2003-03-31: Stefan: By mistake I used pressures outside the defined range for an
+               absorption lookup table, but I did not get any error message. Just an
+               assert.
