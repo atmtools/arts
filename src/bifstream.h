@@ -63,6 +63,7 @@ public:
   long pos();
 
   bifstream::Byte getByte();
+  void getRaw (char *c, streamsize n) { this->read (c, n); }
 
 };
 
