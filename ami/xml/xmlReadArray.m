@@ -18,8 +18,8 @@ function result = xmlReadArray(fid, attrlist)
 
 ne = str2num (xmlGetAttrValue (attrlist, 'nelem'));
 
-for e = 1:ne
-  fprintf ('Reading array element');
+e = 0;
+while e ~= ne
   s = fscanf (fid, '%s', 1);
   
   if ~size (s)
@@ -34,12 +34,12 @@ for e = 1:ne
       tag = s(2:l(2));
       
       attrlist2 = xmlReadAttributes (fid);
-    
-      fprintf (tag);
+
       switch tag
-       otherwise
-	func = str2func (strcat ('xmlRead', tag));
-	result{e} = feval (func, fid, attrlist2);
+      otherwise
+         e=e+1;
+         func = str2func (strcat ('xmlRead', tag));
+         result{e} = feval (func, fid, attrlist2);
       end
     else %=== or is it a closing tag
     end
