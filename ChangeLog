@@ -1,3 +1,13 @@
+2001-11-02  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-34
+
+	* src/methods_as_wsv.h: Started this file.
+
+	* src/Makefile.am (arts_SOURCES): Included methods_as_wsv_h.
+
+	* src/parser.h: Updated doxygen docu for class MRecord.
+
 2001-11-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-33

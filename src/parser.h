@@ -28,9 +28,6 @@
     id and the keyword parameter values. This is all that the engine
     needs to execute the stack of methods.
 
-    Elements of this class are used both to hold the true runtime
-    information and the example data.
-
     @author Stefan Buehler */
 class MRecord {
 public:
