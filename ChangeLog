@@ -1,3 +1,41 @@
+2004-10-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-887
+
+	* DOIT part updated to recent changes. Warnings/limitations:
+	   - iyInterpCloudboxField not tested practically for 3D
+	   - CloudboxGetIncoming1DAtm not tested after modification
+	   - Cloud box can not include the surface (which anyhow was not 
+	     possible for 3D before). This should be fixed on the same time
+	     as sensor positions inside the cloud box are accomodated.
+	
+	* src/scatrte.cc (cloud_ppath_update1D): Removed old surface
+	variables and changed to iy_surface_agenda.
+	(cloud_ppath_update1D_planeparallel): As above.
+
+	* src/m_scatrte.cc 
+	(i_fieldUpdateSeq1D): Removed old surface variables and changed to
+	iy_surface_agenda.
+	(i_fieldUpdateSeq1D_PlaneParallel): As above.
+
+	* src/cloudbox.cc (cloudbox_boundary_check): Removed this function.
+	(cloudbox_getOutgoing3D): Removed this function.
+	(cloudbox_getOutgoingCubic1D): Removed this function.
+	(cloudbox_getOutgoing1D): Removed this function.
+
+	* src/m_cloudbox.cc 
+	(CloudboxSetIncomingForTauCalc1D): Removed this method.
+	(CloudboxGetIncomingOld): Removed this method.
+	(CloudboxGetOutgoing): Removed this method.
+	(CloudboxGetOutgoingCubic): Removed this method
+
+	(CloudboxGetIncoming1DAtm): Modified to use iy_calc instead of
+	rte_Calc_old. And included check that 3D atmosphere is set.
+	
+	* src/m_batch.cc 
+	(ybatchMetProfiles): Moved function from m_cloudbox.cc.
+	(ybatchMetProfilesClear): Moved function from m_cloudbox.cc.
+
 2004-09-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-886

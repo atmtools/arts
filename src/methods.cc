@@ -940,130 +940,31 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "CloudboxGetIncomingOld" ),
-        DESCRIPTION
-        (
-         "Will be removed"
-         ),
-        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
-               i_rte_, i_space_, surface_emission_, surface_los_,
-               surface_refl_coeffs_,
-               rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
-        INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
-                scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
-                i_space_agenda_, surface_agenda_, p_grid_, lat_grid_,
-                lon_grid_, z_field_, t_field_, r_geoid_, z_surface_),
-
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "CloudboxSetIncomingForTauCalc1D" ),
-        DESCRIPTION
-        (
-         "This method sets the intensity field at the pressure boundaries of\n"
-         "the cloudbox.\n"
-         "\n"
-         "The method sets the upper intensity field to zero and the lower\n"
-         "is calculated as 1/-cos(za), where angles za are taken from the\n"
-         "scat_za_grid vector. This gives intensity 1 from the downlooking\n"
-         "direction and increasing values for decreasing zenith angle.\n"
-         "\n"
-         "The incoming clearsky radiation is set to zero at the vertical\n"
-         "limits of the cloudbox.\n"
-         "\n"
-         "This is implemented only for the case of 1D atmosphere at present\n"
-         "\n"
-         "Keywords: \n"
-         "   za_low : Lower zenith angle limit for incoming intensity.\n"
-         ),
-        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_ ),
-        INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
-               f_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "za_low" ),
-        TYPES( Numeric_t )));
-
- md_data_raw.push_back
-    ( MdRecord
       ( NAME( "CloudboxGetIncoming1DAtm" ),
         DESCRIPTION
         (
-         "This method gives the intensity field on the boundary of the\n"
-         "cloudbox for a spherically symmetric clearsky atmosphere.\n"
+         "As *CloudboxGetIncoming* but assumes clear sky part to be 1D."
          "\n"
-         "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
-         "this method is the position of the cloudbox given by the \n"
-         "variable *cloudbox_limits*. Then for each propagation direction\n" 
-         "it calls the function *PpathCalc* and executes the agenda \n"
-         "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
-         "for all frequencies btained by the monochromatic pencil beam \n"
-         "calculations performed by *rte_agenda*. Then this is copied to\n"
-         "the interface variable. \n"
+         "The incoming field is calculated only for one position and azimuth\n"
+         "angle for each cloud box boundary, and obtained values are used\n"
+         "for all other postions and azimuth angles. This works if a 3D\n"
+         "cloud box is put into an 1D background atmosphere.\n"
          "\n"
+         "This method can only be used for 3D cases."
          ),
-        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
-               i_rte_, i_space_, surface_emission_, surface_los_,
-               surface_refl_coeffs_,
-               rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
-        INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
-                scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
-                i_space_agenda_, surface_agenda_, p_grid_, lat_grid_,
-                lon_grid_, z_field_, t_field_, r_geoid_, z_surface_),
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
+                rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
+               iy_surface_agenda_, iy_cloudbox_agenda_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               f_grid_, stokes_dim_, scat_za_grid_, scat_aa_grid_ ),
+ 
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "CloudboxGetOutgoing" ),
-        DESCRIPTION
-        (
-         "Scattered radiance on the cloudbox boundary.\n"
-         "\n"
-         "This method returns the radiances for a given direction and \n"
-         "position on the boundary of the cloudbox. The variable *y_scat* \n"
-         "is a matrix with the dimensions [f_grid, stokes_dim].\n"
-         "\n"
-         ),
-        OUTPUT(),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
-               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
-               atmosphere_dim_, stokes_dim_,
-               scat_za_grid_, scat_aa_grid_, f_grid_),
-        GOUTPUT(Matrix_),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "CloudboxGetOutgoingCubic" ),
-        DESCRIPTION
-        (
-         "Scattered radiance on the cloudbox boundary.\n"
-         "\n"
-         "This method returns the radiances for a given direction and \n"
-         "position on the boundary of the cloudbox. The variable *i_out* \n"
-         "is a matrix with the dimensions [f_grid, stokes_dim].\n"
-         "In the zenith angle dimension cubic interpolation is used. \n"
-         "\n"
-         ),
-        OUTPUT(),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
-               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
-               atmosphere_dim_, stokes_dim_,
-               scat_za_grid_, scat_aa_grid_, f_grid_),
-        GOUTPUT(Matrix_),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-  
   md_data_raw.push_back
     ( MdRecord
       ( NAME("cloudboxOff"),
@@ -2061,14 +1962,13 @@ md_data_raw.push_back
          ),
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_, surface_los_, surface_emission_,
-               surface_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+               scat_p_index_, ppath_step_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_, surface_agenda_, scat_za_interp_),
+              f_grid_, f_index_, iy_surface_agenda_, scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2087,14 +1987,13 @@ md_data_raw.push_back
          ),
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_, surface_los_, surface_emission_,
-               surface_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+               scat_p_index_, ppath_step_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_, surface_agenda_),
+              f_grid_, f_index_, iy_surface_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2330,8 +2229,7 @@ md_data_raw.push_back
          "The cosmic radiation is modelled as blackbody radiation for the \n"
          "temperature given by the global constant COSMIC_BG_TEMP, set in \n"
          "the file constants.cc. The frequencies are taken from the generic \n"
-         "input vector. A standard way to use the function should be (as \n"
-         "part of *i_space_agenda*): \n"
+         "input vector:\n"
          "   MatrixCBR(i_space,f_grid){} \n"
          "\n"
          "Generic output: \n"

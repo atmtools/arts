@@ -839,7 +839,8 @@ void get_radiative_background_old(
 
       {
         if(scat_za_interp == 0)
-          {
+          {}
+            /*
             CloudboxGetOutgoing( i_rte, "i_rte", scat_i_p, scat_i_lat, 
                                  scat_i_lon, 
                                  rte_gp_p, rte_gp_lat, rte_gp_lon,
@@ -860,6 +861,7 @@ void get_radiative_background_old(
                                       stokes_dim, scat_za_grid, scat_aa_grid,
                                       f_grid );
           }
+            */
       }
       break;
 

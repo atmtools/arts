@@ -31,57 +31,6 @@
 #include "matpackVII.h"
 #include "interpolation.h"
 
-void cloudbox_getOutgoing1D(// Output:
-                            MatrixView i_out,
-                            //WS Input:
-                            ConstTensor7View scat_i_p,
-                            const GridPos& rte_gp_p,
-                            ConstVectorView rte_los,
-                            const ArrayOfIndex& cloudbox_limits,
-                            const Index& stokes_dim,
-                            ConstVectorView scat_za_grid,
-                            ConstVectorView f_grid
-                            );
-
-void cloudbox_getOutgoingCubic1D(// Output:
-                            MatrixView i_out,
-                            //WS Input:
-                            ConstTensor7View scat_i_p,
-                            const GridPos& rte_gp_p,
-                            ConstVectorView rte_los,
-                            const ArrayOfIndex& cloudbox_limits,
-                            const Index& stokes_dim,
-                            ConstVectorView scat_za_grid,
-                            ConstVectorView f_grid
-                            );
-
-void cloudbox_getOutgoing3D(// Output:
-                            MatrixView   i_out,
-                            // Input:
-                            ConstTensor7View scat_i_p,
-                            ConstTensor7View scat_i_lat,
-                            ConstTensor7View scat_i_lon,
-                            const GridPos& rte_gp_p,
-                            const GridPos& rte_gp_lat,
-                            const GridPos& rte_gp_lon,
-                            ConstVectorView rte_los,
-                            const ArrayOfIndex& cloudbox_limits,
-                            const Index& stokes_dim,
-                            ConstVectorView scat_za_grid,
-                            ConstVectorView scat_aa_grid,
-                            ConstVectorView f_grid);
-
-void cloudbox_boundary_check(// Output:
-                             bool& on_p_bd,
-                             bool& on_lat_bd,
-                             bool& on_lon_bd,
-                             GridPos& cloud_gp_p,
-                             GridPos& cloud_gp_lat,
-                             GridPos& cloud_gp_lon,
-                             // Input:
-                             const ArrayOfIndex& cloudbox_limits
-                             );
-
 void iy_interp_cloudbox_field(
             Matrix&         iy,
       const Tensor7&        scat_i_p,

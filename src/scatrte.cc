@@ -193,10 +193,6 @@ void cloud_fieldsCalc(// Output:
   Variables used in opt_prop_xxx_agenda:
   \param ext_mat
   \param abs_vec 
-  Surface related variables:
-  \param surface_los
-  \param surface_emission
-  \param surface_refl_coeffs
   \param rte_los
   \param rte_pos
   \param rte_gp_p
@@ -225,8 +221,7 @@ void cloud_fieldsCalc(// Output:
   Optical properties of particles
   \param ext_mat_field
   \param abs_vec_field
-  Surface reflection 
-  \param surface_agenda
+  \param iy_surface_agenda
   \param scat_za_interp
 
   \author Claudia Emde
@@ -241,10 +236,6 @@ void cloud_ppath_update1D(
 			  // opt_prop_xxx_agenda:
 			  Tensor3& ext_mat,
 			  Matrix& abs_vec,  
-			  // surface related variables STR
-			  Matrix& surface_los,
-			  Matrix& surface_emission,
-			  Tensor4& surface_refl_coeffs,
 			  Vector& rte_los,
 			  Vector& rte_pos,
 			  GridPos& rte_gp_p,
@@ -272,7 +263,7 @@ void cloud_ppath_update1D(
 			  //particle optical properties
 			  ConstTensor5View ext_mat_field,
 			  ConstTensor4View abs_vec_field,
-			  const Agenda& surface_agenda, //STR
+			  const Agenda& iy_surface_agenda, 
                           const Index& scat_za_interp
 			  )
 {
@@ -568,9 +559,17 @@ void cloud_ppath_update1D(
 	  rte_los = ppath_step.los(np-1,joker);
 	  //gp_p
 	  gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
-	  // Executes the surface reflection agenda
-	  chk_not_empty( "surface_agenda", surface_agenda );
-	  surface_agenda.execute(true);
+
+      throw runtime_error( 
+                     "Surface reflections inside cloud box not yet handled." );
+	  // Executes the surface agenda
+	  chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+	  iy_surface_agenda.execute(true);
+      /*
+
+      Modify code below !!!
+      You need to include *iy* as function output argument.
+      Ask me (Patrick) for what has to be done
 
 	  // Check returned variables
 	  if( surface_emission.nrows() != f_grid.nelem()  ||  
@@ -700,7 +699,7 @@ void cloud_ppath_update1D(
 		  0, 0,
 		  scat_za_index, 0,
 		  joker) = stokes_vec_local;
-	  
+      */  
 	}//end else loop over surface
     }//end if inside cloudbox
 }
@@ -1392,10 +1391,6 @@ void cloud_ppath_update1D_planeparallel(
 					// opt_prop_xxx_agenda:
 					Tensor3& ext_mat,
 					Matrix& abs_vec,  
-					// surface related variables STR
-					Matrix& surface_los,
-					Matrix& surface_emission,
-					Tensor4& surface_refl_coeffs,
 					Vector& rte_los,
 					Vector& rte_pos,
 					GridPos& rte_gp_p,
@@ -1423,7 +1418,7 @@ void cloud_ppath_update1D_planeparallel(
 					//particle opticla properties
 					ConstTensor5View ext_mat_field,
 					ConstTensor4View abs_vec_field,
-					const Agenda& surface_agenda //STR
+					const Agenda& iy_surface_agenda
 					)
 {
   const Index stokes_dim = i_field.ncols();
@@ -1690,10 +1685,14 @@ void cloud_ppath_update1D_planeparallel(
 	  rte_gp_p.fd[0] = 0;
 	  rte_gp_p.fd[1] = 1;
 	  //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
-	  // Executes the surface reflection agenda
-	  chk_not_empty( "surface_agenda", surface_agenda );
-	  surface_agenda.execute();
-	  
+	  // Executes the surface agenda
+	  chk_not_empty( "iy_surface_agenda", iy_surface_agenda );
+	  iy_surface_agenda.execute();
+
+      throw runtime_error( 
+                     "Surface reflections inside cloud bix not yet handled." );
+      /*
+        See comment in function above
 	  // Check returned variables
 	  if( surface_emission.nrows() != f_grid.nelem()  ||  
 	      surface_emission.ncols() != stokes_dim )
@@ -1842,7 +1841,7 @@ void cloud_ppath_update1D_planeparallel(
 		  0, 0,
 		  scat_za_index, 0,
 		  joker) = stokes_vec_local;
-	  
+      */  
 	}//end else loop over surface
     }//end if inside cloudbox
 }

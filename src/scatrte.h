@@ -61,10 +61,6 @@ void cloud_ppath_update1D(
                   // opt_prop_xxx_agenda:
                   Tensor3& ext_mat,
                   Matrix& abs_vec, 
-		  // surface related variables STR
-                  Matrix& surface_los,
-                  Matrix& surface_emission,
-                  Tensor4& surface_refl_coeffs,
                   Vector& rte_los,
 		  Vector& rte_pos,
 		  GridPos& rte_gp_p,
@@ -92,7 +88,7 @@ void cloud_ppath_update1D(
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field,
-		  const Agenda& surface_agenda, //STR
+		  const Agenda& iy_surface_agenda, 
                   const Index& scat_za_interp
                   );
 
@@ -105,10 +101,6 @@ void cloud_ppath_update1D_planeparallel(
                   // opt_prop_xxx_agenda:
                   Tensor3& ext_mat,
                   Matrix& abs_vec, 
-		  // surface related variables STR
-                  Matrix& surface_los,
-                  Matrix& surface_emission,
-                  Tensor4& surface_refl_coeffs,
                   Vector& rte_los,
 		  Vector& rte_pos,
 		  GridPos& rte_gp_p,
@@ -136,7 +128,7 @@ void cloud_ppath_update1D_planeparallel(
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field,
-		  const Agenda& surface_agenda //STR
+		  const Agenda& surface_agenda 
                   );
 
 
