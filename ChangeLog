@@ -1,3 +1,13 @@
+2003-04-15  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-524
+
+	* src/workspace.cc (define_wsv_data): Moved els_f_grid to the
+	reight place in the alphabetical list.
+	(define_wsv_data): Moved output_file_format to the
+	reight place in the alphabetical list.
+	(define_wsv_data): Added WSV met_profile_basenames.
+
 2003-04-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-523

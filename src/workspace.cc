@@ -590,6 +590,24 @@ void define_wsv_data()
        GROUP(  Agenda_ )));
   
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "els_f_grid" ),
+      DESCRIPTION
+      (
+       "The frequency grid for the lineshape calculation.\n"
+       "\n"
+       "This is a local copy of the global f_grid. The copy is necessary,\n"
+       "because in cases with cutoff we have to add the cutoff frequency to\n"
+       "the frequency grid, so that we can subtract the lineshape value at the\n"
+       "cutoff. \n"
+       "\n"
+       "Usage: Agenda input, set automatically by calling method.\n"
+       "\n"
+       "Unit: Hz"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "ext_mat" ),
        DESCRIPTION
@@ -686,22 +704,6 @@ void define_wsv_data()
        "\n"
        ), 
       GROUP( Index_ ))); 
-
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "output_file_format" ),
-      DESCRIPTION
-      (
-       "Output file format. \n"
-       "\n"
-       "This variable sets the format for output files. It could be set to\n"
-       "\"ascii\" or \"binary\".\n"
-       "\n"
-       "To change the value of this variable use the workspace methods\n"
-       "*output_file_formatSetAscii* and *output_file_formatSetBinary*\n"
-       "\n"
-       ),
-      GROUP( String_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -1071,24 +1073,6 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "els_f_grid" ),
-      DESCRIPTION
-      (
-       "The frequency grid for the lineshape calculation.\n"
-       "\n"
-       "This is a local copy of the global f_grid. The copy is necessary,\n"
-       "because in cases with cutoff we have to add the cutoff frequency to\n"
-       "the frequency grid, so that we can subtract the lineshape value at the\n"
-       "cutoff. \n"
-       "\n"
-       "Usage: Agenda input, set automatically by calling method.\n"
-       "\n"
-       "Unit: Hz"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "ls_f0" ),
       DESCRIPTION
       (
@@ -1238,13 +1222,28 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "met_profile_basenames" ),
+      DESCRIPTION
+      (
+       "A list of met office profile basenames.\n"
+       "\n"
+       "This is intended as input for the method ybatchMetProfiles. It holds a\n"
+       "list of profiles basenames. For each basename, there should exist\n"
+       "files with different extensions for the different profile parameters,\n"
+       "such as humidity, temperature, etc.\n"
+       "\n"
+       "See documentation of WSM *ybatchMetProfiles* for more information."
+       ),
+      GROUP( ArrayOfString_ )));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "opt_prop_gas_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."
        ),
       GROUP( Agenda_)));
-
 
    wsv_data.push_back
    (WsvRecord
@@ -1254,6 +1253,22 @@ void define_wsv_data()
         "See agendas.cc."
        ),
       GROUP( Agenda_)));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "output_file_format" ),
+      DESCRIPTION
+      (
+       "Output file format. \n"
+       "\n"
+       "This variable sets the format for output files. It could be set to\n"
+       "\"ascii\" or \"binary\".\n"
+       "\n"
+       "To change the value of this variable use the workspace methods\n"
+       "*output_file_formatSetAscii* and *output_file_formatSetBinary*\n"
+       "\n"
+       ),
+      GROUP( String_ )));
 
    wsv_data.push_back
    (WsvRecord
