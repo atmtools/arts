@@ -97,6 +97,8 @@
     \param   f_grid             Input: As the WSV with the same name.
     \param   stokes_dim         Input: As the WSV with the same name.
     \param   antenna_dim        Input: As the WSV with the same name.
+    \param   agenda_verb        Input: Argument handed to agendas to control
+                                verbosity.
 
     \author Patrick Eriksson 
     \date   2002-09-17
@@ -136,7 +138,8 @@ void get_radiative_background(
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
         const Index&          stokes_dim,
-        const Index&          antenna_dim )
+        const Index&          antenna_dim,
+        const Index&          agenda_verb )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -170,7 +173,7 @@ void get_radiative_background(
     case 1:   //--- Space ---------------------------------------------------- 
       {
         chk_not_empty( "i_space_agenda", i_space_agenda );
-        i_space_agenda.execute();
+        i_space_agenda.execute( agenda_verb );
 
         if( i_space.nrows() != nf  ||  i_space.ncols() != stokes_dim )
           throw runtime_error( "The size of *i_space* returned from "
@@ -184,7 +187,7 @@ void get_radiative_background(
     case 2:   //--- The ground -----------------------------------------------
       {
         chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
-        ground_refl_agenda.execute();
+        ground_refl_agenda.execute( agenda_verb );
 
         if( ground_emission.nrows() != nf  ||  
                                         ground_emission.ncols() != stokes_dim )

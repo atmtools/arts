@@ -259,6 +259,9 @@ void RteCalc(
         {
           for( iaa=0; iaa<naa; iaa++ )
             {
+              // Argument for verbosity of agendas
+              const Index  agenda_verb = iaa + iza + mblock_index;
+
               // LOS of interest
               los     = sensor_los( mblock_index, Range(joker) );
               los[0] += mblock_za_grid[iza];
@@ -266,11 +269,11 @@ void RteCalc(
                 { los[1] += mblock_aa_grid[iaa]; }
 
               // Determine propagation path
-              ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-                        p_grid, lat_grid, lon_grid, z_field, t_field, 
-                              r_geoid, z_ground,
+              ppath_calc( ppath, ppath_step, ppath_step_agenda, 
+                              atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                              z_field, t_field, r_geoid, z_ground,
                               cloudbox_on, cloudbox_limits, 
-                                  sensor_pos(mblock_index,Range(joker)), los );
+                     sensor_pos(mblock_index,Range(joker)), los, agenda_verb );
 
               // Determine the radiative background
               get_radiative_background( i_rte, ppath_step, 
@@ -282,10 +285,10 @@ void RteCalc(
                       r_geoid, z_ground, 
                       cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
-                      stokes_dim, antenna_dim );
+                      stokes_dim, antenna_dim, agenda_verb );
 
               // Execute the *rte_agenda*
-              rte_agenda.execute();
+              rte_agenda.execute( agenda_verb );
               
               // Copy i_rte to ib
               ib(Range(nbdone,nf),Range(joker)) = i_rte;
@@ -410,7 +413,7 @@ void RteEmissionStd(
           // If f_index < 0, scalar gas absorption is calculated for 
           // all frequencies in f_grid.
           f_index = -1;
-          scalar_gas_absorption_agenda.execute();
+          scalar_gas_absorption_agenda.execute( ip );
           
           // We don't know how many gas species we have before the first
           // call of scalar_gas_absorption_agenda. So we have to resize
@@ -428,7 +431,7 @@ void RteEmissionStd(
           abs_vec_ppath[ip].resize(nf,stokes_dim);
           ext_mat_ppath[ip].resize(nf,stokes_dim,stokes_dim);
           
-          opt_prop_gas_agenda.execute();
+          opt_prop_gas_agenda.execute( ip );
               
           abs_vec_ppath[ip] = abs_vec;
           ext_mat_ppath[ip] = ext_mat;

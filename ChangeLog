@@ -1,3 +1,18 @@
+2003-01-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-366
+
+	* src/m_ppath.cc (ppathCalc): This is now only a getaway function to
+	ppath_calc, with agenda_verb = 0. For internal functions ppath_calc
+	shall be called instead of this function.
+
+	* src/m_rte.cc (RteCalc): Introduced a variable to get a more nice
+	verbosity of the different agendas called.
+
+	* src/ppath.cc (ppath_calc): Copied everything from old ppathCalc to 
+	this function and added a new input argument to control verbosity of
+	ppath_step_agenda.
+
 2003-01-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-365

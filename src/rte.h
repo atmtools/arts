@@ -86,7 +86,8 @@ void get_radiative_background(
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
         const Index&          stokes_dim,
-        const Index&          antenna_dim );
+        const Index&          antenna_dim,
+        const Index&          agenda_verb );
 
 void ground_specular_los(
               VectorView   los,

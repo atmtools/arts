@@ -37,6 +37,7 @@
 #define ppath_h
 
 
+#include "agenda_class.h"
 #include "array.h"
 #include "arts.h"
 #include "interpolation.h"
@@ -172,20 +173,6 @@ void ppath_set_background(
 
 Index ppath_what_background( const Ppath&   ppath );
 
-void ppath_start_stepping(
-              Ppath&          ppath,
-        const Index&          atmosphere_dim,
-        ConstVectorView       p_grid,
-        ConstVectorView       lat_grid,
-        ConstVectorView       lon_grid,
-        ConstTensor3View      z_field,
-        ConstMatrixView       r_geoid,
-        ConstMatrixView       z_ground,
-        const Index&          cloudbox_on, 
-        const ArrayOfIndex&   cloudbox_limits,
-        ConstVectorView       sensor_pos,
-        ConstVectorView       sensor_los );
-
 void ppath_step_geom_1d(
               Ppath&      ppath,
         ConstVectorView   p_grid,
@@ -237,5 +224,37 @@ void ppath_step_refr_2d(
         const Numeric&    lraytrace,
         const Numeric&    lmax,
         const String&     refrindex );
+
+void ppath_step_refr_3d(
+              Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid,
+        ConstTensor3View  z_field,
+        ConstTensor3View  t_field,
+        ConstMatrixView   r_geoid,
+        ConstMatrixView   z_ground,
+        const String&     rtrace_method,
+        const Numeric&    lraytrace,
+        const Numeric&    lmax,
+        const String&     refrindex );
+
+void ppath_calc(
+              Ppath&          ppath,
+              Ppath&          ppath_step,
+        const Agenda&         ppath_step_agenda,
+        const Index&          atmosphere_dim,
+        const Vector&         p_grid,
+        const Vector&         lat_grid,
+        const Vector&         lon_grid,
+        const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Matrix&         r_geoid,
+        const Matrix&         z_ground,
+        const Index&          cloudbox_on, 
+        const ArrayOfIndex&   cloudbox_limits,
+        const Vector&         a_pos,
+        const Vector&         a_los,
+        const Index&          agenda_verb );
 
 #endif  // ppath_h
