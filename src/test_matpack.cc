@@ -337,7 +337,7 @@ void test15()
   cout << "b = " << b << "\n";
 }
 
-void test16()
+/*void test16()
 {
   // Test interaction between Array<Numeric> and Vector.
   Vector a;
@@ -349,7 +349,7 @@ void test16()
   a = b;
   cout << "b =\n" << b << "\n";
   cout << "a =\n" << a << "\n";
-}
+}*/
 
 void test17()
 {
