@@ -1,3 +1,27 @@
+2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-66
+
+	* The functions below in ami were only implemented for testing
+	features for the new ARTS version, and are now removed.
+
+	ami/physics:
+	   alpha_between_r1_r2.m
+           cyl2cart.m
+           do_1gridbox_2d_geom.m
+           ppath_2d_3d.m
+           psurface_crossing.m
+           tilt_of_psurface.m
+
+	ami/plot:
+	   mkfig_1gridbox_2d.m
+	   mkfig_ppath_2d.m
+	   plot_1gridbox_2d.m
+	   plot_atm_1d.m
+	   plot_atm_2d.m
+	   plot_ppath.m
+	   plot_psurface.m
+	
 2003-02-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-65
