@@ -1,3 +1,22 @@
+2003-04-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-518
+	
+	* src/m_scatrte.cc (i_fieldUpdateSeq1D): Added this method. It 
+	updates the radiation field sequentially. The function is at the 
+	moment hardwired in *i_fieldIterate* but later on I will make an 
+	agenda out of it so that you still have the possibilty to use 
+	*i_fieldUpdate1D*.
+	I have made a test calculation, which indicates that the convergence 
+	behavior is much better. For most directions only three iterations 
+	are needed. Only in close to limb directions we still need 11 
+	iterations (probably the multiple scattering effect). The number of 
+	iterations does not depend on the number of pressure levels !!!
+	I took 12 pressure levels and 104 pressure levels and needed 
+	exactly the same number of iterations for both cases.
+
+	* src/methods.cc: Added *i_fieldUpdateSeq1D*.
+
 2003-04-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-517
