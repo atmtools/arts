@@ -529,7 +529,8 @@ xml_read_header_from_stream (istream& is)
 
   if (strcasecmp (str, "<?xml"))
     {
-      xml_parse_error ("Input file is not a valid xml file");
+      xml_parse_error ("Input file is not a valid xml file "
+                       "(<?xml not found)");
     }
 
   is.get (strbuf, '>');
