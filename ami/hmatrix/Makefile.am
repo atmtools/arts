@@ -30,6 +30,8 @@ EXTRA_DIST = \
 	hLoad.m \
 	hMixerConst.m \
 	hMixerFromFile.m \
+	hRedKx.m \
+	hRedLimb.m \
 	hSave.m \
 	hTb.m \
 	h_antenna.m \
