@@ -1,11 +1,72 @@
+2001-06-25  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-0-181
+
+	* Major changes: Changed ARRAY implementation back to STL. This
+	fixed the bug with the AUX parameters for lineshape with
+	overlap. Renamed line files to .aa. Details below.
+	
+	* data/spectroscopy/arts: Renamed line files to `.aa' instead of `.al'.
+
+	* src/methods.cc (define_md_data): Changed name of
+	linesWriteToFile to linesWriteAscii and name of
+	lines_per_tgWriteToFile to lines_per_tgWriteAscii.
+
+	* src/vecmat.h (ARRAY): ARRAY is now once more STL based. 
+
+	* src/make_md_h.cc (main): Adapted to ARRAY change. The removal of
+	WSVs that are both input and output used the erase_vector_element
+	function. Now it uses std::vector<>::erase. This task occurs in
+	two places, for md.h and md.cc.
+
+	* src/absorption.cc (get_tag_group_index_for_tag_group): Updated
+	documentation. Cleaned up.
+	(xsec_species): Verified that now the AUX parameters for the
+	overlap are getting there. So it was indeed an MTL bug that lead
+	to the AUX parameters getting lost. I don't know how the oxygen
+	spectrum could have been correct last week, it remains a
+	mystery. My suspicion is that it never worked since the ARRAY
+	implementation was set to MTL.
+
+	The absorption calculation using explcit lines still has to be
+	compared to the original Rosenkranz function. Thomas will do this
+	when he is back from Lindau.
+
+	* src/m_abs.cc (lines_per_tgAddMirrorLines): Adapted to ARRAY
+	change. Cleaned up the function and made it much simpler. Now the
+	mirror lines are simply appended after the original lines. That
+	way, no copying of the lines is needed.
+	(lines_per_tgCompact): Adapted to ARRAY change. Added safety check
+	that f_mono is sorted. Cleaned up a bit. Replaced
+	erase_vector_element by std::vector<>::erase.
+	(abs_per_tgReduce): Adapted to ARRAY change. No more use of erase
+	function. Cleaned up.  
+	(linesWriteAscii): This is the new name of linesWriteToFile. 
+	Changed default name extension to `.aa' instead of `.al'.
+	(lines_per_tgWriteAscii): This is the new name of lines_per_tgWriteToFile. 
+	Changed default name extension to `.aa' instead of `.al'.
+	(xsec_per_tgAddLines): Completed the work started
+	by Thomas. Two checks are now performed:
+	1. a. Is the species oxygen?
+	   b. Are there aux parameters?
+	   c. Is the apropriate Rosenkranz lineshape used?
+	2. a. Is the Rosenkranz lineshape used?
+	   b. Is the species oxygen?
+           c. Are there aux parameters?
+
+	The absorption part is getting more and more messy. But at least,
+	now it should be a bit safer than before.
+
+
 2001-06-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-180
 
-	* src/m_abs.cc in function xsec_per_tgAddLines introduction of a control
-	structure for the auxiliary lineshape function parameters.
-	This structure is only very preliminary and contains up to now
-	only a print statement and no real control - this has to be implemented! 
+	* src/m_abs.cc (xsec_per_tgAddLines): Introduction of a control
+	structure for the auxiliary lineshape function parameters.  This
+	structure is only very preliminary and contains up to now only a
+	print statement and no real control - this has to be implemented!
+
 	
 2001-06-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -36,6 +97,7 @@
 
 	* changes/corrections in the continuum abs calculation.
 	
+
 2001-06-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-177

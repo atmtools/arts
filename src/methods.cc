@@ -1187,7 +1187,8 @@ void define_md_data()
   	DESCRIPTION(
           "Adds mirror lines at negative frequencies to the lines_per_tg.\n"
 	  "For each line at frequency +f in lines_per_tg a corresponding\n"
-	  "entry at frequency -f is added to lines_per_tg."),
+	  "entry at frequency -f is added to lines_per_tg.\n"
+	  "The mirror lines are appended to the line lists after the original lines."),
 	OUTPUT(   lines_per_tg_      ),
 	INPUT(    lines_per_tg_      ),
 	GOUTPUT(),
@@ -1200,7 +1201,9 @@ void define_md_data()
       ( NAME("lines_per_tgCompact"),
   	DESCRIPTION(
           "Removes all lines outside the defined lineshape cutoff frequency\n"
-	  "from the lines_per_tg, in order to save computation time"),
+	  "from the lines_per_tg, in order to save computation time.\n"
+	  "It should be particularly useful to call this method after\n"
+	  "lines_per_tgAddMirrorLines."),
 	OUTPUT(   lines_per_tg_      ),
 	INPUT(    lines_per_tg_, lineshape_, f_mono_  ),
 	GOUTPUT(),
@@ -1210,7 +1213,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("linesWriteToFile"),
+      ( NAME("linesWriteAscii"),
   	DESCRIPTION(
           "Write the content of the workspace variable lines to the\n"
 	  "given file in ARTS line format."),
@@ -1223,7 +1226,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("lines_per_tgWriteToFile"),
+      ( NAME("lines_per_tgWriteAscii"),
   	DESCRIPTION(
           "Write the content of the workspace variable lines_per_tg to the\n"
 	  "given file in ARTS line format.\n"

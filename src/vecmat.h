@@ -65,8 +65,8 @@ typedef mtl::matrix<Numeric,mtl::rectangle<>,mtl::compressed<> >::type SPARSE;
 typedef mtl::matrix<Numeric,mtl::symmetric<mtl::upper>,mtl::banded<> >::type SYMMETRIC;
 
 
-#define ARRAY mtl::dense1D       
-//#define ARRAY std::vector
+//#define ARRAY mtl::dense1D       
+#define ARRAY std::vector
 
 
 /** Output function for vectors (for example VECTOR and ARRAY).

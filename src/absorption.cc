@@ -1567,62 +1567,53 @@ void get_tagindex_for_strings(
 }
 
 
-/**  Compares 2 tag group array and returns the index of elements in
-   array 2 within array 1. Slightly modified copy of
-   get_tagindex_for_strings.
+/** Returns the index of the tag group tg2 within the array of tag
+    groups tgs1. Slightly modified copy of get_tagindex_for_strings.
    
-   \begin{verbatim}
-   For example, if tags1 correspond to the definition
-     ["O3","H2O-161,H2O-162"]
-   and tags2 is
-     ["H2O-161,H2O-162","O3"]
-   the tags1_index becomes
-     [2,1]
-   \end{verbatim}
-
-   @exception runtime_error  Some string is not a valid tag item.
-   @exception runtime_error  Not all strings are not found among the tags.
-
-   \retval tags1_index     Index in tags1 for tags2_strings
-   \param  tags1           The tags to search in.
-   \param  tags2           The tags for which indeces shall be found.
-
-   \author Patrick Eriksson and Axel von Engeln
-   \date 2001-01-31 */
-void get_tag_group_index_for_tag_group( 
-				       size_t&               tags1_index, 
-				       const TagGroups&      tags1, 
-				       const ARRAY<OneTag>&  tags2 )
+    @exception runtime_error  Could not find tg2 in tgs1.
+   
+    \retval tgs1_index     Index in tgs1 for tg2
+    \param  tgs1           The tags groups to search in.
+    \param  tg2            The tag group for which the index shall be found.
+    
+    \author Patrick Eriksson, Axel von Engeln, and Stefan Buehler
+    \date 2001-01-31 */
+void get_tag_group_index_for_tag_group( size_t&               tgs1_index, 
+				        const TagGroups&      tgs1, 
+				        const ARRAY<OneTag>&  tg2 )
 {
-  const size_t   n1 = tags1.size();
-        size_t   i1, nj, j, found, ok;
+  bool found = false;
 
-  found = 0;
-  for ( i1=0; (i1<n1) && !found; i1++ )
-  {
-    nj = tags2.size(); 
-    if ( nj  == tags1[i1].size() )
+  for ( size_t i=0;
+	i<tgs1.size() && !found;
+	++i )
     {
-      ok = 1;
-      for ( j=0; j<nj; j++ )
-      {
-        if ( tags2[j].Name() != tags1[i1][j].Name() )
-          ok = 0;
-      }
-      if ( ok )
-      {
-        found = 1;
-        tags1_index = i1;
-      }
+      // Is at least the size correct?
+      if ( tg2.size() == tgs1[i].size() )
+	{
+	  bool ok = true;
+
+	  for ( size_t j=0; j<tg2.size(); ++j )
+	    {
+	      if ( tg2[j].Name() != tgs1[i][j].Name() )
+		ok = false;
+	    }
+
+	  if ( ok )
+	    {
+	      found = true;
+	      tgs1_index = i;
+	    }
+	}
     }
-  }
+
   if ( !found )
-  {
-    ostringstream os;
-    os << "The tag string \"" << tags2 << 
-          "\" does not match any of the given tags.\n";
-    throw runtime_error(os.str());
-  }
+    {
+      ostringstream os;
+      os << "The tag string \"" << tg2 << 
+	"\" does not match any of the given tags.\n";
+      throw runtime_error(os.str());
+    }
 }
 
 
@@ -1666,19 +1657,18 @@ string get_tag_group_name( const ARRAY<OneTag>& tg )
 void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines)
 {
-  // This if statement is just there to make sure that we can access
-  // the version string from the first line record.  
-  if ( 0 < lines.size() )
-    {
-      // Output version string first, followed by number of lines:
-      os << lines[0].Version() << " " << lines.size() << "\n";
+  // We need this dummy line record, so that we can get the catalogue
+  // version tag from dummy.Version, even if the line list is empty.
+  LineRecord dummy;
 
-      // Now output the line data:
-      for ( size_t i=0; i<lines.size(); ++i )
-	{
-	  //      out3 << lines[i] << "\n";
-	  os << lines[i] << "\n";
-	}
+  // Output version string first, followed by number of lines:
+  os << dummy.Version() << " " << lines.size() << "\n";
+
+  // Now output the line data:
+  for ( size_t i=0; i<lines.size(); ++i )
+    {
+      //      out3 << lines[i] << "\n";
+      os << lines[i] << "\n";
     }
 }
 
@@ -1895,7 +1885,7 @@ void xsec_species( MATRIX&                  xsec,
 	  {
 	    aux[7] = l_l.Aux()[0];
 	    aux[8] = l_l.Aux()[1];
-	    // cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
+	    //	    cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
 	  }
 	else
 	  {

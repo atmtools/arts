@@ -603,44 +603,57 @@ void lines_per_tgCreateFromLines(// WS Output:
 
 }
 
+/** Adds mirror lines at negative frequencies to the lines_per_tg.
+    For each line at frequency +f in lines_per_tg a corresponding entry at
+    frequency -f is added to lines_per_tg.
+
+    \retval lines_per_tg The array of arrays of lines for each tag group.
+    
+    \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgAddMirrorLines(// WS Output:
                                 ARRAYofARRAYofLineRecord& lines_per_tg)
 {
-  // output array
-  ARRAYofARRAYofLineRecord lpt_mirror( lines_per_tg.size() );
+  // We will simply append the mirror lines after the original
+  // lines. This way we don't have to make a backup copy of the
+  // original lines. 
 
-  for (size_t i=0; i<lpt_mirror.size(); i++)
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {
-      // make mirror lines the right size
-      resize( lpt_mirror[i], lines_per_tg[i].size() );
+      // Get a reference to the current list of lines to save typing:
+      ARRAYofLineRecord& ll = lines_per_tg[i];
       
-      copy( lines_per_tg[i], 
-	    lpt_mirror[i] );
-    }
+      // For increased efficiency, reserve the necessary space:
+      ll.reserve(2*ll.size());
 
-  for (size_t i=0; i<lpt_mirror.size(); i++)
-    {
-      // make lines_per_tg the right size
-      resize( lines_per_tg[i], lpt_mirror[i].size() * 2);
-
-      copy( strided(lpt_mirror[i],-1), 
-	    lines_per_tg[i](0,
-			  lpt_mirror[i].size() ) );
-      copy( lpt_mirror[i], 
-	    lines_per_tg[i](lpt_mirror[i].size(),
-			  2*lpt_mirror[i].size() ) );
-
-      // now loop through all lines of this tag group
-      for (size_t j=0; j<lpt_mirror[i].size(); j++)
-	{
-	  // and now set the frequency negativ
-	  lines_per_tg[i][j].setF( -lines_per_tg[i][j].F() );
-	}
-
+      // Loop through all lines of this tag group:
+      {
+	// It is important that we determine the size of ll *before*
+	// we start the loop. After all, we are adding elements. And
+	// we cerainly don't want to continue looping the newly added
+	// elements, we want to loop only the original elements.
+	size_t n=ll.size();
+	for ( size_t j=0; j<n; ++j )
+	  {
+	    LineRecord dummy = ll[j];
+	    dummy.setF( -dummy.F() );
+	    //	    cout << "Adding ML at f = " << dummy.F() << "\n";
+	    ll.push_back(dummy);
+	  }
+      }
     }
 
 }
 
+/** Removes all lines outside the defined lineshape cutoff frequency
+    from the lines_per_tg, in order to save computation time.
+    It should be particularly useful to call this method after
+    lines_per_tgAddMirrorLines.
+
+    \retval lines_per_tg the old and newly compacted line list
+    \param  lineshape the lineshape spceifications
+    \param  f_mono the frequency grid
+
+    \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgCompact(// WS Output:
 			 ARRAYofARRAYofLineRecord& lines_per_tg,
 			 // WS Input:
@@ -648,53 +661,65 @@ void lines_per_tgCompact(// WS Output:
 			 const VECTOR& f_mono)
 {
 
-  // make sure lines_per_tg and lineshape have the same dimension
+  // Make sure lines_per_tg and lineshape have the same dimension:
   if ( lines_per_tg.size() != lineshape.size() ) 
     {
       ostringstream os;
-      os << "lines_per_tgCompact: number of lines_per_tg does\n"
-	 << "not match the number of lineshapes defined.";
+      os << "Dimension of lines_per_tg does\n"
+	 << "not match that of lineshape.";
       throw runtime_error(os.str());
     }
   
-  // cycle through all lines_per_tg groups
-  for (INDEX i=0; i<lines_per_tg.size(); i++)
+  // Make sure that the frequency grid is properly sorted:
+  for ( INDEX s=0; s<f_mono.size()-1; ++s )
     {
-      // get cutoff frequency of this tag group
+      if ( f_mono[s+1] <= f_mono[s] )
+	{
+	  ostringstream os;
+	  os << "The frequency grid f_mono is not properly sorted.\n"
+	     << "f_mono[" << s << "] = " << f_mono[s] << "\n"
+	     << "f_mono[" << s+1 << "] = " << f_mono[s+1];
+	  throw runtime_error(os.str());
+	}
+    }
+
+  // Cycle through all tag groups:
+  for ( INDEX i=0; i<lines_per_tg.size(); ++i )
+    {
+      // Get cutoff frequency of this tag group:
       Numeric cutoff = lineshape[i].Cutoff();
 
-      // check whether cutoff is defined
+      // Check whether cutoff is defined:
       if ( cutoff != -1)
 	{
-	  // number of lines
-	  INDEX nl = lines_per_tg[i].size();
+	  // Get a reference to the current list of lines to save typing:
+	  ARRAYofLineRecord& ll = lines_per_tg[i];
 
-	  // calculate the borders
+	  // Calculate the borders:
 	  Numeric upp = f_mono[f_mono.size()-1] + cutoff;
 	  Numeric low = f_mono[0] - cutoff;
 
-	  // cycle through all lines within that tag group, do it
-	  // backwards in order not to mess up the index
-	  INDEX j=nl;
-	  do 
+	  // Cycle through all lines within this tag group. 
+	  for ( ARRAYofLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
 	    {
-	      j--;
+	      // Center frequency:
+	      const Numeric F0 = j->F();
 
-	      // center frequency
-	      Numeric F0 = lines_per_tg[i][j].F();
-
-	      if ( ( F0 < low) || 
-		   ( F0 > upp) ) 
-		erase_vector_element( lines_per_tg[i], j );
+	      if ( ( F0 < low) || ( F0 > upp) )
+		{
+		  j = ll.erase(j) - 1;
+		  // We need the -1 here, otherwise due to the
+		  // following increment we would miss the element
+		  // behind the erased one, which is now at the
+		  // position of the erased one.
+		}
 	    }
-	  while ( j > 0);
-
 	}
     }
 }
 
 
-void linesWriteToFile(// WS Input:
+void linesWriteAscii(// WS Input:
 		      const ARRAYofLineRecord& lines,
 		      // Control Parameters:
 		      const string& f)
@@ -705,7 +730,7 @@ void linesWriteToFile(// WS Input:
   if ( "" == filename )
     {
       extern const string basename;                       
-      filename = basename+".lines.al";
+      filename = basename+".lines.aa";
     }
 
   ofstream os;
@@ -717,7 +742,7 @@ void linesWriteToFile(// WS Input:
 }
 
 
-void lines_per_tgWriteToFile(// WS Input:
+void lines_per_tgWriteAscii(// WS Input:
 			      const ARRAYofARRAYofLineRecord& lines_per_tg,
 			      // Control Parameters:
 			      const string& f)
@@ -728,7 +753,7 @@ void lines_per_tgWriteToFile(// WS Input:
   if ( "" == filename )
     {
       extern const string basename;                       
-      filename = basename+".lines_per_tg.al";
+      filename = basename+".lines_per_tg.aa";
     }
 
   ofstream os;
@@ -1857,50 +1882,114 @@ void xsec_per_tgAddLines(// WS Output:
       out2 << "  Tag group " << i
 	   << " (" << get_tag_group_name(tgs[i]) << "): ";
       
+      // Get a pointer to the line list for the current species. This
+      // is just so that we don't have to type lines_per_tg[i] over
+      // and over again.
+      const ARRAYofLineRecord& ll = lines_per_tg[i];
+
+      // Also get a pointer to the lineshape specification:
+      const LineshapeSpec& ls = lineshape[i];
+      
       // Skip the call to xsec_per_tg if the line list is empty.
-      if ( 0 < lines_per_tg[i].size() )
+      if ( 0 < ll.size() )
 	{
 
-	  // Check if the appropriate line shape is used for tag O2 
-          // (with the line mixing parameters for the 60 GHz complex)
-	  string CheckName = get_tag_group_name(tgs[i]);
-	  if ((CheckName.find("-") > 0) && (CheckName.find("-") < CheckName.length()))
+	  // Get the name of the species. The member function name of a
+	  // LineRecord returns the full name (species + isotope). So
+	  // it is for us more convenient to get the species index
+	  // from the LineRecord member function Species(), and then
+	  // use this to look up the species name in species_data.
+	  extern const ARRAY<SpeciesRecord> species_data;
+	  string species_name = species_data[ll[0].Species()].Name();
+
+	  // Get the name of the lineshape. For that we use the member
+	  // function Ind_ls() to the lineshape data ls, which returns
+	  // an index. With that index we can go into lineshape_data
+	  // to get the name.
+	  // We will need this for safety checks later on.
+	  extern const ARRAY<LineshapeRecord> lineshape_data;
+	  string lineshape_name = lineshape_data[ls.Ind_ls()].Name();
+
+
+	  // The use of overlap parameters for oxygen lines only makes
+	  // sense if the special Rosenkranz lineshape is used
+	  // (Rosenkranz_Voigt_Drayson or Rosenkranz_Voigt_Kuntz6). 
+	  // Likewise, the use of these lineshapes only makes sense if
+	  // overlap parameters are available. We will test both these
+	  // conditions.
+
+	  // First of all, let's find out if the species we are
+	  // dealing with is oxygen. 
+	  if ( "O2" == species_name )
 	    {
-	      CheckName.erase(CheckName.find("-"),CheckName.length()-1);
-	    }
-	  if ("O2" == CheckName)
-	    {
-	      out2 << "******** " << get_tag_group_name(tgs[i]) << 
-		" # of lines=" << lines_per_tg[i].size() << "\n";
-	      for ( size_t l=0; l< lines_per_tg[i].size(); ++l )
+	      // Do we have overlap parameters in the aux fields of
+	      // the LineRecord?
+	      if ( 0 != ll[0].Naux() )
 		{
-		  out2 << "xsec_per_tgAddLines: line=" << l << ", ";
-		    for ( size_t j=0; j<lines_per_tg[i][l].Naux(); ++j )
+		  // Yes. So let's make sure that the lineshape is one
+		  // that can use these parameters. 
+		  if ( "Rosenkranz_Voigt_Drayson" != lineshape_name &&
+		       "Rosenkranz_Voigt_Kuntz6"  != lineshape_name    )
 		    {
-		      out2 << " aux[" << j << "] = " << lines_per_tg[i][l].Aux()[j];
+		      ostringstream os;
+		      os 
+			<< "You are using a line catalogue that contains auxiliary parameters to\n"
+			<< "take care of overlap for oxygen lines. But you are not using a\n"
+			<< "lineshape that uses these parameters. Use Rosenkranz_Voigt_Drayson or\n"
+			<< "Rosenkranz_Voigt_Kuntz6.";
+		      throw runtime_error(os.str());		      
 		    }
-		    out2 << "\n";
-		}
-	      if ()
+		}		
+	    }
+
+	  // Now we go the opposite way. Let's see if the Rosenkranz
+	  // lineshapes are used.
+	  if ( "Rosenkranz_Voigt_Drayson" == lineshape_name ||
+	       "Rosenkranz_Voigt_Kuntz6"  == lineshape_name    )
+	    {
+	      // Is the species oxygen, as it should be?
+	      if ( "O2" != species_name )
 		{
+		  ostringstream os;
+		  os 
+		    << "You are trying to use one of the special Rosenkranz lineshapes with\n"
+		    << "overlap correction for a species other than oxygen. Your species is\n"
+		    << species_name << ".\n"
+		    << "Select another lineshape for this species.";
+		    throw runtime_error(os.str());		      
+		}
+	      else
+		{
+		  // Do we have overlap parameters in the aux fields of
+		  // the LineRecord?
+		  if ( 0 == ll[0].Naux() )
+		    {
+		      ostringstream os;
+		      os 
+			<< "You are trying to use one of the special Rosenkranz lineshapes with\n"
+			<< "overlap correction. But your line file does not contain aux\n"
+			<< "parameters. (I've checked only the first LineRecord). Use a line file\n"
+			<< "with overlap parameters.";
+			throw runtime_error(os.str());		      
+		    }
 		}
 	    }
-	     
-	  out2 << lines_per_tg[i].size() << " transitions\n";
+
+	  out2 << ll.size() << " transitions\n";
 	  xsec_species( xsec_per_tg[i],
 			f_mono,
 			p_abs,
 			t_abs,
 			h2o_abs,
 			vmrs[i],
-			lines_per_tg[i],
-			lineshape[i].Ind_ls(),
-			lineshape[i].Ind_lsn(),
-			lineshape[i].Cutoff());
+			ll,
+			ls.Ind_ls(),
+			ls.Ind_lsn(),
+			ls.Cutoff());
 	}
       else
 	{
-	  out2 << lines_per_tg[i].size() << " transitions, skipping\n";
+	  out2 << ll.size() << " transitions, skipping\n";
 	}
     }
 }
@@ -2078,12 +2167,14 @@ void xsec_per_tgAddConts(// WS Output:
 
 }
 
-/** Reduces absorption coefficients.
-    \verbatim
-    Only absorption
-    coefficients for which weighting functions are
-    calculated are kept in memory.
-    \endverbatim */
+/** Reduces the size of abs_per_tg.  Only absorption coefficients for
+    which weighting functions are calculated are kept in memory.
+    
+    \retval abs_per_tg absorption coefficients
+    \param  tgs        all selected tag groups
+    \param  wfs_tgs    the tag groups for which we want weighting functions.
+
+    \author Axel von Engeln and Stefan Buehler */
 void abs_per_tgReduce(// WS Output:
                       ARRAYofMATRIX&         abs_per_tg,
                       // WS Input:
@@ -2091,39 +2182,36 @@ void abs_per_tgReduce(// WS Output:
                       const TagGroups&       wfs_tgs)
 {
 
-  // make a safety check that the dimensions of tgs and
+  // Make a safety check that the dimensions of tgs and
   // abs_per_tg are the same (could happen that we call this workspace
-  // method twice by accident)
+  // method twice by accident).
   if ( abs_per_tg.size()!=tgs.size() )
     throw(runtime_error("The variables abs_per_tg and tgs must\n"
 			"have the same dimension."));
 
-  // index to the elements of wfs_tgs in tgs
-  size_t index;
-
-  // dimension of output abs_per_tg
+  // Erase could be very inefficient in this case, since elements
+  // behind the erased one are copied in order to fill the
+  // gap. Therefore, we will construct a new abs_per_tg, and finally
+  // use it to replace the old one.
   ARRAYofMATRIX abs_per_tg_out( wfs_tgs.size() );
 
-  // make a copy of tgs, where we operate on
-  TagGroups copy_of_tgs( tgs.size() );
-  copy( tgs, copy_of_tgs );
-
-  // now copy the right elements in the right order and delete the
-  // copied matrix from abs_per_tg to save memory
-  for (size_t i=0; i<wfs_tgs.size(); i++)
+  // Go through the weighting function tag groups:
+  for ( size_t i=0; i<wfs_tgs.size(); ++i )
     {
-      get_tag_group_index_for_tag_group(index, copy_of_tgs, wfs_tgs[i] );
+      // Index to the elements of wfs_tgs in tgs:
+      size_t n;
+      get_tag_group_index_for_tag_group( n, tgs, wfs_tgs[i] );
 
-      abs_per_tg_out[i] = abs_per_tg[ index ];
+      resize( abs_per_tg_out[i], abs_per_tg[n].nrows(), abs_per_tg[n].ncols() );
+      copy( abs_per_tg[n], abs_per_tg_out[i] );
+    }  
 
-      erase_vector_element( abs_per_tg, index );
-      erase_vector_element( copy_of_tgs, index );
-
-    }
-
-  // copy the generated matrix back to abs_per_tg
-  resize( abs_per_tg, wfs_tgs.size() );
-  copy( abs_per_tg_out, abs_per_tg );
+  // Copy the generated matrices back to abs_per_tg
+  //  resize( abs_per_tg, wfs_tgs.size() );
+  //  copy( abs_per_tg_out, abs_per_tg );
+  // FIXME: Replace by our own swap function? Or better make std::swap
+  // work also for our own Vector and Matrix.
+  std::swap( abs_per_tg_out, abs_per_tg );
 }
 
 

@@ -175,17 +175,19 @@ int main()
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (size_t j=0; j<vo.size(); ++j)
-	    // It is important that the condition is k<vi.end(), not
-	    // k!=vi.end, because if erase is called, vi.end() is
-	    // decreased. Since k is increased at the same time, the
-	    // case k=vi.end() can be missed!
-	    for (size_t k=0; k<vi.size(); ++k)
-	      if ( vo[j] == vi[k] )
-		{
-		  //		  erase_vector_element(vi,k.index());
-		  erase_vector_element(vi,k);
-		}
+	  for (ARRAY<size_t>::const_iterator j=vo.begin(); j<vo.end(); ++j)
+	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
+	      {
+		if ( *j == *k )
+		  {
+		    //		  erase_vector_element(vi,k);
+		    k = vi.erase(k) - 1;
+		    // We need the -1 here, otherwise due to the
+		    // following increment we would miss the element
+		    // behind the erased one, which is now at the
+		    // position of the erased one.
+		  }
+	      }
 
 	  // There used to be a similar block here for the generic
 	  // input/output variables. However, this was a mistake. For
@@ -420,16 +422,16 @@ int main()
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (size_t j=0; j<vo.size(); ++j)
-	    // It is important that the condition is k<vi.end(), not
-	    // k!=vi.end, because if erase is called, vi.end() is
-	    // decreased. Since k is increased at the same time, the
-	    // case k=vi.end() can be missed!
-	    for (size_t k=0; k<vi.size(); ++k)
-	      if ( vo[j] == vi[k] )
+	  for (ARRAY<size_t>::const_iterator j=vo.begin(); j<vo.end(); ++j)
+	    for (ARRAY<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
+	      if ( *j == *k )
 		{
-		  //		  erase_vector_element(vi,k.index());
-		  erase_vector_element(vi,k);
+		  //		  erase_vector_element(vi,k);
+		  k = vi.erase(k) - 1;
+		  // We need the -1 here, otherwise due to the
+		  // following increment we would miss the element
+		  // behind the erased one, which is now at the
+		  // position of the erased one.
 		}
 
 	  // There used to be a similar block here for the generic
