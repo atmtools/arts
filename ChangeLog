@@ -1,3 +1,11 @@
+2000-10-10  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-59
+
+	* doc/uguide/los1d.tex: Removed .eps endings which broke the
+	pdf output. It's IMPORTANT to avoid the endings because they
+	are now autodetermined.
+
 2000-10-09  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-58
