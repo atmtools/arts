@@ -1,3 +1,27 @@
+2004-09-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-880
+
+	* doc/uguide/surface.tex: Finished chapter up to specular
+	reflections.
+
+	BUT EQUATIONS 7.11 AND 7.17 MUST BE CONFIRMED (Sreerekha please
+	compare to the part in Mischenko you mentioned. Is my derivation of
+	surface emission correct?)
+
+	* doc/uguide/ppath.tex: Updates of surface, space and cloudbox parts
+	to recent changes in code.
+	
+	* doc/uguide/ppath.tex: ppath_step_agenda was indexed as WSV. 
+
+	* doc/uguide/scattering.tex: Fixed one indexing of an agenda as WSV.
+
+	* doc/uguide/montecarlo.tex: Commented out two labels with same name,
+	but with no reference. Tex-ing gives now no reference/label warnings.
+
+	* doc/uguide/agendas.tex (section{Workspace Variables or WSVs}): 
+	Removed reference to removed appendix.
+
 2004-09-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-879

@@ -65,7 +65,7 @@ inside the atmosphere, such as the sensor position. Only points inside
 the model atmosphere are handled. The path steps are stored in the
 workspace variable \wsvindex{ppath\_step}, that is of the same type as
 \artsstyle{ppath}. The path steps are calculated by an agenda called
-\wsvindex{ppath\_step\_agenda}. Example on methods that can be used in
+\wsaindex{ppath\_step\_agenda}. Example on methods that can be used in
 \artsstyle{ppath\_step\_agenda} are \artsstyle{ppath\_stepGeometric}
 and \artsstyle{ppath\_stepRefractionEuler}.
 
@@ -183,7 +183,7 @@ the data type is given inside square brackets, are:
      Sections~\ref{sec:ppath:basicgeom} and [**]. This field can be
      initiated to a negative value to indicate that the constant is
      undefined or not yet set. For cases where the constant applies,
-     \wsvindex{ppath\_step\_agenda} sets this constant at the first
+     \artsstyle{ppath\_step\_agenda} sets this constant at the first
      call of the agenda if the given value is negative.
 
    \item[pos] [Matrix] The position of the propagation path points.
@@ -293,7 +293,7 @@ structure (\artsstyle{ppath}).
          \artsstyle{ppath\_array}}
   \STATE{add \artsstyle{ppath\_step} to \artsstyle{ppath\_array}}
   \WHILE{radiative background not reached}
-   \STATE{call \wsvindex{ppath\_step\_agenda}}
+   \STATE{call \wsaindex{ppath\_step\_agenda}}
    \IF{path is at the highest pressure surface}
     \STATE{radiative background is space}
    \ELSIF{path is at either end point of latitude or longitude grid}
@@ -359,20 +359,6 @@ other tasks, which include:
   \end{itemize}
 \end{itemize}
 For further details, see the code.
-
-
-\subsection{Scattering calculations}
-%===================
-
-Complete paths are not used when doing the scattering calculations
-inside the cloud box (at least for the scheme used so far), and
-\artsstyle{ppath\_calc} is not involved in the calculations. The
-structure \wsvindex{ppath\_step} is instead set up inside the function
-calling \wsvindex{ppath\_step\_agenda}, which is a rather
-straightforward task as the calculations of path steps here always
-start at a pressure surface (1D) or at a crossing of the pressure,
-latitude and longitude grids (3D). See further
-Section~\ref{sec:scattering}.
 
 
 \subsection{Main functions for propagation path steps}
@@ -1177,7 +1163,7 @@ calculations.
 When determining the propagation path through the atmosphere
 geometrical optics can be applied because the change of the refractive
 index over a wavelength can be neglected. Applying Snell's law
-(Eq.~\ref{eq:rte:snell}) to the geometry shown in Figure
+to the geometry shown in Figure
 \ref{fig:ppath:snell} gives
 \begin{equation}
   n_i \sin (\aZntAng{i}) = n_{i+1} \sin (\aZntAng{i'})

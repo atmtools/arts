@@ -6,27 +6,30 @@
   040427 & Started by Patrick Eriksson. \\
 \stophistory
 
-
-Basic facts regarding the treatment of surface emission and
-reflections are given in Section~\ref{sec:fm_defs:surface}.  Let us
-start with a simple example in order to explain the usage of the
-workspace variables describing the surface properties. We will here
-assume that the surface has an isotropic scattering, where all
-downwelling radiation is reflected. This assumption is made for all
-polarisation states. We assume further a 1D simulation and that the
-downwelling radiation shall be calculated for nine zenith angles. The
-relevant workspace variables should then be set as follows:
-  
+An introduction to the treatment of surface emission and reflections
+is given in Section~\ref{sec:fm_defs:surface}. The methods developed
+to handle different surface properties all set the variables
+\wsvindex{surface\_emission}, \wsvindex{surface\_los} and
+\wsvindex{surface\_rmatrix}. Let us start with a simple example in
+order to explain the usage of these workspace variables. We will here
+assume that all downwelling radiation is reflected. This assumption is
+made for all polarisation states. We assume further a 1D simulation,
+that the downwelling radiation shall be calculated for nine zenith
+angles and that all downwelling directions contribute equally (which
+is not a realistic assumption). The relevant workspace
+variables should then be set as follows:
+ 
  \wsvindex{surface\_emission}: A matrix (of correct size) of zeros.
 
  \wsvindex{surface\_los}: A vector of length 9, covering the zenith
  angle range. A possible choice would be [5,15,25,\dots,85].
- 
- \wsvindex{surface\_refl\_coeffs}: Each reflection matrix is a diagonal
+
+ \wsvindex{surface\_rmatrix}: Each reflection matrix is a diagonal
  matrix with the value 1/9 throughout on the diagonal. That is, all
  elements with index (:,:,i,i) is 1/9. Size matching
  \artsstyle{surface\_los}, \artsstyle{f\_grid} and
  \artsstyle{stokes\_dim}
+
 
 
 \section{The dielectric constant and the refractive index}
@@ -35,20 +38,20 @@ relevant workspace variables should then be set as follows:
  dielectric constant, $\epsilon$, or the refractive index, $n$. Both
  these quantities can be complex and are related as
  \begin{equation}
-   \label{eq:rte_eps2n}
+   \label{eq:surface_eps2n}
    n = \sqrt{\epsilon}.
  \end{equation}
 
 
 \section{Specular reflections}
- \label{sec:rte:surface:specular}
+ \label{sec:surface:surface:specular}
  
  If the surface is sufficiently smooth, radiation will be
  reflected/scattered only in the complementary angle, specular
  reflection. Required smoothness for assuming specular reflection is
  normally estimated by the Rayleigh criterion:
  \begin{equation}
-   \label{eq:rte:rayleigh}
+   \label{eq:surface:rayleigh}
    \Delta h < \frac{\Wvl}{8\cos\theta_1}
  \end{equation}
  where $\Delta h$ is the root mean square variation of the surface
@@ -57,24 +60,23 @@ relevant workspace variables should then be set as follows:
  criterion can also be defined with the factor 8 replaced with a lower
  integer number.
  
- The reflection coefficient for the amplitude of the electromagnetic
+ The complex reflection coefficient for the amplitude of the electromagnetic
  wave for vertical ($R_v$) and horizontal ($R_v$) polarisation is
  for a flat surface given by the Fresnel equations:
  \begin{eqnarray}
-   \label{eq:rte_fresnel}
+   \label{eq:surface_fresnel}
    R_v &=& \frac{n_2\cos\theta_1-n_1\cos\theta_2}
                                            {n_2\cos\theta_1+n_1\cos\theta_2} \\
    R_h &=& \frac{n_1\cos\theta_1-n_2\cos\theta_2}
                                            {n_1\cos\theta_1+n_2\cos\theta_2} \\
  \end{eqnarray}
- [* check if correct *] where $n_1$ is refractive index for
- the medium where the incoming radiation is propagating, $\theta_1$ is
- the incident angle (measured from the local surface normal) and $n_2$
- is the refractive index of the reflecting medium. The angle
- $\theta_2$ is the propagation direction for the transmited part, and
- is given by Snell's law:
+ where $n_1$ is refractive index for the medium where the reflected
+ radiation is propagating, $\theta_1$ is the incident angle (measured
+ from the local surface normal) and $n_2$ is the refractive index of
+ the reflecting medium. The angle $\theta_2$ is the propagation
+ direction for the transmitted part, and is given by Snell's law:
  \begin{equation}
-   \label{eq:rte:snell}
+   \label{eq:surface:snell}
    \Re(n_1)\sin\theta_1 = \Re(n_2)\sin\theta_2.
  \end{equation}
  where $\Re(\cdot)$ denotes the complex real part.
@@ -83,78 +85,104 @@ relevant workspace variables should then be set as follows:
  The power reflection coefficients are converted to an intensity
  reflection coefficient as
  \begin{equation}
-   \label{eq:rte:R2r}
+   \label{eq:surface:R2r}
    r = |R|^2,
  \end{equation}
  where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
  complex, while $r$ is always real.
+
+THE PART JUST BELOW IS PRELIMINARY. EQUATIONS WILL BE CONFORMED LATER.
  
-% The surface reflection can be seen as a scattering event and
-% Section~\ref{sec:polarization:ampmatrix} can be used to derive the
-% reflection matrix values. The scattering amplitude functions of
-% Equation~\ref{eq:polarisation:ampmatrix1} are simply
-% \begin{eqnarray}
-%   S_2 &=& R_v, \\
-%   S_1 &=& R_h, \\
-%   S_3 = S_4 &=& =0.
-% \end{eqnarray}
-% This leads to that the transformation matrix for a specular surface
-% reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
-% \begin{equation}
-%   \label{eq:rte:specular_matrix}
-%   \MtrStl{F} =
-%      \left[\begin{array}{cccc}
-%        \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
-%        \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
-%     0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
-%     0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
-%      \end{array}
-%      \right].
-% \end{equation}
-% If the downwelling radiatio is unpolarised, the reflected part of the
-% upwelling radiation is
-% \begin{equation}
-%   \MtrStl{F}
-%   \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
-%   \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
-%   \end{array} \right].
-% \end{equation}
-% as expected.
+The surface reflection can be seen as a scattering event and
+Section~\ref{sec:polarization:ampmatrix} can be used to derive the
+reflection matrix values. The scattering amplitude functions of
+Equation~\ref{eq:polarisation:ampmatrix1} are simply
+\begin{eqnarray}
+  S_2 &=& R_v, \\
+  S_1 &=& R_h, \\
+  S_3 = S_4 &=& =0.
+\end{eqnarray}
+This leads to that the transformation matrix for a specular surface
+reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
+\begin{equation}
+  \label{eq:surface:specular_matrix}
+  \MtrStl{R} =
+     \left[\begin{array}{cccc}
+       \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
+       \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
+    0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
+    0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
+     \end{array}
+     \right].
+\end{equation}
+If the downwelling radiation is unpolarised, the reflected part of the
+upwelling radiation is
+\begin{equation}
+  \MtrStl{R}
+  \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
+  \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
+  \end{array} \right].
+\end{equation}
+as expected.
 
-% The workspace variable \artsstyle{surface\_los} shall here
-% of course be set to have the length 1. The specular direction is
-% calculated by the internal function \funcindex{surface\_specular\_los}.
+Thermodynamic equilibrium can be assumed for natural surfaces. In the
+scalar case this assumption leads to that the reflection ($r$) and
+emission ($e$) coefficients add up to one:
+\begin{equation}
+  \label{eq:e=1-r}
+  e = 1 - r.
+\end{equation}
+With other words, we have that
+\begin{equation}
+  \Mpi^\mathrm{up} = \Mpi^\mathrm{down}r + (1-r)B,
+\end{equation}
+where $\Mpi^\mathrm{up}$ is upwelling radiation, $\Mpi^\mathrm{down}$
+is downwelling radiation and $B$ is blackbody radiation. A consequence
+of thermodynamic equilibrium is that if $\Mpi^\mathrm{down}=B$, also
+$\Mpi^\mathrm{up}$ will equal $B$. We can use this observation to
+derive how a surface reflection matrix and the Stokes of vector of
+surface emission, $\VctStl{b}$, are related. As blackbody radiation is
+unpolarised, we have that 
+\begin{equation}
+   \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] =
+  \MtrStl{R} \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right] + 
+  \VctStl{b},
+\end{equation}
+that gives
+\begin{equation}
+  \VctStl{b} = (\MtrStl{1}-\MtrStl{R})
+      \left[\begin{array}{c} B \\ 0 \\0\\0 \end{array}\right],
+\end{equation}
+where \MtrStl{1} is the identity matrix.
 
-% [* Fill in what workspace methods that match this section. *]
+If \MtrStl{R} is given by Equation~\ref{eq:surface:specular_matrix},
+the surface emission is accordingly
+\begin{equation}
+  \label{eq:surface:specular_emission}
+   \left[\begin{array}{c}
+     B\left(1-\frac{r_v+r_h}{2}\right) \\
+     B\frac{r_h-r_v}{2} \\
+     0\\0
+   \end{array}\right].
+\end{equation}
+In the case of specular reflections, \artsstyle{surface\_los} shall of
+course be set to have the length 1. The specular direction is
+calculated by the internal function
+\funcindex{surface\_specular\_los}\footnote{Any tilt of the surface is
+  neglected when determining the specular direction. If there would be
+  any need to consider surface tilt, almost complete code for this
+  task existed in \artsstyle{surface\_specular\_los} but was removed
+  in version 1-1-876. The code can be obtained by e.g.\ checking out
+  version 1-1-875.}.  Equations \ref{eq:surface:specular_matrix} and
+\ref{eq:surface:specular_emission} give the values to put into
+\artsstyle{surface\_rmatrix} and \artsstyle{surface\_emission}. A
+general method for the specular case (with internal models of the
+dielectric properties of different media) is \wsmindex{surfaceFlat},
+while \wsmindex{surfaceSingleEmissivity} and
+\wsmindex{surfaceBlackbody} treat some special cases.
 
 
-%\subsection{Surface emission}
-% \label{sec:rte:surface:emission}
- 
-% [* Can we relate \artsstyle{surafce\_refl\_coeffs} and
-% \artsstyle{surface\_emission}? 
 
-% The emission for specular reflection should be 
-% \begin{equation}
-%    \left[\begin{array}{c}
-%      B\left(1-\frac{r_v+r_h}{2}\right) \\
-%      B\frac{r_h-r_v}{2} \\
-%      0\\0
-%    \end{array}\right]
-% \end{equation}
-% Correct? *]
-
- 
-%\subsection{Surface properties}
-% \label{sec:rte:surfprop}
- 
-% This section discusses the propertiesof various surface materials and
-% conditions.
- 
-%\subsection{Sea water}
-% \label{sec:rte:surfprop:water}
-
-% What is the standard model for $\epsilon$?
 
  
 
