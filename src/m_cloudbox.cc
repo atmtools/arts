@@ -102,144 +102,13 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
                                      Tensor7& scat_i_p,
                                      Tensor7& scat_i_lat,
                                      Tensor7& scat_i_lon,
-                                     Ppath& ppath,
-                                     Ppath& ppath_step,
-                                     Matrix&  i_rte,
-                                     Matrix&  i_space,
-                                     Matrix&  ground_emission,
-                                     Matrix&  ground_los,
-                                     Tensor4& ground_refl_coeffs,
-                                     Vector&  rte_los,
-                                     Vector&  rte_pos,
-                                     GridPos& rte_gp_p,
-                                     GridPos& rte_gp_lat,
-                                     GridPos& rte_gp_lon,
                                      // WS Input:
                                      const ArrayOfIndex&  cloudbox_limits,
                                      const Index& atmosphere_dim,
                                      const Index& stokes_dim,
                                      const Vector&  scat_za_grid,
-                                     const Vector&  scat_aa_grid,
-                                     const Vector&  f_grid,
-                                     const Agenda&  ppath_step_agenda,
-                                     const Agenda&  rte_agenda,
-                                     const Agenda&  i_space_agenda,
-                                     const Agenda&  ground_refl_agenda,
-                                     const Vector&  p_grid,
-                                     const Vector&  lat_grid,
-                                     const Vector&  lon_grid,
-                                     const Tensor3& z_field,
-                                     const Tensor3& t_field,
-                                     const Matrix&  r_geoid,
-                                     const Matrix&  z_ground)
+                                     const Vector&  f_grid )
 {
-  // Check the atmosphere dimensionality and that only the first Stokes
-  // component is used(?)
-  if( atmosphere_dim != 1 )
-    throw runtime_error( "This function is only defined for 1D "
-      "atmosphere.\n");
-  if( stokes_dim != 1 )
-    throw runtime_error( "Only the first Stokes component must be set.\n");
-
-  out2 <<"Function: CloudboxGetIncoming \n"
-       <<"Get clearsky field on cloudbox boundary. \n"
-       <<"---------------------------------------- \n" ;
-
-  Index Nf = f_grid.nelem();
-  Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
-
-  Index Nza = scat_za_grid.nelem();
-
-  Index Ni = stokes_dim;
-
-  // Assign dummies for variables associated with sensor.
-  bool     apply_sensor = false;
-  Vector   mblock_za_grid_dummy(1);
-           mblock_za_grid_dummy[0] = 0;
-  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
-  Matrix   sensor_pol_dummy;
-  Index    antenna_dim_dummy = 1;
-  Sparse   sensor_response_dummy;
-
-  // Dummy variable for flag cloudbox_on. It has to be 0 for clearsky
-  // calculations. We want to calculate the clearsky field on the boundary
-  // so we have to set the variable to 0.
-  Index cloudbox_on_dummy = 0;
-
-  // Variable to avoid duplication of input checks in rte_calc
-  bool   check_input = true;
-
-  // Dummy for measurement vector
-  Vector   y_dummy(0);
-
-  // In the 1D case this has to be resized again, as some grids are empty,
-  // then Nlat, Nlon, Naa is 0.
-  scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, Ni);
-
-  // Empty dummies for interface variables scat_i_p, scat_i_lat,
-  // scat_i_lon.
-  Tensor7 scat_i_p_dummy;
-  Tensor7 scat_i_lat_dummy;
-  Tensor7 scat_i_lon_dummy;
-
-  //Define the variables for position and direction.
-  Matrix sensor_los(1,1);
-  Matrix sensor_pos(1,1);
-
-  // Get scat_i_p at lower boundary
-  sensor_pos(0,0) = r_geoid(0,0) + z_field(cloudbox_limits[0], 0, 0);
-
-  for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++) {
-    sensor_los(0,0) =  scat_za_grid[scat_za_index];
-
-    rte_calc( y_dummy, ppath, ppath_step, i_rte,
-              rte_pos, rte_los, rte_gp_p,
-              rte_gp_lat, rte_gp_lon,
-              i_space, ground_emission, ground_los,
-              ground_refl_coeffs, ppath_step_agenda, rte_agenda,
-              i_space_agenda, ground_refl_agenda,
-              atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
-              r_geoid,
-              z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
-              scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid, scat_aa_grid,
-              sensor_response_dummy, sensor_pos, sensor_los,
-              sensor_pol_dummy, sensor_rot_dummy,
-              f_grid, stokes_dim, antenna_dim_dummy,
-              mblock_za_grid_dummy, mblock_aa_grid_dummy,
-              check_input, apply_sensor, 1 );
-    check_input = false;
-
-    //scat_i_p(Range(joker),0,0,0,scat_za_index,0,Range(joker)) = i_rte;
-  }
-
-  // Get scat_i_p at upper boundary
-  sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[1],0,0);
-
-  for (Index scat_za_index = 0; scat_za_index < Nza;  scat_za_index ++) {
-    sensor_los(0, 0) =  scat_za_grid[scat_za_index];
-
-    rte_calc( y_dummy, ppath, ppath_step, i_rte,
-              rte_pos, rte_los, rte_gp_p,
-              rte_gp_lat, rte_gp_lon,
-              i_space, ground_emission, ground_los,
-              ground_refl_coeffs, ppath_step_agenda, rte_agenda,
-              i_space_agenda, ground_refl_agenda,
-              atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
-              t_field, r_geoid,
-              z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
-              scat_i_lat_dummy,
-              scat_i_lon_dummy, scat_za_grid, scat_aa_grid,
-              sensor_response_dummy, sensor_pos,
-              sensor_los, sensor_pol_dummy, sensor_rot_dummy,
-              f_grid, stokes_dim, antenna_dim_dummy,
-              mblock_za_grid_dummy, mblock_aa_grid_dummy,
-              check_input, apply_sensor, 1 );
-
-    //scat_i_p(Range(joker),1,0,0,scat_za_index,0,Range(joker)) = i_rte;
-
-  }
-
-/*
   // Check the atmosphere dimensionality and that only the first Stokes
   // component is used(?)
   if( atmosphere_dim != 1 )
@@ -257,7 +126,7 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
 
   // Resize the output variables
   scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, 1);
-*/
+
   // Calculate the clearsky field on the lower side. Calculations are made for
   // zenith angles over 90 degrees.
   for( Index k=0; k<Nza; k++ ) {
@@ -270,11 +139,11 @@ void CloudboxSetIncomingForTauCalc1D(// WS Output:
 
   // Set the clearsky field on the upper side to zero.
   scat_i_p( Range(joker), 1, 0,0, Range(joker),0, 0) = 0.0;
-/*
+
   // Set incoming radiation at vertical cloudbox limits to empty vectors.
   scat_i_lat.resize(0,0,0,0,0,0,0);
   scat_i_lon.resize(0,0,0,0,0,0,0);
-*/
+
 }
 
 //! cloudboxSetManually

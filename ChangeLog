@@ -1,5 +1,20 @@
 2003-10-21  Mattias Ekström  <ekstrom@rss.chalmers.se> 
 
+	* arts-1-1-706
+
+	* src/scatrte.cc (cloud_ppath_update1D): Added resizing of rte_vmr_list
+	before assigning values to it. The resizing is added right after the 
+	calculations of N_species, which also is the size of rte_vmr_list.
+
+	* src/m_cloudbox.cc (CloudboxSetIncomingForTauCalc1D): Removed call to
+	rte_calc and returned to first version, just setting the scat_i_p,
+	scat_i_lat and scat_i_lon.
+
+	* src/methods.cc: Changed input/output arguments for
+	CloudboxSetIncomingForTauCalc1D.
+
+2003-10-21  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+
 	* arts-1-1-705
 
 	* src/M_cloudbox.cc (scat_iPut): Moved calculation of N_lat and N_lon

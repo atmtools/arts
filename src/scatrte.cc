@@ -396,6 +396,7 @@ void cloud_ppath_update1D(
       // calculation.
       //
       const Index N_species = vmr_field.nbooks();
+      rte_vmr_list.resize(N_species);
       //
       // Interpolated vmr_list, holds a vmr_list for each point in 
       // ppath_step.
@@ -443,7 +444,7 @@ void cloud_ppath_update1D(
 	      //
 	      // Average vmrs
 	      for (Index i = 0; i < N_species; i++)
-		rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) + 
+		rte_vmr_list[i] = 0.5 * (vmr_list_int(i,k) +
 				       vmr_list_int(i,k-1));
 	      //
 	      // Calculate scalar gas absorption and add it to abs_vec 
