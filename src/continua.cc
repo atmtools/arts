@@ -1020,6 +1020,7 @@ void MPM93WaterDropletAbs( MatrixView           xsec,
 	  Numeric theta    = 300.000 / t_abs[i];
 	  // relaxation frequencies [GHz]
 	  Numeric gamma1   = 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
+	  // Numeric gamma11  = 20.1 * exp( 7.88 * theta ); // see liebe et al. IJIMW, 1992, p667, Eq. (2b)
 	  Numeric gamma2   = 39.80 * gamma1; 
 	  // static and high-frequency permittivities
 	  Numeric epsilon0 = 103.30 * (theta-1.000) + 77.66;

@@ -35,33 +35,19 @@
 % \label{symtable:wfuns}     
 %\stopsymbols
 
-In general there three types of absorption/emission spectra:
-- sharp lines of finite widt
-- aggregation (series) of lines called bands
-- continua extending over a broad range of wavelengths, with
-  no single lines in it.
-This section is therefore firstly devised to give a short theoretical
-overview of the spectra quantities which are used in ARTS. The presentation
-of the calculating methods within ARTS of these quantities is the
-second goal.
-There are two major subsections which deal separately with the respective types
-of spectra regarded by ARTS: 
-- lines 
-- continua.
-The second one extends beyond the scope of mere treatment of the
-continua and thus gives an integrated view of continua and spectral lines.
-
-%
 %
 % ============================================================================
-% The following sections are written by Thomas Kuhn, iup, 18-07-2001
-% ============================================================================
+% TKS definitions for the sections "Continuum Absorption" and 
+% "Complete Absorption Models"
 %
-% general definitions for the following sections
+\def\deni{\rho_{\mbox{\sf i}}}
+\def\denl{\rho_{\mbox{\sf l}}}
+\def\denli{\rho_{\mbox{\sf l,i}}}
 %
 \def\imn{{N''}}
-\def\ime{\epsilon''}
-\def\ree{\epsilon'}
+\def\ime{\epsilon^{''}_r}
+\def\ree{\epsilon^{'}_r}
+\def\er{\epsilon_r}
 %
 \def\bek{\sf b_{\sf 1,k}}
 \def\bzk{\sf b_{\sf 2,k}}
@@ -99,37 +85,39 @@ continua and thus gives an integrated view of continua and spectral lines.
 \def\oz{\mbox{O}_2}
 \def\coz{\mbox{CO}_2}
 %
-\def\ptot{P_{\mbox{\tiny \sf tot}}}
-\def\phzo{P_{\mbox{\tiny \sf H}_{2}\mbox{\tiny \sf O}}}
-\def\pda{P_{\mbox{\tiny \sf d}}}
-\def\pdair{P_{\mbox{\tiny \sf air}}}
-\def\pan{P_{\mbox{\tiny \sf air},\mbox{\tiny \sf N}_{2}}}
-\def\pcoz{P_{\mbox{\tiny \sf CO}_{2}}}
+\def\ptot{P_{\mbox{\sf tot}}}
+\def\phzo{P_{\mbox{\sf H}_{2}\mbox{\sf O}}}
+\def\pnz{P_{\mbox{\sf N}_{2}}}
+\def\poz{P_{\mbox{\sf O}_{2}}}
+\def\pda{P_{\mbox{\sf d}}}
+\def\pdair{P_{\mbox{\sf air}}}
+\def\pan{P_{\mbox{\sf air},\mbox{\sf N}_{2}}}
+\def\pcoz{P_{\mbox{\sf CO}_{2}}}
 %
-\def\alphampmotot{\alpha^{\mbox{\rm \tiny MPM87}}_{\mbox{\tiny tot}}} 
-\def\alphampmmtot{\alpha^{\mbox{\rm \tiny MPM89}}_{\mbox{\tiny tot}}} 
-\def\alphampmntot{\alpha^{\mbox{\rm \tiny MPM93}}_{\mbox{\tiny tot}}} 
-\def\alphapwrtot{\alpha^{\mbox{\tiny \rm R98}}_{\mbox{\tiny tot}}} 
-\def\alphacptot{\alpha^{\mbox{\tiny \rm CP98}}_{\mbox{\tiny tot}}} 
+\def\alphampmotot{\alpha^{\mbox{\rm MPM87}}_{\mbox{tot}}} 
+\def\alphampmmtot{\alpha^{\mbox{\rm MPM89}}_{\mbox{tot}}} 
+\def\alphampmntot{\alpha^{\mbox{\rm MPM93}}_{\mbox{tot}}} 
+\def\alphapwrtot{\alpha^{\mbox{\rm R98}}_{\mbox{tot}}} 
+\def\alphacptot{\alpha^{\mbox{\rm CP98}}_{\mbox{tot}}} 
 %
-\def\alphampmol{\alpha^{\mbox{\rm \tiny MPM87}}_{\mbox{\tiny $\ell$}}} 
-\def\alphampmml{\alpha^{\mbox{\rm \tiny MPM89}}_{\mbox{\tiny $\ell$}}} 
-\def\alphampmnl{\alpha^{\mbox{\rm \tiny MPM93}}_{\mbox{\tiny $\ell$}}} 
-\def\alphampml{\alpha^{\mbox{\rm \tiny MPM}}_{\mbox{\tiny $\ell$}}} 
-\def\alphapwrl{\alpha^{\mbox{\tiny \rm R98}}_{\mbox{\tiny $\ell$}}} 
-\def\alphacpl{\alpha^{\mbox{\tiny \rm CP98}}_{\mbox{\tiny $\ell$}}} 
+\def\alphampmol{\alpha^{\mbox{\rm MPM87}}_{\mbox{$\ell$}}} 
+\def\alphampmml{\alpha^{\mbox{\rm MPM89}}_{\mbox{$\ell$}}} 
+\def\alphampmnl{\alpha^{\mbox{\rm MPM93}}_{\mbox{$\ell$}}} 
+\def\alphampml{\alpha^{\mbox{\rm MPM}}_{\mbox{$\ell$}}} 
+\def\alphapwrl{\alpha^{\mbox{\rm R98}}_{\mbox{$\ell$}}} 
+\def\alphacpl{\alpha^{\mbox{\rm CP98}}_{\mbox{$\ell$}}} 
 %
-\def\alphampmoc{\alpha^{\mbox{\rm \tiny MPM87}}_{\mbox{\tiny c}}} 
-\def\alphampmmc{\alpha^{\mbox{\rm \tiny MPM89}}_{\mbox{\tiny c}}} 
-\def\alphampmnc{\alpha^{\mbox{\rm \tiny MPM93}}_{\mbox{\tiny c}}} 
-\def\alphapwrc{\alpha^{\mbox{\tiny \rm R98}}_{\mbox{\tiny c}}} 
-\def\alphacpc{\alpha^{\mbox{\tiny \rm CP98}}_{\mbox{\tiny c}}} 
+\def\alphampmoc{\alpha^{\mbox{\rm MPM87}}_{\mbox{c}}} 
+\def\alphampmmc{\alpha^{\mbox{\rm MPM89}}_{\mbox{c}}} 
+\def\alphampmnc{\alpha^{\mbox{\rm MPM93}}_{\mbox{c}}} 
+\def\alphapwrc{\alpha^{\mbox{\rm R98}}_{\mbox{c}}} 
+\def\alphacpc{\alpha^{\mbox{\rm CP98}}_{\mbox{c}}} 
 %
-\def\alphatot{\alpha_{\mbox{\tiny \sf tot}}} 
-\def\alphal{\alpha_{\mbox{\tiny $\ell$}}} 
-\def\alphac{\alpha_{\mbox{\tiny \sf c}}} 
-\def\alphacs{\alpha_{\mbox{\tiny \sf c,s}}} 
-\def\alphacf{\alpha_{\mbox{\tiny \sf c,f}}} 
+\def\alphatot{\alpha_{\mbox{\sf tot}}} 
+\def\alphal{\alpha_{\mbox{$\ell$}}} 
+\def\alphac{\alpha_{\mbox{\sf c}}} 
+\def\alphacs{\alpha_{\mbox{\sf c,s}}} 
+\def\alphacf{\alpha_{\mbox{\sf c,f}}} 
 %
 \def\gamk{\gamma_{\sf k}}
 \def\gamc{\gamma_{\sf c}}
@@ -142,7 +130,7 @@ continua and thus gives an integrated view of continua and spectral lines.
 \def\wn{\bar{\nu}}
 \def\nucc{\nu_{\sf c}}
 \def\nucut{\nu_{\sf cutoff}}
-\def\nuo{\nu_{\mbox{\sf \tiny 0}}}
+\def\nuo{\nu_{\mbox{\sf 0}}}
 \def\nuk{\nu_{\sf k}}
 %
 \def\shape{F(\nu,\nuk)}
@@ -152,28 +140,52 @@ continua and thus gives an integrated view of continua and spectral lines.
 \def\shapefpm{f_{c}(\nu,\pm\nuk)}
 \def\inten{S_{\sf k}(T)}
 \def\inteno{S_{\sf k}(300\,K)}
+\def\intencp{S_{\sf 0}(T)}
 %
-\def\fcs{\mbox{C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm s}}} 
-\def\fcf{\mbox{C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm f}}}
-\def\fcsf{\mbox{C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm s,f}}} 
-\def\tfcs{\mbox{\tiny C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm s}}} 
-\def\tfcf{\mbox{\tiny C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm f}}} 
-\def\tfcsf{\mbox{C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm s,f}}} 
-\def\tflncsf{\mbox{\tiny ln\,C}^{\mbox{\tiny \rm fit}}_{\mbox{\tiny \rm s,f}}} 
+\def\fcs{\mbox{C}^{\mbox{\rm fit}}_{\mbox{\rm s}}} 
+\def\fcf{\mbox{C}^{\mbox{\rm fit}}_{\mbox{\rm f}}}
+\def\fcsf{\mbox{C}^{\mbox{\rm fit}}_{\mbox{\rm s,f}}} 
+\def\tfcs{\mbox{C}^{\mbox{\rm fit}}_{\mbox{\rm s}}} 
+\def\tfcf{\mbox{C}^{\mbox{\rm fit}}_{\mbox{\rm f}}} 
+\def\tfcsf{\mbox{C}^{\mbox{\rm fit}}_{\mbox{\rm s,f}}} 
+\def\tflncsf{\mbox{ln\,C}^{\mbox{\rm fit}}_{\mbox{\rm s,f}}} 
 %
-\def\cx{C_{\mbox{\tiny \sf x}}}
-\def\cs{C_{\mbox{\tiny \sf H}_{2}\mbox{\tiny \sf O}}} 
-\def\cf{C_{\mbox{\tiny \sf N}_{2}}} 
-\def\cxo{C^{\mbox{\tiny \sf o}}_{\mbox{\tiny \sf X}}} 
-\def\cso{C^{\mbox{\tiny \sf o}}_{\mbox{\tiny \sf H}_{2}\mbox{\tiny \sf O}}} 
-\def\cfo{C^{\mbox{\tiny \sf o}}_{\mbox{\tiny \sf N}_{2}}} 
-\def\cao{C^{\mbox{\tiny \sf o}}_{\mbox{\tiny \sf air}}}
-\def\cdo{C^{\mbox{\tiny \sf o}}_{\mbox{\tiny \sf d}}}
-\def\xx{{\sf n}_{\mbox{\tiny \sf x}}} 
-\def\xs{{\sf n}_{\mbox{\tiny \sf s}}} 
-\def\xf{{\sf n}_{\mbox{\tiny \sf f}}} 
-\def\xd{{\sf n}_{\mbox{\tiny \sf d}}}
+\def\cx{C_{\mbox{\sf x}}}
+\def\cs{C_{\mbox{\sf H}_{2}\mbox{\sf O}}} 
+\def\cf{C_{\mbox{\sf N}_{2}}} 
+\def\cxo{C^{\mbox{\sf o}}_{\mbox{\sf X}}} 
+\def\cso{C^{\mbox{\sf o}}_{\mbox{\sf H}_{2}\mbox{\sf O}}} 
+\def\cfo{C^{\mbox{\sf o}}_{\mbox{\sf N}_{2}}} 
+\def\cao{C^{\mbox{\sf o}}_{\mbox{\sf air}}}
+\def\cdo{C^{\mbox{\sf o}}_{\mbox{\sf d}}}
+\def\xx{{\sf n}_{\mbox{\sf x}}} 
+\def\xs{{\sf n}_{\mbox{\sf s}}} 
+\def\xf{{\sf n}_{\mbox{\sf f}}} 
+\def\xd{{\sf n}_{\mbox{\sf d}}}
 %
+% ============================================================================
+
+
+
+
+In general there three types of absorption/emission spectra:
+\begin{itemize}
+\item sharp lines of finite width
+\item aggregation (series) of lines called bands
+\item continua extending over a broad range of wavelengths, with
+      no single lines in it.
+\end{itemize}
+This section is therefore firstly devised to give a short theoretical
+overview of the spectra quantities which are used in ARTS. The presentation
+of the calculating methods within ARTS of these quantities is the
+second goal.
+There are two major subsections which deal separately with the respective types
+of spectra regarded by ARTS: 
+- lines 
+- continua.
+The second one extends beyond the scope of mere treatment of the
+continua and thus gives an integrated view of continua and spectral lines.
+
 
 \levelb{Line Absorption}
 %-----------------------
@@ -535,25 +547,270 @@ other catalogues that can be read by ARTS
 
 Molecular mass, etc. 
 
+\levelc{Partition Functions}
+These are strictly also species specific data, but they seem to deserve
+their own section.
+
+\levelc{Line Shape Functions}
+
 
 \levelc{ARTS Workspace Variables and Methods}
-\begin{verbatim}
-tgsDefine{       
-        [ 
-#        "H2O",
-         "O2"
-        ]
-}
-\end{verbatim}
+
+
+
+
+
+
+
+
+
+% ================================================================================
+% The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
+% ================================================================================
+
+\levelb{Continuum Absorption}
+\label{levelb:ContAbs}
+% ===========================
+
+As pointed out above, some molecules show beside the resonant line
+absorption also non-resonant continuum absorption. The main qualitative
+difference is the smooth dependence on frequency of the non-resonant
+absorption part in contrast to the resonant absorption part who shows 
+strong local maxima and minima.
+
+The implemented continuum absorption modules are connected with water
+vapor ($\hzo$), oxygen ($\oz$), nitrogen ($\nz$), and carbon dioxide
+($\coz$). Since these molecules have various permanent electric or magnetic
+multipoles, the physical explanations for the continuum absorption is 
+different for each of these molecules.
+
+Water Vapor has a strong electric dipole moment and posses therefore a 
+wealth of rotational transitions in the microwave up to the submillimeter 
+range. One explanation for the $\hzo$- continuum absorption is the inadequate 
+formulation of the far wings of a spectral line, since the usually employed 
+\citet{vanvleck:45} line shape is according to its derivation only valid 
+in the near wing zone. Other explanations are (see \cite{pwr:93} for details) 
+far wing contribution from far-infrared water vapor lines, collision induced 
+absorption (CIA), and water polymer absorption. At present one can not definitively 
+decide which of these possibilities is the correct one, probably all of them 
+play a more or less important role, depending on the frequency range.
+
+oxygen is one of the rare molecules in the Earth's atmosphere where a permanent 
+magnetic dipole moment is present. The aligned spins of the two valence electrons 
+gives a $^{3}\Sigma$ groud state of molecular oxygen. 
+Due to the selection rules for magnetic dipole transitions, transitions with 
+resonance frequency equal to zero are allowed. Such transitions have a characteristic 
+Debye line shape function.
+
+The homonuclear nitrogen molecule has in lowest order an electric quadrupole moment 
+of modest magnitude.
+For the frequency range below 1\,THz the collision induced rotation absorption 
+band \cite{goodyandyung:89} is of most importance. The band center is around 3\,THz and 
+at 1\,THz the band strength is approximately 1/6 of the maximum value (see 
+Figure 5.2 of \cite{goodyandyung:89}). The electric field of the quadrupole 
+moment of one molecule induces a dipole moment in the second molecule. This allows 
+rotational transitions according to the electric quadrupole selection rules, 
+$|\Delta\,J|=$0,2 (see \cite{pwr:93} for details). In a similar way exhibits 
+carbon dioxide a collision induced absorption band (maximum around 1.5\,THz, 
+Figure 5.10 of \cite{goodyandyung:89}). Characteristic for collision induced 
+absorption is the dependency on the square of the molecular density.
+
+
+
+\levelc{Water Vapor Continuum Models}
+\label{leveld:h2o_Cont}
+%------------------------------------
+As shown by \cite{liebeandlayton:87}, \cite{pwr:98}, and \cite{ma:90},
+the water vapor continuum absorption can be well described by 
+\begin{equation} 
+  \label{eq:abs_cont}
+  \alphac = \nu^2 \cdot \phzo \cdot 
+            (\cso \cdot \phzo \cdot \Theta^{\xs} + 
+             \cdo \cdot \pda  \cdot \Theta^{\xf})
+\end{equation}
+where the microwave approximation ($h\nu<<k_BT$ ) of the radiation field term 
+is already applied. The adjustment of Eq. \ref{eq:abs_cont} to the data 
+is performed through the parameter set $\cso$, $\xs$, $\cdo$, and $\xf$. 
+Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
+\begin{table}[!hbt]
+  \begin{center}
+  \begin{tabular}{lrrrrr}
+    \hline
+    model  & \multicolumn{1}{c}{$\cso$} & 
+             \multicolumn{1}{c}{$\xs$}  & 
+             \multicolumn{1}{c}{$\cdo$} & 
+             \multicolumn{1}{c}{$\xd$}  & 
+             ref.\\
+           & \multicolumn{1}{c}{$\left[\frac{\mbox{dB/km}}
+                               {\mbox{hPa}^2~\mbox{GHz}^2}\right]$} & 
+             \multicolumn{1}{c}{$[1]$} & 
+             \multicolumn{1}{c}{$\left[\frac{\mbox{dB/km}}
+                               {\mbox{hPa}^2~\mbox{GHz}^2}\right]$} & 
+             \multicolumn{1}{c}{$[1]$} & \\
+    \hline
+    MPM85  & 4.92$\cdot$10$^{-8}$ & 2.5 & 0.255$\cdot$10$^{-8}$  & -0.5 & \cite{liebe:84}\\
+    MPM87  & 6.50$\cdot$10$^{-8}$ & 7.5 & 0.206$\cdot$10$^{-8}$  & 0.0 & \cite{liebeandlayton:87}\\
+    MPM89  & 6.50$\cdot$10$^{-8}$ & 7.5 & 0.206$\cdot$10$^{-8}$  & 0.0 & \cite{liebe:89}\\
+    CP98   & 8.04$\cdot$10$^{-8}$ & 7.5 & 0.254$\cdot$10$^{-8}$ & 0.0 & \cite{cruzpol:98}\\ 
+    R98    & 7.80$\cdot$10$^{-8}$ & 4.5 & 0.236$\cdot$10$^{-8}$  & 0.0 & \cite{pwr:98}\\
+    \hline
+    MPM93$^*$ & 7.73$\cdot$10$^{-8}$ & 4.55 & 0.253$\cdot$10$^{-8}$  & 1.55 & \cite{liebeetal:93}\\
+    \hline
+ \end{tabular}
+\end{center}
+ \caption{Values of commonly used continuum parameter sets. The last line (MPM93$^*$)
+   represents an approximation of the pseudo-line continuum of MPM93
+   in the form of Eq.~\ref{eq:abs_cont}.}
+ \label{tab:wvcontparam}
+\end{table}
+
+
+
+
+\leveld{Non-resonant oxygen absorption}
+\label{leveld:o2cont}
+%--------------------------------------
+As pointed out by \citet{vv:87}, the standard theory for
+non-resonant absorption is that of Debye (see also \citet{townes:55}). 
+The Debye line shape is obtained from the VVW line shape function 
+by the limiting case $\nuk \rightarrow 0$.
+Both, \citet{liebeetal:93} and \citet{pwr:93} adopted the
+Debye theory for their models. The only difference is the formulation
+of the line broadening, where the influence of water vapor is treated 
+differently\footnote{In \citet{liebeetal:93} there is a mistake in the formula
+  for $\gamma$. According to this text $\gamma =
+  w\cdot\pda\cdot\Theta^{0.8}$ while in the source code of MPM93 
+  Equation~\ref{eq:abs_cont_pwr_o2_2} is implemented.}: 
+\begin{eqnarray}
+  \label{eq:abs_cont_pwr_o2}
+  \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
+             \frac{\nu^2 \cdot \gamma}{\nu^2+\gamma^2}\\
+  \label{eq:abs_cont_pwr_o2_1}
+  \gamma &=&  w \cdot (\pda \cdot \Theta^{0.8} + 1.1 \cdot \phzo \cdot
+  \Theta)\hspace*{5mm}\mbox{:~Rosenkranz}\\
+  \label{eq:abs_cont_pwr_o2_2}
+  \gamma &=&  w \cdot (\pda + \phzo) \cdot \Theta^{0.8}\hspace*{17.25mm}\mbox{:~MPM93}\\
+\nonumber
+\end{eqnarray}
+
+The values for the parameters are $C = 1.11\cdot 10^{-5}$ dB/km/(hPa\,GHz) and 
+$w = 5.6 \cdot 10^{-4}$ GHz/hPa, respectively. This absorption
+term is proportional to the collision frequency of a single oxygen molecule
+and thus proportional to the dry air pressure\footnote{The absorption
+  due to weakly bound complexes of $\oz$--$X$ with $X=\hzo,~\nz$ is 
+  treated separately and therefore not included in this Debye formula.}.
+
+
+
+
+\leveld{Non-resonant nitrogen absorption}
+\label{leveld:n2cont}
+%----------------------------------------
+Since molecular nitrogen has in its unperturbed state no electric or 
+magnetic dipole moment (but an electric quadrupole moment), it shows 
+no rotational spectral signature in the microwave region. Regardless 
+of this, nitrogen absorbs radiation in this frequency range due to 
+collision induced absorption (CIA). Far--infrared rototranslational
+band structures from free--free interactions give rise to far wing
+absorption below 1\,THz.
+
+Different parameterizations of this absorption term are
+available \citet{pwr:93,liebeetal:93,borysow:86}. Common to all these 
+models is the quadratic dependency on $\nz$ partial pressure which is 
+a direct consequence of the underlying CIA processes involved.
+The simplest model is given by \citet{pwr:93}, which uses 
+the same parameterization as for the water vapor continuum, described 
+in Equation~\ref{eq:abs_cont}:
+\begin{equation}
+  \label{eq:abs_cont_pwr_n2}
+    \alphac =  C \cdot \nu^2 \cdot \Theta^{3.55} \cdot \pnz^2
+\end{equation}
+with $C = 4.56\cdot 10^{-13}$ dB/(km\,hPa$^2$\,GHz$^2$). The
+laboratory data set for the determination of $C$ is manly from 
+\citet{dagg:75,dagg:78} around 70 and 140\,GHz, respectively.
+
+The MPM models has compared with Equation~\ref{eq:abs_cont_pwr_n2} 
+an additional frequency dependent term which leads to the 
+following expression
+\begin{eqnarray}
+  \label{eq:abs_cont_MPM89_n2}
+    \alphac &=& C' \cdot (1.0-1.2\cdot10^{-5}\cdot
+               \nu^{1.5}) \cdot \nu^2 \cdot \Theta^{3.5} \cdot \pnz^2
+               \hspace*{10mm}\mbox{MPM89}\\
 %
-%
-% ============================================================================
-%
-%
+  \label{eq:abs_cont_MPM93_n2}
+    \alphac &=& C' \cdot \frac{\nu^2}{(1.0+1.9\cdot10^{-5}\cdot \nu^{1.5})} 
+                \cdot \Theta^{3.5} \cdot \pnz^2
+                \hspace*{15mm}\mbox{MPM93}\\
+\nonumber
+\end{eqnarray}
+where the parameter is $C' = 2.55\cdot 10^{-13}$ dB/(km\,hPa$^2$\,GHz$^2$),
+based on data from \citet{stankevich:74}. 
+With respect to the WATS range ($\nu$\,$\approx$\,22\,GHz), 
+the additional frequency terms in brackets in 
+Equations~\ref{eq:abs_cont_MPM89_n2} and \ref{eq:abs_cont_MPM93_n2}
+are nearly unity and therefore not essential. Therefore all
+three parameterizations have the same frequency and temperature
+relationship, but the absolute magnitude is in the case of Rosenkranz
+80\,\% higher compared with the MPM models.
+
+The not yet in arts implemented model of Borysow and 
+Frommhold\footnote{{the source code of this
+  model can be downloaded from the home page of A. Borysow:}\\
+  http://www.astro.ku.dk/$\sim$aborysow/} is somewhat different since their 
+focus is mainly on the radiative transfer in the Titan's atmosphere
+with the infrared interferometer spectrometer, IRIS, onboard the
+Voyager Spacecraft. This detailed model is primarily
+designed to parameterize each of the rototranslational spectral lines 
+around 200\,cm$^{-1}$ ($\approx$ 6\,THz) accurately. The analyzed data
+set incorporate the data source used by the Rosenkranz but is largely 
+extended with measurements in the far--infrared.
+
+
+
+\leveld{Non-resonant carbon dioxide absorption}
+\label{leveld:co2cont}
+%----------------------------------------------
+\citet{pwr:93} gives a similar parameterization for the $\coz$-continuum 
+absorption term as for the nitrogen continuum, with 
+\begin{equation}
+  \label{eq:abs_cont_pwr_co2}
+    \alphac =   \cdot \nu^2 \cdot  \Theta^{3} \cdot \pcoz  \cdot 
+                  \left[ \pcoz \cdot C  \cdot \Theta^{2.08} +
+                    \pnz  \cdot C' \cdot \Theta^{1.7} \right]
+\end{equation}
+where the parameters equal $C = 3.23\cdot 10^{-11}$
+dB/(km\,hPa$^2$\,GHz$^2$) and $C' = 1.18\cdot 10^{-11}$
+dB/(km\,hPa$^2$\,GHz$^2$), respectively, determined from laboratory
+measurements of \citep{ho:66,dagg:75}.  Since the foreign term
+includes only nitrogen as perturber, one can get an estimate for dry
+air by replacing $\pnz$ by the dry air partial pressure in
+Equation~\ref{eq:abs_cont_pwr_co2}. Because nitrogen is usually a more
+efficient perturber than oxygen, this estimation can be regarded as an
+upper limit. Concerning the Earth's atmosphere, the foreign broadening
+term is more interesting since the carbon dioxide partial pressure is
+only approximately 0.04\,\% of the nitrogen partial pressure up to
+90\,km. Comparing the coefficients of $\cdo$ from the water vapor
+continuum (Table~\ref{tab:wvcontparam}) with $C'$ from
+Equation~\ref{eq:abs_cont_pwr_co2} leads to the conclusion that
+$\coz$ does not play a significant role for frequencies around 22\,GHz
+and can therefore be neglected.
+
+
+
+\levelc{ARTS Workspace Variables and Methods}
+\label{levelc:ArtsImplementationContinuum}
+% -------------------------------------------
+
+
+
+% ================================================================================
+% The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
+% ================================================================================
+
 \levelb{Complete Absorption Models}
 \label{levelb:CompAbsMod}
-% =======================
-%
+% =================================
 The MPM absorption model of Liebe and coworkers consists of modules for 
 $\hzo$, dry air ($\oz, \nz$), liquid water droplets, and ice particles 
 absorption. The Rosenkranz (R998) and Cruz-Pol et al. (CP98) absorption 
@@ -572,54 +829,21 @@ model & implemented modules \\
 \hline
 MPM87 & $\hzo$ \\
 MPM89 & $\hzo$ \\
-MPM93 & $\hzo$, $\oz$, $\nz$, liquid water droplets, ice particles \\
+MPM93 & $\hzo$, $\oz$, $\nz$, liquid water and ice particles \\
 R98   & $\hzo$, $\oz$, $\nz$ \\
-CP98  & $\hzo$, $\oz$ \\
+CP98  & $\hzo$ \\
 \hline
 \end{tabular}
 \end{center}
-%
-What follows in the sections below is a description of each module and how it is 
-called within ARTS.
 
-One remark has to be done before the description starts: becasue different 
-models use different units for their physical quantities,
-table \ref{table:si_units} lists some common units and their conversion into 
-ARTS units which are in most caes the SI units.
-\begin{table}[!ht]
-\begin{center}
-\begin{tabular}{r@{~}lcr@{~}lll}
-\hline
-$x$ & g/cm$^3$ & = & $y$ & kg/m$^3$ & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{3}$ \\
-$x$ & g/m$^3$  & = & $y$ & kg/m$^3$ & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{-3}$ \\
-$x$ & GHz      & = & $y$ & Hz       & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{9}$ \\
-$x$ & 1/GHz    & = & $y$ & 1/Hz     & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{-9}$ \\
-$x$ & hPa      & = & $y$ & Pa       & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{2}$ \\
-$x$ & 1/hPa    & = & $y$ & 1/Pa     & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{-2}$ \\
-$x$ & 1/cm     & = & $y$ & 1/m      & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{2}$ \\
-$x$ & 1/km     & = & $y$ & 1/m      & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{-3}$ \\
-$x$ & dB       & = & $y$ & Np       & $\Longrightarrow$ & $y = x~/~[10.0 \times \log_{10}{(e)}]$ \\
-$x$ & dB/km    & = & $y$ & 1/m      & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{-3}~/~[10.0 \times \log_{10}{(e)}]$\\
-$x$ & Np/km    & = & $y$ & 1/m      & $\Longrightarrow$ & $y = x \times 1.00\cdot 10^{-3}$ \\
-\hline
-\end{tabular}
-\caption{SI units are meter, kilogram, second, and Kelvin. 
-  This table gives a short conversion scheme to oter units
-  commonly used in atmospheric absorption calculations.}
-\label{table:si_units}
-\end{center}
-\end{table}
-%
-%
-% ============================================================================
-%
-%
+
+
+
 \levelc{Complete Water Vapor Models}
 \label{levelc:CompWatVapMod}
-% ==========================
-%
+% ==================================
 In ARTS several complete water vapor absorption models are implemented and 
-can easily be used.\\
+can easily be used.
 Implemented models are the versions MPM87 \cite{liebeandlayton:87}, MPM89 
 \cite{liebe:89}, and MPM93 \cite{liebeetal:93} of the Liebe absorption 
 model and additionally the models of Cruz-Pol et al. (CP98) \cite{cruzpol:98} 
@@ -638,18 +862,13 @@ described by a line absorption ($\alphal$) term and a continuum absorption
 The main differences between the different models is the line shape used for 
 $\alphal$ and the formulation of $\alphac$.
 
-\levelb{Continua and Complete Absorption Models}
-=======
 It has to be emphasized that, $\alphal$ and $\alphac$ of different
 models are not necessarily compatible and should therefore not be interchanged.
-%
-%
-% ============================================================================
-%
-% 
-\leveld{H2O-MPM87}
+
+
+\leveld{MPM87 Water Vapor Absorption Model}
 \label{leveld:mpm87}
-% ==================
+%------------------------------------------
 This version, which is described in \cite{liebeandlayton:87} and 
 follows the general line of the MPM model to devide the total water vapor absorption, 
 $\alphampmotot$, into a spectral line term, $\alphampmol$, and a 
@@ -658,10 +877,11 @@ continuum term not attributed to spectral lines, $\alphampmoc$:
   \label{eq:mpm87_abs}
   \alphampmotot = \alphampmol + \alphampmoc\hspace*{10mm}\mbox{dB/km}
 \end{equation}
-%
-%
+
+
+
 \levele{Water Vapor Line Absorption:}
-\label{levele:h2o_mpm87_lines}
+\label{levele:mpm87_h2olines}
 %-----------------------------------
 The MPM87 \cite{liebeandlayton:87} water vapor line catalog consists 
 of 30 lines from 22\,GHz up to 988\,GHz. The center frequencies and parameter 
@@ -777,10 +997,10 @@ early version of MPM81 \cite{liebe:81}.\\
 \hline
 % -----------------------------------------------------------------------  
 \end{longtable}
-%
-%
+
+
 \levele{Water Vapor Continuum Absorption:}
-\label{levele:h2o_mpm87_cont}
+\label{levele:mpm87_h2ocont}
 %----------------------------------------
 The water vapor continuum absorption coefficient in MPM87, $\alphampmoc$, 
 is determined from laboratory measurements at 137.8\,GHz by Liebe 
@@ -800,83 +1020,20 @@ approximation of the line absorption and is expressed as follows
 \end{equation}
 with the continuum parameter set $\cso$, $\cdo$, $\xs$, and $\xf$. 
 The determined values of the continuum parameters are:
-\begin{center}
-\begin{tabular}{ccrr}
-\hline
-\multicolumn{1}{c}{$\cso$} & \multicolumn{1}{c}{$\cdo$} & $\xs$ & $\xd$ \\
-\multicolumn{2}{c}{[10$^{-6}$(dB/km)/(hPa$\cdot$GHz)$^2$]} & [1] & [1] \\
-\hline
-6.496 & 0.206 & 10.5 & 3.0 \\
-\hline
-\end{tabular}
-\end{center}
-%
-%
-\levele{ARTS Workspace Variables and Methods for H2O-MPM87}
-% ---------------------------------------------------------
-\begin{center}
-\begin{tabular}{ll}
-\hline
-\multicolumn{2}{c}{ARTS tag definition}\\
-name      & comment \\
-H2O-MPM87 & MPM87 is defined as {\it isotope} of $\hzo$\\
-\hline
-\multicolumn{2}{c}{ARTS workspace variables}\\
-name & comment \\
- f\_mono & input frequency grid \\
- p\_abs  & input pressure grid \\
- t\_abs  & input temperature grid\\
- vmr    & input $\hzo$ volume mixing ratio\\
-\hline
-\multicolumn{2}{c}{ARTS methods}\\
-function           & method\\
-xsec\_continuum\_tag & called by absCalc \\
-\hline
-\multicolumn{2}{c}{calling tree}\\
-MPM87H2OAbsModel & $\Leftarrow$~xsec\_continuum\_tag~$\Leftarrow$~absCalc\\
-\end{tabular}
-\end{center}
 
-\levele{ARTS control file:}
-% -------------------------
+\begin{description}
+\item{$\cso$}   =  6.496\,$\cdot$\,10$^{-6}$~~(dB/km)~/~(hPa$\cdot$GHz)$^2$
+\item{$\xs$}    = 10.5
+\item{$\cdo$}   =  0.206\,$\cdot$\,10$^{-6}$~~(dB/km)~/~(hPa$\cdot$GHz)$^2$
+\item{$\xd$}    =  3.0
+\end{description}
 
-\begin{verbatim}
-#
-tgsDefine{
-      [ 
-        "N2",
-        "H2O-MPM87"
-      ] 
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-#
-# MPM87 H2O absorption model (lines + continuum)
-cont_descriptionAppend{
-    name       = "H2O-MPM87"
-    parameters = [ ]
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
 
-# Set the physical N2 profile from the N2 profile in vmrs:
-n2_absSet{}
-\end{verbatim}
-$\vdots$
-%
-%
-% ============================================================================
-%
-% 
-\leveld{H2O-MPM89}
+
+
+\leveld{MPM89 Water Vapor Absorption Model}
 \label{leveld:mpm89}
-% ==================
+%------------------------------------------
 %
 MPM89 is described in \cite{liebe:89} and follows the general line 
 of the MPM model to devide the total water vapor absorption, 
@@ -887,10 +1044,10 @@ term not attributed to spectral lines, $\alphampmmc$:
   \alphampmmtot = \alphampmml + \alphampmmc\hspace*{10mm}\mbox{dB/km}
 \end{equation}
 All the absorption coefficients are calculated in units of \mbox{dB/km}.
-%
-%
+
+
 \levele{Water Vapor Line Absorption:}
-\label{levele:h2o_mpm89_lines}
+\label{levele:mpm89_h2olines}
 %-----------------------------------
 The MPM89 water vapor line catalog consists of the same 30 lines 
 like MPM87 from 22\,GHz up to 988\,GHz. The center frequencies and parameter 
@@ -920,7 +1077,7 @@ is the standard Van Vleck-Weisskopf (VVW) function, given by
   \label{eq:mpm89:VVW}
   \shape & = & \left(\frac{\nu}{\nuk}\right) \cdot 
                \left[\frac{\gamk}{(\nu - \nuk)^2 + \gamk^2} + 
-                     \frac{\gamk}{(\nu + \nuk)^2 + \gamk^2}\right]\\
+                     \frac{\gamk}{(\nu + \nuk)^2 + \gamk^2}\right]
 \end{eqnarray}
 where the pressure broadened line width, $\gamk$, is calculated as
 \begin{equation}
@@ -1004,92 +1161,34 @@ $\bsk$ in the case of MPM89 whereas in MPM87 a single parameter
 % -----------------------------------------------------------------------  
 \end{longtable}
 
+
 \levele{Water Vapor Continuum Absorption:}
-\label{levele:h2o_mpm89_cont}
+\label{levele:mpm89_h2ocont}
 %----------------------------------------
 The continuum absorption coefficient in MPM89, $\alphampmmc$, 
-is the same as in MPM87 (see Sec. \ref{levele:h2o_mpm87_cont} for 
-details):\\
+is the same as in MPM87 (see Sec. \ref{levele:mpm87_h2ocont} for 
+details):
 \begin{equation} 
   \label{eq:mpm89:cont}
   \alphampmmc = \nu^2 \cdot \phzo \cdot 
                 (\cso \cdot \phzo \cdot \Theta^{\xs} + 
                  \cdo \cdot \pda  \cdot \Theta^{\xf}),
 \end{equation}
-with\\
-\begin{tabular}{lcl}
-$\cso$   & = & 6.496$\cdot$10$^{-6}$(dB/km)/(hPa$\cdot$GHz)$^2$\\
-$\xs$    & = & 10.5\\
-$\cdo$   & = & 0.206$\cdot$10$^{-6}$(dB/km)/(hPa$\cdot$GHz)$^2$\\
-$\xd$    & = & 3.0\\
-\end{tabular}
-%
-%
-\levele{ARTS Workspace Variables and Methods for H2O-MPM89}
-% ---------------------------------------------------------
-\begin{center}
-\begin{tabular}{ll}
-\hline
-\multicolumn{2}{c}{ARTS tag definition}\\
-name      & comment \\
-H2O-MPM89 & MPM89 is defined as {\it isotope} of $\hzo$\\
-\hline
-\multicolumn{2}{c}{ARTS workspace variables}\\
-name & comment \\
- f\_mono & input frequency grid \\
- p\_abs  & input pressure grid \\
- t\_abs  & input temperature grid\\
- vmr    & input $\hzo$ volume mixing ratio\\
-\hline
-\multicolumn{2}{c}{ARTS methods}\\
-function           & method\\
-xsec\_continuum\_tag & called by absCalc \\
-\hline
-\multicolumn{2}{c}{calling tree}\\
-MPM89H2OAbsModel & $\Leftarrow$~xsec\_continuum\_tag~$\Leftarrow$~absCalc\\
-\end{tabular}
-\end{center}
+with
+\begin{description}
+\item{$\cso$}   =  6.496\,$\cdot$\,10$^{-6}$~~(dB/km)~/~(hPa$\cdot$GHz)$^2$
+\item{$\xs$}    = 10.5
+\item{$\cdo$}   =  0.206\,$\cdot$\,10$^{-6}$~~(dB/km)~/~(hPa$\cdot$GHz)$^2$
+\item{$\xd$}    =  3.0
+\end{description}
 
-\levele{ARTS control file:}
-% -------------------------
 
-\begin{verbatim}
-#
-tgsDefine{
-      [ 
-        "N2",
-        "H2O-MPM89"
-      ] 
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-#
-# MPM89 H2O absorption model (lines + continuum)
-cont_descriptionAppend{
-    name       = "H2O-MPM89"
-    parameters = [ ]
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
 
-# Set the physical N2 profile from the N2 profile in vmrs:
-n2_absSet{}
-\end{verbatim}
-$\vdots$
-%
-%
-% ============================================================================
-%
-% 
-\leveld{H2O-MPM93}
+
+
+\leveld{MPM93 Water Vapor Absorption Model}
 \label{leveld:mpm93}
-% ==================
+%----------------------------------------------
 This version, which is described in \cite{liebeandlayton:87} and 
 follows the general line of the MPM model to devide the total 
 water vapor absorption, $\alphampmntot$, into a spectral line 
@@ -1105,17 +1204,14 @@ fundamental change in the parameterization of the water vapor
 continuum in respect to all older versions of MPM, which makes it 
 quite complicate to compare the different versions, especially to 
 distinguish a self- and foreign broadening term in the continuum.
-%
-%
+
+
+
 \levele{Water Vapor Line Absorption:}
-\label{levele:h2o_mpm87_lines}
+\label{levele:mpm93_h2olines}
 %-----------------------------------
 The water vapor line spectrum of MPM93 \cite{liebeetal:93} 
 consists of 34 lines below 1\,THz (four more than in MPM89 and MPM87). 
-
-\levele{Water Vapor Line Absorption:}
-\label{levele:h2o_mpm93_lines}
-%-----------------------------------
 To describe the MPM93 water vapor line absorption, a set of six parameters 
 ($\bek$ and $\bdk$) per line are used: two for the line strength and 
 four for the line width. The total line absorption coefficient 
@@ -1159,6 +1255,7 @@ same as in MPM89. The main difference between MPM93 and MPM89
 concerning the water vapor line absorption is the updated line catalog.
 %
 %
+\begin{landscape}
 \begin{longtable}{rrrrrrrrrr}
  K & K & K & K & K & K & K & K & K & K \kill
 %
@@ -1241,10 +1338,12 @@ concerning the water vapor line absorption is the updated line catalog.
  & 1780.000000 & 2230.00000 & 0.952 & 17.620 & 19.021 & 30.50 & 28.254 & 2.00 & 5.00 \\
 % -----------------------------------------------------------------------  
 \end{longtable}
-%
-%
+\end{landscape}
+
+
+
 \levele{The MPM93 Continuum Parameterization:}
-\label{levele:mpm93:contabs}
+\label{levele:mpm93:h2ocont}
 %-----------------------------------------------
 Liebe used measured total absorption coefficient data to fit the 
 parameters of pseudo water vapor line ($\beks$--$\bsks$). 
@@ -1296,12 +1395,14 @@ simple form
 \end{eqnarray}
 one can rearrange the pseudo-line continuum to fit Eq.~(\ref{eq:mpm87:cont})
 (denoted by MPM93$^*$). The deduced continuum parameter set is:
+\begin{table}
 \begin{tabular}{lcl}
  $\cso$  & = & 7.73$\cdot$10$^{-8}$~dB/km/hPa$^2$~GHz$^2$\\
  $\xs$   & = & 7.55\\
  $\cdo$  & = & 0.253$\cdot$10$^{-8}$~dB/km/hPa$^2$~GHz$^2$\\ 
  $\xd$   & = & 4.55 \\
 \end{tabular}
+\end{table}
 The MPM93$^*$ continuum parameters $\cso$ and $\cdo$ are 20\,\% and 
 15\,\% larger, respectively, than in the case of MPM87/MPM89. 
 Compared with the R98 model, $\cso$ is 1\,\% smaller and
@@ -1334,201 +1435,111 @@ $\gamc$(300\,K) &  5.4\,GHz & 23.0\,GHz &  28.4\,GHz\\
 \label{tab:mpm_psl_broad}
 \end{center}
 \end{table} 
-%
-%
-\levele{ARTS Workspace Variables and Methods for H2O-MPM93}
-% ---------------------------------------------------------
-\begin{center}
-\begin{tabular}{ll}
-\hline
-\multicolumn{2}{c}{ARTS tag definition}\\
-name      & comment \\
-H2O-MPM93 & MPM93 is defined as {\it isotope} of $\hzo$\\
-\hline
-\multicolumn{2}{c}{ARTS workspace variables}\\
-name & comment \\
- f\_mono & input frequency grid \\
- p\_abs  & input pressure grid \\
- t\_abs  & input temperature grid\\
- vmr    & input $\hzo$ volume mixing ratio\\
-\hline
-\multicolumn{2}{c}{ARTS methods}\\
-function           & method\\
-xsec\_continuum\_tag & called by absCalc \\
-\hline
-\multicolumn{2}{c}{calling tree}\\
-MPM93H2OAbsModel & $\Leftarrow$~xsec\_continuum\_tag~$\Leftarrow$~absCalc\\
-\end{tabular}
-\end{center}
 
-\levele{ARTS control file:}
-% -------------------------
 
-\begin{verbatim}
-#
-tgsDefine{
-      [ 
-        "N2",
-        "H2O-MPM93"
-      ] 
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-#
-# MPM93 H2O absorption model (lines + continuum)
-cont_descriptionAppend{
-    name       = "H2O-MPM93"
-    parameters = [ ]
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
 
-# Set the physical N2 profile from the N2 profile in vmrs:
-n2_absSet{}
-\end{verbatim}
-$\vdots$
-%
-%
-% ============================================================================
-%
-% 
-\leveld{H2O-CP98}
+
+
+\leveld{CP98 Water Vapor Absorption Model}
 \label{leveld:cp98}
-% ================
-%
+%---------------------------------------------
+
 \levele{Line Absorption}
-\label{levele:cp98_line}
-%-----------------------
-The water vapor absorption module of CP98 \cite{cruzpol:98} is based on 
-MPM87 with the main difference that the line catalog consists of only a 
-single line at $\nu_{\sf o}=$\,22\,GHz. 
+\label{levele:cp98_h2oline}
+%--------------------------
+component \citep{cruzpol:98} for the water vapor line absorption 
+is based on MPM87 with the main difference that the 
+line catalog consists of only a single line at $\nu_{\sf o}=$\,22\,GHz. 
 The contributions from the other lines is put into the water vapor 
-continuum part. The line absorption (in units of Neper/km) is therefore 
-very quickly calculated according to the formula
+continuum module. The line absorption is therefore very quickly 
+calculated (in units of Np/km) according to the formula
 \begin{eqnarray}
   \label{eq:cp98:lineabs}
-  \alphacpl &=& 0.0419 \cdot \nu^2 \cdot T_L \cdot T_S\hspace*{10mm}\mbox{Np/km}\\
+  \alphacpl &=& 0.0419 \cdot \intencp \cdot \shape \\
   \mbox{with} & & \nonumber\\
-  T_L       &=& 0.0109 \cdot C_L \cdot \phzo \cdot \Theta^{3.5} 
-                \cdot \exp{(2.143\cdot[1-\Theta])}\nonumber\\
-  T_S       &=& \frac{1}{\nu_{\sf o}} \cdot 
-                \left[\frac{\gamma}{(\nu-\nu_{\sf o})^2+\gamma^2}~+~
-                \frac{\gamma}{(\nu+\nu_{\sf o})^2+\gamma^2}\right]\nonumber\\
-  \gamma    &=& 0.002784 \cdot C_W \cdot (\pda \cdot \Theta^{0.6}+ 
-                4.8 \cdot \phzo \cdot \Theta^{1.1}) \nonumber\\
+  \intencp    &=& 0.0109 \cdot C_L \cdot \phzo \cdot \nuo \cdot \Theta^{3.5} 
+             \cdot \exp{(2.143\cdot[1-\Theta])}\nonumber\\
+%
+  \gamma &=& 0.002784 \cdot C_W \cdot (\pda \cdot \Theta^{0.6}+ 
+             4.8 \cdot \phzo \cdot \Theta^{1.1}) \nonumber\\
 \end{eqnarray}
 where $\phzo$ and $\pda$ are the partial pressure of water vapor and dry
-air in units of hPa, respectively. The numbers correspond to the line
-parameters form MPM87 for this special line and the factors  $C_L$ and $C_W$
-are adjustable scaling factors to match the model with the
-measurements. Best agreement is obtained with 
-$C_L=$\,1.0639$\pm$0.016 and $C_W=$\,1.0658$\pm$0.0096. The
-correlation between these two scaling factors was found to be
-negligible.
+air in units of hPa, respectively and the Van Vleck-Weisskopf line
+shape, $\shape$. The numbers correspond to the line
+parameters form MPM87 for this special line and the factors  
+$C_L$ and $C_W$ are adjustable scaling factors to match the model with the
+measurements. Setting the scaling factors to $C_L$=1.00 and $C_W$=1.00 
+leads to the same results as for MPM87. According to the parameter 
+estimation of Cruz--Pol et al. best agreement between 
+data and model is obtained with $C_L=$\,1.0639$\pm$0.016 and 
+$C_W=$\,1.0658$\pm$0.0096. The correlation between these two scaling 
+factors was found to be negligible, as can be seen from 
+Table \ref{tab:cp_orr}.
+
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{lllll}
+\hline
+            & $C_L$ & $C_W$ & $C_C$ & $C_X$ \\
+\hline
+value       & 1.0639 & 1.0658 & 1.2369 & 1.0739\\
+std. dev.   & 0.016  & 0.0096 & 0.155  & 0.252\\
+\hline
+correlation & &&&\\
+$C_L$       & 1      & -0.085 & 0.045  & -0.048\\
+$C_W$       & -0.085 & 1      & -0.513 &  0.485\\
+$C_C$       & 0.045  & -0.513 & 1      & -0.989\\
+$C_X$       & -0.048 & 0.485  & -0.989 & 1\\
+\hline
+\end{tabular}
+\end{center}
+\caption{Scaling parameter values with standard deviation and 
+  correlation coefficients according to \citep{cruzpol:98}.
+  The scaling parameters are $C_L$:22\,GHz line strength, 
+  $C_W$:22\,GHz line width , $C_C$:$\hzo$-continuum, and 
+  $C_X$:$\oz$-absorption. $C_X$ scales the entire oxygen absorption, 
+  the continuum as well as the line absorption. The Cruz-Pol et al.
+  model uses the \cite{pwr:93} oxygen absorption model.}
+\label{tab:cp_orr}
+\end{table}
 
 The main reason why the Cruz-Pol model (CP98) considers only one line
 lies in the fact that CP98 is especially designed for the data analysis
-in the 22\,GHz region. The determination of the scaling factors was therefore
+in the 20-31.4\,GHz region. The determination of the scaling factors was 
 performed with ground based radiometer data in the frequency range of
-22 to 32 \,GHz from different locations\footnote{The data were
-  recorded at San Diego, California (11. December 1991) and West Pal
-  Beach, Florida (8.-21. March 1992)} in the USA.
-%
+from different locations\footnote{The data were recorded at San Diego, 
+California (11. December 1991) and West Palm Beach, Florida 
+(8.-21. March 1992)} in the USA.
+
+
 \levele{Water Vapor Continuum Absorption:}
-\label{levele:cp98_cont}
+\label{levele:cp98_h2ocont}
 %-----------------------------------------
-The continuum absorption coefficient in CP98, $\alphampmmc$, 
-is the same as in MPM87/MPM89 (see Sec. \ref{levele:h2o_mpm87_cont} for 
-details) but multiplied with a constant factor of $C_c$=1.2369$\pm$0.155 determined 
-from the above stated measurements:\\
-\begin{eqnarray} 
-  \label{eq:cp98:cont}
-  \alphacpc &=& \nu^2 \cdot \phzo \cdot 
-                (\cso \cdot \phzo \cdot \Theta^{\xs} + 
-                 \cdo \cdot \pda  \cdot \Theta^{\xf})\\
-            &=& C_c \cdot \alphampmoc
-\nonumber
-\end{eqnarray}
-with\\
+Resonant line absorption models for the microwave region using
+standard line shape functions systematically underestimate the total
+amount of absorption in the far wing regions of the strong water vapor
+and oxygen lines (so called window regions). This fact is well known
+from several comparisons of model calculations with field and
+laboratory measurements. Different roads have been followed to close
+this discrepancy. For purposes of atmospheric radiative transfer
+models, a simple and fast empirical parameterization of this excess
+absorption is commonly used. Since this excess absorption is a smooth
+and slowly varying function of the frequency, it is commonly called
+continuum absorption.
+
 \begin{tabular}{lcl}
 $\cso$   & = & 8.04$\cdot$10$^{-8}$(dB/km)/(hPa$\cdot$GHz)$^2$\\
 $\xs$    & = & 10.5\\
 $\cdo$   & = & 0.254$\cdot$10$^{-8}$(dB/km)/(hPa$\cdot$GHz)$^2$\\
 $\xd$    & = & 3.0\\
 \end{tabular}
-%
-%
-\levele{ARTS Workspace Variables and Methods for H2O-MPM93}
-% ---------------------------------------------------------
-\begin{center}
-\begin{tabular}{ll}
-\hline
-\multicolumn{2}{c}{ARTS tag definition}\\
-name      & comment \\
-H2O-MPM93 & MPM93 is defined as {\it isotope} of $\hzo$\\
-\hline
-\multicolumn{2}{c}{ARTS workspace variables}\\
-name & comment \\
- f\_mono & input frequency grid \\
- p\_abs  & input pressure grid \\
- t\_abs  & input temperature grid\\
- vmr    & input $\hzo$ volume mixing ratio\\
-\hline
-\multicolumn{2}{c}{ARTS methods}\\
-function           & method\\
-xsec\_continuum\_tag & called by absCalc \\
-\hline
-\multicolumn{2}{c}{calling tree}\\
-MPM93H2OAbsModel & $\Leftarrow$~xsec\_continuum\_tag~$\Leftarrow$~absCalc\\
-\end{tabular}
-\end{center}
 
-\levele{ARTS control file:}
-% -------------------------
 
-\begin{verbatim}
-#
-tgsDefine{
-      [ 
-        "N2",
-        "H2O-MPM93"
-      ] 
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-#
-# MPM93 H2O absorption model (lines + continuum)
-cont_descriptionAppend{
-    name       = "H2O-MPM93"
-    parameters = [ ]
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
 
-# Set the physical N2 profile from the N2 profile in vmrs:
-n2_absSet{}
-\end{verbatim}
-$\vdots$
-%
-%
-% ============================================================================
-%
-% 
-\leveld{H2O-PWR98}
-\label{leveld:pwr98}
-% ==================
+
+\leveld{PWR98 Water Vapor Absorption Model}
+\label{leveld:pwr98_h2o}
+%------------------------------------------
 The water vapor continuum formulation of \citet{pwr:98} is a re-investigation 
 of the existing models MPM87/MPM89, MPM93, and CKD\_2.1 especially for 
 the frequency region below 1-1000\,GHz. in the context of the available
@@ -1544,28 +1555,30 @@ However, some important differences exist compared with MPM89:
       cutoff and MPM89 without cutoff
 \end{itemize}
 
+
 \levele{Water Vapor Line Absorption:}
-\label{levele:pwr98_line}
-%------------------------
+\label{levele:pwr98_h2oline}
+%------------------------------------
 The local line absorption is defined as 
 \begin{eqnarray} 
- \label{eq:r98absline}
+ \label{eq:pwr98absline}
  \alphapwrl &=& N_{H_2O} \cdot \sum_k \inten \cdot \shapec \nonumber\\
             &=& N_{H_2O} \cdot \sum_k \inten \cdot 
-                \left [\shapefp + \shapefm \right]\hspace*{10mm}\mbox{Np/km}
+                \left (\displaystyle{\frac{\nu}{\nuk}}\right )^2  \cdot 
+                \left [\shapefp + \shapefm \right]~~\mbox{Np/km}
 \end{eqnarray}
 where $N_{H_2O}$ is the number density of water molecules, $\nu$ the
 frequency and $S$ the line intensity, calculated from the HITRAN92
 data base \citet{rothman:92}. Considered for this re-investigation are 
 15 lines with a frequency lower than 1\,THz as listed in 
-Table~\ref{tab:r98linelist}.
+Table~\ref{tab:pwr98linelist}.
 
 The line shape function $\shapec$ has a cutoff frequency, $\nucut$,
 and a baseline subtraction similar to the CKD model \cite{clough:89}.
 The introduction of a cutoff frequency has two advantages: (1) the
 cutoff avoids applying the line shape to distant frequencies where the 
 line form is theoretically not well understood and (2) the cutoff also
-establishes a limit to the summation in Eq.~(\ref{eq:r98absline}) where lines
+establishes a limit to the summation in Eq.~(\ref{eq:pwr98absline}) where lines
 far away from the cutoff limit do not contribute to the sum.  
 The Rosenkranz formulation uses the same value for
 the cutoff frequency as the CKD model:
@@ -1576,13 +1589,12 @@ the cutoff frequency as the CKD model:
 %
 The explicit mathematical form of the line shape function is defined 
 in such a way that in the limit $\nucut \rightarrow \infty$ the 
-combination of Eq.~(\ref{eq:r98absline}) with the line shape function would 
+combination of Eq.~(\ref{eq:pwr98absline}) with the line shape function would 
 be equivalent to a Van Vleck--Weisskopf \citep{vanvleck:45} line shape: 
 \begin{equation}
- \label{eq:r98lineshape}
+ \label{eq:pwr98lineshape}
  \hspace*{-5mm}\shapefpm = 
    \left \{ \begin{array}{r@{\quad:\quad}l} 
-   \left (\displaystyle{\frac{\nu}{\nuk}}\right )^2 
    \displaystyle{\frac{\gamk}{\pi}} 
    \left \{ \displaystyle{\frac{1}{(\nu \mp \nuk)^2 + \gamk^2}} - 
    \displaystyle{\frac{1}{\nucut^2 + \gamk^2}} \right \}
@@ -1593,13 +1605,13 @@ be equivalent to a Van Vleck--Weisskopf \citep{vanvleck:45} line shape:
 $\nuk$ is the line center frequency and $\gamk$ the line
 half width, which is calculated according to 
 \begin{equation}
- \label{eq:r98gamma}
+ \label{eq:pwr98gamma}
  \gamk = \ws \cdot \phzo \cdot \Theta^{\xs} + 
          \wf \cdot \pda  \cdot \Theta^{\xf}\hspace*{10mm}\mbox{GHz}
 \end{equation}
 with $\phzo$ and $\pda$ as the partial pressure of water vapor and of 
 dry air, respectively. The line depending parameters $\ws$, $\xs$, 
-$\wf$, and $\xf$ are listed in Table~\ref{tab:r98linelist} and the 
+$\wf$, and $\xf$ are listed in Table~\ref{tab:pwr98linelist} and the 
 dimensionless parameter $\Theta$ is defined as $\Theta$\,=\,300\,K/$T$.
 
 Because of the structural similarity to MPM89, the line broadening 
@@ -1634,29 +1646,30 @@ are significantly different).
 \end{center}
   \caption{Line parameters of the Rosenkranz absorption model (R98) 
   (values taken from \citet{pwr:98}).}
-\label{tab:r98linelist}
+\label{tab:pwr98linelist}
 \end{table}
-%
-%
+
+
+
 \levele{Water Vapor Continuum Absorption:}
-\label{levele:pwr98_cont}
-%----------------------------
+\label{levele:pwr98_h2ocont}
+%-----------------------------------------
 The continuum absorption in R98 has the same functional dependence on frequency,
-presure, and temperature like in MPM87/MPM89 (see Sec. \ref{levele:h2o_mpm87_cont}
+presure, and temperature like in MPM87/MPM89 (see Sec. \ref{levele:mpm87_h2ocont}
 for details):
 \begin{equation} 
-  \label{eq:r98:cont}
+  \label{eq:pwr98:abscont}
   \alphapwrc = \nu^2 \cdot \phzo \cdot 
                (\cso \cdot \phzo \cdot \Theta^{\xs} + 
                 \cdo \cdot \pda  \cdot \Theta^{\xf})
 \end{equation}
-with\\
-\begin{tabular}{lcl}
-$\cso$   & = & 7.80$\cdot$10$^{-8}$(dB/km)/(hPa$\cdot$GHz)$^2$\\
-$\xs$    & = & 7.5\\
-$\cdo$   & = & 0.236$\cdot$10$^{-8}$(dB/km)/(hPa$\cdot$GHz)$^2$\\
-$\xd$    & = & 3.0\\
-\end{tabular}
+with
+\begin{description}
+\item{$\cso$}   = 7.80\,$\cdot$\,10$^{-8}$~~(dB/km)~/~(hPa$\cdot$GHz)$^2$
+\item{$\xs$}    = 7.5
+\item{$\cdo$}   =  0.236\,$\cdot$\,10$^{-8}$~~(dB/km)~/~(hPa$\cdot$GHz)$^2$
+\item{$\xd$}    = 3.0
+\end{description}
 The main difference to the MPM versions are the values of these 
 parameters, since Rosenkranz used additional data to fit his set of 
 parameters. A second point is the cutoff in the line shape of the line 
@@ -1665,259 +1678,13 @@ in the window regions, the continuum absorption tends to compensate this
 decrease to get the same total absorption as withouot cutoff. This effects 
 mainly the parameters $\cso$ and $\cdo$ but has also an influence in the 
 temperature dependence and therefore on $\xs$ and $\xd$.
-%
-%
-\levele{ARTS Workspace Variables and Methods for H2O-R98}
-% ---------------------------------------------------------
-\begin{center}
-\begin{tabular}{ll}
-\hline
-\multicolumn{2}{c}{ARTS tag definition}\\
-name      & comment \\
-H2O-MPM93 & MPM93 is defined as {\it isotope} of $\hzo$\\
-\hline
-\multicolumn{2}{c}{ARTS workspace variables}\\
-name & comment \\
- f\_mono & input frequency grid \\
- p\_abs  & input pressure grid \\
- t\_abs  & input temperature grid\\
- vmr    & input $\hzo$ volume mixing ratio\\
-\hline
-\multicolumn{2}{c}{ARTS methods}\\
-function           & method\\
-xsec\_continuum\_tag & called by absCalc \\
-\hline
-\multicolumn{2}{c}{calling tree}\\
-MPM93H2OAbsModel & $\Leftarrow$~xsec\_continuum\_tag~$\Leftarrow$~absCalc\\
-\end{tabular}
-\end{center}
 
-\levele{ARTS control file:}
-% -------------------------
 
-\begin{verbatim}
-#
-tgsDefine{
-      [ 
-        "N2",
-        "H2O-MPM93"
-      ] 
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-#
-# MPM93 H2O absorption model (lines + continuum)
-cont_descriptionAppend{
-    name       = "H2O-MPM93"
-    parameters = [ ]
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
 
-# Set the physical N2 profile from the N2 profile in vmrs:
-n2_absSet{}
-\end{verbatim}
-$\vdots$
-%
-%
-% ============================================================================
-%
-%
-\leveld{Suspended Cloud Liquid Water and Ice Particles}
-\label{subsec:lipartabs}
-%------------------------------------------------------
-% 
-The MPM93 model provides beside the absorption model of air also 
-an absorption model for suspended liquid water droplets and ice 
-particles \cite{liebe:89b,liebeetal:91,hufford:91,liebeetal:93}. 
-The model is applicable for the Rayleigh regime, for which the
-relation  
-\begin{equation}
- \label{eq:MPM93ralrel}
- r < \frac{\lambda}{20}
-\end{equation} 
-between the radius of the suspended particle, $r$, and the 
-wavelength, $\lambda$ holds (See Ref. \cite{brussaard:95}, 
-page 81 for details). For example the particle radius must be 
-smaler than 750\,$\mu$m for a frequenxy of 20\,GHz and smaler than 
-23\,$\mu$m for $\nu$=650\,GHz. Considering Salby \cite{salby:96}, 
-this criterium is for $\nu$=20\,GHz nearly for every aerosol and 
-cloud class -- except cirrus -- satisfied. But one has to bear in mind
-that these values have a wide range of variability, e.~g. Salby
-state for the mean particle radius for stratus, cumulus, and nimbus
-clouds a range of 10-1000\,$\mu$m and that the particle radius
-distribution is highly asymmetric.
 
-With respect to the imaginary part of the complex refractivity, a 
-unified parameterization of liquid and ice particle absorption 
-is formulated:
-\begin{eqnarray}
-  \alpha & = & 0.1820 \cdot \nu \cdot\imn\hspace*{20mm}
-               \mbox{dB/km}\\
-    \imn & = & \frac{3}{2} \cdot \frac{w}{m} \cdot 
-               \left[\frac{3\cdot
-                   \ime}{(\ree+2)^2~+~(\ime)^2}\right]\nonumber\\
-  \nonumber
-\end{eqnarray}
-%
-The difference between liquid water droplets and ice particles is
-put in the expressions for the complex permittivities
-(i. e. the relative dielectric constant) which depend on frequency and
-temperature:\\
-$\bullet$ complex permittivity for suspended liquid water droplets:
-\begin{eqnarray}
-  \ree       & = & \epsilon_o~-~\nu^2\cdot
-                   \left[\frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
-                   \frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_1^2}\right]\nonumber\\
-%
-  \ime       & = & \nu\cdot\left[\gamma_1\cdot
-                   \frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
-                   \gamma_2\cdot\frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_1^2}\right]\nonumber\\
-%
-  \epsilon_o & = & 77.66 + 103.3\cdot(\Theta-1)\nonumber\\
-  \epsilon_1 & = & 0.0671\cdot\epsilon_o\nonumber\\
-  \epsilon_2 & = & 3.52\nonumber\\
-%
-  \gamma_1   & = & 20.20 - 146\cdot(\Theta-1) + 316\cdot(\Theta-1)^2\,\mbox{GHz}\nonumber\\
-  \gamma_2   & = & 39.8\cdot\gamma_1\,\mbox{GHz}\nonumber\\
-%
-  \Theta     & = & 300\,\mbox{K}~/~T\nonumber\\
-%
-  w          & = & 0.0~\mbox{to}~5.0~\mbox{g}/\mbox{m}^3 \nonumber\\
-  m          & = & 1.0~\mbox{g}/\mbox{cm}^3\nonumber\\
-  \nonumber
-\end{eqnarray}
-$\bullet$ complex permittivity for ice crystals the parameterization:
-\begin{eqnarray}
-  \ree    & = & 3.15\nonumber\\
-%
-  \ime    & = & \frac{a}{\nu}~+~b\cdot\nu\nonumber\\
-%
-  a       & = & (\Theta-0.171)\cdot\exp{(17.0-22.1\cdot\Theta)}\nonumber\\
-  b       & = & \left[\left(\frac{0.233}{1-0.993/\Theta}\right)^2 + 
-                \frac{6.33}{\Theta} - 1.31\right]\cdot10^{-5}\nonumber\\
-%
-  \Theta  & = & 300\,\mbox{K}~/~T\nonumber\\
-%
-  w       & = & 0.0~\mbox{to}~1.0~\mbox{g}/\mbox{m}^3 \nonumber\\
-  m       & = & 0.916~\mbox{g}/\mbox{cm}^3\nonumber\\
-  \nonumber
-\end{eqnarray}
-%
-The absorption is direct proportional to the liquid or ice water
-content $w$ and inversely proportional the the density of a single
-particle $m$. Like the mean particle radius, the liquid and ice water
-content have a high variability. This variability is also reflected in
-the literature, Table \ref{tab:lwc} summarizes some values without the
-aim of completeness.
-\begin{table}[!htb]
-\begin{center}
-\begin{tabular}{lllll}
-\hline
-              &       & \multicolumn{2}{c}{water content} & \\
- cloud        & class & \multicolumn{1}{c}{liquid} & \multicolumn{1}{c}{ice} & reference \\
-              &       & \multicolumn{1}{c}{(g/m$^3$)} & \multicolumn{1}{c}{(g/m$^3$)} & \\
-\hline
- stratus      & St    & 0.15         &    & Salby \cite{salby:96}\\
-              &       & 0.09--0.9    &    & Seinfeld and Pandis \cite{seinfeld:98}\\
-              &       & 0.28--0.3    &    & Hess et al. \cite{hess:98}\\
-              &       & 0.29         &    & Kneizys et al. \cite{abreu:96}\\
- nimbostratus & Ns    & 0.4          &    & Salby \cite{salby:96}\\
-              &       & 0.65         &    & Kneizys et al. \cite{abreu:96}\\
- altostratus  & As    & $<$0.01--0.2 &    & Seinfeld and Pandis \cite{seinfeld:98}\\
-              &       & 0.41         &    & Kneizys et al. \cite{abreu:96}\\
- stratocumulus& Sc    & 0.3          &    & Salby \cite{salby:96}\\
-              &       & $<$0.1--0.7  &    & Seinfeld and Pandis \cite{seinfeld:98}\\
-              &       & 0.15         &    & Kneizys et al. \cite{abreu:96}\\
- cumulus      & Cu    & 0.5          &    & Salby \cite{salby:96}\\
-              &       & 0.26--0.44   &    & Hess et al. \cite{hess:98}\\
-              &       & 1.00         &    & Kneizys et al. \cite{abreu:96}\\
- cumulonimbus & Cb    & 2.5          &    & Salby \cite{salby:96}\\
- Cirrus       & Ci    &              & 0.025 & Salby \cite{salby:96}\\
-              &       &              & 0.00193--0.0260 & Hess et al. \cite{hess:98}\\
-              &       &              & 3.128$\cdot$10$^{-4}$--0.06405 & Kneizys et al. \cite{abreu:96}\\
- trop. Cirrus & Cs    &              & 0.2   & Salby \cite{salby:96}\\
-\hline
-\end{tabular}
-\caption{Stated values for the liquid and ice water content of several 
-  cloud classes from different sources.}
-\label{tab:lwc}
-\end{center}
-\end{table}
-%
-%
-%
-\levele{ARTS Workspace Variables and Methods for H2O-MPM93}
-% ---------------------------------------------------------
-\begin{center}
-\begin{tabular}{ll}
-\hline
-\multicolumn{2}{c}{ARTS tag definition}\\
-name      & comment \\
-H2O-MPM93 & MPM93 is defined as {\it isotope} of $\hzo$\\
-\hline
-\multicolumn{2}{c}{ARTS workspace variables}\\
-name & comment \\
- f\_mono & input frequency grid \\
- p\_abs  & input pressure grid \\
- t\_abs  & input temperature grid\\
- vmr    & input $\hzo$ volume mixing ratio\\
-\hline
-\multicolumn{2}{c}{ARTS methods}\\
-function           & method\\
-xsec\_continuum\_tag & called by absCalc \\
-\hline
-\multicolumn{2}{c}{calling tree}\\
-MPM93H2OAbsModel & $\Leftarrow$~xsec\_continuum\_tag~$\Leftarrow$~absCalc\\
-\end{tabular}
-\end{center}
-
-\levele{ARTS control file:}
-% -------------------------
-
-\begin{verbatim}
-#
-tgsDefine{
-      [ 
-        "N2",
-        "H2O-MPM93"
-      ] 
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-#
-# MPM93 H2O absorption model (lines + continuum)
-cont_descriptionAppend{
-    name       = "H2O-MPM93"
-    parameters = [ ]
-}
-#
-\end{verbatim}
-$\vdots$
-\begin{verbatim}
-# Set the physical H2O profile from the H2O profile in vmrs:
-h2o_absSet{}
-
-# Set the physical N2 profile from the N2 profile in vmrs:
-n2_absSet{}
-\end{verbatim}
-$\vdots$
-%
-%
-% ============================================================================
-%
-%
 \levelc{Complete Oxygen Models}
 \label{levelc:02_models}
-% =====================
+%==============================
 %
 Since the Maxwell equations are symmetric in the electric and
 magnetic fields, electric as well as magnetic dipole transitions 
@@ -1941,27 +1708,25 @@ continuum absorption ($\alphac$):
 \end{equation}
 It has to be emphasized that, $\alphal$ and $\alphac$ of different
 models are not necessarily compatible and should therefore not be interchanged.
-%
-%
-% ============================================================================
-%
-%
-\leveld{O2-PWR93}
-\label{leveld:02_pwr98}
-% =====================
-%
+
+
+
+
+\leveld{PWR93 Oxygen Absorption Model}
+\label{leveld:O2_pwr98}
+%-------------------------------------
+
+
 \levele{Resonant Oxygen Absorption}
-\label{levele:02_pwr98_line}
+%\label{levele:02_pwr98_line}
+\label{levele:pwr93_o2lines}
 %----------------------------------
 The oxygen absorption model of Rosenkranz is described in \cite{pwr:93}. It 
 is based on the investigations made by Liebe, Rosenkranz, and Hufford 
 \cite{liebeetal:92}. The FORTRAN77 computer programme of Rosnekranz for 
 the $\oz$ absorption calculation can be downloaded via anonymous ftp from 
 mesa.mit.edu/phil/lbl\_rt.
-%
-\levele{Oxygen Line Absorption:}
-\label{levele:o2_r93_lines}
-%-------------------------------
+
 The oxygen line catalog has 40 lines from which 33 lines build the 
 complex around 60\,GHz. The parameterization of the line absorption,
 $\alphapwrl$, is:
@@ -1973,33 +1738,33 @@ $\alphapwrl$, is:
 % \mbox{with} &   &\nonumber\\
 %
 % line intensity:
- \mbox{line intensity:} & & \nonumber\\
+ &&\mbox{line intensity:} \nonumber\\
       S_k(T) & = & S_k(300\,{\sf K})~~/~~\exp{(b_k \cdot \Theta)}\nonumber\\
 % line shape:
- \mbox{line shape function:} & & \nonumber\\
-F(\nu,\nu_k) & = & \left(\frac{\nu}{\nuk}\right)^2 \cdot 
+ &&\mbox{line shape function:} \nonumber\\
+   F(\nu,\nu_k) & = & \left(\frac{\nu}{\nuk}\right)^2 \cdot 
                    \left[\frac{\Gamma_k+(\nu-\nuk)\cdot Y_k}
                               {(\nu-\nu_k)^2+\Gamma_k^2}~~+~~
                          \frac{\Gamma_k-(\nu+\nuk)\cdot Y_k}
                               {(\nu+\nu_k)^2+\Gamma_k^2}\right] \nonumber\\
 % line width:
- \mbox{line width:} & & \nonumber\\
+ &&\mbox{line width:} \nonumber\\
     \Gamma_k & = & w_k \cdot \left(          \pda  \cdot \Theta^{0.8} + 
                                    1.1 \cdot \phzo \cdot \Theta \right) \nonumber\\
 % line coupling:
- \mbox{line coupling:} & & \nonumber\\
+ &&\mbox{line coupling:} \nonumber\\
          Y_k & = & \pdair \cdot \Theta^{0.8} \cdot 
                    \left[ y_k + (\Theta-1) \cdot v_k \right]\nonumber\\
 % O2 number density:
- \mbox{number density of $\oz$:} & & \nonumber\\
+ &&\mbox{number density of $\oz$:}  \nonumber\\
            n_{\sf O_2} & = & (0.20946 \cdot \pdair)/(k_B \cdot T)\nonumber\\
            \nonumber
 \end{eqnarray}
-%
 where $Q_{e,v}$ are the electronic and vibrational partition functions, 
 respectively, and $S_k(300\,{\sf K})$ denotes the reference line
-intensity. All model parameters are tabulated in Table \ref{tab:o2_pwrlinelist}
-Refs. \cite{pwr:93,liebeetal:92}.
+intensity. All model parameters (see Refs. \cite{pwr:93} and \cite{liebeetal:92}
+for the laboratory measuremnts and the fitting parameters) are 
+tabulated in Table \ref{tab:pwr02line}.
 %
 \begin{longtable}{|l||r|r|r|r|r|r|}
  K & K & K & K & K & K & K \kill
@@ -2090,126 +1855,25 @@ Refs. \cite{pwr:93,liebeetal:92}.
 40 & 834.1453 &  .3971$\cdot$\,10$^{-14}$ & .145 & 1.81 & 0.0000 & 0.0000 \\
 \hline
 \end{longtable}
-
-\begin{longtable}{|l||r|r|r|r|r|r|}
- K & K & K & K & K & K & K \kill
-%
-% --------------------- only begin of table ------------------------------
- \hline
- index & 
- $\nuk$ & 
- $S_k(300\,{\sf K})$ & 
- $b_k$ & 
- $w_k$  & 
- $y_k$ & 
- $v_k$ \\
- $k$   & 
- {\sf [GHz]}  & 
- {\sf [cm$^2$\,Hz]} & 
- {\sf [1]} & 
- {[$\frac{\sf MHz}{\sf hPa}$]} & 
- {[$\frac{\sf 10{^{-3}}}{\sf hPa}$]} & 
- {[$\frac{\sf 10{^{-3}}}{\sf hPa}$]} \\
- \hline
- \hline
- \endfirsthead
-% --------------------- every page begin of table ------------------------
- \hline
- index & 
- $\nuk$ & 
- $S_k(300\,{\sf K})$ & 
- $b_k$ & 
- $w_k$  & 
- $y_k$ & 
- $v_k$ \\
- \hline
- \hline
- \endhead
-% --------------------- every page end of table ------------------------
- K & K & K & K & K & K & K \kill
- \hline
- \caption[]{(continued)}\\
- \endfoot
-% --------------------- only end of table ------------------------------
- K & K & K & K & K & K & K \kill
- \hline
- \caption{List of $\oz$ spectral lines of the Rosenkranz absorption 
-          model \cite{pwr:93}.}
- \label{tab:pwr02line}
- \endlastfoot
-% --------------------- body of table ----------------------------------  
-1  & 118.7503  & .2936$\cdot$\,10$^{-14}$ & .009 & 1.63 & -0.0233 & 0.0079 \\
-2  & 56.2648 & .8079$\cdot$\,10$^{-15}$ & .015 & 1.646 & 0.2408 & -0.0978 \\
-3  & 62.4863 & .2480$\cdot$\,10$^{-14}$ & .083 & 1.468 & -0.3486 &  0.0844 \\
-4  & 58.4466 & .2228$\cdot$\,10$^{-14}$ & .084 & 1.449 & 0.5227 & -0.1273 \\
-5  & 60.3061 & .3351$\cdot$\,10$^{-14}$ & .212 & 1.382 & -0.5430 & 0.0699 \\
-6  & 59.5910 & .3292$\cdot$\,10$^{-14}$ & .212 & 1.360 & 0.5877 & -0.0776 \\
-7  & 59.1642 & .3721$\cdot$\,10$^{-14}$ & .391 & 1.319 & -0.3970 & 0.2309 \\
-8  & 60.4348 & .3891$\cdot$\,10$^{-14}$ & .391 & 1.297 & 0.3237 & -0.2825 \\
-9  & 58.3239 & .3640$\cdot$\,10$^{-14}$ & .626 & 1.266 & -0.1348 &  0.0436 \\
-10 & 61.1506 & .4005$\cdot$\,10$^{-14}$ & .626 & 1.248 & 0.0311 & -0.0584 \\
-11 & 57.6125 & .3227$\cdot$\,10$^{-14}$ & .915 & 1.221 & 0.0725 & 0.6056 \\
-12 & 61.8002 & .3715$\cdot$\,10$^{-14}$ & .915 & 1.207 & -0.1663 & -0.6619 \\
-13 & 56.9682 & .2627$\cdot$\,10$^{-14}$ & 1.260 & 1.181 & 0.2832 & 0.6451 \\
-14 & 62.4112 & .3156$\cdot$\,10$^{-14}$ & 1.260 & 1.171 & -0.3629 & -0.6759 \\
-15 & 56.3634 & .1982$\cdot$\,10$^{-14}$ & 1.660 & 1.144 & 0.3970 &  0.6547 \\
-16 & 62.9980 & .2477$\cdot$\,10$^{-14}$ & 1.665 & 1.139 & -0.4599 & -0.6675 \\
-17 & 55.7838 & .1391$\cdot$\,10$^{-14}$ & 2.119 & 1.110 & 0.4695 & 0.6135 \\
-18 & 63.5685 & .1808$\cdot$\,10$^{-14}$ & 2.115 & 1.108 & -0.5199 & -0.6139 \\
-19 & 55.2214 & .9124$\cdot$\,10$^{-15}$ & 2.624 & 1.079 & 0.5187 & 0.2952 \\
-20 & 64.1278 & .1230$\cdot$\,10$^{-14}$ & 2.625 & 1.078 & -0.5597 & -0.2895 \\
-21 & 54.6712 & .5603$\cdot$\,10$^{-15}$ & 3.194 & 1.05 & 0.5903 & 0.2654 \\
-22 & 64.6789 & .7842$\cdot$\,10$^{-15}$ & 3.194 & 1.05 & -0.6246 & -0.2590 \\
-23 & 54.1300 & .3228$\cdot$\,10$^{-15}$ & 3.814 & 1.02 & 0.6656 & 0.3750 \\
-24 & 65.2241 & .4689$\cdot$\,10$^{-15}$ & 3.814 & 1.02 & -0.6942 & -0.3680 \\
-25 & 53.5957 & .1748$\cdot$\,10$^{-15}$ & 4.484 & 1.00 & 0.7086 & 0.5085 \\
-26 & 65.7648 & .2632$\cdot$\,10$^{-15}$ & 4.484 & 1.00 & -0.7325 & -0.5002 \\
-27 & 53.0669 & .8898$\cdot$\,10$^{-16}$ & 5.224 & .97 & 0.7348 & 0.6206 \\
-28 & 66.3021 & .1389$\cdot$\,10$^{-15}$ & 5.224 & .97 & -0.7546 & -0.6091 \\
-29 & 52.5424 & .4264$\cdot$\,10$^{-16}$ & 6.004 & .94 & 0.7702 & 0.6526 \\
-30 & 66.8368 & .6899$\cdot$\,10$^{-16}$ & 6.004 & .94 & -0.7864 & -0.6393 \\
-31 & 52.0214 & .1924$\cdot$\,10$^{-16}$ & 6.844 & .92 & 0.8083 & 0.6640 \\
-32 & 67.3696 & .3229$\cdot$\,10$^{-16}$ & 6.844 & .92 & -0.8210 & -0.6475 \\
-33 & 51.5034 & .8191$\cdot$\,10$^{-17}$ & 7.744 & .89 & 0.8439 & 0.6729 \\
-34 & 67.9009 & .1423$\cdot$\,10$^{-16}$ & 7.744 & .89 & -0.8529 & -0.6545 \\
-35 & 368.4984 & .6460$\cdot$\,10$^{-15}$ & .048 & 1.92 & 0.0000 & 0.0000 \\
-36 & 424.7631 & .7047$\cdot$\,10$^{-14}$ & .044 & 1.92 & 0.0000 & 0.0000 \\
-37 & 487.2494 & .3011$\cdot$\,10$^{-14}$ & .049 & 1.92 & 0.0000 & 0.0000 \\
-38 & 715.3932 & .1826$\cdot$\,10$^{-14}$ & .145 & 1.81 & 0.0000 & 0.0000 \\
-39 & 773.8397 & .1152$\cdot$\,10$^{-13}$ & .141 & 1.81 & 0.0000 & 0.0000 \\
-40 & 834.1453 &  .3971$\cdot$\,10$^{-14}$ & .145 & 1.81 & 0.0000 & 0.0000 \\
-\hline
-% -----------------------------------------------------------------------  
-\end{longtable}
-
-
 
 
 \levele{Oxygen Continum Absorption:}
-\label{levele:02_pwr98_cont}
-%--------------------------------------
+\label{levele:pwr98_o2cont}
+%-----------------------------------
 As pointed out by Van~Vleck \cite{vv:87}, the standard theory for
 non-resonant absorption is that of Debye (see also Ref. \cite{townes:55}). 
-The Debye line shape is obtained from the VVW line shape function of 
-Eq.~(\ref{eq:def_vvw}) by the limiting case\footnote{The factor 
-  $(\nu/\nuk)^2$ of Eq.~(\ref{eq:def_vvw}) is in this case set to $\nu^2$.}
-$\nuk \rightarrow 0$.
-Both, Liebe \cite{liebeetal:93} and Rosenkranz \cite{pwr:93} adopt the
-Debye theory for their models. The only difference is the formulation
-of the line broadening, where the influence of water vapor is treated 
-differently\footnote{in Ref. \cite{liebeetal:93} is a mistake in the formula
-  for $\gamma$. According to this text $\gamma =
-  w\cdot\pda\cdot\Theta^{0.8}$ while in the source code of MPM93 
-  Eq. (\ref{eq:abs_cont_pwr_o2_2}) is implemented.}: 
+The Debye line shape is obtained from the VVW line shape function by
+the limiting case $\nuk \rightarrow 0$.
+Rosenkranz \cite{pwr:93} adopt the Debye theory for his models: 
 \begin{eqnarray}
-  \label{eq:abs_cont_pwr_o2}
+  \label{eq:pwr_o2cont}
   \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
              \frac{\nu^2 \cdot \gamma}{\nu^2+\gamma^2}\\
 %
-  \label{eq:abs_cont_pwr_o2_1}
+  \label{eq:pwr_o2cont_1}
   \gamma &=&  w \cdot (\pda \cdot \Theta^{0.8} + 1.1 \cdot \phzo \cdot
   \Theta)\hspace*{5mm}\mbox{:~Rosenkranz}\\
-  \label{eq:abs_cont_pwr_o2_2}
+  \label{eq:pwr_o2cont_2}
   \gamma &=&  w \cdot (\pda + \phzo) \cdot \Theta^{0.8}\hspace*{17.25mm}\mbox{:~MPM93}\\
 \nonumber
 \end{eqnarray}
@@ -2221,143 +1885,482 @@ and thus proportional to the dry air pressure\footnote{The absorption
   treated separately and therefore not included in this Debye
   formula.}.
 
-%
-%
-% ============================================================================
-%
-% 
-\leveld{O2-MPM93}
-%
-%
-% ============================================================================
-%
-%
-\levelc{ARTS Workspace Variables and Methods}
-%
-%
-% ============================================================================
-%
-%
-\levelb{Continuum Absorption Models}
-\label{levelb:ContAbsMod}
-%===================================
 
-There should be some general introduction here.
 
-The headings here are tentative, TBD by Thomas.
-\begin{equation} 
-  \label{eq:r98:cont}
-  \alphac = \nu^2 \cdot \phzo \cdot 
-            (\cso \cdot \phzo \cdot \Theta^{\xs} + 
-             \cdo \cdot \pda  \cdot \Theta^{\xf})
+
+\leveld{MPM93 Oxygen Absorption Model}
+\label{levelb:O2_mpm93}
+%-------------------------------------
+
+\levele{Oxygen Line Absorption:}
+\label{levele:mpm93_o2lines}
+%-------------------------------
+The oxygen line catalog has 44 lines from which 37 lines build the 
+complex around 60\,GHz. The parameterization of the line absorption,
+$\alphampml$, is (in units of dB/km):
+\begin{eqnarray}
+% line ansorption:
+  \alphampml & = & 0.1820 \cdot \nu^2 \cdot  
+                   \sum_{k=1}^{44}{S_k(T) \cdot F(\nu,\nu_k)}~~~~\mbox{dB/km}\\
+%
+ \mbox{with} &   &\nonumber\\
+%
+% line intensity:
+ \mbox{line intensity:} & & \nonumber\\
+      S_k(T) & = & \frac{a_{1,k}}{\nuk} \cdot \pda \cdot \Theta^3 \cdot 
+                   \exp{[a_{2,k} \cdot (1-\Theta)]}\nonumber\\
+% line shape:
+ \mbox{line shape function:} & & \nonumber\\
+ F(\nu,\nu_k) & = & \left[\frac{\gamma_k+(\nu-\nuk)\cdot \delta_k}
+                               {(\nu-\nu_k)^2+\gamma_k^2}~~+~~
+                          \frac{\gamma_k-(\nu+\nuk)\cdot \delta_k}
+                               {(\nu+\nu_k)^2+\gamma_k^2}\right] \nonumber\\
+% line width:
+ \mbox{line width:} & & \nonumber\\
+    \gamma_k & = & a_{3,k} \cdot 10^{-3} \cdot 
+                 \left( \pda  \cdot \Theta^{a_{4,k}} + 
+                        1.10 \cdot \phzo \cdot \Theta \right) \nonumber\\
+% line coupling:
+ \mbox{line coupling:} & & \nonumber\\
+         \delta_k & = & \pdair \cdot \Theta^{0.8} \cdot 
+                   \left[ a_{5,k} + \Theta \cdot a_{6,k} \right]\nonumber\\
+\end{eqnarray}
+%
+where $a_{1-5,k}$ are the fitted parameters due to laboratory measurements 
+\cite{liebeetal:92}. All model parameters are tabulated in 
+Table \ref{tab:mpm9302line}. One has to note that in the MPM93 code is a 
+threshold value for $\alphampml$ implemented:
+\begin{equation}
+ \label{eq:mpm93O2limit}
+  \alphampml = 
+   \left \{ \begin{array}{r@{\quad:\quad}l} 
+    \alphampml & \alphampml > 0\\
+    0          & \alphampml < 0
+                       \end{array} \right.
 \end{equation}
+Therefore the oxygen absorption in the wings of the strong $\oz$-lines 
+is remarkably higher than in the R93 model.
+%
+\begin{longtable}{|l||r|r|r|r|r|r|r|}
+ K &  K & K & K & K & K & K & K \kill
+%
+% --------------------- only begin of table ------------------------------
+ \hline
+ index & 
+ $\nuk$ & 
+ $a_{1,k}$ & 
+ $a_{2,k}$ & 
+ $a_{3,k}$ & 
+ $a_{4,k}$ & 
+ $a_{5,k}$ & 
+ $a_{6,k}$ \\
+ $k$   & 
+ {\sf [GHz]}  & 
+ {\sf [$\frac{\sf kHz}{\sf hPa}$]} & 
+ {\sf [1]} & 
+ {[$\frac{\sf MHz}{\sf hPa}$]} & 
+ {\sf [1]} & 
+ {[$\frac{\sf 10{^{3}}}{\sf hPa}$]} & 
+ {[$\frac{\sf 10{^{3}}}{\sf hPa}$]} \\
+ \hline
+ \hline
+ \endfirsthead
+% --------------------- every page begin of table ------------------------
+ \hline
+ index & 
+ $\nuk$ & 
+ $a_{1,k}$ & 
+ $a_{2,k}$ & 
+ $a_{3,k}$ & 
+ $a_{4,k}$ & 
+ $a_{5,k}$ & 
+ $a_{6,k}$ \\
+ \hline
+ \hline
+ \endhead
+% --------------------- every page end of table ------------------------
+ K &  K & K & K & K & K & K & K \kill
+ \hline
+ \caption[]{(continued)}\\
+ \endfoot
+% --------------------- only end of table ------------------------------
+ K &  K & K & K & K & K & K & K \kill
+ \hline
+ \caption{List of $\oz$ spectral lines of the MPM93 absorption 
+          model \cite{liebeetal:93}.}
+ \label{tab:mpm9302line}
+ \endlastfoot
+% --------------------- body of table ----------------------------------  
+%  //         f0          a1       a2      a3       a4     a5     a6
+%  //        [GHz]     [kHz/hPa]   [1]   [MHz/hPa]  [1]    [10^3/hPa]
+%  const Numeric mpm93[44][7] = { 
+1 & 50.474238 &   0.094 &  9.694 &    0.890 & 0.0 &   0.240 &    0.790\\
+2 & 50.987749 &   0.246 &  8.694 &    0.910 & 0.0 &   0.220 &    0.780\\
+3 & 51.503350 &   0.608 &  7.744 &    0.940 & 0.0 &   0.197 &    0.774\\
+4 & 52.021410 &   1.414 &  6.844 &    0.970 & 0.0 &   0.166 &    0.764\\
+5 & 52.542394 &   3.102 &  6.004 &    0.990 & 0.0 &   0.136 &    0.751\\
+6 & 53.066907 &   6.410 &  5.224 &    1.020 & 0.0 &   0.131 &    0.714\\
+7 & 53.595749 &  12.470 &  4.484 &    1.050 & 0.0 &   0.230 &    0.584\\
+8 & 54.130000 &  22.800 &  3.814 &    1.070 & 0.0 &   0.335 &    0.431\\
+9 & 54.671159 &  39.180 &  3.194 &    1.100 & 0.0 &   0.374 &    0.305\\
+10 & 55.221367 &  63.160 &  2.624 &    1.130 & 0.0 &   0.258 &    0.339\\
+11 & 55.783802 &  95.350 &  2.119 &    1.170 & 0.0 &  -0.166 &    0.705\\
+12 & 56.264775 &  54.890 &  0.015 &    1.730 & 0.0 &   0.390 &   -0.113\\
+13 & 56.363389 & 134.400 &  1.660 &    1.200 & 0.0 &  -0.297 &    0.753\\
+14 & 56.968206 & 176.300 &  1.260 &    1.240 & 0.0 &  -0.416 &    0.742\\
+15 & 57.612484 & 214.100 &  0.915 &    1.280 & 0.0 &  -0.613 &    0.697\\
+16 & 58.323877 & 238.600 &  0.626 &    1.330 & 0.0 &  -0.205 &    0.051\\
+17 & 58.446590 & 145.700 &  0.084 &    1.520 & 0.0 &   0.748 &   -0.146\\
+18 & 59.164207 & 240.400 &  0.391 &    1.390 & 0.0 &  -0.722 &    0.266\\
+19 & 59.590983 & 211.200 &  0.212 &    1.430 & 0.0 &   0.765 &   -0.090\\
+20 & 60.306061 & 212.400 &  0.212 &    1.450 & 0.0 &  -0.705 &    0.081\\
+21 & 60.434776 & 246.100 &  0.391 &    1.360 & 0.0 &   0.697 &   -0.324\\
+22 & 61.150560 & 250.400 &  0.626 &    1.310 & 0.0 &   0.104 &   -0.067\\
+23 & 61.800154 & 229.800 &  0.915 &    1.270 & 0.0 &   0.570 &   -0.761\\
+24 & 62.411215 & 193.300 &  1.260 &    1.230 & 0.0 &   0.360 &   -0.777\\
+25 & 62.486260 & 151.700 &  0.083 &    1.540 & 0.0 &  -0.498 &    0.097\\
+26 & 62.997977 & 150.300 &  1.665 &    1.200 & 0.0 &   0.239 &   -0.768\\
+27 & 63.568518 & 108.700 &  2.115 &    1.170 & 0.0 &   0.108 &   -0.706\\
+28 & 64.127767 &  73.350 &  2.620 &    1.130 & 0.0 &  -0.311 &   -0.332\\
+29 & 64.678903 &  46.350 &  3.195 &    1.100 & 0.0 &  -0.421 &   -0.298\\
+30 & 65.224071 &  27.480 &  3.815 &    1.070 & 0.0 &  -0.375 &   -0.423\\
+31 & 65.764772 &  15.300 &  4.485 &    1.050 & 0.0 &  -0.267 &   -0.575\\
+32 & 66.302091 &   8.009 &  5.225 &    1.020 & 0.0 &  -0.168 &   -0.700\\
+33 & 66.836830 &   3.946 &  6.005 &    0.990 & 0.0 &  -0.169 &   -0.735\\
+34 & 67.369598 &   1.832 &  6.845 &    0.970 & 0.0 &  -0.200 &   -0.744\\
+35 & 67.900867 &   0.801 &  7.745 &    0.940 & 0.0 &  -0.228 &   -0.753\\
+36 & 68.431005 &   0.330 &  8.695 &    0.920 & 0.0 &  -0.240 &   -0.760\\
+37 & 68.960311 &   0.128 &  9.695 &    0.900 & 0.0 &  -0.250 &   -0.765\\
+38 & 118.750343 &  94.500 &  0.009 &   1.630 & 0.0 &  -0.036 &    0.009\\
+39 & 368.498350 &   6.790 &  0.049 &   1.920 & 0.6 &   0.000 &    0.000\\
+40 & 424.763124 &  63.800 &  0.044 &   1.930 & 0.6 &   0.000 &    0.000\\
+41 & 487.249370 &  23.500 &  0.049 &   1.920 & 0.6 &   0.000 &    0.000\\
+42 & 715.393150 &   9.960 &  0.145 &   1.810 & 0.6 &   0.000 &    0.000\\
+43 & 773.839675 &  67.100 &  0.130 &   1.820 & 0.6 &   0.000 &    0.000\\
+44 & 834.145330 &  18.000 &  0.147 &   1.810 & 0.6 &   0.000 &    0.000\\
+\hline
+\end{longtable}
 
-\begin{table}[!hb]
-  \begin{center}
-  \begin{tabular}{lrrrrr}
-    \hline
-    model  & \multicolumn{1}{c}{$\cso$} & 
-             \multicolumn{1}{c}{$\xs$}  & 
-             \multicolumn{1}{c}{$\cdo$} & 
-             \multicolumn{1}{c}{$\xd$}  & 
-             ref.\\
-           & \multicolumn{1}{c}{$\left[\frac{\mbox{dB/km}}
-                               {\mbox{hPa}^2~\mbox{GHz}^2}\right]$} & 
-             \multicolumn{1}{c}{$[1]$} & 
-             \multicolumn{1}{c}{$\left[\frac{\mbox{dB/km}}
-                               {\mbox{hPa}^2~\mbox{GHz}^2}\right]$} & 
-             \multicolumn{1}{c}{$[1]$} & \\
-    \hline
-    MPM85  & 4.92$\cdot$10$^{-8}$ & 2.5 & 0.255$\cdot$10$^{-8}$  & -0.5 & \cite{liebe:84}\\
-    MPM87  & 6.50$\cdot$10$^{-8}$ & 7.5 & 0.206$\cdot$10$^{-8}$  & 0.0 & \cite{liebeandlayton:87}\\
-    MPM89  & 6.50$\cdot$10$^{-8}$ & 7.5 & 0.206$\cdot$10$^{-8}$  & 0.0 & \cite{liebe:89}\\
-    CP98   & 8.04$\cdot$10$^{-8}$ & 7.5 & 0.254$\cdot$10$^{-8}$ & 0.0 & \cite{cruzpol:98}\\ 
-    R98    & 7.80$\cdot$10$^{-8}$ & 4.5 & 0.236$\cdot$10$^{-8}$  & 0.0 & \cite{pwr:98}\\
-    \hline
-    MPM93$^*$ & 7.73$\cdot$10$^{-8}$ & 4.55 & 0.253$\cdot$10$^{-8}$  & 1.55 & \cite{liebeetal:93}\\
-    \hline
- \end{tabular}
-\end{center}
- \caption{Values of the sets of continuum parameters. The last line (MPM93$^*$)
-   represents an approximation of the pseudo-line continuum of MPM93
-   in the form of Eq.~\ref{eq:abs_cont_pwr} for the microwave range as
-   described in paragraph \ref{sec:mpm93:contabs}.}
- \label{tab:wvcontparam}
-\end{table}
+
+\levele{Oxygen Continum Absorption:}
+\label{levele:mpm93_o2cont}
+%-----------------------------------
+As pointed out by Van~Vleck \cite{vv:87}, the standard theory for
+non-resonant absorption is that of Debye (see also Ref. \cite{townes:55}). 
+The Debye line shape is obtained from the VVW line shape function 
+by the limiting case $\nuk \rightarrow 0$.
+\cite{liebeetal:93} adopt the Debye theory for his models\footnote{in 
+  Ref. \cite{liebeetal:93} is a mistake in the formula
+  for $\gamma$. According to this text $\gamma =
+  w\cdot\pda\cdot\Theta^{0.8}$ while in the source code of MPM93 
+  Eq. (\ref{eq:abs_cont_pwr_o2_2}) is implemented.}: 
+\begin{eqnarray}
+  \label{eq:mpm93_o2cont}
+  \alphac &=&  C \cdot \pda \cdot \Theta^2 \cdot 
+               \frac{\nu^2 \cdot \gamma}{\nu^2+\gamma^2}\\
 %
-%
-% ============================================================================
-%
-%
-\levelc{Water Vapor Continuum Models}
-\label{leveld:h2o_ContMod}
-%------------------------------------
-%
-%
-% ============================================================================
-%
-% 
-\levelc{Dry air Models ($\oz,~\nz~\coz$)}
-%
-%
-% ============================================================================
-%
-% 
-\leveld{O2-SelfContPWR93}
-\label{leveld:o2_pwr98_cont}
-%---------------------------
-%
-%
-% ============================================================================
-%
-% 
-\leveld{O2-SelfContMPM93}
-\label{leveld:o2_mpm93_cont}
-%---------------------------
-%
-%
-% ============================================================================
-%
-% 
-\leveld{N2-SelfContPWR93}
-\label{leveld:n2_pwr98_cont}
-%---------------------------
-%
-%
-%
-% ============================================================================
-%
-% 
-\leveld{N2-SelfContMPM93}
-\label{leveld:n2_mpm93_cont}
-%---------------------------
-%
-%
-% ============================================================================
-%
-% 
-\leveld{$\coz$-SelfContPWR93}
-\label{leveld:co2_pwr98_s_cont}
-%------------------------------
-%
-%
-% ============================================================================
-%
-% 
-\leveld{CO2-ForeignContPWR93}
-\label{leveld:co2_pwr98_f_cont}
-%------------------------------
-%
-%
-% ============================================================================
-%
-%
+  \gamma  &=&  w \cdot (\pda + \phzo) \cdot \Theta^{0.8}\nonumber\\
+\nonumber
+\end{eqnarray}
+The values for the parameters are $C = 1.11\cdot 10^{-5}$ dB/km/(hPa\,GHz) and 
+$w = 5.6 \cdot 10^{-4}$ GHz/hPa, respectively. This absorption
+term is proportional to the collision frequency of a single oxygen molecule
+and thus proportional to the dry air pressure\footnote{The absorption
+  due to weakly bound complexes of $\oz$--$X$ with $X=\hzo,~\nz$ is 
+  treated separately and therefore not included in this Debye
+  formula.}.
+
+
+
 \levelc{ARTS Workspace Variables and Methods}
-%
-%
-% ============================================================================
+\label{levelc:ArtsImplementationCompleteModels}
+% ---------------------------------------------
 
- 
+%############################################################################# 
+
+% ================================================================================
+% The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
+% ================================================================================
+
+\levela{Cloud Absorption}
+\label{labela:cloudabsorption}
+%=============================
+
+\levelb{Liquid water and ice particle absorption}
+\label{levelb:lipartabs}
+%*************************************************
+So far only absorption due to air was described. However 
+hydrometeors\footnote{We denote liquid water and ice particles, either
+  suspended or precipitating, in the air as hydrometeors.}
+can have a noticeable effect on the radiative transfer through the
+atmosphere in the 10-30\,GHz frequency range.
+
+The MPM93 model provides beside the absorption model of air also an
+absorption model for suspended liquid water droplets and ice particles
+\citep{liebe:89b,liebeetal:91,hufford:91,liebeetal:93}.  The model is
+applicable for the Rayleigh regime, for which the relation $r <
+0.05\cdot \lambda$ holds where $r$ is the particle radius and
+$\lambda$ is the wavelength\footnote{See \citet{brussaard:95}, page
+  81, for details.}. For the WATS frequency range this means $r
+<$~500\,$\mu$m. Considering \citet{salby:96}, this criterium is --
+except for cirrus -- nearly for every aerosol and cloud class
+satisfied. But one has to bear in mind that these values have a wide
+range of variability, for example, \citet{salby:96} states that the
+mean particle radius for stratus, cumulus, and nimbus clouds can be in
+the range of 10-1000\,$\mu$m and that the particle radius distribution
+is highly unsymmetric. 
+
+With respect to the imaginary part of the complex refractivity, a 
+unified parameterization of liquid and ice particle absorption 
+is formulated in MPM93:
+\begin{eqnarray}
+  \label{eq:abs_cloud}
+  \alpha & = & 0.1820 \cdot \nu \cdot\imn\hspace*{20mm}
+               \mbox{dB/km}\\
+    \imn & = & \frac{3}{2} \cdot \frac{w}{m} \cdot 
+               \Im{[(\er-1)/(\er+2)]}\nonumber\\
+    \imn & = & \frac{3}{2} \cdot \frac{w}{m} \cdot 
+               \left[\frac{3\cdot\ime}{(\ree+2)^2~+~(\ime)^2}\right]\nonumber\\
+  \nonumber
+\end{eqnarray}
+where $w$ is the liquid water (0.0\,$<LWC<$\,5.0\,g/m$^3$) or ice
+mass (0.0\,$IWC$\,1.0\,g/m$^3$) content and $m$ is the water 
+or ice bulk density ($\denli$=1.0\,g/cm$^3$ and 0.916\,g/cm$^3$, respectively).\\
+The difference between liquid water and ice absorption is put in the 
+expressions for the complex permittivities (i. e. the relative 
+dielectric constant), $\er=\ree+i\cdot\ime$, which depend on frequency
+and temperature.
+
+\noindent$\bullet$ Complex permittivity for suspended liquid water droplets:
+\begin{eqnarray}
+  \label{eq:comp_perm_lwc}
+  \ree       & = & \epsilon_o~-~\nu^2\cdot
+                   \left[\frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
+                   \frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_1^2}\right]\nonumber\\
+%
+  \ime       & = & \nu\cdot\left[\gamma_1\cdot
+                   \frac{\epsilon_o-\epsilon_1}{\nu^2+\gamma_1^2}~+~
+                   \gamma_2\cdot\frac{\epsilon_1-\epsilon_2}{\nu^2+\gamma_1^2}\right]\nonumber\\
+%
+  \epsilon_o & = & 77.66 + 103.3\cdot(\Theta-1)\nonumber\\
+  \epsilon_1 & = & 0.0671\cdot\epsilon_o\nonumber\\
+  \epsilon_2 & = & 3.52\nonumber\\
+%
+  \gamma_1   & = & 20.20 - 146\cdot(\Theta-1) + 316\cdot(\Theta-1)^2\,\mbox{GHz}\nonumber\\
+  \gamma_2   & = & 39.8\cdot\gamma_1\,\mbox{GHz}\nonumber\\
+%
+  \Theta     & = & 300\,\mbox{K}~/~T\nonumber\\
+%
+%  LWC        & = & 0.0~\mbox{to}~5.0~\mbox{g}/\mbox{m}^3
+%                   \hspace*{10mm}\mbox{cloud liquid water content}\nonumber\\
+%  \rho_l     & = & 1.0~\mbox{g}/\mbox{cm}^3
+%                \hspace*{10mm}\mbox{water density}\nonumber
+%  \nonumber
+\end{eqnarray}
+$\bullet$ Complex permittivity for ice crystals:
+\begin{eqnarray}
+  \label{eq:comp_perm_iwc}
+  \ree    & = & 3.15\nonumber\\
+%
+  \ime    & = & \frac{a}{\nu}~+~b\cdot\nu\nonumber\\
+%
+  a       & = & (\Theta-0.171)\cdot\exp{(17.0-22.1\cdot\Theta)}\nonumber\\
+  b       & = & \left[\left(\frac{0.233}{1-0.993/\Theta}\right)^2 + 
+                \frac{6.33}{\Theta} - 1.31\right]\cdot10^{-5}\nonumber\\
+%
+  \Theta  & = & 300\,\mbox{K}~/~T\nonumber\\
+%
+%  IWC     & = & 0.0~\mbox{to}~1.0~\mbox{g}/\mbox{m}^3 
+%                \hspace*{10mm}\mbox{cloud ice water content}\nonumber\\
+%  \rho_i    & = & 0.916~\mbox{g}/\mbox{cm}^3
+%                \hspace*{10mm}\mbox{ice density}\nonumber
+%  \nonumber
+\end{eqnarray}
+%
+The absorption is directly proportional to the liquid or ice water
+content $LWC/IWC$ and inversely proportional to the density of a
+single liquid ice particle $\denli$. Like the mean particle radius,
+the liquid and ice water content have a high variability. Table
+\ref{tab:lwc} reflects this variability by summarizing different
+literature values for several cloud types. Additional uncertainty 
+of this absorption term comes from two sides: 
+(1) the difference to the Rayleigh approximation
+of the order of 1-6\% as reported in \citet{lietal:97} and (2) from
+the fit of the complex permittivity.  Since $\epsilon(\nu,T)$ was
+fitted to measurements which were mostly performed above $0^\circ$C,
+the extrapolated values for $T<$0$^{\rm o}$C for supercooled
+clouds are not well established. For example in \cite{liebeetal:91} 
+itself two different parameterizations for the so called primary 
+relaxation frequency ($\gamma_1$ in Equation~\ref{eq:comp_perm_lwc}) 
+are given, one polynomial in $\Theta$ as presented in 
+Equation~\ref{eq:comp_perm_lwc}) and an exponential function derived
+from theory. Although the polynomial describes the selected 
+data better than the exponential function, this might not be true for
+temperatures well below 0$^{\rm o}$C.
+The difference in $\gamma_1$ according to these two approaches can 
+be more than 2\,GHz for very low temperatures \citep{liptonetal:99}. 
+The resulting consequences from this discrepancy for the absorption 
+calculation at three microwave frequencies are shown in 
+Figure \ref{fig:refrac_water_comp}. A more detailed
+discussion about this source of uncertainty is given in Section
+\ref{levelb:ref_uncert_clouds}.
+%
+\begin{table}[!htb]
+\begin{center}
+\begin{tabular}{llll}
+\hline
+\multicolumn{4}{c}{liquid water content ($LWC$)} \\
+ cloud        & class & \multicolumn{1}{c}{(g/m$^3$)} & reference\\
+\hline
+ stratus      & St    & 0.15        & \cite{salby:96}\\
+              &       & 0.09-0.9    & \cite{seinfeld:98}\\
+              &       & 0.28-0.3    & \cite{hess:98}\\
+              &       & 0.29        & \cite{abreu:96}\\
+ nimbostratus & Ns    & 0.4         & \cite{salby:96}\\
+              &       & 0.65        & \cite{abreu:96}\\
+              &       & 0.05-0.3    & \cite{berton:00}\\
+ altostratus  & As    & $<$0.01-0.2 & \cite{seinfeld:98}\\
+              &       & 0.41        & \cite{abreu:96}\\
+              &       & 0.1-1       & \cite{berton:00}\\
+ stratocumulus& Sc    & 0.3         & \cite{salby:96}\\
+              &       & $<$0.1-0.7  & \cite{seinfeld:98}\\
+              &       & 0.15        & \cite{abreu:96}\\
+              &       & $<$0.5      & \cite{pawlowskaetal:00}\\
+              &       & 0.05-1      & \cite{berton:00}\\
+ cumulus      & Cu    & 0.5         & \cite{salby:96}\\
+              &       & 0.26-0.44   & \cite{hess:98}\\
+              &       & 1.00        & \cite{abreu:96}\\
+ cumulonimbus & Cb    & 2.5         & \cite{salby:96}\\
+              &       & 0.1-2       & \cite{berton:00}\\
+ cumulus 
+    congestus & Cg    & 0.1-3.2     & \cite{berton:00}\\
+FIRE-ACE      & -     & $<$0.7      & \cite{shupeetal:00}\\
+\hline
+\multicolumn{4}{c}{}  \\
+\multicolumn{4}{c}{ice water content ($IWC$)}  \\
+ cloud        & class & \multicolumn{1}{c}{(g/m$^3$)} & reference\\
+\hline
+ cirrus       & Ci    & 0.025                         & \cite{salby:96}\\
+              &       & 0.00193-0.0260                & \cite{hess:98}\\
+              &       & 3.128$\cdot$10$^{-4}$-0.06405 & \cite{abreu:96}\\ 
+              &       & 0.15-0.3                      & \cite{larsenetal:98}\\
+              &       & $<$0.1                        & \cite{berton:00}\\
+cirrostratus  & Cs    & 0.2                           & \cite{salby:96}\\
+              &       & 0.05-2                        & \cite{berton:00}\\
+\hline
+\end{tabular}
+\caption{Stated values for the liquid and ice water content of several 
+  cloud classes from different sources.}
+\label{tab:lwc}
+\end{center}
+\end{table}
+
+
+
+\levelb{Variability and Uncertainty in Cloud Absorption}
+\label{levelb:ref_uncert_clouds}
+%--------------------------------------------------------
+In the case of clouds three sources of uncertainties can be considered
+at first sight: (1) validity of the Rayleigh approximation (2) the 
+parameterization of the relative dielectric constants ($\er$) of water 
+and ice in the microwave region, and (3) the statistcal and
+climatological variability of the cloud liquid water and ice content.
+
+As it was stated above (Section \ref{levelb:lipartabs}) the Rayleigh 
+approximation is valid for particle sizes $<$~500\,$\mu$m. Figure 
+\ref{fig:cloud_part_dist} shows a particle size distribution for water
+clouds and ice clouds (cirrus) from the OPAC model \citep{hess:98}. 
+According to this model only cirrus clouds will have particles of size
+larger than 500\,$\mu$m. Nevertheless one has to keep in mind that the
+variability of the particle size can be very high so that at certain 
+conditions some cloud types (most probable is the cumulonimbus) 
+a non-negligible large particle concentration can occur.
+
+The uncertainty in the relative dielectric constant of water 
+(see e.~g. \citet{liptonetal:99}) is largest below the freezing 
+temperature, since only a few measurements at -4$^{\rm o}$C 
+contributed to the parameterization of $\er$ in \cite{liebeetal:91}, 
+which in turn is used in the cloud liquid water absorption model of MPM93. 
+Figure \ref{fig:refrac_water_comp} shows a comparison of 
+\cite{liebeetal:91} and \cite{ray:72}\footnote{{The calculations
+  for this parameterizastion are performed with the computer code}\\{
+   of W. Wiscombe, NASA, GSFC}\\
+  (ftp://climate.gsfc.nasa.gov/pub/wiscombe/Refrac\_Index/WATER/)
+  For the microwave frequency range this program uses the
+  \cite{ray:72} temperature parameterization.} parameterizations 
+for the temperature dependence of the expression
+$\Im{[(\er-1)/(\er+2)]}$, which is in the Rayleigh approximation 
+one of the relevant terms in the absorption calculation (see 
+Equation~\ref{eq:abs_cloud}). Additionally the same calculations with 
+the alternative expression of the first  relaxation frequency, 
+$\gamma_1$, as stated in Equation~2b of \cite{liebeetal:91} is shown. 
+The three versions give comparable results for temperatures warmer 
+than 260\,K but show significant  differences for temperatures below 
+240\,K. However, an uncertainty estimation of $\Im{[(\er-1)/(\er+2)]}$ 
+is due to the lack of measurements not easy, but it will certainly
+increase with decreasing temperature.
+
+The largest variability of the involved quantities of cloud absorption
+is the liquid and ice water content ($LWC$ and $IWC$) of the clouds 
+(see Table \ref{tab:lwc}). Even within a single cloud the $LWC$ ($IWC$) changes
+with altitude and the distance from the cloud center as can be seen for
+example in Figure 10 of \citet{ludlammason:57} and in the model study
+of \citet{costaetal:00}.
+
+
+\begin{figure}[!htb]
+  \begin{center}
+% ---- uncertainty -------------------------------------
+%   \includegraphics*[scale=0.6, angle=90, viewport= 80 725 480 70]%
+   \includegraphics*[width=0.6\hsize, angle=90]%
+   {LWCcloud.eps}\\
+% ---- ratio -------------------------------------------
+%   \includegraphics*[scale=0.6, angle=90, viewport= 80 725 480 66]%
+   \includegraphics*[width=0.6\hsize, angle=90]%
+   {IWCcloud.eps}
+% ------------------------------------------------------
+  \end{center}
+  \caption{Cloud particle size distributions according to 
+    Equations~3a and 3c and the microphysical properties are from the 
+    Tables 1a and 1b of the OPAC model \cite{hess:98}. 
+    For the liquid water clouds (upper plot) a modified gamma 
+    distribution is assumed whereas for the ice clouds (lower plot) 
+    exponential functions are taken.}
+  \label{fig:cloud_part_dist}
+\end{figure}
+%
+%
+\begin{figure}[!hbt]
+  \begin{center}
+% ---- comparison --------------------------------------
+   \includegraphics*[width=0.95\hsize, angle=0]%
+   {refractive_water_comp_T.eps}
+% ------------------------------------------------------
+  \end{center}
+  \caption{Comparison of the imaginary part of the expression 
+    \mbox{$(\er-1)/(\er+2)$} for liquid water at the three proposed 
+    WATS frequencies of interest. Plotted are the two common
+    models of \cite{liebeetal:91} (a) and \cite{ray:72} (b). 
+    The Ray parameterization is calculated with the F77 program 
+    of W. Wiscombe, NASA, GSFC, take from 
+    ftp://climate.gsfc.nasa.gov/pub/wiscombe/Refrac\_Index/WATER/.
+    Additionally the \cite{liebeetal:91} parameterization (c) with the 
+    alternative expression for the first relaxation frequency, 
+    $\gamma_1 = 20.1\cdot\exp{[7.88\cdot(1-\Theta)]}$, is plotted.}
+%
+%    $(\er-1)/(\er+2)$ for liquid water at the three WATS frequencies
+%    of interest. Plotted are the two common
+%    models of \cite{liebeetal:91} and \cite{ray:72} (calculated with 
+%    the F77 program of W. Wiscombe (NASA, GSFC) take from 
+%    ftp://climate.gsfc.nasa.gov/pub/wiscombe/Refrac\_Index/WATER/).}
+  \label{fig:refrac_water_comp}
+\end{figure}
+
+
+
+\levelc{ARTS Workspace Variables and Methods}
+\label{levelc:ArtsImplementationCloudAbsorption}
+% ----------------------------------------------
 
 
 

@@ -514,8 +514,12 @@ void define_partition_species_data()
   iso(it_isotope,	"44",	Qcoeff(	1.3684E+00	,1.5756E+00	,-1.8511E-05	,3.8960E-08) );
   iso(it_isotope,	"SelfContMPM93",    Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"SelfContPWR93",    Qcoeff( 0	,0		,0		,0          ) );
+<<<<<<< partition_function_data.cc
+  iso(it_isotope,	"SelfContBorysow",  Qcoeff( 0	,0		,0		,0          ) );
+=======
   iso(it_isotope,	"SelfCont",         Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"SelfContBorysow",       Qcoeff( 0	,0		,0		,0          ) );
+>>>>>>> 1.23
 
 
   // HCN

@@ -9,6 +9,8 @@
 \usepackage{lscape}      % landscape mode of a single page
 \usepackage[]{longtable} % allow tables longer than one page
 %
+
+
 \sloppy
 
 \graphicspath{{Figs/}}
@@ -67,8 +69,6 @@
                             \caption{Symbols used in this chapter and the
                             corresponding ARTS notation. }
                             \end{table} }      
-
-
 
 %
 % === Symbol definitions
@@ -150,7 +150,6 @@
   
 
 
-
 %===   Start of report   ===================================================
 \begin{document}
 %
@@ -172,9 +171,10 @@
   {\large and\\}
   \vspace*{3mm}
   {\large \bf Patrick Eriksson\\Department of Radio and Space Science\\Chalmers University of Technology, Sweden\\}
-  \vspace*{2cm}
-  {\large \today\\
-    ARTS Version \input{auto_version.tex}}
+   \vspace*{2cm}
+   {\large \today\\
+    ARTS Version \input{auto_version}
+   }
 \end{center}
   \vspace*{4cm}
 {\normalsize \bf
@@ -222,7 +222,6 @@ Boston, MA 02111-1307, USA.
 \pagenumbering{arabic}
      
 
-
 %
 % === The chapters
 %
@@ -255,6 +254,7 @@ Boston, MA 02111-1307, USA.
 \begin{appendix}
   \include{app_wsv}
   \include{app_math}
+  \include{app_units}
 \end{appendix}
 
 %===   End of report   =====================================================
