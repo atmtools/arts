@@ -179,7 +179,11 @@ Tensor7Set (scat_i_lon){
 	ncols = 1
 	value = 0	
 	}
-i_fieldSet{}
+i_fieldSetConst{
+	value = 3e-15
+	}
+
+WriteXML(i_field){"initial_field.xml"}
 
 #Tensor6Set (i_field){
 	#nvitrines = 16
@@ -187,7 +191,7 @@ i_fieldSet{}
 	#nbooks = 1
 	#npages = 19
 	#nrows = 1
-	#ncols = 1
+	#ncols = 1 
 	#value = 1e-15	
 	#}
 
@@ -224,10 +228,17 @@ AgendaSet( ppath_step_agenda ) { ppath_stepGeometric{} }
 
 AgendaSet( scat_rte_agenda ) { stokes_vecScalar{} }
 
-	AgendaSet( convergence_test_agenda) {
+IndexSet( iteration_counter ){
+	value = 0
+	}	
+
+AgendaSet( convergence_test_agenda) {
+	Tensor6WriteIteration( i_field ) {
+		iterations = [0]
+	}
 	convergence_flagAbs{
-	#epsilon =[1e-20, 1e-21, 1e-21, 1e-21] 
-	epsilon =[1e-10]
+	#epsilon = [1e-20, 1e-21, 1e-21, 1e-21] 
+	epsilon = [1e-20]
 	 }
 	 }
 
