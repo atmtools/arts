@@ -1,5 +1,11 @@
 2003-07-24  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-617
+
+	* src/test_sparse.cc: Define joker to fix compilation with gcc 2.95.3.
+
+2003-07-24  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-616
 
 	* src/Makefile.am: Added m_general.h.
