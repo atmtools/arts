@@ -286,7 +286,6 @@ void MatrixToTbByRJ(
       // between radiance and Tb is linear for a given frequency.
 
       Numeric scfac;
-      Index   irep, ii, icol;
 
       for( Index iv=0; iv<nf; iv++ )
 	{
