@@ -479,7 +479,7 @@ void ScatteringMonteCarlo (
   Vector t_ppathLOS;
   Index za_prop;
   Index aa_prop;
-  Tensor5 pha_mat_spt(1,2,2,stokes_dim,stokes_dim);
+  Tensor5 pha_mat_spt(scat_data_raw.nelem(),2,2,stokes_dim,stokes_dim);
   Tensor4 pha_mat(2,2,stokes_dim,stokes_dim);
   Index p_index;
   Index lat_index;
