@@ -705,12 +705,14 @@ bool is_los_downwards_2d(
    the given zenith angle. This means that if r>r0 and the absolute
    value of the zenith angle is < 90, no crossing will be found (if
    not the slope of the pressure surface happen to be very strong).
+
+   For downlooking cases, only the part down to the tangent point is
+   considered.
    
    If the given path point is on the pressure surface (r=r0), the
    solution 0 is rejected.
  
-   The latitude difference is set to 999 of no possible value is found, but
-   there will normally be some value < 360 degrees. 
+   The latitude difference is set to 999 if np crossing exists.
 
    The variable names below are the same as in AUG.
 
@@ -762,10 +764,11 @@ Numeric psurface_crossing_2d(
 
 
   // The case with c1=c2=0 can be handled analytically
+  // If r0==rp, there is no crossing on this side of the tangent point.
   if( c1 == 0  &&  c2 == 0 )
     {
       Numeric   ppc = geometrical_ppc( rp, za );
-      if( r0 >= ppc )
+      if( r0 >= ppc  &&  r0 != rp )
 	{ return geompath_lat_at_za( za, 0, geompath_za_at_r( ppc, za, r0 ) );}
       else
 	{ return no_crossing; }	
@@ -1023,8 +1026,11 @@ void do_gridcell_2d(
       if( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 )  &&
                 za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )
 	{
+	  // For cases when the tangent point is in-between *r_start* and
+	  // the pressure surface, 999 is returned. This case will anyhow
+	  // be handled correctly.
+
 	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4, 0 );
-	  assert( dlat2end < 999 );
 	  endface  = 4;
 	}
     }
@@ -1038,6 +1044,7 @@ void do_gridcell_2d(
 	{ endface  = 3; }
       else
 	{ endface  = 1; }
+      IndexPrint(endface,"endface");
     }
 
 
@@ -1070,6 +1077,16 @@ void do_gridcell_2d(
   //
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
                                                        za_start, r_end, lmax );
+
+
+  // Force end latitude and zenith angle to be exact when we know the 
+  // correct value
+  if( endface == 1 )
+    { lat_v[lat_v.nelem()-1] = lat1; }
+  else if( endface == 3 )
+    { lat_v[lat_v.nelem()-1] = lat3; }
+  else if( endface == 6 )
+    { za_v[za_v.nelem()-1] = 90; }
 }
 
 
@@ -2097,6 +2114,8 @@ void refr_index_BoudourisDryAir (
   // N = 77.593e-2 * p / t ppm
   for ( Index i=0; i<n; i++ )
     refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
+
+  //refr_index = 1;
 }
 
 
@@ -2131,7 +2150,6 @@ Numeric get_refr_index_1d(
 
   refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
 
-  //return 1;
   return refr_index[0];
 }
 
@@ -2179,7 +2197,6 @@ Numeric get_refr_index_2d(
   refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
 
   return refr_index[0];
-
 }
 
 
@@ -2535,23 +2552,15 @@ void ppath_end_2d(
     }
 
   // To avoid numerical inaccuracy as far as possible, we set values to match
-  // the end of grid ranges when possible (radius of end point is handled
-  // by geompath_from_r1_to_r2):
+  // the end of grid ranges when possible (radius are latitude are already set
+  // to match the end face).
   //
   if( endface == 1 )
-    {
-      ppath.pos(np-1,1) = lat1;
-      gridpos_force_end_fd( ppath.gp_lat[np-1] );
-    }
+    { gridpos_force_end_fd( ppath.gp_lat[np-1] ); }
   else if( endface == 2  ||  endface == 4 )
     { gridpos_force_end_fd( ppath.gp_p[np-1] ); }
   else if( endface == 3 )
-    {
-      ppath.pos(np-1,1) = lat3;
-      gridpos_force_end_fd( ppath.gp_lat[np-1] );
-    }
-  else if( endface == 6 )
-    { ppath.los(np-1,0) = sign(za_start)*90; }
+    { gridpos_force_end_fd( ppath.gp_lat[np-1] ); }
 }
 
 
@@ -2993,7 +3002,7 @@ void raytrace_1d_linear_euler(
       const Numeric   ppc_local = ppc / n_new; 
       
       if( ppc_local < r_new )
-	{ za = geompath_za_at_r( ppc/n_new, za_start, r_new ); }
+	{ za = geompath_za_at_r( ppc_local, za_start, r_new ); }
       else
 	{ za = 90; }
       
@@ -3032,8 +3041,9 @@ void raytrace_2d_linear_euler(
 	const Numeric&          n2, 
 	const Numeric&          n3,
 	const Numeric&          n4,
-        const bool&            	at_lower_psurf,
-        const bool&            	at_upper_psurf,
+	      const Numeric&          ppc_global,
+              bool            	at_lower_psurf,
+              bool            	at_upper_psurf,
         const Numeric&         	rground1,
         const Numeric&         	rground2,
         const Numeric&         	cground )
@@ -3056,6 +3066,10 @@ void raytrace_2d_linear_euler(
                      lat1, lat3, c2, c4, at_lower_psurf, at_upper_psurf, 
                                                  rground1, rground2, cground );
       assert( r_v.nelem() == 2 );
+
+      // After the first step, we are not at any pressure surface
+      at_lower_psurf = 0;
+      at_upper_psurf = 0;
 
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
@@ -3081,6 +3095,8 @@ void raytrace_2d_linear_euler(
 	  if( za < 0 )
 	    { dlat = -dlat; }
 	  lat_new = lat + dlat;
+
+	  lstep = fabs( lstep );
 	}
 
       // Calculate LOS zenith angle at found point.
@@ -3088,13 +3104,16 @@ void raytrace_2d_linear_euler(
       refraction_gradient_2d( n, dndr, dndlat, r1, r4, c2, c4, lat1, lat3, 
       		                                      n1, n2, n3, n4, r, lat );
 
-      if( endface == 6 )
+      if( ready  &&  endface == 6 )
 	{ za = 90; }
       else
 	{
 	  const Numeric   za_rad = DEG2RAD * za;
-	  za += -dlat + 
-                    lstep / n * ( -sin(za_rad) * dndr + cos(za_rad) * dndlat );
+	  za += -dlat + RAD2DEG * lstep / n * 
+                          ( -sin(za_rad) * dndr + cos(za_rad) * dndlat / r );
+	  //refraction_gradient_2d( n, dndr, dndlat, r1, r4, c2, c4, lat1,lat3,
+	  //                                n1, n2, n3, n4, r_new, lat1 );
+      //za = geompath_za_at_r( ppc_global/n, za, r_new ); 
 	}
 
       r   = r_new;
@@ -3104,7 +3123,7 @@ void raytrace_2d_linear_euler(
       r_array.push_back( r );
       lat_array.push_back( lat );
       za_array.push_back( za );
-      l_array.push_back( fabs(lstep) );
+      l_array.push_back( lstep );
     }  
 }
 
@@ -3263,7 +3282,7 @@ void ppath_step_refr_1d(
     }
 
 
-  //Init ray tracing
+  // Init ray tracing
   //
   // Create some variables used for the ray tracing.
   // These variables are needed as the ray tracing is always done from the
@@ -3510,7 +3529,7 @@ void ppath_step_refr_2d(
 
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
                  r_start, lat_start, za_start, lraytrace, r1, r2, r3, r4, 
-                 lat1, lat3, c2, c4, n1, n2, n3, n4, 
+		 lat1, lat3, c2, c4, n1, n2, n3, n4, ppath.constant,
                  at_lower_psurf, at_upper_psurf, rground1, rground2, cground );
     }
   else
@@ -3558,8 +3577,9 @@ void ppath_step_refr_2d(
 
 
   // Fill *ppath*
+  const Numeric   ppc = ppath.constant;
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-	              ip, ilat, lat1, lat3, za_start, endface, method, 0, -1 );
+	  ip, ilat, lat1, lat3, za_start, endface, method, 1, ppc );
 
 
   // Make part after a tangent point.

@@ -1,3 +1,14 @@
+2002-12-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-324
+
+	* src/ppath.cc (ppath_step_refr_2d): Appears to be ready. In contrast
+	to the 1D function, the results converge when making the ray tracing
+	step length smaller. However, the algorithms differ slightly and I
+	will copy the 2D algorithm to 1D to get 1D versions.
+
+	Fixed several bugs in the functions of the file.
+
 2002-11-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-323
