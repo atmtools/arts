@@ -1,3 +1,11 @@
+2003-10-16  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-701
+
+	* src/m_general.{h,cc} (Print): Added Print method for ArrayOfGridPos.
+	Replaced calls to ArrayOfGridPosPrint with Print(...).
+	Removed some couts which should not have been there. :-(
+
 2003-10-15  Mattias Ekström  <ekstrom@rss.chalmers.se> 
 
 	* arts-1-1-700
@@ -40,7 +48,6 @@
 	way optical properties were looked up in ScatteringMonteCarlo.
 	This was needed because it wasn't working for cases with
 	non-uniform pnd_fields. Untested.
-	
 
 2003-10-05  Cory Davis  <cory@met.ed.ac.uk>
 
@@ -51,7 +58,6 @@
 	perfectly forward scattering cases.  I fixed this problem by
 	including two special cases - one for (abs(aa_sca-aa_inc)<ANG_TOL)
 	and one for (abs(abs(aa_sca-aa_inc)-180)<ANG_TOL).
-	
 
 2003-10-03  Cory Davis    <cory@met.ed.ac.uk>
 
@@ -134,6 +140,27 @@
 	* arts-1-1-687
 	
 	* src/gas_abs_lookup.cc: Fixed bug reported by Patrick and Cory:
+	No runtime error was thrown if the frequencies of the calculation
+	were not included in the lookup table.
+	(find_new_grid_in_old_grid): Completely rewritten. Now the function
+	does its task directly, without using gridpos. It is now shorter
+	and probably faster. Throws a runtime error if the new frequency
+	grid points can not be found in the old grid.
+
+2003-09-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-686
+	
+	* src/m_optproperties.cc (pha_mat_labCalc): Included analytically
+	calculated limiting values for the cases were the transformation formulas
+	according to Mishchenko are not defined. Now the result for stokes-dim=2
+	for a nadir measurement is as expected almost 0. 
+
+2003-09-18  Cory Davis <cory@met.ed.ac.uk>
+
+	* arts-1-1-685
+
+	* src/m_ppath.cc (rte_pos_and_losFromTangentPressure): Cory gets the
 	No runtime error was thrown if the frequencies of the calculation
 	were not included in the lookup table.
 	(find_new_grid_in_old_grid): Completely rewritten. Now the function
@@ -10288,24 +10315,3 @@
 	* Sorry Oliver, but I have stuff that must be commited now.
 
 	* ami/arts/tag2mo.m: The function now works for tag string with more
-	than one part, e.g. "H2O-PWR98,H2O". 
-
-	* ami/file/read_linefile.m: The reading can now be limited to a 
-	frequency range.
-
-	* ami/file/combine_lines.m: Created this function to lower the number
-	of transitions in the linefile when several transitions are basically
-	identical, which is the case for some species, such as HNO3. The
-	intensities of such transitions are added to create a pseudo-line that
-	gives the same contribution as the individual transitions.
-	
-2002-01-15  Oliver Lemke  <olemke@uni-bremen.de>
-
-	* arts-1-0-0-pre1
-
-	* Just tagged the current version as pre1. From now on only bug
-	fixes for the 1.0 release should be checked in. All new stuff
-	should go into arts2 which should be started at the end of this
-	week. If you have to make any checkins the next version number
-	should be arts-1-0-0-pre2.
-
