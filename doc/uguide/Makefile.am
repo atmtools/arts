@@ -62,6 +62,7 @@ if ARTS_GENDOCS
 
 uguide.dvi: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
 	latex  uguide > /dev/null
+	makeindex uguide.idx
 	bibtex uguide
 	latex  uguide > /dev/null
 	latex  uguide
@@ -72,6 +73,7 @@ uguide.ps: uguide.dvi
 
 uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
 	pdflatex uguide_pdf > /dev/null
+	makeindex uguide_pdf.idx
 	bibtex uguide_pdf
 	pdflatex  uguide_pdf > /dev/null
 	pdflatex  uguide_pdf
