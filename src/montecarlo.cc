@@ -559,8 +559,8 @@ void Sample_los (
    }
  else
    {
-     throw runtime_error( "Invalid value for sampling_method. sampling_method\n
-must be 1 or 2" );
+     throw runtime_error( "Invalid value for sampling_method. "
+                          "sampling_method\n must be 1 or 2" );
    }
  rte_los[0]*=RAD2DEG;
 }
