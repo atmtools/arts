@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.475)
+AM_INIT_AUTOMAKE(arts,1.1.476)
 
 AM_MAINTAINER_MODE
 
@@ -341,10 +341,12 @@ Makefile
       doc/uguide/Makefile 
       doc/uguide/auto_version.tex 
          doc/uguide/Figs/Makefile 
+            doc/uguide/Figs/concept/Makefile 
             doc/uguide/Figs/fm_definitions/Makefile 
-            doc/uguide/Figs/ppath/Makefile 
-            doc/uguide/Figs/polarization/Makefile 
             doc/uguide/Figs/interpolation/Makefile 
+            doc/uguide/Figs/polarization/Makefile 
+            doc/uguide/Figs/ppath/Makefile 
+            doc/uguide/Figs/rte_theory/Makefile 
             doc/uguide/Figs/scattering/Makefile 
       doc/examples/Makefile 
          doc/examples/absorption_lookup_example.arts
