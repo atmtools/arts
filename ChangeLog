@@ -115,7 +115,6 @@
 	included in species_data.cc. Now all the species, continua, and 
 	clouds, are consistently listed in tables. 
 
->>>>>>> 1.364.4.123
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-119
