@@ -1,3 +1,14 @@
+2003-08-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-117
+
+	* src/math_funcs.cc (interp_lin_vector): Interpolation works now
+	also for new grid points just outside the original grid range.
+	(interp_lin_matrix): Interpolation works now also for new grid
+	points just outside the original grid range.
+	(interp_check): Now Tolerates the new grid to extend half a grid
+	distance outside the original grid.
+
 2003-07-30  Thomas Kuhn <tkuhn@uni-bremen.de>
 
 	* arts-1-0-116
@@ -13,7 +24,6 @@
 	expected. Hence the advice is to use generally the option VVH for
 	the line absorption at any frequency so you are sure that the
 	calculation is made in a theoretically correct way.
-	
 
 2003-07-30  Axel von_Engeln  <engeln@uni-bremen.de>
 

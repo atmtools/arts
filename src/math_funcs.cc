@@ -250,8 +250,11 @@ Vector nlogspace(
 
 /** Local help function to check input grids.
 
-    \date   2000-06-29
-    \author Patrick Eriksson 
+    Tolerates the new grid to extend half a grid distance outside the
+    original grid.
+
+    \date   2000-06-29, 2003-08-06
+    \author Patrick Eriksson, Stefan Buehler 
 */
 Index interp_check( ConstVectorView  x,        
                     ConstVectorView  xi,
@@ -271,10 +274,16 @@ Index interp_check( ConstVectorView  x,
   if ( n != n_y ) 
     throw runtime_error("Sizes of input data to interpolation do not match.");
 
-  if ( (order*xi[0]<order*x[0]) || (order*xi[ni-1]>order*x[n-1]) ) 
+  // Make lower and upper bounds tolerate the new point to be half a
+  // grid distance outside the original grid.
+  const Numeric lower_bound = x[0]   - 0.5*(x[1]-x[0]);
+  const Numeric upper_bound = x[n-1] + 0.5*(x[n-1]-x[n-2]);
+
+  if ( (order*xi[0]<order*lower_bound) || (order*xi[ni-1]>order*upper_bound) ) 
     {
       ostringstream os;
-      os << "Interpolation points must be inside the original range.\n"
+      os << "Interpolation points must be not more than\n"
+         << "half a grid spacing outside the original range.\n"
          << "Int.:  xi[0] = " << xi[0] << ", xi[ni-1] = " << xi[ni-1] << '\n'
          << "Orig.: x[0]  = " << x[0]  << ", x[n-1]   = " << x[n-1];
       throw runtime_error(os.str());
@@ -305,13 +314,16 @@ Index interp_check( ConstVectorView  x,
 
     The size of yi has to be the same as for xi.
 
+    Interpolation works also for new grid points just outside the
+    original grid range.
+
     \retval  yi      interpolated values 
     \param   x       the x grid
     \param   y       the function to interpolate
     \param   xi      interpolation points
 
-    \date   2001-01-05
-    \author Stefan Buehler
+    \date   2001-01-05, 2003-08-06
+    \author Stefan Buehler, Stefan Buehler
 */
 void interp_lin_vector( VectorView       yi,
                         ConstVectorView  x, 
@@ -323,6 +335,7 @@ void interp_lin_vector( VectorView       yi,
 
   Index        i, j=0;
   const Index  n=xi.nelem();
+  const Index  nx=x.nelem();
   Numeric      w;
 
   // Check that output vector has the right size:
@@ -331,10 +344,20 @@ void interp_lin_vector( VectorView       yi,
   for ( i=0; i<n; i++ )
   {
     // Find right place:
-    for( ;  order*x[j+1] < order*xi[i]; j++ );
+    while ( j<nx-2 && order*x[j+1]<order*xi[i] )
+      {
+        ++j;
+      }
+    // j should now point to the place in the old grid below the
+    // interpolation point. If the interpolation point is below the
+    // original grid, j=0. If the interpolation point is above the
+    // original grid, j=nx-2.
     
     assert( x[j+1]!=x[j] );
     w = (xi[i]-x[j]) / (x[j+1]-x[j]);
+    // This expression should also be correct for points just outside
+    // the original grid. In that case w can be negative or larger
+    // than 1.
     yi[i] = y[j] + w * (y[j+1]-y[j]); 
   }
 }      
@@ -345,13 +368,16 @@ void interp_lin_vector( VectorView       yi,
 
     The vector x specifies the points at which the data y is given. 
 
+    Interpolation works also for new grid points just outside the
+    original grid range.
+
     \retval  Yi      interpolated values (matrix)
     \param   x       the x grid (vector)
     \param   Y       the function to interpolate (matrix)
     \param   xi      interpolation points (vector)
 
-    \date   2001-01-06
-    \author Stefan Buehler
+    \date   2001-01-06, 2003-08-06
+    \author Stefan Buehler, Stefan Buehler
 */
 void interp_lin_matrix(    
                        MatrixView        Yi,
@@ -362,16 +388,30 @@ void interp_lin_matrix(
   // Check grids and get order of grids
   Index order = interp_check( x, xi, Y.ncols() ); 
 
-  Index      j=0, n=xi.nelem(), nrow=Y.nrows();
-  Numeric    w;
+  Index j=0;
+  const Index n=xi.nelem(), nrow=Y.nrows(), nx=x.nelem();
+  Numeric w;
 
   assert( nrow == Yi.nrows() );
   assert( n    == Yi.ncols() );
 
   for (Index i=0; i<n; i++ )
   {
-    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
+    // Find right place:
+    while ( j<nx-2 && order*x[j+1]<order*xi[i] )
+      {
+        ++j;
+      }
+    // j should now point to the place in the old grid below the
+    // interpolation point. If the interpolation point is below the
+    // original grid, j=0. If the interpolation point is above the
+    // original grid, j=nx-2.
+
+    assert( x[j+1]!=x[j] );
     w = (xi[i]-x[j]) / (x[j+1]-x[j]);
+    // This expression should also be correct for points just outside
+    // the original grid. In that case w can be negative or larger
+    // than 1.
     for( Index k=0; k<nrow; k++ )
     {
       Yi(k,i) = Y(k,j) + w * (Y(k,j+1)-Y(k,j));
