@@ -53,8 +53,10 @@ AgRecord::AgRecord( const char                  name[],
   // The workspace variable lookup table:
   //      extern const Array<WsvRecord> wsv_data;
 
+#ifndef NDEBUG
   // The map associated with wsv_data:
   extern const std::map<String, Index> WsvMap;
+#endif
 
   // Find returns end() if the name is not found in the map.  If
   // this assertion fails, it means that we are trying to set the
@@ -94,8 +96,10 @@ bool check_agenda_data()
   // Make external data visible
   extern const Array<WsvRecord> wsv_data;
   extern const Array<AgRecord>  agenda_data;
+#ifndef NDEBUG
   extern const std::map<String, Index> AgendaMap;
   extern const std::map<String, Index> WsvMap;
+#endif
 
   Index i,j,k;
 
