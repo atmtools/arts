@@ -1,3 +1,19 @@
+2003-01-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+    * arts-1-1-433
+    
+    * src/m_basic_types.cc: added the WSM 
+            Matrix1ColFromVector
+            Matrix2ColFromVectors
+            Matrix3ColFromVectors
+            Matrix1RowFromVector
+            Matrix2RowFromVectors
+            Matrix3RowFromVectors
+            VectorZtanToZa
+      removed the WSM
+            MatrixFillWithVector
+            MatrixSetElement
+
 2003-01-28  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-432

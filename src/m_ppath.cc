@@ -620,5 +620,42 @@ void sensor_posAddRgeoid(
     }
 }
 
+//! VectorZtanToZa
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson and Mattias Ekström
+   \date   2003-01-27
+*/
+void VectorZtanToZa(
+        // WS Output:
+              Vector&    za_vector,
+	const String&    za_v_name,
+        // WS Input:
+        const Matrix&    sensor_pos,
+        const Vector&    ztan_vector,
+        const String&    ztan_v_name,
+        const Numeric&   r_geoid )
+{
+  const Index   npos = sensor_pos.nrows();
+
+  if( ztan_vector.nelem() != npos )
+    {
+      ostringstream os;
+      os << "The number of altitudes in *" << ztan_v_name << "* must\n"
+	 << "match the number of positions in *sensor_pos*.";
+      throw runtime_error( os.str() );
+    }       
+
+  out2 << "   Filling *" << za_v_name << "* with zenith angles, based on\n"
+       << "   tangent altitudes from *" << ztan_v_name << ".\n";
+
+  za_vector.resize(npos);
+
+  for( Index i=0; i<npos; i++ )
+    { za_vector[i] = geompath_za_at_r( r_geoid + ztan_vector[i], 100, 
+                                                           sensor_pos(i,0) ); }
+
+}
 
 

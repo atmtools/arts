@@ -1907,38 +1907,143 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("MatrixFillWithVector"),
+      ( NAME("Matrix1ColFromVector"),
         DESCRIPTION
         (
-         "Forms a matrix by repeating a vector.\n"
-         "\n"
-         "The vector can either form the rows or the columns of the matrix.\n"
-         "The direction of the vector inside the matrix is selected by\n"
-         "setting the size determined by the vector length to 0. For \n"
-         "example, if the keyword *ncols* is set to 0, the vector will be\n"
-         "put in as rows of the matrix and the number of rows will equal\n"
-         "*nrows*.\n"
-         "\n"
-         "One, but only one, keyword argument must be 0.\n"
+         "Forms a matrix containing 1 column from a vector.\n"
          "\n"
          "Generic output: \n"
          "   Matrix : The matrix to be created. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : The vector to be copied. \n"
-         "\n"
-         "Keyword: \n"
-         "   nrows : Number of rows in the matrix.\n"
-         "   ncols : Number of columns in the matrix. "
+         "   Vector : The vector to be copied."
         ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Matrix_ ),
         GINPUT( Vector_ ),
-        KEYWORDS( "nrows", "ncols"   ),
-        TYPES(    Index_t, Index_t )));
+        KEYWORDS( ),
+        TYPES( )));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Matrix2ColFromVectors"),
+        DESCRIPTION
+        (
+         "Forms a matrix containing 2 columns from two vectors.\n"
+         "\n"
+         "The vectors are put as columns in the matrix in the same order\n"
+         "as they are given.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The vector to be copied into the first column. \n"
+         "   Vector : The vector to be copied into the second column."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_, Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Matrix3ColFromVectors"),
+        DESCRIPTION
+        (
+         "Forms a matrix containing 3 columns from three vectors.\n"
+         "\n"
+         "The vectors are put as columns in the matrix in the same order\n"
+         "as they are given.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The vector to be copied into the first column. \n"
+         "   Vector : The vector to be copied into the second column. \n"
+         "   Vector : The vector to be copied into the third column."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Matrix1RowFromVector"),
+        DESCRIPTION
+        (
+         "Forms a matrix containing 1 row from a vector.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The vector to be copied."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Matrix2RowFromVectors"),
+        DESCRIPTION
+        (
+         "Forms a matrix containing 2 rows from two vectors.\n"
+         "\n"
+         "The vectors are put as rows in the matrix in the same order\n"
+         "as they are given.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The vector to be copied into the first row. \n"
+         "   Vector : The vector to be copied into the second row."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_, Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Matrix3RowFromVectors"),
+        DESCRIPTION
+        (
+         "Forms a matrix containing 3 rows from three vectors.\n"
+         "\n"
+         "The vectors are put as rows in the matrix in the same order\n"
+         "as they are given.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The vector to be copied into the first row. \n"
+         "   Vector : The vector to be copied into the second row. \n"
+         "   Vector : The vector to be copied into the third row."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixPlanck"),
         DESCRIPTION
@@ -2025,35 +2130,6 @@ md_data_raw.push_back
         GOUTPUT( Matrix_ ),
         GINPUT(),
         KEYWORDS( "nrows", "ncols", "value"   ),
-        TYPES(    Index_t, Index_t, Numeric_t )));
-
-   md_data_raw.push_back
-    ( MdRecord
-      ( NAME("MatrixSetElement"),
-        DESCRIPTION
-        (
-         "Sets the selected matrix element to the given value.\n"
-         "\n"
-         "The matrix must be initiated before calling the function. An error\n"
-         "is issued if a column or row outside the range of the matrix is\n"
-         "selected.\n"
-         "\n"
-         "Note that the indexing is zero based. That is, the first column \n"
-         "or row has index 0.\n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be modified. \n"
-         "\n"
-         "Keywords:\n"
-         "   row   : Row of the matrix element to set. \n"
-         "   col   : Column of the matrix element to set. \n"
-         "   value : The value of the matrix elements. " 
-        ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( Matrix_ ),
-        GINPUT(),
-        KEYWORDS( "row",   "col",   "value"   ),
         TYPES(    Index_t, Index_t, Numeric_t )));
 
   md_data_raw.push_back
@@ -3254,7 +3330,7 @@ md_data_raw.push_back
          "This function performs a linear transformation of spectral \n"
          "radiances to an approximative temperature scale. The advantage \n"
          "of this linear transformation is that the obtained values can be \n"
-         "used for retrievals if the weighting functions are handled \n" 
+         "used for retrievals if the weighting functions are handled \n"
          "likewise (by *MatrixToTbByRJ*). This is not the case if the \n"
          "radiances are converted to temparatures by the Planck function \n"
          "directly. \n"
@@ -3275,7 +3351,7 @@ md_data_raw.push_back
          "\n"
          "Generic input: \n"
          "   Vector : A vector with radiance values. \n"
-         "   Vector : A set of frequencies. " 
+         "   Vector : A set of frequencies. "
         ),
         OUTPUT(),
         INPUT(),
@@ -3283,6 +3359,36 @@ md_data_raw.push_back
         GINPUT( Vector_, Vector_ ),
         KEYWORDS(),
         TYPES()));
+
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "VectorZtanToZa" ),
+        DESCRIPTION
+        (
+         "Converts a set of geometrical tangent altitudes to zenith angles.\n"
+         "\n"
+         "The tangent altitudes are given to the function as a vector, which\n"
+         "are converted to a generic vector of zenith angles. The position of\n"
+         "the sensor is given by the WSV *sensor_pos*. The function works only\n"
+         "for a spherical geoid, where the geoid radius is given as a keyword\n"
+         "argument (*r_geoid*). The zenith angles are always set to be positive.\n"
+         "The tangent altitudes are given as the altitude above the geoid.\n"
+         "\n"
+         "Generic output: \n"
+         "   Vector : A vector with zenith angles. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : A vector with geometric tangent altitudes\n"
+         "\n"
+         "Keywords:\n"
+         "   r_geoid : The geoid radius for the given tangent altitudes."
+        ),
+        OUTPUT(),
+        INPUT( sensor_pos_ ),
+        GOUTPUT( Vector_ ),
+        GINPUT( Vector_ ),
+        KEYWORDS( "r_geoid" ),
+        TYPES( Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

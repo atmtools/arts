@@ -82,6 +82,11 @@ struct Ppath {
 
 Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
 
+Numeric geompath_za_at_r(
+       const Numeric&   ppc,
+       const Numeric&   a_za,
+       const Numeric&   r );
+
 bool is_los_downwards( 
         const Numeric&   za,
         const Numeric&   tilt );

@@ -61,7 +61,7 @@
 
 //! ArrayOfStringSet
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -80,7 +80,7 @@ void ArrayOfStringSet(
 
 //! FlagOff
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-28
@@ -97,7 +97,7 @@ void FlagOff(
 
 //! FlagOn
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-28
@@ -114,7 +114,7 @@ void FlagOn(
 
 //! IndexSet
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -131,7 +131,7 @@ void IndexSet(    Index&    x,
 
 //! MatrixCopy
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author ???
    \date   ????-??-??
@@ -147,16 +147,14 @@ void MatrixCopy(
   y2 = y1;
 }
 
-
-
-//! MatrixFillWithVector
+//! Matrix1ColFromVector
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2002-05-11
+   \author Mattias Ekström
+   \date   2003-01-27
 */
-void MatrixFillWithVector(
+void Matrix1ColFromVector(
         // WS Generic Output:
               Matrix&   m,
         // WS Generic Output Names:
@@ -164,45 +162,186 @@ void MatrixFillWithVector(
         // WS Generic Input:
         const Vector&   v,
         // WS Generic Input Names:
-        const String&   v_name,
-        // Control Parameters:
-        const Index&    nrows,
-        const Index&    ncols )
+        const String&   v_name )
 {
-  if( nrows==0 && ncols==0 )
-    throw runtime_error("0nly one of the keyword arguments can be 0."); 
-
   const Index nv = v.nelem();
 
-  if( ncols == 0 )
-    {
-      out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
-           << " as rows.\n";
-      out3 << "             nrows : " << nrows << "\n";
-      out3 << "             ncols : " << nv << "\n";
-      m.resize( nrows, nv );
-      for( Index i=0; i<nrows; i++ )
-        m(i,Range(joker)) = v;
-    }
-  else if( nrows == 0 )
-    {
-      out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
-           << " as columns.\n";
-      out3 << "             nrows : " << nv << "\n";
-      out3 << "             ncols : " << ncols << "\n";
-      m.resize( nv, ncols );
-      for( Index i=0; i<ncols; i++ )
-        m(Range(joker),i) = v;
-    }
-  else 
-    throw runtime_error(
-                    "The size argument for either rows or columns must be 0.");
+  out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
+       << " as only column.\n";
+  m.resize( nv, 1 );
+  m( joker,0 ) = v;
 }
+
+//! Matrix2ColFromVectors
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-01-27
+*/
+void Matrix2ColFromVectors(
+        // WS Generic Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Generic Input:
+        const Vector&   v1,
+	const Vector&   v2,
+	// WS Generic Input Names:
+        const String&   v1_name,
+        const String&   v2_name )
+{
+  const Index nv = v1.nelem();
+
+  if( v2.nelem() != nv )
+    throw runtime_error("Vectors must be of the same size.");
+  
+  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
+       << v1_name << " as first column and\n  "
+       << v2_name << " as second column.\n";
+  m.resize( nv, 2 );
+  m( joker,0 ) = v1;
+  m( joker,1 ) = v2;
+
+}
+
+//! Matrix3ColFromVectors
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-01-27
+*/
+void Matrix3ColFromVectors(
+        // WS Generic Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Generic Input:
+        const Vector&   v1,
+	const Vector&   v2,
+        const Vector&   v3,
+	// WS Generic Input Names:
+        const String&   v1_name,
+        const String&   v2_name,
+        const String&   v3_name )
+{
+  const Index nv = v1.nelem();
+
+  if( v3.nelem() != nv || v2.nelem() != nv )
+    throw runtime_error("Vectors must be of the same size.");
+  
+  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
+       << v1_name << " as first column,\n  "
+       << v2_name << " as second column and\n  "
+       << v3_name << " as third column.\n";
+  m.resize( nv, 3 );
+  m( joker,0 ) = v1;
+  m( joker,1 ) = v2;
+  m( joker,2 ) = v3;
+
+}
+
+//! Matrix1RowFromVector
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-01-27
+*/
+void Matrix1RowFromVector(
+        // WS Generic Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Generic Input:
+        const Vector&   v,
+        // WS Generic Input Names:
+        const String&   v_name )
+{
+  const Index nv = v.nelem();
+
+  out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
+       << " as only row.\n";
+  m.resize( 1, nv );
+  m( 0, joker ) = v;
+}
+
+//! Matrix2RowFromVectors
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-01-27
+*/
+void Matrix2RowFromVectors(
+        // WS Generic Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Generic Input:
+        const Vector&   v1,
+	const Vector&   v2,
+	// WS Generic Input Names:
+        const String&   v1_name,
+        const String&   v2_name )
+{
+  const Index nv = v1.nelem();
+
+  if( v2.nelem() != nv )
+    throw runtime_error("Vectors must be of the same size.");
+  
+  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
+       << v1_name << " as first row and\n  "
+       << v2_name << " as second row.\n";
+  m.resize( 2, nv );
+  m( 0, joker ) = v1;
+  m( 1, joker ) = v2;
+
+}
+
+//! Matrix3RowFromVectors
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-01-27
+*/
+void Matrix3RowFromVectors(
+        // WS Generic Output:
+              Matrix&   m,
+        // WS Generic Output Names:
+        const String&   m_name,
+        // WS Generic Input:
+        const Vector&   v1,
+	const Vector&   v2,
+        const Vector&   v3,
+	// WS Generic Input Names:
+        const String&   v1_name,
+        const String&   v2_name,
+        const String&   v3_name )
+{
+  const Index nv = v1.nelem();
+
+  if( v3.nelem() != nv || v2.nelem() != nv )
+    throw runtime_error("Vectors must be of the same size.");
+  
+  out2 << "  Creates the matrix " << m_name << " by putting in\n  "
+       << v1_name << " as first row,\n  "
+       << v2_name << " as second row and\n  "
+       << v3_name << " as third row.\n";
+  m.resize( 3, nv );
+  m( 0, joker ) = v1;
+  m( 1, joker ) = v2;
+  m( 2, joker ) = v3;
+
+}
+
 
 
 //! MatrixScale
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2001-01-17
@@ -236,7 +375,7 @@ void MatrixScale(
 
 //! MatrixSet
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2001-02-21
@@ -254,38 +393,9 @@ void MatrixSet(           Matrix&    x,
   out3 << "             ncols : " << ncols << "\n";
 }
 
-
-
-//! MatrixSetElement
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2003-01-07
-*/
-void MatrixSetElement(
-            Matrix&    x, 
-      const String&    x_name,
-      const Index&     row,
-      const Index&     col,
-      const Numeric&   value )
-{
-  if( col > x.ncols() -1 )
-    throw runtime_error(
-        "You have selected a column that is outside the range of the matrix" );
-  if( row > x.nrows() -1 )
-    throw runtime_error(
-           "You have selected a row that is outside the range of the matrix" );
-
-  x(row,col) = value;
-  out2 << "  " << x_name << "(" << row << "," << col << ") = " << value <<"\n";
-}
-
-
-
 //! MatrixSetTakingSizeFromMatrix
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2003-01-07
@@ -310,7 +420,7 @@ void MatrixSetTakingSizeFromMatrix(
 
 //! NumericSet
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -327,7 +437,7 @@ void NumericSet(      Numeric&   x,
 
 //! StringSet
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -344,7 +454,7 @@ void StringSet(           String&  s,
 
 //! Tensor3FillWithVector
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-11
@@ -417,7 +527,7 @@ void Tensor3FillWithVector(
 
 //! Tensor3Set
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Claudia Emde
    \date   2002-05-31
@@ -439,7 +549,7 @@ void Tensor3Set(          Tensor3&   x,
 
 //! Tensor4Set
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Claudia Emde
    \date   2002-05-31
@@ -463,7 +573,7 @@ void Tensor4Set(          Tensor4&   x,
 
 //! Tensor5Set
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Claudia Emde
    \date   2002-05-31
@@ -489,7 +599,7 @@ void Tensor5Set(          Tensor5&   x,
 
 //! Tensor6Set
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Claudia Emde
    \date   2002-05-31
@@ -517,7 +627,7 @@ void Tensor6Set(          Tensor6&   x,
 
 //! Tensor7Set
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Claudia Emde
    \date   2002-05-31
@@ -548,7 +658,7 @@ void Tensor7Set(          Tensor7&   x,
 
 //! VectorAddScalar
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2001-01-17
@@ -582,7 +692,7 @@ void VectorAddScalar(
 
 //! VectorCopy
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author ???
    \date   ????-?-?
@@ -601,7 +711,7 @@ void VectorCopy(      Vector&   y2,
 
 //! VectorLinSpace
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -627,7 +737,7 @@ void VectorLinSpace(      Vector&    x,
 
 //! VectorNLinSpace
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -655,7 +765,7 @@ void VectorNLinSpace(     Vector&    x,
 
 //! VectorNLogSpace
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -684,7 +794,7 @@ void VectorNLogSpace(       Vector&    x,
 
 //! VectorScale
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2001-01-17
@@ -718,7 +828,7 @@ void VectorScale(
 
 //! VectorSet
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
@@ -739,7 +849,7 @@ void VectorSet(           Vector&    x,
 
 //! VectorSetElement
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2003-01-07
@@ -762,7 +872,7 @@ void VectorSetElement(
 
 //! VectorSetTakingLengthFromVector
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2000-?-?
