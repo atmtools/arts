@@ -13,8 +13,8 @@
 
 	* src/Makefile.am: Added gridded_fields.cc/h.
 
-	* src/m_cloudbox.cc: Added new methods (PartTypeInit) and
-	(PartTypeAdd) to read from the scattering database and construct
+	* src/m_cloudbox.cc: Added new methods (ParticleTypeInit) and
+	(ParticleTypeAdd) to read from the scattering database and construct
 	*amp_mat_raw*. 
 
 	* src/methods.cc: Included the methods above.

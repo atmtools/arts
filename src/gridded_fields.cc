@@ -38,6 +38,7 @@
   === External declarations
   ===========================================================================*/
 
+
 #include <stdexcept>
 #include "xml_io.h"
 #include "array.h"
@@ -111,14 +112,16 @@ check_gridded_tensor3 (ArrayOfTensor3 &gridded_tensor)
                   if ((gridded_tensor[g].*f[d])() !=
                       (gridded_tensor[3].*f[d])())
                     {
-                      cout << "Error while reading data file "
-                           << "(gridded data field format): \n"
-                           << elem_names[d] << " dimension of "
-                           << elem_names[d] << "_grid "
-                           << "(" << (gridded_tensor[g].*f[d])() << ") "
-                           << "must be the same as in data tensor "
-                           << "(" << (gridded_tensor[3].*f[d])() << ") "
-                           << endl << endl;
+                      ostringstream os;
+                      os <<"Error while reading data file "
+                         << "(gridded data field format): \n"
+                         <<elem_names[d] << " dimension of "
+                         << elem_names[d] << "_grid "
+                         << "(" << (gridded_tensor[g].*f[d])() << ") "
+                         << "must be the same as in data tensor "
+                         << "(" << (gridded_tensor[3].*f[d])() << ") "
+                         << "\n";
+                      throw runtime_error (os.str());
                     }
                 }
               else
@@ -126,13 +129,15 @@ check_gridded_tensor3 (ArrayOfTensor3 &gridded_tensor)
                   // All other dimensions of the grid tensor must be 1
                   if ((gridded_tensor[g].*f[d])() != 1)
                     {
-                      cout << "Error while reading data file "
-                           << "(gridded data field format): \n"
-                           << elem_names[d] << " dimension of "
-                           << elem_names[g] << "_grid "
-                           << "(" << (gridded_tensor[g].*f[d])() << ") "
-                           << "must be 1"
-                           << endl << endl;
+                      ostringstream os;
+                      os << "Error while reading data file "
+                         << "(gridded data field format): \n"
+                         << elem_names[d] << " dimension of "
+                         << elem_names[g] << "_grid "
+                         << "(" << (gridded_tensor[g].*f[d])() << ") "
+                         << "must be 1"
+                         << "\n";
+                      throw runtime_error (os.str());
                     }
                 }
             }
@@ -143,13 +148,15 @@ check_gridded_tensor3 (ArrayOfTensor3 &gridded_tensor)
           // the data tensor must be 1
           if ((gridded_tensor[3].*f[g])() != 1)
             {
-              cout << "Error while reading data file "
-                   << "(gridded data field format): \n"
-                   << "If the " << elem_names[3] << "_grid is empty, the "
-                   << elem_names[3] << " dimension "
-                   << "(" << (gridded_tensor[3].*f[g])() << ") "
-                   << "of the data tensor must be 1"
-                   << endl << endl;
+              ostringstream os;
+              os << "Error while reading data file "
+                 << "(gridded data field format): \n"
+                 << "If the " << elem_names[3] << "_grid is empty, the "
+                 << elem_names[3] << " dimension "
+                 << "(" << (gridded_tensor[3].*f[g])() << ") "
+                 << "of the data tensor must be 1"
+                 << "\n";
+              throw runtime_error (os.str());
             }
         }
     }
@@ -221,14 +228,16 @@ check_gridded_tensor6 (ArrayOfTensor6 &gridded_tensor)
                   if ((gridded_tensor[g].*f[d])() !=
                       (gridded_tensor[6].*f[d])())
                     {
-                      cout << "Error while reading data file "
-                           << "(gridded data field format): \n"
-                           << elem_names[d] << " dimension of "
-                           << elem_names[d] << "_grid "
-                           << "(" << (gridded_tensor[g].*f[d])() << ") "
-                           << "must be the same as in data tensor "
-                           << "(" << (gridded_tensor[6].*f[d])() << ") "
-                           << endl << endl;
+                      ostringstream os;
+                      os << "Error while reading data file "
+                         << "(gridded data field format): \n"
+                         << elem_names[d] << " dimension of "
+                         << elem_names[d] << "_grid "
+                         << "(" << (gridded_tensor[g].*f[d])() << ") "
+                         << "must be the same as in data tensor "
+                         << "(" << (gridded_tensor[6].*f[d])() << ") "
+                         << "\n";
+                      throw runtime_error (os.str());
                     }
                 }
               else
@@ -236,13 +245,15 @@ check_gridded_tensor6 (ArrayOfTensor6 &gridded_tensor)
                   // All other dimensions of the grid tensor must be 1
                   if ((gridded_tensor[g].*f[d])() != 1)
                     {
-                      cout << "Error while reading data file "
-                           << "(gridded data field format): \n"
-                           << elem_names[d] << " dimension of "
-                           << elem_names[g] << "_grid "
-                           << "(" << (gridded_tensor[g].*f[d])() << ") "
-                           << "must be 1"
-                           << endl << endl;
+                      ostringstream os;
+                      os << "Error while reading data file "
+                         << "(gridded data field format): \n"
+                         << elem_names[d] << " dimension of "
+                         << elem_names[g] << "_grid "
+                         << "(" << (gridded_tensor[g].*f[d])() << ") "
+                         << "must be 1"
+                         << "\n";
+                      throw runtime_error (os.str());
                     }
                 }
             }
@@ -253,13 +264,15 @@ check_gridded_tensor6 (ArrayOfTensor6 &gridded_tensor)
           // the data tensor must be 1
           if ((gridded_tensor[6].*f[g])() != 1)
             {
-              cout << "Error while reading data file "
-                   << "(gridded data field format): \n"
-                   << "If the " << elem_names[g] << "_grid is empty, the "
-                   << elem_names[g] << " dimension "
-                   << "(" << (gridded_tensor[6].*f[g])() << ") "
-                   << "of the data tensor must be 1"
-                   << endl << endl;
+              ostringstream os;
+              os << "Error while reading data file "
+                 << "(gridded data field format): \n"
+                 << "If the " << elem_names[g] << "_grid is empty, the "
+                 << elem_names[g] << " dimension "
+                 << "(" << (gridded_tensor[6].*f[g])() << ") "
+                 << "of the data tensor must be 1"
+                 << "\n";
+              throw runtime_error (os.str());
             }
         }
     }

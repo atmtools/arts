@@ -52,7 +52,7 @@
 #include "physics_funcs.h"
 #include "lin_alg.h"
 #include "math_funcs.h"
-
+#include "messages.h"
 
 extern const Numeric PI;
 
@@ -942,6 +942,14 @@ scat_fieldCalc(//WS Output:
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
+  // scat_field is of the same size as *i_field*
+  scat_field.resize( i_field.nvitrines(),
+	      i_field.nshelves(),
+	      i_field.nbooks(),
+	      i_field.npages(),
+	      i_field.nrows(),
+	      i_field.ncols() );
+
   //Note that the size of i_field and scat_field are the same 
   if (atmosphere_dim ==3){
     
@@ -1003,17 +1011,19 @@ scat_fieldCalc(//WS Output:
 							Range(joker));
 
 		    // just a multiplication of ifield_in and pha
-		    Matrix product_field(stokes_dim, stokes_dim);
+		    Vector product_field(stokes_dim);
+                    cout << "before"<<endl;
 		    mult (product_field, pha, ifield_in);
-		    
+                    cout << "after"<<endl;
+                     
 		    /*integration of the product of ifield_in and pha
 		      over zenith angle and azimuth angle grid. It calls
 		    here the integration routine AngIntegrate_trapezoid*/
 
-		    scat_field
-		      = AngIntegrate_trapezoid(product_field,
-					       scat_za_grid,
-					       scat_aa_grid);
+                    //	    scat_field
+                    // = AngIntegrate_trapezoid(product_field,
+                    //		       scat_za_grid,
+                    //			       scat_aa_grid);
 		    
 		  }
 	      }

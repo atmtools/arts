@@ -47,7 +47,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "xml_io.h"
-
+#include "messages.h"
 #include "gridded_fields.h"
 
 /*===========================================================================
@@ -237,39 +237,42 @@ void ParticleTypeAdd( //WS Output:
                  // Keyword:
                  const ArrayOfString& particle_types)
 {
-  
+
+  // Number of particle types.
   Index npt = particle_types.nelem(); 
-  ArrayOfString part_types_ampmat(npt);
+
   ArrayOfTensor6 amp_mat_raw_i;
-  Index i, k;
-  
+  ArrayOfTensor3 pnd_field_raw_i;
+
   // Loop over the particle types:
-   for (i=0; i<npt; i++)
+   for (Index i=0; i<npt; i++)
      {  
       // Constructing file name for the amplitude matrix:
-      part_types_ampmat[i] = particle_types[i] + "_ampmat.xml";
-     
-      // Read amplitude matrix data:
-      cout << "Read amplitude matrix_data" << endl;
-      read_gridded_tensor6( part_types_ampmat[i], amp_mat_raw_i);
-   
-      // Put the gridded tensors for each particle type in *amp_mat_raw*.
-      for(k = 0; k < 7; k++)
-        { 
-          amp_mat_raw[6*i+k] = amp_mat_raw_i[k];
-        }
+       ArrayOfString part_types_ampmat(npt);
+       part_types_ampmat[i] = particle_types[i] + "_ampmat.xml";
+       
+       // Construncting file name for the pnd field:
+       ArrayOfString part_types_pnd(npt);
+       part_types_pnd[i] =  particle_types[i] + "_pnd.xml";
+    
+       // Read amplitude matrix data:
+       out2 << "Read amplitude matrix_data" << endl;
+       read_gridded_tensor6( part_types_ampmat[i], amp_mat_raw_i);
+       //read_gridded_tensor3 (part_types_pnd[i], pnd_field_raw_i);
+       
+       // Put the gridded tensors for each particle type in *amp_mat_raw*.
+       for(Index k=0; k<7; k++)
+         amp_mat_raw[6*i+k] = amp_mat_raw_i[k];
+        
+       
+       //  Put the gridded tensors for each particle type in *amp_mat_raw*.
+       //for(Index k=0; k<4; k++)
+       //  pnd_field_raw[3*i+k] = pnd_field_raw_i[k];
+           
      }          
 }
 
-   // Constructing file name for pnd field:
-   //       String part_types_pnd =  particle_types[i] + "_pnd.xml";
-   // Read particle number density field:
-   //       xml_read_from_file( part_types_pnd, pnd_field_raw(i) );
-
-    
-  
-  //only for testing
-      // xml_write_to_file ("amp_mat_raw.xml", amp_mat_raw);
+ 
     
 
 
