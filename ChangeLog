@@ -1,5 +1,15 @@
 2002-11-11  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-283
+
+	* doc/doc++/Makefile.am, doc/doc++/html/Makefile.am,
+	doc/doc++/tex/Makefile.am, doc/doc++/tex/docxx.sty: Removed.
+
+	* doc/uguide/Makefile.am: Remove uguide.ind after generating dvi/pdf
+	to avoid conflict between latex and pdflatex.
+
+2002-11-11  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-282
 
 	* doc/uguide/uguide.tex: Use ifthen package to determine whether
