@@ -14,6 +14,7 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EXTRA_DIST = \
+        amenu.m \
         filedate.m \
         geomtan2za.m \
         invplanck.m \
@@ -25,4 +26,5 @@ EXTRA_DIST = \
         planck.m \
         rand_test.m \
         vec2col.m \
-        vec2row.m 
+        vec2row.m \
+	whoami.m
