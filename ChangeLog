@@ -1,3 +1,18 @@
+2003-01-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-361
+
+	* src/matpackI.{h,cc}: Commented out assignment operators for Vector
+	with parameter type Array<Numeric>. If we want to split matpack from
+	arts it should not depend on Array which belongs to arts, not to
+	matpack.
+
+	* src/parser.cc (parse_numvector): Use loop to copy Array<Numeric> to
+	Vector because assignment operator is not longer present.
+
+	* src/test_matpack.cc: Commented out test16 (Test for Array<Numeric>
+	-> Vector assignment).
+
 2003-01-07  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-360
