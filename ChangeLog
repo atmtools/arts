@@ -1,3 +1,10 @@
+2004-10-12  Cory Davis  <cory@fog>
+
+	* arts-1-1-899
+
+	* src/cloudbox.cc (iy_interp_cloudbox_field): scat_i_lon is only
+	used in asserts. Added stupid code until someone fixes this properly.
+
 2004-10-11  Cory Davis  <cory@fog>
 
 	* arts-1-1-898
