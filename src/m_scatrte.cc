@@ -98,6 +98,7 @@ extern const Numeric PI;
 */
 void convergence_flagAbs(//WS Output:
                       Index& convergence_flag,
+                      Index& iteration_counter,
                       // WS Input:
                       const Tensor6& i_field,
                       const Tensor6& i_field_old,
@@ -109,7 +110,13 @@ void convergence_flagAbs(//WS Output:
                       // Keyword:
                       const Vector& epsilon)
 {
- 
+  // FIXME: There should be a check, whether iteration_counter = 0 when the
+  // function is called for the first time.
+  
+  //Increase the counter 
+  iteration_counter = iteration_counter+1;
+  cout << "Number of iterations:   "<< iteration_counter << endl;
+  
   //Check the input:
   assert( convergence_flag == 0 );
   assert( atmosphere_dim == 1 || atmosphere_dim == 3 );
@@ -432,15 +439,14 @@ i_fieldIterate(
         i_fieldUpdate1D(//Output:
                         i_field, ppath_step, stokes_vec, 
                         sca_vec, planck_function, l_step,  
-                        abs_vec_spt, ext_mat_spt,ext_mat, abs_vec,
-                        scat_p_index,
+                        abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
+                        abs_vec,  scat_p_index,
                         //Input:
                         ext_mat_agenda, abs_vec_agenda, ppath_step_agenda,
                         scat_rte_agenda,  amp_mat, scat_field,
                         cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
                         t_field, z_field, r_geoid, f_grid, scat_f_index, 
-                        pnd_field, stokes_dim, atmosphere_dim, part_types,
-                        pha_mat_spt);
+                        pnd_field, stokes_dim, atmosphere_dim, part_types);
       }
     
     //Convergence test.
@@ -520,6 +526,7 @@ i_fieldUpdate1D(// WS Output:
                 Numeric& l_step,
                 Matrix& abs_vec_spt,
                 Tensor3& ext_mat_spt,
+                Tensor5& pha_mat_spt,
                 Matrix& ext_mat,
                 Vector& abs_vec,
                 Index& scat_p_index,
@@ -542,8 +549,7 @@ i_fieldUpdate1D(// WS Output:
                 const Tensor4& pnd_field,
                 const Index& stokes_dim,
                 const Index& atmosphere_dim,
-                const Vector& part_types,
-                const Tensor5& pha_mat_spt
+                const Vector& part_types
                 )
 {
 
@@ -606,6 +612,15 @@ i_fieldUpdate1D(// WS Output:
       //       routine as the integration over the azimutal angle gives 
       //       always 2*pi.
 
+      
+      // Calculate abs_vec for the direction corresponding tp the outer loop.
+      // pha_mat_spt for this direction is required as input.
+
+      pha_mat_sptCalc(pha_mat_spt,
+                      amp_mat,
+                      scat_za_index,
+                      scat_aa_index);
+
       abs_vec_sptCalc(abs_vec_spt, 
 		      ext_mat_spt,
 		      pha_mat_spt,
@@ -614,13 +629,8 @@ i_fieldUpdate1D(// WS Output:
     
       //cout << "abs_vec_spt is calculated"<<"\n";
 	} // close loop over scat_aa_grid
-    }// close loop over scat_za_grid
-   
- 
+  
 
-  for(Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
-    { 
-      
       // Calculate ext_mat, abs_vec for all points inside the cloudbox.
       // sca_vec can be obtained from the workspace variable scat_field.
       // As we need the average for each layer, it makes sense to calculte
@@ -1383,36 +1393,30 @@ scat_fieldCalc(//WS Output:
   \date 2002-08-26
      
 */ 
-void Tensor6WriteIteration(//WS input and output
-                           Index& iteration_counter,
+void Tensor6WriteIteration(//WS input 
+                           const Index& iteration_counter,
                            //Global  Input :
                            const Tensor6& field,
                            const String& field_name,
                            //Keyword:
                            const ArrayOfIndex& iterations)
 {
-  // FIXME: There should be a check, whether iteration_counter = 0 when the
-  // function is called for the first time.
-
-  //Increase the counter 
- iteration_counter = iteration_counter+1;
- cout << "Number of iterations:   "<< iteration_counter << endl;
  
- ostringstream os;
- os << iteration_counter;
-
- // All iterations are written to files
- if( iterations[0] == 0 )
-   {
-     xml_write_to_file(field_name+ os.str() + ".xml", field);  
+  ostringstream os;
+  os << iteration_counter;
+  
+  // All iterations are written to files
+  if( iterations[0] == 0 )
+    {
+      xml_write_to_file(field_name + os.str() + ".xml", field);  
    }
- // Only the iterations given by the keyword are written to a file
- else
-   {
-     for (Index i = 0; i<iterations.nelem(); i++)
-       {
-         if (iteration_counter == iterations[i])
-           xml_write_to_file(field_name+ os.str() + ".xml", field);  
-       }
-   }
+  // Only the iterations given by the keyword are written to a file
+  else
+    {
+      for (Index i = 0; i<iterations.nelem(); i++)
+        {
+          if (iteration_counter == iterations[i])
+            xml_write_to_file(field_name + os.str() + ".xml", field);  
+        }
+    }
 }

@@ -713,7 +713,7 @@ void define_md_data_raw()
          "and for all directions.\n"  
          "Then *convergence_flag* is set to 1.\n" 
 	),
-	OUTPUT(convergence_flag_),
+	OUTPUT(convergence_flag_, iteration_counter_),
 	INPUT(i_field_, i_field_old_, cloudbox_limits_, scat_za_grid_, 
               scat_aa_grid_, stokes_dim_, atmosphere_dim_),
 	GOUTPUT( ),
@@ -1036,14 +1036,13 @@ md_data_raw.push_back
         ),
 	OUTPUT(i_field_, ppath_step_, stokes_vec_, 
                sca_vec_, planck_function_, l_step_,
-               abs_vec_spt_, ext_mat_spt_, ext_mat_, abs_vec_,
+               abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
                scat_p_index_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
               scat_rte_agenda_, amp_mat_, scat_field_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
               r_geoid_, f_grid_, scat_f_index_, 
-	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_,
-              pha_mat_spt_),
+	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2083,8 +2082,8 @@ md_data_raw.push_back
        "in the control file before using this method.\n"
        "\n"
 	),
-	OUTPUT(iteration_counter_),
-	INPUT( ),
+	OUTPUT( ),
+	INPUT(iteration_counter_),
 	GOUTPUT( ),
 	GINPUT(Tensor6_),
 	KEYWORDS("iterations"),
