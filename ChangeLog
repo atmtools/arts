@@ -1,3 +1,12 @@
+2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-0-0-257
+	
+	* doc/examples/f_mono.out: Included monochromatic frequency file
+	for AMSU
+
+	* doc/examples/amsu.arts: Included a control file for AMSU
+
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-256
