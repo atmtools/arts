@@ -440,7 +440,7 @@ method can be added.
   This file states which source files are needed for arts. Should be
   self-explanatory where you have to add your file. The above goes for
   source (\artsstyle{.cc}) and header (\artsstyle{.h}) files likewise.
-\item Then go to the top level arts directory and run: \artsstyle{reconf}.
+\item Then go to the top level arts directory and run: \artsstyle{autogen.sh}.
 \item Go to \artsstyle{src} and run: \artsstyle{cvs add <my\_file>} to make your
   file known to CVS.
 \end{enumerate}
@@ -564,7 +564,7 @@ documentation or our own CVS Howto on:
   top-level ARTS directory. (The line that you have to change is the
   one with \artsstyle{AM\_INIT\_AUTOMAKE}.) Omit the subversion number (last digit).
 \item Commit your changes (see other howto). 
-\item In the top-level ARTS directory, run \artsstyle{reconf}.
+\item In the top-level ARTS directory, run \artsstyle{autogen.sh}.
 \item In the top-level ARTS directory, run \artsstyle{make distcheck}. This
   will not only cut the release, but also immediately try to build
   it, to see if it works. Unless you are on a very fast machine, this
