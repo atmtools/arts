@@ -1,3 +1,10 @@
+2003-08-21  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-663
+
+	* src/legendre.cc: Fixed a bug in (legendre_poly_deriv) and
+	(legendre_poly_norm_schmidt_deriv).
+	
 2003-08-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-662

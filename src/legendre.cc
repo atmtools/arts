@@ -166,7 +166,7 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
         << endl << "  x = " << x << endl;
       throw runtime_error (os.str ());
     }
-  return (((l + 1) * (l + m) + legendre_poly (l, m-1, x)
+  return (((l + 1) * (l + m) + legendre_poly (l-1, m, x)
            - l * (l - m + 1) * legendre_poly (l+1, m, x))
           / ((2*l + 1) * (1 - x * x)));
 }
@@ -197,7 +197,7 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
 	 << endl << "  x = " << x << endl;
       throw runtime_error (os.str ());
     }
-  return (((l + 1) * (l + m) + legendre_poly_norm_schmidt (l, m-1, x)
+  return (((l + 1) * (l + m) + legendre_poly_norm_schmidt (l-1, m, x)
            - l * (l - m + 1) * legendre_poly_norm_schmidt (l+1, m, x))
           / ((2*l + 1) * (1 - x * x)));
 }
