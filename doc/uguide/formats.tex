@@ -68,11 +68,11 @@
  set to be double or float in \verb|arts.h|. If \verb|NUMERIC| is set
  to be double, the calculations will be more accurate and there is a
  smaller risk to encounter numerical problems in e.g. matrix inversions.
- On the other hand, \verb|NUMERIC| is set to be float the calculations
+ On the other hand, when \verb|NUMERIC| is set to be float the calculations
  will be more rapid (about double as fast). The type selected for
- \verb|NUMERIC| is also used when writing numeric data to binary files.
+ \verb|NUMERIC| is also reflected in the size of output files.
  
- A variable of type \verb|size_t| is a positive integer. This type is
+ A variable of type \verb|INDEX| is a positive integer. This type is
  used for indexing e.g. vectors and matrices. The type is also used
  for all functions flags, i.e. to make a selction among a limited number of
  choices. Accordingly, characters or strings shall not be used flags. 
@@ -81,7 +81,6 @@
  of characters, but as characters are not used in ARTS, strings are
  the most basic text type in ARTS.
   
- !! Do we need  \verb|int| ? !!
 
 
 \levelc{Numeric mathematical types}
@@ -89,8 +88,9 @@
  
  Numeric values can be stored in vectors or a number of matrix types
  (Table \ref{table:format:nummath}) for which mathematical operations
- are possible. The allowed operations are given in Section !!.
- The vectors are treated at mathematical operations as column vectors.
+ are possible. The allowed operations are given in Section 
+ \ref{sec:formats:maths}.
+ The vectors are treated in mathematical operations as column vectors.
  
  A \verb|MATRIX| is a general matrix and a \verb|SPARSE| is a general
  sparse matrix. The type \verb|MAYBESPARSE| is a structure type that
@@ -100,10 +100,12 @@
  general type. The banded-symmetric type (\verb|BANDEDSYM|) is
  intended for matrices where all the non-zero elements are close to
  the diagonal of the matrix. Diagonal matrices are treated as a
- special case off banded-symmetric matrices. Covariance matrices are
+ special case of banded-symmetric matrices. Covariance matrices are
  symmetric matrices. The type \verb|COVARMATRIX| is a structure that
  covers both general and banded symmetric matrices and can thus be
- used efficently for any covariance matrix.
+ used efficently for most covariance matrices.
+
+ !! Write something about indexing when the switch to MTL is ready. !!
 
 
 \levelc{Arrays based on atomic types}
@@ -125,17 +127,17 @@
   \begin{tabular}{l l l}
    \verb|LineRecord| & \verb|ARRAYofLineRecord| & \verb|ARRAYofARRAYofLineRecord| \\
    \verb|OneTag|     & \verb|Tags|   & \\
-   \verb|Los| & & \\
+   \verb|LOS| & & \\
   \end{tabular}
   \caption{ARTS data types using a mix of atomic types (structures).}
   \label{table:format:structures}
  \end{table}
  
- Stefan or Axel can you check Table \ref{table:format:structures} and
- write something here!!
+ !! Stefan or Axel can you check Table \ref{table:format:structures} and
+ write something here !!
  
- The \verb|Los| is a structure to describe the line of sight (LOS).
- The structure holds the pressures along the LOS. To make the
+ The \verb|LOS| is a structure to describe the line of sight (LOS).
+ The structure holds for example the pressures along the LOS. To make the
  calculations more efficient for 1D calulations, only one half of the
  LOS is stored.  For this reason, the LOS structure includes indecies
  to describe the iteration order. The structure also contains the
@@ -149,8 +151,10 @@
  \levelc{The atomic types} 
  All standard mathermatical (\verb|+|,\verb|-|,\verb|*|,\verb|/| etc.)
  and logical operations (\verb|==|, \verb|!=| etc.) of C++ can of
- course be used for \verb|NUMERIC| and \verb|size_t|. !! Strings, ==
- and !=, something else? !!
+ course be used for \verb|NUMERIC| and \verb|INDEX|. Among the C++
+ standard operations for strings, comparation using \verb|==| and
+ \verb|!=| are probably the most important.
+
  
  \levelc{Vectors and matrices} 
  
@@ -170,16 +174,17 @@
  \label{sec:formats:files}
 
  All ARTS data can be stored to, or loaded from, binary files using HDF.
- For some data types an ASCII file format also exists.
+ For some data types an ASCII file format also exists. The default
+ extension for ASCCI files is \verb|.aa| (ARTS ASCII) and for binary
+ files it is \verb|.ab| (ARTS binary).
  
  \levelc{ASCII}
   \label{sec:formats:file:ascii}
   
-  All data types based on \verb|NUMERIC| and \verb|size_t| that can be
+  All data types based on \verb|NUMERIC| and \verb|INDEX| that can be
   represented by \verb|ARRAYofMATRIX| are stored using a common ASCII
-  file format. Table \ref{table:format:am} gives the data types that
-  fulfills this criteria. The default extension for these ASCII files 
-  is \verb|.am|.  These \verb|.am| files have the following 
+  file format. Table \ref{table:format:aa} gives the data types that
+  fulfills this criteria. Numeric ASCII files have the following 
   structure: \\
   {\footnotesize \begin{verbatim} 
 # The file can start with an arbitrary number of comment lines.  
@@ -198,13 +203,11 @@
      
  The sizes given in the file must be compatible with the data type
  of the variable that is read. Vectors can be given both as
- columns or row matrices. For \verb|size_t|, the ordinary type
- conversion of C++ is applied (\verb|(size_t)| when reading and
- \verb|(NUMERIC)| when writing).
+ columns or row matrices. When reading varaibles of INDEX type,
+ the data is checked to only contain non-negative integers.
  
- The types \verb|string| and \verb|ARRAYofstring| are stored using a
- similar file format. The default extension is here \verb|.as| and
- these files have the following structure:
+ The types \verb|STRING| and \verb|ARRAYofSTRING| are stored using a
+ similar file format. String ASCII files have the following structure:
  {\footnotesize \begin{verbatim} 
 # The file can start with an arbitrary number of comment lines.
 # These lines starts with the hash symbol (#)
@@ -217,26 +220,43 @@ String 3
  \end{verbatim} 
 }
 
+ 
 
  \begin{table}[t]
   \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
    \verb|NUMERIC|        & \verb|VECTOR|         & \verb|MATRIX|          \\
    \verb|ARRAYofVECTOR|  & \verb|ARRAYofMATRIX|  &                        \\
-   \verb|size_t|         & \verb|ARRAYofsize_t|  &                        \\
+   \verb|INDEX|          & \verb|ARRAYofINDEX|  &                        \\
   \end{tabular}
-  \caption{ARTS data types that can be stored with the numeric ASCII
-           file format (.am).}
-  \label{table:format:am}
+  \caption{Numeric ARTS data types that can be stored using the ASCII
+           file format (.aa).}
+  \label{table:format:aa}
  \end{table}
  
 
 \levelc{Binary}
  \label{sec:formats:file:binary}
   
- Binary files are created and read by using HDF (Sec.
+ !! Write some text describing the binary data structure. !!
+
+ Binary files are created and read by using the Vdata format of HDF 4 (Sec.
  \ref{sec:formats:hdf}). 
 
+ The content of the binary files can be displayed using some command line
+ HDF utilities. A first utility is \verb|vshow|. The syntax is \\
+
+ \verb|vshow |{\it filename}\verb| +|
+
+ \noindent
+ where {\it filename} is the binary file of interest. The final \verb|+|
+ indicates that the values of the stored data shall be displayed. Without
+ the \verb|+| symbol, only the data structure is reported.
+
+ Another utility is \verb|hdp|. Type \verb|hdp -h| for some on-line help.
+ To display the values of the stored data, type\\
  
+ \verb|hdp dumpvd |{\it filename}
+
 
 
 \levelb{MTL}
@@ -247,8 +267,8 @@ String 3
  \verb|http://www.lsc.nd.edu/research/mtl/| \\
 
  \noindent
- The MTL version used presently is 2.1.2 (Check if correct). 
- Further instructions should be given here.
+ The MTL version used presently is 2.1.2. !! Stefan or Oliver, please check
+ the version number and write something about installing MTL. !!
 
 
 \levelb{HDF}
@@ -259,16 +279,17 @@ String 3
  \verb|http://hdf.ncsa.uiuc.edu/| \\
 
  \noindent
- The present version of ARTS has been tested with HDF 5.1.2.2. The C
- implementation of HDF is used.
+ The HDF 4 data format is used. The present version of ARTS has been
+ tested with HDF 4.1r3. The precompiled binaries were used.
  
  HDF is not supplied with ARTS, it must be installed seperately as a
- library. For example, to install HDF on a Linux system, do the following:
+ library. For example, to install HDF on a Linux system, try the
+ following:
  \begin{itemize}
-  \item[1] Download the C package for gcc and ``shared''. Unpack.
-  \item[2] Copy the contents of /bin, /include and /lib to the corresponding
-           sub-directories of /usr/local. You need to be superuser to do 
-           this.  
+  \item[1] Download the precompiled version for your system. Unpack.
+  \item[2] Copy the contents of /bin, /include, /man and /lib to the 
+           corresponding sub-directories of /usr/local. You need to be 
+           superuser to do this.  
  \end{itemize}
 
 

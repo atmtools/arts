@@ -38,9 +38,9 @@
 #include "arts.h"
 #include "messages.h"
 #include "file.h"
-#include "vecmat.h"
-#include "math_funcs.h"
 #include "md.h"
+#include "math_funcs.h"
+#include <hdf.h>
 
 
 
@@ -51,9 +51,9 @@
 // These functions gives, if filename is empty, the default file name for
 // the different file types.
 
-//// filename_num_ascii ////////////////////////////////////////////////////
+//// filename_ascii ////////////////////////////////////////////////////////
 /**
-   Gives the default file name for the numerical ASCII format.
+   Gives the default file name for the ASCII formats.
 
    The default name is only used if the file name is empty.
 
@@ -63,39 +63,14 @@
    \author Patrick Eriksson              
    \date   2000-11-01
 */
-void filename_num_ascii(
+void filename_ascii(
               string&  filename,
         const string&  varname )
 {
   if ( "" == filename )
   {
     extern const string basename;                       
-    filename = basename+"."+varname+".am";
-  }
-}
-
-
-
-//// filename_string_ascii //////////////////////////////////////////////////
-/**
-   Gives the default file name for the string ASCII format.
-
-   The default name is only used if the file name is empty.
-
-   \retval   filename     file name
-   \param    varname      variable name
-
-   \author Patrick Eriksson              
-   \date   2000-11-01
-*/
-void filename_string_ascii(
-              string&  filename,
-        const string&  varname )
-{
-  if ( "" == filename )
-  {
-    extern const string basename;                       
-    filename = basename+"."+varname+".as";
+    filename = basename+"."+varname+".aa";
   }
 }
 
@@ -155,7 +130,7 @@ void IndexWriteAscii(
   string filename = f;
 
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Store the value in an ARRAYofMATRIX and write to file
   ARRAYofMATRIX am(1);
@@ -175,7 +150,7 @@ void IndexReadAscii(
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Read the value as ARRAYofMATRIX and move to Numeric
   ARRAYofMATRIX am;
@@ -204,7 +179,7 @@ void IndexWriteBinary(
         const string&   var_name,
 	const string&   f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -220,7 +195,7 @@ void IndexReadBinary(
 	const string&   f )
 {
   size_t vtemp;  //To be removed
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -254,7 +229,7 @@ void NumericWriteAscii(
   string filename = f;
 
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Store the value in an ARRAYofMATRIX and write to file
   ARRAYofMATRIX am(1);
@@ -273,7 +248,7 @@ void NumericReadAscii(
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Read the value as ARRAYofMATRIX and move to Numeric
   ARRAYofMATRIX am;
@@ -295,7 +270,7 @@ void NumericWriteBinary(
         const string&   var_name,
 	const string&   f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -310,7 +285,7 @@ void NumericReadBinary(
         const string&   var_name,
 	const string&   f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -412,7 +387,7 @@ void VectorWriteAscii(// WS Output:
   string filename = f;
 
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Convert the vector to a matrix:
   MATRIX m;
@@ -437,7 +412,7 @@ void VectorReadAscii(// WS Generic Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Read an array of matrix from the file:
   ARRAYofMATRIX am;
@@ -445,8 +420,8 @@ void VectorReadAscii(// WS Generic Output:
 
   // Convert the array of matrix to a matrix.
   if ( 1 != am.dim() )
-    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
-                        "but the dimension of the array is not 1.");
+   throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
+                       "but the dimension of the array is not 1.");
   MATRIX m(am[0]);
 
   // Convert the matrix to a vector:
@@ -460,7 +435,7 @@ void VectorWriteBinary(
         const string&  var_name,
 	const string&  f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -475,7 +450,7 @@ void VectorReadBinary(
         const string&  var_name,
 	const string&  f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -509,7 +484,7 @@ void MatrixWriteAscii(// WS Generic Input:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, m_name );
+  filename_ascii( filename, m_name );
 
   // Convert the matrix to an array of matrix:
   ARRAYofMATRIX am(1,m);
@@ -530,7 +505,7 @@ void MatrixReadAscii(// WS Generic Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, m_name );
+  filename_ascii( filename, m_name );
 
   // Read the array of matrix from the file:
   ARRAYofMATRIX am;
@@ -538,8 +513,8 @@ void MatrixReadAscii(// WS Generic Output:
 
   // Convert the array of matrix to a matrix.
   if ( 1 != am.dim() )
-    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
-                        "but the dimension of the array is not 1.");
+   throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
+                       "but the dimension of the array is not 1.");
 
   m = am[0];
 }
@@ -551,7 +526,7 @@ void MatrixWriteBinary(
         const string&  var_name,
 	const string&  f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -566,7 +541,7 @@ void MatrixReadBinary(
         const string&  var_name,
 	const string&  f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -588,7 +563,7 @@ void ArrayOfIndexWriteAscii(
   string filename = f;
 
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Store the value in an ARRAYofMATRIX and write to file
   const size_t  n = v.dim();
@@ -610,7 +585,7 @@ void ArrayOfIndexReadAscii(
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, v_name );
+  filename_ascii( filename, v_name );
 
   // Read the value as ARRAYofMATRIX 
   ARRAYofMATRIX am;
@@ -644,7 +619,7 @@ void ArrayOfIndexWriteBinary(
         const string&        var_name,
 	const string&        f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -659,7 +634,7 @@ void ArrayOfIndexReadBinary(
         const string&        var_name,
 	const string&        f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -681,7 +656,7 @@ void ArrayOfVectorWriteAscii(// WS Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, av_name );
+  filename_ascii( filename, av_name );
 
   // Convert the array of vector to an array of matrix:
   ARRAYofMATRIX am(av.dim());
@@ -706,7 +681,7 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, av_name );
+  filename_ascii( filename, av_name );
 
   // Read an array of matrix from the file:
   ARRAYofMATRIX am;
@@ -727,7 +702,7 @@ void ArrayOfVectorWriteBinary(
         const string&         var_name,
 	const string&         f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -742,7 +717,7 @@ void ArrayOfVectorReadBinary(
         const string&         var_name,
 	const string&         f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -764,7 +739,7 @@ void ArrayOfMatrixWriteAscii(// WS Generic Input:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, am_name );
+  filename_ascii( filename, am_name );
 
   // Write the array of matrix to the file.
   write_array_of_matrix_to_file(filename,am);
@@ -782,7 +757,7 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_num_ascii( filename, am_name );
+  filename_ascii( filename, am_name );
 
   // Read the array of matrix from the file:
   read_array_of_matrix_from_file(am,filename);
@@ -795,7 +770,7 @@ void ArrayOfMatrixWriteBinary(
         const string&         var_name,
 	const string&         f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -810,7 +785,7 @@ void ArrayOfMatrixReadBinary(
         const string&         var_name,
 	const string&         f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
@@ -832,7 +807,7 @@ void StringWriteAscii( // WS Generic Input:
   string filename = f;
   
   // Create default filename if empty  
-  filename_string_ascii( filename, s_name );
+  filename_ascii( filename, s_name );
 
   // Convert the string to an array of string:
   ARRAYofstring as(1);
@@ -854,7 +829,7 @@ void StringReadAscii(   // WS Generic Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_string_ascii( filename, s_name );
+  filename_ascii( filename, s_name );
 
   // Read the array of matrix from the file:
   ARRAYofstring as;
@@ -862,10 +837,40 @@ void StringReadAscii(   // WS Generic Output:
 
   // Convert the array of string to a string.
   if ( 1 != as.dim() )
-    throw runtime_error("You tried to convert an array of string to a string,\n"
-                        "but the dimension of the array is not 1.");
+   throw runtime_error("You tried to convert an array of string to a string,\n"
+                       "but the dimension of the array is not 1.");
 
   s = as[0];
+}
+
+
+
+void StringWriteBinary(
+        const string&  v,
+        const string&  var_name,
+	const string&  f )
+{
+  int    fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_out( fid, filename );
+  binfile_write_string( filename, fid, v, "STRING" );
+  binfile_close( fid, filename );
+}
+
+
+
+void StringReadBinary(
+	      string&  v,
+        const string&  var_name,
+	const string&  f )
+{
+  int    fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_string( v, filename, fid, "STRING" );
+  binfile_close( fid, filename );
 }
 
 
@@ -882,7 +887,7 @@ void ArrayOfStringWriteAscii( // WS Generic Input:
   string filename = f;
   
   // Create default filename if empty  
-  filename_string_ascii( filename, as_name );
+  filename_ascii( filename, as_name );
 
   // Write the array of matrix to the file.
   write_array_of_string_to_file(filename,as);
@@ -900,10 +905,40 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
   string filename = f;
   
   // Create default filename if empty  
-  filename_string_ascii( filename, as_name );
+  filename_ascii( filename, as_name );
 
   // Read the array of matrix from the file:
   read_array_of_string_from_file(as,filename);
+}
+
+
+
+void ArrayOfStringWriteBinary(
+        const ARRAYofstring&  v,
+        const string&         var_name,
+	const string&         f )
+{
+  int    fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_out( fid, filename );
+  binfile_write_stringarray( filename, fid, v, "STRING" );
+  binfile_close( fid, filename );
+}
+
+
+
+void ArrayOfStringReadBinary(
+	      ARRAYofstring&  v,
+        const string&         var_name,
+	const string&         f )
+{
+  int    fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_stringarray( v, filename, fid, "STRING" );
+  binfile_close( fid, filename );
 }
 
 
@@ -929,7 +964,7 @@ void HmatrixReadAscii(// WS Generic Output:
   string filename = f;
  
   // Create default filename if empty  
-  filename_num_ascii( filename, h_name );
+  filename_ascii( filename, h_name );
 
   // Read the array of matrix from the file:
   ARRAYofMATRIX am;
@@ -949,7 +984,7 @@ void LosWriteBinary(
         const string&   var_name,
 	const string&   f )
 {
-  hid_t  fid;
+  int    fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
@@ -968,7 +1003,7 @@ void LosReadBinary(
         const string&   var_name,
 	const string&   f )
 {
-  hid_t  fid;
+  int   fid;
   string filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );

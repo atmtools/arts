@@ -41,7 +41,6 @@
 
 #include <iostream>
 #include "vecmat.h"
-#include <hdf5.h>
 
 
 
@@ -106,15 +105,15 @@ void read_array_of_string_from_file(
 ////////////////////////////////////////////////////////////////////////////
 
 void binfile_open_out(
-              hid_t&    fid,
+              int&      fid,
         const string&   filename );
 
 void binfile_open_in(
-              hid_t&    fid,
+              int&      fid,
         const string&   filename );
 
 void binfile_close(
-              hid_t&    fid,
+              int&      fid,
         const string&   filename );
 
 
@@ -125,86 +124,110 @@ void binfile_close(
 
 void binfile_write_index(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const size_t&   x,
         const string&   dataname );
 
 void binfile_read_index(
               size_t&   x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname );
 
 void binfile_write_numeric(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const Numeric&  x,
         const string&   dataname );
 
 void binfile_read_numeric(
               Numeric&  x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname );
 
 void binfile_write_vector(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const VECTOR&   x,
         const string&   dataname );
 
 void binfile_read_vector(
               VECTOR&   x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname );
 
 void binfile_write_matrix(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const MATRIX&   x,
         const string&   dataname );
 
 void binfile_read_matrix(
               MATRIX&   x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname );
 
 void binfile_write_indexarray(
         const string&         filename,
-        const hid_t&          fid,
+        const int&            fid,
         const ARRAYofsizet&   x,
         const string&         dataname );
 
 void binfile_read_indexarray(
               ARRAYofsizet&   x,
         const string&         filename,
-        const hid_t&          fid,
+        const int&            fid,
         const string&         dataname );
 
 void binfile_write_vectorarray(
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
         const ARRAYofVECTOR&   x,
         const string&          dataname );
 
 void binfile_read_vectorarray(
               ARRAYofVECTOR&   x,
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
 	const string&          dataname );
 
 void binfile_write_matrixarray(
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
         const ARRAYofMATRIX&   x,
         const string&          dataname );
 
 void binfile_read_matrixarray(
               ARRAYofMATRIX&   x,
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
+        const string&          dataname );
+
+void binfile_write_string(
+        const string&   filename,
+        const int&      fid,
+        const string&   s,
+        const string&   dataname );
+
+void binfile_read_string(
+              string&   x,
+        const string&   filename,
+        const int&      fid,
+        const string&   dataname );
+
+void binfile_write_stringarray(
+        const string&          filename,
+        const int&             fid,
+        const ARRAYofstring&   x,
+        const string&          dataname );
+
+void binfile_read_stringarray(
+              ARRAYofstring&   x,
+        const string&          filename,
+        const int&             fid,
         const string&          dataname );
 
 

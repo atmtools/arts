@@ -628,6 +628,32 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("StringWriteBinary"),
+	DESCRIPTION("Writes a string to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( string_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("StringReadBinary"),
+	DESCRIPTION("Reads a string from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( string_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
 
 //=== ARRAYofSTRING =========================================================
 
@@ -662,6 +688,32 @@ void define_md_data()
 		    "The filename can be specified or an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.as.\n"
 		    "See `ArrayOfStringWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofstring_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfStringWriteBinary"),
+	DESCRIPTION("Writes a string array to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofstring_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfStringReadBinary"),
+	DESCRIPTION("Reads a string array from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ARRAYofstring_ ),

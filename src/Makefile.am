@@ -13,7 +13,8 @@ bin_PROGRAMS   = arts
 SUBDIRS        = tnt
 
 # Set libraries:
-LDADD = -lhdf5 -lz 
+#LDADD = -lhdf5 -lz 
+LDADD = -lmfhdf -ldf -ljpeg -lz
 # not needed at the moment: -ljpeg -lnsl -lm
 
 #$(top_srcdir)/config.h \

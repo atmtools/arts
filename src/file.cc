@@ -38,7 +38,7 @@
 #include "arts.h"
 #include "messages.h"
 #include "file.h"
-#include <hdf5.h>
+#include <hdf.h>
 
 
 
@@ -146,8 +146,6 @@ void read_text_from_stream(ARRAY<string>& text, istream& is)
       // Read line from file into linebuffer:
       getline(is,linebuffer);
 
-      //      cout << "lb:" << linebuffer << '\n';
-      
       // Append to end of text:
       text.push_back(linebuffer);
     }
@@ -217,7 +215,6 @@ void replace_all(string& s, const string& what, const string& with)
   string::size_type j = s.find(what);
   while ( j != string::npos )
     {
-      //		cout << "j = " << j << '\n';
       s.replace(j,1,with);
       j = s.find(what,j+with.size());
     }
@@ -327,10 +324,8 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
       is >> ws;
       is.get(c);
       if ('#'==c)
-        {
           getline(is,linebuffer);
-          //      cout << "C: " << linebuffer << endl;
-        }
+
       else
         {
           is.unget();
@@ -488,10 +483,8 @@ void read_array_of_string_from_stream(
       is >> ws;
       is.get(c);
       if ('#'==c)
-        {
           getline(is,linebuffer);
-          //      cout << "C: " << linebuffer << endl;
-        }
+
       else
         {
           is.unget();
@@ -500,10 +493,6 @@ void read_array_of_string_from_stream(
     }
 
   is >> as;
-
-  cout << "n=" << as.dim() << endl;;
-  for (size_t i=1; i<=as.dim(); i++ )
-    cout << as(i) << endl;
 
   if ( is.fail() || is.bad() )
     throw runtime_error("Stream gave fail or bad.");
@@ -564,25 +553,27 @@ void read_array_of_string_from_file(
 //   Help functions to handle HDF files
 ////////////////////////////////////////////////////////////////////////////
 
-//// get_numeric_type //////////////////////////////////////////////////////
+//// check_data_types //////////////////////////////////////////////////////
 /**
-   Determines if NUMERIC is set float or double.
+   Checks that some data types have the expected length.
 
-   A string is returned. The string is either "float" or "double".
+   The following data types are checked: INDEX, float and double.
 
-   \return   "float" or "double"
+   @exception runtime_error  Some data type has an unexpected length.
 
-   \author Patrick Eriksson
-   \date   2000-11-01
+   \author Patrick Eriksson              
+   \date   2000-11-07
 */
-string get_numeric_type_string( )
+void check_data_types()
 {
-  if ( sizeof(Numeric) == sizeof(float) )
-    return "float";
-  else if ( sizeof(Numeric) == sizeof(double) )
-    return "double";
-  else
-    throw runtime_error("Numeric must be double or float.");
+  if ( sizeof(size_t) != 4 )
+    throw runtime_error("An INDEX is expected to be 4 bytes.");
+  if ( sizeof(float) != 4 )
+    throw runtime_error("A float is expected to be 4 bytes.");
+  if ( sizeof(double) != 8 )
+    throw runtime_error("A double is expected to be 8 bytes.");
+  if ( sizeof(char) != 1 )
+    throw runtime_error("A char is expected to be 1 byte.");
 }
 
 
@@ -595,15 +586,17 @@ string get_numeric_type_string( )
    \param    filename     file name
 
    @exception runtime_error  The file cannot be opened.
+   @exception runtime_error  Cannot init the VS interface.
 
    \author Patrick Eriksson              
    \date   2000-11-01
 */
 void binfile_open_out(
-              hid_t&    fid,
+              int&      fid,
         const string&   filename )
 {
-  fid = H5Fcreate( filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  // Open the file for writing (deleting an old file with same name)
+  fid = Hopen( filename.c_str(), DFACC_CREATE, 0 );
   if ( fid < 0 )
   {
     ostringstream os;
@@ -613,8 +606,13 @@ void binfile_open_out(
   }
   out2 << "  Opened file " << filename << " for writing.\n";
 
-  // Turn off automatic error printing in HDF
-  H5Eset_auto( NULL, NULL );
+  // Initialize the VS interface
+  if ( Vstart( fid ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot initialize the VS interafce in file: " << filename;
+    throw runtime_error(os.str());
+  }
 }
 
 
@@ -626,16 +624,27 @@ void binfile_open_out(
    \retval   fid          file identifier
    \param    filename     file name
 
+   @exception runtime_error  The file is not a HDF file.
    @exception runtime_error  The file cannot be opened.
+   @exception runtime_error  Cannot init the VS interface.
 
    \author Patrick Eriksson              
    \date   2000-11-01
 */
 void binfile_open_in(
-              hid_t&    fid,
+              int&      fid,
         const string&   filename )
 {
-  fid = H5Fopen( filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT );
+  // Check if the file is HDF
+  if ( Hishdf( filename.c_str() ) < 0 )
+  {
+    ostringstream os;
+    os << "The file " << filename << " is not a HDF file.\n";
+    throw runtime_error(os.str());
+  }
+
+  // Open the file for reading
+  fid = Hopen( filename.c_str(), DFACC_READ, 0 );
   if ( fid < 0 )
   {
     ostringstream os;
@@ -645,257 +654,199 @@ void binfile_open_in(
   }
   out2 << "  Opened file " << filename << " for reading.\n";
 
-  // Turn off automatic error printing in HDF
-  H5Eset_auto( NULL, NULL );
+  // Initialize the VS interface
+  if ( Vstart( fid ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot initialize the VS interafce in file: " << filename;
+    throw runtime_error(os.str());
+  }
 }
 
 
 
-//// binfile_open_out //////////////////////////////////////////////////////
+//// binfile_close ////////////////////////////////////////////////////////
 /**
    Closes a binary file.
 
    \retval   fid          file identifier
    \param    filename     file name
 
+   @exception runtime_error  Cannot close the VS interface.
    @exception runtime_error  The file cannot be closed.
 
    \author Patrick Eriksson              
    \date   2000-11-01
 */
 void binfile_close(
-              hid_t&    fid,
+              int&      fid,
         const string&   filename )
 {
-  herr_t  status;
+  // Terminate access to the VS interface
+  if ( Vend( fid ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot terminate access to the VS interface in: " << filename;
+    throw runtime_error(os.str());
+  }
 
-  status = H5Fclose( fid );
-  if ( status < 0 )
+  // Close the file
+  if ( Hclose( fid ) < 0 )
   {
     ostringstream os;
     os << "Cannot close file: " << filename;
     throw runtime_error(os.str());
   }
+
   out2 << "  Closed file " << filename << "\n";
 }
 
 
 
-//// binfile_get_dataids ///////////////////////////////////////////////////
+//// binfile_read_init /////////////////////////////////////////////////////
 /**
-   Gets identifier for data set and space in a binary file.
+   Initilizes a binary data field for reading.
 
-   \retval   set_id       data set identifier
-   \retval   space_id     data space identifier
+   The function returns an identifier for the data and the data size. 
+   The size is also compared to the expected size.
+
+   \retval   vdata_id     identifier for the Vdata
+   \retval   nrows        number of data rows
+   \retval   ncols        number of data columns
    \param    fid          file identifier
    \param    filename     file name
-   \param    dataname     name on data set
+   \param    dataname     name on the data
+   \param    storagetype  SCALAR, VECTOR, MATRIX etc.
+   \param    nrows0       expected number of data rows
+   \param    ncols0       expected number of data columns
 
-   @exception runtime_error  Cannot find/open data set.
-   @exception runtime_error  Cannot find/open data space.
+   @exception runtime_error  Cannot find or access the data
 
    \author Patrick Eriksson              
-   \date   2000-11-01
+   \date   2000-11-07
 */
-void binfile_get_dataids(
-              hid_t&    set_id,
-              hid_t&    space_id,
-        const hid_t&    fid,
+void binfile_read_init(
+              int&      vdata_id,
+              size_t&   nrows,
+              size_t&   ncols,
+        const int&      fid,
+        const string&   filename,
+        const string&   dataname,
+        const string&   storagetype,
+        const size_t&   nrows0,
+        const size_t&   ncols0 )
+{
+  // Find the Vdata in the file
+  int  vdata_ref = VSfind( fid, dataname.c_str() );
+  if ( vdata_ref <= 0 )
+  {
+    ostringstream os;
+    os << "Cannot find the data " << dataname << " in file " <<filename<<"\n"
+       << "Maybe the file contains data of other type";
+    throw runtime_error(os.str());
+  }
+
+  // Attach the Vdata
+  vdata_id = VSattach( fid, vdata_ref, "r" );
+  if ( vdata_id <= 0 )
+  {
+    ostringstream os;
+    os << "Cannot attach the data " << dataname << " in file " << filename;
+    throw runtime_error(os.str());
+  }
+
+  // Set fields to read
+  int status = VSsetfields( vdata_id, storagetype.c_str() );
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot find the field " << storagetype << " in file " << filename
+       << "\n" << "Maybe the file contains data of other type";
+    throw runtime_error(os.str());
+  }
+
+  // Get number of rows and columns
+  status = VSQuerycount( vdata_id, &nrows );
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot determine the number of rows in the field " << storagetype
+       << "\n" << "in file " << filename;
+    throw runtime_error(os.str());
+  }
+  ncols = VFfieldorder( vdata_id, 0 ); 
+  if ( ncols < 0 )
+  {
+    ostringstream os;
+    os << "Cannot determine the number of columns in the field " << storagetype
+       <<"\n" << "in file " << filename;
+    throw runtime_error(os.str());
+  }
+
+  // Check if number of rows and columns is as expected
+  if ( (nrows0>0) && (nrows!=nrows0) )
+  {
+    ostringstream os;
+    os << nrows0 << " rows were expected, but the data have " <<nrows<<" rows";
+    throw runtime_error(os.str());    
+  }
+  if ( (ncols0>0) && (ncols!=ncols0) )
+  {
+    ostringstream os;
+    os << ncols0 << " columns were expected, but the data have " << ncols
+       << " columns";
+    throw runtime_error(os.str());    
+  }
+}
+
+
+
+//// binfile_read_end /////////////////////////////////////////////////////
+/**
+   Closes a binary data field for reading.
+
+   \retval   vdata_id     identifier for the Vdata
+   \param    filename     file name
+   \param    dataname     name on the data
+
+   @exception runtime_error  Cannot detach the data
+
+   \author Patrick Eriksson              
+   \date   2000-11-07
+*/
+void binfile_read_end(
+              int&      vdata_id,
         const string&   filename,
         const string&   dataname )
 {
-  // Open data set
-  set_id = H5Dopen( fid, dataname.c_str() );
-
-  // Handle errors
-  if ( set_id < 0 )
+  if ( VSdetach( vdata_id ) < 0 )
   {
     ostringstream os;
-    os << "Cannot open set: "<<dataname<<" in file: "<<filename<<"\n"
-       << "Maybe the file contains data of other type?";
-    throw runtime_error(os.str());
-  }
-
-  // Open data space
-  space_id = H5Dget_space( set_id );
-  // Handle errors
-  if ( space_id < 0 )
-  {
-    ostringstream os;
-    os << "Cannot open data space in file: " << filename;
+    os << "Cannot detach the field " << dataname << " in file " << filename;
     throw runtime_error(os.str());
   }
 }
 
 
-
-//// binfile_close_set ////////////////////////////////////////////////////
+//// binfile_get_datatype ///////////////////////////////////////////////////
 /**
-   Closes a data set in a binary file.
+   Gets the data type of the file data.
 
-   \retval   set_id       data set identifier
-   \param    filename     file name
-
-   @exception runtime_error  The data set cannot be closed.
+   \retval  type_in_file   data type string (e.g. "DOUBLE")
+   \param   vdata_id       identifier for the Vdata
 
    \author Patrick Eriksson              
-   \date   2000-11-01
+   \date   2000-11-07
 */
-void binfile_close_set(
-              hid_t&    set_id,
-        const string&   filename )
+void binfile_get_datatype(
+              string&   type_in_file,
+        const int&      vdata_id )
 {
-  herr_t status = H5Dclose( set_id );
-  if ( status < 0 )
-  {
-    ostringstream os;
-    os << "Cannot close data set in file: " << filename;
-    throw runtime_error(os.str());
-  }
+  char   c[50];
+  VSgetclass( vdata_id, c );
+  type_in_file = c;
 }
 
-
-
-//// binfile_close_space ////////////////////////////////////////////////////
-/**
-   Closes a data space in a binary file.
-
-   \retval   space_id     data set identifier
-   \param    filename     file name
-
-   @exception runtime_error  The data space cannot be closed.
-
-   \author Patrick Eriksson              
-   \date   2000-11-01
-*/
-void binfile_close_space(
-              hid_t&    space_id,
-        const string&   filename )
-{
-  herr_t status = H5Sclose( space_id );
-  if ( status < 0 )
-  {
-    ostringstream os;
-    os << "Cannot close data space in file: " << filename;
-    throw runtime_error(os.str());
-  }
-}
-
-
-
-//// binfile_get_rank ////////////////////////////////////////////////////
-/**
-   Gets the rank of a data space.
-
-   \retval   rank         rank of data space
-   \param    space_id     data space identifier
-
-   \author Patrick Eriksson              
-   \date   2000-11-01
-*/
-void binfile_get_rank(
-              size_t&   rank,
-        const hid_t&    space_id )
-{
-  rank     = H5Sget_simple_extent_ndims( space_id );
-}
-
-
-
-//// binfile_get_size ////////////////////////////////////////////////////
-/**
-   Gets the size(s) of a data space.
-
-   The data space for "dims" shall be allocated before calling this 
-   function. With other words, "dims" shall have the same length as the
-   rank of the data space.
-
-   \retval   dims         the data size(s) (dimensions)
-   \param    space_id     data space identifier
-
-   \author Patrick Eriksson              
-   \date   2000-11-01
-*/
-void binfile_get_size(
-              hsize_t*  dims,
-        const hid_t&    space_id )
-{
-  hsize_t maxdims[5];
-  H5Sget_simple_extent_dims( space_id, dims, maxdims );
-}
-
-
-
-//// binfile_read_init ////////////////////////////////////////////////////
-/**
-   Returns identifier, rank and size of a data set.
-
-   That the data set has the expected dimensions can be checked by "rank0"
-   and "dims0". A value for "rank0" must be given. If "dims0" is set to
-   NULL, no check of the data size is performed. A zero in dims0 means
-   that no check shall be done for that dimension.
-
-   \retval   set_id       data set identifier
-   \retval   rank         rank of data set
-   \retval   dims         size of data set
-   \param    filename     file name
-   \param    fid          file identifier
-   \param    dataname     name on data set
-   \param    rank0        expected rank
-   \param    dims0        expected size(s), can be NULL
-
-   @exception runtime_error  Wrong rank.
-   @exception runtime_error  Wrong size.
-
-   \author Patrick Eriksson              
-   \date   2000-11-01
-*/
-void binfile_read_init(
-              hid_t&    set_id, 
-              size_t&   rank,
-              hsize_t*  dims,
-        const string&   filename,
-        const hid_t&    fid,
-        const string&   dataname,
-        const size_t&   rank0,
-        const hsize_t*  dims0 )
-{
-  hid_t  space_id;
-
-  out3 << "    Reading: " << dataname << "\n";
-
-  // Get identifier for data set and space 
-  binfile_get_dataids( set_id, space_id, fid, filename, dataname );
-
-  // Get and check data rank
-  binfile_get_rank( rank, space_id );
-  if ( rank != rank0 )
-  {
-    ostringstream os;
-    os << "The opened data set (" << dataname << ") has rank " << rank << ",\n"
-       << "but a rank of " << rank0 << " was expected.";
-    throw runtime_error(os.str());
-  }
-
-  // Get and check data size
-  binfile_get_size( dims, space_id );
-  if ( dims0 != NULL )
-  {
-    for ( size_t i=0; i<rank; i++ )
-    {
-      if ( (dims0[i]>0) && (dims[i]!=dims0[i]) )
-      {
-	ostringstream os;
-	os << "For dimension " << i+1 << "the data size is " << dims[i] <<"\n"
-	   << "but the expected length is " << dims0[i];
-	throw runtime_error(os.str());
-      }
-    }
-  }
-
-  // Close data space
-  binfile_close_space( space_id, filename );
-}
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -906,212 +857,242 @@ void binfile_read_init(
 /**
    Core function for writing to binary files.
 
-   The data can be a scalar, a vector/ (array) or a matrix holding 
-   INDEX or NUMERIC.   
+   The data can be a scalar, a vector or a matrix holding INDEX or NUMERIC.   
 
    \param    fid          file identifier
    \param    filename     file name
    \param    dataname     name on data set
-   \param    datatype     type of data set (INDEX or NUMERIC)
-   \param    rank         rank of data set
-   \param    dims         size of data set
+   \param    storagetype  type of data container (e.g. VECTOR or MATRIX)
+   \param    atomictype   basic data type (INDEX or NUMERIC)
+   \param    nrows        number of data rows
+   \param    ncols        number of data columns
    \param    dpointer     pointer to the start of the data to store
 
-   @exception runtime_error  All sizes must be > 0.
-   @exception runtime_error  Unknown data type.
-   @exception runtime_error  Cannot open the data set.
-   @exception runtime_error  Cannot open the data space.
-   @exception runtime_error  Cannot write to the file.
+   @exception runtime_error  Unknown atomic data type.
 
    \author Patrick Eriksson              
    \date   2000-11-01
 */
 void binfile_write(
-        const hid_t&    fid,
+        const int&      fid,
         const string&   filename,
         const string&   dataname,
-        const string&   datatype,
-        const size_t&   rank,
-        const hsize_t*  dims,
-        const void*     dpointer )
-{
-  hid_t    space_id, set_id;
-  herr_t   status;
-        
+        const string&   storagetype,
+        const string&   atomictype,
+        const size_t&   nrows,
+        const size_t&   ncols,
+        const uint8*    dpointer )
+{ 
+  // Check that data types have expected length
+  check_data_types();
+
+  // Empty data cannot be handled by HDF
+  if ( (nrows<1) || (ncols<1) )
+    throw runtime_error("Empty data cannot be stored as binary");
+
   out3 << "    Writing: " << dataname << "\n";
 
-  // HDF cannot handle empty data (strange!!) so we must demand a length > 0
-  for ( size_t i=0; i<rank; i++ )
-  { 
-    if ( dims[i] == 0 )
-      throw runtime_error(
-        "Sorry, but data with zero length cannot be stored in binary format.");
-  }
-
-  // Create the data space
-  space_id = H5Screate_simple( rank, dims, NULL );
-  if ( space_id < 0 )
-  {
-    ostringstream os;
-    os << "Cannot create data space in file: " << filename << '\n'
-       << "Is the file opened for writing?";
-    throw runtime_error(os.str());
-  }
-
   // Create the data set and write data
-  if ( datatype == "INDEX" ) 
+  if ( atomictype == "INDEX" ) 
+    VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_UINT32, 
+                                  dataname.c_str(), "UINT", ncols );
+
+  else if ( atomictype == "NUMERIC" ) 
   {
-    if ( sizeof(size_t) == sizeof(unsigned) )
-    {
-      set_id = H5Dcreate( fid, dataname.c_str(), H5T_STD_I32BE, space_id, 
-                                                                H5P_DEFAULT );
-      status = H5Dwrite( set_id, H5T_NATIVE_UINT, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    }
-    else if ( sizeof(size_t) == sizeof(unsigned long) )
-    { 
-      set_id = H5Dcreate( fid, dataname.c_str(), H5T_STD_I64BE, space_id, 
-                                                                H5P_DEFAULT );
-      status = H5Dwrite( set_id, H5T_NATIVE_ULONG, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    }
+    if ( sizeof(Numeric) == 4 )
+      VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_FLOAT32, 
+                                  dataname.c_str(), "FLOAT", ncols );
     else
-      throw runtime_error("Unknown data size of index.");
+      VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_FLOAT64, 
+                                  dataname.c_str(), "DOUBLE", ncols );
   }
 
-  else if ( datatype == "NUMERIC" ) 
-  {
-    // Determine if NUMERIC is float or double
-    string numtype = get_numeric_type_string();
-
-    if ( numtype == "float" )
-    {
-      set_id = H5Dcreate( fid, dataname.c_str(), H5T_IEEE_F32LE, space_id, 
-                                                                 H5P_DEFAULT);
-      status = H5Dwrite( set_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    }
-    else if ( numtype == "double" ) 
-    {
-      set_id = H5Dcreate( fid, dataname.c_str(), H5T_IEEE_F64LE, space_id, 
-                                                                 H5P_DEFAULT);
-      status = H5Dwrite( set_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    }
-    else
-      throw runtime_error("Numeric must be double or float.");
-  }
+  else if ( atomictype == "CHAR" ) 
+    VHstoredatam( fid, storagetype.c_str(), dpointer, nrows, DFNT_CHAR8, 
+                                  dataname.c_str(), "CHAR", ncols );
 
   else
   {
     ostringstream os;
-    os << "The data type " << datatype << " is not handled";
+    os << "The atomic data type " << atomictype << " is not handled";
     throw runtime_error(os.str());
   }
-
-  // Handle errors
-  if ( set_id < 0 )
-  {
-    ostringstream os;
-    os << "Cannot create data set in file: " << filename << '\n'
-       << "Is the file opened for writing?";
-    throw runtime_error(os.str());
-  }
-  //
-  if ( status < 0 )
-  {
-    ostringstream os;
-    os << "Cannot write data to file: " << filename;
-    throw runtime_error(os.str());
-  }
-
-  // Close data set and space
-  binfile_close_space( space_id, filename );
-  binfile_close_set( set_id, filename );
-  out3 << "    Writing ready\n";
 }
 
 
 
-//// binfile_close ////////////////////////////////////////////////////////
+//// binfile_read1 ///////////////////////////////////////////////////////////
 /**
-   Core function for reading from binary files.
+   Core function for reading data of index type from binary files.
 
-   See "binfile_open" for allowed data types.
-
-   The space for the data must be allocated before calling the function.
-
-   \retval   dpointer     pointer to the start of the data to store
-   \retval   set_id       identifier to the data set
-   \param    fid          file identifier
+   \retval   x            the index array to read
+   \param    vdata_id     data identifier
+   \param    nrows        number of values
    \param    filename     file name
-   \param    datatype     type of data set
-   \param    close_set    flag to close data set (1=close)
+   \param    dataname     name on data set
 
-   @exception runtime_error  Unknown data type.
-   @exception runtime_error  Cannot read the data.
+   @exception runtime_error  Unknown data type in file.
 
    \author Patrick Eriksson              
    \date   2000-11-01
 */
-void binfile_read(
-              void*     dpointer,
-              hid_t&    set_id,
-        const string&   filename,
-        const string&   datatype,
-        const bool&     close_set )
+void binfile_read1(
+              ARRAYofsizet&   x,
+        const int&            vdata_id,
+        const size_t&         n,
+        const string&         filename,
+        const string&         dataname )
 {
-  // Read the data
-  herr_t status;
+  // Check that data types have expected length
+  check_data_types();
 
-  if ( datatype == "INDEX" ) 
+  out3 << "    Reading: " << dataname << "\n";
+
+  // Get the data type of the data to read
+  string type_in_file;
+  binfile_get_datatype( type_in_file, vdata_id );
+
+  // Reallocate x
+  x.newsize(n);
+
+  // Do reading and copy data
+  if ( type_in_file == "UINT" )
   {
-    if ( sizeof(size_t) == sizeof(unsigned) )
-      status = H5Dread( set_id, H5T_NATIVE_UINT, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    else if ( sizeof(size_t) == sizeof(unsigned long) )
-      status = H5Dread( set_id, H5T_NATIVE_ULONG, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    else
-      throw runtime_error("Unknown data size of index.");
-  }
-
-  else if ( datatype == "NUMERIC" ) 
-  {
-    // Determine if NUMERIC is float or double
-    string numtype = get_numeric_type_string();
-
-    if ( numtype == "float" )
-      status = H5Dread( set_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    else if ( numtype == "double" ) 
-      status = H5Dread( set_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
-    else
-      throw runtime_error("Numeric must be double or float.");
+    size_t  a[n];
+    VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
+    for ( size_t i=0; i<n; i++ )
+      x[i] = a[i];
   }
 
   else
   {
     ostringstream os;
-    os << "The data type " << datatype << " is not handled";
+    os << "Files with data type " << type_in_file << " are not handled";
     throw runtime_error(os.str());
   }
+}
 
-  // Handle errors
-  if ( status < 0 )
+
+
+//// binfile_read2 ///////////////////////////////////////////////////////////
+/**
+   Core function for reading data of numeric type from binary files.
+
+   \retval   x            the matrix to read
+   \param    vdata_id     data identifier
+   \param    nrows        number of data rows
+   \param    ncols        number of data columns
+   \param    filename     file name
+   \param    dataname     name on data set
+
+   @exception runtime_error  Unknown data type in file.
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void binfile_read2(
+              MATRIX&   x,
+        const int&      vdata_id,
+        const size_t&   nrows,
+        const size_t&   ncols,
+        const string&   filename,
+        const string&   dataname )
+{
+  // Check that data types have expected length
+  check_data_types();
+
+  out3 << "    Reading: " << dataname << "\n";
+
+  // Get the data type of the data to read
+  string type_in_file;
+  binfile_get_datatype( type_in_file, vdata_id );
+
+  // Reallocate x
+  x.newsize(nrows,ncols);
+
+  // Do reading and copy data
+  if ( type_in_file == "FLOAT" )
+  {
+    float  a[nrows][ncols];
+    size_t i,j;
+    VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+    for ( i=0; i<nrows; i++ )
+    {
+      for ( j=0; j<ncols; j++ )
+        x(i+1,j+1) = a[i][j];
+    }
+  }
+
+  else if ( type_in_file == "DOUBLE" )
+  {
+    double a[nrows][ncols];
+    size_t i,j;
+    VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+    for ( i=0; i<nrows; i++ )
+    {
+      for ( j=0; j<ncols; j++ )
+         x(i+1,j+1) = a[i][j];
+    }
+  }
+
+  else
   {
     ostringstream os;
-    os << "Cannot read data from file: " << filename << "\n"
-       << "Maybe the file data have another data format than assumed";;
+    os << "Files with data type " << type_in_file << " are not handled";
     throw runtime_error(os.str());
   }
+}
 
-  // Close data set?
-  if ( close_set ) 
+
+
+//// binfile_read3 ///////////////////////////////////////////////////////////
+/**
+   Core function for reading text from binary files.
+
+   \retval   x            the string to read
+   \param    vdata_id     data identifier
+   \param    nrows        number of values
+   \param    filename     file name
+   \param    dataname     name on data set
+
+   @exception runtime_error  Unknown data type in file.
+
+   \author Patrick Eriksson              
+   \date   2000-11-07
+*/
+void binfile_read3(
+              string&   x,
+        const int&      vdata_id,
+        const size_t&   n,
+        const string&   filename,
+        const string&   dataname )
+{
+  // Check that data types have expected length
+  check_data_types();
+
+  out3 << "    Reading: " << dataname << "\n";
+
+  // Get the data type of the data to read
+  string type_in_file;
+  binfile_get_datatype( type_in_file, vdata_id );
+
+  // Reallocate x
+  x.resize(n);
+
+  // Do reading and copy data
+  if ( type_in_file == "CHAR" )
   {
-    binfile_close_set( set_id, filename );
-    out3 << "    Reading ready\n";
+    char  a[n];
+    VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
+    for ( size_t i=0; i<n; i++ )
+      x[i] = a[i];
+  }
+
+  else
+  {
+    ostringstream os;
+    os << "Files with data type " << type_in_file << " are not handled";
+    throw runtime_error(os.str());
   }
 }
 
@@ -1135,15 +1116,14 @@ void binfile_read(
 */
 void binfile_write_index(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const size_t&   x,
         const string&   dataname )
 {
   size_t  a[1];
   a[0] = x;
-  hsize_t  dims[1];
-  dims[0] = 1;
-  binfile_write( fid,  filename, dataname, "INDEX", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
+                                                                (uint8*)a );
 }
 
 
@@ -1163,20 +1143,18 @@ void binfile_write_index(
 void binfile_read_index(
               size_t&   x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname )
 {
-  // We expect rank 1 and a length of 1
-  const size_t   rank0 = 1;
-        hsize_t  dims0[rank0];  dims0[0] = 1;
-  //-------------------------------------------
-        hsize_t  dims[rank0];
-        hid_t    set_id;
-        size_t   rank, a[rank0];
+  int     vdata_id;
+  size_t  nrows, ncols;
+  ARRAYofsizet  a;
 
-  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0,dims0);
-  binfile_read( a, set_id, filename, "INDEX", 1 );
-  x = a[0];  
+  binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
+                                                           "SCALAR", 1, 1 );
+  binfile_read1( a, vdata_id, 1, filename, dataname );
+  x = a(1);
+  binfile_read_end( vdata_id, filename, dataname );
 }
 
 
@@ -1195,15 +1173,14 @@ void binfile_read_index(
 */
 void binfile_write_numeric(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const Numeric&  x,
         const string&   dataname )
 {
   Numeric  a[1];
   a[0] = x;
-  hsize_t  dims[1];
-  dims[0] = 1;
-  binfile_write( fid,  filename, dataname, "NUMERIC", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "SCALAR", "NUMERIC", 1, 1, 
+                                                                (uint8*)a );
 }
 
 
@@ -1223,21 +1200,19 @@ void binfile_write_numeric(
 void binfile_read_numeric(
               Numeric&  x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname )
 {
-  // We expect rank 1 and a length of 1
-  const size_t   rank0 = 1;
-        hsize_t  dims0[rank0];  dims0[0] = 1;
-  //-------------------------------------------
-        hsize_t  dims[rank0];
-        hid_t    set_id;
-        size_t   rank;
-        Numeric  a[rank0];
+  int     vdata_id;
+  size_t  nrows, ncols;
+  MATRIX  a;
 
-  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0,dims0);
-  binfile_read( a, set_id, filename, "NUMERIC", 1 );
-  x = a[0];  
+  binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
+                                                           "SCALAR", 1, 1 );
+  binfile_read2( a, vdata_id, 1, 1, filename, dataname );
+  x = a(1,1);
+  binfile_read_end( vdata_id, filename, dataname );
+
 }
 
 
@@ -1246,7 +1221,7 @@ void binfile_read_numeric(
 /**
    Writes a vector to a binary file.
 
-   \param    filename     file name
+   \param    fname        file name
    \param    fid          file identifier
    \param    x            the vector to store
    \param    dataname     name to give the data set
@@ -1256,19 +1231,17 @@ void binfile_read_numeric(
 */
 void binfile_write_vector(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const VECTOR&   x,
         const string&   dataname )
 {
   const size_t  n = x.dim();
-        size_t  i;
-       hsize_t  dims[1];
-  dims[0] = n;
 
   Numeric a[n];
-  for ( i=0; i<n; i++ )
+  for ( size_t i=0; i<n; i++ )
     a[i] = x(i+1);
-  binfile_write( fid,  filename, dataname, "NUMERIC", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
+                                                                (uint8*)a );
 }
 
 
@@ -1288,23 +1261,20 @@ void binfile_write_vector(
 void binfile_read_vector(
               VECTOR&   x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname )
 {
-  // We expect rank 1 (any length)
-  const size_t   rank0 = 1;
-  //-------------------------------------------
-        hsize_t  dims[rank0];
-        size_t   rank, n, i;
-        hid_t    set_id;
+  int     vdata_id;
+  size_t  nrows, ncols;
+  MATRIX  a;
 
-  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0, NULL);
-  n = dims[0];
-  x.newsize(n);
-  Numeric a[n];
-  binfile_read( a, set_id, filename, "NUMERIC", 1 );
-  for ( i=0; i<n; i++ )
-    x(i+1) = a[i];
+  binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
+                                                           "VECTOR", 0, 1 );
+  binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
+  x.newsize(nrows);
+  for ( size_t i=1; i<=nrows; i++ )
+    x(i) = a(i,1);
+  binfile_read_end( vdata_id, filename, dataname );
 }
 
 
@@ -1323,22 +1293,22 @@ void binfile_read_vector(
 */
 void binfile_write_matrix(
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const MATRIX&   x,
         const string&   dataname )
 {
   const size_t  nrows = x.dim(1);
   const size_t  ncols = x.dim(2);
         size_t  i, j;
-       hsize_t  dims[2];
-  dims[0] = nrows;
-  dims[1] = ncols;
 
   Numeric a[nrows][ncols];
   for ( i=0; i<nrows; i++ )
+  {
     for ( j=0; j<ncols; j++ )
       a[i][j] = x(i+1,j+1);
-  binfile_write( fid,  filename, dataname, "NUMERIC", 2, dims, a );
+  }
+  binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
+                                                                (uint8*)a );
 }
 
 
@@ -1358,25 +1328,16 @@ void binfile_write_matrix(
 void binfile_read_matrix(
               MATRIX&   x,
         const string&   filename,
-        const hid_t&    fid,
+        const int&      fid,
         const string&   dataname )
 {
-  // We expect rank 2 (any size)
-  const size_t   rank0 = 2;
-  //-------------------------------------------
-        hsize_t  dims[rank0];
-        size_t   rank, nrows, ncols, i, j;
-        hid_t    set_id;
+  int     vdata_id;
+  size_t  nrows, ncols;
 
-  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0, NULL);
-  nrows = dims[0];
-  ncols = dims[1];
-  x.newsize(nrows,ncols);
-  Numeric a[nrows][ncols];
-  binfile_read( a, set_id, filename, "NUMERIC", 1 );
-  for ( i=0; i<nrows; i++ )
-    for ( j=0; j<ncols; j++ )
-      x(i+1,j+1) = a[i][j];
+  binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
+                                                           "MATRIX", 0, 0 );
+  binfile_read2( x, vdata_id, nrows, ncols, filename, dataname );
+  binfile_read_end( vdata_id, filename, dataname );
 }
        
 
@@ -1395,19 +1356,17 @@ void binfile_read_matrix(
 */
 void binfile_write_indexarray(
         const string&         filename,
-        const hid_t&          fid,
+        const int&            fid,
         const ARRAYofsizet&   x,
         const string&         dataname )
 {
   const size_t  n = x.dim();
-        size_t  i;
-       hsize_t  dims[1];
-  dims[0] = n;
 
   size_t a[n];
-  for ( i=0; i<n; i++ )
+  for ( size_t i=0; i<n; i++ )
     a[i] = x(i+1);
-  binfile_write( fid,  filename, dataname, "INDEX", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
+                                                                (uint8*)a );
 }
 
 
@@ -1427,23 +1386,16 @@ void binfile_write_indexarray(
 void binfile_read_indexarray(
               ARRAYofsizet&   x,
         const string&         filename,
-        const hid_t&          fid,
+        const int&            fid,
         const string&         dataname )
 {
-  // We expect rank 1 (any length)
-  const size_t   rank0 = 1;
-  //-------------------------------------------
-        hsize_t  dims[rank0];
-        size_t   rank, n, i;
-        hid_t    set_id;
+  int     vdata_id;
+  size_t  nrows, ncols;
 
-  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0, NULL);
-  n = dims[0];
-  x.newsize(n);
-  size_t a[n];
-  binfile_read( a, set_id, filename, "INDEX", 1 );
-  for ( i=0; i<n; i++ )
-    x(i+1) = a[i];
+  binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
+                                                           "ARRAY", 0, 1 );
+  binfile_read1( x, vdata_id, nrows, filename, dataname );
+  binfile_read_end( vdata_id, filename, dataname );
 }
 
 
@@ -1462,7 +1414,7 @@ void binfile_read_indexarray(
 */
 void binfile_write_vectorarray(
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
         const ARRAYofVECTOR&   x,
         const string&          dataname )
 {
@@ -1497,7 +1449,7 @@ void binfile_write_vectorarray(
 void binfile_read_vectorarray(
               ARRAYofVECTOR&   x,
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
         const string&          dataname )
 {
   // Read the number of vectors
@@ -1530,7 +1482,7 @@ void binfile_read_vectorarray(
 */
 void binfile_write_matrixarray(
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
         const ARRAYofMATRIX&   x,
         const string&          dataname )
 {
@@ -1540,7 +1492,7 @@ void binfile_write_matrixarray(
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each matrix seperately
-  for (size_t i=1; i<=n; i++ )
+  for ( size_t i=1; i<=n; i++ )
   {
     ostringstream os;
     os << dataname << i;
@@ -1565,7 +1517,7 @@ void binfile_write_matrixarray(
 void binfile_read_matrixarray(
               ARRAYofMATRIX&   x,
         const string&          filename,
-        const hid_t&           fid,
+        const int&             fid,
         const string&          dataname )
 {
   // Read the number of matrices
@@ -1583,3 +1535,124 @@ void binfile_read_matrixarray(
 }
 
 
+
+//// binfile_write_string ///////////////////////////////////////////////////
+/**
+   Writes a string to a binary file.
+
+   \param    fname        file name
+   \param    fid          file identifier
+   \param    s            the string to store
+   \param    dataname     name to give the data set
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void binfile_write_string(
+        const string&   filename,
+        const int&      fid,
+        const string&   s,
+        const string&   dataname )
+{
+  const size_t  n = s.length();
+
+  binfile_write( fid,  filename, dataname, "STRING", "CHAR", n, 1, 
+                                                           (uint8*)s.c_str() );
+}
+
+
+
+//// binfile_read_string ////////////////////////////////////////////////////
+/**
+   Reads a string from a binary file.
+
+   \param    x            the read string
+   \param    filename     file name
+   \param    fid          file identifier
+   \param    dataname     name of the data set
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void binfile_read_string(
+              string&   x,
+        const string&   filename,
+        const int&      fid,
+        const string&   dataname )
+{
+  int     vdata_id;
+  size_t  nrows, ncols;
+
+  binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
+                                                           "STRING", 0, 1 );
+  binfile_read3( x, vdata_id, nrows, filename, dataname );
+  binfile_read_end( vdata_id, filename, dataname );
+}
+
+
+
+//// binfile_write_stringarray //////////////////////////////////////////////
+/**
+   Writes an ARRAYofSTRING to a binary file.
+
+   \param    filename     file name
+   \param    fid          file identifier
+   \param    x            the array to store
+   \param    dataname     name to give the data set
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void binfile_write_stringarray(
+        const string&          filename,
+        const int&             fid,
+        const ARRAYofstring&   x,
+        const string&          dataname )
+{
+  const size_t  n = x.dim();
+
+  // Write number of matrices
+  binfile_write_index( filename, fid, n, "N_"+dataname );  
+
+  // Write each string seperately
+  for ( size_t i=1; i<=n; i++ )
+  {
+    ostringstream os;
+    os << dataname << i;
+    binfile_write_string( filename, fid, x(i), os.str() );    
+  }
+}
+
+
+
+//// binfile_read_stringarray ///////////////////////////////////////////////
+/**
+   Reads a ARRAYofSTRING from a binary file.
+
+   \param    x            the read string array
+   \param    filename     file name
+   \param    fid          file identifier
+   \param    dataname     name of the data set
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
+void binfile_read_stringarray(
+              ARRAYofstring&   x,
+        const string&          filename,
+        const int&             fid,
+        const string&          dataname )
+{
+  // Read the number of matrices
+  size_t  n;
+  binfile_read_index( n, filename, fid, "N_"+dataname );  
+
+  // Reallocate x and read matrices
+  x.newsize(n);
+  for (size_t i=1; i<=n; i++ )
+  {
+    ostringstream os;
+    os << dataname << i;
+    binfile_read_string( x(i), filename, fid, os.str() );    
+  }
+}

@@ -1,3 +1,18 @@
+2000-11-08  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-73
+
+	* Changed from HDF 5 to HDF 4. More precisly, HDF 4.1r3 is used.
+
+	* String (including arrays) can now be read and written as binary.
+
+	* Default extensions for ASCII files changed. Both numeric and
+	string files have now the extension .aa (ARTS ASCII). I did
+	not see any strong reason to have different extensions. 
+
+	* The binary files are now displayed using hdp or vshow. See further
+	AUG.
+
 2000-11-07  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-72
