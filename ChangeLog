@@ -1,5 +1,13 @@
 2003-01-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-402
+
+	* src/rte.cc (rte_calc): Forgot to mention that I introdoced this 
+	function. It does what RteCalc did, but has the option that input 
+	checks can be skipped. This saves some time in CloudboxGetIncoming.
+
+2003-01-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-401
 
 	* src/ppath.cc (gridcell_crossing_3d): Found a bug that affected the
