@@ -1,3 +1,27 @@
+2002-06-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-126
+
+	* src/workspace.cc: Added some #defines (NAME, DESCRIPTION,
+	GROUP), so that this file is now formated similar to methods.cc. The
+	main reason why I did this is because I wanted to add fields
+	OUTPUT and INPUT to list output and input WSVs for
+	agendas. However, it turns out that this problem cannot be solved
+	so easily. The problem is this: The enum type for the different
+	WSVs (ls_, f_grid_, etc.) is defined in auto_wsv.h, which is
+	generated from workspace.cc. So, using the enum inside
+	workspace.cc would generate a circular dependency. I played around
+	with some tricks to solve this, but they all made things very
+	complicated. So, my preferred solution at the moment is to add an
+	extra file agendas.cc, which will contain agenda lookup
+	data. Agendas will then have to be registered in two files, both
+	workspace.cc and agendas.cc.
+
+	* src/methods.h: Moved the #defines for OUTPUT, etc., to methods.cc.
+
+	* src/methods.cc: Moved the #defines for OUTPUT, etc., here from
+	methods.h. 
+
 2002-06-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-125

@@ -39,9 +39,19 @@
 #include "methods.h"
 #include "auto_wsv_groups.h"
 
+// Some #defines and typedefs to make the records better readable:
+#define NAME(x) x 
+#define DESCRIPTION(x) x
+#define OUTPUT   MakeArray<Index>
+#define INPUT    MakeArray<Index>
+#define GOUTPUT  MakeArray<Index>
+#define GINPUT   MakeArray<Index>
+#define KEYWORDS MakeArray<String>
+#define TYPES    MakeArray<TokValType>
+#define AGENDAMETHOD(x) x   
 
 
-  /* Here's a template record entry:  (PE 2001-09-18)
+/* Here's a template record entry:  (PE 2001-09-18)
 
   md_data.push_back
     ( MdRecord
