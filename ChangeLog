@@ -1,3 +1,52 @@
+2002-11-28  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-318
+
+	* configure.in: Added -Wconversion more flags to warnings.
+
+	Don't use -Wno-unused but -Wno-unused-parameter instead. Because
+	we don't want to be harassed with unused function parameters but
+	with unused variable we do. (gcc3 only)
+
+	Changed the behaviour for the warning flags: By default -W -Wall
+	-Wconversion are active. All warnings produced with this settings
+	SHOULD BE FIXED!!!
+	
+	In certain cases it could be useful to turn on even more warnings by
+	using --enable-more-warnings. But be warned, with this setting gcc
+	becomes really rebellious. :-)
+
+	Pass --enable-more-warnings to autogen.sh or configure. 
+	You may get a lot of false alarms depending on your compiler version.
+
+	-enable-more-warnings activates -Wshadow -Wunreachable-code (and more
+	to come)
+
+	* src/ppath.cc (ppath_start_stepping): np was defined twice as local
+	variable. Second declaration shadows first one. Number of pressure
+	levels does not change -> removed second variable.
+
+	* src/parser.cc (read_integer) and (read_numeric): Ony dummy
+	variable shadows another.  Renamed second dummy variable to
+	chtmp to make the code easier to understand.
+	(parse_method): Same with iterator i.
+
+	* src/mystring.h (my_basic_string): Renamed parameter npos to numpos
+	to avoid shadowing of member attribute of same name.
+
+	* src/make_wsv_pointers_cc.cc (main): Renamed parameter wsv_pointers
+	in function define_wsv_pointers to ref_wsv_pointers to avoid
+	shadowing of global wsv_pointers variable.
+
+	* src/m_physics.cc (MatrixToTbByRJ): Removed unnecessary re-definition
+	of irep, ii and icol from else block.
+
+	* src/matpackI.h,cc (Range::Range): Renamed joker param in
+	constructors to j to avoid shadowing of global joker object.
+
+	* src/agenda_class.{h,cc} (Agenda::set_name): Renamed parameter name
+	to nname to avoid shadowing of member function Agenda::name().
+
 2002-11-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-317
