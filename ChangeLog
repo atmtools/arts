@@ -1,5 +1,7 @@
 2002-01-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-1-71
+
 	* ami/file/filter_lines.m: Created and added this function that is an
 	enviroment for filter line arrays (a set of lines read from a file).
 	Two filters implemented so far, one that removes transitions for an
