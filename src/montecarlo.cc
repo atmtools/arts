@@ -550,7 +550,7 @@ void interpTArray(Matrix& T,
                   )
 {
   //Internal Declarations
-  Matrix incT(stokes_dim,stokes_dim);
+  Matrix incT(stokes_dim,stokes_dim,0.0);
   Matrix opt_depth_mat(stokes_dim,stokes_dim);
   Vector itw(2);
   Numeric delta_s;
@@ -992,6 +992,7 @@ void Sample_ppathlength (
       sA=cum_l_step[gp.idx];
       sB=cum_l_step[gp.idx+1];
       K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
+      assert(K>0);
       pathlength=sA+log(T11A/T11)/K;
       g=K*T11;
     }
@@ -1043,6 +1044,7 @@ void Sample_ppathlengthLOS (
   sA=cum_l_step[gp.idx];
   sB=cum_l_step[gp.idx+1];
   K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
+  assert (K>0);
   pathlength=sA+log(T11A/T11)/K;
   g=K*T11/(1-T11vector[npoints-1]);
 }               
@@ -1102,7 +1104,7 @@ void TArrayCalc(
   abs_vecArray.resize(np);
   pnd_ppath.resize(N_pt,np);
   t_ppath.resize(np);
-  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
+  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim,0.0);
   Matrix zeroMatrix(stokes_dim,stokes_dim,0.0);
   Matrix identity(stokes_dim,stokes_dim,0.0);
   //Identity matrix
@@ -1204,9 +1206,6 @@ void TArrayCalc(
     }
   //create an array of T matrices corresponding to each position in the
   //the first ppath through the cloudbox each grid cell spanned by ppath points
-  opt_depth_mat=ext_matArray[0];
-  opt_depth_mat+=ext_matArray[1];
-  opt_depth_mat*=-ppath.l_step[0]/2;
   TArray[0]=identity;
   for (Index i=1; i<ppath.np;i++)
     {
@@ -1214,6 +1213,7 @@ void TArrayCalc(
       opt_depth_mat=ext_matArray[i];
       opt_depth_mat+=ext_matArray[i-1];
       opt_depth_mat*=-ppath.l_step[i-1]/2;
+      incT=0;
       if ( stokes_dim == 1 )
 	{
 	  incT(0,0)=exp(opt_depth_mat(0,0));
