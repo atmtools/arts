@@ -28,6 +28,7 @@
 #define array_h
 
 #include <vector>
+#include <iomanip>
 #include "arts.h"
 
 
@@ -120,7 +121,7 @@ inline Array<base>::Array(Index n, const base& fill) :
   std::vector<base>(n)
 {
   // Use std::fill to fill.
-  std::fill(begin(),end(),fill);
+  std::fill(this->begin(),this->end(),fill);
 };
 
 
@@ -128,7 +129,7 @@ inline Array<base>::Array(Index n, const base& fill) :
 template<class base>
 inline Array<base>& Array<base>::operator=(base x) 
 {
-  std::fill(begin(),end(),x);
+  std::fill(this->begin(),this->end(),x);
   return *this;
 }
 
@@ -153,7 +154,7 @@ inline Array<base>& Array<base>::operator=(const Array<base>& A)
 {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
   resize(A.size());
-  std::copy( A.begin(), A.end(), begin() );
+  std::copy( A.begin(), A.end(), this->begin() );
   return *this;
 }
 
@@ -161,7 +162,7 @@ inline Array<base>& Array<base>::operator=(const Array<base>& A)
 template<class base>
 inline Index Array<base>::nelem() const
 { 
-  size_t s = size();
+  size_t s = this->size();
   assert(s<LONG_MAX);
   return static_cast<long>(s);
 }
