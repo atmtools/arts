@@ -1,3 +1,55 @@
+2004-02-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+		
+	* arts-1-1-790	
+
+	* src/groups.cc: Added GriddedField3 as data type. It is a structure
+	for storing atmospheric fields along with the grids. This new structure
+	replaces the ArrayOfTensor3.
+	GriddedField3 includes four fields: p_grid, lat_grid, lon_grid, data
+	The structure itself has already been included by Oliver in 
+	gridded_fields.h.
+	Furthermore ArrayOfGriddedFields3 has been included. 
+
+	* src/workspace.cc: Changed t_field_raw, z_field_raw, vmr_field_raw 
+	and pnd_field_raw from ArrayOfTensor3 to GriddedField3.
+	
+	* src/gridded_fields.{cc,h}: Included typedef for ArrayOfGriddedField3
+	and output operators.
+
+	* src/make_auto_wsv_h.cc: Added gridded_fields.h to include files.
+
+	* src/make_auto_wsv_groups_h.cc: Added gridded_fields.h to include 
+	files.
+
+	* src/xml_io_array_types.{cc,h}: Added reading and writing routine
+	for ArrayOfGriddedField3.
+
+	* src/xml_io_instantiation.h: Added ArrayOfGriddedField3.
+	
+	* src/m_atmosphere.cc: Adapted the following methods to use 
+	GriddedField3 instead of ArrayOfTensor3:
+	AtmFieldsCalc
+	AtmFieldsCalcExpand1D
+	AtmRawRead
+
+	Shifted pnd_fieldCalc to m_cloudbox.cc and modified it.
+
+	* src/m_cloudbox.cc: Adapted the following methods:
+	ParticleTypeInit
+	ParticleTypeAdd
+	ybatchMetProfilesClear
+	ybatchMetProfiles
+
+	Removed unused methods related to the old amplitude matrix concept:
+	ParticleTypeInitAmpl
+	ParticleTypeAddAmpl
+
+	* src/methods.cc: Removed above methods.
+	
+	* src/m_scatrte.cc (scat_fieldCalc):
+	Cosmetic changes and removed a small bug which I 
+	had accidentally included duing the last commit.
+	
 2004-02-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-789

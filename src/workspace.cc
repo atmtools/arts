@@ -1582,14 +1582,14 @@ wsv_data.push_back
        "Unit:        m^-3\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       Array[4] \n "
-       "       [N_p, 1, 1] \n"
-       "       [1, N_lat, 1] \n"
-       "       [1, 1, N_lon] \n"
+       "       GriddedField3 \n "
+       "       [N_p] \n"
+       "       [N_lat] \n"
+       "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        "\n"
        ),
-      GROUP( ArrayOfArrayOfTensor3_ )));
+      GROUP( ArrayOfGriddedField3_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2602,14 +2602,14 @@ wsv_data.push_back
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   Array[4] \n "
-       "       [N_p, 1, 1] \n"
-       "       [1, N_lat, 1] \n"
-       "       [1, 1, N_lon] \n"
+       "Size   GriddedField3 \n "
+       "       [N_p] \n"
+       "       [N_lat] \n"
+       "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        "\n"
        ),
-      GROUP( ArrayOfTensor3_ )));
+      GROUP( GriddedField3_ )));
 
  wsv_data.push_back
    (WsvRecord
@@ -2711,14 +2711,14 @@ wsv_data.push_back
        "Unit:        absolute number\n"
        "\n"
        "Size:  Array[N_pt]\n"
-       "       Array[4] \n "
-       "       [N_p, 1, 1] \n"
-       "       [1, N_lat, 1] \n"
-       "       [1, 1, N_lon] \n"
+       "       GriddedField3 \n "
+       "       [N_p] \n"
+       "       [N_lat] \n"
+       "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        "\n"
        ),
-      GROUP( ArrayOfArrayOfTensor3_ )));
+      GROUP( ArrayOfGriddedField3_ )));
 
 
   wsv_data.push_back
@@ -2829,14 +2829,14 @@ wsv_data.push_back
        "\n"
        "Unit:       K\n"
        "\n"
-       "Size   Array[4] \n "
-       "       [N_p, 1, 1] \n"
-       "       [1, N_lat, 1] \n"
-       "       [1, 1, N_lon] \n"
+       "Size   GriddedField3 \n "
+       "       [N_p] \n"
+       "       [N_lat] \n"
+       "       [N_lon] \n"
        "       [N_p, N_lat, N_lon] \n"
        "\n"
        ),
-      GROUP( ArrayOfTensor3_ )));
+      GROUP( GriddedField3_ )));
 
   wsv_data.push_back
    (WsvRecord

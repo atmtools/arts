@@ -1016,28 +1016,10 @@ void i_fieldSetConst(//WS Output:
 */
 void ParticleTypeInit( //WS Output:
                       ArrayOfSingleScatteringData& scat_data_raw,
-                      ArrayOfArrayOfTensor3& pnd_field_raw
+                      ArrayOfGriddedField3& pnd_field_raw
                       )
 {
   scat_data_raw.reserve(20);
-  pnd_field_raw.reserve(20); 
-}
-
-
-//! Initialize variables containing information about the particles.
-/*! 
- 
-  WS Output:
-  \param amp_mat_raw    Amplitude matrix data.
-  \param pnd_field_raw  Particle number density field data.
-
-*/
-void ParticleTypeInitAmpl( //WS Output:
-                      ArrayOfArrayOfTensor6& amp_mat_raw,
-                      ArrayOfArrayOfTensor3& pnd_field_raw
-                      )
-{
-  amp_mat_raw.reserve(20);
   pnd_field_raw.reserve(20); 
 }
 
@@ -1057,70 +1039,164 @@ void ParticleTypeInitAmpl( //WS Output:
   \param pnd_field_raw Particle number density field data.
   \param scat_data_file Filename for scattering data.
   \param pnd_field_file Filename for pnd field data.
+
+  \author Claudia Emde
+  \date 2003-02-24
+
+  \date 2003-02-23 Included structure ArrayOfGriddedField3.
 */
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
-                 ArrayOfArrayOfTensor3& /* pnd_field_raw */,
+                 ArrayOfGriddedField3&  pnd_field_raw,
                  // Keyword:
                  const String& scat_data_file,
-                 const String& /* pnd_field_file */)
+                 const String& pnd_field_file)
 {
-
-  // Append *amp_mat_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
+  
+  // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
   SingleScatteringData scat_data;
   scat_data_raw.push_back(scat_data);
   
-  // FIXME: PND field not implemented yet. 
-  // New structure for fields should be implemented before adapting this 
-  // routine. 
-
-  // Tensor3 pnd_field_data;
-  // pnd_field_raw.push_back(pnd_field_data);
+  GriddedField3 pnd_field_data;
+  pnd_field_raw.push_back(pnd_field_data);
   
-   // Read amplitude matrix data:
   out2 << "Read single scattering data\n";
   xml_read_from_file( scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
-  //read_gridded_tensor3 (pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
+  
+  out2 << "Read particle number density date \n";
+  xml_read_from_file(pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
        
 }
 
 
+//! Calculate particle number density fields.
+/*!
+  This method interpolates the data for particle number density fields
+  on the atmospheric grids used for the calculation.
 
-//! Read amplitute matrix and particle number density field from data base.
-/*! 
-  This method allows the user to chose particle types and particle number 
-  density fields. 
-  There is one database for particle number density fields ( ....),
-  which includes the following particle types:
+   See also the the online help (arts -d FUNCTION_NAME)
 
-  Another database (....) containes the amplitude matrices for those particle
-  types from which all optical properties can be derived.
-  
-  \param amp_mat_raw Amplitude matrix data.
-  \param pnd_field_raw Particle number density field data.
-  \param amp_mat_file Filename for amplitude matrix data.
-  \param pnd_field_file Filename for pnd field data.
+   \author Sreerekha T.R.
+   \date   2003-04-17
+
+   \date   2004-02-23 (CE:) Used ArrayOfGriddedField3 instead of 
+           ArrayOfArrayOfTensor3. 
+
 */
-void ParticleTypeAddAmpl( //WS Output:
-                 ArrayOfArrayOfTensor6& amp_mat_raw,
-                 ArrayOfArrayOfTensor3& /* pnd_field_raw */,
-                 // Keyword:
-                 const String& amp_mat_file,
-                 const String& /* pnd_field_file */)
+
+void pnd_fieldCalc(//WS Output:
+		   Tensor4& pnd_field,
+                   //WS Input
+                   const Vector& p_grid,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid,
+		   const ArrayOfGriddedField3& pnd_field_raw,
+                   const Index& atmosphere_dim
+                   )
 {
 
-  // Append *amp_mat_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
-  ArrayOfTensor6 amp_mat_data;
-  amp_mat_raw.push_back(amp_mat_data);
+  // Basic checks of input variables
+  //
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   
-  //ArrayOfTensor3 pnd_field_data;
-  //pnd_field_raw.push_back(pnd_field_data);
-    
-  // Read amplitude matrix data:
-  out2 << "Read amplitude matrix_data\n";
-  read_gridded_tensor6( amp_mat_file, amp_mat_raw[amp_mat_raw.nelem()-1]);
-  //read_gridded_tensor3 (pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
-       
+  //==========================================================================
+  if ( atmosphere_dim == 1)
+    {
+      
+      //Resize variables
+      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), 1, 1);
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+         
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
+      
+          // Interpolation weights:
+	   Matrix itw(p_grid.nelem(), 2);
+	   // (2 interpolation weights are required for 1D interpolation)
+          interpweights( itw, gp_p);
+          
+          // Interpolate:
+          interp( pnd_field(i, joker, 0, 0),
+                  itw, pnd_field_raw[i].data(joker, 0, 0), gp_p);
+        }
+      
+    }
+
+  //=========================================================================
+  else if(atmosphere_dim == 2)
+    {
+      //Resize variables
+      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+                       1);
+      
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(lat_grid.nelem());
+                  
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
+          gridpos(gp_lat, pnd_field_raw[i].data(0, joker, 0), 
+                  lat_grid);
+	  
+          // Interpolation weights:
+	  Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
+	  // (8 interpolation weights are required for 3D interpolation)
+          interpweights( itw, gp_p, gp_lat);
+          
+          // Interpolate:
+          interp( pnd_field(i, joker, joker, 0),
+                  itw, pnd_field_raw[i].data(joker, joker, 0),
+                  gp_p, gp_lat);
+        }
+    }
+
+  //================================================================
+  // atmosphere_dim = 3    
+  else
+    {
+      //Resize variables
+      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+                       lon_grid.nelem());
+      
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(lat_grid.nelem());
+      ArrayOfGridPos gp_lon(lon_grid.nelem());
+      
+      
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
+          gridpos(gp_lat, pnd_field_raw[i].lat_grid, lat_grid);
+          gridpos(gp_lon, pnd_field_raw[i].lon_grid, lon_grid);
+          
+          // Interpolation weights:
+          Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), 8);
+          // (8 interpolation weights are required for 3D interpolation)
+          interpweights( itw, gp_p, gp_lat, gp_lon );
+          
+          // Interpolate:
+          interp( pnd_field(i, joker, joker, joker),
+                  itw, pnd_field_raw[i].data, gp_p, gp_lat, gp_lon);
+        }
+    }
 }
 
 
@@ -2749,10 +2825,10 @@ void ybatchMetProfiles(//Output
 		       //Output of met_profile_calc_agenda
 		       Vector& y,
 		       //Input to met_profile_calc_agenda
-		       ArrayOfTensor3& t_field_raw,
-		       ArrayOfTensor3& z_field_raw,
-		       ArrayOfArrayOfTensor3& vmr_field_raw,
-		       ArrayOfArrayOfTensor3& pnd_field_raw,
+		       GriddedField3& t_field_raw,
+		       GriddedField3& z_field_raw,
+		       ArrayOfGriddedField3& vmr_field_raw,
+		       ArrayOfGriddedField3& pnd_field_raw,
 		       Vector& p_grid,
 		       Matrix& sensor_los,
 		       Index& cloudbox_on,
@@ -2776,19 +2852,12 @@ void ybatchMetProfiles(//Output
 {
   Index no_profiles = met_amsu_data.nrows();
   
-  //*vmr_field_raw* is an ArrayOfArrayOfTensor3 where the first array
-      //holds the gaseous species. 
-      //Resize *vmr_field_raw* according to the number of gaseous species
-      //elements
-      vmr_field_raw.resize(gas_species.nelem());
+  //  *vmr_field_raw* is an ArrayOfArrayOfTensor3 where the first array
+  //holds the gaseous species. 
+  //Resize *vmr_field_raw* according to the number of gaseous species
+  //elements
+  vmr_field_raw.resize(gas_species.nelem());
   
-  //The second array holds the gridded fields, one array for 
-  //pressure, latitude, longitude and the data each.
-  for (Index i = 0; i < gas_species.nelem(); ++ i)
-    {
-      vmr_field_raw[i].resize(4);
-    }
-
   //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
   //holds particle species.
   // Number of particle types:
@@ -2864,7 +2933,7 @@ void ybatchMetProfiles(//Output
       out2<<"profile_number.xml"<< i;
       
       // Set z_ground from lowest level of z_field 
-      z_ground(0,0) = z_field_raw[3](0,0,0);
+      z_ground(0,0) = z_field_raw.data(0,0,0);
       
       /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
 	 array is for species.
@@ -2877,34 +2946,34 @@ void ybatchMetProfiles(//Output
 	array are the same .  They are pressure grid, latitude grid and
 	longitude grid.  The third tensor which is the vmr is set to a 
 	constant value of 0.782, corresponding to N2.*/
-      vmr_field_raw[1][3].resize(vmr_field_raw[0][0].npages(),
-				 vmr_field_raw[0][1].nrows(),
-				 vmr_field_raw[0][2].ncols());
-      vmr_field_raw[1][0] = vmr_field_raw[0][0]; //pressure grid for 1st element
-      vmr_field_raw[1][1] = vmr_field_raw[0][1]; //latitude grid for 1st element
-      vmr_field_raw[1][2] = vmr_field_raw[0][2]; //longitude grid for 1st element
-      vmr_field_raw[1][3] = 0.782;//vmr of N2
+      vmr_field_raw[1].data.resize(vmr_field_raw[0].p_grid.nelem(),
+				 vmr_field_raw[0].lat_grid.nelem(),
+				 vmr_field_raw[0].lon_grid.nelem());
+      vmr_field_raw[1].p_grid = vmr_field_raw[0].p_grid; //pressure grid for 1st element
+      vmr_field_raw[1].lat_grid = vmr_field_raw[0].lat_grid; //latitude grid for 1st element
+      vmr_field_raw[1].lon_grid = vmr_field_raw[0].lon_grid; //longitude grid for 1st element
+      vmr_field_raw[1].data = 0.782;//vmr of N2
       
       /*the third element of the species.  the first 3 Tensors in the
 	array are the same .  They are pressure grid, latitude grid and
 	longitude grid.  The third tensor which is the vmr is set to a 
 	constant value of 0.209, corresponding to O2.*/
-      vmr_field_raw[2][3].resize(vmr_field_raw[0][0].npages(),
-				 vmr_field_raw[0][1].nrows(),
-				 vmr_field_raw[0][2].ncols());
-      vmr_field_raw[2][0] = vmr_field_raw[0][0];//pressure grid for 2nd element
-      vmr_field_raw[2][1] = vmr_field_raw[0][1];//latitude grid for 2nd element
-      vmr_field_raw[2][2] = vmr_field_raw[0][2];//longitude grid for 2nd element
-      vmr_field_raw[2][3] =  0.209;//vmr of O2
+      vmr_field_raw[2].data.resize(vmr_field_raw[0].p_grid.nelem(),
+				 vmr_field_raw[0].lat_grid.nelem(),
+				 vmr_field_raw[0].lon_grid.nelem());
+      vmr_field_raw[2].p_grid = vmr_field_raw[0].p_grid;//pressure grid for 2nd element
+      vmr_field_raw[2].lat_grid = vmr_field_raw[0].lat_grid;//latitude grid for 2nd element
+      vmr_field_raw[2].lon_grid = vmr_field_raw[0].lon_grid;//longitude grid for 2nd element
+      vmr_field_raw[2].data =  0.209;//vmr of O2
       
       // N_p is the number of elements in the pressure grid
-      Index N_p = t_field_raw[0].npages();
+      Index N_p = t_field_raw.p_grid.nelem();
       
       //Making a p_grid with the first and last element taken from the profile.
       VectorNLogSpace(p_grid, 
 		      "p_grid", 
-		      t_field_raw[0](0,0,0), 
-		      t_field_raw[0](N_p -1,0,0), 
+		      t_field_raw.p_grid[0], 
+		      t_field_raw.p_grid[N_p -1], 
 		      nelem_p_grid);
       
       /*To set the cloudbox limits, the lower and upper cloudbox limits
@@ -2915,7 +2984,7 @@ void ybatchMetProfiles(//Output
       
       //Lower limit = lowest pressure level of the original grid.
       //Could it be the interpolated p_grid? FIXME STR
-      cl_grid_min = t_field_raw[0](0, 0, 0);
+      cl_grid_min = t_field_raw.p_grid[0];
       
       // A counter for non-zero ice content
       Index level_counter = 0;
@@ -2925,14 +2994,14 @@ void ybatchMetProfiles(//Output
  	{
 	  //Checking for non-zero ice content. 0.001 is a threshold for
 	  //ice water content.	  
-	  if(pnd_field_raw[0][3](ip, 0, 0) > 0.001) 
+	  if(pnd_field_raw[0].data(ip, 0, 0) > 0.001) 
 	    {
 	      ++level_counter;
 	      //if non-zero ice content is found, it is set to upper 
 	      //cloudbox limit. Moreover, we take one level higher 
 	      // than the upper limit because we want the upper limit
 	      //to have 0 pnd.
-	      cl_grid_max = t_field_raw[0](ip +1, 0, 0);
+	      cl_grid_max = t_field_raw.p_grid[ip +1];
 	    }
 	}
       
@@ -3013,9 +3082,9 @@ void ybatchMetProfiles(//Output
 */
 void ybatchMetProfilesClear(//Output
 			    Matrix& ybatch,
-			    ArrayOfTensor3& t_field_raw,
-			    ArrayOfTensor3& z_field_raw,
-			    ArrayOfArrayOfTensor3& vmr_field_raw,
+			    GriddedField3& t_field_raw,
+			    GriddedField3& z_field_raw,
+			    ArrayOfGriddedField3& vmr_field_raw,
 			    Vector& y,
 			    Vector& p_grid,
 			    Matrix& sensor_los,
@@ -3035,14 +3104,9 @@ void ybatchMetProfilesClear(//Output
   //Index no_profiles = met_profile_basenames.nelem();
   // The humidity data is stored as  an ArrayOfTensor3 whereas
   // vmr_field_raw is an ArrayOfArrayOfTensor3
-  ArrayOfTensor3 vmr_field_raw_h2o;
+  GriddedField3 vmr_field_raw_h2o;
   
   vmr_field_raw.resize(gas_species.nelem());
-  
-  for (Index i = 0; i < gas_species.nelem(); ++ i)
-    {
-      vmr_field_raw[i].resize(4);
-    }
   
   y.resize(f_grid.nelem());
   ybatch.resize(no_profiles, f_grid.nelem());
@@ -3121,9 +3185,9 @@ void ybatchMetProfilesClear(//Output
       
       // N_p is the number of elements in the pressure grid
       //z_ground(0,0) = oro_height[i]+ 0.01;
-      z_ground(0,0) = z_field_raw[3](0,0,0);
+      z_ground(0,0) = z_field_raw.data(0,0,0);
       cout<<"z_ground"<<z_ground<<endl;
-      Index N_p = t_field_raw[0].npages();
+      Index N_p = t_field_raw.p_grid.nelem();
       
       vmr_field_raw[0] = vmr_field_raw_h2o;
       
@@ -3131,25 +3195,25 @@ void ybatchMetProfilesClear(//Output
       //array are the same .  They are pressure grid, latitude grid and
       // longitude grid.  The third tensor which is the vmr is set to a 
       // constant value of 0.782.
-      vmr_field_raw[1][3].resize(vmr_field_raw[0][0].npages(),
-				 vmr_field_raw[0][1].nrows(),
-				 vmr_field_raw[0][2].ncols());
-      vmr_field_raw[1][0] = vmr_field_raw[0][0];
-      vmr_field_raw[1][1] = vmr_field_raw[0][1];
-      vmr_field_raw[1][2] = vmr_field_raw[0][2];
-      vmr_field_raw[1][3](joker, joker, joker) = 0.782;
+      vmr_field_raw[1].data.resize(vmr_field_raw[0].p_grid.nelem(),
+				 vmr_field_raw[0].lat_grid.nelem(),
+				 vmr_field_raw[0].lon_grid.nelem());
+      vmr_field_raw[1].p_grid = vmr_field_raw[0].p_grid;
+      vmr_field_raw[1].lat_grid = vmr_field_raw[0].lat_grid;
+      vmr_field_raw[1].lon_grid = vmr_field_raw[0].lon_grid;
+      vmr_field_raw[1].data(joker, joker, joker) = 0.782;
       
       // the second element of the species.  the first 3 Tensors in the
       //array are the same .  They are pressure grid, latitude grid and
       // longitude grid.  The third tensor which is the vmr is set to a 
       // constant value of 0.209.
-      vmr_field_raw[2][3].resize(vmr_field_raw[0][0].npages(),
-				 vmr_field_raw[0][1].nrows(),
-				 vmr_field_raw[0][2].ncols());
-      vmr_field_raw[2][0] = vmr_field_raw[0][0];
-      vmr_field_raw[2][1] = vmr_field_raw[0][1];
-      vmr_field_raw[2][2] = vmr_field_raw[0][2];
-      vmr_field_raw[2][3] (joker, joker, joker) = 0.209;
+      vmr_field_raw[2].data.resize(vmr_field_raw[0].p_grid.nelem(),
+				 vmr_field_raw[0].lat_grid.nelem(),
+				 vmr_field_raw[0].lon_grid.nelem());
+      vmr_field_raw[2].p_grid = vmr_field_raw[0].p_grid;
+      vmr_field_raw[2].lat_grid = vmr_field_raw[0].lat_grid;
+      vmr_field_raw[2].lon_grid = vmr_field_raw[0].lon_grid;
+      vmr_field_raw[2].data(joker, joker, joker) = 0.209;
       
       //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
       //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
@@ -3159,11 +3223,11 @@ void ybatchMetProfilesClear(//Output
       
       VectorNLogSpace(p_grid, 
 		      "p_grid", 
-		      t_field_raw[0](0,0,0), 
-		      t_field_raw[0](N_p -1,0,0), 
+		      t_field_raw.p_grid[0], 
+		      t_field_raw.p_grid[N_p -1], 
 		      nelem_p_grid);
-      cout<<"t_field_raw[0](0,0,0)"<<t_field_raw[0](0,0,0)<<endl;
-      cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw[0](N_p -1,0,0)<<endl;
+      cout<<"t_field_raw[0](0,0,0)"<<t_field_raw.p_grid[0]<<endl;
+      cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw.p_grid[N_p -1] <<endl;
       xml_write_to_file("p_grid.xml", p_grid);
 
       // executing the met_profile_calc_agenda

@@ -81,6 +81,7 @@ int main()
           << "#include \"gas_abs_lookup.h\"\n"
           << "#include \"optproperties.h\"\n"
           << "#include \"m_general.h\"\n"
+          << "#include \"gridded_fields.h\"\n"
           << "\n";
       
       ofs << "//! Total number of workspace variables.\n"

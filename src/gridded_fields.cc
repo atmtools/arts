@@ -45,12 +45,24 @@
 #include "array.h"
 #include "matpackIII.h"
 #include "matpackVI.h"
-
+#include "gridded_fields.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+ostream& operator<< (ostream &os, const GriddedField3 &/*gfield3*/)
+{
+  os << "GriddedField3: Output operator not implemented";
+  return os;
+}
+
+
+ostream& operator<< (ostream &os, const ArrayOfGriddedField3 &/*agfield3*/)
+{
+  os << "ArrayOfGriddedField3: Output operator not implemented";
+  return os;
+}
 
 //! Check the dimensions of a gridded tensor3
 /*! 

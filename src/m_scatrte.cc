@@ -2669,14 +2669,13 @@ scat_fieldCalc(//WS Output:
                                                           grid_stepsize);
                           }//end i loop
                       }//end aa_prop loop
-                  }
-              }//end za_prop loop
-          }//end lon loop
-      }// end lat loop
-  }// end p loop
-  // end atmosphere_dim = 3
-  scat_field(joker, joker, joker, joker, 0, joker) =
-    scat_field(joker, joker, joker, joker, Naa-1, joker);
+                  }//end za_prop loop
+              }//end lon loop
+          }// end lat loop
+      }// end p loop
+    scat_field(joker, joker, joker, joker, 0, joker) =
+      scat_field(joker, joker, joker, joker, Naa-1, joker);
+  }// end atmosphere_dim = 3
 }
 
 

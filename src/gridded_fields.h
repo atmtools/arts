@@ -54,6 +54,10 @@ typedef struct {
       Tensor3 data;
 } GriddedField3;
 
+typedef Array<GriddedField3> ArrayOfGriddedField3;
+
+ostream& operator<< (ostream &os, const GriddedField3 &gfield3);
+ostream& operator<< (ostream &os, const ArrayOfGriddedField3 &agfield3);
 
 void
 check_gridded_tensor3 (ArrayOfTensor3 &gridded_tensor);

@@ -2821,31 +2821,6 @@ md_data_raw.push_back
         TYPES(String_t, String_t)));
 
  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleTypeAddAmpl" ),
-        DESCRIPTION
-        (
-         "This method reads the amplitute matrix and the particle number\n"
-         "density field from a data base. \n"
-         "\n"
-         "The method allows the user to chose particle types and particle \n"
-         "number density fields. The methods reads from the chosen files \n"
-         "and appends the variables *amp_mat_raw* and *pnd_field_raw*. \n"
-         "There is one database for particle number density fields ( ....),\n"
-         "which includes the following particle types:\n"
-         "\n"
-         "Another database (....) containes the amplitude matrices for \n"
-         "those particle types from which all optical properties can be \n"
-         "derived.\n"
-         ),
-        OUTPUT(amp_mat_raw_, pnd_field_raw_),
-        INPUT(),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS("filename_amp_mat", "filename_pnd_field"),
-        TYPES(String_t, String_t)));
-
- md_data_raw.push_back
    ( MdRecord
      ( NAME( "ParticleTypeInit" ),
        DESCRIPTION
@@ -2863,26 +2838,6 @@ md_data_raw.push_back
        GINPUT(),
        KEYWORDS(), 
        TYPES())); 
-
-
-   md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ParticleTypeInitAmpl" ),
-        DESCRIPTION
-        (
-         "This method initializes variables containing data about the \n"
-         "optical properties of particles (*amp_mat_raw*) and about the \n"
-         "particle number distribution (*pnd_field_raw*)\n"
-         "\n"
-         "*ParticleTypeInit* has to be executed before executing \n"
-         "*ParticleTypeAdd*.\n"
-         ),
-        OUTPUT(amp_mat_raw_, pnd_field_raw_),
-        INPUT(),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(), 
-        TYPES())); 
 
    md_data_raw.push_back
     ( MdRecord

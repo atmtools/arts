@@ -74,12 +74,18 @@ xml_read_from_stream (istream&, ArrayOfArrayOfSpeciesTag&, bifstream * = NULL);
 void
 xml_write_to_stream (ostream&, const ArrayOfArrayOfSpeciesTag&,
                      bofstream * = NULL, const String& = "");
-
 void
 xml_read_from_stream (istream&, ArrayOfSingleScatteringData&, bifstream * = NULL);
 
 void
 xml_write_to_stream (ostream&, const ArrayOfSingleScatteringData&,
+                     bofstream * = NULL, const String & = "");
+
+void
+xml_read_from_stream (istream&, ArrayOfGriddedField3&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const ArrayOfGriddedField3&,
                      bofstream * = NULL, const String & = "");
 
 void

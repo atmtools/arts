@@ -1142,8 +1142,7 @@ xml_read_from_stream (istream& is_xml,
   tag.check_name ("/Array");
 }
 
-
-//! Writes ArrayOfSpeciesTag to XML output stream
+//! Writes ArrayOfSingleScatteringData to XML output stream
 /*!
   \param os_xml   XML Output stream
   \param assdata  ArrayOfSpeciesTag
@@ -1172,6 +1171,87 @@ xml_write_to_stream (ostream& os_xml,
   for (Index n = 0; n < assdata.nelem (); n++)
     {
       xml_write_to_stream (os_xml, assdata[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
+//=== ArrayOfGriddedField3 ===========================================
+
+//! Reads ArrayOfGriddedField3 from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param agfdata  ArrayOfGriddedField3 return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      ArrayOfGriddedField3& agfdata,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "GriddedField3");
+
+  tag.get_attribute_value ("nelem", nelem);
+  agfdata.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, agfdata[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading ArrayOfGriddedField: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes ArrayOfGriddedField3 to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param agfdata  ArrayOfSpeciesTag
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const ArrayOfGriddedField3& agfdata,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+
+  open_tag.add_attribute ("type", "GriddedField3");
+  open_tag.add_attribute ("nelem", agfdata.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < agfdata.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, agfdata[n], pbofs);
     }
 
   close_tag.set_name ("/Array");
