@@ -83,13 +83,6 @@ using namespace std;
 // #include <ctype.h>
 // #include <climits>
 
-// String stream library. This is included with the ARTS source code
-// for now, since it is still missing in the current version of EGCS
-// (egcs-2.91.66). Should be removed when stringstreams work as they
-// should in the standard EGCS distribution.
-#include "sstream.h"
-//#include <sstream>
-
 
 //--------------------< Set floating point type >--------------------
 /** The type to use for all floating point numbers. You should never
