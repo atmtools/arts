@@ -636,7 +636,7 @@ void lines_per_tgCreateFromLines(// WS Output:
           // species are only partly covered by tags.
           if ( species_used[this_line.Species()] )
             {
-              out0 << "Your tags include other lines of species "
+              out2 << "Your tags include other lines of species "
                    << this_line.SpeciesData().Name()
                    << ",\n"
                    << "why do you not include line "

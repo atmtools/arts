@@ -1,5 +1,13 @@
 2003-09-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-130
+
+	* src/m_abs.cc (lines_per_tgCreateFromLines): Moved warning about
+	transitions of e.g. isotopes neglected from out0 to out2.  This as
+	in some cases you neglect such lines but want ARTS to be silent.
+
+2003-09-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-129
 
 	* ami/retrieval/opt_fmono.m: Smaller changes of text and figure 
