@@ -710,16 +710,19 @@ void test36()
   cout << "b = " << b << "\n";
 }
 
-void test37()
+void test37(const Index& i)
 {
-  Vector v1(5., 10, 0.42);
-  Vector v2(5., 10, 0.42);
-  Index i = 5;
+  Vector v1(5e-15, 10, 0.42e-15/11);
+  Vector v2=v1;
+  //  Index i = 10000000;
 
   v1 /= i;
-  v2 /= (Numeric)i;
-
-  cout << v1 << endl;
+  v2 /=(Numeric) i;
+  cout.precision(12);
+  cout.setf(ios_base::scientific,ios_base::floatfield);
+  v1*=v1;
+  v2*=v2;  
+cout << v1 << endl;
   cout << v2 << endl;
 }
 
@@ -761,7 +764,8 @@ int main()
 //   test34();
 //   test35();
 //   test36();
-  test37();
+  Index i = 10000000;
+  test37(i);
 
   return 0;
 }

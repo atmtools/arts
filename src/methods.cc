@@ -3064,8 +3064,8 @@ md_data_raw.push_back
          "calculation using a Monte Carlo algorithm \n"
 	 "\n"
 	 "\n"
-	 "The main output variables *I* and *Ierror* represent the Stokes vector,\n"
-	 "and the estimated error in the Stokes vector respectively.\n"
+	 "The main output variables *i_rte* and *i_montecarlo_error* represent the \n"
+	 "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
 	 "The keyword parameter `maxiter\' describes the number of `photons\'\n"
 	 "used in the simulation (more photons means smaller *Ierror*).\n"
 	 "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
@@ -3073,7 +3073,8 @@ md_data_raw.push_back
 	 "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
 	 " max_iter.\n Negative values of rng_seed seed the random number generator \n "
 	 "according to system time, positive rng_seed values are taken literally.\n"
-          ),
+          "if keyword parameter silent is non-zero iterative output showing the photon\n"
+	 "number and scattering order are suppressed" ),
         OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
 	       rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, ground_emission_,
 	       ground_los_, ground_refl_coeffs_, i_rte_, 
@@ -3088,8 +3089,8 @@ md_data_raw.push_back
 	      scat_data_raw_, pnd_field_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t )));
+        KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent" ),
+        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t )));
 
  md_data_raw.push_back
     ( MdRecord

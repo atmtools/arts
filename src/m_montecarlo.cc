@@ -53,7 +53,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "xml_io.h"
 #include "montecarlo.h"
 #include "rng.h"
-
+#include <ctime>
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -432,7 +432,8 @@ void ScatteringMonteCarlo (
 			   const Index& maxiter,
 			   const Index& rng_seed,
 			   const Index& record_ppathcloud,
-			   const Index& record_ppath)
+			   const Index& record_ppath,
+			   const Index& silent)
 
 {		
   //Internal Declarations
@@ -479,9 +480,12 @@ void ScatteringMonteCarlo (
   Vector I(stokes_dim);
   i_montecarlo_error.resize(stokes_dim);
   Rng rng;
-      Vector pathI(stokes_dim);
-      Vector boundarycontri(stokes_dim);
-      Vector pathinc(stokes_dim);
+  Vector pathI(stokes_dim);
+  Vector boundarycontri(stokes_dim);
+  Vector pathinc(stokes_dim);
+
+  time_t start_time=time(NULL);
+
 
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
@@ -519,7 +523,7 @@ void ScatteringMonteCarlo (
       ppathcloud=ppathLOS;
       cum_l_step=cum_l_stepLOS;
       t_ppath=t_ppathLOS;
-      cout<<"photon_number = "<<photon_number<<"\n";
+      if (silent==0){cout<<"photon_number = "<<photon_number<<"\n";}
       while (keepgoing)
 	{
 	  if (scattering_order>0)
@@ -596,7 +600,6 @@ void ScatteringMonteCarlo (
 				  za_prop, aa_prop, f_index, f_grid);
 	      //There should probably be some interpolation here for now just use the 
 	      //low gridpoint
-	      //  cout << "rte_pos = "<<rte_pos<<"\n";
 	      
 	      p_index=ppathcloud.gp_p[pathlength_gp[0].idx].idx;
 	      lat_index=ppathcloud.gp_lat[pathlength_gp[0].idx].idx;
@@ -612,23 +615,27 @@ void ScatteringMonteCarlo (
 	      Q=newQ;
 	      scattering_order+=1;
 	      rte_los=new_rte_los;
-	      cout <<"photon_number = "<<photon_number << 
-		", scattering_order = " <<scattering_order <<"\n";
+	      if (silent==0){cout <<"photon_number = "<<photon_number << 
+			       ", scattering_order = " <<scattering_order <<"\n";}
 	      //Q-value truncation. These seems to stop rounding errors in 
 	      //opticallythick cases
 	      if (Q(0,0)<1e-4){ keepgoing=false;}
 	    }
-	  //	  cout<<"pathI = "<<pathI<<"\n";
-	  
+ 
 	}
       Isum += pathI;
       for(Index j=0; j<stokes_dim; j++)
 	{
 	  Isquaredsum[j] += pathI[j]*pathI[j];
 	}
+      if (photon_number==500)
+	{
+	  cout <<"Estimated execution time for ScatteringMonteCarlo: " << 
+	    (Numeric)(time(NULL)-start_time)*maxiter/500 <<" seconds.\n";
+	}
     }
   I=Isum;
-  I/=(Numeric) maxiter;  //For some reason this cast seems to help?
+  I/=maxiter;
   for(Index j=0; j<stokes_dim; j++)	
     {
       i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
