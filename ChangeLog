@@ -1,3 +1,16 @@
+2003-01-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-406
+
+	* src/xml_io.cc, src/xml_io_private.h: Changed signatures of
+	xml_read_from_stream/xml_write_to_stream functions. First step for
+	binary file support. The read/write functions are now getting two
+	streams as parameters. One is the file stream for the xml file and
+	one the file stream where the data is written to. For ascii files both
+	are the same, for binary the xml_data stream is a reference to the
+	binary stream. This will make it possible to use the same
+	reading/writing routines for both ascii and binary files.
+
 2003-01-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-405
