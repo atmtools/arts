@@ -25,6 +25,7 @@ string.xml
 test_binaryio
 test_complex
 test_griddedtensorcheck
+test_integration
 test_interpolation
 test_linalg
 test_matpack

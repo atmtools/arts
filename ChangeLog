@@ -1,5 +1,16 @@
 2003-05-27  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
+	* arts-1-1-557
+
+	* src/test_integration.cc: Added. File for testing purposes
+	of the AngIntegrate_trapezoid function from math_funcs.cc
+
+	* src/Makefile.am: Added dependencies of test_integration.cc
+
+	* .cvsignore: Added the executable test_integration
+
+2003-05-27  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
 	* arts-1-1-556
 
 	* src/methods.cc: Added *grid_stepsizeSet*. It calculates the

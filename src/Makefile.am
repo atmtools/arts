@@ -177,7 +177,8 @@ noinst_PROGRAMS = \
 	test_sensor \
 	test_xml \
 	test_complex \
-	test_zeemanproperties
+	test_zeemanproperties \
+	test_integration
 
 test_binaryio_SOURCES = \
 	arts.cc \
@@ -549,6 +550,27 @@ test_sensor_SOURCES = \
 	sensor.h \
 	sensor.cc \
 	test_sensor.cc
+
+test_integration_SOURCES = \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
+	math_funcs.cc \
+	math_funcs.h \
+	logic.cc \
+	logic.h \
+	constants.cc \
+	constants.h \
+	test_integration.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \
