@@ -85,7 +85,8 @@ void multi_mixer_matrix(
      const ArrayOfMatrix&   ch_resp,
      const Index&           n_za,
      const Index&           n_aa,
-     const Index&           n_pol);
+     const Index&           n_pol,
+     const Index&           do_norm);
 
 void polarisation_matrix(
               Sparse&   H,

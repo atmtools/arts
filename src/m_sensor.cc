@@ -854,7 +854,17 @@ void sensor_responseMultiMixerBackend(
      const String&          ch_resp_name)
 {
   // Check if a *lo* is given for each polarisation (row in *sensor_pol*).
-  if( lo.nelem()!=1 || lo.nelem()!=sensor_pol.nrows() )
+  Vector lo_tmp(sensor_pol.nrows());
+  if( lo.nelem()==1 )
+  {
+    // Here we expand *lo* to fit call to multi_mixer_matrix
+    lo_tmp = lo[0];
+  }
+  else if( lo.nelem()!=sensor_pol.nrows() )
+  {
+    lo_tmp = lo;
+  }
+  else
   {
     ostringstream os;
     os << "The number of elements in *lo* has to be either one or equal the\n"
@@ -876,35 +886,60 @@ void sensor_responseMultiMixerBackend(
     throw runtime_error(os.str());
   }
 
-
-
-
-  // Check if *f_backend* contains IF or RF. The frequency limit for IF
-  // is taken from ConvertIFToRF.
-  Numeric f_lim = 20e9;
-  Vector f_backend_tmp;
-  Index nf = f_backend.nelem();
-  if( max(f_backend) < f_lim )
+  // Check that *f_backend* combined with each of the channel response frequency
+  // grids is covered by *sensor_response_f*
+  for( Index cit=0; cit<ch_resp.nelem(); cit++)
   {
-    // Channel centre frequencies given in IF, so we have to unfold them
-    // to get RF. Here we unfold them around zero, so all we have to do
-    // is to add the different *lo* elements.
-    f_backend_tmp.resize(nf*2);
-    f_backend_tmp[Range(nf-1,nf,-1)] = f_backend;
-    f_backend_tmp[Range(0,nf)] *= -1;
-    f_backend_tmp[Range(nf,nf)] = f_backend;
-  }
-  else
-  {
-    f_backend_tmp = f_backend;
+    if( max(f_backend)+max(ch_resp[cit](joker,0)) > max(sensor_response_f) ||
+        min(f_backend)-min(ch_resp[cit](joker,0)) < min(sensor_response_f) )
+    {
+      ostringstream os;
+      os << "The combination of the backend channel frequencies and the "
+            "frequency grid of\nmatrix number " << cit+1 << " in *"
+            << ch_resp_name <<
+            "* are outside the current sensor response\nfrequency grid. "
+            "No weighting can be performed.";
+      throw runtime_error(os.str());
+    }
   }
 
-  // Dummies
-  f_mixer.nelem();
-  sb_filter.nrows();
-  ch_resp[0].nrows();
-  ostringstream os;
-  os << sb_filter_name << ch_resp_name << sensor_norm;
+  // Check that the sideband filter covers *sensor_response_f*
+  if( min(sb_filter(joker,0)) < min(sensor_response_f) ||
+      max(sb_filter(joker,0)) > max(sensor_response_f) )
+  {
+    ostringstream os;
+    os << "The sideband filter has to cover the current sensor response "
+          "frequency grid.\nThe frequencies in *" << sb_filter_name <<
+          "* has to be expanded to cover the frequencies\n"
+          "from the previous sensor parts.";
+    throw runtime_error(os.str());
+  }
+
+  //Call to calculating function
+  Index n_paz = sensor_response_pol * sensor_response_za.nelem()
+                * sensor_response_aa.nelem();
+  Sparse mixer_response(f_backend.nelem()*n_paz, sensor_response_f.nelem()*n_paz);
+  multi_mixer_matrix( mixer_response, sensor_response_f, f_backend, lo_tmp,
+                      sb_filter, ch_resp, sensor_response_za.nelem(),
+                      sensor_response_aa.nelem(), sensor_response_pol,
+                      sensor_norm );
+
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse sensor_response_tmp = sensor_response;
+  sensor_response.resize( f_backend.nelem()*n_paz,
+    sensor_response_tmp.ncols());
+  mult( sensor_response, mixer_response, sensor_response_tmp);
+
+  // Some extra output.
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+
+  // Update the sensor_response_f variable
+  sensor_response_f = f_backend;
+  f_mixer = f_backend;
+  out3 << "  *sensor_response_f* set to *f_backend*\n";
 
 }
 

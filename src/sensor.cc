@@ -378,6 +378,7 @@ void mixer_matrix(
    \param  n_za      The number of zenith angles
    \param  n_aa      The number of azimuth angles
    \param  n_pol     The number of polarisations
+   \param  do_norm   Flag whether the response should be normalised
 
    \author Mattias Ekström
    \date   2004-07-07
@@ -391,7 +392,8 @@ void multi_mixer_matrix(
      const ArrayOfMatrix&   ch_resp,
      const Index&           n_za,
      const Index&           n_aa,
-     const Index&           n_pol)
+     const Index&           n_pol,
+     const Index&           do_norm)
 {
   // Check that the transfer matrix has the right size
   assert (H.nrows()==f_ch.nelem()*n_za*n_aa*n_pol);
@@ -483,6 +485,10 @@ void multi_mixer_matrix(
       interp( sb_itrp, itw, sb_filter(joker,l*sb_full), gp);
       for (Index t=0; t<temp.nelem(); t++)
         temp[t] *= sb_itrp[t];
+
+      // Should vector be normalised?
+      if (do_norm)
+        temp /= temp.sum();
 
       // Distribute for all azimuth angles
       for (Index a=0; a<n_aa; a++)
