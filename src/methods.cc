@@ -1751,7 +1751,7 @@ md_data_raw.push_back
          "the method  *stokes_vecScalar*.\n"
          "All coefficients and the scattered field vector are assumed to be\n"
          "constant inside the grid cell/layer.\n"
-         "Then an \analytic solution can be found (see AUG for details).\n"
+         "Then an analytic solution can be found (see AUG for details).\n"
 	),
 	OUTPUT(stokes_vec_),
 	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, planck_function_,
@@ -1771,7 +1771,7 @@ md_data_raw.push_back
          "This function computes the radiative transfer for a thin layer. All\n"
          "coefficients and the scattered field vector  are assumed to be \n"
          "constant inside the grid cell/layer.\n"
-         "Then an \analytic solution can be found (see AUG for details).\n"
+         "Then an analytic solution can be found (see AUG for details).\n"
 	),
 	OUTPUT(stokes_vec_),
 	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, planck_function_,
