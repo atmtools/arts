@@ -1,5 +1,30 @@
 2003-05-14  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-542
+
+	* src/xml_io.cc: Added function xml_data_parse_error.
+	Call xml_data_parse_error in all xml_read_from_stream functions when
+	there is a problem while parsing the data of a tag. x_d_p_e outputs
+	the tag name, the attribute list and additional information to help
+	the user finding out where the error occured.
+
+	* src/xml_io_private.h: Added function xml_data_parse_error.
+
+	* src/main.cc (main): Use a separate report file for each process.
+	First report file is CONTROLFILE.rep, report files of the child
+	processes are called CONTROLFILE.1.rep, CONTROLFILE.2.rep...
+
+	* src/arts_mpi.cc (MpiManager::startup): Set rank and nprocs.
+
+	* src/Makefile.am: Removed dependency on arts_mpi.{cc,h} from
+	make_auto_* files to avoid unnecessary recompilation. Maybe these have
+	to be added again later when mpi is more and more integrated into
+	arts.
+	(xml_io.o): Must depend on xml_io.c.
+
+
+2003-05-14  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-541
 
 	* src/main.cc (main): Use the mpi_manager.
