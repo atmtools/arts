@@ -130,11 +130,6 @@ void Zeeman (//Input & Output
     //Z eeman absorption vector and the frequency grid.
     abs_vec_zee.resize(f_grid.nelem(),4);      
 
-    // Polarization  matrix accounting for the contributions of 
-    // the 3 different polarizations of the components of the Zeeman 
-    // split due to 3 different values of DeltaM.
-    Matrix P;
-    P.resize(2,2);
     //---------------------------------------------------------------
     
     
