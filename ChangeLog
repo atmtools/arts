@@ -1,3 +1,21 @@
+2002-05-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-71
+
+	* src/lin_alg.cc/h: Removed function lu_solve and added some
+	assertions. Added some new functions:
+		- exp_mat: Computing the exponential of a matrix.
+		- norm_inf: Norm infinity of a matrix.
+		- identity: Returns the identity matrix.
+
+	* src/test_linalg.cc: Adapted the tests to the changes.
+
+
+	* doc/uguide/lin_alg.tex: Added documentation for linear algebra
+		functions.
+
+	* doc/uguide/main.tex: Included lin_alg.tex. 
+
 2002-05-09  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-70
@@ -89,6 +107,7 @@
 	* src/m_cloudbox.cc: Created this file. No functions in the file yet.
 	
 	* src/m_ppath.cc: Created this file. No functions in the file yet.
+
 
 2002-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
