@@ -73,7 +73,7 @@ void set_reporting_level(Index r)
       // Reporting was not specified, set default. (Only the
       // important stuff to the screen, everything to the file.)
       messages.screen = 1;
-      messages.file   = 3;
+      messages.file   = 0;
     }
   else
     {

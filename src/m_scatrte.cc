@@ -1552,22 +1552,27 @@ i_fieldUpdate3D(// WS Output:
                     // cloudbox. Only if the next point lies inside the
                     // cloudbox a radiative transfer step caclulation has to
                     // be performed.
+                    
+                    // Tolerance value for checking if a point is exactly on
+                    // a grid point.
+                    const Numeric TOL = 1e-2;
+                    
                     if (
                         // inside pressure boundaries
                         (cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
                         (cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
                          (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-                          fabs(ppath_step.gp_p[1].fd[0]) < 1e-6)) &&
+                          fabs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
                         // inside latitude boundaries 
                         (cloudbox_limits[2] <= ppath_step.gp_lat[1].idx) &&
                         (cloudbox_limits[3] > ppath_step.gp_lat[1].idx ||
                          (cloudbox_limits[3] == ppath_step.gp_lat[1].idx &&
-                          fabs(ppath_step.gp_lat[1].fd[0]) < 1e-6)) &&
+                          fabs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
                         // inside longitude boundaries 
                         (cloudbox_limits[4] <= ppath_step.gp_lon[1].idx) &&
                          (cloudbox_limits[5] > ppath_step.gp_lon[1].idx ||
                          (cloudbox_limits[5] == ppath_step.gp_lon[1].idx &&
-                          fabs(ppath_step.gp_lon[1].fd[0]) < 1e-6 )) 
+                          fabs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
                         )
                       {
 
@@ -1579,7 +1584,7 @@ i_fieldUpdate3D(// WS Output:
                         for( Index i = 0; i<2; i++)
                           { 
                             if (cloudbox_limits[1] == ppath_step.gp_p[i].idx &&
-                                fabs(ppath_step.gp_p[i].fd[0]) < 1e-6)
+                                fabs(ppath_step.gp_p[i].fd[0]) < TOL)
                               {
                                 ppath_step.gp_p[i].idx -= 1;
                                 ppath_step.gp_p[i].fd[0] = 1;
@@ -1587,7 +1592,7 @@ i_fieldUpdate3D(// WS Output:
                               }
                             
                             if (cloudbox_limits[3]==ppath_step.gp_lat[i].idx &&
-                                fabs(ppath_step.gp_lat[i].fd[0]) < 1e-6)
+                                fabs(ppath_step.gp_lat[i].fd[0]) < TOL)
                               {
                                 ppath_step.gp_lat[i].idx -= 1;
                                 ppath_step.gp_lat[i].fd[0] = 1;
@@ -1595,7 +1600,7 @@ i_fieldUpdate3D(// WS Output:
                               }
                             
                             if (cloudbox_limits[5]==ppath_step.gp_lon[i].idx &&
-                                fabs(ppath_step.gp_lon[i].fd[0]) < 1e-6)
+                                fabs(ppath_step.gp_lon[i].fd[0]) < TOL)
                               {
                                 ppath_step.gp_lon[i].idx -= 1;
                                 ppath_step.gp_lon[i].fd[0] = 1;

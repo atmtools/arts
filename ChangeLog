@@ -1,3 +1,11 @@
+2003-02-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-455
+
+	* src/main.cc: Set default reporting level for report file to 0. My 
+	ARTS jobs crash because the report file becaomes too large when I 
+	use report level 3.
+
 2003-02-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-455
