@@ -24,7 +24,7 @@ AM_INIT_AUTOMAKE(arts,0.0)
 # AM_MAINTAINER_MODE
 
 # Turn off optimization: (Leads to very long compilation times)
-CXXFLAGS="-g"
+CXXFLAGS="-g -O0"
 
 # C Compiler:
 AC_PROG_CC

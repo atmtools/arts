@@ -1,3 +1,13 @@
+2001-05-10  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-0-166
+
+	* configure.in: Added -O0 to CXXFLAGS. For some weird reason,
+	configure on Kenny insisted on calling the C++ compiler with -O6,
+	which lead to memory exhaustion. On the Smiles maschines this
+	problem did not occur...
+	
+
 2001-05-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-165
