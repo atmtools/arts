@@ -1,3 +1,17 @@
+2002-10-10  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* arts-1-1-256
+
+	* doc/uguide/references.bib: added a reference (chandrasekhar:60)
+	
+	* doc/uguide/polarization.tex: Some minor corrections, and added
+	the correct proof for the inequality I^2 >= Q^2 + U^2 + V^2. It is
+	quite lengthy and maybe not really interesting for the uguide, but
+	I wanted to write it down somewhere. 
+
+	* doc/uguide/Figs/polarization: created this directory, moved
+	figures for polarization.tex here
+
 2002-10-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-255

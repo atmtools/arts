@@ -223,7 +223,7 @@ angle.
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
-    \includegraphics*[width=0.9\hsize]{Figs/pol_ellipse_aligned}
+    \includegraphics*[width=0.9\hsize]{Figs/polarization/pol_ellipse_aligned}
    \end{center}
   \end{minipage}
   \begin{minipage}[c]{0.9\textwidth}
@@ -252,7 +252,7 @@ Figure~\ref{fig:polarization:ellipse_arbitrary}):
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
-    \includegraphics*[width=0.9\hsize]{Figs/pol_ellipse_arbitrary}
+    \includegraphics*[width=0.9\hsize]{Figs/polarization/pol_ellipse_arbitrary}
    \end{center}
   \end{minipage}
   \begin{minipage}[c]{0.9\textwidth}
@@ -453,7 +453,7 @@ and we get the field vector in this modified linear basis:
  \begin{center}
   \begin{minipage}[c]{0.9\textwidth}
    \begin{center}
-    \includegraphics*[width=0.4\hsize]{Figs/pol_e45}
+    \includegraphics*[width=0.4\hsize]{Figs/polarization/pol_e45}
    \end{center}
   \end{minipage}
   \begin{minipage}[c]{0.9\textwidth}
@@ -655,19 +655,17 @@ is then called unpolarized. This is the case for radiation from the sun
 %depending on the direction into which it is emitted, the random
 %orientation of the molecules causes the resulting radiation to be
 %unpolarized.
-
 If the fluctuations are not completely random, the
 radiation is called partially polarized.
 
 To quantify this rather heuristic argumentation, we express the
-above-mentioned ideas in the language of the Stokes parameters:
-The Stokes parameters $I$, $Q$, $U$, $V$
-derived from measurements come from the superposition of
-radiation from many sources and/or the average over emission events with individual Stokes
-parameters $I_i$, $Q_i$, $U_i$, $V_i$.  Since the different
-sources/emission events are incoherent, the Stokes parameters -- which
-are intensity, not amplitude quantities -- can
-simply be added up:
+above-mentioned ideas in the language of the Stokes parameters: The
+Stokes parameters $I$, $Q$, $U$, $V$ derived from measurements come
+from the superposition of radiation from many sources and/or the
+average over emission events with individual Stokes parameters $I_i$,
+$Q_i$, $U_i$, $V_i$.  Since the different sources/emission events are
+incoherent, the Stokes parameters -- which are intensity, not
+amplitude quantities -- can simply be added up:
 \begin{equation}
   \label{eq:polarization:summed_stokes}
   I = \sum_i I_i \: \mbox{, }\; 
@@ -681,17 +679,94 @@ ellipticity angle $\beta$ are random (uniformly distributed),
 $Q$, $U$, and $V$
 each cancel out.
 
-For each $i$, the equality $I_i^2 = Q_i^2 + U_i^2 + V_i^2$
-holds. Thus, we get for partially polarized radiation:
+The equality $I_i^2 = Q_i^2 + U_i^2 + V_i^2$
+(cf.~Eq.~\ref{eq:polarization:Isquare}) still holds for each
+contribution $i$, but for the resulting $I,Q,U,V$, we have in general the
+inequality
+\begin{equation}
+ \label{eq:polarization:stokes_inequality}
+  I^2 \geq Q^2 + U^2 + V^2
+\end{equation}
+%Thus, we get for partially polarized radiation:
+%% THIS IS WRONG!
+%\begin{eqnarray}
+%  I^2 &=& \left(\sum_i I_i\right)^2\\ \nonumber
+%      &\geq& \sum_i I_i^2 = \sum_i (Q_i^2  + U_i^2 + V_i^2)\\ \nonumber
+%      &=& Q^2 + U^2 + V^2
+%  \label{eq:polarization:stokes_inequality}
+%\end{eqnarray}
+%The inequality follows from  the mathematical fact that the square of
+%a sum of non-negative numbers is greater or equal than the sum of the
+%squares. 
+To prove it, we must once again go back to the amplitude/phase
+notation (Eqs.~\ref{eq:polarization:stokesparam_alt_I}ff.), also
+cf.~\citet[][chap.~I.15]{chandrasekhar:60}:
+%, with the additional
+%superscript $(i)$ for the components to be added:
 \begin{eqnarray}
-  I^2 &=& \left(\sum_i I_i\right)^2\\ \nonumber
-      &\geq& \sum_i I_i^2 = \sum_i (Q_i^2  + U_i^2 + V_i^2)\\ \nonumber
-      &=& Q^2 + U^2 + V^2
-  \label{eq:polarization:stokes_inequality}
+I &=& \sum_i I_i = \sum_i \left(a_v^{(i)}\right)^2
+                    + \sum_i \left(a_h^{(i)}\right)^2 \\
+Q &=& \sum_i Q_i = \sum_i \left(a_v^{(i)}\right)^2
+                    - \sum_i \left(a_h^{(i)}\right)^2 \\
+U &=& \sum_i U_i = - 2 \sum_i a_v^{(i)} a_h^{(i)} \cos\delta^{(i)} \\
+ V &=& \sum_i V_i = 2 \sum_i a_v^{(i)} a_h^{(i)} \sin\delta^{(i)} \\
 \end{eqnarray}
-The inequality follows from  the mathematical fact that the square of
-a sum of non-negative numbers is greater or equal than the sum of the
-squares. 
+where $\delta^{(i)} = \delta_v^{(i)} - \delta_h^{(i)}$. 
+We get
+\begin{eqnarray}
+\label{eq:polarization:square-difference}  
+I^2 - Q^2 - U^2 - V^2 &=& 
+  4 \sum_i \left(a_v^{(i)}\right)^2
+                     \sum_i \left(a_h^{(i)}\right)^2 \\ \nonumber
+  &&- 4 \left( \sum_i a_v^{(i)} a_h^{(i)} \cos\delta^{(i)} \right)^2
+  \\ \nonumber
+  &&- 4 \left( \sum_i a_v^{(i)} a_h^{(i)} \sin\delta^{(i)} \right)^2 
+\end{eqnarray}
+The first term on the right-hand side can be rearranged as
+\begin{equation}
+  \sum_i \left(a_v^{(i)}a_h^{(i)}\right)^2
+  + \sum_{{i,j}\atop{i\not=j}} \left(a_v^{(i)}a_h^{(j)}\right)^2
+\end{equation}
+The other two terms can be rearranged similarly to yield:
+\begin{eqnarray}
+ &&- \sum_i \left( a_v^{(i)} a_h^{(i)} \right)^2 \
+           \left[\cos^2\delta^{(i)} + \sin^2\delta^{(i)} \right]\\ \nonumber
+ &&- \sum_{{i,j}\atop{i\not=j}} a_v^{(i)} a_h^{(i)} a_v^{(j)} a_h^{(j)} 
+    \left[\cos\delta^{(i)}\cos\delta^{(j)}  
+          + \sin\delta^{(i)}\sin\delta^{(j)} \right] 
+\end{eqnarray}
+Putting this into Eq.~\ref{eq:polarization:square-difference} (and
+dividing by 4), the sums over just $i$ cancel and we get:
+\begin{eqnarray}
+\label{eq:polarization:square-difference2}  
+(I^2 - Q^2 - U^2 - V^2)/4 &=&
+  \sum_{{i,j}\atop{i\not=j}} \left(a_v^{(i)}a_h^{(j)}\right)^2\\ \nonumber
+ &&- \sum_{{i,j}\atop{i\not=j}} a_v^{(i)} a_h^{(i)} a_v^{(j)} a_h^{(j)} 
+    \cos(\delta^{(i)}-\delta^{(j)}) 
+\end{eqnarray}
+where the cosine addition theorem was used.  In the summation, we now
+change from $i \not= j$ to $i<j$, so we have to symmetrize the first
+term (the second is already symmetric with respect to $i$ amd $j$ and
+therefore just gets a factor 2):
+\begin{eqnarray}
+\label{eq:polarization:square-difference3}  
+(I^2 - Q^2 - U^2 - V^2)/4 &=&
+  \sum_{{i,j}\atop{i<j}}\left[ 
+   \left(a_v^{(i)}a_h^{(j)}\right)^2
+   +\left(a_v^{(j)}a_h^{(i)}\right)^2 \right. \\ \nonumber
+ &&\qquad\left.
+ - 2 \left(a_v^{(i)} a_h^{(j)} \right) \left(a_v^{(j)} a_h^{(i)}\right) 
+    \cos(\delta^{(i)}-\delta^{(j)}) \right]
+\end{eqnarray}
+Each summand of the sum on the right-hand side is positive, since it
+is greater than or equal to $(a_v^{(i)}a_h^{(j)} -
+a_v^{(j)}a_h^{(i)})^2$, which completes the proof.
+The right-hand side vanishes only if $\delta^{(i)}=\delta^{(j)}$ and
+$a_v^{(i)}/a_h^{(i)} = a_v^{(j)}/a_h^{(j)}$ for all $i,j$, i.e., if
+the phase difference and amplitude ratio between the horizontal and
+vertical component of the electric field is the same for all
+contributions, in other words: if all contributions have the same
+polarization.
 
 Now we can define a measure for the degree of polarization, $p$:
 \begin{equation}
@@ -713,7 +788,7 @@ and the unpolarized component as
   I_u = I - I_p
 \end{equation}
 Thus, partially polarized radiation, described by a Stokes vector $(I,
-Q, U, V)$ can be regarded as as a superposition of completely
+Q, U, V)$, can be regarded as as a superposition of completely
 polarized radiation described by the Stokes vector $(I_p, Q, U, V)$
 and unpolarized radiation described by the Stokes vector $(I_u,
 0,0,0)$.  We see that the Stokes parameter formalism can conveniently
@@ -744,7 +819,7 @@ The radiation encountered in atmospheric sounding (for which ARTS is
 intended) is natural radiation, coming from the sun, space (cosmic
 background), and/or the atmosphere and the Earth surface (thermal
 radiation, scattered radiation)\footnote{This is not so for active
-  sounding techniques that use coherent source, such as lidar.}.
+  sounding techniques that use a coherent source, such as lidar.}.
 Radiation from the sun is unpolarized, as already mentioned; the same
 applies for the cosmic background (??really??).  In contrast,
 radiation emitted by the ground can be weakly polarized, dependent on
