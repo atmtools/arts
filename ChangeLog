@@ -1,3 +1,15 @@
+2003-07-17  Cory Davis   <cory@met.ed.ac.uk>
+
+	* arts-1-1-606
+
+	* src/workspace.cc: Removed ppathLOS
+
+	* src/montecarlo.cc (Cloudbox_ppathCalc): made silent. 
+	(Cloudbox_ppath_rteCalc): disabled error checking in calls to rte_calc
+	.  This made an enormous improvement in performance.  Depending on 
+	optical thickness I can now do 10^5 photons in 90 seconds with 
+	debugging disabled.  Previously this took about 2 hours:)
+
 2003-07-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-605

@@ -162,7 +162,7 @@ void Cloudbox_ppathCalc(
       //
       istep++;
       //
-      ppath_step_agenda.execute( istep - 1 );
+      ppath_step_agenda.execute( true );
 
       // Before everything is tested carefully, we consider more than 1000
       // path points to be an indication on that the calcululations have
@@ -612,6 +612,7 @@ void ScatteringMonteCarlo (
 	      a_los=new_a_los;
 	      cout <<"photon_number = "<<photon_number << 
 		", scattering_order = " <<scattering_order <<"\n";
+	      if (Q(0,0)<1e-6){ keepgoing=false;}
 	    }
 	  //	  cout<<"pathI = "<<pathI<<"\n";
 	  

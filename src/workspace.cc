@@ -1520,18 +1520,6 @@ void define_wsv_data()
        ),
       GROUP( Ppath_ )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "ppathLOS" ),
-      DESCRIPTION
-      (
-       "The propagation path for the initial line-of-sight.\n"
-       "\n"
-       "In Monte Carlo scattering simulations, this Ppath object stores\n"
-	 "the initial propagation path from the sensor to the cloud box"
-       ),
-      GROUP( Ppath_ )));
-
 wsv_data.push_back
    (WsvRecord
     ( NAME( "ppath_step" ),

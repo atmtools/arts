@@ -173,7 +173,7 @@ void Cloudbox_ppath_rteCalc(
 shift_a_pos(dummy_a_pos,dummy_a_los,ppathcloud);
   sensor_pos(0,joker)=dummy_a_pos;
   sensor_los(0,joker)=dummy_a_los;
-  
+  //call rte_calc without input checking, sensor stuff, or verbosity
   rte_calc( y_dummy, ppath, ppath_step, i_rte, a_pos, a_los, a_gp_p, a_gp_lat,
 	    a_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
 	    ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, atmosphere_dim,
@@ -182,7 +182,7 @@ shift_a_pos(dummy_a_pos,dummy_a_los,ppathcloud);
 	    scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
             sensor_pol_dummy, sensor_rot_dummy,
             f_grid,stokes_dim,
-	    antenna_dim_dummy, mblock_za_grid_dummy,mblock_aa_grid_dummy,true, false, 1);
+	    antenna_dim_dummy, mblock_za_grid_dummy,mblock_aa_grid_dummy,false, false, true);
   
   
   if (record_ppath)
