@@ -1,3 +1,10 @@
+2003-05-13  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-538
+
+	* src/main.cc (main): Replaced all return statements with arts_exit to
+	avoid missing call to mpi finalize.
+
 2003-05-07  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-537
