@@ -1,3 +1,15 @@
+2002-08-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-213
+
+	* src/m_scatrte.cc (i_fieldUpdate1D): Modified this function to get
+	boundary conditions right. Some loops are rearranged so that the 
+	function is more efficient. The values of the zenith angles are taken 
+	as criterion for upward or downward propagation.
+	The special case (zenith angle a bit higher than 90°) is still not 
+	included. Here the first intersection point is at the same altitude
+	as the initial point.
+	
 2002-08-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-212
