@@ -1,3 +1,16 @@
+2003-01-06  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-358
+
+	* src/array.h: Define all Arrays and ArraysOfArray here.
+	NOTE: Only the typedefs are located here. If you want to use e.g.
+	ArrayOfTensor3, it is not enough to include array.h, you also have to
+	include matpackIII.h.
+
+	* src/matpack*.h: Removed typedefs for Arrays.
+
+	* src/arts.h: Removed typedefs for ArrayOfIndex and ArrayOfNumeric.
+
 2003-01-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-357
