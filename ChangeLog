@@ -1,3 +1,60 @@
+2002-05-09  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-69
+
+	* Lots of fixes to compile arts with gcc-3.1.
+	
+	* src/interpolation.cc (LOOPIT): Removed overflues ## in macro
+	definition before '.'  Otherwise it does not expand into a valid
+	preprocessor token.
+
+	* src/arts.h: Added 'using namespace std' to fix compile errors
+	with newer, more ansi-compliant gccs (3.1).
+
+	Include sstream instead of sstream.h for the same reason.
+
+	* src/matpackI.h (Range): Default arguments for parameters are
+	only allowed to be declared once. Removed from implementation
+	part.
+
+	* src/methods_aux.cc (PrintTemplate): Removed default for second
+	parameter from implementation part.
+	
+	* src/mystring.h: Include climits.
+
+	* src/main.cc,
+	src/m_abs.cc,
+	src/absorption.cc: Include algorithm.
+
+	* src/test_interpolation.cc,
+	src/test_linalg.cc,
+	src/test_tensor.cc,
+	src/test_poly.cc,
+	src/test_matpack.cc,
+	src/methods.h,
+	src/poly_roots.cc,
+	src/parameters.cc,
+	src/make_auto_wsv_groups_h.cc,
+	src/messages.h: Include iostream, otherwise cerr and cout are
+	undeclared.
+
+	* src/exceptions.h (ParseError): Added dummy virtual destructor
+	including missing throw().
+
+	* src/messages.cc: Rename global variable basename to out_basename
+	to avoid a conflict with the basename function from the new string
+	standard include file.
+
+	* src/m_hdf.cc (filename_bin),
+	src/main.cc (main),
+	src/m_abs.cc (linesWriteAscii),
+	src/m_abs.cc (lines_per_tgWriteAsci),
+	src/file.cc (filename_ascii): Renamed basename to out_basename.
+
+	* src/mystring.h (my_basic_string),
+	src/array.h: Added keyword typename to several definitions
+	(e.g. typename Array<base>::const_iterator xi;)
+
 2002-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-68
