@@ -1,3 +1,15 @@
+2002-12-02  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-325
+
+	* src/array.h (find_all): pos has to be a reference.
+
+	* src/absorption.cc (SpeciesTag::SpeciesTag): Use Stefan's
+	find_first instead of the STL version.
+
+	* src/xml_io.cc (xml_read_header_from_stream): Slighty improved
+	error message for invalid xml header.
+
 2002-12-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-324
