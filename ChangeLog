@@ -9,7 +9,7 @@
 
 	* src/matpackII.{cc,h} (operator<<, mult, transpose): Use selector
 	functions instead of direct member access. This has a little impact
-	on speed when compiling without optimizations and not noticeable with
+	on speed when compiling without optimizations and is not noticeable with
 	-O2 and higher.
 
 	The operator() is for read-only access. To write elements the rw()
