@@ -1110,6 +1110,286 @@ void interpweights( Tensor3View itw,
     }
 }
 
+//! Compute 3D interpolation weights for an entire field.
+/*! 
+ Compute the weights for a "green" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ the grids for the interpolated field.
+
+ The dimensions of itw must be consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Tensor with one more dimension than the number of grid
+ position Arrays.
+
+ \param itw Output: Interpolation weights
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ 
+ */
+void interpweights( Tensor4View itw,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  // We must store 8 interpolation weights for each position:
+  assert(is_size(itw,np,nr,nc,8));	
+
+  // We have to loop all the points in the new grid:
+  for ( Index ip=0; ip<np; ++ip )
+    {
+      const GridPos& tp = pgp[ip];
+      for ( Index ir=0; ir<nr; ++ir )
+	{
+	  const GridPos& tr = rgp[ir];
+	  for ( Index ic=0; ic<nc; ++ic )
+	    {
+	      const GridPos& tc = cgp[ic];
+
+	      Index iti = 0;
+
+	      LOOPIT(p)
+		LOOPIT(r)
+		LOOPIT(c)
+		{
+		  itw(ip,ir,ic,iti) =
+		    (*p) * (*r) * (*c);
+		  ++iti;
+		}
+	    }
+	}
+    }
+}
+
+//! Compute 4D interpolation weights for an entire field.
+/*! 
+ Compute the weights for a "green" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ the grids for the interpolated field.
+
+ The dimensions of itw must be consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Tensor with one more dimension than the number of grid
+ position Arrays.
+
+ \param itw Output: Interpolation weights
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ 
+ */
+void interpweights( Tensor5View itw,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index nb = bgp.nelem();
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  // We must store 16 interpolation weights for each position:
+  assert(is_size(itw,nb,np,nr,nc,16));	
+
+  // We have to loop all the points in the new grid:
+  for ( Index ib=0; ib<nb; ++ib )
+    {
+      const GridPos& tb = bgp[ib];
+      for ( Index ip=0; ip<np; ++ip )
+	{
+	  const GridPos& tp = pgp[ip];
+	  for ( Index ir=0; ir<nr; ++ir )
+	    {
+	      const GridPos& tr = rgp[ir];
+	      for ( Index ic=0; ic<nc; ++ic )
+		{
+		  const GridPos& tc = cgp[ic];
+
+		  Index iti = 0;
+
+		  LOOPIT(b)
+		    LOOPIT(p)
+		    LOOPIT(r)
+		    LOOPIT(c)
+		    {
+		      itw(ib,ip,ir,ic,iti) =
+			(*b) * (*p) * (*r) * (*c);
+		      ++iti;
+		    }
+		}
+	    }
+	}
+    }
+}
+
+//! Compute 5D interpolation weights for an entire field.
+/*! 
+ Compute the weights for a "green" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ the grids for the interpolated field.
+
+ The dimensions of itw must be consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Tensor with one more dimension than the number of grid
+ position Arrays.
+
+ \param itw Output: Interpolation weights
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ 
+ */
+void interpweights( Tensor6View itw,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index ns = sgp.nelem();
+  Index nb = bgp.nelem();
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  // We must store 32 interpolation weights for each position:
+  assert(is_size(itw,ns,nb,np,nr,nc,32));	
+
+  // We have to loop all the points in the new grid:
+  for ( Index is=0; is<ns; ++is )
+    {
+      const GridPos& ts = sgp[is];
+      for ( Index ib=0; ib<nb; ++ib )
+	{
+	  const GridPos& tb = bgp[ib];
+	  for ( Index ip=0; ip<np; ++ip )
+	    {
+	      const GridPos& tp = pgp[ip];
+	      for ( Index ir=0; ir<nr; ++ir )
+		{
+		  const GridPos& tr = rgp[ir];
+		  for ( Index ic=0; ic<nc; ++ic )
+		    {
+		      const GridPos& tc = cgp[ic];
+
+		      Index iti = 0;
+
+		      LOOPIT(s)
+			LOOPIT(b)
+			LOOPIT(p)
+			LOOPIT(r)
+			LOOPIT(c)
+			{
+			  itw(is,ib,ip,ir,ic,iti) =
+			    (*s) * (*b) * (*p) * (*r) * (*c);
+			  ++iti;
+			}
+		    }
+		}
+	    }
+	}
+    }
+}
+
+//! Compute 6D interpolation weights for an entire field.
+/*! 
+ Compute the weights for a "green" type interpolation of the field,
+ that means that the grid position Arrays are interpreted as defining
+ the grids for the interpolated field.
+
+ The dimensions of itw must be consistent with this.
+
+ Note that we still do not need the actual field for this step.
+
+ This function can be easily distinguished from the other
+ interpweights function (for "green" interpolation), because the
+ output is a Tensor with one more dimension than the number of grid
+ position Arrays.
+
+ \param itw Output: Interpolation weights
+ \param vgp The grid position Array for the vitrine dimension.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+ 
+ */
+void interpweights( Tensor7View itw,
+               	    const ArrayOfGridPos& vgp,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp )
+{
+  Index nv = vgp.nelem();
+  Index ns = sgp.nelem();
+  Index nb = bgp.nelem();
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  // We must store 64 interpolation weights for each position:
+  assert(is_size(itw,nv,ns,nb,np,nr,nc,64));	
+
+  // We have to loop all the points in the new grid:
+  for ( Index iv=0; iv<nv; ++iv )
+    {
+      const GridPos& tv = vgp[iv];
+      for ( Index is=0; is<ns; ++is )
+	{
+	  const GridPos& ts = sgp[is];
+	  for ( Index ib=0; ib<nb; ++ib )
+	    {
+	      const GridPos& tb = bgp[ib];
+	      for ( Index ip=0; ip<np; ++ip )
+		{
+		  const GridPos& tp = pgp[ip];
+		  for ( Index ir=0; ir<nr; ++ir )
+		    {
+		      const GridPos& tr = rgp[ir];
+		      for ( Index ic=0; ic<nc; ++ic )
+			{
+			  const GridPos& tc = cgp[ic];
+
+			  Index iti = 0;
+
+			  LOOPIT(v)
+			    LOOPIT(s)
+			    LOOPIT(b)
+			    LOOPIT(p)
+			    LOOPIT(r)
+			    LOOPIT(c)
+			    {
+			      itw(iv,is,ib,ip,ir,ic,iti) =
+				(*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+			      ++iti;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
+}
+
 //! Interpolate 2D field to another 2D field.
 /*! 
  This performs a "green" type interpolation of the field, that means
@@ -1165,6 +1445,336 @@ void interp( MatrixView       	   ia,
 	      tia += a(tr.idx+r,
 		       tc.idx+c) * itw(ir,ic,iti);
 	      ++iti;
+	    }
+	}
+    }
+}
+
+//! Interpolate 3D field to another 3D field.
+/*! 
+ This performs a "green" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining the grids
+ for the interpolated field.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates a sequence of interpolated
+ values), because of the dimension of ia and itw.
+
+ The size of ia and itw in all dimensions must be consistent with the grid
+ position Arrays.
+
+ \param ia  Output: Interpolated field.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( Tensor3View       	   ia,
+             ConstTensor4View 	   itw,
+             ConstTensor3View  	   a,   
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  assert(is_size(ia,
+		 np,nr,nc));    
+  assert(is_size(itw,
+		 np,nr,nc,
+		 8));
+
+  // We have to loop all the points in the new grid:
+  for ( Index ip=0; ip<np; ++ip )
+    {
+      const GridPos& tp = pgp[ip];
+      for ( Index ir=0; ir<nr; ++ir )
+	{
+	  const GridPos& tr = rgp[ir];
+	  for ( Index ic=0; ic<nc; ++ic )
+	    {
+	      // Current grid position:
+	      const GridPos& tc = cgp[ic];
+
+	      // Get handle to current element of output tensor and
+	      // initialize it to zero:
+	      Numeric& tia = ia(ip,ir,ic);
+	      tia = 0;
+
+	      Index iti = 0;
+	      for ( Index p=0; p<2; ++p )
+		for ( Index r=0; r<2; ++r )
+		  for ( Index c=0; c<2; ++c )
+		    {
+		      tia += a(tp.idx+p,
+			       tr.idx+r,
+			       tc.idx+c) * itw(ip,ir,ic,
+					       iti);
+		      ++iti;
+		    }
+	    }
+	}
+    }
+}
+
+//! Interpolate 4D field to another 4D field.
+/*! 
+ This performs a "green" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining the grids
+ for the interpolated field.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates a sequence of interpolated
+ values), because of the dimension of ia and itw.
+
+ The size of ia and itw in all dimensions must be consistent with the grid
+ position Arrays.
+
+ \param ia  Output: Interpolated field.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( Tensor4View       	   ia,
+             ConstTensor5View 	   itw,
+             ConstTensor4View  	   a,   
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index nb = bgp.nelem();
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  assert(is_size(ia,
+		 nb,np,nr,nc));    
+  assert(is_size(itw,
+		 nb,np,nr,nc,
+		 16));
+
+  // We have to loop all the points in the new grid:
+  for ( Index ib=0; ib<nb; ++ib )
+    {
+      const GridPos& tb = bgp[ib];
+      for ( Index ip=0; ip<np; ++ip )
+	{
+	  const GridPos& tp = pgp[ip];
+	  for ( Index ir=0; ir<nr; ++ir )
+	    {
+	      const GridPos& tr = rgp[ir];
+	      for ( Index ic=0; ic<nc; ++ic )
+		{
+		  // Current grid position:
+		  const GridPos& tc = cgp[ic];
+
+		  // Get handle to current element of output tensor and
+		  // initialize it to zero:
+		  Numeric& tia = ia(ib,ip,ir,ic);
+		  tia = 0;
+
+		  Index iti = 0;
+		  for ( Index b=0; b<2; ++b )
+		    for ( Index p=0; p<2; ++p )
+		      for ( Index r=0; r<2; ++r )
+			for ( Index c=0; c<2; ++c )
+			  {
+			    tia += a(tb.idx+b,
+				     tp.idx+p,
+				     tr.idx+r,
+				     tc.idx+c) * itw(ib,ip,ir,ic,
+						     iti);
+			    ++iti;
+			  }
+		}
+	    }
+	}
+    }
+}
+
+//! Interpolate 5D field to another 5D field.
+/*! 
+ This performs a "green" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining the grids
+ for the interpolated field.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates a sequence of interpolated
+ values), because of the dimension of ia and itw.
+
+ The size of ia and itw in all dimensions must be consistent with the grid
+ position Arrays.
+
+ \param ia  Output: Interpolated field.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( Tensor5View       	   ia,
+             ConstTensor6View 	   itw,
+             ConstTensor5View  	   a,   
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index ns = sgp.nelem();
+  Index nb = bgp.nelem();
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  assert(is_size(ia,
+		 ns,nb,np,nr,nc));    
+  assert(is_size(itw,
+		 ns,nb,np,nr,nc,
+		 32));
+
+  // We have to loop all the points in the new grid:
+  for ( Index is=0; is<ns; ++is )
+    {
+      const GridPos& ts = sgp[is];
+      for ( Index ib=0; ib<nb; ++ib )
+	{
+	  const GridPos& tb = bgp[ib];
+	  for ( Index ip=0; ip<np; ++ip )
+	    {
+	      const GridPos& tp = pgp[ip];
+	      for ( Index ir=0; ir<nr; ++ir )
+		{
+		  const GridPos& tr = rgp[ir];
+		  for ( Index ic=0; ic<nc; ++ic )
+		    {
+		      // Current grid position:
+		      const GridPos& tc = cgp[ic];
+
+		      // Get handle to current element of output tensor and
+		      // initialize it to zero:
+		      Numeric& tia = ia(is,ib,ip,ir,ic);
+		      tia = 0;
+
+		      Index iti = 0;
+		      for ( Index s=0; s<2; ++s )
+			for ( Index b=0; b<2; ++b )
+			  for ( Index p=0; p<2; ++p )
+			    for ( Index r=0; r<2; ++r )
+			      for ( Index c=0; c<2; ++c )
+				{
+				  tia += a(ts.idx+s,
+					   tb.idx+b,
+					   tp.idx+p,
+					   tr.idx+r,
+					   tc.idx+c) * itw(is,ib,ip,ir,ic,
+							   iti);
+				  ++iti;
+				}
+		    }
+		}
+	    }
+	}
+    }
+}
+
+//! Interpolate 6D field to another 6D field.
+/*! 
+ This performs a "green" type interpolation of the field, that means
+ that the grid position Arrays are interpreted as defining the grids
+ for the interpolated field.
+
+ This function can be easily distinguished from the other
+ interpolation function (that creates a sequence of interpolated
+ values), because of the dimension of ia and itw.
+
+ The size of ia and itw in all dimensions must be consistent with the grid
+ position Arrays.
+
+ \param ia  Output: Interpolated field.
+ \param itw Interpolation weights.
+ \param a   The field to interpolate.
+ \param vgp The grid position Array for the vitrine dimension.
+ \param sgp The grid position Array for the shelf   dimension.
+ \param bgp The grid position Array for the book    dimension.
+ \param pgp The grid position Array for the page    dimension.
+ \param rgp The grid position Array for the row     dimension.
+ \param cgp The grid position Array for the column  dimension.
+*/
+void interp( Tensor6View       	   ia,
+             ConstTensor7View 	   itw,
+             ConstTensor6View  	   a,   
+	     const ArrayOfGridPos& vgp,
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp)
+{
+  Index nv = vgp.nelem();
+  Index ns = sgp.nelem();
+  Index nb = bgp.nelem();
+  Index np = pgp.nelem();
+  Index nr = rgp.nelem();
+  Index nc = cgp.nelem();
+  assert(is_size(ia,
+		 nv,ns,nb,np,nr,nc));    
+  assert(is_size(itw,
+		 nv,ns,nb,np,nr,nc,
+		 64));
+
+  // We have to loop all the points in the new grid:
+  for ( Index iv=0; iv<nv; ++iv )
+    {
+      const GridPos& tv = vgp[iv];
+      for ( Index is=0; is<ns; ++is )
+	{
+	  const GridPos& ts = sgp[is];
+	  for ( Index ib=0; ib<nb; ++ib )
+	    {
+	      const GridPos& tb = bgp[ib];
+	      for ( Index ip=0; ip<np; ++ip )
+		{
+		  const GridPos& tp = pgp[ip];
+		  for ( Index ir=0; ir<nr; ++ir )
+		    {
+		      const GridPos& tr = rgp[ir];
+		      for ( Index ic=0; ic<nc; ++ic )
+			{
+			  // Current grid position:
+			  const GridPos& tc = cgp[ic];
+
+			  // Get handle to current element of output tensor and
+			  // initialize it to zero:
+			  Numeric& tia = ia(iv,is,ib,ip,ir,ic);
+			  tia = 0;
+
+			  Index iti = 0;
+			  for ( Index v=0; v<2; ++v )
+			    for ( Index s=0; s<2; ++s )
+			      for ( Index b=0; b<2; ++b )
+				for ( Index p=0; p<2; ++p )
+				  for ( Index r=0; r<2; ++r )
+				    for ( Index c=0; c<2; ++c )
+				      {
+					tia += a(tv.idx+v,
+						 ts.idx+s,
+						 tb.idx+b,
+						 tp.idx+p,
+						 tr.idx+r,
+						 tc.idx+c) * itw(iv,is,ib,ip,ir,ic,
+								 iti);
+					++iti;
+				      }
+			}
+		    }
+		}
 	    }
 	}
     }

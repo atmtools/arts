@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Vectors, matrices, and arrays}
+\levela{Vectors, matrices, tensors, and arrays}
 %-------------------------------------------------------------------------
 \label{sec:matpack}
 
@@ -19,6 +19,7 @@
 %  \stophistory
 %
 \starthistory
+  020516 & Tensors added by Stefan Buehler.\\
   011018 & Created and written by Stefan Buehler.\\
 \stophistory
 
@@ -44,6 +45,15 @@ The \verb|Matrix| and \verb|Vector| classes described below reside in the files:
 \item \verb|make_vector.h|
 \item \verb|matpackI.cc|
 \item \verb|make_vector.cc|
+\end{itemize}
+
+Tensors of order 3 to 7 reside in the files:
+\begin{itemize}
+\item \verb|matpackIII.h|
+\item \verb|matpackIV.h|
+\item \verb|matpackV.h|
+\item \verb|matpackVI.h|
+\item \verb|matpackVII.h|
 \end{itemize}
 
 There is also a file \verb|matpackII.h|, which contains the draft of a sparse
@@ -370,7 +380,7 @@ MatrixView c = x[Range(0,2),Range(0,2)];
                                   // 2x2 sub-matrix.
 \end{verbatim}
 
-I think you get the idea. Note that the second argument of Range gives
+You probably get the idea. Note that the second argument of Range gives
 the number of elements to take, not the index of the last element. See
 the section about Vectors for more examples how to use Range. You can
 use \verb|joker|, and also the third argument of Range to select only
@@ -526,7 +536,25 @@ Note, that the result is put in the first argument, consistent with
 the general ARTS policy, but different from the old MTL based
 multiplication function. Furthermore note, that as you can see from
 the first example, a Vector is always considered to be a 1-column
-Matrix. You can use transpose, of course:
+Matrix. 
+
+\textbf{Important: The matrices or vectors that you give for the three
+arguments must not overlap, or you will get garbage.} In particular,
+this means that 
+\begin{verbatim}
+mult(x,y,x);            // x = y * x FORBIDDEN!!!
+\end{verbatim}
+does not work. No, even worse: It works, but it gives the wrong
+result.  The reason for this behavior is that the result is
+constructed in the first argument variable. If that is also an input
+variable it will change while it is multiplied, which will lead to a
+different result.  There is no efficient way to detect overlap, so the
+only way to allow input and output arguments to be identical would be
+to use another internal dummy variable to store the result. However,
+this would be much less efficient.
+
+Another thing: You can use transpose, of course. These two examples
+should obviously give the same result:
 
 \begin{verbatim}
 // Define b and c as in first example above.
@@ -536,7 +564,159 @@ mult(c,transpose(a),b);                      // c = a' * b
 mult(transpose(c),transpose(b),a);           // c' = b' * a
 \end{verbatim}
 
-These two last examples should obviously give the same result.
+
+\levelb{Tensors}
+%-------------------------------------------------------------------------
+\label{sec:matpack:tensors}
+
+ARTS has tensors with rank 3 to 7. They are called \verb|Tensor3|
+\ldots \verb|Tensor7|, and work very much like matrices, just with
+more dimensions. Some properties:
+\begin{itemize}
+\item A Tensor contains floating point values of type \verb|Numeric|.
+\item The \emph{rank} of a tensor means the number of dimensions, so a
+  \verb|Tensor4| has 4 dimensions. Tensors of different rank are
+  different classes. That means, the rank is fixed at compile time and
+  cannot be changed at runtime. We will use rank and dimension as
+  synonyms. 
+\item The different dimensions are named:
+\begin{itemize}
+\item Library
+\item Vitrine
+\item Shelf
+\item Book
+\item Page
+\item Row
+\item Column
+\end{itemize}
+For example, \verb|Tensor3 b(2,4,3)| defines a third order tensor with 2
+pages, 4 rows, and 3 columns. Note that the column dimension is always
+last. (Incidentally, a \verb|Matrix| behaves exactly like a second
+order tensor, except that it has some additional features.) 
+\item A sub-range of a tensor in all dimensions (sub tensor) can
+  easily be accessed, and used as if it was just a normal tensor.
+\item More importantly, you can easily access lower dimensional
+  `slices' of a tensor. 
+\item Resizing a tensor is expensive and should be avoided.
+\end{itemize}
+
+\levelc{Constructing a tensor}
+%-------------------------------------------------------------------------
+You can construct an object of a tensor class like this:
+
+\begin{verbatim}
+Tensor7 a;            // Create empty tensor of rank 7
+Tensor3 b(2,4,3);     // 2 pages, 4 rows, 3 columns
+Tensor3 c(2,4,3,0.0); // Similar, but
+                      // fill it with 0.
+
+Tensor3 d=c;          // Make d a copy of c.
+\end{verbatim}
+
+
+\levelc{Tensor views}
+%-------------------------------------------------------------------------
+
+Tensor views work exactly like matrix and vector views. Example:
+
+\begin{verbatim}
+Tensor4 a(10,20,5,4);
+Tensor3View b = a(3,Range(joker),Range(joker),Range(joker));
+\end{verbatim}
+
+This is what is meant by slicing: You can easily create a
+view of a tensor that picks out an object of lower dimension. Note
+that you can use either an \verb|Index| or a \verb|Range| argument for
+any of the dimensions. The dimensionality of the result will adjust
+accordingly, as in the example above.
+
+Everything that was said about matrix and vector views holds also
+here. In particular, please always use views as function arguments. 
+
+\levelc{What you can do with a tensor (or tensor view)}
+%-------------------------------------------------------------------------
+
+All examples below (except for the first) assume that \verb|a| is a
+Tensor7 or Tensor7View.
+
+\leveld{Resize (only for tensors, not for views):}
+\begin{verbatim}
+a.resize(5, 10, 4, 5, 3, 6, 8);
+\end{verbatim}
+This makes \verb|a| the requested size. The new tensor is not
+initialized (i.e., the contents will be unpredictable). Also, note
+that the previous content will be completely lost.
+
+\leveld{Get the extent of the various dimensions:}
+\begin{verbatim}
+Index nl = a.nlibraries();
+Index nv = a.nvitrines();
+Index ns = a.nshelves();
+Index nb = a.nbooks();
+Index np = a.npages();
+Index nr = a.nrows();
+Index nc = a.ncols();
+\end{verbatim}
+
+Which of these functions are available depends on the dimension of
+your tensor. For example, \verb|nlibraries()| is only available for
+\verb|Tensor7|. Note, that I took care that the first letters of the
+dimension names are unique, which is very convenient if you prefer short
+names for your variables that refer so some dimension of a tensor.
+
+\leveld{Slicing:}
+\begin{verbatim}
+Vector x = a(0,2,1,8,3,4,Range(joker));
+// Select row 4
+// on page 3 
+// in book 8 
+// on shelf 1 
+// in vitrine 2 
+// in library 0
+// and copy it to the Vector x.
+\end{verbatim}
+
+Any \verb|Range| or \verb|Index| expression is allowed in any of the
+arguments, of course.
+
+\leveld{Element access:}
+\begin{verbatim}
+cout << a(3,4,0,0,0,0,0); // Print that element.
+a(0,0,0,0,0,0,0) = 3.5;   // Assign 3.5 to this element.
+\end{verbatim}
+
+\leveld{Copying tensors:}
+
+Works exactly like copying matrices. Output arguments must have the
+correct size!
+
+\leveld{Assigning a scalar:}
+\begin{verbatim}
+a = 1.0;                        // Assign 1 to all elements.
+\end{verbatim}
+
+\leveld{Mathematical operators:}
+
+You can use the operators `+=', `-=', `*/', and `/=', which operate
+element-vise, just as for Vector.
+
+\leveld{Maximum and minimum:}
+\begin{verbatim}
+cout << max(a);
+cout << min(a);
+\end{verbatim}
+
+\leveld{Arbitrary single-argument math functions:}
+
+The function \verb|transform| works just like for Vector.
+
+\levelc{Summary}
+
+This is all. In particular, we have no tensor products, since they
+are not needed. So, tensors are mostly used to store things, notably
+atmospheric field and so on.  There is a set of sophisticated
+interpolation routines, though, which are described separately in
+Chapter \ref{sec:interpolation}.
 
 
 \levelb{Arrays}

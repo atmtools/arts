@@ -723,7 +723,18 @@ int main (int argc, char **argv)
       extern String out_basename;
       out_basename = parameters.controlfiles[0];
       // Find the last . in the name
-      String::size_type p = out_basename.rfind('.');
+      String::size_type p = out_basename.rfind(".arts");
+
+      if (String::npos==p)
+	{
+	  // This is an error handler for the case that somebody gives
+	  // a supposed file name that does not contain the extension
+	  // ".arts"
+
+	  cerr << "The controlfile must have the extension .arts.\n";
+	  polite_goodby();
+	}
+      
       // Kill everything starting from the `.'
       out_basename.erase(p);
     }

@@ -133,6 +133,33 @@ void test01()
 
     cout << "nf:\n" << nf << "\n";
   }
+
+  cout << "Green 6D:\n"
+       << "---------\n";
+  {
+    // To store interpolation weights:
+    Tensor7 itw(gp.nelem(),
+		gp.nelem(),
+		gp.nelem(),
+		gp.nelem(),
+		gp.nelem(),
+		gp.nelem(),
+		64);
+    interpweights(itw,gp,gp,gp,gp,gp,gp);
+    
+    // Original field:
+    Tensor6 of(og.nelem(),og.nelem(),og.nelem(),og.nelem(),og.nelem(),og.nelem(),0);
+    of(2,2,2,2,2,2) = 10;			// 0 Tensor with 10 in the middle
+
+    cout << "Middle slice of of:\n" << of(2,2,2,2,Range(joker),Range(joker)) << "\n";
+
+    // Interpolated field:
+    Tensor6 nf(ng.nelem(),ng.nelem(),ng.nelem(),ng.nelem(),ng.nelem(),ng.nelem());
+
+    interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
+
+    cout << "Last slice of nf:\n" << nf(4,4,4,4,Range(joker),Range(joker)) << "\n";
+  }
 }
 
 void test02(Index n)
@@ -163,7 +190,103 @@ void test03(Index n)
 // Result: Both are almost equally fast, with a slight advantage of
 // the for loop if compiler optimization is enabled.
 
+void test04()
+{
+  cout << "Green type interpolation of all pages of a Tensor3\n";
+
+  // The original Tensor is called a, the new one n. 
+
+  // 10 pages, 20 rows, 30 columns, all grids are: 1,2,3
+  Vector  a_pgrid(1,3,1), a_rgrid(1,3,1), a_cgrid(1,3,1); 
+  Tensor3 a( a_pgrid.nelem(), a_rgrid.nelem(), a_cgrid.nelem() ); 
+
+  a = 0;
+  // Put some simple numbers in the middle of each page:
+  a(0,1,1) = 10;
+  a(1,1,1) = 20;
+  a(2,1,1) = 30;
+
+
+  // New row and column grids:
+  // 1, 1.5, 2, 2.5, 3
+  Vector  n_rgrid(1,5,.5), n_cgrid(1,5,.5); 
+  Tensor3 n( a_pgrid.nelem(), n_rgrid.nelem(), n_cgrid.nelem() ); 
+
+  // So, n has the same number of pages as a, but more rows and columns.
+
+  // Get the grid position arrays:
+  ArrayOfGridPos n_rgp(n_rgrid.nelem()); // For row grid positions.
+  ArrayOfGridPos n_cgp(n_cgrid.nelem()); // For column grid positions.
+
+  gridpos( n_rgp, a_rgrid, n_rgrid );
+  gridpos( n_cgp, a_cgrid, n_cgrid );
+
+  // Get the interpolation weights:
+  Tensor3 itw( n_rgrid.nelem(), n_cgrid.nelem(), 4 );
+  interpweights( itw, n_rgp, n_cgp );
+
+  // Do a "green" interpolation for all pages of the Tensor a:
+
+  for ( Index i=0; i<a.npages(); ++i )
+    {
+      // Select the current page of both a and n:
+      ConstMatrixView ap = a( i, Range(joker), Range(joker) );
+      MatrixView      np = n( i, Range(joker), Range(joker) );
+
+      // Do the interpolation:
+      interp( np, itw, ap, n_rgp, n_cgp );
+
+      // Note that this is efficient, because interpolation weights and
+      // grid positions are re-used.
+    }
+
+  cout << "Original field:\n";
+  for ( Index i=0; i<a.npages(); ++i )
+      cout << "page " << i << ":\n" << a(i,Range(joker),Range(joker)) << "\n";
+
+  cout << "Interpolated field:\n";
+  for ( Index i=0; i<n.npages(); ++i )
+      cout << "page " << i << ":\n" << n(i,Range(joker),Range(joker)) << "\n";
+  
+}
+
+void test05()
+{
+  cout << "Very simple interpolation case\n";
+
+  Vector og(1,5,+1);		// 1, 2, 3, 4, 5
+  Vector ng(2,5,0.25);		// 2.0, 2,25, 2.5, 2.75, 3.0
+
+  cout << "Original grid:\n" << og << "\n";
+  cout << "New grid:\n" << ng << "\n";
+
+  // To store the grid positions:
+  ArrayOfGridPos gp(ng.nelem());
+
+  gridpos(gp,og,ng);
+  cout << "Grid positions:\n" << gp;
+
+  // To store interpolation weights:
+  Matrix itw(gp.nelem(),2);
+  interpweights(itw,gp);
+    
+  cout << "Interpolation weights:\n" << itw << "\n";
+
+  // Original field:
+  Vector of(og.nelem(),0);
+  of[2] = 10;			// 0, 0, 10, 0, 0
+
+  cout << "Original field:\n" << of << "\n";
+
+  // Interpolated field:
+  Vector nf(ng.nelem());
+
+  interp(nf, itw, of, gp);
+
+  cout << "New field:\n" << nf << "\n";
+}
+
 int main()
 {
-  test01();
+  test05();
 }

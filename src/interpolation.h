@@ -167,11 +167,70 @@ void interpweights( Tensor3View itw,
                	    const ArrayOfGridPos& rgp,
                	    const ArrayOfGridPos& cgp );
 
+void interpweights( Tensor4View itw,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
+void interpweights( Tensor5View itw,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
+void interpweights( Tensor6View itw,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
+void interpweights( Tensor7View itw,
+               	    const ArrayOfGridPos& vgp,
+               	    const ArrayOfGridPos& sgp,
+               	    const ArrayOfGridPos& bgp,
+               	    const ArrayOfGridPos& pgp,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
 void interp( MatrixView       	   ia,
              ConstTensor3View 	   itw,
              ConstMatrixView  	   a,   
 	     const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
 
+void interp( Tensor3View       	   ia,
+             ConstTensor4View 	   itw,
+             ConstTensor3View  	   a,   
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( Tensor4View       	   ia,
+             ConstTensor5View 	   itw,
+             ConstTensor4View  	   a,   
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( Tensor5View       	   ia,
+             ConstTensor6View 	   itw,
+             ConstTensor5View  	   a,   
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
+
+void interp( Tensor6View       	   ia,
+             ConstTensor7View 	   itw,
+             ConstTensor6View  	   a,   
+	     const ArrayOfGridPos& vgp,
+	     const ArrayOfGridPos& sgp,
+	     const ArrayOfGridPos& bgp,
+	     const ArrayOfGridPos& pgp,
+	     const ArrayOfGridPos& rgp,
+             const ArrayOfGridPos& cgp);
 
 #endif // interpolation_h

@@ -1,3 +1,22 @@
+2002-05-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-86
+
+	* src/interpolation.cc: Finished interpweights and interp
+	functions for Tensor 3 to 6. That means, all interpolation
+	functions are ready!
+
+	* src/interpolation.h: Added headers for new functions.
+
+	* doc/uguide/interpolation.tex: Added this file. Nothing there yet.
+
+	* doc/uguide/matrix_vector.tex: Added tensors.
+
+	* src/main.cc (main): Added error handler for the case that the
+	given controlfile name does not have extension ".arts", or no
+	extension at all. (So far the program just crashed in this
+	case.)
+
 2002-05-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-85
