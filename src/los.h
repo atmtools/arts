@@ -16,19 +16,36 @@
    USA. */
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// This file contains the definition of the LOS structure
-//
-/////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   los.h
+
+   This file contains the definition of the LOS structure
+
+   \author Patrick Eriksson
+   \date 2000-09-18 
+*/
+
 
 
 #ifndef los_h
 #define los_h
 
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
+
 #include "vecmat.h"
 
-/** The line of sight (LOS). The LOS structure has the fields:
+
+
+/** The line of sight (LOS). 
+
+    The LOS structure has the fields:
     \verbatim
        ARRAYofVECTOR  p;
        VECTOR         l_step;
@@ -75,7 +92,9 @@
     that is, the point of LOS with index GROUND corresponds to the ground 
     level.
 
-    @author Patrick Eriksson 07.06.00 */
+    \author Patrick Eriksson 
+    \date   07.06.00 
+*/
 struct Los {
   ARRAYofVECTOR  p;
   VECTOR         l_step;

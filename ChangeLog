@@ -1,3 +1,11 @@
+2000-09-18  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-49
+
+	* Doxygenified, and cleaned up existing documentation, for files:
+	m_wfs.cc, m_los.cc, atm_funcs.h,cc, math_funcs.h.cc, vecmat.h,cc
+	and los.h.
+
 2000-09-14  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-48

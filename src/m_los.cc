@@ -16,16 +16,33 @@
    USA. */
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// This file contains functions to determine the line of sight (LOS)
-// to calculate variables along the LOS and to solve the radiative transfer
-// along the LOS.
-// Functions in this file assumes LTE and no scattering
-// The LOS is defined by a structure of type Los, defined in los.h.
-//
-/////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   m_los.cc
+
+   This file contains functions associated with 1D LOS calculations.
+
+   Types of functions are:
+
+     1. determination of LOS
+     2. calculation of transmissions and source function along the LOS
+     3. solving the radiative transfer equation
+   
+   Functions in this file assumes LTE and no scattering.
+   The LOS is defined by a structure of type Los, defined in los.h.
+
+   \author Patrick Eriksson
+   \date 2000-09-14 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
 #include "vecmat.h"
@@ -34,8 +51,6 @@
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
 #include "los.h"
-
-
 extern const Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -44,17 +59,25 @@ extern const Numeric SUN_TEMP;
 
 
 
-//==========================================================================
-//=== LOS help functions 
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   LOS help functions 
+////////////////////////////////////////////////////////////////////////////
 
-// UPWARD_GEOM
-// 
-// A help function to calculate LOS for upward observations.
-// No refraction.
-//
-// Patrick Eriksson 27.06.99
+//// upward_geom ///////////////////////////////////////////////////////////
+/**
+   A help function to calculate LOS for upward observations without refraction.
 
+   This function handles only a single zenith angle.
+
+   \retval   z           vertical altitudes for the LOS
+   \retval   l_step      step length along the LOS
+   \param    z_plat      platform altitude
+   \param    za          zenith angle
+   \param    z_abs_max   maximum altitude of the absorption grid
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void upward_geom(
               VECTOR&       z,
               Numeric&      l_step,
@@ -83,13 +106,21 @@ void upward_geom(
 
 
 
-// SPACE_GEOM
-// 
-// A function to calculate LOS for observations from space.
-// No refraction.
-//
-// Patrick Eriksson 27.06.99
+//// space_geom ////////////////////////////////////////////////////////////
+/**
+   Calculates the LOS for observations from space without refraction.
 
+   This function handles only a single zenith angle.
+
+   \retval   z           vertical altitudes for the LOS
+   \retval   l_step      step length along the LOS
+   \param    z_tan       tangent altitude
+   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    z_ground    altitude of the ground
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void space_geom(
                VECTOR&     z,
                Numeric&    l_step,
@@ -131,17 +162,28 @@ void space_geom(
 
 
 
-//==========================================================================
-//=== Sub-functions to losBasic 
-//==========================================================================
 
-// LOS_NO_REFR_SPACE
-//
-// Observation from space, limb or nadir. 
-// No refraction.
-//
-// Patrick Eriksson 27.06.99
+////////////////////////////////////////////////////////////////////////////
+//   Sub-functions to losBasic 
+////////////////////////////////////////////////////////////////////////////
 
+//// los_no_refr_space /////////////////////////////////////////////////////
+/**
+   Sets up the LOS structure for observations from space.
+
+   Both limb and nadir observations are handled.   
+   No refraction.
+
+   \retval   los         los structure (for all zenith angles)
+   \param    z_plat      platform altitude
+   \param    za          zentith angles
+   \param    l_step      maximum step length along the LOS
+   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    z_ground    altitude of the ground
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void los_no_refr_space(
                     Los&        los,
               const Numeric&    z_plat,
@@ -173,13 +215,23 @@ void los_no_refr_space(
 
 
 
-// LOS_NO_REFR_INSIDE
-//
-// Observation from point inside the atmosphere, upward or downward.
-// No refraction.
-//
-// Patrick Eriksson 27.06.99
+//// los_no_refr_inside ////////////////////////////////////////////////////
+/**
+   Sets up the LOS structure for measurements from points inside the atmosphere
 
+   Both upward and downward observations are handled.
+   No refraction.   
+
+   \retval   los         los structure (for all zenith angles)
+   \param    z_plat      platform altitude
+   \param    za          zentith angles
+   \param    l_step      maximum step length along the LOS
+   \param    z_abs_max   maximum altitude of the absorption grid
+   \param    z_ground    altitude of the ground
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void los_no_refr_inside(
                     Los&        los,
               const Numeric&    z_plat,
@@ -248,16 +300,35 @@ void los_no_refr_inside(
 
 
 
-//==========================================================================
-//=== Workspace methods
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Workspace methods
+////////////////////////////////////////////////////////////////////////////
 
-// losCalc
-//
-// Patrick Eriksson 22.05.00
+//// losCalc ///////////////////////////////////////////////////////////////
+/**
+   Sets up the LOS structure for any measurement geometry.
 
-void losCalc(
-                    Los&        los,
+   A general function to determine LOS for a 1D atmosphere.
+   Refraction is selected by a flag and the refraction variables
+   must be set when using this function. The ground altitude must
+   also be specified.
+
+
+   \retval   los           the los structure
+   \param    z_plat        platform altitude
+   \param    za            zentith angles
+   \param    l_step        maximum step length along the LOS
+   \param    p_abs         pressure absorption grid
+   \param    z_abs         vertical altitudes corresponding to p_abs
+   \param    refr          flag for refraction (0=no refraction)
+   \param    l_step_refr   step length for refraction calculations
+   \param    refr_index    refractive index at p_abs
+   \param    z_ground      altitude of the ground
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
+void losCalc(                    Los&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
@@ -328,11 +399,24 @@ void losCalc(
 }
 
 
+//// losNoRefraction ///////////////////////////////////////////////////////
+/**
+   As losCalc but neglects refraction.
 
-// losNoRefraction
-//
-// Patrick Eriksson 07.06.00
+   Determines the LOS for a 1D atmosphere without refraction.
+   The ground altitude must be specified.
 
+   \retval   los         the los structure
+   \param    z_plat      platform altitude
+   \param    za          zentith angles
+   \param    l_step      maximum step length along the LOS
+   \param    p_abs       pressure absorption grid
+   \param    z_abs       vertical altitudes corresponding to p_abs
+   \param    z_ground    altitude of the ground
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void losNoRefraction(
                     Los&        los,
               const Numeric&    z_plat,
@@ -347,10 +431,26 @@ void losNoRefraction(
 
 
 
-// losUpward
-//
-// Patrick Eriksson 07.06.00
+//// losUpward /////////////////////////////////////////////////////////////
+/**
+   As losCalc but neglects both the ground and refraction.
 
+   Determines the LOS for a 1D atmosphere when neglecting refraction
+   and there is no ground intersections. The typical case is upward
+   observations, but the function could also be of interest for limb
+   sounding observations strictly above about 20 km.
+   Refraction and ground altitude variables are NOT needed.
+
+   \retval   los      the los structure
+   \param    z_plat   platform altitude
+   \param    za       zentith angles
+   \param    l_step   maximum step length along the LOS
+   \param    p_abs    pressure absorption grid
+   \param    z_abs    vertical altitudes corresponding to p_abs
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void losUpward(
                     Los&        los,
               const Numeric&    z_plat,
@@ -367,10 +467,27 @@ void losUpward(
 
 
 
-// sourceCalc
-//
-// Patrick Eriksson 07.06.00
+//// sourceCalc ////////////////////////////////////////////////////////////
+/**
+   Calculates the mean source function for each LOS step.
 
+   Calculates source function values valid between the points of
+   of a 1D LOS.
+   No scattering and local thermodynamic equilibrium are assumed,
+   that is, the source function equals the Planck function.
+   The source function is set to the mean of the Planck function at
+   the two LOS points limiting the steps. The temperature at the LOS
+   points is obtained by linear interpolation.
+
+   \retval   source   source function values
+   \param    los      the LOS structure
+   \param    p_abs    pressure absorption grid
+   \param    t_abs    temperature at p_abs
+   \param    f_mono   monochromatic frequencies
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void sourceCalc(
                     ARRAYofMATRIX&   source,
               const Los&             los,   
@@ -419,10 +536,23 @@ void sourceCalc(
 
 
 
-// transCalc
-//
-// Patrick Eriksson 07.06.00
+//// transCalc /////////////////////////////////////////////////////////////
+/**
+   Calculates the transmission between the LOS points.
 
+   Calculates the transmission between the points of a 1D LOS.
+   The absorption is assumed to vary linear between the LOS points.
+   The absorption at the LOS points is obtained by linear
+   interpolation of abs.
+
+   \retval   trans    transmission values
+   \param    los      the LOS structure
+   \param    p_abs    pressure absorption grid
+   \param    abs      total absorption matrix
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void transCalc(
                     ARRAYofMATRIX&   trans,
               const Los&             los,   
@@ -470,10 +600,25 @@ void transCalc(
 
 
 
-// y_spaceStd
-//
-// Patrick Eriksson 07.06.00
+//// y_spaceStd ////////////////////////////////////////////////////////////
+/**
+   Standard selection for "cosmic radiation".
 
+   Standard selection for the radiation entering the atmosphere at
+   the start of the LOS. The selections are:
+     0 no radiation
+     1 cosmic background radiation (planck for COSMIC_BG_TEMP)
+     2 solar radiation (planck for SUN_TEMP)
+   COSMIC_BG_TEMP and SUN_TEMP are global variables, defined in
+   constants.cc.
+
+   \retval   y_space    radiation at the far end of the LOS
+   \param    f          monochromatic frequency grid
+   \param    n          selection number (0-2)
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void y_spaceStd(
                     VECTOR&   y_space,
               const VECTOR&   f,
@@ -502,10 +647,20 @@ void y_spaceStd(
 
 
 
-// y_spacePlanck
-//
-// Patrick Eriksson 07.06.00
+//// y_spacePlanck ////////////////////////////////////////////////////////
+/**
+   Sets y_space to the Planck function for the selected temperature.
 
+   Sets the radiation entering the atmosphere at the start of the
+   LOS to the Planck function for the given temperature.
+
+   \retval   y_space    radiation at the far end of the LOS
+   \param    f          monochromatic frequency grid
+   \param    t          physical temperature
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void y_spacePlanck(
                     VECTOR&   y_space,
               const VECTOR&   f,
@@ -522,10 +677,28 @@ void y_spacePlanck(
 
 
 
-// yRte
-//
-// Patrick Eriksson 07.06.00
+//// yRte //////////////////////////////////////////////////////////////////
+/**
+   General function to solve the radiative transfer equation.
 
+   Solves the general radiative transfer equation (RTE) along the
+   LOS. With other words, both absorption and emission are
+   considered.
+   
+   This function requires that e_ground and t_ground are set.
+
+   \retval   y          spectrum vector
+   \param    los        the LOS structure
+   \param    f_mono     monochromatic frequency grid
+   \param    y_space    radiation at the far end of the LOS
+   \param    source     source function values
+   \param    trans      transmissions
+   \param    e_ground   ground emissivity for f_mono
+   \param    t_ground   physical temperature of the ground
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void yRte (
                     VECTOR&          y,
               const Los&             los,   
@@ -581,10 +754,25 @@ void yRte (
 
 
 
-// yRteNoGround
-//
-// Patrick Eriksson 07.06.00
+//// yRteNoGround //////////////////////////////////////////////////////////
+/**
+   Solves the radiative transfer equation for cases without ground reflections.
 
+   This function can be used instead of yRte if there is no
+   intersection with the ground.
+   With other words, the ground emission and temperature are NOT
+   needed when using this function.
+
+   \retval   y          spectrum vector
+   \param    los        the LOS structure
+   \param    f_mono     monochromatic frequency grid
+   \param    y_space    radiation at the far end of the LOS
+   \param    source     source function values
+   \param    trans      transmissions
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void yRteNoGround (
                     VECTOR&          y,
               const Los&             los,   
@@ -601,10 +789,23 @@ void yRteNoGround (
 
 
 
-// yBl
-//
-// Patrick Eriksson 07.06.00
+//// yBl /////////////////////////////////////////////////////////////////////
+/**
+   General function to calculate total atmospheric transmission.
 
+   Calculates the total transmission throught the atmosphere,
+   using the Beer-Lambert (BL) law.
+
+   This function requires that e_ground is set.
+
+   \retval   y          spectrum vector
+   \param    los        the LOS structure
+   \param    trans      transmissions
+   \param    e_ground   ground emissivity for f_mono
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void yBl (
                     VECTOR&          y,
               const Los&             los,   
@@ -653,10 +854,21 @@ void yBl (
 
 
 
-// yBlNoGround
-//
-// Patrick Eriksson 07.06.00
+//// yBlNoGround ////////////////////////////////////////////////////////////
+/**
+   Calculates total atm. transmission for cases without ground reflections.
 
+   This function can be used instead of yBl if there is no
+   intersection with the ground. The ground emission is NOT needed 
+   when using this function.
+
+   \retval   y       spectrum vector
+   \param    los     the LOS structure
+   \param    trans   transmissions
+
+   \author Patrick Eriksson
+   \date   2000-09-14
+*/
 void yBlNoGround (
                     VECTOR&          y,
               const Los&             los,   

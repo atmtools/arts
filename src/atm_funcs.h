@@ -16,22 +16,38 @@
    USA. */
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// This file contains functions releated to atmospheric physics or geometry.
-//
-/////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   atm_funcs.h
+
+   This file contains declerations of functions releated to atmospheric 
+   physics or geometry.
+
+   \author Patrick Eriksson
+   \date 2000-09-18 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Physical functions
+////////////////////////////////////////////////////////////////////////////
 
 /** Calculates a blackbody radiation (the Planck function) matrix.
+
     Each row of the returned matrix corresponds to a frequency, while each
     column corresponds to a temperature.
 
-    @param B       output: the blackbody radiation
-    @param f       a frequency grid
-    @param t       a temperature profile
+    \retval B       output: the blackbody radiation
+    \param  f       a frequency grid
+    \param  t       a temperature profile
 
-    @author Patrick Eriksson 08.04.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void planck (
               MATRIX&     B, 
         const VECTOR&     f,
@@ -39,77 +55,88 @@ void planck (
 
 /** Calculates the Planck function for a single temperature.
 
-    @param B       output: the blackbody radiation
-    @param f       a frequency grid
-    @param t       a temperature value
+    \retval B       output: the blackbody radiation
+    \param  f       a frequency grid
+    \param  t       a temperature value
 
-    @author Patrick Eriksson 08.04.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void planck (
               VECTOR&     B, 
         const VECTOR&     f,
         const Numeric&    t );
 
 
-/** Calculates the number density (scalar version)
+/** Calculates the number density (scalar version).
 
-    @return         number density
-    @param  p       pressure
-    @param  t       temperature
+    \return         number density
+    \param  p       pressure
+    \param  t       temperature
 
-    @author Patrick Eriksson 04.08.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 Numeric number_density (
        const Numeric&   p,
        const Numeric&   t );
 
-/** Calculates the number density (vector version)
+/** Calculates the number density (vector version).
 
-    @return nd      number density
-    @param  p       pressure
-    @param  t       temperature
+    \return nd      number density
+    \param  p       pressure
+    \param  t       temperature
 
-    @author Patrick Eriksson 04.08.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 VECTOR number_density (
        const VECTOR&    p,
        const VECTOR&    t );
 
 
-//==========================================================================
-//=== Tangent altitudes.
-//==========================================================================
 
-/** Calculates the geometrical tangent altitude.
-    That is, refraction is neglected.
+////////////////////////////////////////////////////////////////////////////
+//   Tangent altitudes
+////////////////////////////////////////////////////////////////////////////
 
-    @return        the tangent altitude
-    @param za      the angle between zenith and the LOS
-    @param z_plat  the platform altitude
+/** Calculates the geometrical tangent altitude (no refraction).
 
-    @author Patrick Eriksson 08.04.2000 */
+    \return        the tangent altitude
+    \param za      the angle between zenith and the LOS
+    \param z_plat  the platform altitude
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 Numeric ztan_geom(
         const Numeric&     za,
         const Numeric&     z_plat );
 
 
 
-//==========================================================================
-//=== Core functions for RTE and BL 
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Core functions for RTE and BL
+////////////////////////////////////////////////////////////////////////////
 
 /** Performs a single iteration for RTE calculations (one zenith angle).
+
     The vector Y is not initilised, the obtained values are added to Y.
-    Note that only a single iteration is performed. The ground is not 
-    taken into account.     
+    Note that only a single iteration is performed.
+
     This function can be used to calculate emission spectra for parts of
     the atmosphere.
         
-    @param y             output: the spectrum
-    @param start_index   start index for the integration
-    @param stop_index    stop index for the integration
-    @param Tr            transmission matrix
-    @param S             source function matrix
-    @param n_f           number of frequencies
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  S             source function matrix
+    \param  n_f           number of frequencies
 
-    @author Patrick Eriksson 15.06.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void rte_iterate (
              VECTOR&   y,
        const int&      start_index,
@@ -121,20 +148,23 @@ void rte_iterate (
 
 
 /** Performs the RTE calculations for one zenith angle.
+
     This function allows calculation of emission spectra for single
     zenith angles in function beside yRteXx.
         
-    @param y             output: the spectrum
-    @param start_index   start index for the integration
-    @param stop_index    stop index for the integration
-    @param Tr            transmission matrix
-    @param S             source function matrix
-    @param y_space       intensity entering the atmosphre at start of LOS
-    @param ground        flag/index for ground intersection
-    @param e_ground      ground emissivity
-    @param y_ground      ground blackbody radiation 
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  S             source function matrix
+    \param  y_space       intensity entering the atmosphre at start of LOS
+    \param  ground        flag/index for ground intersection
+    \param  e_ground      ground emissivity
+    \param  y_ground      ground blackbody radiation 
 
-    @author Patrick Eriksson 22.05.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void rte (
              VECTOR&   y,
        const int&      start_index,
@@ -148,20 +178,23 @@ void rte (
 
 
 /** Performs a single iteration for BL calculations (one zenith angle).
+
     The vector Y is not initilised, Y is multiplied with the obtained values.
-    Note that only a single iteration is performed. The ground is not 
-    taken into account.     
+    Note that only a single iteration is performed.
+
     This function can be used to calculate transmissions for parts of
     the atmosphere.
         
-    @param y             output: the spectrum
-    @param start_index   start index for the integration
-    @param stop_index    stop index for the integration
-    @param Tr            transmission matrix
-    @param S             source function matrix
-    @param n_f           number of frequencies
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  S             source function matrix
+    \param  n_f           number of frequencies
 
-    @author Patrick Eriksson 15.06.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void bl_iterate (
              VECTOR&   y,
        const int&      start_index,
@@ -172,17 +205,20 @@ void bl_iterate (
 
 
 /** Performs the BL (transmission) calculations for one zenith angle.
+
     This function allows calculation of transmission spectra for single
     zenith angles in functions beside yBlXx.
         
-    @param y             output: the spectrum
-    @param start_index   start index for the integration
-    @param stop_index    stop index for the integration
-    @param Tr            transmission matrix
-    @param ground        flag/index for ground intersection
-    @param e_ground      ground emissivity
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  ground        flag/index for ground intersection
+    \param  e_ground      ground emissivity
 
-    @author Patrick Eriksson 22.05.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void bl (
              VECTOR&   y,
        const int&      start_index,
@@ -193,22 +229,25 @@ void bl (
 
 
 
-//==========================================================================
-//=== Conversion and interpolation of pressure and altitude grids.
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Conversion and interpolation of pressure and altitude grids.
+////////////////////////////////////////////////////////////////////////////
 
 /** Converts an altitude vector to pressures.
+
     The log. of the pressures are interpolated linearly.
     In Matlab notation:
 
       p = exp(interp1(z0,log(p0),z,'linear'))
 
-    @param p       output: the pressures at z
-    @param z0      original altitude grid
-    @param p0      original pressure grid
-    @param z       new altitude grid
+    \retval p       output: the pressures at z
+    \param  z0      original altitude grid
+    \param  p0      original pressure grid
+    \param  z       new altitude grid
 
-    @author Patrick Eriksson 10.04.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void z2p(
               VECTOR&     p,
         const VECTOR&     z0,
@@ -216,17 +255,20 @@ void z2p(
         const VECTOR&     z );
 
 /** Interpolates a vertical profile at a new set of pressures.
+
     A linear interpolation using log. pressure is applied.
     In Matlab notation, the following expression is used:
 
       p = interp1(log(p0),x,log(p),'linear')
 
-    @param x       output: the interpolated values at p
-    @param p0      original pressure grid
-    @param x0      the profile to be interpolated
-    @param p       new pressure grid
+    \retval x       output: the interpolated values at p
+    \param  p0      original pressure grid
+    \param  x0      the profile to be interpolated
+    \param  p       new pressure grid
 
-    @author Patrick Eriksson 12.04.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void interpp(
               VECTOR&     x,
         const VECTOR&     p0,
@@ -235,17 +277,20 @@ void interpp(
 
 /** Interpolates a matrix, such as an absorption matrix, at a new 
     set of pressures.
+
     A linear interpolation using log. pressure is applied.
     In Matlab notation, the following expression is used:
 
       A = interp1(log(p0),A0,log(p),'linear')
 
-    @param A       output: the interpolated values at p
-    @param p0      original pressure grid
-    @param A0      the matrix to be interpolated
-    @param p       new pressure grid
+    \retval A       output: the interpolated values at p
+    \param  p0      original pressure grid
+    \param  A0      the matrix to be interpolated
+    \param  p       new pressure grid
 
-    @author Patrick Eriksson 13.06.2000 */
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void interpp(
               MATRIX&  A,
         const VECTOR&  p0, 

@@ -673,7 +673,8 @@ void define_md_data()
     ( MdRecord
       ( NAME("absloswfsCalc"),
   	DESCRIPTION(
-          "Calculates line of sight weighting functions (LOS WFs) for 1D.\n"
+          "Calculates absorption line of sight weighting functions (LOS WFs)\n"
+          "for 1D.\n"
           "These WFs are the derivative of the monochromatic pencil beam\n"
           "intensity with respect to the absorption at the LOS points.\n"
           "See further the ARTS user guide.\n"
@@ -780,7 +781,7 @@ void define_md_data()
     ( MdRecord
       ( NAME("kTempNoHydroNoGround"),
   	DESCRIPTION(
-          "As klosCalc but does not need any ground variables"),
+          "As kTempNoHydro but does not need any ground variables"),
 	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
                    lines_per_tg_, abs_, trans_, k_grid_),

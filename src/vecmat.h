@@ -16,8 +16,192 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+
+
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+  \file   vecmat.h
+  
+   Definition of MATRIX/VECTOR functionality.
+   
+   ===== Allowed MATRIX and VECTOR operations: =============================
+
+   \verbatim
+   This part defines the MATRIX and VECTOR functionality that will be 
+   maintained in ARTS. Other features can work, but avoid these as they
+   can be removed in future versions.
+ 
+   The following definitions are used below
+     MATRIX   A, B, C;
+     VECTOR   x, y, z;
+     Numeric  s;
+     size_t   i, j;
+     Index1D  I, J, K, L;
+
+   Initialization and resizing.
+ 
+     MATRIX A(i,j)
+	      Creates a matrix with i rows and j columns. The values of A
+	      are undefined.    
+ 
+     MATRIX A(i,j,s)
+	      Creates a matrix with i rows and j columns, and sets all the
+	      elements of A to s.
+ 
+     MATRIX A(2, 4, " 1  2  0  4 "
+		    " 2  0  9  7 ");
+	      This example shows how to create a matrix with 2 rows and 4
+	      columns with specified element values.
+ 
+     A.newsize(i,j)
+	      Resizes the matrix to have i rows and j columns. The values of
+	      A are undefined.    
+ 
+     B = A
+	      Makes B a copy of A, including resizing of B.
+ 
+     A = s
+	      Sets all elements of A to s.
+ 
+     VECTOR x(i)
+	      Creates a vector of length i. The values of x are undefined.    
+ 
+     VECTOR x(i,s)
+	      Creates a matrix of length i, and sets all the elements of 
+	      x to s.
+ 
+     VECTOR x(4, " 1  2  0  4 " );
+	      This example shows how to create a vector of length 4 with
+	      specified element values.
+ 
+     x.newsize(i)
+	      Resizes the vector to have length i. The values of x are 
+	      undefined.    
+ 
+     y = x
+	      Makes y a copy of x, including resizing of y.
+ 
+     x = s
+	      Sets all elements of x to s.
+ 
+ 
+   Dimensions
+ 
+     i = A.dim(1), j = A.dim(2)
+	      The size of a matrix. The dimension order is row - columns, 
+	      i.e. i is the number of rows and j is the number of columns. 
+ 
+     i = x.dim()
+	      The length of a vector.
+ 
+ 
+   Basic math:
+ 
+     C = A*B  
+	      Matrix multiplication. The number of columns of A must be equal
+	      to the number of rows of B.
+ 
+     C = A+B, A-C  
+	      Summation or difference of matrices. The both matrices must
+	      have the same size.
+ 
+     C = emult(A,B)
+	      Element-by-element product of matrices, i.e. C(i,j) = 
+	      A(i,j)*B(i,j). A and B must have the same size.
+ 
+     C = ediv(A,B)
+	      Element-by-element division of matrices, i.e. C(i,j) = 
+	      A(i,j)/B(i,j). A and B must have the same size.
+ 
+     C = transpose(A)
+	      Transpose of a matrix.
+ 
+     y = A*x  
+	      Matrix vector multiplication. The number of columns of A must be 
+	      equal to the length of x. The reversed order, x*A, is not allowed.
+ 
+     z = x+y, x-y  
+	      Summation or difference of vectors. The two vectors must
+	      have the same length.
+ 
+     z = emult(x,y)
+	      Element-by-element product of vectors, i.e. z(i) = x(i)*y(i).
+	      The vectors must have the same length. 
+ 
+     z = ediv(x,y)
+	      Element-by-element division of vectors, i.e. z(i) = x(i)/y(i) 
+	      The vectors must have the same length. 
+ 
+     s = dot_prod(x,y)   
+	      Scalar product of two vectors. The vectors must have the same 
+	      length. The result is s=x(1)*y(1)+x(2)*y(2)+x(3)*y(3)+... 
+     
+     C = s+A, A+s, s-A, A-s, s*A, A*s, s/A or A/s
+	      Summation, difference, multiplication or division with a scalar
+	      of each element of a matrix. 
+ 
+     y = s+x, x+s, s-x, x-s, s*x, x*s, s/x or x/s
+	      Summation, difference, multiplication or division with a scalar
+	      of each element of a vector. 
+ 
+ 
+   Conversion between vectors and matrices:
+ 
+     x = to_vector(A), to_vector(x,A)
+	      Converts a matrix to a vector. The matrix can either be a 
+	      column (n x 1) or row (1 x n) vector.
+ 
+     x = row(i,A), row(x,i,A)
+	      Generates a vector which contains row i of A.
+ 
+     x = col(i,A), col(x,i,A)
+	      Generates a vector which contains column i of A.
+ 
+     A = to_matrix(x), A = to_matrix(x)
+	      Converts a vector of length n to a matrix of size (n x 1),
+	      i.e. the vector is interpreted as a column.
+ 
+ 
+   Index and regions
+     Vector and matrix indecies are put between parenthesis. The first 
+     element has index 1 (not 0).
+ 
+     s = A(i,j)  
+	      Gives element j of row i in A.    
+ 
+     C(I,J) = A(K,L)
+	      Picks out a matrix region (with natural limitations regarding
+	      the size of A and C). The matrix on the left hand side must be
+	      indexed ( i.e. C=A(K,L) is not valid even if sizes match).
+ 
+     A(I,J+2), A(I-2,J)
+	      An integer value can be added to or removed from the index 
+	      ranges ((with natural limitations regarding the size of A).
+	      
+     A(I,J) = s
+	      A matrix region can be set to a value.
+ 
+     s = x(i)     
+	      Gives element i of the vector x.
+  
+   Written by Patrick Eriksson 2000-04-11
+   \endverbatim
+   =========================================================================
+ 
+   \author Stefan Buehler and Patrick Eriksson
+   \date   2000-08-16
+*/
+
+
+
 #ifndef vecmat_h
 #define vecmat_h
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
 
 //--------------------< Global ARTS header >--------------------
 // Defines for example the type Numeric.
@@ -52,6 +236,12 @@ using namespace TNT;
 #ifdef NDEBUG
 #define TNT_NO_BOUNDS_CHECK
 #endif  
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Some definitions
+////////////////////////////////////////////////////////////////////////////
 
 /** For numeric matrices. 
     Awailable matrix/vector classes are:
@@ -138,283 +328,79 @@ public:
 };
 
 
-/*------------------< Allowed MATRIX and VECTOR operations >------------------
 
-  This part defines the MATRIX and VECTOR functionality that will be 
-  maintained in ARTS. Other features can work, but avoid these as they
-  can be removed in future versions.
-
-  The following definitions are used below
-    MATRIX   A, B, C;
-    VECTOR   x, y, z;
-    Numeric  s;
-    size_t   i, j;
-    Index1D  I, J, K, L;
-
-
-  Initialization and resizing.
-
-    MATRIX A(i,j)
-             Creates a matrix with i rows and j columns. The values of A
-             are undefined.    
-
-    MATRIX A(i,j,s)
-             Creates a matrix with i rows and j columns, and sets all the
-             elements of A to s.
-
-    MATRIX A(2, 4, " 1  2  0  4 "
-                   " 2  0  9  7 ");
-             This example shows how to create a matrix with 2 rows and 4
-             columns with specified element values.
-
-    A.newsize(i,j)
-             Resizes the matrix to have i rows and j columns. The values of
-             A are undefined.    
-
-    B = A
-             Makes B a copy of A, including resizing of B.
-
-    A = s
-             Sets all elements of A to s.
-
-    VECTOR x(i)
-             Creates a vector of length i. The values of x are undefined.    
-
-    VECTOR x(i,s)
-             Creates a matrix of length i, and sets all the elements of 
-             x to s.
-
-    VECTOR x(4, " 1  2  0  4 " );
-             This example shows how to create a vector of length 4 with
-             specified element values.
-
-    x.newsize(i)
-             Resizes the vector to have length i. The values of x are 
-             undefined.    
-
-    y = x
-             Makes y a copy of x, including resizing of y.
-
-    x = s
-             Sets all elements of x to s.
-
-
-  Dimensions
-
-    i = A.dim(1), j = A.dim(2)
-             The size of a matrix. The dimension order is row - columns, 
-             i.e. i is the number of rows and j is the number of columns. 
-
-    i = x.dim()
-             The length of a vector.
-
-
-  Basic math:
-
-    C = A*B  
-             Matrix multiplication. The number of columns of A must be equal
-             to the number of rows of B.
-
-    C = A+B, A-C  
-             Summation or difference of matrices. The both matrices must
-             have the same size.
-
-    C = emult(A,B)
-             Element-by-element product of matrices, i.e. C(i,j) = 
-             A(i,j)*B(i,j). A and B must have the same size.
-
-    C = ediv(A,B)
-             Element-by-element division of matrices, i.e. C(i,j) = 
-             A(i,j)/B(i,j). A and B must have the same size.
-
-    C = transpose(A)
-             Transpose of a matrix.
-
-    y = A*x  
-             Matrix vector multiplication. The number of columns of A must be 
-             equal to the length of x. The reversed order, x*A, is not allowed.
-
-    z = x+y, x-y  
-             Summation or difference of vectors. The two vectors must
-             have the same length.
-
-    z = emult(x,y)
-             Element-by-element product of vectors, i.e. z(i) = x(i)*y(i).
-             The vectors must have the same length. 
-
-    z = ediv(x,y)
-             Element-by-element division of vectors, i.e. z(i) = x(i)/y(i) 
-             The vectors must have the same length. 
-
-    s = dot_prod(x,y)   
-             Scalar product of two vectors. The vectors must have the same 
-             length. The result is s=x(1)*y(1)+x(2)*y(2)+x(3)*y(3)+... 
-    
-    C = s+A, A+s, s-A, A-s, s*A, A*s, s/A or A/s
-             Summation, difference, multiplication or division with a scalar
-             of each element of a matrix. 
-
-    y = s+x, x+s, s-x, x-s, s*x, x*s, s/x or x/s
-             Summation, difference, multiplication or division with a scalar
-             of each element of a vector. 
-
-
-  Conversion between vectors and matrices:
-
-    x = to_vector(A), to_vector(x,A)
-             Converts a matrix to a vector. The matrix can either be a 
-             column (n x 1) or row (1 x n) vector.
-
-    x = row(i,A), row(x,i,A)
-             Generates a vector which contains row i of A.
-
-    x = col(i,A), col(x,i,A)
-             Generates a vector which contains column i of A.
-
-    A = to_matrix(x), A = to_matrix(x)
-             Converts a vector of length n to a matrix of size (n x 1),
-             i.e. the vector is interpreted as a column.
-
-
-  Index and regions
-    Vector and matrix indecies are put between parenthesis. The first 
-    element has index 1 (not 0).
-
-    s = A(i,j)  
-             Gives element j of row i in A.    
-
-    C(I,J) = A(K,L)
-             Picks out a matrix region (with natural limitations regarding
-             the size of A and C). The matrix on the left hand side must be
-             indexed ( i.e. C=A(K,L) is not valid even if sizes match).
-
-    A(I,J+2), A(I-2,J)
-             An integer value can be added to or removed from the index 
-             ranges ((with natural limitations regarding the size of A).
-             
-    A(I,J) = s
-             A matrix region can be set to a value.
-
-    s = x(i)     
-             Gives element i of the vector x.
-
-
-  11.04.00 Written by Patrick Eriksson.
----------------------------------------------------------------------------*/
-
-
-
-/*------------------------------< TNT PATCHES >---------------------------*/
-
-// This part includes patches for TNT to fulfill the functionality
-// stated above. 
+////////////////////////////////////////////////////////////////////////////
+//   TNT patches
 //
-// 11.04.2000 Patrick Eriksson. Adaption of earlier version.
-// 16.08.2000 Stefan Buehler: 
-// * Converted template functions to direct functions of type MATRIX
-// and VECTOR.   
-
-// BASIC MATH
-//--------------------------------------------------------------------------
-
-
-// MATRIX - MATRIX ---------------------------------------------------------
-
-// emult
+//   This part includes patches for TNT to fulfill the functionality
+//   stated above. 
 //
+//   2000-04-11 Patrick Eriksson. Adaption of earlier version.
+//   2000-08-16 Stefan Buehler: 
+//      Converted template functions to direct functions of type MATRIX
+//      and VECTOR.   
+//
+////////////////////////////////////////////////////////////////////////////
+
+//// MATRIX - MATRIX ///////////////////////////////////////////////////////
+
 MATRIX emult(const MATRIX &A, const MATRIX &B);
-        
 
-// ediv
-//
 MATRIX ediv(const MATRIX &A, const MATRIX &B);
 
 
-// VECTOR - VECTOR ---------------------------------------------------------
 
-// emult
-//
+//// VECTOR - VECTOR ///////////////////////////////////////////////////////
+
 VECTOR emult( const VECTOR &A, const VECTOR &B);
 
-// ediv
-//
 VECTOR ediv( const VECTOR &A, const VECTOR &B);
 
 
-// MATRIX - SCALAR ---------------------------------------------------------
 
-// + 
-//
+//// MATRIX - SCALAR ///////////////////////////////////////////////////////
+
 MATRIX operator+(const MATRIX &A, const Numeric scalar);
 
 MATRIX operator+(const Numeric scalar, const MATRIX &A);
 
-// - 
-//
 MATRIX operator-(const MATRIX &A, const Numeric scalar);
-
 
 MATRIX operator-(const Numeric scalar, const MATRIX &A);
 
-
-
-// *
-//
 MATRIX operator*(const MATRIX &A, const Numeric scalar);
 
-
 MATRIX operator*(const Numeric scalar, const MATRIX &A);
-                 
 
-//
-// /
 MATRIX operator/(const MATRIX &A, const Numeric scalar);
-                       
 
 MATRIX operator/(const Numeric scalar, const MATRIX &A);
         
 
 
-// VECTOR - SCALAR ---------------------------------------------------------
+//// VECTOR - SCALAR ///////////////////////////////////////////////////////
 
-// + 
-//
 VECTOR operator+(const VECTOR &A, const Numeric scalar);
-
 
 VECTOR operator+(const Numeric scalar, const VECTOR &A);
 
-// -
-//
 VECTOR operator-(const VECTOR &A, const Numeric scalar);
-
 
 VECTOR operator-(const Numeric scalar, const VECTOR &A);
 
-// *
-//
 VECTOR operator*(const VECTOR &A, const Numeric scalar);
 
 VECTOR operator*(const Numeric scalar, const VECTOR &A);
 
-// /
-//
 VECTOR operator/(const VECTOR &A, const Numeric scalar);
 
 VECTOR operator/(const Numeric scalar, const VECTOR &A);
 
 
 
-// MATRIX AND VECTOR CONVERSIONS
-//--------------------------------------------------------------------------
-//
-// The functions to_matrix and to_vector are placed in math_funcs.cc.
-
-
-/*------------------< End MATRIX and VECTOR operations >----------------*/
-
-
-/*---------------< Define Arrays of Matrices and Vectors >---------------*/
+////////////////////////////////////////////////////////////////////////////
+//   Definition of arrays of matrices and vectors
+////////////////////////////////////////////////////////////////////////////
 
 /** An array of matrices. */
 typedef ARRAY<MATRIX> ARRAYofMATRIX;

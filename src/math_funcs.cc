@@ -16,31 +16,48 @@
    USA. */
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// This file contains basic mathematical and vector/matrix functions.
-// Example on types of functions:
-//	    1. Element-wise application of common scalar functions 
-//          2. Boolean functions
-//	    3. Creation of common vectors
-//	    4. Interpolation routines
-//	    5. Integration routines
-//          6. Conversion between vector and matrix types
-//
-/////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   math_funcs.cc
+
+   Contains the code of basic mathematical and vector/matrix functions.
+
+   Example on types of functions:
+   \begin{enumerate}
+    \item Element-wise application of common scalar functions
+    \item Boolean functions                         
+    \item Creation of common vectors                
+    \item Interpolation routines                    
+    \item Integration routines                      
+    \item Conversion between vector and matrix types
+   \end{enumerate}
+
+   \author Patrick Eriksson
+   \date 2000-09-18 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
 #include "math_funcs.h"
 
 
 
-//
-// Basic mathematical vector and vector functions:
-//   Vectors: SQRT, EXP, LOG, MIN, MAX, FIRST and LAST
-//   Matrices: EXP and LOG
-//
+////////////////////////////////////////////////////////////////////////////
+//   Basic mathematical vector and vector functions
+////////////////////////////////////////////////////////////////////////////
 
+//// sqrt //////////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 void sqrt( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
   int n = x.dim();
@@ -56,6 +73,12 @@ VECTOR sqrt( const VECTOR& x )            // vector return version
   return y; 
 }
 
+
+
+//// exp ///////////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 void exp( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
   int n = x.dim();
@@ -88,6 +111,12 @@ MATRIX exp( const MATRIX& X )            // matrix return version
   return Y; 
 }
 
+
+
+//// log ////////////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 void log( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
   int n = x.dim();
@@ -120,6 +149,12 @@ MATRIX log( const MATRIX& X )            // matrix return version
   return Y; 
 }
 
+
+
+//// min and max ////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 Numeric min( const VECTOR& x )
 {
   int n = x.dim();
@@ -177,6 +212,11 @@ Numeric max( const MATRIX& A )
 }
 
 
+
+//// first and last /////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 Numeric first( const VECTOR& x )
 {
   return x(1); 
@@ -189,12 +229,15 @@ Numeric last( const VECTOR& x )
 
 
 
-//
-// Logical vector functions
-//   ANY
-//
+////////////////////////////////////////////////////////////////////////////
+//   Logical functions
+////////////////////////////////////////////////////////////////////////////
 
-bool any( const ARRAY<int>& x )         // True if any element of x != 0
+//// any ///////////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
+bool any( const ARRAY<int>& x ) 
 {
   for ( size_t i=1; i<=x.dim(); i++ ) {
     if ( x(i) )
@@ -205,11 +248,14 @@ bool any( const ARRAY<int>& x )         // True if any element of x != 0
 
 
 
-//
-// Functions to generate vectors
-//   LINSPACE, NLINSPACE, and LOGNSPACE
-//   
+////////////////////////////////////////////////////////////////////////////
+//   Functions to generate vectors
+////////////////////////////////////////////////////////////////////////////
 
+//// linspace //////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 void linspace(                      
               VECTOR&     x,           
         const Numeric     start,    
@@ -258,6 +304,11 @@ VECTOR nlinspace(                 // As above but return version
   return x; 
 }                     
 
+
+//// nlogspace /////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
 void nlogspace(         
               VECTOR&     x, 
         const Numeric     start,     
@@ -289,17 +340,17 @@ VECTOR nlogspace(                 // As above but return version
 
 
 
+////////////////////////////////////////////////////////////////////////////
+//   Interpolation routines
 //
-// Interpolation routines.
-//   Vectors:  INTERP_LIN
-//   Matrices: INTERP_LIN_ROW
+//     All the functions assume that the interpolation points, XI, are ordered.
+//     However, the values can be in increasing or decreasing order.
 //
-//   All the functions assume that the interpolation points, XI, are ordered.
-//   However, the values can be in increasing or decreasing order.
-//
+////////////////////////////////////////////////////////////////////////////
 
 // Local help function to check input grids
-//   12.04.00 Patrick Eriksson
+//
+// Patrick Eriksson 2000-06-29
 //
 int interp_check(                  
 	const VECTOR&  x,        
@@ -343,8 +394,14 @@ int interp_check(
 
   return order;
 }
-    
-void interp_lin(                  // Linear interpolation of a vector
+
+
+
+//// interp_lin ////////////////////////////////////////////////////////////
+//
+// Patrick Eriksson 2000-06-29
+//
+void interp_lin(          
               VECTOR&  yi,
         const VECTOR&  x, 
         const VECTOR&  y, 
@@ -417,7 +474,6 @@ MATRIX interp_lin_row(       // As above but return version
   return Yi;
 }        
 
-
 void interp_lin_col(    
               MATRIX&  Yi,
         const VECTOR&  x, 
@@ -452,11 +508,16 @@ MATRIX interp_lin_col(       // As above but return version
 
 
 
+////////////////////////////////////////////////////////////////////////////
+//   Intergration routines
 //
-// Integration functions for vectors and matrices
-//    INTEGR_LIN
+//     For the moment, not used.
 //
-
+////////////////////////////////////////////////////////////////////////////
+/*
+//
+// Patrick Eriksson 2000-06-29
+// 
 Numeric integr_lin(                // Integrates Y over X assuming that Y is
         const VECTOR&  x,          // linear between the given points
         const VECTOR&  y )
@@ -513,14 +574,15 @@ MATRIX integr_lin(              // As above but return version
   integr_lin( W, x, M );
   return W;
 }
+*/
 
 
 
-//
-// Vector to matrix conversion:
-//   to_matrix
-//
+/////////////////////////////////////////////////////////////////////////////
+//   Conversions between VECTOR and MATRIX types
+/////////////////////////////////////////////////////////////////////////////
 
+//// to_matrix //////////////////////////////////////////////////////////////
 void to_matrix(MATRIX& W, const VECTOR& x)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
@@ -541,11 +603,10 @@ MATRIX to_matrix(const VECTOR& x)
 
 
 
+//// to_vector //////////////////////////////////////////////////////////////
 //
-// Matrix to vector conversion:
-//   to_vector
+// Stefan Buehler 2000-09-01
 //
-
 void to_vector(VECTOR& x, const MATRIX& W)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
@@ -573,6 +634,15 @@ VECTOR to_vector(const MATRIX& W)
 }
 
 
+
+/////////////////////////////////////////////////////////////////////////////
+//   Extraction of matrix columns and rows
+/////////////////////////////////////////////////////////////////////////////
+
+//// row ////////////////////////////////////////////////////////////////////
+//
+// Stefan Buehler 2000-09-01
+//
 void row(VECTOR& x,
 	 size_t i,
 	 const MATRIX& A)
@@ -596,31 +666,6 @@ VECTOR row(size_t i,
   row(x,i,A);
   return x;
 }
-
-void col(VECTOR& x,
-	 size_t i,
-	 const MATRIX& A)
-{
-  // Make sure that i is legal:
-  assert ( i >  0        );
-  assert ( i <= A.dim(2) );
-
-  const size_t n = A.dim(1);
-  x.newsize(n);
-  for ( size_t j=1; j<=n; ++j )
-    {
-      x(j) = A(j,i);
-    }
-}
-
-VECTOR col(size_t i,
-	   const MATRIX& A)
-{
-  VECTOR x;
-  col(x,i,A);
-  return x;
-}
-
 
 void row(MATRIX& X,
 	 size_t i,
@@ -651,6 +696,36 @@ MATRIX row(size_t i,
   MATRIX X;
   row(X,i,k,A);
   return X;
+}
+
+
+
+//// column /////////////////////////////////////////////////////////////////
+//
+// Stefan Buehler 2000-09-01
+//
+void col(VECTOR& x,
+	 size_t i,
+	 const MATRIX& A)
+{
+  // Make sure that i is legal:
+  assert ( i >  0        );
+  assert ( i <= A.dim(2) );
+
+  const size_t n = A.dim(1);
+  x.newsize(n);
+  for ( size_t j=1; j<=n; ++j )
+    {
+      x(j) = A(j,i);
+    }
+}
+
+VECTOR col(size_t i,
+	   const MATRIX& A)
+{
+  VECTOR x;
+  col(x,i,A);
+  return x;
 }
 
 void col(MATRIX& X,

@@ -16,13 +16,27 @@
    USA. */
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// This file contains functions to calculate weightings functions (WFs)
-// for a number of variables.
-//
-/////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   m_wfs.cc
+
+   This file contains functions to calculate WFs for a number of variables.
+
+   Calculation of WFs are described in the AUG sections "Atmospheric WFs"
+   and "Measurement errors".
+
+   \author Patrick Eriksson
+   \date 2000-09-14 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
 #include "md.h"
@@ -32,20 +46,31 @@
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
 #include "absorption.h"          
-
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
 
 
 
-//==========================================================================
-//=== Function to join WF matrices and related variables
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Function(s) to join two WF matrices and related variables
+////////////////////////////////////////////////////////////////////////////
 
-// k_join
-//
-// Patrick Eriksson 14.06.00
+//// k_join ////////////////////////////////////////////////////////////////
+/**
+   Appends the WF matrix for a retrieval identity to the total WF matrix.
 
+   \retval   ktot         total WF matrix
+   \param    knew         WF matrix for an additional identity
+   \retval   ktot_names   identity names for ktot
+   \param    knew_names   identity name for knew
+   \retval   ktot_index   identity indecies for ktot
+   \param    knew_index   identity indecies for knew
+   \retval   ktot_aux     additional data for ktot
+   \param    knew_aux     additional data for knew
+
+   \author Patrick Eriksson
+   \date   2000-09-11
+*/
 void k_join (
                     MATRIX&          ktot,
               const MATRIX&          knew,
@@ -131,53 +156,65 @@ void k_join (
 
 
 
-//==========================================================================
-//=== Help functions for grid conversions
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Help functions for grid conversions
+////////////////////////////////////////////////////////////////////////////
 
-// GRID2GRID_INDEX
-//
-// This function gives the indeces of the grid points affected by a change at 
-// a set of retrieval points. That is, a first step to calculate dkappa/dkp
-// (see Equation 4 of the AUG section on "Basic atmospheric WFs). The second
-// stap is performed by the function GRID2GRID_WEIGHTS found below.
-//
-// This function can be used to convert LOS WFs to WFs for vertical altitudes.
-// 
-// The profile/function for the retrieved quantity is treated to be piecewise
-// linear. With other words, the base functions are tenth functions. The 
-// functions areis treated to be 0 outside the end points. 
-// The function returns a 2 column matrix, where column 1 is the lowest
-// index affected and column 2 the highest index. If no points are affected
-// 0's are returned. 
-//
-// An example:
-// x0 = [1 2 3 4 5 6 7] and xp = [0 1 2 3 4.5 5 5.5 6 8] gives
-// Is = [ 0     0
-//        1     1
-//        2     2
-//        3     4
-//        4     4
-//        5     5
-//        0     0
-//        6     7
-//        7     7 ]
-// Note that the XP point 5.5 gives 0 as this point not embraces any point 
-// of X0 as there are retrieval points at the neighbouring X0 points.
-// 
-// X0 is the original grid. For example, the LOS grid. 
-// XP is the retrieval grid. For example, vertical altitudes
-//
-// Both vectors most be sorted with increasing values. 
-// The length of XP must be > 1.
-//
-// The algorithm used here is not the most effective. However, more elaborated
-// algorithms were tested but they failed for some special case, and  instead 
-// a simplistic approach was used.
-// 
-//
-// Patrick Eriksson 14.06.00
+//// grid2grid_index ///////////////////////////////////////////////////////
+/**
+   Gives indecies for conversion between vertical grids.
 
+   This function gives the indeces of the grid points affected by a change at 
+   a set of retrieval points. That is, a first step to calculate dkappa/dkp
+   (see Equation 4 of the AUG section on "Basic atmospheric WFs). The second
+   stap is performed by the function GRID2GRID_WEIGHTS found below.
+  
+   This function can be used to convert LOS WFs to WFs for vertical altitudes.
+   
+   The profile/function for the retrieved quantity is treated to be piecewise
+   linear. With other words, the base functions are tenth functions. The 
+   functions areis treated to be 0 outside the end points. 
+
+   The function returns a 2 column matrix, where column 1 is the lowest
+   index affected and column 2 the highest index. If no points are affected
+   0's are returned. 
+  
+   An example:
+
+   x0 = [1 2 3 4 5 6 7] and 
+
+   xp = [0 1 2 3 4.5 5 5.5 6 8] gives
+
+   Is = [ 0     0
+          1     1
+          2     2
+          3     4
+          4     4
+          5     5
+          0     0
+          6     7
+          7     7 ]
+
+   Note that the XP point 5.5 gives 0 as this point not embraces any point 
+   of X0 as there are retrieval points at the neighbouring X0 points.
+   
+   X0 is the original grid. For example, the LOS grid. 
+   XP is the retrieval grid. For example, vertical altitudes.
+  
+   Both vectors most be sorted with increasing values. 
+   The length of XP must be > 1.
+  
+   The algorithm used here is not the most effective. However, more elaborated
+   algorithms were tested but they failed for some special case, and  instead 
+   a simplistic approach was used.
+
+   \retval   is          two column matrix with indecies of x0
+   \param    x0          grid for some variable
+   \param    xp          retrieval grid
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void grid2grid_index (
                     MATRIX&   is,
               const VECTOR&   x0,
@@ -246,28 +283,34 @@ void grid2grid_index (
 
 
 
-// GRID2GRID_INDEX
-//
-// This function returns the derivative dkappa/dkp (see Equation 4 of 
-// the AUG section on "Basic atmospheric WFs"), here dennoted as the weight,
-// for the indeces selected.
-// This is an accompanying function to GRID2GRID_INDEX. This latter function
-// gives the indeces for which the weight > 0.
-//
-// The weight is
-// w = abs( (x0-xp(ip+-1)) / (xp(ip)-xp(ip+-1)));
-// where x0 is the point of the original grid (kappa), xp(ip) is the 
-// considered retrieval point and xp(ip+-1) is the retrieval point on the
-// other side of x0.
-//
-// X0 is the original grid. For example, the LOS grid. 
-// XP is the retrieval grid. For example, vertical altitudes
-// I1 is the first index of X0 to consider
-// I2 is the last index of X0 to consider
-// IP is the index of the retrieval point
-//
-// Patrick Eriksson 14.06.00
+//// grid2grid_weights /////////////////////////////////////////////////////
+/**
+   Gives weights for conversion between vertical grids.
+  
+   This function returns the derivative dkappa/dkp (see the AUG section on 
+   "Atmospheric WFs"), here dennoted as the weight, for the indeces selected.
 
+   This is an accompanying function to GRID2GRID_INDEX. This latter function
+   gives the indeces for which the weight > 0.
+  
+   The weight is
+
+   w = abs( (x0-xp(ip+-1)) / (xp(ip)-xp(ip+-1)))
+
+   where x0 is the point of the original grid (kappa), xp(ip) is the 
+   considered retrieval point and xp(ip+-1) is the retrieval point on the
+   other side of x0.
+  
+   \retval   w    weights for each point in x0
+   \param    x0   the original grid, e.g. the LOS grid. 
+   \param    i1   first index of x0 to consider
+   \param    i2   last index of x0 to consider
+   \param    xp   retrieval grid, e.g. vertical altitudes
+   \param    ip   index of retrieval point
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void grid2grid_weights (
                     VECTOR&   w,
               const VECTOR&   x0,
@@ -310,20 +353,36 @@ void grid2grid_weights (
 
 
 
-//==========================================================================
-//=== Help functions for absloswfsCalc to calculate absorption LOS WFs
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Help functions for absloswfsCalc to calculate absorption LOS WFs
+////////////////////////////////////////////////////////////////////////////
 
-// ABSLOSWFS_1PASS
-//
-// This function covers cases where each point is passed once.
-// That is 1D limb sounding and downward observatiuons are not covered.
-//
-// The expression used are described in sub-section 2.1 of the AUG section
-// "Atmospheric WFs".
-//
-// Patrick Eriksson 09.06.00
+//// absloswfs_1pass ///////////////////////////////////////////////////////
+/**
+   Calculates absorption LOS WFs for single pass cases.
 
+   Help function for absloswfsCalc treating a single zenith angle.
+
+   This function covers cases where each point is passed once.
+   That is 1D limb sounding and downward observatiuons are not covered.
+
+   The expression used are described in sub-section 2.1 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   k             abs. LOS WFs
+   \param    y             spectrum vector
+   \param    start_index   start LOS index for iteration
+   \param    stop_index    stop LOS index for iteration
+   \param    lstep         length between LOS points
+   \param    tr            transmissions
+   \param    s             source function values
+   \param    ground        ground flag
+   \param    e_ground      ground emissivity
+   \param    y_ground      ground emission
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void absloswfs_1pass (
                     MATRIX&   k,
                     VECTOR    y,
@@ -402,15 +461,28 @@ void absloswfs_1pass (
 
 
 
-// ABSLOSWFS_LIMB
-//
-// This function covers 1D limb sounding
-//
-// The expression used are described in sub-section 2.2 of the AUG section
-// "Atmospheric WFs".
-//
-// Patrick Eriksson 14.06.00
+//// absloswfs_limb ///////////////////////////////////////////////////////
+/**
+   Calculates absorption LOS WFs for 1D limb sounding.
 
+   Help function for absloswfsCalc treating a single zenith angle.
+
+   The expression used are described in sub-section 2.2 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   k             abs. LOS WFs
+   \param    y             spectrum vector
+   \param    yn            cosmic radiation, i.e. y_space
+   \param    start_index   start LOS index for iteration
+   \param    lstep         length between LOS points
+   \param    tr            transmissions
+   \param    s             source function values
+   \param    ground        ground flag
+   \param    e_ground      ground emissivity
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void absloswfs_limb (
                     MATRIX&   k,
                     VECTOR    y,              // = y_q^q
@@ -477,15 +549,30 @@ void absloswfs_limb (
 
 
 
-// ABSLOSWFS_DOWN
-//
-// This function covers 1D downward looking observations
-//
-// The expression used are described in sub-section 2.3 of the AUG section
-// "Atmospheric WFs".
-//
-// Patrick Eriksson 15.06.00
+//// absloswfs_down ////////////////////////////////////////////////////////
+/**
+   Calculates absorption LOS WFs for 1D downward looking observations.
 
+   Help function for absloswfsCalc treating a single zenith angle.
+
+   The expression used are described in sub-section 2.3 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   k             abs. LOS WFs
+   \param    y             spectrum vector
+   \param    y_space       cosmic radiation
+   \param    start_index   start LOS index for iteration
+   \param    stop_index    stop LOS index for iteration
+   \param    lstep         length between LOS points
+   \param    tr            transmissions
+   \param    s             source function values
+   \param    ground        ground flag
+   \param    e_ground      ground emissivity
+   \param    y_ground      ground emission
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void absloswfs_down (
                     MATRIX&   k,
               const VECTOR    y,
@@ -559,20 +646,32 @@ void absloswfs_down (
 
 
 
-//==========================================================================
-//=== Functions to calculate source function LOS WFs
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Functions to calculate source function LOS WFs
+////////////////////////////////////////////////////////////////////////////
 
-// SOURCELOSWFS_1PASS
-//
-// This function covers cases where each point is passed once.
-// That is 1D limb sounding and downward observatiuons are not covered.
-//
-// The expression used are described in sub-section 3.1 of the AUG section
-// "Atmospheric WFs".
-//
-// Patrick Eriksson 11.09.00
+//// sourceloswfs_1pass ////////////////////////////////////////////////////
+/**
+   Calculates source function LOS WFs for single pass cases.
 
+   Help function for sourceloswfs treating a single zenith angle.
+
+   This function covers cases where each point is passed once.
+   That is 1D limb sounding and downward observatiuons are not covered.
+
+   The expression used are described in sub-section 3.1 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   k             source LOS WFs
+   \param    start_index   start LOS index for iteration
+   \param    stop_index    stop LOS index for iteration
+   \param    tr            transmissions
+   \param    ground        ground flag
+   \param    e_ground      ground emissivity
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void sourceloswfs_1pass (
                     MATRIX&   k,
               const int&      start_index,
@@ -634,15 +733,24 @@ void sourceloswfs_1pass (
 
 
 
-// SOURCELOSWFS_LIMB
-//
-// This function covers 1D limb sounding
-//
-// The expression used are described in sub-section 3.2 of the AUG section
-// "Atmospheric WFs".
-//
-// Patrick Eriksson 11.09.00
+//// sourceloswfs_limb /////////////////////////////////////////////////////
+/**
+   Calculates source function LOS WFs for 1D limb sounding.
 
+   Help function for sourceloswfs treating a single zenith angle.
+
+   The expression used are described in sub-section 3.2 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   k             abs. LOS WFs
+   \param    start_index   start LOS index for iteration
+   \param    tr            transmissions
+   \param    ground        ground flag
+   \param    e_ground      ground emissivity
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void sourceloswfs_limb (
                     MATRIX&   k,
               const int&      start_index,
@@ -690,15 +798,25 @@ void sourceloswfs_limb (
 
 
 
-// SOURCELOSWFS_DOWN
-//
-// This function covers 1D downward looking observations
-//
-// The expression used are described in sub-section 3.3 of the AUG section
-// "Atmospheric WFs".
-//
-// Patrick Eriksson 11.09.00
+//// sourceloswfs_down //////////////////////////////////////////////////////
+/**
+   Calculates source function LOS WFs for 1D downward looking observations.
 
+   Help function for sourceloswfs treating a single zenith angle.
+
+   The expression used are described in sub-section 3.3 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   k             abs. LOS WFs
+   \param    start_index   start LOS index for iteration
+   \param    stop_index    stop LOS index for iteration
+   \param    tr            transmissions
+   \param    ground        ground flag
+   \param    e_ground      ground emissivity
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void sourceloswfs_down (
                     MATRIX&   k,
               const int&      start_index,
@@ -751,10 +869,24 @@ void sourceloswfs_down (
 
 
 
-// SOURCELOSWFS
-//
-// Patrick Eriksson 11.09.00
+//// sourceloswfs //////////////////////////////////////////////////////////
+/**
+   Calculates source function LOS WFs,
 
+   Main function for calulation of source function LOS WFs..
+
+   The expression used are described in sub-section 2.3 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   sourceloswfs   source LOS WFs
+   \param    los            line of sight structure
+   \param    tr             transmissions
+   \param    e_ground       ground emissivity
+   \param    t_ground       ground temperature
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void sourceloswfs (
                     ARRAYofMATRIX&   sourceloswfs,
               const Los&             los,   
@@ -802,18 +934,49 @@ void sourceloswfs (
 
 
 
-//==========================================================================
-//=== Core functions for analytical WFs.
-//===    Analytical expressions are used for species, temperature without 
-//===    hydrostatic eq. and continuum absorption.
-//===    These functions are very similar and a change in one of the functions
-//===    should most likely be included in the other functions.
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Core functions for analytical WFs.
+//     Analytical expressions are used for species, temperature without 
+//     hydrostatic eq. and continuum absorption.
+//     These functions are very similar and a change in one of the functions
+//     should most likely be included in the other functions.
+////////////////////////////////////////////////////////////////////////////
 
-// K_SPECIES
-//
-// Patrick Eriksson 04.09.00
+//// k_species /////////////////////////////////////////////////////////////
+/**
+   Species WFs for one or several species.
 
+   Calculates semi-analytical WFs for one or several species using 
+   precalculated absorption LOS WFs. 
+
+   The expression used are described in sub-section 5 of the AUG section
+   "Atmospheric WFs".
+
+   The species WF matrix is appended to the total WF matrix (using k_join).
+
+   The avaliable units are
+     1 fractions of linearisation state 
+     2 volume mixing ratio
+     3 number density
+
+   \retval   ktot         total K matrix
+   \retval   ktot_names   identity names for ktot
+   \retval   ktot_index   identity indecies for ktot
+   \retval   ktot_aux     additional data for ktot
+   \param    los          line of sight structure
+   \param    absloswfs    absorption LOS Wfs
+   \param    p_abs        pressure grid for abs. calculations
+   \param    t_abs        temperatures at p_abs
+   \param    tags         all tags
+   \param    abs_per_tg   absorption for each tag
+   \param    vmrs         VMR profiles at p_abs
+   \param    k_grid       retrieval grid
+   \param    tg_nr        WFs are calculated for these tag index
+   \param    unit         unit for the WFs (see above)   
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void k_species (
                     MATRIX&          ktot,
                     ARRAYofstring&   ktot_names,
@@ -990,10 +1153,35 @@ void k_species (
 
 
 
-// K_CONTABS
-//
-// Patrick Eriksson 06.09.00
+//// k_contabs //////////////////////////////////////////////////////////////
+/**
+   WFs for fit of continuum absorption.
 
+   Calculates semi-analytical WFs for fit of continuum absorption using
+   precalculated absorption LOS WFs. 
+
+   The expression used are described in sub-section 6 of the AUG section
+   "Atmospheric WFs".
+
+   The continuum is fitted be determining an off-set at a number of
+   points (order+1) that are evenly spread between the lowest and
+   highest frequency of f_mono.
+
+   The WF matrix is appended to the total WF matrix (using k_join).
+
+   \retval   ktot         total K matrix
+   \retval   ktot_names   identity names for ktot
+   \retval   ktot_index   identity indecies for ktot
+   \retval   ktot_aux     additional data for ktot
+   \param    los          line of sight structure
+   \param    absloswfs    absorption LOS Wfs
+   \param    f_mono       frequency absoprtion grid
+   \param    k_grid       retrieval grid
+   \param    order        polynomial order
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void k_contabs (
                     MATRIX&          ktot,
                     ARRAYofstring&   ktot_names,
@@ -1143,10 +1331,40 @@ void k_contabs (
 
 
 
-// K_TEMP_NOHYDRO
-//
-// Patrick Eriksson 06.09.00
+//// k_temp_nohydro /////////////////////////////////////////////////////////
+/**
+   Temparature WFs without hydrostatic eq.
 
+   Calculates temperature 1D weighting functions WITHOUT including
+   hydrostatic equilibrium. The function uses precalculated absorption
+   LOS WFs, while source function LOS WFs are calculated inside the
+   function.
+
+   The expression used are described in sub-section 7 of the AUG section
+   "Atmospheric WFs".
+
+   The temperature WF matrix is appended to the total WF matrix (using k_join).
+
+   \retval   ktot         total K matrix
+   \retval   ktot_names   identity names for ktot
+   \retval   ktot_index   identity indecies for ktot
+   \retval   ktot_aux     additional data for ktot
+   \param    los          line of sight structure
+   \param    absloswfs    absorption LOS Wfs
+   \param    f_mono       frequency absorption grid
+   \param    p_abs        pressure grid for abs. calculations
+   \param    t_abs        temperatures at p_abs
+   \param    vmrs         VMR profiles at p_abs
+   \param   ineRecord lines_per_tg lines tag sorted
+   \param    abs          total absorption
+   \param    trans        transmissions         
+   \param    e_ground     ground emissivity
+   \param    t_ground     ground temperature
+   \param    k_grid       retrieval grid
+
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
 void k_temp_nohydro (
                     MATRIX&          ktot,
                     ARRAYofstring&   ktot_names,
@@ -1301,14 +1519,36 @@ void k_temp_nohydro (
 
 
 
-//==========================================================================
-//=== Workspace methods
-//==========================================================================
 
-// absloswfsCalc
-//
-// Patrick Eriksson 14.06.00
+////////////////////////////////////////////////////////////////////////////
+//   Workspace methods
+////////////////////////////////////////////////////////////////////////////
 
+//// absloswfsCalc /////////////////////////////////////////////////////////
+/**
+   Main function for calculation of absorption LOS WFs.
+
+   Calculates absorption line of sight weighting functions (LOS WFs) for 1D.
+   These WFs are the derivative of the monochromatic pencil beam
+   intensity with respect to the absorption at the LOS points.
+
+   See further the ARTS user guide.
+
+   This function requires that e_ground and t_ground are set.
+
+   \retval   absloswfs   absorption LOS Wfs
+   \param    los         line of sight structure
+   \param    trans       transmissions
+   \param    source      source function values
+   \param    y           spectrum
+   \param    y_space     cosmic radiation
+   \param    f_mono      absorption frequency grid    
+   \param    e_ground    ground emissivity
+   \param    t_ground    ground temperature
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void absloswfsCalc (
                     ARRAYofMATRIX&   absloswfs,
               const Los&             los,   
@@ -1374,10 +1614,25 @@ void absloswfsCalc (
 
 
 
-// absloswfsNoGround
-//
-// Patrick Eriksson 04.09.00
+//// absloswfsNoGround //////////////////////////////////////////////////////
+/**
+   Calculates abs. LOS Wfs for cases without ground reflections.
 
+   This function can be used instead of yBl if there is no
+   intersection with the ground. No ground variables are needed 
+   when using this function.
+
+   \retval   absloswfs   absorption LOS Wfs
+   \param    los         line of sight structure
+   \param    trans       transmissions
+   \param    source      source function values
+   \param    y           spectrum
+   \param    y_space     cosmic radiation
+   \param    f_mono      absorption frequency grid    
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void absloswfsNoGround (
                     ARRAYofMATRIX&   absloswfs,
               const Los&             los,   
@@ -1397,9 +1652,22 @@ void absloswfsNoGround (
 
 
 // kInit
-//
-// Patrick Eriksson 05.09.00
+/**
+   Initializes the weighting function matrix and help variables.
 
+   This function initializes k, k_names, k_index and k_aux.
+
+   Use this function before the WF calculations are started or
+   restarted.
+
+   \retval   k         total WF matrix
+   \retval   k_names   identity names
+   \retval   k_index   identity indecies
+   \retval   k_aux     additional data
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void kInit (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1414,10 +1682,36 @@ void kInit (
 
 
 
-// kSpecies
-//
-// Patrick Eriksson 04.09.00
+//// kSpecies //////////////////////////////////////////////////////////////
+/**
+   Calculates species 1D weighting functions for a single tag.
 
+   The tag is selected by the parameter nr, which is the position
+   for the tag in abs_per_tg.
+
+   The avaliable units are:
+     1 fractions of linearisation state
+     2 volume mixing ratio
+     3 number density
+
+   \retval   k           total WF matrix
+   \retval   k_names     identity names
+   \retval   k_index     identity indecies
+   \retval   k_aux       additional data
+   \param    los         line of sight structure
+   \param    absloswfs   absorption LOS Wfs
+   \param    p_abs       pressure grid for abs. calculations
+   \param    t_abs       temperatures at p_abs
+   \param    tags        all tags
+   \param    abs_per_tg  absorption for each tag
+   \param    vmrs        VMR profiles at p_abs
+   \param    k_grid      retrieval grid
+   \param    nr          tag index
+   \param    unit        unit for the WFs (see above)   
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void kSpecies (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1442,10 +1736,30 @@ void kSpecies (
 
 
 
-// kSpeciesAll
-//
-// Patrick Eriksson 04.09.00
+//// kSpeciesAll ///////////////////////////////////////////////////////////
+/**
+   Calculates species 1D weighting functions for all tags.
 
+   Calculates species 1D weighting functions for all tags that
+   are included in abs_per_tg. Units as for kSpecies.
+
+   \retval   k           total WF matrix
+   \retval   k_names     identity names
+   \retval   k_index     identity indecies
+   \retval   k_aux       additional data
+   \param    los         line of sight structure
+   \param    absloswfs   absorption LOS Wfs
+   \param    p_abs       pressure grid for abs. calculations
+   \param    t_abs       temperatures at p_abs
+   \param    tags        all tags
+   \param    abs_per_tg  absorption for each tag
+   \param    vmrs        VMR profiles at p_abs
+   \param    k_grid      retrieval grid
+   \param    unit        unit for the WFs (see above)   
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void kSpeciesAll (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1474,10 +1788,30 @@ void kSpeciesAll (
 
 
 
-// kContAbs
-//
-// Patrick Eriksson 06.09.00
+//// kContAbs ///////////////////////////////////////////////////////////////
+/**
+   Calculates continuum abs. 1D weighting functions.
 
+   Calculates 1D weighting functions for fit of continuum absorption
+   by polynomials with selectable order.
+
+   The continuum is fitted be determining an off-set at a number of
+   points (order+1) that are evenly spread between the lowest and
+   highest frequency of f_mono.
+
+   \retval   k           total WF matrix
+   \retval   k_names     identity names
+   \retval   k_index     identity indecies
+   \retval   k_aux       additional data
+   \param    los         line of sight structure
+   \param    absloswfs   absorption LOS Wfs
+   \param    f_mono      absorption frequency grid
+   \param    k_grid      retrieval grid
+   \param    order       polynomial order
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void kContAbs (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1494,10 +1828,33 @@ void kContAbs (
 
 
 
-// kTempNoHydro
-//
-// Patrick Eriksson 06.09.00
+//// kTempNoHydro ///////////////////////////////////////////////////////////
+/**
+   Calculates temperature 1D weighting functions without hydrostatic eq.
 
+   Calculates temperature 1D weighting functions WITHOUT including
+   hydrostatic equilibrium.
+
+   \retval   k        	    total WF matrix
+   \retval   k_names  	    identity names
+   \retval   k_index  	    identity indecies
+   \retval   k_aux    	    additional data
+   \param    los      	    line of sight structure
+   \param    absloswfs	    absorption LOS Wfs
+   \param    f_mono   	    absorption frequency grid
+   \param    p_abs    	    pressure grid for abs. calculations
+   \param    t_abs          temperatures at p_abs
+   \param    vmrs           VMR profiles at p_abs
+   \param    lines_per_tg   lines tag sorted
+   \param    abs            total absorption
+   \param    trans          transmissions         
+   \param    e_ground       ground emissivity
+   \param    t_ground       ground temperature
+   \param    k_grid         retrieval grid
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1522,10 +1879,31 @@ void kTempNoHydro (
 
 
 
-// kTempNoHydroNoGround
-//
-// Patrick Eriksson 06.09.00
+//// kTempNoHydroNoGround ///////////////////////////////////////////////////
+/**
+   As kTempNoHydro but does not need any ground variables .
 
+   Calculates temperature 1D weighting functions without hydrostatic eq.
+   and ground reflections.
+
+   \retval   k        	    total WF matrix
+   \retval   k_names  	    identity names
+   \retval   k_index  	    identity indecies
+   \retval   k_aux    	    additional data
+   \param    los      	    line of sight structure
+   \param    absloswfs	    absorption LOS Wfs
+   \param    f_mono   	    absorption frequency grid
+   \param    p_abs    	    pressure grid for abs. calculations
+   \param    t_abs          temperatures at p_abs
+   \param    vmrs           VMR profiles at p_abs
+   \param    lines_per_tg   lines tag sorted
+   \param    abs            total absorption
+   \param    trans          transmissions         
+   \param    k_grid         retrieval grid
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
 void kTempNoHydroNoGround (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1545,6 +1923,10 @@ void kTempNoHydroNoGround (
   k_temp_nohydro( k, k_names, k_index, k_aux, los, absloswfs, f_mono, p_abs, 
           t_abs, vmrs, lines_per_tg, abs, trans, VECTOR(0), 0, k_grid );
 }
+
+
+
+
 
 
 

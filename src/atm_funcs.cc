@@ -16,18 +16,30 @@
    USA. */
 
 
-/////////////////////////////////////////////////////////////////////////////
-//
-// This file contains functions releated to atmospheric physics or geometry.
-//
-/////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////
+//   File description
+////////////////////////////////////////////////////////////////////////////
+/**
+   \file   atm_funcs.cc
+
+   This file contains the code of functions releated to atmospheric 
+   physics or geometry.
+
+   \author Patrick Eriksson
+   \date 2000-09-18 
+*/
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   External declarations
+////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
 #include "vecmat.h"
 #include "messages.h"          
 #include "math_funcs.h"          
-
 extern const Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -37,14 +49,14 @@ extern const Numeric BOLTZMAN_CONST;
 
 
 
-//==========================================================================
-//=== Physical functions.
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Physical functions
+////////////////////////////////////////////////////////////////////////////
 
-// PLANCK (matrix version)
+//// planck (matrix version) ///////////////////////////////////////////////
 //
-// Patrick Eriksson 08.04.00
-
+// Patrick Eriksson 2000-04-08
+//
 void planck (
               MATRIX&     B, 
         const VECTOR&     f,
@@ -69,10 +81,10 @@ void planck (
 
 
 
-// PLANCK (vector version)
+//// (vector version) ///////////////////////////////////////////////////////
 //
-// Patrick Eriksson 08.04.00
-
+// Patrick Eriksson 2000-04-08
+//
 void planck (
              VECTOR&    B,
        const VECTOR&    f,
@@ -85,10 +97,11 @@ void planck (
 }
 
 
-// number_density (scalar version)
-//
-// Patrick Eriksson 04.09.00
 
+//// number_density (scalar version) ////////////////////////////////////////
+//
+// Patrick Eriksson 2000-09-04
+//
 Numeric number_density (
        const Numeric&   p,
        const Numeric&   t )
@@ -97,10 +110,11 @@ Numeric number_density (
 }
 
 
-// number_density (vector version)
-//
-// Patrick Eriksson 04.09.00
 
+//// number_density (vector version) ////////////////////////////////////////
+//
+// Patrick Eriksson 2000-09-04
+//
 VECTOR number_density (
        const VECTOR&    p,
        const VECTOR&    t )
@@ -111,14 +125,14 @@ VECTOR number_density (
 
 
 
-//==========================================================================
-//=== Tangent altitudes.
-//==========================================================================
+/////////////////////////////////////////////////////////////////////////////
+//   Tangent altitudes.
+/////////////////////////////////////////////////////////////////////////////
 
-// ZTAN_GEOM
+//// ztan_geom //////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 08.04.00
-
+// Patrick Eriksson 2000-04-08
+//
 Numeric ztan_geom(
         const Numeric&     za,
         const Numeric&     z_plat )
@@ -133,14 +147,14 @@ Numeric ztan_geom(
 
 
 
-//==========================================================================
-//=== Core functions for RTE and BL 
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Core functions for RTE and BL 
+////////////////////////////////////////////////////////////////////////////
 
-// RTE_ITERATE
+//// rte_iterate
 //
-// Patrick Eriksson 15.06.00
-
+// Patrick Eriksson 2000-04-08
+//
 void rte_iterate (
              VECTOR&   y,
        const int&      start_index,
@@ -167,10 +181,10 @@ void rte_iterate (
 
 
 
-// RTE
+//// rte ////////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 22.05.00
-
+// Patrick Eriksson 2000-04-08
+//
 void rte (
              VECTOR&   y,
        const int&      start_index,
@@ -234,10 +248,10 @@ void rte (
 
 
 
-// BL_ITERATE
+//// bl_iterate /////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 15.06.00
-
+// Patrick Eriksson 2000-04-08
+//
 void bl_iterate (
              VECTOR&   y,
        const int&      start_index,
@@ -263,10 +277,10 @@ void bl_iterate (
 
 
 
-// BL
+//// bl //////////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 22.05.00
-
+// Patrick Eriksson 2000-04-08
+//
 void bl (
              VECTOR&   y,
        const int&      start_index,
@@ -303,14 +317,14 @@ void bl (
 
 
 
-//==========================================================================
-//=== Conversion and interpolation of pressure and altitude grids.
-//==========================================================================
+////////////////////////////////////////////////////////////////////////////
+//   Conversion and interpolation of pressure and altitude grids.
+////////////////////////////////////////////////////////////////////////////
 
-// Z2P
+//// z2p ///////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 10.04.00
-
+// Patrick Eriksson 2000-04-08
+//
 void z2p(
               VECTOR&     p,
         const VECTOR&     z0,
@@ -323,10 +337,10 @@ void z2p(
 
 
 
-// INTERPP (vector version)
+//// interpp (vector version) ///////////////////////////////////////////////
 //
-// Patrick Eriksson 12.04.00
-
+// Patrick Eriksson 2000-04-08
+//
 void interpp(
               VECTOR&     x, 
         const VECTOR&     p0,
@@ -338,10 +352,10 @@ void interpp(
 
 
 
-// INTERPP (matrix version)
+//// interpp (matrix version) ///////////////////////////////////////////////
 //
-// Patrick Eriksson 13.06.00
-
+// Patrick Eriksson 2000-04-08
+//
 void interpp(
               MATRIX&  A,
         const VECTOR&  p0, 
