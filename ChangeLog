@@ -1,3 +1,9 @@
+2002-06-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-146
+
+	* src/methods.cc: Changed all md_data. to md_data_raw.
+
 2002-06-17  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-145
