@@ -1,3 +1,12 @@
+2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-476
+
+	* configure.in: Added doc/uguide/Figs/concept and
+	doc/uguide/Figs/rte_theory to AC_OUTPUT.
+
+	* doc/uguide/Figs/Makefile.am: Added rte_theory to SUBDIRS.
+
 2003-03-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-475
