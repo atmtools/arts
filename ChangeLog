@@ -1,3 +1,12 @@
+2003-08-13  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-642
+
+	* src/optproperties.cc (pha_mat_labCalc):changed za_inc_rad == PI
+	etc to za_inc_rad > PI-ANGTOL etc.  This seems to have fixed the
+	problem of nans in 1D scattering calculations for stokes_dim==2.
+	ANGTOL = 1e-6.
+
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-641

@@ -406,6 +406,10 @@ void pha_mat_labCalc(//Output:
     //
     // Several cases have to be considered:
     //
+    const Numeric ANGTOL = 1e-6; //CPD: this constant is used to adjust zenith angles 
+                               //close to 0 and PI.  This is also used to avoid
+                               //float == float statements.  
+
    if(
         // Forward scattering
         ((theta > -.01) && (theta < .01) ) ||
@@ -448,19 +452,19 @@ void pha_mat_labCalc(//Output:
 //         // be fixed
 //         pha_mat_lab = 0;
 //       } 
-    else if( (aa_sca - aa_inc) > 0 && (aa_sca - aa_inc) < 180 ||  
-             (aa_sca - aa_inc) > -360 && (aa_sca - aa_inc) < -180 )
+   else if( (aa_sca - aa_inc) > 0 && (aa_sca - aa_inc) < 180 ||  
+	    (aa_sca - aa_inc) > -360 && (aa_sca - aa_inc) < -180 )
       {
         // In these cases we have to take limiting value
         // (according personal communication with Mishchenko)
-        if (za_inc_rad == 0)
-          za_inc_rad = 1e-6;
-        if (za_inc_rad == PI)
-           za_inc_rad = PI - 1e-6;
-        if (za_sca_rad == 0)
-          za_sca_rad = 1e-6; 
-        if (za_sca_rad == PI)
-           za_sca_rad = PI - 1e-6;
+        if (za_inc_rad < ANGTOL)
+          za_inc_rad = ANGTOL;
+        if (za_inc_rad > PI-ANGTOL)
+           za_inc_rad = PI - ANGTOL;
+        if (za_sca_rad < ANGTOL)
+          za_sca_rad = ANGTOL; 
+        if (za_sca_rad > PI - ANGTOL)
+           za_sca_rad = PI - ANGTOL;
         
         const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
                                       * cos(theta_rad))/
@@ -479,7 +483,9 @@ void pha_mat_labCalc(//Output:
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
         pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
-        
+	assert(!isnan(pha_mat_lab(0,1)));        
+	assert(!isnan(pha_mat_lab(1,0)));
+	assert(!isnan(pha_mat_lab(1,1)));
         if( stokes_dim > 2 ){
                             
           pha_mat_lab(0,2) = S1 * F12;
@@ -505,14 +511,14 @@ void pha_mat_labCalc(//Output:
       {
         // In these cases we have to take limiting value
         // (according personal communication with Mishchenko)
-        if (za_inc_rad == 0)
-          za_inc_rad = 1e-6;
-        if (za_inc_rad == PI)
-           za_inc_rad = PI - 1e-6;
-        if (za_sca_rad == 0)
-          za_sca_rad = 1e-6; 
-        if (za_sca_rad == PI)
-           za_sca_rad = PI - 1e-6;
+        if (za_inc_rad < ANGTOL)
+          za_inc_rad = ANGTOL;
+        if (za_inc_rad > PI-ANGTOL)
+           za_inc_rad = PI - ANGTOL;
+        if (za_sca_rad < ANGTOL)
+          za_sca_rad = ANGTOL; 
+        if (za_sca_rad > PI - ANGTOL)
+           za_sca_rad = PI - ANGTOL;
         
         const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
                                      * cos(theta_rad))/
