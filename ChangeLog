@@ -15,12 +15,6 @@
 		vmr_field_raw,
 		vmr_field
 	
-	* src/species_data.cc: Copied this file from ARTS 1.0. It is needed
-	for creating the atmospheric fields (to extract the species name
-	from gas_species).
-
-	* src/Makefile.am: Included species_data.cc.
-
 	* src/m_cloudbox.cc: Removed some unused variables.
 	
 2002-11-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
