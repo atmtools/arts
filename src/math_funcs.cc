@@ -272,7 +272,6 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
 	    (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
 	}
     }
-  
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i)
     {
