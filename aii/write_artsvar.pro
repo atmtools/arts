@@ -22,7 +22,7 @@
 PRO write_artsvar, basename, varname, x, prec
 
 ; Create full file name
-name = basename + '.' + varname + '.am'
+name = basename + '.' + varname + '.aa'
 
 ; Create heading text
 heading = 'This file contains the ARTS variable ' + varname + '.'

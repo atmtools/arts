@@ -23,7 +23,7 @@
 FUNCTION read_artsvar, basename, varname, optimize = optimize
 
 ; Create full file name
-name = basename + '.' + varname + '.am'
+name = basename + '.' + varname + '.aa'
 
 ; Read the data by using read_datafile
 RETURN, read_datafile(name, /optimize)
