@@ -1,3 +1,9 @@
+2002-08-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-214
+	
+	* src/m_scatrte.cc: Use ostringstream instead of sprintf.
+
 2002-08-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-213
