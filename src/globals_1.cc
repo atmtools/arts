@@ -52,7 +52,9 @@ WorkSpace workspace;
     needs these enums.
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     \endverbatim  */
-ARRAY<string> wsv_group_names;
+//ARRAY<string> wsv_group_names;
+// Moved to groups.cc
+// FIXME: REMOVE this chunk
 
 /** The lookup information for the workspace variables. */
 ARRAY<WsvRecord> wsv_data;

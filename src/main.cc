@@ -427,6 +427,30 @@ void option_describe(const string& describe)
 }
 
 
+//! Checks the dimensions of stuff in generated headers.
+/*!
+  The header files wsv.h and md.h are generated automatically from the
+  files workspace.cc and methods.cc. This function checks, if at least
+  the dimensions agree between the .h files and the .cc files.
+
+  FIXME: Update this, add automatic wsv groups.
+
+  \author Stefan Buehler
+  \date   2000-08-04
+*/
+void check_built_headers()
+{
+  // Make lookup data visible:
+  //  extern const ARRAY<MdRecord>  md_data;
+  extern const ARRAY<string> wsv_group_names;
+  extern const ARRAY<WsvRecord> wsv_data;
+
+  // Checks:
+  assert( N_WSV_GROUPS == wsv_group_names.size() );
+  assert( N_WSV        == wsv_data.size()        );
+
+}
+
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
  
@@ -478,6 +502,9 @@ int main (int argc, char **argv)
 
   // Initialize the md data:
   define_md_data();
+
+  // Initialize the wsv group name array:
+  define_wsv_group_names();
 
   // Initialize the wsv data:
   define_wsv_data();

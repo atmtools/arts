@@ -65,6 +65,12 @@ AC_STDC_HEADERS
 #explicit_datadir = 'hallo'  # $datadir
 
 
+dnl Kicked out:
+dnl      doc/doxygen/latex/Makefile
+dnl      doc/doc++/Makefile 
+dnl         doc/doc++/html/Makefile 
+dnl         doc/doc++/tex/Makefile 
+
 AC_OUTPUT( 
 Makefile 
    ami/Makefile 
@@ -74,10 +80,6 @@ Makefile
       doc/doxygen/Makefile
       doc/doxygen/Doxyfile
       doc/doxygen/html/Makefile
-      doc/doxygen/latex/Makefile
-      doc/doc++/Makefile 
-         doc/doc++/html/Makefile 
-         doc/doc++/tex/Makefile 
       doc/uguide/Makefile 
       doc/uguide/version.tex 
          doc/uguide/Figs/Makefile 

@@ -15,19 +15,25 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/* This is a little C++ program that generates the file wsv.h from the 
-   workspace data. The file wsv.h declares the enum type that is used
-   to access the workspace data, so it has to be made sure that the
-   two are allways consistent. 
+/*!
+  \file   make_wsv_h.cc
+  \brief  Generates the file wsv.h.
 
-   History:
-   SAB 29.07.99 Created.
-*/
+  This is a little C++ program that generates the header file from the
+  workspace data in workspace.cc. The file wsv.h declares the enum
+  type that is used to access the workspace data.
+
+  \author Stefan Buehler
+  \date 1999-07-29 */
+
 
 #include "arts.h"
 #include "vecmat.h"
 #include "file.h"
-#include "workspace.h"
+#include "absorption.h"
+#include "los.h"
+#include "wsv_group.h"
+#include "wsv_aux.h"
 
 int main()
 {
@@ -46,17 +52,23 @@ int main()
       ofstream ofs;
       open_output_file(ofs,"wsv.h");
 
-      ofs << "// This file was generated automatically by make_wsv_h.cc.\n";
-      ofs << "// DO NOT EDIT !\n";
-      ofs << "// Generated: "
+      ofs << "/*! \\file  wsv.h\n"
+	  << "    \\brief Defines the enum type that acts as a\n"
+	  << "    handle for workspace variables.\n\n"
+
+	  << "    This file was generated automatically by make_wsv_h.cc.\n"
+
+	  << "    <b>DO NOT EDIT!</b>\n\n"
+
+	  << "    \\date "
 	  << __DATE__ << ", "
-	  << __TIME__ << "\n\n";
+	  << __TIME__ << " */\n\n";
 
       ofs << "#ifndef wsv_h\n";
       ofs << "#define wsv_h\n\n";
       
-      ofs << "// This is only used for a consistency check. You can get the\n"
-	  << "// number of workspace variables from wsv_data.size().\n"
+      ofs << "/*! This is only used for a consistency check. You can get the\n"
+	  << "    number of workspace variables from wsv_data.size(). */\n"
 	  << "#define N_WSV " << n_wsv << "\n\n";
 
       ofs << "enum WsvHandle{\n";

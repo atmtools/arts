@@ -50,6 +50,7 @@ version.cc \
 messages.cc \
 parameters.cc \
 file.cc \
+groups.cc \
 workspace.cc \
 workspace_aux.cc \
 methods.cc \
@@ -71,12 +72,16 @@ absorption.cc
 # 	doc/doc++/tex/Makefile.am
 
 
-noinst_PROGRAMS = make_wsv_h make_md_h
+noinst_PROGRAMS = make_wsv_group_h make_wsv_h make_md_h
+
+make_wsv_group_h_SOURCES = \
+arts.h vecmat.h file.h \
+file.cc version.cc messages.cc groups.cc make_wsv_group_h.cc
 
 make_wsv_h_SOURCES = \
-arts.h vecmat.h messages.h file.h absorption.h los.h \
-workspace.h wsv_group.h wsv_aux.h \
-globals_1.cc \
+arts.h vecmat.h file.h absorption.h los.h \
+wsv_group.h wsv_aux.h \
+groups.cc globals_1.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc version.cc
 
 make_md_h_SOURCES = \
@@ -85,10 +90,15 @@ absorption.h los.h \
 workspace.h wsv_group.h wsv_aux.h \
 methods.h make_array.h \
 globals_1.cc globals_2.cc \
-token.cc messages.cc file.cc workspace.cc workspace_aux.cc \
+token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_md_h.cc version.cc
 
-make_md_h_DEPENDENCIES = wsv.h
+make_wsv_h_DEPENDENCIES = wsv_group.h
+
+make_md_h_DEPENDENCIES  = wsv.h
+
+wsv_group.h: make_wsv_group_h
+	./make_wsv_group_h
 
 wsv.h: make_wsv_h
 	./make_wsv_h
@@ -96,4 +106,4 @@ wsv.h: make_wsv_h
 md.h: make_md_h
 	./make_md_h
 
-BUILT_SOURCES = wsv.h md.h
+BUILT_SOURCES = wsv_group.h wsv.h md.h

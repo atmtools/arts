@@ -15,29 +15,28 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      wsv_aux.h
+/*!
+  \file   wsv_aux.h
+  \brief  Auxiliary header stuff related to workspace variable
+          groups. Normally you should not need to edit this file. 
 
-INCLUDES:  Auxiliary header stuff related to workspace variable
-           groups. Normally you should not need to edit this file. 
 
-FUNCTIONS: ??
-
-HISTORY:   10.06.2000 Created by Stefan Buehler
------------------------------------------------------------------------*/
+  \author Stefan Buehler
+  \date   2000-06-10
+*/
 
 #ifndef wsv_aux_h
 #define wsv_aux_h
 
 
-/** Template for Wsv Pointers. All you have to do when you want to add
-    a new Wsv group `Smurf' is add a virtual method
+/*! Template for Wsv Pointers. This defines for each pointer class the
+    conversion operator back to the type that it is pointing
+    to. 
 
-    \verbatim
-    virtual operator MATRIX*() = 0;
-    \endverbatim
+    This makes it possible to store arbitrary pointers in an array of
+    pointers to WsvP.
 
-    to the common base class WsvP. */
+    /author Stefan Buehler */
 template<class T>
 class WsvPointer : public WsvP {
 public:

@@ -220,11 +220,6 @@ includes the complete source code!
 \levelc{How to add a workspace variable group}
 %--------------------------------------------
 \begin{enumerate}
-\item Add a \verb|your_type_| handle to the \verb|enum WsvGroup| in
-  \verb|wsv_group.h|.  
-\item Add a function\\
-  \verb|virtual operator your_type_*() { safety(); return NULL; };|\\
-  to \verb|class WsvP| in \verb|wsv_group.h|.
 \item Add a \verb|wsv_group_names.push_back("your_type")| function to
   the function \verb|define_wsv_data()| in \verb|workspace.cc|. The
   name must be \emph{exactly} like you use it in the source code,

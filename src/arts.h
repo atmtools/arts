@@ -138,9 +138,7 @@ typedef double Numeric;
 
 
 //---------------< Global function declarations: >---------------
-
-/* The function execute executes workspace methods one by one.*/
-//void execute(WsLimbBasic& ws, const MethodBatch& mb);
+void define_wsv_group_names();	// Documentation is with function definition.
 
 
 //

@@ -41,34 +41,7 @@ void define_wsv_data()
   /* The variables workspace, wsv_group_names, and wsv_data are defined
      in file workspace_aux.cc. */
   extern WorkSpace workspace;
-  extern ARRAY<string> wsv_group_names;
   extern ARRAY<WsvRecord> wsv_data;
-
-  //--------------------< Build the group names array >--------------------
-  // Initialize to empty, just in case.
-  wsv_group_names.clear();
-
-  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     Must be consistent with the enum in workspace.h! Later on,
-     these enums could also be generated automatically, but that would
-     have to take place before the wsv_data is defined, since that
-     needs these enums.
-     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-  wsv_group_names.push_back("string");
-  wsv_group_names.push_back("int");
-  wsv_group_names.push_back("Numeric");
-  wsv_group_names.push_back("VECTOR");
-  wsv_group_names.push_back("MATRIX");
-  wsv_group_names.push_back("ARRAYofMATRIX");
-  wsv_group_names.push_back("ARRAYofVECTOR");
-  wsv_group_names.push_back("Los");
-  wsv_group_names.push_back("ARRAYofLineRecord");
-  wsv_group_names.push_back("ARRAYofARRAYofLineRecord");
-  wsv_group_names.push_back("TagGroups");
-
-  // As a primitive consistency check, compare the size of
-  // wsv_group_names with N_WSV_GROUPS:  
-  assert(N_WSV_GROUPS==wsv_group_names.size());
 
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
@@ -464,3 +437,15 @@ void define_wsv_data()
   //  cout << "size = " << wsv_data.size() << '\n';
 }
 
+ARRAY<WsvP*> wsv_pointers;
+
+void define_wsv_pointers()
+{
+  /* The variables workspace, wsv_group_names, and wsv_data are defined
+     in file workspace_aux.cc. */
+  extern WorkSpace workspace;
+  extern ARRAY<WsvRecord> wsv_data;
+
+  static WsvPointer<ARRAYofLineRecord> p(&workspace.lines);
+  wsv_pointers.push_back(&p);
+}

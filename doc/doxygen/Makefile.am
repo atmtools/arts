@@ -22,12 +22,21 @@ noinst_DATA = doxyfied
 # sources wsv.h, md.h, and md.cc
 #
 # Take toexamine from arts_SOURCES in file src/Makefile.am, but withou
-# wsv.h, md.h, and md.cc. The dependece on configure.in is there to
-# make sure that the documentation is recompiled if the release number
-# in that file is changed.
+# wsv_group.h, wsv.h, md.h, and md.cc. 
+# Additionally add dependence on:
+# - configure.in
+# - make_wsv_group.cc 
+# - make_wsv_h.cc 
+# - make_md_h.cc    
+# The dependece on configure.in is there to make sure that the
+# documentation is recompiled if the release number in that file is
+# changed.
 
 toexamine = \
 $(top_srcdir)/configure.in \
+$(top_srcdir)/src/make_wsv_group_h.cc \
+$(top_srcdir)/src/make_wsv_h.cc \
+$(top_srcdir)/src/make_md_h.cc \
 $(top_srcdir)/src/arts.h \
 $(top_srcdir)/src/getopt.h \
 $(top_srcdir)/src/sstream.h \
@@ -38,7 +47,6 @@ $(top_srcdir)/src/vecmat.h \
 $(top_srcdir)/src/exceptions.h \
 $(top_srcdir)/src/file.h \
 $(top_srcdir)/src/workspace.h \
-$(top_srcdir)/src/wsv_group.h \
 $(top_srcdir)/src/wsv_aux.h \
 $(top_srcdir)/src/methods.h \
 $(top_srcdir)/src/token.h \
@@ -59,6 +67,7 @@ $(top_srcdir)/src/version.cc \
 $(top_srcdir)/src/messages.cc \
 $(top_srcdir)/src/parameters.cc \
 $(top_srcdir)/src/file.cc \
+$(top_srcdir)/src/groups.cc \
 $(top_srcdir)/src/workspace.cc \
 $(top_srcdir)/src/workspace_aux.cc \
 $(top_srcdir)/src/methods.cc \

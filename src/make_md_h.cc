@@ -83,20 +83,20 @@ int main()
 {
   try
     {
+      // Make the global data visible:
+      extern ARRAY<MdRecord> md_data;
+      extern const ARRAY<string> wsv_group_names;
+      extern const ARRAY<WsvRecord> wsv_data;
+
       // Initialize method data.
       define_md_data();
 
-      // Make method data visible.
-      extern ARRAY<MdRecord> md_data;
+      // Initialize the wsv group name array:
+      define_wsv_group_names();
 
       // Initialize wsv data.
       define_wsv_data();
   
-      // Make wsv data visible.
-      extern const ARRAY<WsvRecord> wsv_data;
-
-      // The names of the types of workspace variables.
-      extern const ARRAY<string> wsv_group_names;
 
       const size_t n_md  = md_data.size();
       const size_t n_wsv = wsv_data.size();

@@ -1,3 +1,16 @@
+2000-08-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-37
+
+	* This is still an intermediate version. I'm in the process of
+	re-designing the automatic generation of header files. Basically,
+	the workspace itself should also be generated automatically from
+	the information in define_wsv_data.
+
+	* Achieved so far: Wsv group handles (file wsv_group.h) are now
+	generated automatically from information in function
+	define_wsv_group_names in file groups.cc.
+
 2000-07-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-36
