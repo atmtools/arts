@@ -1,3 +1,11 @@
+2003-12-01  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-726
+
+	* src/m_continua.cc: Commented out the Lagrange 4-point interpolation
+	in this file, since it gives 'multiple definition' compilation error
+	together with the one in m_abs_o2_models.cc. 
+
 2003-11-30  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-1-725

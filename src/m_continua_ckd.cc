@@ -3285,7 +3285,7 @@ void absMPM02_H2O(// WS Output:
   \author Thomas Kuhn
   \date   2003-11-25
 */
-
+/*
 Numeric LagrangeInterpol4( ConstVectorView x,
 			   ConstVectorView y,
 			   const Numeric a)
@@ -3309,7 +3309,7 @@ Numeric LagrangeInterpol4( ConstVectorView x,
   if ( (a < x[1]) || (a > x[2]) )
     {
       ostringstream os;
-      os << "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. " 
+      os << "LagrangeInterpol4: the relation x[1] =< a < x[2] is not satisfied. "
          << "No interpolation can be calculated.\n";
       throw runtime_error(os.str());
     };
@@ -3321,7 +3321,7 @@ Numeric LagrangeInterpol4( ConstVectorView x,
       b[i] = 1.000e0;
       for (Index k=0 ; k < 4 ; ++k)
 	{
-	  if ( (k != i) && (abs(x[i]-x[k]) > Dlimit) )  
+	  if ( (k != i) && (abs(x[i]-x[k]) > Dlimit) )
 	    b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
 	};
     };
@@ -3331,7 +3331,7 @@ Numeric LagrangeInterpol4( ConstVectorView x,
 
   return ya;
 }
-
+*/
 
 // =================================================================================
 
