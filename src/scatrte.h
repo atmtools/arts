@@ -60,7 +60,14 @@ void cloud_ppath_update1D(
                   Vector& a_vmr_list,
                   // opt_prop_xxx_agenda:
                   Tensor3& ext_mat,
-                  Matrix& abs_vec,  
+                  Matrix& abs_vec, 
+		  // ground related variables STR
+                  Matrix& ground_los,
+                  Matrix& ground_emission,
+                  Tensor4& ground_refl_coeffs,
+                  Vector& a_los,
+		  Vector& a_pos,
+		  GridPos& a_gp_p,
                   // ppath_step_agenda:
                   Ppath& ppath_step, 
                   const Index& p_index,
@@ -84,7 +91,8 @@ void cloud_ppath_update1D(
                   const Index& f_index,
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
-                  ConstTensor4View abs_vec_field
+                  ConstTensor4View abs_vec_field,
+		  const Agenda& ground_refl_agenda //STR
                   );
 
 void cloud_ppath_update3D(

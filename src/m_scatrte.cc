@@ -993,46 +993,54 @@ i_fieldUpdate1D(// WS Output:
 */
 void
 i_fieldUpdateSeq1D(// WS Output:
-                Tensor6& i_field,
-                // scalar_gas_abs_agenda:
-                Matrix& abs_scalar_gas,
-                Numeric& a_pressure,
-	        Numeric& a_temperature,
-		Vector& a_vmr_list,
-                // spt_calc_agenda:
-                Index& scat_za_index ,
-                // opt_prop_xxx_agenda:
-                Tensor3& ext_mat,
-                Matrix& abs_vec,  
-                Index& scat_p_index,
-                // ppath_step_agenda:
-                Ppath& ppath_step, 
-                // WS Input:
-                const Tensor6& i_field_old,
-                const Tensor6& scat_field,
-                const ArrayOfIndex& cloudbox_limits,
-                // Calculate scalar gas absorption:
-                const Agenda& scalar_gas_absorption_agenda,
-                const Tensor4& vmr_field,
-                // Optical properties for single particle type:
-                const Agenda& spt_calc_agenda,
-                const Vector& scat_za_grid,
-                // Optical properties for gases and particles:
-                const Agenda& opt_prop_part_agenda,
-                const Tensor4& pnd_field, // FIXME: not needed in this function
-                const Agenda& opt_prop_gas_agenda,
-                // Propagation path calculation:
-                const Agenda& ppath_step_agenda,
-                const Vector& p_grid,
-                const Tensor3& z_field,
-                const Matrix& r_geoid,
-                 // Calculate thermal emission:
-                const Tensor3& t_field,
-                const Vector& f_grid,
-                const Index& f_index
-                )
+		   Tensor6& i_field,
+		   // scalar_gas_abs_agenda:
+		   Matrix& abs_scalar_gas,
+		   Numeric& a_pressure,
+		   Numeric& a_temperature,
+		   Vector& a_vmr_list,
+		   // spt_calc_agenda:
+		   Index& scat_za_index ,
+		   // opt_prop_xxx_agenda:
+		   Tensor3& ext_mat,
+		   Matrix& abs_vec,  
+		   Index& scat_p_index,
+		   // ppath_step_agenda:
+		   Ppath& ppath_step, 
+		   // ground related variables STR
+		   Matrix& ground_los,
+		   Matrix& ground_emission,
+                  Tensor4& ground_refl_coeffs,
+		   Vector& a_los,
+		   Vector& a_pos,
+		   GridPos& a_gp_p,
+		   // WS Input:
+		   const Tensor6& i_field_old,
+		   const Tensor6& scat_field,
+		   const ArrayOfIndex& cloudbox_limits,
+		   // Calculate scalar gas absorption:
+		   const Agenda& scalar_gas_absorption_agenda,
+		   const Tensor4& vmr_field,
+		   // Optical properties for single particle type:
+		   const Agenda& spt_calc_agenda,
+		   const Vector& scat_za_grid,
+		   // Optical properties for gases and particles:
+		   const Agenda& opt_prop_part_agenda,
+		   const Tensor4& pnd_field, // FIXME: not needed in this function
+		   const Agenda& opt_prop_gas_agenda,
+		   // Propagation path calculation:
+		   const Agenda& ppath_step_agenda,
+		   const Vector& p_grid,
+		   const Tensor3& z_field,
+		   const Matrix& r_geoid,
+		   // Calculate thermal emission:
+		   const Tensor3& t_field,
+		   const Vector& f_grid,
+		   const Index& f_index,
+		   const Agenda& ground_refl_agenda //STR
+		   )
 {
-
+  
   out2 << "i_fieldUpdateSeq1D: Radiative transfer calculatiuon in cloudbox.\n";
   out2 << "------------------------------------------------------------- \n";
   
@@ -1094,6 +1102,7 @@ i_fieldUpdateSeq1D(// WS Output:
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
+      cout<<"scat_za_grid at the start of the looping"<<scat_za_grid[scat_za_index]<<endl;
       //Only dummy variables:
       Index scat_lat_index = 0;
       Index scat_lon_index = 0;
@@ -1125,7 +1134,7 @@ i_fieldUpdateSeq1D(// WS Output:
       // Sequential update for uplooking angles
       if ( scat_za_grid[scat_za_index] <= 90) 
         {
-          
+          cout<<"Uplooking Loop-----------------------------------------"<<endl;
           // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits exculding the upper boundary. For uplooking
           // directions, we start from cloudbox_limits[0] and go up
@@ -1134,20 +1143,23 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-               cloud_ppath_update1D(i_field, 
-                                    a_pressure, a_temperature, a_vmr_list,
-                                    ext_mat, abs_vec, ppath_step, 
-                                    p_index, scat_za_index, scat_za_grid,
-                                    cloudbox_limits, scat_field,
-                                    scalar_gas_absorption_agenda, vmr_field,
-                                    opt_prop_gas_agenda, ppath_step_agenda,
-                                    p_grid,  z_field, r_geoid, t_field, 
-                                    f_grid, f_index, ext_mat_field,
-                                    abs_vec_field); 
+	      cloud_ppath_update1D(i_field, 
+				   a_pressure, a_temperature, a_vmr_list,
+				   ext_mat, abs_vec, ground_los,
+				   ground_emission, ground_refl_coeffs,
+				   a_los, a_pos, a_gp_p, ppath_step, 
+				   p_index, scat_za_index, scat_za_grid,
+				   cloudbox_limits, scat_field,
+				   scalar_gas_absorption_agenda, vmr_field,
+				   opt_prop_gas_agenda, ppath_step_agenda,
+				   p_grid,  z_field, r_geoid, t_field, 
+				   f_grid, f_index, ext_mat_field,
+				   abs_vec_field,ground_refl_agenda); 
             }
         }
       else if ( scat_za_grid[scat_za_index] > theta_lim) 
         {
+	   cout<<"Downlooking Loop-----------------------------------------"<<endl;
       //
       // Sequential updating for downlooking angles
       //
@@ -1156,16 +1168,19 @@ i_fieldUpdateSeq1D(// WS Output:
             {
               cloud_ppath_update1D(i_field,  
                                    a_pressure, a_temperature, a_vmr_list,
-                                   ext_mat, abs_vec, ppath_step, 
+                                   ext_mat, abs_vec, ground_los,
+				    ground_emission, ground_refl_coeffs,
+				    a_los, a_pos, a_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field, 
-                                   abs_vec_field); 
+                                   abs_vec_field,ground_refl_agenda); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
+      
       //
       // Limb looking:
       // We hav eto include a special case here, as we may miss the endpoints
@@ -1181,14 +1196,16 @@ i_fieldUpdateSeq1D(// WS Output:
             {
               cloud_ppath_update1D(i_field,  
                                    a_pressure, a_temperature, a_vmr_list,
-                                   ext_mat, abs_vec, ppath_step, 
+                                   ext_mat, abs_vec, ground_los,
+				    ground_emission, ground_refl_coeffs,
+				    a_los, a_pos, a_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field, 
-                                   abs_vec_field);
+                                   abs_vec_field,ground_refl_agenda);
             }
         } 
     }// Closes loop over scat_za_grid.

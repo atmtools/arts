@@ -2820,7 +2820,7 @@ void ppath_start_1d(
   assert( ppath.gp_p[imax].fd[0] >= 0 );
   assert( ppath.gp_p[imax].fd[0] <= 1 );
   //
-  assert( r_start >= r_geoid + z_ground );
+  assert( r_start >= r_geoid + z_ground - 1e-6 );
   assert( za_start >= 0  &&  za_start <= 180 );
 
 

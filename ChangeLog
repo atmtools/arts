@@ -1,3 +1,28 @@
+2003-07-21  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-610
+	
+	* src/scatrte.cc (cloud_ppath_update1D): Implemented the ground
+	reflection part when cloudbox is set on.  In the same way as
+	clear-sky part we can use the method
+	*GroundNoScatteringSingleEmissivity* to give different surface
+	emissivity values keeping in mind that the cloudbox has to be
+	extended to the ground.  This implementation may require some
+	changes in the future.  The results agree with the
+	clear-sky values when the particle number density is zero. 
+	Included some variables related to ground reflection in the
+	parameter of this function.
+
+	* src/scatrte.h: Modified the parameters according to the
+	function cloud_ppath_update1D.
+
+	* src/m_scatrte.cc:  Modified the output parameter list of the
+	method *i_fieldUpdateSeq1D* include
+	the variables related to ground reflection implementation.
+	
+	* src/methods.cc: Adapted *i_fieldUpdateSeq1D* to the above
+	changes.  
+	
 2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-609
