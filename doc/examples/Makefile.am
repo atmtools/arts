@@ -15,29 +15,33 @@ examplesdocdir = $(artsdocdir)/examples
 
 arts_examples_in = \
 	absorption_example.arts.in \
+	absorption_lookup_example.arts.in \
 	amsu_example.arts.in \
 	batch_example.arts.in \
+	cloud_rad_field1D_example.arts.in \
 	clouds_example.arts.in \
 	cont_example.arts.in \
 	fullmodels_example.arts.in \
+	i_field_example.arts.in \
+	old_absorption_example.arts.in \
 	radiosonde_example.arts.in \
 	rt_example.arts.in \
-	scatproperties_example.arts.in \
-	i_field_example.arts.in\
-	cloud_rad_field1D_example.arts.in
+	scatproperties_example.arts.in
 
 arts_examples = \
 	absorption_example.arts \
+	absorption_lookup_example.arts \
 	amsu_example.arts \
 	batch_example.arts \
+	cloud_rad_field1D_example.arts \
 	clouds_example.arts \
 	cont_example.arts \
 	fullmodels_example.arts \
+	i_field_example.arts \
+	old_absorption_example.arts \
 	radiosonde_example.arts \
 	rt_example.arts \
-	scatproperties_example.arts \
-	i_field_example.arts.in\
-	cloud_rad_field1D_example.arts.in
+	scatproperties_example.arts
 
 examplesdoc_DATA = $(arts_examples)
 
