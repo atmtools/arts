@@ -44,9 +44,10 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
 #include "arts.h"
 #include "atm_funcs.h"          
-#include "vecmat.h"
+#include "matpackI.h"
 #include "los.h"
 #include "math_funcs.h"          
 #include "messages.h"          
@@ -78,9 +79,9 @@ extern const Numeric EARTH_GRAV_CONST;
    \author Patrick Eriksson
    \date   2000-12-12
 */
-bool any_ground( const Arrayofsizet& ground )  
+bool any_ground( const ArrayOfIndex& ground )  
 {
-  for ( Index i=0; i<ground.size(); i++ )
+  for ( Index i=0; i<ground.nelem(); i++ )
   {
     if ( ground[i] )
       return 1;
@@ -150,9 +151,9 @@ void los_geometric(
   // Create equally spaced points along the LOS
   linspace( l, 0, llim, l_step );
 
-  nz = l.size();
-  resize( z,   nz );
-  resize( psi, nz );
+  nz = l.nelem();
+  z.resize(   nz );
+  psi.resize( nz );
 
   // Calculate vertical altitudes and angles
   b = r_geoid + z_plat;  
@@ -207,8 +208,8 @@ void los_refraction(
 	      const Numeric&    r_geoid,
 	      const Vector&     p_abs,
 	      const Vector&     z_abs,
-              const int&        refr,
-              const int&        refr_lfac,
+              const Index&        refr,
+              const Index&        refr_lfac,
               const Vector&     refr_index,
               const Numeric&    c )
 {
@@ -251,7 +252,7 @@ void los_refraction(
   // To save computational time, the interpolation is handled locally so
   // the indeces for the refr_index vector can be remembered from one 
   // interpolation to next.
-  const Index   nz = z_abs.size();
+  const Index   nz = z_abs.nelem();
         Index   iz; 
   for ( iz=0; (iz<nz) && (z_abs[iz]<=z2); iz++ ) {}
   if ( iz < nz )
@@ -273,7 +274,7 @@ void los_refraction(
       pv[np] = RAD2DEG * psi2;
       i     = 1;
       np++;
-      assert( np < zv.size() );
+      assert( np < zv.nelem() );
     }
     else
       i++; 
@@ -322,10 +323,10 @@ void los_refraction(
   }
 
   // Move values from temporary vectors
-  resize( z,   np );
-  resize( psi, np );
-  copy( zv(0,np), z   );
-  copy( pv(0,np), psi );
+  z.resize(   np );
+  psi.resize( np );
+  z   = zv[Range(0,np)];	// Copy first np values of zv to z.
+  psi = pv[Range(0,np)];	// Copy first np values of pv to psi.
 }
 
 
@@ -379,8 +380,8 @@ void los_1za(
 	      const Numeric&    r_geoid,
 	      const Vector&     p_abs,
 	      const Vector&     z_abs,
-              const int&        refr,
-              const int&        refr_lfac,
+              const Index&        refr,
+              const Index&        refr_lfac,
               const Vector&     refr_index )
 {
   Numeric   c;        // LOS constant when considering refraction
@@ -414,8 +415,8 @@ void los_1za(
     if ( z_tan >= atm_limit )
     {
       ground = 0;
-      resize( z,   0 );
-      resize( psi, 0 );
+      z.resize(   0 );
+      psi.resize( 0 );
       nz     = 1;
     }
   
@@ -441,7 +442,7 @@ void los_1za(
       }
 
       ground = 0;
-      nz     = z.size();
+      nz     = z.nelem();
     }   
   
     // Intersection with the ground
@@ -475,11 +476,12 @@ void los_1za(
       }
 
       ground = 1;
-      nz     = z.size();
+      nz     = z.nelem();
     }
 
+    // Add psi0 to all elements:
     if ( psi0 != 0 )
-      add( Vector( nz, psi0 ), psi );
+      psi += psi0;			// Matpack can add element-vise like this.
   
     start = stop = nz - 1;
   }
@@ -495,7 +497,7 @@ void los_1za(
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
     ground = 0;
     stop   = 0;
-    start  = z.size() - 1;
+    start  = z.nelem() - 1;
   }
 
   //=== Inside the atmosphere looking downwards ===============================
@@ -545,7 +547,7 @@ void los_1za(
 
         // Determine the distance along the LOS between the tangent point and
         // the sensor by an interpolation
-        l1 = interp_lin( z, linspace( 0, l*(z.size()-1) , l ), z_plat );
+        l1 = interp_lin( z, linspace( 0, l*(z.nelem()-1) , l ), z_plat );
 
         // A sufficient large distance between platform and tangent point
         if ( l1 > l_step_max/10 )
@@ -567,11 +569,11 @@ void los_1za(
       }
 
       ground = 0;
-      start  = z.size() - 1;
+      start  = z.nelem() - 1;
 
       // The angular distance between the sensor and the tangent point 
       // is psi[stop]
-      add( Vector( start, psi[stop] ), psi );
+      psi += psi[stop];		// Matpack can add element-vise like this.
     }
 
     // Intersection with the ground
@@ -620,7 +622,7 @@ void los_1za(
 
         // Determine the distance along the LOS between the tangent point and
         // the sensor by an interpolation
-        l1 = interp_lin( z, linspace( 0, l*(z.size()-1) , l ), z_plat );
+        l1 = interp_lin( z, linspace( 0, l*(z.nelem()-1) , l ), z_plat );
 
         // A sufficient large distance between platform and ground
         if ( l1 > l_step_max/10 )
@@ -642,11 +644,11 @@ void los_1za(
       }
 
       ground = 1;
-      start  = z.size() - 1;
+      start  = z.nelem() - 1;
 
       // The angular distance between the sensor and the ground
       // is psi[stop]
-      add( Vector( start, psi[stop] ), psi );
+      psi += psi[stop];		// Matpack can add element-vise like this.
     }
   }
 }
@@ -666,32 +668,32 @@ void y_rte (
               const LOS&             los,   
               const Vector&          f_mono,
               const Vector&          y_space,
-              const ArrayofMatrix&   source,
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   source,
+              const ArrayOfMatrix&   trans,
               const Vector&          e_ground,
               const Numeric&         t_ground )
 {
   // Some variables
-  const size_t   n=los.start.size();  // Number of zenith angles 
-  const size_t   nf=f_mono.size();    // Number of frequencies 
+  const Index   n=los.start.nelem();  // Number of zenith angles 
+  const Index   nf=f_mono.nelem();    // Number of frequencies 
         Vector   y_tmp(nf);           // Temporary storage for spectra
-        size_t   iy0=0;               // Reference index for output vector
+        Index   iy0=0;               // Reference index for output vector
 
   out2 << "  Integrating the radiative transfer eq. with emission.\n";
 
   // Resize y
-  resize( y, nf*n );
+  y.resize( nf*n );
         
   // Set up vector for ground blackbody radiation if any ground intersection
   // Check also if the ground emission vector has the correct length
-  Vector   y_ground(f_mono.size()); 
+  Vector   y_ground(f_mono.nelem()); 
   if ( any_ground(los.ground) )  
   {
     if ( t_ground <= 0 )
       throw runtime_error(
           "There are intersections with the ground, but the ground\n"
           "temperature is set to be <=0 (are dummy values used?).");
-    if ( e_ground.size() != nf )
+    if ( e_ground.nelem() != nf )
       throw runtime_error(
           "There are intersections with the ground, but the frequency and\n"
           "ground emission vectors have different lengths (are dummy values\n"
@@ -702,7 +704,7 @@ void y_rte (
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:      ";
-  for ( size_t i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -713,7 +715,7 @@ void y_rte (
                  source[i], y_space, los.ground[i], e_ground, y_ground);
 
     // Move values to output vector
-    copy( y_tmp, y(iy0,iy0+nf) );
+    y[Range(iy0,nf)] = y_tmp;	// Copy to nf elements to y, starting at iy0.
 
     // Update iy0
     iy0 += nf;   
@@ -730,25 +732,25 @@ void y_rte (
 void y_tau (
                     Vector&          y,
               const LOS&             los,   
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   trans,
               const Vector&          e_ground )
 {
   // Some variables
-  const size_t   n=los.start.size();    // Number of zenith angles 
-  const size_t   nf=trans[0].nrows();   // Number of frequencies 
-        size_t   iy, iy0=0;             // Index for output vector
+  const Index   n=los.start.nelem();    // Number of zenith angles 
+  const Index   nf=trans[0].nrows();   // Number of frequencies 
+        Index   iy, iy0=0;             // Index for output vector
         Vector   y_tmp;                 // Temporary storage for spectra
 
   out2 << "  Calculating optical thicknesses.\n";
 
   // Resize y and set to 1
-  resize( y, nf*n );
-  setto( y, 1.0 );
+  y.resize( nf*n );
+  y = 1.0;			// Matpack can set all elements like this.
 
   // Check if the ground emission vector has the correct length
   if ( any_ground(los.ground) )  
   {
-    if ( e_ground.size() != nf )
+    if ( e_ground.nelem() != nf )
       throw runtime_error(
           "There are intersections with the ground, but the frequency and\n"
           "ground emission vectors have different lengths (are dummy values\n"
@@ -758,7 +760,7 @@ void y_tau (
         
   // Loop zenith angles
   out3 << "    Zenith angle nr:     ";
-  for ( size_t i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
@@ -768,7 +770,6 @@ void y_tau (
     bl( y_tmp, los.start[i], los.stop[i], trans[i], los.ground[i], e_ground );
 
     // Convert to optical thicknesses and move values to output vector
-    // copy( y_tmp, y(iy0,iy0+nf) );
     for ( iy=0; iy<nf; iy++ )
       y[iy0+iy] = -log( y_tmp[iy] );
 
@@ -845,8 +846,8 @@ void groundSet(
 {
   z_ground = z;
   t_ground = interpz( p_abs, z_abs, t_abs, z );
-  resize( e_ground, f_mono.size() );
-  setto( e_ground, e );
+  e_ground.resize( f_mono.nelem() );
+  e_ground = e;			// Matpack can set all elements like this.
 }
 
 
@@ -868,8 +869,8 @@ void groundAtBottom(
 {
   z_ground = z_abs[0];
   t_ground = t_abs[0];
-  resize( e_ground, f_mono.size() );
-  setto( e_ground, e );
+  e_ground.resize( f_mono.nelem() );
+  e_ground = e;			// Matpack can set all elements like this.
 }
 
 
@@ -888,7 +889,7 @@ void groundOff(
 {
   z_ground = z_abs[0];
   t_ground = 0;
-  resize( e_ground, 0 );
+  e_ground.resize( 0 );
 }
 
 
@@ -899,7 +900,7 @@ void groundOff(
    \author Patrick Eriksson
    \date   2001-04-19
 */
-void emissionOn( int&   emission )
+void emissionOn( Index&   emission )
 {
   emission = 1;
 }
@@ -911,7 +912,7 @@ void emissionOn( int&   emission )
    \author Patrick Eriksson
    \date   2001-04-19
 */
-void emissionOff( int&   emission )
+void emissionOff( Index&   emission )
 {
   emission = 0;
 }
@@ -933,7 +934,7 @@ void zaFromZtan(
         const Numeric&      z_plat,
         const Vector&       p_abs,
         const Vector&       z_abs,
-	const int&          refr,
+	const Index&          refr,
 	const Vector&       refr_index,
 	const Numeric&      r_geoid,
         const Numeric&      z_ground )
@@ -941,11 +942,11 @@ void zaFromZtan(
 
   
   const Numeric atm_limit = last(z_abs);
-  const size_t         nz = z_tan.size();
+  const Index         nz = z_tan.nelem();
 
-  resize(za,nz);
+  za.resize(nz);
 
-  for (size_t i=0; i<nz; i++)
+  for (Index i=0; i<nz; i++)
   {
 
     if (za[i]>z_plat)
@@ -999,13 +1000,13 @@ void losCalc(       LOS&        los,
               const Numeric&    l_step,
               const Vector&     p_abs,
               const Vector&     z_abs,
-              const int&        refr,
-              const int&        refr_lfac,
+              const Index&        refr,
+              const Index&        refr_lfac,
               const Vector&     refr_index,
               const Numeric&    z_ground,
               const Numeric&    r_geoid )
 {     
-  Index   n = za.size();  // number of zenith angles
+  Index   n = za.nelem();  // number of zenith angles
 
   // Some checks                                                      
   if ( !isbool( refr ) )  
@@ -1018,7 +1019,7 @@ void losCalc(       LOS&        los,
   if ( z_plat < z_abs[0] )  
     throw runtime_error(
       "The platform cannot be below the lowest absorption altitude.");
-  if ( refr && ( p_abs.size() != refr_index.size() ) )
+  if ( refr && ( p_abs.nelem() != refr_index.nelem() ) )
     throw runtime_error(
       "Refraction is turned on, but the length of refr_index does not match\n"
       "the length of p_abs. Are dummy vales used?.");
@@ -1028,14 +1029,14 @@ void losCalc(       LOS&        los,
       "Are dummy vales used?");
     
   // Reallocate the los structure and z_tan
-  resize( los.p,      n	);
-  resize( los.psi,    n	);
-  resize( los.z,      n	);
-  resize( los.l_step, n	);
-  resize( los.ground, n	);
-  resize( los.start,  n	);
-  resize( los.stop,   n	);
-  resize( z_tan,      n	);
+  los.p.resize(      n	);
+  los.psi.resize(    n	);
+  los.z.resize(      n	);
+  los.l_step.resize( n	);
+  los.ground.resize( n	);
+  los.start.resize(  n	);
+  los.stop.resize(   n	);
+  z_tan.resize(      n	);
 
   // Print messages
   if ( refr == 0 )
@@ -1058,7 +1059,7 @@ void losCalc(       LOS&        los,
     out3 << "\n";
 
     // Convert altitudes to pressures
-    resize( los.p[i], los.z[i].size() );
+    los.p[i].resize( los.z[i].nelem() );
     z2p( los.p[i], z_abs, p_abs, los.z[i] );
   }
 }
@@ -1072,8 +1073,8 @@ void losCalc(       LOS&        los,
    \date   2000-?-?
 */
 void sourceCalc(
-                    ArrayofMatrix&   source,
-	      const int&             emission,
+                    ArrayOfMatrix&   source,
+	      const Index&             emission,
               const LOS&             los,   
               const Vector&          p_abs,
               const Vector&          t_abs,
@@ -1085,46 +1086,46 @@ void sourceCalc(
   if ( emission == 0 )
   {
     out2 << "  Setting the source array to be empty.\n";
-    resize( source, 0 );
+    source.resize( 0 );
   }
 
   else
   {     
 	  Vector   tlos;                  // temperatures along the LOS
-    const size_t   nza=los.start.size();  // the number of zenith angles  
-    const size_t   nf=f_mono.size();      // the number of frequencies
-	  size_t   nlos;                  // the number of pressure points
+    const Index   nza=los.start.nelem();  // the number of zenith angles  
+    const Index   nf=f_mono.nelem();      // the number of frequencies
+	  Index   nlos;                  // the number of pressure points
 	  Matrix   b;                     // the Planck function for TLOS  
-	  size_t   iv, ilos;              // frequency and LOS point index
+	  Index   iv, ilos;              // frequency and LOS point index
   
     out2 << "  Calculating the source function for LTE and no scattering.\n";
    
     // Resize the source array
-    resize(source,nza);
+    source.resize(nza);
   
     // Loop the zenith angles and:
     //  1. interpolate the temperature
     //  2. calculate the Planck function for the interpolated temperatures
     //  3. take the mean of neighbouring Planck values
     out3 << "    Zenith angle nr:      ";
-    for (size_t i=0; i<nza; i++ ) 
+    for (Index i=0; i<nza; i++ ) 
     {
       if ( (i%20)==0 )
 	out3 << "\n      ";
       out3 << " " << i; cout.flush();
   
-      if ( los.p[i].size() > 0 )
+      if ( los.p[i].nelem() > 0 )
       {
-	nlos = los.p[i].size();
-	resize( tlos, nlos );
+	nlos = los.p[i].nelem();
+	tlos.resize( nlos );
 	interpp( tlos, p_abs, t_abs, los.p[i] );
-	resize( b, nf, nlos );
+	b.resize( nf, nlos );
 	planck( b, f_mono, tlos );
-	resize(source[i],nf,nlos-1);
+	source[i].resize(nf,nlos-1);
 	for ( ilos=0; ilos<(nlos-1); ilos++ )
 	{
 	  for ( iv=0; iv<nf; iv++ )
-	    source[i][iv][ilos] = ( b[iv][ilos] + b[iv][ilos+1] ) / 2.0;
+	    source[i](iv,ilos) = ( b(iv,ilos) + b(iv,ilos+1) ) / 2.0;
 	}
       }
     }  
@@ -1141,45 +1142,45 @@ void sourceCalc(
    \date   2000-?-?
 */
 void transCalc(
-                    ArrayofMatrix&   trans,
+                    ArrayOfMatrix&   trans,
               const LOS&             los,   
               const Vector&          p_abs,
               const Matrix&          abs )
 {    
   // Some variables
-  const size_t   n = los.start.size(); // the number of zenith angles
-  const size_t   nf = abs.nrows();     // the number of frequencies
-        size_t   np;                   // the number of pressure points
-        size_t   row, col;             // counters
+  const Index   n = los.start.nelem(); // the number of zenith angles
+  const Index   nf = abs.nrows();     // the number of frequencies
+        Index   np;                   // the number of pressure points
+        Index   row, col;             // counters
         Matrix   abs2 ;                // matrix to store interpolated absorp.
        Numeric   w;                    // = -l_step/2
 
   out2 << "  Calculating transmissions WITHOUT scattering.\n";
  
   // Resize the transmission array
-  resize(trans,n);
+  trans.resize(n);
 
   // Loop the zenith angles and:
   //  1. interpolate the absorption
   //  2. calculate the transmission using the mean absorption between points
   out3 << "    Zenith angle nr:     ";
-  for (size_t i=0; i<n; i++ ) 
+  for (Index i=0; i<n; i++ ) 
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
     out3 << " " << i; cout.flush();
     
-    np = los.p[i].size();
+    np = los.p[i].nelem();
     if ( np > 0 )
     {
-      resize( abs2, nf, np );
+      abs2.resize( nf, np );
       interp_lin_matrix( abs2, p_abs, abs, los.p[i] );
-      resize(trans[i], nf, np-1 );
+      trans[i].resize( nf, np-1 );
       w  =  -0.5*los.l_step[i];
       for ( row=0; row<nf; row++ )
       {
         for ( col=0; col<(np-1); col++ )
-          trans[i][row][col] = exp( w * ( abs2[row][col]+abs2[row][col+1]) );
+          trans[i](row,col) = exp( w * ( abs2(row,col)+abs2(row,col+1) ) );
       }
     }
   }    
@@ -1199,11 +1200,11 @@ void y_spaceStd(
               const Vector&   f,
               const String&   choice )
 {
-  resize( y_space, f.size() );
+  y_space.resize( f.nelem() );
 
   if ( choice == "zero" )
   {
-    setto(y_space,0.0);
+    y_space = 0.0;		// Matpack can set all elements like this.
     out2 << "  Setting y_space to zero.\n";
   }
   else if ( choice == "cbgr" )
@@ -1233,12 +1234,12 @@ void y_spaceStd(
 */
 void yCalc (
                     Vector&          y,
-	      const int&             emission,
+	      const Index&             emission,
               const LOS&             los,   
               const Vector&          f_mono,
               const Vector&          y_space,
-              const ArrayofMatrix&   source,
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   source,
+              const ArrayOfMatrix&   trans,
               const Vector&          e_ground,
               const Numeric&         t_ground )
 {
@@ -1246,13 +1247,13 @@ void yCalc (
     throw runtime_error("The emission flag must either be 0 or 1.");
 
   // Check that dimensions of trans and f_mono are consistent.
-  for ( size_t i=0; i<trans.size(); ++i )
-    if ( (trans[i].nrows()>0) && (trans[i].nrows()!=f_mono.size()) )
+  for ( Index i=0; i<trans.nelem(); ++i )
+    if ( (trans[i].nrows()>0) && (trans[i].nrows()!=f_mono.nelem()) )
     {
       ostringstream os;
       os << "Number of frequencies in trans and f_mono is inconsistent:\n"
 	 << "trans:  " << trans[i].nrows() << "\n"
-	 << "f_mono: " << f_mono.size();
+	 << "f_mono: " << f_mono.nelem();
       throw runtime_error(os.str());
     }
   
@@ -1274,9 +1275,9 @@ void yCalc (
 */
 void yTau (
                     Vector&          y,
-	      const int&             emission,
+	      const Index&             emission,
               const LOS&             los,   
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   trans,
               const Vector&          e_ground )
 {
   if ( emission != 0 )
@@ -1308,10 +1309,10 @@ void yTB (
               const Vector&          f_sensor,
               const Vector&          za_sensor )
 {
-  const size_t   nf  = f_sensor.size();
-  const size_t   nza = za_sensor.size();
-  const size_t   ny  = y.size();
-        size_t   i0;
+  const Index   nf  = f_sensor.nelem();
+  const Index   nza = za_sensor.nelem();
+  const Index   ny  = y.nelem();
+        Index   i0;
   // Following the change in yTRJ below (just to be safe)
   const double   a = PLANCK_CONST/BOLTZMAN_CONST;
   const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
@@ -1327,11 +1328,11 @@ void yTB (
 
   out2 << "  Converts the spectrum to brightness (Planck) temperature.\n";
 
-  for ( size_t i=0; i<nf; i++ )
+  for ( Index i=0; i<nf; i++ )
   {
     c = a*f_sensor[i];
     d = b*f_sensor[i]*f_sensor[i]*f_sensor[i];
-    for ( size_t j=0; j<nza; j++ )    
+    for ( Index j=0; j<nza; j++ )    
     {
       i0 = j*nf + i;
       y[i0] = c / ( log(d/y[i0]+1) );
@@ -1352,10 +1353,10 @@ void yTRJ (
               const Vector&          f_sensor,
               const Vector&          za_sensor )
 {
-  const size_t   nf  = f_sensor.size();
-  const size_t   nza = za_sensor.size();
-  const size_t   ny  = y.size();
-        size_t   i0;
+  const Index   nf  = f_sensor.nelem();
+  const Index   nza = za_sensor.nelem();
+  const Index   ny  = y.nelem();
+        Index   i0;
   // The function returned NaNs when a and b were set to be Numeric (PE 010404)
   const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
         double   b;
@@ -1368,20 +1369,20 @@ void yTRJ (
     {
       ostringstream os;
       os << "The length of y does not match f_sensor and za_sensor.\n"
-	 << "y.size():         " << y.size() << "\n"
-	 << "Should be f_sensor.size()*za_sensor.size(): "
-	 << f_sensor.size() * za_sensor.size() << "\n"
-	 << "f_sensor.size():  " << f_sensor.size() << "\n"
-	 << "za_sensor.size(): " << za_sensor.size();
+	 << "y.nelem():         " << y.nelem() << "\n"
+	 << "Should be f_sensor.nelem()*za_sensor.nelem(): "
+	 << f_sensor.nelem() * za_sensor.nelem() << "\n"
+	 << "f_sensor.nelem():  " << f_sensor.nelem() << "\n"
+	 << "za_sensor.nelem(): " << za_sensor.nelem();
       throw runtime_error(os.str());
     }
 
   out2 << "  Converts the spectrum to Rayleigh-Jean temperature.\n";
 
-  for ( size_t i=0; i<nf; i++ )
+  for ( Index i=0; i<nf; i++ )
   {
     b = a/(f_sensor[i]*f_sensor[i]);
-    for ( size_t j=0; j<nza; j++ )    
+    for ( Index j=0; j<nza; j++ )    
     {
       i0 = j*nf + i;
       y[i0] = b * y[i0];
@@ -1411,14 +1412,14 @@ void MatrixTRJ (// WS Generic Output:
   // Resize kout if necessary:
   if (kout.nrows()!=kin.nrows() ||
       kout.ncols()!=kin.ncols())
-    resize(kout,kin.nrows(),kin.ncols());
+    kout.resize(kin.nrows(),kin.ncols());
   
   Vector y(kin.nrows());
-  for ( size_t i=0; i<kin.ncols(); i++ )
+  for ( Index i=0; i<kin.ncols(); i++ )
   {
-    copy( columns(kin)[i], y );    
+    y = kin(Range(joker),i);	// Copy ith column of kin to y.
     yTRJ( y, f_sensor, za_sensor );
-    copy( y, columns(kout)[i] );
+    kout(Range(joker),i) = y;	// Copy to ith column of kout.
   }
 }
 
@@ -1444,14 +1445,14 @@ void MatrixTB (// WS Generic Output:
   // Resize kout if necessary:
   if (kout.nrows()!=kin.nrows() ||
       kout.ncols()!=kin.ncols())
-    resize(kout,kin.nrows(),kin.ncols());
+    kout.resize(kin.nrows(),kin.ncols());
   
   Vector y(kin.nrows());
-  for ( size_t i=0; i<kin.ncols(); i++ )
+  for ( Index i=0; i<kin.ncols(); i++ )
   {
-    copy( columns(kin)[i], y );    
+    y = kin(Range(joker),i);	// Copy ith column of kin to y.
     yTB( y, f_sensor, za_sensor );
-    copy( y, columns(kout)[i] );
+    kout(Range(joker),i) = y;	// Copy to ith column of kout.
   }
 }
 
@@ -1470,17 +1471,17 @@ void yLoadCalibration (
               const Vector&          y_cal2,
               const Vector&          za_sensor )
 {
-  const size_t   nf  = i_cal1.size();
-  const size_t   nza = za_sensor.size();
-  const size_t   ny  = y.size();
-        size_t   i0;
+  const Index   nf  = i_cal1.nelem();
+  const Index   nza = za_sensor.nelem();
+  const Index   ny  = y.nelem();
+        Index   i0;
         Numeric  a;
 
   if ( max(y) > 1e-4 )  
     throw runtime_error("The spectrum is not in expected intensity unit "
                         "(impossible value detected).");
 
-  if ( (nf!=i_cal2.size()) || (nf!=y_cal1.size()) || (nf!=y_cal2.size()) )
+  if ( (nf!=i_cal2.nelem()) || (nf!=y_cal1.nelem()) || (nf!=y_cal2.nelem()) )
     throw runtime_error(
                      "All the calibration vectors must have the same length.");
   if ( nf*nza != ny )  
@@ -1489,10 +1490,10 @@ void yLoadCalibration (
 
   out2 << "  Performs a load switching calibration procedure.\n";
 
-  for ( size_t i=0; i<nf; i++ )
+  for ( Index i=0; i<nf; i++ )
   {
     a = (i_cal2[i]-i_cal1[i])/(y_cal2[i]-y_cal1[i]);
-    for ( size_t j=0; j<nza; j++ )    
+    for ( Index j=0; j<nza; j++ )    
     {
       i0 = j*nf + i;
       y[i0] = i_cal1[i] + a * ( y[i0] - y_cal1[i] );
@@ -1518,8 +1519,8 @@ void zaFromDeltat(
         const Vector&       p_abs,
         const Vector&       z_abs,
         const Numeric&      l_step,
-	const int&          refr,
-	const int&          refr_lfac,
+	const Index&          refr,
+	const Index&          refr_lfac,
 	const Vector&       refr_index,
 	const Numeric&      r_geoid,
         const Numeric&      z_ground,
@@ -1558,7 +1559,7 @@ void zaFromDeltat(
 
     const Index n=Index(floor((phi[0]-phi[1])/ang_step));
 
-    resize(za,n);
+    za.resize(n);
     for ( Index j=0;j<n;j++ )
       za[j] = 90 + phi[0] - (j * ang_step);
   }
@@ -1571,7 +1572,7 @@ void zaFromDeltat(
     
     Vector z_tan_1(n);
     Vector z_tan_2(n);
-    resize(za,n);
+    za.resize(n);
 
     // ztan altitudes for later doing the interpolation
     for ( Index j=0;j<n;j++ )
@@ -1606,7 +1607,7 @@ void zaFromDeltat(
 
 
     // ztan for psi for deltat from  psi and ztan for interpolation        
-    resize(z_tan_1,np);
+    z_tan_1.resize(np);
     for ( Index j=0;j<np;j++ )
     {
       z_tan_1[j]=interp_lin(psizb,z_tan_2,psit[j]);

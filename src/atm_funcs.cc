@@ -37,10 +37,14 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
+#include <stdexcept>
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
 #include "messages.h"          
 #include "math_funcs.h"          
+#include "make_vector.h"
+
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PLANCK_CONST;
@@ -66,24 +70,20 @@ extern const Numeric BOLTZMAN_CONST;
 
     \author Patrick Eriksson 
     \date   2000-04-08 
-
-    Adapted to MTL. Gone from 1-based to 0-based. No resize!
-    \date 2000-12-26
-    \author Stefan Buehler
 */
 void planck (
-              Matrix&     B, 
-        const Vector&     f,
-        const Vector&     t )
+	     MatrixView      B, 
+	     ConstVectorView f,
+	     ConstVectorView t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
   static const double  b = PLANCK_CONST/BOLTZMAN_CONST;
 
-  const size_t    n_f  = f.size();
-  const size_t    n_t  = t.size();
-        size_t    i_f, i_t;
-        Numeric   c, d;
+  const Index    n_f  = f.nelem();
+  const Index    n_t  = t.nelem();
+  Index    i_f, i_t;
+  Numeric   c, d;
 
   assert( n_f==B.nrows() );
   assert( n_t==B.ncols() );
@@ -93,7 +93,7 @@ void planck (
     c = a * f[i_f]*f[i_f]*f[i_f];
     d = b * f[i_f];
     for ( i_t=0; i_t<n_t; i_t++ )
-      B[i_f][i_t] = c / (exp(d/t[i_t]) - 1.0);
+      B(i_f,i_t) = c / (exp(d/t[i_t]) - 1.0);
   }
 }
 
@@ -109,38 +109,20 @@ void planck (
 
     \author Patrick Eriksson 
     \date   2000-04-08 
-
-    Adapted to MTL. Gone from 1-based to 0-based. No resize!
-    \date 2000-12-26
-    \author Stefan Buehler
-
-    Changed from vector calculations to a simple loop
-    \date   2001-01-15 
-    \author Patrick Eriksson 
-
-    Fixed bug: Variables a and b must not be declared as static,
-    otherwise they are only computed for the first function call. 
-    \date   2001-04-03 
-    \author Stefan Buehler
-
-    Introduced c and made a and b static again as they (a and b) now
-    only contains constants.
-    \date   2001-04-04
-    \author Patrick Eriksson
 */
 void planck (
-             Vector&    B,
-       const Vector&    f,
-       const Numeric&   t )
+             VectorView    B,
+	     ConstVectorView    f,
+	     Numeric   t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
   static const double  b = PLANCK_CONST/BOLTZMAN_CONST;
          const double  c = b/t; 
 
-  assert( B.size()==f.size() );
+  assert( B.nelem()==f.nelem() );
 
-  for ( size_t i=0; i<f.size(); i++ )
+  for ( Index i=0; i<f.nelem(); i++ )
   {
     B[i] = a * f[i]*f[i]*f[i] / ( exp( f[i]*c ) - 1.0 );
   }
@@ -160,9 +142,10 @@ void planck (
     \date   2000-04-08 
 */
 Numeric number_density (
-       const Numeric&   p,
-       const Numeric&   t )
+			Numeric   p,
+			Numeric   t )
 {
+  assert( 0!=t );
   return  p/t/BOLTZMAN_CONST;
 }
 
@@ -172,25 +155,27 @@ Numeric number_density (
 //
 /** Calculates the number density (vector version).
 
-    \return nd      number density
+    \return number density
     \param  p       pressure
     \param  t       temperature
 
     \author Patrick Eriksson 
     \date   2000-04-08 
-
-    Adapted to MTL. 
-    \date 2000-12-25
-    \author Stefan Buehler
 */
 Vector number_density (
-       const Vector&    p,
-       const Vector&    t )
+		       ConstVectorView    p,
+		       ConstVectorView    t )
 {
-  assert( p.size()==t.size() );
-  Vector dummy(p.size());
-  // ediv(p,t)/BOLTZMAN_CONST;
-  ele_div(p,scaled(t,BOLTZMAN_CONST),dummy);
+  assert( p.nelem()==t.nelem() );
+
+  // Calculate p / (t*BOLTZMAN_CONST):
+
+  Vector dummy(p);		// Matpack can initialize a
+				// new Vector from another
+				// Vector.
+  dummy /= t;			// Element-vise divide by t.
+  dummy /= BOLTZMAN_CONST;	// Divide all elements by BOLTZMAN_CONST.
+
   return dummy; 
 }
 
@@ -209,9 +194,9 @@ Vector number_density (
     \date   2000-12-04
 */
 Numeric g_of_z (
-       const Numeric&   r_geoid,
-       const Numeric&   g0,
-       const Numeric&   z )
+		Numeric   r_geoid,
+		Numeric   g0,
+		Numeric   z )
 {
   return g0 * pow( r_geoid/(r_geoid+z), 2 );
 }
@@ -243,16 +228,16 @@ Numeric g_of_z (
     \date   2000-04-08 
 */
 void rte_iterate (
-             Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   tr,
-       const Matrix&   s,
-       const size_t    n_f )
+		  VectorView        y, 
+		  const Index             start_index,
+		  const Index             stop_index,
+		  ConstMatrixView   tr,
+		  ConstMatrixView   s,
+		  const Index             n_f )
 {
-        size_t   i_f;        // frequency index
-        size_t   i_z;        // LOS index
-           int   i_step;     // step order, -1 or 1
+  Index   i_f;        // frequency index
+  Index   i_z;        // LOS index
+  Index   i_step;     // step order, -1 or 1
 
   if ( start_index >= stop_index )
     i_step = -1;
@@ -263,7 +248,7 @@ void rte_iterate (
   for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
   {
     for ( i_f=0; i_f<n_f; i_f++ )    
-      y[i_f] = y[i_f]*tr[i_f][i_z] + s[i_f][i_z] * ( 1.0-tr[i_f][i_z] );
+      y[i_f] = y[i_f]*tr(i_f,i_z) + s(i_f,i_z) * ( 1.0-tr(i_f,i_z) );
   }
 }
 
@@ -290,23 +275,25 @@ void rte_iterate (
     \date   2000-04-08 
 */
 void rte (
-             Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   tr,
-       const Matrix&   s,
-       const Vector&   y_space,
-       const Index&    ground,
-       const Vector&   e_ground,
-       const Vector&   y_ground )
+	  VectorView        y,
+	  const Index             start_index,
+	  const Index             stop_index,
+	  ConstMatrixView   tr,
+	  ConstMatrixView   s,
+	  ConstVectorView   y_space,
+	  const Index             ground,
+	  ConstVectorView   e_ground,
+	  ConstVectorView   y_ground )
 {
-  const size_t   n_f = tr.nrows();              // number of frequencies
-        size_t   i_f;                           // frequency index
-        size_t   i_break;                       // break index for looping
-        size_t   i_start;                       // variable for second loop
+  const Index   n_f = tr.nrows();              // number of frequencies
+  Index   	i_f;                           // frequency index
+  Index   	i_break;                       // break index for looping
+  Index   	i_start;                       // variable for second loop
 
   // Init Y with Y_SPACE
-  copy( y_space, y );
+  y = y_space;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
 
   // Check if LOS inside the atmosphere (if START_Index=0 -> Y=Y_SPACE)
   if ( start_index > 0 )
@@ -373,15 +360,15 @@ void rte (
     \date   2000-04-08 
 */
 void bl_iterate (
-             Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   tr,
-       const size_t    n_f )
+             VectorView   y,
+       const Index   start_index,
+       const Index   stop_index,
+       ConstMatrixView   tr,
+       const Index    n_f )
 {
-  size_t   i_f;        // frequency index
-  size_t   i_z;        // LOS index
-     int   i_step;     // step order, -1 or 1
+  Index   i_f;        // frequency index
+  Index   i_z;        // LOS index
+     Index   i_step;     // step order, -1 or 1
 
   if ( start_index >= stop_index )
     i_step = -1;
@@ -391,7 +378,7 @@ void bl_iterate (
   for ( i_z=start_index; i_z!=(stop_index+i_step); i_z+=i_step ) 
   {
     for ( i_f=0; i_f<n_f; i_f++ )    
-      y[i_f] *= tr[i_f][i_z];
+      y[i_f] *= tr(i_f,i_z);
   }
 }
 
@@ -416,28 +403,28 @@ void bl_iterate (
 */
 void bl (
              Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   tr,
-       const Index&    ground,
-       const Vector&   e_ground )
+       const Index   start_index,
+       const Index   stop_index,
+       ConstMatrixView   tr,
+       const Index    ground,
+       ConstVectorView   e_ground )
 {
   if ( start_index < stop_index )
-    throw runtime_error(
-                    "The start index cannot be smaller than the stop index." );
+    throw runtime_error("The start index cannot be "
+			"smaller than the stop index." );
 
-  const size_t   nf = tr.nrows();      // number of frequencies
-        size_t   iy;                   // frequency index
+  const Index   nf = tr.nrows();      // number of frequencies
+  Index         iy;                   // frequency index
 
   // Init Y
-  resize( y, nf );
-  setto( y, 1.0 );
+  y.resize( nf );
+  y = 1.0;
 
   // Loop steps passed twice
   if ( stop_index > 0 )
   {
     bl_iterate( y, 0, stop_index-1, tr, nf );
-    ele_mult( y, y, y );  
+    y *= y;			// Calculate the square of y element-vise.
   }
 
   // Loop remaining steps
@@ -462,7 +449,7 @@ void bl (
 //
 /** Converts an altitude vector to pressures.
 
-    The log. of the pressures are interpolated linearly.
+    The log of the pressures are interpolated linearly.
     In Matlab notation:
 
       p = exp(interp1(z0,log(p0),z,'linear'))
@@ -474,23 +461,22 @@ void bl (
 
     \author Patrick Eriksson 
     \date   2000-04-08
-
-    Adapted to MTL and use of transf function. No resize!
-
-    \date   2000-12-27
-    \author Stefan Buehler
 */
 void z2p(
-              Vector&     p,
-        const Vector&     z0,
-        const Vector&     p0,
-        const Vector&     z )
+	 VectorView      p,
+	 ConstVectorView z0,
+	 ConstVectorView p0,
+	 ConstVectorView z )
 {
-  assert( p.size()==z.size() );
-  if ( z.size() > 0 )
+  assert( p.nelem()==z.nelem() );
+  if ( z.nelem() > 0 )
   {
-    interp_lin_vector( p, z0, transf(p0,log), z );
-    transf( p, exp, p );
+    // Local variable to store log pressure grid:
+    Vector logp0(p0.nelem());
+    transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
+
+    interp_lin_vector( p, z0, logp0, z );
+    transform( p, exp, p );	        // This calculates p = exp(p).
   }
 }
 
@@ -512,30 +498,32 @@ void z2p(
 
     \author Patrick Eriksson 
     \date   2000-04-08
-
-    Adapted to MTL. No resize!
-    \date   2001-01-05
-    \author Stefan Buehler
 */
 void interpp(
-              Vector&     x, 
-        const Vector&     p0,
-        const Vector&     x0,
-        const Vector&     p )
+	     VectorView          x, 
+	     ConstVectorView     p0,
+	     ConstVectorView     x0,
+	     ConstVectorView     p )
 {
-  assert( x.size()==p.size() );
-  //interp_lin( x, transf(p0,log), x0, transf(p,log) );
-  interp_lin_vector( x, transf(p0,log), x0, transf(p,log) );
+  assert( x.nelem()==p.nelem() );
+
+  // Local variables to store log pressure grids:
+  Vector logp0(p0.nelem());
+  Vector logp(p.nelem());
+  transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
+  transform( logp,  log, p  );	// This calculates logp  = log(p).
+
+  interp_lin_vector( x, logp0, x0, logp );
 }
 
 void interpp_cloud(
-              Vector&     x, 
-        const Vector&     p0,
-        const Vector&     x0,
-        const Vector&     p )
+		   VectorView     x, 
+		   ConstVectorView     p0,
+		   ConstVectorView     x0,
+		   ConstVectorView     p )
 {
-  assert( x.size()==p.size() );
-  //interp_lin( x, p0, x0, p );
+  assert( x.nelem()==p.nelem() );
+
   interp_lin_vector( x, p0, x0, p );
 }
 
@@ -557,20 +545,23 @@ void interpp_cloud(
 
     \author Patrick Eriksson 
     \date   2000-04-08 
-
-    Adapted to MTL. No resize!
-    \date   2001-01-05
-    \author Stefan Buehler
 */
 void interpp(
-              Matrix&  A,
-        const Vector&  p0, 
-        const Matrix&  A0, 
-        const Vector&  p )
+	     MatrixView  A,
+	     ConstVectorView  p0, 
+	     ConstMatrixView  A0, 
+	     ConstVectorView  p )
 {
-  assert( A.nrows()==A0.nrows() );
-  assert( A.ncols()==p.size() ); 
-  interp_lin_matrix( A, transf(p0,log), A0, transf(p,log) );
+  assert( A.nrows()  == A0.nrows() );
+  assert( A.ncols()  == p.nelem()  ); 
+
+  // Local variables to store log pressure grids:
+  Vector logp0(p0.nelem());
+  Vector logp(p.nelem());
+  transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
+  transform( logp,  log, p );	// This calculates logp0 = log(p0).
+
+  interp_lin_matrix( A, logp0, A0, logp );
 }
 
 
@@ -588,17 +579,17 @@ void interpp(
 
     \author Patrick Eriksson 
     \date   2000-12-04
-
-    Adapted to MTL. 
-    \date   2001-01-05
-    \author Stefan Buehler
 */
 Numeric interpp(
-        const Vector&     p0,
-        const Vector&     x0,
-        const Numeric&    p )
+		ConstVectorView     p0,
+		ConstVectorView     x0,
+		const Numeric       p )
 {
-  return interp_lin( transf(p0,log), x0, log(p) );
+  // Local variable to store log pressure grid:
+  Vector logp0(p0.nelem());
+  transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
+
+  return interp_lin( logp0, x0, log(p) );
 }
 
 
@@ -625,14 +616,14 @@ Numeric interpp(
     \date   2000-10-02 
 */
 void interpz(
-	     Vector&     x, 
-	     const Vector&     p0,
-	     const Vector&     z0,
-	     const Vector&     x0,
-	     const Vector&     z )
+	     VectorView     x, 
+	     ConstVectorView     p0,
+	     ConstVectorView     z0,
+	     ConstVectorView     x0,
+	     ConstVectorView     z )
 {
-  assert( x.size()==z.size() ); 
-  Vector p(z.size());
+  assert( x.nelem()==z.nelem() ); 
+  Vector p(z.nelem());
   z2p( p, z0, p0, z );
   interpp( x, p0, x0, p );
 }
@@ -661,13 +652,14 @@ void interpz(
     \date   2000-10-02 
 */
 Numeric interpz(
-        const Vector&     p0,
-        const Vector&     z0,
-        const Vector&     x0,
-        const Numeric&    z )
+        ConstVectorView     p0,
+        ConstVectorView     z0,
+        ConstVectorView     x0,
+        const Numeric    z )
 {
   Vector x(1);
-  interpz( x, p0, z0, x0, Vector(1,z) );
+  MakeVector Z(z);
+  interpz( x, p0, z0, x0, Z );
   return x[0];
 }
 
@@ -689,9 +681,9 @@ Numeric interpz(
     \date   2000-04-08 
 */
 Numeric ztan_geom(
-        const Numeric&   za,
-        const Numeric&   z_plat,
-        const Numeric&   r_geoid )
+        const Numeric   za,
+        const Numeric   z_plat,
+        const Numeric   r_geoid )
 {
   Numeric  z_tan;
   if ( za >= 90 )   
@@ -721,11 +713,11 @@ Numeric ztan_geom(
    \date   2001-02-18
 */
 Numeric n_for_z(
-        const Numeric&      z,
-        const Vector&       p_abs,
-        const Vector&       z_abs,
-        const Vector&       refr_index,
-        const Numeric&      atm_limit )
+        const Numeric      z,
+        ConstVectorView       p_abs,
+        ConstVectorView       z_abs,
+        ConstVectorView       refr_index,
+        const Numeric      atm_limit )
 
 {
   if ( z > atm_limit )
@@ -758,13 +750,13 @@ Numeric n_for_z(
    \date   2001-02-18
 */
 Numeric refr_constant( 
-        const Numeric&      r_geoid,
-        const Numeric&      za,
-        const Numeric&      z_plat,
-        const Vector&       p_abs,
-        const Vector&       z_abs,
-        const Numeric&      atm_limit,
-        const Vector&       refr_index )
+        const Numeric      r_geoid,
+        const Numeric      za,
+        const Numeric      z_plat,
+        ConstVectorView       p_abs,
+        ConstVectorView       z_abs,
+        const Numeric      atm_limit,
+        ConstVectorView       refr_index )
 {
   Numeric n_plat = n_for_z( z_plat, p_abs, z_abs, refr_index, atm_limit );
 
@@ -790,22 +782,22 @@ Numeric refr_constant(
     \date   2000-10-02
 */
 Numeric ztan_refr(
-        const Numeric&   c,
-        const Numeric&   za,
-        const Numeric&   z_plat,
-        const Numeric&   z_ground,
-        const Vector&    p_abs,
-        const Vector&    z_abs,
-        const Vector&    refr_index,
-        const Numeric&   r_geoid )
+        const Numeric   c,
+        const Numeric   za,
+        const Numeric   z_plat,
+        const Numeric   z_ground,
+        ConstVectorView    p_abs,
+        ConstVectorView    z_abs,
+        ConstVectorView    refr_index,
+        const Numeric   r_geoid )
 {
   const Numeric atm_limit = last(z_abs);
   if ( za < 90 )   //=== Upward ==========================================
     return ztan_geom( za, z_plat, r_geoid );
   else
   {
-    const size_t  n = z_abs.size();
-          size_t  i;
+    const Index  n = z_abs.nelem();
+          Index  i;
 
     for ( i=(n-1); (i>=0) && (r_geoid+z_abs[i])*refr_index[i]>c; i-- )
     {

@@ -17,11 +17,11 @@
 
 #include "arts.h"
 #include "token.h"
-#include "vecmat.h"
+#include "array.h"
 #include "file.h"
 #include "auto_wsv.h"
 #include "methods.h"
-
+#include "wsv_aux.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
@@ -43,7 +43,7 @@ int main()
     {
       // Make the global data visible:
       extern Array<MdRecord> md_data;
-      extern const Array<String> wsv_group_names;
+      extern const ArrayOfString wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize method data.
@@ -56,8 +56,8 @@ int main()
       define_wsv_data();
   
 
-      const size_t n_md  = md_data.size();
-      const size_t n_wsv = wsv_data.size();
+      const Index n_md  = md_data.nelem();
+      const Index n_wsv = wsv_data.nelem();
 
       // For safety, check if n_wsv and N_WSV have the same value. If not, 
       // then the file wsv.h is not up to date.
@@ -83,6 +83,8 @@ int main()
       ofs << "#include \"arts.h\"\n"
 	  << "#include \"make_array.h\"\n"
 	  << "#include \"auto_md.h\"\n"
+	  << "#include \"auto_wsv_groups.h\"\n"
+	  << "#include \"wsv_aux.h\"\n"
 	  << "\n";
 
       // Declare wsv_data:
@@ -95,29 +97,29 @@ int main()
 
       // Write all get-away functions:
       // -----------------------------
-      for (size_t i=0; i<n_md; ++i)
+      for (Index i=0; i<n_md; ++i)
 	{
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
 	  bool is_first_parameter = true;
 	  // The String indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  String indent = String(md_data[i].Name().size()+3,' ');;
+	  String indent = String(md_data[i].Name().nelem()+3,' ');;
 	  
 	  // There are four lists of parameters that we have to
 	  // write. 
-	  Array<size_t>  vo=md_data[i].Output();   // Output 
-	  Array<size_t>  vi=md_data[i].Input();    // Input
-	  Array<size_t>  vgo=md_data[i].GOutput();   // Generic Output 
-	  Array<size_t>  vgi=md_data[i].GInput();    // Generic Input
+	  ArrayOfIndex  vo=md_data[i].Output();   // Output 
+	  ArrayOfIndex  vi=md_data[i].Input();    // Input
+	  ArrayOfIndex  vgo=md_data[i].GOutput();   // Generic Output 
+	  ArrayOfIndex  vgi=md_data[i].GInput();    // Generic Input
 	  // vo and vi contain handles of workspace variables, 
 	  // vgo and vgi handles of workspace variable groups.
 
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (Array<size_t>::const_iterator j=vo.begin(); j<vo.end(); ++j)
-	    for (Array<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
+	  for (ArrayOfIndex::const_iterator j=vo.begin(); j<vo.end(); ++j)
+	    for (ArrayOfIndex::iterator k=vi.begin(); k<vi.end(); ++k)
 	      if ( *j == *k )
 		{
 		  //		  erase_vector_element(vi,k);
@@ -141,7 +143,7 @@ int main()
 
 
 	  // Define generic output pointers
-	  for (size_t j=0; j<vgo.size(); ++j)
+	  for (Index j=0; j<vgo.nelem(); ++j)
 	    {
 	      ofs << "  " << wsv_group_names[md_data[i].GOutput()[j]]
 		  << " *GO" << j << " = *wsv_pointers[mr.Output()[" << j
@@ -149,7 +151,7 @@ int main()
 	    }
 
 	  // Define generic input pointers
-	  for (size_t j=0; j<vgi.size(); ++j)
+	  for (Index j=0; j<vgi.nelem(); ++j)
 	    {
 	      ofs << "  " << wsv_group_names[md_data[i].GInput()[j]]
 		  << " *GI" << j << " = *wsv_pointers[mr.Input()[" << j
@@ -159,7 +161,7 @@ int main()
 	  ofs << "  " << md_data[i].Name() << "(";
 
 	  // Write the Output workspace variables:
-	  for (size_t j=0; j<vo.size(); ++j)
+	  for (Index j=0; j<vo.nelem(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
@@ -168,7 +170,7 @@ int main()
 	    }
 
 	  // Write the Generic output workspace variables:
-	  for (size_t j=0; j<vgo.size(); ++j)
+	  for (Index j=0; j<vgo.nelem(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
@@ -177,7 +179,7 @@ int main()
 	    }
 
 	  // Write the Generic output workspace variable names:
-	  for (size_t j=0; j<vgo.size(); ++j)
+	  for (Index j=0; j<vgo.nelem(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
@@ -188,7 +190,7 @@ int main()
 	    }
 
 	  // Write the Input workspace variables:
-	  for (size_t j=0; j<vi.size(); ++j)
+	  for (Index j=0; j<vi.nelem(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
@@ -197,7 +199,7 @@ int main()
 	    }
 
 	  // Write the Generic input workspace variables:
-	  for (size_t j=0; j<vgi.size(); ++j)
+	  for (Index j=0; j<vgi.nelem(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
@@ -206,7 +208,7 @@ int main()
 	    }
 
 	  // Write the Generic input workspace variable names:
-	  for (size_t j=0; j<vgi.size(); ++j)
+	  for (Index j=0; j<vgi.nelem(); ++j)
 	    {
 	      // Add comma and line break, if not first element:
 	      align(ofs,is_first_parameter,indent);
@@ -220,9 +222,9 @@ int main()
 	  {
 	    // The mr parameters look all the same (mr[i]), so we just
 	    // need to know the number of them: 
-	    size_t n_mr = md_data[i].Keywords().size();
+	    Index n_mr = md_data[i].Keywords().nelem();
 
-	    for (size_t j=0; j!=n_mr; ++j)
+	    for (Index j=0; j!=n_mr; ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -243,7 +245,7 @@ int main()
 	ofs << "// The array holding the pointers to the getaway functions.\n"
 	    << "void (*getaways[])(WorkSpace&, const MRecord&)\n"
 	    << "  = {";
-	for (size_t i=0; i<n_md; ++i)
+	for (Index i=0; i<n_md; ++i)
 	  {
 	    // Add comma and line break, if not first element:
 	    align(ofs,is_first_parameter,indent);

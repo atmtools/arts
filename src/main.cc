@@ -27,6 +27,7 @@
    \author Stefan Buehler
    \date   2001-07-24
 */
+#include <map>
 #include "arts.h"
 #include "parameters.h"
 #include "messages.h"
@@ -37,7 +38,7 @@
 #include "parser.h"
 #include "auto_md.h"
 #include "absorption.h"
-
+#include "wsv_aux.h"
 
 // This must be here rather than in arts.h, because arts.h does not
 // know about Array.
@@ -81,11 +82,11 @@ void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
   // the stl vector directly. The other place where this is done is in
   // the function lines_per_tgCreateFromLines in m_abs.cc.
   // FIXME: Fix this when Array<bool> works.
-  std::vector<bool> occupied(wsv_data.size(),false);
+  std::vector<bool> occupied(wsv_data.nelem(),false);
 
   out3 << "\nExecuting methods:\n";
 
-//   for (size_t i=0; i<tasklist.size(); ++i)
+//   for (Index i=0; i<tasklist.nelem(); ++i)
 //     {
 //       const MRecord&  mrr = tasklist[i];
 //       cout << "id, input: " << mrr.Id() << ", ";
@@ -95,14 +96,12 @@ void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
 //     }
 
 
-  for (size_t i=0; i<tasklist.size(); ++i)
+  for (Index i=0; i<tasklist.nelem(); ++i)
     {
       // Runtime method data for this method:
       const MRecord&  mrr = tasklist[i];
       // Method data for this method:
       const MdRecord& mdd = md_data[mrr.Id()];
-      // Needed to store variable lists:
-      Array<size_t> v;
       
       try
 	{
@@ -110,17 +109,17 @@ void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
 
 	
 	  { // Check if all specific input variables are occupied:
-	    v = mdd.Input();
-	    for (size_t s=0; s<v.size(); ++s)
+	    const ArrayOfIndex& v(mdd.Input());
+	    for (Index s=0; s<v.nelem(); ++s)
 	      if (!occupied[v[s]])
 		give_up("Method "+mdd.Name()+" needs input variable: "+
 			wsv_data[v[s]].Name());
 	  }
 
 	  { // Check if all generic input variables are occupied:
-	    v = mrr.Input();
-	    //	    cout << "v.size(): " << v.size() << endl;
-	    for (size_t s=0; s<v.size(); ++s)
+	    const ArrayOfIndex& v(mrr.Input());
+	    //	    cout << "v.nelem(): " << v.nelem() << endl;
+	    for (Index s=0; s<v.nelem(); ++s)
 	      if (!occupied[v[s]])
 		give_up("Generic Method "+mdd.Name()+" needs input variable: "+
 			wsv_data[v[s]].Name());
@@ -131,13 +130,13 @@ void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
 	    ( workspace, mrr );
 
 	  { // Flag the specific output variables as occupied:
-	    v = mdd.Output();
-	    for (size_t s=0; s<v.size(); ++s) occupied[v[s]] = true;
+	    const ArrayOfIndex& v(mdd.Output());
+	    for (Index s=0; s<v.nelem(); ++s) occupied[v[s]] = true;
 	  }
 
 	  { // Flag the generic output variables as occupied:
-	    v = mrr.Output();
-	    for (size_t s=0; s<v.size(); ++s) occupied[v[s]] = true;
+	    const ArrayOfIndex& v(mrr.Output());
+	    for (Index s=0; s<v.nelem(); ++s) occupied[v[s]] = true;
 	  }
 
 	}
@@ -171,7 +170,7 @@ void polite_goodby()
     value.
     \param r Reporting level from Command line.
     \author Stefan Buehler */
-void set_reporting_level(int r)
+void set_reporting_level(Index r)
 {
   // The global variable that holds the message levels for screen and file.
   extern Messages messages;
@@ -189,8 +188,8 @@ void set_reporting_level(int r)
       // level accordingly. 
 	
 	// Separate the two digits by taking modulo 10:
-      int s = r / 10;
-      int f = r % 10;
+      Index s = r / 10;
+      Index f = r % 10;
       //	cout << "s=" << s << " f=" << f << '\n';
 
       if ( s<0 || s>3 || f<0 || f>3 )
@@ -219,28 +218,28 @@ void option_methods(const String& methods)
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<String, size_t> MdMap;
-  extern const std::map<String, size_t> WsvMap;
-  extern const Array<String> wsv_group_names;
+  //  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> WsvMap;
+  extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
-  size_t hitcount;
+  Index hitcount;
 
   // First check if the user gave the special name `all':
 
   if ( "all" == methods )
     {
-      cout << 
-        "\n*--------------------------------------------------------------*\n"
-     << "Complete list of ARTS workspace methods:\n"
-     << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+      cout
+	<< "\n*--------------------------------------------------------------*\n"
+	<< "Complete list of ARTS workspace methods:\n"
+	<< "----------------------------------------------------------------\n";
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  cout << "- " << md_data[i].Name() << '\n';
 	}
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
       return;
     }
 
@@ -248,21 +247,21 @@ void option_methods(const String& methods)
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, size_t>::const_iterator mi =
+  map<String, Index>::const_iterator mi =
     WsvMap.find(methods);
   if ( mi != WsvMap.end() )
     {
       // If we are here, then the given name matches a variable.
-      size_t wsv_key = mi->second;
+      Index wsv_key = mi->second;
 
       // List generic methods:
       hitcount = 0;
       cout 
-      << "\n*--------------------------------------------------------------*\n"
-      << "Generic methods that can generate " << wsv_data[wsv_key].Name() 
-      << ":\n"
-      << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+	<< "\n*--------------------------------------------------------------*\n"
+	<< "Generic methods that can generate " << wsv_data[wsv_key].Name() 
+	<< ":\n"
+	<< "----------------------------------------------------------------\n";
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  // This if statement checks whether GOutput, the list
 	  // of output variable types contains the group of the
@@ -281,11 +280,11 @@ void option_methods(const String& methods)
       // List specific methods:
       hitcount = 0;
       cout 
-      << "\n----------------------------------------------------------------\n"
-      << "Specific methods that can generate " << wsv_data[wsv_key].Name() 
-      << ":\n"
-      << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+	<< "\n----------------------------------------------------------------\n"
+	<< "Specific methods that can generate " << wsv_data[wsv_key].Name() 
+	<< ":\n"
+	<< "----------------------------------------------------------------\n";
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  // This if statement checks whether Output, the list
 	  // of output variables contains the workspace
@@ -301,8 +300,8 @@ void option_methods(const String& methods)
       if ( 0==hitcount )
 	cout << "none\n";
 
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -312,23 +311,23 @@ void option_methods(const String& methods)
   // We use the find algorithm from the STL to do this. It
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
-  size_t group_key =
+  Index group_key =
     find( wsv_group_names.begin(),
 	  wsv_group_names.end(),
 	  methods ) - wsv_group_names.begin();
 
-  // group_key == wsv_goup_names.size() indicates that a
+  // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if ( group_key != wsv_group_names.size() )
+  if ( group_key != wsv_group_names.nelem() )
     {
       // List generic methods:
       hitcount = 0;
       cout 
-      << "\n*--------------------------------------------------------------*\n"
-      << "Generic methods that can generate variables of group " 
-      << wsv_group_names[group_key] << ":\n"
-      << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+	<< "\n*--------------------------------------------------------------*\n"
+	<< "Generic methods that can generate variables of group " 
+	<< wsv_group_names[group_key] << ":\n"
+	<< "----------------------------------------------------------------\n";
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  // This if statement checks whether GOutput, the list
 	  // of output variable types contains the
@@ -344,8 +343,8 @@ void option_methods(const String& methods)
       if ( 0==hitcount )
 	cout << "none\n";
 
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -370,24 +369,24 @@ void option_input(const String& input)
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<String, size_t> MdMap;
-  extern const std::map<String, size_t> WsvMap;
-  extern const Array<String> wsv_group_names;
+  //  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> WsvMap;
+  extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
-  size_t hitcount;
+  Index hitcount;
 
   // Ok, so the user has probably specified a workspace variable or
   // workspace variable group.
 
   // Check if the user gave the name of a specific variable.
-  map<String, size_t>::const_iterator mi =
+  map<String, Index>::const_iterator mi =
     WsvMap.find(input);
   if ( mi != WsvMap.end() )
     {
       // If we are here, then the given name matches a variable.
-      size_t wsv_key = mi->second;
+      Index wsv_key = mi->second;
 
       // List generic methods:
       hitcount = 0;
@@ -395,7 +394,7 @@ void option_input(const String& input)
       << "\n*--------------------------------------------------------------*\n"
       << "Generic methods that can use " << wsv_data[wsv_key].Name() << ":\n"
       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  // This if statement checks whether GInput, the list
 	  // of input variable types contains the group of the
@@ -418,7 +417,7 @@ void option_input(const String& input)
       << "Specific methods that require " << wsv_data[wsv_key].Name() 
       << ":\n"
       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  // This if statement checks whether Output, the list
 	  // of output variables contains the workspace
@@ -434,8 +433,8 @@ void option_input(const String& input)
       if ( 0==hitcount )
 	cout << "none\n";
 
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -445,14 +444,14 @@ void option_input(const String& input)
   // We use the find algorithm from the STL to do this. It
   // returns an iterator, so to get the index we take the
   // difference to the begin() iterator.
-  size_t group_key =
+  Index group_key =
     find( wsv_group_names.begin(),
 	  wsv_group_names.end(),
 	  input ) - wsv_group_names.begin();
 
-  // group_key == wsv_goup_names.size() indicates that a
+  // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
-  if ( group_key != wsv_group_names.size() )
+  if ( group_key != wsv_group_names.nelem() )
     {
       // List generic methods:
       hitcount = 0;
@@ -461,7 +460,7 @@ void option_input(const String& input)
       << "Generic methods that require a variable of group " 
       << wsv_group_names[group_key] << ":\n"
       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<md_data.size(); ++i )
+      for ( Index i=0; i<md_data.nelem(); ++i )
 	{
 	  // This if statement checks whether GOutput, the list
 	  // of output variable types contains the
@@ -477,8 +476,8 @@ void option_input(const String& input)
       if ( 0==hitcount )
 	cout << "none\n";
 
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -503,34 +502,34 @@ void option_workspacevariables(const String& workspacevariables)
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<String, size_t> MdMap;
-  //  extern const std::map<String, size_t> WsvMap;
-  extern const Array<String> wsv_group_names;
+  extern const std::map<String, Index> MdMap;
+  //  extern const std::map<String, Index> WsvMap;
+  extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
   // that `none' can be output if necessary
-  size_t hitcount;
+  Index hitcount;
 
   // First check for `all':
 
   if ( "all" == workspacevariables )
     {
-      cout << 
-         "\n*--------------------------------------------------------------*\n"
-       << "Complete list of ARTS workspace variables:\n"
-       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<wsv_data.size(); ++i )
+      cout
+	<< "\n*--------------------------------------------------------------*\n"
+	<< "Complete list of ARTS workspace variables:\n"
+	<< "----------------------------------------------------------------\n";
+      for ( Index i=0; i<wsv_data.nelem(); ++i )
 	{
 	  cout << "- " << wsv_data[i].Name() << '\n';
 	}
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
       return;
     }
 
 
   // Now check if the user gave the name of a method.
-  map<String, size_t>::const_iterator mi =
+  map<String, Index>::const_iterator mi =
     MdMap.find(workspacevariables);
   if ( mi != MdMap.end() )
     {
@@ -546,7 +545,7 @@ void option_workspacevariables(const String& workspacevariables)
       << "Generic workspace variables required by " << mdr.Name()
       << " are of type:\n"
       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<mdr.GInput().size(); ++i )
+      for ( Index i=0; i<mdr.GInput().nelem(); ++i )
 	{
 	  cout << "- " << wsv_group_names[mdr.GInput()[i]] << "\n";
 	  ++hitcount;
@@ -560,7 +559,7 @@ void option_workspacevariables(const String& workspacevariables)
       << "\n----------------------------------------------------------------\n"
       << "Specific workspace variables required by " << mdr.Name() << ":\n"
       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<mdr.Input().size(); ++i )
+      for ( Index i=0; i<mdr.Input().nelem(); ++i )
 	{
 	  cout << "- " << wsv_data[mdr.Input()[i]].Name() << '\n';
 	  ++hitcount;
@@ -568,8 +567,8 @@ void option_workspacevariables(const String& workspacevariables)
       if ( 0==hitcount )
 	cout << "none\n";
 
-      cout << 
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -591,15 +590,15 @@ void option_describe(const String& describe)
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<String, size_t> MdMap;
-  extern const std::map<String, size_t> WsvMap;
-  //  extern const Array<String> wsv_group_names;
+  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> WsvMap;
+  //  extern const ArrayOfString wsv_group_names;
 
   // Let's first assume it is a method that the user wants to have
   // described.
 
   // Find method id:
-  map<String, size_t>::const_iterator i =
+  map<String, Index>::const_iterator i =
     MdMap.find(describe);
   if ( i != MdMap.end() )
     {
@@ -643,12 +642,12 @@ void check_built_headers()
 {
   // Make lookup data visible:
   //  extern const Array<MdRecord>  md_data;
-  extern const Array<String> wsv_group_names;
+  extern const ArrayOfString wsv_group_names;
   extern const Array<WsvRecord> wsv_data;
 
   // Checks:
-  assert( N_WSV_GROUPS == wsv_group_names.size() );
-  assert( N_WSV        == wsv_data.size()        );
+  assert( N_WSV_GROUPS == wsv_group_names.nelem() );
+  assert( N_WSV        == wsv_data.nelem()        );
 
 }
 
@@ -744,9 +743,9 @@ int main (int argc, char **argv)
   // Make all these data visible:
   //  extern const Array<MdRecord>  md_data;
   //  extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<String, size_t> MdMap;
-  //  extern const std::map<String, size_t> WsvMap;
-  extern const Array<String> wsv_group_names;
+  //  extern const std::map<String, Index> MdMap;
+  //  extern const std::map<String, Index> WsvMap;
+  extern const ArrayOfString wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
   // switches. 
@@ -794,16 +793,16 @@ int main (int argc, char **argv)
   // workspace variable groups.
   if ( parameters.groups )
     {
-      cout << 
-         "\n*--------------------------------------------------------------*\n"
-       << "Complete list of ARTS workspace variable groups:\n"
-       << "----------------------------------------------------------------\n";
-      for ( size_t i=0; i<wsv_group_names.size(); ++i )
+      cout
+	<< "\n*--------------------------------------------------------------*\n"
+	<< "Complete list of ARTS workspace variable groups:\n"
+	<< "----------------------------------------------------------------\n";
+      for ( Index i=0; i<wsv_group_names.nelem(); ++i )
 	{
 	  cout << "- " << wsv_group_names[i] << '\n';
 	}
-      cout <<
-        "*--------------------------------------------------------------*\n\n";
+      cout
+	<< "*--------------------------------------------------------------*\n\n";
       return(0);
     }
 
@@ -811,7 +810,7 @@ int main (int argc, char **argv)
   // Ok, we are past all the special options. This means the user
   // wants to get serious and really do a calculation. Check if we
   // have at least one control file:
-  if ( 0 == parameters.controlfiles.size() )
+  if ( 0 == parameters.controlfiles.nelem() )
     {
       cerr << "You must specify at least one control file name.\n";
       polite_goodby();
@@ -870,12 +869,10 @@ int main (int argc, char **argv)
 	// The name (PACKAGE) and the major and minor version number
 	// (VERSION) are set in configure.in. The configuration tools
 	// place them in the file config.h, which is included in arts.h.
-	// The subminor number is set in version.cc, which is linked with
-	// arts.
-
-	extern const String subversion;
   
-	out1 << PACKAGE << " " << VERSION << "." << subversion << '\n';
+	extern const String full_name;
+
+	out1 << full_name << '\n';
       }
 
 
@@ -888,7 +885,7 @@ int main (int argc, char **argv)
 	
       // Read the control text from the control files:
       out3 << "\nReading control files:\n";
-      for ( size_t i=0; i<parameters.controlfiles.size(); ++i )
+      for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
 	{
 	  out3 << "- " << parameters.controlfiles[i] << '\n';
 	  text.AppendFile(parameters.controlfiles[i]);

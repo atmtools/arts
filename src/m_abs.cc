@@ -29,9 +29,10 @@
    \date   2001-03-12
 */
 
-
+#include <math.h>
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
 #include "messages.h"
 #include "file.h"
 #include "absorption.h"
@@ -41,9 +42,10 @@
 #include "make_array.h"
 #include "atm_funcs.h"
 #include "continua.h"
+#include "make_vector.h"
 
 void linesReadFromHitran(// WS Output:
-                         ArrayofLineRecord& lines,
+                         ArrayOfLineRecord& lines,
                           // Control Parameters:
                          const String& filename,
                          const Numeric& fmin,
@@ -75,12 +77,12 @@ void linesReadFromHitran(// WS Output:
 	    }
 	}
     }
-  out2 << "  Read " << lines.size() << " lines.\n";
+  out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 
 void linesReadFromMytran2(// WS Output:
-			  ArrayofLineRecord& lines,
+			  ArrayOfLineRecord& lines,
                           // Control Parameters:
 			  const String& filename,
 			  const Numeric& fmin,
@@ -109,11 +111,11 @@ void linesReadFromMytran2(// WS Output:
 	      lines.push_back(lr);
 	}
     }
-  out2 << "  Read " << lines.size() << " lines.\n";
+  out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 void linesReadFromJpl(// WS Output:
-		      ArrayofLineRecord& lines,
+		      ArrayOfLineRecord& lines,
 		      // Control Parameters:
 		      const String& filename,
 		      const Numeric& fmin,
@@ -146,12 +148,12 @@ void linesReadFromJpl(// WS Output:
 	    }
 	}
     }
-  out2 << "  Read " << lines.size() << " lines.\n";
+  out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 
 void linesReadFromArts(// WS Output:
-		       ArrayofLineRecord& lines,
+		       ArrayOfLineRecord& lines,
 		       // Control Parameters:
 		       const String& filename,
 		       const Numeric& fmin,
@@ -176,7 +178,7 @@ void linesReadFromArts(// WS Output:
 	ostringstream os;
 	
 	// If what we read is the version String, it should have at elast 9 characters.
-	if ( 9 <= v.size() )
+	if ( 9 <= v.nelem() )
 	  {
 	    if ( "ARTSCAT" == v.substr(0,7) )
 	    {
@@ -217,13 +219,13 @@ void linesReadFromArts(// WS Output:
 	    }
 	}
     }
-  out2 << "  Read " << lines.size() << " lines.\n";
+  out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 void linesElowToJoule(// WS Output:
-		      ArrayofLineRecord& lines )
+		      ArrayOfLineRecord& lines )
 {
-  for ( size_t i=0; i<lines.size(); ++i )
+  for ( Index i=0; i<lines.nelem(); ++i )
     lines[i].melow = wavenumber_to_joule(lines[i].melow); 
 }
 
@@ -272,33 +274,33 @@ void linesElowToJoule(// WS Output:
   \author Stefan Buehler
   \date 2000-01-19 */
 void lines_per_tgReadFromCatalogues(// WS Output:
-				    ArrayofArrayofLineRecord& lines_per_tg,
+				    ArrayOfArrayOfLineRecord& lines_per_tg,
 				    // WS Input:
 				    const TagGroups& tgs,
                                     // Control Parameters:
-                                    const Array<String>& filenames,
-                                    const Array<String>& formats,
+                                    const ArrayOfString& filenames,
+                                    const ArrayOfString& formats,
                                     const Vector& fmin,
                                     const Vector& fmax)
 {
-  const size_t n_tg   = tgs.size();	// # tag groups
-  const size_t n_cat = filenames.size();	// # tag Catalogues
+  const Index n_tg   = tgs.nelem();	// # tag groups
+  const Index n_cat = filenames.nelem();	// # tag Catalogues
 
   // Check that dimensions of the keyword parameters are consistent
   // (must all be the same). 
 
-  if ( n_cat != formats.size() ||
-       n_cat != fmin.size() ||
-       n_cat != fmax.size() )
+  if ( n_cat != formats.nelem() ||
+       n_cat != fmin.nelem() ||
+       n_cat != fmax.nelem() )
     {
       ostringstream os;
       os << "lines_per_tgReadFromCatalogues: All keyword\n"
 	 << "parameters must get the same number of arguments.\n"
 	 << "You specified:\n"
 	 << "filenames: " << n_cat         << "\n"
-	 << "formats:   " << formats.size() << "\n"
-	 << "fmin:      " << fmin.size()    << "\n"
-	 << "fmax:      " << fmax.size();
+	 << "formats:   " << formats.nelem() << "\n"
+	 << "fmin:      " << fmin.nelem()    << "\n"
+	 << "fmax:      " << fmax.nelem();
       throw runtime_error(os.str());
     }
   
@@ -332,21 +334,23 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
   // There can be repetitions in the keyword paramters. We want to read
   // and process each catalogue only once, so we'll compile a set of
-  // real catalogues, along with an data structure that tells us which
+  // real catalogues, along with a data structure that tells us which
   // tag groups should use this catalogue.
 
-  Array< String > real_filenames ( 1, filenames[0]    );
-  Array< String > real_formats   ( 1, formats[0]      );
-  Vector real_fmin               ( 1, fmin[0]         );
-  Vector real_fmax               ( 1, fmax[0]         );
+  MakeArray<String> 	 real_filenames ( filenames[0] );
+  MakeArray<String> 	 real_formats   ( formats[0]   );
+  MakeArray<Numeric>     real_fmin      ( fmin[0]      );
+  MakeArray<Numeric>     real_fmax      ( fmax[0]      );
 
-  Array< Array <size_t> > real_tgs( 1, make_array<size_t>(0) );
+  Array< ArrayOfIndex > real_tgs(1);
+  real_tgs[0].resize(1);
+  real_tgs[0][0] = 0;
 
   // The last specified catalogue, to which we should assign all
   // remaining lines. Index of this one in real_ arrays.
-  size_t last_cat = 0;		
+  Index last_cat = 0;		
 
-  for ( size_t i=1; i<n_tg; ++i )
+  for ( Index i=1; i<n_tg; ++i )
     {
       // Is there a catalogue specified?
       if ( n_cat > i )
@@ -358,10 +362,10 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	  // name in the real_catalogues. Find returns an iterator, so
 	  // to get an index we have to take the difference to
 	  // .begin(). 
-	  const size_t that_cat = find( real_filenames.begin(),
+	  const Index that_cat = find( real_filenames.begin(),
 					real_filenames.end(),
 					filenames[i] ) - real_filenames.begin();
-	  if ( that_cat < real_filenames.size() )
+	  if ( that_cat < real_filenames.nelem() )
 	    {
 	      // Yes, it has been specified before
 	      // ==> Assign to that catalogue
@@ -384,7 +388,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	    {
 	      // No, it has not been specified before.
 	      // ==> Add an entry to real_tgs and the other real_ variables:
-	      real_tgs.push_back( make_array<size_t>(i) );
+	      real_tgs.push_back( MakeArray<Index>(i) );
 
 	      real_filenames.push_back( filenames[i] );
 	      real_formats.push_back  ( formats[i]   );  
@@ -403,25 +407,25 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 	}
     }
 
-  size_t n_real_cat = real_filenames.size(); // # real catalogues to read
+  Index n_real_cat = real_filenames.nelem(); // # real catalogues to read
 
   // Some output to low priority stream:
   out3 << "  Catalogues to read and tgs for which these will be used:\n";
-  for ( size_t i=0; i<n_real_cat; ++i )
+  for ( Index i=0; i<n_real_cat; ++i )
     {
       out3 << "  " << real_filenames[i] << ":";
-      for ( size_t s=0; s<real_tgs[i].size(); ++s )
+      for ( Index s=0; s<real_tgs[i].nelem(); ++s )
 	out3 << " " << real_tgs[i][s];
       out3 << "\n";
     }
 
   // Make lines_per_tg the right size:
-  resize( lines_per_tg, tgs.size() );
+  lines_per_tg.resize( tgs.nelem() );
 
   // Loop through the catalogues to read:
-  for ( size_t i=0; i<n_real_cat; ++i )
+  for ( Index i=0; i<n_real_cat; ++i )
     {
-      ArrayofLineRecord   lines;
+      ArrayOfLineRecord   lines;
 
       // Read catalogue:
 
@@ -452,18 +456,18 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
       // We need to make subset tgs for the groups that should
       // be read from this catalogue.
-      TagGroups  these_tgs(real_tgs[i].size());
-      for ( size_t s=0; s<real_tgs[i].size(); ++s )
+      TagGroups  these_tgs(real_tgs[i].nelem());
+      for ( Index s=0; s<real_tgs[i].nelem(); ++s )
 	{
 	  these_tgs[s] = tgs[real_tgs[i][s]];
 	}
 
       // Create these_lines_per_tg:
-      ArrayofArrayofLineRecord these_lines_per_tg;
+      ArrayOfArrayOfLineRecord these_lines_per_tg;
       lines_per_tgCreateFromLines( these_lines_per_tg, lines, these_tgs );
 
       // Put these lines in the right place in lines_per_tg:
-      for ( size_t s=0; s<real_tgs[i].size(); ++s )
+      for ( Index s=0; s<real_tgs[i].nelem(); ++s )
 	{
 	  lines_per_tg[real_tgs[i][s]] = these_lines_per_tg[s];
 	}
@@ -472,9 +476,9 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
 
 void lines_per_tgCreateFromLines(// WS Output:
-                                  ArrayofArrayofLineRecord& lines_per_tg,
+                                  ArrayOfArrayOfLineRecord& lines_per_tg,
                                   // WS Input:
-                                  const ArrayofLineRecord&   lines,
+                                  const ArrayOfLineRecord&   lines,
                                   const TagGroups&           tgs)
 {
   // The species lookup data:
@@ -489,19 +493,19 @@ void lines_per_tgCreateFromLines(// WS Output:
   // the stl vector directly. The other place where this is done is in
   // the function executor in main.cc.
   // FIXME: Fix this when Array<bool> works.
-  std::vector<bool> species_used (species_data.size(),false);
+  std::vector<bool> species_used (species_data.nelem(),false);
       
   // Make lines_per_tg the right size:
-  lines_per_tg = ArrayofArrayofLineRecord(tgs.size());
+  lines_per_tg = ArrayOfArrayOfLineRecord(tgs.nelem());
 
   // Unfortunately, MTL conatains a bug that leads to all elements of
   // the outer Array of an Array<Array>> pointing to the same data
   // after creation. So we need to fix this explicitly:
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
-    lines_per_tg[i] = ArrayofLineRecord();
+  for ( Index i=0; i<lines_per_tg.nelem(); ++i )
+    lines_per_tg[i] = ArrayOfLineRecord();
 
   // Loop all lines in the input line list:
-  for ( size_t i=0; i<lines.size(); ++i )
+  for ( Index i=0; i<lines.nelem(); ++i )
     {
       // Get a convenient reference to the current line:
       const LineRecord& this_line = lines[i];
@@ -515,13 +519,13 @@ void lines_per_tgCreateFromLines(// WS Output:
 
       // We need to define j here, since we need the value outside the
       // for loop:
-      size_t j;
+      Index j;
 
       // Loop the tag groups:
-      for ( j=0; j<tgs.size() && !found ; ++j ) 
+      for ( j=0; j<tgs.nelem() && !found ; ++j ) 
 	{
 	  // A tag group can contain several tags:
-	  for ( size_t k=0; k<tgs[j].size() && !found; ++k )
+	  for ( Index k=0; k<tgs[j].nelem() && !found; ++k )
 	    {
 	      // Get a reference to the current tag (not really
 	      // necessary, but makes for nicer notation below):
@@ -542,7 +546,7 @@ void lines_per_tgCreateFromLines(// WS Output:
 	      // number of isotopes, which means `all'. Test the second
 	      // condition first, since this will probably be more often
 	      // used.
-	      if ( this_tag.Isotope() != this_line.SpeciesData().Isotope().size() )
+	      if ( this_tag.Isotope() != this_line.SpeciesData().Isotope().nelem() )
 		if ( this_tag.Isotope() != this_line.Isotope() )
 		  continue;
 
@@ -597,14 +601,14 @@ void lines_per_tgCreateFromLines(// WS Output:
    }
 
   // Write some information to the lowest priority output stream.
-  for (size_t i=0; i<tgs.size(); ++i)
+  for (Index i=0; i<tgs.nelem(); ++i)
     {
 	out3 << "  " << i << ":";
 
-	for (size_t s=0; s<tgs[i].size(); ++s)
+	for (Index s=0; s<tgs[i].nelem(); ++s)
 	  out3 << " " << tgs[i][s].Name();
 
-	out3 << ": " << lines_per_tg[i].size() << " lines\n";
+	out3 << ": " << lines_per_tg[i].nelem() << " lines\n";
     }
 
 }
@@ -617,19 +621,19 @@ void lines_per_tgCreateFromLines(// WS Output:
     
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgAddMirrorLines(// WS Output:
-                                ArrayofArrayofLineRecord& lines_per_tg)
+                                ArrayOfArrayOfLineRecord& lines_per_tg)
 {
   // We will simply append the mirror lines after the original
   // lines. This way we don't have to make a backup copy of the
   // original lines. 
 
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+  for ( Index i=0; i<lines_per_tg.nelem(); ++i )
     {
       // Get a reference to the current list of lines to save typing:
-      ArrayofLineRecord& ll = lines_per_tg[i];
+      ArrayOfLineRecord& ll = lines_per_tg[i];
       
       // For increased efficiency, reserve the necessary space:
-      ll.reserve(2*ll.size());
+      ll.reserve(2*ll.nelem());
 
       // Loop through all lines of this tag group:
       {
@@ -637,8 +641,8 @@ void lines_per_tgAddMirrorLines(// WS Output:
 	// we start the loop. After all, we are adding elements. And
 	// we cerainly don't want to continue looping the newly added
 	// elements, we want to loop only the original elements.
-	size_t n=ll.size();
-	for ( size_t j=0; j<n; ++j )
+	Index n=ll.nelem();
+	for ( Index j=0; j<n; ++j )
 	  {
 	    LineRecord dummy = ll[j];
 	    dummy.setF( -dummy.F() );
@@ -661,14 +665,14 @@ void lines_per_tgAddMirrorLines(// WS Output:
 
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgCompact(// WS Output:
-			 ArrayofArrayofLineRecord& lines_per_tg,
+			 ArrayOfArrayOfLineRecord& lines_per_tg,
 			 // WS Input:
-			 const ArrayofLineshapeSpec& lineshape,
+			 const ArrayOfLineshapeSpec& lineshape,
 			 const Vector& f_mono)
 {
 
   // Make sure lines_per_tg and lineshape have the same dimension:
-  if ( lines_per_tg.size() != lineshape.size() ) 
+  if ( lines_per_tg.nelem() != lineshape.nelem() ) 
     {
       ostringstream os;
       os << "Dimension of lines_per_tg does\n"
@@ -677,7 +681,7 @@ void lines_per_tgCompact(// WS Output:
     }
   
   // Make sure that the frequency grid is properly sorted:
-  for ( Index s=0; s<f_mono.size()-1; ++s )
+  for ( Index s=0; s<f_mono.nelem()-1; ++s )
     {
       if ( f_mono[s+1] <= f_mono[s] )
 	{
@@ -690,7 +694,7 @@ void lines_per_tgCompact(// WS Output:
     }
 
   // Cycle through all tag groups:
-  for ( Index i=0; i<lines_per_tg.size(); ++i )
+  for ( Index i=0; i<lines_per_tg.nelem(); ++i )
     {
       // Get cutoff frequency of this tag group:
       Numeric cutoff = lineshape[i].Cutoff();
@@ -699,14 +703,14 @@ void lines_per_tgCompact(// WS Output:
       if ( cutoff != -1)
 	{
 	  // Get a reference to the current list of lines to save typing:
-	  ArrayofLineRecord& ll = lines_per_tg[i];
+	  ArrayOfLineRecord& ll = lines_per_tg[i];
 
 	  // Calculate the borders:
-	  Numeric upp = f_mono[f_mono.size()-1] + cutoff;
+	  Numeric upp = f_mono[f_mono.nelem()-1] + cutoff;
 	  Numeric low = f_mono[0] - cutoff;
 
 	  // Cycle through all lines within this tag group. 
-	  for ( ArrayofLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
+	  for ( ArrayOfLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
 	    {
 	      // Center frequency:
 	      const Numeric F0 = j->F();
@@ -726,7 +730,7 @@ void lines_per_tgCompact(// WS Output:
 
 
 void linesWriteAscii(// WS Input:
-		      const ArrayofLineRecord& lines,
+		      const ArrayOfLineRecord& lines,
 		      // Control Parameters:
 		      const String& f)
 {
@@ -749,7 +753,7 @@ void linesWriteAscii(// WS Input:
 
 
 void lines_per_tgWriteAscii(// WS Input:
-			      const ArrayofArrayofLineRecord& lines_per_tg,
+			      const ArrayOfArrayOfLineRecord& lines_per_tg,
 			      // Control Parameters:
 			      const String& f)
 {
@@ -767,11 +771,11 @@ void lines_per_tgWriteAscii(// WS Input:
   out2 << "  Writing file: " << filename << '\n';
   open_output_file(os, filename);
 
-  os << lines_per_tg.size() << '\n';
+  os << lines_per_tg.nelem() << '\n';
 
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+  for ( Index i=0; i<lines_per_tg.nelem(); ++i )
     {
-      const ArrayofLineRecord& lines = lines_per_tg[i];
+      const ArrayOfLineRecord& lines = lines_per_tg[i];
       write_lines_to_stream( os, lines );
     }
 }
@@ -780,26 +784,26 @@ void lines_per_tgWriteAscii(// WS Input:
 void tgsDefine(// WS Output:
 	       TagGroups& tgs,
 	       // Control Parameters:
-	       const ArrayofString& tags)
+	       const ArrayOfString& tags)
 {
-  tgs = TagGroups(tags.size());
+  tgs = TagGroups(tags.nelem());
 
-  //  cout << "Tags: " << tags << "\n";
+  //cout << "Tags: " << tags << "\n";
 
   // Each element of the array of Strings tags defines one tag
   // group. Let's work through them one by one.
-  for ( size_t i=0; i<tags.size(); ++i )
+  for ( Index i=0; i<tags.nelem(); ++i )
     {
       // There can be a comma separated list of tag definitions, so we
       // need to break the String apart at the commas.
-      Array<String> tag_def;
+      ArrayOfString tag_def;
 
       bool go_on = true;
       String these_tags = tags[i];
       while (go_on)
 	{
-	  size_t n = these_tags.find(',');
-	  if ( n >= these_tags.size() )
+	  Index n = these_tags.find(',');
+	  if ( n == these_tags.npos ) // npos indicates `not found'
 	    {
 	      // There are no more commas.
 	      //	      cout << "these_tags: (" << these_tags << ")\n";
@@ -822,7 +826,7 @@ void tgsDefine(// WS Output:
       // after creation. So we need to fix this explicitly:
       tgs[i] = Array<OneTag>();
 
-      for ( size_t s=0; s<tag_def.size(); ++s )
+      for ( Index s=0; s<tag_def.nelem(); ++s )
 	{
 	  // Remove leading whitespace, if there is any:
 	  while ( ' '  == tag_def[s][0] ||
@@ -841,10 +845,10 @@ void tgsDefine(// WS Output:
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined tag groups:";
-  for ( size_t i=0; i<tgs.size(); ++i )
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
       out3 << "\n  " << i << ":";
-      for ( size_t s=0; s<tgs[i].size(); ++s )
+      for ( Index s=0; s<tgs[i].nelem(); ++s )
 	{
 	  out3 << " " << tgs[i][s].Name();
 	}
@@ -857,7 +861,7 @@ void tgsDefine(// WS Output:
 
 
 void lineshapeDefine(// WS Output:
-		     ArrayofLineshapeSpec&    lineshape,
+		     ArrayOfLineshapeSpec&    lineshape,
 		     // WS Input:
 		     const TagGroups&         tgs,
 		     const String&            shape,
@@ -870,12 +874,12 @@ void lineshapeDefine(// WS Output:
 
 
   // generate the right number of elements
-  size_t tag_sz = tgs.size();
-  resize(lineshape,tag_sz);
+  Index tag_sz = tgs.nelem();
+  lineshape.resize(tag_sz);
 
   // Is this lineshape available?
-  int found0=-1;
-  for ( size_t i=0; i<lineshape_data.size() && (found0 == -1) ; ++i )
+  Index found0=-1;
+  for ( Index i=0; i<lineshape_data.nelem() && (found0 == -1) ; ++i )
     {
       const String& str = lineshape_data[i].Name();
       if (str == shape) 
@@ -886,8 +890,8 @@ void lineshapeDefine(// WS Output:
     }
 
   // Is this normalization to the lineshape available?
-  int found1=-1;
-  for ( size_t i=0; i<lineshape_norm_data.size() && (found1 == -1); ++i )
+  Index found1=-1;
+  for ( Index i=0; i<lineshape_norm_data.nelem() && (found1 == -1); ++i )
     {
       const String& str = lineshape_norm_data[i].Name();
       if (str == normalizationfactor) 
@@ -910,7 +914,7 @@ void lineshapeDefine(// WS Output:
 
 
   // now set the lineshape  
-  for (size_t i=0; i<tag_sz; i++)
+  for (Index i=0; i<tag_sz; i++)
     {
       lineshape[i].SetInd_ls( found0 );
       lineshape[i].SetInd_lsn( found1 );
@@ -919,11 +923,11 @@ void lineshapeDefine(// WS Output:
 }
 
 void lineshape_per_tgDefine(// WS Output:
-			    ArrayofLineshapeSpec& lineshape,
+			    ArrayOfLineshapeSpec& lineshape,
 			    // WS Input:
 			    const TagGroups&      tgs,
-			    const ArrayofString&  shape,
-			    const ArrayofString&  normalizationfactor,
+			    const ArrayOfString&  shape,
+			    const ArrayOfString&  normalizationfactor,
 			    const Vector&         cutoff )
 {
   // Make lineshape and normalization factor data visible:
@@ -931,10 +935,10 @@ void lineshape_per_tgDefine(// WS Output:
   extern const Array<LineshapeNormRecord> lineshape_norm_data;
 
   // check that the number of elements are equal
-  size_t tg_sz = tgs.size();
-  if ( (tg_sz != shape.size()) ||
-       (tg_sz != normalizationfactor.size()) || 
-       (tg_sz != cutoff.size()) )
+  Index tg_sz = tgs.nelem();
+  if ( (tg_sz != shape.nelem()) ||
+       (tg_sz != normalizationfactor.nelem()) || 
+       (tg_sz != cutoff.nelem()) )
     {
       ostringstream os;
       os << "lineshape_per_tgDefine: number of elements does\n"
@@ -944,29 +948,29 @@ void lineshape_per_tgDefine(// WS Output:
       
 
   // generate the right number of elements
-  resize(lineshape,tg_sz);
+  lineshape.resize(tg_sz);
 
   // Is this lineshape available?
-  for (size_t k=0; k<tg_sz; ++k)
+  for (Index k=0; k<tg_sz; ++k)
     {
-      int found0=-1;
-      for ( size_t i=0; i<lineshape_data.size() && (found0 == -1); ++i )
+      Index found0=-1;
+      for ( Index i=0; i<lineshape_data.nelem() && (found0 == -1); ++i )
 	{
 	  const String& str = lineshape_data[i].Name();
 	  if (str == shape[k]) 
 	    {
 	      out2 << "  Tag Group: [";
-	      for (size_t s=0; s<tgs[k].size()-1; ++s)
+	      for (Index s=0; s<tgs[k].nelem()-1; ++s)
 		out2 << tgs[k][s].Name() << ", "; 
-	      out2 << tgs[k][tgs[k].size()-1].Name() << "]\n";
+	      out2 << tgs[k][tgs[k].nelem()-1].Name() << "]\n";
 	      out2 << "  Selected lineshape: " << str << "\n";
 	      found0=i;
 	    }
 	}
 
       // Is this normalization to the lineshape available?
-      int found1=-1;
-      for ( size_t i=0; i<lineshape_norm_data.size() && (found1 == -1); ++i )
+      Index found1=-1;
+      for ( Index i=0; i<lineshape_norm_data.nelem() && (found1 == -1); ++i )
 	{
 	  const String& str = lineshape_norm_data[i].Name();
 	  if (str == normalizationfactor[k]) 
@@ -1005,7 +1009,7 @@ void lineshape_per_tgDefine(// WS Output:
 
 
 void raw_vmrs_1dReadFromScenario(// WS Output:
-                                 ArrayofMatrix&   raw_vmrs_1d,
+                                 ArrayOfMatrix&   raw_vmrs_1d,
                                  // WS Input:
                                  const TagGroups&     tgs,
                                  // Control Parameters:
@@ -1015,7 +1019,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
   extern const Array<SpeciesRecord> species_data;
 
   // We need to read one profile for each tag group.
-  for ( size_t i=0; i<tgs.size(); ++i )
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
       // Determine the name.
       String name =
@@ -1030,7 +1034,8 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
       MatrixReadAscii(raw_vmrs_1d[i],"",name);
       
       // state the source of profile.
-      //cout << species_data[tgs[i][0].Species()].Name() << " profile read from file: " << name << "\n";
+      out3 << "  " << species_data[tgs[i][0].Species()].Name()
+	   << " profile read from file: " << name << "\n";
     }
 }
 
@@ -1044,100 +1049,62 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
    \param    filenames      specific files for list of seltags    (input)
    \param    basename       general scenario base name            (input)
 
-   \author Thomas Kuhn
-   \date 2001-08-02
+   \author Thomas Kuhn / Stefan Buehler
+   \date 2001-08-02 / 2001-09-19
  */ 
 void raw_vmrs_1dReadFromFiles(// WS Output:
-			      ArrayofMatrix&   raw_vmrs_1d,
+			      ArrayOfMatrix&   raw_vmrs_1d,
 			      // WS Input:
 			      const TagGroups& tgs,
 			      // Control Parameters:
-			      const ArrayofString&  seltags,
-			      const ArrayofString&  filenames,
+			      const ArrayOfString&  seltags,
+			      const ArrayOfString&  filenames,
 			      const String&         basename)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
-  //int isoflag = 0;  // wilde card set for isotope -> all isotopes
-  const String wildcard = "*";
+  ArrayOfIndex i_seltags;
 
-  // check size of input String vectors.
-  assert ( filenames.size() == seltags.size() ); 
+  // Get indices of seltags in tgs. The function will throw an error
+  // unless each tg in seltags corresponds exactly to a tg
+  // in tgs. 
+  get_tagindex_for_Strings( i_seltags, tgs, seltags );
 
-  for ( size_t i=0; i<tgs.size(); ++i )
+  // Now we have to build an Array of the filenames to use for all the
+  // tag groups. Initialize it with basename...
+  ArrayOfString true_filenames(tgs.nelem());
+  true_filenames = basename + '.';
+
+  // Initialize to the standard scenario (see function
+  // raw_vmrs_1dReadFromScenario): 
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
-      String tname = species_data[tgs[i][0].Species()].Name();
+     true_filenames[i] +=
+	species_data[tgs[i][0].Species()].Name() + ".am";
+     // Should be identical to how the filenames are constructed in
+     // raw_vmrs_1dReadFromScenario! 
+    }
 
-      // loop over tags.
-      int flagtag = 1;
-
-      // loop over seltags.
-      for ( size_t s=0; s<seltags.size(); ++s )
-	{
-	  if (flagtag == 1)
-	    {
-	      // check if more than one isotope wild card "*".
-	      //assert ( seltags[s].find("-*") == seltags[s].rfind("-*"));
-	  
-	      // species name of actual seltags.
-	      String sname = seltags[s];
-	      String iname =  wildcard;
-	      if ((sname.find("-") > 0) && (sname.find("-") < sname.length()))
-		{
-		  sname.erase(sname.find("-"),sname.length()-1);
-		  //cout << "sname = " << sname << "\n";
-		  
-		  // species isotope name of actual seltags.
-		  String iname = seltags[s];
-		  iname.erase(0,iname.find("-")+1);
-		  //cout << "iname = " << iname << "\n";
-		}
-	      // specify if specific isotope is given or not.
-	      //if (iname == wildcard) {
-	      //  isoflag = 0;  // wilde card set for isotope -> all isotopes
-	      //} else {
-	      //  isoflag = 1;
-	      //}
-	      
-	      // seltag equal tag ?
-	      if (tname == sname) 
-		{
-		  flagtag = 0; // seltags and tag mached
-		  // cout << "no iso tag="<< tgs[i][0].Isotope() << "\n";
-		  // for ( size_t k=0; k<tgs[i][0].Isotope(); ++k ) 
-		  //{
-		  //  cout << "  iso  tag["<< i << "] = " << 
-		  //    species_data[tgs[i][0].Species()].Isotope()[k].Name() << "\n";
-		  //	}
-		  
-		  String fname = filenames[s];
-		  // Add an element for this tag group to the vmr profiles:
-		  raw_vmrs_1d.push_back(Matrix());
-		  
-		  // Read the VMR:
-		  // (We use the workspace method MatrixReadAscii for this.)
-		  MatrixReadAscii(raw_vmrs_1d[i],"",fname);
-		  
-		  // state the source of profile.
-		  //cout << "  " << tname << " profile read from file: " << fname << "\n";
-		}
-	    }
-	}
-      if (flagtag == 1)
-	{
-	  // read from base name if seltags is not find 
-	  // Determine the name.
-	  String aname = basename + "." + tname + ".am";
-	  // Add an element for this tag group to the vmr profiles:
-	  raw_vmrs_1d.push_back(Matrix());
-	  
-	  // Read the VMR:
-	  // (We use the workspace method MatrixReadAscii for this.)
-	  MatrixReadAscii(raw_vmrs_1d[i],"",aname);
-	  
-	  // state the source of profile.
-	  //cout << "  " << tname << " profile read from file: " << aname << "\n";
-	}
+  // Replace the names of the tgs given in seltags with the names in
+  // filenames: 
+  for ( Index i=0; i<seltags.nelem(); ++i )
+    {
+      true_filenames[i_seltags[i]] = filenames[i];
+    }
+    
+  // Read the files:
+  for ( Index i=0; i<tgs.nelem(); ++i )
+    {
+      // Add an element for this tag group to the vmr profiles:
+      raw_vmrs_1d.push_back(Matrix());
+      
+      // Read the VMR:
+      // (We use the workspace method MatrixReadAscii for this.)
+      MatrixReadAscii(raw_vmrs_1d[i],"",true_filenames[i]);
+      
+      // state the source of profile.
+      out3 << "  " << species_data[tgs[i][0].Species()].Name()
+	   << " profile read from file: " << true_filenames[i] << "\n";
     }
 }
 
@@ -1155,26 +1122,27 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
    \author Thomas Kuhn
    \date 2001-08-02
  */ 
-size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
-		      const Vector&     t_abs, // constant
-		      const Vector&     p_abs, // constant
-		      const TagGroups&  tgs  ) // constant
+Index WVsatinClouds( Matrix&    vmrs,  // manipulates this array
+		     const Vector&     t_abs, // constant
+		     const Vector&     p_abs, // constant
+		     const TagGroups&  tgs  ) // constant
 {
 
 
   // The species lookup data
   extern const Array<SpeciesRecord> species_data;
   // cloud tag numbers:
-  size_t liquid_index = 1+tgs.size();
-  size_t ice_index    = 1+tgs.size();
-  size_t h2o_index[tgs.size()];
+  Index liquid_index = 1+tgs.nelem();
+  Index ice_index    = 1+tgs.nelem();
+  Index h2o_index[tgs.nelem()];
 
   // check size of input vectors.
-  assert ( t_abs.size() == p_abs.size() ); 
+  assert ( t_abs.nelem() == p_abs.nelem() ); 
+  assert ( vmrs.ncols()  == p_abs.nelem() ); 
 
   // find tags for clouds and for water vapor
-  size_t u = 0;
-  for ( size_t i=0; i<tgs.size(); ++i )
+  Index u = 0;
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
       String tag_name = species_data[tgs[i][0].Species()].Name();
       if (tag_name == "liquidcloud")
@@ -1201,24 +1169,22 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
     }
 
   // modify the water vapor profiles for saturation over liquid water in a liquid water cloud
-  if ( (liquid_index >= 0) && (liquid_index < tgs.size()) )
+  if ( (liquid_index >= 0) && (liquid_index < tgs.nelem()) )
     {
-      assert ( vmrs[liquid_index].size() == p_abs.size() ); 
-
       // sauration over liquid water 
-      for (size_t i=0; i<vmrs[liquid_index].size() ; ++i)
+      for (Index i=0; i<vmrs.ncols() ; ++i)
 	{
-	  if (vmrs[liquid_index][i] > 0.000)
+	  if (vmrs(liquid_index,i) > 0.000)
 	    {
-	      for (size_t uu=0; uu<u; ++uu)
+	      for (Index uu=0; uu<u; ++uu)
 		{
-		  //cout << "uu=" << uu  << "  (" << p_abs.size() << ")" << "\n";
+		  //cout << "uu=" << uu  << "  (" << p_abs.nelem() << ")" << "\n";
 		  //cout << " h2o_index[uu]=" << h2o_index[uu] << ",  i=" << i << "\n";
 		  //cout << "tag name=" << species_data[tgs[h2o_index[uu]][0].Species()].Name() << "\n";
-		  //cout << "0 vmrs[h2o_index[uu]][i]=" << vmrs[h2o_index[uu]][i]; 
-		  vmrs[h2o_index[uu]][i] = ( WVSatPressureLiquidWater( t_abs[i] ) / p_abs[i] );
-		  if (vmrs[h2o_index[uu]][i] < 0.000) return 1;
-		  //cout << ",  1 vmrs[h2o_index[uu]][i]=" << vmrs[h2o_index[uu]][i] << "\n";
+		  //cout << "0 vmrs(h2o_index[uu],i)=" << vmrs(h2o_index[uu],i); 
+		  vmrs(h2o_index[uu],i) = ( WVSatPressureLiquidWater( t_abs[i] ) / p_abs[i] );
+		  if (vmrs(h2o_index[uu],i) < 0.000) return 1;
+		  //cout << ",  1 vmrs(h2o_index[uu],i)=" << vmrs(h2o_index[uu],i) << "\n";
 		  //cout << "T=" << t_abs[i] << "K,  ptot=" << p_abs[i] << "Pa,  psat="
                   //     << WVSatPressureLiquidWater( t_abs[i] ) << "\n";
 		}
@@ -1227,22 +1193,20 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
     }
 
   // modify the water vapor profiles for saturation over ice water in a ice water cloud
-  if ( (ice_index >= 0) && (ice_index < tgs.size()) )
+  if ( (ice_index >= 0) && (ice_index < tgs.nelem()) )
     {
-      assert ( vmrs[ice_index].size() == p_abs.size() ); 
-
-      for (size_t i=0; i<vmrs[ice_index].size() ; ++i)
+      for (Index i=0; i<vmrs.ncols() ; ++i)
 	{
-	  if (vmrs[ice_index][i] > 0.000)
+	  if (vmrs(ice_index,i) > 0.000)
 	    {
 	      // sauration over ice water 
-	      for (size_t uu=0; uu<u; ++uu)
+	      for (Index uu=0; uu<u; ++uu)
 		{
-		  //cout << "uu=" << uu  << "  (" << p_abs.size() << ")" << "\n";
+		  //cout << "uu=" << uu  << "  (" << p_abs.nelem() << ")" << "\n";
 		  //cout << " h2o_index[uu]=" << h2o_index[uu] << ",  i=" << i << "\n";
 		  //cout << "tag name=" << species_data[tgs[h2o_index[uu]][0].Species()].Name() << "\n";
-		  vmrs[h2o_index[uu]][i] = ( WVSatPressureIce( t_abs[i] ) / p_abs[i] );
-		  if (vmrs[h2o_index[uu]][i] < 0.000) return 1;
+		  vmrs(h2o_index[uu],i) = ( WVSatPressureIce( t_abs[i] ) / p_abs[i] );
+		  if (vmrs(h2o_index[uu],i) < 0.000) return 1;
 		}
 	    }
 	}
@@ -1252,13 +1216,13 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
 } // end of WVsatinClouds --------------------------------------------------------------------
 
 // void Atm2dFromRaw1D(// WS Output:
-//                     ArrayofVector& 	 t_abs_2d,
-//                     ArrayofVector& 	 z_abs_2d,
-//                     ArrayofMatrix& 	 vmrs_2d,
+//                     ArrayOfVector& 	 t_abs_2d,
+//                     ArrayOfVector& 	 z_abs_2d,
+//                     ArrayOfMatrix& 	 vmrs_2d,
 //                     // WS Input:      
 //                     const Vector&  	 p_abs,
 //                     const Matrix&  	 raw_ptz_1d,
-//                     const ArrayofMatrix& raw_vmrs_1d)
+//                     const ArrayOfMatrix& raw_vmrs_1d)
 // {
 //   // FIXME: This function is terrible! Make this better using MTL functionality.
 //   // Does this function work at all? Has it ever been used? I think this is garbage. 
@@ -1301,17 +1265,17 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
 //     col( tz_raw, 2, 3, raw_ptz_1d );
 
 //     // Now interpolate tz_raw to p_abs grid:
-//     Matrix tz_intp( p_abs.size(), tz_raw.ncols() );
+//     Matrix tz_intp( p_abs.nelem(), tz_raw.ncols() );
 //     interp_lin_col( tz_intp,
 // 		    p_raw, tz_raw, p_abs );
 
 //     // Extract t_abs_2d:
-//     resize(t_abs_2d,0);
+//     t_abs_2d.resize(0);
 //     t_abs_2d.push_back(Vector());
 //     col( t_abs_2d[0], 1, tz_intp );
 
 //     // Extract z_abs_2d:
-//     resize(z_abs_2d,0);
+//     z_abs_2d.resize(0);
 //     z_abs_2d.push_back(Vector());
 //     col( z_abs_2d[0], 2, tz_intp );
 //   }
@@ -1322,7 +1286,7 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
 //     // (more array elements would only be used in a 2D calculation).
 
 //     // Get room for our results:
-//     resize(vmrs_2d,0);
+//     vmrs_2d.resize(0);
 //     vmrs_2d.push_back(Matrix());
   
 //     // Get a convenient reference:
@@ -1332,10 +1296,10 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
 //     // The first dimension is the number of profiles (= the number of
 //     // tag groups). The second dimension is the dimension of the new
 //     // pressure grid.
-//     resize( intp, raw_vmrs_1d.size() , p_abs.size() );
+//      intp.resize( raw_vmrs_1d.nelem() , p_abs.nelem() );
   
 //     // For sure, we need to loop through all VMR profiles:
-//     for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
+//     for ( Index j=0; j<raw_vmrs_1d.nelem(); ++j )
 //       {
 // 	// Get a reference to the profile we are concerned with
 // 	const Matrix& raw = raw_vmrs_1d[j];
@@ -1363,15 +1327,27 @@ size_t WVsatinClouds( ArrayofVector&    vmrs,  // manipulates this array
 //   }
 // }
 
+/** Interpolate atmospheric quantities from their individual grids to
+    the common p_abs grid. 
+
+    See also arts -d online documentation.
+
+    This function does the following:
+    1. Interpolation of temperature and altitude
+    2. Interpolation of VMR profiles
+    3. Saturation adjustment VMR profiles of H2O tags in clouds
+
+    Step 3 is only carried out if keyword CloudSatWV is set to "yes".
+ */
 void AtmFromRaw1D(// WS Output:
 		  Vector& 	 t_abs,
 		  Vector& 	 z_abs,
-		  ArrayofVector& vmrs,
+		  Matrix&        vmrs,
 		  // WS Input:      
 		  const TagGroups&       tgs,
 		  const Vector&  	 p_abs,
 		  const Matrix&  	 raw_ptz_1d,
-		  const ArrayofMatrix&   raw_vmrs_1d,
+		  const ArrayOfMatrix&   raw_vmrs_1d,
 		  // Control Parameters:
 		  const String&          CloudSatWV)
 {
@@ -1395,38 +1371,29 @@ void AtmFromRaw1D(// WS Output:
     // interpolation can then be done simultaneously, hence slightly
     // more efficient.
 
-    // We need to make temporary copies of things. Unnefficient!
-    // FIXME: Improve this when we have better Matrix functionality.
-
     // For the interpolated profiles:
-    Matrix tz_intp( 2, p_abs.size() );
-
-    // The original pressure grid:
-    Vector p0( raw_ptz_1d.nrows() );
-    copy(columns(raw_ptz_1d)[0],p0);
-
-    // The matrix to interpolate:
-    Matrix tz( 2, raw_ptz_1d.nrows() );
-    copy(trans(raw_ptz_1d.sub_matrix(0,
-				     raw_ptz_1d.nrows(),
-				     1,
-				     raw_ptz_1d.ncols())),
-	 tz);
+    Matrix tz_intp( 2, p_abs.nelem() );
 
     interpp( tz_intp,
-	     p0,
-	     tz,
+	     raw_ptz_1d(Range(joker),0),
+	     transpose(raw_ptz_1d(Range(joker),Range(1,joker))),
 	     p_abs );
+    // The first Matpack expression selects the first column of
+    // raw_ptz_1d as a vector. The second Matpack expression gives the
+    // transpose of the last two columns of raw_ptz_1d. The function
+    // interpp can be called with these selections directly.
 
     // Extract t_abs:
-    //    col( t_abs, 1, tz_intp );
-    resize( t_abs, tz_intp.ncols() );
-    copy( tz_intp[0], t_abs );
+    t_abs.resize( tz_intp.ncols() );
+    t_abs = tz_intp(0,Range(joker));	// Matpack can copy the first row of
+					// tz_intp to t_abs like this. But
+					// t_abs has to have the right size!
 
     // Extract z_abs:
-    //    col( z_abs, 2, tz_intp );
-    resize( z_abs, tz_intp.ncols() );
-    copy( tz_intp[1], z_abs );
+    z_abs.resize( tz_intp.ncols() );
+    z_abs = tz_intp(1,Range(joker));	// Matpack can copy the second row of
+					// tz_intp to t_abs like this. But
+					// t_abs has to have the right size!
   }
 
   //---------------< 2. Interpolation of VMR profiles >---------------
@@ -1435,13 +1402,13 @@ void AtmFromRaw1D(// WS Output:
     extern const Array<SpeciesRecord> species_data;
 
     // check size of input String vectors.
-    assert ( tgs.size() == raw_vmrs_1d.size() ); 
+    assert ( tgs.nelem() == raw_vmrs_1d.nelem() ); 
 
     // Make vmrs the right size:
-    resize( vmrs, raw_vmrs_1d.size() );
+    vmrs.resize( raw_vmrs_1d.nelem(), p_abs.nelem() );
     
     // For sure, we need to loop through all VMR profiles:
-    for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
+    for ( Index j=0; j<raw_vmrs_1d.nelem(); ++j )
       {
 
 	// Get a reference to the profile we are concerned with:
@@ -1461,58 +1428,70 @@ void AtmFromRaw1D(// WS Output:
 	    throw runtime_error(os.str());
 	  }
 
-	// Split the matrix into pressure and vmr vector:
-	Vector p_raw(raw.nrows()), vmr_raw(raw.nrows());
-	copy(columns(raw)[0],p_raw);
-	copy(columns(raw)[1],vmr_raw);
-
-	// Make vmrs[j] the right size:
-	resize( vmrs[j], p_abs.size() );
-	
-	// interpolation of the profiles on the predefined pressure grid
+	// Interpolate the profile to the predefined pressure grid:
 	String tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
 	if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
 	  {
 	    // Interpolate linearly the cloud profiles
-	    interpp_cloud( vmrs[j],
-			   p_raw,
-			   vmr_raw,
+	    interpp_cloud( vmrs(j,Range(joker)),
+			   raw(Range(joker),0),
+			   raw(Range(joker),1),
 			   p_abs );
-	    //	out3 << "This VMR: " << vmrs[j] << "\n";
-
-	  } else
-	    {
-	      // Interpolate VMRs:
-	      interpp( vmrs[j],
-		       p_raw,
-		       vmr_raw,
-		       p_abs );
-	      // out3 << "This VMR: " << vmrs[j] << "\n";
-	    }
-
-
+	    //	out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
+	  }
+	else
+	  {
+	    // Interpolate VMRs:
+	    interpp( vmrs(j,Range(joker)),
+		     raw(Range(joker),0),
+		     raw(Range(joker),1),
+		     p_abs );
+	    // out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
+	  }
+	// The calls to interpp_cloud and inerpp contain some nice
+	// Matpack  features:
+	// 1. vmrs(j,Range(joker)) selects the jth row of vmrs.
+	// 2. raw(Range(joker),0) and raw(Range(joker),1) select the
+	// first and second column of raw. We don't need transpose
+	// here, since the selected objects are vectors. 
+	//
+	// Note that you can call the interpolation functions directly
+	// with these selections. 
       }
   }
-  //---------------< 3. Saturation VMR profiles of H2O tags>---------------
-  {
-    if(CloudSatWV == "yes")
-      {
-	assert ( vmrs[0].size() == p_abs.size() );
 
-	size_t satflag = WVsatinClouds( vmrs,  // manipulates this array for H2O tags
-		                        t_abs, // constant
-					p_abs, // constant
-					tgs);  // constant
+  //---------< 3. Saturation adjustment VMR profiles of H2O tags in clouds >-----------
+  {
+    if( "yes" == CloudSatWV )
+      {
+	assert ( vmrs.ncols() == p_abs.nelem() );
+
+	out2 << "Performing water vapor saturation adjustment for clouds.\n";
+
+	Index satflag = WVsatinClouds( vmrs,  // manipulates this array for H2O tags
+				       t_abs, // constant
+				       p_abs, // constant
+				       tgs);  // constant
 	if (satflag != 0)
 	  {
 	    ostringstream os;
-	    os << "In AtmFromRaw1D, part 3:\n"
-	       << "*** WRONG WATER VAPOR SATURATION CALCULATION IN CLOUD REGION ***\n";
+	    os << "WRONG WATER VAPOR SATURATION CALCULATION IN CLOUD REGION.";
 	    throw runtime_error(os.str());
 	  }
       }
+    else if ( "no" == CloudSatWV )
+      {
+	out2 << "No water vapor saturation adjustment for clouds.\n";
+      }
+    else
+      {
+	out2 << "Normally it should be yes or no for CloudSatWV.\n"
+	     << "But this will be moved out of this method anyway.\n";
+// 	ostringstream os;
+// 	os << "The keyword CloudSatWV must be yes or no.";
+// 	throw runtime_error(os.str());
+      }
   }
-
 }
 
 
@@ -1527,9 +1506,9 @@ void hseSet(
     const Numeric&   pref,
     const Numeric&   zref,
     const Numeric&   g0,
-    const int&       niter )
+    const Index&       niter )
 {
-  resize( hse, 5 );
+  hse.resize( 5 );
   
   hse[0] = 1;
   hse[1] = pref;
@@ -1551,7 +1530,7 @@ void hseFromBottom(
     const Vector&    p_abs,
     const Vector&    z_abs,
     const Numeric&   g0,
-    const int&       niter )
+    const Index&       niter )
 {
   hseSet( hse, p_abs[0], z_abs[0], g0, niter );
 }
@@ -1567,7 +1546,7 @@ void hseFromBottom(
 void hseOff(
 	  Vector&    hse )
 {
-  resize( hse, 1 );
+  hse.resize( 1 );
   hse[0] = 0;
 }
 
@@ -1590,18 +1569,18 @@ void hseCalc(
     const Numeric&   r_geoid,   
     const Vector&    hse )
 {
-  if ( !isbool( int(hse[0]) ) )  
+  if ( !isbool( static_cast<Index>(hse[0]) ) )  
     throw runtime_error(
         "The HSE flag (first element of hse) must either be 0 or 1.");
   
   if ( hse[0] )
   {
-    if ( hse.size() != 5 )
+    if ( hse.nelem() != 5 )
     throw runtime_error(
         "The length of the hse vector must be 5.");
 
-    const size_t   np = p_abs.size();
-	  size_t   i;                     // altitude index
+    const Index   np = p_abs.nelem();
+	  Index   i;                     // altitude index
 	  Numeric  g;                     // gravitational acceleration
 	  Numeric  r;                     // water mixing ratio in gram/gram
 	  Numeric  tv;                    // virtual temperature
@@ -1614,7 +1593,7 @@ void hseCalc(
     const Numeric   g0    = hse[3];
     const Index     niter = Index( hse[4] );
   
-    if ( (z_abs.size()!=np) || (t_abs.size()!=np) || (h2o_abs.size()!=np) )
+    if ( (z_abs.nelem()!=np) || (t_abs.nelem()!=np) || (h2o_abs.nelem()!=np) )
       throw runtime_error(
                          "The input vectors do not all have the same length.");
     if ( niter < 1 )
@@ -1646,8 +1625,11 @@ void hseCalc(
   
       // Match the altitude of the reference point
       dz = interpp( p_abs, ztmp, pref ) - zref;
-      setto(z_abs,-dz);
-      add(ztmp,z_abs);		//  z_abs = ztmp - dz;
+
+      //  z_abs = ztmp - dz;
+      z_abs = ztmp;
+      z_abs -= dz;		// Note the new Matpack operations =
+				// and -=
     }
   }
 }
@@ -1660,12 +1642,12 @@ void hseCalc(
    \date   2001-01-18
 */
 void h2o_absSet(
-              Vector&          h2o_abs,
-        const TagGroups&       tgs,
-        const ArrayofVector&   vmrs )
+		Vector&          h2o_abs,
+		const TagGroups& tgs,
+		const Matrix&    vmrs )
 {
-  const Index   n = tgs.size();
-  int   found = -1;
+  const Index   n = tgs.nelem();
+  Index   found = -1;
   String  s;
 
   for( Index i=0; i<n && found<0; i++ ) 
@@ -1673,14 +1655,18 @@ void h2o_absSet(
     s = tgs[i][0].Name();
     
     if ( s.substr(0,3) == "H2O" )
-      found = int(i);
+      found = i;
   }
 
   if ( found < 0 )
     throw runtime_error("h2o_absSet: No tag group contains water!");
   
-  resize( h2o_abs, vmrs[found].size() );
-  copy( vmrs[found], h2o_abs );
+  h2o_abs.resize( vmrs.ncols() );
+  h2o_abs = vmrs(found,Range(joker));	
+  // Matpack can copy the contents of vectors like this. The
+  // dimensions must be the same! The expression
+  // vmrs(found,Range(joker)) selects the row with index corresponding
+  // to found.
 }
 
 
@@ -1693,26 +1679,30 @@ void h2o_absSet(
    \date   2001-08-14
 */
 void vmrsScale(
-        ArrayofVector&         vmrs,
-        const TagGroups&       tgs,
-        const Array<String>&   scaltgs,
-        const Vector&          scalfac)
+	       Matrix&                vmrs,
+	       const TagGroups&       tgs,
+	       const ArrayOfString&   scaltgs,
+	       const Vector&          scalfac)
 {
   Index                            itag;
-  Arrayofsizet                     tagindex;      
+  ArrayOfIndex                     tagindex;      
 
-  if ( scalfac.size() != scaltgs.size()  )
+  if ( scalfac.nelem() != scaltgs.nelem()  )
     throw runtime_error("vmrScale: Number of tgs and fac are different!");
   
   get_tagindex_for_Strings( tagindex, tgs, scaltgs );
 
-  const Index   n = tagindex.size();
+  const Index   n = tagindex.nelem();
 
   for ( itag=0; itag<n; itag++ )
     {
       //out2 << scalfac[itag] << ".\n";
-      copy(scaled(vmrs[tagindex[itag]],scalfac[itag]),vmrs[tagindex[itag]]);
-      //out2 << vmrs[tagindex[itag]] << ".\n";
+      vmrs(tagindex[itag],Range(joker)) *= scalfac[itag]; 
+      // Matpack can multiply all elements of a vector with a constant
+      // factor like this. In this case the vector is the selected row
+      // of Matrix vmrs.
+  
+      //out2 << vmrs(tagindex[itag],Range(joker)) << ".\n";
     }
 }
 
@@ -1731,12 +1721,12 @@ void vmrsScale(
    \date   2001-01-18
 */
 void n2_absSet(
-	       Vector&          n2_abs,
-         const TagGroups&       tgs,
-         const ArrayofVector&   vmrs )
+	       Vector&            n2_abs,
+	       const   TagGroups& tgs,
+	       const   Matrix&    vmrs )
 {
-  const Index   n = tgs.size();
-  int     found = -1;
+  const Index   n = tgs.nelem();
+  Index     found = -1;
   String  s;
 
   for( Index i=0; i<n && found<0; i++ ) 
@@ -1744,14 +1734,18 @@ void n2_absSet(
     s = tgs[i][0].Name();
     
     if ( s.substr(0,2) == "N2" )
-      found = int(i);
+      found = i;
   }
 
   if ( found < 0 )
     throw runtime_error("n2_absSet: No tag group contains nitrogen!");
   
-  resize( n2_abs, vmrs[found].size() );
-  copy( vmrs[found], n2_abs );
+  n2_abs.resize( vmrs.ncols() );
+  n2_abs = vmrs(found,Range(joker));
+  // Matpack can copy the contents of vectors like this. The
+  // dimensions must be the same! The expression
+  // vmrs(found,Range(joker)) selects the row with index corresponding
+  // to found.
 }
 
 
@@ -1784,7 +1778,7 @@ void n2_absSet(
  */
 void absCalc(// WS Output:
              Matrix&        		     abs,
-             ArrayofMatrix& 		     abs_per_tg,
+             ArrayOfMatrix& 		     abs_per_tg,
              // WS Input:		  
 	     const TagGroups&                tgs,
              const Vector&  		     f_mono,
@@ -1792,16 +1786,16 @@ void absCalc(// WS Output:
              const Vector&  		     t_abs,
 	     const Vector&  		     n2_abs,
 	     const Vector&  		     h2o_abs,
-             const ArrayofVector&            vmrs,
-             const ArrayofArrayofLineRecord& lines_per_tg,
-	     const ArrayofLineshapeSpec&     lineshape,
-	     const ArrayofString&            cont_description_names,
-	     const ArrayofVector& 	     cont_description_parameters)
+             const Matrix&                   vmrs,
+             const ArrayOfArrayOfLineRecord& lines_per_tg,
+	     const ArrayOfLineshapeSpec&     lineshape,
+	     const ArrayOfString&            cont_description_names,
+	     const ArrayOfVector& 	     cont_description_parameters)
 {
   // Dimension checks are performed in the executed functions
 
   // allocate local variable to hold the cross sections per tag group
-  ArrayofMatrix xsec_per_tg;
+  ArrayOfMatrix xsec_per_tg;
 
   xsec_per_tgInit( xsec_per_tg, tgs, f_mono, p_abs );
 
@@ -1851,30 +1845,30 @@ void absCalc(// WS Output:
 */
 void absCalcFromXsec(// WS Output:
 		     Matrix&        		     abs,
-		     ArrayofMatrix& 		     abs_per_tg,
+		     ArrayOfMatrix& 		     abs_per_tg,
 		     // WS Input:		  
-		     const ArrayofMatrix&            xsec_per_tg,
-		     const ArrayofVector&            vmrs)
+		     const ArrayOfMatrix&            xsec_per_tg,
+		     const Matrix&                   vmrs)
 {
   // Check that vmrs and xsec_per_tg really have compatible
-  // dimensions. In vmrs there should be one Vector for each tg:
-  if ( vmrs.size() != xsec_per_tg.size() )
+  // dimensions. In vmrs there should be one row for each tg:
+  if ( vmrs.nrows() != xsec_per_tg.nelem() )
     {
       ostringstream os;
       os << "Variable vmrs must have compatible dimension to xsec_per_tg.\n"
-	 << "vmrs.size() = " << vmrs.size() << '\n'
-	 << "xsec_per_tg.size() = " << xsec_per_tg.size();
+	 << "vmrs.nrows() = " << vmrs.nrows() << '\n'
+	 << "xsec_per_tg.nelem() = " << xsec_per_tg.nelem();
       throw runtime_error(os.str());
     }
 
   // Check that number of altitudes are compatible. We only check the
   // first element, this is possilble because within arts all elements
   // are on the same altitude grid.
-  if ( vmrs[0].size() != xsec_per_tg[0].ncols() )
+  if ( vmrs.ncols() != xsec_per_tg[0].ncols() )
     {
       ostringstream os;
       os << "Variable vmrs must have same numbers of altitudes as xsec_per_tg.\n"
-	 << "vmrs[0].size() = " << vmrs[0].size() << '\n'
+	 << "vmrs.ncols() = " << vmrs.ncols() << '\n'
 	 << "xsec_per_tg[0].ncols() = " << xsec_per_tg[0].ncols();
       throw runtime_error(os.str());
     }  
@@ -1882,34 +1876,35 @@ void absCalcFromXsec(// WS Output:
   // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
   // is the same as that of xsec_per_tg. The dimension of abs should
   // be equal to one of the xsec_per_tg enries.
-  resize( abs, xsec_per_tg[0].nrows(), xsec_per_tg[0].ncols() );
-  setto( abs, 0);
-  resize( abs_per_tg, xsec_per_tg.size() );
+  abs.resize( xsec_per_tg[0].nrows(), xsec_per_tg[0].ncols() );
+  abs = 0;			// Matpack can set all elements like this.
+
+  abs_per_tg.resize( xsec_per_tg.nelem() );
 
   out2 << "  Computing abs and abs_per_tg from xsec_per_tg.\n";
 
   // Loop through all tag groups
-  for ( Index i=0; i<xsec_per_tg.size(); ++i )
+  for ( Index i=0; i<xsec_per_tg.nelem(); ++i )
     {
       out2 << "  Tag group " << i << '\n';
 
       // Make this element of xsec_per_tg the right size:
-      resize( abs_per_tg[i], xsec_per_tg[i].nrows(), xsec_per_tg[i].ncols() );
-      setto( abs_per_tg[i], 0 );
+      abs_per_tg[i].resize( xsec_per_tg[i].nrows(), xsec_per_tg[i].ncols() );
+      abs_per_tg[i] = 0;	// Initialize all elements to 0.
 
       // Loop through all altitudes
       for ( Index j=0; j<xsec_per_tg[i].ncols(); j++)
 	{
-
 	  // Loop through all frequencies
 	  for ( Index k=0; k<xsec_per_tg[i].nrows(); k++)
 	    {
-	      abs_per_tg[i][k][j] = xsec_per_tg[i][k][j] * vmrs[i][j];
+	      abs_per_tg[i](k,j) = xsec_per_tg[i](k,j) * vmrs(i,j);
 	    }
 	}
 
-	  // Add up to the total absorption:
-	  add( abs_per_tg[i], abs );
+      // Add up to the total absorption:
+      abs += abs_per_tg[i];	// In Matpack you can use the +=
+				// operator to do elementwise addition.
     }
 }
 
@@ -1928,7 +1923,7 @@ void absCalcFromXsec(// WS Output:
    \date   2001-03-12
 */
 void xsec_per_tgInit(// WS Output:
-		     ArrayofMatrix&   xsec_per_tg,
+		     ArrayOfMatrix&   xsec_per_tg,
 		     // WS Input:
 		     const TagGroups& tgs,
 		     const Vector&    f_mono,
@@ -1937,20 +1932,20 @@ void xsec_per_tgInit(// WS Output:
 {
   // Initialize xsec_per_tg. The array dimension of xsec_per_tg
   // is the same as that of lines_per_tg.
-  resize( xsec_per_tg, tgs.size() );
+  xsec_per_tg.resize( tgs.nelem() );
 
   // Loop xsec_per_tg and make each matrix the right size,
   // initializing to zero:
-  for ( size_t i=0; i<tgs.size(); ++i )
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
       // Make this element of abs_per_tg the right size:
-      resize( xsec_per_tg[i], f_mono.size(), p_abs.size() );
-      setto(  xsec_per_tg[i], 0 );
+      xsec_per_tg[i].resize( f_mono.nelem(), p_abs.nelem() );
+      xsec_per_tg[i] = 0;	// Matpack can set all elements like this.
     }
 
   out2 << "  Initialized xsec_per_tg.\n"
-       << "  Number of frequencies        : " << f_mono.size() << "\n"
-       << "  Number of pressure levels    : " << p_abs.size() << "\n";
+       << "  Number of frequencies        : " << f_mono.nelem() << "\n"
+       << "  Number of pressure levels    : " << p_abs.nelem() << "\n";
 }
 
 /**
@@ -1971,25 +1966,25 @@ void xsec_per_tgInit(// WS Output:
    \date   2001-01-11
 */
 void xsec_per_tgAddLines(// WS Output:
-			 ArrayofMatrix& 		  xsec_per_tg,
+			 ArrayOfMatrix& 		  xsec_per_tg,
 			 // WS Input:		  
 			 const TagGroups&                 tgs,
 			 const Vector&  		  f_mono,
 			 const Vector&  		  p_abs,
 			 const Vector&  		  t_abs,
 			 const Vector&  		  h2o_abs,
-			 const ArrayofVector&             vmrs,
-			 const ArrayofArrayofLineRecord&  lines_per_tg,
-			 const ArrayofLineshapeSpec&      lineshape)
+			 const Matrix&                    vmrs,
+			 const ArrayOfArrayOfLineRecord&  lines_per_tg,
+			 const ArrayOfLineshapeSpec&      lineshape)
 {
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
   {
-    const size_t n_tgs    = tgs.size();
-    const size_t n_xsec   = xsec_per_tg.size();
-    const size_t n_vmrs   = vmrs.size();
-    const size_t n_lines  = lines_per_tg.size();
-    const size_t n_shapes = lineshape.size();
+    const Index n_tgs    = tgs.nelem();
+    const Index n_xsec   = xsec_per_tg.nelem();
+    const Index n_vmrs   = vmrs.nrows();
+    const Index n_lines  = lines_per_tg.nelem();
+    const Index n_shapes = lineshape.nelem();
 
     if ( n_tgs != n_xsec  ||
 	 n_tgs != n_vmrs  ||
@@ -1998,11 +1993,11 @@ void xsec_per_tgAddLines(// WS Output:
       {
 	ostringstream os;
 	os << "The following variables must all have the same dimension:\n"
-	   << "tgs:          " << tgs.size() << '\n'
-	   << "xsec_per_tg:  " << xsec_per_tg.size() << '\n'
-	   << "vmrs:         " << vmrs.size() << '\n'
-	   << "lines_per_tg: " << lines_per_tg.size() << '\n'
-	   << "lineshape:    " << lineshape.size();
+	   << "tgs:          " << tgs.nelem() << '\n'
+	   << "xsec_per_tg:  " << xsec_per_tg.nelem() << '\n'
+	   << "vmrs:         " << vmrs.nrows() << '\n'
+	   << "lines_per_tg: " << lines_per_tg.nelem() << '\n'
+	   << "lineshape:    " << lineshape.nelem();
 	throw runtime_error(os.str());
       }
   }  
@@ -2014,7 +2009,7 @@ void xsec_per_tgAddLines(// WS Output:
     // in subsequent calculations.
     out2 << "  Calculating line spectra.\n";
     out3 << "  Transitions to do: \n";
-    size_t nlines = 0;
+    Index nlines = 0;
     String funit;
     Numeric ffac;
     if ( f_mono[0] < 3e12 )
@@ -2026,9 +2021,9 @@ void xsec_per_tgAddLines(// WS Output:
 	extern const Numeric SPEED_OF_LIGHT;
 	funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
       }
-    for ( size_t i=0; i<lines_per_tg.size(); ++i )
+    for ( Index i=0; i<lines_per_tg.nelem(); ++i )
       {
-	for ( size_t l=0; l<lines_per_tg[i].size(); ++l )
+	for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
 	  {
 	    out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
 		 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
@@ -2040,7 +2035,7 @@ void xsec_per_tgAddLines(// WS Output:
   }
 
   // Call xsec_species for each tag group.
-  for ( size_t i=0; i<tgs.size(); ++i )
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
       out2 << "  Tag group " << i
 	   << " (" << get_tag_group_name(tgs[i]) << "): ";
@@ -2048,13 +2043,13 @@ void xsec_per_tgAddLines(// WS Output:
       // Get a pointer to the line list for the current species. This
       // is just so that we don't have to type lines_per_tg[i] over
       // and over again.
-      const ArrayofLineRecord& ll = lines_per_tg[i];
+      const ArrayOfLineRecord& ll = lines_per_tg[i];
 
       // Also get a pointer to the lineshape specification:
       const LineshapeSpec& ls = lineshape[i];
       
       // Skip the call to xsec_per_tg if the line list is empty.
-      if ( 0 < ll.size() )
+      if ( 0 < ll.nelem() )
 	{
 
 	  // Get the name of the species. The member function name of a
@@ -2138,21 +2133,24 @@ void xsec_per_tgAddLines(// WS Output:
 		}
 	    }
 
-	  out2 << ll.size() << " transitions\n";
+	  out2 << ll.nelem() << " transitions\n";
 	  xsec_species( xsec_per_tg[i],
 			f_mono,
 			p_abs,
 			t_abs,
 			h2o_abs,
-			vmrs[i],
+			vmrs(i,Range(joker)),
 			ll,
 			ls.Ind_ls(),
 			ls.Ind_lsn(),
 			ls.Cutoff());
+	  // Note that we call xsec_species with a row of vmrs,
+	  // selected by the above Matpack expression. This is
+	  // possible, because xsec_species is using Views.
 	}
       else
 	{
-	  out2 << ll.size() << " transitions, skipping\n";
+	  out2 << ll.nelem() << " transitions, skipping\n";
 	}
     }
 }
@@ -2181,7 +2179,7 @@ void xsec_per_tgAddLines(// WS Output:
    \date   2001-03-12
 */
 void xsec_per_tgAddConts(// WS Output:
-			 ArrayofMatrix& 		  xsec_per_tg,
+			 ArrayOfMatrix& 		  xsec_per_tg,
 			 // WS Input:		  
 			 const TagGroups&                 tgs,
 			 const Vector&  		  f_mono,
@@ -2189,42 +2187,42 @@ void xsec_per_tgAddConts(// WS Output:
 			 const Vector&  		  t_abs,
 			 const Vector&  		  n2_abs,
 			 const Vector&  		  h2o_abs,
-			 const ArrayofVector&             vmrs,
-                         const ArrayofString&             cont_description_names,
-                         const ArrayofVector& 		  cont_description_parameters )
+			 const Matrix&                    vmrs,
+                         const ArrayOfString&             cont_description_names,
+                         const ArrayOfVector& 		  cont_description_parameters )
 {
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
   {
-    const size_t n_tgs    = tgs.size();
-    const size_t n_xsec   = xsec_per_tg.size();
-    const size_t n_vmrs   = vmrs.size();
+    const Index n_tgs    = tgs.nelem();
+    const Index n_xsec   = xsec_per_tg.nelem();
+    const Index n_vmrs   = vmrs.nrows();
 
     if ( n_tgs != n_xsec || n_tgs != n_vmrs )
       {
 	ostringstream os;
 	os << "The following variables must all have the same dimension:\n"
-	   << "tgs:          " << tgs.size() << '\n'
-	   << "xsec_per_tg:  " << xsec_per_tg.size() << '\n'
-	   << "vmrs:         " << vmrs.size();
+	   << "tgs:          " << tgs.nelem() << '\n'
+	   << "xsec_per_tg:  " << xsec_per_tg.nelem() << '\n'
+	   << "vmrs:         " << vmrs.nrows();
 	throw runtime_error(os.str());
       }
   }
 
   // Check, that dimensions of cont_description_names and
   // cont_description_parameters are consistent...
-  if ( cont_description_names.size() !=
-       cont_description_parameters.size() )
+  if ( cont_description_names.nelem() !=
+       cont_description_parameters.nelem() )
     {
 	ostringstream os;
 	os << "The following variables must have the same dimension:\n"
-	   << "cont_description_names:      " << cont_description_names.size() << '\n'
-	   << "cont_description_parameters: " << cont_description_parameters.size();
+	   << "cont_description_names:      " << cont_description_names.nelem() << '\n'
+	   << "cont_description_parameters: " << cont_description_parameters.nelem();
 	throw runtime_error(os.str());
     }
 
   // ...and that indeed the names match valid continuum models:
-  for ( size_t i=0; i<cont_description_names.size(); ++i )
+  for ( Index i=0; i<cont_description_names.nelem(); ++i )
     {
       check_continuum_model(cont_description_names[i]);
     }
@@ -2232,13 +2230,13 @@ void xsec_per_tgAddConts(// WS Output:
   out2 << "  Calculating continuum spectra.\n";
 
   // Loop tag groups:
-  for ( size_t i=0; i<tgs.size(); ++i )
+  for ( Index i=0; i<tgs.nelem(); ++i )
     {
       extern const Array<SpeciesRecord> species_data; 
 
       // Go through the tags in the current tag group to see if they
       // are continuum tags:  
-      for ( size_t s=0; s<tgs[i].size(); ++s )
+      for ( Index s=0; s<tgs[i].nelem(); ++s )
 	{
 	  // First of all, we have to make sure that this is not a
 	  // tag that means `all isotopes', because this should not
@@ -2246,7 +2244,7 @@ void xsec_per_tgAddConts(// WS Output:
 	  // return the number of isotopes (i.e., one more than the
 	  // allowed index range).
 	  if ( tgs[i][s].Isotope() <
-	       species_data[tgs[i][s].Species()].Isotope().size() )
+	       species_data[tgs[i][s].Species()].Isotope().nelem() )
 	    {
 	      // If we get here, it means that the tag describes a
 	      // specific isotope. Could be a continuum tag!
@@ -2288,14 +2286,14 @@ void xsec_per_tgAddConts(// WS Output:
 		  // Check, if we have parameters for this model. For
 		  // this, the model name must be listed in
 		  // cont_description_names.
-		  const size_t n =
+		  const Index n =
 		    find( cont_description_names.begin(),
 			  cont_description_names.end(),
 			  name ) - cont_description_names.begin();
 
-		  // n==cont_description_names.size() indicates that
+		  // n==cont_description_names.nelem() indicates that
 		  // the name was not found.
-		  if ( n==cont_description_names.size() )
+		  if ( n==cont_description_names.nelem() )
 		    {
 		      ostringstream os;
 		      os << "Cannot find model " << name
@@ -2311,7 +2309,7 @@ void xsec_per_tgAddConts(// WS Output:
 
 		  // Add the continuum for this tag. The parameters in
 		  // this call should be clear. The vmr is in
-		  // vmrs[i]. The other vmr variable, `h2o_abs'
+		  // vmrs(i,Range(joker)). The other vmr variable, `h2o_abs'
 		  // contains the real H2O vmr, which is needed for
 		  // the oxygen continuum.
 		  xsec_continuum_tag( xsec_per_tg[i],
@@ -2322,7 +2320,9 @@ void xsec_per_tgAddConts(// WS Output:
 				      t_abs,
 				      n2_abs,
 				      h2o_abs,
-				      vmrs[i] );
+				      vmrs(i,Range(joker)) );
+		  // Calling this function with a row of Matrix vmrs
+		  // is possible because it uses Views.
 		}
 	    }
 	}
@@ -2339,7 +2339,7 @@ void xsec_per_tgAddConts(// WS Output:
 
     \author Axel von Engeln and Stefan Buehler */
 void abs_per_tgReduce(// WS Output:
-                      ArrayofMatrix&         abs_per_tg,
+                      ArrayOfMatrix&         abs_per_tg,
                       // WS Input:
                       const TagGroups&       tgs,
                       const TagGroups&       wfs_tgs)
@@ -2348,7 +2348,7 @@ void abs_per_tgReduce(// WS Output:
   // Make a safety check that the dimensions of tgs and
   // abs_per_tg are the same (could happen that we call this workspace
   // method twice by accident).
-  if ( abs_per_tg.size()!=tgs.size() )
+  if ( abs_per_tg.nelem()!=tgs.nelem() )
     throw(runtime_error("The variables abs_per_tg and tgs must\n"
 			"have the same dimension."));
 
@@ -2356,25 +2356,26 @@ void abs_per_tgReduce(// WS Output:
   // behind the erased one are copied in order to fill the
   // gap. Therefore, we will construct a new abs_per_tg, and finally
   // use it to replace the old one.
-  ArrayofMatrix abs_per_tg_out( wfs_tgs.size() );
+  ArrayOfMatrix abs_per_tg_out( wfs_tgs.nelem() );
 
   // Go through the weighting function tag groups:
-  for ( size_t i=0; i<wfs_tgs.size(); ++i )
+  for ( Index i=0; i<wfs_tgs.nelem(); ++i )
     {
       // Index to the elements of wfs_tgs in tgs:
-      size_t n;
+      Index n;
       get_tag_group_index_for_tag_group( n, tgs, wfs_tgs[i] );
 
-      resize( abs_per_tg_out[i], abs_per_tg[n].nrows(), abs_per_tg[n].ncols() );
-      copy( abs_per_tg[n], abs_per_tg_out[i] );
+      abs_per_tg_out[i].resize( abs_per_tg[n].nrows(), abs_per_tg[n].ncols() );
+      abs_per_tg_out[i] = abs_per_tg[n]; // Matpack can copy the contents of
+					 // matrices like this. The dimensions
+					 // must be the same! 
     }  
 
   // Copy the generated matrices back to abs_per_tg
-  //  resize( abs_per_tg, wfs_tgs.size() );
-  //  copy( abs_per_tg_out, abs_per_tg );
-  // FIXME: Replace by our own swap function? Or better make std::swap
-  // work also for our own Vector and Matrix.
-  std::swap( abs_per_tg_out, abs_per_tg );
+  abs_per_tg.resize( wfs_tgs.nelem() );
+  abs_per_tg = abs_per_tg_out;	// FIXME: It should be checked whether
+				// this works correctly. Does my Array
+				// implementation work as it should? 
 }
 
 
@@ -2390,12 +2391,12 @@ void abs_per_tgReduce(// WS Output:
    \date   2001-04-19
 */
 void refrSet( 
-              int&      refr,
-              int&      refr_lfac,
+              Index&      refr,
+              Index&      refr_lfac,
               String&   refr_model,
-        const int&      on,
+        const Index&      on,
         const String&   model,
-        const int&      lfac )
+        const Index&      lfac )
 {
   if ( !isbool( on ) )  
     throw runtime_error("The on/off flag must either be 0 or 1.");
@@ -2416,8 +2417,8 @@ void refrSet(
    \date   2001-01-22
 */
 void refrOff( 
-              int&      refr,
-              int&      refr_lfac,
+              Index&      refr,
+              Index&      refr_lfac,
               String&   refr_model )
 {
   refrSet( refr, refr_lfac, refr_model, 0, "", 1 );
@@ -2437,23 +2438,23 @@ void refrCalc (
               const Vector&   p_abs,
               const Vector&   t_abs,
               const Vector&   h2o_abs,
-              const int&      refr,
+              const Index&      refr,
               const String&   refr_model )
 {
   if ( !isbool( refr ) )  
     throw runtime_error("The refraction flag must either be 0 or 1.");
 
   if ( refr == 0 )
-    resize( refr_index, 0 );
+    refr_index.resize( 0 );
 
   else
   {
     if ( refr_model == "Unity" )
     {
       cout << "DOING Unity \n";
-      const Index n = p_abs.size();
-      resize( refr_index, n );
-      setto( refr_index, 1.0 );
+      const Index n = p_abs.nelem();
+      refr_index.resize( n );
+      refr_index = 1.0;		// Matpack can set all elements like this.
     }
     
     else if ( refr_model == "Boudouris" )
@@ -2495,11 +2496,11 @@ void refrCalc (
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionInit(// WS Output:
-                          ArrayofString& names,
-                          ArrayofVector& parameters)
+                          ArrayOfString& names,
+                          ArrayOfVector& parameters)
 {
-  resize(names,0);
-  resize(parameters,0);
+  names.resize(0);
+  parameters.resize(0);
   out2 << "  Initialized cont_description_names and cont_description_parameters.\n";
 }
 
@@ -2515,8 +2516,8 @@ void cont_descriptionInit(// WS Output:
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionAppend(// WS Output:
-		       ArrayofString& cont_description_names,
-		       ArrayofVector& cont_description_parameters,
+		       ArrayOfString& cont_description_names,
+		       ArrayOfVector& cont_description_parameters,
 		       // Control Parameters:
 		       const String& name,
 		       const Vector& parameters)

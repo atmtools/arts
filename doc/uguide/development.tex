@@ -177,10 +177,11 @@ but please use it anyway.)
 
 \levelc{Version numbers} 
 The package version number is set in file \verb|configure.in| in the
-top level ARTS directory. Always increase this when you make a new
-distribution.  The minor version number is set in
-\verb|src/version.cc|. Always increase this before you do a CVS
-commit, even for small changes.
+top level ARTS directory. Always increase this when you do a CVS
+commit, even for small changes. in such cases increase the last digit
+by one. If you make a new distribution, increase the middle digit by
+one and omit the last digit. If you make a bug-fix distribution, you
+can add the last digit to indicate this. 
 
 \levelc{Global header file} 
 The global header file \verb|arts.h| \emph{must} be included by every

@@ -1,7 +1,3 @@
-#include <iostream>
-#include <iomanip>
-#include <cassert>
-
 /**
   Notes:
 
@@ -14,7 +10,7 @@
   operations on Vectors, such as using the index operator with a Range
   object. However, you can store them, like:
 
-  VectorView A = B(Range(0,3))
+  VectorView A = B[Range(0,3)]
 
   A VectorView acts like a reference to the selected region in the
   parent matrix. Functions that operate on an existing matrix (i.e.,
@@ -79,20 +75,28 @@
   \date   2001-06-12
  */
 
-typedef float Numeric;
-typedef long Index;
+#ifndef matpackI_h
+#define matpackI_h
+
+#include <iomanip>
+#include "arts.h"
 
 /** The Joker class.
 
-    This is used in connection with Range to implement Matlab-like
-    subranges of vectors and matrices. This class has no members. We
-    just need a special type to indicate the joker. */
+    This class is used by Vector and Matrix in connection with Range
+    to implement Matlab-like subranges of vectors and matrices.
+
+    This class has no members. We just need a special type to indicate
+    the joker. There is a global joker object defined somewhere:
+    
+    Joker joker;
+*/
 class Joker {
   // Nothing here.
 };
 
-/** Define the global joker objekt. */
-Joker joker;
+// Declare existence of the global joker object:
+extern Joker joker;
 
 // Declare the existence of class VectorView:
 class VectorView;
@@ -202,6 +206,7 @@ public:
 
   // Member functions:
   Index nelem() const;
+  Numeric sum() const;
 
   // Const index operators:
   Numeric  operator[](Index n) const;
@@ -263,6 +268,7 @@ public:
   
   // Assignment operators:
   VectorView operator=(const ConstVectorView& v);
+  VectorView operator=(const Array<Numeric>& v);
   VectorView operator=(Numeric x);
 
   // Other operators:
@@ -270,6 +276,11 @@ public:
   VectorView operator/=(Numeric x);
   VectorView operator+=(Numeric x);
   VectorView operator-=(Numeric x);
+
+  VectorView operator*=(const ConstVectorView& x);
+  VectorView operator/=(const ConstVectorView& x);
+  VectorView operator+=(const ConstVectorView& x);
+  VectorView operator-=(const ConstVectorView& x);
 
   // Conversion to 1 column matrix:
   operator MatrixView();
@@ -348,12 +359,15 @@ public:
   // Constructors:
   Vector();
   explicit Vector(Index n);
+  Vector(Index n, Numeric fill);
   Vector(Numeric start, Index extent, Numeric stride);
   Vector(const ConstVectorView& v);
   Vector(const Vector& v);
 
   // Assignment operators:
   //  Vector& operator=(VectorView x);
+  Vector& operator=(const Vector& v);
+  Vector& operator=(const Array<Numeric>& v);
   Vector& operator=(Numeric x);
 
   // Resize function:
@@ -448,6 +462,7 @@ public:
   
   // Assignment operators:
   MatrixView& operator=(const ConstMatrixView& v);
+  MatrixView& operator=(const ConstVectorView& v);
   MatrixView& operator=(Numeric x);
 
   // Other operators:
@@ -455,6 +470,16 @@ public:
   MatrixView& operator/=(Numeric x);
   MatrixView& operator+=(Numeric x);
   MatrixView& operator-=(Numeric x);
+
+  MatrixView& operator*=(const ConstMatrixView& x);
+  MatrixView& operator/=(const ConstMatrixView& x);
+  MatrixView& operator+=(const ConstMatrixView& x);
+  MatrixView& operator-=(const ConstMatrixView& x);
+
+  MatrixView& operator*=(const ConstVectorView& x);
+  MatrixView& operator/=(const ConstVectorView& x);
+  MatrixView& operator+=(const ConstVectorView& x);
+  MatrixView& operator-=(const ConstVectorView& x);
 
   // Friends:
   friend class VectorView;
@@ -483,10 +508,14 @@ public:
   // Constructors:
   Matrix();
   Matrix(Index r, Index c);
+  Matrix(Index r, Index c, Numeric fill);
+  Matrix(const ConstMatrixView& v);
   Matrix(const Matrix& v);
 
-  // Assignment operator:
+  // Assignment operators:
+  Matrix& operator=(const Matrix& x);
   Matrix& operator=(Numeric x);
+  Matrix& operator=(const ConstVectorView& v);
 
   // Resize function:
   void resize(Index r, Index c);
@@ -515,6 +544,17 @@ inline void copy(Numeric x,
 		 Iterator2D target,
 		 const Iterator2D& end);
 
+
+
+// Declare the existance of class Array:
+template<class base>
+class Array;
+
+/** An array of vectors. */
+typedef Array<Vector> ArrayOfVector;
+
+/** An array of matrices. */
+typedef Array<Matrix> ArrayOfMatrix;
 
 
 // Functions for Range:
@@ -860,6 +900,19 @@ inline Index ConstVectorView::nelem() const
   return mrange.mextent;
 }
 
+/** The sum of all elements of a Vector. */
+inline Numeric ConstVectorView::sum() const
+{
+  Numeric s=0;
+  ConstIterator1D i = begin();
+  const ConstIterator1D e = end();
+
+  for ( ; i!=e; ++i )
+    s += *i;
+
+  return s;
+}
+
 /** Plain const index operator. */
 inline Numeric ConstVectorView::operator[](Index n) const
 {
@@ -1086,6 +1139,66 @@ inline VectorView VectorView::operator-=(Numeric x)
   return *this;
 }
 
+/** Element-vise multiplication by another vector. */
+inline VectorView VectorView::operator*=(const ConstVectorView& x)
+{
+  assert( nelem()==x.nelem() );
+
+  ConstIterator1D s=x.begin();
+
+  Iterator1D i=begin();
+  const Iterator1D e=end();
+
+  for ( ; i!=e ; ++i,++s )
+    *i *= *s;
+  return *this;
+}
+
+/** Element-vise division by another vector. */
+inline VectorView VectorView::operator/=(const ConstVectorView& x)
+{
+  assert( nelem()==x.nelem() );
+
+  ConstIterator1D s=x.begin();
+
+  Iterator1D i=begin();
+  const Iterator1D e=end();
+
+  for ( ; i!=e ; ++i,++s )
+    *i /= *s;
+  return *this;
+}
+
+/** Element-vise addition of another vector. */
+inline VectorView VectorView::operator+=(const ConstVectorView& x)
+{
+  assert( nelem()==x.nelem() );
+
+  ConstIterator1D s=x.begin();
+
+  Iterator1D i=begin();
+  const Iterator1D e=end();
+
+  for ( ; i!=e ; ++i,++s )
+    *i += *s;
+  return *this;
+}
+
+/** Element-vise subtraction of another vector. */
+inline VectorView VectorView::operator-=(const ConstVectorView& x)
+{
+  assert( nelem()==x.nelem() );
+
+  ConstIterator1D s=x.begin();
+
+  Iterator1D i=begin();
+  const Iterator1D e=end();
+
+  for ( ; i!=e ; ++i,++s )
+    *i -= *s;
+  return *this;
+}
+
 /** Conversion to 1 column matrix. */
 inline VectorView::operator MatrixView()
 {
@@ -1166,11 +1279,22 @@ inline Vector::Vector(Index n) :
   // Nothing to do here.
 }
 
+/** Constructor setting size and filling with constant value. */
+inline Vector::Vector(Index n, Numeric fill) :
+  VectorView( new Numeric[n],
+	     Range(0,n))
+{
+  // Here we can access the raw memory directly, for slightly
+  // increased efficiency:
+  for ( Numeric *x=mdata; x<mdata+n; ++x )
+    *x = fill;
+}
+
 /** Constructor filling with values. 
 
     Examples:
 
-    Vector v(1,5);    // 1, 2, 3, 4, 5
+    Vector v(1,5,1);  // 1, 2, 3, 4, 5
     Vector v(1,5,.5); // 1, 1.5, 2, 2.5, 3
     Vector v(5,5,-1); // 5, 4, 3, 2, 1
 */
@@ -1208,6 +1332,42 @@ inline Vector::Vector(const Vector& v) :
 	      Range(0,v.nelem()))
 {
   copy(v.begin(),v.end(),begin());
+}
+
+/** Assignment from another Vector. Important to avoid segmentation
+    fault for 
+    x = Vector(n);
+ */
+inline Vector& Vector::operator=(const Vector& v)
+{
+  //  cout << "Assigning VectorView from Vector View.\n";
+
+  // Check that sizes are compatible:
+  assert(mrange.mextent==v.mrange.mextent);
+  copy( v.begin(), v.end(), begin() );
+  return *this;
+}
+
+/** Assignment operator from Array<Numeric>. This copies the data from
+    a Array<Numeric> to this VectorView. Dimensions must agree! 
+    Resizing would destroy the selection that we might have done in
+    this VectorView by setting its range. 
+
+    Array<Numeric> can be useful to collect things in, because there
+    is a .push_back method for it. Then, after collecting we usually
+    have to transfer the content to a Vector. With this assignment
+    operator that's easy.
+
+    Assignment operators are not inherited, so we have to make an
+    explicit call to:
+
+    VectorView VectorView::operator=(const Array<Numeric>& v)
+
+    here. */  
+inline Vector& Vector::operator=(const Array<Numeric>& x)
+{
+  VectorView::operator=(x);
+  return *this;
 }
 
 /** Assignment operator from scalar. Assignment operators are not
@@ -1301,7 +1461,7 @@ inline ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) cons
 {
   // Check that c is valid:
   assert( 0 <= c );
-  assert( c <  mcr.mstart+(mcr.mextent-1)*mcr.mstride );
+  assert( c <= mcr.mstart+(mcr.mextent-1)*mcr.mstride );
 
   return ConstVectorView(mdata + mcr.mstart + c*mcr.mstride,
 			 mrr, r);
@@ -1341,7 +1501,7 @@ inline ConstIterator2D ConstMatrixView::end() const
 /** Default constructor. This is necessary, so that we can have a
     default constructor for derived classes. */
 inline ConstMatrixView::ConstMatrixView() :
-  mrr(0,0), mcr(0,0), mdata(NULL)
+  mrr(0,0,1), mcr(0,0,1), mdata(NULL)
 {
   // Nothing to do here.
 }
@@ -1503,7 +1663,7 @@ inline VectorView MatrixView::operator()(const Range& r, Index c)
 {
   // Check that c is valid:
   assert( 0 <= c );
-  assert( c <  mcr.mstart+(mcr.mextent-1)*mcr.mstride );
+  assert( c <= mcr.mstart+(mcr.mextent-1)*mcr.mstride );
 
   return VectorView(mdata + mcr.mstart + c*mcr.mstride,
 		    mrr, r);
@@ -1565,6 +1725,21 @@ inline MatrixView& MatrixView::operator=(const ConstMatrixView& m)
   return *this;
 }
 
+/** Assignment from a vector. This copies the data from a VectorView
+    to this MatrixView. Dimensions must agree! Resizing would destroy
+    the selection that we might have done in this MatrixView by
+    setting its range. */
+inline MatrixView& MatrixView::operator=(const ConstVectorView& v)
+{
+  // Check that sizes are compatible:
+  assert( mrr.mextent==v.nelem() );
+  assert( mcr.mextent==1         );
+  //  dummy = ConstMatrixView(v.mdata,v.mrange,Range(v.mrange.mstart,1));;
+  ConstMatrixView dummy(v);
+  copy( dummy.begin(), dummy.end(), begin() );
+  return *this;
+}
+
 /** Assigning a scalar to a MatrixView will set all elements to this
     value. */
 inline MatrixView& MatrixView::operator=(Numeric x)
@@ -1621,6 +1796,146 @@ inline MatrixView& MatrixView::operator-=(Numeric x)
       const Iterator1D ec = r->end();
       for ( Iterator1D c = r->begin(); c!=ec ; ++c )
 	*c -= x;
+    }
+  return *this;
+}
+
+/** Element-vise multiplication by another Matrix. */
+inline MatrixView& MatrixView::operator*=(const ConstMatrixView& x)
+{
+  assert(nrows()==x.nrows());
+  assert(ncols()==x.ncols());
+  ConstIterator2D  sr = x.begin();
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sr )
+    {
+      ConstIterator1D  sc = sr->begin(); 
+      Iterator1D        c = r->begin();
+      const Iterator1D ec = r->end();
+      for ( ; c!=ec ; ++c,++sc )
+	*c *= *sc;
+    }
+  return *this;
+}
+
+/** Element-vise division by another Matrix. */
+inline MatrixView& MatrixView::operator/=(const ConstMatrixView& x)
+{
+  assert(nrows()==x.nrows());
+  assert(ncols()==x.ncols());
+  ConstIterator2D  sr = x.begin();
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sr )
+    {
+      ConstIterator1D  sc = sr->begin(); 
+      Iterator1D        c = r->begin();
+      const Iterator1D ec = r->end();
+      for ( ; c!=ec ; ++c,++sc )
+	*c /= *sc;
+    }
+  return *this;
+}
+
+/** Element-vise addition of another Matrix. */
+inline MatrixView& MatrixView::operator+=(const ConstMatrixView& x)
+{
+  assert(nrows()==x.nrows());
+  assert(ncols()==x.ncols());
+  ConstIterator2D  sr = x.begin();
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sr )
+    {
+      ConstIterator1D  sc = sr->begin(); 
+      Iterator1D        c = r->begin();
+      const Iterator1D ec = r->end();
+      for ( ; c!=ec ; ++c,++sc )
+	*c += *sc;
+    }
+  return *this;
+}
+
+/** Element-vise subtraction of another Matrix. */
+inline MatrixView& MatrixView::operator-=(const ConstMatrixView& x)
+{
+  assert(nrows()==x.nrows());
+  assert(ncols()==x.ncols());
+  ConstIterator2D  sr = x.begin();
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sr )
+    {
+      ConstIterator1D  sc = sr->begin(); 
+      Iterator1D        c = r->begin();
+      const Iterator1D ec = r->end();
+      for ( ; c!=ec ; ++c,++sc )
+	*c -= *sc;
+    }
+  return *this;
+}
+
+/** Element-vise multiplication by a Vector (acting like a 1-column Matrix). */
+inline MatrixView& MatrixView::operator*=(const ConstVectorView& x)
+{
+  assert(nrows()==x.nelem());
+  assert(ncols()==1);
+  ConstIterator1D  sc = x.begin(); 
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sc )
+    {
+      Iterator1D        c = r->begin();
+      *c *= *sc;
+    }
+  return *this;
+}
+
+/** Element-vise division by a Vector (acting like a 1-column Matrix). */
+inline MatrixView& MatrixView::operator/=(const ConstVectorView& x)
+{
+  assert(nrows()==x.nelem());
+  assert(ncols()==1);
+  ConstIterator1D  sc = x.begin(); 
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sc )
+    {
+      Iterator1D        c = r->begin();
+      *c /= *sc;
+    }
+  return *this;
+}
+
+/** Element-vise addition of a Vector (acting like a 1-column Matrix). */
+inline MatrixView& MatrixView::operator+=(const ConstVectorView& x)
+{
+  assert(nrows()==x.nelem());
+  assert(ncols()==1);
+  ConstIterator1D  sc = x.begin(); 
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sc )
+    {
+      Iterator1D        c = r->begin();
+      *c += *sc;
+    }
+  return *this;
+}
+
+/** Element-vise subtraction of a Vector (acting like a 1-column Matrix). */
+inline MatrixView& MatrixView::operator-=(const ConstVectorView& x)
+{
+  assert(nrows()==x.nelem());
+  assert(ncols()==1);
+  ConstIterator1D  sc = x.begin(); 
+  Iterator2D        r = begin();
+  const Iterator2D er = end();
+  for ( ; r!=er ; ++r,++sc )
+    {
+      Iterator1D        c = r->begin();
+      *c -= *sc;
     }
   return *this;
 }
@@ -1705,9 +2020,13 @@ inline void copy(Numeric x,
 // ---------------------
 
 /** Default constructor. */
-inline Matrix::Matrix() 
+inline Matrix::Matrix() :
+  MatrixView::MatrixView()
 {
-  // Nothing to do here
+  // Nothing to do here. However, note that the default constructor
+  // for MatrixView has been called in the initializer list. That is
+  // crucial, otherwise internal range objects will not be properly
+  // initialized. 
 }
 
 /** Constructor setting size. This constructor has to set the stride
@@ -1720,9 +2039,21 @@ inline Matrix::Matrix(Index r, Index c) :
   // Nothing to do here.
 }
 
-/** Copy constructor from Matrix. This automatically sets the size
+/** Constructor setting size and filling with constant value. */
+inline Matrix::Matrix(Index r, Index c, Numeric fill) :
+  MatrixView( new Numeric[r*c],
+	      Range(0,r,c),
+	      Range(0,c))
+{
+  // Here we can access the raw memory directly, for slightly
+  // increased efficiency:
+  for ( Numeric *x=mdata; x<mdata+r*c; ++x )
+    *x = fill;
+}
+
+/** Copy constructor from MatrixView. This automatically sets the size
     and copies the data. */
-inline Matrix::Matrix(const Matrix& m) :
+inline Matrix::Matrix(const ConstMatrixView& m) :
   MatrixView( new Numeric[m.nrows()*m.ncols()],
 	     Range( 0, m.nrows(), m.ncols() ),
 	     Range( 0, m.ncols() ) )
@@ -1730,11 +2061,72 @@ inline Matrix::Matrix(const Matrix& m) :
   copy(m.begin(),m.end(),begin());
 }
 
+/** Copy constructor from Matrix. This automatically sets the size
+    and copies the data. */
+inline Matrix::Matrix(const Matrix& m) :
+  MatrixView( new Numeric[m.nrows()*m.ncols()],
+	     Range( 0, m.nrows(), (m.ncols()>0) ? m.ncols() : 1 ),
+	     Range( 0, m.ncols() ) )
+{
+  // There is a catch here: If m is an empty matrix, then it will have
+  // 0 colunns. But this is used to initialize the stride of the row
+  // Range! Therfore the ? expression above.
+  copy(m.begin(),m.end(),begin());
+}
+
+/** Assignment operator from another matrix. It is important that this
+    operator exists. Otherwise the = operator seems to copy references
+    instead of content in some cases. 
+
+    The Behavior of this one is a bit special: If the size of the
+    target Matrix is 0 then it will be automatically resized to match
+    (this is needed to have the correct initialization for constructed
+    classes that use the assignment operator to initialize their
+    data). 
+*/
+inline Matrix& Matrix::operator=(const Matrix& m)
+{
+  //  cout << "Matrix copy: m = " << m.nrows() << " " << m.ncols() << "\n";
+  //  cout << "             n = " << nrows() << " " << ncols() << "\n";
+
+  // None of the extents can be zero for a valid matrix, so we just
+  // have to check one.
+  if ( 0 == mrr.mextent )
+    {
+      // Adjust if previously empty.
+      resize( m.mrr.mextent, m.mcr.mextent ); 
+    }
+  else
+    {
+      // Check that sizes are compatible:
+      assert( mrr.mextent==m.mrr.mextent );
+      assert( mcr.mextent==m.mcr.mextent );
+    }
+
+  copy( m.begin(), m.end(), begin() );
+  return *this;
+}
+
 /** Assignment operator from scalar. Assignment operators also seem to
     be not inherited. */
 inline Matrix& Matrix::operator=(Numeric x)
 {
   copy( x, begin(), end() );
+  return *this;
+}
+
+/** Assignment from a vector. This copies the data from a VectorView
+    to this MatrixView. Dimensions must agree! Resizing would destroy
+    the selection that we might have done in this MatrixView by
+    setting its range. */
+inline Matrix& Matrix::operator=(const ConstVectorView& v)
+{
+  // Check that sizes are compatible:
+  assert( mrr.mextent==v.nelem() );
+  assert( mcr.mextent==1         );
+  //  dummy = ConstMatrixView(v.mdata,v.mrange,Range(v.mrange.mstart,1));;
+  ConstMatrixView dummy(v);
+  copy( dummy.begin(), dummy.end(), begin() );
   return *this;
 }
 
@@ -1752,9 +2144,9 @@ inline void Matrix::resize(Index r, Index c)
       mrr.mextent = r;
       mrr.mstride = c;
 
-      mrr.mstart = 0;
-      mrr.mextent = c;
-      mrr.mstride = 1;
+      mcr.mstart = 0;
+      mcr.mextent = c;
+      mcr.mstride = 1;
     }
 }
 
@@ -1762,6 +2154,8 @@ inline void Matrix::resize(Index r, Index c)
     allocate storage. */
 inline Matrix::~Matrix()
 {
+//   cout << "Destroying a Matrix:\n"
+//        << *this << "\n........................................\n";
   delete mdata;
 }
 
@@ -1904,9 +2298,9 @@ inline MatrixView transpose(MatrixView m)
     \retval   y   the results of the function acting on each element of x
     \param    my_func a function (e.g., sqrt)
     \param    x   a vector */
-void transform( VectorView y,
-		double (&my_func)(double),
-		const VectorView& x )
+inline void transform( VectorView y,
+		       double (&my_func)(double),
+		       ConstVectorView x )
 {
   // Check dimensions:
   assert( y.nelem()==x.nelem() );
@@ -1936,9 +2330,9 @@ void transform( VectorView y,
    \retval   y   the results of the function acting on each element of x
    \param    my_func a function (e.g., sqrt)
    \param    x   a matrix */
-void transform( MatrixView y,
-		double (&my_func)(double),
-		const MatrixView& x )
+inline void transform( MatrixView y,
+		       double (&my_func)(double),
+		       ConstMatrixView x )
 {
   // Check dimensions:
   assert( y.nrows()==x.nrows() );
@@ -1958,7 +2352,7 @@ void transform( MatrixView y,
 }
 
 /** Max function, vector version. */
-Numeric max(const ConstVectorView& x)
+inline Numeric max(const ConstVectorView& x)
 {
   // Initial value for max:
   Numeric max = x[0];
@@ -1976,7 +2370,7 @@ Numeric max(const ConstVectorView& x)
 }
 
 /** Max function, matrix version. */
-Numeric max(const ConstMatrixView& x)
+inline Numeric max(const ConstMatrixView& x)
 {
   // Initial value for max:
   Numeric max = x(0,0);
@@ -1998,7 +2392,7 @@ Numeric max(const ConstMatrixView& x)
 }
 
 /** Min function, vector version. */
-Numeric min(const ConstVectorView& x)
+inline Numeric min(const ConstVectorView& x)
 {
   // Initial value for min:
   Numeric min = x[0];
@@ -2016,7 +2410,7 @@ Numeric min(const ConstVectorView& x)
 }
 
 /** Min function, matrix version. */
-Numeric min(const ConstMatrixView& x)
+inline Numeric min(const ConstMatrixView& x)
 {
   // Initial value for min:
   Numeric min = x(0,0);
@@ -2036,3 +2430,6 @@ Numeric min(const ConstMatrixView& x)
   
   return min;
 }
+
+
+#endif    // matpackI_h

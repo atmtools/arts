@@ -37,12 +37,13 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
 #include "arts.h"
 #include "file.h"
 #include "math_funcs.h"
 #include "auto_md.h"
 #include "messages.h"
-
+#include "make_vector.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -83,24 +84,27 @@
    \param   sdev      standard deviation at the values of kp
    \param   clength   correlation length at the values of kp
 
+   Input vectors are passed as VectorViews, so this function can be
+   called with vector or matrix selections.
+
    \author Patrick Eriksson
    \date   2000-12-01
 */
 void setup_covmatrix(
-                SYMMETRIC&    s,
-             const Vector&    kg,
-             const size_t&    corrfun,
-             const Numeric&   cutoff,
-             const Vector&    kp,
-             const Vector&    sdev,
-             const Vector&    clength )
+		     Matrix&            s,
+		     ConstVectorView    kg,
+		     const Index        corrfun,
+		     const Numeric      cutoff,
+		     ConstVectorView    kp,
+		     ConstVectorView    sdev,
+		     ConstVectorView    clength )
 {
-  const size_t   n = kg.size();
-        size_t   row, col;
+  const Index   n = kg.nelem();
+        Index   row, col;
         Vector   sd(n), cl(n);
         Numeric  c;          // correlation
 
-  if ( sdev.size() != clength.size() )
+  if ( sdev.nelem() != clength.nelem() )
     throw runtime_error("The standard deviation and correlation length vectors must have the same length.");
 
   if ( (min(kg)<min(kp)) || (max(kg)>max(kp)) )
@@ -132,14 +136,14 @@ void setup_covmatrix(
   interp_lin_vector( cl, kp, clength, kg );
 
   // Resize s and fill with 0
-  resize( s, n, n);
-  setto(s, 0) ;  
+  s.resize( n, n);
+  s = 0;			// Matpack can set all elements like this.
 
   // Diagonal matrix
   if ( corrfun == 0 )
   {
     for ( row=0; row<n; row++ )
-      s[row][row] = sd[row]*sd[row]; 
+      s(row,row) = sd[row]*sd[row]; 
   }
 
   // Linearly decreasing (tenth function)
@@ -149,10 +153,12 @@ void setup_covmatrix(
     {
       for ( col=row; col<n; col++ )
       {
-        c = 1 - 2*(1-exp(-1))*abs(kg[row]-kg[col])/(cl[row]+cl[col]);
+        c = 1 - 2*(1-exp(-1))*fabs(kg[row]-kg[col])/(cl[row]+cl[col]);
+	// FIXME: Patrick, I changed abs in the above statement to
+	// fabs. Please check.
         if ( (c>0) && (c>cutoff) )
 	{
-          s[row][col] = c*sd[row]*sd[col]; 
+          s(row,col) = c*sd[row]*sd[col]; 
         } 
       }
     }
@@ -165,10 +171,12 @@ void setup_covmatrix(
     {
       for ( col=row; col<n; col++ )
       {
-        c = exp(-abs(kg[row]-kg[col])/((cl[row]+cl[col])/2));
+        c = exp(-fabs(kg[row]-kg[col])/((cl[row]+cl[col])/2));
+	// FIXME: Patrick, I changed abs in the above statement to
+	// fabs. Please check.
         if ( c > cutoff )
 	{
-          s[row][col] = c*sd[row]*sd[col]; 
+          s(row,col) = c*sd[row]*sd[col]; 
         } 
       }
     }
@@ -184,7 +192,7 @@ void setup_covmatrix(
         c = exp( -1.0 * pow( (kg[row]-kg[col])/((cl[row]+cl[col])/2), 2 ) );
         if ( c > cutoff )
 	{
-          s[row][col] = c*sd[row]*sd[col]; 
+          s(row,col) = c*sd[row]*sd[col]; 
         } 
       }
     }
@@ -214,17 +222,20 @@ void setup_covmatrix(
    \date   2000-12-01
 */
 void sDiagonal(
-        SYMMETRIC&          s,
-        const int&       n,
-        const Numeric&   stddev)
+	       Matrix&          s,
+	       const Index&     n,
+	       const Numeric&   stddev)
 {
-  const Vector   sdev(2,stddev);
-  const Vector   clength(2,0.0);
-        Vector   kp(2);
+  // We can use the special Vector class MakeVector to create
+  // two-element Vectors with particular contents:
+  const MakeVector   sdev   ( stddev, stddev );
+  const MakeVector   clength( 0.0,    0.0    );	 
+  const MakeVector   kp     ( 0.0,    1.0    );		 
+					 
+  Vector kg(n);			// Kreate kg,
+  kg = 0.5;			// and fill all elements with 0.5.
 
-  kp[0] = 0.0;
-  kp[1] = 1.0;
-  setup_covmatrix( s, Vector(n,0.5), 0, 0, kp, sdev, clength );
+  setup_covmatrix( s, kg, 0, 0, kp, sdev, clength );
 }
 
 
@@ -236,17 +247,16 @@ void sDiagonal(
    \date   2000-12-01
 */
 void sDiagonalLengthFromVector(
-        SYMMETRIC&          s,
-        const Vector&    grid,
-        const String&    grid_name,
-        const Numeric&   stddev)
+			       Matrix&          s,
+			       const Vector&    grid,
+			       const String&    grid_name,
+			       const Numeric&   stddev)
 {
-  const Vector   sdev(2,stddev);
-  const Vector   clength(2,0.0);
-        Vector   kp(2);
-
-  kp[0] = grid[0];
-  kp[1] = grid[grid.size()-1];
+  // We can use the special Vector class MakeVector to create
+  // two-element Vectors with particular contents:
+  const MakeVector   sdev(    stddev,  stddev               );
+  const MakeVector   clength( 0.0,     0.0                  );
+  const MakeVector   kp(      grid[0], grid[grid.nelem()-1] );
 
   out2 << "  Creating a diagonal covariance matrix.\n";
   out3 << "    Standard deviation = " << stddev << "\n";
@@ -263,21 +273,23 @@ void sDiagonalLengthFromVector(
    \date   2000-12-01
 */
 void sDiagonalLengthFromVectors(
-        SYMMETRIC&          s,
-        const Vector&    grid1,
-        const Vector&    grid2,
-        const String&    grid1_name,
-        const String&    grid2_name,
-        const Numeric&   stddev)
+				Matrix&          s,
+				const Vector&    grid1,
+				const Vector&    grid2,
+				const String&    grid1_name,
+				const String&    grid2_name,
+				const Numeric&   stddev)
 {
-  const Vector   sdev(2,stddev);
-  const Vector   clength(2,0.0);
-        Vector   kp(2);
+  // We can use the special Vector class MakeVector to create
+  // two-element Vectors with particular contents:
+  const MakeVector   sdev(    stddev, stddev );
+  const MakeVector   clength( 0.0,    0.0    );
+  const MakeVector   kp(      0.0,    1.0)   ;
 
-  kp[0] = 0.0;
-  kp[1] = 1.0;
-  setup_covmatrix( s, Vector(grid1.size()*grid2.size(),0.5), 0, 0, kp, sdev, 
-                                                                    clength );
+  Vector kg(grid1.nelem()*grid2.nelem()); // Kreate kg,                     
+  kg = 0.5;				  // and fill all elements with 0.5.
+
+  setup_covmatrix( s, kg, 0, 0, kp, sdev, clength );
 }
 
 
@@ -289,19 +301,19 @@ void sDiagonalLengthFromVectors(
    \date   2000-12-01
 */
 void sSimple(
-        SYMMETRIC&       s,
-        const int&       n,
-        const Numeric&   stddev,
-        const int&       corrfun,
-        const Numeric&   cutoff,
-        const Numeric&   corrlength )
+	     Matrix&       s,
+	     const Index&       n,
+	     const Numeric&   stddev,
+	     const Index&       corrfun,
+	     const Numeric&   cutoff,
+	     const Numeric&   corrlength )
 {
-  const Vector   sdev(2,stddev);
-  const Vector   clength(2,corrlength);
-        Vector   kp(2);
+  // We can use the special Vector class MakeVector to create
+  // two-element Vectors with particular contents:
+  const MakeVector   sdev(    stddev,     stddev     );
+  const MakeVector   clength( corrlength, corrlength );
+  const MakeVector   kp(      1,          n          );
 
-  kp[0] = 1;
-  kp[1] = n;
   setup_covmatrix( s, linspace(1.0,n,1.0), corrfun, cutoff, kp, sdev, clength);
 }
 
@@ -314,20 +326,20 @@ void sSimple(
    \date   2000-12-01
 */
 void sSimpleLengthFromVector(
-           SYMMETRIC&    s,
+           Matrix&    s,
         const Vector&    grid,
         const String&    grid_name,
         const Numeric&   stddev,
-        const int&       corrfun,
+        const Index&       corrfun,
         const Numeric&   cutoff,
         const Numeric&   corrlength )
 {
-  const Vector   sdev(2,stddev);
-  const Vector   clength(2,corrlength);
-        Vector   kp(2);
+  // We can use the special Vector class MakeVector to create
+  // two-element Vectors with particular contents:
+  const MakeVector   sdev(    stddev,     stddev               );
+  const MakeVector   clength( corrlength, corrlength           );
+  const MakeVector   kp(      grid[0],    grid[grid.nelem()-1] );
 
-  kp[0] = grid[0];
-  kp[1] = grid[grid.size()-1];
   setup_covmatrix( s, grid, corrfun, cutoff, kp, sdev, clength );
 }
 
@@ -340,27 +352,27 @@ void sSimpleLengthFromVector(
    \date   2000-12-01
 */
 void sSimpleLengthFromVectors(
-           SYMMETRIC&    s,
-        const Vector&    grid1,
-        const Vector&    grid2,
-        const String&    grid1_name,
-        const String&    grid2_name,
-        const Numeric&   stddev,
-        const int&       corrfun,
-        const Numeric&   cutoff,
-        const Numeric&   corrlength )
+			      Matrix&    s,
+			      const Vector&    grid1,
+			      const Vector&    grid2,
+			      const String&    grid1_name,
+			      const String&    grid2_name,
+			      const Numeric&   stddev,
+			      const Index&       corrfun,
+			      const Numeric&   cutoff,
+			      const Numeric&   corrlength )
 {
   // Get matrix for one repitition of the vector
-  SYMMETRIC   s0;
+  Matrix   s0;
   sSimpleLengthFromVector( s0, grid1, grid1_name, stddev, corrfun, cutoff, 
                                                                  corrlength );
   // Create the total matrix
-  const size_t   n1 = grid1.size(); 
-  const size_t   n2 = grid2.size();
-  size_t   row, col, i, i0;
+  const Index   n1 = grid1.nelem(); 
+  const Index   n2 = grid2.nelem();
+  Index   row, col, i, i0;
   
-  resize( s, n1*n2, n1*n2 );
-  setto( s, 0 );
+  s.resize( n1*n2, n1*n2 );
+  s = 0;			// Matpack can set all elements like this.
   for ( i=0; i<n2; i++ )
   {
     i0 = (i-1)*n1;
@@ -368,7 +380,7 @@ void sSimpleLengthFromVectors(
     {
       for ( col=row; col<n1; col++ )
       {
-        s(i0+row,i0+col) = s0[row][col];
+        s(i0+row,i0+col) = s0(row,col);
       }
     }
   } 
@@ -383,19 +395,19 @@ void sSimpleLengthFromVectors(
    \date   2000-12-01
 */
 void sFromFile(
-           SYMMETRIC&    s,
-        const Vector&    grid,
-        const String&    grid_name,
-        const String&    filename )
+	       Matrix&    s,
+	       const Vector&    grid,
+	       const String&    grid_name,
+	       const String&    filename )
 {
-  ArrayofMatrix   am;
-         Vector   kp, sdev, clength;
-         size_t   i, j, np;
+  ArrayOfMatrix am;
+  Vector        kp, sdev, clength;
+  Index         i, j, np;
  
   // Read the array of matrix from the file:
   read_array_of_matrix_from_file(am,filename);
 
-  const size_t n = am.size()-1;
+  const Index n = am.nelem()-1;
 
   // Some checks of sizes
   if ( n < 1 )
@@ -411,31 +423,31 @@ void sFromFile(
   for ( i=1; i<=n; i++ )
   {
     // Check if the corrfun flag is an integer
-    if ( (am[0][0][i-1]-floor(am[0][0][i-1])) != 0 )
+    if ( (am[0](0,i-1)-floor(am[0](0,i-1))) != 0 )
       throw runtime_error("The first row of matrix 1 shall only contain integers..");
 
     // Move definition values to vectors
     np = am[i].nrows();
-    resize(kp,np);
-    resize(sdev,np);
-    resize(clength,np);
+    kp.resize(np);
+    sdev.resize(np);
+    clength.resize(np);
     for ( j=0; j<np; j++ )
     {
-      kp[j]      = am[i][j][0];
-      sdev[j]    = am[i][j][1];
-      clength[j] = am[i][j][2];
+      kp[j]      = am[i](j,0);
+      sdev[j]    = am[i](j,1);
+      clength[j] = am[i](j,2);
     }
 
     if ( i == 1 )
-      setup_covmatrix( s, grid, size_t(am[0][0][i-1]), am[0][1][i-1], kp, 
+      setup_covmatrix( s, grid, Index(am[0](0,i-1)), am[0](1,i-1), kp, 
                                                               sdev, clength );
       
     else
     {
-      SYMMETRIC stmp;
-      setup_covmatrix( stmp, grid, size_t(am[0][0][i-1]), am[0][1][i-1], kp, 
+      Matrix stmp;
+      setup_covmatrix( stmp, grid, Index(am[0](0,i-1)), am[0](1,i-1), kp, 
                                                               sdev, clength );
-      add( stmp, s );
+      s += stmp;		// Matpack can add element-vise like this.
     }
   }
 }
@@ -449,11 +461,11 @@ void sFromFile(
    \date   2000-12-01
 */
 void CovmatrixInit(
-           SYMMETRIC&   s,
-        const String&   s_name)
+		   Matrix&   s,
+		   const String&   s_name)
 {
   out2 << " Initializes " << s_name << "\n";
-  resize(s,0,0);
+  s.resize(0,0);
 }
 
 
@@ -465,29 +477,29 @@ void CovmatrixInit(
    \date   2000-12-01
 */
 void sxAppend(
-              SYMMETRIC&   sx,
-        const SYMMETRIC&   s )
+              Matrix&         sx,
+	      const Matrix&   s )
 {
-  const size_t   ns  = s.nrows(); 
-  const size_t   nsx = sx.nrows(); 
-        SYMMETRIC   stmp;
-        size_t   row, col;
+  const Index   ns  = s.nrows(); 
+  const Index   nsx = sx.nrows(); 
+  Matrix   stmp(sx);		// Matpack can initilalize a Matrix
+				// with another Matrix.  
+  Index   row, col;
 
   if ( (ns!=s.ncols()) || (nsx!=sx.ncols()) )
     throw runtime_error("A covariance matrix must be square.");
     
-  stmp = sx;
-  resize( sx, nsx+ns, nsx+ns );
-  setto( sx, 0 );
+  sx.resize( nsx+ns, nsx+ns );
+  sx = 0;			// Matpack can set all elements like this.
   for ( row=0; row<nsx; row++ )
   {
     for ( col=0; col<nsx; col++ )
-      sx[row][col] = stmp[row][col];
+      sx(row,col) = stmp(row,col);
   }
   for ( row=0; row<ns; row++ )
   {
     for ( col=0; col<ns; col++ )
-      sx[nsx+row][nsx+col] = s[row][col];
+      sx(nsx+row,nsx+col) = s(row,col);
   }
 }
 
@@ -500,8 +512,8 @@ void sxAppend(
    \date   2000-12-01
 */
 void sbAppend(
-              SYMMETRIC&   sb,
-        const SYMMETRIC&   s )
+              Matrix&         sb,
+	      const Matrix&   s )
 {
   sxAppend( sb, s );
 }

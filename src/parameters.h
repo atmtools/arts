@@ -28,8 +28,8 @@
 #ifndef parameters_h
 #define parameters_h
 
-#include "vecmat.h"
-#include "string.h"
+#include "array.h"
+#include "mystring.h"
 
 /**
    Structure to hold all command line Parameters. This holds all the
@@ -55,9 +55,9 @@ struct Parameters {
     groups(false)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
-  string usage;
+  String usage;
   /** Longer message explaining the options. */
-  string helptext;
+  String helptext;
   /** Only display the help text. */
   bool help;			
   /** Display version information. */
@@ -65,10 +65,10 @@ struct Parameters {
   /** If this is specified (with the -b --basename option), it is used
       as the base name for the report file and for other output
       files. */ 
-  string basename;
+  String basename;
   /** The filenames of the controlfiles. Can be only one or as many as
       you want. */
-  Array<string> controlfiles;
+  ArrayOfString controlfiles;
   /** This should be a two digit integer. The first digit specifies
       the output level for stdout (stderr for error messages), the
       second digit the output level for the report file. The levels
@@ -76,22 +76,22 @@ struct Parameters {
       everything). Example:
 
       03 = only errors to the screen, everything to the file. */
-  int reporting;
+  Index reporting;
   /** If this is given the argument `all', it simply prints a list of 
       all methods. If it is given the name of a variable (or group), it
       prints all methods that produce this variable (or group) as output. */
-  string methods;
+  String methods;
   /** This is complementary to the methods switch. It must be given
       the name of a variable (or group). Then it lists all methods that take this
       variable (or group) as input. */
-  string input;
+  String input;
   /** If this is given the argument `all', it simply prints a list of 
       all workspace variables. If it is given the name of a method,
       it prints all variables needed by that method. */
-  string workspacevariables; 
-  /** Print the description string of the given workspace variable or
+  String workspacevariables; 
+  /** Print the description String of the given workspace variable or
       method. */
-  string describe;
+  String describe;
   /** Print a list of all workspace variable groups. */
   bool groups;
 };

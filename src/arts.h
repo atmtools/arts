@@ -19,9 +19,13 @@
 /**
   \file  arts.h
 
-  The global header file for ARTS. This file is included by each and
-  every ARTS source file. It must therefor not contain stuff that
-  should not always be present.
+  The global header file for ARTS. This file is included directly or
+  indirectly by each and every ARTS source file. It must therefor not
+  contain stuff that should not always be present.
+
+  Note that you do not have to include this file explicitly in many
+  cases, since it is included directly or indirectly by most ARTS
+  header files.
 
   \author Stefan Buehler
   \date 16.05.1999 */
@@ -55,33 +59,31 @@
 
 //----------< Standard library header files: >----------
 
-#include <iostream>		// Standard stream library
-#include <iomanip>
-#include <fstream>
-#include <string>		// Standard string library
-#include <map>
-#include <stdarg.h>
-#include <math.h>
-#include <cfloat>
-#include <typeinfo>
-#include <stdexcept>
-#include <algorithm>
-#include <ctype.h>
+// Decided that not all standard headers should be included
+// everywhere. Now, each header file of ARTS must include the standad
+// header files that it needs. Only the most basic ones are included
+// here, notably our local sstream implementation. Also cassert.
+
+// #include <iostream>		// Standard stream library
+// #include <iomanip>
+// #include <fstream>
+// #include <string>		// Standard string library
+// #include <vector>
+// #include <map>
+// #include <stdarg.h>
+// #include <math.h>
+// #include <cfloat>
+// #include <typeinfo>
+// #include <stdexcept>
+// //#include <algorithm>
+// #include <ctype.h>
+// #include <climits>
 
 // String stream library. This is included with the ARTS source code
 // for now, since it is still missing in the current version of EGCS
 // (egcs-2.91.66). Should be removed when stringstreams work as they
 // should in the standard EGCS distribution.
 #include "sstream.h"
-
-// #include <valarray>		// Valarray class from the STL
-                                // This should not be needed explicitly
-
-
-// Make the names of the standard library visible everywhere.
-// SAB 29.01.2000: Better not to use this, if matrices and vectors are
-// used the proper names are anyway made visible by vecmat.h.
-// using namespace std;       
 
 
 //--------------------< Set floating point type >--------------------
@@ -92,14 +94,26 @@ typedef double Numeric;
 
 //--------------------< Set integer type >--------------------
 /** The type to use for all integer numbers and indices. You should never
-    use int or size_t explicitly, unless you have a very good
+    use int, long, or size_t explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef size_t Index;
+typedef long Index;
 
 //--------------------< Set string type >--------------------
 /** The type to use for all strings. This is just to have consistent
     notation for all the atomic ARTS types. */ 
-typedef string String;
+//typedef string String;
+
+// Declare the existance of class Array:
+template<class base>
+class Array;
+
+/** An array of Index. */
+typedef Array<Index> ArrayOfIndex;
+
+/** An array of Numeric. */
+typedef Array<Numeric> ArrayOfNumeric;
+
+
 
 
 //--------------------< Set NDEBUG? >--------------------

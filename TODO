@@ -153,4 +153,11 @@ AvE 2001-04-03: I just tried to run some calculations with arts and the
 PE 2001-04-04:  When optional input parameters are implemented, go through
                 the function and put in checks for consistency of input.
 
-SAB 2001-09-04: Find a better solution where to put the subversion (now in version.cc). 
+SAB 2001-09-18: Thomas, please move cloud water vapor saturation
+		adjustment out of AtmFromRaw1D as soon as possible. Make a standalone
+		method out of this. Use only lowercase letters for keywords, to be
+		consistent with other methods.
+
+SAB 2001-09-18: Thomas, please rename seltags to seltgs. Tgs means
+		"tag groups", not "tags". (Each element of seltgs is a tag group,
+		consisting of one or more tags.)

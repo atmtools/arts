@@ -46,12 +46,7 @@
 #define hmatrix_h
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
-
-#include "vecmat.h"
-
+#include "matpackI.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   The H matrix structure
@@ -61,7 +56,7 @@
 
     The H matrix structure has the fields:
     \verbatim
-       size_t         issparse
+       Index         issparse
        Matrix         full
        SPARSE         sparse
     where 
@@ -79,7 +74,7 @@
     \date 2000-10-06
 */
 struct Hmatrix {
-  size_t         issparse;
+  Index         issparse;
   Matrix         full;
   // Here we should have a field for sparse matrix
 };

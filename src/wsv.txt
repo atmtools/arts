@@ -1,13 +1,13 @@
 VARIABLE : lines
-DATA TYPE: ArrayofLineRecord
+DATA TYPE: ArrayOfLineRecord
 DESCRIPTION:
 A list of spectral line data.
 
 VARIABLE : lines_per_tg
-DATA TYPE: ArrayofArrayofLineRecord
+DATA TYPE: ArrayOfArrayOfLineRecord
 DESCRIPTION:
 A list of spectral line data for each tag.
-Dimensions: (tag_groups.size()) (# of lines for this tag)
+Dimensions: (tag_groups.nelem()) (# of lines for this tag)
 
 VARIABLE : tgs
 DATA TYPE: TagGroups
@@ -28,7 +28,7 @@ functions. The selected tag groups must be a subgroup of the
 tag groups defined for the absorption coefficient calculation.
 
 VARIABLE : lineshape
-DATA TYPE: ArrayofLineshapeSpec
+DATA TYPE: ArrayOfLineshapeSpec
 DESCRIPTION:
 Lineshape specification: function, norm, cutoff. There is one entry for
 each abs_tag, not for each species. This means if you have several
@@ -36,7 +36,7 @@ abs_tags for different isotopes or transitions of a species, you
 may use different lineshapes.
 
 VARIABLE : cont_description_names
-DATA TYPE: ArrayofString
+DATA TYPE: ArrayOfString
 DESCRIPTION:
 Continuum model names. This variable should contain a list of
 names of continuum models. Associated with this WSV is the WSV
@@ -49,7 +49,7 @@ H2O-ContStandardForeign: Foreign component of a simple empirical
    continuum model a la Liebe/Rosenkranz. Needs two parameters.
 
 VARIABLE : cont_description_parameters
-DATA TYPE: ArrayofVector
+DATA TYPE: ArrayOfVector
 DESCRIPTION:
 Continuum model parameters. See the WSV `cont_description_names'
 for a detailed description of the allowed continuum models. There
@@ -65,7 +65,7 @@ Matrix has rows:
 3. Altitude in m
 
 VARIABLE : raw_vmrs_1d
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 The individual VMR profiles. Each species VMR profile comes with a
 pressure profile. The different species can hence be on different
@@ -91,7 +91,7 @@ The monochromatic frequency grid [Hz]. This grid is used when
 calculating absorption and pencil b
 
 VARIABLE : t_abs_2d
-DATA TYPE: ArrayofVector
+DATA TYPE: ArrayOfVector
 DESCRIPTION:
 2D temperatures associated with the pressures in p_abs [K].
 Array coordinate is the profile index, i.e., the horizontal
@@ -99,27 +99,27 @@ dimension. This dimension must be consistent with z_abs_2d,
 vmr_2d, and abs_2d.
 
 VARIABLE : z_abs_2d
-DATA TYPE: ArrayofVector
+DATA TYPE: ArrayOfVector
 DESCRIPTION:
 2D vertical altitudes associated with the pressures in p_abs [m].Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d,
 vmr_2d, and abs_2d.
 
 VARIABLE : vmrs_2d
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 2D VMRs associated with the pressures in p_abs [absolute number].Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d
 z_abs_2d, and abs_2d.
-The matrix dimensions are [tag_groups.size(),p_abs.size()].
+The matrix dimensions are [tag_groups.nelem(),p_abs.nelem()].
 
 VARIABLE : abs_2d
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 The array of absorption coefficient matrices.Array coordinate is the profile index, i.e., the horizontal
 dimension. This dimension must be consistent with t_abs_2d
 and z_abs_2d.
-The matrix dimensions are [f_mono.size(),p_abs.size()].
+The matrix dimensions are [f_mono.nelem(),p_abs.nelem()].
 
 VARIABLE : t_abs
 DATA TYPE: Vector
@@ -142,26 +142,26 @@ DESCRIPTION:
 The total nitrogen profile associated with the pressures in p_abs [-]
 
 VARIABLE : vmrs
-DATA TYPE: ArrayofVector
+DATA TYPE: Matrix
 DESCRIPTION:
 The VMRs (unit: absolute number) on the p_abs grid.
-Dimensions: [tag_groups.size(), p_abs.size()]
+Dimensions: [tag_groups.nelem(), p_abs.nelem()]
 
 VARIABLE : abs
 DATA TYPE: Matrix
 DESCRIPTION:
 The matrix of absorption coefficients (in units of [1/m]).
-Dimensions: [f_mono.size(), p_abs.size()]
+Dimensions: [f_mono.nelem(), p_abs.nelem()]
 
 VARIABLE : abs_per_tg
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 These are the absorption coefficients individually for each
 tag group. The Array contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
 VARIABLE : xsec_per_tg
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 These are the cross sections individually for each tag
 group. The Array contains one matrix for each tag group,
@@ -182,7 +182,7 @@ If the on/off flag is set to 1, the length of the vector must be 5,
 while if the flag is 0 a length of 1 is OK.
 
 VARIABLE : emission
-DATA TYPE: int
+DATA TYPE: Index
 DESCRIPTION:
 Boolean to include emssion in the calculations.
 If this variable is set to 0 (zero) pure transmission calculations 
@@ -225,12 +225,12 @@ There are two rare exceptions:
      distance
 
 VARIABLE : refr
-DATA TYPE: int
+DATA TYPE: Index
 DESCRIPTION:
 Boolean to consider refraction (0=no refraction).
 
 VARIABLE : refr_lfac
-DATA TYPE: int
+DATA TYPE: Index
 DESCRIPTION:
 This factor determines the step length used during the ray tracing 
 performed when considering refraction. 
@@ -276,12 +276,12 @@ DESCRIPTION:
 Structure to define the line of sight (LOS). See los.h.
 
 VARIABLE : source
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 Mean source functions between the points of the LOS.
 
 VARIABLE : trans
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 The transmissions between the points of the LOS [-].
 
@@ -303,7 +303,7 @@ A reference spectrum. This variable can be used e.g. to save a copy
 of y or to compare the spectra before and after some operation(s).
 
 VARIABLE : absloswfs
-DATA TYPE: ArrayofMatrix
+DATA TYPE: ArrayOfMatrix
 DESCRIPTION:
 Line of sight weighting functions.
 
@@ -320,7 +320,7 @@ DESCRIPTION:
 The weighting functions (WFs) for a single retrieval/error identity.
 
 VARIABLE : k_names
-DATA TYPE: ArrayofString
+DATA TYPE: ArrayOfString
 DESCRIPTION:
 Name(s) on the retrieval identity associated with k.
 
@@ -340,12 +340,12 @@ DESCRIPTION:
 The state weighting function matrix.
 
 VARIABLE : kx_names
-DATA TYPE: ArrayofString
+DATA TYPE: ArrayOfString
 DESCRIPTION:
 Names on the retrieval identities associated with kx.
 
 VARIABLE : kx_lengths
-DATA TYPE: Arrayofsizet
+DATA TYPE: ArrayOfIndex
 DESCRIPTION:
 The length of the state vector for each retrieval identity in kx.
 
@@ -361,12 +361,12 @@ DESCRIPTION:
 The model parameters weighting function matrix.
 
 VARIABLE : kb_names
-DATA TYPE: ArrayofString
+DATA TYPE: ArrayOfString
 DESCRIPTION:
 Names on the model parameter identities associated with kb.
 
 VARIABLE : kb_lengths
-DATA TYPE: Arrayofsizet
+DATA TYPE: ArrayOfIndex
 DESCRIPTION:
 The length of the model vector for each retrieval identity in kb.
 
@@ -454,17 +454,17 @@ The intensity or brightness temperature corresponding to y_cal2.
 See for example yLoadCalibration for usage.
 
 VARIABLE : s
-DATA TYPE: SYMMETRIC
+DATA TYPE: Matrix
 DESCRIPTION:
 The covariance matrix for a single retrieval/error identity.
 
 VARIABLE : sx
-DATA TYPE: SYMMETRIC
+DATA TYPE: Matrix
 DESCRIPTION:
 The covariance matrix associated with kx.
 
 VARIABLE : sb
-DATA TYPE: SYMMETRIC
+DATA TYPE: Matrix
 DESCRIPTION:
 The covariance matrix associated with kb.
 

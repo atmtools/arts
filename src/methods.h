@@ -28,59 +28,60 @@
 #ifndef methods_h
 #define methods_h
 
-#include "vecmat.h"
 #include "token.h"
-#include "auto_wsv.h"
+#include "make_array.h"
 
 /** This class contains all information for one workspace method. */
 class MdRecord {
 public:
 
   /** Default constructor. */
-  MdRecord(){};
+  MdRecord():
+      mname(      ""              ),
+    mdescription( ""              ),
+    moutput(      0       	  ),  
+    minput(       0        	  ),   
+    mgoutput(     0      	  ),  
+    mginput(      0       	  ),   
+    mkeywords(    0     	  ),
+    mtypes(       0        	  )
+  {};
 
-  /** The only one non-trivial constructor, which sets all the
+  /** The only non-trivial constructor, which sets all the
       fields. */
-  MdRecord(const char 		    name[],
-	   const char 		    description[],
-	   const Array<size_t>&     output,
-	   const Array<size_t>&     input,   
-	   const Array<size_t>&     goutput,
-	   const Array<size_t>&     ginput,   
-	   const Array<string>&     keywords,
-	   const Array<TokValType>& types) :
+  MdRecord(const char 		        name[],
+	   const char 		        description[],
+	   const MakeArray<Index>&      output,
+	   const MakeArray<Index>&      input,   
+	   const MakeArray<Index>&      goutput,
+	   const MakeArray<Index>&      ginput,   
+	   const MakeArray<String>&     keywords,
+	   const MakeArray<TokValType>& types) :
     mname(        name            ),
     mdescription( description     ),
-    moutput(      output.size()   ),  
-    minput(       input.size()    ),   
-    mgoutput(     goutput.size()  ),  
-    mginput(      ginput.size()   ),   
-    mkeywords(    keywords.size() ),
-    mtypes(       types.size()    )
+    moutput(      output       	  ),  
+    minput(       input        	  ),   
+    mgoutput(     goutput      	  ),  
+    mginput(      ginput       	  ),   
+    mkeywords(    keywords     	  ),
+    mtypes(       types        	  )
     { 
-      // We need to use copy to initialize the Array members. If we use
-      // the assignment operator they end up all pointing to the same
-      // data!
-      copy( output   , moutput   );
-      copy( input    , minput    );
-      copy( goutput  , mgoutput  );
-      copy( ginput   , mginput   );
-      copy( keywords , mkeywords );
-      copy( types    , mtypes    );
+      // Initializing the various arrays with input data should now
+      // work correctly.  
 
       // Keywords and type must have the same number of
       // elements. (Types specifies the types associated with each
       // keyword.)
-      assert( mkeywords.size() == mtypes.size() );
+      assert( mkeywords.nelem() == mtypes.nelem() );
     }
   
-  const string&            Name()         const { return mname;        }   
-  const string&            Description()  const { return mdescription; }
-  const Array<size_t>&     Output()       const { return moutput;      }
-  const Array<size_t>&     Input()        const { return minput;       }
-  const Array<size_t>&     GOutput()      const { return mgoutput;      }
-  const Array<size_t>&     GInput()       const { return mginput;       }
-  const Array<string>&     Keywords()     const { return mkeywords;    }
+  const String&            Name()         const { return mname;        }   
+  const String&            Description()  const { return mdescription; }
+  const ArrayOfIndex&      Output()       const { return moutput;      }
+  const ArrayOfIndex&      Input()        const { return minput;       }
+  const ArrayOfIndex&      GOutput()      const { return mgoutput;      }
+  const ArrayOfIndex&      GInput()       const { return mginput;       }
+  const Array<String>&     Keywords()     const { return mkeywords;    }
   const Array<TokValType>& Types()        const { return mtypes;       }
 
   /** Print method template for the control file. This prints the
@@ -91,28 +92,35 @@ public:
 
       @param show_description Should the description string also be printed?   */
   ostream& PrintTemplate(ostream& os, bool show_description=true) const;
+
+  /** To override the default assignment operator. MdRecords cannot be
+      assigned! */
+  MdRecord operator=(const MdRecord& m){
+    cout << "MdRecord cannot be assigned!\n";
+    exit(1);
+      }
 private:
 
   /** The name of this method. */
-  string mname;
+  String mname;
 
   /** A text string describing this method. */
-  string mdescription;
+  String mdescription;
 
   /** Workspace Output. */
-  Array<size_t> moutput;
+  ArrayOfIndex moutput;
 
   /** Workspace Input. */
-  Array<size_t> minput;
+  ArrayOfIndex minput;
 
   /** Generic Workspace Output. */
-  Array<size_t> mgoutput;
+  ArrayOfIndex mgoutput;
 
   /** Generic Workspace Input. */
-  Array<size_t> mginput;
+  ArrayOfIndex mginput;
 
   /** Keywords. */
-  Array<string> mkeywords;
+  ArrayOfString mkeywords;
 
   /** Types associated with keywords. */
   Array<TokValType> mtypes;
@@ -121,15 +129,14 @@ private:
 
 
 // Some #defines and typedefs to make the records better readable:
-#define NAME(x) x
+#define NAME(x) x 
 #define DESCRIPTION(x) x
-#define OUTPUT   make_array<size_t> 
-#define INPUT    make_array<size_t> 
-#define GOUTPUT  make_array<size_t> 
-#define GINPUT   make_array<size_t> 
-#define KEYWORDS make_array<string>
-#define TYPES    make_array<TokValType>
-
+#define OUTPUT   MakeArray<Index>
+#define INPUT    MakeArray<Index>
+#define GOUTPUT  MakeArray<Index>
+#define GINPUT   MakeArray<Index>
+#define KEYWORDS MakeArray<String>
+#define TYPES    MakeArray<TokValType>
 
 /** Define the lookup data for the workspace methods. The array
     md_data contains all that we need to know about each method. The

@@ -18,3 +18,8 @@ Matpack:
 Basic types:
 
 Numeric, Index, Vector, Matrix, Array
+
+Open questions:
+
+How do the binfile... routines in file.cc react to having Index
+(=long) instead of size_t?

@@ -27,18 +27,19 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
+#include <map>
 #include "arts.h"
 #include "make_array.h"
 #include "auto_wsv.h"
 #include "methods.h"
-
+#include "wsv_aux.h"
 
 void define_md_map()
 {
   extern const Array<MdRecord> md_data;
-  extern std::map<String, size_t> MdMap;
+  extern std::map<String, Index> MdMap;
 
-  for ( size_t i=0 ; i<md_data.size() ; ++i)
+  for ( Index i=0 ; i<md_data.nelem() ; ++i)
     {
       MdMap[md_data[i].Name()] = i;
     }
@@ -48,7 +49,7 @@ void define_md_map()
 ostream& MdRecord::PrintTemplate(ostream& os,
 				 bool show_description=true) const
 {
-  extern const  Array<String> wsv_group_names;
+  extern const  ArrayOfString wsv_group_names;
 
   if (show_description)
     {
@@ -58,14 +59,14 @@ ostream& MdRecord::PrintTemplate(ostream& os,
   os << Name();
 
   // Is this a generic method? -- Then we need round braces.
-  if ( 0 != GOutput().size()+GInput().size() )
+  if ( 0 != GOutput().nelem()+GInput().nelem() )
     {
       // First entry needs to comma before:
       bool first=true;
 
       os << '(';
 
-      for (size_t i=0; i<GOutput().size(); ++i)
+      for (Index i=0; i<GOutput().nelem(); ++i)
 	{
 	  if (first) first=false;
 	  else os << ",\n";
@@ -73,7 +74,7 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 	  os << wsv_group_names[GOutput()[i]];
 	}
 
-      for (size_t i=0; i<GInput().size(); ++i)
+      for (Index i=0; i<GInput().nelem(); ++i)
 	{
 	  if (first) first=false;
 	  else os << ",\n";
@@ -89,13 +90,13 @@ ostream& MdRecord::PrintTemplate(ostream& os,
   os << '{';
 
   // Determine the length of the longest keyword:
-  size_t maxsize = 0;
-  for (size_t i=0; i<Keywords().size(); ++i)
-    if ( Keywords()[i].size() > maxsize )
-      maxsize = Keywords()[i].size();
+  Index maxsize = 0;
+  for (Index i=0; i<Keywords().nelem(); ++i)
+    if ( Keywords()[i].nelem() > maxsize )
+      maxsize = Keywords()[i].nelem();
 
 
-  for (size_t i=0; i<Keywords().size(); ++i)
+  for (Index i=0; i<Keywords().nelem(); ++i)
     {
       os << "\t" << setw(maxsize)
 	 << Keywords()[i] << " = \n";
@@ -109,7 +110,7 @@ ostream& MdRecord::PrintTemplate(ostream& os,
 ostream& operator<<(ostream& os, const MdRecord& mdr)
 {
   extern const Array<WsvRecord> wsv_data;
-  extern const Array<String> wsv_group_names;
+  extern const ArrayOfString wsv_group_names;
   extern const String TokValTypeName[];
   bool first;
 
@@ -125,7 +126,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   // Output:
   first = true;
   os << "Output = ";
-  for ( size_t i=0; i<mdr.Output().size(); ++i )
+  for ( Index i=0; i<mdr.Output().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
@@ -137,7 +138,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   // Input:
   first = true;
   os << "Input = ";
-  for ( size_t i=0; i<mdr.Input().size(); ++i )
+  for ( Index i=0; i<mdr.Input().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
@@ -149,7 +150,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   // GOutput:
   first = true;
   os << "GOutput = ";
-  for ( size_t i=0; i<mdr.GOutput().size(); ++i )
+  for ( Index i=0; i<mdr.GOutput().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
@@ -161,7 +162,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   // GInput:
   first = true;
   os << "GInput = ";
-  for ( size_t i=0; i<mdr.GInput().size(); ++i )
+  for ( Index i=0; i<mdr.GInput().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
@@ -173,7 +174,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   // Keywords:
   first = true;
   os << "Keywords = ";
-  for ( size_t i=0; i<mdr.Keywords().size(); ++i )
+  for ( Index i=0; i<mdr.Keywords().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";
@@ -185,7 +186,7 @@ ostream& operator<<(ostream& os, const MdRecord& mdr)
   // Types:
   first = true;
   os << "Types = ";
-  for ( size_t i=0; i<mdr.Types().size(); ++i )
+  for ( Index i=0; i<mdr.Types().nelem(); ++i )
     {
       if (first) first=false;
       else os << ", ";

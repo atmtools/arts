@@ -40,7 +40,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
-
+#include "matpackI.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -180,4 +180,10 @@ extern const Numeric LOSCHMIDT_CONST = 2.686763E25;
 extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
 
 
+/** Define the global joker objekt. This is used by Matpack to specify joker ranges.  
+    
+    \author Stefan Buehler
+    \date   2001-09-10
+*/
+Joker joker;
 

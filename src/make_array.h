@@ -1,4 +1,4 @@
-/* Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2001 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -15,1010 +15,1659 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*  */
-
 /*!
   \file   make_array.h
-  \brief  The make_array objects can be used to initialize
-          ArrayS in the source code. 
+  \brief  Implements the class MakeArray, which is a derived class of
+  Array, allowing explicit initialization.
 
-  Usage is as simple as:
-
-  \code
-     Array<string> y = make_array<string>("ab", "cde");
-  \endcode
-
-  which will make an Array with the desired arguments. At the
-  moment, up to 20 arguments are possible. If more are needed this
-  can be easily extended.
-
-  This has to be solved with a class, since template *functions*
-  would have to be explicitly instantiated (because we want to use
-  make_array in different source files). Putting functions
-  definitions in a .h file does not work (leads to linker errors).
-   
   \author Stefan Buehler
-  \date   2000-03-28
+  \date   2001-09-13
 */
 
 #ifndef make_array_h
 #define make_array_h
 
-#include "vecmat.h"
+#include "array.h"
 
-template<class T>
-class make_array {
- public:
-  // All the constructors for the different dimensions:
-  make_array() : v(0,T()) {}
-  make_array(const T& a1) : v(1,T()) {
-    v[0] = a1;
-  }
-  make_array(const T& a1,
-	     const T& a2) : v(2,T()) {
-    v[0] = a1;
-    v[1] = a2;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3) : v(3,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4) : v(4,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5) : v(5,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6) : v(6,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7) : v(7,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8) : v(8,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9) : v(9,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10) : v(10,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11) : v(11,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12) : v(12,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13) : v(13,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14) : v(14,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15) : v(15,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16) : v(16,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17) : v(17,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18) : v(18,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19) : v(19,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20) : v(20,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21) : v(21,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22) : v(22,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23) : v(23,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24) : v(24,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24,
-	     const T& a25) : v(25,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-    v[24] = a25;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24,
-             const T& a25,
-	     const T& a26) : v(26,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-    v[24] = a25;
-    v[25] = a26;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24,
-             const T& a25,
-             const T& a26,
-	     const T& a27) : v(27,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-    v[24] = a25;
-    v[25] = a26;
-    v[26] = a27;
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24,
-             const T& a25,
-             const T& a26,
-             const T& a27,
-	     const T& a28) : v(28,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-    v[24] = a25;
-    v[25] = a26;
-    v[26] = a27;
-    v[27] = a28;  
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24,
-             const T& a25,
-             const T& a26,
-             const T& a27,
-             const T& a28,
-	     const T& a29) : v(29,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-    v[24] = a25;
-    v[25] = a26;
-    v[26] = a27;
-    v[27] = a28;  
-    v[28] = a29;  
-  }
-  make_array(const T& a1,
-	     const T& a2,
-	     const T& a3,
-	     const T& a4,
-	     const T& a5,
-	     const T& a6,
-	     const T& a7,
-	     const T& a8,
-	     const T& a9,
-	     const T& a10,
-	     const T& a11,
-	     const T& a12,
-	     const T& a13,
-	     const T& a14,
-	     const T& a15,
-	     const T& a16,
-	     const T& a17,
-	     const T& a18,
-	     const T& a19,
-	     const T& a20,
-	     const T& a21,
-	     const T& a22,
-	     const T& a23,
-             const T& a24,
-             const T& a25,
-             const T& a26,
-             const T& a27,
-             const T& a28,
-             const T& a29,
-	     const T& a30) : v(30,T()) {
-    v[0] = a1;
-    v[1] = a2;
-    v[2] = a3;
-    v[3] = a4;
-    v[4] = a5;
-    v[5] = a6;
-    v[6] = a7;
-    v[7] = a8;
-    v[8] = a9;
-    v[9] = a10;
-    v[10] = a11;
-    v[11] = a12;
-    v[12] = a13;
-    v[13] = a14;
-    v[14] = a15;
-    v[15] = a16;
-    v[16] = a17;
-    v[17] = a18;
-    v[18] = a19;
-    v[19] = a20;
-    v[20] = a21;
-    v[21] = a22;
-    v[22] = a23;
-    v[23] = a24;
-    v[24] = a25;
-    v[25] = a26;
-    v[26] = a27;
-    v[27] = a28;  
-    v[28] = a29;  
-    v[29] = a30;  
-  }
+/**
+   Explicit construction of Arrays.
 
-  // Conversion operator to Array:
-  operator Array<T>() const {
-    return v;
-  }
- private:
-  Array<T> v;
+   The only purpose of this class is to provide constructors with which
+   Arrays can be initialized explicitly. Example:
+
+   Array<Index> b = MakeArray<Index>(1,2,3);
+
+   will create an Array of Index with elements 1, 2, and 3. It is not
+   possible to have such constructors for the class Array itself, due to
+   the clash with the constructor setting the size. (For Index Arrays it
+   the constructor setting the size could be interpreted as an explicit
+   constructor for an Array with one element.) 
+   
+   Just use this class instead of Array whenever you want explicit
+   initialization. The method information lookup table (see file
+   methods.cc) is for example built that way.
+*/
+template<class base>
+class MakeArray : public Array<base>
+{
+public:
+  MakeArray();
+  MakeArray(
+	const base& a0
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24,
+	const base& a25
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24,
+	const base& a25,
+	const base& a26
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24,
+	const base& a25,
+	const base& a26,
+	const base& a27
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24,
+	const base& a25,
+	const base& a26,
+	const base& a27,
+	const base& a28
+	);
+  MakeArray(
+	const base& a0,
+	const base& a1,
+	const base& a2,
+	const base& a3,
+	const base& a4,
+	const base& a5,
+	const base& a6,
+	const base& a7,
+	const base& a8,
+	const base& a9,
+	const base& a10,
+	const base& a11,
+	const base& a12,
+	const base& a13,
+	const base& a14,
+	const base& a15,
+	const base& a16,
+	const base& a17,
+	const base& a18,
+	const base& a19,
+	const base& a20,
+	const base& a21,
+	const base& a22,
+	const base& a23,
+	const base& a24,
+	const base& a25,
+	const base& a26,
+	const base& a27,
+	const base& a28,
+	const base& a29
+	);
 };
+
+
+// Define the functions here, to avoid inlining:
+
+template<class base>
+MakeArray<base>::MakeArray<base>() : Array<base>(0)
+{
+  // Just an empty array.
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0
+		     ) : Array<base>(1)
+{
+  std::vector<base>::operator[](0) = a0;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1
+		     ) : Array<base>(2)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2
+		     ) : Array<base>(3)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3
+		     ) : Array<base>(4)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4
+		     ) : Array<base>(5)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5
+		     ) : Array<base>(6)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6
+		     ) : Array<base>(7)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7
+		     ) : Array<base>(8)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8
+		     ) : Array<base>(9)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9
+		     ) : Array<base>(10)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10
+		     ) : Array<base>(11)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11
+		     ) : Array<base>(12)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12
+		     ) : Array<base>(13)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13
+		     ) : Array<base>(14)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14
+		     ) : Array<base>(15)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15
+		     ) : Array<base>(16)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16
+		     ) : Array<base>(17)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17
+		     ) : Array<base>(18)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18
+		     ) : Array<base>(19)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19
+		     ) : Array<base>(20)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20
+		     ) : Array<base>(21)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21
+		     ) : Array<base>(22)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22
+		     ) : Array<base>(23)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23
+		     ) : Array<base>(24)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24
+		     ) : Array<base>(25)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24,
+		     const base& a25
+		     ) : Array<base>(26)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+  std::vector<base>::operator[](25) = a25;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24,
+		     const base& a25,
+		     const base& a26
+		     ) : Array<base>(27)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+  std::vector<base>::operator[](25) = a25;
+  std::vector<base>::operator[](26) = a26;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24,
+		     const base& a25,
+		     const base& a26,
+		     const base& a27
+		     ) : Array<base>(28)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+  std::vector<base>::operator[](25) = a25;
+  std::vector<base>::operator[](26) = a26;
+  std::vector<base>::operator[](27) = a27;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24,
+		     const base& a25,
+		     const base& a26,
+		     const base& a27,
+		     const base& a28
+		     ) : Array<base>(29)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+  std::vector<base>::operator[](25) = a25;
+  std::vector<base>::operator[](26) = a26;
+  std::vector<base>::operator[](27) = a27;
+  std::vector<base>::operator[](28) = a28;
+}
+template<class base>
+MakeArray<base>::MakeArray<base>(
+		     const base& a0,
+		     const base& a1,
+		     const base& a2,
+		     const base& a3,
+		     const base& a4,
+		     const base& a5,
+		     const base& a6,
+		     const base& a7,
+		     const base& a8,
+		     const base& a9,
+		     const base& a10,
+		     const base& a11,
+		     const base& a12,
+		     const base& a13,
+		     const base& a14,
+		     const base& a15,
+		     const base& a16,
+		     const base& a17,
+		     const base& a18,
+		     const base& a19,
+		     const base& a20,
+		     const base& a21,
+		     const base& a22,
+		     const base& a23,
+		     const base& a24,
+		     const base& a25,
+		     const base& a26,
+		     const base& a27,
+		     const base& a28,
+		     const base& a29
+		     ) : Array<base>(30)
+{
+  std::vector<base>::operator[](0) = a0;
+  std::vector<base>::operator[](1) = a1;
+  std::vector<base>::operator[](2) = a2;
+  std::vector<base>::operator[](3) = a3;
+  std::vector<base>::operator[](4) = a4;
+  std::vector<base>::operator[](5) = a5;
+  std::vector<base>::operator[](6) = a6;
+  std::vector<base>::operator[](7) = a7;
+  std::vector<base>::operator[](8) = a8;
+  std::vector<base>::operator[](9) = a9;
+  std::vector<base>::operator[](10) = a10;
+  std::vector<base>::operator[](11) = a11;
+  std::vector<base>::operator[](12) = a12;
+  std::vector<base>::operator[](13) = a13;
+  std::vector<base>::operator[](14) = a14;
+  std::vector<base>::operator[](15) = a15;
+  std::vector<base>::operator[](16) = a16;
+  std::vector<base>::operator[](17) = a17;
+  std::vector<base>::operator[](18) = a18;
+  std::vector<base>::operator[](19) = a19;
+  std::vector<base>::operator[](20) = a20;
+  std::vector<base>::operator[](21) = a21;
+  std::vector<base>::operator[](22) = a22;
+  std::vector<base>::operator[](23) = a23;
+  std::vector<base>::operator[](24) = a24;
+  std::vector<base>::operator[](25) = a25;
+  std::vector<base>::operator[](26) = a26;
+  std::vector<base>::operator[](27) = a27;
+  std::vector<base>::operator[](28) = a28;
+  std::vector<base>::operator[](29) = a29;
+}
+
 
 
 #endif  // make_array_h

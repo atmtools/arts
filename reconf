@@ -27,4 +27,5 @@ echo "- autoheader."
 autoheader
 echo "- automake."
 automake -a
+./configure --enable-docs
 exit

@@ -35,7 +35,11 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <stdexcept>
+#include <math.h>
 #include "arts.h"
+#include "matpackI.h"
+#include "array.h"
 #include "messages.h"
 #include "file.h"
 #include <hdf.h>
@@ -187,7 +191,7 @@ void open_input_file(ifstream& file, const String& name)
    @exception IOError Some error occured during the read
    @version   1
    @author Stefan Buehler */
-void read_text_from_stream(Array<String>& text, istream& is)
+void read_text_from_stream(ArrayOfString& text, istream& is)
 {
   String linebuffer;
 
@@ -228,7 +232,7 @@ void read_text_from_stream(Array<String>& text, istream& is)
    @exception IOError
    @version   1
    @author Stefan Buehler */
-void read_text_from_file(Array<String>& text, const String& name)
+void read_text_from_file(ArrayOfString& text, const String& name)
 {
   ifstream ifs;
 
@@ -266,8 +270,8 @@ void read_text_from_file(Array<String>& text, const String& name)
     @author Stefan Buehler */
 void replace_all(String& s, const String& what, const String& with)
 {
-  String::size_type j = s.find(what);
-  while ( j != String::npos )
+  Index j = s.find(what);
+  while ( j != s.npos )
     {
       s.replace(j,1,with);
       j = s.find(what,j+with.size());
@@ -282,8 +286,8 @@ void replace_all(String& s, const String& what, const String& with)
 
 //// write_array_of_matrix_to_stream ///////////////////////////////////////
 /** A helper function that writes an array of matrix to a stream. This
-    is the generic output function for Vectors, Matrixs, and Arrayof
-    both. All these are converted first to ArrayofMatrix, and then
+    is the generic output function for Vectors, Matrixs, and ArrayOf
+    both. All these are converted first to ArrayOfMatrix, and then
     written by this function.
 
     @param os   Output. The stream to write to.
@@ -291,13 +295,13 @@ void replace_all(String& s, const String& what, const String& with)
 
     @author Stefan Buehler */
 void write_array_of_matrix_to_stream(ostream& os,
-                                     const ArrayofMatrix& am)
+                                     const ArrayOfMatrix& am)
 {
   extern const String full_name;
 
   // Determine the precision, depending on whether Numeric is double
   // or float:  
-  int precision;
+  Index precision;
   switch (sizeof(Numeric)) {
   case sizeof(float)  : precision = FLT_DIG; break;
   case sizeof(double) : precision = DBL_DIG; break;
@@ -310,23 +314,23 @@ void write_array_of_matrix_to_stream(ostream& os,
      << __TIME__ << "\n";
 
   // Number of array elements:
-  const size_t n = am.size();
+  const Index n = am.nelem();
   os << n << '\n';
 
-  for (size_t i=0; i<n; ++i)
+  for (Index i=0; i<n; ++i)
     {
       // Number of elements:
       os << am[i].nrows() << ' ' << am[i].ncols() << '\n';
 
       os << setprecision(precision);
       // Write the elements:
-      for (size_t r=0; r<am[i].nrows(); ++r)
+      for (Index r=0; r<am[i].nrows(); ++r)
         {
-          os << am[i][r][0];
+          os << am[i](r,0);
       
-          for (size_t c=1; c<am[i].ncols(); ++c)
+          for (Index c=1; c<am[i].ncols(); ++c)
             {
-              os << " " << am[i][r][c];
+              os << " " << am[i](r,c);
             }
 
           os << '\n';
@@ -345,7 +349,7 @@ void write_array_of_matrix_to_stream(ostream& os,
 
     @author Stefan Buehler */
 void write_array_of_matrix_to_file(const String& filename,
-                                   const ArrayofMatrix& am)
+                                   const ArrayOfMatrix& am)
 {
   ofstream of;
 
@@ -365,7 +369,7 @@ void write_array_of_matrix_to_file(const String& filename,
     @param is   Output. The input stream.
 
     @author Stefan Buehler */
-void read_array_of_matrix_from_stream(ArrayofMatrix& am,
+void read_array_of_matrix_from_stream(ArrayOfMatrix& am,
                                       istream& is)
 {
   // First, skip all the lines that have a # at the beginning. (Maybe
@@ -387,11 +391,31 @@ void read_array_of_matrix_from_stream(ArrayofMatrix& am,
         }
     }
 
-  // Read the array of matrix. The function read_vector_from_stream
-  // will call the >> operator for each element of the Array. In the
-  // name it says vector, refering to MTL vector. That function works
-  // for both VEC and Array.
-  read_vector_from_stream(am, is);
+  // Read the Array of Matrices. 
+  {
+    Index n;
+    is >> n;
+    //  cout << "n: " << n << "\n";
+    am.resize(n);
+    for( Index i=0; i<n; ++i )
+      {
+	//      cout << "- " << i << "\n";
+	{
+	  Index nr,nc;
+	  is >> nr >> nc;
+	  //   cout << "nr: " << nr << "\n";
+	  //   cout << "nc: " << nc << "\n";
+	  am[i].resize(nr,nc);
+	  //	  cout << "am[i]: " << am[i].nrows() << " / " << am[i].ncols() << "\n";
+	  for(Index ir=0; ir<nr; ++ir)
+	    for(Index ic=0; ic<nc; ++ic)
+	      {
+		//		cout << "ir / ic = " << ir << " / " << ic << "\n";
+		is >> am[i](ir,ic);
+	      }
+	}
+      }
+  }
 
   if ( is.fail() || is.bad() )
     throw runtime_error("Stream gave fail or bad.");
@@ -403,8 +427,8 @@ void read_array_of_matrix_from_stream(ArrayofMatrix& am,
 
   // Some output to the lowest priority stream:
   out3 << "  Dimensions:\n";
-  out3 << "     "<< am.size() << "\n";
-  for ( size_t i=0; i<am.size(); ++i )
+  out3 << "     "<< am.nelem() << "\n";
+  for ( Index i=0; i<am.nelem(); ++i )
     out3 << "     " << am[i].nrows() << ", " << am[i].ncols() << "\n";
 }
 
@@ -418,7 +442,7 @@ void read_array_of_matrix_from_stream(ArrayofMatrix& am,
     @param filename  The name of the file to read.
 
     @author Stefan Buehler */
-void read_array_of_matrix_from_file(ArrayofMatrix& am,
+void read_array_of_matrix_from_file(ArrayOfMatrix& am,
                                     const String& filename)
 {
   ifstream ifs;
@@ -464,17 +488,17 @@ void read_array_of_matrix_from_file(ArrayofMatrix& am,
 */
 void write_array_of_String_to_stream(
               ostream&         os,
-        const ArrayofString&   as )
+        const ArrayOfString&   as )
 {
   extern const String full_name;
 
   os << "# Generated by " << full_name << "\n";
 
   // Number of array elements:
-  const size_t n = as.size();
+  const Index n = as.nelem();
   os << n << '\n';
 
-  for (size_t i=0; i<n; ++i)
+  for (Index i=0; i<n; ++i)
     os << as[i] << '\n';
 }
 
@@ -492,7 +516,7 @@ void write_array_of_String_to_stream(
 */
 void write_array_of_String_to_file(
         const String&          filename,
-        const ArrayofString&   as )
+        const ArrayOfString&   as )
 {
   ofstream of;
 
@@ -516,7 +540,7 @@ void write_array_of_String_to_file(
    \date   2000-11-04
 */
 void read_array_of_String_from_stream(
-        ArrayofString&   as,
+        ArrayOfString&   as,
         istream&         is )
 {
   // First, skip all the lines that have a # at the beginning. (Maybe
@@ -538,7 +562,18 @@ void read_array_of_String_from_stream(
         }
     }
 
-  read_vector_from_stream(as, is);
+  // Read the Array of Strings from the input stream:
+  {
+    Index n;
+    is >> n;
+    //  cout << "n: " << n << "\n";
+    as.resize(n);
+    for( Index i=0; i<n; ++i )
+      {
+	//      cout << "- " << i << "\n";
+	is >> as[i];
+      }
+  }
 
   if ( is.fail() || is.bad() )
     throw runtime_error("Stream gave fail or bad.");
@@ -549,7 +584,7 @@ void read_array_of_String_from_stream(
 
   // Some output to the lowest priority stream:
   out3 << "  Dimension: "
-       << as.size() << ", ";
+       << as.nelem() << ", ";
 }
 
 
@@ -565,7 +600,7 @@ void read_array_of_String_from_stream(
    \date   2000-11-04
 */
 void read_array_of_String_from_file(
-           ArrayofString&   as,
+           ArrayOfString&   as,
      const String&          filename )
 {
   ifstream ifs;
@@ -612,7 +647,7 @@ void read_array_of_String_from_file(
 */
 void check_data_types()
 {
-  if ( sizeof(size_t) != 4 )
+  if ( sizeof(Index) != 4 )
     throw runtime_error("An Index is expected to be 4 bytes.");
   if ( sizeof(float) != 4 )
     throw runtime_error("A float is expected to be 4 bytes.");
@@ -770,10 +805,10 @@ void binfile_write_size(
         const String&   filename, 
         const String&   dataname,
         const int&      vdata_id,
-        const size_t&   nrows,
-        const size_t&   ncols )
+        const Index&   nrows,
+        const Index&   ncols )
 {
-  size_t v[2];
+  Index v[2];
   v[0] = nrows;
   v[1] = ncols;
 
@@ -811,14 +846,14 @@ void binfile_write_size(
 */
 void binfile_read_init(
               int&      vdata_id,
-              size_t&   nrows,
-              size_t&   ncols,
+              Index&   nrows,
+              Index&   ncols,
         const int&      fid,
         const String&   filename,
         const String&   dataname,
         const String&   storagetype,
-        const size_t&   nrows0,
-        const size_t&   ncols0 )
+        const Index&   nrows0,
+        const Index&   ncols0 )
 {
   // Find the Vdata in the file
   int  vdata_ref = VSfind( fid, dataname.c_str() );
@@ -840,7 +875,7 @@ void binfile_read_init(
   }
 
   // Get number of rows and columns
-  size_t  v[2];
+  Index  v[2];
   if ( VSgetattr( vdata_id, _HDF_VDATA, 0, v ) < 0 )
   {
     ostringstream os;
@@ -961,8 +996,8 @@ void binfile_write(
         const String&   dataname,
         const String&   storagetype,
         const String&   atomictype,
-        const size_t&   nrows,
-        const size_t&   ncols,
+        const Index&   nrows,
+        const Index&   ncols,
         const uint8*    dpointer )
 { 
   // Check that data types have expected length
@@ -1050,8 +1085,8 @@ void binfile_write(
   if ( (nrows>0) && (ncols>0) )
   {
     // Do actual writing
-    const size_t   nout = nrows*ncols;
-    size_t ndone = VSwrite( vdata_id, dpointer, nout, FULL_INTERLACE );
+    const Index   nout = nrows*ncols;
+    Index ndone = VSwrite( vdata_id, dpointer, nout, FULL_INTERLACE );
     if ( ndone != nout )
     {
       ostringstream os;
@@ -1092,9 +1127,9 @@ void binfile_write(
    \date   2000-11-01
 */
 void binfile_read1(
-              Arrayofsizet&   x,
+              ArrayOfIndex&   x,
         const int&            vdata_id,
-        const size_t&         n,
+        const Index&         n,
         const String&         filename,
         const String&         dataname )
 {
@@ -1108,7 +1143,7 @@ void binfile_read1(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  resize(x,n);
+  x.resize(n);
 
   if ( n > 0 )
   {
@@ -1118,9 +1153,9 @@ void binfile_read1(
       VSread( vdata_id, (uint8*)&x[0], n, FULL_INTERLACE );
       /*
     {
-      size_t  a[n];
+      Index  a[n];
       VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
-      for ( size_t i=0; i<n; i++ )
+      for ( Index i=0; i<n; i++ )
 	x[i] = a[i];
     }
       */
@@ -1163,8 +1198,8 @@ void binfile_read1(
 void binfile_read2(
               Matrix&   x,
         const int&      vdata_id,
-        const size_t&   nrows,
-        const size_t&   ncols,
+        const Index&   nrows,
+        const Index&   ncols,
         const String&   filename,
         const String&   dataname )
 {
@@ -1178,7 +1213,7 @@ void binfile_read2(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  resize(x,nrows,ncols);
+  x.resize(nrows,ncols);
 
   if ( (nrows > 0) && (ncols > 0) )
   {
@@ -1187,18 +1222,18 @@ void binfile_read2(
 
       if ( sizeof(Numeric) == 4 )
         //
-	VSread( vdata_id, (uint8*)&x[0][0], nrows*ncols, FULL_INTERLACE );
+	VSread( vdata_id, (uint8*)&x(0,0), nrows*ncols, FULL_INTERLACE );
 
       else
       {
 	float *a = new float[nrows*ncols];
-	size_t i,j,j0;
+	Index i,j,j0;
 	VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
 	for ( i=0; i<nrows; i++ )
 	{
 		j0 = i*ncols;
 		for ( j=0; j<ncols; j++ )
-		  x[i][j] = a[j0+j];
+		  x(i,j) = a[j0+j];
 	}
 	delete[] a;
       }
@@ -1207,18 +1242,18 @@ void binfile_read2(
 
       if ( sizeof(Numeric) == 8 )
         //
-    	VSread( vdata_id, (uint8*)&x[0][0], nrows*ncols, FULL_INTERLACE );
+    	VSread( vdata_id, (uint8*)&x(0,0), nrows*ncols, FULL_INTERLACE );
 
       else
       {
 	double *a = new double[nrows*ncols];
-	size_t i,j,j0;
+	Index i,j,j0;
 	VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
 	for ( i=0; i<nrows; i++ )
 	{
 		j0 = i*ncols;
 		for ( j=0; j<ncols; j++ )
-		   x[i][j] = a[j0+j];
+		   x(i,j) = a[j0+j];
 	}
 	delete[] a;
       }
@@ -1256,7 +1291,7 @@ void binfile_read2(
 void binfile_read3(
               String&   x,
         const int&      vdata_id,
-        const size_t&   n,
+        const Index&   n,
         const String&   filename,
         const String&   dataname )
 {
@@ -1270,7 +1305,7 @@ void binfile_read3(
   binfile_get_datatype( type_in_file, vdata_id );
 
   // Reallocate x
-  resize(x,n);
+  x.resize(n);
 
   if ( n > 0 )
   {
@@ -1283,7 +1318,7 @@ void binfile_read3(
     {
       char  a[n];
       VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
-      for ( size_t i=0; i<n; i++ )
+      for ( Index i=0; i<n; i++ )
 	x[i] = a[i];
     }
     */
@@ -1317,11 +1352,11 @@ void binfile_read3(
 void binfile_write_index(
         const String&   filename,
         const int&      fid,
-        const size_t&   x,
+        const Index&   x,
         const String&   dataname )
 {
   /*
-  size_t  a[1];
+  Index  a[1];
   a[0] = x;
   binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
                                                                 (uint8*)a );
@@ -1345,14 +1380,14 @@ void binfile_write_index(
    \date   2000-11-01
 */
 void binfile_read_index(
-              size_t&   x,
+              Index&   x,
         const String&   filename,
         const int&      fid,
         const String&   dataname )
 {
   int     vdata_id;
-  size_t  nrows, ncols;
-  Arrayofsizet  a;
+  Index  nrows, ncols;
+  ArrayOfIndex  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
@@ -1408,13 +1443,13 @@ void binfile_read_numeric(
         const String&   dataname )
 {
   int     vdata_id;
-  size_t  nrows, ncols;
+  Index  nrows, ncols;
   Matrix  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
-  x = a[0][0];
+  x = a(0,0);
   binfile_read_end( vdata_id, filename, dataname );
 }
 
@@ -1438,14 +1473,16 @@ void binfile_write_vector(
         const Vector&   x,
         const String&   dataname )
 {
-  const size_t  n = x.size();
-  /*
-  Numeric a[n];
-  for ( size_t i=0; i<n; i++ )
+  const Index  n = x.nelem();
+  
+  Numeric *a = new Numeric[n];
+  for ( Index i=0; i<n; i++ )
     a[i] = x[i];
-  */
+  
   binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
-                                                               (uint8*)&x[0] );
+                                                               (uint8*)&a[0] );
+
+  delete a;
 }
 
 
@@ -1469,15 +1506,15 @@ void binfile_read_vector(
         const String&   dataname )
 {
   int     vdata_id;
-  size_t  nrows, ncols;
+  Index  nrows, ncols;
   Matrix  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "VECTOR", 0, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
-  resize(x,nrows);
-  for ( size_t i=0; i<nrows; i++ )
-    x[i] = a[i][0];
+  x.resize(nrows);
+  for ( Index i=0; i<nrows; i++ )
+    x[i] = a(i,0);
   binfile_read_end( vdata_id, filename, dataname );
 }
 
@@ -1505,11 +1542,17 @@ void binfile_write_matrix(
         const Matrix&   x,
         const String&   dataname )
 {
-  const size_t  nrows = x.nrows();
-  const size_t  ncols = x.ncols();
+  const Index  nrows = x.nrows();
+  const Index  ncols = x.ncols();
+
+  Numeric *a = new Numeric[nrows*ncols];
+  for ( Index r=0; r<nrows; r++ )
+    for ( Index c=0; c<ncols; c++ )
+      a[r*ncols+c] = x(r,c);
 
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
-                                                            (uint8*)&x[0][0] );
+		 (uint8*)&a[0] );
+  delete a;
 }
 
 
@@ -1533,7 +1576,7 @@ void binfile_read_matrix(
         const String&   dataname )
 {
   int     vdata_id;
-  size_t  nrows, ncols;
+  Index  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "MATRIX", 0, 0 );
@@ -1545,7 +1588,7 @@ void binfile_read_matrix(
 
 //// binfile_write_indexarray //////////////////////////////////////////////
 /**
-   Writes an ArrayofIndex to a binary file.
+   Writes an ArrayOfIndex to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1558,14 +1601,14 @@ void binfile_read_matrix(
 void binfile_write_indexarray(
         const String&         filename,
         const int&            fid,
-        const Arrayofsizet&   x,
+        const ArrayOfIndex&   x,
         const String&         dataname )
 {
-  const size_t  n = x.size();
+  const Index  n = x.nelem();
 
   /*
-  size_t a[n];
-  for ( size_t i=0; i<n; i++ )
+  Index a[n];
+  for ( Index i=0; i<n; i++ )
     a[i] = x[i];
   binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
                                                                 (uint8*)a );
@@ -1578,7 +1621,7 @@ void binfile_write_indexarray(
 
 //// binfile_read_indexarray ///////////////////////////////////////////////
 /**
-   Reads a ArrayofIndex from a binary file.
+   Reads a ArrayOfIndex from a binary file.
 
    \param    x            the read index array
    \param    filename     file name
@@ -1589,13 +1632,13 @@ void binfile_write_indexarray(
    \date   2000-11-01
 */
 void binfile_read_indexarray(
-              Arrayofsizet&   x,
+              ArrayOfIndex&   x,
         const String&         filename,
         const int&            fid,
         const String&         dataname )
 {
   int     vdata_id;
-  size_t  nrows, ncols;
+  Index  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "ARRAY", 0, 1 );
@@ -1607,7 +1650,7 @@ void binfile_read_indexarray(
 
 //// binfile_write_vectorarray //////////////////////////////////////////////
 /**
-   Writes an ArrayofVector to a binary file.
+   Writes an ArrayOfVector to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1620,16 +1663,16 @@ void binfile_read_indexarray(
 void binfile_write_vectorarray(
         const String&          filename,
         const int&             fid,
-        const ArrayofVector&   x,
+        const ArrayOfVector&   x,
         const String&          dataname )
 {
-  const size_t  n = x.size();
+  const Index  n = x.nelem();
 
   // Write number of vectors
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each matrix seperately
-  for (size_t i=0; i<n; i++ )
+  for (Index i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
@@ -1641,7 +1684,7 @@ void binfile_write_vectorarray(
 
 //// binfile_read_vectorarray ///////////////////////////////////////////////
 /**
-   Reads a ArrayofVector from a binary file.
+   Reads a ArrayOfVector from a binary file.
 
    \param    x            the read vector array
    \param    filename     file name
@@ -1652,18 +1695,18 @@ void binfile_write_vectorarray(
    \date   2000-11-01
 */
 void binfile_read_vectorarray(
-              ArrayofVector&   x,
+              ArrayOfVector&   x,
         const String&          filename,
         const int&             fid,
         const String&          dataname )
 {
   // Read the number of vectors
-  size_t  n;
+  Index  n;
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read vectors
-  resize(x,n);
-  for (size_t i=0; i<n; i++ )
+  x.resize(n);
+  for (Index i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
@@ -1675,7 +1718,7 @@ void binfile_read_vectorarray(
 
 //// binfile_write_matrixarray //////////////////////////////////////////////
 /**
-   Writes an ArrayofMatrix to a binary file.
+   Writes an ArrayOfMatrix to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1688,16 +1731,16 @@ void binfile_read_vectorarray(
 void binfile_write_matrixarray(
         const String&          filename,
         const int&             fid,
-        const ArrayofMatrix&   x,
+        const ArrayOfMatrix&   x,
         const String&          dataname )
 {
-  const size_t  n = x.size();
+  const Index  n = x.nelem();
 
   // Write number of matrices
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each matrix seperately
-  for ( size_t i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
@@ -1709,7 +1752,7 @@ void binfile_write_matrixarray(
 
 //// binfile_read_matrixarray ///////////////////////////////////////////////
 /**
-   Reads a ArrayofMatrix from a binary file.
+   Reads a ArrayOfMatrix from a binary file.
 
    \param    x            the read matrix array
    \param    filename     file name
@@ -1720,18 +1763,18 @@ void binfile_write_matrixarray(
    \date   2000-11-01
 */
 void binfile_read_matrixarray(
-              ArrayofMatrix&   x,
+              ArrayOfMatrix&   x,
         const String&          filename,
         const int&             fid,
         const String&          dataname )
 {
   // Read the number of matrices
-  size_t  n;
+  Index  n;
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read matrices
-  resize(x,n);
-  for (size_t i=0; i<n; i++ )
+  x.resize(n);
+  for (Index i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
@@ -1759,7 +1802,7 @@ void binfile_write_String(
         const String&   s,
         const String&   dataname )
 {
-  const size_t  n = s.length();
+  const Index  n = s.length();
 
   binfile_write( fid,  filename, dataname, "STRING", "CHAR", n, 1, 
                                                            (uint8*)s.c_str() );
@@ -1786,7 +1829,7 @@ void binfile_read_String(
         const String&   dataname )
 {
   int     vdata_id;
-  size_t  nrows, ncols;
+  Index  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "STRING", 0, 1 );
@@ -1798,7 +1841,7 @@ void binfile_read_String(
 
 //// binfile_write_Stringarray //////////////////////////////////////////////
 /**
-   Writes an ArrayofSTRING to a binary file.
+   Writes an ArrayOfSTRING to a binary file.
 
    \param    filename     file name
    \param    fid          file identifier
@@ -1811,16 +1854,16 @@ void binfile_read_String(
 void binfile_write_Stringarray(
         const String&          filename,
         const int&             fid,
-        const ArrayofString&   x,
+        const ArrayOfString&   x,
         const String&          dataname )
 {
-  const size_t  n = x.size();
+  const Index  n = x.nelem();
 
   // Write number of matrices
   binfile_write_index( filename, fid, n, "N_"+dataname );  
 
   // Write each String seperately
-  for ( size_t i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;
@@ -1832,7 +1875,7 @@ void binfile_write_Stringarray(
 
 //// binfile_read_Stringarray ///////////////////////////////////////////////
 /**
-   Reads a ArrayofSTRING from a binary file.
+   Reads a ArrayOfSTRING from a binary file.
 
    \param    x            the read String array
    \param    filename     file name
@@ -1843,18 +1886,18 @@ void binfile_write_Stringarray(
    \date   2000-11-01
 */
 void binfile_read_Stringarray(
-              ArrayofString&   x,
+              ArrayOfString&   x,
         const String&          filename,
         const int&             fid,
         const String&          dataname )
 {
   // Read the number of matrices
-  size_t  n;
+  Index  n;
   binfile_read_index( n, filename, fid, "N_"+dataname );  
 
   // Reallocate x and read matrices
-  resize(x,n);
-  for (size_t i=0; i<n; i++ )
+  x.resize(n);
+  for (Index i=0; i<n; i++ )
   {
     ostringstream os;
     os << dataname << i;

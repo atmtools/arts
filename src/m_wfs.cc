@@ -38,9 +38,10 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
 #include "arts.h"
 #include "auto_md.h"
-#include "vecmat.h"
+#include "matpackI.h"
 #include "messages.h"          
 #include "auto_wsv.h"          
 #include "math_funcs.h"          
@@ -73,25 +74,25 @@ extern const Numeric BOLTZMAN_CONST;
 */
 void k_append (
 		    Matrix&          kx,
-		    ArrayofString&   kx_names,
-		    Arrayofsizet&    kx_lengths,
+		    ArrayOfString&   kx_names,
+		    ArrayOfIndex&    kx_lengths,
 		    Matrix&          kx_aux,
               const Matrix&          k,
-              const ArrayofString&   k_names,
+              const ArrayOfString&   k_names,
               const Matrix&          k_aux )
 {
   // Size of Kx and K
-  const size_t  ny1  = kx.nrows();         // length of measurement vector (y)
-  const size_t  nx1  = kx.ncols();         // length of state vector (x)
-  const size_t  nri1 = kx_names.size();    // number of retrieval identities
-  const size_t  ny2  = k.nrows();  
-  const size_t  nx2  = k.ncols();  
-  const size_t  nri2 = k_names.size();
-        size_t  iri;
+  const Index  ny1  = kx.nrows();         // length of measurement vector (y)
+  const Index  nx1  = kx.ncols();         // length of state vector (x)
+  const Index  nri1 = kx_names.nelem();    // number of retrieval identities
+  const Index  ny2  = k.nrows();  
+  const Index  nx2  = k.ncols();  
+  const Index  nri2 = k_names.nelem();
+        Index  iri;
 
          Matrix   ktemp(ny1,nx1), ktemp_aux(nx1,2);
-  ArrayofString   ktemp_names(nri1);
-   Arrayofsizet   ktemp_lengths(nri1);
+  ArrayOfString   ktemp_names(nri1);
+   ArrayOfIndex   ktemp_lengths(nri1);
   
   if ( nx1 > 0 )
   {
@@ -99,24 +100,27 @@ void k_append (
       throw runtime_error(
             "The two WF matrices have different number of rows." ); 
 
-    // Make copy of Kx data
-    copy( kx,         ktemp );
-    copy( kx_lengths, ktemp_lengths );
-    copy( kx_aux,     ktemp_aux );
-    copy( kx_names,   ktemp_names );
+    // Make copy of Kx data.
+    // With Matpack and Array you can make copies simply like
+    // this. Dimensions must agree!  
+    ktemp         = kx;
+    ktemp_names   = kx_names;
+    ktemp_lengths = kx_lengths;
+    ktemp_aux     = kx_aux;
   }
 
   // Reallocate the Kx data
-  resize( kx,         ny2,       nx1+nx2 );
-  resize( kx_names,   nri1+nri2          );
-  resize( kx_lengths, nri1+nri2          );
-  resize( kx_aux,     nx1+nx2,   2       );
+  kx.resize(         ny2,       nx1+nx2 );
+  kx_names.resize(   nri1+nri2          );
+  kx_lengths.resize( nri1+nri2          );
+  kx_aux.resize(     nx1+nx2,   2       );
 
   // Move Ktemp to Kx
   if ( nx1 > 0 )
   {
-    copy( ktemp,       kx.sub_matrix( 0, ny2, 0, nx1 ) );
-    copy( ktemp_aux,   kx_aux.sub_matrix( 0, nx1, 0, 2 ) );
+    kx( Range(joker), Range(0,nx1) )     = ktemp;
+    kx_aux( Range(0,nx1), Range(joker) ) = ktemp_aux;
+    // For the Array types kx_names and kx_lenghts we cannot use Range.  
     for ( iri=0; iri<nri1; iri++ )
     {
       kx_lengths[iri]  = ktemp_lengths[iri];
@@ -125,11 +129,12 @@ void k_append (
   }
 
   // Calculate the vector length for each identity in K
-  size_t l = (size_t) floor(nx2/nri2);
+  Index l = (Index) floor(nx2/nri2);
 
   // Move K to Kx
-  copy( k,       kx.sub_matrix( 0, ny2, nx1, nx1+nx2 ) );
-  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 2 ) );
+  kx( Range(joker), Range(nx1,nx2) )     = k;
+  kx_aux( Range(nx1,nx2), Range(joker) ) = k_aux;
+  // For the Array types kx_names and kx_lenghts we cannot use Range.  
   for ( iri=0; iri<nri2; iri++ )
   {
     kx_names[nri1+iri]   = k_names[iri];
@@ -160,10 +165,15 @@ void p2grid(
 	      Vector&   grid,
         const Vector&   pgrid )
 {
-  resize( grid, pgrid.size() );
-  copy( pgrid, grid );
-  transf( grid, log, grid );
-  copy( scaled(grid,-1), grid );
+  grid.resize( pgrid.nelem() );
+  grid = pgrid;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
+  transform( grid, log, grid );	// Matpack has the same transform
+				// functionality like the old
+				// vecmat. THE ORDER OF THE ARGUMENTS
+				// IS DIFFERENT, THOUGH (output first).
+  grid *= -1;			// Mulitply all elements with -1.
 }
 
 
@@ -228,13 +238,13 @@ void grid2grid_index (
               const Vector&   x0,
               const Vector&   xp )
 {
-  const size_t n0 = x0.size();        // length of original grid
-  const size_t np = xp.size();        // length if retrieval grid
-        size_t i0, ip;                // counter for each grid
+  const Index n0 = x0.nelem();        // length of original grid
+  const Index np = xp.nelem();        // length if retrieval grid
+  Index       i0, ip;                // counter for each grid
 
   // Resize is and set all values to -1
-  resize( is, np, 2 );
-  setto( is, -1.0 );
+  is.resize( np, 2 );
+  is = -1.0;			// Matpack can set all elements like this.
  
   // Some checks
   if ( np < 2 )
@@ -259,9 +269,9 @@ void grid2grid_index (
     for ( ; x0[i0] < xp[0]; i0++ ) {}
     if ( x0[i0] < xp[1] )
     {
-      is[0][0] = (Numeric) i0;
+      is(0,0) = (Numeric) i0;
       for ( ; (i0<n0) && (x0[i0]<xp[1]); i0++ ) {}
-      is[0][1] = (Numeric) (i0 - 1);
+      is(0,1) = (Numeric) (i0 - 1);
     }
 
     // Points inside XP
@@ -271,9 +281,9 @@ void grid2grid_index (
       for ( ; (i0<n0) && (x0[i0]<=xp[ip-1]); i0++ ) {}
       if ( (i0<n0) && (x0[i0]<xp[ip+1]) )
       {
-        is[ip][0] = (Numeric) i0;
+        is(ip,0) = (Numeric) i0;
         for ( ; (i0<n0) && (x0[i0]<xp[ip+1]); i0++ ) {}
-        is[ip][1] = (Numeric) (i0 - 1);
+        is(ip,1) = (Numeric) (i0 - 1);
       }
     }
 
@@ -282,9 +292,9 @@ void grid2grid_index (
     for ( ; (i0<n0) && (x0[i0]<=xp[np-2]); i0++ ) {}
     if ( (i0<n0) && (x0[i0]<=xp[np-1]) )
     {
-      is[np-1][0] = (Numeric) i0;
+      is(np-1,0) = (Numeric) i0;
       for ( ; (i0<n0) && (x0[i0]<=xp[np-1]); i0++ ) {}
-      is[np-1][1] = (Numeric) (i0 - 1);
+      is(np-1,1) = (Numeric) (i0 - 1);
     }
   }
 }
@@ -322,17 +332,17 @@ void grid2grid_index (
 void grid2grid_weights (
                     Vector&   w,
               const Vector&   x0,
-              const size_t&   i1,
-              const size_t&   i2,
+              const Index&   i1,
+              const Index&   i2,
               const Vector&   xp,
-              const size_t&   ip )
+              const Index&   ip )
 {
-  const size_t   np = xp.size();        // number of retrieval points
-  const size_t   nw = i2-i1+1;          // number of LOS points affected
-        size_t   i;
+  const Index   np = xp.nelem();        // number of retrieval points
+  const Index   nw = i2-i1+1;          // number of LOS points affected
+  Index         i;
 
   // Reallocate w
-  resize(w,nw);
+  w.resize(nw);
 
   // First point of the retrieval grid
   if ( ip == 0 )
@@ -394,8 +404,8 @@ void grid2grid_weights (
 void absloswfs_rte_1pass (
                     Matrix&   k,
                     Vector    y,
-              const size_t&   start_index,
-	      const size_t&   stop_index,   // this variable is used by
+              const Index&   start_index,
+	      const Index&   stop_index,   // this variable is used by
               const Numeric&  lstep,        // absloswfs_down
               const Matrix&   tr,
               const Matrix&   s,
@@ -403,16 +413,18 @@ void absloswfs_rte_1pass (
               const Vector&   e_ground,
               const Vector&   y_ground )
 {
-  const size_t   nf = tr.nrows();     // number of frequencies
-        size_t   iv;                  // frequency index
-        Vector   t(nf,1.0);           // transmission to the sensor
-        size_t   q;                   // LOS index (same notation as in AUG)
+  const Index   nf = tr.nrows();     // number of frequencies
+  Index         iv;                  // frequency index
+  Index         q;                   // LOS index (same notation as in AUG)
+  Vector        t(nf);               // transmission to the sensor
+  
+  t = 1.0;		// Set all elements of t to 1.
 
   if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
-  resize( k, nf, start_index+1 );
+  k.resize( nf, start_index+1 );
 
   // We start here at the LOS point closest to the sensor, that is,
   // reversed order compared to RTE_ITERATE  
@@ -421,9 +433,9 @@ void absloswfs_rte_1pass (
   q  = stop_index;
   for ( iv=0; iv<nf; iv++ )    
   {
-    t[iv]   *= tr[iv][q];
-    y[iv]    = (y[iv]-s[iv][q]*(1.0-tr[iv][q]))/tr[iv][q];
-    k[iv][q] = (-lstep/2)*(y[iv]-s[iv][q])*t[iv];
+    t[iv]   *= tr(iv,q);
+    y[iv]    = (y[iv]-s(iv,q)*(1.0-tr(iv,q)))/tr(iv,q);
+    k(iv,q) = (-lstep/2)*(y[iv]-s(iv,q))*t[iv];
   }
 
   // Points inside the LOS
@@ -434,10 +446,10 @@ void absloswfs_rte_1pass (
     {
       for ( iv=0; iv<nf; iv++ )    
       {
-        y[iv]    = (y[iv]-s[iv][q]*(1.0-tr[iv][q]))/tr[iv][q];
-        k[iv][q] = (-lstep/2)*( 2*(y[iv]-s[iv][q])*tr[iv][q] + 
-                                             s[iv][q] - s[iv][q-1] ) *t[iv];
-        t[iv]   *= tr[iv][q]; 
+        y[iv]    = (y[iv]-s(iv,q)*(1.0-tr(iv,q)))/tr(iv,q);
+        k(iv,q) = (-lstep/2)*( 2*(y[iv]-s(iv,q))*tr(iv,q) + 
+                                             s(iv,q) - s(iv,q-1) ) *t[iv];
+        t[iv]   *= tr(iv,q); 
       }
     }
     // A ground point
@@ -448,12 +460,12 @@ void absloswfs_rte_1pass (
       for ( iv=0; iv<nf; iv++ )    
       {
         y[iv]    = ( y[iv] - e_ground[iv]*y_ground[iv] - 
-                            s[iv][q]*(1.0-tr[iv][q])*(1-e_ground[iv]) ) / 
-                                             ( tr[iv][q] * (1-e_ground[iv]) );
-        k[iv][q] = (-lstep/2)*( 2*(y[iv]-s[iv][q])*tr[iv][q]*(1-e_ground[iv])+ 
-                                s[iv][q]*(1-e_ground[iv]) + 
-                             e_ground[iv]*y_ground[iv] - s[iv][q-1] ) * t[iv];
-        t[iv]   *= tr[iv][q] * (1-e_ground[iv]); 
+                            s(iv,q)*(1.0-tr(iv,q))*(1-e_ground[iv]) ) / 
+                                             ( tr(iv,q) * (1-e_ground[iv]) );
+        k(iv,q) = (-lstep/2)*( 2*(y[iv]-s(iv,q))*tr(iv,q)*(1-e_ground[iv])+ 
+                                s(iv,q)*(1-e_ground[iv]) + 
+                             e_ground[iv]*y_ground[iv] - s(iv,q-1) ) * t[iv];
+        t[iv]   *= tr(iv,q) * (1-e_ground[iv]); 
       }
     }
   }
@@ -461,7 +473,7 @@ void absloswfs_rte_1pass (
   // The LOS point furthest away from the sensor
   q = start_index;
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][q]  = (-lstep/2)*(y[iv]-s[iv][q-1])*t[iv];
+    k(iv,q)  = (-lstep/2)*(y[iv]-s(iv,q-1))*t[iv];
 
   // To check the function: Y shall now be equal to the radiation entering 
   // the atmosphere and T the total transmission
@@ -495,25 +507,26 @@ void absloswfs_rte_limb (
                     Matrix&   k,
                     Vector    y,              // = y_q^q
               const Vector&   y_space,             
-              const size_t&   start_index,
+              const Index&   start_index,
               const Numeric&  lstep,
               const Matrix&   tr,
               const Matrix&   s,
               const Index&    ground,
               const Vector&   e_ground )
 {
-  const size_t   nf = tr.nrows();     // number of frequencies
-        size_t   iv;                  // frequency index
-        Vector   t1q;                 // transmission tangent point - q squared
-        Vector   tqn(nf,1.0);         // transmission q - sensor
-        size_t   q;                   // LOS index (same notation as in AUG)
-       Numeric   tv, tv1;             // transmission value for q and q-1
-        Vector   yn(nf);              // = y_space
+  const Index nf = tr.nrows();     // number of frequencies
+  Index       iv;                  // frequency index
+  Vector      t1q;                 // transmission tangent point - q squared
+  Vector      tqn(nf,1.0);         // transmission q - sensor
+  Index       q;                   // LOS index (same notation as in AUG)
+  Numeric     tv, tv1;             // transmission value for q and q-1
+  Vector      yn(y_space);         // = y_space
 
-  copy( y_space, yn );
+  // Matpack can initialize a new Vector from another Vector. See how
+  // yn is initialized from y_space.
 
   // Resize K
-  resize( k, nf, start_index+1 );
+  k.resize( nf, start_index+1 );
 
   // Calculate the total transmission
   bl( t1q, start_index, start_index, tr, ground, e_ground );
@@ -522,12 +535,12 @@ void absloswfs_rte_limb (
   q  = start_index;       
   for ( iv=0; iv<nf; iv++ )    
   {
-    tv1      = tr[iv][q-1];
+    tv1      = tr(iv,q-1);
     t1q[iv] /= tv1*tv1;
     tqn[iv] *= tv1;
-    y[iv]    = ( y[iv] - s[iv][q-1]*(1-tv1)*(1+t1q[iv]*tv1) ) / tv1;
-    k[iv][q]  = (-lstep/2)*( ( 2*yn[iv] + s[iv][q-1]*(1-2*tv1) ) * 
-                              t1q[iv]*tv1 + y[iv] - s[iv][q-1] )*tv1;
+    y[iv]    = ( y[iv] - s(iv,q-1)*(1-tv1)*(1+t1q[iv]*tv1) ) / tv1;
+    k(iv,q)  = (-lstep/2)*( ( 2*yn[iv] + s(iv,q-1)*(1-2*tv1) ) * 
+                              t1q[iv]*tv1 + y[iv] - s(iv,q-1) )*tv1;
   }
 
   // Points inside the LOS
@@ -535,23 +548,23 @@ void absloswfs_rte_limb (
   {
     for ( iv=0; iv<nf; iv++ )    
     {
-      tv1      = tr[iv][q-1];    
-      tv       = tr[iv][q];
+      tv1      = tr(iv,q-1);    
+      tv       = tr(iv,q);
       t1q[iv] /= tv1*tv1;
-      y[iv]    = ( y[iv] - s[iv][q-1]*(1-tv1)*(1+t1q[iv]*tv1) ) / tv1;
-      k[iv][q] = (-lstep/2) * ( 
-           ( 4*(yn[iv]-s[iv][q])*tv1*tv + 3*(s[iv][q]-s[iv][q-1])*tv1 + 
-                                        2*s[iv][q-1] ) * t1q[iv]*tv1 + 
-             2*(y[iv]-s[iv][q-1])*tv1 + s[iv][q-1] - s[iv][q] ) * tqn[iv];
+      y[iv]    = ( y[iv] - s(iv,q-1)*(1-tv1)*(1+t1q[iv]*tv1) ) / tv1;
+      k(iv,q) = (-lstep/2) * ( 
+           ( 4*(yn[iv]-s(iv,q))*tv1*tv + 3*(s(iv,q)-s(iv,q-1))*tv1 + 
+                                        2*s(iv,q-1) ) * t1q[iv]*tv1 + 
+             2*(y[iv]-s(iv,q-1))*tv1 + s(iv,q-1) - s(iv,q) ) * tqn[iv];
       tqn[iv] *= tv1;
-      yn[iv]   = yn[iv]*tv + s[iv][q]*(1-tv);
+      yn[iv]   = yn[iv]*tv + s(iv,q)*(1-tv);
     } 
   }
 
   // The tangent or ground point
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][0]  = (-lstep/2)*( (2*yn[iv]*tv1+s[iv][0]*(1-2*tv1))*t1q[iv] +
-                       y[iv] - s[iv][0] ) * tqn[iv];
+    k(iv,0)  = (-lstep/2)*( (2*yn[iv]*tv1+s(iv,0)*(1-2*tv1))*t1q[iv] +
+                       y[iv] - s(iv,0) ) * tqn[iv];
 
   // To check the function
   // Without ground reflection: T1Q=1 and Y=0
@@ -590,8 +603,8 @@ void absloswfs_rte_down (
                     Matrix&   k,
               const Vector&   y,
               const Vector&   y_space,
-              const size_t&   start_index,
-              const size_t&   stop_index,
+              const Index&   start_index,
+              const Index&   stop_index,
               const Numeric&  lstep,
               const Matrix&   tr,
               const Matrix&   s,
@@ -599,19 +612,21 @@ void absloswfs_rte_down (
               const Vector&   e_ground,
               const Vector&   y_ground )
 {
-  const size_t   nf = tr.nrows(); // number of frequencies
-        size_t   iv;              // frequency index
-        size_t   q;               // LOS index (same notation as in AUG)
+  const Index   nf = tr.nrows(); // number of frequencies
+        Index   iv;              // frequency index
+        Index   q;               // LOS index (same notation as in AUG)
         Vector   y0(nf);          // see below
         Matrix   k2;              // matrix for calling other LOS WFs functions
         Vector   tr0;             // see below
 
   // Resize K
-  resize( k, nf, start_index+1 );
+  k.resize( nf, start_index+1 );
 
   // Calculate Y0, the intensity reaching the platform altitude at the far
   // end of LOS, that is, from above.
-  copy( y_space, y0 );
+  y0 = y_space;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
   rte_iterate( y0, start_index-1, stop_index, tr, s, nf );
 
   // Calculate TR0, the transmission from the platform altitude down to the
@@ -624,7 +639,7 @@ void absloswfs_rte_down (
   for ( iv=0; iv<nf; iv++ )
   {
     for ( q=0; q<stop_index; q++ )
-      k[iv][q] = k2[iv][q];
+      k(iv,q) = k2(iv,q);
   }
 
   // The indeces above STOP_INDEX are handled by the 1pass function.
@@ -634,7 +649,7 @@ void absloswfs_rte_down (
   for ( iv=0; iv<nf; iv++ )
   {
     for ( q=stop_index+1; q<=start_index; q++ )
-      k[iv][q] = k2[iv][q]*tr0[iv];
+      k(iv,q) = k2(iv,q)*tr0[iv];
   }
 
   // The platform altitude must be treated seperately
@@ -648,11 +663,11 @@ void absloswfs_rte_down (
   q = stop_index; 
   for ( iv=0; iv<nf; iv++ )
   {
-    tr0[iv] /= tr[iv][q-1]*tr[iv][q-1];    
-    y0[iv]   = ( y0[iv] - s[iv][q]*(1-tr[iv][q]) ) / tr[iv][q];
-    k[iv][q] = (-lstep/2)*( (3*(y0[iv]-s[iv][q])*tr[iv][q-1]*tr[iv][q] + 
-                  2*(s[iv][q]-s[iv][q-1])*tr[iv][q-1] + s[iv][q-1] )*tr0[iv] + 
-                                         yqq[iv] - s[iv][q-1] )*tr[iv][q-1];
+    tr0[iv] /= tr(iv,q-1)*tr(iv,q-1);    
+    y0[iv]   = ( y0[iv] - s(iv,q)*(1-tr(iv,q)) ) / tr(iv,q);
+    k(iv,q) = (-lstep/2)*( (3*(y0[iv]-s(iv,q))*tr(iv,q-1)*tr(iv,q) + 
+                  2*(s(iv,q)-s(iv,q-1))*tr(iv,q-1) + s(iv,q-1) )*tr0[iv] + 
+                                         yqq[iv] - s(iv,q-1) )*tr(iv,q-1);
   }
 }
 
@@ -664,43 +679,43 @@ void absloswfs_rte_down (
    \date   2000-09-15
 */
 void absloswfs_rte (
-                    ArrayofMatrix&   absloswfs,
+                    ArrayOfMatrix&   absloswfs,
               const LOS&             los,   
-              const ArrayofMatrix&   source,
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   source,
+              const ArrayOfMatrix&   trans,
               const Vector&          y,
               const Vector&          y_space,
               const Vector&          f_mono,
               const Vector&          e_ground,
               const Numeric&         t_ground )
 {
-  const size_t  nza = los.start.size();   // number of zenith angles  
-  const size_t  nf  = f_mono.size();      // number of frequencies  
+  const Index  nza = los.start.nelem();   // number of zenith angles  
+  const Index  nf  = f_mono.nelem();      // number of frequencies  
         Vector  yp(nf);                   // part of Y
-        size_t  iy0=0;                    // y index
+        Index  iy0=0;                    // y index
 
   // Set up vector for ground blackbody radiation
-  Vector   y_ground(f_mono.size()); 
+  Vector   y_ground(f_mono.nelem()); 
   if ( any_ground(los.ground) )
     planck( y_ground, f_mono, t_ground );
 
   // Resize the LOS WFs array
-  resize( absloswfs, nza );
+  absloswfs.resize( nza );
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
-  for (size_t i=0; i<nza; i++ ) 
+  for (Index i=0; i<nza; i++ ) 
   {
     if ( ((i+1)%20)==0 )
       out3 << "\n      ";
     out3 << " " << i; cout.flush();
     
     // Do something only if LOS has any points
-    if ( los.p[i].size() > 0 )
+    if ( los.p[i].nelem() > 0 )
     {
 
       // Pick out the part of Y corresponding to the present zenith angle
-      copy( y(iy0,iy0+nf), yp );
+      yp = y[Range(iy0,nf)];
 
       // The calculations are performed in 3 sub-functions
       //
@@ -737,21 +752,21 @@ void absloswfs_rte (
    \date   2001-03-30
 */
 void absloswfs_tau (
-                    ArrayofMatrix&   absloswfs,
+                    ArrayOfMatrix&   absloswfs,
 	      const LOS&             los,
 	      const Vector&          f_mono )
 {
-  const size_t  nza = los.start.size();   // number of zenith angles  
-  const size_t  nf  = f_mono.size();      // number of frequencies  
-        Numeric kw, kw2;
-        Index   row, col, np;
+  const Index  nza = los.start.nelem();   // number of zenith angles  
+  const Index  nf  = f_mono.nelem();      // number of frequencies  
+  Numeric      kw, kw2;
+  Index        row, col, np;
 
   // Resize the LOS WFs array
-  resize( absloswfs, nza );
+  absloswfs.resize( nza );
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:\n      ";
-  for (size_t i=0; i<nza; i++ ) 
+  for (Index i=0; i<nza; i++ ) 
   {
     if ( ((i+1)%20)==0 )
       out3 << "\n      ";
@@ -759,10 +774,10 @@ void absloswfs_tau (
 
     np = los.start[i] + 1;
 
-    resize( absloswfs[i], nf, np );
+    absloswfs[i].resize( nf, np );
     
     // Do something only if LOS has any points
-    if ( los.p[i].size() > 0 )
+    if ( los.p[i].nelem() > 0 )
     {
 
       // Upward looking (=single pass)
@@ -772,10 +787,10 @@ void absloswfs_tau (
         kw2 = los.l_step[i];
         for( row=0; row<nf; row++ )
 	{
-          absloswfs[i][row][0] = kw;
-          absloswfs[i][row][np-1] = kw;
+          absloswfs[i](row,0) = kw;
+          absloswfs[i](row,np-1) = kw;
           for( col=1; col<np-1; col++ )
-            absloswfs[i][row][col] = kw2;
+            absloswfs[i](row,col) = kw2;
         }
       }
 
@@ -786,10 +801,10 @@ void absloswfs_tau (
         kw2 = los.l_step[i] * 2.0;
         for( row=0; row<nf; row++ )
 	{
-          absloswfs[i][row][0] = kw;
-          absloswfs[i][row][np-1] = kw;
+          absloswfs[i](row,0) = kw;
+          absloswfs[i](row,np-1) = kw;
           for( col=1; col<np-1; col++ )
-            absloswfs[i][row][col] = kw2;
+            absloswfs[i](row,col) = kw2;
         }
       }
 
@@ -800,13 +815,13 @@ void absloswfs_tau (
         kw2 = los.l_step[i] * 2.0;
         for( row=0; row<nf; row++ )
 	{
-          absloswfs[i][row][0] = kw;
-          absloswfs[i][row][np-1] = kw / 2.0;
-          absloswfs[i][row][los.stop[i]] = kw * 1.5;
+          absloswfs[i](row,0) = kw;
+          absloswfs[i](row,np-1) = kw / 2.0;
+          absloswfs[i](row,los.stop[i]) = kw * 1.5;
           for( col=1; col<los.stop[i]; col++ )
-            absloswfs[i][row][col] = kw2;
+            absloswfs[i](row,col) = kw2;
           for( col=los.stop[i]+1; col<np-1; col++ )
-            absloswfs[i][row][col] = kw;
+            absloswfs[i](row,col) = kw;
         }
       }
     }
@@ -844,22 +859,22 @@ void absloswfs_tau (
 */
 void sourceloswfs_1pass (
                     Matrix&   k,
-              const size_t&   start_index,
-	      const size_t&   stop_index,   // this variable is used by 1D down
+              const Index&   start_index,
+	      const Index&   stop_index,   // this variable is used by 1D down
               const Matrix&   tr,
               const Index&    ground,
               const Vector&   e_ground )
 {
-  const size_t   nf = tr.nrows();     // number of frequencies
-        size_t   iv;                  // frequency index
+  const Index   nf = tr.nrows();     // number of frequencies
+        Index   iv;                  // frequency index
         Vector   t(nf,1.0);           // transmission to the sensor
-        size_t   q;                   // LOS index (same notation as in AUG) 
+        Index   q;                   // LOS index (same notation as in AUG) 
 
   if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
-  resize( k, nf, start_index+1 );
+  k.resize( nf, start_index+1 );
 
   // We start here at the LOS point closest to the sensor, that is,
   // reversed order compared to RTE_ITERATE  
@@ -867,7 +882,7 @@ void sourceloswfs_1pass (
   // The LOS point closest to the sensor 
   q  = stop_index;
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][q]  = ( 1 - tr[iv][q] ) / 2;
+    k(iv,q)  = ( 1 - tr(iv,q) ) / 2;
 
   // Points inside the LOS
   for ( q=stop_index+1; q<start_index; q++ )
@@ -877,8 +892,8 @@ void sourceloswfs_1pass (
     {
       for ( iv=0; iv<nf; iv++ )    
       {
-        k[iv][q] = ( 1 - tr[iv][q-1]*tr[iv][q] ) * t[iv] / 2;
-        t[iv]  *= tr[iv][q]; 
+        k(iv,q) = ( 1 - tr(iv,q-1)*tr(iv,q) ) * t[iv] / 2;
+        t[iv]  *= tr(iv,q); 
       }
     }
     // A ground point
@@ -889,9 +904,9 @@ void sourceloswfs_1pass (
 
       for ( iv=0; iv<nf; iv++ )    
       {
-        k[iv][q] = ( (1-tr[iv][q])*(1-e_ground[iv])*tr[iv][q-1] + 1 - 
-                                                     tr[iv][q-1] ) * t[iv] / 2;
-        t[iv]  *= tr[iv][q]*(1-e_ground[iv]); 
+        k(iv,q) = ( (1-tr(iv,q))*(1-e_ground[iv])*tr(iv,q-1) + 1 - 
+                                                     tr(iv,q-1) ) * t[iv] / 2;
+        t[iv]  *= tr(iv,q)*(1-e_ground[iv]); 
       }
     }
   }
@@ -899,7 +914,7 @@ void sourceloswfs_1pass (
   // The LOS point furthest away from the sensor
   q = start_index;
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][q]  = ( 1 - tr[iv][q-1] ) * t[iv] / 2;
+    k(iv,q)  = ( 1 - tr(iv,q-1) ) * t[iv] / 2;
 }
 
 
@@ -924,29 +939,29 @@ void sourceloswfs_1pass (
 */
 void sourceloswfs_limb (
                     Matrix&   k,
-              const size_t&   start_index,
+              const Index&   start_index,
               const Matrix&   tr,
               const Index&    ground,
               const Vector&   e_ground )
 {
-  const size_t   nf = tr.nrows();      // number of frequencies
-        size_t   iv;                  // frequency index
+  const Index   nf = tr.nrows();      // number of frequencies
+        Index   iv;                  // frequency index
         Vector   t1q;                 // transmission tangent point - q squared
         Vector   tqn(nf,1);           // transmission q - sensor
-        size_t   q;                   // LOS index (same notation as in AUG)
+        Index   q;                   // LOS index (same notation as in AUG)
 
   // Calculate the total transmission
   bl( t1q, start_index, start_index, tr, ground, e_ground );
 
   // Resize K
-  resize( k, nf, start_index+1 );
+  k.resize( nf, start_index+1 );
 
   // We start at the outermost point
   q  = start_index;       
   for ( iv=0; iv<nf; iv++ )    
   {
-    t1q[iv] /= tr[iv][q-1] * tr[iv][q-1];
-    k[iv][q]  = ( (1-tr[iv][q-1])*t1q[iv]*tr[iv][q-1] + 1 - tr[iv][q-1] )/2;
+    t1q[iv] /= tr(iv,q-1) * tr(iv,q-1);
+    k(iv,q)  = ( (1-tr(iv,q-1))*t1q[iv]*tr(iv,q-1) + 1 - tr(iv,q-1) )/2;
   }
 
   // Points inside the LOS
@@ -954,16 +969,16 @@ void sourceloswfs_limb (
   {
     for ( iv=0; iv<nf; iv++ )    
     {
-      t1q[iv]  /= tr[iv][q-1] * tr[iv][q-1];
-      k[iv][q]  = ( (1-tr[iv][q-1]*tr[iv][q])*t1q[iv]*tr[iv][q-1]*
-         tr[iv][q] + (1-tr[iv][q-1])*tr[iv][q] + 1 - tr[iv][q] ) * tqn[iv] / 2;
-      tqn[iv]  *= tr[iv][q-1];
+      t1q[iv]  /= tr(iv,q-1) * tr(iv,q-1);
+      k(iv,q)  = ( (1-tr(iv,q-1)*tr(iv,q))*t1q[iv]*tr(iv,q-1)*
+         tr(iv,q) + (1-tr(iv,q-1))*tr(iv,q) + 1 - tr(iv,q) ) * tqn[iv] / 2;
+      tqn[iv]  *= tr(iv,q-1);
     } 
   }
 
   // The tangent or ground point
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][0]  = ( (1-tr[iv][0])*(1+t1q[iv]*tr[iv][0]) ) * tqn[iv] / 2;
+    k(iv,0)  = ( (1-tr(iv,0))*(1+t1q[iv]*tr(iv,0)) ) * tqn[iv] / 2;
 }
 
 
@@ -989,20 +1004,20 @@ void sourceloswfs_limb (
 */
 void sourceloswfs_down (
                     Matrix&   k,
-              const size_t&   start_index,
-              const size_t&   stop_index,
+              const Index&   start_index,
+              const Index&   stop_index,
               const Matrix&   tr,
               const Index&    ground,
               const Vector&   e_ground )
 {
-  const size_t   nf = tr.nrows(); // number of frequencies
-        size_t   iv;             // frequency index
-        size_t   q;              // LOS index (same notation as in AUG)
+  const Index   nf = tr.nrows(); // number of frequencies
+        Index   iv;             // frequency index
+        Index   q;              // LOS index (same notation as in AUG)
         Matrix   k2;             // matrix for calling other LOS WFs functions
         Vector   tr0;            // see below
 
   // Resize K
-  resize( k, nf, start_index+1 );
+  k.resize( nf, start_index+1 );
 
   // Calculate TR0, the transmission from the platform altitude down to the
   // tangent point or the ground, and up to the platform again.
@@ -1013,7 +1028,7 @@ void sourceloswfs_down (
   for ( iv=0; iv<nf; iv++ )
   {
     for ( q=0; q<stop_index; q++ )
-      k[iv][q] = k2[iv][q];
+      k(iv,q) = k2(iv,q);
   }
 
   // The indecies above STOP_INDEX are handled by the 1pass function.
@@ -1022,7 +1037,7 @@ void sourceloswfs_down (
   for ( iv=0; iv<nf; iv++ )
   {
     for ( q=stop_index+1; q<=start_index; q++ )
-      k[iv][q] = k2[iv][q]*tr0[iv];
+      k(iv,q) = k2(iv,q)*tr0[iv];
   }
 
   // The platform altitude must be treated seperately
@@ -1031,9 +1046,9 @@ void sourceloswfs_down (
   q = stop_index; 
   for ( iv=0; iv<nf; iv++ )
   {
-    tr0[iv] /= tr[iv][q-1]*tr[iv][q-1];    
-    k[iv][q]  = ( (1-tr[iv][q-1]*tr[iv][q])*tr0[iv]*tr0[iv]*tr[iv][q-1] + 1 - 
-                 tr[iv][q-1] ) / 2;
+    tr0[iv] /= tr(iv,q-1)*tr(iv,q-1);    
+    k(iv,q)  = ( (1-tr(iv,q-1)*tr(iv,q))*tr0[iv]*tr0[iv]*tr(iv,q-1) + 1 - 
+                 tr(iv,q-1) ) / 2;
   }
 }
 
@@ -1057,27 +1072,27 @@ void sourceloswfs_down (
    \date   2000-09-15
 */
 void sourceloswfs (
-                    ArrayofMatrix&   sourceloswfs,
+                    ArrayOfMatrix&   sourceloswfs,
               const LOS&             los,   
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   trans,
               const Vector&          f_mono,
               const Vector&          e_ground )
 {
-  const size_t  nza = los.start.size();   // number of zenith angles  
+  const Index  nza = los.start.nelem();   // number of zenith angles  
 
   // Resize the LOS WFs array
-  resize(sourceloswfs,nza);
+  sourceloswfs.resize(nza);
 
   // Loop zenith angles
   out3 << "    Zenith angle nr:      ";
-  for (size_t i=0; i<nza; i++ ) 
+  for (Index i=0; i<nza; i++ ) 
   {
     if ( (i%20)==0 )
       out3 << "\n      ";
     out3 << " " << i; cout.flush();
     
     // Do something only if LOS has any points
-    if ( los.p[i].size() > 0 )
+    if ( los.p[i].nelem() > 0 )
     {
       // The calculations are performed in 3 sub-functions
       //
@@ -1148,24 +1163,24 @@ void sourceloswfs (
 */
 void k_species (
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
-              const ArrayofMatrix&   absloswfs,
+              const ArrayOfMatrix&   absloswfs,
               const Vector&          p_abs,
               const Vector&          t_abs,             
               const TagGroups&       tags,
-              const ArrayofMatrix&   abs_per_tg,
-              const ArrayofVector&   vmrs,
+              const ArrayOfMatrix&   abs_per_tg,
+              const Matrix&          vmrs,
               const Vector&          k_grid,
-              const Arrayofsizet&    tg_nr,
+              const ArrayOfIndex&    tg_nr,
               const String&          unit )
 {
   // Main sizes
-  const size_t  nza = los.start.size();      // number of zenith angles  
-  const size_t  nv  = abs_per_tg[0].nrows(); // number of frequencies
-  const size_t  ntg = tg_nr.size();          // number of retrieval tags to do
-  const size_t  np  = k_grid.size();         // number of retrieval altitudes
+  const Index  nza = los.start.nelem();      // number of zenith angles  
+  const Index  nv  = abs_per_tg[0].nrows(); // number of frequencies
+  const Index  ntg = tg_nr.nelem();          // number of retrieval tags to do
+  const Index  np  = k_grid.nelem();         // number of retrieval altitudes
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1175,26 +1190,26 @@ void k_species (
 
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
-        size_t  itg;                       // Tag index
-        size_t  iza;                       // Zenith angle index
-        size_t  ip, ip0=0;                 // Retrieval point indices
-        size_t  iv, iv0;                   // Frequency indices
-        size_t  i1, iw;                    // weight indices
+        Index  itg;                       // Tag index
+        Index  iza;                       // Zenith angle index
+        Index  ip, ip0=0;                 // Retrieval point indices
+        Index  iv, iv0;                   // Frequency indices
+        Index  i1, iw;                    // weight indices
 
   // Other variables
         Matrix  abs;                       // absorption at k_grid
         Matrix  is;                        // matrix for storing LOS index
         Vector  w;                         // weights for LOS WFs
         Vector  a(nv);                     // temporary vector
-        size_t  tg;                        // present tag nr
+        Index  tg;                        // present tag nr
         Vector  vmr, p, t;                 // for conversion to VMR and ND 
         Vector  nd;                        // number density
 
   // Set up K and additional data. Set all values of K to 0
-  resize(k,nza*nv,ntg*np);
-  setto( k, 0.0);
-  resize(k_names,ntg);
-  resize(k_aux,ntg*np,2);
+  k.resize(nza*nv,ntg*np);
+  k = 0.0;			// Matpack can set all elements like this.
+  k_names.resize(ntg);
+  k_aux.resize(ntg*np,2);
 
   // The calculations
   // Loop order:
@@ -1210,7 +1225,7 @@ void k_species (
     out2 << "  Doing " << tags[tg][0].Name() << "\n";
 
     // Get the absorption of the species at the retrieval points
-    resize( abs, nv, np );
+    abs.resize( nv, np );
     interpp( abs, p_abs, abs_per_tg[tg], k_grid );
 
     // Fill K_NAMES
@@ -1222,40 +1237,42 @@ void k_species (
 
     // Fill column 0 of K_AUX
     for ( ip=0; ip<np; ip++ )
-       k_aux[ip0+ip][0] = k_grid[ip];
+       k_aux(ip0+ip,0) = k_grid[ip];
 
     // Fill column 1 of K_AUX
     //   frac : fractions of the linearisation profile
     //   vmr  : VMR
     //   nd   : number density
     //
-    resize( vmr, np );
-    interpp( vmr, p_abs, vmrs[tg], k_grid ); 
-    //
+    vmr.resize( np );
+    interpp( vmr, p_abs, vmrs(tg,Range(joker)), k_grid ); 
+    // The Range(joker) expression selects the entire row.
+
     if ( unit == "frac" )
     {
       for ( ip=0; ip<np; ip++ )
-        k_aux[ip0+ip][1] = 1.0;
+        k_aux(ip0+ip,1) = 1.0;
     }
     else if ( unit == "vmr" )
     {
       for ( ip=0; ip<np; ip++ )
       {
         for ( iv=0; iv<nv; iv++ )
-          abs[iv][ip]   /= vmr[ip];
-        k_aux[ip0+ip][1] = vmr[ip];
+          abs(iv,ip)   /= vmr[ip];
+        k_aux(ip0+ip,1) = vmr[ip];
       }
     }  
     else if ( unit == "nd" )
     {
-      resize( nd, np );
+      nd.resize( np );
       interpp(  nd, p_abs, number_density(p_abs,t_abs), k_grid );
-      ele_mult( vmr, nd, nd );
+      nd *= vmr;		// Matpack can do element-vise
+				// multiplication like this.
       for ( ip=0; ip<np; ip++ )
       {
         for ( iv=0; iv<nv; iv++ )
-          abs[iv][ip]   /= nd[ip];
-        k_aux[ip0+ip][1] = nd[ip];
+          abs(iv,ip)   /= nd[ip];
+        k_aux(ip0+ip,1) = nd[ip];
       }
     }
     else
@@ -1274,7 +1291,7 @@ void k_species (
       out3 << " " << iza; cout.flush();
       
       // Do something only if LOS has any points
-      if ( los.p[iza].size() > 0 )
+      if ( los.p[iza].nelem() > 0 )
       {
         // Get the LOS points affected by each retrieval point
 	//        lplos = -1.0 * log(los.p[iza]);
@@ -1285,22 +1302,24 @@ void k_species (
         for ( ip=0; ip<np; ip++ ) 
         {
           // Check if there is anything to do
-          if ( is[ip][0] >= 0 )
+          if ( is(ip,0) >= 0 )
           {
             // Get the weights for the LOS points
-	    grid2grid_weights( w, lplos, (size_t)is[ip][0], (size_t)is[ip][1], 
+	    grid2grid_weights( w, lplos, (Index)is(ip,0), (Index)is(ip,1), 
                                                                  lgrid, ip );
 
             // Calculate the WFs.
             // A is di/dkappa*dkappa/dkp in a compact form.
             // This is possible as the columns of dkappa/dkp are identical.  
-            setto( a, 0.0 );                     
-            i1 = (size_t)is[ip][0];       // first LOS point to consider
+
+            a = 0.0;		// Matpack can set all elements like this.
+
+            i1 = (Index)is(ip,0);       // first LOS point to consider
             for ( iv=0; iv<nv; iv++ )
 	    {
-              for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
-                a[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
-              k[iv0+iv][ip0+ip] = a[iv] * abs[iv][ip];                    
+              for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
+                a[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
+              k(iv0+iv,ip0+ip) = a[iv] * abs(iv,ip);                    
 	    }
           }            
         }
@@ -1356,21 +1375,21 @@ void k_species (
 */
 void k_contabs (
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
-              const ArrayofMatrix&   absloswfs,
+              const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
-              const size_t&          order,
+              const Index&          order,
               const Numeric&         flow,
               const Numeric&         fhigh )
 {
   // Main sizes
-  const size_t  nza = los.start.size();     // number of zenith angles  
-  const size_t  np  = k_grid.size();        // number of retrieval altitudes
-  const size_t  npoints = order+1;          // number of off-set points
-  const size_t  nv  = f_mono.size();        // number of frequencies
+  const Index  nza = los.start.nelem();     // number of zenith angles  
+  const Index  np  = k_grid.nelem();        // number of retrieval altitudes
+  const Index  npoints = order+1;          // number of off-set points
+  const Index  nv  = f_mono.nelem();        // number of frequencies
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1380,11 +1399,11 @@ void k_contabs (
 
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
-        size_t  ipoint;                    // Off-set point index
-        size_t  iza;                       // Zenith angle index
-        size_t  ip, ip0=0;                 // Retrieval point indices
-        size_t  iv, iv0;                   // Frequency indices
-        size_t  i1, iw;                    // weight indices
+        Index  ipoint;                    // Off-set point index
+        Index  iza;                       // Zenith angle index
+        Index  ip, ip0=0;                 // Retrieval point indices
+        Index  iv, iv0;                   // Frequency indices
+        Index  i1, iw;                    // weight indices
 
   // Check given frequency limits
   if ( flow >= fhigh )
@@ -1416,17 +1435,17 @@ void k_contabs (
     throw runtime_error("The polynomial order must be >= 0."); 
 
   // Set up K and additional data. Set all values of K to 0
-  resize(k,nza*nv,npoints*np);
-  setto( k, 0.0 );
-  resize(k_names,npoints);
-  resize(k_aux,npoints*np,2);
+  k.resize(nza*nv,npoints*np);
+  k = 0.0;			// Matpack can set all elements like this.
+  k_names.resize(npoints);
+  k_aux.resize(npoints*np,2);
 
   // Calculate the frequencies of the off-set points
   if ( npoints > 1 )
     nlinspace( fpoints, f_mono[ilow], f_mono[ihigh], npoints );
   else
   {
-    resize( fpoints, 1 );
+    fpoints.resize( 1 );
     fpoints[0] = ( f_mono[ilow] + f_mono[ihigh] ) / 2.0;
   }  
 
@@ -1454,12 +1473,12 @@ void k_contabs (
     }
     for ( ip=0; ip<np; ip++ )
     {
-       k_aux[ip0+ip][0] = k_grid[ip];
-       k_aux[ip0+ip][1] = 0.0;
+       k_aux(ip0+ip,0) = k_grid[ip];
+       k_aux(ip0+ip,1) = 0.0;
     }
 
     // Set-up base vector for the present fit point 
-    setto( b, 1.0 );
+    b = 1.0;			// Matpack can set all elements like this.
     if ( npoints > 1 )
     {
       for ( ip=0; ip<npoints; ip++ )
@@ -1484,7 +1503,7 @@ void k_contabs (
       out3 << " " << iza; cout.flush();
       
       // Do something only if LOS has any points
-      if ( los.p[iza].size() > 0 )
+      if ( los.p[iza].nelem() > 0 )
       {
         // Get the LOS points affected by each retrieval point
 	//        lplos = -1.0 * log(los.p[iza]);
@@ -1495,22 +1514,24 @@ void k_contabs (
         for ( ip=0; ip<np; ip++ ) 
         {
           // Check if there is anything to do
-          if ( is[ip][0] >= 0 )
+          if ( is(ip,0) >= 0 )
           {
             // Get the weights for the LOS points
-	    grid2grid_weights( w, lplos, (size_t)is[ip][0], (size_t) is[ip][1],
+	    grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1),
                                                                  lgrid, ip );
 
             // Calculate the WFs.
             // A is di/dkappa*dkappa/dkp in a compact form.
             // This is possible as the columns of dkappa/dkp are identical.  
-            setto( a, 0.0 );                     
-            i1 = (size_t)is[ip][0];       // first LOS point to consider
+
+            a = 0.0;		// Matpack can set all elements like this.
+
+            i1 = (Index)is(ip,0);       // first LOS point to consider
             for ( iv=ilow; iv<=ihigh; iv++ )
 	    {
-              for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
-                a[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
-              k[iv0+iv][ip0+ip] = a[iv] * b[iv];                    
+              for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
+                a[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
+              k(iv0+iv,ip0+ip) = a[iv] * b[iv];                    
 	    }
           }            
         }
@@ -1568,30 +1589,30 @@ void k_contabs (
 */
 void k_temp_nohydro (
 		           Matrix&                        k,
-		           ArrayofString&                 k_names,
+		           ArrayOfString&                 k_names,
 		           Matrix&                        k_aux,
 		     const TagGroups&                     tag_groups,
 		     const LOS&                           los,           
-		     const ArrayofMatrix&                 absloswfs,
+		     const ArrayOfMatrix&                 absloswfs,
 		     const Vector&                        f_mono,
 		     const Vector&                        p_abs,
 		     const Vector&                        t_abs,
 		     const Vector&                        n2_abs,	   
 		     const Vector&                        h2o_abs,	   
-		     const ArrayofVector&                 vmrs,
-		     const ArrayofArrayofLineRecord&      lines_per_tg,
-		     const ArrayofLineshapeSpec&          lineshape,
+		     const Matrix&                        vmrs,
+		     const ArrayOfArrayOfLineRecord&      lines_per_tg,
+		     const ArrayOfLineshapeSpec&          lineshape,
 		     const Matrix&                        abs,            
-		     const ArrayofMatrix&                 trans,
+		     const ArrayOfMatrix&                 trans,
 		     const Vector&                        e_ground,
 		     const Vector&                        k_grid,
-		     const ArrayofString&         cont_description_names,
-                     const ArrayofVector& 	  cont_description_parameters )
+		     const ArrayOfString&         cont_description_names,
+                     const ArrayOfVector& 	  cont_description_parameters )
 {
   // Main sizes
-  const size_t  nza = los.start.size();     // number of zenith angles  
-  const size_t  nv  = f_mono.size();        // number of frequencies
-  const size_t  np  = k_grid.size();        // number of retrieval altitudes
+  const Index  nza = los.start.nelem();     // number of zenith angles  
+  const Index  nv  = f_mono.nelem();        // number of frequencies
+  const Index  np  = k_grid.nelem();        // number of retrieval altitudes
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1602,20 +1623,20 @@ void k_temp_nohydro (
 
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
-        size_t  iza;                       // zenith angle index
-        size_t  ip;                        // retrieval point index
-        size_t  iv, iv0=0;                 // frequency indices
-        size_t  i1, iw;                    // weight indices
+        Index  iza;                       // zenith angle index
+        Index  ip;                        // retrieval point index
+        Index  iv, iv0=0;                 // frequency indices
+        Index  i1, iw;                    // weight indices
 
   // Other variables
-        Vector  t(k_grid.size());          // temperature at retrieval points
+        Vector  t(k_grid.nelem());          // temperature at retrieval points
         Matrix  abs1k;                     // absorption for t_abs+1K
         Matrix  dabs_dt;                   // see below
- ArrayofMatrix  abs_dummy;                 // dummy absorption array
- ArrayofMatrix  sloswfs;                   // source LOS WFs
+ ArrayOfMatrix  abs_dummy;                 // dummy absorption array
+ ArrayOfMatrix  sloswfs;                   // source LOS WFs
 	Matrix  is;                        // matrix for storing LOS index
         Vector  w;                         // weights for LOS WFs
-        Vector  a(nv), b(nv), pl(f_mono.size());  // temporary vectors
+        Vector  a(nv), b(nv), pl(f_mono.nelem());  // temporary vectors
 
  // The scalars are declared to be double to avoid possible numerical problems
  // when using float
@@ -1623,16 +1644,16 @@ void k_temp_nohydro (
 
 
   // Set up K and additional data. Set all values of K to 0
-  resize(k,nza*nv,np);
-  setto(k, 0.0);
-  resize(k_names,1);
+  k.resize(nza*nv,np);
+  k = 0.0;			// Matpack can set all elements like this.
+  k_names.resize(1);
   k_names[0] = "Temperature: no hydrostatic eq.";
-  resize(k_aux,np,2);
+  k_aux.resize(np,2);
   interpp( t, p_abs, t_abs, k_grid ); 
   for ( ip=0; ip<np; ip++ )
   {
-     k_aux[ip][0] = k_grid[ip];
-     k_aux[ip][1] = t[ip];
+     k_aux(ip,0) = k_grid[ip];
+     k_aux(ip,1) = t[ip];
   }
 
   // Calculate absorption for t_abs + 1K to estimate the temperature derivative
@@ -1641,21 +1662,25 @@ void k_temp_nohydro (
   out2 << "  ----- Messages from absCalc: -----\n";
   //
   {
-    Vector dummy(t_abs.size(),1.0);
-    add(t_abs,dummy);
+    // Dummy should hold t_abs + 1:
+    Vector dummy(t_abs);	// Matpack can initialize a Vector
+				// from another Vector. 
+    dummy += 1;			// Matpack can add element-vise like this.
 
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, 
              h2o_abs, vmrs, lines_per_tg, lineshape, cont_description_names, 
                                                  cont_description_parameters );
   }
-  resize(abs_dummy,0);
+  abs_dummy.resize(0);
   //
   out2 << "  ----- Back from absCalc ----------\n";
   //
-  add( scaled(abs,-1), abs1k );
-  resize( dabs_dt, abs1k.nrows(), k_grid.size() );
+  // Compute abs1k = abs1k - abs:
+  abs1k -= abs;			// Matpack can subtract element-vise like this.
+
+  dabs_dt.resize( abs1k.nrows(), k_grid.nelem() );
   interpp( dabs_dt, p_abs, abs1k, k_grid );
-  resize(abs1k,0,0);
+  abs1k.resize(0,0);
 
   // Calculate source LOS WFs
   out2 << "  Calculating source LOS WFs\n";
@@ -1680,7 +1705,7 @@ void k_temp_nohydro (
     out3 << " " << iza; cout.flush();
     
     // Do something only if LOS has any points
-    if ( los.p[iza].size() > 0 )
+    if ( los.p[iza].nelem() > 0 )
     {
       // Get the LOS points affected by each retrieval point
       //      lplos = -1.0 * log(los.p[iza]);
@@ -1691,10 +1716,10 @@ void k_temp_nohydro (
       for ( ip=0; ip<np; ip++ ) 
       {
         // Check if there is anything to do
-        if ( is[ip][0] >= 0 )
+        if ( is(ip,0) >= 0 )
         {
           // Get the weights for the LOS points
-	  grid2grid_weights( w, lplos, (size_t)is[ip][0], (size_t) is[ip][1], 
+	  grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1), 
                                                                  lgrid, ip );
 
           // Calculate the WFs.
@@ -1705,22 +1730,22 @@ void k_temp_nohydro (
           // C is just a temporary value
 	  // PL is the Planck function for the present temperature value
 	  //
-          setto( a, 0.0 );
-	  setto( b, 0.0 );                    
+          a = 0.0;		// Matpack can set all elements like this.
+	  b = 0.0;                    
           c  = PLANCK_CONST / BOLTZMAN_CONST / t[ip];
           planck( pl, f_mono, t[ip] );
-          i1 = (size_t)is[ip][0];       // first LOS point to consider
+          i1 = (Index)is(ip,0);       // first LOS point to consider
           //
           for ( iv=0; iv<nv; iv++ )
 	  {
-            for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
+            for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
 	    {
-              a[iv] += sloswfs[iza][iv][iw] * w[iw-i1];
-              b[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
+              a[iv] += sloswfs[iza](iv,iw) * w[iw-i1];
+              b[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
 	    }
             d = c * f_mono[iv];
-            k[iv0+iv][ip] = a[iv] * d/t[ip] / (1-exp(-d)) * pl[iv] +
-                                                      b[iv] * dabs_dt[iv][ip];
+            k(iv0+iv,ip) = a[iv] * d/t[ip] / (1-exp(-d)) * pl[iv] +
+                                                      b[iv] * dabs_dt(iv,ip);
 	  }
         }            
       }
@@ -1749,24 +1774,24 @@ void k_temp_nohydro (
 void wfs_tgsDefine(// WS Output:
 		   TagGroups& wfs_tag_groups,
 		   // Control Parameters:
-		   const ArrayofString& tags)
+		   const ArrayOfString& tags)
 {
-  wfs_tag_groups = TagGroups(tags.size());
+  wfs_tag_groups = TagGroups(tags.nelem());
 
   // Each element of the array of Strings tags defines one tag
   // group. Let's work through them one by one.
-  for ( size_t i=0; i<tags.size(); ++i )
+  for ( Index i=0; i<tags.nelem(); ++i )
     {
       // There can be a comma separated list of tag definitions, so we
       // need to break the String apart at the commas.
-      Array<String> tag_def;
+      ArrayOfString tag_def;
 
       bool go_on = true;
       String these_tags = tags[i];
       while (go_on)
 	{
-	  size_t n = these_tags.find(',');
-	  if ( n >= these_tags.size() )
+	  Index n = these_tags.find(',');
+	  if ( n == these_tags.npos ) // npos indicates `not found'
 	    {
 	      // There are no more commas.
 	      tag_def.push_back(these_tags);
@@ -1784,7 +1809,7 @@ void wfs_tgsDefine(// WS Output:
       // after creation. So we need to fix this explicitly:
       wfs_tag_groups[i] = Array<OneTag>();
 
-      for ( size_t s=0; s<tag_def.size(); ++s )
+      for ( Index s=0; s<tag_def.nelem(); ++s )
 	{
 	  // Remove leading whitespace, if there is any:
 	  while ( ' '  == tag_def[s][0] ||
@@ -1805,10 +1830,10 @@ void wfs_tgsDefine(// WS Output:
 
   // Print list of tag groups to the most verbose output stream:
   out3 << "  Defined weighting function tag groups:";
-  for ( size_t i=0; i<wfs_tag_groups.size(); ++i )
+  for ( Index i=0; i<wfs_tag_groups.nelem(); ++i )
     {
       out3 << "\n  " << i << ":";
-      for ( size_t s=0; s<wfs_tag_groups[i].size(); ++s )
+      for ( Index s=0; s<wfs_tag_groups[i].nelem(); ++s )
 	{
 	  out3 << " " << wfs_tag_groups[i][s].Name();
 	}
@@ -1825,11 +1850,11 @@ void wfs_tgsDefine(// WS Output:
    \date   2001-03-30
 */
 void absloswfsCalc (
-                    ArrayofMatrix&   absloswfs,
-	      const int&             emission,
+                    ArrayOfMatrix&   absloswfs,
+	      const Index&             emission,
               const LOS&             los,   
-              const ArrayofMatrix&   source,
-              const ArrayofMatrix&   trans,
+              const ArrayOfMatrix&   source,
+              const ArrayOfMatrix&   trans,
               const Vector&          y,
               const Vector&          y_space,
               const Vector&          f_mono,
@@ -1850,16 +1875,16 @@ void absloswfsCalc (
   // so we set NaNs and Infs to zero.
   Index     irow, icol, ncol;
   Numeric   w;
-  for( Index im=0; im<absloswfs.size(); im++ )
+  for( Index im=0; im<absloswfs.nelem(); im++ )
   {
     for( irow=0; irow<absloswfs[im].nrows(); irow++ )
     {
       ncol = absloswfs[im].ncols();
       for( icol=0; icol<ncol; icol++ )
       {
-        w = absloswfs[im][irow][icol];
+        w = absloswfs[im](irow,icol);
         if ( isnan(w) || isinf(w) )
-          absloswfs[im][irow][icol] = 0.0;
+          absloswfs[im](irow,icol) = 0.0;
       }
     }
   }
@@ -1874,8 +1899,8 @@ void absloswfsCalc (
    \date   2001-03-30
 */
 void absloswfsTau (
-                    ArrayofMatrix&   absloswfs,
-	      const int&             emission,
+                    ArrayOfMatrix&   absloswfs,
+	      const Index&             emission,
 	      const LOS&             los,
               const Vector&          f_mono )
 {
@@ -1900,30 +1925,30 @@ void absloswfsTau (
 */
 void kSpecies (
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
-              const ArrayofMatrix&   absloswfs,
+              const ArrayOfMatrix&   absloswfs,
               const Vector&          p_abs,
               const Vector&          t_abs,             
               const TagGroups&       wfs_tgs,
-              const ArrayofMatrix&   abs_per_tg,
-              const ArrayofVector&   vmrs,
+              const ArrayOfMatrix&   abs_per_tg,
+              const Matrix&          vmrs,
               const Vector&          k_grid,
               const String&          tag,
               const String&          unit )
 {
-  if ( wfs_tgs.size() != abs_per_tg.size() )
+  if ( wfs_tgs.nelem() != abs_per_tg.nelem() )
     throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
 
-  ArrayofString  tag_name(1);
+  ArrayOfString  tag_name(1);
   tag_name[0] = tag;
 
-  Arrayofsizet   tg_nr; 
+  ArrayOfIndex   tg_nr; 
   get_tagindex_for_Strings( tg_nr, wfs_tgs, tag_name );
   
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-                              wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
+	     wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -1936,29 +1961,29 @@ void kSpecies (
 */
 void kSpeciesAll (
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
-              const ArrayofMatrix&   absloswfs,
+              const ArrayOfMatrix&   absloswfs,
               const Vector&          p_abs,
               const Vector&          t_abs,             
               const TagGroups&       wfs_tgs,
-              const ArrayofMatrix&   abs_per_tg,
-              const ArrayofVector&   vmrs,
+              const ArrayOfMatrix&   abs_per_tg,
+              const Matrix&          vmrs,
               const Vector&          k_grid,
               const String&          unit )
 {
-  const size_t  ntg = wfs_tgs.size();     // number of retrieval tags
-  Arrayofsizet  tg_nr(ntg);
+  const Index  ntg = wfs_tgs.nelem();     // number of retrieval tags
+  ArrayOfIndex  tg_nr(ntg);
 
-  if ( ntg != abs_per_tg.size() )
+  if ( ntg != abs_per_tg.nelem() )
     throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
   
-  for ( size_t i=0; i<ntg; i++ )
+  for ( Index i=0; i<ntg; i++ )
     tg_nr[i] = i;
 
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-                              wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
+	     wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -1971,13 +1996,13 @@ void kSpeciesAll (
 */
 void kContAbs (
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
-              const ArrayofMatrix&   absloswfs,
+              const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
-              const int&             order )
+              const Index&             order )
 {
   k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
                                                 first(f_mono), last(f_mono) );
@@ -1993,13 +2018,13 @@ void kContAbs (
 */
 void kContAbsSpecifiedLimits (
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const LOS&             los,           
-              const ArrayofMatrix&   absloswfs,
+              const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
-	      const int&             order,
+	      const Index&             order,
               const Numeric&         f_low,
               const Numeric&         f_high )
 {
@@ -2017,7 +2042,7 @@ void kContAbsSpecifiedLimits (
 */
 void kTemp (
                 Matrix&                   k,
-                ArrayofString&            k_names,
+                ArrayOfString&            k_names,
                 Matrix&                   k_aux,
           const TagGroups&                tgs,
           const Vector&                   f_mono,
@@ -2025,21 +2050,21 @@ void kTemp (
           const Vector&                   t_abs,
           const Vector&                   n2_abs,
           const Vector&                   h2o_abs,
-          const ArrayofVector&            vmrs,
+          const Matrix&                   vmrs,
 	  const Matrix&                   abs0,
-          const ArrayofArrayofLineRecord& lines_per_tg,
-          const ArrayofLineshapeSpec&     lineshape,
+          const ArrayOfArrayOfLineRecord& lines_per_tg,
+          const ArrayOfLineshapeSpec&     lineshape,
           const Vector&                   e_ground,
-          const int&                      emission,
+          const Index&                      emission,
           const Vector&                   k_grid,
-          const ArrayofString&            cont_description_names,
-          const ArrayofVector& 	          cont_description_parameters,
+          const ArrayOfString&            cont_description_names,
+          const ArrayOfVector& 	          cont_description_parameters,
     	  const Numeric&    		  z_plat,
     	  const Vector&     		  za,
     	  const Numeric&    		  l_step,
     	  const Vector&     		  z_abs,
-    	  const int&        		  refr,
-    	  const int&        		  refr_lfac,
+    	  const Index&        		  refr,
+    	  const Index&        		  refr_lfac,
     	  const Vector&     		  refr_index,
     	  const Numeric&    		  z_ground,
           const Numeric&                  t_ground,
@@ -2052,21 +2077,24 @@ void kTemp (
     throw runtime_error("Hydrostatic equilibrium must be turned on.");
 
   // Main sizes
-  const size_t  nza  = za.size();          // number of zenith angles  
-  const size_t  nv   = f_mono.size();      // number of frequencies
-  const size_t  np   = k_grid.size();      // number of retrieval altitudes
-  const size_t  nabs = p_abs.size();       // number of absorption altitudes
+  const Index  nza  = za.nelem();          // number of zenith angles  
+  const Index  nv   = f_mono.nelem();      // number of frequencies
+  const Index  np   = k_grid.nelem();      // number of retrieval altitudes
+  const Index  nabs = p_abs.nelem();       // number of absorption altitudes
 
   // Vectors for the reference state
   Vector z0(nabs), y0, t0(np);
 
   // Local copy of hse
-  Vector hse( hse0.size() );
-  copy( hse0, hse );
+  Vector hse( hse0 );		// Matpack can initialize a
+				// new Vector from another
+				// Vector  
 
   // Calculate reference z_abs with a high number of iterations
   hse[4] = 5;
-  copy( z_abs, z0 ); 
+  z0 = z_abs;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
   hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse );
   hse[4] = hse0[4];
 
@@ -2079,7 +2107,7 @@ void kTemp (
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from sourceCalc: -----\n";
-  ArrayofMatrix source, trans;
+  ArrayOfMatrix source, trans;
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from transCalc: ------\n";
@@ -2091,15 +2119,15 @@ void kTemp (
   out2 << "  -------------------------------------\n";
 
   // Allocate K and fill aux. variables
-  resize(k,nza*nv,np);
-  resize(k_names,1);
+  k.resize(nza*nv,np);
+  k_names.resize(1);
   k_names[0] = "Temperature: with hydrostatic eq.";
-  resize(k_aux,np,2);
+  k_aux.resize(np,2);
   interpp( t0, p_abs, t_abs, k_grid ); 
   for ( Index ip=0; ip<np; ip++ )
   {
-     k_aux[ip][0] = k_grid[ip];
-     k_aux[ip][1] = t0[ip];
+     k_aux(ip,0) = k_grid[ip];
+     k_aux(ip,1) = t0[ip];
   }
 
   // Determine conversion between grids        
@@ -2112,7 +2140,7 @@ void kTemp (
   // Loop retrieval altitudes and calculate new spectra
   //
   Matrix         abs;
-  ArrayofMatrix  abs_dummy;
+  ArrayOfMatrix  abs_dummy;
   Vector y, t(nabs), w;
   Index  i1, iw, iv;
   //
@@ -2121,23 +2149,25 @@ void kTemp (
     out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
 
     // Create disturbed temperature profile
-    grid2grid_weights( w, lpabs, Index(is[ip][0]), Index(is[ip][1]), 
+    grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
 		                                                  lgrid, ip );
-    i1 = Index( is[ip][0] );       // first p_abs point to consider
-    copy( t_abs, t );
-    for ( iw=i1; iw<=Index(is[ip][1]); iw++ )
+    i1 = Index( is(ip,0) );    // first p_abs point to consider
+    t = t_abs;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
+    for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
       t[iw] += w[iw-i1];
 
     out2 << "  ----- Messages from absCalc: --------\n";
     absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-                          lines_per_tg, lineshape, 
-                          cont_description_names, cont_description_parameters);
+	     lines_per_tg, lineshape, 
+	     cont_description_names, cont_description_parameters);
     out2 << "  ----- Messages from losCalc: --------\n";
     losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
-    ArrayofMatrix source, trans;
+    ArrayOfMatrix source, trans;
     sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from transCalc: ------\n";
@@ -2150,7 +2180,7 @@ void kTemp (
 
     // Fill K
     for ( iv=0; iv<nza*nv; iv++ )
-      k[iv][ip] = y[iv] - y0[iv];
+      k(iv,ip) = y[iv] - y0[iv];
   }
 }
 
@@ -2164,7 +2194,7 @@ void kTemp (
 */
 void kTempFast (
                 Matrix&                   k,
-                ArrayofString&            k_names,
+                ArrayOfString&            k_names,
                 Matrix&                   k_aux,
           const TagGroups&                tgs,
           const Vector&                   f_mono,
@@ -2172,21 +2202,21 @@ void kTempFast (
           const Vector&                   t_abs,
           const Vector&                   n2_abs,
           const Vector&                   h2o_abs,
-          const ArrayofVector&            vmrs,
+          const Matrix&                   vmrs,
 	  const Matrix&                   abs0,
-          const ArrayofArrayofLineRecord& lines_per_tg,
-          const ArrayofLineshapeSpec&     lineshape,
+          const ArrayOfArrayOfLineRecord& lines_per_tg,
+          const ArrayOfLineshapeSpec&     lineshape,
           const Vector&                   e_ground,
-          const int&                      emission,
+          const Index&                      emission,
           const Vector&                   k_grid,
-          const ArrayofString&            cont_description_names,
-          const ArrayofVector& 	          cont_description_parameters,
+          const ArrayOfString&            cont_description_names,
+          const ArrayOfVector& 	          cont_description_parameters,
     	  const Numeric&    		  z_plat,
     	  const Vector&     		  za,
     	  const Numeric&    		  l_step,
     	  const Vector&     		  z_abs,
-    	  const int&        		  refr,
-    	  const int&        		  refr_lfac,
+    	  const Index&        		  refr,
+    	  const Index&        		  refr_lfac,
     	  const Vector&     		  refr_index,
     	  const Numeric&    		  z_ground,
           const Numeric&                  t_ground,
@@ -2199,39 +2229,43 @@ void kTempFast (
     throw runtime_error("Hydrostatic equilibrium must be turned on.");
 
   // Main sizes
-  const size_t  nza  = za.size();          // number of zenith angles  
-  const size_t  nv   = f_mono.size();      // number of frequencies
-  const size_t  np   = k_grid.size();      // number of retrieval altitudes
-  const size_t  nabs = p_abs.size();       // number of absorption altitudes
+  const Index  nza  = za.nelem();          // number of zenith angles  
+  const Index  nv   = f_mono.nelem();      // number of frequencies
+  const Index  np   = k_grid.nelem();      // number of retrieval altitudes
+  const Index  nabs = p_abs.nelem();       // number of absorption altitudes
 
   // Vectors for the reference state
   Vector z0(nabs), y0, t0(np);
 
   // Local copy of hse
-  Vector hse( hse0.size() );
-  copy( hse0, hse );
+  Vector hse( hse0 );		// Matpack can initialize a
+				// new Vector from another
+				// Vector  
 
   // Calculate reference z_abs with a high number of iterations
   hse[4] = 5;
-  copy( z_abs, z0 ); 
+  z0 = z_abs;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
   hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse );
   hse[4] = hse0[4];
 
   // Calculate absorption for + 1K
   Matrix         abs1k, abs(nv,nabs);
-  ArrayofMatrix  abs_dummy;
+  ArrayOfMatrix  abs_dummy;
   //
   {
-    Vector  t(nabs);
-    copy( t_abs, t );
-    //Vector dummy(nabs,1.0);
-    add( Vector(nabs,1.0), t );
+    Vector  t(t_abs);		// Matpack can initialize a
+				// new Vector from another
+				// Vector  
+    t += 1.;			// With Matpack you can add 1 to all
+				// elements to a Vector like this.
     //
     out1 << "  Calculating absorption for t_abs + 1K \n";
     out2 << "  ----- Messages from absCalc: --------\n";
     absCalc( abs1k, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-                        lines_per_tg, lineshape, 
-                        cont_description_names, cont_description_parameters);
+	     lines_per_tg, lineshape, 
+	     cont_description_names, cont_description_parameters);
   }
   // Calculate reference spectrum
   out1 << "  Calculating reference spectrum\n";
@@ -2242,7 +2276,7 @@ void kTempFast (
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from sourceCalc: -----\n";
-  ArrayofMatrix source, trans;
+  ArrayOfMatrix source, trans;
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from transCalc: ------\n";
@@ -2254,15 +2288,15 @@ void kTempFast (
   out2 << "  -------------------------------------\n";
 
   // Allocate K and fill aux. variables
-  resize(k,nza*nv,np);
-  resize(k_names,1);
+  k.resize(nza*nv,np);
+  k_names.resize(1);
   k_names[0] = "Temperature: with hydrostatic eq.";
-  resize(k_aux,np,2);
+  k_aux.resize(np,2);
   interpp( t0, p_abs, t_abs, k_grid ); 
   for ( Index ip=0; ip<np; ip++ )
   {
-     k_aux[ip][0] = k_grid[ip];
-     k_aux[ip][1] = t0[ip];
+     k_aux(ip,0) = k_grid[ip];
+     k_aux(ip,1) = t0[ip];
   }
 
   // Determine conversion between grids        
@@ -2282,14 +2316,16 @@ void kTempFast (
     out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
 
     // Create absorption matrix corresponding to temperature disturbance
-    grid2grid_weights( w, lpabs, Index(is[ip][0]), Index(is[ip][1]), 
+    grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
 		                                                  lgrid, ip );
-    i1 = Index( is[ip][0] );       // first p_abs point to consider
-    copy( abs0, abs );
-    for ( iw=i1; iw<=Index(is[ip][1]); iw++ )
+    i1 = Index( is(ip,0) );    // first p_abs point to consider
+    abs = abs0;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
+    for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
     {
       for ( iv=0; iv<nv; iv++ )
-        abs[iv][iw] = (1-w[iw-i1])*abs0[iv][iw] + w[iw-i1]*abs1k[iv][iw];
+        abs(iv,iw) = (1-w[iw-i1])*abs0(iv,iw) + w[iw-i1]*abs1k(iv,iw);
     }
 
     out2 << "  ----- Messages from losCalc: --------\n";
@@ -2297,7 +2333,7 @@ void kTempFast (
                                               refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
-    ArrayofMatrix source, trans;
+    ArrayOfMatrix source, trans;
     sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from transCalc: ------\n";
@@ -2310,7 +2346,7 @@ void kTempFast (
 
     // Fill K
     for ( iv=0; iv<nza*nv; iv++ )
-      k[iv][ip] = y[iv] - y0[iv];
+      k(iv,ip) = y[iv] - y0[iv];
   }
 }
 
@@ -2324,25 +2360,25 @@ void kTempFast (
 */
 void kTempNoHydro (
                   Matrix&                   k,
-                  ArrayofString&            k_names,
+                  ArrayOfString&            k_names,
                   Matrix&                   k_aux,
             const TagGroups&                tag_groups,
 	    const LOS&                      los,           
-	    const ArrayofMatrix&            absloswfs,
+	    const ArrayOfMatrix&            absloswfs,
 	    const Vector&                   f_mono,
 	    const Vector&                   p_abs,
 	    const Vector&                   t_abs,
 	    const Vector&                   n2_abs,
 	    const Vector&                   h2o_abs,
-	    const ArrayofVector&            vmrs,
-	    const ArrayofArrayofLineRecord& lines_per_tg,
-	    const ArrayofLineshapeSpec&     lineshape,
+	    const Matrix&                   vmrs,
+	    const ArrayOfArrayOfLineRecord& lines_per_tg,
+	    const ArrayOfLineshapeSpec&     lineshape,
 	    const Matrix&                   abs,            
-	    const ArrayofMatrix&            trans,
+	    const ArrayOfMatrix&            trans,
 	    const Vector&                   e_ground,
 	    const Vector&                   k_grid,
-	    const ArrayofString&            cont_description_names,
-            const ArrayofVector& 	    cont_description_parameters )
+	    const ArrayOfString&            cont_description_names,
+            const ArrayOfVector& 	    cont_description_parameters )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
                   t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
@@ -2360,7 +2396,7 @@ void kTempNoHydro (
  */
 void kPointingOffSet(
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Numeric&         z_plat,
               const Vector&          za_pencil,
@@ -2369,13 +2405,13 @@ void kPointingOffSet(
               const Vector&          z_abs,
               const Vector&          t_abs,
               const Vector&          f_mono,
-              const int&             refr,
-              const int&             refr_lfac,
+              const Index&             refr,
+              const Index&             refr_lfac,
               const Vector&          refr_index,
               const Numeric&         z_ground,
               const Numeric&         r_geoid,
               const Matrix&          abs,
-  	      const int&             emission,
+  	      const Index&             emission,
               const Vector&          y_space,
               const Vector&          e_ground,
               const Numeric&         t_ground,
@@ -2386,10 +2422,12 @@ void kPointingOffSet(
     throw runtime_error("The emission flag must either be 0 or 1.");
 
   // Create new zenith angle grid
-  const Index  nza = za_pencil.size();
-  Vector za_new( nza );
-  copy( za_pencil, za_new );
-  add( za_new, Vector(nza,delta), za_new );
+  //  const Index  nza = za_pencil.nelem();
+  Vector za_new( za_pencil );	// Matpack can initialize a
+				// new Vector from another
+				// Vector.
+  za_new += delta;		// With Matpack you can add delta to all
+				// Vector elements like this.
 
   out2 << "  ----- Messages from losCalc: --------\n";
   LOS    los;
@@ -2398,7 +2436,7 @@ void kPointingOffSet(
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
 
-  ArrayofMatrix source, trans;
+  ArrayOfMatrix source, trans;
   out2 << "  ----- Messages from sourceCalc: -----\n";
   sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
@@ -2412,21 +2450,29 @@ void kPointingOffSet(
   out2 << "  -------------------------------------\n";
 
   // Make k one-column matrix of the right size:
-  const Index   nv = y.size();
-  resize( k, nv, 1 );
+  const Index   nv = y.nelem();
+  k.resize( nv, 1 );
 
   // k = (y_new - y) / delta
-  Vector dummy( nv );
-  add( y_new, scaled(y,-1), dummy );
-  copy( scaled(dummy,1/delta), columns(k)[0] );
+  k = y_new;			
+  k -= y;
+  k /= delta;
 
-  resize( k_names, 1 );
+  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
+     /= operators. They all act element-vise. 
+     Vectors behave like 1-column matrices, therefore copying y_new to
+     k works. 
+
+     This is the old code. Isn't it much nicer now?
+     Vector dummy( nv );
+     add( y_new, scaled(y,-1), dummy );
+     copy( scaled(dummy,1/delta), columns(k)[0] ); */
+
+  k_names.resize( 1 );
   k_names[0] = "Pointing: off-set";
-  resize( k_aux, 1, 2 );
-  setto( k_aux, 0.0 );
+  k_aux.resize( 1, 2 );
+  k_aux = 0.0;			// Matpack can set all elements like this.
 }
-
-
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -2436,18 +2482,18 @@ void kPointingOffSet(
  */
 void kEground(
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Vector&          za_pencil,
               const Vector&          f_mono,
-  	      const int&             emission,
+  	      const Index&           emission,
               const Vector&          y_space,
               const Vector&          e_ground,
               const Numeric&         t_ground,
               const LOS&             los,           
-              const ArrayofMatrix&   source,
-              const ArrayofMatrix&   trans,
-              const int&             single_e )
+              const ArrayOfMatrix&   source,
+              const ArrayOfMatrix&   trans,
+              const Index&           single_e )
 {
   if ( !isbool( emission ) )  
     throw runtime_error("The variable EMISSION must either be 0 or 1.");
@@ -2458,8 +2504,8 @@ void kEground(
   // If single_e, check that all values of e are identical
 
   // Main sizes
-  const Index  nza  = za_pencil.size();   // number of zenith angles  
-  const Index  nv   = f_mono.size();      // number of frequencies
+  const Index  nza  = za_pencil.nelem();   // number of zenith angles  
+  const Index  nv   = f_mono.nelem();      // number of frequencies
 
   // Loop variables
   Index iv, iza;
@@ -2471,7 +2517,7 @@ void kEground(
   if ( emission )
   {
     // Set all values to zero (k is zero if no ground intersection)
-    setto( ksingle, 0.0 );
+    ksingle = 0.0;
 
     // Local vectors
     Vector bground(nv), y_in(nv), tr(nv);
@@ -2488,7 +2534,7 @@ void kEground(
                                                y_space, 0, e_ground, bground );
 
         // Calculate transmission from the ground to the sensor
-        setto( tr, 1.0 );
+        tr = 1.0;
         bl_iterate( tr, los.ground[iza]-1, los.stop[iza]-1, trans[iza], nv );
 
         for ( iv=0; iv<nv; iv++ )
@@ -2512,33 +2558,33 @@ void kEground(
   // A single value for the ground emission, k is a column vector
   if ( single_e )
   {
-    resize( k, nza*nv, 1 );
-    copy( ksingle, columns(k)[0] );
-    resize( k_names, 1 );
+    k.resize( nza*nv, 1 );
+    k(Range(joker),0) = ksingle;
+    k_names.resize( 1 );
     k_names[0] = "Ground emission: single";
-    resize( k_aux, 1, 2 );
-    k_aux[0][0] = 0;
-    k_aux[0][1] = e_ground[0];    
+    k_aux.resize( 1, 2 );
+    k_aux(0,0) = 0;
+    k_aux(0,1) = e_ground[0];    
   }
 
   // An e for each monochromatic frequency, k has nv columns
   else
   {
-    resize( k, nza*nv, nv );
-    setto( k, 0.0 );
-    resize( k_names, nv );
-    resize( k_aux, nv, 2 );
+    k.resize( nza*nv, nv );
+    k = 0.0;
+    k_names.resize( nv );
+    k_aux.resize( nv, 2 );
     for ( iv=0; iv<nv; iv++ )
     {
       for ( iza=0; iza<nza; iza++ )
-        k[iza*nv+iv][iv] = ksingle[iza*nv+iv];
+        k(iza*nv+iv,iv) = ksingle[iza*nv+iv];
       {
         ostringstream os;
         os << "Ground emission: " << f_mono[iv] << " Hz";
         k_names[iv] = os.str();
       }
-      k_aux[iv][0] = 0;
-      k_aux[iv][1] = e_ground[iv];    
+      k_aux(iv,0) = 0;
+      k_aux(iv,1) = e_ground[iv];    
     }
   }
 }
@@ -2553,21 +2599,21 @@ void kEground(
  */
 void kCalibration(
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Vector&          y,
               const Vector&          y_ref,
        	      const String&          name )
 {
-  const Index   ny = y.size();
-  const Index   nf = y_ref.size();
+  const Index   ny = y.nelem();
+  const Index   nf = y_ref.nelem();
   const Index   nza = Index( floor(ny/nf) );
 
   if ( nza*nf != ny )
     throw runtime_error("The length of y_ref does not match the length of y");
   
   // Make k one-column matrix of the right size:
-  resize( k, ny, 1 );
+  k.resize( ny, 1 );
 
   // k = y - y_ref
   Index j,i,i0;
@@ -2575,13 +2621,13 @@ void kCalibration(
   {
     i0 = j*nf;
     for ( i=0; i<nf; i++ )
-      k[i0+i][0] = y[i0+i] - y_ref[i];
+      k(i0+i,0) = y[i0+i] - y_ref[i];
   }
 
-  resize( k_names, 1 );
+  k_names.resize( 1 );
   k_names[0] = "Calibration: scaling";
-  resize( k_aux, 1, 2 );
-  setto( k_aux, 0.0 );
+  k_aux.resize( 1, 2 );
+  k_aux = 0.0;			// Matpack can set all elements like this.
 }
 
 
@@ -2598,7 +2644,7 @@ void kCalibration(
  */
 void kManual(
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Vector&          y0,      
               const Vector&          y,
@@ -2607,23 +2653,26 @@ void kManual(
               const Numeric&         grid,
               const Numeric&         apriori )
 {
-  assert( y.size()==y0.size() );
-  Vector dummy(y.size());		// To store intermediate result.
-
-  // Put y-y0 in dummy:
-  add( y, scaled(y0,-1), dummy );
+  assert( y.nelem()==y0.nelem() );
 
   // Make k one-column matrix of the right size:
-  resize( k, y.size(), 1 );
+  k.resize( y.nelem(), 1 );
 
-  // Divide dummy by delta and copy it to first column of k:
-  copy( scaled(dummy,1./delta), columns(k)[0]);
-  
-  resize(k_names,1);
+  // Compute (y-y0)
+  k = y;
+  k -= y0;
+  k /= delta;
+
+  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
+     /= operators. They all act element-vise. 
+     Vectors behave like 1-column matrices, therefore copying y to
+     k works. */
+
+  k_names.resize(1);
   k_names[0] = name;
-  resize(k_aux,1,2);
-  k_aux[0][0] = grid;
-  k_aux[0][1] = apriori;
+  k_aux.resize(1,2);
+  k_aux(0,0) = grid;
+  k_aux(0,1) = apriori;
 }
 
 
@@ -2640,7 +2689,7 @@ void kManual(
  */
 void kDiffHSmall(
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Hmatrix&         h1,      
               const Hmatrix&         h2,      
@@ -2654,22 +2703,26 @@ void kDiffHSmall(
   h_apply( y1, h1, y );
   h_apply( y2, h2, y );
 
-  assert( y1.size()==y2.size() );
-  Vector dummy(y1.size());
-
-  // Put y2-y1 in dummy:
-  add( y2, scaled(y1,-1), dummy );
+  assert( y1.nelem()==y2.nelem() );
 
   // Make k one-column matrix of the right size:
-  resize( k, y1.size(), 1 );
-  // Divide dummy by delta and copy it to first column of k:
-  copy( scaled(dummy,1./delta), columns(k)[0]);
+  k.resize( y1.nelem(), 1 );
 
-  resize(k_names,1);
+  // Calculate (y2-y1)/delta:
+  k  = y2;
+  k -= y1;
+  k /= delta;
+
+  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
+     /= operators. They all act element-vise. 
+     Vectors behave like 1-column matrices, therefore copying y to
+     k works. */
+
+  k_names.resize(1);
   k_names[0] = name;
-  resize(k_aux,1,2);
-  k_aux[0][0] = grid;
-  k_aux[0][1] = apriori;
+  k_aux.resize(1,2);
+  k_aux(0,0) = grid;
+  k_aux(0,1) = apriori;
 }
 
 
@@ -2686,7 +2739,7 @@ void kDiffHSmall(
  */
 void kDiffHFast(
                     Matrix&          k,
-                    ArrayofString&   k_names,
+                    ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Hmatrix&         h1,      
               const Hmatrix&         h2,      
@@ -2702,16 +2755,22 @@ void kDiffHFast(
   h_apply( yd, hd, y );
   
   // Make k one-column matrix of the right size:
-  resize( k, yd.size(), 1 );
+  k.resize( yd.nelem(), 1 );
 
-  // Divide yd by delta and copy it to first column of k:
-  copy( scaled(yd,1./delta), columns(k)[0]);
+  // Divide yd by delta and copy it to k:
+  k  = yd;
+  k /= delta;
+  
+  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
+     /= operators. They all act element-vise. 
+     Vectors behave like 1-column matrices, therefore copying yd to
+     k works. */
 
-  resize(k_names,1);
+  k_names.resize(1);
   k_names[0] = name;
-  resize(k_aux,1,2);
-  k_aux[0][0] = grid;
-  k_aux[0][1] = apriori;
+  k_aux.resize(1,2);
+  k_aux(0,0) = grid;
+  k_aux(0,1) = apriori;
 }
 
 
@@ -2724,14 +2783,14 @@ void kDiffHFast(
 */
 void kxInit (
                     Matrix&          kx,
-                    ArrayofString&   kx_names,
-                    Arrayofsizet&    kx_lengths,
+                    ArrayOfString&   kx_names,
+                    ArrayOfIndex&    kx_lengths,
                     Matrix&          kx_aux )
 {
-  resize( kx,         0, 0 );
-  resize( kx_names,   0    );
-  resize( kx_lengths, 0    );
-  resize( kx_aux,     0, 0 );
+  kx.resize(         0, 0 );
+  kx_names.resize(   0    );
+  kx_lengths.resize( 0    );
+  kx_aux.resize(     0, 0 );
 }
 
 
@@ -2744,8 +2803,8 @@ void kxInit (
 */
 void kbInit (
                     Matrix&          kb,
-                    ArrayofString&   kb_names,
-                    Arrayofsizet&    kb_lengths,
+                    ArrayOfString&   kb_names,
+                    ArrayOfIndex&    kb_lengths,
                     Matrix&          kb_aux )
 {
   kxInit( kb, kb_names, kb_lengths, kb_aux );
@@ -2761,11 +2820,11 @@ void kbInit (
 */
 void kxAppend (
 		    Matrix&          kx,
-		    ArrayofString&   kx_names,
-		    Arrayofsizet&    kx_lengths,
+		    ArrayOfString&   kx_names,
+		    ArrayOfIndex&    kx_lengths,
 		    Matrix&          kx_aux,
               const Matrix&          k,
-              const ArrayofString&   k_names,
+              const ArrayOfString&   k_names,
               const Matrix&          k_aux )
 {
   k_append( kx, kx_names, kx_lengths, kx_aux, k, k_names, k_aux );
@@ -2781,11 +2840,11 @@ void kxAppend (
 */
 void kbAppend (
 		    Matrix&          kb,
-		    ArrayofString&   kb_names,
-		    Arrayofsizet&    kb_lengths,
+		    ArrayOfString&   kb_names,
+		    ArrayOfIndex&    kb_lengths,
 		    Matrix&          kb_aux,
               const Matrix&          k,
-              const ArrayofString&   k_names,
+              const ArrayOfString&   k_names,
               const Matrix&          k_aux )
 {
   k_append( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
@@ -2801,27 +2860,27 @@ void kbAppend (
 */
 void kxAllocate (
                     Matrix&          kx,
-                    ArrayofString&   kx_names,
-                    Arrayofsizet&    kx_lengths,
+                    ArrayOfString&   kx_names,
+                    ArrayOfIndex&    kx_lengths,
                     Matrix&          kx_aux,
               const Vector&          y,
               const String&          y_name,
-              const int&             ni,
-              const int&             nx )
+              const Index&             ni,
+              const Index&             nx )
 {
-  const Index  ny = y.size();
+  const Index  ny = y.nelem();
 
   out2 << "  Allocates memory for a weighting function matrix having:\n" 
        << "    " << ny << " frequency points\n"
        << "    " << nx << " state variables\n"
        << "    " << ni << " retrieval identities\n";
 
-  resize( kx,         ny, nx );
-  resize( kx_names,   ni     );
-  resize( kx_lengths, ni     );
-  resize( kx_aux,     nx, 2  );
+  kx.resize(         ny, nx );
+  kx_names.resize(   ni     );
+  kx_lengths.resize( ni     );
+  kx_aux.resize(     nx, 2  );
 
-  for ( int i=0; i<ni; i++ )
+  for ( Index i=0; i<ni; i++ )
     kx_lengths[i] = 0;
 }
 
@@ -2835,13 +2894,13 @@ void kxAllocate (
 */
 void kbAllocate (
                     Matrix&          kb,
-                    ArrayofString&   kb_names,
-                    Arrayofsizet&    kb_lengths,
+                    ArrayOfString&   kb_names,
+                    ArrayOfIndex&    kb_lengths,
                     Matrix&          kb_aux,
               const Vector&          y,
               const String&          y_name,
-              const int&             ni,
-              const int&             nx )
+              const Index&             ni,
+              const Index&             nx )
 {
   kxAllocate( kb, kb_names, kb_lengths, kb_aux, y, y_name, ni, nx );
 }
@@ -2856,18 +2915,18 @@ void kbAllocate (
 */
 void kxPutInK (
 		    Matrix&          kx,
-		    ArrayofString&   kx_names,
-		    Arrayofsizet&    kx_lengths,
+		    ArrayOfString&   kx_names,
+		    ArrayOfIndex&    kx_lengths,
 		    Matrix&          kx_aux,
               const Matrix&          k,
-              const ArrayofString&   k_names,
+              const ArrayOfString&   k_names,
               const Matrix&          k_aux )
 {
   const Index  ny  = kx.nrows();
   const Index  nx  = kx.ncols();
-  const Index  ni  = kx_names.size();
+  const Index  ni  = kx_names.nelem();
   const Index  nx2 = k.ncols();
-  const Index  ni2 = k_names.size();
+  const Index  ni2 = k_names.nelem();
 
   if ( ny != k.nrows() )
     throw runtime_error("The two WF matrices have different number of rows.");
@@ -2900,11 +2959,12 @@ void kxPutInK (
        << "      column " << nx1 << " - " << nx1+nx2-1 << "\n";
  
   // Calculate the vector length for each identity in K
-  size_t l = (size_t) floor(nx2/ni2);
+  Index l = (Index) floor(nx2/ni2);
 
   // Move K to Kx
-  copy( k,       kx.sub_matrix( 0, ny, nx1, nx1+nx2 ) );
-  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 2 ) );
+  kx(     Range(joker),   Range(nx1,nx2) ) = k;
+  kx_aux( Range(nx1,nx2), Range(joker)   ) = k_aux;
+  // For the Array types kx_names and kx_lenghts we cannot use Range.  
   for ( Index iri=0; iri<ni2; iri++ )
   {
     kx_names[ni1+iri]   = k_names[iri];
@@ -2922,11 +2982,11 @@ void kxPutInK (
 */
 void kbPutInK (
 		    Matrix&          kb,
-		    ArrayofString&   kb_names,
-		    Arrayofsizet&    kb_lengths,
+		    ArrayOfString&   kb_names,
+		    ArrayOfIndex&    kb_lengths,
 		    Matrix&          kb_aux,
               const Matrix&          k,
-              const ArrayofString&   k_names,
+              const ArrayOfString&   k_names,
               const Matrix&          k_aux )
 {
   kxPutInK( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
@@ -2953,7 +3013,7 @@ void LinAltsFromPres(// WS Generic Output:
   interpp(z_lim,p_abs,z_abs,p_lim);
 
   Vector z = linspace(z_lim[0],z_lim[1],delta_z);
-  resize(p, z.size());
+  p.resize( z.nelem());
   z2p(p, z_abs, p_abs, z);
   
 }

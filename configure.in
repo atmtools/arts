@@ -13,7 +13,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0)
+AM_INIT_AUTOMAKE(arts,0.0.206)
 
 # Maintainer mode switch. DOC++, as well as all LaTeX documents (DOC++
 # and AUG) are only processed in maintainer mode. This is necessary so
@@ -24,7 +24,8 @@ AM_INIT_AUTOMAKE(arts,0.0)
 # AM_MAINTAINER_MODE
 
 # Turn off optimization: (Leads to very long compilation times)
-CXXFLAGS="-g -O0"
+CFLAGS=""
+CXXFLAGS="-g -ftemplate-depth-20"
 
 # C Compiler:
 AC_PROG_CC
@@ -43,8 +44,8 @@ AC_PROG_CXXCPP
 # Allow --with-warnings flag to configure:
 LF_SET_WARNINGS
 
-# Omitted, because we are not building libraries.
-# AC_PROG_RANLIB
+# Determine the name of the ranlib program
+AC_PROG_RANLIB
 
 # What's used by make install:
 AC_PROG_INSTALL

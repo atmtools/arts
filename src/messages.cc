@@ -27,6 +27,7 @@
 
 #include "arts.h"
 #include "messages.h"
+#include "mystring.h"
 
 /** The output path. For example for the report file. */
 String out_path;

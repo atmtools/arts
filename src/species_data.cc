@@ -40,9 +40,9 @@ Array<SpeciesRecord> species_data;
 //@{ 
 #define NAME(x) x				
 #define DEGFR(x) x				
-#define ISOTOPES     make_array<IsotopeRecord>	
+#define ISOTOPES     MakeArray<IsotopeRecord>	
 #define REC	     IsotopeRecord		
-#define TAGS	     make_array<int>		
+#define TAGS	     MakeArray<Index>		
 //@} 
 
 
@@ -138,7 +138,7 @@ void define_basic_species_data()
   extern Array<SpeciesRecord> species_data;
 
   // Initialize to zero, just in case:
-  resize(species_data,0);
+  species_data.resize(0);
 
   /* Here's an empty template record entry:
 

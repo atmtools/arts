@@ -34,13 +34,9 @@
 #ifndef file_h
 #define file_h
 
-
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
-
-#include <iostream>
-#include "vecmat.h"
+#include <fstream>
+#include "matpackI.h"
+#include "mystring.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Default file names
@@ -64,9 +60,9 @@ void open_output_file(ofstream& file, const String& name);
 
 void open_input_file(ifstream& file, const String& name);
 
-void read_text_from_stream(Array<String>& text, istream& is);
+void read_text_from_stream(ArrayOfString& text, istream& is);
 
-void read_text_from_file(Array<String>& text, const String& name);
+void read_text_from_file(ArrayOfString& text, const String& name);
 
 void replace_all(String& s, const String& what, const String& with);
 
@@ -77,15 +73,15 @@ void replace_all(String& s, const String& what, const String& with);
 ////////////////////////////////////////////////////////////////////////////
 
 void write_array_of_matrix_to_stream(ostream& os,
-                                     const ArrayofMatrix& am);
+                                     const ArrayOfMatrix& am);
 
 void write_array_of_matrix_to_file(const String& filename,
-                                   const ArrayofMatrix& am);
+                                   const ArrayOfMatrix& am);
 
-void read_array_of_matrix_from_stream(ArrayofMatrix& am,
+void read_array_of_matrix_from_stream(ArrayOfMatrix& am,
                                       istream& is);
 
-void read_array_of_matrix_from_file(ArrayofMatrix& am,
+void read_array_of_matrix_from_file(ArrayOfMatrix& am,
                                     const String& filename);
 
 
@@ -96,18 +92,18 @@ void read_array_of_matrix_from_file(ArrayofMatrix& am,
 
 void write_array_of_String_to_stream(
               ostream&         os,
-        const ArrayofString&   as );
+        const ArrayOfString&   as );
 
 void write_array_of_String_to_file(
         const String&          filename,
-        const ArrayofString&   as );
+        const ArrayOfString&   as );
 
 void read_array_of_String_from_stream(
-        ArrayofString&   as,
+        ArrayOfString&   as,
         istream&         is );
 
 void read_array_of_String_from_file(
-           ArrayofString&   as,
+           ArrayOfString&   as,
      const String&          filename );
 
 
@@ -137,11 +133,11 @@ void binfile_close(
 void binfile_write_index(
         const String&   filename,
         const int&      fid,
-        const size_t&   x,
+        const Index&   x,
         const String&   dataname );
 
 void binfile_read_index(
-              size_t&   x,
+              Index&   x,
         const String&   filename,
         const int&      fid,
         const String&   dataname );
@@ -185,11 +181,11 @@ void binfile_read_matrix(
 void binfile_write_indexarray(
         const String&         filename,
         const int&            fid,
-        const Arrayofsizet&   x,
+        const ArrayOfIndex&   x,
         const String&         dataname );
 
 void binfile_read_indexarray(
-              Arrayofsizet&   x,
+              ArrayOfIndex&   x,
         const String&         filename,
         const int&            fid,
         const String&         dataname );
@@ -197,11 +193,11 @@ void binfile_read_indexarray(
 void binfile_write_vectorarray(
         const String&          filename,
         const int&             fid,
-        const ArrayofVector&   x,
+        const ArrayOfVector&   x,
         const String&          dataname );
 
 void binfile_read_vectorarray(
-              ArrayofVector&   x,
+              ArrayOfVector&   x,
         const String&          filename,
         const int&             fid,
 	const String&          dataname );
@@ -209,11 +205,11 @@ void binfile_read_vectorarray(
 void binfile_write_matrixarray(
         const String&          filename,
         const int&             fid,
-        const ArrayofMatrix&   x,
+        const ArrayOfMatrix&   x,
         const String&          dataname );
 
 void binfile_read_matrixarray(
-              ArrayofMatrix&   x,
+              ArrayOfMatrix&   x,
         const String&          filename,
         const int&             fid,
         const String&          dataname );
@@ -233,11 +229,11 @@ void binfile_read_String(
 void binfile_write_Stringarray(
         const String&          filename,
         const int&             fid,
-        const ArrayofString&   x,
+        const ArrayOfString&   x,
         const String&          dataname );
 
 void binfile_read_Stringarray(
-              ArrayofString&   x,
+              ArrayOfString&   x,
         const String&          filename,
         const int&             fid,
         const String&          dataname );

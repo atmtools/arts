@@ -1,3 +1,42 @@
+2001-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-206
+
+	* Major Change: The entire version number is now set in
+	configure.in. Important: YOU HAVE TO DO A reconf AFTER YOU CHANGED
+	THE VERSION NUMBER!
+
+	* Major Change: Adapted ARTS to the homegrown atomic types. We
+	have now:
+
+	Index, Numeric, String
+	Vector, Matrix, Array<>
+
+	Predefined Array types are called, e.g., ArrayOfString. Note the
+	capital O!
+
+	These data types behave more or less as one should
+	expect. Important: The = operator copies the contents, not the
+	entire thing. Therefore, you must be certain that dimensions agree
+	(or use the .resize functions before using the = operator). There
+	are assertions built in the data type that should catch that kind
+	of error. Documentation will follow in the near future.
+
+	* doc/examples/cont.arts: Verified that we still get the same
+	absorption coefficients. None of the other example files are
+	working, so I had no easy way to verify that other methods still
+	run. 
+	
+	* src/methods.cc (define_md_data): A part of the documentation of
+	method linesReadFromMytran2 has been deleted by Patrick apparently
+	by accident. Put this back in. 
+
+	* src/m_abs.cc (raw_vmrs_1dReadFromFiles): Rewritten this. Use the
+	standard function get_tagindex_for_Strings to get tag indices!
+
+	* reconf: Now also runs configure automatically.
+
+
 2001-09-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-205

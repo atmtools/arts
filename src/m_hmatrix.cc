@@ -72,17 +72,18 @@ void h_apply (
 {
   if ( h.issparse == 0 )
   {
-    if ( h.full.ncols() != y1.size() )
+    if ( h.full.ncols() != y1.nelem() )
       throw  runtime_error("Size of h and length of y do not match.");
-    if ( h.full.nrows() != y2.size() )
+    if ( h.full.nrows() != y2.nelem() )
       {
 	ostringstream os;
 	os << "Size of h and length of output y do not match.\n"
 	   << "H.nrows() = " << h.full.nrows() << "\n"
-	   << "y.size()  = " << y2.size();
+	   << "y.nelem()  = " << y2.nelem();
 	throw  runtime_error(os.str());
       }
-    mult( h.full, y1, y2 ); 	    //    y2 = h.full * y1;
+    mult( y2, h.full, y1); 	    //    y2 = h.full * y1;
+    // Note that the order in Matpack is different from how it used to be with MTL. 
   }
 
   else if ( h.issparse == 1 )
@@ -119,7 +120,8 @@ void h_apply (
       throw runtime_error("Sizes of h and k do not match.");
     if ( h.full.nrows() != k2.nrows() )
       throw  runtime_error("Sizes of h and output k do not match.");
-    mult( h.full, k1, k2 );	    //    k2 = h.full * k1;
+    mult( k2, h.full, k1 );	    //    k2 = h.full * k1;
+    // Note that the order in Matpack is different from how it used to be with MTL. 
   }
 
   else if ( h.issparse == 1 )
@@ -162,8 +164,8 @@ void h_diff (
       throw runtime_error("Sizes of h and k do not match.");
     hd.issparse = 0;
     //    hd.full = h2.full - h1.full;
-    copy( scaled(h1.full,-1), hd.full );
-    add ( h2.full, hd.full );
+    hd.full = h2.full;		// Copy content of h2.full to hd.full.
+    hd.full -= h1.full;		// Element-vise subtract h1.full.
   }
 
   else if ( (h1.issparse==1) && (h2.issparse==1) )
@@ -192,7 +194,7 @@ void VectorApplyH(
 
   // Get output dimension.
   // FIXME: This has to be adapted for sparse matrices!
-  size_t n = h.full.nrows();
+  Index n = h.full.nrows();
 
   // For efficiency we distinguish between the case that input and
   // output argument are the same and the case that they are
@@ -206,7 +208,7 @@ void VectorApplyH(
   }
   else
     {
-      resize(  y2, n );
+      y2.resize( n );
       h_apply( y2, h, y1 ); 
     }
 }

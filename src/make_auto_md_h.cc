@@ -67,11 +67,11 @@
 
 #include "arts.h"
 #include "token.h"
-#include "vecmat.h"
+#include "array.h"
 #include "file.h"
 #include "auto_wsv.h"
 #include "methods.h"
-
+#include "wsv_aux.h"
 
 /* Adds commas and indentation to parameter lists. */
 void align(ofstream& ofs, bool& is_first_parameter, const String& indent)
@@ -93,7 +93,7 @@ int main()
     {
       // Make the global data visible:
       extern Array<MdRecord> md_data;
-      extern const Array<String> wsv_group_names;
+      extern const ArrayOfString wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize method data.
@@ -106,8 +106,8 @@ int main()
       define_wsv_data();
   
 
-      const size_t n_md  = md_data.size();
-      const size_t n_wsv = wsv_data.size();
+      const Index n_md  = md_data.nelem();
+      const Index n_wsv = wsv_data.nelem();
 
       // For safety, check if n_wsv and N_WSV have the same value. If not, 
       // then the file wsv.h is not up to date.
@@ -133,17 +133,20 @@ int main()
       ofs << "#ifndef auto_md_h\n";
       ofs << "#define auto_md_h\n\n";
 
-      ofs << "#include \"vecmat.h\"\n"
+      ofs << "#include \"matpackI.h\"\n"
+	  << "#include \"hmatrix.h\"\n"
+	  << "#include \"los.h\"\n"
+	  << "#include \"absorption.h\"\n"
 	  << "#include \"auto_wsv.h\"\n"
 	  << "#include \"parser.h\"\n"
 	  << "\n";
 
       ofs << "// This is only used for a consistency check. You can get the\n"
-	  << "// number of workspace variables from wsv_data.size().\n"
+	  << "// number of workspace variables from wsv_data.nelem().\n"
 	  << "#define N_MD " << n_md << "\n\n";
 
       ofs << "enum MdHandle{\n";
-      for (size_t i=0; i<n_md-1; ++i)
+      for (Index i=0; i<n_md-1; ++i)
 	{
 	  ofs << "  " << md_data[i].Name() << "_,\n";
 	}
@@ -152,7 +155,7 @@ int main()
 
       // Add all the method function declarations
       ofs << "// Method function declarations:\n\n";
-      for (size_t i=0; i<n_md; ++i)
+      for (Index i=0; i<n_md; ++i)
 	{
 
 	  // This is needed to flag the first function parameter, which 
@@ -161,22 +164,22 @@ int main()
 
 	  // The String indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  String indent(md_data[i].Name().size()+6,' ');
+	  String indent(md_data[i].Name().nelem()+6,' ');
 
 	  // There are four lists of parameters that we have to
 	  // write. 
-	  Array<size_t>  vo=md_data[i].Output();   // Output 
-	  Array<size_t>  vi=md_data[i].Input();    // Input
-	  Array<size_t>  vgo=md_data[i].GOutput();   // Generic Output 
-	  Array<size_t>  vgi=md_data[i].GInput();    // Generic Input
+	  ArrayOfIndex  vo=md_data[i].Output();   // Output 
+	  ArrayOfIndex  vi=md_data[i].Input();    // Input
+	  ArrayOfIndex  vgo=md_data[i].GOutput();   // Generic Output 
+	  ArrayOfIndex  vgi=md_data[i].GInput();    // Generic Input
 	  // vo and vi contain handles of workspace variables, 
 	  // vgo and vgi handles of workspace variable groups.
 
 	  // Check, if some workspace variables are in both the
 	  // input and the output list, and erase those from the input 
 	  // list:
-	  for (Array<size_t>::const_iterator j=vo.begin(); j<vo.end(); ++j)
-	    for (Array<size_t>::iterator k=vi.begin(); k<vi.end(); ++k)
+	  for (ArrayOfIndex::const_iterator j=vo.begin(); j<vo.end(); ++j)
+	    for (ArrayOfIndex::iterator k=vi.begin(); k<vi.end(); ++k)
 	      {
 		if ( *j == *k )
 		  {
@@ -204,7 +207,7 @@ int main()
 	    // Flag first parameter of this sort:
 	    bool is_first_of_these = true;
 
-	    for (size_t j=0; j<vo.size(); ++j)
+	    for (Index j=0; j<vo.nelem(); ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -226,7 +229,7 @@ int main()
 	    // Flag first parameter of this sort:
 	    bool is_first_of_these = true;
 
-	    for (size_t j=0; j<vgo.size(); ++j)
+	    for (Index j=0; j<vgo.nelem(); ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -248,7 +251,7 @@ int main()
 	    // Flag first parameter of this sort:
 	    bool is_first_of_these = true;
 
-	    for (size_t j=0; j<vgo.size(); ++j)
+	    for (Index j=0; j<vgo.nelem(); ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -270,7 +273,7 @@ int main()
 	    // Flag first parameter of this sort.
 	    bool is_first_of_these = true;
 
-	    for (size_t j=0; j<vi.size(); ++j)
+	    for (Index j=0; j<vi.nelem(); ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -293,7 +296,7 @@ int main()
 	    // Flag first parameter of this sort.
 	    bool is_first_of_these = true;
 
-	    for (size_t j=0; j<vgi.size(); ++j)
+	    for (Index j=0; j<vgi.nelem(); ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -316,7 +319,7 @@ int main()
 	    // Flag first parameter of this sort:
 	    bool is_first_of_these = true;
 
-	    for (size_t j=0; j<vgi.size(); ++j)
+	    for (Index j=0; j<vgi.nelem(); ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -339,9 +342,9 @@ int main()
 	    bool is_first_of_these = true;
 
 	    // Number of keyword parameters.
-	    size_t n_mr = md_data[i].Keywords().size();
+	    Index n_mr = md_data[i].Keywords().nelem();
 
-	    for (size_t j=0; j!=n_mr; ++j)
+	    for (Index j=0; j!=n_mr; ++j)
 	      {
 		// Add comma and line break, if not first element:
 		align(ofs,is_first_parameter,indent);
@@ -365,7 +368,7 @@ int main()
 
       // Add all the get-away function declarations:
       ofs << "// Get-away function declarations:\n\n";
-      for (size_t i=0; i<n_md; ++i)
+      for (Index i=0; i<n_md; ++i)
 	ofs << "void " << md_data[i].Name()
 	    << "_g(WorkSpace& ws, const MRecord& mr);\n";
 

@@ -1,5 +1,23 @@
 #include "matpackI.h"
-//#include "matpackII.h"
+#include "array.h"
+#include "make_array.h"
+#include "mystring.h"
+#include "make_vector.h"
+#include "math_funcs.h"
+
+
+/** Define the global joker objekt. */
+Joker joker;
+
+Numeric by_reference(const Numeric& x)
+{
+  return x+1;
+}
+
+Numeric by_value(Numeric x)
+{
+  return x+1;
+}
 
 void fill_with_junk(VectorView x)
 {
@@ -211,8 +229,253 @@ void test7()
   cout << "min(sin(x)), max(sin(x)) = " << min(y) << ", " << max(y) << "\n";
 }
 
+void test8()
+{
+  Vector x(80000000);
+  for ( Index i=0; i<x.nelem(); ++i )
+    x[i] = i;
+  cout << "Done." << "\n";
+}
+
+void test9()
+{
+  // Initialization of Matrix with view of other Matrix:
+  Matrix A(4,8);
+  Matrix B(A(Range(joker),Range(0,3)));
+  cout << "B = " << B << "\n";
+}
+
+void test10()
+{
+  // Initialization of Matrix with a vector (giving a 1 column Matrix).
+
+  // At the moment doing this with a non-const Vector will result in a
+  // warning message. 
+  Vector v(1,8,1);
+  Matrix M(static_cast<const Vector>(v));
+  cout << "M = " << M << "\n";
+}
+
+void test11()
+{
+  // Assignment between Vector and Matrix:
+
+  // At the moment doing this with a non-const Vector will result in a
+  // warning message. 
+  Vector v(1,8,1);
+  Matrix M(v.nelem(),1);
+  M = v;
+  cout << "M = " << M << "\n";
+}
+
+void test12()
+{
+  // Copying of Arrays
+
+  Array<String> sa(3);
+  sa[0] = "It's ";
+  sa[1] = "a ";
+  sa[2] = "test.";
+
+  Array<String> sb(sa), sc(sa.nelem());
+
+  cout << "sb = \n" << sb << "\n";
+
+  sc = sa;
+
+  cout << "sc = \n" << sc << "\n";
+
+}
+
+void test13()
+{
+  // Mix vector and one-column matrix in += operator.
+  const Vector v(1,8,1);	// The const is necessary here to
+				// avoid compiler warnings about
+				// different conversion paths.
+  Matrix M(v);
+  M += v;
+  cout << "M = \n" << M << "\n";
+}
+
+void test14()
+{
+  // Test explicit Array constructors.
+  Array<String> a = MakeArray<String>("Test");
+  Array<Index>  b = MakeArray<Index>(1,2);
+  Array<Numeric> c = MakeArray<Numeric>(1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0);
+  cout << "a = \n" << a << "\n";
+  cout << "b = \n" << b << "\n";
+  cout << "c = \n" << c << "\n";
+}
+
+void test15()
+{
+  // Test String.
+  String a = "Nur ein Test.";
+  cout << "a = " << a << "\n";
+  String b(a,5,-1);
+  cout << "b = " << b << "\n";
+}
+
+void test16()
+{
+  // Test interaction between Array<Numeric> and Vector.
+  Vector a;
+  Array<Numeric> b;
+  b.push_back(1);
+  b.push_back(2);
+  b.push_back(3);
+  a.resize(b.nelem());
+  a = b;
+  cout << "b =\n" << b << "\n";
+  cout << "a =\n" << a << "\n";
+}
+
+void test17()
+{
+  // Test Sum.
+  Vector a(1,10,1);
+  cout << "a.sum() = " << a.sum() << "\n";
+}
+
+void test18()
+{
+  // Test elementvise square of a vector:
+  Vector a(1,10,1);
+  a *= a;
+  cout << "a *= a =\n" << a << "\n";
+}
+
+void test19()
+{
+  // There exists no explicit filling constructor of the form 
+  // Vector a(3,1.7).
+  // But you can use the more general filling constructor with 3 arguments.
+
+  Vector a(1,10,1);
+  Vector b(5.3,10,0);
+  cout << "a =\n" << a << "\n";
+  cout << "b =\n" << b << "\n";
+}
+
+void test20()
+{
+  // Test MakeVector:
+  MakeVector a(1,2,3,4,5,6,7,8,9,10);
+  cout << "a =\n" << a << "\n";
+}
+
+void test21()
+{
+  Numeric s=0;
+  // Test speed of call by reference:
+  cout << "By reference:\n";
+  for ( Index i=0; i<1e8; ++i )
+    {
+      s += by_reference(s);
+      s -= by_reference(s);
+    }
+  cout << "s = " << s << "\n";  
+}
+
+void test22()
+{
+  Numeric s=0;
+  // Test speed of call by value:
+  cout << "By value:\n";
+  for ( Index i=0; i<1e8; ++i )
+    {
+      s += by_value(s);
+      s -= by_value(s);
+    }
+  cout << "s = " << s << "\n";  
+}
+
+void test23()
+{
+  // Test constructors that fills with constant:
+  Vector a(10,3.5);
+  cout << "a =\n" << a << "\n";
+  Matrix b(10,10,4.5);
+  cout << "b =\n" << b << "\n";
+}
+
+void test24()
+{
+  // Try element-vise multiplication of Matrix and Vector:
+  Matrix a(5,1,2.5);
+  Vector b(1,5,1);
+  a *= b;
+  cout << "a*=b =\n" << a << "\n";
+  a /= b;
+  cout << "a/=b =\n" << a << "\n";
+  a += b;
+  cout << "a+=b =\n" << a << "\n";
+  a -= b;
+  cout << "a-=b =\n" << a << "\n";
+}
+
+void test25()
+{
+  // Test min and max for Array:
+  MakeArray<Index> a(1,2,3,4,5,6,5,4,3,2,1);
+  cout << "min/max of a = " << min(a) << "/" << max(a) << "\n";
+}
+
+void test26()
+{
+  cout << "Test filling constructor for Array:\n";
+  Array<String> a(4,"Hello");
+  cout << "a =\n" << a << "\n";
+}
+
+void test27()
+{
+  cout << "Test Arrays of Vectors:\n";
+  Array<Vector> a;
+  a.push_back(MakeVector(1.0,2.0));
+  a.push_back(Vector(1.0,10,1.0));
+  cout << "a =\n" << a << "\n";
+}
+
+void test28()
+{
+  cout << "Test default constructor for Matrix:\n";
+  Matrix a;
+  Matrix b(a);
+  cout << "b =\n" << b << "\n";
+}
+
+void test29()
+{
+  cout << "Test Arrays of Matrix:\n";
+  ArrayOfMatrix a;
+  Matrix b;
+
+  b.resize(2,2);
+  b(0,0) = 1;
+  b(0,1) = 2;
+  b(1,0) = 3;
+  b(1,1) = 4;
+  a.push_back(b);
+  b *= 2;
+  a.push_back(b);
+
+  a[0].resize(2,3);
+  a[0] = 4;
+
+  a.resize(3);
+  a[2].resize(4,5);
+  a[2] = 5;
+
+  cout << "a =\n" << a << "\n";
+  
+}
+
+
 int main()
 {
-  test7();
+  test29();
   return 0;
 }

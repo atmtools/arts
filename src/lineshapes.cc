@@ -27,8 +27,10 @@
   \date   2000-08-21
 */
 
+#include <math.h>
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
 #include "absorption.h"
 
 
@@ -56,7 +58,7 @@ void lineshape_no_shape(  Vector&       ls,
 			  Numeric	f0,
 			  Numeric       gamma,
 			  Numeric       sigma,
-			  Vector::subrange_type f_mono,
+			  VectorView f_mono,
 			  const Index  nf)
 {
   // This function should never be called so throw an error here: 
@@ -82,13 +84,18 @@ void lineshape_lorentz(Vector&       ls,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       Vector::subrange_type f_mono,
+		       VectorView f_mono,
 		       const Index  nf)
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
+
   // PI:
   extern const Numeric PI;
 
-  //  assert( ls.size() == nf );
+  //  assert( ls.nelem() == nf );
 
   Numeric gamma2 = gamma * gamma;
   Numeric fac = gamma/PI;
@@ -116,14 +123,19 @@ void lineshape_doppler(Vector&       ls,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       Vector::subrange_type f_mono,
+		       VectorView f_mono,
 		       const Index  nf)
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
+
   // SQRT(PI):
   extern const Numeric PI;
   static const Numeric sqrtPI = sqrt(PI);
 
-  //  assert( ls.size() == nf );
+  //  assert( ls.nelem() == nf );
 
   Numeric sigma2 = sigma * sigma;
   Numeric fac = 1.0 / (sqrtPI * sigma);
@@ -228,10 +240,15 @@ void lineshape_voigt_kuntz6(Vector&       ls,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    Vector::subrange_type f_mono,
+			    VectorView f_mono,
 			    const Index  nf)
 
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
+  
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -639,10 +656,14 @@ void lineshape_voigt_kuntz3(Vector&       ls,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    Vector::subrange_type f_mono,
+			    VectorView f_mono,
 			    const Index  nf)
 
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1009,9 +1030,13 @@ void lineshape_voigt_kuntz4(Vector&       ls,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    Vector::subrange_type f_mono,
+			    VectorView f_mono,
 			    const Index   nf)
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1390,10 +1415,15 @@ void lineshape_voigt_drayson(Vector&       ls,
 			     Numeric	     f0,
 			     Numeric       gamma,
 			     Numeric       sigma,
-			     Vector::subrange_type f_mono,
+			     VectorView f_mono,
 			     const Index   nf)
 
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
+
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
 
@@ -1551,9 +1581,13 @@ void lineshape_rosenkranz_voigt_kuntz6(Vector&       ls,
 				       Numeric	     f0,
 				       Numeric       gamma,
 				       Numeric       sigma,
-				       Vector::subrange_type f_mono,
+				       VectorView f_mono,
 				       const Index   nf)
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1655,9 +1689,13 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
 					Numeric	     f0,
 					Numeric       gamma,
 					Numeric       sigma,
-					Vector::subrange_type f_mono,
+					VectorView f_mono,
 					const Index   nf)
 {
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
@@ -1761,13 +1799,13 @@ void lineshape_rosenkranz_voigt_drayson(Vector&       ls,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&       fac,
 			    Numeric	  f0,
-			    Vector::subrange_type f_mono,
+			    VectorView f_mono,
 			    const Index   nf)
 {
-
-  // we can not use this assert anymore, because we pass subranges of
-  // f_mono here 
-  // assert( fac.size() == nf );
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   for ( Index i=0; i<nf; ++i )
     {
@@ -1787,13 +1825,13 @@ void lineshape_norm_no_norm(Vector&       fac,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(Vector&       fac,
 			   Numeric	 f0,
-			   Vector::subrange_type f_mono,
+			   VectorView f_mono,
 			   const Index   nf)
 {
-
-  // we can not use this assert anymore, because we pass subranges of
-  // f_mono here 
-  // assert( fac.size() == nf );
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   for ( Index i=0; i<nf; ++i )
     {
@@ -1812,13 +1850,13 @@ void lineshape_norm_linear(Vector&       fac,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_quadratic(Vector&       fac,
 			      Numeric	    f0,
-			      Vector::subrange_type f_mono,
+			      VectorView f_mono,
 			      const Index   nf)
 {
-
-  // we can not use this assert anymore, because we pass subranges of
-  // f_mono here 
-  // assert( fac.size() == nf );
+  // FIXME: nf is actually redundant. Could be thrown out in the
+  // future. For now, let's do an assertion that at least it is
+  // correct: 
+  assert( nf==f_mono.nelem() );
 
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
@@ -1842,7 +1880,7 @@ Array<LineshapeRecord> lineshape_data;
 void define_lineshape_data()
 {
   // Initialize to empty, just in case.
-  resize(lineshape_data,0);
+  lineshape_data.resize(0);
 
   lineshape_data.push_back
     (LineshapeRecord
@@ -1910,7 +1948,7 @@ Array<LineshapeNormRecord> lineshape_norm_data;
 void define_lineshape_norm_data()
 {
   // Initialize to empty, just in case.
-  resize(lineshape_norm_data,0);
+  lineshape_norm_data.resize(0);
 
   lineshape_norm_data.push_back
     (LineshapeNormRecord

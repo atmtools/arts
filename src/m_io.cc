@@ -40,14 +40,15 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <hdf.h>
+#include <math.h>
 #include "arts.h"
 #include "atm_funcs.h"          
 #include "file.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "auto_md.h"
-#include <hdf.h>
-
+#include "make_array.h"
 
 
 //**************************************************************************
@@ -116,7 +117,7 @@ void Test( )
 
 // This function shall be modified to handle Index
 void IndexWriteAscii(
-        const int&      v,
+        const Index&      v,
         const String&   v_name,
 	const String&   f )
 {
@@ -125,17 +126,17 @@ void IndexWriteAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Store the value in an ArrayofMatrix and write to file
-  ArrayofMatrix am(1);
-  resize( am[0], 1, 1 );
-  setto( am[0], (Numeric) v);
+  // Store the value in an ArrayOfMatrix and write to file
+  ArrayOfMatrix am(1);
+  am[0].resize( 1, 1 );
+  am[0] = static_cast<Numeric>(v); // Matpack can set all elements like this.
   write_array_of_matrix_to_file(filename,am);
 }
 
 
 // This function shall be modified to handle Index
 void IndexReadAscii(
-	      int&      v,
+	      Index&      v,
         const String&   v_name,
 	const String&   f )
 {
@@ -144,17 +145,17 @@ void IndexReadAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Read the value as ArrayofMatrix and move to Numeric
-  ArrayofMatrix am;
+  // Read the value as ArrayOfMatrix and move to Numeric
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.size()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
+  if ( (am.nelem()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains not a single value.";
     throw runtime_error(os.str());
   }
 
-  Numeric a = am[0][0][0];
+  Numeric a = am[0](0,0);
 
   if ( (a-floor(a)) != 0 )
     throw runtime_error("The value in the file is not an integer.");
@@ -174,7 +175,7 @@ void IndexReadAscii(
 */
 // This function shall be modified to handle Index
 void IndexWriteBinary(
-	const int&      v,
+	const Index&      v,
         const String&   var_name,
 	const String&   f )
 {
@@ -196,11 +197,11 @@ void IndexWriteBinary(
 */
 // This function shall be modified to handle Index
 void IndexReadBinary(
-	      int&      v,
+	      Index&      v,
         const String&   var_name,
 	const String&   f )
 {
-  size_t vtemp;  //To be removed
+  Index vtemp;  //To be removed
   int    fid;
   String filename = f;
   filename_bin( filename, var_name );
@@ -224,10 +225,10 @@ void NumericWriteAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Store the value in an ArrayofMatrix and write to file
-  ArrayofMatrix am(1);
-  resize( am[0], 1, 1 );
-  setto( am[0], v);
+  // Store the value in an ArrayOfMatrix and write to file
+  ArrayOfMatrix am(1);
+  am[0].resize( 1, 1 );
+  am[0] = v;			// Matpack can set all elements like this.
   write_array_of_matrix_to_file(filename,am);
 }
 
@@ -242,17 +243,17 @@ void NumericReadAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Read the value as ArrayofMatrix and move to Numeric
-  ArrayofMatrix am;
+  // Read the value as ArrayOfMatrix and move to Numeric
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.size()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
+  if ( (am.nelem()!=1) || (am[0].nrows()!=1) || (am[0].ncols()!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains not a single numeric value";
     throw runtime_error(os.str());
   }
 
-  v = am[0][0][0];
+  v = am[0](0,0);
 }
 
 
@@ -313,13 +314,17 @@ void VectorWriteAscii(// WS Output:
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Convert the vector to a matrix:
-  //  to_matrix(m,v);
-  Matrix m(v.size(),1);
-  copy( v, columns(m)[0] );
+  // Convert the vector to a 1-column matrix:
+  Matrix m(static_cast<const Vector>(v));
+  // The static_cast to const Vector here is necessary to suppress a
+  // warning message from the compiler about different possible
+  // conversion paths. 
 
   // Convert the matrix to an array of matrix:
-  ArrayofMatrix am(1,m);
+  MakeArray<Matrix> am(m);
+  // MakeArray is the special kind of array with explicit
+  // initialization. Here, the generated array has only 1 element,
+  // which is initialized from Matrix m.
 
   // Write the array of matrix to the file.
   write_array_of_matrix_to_file(filename,am);
@@ -340,17 +345,25 @@ void VectorReadAscii(// WS Generic Output:
   filename_ascii( filename, v_name );
 
   // Read an array of matrix from the file:
-  ArrayofMatrix am;
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to a matrix.
-  if ( 1 != am.size() )
+  if ( 1 != am.nelem() )
    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
                        "but the dimension of the array is not 1.");
   Matrix m(am[0]);
 
-  // Convert the matrix to a vector:
-  to_vector(v,m);
+  // Check that this really is a 1-column matrix:
+  if ( 1 != m.ncols() )
+    throw runtime_error("You tried to convert a matrix to a vector,\n"
+			"but it has more than one column.");
+
+  // Convert the 1-column matrix to a vector:
+  v.resize(m.nrows());
+  v = m(Range(joker),0);	
+  // (The m(Range(joker),0) picks out first column of m, = operator copies
+  // to v.)
 }
 
 
@@ -412,7 +425,10 @@ void MatrixWriteAscii(// WS Generic Input:
   filename_ascii( filename, m_name );
 
   // Convert the matrix to an array of matrix:
-  ArrayofMatrix am(1,m);
+  MakeArray<Matrix> am(m);
+  // MakeArray is the special kind of array with explicit
+  // initialization. Here, the generated array has only 1 element,
+  // which is initialized from Matrix m.
 
   // Write the array of matrix to the file.
   write_array_of_matrix_to_file(filename,am);
@@ -421,11 +437,11 @@ void MatrixWriteAscii(// WS Generic Input:
 
 
 void MatrixReadAscii(// WS Generic Output:
-			Matrix& m,
-			// WS Generic Output Names:
-			const String& m_name,
-			// Control Parameters:
-			const String& f)
+		     Matrix& m,
+		     // WS Generic Output Names:
+		     const String& m_name,
+		     // Control Parameters:
+		     const String& f)
 {
   String filename = f;
   
@@ -433,16 +449,17 @@ void MatrixReadAscii(// WS Generic Output:
   filename_ascii( filename, m_name );
 
   // Read the array of matrix from the file:
-  ArrayofMatrix am;
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
-  //  cout << "am.size(): " << am.size() << "\n";
+  //  cout << "am.nelem(): " << am.nelem() << "\n";
 
   // Convert the array of matrix to a matrix.
-  if ( 1 != am.size() )
+  if ( 1 != am.nelem() )
    throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
                        "but the dimension of the array is not 1.");
 
+  m.resize( am[0].nrows(), am[0].ncols() );
   m = am[0];
 }
 
@@ -490,11 +507,11 @@ void MatrixReadBinary(
 
 
 
-//=== ArrayofIndex =====================================================
+//=== ArrayOfIndex =====================================================
 
-// This function shall be modified to handle ArrayofIndex
+// This function shall be modified to handle ArrayOfIndex
 void ArrayOfIndexWriteAscii(
-        const Arrayofsizet&   v,
+        const ArrayOfIndex&   v,
         const String&         v_name,
 	const String&         f )
 {
@@ -503,49 +520,62 @@ void ArrayOfIndexWriteAscii(
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Store the value in an ArrayofMatrix and write to file
-  const size_t  n = v.size();
-  ArrayofMatrix am(1);
-  resize(am[0],n,1);
-  for ( size_t i=0; i<n; i++ )
-    am[0][i][0] = (Numeric) v[i];
+  // Store the value in an ArrayOfMatrix and write to file
+  const Index  n = v.nelem();
+  ArrayOfMatrix am(1);
+  am[0].resize(n,1);
+  for ( Index i=0; i<n; i++ )
+    am[0](i,0) = static_cast<Numeric>(v[i]);
   write_array_of_matrix_to_file(filename,am);
 }
 
 
 // This function shall be modified to handle Index
 void ArrayOfIndexReadAscii(
-	      Arrayofsizet&   v,
-        const String&         v_name,
-	const String&         f )
+			   ArrayOfIndex&   v,
+			   const String&   v_name,
+			   const String&   f )
 {
+  // FIXME: This function is crap. Put the whole ASCII file stuff
+  // should be changed in the future, so I leave it for now.
+  
   String filename = f;
   
   // Create default filename if empty  
   filename_ascii( filename, v_name );
 
-  // Read the value as ArrayofMatrix 
-  ArrayofMatrix am;
+  // Read the value as ArrayOfMatrix 
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
-  if ( (am.size()!=1) )
+  if ( (am.nelem()!=1) )
   {
     ostringstream os;
     os << "The file " << filename << " contains more than one vector.";
     throw runtime_error(os.str());
   }
+  
+  Matrix m(am[0]);		// Create Matrix and initialize from
+				// first element of am.
 
-  // Move values to v using a vector
-  Vector x;
-  to_vector( x, am[0] );
-  const size_t  n = x.size();
-  resize(v,n);
-  for ( size_t i=0; i<n; i++ )
+  // Check that this really is a 1-column matrix:
+  if ( 1 != m.ncols() )
+    throw runtime_error("You tried to convert a matrix to a vector,\n"
+			"but it has more than one column.");
+
+  // Convert the 1-column matrix to a vector:
+  Vector x(m(Range(joker),0));
+  // (The m(Range(joker),0) picks out first column of m. Matpack can
+  // initialize the new vector x from that.
+
+  const Index  n = x.nelem();
+  v.resize(n);
+  for ( Index i=0; i<n; i++ )
   {  
     if ( (x[i]-floor(x[i])) != 0 )
       throw runtime_error("A value in the file is not an integer.");
     if ( x[i] < 0 )
       throw runtime_error("A value in the file is negative.");
-    v[i] = (size_t) x[i];
+    v[i] = (Index) x[i];
   }
 }
 
@@ -558,7 +588,7 @@ void ArrayOfIndexReadAscii(
    \date   2000-?-?
 */
 void ArrayOfIndexWriteBinary(
-        const Arrayofsizet&  v,
+        const ArrayOfIndex&  v,
         const String&        var_name,
 	const String&        f )
 {
@@ -579,7 +609,7 @@ void ArrayOfIndexWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfIndexReadBinary(
-	      Arrayofsizet&  v,
+	      ArrayOfIndex&  v,
         const String&        var_name,
 	const String&        f )
 {
@@ -593,10 +623,10 @@ void ArrayOfIndexReadBinary(
 
 
 
-//=== ArrayofVector ====================================================
+//=== ArrayOfVector ====================================================
 
 void ArrayOfVectorWriteAscii(// WS Output:
-			      const ArrayofVector& av,
+			      const ArrayOfVector& av,
 			      // WS Variable Names:
 			      const String& av_name,
 			      // Control Parameters:
@@ -608,12 +638,13 @@ void ArrayOfVectorWriteAscii(// WS Output:
   filename_ascii( filename, av_name );
 
   // Convert the array of vector to an array of matrix:
-  ArrayofMatrix am(av.size());
-  for (size_t i=0; i<av.size(); ++i)
+  ArrayOfMatrix am(av.nelem());
+  for (Index i=0; i<av.nelem(); ++i)
     {
       //      to_matrix(am[i],av[i]);
-      resize( am[i], av[i].size(), 1 );
-      copy( av[i], columns(am[i])[0] ); 
+      am[i].resize( av[i].nelem(), 1 );
+      am[i] = av[i];		// Matpack can copy the content of a
+				// Vector to a 1-column Matrix.
     }
 
   // Write the array of matrix to the file.
@@ -623,7 +654,7 @@ void ArrayOfVectorWriteAscii(// WS Output:
 
 
 void ArrayOfVectorReadAscii(// WS Generic Output:
-			       ArrayofVector& av,
+			       ArrayOfVector& av,
 			       // WS Generic Output Names:
 			       const String& av_name,
 			       // Control Parameters:
@@ -635,14 +666,23 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
   filename_ascii( filename, av_name );
 
   // Read an array of matrix from the file:
-  ArrayofMatrix am;
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   // Convert the array of matrix to an array of vector.
-  resize(av,am.size());
-  for (size_t i=0; i<am.size(); ++i)
+  av.resize(am.nelem());
+  for (Index i=0; i<am.nelem(); ++i)
     {
-      to_vector(av[i],am[i]);
+      // Check that this really is a 1-column matrix:
+      if ( 1 != am[i].ncols() )
+	throw runtime_error("You tried to convert a matrix to a vector,\n"
+			    "but it has more than one column.");
+
+      // Convert the 1-column matrix to a vector:
+      av[i].resize(am[i].nrows());
+      av[i] = am[i](Range(joker),0);	
+      // (The am[i](Range(joker),0) picks out first column of am[i], = operator copies
+      // to v.)
     }
 }
 
@@ -655,7 +695,7 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfVectorWriteBinary(
-        const ArrayofVector&  v,
+        const ArrayOfVector&  v,
         const String&         var_name,
 	const String&         f )
 {
@@ -676,7 +716,7 @@ void ArrayOfVectorWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfVectorReadBinary(
-	      ArrayofVector&  v,
+	      ArrayOfVector&  v,
         const String&         var_name,
 	const String&         f )
 {
@@ -690,10 +730,10 @@ void ArrayOfVectorReadBinary(
 
 
 
-//=== ArrayofMatrix ====================================================
+//=== ArrayOfMatrix ====================================================
 
 void ArrayOfMatrixWriteAscii(// WS Generic Input:
-			      const ArrayofMatrix& am,
+			      const ArrayOfMatrix& am,
 			      // WS Generic Input Names:
 			      const String& am_name,
 			      // Control Parameters:
@@ -711,7 +751,7 @@ void ArrayOfMatrixWriteAscii(// WS Generic Input:
 
 
 void ArrayOfMatrixReadAscii(// WS Generic Output:
-			       ArrayofMatrix& am,
+			       ArrayOfMatrix& am,
 			       // WS Generic Output Names:
 			       const String& am_name,
 			       // Control Parameters:
@@ -735,7 +775,7 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfMatrixWriteBinary(
-        const ArrayofMatrix&  v,
+        const ArrayOfMatrix&  v,
         const String&         var_name,
 	const String&         f )
 {
@@ -756,7 +796,7 @@ void ArrayOfMatrixWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfMatrixReadBinary(
-	      ArrayofMatrix&  v,
+	      ArrayOfMatrix&  v,
         const String&         var_name,
 	const String&         f )
 {
@@ -785,7 +825,7 @@ void StringWriteAscii( // WS Generic Input:
   filename_ascii( filename, s_name );
 
   // Convert the String to an array of String:
-  ArrayofString as(1);
+  ArrayOfString as(1);
   as[0] = s;
 
   // Write the array of matrix to the file.
@@ -807,11 +847,11 @@ void StringReadAscii(   // WS Generic Output:
   filename_ascii( filename, s_name );
 
   // Read the array of matrix from the file:
-  ArrayofString as;
+  ArrayOfString as;
   read_array_of_String_from_file(as,filename);
 
   // Convert the array of String to a String.
-  if ( 1 != as.size() )
+  if ( 1 != as.nelem() )
    throw runtime_error("You tried to convert an array of String to a String,\n"
                        "but the dimension of the array is not 1.");
 
@@ -862,10 +902,10 @@ void StringReadBinary(
 
 
 
-//=== ArrayofString ====================================================
+//=== ArrayOfString ====================================================
 
 void ArrayOfStringWriteAscii( // WS Generic Input:
-			      const ArrayofString& as,
+			      const ArrayOfString& as,
 			      // WS Generic Input Names:
 			      const String& as_name,
 			      // Control Parameters:
@@ -883,7 +923,7 @@ void ArrayOfStringWriteAscii( // WS Generic Input:
 
 
 void ArrayOfStringReadAscii(   // WS Generic Output:
-			       ArrayofString& as,
+			       ArrayOfString& as,
 			       // WS Generic Output Names:
 			       const String& as_name,
 			       // Control Parameters:
@@ -907,7 +947,7 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
    \date   2000-?-?
 */
 void ArrayOfStringWriteBinary(
-        const ArrayofString&  v,
+        const ArrayOfString&  v,
         const String&         var_name,
 	const String&         f )
 {
@@ -928,7 +968,7 @@ void ArrayOfStringWriteBinary(
    \date   2000-?-?
 */
 void ArrayOfStringReadBinary(
-	      ArrayofString&  v,
+	      ArrayOfString&  v,
         const String&         var_name,
 	const String&         f )
 {
@@ -939,85 +979,6 @@ void ArrayOfStringReadBinary(
   binfile_read_Stringarray( v, filename, fid, "STRING" );
   binfile_close( fid, filename );
 }
-
-
-
-//=== SYMMETRIC ==========================================================
-
-void SymmetricWriteAscii(// WS Generic Input:
-		       const SYMMETRIC& m,
-		       // WS Generic Input Names:
-		       const String& m_name,
-		       // Control Parameters:
-		       const String& f)
-{
-  const Index   n = m.nrows();
-  
-  Matrix   x(n,n);
-
-  copy( m, x );
-
-  MatrixWriteAscii( x, m_name, f );
-}
-
-
-
-void SymmetricReadAscii(// WS Generic Output:
-			SYMMETRIC& m,
-			// WS Generic Output Names:
-			const String& m_name,
-			// Control Parameters:
-			const String& f)
-{
-  Matrix   x;
-
-  MatrixReadAscii( x, m_name, f );
-
-  const Index   n = x.nrows();
-  
-  assert( n == x.ncols() );
-
-  copy( x, m );
-}
-
-
-
-void SymmetricWriteBinary(// WS Generic Input:
-		       const SYMMETRIC& m,
-		       // WS Generic Input Names:
-		       const String& m_name,
-		       // Control Parameters:
-		       const String& f)
-{
-  const Index   n = m.nrows();
-  
-  Matrix   x(n,n);
-
-  copy( m, x );
-
-  MatrixWriteBinary( x, m_name, f );
-}
-
-
-
-void SymmetricReadBinary(// WS Generic Output:
-			SYMMETRIC& m,
-			// WS Generic Output Names:
-			const String& m_name,
-			// Control Parameters:
-			const String& f)
-{
-  Matrix   x;
-
-  MatrixReadBinary( x, m_name, f );
-
-  const Index   n = x.nrows();
-  
-  assert( n == x.ncols() );
-
-  copy( x, m );
-}
-
 
 
 //=== MAYBESPARSE ====================================================
@@ -1041,7 +1002,7 @@ void HmatrixReadAscii(// WS Generic Output:
   filename_ascii( filename, h_name );
 
   // Read the array of matrix from the file:
-  ArrayofMatrix am;
+  ArrayOfMatrix am;
   read_array_of_matrix_from_file(am,filename);
 
   h.issparse = 0;
@@ -1125,12 +1086,12 @@ void LosReadBinary(
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void IntSet(// WS Generic Output:
-            int& x,
+void IndexSet(// WS Generic Output:
+            Index& x,
             // WS Generic Output Names:
             const String& x_name,
             // Control Parameters:
-            const int& value)
+            const Index& value)
 {
   x = value;
   out3 << "  Setting " << x_name << " to " << value << ".\n";
@@ -1189,11 +1150,11 @@ void NumericCopyFirstOfVector(
 */
 void VectorSet(           Vector&  x, 
                     const String&  x_name,
-                    const int&     n,
+                    const Index&     n,
                     const Numeric& value )
 {
-  resize(x,n);
-  setto(x,value);
+  x.resize(n);
+  x = value;			// Matpack can set all elements like this.
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
@@ -1214,9 +1175,9 @@ void VectorSetLengthFromVector(
         const String&  z_name,
         const Numeric& value )
 {
-  const size_t  n = z.size();
-  resize(x,n);
-  setto(x,value);
+  const Index  n = z.nelem();
+  x.resize(n);
+  x = value;			// Matpack can set all elements like this.
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
@@ -1238,12 +1199,12 @@ void VectorLinSpace(      Vector&  x,
 {
   x = linspace(start,stop,step);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";
-  out3 << "         length: " << x.size() << "\n";
+  out3 << "         length: " << x.nelem() << "\n";
   out3 << "    first value: " << x[0] << "\n";
-  if ( x.size() > 1 )
+  if ( x.nelem() > 1 )
   {
     out3 << "      step size: " << x[1]-x[0] << "\n";
-    out3 << "     last value: " << x[x.size()-1] << "\n";
+    out3 << "     last value: " << x[x.nelem()-1] << "\n";
   }
 }
 
@@ -1259,16 +1220,19 @@ void VectorNLinSpace(     Vector&  x,
                     const String&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
-                    const int& n )
+                    const Index& n )
 {
+  if ( n<2 )
+    throw runtime_error("The number of points must be > 1."); 
+  x.resize(n);
   x = nlinspace(start,stop,n);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";
   out3 << "         length: " << n << "\n";
   out3 << "    first value: " << x[0] << "\n";
-  if ( x.size() > 1 )
+  if ( x.nelem() > 1 )
   {
     out3 << "      step size: " << x[1]-x[0] << "\n";
-    out3 << "     last value: " << x[x.size()-1] << "\n";
+    out3 << "     last value: " << x[x.nelem()-1] << "\n";
   }
 }
 
@@ -1280,18 +1244,24 @@ void VectorNLinSpace(     Vector&  x,
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void VectorNLogSpace(     Vector&  x, 
-                    const String&  x_name,
-                    const Numeric& start,
-                    const Numeric& stop,
-                    const int&     n )
+void VectorNLogSpace( Vector&  x, 
+		      const String&  x_name,
+		      const Numeric& start,
+		      const Numeric& stop,
+		      const Index&     n )
 {
+  if ( n<2 )
+    throw runtime_error("The number of points must be > 1."); 
+  if ( (start<=0) || (stop<=0) )
+    throw runtime_error("Only positive numbers are allowed."); 
+
+  x.resize(n);
   x = nlogspace(start,stop,n);
   out2 << "  Creating " << x_name << " as logarithmically spaced vector\n";
   out3 << "         length: " << n << "\n";
   out3 << "    first value: " << x[0] << "\n";
-  if ( x.size() > 1 )
-    out3 << "     last value: " << x[x.size()-1] << "\n";
+  if ( x.nelem() > 1 )
+    out3 << "     last value: " << x[x.nelem()-1] << "\n";
 }
 
 
@@ -1303,8 +1273,10 @@ void VectorCopy(
                 const String&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  resize( y2, y1.size() );
-  copy( y1, y2 );
+  y2.resize( y1.nelem() );
+  y2 = y1;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
 }
 
 
@@ -1314,7 +1286,8 @@ void VectorCopy(
 
    \author Patrick Eriksson
    \date   2001-06-12
-*/void VectorFlip(
+*/
+void VectorFlip(
                       Vector&   y2,
                 const String&   name_y2,
                 const Vector&   y1,
@@ -1322,14 +1295,16 @@ void VectorCopy(
 {
   out2 << "  Flips " << name_y2 << " to create " << name_y1 << "\n";
 
-  Index n = y1.size();
+  Index n = y1.nelem();
 
   Vector dum( n );
   for ( Index i=0; i<n; i++ )
     dum[n-1-i] = y1[i];
 
-  resize( y2, n );
-  copy( dum, y2 );
+  y2.resize( n );
+  y2 = dum;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
 }
 
 
@@ -1337,23 +1312,25 @@ void VectorCopy(
 void VectorCopyFromArrayOfVector(
                       Vector&          v,
                 const String&          v_name,
-                const ArrayofVector&   va,
+                const ArrayOfVector&   va,
                 const String&          va_name,
-                const int&             i )
+                const Index&             i )
 {
   if ( i < 0 )
     throw runtime_error("The index must be >= 0.");
-  if ( size_t(i) >= va.size() )
+  if ( Index(i) >= va.nelem() )
   {
     ostringstream os;
-    os << "The vector array has only " << va.size() << "elements.";
+    os << "The vector array has only " << va.nelem() << "elements.";
     throw runtime_error(os.str());
   }
 
   out2 << "  Copies " << v_name << " from vector " << i << " in " << va_name
                                                                    << "\n";
-  resize(v,va[i].size());
-  copy(va[i],v);
+  v.resize(va[i].nelem());
+  v = va[i];			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
 }
 
 
@@ -1373,7 +1350,7 @@ void VectorPlanck(
 {
   if ( t > 0 )
   {
-    resize( y, f.size() );
+    y.resize( f.nelem() );
     planck( y, f, t );
     out2<<"  Setting " << y_name << " to blackbody radiation for "<<t<<" K.\n";
   }
@@ -1397,8 +1374,8 @@ void VectorCalcLog10(
 {
   out2<<"  " << out_name << " = log10( " << in_name << " )\n";
 
-  resize( out, in.size() );
-  out = transf( in, log10 );
+  out.resize( in.nelem() );
+  transform( out, log10, in );	// out = log10(in)
 }
 
 
@@ -1418,13 +1395,25 @@ void VectorAdd(
 {
   out2<<"  " << out_name << " = " << in_name << " + " << value << "\n";
 
-  const size_t  n = in.size();
-
   // Note that in and out can be the same vector
-  Vector dummy(n);
-  copy( in, dummy );
-  resize( out, n );
-  add ( dummy, Vector(n,value), out );
+  if (&out==&in)
+    {
+      // Out and in are the same. Just add the scalar value.
+      out += value;		// With Matpack you can add a scalar
+				// to all elements of a vector like
+				// this. 
+    }
+  else
+    {
+      // Out and in are different. We first have to copy in to out,
+      // then add the scalar value.
+
+      out.resize( in.nelem() );
+      out = in;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
+      out += value;
+    }
 }
 
 
@@ -1444,14 +1433,25 @@ void VectorScale(
 {
   out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
 
-  const size_t  n = in.size();
-
   // Note that in and out can be the same vector
-  Vector dummy(n);
-  copy( in, dummy );
-  resize( out, n );
-  for ( Index i=0; i<n; i++ )
-    out[i] = dummy[i] * value;
+  if (&out==&in)
+    {
+      // Out and in are the same. Just multiply by the scalar value.
+      out *= value;		// With Matpack you can add a scalar
+				// to all elements of a vector like
+				// this. 
+    }
+  else
+    {
+      // Out and in are different. We first have to copy in to out,
+      // then multiply by the scalar value.
+
+      out.resize( in.nelem() );
+      out = in;			// Matpack can copy the contents of
+				// vectors like this. The dimensions
+				// must be the same! 
+      out *= value;
+    }
 }
 
 
@@ -1467,10 +1467,10 @@ void VectorRandUniform(
               const String&   y_name,
               const Numeric&  x_low,
               const Numeric&  x_high,
-              const int&      n )
+              const Index&      n )
 {
   out2<<"  Filling " << y_name << " with uniform random data.\n";
-  resize( y, n );
+  y.resize( n );
   rand_uniform( y, x_low, x_high );
 }
 
@@ -1486,10 +1486,10 @@ void VectorRandGaussian(
                     Vector&   y,
               const String&   y_name,
               const Numeric&  stddev,
-              const int&      n )
+              const Index&      n )
 {
   out2<<"  Filling " << y_name << " with Gaussian random data.\n";
-  resize( y, n );
+  y.resize( n );
   rand_gaussian( y, stddev );
 }
 
@@ -1505,12 +1505,12 @@ void VectorRandGaussian(
 */
 void MatrixSet(           Matrix&  x, 
                     const String&  x_name,
-                    const int&     nrows,
-                    const int&     ncols,
+                    const Index&     nrows,
+                    const Index&     ncols,
                     const Numeric& value )
 {
-  resize( x, nrows, ncols );
-  setto( x, value );
+  x.resize( nrows, ncols );
+  x = value;			// Matpack can set all elements like this.
   out2 << "  Creating " << x_name << " as a constant matrix\n"; 
   out3 << "          nrows : " << nrows << "\n";
   out3 << "          ncols : " << ncols << "\n";
@@ -1526,8 +1526,10 @@ void MatrixCopy(
         const String&   name_y1 )
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  resize( y2, y1.nrows(), y1.ncols() );
-  copy( y1, y2 );
+  y2.resize( y1.nrows(), y1.ncols() );
+  y2 = y1;			// Matpack can copy the contents of
+				// matrices like this. The dimensions
+				// must be the same! 
 }
 
 
@@ -1537,13 +1539,13 @@ void MatrixFillWithVector(
         const String&   name_m,
         const Vector&   y,
         const String&   name_y,
-        const int&      n )
+        const Index&      n )
 {
   out2 << "  Creates" << name_m << " by copying " << name_y << n << "times.\n";
-  const size_t nrows = y.size();
-  resize( m, nrows, n );
-  for ( Index row=0; row<nrows; row++ ) 
-    mtl::set(m[row],y[row]);
+  m.resize( y.nelem(), n );
+  for ( Index i=0; i<n; ++i ) 
+    m(Range(joker),i) = y;	// Copy content of vector y to this
+				// column of Matrix m.
 }
 
 
@@ -1563,19 +1565,25 @@ void MatrixScale(
 {
   out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
 
-  const size_t  n1 = in.nrows();
-  const size_t  n2 = in.ncols();
-
   // Note that in and out can be the same matrix
-  Matrix dummy(n1,n2);
-  copy( in, dummy );
-  resize( out, n1, n2 );
-  size_t i,j;
-  for ( i=0; i<n1; i++ )
-  {
-    for ( j=0; j<n2; j++ )
-      out[i][j] = dummy[i][j] * value;
-  }  
+  if (&out==&in)
+    {
+      // Out and in are the same. Just multiply by the scalar value.
+      out *= value;		// With Matpack you can multiply a scalar
+				// to all elements of a matrix like
+				// this. 
+    }
+  else
+    {
+      // Out and in are different. We first have to copy in to out,
+      // then multiply by the scalar value.
+
+      out.resize( in.nrows(), in.ncols() );
+      out = in;			// Matpack can copy the contents of
+				// matrices like this. The dimensions
+				// must be the same! 
+      out *= value;
+    }
 }
 
 
@@ -1598,7 +1606,7 @@ void StringSet(           String&  s,
 
 
 
-//=== ArrayofSTRING ========================================================
+//=== ArrayOfSTRING ========================================================
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -1607,18 +1615,16 @@ void StringSet(           String&  s,
    \date   2000-?-?
 */
 void ArrayOfStringSet(    
-              ArrayofString&  sa, 
+              ArrayOfString&  sa, 
         const String&         sa_name,
-        const ArrayofString&  sa2 )
+        const ArrayOfString&  sa2 )
 {
-  resize(sa,sa2.size());
-  copy(sa2,sa);
+  sa.resize(sa2.nelem());
+  sa = sa2;			// Arrays can be copied like this.
   out3 << "  Setting " << sa_name << "\n"; 
 }
 
 
-
-//=== SYMMETRIC ==========================================================
 
 /**
    See the the online help (arts -d FUNCTION_NAME)
@@ -1626,28 +1632,17 @@ void ArrayOfStringSet(
    \author Patrick Eriksson
    \date   2001-02-21
 */
-void SymmetricDiagonal(
-                          SYMMETRIC&  x, 
+void MatrixDiagonal(
+		    Matrix&           x, 
                     const String&     x_name,
-                    const int&        nrows,
+                    const Index&      nrows,
                     const Numeric&    value )
 {
-  resize( x, nrows, nrows );
+  x.resize( nrows, nrows );
   for ( Index i=0; i<Index(nrows); i++ )
-    x[i][i] = value;
+    x(i,i) = value;
 
-  out2 << "  Creating " << x_name << " as a diagonal (symmetric) matrix\n"; 
+  out2 << "  Creating " << x_name << " as a diagonal matrix\n"; 
   out3 << "          nrows : " << nrows << "\n";
   out3 << "          value : " << value << "\n";
-}
-
-void SymmetricCopy(
-           SYMMETRIC&   y2,
-        const String&   name_y2,
-     const SYMMETRIC&   y1,
-        const String&   name_y1 )
-{
-  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  resize( y2, y1.nrows(), y1.ncols() );
-  copy( y1, y2 );
 }

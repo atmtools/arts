@@ -18,12 +18,14 @@
 #ifndef token_h
 #define token_h
 
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
+#include "mystring.h"
 
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
-enum TokValType { String_t,    int_t,    Numeric_t,
-	          Array_String_t, Array_int_t, Vector_t,
+enum TokValType { String_t,    Index_t,    Numeric_t,
+	          Array_String_t, Array_Index_t, Vector_t,
                   undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only
@@ -49,8 +51,8 @@ public:
   }
 
   /** To set TokVal from an integer. */
-  TokVal(int n) {
-    mtype = int_t;
+  TokVal(Index n) {
+    mtype = Index_t;
     mn = n;
   }
 
@@ -61,39 +63,36 @@ public:
   }
 
   /** To set TokVal from an array of Strings. */
-  TokVal(Array<String> sv) : msv(sv.size())
+  TokVal(ArrayOfString sv) : msv(sv)
   {
     mtype = Array_String_t;
-    copy(sv, msv);
   }
 
   /** To set TokVal from an array of integers. */
-  TokVal(Array<int> nv) : mnv(nv.size())
+  TokVal(ArrayOfIndex nv) : mnv(nv)
   {
-    mtype = Array_int_t;
-    copy(nv, mnv);
+    mtype = Array_Index_t;
   }
 
   /** To set TokVal from a Vector. */
-  TokVal(Vector xv) : mxv(xv.size())
+  TokVal(Vector xv) : mxv(xv)
   {
     mtype = Vector_t;
-    copy(xv, mxv);
   }
 
   // Conversion functions to return TokVal for the 6 different types: 
   
   /** Return String. */
   operator String() const;
-  /** Return int. */
-  operator int() const;
+  /** Return Index. */
+  operator Index() const;
   /** Return Numeric. */
   operator Numeric() const;
 
   /** Return array of Strings. */
-  operator Array<String>() const;
+  operator ArrayOfString() const;
   /** Return array of integers. */
-  operator Array<int>() const;
+  operator ArrayOfIndex() const;
   /** Return Vector. */
   operator Vector() const;
 
@@ -103,10 +102,10 @@ public:
 private:
   TokValType mtype;
   String       ms;
-  int          mn;
+  Index          mn;
   Numeric      mx;   
-  Array<String>  msv;
-  Array<int>     mnv;
+  ArrayOfString  msv;
+  ArrayOfIndex     mnv;
   Vector         mxv;
 };
 

@@ -1,6 +1,8 @@
+#include <stdexcept>
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
 #include "file.h"
+#include "array.h"
 
 int main()
 {
@@ -10,9 +12,9 @@ int main()
       define_wsv_group_names();
 
       // Make the names visible.
-      extern const Array<String> wsv_group_names;
+      extern const ArrayOfString wsv_group_names;
 
-      const size_t n_wsv_groups = wsv_group_names.size();
+      const Index n_wsv_groups = wsv_group_names.nelem();
 
       ofstream ofs;
       open_output_file(ofs,"auto_wsv_groups.h");
@@ -40,7 +42,7 @@ int main()
 	  << "#include \"hmatrix.h\"\n\n";
       
       ofs << "/*! This is only used for a consistency check. You can get the\n"
-	  << "    number of groups from wsv_group_names.size(). */\n"
+	  << "    number of groups from wsv_group_names.nelem(). */\n"
 	  << "#define N_WSV_GROUPS " << n_wsv_groups << "\n\n";
 
       ofs << "/*! The enum type that identifies wsv groups.\n"
@@ -49,7 +51,7 @@ int main()
 
       ofs << "enum WsvGroup{\n";
       // Now write the group handles one by one:
-      for (size_t i=0; i<n_wsv_groups; ++i)
+      for (Index i=0; i<n_wsv_groups; ++i)
 	{
 	  ofs << "  " << wsv_group_names[i] << "_,\n";
 	}
@@ -65,7 +67,7 @@ int main()
       
       ofs << "class WsvP {\n"
 	  << "public:\n";
-      for (size_t i=0; i<n_wsv_groups; ++i)
+      for (Index i=0; i<n_wsv_groups; ++i)
 	{
 	  ofs << "  virtual operator "
 	      << wsv_group_names[i]

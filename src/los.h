@@ -35,26 +35,20 @@
 #ifndef los_h
 #define los_h
 
-
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
-
-#include "vecmat.h"
-
-
+#include "matpackI.h"
+#include "array.h"
 
 /** The line of sight (LOS). 
 
     The LOS structure has the fields:
     \verbatim
-       ArrayofVector  p
-       ArrayofVector  psi
-       ArrayofVector  z
+       ArrayOfVector  p
+       ArrayOfVector  psi
+       ArrayOfVector  z
        Vector         l_step
-       Arrayofsizet   ground
-       Arrayofsizet   start
-       Arrayofsizet   stop
+       ArrayOfIndex   ground
+       ArrayOfIndex   start
+       ArrayOfIndex   stop
     where 
        p        The pressure of each point of the LOS.
        psi      The angle in the observation plane between the vectors going
@@ -107,19 +101,19 @@
     \date   07.06.00 
 */
 struct LOS {
-  ArrayofVector  p;
-  ArrayofVector  psi;
-  ArrayofVector  z;
+  ArrayOfVector  p;
+  ArrayOfVector  psi;
+  ArrayOfVector  z;
   Vector         l_step;
-  Arrayofsizet   ground;
-  Arrayofsizet   start;
-  Arrayofsizet   stop;
+  ArrayOfIndex   ground;
+  ArrayOfIndex   start;
+  ArrayOfIndex   stop;
 };
 
 
 // A little function to check if there is any ground intersection 
 // The function is placed in m_los.cc
 //
-bool any_ground( const Arrayofsizet& ground );
+bool any_ground( const ArrayOfIndex& ground );
 
 #endif  // los_h

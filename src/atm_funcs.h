@@ -35,12 +35,7 @@
 #define atmfuncs_h
 
 
-
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
-
-#include "vecmat.h"
+#include "matpackI.h"
 
 
 
@@ -49,27 +44,27 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void planck (
-              Matrix&     B, 
-        const Vector&     f,
-        const Vector&     t );
+              MatrixView     B, 
+        ConstVectorView     f,
+        ConstVectorView     t );
 
 void planck (
-              Vector&     B, 
-        const Vector&     f,
-        const Numeric&    t );
+              VectorView     B, 
+        ConstVectorView     f,
+        const Numeric    t );
 
 Numeric number_density (
-       const Numeric&   p,
-       const Numeric&   t );
+       const Numeric   p,
+       const Numeric   t );
 
 Vector number_density (
-       const Vector&    p,
-       const Vector&    t );
+       ConstVectorView    p,
+       ConstVectorView    t );
 
 Numeric g_of_z (
-       const Numeric&   r_geoid,
-       const Numeric&   g0,
-       const Numeric&   z );
+       const Numeric   r_geoid,
+       const Numeric   g0,
+       const Numeric   z );
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -77,38 +72,38 @@ Numeric g_of_z (
 ////////////////////////////////////////////////////////////////////////////
 
 void rte_iterate (
-             Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   Tr,
-       const Matrix&   S,
-       const size_t    n_f );
+             VectorView   y,
+       const Index   start_index,
+       const Index   stop_index,
+       ConstMatrixView   Tr,
+       ConstMatrixView   S,
+       const Index    n_f );
 
 void rte (
-             Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   Tr,
-       const Matrix&   S,
-       const Vector&   y_space,
-       const Index&    ground,
-       const Vector&   e_ground,
-       const Vector&   y_ground );
+             VectorView   y,
+       const Index   start_index,
+       const Index   stop_index,
+       ConstMatrixView   Tr,
+       ConstMatrixView   S,
+       ConstVectorView   y_space,
+       const Index    ground,
+       ConstVectorView   e_ground,
+       ConstVectorView   y_ground );
 
 void bl_iterate (
-             Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   Tr,
-       const size_t    n_f );
+             VectorView   y,
+       const Index   start_index,
+       const Index   stop_index,
+       ConstMatrixView   Tr,
+       const Index    n_f );
 
 void bl (
              Vector&   y,
-       const size_t&   start_index,
-       const size_t&   stop_index,
-       const Matrix&   Tr,
-       const Index&    ground,
-       const Vector&   e_ground );
+       const Index   start_index,
+       const Index   stop_index,
+       ConstMatrixView   Tr,
+       const Index    ground,
+       ConstVectorView   e_ground );
 
 
 
@@ -117,46 +112,46 @@ void bl (
 ////////////////////////////////////////////////////////////////////////////
 
 void z2p(
-              Vector&     p,
-        const Vector&     z0,
-        const Vector&     p0,
-        const Vector&     z );
+              VectorView     p,
+        ConstVectorView     z0,
+        ConstVectorView     p0,
+        ConstVectorView     z );
 
 void interpp(
-              Vector&     x,
-        const Vector&     p0,
-        const Vector&     x0,
-        const Vector&     p );
+              VectorView     x,
+        ConstVectorView     p0,
+        ConstVectorView     x0,
+        ConstVectorView     p );
 
 void interpp_cloud(
-              Vector&     x,
-        const Vector&     p0,
-        const Vector&     x0,
-        const Vector&     p );
+              VectorView     x,
+        ConstVectorView     p0,
+        ConstVectorView     x0,
+        ConstVectorView     p );
 
 void interpp(
-              Matrix&  A,
-        const Vector&  p0, 
-        const Matrix&  A0, 
-        const Vector&  p );
+              MatrixView  A,
+        ConstVectorView  p0, 
+        ConstMatrixView  A0, 
+        ConstVectorView  p );
 
 Numeric interpp(
-        const Vector&     p0,
-        const Vector&     x0,
-        const Numeric&    p );
+        ConstVectorView     p0,
+        ConstVectorView     x0,
+        const Numeric    p );
 
 void interpz(
-              Vector&     x, 
-        const Vector&     p0,
-        const Vector&     z0,
-        const Vector&     x0,
-        const Vector&     z );
+              VectorView     x, 
+        ConstVectorView     p0,
+        ConstVectorView     z0,
+        ConstVectorView     x0,
+        ConstVectorView     z );
 
 Numeric interpz(
-        const Vector&     p0,
-        const Vector&     z0,
-        const Vector&     x0,
-        const Numeric&    z );
+        ConstVectorView     p0,
+        ConstVectorView     z0,
+        ConstVectorView     x0,
+        const Numeric    z );
 
 
 
@@ -165,34 +160,34 @@ Numeric interpz(
 ////////////////////////////////////////////////////////////////////////////
 
 Numeric ztan_geom(
-        const Numeric&   za,
-        const Numeric&   z_plat,
-        const Numeric&   r_geoid );
+        const Numeric   za,
+        const Numeric   z_plat,
+        const Numeric   r_geoid );
 
 Numeric n_for_z(
-        const Numeric&      z,
-        const Vector&       p_abs,
-        const Vector&       z_abs,
-        const Vector&       refr_index,
-        const Numeric&      atm_limit );
+        const Numeric      z,
+        ConstVectorView       p_abs,
+        ConstVectorView       z_abs,
+        ConstVectorView       refr_index,
+        const Numeric      atm_limit );
 
 Numeric refr_constant( 
-        const Numeric&      r_geoid,
-        const Numeric&      za,
-        const Numeric&      z_plat,
-        const Vector&       p_abs,
-        const Vector&       z_abs,
-        const Numeric&      atm_limit,
-        const Vector&       refr_index );
+        const Numeric      r_geoid,
+        const Numeric      za,
+        const Numeric      z_plat,
+        ConstVectorView       p_abs,
+        ConstVectorView       z_abs,
+        const Numeric      atm_limit,
+        ConstVectorView       refr_index );
 
 Numeric ztan_refr(
-        const Numeric&   c,
-        const Numeric&   za,
-        const Numeric&   z_plat,
-        const Numeric&   z_ground,
-        const Vector&    p_abs,
-        const Vector&    z_abs,
-        const Vector&    refr_index,
-        const Numeric&   r_geoid );
+        const Numeric   c,
+        const Numeric   za,
+        const Numeric   z_plat,
+        const Numeric   z_ground,
+        ConstVectorView    p_abs,
+        ConstVectorView    z_abs,
+        ConstVectorView    refr_index,
+        const Numeric   r_geoid );
 
 #endif // atmfuncs_h

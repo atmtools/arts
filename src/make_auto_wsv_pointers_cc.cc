@@ -1,6 +1,8 @@
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
 #include "file.h"
+#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 
 int main()
@@ -8,14 +10,14 @@ int main()
   try
     {
       // We need group names and WSV data:
-      extern const Array<String> wsv_group_names;
+      extern const ArrayOfString wsv_group_names;
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize:
       define_wsv_group_names();
       define_wsv_data();
 
-      const size_t n_wsv = wsv_data.size();
+      const Index n_wsv = wsv_data.nelem();
 
       ofstream ofs;
       open_output_file(ofs,"auto_wsv_pointers.cc");
@@ -33,7 +35,8 @@ int main()
 	  << __TIME__ << " */\n\n";
 
       ofs << "#include \"arts.h\"\n"
-	  << "#include \"vecmat.h\"\n"
+	  << "//#include \"matpackI.h\"\n"
+	  << "#include \"array.h\"\n"
 	  << "#include \"auto_wsv_groups.h\"\n"
 	  << "#include \"wsv_aux.h\"\n"
 	  << "#include \"auto_wsv.h\"\n\n";
@@ -47,7 +50,7 @@ int main()
 	  << "{\n\n";
 
       // Now write the pointers one by one:
-      for (size_t i=0; i<n_wsv; ++i)
+      for (Index i=0; i<n_wsv; ++i)
 	{
 	  const WsvRecord& wr = wsv_data[i];
 

@@ -28,12 +28,14 @@
 
 
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
 #include "file.h"
 #include "absorption.h"
 #include "los.h"
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
+#include "mystring.h"
 
 int main()
 {
@@ -45,11 +47,11 @@ int main()
 
       // Make the data visible.
       extern const Array<WsvRecord> wsv_data;
-      extern const Array<String> wsv_group_names;
+      extern const ArrayOfString wsv_group_names;
 
-      const size_t n_wsv = wsv_data.size();
+      const Index n_wsv = wsv_data.nelem();
 
-      //      cout << "size = " << wsv_data.size() << '\n';
+      //      cout << "size = " << wsv_data.nelem() << '\n';
 
       ofstream ofs,ofs2;
       open_output_file(ofs,"auto_wsv.h");
@@ -71,19 +73,17 @@ int main()
       ofs << "#ifndef auto_wsv_h\n";
       ofs << "#define auto_wsv_h\n\n";
 
-      ofs << "#include \"arts.h\"\n"
-	  << "#include \"absorption.h\"\n"
+      ofs << "#include \"absorption.h\"\n"
 	  << "#include \"los.h\"\n"
-	  << "#include \"auto_wsv_groups.h\"\n"
-	  << "#include \"wsv_aux.h\"\n\n";
+	  << "#include \"hmatrix.h\"\n\n";
 
       
       ofs << "/*! This is only used for a consistency check. You can get the\n"
-	  << "    number of workspace variables from wsv_data.size(). */\n"
+	  << "    number of workspace variables from wsv_data.nelem(). */\n"
 	  << "#define N_WSV " << n_wsv << "\n\n";
 
       ofs << "enum WsvHandle{\n";
-      for (size_t i=0; i<n_wsv-1; ++i)
+      for (Index i=0; i<n_wsv-1; ++i)
 	{
 	  ofs << "  " << wsv_data[i].Name() << "_,\n";
 	}
@@ -95,7 +95,7 @@ int main()
       ofs << "/** The declaration of the (great) workspace. */\n";
       ofs << "class WorkSpace {\n"
 	  << "public:\n";
-      for (size_t i=0; i<n_wsv; ++i)
+      for (Index i=0; i<n_wsv; ++i)
 	{
 	  // First of all write the comment as a doxygen header.
 	  // For this we have to make some small replacements for
@@ -112,13 +112,30 @@ int main()
 	    // to include the beginning of the verbatim
 	    // environment. Not earlier, because the first sentence
 	    // has a special meaning.
-	    size_t full_stop = s.find('.') + 1;
+	    Index full_stop = s.find('.');
+
+	    // We have to check against the case that the point was
+	    // not found. In that case we set full_stop to the length
+	    // of the entire test. If it was found, we increase the
+	    // value by one, since we want to include the point in the
+	    // first part.
+	    if ( full_stop==s.npos )
+	      full_stop = s.nelem();
+	    else
+	      full_stop += 1;
+
 	    String first(s,0,full_stop);
-	    String rest (s,full_stop);
+
+	    // Rest will contain the rest of the documentation. It could
+	    // be empty!
+	    String rest = "";
+
+	    if ( full_stop!=s.nelem() )
+	      rest = String(s,full_stop);
 
 	    // Remove leading whitespace and linebreaks in rest:
 	    while (
-		   0 < rest.size() &&
+		   0 < rest.nelem() &&
 		   ( ' ' == rest[0] || '\n' == rest[0] )
 		   )
 	      {
@@ -126,7 +143,7 @@ int main()
 	      }
 
 	    ofs << "/** " << first;
-	    if ( 0==rest.size() )
+	    if ( 0==rest.nelem() )
 	      {
 		ofs << " */\n";
 	      }
@@ -152,7 +169,7 @@ int main()
       // Write text information file
       // If you make changes here for the "VARIABLE" and "DATA TYPE" rows,
       // you probably need to change get_artstype.m in AMI.
-      for ( size_t i=0; i<n_wsv; i++ )
+      for ( Index i=0; i<n_wsv; i++ )
       {
         ofs2 << "VARIABLE : " << wsv_data[i].Name() << "\n"
              << "DATA TYPE: " << wsv_group_names[wsv_data[i].Group()] <<"\n"

@@ -68,8 +68,8 @@
 
  \begin{table}[t]
   \begin{tabular}{p{4cm} p{4cm} p{4cm}}
-   \verb|ArrayofVector|  & \verb|ArrayofMatrix|  & \verb|ArrayofIndex|   \\
-   \verb|ArrayofString|  &                       &                        \\
+   \verb|ArrayOfVector|  & \verb|ArrayOfMatrix|  & \verb|ArrayOfIndex|   \\
+   \verb|ArrayOfString|  &                       &                        \\
   \end{tabular}
   \caption{Array containers for the atomic types.}
   \label{table:format:atomicarrays}
@@ -123,7 +123,7 @@ The arrays (as vectors and matrices) have 0-based indexing, that is,
 the first element has index 0 (not 1). The existing arrays for the
 atomic data types are listed in Table \ref{table:format:atomicarrays}.
 A \verb|Matrix| is basically an array of vectors, but if the vectors
-have different length they must be stored as an \verb|ARRAYofVECTOR|.
+have different length they must be stored as an \verb|ArrayOfVECTOR|.
 
 
 \levelc{Other data types}
@@ -131,7 +131,7 @@ have different length they must be stored as an \verb|ARRAYofVECTOR|.
 
  \begin{table}[t]
   \begin{tabular}{l l l}
-   \verb|LineRecord| & \verb|ARRAYofLineRecord| & \verb|ARRAYofARRAYofLineRecord| \\
+   \verb|LineRecord| & \verb|ArrayOfLineRecord| & \verb|ArrayOfArrayOfLineRecord| \\
    \verb|OneTag|     & \verb|Tags|   & \\
    \verb|LOS| & & \\
   \end{tabular}
@@ -152,22 +152,32 @@ the LOS. The LOS is further described in Section \ref{sec:los}.
 
 
 \levelb{Mathematical and logical operations}
- \label{sec:formats:maths}
+\label{sec:formats:maths}
  
- \levelc{The atomic types} 
- All standard mathermatical (\verb|+|,\verb|-|,\verb|*|,\verb|/| etc.)
- and logical operations (\verb|==|, \verb|!=| etc.) of C++ can of
- course be used for \verb|Numeric| and \verb|Index|. Among the C++
- standard operations for strings, comparation using \verb|==| and
- \verb|!=| are probably the most important.
+\levelc{The atomic types} 
+All standard mathermatical (\verb|+|,\verb|-|,\verb|*|,\verb|/| etc.)
+and logical operations (\verb|==|, \verb|!=| etc.) of C++ can of
+course be used for \verb|Numeric| and \verb|Index|. Among the C++
+standard operations for strings, comparation using \verb|==| and
+\verb|!=| are probably the most important.
 
  
- \levelc{Vectors and matrices} 
+\levelc{Vectors}
  
- Appendix \ref{app:math} gives examples on usage and allowed
- mathematical operations for the different vector and matrix types.
+\levelc{Matrices}
+A matrix with 5 rows and 3 columns is defined like this:
+\begin{verbatim}
+Matrix M(5,3)
+\end{verbatim}
+Elements are accessed like this:
+\begin{verbatim}
+Numeric x =  M(2,2)
+\end{verbatim}
+\textbf{Note that indices are zero-based!}
+
+
  
- \levelc{Arrays} 
+\levelc{Arrays} 
  No mathematical or logical oeprations are defined for the arrays (see
  Table \ref{table:format:atomicarrays}). The arrays are only used as
  containers to store data.
@@ -186,7 +196,7 @@ the LOS. The LOS is further described in Section \ref{sec:los}.
   \label{sec:formats:file:ascii}
   
   All data types based on \verb|Numeric| and \verb|Index| that can be
-  represented by \verb|ARRAYofMatrix| are stored using a common ASCII
+  represented by \verb|ArrayOfMatrix| are stored using a common ASCII
   file format. Table \ref{table:format:aa} contains the data types that
   fulfills this criteria. Numeric ASCII files have the following 
   structure: \\
@@ -206,7 +216,7 @@ the LOS. The LOS is further described in Section \ref{sec:los}.
 }
 
  \noindent
- Index arrays (\verb|ARRAYofIndex|) are stored as integer vectors to
+ Index arrays (\verb|ArrayOfIndex|) are stored as integer vectors to
  make the files easier to inspect.
      
  The sizes given in the file must be compatible with the data type
@@ -214,7 +224,7 @@ the LOS. The LOS is further described in Section \ref{sec:los}.
  columns or row matrices. When reading varaibles of Index type,
  the data is checked to only contain non-negative integers.
  
- The types \verb|STRING| and \verb|ARRAYofSTRING| are stored using a
+ The types \verb|STRING| and \verb|ArrayOfSTRING| are stored using a
  similar file format. String ASCII files have the following structure:
  {\footnotesize \begin{verbatim} 
 # The file can start with an arbitrary number of comment lines.
@@ -231,9 +241,9 @@ String 3
  \begin{table}[t]
   \begin{tabular}{p{4.5cm} p{4.5cm} p{4.5cm}}
    \verb|Numeric|        & \verb|VECTOR|         & \verb|Matrix|          \\
-   \verb|ARRAYofVECTOR|  & \verb|ARRAYofMatrix|  &                        \\
-   \verb|Index|          & \verb|ARRAYofIndex|  &                        \\
-   \verb|STRING|          & \verb|ARRAYofSTRING|  &                        \\
+   \verb|ArrayOfVECTOR|  & \verb|ArrayOfMatrix|  &                        \\
+   \verb|Index|          & \verb|ArrayOfIndex|  &                        \\
+   \verb|STRING|          & \verb|ArrayOfSTRING|  &                        \\
   \end{tabular}
   \caption{ARTS data types that can be stored using the ASCII
            file formats (.aa).}
@@ -298,7 +308,7 @@ String 3
  \end{verbatim} 
  The Vdata name is used to handle arrays. However, for simplicity
  reasons and for consistency with the ASCII format, index arrays
- (\verb|ARRAYofIndex|) are stored as index vectors (field name
+ (\verb|ArrayOfIndex|) are stored as index vectors (field name
  \verb|VECTOR| and Vdata class \verb|UINT|). For other type of
  arrays, the Vdata name is set to the data structure name followed
  by a sequential number (starting at 1). The length of the array

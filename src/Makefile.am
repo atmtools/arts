@@ -28,7 +28,6 @@ sstream.h \
 iotraits.h \
 messages.h \
 parameters.h \
-vecmat.h \
 exceptions.h \
 file.h \
 wsv_aux.h \
@@ -43,6 +42,9 @@ absorption.h \
 continua.h \
 los.h \
 hmatrix.h \
+array.h \
+matpackI.h \
+matpackII.h \
 constants.cc \
 getopt.c \
 getopt1.c \
@@ -75,7 +77,7 @@ auto_wsv_pointers.cc \
 species_data.cc \
 partition_function_data.cc \
 lineshapes.cc \
-vecmat.cc
+matpackI.cc
 
 arts_CLEAN=auto_md.cc
 
@@ -85,42 +87,42 @@ arts_CLEAN=auto_md.cc
 
 
 noinst_PROGRAMS = \
-demonstrate_vecmat \
+test_matpack \
 make_auto_wsv_groups_h make_auto_wsv_h make_auto_wsv_pointers_cc make_auto_md_h make_auto_md_cc
 
-demonstrate_vecmat_SOURCES = \
-arts.h vecmat.h \
-demonstrate_vecmat.cc vecmat.cc math_funcs.cc make_vector.cc
+test_matpack_SOURCES = \
+arts.h matpackI.h array.h make_array.h mystring.h make_vector.h \
+test_matpack.cc matpackI.cc make_vector.cc
 
 make_auto_wsv_groups_h_SOURCES = \
-arts.h vecmat.h file.h \
-vecmat.cc version.cc file.cc messages.cc groups.cc make_auto_wsv_groups_h.cc
+arts.h file.h \
+version.cc file.cc messages.cc groups.cc make_auto_wsv_groups_h.cc
 
 make_auto_wsv_h_SOURCES = \
-arts.h vecmat.h file.h absorption.h los.h hmatrix.h \
+arts.h file.h absorption.h los.h hmatrix.h \
 auto_wsv_groups.h wsv_aux.h \
-vecmat.cc version.cc groups.cc \
+version.cc groups.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_auto_wsv_h.cc
 
 make_auto_wsv_pointers_cc_SOURCES = \
-arts.h vecmat.h file.h wsv_aux.h \
-vecmat.cc version.cc groups.cc messages.cc file.cc workspace.cc make_auto_wsv_pointers_cc.cc
+arts.h file.h wsv_aux.h \
+version.cc groups.cc messages.cc file.cc workspace.cc make_auto_wsv_pointers_cc.cc
 
 make_auto_md_h_SOURCES = \
-arts.h vecmat.h auto_wsv.h token.h messages.h file.h \
+arts.h auto_wsv.h token.h messages.h file.h \
 absorption.h los.h hmatrix.h \
 auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
-vecmat.cc version.cc globals_2.cc \
+version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_auto_md_h.cc
 
 make_auto_md_cc_SOURCES = \
-arts.h vecmat.h auto_wsv.h token.h messages.h file.h \
+arts.h auto_wsv.h token.h messages.h file.h \
 absorption.h los.h hmatrix.h \
 auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
-vecmat.cc version.cc globals_2.cc \
+version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_auto_md_cc.cc
 

@@ -69,7 +69,7 @@ public:
     workspace variable. */
   WsvRecord(const char name[],
 	    const char description[],
-	    const size_t group)
+	    const Index group)
     : mname(name),
       mdescription(description),
       mgroup(group)
@@ -77,15 +77,15 @@ public:
     //    Nothing to do here.
   }
   /** Name of this workspace variable. */
-  const string&  Name()        const { return mname;        }   
+  const String&  Name()        const { return mname;        }   
   /** A text describing this workspace variable. */
-  const string&  Description() const { return mdescription; }
+  const String&  Description() const { return mdescription; }
   /** The wsv group to which this variable belongs. */
-  const size_t   Group()       const { return mgroup;       }
+  const Index   Group()       const { return mgroup;       }
 private:
-  string mname;
-  string mdescription;
-  size_t mgroup;
+  String mname;
+  String mdescription;
+  Index mgroup;
 };
 
 /** Output operator for WsvRecord.

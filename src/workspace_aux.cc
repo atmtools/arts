@@ -27,19 +27,22 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
+#include <map>
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
+#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 
 /*! The map assiciated with wsv_data. */
-std::map<String, size_t> WsvMap;
+std::map<String, Index> WsvMap;
 
 void define_wsv_map()
 {
   extern const Array<WsvRecord> wsv_data;
-  extern std::map<String, size_t> WsvMap;
+  extern std::map<String, Index> WsvMap;
 
-  for ( size_t i=0 ; i<wsv_data.size() ; ++i)
+  for ( Index i=0 ; i<wsv_data.nelem() ; ++i)
     {
       WsvMap[wsv_data[i].Name()] = i;
     }
@@ -48,7 +51,7 @@ void define_wsv_map()
 
 ostream& operator<<(ostream& os, const WsvRecord& wr)
 {
-  extern const Array<String> wsv_group_names;
+  extern const ArrayOfString wsv_group_names;
 
   os << "\n*--------------------------------------------------------------*\n"
      << "Workspace variable = " << wr.Name() 

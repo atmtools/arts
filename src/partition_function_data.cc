@@ -38,7 +38,7 @@
 
 /*! \name Some #defines for better readability */
 //@{ 
-#define Qcoeff	     make_array<Numeric>		
+#define Qcoeff	     MakeArray<Numeric>		
 //@} 
 
 
@@ -207,7 +207,7 @@ void spec(Array<SpeciesRecord>::iterator& is,
 
 void iso(Array<IsotopeRecord>::iterator& ii,
 	 String name,
-	 const Array<Numeric>& coeff);
+	 const ArrayOfNumeric& coeff);
 
 
 void define_partition_species_data()
@@ -774,7 +774,7 @@ void spec(Array<SpeciesRecord>::iterator& is,
 
 void iso(Array<IsotopeRecord>::iterator& ii,
 	 String name,
-	 const Array<Numeric>& coeff)
+	 const ArrayOfNumeric& coeff)
 {
 #ifndef NDEBUG
   {

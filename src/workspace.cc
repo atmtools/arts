@@ -33,7 +33,9 @@
   \date   2000-08-10 */
 
 #include "arts.h"
-#include "vecmat.h"
+#include "matpackI.h"
+#include "array.h"
+#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 
 /*! The lookup information for the workspace variables. */
@@ -44,7 +46,7 @@ void define_wsv_data()
 
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
-  resize(wsv_data,0);
+  wsv_data.resize(0);
 
 
   //--------------------< Spectroscopy Stuff >--------------------
@@ -53,14 +55,14 @@ void define_wsv_data()
     (WsvRecord
      ("lines",
       "A list of spectral line data.", 
-      ArrayofLineRecord_));
+      ArrayOfLineRecord_));
 
   wsv_data.push_back
     (WsvRecord
      ("lines_per_tg",
       "A list of spectral line data for each tag.\n"
-      "Dimensions: (tag_groups.size()) (# of lines for this tag)", 
-      ArrayofArrayofLineRecord_));
+      "Dimensions: (tag_groups.nelem()) (# of lines for this tag)", 
+      ArrayOfArrayOfLineRecord_));
 
   wsv_data.push_back
     (WsvRecord
@@ -89,7 +91,7 @@ void define_wsv_data()
       "each abs_tag, not for each species. This means if you have several\n"
       "abs_tags for different isotopes or transitions of a species, you\n"
       "may use different lineshapes.",
-      ArrayofLineshapeSpec_));
+      ArrayOfLineshapeSpec_));
 
 
   //--------------------< Continuum Stuff >--------------------
@@ -105,7 +107,7 @@ void define_wsv_data()
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.\n"
       "H2O-ContStandardForeign: Foreign component of a simple empirical\n"
       "   continuum model a la Liebe/Rosenkranz. Needs two parameters.",
-      ArrayofString_));
+      ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
@@ -114,7 +116,7 @@ void define_wsv_data()
       "for a detailed description of the allowed continuum models. There\n"
       "should be one parameter vector here for each entry in\n"
       "`cont_description_names'.",
-      ArrayofVector_));
+      ArrayOfVector_));
 
 
   //--------------------< 1D Input Atmosphere Stuff >--------------------
@@ -138,7 +140,7 @@ void define_wsv_data()
       "1. Pressure in Pa\n"
       "2. VMR profile (absolute number)\n"
       "The array dimension is determined by the number of tag groups.", 
-      ArrayofMatrix_));
+      ArrayOfMatrix_));
 
 
   //--------------------< General Absorption Stuff >--------------------
@@ -170,7 +172,7 @@ void define_wsv_data()
       "Array coordinate is the profile index, i.e., the horizontal\n"
       "dimension. This dimension must be consistent with z_abs_2d,\n"
       "vmr_2d, and abs_2d.", 
-      ArrayofVector_));
+      ArrayOfVector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -179,7 +181,7 @@ void define_wsv_data()
       "Array coordinate is the profile index, i.e., the horizontal\n"
       "dimension. This dimension must be consistent with t_abs_2d,\n"
       "vmr_2d, and abs_2d.", 
-      ArrayofVector_));
+      ArrayOfVector_));
 
   wsv_data.push_back
     (WsvRecord
@@ -189,8 +191,8 @@ void define_wsv_data()
       "dimension. This dimension must be consistent with t_abs_2d\n"
       "z_abs_2d, and abs_2d."
       "\n"
-      "The matrix dimensions are [tag_groups.size(),p_abs.size()].", 
-      ArrayofMatrix_));
+      "The matrix dimensions are [tag_groups.nelem(),p_abs.nelem()].", 
+      ArrayOfMatrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -200,8 +202,8 @@ void define_wsv_data()
       "dimension. This dimension must be consistent with t_abs_2d\n"
       "and z_abs_2d."
       "\n"
-      "The matrix dimensions are [f_mono.size(),p_abs.size()].", 
-      ArrayofMatrix_));
+      "The matrix dimensions are [f_mono.nelem(),p_abs.nelem()].", 
+      ArrayOfMatrix_));
 
 
   //--------------------< 1D Absorption Stuff >--------------------
@@ -234,14 +236,14 @@ void define_wsv_data()
     (WsvRecord
      ("vmrs",
       "The VMRs (unit: absolute number) on the p_abs grid.\n"
-      "Dimensions: [tag_groups.size(), p_abs.size()]",
-      ArrayofVector_));
+      "Dimensions: [tag_groups.nelem(), p_abs.nelem()]",
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("abs",
       "The matrix of absorption coefficients (in units of [1/m]).\n"
-      "Dimensions: [f_mono.size(), p_abs.size()]",
+      "Dimensions: [f_mono.nelem(), p_abs.nelem()]",
       Matrix_));
 
   wsv_data.push_back
@@ -250,7 +252,7 @@ void define_wsv_data()
       "These are the absorption coefficients individually for each\n"
       "tag group. The Array contains one matrix for each tag group,\n"
       "the matrix format is the same as that of abs",
-      ArrayofMatrix_));
+      ArrayOfMatrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -258,7 +260,7 @@ void define_wsv_data()
       "These are the cross sections individually for each tag\n"
       "group. The Array contains one matrix for each tag group,\n"
       "the matrix format is the same as that of abs",
-      ArrayofMatrix_));
+      ArrayOfMatrix_));
 
 
   //--------------------< Hydrostatic equilibrium >--------------------
@@ -289,7 +291,7 @@ void define_wsv_data()
       "If this variable is set to 0 (zero) pure transmission calculations \n"
       "be simulated and, for example, yCalc will give optical thicknesses \n" 
       "instead of intensities.",
-      int_));
+      Index_));
 
   wsv_data.push_back
     (WsvRecord
@@ -334,7 +336,7 @@ void define_wsv_data()
     (WsvRecord
      ("refr",
       "Boolean to consider refraction (0=no refraction).",
-      int_));
+      Index_));
 
   wsv_data.push_back
     (WsvRecord
@@ -344,7 +346,7 @@ void define_wsv_data()
       "The step length applied is l_step divided by refr_lfac. \n" 
       "Accordingly, this factor gives how many ray tracing steps that are \n"
       "performed for each step of the LOS.",
-      int_));
+      Index_));
 
   wsv_data.push_back
     (WsvRecord
@@ -393,13 +395,13 @@ void define_wsv_data()
     (WsvRecord
      ("source",
       "Mean source functions between the points of the LOS.",
-      ArrayofMatrix_));
+      ArrayOfMatrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("trans",
       "The transmissions between the points of the LOS [-].",
-      ArrayofMatrix_));
+      ArrayOfMatrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -428,7 +430,7 @@ void define_wsv_data()
     (WsvRecord
      ("absloswfs",
       "Line of sight weighting functions.",
-      ArrayofMatrix_));
+      ArrayOfMatrix_));
 
   wsv_data.push_back
     (WsvRecord
@@ -448,7 +450,7 @@ void define_wsv_data()
     (WsvRecord
      ("k_names",
       "Name(s) on the retrieval identity associated with k.",
-      ArrayofString_));
+      ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
@@ -471,13 +473,13 @@ void define_wsv_data()
     (WsvRecord
      ("kx_names",
       "Names on the retrieval identities associated with kx.",
-      ArrayofString_));
+      ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
      ("kx_lengths",
       "The length of the state vector for each retrieval identity in kx.",
-      Arrayofsizet_));
+      ArrayOfIndex_));
 
   wsv_data.push_back
     (WsvRecord
@@ -496,13 +498,13 @@ void define_wsv_data()
     (WsvRecord
      ("kb_names",
       "Names on the model parameter identities associated with kb.",
-      ArrayofString_));
+      ArrayOfString_));
 
   wsv_data.push_back
     (WsvRecord
      ("kb_lengths",
       "The length of the model vector for each retrieval identity in kb.",
-      Arrayofsizet_));
+      ArrayOfIndex_));
 
   wsv_data.push_back
     (WsvRecord
@@ -609,19 +611,19 @@ void define_wsv_data()
     (WsvRecord
      ("s",
       "The covariance matrix for a single retrieval/error identity.",
-      SYMMETRIC_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("sx",
       "The covariance matrix associated with kx.",
-      SYMMETRIC_));
+      Matrix_));
 
   wsv_data.push_back
     (WsvRecord
      ("sb",
       "The covariance matrix associated with kb.",
-      SYMMETRIC_));
+      Matrix_));
 
 
 

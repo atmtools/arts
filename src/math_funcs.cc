@@ -36,11 +36,6 @@
 
    \author Patrick Eriksson
    \date 2000-09-18 
-
-   Adapted to MTL. Gone from 1-based to 0-based. Made non-return
-   versions do no resize. Used more generic algorithms in some cases.
-   \date 2000-12-25
-   \author Stefan Buehler
 */
 
 
@@ -50,36 +45,42 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include <time.h>
+#include <math.h>
+#include <stdexcept>
 #include "arts.h"
 #include "math_funcs.h"
 #include "make_vector.h"
+#include "array.h"
 
 
 //// mean and standard deviation ////////////////////////////////////////////
 //
 /** Calculates the mean of the rows of a matrix.
 
+    Dimensions of m and x must match!
+
     \retval  m   row means
     \param   x   a matrix
     
     \author Patrick Eriksson 
     \date   2000-12-06
-    
-    Made implementation `generic' using MTL sum algorithm.
-    \author Stefan Buehler
-    \date   2000-12-24
 */
-void mean_row( Vector& m, const Matrix& x )
+void mean_row( VectorView m, ConstMatrixView x )
 {
-  m = Vector(x.nrows());
+  assert( m.nelem()==x.nrows() );
 
   for ( Index i=0; i<x.nrows(); ++i ) 
     {
-      m[i] = mtl::sum(x[i])/x.ncols();
+      m[i] = x(i,Range(joker)).sum() / x.ncols();
+      // x(i,Range(joker)) picks out the ith row of x. The member
+      // function .sum computes the sum of all elements. This we just
+      // have to divide by the number of columns to get the mean.
     }
 }
 
 /** Calculates the standard deviation for the rows of a matrix.
+
+    Dimensions of s, x, and m must match! 
 
     \retval  s   row standard deviations
     \param   x   a matrix
@@ -87,29 +88,32 @@ void mean_row( Vector& m, const Matrix& x )
 
     \author Patrick Eriksson 
     \date   2000-12-06
-
-    Made implementation `generic' using MTL sum algorithm.
-    \author Stefan Buehler
-    \date   2000-12-24
 */
-void std_row( Vector& s, const Matrix& x, const Vector& m  )
+void std_row( VectorView s, ConstMatrixView x, ConstVectorView m  )
 {
   Vector d(x.ncols());		// We need this to store the deviation
 				// from the mean.
 
-  if ( x.nrows() != m.size() )
-    throw runtime_error("std_row: The size of the given mean profile "
-			"does not match the data.");
+  // Does the given mean provile match the number of rows of the matrix?
+  assert( m.nelem()==x.nrows() );
   
-  s = Vector(x.nrows());
+  // Does the result vector match the number of rows of the matrix?
+  assert( s.nelem()==x.nrows() );
   
   for ( Index i=0; i<x.nrows(); ++i ) 
     {
-      // Store -mean in d:
-      setto(d,-m[i]);
-      add(x[i],d);
-      ele_mult(d,d,d);
-      s[i] = mtl::sum(d) / (x.ncols()-1);
+      // Put the deviation form the mean into d
+      // d[j] = x[i,j]-m[j]
+      d = x(i,Range(joker));
+      d -= m[i];
+
+      // Now we have to compute the square of d element-vise:
+      d *= d;
+	
+      // Finally, take the sum and divide by the number of columns - 1.
+      // FIXME: Patrick, I know this is not new, but: Should there
+      // really be the -1 here?
+      s[i] = d.sum() / (x.ncols()-1);
     }  
 }
 
@@ -125,7 +129,7 @@ void std_row( Vector& s, const Matrix& x, const Vector& m  )
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Numeric first( const Vector& x )
+Numeric first( ConstVectorView x )
 {
   return x[0]; 
 }
@@ -138,9 +142,9 @@ Numeric first( const Vector& x )
     \author Patrick Eriksson 
     \date   2000-06-27
 */
-Numeric last( const Vector& x )
+Numeric last( ConstVectorView x )
 {
-  return x[x.size()-1]; 
+  return x[x.nelem()-1]; 
 }
 
 
@@ -158,14 +162,10 @@ Numeric last( const Vector& x )
 
     \author Patrick Eriksson
     \date   2000-06-27
-
-   Adapted to MTL. Gone from 1-based to 0-based. 
-   \date 2000-12-25
-   \author Stefan Buehler
 */
-bool any( const Arrayofsizet& x ) 
+bool any( const ArrayOfIndex& x ) 
 {
-  for ( size_t i=0; i<x.size(); i++ ) {
+  for ( Index i=0; i<x.nelem(); i++ ) {
     if ( x[i] )
       return true;
   }
@@ -184,7 +184,7 @@ bool any( const Arrayofsizet& x )
     \author Patrick Eriksson
     \date   2001-04-19
 */
-bool isbool( const int& x ) 
+bool isbool( const Index x ) 
 {
   if ( x==0 || x==1 )
     return true;
@@ -207,6 +207,8 @@ bool isbool( const int& x )
     The step can be both positive and negative. 
     (in Matlab notation: start:step:stop)
 
+    Size of result is adjusted within this function!
+
     \retval   x       linearly spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
@@ -214,10 +216,6 @@ bool isbool( const int& x )
 
     \author Patrick Eriksson
     \date   2000-06-27
-
-    Adapted to MTL. Gone from 1-based to 0-based. 
-    \date 2000-12-25
-    \author Stefan Buehler
 */
 void linspace(                      
               Vector&     x,           
@@ -225,11 +223,11 @@ void linspace(
 	      const Numeric     stop,        
 	      const Numeric     step )
 {
-  int n = (int) floor( (stop-start)/step ) + 1;
+  Index n = (Index) floor( (stop-start)/step ) + 1;
   if ( n<1 )
     n=1;
-  x = Vector(n);
-  for ( int i=0; i<n; i++ )
+  x.resize(n);
+  for ( Index i=0; i<n; i++ )
     x[i] = start + i*step;
 }
 
@@ -273,22 +271,17 @@ Vector linspace(
 
     \author Patrick Eriksson
     \date   2000-06-27
-
-    Adapted to MTL. Gone from 1-based to 0-based. 
-    \date 2000-12-25
-    \author Stefan Buehler
 */
 void nlinspace(         
 	       Vector&     x, 
 	       const Numeric     start,     
 	       const Numeric     stop,        
-	       const int         n )
+	       const Index       n )
 {
-  if ( n<2 )
-    throw runtime_error("nlinspace: The number of points must be > 1"); 
-  x = Vector(n);
+  assert( 1<n );		// Number of points must be greatere 1.
+  x.resize(n);
   Numeric step = (stop-start)/(n-1) ;
-  for ( int i=0; i<n; i++ )
+  for ( Index i=0; i<n; i++ )
     x[i] = start + i*step;
 }
 
@@ -310,7 +303,7 @@ void nlinspace(
 Vector nlinspace(                 // As above but return version
 		 const Numeric start, 
 		 const Numeric stop,  
-		 const int     n )
+		 const Index     n )
 {
   Vector x;
   nlinspace( x, start, stop, n );
@@ -334,29 +327,26 @@ Vector nlinspace(                 // As above but return version
 
     \author Patrick Eriksson
     \date   2000-06-27
-
-    Adapted to MTL. Gone from 1-based to 0-based. 
-    \date 2000-12-25
-    \author Stefan Buehler
 */
 void nlogspace(         
 	       Vector&     x, 
 	       const Numeric     start,     
 	       const Numeric     stop,        
-	       const int         n )
+	       const Index         n )
 {
-  if ( n<2 )
-    throw runtime_error("nlogspace: The number of points must be > 1"); 
-  if ( (start<=0) || (stop<=0) )
-    throw runtime_error("nlogspace: Only positive numbers are allowed"); 
-  x = Vector(n);
+  // Number of points must be greatere 1:
+  assert( 1<n );	
+  // Only positive numbers are allowed for start and stop:
+  assert( 0<start );
+  assert( 0<stop );
+
+  x.resize(n);
   Numeric a = log(start);
-  Numeric step = (log(stop)-a)/(n-1) ;
+  Numeric step = (log(stop)-a)/(n-1);
   x[0] = start;
-  for ( int i=1; i<n-1; i++ )
+  for ( Index i=1; i<n-1; i++ )
     x[i] = exp(a + i*step);
   x[n-1] = stop;
-  //  cout << "x: " << x << "\n";
 }
 
 /** Logarithmically spaced vector with specified length (return version). 
@@ -377,7 +367,7 @@ void nlogspace(
 Vector nlogspace(  
 		 const Numeric start, 
 		 const Numeric stop,  
-		 const int     n )
+		 const Index     n )
 {
   Vector x;
   nlogspace( x, start, stop, n );
@@ -391,11 +381,78 @@ Vector nlogspace(
 //   Random data
 /////////////////////////////////////////////////////////////////////////////
 
-//// rand_uniform ///////////////////////////////////////////////////////////
-// Is now a template function, hence has to reside in math_funcs.h
+//// rand_uniform ////////////////////////////////////////////////////
+/**
+   Creates a vector with random data uniformerly distributed between
+   the lower and higher limit given.
 
-//// rand_gaussian ///////////////////////////////////////////////////////////
-// Now a template function and hence in math_funcs.h
+   The random data is uncorrelated. The length of the random vector is
+   taken from r.nelem().
+
+   \retval   r          random vector
+   \param    x_low      lower limit for the random values
+   \param    x_high     upper limit for the random data
+
+   \author Patrick Eriksson
+   \date   2000-11-26
+*/
+void rand_uniform(
+		  VectorView  r,
+		  const Numeric     x_low,
+		  const Numeric     x_high )
+{
+  Numeric dx = x_high-x_low;
+
+  for ( Index i=0; i<r.nelem(); i++ )
+    r[i] = x_low + dx * (Numeric(rand())/Numeric(RAND_MAX));
+}
+
+
+//// rand_gaussian ////////////////////////////////////////////////////
+/**
+   Creates a gaussian random vector with zero mean and 
+   the standard deviation given.
+
+   The random data is uncorrelated. The length of the random vector to
+   generate is taken from r.nelem().
+
+   The algorith is taken from Numerical Recipies, Section 7.2. 
+   See www.nr.com.
+
+   \retval   r          random vector
+   \param    s          standard deviation
+
+   \author Patrick Eriksson
+   \date   2000-11-27
+*/
+void rand_gaussian(
+		   VectorView       r,
+		   const Numeric   s )
+{
+  Vector  z(2);    // A vector of length 2 with uniform PDF between -1 and 1
+  Numeric rad;     // The radius cooresponding to z
+  Numeric fac;     // Normalisation factor
+ 
+  const Index n = r.nelem();
+
+  for ( Index i=0; i<n; )
+  {
+    rand_uniform( z, -1, 1 );
+    rad = z[0]*z[0] + z[1]*z[1];
+
+    if ( (rad<1) && (rad>0) )
+    {
+      fac = sqrt( -2*log(rad)/rad );
+      r[i] = s*fac*z[0];
+      i++;
+      if ( i < n )
+      {
+        r[i] = s*fac*z[1];        
+        i++;
+      }
+    }
+  }
+}
 
 //// rand_matrix_uniform ////////////////////////////////////////////////////
 /**
@@ -412,13 +469,17 @@ Vector nlogspace(
    \date   2000-12-07
 */
 void rand_matrix_uniform(
-		  Matrix&    m,
-		  const Numeric&   x_low,
-		  const Numeric&   x_high )
+			 MatrixView       m,
+			 const Numeric   x_low,
+			 const Numeric   x_high )
 {
   for ( Index i=0; i<m.nrows(); ++i )
   {
-    rand_uniform( m[i], x_low, x_high );
+    rand_uniform( m(i,Range(joker)), x_low, x_high );
+    // Matpack: m(i,Range(joker)) picks out the ith row of m. Because
+    // rand_uniform takes an argument of type VectorView, it is
+    // perfectly ok to call it with the row of a matrix. No
+    // temporaries needed!
   }
 }
 
@@ -440,16 +501,18 @@ void rand_matrix_uniform(
    \date   2000-12-07
 */
 void rand_matrix_gaussian(
-		         Matrix&    m,
-		   const Numeric&   s )
+			  MatrixView    m,
+			  const Numeric      s )
 {
   for ( Index i=0; i<m.nrows(); ++i )
   {
-    rand_gaussian( m[i], s );
+    rand_gaussian( m(i,Range(joker)), s );
+    // Matpack: m(i,Range(joker)) picks out the ith row of m. Because
+    // rand_uniform takes an argument of type VectorView, it is
+    // perfectly ok to call it with the row of a matrix. No
+    // temporaries needed!
   }
 }
-
-
 
 //// rand_data_gaussian ////////////////////////////////////////////////////
 /**
@@ -467,89 +530,174 @@ void rand_matrix_gaussian(
 
    \author Patrick Eriksson
    \date   2000-12-07
-
-   Adapted to MTL. Gone from 1-based to 0-based. No resize for
-   non-return versions.
-   \date 2000-12-25
-   \author Stefan Buehler
 */
 void rand_data_gaussian(
-		              Matrix&       z,
-			const Vector&       z0,
-			const SYMMETRIC&    s )
+			MatrixView       z,
+			ConstVectorView  z0,
+			ConstMatrixView   s )
 {
-  Index n = z.ncols();
+  const Index n = z.ncols();
 
-  const size_t   nrows = z0.size();
-        size_t   col;
+  const Index   nrows = z0.nelem();
+  Index         col;
 
-  if ( nrows != s.nrows() )
-    throw runtime_error("The length of the mean vector and the size of the covariance matrix do not match."); 
+  // Check that s really is a square matrix:
+  assert( s.ncols()==s.nrows() );
+  
+  // Check that the length of the mean vector is consistent with s: 
+  assert ( nrows==s.nrows() );
 
   // Make Cholesky decomposition of s, l'*l=s
   Matrix   l(nrows,nrows);
-  setto(l,0.0);
+  l = 0;			// Matpack can assign a scalar to all
+				// elements of a matrix like this.
   chol(l,s);
 
   // Create matrix with gaussian data having zero mean and standard deviation 1
   Matrix   r(nrows,n);
   rand_matrix_gaussian( r, 1 );
 
-  // Multiply l and r to get z
-  mult(l,r,z);
+  // Multiply l and r to get z. Note that the order in Matpack is
+  // different from how it used to be with MTL.
+  mult(z,l,r);
 
   // Add mean vector
   for ( col=0; col<n; col++ )
-    add(z0,columns(z)[col]);
+    z(Range(joker),col) += z0;
+  // z(Range(joker),col) picks out a column of z. The += operator adds
+  // the vector z0 to this element-vise.
 }
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//   Conversions between Vector and Matrix types
-/////////////////////////////////////////////////////////////////////////////
-
-//// to_vector //////////////////////////////////////////////////////////////
-//
-/** Conversion of a matrix to a vector.
-
-    The matrix can either be a column (n x 1) or row (1 x n) vector.
-
-    Uses MTL functionality. Adapted from the old to_vector.
-
-    \retval  x       the vector, length n
-    \param   W       matrix, size (n x 1) or (1 x n)
-
-    @exception runtime_error None of the dimensions of W was 1.
-
-    \author Stefan Buehler 
-    \date   2001-01-06
-*/
-void to_vector(Vector& x, const Matrix& W)
-{
-  // Check if one of the dimensions of W is 1:
-  if ( 1 == W.ncols() )
-    {
-      //      col(x,1,W);
-      resize( x, W.nrows() );
-      copy( columns(W)[0], x );
-    }
-  else if ( 1 == W.nrows() )
-    {
-      //      row(x,1,W);
-      resize( x, W.ncols() );
-      copy( W[0], x );
-    }
-  else
-    throw runtime_error("You tried to convert a matrix to a vector,\n"
-			"but none of the dimensions is 1.");
-}
-
 
 
 ////////////////////////////////////////////////////////////////////////////
 //   Interpolation routines
 ////////////////////////////////////////////////////////////////////////////
+
+/** Local help function to check input grids.
+
+    \date   2000-06-29
+    \author Patrick Eriksson 
+*/
+Index interp_check( ConstVectorView  x,        
+		    ConstVectorView  xi,
+		    const Index   n_y )
+{
+  const Index  n  = x.nelem();
+  const Index  ni = xi.nelem();
+  Index  order=1;          // flag for pos. or neg. order, assume pos.
+
+  // Determine the order, -1=decreasing and 1=increasing
+  if ( x[0] > x[n-1] )
+    order = -1;
+
+  if ( n < 2 )
+    throw runtime_error("Vector length for interpolation must be >= 2.");
+
+  if ( n != n_y ) 
+    throw runtime_error("Sizes of input data to interpolation do not match.");
+
+  if ( (order*xi[0]<order*x[0]) || (order*xi[ni-1]>order*x[n-1]) ) 
+    {
+      ostringstream os;
+      os << "Interpolation points must be inside the original range.\n"
+	 << "Int.:  xi[0] = " << xi[0] << ", xi[ni-1] = " << xi[ni-1] << '\n'
+	 << "Orig.: x[0]  = " << x[0]  << ", x[n-1]   = " << x[n-1];
+      throw runtime_error(os.str());
+    }
+
+  for ( Index i=0; i<n-1; i++ )
+  {
+    if ( order*x[i+1] < order*x[i] ) 
+      throw runtime_error("Original interpolation grid must be ordered");
+  }
+
+  for ( Index i=0; i<ni-1; i++ )
+  {
+    if ( order*xi[i+1] < order*xi[i] ) 
+      throw runtime_error("Interpolation points must be ordered");
+  }
+
+  return order;
+}
+
+/** Multiple linear interpolation of a vector. Because Views are used,
+    you can use matrix rows or columns, or vector sub-ranges inside
+    the argument of this function.
+
+    The vector x specifies the points at which the data y is given. 
+
+    The size of yi has to be the same as for xi.
+
+    \retval  yi      interpolated values 
+    \param   x       the x grid
+    \param   y       the function to interpolate
+    \param   xi      interpolation points
+
+    \date   2001-01-05
+    \author Stefan Buehler
+*/
+void interp_lin_vector( VectorView       yi,
+			ConstVectorView  x, 
+			ConstVectorView  y, 
+			ConstVectorView  xi )
+{
+  // Check grids and get order of grids
+  Index order = interp_check( x, xi, y.nelem() ); 
+
+  Index        i, j=0;
+  const Index  n=xi.nelem();
+  Numeric      w;
+
+  // Check that output vector has the right size:
+  assert( n==yi.nelem() ); 
+
+  for ( i=0; i<n; i++ )
+  {
+    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
+    w = (xi[i]-x[j]) / (x[j+1]-x[j]);
+    yi[i] = y[j] + w * (y[j+1]-y[j]); 
+  }
+}      
+
+/** Multiple linear interpolation of matrix rows. Works with subranges
+    inside the argument. Use the transpose(A) function if you want to
+    interpolate columns of A instead of rows.
+
+    The vector x specifies the points at which the data y is given. 
+
+    \retval  Yi      interpolated values (matrix)
+    \param   x       the x grid (vector)
+    \param   Y       the function to interpolate (matrix)
+    \param   xi      interpolation points (vector)
+
+    \date   2001-01-06
+    \author Stefan Buehler
+*/
+void interp_lin_matrix(    
+		       MatrixView        Yi,
+		       ConstVectorView   x, 
+		       ConstMatrixView   Y, 
+		       ConstVectorView   xi )
+{
+  // Check grids and get order of grids
+  Index order = interp_check( x, xi, Y.ncols() ); 
+
+  Index      j=0, n=xi.nelem(), nrow=Y.nrows();
+  Numeric    w;
+
+  assert( nrow == Yi.nrows() );
+  assert( n    == Yi.ncols() );
+
+  for (Index i=0; i<n; i++ )
+  {
+    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
+    w = (xi[i]-x[j]) / (x[j+1]-x[j]);
+    for( Index k=0; k<nrow; k++ )
+    {
+      Yi(k,i) = Y(k,j) + w * (Y(k,j+1)-Y(k,j));
+    }
+  }
+}        
 
 /** Single linear interpolation of a vector (return version).
 
@@ -564,13 +712,17 @@ void to_vector(Vector& x, const Matrix& W)
     \date   2000-06-29
 */
 Numeric interp_lin(
-        const Vector&  x, 
-        const Vector&  y, 
-        const Numeric  xi )
+		   ConstVectorView  x, 
+		   ConstVectorView  y, 
+		   const Numeric  xi )
 {
-  Vector yi(1); 
-  interp_lin_vector( yi, x, y, make_vector(xi) );
-  return yi[0];
+  Vector Yi(1);
+  MakeVector Xi(xi);   // MakeVector is a special kind of vector that
+		       // can be initialized explicitly with one or
+		       // more arguments of type Numeric. 
+
+  interp_lin_vector( Yi, x, y, Xi );
+  return Yi[0];
 }        
 
 
@@ -584,8 +736,8 @@ Numeric interp_lin(
 
 /** Choleski factorization (columnwise version). 
 
-    Given s positive definite, the upper triangular matrix z with 
-    positive diagonal elements such as c=r'*r is calculated.
+    Given c positive definite, the upper triangular matrix r with 
+    positive diagonal elements such that c=r'*r is calculated.
     Algorithm used from Numerical Methods, Åke Björck, 1990, p46.
 
     \retval   r       Choleski factor of c
@@ -593,18 +745,18 @@ Numeric interp_lin(
  
     \author Carlos Jimenez
     \date   2001-02-14
-
-    Adapted to MTL.
 */
 
 void chol(
-                Matrix&       r, 
-          const SYMMETRIC&    c )
+	  MatrixView         r, 
+          ConstMatrixView    c )
 {
   const Index nrows = c.nrows(), ncols = c.ncols();
   Index j, i, k;
   Numeric a = 0;
 
+  assert( nrows == ncols    );	// This makes only sense for square
+				// matrices, doesn't it?
   assert( nrows == r.nrows());
   assert( ncols == r.ncols());
 
@@ -618,34 +770,33 @@ void chol(
         if (i>0)
 	{
           for (k=0; k<i; ++k)
-	      a = a + r[k][i] * r[k][j];
+	      a = a + r(k,i) * r(k,j);
 	}  
-        r[i][j] = ( c[i][j] - a ) / r[i][i];       
+        r(i,j) = ( c(i,j) - a ) / r(i,i);       
       }
     
       a = 0;
       for (k=0; k<j; ++k)
-	 a = a + r[k][j] * r[k][j];
+	 a = a + r(k,j) * r(k,j);
       
     }
-    r[j][j] = sqrt( c[j][j] - a);
+    r(j,j) = sqrt( c(j,j) - a);
     
   }
 
-
-  // Checking that it works, if r is positive definite it does not
+  // Checking that it works, if c is not positive definite it does not.
   for (i=0; i<nrows; ++i)
     for (j=0; j<nrows; ++j)    
-      if ( isnan(r[i][j]) & isinf(r[i][j]) )
+      if ( isnan(r(i,j)) || isinf(r(i,j)) )
       {
+	// 2001-09-15 FIXME: Patrick, I changed the condition above to
+	// or. Before it was just a single &, I believe this was a
+	// bug. Please verify. - Stefan
         ostringstream os;
-        os << "Choleski decomposition does not work, s positive definite? \n";
+        os << "Choleski decomposition does not work, c positive definite? \n";
         throw runtime_error(os.str());
       }
-
 }
-
-
 
 /////////////////////////////////////////////////////////////////////////////
 //   Assert functions
@@ -663,7 +814,7 @@ void chol(
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_bool( const int& x, const string& x_name ) 
+void assert_bool( const Index& x, const String& x_name ) 
 {
   if ( !(x==0 || x==1) )
   {
@@ -690,16 +841,16 @@ void assert_bool( const int& x, const string& x_name )
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_lengths( const Vector& x1, const string& x1_name,
-                     const Vector& x2, const string& x2_name ) 
+void assert_lengths( const Vector& x1, const String& x1_name,
+                     const Vector& x2, const String& x2_name ) 
 {
-  if ( x1.size() != x2.size() )
+  if ( x1.nelem() != x2.nelem() )
   {
     ostringstream os;
     os << "The vectors " << x1_name <<  " and " << x2_name << "\n"
        << "must have the same lengths. \nThe lengths are: \n"
-       << x1_name << ": " << x1.size() << "\n"
-       << x2_name << ": " << x2.size() << "\n";
+       << x1_name << ": " << x1.nelem() << "\n"
+       << x2_name << ": " << x2.nelem() << "\n";
     throw runtime_error( os.str() );
   }
 }
@@ -722,15 +873,15 @@ void assert_lengths( const Vector& x1, const string& x1_name,
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_length_nrow( const Vector& x, const string& x_name,
-                         const Matrix& A, const string& A_name ) 
+void assert_length_nrow( const Vector& x, const String& x_name,
+                         const Matrix& A, const String& A_name ) 
 {
-  if ( x.size() != A.nrows() )
+  if ( x.nelem() != A.nrows() )
   {
     ostringstream os;
     os << "The length of vector " << x_name <<  " must be the same as \n"
        << "the number of rows of " << A_name << ".\n"
-       << "The length of " << x_name <<  " is " << x.size() << ".\n"
+       << "The length of " << x_name <<  " is " << x.nelem() << ".\n"
        << "The number of rows of " << A_name <<  " is " << A.nrows() << ".\n";
     throw runtime_error( os.str() );
   }
@@ -754,20 +905,17 @@ void assert_length_nrow( const Vector& x, const string& x_name,
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_length_ncol( const Vector& x, const string& x_name,
-                         const Matrix& A, const string& A_name ) 
+void assert_length_ncol( const Vector& x, const String& x_name,
+                         const Matrix& A, const String& A_name ) 
 {
-  if ( x.size() != A.ncols() )
+  if ( x.nelem() != A.ncols() )
   {
     ostringstream os;
     os << "The length of vector " << x_name <<  " must be the same as \n"
        << "the number of columns of " << A_name << ".\n"
-       << "The length of " << x_name <<  " is " << x.size() << ".\n"
+       << "The length of " << x_name <<  " is " << x.nelem() << ".\n"
        << "The number of columns of " << A_name <<  " is " << A.ncols()
        << ".\n";
     throw runtime_error( os.str() );
   }
 }
-
-
-

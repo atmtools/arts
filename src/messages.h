@@ -39,6 +39,9 @@
 #ifndef messages_h
 #define messages_h
 
+#include <fstream>
+#include "arts.h"
+
 /**
    The verbosity level for screen and file output. There are four
    different output streams: out0, out1, out2, and out3. They have different
@@ -62,9 +65,9 @@ public:
       level is set explicitly in main. */
   Messages() : screen(-1), file(-1) { /* nothing to do here */ }
   /** Verbosity of screen output. */
-  int screen;
+  Index screen;
   /** Verbosity of file output. */
-  int file;
+  Index file;
 };
 
 
@@ -78,7 +81,7 @@ public:
     \author Stefan Buehler 
     \see Messages  */
 template<class T> 
-void MessagePrint(ostream& os, int priority, const T& t)
+void MessagePrint(ostream& os, Index priority, const T& t)
 {
   extern Messages messages;
   extern ofstream report_file;

@@ -28,11 +28,12 @@
   \date   2000-08-04 */
 
 #include "arts.h"
-#include "vecmat.h"
+#include "array.h"
+#include "mystring.h"
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
-Array<String> wsv_group_names;
+ArrayOfString wsv_group_names;
 
 
 //! Define the array of workspace variable group names.
@@ -52,24 +53,22 @@ void define_wsv_group_names()
 
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
-  resize(wsv_group_names,0);
+  wsv_group_names.resize(0);
 
   wsv_group_names.push_back("String");
-  wsv_group_names.push_back("size_t");
-  wsv_group_names.push_back("int");
+  wsv_group_names.push_back("Index");
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Matrix");
-  wsv_group_names.push_back("SYMMETRIC");
-  wsv_group_names.push_back("ArrayofString");
-  wsv_group_names.push_back("Arrayofsizet");
-  wsv_group_names.push_back("ArrayofVector");
-  wsv_group_names.push_back("ArrayofMatrix");
+  wsv_group_names.push_back("ArrayOfString");
+  wsv_group_names.push_back("ArrayOfIndex");
+  wsv_group_names.push_back("ArrayOfVector");
+  wsv_group_names.push_back("ArrayOfMatrix");
   wsv_group_names.push_back("LOS");
-  wsv_group_names.push_back("ArrayofLineRecord");
-  wsv_group_names.push_back("ArrayofArrayofLineRecord");
+  wsv_group_names.push_back("ArrayOfLineRecord");
+  wsv_group_names.push_back("ArrayOfArrayOfLineRecord");
   wsv_group_names.push_back("TagGroups");
   wsv_group_names.push_back("Hmatrix");
-  wsv_group_names.push_back("ArrayofLineshapeSpec");
+  wsv_group_names.push_back("ArrayOfLineshapeSpec");
 }
 

@@ -19,3 +19,4 @@ auto_md.cc
 auto_wsv.h
 auto_wsv_groups.h
 auto_wsv_pointers.cc
+test_matpack

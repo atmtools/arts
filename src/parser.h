@@ -21,7 +21,6 @@
 #ifndef parser_h
 #define parser_h
 
-#include "vecmat.h"
 #include "token.h"
 
 /** Method runtime data. In contrast to MdRecord, an object of this
@@ -35,37 +34,32 @@
     @author Stefan Buehler */
 class MRecord {
 public:
-  MRecord(const int id,
+  MRecord(const Index id,
 	  const Array<TokVal>& values,
-	  const Array<size_t>& output,
-	  const Array<size_t>& input)
+	  const ArrayOfIndex& output,
+	  const ArrayOfIndex& input)
     : mid(id),
-      mvalues( values.size() ),
-      moutput( output.size() ),
-      minput(  input.size()  )
+      mvalues( values ),
+      moutput( output ),
+      minput(  input  )
   { 
-    // We need to use copy to initialize the Array members. If we use
-    // the assignment operator they end up all pointing to the same
-    // data!
-    copy(values, mvalues);
-    copy(output, moutput);
-    copy(input,  minput);
+    // Initialization of arrays from other array now works correctly.
   }
-  int                  Id()     const { return mid;     }
+  Index                  Id()     const { return mid;     }
   const Array<TokVal>& Values() const { return mvalues; }
-  const Array<size_t>& Output() const { return moutput; }
-  const Array<size_t>& Input()  const { return minput;  }
+  const ArrayOfIndex& Output() const { return moutput; }
+  const ArrayOfIndex& Input()  const { return minput;  }
 
 private:
   /** Method id. */
-  int mid;
+  Index mid;
   /** List of parameter values (see methods.h for definition of
       TokVal). */
   Array<TokVal> mvalues;
   /** Output workspace variables (for generic methods). */
-  Array<size_t> moutput;
+  ArrayOfIndex moutput;
   /** Input workspace variables (for generic methods). */
-  Array<size_t> minput;
+  ArrayOfIndex minput;
 };
 
 
@@ -88,7 +82,7 @@ public:
 
   /** Appends contents of file to the source text.
       @see read_text_from_file */
-  void AppendFile(const string& name);
+  void AppendFile(const String& name);
 
   /** Return the current character. */
   char Current() {
@@ -107,14 +101,14 @@ public:
   void AdvanceLine();
 
   /** Return the filename associated with the current position. */
-  const string& File();
+  const String& File();
 
   /** Return the line number, but for the file that is associated
       with the current position. */
-  int Line();
+  Index Line();
 
   /** Return the current column. */
-  int Column() { return mColumn+1; }
+  Index Column() { return mColumn+1; }
 
   /** This sets the pointer to the first existing character in the
       text. (First few lines could be empty). */
@@ -134,19 +128,19 @@ public:
 private:
 
   /** The text. */
-  Array<string> mText;
+  ArrayOfString mText;
 
   /** Line position in the text. (0 based!) */
-  size_t mLine;
+  Index mLine;
 
   /** Column position in the text. (0 based!) */
-  size_t mColumn;
+  Index mColumn;
 
   /** Remember where which source file starts. */
-  vector<size_t> mSfLine;
+  ArrayOfIndex mSfLine;
 
   /** Names associated with @see mSfLine. */
-  vector<string> mSfName;
+  ArrayOfString mSfName;
 
   /** Is set to true if the last operation caused a line
       break. Has to be cleared explicitly! */

@@ -71,7 +71,10 @@
    \date   2001-03-27
 */
 
-#include "vecmat.h"
+#include <math.h>
+#include "arts.h"
+#include "matpackI.h"
+#include "array.h"
 #include "absorption.h"
 #include "messages.h"
 #include "continua.h"
@@ -144,20 +147,20 @@
    \author Thomas Kuhn
    \date 2001-08-03
  */ 
-void Rosenkranz_H2O_self_continuum( Matrix&           xsec,
+void Rosenkranz_H2O_self_continuum( MatrixView           xsec,
 				    Numeric	      C,
 				    Numeric	      x,
-				    const Vector&     f_mono,
-				    const Vector&     p_abs,
-				    const Vector&     t_abs,
-				    const Vector&     vmr	 )
+				    ConstVectorView     f_mono,
+				    ConstVectorView     p_abs,
+				    ConstVectorView     t_abs,
+				    ConstVectorView     vmr	 )
 {
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -165,7 +168,7 @@ void Rosenkranz_H2O_self_continuum( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop over pressure/temperature grid:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The second vmr of H2O will be multiplied at the stage of absorption 
@@ -174,10 +177,10 @@ void Rosenkranz_H2O_self_continuum( Matrix&           xsec,
 	C * pow( 300./t_abs[i], x+3. ) * pow( p_abs[i], 2 ) * vmr[i];
 
       // Loop over frequency grid:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += dummy * pow( f_mono[s], 2 );
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -205,20 +208,20 @@ void Rosenkranz_H2O_self_continuum( Matrix&           xsec,
    \author Thomas Kuhn
    \date 2001-08-03
  */ 
-void Rosenkranz_H2O_foreign_continuum( Matrix&           xsec,
+void Rosenkranz_H2O_foreign_continuum( MatrixView           xsec,
 				       Numeric	         C,
 				       Numeric	         x,
-				       const Vector&     f_mono,
-				       const Vector&     p_abs,
-				       const Vector&     t_abs,
-				       const Vector&     vmr	 )
+				       ConstVectorView     f_mono,
+				       ConstVectorView     p_abs,
+				       ConstVectorView     t_abs,
+				       ConstVectorView     vmr	 )
 {
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -226,7 +229,7 @@ void Rosenkranz_H2O_foreign_continuum( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // Dry air partial pressure: p_dry := p_tot - p_h2o.
       Numeric pdry  = p_abs[i] * (1.000e0-vmr[i]);
@@ -236,10 +239,10 @@ void Rosenkranz_H2O_foreign_continuum( Matrix&           xsec,
       Numeric dummy = C * pow( 300./t_abs[i], x+3. ) * p_abs[i] * pdry;
 
       // Loop frequency:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += dummy * pow( f_mono[s], 2 );
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -320,12 +323,12 @@ Numeric MPMLineShapeO2Function( Numeric gamma,
 //
 // #################################################################################
 //
-void MPM93O2AbsModel( Matrix&           xsec,
-		      const Vector&     f_mono,
-		      const Vector&     p_abs,
-		      const Vector&     t_abs,
-		      const Vector&     h2o_abs,
-		      const Vector&     vmr )
+void MPM93O2AbsModel( MatrixView           xsec,
+		      ConstVectorView     f_mono,
+		      ConstVectorView     p_abs,
+		      ConstVectorView     t_abs,
+		      ConstVectorView     h2o_abs,
+		      ConstVectorView     vmr )
 {
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -379,20 +382,20 @@ void MPM93O2AbsModel( Matrix&           xsec,
     {  834.145330,      18.000,      0.147,    1.810 ,    0.6,   0.000,    0.000}};
 
   // number of lines of Liebe O2-line catalogue (0-43 lines)
-  const size_t i_first = 0;
-  const size_t i_last  = 43;
+  const Index i_first = 0;
+  const Index i_last  = 43;
   
   // O2 continuum parameters of MPM93:
   const Numeric	S0 =  6.140e-5; // line strength                        [ppm]
   const Numeric G0 =  0.560e-3; // line width                           [GHz/hPa]
   const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -400,7 +403,7 @@ void MPM93O2AbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -417,7 +420,7 @@ void MPM93O2AbsModel( Matrix&           xsec,
 	  Numeric gam_cont      =  G0 * (pwv+pda) *  pow( theta, X0 ); // GHz
 
 	  // Loop over input frequency
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff = f_mono[s] * 1.00e-9; 
@@ -429,7 +432,7 @@ void MPM93O2AbsModel( Matrix&           xsec,
 
 	      // Loop over MPM93 O2 spectral lines:
 	      Numeric lineSF  = 0.0;
-	      for ( size_t l = i_first; l <= i_last; ++l )
+	      for ( Index l = i_first; l <= i_last; ++l )
 		{
 		  // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
 		  Numeric strength = 1.000e-6 * mpm93[l][1] / mpm93[l][0] * pda * 
@@ -450,11 +453,11 @@ void MPM93O2AbsModel( Matrix&           xsec,
 	      // O2 line absorption [1/m]
 	      // cross section: xsec = absorption / var
 	      // the vmr of O2 will be multiplied at the stage of absorption calculation:
-	      xsec[s][i] += 0.001 / (10.000*log10(2.718281828)) * 0.182 * ff * (lineSF+contSF) / vmr[i];
+	      xsec(s,i) += 0.001 / (10.000*log10(2.718281828)) * 0.182 * ff * (lineSF+contSF) / vmr[i];
 	    }
 	} else {
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s ) xsec[s][i] = 0.000;
+	  for ( Index s=0; s<n_f; ++s ) xsec(s,i) = 0.000;
 	}
     }
   return;
@@ -474,11 +477,11 @@ void MPM93O2AbsModel( Matrix&           xsec,
 			  // Numeric	    MPM93b4pcl, // default: 30.5
 			  // Numeric	    MPM93b5pcl, // default: 2
 			  // Numeric	    MPM93b6pcl, // default: 5
-void MPM93_H2O_continuum( Matrix&           xsec,
-			  const Vector&     f_mono,
-			  const Vector&     p_abs,
-			  const Vector&     t_abs,
-			  const Vector&     vmr	 )
+void MPM93_H2O_continuum( MatrixView           xsec,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr	 )
 {
 
   // pseudo continuum line parameters for MPM93:
@@ -490,12 +493,12 @@ void MPM93_H2O_continuum( Matrix&           xsec,
   const Numeric	MPM93b5pcl =     2.000;    // default: 2
   const Numeric	MPM93b6pcl =     5.000;    // default: 5
   
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -504,7 +507,7 @@ void MPM93_H2O_continuum( Matrix&           xsec,
   
 
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       Numeric th = 300.0 / t_abs[i];
       // the vmr of H2O will be multiplied at the stage of absorption calculation:
@@ -514,12 +517,12 @@ void MPM93_H2O_continuum( Matrix&           xsec,
 	           ( MPM93b4pcl * p_abs[i] * vmr[i]       * pow( th, MPM93b6pcl ) +  
 	                          p_abs[i]*(1.000-vmr[i]) * pow( th, MPM93b5pcl ) );
       // Loop frequency:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
+	  xsec(s,i) += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
 	                f_mono[s] * strength * 
 	                MPMLineShapeFunction(gam, MPM93fopcl, f_mono[s]); 
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -531,12 +534,12 @@ void MPM93_H2O_continuum( Matrix&           xsec,
 //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
 // and ftp side for downloading the MPM93 original source code:
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-void MPM93_O2_continuum( Matrix&           xsec,
-			 const Vector&     f_mono,
-			 const Vector&     p_abs,
-			 const Vector&     t_abs,
-			 const Vector&     h2o_abs,
-			 const Vector&     vmr	 )
+void MPM93_O2_continuum( MatrixView           xsec,
+			 ConstVectorView     f_mono,
+			 ConstVectorView     p_abs,
+			 ConstVectorView     t_abs,
+			 ConstVectorView     h2o_abs,
+			 ConstVectorView     vmr	 )
 {
 
   // O2 continuum parameters of MPM93:
@@ -544,12 +547,12 @@ void MPM93_O2_continuum( Matrix&           xsec,
   const Numeric G0 =  0.560e-3; // line width
   const Numeric	X0 =  0.800;    // temperature dependence of line width
   
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -558,7 +561,7 @@ void MPM93_O2_continuum( Matrix&           xsec,
   
 
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       if (vmr[i] > VMRCalcLimit) // make sure that division by zero is excluded
 	{
@@ -567,20 +570,20 @@ void MPM93_O2_continuum( Matrix&           xsec,
 	  Numeric gam      =  G0 * 0.01 * p_abs[i] *  pow( th, X0 ); // GHz
 	  
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      Numeric f = f_mono[s] * 1.00e-9; // frequency in GHz
 	      // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	      // abs / vmr * xsec.
-	      xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
+	      xsec(s,i) += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
 	 	            f * strength * f * gam /
 	                    ( pow( f, 2) + pow( gam, 2) ) / 
                             vmr[i];
-	      //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	      //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	    }
 	} else {
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s ) xsec[s][i] = 0.000;
+	  for ( Index s=0; s<n_f; ++s ) xsec(s,i) = 0.000;
 	}
     }
 }
@@ -593,12 +596,12 @@ void MPM93_O2_continuum( Matrix&           xsec,
 //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
 // and ftp side for downloading the MPM93 original source code:
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-void MPM93_N2_continuum( Matrix&           xsec,
-			 const Vector&     f_mono,
-			 const Vector&     p_abs,
-			 const Vector&     t_abs,
-			 const Vector&     h2o_abs,
-			 const Vector&     vmr	 )
+void MPM93_N2_continuum( MatrixView           xsec,
+			 ConstVectorView     f_mono,
+			 ConstVectorView     p_abs,
+			 ConstVectorView     t_abs,
+			 ConstVectorView     h2o_abs,
+			 ConstVectorView     vmr	 )
 {
 
   // N2 continuum parameters of MPM93:
@@ -606,12 +609,12 @@ void MPM93_N2_continuum( Matrix&           xsec,
   const Numeric G0 =  1.93e-5;  // frequency factor
   const Numeric	X0 =  1.500;    // frequency exponent
   
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -620,7 +623,7 @@ void MPM93_N2_continuum( Matrix&           xsec,
   
 
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       if (vmr[i] > 0.000 ) // make sure that division by zero is excluded
 	{
@@ -628,20 +631,20 @@ void MPM93_N2_continuum( Matrix&           xsec,
 	  Numeric strength =  S0 * pow( (0.01 * p_abs[i] * (1.0000 - h2o_abs[i])), 2 ) * pow( th, 3.5 );
 
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      Numeric f = f_mono[s] * 1.00e-9; // frequency in GHz
 	      // the vmr of N2 will be multiplied at the stage of absorption calculation:
 	      // abs / vmr * xsec.
-	      xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
+	      xsec(s,i) += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
 	                    f * strength * f /
 	                    ( 1.000 + G0 * pow( f, X0) ) /
                             vmr[i];
-	      // cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	      // cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	    }
 	}  else {
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s ) xsec[s][i] = 0.000;
+	  for ( Index s=0; s<n_f; ++s ) xsec(s,i) = 0.000;
 	}
     }
 }
@@ -653,22 +656,22 @@ void MPM93_N2_continuum( Matrix&           xsec,
 //               John Wiley & Sons, Inc., 1993. Also stated in 
 //               Liebe et al. JQSRT, Vol 48, Nr 5/6, pp. 629-643, 1992.
 //               Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
-void Rosenkranz_O2_continuum( Matrix&           xsec,
-			      const Vector&  	f_mono,
-			      const Vector&  	p_abs,
-			      const Vector&  	t_abs,
-			      const Vector&     h2o_abs,
-			      const Vector&     vmr	 )
+void Rosenkranz_O2_continuum( MatrixView           xsec,
+			      ConstVectorView  	f_mono,
+			      ConstVectorView  	p_abs,
+			      ConstVectorView  	t_abs,
+			      ConstVectorView     h2o_abs,
+			      ConstVectorView     vmr	 )
 {
   const Numeric C = 1.108e-14; // default: 1.108*10^-14 K^2/(Hz*Pa*m)
   const Numeric x = 0.8;       // default: 0.8
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -676,7 +679,7 @@ void Rosenkranz_O2_continuum( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
 
   // loop over all pressure levels:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       Numeric TH = 300.00 / t_abs[i];        // relative temperature  [1]
       
@@ -686,13 +689,13 @@ void Rosenkranz_O2_continuum( Matrix&           xsec,
       Numeric gamma = 5600.000 * (pdry * pow( TH, x ) + 1.100 * ph2o * TH); 
 
       // Loop over frequency grid:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
 	  // division by vmr of O2 is necessary because of the absorption calculation
           // abs = vmr * xsec.
-	  xsec[s][i] += C * p_abs[i] * gamma * pow( f_mono[s], 2 ) / 
+	  xsec(s,i) += C * p_abs[i] * gamma * pow( f_mono[s], 2 ) / 
                           ( pow( t_abs[i], 2 ) * ( pow( f_mono[s], 2 ) + pow( gamma, 2 ) ) );
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -702,21 +705,21 @@ void Rosenkranz_O2_continuum( Matrix&           xsec,
 // 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_N2_self_continuum( Matrix&           xsec,
-				   const Vector&     f_mono,
-				   const Vector&     p_abs,
-				   const Vector&     t_abs,
-				   const Vector&     vmr	 )
+void Rosenkranz_N2_self_continuum( MatrixView           xsec,
+				   ConstVectorView     f_mono,
+				   ConstVectorView     p_abs,
+				   ConstVectorView     t_abs,
+				   ConstVectorView     vmr	 )
 {
   const Numeric	C = 1.05e-38; // default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
   const Numeric	x = 3.55;     // default: 3.55
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -724,7 +727,7 @@ void Rosenkranz_N2_self_continuum( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop over pressure/temperature grid:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The second vmr of N2 will be multiplied at the stage of absorption 
@@ -733,10 +736,10 @@ void Rosenkranz_N2_self_continuum( Matrix&           xsec,
 	C * pow( 300./t_abs[i], x ) * pow( p_abs[i], 2 ) * vmr[i];
 
       // Loop over frequency grid:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += dummy * pow( f_mono[s], 2 );
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -746,27 +749,27 @@ void Rosenkranz_N2_self_continuum( Matrix&           xsec,
 // 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void General_N2_self_continuum(    Matrix&           xsec,
+void General_N2_self_continuum(    MatrixView           xsec,
                                    Numeric           C,
                                    Numeric           xf,
                                    Numeric           xt,
                                    Numeric           xp,
-				   const Vector&     f_mono,
-				   const Vector&     p_abs,
-				   const Vector&     t_abs,
-				   const Vector&     vmr	 )
+				   ConstVectorView     f_mono,
+				   ConstVectorView     p_abs,
+				   ConstVectorView     t_abs,
+				   ConstVectorView     vmr	 )
 {
   // C default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
   // xf default: 2
   // xt default: 3.55
   // xp default: 2
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -774,7 +777,7 @@ void General_N2_self_continuum(    Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop over pressure/temperature grid:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The second vmr of N2 will be multiplied at the stage of absorption 
@@ -783,11 +786,11 @@ void General_N2_self_continuum(    Matrix&           xsec,
 	C * pow( 300./t_abs[i], xt ) * pow( p_abs[i], xp ) * vmr[i];
 
       // Loop over frequency grid:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	    xsec[s][i] += dummy * pow( f_mono[s], xf );
+	    xsec(s,i) += dummy * pow( f_mono[s], xf );
           
-	  //  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  //  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -797,22 +800,22 @@ void General_N2_self_continuum(    Matrix&           xsec,
 // 5) CO2-CO2: P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_CO2_self_continuum( Matrix&           xsec,
-				    const Vector&     f_mono,
-				    const Vector&     p_abs,
-				    const Vector&     t_abs,
-				    const Vector&     vmr	 )
+void Rosenkranz_CO2_self_continuum( MatrixView           xsec,
+				    ConstVectorView     f_mono,
+				    ConstVectorView     p_abs,
+				    ConstVectorView     t_abs,
+				    ConstVectorView     vmr	 )
 {
 
   const Numeric	C = 7.43e-37; // default: 7.43*10^-37 1/(Pa^2*Hz^2*m)
   const Numeric	x = 5.08;     // default: 5.08
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -820,7 +823,7 @@ void Rosenkranz_CO2_self_continuum( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop over pressure/temperature grid:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The second vmr of CO2 will be multiplied at the stage of absorption 
@@ -829,10 +832,10 @@ void Rosenkranz_CO2_self_continuum( Matrix&           xsec,
 	C * pow( 300./t_abs[i], x ) * pow( p_abs[i], 2 ) * vmr[i];
 
       // Loop over frequency grid:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += dummy * pow( f_mono[s], 2 );
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -842,23 +845,23 @@ void Rosenkranz_CO2_self_continuum( Matrix&           xsec,
 // 6) CO2-N2 : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_CO2_foreign_continuum( Matrix&           xsec,
-				       const Vector&     f_mono,
-				       const Vector&     p_abs,
-				       const Vector&     t_abs,
-				       const Vector&     n2_abs,
-				       const Vector&     vmr	 )
+void Rosenkranz_CO2_foreign_continuum( MatrixView           xsec,
+				       ConstVectorView     f_mono,
+				       ConstVectorView     p_abs,
+				       ConstVectorView     t_abs,
+				       ConstVectorView     n2_abs,
+				       ConstVectorView     vmr	 )
 {
 
   const Numeric C = 2.71e-37; // default: 2.71*10^-37 1/(Pa^2*Hz^2*m)
   const Numeric x = 4.7;      // default: 4.7
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -866,7 +869,7 @@ void Rosenkranz_CO2_foreign_continuum( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // Dummy scalar holds everything except the quadratic frequency dependence.
       // The vmr of CO2 will be multiplied at the stage of absorption 
@@ -874,10 +877,10 @@ void Rosenkranz_CO2_foreign_continuum( Matrix&           xsec,
       Numeric dummy = C * pow( 300./t_abs[i], x ) * p_abs[i] * p_abs[i] * n2_abs[i];
 
       // Loop frequency:
-      for ( size_t s=0; s<n_f; ++s )
+      for ( Index s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += dummy * pow( f_mono[s], 2 );
-	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	  xsec(s,i) += dummy * pow( f_mono[s], 2 );
+	  //	  cout << "xsec(" << s << "," << i << "): " << xsec(s,i) << "\n";
 	}
     }
 }
@@ -959,23 +962,23 @@ Numeric WVSatPressureIce(Numeric t)
 //      vmr: suspended water droplet density, valid range: 0-10.00e-3 kg/m3
 //      The internal numerical values (and units) are the same as in MPM93
 //
-void MPM93WaterDropletAbs( Matrix&           xsec,
-			   const Vector&   f_mono, // frequency vector
-			   const Vector&    p_abs, // pressure vector
-			   const Vector&    t_abs, // temperature vector
-			   const Vector&      vmr) // suspended water droplet density vector
+void MPM93WaterDropletAbs( MatrixView           xsec,
+			   ConstVectorView   f_mono, // frequency vector
+			   ConstVectorView    p_abs, // pressure vector
+			   ConstVectorView    t_abs, // temperature vector
+			   ConstVectorView      vmr) // suspended water droplet density vector
 {
 
   const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
   const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
   const Numeric high_lim_den = 10.00e-3; // lower limit of suspended droplet particle density vector [kg/m3]
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -983,7 +986,7 @@ void MPM93WaterDropletAbs( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // water vapor saturation pressure over liquid water [Pa]
       // Numeric es       = WVSatPressureLiquidWater(t_abs[i]);
@@ -1006,7 +1009,7 @@ void MPM93WaterDropletAbs( Matrix&           xsec,
 	  Numeric epsilon2 = 3.52;
 	  
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // real part of the complex permittivity of water (double-debye model)
 	      Numeric Reepsilon  = epsilon0 - 
@@ -1034,7 +1037,7 @@ void MPM93WaterDropletAbs( Matrix&           xsec,
 	      // The vmr of H2O will be multiplied at the stage of absorption 
 	      // calculation: abs = vmr * xsec.
 	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
-	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
+	      xsec(s,i) += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
 	    }
 	} else
 	  {
@@ -1057,23 +1060,23 @@ void MPM93WaterDropletAbs( Matrix&           xsec,
 //      input parameters:
 //      The internal numerical values (and units) are the same as in MPM93
 //
-void MPM93IceCrystalAbs( Matrix&           xsec,
-			 const Vector&   f_mono,   // frequency vector
-			 const Vector&    p_abs,   // pressure vector
-			 const Vector&    t_abs,   // temperature vector
-			 const Vector&      vmr	 ) // suspended ice particle density vector, 
+void MPM93IceCrystalAbs( MatrixView           xsec,
+			 ConstVectorView   f_mono,   // frequency vector
+			 ConstVectorView    p_abs,   // pressure vector
+			 ConstVectorView    t_abs,   // temperature vector
+			 ConstVectorView      vmr	 ) // suspended ice particle density vector, 
                                                    // valid range: 0-10.0e-3 kg/m3
 {
   const Numeric m = 0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m3
   const Numeric low_lim_den  =  0.000;   // lower limit of suspended ice particle density vector [kg/m3]
   const Numeric high_lim_den = 10.00e-3; // lower limit of suspended ice particle density vector [kg/m3]
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1083,7 +1086,7 @@ void MPM93IceCrystalAbs( Matrix&           xsec,
 
 
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // water vapor saturation pressure over ice [Pa]
       // Numeric es = WVSatPressureIce(t_abs[i]);
@@ -1104,7 +1107,7 @@ void MPM93IceCrystalAbs( Matrix&           xsec,
 		( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
 	      
 	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // real part of the complex permittivity of ice
 	      Numeric Reepsilon  = 3.15;
@@ -1124,7 +1127,7 @@ void MPM93IceCrystalAbs( Matrix&           xsec,
 	      // The vmr of H2O will be multiplied at the stage of absorption 
 	      // calculation: abs = vmr * xsec.
 	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
-	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
+	      xsec(s,i) += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
 	    }
 	} else
 	  {
@@ -1153,11 +1156,11 @@ void MPM93IceCrystalAbs( Matrix&           xsec,
 // 
 // #################################################################################
 //
-void MPM87H2OAbsModel( Matrix&           xsec,
-		       const Vector&   f_mono,
-		       const Vector&    p_abs,
-		       const Vector&    t_abs,
-		       const Vector&      vmr )
+void MPM87H2OAbsModel( MatrixView           xsec,
+		       ConstVectorView   f_mono,
+		       ConstVectorView    p_abs,
+		       ConstVectorView    t_abs,
+		       ConstVectorView      vmr )
 {
   //
   // Coefficients are from Liebe, Radio Science, 20(5), 1985, 1069
@@ -1198,15 +1201,15 @@ void MPM87H2OAbsModel( Matrix&           xsec,
 
 
   // number of lines of liebe line catalogue (30 lines)
-  const size_t i_first = 0;
-  const size_t i_last  = 29;
+  const Index i_first = 0;
+  const Index i_last  = 29;
   
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1214,7 +1217,7 @@ void MPM87H2OAbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -1230,7 +1233,7 @@ void MPM87H2OAbsModel( Matrix&           xsec,
 	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
 
 	  // Loop over input frequency
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff   = f_mono[s] * 1.00e-9; 
@@ -1238,7 +1241,7 @@ void MPM87H2OAbsModel( Matrix&           xsec,
 	      Numeric absl = 0.000;
 	      
 	      // Loop over MPM89 H2O spectral lines
-	      for ( size_t l = i_first; l <= i_last; ++l )
+	      for ( Index l = i_first; l <= i_last; ++l )
 		{
 		  // line strength [kHz]
 		  Numeric strength = mpm87[l][1] * pwv * 
@@ -1254,7 +1257,7 @@ void MPM87H2OAbsModel( Matrix&           xsec,
 		}
 	      // xsec = abs/vmr [1/m]
 	      // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820     (1/(10*log(e)) = 0.230259)
-	      xsec[s][i]  += 4.1907e-5 * ff * ( absl + (absc * ff) ) / vmr[i];
+	      xsec(s,i)  += 4.1907e-5 * ff * ( absl + (absc * ff) ) / vmr[i];
 	    }
 	}
     }
@@ -1263,11 +1266,11 @@ void MPM87H2OAbsModel( Matrix&           xsec,
 //
 // #################################################################################
 //
-void MPM89H2OAbsModel( Matrix&           xsec,
-		       const Vector&   f_mono,
-		       const Vector&    p_abs,
-		       const Vector&    t_abs,
-		       const Vector&      vmr )
+void MPM89H2OAbsModel( MatrixView           xsec,
+		       ConstVectorView   f_mono,
+		       ConstVectorView    p_abs,
+		       ConstVectorView    t_abs,
+		       ConstVectorView      vmr )
 {
   //
   // Coefficients are from Liebe, Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631
@@ -1307,15 +1310,15 @@ void MPM89H2OAbsModel( Matrix&           xsec,
     {   987.926764,  138.0000,  0.258,   29.85,   0.68,  4.55,  0.90}};
 
   // number of lines of liebe line catalogue (30 lines)
-  const size_t i_first = 0;
-  const size_t i_last  = 29;
+  const Index i_first = 0;
+  const Index i_last  = 29;
   
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1323,7 +1326,7 @@ void MPM89H2OAbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -1339,7 +1342,7 @@ void MPM89H2OAbsModel( Matrix&           xsec,
 	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta, 7.5)) );
 
 	  // Loop over input frequency
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff   = f_mono[s] * 1.00e-9; 
@@ -1347,7 +1350,7 @@ void MPM89H2OAbsModel( Matrix&           xsec,
 	      Numeric absl = 0.000;
 	      
 	      // Loop over MPM89 spectral lines:
-	      for ( size_t l = i_first; l <= i_last; ++l )
+	      for ( Index l = i_first; l <= i_last; ++l )
 		{
 		  // line strength [kHz]
 		  Numeric strength = mpm89[l][1] * pwv * 
@@ -1365,7 +1368,7 @@ void MPM89H2OAbsModel( Matrix&           xsec,
 		}
 	      // xsec = abs/vmr [1/m]
 	      // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
-	      xsec[s][i] += 4.1907e-5 * ff * ( absl + (absc * ff) ) / vmr[i];
+	      xsec(s,i) += 4.1907e-5 * ff * ( absl + (absc * ff) ) / vmr[i];
 	    }
 	}
     }
@@ -1374,11 +1377,11 @@ void MPM89H2OAbsModel( Matrix&           xsec,
 //
 // #################################################################################
 //
-void MPM93H2OAbsModel( Matrix&           xsec,
-		       const Vector&   f_mono,
-		       const Vector&    p_abs,
-		       const Vector&    t_abs,
-		       const Vector&      vmr )
+void MPM93H2OAbsModel( MatrixView           xsec,
+		       ConstVectorView   f_mono,
+		       ConstVectorView    p_abs,
+		       ConstVectorView    t_abs,
+		       ConstVectorView      vmr )
 {
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
@@ -1423,15 +1426,15 @@ void MPM93H2OAbsModel( Matrix&           xsec,
     {  1780.000000, 2230.00000,  0.952,  17.620,  30.50,  2.00,  5.00}};
 
   // number of lines of liebe line catalogue (0-33 lines, 34 cont. pseudo line)
-  const size_t i_first = 0;
-  const size_t i_last  = 34;
+  const Index i_first = 0;
+  const Index i_last  = 34;
   
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1439,7 +1442,7 @@ void MPM93H2OAbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
 
   // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -1461,12 +1464,12 @@ void MPM93H2OAbsModel( Matrix&           xsec,
 	  // Loop over MPM93 spectral lines:
 	  
 	  // Loop over input frequency
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff = f_mono[s] * 1.00e-9; 
 
-	      for ( size_t l = i_first; l <= i_last; ++l )
+	      for ( Index l = i_first; l <= i_last; ++l )
 		{
 		  // line strength [ppm]. The missing vmr of H2O will be multiplied 
 		  // at the stage of absorption calculation: abs / vmr * xsec.
@@ -1487,12 +1490,12 @@ void MPM93H2OAbsModel( Matrix&           xsec,
 		      // H2O pseudo continuum line
 		      // 4.1907e-5 = 0.230259 * 1.0e-3 * 0.1820    (1/(10*log(e)) = 0.230259)
 		      // xsec = abs/vmr [1/m]
-		      xsec[s][i]   += 4.1907e-5 * ff * abs / vmr[i];
+		      xsec(s,i)   += 4.1907e-5 * ff * abs / vmr[i];
 		    } else 
 		      {
 			// H2O spectral line
 			// xsec = abs/vmr [1/m]
-			xsec[s][i]   += 4.1907e-5 * ff * abs / vmr[i];
+			xsec(s,i)   += 4.1907e-5 * ff * abs / vmr[i];
 		      }
 		}
 	    }
@@ -1503,11 +1506,11 @@ void MPM93H2OAbsModel( Matrix&           xsec,
 //
 // #################################################################################
 //
-void CP98H2OAbsModel( Matrix&           xsec,
-		      const Vector&   f_mono,
-		      const Vector&    p_abs,
-		      const Vector&    t_abs,
-		      const Vector&      vmr )
+void CP98H2OAbsModel( MatrixView           xsec,
+		      ConstVectorView   f_mono,
+		      ConstVectorView    p_abs,
+		      ConstVectorView    t_abs,
+		      ConstVectorView      vmr )
 {
   //
   // Coefficients are from S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998
@@ -1516,12 +1519,12 @@ void CP98H2OAbsModel( Matrix&           xsec,
   const Numeric CL = 1.0639; // +/- 0.016
   const Numeric CW = 1.0658; // +/- 0.0096
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1529,7 +1532,7 @@ void CP98H2OAbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
 
   // Loop pressure/temperature (pressure in [hPa] therefore the factor 0.01)
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -1550,13 +1553,13 @@ void CP98H2OAbsModel( Matrix&           xsec,
 	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
 
 	  // Loop over input frequency
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff  = f_mono[s] * 1.00e-9; 
 	      Numeric TSf = MPMLineShapeFunction(gam, 22.235080, ff); 
 	      // xsec = abs/vmr [1/m] (Cruz-Pol model in [Np/km])
-	      xsec[s][i] += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
+	      xsec(s,i) += 4.1907e-5 * ff * ( (TL * TSf) + (ff * TC) ) / vmr[i];
 	    }
 	}
     }
@@ -1565,11 +1568,11 @@ void CP98H2OAbsModel( Matrix&           xsec,
 //
 // #################################################################################
 //
-void PWR98H2OAbsModel( Matrix&           xsec,
-		       const Vector&   f_mono,
-		       const Vector&    p_abs,
-		       const Vector&    t_abs,
-		       const Vector&      vmr )
+void PWR98H2OAbsModel( MatrixView           xsec,
+		       ConstVectorView   f_mono,
+		       ConstVectorView    p_abs,
+		       ConstVectorView    t_abs,
+		       ConstVectorView      vmr )
 {
   //   REFERENCES:
   //   LINE INTENSITIES FROM HITRAN92 (SELECTION THRESHOLD=
@@ -1616,12 +1619,12 @@ void PWR98H2OAbsModel( Matrix&           xsec,
 			      0.52, 0.50, 0.67, 0.65, 0.64,
 			      0.72, 1.00, 0.68, 0.84, 0.78 };
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1629,7 +1632,7 @@ void PWR98H2OAbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
 
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(H2O) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -1653,7 +1656,7 @@ void PWR98H2OAbsModel( Matrix&           xsec,
 	                ( (0.543 * pda) + (17.96 * pvap * pow(ti, 4.5)) );
 	  
 	  // Loop over input frequency
-	  for ( size_t s=0; s<n_f; ++s )
+	  for ( Index s=0; s<n_f; ++s )
 	    {
 	      // input frequency in [GHz]
 	      Numeric ff  = f_mono[s] * 1.00e-9;
@@ -1661,7 +1664,7 @@ void PWR98H2OAbsModel( Matrix&           xsec,
 	      Numeric sum = 0.000;
 
 	      // Loop over spectral lines
-	      for (size_t l = 0; l < 15; l++) 
+	      for (Index l = 0; l < 15; l++) 
 		{
 		  Numeric width    = PWRw3[l] * pda  * pow(ti, PWRx[l]) + 
 		                     PWRws[l] * pvap * pow(ti, PWRxs[l]);
@@ -1682,7 +1685,7 @@ void PWR98H2OAbsModel( Matrix&           xsec,
 	      Numeric absl = 0.3183e-4 * den * sum;
 	      // xsec = abs/vmr [1/m] (Rosenkranz model in [Np/km])
 	      // 4.1907e-5 = 0.230259 * 0.1820 * 1.0e-3    (1/(10*log(e)) = 0.230259)
-	      xsec[s][i]  += 1.000e-3 * ( absl + (con * ff * ff) ) / vmr[i];	  
+	      xsec(s,i)  += 1.000e-3 * ( absl + (con * ff * ff) ) / vmr[i];	  
 	    }
 	}
     }
@@ -1699,14 +1702,14 @@ void PWR98H2OAbsModel( Matrix&           xsec,
 //   AND H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
 //   (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
 //
-void PWR93O2AbsModel( Matrix&           xsec,
-		      const Vector&   f_mono,
-		      const Vector&    p_abs,
-		      const Vector&    t_abs,
-		      const Vector&   vmrh2o,
-                      const Vector&      vmr )
+void PWR93O2AbsModel( MatrixView           xsec,
+		      ConstVectorView   f_mono,
+		      ConstVectorView    p_abs,
+		      ConstVectorView    t_abs,
+		      ConstVectorView   vmrh2o,
+                      ConstVectorView      vmr )
 {
-  const size_t n_lines = 40; // number of O2 lines in this model (range: 50-850 GHz)
+  const Index n_lines = 40; // number of O2 lines in this model (range: 50-850 GHz)
 
   // lines are arranged 1-,1+,3-,3+,etc. in spin-rotation spectrum
   // line center frequency in [GHz]
@@ -1781,12 +1784,12 @@ void PWR93O2AbsModel( Matrix&           xsec,
                           0.6729, -0.6545,  0.0000,  0.0000,
 			  0.0000,  0.0000,  0.0000,  0.0000};
 
-  const size_t n_p = p_abs.size();	// Number of pressure levels
-  const size_t n_f = f_mono.size();	// Number of frequencies
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
 
   // Check that dimensions of p_abs, t_abs, and vmr agree:
-  assert ( n_p==t_abs.size() );
-  assert ( n_p==vmr.size()   );
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
 
   // Check that dimensions of xsec are consistent with n_f
   // and n_p. It should be [n_f,n_p]:
@@ -1794,7 +1797,7 @@ void PWR93O2AbsModel( Matrix&           xsec,
   assert ( n_p==xsec.ncols() );
   
   // Loop pressure/temperature:
-  for ( size_t i=0; i<n_p; ++i )
+  for ( Index i=0; i<n_p; ++i )
     {
       // calculate xsec only if VMR(O2) > VMRCalcLimit
       if (vmr[i] > VMRCalcLimit)
@@ -1815,7 +1818,7 @@ void PWR93O2AbsModel( Matrix&           xsec,
           Numeric SUM   = 0.000;
 
 	    // Loop over input frequency
-	    for ( size_t s=0; s<n_f; ++s )
+	    for ( Index s=0; s<n_f; ++s )
 	      {
 		// input frequency in [GHz]
 		Numeric ff  = f_mono[s] * 1.00e-9; 
@@ -1825,7 +1828,7 @@ void PWR93O2AbsModel( Matrix&           xsec,
 
 		//cout << "ff =" << ff << ",  O2ABS=" << O2ABS << ",  SUM=" << SUM << "\n";
 		// Loop over Rosnekranz '93 spectral line frequency:
-		for ( size_t l=0; l<n_lines; ++l )
+		for ( Index l=0; l<n_lines; ++l )
 		  {
 		    Numeric DF   = W300[l] * DEN;
 		    Numeric Y    = 0.001 * 0.01 * p_abs[i] * B * ( Y300[l] + V[l]*TH1 );
@@ -1841,7 +1844,7 @@ void PWR93O2AbsModel( Matrix&           xsec,
 		// cout << "O2ABS=" << O2ABS << "\n";
 		// unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
 		// xsec [1/m]  1.000e-3
-		xsec[s][i] += 1.000e-3 * O2ABS / vmr[i];
+		xsec(s,i) += 1.000e-3 * O2ABS / vmr[i];
 	      }
 	}
     }
@@ -1878,15 +1881,15 @@ void PWR93O2AbsModel( Matrix&           xsec,
 
     \date   2001-01-16
     \author Stefan Buehler */
-void xsec_continuum_tag( Matrix&                    xsec,
+void xsec_continuum_tag( MatrixView                    xsec,
 			 const String&              name,
-			 const Vector&              parameters,
-			 const Vector&  	    f_mono,
-			 const Vector&  	    p_abs,
-			 const Vector&  	    t_abs,
-			 const Vector&  	    n2_abs,
-			 const Vector&  	    h2o_abs,
-			 const Vector&              vmr )
+			 ConstVectorView              parameters,
+			 ConstVectorView  	    f_mono,
+			 ConstVectorView  	    p_abs,
+			 ConstVectorView  	    t_abs,
+			 ConstVectorView  	    n2_abs,
+			 ConstVectorView  	    h2o_abs,
+			 ConstVectorView              vmr )
 {
   //
   // out3 << "  Continuum paramters are: " << parameters << "\n";
@@ -1899,11 +1902,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   if ( "H2O-SelfContStandardType"==name )
     {
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 2 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Continuum model " << name << " requires two input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -1935,11 +1938,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   else if ( "H2O-ForeignContStandardType"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 2 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Continuum model " << name << " requires two input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -1974,11 +1977,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // since the parameterization is not devided up in these two terms.
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 H2O continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2044,11 +2047,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   else if ( "H2O-CP98"==name )
     {
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Cruz-Pol H2O absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2083,11 +2086,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   else if ( "H2O-MPM87"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM87 H2O absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2122,11 +2125,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   else if ( "H2O-MPM89"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM89 H2O absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2161,11 +2164,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   else if ( "H2O-MPM93"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 H2O absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2200,11 +2203,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
   else if ( "H2O-PWR98"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Rosenkranz98 absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2246,11 +2249,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 O2 continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2285,11 +2288,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // (see also JQSRT, Vol.48, No.5/6 pp.629-643, 1992)
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "PWR O2 Continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2329,11 +2332,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       //  (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Rosenkranz O2 abs. model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2379,11 +2382,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 O2 abs. model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2417,11 +2420,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 N2 continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2455,11 +2458,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // John Wiley & Sons, Inc., 1993, ISBN 0-471-62891-3
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "PWR N2 continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2494,11 +2497,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // A completely general expression for the N2 continuum
 
       // Check if the right number of paramters has been specified:
-      if ( 4 != parameters.size() )
+      if ( 4 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "GEN N2 continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2561,11 +2564,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // John Wiley & Sons, Inc., 1993, ISBN 0-471-62891-3
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2602,11 +2605,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // John Wiley & Sons, Inc., 1993, ISBN 0-471-62891-3
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "Continuum model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2648,11 +2651,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 liquid water particle absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2697,11 +2700,11 @@ void xsec_continuum_tag( Matrix&                    xsec,
       // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
 
       // Check if the right number of paramters has been specified:
-      if ( 0 != parameters.size() )
+      if ( 0 != parameters.nelem() )
 	{
 	  ostringstream os;
 	  os << "MPM93 ice particle absorption model " << name << " requires zero input\n"
-	     << "parameters, but you specified " << parameters.size()
+	     << "parameters, but you specified " << parameters.nelem()
 	     << ".";
 	  throw runtime_error(os.str());
 	  return;
@@ -2777,7 +2780,7 @@ void check_continuum_model(const String& name)
   extern const Array<SpeciesRecord> species_data;
 
   // For the list of valid continuum models:
-  Array<String> valid_models;
+  ArrayOfString valid_models;
 
   bool found = false;
 
@@ -2824,7 +2827,7 @@ void check_continuum_model(const String& name)
       ostringstream os;
       os << "The String `" << name << "' matches none of the known\n"
 	 << "continuum models. Known continuum models are:";
-      for ( Array<String>::const_iterator i=valid_models.begin();
+      for ( ArrayOfString::const_iterator i=valid_models.begin();
 	    i<valid_models.end();
 	    ++i )
 	{

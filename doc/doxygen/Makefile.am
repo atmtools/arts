@@ -43,7 +43,6 @@ $(top_srcdir)/src/sstream.h \
 $(top_srcdir)/src/iotraits.h \
 $(top_srcdir)/src/messages.h \
 $(top_srcdir)/src/parameters.h \
-$(top_srcdir)/src/vecmat.h \
 $(top_srcdir)/src/exceptions.h \
 $(top_srcdir)/src/file.h \
 $(top_srcdir)/src/wsv_aux.h \
@@ -57,11 +56,13 @@ $(top_srcdir)/src/atm_funcs.h \
 $(top_srcdir)/src/absorption.h \
 $(top_srcdir)/src/los.h \
 $(top_srcdir)/src/hmatrix.h \
+$(top_srcdir)/src/arrays.h \
+$(top_srcdir)/src/matpackI.h \
+$(top_srcdir)/src/matpackII.h \
 $(top_srcdir)/src/constants.cc \
 $(top_srcdir)/src/getopt.c \
 $(top_srcdir)/src/getopt1.c \
 $(top_srcdir)/src/main.cc \
-$(top_srcdir)/src/vecmat.cc \
 $(top_srcdir)/src/globals_2.cc \
 $(top_srcdir)/src/version.cc \
 $(top_srcdir)/src/messages.cc \

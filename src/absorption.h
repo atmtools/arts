@@ -26,8 +26,11 @@
 #ifndef absorption_h
 #define absorption_h
 
-#include <iostream>
-#include "vecmat.h"
+#include <stdexcept>
+#include "matpackI.h"
+#include "array.h"
+#include "mystring.h"
+#include "make_array.h"
 
 /** The type that is used to store pointers to lineshape
     functions.  */
@@ -36,7 +39,7 @@ typedef void (*lsf_type)(Vector&,
 			 Numeric,
 			 Numeric,
 			 Numeric,
-			 Vector::subrange_type,
+			 VectorView,
 			 const Index);
 
 /** Lineshape related information. There is one LineshapeRecord for
@@ -75,7 +78,7 @@ private:
     normalization functions.  */
 typedef void (*lsnf_type)(Vector&,
 			  Numeric,
-			  Vector::subrange_type,
+			  VectorView,
 			  const Index);
 
 /** Lineshape related normalization function information. There is one
@@ -122,8 +125,8 @@ public:
   LineshapeSpec(){};
 
   /** Initializing constructor. */
-  LineshapeSpec(const size_t&    ind_ls,
-		const size_t&    ind_lsn,
+  LineshapeSpec(const Index&    ind_ls,
+		const Index&    ind_lsn,
 		const Numeric&   cutoff)
     : mind_ls(ind_ls),
       mind_lsn(ind_lsn),
@@ -131,14 +134,14 @@ public:
   { /* Nothing to do here. */ }
 
   /** Return the index of this lineshape. */
-  const size_t&  Ind_ls()        const { return mind_ls; }   
+  const Index&  Ind_ls()        const { return mind_ls; }   
   /** Set it. */
-  void SetInd_ls( size_t ind_ls ) { mind_ls = ind_ls; }
+  void SetInd_ls( Index ind_ls ) { mind_ls = ind_ls; }
 
   /** Return the index of the normalization factor. */
-  const size_t&  Ind_lsn()       const { return mind_lsn; }
+  const Index&  Ind_lsn()       const { return mind_lsn; }
   /** Set it. */
-  void SetInd_lsn( size_t ind_lsn ) { mind_lsn = ind_lsn; }
+  void SetInd_lsn( Index ind_lsn ) { mind_lsn = ind_lsn; }
 
   /** Return the cutoff frequency (in Hz). This is the distance from
       the line center outside of which the lineshape is defined to be
@@ -147,14 +150,14 @@ public:
   /** Set it. */
   void SetCutoff( Numeric cutoff ) { mcutoff = cutoff; }
 private:	
-  size_t  mind_ls;
-  size_t  mind_lsn;
+  Index  mind_ls;
+  Index  mind_lsn;
   Numeric mcutoff;
 };
 
 /** Holds a list of lineshape specifications: function, normalization, cutoff.
     \author Axel von Engeln */
-typedef Array<LineshapeSpec> ArrayofLineshapeSpec;
+typedef Array<LineshapeSpec> ArrayOfLineshapeSpec;
 
 
 
@@ -162,26 +165,36 @@ typedef Array<LineshapeSpec> ArrayofLineshapeSpec;
     \author Stefan Buehler */
 class IsotopeRecord{
 public:
+
   /** Default constructor. Needed by make_array. */
   IsotopeRecord() { /* Nothing to do here */ }
+
+  /** Copy constructor. We need this, since operator= does not work
+      correctly for Arrays. (Target Array has to be resized first.) */
+  IsotopeRecord(const IsotopeRecord& x) :
+    mname(x.mname),
+    mabundance(x.mabundance),
+    mmass(x.mmass),
+    mmytrantag(x.mmytrantag),
+    mhitrantag(x.mhitrantag),
+    mjpltags(x.mjpltags)
+  { /* Nothing left to do here. */ }
+
   /** Constructor that sets the values. */
-  IsotopeRecord(const String&  	  name,
-		const Numeric& 	  abundance,
-		const Numeric& 	  mass,
-		const int&     	  mytrantag,
-		const int&     	  hitrantag,
-		const Array<int>& jpltags)
-    : mname(name),
-      mabundance(abundance),
-      mmass(mass),
-      mmytrantag(mytrantag),
-      mhitrantag(hitrantag),
-      mjpltags(jpltags.size())
+  IsotopeRecord(const String&  	        name,
+		const Numeric& 	        abundance,
+		const Numeric& 	        mass,
+		const Index&     	mytrantag,
+		const Index&     	hitrantag,
+		const MakeArray<Index>& jpltags) :
+    mname(name),
+    mabundance(abundance),
+    mmass(mass),
+    mmytrantag(mytrantag),
+    mhitrantag(hitrantag),
+    mjpltags(jpltags)
   {
-    // We need to use copy to initialize the Array members. If we use
-    // the assignment operator they end up all pointing to the same
-    // data!
-    copy(jpltags,mjpltags);
+    // With Matpack, initialization of mjpltags from jpltags should now work correctly.
 
     // Some consistency checks whether the given data makes sense.
 #ifndef NDEBUG
@@ -189,7 +202,7 @@ public:
 	/* 1. All the tags must be positive or -1 */
 	assert( (0<mmytrantag) || (-1==mmytrantag) );
 	assert( (0<mhitrantag) || (-1==mhitrantag) );
-	for ( size_t i=0; i<mjpltags.size(); ++i )
+	for ( Index i=0; i<mjpltags.nelem(); ++i )
 	  assert( (0<mjpltags[i]) || (-1==mjpltags[i]) );
       }
 #endif // ifndef NDEBUG
@@ -203,15 +216,15 @@ public:
       If I understand this correctly this is the same as g/mol. */
   const Numeric&      Mass()         const { return mmass;    }
   /** MYTRAN2 tag numers for all isotopes. -1 means not included. */
-  const int&          MytranTag()    const { return mmytrantag;    }
+  const Index&          MytranTag()    const { return mmytrantag;    }
   /** HITRAN-96 tag numers for all isotopes. -1 means not included. */
-  const int&          HitranTag()    const { return mhitrantag;    }
+  const Index&          HitranTag()    const { return mhitrantag;    }
   /** JPL tag numbers for all isotopes. Empty array means not included. There
       can be more than one JPL tag for an isotopic species, because in
       JPL different vibrational states have different tags. */
-  const Array<int>&   JplTags()      const { return mjpltags;      }
+  const ArrayOfIndex&   JplTags()      const { return mjpltags;      }
 
-  void SetPartitionFctCoeff( const Array<Numeric>& qcoeff )
+  void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff )
   {
     mqcoeff = qcoeff;
     mqcoeff_at_t_ref = -1.;
@@ -248,10 +261,10 @@ private:
   String mname;
   Numeric mabundance;
   Numeric mmass;
-  int mmytrantag;
-  int mhitrantag;
-  Array<int> mjpltags;
-  Array<Numeric> mqcoeff;
+  Index mmytrantag;
+  Index mhitrantag;
+  ArrayOfIndex mjpltags;
+  ArrayOfNumeric mqcoeff;
   Numeric mqcoeff_at_t_ref;
 };
 
@@ -267,27 +280,26 @@ public:
   
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
-		const int degfr,
-		const Array<IsotopeRecord>& isotope)
+		const Index degfr,
+		const MakeArray<IsotopeRecord>& isotope)
     : mname(name),
       mdegfr(degfr),
-      misotope(isotope.size())
+      misotope(isotope)
   {
-    // We need to use copy to initialize the Array members. If we use
-    // the assignment operator they end up all pointing to the same
-    // data!
-    copy(isotope,misotope);
+
+    // Thanks to Matpack, initialization of misotope with isotope
+    // should now work correctly.  
 
 #ifndef NDEBUG
       {
 	/* Check that the isotopes are correctly sorted. */
-	for ( size_t i=0; i<misotope.size()-1; ++i )
+	for ( Index i=0; i<misotope.nelem()-1; ++i )
 	  {
 	    assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
 	  }
 
 	/* Check that the Mytran tags are correctly sorted. */
-	for ( size_t i=0; i<misotope.size()-1; ++i )
+	for ( Index i=0; i<misotope.nelem()-1; ++i )
 	  {
 	    if ( (0<misotope[i].MytranTag()) && (0<misotope[i+1].MytranTag()) )
 	      {
@@ -299,7 +311,7 @@ public:
 	  }
 
 	/* Check that the Hitran tags are correctly sorted. */
-	for ( size_t i=0; i<misotope.size()-1; ++i )
+	for ( Index i=0; i<misotope.nelem()-1; ++i )
 	  {
 	    if ( (0<misotope[i].HitranTag()) && (0<misotope[i+1].HitranTag()) )
 	      {
@@ -314,7 +326,7 @@ public:
   }
 
   const String&               Name()     const { return mname;     }   
-  int                         Degfr()    const { return mdegfr;    }
+  Index                         Degfr()    const { return mdegfr;    }
   const Array<IsotopeRecord>& Isotope()  const { return misotope;  }
   Array<IsotopeRecord>&       Isotope()        { return misotope;  }
   
@@ -322,7 +334,7 @@ private:
   /** Species name. */
   String mname;
   /** Degrees of freedom. */
-  int mdegfr;
+  Index mdegfr;
   /** Isotope data. */
   Array<IsotopeRecord> misotope;
 };
@@ -455,8 +467,8 @@ public:
       assertions are not disabled (i.e., if NDEBUG is not #defined),
       assert statements check that the species and isotope data
       exists. */
-  LineRecord( size_t  	     	    species,
-	      size_t  	     	    isotope,
+  LineRecord( Index  	     	    species,
+	      Index  	     	    isotope,
 	      Numeric 	     	    f,
 	      Numeric 	     	    psf,
 	      Numeric 	     	    i0,
@@ -467,7 +479,7 @@ public:
 	      Numeric 	     	    nair,
 	      Numeric 	     	    nself,
 	      Numeric 	     	    tgam,
-	      const Array<Numeric>& aux       )
+	      const ArrayOfNumeric& aux       )
     : mspecies (species	   ),
       misotope (isotope	   ),
       mf       (f      	   ),
@@ -480,18 +492,16 @@ public:
       mnair    (nair   	   ),
       mnself   (nself  	   ),
       mtgam    (tgam   	   ),  
-      maux     (aux.size() )
+      maux     (aux        )
   {
-    // We need to use copy to initialize the Array members. If we use
-    // the assignment operator they end up all pointing to the same
-    // data!
-    copy(aux,maux);
+    // Thanks to Matpack, initialization of misotope with isotope
+    // should now work correctly.  
 
     // Check if this species is legal, i.e., if species and isotope
     // data exists.
     extern Array<SpeciesRecord> species_data;
-    assert( mspecies < species_data.size() );
-    assert( misotope < species_data[mspecies].Isotope().size() );
+    assert( mspecies < species_data.nelem() );
+    assert( misotope < species_data[mspecies].Isotope().nelem() );
     // if ever this constructor is used, here is the calculation of
     // the partition fct at the reference temperature
     species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 ) ;
@@ -507,12 +517,12 @@ public:
 
   /** The index of the molecular species that this line belongs
       to. The species data can be accessed by species_data[Species()]. */
-  size_t Species() const { return mspecies; }
+  Index Species() const { return mspecies; }
 
   /** The index of the isotopic species that this line belongs
       to. The isotopic species data can be accessed by
       species_data[Species()].Isotope()[Isotope()].  */
-  size_t Isotope() const { return misotope; }
+  Index Isotope() const { return misotope; }
 
   /** The full name of the species and isotope. E.g., `O3-666'. The
       name is found by looking up the information in species_data,
@@ -602,13 +612,13 @@ public:
 
   /** Number of auxiliary parameters. This function is actually
       redundant, since the number of auxiliary parameters can also be
-      obtained directly with Aux.size(). I just added the function in
+      obtained directly with Aux.nelem(). I just added the function in
       order to have consistency of the interface with the catalgue
       format. */
-  size_t Naux() const   { return maux.size(); }
+  Index Naux() const   { return maux.nelem(); }
 
   /** Auxiliary parameters. */
-  const Array<Numeric>& Aux() const { return maux; }
+  const ArrayOfNumeric& Aux() const { return maux; }
 
   /** Read one line from a stream associated with a HITRAN file. The HITRAN
     format is as follows (directly from the HITRAN documentation):
@@ -825,11 +835,11 @@ public:
 
 private:
   // Versin number:
-  const static size_t mversion = 3;
+  const static Index mversion = 3;
   // Molecular species index: 
-  size_t mspecies;
+  Index mspecies;
   // Isotopic species index:
-  size_t misotope;
+  Index misotope;
   // The line center frequency in Hz:
   Numeric mf;
   // The pressure shift parameter in Hz/Pa:
@@ -851,39 +861,39 @@ private:
   // Reference temperature for AGAM and SGAM in K:
   Numeric mtgam;
   // Array to hold auxiliary parameters:
-  Array<Numeric> maux;
+  ArrayOfNumeric maux;
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts
 class SpecIsoMap{
 public:
   SpecIsoMap():mspeciesindex(0), misotopeindex(0){}
-  SpecIsoMap(const size_t& speciesindex,
-		const size_t& isotopeindex)
+  SpecIsoMap(const Index& speciesindex,
+		const Index& isotopeindex)
     : mspeciesindex(speciesindex),
       misotopeindex(isotopeindex) 
   {}
 
   // Return the index to the species 
-  const int& Speciesindex() const { return mspeciesindex; }
+  const Index& Speciesindex() const { return mspeciesindex; }
   // Return the index to the isotope
-  const int& Isotopeindex() const { return misotopeindex; }
+  const Index& Isotopeindex() const { return misotopeindex; }
 
 private:
-  int mspeciesindex;
-  int misotopeindex;
+  Index mspeciesindex;
+  Index misotopeindex;
 };
 
 
 
 /** Holds a list of spectral line data.
     \author Stefan Buehler */
-typedef Array<LineRecord> ArrayofLineRecord;
+typedef Array<LineRecord> ArrayOfLineRecord;
 
 /** Holds a lists of spectral line data for each tag group.
-    Dimensions: (tag_groups.size()) (number of lines for this tag)
+    Dimensions: (tag_groups.nelem()) (number of lines for this tag)
     \author Stefan Buehler */
-typedef Array< Array<LineRecord> > ArrayofArrayofLineRecord;
+typedef Array< Array<LineRecord> > ArrayOfArrayOfLineRecord;
 
 
 
@@ -929,12 +939,12 @@ public:
   String Name() const;
     
   /** Molecular species index. */
-  size_t Species() const { return mspecies; }
+  Index Species() const { return mspecies; }
 
   /** Isotopic species index.
       If this is equal to the number of isotopes (one more than
       allowed) it means all isotopes of this species. */ 
-  size_t Isotope() const { return misotope; }
+  Index Isotope() const { return misotope; }
 
   /** The lower line center frequency in Hz.
       If this is <0 it means no lower limit. */
@@ -946,11 +956,11 @@ public:
 
 private:
   // Molecular species index: 
-  size_t mspecies;
+  Index mspecies;
   // Isotopic species index.
   // If this is equal to the number of isotopes (one more than
   // allowed) it means all isotopes of this species.
-  size_t misotope;
+  Index misotope;
   // The lower line center frequency in Hz.
   // If this is <0 it means no lower limit. 
   Numeric mlf;
@@ -976,12 +986,12 @@ typedef  Array< Array<OneTag> > TagGroups;
 
 
 void get_tagindex_for_Strings( 
-              Arrayofsizet&   tags1_index, 
+              ArrayOfIndex&   tags1_index, 
         const TagGroups&      tags1, 
-        const ArrayofString&  tags2_Strings );
+        const ArrayOfString&  tags2_Strings );
 
 void get_tag_group_index_for_tag_group( 
-              size_t&         tags1_index, 
+              Index&         tags1_index, 
         const TagGroups&      tags1, 
         const Array<OneTag>&  tags2 );
 
@@ -989,7 +999,7 @@ String get_tag_group_name( const Array<OneTag>& tg );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
-			   const ArrayofLineRecord& lines);
+			   const ArrayOfLineRecord& lines);
 
 
 /** Calculate line absorption cross sections for one tag group. All
@@ -1017,15 +1027,15 @@ void write_lines_to_stream(ostream& os,
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 */
-void xsec_species( Matrix&                 xsec,
-		   const Vector&  	   f_mono,
-		   const Vector&  	   p_abs,
-		   const Vector&  	   t_abs,           
-		   const Vector&  	   h2o_abs,           
-		   const Vector&            vmr,
-		   const ArrayofLineRecord& lines,
-		   const size_t             ind_ls,
-		   const size_t             ind_lsn,
+void xsec_species( MatrixView              xsec,
+		   ConstVectorView  	   f_mono,
+		   ConstVectorView  	   p_abs,
+		   ConstVectorView  	   t_abs,           
+		   ConstVectorView  	   h2o_abs,           
+		   ConstVectorView            vmr,
+		   const ArrayOfLineRecord& lines,
+		   const Index             ind_ls,
+		   const Index             ind_lsn,
 		   const Numeric            cutoff);
 
 
@@ -1039,13 +1049,13 @@ Numeric wavenumber_to_joule(Numeric e);
 
 void refr_indexBoudourisDryAir (
                     Vector&   refr_index,
-              const Vector&   p_abs,
-	      const Vector&   t_abs );
+              ConstVectorView   p_abs,
+	      ConstVectorView   t_abs );
 
 void refr_indexBoudouris (
                     Vector&   refr_index,
-              const Vector&   p_abs,
-              const Vector&   t_abs,
-	      const Vector&   h2o_abs );
+              ConstVectorView   p_abs,
+              ConstVectorView   t_abs,
+	      ConstVectorView   h2o_abs );
 
 #endif // absorption_h

@@ -33,9 +33,11 @@
   \date 2000-06-10 */
 
 
+#include <map>
 #include "arts.h"
-#include "vecmat.h"
+#include "array.h"
 #include "auto_wsv.h"
+#include "auto_wsv_groups.h"
 #include "wsv_aux.h"
 #include "methods.h"
 
@@ -51,6 +53,6 @@ WorkSpace workspace;
 Array<MdRecord> md_data;
 
 /** The map associated with md_data. */
-std::map<String, size_t> MdMap;
+std::map<String, Index> MdMap;
 
 

@@ -23,8 +23,8 @@
     has to be the name exactly as it appears in declarations of these
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
-String TokValTypeName[7] = {"String", "int", "Numeric",
-			    "Array<String>", "Array<int>", "Vector",
+String TokValTypeName[7] = {"String", "Index", "Numeric",
+			    "ArrayOfString", "ArrayOfIndex", "Vector",
                             "undefined"};
 
 
@@ -35,8 +35,8 @@ TokVal::operator String() const {
   return ms;
 }
 
-TokVal::operator int() const {
-  assert (mtype == int_t);
+TokVal::operator Index() const {
+  assert (mtype == Index_t);
   return mn;
 }
   
@@ -46,13 +46,13 @@ TokVal::operator Numeric() const {
 }
 
 
-TokVal::operator Array<String>() const {
+TokVal::operator ArrayOfString() const {
   assert (mtype == Array_String_t);
   return msv;
 }
 
-TokVal::operator Array<int>() const {
-  assert (mtype == Array_int_t);
+TokVal::operator ArrayOfIndex() const {
+  assert (mtype == Array_Index_t);
   return mnv;
 }
   
@@ -69,20 +69,20 @@ ostream& operator<<(ostream& os, const TokVal& a)
     case String_t:
       os << a.ms;
       break;
-    case int_t:
+    case Index_t:
       os << a.mn;
       break;
     case Numeric_t:
       os << a.mx;
       break;
     case Array_String_t:
-      print_vector(os,a.msv);
+      os << a.msv;
       break;
-    case Array_int_t:
-      print_vector(os,a.mnv);
+    case Array_Index_t:
+      os << a.mnv;
       break;
     case Vector_t:
-      print_vector(os,a.mxv);
+      os << a.mxv;
       break;
     default:
       out0 << "Undefined token type.\n";

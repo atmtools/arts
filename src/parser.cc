@@ -15,6 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+#include <map>
 #include "arts.h"
 #include "messages.h"
 #include "exceptions.h"
@@ -22,10 +23,11 @@
 #include "auto_wsv.h"
 #include "methods.h"
 #include "parser.h"
+#include "wsv_aux.h"
 
 void SourceText::AppendFile(const String& name) 
 {
-  mSfLine.push_back(mText.size());
+  mSfLine.push_back(mText.nelem());
   mSfName.push_back(name);
 
   read_text_from_file(mText, name);    
@@ -33,7 +35,7 @@ void SourceText::AppendFile(const String& name)
 
 void SourceText::AdvanceChar() 
 {
-  if ( mColumn < mText[mLine].size()-1 )
+  if ( mColumn < mText[mLine].nelem()-1 )
     {
       ++mColumn;
     }
@@ -42,7 +44,7 @@ void SourceText::AdvanceChar()
       mLineBreak = true;
       do
 	{
-	  if (mLine>=mText.size()-1)
+	  if (mLine>=mText.nelem()-1)
 	    {
 	      throw Eot( "",
 			 this->File(),
@@ -55,7 +57,7 @@ void SourceText::AdvanceChar()
 	      mColumn = 0;
 	    }
 	}
-      while ( 1 > mText[mLine].size() ); // Skip empty lines.
+      while ( 1 > mText[mLine].nelem() ); // Skip empty lines.
     }
 }
 
@@ -66,7 +68,7 @@ void SourceText::AdvanceLine()
   mColumn = 0;
   do
     {
-      if (mLine>=mText.size()-1)
+      if (mLine>=mText.nelem()-1)
 	{
 	  throw Eot( "",
 		     this->File(),
@@ -78,16 +80,16 @@ void SourceText::AdvanceLine()
 	  ++mLine;
 	}
     }
-  while ( 1 > mText[mLine].size() ); // Skip empty lines.
+  while ( 1 > mText[mLine].nelem() ); // Skip empty lines.
 }
 
 
 const String& SourceText::File()
 {
-  size_t i    = 0;
+  Index i    = 0;
   bool   stop = false;
 
-  while ( i<mSfLine.size()-1 && !stop )
+  while ( i<mSfLine.nelem()-1 && !stop )
     {
       if (mLine>=mSfLine[i+1]) ++i;
       else                     stop = true;
@@ -97,12 +99,12 @@ const String& SourceText::File()
 }
 
 
-int SourceText::Line()
+Index SourceText::Line()
 {
-  size_t i    = 0;
+  Index i    = 0;
   bool   stop = false;
 
-  while ( i<mSfLine.size()-1 && !stop )
+  while ( i<mSfLine.nelem()-1 && !stop )
     {
       if (mLine>=mSfLine[i+1]) ++i;
       else                     stop = true;
@@ -117,7 +119,7 @@ void SourceText::Init()
   mLine   = 0;
   mColumn = 0;
     
-  if ( 1 > mText.size() )
+  if ( 1 > mText.nelem() )
     {
       throw Eot( "Empty text!",
 		 this->File(),
@@ -127,9 +129,9 @@ void SourceText::Init()
   else
     {
       // Skip empty lines:
-      while ( 1 > mText[mLine].size() )
+      while ( 1 > mText[mLine].nelem() )
 	{
-	  if (mLine>=mText.size()-1)
+	  if (mLine>=mText.nelem()-1)
 	    {
 	      throw Eot( "",
 			 this->File(),
@@ -148,9 +150,9 @@ void SourceText::Init()
 
 ostream& operator << (ostream& os, const SourceText& text)
 {
-  for (size_t i=0; i<text.mText.size();++i)
+  for (Index i=0; i<text.mText.nelem();++i)
     cout << i
-	 << "(" << text.mText[i].size() << ")"
+	 << "(" << text.mText[i].nelem() << ")"
 	 << ": " << text.mText[i] << '\n';
   return(os);
 }
@@ -191,14 +193,8 @@ void eat_whitespace(SourceText& text)
 {
   char dummy;
 
-//   cout << "o" << text.Current() << "o\n";
-
-//   int i=text.Current();
-//   cout << "i=" << i << '\n';
-
   while (is_whitespace(dummy=text.Current())) 
     {
-//      cout << "o" << dummy << "o\n";
       switch (dummy)
 	{
 	case ' ':
@@ -496,7 +492,7 @@ void read_numeric(String& res, SourceText& text)
 }
 
 /** Use a String stream to parse an integer number. */
-void parse_integer(int& n, SourceText& text)
+void parse_integer(Index& n, SourceText& text)
 {
   String res;
   read_integer(res, text);
@@ -527,10 +523,10 @@ void parse_numeric(Numeric& n, SourceText& text)
     inside Strings are not allowed. 
    
     @see parse_String */
-void parse_Stringvector(Array<String>& res, SourceText& text)
+void parse_Stringvector(ArrayOfString& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
-  resize(res,0);			// Clear the result vector (just in case).
+  res.resize(0);			// Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -571,10 +567,10 @@ void parse_Stringvector(Array<String>& res, SourceText& text)
     inside numbers are not allowed. 
    
     @see parse_integer */
-void parse_intvector(Array<int>& res, SourceText& text)
+void parse_intvector(ArrayOfIndex& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
-  resize(res,0);			// Clear the result vector (just in case).
+  res.resize(0);			// Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -586,7 +582,7 @@ void parse_intvector(Array<int>& res, SourceText& text)
   // reached the end):
   while ( ']' != text.Current() )
     {
-      int dummy;
+      Index dummy;
 
       if (first)
 	first = false;
@@ -618,7 +614,11 @@ void parse_intvector(Array<int>& res, SourceText& text)
 void parse_numvector(Vector& res, SourceText& text)
 {
   bool first = true;		// To skip the first comma.
-  resize(res,0);			// Clear the result vector (just in case).
+
+  // We need a temporary Array<Numeric>, so that we can use push_back
+  // to store the values. FIXME: Need also constructor for Vector from
+  // Array<Numeric>.
+  Array<Numeric> tres;
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -641,9 +641,13 @@ void parse_numvector(Vector& res, SourceText& text)
 	}
 
       parse_numeric(dummy, text);
-      res.push_back(dummy);
+      tres.push_back(dummy);
       eat_whitespace(text);
     }
+
+  // Copy tres to res:
+  res.resize(tres.nelem());
+  res = tres;
 
   text.AdvanceChar();
 }
@@ -675,26 +679,26 @@ void parse_numvector(Vector& res, SourceText& text)
    @exception UnexpectedKeyword
 
    @author Stefan Buehler  */
-bool parse_method(size_t& id, 
+bool parse_method(Index& id, 
 		  Array<TokVal>& values,
-		  Array<size_t>& output,
-		  Array<size_t>& input,
+		  ArrayOfIndex& output,
+		  ArrayOfIndex& input,
 		  SourceText& text,
-		  const std::map<String, size_t> MdMap,
-		  const std::map<String, size_t> WsvMap)
+		  const std::map<String, Index> MdMap,
+		  const std::map<String, Index> WsvMap)
 {
   extern const Array<WsvRecord> wsv_data;
   extern const Array<MdRecord> md_data;
-  extern const Array<String> wsv_group_names;
+  extern const ArrayOfString wsv_group_names;
 
-  size_t wsvid;			// Workspace variable id, is used to
+  Index wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
 
   // Clear all output variables:
   id = 0;
-  resize( values, 0 );
-  resize( output, 0 );
-  resize( input,  0 );
+  values.resize( 0 );
+  output.resize( 0 );
+  input.resize(  0 );
 
   {
     String methodname;
@@ -702,7 +706,7 @@ bool parse_method(size_t& id,
 
     {
       // Find method id:
-      const map<String, size_t>::const_iterator i = MdMap.find(methodname);
+      const map<String, Index>::const_iterator i = MdMap.find(methodname);
       if ( i == MdMap.end() )
 	throw UnknownMethod(methodname,
 			    text.File(),
@@ -719,7 +723,7 @@ bool parse_method(size_t& id,
 
   // For generic methods the output and input workspace variables have 
   // to be parsed (given in round brackets).
-  if ( 0 < md_data[id].GOutput().size() + md_data[id].GInput().size() )
+  if ( 0 < md_data[id].GOutput().nelem() + md_data[id].GInput().nelem() )
     {
       //      cout << "Generic!" << id << md_data[id].Name() << '\n';
       String wsvname;
@@ -729,7 +733,7 @@ bool parse_method(size_t& id,
       eat_whitespace(text);
 
       // First read all output Wsvs:
-      for ( size_t j=0 ; j<md_data[id].GOutput().size() ; ++j )
+      for ( Index j=0 ; j<md_data[id].GOutput().nelem() ; ++j )
 	{
 	  if (first)
 	    first = false;
@@ -743,7 +747,7 @@ bool parse_method(size_t& id,
 
 	  {
 	    // Find Wsv id:
-	    const map<String, size_t>::const_iterator i = WsvMap.find(wsvname);
+	    const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
 	    if ( i == WsvMap.end() )
 	      throw UnknownWsv( wsvname,
 				text.File(),
@@ -770,7 +774,7 @@ bool parse_method(size_t& id,
 	}
 
       // Then read all input Wsvs:
-      for ( size_t j=0 ; j<md_data[id].GInput().size() ; ++j )
+      for ( Index j=0 ; j<md_data[id].GInput().nelem() ; ++j )
 	{
 	  if (first)
 	    first = false;
@@ -784,7 +788,7 @@ bool parse_method(size_t& id,
 
 	  {
 	    // Find Wsv id:
-	    const map<String, size_t>::const_iterator i = WsvMap.find(wsvname);
+	    const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
  	    if ( i == WsvMap.end() )
  	      throw UnknownWsv( wsvname,
  				text.File(),
@@ -830,9 +834,9 @@ bool parse_method(size_t& id,
   //
   // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
   //
-  for ( size_t i=0 ; i<md_data[id].Keywords().size() ; ++i )
+  for ( Index i=0 ; i<md_data[id].Keywords().nelem() ; ++i )
     {
-      if (!isalpha(text.Current()) && 1==md_data[id].Keywords().size())
+      if (!isalpha(text.Current()) && 1==md_data[id].Keywords().nelem())
 	{
 	  // Parameter specified directly, without a keyword. This is only
 	  // allowed for single parameter methods!
@@ -862,8 +866,8 @@ bool parse_method(size_t& id,
 	}
 
       // Now parse the key value. This can be:
-      // String_t,    int_t,    Numeric_t,
-      // Array_String_t, Array_int_t, Vector_t,
+      // String_t,    Index_t,    Numeric_t,
+      // Array_String_t, Array_Index_t, Vector_t,
       switch (md_data[id].Types()[i]) 
 	{
 	case String_t:
@@ -873,9 +877,9 @@ bool parse_method(size_t& id,
 	    values.push_back(dummy);
 	    break;
 	  }
-	case int_t:
+	case Index_t:
 	  {
-	    int n;
+	    Index n;
 	    parse_integer(n, text);
 	    values.push_back(n);
 	    break;
@@ -889,14 +893,14 @@ bool parse_method(size_t& id,
 	  }
 	case Array_String_t:
 	  {
-	    Array<String> dummy;
+	    ArrayOfString dummy;
 	    parse_Stringvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
 	  }
-	case Array_int_t:
+	case Array_Index_t:
 	  {
-	    Array<int> dummy;
+	    ArrayOfIndex dummy;
 	    parse_intvector(dummy, text);
 	    values.push_back(dummy);
 	    break;
@@ -950,19 +954,19 @@ bool parse_method(size_t& id,
    @author Stefan Buehler */
 void parse(Array<MRecord>& tasklist,
 	   SourceText& text,
-	   const std::map<String, size_t> MdMap,
-	   const std::map<String, size_t> WsvMap)
+	   const std::map<String, Index> MdMap,
+	   const std::map<String, Index> WsvMap)
 {
   extern const Array<MdRecord> md_data;
   bool last = false;
   // For method ids:
-  size_t id;		
+  Index id;		
  // For keyword parameter values:
   Array<TokVal> values;
   // Output workspace variables (for generic methods):
-  Array<size_t> output;		
+  ArrayOfIndex output;		
   // Input workspace variables (for generic methods):
-  Array<size_t> input;
+  ArrayOfIndex input;
 
   out3 << "\nParsing:\n";
 
@@ -984,7 +988,7 @@ void parse(Array<MRecord>& tasklist,
 
 	out3 << "- " << md_data[id].Name() << "\n";
 
-	for ( size_t j=0 ; j<values.size() ; ++j )
+	for ( Index j=0 ; j<values.nelem() ; ++j )
 	  {
 	    out3 << "   " 
 		 << md_data[id].Keywords()[j] << ": "
@@ -992,17 +996,17 @@ void parse(Array<MRecord>& tasklist,
 	  }
 	  
 	// Output workspace variables for generic methods:
-	if ( 0 < md_data[id].GOutput().size() + md_data[id].GInput().size() )
+	if ( 0 < md_data[id].GOutput().nelem() + md_data[id].GInput().nelem() )
 	  {
 	    out3 << "   Output: ";
-	    for ( size_t j=0 ; j<output.size() ; ++j )
+	    for ( Index j=0 ; j<output.nelem() ; ++j )
 	      {
 		out3 << wsv_data[output[j]].Name() << " ";
 	      }
 	    out3 << "\n";
 
 	    out3 << "   Input: ";
-	    for ( size_t j=0 ; j<input.size() ; ++j )
+	    for ( Index j=0 ; j<input.nelem() ; ++j )
 	      {
 		out3 << wsv_data[input[j]].Name() << " ";
 	      }
@@ -1028,8 +1032,8 @@ void parse_main(Array<MRecord>& tasklist, SourceText& text)
 {
   //  extern const Array<MdRecord> md_data;
   //  extern const Array<WsvRecord> wsv_data;
-  extern const std::map<String, size_t> MdMap;
-  extern const std::map<String, size_t> WsvMap;
+  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> WsvMap;
 
   try 
     {

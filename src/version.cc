@@ -23,9 +23,12 @@
  */
 
 #include "arts.h"
-#define SUBVERSION "205"
+#include "mystring.h"
 
-String subversion = SUBVERSION;
+// You now have to set the full version number (including subversion)
+// in file configure.in in the top-level ARTS directory. Don't forget
+// to run `reconf' after editing configure.in!
+
 String full_name  = static_cast<String>(PACKAGE)
-  + "-" + VERSION + "." + SUBVERSION;
+  + "-" + VERSION;
 
