@@ -1,3 +1,15 @@
+2001-04-02  Stefan Buehler  <sbuehler@uni-bremen.de>  
+
+	* arts-0-0-146
+
+	* los.h: Cosmetic changes in doxygen header of struct LOS:
+	  - Used html tags in the enumerated list because LaTeX constructs
+  	    do not work.
+          - Replaced index of stop by 0 at one place.
+
+	* There seems to be a problem in the setup of los for uplooking cases.
+	 	
+	
 2001-04-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-145

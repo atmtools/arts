@@ -80,11 +80,11 @@
     possible value for L_STEP below the used defined value is selected.
 
     Spectra are calculated in the following way (by RTE_ITERATE in m_los):
-    \begin{enumerate}
-    \item Iteration from START down to 0 or GROUND
-    \item If GROUND, including the effect of the ground reflection.
-    \item Iteration from 0 or GROUND-1 to STOP
-    \end{enumerate}
+    <ol>
+    <li> Iteration from START down to 0 or GROUND
+    <li> If GROUND, including the effect of the ground reflection.
+    <li> Iteration from 0 or GROUND-1 to STOP
+    </ol>
 
     The START and STOP variables make it possible to use a possible symmetry
     for 1D calculations. For example, for limb sounding from space, START
@@ -92,7 +92,7 @@
     1D calculations either 0 or 1. The psi angles for 1D cases are valid
     for the part of the LOS furthest away from the sensor.
 
-    For cases without symmetry (upward looking and 2D), STOP is always 1
+    For cases without symmetry (upward looking and 2D), STOP is always 0
     and corresponds to the point closest to the sensor. Accordingly, START
     corresponds to the point of LOS furthest away from the sensor.
 
