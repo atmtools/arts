@@ -1,3 +1,17 @@
+2004-09-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-170
+
+	* Note: There was a bug in   *groundFlatSea*
+	
+	* src/m_los.cc (groundFlatSea): Completed bug fix of 1-0-165. The
+	emissivity was still not correct. It was calculated as e=1-r*r,
+	which became wrong when r was changed to be power reflection
+	coefficient (and not the amplitude one).
+
+	Code once again checked to give same results as corresponding Atmlab
+	code (test code left in Test, can be removed).
+
 2004-09-13  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-0-169

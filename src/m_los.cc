@@ -1015,9 +1015,10 @@ void groundFlatSea(
         throw runtime_error( 
                         "The keyword argument *pol* must be \"v\" or \"h\"." );
 
+      // Power reflection coefficient
       const Numeric   r = pow( abs( ( a - b ) / ( a + b ) ), 2.0 );
 
-      e_ground[i] = 1 - r * r;
+      e_ground[i] = 1 - r;
     }
 }
 

@@ -104,10 +104,57 @@ void Exit()
    \author Patrick Eriksson
    \date   2001-05-15
 */
+extern const Numeric DEG2RAD;
+
 void Test( )
 {
   // This function can be used to test stuff.
 
+  const Numeric f = 100e9;
+  const Numeric t_ground=300;
+  const Numeric th=30;
+  const String  pol = "v";
+
+  const Numeric   theta = 1 - 300 / t_ground;
+  const Numeric   e0    = 77.66 - 103.3 * theta;
+  const Numeric   e1    = 0.0671 * e0;
+  const Numeric   f1    = 20.2 + 146.4 * theta + 316 * theta * theta;
+  const Numeric   e2    = 3.52;  
+  const Numeric   f2    = 39.8 * f1;
+  //
+  const Numeric   n1    = 1;
+
+  const Numeric sintheta = sin( DEG2RAD*th );
+  const Numeric costheta = sqrt( 1 - sintheta*sintheta );
+
+      const Complex  ifGHz( 0.0, f/1e9 );
+
+      const Complex  eps = e2 + (e1-e2) / (1.0-ifGHz/f2) + 
+                                (e0-e1) / (1.0-ifGHz/f1);
+      const Complex  n2 = sqrt( eps );
+            Complex  a,b;
+
+      if( pol == "v" )
+        { 
+          a = n2 * costheta;
+          b = n1 * cos( asin( n1 * sintheta / n2.real() ) );
+        }
+      else if( pol == "h" )
+        { 
+          a = n1 * costheta;
+          b = n2 * cos( asin( n1 * sintheta / n2.real() ) );
+        }
+      else
+        throw runtime_error( 
+                        "The keyword argument *pol* must be \"v\" or \"h\"." );
+
+      // Power reflection coefficient
+      const Numeric   r = pow( abs( ( a - b ) / ( a + b ) ), 2.0 );
+
+      Numeric e = 1 - r;
+
+      cout << "r = " << r << "\n"; 
+      cout << "e = " << e << "\n"; 
 }
 
 
