@@ -79,7 +79,7 @@ box\\
  
 
 The radiative transfer equation for a medium with thermal emission
-comprising sparseley and randomly distributed, spherical or
+comprising sparsely and randomly distributed, spherical or
 arbitrarily oriented nonspherical particles is 
 \citep{mishchenko00:_light_scatt_nonsp_partic}: 
 \begin{eqnarray}
@@ -93,10 +93,10 @@ arbitrarily oriented nonspherical particles is
 Formally it is an inhomogeneous four dimensional vector differential
  equation for the Stokes vector \StoVec
 $(I,Q,U,V)$. To describe the full state of an
-electromagnetic wave you could use the electromagetic field
+electromagnetic wave you could use the electromagnetic field
 vector, which consists of two complex numbers. This is the common
 notation in Maxwell's theory. An alternative notation is the Stokes
-vector which is more convienient for experimental purposes, as it
+vector which is more convenient for experimental purposes, as it
 consists of real numbers which can be associated more directly with the
 measurements.
 The first component of the Stokes vector $I$ signifies the monochromatic flux
@@ -215,7 +215,7 @@ $Y_{11}$:
 It is not possible to find an analytical solution to the general
 radiative transfer equation. We use an iterative method to find a
 numerical solution. For this purpose the radiation field has to be
-discretised. This is done by defining cloudbox (cp. Section
+discretized. This is done by defining cloudbox (cf. Section
 \ref{sec:fm_defs:cloudbox}). In the 3D atmosphere the cloudbox
 consists of a specific number of grid points which are the corners of
 the so called grid cells. Inside the grid cells we assume that the
@@ -231,7 +231,7 @@ The first step  of the iterative method is solving the scattering integral
   \SEfMat \StoVec^{(0)}
 \end{eqnarray}
 using a first guess initial field \StoVec$^{(0)}$. To do the
-integration we also need a discretised angular grid to define the
+integration we also need a discretized angular grid to define the
 directions. The initial field depends on the
 position inside the cloudbox and on the incident direction of the
 radiation. For
@@ -262,7 +262,7 @@ Equation (\ref{eq:scattering:RTE}):
 As the coefficients are constant in each
 grid cell Equation (\ref{eq:rad_fs_sol}) is formally a linear differential
 equation with constant coefficients which can be solved analytically
-leading to the result (cp. FIXME Appendix: exact solution method) 
+leading to the result (cf. FIXME Appendix: exact solution method) 
 \begin{eqnarray}
   \label{eq:scattering:RTE_sol}
   \StoVec^{(1)} = e^{-\ExtMat s}\cdot\StoVec^{(0)} + (\IdnMat - e^{-\ExtMat
@@ -397,7 +397,7 @@ absorption coefficient vector and the phase
 matrix. All these quantities can be calculated for spherical,
 cylindrical and spheroidal particles using the T-matrix
 method. Applying Mishchenko's FORTRAN code, which is explained in
-[\cite{Mishchenko:98}] and [\cite{Mishchenko:00}],   
+\citet{Mishchenko:98} and \citet{Mishchenko:00},   
 the amplitude matrix can be calculated. The
 amplitude matrix ${\bf S}$ is a 2x2 complex matrix, which linearly transforms 
 the electric field vector components of the incident wave into the
@@ -418,7 +418,7 @@ The equation above is valid for a monochromatic wave, generally the
 amplitude matrix is also frequency dependent.
 
 All information about the optical
-properties of the scattering medium are contained in the amplitude
+properties of the scattering medium is contained in the amplitude
 matrix. Extinction cross section
 matrix, absorption cross section vector and phase matrix can be
 obtained by simple additions or multiplications of amplitude matrix
@@ -437,8 +437,8 @@ interested in cirrus clouds.\\
 The methods to read from the database allow to construct homogeneous
 clouds as well as inhomogeneous clouds, which may consist of various
 particle types. 
-All data files are stored in xml-format. The
-datatype of each file is a 6D gridded field (cp. Section FIXME
+All data files are stored in XML-format. The
+datatype of each file is a 6D gridded field (cf. Section FIXME
 %\ref{sec:gridded_fields}
 ). 
 The following example shows the datafile
@@ -825,11 +825,11 @@ file using the following equations:
   Z_{11} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2+|S_{21}|^2+|S_{22}|^2)\\
   Z_{12} &=& \frac{1}{2}(|S_{11}|^2-|S_{12}|^2+|S_{21}|^2-|S_{22}|^2)\\
   Z_{13} &=& -Re(S_{11}S_{12}^*+S_{22}S_{21}^*)\\
-  Z_{41} &=& -Im(S_{11}S_{12}^*-S_{22}S_{21}^*)\\
+  Z_{14} &=& -Im(S_{11}S_{12}^*-S_{22}S_{21}^*)\\
   Z_{21} &=& \frac{1}{2}(|S_{11}|^2+|S_{12}|^2-|S_{21}|^2-|S_{22}|^2)\\
   Z_{22} &=& \frac{1}{2}(|S_{11}|^2-|S_{12}|^2-|S_{21}|^2+|S_{22}|^2)\\
   Z_{23} &=& -Re(S_{11}S_{12}^*-S_{22}S_{21}^*)\\
-  Z_{41} &=& -Im(S_{11}S_{12}^*+S_{22}S_{21}^*)\\
+  Z_{24} &=& -Im(S_{11}S_{12}^*+S_{22}S_{21}^*)\\
   Z_{31} &=& -Re(S_{11}S_{21}^*+S_{22}S_{12}^*)\\
   Z_{32} &=& -Re(S_{11}S_{21}^*-S_{22}S_{12}^*)\\
   Z_{33} &=& Re(S_{11}S_{22}^*+S_{12}S_{21}^*)\\
@@ -953,7 +953,7 @@ file. The following formulas are used:
   b^p_4({\bf n}) &=&  L^p_{41}({\bf n}) - \int_{4\pi} d{\bf n'}
   Z_{41}({\bf n, n'}) \\
 \end{eqnarray}
-These equations show, that the first column of extinction and phase
+These equations show that the first column of extinction and phase
 matrix are needed. So it is obligatory to execute the agenda
 \funcindex{ext\_mat\_agenda} and the method
 \funcindex{pha\_matCalc} before executing
@@ -1116,7 +1116,7 @@ atmosphere.  Only the 1D atmosphere case is in proper shape now. In
 this case the main input is the interface field \artsstyle{scat\_i\_p},
 the pressure grid \artsstyle{p\_grid}, the frequency grid
 \artsstyle{f\_grid} and frequency index \artsstyle{scat\_f\_index} and
-ofcourse the \artsstyle{cloudbox\_limits}.  An interpolation of
+of course the \artsstyle{cloudbox\_limits}.  An interpolation of
 \artsstyle{scat\_i\_p} which is defined only at the
 \artsstyle{cloudbox\_limits} to all points inside the cloud box is
 done to get the initial field, \artsstyle{i\_field}. 

@@ -159,9 +159,9 @@ we can rewrite the Stokes parameters as
   \label{eq:polarization:stokesparam_alt_Q}
  Q &=& a_v^2 - a_h^2\\
   \label{eq:polarization:stokesparam_alt_U}
- U &=&  - a_v a_h \cos(\delta_v-\delta_h)\\
+ U &=&  - 2 a_v a_h \cos(\delta_v-\delta_h)\\
   \label{eq:polarization:stokesparam_alt_V}
- V &=&   a_v a_h \sin(\delta_v-\delta_h)
+ V &=&   2 a_v a_h \sin(\delta_v-\delta_h)
 \end{eqnarray}
 The Stokes parameters fully characterize the electromagnetic wave and
 therefore contain the same information as the electric field vector
@@ -169,12 +169,13 @@ therefore contain the same information as the electric field vector
 intensities (fluxes), describing electromagnetic radiation by the
 Stokes parameters is more practical than describing it by the electric
 (or magnetic) field vector. Furthermore, the Stokes parameters are
-always real numbers.
-Note that the Stokes parameters are sometimes defined with different
-signs of $Q$, $U$, or $V$. Moreover, their normalization may vary. In
-particular, the Stokes parameters can be normalized to represent
-radiance or irradiance (instead of intensity), which is usually done
-in radiative transfer contexts.
+always real numbers.  Note that the Stokes parameters are sometimes
+defined with different signs of $Q$, $U$, or $V$ (the definitions and
+signs used here are based on
+\citet{mishchenko00:_light_scatt_nonsp_partic}). Moreover, their
+normalization may vary. In particular, the Stokes parameters can be
+normalized to represent radiance or irradiance (instead of intensity),
+which is usually done in radiative transfer contexts.
  
 In order understand what the Stokes parameters mean, we have to go
 back to the electric field vector and see what polarization state it
@@ -648,7 +649,7 @@ over of the fluctuating polarization. If the fluctuations are
 random for all the sources and if the different sources emit 
 incoherently and are not in any way oriented, then there is no preferred
 orientation, ellipticity or handedness of the emitted radiation, which
-is then called unpolarized. This is the case for radiation from the sun
+is then called unpolarized. This is the case for radiation from the sun.
 %, but also to
 %a large extent for thermal radiation emitted by the atmosphere:
 %While the emission from individual molecules might be polarized
@@ -660,10 +661,10 @@ radiation is called partially polarized.
 
 To quantify this rather heuristic argumentation, we express the
 above-mentioned ideas in the language of the Stokes parameters: The
-Stokes parameters $I$, $Q$, $U$, $V$ derived from measurements come
+Stokes parameters $I$, $Q$, $U$, $V$ derived from measurements result
 from the superposition of radiation from many sources and/or the
 average over emission events with individual Stokes parameters $I_i$,
-$Q_i$, $U_i$, $V_i$.  Since the different sources/emission events are
+$Q_i$, $U_i$, $V_i$.  Since the different sources and/or emission events are
 incoherent, the Stokes parameters -- which are intensity, not
 amplitude quantities -- can simply be added up:
 \begin{equation}
@@ -746,7 +747,7 @@ dividing by 4), the sums over just $i$ cancel and we get:
 \end{eqnarray}
 where the cosine addition theorem was used.  In the summation, we now
 change from $i \not= j$ to $i<j$, so we have to symmetrize the first
-term (the second is already symmetric with respect to $i$ amd $j$ and
+term (the second term is already symmetric with respect to $i$ and $j$ and
 therefore just gets a factor 2):
 \begin{eqnarray}
 \label{eq:polarization:square-difference3}  
@@ -768,7 +769,7 @@ vertical component of the electric field is the same for all
 contributions, in other words: if all contributions have the same
 polarization.
 
-Now we can define a measure for the degree of polarization, $p$:
+Now we can define a measure for the degree of polarization, $p$, as:
 \begin{equation}
   \label{eq:polarization:pol_degree}
   p = \frac{\sqrt{Q^2 + U^2 + V^2}}{I}
@@ -792,7 +793,7 @@ Q, U, V)$, can be regarded as as a superposition of completely
 polarized radiation described by the Stokes vector $(I_p, Q, U, V)$
 and unpolarized radiation described by the Stokes vector $(I_u,
 0,0,0)$.  We see that the Stokes parameter formalism can conveniently
-deal with partially polarized and unpolarized radiation, much in
+deal with partially polarized and with unpolarized radiation, much in
 contrast to the formalism using the electric field (amplitude and
 phase).
 
@@ -821,13 +822,13 @@ background), and/or the atmosphere and the Earth surface (thermal
 radiation, scattered radiation)\footnote{This is not so for active
   sounding techniques that use a coherent source, such as lidar.}.
 Radiation from the sun is unpolarized, as already mentioned; the same
-applies for the cosmic background (??really??).  In contrast,
+applies for the cosmic background.  In contrast,
 radiation emitted by the ground can be weakly polarized, dependent on
 material, texture and direction.  Radiation emitted by the atmosphere
 (thermal radiation) is almost unpolarized because of the random
 orientation of the air molecules.  An exception might be caused by the
 Zeeman effect induced in oxygen molecules by the -- anisotropic --
-Earth's magnetic field .  Scattering of radiation by oriented
+Earth's magnetic field.  Scattering of radiation by oriented
 particles, e.g.\ cirrus clouds, is sensitive to polarization, and
 generally increases the degree of polarization.  Typically $I > |Q| >
 |U|,|V|$.
