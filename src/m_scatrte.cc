@@ -924,9 +924,11 @@ angles.
 void
 scat_integralCalc(//WS Output:
               Tensor6& scat_field,
+	      Tensor4& pha_mat_part,
               //WS Input: 
 	      const Tensor6& i_field,
-	      const Tensor4& pha_mat_part,
+	      const Tensor5& pha_mat_spt,
+	      const Tensor4& pnd_field,
 	      const Vector& scat_za_grid,
 	      const Vector& scat_aa_grid,
 	      const Vector& p_grid,
@@ -938,6 +940,7 @@ scat_integralCalc(//WS Output:
 	      )
   
 {
+  Index N_pt = pha_mat_spt.nshelves();
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
@@ -963,6 +966,15 @@ scat_integralCalc(//WS Output:
     
   if( atmosphere_dim == 1 ){
     
+    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+	 p_index++) 
+      {
+	pha_mat_partCalc(pha_mat_part, pha_mat_spt, pnd_field, 
+			 atmosphere_dim, p_index, 0, 
+			                  0);
+			 
+      }
+			 
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
