@@ -1,3 +1,17 @@
+2002-02-21  Wolfram Haas    <wolhaas@hermes.fho-emden.de>
+
+	* arts-1-1-12
+
+	* src/matpackIV.h: Draft of an implementation of tensors of rank 4.
+
+	* src/matpackIII.h: Made "friend class" entries in classes
+	ConstTensor3View and Tensor3View.
+	
+	* src/matpackI.h: Made "friend class" entries in classes
+	Range, ConstVectorView, VectorView, ConstMatrixView and MatrixView.
+
+	* src/test_tensor.cc: Started first test for tensors of rank 4.
+	
 2002-02-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-11

@@ -116,6 +116,7 @@ public:
   
   // Friends:
   friend class Tensor3View;
+  friend class ConstTensor4View;
 
 
 protected:
@@ -206,6 +207,7 @@ public:
 //   friend class VectorView;
 //   friend ConstTensor3View transpose(ConstTensor3View m);
 //   friend Tensor3View transpose(Tensor3View m);
+  friend class Tensor4View;
 
 protected:
   // Constructors:
