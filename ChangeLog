@@ -1,5 +1,11 @@
 2002-11-14  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-287
+
+	* ami/xml/xmlReadVector.m: Attribute is called nelem not nrows.
+
+2002-11-14  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-286
 
 	* ami/xml/xmlReadVector.m: Added.
