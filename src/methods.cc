@@ -125,6 +125,21 @@ void define_md_data()
 
   md_data.push_back     
     ( MdRecord
+      ( NAME("test_new_los"),
+	DESCRIPTION
+	(
+	 "Just a function to test the new LOS implementation.\n"
+	 "The functions are placxed in the file los.cc."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
       ( NAME("Exit"),
 	DESCRIPTION
 	(

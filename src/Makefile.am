@@ -40,6 +40,7 @@ arts_SOURCES = \
 	iotraits.h \
 	lineshapes.cc \
 	los.h \
+	los.cc \
 	m_abs.cc \
 	m_batch.cc \
 	m_hdf.cc \
