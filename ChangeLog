@@ -1,5 +1,11 @@
 2002-01-18  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-0
+	
+	* No problems occured in rc1 so we go for the release.
+	
+2002-01-18  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-0-rc1
 
 	* OK, this is release candidate 1. Just tagged this as a final
@@ -26,7 +32,6 @@
 
 	* doc/uguide/absorption.tex: Erased the strange artefacts after
 	committing the pre7 version.
-
 	
 2002-01-17  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
