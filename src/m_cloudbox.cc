@@ -256,7 +256,7 @@ void ParticleTypeAdd( //WS Output:
        part_types_pnd[i] =  particle_types[i] + "_pnd.xml";
     
        // Read amplitude matrix data:
-       out2 << "Read amplitude matrix_data" << endl;
+       out2 << "Read amplitude matrix_data\n";
        read_gridded_tensor6( part_types_ampmat[i], amp_mat_raw_i);
        //read_gridded_tensor3 (part_types_pnd[i], pnd_field_raw_i);
        
