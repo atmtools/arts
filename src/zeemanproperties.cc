@@ -94,12 +94,12 @@ void Zeeman (//Input & Output
     // Intensity factor, or relative intensity, of the 
     // individual components of the Zeeman split relative 
     // to the the intensity of the unsplit line.
-    Numeric xi;
+    Numeric xi = 0.;
     
     
     // This the Zeeman frequency shift of the individual 
     // components of the Zeeman split.
-    Numeric eta;
+    Numeric eta = 0.;
     //--------------------------------------------------
 
 

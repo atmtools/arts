@@ -145,7 +145,8 @@ binistream::Float binistream::readFloat(FType ft)
     {
       // Read IEEE-754 floating-point value
 
-      unsigned int      i, size;
+      unsigned int      i=0;
+      unsigned int      size=0;
       Byte              in[8];
       bool              swap;
 
@@ -406,8 +407,10 @@ void binostream::writeInt(Int val, unsigned int size)
 void binostream::writeFloat(Float f, FType ft)
 {
   if(getFlag(FloatIEEE)) {	// Write IEEE-754 floating-point value
-    unsigned int	i, size;
-    Byte		*out;
+    
+    unsigned int        i=0;
+    unsigned int        size=0;
+    Byte		*out=NULL;
     bool		swap;
 
     if(system_flags & FloatIEEE) {

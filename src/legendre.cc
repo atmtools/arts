@@ -66,7 +66,7 @@ Numeric
 legendre_poly (Index l, Index m, Numeric x)
 {
   Numeric pmm;
-  Numeric result;
+  Numeric result = 0.;
 
   if (m < 0 || m > l || abs (x) > 1.0)
     {
@@ -349,7 +349,7 @@ Numeric
 g_legendre_poly (Index l, Index m, Numeric x)
 {
   Numeric pmm;
-  Numeric result;
+  Numeric result = 0.;
 
   if (m < 0 || m > l || abs (x) > 1.0)
     {

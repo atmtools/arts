@@ -17,6 +17,7 @@
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
+extern const Numeric EARTH_RADIUS;
 
 void magfield_nk(  // Output
 	    Numeric& B_r, // radial component of the geomagnetic field in [nT].
@@ -34,7 +35,6 @@ void magfield_nk(  // Output
   
 {
   
-  Numeric a; // mean radius of the Earth in [km].
   Numeric Phi = phi * DEG2RAD; // Longitude angle in radian.
   Numeric Theta = PI/2 - theta * DEG2RAD; // Colatitude angle in radian.
     
@@ -76,13 +76,13 @@ void magfield_nk(  // Output
 
 	  
 	  // Calculating the radial (upward) component of the magnetic field.
-	  B_r += pow(l + 2, a / r) * (l + 1) * 
+	  B_r += pow(l + 2, EARTH_RADIUS / r) * (l + 1) * 
 	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
 	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) 
 	      * P_lm;
 	  
 	  // Calculating the latitudinal (southward) component of the magnetic field. 
-	  B_th += pow(l + 2, a / r) * 
+	  B_th += pow(l + 2, EARTH_RADIUS / r) * 
 	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
 	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) *
 	    dP_lm * sin(Theta);
@@ -90,7 +90,7 @@ void magfield_nk(  // Output
       
       
           // Calculating the longitudinal (eastward) component of the magnetic field.
-          B_ph += pow(l + 2, a / r) * m *
+          B_ph += pow(l + 2, EARTH_RADIUS / r) * m *
 	   ((M(j,0) + Ny * M(j,2)) * sin(m * Phi) 
 	    - (M(j,1) + Ny * M(j,3)) * cos(m * Phi)) *
 	     P_lm / sin(Theta);
