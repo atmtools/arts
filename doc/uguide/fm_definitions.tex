@@ -59,7 +59,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
     around the globe. The fields are specified by a value for each
     pressure surface. The extension of the cloud box is either from
     the ground up to a pressure surface, or between two pressure
-    surfaces (which is the case shown in the figure. The figure shows
+    surfaces (which is the case shown in the figure). The figure shows
     further that the ground must be above the lowermost pressure
     surface. }
   \label{fig:fm_defs:1d}  
@@ -1003,36 +1003,36 @@ Section~[**].
 
 
 
-\levelc{Ground reflections}
+\levelc{Surface effects}
 %===================
 \label{sec:fm_defs:groundrefl}
 
-The radiative properties of the ground are handled by
+The radiative properties of the surface are handled by
 \wsaindex{ground\_refl\_agenda}. This agenda sets the workspace
 variables \wsvindex{ground\_emission}, \wsvindex{ground\_los} and
 \wsvindex{ground\_refl\_coeffs}. These three variables defines
-together the properties of the ground reflection. The general
-expression used to model ground reflections is
+together the properties of the surface. The general
+expression used to model surface emission and reflections is
 (Figure~\ref{fig:fm_defs:ground_refl})
 \begin{equation}
   \MpiVct_g^u = \MpiVct_e + \sum_l^{} \mathbf{R}_l \MpiVct_l^d
   \label{eq:fm_defs:groundrefl}
 \end{equation}
 where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_g^u$
-is the total upward travelling intensity from the ground along the
-propagation path, $\MpiVct_e$ is the emission from the ground,
-$\MpiVct_l^d$ is the downward travelling intensity reaching the ground
+is the total upward travelling intensity from the surface along the
+propagation path, $\MpiVct_e$ is the emission from the surface,
+$\MpiVct_l^d$ is the downward travelling intensity reaching the surface
 along direction $l$, and $\mathbf{R}_l$ is the reflection coefficient
 matrix from direction $l$ to the present propagation path. The
-emission from the ground $(\MpiVct_e)$ is stored in
+emission from the surface $(\MpiVct_e)$ is stored in
 \artsstyle{ground\_emission}, the directions $l$ for which downward
 travelling intensities are given by \artsstyle{ground\_los}, and the
 reflection coefficients $(\mathbf{R})$ are stored in
-\artsstyle{ground\_refl\_coeffs}. The slope of the ground is
-considered when calculating the specular direction of ground
+\artsstyle{ground\_refl\_coeffs}. The slope of the surface is
+considered when calculating the specular direction of surface
 reflections, as shown in Figure~\ref{fig:fm_defs:ppath_ground}.
-Ground reflections and emission from the ground are discussed further
-in Section [**].
+Surface reflections and emission are discussed further
+in Section~\ref{sec:rte:surface}.
 
 \begin{figure}[!p]
  \begin{center}
@@ -1045,7 +1045,7 @@ in Section [**].
 \begin{figure}[!p]
  \begin{center}
   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_ground}
-  \caption{The influence of a ground slope on the propagation path. The zenith
+  \caption{The influence of a surface slope on the propagation path. The zenith
     angle of the sensor line-of-sight is the same for the two paths (but with
     different sign, which matters here as this is a 2D case), and the paths
     would have been symmetric around the latitude of the sensor without a 

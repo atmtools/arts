@@ -1,3 +1,14 @@
+2004-04-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+        * arts-1-1-813
+
+	* doc/uguide/rte.tex: Opened this chapter. Started the description
+	of surface reflections.	
+
+	* doc/uguide/main.tex: Included rte.tex.
+
+	* doc/uguide/symbol_defs.tex: Added wavelelngth (\Wvl).
+
 2004-04-27  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-1-812

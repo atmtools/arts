@@ -68,7 +68,7 @@ EOF
 \vspace{1em}
 EOF
              else
-                 echo "\\noindent $j" \
+                 echo "\\noindent $j " \
                   | sed "s/_/\\\_/g" \
                   | sed "s/\#/\\\#/g" \
                   | sed "s/\^/\\\^/g"
