@@ -1,5 +1,6 @@
-# Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
-#                    Patrick Eriksson <patrick@rss.chalmers.se>
+# Copyright (C) 2000,2001,2002,2003 
+# Stefan Buehler <sbuehler@uni-bremen.de>
+# Patrick Eriksson <patrick@rss.chalmers.se>
 #
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without 
@@ -14,7 +15,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.94)
+AM_INIT_AUTOMAKE(arts,1.0.95)
 #
 # First of all set the default PREFIX if not given
 # (needed for arts data path later)

@@ -2540,6 +2540,30 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME( "absCalcSaveMemory" ),
+	DESCRIPTION(
+	   "Calculate absorption coefficients, trying to conserve memory. \n"
+	   "\n"
+	   "This function calculates only the total absorption (*abs*),\n"
+	   "NOT the absorption per tag group (*abs_per_tg*).\n"
+           "\n"
+           "This means you cannot use it if you want to calculate Jacobians\n"
+           "later.\n"
+           "\n"
+           "The implementation follows absCalc."
+            ) ,
+	OUTPUT(abs_ ),
+	INPUT(tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
+              lines_per_tg_, lineshape_,
+	      cont_description_names_, cont_description_models_, 
+              cont_description_parameters_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("absCalcFromXsec"),
 	DESCRIPTION(
 		    "Calculate absorption coefficients from cross sections.\n"

@@ -1,3 +1,11 @@
+2003-07-17  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-95
+
+	* src/methods.cc (define_md_data): Added absCalcSaveMemory.
+
+	* src/m_abs.cc (absCalcSaveMemory): Added this function.
+
 2003-07-16  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-94

@@ -1891,6 +1891,133 @@ void absCalc(// WS Output:
 
 }
 
+/** Calculates the absorption coefficients by first calculating the
+   cross sections per tag group and then the absorption from the cross
+   sections. 
+
+   This is done in a loop over species, in order to save memory. we
+   only calculate abs, not abs_per_tg!
+
+   \retval   abs            absorption coefficients
+   \param    tgs            the list of tag groups 
+   \param    f_mono         monochromatic frequency grid
+   \param    p_abs          pressure levels 
+   \param    t_abs          temperature at pressure level
+   \param    h2o_abs        total volume mixing ratio of water vapor
+   \param    vmrs           volume mixing ratios per tag group
+   \param    lines_per_tg   transition lines per tag group
+   \param    lineshape      lineshape specifications to use per tag group
+   \param    cont_description_names names of different continuum
+                                    models
+   \param    cont_description_parameters continuum parameters for the
+                                         models listed in
+                                         cont_description_names 
+
+   \author Stefan Buehler
+   \date 2003-07-17
+ */
+void absCalcSaveMemory(// WS Output:
+             Matrix&                         abs,
+             // WS Input:                 
+             const TagGroups&                tgs,
+             const Vector&                   f_mono,
+             const Vector&                   p_abs,
+             const Vector&                   t_abs,
+             const Vector&                   n2_abs,
+             const Vector&                   h2o_abs,
+             const Matrix&                   vmrs,
+             const ArrayOfArrayOfLineRecord& lines_per_tg,
+             const ArrayOfLineshapeSpec&     lineshape,
+             const ArrayOfString&            cont_description_names,
+             const ArrayOfString&            cont_description_models,
+             const ArrayOfVector&            cont_description_parameters)
+{
+  // Dimension checks are performed in the executed functions
+
+  // Allocate local variable to hold the cross sections per tag group:
+  ArrayOfMatrix xsec_per_tg;
+
+  // Allocate local variable to hold the absorption for each tag group:
+  Matrix this_abs;
+
+  // Allocate local variable to hold abs_per_tg for each tag
+  // group. This is just a dummy, we need it, since it is a formal
+  // argument of absCalcFromXsec.
+  ArrayOfMatrix this_abs_per_tg;
+
+  // Define variable to hold a dummy list of tag groups with only 1 element:
+  TagGroups this_tg(1);
+
+  // Local list of VMRs, only 1 element:
+  Matrix this_vmr(1,p_abs.nelem());
+
+  // Local lines_per_tg, only 1 element:
+  ArrayOfArrayOfLineRecord these_lines(1);
+
+  // Local lineshape list, only 1 element:
+  ArrayOfLineshapeSpec     this_lineshape(1);
+
+  // Initialize the output variable abs:
+  abs.resize( f_mono.nelem(), p_abs.nelem() );
+  abs = 0;                      // Matpack can set all elements like this.
+
+  out2 << "  Number of tag groups to do: " << tgs.nelem() << "\n";
+
+  // Loop over all species:
+  for ( Index i=0; i<tgs.nelem(); ++i )
+    {
+      out2 << "  Doing tag group " << i << ".\n";
+
+      // Get a dummy list of tag groups with only the current element:
+      this_tg[0].resize(tgs[i].nelem());
+      this_tg[0] = tgs[i];
+
+      // VMR for this species:
+      this_vmr(0,joker) = vmrs(i,joker);
+
+      // List of lines:
+      these_lines[0].resize(lines_per_tg[i].nelem());
+      these_lines[0] = lines_per_tg[i];
+
+      // List of lineshapes:
+      this_lineshape[0] = lineshape[i];
+
+      xsec_per_tgInit( xsec_per_tg, this_tg, f_mono, p_abs );
+
+      xsec_per_tgAddLines( xsec_per_tg,
+                           this_tg,
+                           f_mono,
+                           p_abs,
+                           t_abs,
+                           h2o_abs,
+                           this_vmr,
+                           these_lines,
+                           this_lineshape );
+
+      xsec_per_tgAddConts( xsec_per_tg,
+                           this_tg,
+                           f_mono,
+                           p_abs,
+                           t_abs,
+                           n2_abs,
+                           h2o_abs,
+                           this_vmr,
+                           cont_description_names,
+                           cont_description_parameters,
+                           cont_description_models);
+
+      absCalcFromXsec(this_abs,
+                      this_abs_per_tg,
+                      xsec_per_tg,
+                      this_vmr );
+
+      // Add absorption of this species to total absorption:
+      assert(abs.nrows()==this_abs.nrows());
+      assert(abs.ncols()==this_abs.ncols());
+      abs += this_abs;
+    }
+}
+
 
 /**
    Calculates the absorption from a given cross section.
