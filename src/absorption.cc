@@ -888,7 +888,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
     extern const Numeric TORR2PA;
 
     // Extract MYTRAN value:
-    extract(d,line,8);
+    extract(d,line,9);
 
     // ARTS value in Hz/Pa
     mpsf = d * 1E6 / TORR2PA;

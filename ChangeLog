@@ -1,3 +1,12 @@
+2003-03-13  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-67
+
+	* src/absorption.cc: Corrections in
+	LineRecord::ReadFromMytran2Stream in order to read the right
+	MYTRAN format (pressure shift field has 9 digits allocated instead
+	of 8)
+
 2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-66
