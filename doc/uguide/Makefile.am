@@ -93,6 +93,9 @@ auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
 auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
 	./arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
 
+EXTRA_DIST = arts_groups_to_latex.sh\
+	     arts_methods_to_latex.sh
+
 CLEANFILES = *.aux \
 	     *.log \
 	     uguide.bbl \
