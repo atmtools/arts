@@ -4,6 +4,9 @@
 %          Includes a Gaussian antenna pattern into H with options to
 %          scale the pattern with frequency and to consider a moving antenna.
 %
+%          See H_ANTENNA for definition of frequency scaling and movement
+%          variables.
+%
 % FORMAT:  [H,f_y,za_y,za_sensor] = hAntennaGaussAdv(H,f_sensor,za_sensor,
 %                    za_obs,fwhm,width,spacing,o_ant,o_y,fscale,f0,move,dza)
 %

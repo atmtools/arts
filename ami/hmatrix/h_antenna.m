@@ -7,6 +7,10 @@
 %          The response of the antenna pattern is normalised and the
 %          antenna values (W_ANT) do not need to be normalised.
 %
+%          The argument DZA can either be a scalar, and then the same
+%          movement is applied for all zenith angles, or e vector with the
+%          same length as ZA2.
+%
 % FORMAT:  [H,za_new] = h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,...
 %                                                          fscale,f0,move,dza)
 %
@@ -60,7 +64,9 @@ end
 
 %=== Include possible effect of moving antenna
 if move
-  w_ant = moving_ant(za_ant,w_ant,dza);
+  if ~any( length(dza) == [1,length(za2)] )
+    error('The movement argument (DZA) must have length 1 or length(ZA2)');
+  end
 end
 
 
@@ -77,7 +83,8 @@ end
 out(1,1);
 out(1,'Setting up antenna transfer matrix (H).');
 if move
-  out(2,sprintf('Antenna movement of %.3f deg. is included.',dza));
+  out(2,sprintf('Antenna movement of %.3f-%.3f deg. is included.',...
+                                                           min(dza),max(dza)));
 end
 if fscale
   out(2,sprintf('Frequency scaling is performed (f0=%.3fGHz).',f0/1e9));
@@ -99,6 +106,11 @@ wgts = zeros( 1, lrow );
 if fscale
   for i = 1:n2
     out(2,sprintf('Doing angle %d of %d',i,n2));
+    if move
+      if i == 1 | length(dza)>1  
+        w_ant = moving_ant(za_ant,w_ant,dza(i));
+      end
+    end
     za   = za1 - za2(i);
     ind1 = (i-1)*nf;
     ind2 = 0:nf:(nf*(n1-1));
@@ -125,6 +137,11 @@ if fscale
 else
   for i = 1:n2
     out(2,sprintf('Doing angle %d of %d.',i,n2));
+    if move
+      if i == 1 | length(dza)>1  
+        w_ant = moving_ant(za_ant,w_ant,dza(i));
+      end
+    end
     za   = za1 - za2(i);
     ind1 = (i-1)*nf;
     ind2 = 0:nf:(nf*(n1-1));
@@ -163,16 +180,20 @@ out(1,-1);
 
 function w_ant = moving_ant(za,w_ant,dza)
 
-  zastep = min(diff(za))/10;
+  if dza > 0
 
-  n      = max([ceil(dza/zastep),2]);
-  dzap   = linspace(-dza/2,dza/2,n);
-  nza    = length(za);
-  A      = zeros(n,nza);
-  for i = 1:n
-    A(i,:) = interp1([za(1)*2;za+dzap(i);za(nza)*2],[0;w_ant;0],za)';
+    zastep = min(diff(za))/10;
+  
+    n      = max([ceil(dza/zastep),2]);
+    dzap   = linspace(-dza/2,dza/2,n);
+    nza    = length(za);
+    A      = zeros(n,nza);
+    for i = 1:n
+      A(i,:) = interp1([za(1)*2;za+dzap(i);za(nza)*2],[0;w_ant;0],za)';
+    end
+    w_ant  = trapz(dzap,A)'/dza;
+
   end
-  w_ant  = trapz(dzap,A)'/dza;
 
 return
 

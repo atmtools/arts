@@ -10,6 +10,9 @@
 %          The response of the antenna pattern is normalised and the
 %          antenna values do not need to be normalised.
 %
+%          See H_ANTENNA for definition of frequency scaling and movement
+%          variables.
+%
 % FORMAT:  [H,f_y,za_y,za_sensor] = hAntennaFromFileAdv(H,f_sensor,za_sensor,
 %                                za_obs,filename,o_ant,o_y,fscale,f0,move,dza)
 %
