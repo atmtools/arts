@@ -2589,7 +2589,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "lraytrace", "lmax"    ),
         TYPES(    Numeric_t,   Numeric_t )));
-        
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ReadXML"),
@@ -3658,6 +3658,49 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("timerStart"),
+        DESCRIPTION
+        (
+         "Initializes the CPU timer."
+         "\n"
+         "Use *timerStop* to output the consumed cpu time\n"
+         "since *timerStart*.\n"
+         "\n"
+         "Usage example:\n"
+         "\n"
+         "timerStart()"
+         "ReadXML(f_grid){\"frequencies.xml\"}\n"
+         "timerStop()\n"
+         "Prints the CPU time spent for reading the XML file"
+         ),
+        OUTPUT(timer_),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("timerStop"),
+        DESCRIPTION
+        (
+         "Stops the CPU timer."
+         "\n"
+         "Use *timerStop* to output the consumed cpu time\n"
+         "since *timerStart*. See *timerStart* for example"
+         ),
+        OUTPUT(),
+        INPUT(timer_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
 
   md_data_raw.push_back
     ( MdRecord

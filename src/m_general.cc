@@ -66,7 +66,7 @@ void Print(
         // WS Generic Input Names:
         const String&         x_name,
         // Keywords:
-        const Index&    level )
+        const Index&          level )
 {
   ostringstream os;
   cout << "  *" << x_name <<"* =";
@@ -83,7 +83,7 @@ void Print(
         // WS Generic Input Names:
         const String&          x_name,
         // Keywords:
-        const Index&    level )
+        const Index&           level )
 {
   ostringstream os;
   cout << "  *" << x_name <<"* =";
@@ -123,6 +123,73 @@ Print(
     Print( x.tan_pos, "tan_pos", level );
   if( x.geom_tan_pos.nelem() )
     Print( x.geom_tan_pos, "geom_tan_pos", level );
+}
+
+
+void Print(
+        // WS Generic Input:
+        const Timer&   /* x */,
+        // WS Generic Input Names:
+        const String&  /* x_name */,
+        // Keywords:
+        const Index&   /* level */ )
+{
+/*  ostringstream os;
+  cout << "  *" << x_name <<"* =";
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
+  for( Index i=0; i<x.nelem(); i++ )
+    os << x[i] << '\n';
+  SWITCH_OUTPUT (level, os.str ()) */
+}
+
+
+void
+timerStart (// WS Output
+            Timer& starttime)
+{
+  if ((starttime.realtime = times (&starttime.cputime)) == -1)
+    throw runtime_error ("Timer error: Unable to get current CPU time");
+}
+
+
+void
+timerStop (// WS Input
+           const Timer& starttime)
+{
+  Timer endtime;
+  static long clktck = 0;
+
+  if (clktck == 0)
+    if ((clktck = sysconf (_SC_CLK_TCK)) < 0)
+      throw runtime_error ("Timer error: Unable to determine CPU clock ticks");
+
+  if ((endtime.realtime = times (&endtime.cputime)) == -1)
+    throw runtime_error ("Timer error: Unable to get current CPU time");
+
+  // FIXME: out1 does not have setf, but we need to set it here
+  cout.setf (ios::showpoint | ios::fixed);
+
+  out1 << "  * CPU time  total: " << setprecision (2)
+    << ((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
+        + (endtime.cputime.tms_utime - starttime.cputime.tms_utime))
+    / (Numeric)clktck;
+
+  out1 << "  user: " << setprecision (2)
+    << (endtime.cputime.tms_utime - starttime.cputime.tms_utime)
+    / (Numeric)clktck;
+
+  out1 << "  system: " << setprecision (2)
+    << (endtime.cputime.tms_stime - starttime.cputime.tms_stime)
+    / (Numeric)clktck;
+
+  out1 << "\n               real: " << setprecision (2)
+    << (endtime.realtime - starttime.realtime) / (Numeric)clktck;
+
+  out1 << "  " << setprecision (2)
+    << ((endtime.cputime.tms_stime - starttime.cputime.tms_stime)
+        + (endtime.cputime.tms_utime - starttime.cputime.tms_utime))
+    / (Numeric)(endtime.realtime - starttime.realtime) * 100.
+    << "%CPU\n";
 }
 
 
