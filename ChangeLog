@@ -1,3 +1,11 @@
+2001-11-13  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-0-1-41
+
+	* src/methods.cc (lineshapeDefine): Edited the entry.
+
+	* src/methods.cc (lineshape_per_tgDefine): Edited the entry.
+	
 2001-11-09  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-1-40

@@ -2100,7 +2100,7 @@ void define_md_data()
           "while the normalization factor and the cutoff frequency by\n"
           "normalizationfactor and cutoff respectively.\n"
           "\n"
-          "   The available values for these workspace variables are given below.\n"
+          "   The available values for these keywords are given below.\n"
           "shape - \"no_shape\" : no specified shape\n"
           "        \"Doppler\" : Doppler lineshape\n"
           "        \"Lorentz\" : Lorentz lineshape\n"
@@ -2128,7 +2128,7 @@ void define_md_data()
           "\n"
           "Keywords:\n"
           "   shape               : The general profile according to an approximation.\n"
-          "   normalizationfactor : The multiplicating forefactor for the general profile.\n"
+          "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
           "   cutoff              : The frequency at which a cutoff can be made.\n"),
 	OUTPUT( lineshape_ ),
 	INPUT( tgs_ ),
@@ -2149,13 +2149,13 @@ void define_md_data()
           "which the profile can be modified. This factor is just the 0th or 1st,\n"
           "or 2nd power of the ratio between the frequency of calculation f and\n"
           "the center frequency for a specific line f0. A cutoff frequency must also be\n"
-          "specified for each of the in  order to restrict the calculation within\n" 
+          "specified for each of the tags in  order to restrict the calculation within\n" 
           "a desired region or not, when there's no such region.\n"
           "   The general lineshape profile is given by keywords  shape,\n"
           "while the normalization factor and the cutoff frequency by\n"
           "normalizationfactor and cutoff respectively.\n"
           "\n"
-          "   The available values for these workspace variables are given below.\n"
+          "   The available values for these keywords are given below.\n"
           "shape - \"no_shape\" : no specified shape\n"
           "        \"Doppler\" : Doppler lineshape\n"
           "        \"Lorentz\" : Lorentz lineshape\n"
@@ -2183,7 +2183,7 @@ void define_md_data()
           "\n"
           "Keywords:\n"
           "   shape               : The general profile according to an approximation.\n"
-          "   normalizationfactor : The multiplicating forefactor for the general profile.\n"
+          "   normalizationfactor : The multiplicative forefactor for the general profile.\n"
           "   cutoff              : The frequency at which a cutoff can be made.\n"),
 	OUTPUT( lineshape_ ),
 	INPUT( tgs_ ),
