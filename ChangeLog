@@ -1,3 +1,18 @@
+2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-245
+
+	* Due to a proble in the HDF part, I couldn't easily check what I did
+	yeasterday. There were plenty of bugs in the input checks. These
+	are removed. My test case is at least running.
+
+	* On-line info for kTemp written.
+
+	* Conversion to brightness temperatures moved to functions invplanck
+	and invrayjean (placed in atm_funcs). This mainly to avoid repeated
+	output when converting a WF-matrix.
+
+
 2001-09-28  Claudia Emde  <emde@uni-bremen.de>
 
 	* arts-0-0-244	

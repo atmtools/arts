@@ -516,8 +516,8 @@ void check_length_nrow( const Vector& x, const String& x_name,
   if ( x.nelem() != A.nrows() )
   {
     ostringstream os;
-    os << "The length of vector *" << x_name <<  *" must be the same as \n"
-       << "the number of rows of *" << A_name << "*.\n"
+    os << "The length of vector *" << x_name <<  "* must be the\n"
+       << "same as the number of rows of *" << A_name << "*.\n"
        << "The length of *" << x_name <<  "* is " << x.nelem() << ".\n"
        << "The number of rows of *" << A_name <<  "* is " << A.nrows() 
        << ".\n";
@@ -549,8 +549,8 @@ void check_length_ncol( const Vector& x, const String& x_name,
   if ( x.nelem() != A.ncols() )
   {
     ostringstream os;
-    os << "The length of vector *" << x_name <<  "* must be the same as \n"
-       << "the number of columns of *" << A_name << "*.\n"
+    os << "The length of vector *" << x_name <<  "* must be the\n"
+       << "same as the number of columns of *" << A_name << "*.\n"
        << "The length of *" << x_name <<  "* is " << x.nelem() << ".\n"
        << "The number of columns of *" << A_name <<  "* is " << A.ncols()
        << ".\n";

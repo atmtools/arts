@@ -209,8 +209,8 @@ void los_refraction(
 	      const Numeric&    r_geoid,
 	      const Vector&     p_abs,
 	      const Vector&     z_abs,
-              const Index&        refr,
-              const Index&        refr_lfac,
+              const Index&      refr,
+              const Index&      refr_lfac,
               const Vector&     refr_index,
               const Numeric&    c )
 {
@@ -1403,51 +1403,15 @@ void yCalc (
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2000-?-?
+   \date   2000-08-31
 */
 void yTB (
                     Vector&          y,
               const Vector&          f_mono,
               const Vector&          za_pencil )
 {
-  const Index   nf  = f_mono.nelem();
-  const Index   nza = za_pencil.nelem();
-  const Index   ny  = y.nelem();
-        Index   i0;
-  // Following the change in yTRJ below (just to be safe)
-  const double   a = PLANCK_CONST/BOLTZMAN_CONST;
-  const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-        double   c,d;
-
-  // Check input
-  if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit "
-                        "(impossible value detected).");
-  //
-  if ( nf*nza != ny )  
-  {
-    ostringstream os;
-    os << "The length of *y* does not match *f_mono* and *za_pencil*.\n"
-       << "y.nelem():         " << y.nelem() << "\n"
-       << "Should be f_mono.nelem()*za_pencil.nelem(): "
-       << f_mono.nelem() * za_pencil.nelem() << "\n"
-       << "f_mono.nelem():  " << f_mono.nelem() << "\n"
-       << "za_pencil.nelem(): " << za_pencil.nelem();
-    throw runtime_error(os.str());
-  }
-
-  out2 << "  Converts the spectrum to brightness (Planck) temperature.\n";
-
-  for ( Index i=0; i<nf; i++ )
-  {
-    c = a*f_mono[i];
-    d = b*f_mono[i]*f_mono[i]*f_mono[i];
-    for ( Index j=0; j<nza; j++ )    
-    {
-      i0 = j*nf + i;
-      y[i0] = c / ( log(d/y[i0]+1) );
-    }
-  }
+  out2 << "  Converts the values of *y* to Planck temperatures.\n";
+  invplanck( y, f_mono, za_pencil );
 }
 
 
@@ -1456,50 +1420,18 @@ void yTB (
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2000-?-?
+   \date   2001-08-28
 */
 void yTRJ (
                     Vector&          y,
               const Vector&          f_mono,
               const Vector&          za_pencil )
 {
-  const Index   nf  = f_mono.nelem();
-  const Index   nza = za_pencil.nelem();
-  const Index   ny  = y.nelem();
-        Index   i0;
-  // The function returned NaNs when a and b were set to be Numeric (PE 010404)
-  const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
-        double   b;
-
-  // Check input
-  if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit "
-                        "(impossible value detected).");
-  //
-  if ( nf*nza != ny )  
-  {
-    ostringstream os;
-    os << "The length of *y* does not match *f_mono* and *za_pencil*.\n"
-       << "y.nelem():         " << y.nelem() << "\n"
-       << "Should be f_mono.nelem()*za_pencil.nelem(): "
-       << f_mono.nelem() * za_pencil.nelem() << "\n"
-       << "f_mono.nelem():  " << f_mono.nelem() << "\n"
-       << "za_pencil.nelem(): " << za_pencil.nelem();
-    throw runtime_error(os.str());
-  }
-
-  out2 << "  Converts the spectrum to Rayleigh-Jean temperature.\n";
-
-  for ( Index i=0; i<nf; i++ )
-  {
-    b = a/(f_mono[i]*f_mono[i]);
-    for ( Index j=0; j<nza; j++ )    
-    {
-      i0 = j*nf + i;
-      y[i0] = b * y[i0];
-    }
-  }
+  out2 << "  Converts the values of *y* to Rayleigh-Jean temperatures.\n";
+  invrayjean( y, f_mono, za_pencil );
 }
+
+
 
 /**
    Convert a matrix containing radiances to Rayleigh-Jeans BTs. 
@@ -1519,6 +1451,10 @@ void MatrixTRJ (// WS Generic Output:
                 // WS Generic Input Names:
                 const String& kin_name)
 {
+  out2 << "  Converts the values of *" << kin_name << "* to Rayleigh-Jean "
+       << "temperatures,\n  and stores the result in *" << kout_name 
+       << "*.\n";
+
   // Resize kout if necessary:
   if ( kout.nrows()!=kin.nrows() || kout.ncols()!=kin.ncols() )
     kout.resize(kin.nrows(),kin.ncols());
@@ -1526,11 +1462,13 @@ void MatrixTRJ (// WS Generic Output:
   Vector y(kin.nrows());
   for ( Index i=0; i<kin.ncols(); i++ )
   {
-    y = kin(Range(joker),i);	// Copy ith column of kin to y.
-    yTRJ( y, f_mono, za_pencil );
-    kout(Range(joker),i) = y;	// Copy to ith column of kout.
+    y = kin(Range(joker),i);	    // Copy ith column of kin to y.
+    invrayjean( y, f_mono, za_pencil );
+    kout(Range(joker),i) = y;	    // Copy to ith column of kout.
   }
 }
+
+
 
 /**
    Convert a matrix containing radiances to Planck BTs. 
@@ -1550,6 +1488,10 @@ void MatrixTB (// WS Generic Output:
                 // WS Generic Input Names:
                 const String& kin_name)
 {
+  out2 << "  Converts the values of *" << kin_name << "* to Planck "
+       << "temperatures,\n  and stores the result in *" << kout_name 
+       << "*.\n";
+
   // Resize kout if necessary:
   if (kout.nrows()!=kin.nrows() ||
       kout.ncols()!=kin.ncols())
@@ -1559,7 +1501,7 @@ void MatrixTB (// WS Generic Output:
   for ( Index i=0; i<kin.ncols(); i++ )
   {
     y = kin(Range(joker),i);	// Copy ith column of kin to y.
-    yTB( y, f_mono, za_pencil );
+    invplanck( y, f_mono, za_pencil );
     kout(Range(joker),i) = y;	// Copy to ith column of kout.
   }
 }

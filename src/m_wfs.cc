@@ -1177,7 +1177,7 @@ void k_species (
               const String&          unit )
 {
   check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
-  check_length_nrow( p_abs, "p_abs", vmrs, "vmrs" );
+  check_length_ncol( p_abs, "p_abs", vmrs, "vmrs" );
   if ( tags.nelem() != abs_per_tg.nelem() )
     throw runtime_error(
                        "Lengths of *wfs_tgs* and *abs_per_tg* do not match." );
@@ -2060,13 +2060,15 @@ void kTemp (
   check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
   check_lengths( p_abs, "p_abs", h2o_abs, "h2o_abs" );  
   check_lengths( p_abs, "p_abs", n2_abs, "n2_abs" );  
-  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
-  check_length_nrow( p_abs, "p_abs", abs0, "abs" );
-  check_length_nrow( p_abs, "p_abs", vmrs, "vmrs" );
+  check_length_ncol( p_abs, "p_abs", abs0, "abs" );
+  check_length_ncol( p_abs, "p_abs", vmrs, "vmrs" );
   check_length_nrow( f_mono, "f_mono", abs0, "abs" );
   if ( los.p.nelem() != za.nelem() )
     throw runtime_error(
                "The number of zenith angles of *za* and *los* are different.");
+  //
+  if( refr ) 
+    check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
   //
   if ( !kw_hse )
   {
@@ -2074,8 +2076,6 @@ void kTemp (
       throw runtime_error(
             "The number of zenith angles of *los* and *trans* are different.");
     check_length_nrow( f_mono, "f_mono", trans[0], 
-                                       "the transmission matrices (in trans)");
-    check_length_nrow( p_abs, "p_abs", trans[0], 
                                        "the transmission matrices (in trans)");
     if ( los.p.nelem() != absloswfs.nelem() )
       throw runtime_error(
@@ -2206,9 +2206,8 @@ void kTemp (
       grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
 								   lgrid, ip );
       i1 = Index( is(ip,0) );    // first p_abs point to consider
-      abs = abs0;			// Matpack can copy the contents of
-					// vectors like this. The dimensions
-					// must be the same! 
+      abs = abs0;	
+
       for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
       {
 	for ( iv=0; iv<nv; iv++ )
@@ -2383,11 +2382,12 @@ void kPointingOffSet(
   check_if_bool( refr, "refr" );
   check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
   check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
-  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
-  check_length_nrow( p_abs, "p_abs", abs, "abs" );
+  check_length_ncol( p_abs, "p_abs", abs, "abs" );
   check_length_nrow( f_mono, "f_mono", abs, "abs" );
   if ( emission ) 
     check_lengths( f_mono, "f_mono", y_space, "y_space" );
+  if ( refr )
+    check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
 
 
   // Create new zenith angle grid

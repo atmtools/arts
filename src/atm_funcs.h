@@ -45,14 +45,24 @@
 ////////////////////////////////////////////////////////////////////////////
 
 void planck (
-              MatrixView     B, 
-        ConstVectorView     f,
-        ConstVectorView     t );
+             MatrixView   B, 
+        ConstVectorView   f,
+        ConstVectorView   t );
 
 void planck (
-              VectorView     B, 
-        ConstVectorView     f,
-        const Numeric    t );
+              VectorView   B, 
+         ConstVectorView   f,
+         const Numeric     t );
+
+void invplanck (
+              VectorView   y,
+         ConstVectorView   f,
+	 ConstVectorView   za );
+
+void invrayjean (
+              VectorView   y,
+         ConstVectorView   f,
+         ConstVectorView   za );
 
 Numeric number_density (
        const Numeric   p,

@@ -2763,11 +2763,32 @@ void define_md_data()
     ( MdRecord
       ( NAME("kTemp"),
   	DESCRIPTION(
-          "Calculates temperature weighting functions with hydrostatic \n"
-          "equilibrium. \n"
-          "This function includes all effects of a temperature change in a \n"
-          "a detailed manner, most notably absorption is recalculated for \n"
-          "each point."),
+          "Calculates temperature weighting functions (WFs).\n"
+          "\n"
+          "The calculations can be performed both with and without \n"
+          "hydrostatic equilibrium (HSE). \n"
+          "   If HSE is not considered (hse=0), the WFs are obtained by \n"
+          "semi-analytical expressions and the calculations are relatively \n"
+          "fast. See AUG for details. \n"
+          "  If HSE is considered (hse=1), perturbation calculations are \n"
+          "done. If the keyword *fast* is set to 0, the absorption is re-\n"
+          "calculated for each temperature disturbance and the calculations\n"
+          "are slow. With fast=1, it is assumed that the absorption is \n" 
+          "linear with temparature between the present state and 1K higher \n"
+          "temperature, and the new absorption is calculated once, that \n"
+          "decreases the total calculation time considerbly. The accuracy of\n"
+          "the latter option should suffice normally. \n"
+          "   Note that the keyword *hse* here is not the workspace variable\n"
+          "*hse*. If the keyword *hse* is set to 1, a constraint is that \n"
+          "HSE is considered generally, that is, that the do-field of the \n"
+          "variable 'hse* is turned on. The data to calculate assure HSE is\n"
+          "of course taken from the workspace variable *hse*. \n"
+          "   The fast keyword has no importance if the keyword hse is set \n"
+          "to 0. \n"
+          "\n"
+          "Keywords \n"
+          "  hse : Flag for hydrostatic eq. 0=no HSE, 1=HSE. \n"
+          " fast : Flag to perform fast calculations with hse=1. " ),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, abs_, 
           lines_per_tg_, lineshape_, e_ground_, emission_, k_grid_, 

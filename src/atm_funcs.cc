@@ -131,6 +131,118 @@ void planck (
 
 
 
+//// invplanck ////////////////////////////////////////////////////////////////
+//
+/** Converts a vector with radiances to Plack brightness temperatures.
+
+    \retval y       spectrum vector       
+    \param  f       frequencies
+    \param  za      zenith angles
+
+    \author Patrick Eriksson 
+    \date   2000-09-28 
+*/
+void invplanck (
+                   VectorView   y,
+              ConstVectorView   f,
+              ConstVectorView   za )
+{
+  const Index   nf  = f.nelem();
+  const Index   nza = za.nelem();
+  const Index   ny  = y.nelem();
+        Index   i0;
+
+  // Use always double to avoid numerical problem (see invrayjean)
+  const double   a = PLANCK_CONST/BOLTZMAN_CONST;
+  const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+        double   c,d;
+
+  // Check input
+  if ( max(y) > 1e-4 )  
+    throw runtime_error("The spectrum cannot be in expected intensity unit "
+                        "(impossible value detected).");
+  //
+  if ( nf*nza != ny )  
+  {
+    ostringstream os;
+    os << "The length of *y* does not match *f_mono* and *za_pencil*.\n"
+       << "y.nelem():         " << y.nelem() << "\n"
+       << "Should be f_mono.nelem()*za_pencil.nelem(): "
+       << f.nelem() * za.nelem() << "\n"
+       << "f_mono.nelem():  " << f.nelem() << "\n"
+       << "za_pencil.nelem(): " << za.nelem();
+    throw runtime_error(os.str());
+  }
+
+  for ( Index i=0; i<nf; i++ )
+  {
+    c = a*f[i];
+    d = b*f[i]*f[i]*f[i];
+    for ( Index j=0; j<nza; j++ )    
+    {
+      i0 = j*nf + i;
+      y[i0] = c / ( log(d/y[i0]+1) );
+    }
+  }
+}
+
+
+
+//// invrayjean ///////////////////////////////////////////////////////////////
+//
+/** Converts a vector with radiances to Rayleigh-Jean brightness temperatures.
+
+    \retval y       spectrum vector       
+    \param  f       frequencies
+    \param  za      zenith angles
+
+    \author Patrick Eriksson 
+    \date   2000-09-28 
+*/
+void invrayjean (
+                   VectorView   y,
+              ConstVectorView   f,
+              ConstVectorView   za )
+{
+  const Index   nf  = f.nelem();
+  const Index   nza = za.nelem();
+  const Index   ny  = y.nelem();
+        Index   i0;
+
+  // The function returned NaNs when a and b were set to be Numeric (PE 010404)
+  const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+        double   b;
+
+  // Check input
+  if ( max(y) > 1e-4 )  
+    throw runtime_error("The spectrum is not in expected intensity unit "
+                        "(impossible value detected).");
+  //
+  if ( nf*nza != ny )  
+  {
+    ostringstream os;
+    os << "The length of *y* does not match *f_mono* and *za_pencil*.\n"
+       << "y.nelem():         " << y.nelem() << "\n"
+       << "Should be f_mono.nelem()*za_pencil.nelem(): "
+       << f.nelem() * za.nelem() << "\n"
+       << "f_mono.nelem():  " << f.nelem() << "\n"
+       << "za_pencil.nelem(): " << za.nelem();
+    throw runtime_error(os.str());
+  }
+
+  for ( Index i=0; i<nf; i++ )
+  {
+    b = a/(f[i]*f[i]);
+    for ( Index j=0; j<nza; j++ )    
+    {
+      i0 = j*nf + i;
+      y[i0] = b * y[i0];
+    }
+  }
+}
+
+
+
 //// number_density (scalar version) ////////////////////////////////////////
 //
 /** Calculates the number density (scalar version).
