@@ -258,7 +258,7 @@ public:
   friend class ConstTensor3View;
   friend class ConstTensor4View;
   friend class ConstTensor5View;
-  friend int poly_root_solve (Vector &coeffs, Matrix &roots);
+  friend int poly_root_solve (Matrix &roots, Vector &coeffs);
 
 protected:
   // Constructors:
@@ -456,7 +456,7 @@ public:
   friend class ConstTensor4View;
   friend class ConstTensor5View;
   friend ConstMatrixView transpose(ConstMatrixView m);
-  friend int poly_root_solve (Vector &coeffs, Matrix &roots);
+  friend int poly_root_solve (Matrix &roots, Vector &coeffs);
 
 protected:
   // Constructors:
