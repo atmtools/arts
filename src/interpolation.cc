@@ -2773,57 +2773,103 @@ Numeric interp_cubic(ConstVectorView x,
   Index N_x = x.nelem();
 
   assert(N_x == y.nelem());
+  assert(N_x > 2);
+
   Vector xa(4), ya(4);
   Numeric y_int;
   Numeric dy_int;
   y_int = 0.;
 
+  // 1 - cubic interpolation with grid position search
+  // 2 - cubic interpolation without grid position search
+  // 3 - polynomial interpolation (4 points)
 
-  // Pick out three points for interpolation
-  if((gp.fd[0] <= 0.5 && gp.idx > 0) || gp.idx == N_x-2 )
-    {
-      xa[0] = x[gp.idx - 1];
-      xa[1] = x[gp.idx];
-      xa[2] = x[gp.idx + 1];
+  Index interp_method = 1; 
+
+  if (interp_method == 1)
+    { 
       
-      ya[0] = y[gp.idx - 1];
-      ya[1] = y[gp.idx];
-      ya[2] = y[gp.idx + 1];
+      // Pick out three points for interpolation
+      if((gp.fd[0] <= 0.5 && gp.idx > 0) || gp.idx == N_x-2 )
+        {
+          xa[0] = x[gp.idx - 1];
+          xa[1] = x[gp.idx];
+          xa[2] = x[gp.idx + 1];
+      
+          ya[0] = y[gp.idx - 1];
+          ya[1] = y[gp.idx];
+          ya[2] = y[gp.idx + 1];
+        }
+
+      else if((gp.fd[0] > 0.5 && gp.idx < N_x-2) || gp.idx == 0 )
+        {
+          xa[0] = x[gp.idx];
+          xa[1] = x[gp.idx + 1];
+          xa[2] = x[gp.idx + 2];
+      
+          ya[0] = y[gp.idx];
+          ya[1] = y[gp.idx + 1];
+          ya[2] = y[gp.idx + 2];
+        } 
+  
+      else if(gp.idx == N_x-1)
+        {
+          xa[0] = x[N_x - 2];
+          xa[1] = x[N_x - 1];
+          xa[2] = x[N_x];
+      
+          ya[0] = y[N_x - 2];
+          ya[1] = y[N_x - 1];
+          ya[2] = y[N_x];
+        }  
+      else
+        {
+          assert(false);
+        }
+      
+      polint(y_int, dy_int, xa, ya, 3, x_i); 
+  
     }
-
-  else if((gp.fd[0] > 0.5 && gp.idx < N_x-2) || gp.idx == 0 )
-    {
-      xa[0] = x[gp.idx];
-      xa[1] = x[gp.idx + 1];
-      xa[2] = x[gp.idx + 2];
-      
-      ya[0] = y[gp.idx];
-      ya[1] = y[gp.idx + 1];
-      ya[2] = y[gp.idx + 2];
-    } 
   
-  else if(gp.idx == N_x-1)
+  else if (interp_method == 2) 
     {
-     xa[0] = x[N_x - 2];
-      xa[1] = x[N_x - 1];
-      xa[2] = x[N_x];
+      if( gp.idx == 0 )
+        {
+          xa[0] = x[gp.idx];
+          xa[1] = x[gp.idx + 1];
+          xa[2] = x[gp.idx + 2];
       
-      ya[0] = y[N_x - 2];
-      ya[1] = y[N_x - 1];
-      ya[2] = y[N_x];
-    }  
-  else
-    {
-      assert(false);
+          ya[0] = y[gp.idx];
+          ya[1] = y[gp.idx + 1];
+          ya[2] = y[gp.idx + 2];
+        }
+      else if(gp.idx == N_x-1)
+        {
+          xa[0] = x[gp.idx - 2];
+          xa[1] = x[gp.idx - 1];
+          xa[2] = x[gp.idx];
+      
+          ya[0] = y[gp.idx - 2];
+          ya[1] = y[gp.idx - 1];
+          ya[2] = y[gp.idx];
+        }
+      else 
+        {
+          xa[0] = x[gp.idx - 1];
+          xa[1] = x[gp.idx];
+          xa[2] = x[gp.idx + 1];
+      
+          ya[0] = y[gp.idx - 1];
+          ya[1] = y[gp.idx];
+          ya[2] = y[gp.idx + 1]; 
+        }
+      
+      // Polinominal interpolation, n = 3
+      polint(y_int, dy_int, xa, ya, 3, x_i); 
     }
-
   
-
-
-  /*
-  if ( x.nelem() > 3)
-    {
-  
+  else if (interp_method == 3)
+    { 
       // Take 4 points
       if( gp.idx == 0 )
         {
@@ -2836,7 +2882,7 @@ Numeric interp_cubic(ConstVectorView x,
           ya[1] = y[gp.idx + 0];
           ya[2] = y[gp.idx + 1];
           ya[3] = y[gp.idx + 2]; 
-         }
+        }
       else if(gp.idx == N_x-1)
         {
           xa[0] = x[gp.idx - 1];
@@ -2875,50 +2921,13 @@ Numeric interp_cubic(ConstVectorView x,
         }
       // Polinominal interpolation, n = 4
       polint(y_int, dy_int, xa, ya, 4, x_i); 
-
+    }
       
-    
-  else 
-    {
-      cout << " only 3 points used in interpolation " << endl;
-
-      if( gp.idx == 0 )
-        {
-          xa[0] = x[gp.idx];
-          xa[1] = x[gp.idx + 1];
-          xa[2] = x[gp.idx + 2];
-      
-          ya[0] = y[gp.idx];
-          ya[1] = y[gp.idx + 1];
-          ya[2] = y[gp.idx + 2];
-        }
-      else if(gp.idx == N_x-1)
-        {
-          xa[0] = x[gp.idx - 2];
-          xa[1] = x[gp.idx - 1];
-          xa[2] = x[gp.idx];
-      
-          ya[0] = y[gp.idx - 2];
-          ya[1] = y[gp.idx - 1];
-          ya[2] = y[gp.idx];
-        }
-      else 
-        {
-          xa[0] = x[gp.idx - 1];
-          xa[1] = x[gp.idx];
-          xa[2] = x[gp.idx + 1];
-      
-          ya[0] = y[gp.idx - 1];
-          ya[1] = y[gp.idx];
-          ya[2] = y[gp.idx + 1]; 
-          }
-  */
-      // Polinominal interpolation, n = 3
-  polint(y_int, dy_int, xa, ya, 3, x_i); 
-      // }
-
+  
   return y_int;
 }
+
+
 
 
 //! Polynomial interpolation.

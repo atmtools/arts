@@ -222,14 +222,13 @@ void convergence_flagLsq(//WS Output:
   const Index N_lon = i_field.nbooks();
   const Index N_za = i_field.npages();
   const Index N_aa = i_field.nrows();
-  const Index stokes_dim = i_field.ncols();
-  
+    
   Vector lqs(4, 0.);
   iteration_counter += 1;
   
   // Check if i_field and i_field_old have the same dimensions:
   assert(is_size( i_field_old, 
-                  N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
+                  N_p, N_lat, N_lon, N_za, N_aa, i_field.ncols()));
 
   //The number of elements in epsilon must be between 1 and 4.
   assert( 1 <= epsilon.nelem() <= 4);
@@ -380,9 +379,10 @@ void convergence_flagAbs_BT(//WS Output:
                           // to *i_fieldIterarte* and do next iteration
                           Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
                           if( diff_bt > epsilon[stokes_index])
-                            return;
-                          
-                          
+                            {
+                              out1 << "BT difference: " << diff_bt <<"\n";
+                              return;
+                            }
                         }// End loop stokes_dom.
                     }// End loop scat_aa_grid. 
                 }// End loop scat_za_grid.
@@ -392,7 +392,7 @@ void convergence_flagAbs_BT(//WS Output:
   
   // Convergence test has been successful, convergence_flag can be set to 1.
   convergence_flag = 1;
-  out2 << "Number of DOIT-iterations:" << iteration_counter << "\n";
+  out1 << "Number of DOIT-iterations:" << iteration_counter << "\n";
 }
 
 
@@ -2905,19 +2905,25 @@ scat_fieldCalcLimb(//WS Output:
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
-              /* Original lin int.
-              interp(i_field_int(joker, i), itw_za_i, 
-                     i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
-              */
-              // Cubic
-              for(Index za = 0; za < za_grid.nelem(); za++)
+              if (scat_za_interp == 0)
                 {
-                  i_field_int(za, i) = 
-                    interp_cubic(scat_za_grid, 
-                                 i_field(p_index, 0, 0, joker, 0, i),
-                                 za_grid[za],
-                                 gp_za_i[za]);
+                  interp(i_field_int(joker, i), itw_za_i, 
+                         i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
+                } 
+              else if (scat_za_interp == 1)
+                {
+                  // Cubic
+                  for(Index za = 0; za < za_grid.nelem(); za++)
+                    {
+                      i_field_int(za, i) = 
+                        interp_cubic(scat_za_grid, 
+                                     i_field(p_index, 0, 0, joker, 0, i),
+                                     za_grid[za],
+                                     gp_za_i[za]);
+                    }
                 }
+              // scat_za_interp must be 0 or 1 (linear or cubic)!!!
+              else assert(false);
             }       
           
           //There is only loop over zenith angle grid; no azimuth angle grid.
@@ -2988,7 +2994,7 @@ scat_fieldCalcLimb(//WS Output:
                 interp(scat_field(p_index,
                                   0,
                                   0,
-                                joker,
+                                  joker,
                                   0,
                                   i),
                        itw_za,
@@ -3294,6 +3300,164 @@ void ScatteringMain(
       scat_mono_agenda.execute(); 
     }
 }
+
+
+//! Zenith angle grid optimization for scattering calculation.
+/*! 
+
+  This method performes a scattering calculation on a very fine zenith angle
+  grid. It used the obtained field to optimize the zenith angle grid. 
+  
+  Keywords:
+  Index np: Number of grid points for fine (equidistant) grid
+  Index accuracy: Accuracy of optimization in % 
+  String write_var: If yes, grids and according fields are written to files
+
+   WS Output:
+   \param scat_za_grid optimized zenith angle grid
+   Variables needed for CloudboxGetIncoming:
+   \param scat_i_lat 
+   \param scat_i_lon 
+   \param ppath 
+   \param ppath_step 
+   \param i_rte 
+   \param i_space 
+   \param ground_emission 
+   \param ground_los 
+   \param ground_refl_coeffs 
+   \param rte_los 
+   \param rte_pos 
+   \param rte_gp_p 
+   \param rte_gp_lat 
+   \param rte_gp_lon 
+   WS Input:
+   \param scat_mono_agenda Agenda performing monochromatic scattering
+   calculation
+   \param f_index 
+   \param scat_za_interp Interpolation method.
+   Variables needed for CloudboxGetIncoming:
+   \param CloudboxGetIncoming 
+   \param atmosphere_dim 
+   \param stokes_dim 
+   \param scat_za_grid 
+   \param scat_aa_grid 
+   \param f_grid 
+   \param ppath_step_agenda 
+   \param rte_agenda 
+   \param i_space_agenda 
+   \param ground_refl_agenda 
+   \param p_grid 
+   \param lat_grid 
+   \param lon_grid 
+   \param z_field 
+   \param t_field 
+   \param r_geoid 
+   \param z_ground 
+   \param np 
+   \param acc 
+   \param write_var 
+ */
+void scat_za_gridOptimize(//WS Output
+                          Vector& scat_za_grid,
+                          Tensor6& i_field,
+                          Index& f_index,
+                          //Variables needed for CloudboxGetIncoming
+                          Tensor7& scat_i_p,
+                          Tensor7& scat_i_lat,
+                          Tensor7& scat_i_lon,
+                          Ppath& ppath,
+                          Ppath& ppath_step,
+                          Matrix& i_rte,
+                          Matrix& i_space,
+                          Matrix& ground_emission,
+                          Matrix& ground_los,
+                          Tensor4& ground_refl_coeffs,
+                          Vector& rte_los,
+                          Vector& rte_pos,
+                          GridPos& rte_gp_p,
+                          GridPos& rte_gp_lat,
+                          GridPos& rte_gp_lon,
+                          //WS Input
+                          const Agenda& scat_mono_agenda,
+                          const Index& scat_za_interp,
+                          // Variables needed for CloudboxGetIncoming
+                          const ArrayOfIndex& cloudbox_limits,
+                          const Index& atmosphere_dim,
+                          const Index& stokes_dim,
+                          const Vector& scat_aa_grid,
+                          const Vector& f_grid,
+                          const Agenda& ppath_step_agenda,
+                          const Agenda& rte_agenda,
+                          const Agenda& i_space_agenda,
+                          const Agenda& ground_refl_agenda,
+                          const Vector& p_grid,
+                          const Vector& lat_grid,
+                          const Vector& lon_grid,
+                          const Tensor3& z_field,
+                          const Tensor3& t_field,
+                          const Matrix& r_geoid,
+                          const Matrix& z_ground,
+                          //Keywords:
+                          const Index& np,
+                          const Numeric& acc,
+                          const String& write_var)
+{
+  if(f_grid.nelem() > 1)
+    throw runtime_error("*f_grid* contains more than one frequency. \n"
+                        "Grid optimization is only possibly for "
+                        "monochromatic calculations. \n"
+                        );
+ 
+  scat_za_grid.resize(np);
+  
+ 
+  nlinspace(scat_za_grid, 0., 180., np);
+    
+  Vector za_grid_opt;
+  
+  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
+                      i_rte, i_space, ground_emission,  ground_los, 
+                      ground_refl_coeffs, rte_los, rte_pos, rte_gp_p,
+                      rte_gp_lat, rte_gp_lon, cloudbox_limits,
+                      atmosphere_dim, stokes_dim, scat_za_grid,
+                      scat_aa_grid, f_grid, ppath_step_agenda, rte_agenda,
+                      i_space_agenda, ground_refl_agenda, p_grid, lat_grid,
+                      lon_grid, z_field, t_field, r_geoid, z_ground);
+  
+  f_index = 0;
+
+  scat_mono_agenda.execute();
+
+  Matrix i_field_opt_mat;
+  i_field_opt_mat = 0.;
+  
+
+  // Optimize zenith angle grid. 
+  za_gridOpt(za_grid_opt, i_field_opt_mat,
+             scat_za_grid, i_field, acc,
+             scat_za_interp);
+ 
+  Tensor6 i_field_opt;
+  i_field_opt.resize(i_field_opt_mat.nrows(), 1, 1, i_field_opt_mat.ncols(),
+                      1, 1);
+  i_field_opt = 0;
+  
+
+  i_field_opt(joker, 0, 0, joker, 0, 0) = i_field_opt_mat;
+  
+  if (write_var == "yes")
+    {
+      xml_write_to_file("scat_za_grid_optimized.xml", za_grid_opt);
+      xml_write_to_file("scat_za_grid_fine.xml", scat_za_grid);
+      xml_write_to_file("i_field_optimized.xml", i_field_opt);
+      xml_write_to_file("i_field_fine.xml", i_field);
+    }
+  
+  // Copy optimized grid into WSM scat_za_grid.
+  scat_za_grid = za_grid_opt;    
+}
+
+
 
 
 //! Define interpolation method for zenith angle dimension

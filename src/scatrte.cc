@@ -51,6 +51,7 @@
 #include "scatrte.h"
 #include "logic.h"
 #include "check_input.h"
+#include "sorting.h"
 
 extern const Numeric PI;
 extern const Numeric RAD2DEG;
@@ -388,7 +389,7 @@ void cloud_ppath_update1D(
               interp( i_field_int(i, joker), itw_p_za, 
                       i_field(joker, 0, 0, joker, 0, i), cloud_gp_p, gp_za);
             }
-          else //cubic interpolation
+          else if (scat_za_interp == 1) //cubic interpolation
             {
               for (Index za = 0; za < scat_za_grid.nelem(); za++)
                 {
@@ -1829,3 +1830,148 @@ void cloud_ppath_update1D_planeparallel(
 	}//end else loop over ground
     }//end if inside cloudbox
 }
+
+
+/*! Optimize the zenith angle grid 
+
+  This method optimizes the zenith angle grid 
+
+  \author Claudia Emde
+  \date 2004-04-05
+*/
+void za_gridOpt(//Output:
+                Vector& za_grid_opt,
+                Matrix& i_field_opt,
+                // Input
+                ConstVectorView za_grid_fine,
+                ConstTensor6View i_field,
+                const Numeric& acc,
+                const Index& scat_za_interp)
+{
+  Index N_za = za_grid_fine.nelem();
+
+  assert(i_field.npages() == N_za);
+  
+  Index N_p = i_field.nvitrines();
+  
+  Vector i_approx_interp(N_za);
+  Vector za_reduced(2);
+
+  ArrayOfIndex idx;
+  idx.push_back(0);
+  idx.push_back(N_za-1);
+  ArrayOfIndex idx_unsorted;
+
+  Numeric max_diff = 100;
+
+  ArrayOfGridPos gp_za(N_za);
+  Matrix itw(za_grid_fine.nelem(), 2);
+
+  ArrayOfIndex i_sort;
+  Vector diff_vec(N_za);
+  Vector max_diff_za(N_p);
+  ArrayOfIndex ind_za(N_p);
+  Numeric max_diff_p;
+  Index ind_p;
+  
+  
+
+  while( max_diff > acc )
+    {
+      cout << "idx.nelem()" << idx.nelem()<< endl;
+      
+      za_reduced.resize(idx.nelem());
+      i_field_opt.resize(N_p, idx.nelem());
+      max_diff_za = 0.;
+      max_diff_p = 0.;
+
+      // Interpolate reduced internsity field on fine za_grid for 
+      // all pressure levels
+      for( Index i_p = 0; i_p < N_p; i_p++ )
+        {
+          for( Index i_za_red = 0; i_za_red < idx.nelem(); i_za_red ++)
+            {
+              za_reduced[i_za_red] = za_grid_fine[idx[i_za_red]];
+              i_field_opt(i_p, i_za_red) = i_field(i_p, 0, 0, idx[i_za_red], 
+                                                   0, 0);
+            }
+          // Calculate grid positions
+          gridpos(gp_za, za_reduced, za_grid_fine); 
+          //linear interpolation 
+          if(scat_za_interp == 0 || idx.nelem() < 3)
+            {
+              interpweights(itw, gp_za);
+              interp(i_approx_interp, itw, i_field_opt(i_p, joker), gp_za);
+            }
+          else if(scat_za_interp == 1)
+            {
+              for(Index i_za = 0; i_za < N_za; i_za ++)
+                {
+                  i_approx_interp[i_za] = 
+                    interp_cubic(za_reduced, i_field_opt(i_p, joker),
+                                 za_grid_fine[i_za],
+                                 gp_za[i_za]);
+                }
+            }
+          else
+            // Interpolation method not defined
+            assert(false);
+          
+          // Calculate differences between approximated i-vector and 
+          // exact i_vector for the i_p pressure level
+          for (Index i_za = 0; i_za < N_za; i_za ++)
+            {
+              diff_vec[i_za]  =  abs( i_field(i_p, 0, 0, i_za, 0 ,0)
+                                      -  i_approx_interp[i_za]);
+              if( diff_vec[i_za] > max_diff_za[i_p] )
+                {
+                  max_diff_za[i_p] = diff_vec[i_za];
+                  ind_za[i_p] = i_za;
+                }
+            }
+          // Take maximum value of max_diff_za
+          if( max_diff_za[i_p] > max_diff_p )
+            {
+              max_diff_p = max_diff_za[i_p];
+              ind_p = i_p;
+            }
+        }
+      
+      cout <<"max_diff_p"<<max_diff_p<< endl; 
+      //Transform in %
+      cout << "i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0) " << i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0) <<endl;
+      max_diff = max_diff_p/i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0)*100.;
+      cout << "max_diff" << max_diff << endl;
+
+      idx.push_back(ind_za[ind_p]);
+      
+      cout << "idx" << idx << endl;
+      idx_unsorted = idx;
+
+      i_sort.resize(idx_unsorted.nelem());
+      get_sorted_indexes(i_sort, idx_unsorted);
+      
+      for (Index i = 0; i<idx_unsorted.nelem(); i++)
+        idx[i] = idx_unsorted[i_sort[i]];
+  
+      cout << "idx" << idx << endl;
+      za_reduced.resize(idx.nelem());
+    }
+   
+  za_grid_opt.resize(idx.nelem());
+  i_field_opt.resize(N_p, idx.nelem());
+  for(Index i = 0; i<idx.nelem(); i++)
+    {
+      cout << "idx[i]" << idx[i] << endl;
+      za_grid_opt[i] = za_grid_fine[idx[i]];
+      i_field_opt(joker, i) = i_field(joker, 0, 0, idx[i], 0, 0);
+    }
+}
+          
+
+
+            
+                    
+
+  
+  

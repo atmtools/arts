@@ -198,4 +198,13 @@ void ppath_step_in_cloudbox(Ppath& ppath_step,
 bool is_inside_cloudbox(const Ppath& ppath_step,
                         const ArrayOfIndex& cloudbox_limits);
 
+void za_gridOpt(//Output:
+                Vector& za_grid_opt,
+                Matrix& i_field_opt,
+                // Input
+                ConstVectorView za_grid_fine,
+                ConstTensor6View i_field,
+                const Numeric& acc,
+                const Index& scat_za_interp);
+
 #endif //scatrte_h

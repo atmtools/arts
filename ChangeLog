@@ -1,3 +1,28 @@
+2004-04-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-806
+	
+	* src/m_scatrte.cc (scat_za_gridOptimize): Included first version
+	of this method - will probably be modified later.
+	It can be used for optimizing the zenith angle grid for scattering 
+	calulation. 
+
+	* src/scatrte.{cc,h} (za_gridOpt): Added this function for 
+	zenith angle grid optimization. 
+	
+	* src/interpolation.cc (interp_cubic): Added differt interpolation
+	methods (different selection of grid points) for testing. Later, only 
+	one on the cubic interpolation methods will be kept.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming) (CloudboxGetIncoming1DAtm):
+	Included a check for testing, whether the cloudbox is set.
+
+	* src/m_optproperties.cc (ScatteringDataPrepareDOITOpt) 
+	(scat_data_monoCalc): Included check: Is the frequency in *f_grid*
+	in the range of the single scattering data?
+
+	* src/methods.cc: Added *scat_za_gridOptimize*.
+	
 2004-03-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-805

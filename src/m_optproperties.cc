@@ -1019,6 +1019,23 @@ void ScatteringDataPrepareDOITOpt( //Output:
                                    const Index& atmosphere_dim
                                    )
 {
+  // Check, whether single scattering data contains the right frequencies:
+  for (Index i = 0; i<scat_data_raw.nelem(); i++)
+    {
+      if (scat_data_raw[i].f_grid[0] > f_grid[f_index] || 
+          scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1] 
+          < f_grid[f_index])
+        {
+          ostringstream os;
+          os << "Frequency of the scattering calculation " << f_grid[f_index] 
+             << " GHz is not contained \nin the frequency grid of the " << i+1 
+             << "th single scattering data file \n(*ParticleTypeAdd*). "
+             << "Range:"  << scat_data_raw[i].f_grid[0]/1e9 <<" - "
+             << scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1]/1e9
+             <<" GHz \n";
+          throw runtime_error( os.str() );
+        }
+    }
 
   // For 1D calculation the scat_aa dimension is not required:
   Index N_aa_sca;
@@ -1133,6 +1150,24 @@ void scat_data_monoCalc(
 			const Index& f_index
 			)
 {
+  // Check, whether single scattering data contains the right frequencies:
+  for (Index i = 0; i<scat_data_raw.nelem(); i++)
+    {
+      if (scat_data_raw[i].f_grid[0] > f_grid[f_index] || 
+          scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1] 
+          < f_grid[f_index])
+        {
+          ostringstream os;
+          os << "Frequency of the scattering calculation " << f_grid[f_index] 
+             << " GHz is not contained \nin the frequency grid of the " << i+1 
+             << "th single scattering data file \n(*ParticleTypeAdd*). "
+             << "Range:"  << scat_data_raw[i].f_grid[0]/1e9 <<" - "
+             << scat_data_raw[i].f_grid[scat_data_raw[i].f_grid.nelem()-1]/1e9
+             <<" GHz \n";
+          throw runtime_error( os.str() );
+        }
+    }
+
   const Index N_pt = scat_data_raw.nelem();
   
   //Initialise scat_data_mono

@@ -1016,7 +1016,7 @@ md_data_raw.push_back
          "\n"
          "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
          "this method is the position of the cloudbox given by the \n"
-         "variable *cloudbox_limits*. Then for each propagation direction\n"
+         "variable *cloudbox_limits*. Then for each propagation direction\n" 
          "it calls the function *PpathCalc* and executes the agenda \n"
          "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
          "for all frequencies btained by the monochromatic pencil beam \n"
@@ -3394,6 +3394,42 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_za_gridOptimize" ),
+        DESCRIPTION
+        (
+         "Zenith angle grid optimization for scattering calculation."
+         "\n"
+         "This method performes a scattering calculation on a very fine \n"
+         "zenith angle grid. It used the obtained field to optimize \n"
+         "the zenith angle grid. \n"
+         "\n"
+         "Keywords:\n"
+         "Index np: Number of grid points for fine (equidistant) grid\n"
+         "Index accuracy: Accuracy of optimization in % \n"
+         "String write_var: If yes, grids and according fields are\n"
+         "                  written to files \n"
+         "\n"
+         ),
+        OUTPUT(scat_za_grid_, i_field_, f_index_, scat_i_p_, scat_i_lat_, 
+               scat_i_lon_,
+               ppath_, ppath_step_,
+               i_rte_, i_space_, ground_emission_, ground_los_,
+               ground_refl_coeffs_,
+               rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
+        INPUT( scat_mono_agenda_, scat_za_interp_, 
+               cloudbox_limits_, atmosphere_dim_, stokes_dim_, 
+                scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
+                i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
+                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
+
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("np", "accuracy", "write_var"),
+        TYPES(Index_t, Numeric_t, String_t)));
+                                                                               
 md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_za_interpSet" ),

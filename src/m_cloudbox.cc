@@ -1650,6 +1650,11 @@ void CloudboxGetIncoming(// WS Output:
        <<"Get clearsky field on cloudbox boundary. \n"
        <<"---------------------------------------- \n" ;
 
+  if( cloudbox_limits.nelem() == 0)
+    throw runtime_error(" The cloudbox is not activated. Use "
+                        "*cloudboxSetManually* to define \n the cloudbox "
+                        "limits.");
+
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
@@ -1719,7 +1724,7 @@ void CloudboxGetIncoming(// WS Output:
           check_input = false;
 
           scat_i_p( Range(joker), 0, 0, 0,
-                    scat_za_index,0,
+                    scat_za_index, 0,
                     Range(joker)) = i_rte;
 
                 }
@@ -2178,7 +2183,12 @@ void CloudboxGetIncoming1DAtm(// WS Output:
   out2 <<"Function: CloudboxGetIncoming \n"
        <<"Get clearsky field on cloudbox boundary. \n"
        <<"---------------------------------------- \n" ;
-
+  
+  if( cloudbox_limits.nelem() == 0)
+    throw runtime_error(" The cloudbox is not activated. Use "
+                        "*cloudboxSetManually* to define \n the cloudbox "
+                        "limits.");
+  
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
