@@ -27,6 +27,7 @@
   \date 1999-07-29 */
 
 
+#include <iostream>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
