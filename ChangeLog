@@ -1,5 +1,12 @@
 2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-754
+
+	* configure.in: Fixed bug reported by Cory. Macro AC_HELP_STRING is
+	not supported by autoconf2.13. Removed.
+
+2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-753
 
 	* src/binio.cc: Replace c header includes with c++ headers.
