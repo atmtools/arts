@@ -20,6 +20,7 @@
 
 // FIXME: Port doxygen file header and documentation from arts-1-0 version to here. 
 
+#include <cmath>
 #include "matpackI.h"
 #include "mystring.h"
 #include "exceptions.h"

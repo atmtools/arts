@@ -1,3 +1,16 @@
+2003-12-02  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-734
+
+	* src/m_continua_ckd.cc: arts not compiling on gcc 2.96, so I added
+	#include <cmath>, which seems to have worked.
+
+	* src/m_abs_o2_models.cc: changing "AN_r = abs(N_r)-1" to 
+	"AN_r = abs(Numeric(N_r))-1" and others like it fixed compilation 
+	errors (ambiguity with overloaded function abs) with gcc 2.96.  Feel 
+	free to flame me if these were not the right fixes. 
+	
+
 2003-12-02  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-1-733
@@ -138,6 +151,7 @@
 	FILE FOR SIMPLE O2 ABSORPTION/EXTINCTION CALCULATIONS. NOTE THIS 
 	IS ONLY FOR INTERNAL USE AT THIS MOMENT.
 	
+>>>>>>> 1.1119
 2003-11-28  Cory Davis   <cory@met.ed.ac.uk>
 
 	* arts-1-1-724

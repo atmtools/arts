@@ -1162,11 +1162,11 @@ void Zeeman_o2_line_splitting(// Output:
     { 
       // Assigning a value of the total angular momentum N of the lower  
       // level for a N+ Zeeman transition (N -> N+1).
-      AN_r = abs(N_r);
+      AN_r = abs(Numeric(N_r));
       
       // Assigning a value of the number of the split components for each 
       // of the three possible polarizations of a N+ Zeeman transition.
-      BN_r = 2*abs(N_r)+1;
+      BN_r = 2*abs(Numeric(N_r))+1;
       
       //! Resize of the frequency shift matrix 
       // for a N+ Zeeman transition.
@@ -1180,11 +1180,11 @@ void Zeeman_o2_line_splitting(// Output:
     {
       // Assigning a value of the total angular momentum N of the lower 
       // level for a N- Zeeman transition (N -> N-1).
-      AN_r = abs(N_r)-1;
+      AN_r = abs(Numeric(N_r))-1;
       
       // Assigning a value of the number of the split components for each
       // of the three possible polarizations of a N- Zeeman transition.
-      BN_r = 2*abs(N_r)-1;
+      BN_r = 2*abs(Numeric(N_r))-1;
       
       
       // Resize of the frequency shift matrix 
