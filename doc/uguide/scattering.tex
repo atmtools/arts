@@ -97,7 +97,6 @@ polarisation and the last component $V$ denotes the state of circular
 polarisation of the radiation propagating in the direction \PDir.
 \DiffD $s$ denotes the pathlength element along direction \PDir. \Frq\ 
 is the frequency of the radiation.
-\\
 
 The first term of Equation (\ref{eq:scattering:RTE}) corresponds to the extinction of
 radiation determined by the extinction coefficient matrix \ExtMat
@@ -237,7 +236,6 @@ where \StoVec$_0$ is given by the initial condition
 \end{eqnarray}
 Here we take for \StoVec$_0$ the initial field and we find the first
 iteration radiation field \StoVec$_1$.
-\\
 
 The scalar radiative transfer equation
 (\ref{eq:scattering:scalar_rte})  with fixed scattering integral
@@ -348,7 +346,7 @@ which are considered in the calculation. This vector has to be defined
 in the control file.
 
 
-\levelb{Extract local atmospheric properties from atmospheric fields}
+\levelb{Get local atmospheric properties from atmospheric fields}
 %==================================================================
 \label{sec:scattering:gen_atmprop}
 
@@ -381,7 +379,15 @@ propagation direction given by zenith angle (\wsvindex{za}) and
 azimuth angle (\wsvindex{aa}) are needed.\\
 The agenda can for example be defined in the following manner:
 
+
+FIXME: Fix this. Use raggedright? Or better use verbatim environment
+for this?
 \verb|AgendaDefine(ext_mat_agenda)|\\
+\begin{tabularx}{\hsize}{@{}lX}
+  Irgendwas & \raggedright Hier ein längerer Text. Hier ein längerer Text. Hier ein
+  längerer Text. HiereinlängererText.  HiereinlängererText.
+\end{tabularx}
+
 \begin{tabular}[h]{l l}
 \verb|{ |\\
 \verb|ext_mat_partCalc{}| & \verb| //function to calculate particle |\\
@@ -427,14 +433,14 @@ particle type can be derived using the workspace method
 \wsmindex{ext\_mat\_sptCalc}.\\
 Output is a tensor including local extinction matrices for each
 particle type, so it is of the dimension [$N_{pt}, N_{I}, N_{I}$],
-where $N_{I}$ denotes the Stokes dimension.\\
+where $N_{I}$ denotes the Stokes dimension.
 
 % =================update !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 As input variables it needs the amplitude matrix (\wsvindex{amp\_mat})
 and the propagation direction given by the local zenith and azimuth
 angle (\artsstyle{za} and \artsstyle{aa}). \wsvindex{amp\_mat} is
 obtained using the reading routine \wsmindex{get\_amp\_fromDb} which is
-explained in Section \ref{sec:scattering:database}.\\
+explained in Section \ref{sec:scattering:database}.
 %============================================================
 
 The extinction cross section matrices \SExMat{} are
@@ -721,13 +727,17 @@ by the frequency index \wsvindex{scat\_f\_index}.
 The agenda consists of a number of methods which have to be executed in
 the correct order.
 The agenda is set in the control file. To solve the RTE iteratively it
-is set in the following manner: \\ \\
-\artsstyle{ AgendaSet(scat\_mono\_agenda) \{\\
-i\_fieldSet\{\}\\
-i\_fieldIterate\{\}\\
-scat\_iPut\{\}\\
-\} }
-\\ \\
+is set in the following manner:
+
+\begin{verbatim}
+AgendaSet(scat_mono_agenda) {
+  i_fieldSet{}
+  i_fieldIterate{}
+  scat_iPut{}
+}
+\end{verbatim}
+
+\noindent
 The methods used by this agenda are described below.
 
  
@@ -766,7 +776,7 @@ of the radiation field converges.
   \wsmindex{sca\_fieldCalc}
     (see Sections \ref{sec:scattering:sca_fieldCalc} and
     \ref{sec:scattering:scat_int}).
-\item Calculate the new radiation field using
+\item Calculate the new radiation field using\\
   \wsmindex{i\_fieldUpdate1D} or \wsmindex{i\_fieldUpdate3D}.
  (see Sections \ref{sec:scattering:RT_methods} and
   \ref{sec:scattering:RTE}).
@@ -863,7 +873,7 @@ Finally the method sums up the two terms to get the updated Stokes Vector.
 %================================================================
 For the scalar case it is straight forward to compute a radiative
 transfer step through one grid cell. Only equation
-(\label{eq:scattering:scalar_rte_sol}) has to be computed. We only
+(\ref{eq:scattering:scalar_rte_sol}) has to be computed. We only
 have to compute the scalar exponential function and do not need the
 matrix inverse, such that the standard C math library is sufficient.
 

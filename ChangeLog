@@ -1,3 +1,16 @@
+2002-06-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-135
+
+	* doc/uguide/agendas.tex: Continued.
+
+	* doc/uguide/concept.tex: Started to work on this again.
+
+	* doc/uguide/main.tex: Changed "on" to "of" in \startsymbols.
+
+	* doc/uguide/scattering.tex: Removed some TeX warnings, together
+	with Claudia.
+
 2002-06-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-134
