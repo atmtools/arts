@@ -1,3 +1,19 @@
+2002-08-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-218
+
+	* src/m_scatproperties.cc (i_fieldSetConst): Created this function
+	to define a constant initial field inside the cloudbox.
+	Renamed *i_fieldSet*. Now this method is called *i_fieldSetClearsky*.
+
+	* src/m_scatrte.cc (Tensor6WriteIteration): This function counts the
+	number of iterations and prints the iterated fields to files. 
+
+	* src/methods.cc: Included the methods above.
+
+	* src/workspace.cc: Added the variable *iteration_counter* which holds 
+	the actual number of iterations. 
+
 2002-08-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-217
