@@ -1,9 +1,24 @@
+2001-10-01  Oliver Lemke  <olemke@uni-bremen.de>
+
+        * arts-0-0-251
+	
+	* doc/uguide/Makefile.am (uguide_pdf.pdf): Pipe the output of the
+	first two latex runs into /dev/null.
+	(uguide.dvi): Pipe the output of the first two latex runs into
+	/dev/null.
+
+	* configure.in: auto_full.arts is now always generated, even if
+	arts-data is not installed. Because the optional generation
+	does not work on older autoconf versions :-(
+	
+
 2001-09-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
         * arts-0-0-250
  
         * corrections since the version arts-0-0-249 didn't worked!
 
+	
 2001-09-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
         * arts-0-0-249
@@ -11,6 +26,7 @@
         * doc/uguide/absoption.tex: Continued to work on this.
         Edited the continuum and full model description.
 
+	
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-248
