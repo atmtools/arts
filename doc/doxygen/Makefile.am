@@ -24,6 +24,23 @@ $(top_srcdir)/configure.in \
 $(top_srcdir)/src/*.h \
 $(top_srcdir)/src/*.cc
 
+if ARTS_GENDOCS
+
 doxyfied: $(toexamine)
 	doxygen Doxyfile > /dev/null
 	touch doxyfied
+
+else
+
+doxyfied:
+	@echo
+	@echo "=========================================================="
+	@echo
+	@echo "The documentation is only re-generated in maintainer mode."
+	@echo "To activate maintainer-mode call configure with the option"
+	@echo "--enable-maintainer-mode"
+	@echo
+	@echo "=========================================================="
+	@echo
+
+endif
