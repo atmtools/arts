@@ -5976,9 +5976,9 @@ void ppath_start_stepping(
               gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
               //
               // Geometrical altitude
-              Vector   itw(4);
-              interpweights( itw, ppath.gp_lat[0], ppath.gp_lon[0] );
-              ppath.z[0] = ppath.pos(0,0) - interp(itw,  r_geoid,
+              Vector   itw2(4);
+              interpweights( itw2, ppath.gp_lat[0], ppath.gp_lon[0] );
+              ppath.z[0] = ppath.pos(0,0) - interp(itw2,  r_geoid,
                                             ppath.gp_lat[0], ppath.gp_lon[0] );
               //
               // LOS
@@ -6070,7 +6070,7 @@ void ppath_calc(
         const Vector&         rte_pos,
         const Vector&         rte_los,
         const bool&           outside_cloudbox,
-        const Index&          agenda_verb )
+        const Index&          /* agenda_verb */)
 {
   // This function is a WSM but it is normally only called from RteCalc. 
   // For that reason, this function does not repeat input checks that are
