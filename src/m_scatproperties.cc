@@ -344,3 +344,127 @@ void abs_vec_partCalc(Vector& abs_vec_part,
     }
 } 
 
+//! Phase Matrix for the particle 
+/*! 
+  
+  This function sums up the phase matrices for all particle 
+  types weighted with particle number density
+  \param pha_mat_part Output : physical phase matrix 
+  for the particles for given angles. 
+  \param pha_mat_spt Input : phase matrix for the single particle type
+  \param pnd_field Input : particle number density givs the local 
+  concentration for all particles.
+  \param cloudbox_limits Input : the limits of the cloud box.
+  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
+*/
+void pha_mat_partCalc(Tensor4& pha_mat_part,
+		      const Tensor5& pha_mat_spt,
+		      const Tensor4& pnd_field,
+		      const ArrayOfIndex& cloudbox_limits,
+		      const Index& atmosphere_dim
+		     )
+{
+
+  Index N_pt = pha_mat_spt.nshelves();
+  Index Nza = pha_mat_spt.nbooks();
+  Index Naa = pha_mat_spt.npages();
+  Index N_i = pha_mat_spt.nrows();
+
+  // Initialisation
+  for (Index za_index = 0; za_index < Nza; ++ za_index)
+    {
+      for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+	{
+	  for (Index stokes_index = 0; stokes_index < N_i; ++ stokes_index)
+	    {
+	      for (Index stokes_index = 0; stokes_index < N_i; 
+		   ++ stokes_index)
+		pha_mat_part(za_index, aa_index, stokes_index, stokes_index)
+		  = 0.0;
+	    }
+	}
+    }
+  if (atmosphere_dim == 1)
+    {
+      // the loop are over the p_grid
+      for (Index p_index = cloudbox_limits[0];  p_index < cloudbox_limits[1];
+	   ++  p_index)
+	{
+	  // this is a loop over the different particle types
+	  for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
+	    {
+	      // these are loops over zenith angle and azimuth angle
+	      for (Index za_index = 0; za_index < Nza; ++ za_index)
+		{
+		  for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+		    {
+	      
+		      // now the last two loops over the stokes dimension.
+		      for (Index stokes_index = 0; stokes_index < N_i; 
+			   ++  stokes_index)
+			{
+			  for (Index stokes_index = 0; stokes_index < N_i;
+			       ++ stokes_index)
+			    
+			    pha_mat_part(za_index, aa_index,  
+					 stokes_index, stokes_index) += 
+			      
+			      (pha_mat_spt(pt_index, za_index, aa_index,  
+					   stokes_index, stokes_index) * 
+			       pnd_field(p_index, 0, 0, pt_index));
+			}
+		    }
+		}
+	    }
+	}
+    }
+	  
+  if (atmosphere_dim == 3)
+    {
+      // the first three loops are over the p_grid, lat_grid, lon_grid
+      for (Index p_index = cloudbox_limits[0];  p_index < cloudbox_limits[1];
+	   ++  p_index)
+	{
+	  for (Index lat_index = cloudbox_limits[2];  
+	       lat_index < cloudbox_limits[3]; ++  lat_index)
+	    {
+	      for (Index lon_index = cloudbox_limits[4];  
+		   lon_index < cloudbox_limits[5]; ++  lon_index)
+		{
+		  // this is a loop over the different particle types
+		  for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
+		    {
+		      // these are loops over zenith angle and azimuth angle
+		      for (Index za_index = 0; za_index < Nza; ++ za_index)
+			{
+			  for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+			    {
+			      
+			      // now the last two loops over the stokes dimension.
+			      for (Index stokes_index = 0; 
+				   stokes_index < N_i; ++  stokes_index)
+				{
+				  for (Index stokes_index = 0; 
+				       stokes_index < N_i; ++ stokes_index)
+				    {
+				      
+				      pha_mat_part(za_index, aa_index, 
+						   stokes_index, 
+						   stokes_index) += 
+					(pha_mat_spt(pt_index, za_index, 
+						     aa_index, stokes_index,
+						     stokes_index) * 
+					 pnd_field(p_index, lat_index, 
+						   lon_index, pt_index));
+				      
+				    } 
+				}
+			    }
+			}
+		    }
+		}
+	    } 
+	}
+    }
+
+}

@@ -145,6 +145,7 @@ void define_wsv_data()
 	"The variable is listed as a subentry to \"workspace variables\".\n"
         ),
       GROUP( Vector_ )));
+
   wsv_data.push_back
     (WsvRecord
      ( NAME("abs_vec_spt"),
@@ -1006,6 +1007,29 @@ void define_wsv_data()
        "Unit:       Pa"
        ),
       GROUP( Vector_ )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "pha_mat_part" ),
+      DESCRIPTION
+      (
+       "Physical phase matrix for particle.\n"
+       "\n"
+       "This workspace variable represents the actual physical phase\n"
+       "matrix of the particles chosen for the study for given propagation\n"
+       "directions.  This is calculated by the method *pha_mat_partCalc*\n"
+       "\n"
+       "ARTS user guide (AUG) gives the formula used for computing this\n"
+       "variable. Use the index to find where this variable is discussed.\n"
+       "The variable is listed as a subentry to \"workspace variables\".\n"
+       "\n"
+       "Usage:      Output of the method pha_mat_partCalc\n"
+       "\n"
+       "Unit:        m^2\n"
+       "\n"
+       "Dimensions: [ scat_za_grid, scat_aa_grid, stokes_dim, stokes_dim ]\n"
+       ),
+      GROUP( Tensor4_ )));
    
    wsv_data.push_back
    (WsvRecord

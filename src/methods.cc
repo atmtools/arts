@@ -150,7 +150,7 @@ void define_md_data_raw()
   md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vec_partCalc"),
-  	DESCRIPTION
+	DESCRIPTION
 	(
 	 "This function sums up the absorption vectors for all particle \n"
 	 "types weighted with particle number density.\n"
@@ -158,7 +158,7 @@ void define_md_data_raw()
 	 "The output of this method is *abs_vec_part* (stokes_dim).\n"
 	 "The inputs are the absorption vector for the single particle type \n"
 	 "*abs_vec_spt* (part_types, stokes_dim) and the local particle\n"
-	 "particle number densities for all particle types namely the \n"
+	 " number densities for all particle types namely the \n"
 	 "*pnd_field* (p_grid, lat_grid, lon_grid, part_types) for given \n"
 	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required are\n"
 	 "specified in the control file.  \n"
@@ -872,7 +872,7 @@ void define_md_data_raw()
 	 "\n"
 	 "The output of this method is *ext_mat_part* (stokes_dim, stokes_dim).\n"
 	 "The inputs are the extinction matrix for the single particle type \n"
-	 "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local particle\n"
+	 "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local \n"
 	 "particle number densities for all particle types namely the \n"
 	 "*pnd_field* (p_grid, lat_grid, lon_grid, part_types) for given \n"
 	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required are\n"
@@ -1487,6 +1487,29 @@ void define_md_data_raw()
 	GINPUT( Numeric_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pha_mat_partCalc" ),
+	DESCRIPTION
+        (
+	 "This function sums up the phase matrices for all particle\n"
+	 "types weighted with particle number density.\n"
+	 "\n"
+	 "The output of this method is *pha_mat_part* (Nza, Naa, stokes_dim,\n"
+	 "stokes_dim). The inputs are the phase matrix for the single particle\n"
+	 "type *pha_mat_spt* (part_types, Nza, Naa, stokes_dim, stokes_dim)\n"
+	 "and the local particle  number densities for all particle types namely the\n"
+	 "*pnd_field* (p_grid, lat_grid, lon_grid, part_types) for given\n"
+	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required are\n"
+	 "specified in the control file.\n"
+	 ),
+	OUTPUT(pha_mat_part_),
+	INPUT(pha_mat_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES())); 
 
   md_data_raw.push_back
     ( MdRecord
