@@ -25,7 +25,7 @@
 #include <string>
 #include "config.h"
 
-#define SUBVERSION "80"
+#define SUBVERSION "81"
 
 string subversion = SUBVERSION;
 string full_name  = static_cast<string>(PACKAGE)
