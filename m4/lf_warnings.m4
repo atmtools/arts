@@ -27,7 +27,7 @@ dnl distribution terms that you use for the rest of that program.
 #   LF_CHECK_CXX_FLAG(-flag1 -flag2 -flag3 ...)
 # -------------------------------------------------------------------------
 
-AC_DEFUN(LF_CHECK_CXX_FLAG,[
+AC_DEFUN([LF_CHECK_CXX_FLAG],[
   echo 'void f(){}' > conftest.cc
   for i in $1
   do
@@ -51,7 +51,7 @@ AC_DEFUN(LF_CHECK_CXX_FLAG,[
 #  LF_CHECK_CC_FLAG(-flag1 -flag2 -flag3 ...)
 # -------------------------------------------------------------------------
 
-AC_DEFUN(LF_CHECK_CC_FLAG,[
+AC_DEFUN([LF_CHECK_CC_FLAG],[
   echo 'void f(){}' > conftest.c
   for i in $1
   do
@@ -75,7 +75,7 @@ AC_DEFUN(LF_CHECK_CC_FLAG,[
 #  LF_CHECK_F77_FLAG(-flag1 -flag2 -flag3 ...)
 # -------------------------------------------------------------------------
 
-AC_DEFUN(LF_CHECK_F77_FLAG,[
+AC_DEFUN([LF_CHECK_F77_FLAG],[
   cat << EOF > conftest.f
 c....:++++++++++++++++++++++++
       PROGRAM MAIN
@@ -102,7 +102,7 @@ EOF
 # compilers. 
 # ----------------------------------------------------------------------
 
-AC_DEFUN(LF_SET_WARNINGS,[
+AC_DEFUN([LF_SET_WARNINGS],[
   dnl Check for --disable-warnings
   dnl SAB 11.03.2000 Changed this, so that warnings are on by default.
   AC_MSG_CHECKING([whether user wants warnings])

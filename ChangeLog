@@ -1,3 +1,18 @@
+2004-08-13  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-859
+
+	* autogen.sh:
+
+	Change head option from '-1' to '-n 1' as the former is obsolete and
+	maybe removed in future versions.
+
+	* m4/{lf_warnings.m4,lf_cxx.m4}:
+
+	Fix quoting of LF_CHECK_CC_FLAG, LF_CHECK_F77_FLAG,
+	LF_SET_WARNINGS, LF_CONFIGURE_CXX, and LF_CPP_PORTABILITY for
+	automake >= 1.8.
+
 2004-08-12  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-858

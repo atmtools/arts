@@ -29,7 +29,7 @@ dnl distribution terms that you use for the rest of that program.
 # 2. Checks whether the compiler accepts the -g 
 # ------------------------------------------------------------------
 
-AC_DEFUN(LF_CONFIGURE_CXX,[
+AC_DEFUN([LF_CONFIGURE_CXX],[
  AC_PROG_CXX 
  AC_PROG_CXXCPP
  LF_CPP_PORTABILITY
@@ -52,7 +52,7 @@ dnl #undef CXX_HAS_NO_BOOL
 dnl #undef NDEBUG
 dnl END ACCONFIG
 
-AC_DEFUN(LF_CPP_PORTABILITY,[
+AC_DEFUN([LF_CPP_PORTABILITY],[
 
   dnl
   dnl Check for common C++ portability problems
