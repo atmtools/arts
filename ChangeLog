@@ -1,3 +1,11 @@
+2002-08-05  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-195
+	
+	* src/parser.cc (is_whitespace, eat_whitespace): Added backslash r
+        as whitespace. Fixes bug which crashed arts when reading dos style
+        control files under unix.
+	
 2002-08-01  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-194
