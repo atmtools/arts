@@ -73,7 +73,7 @@ void GaussianResponse(// WS Generic Output:
                       const Numeric& 	MaxSpacing)
 {
   //Calculate new size of matrix
-  Index nrows = ceil(TotWidth / MaxSpacing)+1;
+  Index nrows = Index (ceil(TotWidth / MaxSpacing)+1);
   r_matrix.resize(nrows,2);
 
   //Set up grid column
@@ -82,7 +82,7 @@ void GaussianResponse(// WS Generic Output:
   r_matrix(joker,0) = tmp;
 
   //Calculate standard deviation from Full Width at Half Mean
-  Numeric sigma = FWHM / (2*sqrt(2*log(2)));
+  Numeric sigma = FWHM / (2.*sqrt(2.*log(2.)));
 
   //Calculate the normalised gaussian response
   for( Index i=0; i<nrows; i++) {
