@@ -166,17 +166,17 @@
 % ============================================================================
 
 
+                                          
 
-
-In general there three types of absorption/emission spectra:
+In general there are three types of absorption/emission spectra:
 \begin{itemize}
 \item sharp lines of finite width
-\item aggregation (series) of lines called bands
+\item aggregations (series) of lines called bands
 \item continua extending over a broad range of wavelengths, with
       no single lines in it.
 \end{itemize}
 This section is therefore firstly devised to give a short theoretical
-overview of the spectra quantities which are used in ARTS. The presentation
+overview of the absorption quantities which are used in ARTS. The presentation
 of the calculating methods within ARTS of these quantities is the
 second goal.
 There are two major subsections which deal separately with the respective types
@@ -192,33 +192,31 @@ continua and thus gives an integrated view of continua and spectral lines.
 \label{sec:line_absorption}
 
  
-Staying close to the notation used by Goody and Young in ``Atmosperic
-Radiation'', 1989, we'll introduce here the main concepts concerning
-line absortion. The approach, however, does not aim  at the
-derivation, but confines itself within the consise and structured way
-of presenting the following expressions.
+Staying close to the notation used by \citet{goodyandyung:89}, we'll introduce here the main concepts concerning
+line absorption. The approach, however, does not aim  at the
+derivation, but rather at the presentation the following expressions.
 
 Any line is presented by the corresponding profile of the absorption/emission
 coefficient as dependency on the frequency, in our case that of the
 absorption - given by the quantity $\alpha(\nu)$. The latter dependency
 is related to other quantities, which express the three
-characteristics of a single line uniqely describing it - position,
+characteristics of a single line uniquely describing it - position,
 strength and shape. 
 The strength, or better the line intensity, is given by the quantity
-$S(T)$. The shape and the position are expressed through the
-line-shape function $F(\nu)$. Thus we have the relation 
+$S(T)$, where $T$ is absolute temperature.. The shape and the position are expressed through the
+line-shape function $F(\nu)$. Thus we have the relation    
 \begin{equation}
   \alpha(\nu)=nS(T)F(\nu)
 \label{}
 \end{equation} 
-where $n$ is the numbre density pf the absorber. The line-shape
+where $n$ is the number density of the absorber. The line-shape
 function is normalized as follows
 
 \begin{equation}
   \int F(\nu)d\nu=1
 \label{}
 \end{equation}
-The values of $S(T)$ at reference temperature $T_0$ are contaied in spectroscopic databases. The conversion to different
+The values of $S(T)$ at reference temperature $T_0$ are contained in spectroscopic databases. The conversion to different
 temperatures is done by
 \begin{equation}
 S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT} - e^{-E_i/kT}}{e^{-E_f/kT_0} - e^{-E_i/kT_0}}
@@ -226,8 +224,8 @@ S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT} - e^{-E_i/kT}}{e^{-E_f/kT_0} -
 \end{equation}
 given the energies $E_f$ and $E_i$ of the two levels between which the
 transition occurs as well as the partition function~~$Q(T)$. The
-databases contain the the lower energy $E_l$ tabulated along with the
-$S$ and the transition frequency $\nu$, so that the upper state can be
+databases contain the lower state energy $E_l$ tabulated along with the
+$S$ and the transition frequency $\nu$, so that the upper state energy can be
 computed by $E_u$=$E_l$+h$\nu$. Partition functions for all molecular species are also
 available along with spectroscopic databases, either in the form of tabulated values for a set
 temperatures, or in the form of FORTRAN routines. One can obtain the total absorption
@@ -235,43 +233,44 @@ coefficient by adding the absorption of all spectral lines of all
 molecular species.
 
 The problem of determining the explicit kind of the line-shape
-functions is treated in a following subsection. A special one is
-dedicated to the partition functions and their calculalation..
+functions is treated in the following subsection. Another one is
+dedicated to the partition functions and their calculation..
 
 
 \levelc{Line Shape Functions}
-Up to date there is no way to calculate the line-shape fuctions
+Up to date there is no way to calculate the line-shape functions
 analytically just through the theoretical expressions of quantum dynamics,
-statistical physics and theoretical mechnanics. Certain approximations
+statistical physics and theoretical mechanics. Certain approximations
 should be done to account for different physical phenomena related to
 the absorption/emission process or to suit better the calculation of
 different parts of the spectral line.
 
 There are three phenomena which contribute to the line-shape. These
-are, in increasing orede of importance, the finite lifetime of an
+are, in increasing order of importance, the finite lifetime of an
 excited state in an isolated molecule, the thermal movement of the gas
-molecules and their colliisons with each other. They result in
-correpsonding effects to the line-shape: natural broadenig, Doppler
+molecules and their collisions with each other. They result in
+corresponding effects to the line-shape: natural broadening, Doppler
 and pressure broadening. Of these, the first one is completely
-negligible compared to the other two. That's why we don't pay a special
+negligible compared to the other two. That's why we don't pay special
 attention to it but we'll present some expressions in order to convey
 better understanding of the other two.
 
 The spectral line shape can derived in this case from basic physical
-considerations and the well-known Fouirier transform theorem, stating
-that  multiplication in the time domain is equal to convoluting the
+considerations and the well-known Fourier transform theorem, stating
+that  multiplication in the time domain is equal to convoluting in the
 frequency one.
-
-If we regard the spontaneous decay of the excited state, then the
-amlitude of the oscillations decreases by $\gamma/2$ and the
-respective decrease in the energy is
+If we consider classically the spontaneous decay of the excited state of a dipole molecule, then the
+oscillations amplitude of the bound electrons by switched off
+external field decreases by $\gamma/2$. The respective decrease
+in the energy of the oscillations is $E(t)=E(0)~e^{-\gamma t}$. The flux
+of the dipole radiation then is 
 \begin{equation}
-  E(t)=E(0)e^{-\gamma t}
+  L(t)=L(0)~e^{-\gamma t}
 \label{}
 \end{equation}
-By the afore mentioned theorem, multiplicating in the time domain by
-$e^{-\gamma t}$ is equavelent to convolving in the frequency domain
-with a function $1/[\nu^2 - (\gamma/4\pi)^2]$. Thus the normalised
+By the afore mentioned theorem, multiplying in the time domain by
+$e^{-\gamma t}$ is equivalent to convolving in the frequency domain
+with a function $1/[\nu^2 - (\gamma/4\pi)^2]$. Thus the normalized
 line-shape function of the spectral line at frequency $\nu_0$ is 
 \begin{equation}
   F(\nu)=\frac{1}{\pi}\frac{\gamma/4\pi}{(\nu - \nu_0)^2 + (\gamma/4\pi)^2}
@@ -279,22 +278,22 @@ line-shape function of the spectral line at frequency $\nu_0$ is
 \end{equation}
 
 This gives a bell-shaped profile and the function itself is called
-Lorentzian. The dependance on the position of the line is apparent
+Lorentzian. The dependence on the position of the line is apparent
 through $\nu_0$, that's why some authors prefer to notate the function
 by $F(\nu,\nu_0)$.
-The result is important because of the two reasons. First, without the
-natural broadening the line wouold be~$\delta (\nu - \nu_o)$. So the
+The result is important because of two reasons. First, without the
+natural broadening the line would be~$\delta (\nu - \nu_o)$ function. So the
 spontaneous decay of the excited state is responsible for the finite
 width and the certain shape of the line-shape function. Second, the
-Lorentzian type of function comes significantly into into play when
-explaining the some of the other broadening effects or the complte
+Lorentzian type of function comes significantly into play when
+explaining some of the other broadening effects or the complete
 picture of the broadened line.
 
-The second effect, Doppler broadenig, is important for the upper
-stratosphere and mesosphere for microwave freqeuncy. The line-shape
+The second effect, Doppler broadening, is important for the upper
+stratosphere and mesosphere for microwave frequency. The line-shape
 follows the velocity distribution of the particles. Under the conditions
-of thermodynamic equilibrium, we have  a probablity distribution for
-the relative velocity $u$ between the gas molecule and the oserver 
+of thermodynamic equilibrium, we have  a probability distribution for
+the relative velocity $u$ between the gas molecule and the observer 
 of Maxwell type 
 \begin{equation}
   p(u)=\sqrt{\frac{m}{2\pi kT}}~~exp~\left[-\frac{mu^2}{2kT}\right]
@@ -314,22 +313,22 @@ where the quantity $\gamma_D$ is called Doppler line width and equals
 \end{equation}
 In contrast to the afore mentioned line-shape function for the natural
 broadening the Doppler broadening is expressed by a Gaussian
-line-shape fuction $F(\nu)$. The Doppler line width $\gamma_D$ is so
-defined that it is qual to the falf width at half of the maximum
+line-shape function $F(\nu)$. The Doppler line width $\gamma_D$ is so
+defined that it is equal to the half width at half of the maximum
 (HWWM) of the line-shape function. The same way of notating is used
-for all other width parameters $\gamma_xy$ below.
+for all other width parameters $\gamma_{xy}$ below.
 
 It can be said without any exaggeration that the pressure broadening
-effect is the most comlpicated one among the others and still
+effect is the most complicated one among the others and still
 represents a complex theoretical task to be tackled, and is in the
 same time of major experimental importance. So far, there is no way to
 calculate analytically from the basics the profile of a pressure, or
 collisional, line through a single approach near the line center as well
-as ii the far wing region. The various approximations, which are
-therefore used, are immanenetly limited to the certain line regions
+as in the far wing region. The various approximations, which are
+therefore used, are immanently limited to the certain line regions
 they deal with.
-The most popular among these approximations is $impact~approximation$
-which main statement is that the duration of the colllisions of the
+The most popular among these approximations is the  {\it{impact~approximation}}
+which postulates that the duration of the collisions of the
 gas particles is very small compared to the average time between the
 collisions. Lorentz was the first to achieve a result exploiting this
 approach, the Lorentz line-shape function:
@@ -352,7 +351,7 @@ for the microwave region:
 which can be reduced to Lorentzian for $(\nu-\nu_0) << \nu_0$ . Except
 for the additional factor $(\nu/\nu_0)^2$ ,  $F_{VVW}$ can be regarded
 as the sum of two $F_L$, or respectively lines, one with its center
-freqquency at  $\nu_0$, the other at $-\nu_o$. Other authors,
+frequency at  $\nu_0$, the other at $-\nu_o$. Other authors,
 e.g. Rosenkrantz,  make use of an linear factor $(\nu/\nu_0)$ in their
 approach too.
 
@@ -364,7 +363,7 @@ function
  F_{Voigt}(\nu,\nu_0)= \int F_L(\nu,\nu')~F_D(\nu',\nu_0)~d\nu'
 \label{}
 \end{equation}
-though there's no strict justfication for its use - the two processes
+though there's no strict justification for its use - the two processes
 are assumed to act independently, which in reality is not the
 fact. Regardless of this flaw, it's the only way up to date to model
 the combination of the broadening processes. The integral in (3.11)
@@ -383,17 +382,15 @@ Vleck-Weisskopf line-shape function in the high pressure limit and
 like a Voigt one in the low pressure limit. There is one important
 caveat to the equation (3.12): it has to be made sure that the
 algorithm that is used to compute the Voigt function really produces a
-Lorentz line in the high pressure limit. Another point of signifacance
-is the demand that model yields meanigful rersuts far from the line
+Lorentz line in the high pressure limit. Another point of significance
+is the demand that model yields meaningful results far from the line
 center, since the line center from the ``mirror'' line at -$\nu_0$ is
-situated approximately 2$\nu_0$ away from tthe frequency $\nu_0$ of
-computation. The algorithm of Drayson [$Drayson$, 1976; $Oliveiro~and~
-Longbothum$, 1977] was explicitly checked that satisfies both
-requirements, while this not true for some other algorithms, commonlly
+situated approximately 2$\nu_0$ away from the frequency $\nu_0$ of
+computation. The algorithm of \citet{Drayson:76} and \citet{Oliveiro:77} was explicitly checked that satisfies both
+requirements, while this not true for some other algorithms, commonly
 used for Voight-shape computation. In particular, the it's not true
-for the Hui-Armstrong-Wray Formula, as defined in $Hui~et~al.$
-[1978] and in Equation 2.60 of $Rosenkrantz$ [1993]. So, provided the
-stated above is fullfilled, the $F_S$ line shape gives a smooth
+for the Hui-Armstrong-Wray Formula, as defined in \citet{hui:78} and in Equation 2.60 of \citet{pwr:93}. So, provided the
+stated above is fulfilled, the $F_S$ line shape gives a smooth
 transition from high tropospheric pressures to low stratospheric ones,
 and to be valid near the line centers throughout the microwave region.
 \levelc{Partition Functions}
@@ -403,22 +400,22 @@ energy states and their statistical distribution during the
 radiation process. 
 
 In any case of spectroscopic interest the free molecules of a gas are
-not ptically thick at all freqeuncies, so the radiation energy is not
+not optically thick at all frequencies, so the radiation energy is not
 represented by blackbody radiation. The most common assumption made,
 which is sufficient in the case of tropospheric and low stratospheric
 research, is the {\textit{local thermodynamic equilibrium\nocorr} or $LTE$. According to it,
 it's possible to find a common temperature, which may vary from place
-to place, that fits the Boltzman energy population distribution and
+to place, that fits the Boltzmann energy population distribution and
 the Maxwell velocities distribution. This practically means, that
 under $LTE$ the collisional processes must be of greater importance
 than radiative ones. In other words, an excited state must have a
-hihger probability of de-excitation by collision than by spontaneous
-radiation. This is the important factor which make natural broadening
-differ quantatively so much from the pressure (collisional), though
+higher probability of de-excitation by collision than by spontaneous
+radiation. This is the important factor which makes natural broadening
+differ quantitatively so much from the pressure (collisional), though
 both are described qualitatively almost identical by  Lorentzian line-
 shape functions.
 
-Accordind  to the Maxwell-Boltzman distribution law,in $LTE$ the total number
+According  to the Maxwell-Boltzmann distribution law,in $LTE$ the total number
 of gas particles $N_n$  in a state $E_n$ is given by 
 \begin{equation}
  N_n=N_0\frac{g_n}{g_0}e^{-E_n/kT}
@@ -428,20 +425,20 @@ where $N_0$ is particle number in the ground state, and $g_n$, $g_o$
 are the statistical weights (degeneracies) of the $n-$state and the
 ground state. Thus the total particle number $N$ is given by
 \begin{equation}
- N=\frac{N_0}{g_0}\sum_{n=0}^\infty e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
+ N=\frac{N_0}{g_0}\sum_{n=0}^\infty g_n~e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
 \label{}
 \end{equation}
-The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the gas. At
-one hand all thermodynamic quantities can be expressed through it, and at
-another it comes into play by the calculation line intensities.\\
-Generally speaking, the partition fuction for a perfect gas can be
+The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the gas. On
+one hand all thermodynamic quantities can be expressed through it, and
+on the another it comes into play by the calculation line intensities.\\
+Generally speaking, the partition function for a perfect gas can be
 represented by the product of the {\it{translational}\nocorr} and the {\it{internal}\nocorr} partition functions
 \begin{equation}
  Q  =  Q_{tr}~Q_{int}
 \label{}
 \end{equation}
 bearing in mind that the respective energies are independent of each
-other. The quantitity, however, which we are interested in in (3.13)
+other. The quantity, however, which we are interested in in (3.13)
 is the {\it{internal}\nocorr} partition function (or the  {\it{total internal
     partition function}\nocorr}). It describes, in general terms, the energy
 distribution and redistribution during the radiation process. 
@@ -454,26 +451,26 @@ individual contribution explicitly
  Q=Q_e~Q_v~Q_r~Q_n
 \label{}
 \end{equation}
-and thus the intraciton betweeen these various states is neglected. For
-practically all polyatomic molecules the excited electronic staates
-are entirely negligable to those of the ground states,
+and thus the interaction between these various states is neglected. For
+practically all polyatomic molecules the excited electronic states
+are entirely negligible to those of the ground states,
 i.e. $Q_e=1$ . Only for the very few polyatomic molecules with a
 multiplet ground state ($NO_2$ , $ClO_2$ , and free radicals) has the
-electronic contibution to be considered.\\
-If we neglect the anharmonicities, the vibratioanal partition
+electronic contribution to be considered.\\
+If we neglect the anharmonicities, the vibrational partition
 function, with vibrational levels measured with respect to the ground
 state, the term $h\omega_n/2$ is omitted in the energy expression for
-the {\it{harmonic oscilator}\nocorr}, is 
+the {\it{harmonic oscillator}\nocorr}, is 
 \begin{equation}
  Q_v=\left(\sum_{\nu_1}e^{-\nu_1 h\omega_1/kT}\right)\left(\sum_{\nu_2}e^{-\nu_2 h\omega_2/kT}\right)...
 \label{}
 \end{equation}
 where $\nu_1$, $\nu_2$,..., the vibrational quantum numbers, can each
-have the valies 0,1,2,... and $\omega_1$, $\omega_2$,..are the
+have the values 0,1,2,... and $\omega_1$, $\omega_2$,..are the
 frequencies of the fundamental modes of vibration. The summation is
 taken over all values of $\nu_1$, $\nu_2$,..., and each fundamental
 mode is counted separately. This result is valid for non-degenerate
-vibrations. If we use the simple exprassion for geometric progression
+vibrations. If we use the simple expression for geometric progression
 \begin{equation}
  \sum_{\nu_i}e^{-\nu_i h\omega_i/kT}=\frac{1}{1-e^{h\omega_i/kT}}
 \label{}
@@ -495,29 +492,29 @@ Q_r & = & \sum_{J=0}^\infty (2J+1)e^{-hBJ(J+1)/kT}\nonumber\\
    & \cong & \frac{kT}{hB}
 \label{}
 \end{eqnarray}
-By {\it{symmetric-}}, {\it{asymmetric-}}, and {\it{spherical}} top molecules there are also
+For {\it{symmetric-}}, {\it{asymmetric-}}, and {\it{spherical}} top molecules there are also
 other factors to be taken into consideration, such as the
 spatial structure of the molecules, nuclear spin, inversion and
-internal rotation. The general expression in tis case us
+internal rotation. The general expression in this case us
 \begin{equation}
 Q_r  =  \frac{1}{\sigma}\sum_{J=0}^\infty \sum_{K=-J}^{J}(2J+1)~e^{-h[BJ(J+1)+(A-B)K^2]/kT}
 \label{}
 \end{equation}
-where $\sigma$ is ameasure of the degree of symmetry. For the usual
-symmetric top has $C_3$ or $C_{3\nu}$ symmetry, $\sigma$ = 3. To a good
-aprroximation, the summation above can expressed as
+where $\sigma$ is measure of the degree of symmetry. The usual
+symmetric top has $C_3$ or $C_{3\nu}$ symmetry, therefore $\sigma$ = 3. To a good
+approximation, the summation above can expressed as
 \begin{equation}
 Q_r  = 
 \frac{1}{\sigma}\left[\left(\frac{\pi}{B^2A}\right)\left(\frac{kT}{h}\right)^3\right]^{1/2}=
 \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{B^{2}A}\right)^{1/2}
 \label{}
 \end{equation}
-For asymmetric top the formula would then be 
+For an  {\it{asymmetric}} top the formula would then be 
 \begin{equation}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
 \label{}
 \end{equation}
-and for sprherical top
+and for a {\it{spherical}} top
 \begin{equation}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \label{}
@@ -2369,3 +2366,4 @@ of \citet{costaetal:00}.
 %%% TeX-master: "uguide" 
 %%% End:
 
+% LocalWords:  Atmosperic
