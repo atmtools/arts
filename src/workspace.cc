@@ -123,7 +123,7 @@ void define_wsv_data()
 	"Matrix has rows:\n"
 	"1. Pressure in Pa\n"
 	"2. Temperature in K\n"
-	"3. Altitude in km", 
+	"3. Altitude in m", 
 	MATRIX_,
 	&p));
   }

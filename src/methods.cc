@@ -239,7 +239,7 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadFromFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
+	DESCRIPTION("Read a variable of this type from a file.\n"
 		    "The filename can be specified or an empty string.\n"
 		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
@@ -252,7 +252,7 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadFromFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
+	DESCRIPTION("Read a variable of this type from a file.\n"
 		    "The filename can be specified or an empty string.\n"
 		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
