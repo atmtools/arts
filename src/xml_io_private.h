@@ -47,6 +47,7 @@
 #include "agenda_class.h"
 #include "absorption.h"
 #include "gas_abs_lookup.h"
+#include "optproperties.h"
 #include "bifstream.h"
 #include "bofstream.h"
 
@@ -242,6 +243,14 @@ void
 xml_write_to_stream (ostream& os_xml, const Numeric& numeric, bofstream *pbofs);
 
 void
+xml_read_from_stream (istream& is_xml, SingleScatteringData& ssdata,
+                      bifstream *pbifs);
+
+void
+xml_write_to_stream (ostream& os_xml, const SingleScatteringData& ssdata,
+                     bofstream *pbofs);
+
+void
 xml_read_from_stream (istream& is_xml, SpeciesTag& stag, bifstream *pbifs);
 
 void
@@ -351,6 +360,9 @@ template void
 xml_read_from_file<Ppath> (const String&, Ppath&);
 
 template void
+xml_read_from_file<SingleScatteringData> (const String&, SingleScatteringData&);
+
+template void
 xml_read_from_file<SpeciesTag> (const String&, SpeciesTag&);
 
 template void
@@ -423,6 +435,13 @@ xml_write_to_file<Numeric> (const String&, const Numeric&, FileType);
 
 template void
 xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);
+
+template void
+xml_write_to_file<SingleScatteringData> (const String&,
+                                         const SingleScatteringData&, FileType);
+
+template void
+xml_write_to_file<SpeciesTag> (const String&, const SpeciesTag&, FileType);
 
 template void
 xml_write_to_file<String> (const String&, const String&, FileType);
