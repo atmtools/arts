@@ -42,11 +42,14 @@
   \param  old_grid The old grid.
   \param  new_grid The new grid.
 */
-void find_new_grid_in_old_grid( ArrayOfIndex pos,
+void find_new_grid_in_old_grid( ArrayOfIndex& pos,
                                 ConstVectorView old_grid,
                                 ConstVectorView new_grid )
 {
-  Index n_new_grid = new_grid.nelem();
+  const Index n_new_grid = new_grid.nelem();
+
+  // Make sure that pos has the right size:
+  assert( n_new_grid == pos.nelem() );
   
   // We can use gridpos to do most of the work!
   ArrayOfGridPos gp( n_new_grid );
@@ -66,9 +69,10 @@ void find_new_grid_in_old_grid( ArrayOfIndex pos,
   // sufficiently close to the grid points for our taste.
   for ( Index i=0; i<n_new_grid; ++i )
     {
+      out3 << "  " << new_grid[i] << ": ";
       // This is the crucial if statement for the comparison of two
       // numerics!
-      Numeric diff = approx_pos[i] - floor(approx_pos[i]);
+      Numeric diff = approx_pos[i] - rint(approx_pos[i]);
       if ( 0 != diff )
         {
           ostringstream os;
@@ -77,6 +81,12 @@ void find_new_grid_in_old_grid( ArrayOfIndex pos,
              << "Diff:  " << diff;
 
           throw runtime_error( os.str() );          
+        }
+      else
+        {
+          // Assign to the output array:
+          pos[i] = (Index) rint(approx_pos[i]);
+          out3 << "found, index = " << pos[i] << ".\n";
         }
     }
 }
@@ -123,6 +133,16 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
        << n_f_grid << " frequencies.\n"
        << "  Adapt to:       " << n_current_species << " species, "
        << n_current_f_grid << " frequencies.\n";
+
+  if ( 0 == nonlinear_species.nelem() )
+    {
+      out2 << "  Table contains no nonlinear species.\n";
+    }
+
+  if ( 0 == t_pert.nelem() )
+    {
+      out2 << "  Table contains no temperature perturbations.\n";
+    }
 
   // We are constructing a new lookup table, containing just the
   // species and frequencies that are necessary for the current
@@ -277,13 +297,13 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   out3 << "  Looking for species in lookup table:\n";
   for ( Index i=0; i<n_current_species; ++i )
     {
-      out3 << "  " << get_tag_group_name( current_species[i] );
+      out3 << "  " << get_tag_group_name( current_species[i] ) << ": ";
       // We need no error checking for the next statement, since the
       // chk_contains function throws a runtime error if the species
       // is not found exactly once.
       i_current_species[i] =
         chk_contains( "species", species, current_species[i] );
-      out3 << ": found.\n";
+      out3 << "found.\n";
     }
 
 

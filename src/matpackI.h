@@ -504,11 +504,10 @@ private:
     this class are:
 
     1. Constructors and destructors (allocating memory).
-    2. Assignment operator from scalar.
-    3. Resize function.
-
-    It seems that we need no assignment operator from VectorView or
-    Vector, because the one of VectorView is used. */
+    2. Assignment operator
+    3. Assignment operator from scalar.
+    4. Resize function.
+*/
 class Vector : public VectorView {
 public:
   // Constructors:
@@ -520,7 +519,6 @@ public:
   Vector(const Vector& v);
 
   // Assignment operators:
-  //  Vector& operator=(VectorView x);
   Vector& operator=(const Vector& v);
   Vector& operator=(const Array<Numeric>& v);
   Vector& operator=(Numeric x);

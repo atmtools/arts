@@ -1,3 +1,75 @@
+2002-12-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-349
+
+	Two big changes in this version:
+
+	1. A first version of the gas absorption lookup table is ready and
+	tested. I implemented a field variable for gas absorption, and a
+	method to calculate absorption for all points in the field, in
+	order to be able to do some testing. It is as yet unclear whether
+	this could be useful also in other places.
+
+	2. Changed copy semantics for Array, Vector, and Tensors. Now the
+	output argument is resized automatically. This was necessary to
+	ensure that structures containing these objects are copied
+	correctly. User code in ARTS is not affected, you should continue
+	to use these data types exactly as you have done so far. In
+	particular, views still have to match exactly, of course.
+
+	Detailed changes:
+	
+	* src/gas_abs_lookup.cc: Some bug fixes and some cosmetic changes.
+
+	* src/workspace.cc (define_wsv_data): Added abs_scalar_gas_field.
+	It contains the scalar gas absorption for all species as a function of
+	f_grid, p_grid, lat_grid, and lon_grid. 
+	This is mainly for testing and plotting gas absorption. For RT
+	calculations, gas absorption is calculated or extracted locally,
+	therefore there is no need to store a global field. But this variable
+	is handy for easy plotting of absorption vs. pressure, for example.
+
+	* src/m_absorption.cc (abs_scalar_gas_fieldCalc): Added. 
+	Calculates scalar gas absorption for all points in the atmosphere.
+	An agenda is used to obtain absorption for one point at a time.
+	
+	* src/methods.cc (define_md_data_raw): Added abs_scalar_gas_fieldCalc.
+
+	* src/agendas.cc (define_agenda_data): Added input parameters and
+	documentation to scalar_gas_absorption_agenda.
+
+	* src/check_input.cc (chk_atm_field): Added a version of this
+	function for vmr_field (which is a Tensor4, not a Tensor3 like the
+	other fields).
+
+	* src/check_input.h: Updated.
+
+	* src/array.h: Changed copy semantics. Operator= now adjusts dimension
+	of target automatically.
+
+	* src/matpackI.cc: Changed copy semantics for Vector and Matrix
+	(not for VectorView and MatrixView!). Operator= now adjusts dimension
+	of target automatically.
+
+	* src/matpackIII.cc: Dito for Tensor3.
+
+	* src/matpackIV.cc: Dito for Tensor4.
+
+	* src/matpackV.cc: Dito for Tensor5.
+
+	* src/matpackVI.cc: Dito for Tensor6.
+
+	* src/matpackVII.cc: Dito for Tensor7.
+
+	* src/matpackI.h: Only changes in comments.
+
+	* src/test_matpack.cc (test35): A test for the new copy
+	semantics. Only tested for Vector! Hope it works also for the
+	higher order tensors...
+
+	* doc/uguide/matrix_vector.tex: Updated text about copy
+	semantics. 
+
 2002-12-19  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-348

@@ -242,6 +242,37 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_scalar_gas_fieldCalc"),
+        DESCRIPTION
+        (
+         "Calculate scalar gas absorption for all points in the atmosphere.\n"
+         "\n"
+         "This is mainly for testing and plotting gas absorption. For RT\n"
+         "calculations, gas absorption is calculated or extracted locally,\n"
+         "therefore there is no need to calculate a global field. But this\n"
+         "method is handy for easy plotting of absorption vs. pressure, for\n"
+         "example.\n"
+         "\n"
+         "The calculation itself is performed by the\n"
+         "*scalar_gas_absorption_agenda*, which needs the input variables\n"
+         "*a_pressure*, *a_temperature*, and *a_vmr_list*, and returns the\n"
+         "output variable *abs_scalar_gas*."
+        ),
+        OUTPUT( abs_scalar_gas_field_,
+                abs_scalar_gas_,
+                a_pressure_, a_temperature_, a_vmr_list_),
+        INPUT(  scalar_gas_absorption_agenda_,
+                f_grid_,
+                atmosphere_dim_,
+                p_grid_, lat_grid_, lon_grid_,
+                t_field_, vmr_field_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
  md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vecAddGas"),

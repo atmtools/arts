@@ -259,8 +259,9 @@ void chk_if_increasing(
   if ( !is_increasing(x) )
     {
       ostringstream os;
-      os << "The vector *" << x_name <<  "* must have strictly\nincreasing "
-         << "values, but this is not the case.";
+      os << "The vector *" << x_name <<  "* must have strictly\n"
+         << "increasing values, but this is not the case.";
+      os << "x = " << x << "\n";
       throw runtime_error( os.str() );
     }
 }
@@ -438,7 +439,7 @@ void chk_atm_grids(
 
 
 
-//! chk_atm_field 
+//! chk_atm_field (simple fields)
 /*! 
     Checks if an atmospheric field matches the dimensionality and the grids.
 
@@ -478,6 +479,55 @@ void chk_atm_field(
     }
 }
 
+//! chk_atm_field (fields with one more dimension)
+/*! 
+    Checks if an atmospheric field matches the dimensionality and the
+    grids. This is the version for fields like vmr_field, which are a
+    Tensor4, not a Tensor3. (First dimension is the gas species.)
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name       The name of the atmospheric field.
+    \param    x            A variable holding an atmospheric field.
+    \param    dim          The atmospheric dimensionality.
+    \param    p_grid       The pressure grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
+
+    \author Stefan Buehler, cloned from Patrick Eriksson 
+    \date   2002-12-20
+*/
+void chk_atm_field( 
+        const String&   x_name,
+        const Tensor4&  x, 
+        const Index&    dim,
+        const Index&    nspecies,
+        ConstVectorView p_grid,
+        ConstVectorView lat_grid,
+        ConstVectorView lon_grid )
+{
+  Index npages=p_grid.nelem(), nrows=1, ncols=1;
+  if( dim > 1 )
+    nrows = lat_grid.nelem();
+  if( dim > 2 )
+    ncols = lon_grid.nelem();
+
+  const Index nbooks=nspecies;
+
+  if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ||
+      x.nbooks()!=nbooks ) 
+    {
+      ostringstream os;
+      os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
+         << "Expected size is "
+         << nbooks << " x " << npages << " x "
+         << nrows << " x " << ncols << ",\n"
+         << "while actual size is "
+         << x.nbooks() << " x " << x.npages() << " x "
+         << x.nrows() << " x " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+}
 
 
 //! chk_atm_surface

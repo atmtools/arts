@@ -774,36 +774,36 @@ Tensor3::Tensor3(const Tensor3& m) :
   copy(m.begin(),m.end(),begin());
 }
 
-/** Assignment operator from another tensor. It is important that this
-    operator exists. Otherwise the = operator seems to copy references
-    instead of content in some cases. 
+//! Assignment operator from another tensor.
+/*! 
+  While dimensions of views can not be adjusted, dimensions of
+  tensors *can* be adjusted. Hence, the behavior of the assignment
+  operator is different.
 
-    The Behavior of this one is a bit special: If the size of the
-    target tensor is 0 then it will be automatically resized to match
-    (this is needed to have the correct initialization for constructed
-    classes that use the assignment operator to initialize their
-    data). 
+  In this case the size of the target is automatically adjusted. This
+  is important, so that structures containing tensors are copied
+  correctly. 
+  
+  This is a deviation from the old ARTS paradigm that sizes must match
+  exactly before copying!
+
+  Note: It is sufficient to have only this one version of the
+  assignment (Tensor = Tensor). It implicitly covers the cases
+  Tensor=TensorView, etc, because there is a default constructor for
+  Tensor from TensorView. (See C++ Primer Plus, page 571ff.)
+
+  \param m The other tensor to assign to this one.
+  \return This tensor, by tradition.
+
+  \author Stefan Buehler
+  \date   2002-12-19
 */
 Tensor3& Tensor3::operator=(const Tensor3& m)
 {
   //  cout << "Tensor3 copy: m = " << m.nrows() << " " << m.ncols() << "\n";
   //  cout << "             n = " << nrows() << " " << ncols() << "\n";
 
-  // None of the extents can be zero for a valid tensor, so we just
-  // have to check one.
-  if ( 0 == mcr.mextent )
-    {
-      // Adjust if previously empty.
-      resize( m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
-    }
-  else
-    {
-      // Check that sizes are compatible:
-      assert( mpr.mextent==m.mpr.mextent );
-      assert( mrr.mextent==m.mrr.mextent );
-      assert( mcr.mextent==m.mcr.mextent );
-    }
-
+  resize( m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
   copy( m.begin(), m.end(), begin() );
   return *this;
 }

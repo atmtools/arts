@@ -116,6 +116,15 @@ void chk_atm_field(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid );
 
+void chk_atm_field( 
+        const String&   x_name,
+        const Tensor4&  x, 
+        const Index&    dim,
+        const Index&    nspecies,
+        ConstVectorView p_grid,
+        ConstVectorView lat_grid,
+        ConstVectorView lon_grid );
+
 void chk_atm_surface( 
         const String&     x_name,
         const Matrix&     x, 

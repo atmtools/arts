@@ -84,25 +84,27 @@ inline Array<base>& Array<base>::operator=(base x)
   return *this;
 }
 
-/** Assignment from another Array. 
+//! Assignment from another Array. 
+/*!
+  This will adjust the size of the array automatically, so that
+  structures containing arrays can be correctly copied without having
+  an explicit assignment operator.
 
-    The Behavior of this one is a bit special: If the size of the
-    target Array is 0 then it will be automatically resized to match
-    (this is needed to have the correct initialization for constructed
-    classes that use the assignment operator to initialize their
-    data). 
+  This is a deviation from the old ARTS paradigm that sizes must match
+  exactly before copying!
 
-    In all other cases sizes must match exactly!
+  \param A The other array to copy to this one.
+
+  \return The freshly copied array (normally not used). 
+
+  \author Stefan Buehler
+  \date   2002-12-19
 */
 template<class base>
 inline Array<base>& Array<base>::operator=(const Array<base>& A)
 {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
-  if ( 0==size() )
-    resize(A.size()); // Adjust if previously empty.
-  else
-    assert( size()==A.size() );    // Otherwise check that sizes are compatible.
-
+  resize(A.size());
   std::copy( A.begin(), A.end(), begin() );
   return *this;
 }

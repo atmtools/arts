@@ -633,56 +633,59 @@ Vector::Vector(const Vector& v) :
   copy(v.begin(),v.end(),begin());
 }
 
-/** Assignment from another Vector. Important to avoid segmentation
-    fault for 
-    x = Vector(n);
+//! Assignment from another Vector.
+/*! 
+  While dimensions of VectorViews can not be adjusted, dimensions of
+  Vectors *can* be adjusted. Hence, the behavior of the assignment
+  operator is different.
 
-    The Behavior of this one is a bit special: If the size of the
-    target Vector is 0 then it will be automatically resized to match
-    (this is needed to have the correct initialization for constructed
-    classes that use the assignment operator to initialize their
-    data).
+  In this case the size of the target is automatically adjusted. This
+  is important, so that structures containing Vectors are copied
+  correctly. 
 
-    This special behaviour should not be exploited in the user
-    code. That means, you should always resize explicitly, even if you
-    know that the target should be empty. Then you are on the
-    safe side, even if the target was not empty.
- */
+  This is a deviation from the old ARTS paradigm that sizes must match
+  exactly before copying!
+
+  Note: It is sufficient to have only this one version of the
+  assignment (Vector = Vector). It implicitly covers the cases
+  Vector=VectorView, etc, because there is a default constructor for
+  Vector from VectorView. (See C++ Primer Plus, page 571ff.)
+
+  \param v The other vector to copy to this one.
+
+  \return This vector, by tradition.
+
+  \author Stefan Buehler
+  \date   2002-12-19
+*/
 Vector& Vector::operator=(const Vector& v)
 {
-  //  cout << "Assigning VectorView from Vector View.\n";
-
-  if ( 0 == mrange.mextent )
-    {
-      // Adjust if previously empty.
-      resize( v.mrange.mextent ); 
-    }
-  else
-    {
-      // Check that sizes are compatible:
-      assert( mrange.mextent==v.mrange.mextent );
-    }
-
+  //  resize( v.mrange.mextent ); 
+  resize( v.nelem() ); 
   copy( v.begin(), v.end(), begin() );
   return *this;
 }
 
-/** Assignment operator from Array<Numeric>. This copies the data from
-    a Array<Numeric> to this VectorView. Dimensions must agree! 
+//! Assignment operator from Array<Numeric>.
+/*!
+  This copies the data from a Array<Numeric> to this VectorView. The
+  size is adjusted automatically.
 
-    Array<Numeric> can be useful to collect things in, because there
-    is a .push_back method for it. Then, after collecting we usually
-    have to transfer the content to a Vector. With this assignment
-    operator that's easy.
+  Array<Numeric> can be useful to collect things in, because there
+  is a .push_back method for it. Then, after collecting we usually
+  have to transfer the content to a Vector. With this assignment
+  operator that's easy.
 
-    Assignment operators are not inherited, so we have to make an
-    explicit call to:
+  \param x The array to assign to this.
 
-    VectorView VectorView::operator=(const Array<Numeric>& v)
+  \return This vector, by tradition.
 
-    here. */  
+  \author Stefan Buehler
+  \date   2002-12-19
+*/
 Vector& Vector::operator=(const Array<Numeric>& x)
 {
+  resize( x.nelem() ); 
   VectorView::operator=(x);
   return *this;
 }
@@ -711,6 +714,7 @@ Vector& Vector::operator=(Numeric x)
     initialized, so it will contain random values.  */
 void Vector::resize(Index n)
 {
+  assert( 0<=n );
   if ( mrange.mextent != n )
     {
       delete mdata;
@@ -1382,39 +1386,37 @@ Matrix::Matrix(const Matrix& m) :
   copy(m.begin(),m.end(),begin());
 }
 
-/** Assignment operator from another matrix. It is important that this
-    operator exists. Otherwise the = operator seems to copy references
-    instead of content in some cases. 
+//! Assignment operator from another matrix.
+/*! 
+  While dimensions of MatrixViews can not be adjusted, dimensions of
+  matrices *can* be adjusted. Hence, the behavior of the assignment
+  operator is different.
 
-    The Behavior of this one is a bit special: If the size of the
-    target Matrix is 0 then it will be automatically resized to match
-    (this is needed to have the correct initialization for constructed
-    classes that use the assignment operator to initialize their
-    data).
+  In this case the size of the target is automatically adjusted. This
+  is important, so that structures containing matrices are copied
+  correctly. 
+  
+  This is a deviation from the old ARTS paradigm that sizes must match
+  exactly before copying!
 
-    This special behaviour should not be exploited in the user
-    code. That means, you should always resize explicitly, even if you
-    know that the target matrix should be empty. Then you are on the
-    safe side, even if the matrix was not empty.
+  Note: It is sufficient to have only this one version of the
+  assignment (Matrix = Matrix). It implicitly covers the cases
+  Matrix=MatrixView, etc, because there is a default constructor for
+  Matrix from MatrixView. (See C++ Primer Plus, page 571ff.)
+
+  \param m The other matrix to assign to this one.
+
+  \return This matrix, by tradition.
+
+  \author Stefan Buehler
+  \date   2002-12-19
 */
 Matrix& Matrix::operator=(const Matrix& m)
 {
   //  cout << "Matrix copy: m = " << m.nrows() << " " << m.ncols() << "\n";
   //  cout << "             n = " << nrows() << " " << ncols() << "\n";
 
-  // None of the extents can be zero for a valid matrix, so we just
-  // have to check one.
-  if ( 0 == mrr.mextent )
-    {
-      // Adjust if previously empty.
-      resize( m.mrr.mextent, m.mcr.mextent ); 
-    }
-  else
-    {
-      // Check that sizes are compatible:
-      assert( mrr.mextent==m.mrr.mextent );
-      assert( mcr.mextent==m.mcr.mextent );
-    }
+  resize( m.mrr.mextent, m.mcr.mextent ); 
 
   copy( m.begin(), m.end(), begin() );
   return *this;
@@ -1428,16 +1430,22 @@ Matrix& Matrix::operator=(Numeric x)
   return *this;
 }
 
-/** Assignment from a vector. This copies the data from a VectorView
-    to this MatrixView. Dimensions must agree! Resizing would destroy
-    the selection that we might have done in this MatrixView by
-    setting its range. */
+//! Assignment from a vector. 
+/*! 
+  This copies the data from a VectorView to this MatrixView.
+
+  The dimension is adjusted automatically.
+
+  \param v The vector to assign to this matrix.
+
+  \return This matrix, by tradition.
+
+  \author Stefan Buehler
+  \date   2002-12-19
+*/
 Matrix& Matrix::operator=(const ConstVectorView& v)
 {
-  // Check that sizes are compatible:
-  assert( mrr.mextent==v.nelem() );
-  assert( mcr.mextent==1         );
-  //  dummy = ConstMatrixView(v.mdata,v.mrange,Range(v.mrange.mstart,1));;
+  resize( v.nelem(), 1 ); 
   ConstMatrixView dummy(v);
   copy( dummy.begin(), dummy.end(), begin() );
   return *this;

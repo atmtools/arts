@@ -342,11 +342,16 @@ void define_agenda_data()
      ( NAME( "scalar_gas_absorption_agenda" ),
        DESCRIPTION
        (
-       "Documentation by Sreerekha\n"
-       ""
+        "Calculate scalar gas absorption.\n"
+        "\n"
+        "This agenda should calculate absorption coefficients for all gas\n"
+        "species as a function of the given atmospheric state for one point in\n"
+        "the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
+        "atmospheric state has to be speciefies by *a_pressure*,\n"
+        "*a_temperature*, and *a_vmr_list*"
         ),
-       OUTPUT(abs_scalar_gas_),
-       INPUT()));
+       OUTPUT( abs_scalar_gas_ ),
+       INPUT(  a_pressure_, a_temperature_, a_vmr_list_ )));
 
   agenda_data.push_back
     (AgRecord

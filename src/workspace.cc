@@ -124,6 +124,27 @@ void define_wsv_data()
        ),
       GROUP( Matrix_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_scalar_gas_field" ),
+      DESCRIPTION
+      (
+       "Scalar gas absorption field.\n"
+       "\n"
+       "Contains the scalar gas absorption for all species as a function of\n"
+       "f_grid, p_grid, lat_grid, and lon_grid. \n"
+       "\n"
+       "This is mainly for testing and plotting gas absorption. For RT\n"
+       "calculations, gas absorption is calculated or extracted locally,\n"
+       "therefore there is no need to store a global field. But this variable\n"
+       "is handy for easy plotting of absorption vs. pressure, for example.\n"
+       "\n"
+       "Unit:       1/m\n"
+       "\n"
+       "Dimensions: [species, f_grid, p_grid, lat_grid, lon_grid]"
+        ),
+      GROUP( Tensor5_ ))); 
+
  wsv_data.push_back
     (WsvRecord
     ( NAME( "abs_vec" ),

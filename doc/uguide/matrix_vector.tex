@@ -236,39 +236,33 @@ Note that we use 0-based indexing! Furthermore note that the operator
 \leveld{Copying Vectors:}
 \begin{verbatim}
 Vector b;
-b.resize(a.nelem());
 b = a;
 \end{verbatim}
+In this case the size of b will be adjusted to that of a
+automatically. Maybe you have noticed that there is a way to formulate the 
+example above in even shorter fashion:
+\begin{verbatim}
+Vector b = a;
+\end{verbatim}
+The result is exactly the same. Note, though, that in this case b is
+\emph{constructed} from a, not copied (see section about constructing
+Vectors above). 
 
-This one is a bit tricky. The `=' operator always copies the
+\leveld{Copying in connection with views:}
+This one is a bit tricky. Obviously, the size of views can not be
+adjusted, because a view is just some selection of the underlying
+object. The `=' operator in this case copies the
 \emph{contents}, so the sizes of the left-hand and right-hand argument
-must match. Vector internally uses assertions to make sure of
+must match. VectorView internally uses assertions to make sure of
 this. So, if you get an assertion failure one reason could be that you
-forgot to make b the correct size.
-
-The reason for this behavior is to preserve computational
-efficiency. Resizing Vectors is expensive, so it is never done
-automatically. Another reason is, that this way sub-ranges can be used
-to full advantage, e.g.:
-
+forgot to make the target the correct size. Here is an example:
 \begin{verbatim}
 b[Range(5,5,-1)] = a[Range(3,5)];  // Copy 5 elements from 
                                    // a to b, reversing 
                                    // the order and starting
                                    // with index 3 in a.
 \end{verbatim}
-
-Maybe you have noticed that there is a way to formulate the first
-example above in a much shorter fashion:
-
-\begin{verbatim}
-Vector b = a;
-\end{verbatim}
-
-The result is exactly the same. Note, though, that in this case b is
-\emph{constructed} from a, not copied (see section about constructing
-Vectors above). The Vector b is just generated in this case, therefore
-its size can be adjusted to that of a automatically.
+Great, isn't it?
 
 \leveld{Assigning a scalar:}
 \begin{verbatim}
@@ -461,12 +455,16 @@ with the established use of `[]' for element access in C and C++.
 \leveld{Copying Matrices:}
 \begin{verbatim}
 Matrix b;
-b.resize(a.nrows(),a.ncols());
 b = a;
 \end{verbatim}
 
+As in the case of Vectors, the `=' operator adjusts the size of the
+target automatically.
+
+\leveld{Copying in connection with views:}
+
 As in the case of Vectors, the `=' operator copies only the
-\emph{contents}, so the dimensions must match. An attempt to justify
+\emph{contents} for views, so the dimensions must match. An attempt to justify
 this behavior has been made above in the Section about Vector. As for
 Vector, you can use `=' with complicated expressions. Here is a more
 elaborate example:
@@ -479,13 +477,11 @@ b(Range(0,3),Range(0,4)) =
                                  // column 0-3, reversing
                                  // the order of columns.
 \end{verbatim}
+Note that in this case the dimensions must match exactly, as explained
+in the Section about Vector.
 
 If you do not understand the use of Range here, refer to Section
-\ref{sec:vector_views}. Also, please keep in mind what has been said
-there about the difference between using `=' for copying, and using it
-for \emph{constructing} something. In the first case the dimensions of
-the left operand must match the right operand, in the second case the
-left operand is created to match the right operand.
+\ref{sec:vector_views}. 
 
 \leveld{Assigning a scalar:}
 \begin{verbatim}
@@ -688,8 +684,9 @@ a(0,0,0,0,0,0,0) = 3.5;   // Assign 3.5 to this element.
 
 \leveld{Copying tensors:}
 
-Works exactly like copying matrices. Output arguments must have the
-correct size!
+Works exactly like copying matrices. Size of output argument is
+adjusted for Tensors, but must already have the correct size for
+TensorViews.
 
 \leveld{Assigning a scalar:}
 \begin{verbatim}
