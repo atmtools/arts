@@ -1,3 +1,18 @@
+2002-03-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-32
+
+	* src/poly_roots.{h,cc}: Changed interface of poly_root_solve to make
+	it arts-compliant. The solution matrix is passed by reference to the
+	function and must have the correct size.
+
+	* src/poly_roots.cc: Use the pointer to coeffs.mdata and roots.mdate
+	instead of copying all elements (if Numeric is not double we still
+	have to copy them).
+
+	* src/matpack1.h: Made poly_root_solve a friend function of
+	ConstVectorView and ConstMatrixView to access mdata.
+
 2002-03-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-31
