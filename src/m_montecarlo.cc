@@ -500,6 +500,21 @@ void ScatteringMonteCarlo (
   Vector pnd_vec(N_pt);
   time_t start_time=time(NULL);
 
+  Index strat_sampling=0;//Turns on stratified sampling
+  Numeric W_from_below;
+  Vector I_from_below_sum(stokes_dim);
+  Vector I_from_below_squaredsum(stokes_dim);
+  Index I_from_below_N=0;
+
+  Vector I_from_above_sum(stokes_dim);
+  Vector I_from_above_squaredsum(stokes_dim);
+  Index I_from_above_N=0;
+
+  Vector I_emission_sum(stokes_dim);
+  Vector I_emission_squaredsum(stokes_dim);
+  Index I_emission_N=0;
+
+
   //If necessary, open file for histogram data output
   ofstream histfile;
   if (record_histdata==1)
@@ -580,45 +595,69 @@ void ScatteringMonteCarlo (
 	      dist_to_boundary=cum_l_step[ppathcloud.np-1];
 	 
 	      //	      Iboundary=i_rte(0,joker);
-	      Sample_ppathlength (pathlength,g,K11,rng,ext_matArray);
+	      Sample_ppathlength (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
 	    }
 	  else
 	    {
-	      Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,dist_to_boundary);
+	      Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
 	    }
 	  assert(cum_l_step.nelem()==ppathcloud.np);
 	  assert(TArray.nelem()==ppathcloud.np);
 	  if (pathlength>dist_to_boundary)
 	    //Then the path has left the cloud box
 	    {
-	      if (scattering_order>0)
-		{
-		  //Get incoming//////
-		  montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
+	      assert (scattering_order>0); //scattering/emission should be 
+				           //forced in original line of sight
+	      //Get incoming//////
+	      montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
 			rte_gp_lat,rte_gp_lon,ppath,ppath_step,i_space,
 			ground_emission,ground_los,ground_refl_coeffs,
 			scat_za_grid,scat_aa_grid,ppath_step_agenda,
 			rte_agenda,i_space_agenda,ground_refl_agenda,t_field,
 			p_grid,lat_grid,lon_grid,z_field,r_geoid,
 			z_ground,cloudbox_limits,ppathcloud,atmosphere_dim,
-					f_grid,stokes_dim);
-		  
-		  if (record_ppath)
-		    {
-		      ppathRecordMC(ppath,"ppath",photon_number,scattering_order);
-		    }
-		  		  
-		  f_index=0;//For some strange reason f_index is set to -1 in RteStandard
-		  Iboundary=i_rte(0,joker);
-		  ////////////////////
-		  T=TArray[ppathcloud.np-1];
-		  mult(boundarycontri,T,Iboundary);
-		  mult(pathinc,Q,boundarycontri);
-		  pathI = pathinc;
-		  pathI*=exp(K11*dist_to_boundary);
+			f_grid,stokes_dim);
+	      
+	      if (record_ppath)
+		{
+		  ppathRecordMC(ppath,"ppath",photon_number,scattering_order);
 		}
-	      keepgoing=false;     
-	      //stop here
+	      
+	      f_index=0;//For some strange reason f_index is set to -1 in RteStandard
+	      Iboundary=i_rte(0,joker);
+	      ////////////////////
+	      T=TArray[ppathcloud.np-1];
+	      mult(boundarycontri,T,Iboundary);
+	      mult(pathinc,Q,boundarycontri);
+	      pathI = pathinc;
+	      pathI/=g;//*=exp(K11*dist_to_boundary);
+	      if(strat_sampling)
+		{
+		  if(rte_los[0]<90)
+		    {
+		      pathI*=W_from_below;//Needs to be renormalised
+		      I_from_below_sum+=pathI;
+		      I_from_below_N+=1;
+		      for(Index j=0; j<stokes_dim; j++)
+			{
+			  assert(!isnan(pathI[j]));
+			  I_from_below_squaredsum[j] += pathI[j]*pathI[j];
+			}
+		    }
+		  else
+		    {
+		      pathI*=(1-W_from_below);//Needs to be renormalised
+		      I_from_above_sum+=pathI;
+		      I_from_above_N+=1;
+		      for(Index j=0; j<stokes_dim; j++)
+			{
+			  assert(!isnan(pathI[j]));
+			  I_from_above_squaredsum[j] += pathI[j]*pathI[j];
+			}
+		    }
+		      
+		}
+	      keepgoing=false; //stop here. New photon.
 	    }
 	  else
 	    {
@@ -644,6 +683,17 @@ void ScatteringMonteCarlo (
 		  emissioncontri/=(g*(1-albedo));//yuck!
 		  mult(pathinc,Q,emissioncontri);
 		  pathI = pathinc;
+		  if(strat_sampling)
+		    {
+		      pathI*=1-albedo;
+		      I_emission_sum+=pathI;
+		      I_emission_N+=1;
+		      for(Index j=0; j<stokes_dim; j++)
+			{
+			  assert(!isnan(pathI[j]));
+			  I_emission_squaredsum[j] += pathI[j]*pathI[j];
+			}
+		    }
 		  keepgoing=false;
 		}
 	      else
@@ -683,24 +733,52 @@ void ScatteringMonteCarlo (
 	    }
  
 	}
-      Isum += pathI;
-      if (record_histdata==1){histfile << pathI << "\n";}
-      for(Index j=0; j<stokes_dim; j++)
-	{
-	  assert(!isnan(pathI[j]));
-	  Isquaredsum[j] += pathI[j]*pathI[j];
-	}
+      if (!strat_sampling)
+      {
+	Isum += pathI;
+	if (record_histdata==1){histfile << pathI << "\n";}
+	for(Index j=0; j<stokes_dim; j++)
+	  {
+	    assert(!isnan(pathI[j]));
+	    Isquaredsum[j] += pathI[j]*pathI[j];
+	  }
+      }
       if (photon_number==500)
 	{
 	  cout <<"Estimated execution time for ScatteringMonteCarlo: " << 
 	    (Numeric)(time(NULL)-start_time)*maxiter/500 <<" seconds.\n";
 	}
     }
-  I=Isum;
-  I/=maxiter;
-  for(Index j=0; j<stokes_dim; j++)	
+  if (strat_sampling)
     {
-      i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
+      Vector I_emission=I_emission_sum;
+      I_emission/=I_emission_N;
+      Vector I_from_below=I_from_below_sum;
+      I_from_below/=I_from_below_N;
+      Vector I_from_above=I_from_above_sum;
+      I_from_above/=I_from_above_N;
+      for(Index j=0; j<stokes_dim; j++)	
+	{
+	  I[j]=I_emission[j]+I_from_below[j]+I_from_above[j];
+	  i_montecarlo_error[j]=sqrt((I_from_below_squaredsum[j]/I_from_below_N-
+				      I_from_below[j]*I_from_below[j])
+				     /I_from_below_N+
+				     (I_from_above_squaredsum[j]/I_from_above_N-
+				      I_from_above[j]*I_from_above[j])
+				     /I_from_above_N+
+				     (I_emission_squaredsum[j]/I_emission_N-
+				      I_emission[j]*I_emission[j])
+				     /I_emission_N);
+	}
+    }
+  else
+    {
+      I=Isum;
+      I/=maxiter;
+      for(Index j=0; j<stokes_dim; j++)	
+	{
+	  i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
+	}
     }
   I+=IboundaryLOScontri;
   i_rte(0,joker)=I;

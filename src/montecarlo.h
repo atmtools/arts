@@ -213,9 +213,12 @@ void Sample_los_Z (
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
-			 Numeric& K,
+			 //Numeric& K11,
 			 Rng& rng,
-			 const ArrayOfMatrix& ext_matArray
+			 const ArrayOfMatrix& ext_matArray,
+			 const ArrayOfMatrix& TArray,
+			 const ConstVectorView& cum_l_step,
+			 Index method
 			 );
 
 void Sample_ppathlengthLOS (
@@ -223,7 +226,9 @@ void Sample_ppathlengthLOS (
 			 Numeric& g,
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray,
-			 const Numeric& dist_to_boundary
+			 const ArrayOfMatrix& TArray,
+			 const ConstVectorView& cum_l_step,
+			 Index method
 			 );
 
 

@@ -880,37 +880,93 @@ void Sample_los_Z (
    Randomly samples path length from an exponential distribution based on the 
    extinction matrix along the line of sight
 
-   \param   ppathlength       Output: the pathlength.
-   \param   g                 Output: the probability density of the returned pathlength.
+   \param   pathlength        Output: the pathlength.
+   \param   g                 Output: the probability density of the returned 
+                              pathlength, or if the pathlength > dist_to_boundary
+                              it gives the probability of that occurance 
    \param   rng               Rng random number generator instance
-   \param   ext_matArray      An array of extinction matrices along the line of sight.
-   
+   \param   ext_matArray      An array of extinction matrices along the line of 
+                              sight.
+   \param   TArray            An array of the evolution operator along the line 
+                              of sight
+   \param   cum_l_step        An array of cumulative distance along the line of 
+                              sight
+   \param   method            An index selecting the method used to sample 
+                              ppathlength.  method==1 uses an exponential PDF 
+                              using the extinction coefficient averaged along the
+                              line of sight.
    \author Cory Davis
    \date   2003-10-03
 */
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
-			 Numeric& K11,
+			 // Numeric& K11,
 			 Rng& rng,
-			 const ArrayOfMatrix& ext_matArray
+			 const ArrayOfMatrix& ext_matArray,
+			 const ArrayOfMatrix& TArray,
+			 const ConstVectorView& cum_l_step,
+			 Index method
 			 )
-{		
-	//Since we already have an array 
-	//of extinction matrix elements we could choose a number of ways
-	//to sample the pathlength.  To start with we'll try using the mean 
-	//extinction matrix along the line of sight.
-	Matrix K = ext_matArray[0];
-	for (Index i=1;i<ext_matArray.nelem();i++){
-	  if(ext_matArray[i](0,0)<K(0,0)){K=ext_matArray[i];}
-	  //K+=ext_matArray[i];
-	}
-	//K/=ext_matArray.nelem();//Temporary measure28/11/03
-        K11 = K(0,0);
-	//	cout << "K11 = "<< K11 <<"\n";
-	pathlength = -log(rng.draw())/K11;
+{
+  Index npoints=cum_l_step.nelem();
+  Numeric dist_to_boundary=cum_l_step[npoints-1];	
+  Numeric K11;
+  assert(ext_matArray.nelem()==npoints);
+  assert(TArray.nelem()==npoints);
 
-        g=K11*exp(-pathlength*K11);	
+  if(method==1)
+    {
+      //Since we already have an array 
+      //of extinction matrix elements we could choose a number of ways
+      //to sample the pathlength.  To start with we'll try using the mean 
+      //extinction matrix along the line of sight.
+      Matrix K = ext_matArray[0];
+      for (Index i=1;i<npoints;i++){
+	K+=ext_matArray[i];
+      }
+      K/=ext_matArray.nelem();
+      K11 = K(0,0);
+      pathlength = -log(rng.draw())/K11;
+      
+      if(pathlength>dist_to_boundary)
+	{
+	  g=exp(-dist_to_boundary*K11);//probability of leaving the cloudbox
+	}
+      else
+	{
+	  g=K11*exp(-pathlength*K11);//probability density at the chosen pathlength
+	}
+    }
+  else
+    {
+      //assert(false);
+      Numeric r = rng.draw();
+      //inefficient first effort
+      Vector T11vector(npoints);
+      for (Index i=0;i<npoints;i++)
+	{
+	  T11vector[i]=TArray[i](0,0);
+	}
+      GridPos gp;
+      Vector itw(2);
+      if(r < T11vector[npoints-1])
+	{
+	  //Do something appropriate. photon has left the building.
+	  pathlength=1e9;
+	  g=T11vector[npoints-1];
+	}
+      else
+	{
+	  gridpos(gp,T11vector,r);
+	  interpweights(itw,gp);
+	  Numeric T11;
+	  T11=interp(itw,T11vector,gp);
+	  K11=0.5*(ext_matArray[gp.idx](0,0)+ext_matArray[gp.idx+1](0,0));
+	  pathlength=cum_l_step[gp.idx]+log(T11vector[gp.idx]/T11)/K11;
+	  g=K11*T11;
+	}
+    }	
 }		
 
 //! Sample_ppathlengthLOS
@@ -933,25 +989,56 @@ void Sample_ppathlengthLOS (
 			 Numeric& g,
 			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray,
-			 const Numeric& dist_to_boundary
+			 const ArrayOfMatrix& TArray,
+			 const ConstVectorView& cum_l_step,
+			 Index method
 			 )
-{		
-	//Since we already have an array 
-	//of extinction matrix elements we could choose a number of ways
-	//to sample the pathlength.  To start with we'll try using the mean 
-	//extinction matrix along the line of sight.
-	Matrix K = ext_matArray[0];
-	for (Index i=1;i<ext_matArray.nelem();i++){
-	  K+=ext_matArray[i];
+{
+  Index npoints=cum_l_step.nelem();
+  Numeric dist_to_boundary=cum_l_step[npoints-1];	
+  Numeric K11;
+  assert(ext_matArray.nelem()==npoints);
+  assert(TArray.nelem()==npoints);
+	
+  if(method==1)
+    {
+      //Since we already have an array 
+      //of extinction matrix elements we could choose a number of ways
+      //to sample the pathlength.  To start with we'll try using the mean 
+      //extinction matrix along the line of sight.
+      Matrix K = ext_matArray[0];
+      for (Index i=1;i<ext_matArray.nelem();i++){
+	K+=ext_matArray[i];
+      }
+      K/=ext_matArray.nelem();
+      K11 = K(0,0);
+      //	cout << "K11 = "<< K11 <<"\n";
+      Numeric r=rng.draw();
+      
+      pathlength = -log(exp(-K11*dist_to_boundary)*(1-r)+r)/K11;
+      
+      g=K11*exp(-pathlength*K11)/(1-exp(-K11*dist_to_boundary));
+    }
+  else
+    {
+      Numeric r = rng.draw();
+      //inefficient first effort
+      Vector T11vector(npoints);
+      for (Index i=0;i<npoints;i++)
+	{
+	  T11vector[i]=TArray[i](0,0);
 	}
-	K/=ext_matArray.nelem();
-        Numeric K11 = K(0,0);
-	//	cout << "K11 = "<< K11 <<"\n";
-	Numeric r=rng.draw();
-
-	pathlength = -log(exp(-K11*dist_to_boundary)*(1-r)+r)/K11;
-
-        g=K11*exp(-pathlength*K11)/(1-exp(-K11*dist_to_boundary));	
+      GridPos gp;
+      Vector itw(2);
+      gridpos(gp,T11vector,1-r*(1-T11vector[npoints-1]));
+      interpweights(itw,gp);
+      Numeric T11;
+      T11=interp(itw,T11vector,gp);
+      K11=0.5*(ext_matArray[gp.idx](0,0)+ext_matArray[gp.idx+1](0,0));
+      pathlength=cum_l_step[gp.idx]+log(T11vector[gp.idx]/T11)/K11;
+      g=K11*T11/(1-T11vector[npoints-1]);
+    }
+  assert(pathlength<=dist_to_boundary);
 }		
 
 //!  TArrayCalc
