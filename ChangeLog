@@ -1,3 +1,17 @@
+2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-213
+
+	* src/species_data.cc (define_basic_species_data): Rearranged the
+	order of the isotopes for CH3CN. Now the program runs
+	again. (There is an assertion to ensure that the isotopes of each
+	species are sorted according to decreasing isotopic ratio.)
+
+	* src/partition_function_data.cc (define_partition_species_data):
+	Rearranged the order also here. Order in both files must be the
+	same! 
+
+	
 2001-09-20  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-212

@@ -742,9 +742,9 @@ void define_partition_species_data()
   //			Name		        c0		c1		c2		c3
   //			|		        |		|		|		|
   iso(it_isotope,	"211124",	Qcoeff(	3.1302E+03	,-3.3912E+01	,6.5983E-01	,-4.2371E-04) );
-  iso(it_isotope,	"211125",	Qcoeff(	-3.9263E+02	,1.7101E+01	,7.2308E-02	,-3.0381E-05) );
   iso(it_isotope,	"311124",	Qcoeff(	-1.1837E+03	,5.1359E+01	,2.1618E-01	,-9.0741E-05) );
   iso(it_isotope,	"211134",	Qcoeff(	-1.1446E+03	,4.9829E+01	,2.1032E-01	,-8.8474E-05) );
+  iso(it_isotope,	"211125",	Qcoeff(	-3.9263E+02	,1.7101E+01	,7.2308E-02	,-3.0381E-05) );
   iso(it_isotope,	"211224",	Qcoeff(	-3.4891E+02	,1.5104E+01	,6.3537E-02	,-2.6662E-05) );
 
 
