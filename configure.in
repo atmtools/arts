@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.242)
+AM_INIT_AUTOMAKE(arts,0.0.243)
 
 
 #
@@ -40,7 +40,7 @@ AC_PROG_CXXCPP
 # LF_HOST_TYPE
 
 # Allow --with-warnings flag to configure:
-LF_SET_WARNINGS
+#LF_SET_WARNINGS
 
 # Determine the name of the ranlib program
 AC_PROG_RANLIB
@@ -95,7 +95,7 @@ else
   AC_CHECK_LIB(z, gzopen,, ac_hdf=no, -lmfhdf -ldf -ljpeg )
 fi
 
-if test $ac_hdf_support = yes; then
+if test $ac_hdf = yes; then
   AC_DEFINE_UNQUOTED(HDF_SUPPORT, , Compile with HDF support)
 fi
 
@@ -221,6 +221,20 @@ AC_MSG_RESULT([$ac_debug])
 
 
 #
+# Enable/disable warnings
+#
+AC_MSG_CHECKING(whether warnings should be enabled)
+AC_ARG_ENABLE(warnings,
+[  --enable-debug   Enable warnings (default=no)],
+[case "${enableval}" in
+  yes) ac_warnings=yes ;;
+   no) ac_warnings=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-warnings) ;;
+esac],[ ac_warnings=no ])
+AC_MSG_RESULT([$ac_warnings])
+
+
+#
 # Toggle documentation
 #
 AC_MSG_CHECKING(whether documentation should be generated)
@@ -260,13 +274,18 @@ if test $ac_docgen = yes; then
 
 fi
 
+if test $ac_warnings = yes; then
+  WARNING_FLAGS="-W -Wall"
+else
+  WARNING_FLAGS=
+fi
 
 # Turn off optimization: (Leads to very long compilation times)
 if test $ac_maintainer_mode = yes; then
   # Turn on debugging
-  CFLAGS=""
-  CXXFLAGS="-ftemplate-depth-20"
-  CXXFLAGS_FIXED="$CXXFLAGS"
+  CFLAGS="$WARNING_FLAGS"
+  CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
+  CXXFLAGS_FIXED="$CXXFLAGS $WARNING_FLAGS"
 else
   CFLAGS="$CFLAGS"
   CXXFLAGS="$CXXFLAGS -ftemplate-depth-20"
