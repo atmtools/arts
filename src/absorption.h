@@ -907,16 +907,19 @@ void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines);
 
 
-/** Calculate cross sections for one tag group. All lines in the line
-    list must belong to the same species. This must be ensured by
-    lines_per_tgCreateFromLines, so it is only verified with
-    assert. Also, the input vectors p_abs, and t_abs must all
+/** Calculate line absorption cross sections for one tag group. All
+    lines in the line list must belong to the same species. This must
+    be ensured by lines_per_tgCreateFromLines, so it is only verified
+    with assert. Also, the input vectors p_abs, and t_abs must all
     have the same dimension.
 
     This is mainly a copy of abs_species which is removed now, with
     the difference that the vmrs are removed from the absorption
     coefficient calculation. (the vmr is still used for the self
     broadening)
+
+    Continua are not handled by this function, you have to call
+    xsec_continuum_tag for those.
 
     \retval xsec   Cross section of one tag group.
     \param f_mono  Frequency grid.
@@ -929,7 +932,7 @@ void write_lines_to_stream(ostream& os,
     \param ind_lsn Index to used lineshape normalization function.
 
     \author Stefan Buehler and Axel von Engeln
-    \dat 2001-01-11 */
+    \date   2001-01-11 */
 void xsec_species( MATRIX&                 xsec,
 		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,

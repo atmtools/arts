@@ -217,6 +217,12 @@ void define_partition_species_data()
   // H2O
   // Coeff:       1      1      1      1      2      2
   // Quality:    0.28   0.28   0.35   0.46   0.32   0.34
+  //
+  // There are dummy entries here for the continuum tags. Of course,
+  // continua need no partition functions, but the entries must be
+  // present, so that the consistency check between species_data and
+  // partition_function_data is successful. Thomas, you will also need
+  // to add more dummy entries here in case you add more continuum tags.
   spec(it_species, it_isotope, "H2O");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -226,6 +232,8 @@ void define_partition_species_data()
   iso(it_isotope,	"162",	Qcoeff(	-2.3916E+01	,1.3793E+00	,6.1246E-03	,-2.1530E-06) );
   iso(it_isotope,	"182",	Qcoeff(	-5.1056E+00	,2.4408E-01	,1.0230E-03	,-4.2596E-07) );
   iso(it_isotope,	"262",	Qcoeff(	-3.6689E+01	,1.7119E+00	,7.2123E-03	,-3.0200E-06) );
+  iso(it_isotope,	"HITRAN96Self",	   Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"HITRAN96Foreign", Qcoeff( 0	,0		,0		,0          ) );
 
 
 

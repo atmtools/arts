@@ -159,6 +159,18 @@ void define_basic_species_data()
 
   // H2O
   // Isotopic Ratio: 1 1 1 1 3 3
+  //
+  // Some tags relate to empirical continuum correction terms. Thomas,
+  // this would be the place to add additional continuum tags, should
+  // this be necessary. Continuum tags must come after the other tags
+  // and have -1 for all data entries, like in my example below. Not
+  // even the isotipic ratio is used for continuum tags.
+  //
+  // The isotopic ratio of -1 is used to identify continuum tags in
+  // the absorption routines!
+  // 
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently! 
   species_data.push_back
     ( SpeciesRecord
       ( NAME("H2O"),
@@ -171,7 +183,9 @@ void define_basic_species_data()
 	 REC( "171"	,0.00037200	,19.	,13	,13	,TAGS(19003) ),
 	 REC( "162"	,0.00031069	,19.	,14	,14	,TAGS(19002) ),
 	 REC( "182"	,6.1070746E-07	,21.	,-1	,-1	,TAGS(21001) ),
-	 REC( "262"	,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) )
+	 REC( "262"	,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) ),
+	 REC( "HITRAN96Self"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "HITRAN96Foreign"	,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
 
   // CO2 

@@ -1170,7 +1170,7 @@ void define_md_data()
 		    "calculates both the total absorption and the\n"
 		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
+	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
 		    lineshape_, lineshape_norm_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1195,7 +1195,7 @@ void define_md_data()
       ( NAME("xsec_per_tgCal"),
 	DESCRIPTION("Calculate cross sections per tag group."),
 	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT( 	    f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
+	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
 		    lineshape_, lineshape_norm_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1562,7 +1562,7 @@ void define_md_data()
           "Calculates temperature 1D weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
+	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
 	       trans_, e_ground_, k_grid_ ),
 	GOUTPUT(),
@@ -1576,7 +1576,7 @@ void define_md_data()
   	DESCRIPTION(
           "As kTempNoHydro but does not need any ground variables"),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
+	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
 	       trans_, k_grid_ ),
 	GOUTPUT(),

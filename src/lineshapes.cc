@@ -32,6 +32,39 @@
 #include "absorption.h"
 
 
+/*! The dummy line shape. This lineshape does nothing. It only exists,
+    because formally you have to specify a lineshape also for
+    continuum tags. It has to have the same arguments as all the other
+    lineshapes, though...
+
+    \retval ls            The shape function.
+    \retval X             Auxillary parameter, only used in Voigt fct.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    \throw  runtime_error This exception is always thrown when the
+                          function is called.  
+
+    \date   2001-01-16 
+    \author Stefan Buehler 
+*/
+void lineshape_no_shape(  VECTOR&       ls,
+			  VECTOR&       X,
+			  Numeric	     f0,
+			  Numeric       gamma,
+			  Numeric       sigma,
+			  const VECTOR& f_mono,
+			  const INDEX  nf)
+{
+  // This function should never be called so throw an error here: 
+  throw runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
+		      "to use it like a real lineshape.");
+}
+
+
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
     \retval ls            The shape function.
@@ -1803,6 +1836,14 @@ void define_lineshape_data()
 {
   // Initialize to empty, just in case.
   resize(lineshape_data,0);
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("no_shape",
+      "This lineshape does nothing. It only exists, because formally\n"
+      "you have to specify a lineshape also for continuum tags.", 
+      0,
+      lineshape_no_shape));
 
   lineshape_data.push_back
     (LineshapeRecord

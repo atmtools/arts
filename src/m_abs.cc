@@ -26,6 +26,7 @@
 #include "md.h"
 #include "math_funcs.h"
 #include "atm_funcs.h"
+#include "continua.h"
 
 void linesReadFromHitran(// WS Output:
                          ARRAYofLineRecord& lines,
@@ -881,6 +882,8 @@ void z_absHydrostatic(
 
    \retval   abs            absorption coefficients
    \retval   abs_per_tg     absorption coefficients per tag group
+
+   \param    tag_groups     the list of tag groups 
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
@@ -897,6 +900,7 @@ void absCalc(// WS Output:
              MATRIX&        		     abs,
              ARRAYofMATRIX& 		     abs_per_tg,
              // WS Input:		  
+	     const TagGroups&                tag_groups,
              const VECTOR&  		     f_mono,
              const VECTOR&  		     p_abs,
              const VECTOR&  		     t_abs,
@@ -911,15 +915,16 @@ void absCalc(// WS Output:
   // allocate local variable to hold the cross sections per tag group
   ARRAYofMATRIX xsec_per_tg;
 
-  xsec_per_tgCal(xsec_per_tg,
-		 f_mono,
-		 p_abs,
-		 t_abs,
-		 h2o_abs,
-		 vmrs,
-		 lines_per_tg,
-		 lineshape,
-		 lineshape_norm);
+  xsec_per_tgCal( xsec_per_tg,
+		  tag_groups,
+		  f_mono,
+		  p_abs,
+		  t_abs,
+		  h2o_abs,
+		  vmrs,
+		  lines_per_tg,
+		  lineshape,
+		  lineshape_norm );
 
 
   absCalcFromXsec(abs,
@@ -1013,6 +1018,7 @@ void absCalcFromXsec(// WS Output:
    Calculates the cross section for each tag group.
 
    \retval   xsec_per_tg    cross section per tag group
+   \param    tag_groups     the list of tag groups
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
@@ -1028,6 +1034,7 @@ void absCalcFromXsec(// WS Output:
 void xsec_per_tgCal(// WS Output:
 		    ARRAYofMATRIX& 		     xsec_per_tg,
 		    // WS Input:		  
+		    const TagGroups&                 tag_groups,
 		    const VECTOR&  		     f_mono,
 		    const VECTOR&  		     p_abs,
 		    const VECTOR&  		     t_abs,
@@ -1083,8 +1090,13 @@ void xsec_per_tgCal(// WS Output:
   // Call xsec_species for each tag group.
   for ( size_t i=0; i<lines_per_tg.size(); ++i )
     {
+      extern const ARRAY<SpeciesRecord> species_data; 
+
       out2 << "  Tag group " << i << '\n';
       
+      // 1. Handle line absorption
+      // -------------------------
+
       // Make this element of abs_per_tg the right size:
       resize( xsec_per_tg[i], f_mono.size(), p_abs.size() );
       setto( xsec_per_tg[i], 0 );
@@ -1098,6 +1110,50 @@ void xsec_per_tgCal(// WS Output:
 		    lines_per_tg[i],
 		    lineshape[i],
 		    lineshape_norm[i]);
+
+      // 2. Handle continuum absorption
+      // ------------------------------
+
+	// Go through the tags in the current tag group to see if they
+	// are continuum tags:  
+	for ( size_t s=0; s<tag_groups[i].size(); ++s )
+	  {
+	    // The if clause below checks whether the abundance of this tag
+	    // is negative. (Negative abundance marks continuum tags.)
+	    // It does the following:
+	    //
+	    // 1. species_data contains the lookup table of species
+	    // 	  specific data. We need the right entry in this
+	    // 	  table. The index of this is obtained by calling member function
+	    // 	  Species() on the tag. Thus we have:
+	    // 	  species_data[tag_groups[i][s].Species()].
+	    //
+	    // 2. Member function Isotope() on the above biest gives
+	    //    us the array of isotope specific data. This we have
+	    //    to subscribe with the right isotope index, which we
+	    //    get by calling member function Isotope on the
+	    //    tag. Thus we have:
+	    //    Isotope()[tag_groups[i][s].Isotope()]
+	    //
+	    // 3. Finally, from the isotope data we need to get the mixing
+	    //    ratio by calling the member function Abundance().
+	    if ( 0 >
+		 species_data[tag_groups[i][s].Species()].Isotope()[tag_groups[i][s].Isotope()].Abundance() )
+	      {
+		// We have identified a continuum tag. Add the
+		// continuum for this tag. The parameters in this call
+		// should be clear. The vmr is in vmrs[i]. The other
+		// vmr variable, `h2o_abs' contains the real H2O vmr,
+		// which is needed for the oxygen continuum.
+		xsec_continuum_tag( xsec_per_tg[i],
+				    tag_groups[i][s],
+				    f_mono,
+				    p_abs,
+				    t_abs,
+				    h2o_abs,
+				    vmrs[i] );
+	      }
+	  }
     }
 }
 

@@ -40,6 +40,7 @@ make_array.h \
 math_funcs.h \
 atm_funcs.h \
 absorption.h \
+continua.h \
 los.h \
 hmatrix.h \
 constants.cc \
@@ -69,6 +70,7 @@ m_io.cc \
 m_los.cc \
 m_wfs.cc \
 absorption.cc \
+continua.cc \
 wsv_pointers.cc \
 species_data.cc \
 partition_function_data.cc \

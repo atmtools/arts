@@ -1,3 +1,24 @@
+2001-01-17  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-105
+
+	* Put in continuum stubs. Also did the implementation for a self
+	continuum, although the coefficients (C and x) are at the moment
+	just dummy numbers. Thomas should put in the correct ones that
+	result from his fits to lab data. Also, the function for the
+	foreign continua needs to be added, which should be simple
+	following my self continuum example. Interesting places for this
+	work are marked with `FIXME' and/or `Thomas' in comments.
+
+	The continuum at the moment is bullshit, without the correct
+	coefficients and the foreign part. Probably many orders of
+	magnitude wrong.
+
+	* continua.h: Header file for continua.cc.
+
+	* continua.cc: Implementation of continuum functions.
+	
+
 2001-01-15  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-104

@@ -470,7 +470,7 @@ void ybatchAbsAndRte(
         const VECTOR&                     e_ground,
         const Numeric&                    t_ground,
         const string&                     batchname,
-        const TagGroups&                  tags,
+        const TagGroups&                  tag_groups,
       // Control Parameters:
         const int&                        ncalc,
         const int&                        do_t,
@@ -486,11 +486,11 @@ void ybatchAbsAndRte(
 {
   const size_t   np = p_abs.size();         // Number of pressure levels
   const size_t   ntags = do_tags.size();    // Number of tags to do here 
-  ARRAYofsizet   tagindex;                  // Index in tags for do_tags 
+  ARRAYofsizet   tagindex;                  // Index in tag_groups for do_tags 
    
   // Check if do_tags can be found in tag_groups and store indeces
   if ( ntags > 0 )
-    get_tagindex_for_strings( tagindex, tags, do_tags );
+    get_tagindex_for_strings( tagindex, tag_groups, do_tags );
 
   out2 << "  Reading data from files.\n";
 
@@ -533,7 +533,7 @@ void ybatchAbsAndRte(
     copy( vmrs[itag], vs[itag] );
 
     // Determine the name of the molecule for itag
-    string molname = species_data[tags[tagindex[itag]][0].Species()].Name();
+    string molname = species_data[tag_groups[tagindex[itag]][0].Species()].Name();
     read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, 
                                                                       ncalc );
   }
@@ -585,7 +585,7 @@ void ybatchAbsAndRte(
       }
     // Do the calculations
     if ( (i==0) || do_t || ntags || do_f )
-      absCalc( abs, abs_per_tag, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape, 
+      absCalc( abs, abs_per_tag, tag_groups, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape, 
 	       lineshape_norm);
     if ( (i==0) || do_z || do_za )   
       losCalc( los, z_plat, za, l_step, p_abs, z, refr, l_step_refr, 

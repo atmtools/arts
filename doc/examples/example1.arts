@@ -8,8 +8,8 @@
 # create the workspace variable `lines':
 linesReadFromHitran {
    filename = "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
-   fmin     = 183e9
-   fmax     = 184e9
+   fmin     = 1e9
+   fmax     = 200e9
 }
 
 # Optionally write the line list to a file:
@@ -20,11 +20,15 @@ linesWriteToFile{""}
 # coefficients will be calculated separately for each tag group. This
 # is necessary in order to calculate weighting functions later on.
 # The lines are assigned to the tag groups in the order as the groups
-# are specified here. That means the last group H2O gets assigned all
-# the H2O lines that do not fit in any other group.
+# are specified here. That means if you do ["H2O-181","H2O"], the last
+# group H2O gets assigned all the H2O lines that do not fit in the
+# first group.
+#
+# The continuum tags are special, since continua are not added by
+# default. Thus, just selecting "H2O" will give you no continuum. 
 tag_groupsDefine{
-      [ "H2O-181, H2O-171",
-        "H2O",
+      [ "H2O-161, H2O-181, H2O-171, H2O-162, H2O-182, H2O-262",
+        "H2O-HITRAN96Self, H2O-HITRAN96Foreign",
         "O3"] 
 }
 
@@ -75,8 +79,8 @@ ArrayOfVectorWriteAscii (vmrs)  {""}
 
 # Create the frequency grid `f_mono':
 VectorNLinSpace(f_mono){
-        start = 180e9
-        stop  = 185e9
+        start = 1e9
+        stop  = 200e9
         n     = 200    
 }
 
@@ -90,10 +94,10 @@ VectorWriteAscii (f_mono) {""}
 #               }
 
 # or set it separately for each tag
-lineshape_per_abs_tagDefine{
-                            shape = ["Voigt_Kuntz6","Voigt_Kuntz6","Voigt_Kuntz6"]
-                            normalizationfactor = ["linear","quadratic","linear"]
-                           }
+lineshape_per_tgDefine{
+	shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6"]
+	normalizationfactor = ["quadratic","no_norm","linear"]
+}
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):

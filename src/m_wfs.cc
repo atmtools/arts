@@ -1430,6 +1430,8 @@ void k_contabs (
    \retval   k                 weighting function matrix
    \retval   k_names           identity name(s)
    \retval   k_aux             additional data
+
+   \param    tag_groups        The list of tag groups
    \param    los               line of sight structure
    \param    absloswfs         absorption LOS Wfs
    \param    f_mono            frequency absorption grid
@@ -1451,6 +1453,7 @@ void k_temp_nohydro (
 		           MATRIX&          k,
 		           ARRAYofstring&   k_names,
 		           MATRIX&          k_aux,
+		     const TagGroups&       tag_groups,
 		     const LOS&             los,           
 		     const ARRAYofMATRIX&   absloswfs,
 		     const VECTOR&          f_mono,
@@ -1522,7 +1525,7 @@ void k_temp_nohydro (
   {
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
-    absCalc( abs1k, abs_dummy, f_mono, p_abs, dummy, h2o_abs, vmrs, 
+    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, h2o_abs, vmrs, 
              lines_per_tg, lineshape, lineshape_norm );
   }
   resize(abs_dummy,0);
@@ -1780,6 +1783,7 @@ void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
                     MATRIX&          k_aux,
+                    const TagGroups&       tag_groups,
 		    const LOS&             los,           
 		    const ARRAYofMATRIX&   absloswfs,
 		    const VECTOR&          f_mono,
@@ -1795,7 +1799,7 @@ void kTempNoHydro (
 		    const VECTOR&          e_ground,
 		    const VECTOR&          k_grid )
 {
-  k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
+  k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs,
                   trans, e_ground, k_grid );
 }
@@ -1806,6 +1810,7 @@ void kTempNoHydroNoGround (
 			         MATRIX&          k,
 			         ARRAYofstring&   k_names,
 			         MATRIX&          k_aux,
+			   const TagGroups&       tag_groups,
 			   const LOS&             los,           
 			   const ARRAYofMATRIX&   absloswfs,
 			   const VECTOR&          f_mono,
@@ -1820,7 +1825,7 @@ void kTempNoHydroNoGround (
 			   const ARRAYofMATRIX&   trans,
 			   const VECTOR&          k_grid )
 {
-  k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
+  k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs,
                   trans, VECTOR(0), k_grid );
 }
