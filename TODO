@@ -120,3 +120,6 @@ PE  2000-11-02: Change some data types as follows:
                 look into this and change name according to the rule above
                 and fix IO functions (only binary). Are all those data types
                 really needed? 
+
+SAB 2000-11-08: Send information about ARTS to Gerald Nedolua for
+                destribution to NDSC.

@@ -21,7 +21,7 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /**
-   \file  file.cc
+   \file  file.h
 
    This file contains basic functions to handle ASCII and binary (HDF)
    data files.
