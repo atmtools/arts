@@ -328,6 +328,38 @@ void define_agenda_data()
        OUTPUT( i_rte_ ),
        INPUT(  ppath_ )));
 
+agenda_data.push_back
+    (AgRecord
+     ( NAME( "scat_mono_agenda" ),
+       DESCRIPTION
+       (
+       "Performs the monochromatic scattering calculation."
+       "\n"
+       "Normally this agenda consists of tree methods: \n"
+       "   1. i_fieldSetClearsky or i_fieldSetConst \n"
+       "   2. i_fieldIterate (Other solution methods might be implemented\n"
+       "      later.) \n"
+       "   3. scat_i_Put \n"
+       "\n"
+       "Output and Input:\n"
+       "   scat_i_p, scat_i_lat, scat_i_lon:  Intensity field on the \n"
+       "                                      cloudbox boundary. \n"
+       "\n"
+       "Input:\n"
+       "   f_grid:       Frequency grid. \n"
+       "   scat_f_index: Frequency index for the ongoing scattering \n"
+       "                 calculation. \n"
+       ""
+	),
+       OUTPUT(scat_i_p_,
+              scat_i_lat_,
+              scat_i_lon_),
+       INPUT(scat_i_p_,
+             scat_i_lat_,
+             scat_i_lon_,
+             f_grid_,
+             scat_f_index_)));
+
  agenda_data.push_back
     (AgRecord
      ( NAME( "scat_rte_agenda" ),

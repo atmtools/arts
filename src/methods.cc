@@ -1976,7 +1976,7 @@ md_data_raw.push_back
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "scat_mainCalc" ),
+      ( NAME( "ScatteringMain" ),
 	DESCRIPTION
         (
 	 "This method gives out the interface variables *scat_i_p*, \n"
@@ -1993,10 +1993,11 @@ md_data_raw.push_back
          ),
 	OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, scat_f_index_, a_gp_p_,
 	       a_gp_lat_, a_gp_lon_, ppath_, ppath_step_, i_rte_ ),
-	INPUT(  cloudbox_on_, cloudbox_limits_, atmosphere_dim_, stokes_dim_, 
-		scat_za_grid_, scat_aa_grid_, f_grid_,	ppath_step_agenda_,
-		rte_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,r_geoid_,
-		z_ground_),
+	INPUT( scat_mono_agenda_, cloudbox_on_, cloudbox_limits_, 
+               atmosphere_dim_, stokes_dim_, 
+	       scat_za_grid_, scat_aa_grid_, f_grid_,	ppath_step_agenda_,
+	       rte_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,r_geoid_,
+	       z_ground_),
 	      
 	GOUTPUT(),
 	GINPUT(),

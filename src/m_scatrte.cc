@@ -1432,7 +1432,7 @@ scat_fieldCalc(//WS Output:
 }
 
 //! This method gives the variables which act as interface between clear sky
-// and cloudbox
+// and cloudbox.
 
 /*! 
   
@@ -1466,7 +1466,7 @@ propagation path
 \author Sreerekha Ravi
 \date 2002-10-09
 */
-void scat_mainCalc(//WS Output 
+void ScatteringMain(//WS Output 
 		   Tensor7& scat_i_p,
 		   Tensor7& scat_i_lat,
 		   Tensor7& scat_i_lon,
@@ -1478,6 +1478,7 @@ void scat_mainCalc(//WS Output
 		   Ppath& ppath_step,
 		   Matrix& i_rte,
 		   //WS  Input :
+                   const Agenda& scat_mono_agenda,
 		   const Index& cloudbox_on, 
 		   const ArrayOfIndex& cloudbox_limits,
 		   const Index& atmosphere_dim,
@@ -1523,8 +1524,9 @@ void scat_mainCalc(//WS Output
       a_gp_lon.fd[0] = 0;
       a_gp_lon.fd[1] = 1;
 
-      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step, i_rte, 
-			  a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, cloudbox_limits,
+      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
+                          i_rte, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, 
+                          cloudbox_limits,
 			  atmosphere_dim, stokes_dim, scat_za_grid, scat_aa_grid, 
 			  f_grid, ppath_step_agenda, rte_agenda, p_grid,lat_grid, lon_grid,
 			  z_field, r_geoid, z_ground);
@@ -1539,22 +1541,20 @@ void scat_mainCalc(//WS Output
       a_gp_lon.fd[0] = 0;
       a_gp_lon.fd[1] = 1;
 
-      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step, i_rte, 
-			  a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, cloudbox_limits,
-			  atmosphere_dim, stokes_dim, scat_za_grid, scat_aa_grid, 
-			  f_grid, ppath_step_agenda, rte_agenda, p_grid,lat_grid, lon_grid,
-			  z_field, r_geoid, z_ground);
+      CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
+                          i_rte, a_gp_p, a_gp_lat, a_gp_lon, cloudbox_on, 
+                          cloudbox_limits, atmosphere_dim, stokes_dim,
+                          scat_za_grid, scat_aa_grid, f_grid, 
+                          ppath_step_agenda, rte_agenda, p_grid,lat_grid, 
+                          lon_grid, z_field, r_geoid, z_ground);
     }
+
   for (Index scat_f_index = 0; scat_f_index < Nf; ++ scat_f_index)
     {
-      /*We have to call the main functions here
-	i_fieldSetClearSky
-	i_fieldIterate
-	scat_iPut
-      */
-	
-      
+      scat_mono_agenda.execute(); 
     }
+
+
   if(atmosphere_dim == 3)
     {
       throw runtime_error( "This method is not implemented for atmosphere_dim  = 3" );

@@ -1655,6 +1655,14 @@ void define_wsv_data()
        ),
      GROUP( Index_ ))); 
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_mono_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1672,6 +1680,7 @@ void define_wsv_data()
        "\n"
        ),
      GROUP( Index_ ))); 
+ 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_rte_agenda" ),
