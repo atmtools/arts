@@ -586,8 +586,7 @@ i_fieldUpdate1D(// WS Output:
                     }
                 }
 
-              // Length of the path between the two layers.
-              Numeric l_step = ppath_step.l_step[0];
+              
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
@@ -760,6 +759,8 @@ i_fieldUpdate1D(// WS Output:
               for( Index k= ppath_step.np-1; k > 0; k--)
                 {
 
+                  // Length of the path between the two layers.
+                  Numeric l_step = ppath_step.l_step[k-1];
                   // Average temperature
                   a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
                   //
@@ -1181,9 +1182,7 @@ void i_fieldUpdate3D(// WS Output:
                                               lat_index - cloudbox_limits[2]&&
                                               lon_index - cloudbox_limits[4]);
               
-                    // Length of the path between the two layers.
-                    Numeric l_step = ppath_step.l_step[0];
-              
+                    
                     // Check if the agenda has returned ppath.step with 
                     // reasonable values. 
                     // PpathPrint( ppath_step, "ppath");
@@ -1432,6 +1431,9 @@ void i_fieldUpdate3D(// WS Output:
                         // and propagating to the considered point.
                         for( Index k= ppath_step.np-1; k > 0; k--)
                           {
+                            // Length of the path between the two layers.
+                            Numeric l_step = ppath_step.l_step[k-1];
+                    
                             
                             // Average temperature
                             a_temperature =   0.5 * (t_int[k] + t_int[k-1]);
@@ -2226,8 +2228,8 @@ scat_fieldCalc(//WS Output:
   }// end p loop
   // end atmosphere_dim = 3
   
-  xml_write_to_file("i_field.xml", i_field);
-  xml_write_to_file("scat_field.xml", scat_field);
+  //xml_write_to_file("i_field.xml", i_field);
+  //xml_write_to_file("scat_field.xml", scat_field);
   out2 <<"Finished scattered field.\n"; 
  
 }
