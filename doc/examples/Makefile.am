@@ -7,59 +7,27 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
+SUBDIRS = data
+
 artsdocdir = $(pkgdatadir)/doc
 
 arts = $(top_srcdir)/src/arts
 
 examplesdocdir = $(artsdocdir)/examples
 
-arts_examples_in = \
-	absorption_example.arts.in \
-	absorption_lookup_example.arts.in \
-	amsu_example.arts.in \
-	batch_example.arts.in \
-	cloud_rad_field1D_example.arts.in \
-	clouds_example.arts.in \
-	cont_example.arts.in \
-	cont_simple_example.arts.in \
-	fullmodels_example.arts.in \
-	i_field_example.arts.in \
-	old_absorption_example.arts.in \
-	radiosonde_example.arts.in \
-	rt_example.arts.in \
-	scatproperties_example.arts.in
-
 arts_examples = \
 	absorption_example.arts \
 	absorption_lookup_example.arts \
-	amsu_example.arts \
-	batch_example.arts \
-	cloud_rad_field1D_example.arts \
-	clouds_example.arts \
-	cont_example.arts \
-	cont_simple_example.arts \
-	fullmodels_example.arts \
-	i_field_example.arts \
-	old_absorption_example.arts \
-	radiosonde_example.arts \
-	rt_example.arts \
-	scatproperties_example.arts
+	cont_simple_example.arts
 
 examplesdoc_DATA = $(arts_examples)
 
-EXTRA_DIST   = $(arts_examples_in) batch_input* f_mono.aa radiosondes.aa
+EXTRA_DIST   = 
 
-CLEANFILES = *_example*.aa *_example*.ab *.rep *.out
+CLEANFILES = *.xml *_example*.aa *_example*.ab *.rep *.out
 
 check:	$(arts) $(arts_examples)
 	$(arts) absorption_example.arts
-	$(arts) amsu_example.arts
-	$(arts) batch_example.arts
-	$(arts) clouds_example.arts
-	$(arts) cont_example.arts
+	$(arts) absorption_lookup_example.arts
 	$(arts) cont_simple_example.arts
-	$(arts) fullmodels_example.arts
-	$(arts) radiosonde_example.arts
-	$(arts) rt_example.arts
-	$(arts) cloud_rad_field1D_example.arts	
 

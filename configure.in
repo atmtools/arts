@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.857)
+AM_INIT_AUTOMAKE(arts,1.1.858)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -283,20 +283,7 @@ Makefile
             doc/uguide/Figs/scattering/Makefile 
             doc/uguide/Figs/sensor/Makefile 
       doc/examples/Makefile 
-          doc/examples/absorption_example.arts
-          doc/examples/absorption_lookup_example.arts
-          doc/examples/amsu_example.arts
-          doc/examples/batch_example.arts
-          doc/examples/cloud_rad_field1D_example.arts
-          doc/examples/clouds_example.arts
-          doc/examples/cont_example.arts
-          doc/examples/cont_simple_example.arts
-          doc/examples/fullmodels_example.arts
-          doc/examples/i_field_example.arts
-          doc/examples/old_absorption_example.arts
-          doc/examples/radiosonde_example.arts
-          doc/examples/rt_example.arts
-          doc/examples/scatproperties_example.arts
+            doc/examples/data/Makefile 
    m4/Makefile 
    src/Makefile
 ])

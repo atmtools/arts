@@ -43,7 +43,7 @@ StringSet(abs_model){"CKDMT100"}
 VectorSetExplicitly(abs_user_parameters){[]}
 
 # Call the MPM02_H2O model to calculte H2O absorption:
-abs_CKDMT_H2O_AIR{}
+absCKDMT_H2O_AIR{}
 
 # Write result to file:
 WriteXML(abs){""}

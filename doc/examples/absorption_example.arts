@@ -7,6 +7,8 @@
 
 Main {
 
+output_file_formatSetAscii{}
+
 NumericSet(ls_f0){183e9}
 
 NumericSet(ls_gamma){1e9}
@@ -21,7 +23,7 @@ VectorNLinSpace(f_grid){
 
 WriteXML(f_grid){""}
 
-CloneSize(ls,f_grid){}
+VectorSetTakingLengthFromVector(ls,f_grid){0}
 
 AgendaSet(els_agenda){
   Ignore(ls_sigma){}

@@ -272,6 +272,8 @@ test_geomag_calc_SOURCES = \
 	complex.cc \
 	constants.cc \
 	exceptions.h \
+	fastem.cc \
+	fastem.h \
 	file.cc \
 	file.h \
 	getopt.c \

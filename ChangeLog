@@ -1,3 +1,83 @@
+2004-08-12  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-858
+
+	* src/Makefile.am: Added fastem.{cc.h} to test_geomag_calc_SOURCES.
+
+	* Removal/fixing of examples files: 3 examples are left. Whoever feels
+	responsible for the removed examples could maybe try to readd a
+	working version. Input files for the examples should go into the data
+	directory. Only small input files are desired. The examples are not
+	allowed to depend on arts-xml-data, all necessary input has to be
+	provided.
+	Maybe we should think about an arts-examples cvs package which might
+	contain examples more close to the real world.
+
+	* doc/examples/Makefile.am:
+
+	Added data directory to SUBDIRS.
+
+	Removed arts_examples_in variable.
+
+	Removed arts_examples_in from EXTRA_DIST.
+
+	Removed amsu_example.arts, clouds_example.arts, cont_example.arts,
+	cloud_rad_field1D_example.arts, fullmodels_example.arts,
+	i_field_example.arts, old_absorption_example.arts,
+	radiosonde_example.arts, rt_example.arts, scatproperties_example.arts.
+
+	Removed f_mono.aa, batch_input* and radiosondes.aa.
+
+	* doc/examples/.cvsignore: Don't ignore .arts files anymore.
+
+	* doc/examples/*.arts.in: Removed.
+
+	* doc/examples/absorption_example.arts: Added.
+
+	Use VectorSetTakingLengthFromVector instead of CloneSize for ls.
+
+	Set output_file_format to ascii.
+
+	* doc/examples/absorption_lookup_example.arts: Added.
+
+	Set output_file_format to ascii.
+
+	* doc/examples/cont_simple_example.arts: Added.
+
+	Fixed method name absCKDMT_H2O_AIR.
+
+	* doc/examples/{amsu_example.arts,clouds_example.arts,
+	cont_example.arts,fullmodels_example.arts,old_absorption_example.arts,
+	radiosonde_example.arts,rt_example.arts,batch_example.arts}:
+
+	Not added.
+
+	Missing tgsDefine and/or depends on arts-data.
+
+	* doc/examples/{batch_input*.ab,f_mono.aa,clearsky.xml,radiosondes.aa}:
+
+	Removed.
+
+	* doc/examples/cloud_rad_field1D_example.arts: Not added.
+
+	Depends on arts-xml-data and lookup table with hardcoded path.
+
+	* doc/examples/{i_field_example.arts,scatproperties_example.arts}:
+
+	Not added. CE: "Makes no sense. Outdated." :-(
+
+	* doc/examples/data:
+
+	Added. Directory for input files needed by examples.
+
+	* doc/examples/data/{Makefile.am,.cvsignore}: Added.
+
+	* configure.in:
+
+	Added doc/examples/data/Makefile.
+
+	Removed doc/examples/*.arts.
+
 2004-08-12  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-857
