@@ -1208,15 +1208,20 @@ md_data_raw.push_back
          "brightness temperature, the radiance needs to be given in RF.\n"
          "\n"
          "Note that the number of elements in both *sensor_response_f* and\n"
-         "*y* will be increased, up to the doubled size. This depends on how\n"
-         "the frequencies in RF is mapped down to IF in the mixer."
+         "*y* will potentially increase, since the IF is mapped to both the\n"
+         "lower and upper sidebands.\n"
+         "\n"
+         "Keyword: \n"
+         "   output : Which sideband(s) to output, \"lower\", \"upper\" or\n"
+         "            \"double\""
          ),
          OUTPUT( sensor_response_f_, y_ ),
-         INPUT( lo_ ),
+         INPUT( sensor_pol_, mblock_za_grid_, mblock_aa_grid_, lo_,
+                atmosphere_dim_ ),
          GOUTPUT( ),
          GINPUT( ),
-         KEYWORDS( ),
-         TYPES( )));
+         KEYWORDS( "output" ),
+         TYPES( String_t )));
 
   md_data_raw.push_back
     ( MdRecord

@@ -1,3 +1,12 @@
+2003-12-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-736
+
+	* src/methods.cc: Some cosmetics for the ConvertIFToRF help text and
+	added a few more input variables.
+
+	* src/m_sensor.cc: Finalised ConvertIFToRF. It's tested and it works.
+
 2003-12-02  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-735

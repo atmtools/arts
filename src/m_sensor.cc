@@ -152,19 +152,95 @@ void ConvertIFToRF(
                    Vector&          sensor_response_f,
                    Vector&          y,
                    // WS Input:
-                   const Numeric&   lo )
+                   const Matrix&    sensor_pol,
+                   const Vector&    mblock_za_grid,
+                   const Vector&    mblock_aa_grid,
+                   const Numeric&   lo,
+                   const Index&     atmosphere_dim,
+                   // Control Parameters:
+                   const String&    output )
 {
   // Check that frequencies are not too low. This might be a floating limit.
   // For this we use the variable f_lim, given in Hz.
-  Index f_lim = 20e9;
+  Numeric f_lim = 20e9;
   if( min(sensor_response_f) > f_lim )
     throw runtime_error("The frequencies seems to already be given in RF.");
 
-  // FIXME: Check that *sensor_response_f* and *y* has consistence sizes
+  // Check that *y* has the right size
+  Index n_az = mblock_za_grid.nelem();
+  Index n_pol = sensor_pol.nrows();
+  Index n_freq = sensor_response_f.nelem();
+  if( atmosphere_dim!=1 )
+    n_az *= mblock_aa_grid.nelem();
+  if( y.nelem()!=n_freq*n_pol*n_az )
+    throw runtime_error(
+      "The measurement vector *y* does not have the correct size.");
 
-  // Create output vector
-  Vector rf_out( sensor_response_f.nelem()*2 );
+  // Check what output option is wanted
+  if( output=="lower" ) {
+    // Only lower sideband will be output, the sizes of the output vectors
+    // will not increase, only the values are changed.
+    // First we reverse *sensor_response_f* and subtract it from *lo*
+    Vector f_out =
+      sensor_response_f[Range(sensor_response_f.nelem()-1, joker, -1)];
+    f_out *= -1;
+    f_out += lo;
 
+    // The measurement vector *y* then also has to be reversed for each
+    // zenith and azimuth angle, and polarisation to match the frequency
+    // vector.
+    Vector y_out( y.nelem() );
+    for( Index az=0; az<n_az; az++ ) {
+      for( Index p=0; p<n_pol; p++ ) {
+        y_out[Range(az*n_pol*n_freq+p,n_freq,n_pol)] =
+          y[Range((az+1)*n_pol*n_freq-(n_pol-p),n_freq,-n_pol)];
+      }
+    }
+
+    // Copy temporary vectors to output vectors
+    sensor_response_f = f_out;
+    y = y_out;
+
+  } else if( output=="upper") {
+    // Only upper sideband will be output, as above the sizes will not change
+    // This time we only need to add *lo* to *sensor_response_f*
+    // The measurement vector *y* is untouched.
+    sensor_response_f += lo;
+
+  } else if( output=="double") {
+    // Both upper and lower sideband will be output. The size of both the
+    // frequency and measurement vectors will be doubled.
+    // First copy the content of *sensor_response_f* twice to f_out, first
+    // reversed and then in normal order
+    Vector f_out( n_freq*2 );
+    f_out[Range(0,n_freq)] = sensor_response_f[Range(n_freq-1,joker,-1)];
+    f_out[Range(n_freq,n_freq)] = sensor_response_f;
+
+    // Subtract f_out from *lo* for the first half, and then add *lo* to
+    // f_out for the second half
+    f_out[Range(0,n_freq)] *= -1;
+    f_out += lo;
+
+    // The measurement vector *y* is also unfolded in a similar manner.
+    Vector y_out( y.nelem()*2 );
+    for( Index az=0; az<n_az; az++ ) {
+      for( Index p=0; p<n_pol; p++ ) {
+        y_out[Range(az*2*n_pol*n_freq+p,n_freq,n_pol)] =
+          y[Range((az+1)*n_pol*n_freq-(n_pol-p),n_freq,-n_pol)];
+        y_out[Range((az*2+1)*n_pol*n_freq+p,n_freq,n_pol)] =
+          y[Range(az*n_pol*n_freq+p,n_freq,n_pol)];
+      }
+    }
+
+    // Copy temporary vectors to output vectors
+    sensor_response_f = f_out;
+    y = y_out;
+
+  } else {
+    // If keyword is wrong, throw runtime error
+    throw runtime_error(
+      "The keyword \"output\" is either wrong or misspelled.");
+  }
 }
 
 
