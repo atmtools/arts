@@ -47,10 +47,13 @@ int main()
       extern const Array<WsvRecord> wsv_data;
 
       // Initialize method data.
-      define_md_data();
+      define_md_data_raw();
 
       // Initialize the wsv group name array:
       define_wsv_group_names();
+
+      // Expand supergeneric methods:
+      expand_md_data_raw_to_md_data();
 
       // Initialize wsv data.
       define_wsv_data();
@@ -99,19 +102,21 @@ int main()
       // -----------------------------
       for (Index i=0; i<n_md; ++i)
 	{
+	  const MdRecord& mdd = md_data[i];
+
 	  // This is needed to flag the first function parameter, which 
 	  // needs no line break before being written:
 	  bool is_first_parameter = true;
 	  // The String indent is needed to achieve the correct
 	  // indentation of the functin parameters:
-	  String indent = String(md_data[i].Name().nelem()+3,' ');;
+	  String indent = String(mdd.Name().nelem()+3,' ');;
 	  
 	  // There are four lists of parameters that we have to
 	  // write. 
-	  ArrayOfIndex  vo=md_data[i].Output();   // Output 
-	  ArrayOfIndex  vi=md_data[i].Input();    // Input
-	  ArrayOfIndex  vgo=md_data[i].GOutput();   // Generic Output 
-	  ArrayOfIndex  vgi=md_data[i].GInput();    // Generic Input
+	  ArrayOfIndex  vo=mdd.Output();   // Output 
+	  ArrayOfIndex  vi=mdd.Input();    // Input
+	  ArrayOfIndex  vgo=mdd.GOutput();   // Generic Output 
+	  ArrayOfIndex  vgi=mdd.GInput();    // Generic Input
 	  // vo and vi contain handles of workspace variables, 
 	  // vgo and vgi handles of workspace variable groups.
 
@@ -136,16 +141,14 @@ int main()
 	  // vector as generic output, this does not mean that it is
 	  // the same vector!
 
-
-	  ofs << "void " << md_data[i].Name()
+	  ofs << "void " << mdd.Name()
 	      << "_g(WorkSpace& ws, const MRecord& mr)\n";
 	  ofs << "{\n";
-
 
 	  // Define generic output pointers
 	  for (Index j=0; j<vgo.nelem(); ++j)
 	    {
-	      ofs << "  " << wsv_group_names[md_data[i].GOutput()[j]]
+	      ofs << "  " << wsv_group_names[mdd.GOutput()[j]]
 		  << " *GO" << j << " = *wsv_pointers[mr.Output()[" << j
 		  << "]];\n";
 	    }
@@ -153,12 +156,12 @@ int main()
 	  // Define generic input pointers
 	  for (Index j=0; j<vgi.nelem(); ++j)
 	    {
-	      ofs << "  " << wsv_group_names[md_data[i].GInput()[j]]
+	      ofs << "  " << wsv_group_names[mdd.GInput()[j]]
 		  << " *GI" << j << " = *wsv_pointers[mr.Input()[" << j
 		  << "]];\n";
 	    }
 
-	  ofs << "  " << md_data[i].Name() << "(";
+	  ofs << "  " << mdd.Name() << "(";
 
 	  // Write the Output workspace variables:
 	  for (Index j=0; j<vo.nelem(); ++j)
@@ -222,7 +225,7 @@ int main()
 	  {
 	    // The mr parameters look all the same (mr[i]), so we just
 	    // need to know the number of them: 
-	    Index n_mr = md_data[i].Keywords().nelem();
+	    Index n_mr = mdd.Keywords().nelem();
 
 	    for (Index j=0; j!=n_mr; ++j)
 	      {
@@ -234,7 +237,7 @@ int main()
 	  }
 
 	  // Write the agenda, if there is one.
-	  if ( md_data[i].AgendaMethod() )
+	  if ( mdd.AgendaMethod() )
 	    {
 	      align(ofs,is_first_parameter,indent);
 	      ofs << "mr.Tasks()";
@@ -254,10 +257,12 @@ int main()
 	    << "  = {";
 	for (Index i=0; i<n_md; ++i)
 	  {
+	    const MdRecord& mdd = md_data[i];
+	  
 	    // Add comma and line break, if not first element:
 	    align(ofs,is_first_parameter,indent);
 
-	    ofs << md_data[i].Name() << "_g";
+	    ofs << mdd.Name() << "_g";
 	  }
 	ofs << "};\n\n";
       }

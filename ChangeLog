@@ -1,3 +1,49 @@
+2002-06-17  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-144
+
+	* General: First implementation of supergeneric methods. Not quite
+	finished yet, there are some things I want to modify in the next
+	version. But basically it works.
+
+	* src/supergeneric.h: Added.
+
+	* src/m_copy.cc: Added.
+
+	* src/m_clonesize.cc: Added.
+
+	* src/groups.cc: Added group Any_.
+
+	* src/methods.cc: Added supergeneric methods CloneSize and Copy.
+
+	* src/parser.h: Put in supergeneric methods.
+
+	* src/parser.cc: Put in supergeneric methods.
+
+	* src/methods_aux.cc: Put in supergeneric methods.
+
+	* src/methods.h: Put in supergeneric methods.
+
+	* src/make_auto_wsv_groups_h.cc: Put in supergeneric methods.
+
+	* src/make_auto_md_h.cc: Put in supergeneric methods.
+
+	* src/make_auto_md_cc.cc: Put in supergeneric methods.
+
+	* src/main.cc: Put in supergeneric methods.
+
+	* src/globals_2.cc: Put in supergeneric methods.
+
+	* src/Makefile.am: Added new source files.
+
+	* src/matpackI.h (Matrix& Matrix::operator=(const Matrix& m)): 
+	Added comment to doxygen header about deprecated resizing for
+	empty target.
+	(Vector& Vector::operator=(const Vector& v)): Implemented resizing for
+	empty target, to allow ArrayOfVector (should we ever need
+	this). Added comment to doxygen header about deprecated use of
+	this feature in user code.
+
 2002-06-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-143
@@ -33,7 +79,6 @@
 	* src/methods.cc : added  *scat_za_grid* and *scat_aa_grid* as 
 		input to the method abs_vec_sptCalc.
 	
-
 2002-06-14  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-140

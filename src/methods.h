@@ -32,11 +32,11 @@
 #include "token.h"
 #include "make_array.h"
 
-/** This class contains all information for one workspace method. */
+//! All information for one workspace method.
 class MdRecord {
 public:
 
-  /** Default constructor. */
+  //! Default constructor.
   MdRecord():
     mname(      ""              ),
     mdescription( ""              ),
@@ -49,8 +49,7 @@ public:
     magenda_method(false)
   {};
 
-  /** The only non-trivial constructor, which sets all the
-      fields. */
+  // Initializing constructor. Implementation in methods_aux.cc.
   MdRecord(const char 		        name[],
 	   const char 		        description[],
 	   const MakeArray<Index>&      output,
@@ -59,26 +58,9 @@ public:
 	   const MakeArray<Index>&      ginput,   
 	   const MakeArray<String>&     keywords,
 	   const MakeArray<TokValType>& types,
-	   bool                         agenda_method = false) :
-    mname(          name            	  ),
-    mdescription(   description     	  ),    
-    moutput(        output       	  ),  
-    minput(         input        	  ),   
-    mgoutput(       goutput      	  ),  
-    mginput(        ginput       	  ),   
-    mkeywords(      keywords     	  ),
-    mtypes(         types        	  ),
-    magenda_method( agenda_method         )
-    { 
-      // Initializing the various arrays with input data should now
-      // work correctly.  
+	   bool                         agenda_method = false);
 
-      // Keywords and type must have the same number of
-      // elements. (Types specifies the types associated with each
-      // keyword.)
-      assert( mkeywords.nelem() == mtypes.nelem() );
-    }
-  
+  // Methods returning the lookup information:
   const String&            Name()         const { return mname;        	 }   
   const String&            Description()  const { return mdescription; 	 }
   const ArrayOfIndex&      Output()       const { return moutput;      	 }
@@ -88,67 +70,83 @@ public:
   const Array<String>&     Keywords()     const { return mkeywords;    	 }
   const Array<TokValType>& Types()        const { return mtypes;       	 }
   bool                     AgendaMethod() const { return magenda_method; }
+  bool                     Supergeneric() const { return msupergeneric;  }
 
-  /** Print method template for the control file. This prints the
-      method data exactly in the same way how it can be included in
-      the control file. The description string is also printed as a
-      comment, but this can be turned off by setting show_comment to
-      false.
+  // Expand supergeneric method record to an actual group
+  // (documentation with implementation in method_aux.cc):
+  void subst_any_with_group( Index g );
 
-      @param show_description Should the description string also be printed?   */
+  //! Print method template for the control file. 
+  /*!
+    This prints the method data exactly in the same way how it can
+    be included in the control file. The description string is also
+    printed as a comment, but this can be turned off by setting
+    show_comment to false.
+
+    @param show_description Should the description string also be printed?
+  */
   ostream& PrintTemplate(ostream& os, bool show_description=true) const;
 
-  /** To override the default assignment operator. MdRecords cannot be
-      assigned! */
+  //! To override the default assignment operator.
+  /*! MdRecords cannot be assigned! */
   MdRecord operator=(const MdRecord& m){
     cout << "MdRecord cannot be assigned!\n";
     exit(1);
       }
+
+  // Needed by make_auto_md_h.cc. See documentation there.
+  friend void subst_any_with_group( MdRecord& mdd, Index g );
+
 private:
 
-  /** The name of this method. */
+  //! The name of this method.
   String mname;
 
-  /** A text string describing this method. */
+  //! A text string describing this method.
   String mdescription;
 
-  /** Workspace Output. */
+  //! Workspace Output.
   ArrayOfIndex moutput;
 
-  /** Workspace Input. */
+  //! Workspace Input.
   ArrayOfIndex minput;
 
-  /** Generic Workspace Output. */
+  //! Generic Workspace Output.
   ArrayOfIndex mgoutput;
 
-  /** Generic Workspace Input. */
+  //! Generic Workspace Input.
   ArrayOfIndex mginput;
 
-  /** Keywords. */
+  //! Keywords.
   ArrayOfString mkeywords;
 
-  /** Types associated with keywords. */
+  //! Types associated with keywords.
   Array<TokValType> mtypes;
 
-  /** Flag, whether this is an agenda method. Agenda methods do not
-      expect keywords, but other method definitions inside their body
-      in the controlfile. */
+  //! Flag, whether this is an agenda method. 
+  /*!
+    Agenda methods do not expect keywords, but other method
+    definitions inside their body in the controlfile.
+  */
   bool magenda_method;
+
+  //! Flag, whether this method is supergeneric.
+  /*!
+    This flag is set automatically if the goutput or ginput contains
+    Any_.
+  */ 
+  bool msupergeneric;
+
 };
 
+void define_md_data_raw();
 
-/** Define the lookup data for the workspace methods. The array
-    md_data contains all that we need to know about each method. The
-    lookup table is a global variable. It can be made visible anywhere
-    with an extern declaration. */
-void define_md_data();
+void expand_md_data_raw_to_md_data();
 
-/** Define MdMap. MdMap can be used to find method data by method
-    name. */
 void define_md_map();
 
-/** Output operator for MdRecord.
-    @author Stefan Buehler */
+void define_md_raw_map();
+
 ostream& operator<<(ostream& os, const MdRecord& mdr);
 
 

@@ -1442,21 +1442,39 @@ inline Vector::Vector(const Vector& v) :
 /** Assignment from another Vector. Important to avoid segmentation
     fault for 
     x = Vector(n);
+
+    The Behavior of this one is a bit special: If the size of the
+    target Vector is 0 then it will be automatically resized to match
+    (this is needed to have the correct initialization for constructed
+    classes that use the assignment operator to initialize their
+    data).
+
+    This special behaviour should not be exploited in the user
+    code. That means, you should always resize explicitly, even if you
+    know that the target should be empty. Then you are on the
+    safe side, even if the target was not empty.
  */
 inline Vector& Vector::operator=(const Vector& v)
 {
   //  cout << "Assigning VectorView from Vector View.\n";
 
-  // Check that sizes are compatible:
-  assert(mrange.mextent==v.mrange.mextent);
+  if ( 0 == mrange.mextent )
+    {
+      // Adjust if previously empty.
+      resize( v.mrange.mextent ); 
+    }
+  else
+    {
+      // Check that sizes are compatible:
+      assert( mrange.mextent==v.mrange.mextent );
+    }
+
   copy( v.begin(), v.end(), begin() );
   return *this;
 }
 
 /** Assignment operator from Array<Numeric>. This copies the data from
     a Array<Numeric> to this VectorView. Dimensions must agree! 
-    Resizing would destroy the selection that we might have done in
-    this VectorView by setting its range. 
 
     Array<Numeric> can be useful to collect things in, because there
     is a .push_back method for it. Then, after collecting we usually
@@ -2217,7 +2235,12 @@ inline Matrix::Matrix(const Matrix& m) :
     target Matrix is 0 then it will be automatically resized to match
     (this is needed to have the correct initialization for constructed
     classes that use the assignment operator to initialize their
-    data). 
+    data).
+
+    This special behaviour should not be exploited in the user
+    code. That means, you should always resize explicitly, even if you
+    know that the target matrix should be empty. Then you are on the
+    safe side, even if the matrix was not empty.
 */
 inline Matrix& Matrix::operator=(const Matrix& m)
 {

@@ -688,16 +688,25 @@ void parse_method(Index& id,
 		  ArrayOfIndex& input,
 		  Agenda&       tasks,
 		  SourceText& text,
-		  const std::map<String, Index> MdMap,
-		  const std::map<String, Index> WsvMap,
 		  bool no_eot=false)
 {
   extern const Array<WsvRecord> wsv_data;
   extern const Array<MdRecord> md_data;
+  extern const Array<MdRecord> md_data_raw;
   extern const ArrayOfString wsv_group_names;
+
+  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> MdRawMap;
+  extern const std::map<String, Index> WsvMap;
 
   Index wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
+
+  String methodname;		// We need this out here, since it is
+				// set once and later modified.
+
+  const MdRecord* mdd;		// Handle on the method record. Needed here,
+				// because it is modified.
 
   // Clear all output variables:
   id = 0;
@@ -707,31 +716,51 @@ void parse_method(Index& id,
   tasks.resize(  0 );
   
   {
-    String methodname;
     read_name(methodname, text);
 
     {
-      // Find method id:
-      const map<String, Index>::const_iterator i = MdMap.find(methodname);
-      if ( i == MdMap.end() )
+      // Find method raw id in raw map:
+      const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
+      if ( i == MdRawMap.end() )
 	throw UnknownMethod(methodname,
 			    text.File(),
 			    text.Line(),
 			    text.Column());
 
       id = i->second;
+
+      // Get a convenient handle on the data record for this method. We
+      // have to use a pointer here, not a reference, because we later
+      // want to change where mdd is pointing!
+      mdd = &md_data_raw[id];
+
+//       cout << "id=" << id << '\n';   
+//       cout << "Method: " << mdd->Name() << '\n';
+
+      // Is this a supergeneric method? If not, take the record in
+      // md_data, rather than in md_data_raw:
+      if ( !mdd->Supergeneric() )
+	{
+	  // Find explicit method id in MdMap:
+	  const map<String, Index>::const_iterator i = MdMap.find(methodname);
+	  assert ( i != MdMap.end() );
+	  id = i->second;	      
+	  
+	  mdd = &md_data[id];
+
+// 	  cout << "Adjusted id=" << id << '\n';   
+// 	  cout << "Adjusted Method: " << mdd->Name() << '\n';
+	}
     }
-    //    cout << "id=" << id << '\n';   
-    // cout << "Method: " << md_data[id].Name() << '\n';
   }
 
   eat_whitespace(text);
 
   // For generic methods the output and input workspace variables have 
   // to be parsed (given in round brackets).
-  if ( 0 < md_data[id].GOutput().nelem() + md_data[id].GInput().nelem() )
+  if ( 0 < mdd->GOutput().nelem() + mdd->GInput().nelem() )
     {
-      //      cout << "Generic!" << id << md_data[id].Name() << '\n';
+      //      cout << "Generic!" << id << mdd->Name() << '\n';
       String wsvname;
       bool first = true;	// To skip the first comma.
 
@@ -739,7 +768,7 @@ void parse_method(Index& id,
       eat_whitespace(text);
 
       // First read all output Wsvs:
-      for ( Index j=0 ; j<md_data[id].GOutput().nelem() ; ++j )
+      for ( Index j=0 ; j<mdd->GOutput().nelem() ; ++j )
 	{
 	  if (first)
 	    first = false;
@@ -763,11 +792,38 @@ void parse_method(Index& id,
 	    wsvid = i->second;
 	  }
 
+	  // If this is a supergeneric method, now is the time to find
+	  // out the actual group of the argument(s)!
+	  if ( mdd->Supergeneric() )
+	    {
+// 	      cout << "wsvid = " << wsvid << "\n";
+// 	      cout << "wsv_group_names[wsv_data[wsvid].Group()] = "
+// 		   << wsv_group_names[wsv_data[wsvid].Group()] << "\n";
+	      ostringstream os;
+	      os << mdd->Name() << "_sg_"
+		 << wsv_group_names[wsv_data[wsvid].Group()];
+	      methodname = os.str();
+
+	      // Find explicit method id in MdMap:
+	      const map<String, Index>::const_iterator i = MdMap.find(methodname);
+	      assert ( i != MdMap.end() );
+	      id = i->second;	      
+	      
+	      mdd = &md_data[id];
+
+// 	      cout << "Adjusted id=" << id << '\n';   
+// 	      cout << "Adjusted Method: " << mdd->Name() << '\n';
+	    }
+
+	  // Now we have explicitly the method record for the right
+	  // group. From now on no special treatment of supergeneric
+	  // methods should be necessary.
+
 	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != md_data[id].GOutput()[j] )
+	  if ( wsv_data[wsvid].Group() != mdd->GOutput()[j] )
 	    {
        	    throw WrongWsvGroup( wsvname+" is not "+
-	                wsv_group_names[md_data[id].GOutput()[j]]+", it is "+ 
+	                wsv_group_names[mdd->GOutput()[j]]+", it is "+ 
                         wsv_group_names[wsv_data[wsvid].Group()],
 				 text.File(),
 				 text.Line(),
@@ -781,7 +837,7 @@ void parse_method(Index& id,
 	}
 
       // Then read all input Wsvs:
-      for ( Index j=0 ; j<md_data[id].GInput().nelem() ; ++j )
+      for ( Index j=0 ; j<mdd->GInput().nelem() ; ++j )
 	{
 	  if (first)
 	    first = false;
@@ -805,10 +861,35 @@ void parse_method(Index& id,
 	    wsvid = i->second;
 	  }
 
+	  // Is the method data record still supergeneric? This could
+	  // be the case if there are no output arguments, only input
+	  // arguments. In that case, let's find out the actual group!
+	  if ( mdd->Supergeneric() )
+	    {
+	      ostringstream os;
+	      os << mdd->Name() << "_sg_"
+		 << wsv_group_names[wsv_data[wsvid].Group()];
+	      methodname = os.str();
+
+	      // Find explicit method id in MdMap:
+	      const map<String, Index>::const_iterator i = MdMap.find(methodname);
+	      assert ( i != MdMap.end() );
+	      id = i->second;	      
+
+	      mdd = &md_data[id];
+
+// 	      cout << "Adjusted id=" << id << '\n';   
+// 	      cout << "Adjusted Method: " << mdd->Name() << '\n';
+	    }
+
+	  // Now we have explicitly the method record for the right
+	  // group. From now on no special treatment of supergeneric
+	  // methods should be necessary.
+
 	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != md_data[id].GInput()[j] )
+	  if ( wsv_data[wsvid].Group() != mdd->GInput()[j] )
        	    throw WrongWsvGroup( wsvname+" is not "+
-	                wsv_group_names[md_data[id].GInput()[j]]+", it is "+ 
+	                wsv_group_names[mdd->GInput()[j]]+", it is "+ 
                         wsv_group_names[wsv_data[wsvid].Group()],
 				 text.File(),
 				 text.Line(),
@@ -831,13 +912,13 @@ void parse_method(Index& id,
   // There are two kind of methods, agenda methods, which have other
   // methods in the body, and normal methods, expecting keywords and
   // values. Let's take the agenda case first...
-  if ( md_data[id].AgendaMethod() )
+  if ( mdd->AgendaMethod() )
     {
-      out3 << "- " << md_data[id].Name() << "\n";
+      out3 << "- " << mdd->Name() << "\n";
 
       out3 << "{\n";
 
-      parse_agenda(tasks,text,MdMap,WsvMap);
+      parse_agenda(tasks,text);
 
       out3 << "}\n";
     }
@@ -853,9 +934,9 @@ void parse_method(Index& id,
       //
       // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
       //
-      for ( Index i=0 ; i<md_data[id].Keywords().nelem() ; ++i )
+      for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )
 	{
-	  if (!isalpha(text.Current()) && 1==md_data[id].Keywords().nelem())
+	  if (!isalpha(text.Current()) && 1==mdd->Keywords().nelem())
 	    {
 	      // Parameter specified directly, without a keyword. This is only
 	      // allowed for single parameter methods!
@@ -869,7 +950,7 @@ void parse_method(Index& id,
 	      read_name(keyname,text);
 
 	      // Is the keyname the expected keyname?
-	      if ( keyname != md_data[id].Keywords()[i] )
+	      if ( keyname != mdd->Keywords()[i] )
 		{
 		  throw UnexpectedKeyword( keyname,
 					   text.File(),
@@ -887,7 +968,7 @@ void parse_method(Index& id,
 	  // Now parse the key value. This can be:
 	  // String_t,    Index_t,    Numeric_t,
 	  // Array_String_t, Array_Index_t, Vector_t,
-	  switch (md_data[id].Types()[i]) 
+	  switch (mdd->Types()[i]) 
 	    {
 	    case String_t:
 	      {
@@ -939,7 +1020,7 @@ void parse_method(Index& id,
 	  eat_whitespace(text);
 
 	  // Check:
-	  //      cout << "Value: " << md_data[id].Values()[i] << '\n';
+	  //      cout << "Value: " << mdd->Values()[i] << '\n';
 	}
     }
 
@@ -969,18 +1050,16 @@ void parse_method(Index& id,
                     methods to run.
   
     @param text   The input to parse.
-    @param MdMap  The method map.
-    @param WsvMap The workspace variable map.
    
     @see eat_whitespace
     @see parse_method
           
     @author Stefan Buehler */
-void parse_agenda(Agenda& tasklist,
-		  SourceText& text,
-		  const std::map<String, Index> MdMap,
-		  const std::map<String, Index> WsvMap)
+void parse_agenda( Agenda& tasklist,
+		   SourceText& text )
 {
+  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> WsvMap;
   extern const Array<MdRecord> md_data;
 
   // For method ids:
@@ -998,7 +1077,7 @@ void parse_agenda(Agenda& tasklist,
 
   while ( '}' != text.Current() )
     {
-      parse_method(id,values,output,input,tasks,text,MdMap,WsvMap);
+      parse_method(id,values,output,input,tasks,text);
 
       // Append taks to task list:      
       tasklist.push_back(MRecord(id,values,output,input,tasks));
@@ -1074,11 +1153,12 @@ void parse_main(Agenda& tasklist, SourceText& text)
       text.Init();
       eat_whitespace(text);
 
-      parse_method(id,values,output,input,tasklist,text,MdMap,WsvMap,true);
+      parse_method(id,values,output,input,tasklist,text,true);
 	  
       if ( "Main" != md_data[id].Name() )
 	{
-	  out0 << "The outermost method must be Main!\n";
+	  out0 << "The outermost method must be Main!\n"
+	       << "(But it seems to be " << md_data[id].Name() << ".)\n";
 	  exit(1);
 	}
     }

@@ -21,9 +21,14 @@ VectorNLinSpace(f_grid){
 
 VectorWriteXML(f_grid){""}
 
-VectorSetTakingLengthFromVector(ls,f_grid){0}
+Copy(ls,f_grid){}
 
-AgendaSet(els_agenda){ elsLorentz{} }
+VectorWriteXML(ls){""}
+
+AgendaSet(els_agenda){
+  NumericWriteXML(ls_sigma){""}
+  elsLorentz{}
+}
 
 NumericSet(ls_cutoff){750e9}  # Cutoff at 750 GHz
 #NumericSet(ls_cutoff){10e9}  # Cutoff at 10 GHz

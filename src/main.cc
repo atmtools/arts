@@ -1,4 +1,5 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001, 2002
+   Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -113,7 +114,7 @@ void set_reporting_level(Index r)
 void option_methods(const String& methods)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data;
+  extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
   //  extern const std::map<String, Index> MdMap;
   extern const std::map<String, Index> WsvMap;
@@ -131,9 +132,9 @@ void option_methods(const String& methods)
 	<< "\n*-------------------------------------------------------------------*\n"
 	<< "Complete list of ARTS workspace methods:\n"
 	<< "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
-	  cout << "- " << md_data[i].Name() << "\n";
+	  cout << "- " << md_data_raw[i].Name() << "\n";
 	}
       cout
 	<< "*-------------------------------------------------------------------*\n\n";
@@ -155,19 +156,30 @@ void option_methods(const String& methods)
       hitcount = 0;
       cout 
 	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Generic methods that can generate " << wsv_data[wsv_key].Name() 
+	<< "Generic and supergeneric methods that can generate " << wsv_data[wsv_key].Name() 
 	<< ":\n"
 	<< "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
+	  // Get handle on method record:
+	  const MdRecord& mdd = md_data_raw[i];
+
 	  // This if statement checks whether GOutput, the list
 	  // of output variable types contains the group of the
 	  // requested variable.
-	  if ( count( md_data[i].GOutput().begin(),
-		      md_data[i].GOutput().end(),
+	  // The else clause picks up methods with supergeneric input.
+	  if ( count( mdd.GOutput().begin(),
+		      mdd.GOutput().end(),
 		      wsv_data[wsv_key].Group() ) )
 	    {
-	      cout << "- " << md_data[i].Name() << "\n";
+	      cout << "- " << mdd.Name() << "\n";
+	      ++hitcount;
+	    }
+	  else if  ( count( mdd.GOutput().begin(),
+		      mdd.GOutput().end(),
+		      Any_ ) )
+	    {
+	      cout << "- " << mdd.Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -181,16 +193,19 @@ void option_methods(const String& methods)
 	<< "Specific methods that can generate " << wsv_data[wsv_key].Name() 
 	<< ":\n"
 	<< "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
+	  // Get handle on method record:
+	  const MdRecord& mdd = md_data_raw[i];
+
 	  // This if statement checks whether Output, the list
 	  // of output variables contains the workspace
 	  // variable key.
-	  if ( count( md_data[i].Output().begin(),
-		      md_data[i].Output().end(),
+	  if ( count( mdd.Output().begin(),
+		      mdd.Output().end(),
 		      wsv_key ) ) 
 	    {
-	      cout << "- " << md_data[i].Name() << "\n";
+	      cout << "- " << mdd.Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -221,19 +236,30 @@ void option_methods(const String& methods)
       hitcount = 0;
       cout 
 	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Generic methods that can generate variables of group " 
+	<< "Generic and supergeneric methods that can generate variables of group " 
 	<< wsv_group_names[group_key] << ":\n"
 	<< "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
+	  // Get handle on method record:
+	  const MdRecord& mdd = md_data_raw[i];
+
 	  // This if statement checks whether GOutput, the list
 	  // of output variable types contains the
 	  // requested group.
-	  if ( count( md_data[i].GOutput().begin(),
-		      md_data[i].GOutput().end(),
+	  // The else clause picks up methods with supergeneric input.
+	  if ( count( mdd.GOutput().begin(),
+		      mdd.GOutput().end(),
 		      group_key ) )
 	    {
-	      cout << "- " << md_data[i].Name() << "\n";
+	      cout << "- " << mdd.Name() << "\n";
+	      ++hitcount;
+	    }
+	  else if  ( count( mdd.GOutput().begin(),
+		      mdd.GOutput().end(),
+		      Any_ ) )
+	    {
+	      cout << "- " << mdd.Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -264,7 +290,7 @@ void option_methods(const String& methods)
 void option_input(const String& input)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data;
+  extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
   //  extern const std::map<String, Index> MdMap;
   extern const std::map<String, Index> WsvMap;
@@ -289,18 +315,29 @@ void option_input(const String& input)
       hitcount = 0;
       cout 
       << "\n*-------------------------------------------------------------------*\n"
-      << "Generic methods that can use " << wsv_data[wsv_key].Name() << ":\n"
+      << "Generic and supergeneric methods that can use " << wsv_data[wsv_key].Name() << ":\n"
       << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
+	  // Get handle on method record:
+	  const MdRecord& mdd = md_data_raw[i];
+	  
 	  // This if statement checks whether GInput, the list
 	  // of input variable types contains the group of the
 	  // requested variable.
-	  if ( count( md_data[i].GInput().begin(),
-		      md_data[i].GInput().end(),
+	  // The else clause picks up methods with supergeneric input.
+	  if ( count( mdd.GInput().begin(),
+		      mdd.GInput().end(),
 		      wsv_data[wsv_key].Group() ) )
 	    {
-	      cout << "- " << md_data[i].Name() << "\n";
+	      cout << "- " << mdd.Name() << "\n";
+	      ++hitcount;
+	    }
+	  else if  ( count( mdd.GInput().begin(),
+		      mdd.GInput().end(),
+		      Any_ ) )
+	    {
+	      cout << "- " << mdd.Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -314,16 +351,19 @@ void option_input(const String& input)
       << "Specific methods that require " << wsv_data[wsv_key].Name() 
       << ":\n"
       << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
+	  // Get handle on method record:
+	  const MdRecord& mdd = md_data_raw[i];
+
 	  // This if statement checks whether Output, the list
 	  // of output variables contains the workspace
 	  // variable key.
-	  if ( count( md_data[i].Input().begin(),
-		      md_data[i].Input().end(),
+	  if ( count( mdd.Input().begin(),
+		      mdd.Input().end(),
 		      wsv_key ) ) 
 	    {
-	      cout << "- " << md_data[i].Name() << "\n";
+	      cout << "- " << mdd.Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -354,22 +394,32 @@ void option_input(const String& input)
       hitcount = 0;
       cout
       << "\n*-------------------------------------------------------------------*\n"
-      << "Generic methods that require a variable of group " 
+      << "Generic and supergeneric methods that require a variable of group " 
       << wsv_group_names[group_key] << ":\n"
       << "---------------------------------------------------------------------\n";
-      for ( Index i=0; i<md_data.nelem(); ++i )
+      for ( Index i=0; i<md_data_raw.nelem(); ++i )
 	{
+	  // Get handle on method record:
+	  const MdRecord& mdd = md_data_raw[i];
+
 	  // This if statement checks whether GOutput, the list
 	  // of output variable types contains the
 	  // requested group.
-	  if ( count( md_data[i].GInput().begin(),
-		      md_data[i].GInput().end(),
+	  // The else clause picks up methods with supergeneric input.
+	  if ( count( mdd.GInput().begin(),
+		      mdd.GInput().end(),
 		      group_key ) )
 	    {
-	      cout << "- " << md_data[i].Name() << "\n";
+	      cout << "- " << mdd.Name() << "\n";
 	      ++hitcount;
 	    }
-	}
+	  else if  ( count( mdd.GInput().begin(),
+		      mdd.GInput().end(),
+		      Any_ ) )
+	    {
+	      cout << "- " << mdd.Name() << "\n";
+	      ++hitcount;
+	    }	}
       if ( 0==hitcount )
 	cout << "none\n";
 
@@ -485,9 +535,9 @@ void option_workspacevariables(const String& workspacevariables)
 void option_describe(const String& describe)
 {
   // Make global data visible:
-  extern const Array<MdRecord>  md_data;
+  extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<String, Index> MdMap;
+  extern const std::map<String, Index> MdRawMap;
   extern const std::map<String, Index> WsvMap;
   //  extern const ArrayOfString wsv_group_names;
 
@@ -496,11 +546,11 @@ void option_describe(const String& describe)
 
   // Find method id:
   map<String, Index>::const_iterator i =
-    MdMap.find(describe);
-  if ( i != MdMap.end() )
+    MdRawMap.find(describe);
+  if ( i != MdRawMap.end() )
     {
       // If we are here, then the given name matches a method.
-      cout << md_data[i->second] << "\n";
+      cout << md_data_raw[i->second] << "\n";
       return;
     }
 
@@ -602,10 +652,13 @@ int main (int argc, char **argv)
   // method lookup data.
 
   // Initialize the md data:
-  define_md_data();
+  define_md_data_raw();
 
   // Initialize the wsv group name array:
   define_wsv_group_names();
+
+  // Expand supergeneric methods:
+  expand_md_data_raw_to_md_data();
 
   // Initialize the wsv data:
   define_wsv_data();
@@ -624,6 +677,9 @@ int main (int argc, char **argv)
 
   // Initialize MdMap:
   define_md_map();
+
+  // Initialize MdRawMap (needed by parser and online docu).
+  define_md_raw_map();
 
   // Initialize WsvMap:
   define_wsv_map();

@@ -129,13 +129,13 @@
 
 
 
-void define_md_data()
+void define_md_data_raw()
 {
   // The variable md_data is defined in file methods_aux.cc.
-  extern Array<MdRecord> md_data;
+  extern Array<MdRecord> md_data_raw;
 
   // Initialize to zero, just in case:
-  md_data.resize(0);
+  md_data_raw.resize(0);
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -149,7 +149,7 @@ void define_md_data()
 
  
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vec_sptCalc"),
   	DESCRIPTION
@@ -180,7 +180,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("AgendaSet"),
   	DESCRIPTION
@@ -212,7 +212,7 @@ void define_md_data()
 	TYPES(),
 	AGENDAMETHOD( true )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("AntennaSet1D"),
 	DESCRIPTION
@@ -226,7 +226,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("AntennaSet2D"),
 	DESCRIPTION
@@ -243,7 +243,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("ArrayOfIndexPrint"),
 	DESCRIPTION
@@ -257,7 +257,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexReadXML"),
 	DESCRIPTION
@@ -283,7 +283,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexWriteXML"),
 	DESCRIPTION
@@ -308,7 +308,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadXML"),
 	DESCRIPTION
@@ -334,7 +334,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteXML"),
 	DESCRIPTION
@@ -359,7 +359,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("ArrayOfStringPrint"),
 	DESCRIPTION
@@ -373,7 +373,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
  
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringReadXML"),
 	DESCRIPTION
@@ -399,7 +399,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringSet"),
 	DESCRIPTION
@@ -414,7 +414,7 @@ void define_md_data()
 	KEYWORDS( "text"         ),
 	TYPES(    Array_String_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringWriteXML"),
 	DESCRIPTION
@@ -441,7 +441,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadXML"),
 	DESCRIPTION
@@ -467,7 +467,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteXML"),
 	DESCRIPTION
@@ -492,7 +492,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("AtmosphereSet1D"),
 	DESCRIPTION
@@ -508,7 +508,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("AtmosphereSet2D"),
 	DESCRIPTION
@@ -526,7 +526,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("AtmosphereSet3D"),
 	DESCRIPTION
@@ -543,7 +543,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "a_losSet" ),
 	DESCRIPTION
@@ -566,7 +566,7 @@ void define_md_data()
 	KEYWORDS( "za",      "aa"      ),
 	TYPES(    Numeric_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "a_posAddGeoidWGS84" ),
 	DESCRIPTION
@@ -593,7 +593,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "a_posAddRgeoid" ),
 	DESCRIPTION
@@ -615,7 +615,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "a_posSet" ),
 	DESCRIPTION
@@ -644,7 +644,7 @@ void define_md_data()
 	KEYWORDS( "r_or_z",  "lat",     "lon"     ),
 	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("CloudboxOff"),
 	DESCRIPTION
@@ -661,7 +661,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "CloudboxSetManually" ),
 	DESCRIPTION
@@ -705,7 +705,74 @@ void define_md_data()
 	TYPES( Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
                Numeric_t )));
 
-  md_data.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("CloneSize"),
+	DESCRIPTION
+        (
+	 "Clone the size of a workspace variable.\n"
+	 "\n"
+	 "This is a supergeneric method. It can be applied to any two workspace\n"
+	 "variables of the same group. It makes the output variable the same\n"
+	 "size as the input variable and initializes it. (This means setting all\n"
+	 "elements to zero for numeric variables like vectors or matrices.)\n"
+	 "\n"
+	 "As always, output comes first in the argument list!\n"
+	 "\n"
+	 "Usage example:\n"
+	 "\n"
+	 "CloneSize(f_grid,p_grid){}\n"
+	 "\n"
+	 "Will make the Vector *f_grid* the same length as the Vector *p_grid*\n"
+	 "and set all elements to zero.\n"
+	 "\n"
+	 "Supergeneric output:\n"
+	 "   Any_ : The output variable.\n"
+	 "\n"
+	 "Supergeneric input:\n"
+	 "   Any_ : The input variable."
+	 ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Any_ ),
+	GINPUT(  Any_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Copy"),
+	DESCRIPTION
+        (
+	 "Copy a workspace variable.\n"
+	 "\n"
+	 "This is a supergeneric method. It can copy any workspace variable to\n"
+	 "another workspace variable of the same group. (E.g., a Matrix to\n"
+	 "another Matrix.)\n"
+	 "\n"
+	 "As allways, output comes first in the argument list!\n"
+	 "\n"
+	 "Usage example:\n"
+	 "\n"
+	 "Copy(f_grid,p_grid){}\n"
+	 "\n"
+	 "Will copy the content of *p_grid* to *f_grid*. The size of *f_grid* is\n"
+	 "adjusted automatically (the normal behaviour for workspace methods).\n"
+	 "\n"
+	 "Supergeneric output:\n"
+	 "   Any_ : The output variable.\n"
+	 "\n"
+	 "Supergeneric input:\n"
+	 "   Any_ : The input variable."
+	 ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Any_ ),
+	GINPUT(  Any_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("convergence_flagAbs"),
 	DESCRIPTION
@@ -732,7 +799,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("Exit"),
 	DESCRIPTION
@@ -750,7 +817,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("e_groundSet"),
 	DESCRIPTION
@@ -773,7 +840,7 @@ void define_md_data()
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t )));
 
-   md_data.push_back
+   md_data_raw.push_back
     ( MdRecord
       ( NAME("ext_mat_sptCalc"),
   	DESCRIPTION
@@ -810,7 +877,7 @@ void define_md_data()
 	TYPES( )));
 
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("FlagOff"),
 	DESCRIPTION
@@ -824,7 +891,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("FlagOn"),
 	DESCRIPTION
@@ -838,7 +905,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("GroundSetToBlackbody"),
 	DESCRIPTION
@@ -853,7 +920,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldIterate" ),
 	DESCRIPTION
@@ -876,7 +943,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
- md_data.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldUpdate1D" ),
 	DESCRIPTION
@@ -898,7 +965,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
- md_data.push_back     
+ md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexPrint"),
 	DESCRIPTION
@@ -912,7 +979,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("IndexReadXML"),
 	DESCRIPTION
@@ -938,7 +1005,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexSet"),
 	DESCRIPTION
@@ -958,7 +1025,7 @@ void define_md_data()
 	KEYWORDS( "value" ),
 	TYPES(     Index_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("IndexWriteXML"),
 	DESCRIPTION
@@ -983,7 +1050,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("i_spaceCBR"),
 	DESCRIPTION
@@ -997,7 +1064,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-/*  md_data.push_back
+/*  md_data_raw.push_back
     ( MdRecord
       ( NAME("linesWriteXML"),
   	DESCRIPTION
@@ -1020,7 +1087,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
   
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("lines_per_tgWriteXML"),
   	DESCRIPTION
@@ -1043,7 +1110,7 @@ void define_md_data()
 	TYPES(    String_t   )));
 */
   
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("elsLorentz"),
 	DESCRIPTION
@@ -1073,7 +1140,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("lsWithCutoffAdd"),
 	DESCRIPTION
@@ -1128,7 +1195,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Main"),
   	DESCRIPTION
@@ -1145,27 +1212,7 @@ void define_md_data()
 	TYPES(),
 	AGENDAMETHOD( true )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixCopy"),
-	DESCRIPTION
-        (
-         "Creates a copy of a matrix. \n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : The matrix to be created. \n"
-         "\n"
-         "Generic input: \n"
-         "   Matrix : The matrix to be copied. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT( Matrix_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixFillWithVector"),
 	DESCRIPTION
@@ -1198,7 +1245,7 @@ void define_md_data()
 	KEYWORDS( "nrows", "ncols"   ),
 	TYPES(    Index_t, Index_t )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("MatrixPrint"),
 	DESCRIPTION
@@ -1212,7 +1259,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixReadXML"),
 	DESCRIPTION
@@ -1238,7 +1285,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixScale"),
 	DESCRIPTION
@@ -1263,7 +1310,7 @@ void define_md_data()
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t   )));
 
-   md_data.push_back
+   md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixSet"),
 	DESCRIPTION
@@ -1286,7 +1333,7 @@ void define_md_data()
 	KEYWORDS( "nrows", "ncols", "value"   ),
 	TYPES(    Index_t, Index_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixWriteXML"),
 	DESCRIPTION
@@ -1311,7 +1358,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("NumericPrint"),
 	DESCRIPTION
@@ -1325,7 +1372,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericReadXML"),
 	DESCRIPTION
@@ -1351,7 +1398,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericSet"),
 	DESCRIPTION
@@ -1371,7 +1418,7 @@ void define_md_data()
 	KEYWORDS( "value"   ),
 	TYPES(    Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericWriteXML"),
 	DESCRIPTION
@@ -1396,7 +1443,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_mat_sptCalc" ),
 	DESCRIPTION
@@ -1427,7 +1474,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES())); 
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppathCalc" ),
 	DESCRIPTION
@@ -1454,7 +1501,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("PpathPrint"),
 	DESCRIPTION
@@ -1468,7 +1515,7 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppath_stepGeometric" ),
 	DESCRIPTION
@@ -1500,7 +1547,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "ppath_stepGeometricWithLmax" ),
 	DESCRIPTION
@@ -1528,7 +1575,7 @@ void define_md_data()
 	KEYWORDS( "lmax"),
 	TYPES(    Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "RteCalc" ),
 	DESCRIPTION
@@ -1548,7 +1595,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "r_geoidWGS84" ),
 	DESCRIPTION
@@ -1574,7 +1621,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "sensor_posAddGeoidWGS84" ),
 	DESCRIPTION
@@ -1601,7 +1648,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "sensor_posAddRgeoid" ),
 	DESCRIPTION
@@ -1623,7 +1670,7 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-md_data.push_back     
+md_data_raw.push_back     
     ( MdRecord
       ( NAME("stokes_vecGeneral"),
 	DESCRIPTION
@@ -1646,7 +1693,7 @@ md_data.push_back
 	KEYWORDS( ),
 	TYPES( )));
 
-md_data.push_back     
+md_data_raw.push_back     
     ( MdRecord
       ( NAME("stokes_vecScalar"),
 	DESCRIPTION
@@ -1666,7 +1713,7 @@ md_data.push_back
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("StringPrint"),
 	DESCRIPTION
@@ -1680,7 +1727,7 @@ md_data.push_back
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringReadXML"),
 	DESCRIPTION
@@ -1706,7 +1753,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringSet"),
 	DESCRIPTION
@@ -1720,7 +1767,7 @@ md_data.push_back
 	KEYWORDS( "text"   ),
 	TYPES(    String_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringWriteXML"),
 	DESCRIPTION
@@ -1745,7 +1792,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor3FillWithVector"),
 	DESCRIPTION
@@ -1777,7 +1824,7 @@ md_data.push_back
 	KEYWORDS( "npages", "nrows", "ncols"   ),
 	TYPES(    Index_t,  Index_t, Index_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor3ReadXML"),
 	DESCRIPTION
@@ -1803,7 +1850,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
- md_data.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor3Set"),
 	DESCRIPTION
@@ -1827,7 +1874,7 @@ md_data.push_back
 	KEYWORDS( "npages", "nrows", "ncols", "value"   ),
 	TYPES( Index_t, Index_t, Index_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor3WriteXML"),
 	DESCRIPTION
@@ -1852,7 +1899,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor4ReadXML"),
 	DESCRIPTION
@@ -1878,7 +1925,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
- md_data.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor4Set"),
 	DESCRIPTION
@@ -1903,7 +1950,7 @@ md_data.push_back
 	KEYWORDS( "nbooks", "npages", "nrows", "ncols", "value"   ),
 	TYPES( Index_t, Index_t, Index_t, Index_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor4WriteXML"),
 	DESCRIPTION
@@ -1928,7 +1975,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor5ReadXML"),
 	DESCRIPTION
@@ -1954,7 +2001,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor5Set"),
 	DESCRIPTION
@@ -1980,7 +2027,7 @@ md_data.push_back
 	KEYWORDS( "nshelfs", "nbooks", "npages", "nrows", "ncols", "value" ),
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor5WriteXML"),
 	DESCRIPTION
@@ -2005,7 +2052,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor6ReadXML"),
 	DESCRIPTION
@@ -2031,7 +2078,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
- md_data.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor6Set"),
 	DESCRIPTION
@@ -2060,7 +2107,7 @@ md_data.push_back
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
 	       Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor6WriteXML"),
 	DESCRIPTION
@@ -2085,7 +2132,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor7ReadXML"),
 	DESCRIPTION
@@ -2111,7 +2158,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor7Set"),
 	DESCRIPTION
@@ -2141,7 +2188,7 @@ md_data.push_back
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
 	       Index_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor7WriteXML"),
 	DESCRIPTION
@@ -2166,7 +2213,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("Test"),
 	DESCRIPTION
@@ -2185,7 +2232,7 @@ md_data.push_back
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorAddScalar"),
   	DESCRIPTION
@@ -2210,27 +2257,7 @@ md_data.push_back
 	KEYWORDS( "value" ),
 	TYPES( Numeric_t )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorCopy"),
-	DESCRIPTION
-        (
-         "Creates a copy of a vector. \n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorLinSpace"),
 	DESCRIPTION
@@ -2258,7 +2285,7 @@ md_data.push_back
 	KEYWORDS( "start",   "stop",    "step"    ),
 	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorNLinSpace"),
 	DESCRIPTION
@@ -2283,7 +2310,7 @@ md_data.push_back
 	KEYWORDS( "start",   "stop",    "n"   ),
 	TYPES(    Numeric_t, Numeric_t, Index_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorNLogSpace"),
 	DESCRIPTION
@@ -2308,7 +2335,7 @@ md_data.push_back
 	KEYWORDS( "start",   "stop",    "n"   ),
 	TYPES(    Numeric_t, Numeric_t, Index_t )));
 
-  md_data.push_back     
+  md_data_raw.push_back     
     ( MdRecord
       ( NAME("VectorPrint"),
 	DESCRIPTION
@@ -2322,7 +2349,7 @@ md_data.push_back
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorReadXML"),
 	DESCRIPTION
@@ -2348,7 +2375,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorScale"),
   	DESCRIPTION
@@ -2373,7 +2400,7 @@ md_data.push_back
 	KEYWORDS( "value" ),
 	TYPES( Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorSet"),
 	DESCRIPTION
@@ -2395,7 +2422,7 @@ md_data.push_back
 	KEYWORDS( "length", "value"   ),
 	TYPES(    Index_t,    Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorSetTakingLengthFromVector"),
 	DESCRIPTION
@@ -2422,7 +2449,7 @@ md_data.push_back
 	KEYWORDS( "value"   ),
 	TYPES(    Numeric_t )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorWriteXML"),
 	DESCRIPTION
@@ -2470,7 +2497,7 @@ md_data.push_back
 
 //=== Index ============================================================
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("IndexWriteAscii"),
 	DESCRIPTION(
@@ -2496,7 +2523,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("IndexReadAscii"),
 	DESCRIPTION(
@@ -2524,7 +2551,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("IndexWriteBinary"),
 	DESCRIPTION(
@@ -2548,7 +2575,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("IndexReadBinary"),
 	DESCRIPTION(
@@ -2574,7 +2601,7 @@ md_data.push_back
 
 //=== NUMERIC ==========================================================
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericWriteAscii"),
 	DESCRIPTION(
@@ -2600,7 +2627,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericReadAscii"),
 	DESCRIPTION(
@@ -2628,7 +2655,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericWriteBinary"),
 	DESCRIPTION(
@@ -2651,7 +2678,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("NumericReadBinary"),
 	DESCRIPTION(
@@ -2680,7 +2707,7 @@ md_data.push_back
 
 
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorWriteAscii"),
 	DESCRIPTION(
@@ -2706,7 +2733,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorReadAscii"),
 	DESCRIPTION(
@@ -2734,7 +2761,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorWriteBinary"),
         DESCRIPTION(
@@ -2757,7 +2784,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("VectorReadBinary"),
 	DESCRIPTION(
@@ -2787,7 +2814,7 @@ md_data.push_back
 //=== Matrix ==========================================================
 
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixWriteAscii"),
 	DESCRIPTION(
@@ -2813,7 +2840,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixReadAscii"),
 	DESCRIPTION(
@@ -2841,7 +2868,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixWriteBinary"),
 	DESCRIPTION(
@@ -2864,7 +2891,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixReadBinary"),
 	DESCRIPTION(
@@ -2894,7 +2921,7 @@ md_data.push_back
 
 //=== ArrayOfIndex =====================================================
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexWriteAscii"),
 	DESCRIPTION(
@@ -2920,7 +2947,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexReadAscii"),
 	DESCRIPTION(
@@ -2948,7 +2975,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexWriteBinary"),
 	DESCRIPTION(
@@ -2971,7 +2998,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexReadBinary"),
 	DESCRIPTION(
@@ -2998,7 +3025,7 @@ md_data.push_back
 
 //=== ArrayOfVector ====================================================
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteAscii"),
 	DESCRIPTION(
@@ -3024,7 +3051,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadAscii"),
 	DESCRIPTION(
@@ -3052,7 +3079,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteBinary"),
 	DESCRIPTION(
@@ -3075,7 +3102,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadBinary"),
 	DESCRIPTION(
@@ -3103,7 +3130,7 @@ md_data.push_back
 
 //=== ArrayOfMatrix ====================================================
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteAscii"),
 	DESCRIPTION(
@@ -3148,7 +3175,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadAscii"),
 	DESCRIPTION(
@@ -3176,7 +3203,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteBinary"),
 	DESCRIPTION(
@@ -3199,7 +3226,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadBinary"),
 	DESCRIPTION(
@@ -3226,7 +3253,7 @@ md_data.push_back
 //=== STRING ============================================================
 
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringWriteAscii"),
 	DESCRIPTION(
@@ -3252,7 +3279,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringReadAscii"),
 	DESCRIPTION(
@@ -3280,7 +3307,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringWriteBinary"),
 	DESCRIPTION(
@@ -3303,7 +3330,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringReadBinary"),
 	DESCRIPTION(
@@ -3331,7 +3358,7 @@ md_data.push_back
 //=== ArrayOfSTRING =========================================================
 
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringWriteAscii"),
 	DESCRIPTION(
@@ -3369,7 +3396,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringReadAscii"),
 	DESCRIPTION(
@@ -3397,7 +3424,7 @@ md_data.push_back
 	TYPES(    String_t   )));
 
 #ifdef HDF_SUPPORT
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringWriteBinary"),
 	DESCRIPTION(
@@ -3420,7 +3447,7 @@ md_data.push_back
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfStringReadBinary"),
 	DESCRIPTION(
@@ -3452,7 +3479,7 @@ md_data.push_back
 
 //=== Spectroscopic methods ============================================
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lines_per_tgSetEmpty"),
 //   	DESCRIPTION
@@ -3470,7 +3497,7 @@ md_data.push_back
 // 	KEYWORDS(  ),
 // 	TYPES(    )));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lines_per_tgReadFromCatalogues"),
 //   	DESCRIPTION(
@@ -3529,7 +3556,7 @@ md_data.push_back
 // 	KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
 // 	TYPES(    Array_String_t, Array_String_t, Vector_t, Vector_t)));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("linesReadFromHitran"),
 //   	DESCRIPTION(
@@ -3551,7 +3578,7 @@ md_data.push_back
 // 	KEYWORDS( "filename",  "fmin",    "fmax"),
 // 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("linesReadFromMytran2"),
 //   	DESCRIPTION(
@@ -3573,7 +3600,7 @@ md_data.push_back
 // 	KEYWORDS( "filename",  "fmin",    "fmax"),
 // 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("linesReadFromJpl"),
 //   	DESCRIPTION(
@@ -3595,7 +3622,7 @@ md_data.push_back
 // 	KEYWORDS( "filename",  "fmin",    "fmax"),
 // 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("linesReadFromArts"),
 //   	DESCRIPTION(
@@ -3618,7 +3645,7 @@ md_data.push_back
 // 	TYPES(    String_t,    Numeric_t, Numeric_t)));
   
 //   // FIXME: Remove this one.
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("linesElowToJoule"),
 //   	DESCRIPTION(
@@ -3631,7 +3658,7 @@ md_data.push_back
 // 	KEYWORDS( ),
 // 	TYPES(    )));
       
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lines_per_tgCreateFromLines"),
 //   	DESCRIPTION(
@@ -3649,7 +3676,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lines_per_tgAddMirrorLines"),
 //   	DESCRIPTION(
@@ -3665,7 +3692,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lines_per_tgCompact"),
 //   	DESCRIPTION(
@@ -3680,7 +3707,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("linesWriteAscii"),
 //   	DESCRIPTION(
@@ -3702,7 +3729,7 @@ md_data.push_back
 // 	KEYWORDS( "filename" ),
 // 	TYPES(    String_t   )));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lines_per_tgWriteAscii"),
 //   	DESCRIPTION(
@@ -3729,7 +3756,7 @@ md_data.push_back
 // 	KEYWORDS( "filename" ),
 // 	TYPES(    String_t   )));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("tgsDefine"),
 //   	DESCRIPTION(
@@ -3770,7 +3797,7 @@ md_data.push_back
 // 	KEYWORDS( "tags" ),
 // 	TYPES(    Array_String_t   )));
   
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("tgsDefineAllInScenario"),
 //   	DESCRIPTION
@@ -3794,7 +3821,7 @@ md_data.push_back
 // 	KEYWORDS( "basename" ),
 // 	TYPES(    String_t   )));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lineshapeDefine"),
 //   	DESCRIPTION(
@@ -3849,7 +3876,7 @@ md_data.push_back
 // 	KEYWORDS(  "shape",    "normalizationfactor",  "cutoff" ),
 // 	TYPES(     String_t,        String_t,         Numeric_t )));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("lineshape_per_tgDefine"),
 //   	DESCRIPTION(
@@ -3907,7 +3934,7 @@ md_data.push_back
 
 // //=== Continuum methods ============================================
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("cont_descriptionInit"),
 //   	DESCRIPTION
@@ -3932,7 +3959,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("cont_descriptionAppend"),
 //   	DESCRIPTION
@@ -3967,7 +3994,7 @@ md_data.push_back
 
 //=== Input Atmosphere methods ===========================================
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("raw_vmrsReadFromFiles"),
 //         DESCRIPTION(
@@ -3995,7 +4022,7 @@ md_data.push_back
 //         KEYWORDS( "seltags",       "filenames",    "basename"),
 //         TYPES(    Array_String_t,  Array_String_t, String_t)));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("raw_vmrsReadFromScenario"),
 //   	DESCRIPTION(
@@ -4026,7 +4053,7 @@ md_data.push_back
 // 	KEYWORDS( "basename"           ),
 // 	TYPES(    String_t             )));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("AtmFromRaw"),
 //   	DESCRIPTION(
@@ -4051,7 +4078,7 @@ md_data.push_back
 // 	KEYWORDS(                             		 ),
 // 	TYPES(                          		 )));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("WaterVaporSaturationInClouds"),
 //   	DESCRIPTION(
@@ -4069,7 +4096,7 @@ md_data.push_back
 // 	KEYWORDS(                             		 ),
 // 	TYPES(                          		 )));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("vmrsScale"),
 // 	DESCRIPTION(
@@ -4088,7 +4115,7 @@ md_data.push_back
 // 	KEYWORDS( "scaltgs", "scalfac"),
 // 	TYPES( Array_String_t, Vector_t)));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("h2o_absSet"),
 // 	DESCRIPTION(
@@ -4109,7 +4136,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("n2_absSet"),
 // 	DESCRIPTION(
@@ -4129,7 +4156,7 @@ md_data.push_back
 
 // //=== Absorption methods ===============================================
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME( "absCalc" ),
 // 	DESCRIPTION(
@@ -4148,7 +4175,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("absCalcFromXsec"),
 // 	DESCRIPTION(
@@ -4175,7 +4202,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME( "xsec_per_tgInit" ),
 // 	DESCRIPTION(
@@ -4193,7 +4220,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("xsec_per_tgAddLines"),
 // 	DESCRIPTION(
@@ -4207,7 +4234,7 @@ md_data.push_back
 // 	KEYWORDS(),
 // 	TYPES()));
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("xsec_per_tgAddConts"),
 // 	DESCRIPTION(
@@ -4225,7 +4252,7 @@ md_data.push_back
 
 // //=== Methods operating on absorption ========================================
 
-//   md_data.push_back
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("abs_per_tgReduce"),
 // 	DESCRIPTION(

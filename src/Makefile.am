@@ -52,6 +52,8 @@ arts_SOURCES = \
 	m_rte.cc \
 	m_scatproperties.cc \
 	m_xml.cc \
+	m_clonesize.cc \
+	m_copy.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \
@@ -100,8 +102,8 @@ arts_SOURCES = \
 	lin_alg.h\
 	lin_alg.cc\
 	scatproperties.cc \
-	scatproperties.h
-
+	scatproperties.h \
+	supergeneric.h
 
 arts_DEPENDENCIES= \
 	auto_md.cc \

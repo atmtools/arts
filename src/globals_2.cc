@@ -41,7 +41,7 @@
 #include "wsv_aux.h"
 #include "methods.h"
 
-/** The workspace itself. */
+//! The workspace itself.
 WorkSpace workspace;
 
 
@@ -49,12 +49,28 @@ WorkSpace workspace;
 //--------------------< Methods Stuff >--------------------
 //                     ---------------
 
-/** The lookup information for the workspace methods. */
+//! Lookup information for workspace methods.
+/*!  
+  This is the original data, corresponding directly to what is in
+  methods.cc. Later, supergeneric methods are expanded for all groups
+  to produce md_data.
+ */
+Array<MdRecord> md_data_raw;
+
+//! Lookup information for workspace methods.
+/*!
+  This is the data with expanded supergeneric methods. That means,
+  e.g., instead of supergeneric method Copy(Any,Any) there will be
+  Copy(Vector,Vector), Copy(Matrix,Matrix), etc..
+ */
 Array<MdRecord> md_data;
 
-/** The map associated with md_data. */
+//! The map associated with md_data.
 std::map<String, Index> MdMap;
 
-/*! The map assiciated with agenda_data. */
+//! The map associated with md_data_raw.
+std::map<String, Index> MdRawMap;
+
+//! The map assiciated with agenda_data.
 std::map<String, Index> AgendaMap;
 

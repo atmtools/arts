@@ -30,6 +30,7 @@
 #include "arts.h"
 #include "array.h"
 #include "mystring.h"
+#include "supergeneric.h"
 #include "ppath.h"
 
 /*! The names associated with Wsv groups as Strings.
@@ -56,6 +57,7 @@ void define_wsv_group_names()
   // Initialize to empty, just in case.
   wsv_group_names.resize(0);
 
+  wsv_group_names.push_back("Any");
   wsv_group_names.push_back("Index");
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("String");

@@ -111,9 +111,7 @@ private:
 void parse_main(Agenda& tasklist, SourceText& text);
 
 void parse_agenda(Agenda& tasklist,
-		  SourceText& text,
-		  const std::map<String, Index> MdMap,
-		  const std::map<String, Index> WsvMap);
+		  SourceText& text);
 
 
 #endif
