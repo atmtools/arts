@@ -1,3 +1,11 @@
+2003-08-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-676
+
+	* src/legendre.cc (legendre_poly_deriv): Removed code from doxygen
+	header accidently pasted there before my last commit.
+	Reindented the file.
+
 2003-08-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-675
@@ -143,7 +151,6 @@
 	normalization and added this case to
 	(legendre_poly_deriv).
 	
->>>>>>> 1.1053
 2003-08-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-665
