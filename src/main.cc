@@ -697,12 +697,15 @@ int main (int argc, char **argv)
     {
       extern const String full_name;
       // Just print version information and then exit.
-      cerr << "This is " << full_name << 
+      cerr << "This is " << full_name
 #ifdef HDF_SUPPORT
-        " with HDF support." <<
+           << " with HDF support."
 #endif // HDF_SUPPORT
-        '\n' <<
-        "Compiled on " << OS_NAME << " " << OS_VERSION << '\n';
+           << '\n'
+           << "Compiled on " << OS_NAME << " " << OS_VERSION
+           << " with "
+           << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
+           << " precision." << endl;
       return(0);
     }
 
