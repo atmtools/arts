@@ -51,6 +51,7 @@
 #include "special_interp.h"
 #include "xml_io.h"
 #include "refraction.h"
+#include "m_general.h"
 
 extern const Numeric RAD2DEG;
 extern const Numeric DEG2RAD;
@@ -315,44 +316,6 @@ void ppath_stepRefractionEuler(
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
 }
-
-
-
-//! PpathPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
-void PpathPrint(
-        // WS Generic Input:
-        const Ppath&     ppath,
-        // WS Generic Input Names:
-        const String&    ppath_name )
-{
-  cout << "  The fields of *" << ppath_name <<"*:\n";
-  IndexPrint( ppath.dim, "dim" );
-  IndexPrint( ppath.np, "np" );
-  IndexPrint( ppath.refraction, "refraction" );
-  StringPrint( ppath.method, "method" );
-  NumericPrint( ppath.constant, "constant" );
-  MatrixPrint( ppath.pos, "pos" );
-  VectorPrint( ppath.z, "z" );
-  VectorPrint( ppath.l_step, "l_step" );
-  ArrayOfGridPosPrint( ppath.gp_p, "gp_p" );
-  if( ppath.dim >= 2 )
-    ArrayOfGridPosPrint( ppath.gp_lat, "gp_lat" );
-  if( ppath.dim == 3 )
-    ArrayOfGridPosPrint( ppath.gp_lon, "gp_lon" );
-  MatrixPrint( ppath.los, "los" );
-  StringPrint( ppath.background, "background" );
-  if( ppath.tan_pos.nelem() )
-    VectorPrint( ppath.tan_pos, "tan_pos" );
-  if( ppath.geom_tan_pos.nelem() )
-    VectorPrint( ppath.geom_tan_pos, "geom_tan_pos" );
-}
-
 
 
 //! sensor_posAddGeoidWGS84
