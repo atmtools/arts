@@ -53,6 +53,8 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "physics_funcs.h"
 #include "xml_io.h"
 #include "montecarlo.h"
+#include "rng.h"
+
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -374,7 +376,8 @@ void ScatteringMonteCarlo (
 			   const ArrayOfSingleScatteringData& scat_data_raw,
 			   const Tensor4& pnd_field,
 			    // Control Parameters:
-                          const Index& maxiter,
+			   const Index& maxiter,
+			   const Index& rng_seed,
 			   const Index& record_ppathcloud,
 			   const Index& record_ppath)
 
@@ -422,6 +425,10 @@ void ScatteringMonteCarlo (
   Vector K_abs(stokes_dim);
    I.resize(stokes_dim);
   Ierror.resize(stokes_dim);
+  Rng rng;
+
+  //if rng_seed is < 0, keep time based seed, otherwise...
+  if(rng_seed>=0){rng.seed(rng_seed);}
   
   Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, a_pos, a_los, cum_l_stepLOS, 
 		 TArrayLOS, ext_matArrayLOS, abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
@@ -478,7 +485,7 @@ void ScatteringMonteCarlo (
 	      Iboundary=y_rte(0,joker);
 	    }
 	  
-	  Sample_ppathlength (pathlength,g,ext_matArray);
+	  Sample_ppathlength (pathlength,g,rng,ext_matArray);
 	  //	  cout << "pathlength = " << pathlength << "\n";
 
 
@@ -518,7 +525,7 @@ void ScatteringMonteCarlo (
 		}
 	      mult(pathinc,Q,emissioncontri);
 	      pathI += pathinc;
-	      Sample_los(new_a_los);
+	      Sample_los(new_a_los,rng);
 	      //Calculate Phase matrix////////////////////////////////
 	      pha_mat_za_grid[0]=180-a_los[0];
 	      pha_mat_za_grid[1]=180-new_a_los[0];

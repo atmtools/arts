@@ -39,7 +39,6 @@
 
 
 
-
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -520,22 +519,19 @@ void interpTArray(Matrix& T,
    radiances.
 
    \param   a_los       Output: incident line of sight for subsequent ray-tracing.
-   
+   \param   rng         Rng random number generator instance
    \author Cory Davis
    \date   2003-06-19
 */
 
 		
 void Sample_los (
-		 Vector& a_los
+		 Vector& a_los,
+		 Rng& rng
 		 )
 {
-  const Numeric r1=(Numeric)rand()/(Numeric)RAND_MAX;
-  const Numeric r2=(Numeric)rand()/(Numeric)RAND_MAX;
-
-
-  a_los[0] = 180-RAD2DEG*acos(2*sqrt(r1)-1);
-  a_los[1] = r2*360-180;
+  a_los[0] = 180-RAD2DEG*acos(2*sqrt(rng.draw())-1);
+  a_los[1] = rng.draw()*360-180;
 }
 
 
@@ -551,6 +547,7 @@ void Sample_los (
 
    \param   ppathlength       Output: the pathlength.
    \param   g                 Output: the probability density of the returned pathlength.
+   \param   rng               Rng random number generator instance
    \param   ext_matArray      An array of extinction matrices along the line of sight.
    
    \author Cory Davis
@@ -559,10 +556,10 @@ void Sample_los (
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
+			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray
 			 )
 {		
-	Numeric r=(Numeric)rand()/(Numeric)RAND_MAX;
 	//Since we already have an array 
 	//of extinction matrix elements we could choos a number of ways
 	//to sample the pathlength.  To start with we'll try using the 
@@ -570,7 +567,7 @@ void Sample_ppathlength (
 	Matrix K = ext_matArray[0];
         Numeric K11 = K(0,0);
 	//	cout << "K11 = "<< K11 <<"\n";
-	pathlength = -log(r)/K11;
+	pathlength = -log(rng.draw())/K11;
 
         g=K11*exp(-pathlength*K11);	
 }		

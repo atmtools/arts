@@ -19,6 +19,7 @@
 #include "logic.h"
 #include "physics_funcs.h"
 #include "xml_io.h"
+#include "rng.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -121,12 +122,14 @@ void interpTArray(Matrix& T,
 		 );
 
 void Sample_los (
-		 Vector& a_los
+		 Vector& a_los,
+		 Rng& rng
 		 );
 
 void Sample_ppathlength (
 			 Numeric& pathlength, 
 			 Numeric& g,
+			 Rng& rng,
 			 const ArrayOfMatrix& ext_matArray
 			 );
 

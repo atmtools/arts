@@ -117,6 +117,8 @@ arts_SOURCES = \
 	physics_funcs.h \
 	refraction.h \
 	refraction.cc \
+	rng.cc \
+	rng.h \
 	rte.cc \
 	rte.h \
 	sensor.cc \
@@ -523,6 +525,8 @@ test_zeemanproperties_SOURCES = \
 	physics_funcs.h \
 	refraction.h \
 	refraction.cc \
+	rng.cc \
+	rng.h \
 	rte.cc \
 	rte.h \
 	sensor.cc \

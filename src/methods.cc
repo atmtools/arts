@@ -3116,7 +3116,8 @@ md_data_raw.push_back
 	 "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
 	 "enable the saving of internal and external ppath data for diagnostic purposes.\n"
 	 "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
-	 " max_iter\n"
+	 " max_iter.\n Negative values of rng_seed seed the random number generator \n "
+	 "according to system time, positive rng_seed values are taken literally.\n"
           ),
         OUTPUT(ppath_, ppath_step_, I_, Ierror_, a_pos_, a_los_,
 	       a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, ground_emission_,
@@ -3132,8 +3133,8 @@ md_data_raw.push_back
 	      scat_data_raw_, pnd_field_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("maxiter","record_ppathcloud","record_ppath" ),
-        TYPES( Index_t, Index_t, Index_t )));
+        KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath" ),
+        TYPES( Index_t, Index_t, Index_t, Index_t )));
 
  md_data_raw.push_back
     ( MdRecord
