@@ -49,7 +49,10 @@ EOF
 #\\footnotesize\\begin{verbatim}
                  INSIDE_DESC=yes
              else
-                 echo "$j\\vspace{1em}"
+                 echo "$j"
+                 cat << EOF
+\vspace{1em}
+EOF
              fi
              ;;
          "Types ="*)
@@ -61,7 +64,9 @@ EOF
              ;;
          *)
              if [ -z "$j" ]; then
-                 echo "\\vspace{1em}"
+                 cat << EOF
+\vspace{1em}
+EOF
              else
                  echo "\\noindent $j" \
                   | sed "s/_/\\\_/g" \
