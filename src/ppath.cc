@@ -4150,8 +4150,6 @@ void raytrace_2d_linear_euler(
   // Loop boolean
   bool ready = false;
 
-  throw runtime_error("3D with refraction is not yet working.");
-
   // Variables for output from do_gridcell_2d
   Vector   r_v, lat_v, za_v;
   double   lstep, dlat = 9999, r_new, lat_new;
@@ -4223,7 +4221,7 @@ void raytrace_2d_linear_euler(
           agenda_verb = 1;
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
-                                                    cos(za_rad) * dndlat / r );
+                                                        cos(za_rad) * dndlat );
 
           // Make sure that obtained *za* is inside valid range
           if( za < -180 )

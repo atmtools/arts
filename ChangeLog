@@ -1,3 +1,17 @@
+2003-03-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-490
+
+	* doc/uguide/ppath.tex: Completed description of Euler scheme for 
+	refraction. Added 3 new figures, showing properties of the refractive
+	index.
+
+	* src/ppath.cc (raytrace_2d_linear_euler): The bugs mentioned in last 
+	commit, were no bugs. It was late and I forgot that the scaling is
+	performed as part of the functions returning the gradients of the 
+	refractive index. The idea is that the gradient in all directions shall
+	have the same unit (the change of refractive index over 1 m). 
+
 2003-03-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-489

@@ -664,7 +664,7 @@ The latitude for a point (\funcindex{geomppath\_lat\_at\_za}) is most
 easily determined by its zenith angle \\
 
 \begin{equation}
-  \Lat(\ZntAng) = \aLat{0} + \ZntAng - \aZntAng{0} 
+  \Lat(\ZntAng) = \aLat{0} + \aZntAng{0} - \ZntAng
   \label{eq:ppath:za2lat}
 \end{equation}
 where \aZntAng{0} and \aLat{0} are the zenith angle and latitude of some 
@@ -1128,14 +1128,15 @@ The approach taken in \artsstyle{ppath\_stepRefractionEuler} is to
 take a geometrical step from the present point of the path (and in the
 direction of present line-of-sight) to determine the position of the
 next point to describe the path. Refraction is considered only when
-the line-of-sight at the new point is determined (Figure~[**]). The
-found line-of-sight is used to calculate path step etc. This can be
-seen as an Euler solution to the differential problem given by
-Equation~\ref{eq:ppath:refrbend}. The main difference between handling
-1D, 2D or 3D cases is how the line-of-sight for the new point is
-corrected to compensate for the bending due to refraction. The
-calculation of propagation paths including the effect of refraction is
-often denoted as \textindex{ray tracing}.
+the line-of-sight at the new point is determined
+(Figure~\ref{fig:ppath:euler}). The found line-of-sight is used to
+calculate path step etc. This can be seen as an Euler solution to the
+differential problem given by Equation~\ref{eq:ppath:refrbend}. The
+main difference between handling 1D, 2D or 3D cases is how the
+line-of-sight for the new point is corrected to compensate for the
+bending due to refraction. The calculation of propagation paths
+including the effect of refraction is often denoted as \textindex{ray
+  tracing}.
 
 The length of the calculation steps is set by the keyword
 \artsstyle{lraytrace}. This length shall not be confused with the
@@ -1157,6 +1158,25 @@ calculations.
 \levelc{1D}
 \label{sec:ppath:refr1D}
 %-----------------------
+\begin{figure}[!p]
+  \begin{center}
+    \includegraphics*{Figs/ppath/snell}
+    \caption{Geometry to derive Snell's law for a spherical atmosphere. }
+    \label{fig:ppath:snell} 
+  \end{center} 
+\end{figure}
+\begin{figure}[!p]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_N}
+  \caption{Vertical variation of refractivity $(n-1)\topowerten{6}$.
+     Calculated for a mid-latitude summer climatology (FASCODE), where
+     the dashed line is for a completely dry atmosphere, and the solid line
+     includes also contribution from water vapour.}
+  \label{fig:ppath:N}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_refraction
+
 When determining the propagation path through the atmosphere
 geometrical optics can be applied because the change of the refractive
 index over a wavelength can be neglected. Applying Snell's law to the
@@ -1164,13 +1184,6 @@ geometry shown in Figure \ref{fig:ppath:snell} gives
 \begin{equation}
   n_i \sin (\aZntAng{i}) = n_{i+1} \sin (\aZntAng{i'})
 \end{equation}
-\begin{figure}
-  \begin{center}
-    \includegraphics*{Figs/ppath/snell}
-    \caption{Geometry to derive Snell's law for a spherical atmosphere. }
-    \label{fig:ppath:snell} 
-  \end{center} 
-\end{figure}
 Using the same figure, the law of sines gives the relationship
 \begin{equation}
   \frac{\sin(\aZntAng{i+1})}{\aRds{i}} = 
@@ -1199,13 +1212,46 @@ rearrangement of Equation~\ref{eq:ppath:snellspherical} gives
 \end{equation}
 This relationship makes it possible to handle refraction for 1D
 without calculating any gradients of the refractive index, which is
-needed for 2D and 3D. These calculations are implemented in
-the function \funcindex{raytrace\_1d\_linear\_euler}.
+needed for 2D and 3D. These calculations are implemented in the
+function \funcindex{raytrace\_1d\_linear\_euler}.
+Figure~\ref{fig:ppath:N} shows the vertical variation of the
+refractive index.
+
+
+
 
 
 \levelc{2D}
 \label{sec:ppath:refr2D}
 %-----------------------
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.85\hsize]{Figs/ppath/ppath_dndr}
+  \caption{Vertical gradient of the refractive index.
+     Calculated for a mid-latitude summer climatology (FASCODE), where
+     the dashed line is for a completely dry atmosphere, and the solid line
+     includes also contribution from water vapour.}
+  \label{fig:ppath:dndr}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_refraction
+
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.85\hsize]{Figs/ppath/ppath_dndlat}
+  \caption{Latitude gradient of the refractive index due to varying radius 
+    of the geoid. The gradient is given as the change in refractive
+    index over 1~m, which allows direct comparison with the values in
+    the figure above. The wet atmosphere from Figure~\ref{fig:ppath:dndr}
+    was used for all latitudes, and the the plotted gradient is only
+    caused by the fact that the radius of the geoid is not constant.
+    The gradient is positive on the southern hemisphere (shown), and negative
+    on the northern hemisphere.}
+  \label{fig:ppath:dndlat}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_refraction
+
 Equation~\ref{eq:ppath:refrbend} expressed in polar coordinates
 is \citep[Eq. 9.30]{rodgers:00}
 \begin{equation}
@@ -1217,12 +1263,10 @@ is \citep[Eq. 9.30]{rodgers:00}
 If the gradients are zero (corresponding to the geometrical case) we
 find that the sum of the zenith angle and the latitude is constant
 along a 2D geometrical path, which is also made clear by
-Equation~\ref{eq:ppath:za2lat}.
-
-This fact is used when calculating the the zenith angle at the
-position after a ray tracing step. The latitude of the found
-point is kept, and the influence of refraction is considered to only
-influence the zenith angle:
+Equation~\ref{eq:ppath:za2lat}. The geometrical zenith angle at ray
+tracing point $i+1$ is accordingly $\aZntAng{i+1} = \aZntAng{i} -
+(\aLat{i+1}-\aLat{i})$. If then also the refraction is considered, we
+get the following expression:
 \begin{equation}
   \aZntAng{i+1} = \aZntAng{i} - (\aLat{i+1}-\aLat{i}) + \frac{l_g}{n_i}
    \left[
@@ -1232,10 +1276,16 @@ influence the zenith angle:
   \right]  
   \label{eq:ppath:za2d}
 \end{equation}
-This expression is found in \funcindex{raytrace\_2d\_linear\_euler}.
-The term including the gradients of the refractive index can be seen
-as a correction to the zenith angle that would have been obtained
-if refraction had been neglected.
+The gradients of the refractive index for 2D are calculated by the
+function \funcindex{refr\_gradients\_2d}. This function returns the
+gradients as the change of the refractive index over 1~m. The
+conversion for the latitude gradient corresponds to the $1/\Rds$ term
+found in Equation~\ref{eq:ppath:za2d}, and this term is accordingly
+left out in \funcindex{raytrace\_2d\_linear\_euler}, which is the
+function of this section. Figures~\ref{fig:ppath:dndr} and
+\ref{fig:ppath:dndlat} show example on gradients of the refractive index.
+
+
 
 
 \levelc{3D}
@@ -1243,32 +1293,40 @@ if refraction had been neglected.
 %----------------------
 For 3D, the expressions of Section~\ref{sec:ppath:3Dgeom} are used to
 calculate the geometrical zenith and azimuth angles at the end of the
-ray tracing step. To these angles, \aZntAng{g} and \aAzmAng{g},:
-
+ray tracing step. Following the methodology for 2D, the geometrical
+zenith and azimuth angles are then corrected to incorporate the
+influence of refraction. The zenith angle is calculated as
 \begin{eqnarray}
   \aZntAng{i+1} &=& \aZntAng{g} - \frac{l_g\sin\aZntAng{i}}{n_i} 
      \left( \frac{\PartD n}{\PartD \Rds} \right)_{(\aLat{i},\aLon{i})} + \\
-     & &  + \frac{l_g\cos\aZntAng{i}}{n_i}
+     & &  + \frac{l_g\cos\aZntAng{i}}{\aRds{i}n_i}
    \left[
      \cos\aAzmAng{i} 
           \left( \frac{\PartD n}{\PartD \Lat} \right)_{(\aRds{i},\aLon{i})}
-    +\sin\aAzmAng{i} 
+    +\frac{\sin\aAzmAng{i}}{\cos\aLat{i}} 
           \left( \frac{\PartD n}{\PartD \Lon} \right)_{(\aRds{i},\aLat{i})}
   \right]  \nonumber
   \label{eq:ppath:za3d} 
 \end{eqnarray}
-%  \aAzmAng{i+1} &=& \aAzmAng{g} + \frac{l_g}{n_i} \sin\aZntAng{i} 
-%   \left[
-%    -\sin\aAzmAng{i} 
-%          \left( \frac{\PartD n}{\PartD \Lat} \right)_{(\aRds{i},\aLon{i})}
-%    +\cos\aAzmAng{i} 
-%          \left( \frac{\PartD n}{\PartD \Lon} \right)_{(\aRds{i},\aLat{i})}
-%  \right]  
-%  \label{eq:ppath:aa3d} 
-%\end{eqnarray}
-
-
-\funcindex{raytrace\_3d\_linear\_euler}
+where \aZntAng{g} is the zenith angle obtained from the geometrical
+expressions. In similar manner, the geometrical azimuth angle,
+\aAzmAng{g}, is corrected as
+\begin{equation}
+  \aAzmAng{i+1} = \aAzmAng{g} + \frac{l_g\sin\aZntAng{i}}{r_in_i} 
+   \left[
+    -\sin\aAzmAng{i} 
+          \left( \frac{\PartD n}{\PartD \Lat} \right)_{(\aRds{i},\aLon{i})}
+    +\frac{\cos\aAzmAng{i}}{\cos\aLat{i}}
+          \left( \frac{\PartD n}{\PartD \Lon} \right)_{(\aRds{i},\aLat{i})}
+  \right]  
+  \label{eq:ppath:aa3d} 
+\end{equation}
+This expression, slightly modified, is found in
+\funcindex{raytrace\_3d\_linear\_euler}. The terms of
+Equation~\ref{eq:ppath:aa3d} missing in that function, are part of
+\funcindex{refr\_gradients\_3d} to convert the gradients to the same
+unit. The longitude gradient is converted to the unit [1/m] by
+multiplication with the term $1/(\Rds\cos\Lat)$.
 
 
 
