@@ -195,7 +195,6 @@ void ppathCalc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
-        const Tensor3&        t_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 
@@ -204,7 +203,7 @@ void ppathCalc(
         const Vector&         a_los )
 {
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-             p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid, z_ground, 
+             p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
                                cloudbox_on, cloudbox_limits, a_pos, a_los, 0 );
 }
 
@@ -560,7 +559,6 @@ void ZaSatOccultation(
         const Vector&           lat_grid,
         const Vector&           lon_grid,
         const Tensor3&          z_field,
-        const Tensor3&          t_field,
         const Matrix&           r_geoid,
         const Matrix&           z_ground,
         // WS Control Parameters:
@@ -580,8 +578,6 @@ void ZaSatOccultation(
   }
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid,
-                                                                    lon_grid );
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid,
                                                                     lon_grid );
   chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
   chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
@@ -612,7 +608,7 @@ void ZaSatOccultation(
   for ( i=0; i<za_ref.nelem(); i++ ) {
     Ppath ppath;
     ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim,
-                p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid,
+                p_grid, lat_grid, lon_grid, z_field, r_geoid,
                 z_ground, 0, ArrayOfIndex(0), Vector(1,r_recieve),
                 Vector(1,za_ref[i]), 0 );
     if ( ppath.tan_pos.nelem() != 0 ) {

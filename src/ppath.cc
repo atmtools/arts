@@ -6021,7 +6021,6 @@ void ppath_calc(
         const Vector&         lat_grid,
         const Vector&         lon_grid,
         const Tensor3&        z_field,
-        const Tensor3&        t_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
         const Index&          cloudbox_on, 

@@ -1,3 +1,15 @@
+2003-03-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-467
+
+	* doc/uguide/Figs/fm_definitions/mkfigs_atm_dims.m: Modified
+	this function. It now uses atmlab/arts/arts_plot_atmgrids.m.
+
+	* src/ppath.cc: Removed input argument t_field as it was no longer
+	used.
+
+	* src/m_ppath.cc (ZaSatOccultation): As above.
+
 2003-03-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-466

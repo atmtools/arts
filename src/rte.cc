@@ -716,10 +716,10 @@ void rte_calc(
 
               // Determine propagation path
               ppath_calc( ppath, ppath_step, ppath_step_agenda, 
-                              atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                              z_field, t_field, r_geoid, z_ground,
-                              cloudbox_on, cloudbox_limits, 
-                     sensor_pos(mblock_index,joker), los, agenda_verb );
+                          atmosphere_dim, p_grid, lat_grid, lon_grid, 
+                          z_field, r_geoid, z_ground,
+                          cloudbox_on, cloudbox_limits, 
+                          sensor_pos(mblock_index,joker), los, agenda_verb );
 
               // Determine the radiative background
               get_radiative_background( i_rte, ppath_step, 

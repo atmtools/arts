@@ -1,69 +1,53 @@
 function mkfigs_atm_dims
 
 
-%--- Define a 2D atmosphere
-
-dalpha      = 90; 
-nalpha      = 15;
-alpha_grid  = linspace( -dalpha/2, dalpha/2, nalpha );
-beta_grid   = [];
-r_geoid     = 50e3 + zeros( 1, nalpha );
-z_ground    = 2e3*ones( 1, nalpha );
-z_ground(3) = 1500;
-z_ground(5) = 2500;
-z_ground(10)= 1e3;
-z_ground(11)= 1e3;
-
-z_field(1,:,:) = repmat( 1e3:2e3:18e3, nalpha, 1 );
-for i = 1:nalpha
-  z_field(1,i,:) = z_field(1,i,:) - (i-1)*1e3/nalpha;
-end
- 
-cloudbox_on      = 1;
-cloudbox_limits  = [0 5];
-
-
+%--- 1D
+%
+dim      = 1;
+lat_grid = [45 135];
+lon_grid = [];
+z_field  = (1:18)';
+r_geoid  = 50;
+z_ground = 1.5;
+cb_lims  = [6 9];
+%
 figure(1)
-[h,ltext]=plot_atm_1d(dalpha,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits,1);
-for i = 1:size(z_field,3)
-  hp = plot( 0, (r_geoid(1,i)+z_field(1,1,i))/1e3, 'k.' );
-end
-nh = length(h)+1;
-h(nh) = hp;
-ltext{nh} = 'atmospheric field';
-hf = gca;
-hl = legend2(8,h,ltext); 
-legend boxoff 
-axis equal 
-hide_axes(hf);
-disp('Adjust the legend');
-pause;
+clf
+fit_to_paper( 'a5l' );
+[h,hs] = arts_plot_atmgrids( dim, lat_grid, lon_grid, z_field,...
+                                               r_geoid, z_ground, cb_lims, 1 );
+axes_frame( gca, 'off' )
 axis tight
+hl = legend( h, hs );
+disp('Adjust the legend');
+%pause;
 
 
+
+%--- 2D
+%
+nlat     = 16;
+%
+dim      = 2;
+lat_grid = linspace(45,135,nlat);
+lon_grid = [];
+z_field  = (1:18)'*ones(1,nlat);% - ones(18,1)*linspace(0,0.8,nlat);
+r_geoid  = 50 * ones(nlat,1);
+z_ground = 1.5 + 2*randn(nlat,1)
+cb_lims  = [6 9 8 13];
+%
 figure(2)
-%
-cloudbox_limits  = [3 5 4 10];
-%
-[h,ltext]=plot_atm_2d(alpha_grid,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits,1);
-for i = 1:size(z_field,3)
-  for j = 1:nalpha
-    [x1,y1] = cyl2cart( r_geoid(1,j)+z_field(1,j,i), alpha_grid(j) );
-    hp = plot( x1/1e3, y1/1e3, 'k.' );
-  end
-end
-nh = length(h)+1;
-h(nh) = hp;
-ltext{nh} = 'atmospheric field';
-hf = gca;
-hl = legend2(8,h,ltext); 
-legend boxoff 
-axis equal 
-hide_axes(hf);
-disp('Adjust the legend');
-pause;
+clf
+fit_to_paper( 'a5l' );
+[h,hs] = arts_plot_atmgrids( dim, lat_grid, lon_grid, z_field,...
+                                               r_geoid, z_ground, cb_lims, 1 );
+axes_frame( gca, 'off' )
 axis tight
+hl = legend( h, hs );
+disp('Adjust the legend');
+%pause;
 
+return
 
 if answer_is_yes('Print figures')
   print atm_dim_2d.eps -depsc
