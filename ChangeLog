@@ -1,3 +1,14 @@
+2003-04-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-523
+
+	* src/Makefile.am: Added a test_sensor sources group.
+
+	* src/test_sensor.cc: Added this for testing sensor modelling functions.
+
+	* src/sensor.{cc,h} (antenna_transfer_matrix): Changed to sparse matrix
+	representation.
+
 2003-04-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-522
@@ -13,7 +24,7 @@
 	transposing, muliplication with full matrix and multiplication
 	with sparse matrix.
 
-	* src/test_matpack.cc: Added function for testing sparse matrix 
+	* src/test_matpack.cc: Added function for testing sparse matrix
 	multiplication.
 
 2003-04-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>

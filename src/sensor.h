@@ -28,7 +28,7 @@
 
   \brief  Sensor modelling functions.
 
-   This file contains the definition of the functions in sensor.cc 
+   This file contains the definition of the functions in sensor.cc
    that are of interest elsewhere.
 */
 
@@ -37,12 +37,13 @@
 #define sensor_h
 
 
-#include "agenda_class.h"
-#include "array.h"
-#include "arts.h"
-#include "interpolation.h"
 #include "matpackI.h"
-#include "mystring.h"
+#include "matpackII.h"
+//#include "agenda_class.h"
+//#include "array.h"
+//#include "arts.h"
+//#include "interpolation.h"
+//#include "mystring.h"
 
 
 /*===========================================================================
@@ -56,16 +57,20 @@ void sensor_integration_vector(
       ConstVectorView   x_g );
 
 void antenna_transfer_matrix(
-           MatrixView   Hb,
+           SparseView   H,
       ConstVectorView   m_za,
-      ConstMatrixView   a,
+      ConstVectorView   a,
       ConstVectorView   x_a,
       ConstVectorView   x_f );
-      
+
 void antenna_diagram_gaussian(
            VectorView   a,
       ConstVectorView   theta_grid,
        const Numeric&   theta );
 
+Vector scale_antenna_diagram(
+      ConstVectorView   a,
+       const Numeric&   f_ref,
+       const Numeric&   f_new );
 
 #endif  // sensor_h

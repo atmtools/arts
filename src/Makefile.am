@@ -1,9 +1,9 @@
 # Copyright (C) 2000 Stefan Buehler <sbuehler@uni-bremen.de>
-#  
+#
 # This file is free software; as a special exception the author gives
-# unlimited permission to copy and/or distribute it, with or without 
+# unlimited permission to copy and/or distribute it, with or without
 # modifications, as long as this notice is preserved.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -172,6 +172,7 @@ noinst_PROGRAMS = \
 	test_linalg \
 	test_interpolation \
 	test_scatproperties\
+	test_sensor \
 	test_xml \
 	test_complex \
 	test_zeemanproperties
@@ -494,6 +495,17 @@ test_complex_SOURCES = \
 	complex.h \
 	complex.cc \
 	test_complex.cc
+
+test_sensor_SOURCES = \
+	arts.h \
+	constants.cc \
+	matpackI.h \
+	matpackI.cc \
+	matpackII.h \
+	matpackII.cc \
+	sensor.h \
+	sensor.cc \
+	test_sensor.cc
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.h \

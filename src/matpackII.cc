@@ -191,14 +191,14 @@ Sparse::Sparse()
 /** Constructor setting size.
 
     Elements *mdata and *mrowind have to grow later on, when we add
-    data element. But *mcolptr always has the dimenson of the number
+    data element. But *mcolptr always has the dimension of the number
     of columns of the matrix plus one, so it is allocated
     directly. 
 
     Why is there an extra element in *mcolptr? We store also the index
     *behind* the last element of the last column. Or in other words
     the starting index that the next column *would* have. This just
-    safes a litle time when computing indices. Also, this corresponds
+    safes a little time when computing indices. Also, this corresponds
     to the number of nonzero elements.
 */
 Sparse::Sparse(Index r, Index c) :
@@ -252,13 +252,13 @@ std::ostream& operator<<(std::ostream& os, const SparseView& v)
         {
           Index r = (*v.mrowind)[i];
 
-          // Now we know the true row r and column c. Convert to aparent r
+          // Now we know the true row r and column c. Convert to apparent r
           // and c using the Ranges mrr and mcr,
 
           Index ra = (r-v.mrr.mstart)/v.mrr.mstride;
           Index ca = (c-v.mcr.mstart)/v.mcr.mstride;
 
-          // Are the aparent row ra and column ca inside the active range?
+          // Are the apparent row ra and column ca inside the active range?
           if ( 0 <= ra &&
                ra < v.mrr.mextent &&
                0 <= ca &&
@@ -321,7 +321,7 @@ void mult( VectorView y,
           //Index ry = ra*y.mrange.mstride + y.mrange.mstart;
           //Index cx = ca*x.mrange.mstride + x.mrange.mstart;
 
-          // Are the aparent row ra and column ca inside the active range?
+          // Are the apparent row ra and column ca inside the active range?
           if ( 0 <= ra &&
                ra < M.mrr.mextent &&
                0 <= ca &&

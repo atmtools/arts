@@ -1,4 +1,4 @@
-/* Copyright (C)  Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C)  Mattias Ekström <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -31,14 +31,15 @@
   ===========================================================================*/
 
 #include <cmath>
-#include <stdexcept>
-#include "array.h"
-#include "auto_md.h"
-#include "check_input.h"
-#include "math_funcs.h"
-#include "messages.h"
-#include "mystring.h"
-//#include "logic.h"
+#include "matpackI.h"
+#include "matpackII.h"
+//#include <stdexcept>
+//#include "array.h"
+//#include "auto_md.h"
+//#include "check_input.h"
+//#include "math_funcs.h"
+//#include "messages.h"
+//#include "mystring.h"
 //#include "poly_roots.h"
 //#include "special_interp.h"
 
@@ -50,8 +51,8 @@
 
 //! sensor_integration_vector
 /*!
-   Calculates the (row) vector that multiplied that multiplied with an
-   unknown (column) vector approximates the integral of the product
+   Calculates the (row) vector that multiplied with an unknown
+   (column) vector approximates the integral of the product
    between the functions represented by the two vectors.
 
    E.g. h*g = integral( f(x)*g(x) dx )
@@ -71,6 +72,9 @@ void sensor_integration_vector(
       ConstVectorView   x_g )
 {
   //Check that vectors are sorted, ascending (no descending?)
+
+  //Assert that h has the right size
+  assert( h.nelem() == x_g.nelem() );
 
   //Find x_f points that lies outside the scope of x_g and remove them
   Index i1_f = 0, i2_f = x_ftot.nelem()-1;
@@ -149,8 +153,8 @@ void sensor_integration_vector(
 
 //! antenna_transfer_matrix
 /*!
-   Constructs the matrix that multiplied with the spectral values for
-   one or several line-of-sights models the antenna transfer matrix.
+   Constructs the sparse matrix that multiplied with the spectral values
+   for one or several line-of-sights models the antenna transfer matrix.
    The matrix it built up of spaced row vectors, to match the format
    of the spectral values.
 
@@ -162,67 +166,55 @@ void sensor_integration_vector(
    The number of line-of-sights is determined by the length of the
    measurement block grid. The number of antenna diagram columns and
    grid points must match, but they don't need to match the number
-   of frequency grid points. However, the antenna diagram row number
-   must either be equal to one, then we have the same response for all
-   frequencies, or it must equal the length of the frequency grid,
-   where we have different responses for each frequency.
+   of frequency grid points.
 
-   \param   Hb     The antenna transfer matrix.
+   FIXME: The antenna diagram values could be set up and scaled using the
+   antenna_diagram_gaussian and scale_antenna_diagram functions.
+
+   \param   H      The antenna transfer matrix.
    \param   m_za   The measurement block grid of zenith angles.
    \param   a      The antenna diagram values.
    \param   x_a    The antenna diagram grid points.
    \param   x_f    The frequency grid points.
 
    \author Mattias Ekström
-   \date   2003-03-06
+   \date   2003-04-09
 */
 void antenna_transfer_matrix(
-           MatrixView   Hb,
+           SparseView   H,
       ConstVectorView   m_za,
-      ConstMatrixView   a,
+      ConstVectorView   a,
       ConstVectorView   x_a,
       ConstVectorView   x_f )
 {
-  //FIXME: This part below could be exchanged with an interpolation to
-  //cover all cases:
-  //Check dimension of antenna diagram
-  Index di_a;
-  if ( a.nrows() == 1 ) {
-    //If a only contains one row, the we use the same antenna response
-    //for all frequencies
-    di_a = 0;
-  } else if ( a.nrows() == x_f.nelem() ) {
-    //If a has equally many rows as grid points in the frequency grid
-    //use the corresponding antenna diagram for each frequency.
-    di_a = 1;
-  } else {
-    //FIXME: Should this be an assert instead?
-    ostringstream os;
-    os << "The number of rows in the antenna diagram matrix must equal\n"
-       << "one or the length of the frequency grid.\n";
-    throw runtime_error(os.str());
+  //Assert that the transfer matrix has the right size
+  assert( H.nrows()==x_f.nelem() && H.ncols()==m_za.nelem()*x_f.nelem() );
+
+  //FIXME: Allocate a temporary vector to keep values before sorting them into the
+  //final sparse matrix
+  Vector temp(m_za.nelem()*x_f.nelem(), 0.0);
+
+  //Calculate the sensor integration vector and put values in the temp vector
+  //FIXME: Scale the antenna diagram?? If so, do it here.
+  for (Index i=0; i<x_f.nelem(); i++) {
+    sensor_integration_vector( temp[Range(i, m_za.nelem(), x_f.nelem())],
+      a[Range(joker)], x_a, m_za);
   }
 
-  //Assert that the transfer matrix has the right size, and set it to zero
-  assert( Hb.nrows()==x_f.nelem() && Hb.ncols()==m_za.nelem()*x_f.nelem() );
-  Hb = 0.0;
-
-  //Loop over frequencies to calculate the sensor intergration vector
-  //and put values in the antenna matrix.
-  Index i_a=0;
-  for (Index i=0; i<x_f.nelem(); i++) {
-    sensor_integration_vector( Hb(i, Range(i, m_za.nelem(), x_f.nelem())),
-      a(i_a, Range(joker)), x_a, m_za);
-
-    i_a += di_a;
+  //Copy values to the antenna matrix
+  for (Index j=0; j<m_za.nelem(); j++) {
+    for (Index i=0; i<x_f.nelem(); i++) {
+      if (temp[i+j*x_f.nelem()]!=0)
+        H.rw(i, i+j*x_f.nelem()) = temp[i+j*x_f.nelem()];
+    }
   }
 }
 
 //! antenna_diagram_gaussian
 /*!
-   Sets up an vector containing a standardized Gaussian antenna diagram,
-   described for a certain frequency. The function is called with the 
-   half-power beamwidth that determines the shape of the curve for the
+   Sets up an vector containing a standardised Gaussian antenna diagram,
+   described for a certain frequency. The function is called with the
+   half-power beam width that determines the shape of the curve for the
    reference frequency, and a grid that sets up the antenna diagram.
 
    \param   a       The antenna diagram vector.
@@ -251,14 +243,14 @@ void antenna_diagram_gaussian(
 
 //! scale_antenna_diagram
 /*!
-   Scales a Gaussian antenna diagram for a reference frequency to match 
+   Scales a Gaussian antenna diagram for a reference frequency to match
    the new frequency.
 
    \return          The scaled antenna diagram
    \param   a       The antenna diagram vector
    \param   f_ref   The reference frequency
    \param   f_new   The new frequency
-   
+
    \author Mattias Ekström
    \date   2003-03-11
 */
@@ -267,7 +259,7 @@ Vector scale_antenna_diagram(
          const Numeric&   f_ref,
          const Numeric&   f_new )
 {
-  //Initialize new vector
+  //Initialise new vector
   Vector a_new( a.nelem() );
 
   //Get scale factor
@@ -281,43 +273,3 @@ Vector scale_antenna_diagram(
   return a_new;
 }
 
-//! antenna_diagram_gaussian
-/*!
-   Sets up an matrix containing a standardized Gaussian antenna diagram.
-   Each row describes the diagram for a certain frequency at the
-   measurement block grid points.
-
-   \param   a      The antenna diagram matrix.
-   \param   m_za   The measurement block grid of zenith angles.
-   \param   f      The frequencys.
-   \param   alpha  The antenna efficiency typically between 0.9 and 1.4
-   \param   D      The antenna dimension
-
-   \author Mattias Ekström
-   \date   2003-03-07
-*/
-/*
-void antenna_diagram_gaussian(
-           MatrixView   a,
-      ConstVectorView   m_za,
-      ConstVectorView   f,
-       const Numeric&   alpha,
-       const Numeric&   D )
-{
-  //Assert that a has the right size
-  assert( a.nrows()==f.nelem() && a.ncols()==m_za.nelem() );
-
-  //Initialise variables
-  Numeric ln2 = log(2.0);
-
-  //Loop over frequencies and grid points to calculate antenna diagram
-  for (Index i=0; i<f.nelem(); i++) {
-    for (Index j=0; i<m_za.nelem(); j++) {
-      NumericPrint(i, "i");
-      NumericPrint(j, "j");
-      a(i,j)=exp(-4*ln2*pow(m_za[j]*DEG2RAD*D*f[i]/(alpha*SPEED_OF_LIGHT),2));
-    }
-  }
-
-}
-*/
