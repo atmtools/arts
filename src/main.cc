@@ -648,11 +648,6 @@ int main (int argc, char **argv)
         << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
         << " precision" << endl
         << "  "
-#ifndef HDF_SUPPORT
-        << "no "
-#endif
-        << "HDF support" << endl
-        << "  "
 #ifndef HAVE_MPI
         << "no "
 #endif
