@@ -136,8 +136,8 @@ void sensor_responseAntenna1D(// WS Output:
   Sparse antenna_response( f_grid.nelem(), n);
   antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
 
-  cout << "sensor_response (pre):\n" << sensor_response << "\n";
-  xml_write_to_file ("sensor_response.xml", sensor_response);
+  //cout << "sensor_response (pre):\n" << sensor_response << "\n";
+  //xml_write_to_file ("sensor_response.xml", sensor_response);
   Sparse sr_t( sensor_response.ncols(), sensor_response.nrows() );
   transpose( sr_t, sensor_response );
 
@@ -151,8 +151,8 @@ void sensor_responseAntenna1D(// WS Output:
        << "x" << sensor_response.ncols() << "\n";
 
   //cout << "antenna_response:\n" << antenna_response << "\n";
-  xml_write_to_file ("antenna_response.xml", antenna_response);
-  xml_write_to_file ("sensor_response_tmp.xml", sensor_response_tmp);
+  //xml_write_to_file ("antenna_response.xml", antenna_response);
+  //xml_write_to_file ("sensor_response_tmp.xml", sensor_response_tmp);
 }
 
 void sensor_responseBackend(// WS Output:

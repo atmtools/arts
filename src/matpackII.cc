@@ -537,20 +537,20 @@ void mult( SparseView A,
         Index i=beginBt, j=beginC;
         while ( j<endC && i<endBt ) {
           //cout<<"B("<<cBt<<","<<i<<")*C("<<j<<","<<cC<<")="<<Bt.ro(i,cBt)<<"*"<<C.ro(j,cC)<<"="<<Bt.ro(i,cBt)*C.ro(j,cC)<<endl;
-          cout <<"i="<<(*Bt.mrowind)[i]<<",j="<<(*C.mrowind)[j]<<",";
+          //cout <<"i="<<(*Bt.mrowind)[i]<<",j="<<(*C.mrowind)[j]<<",";
           if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
             i++;
-            cout << "i++,";
+            //cout << "i++,";
           } else if ((*C.mrowind)[j]<(*Bt.mrowind)[i]) {
             j++;
-            cout << "j++,";
+            //cout << "j++,";
           } else {
             tempA += (*Bt.mdata)[i] * (*C.mdata)[j];
             i++;
             j++;
           }
         }
-        cout << " tempA " << tempA << "\n";
+        //cout << " tempA " << tempA << "\n";
 
         //Did we get a sum?
         if (tempA!=0.0) {
