@@ -93,7 +93,7 @@ gsl_poly_complex_solve (const double *a, size_t n,
 
 
 int
-poly_root_solve (Vector &coeffs, Matrix &roots)
+poly_root_solve (Matrix &roots, Vector &coeffs)
 {
   Index a;
   double *c;
