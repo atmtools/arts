@@ -1,57 +1,13 @@
-%
-% To start the document, use
-%  \levela{...}
-% For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
-%
 \levela{The forward model: concepts, definitions and overview}
  \label{sec:fm_defs}
 
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
+
 \starthistory
-  020330 & Structure for the chapter fixed, and absorption, compulsory sensor 
-           variables and part of RTE sections written by Patrick Eriksson.\\
+  020330 & Sections on absorption, compulsory sensor variables and sketch 
+           of RTE written by Patrick Eriksson.\\
+  030306 & Finished the pieces above for present functionality of ARTS. \\
 \stophistory
 
-
-%
-% Symbol table, format:
-%  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
-%    ....
-%  \stopsymbols
-%
-%
-%\startsymbols
-%  \Ind           & \artsstyle{i}         & vector/matrix/tensor index        \\
-%  \aInd{\Lat}    & \artsstyle{i\_alpha}  & the \Ind:th latitude              \\
-%  \VctLng        & \artsstyle{n}         & vector length or size of matrix/tensor for a dimension \\
-%  \aVctLng{\Lat} & \artsstyle{n\_alpha}  & length of the latitude grid       \\
-%  $e_g$          & \artsstyle{e\_ground} & ground emissivity                 \\
-%  \Prs           & \artsstyle{p}         & pressure                          \\
-%  \PrsAlt        & \artsstyle{pz}        & pressure altitude                 \\
-%  \Rds           & \artsstyle{r}         & radius from the center of the coordinate system         \\
-%  \Tmp           & \artsstyle{t}         & temperature                       \\
-%  \Alt           & \artsstyle{z}         & geometrical altitude above the geoid \\
-%  \Planck        & \artsstyle{source}    & Planck function                   \\
-%  \Lat           & \artsstyle{alpha}     & latitude                          \\
-%  \Lon           & \artsstyle{beta}      & longitude                         \\
-%  \ZntAng        & \artsstyle{psi}       & zenith angle                      \\
-%  \AzmAng        & \artsstyle{omega}     & azimuth angle                   \\
-%  \MpiVct        & \artsstyle{mpi}       & vector with monochromatic pencil beam values \\
-%  \MsrVct        & \artsstyle{y}         & measurement vector                \\
-%  \SnsMtr        & \artsstyle{h}         & sensor and data reduction transfer matrix \\
-% \label{symtable:fm_defs}     
-%\stopsymbols
 
 
 
@@ -471,7 +427,8 @@ variables for the sensor that always must be specified are
 \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and
 \artsstyle{Hb}. These variables are presented separately below. The
 discussion of sensor workspace variables is continued in
-Section~\ref{sec:fm_defs:sensor2}. Section~\ref{sec:fm_defs:rte} gives
+Section~[**].%\ref{sec:fm_defs:sensor2}. 
+Section~\ref{sec:fm_defs:rte} gives
 further insights in how the sensor is treated in ARTS.
 
 
@@ -756,8 +713,8 @@ response. The matrix \artsstyle{Hb} can also cover other sensor
 characteristics and data reduction if the features of concern are
 common for all measurement blocks. If this is not the case, those
 features must be handled by the other existing transfer matrices or,
-by other means, as described in
-Section~\ref{sec:fm_defs:howtomeasseq}.
+by other means, as described in Section~[**].
+%\ref{sec:fm_defs:howtomeasseq}.
 
 The quantities $\aMpiVct{b}$ and $\MsrVct_{rte}$ do not include the
 effect of the sensor polarisation, they include all Stokes components.
@@ -792,7 +749,7 @@ monochromatic pencil beam intensities and the final representation of
 the measurements (where the total transformation can involve more
 steps than the multiplication with \artsstyle{Hb}), additional sensor
 variables must be introduced, as described in
-Section~\ref{sec:fm_defs:sensor2}.
+Section~[**]. %\ref{sec:fm_defs:sensor2}.
 
 
 
@@ -807,7 +764,7 @@ presentation assumes that the simulations deal with an emission
 measurement. Focus is put on emission measurements as ARTS is intended
 primarily for such observations. However, simulations of transmission
 measurements are also possible, which is discussed especially in
-Section~\ref{sec:fm_defs:trans_sim}.
+Section~[**].%\ref{sec:fm_defs:trans_sim}.
 
 
 \levelc{Calculation procedure}
@@ -841,7 +798,6 @@ Section~[**].
     \STATE{determine the radiation at the start of the propagation path}
     \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
     \STATE{call \artsstyle{rte\_agenda}}
-    \COMMENT{Algorithm \ref{alg:fm_defs:rte_agenda}}
     \STATE{copy \artsstyle{i\_rte} to correct part of \aMpiVct{b}}
    \ENDFOR
    \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
@@ -870,7 +826,8 @@ grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
 it is placed inside the atmosphere.  Points of ground reflections and
 tangent points are also included if such exist. More points can also
 be added to the propagation path, for example, by setting an upper
-limit for the distance along the path between the points.
+limit for the distance along the path between the points (see
+Figure~\ref{fig:fm_defs:ppath_ground}).
 
 \begin{figure}[!p]
  \begin{center}
@@ -1090,10 +1047,13 @@ emission from the ground $(\MpiVct_e)$ is stored in
 \artsstyle{ground\_emission}, the directions $l$ for which downward
 travelling intensities are given by \artsstyle{ground\_los}, and the
 reflection coefficients $(\mathbf{R})$ are stored in
-\artsstyle{ground\_refl\_coeffs}. Ground reflections and emission from
-the ground are discussed further in Section [**].
+\artsstyle{ground\_refl\_coeffs}. The slope of the ground is
+considered when calculating the specular direction of ground
+reflections, as shown in Figure~\ref{fig:fm_defs:ppath_ground}.
+Ground reflections and emission from the ground are discussed further
+in Section [**].
 
-\begin{figure}[!t]
+\begin{figure}[!p]
  \begin{center}
   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ground_refl}
   \caption{Schematic of Equation \ref{eq:fm_defs:groundrefl}.}
@@ -1101,24 +1061,19 @@ the ground are discussed further in Section [**].
  \end{center}
 \end{figure}
 
-
-%The slope of the ground is considered when calculating the specular
-%direction of ground reflections, as shown in
-%Figure~\ref{fig:fm_defs:ppath_cases2}.
-
-%\begin{figure}[!t]
-% \begin{center}
-%  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases2}
-%  \caption{The influence of a ground slope on the propagation path. The zenith
-%    angle of the sensor line-of-sight is the same for the two paths (but with
-%    different sign, which matters here as this is a 2D case), and the paths
-%    would have been symmetric around the latitude of the sensor without a 
-%    ground slope. The maximum path step length is here set to be a value
-%    equaling half the vertical distance between the two shown pressure
-%    surfaces.}
-%  \label{fig:fm_defs:ppath_cases2}
-% \end{center}
-%\end{figure}
+\begin{figure}[!p]
+ \begin{center}
+  \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_ground}
+  \caption{The influence of a ground slope on the propagation path. The zenith
+    angle of the sensor line-of-sight is the same for the two paths (but with
+    different sign, which matters here as this is a 2D case), and the paths
+    would have been symmetric around the latitude of the sensor without a 
+    ground slope. The maximum path step length is here set to be a value
+    equaling half the vertical distance between the two shown pressure
+    surfaces.}
+  \label{fig:fm_defs:ppath_ground}
+ \end{center}
+\end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
 
 
@@ -1145,11 +1100,11 @@ the ground are discussed further in Section [**].
 %%[* Discuss e.g. the relationship between \artsstyle{sensor\_los} and the block LOS grids. *]
 
 
-%\levelb{Scattering}
-%%==============================================================================
-%\label{sec:fm_defs:scattering}
+\levelb{Scattering}
+%==============================================================================
+\label{sec:fm_defs:scattering}
 
-%[ To be written. *]
+[ To be written. *]
 
 %[* Special quantities and considerations for scattering ... *]
 

@@ -41,6 +41,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "logic.h"
+#include "math_funcs.h"
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
@@ -372,10 +373,7 @@ void ground_specular_los(
 
       
       // Calculate LOS neglecting any tilt of the ground
-      if( a_los[0] >= 0 )
-        { los[0] = 180 - a_los[0]; }
-      else
-        { los[0] = -180 - a_los[0]; }
+      los[0] = sign( a_los[0] ) * 180 - a_los[0];
 
       // Interpolate to get radius for the ground at reflection point.
       const Numeric r_ground =

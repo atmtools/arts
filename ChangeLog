@@ -1,3 +1,28 @@
+2003-03-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-482
+
+	* src/rte.cc (ground_specular_los): Removed an if-statement by
+	instead using sign to seperate the cases of positive and negative
+	zenith angles for 2D.
+
+	* doc/uguide/introduction.tex: Removed some points in the the to
+	do list :-) , but there are still many things to fix :-( 
+
+	* doc/uguide/Figs/ppath/mkfigs_ppath.m: Created this file to generate 
+	figures to visualize the calculation of propagation paths.
+
+	Copied figures (with sligh editing) from ARTS-1 for Snells' law
+	for a spherical symmetry.
+
+	* doc/uguide/ppath.tex: Included the figures mentioned above and 
+	polished the old text. Started to write about refraction.
+
+	* doc/uguide/Figs/fm_definitions/mkfigs_ppath_cases.m: Recreated old
+	figure for ground reflections.
+
+	* doc/uguide/fm_definitions.tex: Improved text for ground reflections.
+
 2003-03-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-481

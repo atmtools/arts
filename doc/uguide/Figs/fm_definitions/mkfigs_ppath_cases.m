@@ -179,8 +179,71 @@ axis tight
 
 
 
+%--- Ground reflections
+%
+%- Define a 2D atmosphere
+%
+nz       = 2;
+nlat     = 5;
+dz       = 2;
+%
+dim      = 2;
+lat_grid = linspace(85,95,nlat);
+lon_grid = [];
+p_grid   = logspace( 5, 4, nz );
+z_field  = linspace( 0, dz, nz )' * ones(1,nlat);
+r_geoid  = 50 * ones(nlat,1);
+z_ground = zeros(nlat,1);  z_ground(nz+(-1:0)) = dz/2;
+cb_lims  = [];
+%
+figure(4)
+clf
+[h,hs] = arts_plot_atmgrids( dim, lat_grid, lon_grid, z_field,...
+                                               r_geoid, z_ground, cb_lims, 0 );
+axes_frame( gca, 'off' )
+hold on
+%
+%
+a_pos0 = [ 51.99 89.2 ];
+a_los0 = 140;
+%
+a_pos  = a_pos0;
+a_los  = a_los0;
+%
+P = plot_path( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
+                                      a_pos, a_los, 1, z_ground, cb_lims, 1 );
+%
+a_pos = P.pos(P.np,:);
+a_los = 180 - P.los(P.np,:);
+%
+plot_path( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
+                                      a_pos, a_los, 1, z_ground, cb_lims, 0 );
+a_pos  = a_pos0;
+a_los = -a_los0;
+%
+P = plot_path( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
+                                      a_pos, a_los, 1, z_ground, cb_lims, 1 );
+%
+a_pos = P.pos(P.np,:);
+%
+a_los = -180 - P.los(P.np,:);
+r     = interp1( lat_grid, r_geoid+z_ground, P.pos(P.np,2) );
+slope = -dz / 2 / ( lat_grid(2) - lat_grid(1) );
+tilt  = (180/pi)^2 * slope / r;
+a_los = a_los - 2 * tilt;
+%
+plot_path( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
+                                      a_pos, a_los, 1, z_ground, cb_lims, 0 );
+axis tight;
+
+
+
 
 if yes_or_no('Print figures')
+  print ppath_ground.eps -depsc
+  ! epstopdf ppath_ground.eps
+  ! rm ppath_ground.eps
+  figure(3)
   print ppath_badcases.eps -depsc
   ! epstopdf ppath_badcases.eps
   ! rm ppath_badcases.eps

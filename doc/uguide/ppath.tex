@@ -52,22 +52,54 @@ scattering inside the cloud box, as made clear from
 Figure~\ref{fig:scattering:averaging}.
 
 A full propagation path is stored in the workspace variable
-\wsvindex{ppath}, that is of the type \artsstyle{Ppath} (see next
-section). The paths are determined by calculating a number of path
-steps. A path step is the path from a point to the next crossing
-of either the pressure, latitude or longitude grid. There is one
-exception to this definition of a path step, and that is when there
-is an intersection with the ground, which ends the propagation
-path at that point. The starting point for the calculation of a path
-step is normally a grid crossing point, but can also be an arbitrary
-point inside the atmosphere, such as the sensor position. Only points
-inside the model atmosphere are handled. The path steps are stored in
-the workspace variable \wsvindex{ppath\_step}, that is of the same
-type as \artsstyle{ppath}. The path steps are calculated by an agenda
-called \wsvindex{ppath\_step\_agenda}. Example on methods that can
-be used in \artsstyle{ppath\_step\_agenda} are
-\artsstyle{ppath\_stepGeometric} and
-\artsstyle{ppath\_stepRefractionEuler}.
+\wsvindex{ppath}, that is of the type \artsstyle{Ppath} (see
+Section~\ref{sec:ppath:Ppath}). The paths are determined by
+calculating a number of path steps. A path step is the path from a
+point to the next crossing of either the pressure, latitude or
+longitude grid (Figure~\ref{fig:ppath:ex1}). There is one exception to
+this definition of a path step, and that is when there is an
+intersection with the ground, which ends the propagation path at that
+point. The starting point for the calculation of a path step is
+normally a grid crossing point, but can also be an arbitrary point
+inside the atmosphere, such as the sensor position. Only points inside
+the model atmosphere are handled. The path steps are stored in the
+workspace variable \wsvindex{ppath\_step}, that is of the same type as
+\artsstyle{ppath}. The path steps are calculated by an agenda called
+\wsvindex{ppath\_step\_agenda}. Example on methods that can be used in
+\artsstyle{ppath\_step\_agenda} are \artsstyle{ppath\_stepGeometric}
+and \artsstyle{ppath\_stepRefractionEuler}.
+
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_ex1}
+  \caption{Tracking of propagation paths. For legend, see 
+    Figure~\ref{fig:ppath:ex2}. The figure tries to visualize how the
+    calculations of propagation paths are performed from one grid cell
+    to next. In this example, the calculations start directly at the
+    sensor position $(\ast)$ as it placed inside the model
+    atmosphere. The circles give the points defining the propagation
+    path. Path points are always included at the crossings of the grid
+    cell boundaries. Such a point is then used as the starting point
+    for the calculations inside the next grid cell. }
+  \label{fig:ppath:ex1}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath
+
+\begin{figure}[!t]
+ \begin{center}
+   \includegraphics*[width=0.98\hsize]{Figs/ppath/ppath_ex2}
+  \caption{As Figure~\ref{fig:ppath:ex1}, but here has a length 
+    criterion, for the distance between the points defining the
+    propagation path, has also been applied, which results in that points
+    are added to the path inside the grid cells. The inclusion of the
+    tangent point is not a result of this length criterion, it is
+    always included among the path points.}
+  \label{fig:ppath:ex2}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath
+
 
 Propagation paths are calculated with the workspace method
 \wsmindex{ppathCalc}. The communication between this method and
@@ -110,7 +142,7 @@ propagation path at all crossings with the grids, tangent points and
 points of ground reflection. Additional points can be included in the
 propagation paths. For example, an upper distance between the points
 defining the path can be set for \artsstyle{ppath\_stepGeometric} by
-the keyword \artsstyle{lmax}.
+the keyword \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
 
 
 
@@ -336,12 +368,13 @@ For further details, see the code.
 
 Complete paths are not used when doing the scattering calculations
 inside the cloud box (at least for the scheme used so far), and
-\artsstyle{ppath\_calc} are not used here. The structure
-\wsvindex{ppath\_step} is instead set up inside the function calling
-\wsvindex{ppath\_step\_agenda}, which is a rather straightforward task
-as the calculations of path steps here always start at a pressure
-surface (1D) or at a crossing of the pressure, latitude and longitude
-grids (3D). See further Section~\ref{sec:scattering}.
+\artsstyle{ppath\_calc} is not involved in the calculations. The
+structure \wsvindex{ppath\_step} is instead set up inside the function
+calling \wsvindex{ppath\_step\_agenda}, which is a rather
+straightforward task as the calculations of path steps here always
+start at a pressure surface (1D) or at a crossing of the pressure,
+latitude and longitude grids (3D). See further
+Section~\ref{sec:scattering}.
 
 
 \levelc{Main functions for propagation path steps}
@@ -360,7 +393,7 @@ workspace methods. The variables to describe the atmosphere are
 compacted for 1D and 2D when handed over to atmospheric dimensionality
 specific sub-functions. For example, the variable in
 \artsstyle{ppath\_step\_geom\_2d} for the geoid radius is a vector,
-while the the workspace variable is a matrix.
+while the workspace variable is a matrix.
 
 \begin{algorithm}[!t]
  \begin{algorithmic}
@@ -410,19 +443,18 @@ section. For further details, see the code.
 \levelc{Numerical precision}
 %===================
 
-The aim here is not to make a complete discussion around
-the limited numerical accuracy, but just to point out some of the
-problems caused. We can start by noticing that the precision with
-which atmospheric positions can be given is about 0.5~m when the
-numeric type is \textindex{float} and 2\topowerten{-8}~m for
-\textindex{double} (assuming that the mantissa has 24 and 48 bits,
-respectively). The numbers given correspond to the change of the
-position for a change of 1 bit, in either radius, latitude and
-longitude. Already these numbers cause problems for the approach taken
-here to calculate propagation paths. For any path along the border of a
-grid cell, any rounding error in the wrong direction will move the
-position outside the grid cell, which could lead to inconsistencies
-leading to a crash of the code.
+The aim here is not to make a complete discussion around the limited
+numerical accuracy, but just to point out some of the problems caused.
+We can start by noticing that the precision with which atmospheric
+positions can be given is about 0.5~m when the numeric type is
+\textindex{float} and 2\topowerten{-8}~m for \textindex{double}
+(assuming that the mantissa has 24 and 48 bits, respectively). The
+numbers given correspond to the change of the position for a change of
+1 bit, in either radius, latitude and longitude. Already these numbers
+cause problems for the approach taken to calculate propagation paths.
+For any path along the border of a grid cell, any rounding error in
+the wrong direction will move the position outside the grid cell,
+which would lead to a crash of the code without countermeasures.
 
 The values above give the representation precision. The precision will
 be even poorer if a position is obtained by calculations as numerical
@@ -434,7 +466,7 @@ radius in the order of 6400~km. It was found that for calculations
 performed using only float as numeric type, could lead to
 displacements from the true position up to 10~m. It was first tried to
 hard-code double as the numerical type for the most critical passages
-of the calculations, but a total success what not achieved and some
+of the calculations, but a total success was not achieved and some
 code had to be duplicated (to be used with either the float or double
 option by if-statements for the pre-compiler) to avoid compiler
 warnings. A step further was then taken, and double is now hard-coded
@@ -453,13 +485,12 @@ arbitrary observation positions, but it is a standard case for 3D
 scattering calculations as the starting point for the calculations
 there is always a crossing point of the atmospheric grids. The
 solution to this problem is to introduce special treatment for such
-geometrical paths. For strictly vertical 2D and 3D paths, (a zenith
-angle of 0\degree or 180\degree) the latitude, and also longitude for
-3D, of the start and end points shall be identical. Paths in 3D with
-an azimuth angle of 0\degree or 180\degree have a constant longitude,
-the paths are in the north-south plane, and this should also then be
-valid for the longitude value of the start and end positions of the
-path step.
+geometrical paths. For strictly vertical 2D and 3D paths, the
+latitude, and also longitude for 3D, of the start and end points shall
+be identical. Paths in 3D with an azimuth angle of 0\degree or
+180\degree\ have a constant longitude; the paths are in the north-south
+plane, and this should also then be valid for the longitude value of
+the start and end positions of the path step.
 
 The variables connected to different problems associated with the
 numerical inaccuracy and singularity of mathematical expressions are
@@ -529,7 +560,7 @@ propagation path when refraction is neglected. The expressions deal
 only with propagation path inside a plane, where the latitude angle is
 the angular distance from an arbitrary point. This means that the
 expressions given here can be directly applied for 1D and 2D. Some of
-the expression are alos of interest for 3D. The ARTS method for making
+the expression are also of interest for 3D. The ARTS method for making
 the calculation of concern is given inside parenthesis above each
 equation, if not stated explicitly. A part of a geometrical
 propagation path is shown in Figure~\ref{fig:ppath:1d2dgeom}.
@@ -629,8 +660,9 @@ side of the tangent point. For example, for a 1D case, the part of the
 path between the tangent point and the sensor has zenith angles
 $90\degree < \aZntAng{a} \leq 180\degree$.
 
-The latitude for a point is most easily determined by its zenith angle \\
-(\funcindex{geomppath\_lat\_at\_za})
+The latitude for a point (\funcindex{geomppath\_lat\_at\_za}) is most 
+easily determined by its zenith angle \\
+
 \begin{equation}
   \Lat(\ZntAng) = \aLat{0} + \ZntAng - \aZntAng{0} 
   \label{eq:ppath:za2lat}
@@ -674,7 +706,7 @@ a sub-function for each dimensionality.
 %===================
 \label{sec:ppath:1Dgeom}
 
-Thcore function for this case is \funcindex{do\_gridrange\_1d}. The
+The core function for this case is \funcindex{do\_gridrange\_1d}. The
 lowest and highest radius value along the path step is first
 determined. If the line-of-sight is upwards ($\|\ZntAng| \leq
 90\degree$), then the start point of the step gives the lowest radius,
@@ -756,6 +788,22 @@ This equation is solved numerically with the root finding algorithm
 implemented in the function \funcindex{poly\_root\_solve}. Solutions of
 interest shall not be imaginary.
 
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_ex3}
+  \caption{Example on propagation path steps starting from a latitude end face 
+    (solid lines), or the lower pressure surface (dashed lines), to
+    all other grid cell faces. The distortion of the grid cell from
+    cylinder segment is highly exaggerated compared to a real case.
+    The relationship between vertical and horisontal size deviates
+    also from normal real cases.  Typical values for the vertical
+    extension is around 500~m, while the horisontal length is
+    normally $>$~10~km.}
+  \label{fig:ppath:ex3}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath
+
 Geometrical 2D propagation path steps are determined by
 \funcindex{do\_gridcell\_2d}. This function uses
 \artsstyle{psurface\_crossing\_2d} to calculate the latitude distance
@@ -763,7 +811,8 @@ to a crossing of the pressure surface below and above the present path
 point. If the closest crossing point with the pressure surfaces is
 outside the latitude range of the grid cell, it is the crossing of the
 path with the end latitude (in the viewing direction) that is of
-interest.
+interest (Figure~\ref{fig:ppath:ex3}).
+
 
 
 \levelc{3D}
@@ -779,7 +828,7 @@ of radii, which resulted in a high sensitivity to the numerical
 inaccuracy. It was found that the numerical problems made the created
 algorithm impossible to use in practice.
 Equation~\ref{eq:ppath:rcoss3Db} below is a reminiscence of that work.
-In addition, no good solution to the problem of finding the crossing
+In addition, no simple solution to the problem of finding the crossing
 with a tilted 3D pressure surface using the analytical expressions was
 found.
 
@@ -827,9 +876,10 @@ found.
  \label{alg:ppath:dogridcell3d}
 \end{algorithm}
 
-A simple trail-and-error algorithm was then tested
-(Algorithm~\ref{alg:ppath:dogridcell3d}). The main advantage of the
-algorithm is that a correction for the shift in position caused by the
+A straightforward trail-and-error algorithm was then tested
+(Algorithm~\ref{alg:ppath:dogridcell3d} and
+Figure~\ref{fig:ppath:3Dsearch}). The main advantage of the algorithm
+is that a correction for the shift in position caused by the
 transformations back and fourth to a cartesian coordinate system can
 be applied. The correction term assures that the position is not
 changed for a step of zero length, and is not moved outside the grid
@@ -863,7 +913,22 @@ and
 The functions performing these transformations are \funcindex{sph2cart} and
 \funcindex{cart2sph}.
 
-The first step to transforme a line-of-sight, given by the zenith
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_3Dsearch}
+  \caption{Schematic of Algorithm~\ref{alg:ppath:dogridcell3d}. The
+    figure shows two iterations of the algorith to search for the
+    total length of the path step. The asterisk $(\ast)$ gives the
+    start point for the calculations and the circles $(\circ)$ are the
+    final end points of the path step. The plus signs $(+)$ shows the
+    position of the different lengths tested during the iterations.}
+  \label{fig:ppath:3Dsearch}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_ppath
+
+
+The first step to transform a line-of-sight, given by the zenith
 ($\ZntAng$) and the azimuth ($\AzmAng$) angle, to cartesian
 coordinates is to determine the corresponding vector with unit length
 in the spherical coordinate system:
@@ -923,7 +988,7 @@ distance $l$ is then simply
   \label{eq:ppath:xdl}
 \end{equation}
 The cartesian viewing vector $[\DiffD x, \DiffD y, \DiffD z]^T$ is
-constant along a geomtrical path. The new position is
+constant along a geometrical path. The new position is
 converted to spherical coordinates by Equations
 \ref{eq:ppath:cart2sph} and the new spherical viewing vector is
 calculated as
@@ -945,13 +1010,14 @@ calculated as
  \end{array} \right]
  \label{eq:ppath:los2sph}
 \end{equation}
-which is converted to a zenith and azimutrh angle as
+which is converted to a zenith and azimuth angle as
 \begin{eqnarray}
   \ZntAng &=& \arccos(\DiffD \Rds) \nonumber  \\
-  \AzmAng &=& \arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), \qquad \DiffD\Lon >= 0 \\
-  \AzmAng &=& -\arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), \qquad \DiffD\Lon < 0 
-                                     \nonumber
- \label{eq:ppath:sph2cart}
+  \AzmAng &=& \arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), 
+                      \qquad \textrm{for} \quad \DiffD\Lon >= 0 \\
+  \AzmAng &=& -\arccos(\Rds\DiffD\Lat/\sin(\ZntAng)), 
+                      \qquad \textrm{for} \quad \DiffD\Lon < 0  \nonumber
+ \label{eq:ppath:conv2zaaa}
 \end{eqnarray}
 Special expressions must be used for positions at the north and south
 pole (see the code) as the azimuth angle has there a special
@@ -979,8 +1045,8 @@ system:
 where $(x,y,z)$ is the position of the sensor, $(\DiffD x,\DiffD
 y,\DiffD z)$ the sensor LOS, and $l$, \Lat\ and \Lon\ are the variables
 to be determined. The first step is to determine the distance $l$ to
-the entrance point, which is found by adding the square of all three
-equations, giving
+the exit point, which is found by adding the square of all three
+equations:
 \begin{equation}
   \Rds^2 = (x+l\DiffD x)^2 + (y+l\DiffD y)^2 + (z+l\DiffD z)^2
   \label{eq:ppath:rcoss3Db}
@@ -1000,6 +1066,64 @@ algorithms.\footnote{The expressions mentioned can be extracted from
 \levelb{Refraction with simple Euler scheme}
 %===================
 \label{sec:ppath:refreuler}
+
+
+  Refraction affects the radiative transfer in several ways. The
+  distance through a layer of a fixed vertical thickness will be
+  changed, and for a limb sounding observation the tangent point is
+  moved both vertically and horizontally. If the atmosphere is assumed
+  to be horizontally stratified, as done here (1D), a horizontal
+  displacement is of no importance but for 2D calculations this effect
+  must be considered. For limb sounding and a fixed zenith angle, the
+  tangent point is moved downwards compared to the pure geometrical
+  case, resulting in that inclusion of refraction in general gives
+  higher intensities. However, the LOS is still symmetric around
+  tangent and ground points.
+
+ \levelc{General theory}
+  \label{sec:ppath:reftheory}
+
+   When determining the LOS through the atmosphere geometrical optics 
+   can be applied because the change of the refractive index over a
+   wavelength can be neglected. Applying Snell's law to the geometry 
+   shown in Figure \ref{fig:los:snell} gives
+   \begin{equation}
+     n_i \sin (\theta_i) = n_{i+1} \sin (\theta_i')
+   \end{equation}
+   \begin{figure}
+    \begin{center}
+      \includegraphics*{Figs/ppath/snell}
+      \caption{Geometry to derive Snell's law for a spherical atmosphere. 
+               The Earth radius is $R_e$, the vertical
+               altitude $z$, the refractive index $n$ and the angle
+               between the LOS and the vector to the Earth center $\theta$.}
+      \label{fig:los:snell} 
+    \end{center} 
+  \end{figure}
+  Using the same figure, the law of sines gives the relationship
+  \begin{equation}
+    \frac{\sin(\theta_{i+1})}{R_e+z_i} = 
+    \frac{\sin(180^\circ-\theta_{i+1}')}{R_e+z_{i+1}} =
+    \frac{\sin(\theta_i')}{R_e+z_{i+1}} 
+  \end{equation}
+  By combining the two equations above, the Snell's law for a spherical
+  atmosphere (i.e. 1D) is derived \citep[e.g.][]{kyle:91,balluch:97}:
+  \begin{equation}
+    c = (R_e+z_i) n_i \sin(\theta_i) = (R_e+z_{i+1}) n_{i+1}\sin(\theta_{i+1}) 
+   \label{eq:los:snellspherical}
+  \end{equation}
+  where $c$ is a constant. With other words, the Snell's law for spherical
+  atmospheres states that the product of $n$, $(R_e+z)$ and $\sin(\theta)$ is
+  constant along the LOS.
+
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_refr1}
+  \caption{}
+  \label{fig:ppath:ppath_refr1}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_refraction
 
 
 
@@ -1147,6 +1271,16 @@ definitions on the zenith direction is proportional to the deviation
 between geocentric and geodetic latitude (Equation~\ref{eq:ppath:lats}).
 For an altitude of 100~km around $\Lat=45\degree$, the difference is
 about 350~m.
+
+
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.80\hsize]{Figs/ppath/wgs84_dz}
+  \caption{}
+  \label{fig:ppath:wgs84_dz}  
+ \end{center}
+\end{figure}
+% This figure was produced by the Matlab function mkfigs_geoid
 
 
 \levelc{Geodetic datums}

@@ -5197,7 +5197,7 @@ void ppath_start_stepping(
       // for later use.
       //
       bool      is_inside = false;   
-      double   rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
+      double    rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
       GridPos   gp_lat;
       Vector    itw(2);
       //
