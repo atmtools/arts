@@ -1,5 +1,12 @@
 2002-06-18  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-147
+
+	* src/methods_aux.cc: Removed default argument which is already
+	given in declaration.
+	
+2002-06-18  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-146
 
 	* src/methods.cc: Changed all md_data. to md_data_raw.
