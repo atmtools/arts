@@ -1,3 +1,16 @@
+2003-10-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-699
+
+	* src/ppath.cc (do_gridcell_3d): Added RTOL in the following statement:
+                  if( r_ground+RTOL >= rlow  &&  r_end <= r_ground+RTOL )
+                    { inside = false;   endface = 7; }
+	Without RTOL it did not work always if the ground is exactly on a 
+	pressure surface, and with O2. It did work if I just printed the
+	difference of the compared radii!
+
+	* src/workspace.cc: Removed a stray \ that caused a compiler warning. 
+
 2003-10-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-698

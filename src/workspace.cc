@@ -389,7 +389,7 @@ void define_wsv_data()
        "\n"
        "The variable *cloudbox_limits* is an array of index value with\n"
        "length twice *atmosphere_dim*. For each dimension there is a lower \n"
-       "limit and\ an upper limit. The order of the dimensions is as usual \n"
+       "limit and an upper limit. The order of the dimensions is as usual \n"
        "pressure, latitude and longitude. The upper limit index must be \n"
        "greater then the lower limit index. For example, \n"
        "*cloudbox_limits* = [0 5 4 11] means that cloud box extends between \n"

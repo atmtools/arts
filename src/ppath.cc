@@ -1734,7 +1734,7 @@ void do_gridcell_2d(
 
 //! do_gridcell_3d
 /*!
-   Calculates the geometrical path through a 2D grid cell.
+   Calculates the geometrical path through a 3D grid cell.
 
    The function determines the geometrical path from the given start
    point to the boundary of the grid cell. The face where the path
@@ -2026,7 +2026,7 @@ void do_gridcell_3d(
                                   rground15, rground35, rground36, rground16, 
                                                             lat_end, lon_end );
 
-                  if( r_ground >= rlow  &&  r_end < r_ground )
+                  if( r_ground+RTOL >= rlow  &&  r_end <= r_ground+RTOL )
                     { inside = false;   endface = 7; }
                 }
             }              
@@ -3260,9 +3260,9 @@ void ppath_start_3d(
   {
     // Radius of lower and upper pressure surface at the start position
     const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-				     r15a, r35a, r36a, r16a, lat_start, lon_start );
+				r15a, r35a, r36a, r16a, lat_start, lon_start );
     const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-				     r15b, r35b, r36b, r16b, lat_start, lon_start );
+			        r15b, r35b, r36b, r16b, lat_start, lon_start );
     if (abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL)
       { gridpos_force_end_fd( ppath.gp_p[imax] ); }
   }
