@@ -54,6 +54,8 @@
 #include "interpolation.h"
 #include "special_interp.h"
 
+extern const Numeric PI;
+
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -2029,18 +2031,25 @@ void ybatchMetProfiles(//Output
 		       Tensor4& pnd_field,
 		       Vector& y,
 		       Vector& p_grid,
+		       Matrix& sensor_los,
+		       Index& cloudbox_on,
+		       ArrayOfIndex& cloudbox_limits,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
-		       const ArrayOfSingleScatteringData& scat_data_raw,
 		       const String& met_profile_path,
-		       const ArrayOfString& met_profile_basenames,
 		       const Agenda& met_profile_calc_agenda,
 		       const Vector& f_grid,
+		       const Matrix& met_amsu_data,
+		       const Matrix& sensor_pos,
+		       const Matrix& r_geoid,
+		       const Vector& lat_grid,
+		       const Vector& lon_grid,
+		       const Index& atmosphere_dim,
 		       //Keyword
 		       const Index& nelem_p_grid)
 {
-  Index no_profiles = met_profile_basenames.nelem();
-  
+  Index no_profiles = met_amsu_data.nrows();
+  //Index no_profiles = met_profile_basenames.nelem();
   // The humidity data is stored as  an ArrayOfTensor3 whereas
   // vmr_field_raw is an ArrayOfArrayOfTensor3
   ArrayOfTensor3 vmr_field_h2o;
@@ -2055,35 +2064,82 @@ void ybatchMetProfiles(//Output
     {
       vmr_field_raw[i].resize(4);
     }
-
-  pnd_field_raw.resize(scat_data_raw.nelem());
-  pnd_field.resize(scat_data_raw.nelem(),p_grid.nelem(), 1,1);
+ 
+  //BEWARE !!!! Only one particle type considered!!!!!!!!!
+  pnd_field_raw.resize(1);
+  pnd_field.resize(1,p_grid.nelem(), 1,1);
 
   y.resize(f_grid.nelem());
   ybatch.resize(no_profiles, f_grid.nelem());
   
+  Vector sat_za_from_profile;
+  sat_za_from_profile = met_amsu_data(Range(joker),3);
+  Numeric sat_za;
+  
+  sensor_los.resize(1,1);
+  
+  
+  Vector lat, lon;
+  lat = met_amsu_data(Range(joker),0);
+  lon = met_amsu_data(Range(joker),1);
+  
   for (Index i = 0; i < no_profiles; ++ i)
     {
+      ostringstream lat_os, lon_os;
+      Index lat_prec = 3;
+      if(lat[i] < 0) lat_prec--;
+      if(abs(lat[i])>=10 )
+	{
+	  lat_prec--;
+	  if(abs(lat[i])>=100 ) lat_prec--;
+	}
+      lat_os<<showpoint<<fixed<<setprecision(lat_prec)<<lat[i];
+      
+      Index lon_prec = 4;
+      if(lon[i] < 0) lon_prec--;
+      if(abs(lon[i])>=10 )
+	{
+	  lon_prec--;
+	  if(abs(lon[i])>=100 ) lon_prec--;
+	}
+      lon_os<<showpoint<<fixed<<setprecision(lon_prec)<<lon[i];
+      cout<<lat_os.str()<<endl;
+      cout<<lon_os.str()<<endl;
+      sat_za = sat_za_from_profile[i];
+      
+      sensor_los(Range(joker),0) = 
+      	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
+      cout<<"sensor_los"<<sat_za_from_profile[i]<<endl;
+      cout<<"sensor_los"<<sat_za<<endl;
+      cout<<"sensor_los"<<sensor_los<<endl;
       //Reads the t_field_raw from file
-      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".t.xml",
+      
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".t.xml",
 			 t_field_raw);
-
       //Reads the z_field_raw from file
-      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".z.xml",
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()  + ".z.xml",
 			 z_field_raw);
-
+      
       //Reads the humidity from file - it is only an ArrayofTensor3
       // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
       // array is for species
-      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".H2O.xml", 
-			 vmr_field_h2o);
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
+       			 vmr_field_h2o);
       
-      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".pnd_raw.xml", 
-			 pnd_field_here);
+      xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd_raw.xml", 
+       			 pnd_field_here);
+      cout << "--------------------------------------------------------------------------"<<endl;
+      cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
+      cout << "--------------------------------------------------------------------------"<<endl; 
+      xml_write_to_file("profile_number.xml",  i);
+      // the first element of the species is water vapour. 
+ 
+      // N_p is the number of elements in the pressure grid
 
-      // the first element of the species is water vapour.  
+      Index N_p = t_field_raw[0].npages();
+       
       vmr_field_raw[0] = vmr_field_h2o;
-
+      
       // the second element of the species.  the first 3 Tensors in the
       //array are the same .  They are pressure grid, latitude grid and
       // longitude grid.  The third tensor which is the vmr is set to a 
@@ -2111,19 +2167,84 @@ void ybatchMetProfiles(//Output
       //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
       //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
 
+      Index level_counter = 0;
+      Numeric cl_grid_min, cl_grid_max;
+      for (Index ip = 0; ip< N_p; ++ip)
+ 	{
+	  if(pnd_field_here[3](ip, 0, 0) != 0.0) 
+	    {
+	      ++level_counter;
+	      if(level_counter == 1)
+		{
+		  cl_grid_min = t_field_raw[0](ip, 0, 0);
+		}
+	      cl_grid_max = t_field_raw[0](ip, 0, 0);
+	    }
+	}
+      cout<<"maximum"<< cl_grid_max<<endl;
+      cout<<"minimum"<< cl_grid_min<<endl;
+
       pnd_field_raw[0] = pnd_field_here;
      
       //Making a p_grid with the first and last element taken from the profile.
       // this is because of the extrapolation problem.
-
-      Index N_p = t_field_raw[0].npages();
       
       VectorNLogSpace(p_grid, 
 		      "p_grid", 
 		      t_field_raw[0](0,0,0), 
 		      t_field_raw[0](N_p -1,0,0), 
 		      100);
+      cout<<"t_field_raw[0](0,0,0)"<<t_field_raw[0](0,0,0)<<endl;
+      cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw[0](N_p -1,0,0)<<endl;
+      xml_write_to_file("p_grid.xml", p_grid);
+      cloudbox_limits.resize( atmosphere_dim*2 );
+      if(level_counter == 0)
+	{
+	  cl_grid_min = p_grid[10];
+	  cl_grid_max = p_grid[11];
+	  CloudboxSetManually(cloudbox_on, 
+			      cloudbox_limits,
+			      atmosphere_dim,
+			      p_grid,
+			      lat_grid,
+			      lon_grid,
+			      cl_grid_min,
+			      cl_grid_max,
+			      0,0,0,0);
+	}
+      else
+	{
+	  
+	  if(cl_grid_min >= p_grid[1])
+	    {
+	       cout<<"Did it reache here"<<endl;
+	       cl_grid_min = p_grid[1];
+	      if(cl_grid_max >= p_grid[1])
+		{
+		  cl_grid_max = p_grid[2];
+		}
+	    }
 
+	  if(cl_grid_min == cl_grid_max)
+	    {
+	      --cl_grid_max;
+	    }
+	  
+	  CloudboxSetManually(cloudbox_on, 
+			      cloudbox_limits,
+			      atmosphere_dim,
+			      p_grid,
+			      lat_grid,
+			      lon_grid,
+			      cl_grid_min,
+			      cl_grid_max,
+			      0,0,0,0);
+	  
+	}
+      cout<<"maximum"<< cl_grid_max<<endl;
+      cout<<"minimum"<< cl_grid_min<<endl;
+      cout<<"cloudbox limit[0]"<<" "<<cloudbox_limits[0]<<endl;
+      cout<<"cloudbox limit[1]"<<" "<<cloudbox_limits[1]<<endl;
       // executing the met_profile_calc_agenda
       met_profile_calc_agenda.execute();
       

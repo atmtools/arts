@@ -1,3 +1,26 @@
+2003-05-16  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-544
+	
+	* src/m_cloudbox.cc (ybatchMetProfiles):  Modified the method.  The
+	input to this method is now the AMSU datafile which has
+	information about latitude, longitude, satellite zenith angle.
+	The corresponding workspace variable is *met_amsu_data* which is a
+	matrix.  The method reads the profiles corresponding to the
+	lat-lon.  It now uses the correct *sensor_los* from the satellite
+	zenith angle.  It also sets the cloudbox from the profiles.
+	The workspace variable *met_profile_basenames* is
+	removed.
+
+	* src/m_scatrte.cc : Modifications in the method
+	*i_fieldUpdate1D_PlaneParallel* .
+		
+	* src/methods.cc: Modified the interface to the method
+	*ybatchMetProfiles*.  
+
+	* src/workspace.cc : Added the new workspace variables
+	*met_amsu_data* and *met_profile_path*.
+
 2003-05-16  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-543

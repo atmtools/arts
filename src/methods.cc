@@ -3728,8 +3728,10 @@ md_data_raw.push_back
         (
          "This method is used for simulating ARTS for metoffice model fields"
          "\n"
-	 "This method loops over *met_profile_basenames* which contains the\n"
-	 "basenames of the metoffice profile files as an ArrayOfString.\n"
+	 "This method reads in *met_amsu_data* which contains the\n"
+	 "lat-lon of the metoffice profile files as a Matrix. It then \n"
+	 "loops over the number of profiles and corresponding to each \n"
+	 "longitude create the appropriate profile basename. Then, \n"
 	 "Corresponding to each basename we have temperature field, altitude\n"
 	 "field, humidity field and particle number density field.  The\n"
 	 "temperature field and altitude field are stored in the same dimensions\n"
@@ -3742,11 +3744,16 @@ md_data_raw.push_back
 	 "method.  See documentation of WSM *met_profile_calc_agenda* for more\n"
 	 "information on this agenda.  \n"
 	 "\n"
+	 "The method also converts satellite zenith angle to appropriate \n"
+	 "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
+	 "from the profiles inside the function\n"
 	 ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-		pnd_field_raw_,	pnd_field_, y_, p_grid_),
-        INPUT(gas_species_, scat_data_raw_, met_profile_path_, met_profile_basenames_,
-	      met_profile_calc_agenda_, f_grid_),
+		pnd_field_raw_,	pnd_field_, y_, p_grid_, sensor_los_,
+		cloudbox_on_, cloudbox_limits_),
+        INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
+	      f_grid_, met_amsu_data_, sensor_pos_, r_geoid_, lat_grid_, 
+	      lon_grid_, atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("nelem_p_grid"),

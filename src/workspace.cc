@@ -1229,6 +1229,24 @@ void define_wsv_data()
        ),
       GROUP( Numeric_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "met_amsu_data" ),
+      DESCRIPTION
+      (
+       "The AMSU data set.\n"
+       "\n"
+       "This is intended as input for the method ybatchMetProfiles. It holds the\n"
+       "latitude, longitude, satellite zenith angle and amsu-b corrected and \n"
+       "uncorrected brightness temperatures.  It also has information about \n"
+       "the particular pixel corresponds to a land or sea point.  This will be \n"
+       "read in the method ybatchMetProfiles and the profiles corresponding to \n"
+       "each latitude and longitude will be read in.\n"
+       "\n"
+       "See documentation of WSM *ybatchMetProfiles* for more information."
+       ),
+      GROUP( Matrix_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "met_profile_basenames" ),
@@ -1245,7 +1263,7 @@ void define_wsv_data()
        ),
       GROUP( ArrayOfString_ )));
 
-wsv_data.push_back
+ wsv_data.push_back
    (WsvRecord
     ( NAME( "met_profile_path" ),
       DESCRIPTION
