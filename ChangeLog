@@ -1,4 +1,12 @@
 2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
+	
+	* arts-0-0-239
+	
+	* src/Makefile.am (species_data.o): Added dependencies.
+	(methods.o): Added dependencies.
+
+	
+2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-238
 	
