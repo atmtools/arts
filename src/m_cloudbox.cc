@@ -1755,7 +1755,7 @@ void CloudboxGetIncoming(
 
       if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa-1] != 360. )
         throw runtime_error(
-                 "*scat_aa_grid* must include 0° and 360° as endpoints." );
+                     "*scat_aa_grid* must include 0° and 360° as endpoints." );
 
       Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
@@ -1802,13 +1802,20 @@ void CloudboxGetIncoming(
                       los[0] = scat_za_grid[scat_za_index];
                       los[1] = aa_grid[scat_aa_index];
                       
-                      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                      // For end points of scat_za_index, we need only to
+                      // perform calculations for first scat_aa
+                      if( !( ( scat_za_index == 0  ||  
+                               scat_za_index == (Nza-1) )  &&  
+                             scat_aa_index == 0 ) )
+                        {
+                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
+                        }
 
                       scat_i_p( joker, 0, lat_index, lon_index, 
                                 scat_za_index, scat_aa_index, joker) = iy;
@@ -1840,13 +1847,20 @@ void CloudboxGetIncoming(
                       los[0] = scat_za_grid[scat_za_index];
                       los[1] = aa_grid[scat_aa_index];
                       
-                      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                      // For end points of scat_za_index, we need only to
+                      // perform calculations for first scat_aa
+                      if( !( ( scat_za_index == 0  ||  
+                               scat_za_index == (Nza-1) )  &&  
+                             scat_aa_index == 0 ) )
+                        {
+                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
+                        }
 
                       scat_i_p( joker, 1, lat_index, lon_index, 
                                 scat_za_index, scat_aa_index, joker) = iy;
@@ -1878,13 +1892,20 @@ void CloudboxGetIncoming(
                       los[0] = scat_za_grid[scat_za_index];
                       los[1] = aa_grid[scat_aa_index];
                       
-                      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                      // For end points of scat_za_index, we need only to
+                      // perform calculations for first scat_aa
+                      if( !( ( scat_za_index == 0  ||  
+                               scat_za_index == (Nza-1) )  &&  
+                             scat_aa_index == 0 ) )
+                        {
+                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
+                        }
 
                       scat_i_lat( joker, p_index, 0, lon_index,
                                   scat_za_index, scat_aa_index, joker) = iy;
@@ -1916,13 +1937,20 @@ void CloudboxGetIncoming(
                       los[0] = scat_za_grid[scat_za_index];
                       los[1] = aa_grid[scat_aa_index];
                       
-                      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                      // For end points of scat_za_index, we need only to
+                      // perform calculations for first scat_aa
+                      if( !( ( scat_za_index == 0  ||  
+                               scat_za_index == (Nza-1) )  &&  
+                             scat_aa_index == 0 ) )
+                        {
+                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
+                        }
 
                       scat_i_lat( joker, p_index, 1, lon_index, 
                                   scat_za_index, scat_aa_index, joker) = iy;
@@ -1954,13 +1982,20 @@ void CloudboxGetIncoming(
                       los[0] = scat_za_grid[scat_za_index];
                       los[1] = aa_grid[scat_aa_index];
                       
-                      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                      // For end points of scat_za_index, we need only to
+                      // perform calculations for first scat_aa
+                      if( !( ( scat_za_index == 0  ||  
+                               scat_za_index == (Nza-1) )  &&  
+                             scat_aa_index == 0 ) )
+                        {
+                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
+                        }
 
                       scat_i_lon( joker, p_index, lat_index, 0, 
                                   scat_za_index, scat_aa_index, joker) = iy;
@@ -1992,13 +2027,20 @@ void CloudboxGetIncoming(
                       los[0] = scat_za_grid[scat_za_index];
                       los[1] = aa_grid[scat_aa_index];
                       
-                      iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
+                      // For end points of scat_za_index, we need only to
+                      // perform calculations for first scat_aa
+                      if( !( ( scat_za_index == 0  ||  
+                               scat_za_index == (Nza-1) )  &&  
+                             scat_aa_index == 0 ) )
+                        {
+                          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, 
                           rte_gp_lat, rte_gp_lon, rte_los, ppath_step_agenda, 
                           rte_agenda, iy_space_agenda, iy_surface_agenda, 
                           iy_cloudbox_agenda,  atmosphere_dim, p_grid, 
                           lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                           cloudbox_on_dummy,  cloudbox_limits, 
                           pos, los, f_grid, stokes_dim, agenda_verb );
+                        }
 
                       scat_i_lon( joker, p_index, lat_index, 1, 
                                   scat_za_index, scat_aa_index, joker) = iy;

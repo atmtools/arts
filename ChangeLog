@@ -1,3 +1,16 @@
+2004-09-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-886
+
+	* src/cloudbox.cc (iy_interp_cloudbox_field): Complete code for 3D
+	added, but no practical tests.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Put in if statement to
+	only make calculations for first azimuth angle for za = 0 and 180,
+	and use that result for all azimuth angles. This is possible as
+	all azimuth angles give the same result, and accordingly some time
+	is saved. This only for 3D, of course.
+
 2004-09-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-885

@@ -741,9 +741,6 @@ void iy_interp_cloudbox_field(
       Vector itw(2);
       interpweights( itw, gp );
 
-      // Pressure index in *scat_i_p*
-      const Index   ip = border;
-
       if( interpmeth == "linear" )
         {
           for(Index is = 0; is < stokes_dim; is++ )
@@ -751,7 +748,8 @@ void iy_interp_cloudbox_field(
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp( itw, 
-                                 scat_i_p( iv, ip, 0, 0, joker, 0, is ) , gp );
+                                    scat_i_p( iv, border, 0, 0, joker, 0, is ),
+                                      gp );
                 }
             }
         }
@@ -762,7 +760,8 @@ void iy_interp_cloudbox_field(
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp_cubic( itw, 
-                     scat_i_p( iv, ip, 0, 0, joker, 0, is ) , rte_los[0], gp );
+                       scat_i_p( iv, border, 0, 0, joker, 0, is ) , rte_los[0],
+                                            gp );
                 }
             }
         }
@@ -788,7 +787,83 @@ void iy_interp_cloudbox_field(
       out3 << "       zenith angle : " << rte_los[0] << "\n";
       out3 << "       azimuth angle: " << rte_los[1]+180 << "\n";
 
-      cout << scat_aa_grid;
+      
+      // Scattering angle grid positions
+      GridPos gp_za, gp_aa;
+      gridpos( gp_za, scat_za_grid, rte_los[0] );
+      gridpos( gp_aa, scat_aa_grid, rte_los[1]+180 );
+
+      // Interpolation weights (for 4D "red" interpolation)
+      Vector   itw(16);
+
+      // Outgoing from pressure surface
+      if( border <= 1 )
+        {
+          // Lat and lon grid positions with respect to cloud box 
+          GridPos cb_gp_lat, cb_gp_lon;
+          cb_gp_lat      = rte_gp_lat;
+          cb_gp_lon      = rte_gp_lon;
+          cb_gp_lat.idx -= cloudbox_limits[2];
+          cb_gp_lon.idx -= cloudbox_limits[4]; 
+          
+          interpweights( itw, cb_gp_lat, cb_gp_lon, gp_za, gp_aa );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            {
+              for(Index iv = 0; iv < nf; iv++ )
+                {
+                  iy(iv,is) = interp( itw, 
+                        scat_i_p( iv, border, joker, joker, joker, joker, is ),
+                                      cb_gp_lat, cb_gp_lon, gp_za, gp_aa );
+                }
+            }
+        }
+
+      // Outgoing from latitude surface
+      else if( border <= 3 )
+        {
+          // Pressure and lon grid positions with respect to cloud box 
+          GridPos cb_gp_p, cb_gp_lon;
+          cb_gp_p        = rte_gp_p;
+          cb_gp_lon      = rte_gp_lon;
+          cb_gp_p.idx   -= cloudbox_limits[0];
+          cb_gp_lon.idx -= cloudbox_limits[4]; 
+          
+          interpweights( itw, cb_gp_p, cb_gp_lon, gp_za, gp_aa );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            {
+              for(Index iv = 0; iv < nf; iv++ )
+                {
+                  iy(iv,is) = interp( itw, 
+                    scat_i_lat( iv, joker, border-2, joker, joker, joker, is ),
+                                      cb_gp_p, cb_gp_lon, gp_za, gp_aa );
+                }
+            }
+        }
+
+      // Outgoing from longitude surface
+      else
+        {
+          // Pressure and lat grid positions with respect to cloud box 
+          GridPos cb_gp_p, cb_gp_lat;
+          cb_gp_p        = rte_gp_p;
+          cb_gp_lat      = rte_gp_lat;
+          cb_gp_p.idx   -= cloudbox_limits[0]; 
+          cb_gp_lat.idx -= cloudbox_limits[2];
+          
+          interpweights( itw, cb_gp_p, cb_gp_lat, gp_za, gp_aa );
+
+          for(Index is = 0; is < stokes_dim; is++ )
+            {
+              for(Index iv = 0; iv < nf; iv++ )
+                {
+                  iy(iv,is) = interp( itw, 
+                      scat_i_p( iv, joker, joker, border-4, joker, joker, is ),
+                                      cb_gp_p, cb_gp_lat, gp_za, gp_aa );
+                }
+            }
+        }
     }
 }
 
