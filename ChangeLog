@@ -1,3 +1,18 @@
+2002-06-17  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-145
+
+	* src/m_scatproperties.cc (abs_vec_partCalc): Added the methods
+	abs_vec_partCalc and ext_mat_partCalc.  These methods sums up 
+	the absorption as well as extinction matrices for single particle
+	types weighted with the particle number density.
+
+	* src/workspace.cc : added variables ext_mat_part, abs_vec_part
+	and pnd_field.
+
+	* src/methods.cc : added the method abs_vec_partCalc and 
+	ext_mat_partCalc.
+
 2002-06-17  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-144
