@@ -89,10 +89,10 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<Numeric> p(&workspace.dummy);
+    static WsvPointer<Numeric> p(&workspace.dummy1);
     wsv_data.push_back
       (WsvRecord
-       ("dummy",
+       ("dummy1",
 	"This is just to test Numeric WSVs.",
 	Numeric_,
 	&p));

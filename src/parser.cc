@@ -207,7 +207,7 @@ void eat_whitespace(SourceText& text)
 
 /** Reads name of method, keyword, or workspace variable.
   
-    These names may consist only of letters (case matters!) and
+    These names may consist only of letters (case matters!), numbers, and
     underscores.
     Line break or any other character ends the name.
   
@@ -222,7 +222,7 @@ void read_name(string& name, SourceText& text)
     {
       char dummy = text.Current();
 
-      if ( isalpha(dummy) || '_'==dummy )
+      if ( isalnum(dummy) || '_'==dummy )
 	{
 	  name += dummy;
 	  // AdvanceChar sets LineBreak if a line break occured.

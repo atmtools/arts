@@ -1,5 +1,16 @@
 2000-04-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0.0.7
+
+	* parser.cc:
+	In void read_name(string& name, SourceText& text): Changed isalpha
+	to isalnum, so that names may now also include numbers. 
+
+	This was a request of Patrick. I don't remember if I had a good
+	reason to allow only alphabetic characters and underscores. Let's
+	just see if we get any problems with this.
+
+
 	* arts-0.0.6
 
 	* Quickly implemented NumericSet for Patrick

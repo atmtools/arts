@@ -31,7 +31,7 @@ public:
   VECTOR f_abs;
   VECTOR t_abs;
   MATRIX abs;
-  Numeric dummy;
+  Numeric dummy1;
 };
 
 
