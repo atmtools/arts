@@ -34,7 +34,7 @@ int main(void)
   
   Index Ny; // number of elapsed years after an epoch year, J - [0,4]
   
-  Numeric a = 6371.17; // mean radius of the Earth in [km].
+  
   
   extern Messages messages;
 

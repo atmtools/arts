@@ -1351,15 +1351,15 @@ void PWRO2VoigtMixing(//output
 		      Matrix& ext_mat_tmp, 
 		      Vector& abs_vec_tmp,
 		      // Input
-		      Numeric STR,
-		      Numeric Y,
-		      Numeric DF,
-		      Numeric gamma_D,
-		      Numeric FO,
-		      Numeric ff,
-		      Numeric vmro2,
-		      Numeric p,
-		      Numeric TH)
+		      const Numeric STR,
+		      const Numeric Y,
+		      const Numeric DF,
+		      const Numeric gamma_D,
+		      const Numeric FO,
+		      const Numeric ff,
+		      const Numeric vmro2,
+		      const Numeric p,
+		      const Numeric TH)
 {
 
 
@@ -1385,7 +1385,7 @@ void PWRO2VoigtMixing(//output
   FY    = 0.8325546e0 * DF / gamma_D;
   HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
 
-  Numeric SF1 = (lnpi / gamma_D * FX[0]) + FL[0]*Y;
+  Numeric SF1 = (lnpi / gamma_D * FK[0]) + FL[0]*Y;
 
 
   // complex error function / Faddeeva function
@@ -1394,19 +1394,20 @@ void PWRO2VoigtMixing(//output
   FY    = 0.8325546e0 * DF / gamma_D;
   HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
 
-  Numeric SF2 = (lnpi / gamma_D * FX[0]) + FL[0]*Y;
+  Numeric SF2 = (lnpi / gamma_D * FK[0]) + FL[0]*Y;
 
   /*
   cout << "2******************************************************2 \n";
-  cout << "FO="       << FO      << ", ff=" << ff    << "\n"  
-       << "gamma_D="  << gamma_D << ", DF=" << DF    << "\n";
-  cout << "WEL:   X=" << FX[0]   << ", Y="  << FY    << "\n";
-  cout << "WEL:   K=" << FK[0]   << ", L="  << FL[0] << "\n";
+  cout << "FO="       << FO      << ", ff ="  << ff    << "\n"  
+       << "gamma_D="  << gamma_D << ", DF ="  << DF    << "\n";
+  cout << "WEL:   X=" << FX[0]   << ", Y  ="  << FY    << "\n";
+  cout << "WEL:   K=" << FK[0]   << ", L  ="  << FL[0] << "\n";
+  cout << "WEL: SF1=" << SF1     << ", SF2= " << SF2   << "\n";
   cout << "2******************************************************2 \n";
-  */  
+  */
 
   // sum the line absorption part for a specific spectral line on the frequency grid
-  Numeric SUM      = STR * (SF1+SF2) * (ff/FO) * (ff/FO);
+  Numeric SUM      = STR * (SF1+SF2) * (ff/FO);
 
   // O2 absorption [1/m] -----------------------------------------------------
   // Rosenkranz uses the factor 0.5034e12 in the calculation of the abs coeff.
@@ -1996,16 +1997,20 @@ Index absPWRO2Model(// WS Output:
 	{
 	  // call the original P. W. Rosenkranz model part with VVW line shape 
 	  // and line mixing. This part is for the troposphere (high pressure) 
+	  cout << "----------------------------------------------------------------------------\n";
 	  cout << "***absPWRO2Model***  VVW-mixing \n";
 	  PWRO2Mixing(ext_mat_tmp, abs_vec_tmp,	
                       STR, Y, DF, F[l], ff,
 		      (ISORATIO * vmro2), p,  TH);
-	  cout << "***  PWRO2Mixing abs=" << abs_vec_tmp[0] << "\n";
+
+	  cout << "%%%  PWRO2Mixing      abs=" << abs_vec_tmp[0] << "\n";
+
 	  PWRO2VoigtMixing(ext_mat_tmp, abs_vec_tmp,	
 			   STR, Y, DF, (gamma_D*F[l]), 
                            F[l], f_grid_point,
 			   (ISORATIO * vmro2), p,  TH);
-	  cout << "***  PWRO2VoigtMixing abs=" << abs_vec_tmp[0] << "\n";
+
+	  cout << "%%%  PWRO2VoigtMixing abs=" << abs_vec_tmp[0] << "\n";
 	};
     };
   

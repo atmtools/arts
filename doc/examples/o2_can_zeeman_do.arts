@@ -10,9 +10,9 @@ output_file_formatSetAscii{}
 
 # Create frequency grid:
 VectorNLinSpace(f_grid){
-  start =  50.0000e9
-  stop  =  70.0000e9
-  n     =  500
+  start =  61.1500e9
+  stop  =  61.1500e9
+  n     =  2
 #  start =  30.0000e9
 #  stop  =  90.0000e9
 #  n     =  120
@@ -22,7 +22,7 @@ VectorNLinSpace(f_grid){
 }
 # 0=false 1=true
 ZeemanO2Settings{
-	         ZeemanO2OnOff = 0
+	         ZeemanO2OnOff = 1
 	         ZeemanO2PressureLimit = 1.000e3
 	        }
 
@@ -32,10 +32,10 @@ ZeemanO2Settings{
 WriteXML(f_grid){""}
 
 # Create a pressure vector [Pa]:
-NumericSet(rte_pressure){5.0000e2}
+NumericSet(rte_pressure){1.0000e5}
 
 # Create a temperature vector [K]:
-NumericSet(rte_temperature){276.0e0}
+NumericSet(rte_temperature){296.0e0}
 
 # Create a vmr vector [absolute numbers]:
 #                                  O2        H2O
@@ -99,5 +99,5 @@ IndexSet(ppath_index){0}
 # ------------------------------------------------------------------
 #Print(ext_mat_zee){1}
 #Print(abs_vec_zee){1}
-
+WriteXML(abs_vec){"O2ext.xml"}
 }

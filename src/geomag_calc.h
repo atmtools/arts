@@ -16,6 +16,8 @@
 #include "matpackI.h"
 #include "matpackIV.h"
 
+extern const Numeric a; // mean radius of the Earth in [km]
+
 void magfield_nk(  // Output
 	    Numeric& B_r, // radial component of the geomagnetic field
 	    Numeric& B_th, // colatitudinal component of the geomagnetic field

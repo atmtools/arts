@@ -222,7 +222,7 @@ void Zeeman (//Input & Output
 		if (N_r>0 && DeltaM==0) //
 		  {
 		    // Matrix representation of the relative intensity value 
-		    xi_mat(j,k) = 3*((abs(N_r)+1)*(abs(N_r)+1)-M*M)
+		    xi = xi_mat(j,k) = 3*((abs(N_r)+1)*(abs(N_r)+1)-M*M)
 		      /((abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
 		    
 		   		   		    
@@ -238,7 +238,7 @@ void Zeeman (//Input & Output
 		  
 		  {
 		    // Matrix representation of the relative intensity values 
-		    xi_mat(j,k)= 3*(abs(N_r)*abs(N_r)-M*M)
+		    xi = xi_mat(j,k)= 3*(abs(N_r)*abs(N_r)-M*M)
 		      /(abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
 		    
 		    
@@ -252,7 +252,7 @@ void Zeeman (//Input & Output
 		  
 		  {
 		    // Matrix representation of the relative intensity
-		    xi_mat(j,k) = 3*(abs(N_r)+M+1)*(abs(N_r)+M+2)/
+		    xi = xi_mat(j,k) = 3*(abs(N_r)+M+1)*(abs(N_r)+M+2)/
 		      (4*(abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
 		    
 		    // Zeeman frequency shift value 
@@ -265,7 +265,7 @@ void Zeeman (//Input & Output
 		  
 		  {	
 		    // Matrix representation of the relative intensity values
-		    xi_mat(j,k) = 3*(abs(N_r)-M+1)*(abs(N_r)-M+2)/
+		    xi = xi_mat(j,k) = 3*(abs(N_r)-M+1)*(abs(N_r)-M+2)/
 		      (4*(abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
 		   		    
 		    // Zeeman frequency shift value
@@ -278,7 +278,7 @@ void Zeeman (//Input & Output
 		  
 		  {
 		    // Matrix representation of the relative intensity values
-		    xi_mat(j,k) = 3*(abs(N_r)-M)*(abs(N_r)-M-1)/
+		    xi = xi_mat(j,k) = 3*(abs(N_r)-M)*(abs(N_r)-M-1)/
 		      (4*abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
 		    
 		    // Zeeman frequency shift value 
@@ -291,7 +291,7 @@ void Zeeman (//Input & Output
 		  
 		  {
 		    // Matrix representation of the relative intensity values
-		    xi_mat(j,k)= 3*(abs(N_r)+M)*(abs(N_r)+M-1)/
+		    xi = xi_mat(j,k)= 3*(abs(N_r)+M)*(abs(N_r)+M-1)/
 		      (4*abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
 		    
 		   
@@ -356,7 +356,7 @@ void Zeeman (//Input & Output
 	      
 	      
 		  // The complex refractive index. 
-		  N_s[f_grid_index] += S*xi*(-1)*complex_i*CEF;
+		N_s[f_grid_index] += S*xi*(-1)*complex_i*CEF;
 	      
 		 
 	      
