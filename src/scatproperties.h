@@ -28,17 +28,7 @@ void amp2abs(VectorView abs,
 void ext_mat_partCalc(MatrixView ext_mat_part,
 		      MatrixView ext_mat_spt,
 		      VectorView pnd);
-void double_trapez(Numeric &Integral,
-		   ConstMatrixView Integrand,
-		   Numeric &LowLimit1,
-		   Numeric &LowLimit2,
-		   Numeric &UpLimit1,
-		   Numeric &UpLimit2, 
-		   Numeric &h1,
-		   Numeric &h2);
-void single_trapez(Numeric &Integral,
-		   VectorView Integrand,
-		   Numeric &LowLimit1,
-		   Numeric &UpLimit1,
-		   Numeric &h);
+Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
+			       ConstVectorView za_grid,
+			       ConstVectorView aa_grid);
 #endif    // scatproperties_h

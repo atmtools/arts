@@ -21,14 +21,13 @@
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
 /*! 
-  
-  \param ext_mat_spt Output and Input: extinction matrix for a single particle type.
-  \param amp_mat Input : amplitude matrix for each particle type
-  \param f_grid  Input : frequency grid
-  \param scat_f_index  Input : frequency index
-  \param scat_za_index  Input : local zenith angle
-  \param scat_aa_index  Input : local azimuth angle
- */
+\param ext_mat_spt Output and Input: extinction matrix for a single particle type.
+\param amp_mat Input : amplitude matrix for each particle type
+\param f_grid  Input : frequency grid
+\param scat_f_index  Input : frequency index
+\param scat_za_index  Input : local zenith angle
+\param scat_aa_index  Input : local azimuth angle
+*/
 void ext_mat_sptCalc(Tensor3& ext_mat_spt,
 		     const Tensor6& amp_mat,
 		     const Index& scat_za_index,
@@ -57,21 +56,18 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
 				      scat_aa_index,
 				      Range(joker)
 				      );
-      MatrixView ext = ext_mat_spt(i,
-				   Range(joker),
-				   Range(joker)
-				   );
-      amp2ext(ext,amp_coeffs,freq);
+      
+      amp2ext(ext_mat_spt(i,Range(joker),Range(joker)),amp_coeffs,freq);
     }
 }
 //! this function calculates phase matrix for a single particle type from 
 //  the amplitude matrix
 /*! 
   
-  \param pha_mat_spt  Output and Input: phase matrix for a single particle type
-  \param amp_mat  Input : amplitude matrix
-  \param scat_za_index  Input : zenith angle index
-  \param scat_aa_index  Input : azimuth angle index
+ \param pha_mat_spt  Output and Input: phase matrix for a single particle type
+ \param amp_mat  Input : amplitude matrix
+ \param scat_za_index  Input : zenith angle index
+ \param scat_aa_index  Input : azimuth angle index
   
 */
 void pha_mat_sptCalc(Tensor5& pha_mat_spt,
