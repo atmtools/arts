@@ -1,5 +1,11 @@
 2003-01-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-428
+
+	* Removed inclusion of iostream from some files.
+
+2003-01-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-427
 
 	* src/ppath.cc: Further work on 3D and float. Unfortunately (or
@@ -11,7 +17,7 @@
 	solution in do_gridcell_3d impossible, it is very likely to end up
 	in a situation that cannot be resolved. For double the spatial precison
 	is about 1e-6 m, and the risk to end up in problems is very very small.
-	I have to think about what to do.
+	I have to think about what to do. For the moment, use double.
 
 2003-01-24  Oliver Lemke  <olemke@uni-bremen.de>
 
