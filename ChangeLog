@@ -1,5 +1,11 @@
 2001-09-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
+        * arts-0-0-250
+ 
+        * corrections since the version arts-0-0-249 didn't worked!
+
+2001-09-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
+ 
         * arts-0-0-249
  
         * doc/uguide/absoption.tex: Continued to work on this.

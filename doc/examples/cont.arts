@@ -205,15 +205,15 @@ lines_per_tgReadFromCatalogues{
 
 
 # Read the pressure, temperature, and altitude profiles and create 
-# the workspace variable `raw_ptz_1d':
-MatrixReadAscii (raw_ptz_1d) 
+# the workspace variable `raw_ptz':
+MatrixReadAscii (raw_ptz) 
         {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 # The same for the input VMR profiles:
-#raw_vmrs_1dReadFromScenario
+#raw_vmrsReadFromScenario
 #         {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer"}
 
-raw_vmrs_1dReadFromFiles
+raw_vmrsReadFromFiles
          {seltags   = ["liquidcloud-MPM93",
                        "icecloud-MPM93"]
           filenames = ["/pool/lookup2/arts-data/atmosphere/particles/midlatitude-summer.cumulonimbus.MPM93droplet.am",
@@ -222,7 +222,7 @@ raw_vmrs_1dReadFromFiles
          }
 
 # Optionally write this to a file:
-#ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
+#ArrayOfMatrixWriteAscii (raw_vmrs) {""}
 
 
 # Create the pressure grid `p_abs':
@@ -236,7 +236,7 @@ VectorWriteAscii(p_abs){""}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw1D{CloudSatWV = "yes"}
+AtmFromRaw{CloudSatWV = "yes"}
 
 # Set the physical H2O profile from the H2O profile in vmrs:
 h2o_absSet{}
