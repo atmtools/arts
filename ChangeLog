@@ -1,3 +1,12 @@
+2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-118
+
+	* ami/*/Makefile.am: Use *.m instead of file list.
+
+	* doc/examples/radiosonde_example.arts: Added missing keyword to
+	ybatchFromRadiosonde (finegrid=0).
+
 2003-08-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-117
