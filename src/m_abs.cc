@@ -758,19 +758,36 @@ void lines_per_tgCompact(// WS Output:
           Numeric low = f_mono[0] - cutoff;
 
           // Cycle through all lines within this tag group. 
+          Array<ArrayOfLineRecord::iterator> keep;
           for ( ArrayOfLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
             {
               // Center frequency:
               const Numeric F0 = j->F();
 
-              if ( ( F0 < low) || ( F0 > upp) )
+              if ( ( F0 >= low) && ( F0 <= upp) )
                 {
-                  j = ll.erase(j) - 1;
-                  // We need the -1 here, otherwise due to the
-                  // following increment we would miss the element
-                  // behind the erased one, which is now at the
-                  // position of the erased one.
+                  // Build list of elements which should be kept
+                  keep.push_back (j);
+                  // The original implementation just erased the non-wanted
+                  // elements from the array. Problem: On every erase the
+                  // whole array will be copied which actually kills
+                  // performance.
                 }
+            }
+
+          // If next comparison is false, some elements have to be removed
+          if (keep.nelem () != ll.nelem ())
+            {
+              ArrayOfLineRecord nll;
+              // Copy all elements that should be kept to a new Array
+              for (Array<ArrayOfLineRecord::iterator>::iterator j
+                   = keep.begin(); j != keep.end(); j++)
+                {
+                  nll.push_back (**j);
+                }
+              // Overwrite the old array with the new one
+              ll.resize (nll.nelem ());
+              ll = nll;
             }
         }
     }
