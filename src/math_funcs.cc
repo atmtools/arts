@@ -115,66 +115,6 @@ void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m  )
 
 
 
-//// min and max ////////////////////////////////////////////////////////////
-//
-
-// Min of a vector is already part of MTL.
-
-/** Gives the minimum value of a matrix.
-
-    \return      the minimum value of A
-    \param   A   a matrix
-
-    \author  Stefan Buehler
-    \date   2000-06-27
-*/
-// FIXME: Maybe we do need this for matrix.
-// Numeric min( const MATRIX& A )
-// {
-//   int r = A.nrows();
-//   int c = A.ncols();
-
-//   Numeric y=A(1,1);
-
-//   for ( int i=2; i<=r; i++ )
-//     for ( int s=2; s<=c; s++ )
-//       {
-// 	if ( A(i,s) < y )
-// 	  y = A(i,s);
-//       }
-//   return y; 
-// }
-
-// Max of a vector is part of MTL.
-
-
-/** Gives the maximum value of a matrix.
-
-    \return       the maximum value of A
-    \param    A   a matrix
-
-    \autho  Stefan Buehler
-    \date   2000-06-27
-*/
-// FIXME: Maybe we do need this for matrix.
-// Numeric max( const MATRIX& A )
-// {
-//   int r = A.nrows();
-//   int c = A.ncols();
-
-//   Numeric y=A(1,1);
-
-//   for ( int i=2; i<=r; i++ )
-//     for ( int s=2; s<=c; s++ )
-//       {
-// 	if ( A(i,s) > y )
-// 	  y = A(i,s);
-//       }
-//   return y; 
-// }
-
-
-
 //// first and last /////////////////////////////////////////////////////////
 //
 /** Gives the first value of a vector.
@@ -426,299 +366,6 @@ VECTOR nlogspace(
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   Interpolation routines
-//
-//     All the functions assume that the interpolation points, XI, are ordered.
-//     However, the values can be in increasing or decreasing order.
-//
-////////////////////////////////////////////////////////////////////////////
-
-
-
-
-//// interp_lin ////////////////////////////////////////////////////////////
-//
-/** Multiple linear interpolation of a vector.
-
-    The vector x specifies the points at which the data y is given. 
-
-    The size of yi has to be the same as for xi.
-
-    \retval  yi      interpolated values 
-    \param   x       the x grid
-    \param   y       the function to interpolate
-    \param   xi      interpolation points
-
-    \author Patrick Eriksson
-    \date   2000-06-29
-
-    Adapted to MTL. Gone from 1-based to 0-based. No resize!
-    \date 2000-12-25
-    \author Stefan Buehler
-*/
-void interp_lin(          
-		VECTOR&  yi,
-		const VECTOR&  x, 
-		const VECTOR&  y, 
-		const VECTOR&  xi )
-{
-  // Check grids and get order of grids
-  int order = interp_check( x, xi, y.size() ); 
-
-  size_t        i, j=0, n=xi.size();
-  Numeric       w;
-
-  assert( n==yi.size() ); 
-
-  for ( i=0; i<n; i++ )
-  {
-    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
-    w = (xi[i]-x[j]) / (x[j+1]-x[j]);
-    yi[i] = y[j] + w * (y[j+1]-y[j]); 
-  }
-}      
-
-/** Multiple linear interpolation of a vector (return version).
-
-    The vector x specifies the points at which the data y is given. 
-
-    The size of yi is the same as for xi.
-
-    \return          interpolated values 
-    \param   x       the x grid
-    \param   y       the function to interpolate
-    \param   xi      interpolation points
-
-    \author Patrick Eriksson
-    \date   2000-06-29
-*/
-VECTOR interp_lin( 
-		  const VECTOR&  x, 
-		  const VECTOR&  y, 
-		  const VECTOR&  xi )
-{
-  VECTOR yi(xi.size()); 
-  interp_lin( yi, x, y, xi );
-  return yi;
-}        
-
-/** Single linear interpolation of a vector (return version).
-
-    The vector x specifies the points at which the data y is given. 
-
-    \return          interpolated value
-    \param   x       the x grid
-    \param   y       the function to interpolate
-    \param   xi      interpolation point
-
-    \author Patrick Eriksson
-    \date   2000-06-29
-*/
-Numeric interp_lin(
-        const VECTOR&  x, 
-        const VECTOR&  y, 
-        const Numeric  xi )
-{
-  VECTOR yi(1); 
-  interp_lin( yi, x, y, make_vector(xi) );
-  return yi[0];
-}        
-
-/** Multiple linear interpolation of matrix rows.
-
-    The vector x specifies the points at which the data y is given. 
-
-    \retval  Yi      interpolated values 
-    \param   x       the x grid
-    \param   Y       the function to interpolate
-    \param   xi      interpolation points
-
-    \author Patrick Eriksson
-    \date   2000-06-29
-
-    Adapted to MTL. Gone from 1-based to 0-based. No resize!
-    \date 2000-12-25
-    \author Stefan Buehler
-*/
-void interp_lin_row(    
-		    MATRIX&  Yi,
-		    const VECTOR&  x, 
-		    const MATRIX&  Y, 
-		    const VECTOR&  xi )
-{
-  // Check grids and get order of grids
-  int order = interp_check( x, xi, Y.ncols() ); 
-
-  INDEX      j=0, n=xi.size(), nrow=Y.nrows();
-  Numeric    w;
-
-  assert( nrow == Yi.nrows() );
-  assert( n    == Yi.ncols() );
-
-  for (INDEX i=0; i<n; i++ )
-  {
-    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
-    w = (xi[i]-x[j]) / (x[j+1]-x[j]);
-    for( INDEX k=0; k<nrow; k++ )
-      Yi[k][i] = Y[k][j] + w * (Y[k][j+1]-Y[k][j]); 
-  }
-}        
-
-/** Multiple linear interpolation of matrix rows (return version).
-
-    The vector x specifies the points at which the data y is given. 
-
-    \retval  Yi      interpolated values 
-    \param   x       the x grid
-    \param   Y       the function to interpolate
-    \param   xi      interpolation points
-
-    \author Patrick Eriksson
-    \date   2000-06-29
-*/
-MATRIX interp_lin_row(       // As above but return version
-		      const VECTOR&  x, 
-		      const MATRIX&  Y, 
-		      const VECTOR&  xi )
-{
-  MATRIX Yi( Y.nrows(), xi.size() ); 
-  interp_lin_row( Yi, x, Y, xi );
-  return Yi;
-}        
-
-/** Multiple linear interpolation of matrix columns.
-
-    The vector x specifies the points at which the data y is given. 
-
-    \retval  Yi      interpolated values 
-    \param   x       the x grid
-    \param   Y       the function to interpolate
-    \param   xi      interpolation points
-
-    \author Stefan Buehler
-    \date   2000-06-29
-
-    Adapted to MTL. Gone from 1-based to 0-based. No resize!
-    \date 2000-12-25
-    \author Stefan Buehler
-*/
-void interp_lin_col(    
-		    MATRIX&  Yi,
-		    const VECTOR&  x, 
-		    const MATRIX&  Y, 
-		    const VECTOR&  xi )
-{
-  // Check grids and get order of grids
-  int order = interp_check( x, xi, Y.nrows() ); 
-
-  INDEX        j=0, n=xi.size(), ncol=Y.ncols();
-  Numeric    w;
-
-  assert( n    == Yi.nrows() );
-  assert( ncol == Yi.ncols() );
-
-  for (INDEX i=0; i<n; i++ )
-  {
-    for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
-    w = (xi[i]-x[j]) / (x[j+1]-x[j]);
-    for( INDEX k=0; k<ncol; k++ )
-      Yi[i][k] = Y[j][k] + w * (Y[j+1][k]-Y[j][k]); 
-  }
-}        
-
-/** Multiple linear interpolation of matrix columns (return version).
-
-    The vector x specifies the points at which the data y is given. 
-
-    \return          interpolated values 
-    \param   x       the x grid
-    \param   Y       the function to interpolate
-    \param   xi      interpolation points
-
-    \author Stefan Buehler
-    \date   2000-06-29
-*/
-MATRIX interp_lin_col(       // As above but return version
-        const VECTOR&  x, 
-        const MATRIX&  Y, 
-        const VECTOR&  xi )
-{
-  MATRIX Yi( xi.size(), Y.ncols() ); 
-  interp_lin_col( Yi, x, Y, xi );
-  return Yi;
-}        
-
-
-
-////////////////////////////////////////////////////////////////////////////
-//   Intergration routines
-//
-//     For the moment, not used.
-//
-////////////////////////////////////////////////////////////////////////////
-/*
-//
-// Patrick Eriksson 2000-06-29
-// 
-Numeric integr_lin(                // Integrates Y over X assuming that Y is
-        const VECTOR&  x,          // linear between the given points
-        const VECTOR&  y )
-{
-  size_t i, n = x.size();
-  Numeric w=0.0; 
-
-  if ( n < 2 )
-    throw runtime_error("INTEGR_LIN: Vector length must be >= 2");
-  if ( n != y.size() )
-    throw runtime_error("INTEGR_LIN: Sizes of input data do not match");
-
-  for( i=1; i<n; i++ )
-    w += (x(i+1)-x(i)) * (y(i)+y(i+1))/2.0;
-  return w;
-}
-
-void integr_lin(                    // As above but parameter version
-              Numeric&  w,
-        const VECTOR&   x,  
-        const VECTOR&   y ) 
-{
-  w = integr_lin( x, y );
-}
-
-void integr_lin(                // Integrates the rows of M assuming that
-              MATRIX&  W,       // the functions are linear between the
-        const VECTOR&  x,       // given points
-        const MATRIX&  M )   
-{
-  size_t i,j,rows= M.nrows(), cols= M.ncols();
-  Numeric w; 
-  resize(W,rows,1);
-  W = 0.0;
-
-  if ( cols < 2 )
-    throw runtime_error("Vector length for integration must be >= 2");
-  if ( cols != x.size() )
-    throw runtime_error("Sizes of input data for integration do not match");
-
-  for ( i=1; i<cols; i++ ) 
-  {
-    w = ( x(i+1) - x(i) ) / 2.0;
-    for ( j=1; j<=rows; j++ )
-      W(j,1) += w * ( M(j,i) + M(j,i+1) );
-  }
-}
-
-MATRIX integr_lin(              // As above but return version
-        const VECTOR&  x,  
-        const MATRIX&  M ) 
-{
-  MATRIX W;
-  integr_lin( W, x, M );
-  return W;
-}
-*/
-
 
 /////////////////////////////////////////////////////////////////////////////
 //   Random data
@@ -839,6 +486,11 @@ void rand_data_gaussian(
 }
 
 
+
+/////////////////////////////////////////////////////////////////////////////
+//   Conversions between VECTOR and MATRIX types
+/////////////////////////////////////////////////////////////////////////////
+
 //// to_vector //////////////////////////////////////////////////////////////
 //
 /** Conversion of a matrix to a vector.
@@ -874,3 +526,31 @@ void to_vector(VECTOR& x, const MATRIX& W)
     throw runtime_error("You tried to convert a matrix to a vector,\n"
 			"but none of the dimensions is 1.");
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Interpolation routines
+////////////////////////////////////////////////////////////////////////////
+
+/** Single linear interpolation of a vector (return version).
+
+    The vector x specifies the points at which the data y is given. 
+
+    \return          interpolated value
+    \param   x       the x grid
+    \param   y       the function to interpolate
+    \param   xi      interpolation point
+
+    \author Patrick Eriksson
+    \date   2000-06-29
+*/
+Numeric interp_lin(
+        const VECTOR&  x, 
+        const VECTOR&  y, 
+        const Numeric  xi )
+{
+  VECTOR yi(1); 
+  interp_lin_vector( yi, x, y, make_vector(xi) );
+  return yi[0];
+}        

@@ -204,7 +204,9 @@ main()
   x = nlinspace(1,2,5);
   y = make_vector(10,20,30,40,50);
   VECTOR xi = nlinspace(1,2,10);
-  cout << "y interpolated: " << interp_lin(x,y,xi) << "\n";
+  VECTOR yi(10);
+  interp_lin_vector(yi,x,y,xi);
+  cout << "y interpolated: " << yi << "\n";
 
   resize(A,5,5);
   rand_matrix_uniform(A,1,2);

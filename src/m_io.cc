@@ -64,6 +64,15 @@ void Exit()
 
 
 
+void RandSetSeed( )
+{
+  srand( (unsigned int) time( NULL ) );
+}
+
+
+
+
+
 //**************************************************************************
 //
 //  2. File functions

@@ -65,6 +65,7 @@ set(h,'LineWidth',2)
 title('The red line is the expected PDF')
 
 
+
 %=== Calculate and plot autocorrelation
 figure(2),clf
 %= Remove expected mean for uniform PDF

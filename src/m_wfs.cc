@@ -71,7 +71,7 @@ extern const Numeric BOLTZMAN_CONST;
    \author Patrick Eriksson
    \date   2000-10-20
 */
-void k_append (
+/*void k_append (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
 		    MATRIX&          kx_index,
@@ -83,7 +83,7 @@ void k_append (
   // Size of Kx and K
   const size_t  ny1  = kx.nrows();         // length of measurement vector (y)
   const size_t  nx1  = kx.ncols();         // length of state vector (x)
-  const size_t  nri1 = kx_names.size();   // number of retrieval identities
+  const size_t  nri1 = kx_names.size();    // number of retrieval identities
   const size_t  ny2  = k.nrows();  
   const size_t  nx2  = k.ncols();  
   const size_t  nri2 = k_names.size();
@@ -152,8 +152,71 @@ void k_append (
     kx_index[nri1+iri][1] = nx1 + (iri+1)*l - 1;
   } 
 }
+*/
+void k_append (
+		    MATRIX&          kx,
+		    ARRAYofstring&   kx_names,
+		    MATRIX&          kx_index,
+		    MATRIX&          kx_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux )
+{
+  // Size of Kx and K
+  const size_t  ny1  = kx.nrows();         // length of measurement vector (y)
+  const size_t  nx1  = kx.ncols();         // length of state vector (x)
+  const size_t  nri1 = kx_names.size();    // number of retrieval identities
+  const size_t  ny2  = k.nrows();  
+  const size_t  nx2  = k.ncols();  
+  const size_t  nri2 = k_names.size();
+        size_t  iri;
 
 
+  MATRIX ktemp(ny1,nx1), ktemp_index(nri1,2), ktemp_aux(nx1,3);
+  ARRAYofstring ktemp_names(nri1);
+  if ( nx1 > 0 )
+  {
+    // Check that sizes match
+    if ( ny1 != ny2 )
+      throw runtime_error(
+            "The two WF matrices have different number of rows."); 
+
+    // Make copy of Kx data
+    copy( kx,       ktemp );
+    copy( kx_index, ktemp_index );
+    copy( kx_aux,   ktemp_aux );
+    copy( kx_names, ktemp_names );
+  }
+
+  // Reallocate the Kx data
+  resize( kx,       ny2,       nx1+nx2 );
+  resize( kx_names, nri1+nri2          );
+  resize( kx_index, nri1+nri2, 2       );
+  resize( kx_aux,   nx1+nx2,   3       );
+
+  // Move Ktemp to Kx
+  if ( nx1 > 0 )
+  {
+    copy( ktemp,       kx.sub_matrix( size_t(0), ny2-1, size_t(0), nx1-1 ) );
+    copy( ktemp_aux,   kx_aux.sub_matrix( 0, nx1-1, 0, 2 ) );
+    copy( ktemp_index, kx_index.sub_matrix( 0, nri1-1, 0, 1 ) );
+    for ( iri=0; iri<nri1; iri++ )
+      kx_names[iri]    = ktemp_names[iri];
+  }
+
+  // Calculate the vector length for each identity in K
+  size_t l = (size_t) floor(nx2/nri2);
+
+  // Move K to Kx
+  copy( k,       kx.sub_matrix( 0, ny2-1, nx1, nx1+nx2-1 ) );
+  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2-1, 0, 2 ) );
+  for ( iri=0; iri<nri2; iri++ )
+  {
+    kx_names[nri1+iri]    = k_names[iri];
+    kx_index[nri1+iri][0] = nx1 + iri*l;
+    kx_index[nri1+iri][1] = nx1 + (iri+1)*l - 1;
+  } 
+}
 
 ////////////////////////////////////////////////////////////////////////////
 //   Help functions for grid conversions
@@ -435,7 +498,7 @@ void absloswfs_1pass (
     else
     {
       out1 <<
-        "WARNING: The function absloswfs_1pass not tested for ground reflections\n";
+   "WARNING: The function absloswfs_1pass not tested for ground reflections\n";
       for ( iv=0; iv<nf; iv++ )    
       {
         y[iv]    = ( y[iv] - e_ground[iv]*y_ground[iv] - 
@@ -493,7 +556,7 @@ void absloswfs_limb (
               const int&      ground,
               const VECTOR&   e_ground )
 {
-  const size_t   nf = tr.nrows();      // number of frequencies
+  const size_t   nf = tr.nrows();     // number of frequencies
         size_t   iv;                  // frequency index
         VECTOR   t1q;                 // transmission tangent point - q
         VECTOR   tqn(nf,1);           // transmission q - sensor
@@ -881,7 +944,6 @@ void sourceloswfs_down (
    \param    los            line of sight structure
    \param    tr             transmissions
    \param    e_ground       ground emissivity
-   \param    t_ground       ground temperature
 
    \author Patrick Eriksson
    \date   2000-09-15
@@ -891,8 +953,7 @@ void sourceloswfs (
               const LOS&             los,   
               const ARRAYofMATRIX&   trans,
               const VECTOR&          f_mono,
-              const VECTOR&          e_ground,
-              const VECTOR&          t_ground )
+              const VECTOR&          e_ground )
 {
   const size_t  nza = los.start.size();   // number of zenith angles  
 
@@ -1381,7 +1442,6 @@ void k_contabs (
    \param    abs               total absorption
    \param    trans             transmissions         
    \param    e_ground          ground emissivity
-   \param    t_ground          ground temperature
    \param    k_grid            retrieval grid
 
    \author Patrick Eriksson
@@ -1404,7 +1464,6 @@ void k_temp_nohydro (
 		     const MATRIX&          abs,            
 		     const ARRAYofMATRIX&   trans,
 		     const VECTOR&          e_ground,
-		     const Numeric&         t_ground,
 		     const VECTOR&          k_grid )
 {
   // Main sizes
@@ -1456,17 +1515,15 @@ void k_temp_nohydro (
   }
 
   // Calculate absorption for t_abs + 1K to estimate the temperature derivative
-  // dabs_dt is the temperature derivative of the absorption at k_grid
+  // dabs/dt, the temperature derivative of the absorption at k_grid
   out2 << "  Calculating absorption for t_abs + 1K\n";
   out2 << "  ----- Messages from absCalc: -----\n";
   //
   {
-    // FIXME: Is this correct? Adding 1K at all levels does not give the
-    // temperature derivative?!
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
-    absCalc( abs1k, abs_dummy, f_mono, p_abs, dummy, h2o_abs, vmrs, lines_per_tg, 
-	     lineshape, lineshape_norm );
+    absCalc( abs1k, abs_dummy, f_mono, p_abs, dummy, h2o_abs, vmrs, 
+             lines_per_tg, lineshape, lineshape_norm );
   }
   resize(abs_dummy,0);
   //
@@ -1479,7 +1536,7 @@ void k_temp_nohydro (
 
   // Calculate source LOS WFs
   out2 << "  Calculating source LOS WFs\n";
-  sourceloswfs( sloswfs, los, trans, f_mono, e_ground, t_ground );
+  sourceloswfs( sloswfs, los, trans, f_mono, e_ground );
 
   // Determine the temperatures at the retrieval points
   out2 << "  Calculating temperature at retrieval points\n";
@@ -1607,8 +1664,8 @@ void absloswfsCalc (
       // The calculations are performed in 3 sub-functions
       //
       // Upward looking (=single pass)
-      if ( los.stop[i]==1 )
-        absloswfs_1pass( absloswfs[i], yp, los.start[i], 1, los.l_step[i], 
+      if ( los.stop[i]==0 )
+        absloswfs_1pass( absloswfs[i], yp, los.start[i], 0, los.l_step[i], 
                      trans[i], source[i], los.ground[i], e_ground, y_ground );
       //
       // 1D limb sounding
@@ -1736,12 +1793,11 @@ void kTempNoHydro (
 		    const MATRIX&          abs,            
 		    const ARRAYofMATRIX&   trans,
 		    const VECTOR&          e_ground,
-		    const Numeric&         t_ground,
 		    const VECTOR&          k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
-		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
-		  e_ground, t_ground, k_grid );
+		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs,
+                  trans, e_ground, k_grid );
 }
 
 
@@ -1765,8 +1821,8 @@ void kTempNoHydroNoGround (
 			   const VECTOR&          k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
-		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
-		  VECTOR(0), 0, k_grid );
+		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs,
+                  trans, VECTOR(0), k_grid );
 }
 
 /*

@@ -1564,7 +1564,7 @@ void define_md_data()
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
-	       trans_, e_ground_, t_ground_, k_grid_ ),
+	       trans_, e_ground_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1994,6 +1994,20 @@ void define_md_data()
 //======================================================================
 //=== Methods To Generate Random Data
 //======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("RandSetSeed"),
+  	DESCRIPTION(
+          "Sets the random seed in a \"random\" way (using the clock).\n"
+          "If not this function is called, the same random sequence is\n"
+          "obtained for each run."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
   md_data.push_back
     ( MdRecord

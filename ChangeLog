@@ -1,3 +1,26 @@
+2001-01-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-103
+
+	* Spectra have been wrong for some time. I discovered yeasterday (after
+	a lot of investigating) that the spectra just grow for each zenith
+	angle. This was a problem after the switch to MTL, due to the shallow
+	copying with the =-operator. Spectra are now again reasonable for limb
+	sounding. I habe not done any tests for other geometries.
+
+	* The species WFs are incorrect. I will look for that bug.
+
+	* Cleaned up the integration routine mess. Now the two template
+	functions of SB are used together with an old function returning
+	only a scalar.
+
+	* Removed some other old code in math_funcs.
+
+	* Fixed bug in AMI when reading and writing binary files caused by
+	the switch from 1 to 0 based indexing. This bug only affected arrays.
+
+	
+
 2001-01-11  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-102

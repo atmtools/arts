@@ -157,7 +157,7 @@ void geom2refr(
   setto(b,-c*c);
   add(b,a);
   transf(a,sqrt,a);
-  ele_div( r, a, r );		// r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
+  ele_div( r, a, r );	     // r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
 
   // Handle tangent points
   if ( abs(zs[0]-z_tan) < 0.01 )
@@ -179,7 +179,8 @@ void geom2refr(
   z2p( ps, z_abs, p_abs, zs );
   VECTOR dummy = linspace(0,l[nz-1],l_step);
   resize( p, dummy.size() );
-  interp_lin( p, l, ps, dummy );
+  //interp_lin( p, l, ps, dummy );
+  interp_lin_vector( p, l, ps, dummy );
 }
 
 
@@ -596,7 +597,7 @@ void los_inside(
 
   // Set all step lengths to the user defined value as a first guess.
   // Note that the step length can be changed in the sub-functions.
-  los.l_step = l_step;
+  setto( los.l_step, l_step);
 
   // Loop the zenith angles
   for ( size_t i=0; i<n; i++ )
@@ -899,12 +900,12 @@ void transCalc(
               const MATRIX&          abs )
 {    
   // Some variables
-  const size_t   n = los.start.size();// the number of zenith angles
-  const size_t   nf = abs.nrows();    // the number of frequencies
-        size_t   np;                 // the number of pressure points
-        size_t   row, col;           // counters
-        MATRIX   abs2 ;              // matrix to store interpolated abs values
-       Numeric   w;                  // = -l_step/2
+  const size_t   n = los.start.size(); // the number of zenith angles
+  const size_t   nf = abs.nrows();     // the number of frequencies
+        size_t   np;                   // the number of pressure points
+        size_t   row, col;             // counters
+        MATRIX   abs2 ;                // matrix to store interpolated absorp.
+       Numeric   w;                    // = -l_step/2
 
   out2 << "  Calculating transmissions WITHOUT scattering.\n";
  
@@ -925,7 +926,9 @@ void transCalc(
     if ( np > 0 )
     {
       resize( abs2, abs.nrows(), los.p[i].size() );
-      interp_lin_row( abs2, p_abs, abs, los.p[i] );
+      //interp_lin_row( abs2, p_abs, abs, los.p[i] );
+      resize( abs2, nf, np );
+      interp_lin_matrix( abs2, p_abs, abs, los.p[i] );
       resize(trans[i], nf, np-1 );
       w  =  -0.5*los.l_step[i];
       for ( row=0; row<nf; row++ )
@@ -983,7 +986,7 @@ void yRte (
   // Some variables
   const size_t   n=los.start.size();  // Number of zenith angles 
   const size_t   nf=f_mono.size();    // Number of frequencies 
-        VECTOR   y_tmp;               // Temporary storage for spectra
+        VECTOR   y_tmp(nf);           // Temporary storage for spectra
         size_t   iy0=0;               // Reference index for output vector
         size_t   iy;                  // Frequency index
 
@@ -1036,7 +1039,7 @@ void yRteNoGround (
   if ( any_ground(los.ground) )  
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
-  yRte( y, los, f_mono, y_space, source, trans, 0.0, 0.0 );
+  yRte( y, los, f_mono, y_space, source, trans, VECTOR(0), 0.0 );
 }
 
 
@@ -1058,7 +1061,7 @@ void yBl (
 
   // Resize y and set to 1
   resize( y, nf*n );
-  y = 1.0;
+  setto( y, 1.0 );
 
   // Check if the ground emission vector has the correct length
   if ( any_ground(los.ground) )  

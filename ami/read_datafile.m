@@ -214,7 +214,7 @@ else
     n = binfile_read_numeric(filename,fid,'N_VECTOR','SCALAR',1,1);
     x = cell(n,1);
     for i = 1:n
-      x{i} = binfile_read_numeric(filename,fid,['VECTOR',int2str(i)],...
+      x{i} = binfile_read_numeric(filename,fid,['VECTOR',int2str(i-1)],...
                                                                 'VECTOR',0,0);
     end
 
@@ -223,7 +223,7 @@ else
     n = binfile_read_numeric(filename,fid,'N_MATRIX','SCALAR',1,1);
     x = cell(n,1);
     for i = 1:n
-      x{i} = binfile_read_numeric(filename,fid,['MATRIX',int2str(i)],...
+      x{i} = binfile_read_numeric(filename,fid,['MATRIX',int2str(i-1)],...
                                                                 'MATRIX',0,0);
     end
 
@@ -236,7 +236,7 @@ else
     n = binfile_read_numeric(filename,fid,'N_STRING','SCALAR',1,1);
     x = cell(n,1);
     for i = 1:n
-      x{i} = binfile_read_string(filename,fid,['STRING',int2str(i)],...
+      x{i} = binfile_read_string(filename,fid,['STRING',int2str(i-1)],...
                                                                 'STRING',0,1);
     end
 

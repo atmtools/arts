@@ -265,7 +265,7 @@ else
     n = length(x);
     binfile_write(fid,filename,'N_VECTOR','SCALAR','INDEX',n,prec);
     for i = 1:n
-     binfile_write(fid,filename,['VECTOR',int2str(i)],'VECTOR','NUMERIC',...
+     binfile_write(fid,filename,['VECTOR',int2str(i-1)],'VECTOR','NUMERIC',...
                                                                    x{i},prec);
     end
 
@@ -274,7 +274,7 @@ else
     n = length(x);
     binfile_write(fid,filename,'N_MATRIX','SCALAR','INDEX',n,prec);
     for i = 1:n
-     binfile_write(fid,filename,['MATRIX',int2str(i)],'MATRIX','NUMERIC',...
+     binfile_write(fid,filename,['MATRIX',int2str(i-1)],'MATRIX','NUMERIC',...
                                                                    x{i},prec);
     end
 
@@ -288,7 +288,7 @@ else
     n = length(x);
     binfile_write(fid,filename,'N_STRING','SCALAR','INDEX',n,prec);
     for i = 1:n
-      binfile_write(fid,filename,['STRING',int2str(i)],'STRING','CHAR',...
+      binfile_write(fid,filename,['STRING',int2str(i-1)],'STRING','CHAR',...
                                                                    x{i},prec);
     end
 

@@ -49,54 +49,13 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "vecmat.h"
+#include "make_vector.h"
 
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Basic mathematical vector and vector functions
-////////////////////////////////////////////////////////////////////////////
-
-// //// sqrt //////////////////////////////////////////////////////////////////
-
-// void sqrt( const VECTOR& x, VECTOR& y );
-
-// VECTOR sqrt( const VECTOR& x );
-
-
-
-// //// exp ///////////////////////////////////////////////////////////////////
-
-// void exp( const VECTOR& x, VECTOR& y );
-
-// VECTOR exp( const VECTOR& x );
-
-// void exp( const MATRIX& X, MATRIX& Y );
-
-// MATRIX exp( const MATRIX& X );
-
-
-
-// //// log ////////////////////////////////////////////////////////////////////
-
-// void log( const VECTOR& x, VECTOR& y );
-
-// VECTOR log( const VECTOR& x );
-
-// void log( const MATRIX& X, MATRIX& Y );
-
-// MATRIX log( const MATRIX& X );
-
-void log10( VECTOR& y, const VECTOR& x );
-
-VECTOR log10( const VECTOR& x );
-
-void log10( MATRIX& Y, const MATRIX& X );
-
-MATRIX log10( const MATRIX& X );
-
-
-
 //// mean and standard deviation ////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 
 void mean_row( VECTOR& m, const MATRIX& x );
 
@@ -104,70 +63,9 @@ void std_row( VECTOR& s, const MATRIX& x, const VECTOR& m );
 
 
 
-//// min and max ////////////////////////////////////////////////////////////
-
-// Max and min are not needed due to MTL builtin functions.
-
-// Numeric min( const VECTOR& x );
-
-// Numeric min( const MATRIX& A );
-
-// Numeric max( const VECTOR& x );
-
-// Numeric max( const MATRIX& A );
-
-
-/* Gives the maximum value of an array.
-
-    Because this is a template function, the definition has to be also 
-    in the header file, and not in file math_func.cc.
-
-    \return      the maximum value of x
-    \param   x   an array
-
-    \author Stefan Buehler
-    \date   2000-06-27
-*/
-// template<class T>
-// T max( const ARRAY<T>& x )
-// {
-//   size_t n = x.size();
-//   T y=x[0];
-//   for ( size_t i=1; i<n; i++ )
-//     {
-//       if ( x[i] > y )
-// 	y = x[i];
-//     }
-//   return y; 
-// }
-
-/* Gives the minimum value of an array.
-
-    Because this is a template function, the definition has to be also 
-    in the header file, and not in file math_func.cc.
-
-    \return      the minimum value of x
-    \param   x   an array
-
-    \author Stefan Buehler
-    \date   2000-06-27
-*/
-// template<class T>
-// T min( const ARRAY<T>& x )
-// {
-//   size_t n = x.size();
-//   T y=x(1);
-//   for ( size_t i=2; i<=n; i++ )
-//   {
-//     if ( x(i) < y )
-//       y = x(i);
-//   }
-//   return y; 
-// }
-
-
-
+////////////////////////////////////////////////////////////////////////////
 //// first and last /////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 
 Numeric first( const VECTOR& x );
 
@@ -176,7 +74,7 @@ Numeric last( const VECTOR& x );
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Logical functions
+//// Logical functions
 ////////////////////////////////////////////////////////////////////////////
 
 bool any( const ARRAYofsizet& x ); 
@@ -222,6 +120,130 @@ VECTOR nlogspace(
 
 
 
+/////////////////////////////////////////////////////////////////////////////
+//   Random data
+/////////////////////////////////////////////////////////////////////////////
+
+
+// Template below.
+// void rand_uniform(
+//               VECTOR&    r,
+//         const Numeric&   x_low,
+//         const Numeric&   x_high );
+
+// Template below.
+// void rand_gaussian(
+//               VECTOR&    r,
+//         const Numeric&   s );
+
+void rand_matrix_uniform(
+              MATRIX&    m,
+        const Numeric&   x_low,
+        const Numeric&   x_high );
+
+void rand_matrix_gaussian(
+              MATRIX&    r,
+        const Numeric&   s );
+
+void rand_data_gaussian(
+              MATRIX&    z,
+        const VECTOR&    z0,
+        const MATRIX&    s );
+
+
+/**
+   Creates a vector with random data uniformerly distributed between
+   the lower and higher limit given.
+
+   The random data is uncorrelated. The length of the random vector is
+   taken from r.size().
+
+   \retval   r          random vector
+   \param    x_low      lower limit for the random values
+   \param    x_high     upper limit for the random data
+
+   \author Patrick Eriksson
+   \date   2000-11-26
+
+   Adapted to MTL. Gone from 1-based to 0-based. No resize for
+   non-return versions. Now a template function, should work for any
+   vector-like type (e.g., matrix rows).
+   \date 2000-12-25
+   \author Stefan Buehler
+*/
+template<class T>
+void rand_uniform(
+		  T     r,
+		  const Numeric&   x_low,
+		  const Numeric&   x_high )
+{
+  const Numeric dx = x_high-x_low;
+
+  for ( size_t i=0; i<r.size(); i++ )
+    r[i] = x_low + dx * (Numeric(rand())/Numeric(RAND_MAX));
+}
+
+
+/**
+   Creates a gaussian random vector with zero mean and 
+   the standard deviation given.
+
+   The random data is uncorrelated. The length of the random vector to
+   generate is taken from r.size().
+
+   The algorith is taken from Numerical Recipies, Section 7.2. 
+   See www.nr.com.
+
+   \retval   r          random vector
+   \param    s          standard deviation
+
+   \author Patrick Eriksson
+   \date   2000-11-27
+
+   Adapted to MTL. Gone from 1-based to 0-based. No resize for
+   non-return versions. Now a template function, should work for any
+   vector-like type (e.g., matrix rows).
+   \date 2000-12-25
+   \author Stefan Buehler
+*/
+template<class T>
+void rand_gaussian(
+		   T     r,
+		   const Numeric&   s )
+{
+  VECTOR  z(2);    // A vector of length 2 with uniform PDF between -1 and 1
+  Numeric rad;     // The radius cooresponding to z
+  Numeric fac;     // Normalisation factor
+ 
+  const INDEX n = r.size();
+
+  for ( size_t i=0; i<n; )
+  {
+    rand_uniform( z, -1, 1 );
+    rad = z[0]*z[0] + z[1]*z[1];
+
+    if ( (rad<1) && (rad>0) )
+    {
+      fac = sqrt( -2*log(rad)/rad );
+      i++;
+      r[i] = s*fac*z[0];
+      i++;
+      if ( i < n )
+        r[i] = s*fac*z[1];        
+    }
+  }
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+//   Conversions between VECTOR and MATRIX types
+/////////////////////////////////////////////////////////////////////////////
+
+void to_vector(VECTOR& x, const MATRIX& W);
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Interpolation routines
 ////////////////////////////////////////////////////////////////////////////
@@ -263,13 +285,13 @@ int interp_check( const X&  x,
       throw runtime_error(os.str());
     }
 
-  for (size_t i=0; i<n-1; i++ )
+  for ( size_t i=0; i<n-1; i++ )
   {
     if ( order*x[i+1] < order*x[i] ) 
       throw runtime_error("Original interpolation grid must be ordered");
   }
 
-  for (size_t i=0; i<ni-1; i++ )
+  for ( size_t i=0; i<ni-1; i++ )
   {
     if ( order*xi[i+1] < order*xi[i] ) 
       throw runtime_error("Interpolation points must be ordered");
@@ -277,6 +299,7 @@ int interp_check( const X&  x,
 
   return order;
 }
+
 
 /** Multiple linear interpolation of a vector. This template version
     of the function should work for any vector-like type. It is based
@@ -308,15 +331,6 @@ void interp_lin_vector( YI       yi,
 			const Y  y, 
 			const XI xi )
 {
-//    out3 << "interp_lin_vector:\n"
-//         << "x, " << x.size() << ": ";
-//    print_vector(out3,x);
-//    out3 << "\ny, " << y.size() << ": ";
-//    print_vector(out3,y);
-//    out3 << "\nxi, " << xi.size() << ": ";
-//    print_vector(out3,xi);
-//    out3 << "\n";
-
   // Check grids and get order of grids
   int order = interp_check( x, xi, y.size() ); 
 
@@ -331,11 +345,9 @@ void interp_lin_vector( YI       yi,
     w = (xi[i]-x[j]) / (x[j+1]-x[j]);
     yi[i] = y[j] + w * (y[j+1]-y[j]); 
   }
-
-//    out3 << "yi, " << yi.size() << ": ";
-//    print_vector(out3,yi);
-//    out3 << "\n";
 }      
+
+
 
 /** Multiple linear interpolation of matrix rows. This is the template
     version of Patrick's original matrix interpolation function
@@ -378,104 +390,21 @@ void interp_lin_matrix(
     for( ;  order*x[j+1] < order*xi[i]; j++ ) {}
     w = (xi[i]-x[j]) / (x[j+1]-x[j]);
     for( INDEX k=0; k<nrow; k++ )
-      {
-	Yi(k,i) = Y(k,j) + w * (Y(k,j+1)-Y(k,j));
-	// Caution: [][] indexing does not work here, because Y and Yi can
-	// not only be simple matrices A but also for example
-	// trans(A).
-
-// 	out3 << "Y(" << k << "," << i << ") = " << Y(k,i) << " -- ";
-// 	out3 << "YI(" << k << "," << i << ") = " << Yi(k,i) << "\n";
-      }
+    {
+      Yi(k,i) = Y(k,j) + w * (Y(k,j+1)-Y(k,j));
+      // Caution: [][] indexing does not work here, because Y and Yi can
+      // not only be simple matrices A but also for example
+      // trans(A).
+    }
   }
-
-//   out3 << "interp_lin_matrix:\n"
-//        << "x, " << x.size() << ": ";
-//   print_vector(out3,x);
-//   out3 << "\nY, " << Y.nrows() << "x" << Y.ncols() << ": ";
-//   print_all_matrix(out3,Y);
-//   out3 << "\nxi, " << xi.size() << ": ";
-//   print_vector(out3,xi);
-//   out3 << "\nYi, " << Yi.nrows() << "x" << Yi.ncols() << ": ";
-//   print_all_matrix(out3,Yi);
-//   out3 << "\n";
 }        
 
-void interp_lin(          
-	VECTOR&        yi,
-	const VECTOR&  x, 
-	const VECTOR&  y, 
-	const VECTOR&  xi );
-
-VECTOR interp_lin(          
-        const VECTOR&  x, 
-        const VECTOR&  y, 
-        const VECTOR&  xi );
 
 Numeric interp_lin(         
         const VECTOR&  x, 
         const VECTOR&  y, 
         const Numeric  xi );
 
-void interp_lin_row(    
-              MATRIX&  Yi,
-        const VECTOR&  x, 
-        const MATRIX&  Y, 
-        const VECTOR&  xi );
-
-MATRIX interp_lin_row(      
-        const VECTOR&  x, 
-        const MATRIX&  Y, 
-        const VECTOR&  xi );
-
-void interp_lin_col(    
-              MATRIX&  Yi,
-        const VECTOR&  x, 
-        const MATRIX&  Y, 
-        const VECTOR&  xi );
-
-MATRIX interp_lin_col(      
-        const VECTOR&  x, 
-        const MATRIX&  Y, 
-        const VECTOR&  xi );
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//   Integration functions for vectors and matrices
-//     These functions are not used for the moment
-/////////////////////////////////////////////////////////////////////////////
-/*
-Numeric integr_lin(        
-        const VECTOR&  x,  
-        const VECTOR&  y );
-void integr_lin(            
-              Numeric&  w,
-        const VECTOR&   x,  
-        const VECTOR&   y ); 
-void integr_lin(           
-              MATRIX&  W,  
-        const VECTOR&  x,  
-        const MATRIX&  M );   
-MATRIX integr_lin(         
-        const VECTOR&  x,  
-        const MATRIX&  M ); */
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//   Conversions between VECTOR and MATRIX types
-/////////////////////////////////////////////////////////////////////////////
-
-void to_matrix(MATRIX& W, const VECTOR& x);
-
-MATRIX to_matrix(const VECTOR& x);
-
-
-
-void to_vector(VECTOR& x, const MATRIX& W);
-
-VECTOR to_vector(const MATRIX& W);
 
 
 
@@ -550,137 +479,6 @@ VECTOR to_vector(const MATRIX& W);
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//   Random data
-/////////////////////////////////////////////////////////////////////////////
-
-
-// Template below.
-// void rand_uniform(
-//               VECTOR&    r,
-//         const Numeric&   x_low,
-//         const Numeric&   x_high );
-
-// Template below.
-// void rand_gaussian(
-//               VECTOR&    r,
-//         const Numeric&   s );
-
-void rand_matrix_uniform(
-              MATRIX&    m,
-        const Numeric&   x_low,
-        const Numeric&   x_high );
-
-void rand_matrix_gaussian(
-              MATRIX&    r,
-        const Numeric&   s );
-
-void rand_data_gaussian(
-              MATRIX&    z,
-        const VECTOR&    z0,
-        const MATRIX&    s );
-
-
-/**
-   Creates a vector with random data uniformerly distributed between
-   the lower and higher limit given.
-
-   The random data is uncorrelated. The length of the random vector is
-   taken from r.size().
-
-   \retval   r          random vector
-   \param    x_low      lower limit for the random values
-   \param    x_high     upper limit for the random data
-
-   \author Patrick Eriksson
-   \date   2000-11-26
-
-   Adapted to MTL. Gone from 1-based to 0-based. No resize for
-   non-return versions. Now a template function, should work for any
-   vector-like type (e.g., matrix rows).
-   \date 2000-12-25
-   \author Stefan Buehler
-*/
-template<class T>
-void rand_uniform(
-		  T     r,
-		  const Numeric&   x_low,
-		  const Numeric&   x_high )
-{
-  const Numeric dx = x_high-x_low;
-
-  //  for (INDEX i=0; i<1e6; ++i)
-
-  // Init seed in a "random" way
-  //  srand( (unsigned int) time( NULL ) );
-  // FIXME: This is no good, because if you call rand_uniform
-  // repeatedly in quick succession, the random seed is always
-  // initialized to the same value. You can verify this if you
-  // uncomment the delay loop above. With the delay loop you get
-  // random data for rand_matrix_uniform, but without the delay loop,
-  // every row gets the same random data. :-(
-  // I think the random seem should be set only once at the start of
-  // ARTS. Or maybe there should be a WS method to set the seed.
-
-  for ( size_t i=0; i<r.size(); i++ )
-    {
-      r[i] = x_low + dx* (double(rand())/double(RAND_MAX));
-      // FIXME: Why is double used explicitly here?
-      //      cout << "r[" << i << "]: " << r[i] << "\n";
-    }
-}
-
-/**
-   Creates a gaussian random vector with zero mean and 
-   the standard deviation given.
-
-   The random data is uncorrelated. The length of the random vector to
-   generate is taken from r.size().
-
-   The algorith is taken from Numerical Recipies, Section 7.2. 
-   See www.nr.com.
-
-   \retval   r          random vector
-   \param    s          standard deviation
-
-   \author Patrick Eriksson
-   \date   2000-11-27
-
-   Adapted to MTL. Gone from 1-based to 0-based. No resize for
-   non-return versions. Now a template function, should work for any
-   vector-like type (e.g., matrix rows).
-   \date 2000-12-25
-   \author Stefan Buehler
-*/
-template<class T>
-void rand_gaussian(
-		   T     r,
-		   const Numeric&   s )
-{
-  VECTOR  z(2);    // A vector of length 2 with uniform PDF between -1 and 1
-  Numeric rad;  // The radius cooresponding to z
-  Numeric fac;  // Normalisation factor
- 
-  const INDEX n = r.size();
-
-  for ( size_t i=0; i<n; )
-  {
-    rand_uniform( z, -1, 1 );
-    rad = z[0]*z[0] + z[1]*z[1];
-    // FIXME: I don't understand this algorithm. Shouldn't there be a
-    // sqrt here? Otherwise I don't understand the if clause in the
-    // next line. -- SAB
-    if ( (rad<1) && (rad>0) )
-    {
-      fac = sqrt( -2*log(rad)/rad );
-      i++;
-      r[i] = s*fac*z[0];
-      i++;
-      if ( i < n )
-        r[i] = s*fac*z[1];        
-    }
-  }
-}
 
 
 #endif  // math_funcs_h

@@ -300,7 +300,7 @@ void rte (
         size_t   i_start;                       // variable for second loop
 
   // Init Y with Y_SPACE
-  y = y_space;
+  copy( y_space, y );
 
   // Check if LOS inside the atmosphere (if START_INDEX=0, Y=Y_SPACE)
   if ( start_index > 0 )
@@ -478,23 +478,10 @@ void z2p(
 {
   assert( p.size()==z.size() );
   if ( z.size() > 0 )
-    {
-//       out3 << "z2p:\n"
-// 	   << "z0, " << z0.size() << ": ";
-//       print_vector(out3,z0);
-//       out3 << "\np0, " << p0.size() << ": ";
-//       print_vector(out3,p0);
-//       out3 << "\nz, " << z.size() << ": ";
-//       print_vector(out3,z);
-//       out3 << "\n";
-
-      interp_lin_vector( p, z0, transf(p0,log), z );
-      transf( p, exp, p );
-
-//       out3 << "p, " << p.size() << ": ";
-//       print_vector(out3,p);
-//       out3 << "\n";
-    }
+  {
+    interp_lin_vector( p, z0, transf(p0,log), z );
+    transf( p, exp, p );
+  }
 }
 
 
@@ -527,7 +514,8 @@ void interpp(
         const VECTOR&     p )
 {
   assert( x.size()==p.size() );
-  interp_lin( x, transf(p0,log), x0, transf(p,log) );
+  //interp_lin( x, transf(p0,log), x0, transf(p,log) );
+  interp_lin_vector( x, transf(p0,log), x0, transf(p,log) );
 }
 
 
@@ -562,7 +550,7 @@ void interpp(
 {
   assert( A.nrows()==A0.nrows() );
   assert( A.ncols()==p.size() ); 
-  interp_lin_row( A, transf(p0,log), A0, transf(p,log) );
+  interp_lin_matrix( A, transf(p0,log), A0, transf(p,log) );
 }
 
 
@@ -590,9 +578,7 @@ Numeric interpp(
         const VECTOR&     x0,
         const Numeric&    p )
 {
-  VECTOR  x(1), pv(1,p);
-  interp_lin( x, transf(p0,log), x0, transf(pv,log) );
-  return x[0];
+  return interp_lin( transf(p0,log), x0, log(p) );
 }
 
 

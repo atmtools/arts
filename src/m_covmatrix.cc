@@ -120,16 +120,16 @@ void setup_covmatrix(
       out2 << "  Exponential correlation.\n";
     else if ( corrfun == 3 )
       out2 << "  Gaussian correlation.\n";
-    //out3 << "    Correlation length  : " << clength << "\n";
     out3 << "    Correlation cut-off : " << cutoff << "\n";
   }
   out3 << "    Size                : " << n << "\n";
-  //out3 << "    Standard deviation  : " << sdev << "\n";
 
   // Interpolate to get standard deviation and correlation length at
   // each point of k_grid
-  interp_lin( sd, kp, sdev, kg );
-  interp_lin( cl, kp, clength, kg );
+  //interp_lin( sd, kp, sdev, kg );
+  //interp_lin( cl, kp, clength, kg );
+  interp_lin_vector( sd, kp, sdev, kg );
+  interp_lin_vector( cl, kp, clength, kg );
 
   // Resize s and fill with 0
   resize( s, n, n );
