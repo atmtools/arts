@@ -1,5 +1,5 @@
 #
-#  cloud_rad_field.arts
+#  cloud_rad_field1D_example.arts
 #
 # This file demonstrates how a 1D scattering calculation for one specified 
 # frequency can be performed. The radiation field inside the cloudbox is
@@ -23,8 +23,8 @@ Main
       n     = 2	
   }
 
-# You do the scalar calculation ( stokes_dim = 1 ) or the vector 
-# calculation for a arbitrary number of components ( stokes_dim = 2, 3 or 4).
+# You can do the scalar calculation ( stokes_dim = 1 ) or the vector 
+# calculation for an arbitrary number of components ( stokes_dim = 2, 3 or 4).
 
   IndexSet( stokes_dim ) {
       value = 4
@@ -127,7 +127,7 @@ AntennaSet1D{}
 ReadXML(gas_abs_lookup){"/home/home02/sbuehler/arts_calc/abs_lookup/lookup_01_table.xml"}
 
 
-# Adapt the lookup table. In the varible *gas_abs_lookup* holds only the 
+# Adapt the lookup table. The varible *gas_abs_lookup* holds only the 
 # specified frequencies and species.
 
 gas_abs_lookupAdapt{}
@@ -171,7 +171,7 @@ AgendaSet( scalar_gas_absorption_agenda ){
   n     = 30
 }
  
-# Define the scattering region (cloudbox)
+# Define the scattering region (cloudbox).
  
   CloudboxSetManually {
       p1   = 335e2
@@ -214,7 +214,7 @@ ParticleTypeAdd{
 	value = 1
   }
 
-# Calculate single particle optical properties
+# Calculate single particle optical properties.
  
  AgendaSet(spt_calc_agenda){
       pha_mat_sptCalc{}
@@ -238,7 +238,7 @@ ParticleTypeAdd{
 #####################################
 
 
-#  Cosmic background 
+#  Cosmic background radiation.
 
   AgendaSet( i_space_agenda ) {
     Ignore( a_pos ) {
@@ -247,13 +247,11 @@ ParticleTypeAdd{
     }
     MatrixCBR( i_space, f_grid ) {
     }
- #   MatrixPrint( sensor_pos ) {
- #   }
   }
 
 
 #  Standard radiative transfer function.
-AgendaSet( rte_agenda ){
+  AgendaSet( rte_agenda ){
 	RteEmissionStd{}
 }
  	
@@ -277,7 +275,7 @@ AgendaSet( rte_agenda ){
 # Agenda for a monochromatic scattering calculation: 
 #   1. Calculatate amplitude matrix from raw data.
 #   2. Set the boundary condition (Clearsky field)
-#   3. Iterate the radiation field and the scatering integral.
+#   3. Iterate the radiation field and the scattering integral.
 #   4. Put the obtained solution in boundary variables (for further 
 #           use in the clearsky part)
 
@@ -286,7 +284,7 @@ AgendaSet( rte_agenda ){
   i_fieldSetClearsky{}
   WriteXML(i_field){"initial_field.xml"}	
   i_fieldIterate{}
-  scat_iPut{} 
+#  scat_iPut{} 
  }		
 
 # Define the convergence test method.

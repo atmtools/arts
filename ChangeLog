@@ -1,3 +1,16 @@
+2003-01-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-383
+
+	* src/m_cloudbox.cc (i_fieldSetConst): Included the 3D part. The 
+	function is used to set the radiation field to a constant value
+	inside the cloudbox. The convergence test (same solution for 
+	different initial fields) should also be done for the 3D 
+	calculations.
+
+	* doc/examples/cloud_rad_field1D_example.arts.in: Fixed some typos
+	in documentation.
+
 2003-01-12  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-382

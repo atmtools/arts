@@ -663,13 +663,139 @@ void i_fieldSetConst(//WS Output:
       }
   }
   
-  if(atmosphere_dim == 3)
+  else
     {
-      throw runtime_error(
-                          "i_fieldSetConst for 3D atmosphere will be \n"
-                          "implemented soon."
-                          );
-    }
+      Index N_za = scat_i_p.npages();
+      Index N_aa = scat_i_p.nrows();
+      Index N_i = scat_i_p.ncols();
+      
+      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
+                     (cloudbox_limits[3]- cloudbox_limits[2])+1,
+                     (cloudbox_limits[5]- cloudbox_limits[4])+1,
+                     N_za, 
+                     N_aa,
+                     N_i);
+      
+      i_field = 0.;
+      
+
+      // Loop over all directions:
+      for (Index za_index = 0; za_index < N_za; za_index++)
+        {
+          for (Index aa_index = 0; aa_index < N_aa; aa_index++)
+            {
+              for (Index i = 0; i < stokes_dim; i++)
+                { 
+                  // pressure boundaries
+                  // 
+                   for (Index lat_index = cloudbox_limits[2]; 
+                         lat_index < cloudbox_limits[3]; lat_index++)
+                      {
+                        for (Index lon_index = cloudbox_limits[4]; 
+                             lon_index < cloudbox_limits[5]; lon_index++)
+                          {
+                            //set the value for the upper pressure boundary
+                            i_field(cloudbox_limits[1]-cloudbox_limits[0], 
+                                    lat_index-cloudbox_limits[2],
+                                    lon_index-cloudbox_limits[4],
+                                    za_index, aa_index, i) = 
+                              scat_i_p(0, 1, lat_index, lon_index,
+                                       za_index, aa_index, i);
+                            //set the value for the lower pressure boundary 
+                            i_field(0, lat_index-cloudbox_limits[2],
+                                    lon_index-cloudbox_limits[4],
+                                    za_index, aa_index, i) =  
+                              scat_i_p(0, 0, lat_index, lon_index,
+                                       za_index, aa_index, i);
+                            // inside cloudbox
+                            for( Index p_index = (cloudbox_limits[0]+1); 
+                                 p_index <  (cloudbox_limits[1]-1);
+                                 p_index ++)
+                              {
+                                //The field inside the cloudbox is set to some 
+                                // arbitrary value.
+                                i_field(p_index-cloudbox_limits[0],
+                                        lat_index-cloudbox_limits[2],
+                                        lon_index-cloudbox_limits[4],
+                                        za_index, aa_index, i) =  
+                                  i_field_values[i];
+                              }
+                          }
+                      }
+                   
+                   for (Index p_index = cloudbox_limits[0]; 
+                        p_index < cloudbox_limits[1]; p_index++)
+                     {
+                       // latitude boundaries
+                       //
+                        for (Index lon_index = cloudbox_limits[4]; 
+                             lon_index < cloudbox_limits[5]; lon_index++)
+                          {
+                            // first boundary
+                            i_field(p_index-cloudbox_limits[0], 
+                                    cloudbox_limits[3]-cloudbox_limits[2],
+                                    lon_index-cloudbox_limits[4],
+                                    za_index, aa_index, i) = 
+                              scat_i_lat(0, p_index, 1, lon_index,
+                                         za_index, aa_index, i);
+                            // second boundary
+                            i_field(p_index-cloudbox_limits[0], 0, 
+                                    lon_index-cloudbox_limits[4], 
+                                    za_index, aa_index, i) =  
+                              scat_i_lat(0, p_index, 0, lon_index,
+                                         za_index, aa_index, i);
+
+                            // The field inside the cloudbox is set to some 
+                            //arbitrary value.
+                            for (Index lat_index = (cloudbox_limits[2]+1); 
+                                 lat_index < (cloudbox_limits[3]-1); 
+                                 lat_index++)
+                              {
+                                i_field(p_index-cloudbox_limits[0],
+                                        lat_index-cloudbox_limits[2],
+                                        lon_index-cloudbox_limits[4],
+                                        za_index, aa_index, i) =  
+                                  i_field_values[i];
+                              }
+                          }
+                        // longitude boundaries
+                        for (Index lat_index = cloudbox_limits[2]; 
+                             lat_index < cloudbox_limits[3]; lat_index++)
+                          {
+                            // first boundary
+                            i_field(p_index-cloudbox_limits[0],
+                                    lat_index-cloudbox_limits[2],
+                                    cloudbox_limits[5]-cloudbox_limits[4],
+                                    za_index, aa_index, i) = 
+                              scat_i_lat(0, p_index, lat_index, 1,
+                                         za_index, aa_index, i);
+                            // second boundary
+                            i_field(p_index-cloudbox_limits[0],  
+                                    lat_index-cloudbox_limits[2],
+                                    0, 
+                                    za_index, aa_index, i) =  
+                              scat_i_lat(0, p_index, lat_index, 0,
+                                         za_index, aa_index, i);
+
+                            // The field inside the cloudbox is set to some 
+                            //arbitrary value.
+                            for (Index lon_index = (cloudbox_limits[4]+1); 
+                                 lon_index < (cloudbox_limits[5]-1);
+                                 lon_index++)
+                              {
+                                i_field(p_index-cloudbox_limits[0],
+                                        lat_index-cloudbox_limits[2],
+                                        lon_index-cloudbox_limits[4],
+                                        za_index, aa_index, i) =  
+                                  i_field_values[i];
+                              }
+                          } //lat_grid loop
+                     } //p_grid loop
+                } // stokes loop
+            } // aa_grid loop
+        } // za_grid loop
+       
+    } // atmosphere dim = 3
 }
 
 
