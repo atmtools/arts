@@ -1,9 +1,20 @@
+2001-10-04  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-259
+	
+	* doc/doxygen/doxygen.css: Added stylesheet definitions for
+	doxygen documentation to match the style of our satpage.
+	
+	* doc/doxygen/Doxyfile.in: Added default stylesheet.
+
+	
 2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-0-0-258
 	
 	* doc/examples/amsu.arts: Minor changes in amsu.arts
 
+	
 2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>	
 
 	* arts-0-0-257
@@ -13,6 +24,7 @@
 
 	* doc/examples/amsu.arts: Included a control file for AMSU
 
+	
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-256
