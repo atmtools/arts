@@ -30,3 +30,4 @@ test_poly
 test_scatproperties
 test_tensor
 test_xml
+test_zeemanproperties
