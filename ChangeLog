@@ -1,3 +1,16 @@
+2004-07-07  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-844
+
+	* doc/uguide/arts_methods_to_latex.sh,
+	doc/uguide/arts_groups_to_latex.sh,doc/uguide/app_groups.tex,
+	doc/uguide/app_methods.tex : Removed. Now in doc/reference.
+
+	* doc/uguide/main.tex: Removed workspace reference appendix.
+
+	* doc/uguide/Makefile.am: Removed auto_groups.tex, auto_methods.tex,
+	arts_methods_to_latex.sh, and arts_groups_to_latex.sh.
+
 2004-07-06  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-843
