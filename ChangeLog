@@ -1,3 +1,21 @@
+2002-09-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-233
+
+	* src/m_scatrte.cc (i_fieldUpdate1D): Changed the calculation of the 
+	planck function for one layer. Now the mean of the temperature is
+	calculated first and afterwards the planck function.
+
+	* src/m_cloudbox.cc (scat_iPut): Included this method. It puts the 
+	scattered radiation field into the interface variables between 
+	cloudbox and clearsky calculations.
+	(i_fieldSetClearsky), (i_fieldSetConst): Shifted these methods here, 
+	because they have nothing to do with scattering properties.
+
+	* src/m_scatproperties.cc: Shifted the two methods above.
+
+	* src/methods.cc: Included entry for scat_iPut.
+
 2002-09-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-232
