@@ -1,3 +1,11 @@
+2001-07-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-0-184
+
+	* doc/uguide/absorption.tex: Added this file, which should contain
+	documentation for the absorption part of ARTS.
+
+
 2001-06-26  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
         * arts-0-0-183
@@ -30,6 +38,7 @@
 	absorption model of MPM93. They are called  "O2-SelfContMPM93" and
 	"N2-SelfContMPM93". The broadening is calculated with dry air 
 	(= all species minus water vapor).
+
 
 2001-06-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
