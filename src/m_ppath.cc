@@ -47,6 +47,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
+#include "messages.h"
 #include "ppath.h"
 
 
@@ -294,6 +295,17 @@ void ppathCalc(
     }
   
   //--- End: Check input ------------------------------------------------------
+
+
+  // Some messages
+  out2 << "  sensor radius        : " << a_pos[0]/1e3 << " km\n";
+  if( atmosphere_dim >= 2 )    
+    out2 << "  sensor latitude      : " << a_pos[1] << "\n";
+  if( atmosphere_dim == 3 )
+    out2 << "  sensor longitude     : " << a_pos[2] << "\n";
+  out2 << "  sensor zenith angle  : " << a_los[0] << "\n";
+  if( atmosphere_dim == 3 )
+    out2 << "  sensor azimuth angle : " << a_los[1] << "\n";
 
 
   // Initiate the partial Ppath structure. 

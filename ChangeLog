@@ -1,3 +1,12 @@
+2002-06-07  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-122
+
+	* src/ppath.cc (ppath_start_stepping): Some more work in getting 2D to
+	work. Some results are now printed on the screen.
+
+	* src/m_ppath.cc (ppathCalc): Sensor position and LOS printed as out2.
+
 2002-06-06  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-121	

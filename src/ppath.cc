@@ -46,6 +46,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "math_funcs.h"
+#include "messages.h"
 #include "mystring.h"
 #include "logic.h"
 #include "interpolation.h"
@@ -116,6 +117,32 @@ Numeric geompath_za_at_r(
   if( a_za < 0 )
     { za = -za; }
   return za;
+}
+
+
+
+//! geompath_r_at_za
+/*! 
+   Calculates the zenith angle for a given radius along a geometrical 
+   propagation path.
+
+   Both positive and negative zenith angles are handled.
+
+   \return         Radius at the point of interest.
+   \param   ppc    Propagation path constant.
+   \param   za     Zenith angle at the point of interest.
+
+   \author Patrick Eriksson
+   \date   2002-06-05
+*/
+Numeric geompath_r_at_za(
+       const Numeric&   ppc,
+       const Numeric&   za )
+{
+  assert( ppc >= 0 );
+  assert( fabs(za) <= 180 );
+
+  return ppc / sin( DEG2RAD * fabs(za) );
 }
 
 
@@ -203,6 +230,40 @@ Numeric geompath_r_at_l(
   double a=ppc*ppc, b=l*l;
 
   return sqrt( b + a );
+}
+
+
+
+//! geompath_r_at_lat
+/*!
+   Calculates the radius for a distance from the tangent point.
+
+   The tangent point is either rwal or imaginary depending on the zenith
+   angle of the sensor. See geometrical_tangent_radius.
+
+   \return         Radius at the point of interest.
+   \param   ppc    Propagation path constant.
+   \param   lat0   Latitude at some other point of the path.
+   \param   za0    Zenith angle for the point with latitude lat0.
+   \param   lat    Latitude of the point of interest.
+
+   \author Patrick Eriksson
+   \date   2002-06-05
+*/
+Numeric geompath_r_at_lat(
+       const Numeric&   ppc,
+       const Numeric&   lat0,
+       const Numeric&   za0,
+       const Numeric&   lat )
+{
+  assert( ppc >= 0 );
+  assert( fabs(za0) <= 180 );
+  assert( ( za0 >= 0 && lat >= lat0 )  ||  ( za0 < 0 && lat < lat0 ) );
+
+  // Zenith angle at the new latitude
+  const Numeric za = za0 + lat0 -lat;
+
+  return geompath_r_at_za( ppc, za );
 }
 
 
@@ -610,6 +671,9 @@ void ppath_start_stepping(
       // Radius for the top of the atmosphere
       const Numeric r_top = r_geoid(0,0) + z_field(np-1,0,0);
 
+      out2 << "  sensor altitude      : " << (a_pos[0]-r_geoid(0,0))/1e3 
+	   << " km\n";
+
       // The only forbidden case here is that the sensor is below the ground
       if( a_pos[0] < r_ground )
 	{
@@ -626,8 +690,13 @@ void ppath_start_stepping(
 	{
 	  geom_tan_pos.resize(2);
 	  geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
-	  geompath_lat_at_za( geom_tan_pos[1], a_pos[1], 90 );
+          geom_tan_pos[1] = geompath_lat_at_za( a_los[0], 0, 90 );
+	  out2 << "  tangent radius       : " << geom_tan_pos[0]/1e3 <<" km\n";
+	  out2 << "  tangent latitude     : " << geom_tan_pos[1] << "\n";
+	  out2 << "  tangent altitude     : " 
+	       << (geom_tan_pos[0]-r_geoid(0,0))/1e3 << " km\n";
 	}
+
 
       // The sensor is inside the model atmosphere, 1D ------------------------
       if( a_pos[0] < r_top )
@@ -687,6 +756,8 @@ void ppath_start_stepping(
 	    {
 	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
+	      out2 << "  --- WARNING ---, path is totally outside of the "
+		   << "model atmosphere";
 	    }
 
 	  // Path enters the atmosphere
@@ -745,20 +816,43 @@ void ppath_start_stepping(
 	  rv_geoid  = v_rgeoid[0];
 	  rv_ground = rv_geoid + v_zground[0];
 
+	  out2 << "  sensor altitude      : " << (a_pos[0]-rv_geoid)/1e3 
+	       << " km\n";
+
 	  if( a_pos[0] < ( v_rgeoid[0] + v_ztop[0] ) )
 	    { is_inside = 1; }
 	}
 
-      // If downwards, calculate geometrical tangent position
+      // If downwards, calculate geometrical tangent position. If the tangent
+      // point is inside the covered latitude range, calculate also the 
+      // geometrical altitude of the tangent point and the top of atmosphere.
       Vector geom_tan_pos(0);
+      Numeric geom_tan_z, geom_tan_atmtop;
       if( a_los[0] >= 90 )
 	{
 	  geom_tan_pos.resize(2);
 	  geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
 	  if( a_los[0] > 0 )
-	    { geompath_lat_at_za( geom_tan_pos[1], a_pos[1], 90 ); }
+	    { geom_tan_pos[1] = geompath_lat_at_za( a_los[0], a_pos[1], 90 ); }
 	  else
-	    { geompath_lat_at_za( geom_tan_pos[1], a_pos[1], -90 ); }
+	    { geom_tan_pos[1] = geompath_lat_at_za( a_los[0], a_pos[1], -90 );}
+	  out2 << "  tangent radius       : " << geom_tan_pos[0]/1e3<<" km\n";
+	  out2 << "  tangent latitude     : " << geom_tan_pos[1] << "\n";
+	  //
+	  if( geom_tan_pos[1] >= lat_grid[0]  &&  
+	                                  geom_tan_pos[1] <= lat_grid[nlat-1] )
+	    {
+	      ArrayOfGridPos gp_tmp(1);
+	      Matrix itw_tmp(1,2);
+	      Vector v1_tmp(1), v2_tmp(1);
+	      gridpos( gp_tmp, lat_grid, Vector(1,geom_tan_pos[1]) );
+	      interpweights( itw_tmp, gp_tmp );
+	      interp( v1_tmp, itw_tmp, r_geoid(Range(joker),0), gp_tmp );
+	      geom_tan_z = geom_tan_pos[0] - v1_tmp[0];
+	      interp( v2_tmp, itw_tmp, z_field(np-1,Range(joker),0), gp_tmp );
+	      geom_tan_atmtop = v2_tmp[0];
+	      out2 << "  tangent altitude     : " << geom_tan_z/1e3 << " km\n";
+	    }
 	}
 
       // The sensor is inside the model atmosphere, 2D ------------------------
@@ -880,21 +974,77 @@ void ppath_start_stepping(
 
 	  // Handle cases when the sensor appears to look the wrong way
 	  if( ( a_pos[1] <= lat_grid[0]  &&  a_los[0] <= 0 )  || 
-	                    ( a_pos[1] >= last(lat_grid)  &&  a_los[0] >= 0 ) )
+	                  ( a_pos[1] >= lat_grid[nlat-1]  &&  a_los[0] >= 0 ) )
 	    {
 	      ostringstream os;
-	      os << "The sensor is outside (or at the limit) of the defined "
+	      os << "The sensor is outside (or at the limit) of the model "
 		 << "atmosphere but looks in the wrong\ndirection (wrong sign "
 		 << "for the zenith angle?).\nThis case includes nadir "
 		 << "looking exactly at the latitude end points.";
 	      throw runtime_error( os.str() );
 	    }
 	  
-	 
+	  // If the sensor is outside the latitude range, check that path is
+	  // above the closest corner of the model atmosphere
+	  if( a_pos[1] < lat_grid[0]  ||  a_pos[1] > lat_grid[nlat-1] )
+	    {
+	      Index   ic = 0;
+	      String  sc = "lower";
+	      if( a_pos[1] > lat_grid[0] )
+		{ ic = nlat - 1;   sc = "upper"; }
+	      const Numeric rv = geompath_r_at_lat( ppath.constant, a_pos[1], 
+                                                      a_los[0], lat_grid[ic] );
+	      if( rv < ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
+		{
+		  ostringstream os;
+		  os << "The sensor is outside of the model atmosphere and "
+		     << "looks in the " << sc << " latitude end face.\n"
+		     << "The geometrical altitude of the corner point is "
+		     << z_field(np-1,ic,0)/1e3 << " km.\n"
+		     << "The geometrical altitude of the entrance point is "
+		     << (rv-r_geoid(ic,0))/1e3 << " km.";
+		  throw runtime_error( os.str() );
+		}
+	    }
 
-	 
-	 
+	  // If the tangent point is inside covered latitude range, everything
+	  // is OK. If not, the path must be below the corner of the model
+	  // atmosphere. 
+	  if( ( geom_tan_pos[1] < lat_grid[0]  ||  
+		                         geom_tan_pos[1] > lat_grid[nlat-1] ) )
+	    {
+	      Index   ic = 0;
+	      String  sc = "lower";
+	      if( a_los[0] >= 0 )
+		{ ic = nlat - 1;   sc = "upper"; }
+	      const Numeric rv = geompath_r_at_lat( ppath.constant, a_pos[1], 
+                                                      a_los[0], lat_grid[ic] );
+	      if( rv >= ( r_geoid(ic,0) + z_field(np-1,ic,0) ) )
+		{
+		  ostringstream os;
+		  os << "The combination of sensor position and line-of-sight "
+		     << "gives a propagation path that goes above\nthe model "
+		     << "atmosphere, with a tangent point outside the covered "
+		     << "latitude range.\nThe latitude of the tangent point "
+		     << "is " << geom_tan_pos[1] << " degress.";
+		  throw runtime_error( os.str() );
+		}
+	    }
 
+	  // That should be all needed checks. We know now that the path is
+	  // either totally outside the atmosphere, with a tangent point 
+	  // inside lat_grid, or enters the atmosphere from the top 
+	  // somewhere inside lat_grid. In the latter case we need to
+	  // determine the latitude of the entrence point.
+	  
+	  // Path is above the atmosphere
+	  if( geom_tan_z >= geom_tan_atmtop )
+	    {
+	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
+	      ppath_set_background( ppath, 1 );
+	      out2 << "  --- WARNING ---: path is totally outside of the "
+		   << "model atmosphere\n";
+	    }
 	}      
 
       // Get grid position for the end point, if there is one.
