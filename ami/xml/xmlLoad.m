@@ -50,9 +50,8 @@ while ~feof (fid)
       switch tag
        case 'arts'
        otherwise
-	func = str2func (strcat ('xmlRead', tag));
-	result = feval (func, fid, attrlist);
-	disp (result);
+         func = str2func (strcat ('xmlRead', tag));
+         result = feval (func, fid, attrlist);
       end
     else %=== or is it a closing tag
     end
@@ -61,4 +60,3 @@ end
 
 fclose (fid);
 
-result = 0;
