@@ -1,3 +1,14 @@
+2002-06-18  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-148
+
+	* src/m_scatproperties.cc (pha_mat_partCalc): Added this method
+	which calculates the phase matrix.  
+
+	* src/workspace.cc : added variables pha_mat_part
+
+	* src/methods.cc : added the method pha_mat_partCalc.
+
 2002-06-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-147
