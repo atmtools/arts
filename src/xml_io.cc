@@ -608,15 +608,23 @@ xml_parse_error (const String& str_error)
 void
 xml_read_header_from_stream (istream& is)
 {
-  String str;
+  char str[6];
   stringbuf strbuf;
   ArtsXMLTag tag;
 
-  is.get (strbuf, '>');
-  if (is.get () != '>' || strbuf.str () != "<?xml version=\"1.0\"?")
+  is.get (str, 6);
+
+  if (strcasecmp (str, "<?xml"))
     {
-      xml_parse_error ("First line does not contain: "
-                       "<?xml version=\"1.0\"?>");
+      xml_parse_error ("Input file is not a valid xml file");
+    }
+
+  is.get (strbuf, '>');
+  is.get ();
+
+  if (is.fail ())
+    {
+      xml_parse_error ("Input file is not a valid xml file");
     }
 
   tag.read_from_stream (is);
@@ -650,14 +658,14 @@ xml_write_header_to_stream (ostream& os)
   ArtsXMLTag tag;
 
   os << "<?xml version=\"1.0\"?>"
-     << endl;
+     << '\n';
 
   tag.set_name ("arts");
   tag.add_attribute ("format", "ascii");
   tag.add_attribute ("version", "1");
   tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 
 }
 
@@ -836,7 +844,7 @@ xml_write_to_stream (ostream&            os,
   open_tag.add_attribute ("nelem", aindex.nelem ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   for (Index n = 0; n < aindex.nelem (); n++)
     {
@@ -846,7 +854,7 @@ xml_write_to_stream (ostream&            os,
   close_tag.set_name ("/Array");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== ArrayOfMatrix ==========================================================
@@ -901,7 +909,7 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("nelem", amatrix.nelem ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   for (Index n = 0; n < amatrix.nelem (); n++)
     {
@@ -911,7 +919,7 @@ xml_write_to_stream (ostream&             os,
   close_tag.set_name ("/Array");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== ArrayOfString ==========================================================
@@ -966,7 +974,7 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("nelem", astring.nelem ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   for (Index n = 0; n < astring.nelem (); n++)
     {
@@ -976,7 +984,7 @@ xml_write_to_stream (ostream&             os,
   close_tag.set_name ("/Array");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== ArrayOfVector ==========================================================
@@ -1031,7 +1039,7 @@ xml_write_to_stream (ostream&             os,
   open_tag.add_attribute ("nelem", avector.nelem ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   for (Index n = 0; n < avector.nelem (); n++)
     {
@@ -1041,7 +1049,7 @@ xml_write_to_stream (ostream&             os,
   close_tag.set_name ("/Array");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Index ===========================================================
@@ -1096,7 +1104,7 @@ xml_write_to_stream (ostream&     os,
 
   close_tag.set_name ("/Index");
   close_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 }
 
 //=== Matrix ==========================================================
@@ -1157,7 +1165,7 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("ncols", matrix.ncols ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   xml_set_stream_precision (os);
 
@@ -1171,13 +1179,13 @@ xml_write_to_stream (ostream&     os,
           os << " " << matrix (r,c);
         }
       
-      os << endl;
+      os << '\n';
     }
 
   close_tag.set_name ("/Matrix");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Numeric =========================================================
@@ -1234,7 +1242,7 @@ xml_write_to_stream (ostream&       os,
 
   close_tag.set_name ("/Numeric");
   close_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 }
 
 //=== String ===========================================================
@@ -1290,7 +1298,7 @@ xml_write_to_stream (ostream&     os,
 
   close_tag.set_name ("/String");
   close_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 }
 
 //=== Tensor3 =========================================================
@@ -1356,7 +1364,7 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   xml_set_stream_precision (os);
 
@@ -1370,14 +1378,14 @@ xml_write_to_stream (ostream&     os,
             {
               os << " " << tensor (p, r, c);
             }
-          os << endl;
+          os << '\n';
         }
     }
 
   close_tag.set_name ("/Tensor3");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Tensor4 =========================================================
@@ -1448,7 +1456,7 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   xml_set_stream_precision (os);
 
@@ -1464,7 +1472,7 @@ xml_write_to_stream (ostream&     os,
                 {
                   os << " " << tensor (b, p, r, c);
                 }
-              os << endl;
+              os << '\n';
             }
         }
     }
@@ -1472,7 +1480,7 @@ xml_write_to_stream (ostream&     os,
   close_tag.set_name ("/Tensor4");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Tensor5 =========================================================
@@ -1548,7 +1556,7 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   xml_set_stream_precision (os);
 
@@ -1566,7 +1574,7 @@ xml_write_to_stream (ostream&     os,
                     {
                       os << " " << tensor (s, b, p, r, c);
                     }
-                  os << endl;
+                  os << '\n';
                 }
             }
         }
@@ -1575,7 +1583,7 @@ xml_write_to_stream (ostream&     os,
   close_tag.set_name ("/Tensor5");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Tensor6 =========================================================
@@ -1656,7 +1664,7 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   xml_set_stream_precision (os);
 
@@ -1676,7 +1684,7 @@ xml_write_to_stream (ostream&     os,
                         {
                           os << " " << tensor (v, s, b, p, r, c);
                         }
-                      os << endl;
+                      os << '\n';
                     }
                 }
             }
@@ -1686,7 +1694,7 @@ xml_write_to_stream (ostream&     os,
   close_tag.set_name ("/Tensor6");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Tensor7 =========================================================
@@ -1772,7 +1780,7 @@ xml_write_to_stream (ostream&     os,
   open_tag.add_attribute ("ncols", tensor.ncols ());
 
   open_tag.write_to_stream (os);
-  os << endl;
+  os << '\n';
 
   xml_set_stream_precision (os);
 
@@ -1794,7 +1802,7 @@ xml_write_to_stream (ostream&     os,
                             {
                               os << " " << tensor (l, v, s, b, p, r, c);
                             }
-                          os << endl;
+                          os << '\n';
                         }
                     }
                 }
@@ -1805,7 +1813,7 @@ xml_write_to_stream (ostream&     os,
   close_tag.set_name ("/Tensor7");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 //=== Vector ==========================================================
@@ -1867,14 +1875,14 @@ xml_write_to_stream (ostream&     os,
 
   open_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
   for (Index i=0; i<n; ++i)
-    os << vector[i] << endl;
+    os << vector[i] << '\n';
 
   close_tag.set_name ("/Vector");
   close_tag.write_to_stream (os);
 
-  os << endl;
+  os << '\n';
 }
 
 
