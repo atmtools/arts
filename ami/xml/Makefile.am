@@ -7,15 +7,4 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-
-SUBDIRS        = xml
-
-
-amidir        = $(pkgdatadir)/ami
-
-ami_DATA = \
-README \
-init.m \
-startup.m 
-
-EXTRA_DIST = $(ami_DATA)
+EXTRA_DIST = *.m
