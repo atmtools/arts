@@ -81,7 +81,7 @@ struct Ppath {
 
 Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
 
-bool is_los_downwards_2d( 
+bool is_los_downwards( 
         const Numeric&   za,
         const Numeric&   tilt );
 
@@ -92,7 +92,7 @@ Numeric psurface_slope_2d(
         const GridPos&    gp,
         const Index&      upwards );
 
-Numeric psurface_angletilt_2d(
+Numeric psurface_angletilt(
         const Numeric&   r,
         const Numeric&   c );
 
@@ -113,8 +113,6 @@ void do_gridcell_2d(
         const Numeric&   r4,
         const Numeric&   lat1,
         const Numeric&   lat3,
-        const bool&      at_lower_psurface,
-        const bool&      at_upper_psurface,
         const Numeric&   rground1,
         const Numeric&   rground2 );
 
@@ -145,8 +143,6 @@ void do_gridcell_3d(
         const Numeric&   lat3,
         const Numeric&   lon5,
         const Numeric&   lon6,
-        const bool&      at_lower_psurface,
-        const bool&      at_upper_psurface,
         const Numeric&   rground1a,
         const Numeric&   rground2a,
         const Numeric&   rground1b,
@@ -193,6 +189,16 @@ void ppath_step_geom_2d(
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
         const Numeric&    lmax );
+
+void ppath_step_geom_3d(
+              Ppath&       ppath,
+        ConstVectorView    p_grid,
+        ConstVectorView    lat_grid,
+        ConstVectorView    lon_grid,
+        ConstTensor3View   z_field,
+        ConstMatrixView    r_geoid,
+        ConstMatrixView    z_ground,
+	const Numeric&     lmax );
 
 void ppath_step_refr_1d(
               Ppath&      ppath,

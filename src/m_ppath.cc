@@ -194,8 +194,6 @@ void DoGridcell2D(
         const Numeric&   r4,
         const Numeric&   lat1,
         const Numeric&   lat3,
-        const Index&     at_lower_psurface,
-        const Index&     at_upper_psurface,
         const Numeric&   rground1,
         const Numeric&   rground2 )
 {
@@ -206,8 +204,7 @@ void DoGridcell2D(
   Index     endface;
 
   do_gridcell_2d( r, lat, za, lstep, endface, r_start, lat_start, za_start, 
-             ppc, lmax, r1, r2, r3, r4, lat1, lat3,  at_lower_psurface,
-                                       at_upper_psurface, rground1, rground2 );
+                   ppc, lmax, r1, r2, r3, r4, lat1, lat3, rground1, rground2 );
 
   String filename;
 
@@ -256,8 +253,6 @@ void DoGridcell3D(
         const Numeric&   lat3,
         const Numeric&   lon5,
         const Numeric&   lon6,
-        const Index&     at_lower_psurface,
-        const Index&     at_upper_psurface,
         const Numeric&   rground1a,
         const Numeric&   rground2a,
         const Numeric&   rground1b,
@@ -271,8 +266,8 @@ void DoGridcell3D(
 
   do_gridcell_3d( r, lat, lon, za, aa, lstep, endface, r_start, lat_start, 
 		  lon_start, za_start, aa_start, ppc, lmax, r1a, r2a, r3a, r4a,
-                r1b, r2b, r3b, r4b, lat1, lat3,  lon5, lon6, at_lower_psurface,
-               at_upper_psurface, rground1a, rground2a, rground1b, rground2b );
+                        r1b, r2b, r3b, r4b, lat1, lat3,  lon5, lon6, 
+                                  rground1a, rground2a, rground1b, rground2b );
 
   String filename;
 
@@ -638,9 +633,13 @@ void ppath_stepGeometric(
              z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
                                               z_ground(Range(joker),0), lmax );
     }
+  else if( atmosphere_dim == 3 )
+    { ppath_step_geom_3d( ppath_step, p_grid, lat_grid, lon_grid,
+                                            z_field, r_geoid, z_ground, lmax );
+    }
   else
     {
-      throw runtime_error( "3D propagation path steps are not yet handled." );
+      throw runtime_error( "The atmospheric dimensionality must be 1-3." );
     }
 }
 
@@ -689,9 +688,13 @@ void ppath_stepRefractionEuler(
                        r_geoid(Range(joker),0), z_ground(Range(joker),0), 
                                   "linear_euler", lraytrace, lmax, refrindex );
     }
+  else if( atmosphere_dim == 3 )
+    { 
+      throw runtime_error( "3D propagation path steps are not yet handled." );
+    }
   else
     {
-      throw runtime_error( "3D propagation path steps are not yet handled." );
+      throw runtime_error( "The atmospheric dimensionality must be 1-3." );
     }
 }
 

@@ -366,10 +366,10 @@ void ground_specular_los(
                                       z_ground(Range(joker),0), a_gp_lat, 1 );
 
       // Calculate ground (angular) tilt (unit is deg).
-      Numeric tilt = psurface_angletilt_2d( r_ground, slope );
+      Numeric tilt = psurface_angletilt( r_ground, slope );
 
       // Check that a_los contains a downward LOS
-      assert( is_los_downwards_2d( a_los[0], tilt ) );
+      assert( is_los_downwards( a_los[0], tilt ) );
       
       // Include ground tilt
       los[0] -= 2 * tilt;

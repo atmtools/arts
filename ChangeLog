@@ -1,8 +1,24 @@
+2002-12-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-354
+
+	* src/ppath.cc: Code for 3D geometrical path steps compiles but 
+	so far no tests, beside for do_gridcell_3d and sub-functions.
+	A number of new functions:
+	   poslos2cart
+           cart2poslos
+           gridcell_crossing_3d
+	   rsurf_at_latlon
+	   psurface_slope_3d
+	   psurface_crossing_3d
+	   ppath_start_3d
+	   ppath_end_3d
+	
 2002-12-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-353
 
-	* src/ppath.cc (do_gridcell_3d): Started on this functio. So far 
+	* src/ppath.cc (do_gridcell_3d): Started on this function. So far 
 	empty.
 	
 	(sph2cart): Created.

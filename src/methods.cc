@@ -975,10 +975,6 @@ void define_md_data_raw()
 	 "   r4        : Radius of upper-left corner of the grid cell.\n"
 	 "   lat1      : Latitude of left end face of the grid cell.\n"
 	 "   lat3      : Latitude of right end face of the grid cell.\n"
-	 "   at_lower  : Boolean that is true if start point is on top of \n"
-	 "               the lower pressure surface (face 2).\n"
-	 "   at_upper  : Boolean that is true if start point is on top of\n"
-	 "               the upper pressure surface (face 4).\n"
 	 "   rground1  : Radius for the ground at *lat1*.\n"
 	 "   rground2  : Radius for the ground at *lat3*."
         ),
@@ -988,10 +984,10 @@ void define_md_data_raw()
         GINPUT( ),
         KEYWORDS( "r_start", "lat_start", "za_start", "lmax",    "r1",
                   "r2",      "r3",        "r4",       "lat1",    "lat3",
-                  "at_lower", "at_upper", "rground1", "rground2" ),
+                  "rground1", "rground2" ),
         TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Index_t,   Index_t,     Numeric_t,  Numeric_t  )));
+                  Numeric_t,  Numeric_t  )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -1044,10 +1040,6 @@ void define_md_data_raw()
 	 "   lat3      : Upper latitude.\n"
 	 "   lon5      : Lower longitude.\n"
 	 "   lon6      : Upper longitude.\n"
-	 "   at_lower  : Boolean that is true if start point is on top of \n"
-	 "               the lower pressure surface (face 2).\n"
-	 "   at_upper  : Boolean that is true if start point is on top of\n"
-	 "               the upper pressure surface (face 4).\n"
 	 "   rground1a : Radius for the ground at *lat1* and *lon5*.\n"
 	 "   rground2a : Radius for the ground at *lat3* and *lon5*.\n"
 	 "   rground1b : Radius for the ground at *lat1* and *lon6*.\n"
@@ -1060,12 +1052,12 @@ void define_md_data_raw()
         KEYWORDS( "r_start", "lat_start", "lon_start", "za_start", "aa_start",
                   "lmax",    "r1a",       "r2a",       "r3a",      "r4a",
                   "r1b",     "r2b",       "r3b",       "r4b",      "lat1",
-                  "lat3",    "lon5",      "lon6",      "at_lower", "at_upper",
+                  "lat3",    "lon5",      "lon6",  
                   "rground1a", "rground2a", "rground1b", "rground2b" ),
         TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Index_t,   Index_t,  
+                  Numeric_t, Numeric_t,   Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t  )));
 
   md_data_raw.push_back     
