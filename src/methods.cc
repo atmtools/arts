@@ -959,7 +959,51 @@ void define_md_data_raw()
          "\n"
          "The conditions have to be valid for all positions in the cloudbox \n"
          "and for all directions.\n"  
-         "Then *convergence_flag* is set to 1.\n" 
+         "Then *convergence_flag* is set to 1.\n"
+         "\n"
+         "Unit of *epsilon* is that of radiance.\n"
+        ),
+        OUTPUT(convergence_flag_),
+        INPUT(i_field_, i_field_old_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS("epsilon"),
+        TYPES(Vector_t)));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("convergence_flagAbs_BT"),
+        DESCRIPTION
+        (
+         "Convergence test (maximum absolute difference in Rayleigh-Jeans\n"
+	 "Brightness temperature units)\n"
+         "\n"
+	 "This method work exactly similar to convergence_flagAbs except that\n"
+         "now we se the convergence criteria keyword *epsilon* to Brightness\n"
+         "temperature units. /n"
+	 "\n"
+         "Note that we use Rayleigh Jeans Brightness temperature for epsilon.\n"
+	 "This is because epsilon is a difference of intensity and Planck BT\n"
+	 "is not linear for small radiance values.  For higher stokes components\n"
+	 "also Planck BT cannot be used because of the same reason.\n"
+         "\n"
+         "The function calculates the absolute differences for two successive\n"
+         "iteration fields. It picks out the maximum values for each Stokes \n"
+         "component separately. The convergence test is fullfilled under the\n"
+         "following conditions: \n"
+         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
+         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
+         "|U(m+1) - U(m)| < epsilon_3    \n"
+         "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "\n"
+         "The limits for convergence have to be set in the controlfile by \n"
+         "setting the vector *epsilon* to appropriate values.\n"
+         "\n"
+         "The conditions have to be valid for all positions in the cloudbox \n"
+         "and for all directions.\n"  
+         "Then *convergence_flag* is set to 1.\n"
+         "\n"
+         "Unit of *epsilon* is that of brightness temperature(RJ).\n"
         ),
         OUTPUT(convergence_flag_),
         INPUT(i_field_, i_field_old_, f_grid_, f_index_),

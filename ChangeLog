@@ -1,3 +1,15 @@
+2003-04-01  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+        * arts-1-1-515
+	
+	* src/m_scatrte.cc (convergence_flagAbs_BT): Implemented a 
+	separate method for convergence test in brightness temperature
+	units. The old method convergence_flagAbs is not modified.  
+	The convergence criteria keyword epsilon can be set in BT units.  
+	I used the function invrayjean to convert difference between
+	radiance fields to brightness temperature. This is because 
+	Planck is non-linear for small radiances
+     
 2003-03-31  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
         * arts-1-1-514

@@ -95,9 +95,7 @@ void convergence_flagAbs(//WS Output:
                       // WS Input:
                       const Tensor6& i_field,
                       const Tensor6& i_field_old,
-                      const Vector& f_grid,
-                      const Index& f_index, 
-                      // Keyword:
+		      // Keyword:
                       const Vector& epsilon)
 {
   //Check the input:
@@ -140,13 +138,13 @@ void convergence_flagAbs(//WS Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            fabs( invplanck(i_field(p_index, lat_index, lon_index, 
+                            fabs( i_field(p_index, lat_index, lon_index, 
                                           scat_za_index, scat_aa_index, 
-                                          stokes_index),f_grid[f_index]) -
-                                  invplanck(i_field_old(p_index, lat_index, 
+                                          stokes_index) -
+                                  i_field_old(p_index, lat_index, 
                                               lon_index, scat_za_index,
                                               scat_aa_index, 
-                                              stokes_index ),f_grid[f_index]));
+                                              stokes_index ));
                           
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
@@ -167,6 +165,108 @@ void convergence_flagAbs(//WS Output:
   convergence_flag = 1;
 }
 
+//! Convergence test in BT(maximum absolute difference in BT(RJ)). 
+/*! 
+  The function calculates the absolute differences for two successive 
+  iteration fields in BT units. This function works exactly similar to
+  convergence_flagAbs.  Additionally, we need frequency as input.
+
+  Note that we use Rayleigh Jeans Brightness temperature for epsilon.
+  This is because epsilon is a difference of intensity and Planck BT
+  is not linear for small radiance values.  For higher stokes components
+  also Planck BT cannot be used because of the same reason.
+ 
+  WS Output:
+  \param convergence_flag Fag for convergence test.
+  WS Input:
+  \param i_field Radiation field.
+  \param i_field_old Old radiation field.
+  \param f_grid frequency grid
+  \param f_index frequency index
+  Keyword : 
+  \param epsilon   Limiting values for the convergence test in 
+                   Rayleigh-Jeans brightness temperature unit.
+
+  \author Sreerekha T.R.
+  \date 2003-04-01
+
+*/
+void convergence_flagAbs_BT(//WS Output:
+			    Index& convergence_flag,
+			    // WS Input:
+			    const Tensor6& i_field,
+			    const Tensor6& i_field_old,
+			    const Vector& f_grid,
+			    const Index& f_index, 
+			    // Keyword:
+			    const Vector& epsilon)
+{
+  //Check the input:
+  assert( convergence_flag == 0 );
+
+  const Index N_p = i_field.nvitrines();
+  const Index N_lat = i_field.nshelves();
+  const Index N_lon = i_field.nbooks();
+  const Index N_za = i_field.npages();
+  const Index N_aa = i_field.nrows();
+  const Index stokes_dim = i_field.ncols();
+   
+  // Check if i_field and i_field_old have the same dimensions:
+  assert(is_size( i_field_old, 
+                  N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
+  
+  // Check keyword "epsilon":
+  if ( epsilon.nelem() != stokes_dim )
+    throw runtime_error(
+                        "You have to specify limiting values for the "
+                        "convergence test for each Stokes component "
+                        "separately. That means that *epsilon* must "
+                        "have *stokes_dim* elements!"
+                        );
+  
+  //3D atmosphere:
+  for (Index p_index = 0; p_index < N_p; p_index++)
+    { 
+      for (Index lat_index = 0; lat_index < N_lat; lat_index++)
+        {
+          for (Index lon_index = 0; lon_index <N_lon; lon_index++)
+            {
+              for (Index scat_za_index = 0; scat_za_index < N_za;
+                   scat_za_index++)
+                {
+                  for (Index scat_aa_index = 0; scat_aa_index < N_aa;
+                       scat_aa_index++)
+                    {
+                      for (Index stokes_index = 0; stokes_index <
+                             stokes_dim; stokes_index ++) 
+                        {
+                          Numeric diff =
+                            fabs( i_field(p_index, lat_index, lon_index, 
+                                          scat_za_index, scat_aa_index, 
+                                          stokes_index) -
+                                  i_field_old(p_index, lat_index, 
+                                              lon_index, scat_za_index,
+                                              scat_aa_index, 
+                                              stokes_index ));
+                          
+                          // If the absolute difference of the components
+                          // is larger than the pre-defined values, return
+                          // to *i_fieldIterarte* and do next iteration
+                          Numeric diff_bt = invrayjean(diff, f_grid[f_index]);
+                          if( diff_bt > epsilon[stokes_index])
+                            return;
+                          
+                          
+                        }// End loop stokes_dom.
+                    }// End loop scat_aa_grid. 
+                }// End loop scat_za_grid.
+            }// End loop lon_grid. 
+        }// End loop lat_grid.
+    } // End p_grid.
+  
+  // Convergence test has been successful, convergence_flag can be set to 1.
+  convergence_flag = 1;
+}
 
 
 
