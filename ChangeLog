@@ -1,3 +1,17 @@
+2001-10-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-267
+	
+	* src/Makefile.am (methods.o): Added -I.. to be compatible with
+	the latest automake version.
+	(species_data.o): Added -I.. to be compatible with the latest
+	automake version.
+
+	* src/methods.cc: Changed #include "config.h" to #include <config.h>.
+
+	* src/arts.h: Changed #include "config.h" to #include <config.h>.
+
+	
 2001-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-266
