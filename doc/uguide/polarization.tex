@@ -41,7 +41,7 @@
 \newcommand{\eLh} {\ensuremath{\VctStl{e}_{LH}}}
 \newcommand{\eRh} {\ensuremath{\VctStl{e}_{RH}}}
 \newcommand{\ePls} {\ensuremath{\VctStl{e}_{+45\degree}}}
-\newcommand{\eMin} {\ensuremath{\VctStl{e}_{+45\degree}}}
+\newcommand{\eMin} {\ensuremath{\VctStl{e}_{-45\degree}}}
 %\newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
 
 
@@ -75,7 +75,7 @@ unit vectors $\eVrt = (1,0)\Trp$, $\eHor = (0,1)\Trp$.  It is always
 implicitly understood that the actual, physical, electric field is the
 real part of the above expression. Rewriting the complex amplitudes
 $E_v$ and $E_h$ using real, non-negative amplitudes $a_v$ and $a_h$, and
-phases $\delta_v$ and $\delta_v$,
+phases $\delta_v$ and $\delta_h$,
 \begin{equation}
   \label{eq:polarization:compl_ampl}
   E_v=a_v e^{i\delta_v}\mbox{ , }
@@ -208,8 +208,20 @@ negative $\beta$. Since $|\tan\beta|$ is the ratio of the semi-minor
 and semi-major axes of the ellipse (the ellipticity), $\beta$ is
 called the ellipticity angle.
 
-FIXME: Include image here (similar to Fig.4, p.25 in
-\textit{Mishchenko} [2000])!
+\begin{figure}[!h]
+ \begin{center}
+  \begin{minipage}[c]{0.9\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.9\hsize]{Figs/pol_ellipse_aligned}
+   \end{center}
+  \end{minipage}
+  \begin{minipage}[c]{0.9\textwidth}
+   \caption{The ellipse that the electric field vector describes with
+     time, with the major axis oriented along the $h$-axis.}
+   \label{fig:polarization:ellipse_aligned}
+  \end{minipage}
+ \end{center}
+\end{figure}   
 
 Note that the semi-major axis is oriented along the positive $h$-axis.  To
 have the major axis of the ellipse enclose an arbitrary angle $\zeta$
@@ -225,10 +237,29 @@ matrix and get the equation for an ellipse with arbitrary shape
                            +\cos\beta \sin(\omega t) \cos\zeta )
 \end{eqnarray}
 
+
+\begin{figure}[!h]
+ \begin{center}
+  \begin{minipage}[c]{0.9\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.9\hsize]{Figs/pol_ellipse_arbitrary}
+   \end{center}
+  \end{minipage}
+  \begin{minipage}[c]{0.9\textwidth}
+   \caption{The ellipse that the electric field vector describes with
+     time, with the major axis oriented arbitrarily.}
+   \label{fig:polarizaion:ellipse_arbitrary}
+  \end{minipage}
+ \end{center}
+\end{figure}   
+
+%FIXME: include image pol\_ellipse.fig here (similar to Fig.4, p.25 in
+%\textit{Mishchenko} [2000])!
+
 Now we want to establish a direct connection between the parameters
 $\beta$ and $\zeta$ describing the shape (ellipticity) and orientation
 of the polarization ellipse on the one hand, and the amplitudes $a_v$
-and $a_h$ and phases $\delta_v$ and $\delta_v$ of the components of
+and $a_h$ and phases $\delta_v$ and $\delta_h$ of the components of
 the electric field vector on the other hand.  Comparing the
 $\sin(\omega t)$ and $\cos(\omega t)$ terms in
 Eqs.~(\ref{eq:polarization:ellipse_rotated1})%
@@ -300,7 +331,7 @@ as
   \label{eq:polarization:stokesparam_alt2_Q}
  Q &=&  -a_0^2 \cos(2\zeta)\cos(2\beta)\\ 
   \label{eq:polarization:stokesparam_alt2_U}
- U &=& -a_o^2 \sin(2\zeta)\cos(2\beta)\\
+ U &=& -a_0^2 \sin(2\zeta)\cos(2\beta)\\
   \label{eq:polarization:stokesparam_alt2_V}
  V &=& -a_0^2 \sin(2\beta)
 \end{eqnarray}
@@ -480,7 +511,7 @@ Therefore (cf. Eq.~\ref{eq:polarization:stokesparam_V}):
 \end{equation}
 %
 Thus if we measure $I_{RH}$ and $I_{LH}$ using -- for microwaves --
-appropriate helical beam antennas, we can directly obtain $U$ by
+appropriate helical beam antennas, we can directly obtain $V$ by
 taking their difference.  Unfortunately, for optical wavelengths, we
 cannot measure $I_{RH}$ and $I_{LH}$ directly with the help of
 filters like  polarizers and retarders%
@@ -495,7 +526,7 @@ the phase of the vertically polarized component (a quarter-wave
 plate).
 A phase delay by 90\degree can be expressed as a multiplication of the
 horizontal component by $i$, so the resulting
-electric field vector $\VctStl{E}^\prime$ is:
+electric field vector $\VctStl{E}^\prime$ is
 \begin{equation}
   \label{eq:polarization:E_retarded}
   \VctStl{E}^\prime = \left(E_v \eVrt +   i E_h \eHor \right) 
@@ -585,7 +616,8 @@ simply be added up:
 \end{equation}
 In the case of unpolarized radiation, i.e. when the amplitudes and
 phases, or equivalently, the orientation angle $\zeta$ and the
-ellipticity angle $\beta$ are completely random, $Q$, $U$, and $V$
+ellipticity angle $\beta$ are completely random (FIXME: really
+completely random? or uncorrelated, fluctuating?), $Q$, $U$, and $V$
 each cancel out.
 
 For each $i$, the equality $I_i^2 = Q_i^2 + U_i^2 + V_i^2$
@@ -605,6 +637,8 @@ Now we can define a measure for the degree of polarization, $p$:
   \label{eq:polarization:pol_degree}
   p = \frac{Q^2 + U^2 + V^2}{I^2}
 \end{equation}
+FIXME: Should the $p$ be squared (cf. equ.~\ref{eq:polarization:p_lin}
+and~\ref{eq:polarization:p_circ}?
 For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
 1$, and for unpolarized radiation, $Q = U = V = 0$, so $p = 0$.
 

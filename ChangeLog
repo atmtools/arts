@@ -1,3 +1,15 @@
+2002-09-03  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* doc/uguide/Figs/pol_ellipse_aligned.fig
+	* doc/uguide/Figs/pol_ellipse_aligned.eps
+	* doc/uguide/Figs/pol_ellipse_aligned.pdf
+	* doc/uguide/Figs/pol_ellipse_aligned.fig
+	* doc/uguide/Figs/pol_ellipse_arbitrary.eps
+	* doc/uguide/Figs/pol_ellipse_arbitrary.pdf: added these files.
+	* doc/uguide/polarization.tex: Small corrections, and inserted 2
+	figures
+	
+
 2002-09-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-228	
