@@ -73,7 +73,7 @@ end
 
 
 %=== Convert ARRAYof to AO and make artstype uppercase
-if strncmp(artstype,'ARRAYof',7)
+if strncmp(upper(artstype),'ARRAYOF',7)
   artstype = ['AO',artstype(8:length(artstype))];
 end
 artstype = upper(artstype);

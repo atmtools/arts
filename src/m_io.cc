@@ -374,7 +374,7 @@ void VectorWriteBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_vector( filename, fid, v, "Vector" );
+  binfile_write_vector( filename, fid, v, "VECTOR" );
   binfile_close( fid, filename );
 }
 
@@ -395,7 +395,7 @@ void VectorReadBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_vector( v, filename, fid, "Vector" );
+  binfile_read_vector( v, filename, fid, "VECTOR" );
   binfile_close( fid, filename );
 }
 
@@ -467,7 +467,7 @@ void MatrixWriteBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_matrix( filename, fid, v, "Matrix" );
+  binfile_write_matrix( filename, fid, v, "MATRIX" );
   binfile_close( fid, filename );
 }
 
@@ -488,7 +488,7 @@ void MatrixReadBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_matrix( v, filename, fid, "Matrix" );
+  binfile_read_matrix( v, filename, fid, "MATRIX" );
   binfile_close( fid, filename );
 }
 
@@ -570,7 +570,7 @@ void ArrayOfIndexWriteBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_indexarray( filename, fid, v, "IndexArray" );
+  binfile_write_indexarray( filename, fid, v, "INDEXARRAY" );
   binfile_close( fid, filename );
 }
 
@@ -591,7 +591,7 @@ void ArrayOfIndexReadBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_indexarray( v, filename, fid, "IndexArray" );
+  binfile_read_indexarray( v, filename, fid, "INDEXARRAY" );
   binfile_close( fid, filename );
 }
 
@@ -667,7 +667,7 @@ void ArrayOfVectorWriteBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_vectorarray( filename, fid, v, "Vector" );
+  binfile_write_vectorarray( filename, fid, v, "VECTOR" );
   binfile_close( fid, filename );
 }
 
@@ -688,7 +688,7 @@ void ArrayOfVectorReadBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_vectorarray( v, filename, fid, "Vector" );
+  binfile_read_vectorarray( v, filename, fid, "VECTOR" );
   binfile_close( fid, filename );
 }
 
@@ -747,7 +747,7 @@ void ArrayOfMatrixWriteBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_matrixarray( filename, fid, v, "Matrix" );
+  binfile_write_matrixarray( filename, fid, v, "MATRIX" );
   binfile_close( fid, filename );
 }
 
@@ -768,7 +768,7 @@ void ArrayOfMatrixReadBinary(
   String filename = f;
   filename_bin( filename, var_name );
   binfile_open_in( fid, filename );
-  binfile_read_matrixarray( v, filename, fid, "Matrix" );
+  binfile_read_matrixarray( v, filename, fid, "MATRIX" );
   binfile_close( fid, filename );
 }
 

@@ -62,35 +62,37 @@
 % HISTORY: 01.08.14  Created by Carlos Jimenez/Patrick Eriksson
 
 
-function S = sFromFile(file,vector)
+function S = sFromFile( file, vector )
 
-global REPORT_LEVEL
 
-out(1,1);
-out(1,'Setting up a covariance matrix');
+out(3,'Setting up a covariance matrix');
+
 
 %=== Reading file
-
+%
 I = read_datafile(file,'AOMATRIX');
 
+
 %=== Some checks of sizes
-
+%
 n = size(I,1);
-
+%
 if n < 1 
   error('The file must contain > 1 matrix.');
+%
 elseif size(I{1},1)~= 2 
-
-   error('The first matrix in the file must have 2 rows.');
+  error('The first matrix in the file must have 2 rows.');
+%
 elseif size(I{1},2) ~= n-1 
-    error('The number of columns of the first matrix must equal the number of matrices - 1.');
+  error( ['The number of columns of the first matrix must equal the',...
+            'number of matrices - 1.'] );
 end
 
 
 %=== Loop the different covariance matrices
-
-out(2,['Summing ',num2str(n-1),' matrices.']);
-  
+%
+out(3,['Summing ',num2str(n-1),' matrices.']);
+%  
 for i=2:n
 
     % --  Check if the corrfun flag is an integer
@@ -123,7 +125,9 @@ if length(find(S)) < size(S,1)*size(S,2)*0.67
      S = sparse(S);
 end
 
-out(1,-1);
+
+
+
 
 %----------------------------------------------------------------------
 %
@@ -132,19 +136,23 @@ out(1,-1);
 %----------------------------------------------------------------------
 
 %-------------------------------------------- ----------------------------
-function  s = setup_covmatrix( kg, corrfun, cutoff, kp, sdev, clength) 
+function  s = setup_covmatrix( kg, corrfun, cutoff, kp, sdev, clength ) 
 %------------------------------------------------------------------------
 
 %=== Checking
-
+%
 n = length(kg);
-
+%
 if length(sdev) ~= length(clength)
-    error('The standard deviation and correlation length vectors must have the same length');
+  error(['The standard deviation and correlation length vectors',...
+         'must have the same length']);
+%
 elseif min(kg)<min(kp) | max(kg)>max(kp)
-    error('The data defining the covariance do not cover all retrieval/error points.');
+  error(['The data defining the covariance do not cover all',...
+         'retrieval/error points.']);
+%
 elseif cutoff >= 1
-    error('The correlation cut-off must be < 1.');
+  error('The correlation cut-off must be < 1.');
 end
 
 
@@ -152,72 +160,77 @@ end
 
 %=== Interpolate to get standard deviation and correlation length at
 %    each point of k_grid
-
+%
 sd  = interp1( kp, sdev, kg );
 cl  = interp1( kp, clength, kg );
 
 
 %=== Diagonal matrix
-
+%
 if corrfun == 0
+  %
+  out(3,'Creating a diagonal covariance matrix');
+  s = diag( sd.*sd );
 
-  out(2,'Creating a diagonal covariance matrix');
-  s = diag(sd.*sd);
 
 %===  Linearly decreasing (tenth function)
-  
+%  
 elseif corrfun == 1
-
-    out(2,'Creating a simple covariance matrix');
-    out(2, '  Tenth function correlation'); 
-    out(2,['  Correlation cut-off : ',num2str(cutoff)]);
-    out(2,['  Size                : ',num2str(n)]);
-    s = zeros(n,n);
-    for row=1:n
-      for col=1:n
-      
-        c = 1 - 2*(1-exp(-1))*abs( (kg(row)-kg(col))/(cl(row)+cl(col)) );
-        if c>0 & c>cutoff
-          s(row,col) = c*sd(row)*sd(col); 
-        end
+  %  
+  out(3,'Creating a simple covariance matrix');
+  out(3, '  Tenth function correlation'); 
+  out(3,['  Correlation cut-off : ',num2str(cutoff)]);
+  out(3,['  Size                : ',num2str(n)]);
+  s = zeros(n,n);
+  for row=1:n
+    for col=row:n
+      c = 1 - 2 * (1-exp(-1)) * abs( (kg(row)-kg(col))/(cl(row)+cl(col)) );
+      if c>0 & c>cutoff
+        s(row,col) = c*sd(row)*sd(col); 
+        s(col,row) = s(row,col);
       end
     end
+  end
+
+
 %===  Exponential
-  
+%  
 elseif corrfun == 2
-
-    out(2,'Creating a simple covariance matrix');
-    out(2, '  Exponential correlation');
-    out(2,['  Correlation cut-off : ',num2str(cutoff)]);
-    out(2,['  Size                : ',num2str(n)]);
-    s = zeros(n,n);
-    for row=1:n
-      for col=1:n
-        c = exp(-abs(kg(row)-kg(col))/((cl(row)+cl(col))/2));
-        if c > cutoff
-          s(row,col) = c*sd(row)*sd(col); 
-        end
+  %
+  out(3,'Creating a simple covariance matrix');
+  out(3, '  Exponential correlation');
+  out(3,['  Correlation cut-off : ',num2str(cutoff)]);
+  out(3,['  Size                : ',num2str(n)]);
+  s = zeros(n,n);
+  for row=1:n
+    for col=row:n
+      c = exp(-abs(kg(row)-kg(col))/((cl(row)+cl(col))/2));
+      if c > cutoff
+        s(row,col) = c*sd(row)*sd(col); 
+        s(col,row) = s(row,col);
       end
     end
+  end
 
 
 %===  Gaussian
   
 elseif corrfun == 3
-
-    out(2,'Creating a simple covariance matrix');
-    out(2, '  Gaussian correlation');
-    out(2,['  Correlation cut-off : ',num2str(cutoff)]);
-    out(2,['  Size                : ',num2str(n)]);
-    s = zeros(n,n);
-    for row=1:n
-      for col=1:n
-        c = exp( -1 * ( (kg(row)-kg(col)) /(cl(row)+cl(col)) /2  )^ 2  );
-        if c > cutoff
-          s(row,col) = c*sd(row)*sd(col); 
-        end
+  %
+  out(3,'Creating a simple covariance matrix');
+  out(3, '  Gaussian correlation');
+  out(3,['  Correlation cut-off : ',num2str(cutoff)]);
+  out(3,['  Size                : ',num2str(n)]);
+  s = zeros(n,n);
+  for row=1:n
+    for col=row:n
+      c = exp( -1 * ( (kg(row)-kg(col)) /(cl(row)+cl(col)) /2  )^ 2  );
+      if c > cutoff
+        s(row,col) = c*sd(row)*sd(col); 
+        s(col,row) = s(row,col);
       end
     end
+  end
 
 
 %=== Unknown correlation function

@@ -104,7 +104,7 @@ else
     for j = 1:(ncols-2)
       fprintf('-');
     end
-    fprintf('/\n\n');
+    fprintf('/\n');
   end
 
 end

@@ -1,3 +1,17 @@
+2001-09-17  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-204
+
+	* Stefan had changed the data type coding used for the binary files.
+	This is changed back (sorry Stefan). The aim of being 100% consistent
+	is good but in this case it would have just caused problems. As the
+	binary file format is just a temporary solution I didn't see the point
+	to spend a lot of time to convey Stefan's changes to AMI (this would
+	have taken a lot of time, made old data files useless etc). 
+
+	* Minor changes in out.m and sFromFile.m
+	
+
 2001-09-13  Nikolay Koulev <nkoulev@uni-bremen.de>
 
 	* arts-0-0-203

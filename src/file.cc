@@ -993,7 +993,7 @@ void binfile_write(
   // Create the field
   int    status1, status2;
   //
-  if ( atomictype == "Index" ) 
+  if ( atomictype == "INDEX" ) 
   {
     status1 = VSsetclass( vdata_id, "UINT"  );
     status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_UINT32, 1);
@@ -1323,10 +1323,10 @@ void binfile_write_index(
   /*
   size_t  a[1];
   a[0] = x;
-  binfile_write( fid,  filename, dataname, "SCALAR", "Index", 1, 1, 
+  binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
                                                                 (uint8*)a );
   */
-  binfile_write( fid,  filename, dataname, "SCALAR", "Index", 1, 1, 
+  binfile_write( fid,  filename, dataname, "SCALAR", "INDEX", 1, 1, 
                                                                (uint8*)&x );
 }
 
@@ -1444,7 +1444,7 @@ void binfile_write_vector(
   for ( size_t i=0; i<n; i++ )
     a[i] = x[i];
   */
-  binfile_write( fid,  filename, dataname, "Vector", "NUMERIC", n, 1, 
+  binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
                                                                (uint8*)&x[0] );
 }
 
@@ -1473,7 +1473,7 @@ void binfile_read_vector(
   Matrix  a;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
-                                                           "Vector", 0, 1 );
+                                                           "VECTOR", 0, 1 );
   binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
   resize(x,nrows);
   for ( size_t i=0; i<nrows; i++ )
@@ -1508,7 +1508,7 @@ void binfile_write_matrix(
   const size_t  nrows = x.nrows();
   const size_t  ncols = x.ncols();
 
-  binfile_write( fid,  filename, dataname, "Matrix", "NUMERIC", nrows, ncols, 
+  binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
                                                             (uint8*)&x[0][0] );
 }
 
@@ -1536,7 +1536,7 @@ void binfile_read_matrix(
   size_t  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
-                                                           "Matrix", 0, 0 );
+                                                           "MATRIX", 0, 0 );
   binfile_read2( x, vdata_id, nrows, ncols, filename, dataname );
   binfile_read_end( vdata_id, filename, dataname );
 }
@@ -1567,10 +1567,10 @@ void binfile_write_indexarray(
   size_t a[n];
   for ( size_t i=0; i<n; i++ )
     a[i] = x[i];
-  binfile_write( fid,  filename, dataname, "Array", "Index", n, 1, 
+  binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
                                                                 (uint8*)a );
   */
-  binfile_write( fid,  filename, dataname, "Array", "Index", n, 1, 
+  binfile_write( fid,  filename, dataname, "ARRAY", "INDEX", n, 1, 
                                                                (uint8*)&x[0] );
 }
 
@@ -1598,7 +1598,7 @@ void binfile_read_indexarray(
   size_t  nrows, ncols;
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
-                                                           "Array", 0, 1 );
+                                                           "ARRAY", 0, 1 );
   binfile_read1( x, vdata_id, nrows, filename, dataname );
   binfile_read_end( vdata_id, filename, dataname );
 }
