@@ -1588,6 +1588,7 @@ void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
     // even if not needed. FIXME: I assume that theta is to the power of
     // Nair (just as in the pressure broadening), otherwise we need
     // another parameter to pass with the catalogue.
+    //cout << "x7, x8: " << x[7] << " " << x[8] << "\n";
     overlap = (x[7] + x[8] * ( x[0] - 1.0)) * 
       x[2] * x[1];
 

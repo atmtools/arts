@@ -1,3 +1,4 @@
+ARTSCAT-2
 # hand made catalogue of the spin rot spectrum of oxygen 16-16, just
 # like the the old iup forward model.
 #

@@ -1860,6 +1860,32 @@ void xsec_per_tgAddLines(// WS Output:
       // Skip the call to xsec_per_tg if the line list is empty.
       if ( 0 < lines_per_tg[i].size() )
 	{
+
+	  // Check if the appropriate line shape is used for tag O2 
+          // (with the line mixing parameters for the 60 GHz complex)
+	  string CheckName = get_tag_group_name(tgs[i]);
+	  if ((CheckName.find("-") > 0) && (CheckName.find("-") < CheckName.length()))
+	    {
+	      CheckName.erase(CheckName.find("-"),CheckName.length()-1);
+	    }
+	  if ("O2" == CheckName)
+	    {
+	      out2 << "******** " << get_tag_group_name(tgs[i]) << 
+		" # of lines=" << lines_per_tg[i].size() << "\n";
+	      for ( size_t l=0; l< lines_per_tg[i].size(); ++l )
+		{
+		  out2 << "xsec_per_tgAddLines: line=" << l << ", ";
+		    for ( size_t j=0; j<lines_per_tg[i][l].Naux(); ++j )
+		    {
+		      out2 << " aux[" << j << "] = " << lines_per_tg[i][l].Aux()[j];
+		    }
+		    out2 << "\n";
+		}
+	      if ()
+		{
+		}
+	    }
+	     
 	  out2 << lines_per_tg[i].size() << " transitions\n";
 	  xsec_species( xsec_per_tg[i],
 			f_mono,

@@ -1,3 +1,12 @@
+2001-06-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-0-0-180
+
+	* src/m_abs.cc in function xsec_per_tgAddLines introduction of a control
+	structure for the auxiliary lineshape function parameters.
+	This structure is only very preliminary and contains up to now
+	only a print statement and no real control - this has to be implemented! 
+	
 2001-06-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-179

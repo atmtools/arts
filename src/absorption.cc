@@ -1239,6 +1239,7 @@ bool LineRecord::ReadFromArtsStream(istream& is)
       for (size_t i = 0; i<naux; i++)
 	{
 	  icecream >> maux[i];
+	  //cout << "maux" << i << " = " << maux[i] << "\n";
 	}
 
 
@@ -1894,6 +1895,7 @@ void xsec_species( MATRIX&                  xsec,
 	  {
 	    aux[7] = l_l.Aux()[0];
 	    aux[8] = l_l.Aux()[1];
+	    // cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
 	  }
 	else
 	  {
