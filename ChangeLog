@@ -1,3 +1,24 @@
+2001-11-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-1-47
+	
+	* doc/examples/batch_example.arts.in: Renamed batch_test to
+	batch_input.
+
+	* doc/examples/batch_test.*.ab: Renamed to batch_input.*.ab.
+
+	* doc/uguide/development.tex: Added section about creating example
+	files.
+
+	* doc/examples/amsu.arts: Renamed to amsu_example.arts.in.
+
+	* doc/examples/auto_example1.arts: Renamed to
+	absorption_example.arts.in.
+
+	* doc/examples/auto_full.arts.in: Renamed to rt_example.arts.in.
+
+	* configure.in: Added new examples.
+
 2001-11-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-46
