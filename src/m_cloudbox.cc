@@ -755,7 +755,13 @@ void scat_iPut(//WS Output:
   Index N_lon = lon_grid.nelem();
   Index N_za = scat_za_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
-
+  cout<<"N_f"<<N_f<<endl;
+  cout<<"N_p"<<N_p<<endl;
+  cout<<"N_lat"<<N_lat<<endl;
+  cout<<"N_lon"<<N_lon<<endl;
+  cout<<"N_za"<<N_za<<endl;
+  cout<<"N_aa"<<N_aa<<endl;
+  cout<<"stokes_dim"<<stokes_dim<<endl;
   // Some checks:
   assert ( is_size( i_field, 
                     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
@@ -765,19 +771,22 @@ void scat_iPut(//WS Output:
                     1,
                     stokes_dim));
 
-  assert ( is_size( scat_i_p,
+  /*assert ( is_size( scat_i_p,
                     N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim ));
 
   assert ( is_size( scat_i_lat,
                     N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim ));
   
   assert ( is_size( scat_i_lon,
-                    N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));
+  N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));*/
 
   // Put the i_field at the cloudbox boundary into the interface variable 
   // scat_i_p.
   if(atmosphere_dim == 1)
     {
+      scat_i_p.resize(N_f, 2, 1, 1, N_za, 1, stokes_dim);
+      scat_i_lat.resize(N_f, N_p, 2, 1, N_za, 1, stokes_dim);
+      scat_i_lon.resize(N_f, N_p, 1, 2, N_za, 1, stokes_dim);
       for (Index za = 0; za < N_za; za++)
             {
               for (Index i = 0; i < stokes_dim; i++)
@@ -993,6 +1002,13 @@ void CloudboxGetIncoming(// WS Output:
   Index Nlon = lon_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
   Index Ni = stokes_dim;
+  cout<<"N_f"<<Nf<<endl;
+  cout<<"N_p"<<Np<<endl;
+  cout<<"N_lat"<<Nlat<<endl;
+  cout<<"N_lon"<<Nlon<<endl;
+  cout<<"N_za"<<Nza<<endl;
+  cout<<"N_aa"<<Naa<<endl;
+  cout<<"stokes_dim"<<Ni<<endl;
   
   i_rte.resize(Nf,Ni);
   i_space.resize(Nf, Ni);

@@ -79,6 +79,7 @@ void AtmosphereSet1D(
   atmosphere_dim = 1;
   lat_grid.resize(0);
   lon_grid.resize(0);
+ 
 }
 
 

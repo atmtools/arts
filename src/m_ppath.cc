@@ -275,6 +275,7 @@ void ppathCalc(
   const Index imax_lat = lat_grid.nelem() - 1;
   const Index imax_lon = lon_grid.nelem() - 1;
   //
+  
   while( !ppath_what_background( ppath_step ) )
     {
 
@@ -283,8 +284,9 @@ void ppathCalc(
       istep++;
       out3 << "  path step number     : " << istep << "\n";
       //
+      
       ppath_step_agenda.execute();
-
+      
       //PpathPrint(ppath_step,"ppath_step");
 
       // Number of points in returned path step
@@ -340,7 +342,8 @@ void ppathCalc(
 		}
 	    }
 	}
-
+      
+    
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
 	{
@@ -373,8 +376,8 @@ void ppathCalc(
 	    }
 	}
     } // End path steps
-
   
+ 
   // Combine all structures in ppath_array to form the return Ppath structure.
   //
   ppath_init_structure( ppath, atmosphere_dim, np );
@@ -438,6 +441,7 @@ void ppathCalc(
 
 	  // Increase number of points done
 	  np += n - i1;
+	 
 	}
     }  
   ppath.method     = ppath_step.method;
