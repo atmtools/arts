@@ -409,7 +409,7 @@ function binfile_write(fid,filename,dataname,storagetype,atomictype,x,prec)
   if strcmp(atomictype,'INDEX')
     status1 = hdfvs('setclass',vdata_id,'UINT');
     status2 = hdfvs('fdefine',vdata_id,storagetype,'uint32',1);
-    a = unit32(x);
+    a = uint32(x);
     x = cell(1,1);
     x{1} = a;
 
