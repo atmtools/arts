@@ -1,3 +1,12 @@
+2003-01-12  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-381
+
+	* configure.in: Applied patch provided by Randall Skelton
+	<rhskelto@atm.ox.ac.uk>:
+	configure can now be told where it should look for the HDF library.
+	Added LDFLAGS to the configuration summary.
+
 2003-01-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-380
