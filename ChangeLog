@@ -1,3 +1,9 @@
+2002-08-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-198
+	
+	* src/check_input.cc: Bug fix.
+
 2002-08-05  Nikolay Koulev   <nkoulev@uni-bremen.de>
 
 	* arts-1-1-197
