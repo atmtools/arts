@@ -1,5 +1,16 @@
 2002-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-47
+
+	(From another computer than the last commit.)
+	
+	* ami/file/cira86.m: An error message was wrong.
+
+	* ami/math/isscalar.m (bool): A small change to avoid a warning in 
+	Matlab 6.5.
+
+2002-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-46
 
 	* ami/file/cira86.m: Month number can now be 0-13 (before 1-12). Month

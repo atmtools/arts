@@ -47,7 +47,7 @@ function [T,Z] = cira86(months,lats,p)
 
 %=== Check input 
 if any( months < 0 )  |  any( months > 13 )
-  error('Allowed range for month numbers is 1 - 12.');
+  error('Allowed range for month numbers is 0 - 13.');
 end
 if any( lats < -90 )  |  any( lats > 90 )
   error('Allowed range for latitudes is -90 - 90.');
@@ -62,7 +62,7 @@ end
 
 %=== Determine the path to the CIRA folder in arts-data.
 %
-if ~exist('arts_data_path','file');
+if ~exist('arts_data_path','file')
   error( ['It seems that init.m could not find arts-data, that is ',...
                                                'required for this function'] );
 end

@@ -21,7 +21,7 @@ bool = 0;
 
 if isnumeric( a )
   
-  if max(size(a)) == 1
+  if length(a) == 1
 
     bool = 1;
 
