@@ -221,11 +221,11 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       if (m == 0)
         {
-          result = (sqrt (2.0 * fac (1 - m) / fac (1 + m)) * 1;
+          result = sqrt (2.0 * fac (1 - m) / fac (1 + m)) * 1;
         }
-      else
+	  else
         {
-          result = (sqrt (2.0 * fac (1 - m) / fac (1 + m)) * x / sqrt(1 - x*x);
+          result = sqrt (2.0 * fac (1 - m) / fac (1 + m)) * x /sqrt(1 - x*x);
         }
     }
   else

@@ -1,5 +1,12 @@
 2003-08-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-667
+
+	* src/legendre.cc: Debugged the previous modification of the
+	special case l=1 in (legendre_poly_norm_schmidt_deriv).
+
+2003-08-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-666
 
 	* src/geomag_calc.cc: Small change, taking into account that
