@@ -1872,7 +1872,7 @@ void za_gridOpt(//Output:
   Vector max_diff_za(N_p);
   ArrayOfIndex ind_za(N_p);
   Numeric max_diff_p;
-  Index ind_p;
+  Index ind_p=0;
   
   
 

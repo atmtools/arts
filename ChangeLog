@@ -1,3 +1,10 @@
+2004-04-13  Cory Davis  <cory@zvi.jpl.nasa.gov>
+
+	* arts-1-1-807
+
+	* src/scatrte.{cc,h} (za_gridOpt): initialised ind_p to avoid warning 
+	and hence compilation error
+
 2004-04-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-806
