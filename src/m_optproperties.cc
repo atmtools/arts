@@ -3,45 +3,40 @@
   \author Sreerekha T.R. <rekha@uni-bremen.de>
   \date   Mon Jun 10 11:19:11 2002 
   \brief  This file contains workspace methods for calculating the optical 
-  properties for the radiative transfer. These are extinction matrix,
-  absorption vector and scattering vector. 
-  The optical properties for the gases can be calculated with or without 
-  Zeeman effect.
+  properties for the radiative transfer. 
+
+  Optical properties are the extinction matrix, absorption vector and
+  scattering vector.  The optical properties for the gases can be
+  calculated with or without Zeeman effect.
 */
+
 /*===========================================================================
   === External declarations
   ===========================================================================*/
 
-#include <stdexcept>
-#include <iostream>
-#include <stdlib.h>
-#include <cmath>
 #include "arts.h"
+#include "exceptions.h"
 #include "array.h"
-#include "check_input.h"
-#include "matpackI.h"
-#include "matpackVI.h"
 #include "matpackVII.h"
 #include "scatproperties.h"
 #include "logic.h"
-#include "auto_md.h"
-#include "cloudbox.h"
 #include "interpolation.h"
-#include "make_vector.h"
-#include "xml_io.h"
-//! This method computes the extinction matrix for a single particle type
-//  from teh amplitude matrix.
-/*! 
-\param ext_mat_spt Output and Input: extinction matrix for a single 
-particle type.
-\param amp_mat Input : amplitude matrix for each particle type
-\param scat_za_index  Input : local zenith angle
-\param scat_aa_index  Input : local azimuth angle
-\param scat_f_index  Input : frequency index
-\param f_grid  Input : frequency grid
-\param stokes_dim  Input : stokes dimension
-*/
+#include "messages.h"
 
+//! Calculate single particle extinction. 
+/*!
+  This method computes the extinction matrix for a single particle
+  type from the amplitude matrix.
+
+  \param ext_mat_spt Output and Input : extinction matrix for a single 
+                     particle type.
+  \param amp_mat Input : amplitude matrix for each particle type
+  \param scat_za_index  Input : local zenith angle
+  \param scat_aa_index  Input : local azimuth angle
+  \param scat_f_index  Input : frequency index
+  \param f_grid  Input : frequency grid
+  \param stokes_dim  Input : stokes dimension
+*/
 void ext_mat_sptCalc(
                      Tensor3& ext_mat_spt,
                      const Tensor6& amp_mat,
@@ -560,88 +555,165 @@ void abs_vecAddPart(
   
 // }
 
+//! Initialize extinction matrix.
+/*!
+  This method is necessary, because all other extinction methods just
+  add to the existing extinction matrix. 
 
+  So, here we have to make it the right size and fill it with 0.
   
-//! Method for creating the extinction matrix.
-/*! 
+  Note, that the matrix is not really a matrix, because it has a
+  leading frequency dimension.
 
- This method is also for test purposes and is very simple.  It takes 
-absorption coefficients from the method abs_vec_gasExample and put them 
-along the diagonal of a 4 X 4 matrix (if stokes_dim = 4) and the 
-off-diagonal elements are set to zero.
+  \param ext_mat Extinction matrix.
+  \param f_grid Frequency grid.
+  \param stokes_dim Stokes dimension.
 
-\param ext_mat Output : The extinction matrix corresponding to gaseous 
-species
-\param abs_scalar_gas Input : absorption from gaseous species
-\param f_index : Input: Frequency index. If all frequencies shall be calculated this variable has to be set to 0. 
+  \author Stefan Buehler
+
+  \date   2002-12-12
 */
-
-void ext_matAddGas(Tensor3& ext_mat,
-                   const Vector& abs_scalar_gas,
-                   const Index& f_index,
-                   const Index& atmosphere_dim)
+void ext_matInit( Tensor3&      ext_mat,
+                  const Vector& f_grid,
+                  const Index&  stokes_dim )
 {
-  Index stokes_dim = ext_mat.ncols();
-  Matrix ext_mat_gas(stokes_dim, stokes_dim,0.0);
- 
-  //FIXME: After the scalar ags function is ready. Now it can take only one
-  // absorption value.
-  if (atmosphere_dim == 1){
-  
-    for (Index i =0; i < stokes_dim; ++i)
-      {
-        for (Index j =0; j < stokes_dim; ++j)
-          {
-            
-            if ( i == j){
-              // Dies ist noch Quatsch!!!
-              ext_mat_gas(i,j) = abs_scalar_gas[0];
-            }
-            else{
-              ext_mat_gas(i,j) = 0.0;
-            }
-          }
-      }
-  
-  ext_mat(0, Range(joker), Range(joker)) += ext_mat_gas;
-  }
- }
+  ext_mat.resize( f_grid.nelem(),
+                  stokes_dim,
+                  stokes_dim );
+  ext_mat = 0;                  // Initialize to zero!
 
-//! Method for creating the absorption vector.
+  out2 << "Set dimensions of ext_mat as ["
+       << f_grid.nelem() << ","
+       << stokes_dim << ","
+       << stokes_dim << "] and initialized to 0.\n";
+}
+
+//! Add gas absorption to all diagonal elements of extinction matrix.
 /*! 
+  The task of this method is to sum up the gas absorption of the
+  different gas species and add the result to the extinction matrix. 
 
-to be written ... 
+  \param ext_mat Input and Output: Extinction matrix.
+                 Dimension: [#frequencies, stokes_dim, stokes_dim]
+  
+  \param abs_scalar_gas Scalar gas absorption coefficients.
+                        Dimension: [#frequencies, #gas_species]
 
-\param abs_vec Output : The extinction matrix corresponding to gaseous 
-species
-\param abs_scalar_gas Input : absorption from gaseous species
-\param f_index : Input: Frequency index. If all frequencies shall be calculated this variable has to be set to 0. 
+  \author Stefan Buehler
+          (rewritten version of function by Sreerekha Ravi)
+
+  \date   2002-12-12
 */
-
-void abs_vecAddGas(Matrix& abs_vec,
-                   const Vector& abs_scalar_gas,
-                   const Index& f_index,
-                   const Index& atmosphere_dim)
+void ext_matAddGas( Tensor3&      ext_mat,
+                    const Matrix& abs_scalar_gas )
 {
-  Index stokes_dim = abs_vec.ncols();
-  Vector abs_vec_gas(stokes_dim);
-  
+  // Number of Stokes parameters:
+  const Index stokes_dim = ext_mat.ncols();
 
-  if (atmosphere_dim == 1){
-    
-    abs_vec_gas[0] = abs_scalar_gas[0];
-  
-    for (Index i = 1; i < stokes_dim; ++i)
-      {
-        abs_vec_gas[i] = 0.0;
-          
-      }
-    
-    abs_vec(0, Range(joker)) += abs_vec_gas;
-  }
-  
- }
+  // The second dimension of ext_mat must also match the number of
+  // Stokes parameters:
+  if ( stokes_dim != ext_mat.nrows() )
+    throw runtime_error("Row dimension of ext_mat inconsistent with "
+                        "column dimension."); 
 
+  // Number of frequencies:
+  const Index f_dim = ext_mat.npages();
+
+  // This must be consistent with the first dimension of
+  // abs_scalar_gas. Check this:
+  if ( f_dim != abs_scalar_gas.nrows() )
+    throw runtime_error("Frequency dimension of ext_mat and abs_scalar_gas\n"
+                        "are inconsistent.");
+
+  // Sum up absorption over all species.
+  // This gives us an absorption vector for all frequencies. Of course
+  // this includes the special case that there is only one frequency.
+  Vector abs_total(f_dim);
+  for ( Index i=0; i<f_dim; ++i )
+    abs_total[i] = abs_scalar_gas(i,joker).sum();
+
+  for ( Index i=0; i<stokes_dim; ++i )
+    {
+      // Add the absorption value to all the diagonal elements:
+      ext_mat(joker,i,i) += abs_total[joker];
+      
+      // We don't have to do anything about the off-diagonal
+      // elements! 
+    }
+}
+
+//! Initialize absorption vector.
+/*!
+  This method is necessary, because all other absorption methods just
+  add to the existing absorption vector.
+
+  So, here we have to make it the right size and fill it with 0.
+
+  Note, that the vector is not really a vector, because it has a
+  leading frequency dimension.
+  
+  \param abs_vec Extinction matrix.
+  \param f_grid Frequency grid.
+  \param stokes_dim Stokes dimension.
+
+  \author Stefan Buehler
+
+  \date   2002-12-12
+*/
+void abs_vecInit( Matrix&       abs_vec,
+                  const Vector& f_grid,
+                  const Index&  stokes_dim )
+{
+  abs_vec.resize( f_grid.nelem(),
+                  stokes_dim );
+  abs_vec = 0;                  // Initialize to zero!
+
+  out2 << "Set dimensions of abs_vec as ["
+       << f_grid.nelem() << ","
+       << stokes_dim << "] and initialized to 0.\n";
+}
+
+//! Add gas absorption to first element of absorption vector.
+/*! 
+  The task of this method is to sum up the gas absorption of the
+  different gas species and add the result to the first element of the
+  absorption vector.
+
+  \param abs_vec Input and Output: Absorption vector
+                 Dimension: [#frequencies, stokes_dim]
+  
+  \param abs_scalar_gas Scalar gas absorption coefficients.
+                        Dimension: [#frequencies, #gas_species]
+
+  \author Stefan Buehler
+          (rewritten version of function by Sreerekha Ravi)
+
+  \date   2002-12-12
+*/
+void abs_vecAddGas( Matrix&       abs_vec,
+                    const Matrix& abs_scalar_gas )
+{
+  // Number of frequencies:
+  const Index f_dim = abs_vec.nrows();
+
+  // This must be consistent with the first dimension of
+  // abs_scalar_gas. Check this:
+  if ( f_dim != abs_scalar_gas.nrows() )
+    throw runtime_error("Frequency dimension of abs_vec and abs_scalar_gas\n"
+                        "are inconsistent.");
+
+  // Loop all frequencies. Of course this includes the special case
+  // that there is only one frequency.
+  for ( Index i=0; i<f_dim; ++i )
+    {
+      // Sum up the columns of abs_scalar_gas and add to the first
+      // element of abs_vec.
+      abs_vec(i,0) += abs_scalar_gas(i,joker).sum();
+    }
+
+  // We don't have to do anything about higher elements of abs_vec,
+  // since scalar gas absorption only influences the first element.
+}
 
 //! Phase Matrix for the particle 
 /*! 

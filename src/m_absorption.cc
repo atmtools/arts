@@ -98,3 +98,34 @@ void gas_speciesSet(// WS Output:
   out3 << '\n';
 }
 
+void gas_abs_lookupAdapt( GasAbsLookup&                   gas_abs_lookup,
+                          Index&                          gas_abs_lookup_is_adapted,
+                          const ArrayOfArrayOfSpeciesTag& gas_species,
+                          const Vector&                   f_grid)
+{
+  gas_abs_lookup.Adapt( gas_species, f_grid );
+  gas_abs_lookup_is_adapted = 1;
+}
+
+void abs_scalar_gasExtractFromLookup( Matrix&             abs_scalar_gas,
+                                      const GasAbsLookup& gas_abs_lookup,
+                                      const Index&        gas_abs_lookup_is_adapted, 
+                                      const Index&        f_index,
+                                      const Numeric&      a_pressure,
+                                      const Numeric&      a_temperature,
+                                      const Vector&       a_vmr_list)
+{
+  // Check if the table has been adapted:
+  if ( 1!=gas_abs_lookup_is_adapted )
+    throw runtime_error("Gas absorption lookup table must be adapted,\n"
+                        "use method gas_abs_lookupAdapt.");
+
+  // The function we are going to call here is one of the few helper
+  // functions that adjust the size of their output argument
+  // automatically. 
+  gas_abs_lookup.Extract( abs_scalar_gas,
+                          f_index,
+                          a_pressure,
+                          a_temperature,
+                          a_vmr_list );
+}

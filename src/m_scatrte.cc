@@ -358,7 +358,7 @@ i_fieldIterate(
                     Index& scat_lon_index,
                     Index& scat_za_index,
                     Index& scat_aa_index,
-                    Vector& abs_scalar_gas,
+                    Matrix& abs_scalar_gas,
                     // WS Input:
                     const Agenda& spt_calc_agenda,
                     const Agenda& opt_prop_part_agenda,
@@ -625,7 +625,7 @@ i_fieldUpdate1D(// WS Output:
                 Index& scat_p_index,
                 Index& scat_za_index,
                 Index& scat_aa_index,
-                Vector& abs_scalar_gas,
+                Matrix& abs_scalar_gas,
                 // WS Input:
                 const Agenda& spt_calc_agenda,
                 const Agenda& opt_prop_part_agenda,
@@ -710,13 +710,20 @@ i_fieldUpdate1D(// WS Output:
 
   // Create scalar absorption and store it in an array. This avoids 
   // repeating the calculation for each direction.
-  Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0])+ 1, 0.);
+  // Actually, this variable is not an array, but a matrix, because we
+  // need to store the gas absorption for each species.
+  // Dimensions: [ # levels in cloudbox, # species ]
+  Matrix scalar_gas_array( (cloudbox_limits[1] - cloudbox_limits[0])+ 1,
+                           abs_scalar_gas.ncols() );
 
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
       scalar_gas_absorption_agenda.execute(p_index - cloudbox_limits[0]);
-      scalar_gas_array[p_index - cloudbox_limits[0]] = abs_scalar_gas[0];
+      scalar_gas_array( p_index - cloudbox_limits[0], joker )
+        = abs_scalar_gas(0,joker);
+      // We ignore the first dimension of abs_scalar_gas, which would
+      // be the frequency dimension.
     }
   
   //Loop over all directions, defined by scat_za_grid 
@@ -768,7 +775,8 @@ i_fieldUpdate1D(// WS Output:
             resize(stokes_dim, stokes_dim); 
           
           // Get scalar gas absorption from array.
-          abs_scalar_gas[0] = scalar_gas_array[p_index- cloudbox_limits[0]];
+          abs_scalar_gas(0,joker)
+            = scalar_gas_array( p_index - cloudbox_limits[0], joker );
           
           ext_mat = 0.;
           abs_vec = 0.;
@@ -1139,7 +1147,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                 Index& scat_p_index,
                 Index& scat_za_index,
                 Index& scat_aa_index,
-                Vector& abs_scalar_gas,
+                Matrix& abs_scalar_gas,
                 // WS Input:
                 const Agenda& spt_calc_agenda,
                 const Agenda& opt_prop_part_agenda,
@@ -1219,13 +1227,20 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 
   // Create scalar absorption and store it in an array. This avoids 
   // repeting the calculation for each direction.
-  Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0])+ 1, 0.);
+  // Actually, this variable is not an array, but a matrix, because we
+  // need to store the gas absorption for each species.
+  // Dimensions: [ # levels in cloudbox, # species ]
+  Matrix scalar_gas_array( (cloudbox_limits[1] - cloudbox_limits[0])+ 1,
+                           abs_scalar_gas.ncols() );
 
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
-      scalar_gas_absorption_agenda.execute();
-      scalar_gas_array[p_index - cloudbox_limits[0]] = abs_scalar_gas[0];
+      scalar_gas_absorption_agenda.execute(p_index - cloudbox_limits[0]);
+      scalar_gas_array( p_index - cloudbox_limits[0], joker )
+        = abs_scalar_gas(0,joker);
+      // We ignore the first dimension of abs_scalar_gas, which would
+      // be the frequency dimension.
     }
   
   //Loop over all directions, defined by scat_za_grid 
@@ -1274,7 +1289,8 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
           scat_p_index = p_index; 
           
           // Get scalar gas absorption from array.
-          abs_scalar_gas[0] = scalar_gas_array[p_index- cloudbox_limits[0]];
+          abs_scalar_gas(0,joker)
+            = scalar_gas_array( p_index - cloudbox_limits[0], joker );
           
           ext_mat = 0.;
           abs_vec = 0.;

@@ -108,20 +108,21 @@ void define_wsv_data()
     ( NAME( "abs_scalar_gas" ),
       DESCRIPTION
       (
-       "Scalar gas absorption for all gas species.\n"
+       "Scalar gas absorption coefficients.\n"
        "\n"
-       "This contains the absorption for one point in the\n"
-       "atmosphere (one set of pressure, temperature, and VMR values) for all\n"
-       "gas species in the calculation.\n"
+       "This contains the absorption coefficients for one point in the\n"
+       "atmosphere (one set of pressure, temperature, and VMR values). There\n"
+       "are two distinct cases:\n"
        "\n"
-       "It is used for example as the return value of\n"
-       "abs_gas_scalar_agenda.\n"
+       "Case a:    For all frequencies and all species:\n"
+       "Dimension: [ f_grid, gas_species ]\n"
        "\n"
-       "Unit: 1/m\n"
+       "Case b:    For a single frequency for all species:\n"
+       "Dimension: [ 1,      gas_species ]\n"
        "\n"
-       "Dimension: [gas_species]"
+       "Unit: 1/m"
        ),
-      GROUP(Vector_ )));
+      GROUP( Matrix_ )));
 
  wsv_data.push_back
     (WsvRecord
@@ -641,8 +642,6 @@ void define_wsv_data()
         ), 
         GROUP( Vector_ )));
 
-
-
   wsv_data.push_back
     (WsvRecord
      (NAME( "f_index" ),
@@ -667,8 +666,6 @@ void define_wsv_data()
        ), 
       GROUP( Index_ ))); 
 
-
- 
   wsv_data.push_back
     (WsvRecord
      ( NAME( "gas_abs_lookup" ),
@@ -685,6 +682,18 @@ void define_wsv_data()
         "once the chapter on the lookup table has been written."        
         ), 
        GROUP( GasAbsLookup_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "gas_abs_lookup_is_adapted" ),
+       DESCRIPTION
+       (
+        "Flag to indicate whether *gas_abs_lookupAdapt* has already been\n"
+        "called.\n"
+        "\n"
+        "Values: 0=false, 1=true."
+        ), 
+       GROUP( Index_ )));
 
   wsv_data.push_back
     (WsvRecord

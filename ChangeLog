@@ -1,3 +1,54 @@
+2002-12-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-333
+
+	* I think all methods for using gas lookup tables are there now,
+	although not all cases are implemented inside the methods. NOTHING
+	IS TESTED YET, THOUGH.
+
+	* src/workspace.cc (define_wsv_data): Updated documentation of:
+	abs_scalar_gas,
+	Added WSV gas_abs_lookup_is_adapted, a flag indicating that the
+	lookup table has been adapted to the current calculation.
+	
+	* src/methods.cc (define_md_data_raw): Added the new methods:
+	abs_scalar_gasExtractFromLookup,
+	gas_abs_lookupAdapt.
+
+	Updated the methods:
+	ext_matInit,
+	ext_matAddGas,
+	abs_vecInit,
+	abs_vecAddGas. 
+	Removed unnecessary arguments and cleaned up the documentation. 
+
+	* src/m_scatrte.cc: The variable abs_scalar_gas is a Matrix, not a
+	Vector. The dimensions are [f_grid,gas_species]. We are not taking
+	the sum of the gas absorption for the different species here, the
+	sum is taken inside ext_matAddGas and abs_vecAddGas.
+
+	The helper variable scalar_gas_array, which is used in some
+	places, is now also a matrix, because it has to store the
+	absorption for the different gas species separately.
+
+	* src/m_optproperties.cc: Removed unnecessary #includes.
+	(ext_matInit): Added.
+	(ext_matAddGas): Rewritten.
+	(abs_vecInit): Added.
+	(abs_vecAddGas): Rewritten.
+
+	Note that in all these methods there is no need for a distinction
+	between the cases inside and outside the scattering box. Only the
+	leading dimensions of the arguments are different. The methods are
+	now quite simple.
+
+	* src/m_absorption.cc (gas_abs_lookupAdapt): Added.
+	(abs_scalar_gasExtractFromLookup): Added.
+
+	* src/gas_abs_lookup.h: Updated.
+
+	* src/gas_abs_lookup.cc: Mostly cosmetic changes here.
+
 2002-12-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-332

@@ -116,8 +116,14 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   Index n_current_f_grid  = current_f_grid.nelem();
 
   Index n_species         = species.nelem();
+  Index n_f_grid          = f_grid.nelem();
   Index n_p_grid          = p_grid.nelem();
   
+  out2 << "  Original table: " << n_species << " species, "
+       << n_f_grid << " frequencies.\n"
+       << "  Adapt to:       " << n_current_species << " species, "
+       << n_current_f_grid << " frequencies.\n";
+
   // We are constructing a new lookup table, containing just the
   // species and frequencies that are necessary for the current
   // calculation. We will build it in this local variable, then copy
@@ -127,7 +133,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   // First some checks on the lookup table itself:
 
   // Species:
-  if ( 0 == species.nelem() )
+  if ( 0 == n_species )
     {
       ostringstream os;
       os << "The lookup table should have at least one species.";
@@ -146,7 +152,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
         chk_if_in_range( os.str(),
                          nonlinear_species[i],
                          0,
-                         species.nelem()-1 );
+                         n_species-1 );
 
         if ( max >= nonlinear_species[i] )
         {
@@ -212,9 +218,9 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
           //     d = n_p_grid
           chk_size( "abs", abs,
                     1,
-                    species.nelem(),
-                    f_grid.nelem(),
-                    p_grid.nelem() );
+                    n_species,
+                    n_f_grid,
+                    n_p_grid );
         }
       else
         {
@@ -226,9 +232,9 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
           //     d = n_p_grid
           chk_size( "abs", abs,
                     t_pert.nelem(),
-                    species.nelem(),
-                    f_grid.nelem(),
-                    p_grid.nelem() );
+                    n_species,
+                    n_f_grid,
+                    n_p_grid );
         }
     }
   else
@@ -240,11 +246,11 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
       //     c = n_f_grid
       //     d = n_p_grid
       Index a = t_pert.nelem();
-      Index b = species.nelem()
+      Index b = n_species
         + nonlinear_species.nelem()
         * ( nls_pert.nelem() - 1 );
-      Index c = f_grid.nelem();
-      Index d = p_grid.nelem();
+      Index c = n_f_grid;
+      Index d = n_p_grid;
 
       chk_size( "abs", abs, a, b, c, d );
     }
@@ -324,12 +330,12 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
     }
 
   // Pressure grid:
-  new_table.p_grid.resize( p_grid.nelem() );
+  new_table.p_grid.resize( n_p_grid );
   new_table.p_grid = p_grid;
 
   // Reference VMR profiles:
   new_table.vmrs_ref.resize( n_current_species,
-                             p_grid.nelem()     );
+                             n_p_grid     );
   for ( Index i=0; i<n_current_species; ++i )
     {
       new_table.vmrs_ref( i,
@@ -388,7 +394,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
 
   // 5. Initialize log_p_grid.
-  log_p_grid.resize( p_grid.nelem() );
+  log_p_grid.resize( n_p_grid );
   transform( log_p_grid,
              log10,
              p_grid );
@@ -396,11 +402,7 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
 //! Extract scalar gas absorption coefficients from the lookup table. 
 /*! 
-  This is the extraction routine intended for use inside the cloud
-  box. It extracts absorption for only one frequency, and for only one
-  atmospheric condition (one p/T combination).
-
-  It carries out a simple interpolation in temperature and
+  This carries out a simple interpolation in temperature and
   pressure. The interpolated value is then scaled by the ratio between
   actual VMR and reference VMR. In the case of nonlinear species the
   interpolation goes also over VMR.
@@ -409,14 +411,12 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
   the table.
 
   \retval sga A Matrix with scalar gas absorption coefficients
-  [1/m]. Dimension: [n_frequencies, n_species]. Must already have the
-  right dimension before function call!
+  [1/m]. Dimension is adjusted automatically to [n_f_grid,n_species]!
 
   \param f_index The frequency index. If this is >=0, it means that
   absorption for this frequency will be extracted. (The leading
   dimension of sga must be 1.) If this is <0, it means that absorption
-  for ALL frequencies is extracted. (The leading dimension fo sga must
-  match the dimension of the tables frequency grid.)
+  for ALL frequencies is extracted.
 
   \param p The pressures [Pa].
 
@@ -424,11 +424,11 @@ void GasAbsLookup::Adapt( const ArrayOfArrayOfSpeciesTag& current_species,
 
   \param vmrs The VMRs [absolute number]. Dimension: [n_species]. 
 */
-void GasAbsLookup::Extract( MatrixView sga,
-                            Index      f_index,
-                            Numeric    p,
-                            Numeric    T,
-                            VectorView vmrs )
+void GasAbsLookup::Extract( Matrix&         sga,
+                            const Index&    f_index,
+                            const Numeric&  p,
+                            const Numeric&  T,
+                            ConstVectorView vmrs ) const
 {
 
   // Obtain some properties of the lookup table:
@@ -473,9 +473,9 @@ void GasAbsLookup::Extract( MatrixView sga,
     {
       // This means we should extract for all frequencies.
 
-      // Dimension of output variable sga must match this:
-      assert( is_size( sga, n_f_grid, n_species ) );
-
+      // Adjust size of sga accordingly:
+      sga.resize(n_f_grid, n_species);
+      
       f_start  = 0;
       f_extent = n_f_grid;
     }
@@ -483,8 +483,8 @@ void GasAbsLookup::Extract( MatrixView sga,
     {
       // This means we should extract only for one frequency.
 
-      // Dimension of output variable sga must match this:
-      assert( is_size( sga, 1, n_species ) );
+      // Adjust size of sga accordingly:
+      sga.resize(1, n_species);
 
       // Check that f_index is inside f_grid:
       assert( f_index < n_f_grid );

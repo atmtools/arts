@@ -217,30 +217,48 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES())); 
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_scalar_gasExtractFromLookup"),
+        DESCRIPTION
+        (
+         "Extract scalar gas absorption coefficients from lookup table.\n"
+         "\n"
+         "This extracts the absorption coefficient for all species in the\n"
+         "current calculation from the lookup table. Extraction is for one\n"
+         "specific atmospheric condition, i.e., a set of pressure, temperature,\n"
+         "and VMR values.\n"
+         "\n"
+         "Extraction can be either for a single frequency (f_index>=0), or for\n"
+         "all frequencies (f_index<0). The dimension of the output\n"
+         "abs_scalar_gas is adjusted accordingly."
+        ),
+        OUTPUT( abs_scalar_gas_ ),
+        INPUT(  gas_abs_lookup_, gas_abs_lookup_is_adapted_,
+                f_index_, 
+                a_pressure_, a_temperature_, a_vmr_list_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
  md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vecAddGas"),
         DESCRIPTION
         (
-         "The gas absorption is added to *abs_vec* \n"
+         "Add gas absorption to first element of absorption vector.\n"
          "\n"
-         "This function sums up the absorption vectors for all particle \n"
-         "types weighted with particle number density.\n"
-         "The resluling absorption vector is added to the workspace \n"
-         "variable *abs_vec* \n"
-         "Input and Output of this method is *abs_vec*\n"
-         "(stokes_dim, stokes_dim).\n"
-         "Input is furthermore the scalar absorption coefficient  \n"
-         "*abs_scalar_gas*\n"
-         "for given *p_grid*, *lat_grid*, and *lon_grid*. \n"
+         "The task of this method is to sum up the gas absorption of the\n"
+         "different gas species and add the result to the first element of the\n"
+         "absorption vector."
          ),
         OUTPUT(abs_vec_),
-        INPUT(abs_vec_,  abs_scalar_gas_, f_index_, atmosphere_dim_),
+        INPUT(abs_vec_, abs_scalar_gas_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES()));
-
 
   md_data_raw.push_back
     ( MdRecord
@@ -265,6 +283,28 @@ void define_md_data_raw()
         INPUT(abs_vec_, abs_vec_spt_, pnd_field_, atmosphere_dim_,
               scat_p_index_, 
               scat_lat_index_, scat_lon_index_, stokes_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("abs_vecInit"),
+        DESCRIPTION
+        (
+         "Initialize absorption vector.\n"
+         "\n"
+         "This method is necessary, because all other absorption methods just\n"
+         "add to the existing absorption vector.\n"
+         "\n"
+         "So, here we have to make it the right size and fill it with 0.\n"
+         "\n"
+         "Note, that the vector is not really a vector, because it has a\n"
+         "leading frequency dimension."
+         ),
+        OUTPUT(abs_vec_),
+        INPUT(abs_vec_, f_grid_, stokes_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -884,27 +924,18 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
- 
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ext_matAddGas"),
         DESCRIPTION
         (
-         "The gaseous extinction is added to *ext_mat* \n"
-         "\n"
-         "This function creates the gaseous extinction matrix from the \n"
-         "scalar gas absorption coefficient. \n"
-         "The resluling extinction matrix is added to the workspace \n"
-         "variable *ext_mat* \n"
-         "Input and Output of this method is *ext_mat*\n"
-         "(stokes_dim, stokes_dim).\n"
-         "Input is  furthermore the scalar absorption coefficient\n"
-         "*abs_scalar_gas*\n"
-         "for given *p_grid*, *lat_grid*, and *lon_grid*. \n"
+         "Add gas absorption to all diagonal elements of extinction matrix.\n"
+         " \n"
+         "The task of this method is to sum up the gas absorption of the\n"
+         "different gas species and add the result to the extinction matrix."
          ),
-        OUTPUT( ext_mat_  ),
-        INPUT( ext_mat_, abs_scalar_gas_, f_index_, atmosphere_dim_),
+        OUTPUT(ext_mat_),
+        INPUT(ext_mat_, abs_scalar_gas_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -938,7 +969,29 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
  
- //   md_data_raw.push_back
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ext_matInit"),
+        DESCRIPTION
+        (
+         "Initialize extinction matrix.\n"
+         "\n"
+         "This method is necessary, because all other extinction methods just\n"
+         "add to the existing extinction matrix. \n"
+         "\n"
+         "So, here we have to make it the right size and fill it with 0.\n"
+         "\n"
+         "Note, that the matrix is not really a matrix, because it has a\n"
+         "leading frequency dimension."
+         ),
+        OUTPUT(ext_mat_ ),
+        INPUT(f_grid_, stokes_dim_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+//   md_data_raw.push_back
 //     ( MdRecord
 //       ( NAME("ext_mat_partScat"),
 //      DESCRIPTION
@@ -1049,20 +1102,28 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
-  // FiXME: Continue here some other day...
-//   md_data_raw.push_back     
-//     ( MdRecord
-//       ( NAME("gas_abs_lookupAdapt"),
-//      DESCRIPTION
-//      (
-//          "FIXME: Add documentation."
-//      ),
-//      OUTPUT( gas_abs_lookup_ ),
-//      INPUT( ),
-//      GOUTPUT( ),
-//      GINPUT( ),
-//      KEYWORDS( ),
-//      TYPES( )));
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("gas_abs_lookupAdapt"),
+        DESCRIPTION
+        (
+         "Adapts a gas absorption lookup table to the current calculation.\n"
+         "\n"
+         "The lookup table can contain more species and more frequencies than\n"
+         "are needed for the current calculation. This method cuts down the\n"
+         "table in memory, so that it contains just what is needed. Also, the\n"
+         "species in the table are brought in the same order as the species in\n"
+         "the current calculation.\n"
+         "\n"
+         "Of course, the method also performs quite a lot of checks on the\n"
+         "table. If something is not ok, a runtime error is thrown."
+        ),
+        OUTPUT( gas_abs_lookup_, gas_abs_lookup_is_adapted_ ),
+        INPUT(  gas_abs_lookup_, gas_species_, f_grid_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord

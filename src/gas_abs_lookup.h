@@ -40,16 +40,12 @@ public:
               ConstVectorView current_f_grid );
 
   // Documentation is with the implementation!
-  void Extract( MatrixView sga,
-                Index      f_index,
-                Numeric    p,
-                Numeric    T,
-                VectorView vmrs );
+  void Extract( Matrix&         sga,
+                const Index&    f_index,
+                const Numeric&  p,
+                const Numeric&  T,
+                ConstVectorView vmrs ) const;
 
-  // Documentation is with the implementation!
-  void Extract( Tensor3View     sga,
-                ConstVectorView p,
-                ConstVectorView T);
 //private:
 
   //! The species tags for which the table is valid.
