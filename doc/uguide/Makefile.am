@@ -82,21 +82,21 @@ if ARTS_GENDOCS
 # Here also, auto_groups.tex is added independently.
 
 uguide.dvi: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
-	latex  uguide > /dev/null
+	latex  uguide
 	makeindex uguide.idx
 	bibtex uguide
-	latex  uguide > /dev/null
+	latex  uguide
 	latex  uguide
 	rm -f  *.aux
 
 uguide.ps: uguide.dvi
 	dvips -f uguide > uguide.ps
 
-uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
-	pdflatex uguide_pdf > /dev/null
+uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) $(autotexfiles) auto_version.tex
+	pdflatex uguide_pdf
 	makeindex uguide_pdf.idx
 	bibtex uguide_pdf
-	pdflatex  uguide_pdf > /dev/null
+	pdflatex  uguide_pdf
 	pdflatex  uguide_pdf
 	rm -f  *.aux
 
