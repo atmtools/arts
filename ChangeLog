@@ -1,3 +1,41 @@
+2003-12-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-758
+
+	* src/m_scatrte(i_fieldUpdateSeq3D): Some modifications. The 3D method 
+	gives too high values at the upper lat/lon boundaries. Problem is 
+	still not solved!
+
+	* src/scatrte.{cc,h}: (cloud_fields_calc) Removed unused variables 
+	*scat_za_index* and *scat_aa_index*. They are only used inside
+	*opt_prop_spt_agenda*.
+	(cloud_ppath_update3D): Fixed a numerical problem for lower cloudbox
+	boundaries. The index of the gridposition of the lower latitude 
+	boundary for example is cloudbox_limits[2]-1 and the interpolation 
+	weights were fd[0]=1 and fd[1]=0. These points were not recocnized
+	as part of the cloudbox.
+
+	* src/rte.cc (get_radiative_background): Included out3 message to 
+	see in output, what background is taken for the RT calculation. 
+	Quite important for 3D cloud scenarios. 
+
+	Removed *zeeman_prop_agenda* and adjusted the affected methods. 
+	The method *absO2ZeemanModel* can be called inside 
+	*opt_prop_gas_agenda. Now you don't need any changes in the 
+	controlfile if you don't want to calculate the zeeman effect.
+	
+	* src/m_abs_o2_models.cc (test_zeeman): Removed  *zeeman_prop_agenda*.
+
+	* src/m_rte.cc (RteEmissionStd):  Removed  *zeeman_prop_agenda* and
+	other zeeman input.
+
+	* src/methods.cc: Modified (RteEmissionStd).
+
+	* src/agendas.cc: Commented *zeeman_prop_agenda*, should be removed 
+	later.
+
+	* src/workspace.cc: Commented *zeeman_prop_agenda*.
+	 
 2003-12-09  Cory Davis   <cory@met.ed.ac.uk>
 
 	* arts-1-1-757

@@ -3277,8 +3277,7 @@ md_data_raw.push_back
         INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
                vmr_field_, scalar_gas_absorption_agenda_, 
-               opt_prop_gas_agenda_, 
-               zeeman_prop_agenda_, zeeman_o2_onoff_, zeeman_o2_pressure_limit_),
+               opt_prop_gas_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -5847,7 +5846,7 @@ md_data_raw.push_back
                     "\n"
 		    ),
 	OUTPUT(),
-        INPUT(zeeman_prop_agenda_, opt_prop_gas_agenda_),
+        INPUT(opt_prop_gas_agenda_),
         GOUTPUT( ),
         GINPUT(),
         KEYWORDS( ),

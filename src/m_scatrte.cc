@@ -1,6 +1,6 @@
 /* Copyright (C) 2002,2003 Claudia Emde <claudia@sat.physik.uni-bremen.de>
                            Sreerekha T.R. <rekha@uni-bremen.de>
-
+                           
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
@@ -99,7 +99,7 @@ void convergence_flagAbs(//WS Output:
                       // WS Input:
                       const Tensor6& i_field,
                       const Tensor6& i_field_old,
-		      // Keyword:
+                      // Keyword:
                       const Vector& epsilon)
 {
   //Check the input:
@@ -196,14 +196,14 @@ void convergence_flagAbs(//WS Output:
 
 */
 void convergence_flagAbs_BT(//WS Output:
-			    Index& convergence_flag,
-			    // WS Input:
-			    const Tensor6& i_field,
-			    const Tensor6& i_field_old,
-			    const Vector& f_grid,
-			    const Index& f_index, 
-			    // Keyword:
-			    const Vector& epsilon)
+                            Index& convergence_flag,
+                            // WS Input:
+                            const Tensor6& i_field,
+                            const Tensor6& i_field_old,
+                            const Vector& f_grid,
+                            const Index& f_index, 
+                            // Keyword:
+                            const Vector& epsilon)
 {
   //Check the input:
   assert( convergence_flag == 0 );
@@ -497,8 +497,8 @@ i_fieldUpdate1D(// WS Output:
                 Tensor6& i_field,
                 // scalar_gas_abs_agenda:
                 Numeric& rte_pressure,
-	        Numeric& rte_temperature,
-		Vector& rte_vmr_list,
+                Numeric& rte_temperature,
+                Vector& rte_vmr_list,
                 // spt_calc_agenda:
                 Index& scat_za_index ,
                 // opt_prop_xxx_agenda:
@@ -1027,49 +1027,49 @@ i_fieldUpdate1D(// WS Output:
 */
 void
 i_fieldUpdateSeq1D(// WS Output:
-		   Tensor6& i_field,
-		   // scalar_gas_abs_agenda:
-		   Numeric& rte_pressure,
-		   Numeric& rte_temperature,
-		   Vector& rte_vmr_list,
-		   // spt_calc_agenda:
-		   Index& scat_za_index ,
-		   // opt_prop_xxx_agenda:
-		   Tensor3& ext_mat,
-		   Matrix& abs_vec,  
-		   Index& scat_p_index,
-		   // ppath_step_agenda:
-		   Ppath& ppath_step, 
-		   // ground related variables STR
-		   Matrix& ground_los,
-		   Matrix& ground_emission,
+                   Tensor6& i_field,
+                   // scalar_gas_abs_agenda:
+                   Numeric& rte_pressure,
+                   Numeric& rte_temperature,
+                   Vector& rte_vmr_list,
+                   // spt_calc_agenda:
+                   Index& scat_za_index ,
+                   // opt_prop_xxx_agenda:
+                   Tensor3& ext_mat,
+                   Matrix& abs_vec,  
+                   Index& scat_p_index,
+                   // ppath_step_agenda:
+                   Ppath& ppath_step, 
+                   // ground related variables STR
+                   Matrix& ground_los,
+                   Matrix& ground_emission,
                   Tensor4& ground_refl_coeffs,
-		   Vector& rte_los,
-		   Vector& rte_pos,
-		   GridPos& rte_gp_p,
-		   // WS Input:
-		   const Tensor6& scat_field,
-		   const ArrayOfIndex& cloudbox_limits,
-		   // Calculate scalar gas absorption:
-		   const Agenda& scalar_gas_absorption_agenda,
-		   const Tensor4& vmr_field,
-		   // Optical properties for single particle type:
-		   const Agenda& spt_calc_agenda,
-		   const Vector& scat_za_grid,
-		   // Optical properties for gases and particles:
-		   const Agenda& opt_prop_part_agenda,
-		   const Agenda& opt_prop_gas_agenda,
-		   // Propagation path calculation:
-		   const Agenda& ppath_step_agenda,
-		   const Vector& p_grid,
-		   const Tensor3& z_field,
-		   const Matrix& r_geoid,
-		   // Calculate thermal emission:
-		   const Tensor3& t_field,
-		   const Vector& f_grid,
-		   const Index& f_index,
-		   const Agenda& ground_refl_agenda //STR
-		   )
+                   Vector& rte_los,
+                   Vector& rte_pos,
+                   GridPos& rte_gp_p,
+                   // WS Input:
+                   const Tensor6& scat_field,
+                   const ArrayOfIndex& cloudbox_limits,
+                   // Calculate scalar gas absorption:
+                   const Agenda& scalar_gas_absorption_agenda,
+                   const Tensor4& vmr_field,
+                   // Optical properties for single particle type:
+                   const Agenda& spt_calc_agenda,
+                   const Vector& scat_za_grid,
+                   // Optical properties for gases and particles:
+                   const Agenda& opt_prop_part_agenda,
+                   const Agenda& opt_prop_gas_agenda,
+                   // Propagation path calculation:
+                   const Agenda& ppath_step_agenda,
+                   const Vector& p_grid,
+                   const Tensor3& z_field,
+                   const Matrix& r_geoid,
+                   // Calculate thermal emission:
+                   const Tensor3& t_field,
+                   const Vector& f_grid,
+                   const Index& f_index,
+                   const Agenda& ground_refl_agenda //STR
+                   )
 {
   
   out2 << "i_fieldUpdateSeq1D: Radiative transfer calculatiuon in cloudbox.\n";
@@ -1137,11 +1137,13 @@ i_fieldUpdateSeq1D(// WS Output:
       //Only dummy variables:
       Index scat_lat_index = 0;
       Index scat_lon_index = 0;
-      Index scat_aa_index = 0;
-      
+
+      // This function has to be called inside the angular loop, as
+      // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
+      // from the workspace.
       cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                        scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, scat_za_index, scat_aa_index,
+                       ext_mat, abs_vec, 
                        spt_calc_agenda, 
                        opt_prop_part_agenda, cloudbox_limits);
       
@@ -1159,13 +1161,13 @@ i_fieldUpdateSeq1D(// WS Output:
       //
       Vector stokes_vec(stokes_dim,0.);
       
-      Numeric theta_lim = 180 - asin((r_geoid(0,0)+z_field(p_low,0,0))/
+      Numeric theta_lim = 180. - asin((r_geoid(0,0)+z_field(p_low,0,0))/
                                      (r_geoid(0,0)+z_field(p_up,0,0)))*RAD2DEG;
 
       // Sequential update for uplooking angles
-      if ( scat_za_grid[scat_za_index] <= 90) 
+      if ( scat_za_grid[scat_za_index] <= 90.) 
         {
-	  // Loop over all positions inside the cloud box defined by the 
+          // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits exculding the upper boundary. For uplooking
           // directions, we start from cloudbox_limits[1]-1 and go down
           // to cloudbox_limits[0] to do a sequential update of the
@@ -1173,33 +1175,33 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[1]-1; p_index
                 >= cloudbox_limits[0]; p_index --)
             {
-	      cloud_ppath_update1D(i_field, 
-				   rte_pressure, rte_temperature, rte_vmr_list,
-				   ext_mat, abs_vec, ground_los,
-				   ground_emission, ground_refl_coeffs,
-				   rte_los, rte_pos, rte_gp_p, ppath_step, 
-				   p_index, scat_za_index, scat_za_grid,
-				   cloudbox_limits, scat_field,
-				   scalar_gas_absorption_agenda, vmr_field,
-				   opt_prop_gas_agenda, ppath_step_agenda,
-				   p_grid,  z_field, r_geoid, t_field, 
-				   f_grid, f_index, ext_mat_field,
-				   abs_vec_field,ground_refl_agenda); 
+              cloud_ppath_update1D(i_field, 
+                                   rte_pressure, rte_temperature, rte_vmr_list,
+                                   ext_mat, abs_vec, ground_los,
+                                   ground_emission, ground_refl_coeffs,
+                                   rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                   p_index, scat_za_index, scat_za_grid,
+                                   cloudbox_limits, scat_field,
+                                   scalar_gas_absorption_agenda, vmr_field,
+                                   opt_prop_gas_agenda, ppath_step_agenda,
+                                   p_grid,  z_field, r_geoid, t_field, 
+                                   f_grid, f_index, ext_mat_field,
+                                   abs_vec_field,ground_refl_agenda); 
             }
         }
       else if ( scat_za_grid[scat_za_index] > theta_lim) 
         {
-	  //
-	  // Sequential updating for downlooking angles
-	  //
+          //
+          // Sequential updating for downlooking angles
+          //
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D(i_field,  
                                    rte_pressure, rte_temperature, rte_vmr_list,
                                    ext_mat, abs_vec, ground_los,
-				    ground_emission, ground_refl_coeffs,
-				    rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                    ground_emission, ground_refl_coeffs,
+                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -1226,8 +1228,8 @@ i_fieldUpdateSeq1D(// WS Output:
               cloud_ppath_update1D(i_field,  
                                    rte_pressure, rte_temperature, rte_vmr_list,
                                    ext_mat, abs_vec, ground_los,
-				    ground_emission, ground_refl_coeffs,
-				    rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                    ground_emission, ground_refl_coeffs,
+                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
                                    scalar_gas_absorption_agenda, vmr_field,
@@ -1365,20 +1367,20 @@ void i_fieldUpdate3D(// WS Output:
                         "1,2,3, or 4");
   
   assert( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
-		       scat_za_grid.nelem(), 
-		       scat_aa_grid.nelem(),
-		       stokes_dim));
+                       scat_za_grid.nelem(), 
+                       scat_aa_grid.nelem(),
+                       stokes_dim));
 
   assert( is_size( scat_field, 
-		     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		     (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                     (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                      (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
    
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
@@ -1433,9 +1435,9 @@ void i_fieldUpdate3D(// WS Output:
       for(scat_aa_index = 0; scat_aa_index < N_scat_aa; scat_aa_index ++)
         {
           cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
-                       scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, scat_za_index, scat_aa_index,
-                       spt_calc_agenda, 
+                           scat_lat_index, scat_lon_index,
+                           ext_mat, abs_vec, 
+                           spt_calc_agenda, 
                            opt_prop_part_agenda, cloudbox_limits);
         
           //==================================================================
@@ -1969,16 +1971,7 @@ void i_fieldUpdateSeq3D(// WS Output:
   out2 << "------------------------------------------------------------- \n";
 
   const Index stokes_dim = scat_field.ncols();
-
-  // The definition of the azimth angle grids is different for clearsky and
-  // cloudbox. (SHOULD BE FIXED!!!!)
-  Vector aa_grid(scat_aa_grid.nelem());
-  for(Index i = 0; i<scat_aa_grid.nelem(); i++)
-    aa_grid[i] = scat_aa_grid[i] - 180;
-  
-  Vector sca_vec_av(stokes_dim,0); 
-
-
+    
   //Check the input
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
@@ -1986,20 +1979,20 @@ void i_fieldUpdateSeq3D(// WS Output:
                         "1,2,3, or 4");
   
   assert( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                       (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
-		       scat_za_grid.nelem(), 
-		       scat_aa_grid.nelem(),
-		       stokes_dim));
+                       scat_za_grid.nelem(), 
+                       scat_aa_grid.nelem(),
+                       stokes_dim));
 
   assert( is_size( scat_field, 
-		     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		     (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                     (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
                      (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
    
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
@@ -2041,235 +2034,47 @@ void i_fieldUpdateSeq3D(// WS Output:
   Tensor4 abs_vec_field(p_up-p_low+1, lat_up-lat_low+1, lon_up-lon_low+1,
                         stokes_dim, 0.);
  
+  
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
       //Loop over azimuth directions (scat_aa_grid)
       for(scat_aa_index = 0; scat_aa_index < N_scat_aa; scat_aa_index ++)
         {
+         //==================================================================
+          // Radiative transfer inside the cloudbox
+          //==================================================================
+
+          // This function has to be called inside the angular loop, as
+          // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
+          // from the workspace.
           cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                            scat_lat_index, scat_lon_index,
-                           ext_mat, abs_vec, scat_za_index, scat_aa_index,
+                           ext_mat, abs_vec, 
                            spt_calc_agenda, 
                            opt_prop_part_agenda, cloudbox_limits);
           
 
-         
-
-          //==================================================================
-          // Radiative transfer inside the cloudbox
-          //==================================================================
-
-          // Sequential update. I determine the paths to end up in the 
-          // corners of the cloudbox. 
-          // First of all we have to find out, if for the given direction a 
-          // point is inside the cloudbox. Then for this direction the RT
-          // calculation is done from the opposite side of the cloudbox.
-
-          // Altogether we have 8 corners and when we determine from all
-          // corners
-          // directions pointing inside the cloudbox we end up with all
-          // directions as is should be.
-
-         
-
           Vector stokes_vec(stokes_dim,0.);
-        
-          // 1. corner:
-          //---------------------------------------------------------------
-          Index p = p_low;
-          Index lat = lat_low; 
-          Index lon = lon_low;
           
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(p_up - p_low, lat_up - lat_low,
-                                      lon_up - lon_low,
-                                      scat_za_index, scat_aa_index, joker);
+          Numeric theta_lim = 180. - asin((r_geoid(0,0)+z_field(p_low,0,0))
+                                         /(r_geoid(0,0)+z_field(p_up,0,0)))
+            *RAD2DEG;
 
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+          // Sequential update for uplooking angles
+          if ( scat_za_grid[scat_za_index] <= 90.) 
             {
               // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
+              // cloudbox_limits exculding the upper boundary. For uplooking
+              // directions, we start from cloudbox_limits[1]-1 and go down
+              // to cloudbox_limits[0] to do a sequential update of the
+              // aradiation field
               for(Index p_index = p_up-1; p_index >= p_low; p_index --)
                 {
-                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
-                      lat_index --)
-                    {
-                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
-                          lon_index --)
-                        {
-                          cloud_ppath_update3D(i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
-                                               ppath_step, p_index, lat_index, 
-                                               lon_index, scat_za_index, 
-                                               scat_aa_index, scat_za_grid, 
-                                               scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
-                                               scalar_gas_absorption_agenda,
-                                               vmr_field, 
-                                               opt_prop_gas_agenda,
-                                               ppath_step_agenda, p_grid, 
-                                               lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
-                                               ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-
-          // 2. corner:
-          //---------------------------------------------------------------
-          p = p_up;
-          lat = lat_low; 
-          lon = lon_low;
-          
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(0, lat_up - lat_low,
-                                      lon_up - lon_low,
-                                      scat_za_index, scat_aa_index, joker);  
-          
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-          
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
-            {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
-              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
-                {
-                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
-                      lat_index --)
-                    {
-                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
-                          lon_index --)
-                        {
-                          cloud_ppath_update3D(i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
-                                               ppath_step, p_index, lat_index, 
-                                               lon_index, scat_za_index, 
-                                               scat_aa_index, scat_za_grid, 
-                                               scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
-                                               scalar_gas_absorption_agenda,
-                                               vmr_field, 
-                                               opt_prop_gas_agenda,
-                                               ppath_step_agenda, p_grid, 
-                                               lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
-                                               ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-                
-          // 3. corner:
-          //---------------------------------------------------------------
-          p = p_low;
-          lat = lat_up; 
-          lon = lon_low;
-
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(p_up - p_low, 0, lon_up - lon_low,
-                                      scat_za_index, scat_aa_index, joker);
-
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
-            {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
-              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
-                {
-                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
+                  for(Index lat_index = lat_low; lat_index <= lat_up; 
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
-                          lon_index --)
-                        {
-                          cloud_ppath_update3D(i_field,  
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
-                                               ppath_step, p_index, lat_index, 
-                                               lon_index, scat_za_index, 
-                                               scat_aa_index, scat_za_grid, 
-                                               scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
-                                               scalar_gas_absorption_agenda,
-                                               vmr_field, 
-                                               opt_prop_gas_agenda,
-                                               ppath_step_agenda, p_grid, 
-                                               lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
-                                               ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-
-          // 4. corner:
-          //---------------------------------------------------------------
-          p = p_low;
-          lat = lat_low; 
-          lon = lon_up;
-
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(p_up - p_low, lat_up - lat_low, 0,
-                                      scat_za_index, scat_aa_index, joker);
-
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
-            {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
-              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
-                {
-                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
-                      lat_index --)
-                    {
-                      for(Index lon_index = lon_low; lon_index < lon_up;
+                      for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2285,101 +2090,24 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
+                                               r_geoid, t_field, f_grid,
+                                               f_index,
                                                ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-
-          // 5. corner:
-          //---------------------------------------------------------------
-          p = p_up;
-          lat = lat_up; 
-          lon = lon_low;
-          
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(0, 0, lon_up - lon_low,
-                                      scat_za_index, scat_aa_index, joker);
-
-
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+                        }
+                    }
+                }
+            }// close up-looking case
+          else if ( scat_za_grid[scat_za_index] > theta_lim) 
             {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
+              //
+              // Sequential updating for downlooking angles
+              //
               for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
+                  for(Index lat_index = lat_low; lat_index <= lat_up; 
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_up-1; lon_index >= lon_low;
-                          lon_index --)
-                        {
-                          cloud_ppath_update3D(i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
-                                               ppath_step, p_index, lat_index, 
-                                               lon_index, scat_za_index, 
-                                               scat_aa_index, scat_za_grid, 
-                                               scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
-                                               scalar_gas_absorption_agenda,
-                                               vmr_field, 
-                                               opt_prop_gas_agenda,
-                                               ppath_step_agenda, p_grid, 
-                                               lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
-                                               ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-
-          // 6. corner:
-          //---------------------------------------------------------------
-          p = p_up;
-          lat = lat_low; 
-          lon = lon_up;
-
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(0, lat_up - lat_low, 0,
-                                      scat_za_index, scat_aa_index, joker);
-
-
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
-            {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
-              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
-                {
-                  for(Index lat_index = lat_up-1; lat_index >= lat_low;
-                      lat_index --)
-                    {
-                      for(Index lon_index = lon_low+1; lon_index <= lon_up;
+                      for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2395,45 +2123,30 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
+                                               r_geoid, t_field, f_grid,
+                                               f_index,
                                                ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-
-          // 7. corner:
-          //---------------------------------------------------------------
-          p = p_low;
-          lat = lat_up; 
-          lon = lon_up;
-
-          // Stokes vector:
+                        }
+                    }
+                }
+            } // end if downlooking.
+      
           //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(p_up - p_low, 0, 0,
-                                      scat_za_index, scat_aa_index, joker);
-
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+          // Limb looking:
+          // We have to include a special case here, as we may miss the endpoints
+          // when the intersection point is at the same level as the actual point.
+          // To be save we loop over the full cloudbox. Inside the function 
+          // cloud_ppath_update3D it is checked whether the intersection point is 
+          // inside the cloudbox or not.
+          else if (  scat_za_grid[scat_za_index] > 90. &&
+                     scat_za_grid[scat_za_index] < theta_lim ) 
             {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
-              for(Index p_index = p_up-1; p_index >= p_low; p_index --)
+              for(Index p_index = p_low; p_index <= p_up; p_index ++)
                 {
-                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
+                  for(Index lat_index = lat_low; lat_index <= lat_up; 
                       lat_index ++)
                     {
-                      for(Index lon_index = lon_low+1; lon_index <= lon_up;
+                      for(Index lon_index = lon_low; lon_index <= lon_up; 
                           lon_index ++)
                         {
                           cloud_ppath_update3D(i_field, 
@@ -2449,71 +2162,16 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                opt_prop_gas_agenda,
                                                ppath_step_agenda, p_grid, 
                                                lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
-                                               ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
+                                               r_geoid, t_field, f_grid,
+                                               f_index,
+                                               ext_mat_field, abs_vec_field); 
+                        }
+                    }
+                }
             }
-                          
-          // 8. corner:
-          //---------------------------------------------------------------
-          p = p_up;
-          lat = lat_up; 
-          lon = lon_up;
-          
-          // Stokes vector:
-          //
-          // For the radiative transfer equation we 
-          // need the Stokes vector at opposite corner
-          stokes_vec[joker] = i_field(0, 0, 0,
-                                      scat_za_index, scat_aa_index, joker);
-
-          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
-                                 z_field, r_geoid, scat_za_grid, 
-                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
-
-          // Check whether the next point is inside or outside the
-          // cloudbox. Only if the next point lies inside the
-          // cloudbox a radiative transfer step caclulation has to
-          // be performed.
-          if( is_inside_cloudbox(ppath_step, cloudbox_limits) )
-            {
-              // Loop over all positions inside the cloud box defined by the 
-              // cloudbox_limits.
-              for(Index p_index = p_low+1; p_index <= p_up; p_index ++)
-                {
-                  for(Index lat_index = lat_low+1; lat_index <= lat_up;
-                      lat_index ++)
-                    {
-                      for(Index lon_index = lon_low+1; lon_index <= lon_up;
-                          lon_index ++)
-                        {
-                          cloud_ppath_update3D(i_field, 
-                                               rte_pressure, rte_temperature, 
-                                               rte_vmr_list, ext_mat, abs_vec,
-                                               ppath_step, p_index, lat_index, 
-                                               lon_index, scat_za_index, 
-                                               scat_aa_index, scat_za_grid, 
-                                               scat_aa_grid, cloudbox_limits, 
-                                               scat_field, 
-                                               scalar_gas_absorption_agenda,
-                                               vmr_field, 
-                                               opt_prop_gas_agenda,
-                                               ppath_step_agenda, p_grid, 
-                                               lat_grid, lon_grid, z_field, 
-                                               r_geoid, t_field, f_grid, f_index,
-                                               ext_mat_field, abs_vec_field);
-
-                        } // end of loop over lon_grid
-                    }  // end of loop over lat_grid
-                } // end loop over p_grid
-            }
-        }// end loop over scat_aa_grid
-    }// end loop over scat_za_grid
-                        
-  out2 << "Finished i_fieldUpdate3D.\n";
+        } //  Closes loop over aa_grid.
+    }// Closes loop over scat_za_grid.
+  
 }// end of function.          
       
 
@@ -2573,7 +2231,7 @@ void
 i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 Tensor6& i_field,
                 // scalar_gas_abs_agenda:
-		Numeric& rte_pressure,
+                Numeric& rte_pressure,
                 Numeric& rte_temperature,
                 Vector& rte_vmr_list,
                 // spt_calc_agenda:
@@ -2584,15 +2242,15 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 Index& scat_p_index,
                 // ppath_step_agenda:
                 Ppath& ppath_step, 
-		// ground related variables STR
-		Matrix& ground_los,
-		Matrix& ground_emission,
-		Tensor4& ground_refl_coeffs,
-		Vector& rte_los,
-		Vector& rte_pos,
-		GridPos& rte_gp_p,
+                // ground related variables STR
+                Matrix& ground_los,
+                Matrix& ground_emission,
+                Tensor4& ground_refl_coeffs,
+                Vector& rte_los,
+                Vector& rte_pos,
+                GridPos& rte_gp_p,
                 // WS Input:
-		const Tensor6& scat_field,
+                const Tensor6& scat_field,
                 const ArrayOfIndex& cloudbox_limits,
                 // Calculate scalar gas absorption:
                 const Agenda& scalar_gas_absorption_agenda,
@@ -2602,7 +2260,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 const Vector& scat_za_grid,
                 // Optical properties for gases and particles:
                 const Agenda& opt_prop_part_agenda,
-		const Agenda& opt_prop_gas_agenda,
+                const Agenda& opt_prop_gas_agenda,
                 // Propagation path calculation:
                 const Agenda& ppath_step_agenda,
                 const Vector& p_grid,
@@ -2612,7 +2270,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 const Tensor3& t_field,
                 const Vector& f_grid,
                 const Index& f_index,
-		const Agenda& ground_refl_agenda //STR
+                const Agenda& ground_refl_agenda //STR
                 )
 {
 
@@ -2672,9 +2330,9 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
   // use ext_mat_field and abs_vec_field:
      
       Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
-			    stokes_dim, stokes_dim, 0.);
+                            stokes_dim, stokes_dim, 0.);
       Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
-			    stokes_dim, 0.);
+                            stokes_dim, 0.);
 
       //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
@@ -2683,11 +2341,10 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
       //Only dummy variables:
       Index scat_lat_index = 0;
       Index scat_lon_index = 0;
-      Index scat_aa_index = 0;
       
       cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                        scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, scat_za_index, scat_aa_index,
+                       ext_mat, abs_vec, 
                        spt_calc_agenda, 
                        opt_prop_part_agenda, cloudbox_limits);
 
@@ -2699,51 +2356,51 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
        // Sequential update for uplooking angles
       if ( scat_za_grid[scat_za_index] <= 90) 
         {
-	  // Loop over all positions inside the cloud box defined by the 
+          // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits exculding the upper boundary. For uplooking
           // directions, we start from cloudbox_limits[1]-1 and go down
           // to cloudbox_limits[0] to do a sequential update of the
           // aradiation field
      
-	  // Loop over all positions inside the cloudbox defined by the 
-	  // cloudbox_limits.
-	  for(Index p_index = cloudbox_limits[1] -1; p_index
-		>= cloudbox_limits[0]; p_index --)
-	    {
-	      cloud_ppath_update1D_planeparallel(i_field, 
-						 rte_pressure, rte_temperature, rte_vmr_list,
-						 ext_mat, abs_vec, ground_los,
-						 ground_emission, ground_refl_coeffs,
-						 rte_los, rte_pos, rte_gp_p, ppath_step, 
-						 p_index, scat_za_index, scat_za_grid,
-						 cloudbox_limits, scat_field,
-						 scalar_gas_absorption_agenda, vmr_field,
-						 opt_prop_gas_agenda, ppath_step_agenda,
-						 p_grid,  z_field, r_geoid, t_field, 
-						 f_grid, f_index, ext_mat_field,
-						 abs_vec_field,ground_refl_agenda); 
+          // Loop over all positions inside the cloudbox defined by the 
+          // cloudbox_limits.
+          for(Index p_index = cloudbox_limits[1] -1; p_index
+                >= cloudbox_limits[0]; p_index --)
+            {
+              cloud_ppath_update1D_planeparallel(i_field, 
+                                                 rte_pressure, rte_temperature, rte_vmr_list,
+                                                 ext_mat, abs_vec, ground_los,
+                                                 ground_emission, ground_refl_coeffs,
+                                                 rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                                 p_index, scat_za_index, scat_za_grid,
+                                                 cloudbox_limits, scat_field,
+                                                 scalar_gas_absorption_agenda, vmr_field,
+                                                 opt_prop_gas_agenda, ppath_step_agenda,
+                                                 p_grid,  z_field, r_geoid, t_field, 
+                                                 f_grid, f_index, ext_mat_field,
+                                                 abs_vec_field,ground_refl_agenda); 
             }   
-	}
+        }
       else if ( scat_za_grid[scat_za_index] > 90) 
         {
-	  //
-	  // Sequential updating for downlooking angles
-	  //
+          //
+          // Sequential updating for downlooking angles
+          //
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
               cloud_ppath_update1D_planeparallel(i_field,  
-						 rte_pressure, rte_temperature, rte_vmr_list,
-						 ext_mat, abs_vec, ground_los,
-						 ground_emission, ground_refl_coeffs,
-						 rte_los, rte_pos, rte_gp_p, ppath_step, 
-						 p_index, scat_za_index, scat_za_grid,
-						 cloudbox_limits, scat_field,
-						 scalar_gas_absorption_agenda, vmr_field,
-						 opt_prop_gas_agenda, ppath_step_agenda,
-						 p_grid,  z_field, r_geoid, t_field, 
-						 f_grid, f_index, ext_mat_field, 
-						 abs_vec_field,ground_refl_agenda); 
+                                                 rte_pressure, rte_temperature, rte_vmr_list,
+                                                 ext_mat, abs_vec, ground_los,
+                                                 ground_emission, ground_refl_coeffs,
+                                                 rte_los, rte_pos, rte_gp_p, ppath_step, 
+                                                 p_index, scat_za_index, scat_za_grid,
+                                                 cloudbox_limits, scat_field,
+                                                 scalar_gas_absorption_agenda, vmr_field,
+                                                 opt_prop_gas_agenda, ppath_step_agenda,
+                                                 p_grid,  z_field, r_geoid, t_field, 
+                                                 f_grid, f_index, ext_mat_field, 
+                                                 abs_vec_field,ground_refl_agenda); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -2867,7 +2524,7 @@ scat_fieldCalc(//WS Output:
     for (Index p_index = 0; p_index <= cloudbox_limits[1]- cloudbox_limits[0] ;
          p_index++)
       {
-	//There is only loop over zenith angle grid ; no azimuth angle grid.
+        //There is only loop over zenith angle grid ; no azimuth angle grid.
         for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
           {
             // Calculate the phase matric of a single particle type
@@ -3412,29 +3069,30 @@ angles.
 
 void
 scat_fieldCalcFromAmpMat(//WS Output:
-         Tensor6& scat_field,
-         Tensor4& pha_mat,
-         Tensor5& pha_mat_spt,
-         //WS Input: 
-         const Tensor6& amp_mat,
-         const Tensor6& i_field,
-         const Tensor4& pnd_field,
-         const Vector& scat_za_grid,
-         const Vector& scat_aa_grid,
-// FIXME parameters only used in assertions
+                         Tensor6& scat_field,
+                         Tensor4& pha_mat,
+                         Tensor5& pha_mat_spt,
+                         //WS Input: 
+                         const Tensor6& amp_mat,
+                         const Tensor6& i_field,
+                         const Tensor4& pnd_field,
+                         const Vector& scat_za_grid,
+                         const Vector& scat_aa_grid,
+                         // FIXME parameters only used in assertions
 #ifndef NDEBUG
-         const Vector& p_grid,
-         const Vector& lat_grid,
-         const Vector& lon_grid,
+                         const Vector& p_grid,
+                         const Vector& lat_grid,
+                         const Vector& lon_grid,
 #else
-         const Vector&,
-         const Vector&,
-         const Vector&,
+                         const Vector&,
+                         const Vector&,
+                         const Vector&,
 #endif
-         const Index& atmosphere_dim,
-         const ArrayOfIndex& cloudbox_limits,
-         const Vector& grid_stepsize
-        )
+                         const Index& atmosphere_dim,
+                         const ArrayOfIndex& cloudbox_limits,
+                         const Vector& grid_stepsize
+                         )
+
   
 {
   // Some useful indices :
@@ -3466,47 +3124,47 @@ scat_fieldCalcFromAmpMat(//WS Output:
   if (atmosphere_dim ==3){
     
     assert ( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
     assert ( is_size( scat_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
     assert ( is_size( pnd_field, 
-		      N_pt,
-		      p_grid.nelem(),
-		      lat_grid.nelem(), 
-		      lon_grid.nelem()));
+                      N_pt,
+                      p_grid.nelem(),
+                      lat_grid.nelem(), 
+                      lon_grid.nelem()));
     
   }
   
   else if (atmosphere_dim == 1 ){
     assert ( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
     assert ( is_size( scat_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
     assert ( is_size( pnd_field, 
-		      N_pt,
-		      p_grid.nelem(),
-		      1, 
-		      1));
+                      N_pt,
+                      p_grid.nelem(),
+                      1, 
+                      1));
   }
   
    //When atmospheric dimension , atmosphere_dim = 1
@@ -3515,84 +3173,84 @@ scat_fieldCalcFromAmpMat(//WS Output:
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
+         p_index++)
       {
        
-	//There is only loop over zenith angle grid ; no azimuth angle grid.
-	for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
-	  {
+        //There is only loop over zenith angle grid ; no azimuth angle grid.
+        for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+          {
             pha_mat_sptCalc(pha_mat_spt,
                             amp_mat,
                             za_prop,
                             0);
-	    
+            
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                         atmosphere_dim, p_index, 0, 
                         0);
-	    // za_in and aa_in are for incoming zenith and azimutha 
-	    //angle direction for which pha_mat is calculated
-	    
-	    for (Index za_in = 0; za_in < Nza; ++ za_in)
-	      { 
-		for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-		  {
-		    //This is a matrix with last two dimensions 
-		    //being that of stokes_dim
-		    ConstMatrixView pha = pha_mat(za_in,
-						  aa_in,
-						  Range(joker),
-						  Range(joker));
+            // za_in and aa_in are for incoming zenith and azimutha 
+            //angle direction for which pha_mat is calculated
+            
+            for (Index za_in = 0; za_in < Nza; ++ za_in)
+              { 
+                for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                  {
+                    //This is a matrix with last two dimensions 
+                    //being that of stokes_dim
+                    ConstMatrixView pha = pha_mat(za_in,
+                                                  aa_in,
+                                                  Range(joker),
+                                                  Range(joker));
 
-		    //the incoming field expressed as a vector for all
-		    //pressure points, and looking angles
-		    ConstVectorView i_field_in = 
-		      i_field((p_index - cloudbox_limits[0]),
-			      0,
-			      0,
-			      za_prop,
-			      0,
-			      Range(joker));
+                    //the incoming field expressed as a vector for all
+                    //pressure points, and looking angles
+                    ConstVectorView i_field_in = 
+                      i_field((p_index - cloudbox_limits[0]),
+                              0,
+                              0,
+                              za_prop,
+                              0,
+                              Range(joker));
 
-		    // multiplication of intensity field vector and 
-		    //pha_mat matrix
-		    mult(product_field( za_in,
-					aa_in,
-					Range(joker)),
-			 pha, 
-			 i_field_in);
-			    
-		  }//end aa_in loop
-	      }//end za_in loop
-	    /*integration of the product of ifield_in and pha
-	      over zenith angle and azimuth angle grid. It calls
-	      here the integration routine AngIntegrate_trapezoid_opti*/
-	   
-	    for (Index i = 0; i < stokes_dim; i++)
-	      {
-		
-		MatrixView product_field_mat =
-		  product_field( Range(joker),
-				 Range(joker),
-				 i);
-		// scat_field is also defined for all points inside the cloud
-		//box for each propagion angle
-		scat_field( (p_index - cloudbox_limits[0]),
-			    0,
-			    0,
-			    za_prop, 
-			    0,
-			    i)  =   AngIntegrate_trapezoid_opti(product_field_mat,
+                    // multiplication of intensity field vector and 
+                    //pha_mat matrix
+                    mult(product_field( za_in,
+                                        aa_in,
+                                        Range(joker)),
+                         pha, 
+                         i_field_in);
+                            
+                  }//end aa_in loop
+              }//end za_in loop
+            /*integration of the product of ifield_in and pha
+              over zenith angle and azimuth angle grid. It calls
+              here the integration routine AngIntegrate_trapezoid_opti*/
+           
+            for (Index i = 0; i < stokes_dim; i++)
+              {
+                
+                MatrixView product_field_mat =
+                  product_field( Range(joker),
+                                 Range(joker),
+                                 i);
+                // scat_field is also defined for all points inside the cloud
+                //box for each propagion angle
+                scat_field( (p_index - cloudbox_limits[0]),
+                            0,
+                            0,
+                            za_prop, 
+                            0,
+                            i)  =   AngIntegrate_trapezoid_opti(product_field_mat,
                                                                 scat_za_grid,
                                                                 scat_aa_grid,
                                                                 grid_stepsize);
-		
-	      }//end i loop
-	  }//end za_prop loop
+                
+              }//end i loop
+          }//end za_prop loop
       }//end p_index loop
     
   }//end atmosphere_dim = 1
   //  xml_write_to_file("scat_field.xml", scat_field);    
-  //cout<<"scat_field"<<scat_field<<"\n";	
+  //cout<<"scat_field"<<scat_field<<"\n";       
   //arts_exit ();
   
   
@@ -3604,90 +3262,90 @@ scat_fieldCalcFromAmpMat(//WS Output:
       using the method pha_matCalc.  */
     
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
+         p_index++)
       {
-	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-	       cloudbox_limits[3]; lat_index++)
-	  {
-	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-		   cloudbox_limits[5]; lon_index++)
-	      {
-		pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			    atmosphere_dim, p_index, lat_index, 
-			    lon_index);
-	      }
-	  }
-	
+        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+               cloudbox_limits[3]; lat_index++)
+          {
+            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+                   cloudbox_limits[5]; lon_index++)
+              {
+                pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                            atmosphere_dim, p_index, lat_index, 
+                            lon_index);
+              }
+          }
+        
       }
     
     // Get pha_mat at the grid positions
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
+         p_index++)
       {
-	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-	       cloudbox_limits[3]; lat_index++)
-	  {
-	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-		   cloudbox_limits[5]; lon_index++)
-	      {
-		//za_prop and aa_prop are the propagation directions
-		for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
-		  {
-		    for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
-		      {
-			//za_in and aa_in are the incoming directions
-			//for which pha_mat_spt is calculated
-			for (Index za_in = 0; za_in < Nza; ++ za_in)
-			  {
-			    for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-			      {	
-				
-				ConstMatrixView pha = pha_mat(za_in,
-						  aa_in,
-						  Range(joker),
-						  Range(joker));
+        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+               cloudbox_limits[3]; lat_index++)
+          {
+            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+                   cloudbox_limits[5]; lon_index++)
+              {
+                //za_prop and aa_prop are the propagation directions
+                for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+                  {
+                    for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
+                      {
+                        //za_in and aa_in are the incoming directions
+                        //for which pha_mat_spt is calculated
+                        for (Index za_in = 0; za_in < Nza; ++ za_in)
+                          {
+                            for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                              { 
+                                
+                                ConstMatrixView pha = pha_mat(za_in,
+                                                  aa_in,
+                                                  Range(joker),
+                                                  Range(joker));
 
-				ConstVectorView i_field_in = 
-				  i_field((p_index - cloudbox_limits[0]),
-					  (lat_index - cloudbox_limits[1]),
-					  (lon_index - cloudbox_limits[2]),
-					  za_prop,
-					  aa_prop,
-					  Range(joker));
-				
-				mult(product_field( za_in,
-						    aa_in,
-						    Range(joker)),
-				     pha, 
-				     i_field_in);
-				
-			      }//end aa_in loop
-			  }//end za_in loop
-			//integration of the product of ifield_in and pha
-			//over zenith angle and azimuth angle grid. It 
-			//calls here the integration routine 
-			//AngIntegrate_trapezoid_opti
-			for (Index i = 0; i < stokes_dim; i++)
-			  {
-			    MatrixView product_field_mat =
-			      product_field( Range(joker),
-					     Range(joker),
-					     i);
-			    scat_field( (p_index - cloudbox_limits[0]),
-					(lat_index - cloudbox_limits[1]),
-					(lon_index - cloudbox_limits[2]),
-					za_prop, 
-					aa_prop,
-					i)  =  
-			      AngIntegrate_trapezoid_opti(product_field_mat,
+                                ConstVectorView i_field_in = 
+                                  i_field((p_index - cloudbox_limits[0]),
+                                          (lat_index - cloudbox_limits[1]),
+                                          (lon_index - cloudbox_limits[2]),
+                                          za_prop,
+                                          aa_prop,
+                                          Range(joker));
+                                
+                                mult(product_field( za_in,
+                                                    aa_in,
+                                                    Range(joker)),
+                                     pha, 
+                                     i_field_in);
+                                
+                              }//end aa_in loop
+                          }//end za_in loop
+                        //integration of the product of ifield_in and pha
+                        //over zenith angle and azimuth angle grid. It 
+                        //calls here the integration routine 
+                        //AngIntegrate_trapezoid_opti
+                        for (Index i = 0; i < stokes_dim; i++)
+                          {
+                            MatrixView product_field_mat =
+                              product_field( Range(joker),
+                                             Range(joker),
+                                             i);
+                            scat_field( (p_index - cloudbox_limits[0]),
+                                        (lat_index - cloudbox_limits[1]),
+                                        (lon_index - cloudbox_limits[2]),
+                                        za_prop, 
+                                        aa_prop,
+                                        i)  =  
+                              AngIntegrate_trapezoid_opti(product_field_mat,
                                                           scat_za_grid,
                                                           scat_aa_grid,
                                                           grid_stepsize);
-			  }//end i loop
-		      }//end aa_prop loop
-		  }//end za_prop loop
-	      }//end lon loop
-	  }// end lat loop
+                          }//end i loop
+                      }//end aa_prop loop
+                  }//end za_prop loop
+              }//end lon loop
+          }// end lat loop
       }// end p loop
   }// end atmosphere_dim = 3
 }

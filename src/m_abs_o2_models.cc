@@ -2330,10 +2330,8 @@ void ZeemanO2Settings( // Output
    \date   2003-12-08
 */
 void test_zeeman(
-		 const Agenda& zeeman_prop_agenda,
 		 const Agenda& opt_prop_gas_agenda
 		 )
 {
-  zeeman_prop_agenda.execute();
   opt_prop_gas_agenda.execute();
 }

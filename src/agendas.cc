@@ -565,33 +565,33 @@ void define_agenda_data()
 
 
 
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "zeeman_prop_agenda" ),
-       DESCRIPTION
-       (
-        "Calculates extinction matrix and absorption vector due to the \n"
-        "Zeeman effect. \n"
-        "\n"
-        "The agenda calculates the total extinction matrix and absorption \n"
-	"vector of O2 only (currently) due to the Zeeman effect induced by the \n"
-	"geomagnetic field. The polarization pattern, resulting from the effect, \n"
-	"produces additional contribution to these quantities in the unpolarized \n"
-	"case. This means that the user should take care not to execute both the \n"
-	"polarized (Zeeman) and unpolarized  calculation for the O2 lines \n"
-	"affected by the Zeeman effect, otherwise the unpolarized part gets \n"
-	"wrongly doubled. \n"
-        "\n"
-        "Output:    \n"
-        "   ext_mat_zeeman: Zeeman extinction matrix  \n"
-        "   abs_vec_zeeman: Zeeman absorption vector  \n"
-        "\n"
-        "Input:    \n"
-        "  geomag_los: Magnetic field along LOS plus angle  \n"
-        "\n"
-          ),
-       OUTPUT(  ),
-       INPUT(  )));
+//  agenda_data.push_back
+//     (AgRecord
+//      ( NAME( "zeeman_prop_agenda" ),
+//        DESCRIPTION
+//        (
+//         "Calculates extinction matrix and absorption vector due to the \n"
+//         "Zeeman effect. \n"
+//         "\n"
+//         "The agenda calculates the total extinction matrix and absorption \n"
+// 	"vector of O2 only (currently) due to the Zeeman effect induced by the \n"
+// 	"geomagnetic field. The polarization pattern, resulting from the effect, \n"
+// 	"produces additional contribution to these quantities in the unpolarized \n"
+// 	"case. This means that the user should take care not to execute both the \n"
+// 	"polarized (Zeeman) and unpolarized  calculation for the O2 lines \n"
+// 	"affected by the Zeeman effect, otherwise the unpolarized part gets \n"
+// 	"wrongly doubled. \n"
+//         "\n"
+//         "Output:    \n"
+//         "   ext_mat_zeeman: Zeeman extinction matrix  \n"
+//         "   abs_vec_zeeman: Zeeman absorption vector  \n"
+//         "\n"
+//         "Input:    \n"
+//         "  geomag_los: Magnetic field along LOS plus angle  \n"
+//         "\n"
+//           ),
+//        OUTPUT(  ),
+//        INPUT(  )));
 
 
 }

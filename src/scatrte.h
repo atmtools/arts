@@ -45,8 +45,6 @@ void cloud_fieldsCalc(// Output:
                         Tensor3& ext_mat,
                         Matrix& abs_vec,  
                         // Input:
-                        const Index& scat_za_index,
-                        const Index& scat_aa_index,
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
                         const ArrayOfIndex& cloudbox_limits

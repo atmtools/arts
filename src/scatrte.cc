@@ -91,8 +91,6 @@ void cloud_fieldsCalc(// Output:
                         Tensor3& ext_mat,
                         Matrix& abs_vec,  
                         // Input:
-                        const Index& /* scat_za_index */,
-                        const Index& /* scat_aa_index */,
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
                         const ArrayOfIndex& cloudbox_limits
@@ -758,18 +756,17 @@ void cloud_ppath_update3D(
 			  ConstTensor3View t_field,
 			  ConstVectorView f_grid,
 			  const Index& f_index,
-			  //particle opticla properties
+			  //particle optical properties
 			  ConstTensor5View ext_mat_field,
 			  ConstTensor4View abs_vec_field
 			  )
 {
   const Index stokes_dim = i_field.ncols();
-  // (ole) FIXME const Index atmosphere_dim = 3;   
- 
+  
   Vector sca_vec_av(stokes_dim,0);
   Vector aa_grid(scat_aa_grid.nelem());
   for(Index i = 0; i<scat_aa_grid.nelem(); i++)
-    aa_grid[i] = scat_aa_grid[i] - 180;
+    aa_grid[i] = scat_aa_grid[i]-180.;
 
    //Initialize ppath for 3D.
   ppath_init_structure(ppath_step, 3, 1);
@@ -811,7 +808,6 @@ void cloud_ppath_update3D(
   // Call ppath_step_agenda: 
   ppath_step_agenda.execute(true);
   
-  
   const Numeric TOL = 1e-6;  
    // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -821,51 +817,88 @@ void cloud_ppath_update3D(
   // a grid point.
   if (
       // inside pressure boundaries
-      (cloudbox_limits[0] <= ppath_step.gp_p[1].idx) &&
+      (cloudbox_limits[0] <= ppath_step.gp_p[1].idx ||
+       ((cloudbox_limits[0]-1) == ppath_step.gp_p[1].idx &&
+        abs(ppath_step.gp_p[1].fd[0] -1.) < TOL)) &&
       (cloudbox_limits[1] > ppath_step.gp_p[1].idx ||
        (cloudbox_limits[1] == ppath_step.gp_p[1].idx &&
-        fabs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
+        abs(ppath_step.gp_p[1].fd[0]) < TOL)) &&
       // inside latitude boundaries 
-      (cloudbox_limits[2] <= ppath_step.gp_lat[1].idx) &&
+      (cloudbox_limits[2] <= ppath_step.gp_lat[1].idx ||
+       ((cloudbox_limits[2]-1) == ppath_step.gp_lat[1].idx  &&
+        abs(ppath_step.gp_lat[1].fd[0] -1. ) < TOL)) &&
       (cloudbox_limits[3] > ppath_step.gp_lat[1].idx ||
        (cloudbox_limits[3] == ppath_step.gp_lat[1].idx &&
-        fabs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
+        abs(ppath_step.gp_lat[1].fd[0]) < TOL)) &&
       // inside longitude boundaries 
-      (cloudbox_limits[4] <= ppath_step.gp_lon[1].idx) &&
+      (cloudbox_limits[4] <= ppath_step.gp_lon[1].idx ||
+       ((cloudbox_limits[4]-1) == ppath_step.gp_lon[1].idx &&
+       abs(ppath_step.gp_lon[1].fd[0] - 1.) < TOL) ) &&
       (cloudbox_limits[5] > ppath_step.gp_lon[1].idx ||
        (cloudbox_limits[5] == ppath_step.gp_lon[1].idx &&
-        fabs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
+        abs(ppath_step.gp_lon[1].fd[0]) < TOL )) 
       )
-    {
-      // If the intersection points lies exactly on a 
-      // upper boundary the gridposition index is 
-      // reduced by one and the first interpolation weight 
-      // is set to 1.
-                        
+    { 
       for( Index i = 0; i<ppath_step.np; i++)
         { 
+      // If the intersection points lies exactly on a 
+      // lower boundary the gridposition index is 
+      // increases by one and the first interpolation weight 
+      // is set to 0.
+          if (cloudbox_limits[0]-1 == ppath_step.gp_p[i].idx &&
+              abs(ppath_step.gp_p[i].fd[0]-1.) < TOL)
+            {
+              ppath_step.gp_p[i].idx += 1;
+              ppath_step.gp_p[i].fd[0] = 0.;
+              ppath_step.gp_p[i].fd[1] = 1.;
+            }
+                            
+          if (cloudbox_limits[2]-1==ppath_step.gp_lat[i].idx &&
+              abs(ppath_step.gp_lat[i].fd[0]-1.) < TOL)
+            {
+              ppath_step.gp_lat[i].idx += 1;
+              ppath_step.gp_lat[i].fd[0] = 0.;
+              ppath_step.gp_lat[i].fd[1] = 1.;
+            }
+                            
+          if (cloudbox_limits[4]-1==ppath_step.gp_lon[i].idx &&
+              abs(ppath_step.gp_lon[i].fd[0]-1.) < TOL)
+            {
+              ppath_step.gp_lon[i].idx += 1;
+              ppath_step.gp_lon[i].fd[0] = 0.;
+              ppath_step.gp_lon[i].fd[1] = 1.;
+            }
+
+
+
+          // If the intersection points lies exactly on a 
+          // upper boundary the gridposition index is 
+          // reduced by one and the first interpolation weight 
+          // is set to 1.
+                        
+     
           if (cloudbox_limits[1] == ppath_step.gp_p[i].idx &&
-              fabs(ppath_step.gp_p[i].fd[0]) < TOL)
+              abs(ppath_step.gp_p[i].fd[0]) < TOL)
             {
               ppath_step.gp_p[i].idx -= 1;
-              ppath_step.gp_p[i].fd[0] = 1;
-              ppath_step.gp_p[i].fd[1] = 0;
+              ppath_step.gp_p[i].fd[0] = 1.;
+              ppath_step.gp_p[i].fd[1] = 0.;
             }
                             
           if (cloudbox_limits[3]==ppath_step.gp_lat[i].idx &&
-              fabs(ppath_step.gp_lat[i].fd[0]) < TOL)
+              abs(ppath_step.gp_lat[i].fd[0]) < TOL)
             {
               ppath_step.gp_lat[i].idx -= 1;
-              ppath_step.gp_lat[i].fd[0] = 1;
-              ppath_step.gp_lat[i].fd[1] = 0;
+              ppath_step.gp_lat[i].fd[0] = 1.;
+              ppath_step.gp_lat[i].fd[1] = 0.;
             }
                             
           if (cloudbox_limits[5]==ppath_step.gp_lon[i].idx &&
-              fabs(ppath_step.gp_lon[i].fd[0]) < TOL)
+              abs(ppath_step.gp_lon[i].fd[0]) < TOL)
             {
               ppath_step.gp_lon[i].idx -= 1;
-              ppath_step.gp_lon[i].fd[0] = 1;
-              ppath_step.gp_lon[i].fd[1] = 0;
+              ppath_step.gp_lon[i].fd[0] = 1.;
+              ppath_step.gp_lon[i].fd[1] = 0.;
             }
         }
                         
@@ -900,7 +933,7 @@ void cloud_ppath_update3D(
       VectorView los_grid_aa = ppath_step.los(joker,1);
 
       for(Index i = 0; i<los_grid_aa.nelem(); i++)
-        los_grid_aa[i] = los_grid_aa[i] + 180;
+        los_grid_aa[i] = los_grid_aa[i] + 180.;
   
 
       ArrayOfGridPos gp_za(los_grid_za.nelem()); 

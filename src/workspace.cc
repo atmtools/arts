@@ -2811,14 +2811,14 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "zeeman_prop_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
+//  wsv_data.push_back
+//    (WsvRecord
+//     ( NAME( "zeeman_prop_agenda" ),
+//       DESCRIPTION
+//       (
+//         "See agendas.cc."
+//        ),
+//       GROUP( Agenda_ )));
 
 
   wsv_data.push_back
