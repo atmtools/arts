@@ -13,6 +13,8 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+SUBDIRS=fm_definitions ppath scattering polarization interpolation
+
 EXTRA_DIST = \
 	*.m \
 	*.eps \
