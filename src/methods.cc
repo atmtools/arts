@@ -3604,7 +3604,7 @@ void define_md_data_raw()
          "   Vector : The vector specifying the length.. \n"
          "\n"
          "Keywords:\n"
-         "   value  : The value of the vector elements. " 
+         "   value  : The value of the vector elements. "
         ),
         OUTPUT(),
         INPUT(),
@@ -3677,6 +3677,34 @@ void define_md_data_raw()
         INPUT(),
         GOUTPUT( Vector_ ),
         GINPUT( Vector_, Vector_ ),
+        KEYWORDS(),
+        TYPES()));
+
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "VectorZtanToZaRefr" ),
+        DESCRIPTION
+        (
+         "Converts a set of true tangent altitudes to zenith angles.\n"
+         "\n"
+         "The tangent altitudes are given to the function as a vector, which\n"
+         "are converted to a generic vector of zenith angles. The position of\n"
+         "the sensor is given by the WSV *sensor_pos*. The function works only\n"
+         "for a spherical geoid. The zenith angles are always set to be\n"
+		 "positive.\n"
+         "The tangent altitudes are given as the altitude above the geoid.\n"
+         "\n"
+         "Generic output: \n"
+         "   Vector : A vector with zenith angles. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : A vector with true tangent altitudes\n"
+        ),
+        OUTPUT( refr_index_, a_pressure_, a_temperature_, a_vmr_list_ ),
+        INPUT( refr_index_agenda_, sensor_pos_, p_grid_, t_field_, z_field_,
+			   vmr_field_, r_geoid_, atmosphere_dim_ ),
+        GOUTPUT( Vector_ ),
+        GINPUT( Vector_ ),
         KEYWORDS(),
         TYPES()));
 

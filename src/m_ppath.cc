@@ -50,6 +50,7 @@
 #include "ppath.h"
 #include "special_interp.h"
 #include "xml_io.h"
+#include "refraction.h"
 
 extern const Numeric RAD2DEG;
 extern const Numeric DEG2RAD;
@@ -498,6 +499,62 @@ void sensor_posAddRgeoid(
             { sensor_pos(i,0) += v_rgeoid[i]; } 
         }
     }
+}
+
+void VectorZtanToZaRefr(// WS Output:
+                        Numeric&			refr_index,
+                        Numeric&			a_pressure,
+                        Numeric&			a_temperature,
+                        Vector&				a_vmr_list,
+                        // WS Generic Output:
+                        Vector&				za_vector,
+                        // WS Generic Output Names:
+                        const String&		za_vector_name,
+                        // WS Input:
+						const Agenda&		refr_index_agenda,
+                        const Matrix&		sensor_pos,
+                        const Vector&		p_grid,
+                        const Tensor3&		t_field,
+                        const Tensor3&		z_field,
+                        const Tensor4&		vmr_field,
+                        const Matrix&		r_geoid,
+                        const Index&		atmosphere_dim,
+                        // WS Generic Input:
+                        const Vector&		ztan_vector,
+                        // WS Generic Input Names:
+                        const String&		ztan_vector_name )
+{
+  assert( atmosphere_dim == 1);
+
+  if( ztan_vector.nelem() != sensor_pos.nrows() ) {
+    ostringstream os;
+    os << "The number of altitudes in *" << ztan_vector_name << "* must\n"
+	   << "match the number of positions in *sensor_pos*.";
+    throw runtime_error( os.str() );
+  }
+
+  //No output from get_refr_index_1d
+  Index agenda_verb = 1;
+
+  out2 << "   Filling *" << za_vector_name << "* with zenith angles, based on\n"
+       << "   tangent altitudes from *" << ztan_vector_name << ".\n";
+
+
+  //Set za_vector's size equal to ztan_vector
+  za_vector.resize( ztan_vector.nelem() );
+
+  //Calculate refractive index for the tangential altitudes
+  for( Index i=0; i<ztan_vector.nelem(); i++ ) {
+	get_refr_index_1d( a_pressure, a_temperature, a_vmr_list, 
+	  refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
+	  z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
+	  ztan_vector[i]+r_geoid(0,0) );
+
+	//Calculate zenith angle
+	za_vector[i] = 180-asin(refr_index*(ztan_vector[i]+r_geoid(0,0)) /
+	               			sensor_pos(i,0))*RAD2DEG;
+  }
+
 }
 
 
