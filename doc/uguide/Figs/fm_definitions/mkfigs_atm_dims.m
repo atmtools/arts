@@ -33,7 +33,7 @@ h(nh) = hp;
 ltext{nh} = 'atmospheric field';
 hf = gca;
 hl = legend2(8,h,ltext); 
-set(hl,'Visible','Off'); 
+legend boxoff 
 axis equal 
 hide_axes(hf);
 disp('Adjust the legend');
@@ -57,7 +57,7 @@ h(nh) = hp;
 ltext{nh} = 'atmospheric field';
 hf = gca;
 hl = legend2(8,h,ltext); 
-set(hl,'Visible','Off'); 
+legend boxoff 
 axis equal 
 hide_axes(hf);
 disp('Adjust the legend');

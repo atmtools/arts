@@ -1,3 +1,15 @@
+2002-10-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-253
+
+	* doc/uguide/ppath.tex: Included a new figure.
+
+	* doc/uguide/fm_definitions.tex: Revised some text and wrote some
+	new text on RT. Included a new figure. More work to be done.
+
+	* doc/uguide/introduction.tex: Removed some old text. Added a to do
+	list.
+
 2002-10-08  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-252

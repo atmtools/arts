@@ -32,15 +32,15 @@ beta_s  = [];
 omega_s = 0;
 %
 psi_s   = 30;
-ppath = ppath_2d_3d(2,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,0,0,cloudbox_on,cloudbox_limits,100e3,r_s,alpha_s,beta_s,psi_s,omega_s);
+ppath = ppath_2d_3d(2,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,0,1,cloudbox_on,cloudbox_limits,100e3,r_s,alpha_s,beta_s,psi_s,omega_s);
 plot_ppath( r_s, alpha_s, ppath, alpha_grid, r_geoid );
 %
 psi_s   = 95;
-ppath = ppath_2d_3d(2,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,0,0,cloudbox_on,cloudbox_limits,100e3,r_s,alpha_s,beta_s,psi_s,omega_s);
+ppath = ppath_2d_3d(2,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,0,1,cloudbox_on,cloudbox_limits,100e3,r_s,alpha_s,beta_s,psi_s,omega_s);
 plot_ppath( r_s, alpha_s, ppath, alpha_grid, r_geoid );
 %
 psi_s   = 120;
-ppath = ppath_2d_3d(2,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,0,0,cloudbox_on,cloudbox_limits,100e3,r_s,alpha_s,beta_s,psi_s,omega_s);
+ppath = ppath_2d_3d(2,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,0,1,cloudbox_on,cloudbox_limits,100e3,r_s,alpha_s,beta_s,psi_s,omega_s);
 plot_ppath( r_s, alpha_s, ppath, alpha_grid, r_geoid );
 %
 r_s     = 70e3;
@@ -60,7 +60,7 @@ plot_ppath( r_s, alpha_s, ppath, alpha_grid, r_geoid );
 %
 hf = gca;
 hl = legend2(8,h,ltext); 
-set(hl,'Visible','Off'); 
+legend boxoff 
 axis equal 
 hide_axes(hf);
 disp('Adjust the legend');

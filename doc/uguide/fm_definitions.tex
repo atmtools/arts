@@ -74,26 +74,7 @@ construct a control file for your simulation problem.
 %==============================================================================
 \label{sec:fm_defs:math}
 
-[* A short introduction to the vectors, matrices and tensors should be
-found here. It should be described what the terms means, the standard
-order in which dimensions are given, how sizes are specified here in
-the guide, how different dimensionalities are handled etc.
-
-Vectors, matrices and tensors are indexed using round braces.
-It should normally not be needed to specify the size. If you want to
-show in what order the dimensions are put into the variable, use the
-notation:
-\begin{equation}
-  \Alt = \Alt(\Prs,\Lat,\Lon)
-\end{equation}
-If the a special size shall be given, give the size inside square
-brackets and spell out that you refer to the size. An example, 
-``the matrix describing the geoid has for 1D the size $[1,1]$''.
-
-The concept of rows, columns, pages etc. should be described so a
-particular dimension can be identified in a consistent manner.
-
-The indexing is 0-based as in ARTS. *]
+[* To be written *]
 
 
 
@@ -425,14 +406,19 @@ is sufficiently high.
 
 
 
+\levelb{Polarisation and Stokes dimensionality}
+%==============================================================================
+\label{sec:fm_defs:polarisation}
+
+[* To be written *]
+
+
+
 \levelb{Absorption and refractive index}
 %==============================================================================
 \label{sec:fm_defs:absorption}
 
-[* Considerations for the calculation of absorption and refractive
-index ...  Tags, line-by-line, absorption models etc. The old
-\artsstyle{f\_mono} should be called \artsstyle{f\_mono}, or? (Note that I
-have used the name \wsvindex{f\_grid} elsewhere.)*]
+[* To be written *]
 
 
 
@@ -452,7 +438,7 @@ workspace variables for the sensor that always must be specified are
 \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and
 \artsstyle{Hb}. These variables are presented separately below in this
 section. The discussion of sensor workspace variables is continued in
-Section~\ref{sec:fm_defs:sensor2}. The Section~\ref{sec:fm_defs:rte}
+Section~\ref{sec:fm_defs:sensor2}. Section~\ref{sec:fm_defs:rte}
 gives further insights in how the sensor is treated in ARTS.
 
 
@@ -567,20 +553,19 @@ number of rows for \artsstyle{sensor\_los} must be the same as for
 %===================
 \label{sec:fm_defs:sensorpol}
 
-[* How shall this be handled? Anyhow, the variable will be denoted
-\wsvindex{sensor\_pol}
+[* To be written *]
 
-A discussion between Claudia and Patrick determined that a transfer
-matrix cannot be used? Claudia promised to look into the problem further. *]
 
 
 \levelc{Sensor characteristics and data reduction}
 %===================
 \label{sec:fm_defs:sensorchar}
 
-[* The transfer matrix \aSnsMtr{b} is not yet implemented, but the other
-variables described in this section exist. This means that ARTS so far
-is only capable of performing monochromatic pencil beam calculations. *]
+{\bf Please note:} \emph{The transfer matrix \aSnsMtr{b} is not yet
+  implemented, but will be introduced at a later stage. The other
+  variables described in this section exist. This means that ARTS so
+  far is only capable of performing monochromatic pencil beam
+  calculations.}
 
 The term ``sensor characteristics''\index{sensor characteristics} 
 is used here as a
@@ -724,21 +709,30 @@ The transfer matrix \aSnsMtr{b} is applied on each \aMpiVct{b} and the
 results are appended vertically, following the order of the positions
 in \artsstyle{sensor\_pos}
 \begin{equation}
-  \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
+  \MsrVct_{rte} = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
                                     \aSnsMtr{b}\aMpiVct{{b,2}} \\
                                     \vdots                     \\
                                     \aSnsMtr{b}\aMpiVct{{b,n}} 
             \end{array} \right]
   \label{eq:fm_defs:measseq}
 \end{equation}
-where \MsrVct\ is defined in Equation~\ref{eq:formalism:fm} and $1$
-indicates the first sensor position etc. This equation shows that
-\wsvindex{Hb} shall contain at least a description of the antenna
+where $1$ indicates the first sensor position etc. This equation shows
+that \wsvindex{Hb} shall contain at least a description of the antenna
 response. The matrix \artsstyle{Hb} can also cover other sensor
 characteristics and data reduction if the features of concern are
 common for all measurement blocks. If this is not the case, those
-features must be handled by the other existing transfer matrices or, by
-other means, as described in Section~\ref{sec:fm_defs:howtomeasseq}.
+features must be handled by the other existing transfer matrices or,
+by other means, as described in
+Section~\ref{sec:fm_defs:howtomeasseq}.
+
+The quantities $\aMpiVct{b}$ and $\MsrVct_{rte}$ do not include the
+effect of the sensor polarisation, they include all Stokes components.
+This means that $\aMpiVct{b}$ and $\MsrVct_{rte}$ are matrices with
+number of columns equal to \wsvindex{stokes\_dim}. The matrix
+$\MsrVct_{rte}$ (\wsvindex{y\_rte}) is reduced to the measurement
+vector, \MsrVct\ (\wsvindex{y}), defined in Equation~\ref{eq:formalism:fm}, by
+applying the sensor polarisation as described in
+Section~\ref{sec:fm_defs:sensorpol}.
 
 As the sensor line-of-sight and block grid values are just added,
 there is an ambiguity of the line-of-sight. It is possible to apply a
@@ -767,13 +761,19 @@ variables must be introduced, as described in
 Section~\ref{sec:fm_defs:sensor2}.
 
 
+
 \levelb{Clear sky radiative transfer}
 %==============================================================================
 \label{sec:fm_defs:rte}
 
 The theory of radiative transfer is dealt with in Section~[* a section
 in part IV to be written *]. This section describes how the radiative
-transfer equations are solved practically in ARTS.
+transfer equations are solved practically in ARTS. The general
+presentation assumes that the simulations deal with an emission
+measurement. Focus is put on emission measurements as ARTS is intended
+for such observations. However, simulations of transmission
+measurements are also possible, which is discussed especially in
+Section~\ref{sec:fm_defs:trans_sim}.
 
 
 \levelc{Calculation procedure}
@@ -786,29 +786,17 @@ equation is fixed. The corresponding workspace method is
 outlined in Algorithm~\ref{alg:fm_defs:RteCalc}. For further details
 of each calculation step, see the indicated equation or section.
 
-Two types of spectra can be produced, emission and transmission
-spectra. A transmission spectrum means that emission of the atmosphere
-and the ground is neglected. This can be done if the measurements are
-performed against a sufficient strong source, such as the sun. The
-background source is not included in the simulations, the output is
-instead the transmission through the atmosphere (in form of the
-optical thickness, see below). The type of spectra is governed by the
-method selected for \wsmindex{rte\_agenda}.
-
 The primary unit for emission spectra, the unit of \aMpiVct{b} in
 Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the
 Planck function in Equation~[**], no scaling terms are applied.
-Conversion to brightness temperature is treated in Section~[**].  The
-transmission is provided as the optical thickness (Equation~[**]).
-The optical thickness includes the absorption of the ground if there
-is a ground reflection along the propagation path.
+Conversion to brightness temperature is treated in Section~[**]. 
 
 \begin{algorithm}[!t]
  \begin{algorithmic}
-  \STATE{allocate memory for the measurement vector, \MsrVct}
-  \COMMENT{see Equation \ref{eq:formalism:fm}}
-  \STATE{allocate memory for the vector \aMpiVct{b}}
+  \STATE{allocate memory for the matrix $\MsrVct_{rte}$}
+  \COMMENT{Equation \ref{eq:fm_defs:measseq}}
+  \STATE{allocate memory for the matrix \aMpiVct{b}}
   \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
   \FORALL{sensor positions}
    \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
@@ -820,37 +808,14 @@ is a ground reflection along the propagation path.
     \COMMENT{Algorithm \ref{alg:fm_defs:rte_agenda}}
     \STATE{copy \artsstyle{i\_rte} to correct part of \aMpiVct{b}}
    \ENDFOR
-   \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of \MsrVct}
+   \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of 
+          $\MsrVct_{rte}$}
   \ENDFOR
  \end{algorithmic}
  \caption{Outline of the overall clear sky radiative transfer calculations,
    performed by \artsstyle{RteCalc}.}
  \label{alg:fm_defs:RteCalc}
 \end{algorithm}
-
-\begin{algorithm}[!b]
- \begin{algorithmic}
-   \STATE{allocate memory for the matrix \artsstyle{i\_rte}}
-   \STATE{initialise \artsstyle{i\_rte} following the radiative background}
-   \STATE{determine the temperature along the propagation path}
-   \STATE{set $a_1$ to the absorption at point \artsstyle{np}-1}
-   \FORALL{steps along propagation path}
-     \IF{start point of step is point of ground reflection}
-       \STATE{consider ground reflection, e.g. Equation [**]}
-     \ENDIF
-     \STATE{set $a_2$ to the absorption at end point of path step}
-     \STATE{consider transmission and emission along the step, e.g. Equation [**]}
-     \STATE{$a_1=a_2$}
-   \ENDFOR
- \end{algorithmic}
- \caption{Typical structure of a workspace method, considering emission, to 
-   be part of \artsstyle{rte\_agenda}. A method where emission is
-   neglected does not need to determine the temperature and uses
-   expressions such as Equations~[**] and [**] instead of
-   Equations~[**] and [**]. }
- \label{alg:fm_defs:rte_agenda}
-\end{algorithm}
-
 
 
 \levelc{Propagation paths}
@@ -868,58 +833,37 @@ the crossings of the path with the atmospheric grids
 (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
 \artsstyle{lon\_grid}). A path point is also placed at the sensor if
 it is placed inside the atmosphere.  Ground reflections and tangent
-points are also included if such exist.  There exists also the
-possibility to set an upper limit for the distance along the path
-between the points.
+points are also included if such exist. More points can also be added
+to the propagation path, for example, by setting an upper limit for
+the distance along the path between the points.
 
 The propagation paths are determined basically by starting at the
-sensor and following the path backwards by some \textindex{ray tracing}
-technique. If the sensor is placed above the model atmosphere,
-geometrical calculations are used (as there is no refraction in space)
-to find the crossing between the path and the top of the atmosphere
-where the ray tracing then starts. If there is no cloud box and the
-ground does not act as a blackbody, the starting point of the propagation
-paths is always found at the top of the atmosphere (where the path
-enters the atmosphere). Propagation paths are not followed inside
-cloud boxes and the starting point is set to the cloud box boundary.
-If there is an intersection with path of a blackbody ground
-(Section~\ref{sec:fm_defs:geoid}), the propagation path is considered
-to start at the ground. This is the case as a blackbody ground absorbs
-all incoming radiation and the radiative transfer along the path
-before the ground reflection is of no interest
-(Equation~\ref{eq:fm_defs_ground_reflection}). Example on propagation
+sensor and following the path backwards by some \textindex{ray
+  tracing} technique. If the sensor is placed above the model
+atmosphere, geometrical calculations are used (as there is no
+refraction in space) to find the crossing between the path and the top
+of the atmosphere where the ray tracing then starts. Paths are tracked
+backwards until the top of the atmosphere is reached, or there is an
+intersection with the cloud box or the ground. The propagtaion path
+(or paths) before a ground reflection is calculated when determining
+the up-welling radiation from the ground
+(Section~\ref{sec:fm_defs:groundrefl}). Example on propagation
 paths are shown in Figure~\ref{fig:fm_defs:ppath_cases1}.
 
-\begin{figure}[!t]
+\begin{figure}[!b]
  \begin{center}
   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases1}
   \caption{Propagation path examples for a 2D atmosphere. The atmosphere 
     and the cloud box are plotted as in Figure~\ref{fig:fm_defs:2d}
     beside that the points for the atmospheric fields are not
-    emphasized. For the propagation paths to the left, with a the
-    sensor placed inside the model atmosphere, a reflecting ground is
-    assumed. The paths to the right are valid for a sensor placed
-    outside the atmosphere (at the $*$) and a blackbody ground. No
-    value for the maximum path step length was applied. Note the tangent
-    point inserted for the uppermost propagation path, plotted as $\oplus$.}
+    emphasized. No value for the maximum path step length was applied.
+    Note the tangent point inserted for the uppermost propagation
+    path, plotted as $\oplus$.}
   \label{fig:fm_defs:ppath_cases1}
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
  
-The radiative intensity at the starting point of the path, and in the
-direction of the line-of-sight at that point, is denoted as the
-radiative background. The radiative background at the top of the
-atmosphere is given by \wsvindex{i\_space\_agenda}, which sets the
-workspace variable \wsvindex{i\_space}. This
-variable should normally be set to cosmic background radiation, if
-not the sensor is directed towards the sun. Remaining possible
-radiative backgrounds are blackbody radiation from the ground or the
-outgoing intensity field at the boundary of a cloud box. If a
-propagation path is totally outside the model atmosphere, the
-observed monochromatic pencil beam intensity (\MpiVct\ in
-Algorithm~\ref{alg:fm_defs:RteCalc}) equals \artsstyle{i\_space}.
-
 Not all propagation paths are allowed for 2D and 3D. The paths can
 only enter and leave the model atmosphere at the top of the atmosphere
 as the atmospheric fields are treated to be undefined outside the
@@ -945,9 +889,38 @@ include \wsmindex{ppath\_step\_geometric} and
 \wsmindex{ppath\_step\_refraction}.
 
 
-\levelc{Solving the radiative transfer equation}
+\levelc{The radiative background}
 %===================
-\label{sec:fm_defs:solverte}
+\label{sec:fm_defs:rad_bkgr}
+
+The radiative intensity at the starting point of the path, and in the
+direction of the line-of-sight at that point, is denoted as the
+radiative background. Four possible radiative backgrounds exist:
+\begin{description}
+\item[Space] When the propagation path starts at the top of the
+  atmosphere, space is the radiative background. The normal case
+  should be to set the radiation at the top of the atmosphere to
+  cosmic background radiation. An exception is when the sensor is
+  directed towards the sun, when the radiative background shall be set
+  to mimic the solar radiation. The radiative background at the top of
+  the atmosphere is determined by \wsvindex{i\_space\_agenda}, which
+  sets the workspace variable \wsvindex{i\_space}. If a propagation
+  path is totally outside the model atmosphere, the observed
+  monochromatic pencil beam intensity (\aMpiVct{b}\ in
+  Algorithm~\ref{alg:fm_defs:RteCalc}) equals \artsstyle{i\_space}.
+\item[The ground] The sum of ground emission and radiation reflected
+  by the ground is the radiative background when the propagation path
+  intersects with the ground. The calculation of the up-welling
+  radiation from the ground is described in
+  Section~\ref{sec:fm_defs:groundrefl}.
+\item[Surface of cloud box] 
+\item[Interior of cloud box] 
+\end{description}
+
+
+\levelc{The agenda for radiative transfer}
+%===================
+\label{sec:fm_defs:rte_agenda}
 
 [* Assumption on absorption and source function between the points of
 the propagation path. Can the equation 
@@ -955,6 +928,17 @@ the propagation path. Can the equation
   \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
 \end{equation}
 be extended to cover Stokes vectors when there is no scattering? *]
+
+\begin{algorithm}[!b]
+ \begin{algorithmic}
+   \STATE{determine the temperature along the propagation path}
+ \end{algorithmic}
+ \caption{Typical structure of a workspace method to 
+   be part of \artsstyle{rte\_agenda}. The example is valid for a
+   method considering emission. [* Complete the algorith when
+   absorption is ready. *]}
+ \label{alg:fm_defs:rte_agenda}
+\end{algorithm}
 
 
 
@@ -970,6 +954,14 @@ outgoing line-of-sight. If there is slope of the ground\index{ground
 when determining the line-of-sight for the incoming radiation. This is
 exemplified in Figure~\ref{fig:fm_defs:ppath_cases2}, for a case with
 a very strong ground slope.
+
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*[width=0.7\hsize]{Figs/fm_definitions/ground_refl}
+  \caption{}
+  \label{fig:fm_defs:ground_refl}
+ \end{center}
+\end{figure}
 
 \begin{figure}[!t]
  \begin{center}
@@ -1021,36 +1013,59 @@ angular variation.
 
 
 
+\levelc{Simulation of transmission measurements}
+%===================
+\label{sec:fm_defs:trans_sim}
+
+[* It is not yet clear exactly how this will be done. *]
+
+%Two types of spectra can be produced, emission and transmission
+%spectra. A transmission spectrum means that emission of the atmosphere
+%and the ground is neglected. This can be done if the measurements are
+%performed against a sufficient strong source, such as the sun. The
+%background source is not included in the simulations, the output is
+%instead the transmission through the atmosphere (in form of the
+%optical thickness, see below). The type of spectra is governed by the
+%method selected for \wsmindex{rte\_agenda}.
+
+%The transmission is provided as the optical thickness (Equation~[**]).
+%The optical thickness includes the absorption of the ground if there
+%is a ground reflection along the propagation path.
+
+
 \levelb{Additional sensor and data reduction variables} 
 %===================
 \label{sec:fm_defs:sensor2}
 
-\artsstyle{antenna\_psi\_grid}, \aSnsMtr{b}, \aSnsMtr{c}
+[* Will be written when these variables are introduced into ARTS. *]
 
+%\artsstyle{antenna\_psi\_grid}, \aSnsMtr{b}, \aSnsMtr{c}
 
 \levelc{How to model different measurement sequences in best way?}
 %===================
 \label{sec:fm_defs:howtomeasseq}
-
-[* Discuss e.g. the relationship between \artsstyle{sensor\_los} and the block LOS grids. *]
+%
+%[* Discuss e.g. the relationship between \artsstyle{sensor\_los} and the block LOS grids. *]
 
 
 \levelb{Scattering}
 %==============================================================================
 \label{sec:fm_defs:scattering}
 
-[* Special quantities and considerations for scattering ... *]
+[ To be written. *]
+
+%[* Special quantities and considerations for scattering ... *]
 
 
 
-\levelb{Weighting functions}
+%\levelb{Weighting functions}
 %==============================================================================
-\label{sec:fm_defs:wfs}
+%\label{sec:fm_defs:wfs}
 
-[* This part is still quite unclear. However, the analytical
-atmospheric WFs will be calculated on the same time as spectra. We
-need to find a good way to specify the WFs which is a complex thing to
-do. *]
+%[* This part is still quite unclear. However, the analytical
+%atmospheric WFs will be calculated on the same time as spectra. We
+%need to find a good way to specify the WFs which is a complex thing to
+%do. *]
 
 
 %%% Local Variables: 
