@@ -128,6 +128,7 @@ arts_SOURCES = \
 	sensor.h \
 	scatrte.cc \
 	scatrte.h \
+	sorting.h \
 	special_interp.cc \
 	special_interp.h \
 	species_data.cc \
@@ -198,6 +199,7 @@ noinst_PROGRAMS = \
 	test_xml \
 	test_complex \
 	test_mpi \
+	test_sorting \
 	test_zeemanproperties \
 	test_integration
 
@@ -634,6 +636,14 @@ test_mpi_SOURCES = \
 	matpackI.cc \
 	matpackI.h \
 	test_mpi.cc
+
+test_sorting_SOURCES = \
+	arts.h \
+	matpackI.h \
+	matpackI.cc \
+	array.h \
+	sorting.h \
+	test_sorting.cc
 
 test_sensor_SOURCES = \
 	arts.cc \
