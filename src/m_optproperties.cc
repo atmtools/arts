@@ -81,7 +81,7 @@ void pha_mat_sptFromData( // Output:
                          const Index& scat_aa_index,
                          const Index& f_index,
                          const Vector& f_grid,
-                         const Numeric& t_value
+                         const Numeric& rte_temperature
                          )
 {
     out3 << "Calculate *pha_mat_spt* from database\n";
@@ -121,7 +121,7 @@ void pha_mat_sptFromData( // Output:
       gridpos(freq_gp, f_datagrid, f_grid[f_index]);
 
       GridPos t_gp;
-      gridpos(t_gp, T_datagrid, t_value);
+      gridpos(t_gp, T_datagrid, rte_temperature);
 
       // Interpolationweights:
       Vector itw(4);
@@ -210,7 +210,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
-                         const Numeric& t_value
+                         const Numeric& rte_temperature
                          )
 {
 
@@ -231,7 +231,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
       // Temperature interpolation
       // Gridpositions:
       GridPos T_gp;
-      gridpos(T_gp, T_datagrid, t_value); 
+      gridpos(T_gp, T_datagrid, rte_temperature); 
       
       // Interpolationweights:
       Vector itw(2);
@@ -315,7 +315,7 @@ void opt_prop_sptFromData( // Output and Input:
                          const Index& scat_aa_index,
                          const Index& f_index,
                          const Vector& f_grid,
-                         const Numeric& t_value
+                         const Numeric& rte_temperature
                          )
 {
   
@@ -369,7 +369,7 @@ void opt_prop_sptFromData( // Output and Input:
       gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
 
       GridPos t_gp;
-      gridpos(t_gp, T_datagrid, t_value);
+      gridpos(t_gp, T_datagrid, rte_temperature);
 
       // Interpolationweights:
       Vector itw(4);
@@ -1358,13 +1358,17 @@ void opt_prop_sptFromMonoData( // Output and Input:
                          const Vector& scat_za_grid,
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
-                         const Index& scat_aa_index
+                         const Index& scat_aa_index,
+                         const Numeric& rte_temperature
                          )
 {
   const Index N_pt = scat_data_mono.nelem();
   const Index stokes_dim = ext_mat_spt.ncols();
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
+
+
+
 
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error("The dimension of the stokes vector \n"
@@ -1379,6 +1383,12 @@ void opt_prop_sptFromMonoData( // Output and Input:
   abs_vec_spt = 0.;
 
 
+  
+
+  GridPos t_gp;
+  
+  Vector itw(2);
+  
   // Loop over the included particle_types
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
@@ -1391,10 +1401,31 @@ void opt_prop_sptFromMonoData( // Output and Input:
       //
       // Extinction matrix:
       //
-     
+      Index ext_npages = scat_data_mono[i_pt].ext_mat_data.npages();  
+      Index ext_nrows = scat_data_mono[i_pt].ext_mat_data.nrows();  
+      Index ext_ncols = scat_data_mono[i_pt].ext_mat_data.ncols();  
+      Index abs_npages = scat_data_mono[i_pt].abs_vec_data.npages();  
+      Index abs_nrows = scat_data_mono[i_pt].abs_vec_data.nrows();  
+      Index abs_ncols = scat_data_mono[i_pt].abs_vec_data.ncols();  
+      Tensor3 ext_mat_data1temp(ext_npages,ext_nrows,ext_ncols,0.0);
+      Tensor3 abs_vec_data1temp(abs_npages,abs_nrows,abs_ncols,0.0);
+      //interpolate over temperature
+      gridpos(t_gp, scat_data_mono[i_pt].T_grid, rte_temperature);
+      interpweights(itw, t_gp);
+      for (Index i_p = 0; i_p < ext_npages ; i_p++)
+	{
+	  for (Index i_r = 0; i_r < ext_nrows ; i_r++)
+	    {
+	      for (Index i_c = 0; i_c < ext_ncols ; i_c++)
+		{
+		  ext_mat_data1temp(i_p,i_r,i_c)=interp(itw,
+                                scat_data_mono[i_pt].ext_mat_data(0,joker,i_p,i_r,i_c),t_gp);
+		}
+	    }
+	}
   
       ext_matTransform(ext_mat_spt(i_pt, joker, joker),
-                       scat_data_mono[i_pt].ext_mat_data(0,0,joker,joker,joker),
+                       ext_mat_data1temp,
                        scat_data_mono[i_pt].za_grid, 
 		       scat_data_mono[i_pt].aa_grid, 
 		       scat_data_mono[i_pt].ptype,
@@ -1402,8 +1433,20 @@ void opt_prop_sptFromMonoData( // Output and Input:
       // 
       // Absorption vector:
       //
+      //interpolate over temperature
+      for (Index i_p = 0; i_p < abs_npages ; i_p++)
+	{
+	  for (Index i_r = 0; i_r < abs_nrows ; i_r++)
+	    {
+	      for (Index i_c = 0; i_c < abs_ncols ; i_c++)
+		{
+		  abs_vec_data1temp(i_p,i_r,i_c)=interp(itw,
+				scat_data_mono[i_pt].abs_vec_data(0,joker,i_p,i_r,i_c),t_gp);
+		}
+	    }
+	}
       abs_vecTransform(abs_vec_spt(i_pt, joker),
-                       scat_data_mono[i_pt].abs_vec_data(0,0, joker,joker,joker),
+                       abs_vec_data1temp,
                        scat_data_mono[i_pt].za_grid, 
 		       scat_data_mono[i_pt].aa_grid, 
 		       scat_data_mono[i_pt].ptype,
@@ -1444,7 +1487,7 @@ void pha_mat_sptFromMonoData( // Output:
                          const Vector& scat_aa_grid,
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
-                         const Numeric& t_value
+                         const Numeric& rte_temperature
                          )
 {
   out3 << "Calculate *pha_mat_spt* from scat_data_mono. \n";
@@ -1471,7 +1514,7 @@ void pha_mat_sptFromMonoData( // Output:
       // Temperature interpolation
       // Gridpositions:
       GridPos T_gp;
-      gridpos(T_gp, scat_data_mono[i_pt].T_grid, t_value); 
+      gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
       
       // Interpolationweights:
       Vector itw(2);

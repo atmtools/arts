@@ -1,3 +1,21 @@
+2004-07-02  Cory Davis (rsh)   <cory@fog>
+
+	* arts-1-1-841
+
+	* src/xml_io_compound_types.cc (xml_read_from_stream (for
+	SingleScatteringData)): updated f_grid size check for new
+	size of pha_mat_data.
+
+	* src/workspace.cc (t_value): Removed. We can use
+	*rte_temperature* instead.
+
+	* src/methods.cc: replaced all occurances of t_value with
+	rte_temperature.
+	
+	* src/m_optproperties.cc (opt_prop_sptFromMonoData): included
+	temperature interpolatiion.  Replaced all occurances of t_value with
+	rte_temperature.
+	
 2004-07-01  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-840

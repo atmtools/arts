@@ -2642,21 +2642,6 @@ wsv_data.push_back
 
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "t_value" ),
-      DESCRIPTION
-      (
-       "Temperature value.\n"
-       "\n"
-       "Temperature value at a given point in the atmosphere.\n"
-       "Needed for interpolation of *SingleScatteringData*.\n"
-       "\n"
-       "Unit:       K\n"
-       "\n"
-       ),
-      GROUP( Numeric_ )));
-
- wsv_data.push_back
-   (WsvRecord
     ( NAME( "timer" ),
       DESCRIPTION
       (

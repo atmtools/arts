@@ -465,7 +465,7 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, ssdata.aa_grid, pbifs);
 
   xml_read_from_stream (is_xml, ssdata.pha_mat_data, pbifs);
-  if (ssdata.pha_mat_data.nvitrines () != ssdata.f_grid.nelem ())
+  if (ssdata.pha_mat_data.nlibraries () != ssdata.f_grid.nelem ())
     {
       throw runtime_error("Number of frequencies in f_grid and pha_mat_data "
                           "not matching!!!");
