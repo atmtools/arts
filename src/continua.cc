@@ -2602,7 +2602,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
   const Numeric	xT_MPM93  =  3.500;             // temperature exponent [1]
   const Numeric	xf_MPM93  =  1.500;             // frequency exponent [1]
   const Numeric	gxf_MPM93 =  9.000*xf_MPM93;    // needed for the unit conversion of G_MPM93
-  const Numeric	S_MPM93   =  1.400e-25;         // line strength  [1/Pa² * 1/Hz]
+  const Numeric	S_MPM93   =  2.296e-31;         // line strength  [1/Pa² * 1/Hz]
   const Numeric G_MPM93   =  1.930e-5*pow(10.000, -gxf_MPM93); // frequency factor [1/Hz^xf]
   // ---------------------------------------------------------------------------------------
   
@@ -2639,8 +2639,8 @@ void MPM93_N2_continuum( MatrixView          xsec,
 	<< " xf = " << xf << "\n";
   
   // unit conversion internally:
-  const Numeric S0unitconv = 1.000e+13;  // x [1/(hPa²*GHz)] => y [1/(pa²*Hz)]
-  const Numeric G0unitconv = pow(10.000, gxf);
+  //const Numeric S0unitconv = 1.000e+13;  // x [1/(hPa²*GHz)] => y [1/(pa²*Hz)]
+  //const Numeric G0unitconv = pow(10.000, gxf);
 
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
@@ -2654,21 +2654,13 @@ void MPM93_N2_continuum( MatrixView          xsec,
   assert ( n_f==xsec.nrows() );
   assert ( n_p==xsec.ncols() );
   
+  Numeric fac = 4.0 * PI / SPEED_OF_LIGHT;  //  = 4 * pi / c
   // Loop pressure/temperature:
   for ( Index i=0; i<n_p; ++i )
     {
-      if (vmr[i] < VMRCalcLimit) // make sure that division by zero is excluded
-	{
-	  ostringstream os;
-	  os << "ERROR: MPM93 N2 continuum absorption model has detected a N2 volume mixing ratio of " 
-	     << vmr[i] << " which is below the threshold of " << VMRCalcLimit << ".\n"
-	     << "Therefore no calculation is performed.\n";
-	  throw runtime_error(os.str());
-	  return;
-	}
       Numeric th = 300.0 / t_abs[i];
-      Numeric strength =  S0 * S0unitconv * 
-                          pow( (Pa_to_hPa * p_abs[i] * (1.0000 - h2o_abs[i])), 2 ) * 
+      Numeric strength =  S0 * 
+                          pow( (p_abs[i] * (1.0000 - h2o_abs[i])), 2 ) * 
                           pow( th, xT );
 
       // Loop frequency:
@@ -2677,9 +2669,10 @@ void MPM93_N2_continuum( MatrixView          xsec,
 	  Numeric f = f_mono[s] * Hz_to_GHz; // frequency in GHz
 	  // the vmr of N2 will be multiplied at the stage of absorption calculation:
 	  // abs / vmr * xsec.
-	  xsec(s,i) += dB_km_to_1_m * 0.1820 * 
-	               f * strength * f / 
-                       ( 1.000 + G0unitconv * G0 * pow( f, xf) );
+	  xsec(s,i) += fac * strength *                              // strength
+                       pow(f_mono[s],2) /                      // frequency dependence
+	               ( 1.000 + G0 * pow( f_mono[s], xf) ) *  
+	                vmr[i];                                // N2 vmr
 	}
     }
   return;

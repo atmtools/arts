@@ -1,5 +1,12 @@
 2001-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
+        * arts-0-1-63
+ 
+        * changes: - Update MPM93 N2 continuum, now now 
+                     underflow is possible due to zero vmr
+
+2001-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
+ 
         * arts-0-1-62
  
         * changes: - Update the H2O continuum parameter n_s of MPM 
