@@ -475,12 +475,4 @@ Numeric min(const ConstTensor5View& x);
 std::ostream& operator<<(std::ostream& os, const ConstTensor5View& v);
 
 
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of Tensor5. */
-typedef Array<Tensor5> ArrayOfTensor5;
-
-
 #endif    // matpackV_h

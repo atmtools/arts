@@ -371,14 +371,4 @@ Numeric min(const ConstTensor3View& x);
 std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v);
 
 
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of Tensor3. */
-typedef Array<Tensor3> ArrayOfTensor3;
-
-typedef Array<ArrayOfTensor3> ArrayOfArrayOfTensor3;
-
-
 #endif    // matpackIII_h

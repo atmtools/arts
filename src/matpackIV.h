@@ -406,12 +406,4 @@ Numeric min(const ConstTensor4View& x);
 std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v);
 
 
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of Tensor4. */
-typedef Array<Tensor4> ArrayOfTensor4;
-
-
 #endif    // matpackIV_h

@@ -1954,14 +1954,4 @@ Numeric min(const ConstTensor7View& x);
 std::ostream& operator<<(std::ostream& os, const ConstTensor7View& v);
 
 
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of Tensor7. */
-typedef Array<Tensor7> ArrayOfTensor7;
-
-
-
-
 #endif    // matpackVII_h

@@ -96,6 +96,7 @@
 
 #include <iomanip>
 #include "arts.h"
+#include "array.h"
 
 /** The Joker class.
 
@@ -776,17 +777,6 @@ Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
 
 std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
-
-
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of vectors. */
-typedef Array<Vector> ArrayOfVector;
-
-/** An array of matrices. */
-typedef Array<Matrix> ArrayOfMatrix;
 
 
 #endif    // matpackI_h

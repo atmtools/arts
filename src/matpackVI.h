@@ -975,14 +975,4 @@ Numeric min(const ConstTensor6View& x);
 std::ostream& operator<<(std::ostream& os, const ConstTensor6View& v);
 
 
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of Tensor6. */
-typedef Array<Tensor6> ArrayOfTensor6;
-
-typedef Array<ArrayOfTensor6> ArrayOfArrayOfTensor6;
-
-
 #endif    // matpackVI_h
