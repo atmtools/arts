@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.890)
+AM_INIT_AUTOMAKE(arts,1.1.891)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -286,6 +286,7 @@ Makefile
             doc/examples/data/Makefile 
    m4/Makefile 
    src/Makefile
+   tests/Makefile
 ])
 
 AC_MSG_RESULT()

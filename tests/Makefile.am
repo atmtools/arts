@@ -7,27 +7,11 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS = data
-
-artsdocdir = $(pkgdatadir)/doc
+SUBDIRS = 
 
 arts = $(top_srcdir)/src/arts
 
-examplesdocdir = $(artsdocdir)/examples
+arts_tests = 
 
-arts_examples = \
-	absorption_example.arts \
-	absorption_lookup_example.arts \
-	cont_simple_example.arts
-
-examplesdoc_DATA = $(arts_examples)
-
-EXTRA_DIST   = 
-
-CLEANFILES = *.xml *_example*.aa *_example*.ab *.rep *.out
-
-#check:	$(arts) $(arts_examples)
-#	$(arts) absorption_example.arts
-#	$(arts) absorption_lookup_example.arts
-#	$(arts) cont_simple_example.arts
+check:	$(arts) $(arts_examples)
 
