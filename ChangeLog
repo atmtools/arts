@@ -1,3 +1,12 @@
+2002-10-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-268
+
+	* src/lin_alg.cc: Fixed a bug in (norm_inf). This function is used in 
+	the matrix exponential function. 
+
+	* src/m_cloudbox.cc: Small bug fix.
+
 2002-10-18  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-267
