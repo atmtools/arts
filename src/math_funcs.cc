@@ -259,3 +259,28 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
   //cout<<res<<"\n";
   return res;
 }
+
+
+
+//! sign
+/*! 
+    Returns the sign of a numeric value.
+
+    The function returns 1 if the value is greater than zero, 0 if it 
+    equals zero and -1 if it is less than zero.
+
+    \return      The sign of x (see above).
+    \param   x   A vector.
+
+    \author Patrick Eriksson 
+    \date   2000-06-27
+*/
+Numeric sign( const Numeric& x )
+{
+  if( x < 0 )
+    return -1.0;
+  else if( x == 0 )
+    return 0.0;
+  else
+    return 1.0;
+}

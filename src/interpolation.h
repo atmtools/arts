@@ -28,6 +28,8 @@
 
 #include "arts.h"
 #include "matpackVII.h"
+#include "mystring.h"
+
 
 //! Structure to store a grid position.
 /*! 
@@ -101,6 +103,10 @@ bool is_gridpos_at_index_i(
 Index gridpos2gridrange(
        const GridPos&   gp,
        const bool&      upwards );
+
+void ArrayOfGridPosPrint(
+        const ArrayOfGridPos&   x,
+        const String&           x_name );
 
 
 

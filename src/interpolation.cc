@@ -472,6 +472,27 @@ Index gridpos2gridrange(
 
 
 
+//! ArrayOfGridPosPrint
+/*!
+   This function works as similar workspace functions.
+
+   \author Patrick Eriksson
+   \date   2002-06-09
+*/
+void ArrayOfGridPosPrint(
+        const ArrayOfGridPos&   x,
+        const String&           x_name )
+{
+  cout << "  *" << x_name <<"*:\n";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1] 
+	 << "\n";
+}
+
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //			Red Interpolation
 ////////////////////////////////////////////////////////////////////////////

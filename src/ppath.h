@@ -120,4 +120,15 @@ void ppath_step_geom_1d(
         const Index&      blackbody_ground,
 	const Numeric&    lmax );
 
+void ppath_step_geom_2d(
+	      Ppath&      ppath,
+        const Index&      atmosphere_dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        const Vector&     r_geoid,
+        const Vector&     z_ground,
+        const Index&      blackbody_ground,
+	const Numeric&    lmax );
+
 #endif  // ppath_h

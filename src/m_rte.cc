@@ -258,9 +258,9 @@ void RteCalc(
 		{ los[1] += mblock_aa_grid[iaa]; }
 
 	      // Determine propagation path
-	      ppathCalc( ppath, atmosphere_dim, p_grid, lat_grid, lon_grid, 
-		    z_field, r_geoid, z_ground, blackbody_ground, cloudbox_on,
-                      cloudbox_limits, sensor_pos(imblock,Range(joker)), los );
+	      //ppathCalc( ppath, atmosphere_dim, p_grid, lat_grid, lon_grid, 
+	      // z_field, r_geoid, z_ground, blackbody_ground, cloudbox_on,
+              //      cloudbox_limits, sensor_pos(imblock,Range(joker)), los );
 
 	      // Calculate spectra and WFs
 	      // (this will be an agenda)

@@ -81,5 +81,6 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
 			       ConstVectorView za_grid,
 			       ConstVectorView aa_grid);
 
+Numeric sign( const Numeric& x );
 
 #endif  // math_funcs_h

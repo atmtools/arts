@@ -1385,10 +1385,10 @@ void define_md_data_raw()
 	 "ARTS user guide and read the  on-line information for\n"
 	 "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
         ),
-	OUTPUT( ppath_ ),
+	OUTPUT( ppath_, ppath_step_ ),
 	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_ground_, blackbody_ground_, 
-               cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
+               r_geoid_, z_ground_, blackbody_ground_, cloudbox_on_, 
+               cloudbox_limits_, ppath_step_agenda_, a_pos_, a_los_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

@@ -1,3 +1,16 @@
+2002-07-03  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-183
+
+	* src/ppath.cc: Work to get 2D geometrical propagation paths to work.
+	Not yet ready. This is mainly a backup commit.
+
+	* src/m_ppath.cc: As above, but the work in this is hopefully ready.
+
+	* src/interpolation.cc (ArrayOfGridPosPrint): Created this function.
+
+	* src/math_funcs.cc (sign): Created this function.
+
 2002-07-03  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-182

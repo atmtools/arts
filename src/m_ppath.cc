@@ -184,6 +184,7 @@ void a_posSet(
 void ppathCalc(
         // WS Output:
               Ppath&          ppath,
+	      Ppath&          ppath_step,
         // WS Input:
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
@@ -195,9 +196,11 @@ void ppathCalc(
         const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
+	const Agenda&         ppath_step_agenda,
         const Vector&         a_pos,
         const Vector&         a_los )
 {
+
   //--- Check input -----------------------------------------------------------
 
   // Check that data sizes of grids, z_field and ground variables match the 
@@ -309,20 +312,17 @@ void ppathCalc(
 
 
   // Initiate the partial Ppath structure. 
-  // The function doing the work sets ppath_step to the last point of the
-  // path inside the atmosphere, if the path is at all inside the atmosphere.
+  // The function doing the work sets ppath_step to the point of the path
+  // inside the atmosphere closest to the sensor, if the path is at all inside
+  // the atmosphere.
   // If the background field is set by the function this flags that there is no
   // path to follow (for example when the sensor is inside the cloud box).
-  // The function checks also that the sensor and the last point of the path 
-  // are at allowed locations.
-  //
-  Ppath ppath_step;
+  // The function checks also that the sensor position and LOS give an
+  // allowed path.
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
                         lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
                         cloudbox_on, cloudbox_limits, a_pos, a_los );
-  PpathPrint(ppath_step,"ppath");
-  Exit();
 
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
@@ -342,11 +342,7 @@ void ppathCalc(
   while( !ppath_what_background( ppath_step ) )
     {
       // Call ppath_step agenda
-
-      // For the moment, a hard-coded version:
-      ppath_stepGeometric( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-		      lon_grid, z_field, r_geoid, z_ground, blackbody_ground );
-
+      ppath_step_agenda.execute();
 
       // Number of points in returned path step
       const Index n = ppath_step.np;
@@ -448,7 +444,7 @@ void ppathCalc(
       // first structure can also be empty. 
       // For later structures, the first point shall not be included, but
       // there will always be at least two points.
-      // Note that only the first structure can be empty.
+      // Only the first structure can be empty.
 
       Index n = ppath_array[i].np;
 
@@ -545,10 +541,14 @@ void ppath_stepGeometric(
                z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
                                                         blackbody_ground, -1 );
     }
+  else if( atmosphere_dim == 2 )
+    { ppath_step_geom_2d( ppath_step, atmosphere_dim, p_grid, lat_grid,
+             z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
+                              z_ground(Range(joker),0), blackbody_ground, -1 );
+    }
   else
     {
-      throw runtime_error(
-                     "2D and 3D propagation path steps are not yet handled." );
+      throw runtime_error( "3D propagation path steps are not yet handled." );
     }
 }
 
@@ -586,10 +586,14 @@ void ppath_stepGeometricWithLmax(
                z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
                                                       blackbody_ground, lmax );
     }
+  else if( atmosphere_dim == 2 )
+    { ppath_step_geom_2d( ppath_step, atmosphere_dim, p_grid, lat_grid,
+             z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
+                            z_ground(Range(joker),0), blackbody_ground, lmax );
+    }
   else
     {
-      throw runtime_error(
-                     "2D and 3D propagation path steps are not yet handled." );
+      throw runtime_error( "3D propagation path steps are not yet handled." );
     }
 }
 
@@ -608,7 +612,7 @@ void PpathPrint(
         // WS Generic Input Names:
         const String&    ppath_name )
 {
-  cout << "  The fields, beside grid positions, of *" << ppath_name <<"*:\n";
+  cout << "  The fields of *" << ppath_name <<"*:\n";
   IndexPrint( ppath.dim, "dim" );
   IndexPrint( ppath.np, "np" );
   StringPrint( ppath.method, "method" );
@@ -626,6 +630,11 @@ void PpathPrint(
   if( ppath.geom_tan_pos.nelem() )
     VectorPrint( ppath.geom_tan_pos, "geom_tan_pos" );
   MatrixPrint( ppath.pos, "pos" );
+  ArrayOfGridPosPrint( ppath.gp_p, "gp_p" );
+  if( ppath.dim >= 2 )
+    ArrayOfGridPosPrint( ppath.gp_lat, "gp_lat" );
+  if( ppath.dim == 3 )
+    ArrayOfGridPosPrint( ppath.gp_lon, "gp_lon" );
   VectorPrint( ppath.z, "z" );
   VectorPrint( ppath.l_step, "l_step" );
   MatrixPrint( ppath.los, "los" );
@@ -738,7 +747,7 @@ void sensor_posAddRgeoid(
     {
       // Check that positions in sensor_pos are inside the lat and lon grids
       if( min(sensor_pos(Range(joker),1)) < lat_grid[0]  || 
-                            max(sensor_pos(Range(joker),1)) >= last(lat_grid) )
+                             max(sensor_pos(Range(joker),1)) > last(lat_grid) )
 	throw runtime_error(
              "You have given a position with a latitude outside *lat_grid*." );
       if( atmosphere_dim == 3 )
