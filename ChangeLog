@@ -1,3 +1,12 @@
+2003-12-09  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-151
+	
+	* src/methods.cc: Added documentation about the keyword "interp_rh"
+	in ybatchFromRadiosonde method.
+
+	* src/m_batch.cc (ybatchFromRadiosonde): Some more documentation.
+
 2003-12-09  Mashrab Kuvatov  <kmashrab@sat.physik.uni-bremen.de>
 
 	* arts-1-0-150

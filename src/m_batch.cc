@@ -461,27 +461,34 @@ void ybatchFromRadiosonde(// WS Output:
               // in vmr or RH
               if (interpolation_in_rh)
                 {
-                  // Interpolating RH  on p_abs grid and converting back to
-                  // H2O VMR
+                  // Calculates RH and interpolating RH on p_abs grid and 
+                  // converting back to H2O VMR. This is done because the 
+                  // interpolation in RH gives more realistic Tbs than
+                  // interpolation VMR
                   Vector sat_pres_raw(n_rows + 1);
                   Vector sat_pres_abs(p_abs.nelem());
                   Vector rh_raw(n_rows + 1);
                   Vector rh_abs(p_abs.nelem());
-
+                  
+                  assert( sat_pres_raw.nelem() == t_raw.nelem() );
+                  assert( sat_pres_abs.nelem() == t_abs.nelem() );                  
+                  
                   e_eq_water(sat_pres_raw, t_raw);
-
                   e_eq_water(sat_pres_abs, t_abs);
                   
+                  // Calculates RH for the raw profile
                   for ( Index j=0; j<rh_raw.nelem(); ++j )
                     {
-                      rh_raw[j]  =  vmr_raw[j] * 100.0 / sat_pres_raw[j];
+                      rh_raw[j]  =  vmr_raw[j] / sat_pres_raw[j];
                     }
                   
+                  // Interpolates raw RH on p_abs grid
                   interpp (rh_abs, p_raw, rh_raw, p_abs);
                   
+                  // Converts RH back to VMR
                   for ( Index j=0; j<rh_abs.nelem(); ++j )
                     {
-                      vmrs(0, j)  =  rh_abs[j] * sat_pres_abs[j] / 100.0;
+                      vmrs(0, j)  =  rh_abs[j] * sat_pres_abs[j];
                     }
                 }
               else
