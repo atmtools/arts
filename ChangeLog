@@ -2,7 +2,7 @@
 
 	* arts-1-685
 
-	* src/ppath.cc (rte_pos_and_losFromTangentPressure): Cory gets the
+	* src/m_ppath.cc (rte_pos_and_losFromTangentPressure): Cory gets the
 	record for the WSM with the longest name.  For limb sounding
 	calculations I wanted to be able to easily set up the sensor los
 	and pos by specifying the tangent pressure.  The method
