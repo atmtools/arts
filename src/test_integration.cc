@@ -109,6 +109,9 @@ Numeric test_x_fixedstep(int vsize,
 
 int main(int argc, char *argv[])
 {
+  if (argc == 1)
+    { cerr << argv[0] << " requires one parameter" << endl; exit (1); }
+
   cout << "Übergabewert von argv : " << argv[1] << endl;
 
   int frequency = strtol(argv[1], NULL, 10);  // Zahl zur Basis 10
