@@ -9,6 +9,8 @@
 \usepackage{lscape}      % landscape mode of a single page
 \usepackage[]{longtable} % allow tables longer than one page
 \usepackage{makeidx}     % index of terms
+\usepackage{algorithm}   % for describing algorithms with psuedo-code
+\usepackage{algorithmic}
 
 
 %
@@ -17,8 +19,12 @@
 \sloppy
 \graphicspath{{Figs/}}
 \makeindex
-% - used for environment longtable:
-\setlength{\LTcapwidth}{0.9\textwidth} % with of the caption in longtable
+%
+% with of the caption in longtable:
+\setlength{\LTcapwidth}{0.9\textwidth} 
+%
+% Change brace type for comments in algorithmic
+\renewcommand{\algorithmiccomment}[1]{(#1)}
 
 
 

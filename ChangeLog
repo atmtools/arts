@@ -1,3 +1,26 @@
+2002-03-28  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-41
+
+	* AUG: Note that figures now shall be placed in sub-folders to
+	Figs/ (as suggested by Stefan).  When the revision of AUG is
+	ready, all figures in Figs/ will be removed. This has been done
+	for fm_definitions (see below).
+	
+	* doc/uguide: Added style files for the algorithm and algorithmic
+	packages. See fm_definitions for example on how to use these
+	packages. I have a manaul (ps-file) that I can send you if you are
+	interested.
+	
+	* doc/uguide/fm_definitions.tex: More writing. Mainly on the clear sky
+	RTE part. Added two figures. Added an algorith over the RTE part.
+
+	* doc/uguide/Figs/fm_definitions: Created this folder and moved
+	the figures (and associated Matlab scripts) to this folder.
+	
+	* doc/uguide/Figs/fm_definitions/mkfigs_ppath_cases.m: Created this
+	function to illustrate propagation paths.
+
 2002-03-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-40

@@ -35,10 +35,13 @@
   \aInd{\Lat}    & -                 & the \Ind:th latitude                 \\
   \VctLng        & -                 & vector length or size of matrix/tensor for a dimension \\
   \aVctLng{\Lat} & -                 & length of the latitude grid \\
+  $e_g$          & \verb|e_ground|   & ground emissivity                    \\
   \Prs           & \verb|p|          & pressure                             \\
   \PrsAlt        & \verb|pz|         & pressure altitude                    \\
   \Rds           & \verb|r|          & radius from the centre of the coordinate system         \\
+  \Tmp           & \verb|t|          & temperature \\
   \Alt           & \verb|z|          & geometrical altitude above the geoid \\
+  \Planck        & -                 & Planck function                      \\
   \Lat           & \verb|alpha|      & latitude                             \\
   \Lon           & \verb|beta|       & longitude                            \\
   \ZntAng        & \verb|psi|        & zenith angle                         \\
@@ -174,7 +177,7 @@ checked, when used, to have a size consistent with
 
  \begin{figure}[!t]
   \begin{center}
-   \includegraphics*[width=0.95\hsize]{Figs/atm_dim_1d}
+   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_1d}
    \caption{A schematic cross-section of a 1D atmosphere. The atmosphere is 
      here spherically symmetric. This means that the radius of the
      geoid, the ground and all the pressure surfaces is constant. The
@@ -188,7 +191,7 @@ checked, when used, to have a size consistent with
 
  \begin{figure}[!t]
   \begin{center}
-   \includegraphics*[width=0.95\hsize]{Figs/atm_dim_2d}
+   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/atm_dim_2d}
    \caption{ Schematic of a 2D atmosphere. The radii of the geoid, the ground
      and all the pressure surfaces are for 2D atmospheres allowed to
      have a latitude variation. The limits of the cloud box coincide
@@ -377,18 +380,18 @@ simplified manner and accurate results cannot be expected beside when
 some conditions are fulfilled (see
 Section~\ref{sec:fm_defs:groundrefl}).
 
-The temperature of the ground\index{ground temperature} is treated to
-be the same as for the temperature field for the altitude of the
-ground. The \qindex{ground emission} is described by the variable
-\verb|ground_emissivity|, holding the ground emission factor $(e_g)$
-of the ground, as a function of frequency for each latitude/longitude
-position. This workspace variable is a tensor of order 3, with
-size $e_g \SzeSmb [\aVctLng{\Frq},\aVctLng{\Lat},\aVctLng{\Lon}]$.
-The emission from the ground is $e_g(\Frq)\Planck(\Frq)$, where
-\Planck\ is the Planck blackbody function. That is, the emissivity is
-a value between 0 and 1, where 0 means that the ground has no
-emissivity, and for $e_g=1$ the ground acts as a blackbody for that
-particular frequency. 
+The temperature of the ground\index{ground temperature} (\aTmp{g}) is
+treated to be the same as for the temperature field for the altitude
+of the ground. The \qindex{ground emission} is described by the
+variable \verb|ground_emissivity|, holding the ground emission factor
+$(e_g)$ of the ground, as a function of frequency for each
+latitude/longitude position. This workspace variable is a tensor of
+order 3, with size $e_g \SzeSmb
+[\aVctLng{\Frq},\aVctLng{\Lat},\aVctLng{\Lon}]$.  The emission from
+the ground is $e_g(\Frq)\Planck(\Frq,\aTmp{g})$, where \Planck\ is the
+Planck blackbody function. That is, the emissivity is a value between
+0 and 1, where 0 means that the ground has no emissivity, and for
+$e_g=1$ the ground acts as a blackbody for that particular frequency.
 
 \begin{description}
 \item[Blackbody ground\index{blackbody ground}] If the ground as a
@@ -699,14 +702,16 @@ The transfer matrix \verb|Hb| is applied on each \aMpiVct{b} and the
 results are appended vertically, following the order of the positions
 in \verb|sensor_pos|:
 \begin{equation}
-  \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{1} \\ 
-                                    \aSnsMtr{b}\aMpiVct{2} \\
+  \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{{b,1}} \\ 
+                                    \aSnsMtr{b}\aMpiVct{{b,2}} \\
                                     \vdots                  \\
-                                    \aSnsMtr{b}\aMpiVct{n} \end{array} \right]
+                                    \aSnsMtr{b}\aMpiVct{{b,n}} 
+            \end{array} \right]
   \label{eq:fm_defs:measseq}
 \end{equation}
-where $1$ indicates the first sensor position etc. This equation shows
-that \verb|Hb| shall contain at least a description of the antenna
+where \MsrVct\ is defined in Equation~\ref{eq:formalism:fm} and $1$
+indicates the first sensor position etc. This equation shows that
+\verb|Hb| shall contain at least a description of the antenna
 response. The matrix \verb|Hb| can also cover other sensor
 characteristics and data reduction if the features of concern are
 common for all measurement blocks. If this is not the case, those
@@ -720,7 +725,7 @@ clear which parts and features the block transfer matrix covers. If
 of hypothetical spectra corresponding to a point inside the sensor. On
 the other hand, if \verb|Hb| includes the whole of the sensor and an
 eigenvector data reduction, the result is not even a spectrum is
-traditional meaning, it is just a row of coefficients with a vague
+traditional way, it is just a row of coefficients with a vague
 physical meaning. To handle quantities appearing at a stage between
 monochromatic pencil beam intensities and the final representation of
 the measurements (where the total transformation can involve more
@@ -799,50 +804,122 @@ The specific intensity vector $\Int$
 \label{sec:fm_defs:calcproc}
 
 The overall structure of the part solving the radiative transfer
-equation is fixed and is handled by the function \verb|rteCalc|. This
-function, beside providing atmospheric spectra, performs also the
-calculation of weighting functions for atmospheric variables based on
-analytical expressions, which is treated in
-Section~\ref{sec:fm_defs:wfs}.  The calculation procedure can be
-outlined as: \\
+equation is fixed. The corresponding workspace function is
+\verb|rteCalc|. The calculation procedure of \verb|rteCalc| is
+outlined in Algorithm~\ref{alg:fm_defs:rteCalc}. For further details
+of each calculation step, see the indicated equation or section.
 
-if cloudbox on 
+The function \verb|rteCalc|, beside providing atmospheric spectra,
+performs also the calculation of weighting functions for atmospheric
+variables where analytical expressions are used. These calculations
+follow the same outline but are not included here for simplicity, they
+are instead considered in Section~\ref{sec:fm_defs:wfs}. 
 
-\quad determine the intensity field inside the cloud box 
-
-allocate memory for the measurement vector, \MsrVct 
-
-for each sensor position 
-
-\quad allocate memory for the vector \aMpiVct{b}
-
-\quad for each pencil beam direction of the block 
-
-\quad\quad determine the propagation path
-
-\quad\quad initialise the vector \MpiVct\ with the radiative background
-
-\quad\quad for each step along propagation path
-
-\quad\quad\quad if at ground reflection
-
-\quad\quad\quad\quad update \MpiVct\ following Equation~[**]
-
-\quad\quad\quad else
-
-\quad\quad\quad\quad update \MpiVct\ following Equation~[**] or [**]
-
-\quad\quad copy \MpiVct\ to correct part of \aMpiVct{b}
-
-\quad put the product \aSnsMtr{b}\aMpiVct{b} in correct part of \MsrVct \\
-
-\noindent
-For further details of each step, see the indicated equation or section.
+\begin{algorithm}
+ \begin{algorithmic}
+  \IF[{Section \ref{sec:fm_defs:scattering}}]{cloud box is turned on}
+   \STATE{determine the intensity field inside the cloud box}
+  \ENDIF
+  \STATE{allocate memory for the measurement vector, \MsrVct}
+  \COMMENT{Equation \ref{eq:formalism:fm}}
+  \FOR{each sensor position}
+   \STATE{allocate memory for the vector \aMpiVct{b}}
+   \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
+   \FOR[Section \ref{sec:fm_defs:seqsandblocks}]
+                                    {each pencil beam direction of the block}
+    \STATE{determine the propagation path}
+    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
+    \STATE{initialise the vector \MpiVct\ with the radiative background}
+    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
+    \FOR{each step along propagation path}
+     \STATE{update \MpiVct\ following Equation [**]}
+     \IF{at ground reflection}
+      \STATE{update \MpiVct\ following Equation [**]}
+     \ENDIF
+    \ENDFOR
+    \STATE{copy \MpiVct\ to correct part of \aMpiVct{b}}
+   \ENDFOR
+   \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of \MsrVct}
+  \ENDFOR
+ \end{algorithmic}
+ \caption{Outline of the clear sky radiative transfer calculations. An emission
+   measurement, without any weighting function calculations, is
+   assumed here. Optical thicknesses and weighting functions are
+   calculated following the same scheme.}
+ \label{alg:fm_defs:rteCalc}
+\end{algorithm}
 
 
 \levelc{Propagation paths}
 %===================
 \label{sec:fm_defs:ppaths}
+
+A pencil beam path through the atmosphere to reach a specified
+position from a specified line-of-sight is denoted as a propagation
+path. The forward direction of the propgations paths is towards the
+position for which the radiative intensity will be calculated. It
+should be noted that with scattering there exist an infinite number
+of propgation paths for a given combination of observation point and
+line-of-sight. 
+
+Propagation paths are described by storing a set of points on the
+path, and the distance along the path between the points. These
+quantities, and a number of auxilary variables, are stored together in
+a structure described in Section~[**]. The path points are primarily
+placed at the crossings of the path with the atmospheric grids
+(\verb|p_grid|, \verb|alpha_grid| and \verb|beta_grid|). A path point
+is also placed at the sensor if it is placed inside the atmosphere.
+Ground reflections and tangent points are also included if usch exist.
+There exists also the possibility to set an upper limit for the
+distance along the path between the points by the workspace variable
+\verb|ppath_lmax|. If \verb|ppath_lmax| is set to a value $\leq 0$ then
+no points are added to the path, otherwise points are included to
+fulfill the length criterion. 
+
+The propagation paths are determined basically by starting at the
+sensor and following the path backwards, by geometrical calculations
+or some ray tracing technique depending on if refraction is considered
+or not, until the other end point is found. If the sensor is placed
+above the model atmosphere, geometrical calculations are used (as
+there is no refraction in space) to find the crossing between the path
+and the top of the atmosphere where the ray tracing then starts.  If
+there is no cloud box and the ground not acts as a blackbody, the
+starting point of the propagation paths is always found at the top of
+the atmosphere (where the path enters the atmosphere). Propagation
+paths are not followed inside cloud boxes and the starting point is
+set to the cloud box boundary. If there is an intersection with path
+of a blackbody ground (Section~\ref{sec:fm_defs:geoid}), the
+propagation path is considered to start at the ground. This is the
+case as a blackbody ground absorbs all incoming radiation and the
+radiative transfer along the path before the ground reflection is of
+no interest. Example on propagation paths are shown in
+Figure~\ref{fig:fm_defs:ppath_cases1}.
+
+The radiative intensity at the starting point of the path, and in the
+direction of the line-of-sight at that point, is denoted as the
+radiative background. The radiative background at the top of the
+atmosphere is given by the workspace variable \verb|i_space|. This
+variable should normally be set to cosmic background radiation, if not
+the sensor is directed towards the sun. Remaining possible radiative
+backgrounds are blackbody radiation from the ground or the outgoing
+intensity field at the boundary of a cloud box.
+
+ \begin{figure}[!t]
+  \begin{center}
+   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases1}
+   \caption{Propagation path examples for a 2D atmosphere. The atmosphere 
+     and the cloud box are plotted as in Figure~\ref{fig:fm_defs:2d}
+     beside that the points for the atmospheric fields are not
+     emphesised. For the propagation paths to the left, with a the
+     sensor placed inside the model atmosphere, a reflecting ground is
+     assumed. The paths to the right are valid for a sensor placed
+     outside the atmosphere (at the $*$) and a blackbody ground. No
+     value for the maximum path step length was applied. Note the tangent
+     point inserted for the uppermost propagation path, plotted as $\oplus$.}
+   \label{fig:fm_defs:ppath_cases1}
+  \end{center}
+ \end{figure}
+ % This figure was produced by the Matlab function mkfigs_ppath_cases.
 
 
 \levelc{Solving the radiative transfer equation}
@@ -854,9 +931,65 @@ For further details of each step, see the indicated equation or section.
 %===================
 \label{sec:fm_defs:groundrefl}
 
-[* Discuss limitations for the used scheme and when OK results can be
-expected. The slope of the ground is considered! Can we include
-diffuse ground reflections in a simple way? *]
+The ground is treated to be a totally flat surface; incoming radiation
+is only reflected in a single direction, with the normal assumption
+that the angle to the surface normal is equal for the incoming and
+outgoing line-of-sight. If there is slope of the ground (a variation
+of the ground radius), this slope is considered when determining the
+line-of-sight for the incoming radiation (remember that propagation
+paths are followed backwards). This is exemplified in
+Figure~\ref{fig:fm_defs:ppath_cases2}, for a case with a very strong
+ground slope.
+
+ \begin{figure}[!t]
+  \begin{center}
+   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ppath_cases2}
+   \caption{The influence of a ground slope on the propagation path. The zenith
+     angle of the sensor line-of-sight is the same for the two paths (but with
+     different sign, which matters here as this is a 2D case), and the paths
+     would have been symmetric around the latitude of the sensor without a 
+     ground slope. The maximum path step length is here set to be a value
+     equaling half the vertical distance between the two shown pressure
+     surfaces.}
+   \label{fig:fm_defs:ppath_cases2}
+  \end{center}
+ \end{figure}
+ % This figure was produced by the Matlab function mkfigs_ppath_cases.
+
+When solving the radiative transfer equation, a ground reflection is
+included as
+\begin{equation}
+  \Mpi(\Frq) \gets \Mpi(\Frq)(1-e_g(\Frq)) + e_g(\Frq)B(\Frq,\aTmp{g})
+  \label{eq:fm_defs_ground_reflection}
+\end{equation}
+where $e_g$ and \aTmp{g} is the ground emissivity and temperature,
+respectively, for the point where the ground reflection takes place.
+Note that the ground emissivity can vary both with frequency and
+position (Section~\ref{sec:fm_defs:geoid}).
+Equation~\ref{eq:fm_defs_ground_reflection} shows that the path before
+a reflection with a blackbody ground can be neglected. For such cases,
+$\Mpi(\Frq)$ equals $B(\Frq,\aTmp{g})$ independently of the prevoius
+value of $\Mpi(\Frq)$. The ground emission is treated to be
+unpolarised.
+
+A more detailed treatment of ground intersections would take into
+account the scattering properties of the ground and this limitation of
+the simulations should be considered. However, a requirement for that
+the recorded spectra shall be affected considerably by the ground
+properties is that the optical thickness of the lower troposphere is
+not too high. If it is too high, the radiation is absorbed before it
+reaches the sensor. For moderate values on the optical thickness (in
+rough numbers, $1.5\leq\tau\leq4$), when some radiation can propagate
+from the ground to the sensor, it should be noted that the intensity
+field (as a function of zenith angle) reaching the ground should be
+relatively homogenous and the negliance of ground scattering will not
+influence the accuracy of the results too seroiusly. With a high or
+moderate optical thickness of the lower troposphere, the emission
+reaching the ground will have brightness temperature close to the
+physical temperatures of the lower troposphere, with a relatively low
+angular variation. [* Does anybody know of important the scattering of
+the ground is for nadir observations? For example, how large is the
+scattering of the sea surface? *]
 
 
 

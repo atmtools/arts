@@ -14,10 +14,6 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 EXTRA_DIST = \
-	atm_dim_1d.ps \
-	atm_dim_1d.pdf \
-	atm_dim_2d.ps \
-	atm_dim_2d.pdf \
 	contfit.eps \
 	contfit.pdf \
 	contfit.fig \
