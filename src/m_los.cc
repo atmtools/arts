@@ -726,7 +726,7 @@ void zaFromZtan(
   {
 
     if (za[i]>z_plat)
-      throw runtime_error("Tangent altitude larger than the platform altitude")      
+      throw runtime_error("Tangent altitude larger than the platform altitude");      
 
     // No refraction
 

@@ -1,3 +1,9 @@
+2001-03-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-144
+
+	* m_loss.cc: Fixing a small bug
+
 2001-03-28  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-143
