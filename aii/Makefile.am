@@ -14,7 +14,10 @@
 thisdir        = $(pkgdatadir)/aii
 
 this_DATA = \
-README
-#FIXME: Complete the list of files here.
+README \
+read_artsvar.pro \
+read_datafile.pro \
+write_artsvar.pro \
+write_datafile.pro
 
 EXTRA_DIST = $(this_DATA)

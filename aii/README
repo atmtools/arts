@@ -1,3 +1,12 @@
 This directory contains interface files for IDL. 
 
-FIXME: Put a list of files with short description here.
+read_artsvar.pro: Reads an ARTS variable (uses read_datafile). 
+
+read_datafile.pro: The real implementation of the reading
+                   routine. 
+
+write_artsvar.pro: Writes an ARTS variable to a file in ARTS
+                   format (uses write_datafile).
+
+write_datafile.pro: The real implementation of the writing
+                    routine. 
