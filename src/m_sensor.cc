@@ -50,8 +50,50 @@
 #include "sensor.h"
 #include "make_vector.h"
 
+extern const Numeric PI;
+
 /*===========================================================================
   === The functions (in alphabetical order)
+  ===========================================================================*/
+
+//! GaussianResponse
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-05-20
+*/
+void GaussianResponse(// WS Generic Output:
+                      Matrix&			r_matrix,
+                      // WS Generic Output Names:
+                      const String& 	r_matrix_name,
+                      // Control Parameters:
+                      const Numeric& 	FWHM,
+                      const Numeric& 	TotWidth,
+                      const Numeric& 	MaxSpacing)
+{
+  //Calculate new size of matrix
+  Index nrows = ceil(TotWidth / MaxSpacing)+1;
+  r_matrix.resize(nrows,2);
+
+  //Set up grid column
+  Vector tmp(nrows);
+  nlinspace(tmp, -TotWidth/2, TotWidth/2, nrows);
+  r_matrix(joker,0) = tmp;
+
+  //Calculate standard deviation from Full Width at Half Mean
+  Numeric sigma = FWHM / (2*sqrt(2*log(2)));
+
+  //Calculate the normalised gaussian response
+  for( Index i=0; i<nrows; i++) {
+  	r_matrix(i,1) = 1/(sigma*sqrt(2*PI)) *
+					exp(-pow(r_matrix(i,0),2.0)/(2*pow(sigma,2.0)));
+  }
+}
+
+
+/*===========================================================================
+  === Obsolete functions?
   ===========================================================================*/
 
 //! SensorIntegrationVector

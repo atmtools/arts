@@ -1268,7 +1268,36 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "species" ),
         TYPES(    Array_String_t   )));
-  
+ 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("GaussianResponse"),
+        DESCRIPTION
+        (
+         "Creates a matrix with a relative grid and a gaussian response.\n"
+         "\n"
+         "The grid is a relative grid so therefore it is centred around\n"
+		 "zero, the TotWidth keyword describes the difference between the\n"
+		 "maximum grid point and the minimum. The grid range is then divided\n"
+		 "into grid points equally spaced with max distance equal or less\n"
+		 "than MaxSpacing. The results are the stored in columns in the matrix.\n"
+		 "Grid points in the first and values in the second column.\n"
+		 "\n"
+         "Generic output: \n"
+         "   Matrix     : The matrix containing the grid and response values.\n"
+         "\n"
+         "Keywords:\n"
+         "   FWHM       : The Full Width at Half Mean value for the response.\n"
+		 "   TotWidth   : The total width of the relative grid.\n"
+		 "   MaxSpacing : The maximum step between grid points."
+         ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT(),
+        KEYWORDS( "FWHM", "TotWidth", "MaxSpacing" ),
+        TYPES( Numeric_t, Numeric_t, Numeric_t )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("Ignore"),
