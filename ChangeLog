@@ -1,3 +1,28 @@
+2002-06-28  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-173
+	
+	* src/gridded_fields.cc: Include iostream.
+	
+	* src/scatproperties.h: Removed non-used headers from includes.
+	
+	* src/scatproperties.cc: Moved include logic.h from header file.
+
+	* src/test_tensor.cc, src/ppath.cc, src/poly_roots.cc,
+	src/physics_funcs.cc, src/m_scatrte.cc, src/m_scatproperties.cc,
+	src/m_ppath.cc, src/m_io.cc, src/m_hdf.cc, src/m_atmosphere.cc,
+	src/math_funcs.cc, src/m_abs.cc, src/lineshapes.cc,
+	src/lin_alg.cc, src/interpolation.cc, src/file.cc,
+	src/continua.cc, src/cloudbox.cc: Include c++ header cmath instead
+	of math.h.
+
+	* src/arts.h: Removed commented list of non-included standard
+	headers.
+
+	* src/main.cc (main): Output precision with -v.
+
+	* src/test_matpack.cc: Include cmath to compile properly on HP-UX.
+
 2002-06-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-172
