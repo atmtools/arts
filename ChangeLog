@@ -1,3 +1,22 @@
+2001-07-24  Oliver Lemke  <olemke@core-dump.net>
+
+	* arts-0-0-188
+
+	* src/Makefile.am: Renamed make_* source files to make_auto_*.
+	
+	* src/.cvsignore: Renamed make_* files to make_auto_*.
+
+	* src/make_md_cc.cc: Renamed to make_auto_md_cc.cc.
+
+	* src/make_md_h.cc: Renamed to make_auto_md_h.cc.
+
+	* src/make_wsv_groups_h.cc: Renamed to make_auto_wsv_groups_h.cc.
+
+	* src/make_wsv_h.cc: Renamed to make_auto_wsv_h.cc.
+
+	* src/make_wsv_pointers_cc.cc: Renamed to make_auto_wsv_pointers_cc.cc.
+	
+
 2001-07-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-187
