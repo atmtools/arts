@@ -1,3 +1,10 @@
+2004-09-16  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-871
+
+	* doc/uguide/polarization.tex (section{Plane monochromatic waves}): 
+	fixed sign in {eq:polarization:stokesparam_U}
+
 2004-09-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-870
