@@ -259,6 +259,7 @@ void RteCalc(
 	      if( antenna_dim == 2 )
 		{ los[1] += mblock_aa_grid[iaa]; }
 	      cout<<"los and sensor_pos"<<los<<" "<<sensor_pos<<endl;
+
 	      // Determine propagation path
 	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
 		        p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
