@@ -37,7 +37,7 @@
 
     The chosen storage format is the `compressed column' format. This
     is the same format used by Matlab. See Matlab User Guide for
-    a description. 
+    a description.
 */
 class SparseView {
 public:
@@ -53,6 +53,9 @@ public:
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const SparseView& v);
   friend void mult (VectorView y, const SparseView& M, const ConstVectorView& x );
+  friend void mult (MatrixView A, const SparseView B, const MatrixView C );
+  friend void mult (SparseView A, const SparseView B, const SparseView C );
+  friend void transpose (SparseView A, const SparseView B );
 
 protected:
   // Constructors:
@@ -97,3 +100,14 @@ public:
 void mult( VectorView y,
            const SparseView& M,
            const ConstVectorView& x );
+
+void mult( MatrixView A,
+           const SparseView B,
+           const MatrixView C );
+           
+void mult( SparseView A,
+           const SparseView B,
+           const SparseView C );
+
+void transpose( SparseView A,
+                const SparseView B );

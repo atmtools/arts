@@ -16,6 +16,8 @@
    USA. */
 
 #include <vector>
+#include <algorithm>
+#include <set>
 #include "matpackI.h"
 #include "matpackII.h"
 
@@ -162,7 +164,7 @@ SparseView::SparseView() :
     own SubMatrix part. The row range rr must have a
     stride to account for the length of one row. */
 SparseView::SparseView(std::vector<Numeric> *data,
-                                        std::vector<Index>   *rowind, 
+                                        std::vector<Index>   *rowind,
                                         std::vector<Index>   *colptr,
                                         const Range&         rr,      
                                         const Range&         cr       ) :
@@ -291,7 +293,7 @@ void mult( VectorView y,
 
   // FIXME: Maybe this should be done with iterators as for Matrix
   // but then we need to define the 2D iterator for Sparse
-  
+
   // Looping through every element of M, multiplying it with the
   // appropriate elements of x.
   for (size_t c=0; c<M.mcolptr->size()-1; ++c)
@@ -314,7 +316,7 @@ void mult( VectorView y,
 
           Index ra = (r-M.mrr.mstart)/M.mrr.mstride;
           Index ca = (c-M.mcr.mstart)/M.mcr.mstride;
-          
+
           // Convert apparent indices to true for the VectorViews
           //Index ry = ra*y.mrange.mstride + y.mrange.mstart;
           //Index cx = ca*x.mrange.mstride + x.mrange.mstart;
@@ -339,4 +341,172 @@ void mult( VectorView y,
             }
         }
     }
+}
+
+/** SparseMatrix - Matrix multiplication. A = B*C, where B is sparse.
+    Note that the order is different from MTL, output comes first!
+    Dimensions of A, B, and C must match. No memory reallocation takes
+    place, only the data is copied. Using this function on overlapping
+    MatrixViews belonging to the same Matrix will lead to unpredictable
+    results. In particular, this means that A and C must not be the
+    same matrix! */
+void mult( MatrixView A,
+           const SparseView B,
+           const MatrixView C )
+{
+  // Check dimensions:
+  assert( A.nrows() == B.nrows() );
+  assert( A.ncols() == C.ncols() );
+  assert( B.ncols() == C.nrows() );
+
+  // Set all elements of A to zero
+  A = 0.0;
+
+  // Loop through the element of B
+  for (size_t c=0; c<B.mcolptr->size()-1; ++c)
+    {
+      // Get index of first data element of this column:
+      Index begin = (*B.mcolptr)[c];
+
+      // Get index of first data element of next column. (This always works,
+      // because mcolptr has one extra element pointing behind the last
+      // column.)
+      const Index end = (*B.mcolptr)[c+1];
+
+      // Loop through the elements in this column:
+      for ( Index i=begin; i<end; ++i ) {
+        Index r = (*B.mrowind)[i];
+
+        // Now we know the true row r and column c. Convert to apparent r
+        // and c using the Ranges mrr and mcr,
+        Index ra = (r-B.mrr.mstart)/B.mrr.mstride;
+        Index ca = (c-B.mcr.mstart)/B.mcr.mstride;
+
+        // Are the apparent row ra and column ca inside the active range?
+        if ( 0 <= ra &&
+             ra < B.mrr.mextent &&
+             0 <= ca &&
+             ca < B.mcr.mextent     )
+        {
+          // Yes, they are! Multiply it with corresponding column in C
+          // and add the product to the right element in A
+          for (Index j=0; j<C.ncols(); j++) {
+            A(ra,j) += B.ro(ra,ca) * C(ca,j);
+          }
+        }
+      }
+    }
+}
+
+/** Transpose of sparse matrix
+
+    2003-04-04  Mattias Ekström
+*/
+void transpose( SparseView A,
+                const SparseView B )
+{
+  // Check that sizes match
+  assert( A.nrows() == B.ncols() );
+  assert( A.ncols() == B.nrows() );
+
+  // Create a vector with all row indices, sorted in strict ascending order
+  std::vector<Index> rowind = *B.mrowind;
+  sort(rowind.begin(), rowind.end());
+  Index* last = unique(rowind.begin(), rowind.end());
+  rowind.erase(last+1, rowind.end());
+
+  // Loop through rows of B and check them vs columns of C
+  for (Index i=*rowind.begin(); i<=*rowind.end(); i++) {
+
+    // Loop through columns and get the values for the specific row
+    for (Index j=0; j<B.ncols(); j++) {
+      // Get index of first data element of this column:
+      Index begin = (*B.mcolptr)[j];
+
+      // Get index of first data element of next column. (This always works,
+      // because mcolptr has one extra element pointing behind the last
+      // column.)
+      const Index end = (*B.mcolptr)[j+1];
+
+      // If row index is within the span of this column, search for it
+      if (i>=(*B.mrowind)[begin] && i<=(*B.mrowind)[end-1]) {
+        for (Index k=begin; k<end; ++k) {
+          if ( i == (*B.mrowind)[k] )
+            A.rw(j,i) = B.ro(i,j);
+        }
+      }
+    }
+  }
+  // Should rowind be destructed?
+}
+
+
+/** Sparse - Sparse multiplication. A = B*C, where result A is sparse.
+
+    Note that the order is different from MTL, output comes first!
+    Dimensions of A, B, and C must match. No memory reallocation takes
+    place, only the data is copied. Using this function on overlapping
+    SparseViews belonging to the same Sparse will lead to unpredictable
+    results. In particular, this means that A and C or A and B must not
+    be the same matrix!
+
+    2003-04-04  Mattias Ekström
+*/
+void mult( SparseView A,
+           const SparseView B,
+           const SparseView C )
+{
+  //Check dimensions:
+  assert( A.nrows() == B.nrows() );
+  assert( A.ncols() == C.ncols() );
+  assert( B.ncols() == C.nrows() );
+
+  //Transpose B to simplify multiplication algorithm
+  Sparse Bt(B.ncols(), B.nrows());
+  transpose(Bt,B);
+
+  //Loop over columns in C and multiply them with every column in Bt
+  for (size_t cC=0; cC<C.mcolptr->size()-1; ++cC) {
+    //Get row indices of this column
+    Index beginC = (*C.mcolptr)[cC];
+    Index endC = (*C.mcolptr)[cC+1];
+
+    for (size_t cBt=0; cBt<Bt.mcolptr->size()-1; ++cBt) {
+      //Get row indices for this column too
+      Index beginBt = (*Bt.mcolptr)[cBt];
+      Index endBt = (*Bt.mcolptr)[cBt+1];
+
+      //Check that the columns are non-empty, ...
+     if ( (*Bt.mrowind)[endBt]-(*Bt.mrowind)[beginBt]!=0
+           && (*C.mrowind)[endC]-(*C.mrowind)[beginC]!=0
+           // (NB: last index actually points to next columns first)
+           // that they are overlapping and ...
+           && (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
+           && (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1]
+           // that this special case of overlapping is not included.
+           && beginBt!=endC && beginC!=endBt ) {
+        Numeric tempA=0;
+
+        //Go through columns and find matching indices
+        Index i=beginBt, j=beginC;
+        while ( j<endC && i<endBt ) {
+          if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
+            i++;
+          } else if ((*C.mrowind)[j]<(*Bt.mrowind)[i]) {
+            j++;
+          } else {
+            tempA += (*Bt.mdata)[i] * (*C.mdata)[j];
+            i++;
+            j++;
+          }
+        }
+
+        //Did we get a sum?
+        if (tempA!=0) {
+          //Yes, write it to product A
+          A.rw(cBt,cC) = tempA;
+        }
+      }
+    }
+  }
 }

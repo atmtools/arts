@@ -180,6 +180,7 @@ public:
   friend class Sparse;
   friend std::ostream& operator<<(std::ostream& os, const SparseView& v);
   friend void mult (VectorView y, const SparseView& M, const ConstVectorView& x );
+  friend void mult (MatrixView A, const SparseView B, const MatrixView C );
 
 private:
   /** The start index. */
@@ -575,7 +576,7 @@ public:
   // Functions returning iterators:
   ConstIterator2D begin() const;
   ConstIterator2D end() const;
-  
+
   // Friends:
   friend class MatrixView;
   friend class ConstIterator3D;
@@ -587,6 +588,7 @@ public:
   friend class ConstTensor7View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend int poly_root_solve (Matrix &roots, Vector &coeffs);
+  friend void mult (MatrixView A, const SparseView B, const MatrixView C );
 
 protected:
   // Constructors:

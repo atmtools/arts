@@ -112,7 +112,7 @@ int test1()
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
   fill_with_junk(M(1,Range(1,2)));
-    
+
   cout << "\nM(Range(0,4),Range(0,4)) =\n" << M(Range(0,4),Range(0,4)) << "\n";
 
   cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
@@ -152,27 +152,70 @@ void test3()
 {
   Sparse M(10,15);
 
+  /*
   cout << "M.nrows(), M.ncols() = "
        << M.nrows() << ", " << M.ncols() << "\n";
-   for (Index i=0; i<10; ++i)
+  */
+  for (Index i=3; i<10; ++i)
     M.rw(i,i) = i+1;
+  M.rw(0,0) = 1;
+  M.rw(0,1) = 2;
+  M.rw(0,2) = 3;
+
 
   cout << "\nM = \n" << M;
 
+  /*
+  // Test Sparse matrix-Matrix multiplication
+  Matrix A(10,5);
+  Matrix C(15,5,2.0);
+  // C = 2;
+
+  mult(A, M, C(Range(joker), Range(joker)));
+  cout << "\nA = \n" << A << "\n";
+
+  */
+
+  // Test Sparse-Sparse multiplication
+  Sparse A(10,5);
+  Sparse C(15,5);
+  for (Index i=0; i<5; i++) {
+    C.rw(i*3,i) = i*3+1;
+    C.rw(i*3+1,i) = i*3+2;
+    C.rw(i*3+2,i) = i*3+3;
+  }
+
+  mult(A,M,C);
+
+  cout << "\nA = \n" << A;
+
+  /*
+  // Test transpose
+  Sparse B(15,10);
+
+  transpose(B,M);
+  cout << "\nM' = \n" << B;
+  */
+
+  /*
+  // Test rw-operator
   Sparse S(M);
   S.rw(2,0) = 5;
 
   cout << "\nS(2,0) = " << S.ro(2,0) << "\n";
 
   cout << "\nS = \n" << S;
+  */
 
+  /*
+  // Test vector multiplication
   Vector y(20, 0.0);
   Vector x(1,30,1);
 
   mult(y[Range(1,10,2)], S, x[Range(1,15,2)]);
 
   cout << "\ny = \n" << y << "\n";
-
+  */
 }
 
 
@@ -180,7 +223,7 @@ void test4()
 {
   Vector a(10);
   Vector b(a.nelem());
-  
+
   for ( Index i=0; i<a.nelem(); ++i )
     {
       a[i] = i+1;
@@ -245,7 +288,7 @@ void test6()
       x+=1;
     }
   //  cout << "y =\n" << y << "\n";
-  
+
   cout << "Done.\n";
 }
 
@@ -289,7 +332,7 @@ void test11()
   // Assignment between Vector and Matrix:
 
   // At the moment doing this with a non-const Vector will result in a
-  // warning message. 
+  // warning message.
   Vector v(1,8,1);
   Matrix M(v.nelem(),1);
   M = v;
@@ -417,7 +460,7 @@ void test22()
       s += by_value(s);
       s -= by_value(s);
     }
-  cout << "s = " << s << "\n";  
+  cout << "s = " << s << "\n";
 }
 
 void test23()
@@ -744,7 +787,7 @@ void test36()
 
 //   Numeric x=7;
 //   describe(cout,x);
-  
+
 // //   ConstVectorView v1 = inflate(x);
 // //   cout << "v1 = " << v1 << "\n";
 
@@ -753,11 +796,60 @@ void test36()
 // //   cout << "x, after increasing v2 by 1 = " << x << "\n";
 // }
 
+void test38()
+{
+  cout << "Test sparse matrix - sparse matrix multiplication\n";
+
+  Sparse A(10,5);
+  Sparse B(10,15);
+  Sparse C(15,5);
+
+  for (Index i=3; i<10; ++i)
+    B.rw(i,i) = i+1;
+  B.rw(0,0) = 1;
+  B.rw(0,1) = 2;
+  B.rw(0,2) = 3;
+
+  for (Index i=0; i<5; i++) {
+    C.rw(i*3,i) = i*3+1;
+    C.rw(i*3+1,i) = i*3+2;
+    C.rw(i*3+2,i) = i*3+3;
+  }
+
+  mult(A,B,C);
+
+  cout << "\n(Sparse) A = \n" << A;
+
+  Matrix a(10,5), b(10,15), c(15,5);
+
+  for (Index i=3; i<10; ++i)
+    b(i,i) = i+1;
+  b(0,0) = 1;
+  b(0,1) = 2;
+  b(0,2) = 3;
+
+  for (Index i=0; i<5; i++) {
+    c(i*3,i) = i*3+1;
+    c(i*3+1,i) = i*3+2;
+    c(i*3+2,i) = i*3+3;
+  }
+
+  mult(a,b,c);
+
+  cout << "\n(Full) a = \n" << a << "\n";
+
+//  cout << "\n(Sparse) B = \n" << B << "\n";
+//  cout << "\n(Full) b = \n" << b << "\n";
+//  cout << "\n(Sparse) C = \n" << C << "\n";
+//  cout << "\n(Full) c = \n" << c << "\n";
+
+}
+
 int main()
 {
 //   test1();
 //   test2();
-  test3();
+//   test3();
 //   test4();
 //   test5();
 //   test6();
@@ -792,5 +884,6 @@ int main()
 //   test35();
 //   test36();
 //  test37();
+  test38();
   return 0;
 }
