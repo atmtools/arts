@@ -1,3 +1,13 @@
+2003-10-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-131
+
+	* src/m_abs (lines_per_tgCompact): Reimplemented deletion of line
+	records. Instead of erasing every single element, build a new list and
+	copy it over the old one. Otherwise the whole ArrayOfLineRecord is
+	copied once for each erase which actually kills performance (slow down
+	by three-digit factor).
+
 2003-09-30  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-130
