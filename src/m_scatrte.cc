@@ -1028,7 +1028,7 @@ i_fieldUpdate1D(// WS Output:
                       
                   // Radiative transfer step calculation. The Stokes vector
                   // is updated until the considered point is reached.
-                  rte_step(stokes_vec, ext_mat(0,joker,joker), 
+                  rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
                            abs_vec(0,joker), 
                            sca_vec_av, l_step, rte_planck_value);
                   
@@ -1945,7 +1945,7 @@ void i_fieldUpdate3D(// WS Output:
                             // Radiative transfer step calculation. 
                             // The Stokes vector is
                             // updated until the considered point is reached.
-                            rte_step(stokes_vec, ext_mat(0,joker,joker), 
+                            rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
                                      abs_vec(0,joker), 
                                      sca_vec_av, l_step, rte_planck_value);
                           }

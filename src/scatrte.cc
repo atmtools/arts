@@ -542,7 +542,7 @@ void cloud_ppath_update1D(
 	      
 	      // Radiative transfer step calculation. The Stokes vector
 	      // is updated until the considered point is reached.
-	      rte_step(stokes_vec, ext_mat(0,joker,joker), 
+	      rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
 		       sca_vec_av, l_step, rte_planck_value);
 	      
@@ -691,7 +691,7 @@ void cloud_ppath_update1D(
 	      
 	      // Radiative transfer step calculation. The Stokes vector
 	      // is updated until the considered point is reached.
-	      rte_step(stokes_vec_local, ext_mat(0,joker,joker), 
+	      rte_step_std(stokes_vec_local, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
 		       sca_vec_av, l_step, rte_planck_value);
 	    }// End of loop over ppath_step.
@@ -1179,7 +1179,7 @@ void cloud_ppath_update3D(
 	      
           // Radiative transfer step calculation. The Stokes vector
           // is updated until the considered point is reached.
-          rte_step(stokes_vec, ext_mat(0,joker,joker), 
+          rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
                    abs_vec(0,joker), 
                    sca_vec_av, l_step, rte_planck_value);
 	      
@@ -1549,7 +1549,7 @@ void cloud_ppath_update1D_planeparallel(
 	      
 	      // Radiative transfer step calculation. The Stokes vector
 	      // is updated until the considered point is reached.
-	      rte_step(stokes_vec, ext_mat(0,joker,joker), 
+	      rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
 		       sca_vec_av, l_step, rte_planck_value);
 	      
@@ -1658,7 +1658,7 @@ void cloud_ppath_update1D_planeparallel(
 	      
 	      // Radiative transfer step calculation. The Stokes vector
 	      // is updated until the considered point is reached.
-	      rte_step(stokes_vec, ext_mat(0,joker,joker), 
+	      rte_step_std(stokes_vec, ext_mat(0,joker,joker), 
 		       abs_vec(0,joker), 
 		       sca_vec_av, l_step, rte_planck_value);
 	      
@@ -1834,7 +1834,7 @@ void cloud_ppath_update1D_planeparallel(
 	  
 	  // Radiative transfer step calculation. The Stokes vector
 	  // is updated until the considered point is reached.
-	  rte_step(stokes_vec_local, ext_mat(0,joker,joker), 
+	  rte_step_std(stokes_vec_local, ext_mat(0,joker,joker), 
 		   abs_vec(0,joker), 
 		   sca_vec_av, l_step, rte_planck_value);
 	  // Assign calculated Stokes Vector to i_field. 

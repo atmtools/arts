@@ -1,3 +1,35 @@
+2004-09-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-876
+
+	* Larger changes. Calculations without cloudbox shall work. Test
+	runs look OK. Changes needed in MC and DOIT parts.
+
+	New and removed WSVs and WSMs commented in emal to arts-dev.
+
+	* src/m_rte.cc: General revision of RteCalc, and inclusion of code
+	form rte_calc.
+
+	* src/rte.cc: General revision of get_radiative_background and iy_calc.
+	Code of rte_calc moved to RteCalc.
+
+	(rte_step_std): Renamed to rte_step to this name. To indicate that
+	other versions are possible,a nd in line with WSM RteEmissionStd.
+	
+	(surface_specular_los): Surface tilt is now NOT considered.
+
+	* src/m_atmosphere.cc: Put all surface methods at end and behind //
+
+	(surfaceSpecular): Created this method.
+
+	* src/m_cloudbox.cc (cloudboxOff): Changed to a smaller set of 
+	variables given dummy values.
+
+	* src/m_physics.cc (MatrixPlanck): Temperature is now general WS input,
+	and not keyword argument.
+
+	* src/m_general.cc (Error): Created this WSM. 
+
 2004-09-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-875

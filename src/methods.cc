@@ -1054,13 +1054,10 @@ void define_md_data_raw()
         (
          "Deactivates the cloud box. \n"
          "\n"
-         "The function sets *cloudbox_on* to 0, and *cloudbox_limits* to be\n"
-         "an empty vector. The variables *scat_i_p*, *scat_i_lat*,  \n"
-         "*scat_i_lon*, *scat_za_grid* and *scat_aa_grid* are also set to be\n"
-         "empty."
+         "The function sets *cloudbox_on* to 0, *cloudbox_limits* to be an\n"
+         "empty vector and *iy_cloudbox_agenda* to an empty agenda."
         ),
-        OUTPUT( cloudbox_on_, cloudbox_limits_, scat_i_p_, scat_i_lat_,
-                scat_i_lon_, scat_za_grid_, scat_aa_grid_, scat_za_interp_),
+        OUTPUT( cloudbox_on_, cloudbox_limits_, iy_cloudbox_agenda_ ),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
@@ -1479,6 +1476,29 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("Error"),
+        DESCRIPTION
+        (
+         "Issues an error and exits ARTS.\n"
+         "\n"
+         "This method can be placed in agendas that must be specified , but\n"
+         "are expected not to be used for the particular case. An inclusion\n"
+         "in *iy_surface_agenda* could look like:\n   "
+         "Error{\"Surface interceptions of propagation path not expected.\"}\n"
+         "(ignore and other dummy metho calls must still be included)\n"
+         "\n"
+         "Keywords: \n"
+         "   msg : String describing the error."
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "msg" ),
+        TYPES(    String_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Exit"),
         DESCRIPTION
         (
@@ -1827,6 +1847,30 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         TYPES(     Index_t   )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("InterpAtmFieldToRteGps"),
+        DESCRIPTION
+        (
+         "Scalar interpolation  of atmospheric fields.\n" 
+         "\n"
+         "The position is specified by the combinatio of *rte_gp_p*, \n"
+         "*rte_gp_lat* and *rte_gp_lon*.\n"
+         "\n"
+         "Generic output: \n"
+         "   Numeric : Value obtained by interpolation. \n"
+         "\n"
+         "Generic input:\n"
+         "   Tensor3 : Field to interpolate." 
+        ),
+        OUTPUT( ),
+        INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+               rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
+        GOUTPUT( Numeric_ ),
+        GINPUT( Tensor3_ ),
+        KEYWORDS(),
+        TYPES()));
   
    md_data_raw.push_back
     ( MdRecord
@@ -2381,26 +2425,19 @@ md_data_raw.push_back
         (
          "Sets a matrix to hold blackbody radiation.\n"
          "\n"
-         "This function works as MatrixCBR but the temperature for which \n"
-         "(unpolarised) balckbody radiation shall be calculated is selected \n"
-         "as a keyword argument.\n"
-         "\n"
          "Generic output: \n"
-         "   Matrix : Matrix with cosmic background radiation. \n"
+         "   Matrix : Matrix with balckbody radiation. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A set of frequencies. \n"
-         "\n"
-         "Keyword: \n"
-         "   t : Temperature for the balckbody radiation. "
+         "   Vector  : A set of frequencies. \n"
+         "   Numeric : Blackbody temperature. "
         ),
         OUTPUT(),
         INPUT( stokes_dim_ ),
         GOUTPUT( Matrix_ ),
-        GINPUT( Vector_ ),
-        KEYWORDS( "t" ),
-        TYPES(    Numeric_t )));
-
+        GINPUT( Vector_, Numeric_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2945,6 +2982,25 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("Print"),
+        DESCRIPTION
+        (
+         "Prints a variable on the screen."
+         "\n"
+         "Keywords:\n"
+         "   level : Output level to use. \n"
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Any_ ),
+        KEYWORDS( "level" ),
+        TYPES( Index_t ),
+        AGENDAMETHOD(   false ),
+        SUPPRESSHEADER( true  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("p_gridFromGasAbsLookup"),
         DESCRIPTION
         (
@@ -3095,10 +3151,10 @@ md_data_raw.push_back
         (
          "Main function for calculation of spectra.\n"
          "\n"
-         "Spectra are calculated in a fixed manner, by this function.\n"
-         "The function calculates monochromatic spectra for all pencil beam\n"
-         "directions and applies the sensor response WSVs on obtained\n"
-         "values.\n"
+         "The overall scheme to solve the radiative transfer equation (RTE)\n"
+         "is fixed and found in this method. In short, the method calculates\n"
+         "monochromatic spectra for all pencil beam directions and applies\n"
+         "the sensor response on obtained radiances.\n"
          "\n"
          "The first step is to calculate the propagation path through the\n"
          "atmosphere for the considered viewing direction. The next step is\n"
@@ -3106,26 +3162,22 @@ md_data_raw.push_back
          "path. The start point of the propagation path can be found at the\n"
          "top of the atmosphere, the surface, or at the boundary or inside\n"
          "the cloud box. To determine the start spectrum can involve a\n"
-         "recursive call of *RteCalc (for example to calculate the radiation\n"
-         "refelected by the surface). After this, the vector radiative\n"
+         "recursive call of RteCalc (for example to calculate the radiation\n"
+         "reflected by the surface). After this, the vector radiative\n"
          "transfer equation is solved to the end point of the propagation\n"
-         "path. Finally, the polarisation and intensity response of the \n"
-         "sensor are applied.\n"
+         "path. Finally, the response of the sensor is applied.\n"
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( y_, ppath_, ppath_step_, i_rte_,
-                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-                i_space_, surface_emission_, surface_los_, surface_refl_coeffs_ ),
-        INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
-               surface_agenda_,
+        OUTPUT( y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_, 
+                rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
+               iy_surface_agenda_, iy_cloudbox_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               t_field_, r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
-               scat_i_p_, scat_i_lat_, scat_i_lon_, 
-               scat_za_grid_, scat_aa_grid_, sensor_response_,
-               sensor_pos_, sensor_los_, f_grid_, stokes_dim_,
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
-               scat_za_interp_),
+               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               sensor_response_, sensor_pos_, sensor_los_, 
+               f_grid_, stokes_dim_, 
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3151,9 +3203,9 @@ md_data_raw.push_back
          "\n"
          "See further the user guide."
         ),
-        OUTPUT( i_rte_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
+        OUTPUT( iy_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
                 rte_vmr_list_, f_index_, ppath_index_ ),
-        INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
+        INPUT( iy_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
                vmr_field_, scalar_gas_absorption_agenda_, 
                opt_prop_gas_agenda_),
@@ -4010,102 +4062,34 @@ md_data_raw.push_back
         KEYWORDS( "text"   ),
         TYPES(    String_t )));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
-      ( NAME("surfaceFastem"),
+      ( NAME( "surfaceSpecular" ),
         DESCRIPTION
         (
-         "The method decides whether to use *surfaceNoScatteringSingleEmissivity* or \n"
-         "*surfaceFastem*. If *surfaceFastem*, then calculates surface emissivity using\n"
-	 "fastem model implementation.\n"
+         "Models specular reflection of the surface (assuming LTE).\n"
          "\n"
-         "The decision whether to use *surfaceNoScatteringSingleEmissivity* or\n"
-	 "*surfaceFastem* is made based on the value of the first element of \n"
-         "surface_emissivity_field. If this value is set to be between 0 and 1\n"
-	 "*surface_emissivity_field* will be returned with the same value.  If this \n"
-         "value is -1 *surfaceFastem* will calculate the emissivity based on the \n"
-	 "fastem model implementation in ARTS. The output of this function is \n"
-	 "*surface_emission_field* and *surface_refl_coeffs_field* stored in the\n"
-         "latitude and longitude grid points. \n"
-	 ),
-        OUTPUT( surface_emissivity_field_, surface_emission_field_,
-		surface_refl_coeffs_field_),
-        INPUT( surface_emissivity_field_, f_grid_, stokes_dim_, atmosphere_dim_, p_grid_,
-	       lat_grid_, lon_grid_, r_geoid_,z_surface_, t_field_, surface_fastem_constants_,
-	       surface_wind_field_, surface_temperature_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
- 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("surfaceNoScatteringSingleEmissivity"),
-        DESCRIPTION
-        (
-         "Treats the surface to not cause any scattering, and to have a\n"
-         "reflection coefficient of 1-e. \n"
+         "The upwelling radiation is calculated as (using scalar notation):\n"
+         "   i_up = i_down*r + (1-r)*B\n"
+         "where i_down is calculated by recursive RT call, r is the\n"
+         "reflection coefficent and B blackbody radiation for *surface_t*.\n"
          "\n"
-         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
-         "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
-         "The temperature of the surface is obtained by interpolating \n"
-         "*t_field* to the position of the surface reflection. The obtained \n"
-         "temperature and *f_grid* are then used as input to the Planck\n"
-         "function. The emission from the surface is then calculated as eB,\n"
-         "where B is the Planck function.\n"
-         "\n"
-         "It is here assumed that the downwelling radiation to consider\n"
-         "comes from a single direction and the returned *surface_los*\n"
-         "contains only one LOS. The slope of the surface is considered\n"
-         "when calculating the LOS for the downwelling radiation. The\n"
-         "reflection matrices in *surface_refl_coeffs* are all set to be\n"
-         "diagonal matrices, where all diagonal elements are 1-e.\n"
-         "\n"
-         "Keywords: \n"
-         "   e : Surface emissivity. Must be a value in the range [0,1].\n"
-         "       All frequencies are assumed to have the same e."
+         "The reflection coefficient must specified seperately for vertical\n"
+         "and horisontal polarisation. In the scalar case, the mean of the\n"
+         "coefficients is applied. The expression above is expanded for\n"
+         "vector RT cases, as described in the user guide."
         ),
-        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-               rte_los_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               r_geoid_,z_surface_, t_field_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS(    "e"    ),
-        TYPES(    Numeric_t )));
-  
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("surfaceTreatAsBlackbody"),
-        DESCRIPTION
-        (
-         "Sets the surface variables (see below) to model a blackbdoy surface.\n"
-         "\n"
-         "The function creates the variables *surface_emission*, *surface_los*\n"
-         "and *surface_refl_coeffs*. When the surface is treated to act as a\n"
-         "blackbody, no downwelling radiation needs to be calculated and\n"
-         "*surface_los* and *surface_refl_coeffs* are set to be empty.\n"
-         "\n"
-         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
-         "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
-         "\n"
-         "The temperature of the surface is obtained by interpolating \n"
-         "*t_field* to the position of the surface reflection. The obtained \n"
-         "temperature and *f_grid* are then used as input to the Planck\n"
-         "function and the calculated blackbody radiation is put into the\n"
-         "first column of *surface_emission*.\n"
-         "\n"
-         "Note that this function does not use *rte_los*, *r_geoid* and\n"
-         "*z_surface* as input, and if used inside *surface_agenda*,\n"
-         "ignore commands for those variables must be added to the agenda."
-        ),
-        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
+        OUTPUT( iy_, ppath_, ppath_step_, rte_pos_, rte_gp_p_, 
+                rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
+               iy_surface_agenda_, iy_cloudbox_agenda_,
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               f_grid_, stokes_dim_, surface_t_, surface_rv_, surface_rh_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4621,26 +4605,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "start",   "stop",    "n"   ),
         TYPES(    Numeric_t, Numeric_t, Index_t )));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("Print"),
-        DESCRIPTION
-        (
-         "Prints a variable on the screen."
-         "\n"
-         "Keywords:\n"
-         "   level : Output level to use. \n"
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( Any_ ),
-        KEYWORDS( "level" ),
-        TYPES( Index_t ),
-        AGENDAMETHOD(   false ),
-        SUPPRESSHEADER( true  )));
-
 
   md_data_raw.push_back
     ( MdRecord

@@ -117,13 +117,14 @@ void MatrixPlanck(
         const Index&    stokes_dim,
         // WS Generic Input:
         const Vector&   f,
+        const Numeric&  t,
         // WS Generic Input Names:
         const String&   f_name,
-        // Control Parameters:
-        const Numeric&  t )
+        const String&   t_name )
 {
   // To avoid compiler warnings
-  String s = f_name;
+  String s1 = f_name;
+  String s2 = t_name;
 
   const Index n = f.nelem();
 

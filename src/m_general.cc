@@ -209,6 +209,21 @@ timerStop (// WS Input
 }
 
 
+//! Error
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-?-?
+*/
+void Error(
+           const String& msg )
+{
+  out0 << msg << "\n";
+  arts_exit();
+}
+
+
 //! Exit
 /*!
    See the the online help (arts -d FUNCTION_NAME)

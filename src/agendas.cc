@@ -173,16 +173,14 @@ void define_agenda_data()
         "field shall be performed. ANother optio is to start backward Monte\n"
         "Carlos calculations from this point.\n"
         "\n"
-        "The main usage of this agenda is to be called from *RteCalc*. \n"
-        "\n"
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the scattered radiation \n"
         "shall be determined. \n"
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT(  iy_ ),
-       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
+       OUTPUT( iy_ ),
+       INPUT()));
 
   agenda_data.push_back
     (AgRecord
@@ -193,8 +191,6 @@ void define_agenda_data()
         "regarding the radiation entering the atmosphere at the start of the\n"
         "propagation path. \n"
         "\n"
-        "The main usage of this agenda is to be called from *RteCalc*. \n"
-        "\n"
         "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
         "the position and line-of-sight for which the entering radiation \n"
         "shall be determined. The position and line-of-sight must be known, \n"
@@ -202,17 +198,38 @@ void define_agenda_data()
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT(  iy_ ),
-       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
+       OUTPUT( iy_ ),
+       INPUT()));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "iy_surface_agenda" ),
+       DESCRIPTION
+       (
+        "Sets *iy* to the radiation leaving the surface for given position\n"
+        "and LOS. \n"
+        "\n"
+        "The upwelling radiation is the sum of surface emission and\n"
+        "reflected downwelling radiation. See the user guide for different\n"
+        "options to determine the upwelling radiation.\n"
+        "\n"
+        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "the position and line-of-sight for which the entering radiation \n"
+        "shall be determined. \n"
+        "\n"
+        "Usage:   Called from *RteCalc*."
+        ),
+       OUTPUT( iy_ ),
+       INPUT()));
 
   agenda_data.push_back
     (AgRecord
      ( NAME( "i_space_agenda" ),
        DESCRIPTION
        (
-        "Will be obselete."
+        "Will be removed."
         ),
-       OUTPUT(  i_space_ ),
+       OUTPUT( i_space_ ),
        INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
 
   agenda_data.push_back
@@ -449,13 +466,13 @@ void define_agenda_data()
         "Performs monochromatic pencil beam calculations for a single\n"
         "propagation path.\n"
         "\n"
-        "When calling the agenda, *i_rte* shall be set to the radiances, or\n"
+        "When calling the agenda, *iy* shall be set to the radiances, or\n"
         "optical thicknesses, at the start of the propagation path described\n"
         "by *ppath*. The agenda then solves the radiative transfer equation\n"
-        "along the propagation path and returns the result in *i_rte*."
+        "along the propagation path and returns the result in *iy*."
         ),
-       OUTPUT( i_rte_ ),
-       INPUT(  ppath_, atmosphere_dim_, stokes_dim_, f_grid_, p_grid_,
+       OUTPUT( iy_ ),
+       INPUT(  iy_, ppath_, atmosphere_dim_, stokes_dim_, f_grid_, p_grid_,
                lat_grid_, lon_grid_, t_field_, vmr_field_,
                scalar_gas_absorption_agenda_, opt_prop_gas_agenda_ )));
 
@@ -486,6 +503,23 @@ void define_agenda_data()
        INPUT(  f_index_,
                rte_pressure_, rte_temperature_, rte_vmr_list_ )));
   
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "scat_grid_optimization_agenda" ),
+       DESCRIPTION
+       (
+        "Grid optimization for scattering caclualtions. \n"
+        "\n"
+        "Main WSM: *scat_za_gridOptimize*: \n"
+        "This requires as an input the radiation field computed on a very\n"
+        "fine grid which can be obtained by \n"
+        "      (a) *CloudboxGetIncoming* and *ScatteringMain* or\n "
+        "      (b) by reading a precalculated file \n"
+        "\n"
+        ),
+       OUTPUT(scat_za_grid_opt_, i_field_ ),
+       INPUT(scat_za_interp_)));
+ 
   agenda_data.push_back
     (AgRecord
      ( NAME( "scat_field_agenda" ),
@@ -563,43 +597,6 @@ void define_agenda_data()
 
  agenda_data.push_back
     (AgRecord
-     ( NAME( "scat_grid_optimization_agenda" ),
-       DESCRIPTION
-       (
-        "Grid optimization for scattering caclualtions. \n"
-        "\n"
-        "Main WSM: *scat_za_gridOptimize*: \n"
-        "This requires as an input the radiation field computed on a very\n"
-        "fine grid which can be obtained by \n"
-        "      (a) *CloudboxGetIncoming* and *ScatteringMain* or\n "
-        "      (b) by reading a precalculated file \n"
-        "\n"
-        ),
-       OUTPUT(scat_za_grid_opt_, i_field_ ),
-       INPUT(scat_za_interp_)));
- 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "i_rte_space_agenda" ),
-       DESCRIPTION
-       (
-        "Sets *i_rte* to match the assumptions regarding the radiation\n"
-        "entering the atmosphere at the start of the propagation path. \n"
-        "\n"
-        "The main usage of this agenda is to be called from *RteCalc*. \n"
-        "\n"
-        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
-        "the position and line-of-sight for which the entering radiation \n"
-        "shall be determined. The position and line-of-sight must be known, \n"
-        "for example, when radiation from the sun is considered. \n"
-        "\n"
-        "Usage:   Called from *RteCalc*."
-        ),
-       OUTPUT(  i_rte_ ),
-       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
-
- agenda_data.push_back
-    (AgRecord
      ( NAME( "spt_calc_agenda" ),
        DESCRIPTION
        (
@@ -631,39 +628,11 @@ void define_agenda_data()
      ( NAME( "surface_agenda" ),
        DESCRIPTION
        (
-        "Describes the properties of the surface to consider when there is a\n"
-        "surface reflection.\n"
-        "\n"
-        "The surface properties are described by the WSVs\n"
-        "*surface_emission*, *surface_los* and *surface_refl_coeffs*.\n"
-        "\n"
-        "The upwelling radiation from the surface is calculated as the sum\n"
-        "of *surface_emission* and the spectra calculated for the directions\n"
-        "given by *surface_los*, multiplicated with the weights in\n"
-        "*surface_refl_coeffs*. Or (for frequency i): \n"
-        "   i_up = i_emission + sum_over_los( W*i_down ) \n"
-        "where i_up is the upwelling radiation, i_emission is row i of\n"
-        "*surface_emission*, W is the reflection matrix in \n"
-        "*surface_refl_coeffs* for the frequency and LOS of concern and \n"
-        "i_down is the downwelling radiation for the LOS given in\n"
-        "*surface_los*. \n"
-        "\n"
-        "With other words, the scattering properties of the surface are \n"
-        "described by the variables *surface_los* and *surface_refl_coeffs*.\n"
-        "\n"
-        "A function calling this agenda shall set *rte_los* and *rte_gp_XXX*\n"
-        "to match the line-of-sight and position at the surface reflection\n"
-        "point.\n"
-        "\n"
-        "See further the user guide.\n"
-        "\n"
-        "Usage:   Called from *RteCalc*."
+        "Will be removed."
         ),
        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_  ),
        INPUT(  f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
                rte_los_, r_geoid_, z_surface_, t_field_ )));
-
-
 
 //  agenda_data.push_back
 //     (AgRecord
