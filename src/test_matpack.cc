@@ -487,12 +487,33 @@ void test29()
   a[2] = 5;
 
   cout << "a =\n" << a << "\n";
-  
+}
+
+void test30()
+{
+  cout << "Test Matrices of size 0:\n";
+  Matrix a(0,0);
+  //  cout << "a(0,0) =\n" << a(0,0) << "\n";
+  a.resize(2,2);
+  a = 1;
+  cout << "a =\n" << a << "\n";
+
+  Matrix b(3,0);
+  //  cout << "b(0,0) =\n" << b(0,0) << "\n";
+  b.resize(b.nrows(),b.ncols()+3);
+  b = 2;
+  cout << "b =\n" << b << "\n";
+
+  Matrix c(0,3);
+  //  cout << "c(0,0) =\n" << c(0,0) << "\n";
+  c.resize(c.nrows()+3,c.ncols());
+  c = 3;
+  cout << "c =\n" << c << "\n";
 }
 
 
 int main()
 {
-  test29();
+  test30();
   return 0;
 }

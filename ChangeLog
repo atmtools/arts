@@ -1,3 +1,23 @@
+2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-218
+
+	* General: Bux fixes.
+	
+	* src/matpackI.h (Range::Range): Allow zero stride in Range
+	constructor. This means that (0,0) matrices can be created. 
+	(Matrix::resize): Put in some assertions that arguments are >=0.
+	(Matrix::Matrix): Removed the special case that the original
+	matrix is zero. This is no longer necessary, because of the change
+	of Range::Range.
+	(Matrix::operator=): Added MatrixView = Matrix operator. This is
+	important, otherwise default assignment operator is used. That's
+	exactly similar to the VectorView = Vector case.
+
+	* src/m_wfs.cc (k_append): Initialize temp. copies of Kx data
+	directly, instead of copying. Makes the code a bit shorter.
+
+
 2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-217

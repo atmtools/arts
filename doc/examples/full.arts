@@ -139,17 +139,15 @@ VectorWriteBinary( y ) {""}
 VectorWriteAscii( y ) {""}
 #yTau{}
 
-Exit{}
-
 
 ### Calculate Kx ##############################################################
 
 ### Init ###
-#kxInit{}
+kxInit{}
 #kbInit{}
-kxAllocate( y ){
-   ni = 4 
-   nx = 224 }
+#kxAllocate( y ){
+#   ni = 4 
+#   nx = 224 }
 
 ### Species ###
 absloswfsCalc{}
@@ -157,8 +155,12 @@ VectorCopy( k_grid, p_abs ){}
 #kSpecies{    tag   = "O3"
 #             unit  = "frac" }
 kSpeciesAll{ unit = "frac" }
-#kxAppend{}
-kxPutInK{}
+kxAppend{}
+#kxPutInK{}
+
+MatrixWriteAscii(kx){""}
+
+Exit{}
 
 ### Pointing off-set ###
 kPointingOffSet{ delta = 0.001 }

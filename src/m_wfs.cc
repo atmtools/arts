@@ -58,7 +58,9 @@ extern const Numeric BOLTZMAN_CONST;
 
 //// k_append ////////////////////////////////////////////////////////////////
 /**
-   Appends the K matrix to either Kx or Kb.
+   Appends the K matrix to either Kx or Kb. 
+
+   Output matrix kx is resized!
 
    \retval   kx           the Kx matrix
    \retval   kx_names     identity names for KX
@@ -87,25 +89,24 @@ void k_append (
   const Index  ny2  = k.nrows();  
   const Index  nx2  = k.ncols();  
   const Index  nri2 = k_names.nelem();
-        Index  iri;
+  Index        iri;
 
-         Matrix   ktemp(ny1,nx1), ktemp_aux(nx1,2);
-  ArrayOfString   ktemp_names(nri1);
-   ArrayOfIndex   ktemp_lengths(nri1);
+  // Make copy of Kx data.
+  Matrix          ktemp(kx);
+  ArrayOfString   ktemp_names(kx_names);
+  ArrayOfIndex    ktemp_lengths(kx_lengths);
+  Matrix          ktemp_aux(kx_aux);
   
+  cout << "ktemp =\n" << ktemp << "\n\n\n";
+  cout << "ktemp_names =\n" << ktemp_names << "\n\n\n";
+  cout << "ktemp_lengths =\n" << ktemp_lengths << "\n\n\n";
+  cout << "ktemp_aux =\n" << ktemp_aux << "\n\n\n";
+
   if ( nx1 > 0 )
   {
     if ( ny1 != ny2 )
       throw runtime_error(
             "The two WF matrices have different number of rows." ); 
-
-    // Make copy of Kx data.
-    // With Matpack and Array you can make copies simply like
-    // this. Dimensions must agree!  
-    ktemp         = kx;
-    ktemp_names   = kx_names;
-    ktemp_lengths = kx_lengths;
-    ktemp_aux     = kx_aux;
   }
 
   // Reallocate the Kx data

@@ -480,6 +480,7 @@ public:
   
   // Assignment operators:
   MatrixView& operator=(const ConstMatrixView& v);
+  MatrixView& operator=(const Matrix& v);
   MatrixView& operator=(const ConstVectorView& v);
   MatrixView& operator=(Numeric x);
 
@@ -598,7 +599,8 @@ inline Range::Range(Index start, Index extent, Index stride=1) :
   // extent is allowed, though, which corresponds to an empty range.
   assert( 0<=mextent );
   // Stride can be anything except 0.
-  assert( 0!=mstride);
+  // SAB 2001-09-21: Allow 0 stride.
+  //  assert( 0!=mstride);
 }
 
 /** Constructor with joker extent. Depending on the sign of stride,
@@ -1759,6 +1761,19 @@ inline MatrixView& MatrixView::operator=(const ConstMatrixView& m)
   return *this;
 }
 
+/** Assignment from a Matrix. This must exist to overide the
+    automatically generated assignment operators, which don't copy the
+    contents! */
+inline MatrixView& MatrixView::operator=(const Matrix& m)
+{
+  // Check that sizes are compatible:
+  assert(mrr.mextent==m.mrr.mextent);
+  assert(mcr.mextent==m.mcr.mextent);
+
+  copy( m.begin(), m.end(), begin() );
+  return *this;
+}
+
 /** Assignment from a vector. This copies the data from a VectorView
     to this MatrixView. Dimensions must agree! Resizing would destroy
     the selection that we might have done in this MatrixView by
@@ -2099,12 +2114,13 @@ inline Matrix::Matrix(const ConstMatrixView& m) :
     and copies the data. */
 inline Matrix::Matrix(const Matrix& m) :
   MatrixView( new Numeric[m.nrows()*m.ncols()],
-	     Range( 0, m.nrows(), (m.ncols()>0) ? m.ncols() : 1 ),
+	     Range( 0, m.nrows(), m.ncols() ),
 	     Range( 0, m.ncols() ) )
 {
   // There is a catch here: If m is an empty matrix, then it will have
   // 0 colunns. But this is used to initialize the stride of the row
-  // Range! Therfore the ? expression above.
+  // Range! Thus, this method has to be consistent with the behaviour
+  // of Range::Range. For now, Range::Range allows also stride 0.
   copy(m.begin(),m.end(),begin());
 }
 
@@ -2169,6 +2185,9 @@ inline Matrix& Matrix::operator=(const ConstVectorView& v)
     initialized, so it will contain random values.*/
 inline void Matrix::resize(Index r, Index c)
 {
+  assert( 0<=r );
+  assert( 0<=c );
+
   if ( mrr.mextent!=r || mcr.mextent!=c )
     {
       delete mdata;
