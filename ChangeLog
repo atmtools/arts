@@ -1,3 +1,25 @@
+2002-11-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-296
+
+	* src/Makefile.am: Fixed typos gridded_field.h -> gridded_fields.h
+	Removed no longer existent los.h.
+
+	* doc/uguide/Figs/Makefile.am: Added fm_definitions, interpolation,
+	polarization, ppath and scattering to SUBDIRS.
+
+	* doc/uguide/Figs/{polarization,interpolation,scattering}/Makefile.am:
+	Added missing Makefiles needed to build dist.
+
+	* doc/uguide/Figs/{polarization,interpolation,scattering}/.cvsignore:
+	Added.
+
+	* configure.in: WARNING_FLAGS and -ftemplate-depth- are gcc specific.
+	Therefore, they are now only set if gcc/g++ is in use, otherwise we
+	break compilation with non-gnu compilers (e.g. HP/NEC).
+
+	Added missing Makefiles needed to build dist.
+
 2002-11-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-295
