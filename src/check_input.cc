@@ -457,7 +457,7 @@ void chk_atm_grids(
 */
 void chk_atm_field( 
         const String&     x_name,
-        const Tensor3&    x, 
+        ConstTensor3View    x, 
         const Index&      dim,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -499,7 +499,7 @@ void chk_atm_field(
 */
 void chk_atm_field( 
         const String&   x_name,
-        const Tensor4&  x, 
+        ConstTensor4View  x, 
         const Index&    dim,
         const Index&    nspecies,
         ConstVectorView p_grid,

@@ -119,14 +119,14 @@ int main(int argc, char *argv[])
   //  test_x(181, 1, frequency);
   //  test_x(19, 10, frequency);
 
-  //  test_xy(181, 361, 1.0, frequency);
+  test_xy(181, 361, 1.0, frequency);
   //  test_xy_opt(1801, 3601, 0.1, frequency);
   //  test_xy_fixedstep(1801, 3601, 0.1, frequency);
   //  test_xy_fixedstep_opt(1801, 3601, 0.1, frequency);
   //  test_xy_fixedstep_opt(181, 361, 1.0, frequency);
   //  test_xy_fixedstep_opt(19, 37, 10, frequency);
   //  test_xy_fixedstep_opt2(1801, 3601, 0.1, frequency);
-  test_xy_fixedstep_opt2(181, 361, 1.0, frequency);
+  //  test_xy_fixedstep_opt2(181, 361, 1.0, frequency);
   test_AngIntegrate_trapezoid_opti(181, 361, 1.0, frequency);
   //  test_xy_fixedstep_opt2(19, 37, 10, frequency);
 }
@@ -800,9 +800,10 @@ Numeric test_AngIntegrate_trapezoid_opti(int z_size, int a_size,
   grid_stepsize[1] = aa_grid[1] - aa_grid[0];
   //grid_stepsize[0] = -1;
   //grid_stepsize[1] = -1;
-  cout << za_grid << endl;
-  cout << grid_stepsize[0] << endl;
-  cout << grid_stepsize[1] << endl;
+
+  //  cout << za_grid << endl;
+  //  cout << grid_stepsize[0] << endl;
+  //  cout << grid_stepsize[1] << endl;
 
   Numeric result = 0;
 

@@ -1,3 +1,16 @@
+2003-06-05  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-563
+	
+	* src/check_input{.cc,.h} (chk_atm_field): changed parameter:
+	"const Tensor3&" to "ConstTensor3View" and
+	"const Tensor4&" to "ConstTensor4View" to save computation time.
+	The function created a new Tensor object, when it was called with
+	a TensorView.
+
+	* test_integration.cc: Modified.
+
+	
 2003-06-04  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-562
