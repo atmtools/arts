@@ -93,7 +93,10 @@ void MessagePrint(ostream& os, Index priority, const T& t)
 
   if (messages.file >= priority)
     //    if (report_file)              // Check if report file is good
-    report_file << t;
+    {
+      report_file << t;
+      report_file.flush ();
+    }
 }
 
 /* Parent class for all output streams. These control the level of detail
