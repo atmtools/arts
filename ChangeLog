@@ -1,3 +1,13 @@
+2003-10-15  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+
+	* arts-1-1-700
+
+	* src/m_cloudbox: Added WSM CloudboxSetIncomingForTauCalc1D which can
+	be used to set the clearsky field on the cloudbox. This function is
+	made for transmission calculations.
+
+	* src/methods.cc: Added CloudboxSetIncomingForTauCalc1D.
+
 2003-10-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-699

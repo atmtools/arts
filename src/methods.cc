@@ -823,14 +823,14 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
-               i_rte_, i_space_, ground_emission_, ground_los_, 
+               i_rte_, i_space_, ground_emission_, ground_los_,
                ground_refl_coeffs_,
                rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                 scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
                 i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
                 lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
-              
+
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -849,14 +849,39 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(),
-        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_, 
-               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_, 
-               atmosphere_dim_, stokes_dim_, 
+        INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, rte_gp_p_, rte_gp_lat_,
+               rte_gp_lon_, rte_los_,  cloudbox_on_, cloudbox_limits_,
+               atmosphere_dim_, stokes_dim_,
                scat_za_grid_, scat_aa_grid_, f_grid_),
         GOUTPUT(Matrix_),
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "CloudboxSetIncomingForTauCalc1D" ),
+        DESCRIPTION
+        (
+         "This method sets the intensity field at the pressure boundaries of\n"
+         "the cloudbox.\n"
+         "\n"
+         "The method sets the upper intensity field to zero and the lower\n"
+         "is calculated as 1/-cos(za), where angles za are taken from the\n"
+         "scat_za_grid vector. This gives intensity 1 from the downlooking\n"
+         "direction and increasing values for decreasing zenith angle.\n"
+         "\n"
+         "This is implemented only for the case of 1D atmosphere at present\n"
+         "\n"
+         ),
+        OUTPUT( scat_i_p_ ),
+        INPUT( atmosphere_dim_, stokes_dim_, scat_za_grid_,  f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
 
   md_data_raw.push_back
     ( MdRecord

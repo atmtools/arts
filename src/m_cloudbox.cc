@@ -90,7 +90,47 @@ void cloudboxOff(
   scat_aa_grid.resize(0);
 }
 
+//! cloudboxSetIncomingForTauCalc1D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
 
+   \author Mattias Ekström
+   \date   2003-10-15
+*/
+void CloudboxSetIncomingForTauCalc1D(// WS Output:
+                        Tensor7&     scat_i_p,
+                                     // WS Input:
+                    const Index&     atmosphere_dim,
+                    const Index&     stokes_dim,
+                   const Vector&     scat_za_grid,
+                   const Vector&     f_grid)
+{
+  // Check the atmosphere dimensionality and that only the first Stokes
+  // component is used(?)
+  if( atmosphere_dim != 1 )
+    throw runtime_error( "This function is only defined for 1D "
+      "atmosphere.\n");
+  if( stokes_dim != 1 )
+    throw runtime_error( "Only the first Stokes component must be set.\n");
+
+  out2 <<"Setting clearsky field on cloudbox boundary for transmission\n"
+       <<"calculation.\n" ;
+
+  // Get sizes and lengths
+  Index Nf = f_grid.nelem();
+  Index Nza = scat_za_grid.nelem();
+
+  // Resize the output variable
+  scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, 1);
+
+  // Calculate the clearsky field on the lower side.
+  Vector i(Nza);
+  for( Index k=0; k<Nza; k++ )
+    scat_i_p( Range(joker), 0, 0, 0, k, 0, 0) = 1/-cos(scat_za_grid[k]);
+
+  // Set the clearsky field on the upper side to zero.
+  scat_i_p( Range(joker), 1, 0,0, Range(joker),0, 0) = 0.0;
+}
 
 //! cloudboxSetManually
 /*!
@@ -249,7 +289,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
     {
       Index  N_f = scat_i_p.nlibraries();
       if (f_grid.nelem() != N_f){
-        
+
         throw runtime_error(" scat_i_p should have same frequency  "
                             " dimension as f_grid");
       }
@@ -1529,20 +1569,20 @@ void CloudboxGetIncoming(// WS Output:
                          const Matrix& r_geoid,
                          const Matrix& z_ground
                          )
-                         
+
 {
 
-  out2 <<"Function: CloudboxGetIncoming \n" 
+  out2 <<"Function: CloudboxGetIncoming \n"
        <<"Get clearsky field on cloudbox boundary. \n"
        <<"---------------------------------------- \n" ;
 
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
- 
+
   Index Nza = scat_za_grid.nelem();
- 
+
   Index Ni = stokes_dim;
- 
+
   // Assign dummies for variables associated with sensor.
   bool     apply_sensor = false;
   Vector   mblock_za_grid_dummy(1);
@@ -1604,10 +1644,10 @@ void CloudboxGetIncoming(// WS Output:
      
           check_input = false;
      
-          scat_i_p( Range(joker), 0, 0, 0, 
+          scat_i_p( Range(joker), 0, 0, 0,
                     scat_za_index,0,
                     Range(joker)) = i_rte;
-          
+
                 }
 
       // Get scat_i_p at upper boundary
@@ -1635,10 +1675,10 @@ void CloudboxGetIncoming(// WS Output:
                  check_input, apply_sensor, 1 );
           
           
-          scat_i_p( Range(joker), 1, 0,0, 
+          scat_i_p( Range(joker), 1, 0,0,
                     scat_za_index,0,
                     Range(joker)) = i_rte;
-          
+
            } 
      
     }
