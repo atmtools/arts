@@ -4,7 +4,7 @@
 	
 	* src/m_optproperties.cc (ScatteringDataPrepareDOITOpt),
 	(pha_mat_sptFromDataDOITOpt): Included error message, which assures 
-	that these methods are nor used for p30 calculation. 
+	that these methods are not used for p30 calculation. 
 	This was the reason for the 500 GHz problems we discussed in
 	Bredbeck.
 
