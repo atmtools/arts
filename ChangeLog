@@ -1,3 +1,22 @@
+2004-01-13  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-153
+	
+	* src/m_wfs.cc: Excluded the calculation of the correlation matrix
+	(Mcorr). To calculate it inside of arts was in any case not a good idea
+	as this took  lots of computational time, and it could handle only
+	the case when the same correlation is assumed for all the species.
+	
+	* src/methods.cc: modified accordingly 
+	
+	* src/workspace.cc: modified accordingly 
+	
+	* src/partition_function_data.cc: updated with the polynomial
+	coefficients obtained by fitting the partition function data
+	calculated the latest version of the TIPS program, from
+	B. Gamache. Coefficients for BrO are obtained using the partition
+	function data recently  provided by A. Perrin. 
+	 
 2004-01-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-152

@@ -27,7 +27,7 @@
    Calculation of WFs are described in the AUG sections "Atmospheric WFs"
    and "Measurement errors".
 
-   \author Patrick Eriksson
+   \author Patrick Eriksson, C. Verdes
    \date 2000-09-14 
 */
 
@@ -413,7 +413,7 @@ void grid2grid_weights_total (
   // IP0 and IF0 are the index off-sets for the total K matrix
   Index  iza;                       // zenith angle index
   Index  ip;                        // pressure index
-  Matrix  is;                       // matrix for storing LOS index
+  Matrix is;                       // matrix for storing LOS index
 
   for ( iza=0; iza<nza; iza++ ) 
     {
@@ -443,6 +443,7 @@ void grid2grid_weights_total (
 		  grid2grid_weights( w1, lplos, (Index)is(ip,0),  (Index)is(ip,1),
 				     lgrid, ip );
 		  // fill the corresponding part of the Matrix W with the weights w1
+
 		  W[iza](Range((Index)is(ip,0),(Index)(is(ip,1)-is(ip,0)+1)), ip)=w1;
 		}
 	    }
@@ -1895,7 +1896,7 @@ void k_temp_nohydro (
    \retval   kb_names          identity name(s)
    \retval   kb_aux            additional data
    \retval   S_S               matrix keeping the spectrposcopic parameters uncertainties
-   \retval   Mcorr             matrix which gives the correlation between the spectro parameters        
+
    \param    wfss_tgs          list of the tag groups to calculate the spectro weighting function
                                this is useful when the number of lines is large and lines of one
                                species have to be ignored
@@ -1903,6 +1904,7 @@ void k_temp_nohydro (
    \param    f_mono            frequency absorption grid
    \param    p_abs             pressure grid for abs. calculations
    \param    t_abs             temperatures at p_abs
+   \param    h2o_abs           for h2o absorption
    \param    vmrs              VMR profiles at p_abs
    \param    lines_per_tg      lines tag sorted
    \param    lineshape         lineshape specifications: function, norm, cutoff
@@ -1910,7 +1912,7 @@ void k_temp_nohydro (
    \param    absweight         weight for absorption LOS Wfs
    \param    IndexPar          index for the spectroscopic parameter 
    \param    StrPar            name of the spectroscopic parameter 
-   \param    corr              level of correlation for one parameter
+  
    \author Carmen Verdes
    \date   2003-04-08
 */
@@ -1919,21 +1921,19 @@ void kb_spectro(
                 ArrayOfString&                      kb_names,
                 Matrix&                             /* kb_aux */,
                 Matrix&                             S_S,
-                Matrix&                             Mcorr,
-                const TagGroups&                    wfss_tgs,
-                const TagGroups&                    tgs,
-                const Vector&                       f_mono,
-                const Vector&                       p_abs,
-                const Vector&                       t_abs,
-                const Vector&                       h2o_abs,
-                const Matrix&                       vmrs,
+	  const TagGroups&                          wfss_tgs,
+	  const TagGroups&                          tgs,
+	  const Vector&                             f_mono,
+                const Vector&                             p_abs,
+                const Vector&                             t_abs,
+                const Vector&                             h2o_abs,
+                const Matrix&                             vmrs,
                 const ArrayOfArrayOfLineRecord&     lines_per_tg,
-                const ArrayOfLineshapeSpec&         lineshape,
-                const Los&                          los,           
-                const ArrayOfMatrix&                absweight,
-                const Index&                        IndexPar,
-                const String&                       StrPar,
-                const Numeric&                      corr   
+                const ArrayOfLineshapeSpec&   lineshape,
+                const Los&                                 los,           
+	  const ArrayOfMatrix&                absweight,
+	  const Index&                              IndexPar,
+	  const String&                             StrPar
 )
  { 
  // Main sizes
@@ -1951,6 +1951,7 @@ void kb_spectro(
   dabs.resize(np,nv);
   Matrix        dabs1;
   dabs1.resize(nv,np);
+
   //dabs.resize(nv, np);
   ArrayOfMatrix abs_dummy1;
   ArrayOfMatrix abs_dummy2;
@@ -1958,7 +1959,7 @@ void kb_spectro(
   ArrayOfIndex tag_index;
   tag_index.resize(wfss_tgs.nelem()); 
   tag_index = 0;
-  Index  dummy_line=0;
+  //Index  dummy_line=0;
 
  // Go through the spectroscopic parameters weighting function
   for (itg_wfss=0; itg_wfss<wfss_tgs.nelem(); ++itg_wfss)
@@ -1990,23 +1991,22 @@ void kb_spectro(
   kb_names.resize(nr_line_total);
   S_S.resize(nr_line_total,2);
   S_S=0.0;
-  Mcorr.resize(nr_line_total,nr_line_total);
-  Mcorr=0.0;
   
-
-
-  out2 << "  Calculating the weighting function for "<< StrPar<<"\n";
    // loop:
    // 1: over the tags
    // 2: over the lines
    // 3: over the zenith angles
    // 4: over the frequencies
 
-
      for ( itg_wfss=0; itg_wfss<tag_index.nelem(); ++itg_wfss )
        {  
-	 itg=tag_index[itg_wfss];
-         Index nr_line_dummy=0;
+        out2<< " \n"; 
+        out2<<"==================================: " <<" \n"; 
+        out2<<"==Calculating weighting function for species==: " <<" \n"; 
+        out2<< wfss_tgs[itg_wfss]<< "\n";  
+        itg=tag_index[itg_wfss];
+        out2<<"lines found: " <<lines_per_tg[itg].nelem()<< " \n"; 
+        Index nr_line_dummy=0;
 	 if ( lines_per_tg[itg].nelem()>0)
 	   {
 	     Vector gamma;
@@ -2057,16 +2057,16 @@ void kb_spectro(
 		   case 2: 
 		     {
 		       delta_s=10; // perturbation in HZ
-                       // read the position and and its uncertainty; 
+                                  // read the position and and its uncertainty; 
 		       parameter=dummy_lines_per_tg[itg][0].F();
 		       ER_dummy = dummy_lines_per_tg[itg][0].dF();
-                       // Set to a default value if there is no field for uncertainty;
+                                 // Set to a default value if there is no field for uncertainty;
 		       if (ER_dummy==-1)
 			 {ER_dummy=3*1E+9;}
-                       // get uncertainty in absolute values only; 
+                                    // get uncertainty in absolute values only; 
 		       ER_dummy2[0] = ER_dummy;
 		       ER_dummy2[1] = ER_dummy;
-                       // apply uncertainty and update the value of the parameter;
+                                  // apply uncertainty and update the value of the parameter;
 		       dummy = parameter +delta_s;	 
 		       dummy_lines_per_tg[itg][0].setF(dummy);
 		       break;
@@ -2074,12 +2074,17 @@ void kb_spectro(
 		   case 3: 
 		     {  
 		       delta_s=0.001; // perturbation in fraction
+                                  // read the agam and and its uncertainty; 
 		       parameter = dummy_lines_per_tg[itg][0].Agam();		      
 		       ER_dummy = dummy_lines_per_tg[itg][0].dAgam();
+                                    // Set to a default value if there is no field for uncertainty;
 		       if (ER_dummy==-1)
 			 {ER_dummy=2;}
+                                   // get uncertainty both in (1) absolute values and (2) relative values;
 		       ER_dummy2[0] = parameter*ER_dummy;
 		       ER_dummy2[1] = ER_dummy*100;
+                                   // apply uncertainty and update the value of the parameter;
+		       dummy = parameter +delta_s;	 
 		       dummy = parameter + parameter *delta_s;	 
 		       dummy_lines_per_tg[itg][0].setAgam(dummy);
 		       break;
@@ -2087,15 +2092,16 @@ void kb_spectro(
 		   case 4: 
 		     {
 		       delta_s=0.001; // perturbation in fraction
+                                   // read the sgam and and its uncertainty; 
 		       parameter=dummy_lines_per_tg[itg][0].Sgam();
-		       Mcorr(li,li)=1;
-
 		       ER_dummy = dummy_lines_per_tg[itg][0].dSgam();
+                                   // Set to a default value if there is no field for uncertainty;
 		       if (ER_dummy==-1)
 			 {ER_dummy=2;}
+                                   // get uncertainty both in (1) absolute values and (2) relative values; 
 		       ER_dummy2[0] = parameter*ER_dummy;
 		       ER_dummy2[1] = ER_dummy*100;
-		       Mcorr(li,li)=1;
+                                  // apply uncertainty and update the value of the parameter;
 		       dummy    = parameter +parameter*delta_s;	 	 
 		       dummy_lines_per_tg[itg][0].setSgam(dummy);
 		       break;
@@ -2103,13 +2109,16 @@ void kb_spectro(
 		   case 5: 
 		     {
 		       delta_s=0.001; // perturbation in fraction
+                                 // read the Nair and and its uncertainty;  
 		       parameter=dummy_lines_per_tg[itg][0].Nair();
 		       ER_dummy = dummy_lines_per_tg[itg][0].dNair();
+                                  // Set to a default value (200%) if there is no field for uncertainty;
 		       if (ER_dummy==-1)
 			 {ER_dummy=2;}
+		       // get uncertainty both in (1) absolute values and (2) relative values; 
 		       ER_dummy2[0] = parameter*ER_dummy;
 		       ER_dummy2[1] = ER_dummy*100;
-
+                                   // apply uncertainty and update the value of the parameter;
 		       dummy = parameter + parameter*delta_s;	 	 
 		       dummy_lines_per_tg[itg][0].setNair(dummy);
 		       break; 
@@ -2117,12 +2126,16 @@ void kb_spectro(
 		   case 6: 
 		     { 
 		       delta_s=0.01; // perturbation in fraction
+                                  // read the Nair and and its uncertainty; 
 		       parameter=dummy_lines_per_tg[itg][0].Nself();
 		       ER_dummy = dummy_lines_per_tg[itg][0].dNself();
+                                   // Set to a default value (200%) if there is no field for uncertainty;
 		       if (ER_dummy==-1)
 			 {ER_dummy=2;}
+                                   // get uncertainty both in (1) absolute values and (2) relative values; 
 		       ER_dummy2[0] = parameter*ER_dummy;
 		       ER_dummy2[1] = ER_dummy*100;
+                                    // apply uncertainty and update the value of the parameter;
 		       dummy = parameter +parameter*delta_s;	 	 
 		       dummy_lines_per_tg[itg][0].setNself(dummy);
 		       break;
@@ -2131,12 +2144,15 @@ void kb_spectro(
 		     {
 		       extern const Numeric TORR2PA;
 		       delta_s=1;// perturbation i
+                                  // read the Nair and and its uncertainty; 
 		       parameter=dummy_lines_per_tg[itg][0].Psf();
 		       ER_dummy = dummy_lines_per_tg[itg][0].dPsf();
+                                    // Set to a default value (1MHz/Torr) if there is no field for uncertainty;
 		       if ((ER_dummy==-1)|| (parameter==0.0))
 			 {ER_dummy = 1E6 / TORR2PA;}
 		       else 
-			 {ER_dummy=ER_dummy*parameter;}		       
+			 {ER_dummy=ER_dummy*parameter;}
+		       // apply uncertainty and update the value of the parameter;
 		       ER_dummy2[0] = ER_dummy;
 		       ER_dummy2[1] = ER_dummy;
 		       dummy = parameter + delta_s                 ;	 
@@ -2190,34 +2206,28 @@ void kb_spectro(
 		   }	    
 		 Numeric nr = dummy_lines_per_tg[itg][0].F() *1e-9;
 		 ostringstream os;
+		 // create the sting for the name parameter (written in kb_name)
+		 // line (species and center frequency)+ uncertinity + name parameter
 		 if (IndexPar == 2)
 		   {
-		     os <<StrPar<< "--"<<tgs[itg]<<"@" <<nr<<": "<< ER_dummy2[1] <<" Hz";
+		     os <<tgs[itg]<<"@" <<nr<<"GHz"<<" / "<<StrPar<<": " << ER_dummy2[1] <<"Hz";
 		   }
 		 else if (IndexPar == 7)
 		   {
-		     os <<StrPar<< "--"<<tgs[itg]<<"@" <<nr<<": "<< ER_dummy2[1] <<" Hz/Pa";
+		     os <<tgs[itg]<<"@" <<nr<<"GHz"<<" / "<<StrPar<<": "  << ER_dummy2[1] <<"Hz/Pa";
 		   }
 
 		 else
 		   {
-		     os <<StrPar<< "--"<<tgs[itg]<<"@" <<nr<<": "<< ER_dummy2[1] <<" %";
+		     os <<tgs[itg]<<"@" <<nr<<"GHz"<<" / "<<StrPar<<": "  << ER_dummy2[1]<< "%";
 		   }
 		 kb_names[nr_line]= os.str();
 		 S_S(nr_line, Range(joker))= ER_dummy2;
 		 ++nr_line;
 		 ++nr_line_dummy;
 	       } 
-	     // set the correlations for one parameter 
-             Matrix dummy_Mcorr;
-             dummy_Mcorr.resize(nr_line_dummy, nr_line_dummy);
-	     dummy_Mcorr = corr; 
-	     for ( Index i_dummy=0; i_dummy<dummy_Mcorr.nrows(); ++i_dummy )
-	       {dummy_Mcorr(i_dummy, i_dummy) =1;}
-             Mcorr(Range(dummy_line, nr_line_dummy), Range(dummy_line, nr_line_dummy)) =dummy_Mcorr;   
-	     dummy_line= dummy_line+nr_line_dummy;
-	   }         
        }
+ }
  }
 
 /**
@@ -2233,8 +2243,8 @@ void kb_spectro(
     \retval   k                weighting function matrix
     \retval   k_names          identity name(s)
     \retval   k_aux            additional data
-    \retval   S_S               matrix keeping the spectrposcopic parameters uncertainties
-    \retval   Mcorr             matrix which gives the correlation between the spectro parameters        
+    \retval   S_S              matrix keeping the spectrposcopic parameters uncertainties
+
     \param    wfss_tgs          list of the tag groups to calculate the spectro weighting function
                                 this is useful when the number of lines is large and lines of one
                                 species have to be ignored
@@ -2242,47 +2252,44 @@ void kb_spectro(
     \param    f_mono            frequency absorption grid
     \param    p_abs             pressure grid for abs. calculations
     \param    t_abs             temperatures at p_abs
-    \param    h2o_abs           term for H2O abs.
+    \param    z_abs             altitude grid for abs. calculations
+    \param    h2o_abs           for h2o abs.
     \param    vmrs              VMR profiles at p_abs
     \param    lines_per_tg      lines tag sorted
     \param    lineshape         lineshape specifications: function, norm, cutoff
     \param    los               line of sight structure
     \param    absloswfs         absorption LOS Wfs
-    \param    IndexPar          index for the spectroscopic parameter 
-    \param    StrPar            name of the spectroscopic parameter 
-    \param    corr              level of correlation for one parameter
-
+    
+  
     \author Carmen Verdes
     \date   2002.10.1
 */
 
 void kSpectro (
-               Matrix&                          k,
-               ArrayOfString&                   k_names,
-               Matrix&                          /* k_aux */,
-               Matrix&                          S_S,
-               Matrix&                          Mcorr,
-               const TagGroups&                 wfss_tgs,
-               const TagGroups&                 tgs,
-               const Vector&                    f_mono,
-               const Vector&                    p_abs,
-               const Vector&                    t_abs,
-               const Vector&                    z_abs,
-               const Vector&                    h2o_abs,
-               const Matrix&                    vmrs,
-               const ArrayOfArrayOfLineRecord&  lines_per_tg,
-               const ArrayOfLineshapeSpec&      lineshape,
-               const Los&                       los,           
-               const ArrayOfMatrix&             absloswfs,
-               // Keywords
-               const  Index&                    kw_intens,
-               const  Index&                    kw_position,
-               const  Index&                    kw_agam,
-               const  Index&                    kw_sgam,
-               const  Index&                    kw_nair,
-               const  Index&                    kw_nself,
-               const  Index&                    kw_pSift, 
-               const  Numeric&                  corr)
+	            Matrix&                               k,
+	            ArrayOfString&                   k_names,
+	            Matrix&                               /* kb_aux */,
+	            Matrix&                               S_S,
+	  const TagGroups&                          wfss_tgs,
+	  const TagGroups&                          tgs,
+	  const Vector&                               f_mono,
+	  const Vector&                               p_abs,
+	  const Vector&                               t_abs,
+	  const Vector&                               z_abs,
+	  const Vector&                               h2o_abs,
+	  const Matrix&                               vmrs,
+	  const ArrayOfArrayOfLineRecord&             lines_per_tg,
+	  const ArrayOfLineshapeSpec&                    lineshape,
+	  const Los&                                  los,           
+	  const ArrayOfMatrix&                 absloswfs,
+	  // Keywords
+	  const  Index&                               kw_intens,
+	  const  Index&                               kw_position,
+                const  Index&                               kw_agam,
+                const  Index&                               kw_sgam,
+                const  Index&                               kw_nair,
+	  const  Index&                               kw_nself,
+                const  Index&                               kw_pSift)
 {
 
   check_if_bool( kw_intens, "do_intens keyword" );
@@ -2317,7 +2324,6 @@ void kSpectro (
   Matrix        abs_line;
   Matrix        abs_line_changed;
   Matrix        ER;
-  Matrix Mcorr_line;
   ArrayOfMatrix abs_dummy1;
   Index         IndexPar; // spectro parameters to be investigated
   String        StrPar;
@@ -2369,7 +2375,10 @@ void kSpectro (
   // Get size for Kb
   nr_line_total=0;
 
-  if (tag_index.nelem()==0)
+  // Calculate the total number of lines for which the weighting
+  // function is calculated. In caz no speciaes are specified in wtgss
+  // then an error messege is given.
+ if (tag_index.nelem()==0)
     {
       ostringstream os;
       os << "No species has been set:   "<<"\n";	
@@ -2383,6 +2392,9 @@ void kSpectro (
 	  nr_line_total+=lines_per_tg[itg].nelem();
 	}  
     }
+
+ // Check whether the spectroscopic parameters for which to calculate the
+ // weighting function are set or lines in the spectral data are found.
   if (ipar == 0)
     {
       ostringstream os;
@@ -2401,20 +2413,22 @@ void kSpectro (
   k_names.resize(nr_line_total*ipar);
   S_S.resize(nr_line_total*ipar,2);
   ER.resize(nr_line_total,2);
-  Mcorr.resize(nr_line_total*ipar, nr_line_total*ipar);
-  Mcorr=0.0;
-  Mcorr_line.resize(nr_line_total, nr_line_total);
-  // calculate the weighting function for each parameter
+
+  // Go through the spectroscopic parameters and calculate the weighting function.
   Index nr_line=0;
+ 
+  // for intemsity
   if (kw_intens) 
     {  
       IndexPar = 1;
-      StrPar = "intensity";
-      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER, Mcorr_line, wfss_tgs, tgs, 
+      StrPar = "S";
+      out1<< " \n"; 
+      out1<<"==================================: " <<" \n"; 
+      out1<<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, wfss_tgs, tgs, 
 		  f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, lineshape, los, absweight, 
-		  IndexPar, StrPar, corr); 
+		  IndexPar, StrPar); 
       k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
      // ER.resize(kb_names.nelem(),2);
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
@@ -2422,19 +2436,18 @@ void kSpectro (
 	  k_names[nr_line+iri]= kb_names[iri]; 
 	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
-      nr_line+=Mcorr_line.ncols();
-    }	
+        nr_line+=kb.ncols();
+    }
+  // for line position	
   if (kw_position)
     { 
       IndexPar  = 2;
-      StrPar = "position";
-      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs, tgs, 
+      StrPar = "f0";
+      out1 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, wfss_tgs, tgs, 
 		  f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, 
- 		  lineshape, los, absweight, IndexPar, StrPar, corr);
+ 		  lineshape, los, absweight, IndexPar, StrPar);
       k(Range(joker), Range(nr_line,  kb.ncols()))= kb;
       // ER.resize(kb_names.nelem(),2);
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
@@ -2442,40 +2455,37 @@ void kSpectro (
 	  k_names[nr_line+iri]= kb_names[iri];
 	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
-      nr_line+=Mcorr_line.ncols();
+              nr_line+=kb.ncols();
 	}
+  // for air broadening parameter agam
   if (kw_agam)
     { 
       IndexPar = 3;
       StrPar = "agam";
-      out2<<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs,
+      out1<<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, wfss_tgs,
 		  tgs, f_mono, p_abs, t_abs,
 		  h2o_abs, vmrs, lines_per_tg, 
- 		  lineshape, los, absweight, IndexPar, StrPar, corr);
+ 		  lineshape, los, absweight, IndexPar, StrPar);
       k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
       //ER.resize(kb_names.nelem(),2);
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
         {
 	  k_names[nr_line+iri]= kb_names[iri]; 
 	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
-	  Mcorr(nr_line+iri, nr_line+iri)= Mcorr_line(iri, iri);
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
-      nr_line+=Mcorr_line.ncols();
+             nr_line+=kb.ncols();
 	}
+// for self broadening parameter sgam
   if (kw_sgam)
     { 
       IndexPar = 4;
       StrPar = "sgam";
-      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs,
+      out1 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER,  wfss_tgs,
 		  tgs, f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, 
- 		  lineshape, los, absweight, IndexPar, StrPar, corr);
+ 		  lineshape, los, absweight, IndexPar, StrPar);
       k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
       //ER.resize(kb_names.nelem(),2);
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
@@ -2483,20 +2493,18 @@ void kSpectro (
 	  k_names[nr_line+iri]= kb_names[iri]; 
 	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker));
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	     Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
       nr_line+=kb.ncols();
     }
- 
+ // for air broadening parameter nair
   if (kw_nair)
     { 
       IndexPar = 5;
-      StrPar = "nair";
-      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER,  Mcorr_line, wfss_tgs, 
+      StrPar = "na";
+      out1 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, wfss_tgs, 
 		  tgs, f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, 
-		  lineshape, los, absweight, IndexPar, StrPar, corr);
+		  lineshape, los, absweight, IndexPar, StrPar);
       k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
       //ER.resize(kb_names.nelem(),2);
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
@@ -2504,19 +2512,18 @@ void kSpectro (
 	  k_names[nr_line+iri]= kb_names[iri];
 	  S_S(nr_line+iri, Range(joker)) = ER(iri, Range(joker));
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line;
       nr_line+=kb.ncols();      
 	}
+// for self broadening parameter nself
   if (kw_nself)
     { 
       IndexPar = 6;
-      StrPar = "nself";
-      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER, Mcorr_line, wfss_tgs, 
+      StrPar = "ns";
+      out1 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, wfss_tgs, 
 		  tgs, f_mono, p_abs, t_abs, 
 		  h2o_abs, vmrs, lines_per_tg, lineshape, los, absweight, 
-		  IndexPar, StrPar, corr);
+		  IndexPar, StrPar);
       k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
       // ER.resize(kb_names.nelem(),2); 
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
@@ -2524,19 +2531,18 @@ void kSpectro (
 	  k_names[nr_line+iri]= kb_names[iri];
 	  S_S(nr_line+iri, Range(joker))=ER(iri, Range(joker)); 
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line; 
       nr_line+=kb.ncols();        
 	}
+  // for pressure shift
   if (kw_pSift)
     { 
       IndexPar = 7;
-      StrPar = "pressure shift";
-      out2 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
-      kb_spectro( kb, kb_names, kb_aux, ER, Mcorr_line, wfss_tgs, 
+      StrPar = "pSf";
+      out1 <<" ******* Calculating Wfs for "<< StrPar<<" ******\n"; 
+      kb_spectro( kb, kb_names, kb_aux, ER, wfss_tgs, 
 		  tgs, f_mono, p_abs, t_abs,
 		  h2o_abs, vmrs, lines_per_tg, lineshape, los, absweight,
-		  IndexPar, StrPar, corr);
+		  IndexPar, StrPar);
       k(Range(joker),Range(nr_line,  kb.ncols()))= kb;
       ER.resize(kb_names.nelem(),2);
       for ( Index iri=0; iri<kb_names.nelem(); iri++)
@@ -2544,8 +2550,6 @@ void kSpectro (
 	  k_names[nr_line+iri]= kb_names[iri]; 
 	  S_S(nr_line+iri, Range(joker)) = ER(iri, Range(joker));
 	} 
-      Mcorr(Range(nr_line, Mcorr_line.nrows()),
-	    Range(nr_line, Mcorr_line.ncols()) )= Mcorr_line; 
       nr_line+=kb.ncols();
 	}
   if (ipar == 0)

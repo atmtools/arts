@@ -5,7 +5,6 @@ function atag = my2arts(mytag)
 %
 % Input    mytag: MYTRAN tag (a number)
 % Output   atag:  ARTS tag (a string)
-
 switch mytag 
  
  case 11 
@@ -168,6 +167,7 @@ switch mytag
   atag = 'Cl2O2-765';     
  otherwise
   display(['tag ', mytag, ' is not a valid tag']);
+  atag ='';
   break
 end
 

@@ -3445,17 +3445,16 @@ md_data.push_back
 	  "do_sgam: flag for sgam. \n" 
 	  "do_nair: flag for temperature dependence of agam. \n"
 	  "do_nself: flag for temperature dependence of sgam. \n" 
-	  "do_pSift: flag for pressure shift . \n"
-          "correlation: level of correlation between spectroscopic parameters\n" ),
+	  "do_pSift: flag for pressure shift .\n" ),
 
-	OUTPUT(k_, k_names_, k_aux_ , S_S_, Mcorr_),
+	OUTPUT(k_, k_names_, k_aux_ , S_S_),
 	INPUT( wfss_tgs_, tgs_, f_mono_, p_abs_, t_abs_, z_abs_, h2o_abs_, vmrs_, 
           lines_per_tg_, lineshape_, los_, absloswfs_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("do_intens",  "do_position",  "do_agam", 
-                  "do_sgam", "do_nair", "do_nself", "do_pSift", "correlation"),
-	TYPES(  Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, Numeric_t)));
+                  "do_sgam", "do_nair", "do_nself", "do_pSift"),
+	TYPES(  Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, Index_t)));
 	
   md_data.push_back
     ( MdRecord

@@ -65,54 +65,54 @@ for i = 1:length(L)
   if L{i}.psf == 0
     fprintf(fid, ' 0');
   else  
-    fprintf(fid, ' %.6e',  L{i}.psf );
+    fprintf(fid, ' %.e',  L{i}.psf );
   end
-  fprintf(fid, ' %.6e',  L{i}.i0 );
-  fprintf(fid, ' %.0f',  L{i}.t_i0 );
-  fprintf(fid, ' %.5e',  L{i}.elow );
-  fprintf(fid, ' %.2f',  L{i}.agam );
-  fprintf(fid, ' %.2f',  L{i}.sgam );
-  fprintf(fid, ' %.2f',  L{i}.nair );
-  fprintf(fid, ' %.2f',  L{i}.nself );
-  fprintf(fid, ' %.0f',  L{i}.t_gam );
-  fprintf(fid, ' %d',    L{i}.n_aux );
+  fprintf(fid, ' %e',  L{i}.i0 );
+  fprintf(fid, ' %f',  L{i}.t_i0 );
+  fprintf(fid, ' %e',  L{i}.elow );
+  fprintf(fid, ' %f',  L{i}.agam );
+  fprintf(fid, ' %f',  L{i}.sgam );
+  fprintf(fid, ' %f',  L{i}.nair );
+  fprintf(fid, ' %f',  L{i}.nself );
+  fprintf(fid, ' %f',  L{i}.t_gam );
+  fprintf(fid, ' %d',  L{i}.n_aux );
   for j = 1:L{i}.n_aux
-    fprintf(fid, ' %.6e',  eval(['L{i}.aux',int2str(j)]) );
+    fprintf(fid, ' %e',  eval(['L{i}.aux',int2str(j)]) );
   end
   if L{i}.df < 0
-    fprintf(fid, ' %.0f',  L{i}.df );
+    fprintf(fid, ' %f',  L{i}.df );
   else
-    fprintf(fid, ' %.3e',  L{i}.df );
+    fprintf(fid, ' %e',  L{i}.df );
   end
   if L{i}.di0 < 0
-    fprintf(fid, ' %.0f',  L{i}.di0 );
+    fprintf(fid, ' %f',  L{i}.di0 );
   else
-    fprintf(fid, ' %.1f',  L{i}.di0 );
+    fprintf(fid, ' %f',  L{i}.di0 );
   end
   if L{i}.dagam < 0
-    fprintf(fid, ' %.0f',  L{i}.dagam );
+    fprintf(fid, ' %f',  L{i}.dagam );
   else
-    fprintf(fid, ' %.1f',  L{i}.dagam );
+    fprintf(fid, ' %f',  L{i}.dagam );
   end
   if L{i}.dsgam < 0
-    fprintf(fid, ' %.0f',  L{i}.dsgam );
+    fprintf(fid, ' %f',  L{i}.dsgam );
   else
-    fprintf(fid, ' %.1f',  L{i}.dsgam );
+    fprintf(fid, ' %f',  L{i}.dsgam );
   end
   if L{i}.dnair < 0
-    fprintf(fid, ' %.0f',  L{i}.dnair );
+    fprintf(fid, ' %f',  L{i}.dnair );
   else
-    fprintf(fid, ' %.1f',  L{i}.dnair );
+    fprintf(fid, ' %f',  L{i}.dnair );
   end
   if L{i}.dnself < 0
-    fprintf(fid, ' %.0f',  L{i}.dnself );
+    fprintf(fid, ' %f',  L{i}.dnself );
   else
-    fprintf(fid, ' %.1f',  L{i}.dnself );
+    fprintf(fid, ' %f',  L{i}.dnself );
   end
   if L{i}.dpsf < 0
-    fprintf(fid, ' %.0f',  L{i}.dpsf );
+    fprintf(fid, ' %f',  L{i}.dpsf );
   else
-    fprintf(fid, ' %.1f',  L{i}.dpsf );
+    fprintf(fid, ' %f',  L{i}.dpsf );
   end
 
   if do_quanta  &  isfield( L{i}, 'qcode' )
