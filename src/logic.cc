@@ -33,7 +33,8 @@
 
 
 
-#include <math.h> 
+#include <cmath> 
+#include <algorithm> 
 #include <stdexcept>
 #include "logic.h"
 
