@@ -4,7 +4,8 @@
 ;
 PRO showme, jobname=jobname,          $
             jobdir=jobdir,            $
-            plotfilename=plotfilename
+            plotfilename=plotfilename,$
+            altitude=altitude
 ;
 ;==========================================================================
 ;
@@ -19,6 +20,7 @@ PRO showme, jobname=jobname,          $
 ;       showme, jobname='myartscontrolfilename',  $
 ;               jobdir ='~/arts/',                $
 ;               plotfilename='myabsplot'
+;       showme, jobname='wats_pr1', jobdir='/home/home01/tkuhn/ARTS/'
 ;
 ; INPUTS:
 ;       jobname      (string)  name of the arts job from which the
@@ -52,29 +54,58 @@ if not keyword_set(jobdir) then begin
 endif
 ;
 if not keyword_set(plotfilename) then begin
-    plotfilename = 'cont_plot_dBkm'
+    plotfilename = jobname
 endif
 ;
-print, 'arts jobname   : ',jobname
-print, 'arts jobdir    : ',jobdir
-print, 'output filename: ',plotfilename
+if not keyword_set(altitude) then begin
+    selalt = 1.0
+endif else begin
+    selalt = altitude
+endelse
+print, '----------------------------------------------------------'
+print, 'arts jobname     : ',jobname
+print, 'arts jobdir      : ',jobdir
+print, 'output filename  : ',plotfilename
+;
+spawn, 'rm -f '+plotfilename+'.ps'
+print, ' '
+print, 'selected altitude: ',selalt,' km'
+print, '----------------------------------------------------------'
 ;
 ; ==========================================================================
 ; ##########################################################################
 ; ==========================================================================
 ;
+goto, absplot
+;
+;
+vmrplot:
+pvmrname = plotfilename+'_vmr'
+plot_vmr_per_tg, jobname=jobname,            $
+                 jobdir=jobdir,              $
+                 punit='hPa',                $
+                 tunit='K',                  $
+                 vmrunit='VMR',              $
+                 altunit='km',               $
+                 plotfilename=pvmrname,      $
+                 plotfileformat=1
+;goto, ende
+
+absplot:
+pabsname = plotfilename+'_abs'
 plot_abs_per_tg, jobname,                    $
                  f,                          $
                  abs,                        $
                  alt,                        $
-                 altitude=10.0,              $
+                 altitude=selalt,            $
                  jobdir=jobdir,              $
                  pressure='hPa',             $
                  temperature='K',            $
-                 absunit='dB/km',            $
-                 plotfilename=plotfilename,  $
+                 absunit='1/km',             $
+                 plotfilename=pabsname,      $
                  plotfileformat=2,           $
-                 plotsum=1
+                 plotsum=2,           $
+                 avoid_tg=["N2"] 
 ;
 ende:
 END

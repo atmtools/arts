@@ -125,7 +125,7 @@
 // #################################################################################
 //
 // 1) H2O-H2O: P. W. Rosenkranz, Radio Science, Vol. 33, No 4, Pages 919-928, 1998.
-void Rosenkranz_h2o_self_continuum( MATRIX&           xsec,
+void Rosenkranz_H2O_self_continuum( MATRIX&           xsec,
 				    Numeric	      C,
 				    Numeric	      x,
 				    const VECTOR&     f_mono,
@@ -167,7 +167,7 @@ void Rosenkranz_h2o_self_continuum( MATRIX&           xsec,
 //
 //   2) H2O-air: P. W. Rosenkranz, Radio Science, Vol. 33, No 4, Pages 919-928, 1998.
 //                            and  Radio Science, Vol. 34, No 4, Page  1025,    1999.
-void Rosenkranz_h2o_foreign_continuum( MATRIX&           xsec,
+void Rosenkranz_H2O_foreign_continuum( MATRIX&           xsec,
 				       Numeric	         C,
 				       Numeric	         x,
 				       const VECTOR&     f_mono,
@@ -244,24 +244,36 @@ Numeric MPMLineShapeFunction( Numeric gamma,
   return value;
 }
 //
+// #################################################################################
+//
 // MPM93 H2O pseudo continuum line parameters:
 // see publication side of National Telecommunications and Information Administration
 //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
 // and ftp side for downloading the MPM93 original source code:
 //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
-void MPM93_h2o_continuum( MATRIX&           xsec,
-			  Numeric	    MPM93fopcl, // default: 1780.0*10^9 Hz
-			  Numeric	    MPM93b1pcl, // default: 22300.0 Hz/Pa
-			  Numeric	    MPM93b2pcl, // default: 0.952
-			  Numeric	    MPM93b3pcl, // default: 17.6*10^4 Hz/Pa
-			  Numeric	    MPM93b4pcl, // default: 30.5
-			  Numeric	    MPM93b5pcl, // default: 2
-			  Numeric	    MPM93b6pcl, // default: 5
+			  // Numeric	    MPM93fopcl, // default: 1780.0*10^9 Hz
+			  // Numeric	    MPM93b1pcl, // default: 22300.0 Hz/Pa
+			  // Numeric	    MPM93b2pcl, // default: 0.952
+			  // Numeric	    MPM93b3pcl, // default: 17.6*10^4 Hz/Pa
+			  // Numeric	    MPM93b4pcl, // default: 30.5
+			  // Numeric	    MPM93b5pcl, // default: 2
+			  // Numeric	    MPM93b6pcl, // default: 5
+void MPM93_H2O_continuum( MATRIX&           xsec,
 			  const VECTOR&     f_mono,
 			  const VECTOR&     p_abs,
 			  const VECTOR&     t_abs,
 			  const VECTOR&     vmr	 )
 {
+
+  // pseudo continuum line parameters for MPM93:
+  const Numeric	MPM93fopcl =  1780.000e9;  // default: 1780.0*10^9 Hz
+  const Numeric	MPM93b1pcl = 22300.000;    // default: 22300.0 Hz/Pa
+  const Numeric	MPM93b2pcl =     0.952;    // default: 0.952
+  const Numeric	MPM93b3pcl =    17.600e4;  // default: 17.6*10^4 Hz/Pa
+  const Numeric	MPM93b4pcl =    30.500;    // default: 30.5
+  const Numeric	MPM93b5pcl =     2.000;    // default: 2
+  const Numeric	MPM93b6pcl =     5.000;    // default: 5
+  
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -298,20 +310,143 @@ void MPM93_h2o_continuum( MATRIX&           xsec,
 //
 // #################################################################################
 //
+// MPM93 O2 continuum:
+// see publication side of National Telecommunications and Information Administration
+//   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+// and ftp side for downloading the MPM93 original source code:
+//   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
+void MPM93_O2_continuum( MATRIX&           xsec,
+			 const VECTOR&     f_mono,
+			 const VECTOR&     p_abs,
+			 const VECTOR&     t_abs,
+			 const VECTOR&     h2o_abs,
+			 const VECTOR&     vmr	 )
+{
+
+  // O2 continuum parameters of MPM93:
+  const Numeric	S0 =  6.140e-5; // line strength
+  const Numeric G0 =  0.560e-3; // line width
+  const Numeric	X0 =  0.800;    // temperature dependence of line width
+  
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+
+  // Loop pressure/temperature:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      if (vmr[i] > 0.000 ) // make sure that division by zero is excluded
+	{
+	  Numeric th       = 300.0 / t_abs[i]; // Theta
+	  Numeric strength =  S0 * 0.01 * p_abs[i] * (1.0000 - h2o_abs[i]) * pow( th, 2 );
+	  Numeric gam      =  G0 * 0.01 * p_abs[i] *  pow( th, X0 ); // GHz
+	  
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      Numeric f = f_mono[s] * 1.00e-9; // frequency in GHz
+	      // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	      // abs / vmr * xsec.
+	      xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
+	 	            f * strength * f * gam /
+	                    ( pow( f, 2) + pow( gam, 2) ) / 
+                            vmr[i];
+	      //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	    }
+	} else {
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s ) xsec[s][i] = 0.000;
+	}
+    }
+}
+//
+// #################################################################################
+//
+//
+// MPM93 N2 continuum:
+// see publication side of National Telecommunications and Information Administration
+//   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+// and ftp side for downloading the MPM93 original source code:
+//   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
+void MPM93_N2_continuum( MATRIX&           xsec,
+			 const VECTOR&     f_mono,
+			 const VECTOR&     p_abs,
+			 const VECTOR&     t_abs,
+			 const VECTOR&     h2o_abs,
+			 const VECTOR&     vmr	 )
+{
+
+  // N2 continuum parameters of MPM93:
+  const Numeric	S0 =  1.400e-12; // line strength
+  const Numeric G0 =  1.93e-5;  // frequency factor
+  const Numeric	X0 =  1.500;    // frequency exponent
+  
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+
+  // Loop pressure/temperature:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      if (vmr[i] > 0.000 ) // make sure that division by zero is excluded
+	{
+	  Numeric th = 300.0 / t_abs[i];
+	  Numeric strength =  S0 * pow( (0.01 * p_abs[i] * (1.0000 - h2o_abs[i])), 2 ) * pow( th, 3.5 );
+
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      Numeric f = f_mono[s] * 1.00e-9; // frequency in GHz
+	      // the vmr of N2 will be multiplied at the stage of absorption calculation:
+	      // abs / vmr * xsec.
+	      xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
+	                    f * strength * f /
+	                    ( 1.000 + G0 * pow( f, X0) ) /
+                            vmr[i];
+	      // cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
+	    }
+	}  else {
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s ) xsec[s][i] = 0.000;
+	}
+    }
+}
+//
+// #################################################################################
+//
 //   3) O2-air : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //               "Atmospheric Remote Sensing by Microwave Radiometry",
 //               John Wiley & Sons, Inc., 1993. Also stated in 
 //               Liebe et al. JQSRT, Vol 48, Nr 5/6, pp. 629-643, 1992.
 //               Default continuum parameters are  C=1.6E-17*10E-9,  x=0.8
-void Rosenkranz_o2_continuum( MATRIX&           xsec,
-			      Numeric		C, // default: 1.108*10^-14 K^2/(Hz*Pa*m)
-			      Numeric		x, // default: 0.8
+void Rosenkranz_O2_continuum( MATRIX&           xsec,
 			      const VECTOR&  	f_mono,
 			      const VECTOR&  	p_abs,
 			      const VECTOR&  	t_abs,
 			      const VECTOR&     h2o_abs,
 			      const VECTOR&     vmr	 )
 {
+  const Numeric C = 1.108e-14; // default: 1.108*10^-14 K^2/(Hz*Pa*m)
+  const Numeric x = 0.8;       // default: 0.8
+
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -351,14 +486,15 @@ void Rosenkranz_o2_continuum( MATRIX&           xsec,
 // 4) N2-N2  : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_n2_self_continuum( MATRIX&           xsec,
-				   Numeric	     C, // default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
-				   Numeric	     x, // default: 3.55
+void Rosenkranz_N2_self_continuum( MATRIX&           xsec,
 				   const VECTOR&     f_mono,
 				   const VECTOR&     p_abs,
 				   const VECTOR&     t_abs,
 				   const VECTOR&     vmr	 )
 {
+  const Numeric	C = 1.05e-38; // default: 1.05*10^-38 1/(Pa^2*Hz^2*m)
+  const Numeric	x = 3.55;     // default: 3.55
+
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -394,14 +530,16 @@ void Rosenkranz_n2_self_continuum( MATRIX&           xsec,
 // 5) CO2-CO2: P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 // "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_co2_self_continuum( MATRIX&           xsec,
-				    Numeric	      C, // default: 7.43*10^-37 1/(Pa^2*Hz^2*m)
-				    Numeric	      x, // default: 5.08
+void Rosenkranz_CO2_self_continuum( MATRIX&           xsec,
 				    const VECTOR&     f_mono,
 				    const VECTOR&     p_abs,
 				    const VECTOR&     t_abs,
 				    const VECTOR&     vmr	 )
 {
+
+  const Numeric	C = 7.43e-37; // default: 7.43*10^-37 1/(Pa^2*Hz^2*m)
+  const Numeric	x = 5.08;     // default: 5.08
+
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -437,15 +575,17 @@ void Rosenkranz_co2_self_continuum( MATRIX&           xsec,
 // 6) CO2-N2 : P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
 //    "Atmospheric Remote Sensing by Microwave Radiometry", John Wiley & Sons, Inc., 1993
 //
-void Rosenkranz_co2_foreign_continuum( MATRIX&           xsec,
-				       Numeric	         C, // default: 2.71*10^-37 1/(Pa^2*Hz^2*m)
-				       Numeric	         x, // default: 4.7
+void Rosenkranz_CO2_foreign_continuum( MATRIX&           xsec,
 				       const VECTOR&     f_mono,
 				       const VECTOR&     p_abs,
 				       const VECTOR&     t_abs,
 				       const VECTOR&     n2_abs,
 				       const VECTOR&     vmr	 )
 {
+
+  const Numeric C = 2.71e-37; // default: 2.71*10^-37 1/(Pa^2*Hz^2*m)
+  const Numeric x = 4.7;      // default: 4.7
+
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -528,18 +668,20 @@ Numeric WVSatPressureIce(Numeric t)
 //
 //   A) cloud and fog absorption parameterization from MPM93 model
 //      input parameters:
-//      w :  suspended water droplet density, valid range: 0-10.00e-3 kg/m3
-//      m :  specific weight of the droplet,  fixed value:     1.00e3 kg/m3
+//      vmr: suspended water droplet density, valid range: 0-10.00e-3 kg/m3
 //      The internal numerical values (and units) are the same as in MPM93
 //
 void MPM93WaterDropletAbs( MATRIX&           xsec,
-			   Numeric	        w, // scaling factor for suspended water droplet density
-			   Numeric	        m, // specific droplet weight 
 			   const VECTOR&   f_mono, // frequency vector
 			   const VECTOR&    p_abs, // pressure vector
 			   const VECTOR&    t_abs, // temperature vector
 			   const VECTOR&      vmr) // suspended water droplet density vector
 {
+
+  const Numeric m = 1.00e3; // specific weight of the droplet,  fixed value:  1.00e3 kg/m3
+  const Numeric low_lim_den  =  0.000;   // lower limit of suspended droplet particle density vector [kg/m3]
+  const Numeric high_lim_den = 10.00e-3; // lower limit of suspended droplet particle density vector [kg/m3]
+
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -562,9 +704,8 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
       // relative humidity [1]
       // Numeric RH       = e / es;
   
-      // Check that suspended water droplet density and specific weight of the droplet
-      // are in the correct limits
-      if ((vmr[i] > 0.00) && (vmr[i] < 10.00e-3) && (fabs(m-1.000e3) < 0.100)) 
+      // Check limits of suspended water droplet density ("vmr") [kg/m3]
+      if ( (vmr[i] > low_lim_den) && (vmr[i] < high_lim_den) ) 
 	{
 	  // relative inverse temperature [1]
 	  Numeric theta    = 300.000 / t_abs[i];
@@ -599,7 +740,7 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
 	      // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
 	      // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
 	      // the factor of 1.0e6 is included below in the constant 41.90705.
-	      Numeric ImNw = 1.500 * w / m * 
+	      Numeric ImNw = 1.500 / m * 
 		( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
 	      // liquid water particle absorption cross section [1/m]
 	      // The vmr of H2O will be multiplied at the stage of absorption 
@@ -607,7 +748,17 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
 	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
 	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
 	    }
-	}
+	} else
+	  {
+	    if ( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) ) 
+	      {
+		ostringstream os;
+		os << "ERROR in MPM93WaterDropletAbs:\n"
+		   << " suspended water droplet density (valid range 0.00-10.00e-3 kg/m3):" << vmr[i] << "\n"
+		   << " ==> no calculation performed!\n";
+		throw runtime_error(os.str());
+	      }
+	  }
     }
 
 }
@@ -616,18 +767,19 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
 //
 //   A) ice particle absorption parameterization from MPM93 model
 //      input parameters:
-//      w :  suspended ice particle density,    valid range: 0-10.0e-3 kg/m3
-//      m :  specific weight of ice particles,  fixed value:   0.916e3 kg/m3
 //      The internal numerical values (and units) are the same as in MPM93
 //
 void MPM93IceCrystalAbs( MATRIX&           xsec,
-			 Numeric	      w,   // scaling factor for suspended ice particle density
-			 Numeric	      m,   // specific ice particles weight 
 			 const VECTOR&   f_mono,   // frequency vector
 			 const VECTOR&    p_abs,   // pressure vector
 			 const VECTOR&    t_abs,   // temperature vector
-			 const VECTOR&      vmr	 ) // suspended ice particle density vector
+			 const VECTOR&      vmr	 ) // suspended ice particle density vector, 
+                                                   // valid range: 0-10.0e-3 kg/m3
 {
+  const Numeric m = 0.916e3;  // specific weight of ice particles,  fixed value:   0.916e3 kg/m3
+  const Numeric low_lim_den  =  0.000;   // lower limit of suspended ice particle density vector [kg/m3]
+  const Numeric high_lim_den = 10.00e-3; // lower limit of suspended ice particle density vector [kg/m3]
+
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -652,47 +804,51 @@ void MPM93IceCrystalAbs( MATRIX&           xsec,
       // relative humidity [1]
       // Numeric RH = e / es;
   
-      // Check that suspended water droplet density and specific weight of the droplet
-      // are in the correct limits
-      if ((vmr[i] > 0.00) && (vmr[i] < 10.00e-3) && (fabs(m-0.916e3)< 0.100)) 
+      // Check limits of suspended water ice crystal density ("vmr") [kg/m3]
+      if ( (vmr[i] > low_lim_den) && (vmr[i] < high_lim_den) ) 
 	{ 
-	  // if the temperature is below 0 degree C (273 K) then 
-	  // absorption due to ice particles is added:
-	  if (t_abs[i] < 273.15)
-	    {
-	      // relative inverse temperature [1]
-	      Numeric theta = 300.000 / t_abs[i];	
-	      // inverse frequency T-dependency function [Hz]
-	      Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
-	      // linear frequency T-dependency function [1/Hz]
-	      Numeric bi = 0.542e-6 * 
+	  // relative inverse temperature [1]
+	  Numeric theta = 300.000 / t_abs[i];	
+	  // inverse frequency T-dependency function [Hz]
+	  Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
+	  // linear frequency T-dependency function [1/Hz]
+	  Numeric bi = 0.542e-6 * 
 		( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
 	      
-	      // Loop frequency:
-	      for ( size_t s=0; s<n_f; ++s )
-		{
-		  // real part of the complex permittivity of ice
-		  Numeric Reepsilon  = 3.15;
-		  // imaginary part of the complex permittivity of water
-		  Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
-					 ( bi*(f_mono[s]*1.000e-9) ) );
-		  // the imaginary part of the complex refractivity of suspended ice particles.
-		  // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
-		  // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-		  // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
-		  // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
-		  // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
-		  // the factor of 1.0e6 is included below in the constant 41.90705.
-		  Numeric ImNw = 1.500 * w / m * 
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      // real part of the complex permittivity of ice
+	      Numeric Reepsilon  = 3.15;
+	      // imaginary part of the complex permittivity of water
+	      Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
+				     ( bi*(f_mono[s]*1.000e-9) ) );
+	      // the imaginary part of the complex refractivity of suspended ice particles.
+	      // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
+	      // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+	      // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
+	      // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
+	      // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
+	      // the factor of 1.0e6 is included below in the constant 41.90705.
+	      Numeric ImNw = 1.500 / m * 
 		    ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
-		  // ice particle absorption cross section [1/m]
-		  // The vmr of H2O will be multiplied at the stage of absorption 
-		  // calculation: abs = vmr * xsec.
-		  // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
-		  xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
-		}
+	      // ice particle absorption cross section [1/m]
+	      // The vmr of H2O will be multiplied at the stage of absorption 
+	      // calculation: abs = vmr * xsec.
+	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
+	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
 	    }
-	}
+	} else
+	  {
+	    if ( (vmr[i] < low_lim_den) || (vmr[i] > high_lim_den) ) 
+	      {
+		ostringstream os;
+		os << "ERROR in MPM93IceCrystalAbs:\n"
+		   << " suspended ice particle density (valid range: 0-10.0e-3 kg/m3):" << vmr[i] << "\n"
+		   << " ==> no calculation performed!\n";
+		throw runtime_error(os.str());
+	      }
+	  }
     }
   return;
 }
@@ -709,10 +865,10 @@ void MPM93IceCrystalAbs( MATRIX&           xsec,
 // 
 // #################################################################################
 //
+//		       Numeric             CC, // continuum term scale factor
+//		       Numeric             CL, // line term scale factor
+//		       Numeric             CW, // line broadening scale factor
 void MPM87H2OAbsModel( MATRIX&           xsec,
-		       Numeric             CC, // continuum term scale factor
-		       Numeric             CL, // line term scale factor
-		       Numeric             CW, // line broadening scale factor
 		       const VECTOR&   f_mono,
 		       const VECTOR&    p_abs,
 		       const VECTOR&    t_abs,
@@ -754,6 +910,10 @@ void MPM87H2OAbsModel( MATRIX&           xsec,
     {   916.171582,    8.5600,  1.369,   25.30e-3},
     {   970.315022,    9.1600,  1.842,   24.00e-3},
     {   987.926764,  138.0000,  0.178,   28.60e-3}};
+
+  const Numeric CC = 1.0000; // constant scaling factor for continuum   
+  const Numeric CW = 1.0000; // constant scaling factor for line width   
+  const Numeric CL = 1.0000; // constant scaling factor for line strength  
 
   // number of lines of liebe line catalogue (30 lines)
   const size_t i_first = 0;
@@ -821,10 +981,10 @@ void MPM87H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
+//		       Numeric             CC, // continuum term scale factor
+//		       Numeric             CL, // line term scale factor
+//		       Numeric             CW, // line broadening scale factor
 void MPM89H2OAbsModel( MATRIX&           xsec,
-		       Numeric             CC, // continuum term scale factor
-		       Numeric             CL, // line term scale factor
-		       Numeric             CW, // line broadening scale factor
 		       const VECTOR&   f_mono,
 		       const VECTOR&    p_abs,
 		       const VECTOR&    t_abs,
@@ -866,6 +1026,10 @@ void MPM89H2OAbsModel( MATRIX&           xsec,
     {   916.171582,    8.5600,  1.442,   26.70,   0.70,  4.78,  0.78},
     {   970.315022,    9.1600,  1.920,   25.50,   0.64,  4.94,  0.67},
     {   987.926764,  138.0000,  0.258,   29.85,   0.68,  4.55,  0.90}};
+
+  const Numeric CC = 1.0000; // constant scaling factor for continuum   
+  const Numeric CW = 1.0000; // constant scaling factor for line width   
+  const Numeric CL = 1.0000; // constant scaling factor for line strength  
 
   // number of lines of liebe line catalogue (30 lines)
   const size_t i_first = 0;
@@ -935,10 +1099,10 @@ void MPM89H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
+//		       Numeric             CC, // continuum term scale factor
+//		       Numeric             CL, // line term scale factor
+//		       Numeric             CW, // line broadening scale factor
 void MPM93H2OAbsModel( MATRIX&           xsec,
-		       Numeric             CC, // continuum term scale factor
-		       Numeric             CL, // line term scale factor
-		       Numeric             CW, // line broadening scale factor
 		       const VECTOR&   f_mono,
 		       const VECTOR&    p_abs,
 		       const VECTOR&    t_abs,
@@ -986,7 +1150,10 @@ void MPM93H2OAbsModel( MATRIX&           xsec,
     {   987.926764,   13.21000,  0.258,   2.985,   4.55,  0.68,  0.90},
     {  1780.000000, 2230.00000,  0.952,  17.620,  30.50,  2.00,  5.00}};
 
-  
+  const Numeric CC = 1.0000; // constant scaling factor for continuum   
+  const Numeric CW = 1.0000; // constant scaling factor for line width   
+  const Numeric CL = 1.0000; // constant scaling factor for line strength  
+
   // number of lines of liebe line catalogue (0-33 lines, 34 cont. pseudo line)
   const size_t i_first = 0;
   const size_t i_last  = 34;
@@ -1068,10 +1235,10 @@ void MPM93H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
+		      //Numeric             CC, // continuum scale factor
+		      //Numeric             CL, // line strength scale factor
+		      //Numeric             CW, // line broadening scale factor
 void CP98H2OAbsModel( MATRIX&           xsec,
-		      Numeric             CC, // continuum scale factor
-		      Numeric             CL, // line strength scale factor
-		      Numeric             CW, // line broadening scale factor
 		      const VECTOR&   f_mono,
 		      const VECTOR&    p_abs,
 		      const VECTOR&    t_abs,
@@ -1080,9 +1247,9 @@ void CP98H2OAbsModel( MATRIX&           xsec,
   //
   // Coefficients are from S. L. Cruz-Pol et al., Radio Science, 33(5), 1319, 1998
   // nominal values for the scale factors:
-  //  CC = 1.2369 +/- 0.155
-  //  CL = 1.0639 +/- 0.016
-  //  CW = 1.0658 +/- 0.0096
+  const Numeric CC = 1.2369; // +/- 0.155
+  const Numeric CL = 1.0639; // +/- 0.016
+  const Numeric CW = 1.0658; // +/- 0.0096
 
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
@@ -1133,10 +1300,10 @@ void CP98H2OAbsModel( MATRIX&           xsec,
 //
 // #################################################################################
 //
+//		       Numeric             CC, // continuum term scale factor
+//		       Numeric             CL, // line term scale factor
+//		       Numeric             CW, // line broadening scale factor
 void PWR98H2OAbsModel( MATRIX&           xsec,
-		       Numeric             CC, // continuum term scale factor
-		       Numeric             CL, // line term scale factor
-		       Numeric             CW, // line broadening scale factor
 		       const VECTOR&   f_mono,
 		       const VECTOR&    p_abs,
 		       const VECTOR&    t_abs,
@@ -1186,6 +1353,10 @@ void PWR98H2OAbsModel( MATRIX&           xsec,
   const Numeric PWRxs[15] = { 0.61, 0.85, 0.54, 0.74, 0.89,
 			      0.52, 0.50, 0.67, 0.65, 0.64,
 			      0.72, 1.00, 0.68, 0.84, 0.78 };
+
+  const Numeric CC = 1.0000; // constant scaling factor for continuum   
+  const Numeric CW = 1.0000; // constant scaling factor for line width   
+  const Numeric CL = 1.0000; // constant scaling factor for line strength  
 
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
@@ -1271,10 +1442,6 @@ void PWR98H2OAbsModel( MATRIX&           xsec,
 //   (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
 //
 void PWR93O2AbsModel( MATRIX&           xsec,
-		      Numeric             CC, // continuum term scale factor
-		      Numeric             CL, // line strength scale factor
-		      Numeric             CW, // line broadening scale factor
-		      Numeric             CO, // line coupling scale factor
 		      const VECTOR&   f_mono,
 		      const VECTOR&    p_abs,
 		      const VECTOR&    t_abs,
@@ -1356,6 +1523,11 @@ void PWR93O2AbsModel( MATRIX&           xsec,
                           0.6729, -0.6545,  0.0000,  0.0000,
 			  0.0000,  0.0000,  0.0000,  0.0000};
 
+  const Numeric CC = 1.000; // continuum term scale factor
+  const Numeric CL = 1.000; // line strength scale factor
+  const Numeric CW = 1.000; // line broadening scale factor
+  const Numeric CO = 1.000; // line coupling scale factor
+  
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
 
@@ -1471,7 +1643,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
   // chain of if-else statements.
   //
   // ============= H2O continuum ================================================
-  if ( "H2O-ContStandardSelf"==name )
+  if ( "H2O-SelfContStandardType"==name )
     {
       // Check if the right number of paramters has been specified:
       if ( 2 != parameters.size() )
@@ -1499,7 +1671,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
-      Rosenkranz_h2o_self_continuum( xsec,
+      Rosenkranz_H2O_self_continuum( xsec,
 				     parameters[0],
 				     parameters[1],
 				     f_mono,
@@ -1507,7 +1679,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 				     t_abs,
 				     vmr );
     }
-  else if ( "H2O-ContStandardForeign"==name ) // ------------------------------
+  else if ( "H2O-ForeignContStandardType"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
       if ( 2 != parameters.size() )
@@ -1535,7 +1707,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
-      Rosenkranz_h2o_foreign_continuum( xsec,
+      Rosenkranz_H2O_foreign_continuum( xsec,
 					parameters[0],
 					parameters[1],
 					f_mono,
@@ -1549,10 +1721,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // since the parameterization is not devided up in these two terms.
 
       // Check if the right number of paramters has been specified:
-      if ( 7 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Continuum model " << name << " requires two input\n"
+	  os << "MPM93 H2O continuum model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1584,20 +1756,20 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
-      MPM93_h2o_continuum( xsec,
-			   parameters[0],
-			   parameters[1],
-			   parameters[2],
-			   parameters[3],
-			   parameters[4],
-			   parameters[5],
-			   parameters[6],
+			   // parameters[0],
+			   // parameters[1],
+			   // parameters[2],
+			   // parameters[3],
+			   // parameters[4],
+			   // parameters[5],
+			   // parameters[6],
+      MPM93_H2O_continuum( xsec,
 			   f_mono,
 			   p_abs,
 			   t_abs,
 			   vmr	 );
     }
-  else if ( "H2O-ContCKDSelf"==name ) // ----------------------------------------
+  else if ( "H2O-SelfContCKD"==name ) // ----------------------------------------
     {
 	  ostringstream os;
 	  os << "CKD self continuum model not yet implemented"
@@ -1606,7 +1778,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	  return;
 
     }
-  else if ( "H2O-ContCKDForeign"==name ) // -------------------------------------
+  else if ( "H2O-ForeignContCKD"==name ) // -------------------------------------
     {
 	  ostringstream os;
 	  os << "CKD foreign continuum model not yet implemented"
@@ -1615,13 +1787,14 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	  return;
 
     }
-  else if ( "H2O-CP98"==name ) // ------------------------------
+  // ============= H2O full models ==============================================
+  else if ( "H2O-CP98"==name )
     {
       // Check if the right number of paramters has been specified:
-      if ( 3 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Cruz-Pol absorption model " << name << " requires three input\n"
+	  os << "Cruz-Pol H2O absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1645,10 +1818,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
+      //	       parameters[0],
+      //	       parameters[1],
+      //	       parameters[2],
       CP98H2OAbsModel( xsec,
-		       parameters[0],
-		       parameters[1],
-		       parameters[2],
 		       f_mono,
 		       p_abs,
 		       t_abs,
@@ -1657,10 +1830,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
   else if ( "H2O-MPM87"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 3 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "MPM87 absorption model " << name << " requires three input\n"
+	  os << "MPM87 H2O absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1684,10 +1857,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
+      //		parameters[0],
+      //		parameters[1],
+      //		parameters[2],
       MPM87H2OAbsModel( xsec,
-			parameters[0],
-			parameters[1],
-			parameters[2],
 			f_mono,
 			p_abs,
 			t_abs,
@@ -1696,10 +1869,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
   else if ( "H2O-MPM89"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 3 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "MPM89 absorption model " << name << " requires three input\n"
+	  os << "MPM89 H2O absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1723,10 +1896,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
+      //		parameters[0],
+      //		parameters[1],
+      //		parameters[2],
       MPM89H2OAbsModel( xsec,
-			parameters[0],
-			parameters[1],
-			parameters[2],
 			f_mono,
 			p_abs,
 			t_abs,
@@ -1735,10 +1908,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
   else if ( "H2O-MPM93"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 3 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "MPM93 absorption model " << name << " requires three input\n"
+	  os << "MPM93 H2O absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1762,10 +1935,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
+      //       		parameters[0],
+      //		parameters[1],
+      //		parameters[2],
       MPM93H2OAbsModel( xsec,
-			parameters[0],
-			parameters[1],
-			parameters[2],
 			f_mono,
 			p_abs,
 			t_abs,
@@ -1774,10 +1947,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
   else if ( "H2O-PWR98"==name ) // ------------------------------
     {
       // Check if the right number of paramters has been specified:
-      if ( 3 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Rosenkranz98 absorption model " << name << " requires three input\n"
+	  os << "Rosenkranz98 absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1801,17 +1974,56 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
+      //		parameters[0],
+      //		parameters[1],
+      //		parameters[2],
       PWR98H2OAbsModel( xsec,
-			parameters[0],
-			parameters[1],
-			parameters[2],
 			f_mono,
 			p_abs,
 			t_abs,
 			vmr );
     }
   // ============= O2 continuum =================================================
-  else if ( "O2-ContRosenkranz"==name )
+  else if ( "O2-SelfContMPM93"==name )
+    {
+      // MPM93 O2 continuum:
+      // see publication side of National Telecommunications and Information Administration
+      //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+      // and ftp side for downloading the MPM93 original source code:
+      //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
+
+      // Check if the right number of paramters has been specified:
+      if ( 0 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM93 O2 continuum model " << name << " requires zero input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1/(Hz^2*Pa^2*m)]
+      //     parameters[1] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs       : [1]
+      //     vmr           : [1]
+      //
+      MPM93_O2_continuum( xsec,
+			  f_mono,
+			  p_abs,
+			  t_abs,
+			  h2o_abs,
+			  vmr );
+    }  
+  else if ( "O2-SelfContPWR93"==name ) // -------------------------------------
     {
       // data information about this continuum: 
       // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
@@ -1820,10 +2032,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // (see also JQSRT, Vol.48, No.5/6 pp.629-643, 1992)
 
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Continuum model " << name << " requires two input\n"
+	  os << "PWR O2 Continuum model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1845,16 +2057,17 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
-      Rosenkranz_o2_continuum( xsec,
-			       parameters[0], // coefficient
-			       parameters[1], // temp. exponent
+      //		       parameters[0], // coefficient
+      //		       parameters[1], // temp. exponent
+      Rosenkranz_O2_continuum( xsec,
 			       f_mono,
 			       p_abs,
 			       t_abs,
 			       h2o_abs,
 			       vmr );
     }
-  else if ( "O2-PWR93O2"==name )
+  // ============= O2 full model ================================================
+  else if ( "O2-PWR93"==name )
     {
       //  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
       //  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
@@ -1863,10 +2076,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //  (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
 
       // Check if the right number of paramters has been specified:
-      if ( 4 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Rosenkranz O2 abs. model " << name << " requires two input\n"
+	  os << "Rosenkranz O2 abs. model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1893,11 +2106,11 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     h2o_abs,      : [1]
       //     vmr           : [1]
       //
+      //	       parameters[0], // continuum term scale factor
+      //	       parameters[1], // line strength scale factor
+      //	       parameters[2], // line broadening scale factor
+      //	       parameters[3], // line coupling scale factor
       PWR93O2AbsModel( xsec,
-		       parameters[0], // continuum term scale factor
-		       parameters[1], // line strength scale factor
-		       parameters[2], // line broadening scale factor
-		       parameters[3], // line coupling scale factor
 		       f_mono,
 		       p_abs,
 		       t_abs,
@@ -1905,7 +2118,46 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 		       vmr );
     }
   // ============= N2 continuum =================================================
-  else if ( "N2-ContRosenkranzSelf"==name )
+  else if ( "N2-SelfContMPM93"==name )
+    {
+      // MPM93 N2 continuum:
+      // see publication side of National Telecommunications and Information Administration
+      //   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+      // and ftp side for downloading the MPM93 original source code:
+      //   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
+
+      // Check if the right number of paramters has been specified:
+      if ( 0 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM93 N2 continuum model " << name << " requires zero input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      //
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [1/(Hz^2*Pa^2*m)]
+      //     parameters[1] : [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs       : [1]
+      //     vmr           : [1]
+      //
+      MPM93_N2_continuum( xsec,
+			  f_mono,
+			  p_abs,
+			  t_abs,
+			  h2o_abs,
+			  vmr );
+    }  
+  else if ( "N2-SelfContPWR93"==name ) // -------------------------------------
     {
       // data information about this continuum: 
       // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
@@ -1913,10 +2165,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // John Wiley & Sons, Inc., 1993, ISBN 0-471-62891-3
 
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Continuum model " << name << " requires two input\n"
+	  os << "PWR N2 continuum model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1938,15 +2190,15 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
-      Rosenkranz_n2_self_continuum( xsec,
-				    parameters[0], // coefficient
-				    parameters[1], // temp. exponent
+      //			    parameters[0], // coefficient
+      //			    parameters[1], // temp. exponent
+      Rosenkranz_N2_self_continuum( xsec,
 				    f_mono,
 				    p_abs,
 				    t_abs,
 				    vmr );
     }  
-  else if ( "N2-ContBorysowSelf"==name ) // -------------------------------------
+  else if ( "N2-SelfContBorysow"==name ) // -------------------------------------
     {
       // data information about this continuum: 
       // A. Borysow and L. Frommhold, The Astrophysical Journal,
@@ -1954,6 +2206,8 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       ostringstream os;
       os << "N2 continuum parameterization of A. Borysow and L. Frommhold\n"
          << "is not yet implemented  ==>  no calculation performed!\n";
+      throw runtime_error(os.str());
+      return;
       /*
       Borysow_Frommhold_n2_continuum( xsec,
                                       parameters[0],
@@ -1963,10 +2217,9 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 				      t_abs,
 				      vmr );
       */
-      return;
     }  
   // ============= CO2 continuum ================================================
-  else if ( "CO2-ContRosenkranzSelf"==name )
+  else if ( "CO2-SelfContPWR93"==name )
     {
       // data information about this continuum: 
       // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
@@ -1974,10 +2227,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // John Wiley & Sons, Inc., 1993, ISBN 0-471-62891-3
 
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Continuum model " << name << " requires two input\n"
+	  os << "Continuum model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -1999,15 +2252,15 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     t_abs         : [K]
       //     vmr           : [1]
       //
-      Rosenkranz_co2_self_continuum( xsec,
-				     parameters[0], // coefficient
-				     parameters[1], // temp. exponent
+      //			     parameters[0], // coefficient
+      //			     parameters[1], // temp. exponent
+      Rosenkranz_CO2_self_continuum( xsec,
 				     f_mono,
 				     p_abs,
 				     t_abs,
 				     vmr );
     }
-  else if ( "CO2-ContRosenkranzForeign"==name ) // ------------------------------
+  else if ( "CO2-ForeignContPWR93"==name ) // ------------------------------
     {
       // data information about this continuum: 
       // P. W. Rosenkranz Chapter 2, pp 74, in M. A. Janssen, 
@@ -2015,10 +2268,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // John Wiley & Sons, Inc., 1993, ISBN 0-471-62891-3
 
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "Continuum model " << name << " requires two input\n"
+	  os << "Continuum model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -2041,9 +2294,9 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     n2_abs        : [1]
       //     vmr           : [1]
       //
-      Rosenkranz_co2_foreign_continuum( xsec,
-					parameters[0], // coefficient
-					parameters[1], // temp. exponent
+      //				parameters[0], // coefficient
+      //				parameters[1], // temp. exponent
+      Rosenkranz_CO2_foreign_continuum( xsec,
 					f_mono,
 					p_abs,
 					t_abs,
@@ -2051,7 +2304,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 					vmr );
     }
   // ============= cloud and fog absorption from MPM93 ==========================
-  else if ( "liquidcloud-MPM93droplet"==name )
+  else if ( "liquidcloud-MPM93"==name )
     {
       // Suspended water droplet absorption parameterization from MPM93 model
       // H. J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -2061,10 +2314,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
 
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "MPM93 liquid water particle absorption model " << name << " requires two input\n"
+	  os << "MPM93 liquid water particle absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -2091,9 +2344,9 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     n2_abs        : [1]
       //     vmr           : [1]
       //
+      //		   parameters[0],     // suspended water droplet density
+      //		   parameters[1],     // specific droplet weight 
       MPM93WaterDropletAbs(xsec,
-			   parameters[0],     // suspended water droplet density
-			   parameters[1],     // specific droplet weight 
 			   f_mono,
 			   p_abs,
 			   t_abs,
@@ -2110,10 +2363,10 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
 
       // Check if the right number of paramters has been specified:
-      if ( 2 != parameters.size() )
+      if ( 0 != parameters.size() )
 	{
 	  ostringstream os;
-	  os << "MPM93 ice particle absorption model " << name << " requires two input\n"
+	  os << "MPM93 ice particle absorption model " << name << " requires zero input\n"
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
@@ -2140,9 +2393,9 @@ void xsec_continuum_tag( MATRIX&                    xsec,
       //     n2_abs        : [1]
       //     vmr           : [1]
       //
+      //		 parameters[0],     // suspended water droplet density
+      //		 parameters[1],     // specific droplet weight 
       MPM93IceCrystalAbs(xsec,
-			 parameters[0],     // suspended water droplet density
-			 parameters[1],     // specific droplet weight 
 			 f_mono,
 			 p_abs,
 			 t_abs,
