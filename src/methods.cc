@@ -1330,6 +1330,21 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("raw_vmrs_1dReadFromFiles"),
+        DESCRIPTION(
+          "Read the individual VMR profile for each TAGS from the list of\n"
+          "files given as keyword parameters. One file name must be specified for\n"
+          "each TAGS. The name may include a path."
+          ),
+        OUTPUT(   raw_vmrs_1d_         ),
+        INPUT(    tgs_                 ),
+        GOUTPUT(                       ),
+        GINPUT(                        ),
+        KEYWORDS( "seltags",       "filenames",    "basename"),
+        TYPES(    ARRAY_string_t,  ARRAY_string_t, string_t)));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("raw_vmrs_1dReadFromScenario"),
   	DESCRIPTION(
 	  "Read the individual VMR profile for each tag group from a standard\n"
@@ -1343,7 +1358,7 @@ void define_md_data()
 	  "tag group for the same species, the same profile will be used."
 	  ),
 	OUTPUT(   raw_vmrs_1d_    ),
-	INPUT(    tgs_          ),
+	INPUT(    tgs_                 ),
 	GOUTPUT(                       ),
 	GINPUT(                        ),
 	KEYWORDS( "basename"           ),
@@ -1391,7 +1406,7 @@ void define_md_data()
 	  "Uses interp_lin(...)."
 	  ),
 	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
-	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
+	INPUT(    tgs_, p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
 	GOUTPUT(                       			 ),         
 	GINPUT(                        			 ),
 	KEYWORDS(                      			 ),

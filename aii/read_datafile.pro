@@ -48,7 +48,7 @@ IF nmat LT 1 THEN BEGIN
   stop
 ENDIF
 
-pa = ptrarr(nmat)                          ; returns a pointer array
+pa = ptrarr(nmat)  ; returns a pointer array
 
 nrow = intarr(nmat) & ncol = intarr(nmat)
 

@@ -198,14 +198,14 @@ void define_basic_species_data()
   	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDSelf"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDForeign"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "CP98Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM87Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM89Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "MPM93Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 	 REC( "PWR98Model"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
+  //	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+  //	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
 
   // CO2 
   // (missing mainly in JPL, latest version (7/00) includes some isotopes)
@@ -831,5 +831,28 @@ void define_basic_species_data()
 	 REC("231"	,.219595E-01	,29.	,-1	,382	,TAGS( ))
 	 ) ) );
 
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently! 
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("liquidcloud"),
+	DEGFR(3),
+	ISOTOPES
+	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //			|		|	|	|	|
+	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 ) ) );
+
+  // You also have to change the entry in the file
+  // partition_function_data.cc consistently! 
+  species_data.push_back
+    ( SpeciesRecord
+      ( NAME("icecloud"),
+	DEGFR(3),
+	ISOTOPES
+	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
+	 //			|		|	|	|	|
+	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 ) ) );
 
 }

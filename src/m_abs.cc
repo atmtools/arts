@@ -946,7 +946,7 @@ void lineshape_per_tgDefine(// WS Output:
 void raw_vmrs_1dReadFromScenario(// WS Output:
                                  ARRAYofMATRIX&   raw_vmrs_1d,
                                  // WS Input:
-                                 const TagGroups& tgs,
+                                 const TagGroups&     tgs,
                                  // Control Parameters:
                                  const string&    basename)
 {
@@ -960,13 +960,110 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
       string name =
 	basename + "." +
 	species_data[tgs[i][0].Species()].Name() + ".am";
-
+      
       // Add an element for this tag group to the vmr profiles:
       raw_vmrs_1d.push_back(MATRIX());
-
+      
       // Read the VMR:
       // (We use the workspace method MatrixReadAscii for this.)
       MatrixReadAscii(raw_vmrs_1d[i],"",name);
+      
+      // state the source of profile.
+      cout << species_data[tgs[i][0].Species()].Name() << " profile read from file: " << name << "\n";
+    }
+}
+
+void raw_vmrs_1dReadFromFiles(// WS Output:
+			      ARRAYofMATRIX&   raw_vmrs_1d,
+			      // WS Input:
+			      const TagGroups& tgs,
+			      // Control Parameters:
+			      const ARRAYofstring&  seltags,
+			      const ARRAYofstring&  filenames,
+			      const string&         basename)
+{
+  // The species lookup data:
+  extern const ARRAY<SpeciesRecord> species_data;
+  //int isoflag = 0;  // wilde card set for isotope -> all isotopes
+  const string wildcard = "*";
+
+  // check size of input string vectors.
+  assert ( filenames.size() == seltags.size() ); 
+
+  for ( size_t i=0; i<tgs.size(); ++i )
+    {
+      string tname = species_data[tgs[i][0].Species()].Name();
+
+      // loop over tags.
+      int flagtag = 1;
+
+      // loop over seltags.
+      for ( size_t s=0; s<seltags.size(); ++s )
+	{
+	  if (flagtag == 1)
+	    {
+	      // check if more than one isotope wild card "*".
+	      //assert ( seltags[s].find("-*") == seltags[s].rfind("-*"));
+	  
+	      // species name of actual seltags.
+	      string sname = seltags[s];
+	      string iname =  wildcard;
+	      if ((sname.find("-") > 0) && (sname.find("-") < sname.length()))
+		{
+		  sname.erase(sname.find("-"),sname.length()-1);
+		  //cout << "sname = " << sname << "\n";
+		  
+		  // species isotope name of actual seltags.
+		  string iname = seltags[s];
+		  iname.erase(0,iname.find("-")+1);
+		  //cout << "iname = " << iname << "\n";
+		}
+	      // specify if specific isotope is given or not.
+	      //if (iname == wildcard) {
+	      //  isoflag = 0;  // wilde card set for isotope -> all isotopes
+	      //} else {
+	      //  isoflag = 1;
+	      //}
+	      
+	      // seltag equal tag ?
+	      if (tname == sname) 
+		{
+		  flagtag = 0; // seltags and tag mached
+		  // cout << "no iso tag="<< tgs[i][0].Isotope() << "\n";
+		  // for ( size_t k=0; k<tgs[i][0].Isotope(); ++k ) 
+		  //{
+		  //  cout << "  iso  tag["<< i << "] = " << 
+		  //    species_data[tgs[i][0].Species()].Isotope()[k].Name() << "\n";
+		  //	}
+		  
+		  string fname = filenames[s];
+		  // Add an element for this tag group to the vmr profiles:
+		  raw_vmrs_1d.push_back(MATRIX());
+		  
+		  // Read the VMR:
+		  // (We use the workspace method MatrixReadAscii for this.)
+		  MatrixReadAscii(raw_vmrs_1d[i],"",fname);
+		  
+		  // state the source of profile.
+		  //cout << "  " << tname << " profile read from file: " << fname << "\n";
+		}
+	    }
+	}
+      if (flagtag == 1)
+	{
+	  // read from base name if seltags is not find 
+	  // Determine the name.
+	  string aname = basename + "." + tname + ".am";
+	  // Add an element for this tag group to the vmr profiles:
+	  raw_vmrs_1d.push_back(MATRIX());
+	  
+	  // Read the VMR:
+	  // (We use the workspace method MatrixReadAscii for this.)
+	  MatrixReadAscii(raw_vmrs_1d[i],"",aname);
+	  
+	  // state the source of profile.
+	  //cout << "  " << tname << " profile read from file: " << aname << "\n";
+	}
     }
 }
 
@@ -1087,6 +1184,7 @@ void AtmFromRaw1D(// WS Output:
 		  VECTOR& 	 z_abs,
 		  ARRAYofVECTOR& vmrs,
 		  // WS Input:      
+		  const TagGroups&       tgs,
 		  const VECTOR&  	 p_abs,
 		  const MATRIX&  	 raw_ptz_1d,
 		  const ARRAYofMATRIX&   raw_vmrs_1d)
@@ -1147,12 +1245,16 @@ void AtmFromRaw1D(// WS Output:
 
   //---------------< 2. Interpolation of VMR profiles >---------------
   {
+    // check size of input string vectors.
+    assert ( tgs.size() == raw_vmrs_1d.size() ); 
+
     // Make vmrs the right size:
     resize( vmrs, raw_vmrs_1d.size() );
     
     // For sure, we need to loop through all VMR profiles:
     for ( size_t j=0; j<raw_vmrs_1d.size(); ++j )
       {
+
 	// Get a reference to the profile we are concerned with:
 	const MATRIX& raw = raw_vmrs_1d[j];
 

@@ -246,8 +246,8 @@ void define_partition_species_data()
   iso(it_isotope,	"ContMPM93",             Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContCKDSelf",           Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContCKDForeign",        Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"MPM93droplet",          Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"MPM93ice",              Qcoeff( 0	,0		,0		,0          ) );
+  // iso(it_isotope,	"MPM93droplet",          Qcoeff( 0	,0		,0		,0          ) );
+  // iso(it_isotope,	"MPM93ice",              Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"CP98Model",             Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM87Model",            Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM89Model",            Qcoeff( 0	,0		,0		,0          ) );
@@ -733,6 +733,22 @@ void define_partition_species_data()
   iso(it_isotope,	"231",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
 
 
+
+  // particle
+  // Coeff:       1      1
+  // Quality:    ---    ---
+  spec(it_species, it_isotope, "liquidcloud");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"MPM93droplet", Qcoeff( 0	,0		,0		,0          ) );
+
+  // particle
+  // Coeff:       1      1
+  // Quality:    ---    ---
+  spec(it_species, it_isotope, "icecloud");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"MPM93ice",     Qcoeff( 0	,0		,0		,0          ) );
 
 }
 

@@ -207,7 +207,20 @@ string_title_alt = ' '
 if not keyword_set(altitude) then begin
     ialtitude = 0
 endif else begin
-    ialtitude = (where(alt gt (altitude*1000.0)))[0]
+    ialtitude = 0
+    delta_h = 1000.0
+    for i = 0, N_ELEMENTS(alt)-1 do begin 
+        hz = alt[i]
+        if ( ABS(hz-(altitude*1000.0)) LT delta_h) then begin 
+            delta_h = ABS(hz-(altitude*1000.0))
+            ialtitude = i
+        endif
+    endfor
+;;    ialtitude = (where(alt gt (altitude*1000.0)))[0]
+    if (ialtitude LT 0) then begin
+        ialtitude = 0
+        print, 'selected altitude: ',alt[ialtitude],'m'
+    endif
 endelse
 string_title_alt = string(alt[ialtitude]/1000.0,format='(F6.2)')+' km'
 

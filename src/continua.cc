@@ -480,16 +480,29 @@ void Rosenkranz_co2_foreign_continuum( MATRIX&           xsec,
 // saturation water vapor pressure over liquid water,
 // calculated according to Goff and Gratch formula.
 // The saturation water vapor pressure is in units of Pa
+// input is the temperature in Kelvin
 Numeric WVSatPressureLiquidWater(Numeric t)
 {
-  Numeric theta  = 373.16 / (t + 273.16);
-  Numeric es     = 100.000 * 
-                   ( -7.90298 * (theta-1.000) +
-		     5.02808 * log10(theta) -
-		     1.3816e-7 * ( pow( 10.00, (11.344*(1.00-(1.00/theta))) ) - 1.000 ) +
-		     8.1328e-3 * ( pow( 10.00, (-3.49149*(theta-1.00))) - 1.000) +
-		     log10(1013.246) );
-  return es;
+  //  COMPUTES SATURATION H2O VAPOR PRESSURE (OVER LIQUID)
+  //  USING LIEBE'S APPROXIMATION (CORRECTED)
+  //  input : T in Kelvin
+  //  ouput : es in Pa
+  //  PWR 4/8/92
+  /*
+  Numeric TH       = 300.0 / t;
+  Numeric es_PWR98 = 100.00 * 35.3 * exp(22.64*(1.-TH)) * pow(TH,5.0);
+  */
+
+  // MPM93 calculation
+  Numeric theta    = 373.16 / t;
+  Numeric exponent = ( -7.90298 * (theta-1.000) +
+		        5.02808 * log10(theta) -
+		        1.3816e-7 * ( pow( 10.00, (11.344*(1.00-(1.00/theta))) ) - 1.000 ) +
+		        8.1328e-3 * ( pow( 10.00, (-3.49149*(theta-1.00))) - 1.000) +
+		        log10(1013.246) );
+  Numeric es_MPM93 = 100.000 * pow(10.00,exponent);
+
+  return es_MPM93;
 }
 //
 // #################################################################################
@@ -497,15 +510,19 @@ Numeric WVSatPressureLiquidWater(Numeric t)
 // saturation water vapor pressure over ice,
 // calculated according to Goff and Gratch formula.
 // The saturation water vapor pressure is in units of Pa
+// input is the temperature in Kelvin
 Numeric WVSatPressureIce(Numeric t)
 {
-  Numeric theta  = 273.16 / (t + 273.16);
-  Numeric es     = 100.000 * 
-                  (-9.09718  * (theta-1.000) -
-		   3.56654  * log10(theta)  +
-		   0.876793 * (1.000-(1.000/theta)) +
-		   log10(6.1071) );
-  return es;
+  // MPM93 calculation
+  Numeric theta    = 273.16 / t;
+  Numeric exponent = (-9.09718  * (theta-1.000) -
+		       3.56654  * log10(theta)  +
+		       0.876793 * (1.000-(1.000/theta)) +
+		       log10(6.1071) );
+
+  Numeric es_MPM93 = 100.000 * pow(10.00,exponent);
+
+  return es_MPM93;
 }
 // #################################################################################
 //
@@ -516,12 +533,12 @@ Numeric WVSatPressureIce(Numeric t)
 //      The internal numerical values (and units) are the same as in MPM93
 //
 void MPM93WaterDropletAbs( MATRIX&           xsec,
-			   Numeric	        w, // suspended water droplet density
+			   Numeric	        w, // scaling factor for suspended water droplet density
 			   Numeric	        m, // specific droplet weight 
-			   const VECTOR&   f_mono,
-			   const VECTOR&    p_abs,
-			   const VECTOR&    t_abs,
-			   const VECTOR&      vmr	 )
+			   const VECTOR&   f_mono, // frequency vector
+			   const VECTOR&    p_abs, // pressure vector
+			   const VECTOR&    t_abs, // temperature vector
+			   const VECTOR&      vmr) // suspended water droplet density vector
 {
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
@@ -535,18 +552,6 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
   assert ( n_f==xsec.nrows() );
   assert ( n_p==xsec.ncols() );
   
-  // Check that suspended water droplet density and specific weight of the droplet
-  // are in the correct limits
-  if ((w < 0.00) || (w > 10.00e-3) || (fabs(m-1.000e3)> 0.100)) {
-    ostringstream os;
-    os << "MPM93WaterDropletAbs: \n"
-       << "suspended liquid water particle density,       valid range: 0-10.00e-3 kg/m3,  w=" << w << "\n"
-       << "specific weight of the liquid water particle,  fixed value:     1.00e3 kg/m3,  m=" << m << "\n"
-       << ".";
-    throw runtime_error(os.str());
-    return;
-  }
-
   // Loop pressure/temperature:
   for ( size_t i=0; i<n_p; ++i )
     {
@@ -557,46 +562,51 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
       // relative humidity [1]
       // Numeric RH       = e / es;
   
-      // relative inverse temperature [1]
-      Numeric theta    = 300.000 / t_abs[i];
-      // relaxation frequencies [GHz]
-      Numeric gamma1   = 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
-      Numeric gamma2   = 39.80 * gamma1; 
-      // static and high-frequency permittivities
-      Numeric epsilon0 = 103.30 * (theta-1.000) + 77.66;
-      Numeric epsilon1 = 0.0671 * epsilon0;
-      Numeric epsilon2 = 3.52;
-
-      // Loop frequency:
-      for ( size_t s=0; s<n_f; ++s )
+      // Check that suspended water droplet density and specific weight of the droplet
+      // are in the correct limits
+      if ((vmr[i] > 0.00) && (vmr[i] < 10.00e-3) && (fabs(m-1.000e3) < 0.100)) 
 	{
-	  // real part of the complex permittivity of water (double-debye model)
-	  Numeric Reepsilon  = epsilon0 - 
-	                       pow((f_mono[s]*1.000e-9),2) *
-	                       ( ((epsilon0-epsilon1)/
-				  (pow((f_mono[s]*1.000e-9),2) + pow(gamma1,2))) + 
-                                 ((epsilon1-epsilon2)/
-				  (pow((f_mono[s]*1.000e-9),2) + pow(gamma2,2))) );
-	  // imaginary part of the complex permittivity of water (double-debye model)
-	  Numeric Imepsilon  = (f_mono[s]*1.000e-9) *
-	                       ( (gamma1*(epsilon0-epsilon1)/
-				  (pow((f_mono[s]*1.000e-9),2) + pow(gamma1,2))) + 
-                                 (gamma2*(epsilon1-epsilon2)/
-				 (pow((f_mono[s]*1.000e-9),2) + pow(gamma2,2))) );
-	  // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
-	  // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
-          // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-          // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
-          // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
-          // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
-          // the factor of 1.0e6 is included below in the constant 41.90705.
-	  Numeric ImNw = 1.500 * (w/m) * 
- 	                ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
-	  // liquid water particle absorption cross section [1/m]
-	  // The vmr of H2O will be multiplied at the stage of absorption 
-	  // calculation: abs = vmr * xsec.
-          // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
-	  xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw / vmr[i];
+	  // relative inverse temperature [1]
+	  Numeric theta    = 300.000 / t_abs[i];
+	  // relaxation frequencies [GHz]
+	  Numeric gamma1   = 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
+	  Numeric gamma2   = 39.80 * gamma1; 
+	  // static and high-frequency permittivities
+	  Numeric epsilon0 = 103.30 * (theta-1.000) + 77.66;
+	  Numeric epsilon1 = 0.0671 * epsilon0;
+	  Numeric epsilon2 = 3.52;
+	  
+	  // Loop frequency:
+	  for ( size_t s=0; s<n_f; ++s )
+	    {
+	      // real part of the complex permittivity of water (double-debye model)
+	      Numeric Reepsilon  = epsilon0 - 
+		pow((f_mono[s]*1.000e-9),2) *
+		( ((epsilon0-epsilon1)/
+		   (pow((f_mono[s]*1.000e-9),2) + pow(gamma1,2))) + 
+		  ((epsilon1-epsilon2)/
+		   (pow((f_mono[s]*1.000e-9),2) + pow(gamma2,2))) );
+	      // imaginary part of the complex permittivity of water (double-debye model)
+	      Numeric Imepsilon  = (f_mono[s]*1.000e-9) *
+		( (gamma1*(epsilon0-epsilon1)/
+		   (pow((f_mono[s]*1.000e-9),2) + pow(gamma1,2))) + 
+		  (gamma2*(epsilon1-epsilon2)/
+		   (pow((f_mono[s]*1.000e-9),2) + pow(gamma2,2))) );
+	      // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
+	      // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
+	      // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+	      // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
+	      // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
+	      // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
+	      // the factor of 1.0e6 is included below in the constant 41.90705.
+	      Numeric ImNw = 1.500 * w / m * 
+		( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+	      // liquid water particle absorption cross section [1/m]
+	      // The vmr of H2O will be multiplied at the stage of absorption 
+	      // calculation: abs = vmr * xsec.
+	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
+	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
+	    }
 	}
     }
 
@@ -611,12 +621,12 @@ void MPM93WaterDropletAbs( MATRIX&           xsec,
 //      The internal numerical values (and units) are the same as in MPM93
 //
 void MPM93IceCrystalAbs( MATRIX&           xsec,
-			 Numeric	      w, // suspended ice particle density
-			 Numeric	      m, // specific ice particles weight 
-			 const VECTOR&   f_mono,
-			 const VECTOR&    p_abs,
-			 const VECTOR&    t_abs,
-			 const VECTOR&      vmr	 )
+			 Numeric	      w,   // scaling factor for suspended ice particle density
+			 Numeric	      m,   // specific ice particles weight 
+			 const VECTOR&   f_mono,   // frequency vector
+			 const VECTOR&    p_abs,   // pressure vector
+			 const VECTOR&    t_abs,   // temperature vector
+			 const VECTOR&      vmr	 ) // suspended ice particle density vector
 {
   const size_t n_p = p_abs.size();	// Number of pressure levels
   const size_t n_f = f_mono.size();	// Number of frequencies
@@ -630,17 +640,6 @@ void MPM93IceCrystalAbs( MATRIX&           xsec,
   assert ( n_f==xsec.nrows() );
   assert ( n_p==xsec.ncols() );
   
-  // Check that suspended water droplet density and specific weight of the droplet
-  // are in the correct limits
-  if ((w < 0.00) || (w > 10.00e-3) || (fabs(m-0.916e3)> 0.100)) {
-    ostringstream os;
-    os << "MPM93IceCrystalAbs: \n"
-       << "suspended ice particle density,       valid range: 0-10.0e-3 kg/m3,   w=" << w << "\n"
-       << "specific weight of the ice particle,  fixed value:   0.916e3 kg/m3,   m=" << m << "\n"
-       << ".";
-    throw runtime_error(os.str());
-    return;
-  }
 
 
   // Loop pressure/temperature:
@@ -653,42 +652,45 @@ void MPM93IceCrystalAbs( MATRIX&           xsec,
       // relative humidity [1]
       // Numeric RH = e / es;
   
-
-
-      // if the temperature is below 0 degree C (273 K) then 
-      // absorption due to ice particles is added:
-      if (t_abs[i] < 273.15)
-	{
-	  // relative inverse temperature [1]
-	  Numeric theta = 300.000 / t_abs[i];	
-	  // inverse frequency T-dependency function [Hz]
-	  Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
-	  // linear frequency T-dependency function [1/Hz]
-	  Numeric bi = 0.542e-6 * 
-	               ( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
-
-	  // Loop frequency:
-	  for ( size_t s=0; s<n_f; ++s )
+      // Check that suspended water droplet density and specific weight of the droplet
+      // are in the correct limits
+      if ((vmr[i] > 0.00) && (vmr[i] < 10.00e-3) && (fabs(m-0.916e3)< 0.100)) 
+	{ 
+	  // if the temperature is below 0 degree C (273 K) then 
+	  // absorption due to ice particles is added:
+	  if (t_abs[i] < 273.15)
 	    {
-	      // real part of the complex permittivity of ice
-	      Numeric Reepsilon  = 3.15;
-	      // imaginary part of the complex permittivity of water
-	      Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
-				     ( bi*(f_mono[s]*1.000e-9) ) );
-	      // the imaginary part of the complex refractivity of suspended ice particles.
-	      // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
-	      // a factor of 1.000e6 must be multiplied with the ratio (w/m):
-	      // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
-	      // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
-	      // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
-	      // the factor of 1.0e6 is included below in the constant 41.90705.
-	      Numeric ImNw = 1.500 * (w/m) * 
- 	                     ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
-	      // ice particle absorption cross section [1/m]
-	      // The vmr of H2O will be multiplied at the stage of absorption 
-	      // calculation: abs = vmr * xsec.
-	      // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
-	      xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw / vmr[i];
+	      // relative inverse temperature [1]
+	      Numeric theta = 300.000 / t_abs[i];	
+	      // inverse frequency T-dependency function [Hz]
+	      Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
+	      // linear frequency T-dependency function [1/Hz]
+	      Numeric bi = 0.542e-6 * 
+		( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
+	      
+	      // Loop frequency:
+	      for ( size_t s=0; s<n_f; ++s )
+		{
+		  // real part of the complex permittivity of ice
+		  Numeric Reepsilon  = 3.15;
+		  // imaginary part of the complex permittivity of water
+		  Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
+					 ( bi*(f_mono[s]*1.000e-9) ) );
+		  // the imaginary part of the complex refractivity of suspended ice particles.
+		  // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
+		  // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+		  // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
+		  // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
+		  // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
+		  // the factor of 1.0e6 is included below in the constant 41.90705.
+		  Numeric ImNw = 1.500 * w / m * 
+		    ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+		  // ice particle absorption cross section [1/m]
+		  // The vmr of H2O will be multiplied at the stage of absorption 
+		  // calculation: abs = vmr * xsec.
+		  // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
+		  xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw;
+		}
 	    }
 	}
     }
@@ -725,7 +727,7 @@ void MPM87H2OAbsModel( MATRIX&           xsec,
     {    22.235080,    0.1090,  2.143,   27.84e-3},
     {    67.813960,    0.0011,  8.730,   27.60e-3},
     {   119.995940,    0.0007,  8.347,   27.00e-3},
-    {   183.310074,    2.3000,  0.653,   31.64e-3},
+    {   183.310117,    2.3000,  0.653,   31.64e-3},
     {   321.225644,    0.0464,  6.156,   21.40e-3},
     {   325.152919,    1.5400,  1.515,   29.70e-3},
     {   336.187000,    0.0010,  9.802,   26.50e-3},
@@ -1011,6 +1013,14 @@ void MPM93H2OAbsModel( MATRIX&           xsec,
 	  Numeric theta    = (300.0 / t_abs[i]);
 	  // H2O partial pressure [hPa]
 	  Numeric pwv      = 0.01 * p_abs[i] * vmr[i];
+	  Numeric RH = 0.00;
+	    if (t_abs[i] > 273.16 )
+	    {
+	      RH = 100.00 * p_abs[i] * vmr[i] / WVSatPressureLiquidWater(t_abs[i]);
+	    } else {
+	      RH = 100.00 * p_abs[i] * vmr[i] / WVSatPressureIce(t_abs[i]);
+	    }
+	    // cout << "MPM93: P=" << p_abs[i] << " Pa, T="  << t_abs[i] << " K,  RH = " << RH << " % \n";
 	  // dry air partial pressure [hPa]
 	  Numeric pda      = (0.01 * p_abs[i]) - pwv;
 	  // Loop over MPM93 spectral lines:
@@ -1106,6 +1116,7 @@ void CP98H2OAbsModel( MATRIX&           xsec,
 	  // continuum term
 	  Numeric TC    = CC * pwv * pow(theta, 3.0) * 1.000e-7 * 
 	                  ( (0.113 * pda) + (3.57 * pwv * pow(theta,7.5)) );
+	  cout << "CP98:  TC =" << TC << "\n";
 	  // Loop over input frequency
 	  for ( size_t s=0; s<n_f; ++s )
 	    {
@@ -2038,7 +2049,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 					vmr );
     }
   // ============= cloud and fog absorption from MPM93 ==========================
-  else if ( "H2O-MPM93droplet"==name )
+  else if ( "liquidcloud-MPM93droplet"==name )
     {
       // Suspended water droplet absorption parameterization from MPM93 model
       // H. J. Liebe and G. A. Hufford and M. G. Cotton,
@@ -2087,7 +2098,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			   vmr );
     }
   // ============= ice particle absorption from MPM93 ============================
-  else if ( "H2O-MPM93ice"==name )
+  else if ( "icecloud-MPM93ice"==name )
     {
       // Ice particle absorption parameterization from MPM93 model
       // H. J. Liebe and G. A. Hufford and M. G. Cotton,

@@ -1,3 +1,14 @@
+2001-06-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-0-0-174
+
+	* change in methods.cc to allow profile read in from files
+	directly (see function raw_vmrs_1dReadFromFiles)
+	new tags defined for cloud liquid water (liquidcloud) and
+	cloud ice particles (icecloud). For these tags also profiles can
+	be read in now.
+	
+
 2001-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-173
