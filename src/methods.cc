@@ -2125,9 +2125,9 @@ void define_md_data()
 	DESCRIPTION(
 	   "Calculate absorption coefficients. \n"
 	   "\n"
-	   "This function calculates both, the total absorption and the\n"
-	   "absorption per tag group.\n"
-           "   " ) ,
+	   "This function calculates both, the total absorption (*abs*)\n"
+	   "and the absorption per tag group (*abs_per_tg*).\n"
+            ) ,
 	OUTPUT(abs_  , abs_per_tg_ ),
 	INPUT(tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
               lines_per_tg_, lineshape_,
@@ -2145,13 +2145,18 @@ void define_md_data()
 		    "\n"
 		    "This calculates both the total absorption and the\n"
 		    "absorption per tag group. \n"
-		    "This method calls three methods:\n"
-		    "1. 'xsec_per_tgInit' - initialize xsec_per_tg \n"
-		    "2. 'xsec_per_tgAddLine' - calculate cross sections per \n"
+		    "This method calls three other  methods:\n"
+		    "1. *xsec_per_tgInit* - initialize *xsec_per_tg* \n"
+		    "2. *xsec_per_tgAddLine* - calculate cross sections per \n"
 		    "                   tag group for line spectra.\n"
-		    "3. 'xsec_per_tgAddConts' - calculate cross sections per \n"
+		    "3. *xsec_per_tgAddConts* - calculate cross sections per \n"
 		    "                   tag group for continua.\n"
-                    "   " ),
+		    "Then it calculates the absorption coefficient by multiplying\n"
+		    "the cross section by VMR.\n"
+                    "This is done once for each tag group (output: *abs_per_tg*)\n"
+		    "and for the sum of all tag group to get the total absorption\n"
+		    "coefficient (output: *abs*)\n"
+		    ),
 	OUTPUT(	    abs_  , abs_per_tg_ ),
 	INPUT( 	    xsec_per_tg_, vmrs_ ),
 	GOUTPUT(),
@@ -2159,17 +2164,17 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-md_data.push_back
+  md_data.push_back
     ( MdRecord
       ( NAME( "xsec_per_tgInit" ),
 	DESCRIPTION(
-	   "Initialize xsec_per_tg.\n"
+	   "Initialize *xsec_per_tg*.\n"
 	   "\n"
 	   "The initialization is\n"
-	   "necessary, because methods `xsec_per_tgAddLines'\n"
-	   "and `xsec_per_tgAddConts' just add to xsec_per_tg.\n"
-	   "The size is determined from `tgs'.\n"
-           "   " ),
+	   "necessary, because methods *xsec_per_tgAddLines*\n"
+	   "and *xsec_per_tgAddConts* just add to *xsec_per_tg*.\n"
+	   "The size is determined from *tgs*.\n"
+	   ),
 	OUTPUT( xsec_per_tg_ ),
 	INPUT(tgs_, f_mono_, p_abs_),
 	GOUTPUT(),
@@ -2182,7 +2187,7 @@ md_data.push_back
       ( NAME("xsec_per_tgAddLines"),
 	DESCRIPTION(
 		    "Calculate cross sections per tag group for line spectra.\n"
-		    "   " ),
+		   ),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 		    lines_per_tg_, lineshape_ ),
@@ -2196,7 +2201,7 @@ md_data.push_back
       ( NAME("xsec_per_tgAddConts"),
 	DESCRIPTION(
 		    "Calculate cross sections per tag group for continua.\n"
-                    "   " ),
+                     ),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_,
 		    cont_description_names_, cont_description_parameters_ ),
@@ -2215,7 +2220,7 @@ md_data.push_back
 		    "Reduces absorption coefficients. Only absorption\n"
 		    "coefficients for which weighting functions are\n"
 		    "calculated are kept in memory.\n"
-		    "   " ),
+		    ),
 	OUTPUT(	    abs_per_tg_ ),
 	INPUT( 	    abs_per_tg_, tgs_, wfs_tgs_ ),
 	GOUTPUT(),
@@ -2730,18 +2735,32 @@ md_data.push_back
     ( MdRecord
       ( NAME("kContAbs"),
   	DESCRIPTION(
-          "Calculates weighting functions (WFs) for polynomial fit of \n"
-          "continuum  absorption. \n"
-          "\n"  
-          "The continuum is fitted by determining an off-set at a number of \n"
-          "points (order+1) that are evenly spread between the lowest and \n"
-          "upper frequency limit. See AUG for more details.\n"
-          "   If the limits are set to be negative, *f_low* is set to the \n"
-          "first value of *f_mono*, and *f_high* to the last value of \n"
-          "*f_mono*. The frequency limits cannot be outside the range of \n"
-          "*f_mono*. \n"
-          "   The WFs for each frequency point are kept together, and the \n"
-          "WF matrix for the different frequency points are appended. \n"
+a          "Calculates 1D weighting functions for fit of continuum absorption\n"
+          "by polynomials with selectable order.\n"  
+          "The continuum is fitted be determining an off-set at a number of\n"
+          "points (order+1) that are evenly spread between the lowest and\n"
+          "highest frequency of f_mono.\n"
+          "\n"
+          "Keywords \n"
+          "  order : Polynomial order (>=0)."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "order" ),
+	TYPES(    Index_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kContAbsSpecifiedLimits"),
+  	DESCRIPTION(
+          "Calculates 1D weighting functions for fit of continuum absorption\n"
+          "by polynomials with selectable order.\n"
+          "The continuum is fitted be determining an off-set at a number of\n"
+          "points (order+1) that are evenly spread between the given\n"
+          "frequency limits.\n"
+          "This functions can be used to make seperate fits in the primary\n"
+          "and image bands.\n"
           "\n"
           "Keywords \n"
           "  order : Polynomial order (>=0). \n"
