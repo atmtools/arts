@@ -40,7 +40,6 @@
   ===========================================================================*/
 
 #include <stdexcept>
-#include <iostream>
 #include <cstdlib>
 #include "arts.h"
 #include "array.h"

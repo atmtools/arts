@@ -38,7 +38,6 @@
   === External declarations
   ===========================================================================*/
 
-#include <iostream>
 #include "absorption.h"
 #include "arts.h"
 #include "auto_md.h"

@@ -39,7 +39,6 @@
 #include "make_vector.h"
 #include "array.h"
 #include "logic.h"
-#include <iostream>
 
 //! LU decomposition.
 /*!

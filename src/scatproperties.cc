@@ -9,7 +9,6 @@
 */
 
 #include <stdexcept>
-#include <iostream>
 #include "scatproperties.h"  
 #include "math_funcs.h"
 #include "logic.h"

@@ -38,7 +38,6 @@
 
 #include <cmath>
 #include <stdexcept>
-#include <iostream>
 #include "array.h"
 #include "math_funcs.h"
 #include "logic.h"
