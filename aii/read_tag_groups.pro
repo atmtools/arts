@@ -1,3 +1,7 @@
+; ==========================================================================
+; ####################### ARTS IDL INTERFACE PROCEDURE #####################
+; ==========================================================================
+;
 function find_keyword , kw , cf , n
 ;;----------------------------------------------------------------------
 ;; Finds the keyword kw in array of strings cf of size n
@@ -8,10 +12,14 @@ endfor
 return, -1
 end
 
-PRO open_read_controlfile, controlfile, cf, nlines
+
+;; #########################################################################
 
 
-print,'Reading ARTS controlfile: ',controlfile
+PRO OPEN_READ_CONTROLFILE, controlfile, cf, nlines
+
+
+print,'OPEN_READ_CONTROLFILE> Reading ARTS controlfile: ',controlfile
 
 
 ;; get the # of lines in the controlfile
@@ -38,7 +46,10 @@ endfor
 end
 
 
-PRO strtotalcount, str, searchstr, cnt, pos
+;; #########################################################################
+
+
+PRO STRTOTALCOUNT, str, searchstr, cnt, pos
 
 ;; counts the number of occurences of searchstr in str
 
@@ -48,8 +59,8 @@ I = 0
 ;; Number of occurrences found.
 cnt = 0
 
-;; save positions, there should not be more than 20.
-pos=intarr(19)
+;; save positions, there should not be more than 200.
+pos=intarr(200)
 
 ;; Search for an occurrence.
 WHILE (I NE -1) DO BEGIN 
@@ -77,7 +88,10 @@ if cnt ne 0 then pos=pos[0:cnt-1]
 END
 
 
-PRO read_tag_groups, controlfile, searchpattern, tg
+;; #########################################################################
+
+
+PRO READ_TAG_GROUPS, controlfile, searchpattern, tg
 
 ;; opens an arts controlfile and returns the tag groups found after
 ;; the searchpattern in the string array tg. This version is not dummy
@@ -106,11 +120,17 @@ PRO read_tag_groups, controlfile, searchpattern, tg
 ;; 2001-01-22 Ave Created.
 ;;
 
+print,' '
+print,'READ_TAG_GROUPS> controlfile  ='+controlfile
+print,'READ_TAG_GROUPS> searchpattern='+searchpattern
+print,' '
+
 ;; read controlfile into array cf, which holds nlines lines
 open_read_controlfile, controlfile, cf, nlines
 
 ;; now search for the searchpattern
 i = find_keyword(searchpattern,cf,nlines)
+print,'READ_TAG_GROUPS> find_keyword: i=',i
 
 ;; nothing found?
 if i lt 0 then begin
@@ -134,7 +154,6 @@ endwhile
 
 ;; put the last element into tg
 tg[i-k] = cf[i]
-
 ;; total number of lines read
 tnl=i-k
 
@@ -179,3 +198,4 @@ endfor
 tg=tg1
 
 end
+;; #########################################################################

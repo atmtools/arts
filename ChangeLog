@@ -1,3 +1,39 @@
+2003-04-03  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-0-72
+
+	* aii/aii_startup: added this aii startup batch file which is
+	similar to IDL_STARTUP just for ARTS/aii purposes
+	* aii/aii_compile: compiles all the functions and procedures of
+	the aii directory. Called by aii_startup. This ensures that all
+	the functions/procedures are available to the user in the IDL session. 
+	* aii/WaterVaporSatPressure.pro:  update of the water vapor
+	saturation pressure calculation according to the formula of
+	D. Sonntag, Meteorologische Zeitschrift, 1994 (Eq. 7, 8, 22, 23) 
+	* aii/RH_test.pro: add this procedure to compare different
+	saturation pressure calculations 
+	* aii/RH_test_batch: batch file for RH_test.pro.
+	* aii/aii_aa_read_general.pro: update of this procedure 
+	* aii/aii_plot_file.pro: update of this procedure and in the same 
+	file you find to small and simple functions which allows the user
+	to open and close a postscript file for IDL plots.  
+	* aii/aii_readfile.pro: separated this previously existing
+	procedure into a separate file.
+	* aii/aii_where_str.pro : separated this previously existing
+	procedure into a separate file.
+	* aii/aii_writedatum.pro: creats a string with the actual datum.
+	* aii/plot_RT_1.pro: updated this procedure
+	* aii/plot_abs_per_tg.pro: separated the aii_readfile procedure
+	from this file.
+	* aii/plot_abs_per_tg_2.pro: update of the input variables
+	* aii/plot_vmr_per_tg.pro: updated the relative humidity calculation.
+	* aii/read_tag_groups.pro: increasaed the hardcoded parameter
+	which counts the separators of the tags.
+	* aii/showme.pro: updated the input variable checks and call of 
+	plot_abs_per_tg_2.
+	* aii/showmebatch: add this idl batch file which calls showme.pro
+	(has to be adjusted by each user)
+
 2003-04-01  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-71

@@ -1,0 +1,12 @@
+; run it with "@RH_test_batch" in the command line
+
+.COMPILE aii_checks
+.COMPILE aii_color_table
+.COMPILE aii_plotsymbols
+.COMPILE aii_plot_file
+.COMPILE aii_aa_read_general
+.COMPILE WaterVaporSatPressure
+.COMPILE RH_test
+.COMPILE RH_test
+
+RH_test

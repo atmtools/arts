@@ -1,0 +1,11 @@
+;; run it with "@showmebatch" in the command line
+
+;; can be found in the aii directory of arts
+.COMPILE showme
+
+;; can be found in the aii directory of arts
+@aii_startup
+
+
+; ABSorption plot
+showme, jobname='mytran', jobdir='/tmp/Tmp522590/', run='ABS', plotfilename='mytran', altitude=20.0

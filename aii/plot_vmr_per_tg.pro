@@ -1,191 +1,7 @@
-;; #################################################################################
-;; functions to calculate saturation water pressure over liquid water
-;; and ice
-;; history:  alpha version,  2001-06-05, TKS
-FUNCTION WVSatPressureLiquidWater, t
-; ---------------------------------------------------------------------
-  ;  Rosenkranz approximation
-  ;  COMPUTES SATURATION H2O VAPOR PRESSURE (OVER LIQUID)
-  ;  USING LIEBE'S APPROXIMATION (CORRECTED)
-  ;  input : T  in Kelvin
-  ;  ouput : es in Pa
-  ;  PWR 4/8/92
-  ;
-   TH       = 300.0 / t;
-   es_PWR98 = 100.00 * 35.3 * EXP(22.64*(1.-TH)) * TH^5; saturation pressure in Pa
-  ;
-; ---------------------------------------------------------------------
-
-  ; MPM93 calculation
-   theta    = 373.16 / t;
-
-   a = (11.344*(1.00-(1.00/theta)))
-   b = a * ALOG(10.00)
-   c = (-3.49149*(theta-1.00))
-   d = c * ALOG(10.00)
-
-   exponent = ( -7.90298 * (theta-1.000) +       $
-		5.02808 * ALOG10(theta) -        $
-	        1.3816e-7 * ( EXP(b) - 1.000 ) + $
-	        8.1328e-3 * ( EXP(d) - 1.000) +  $
-	        ALOG10(1013.246) );
-
-   es_MPM93 = 100.000 * EXP(exponent * ALOG(10.00))
-
-   return, es_MPM93 ; saturation pressure in Pa
-end
+; ==========================================================================
+; ####################### ARTS IDL INTERFACE PROCEDURE #####################
+; ==========================================================================
 ;
-; #################################################################################
-;
-; from MPM93 model
-; saturation water vapor pressure over ice,
-; calculated according to Goff and Gratch formula.
-; The saturation water vapor pressure is in units of Pa
-; input is the temperature in Kelvin
-FUNCTION WVSatPressureIce, t
-  ; MPM93 calculation
-   theta    = 273.16 / t
-
-   exponent = (-9.09718  * (theta-1.000) -          $
-	        3.56654  * ALOG10(theta)  +         $
-		0.876793 * (1.000-(1.000/theta)) +  $
-	        ALOG10(6.1071) )
-
-   es_MPM93 = 100.000 * EXP(exponent * ALOG(10.00))
-
-  return, es_MPM93 ; saturation pressure in Pa
-  end
-;
-; #################################################################################
-;; history:  alpha version,  2001-06-05, TKS
-FUNCTION SatPressureCalc, LWC, IWC, T
-
-es = -1.000e6
-
-if ( (LWC GT 0.00) AND (IWC LE 0.00) ) then begin
-    es = WVSatPressureLiquidWater( T )
-endif
-; ice cloud detected
-if ( (LWC LE 0.00) AND (IWC GT 0.00) ) then begin
-    es = WVSatPressureIce( T )
-endif
-
-; both cloud types are present, take then the lower saturation pressure
-if ( (LWC GT 0.00) AND (IWC GT 0.00) ) then begin
-    es1 = WVSatPressureLiquidWater( T )
-    es2 = WVSatPressureIce( T )
-    es = min([es1, es2])
-endif
-
-; no cloud case
-if ( (LWC LE 0.00) AND (IWC LE 0.00) ) then begin
-    if (T GE 273.15) then es = WVSatPressureLiquidWater( T )
-    if (T LT 273.15) then es = WVSatPressureIce( T )
-endif
-
-return, es; water vapor saturation pressure in Pa
-end
-;
-;
-;#################################################################################
-;
-function aii_file_exists, filename
-;; checks whether the file filename exists and returns 1 for yes and 0
-;; for no
-
-YES = 1
-NO  = 0
-
-get_lun,unit
-openr,unit,filename,error=err
-free_lun,unit
-
-if (err ne 0) then return,NO   $
-else return,YES
-end
-
-
-PRO aii_readfile,filename,output
-;; checks whether the is file present by using aii_file_exists,
-;; compressed, or gzipped, and reads it if possible by using
-;; read_datafile into output variable
-
-;; do we have to uncompress?
-com=-1
-
-;; uncompressed
-if aii_file_exists(filename) then begin
-    filename = filename
-    com = 0
-endif 
-
-;; compressed
-if aii_file_exists(filename+'.Z') then begin
-    filename = filename+'.Z'
-    com = 1
-endif 
-
-;; gzipped
-if aii_file_exists(filename+'.gz') then begin
-    filename = filename+'.gz'
-    com = 1
-endif 
-
-;; file not found
-if com eq -1 then begin
-    print,'Error: File not found: '+filename
-    stop
-endif
-
-; read the file
-if ( com ) then begin
-	dummyname = './'+filename+'.arts.dummy.this.should.not.be.here'	
-	print,'  decompressing...'
-	spawn,'zcat '+filename+' > '+dummyname
-
-	; read in from dummyname
-        output=read_datafile(dummyname, /check)
-
-	;remove the dummy matrix file
-	spawn,'rm '+dummyname
-endif else begin
-	; read in from filename
-        output=read_datafile(filename, /check)
-endelse
-
-end
-
-
-Function aii_where_str,str1,str2,dim
-;; similar to where, but works for string array str1 and str2
-;;
-;; returns -1 if not found, otherwise the index of str1 where entries
-;; of str2 were found
-
-;; size of str1, str2
-ns1=(size(str1,/dime))[0]
-ns2=(size(str2,/dime))[0]
-
-;; allocate an int array, resize it later to dim
-x=intarr(ns1)
-dim=0
-
-;; now loop the 2 arrays
-for i=0,ns1-1 do begin
-    for j=0,ns2-1 do begin
-        if str1[i] eq str2[j] then begin
-            x[dim]=i
-            dim=dim+1
-        endif
-    endfor
-endfor
-
-;; now resize and return
-if dim eq 0 then x=-1 else x=x[0:dim-1]
-return, x
-end
-
-
 PRO plot_vmr_per_tg, jobname=jobname, $
                      add_to_title=add_to_title,$
                      avoid_tg=avoid_tg, $
@@ -326,8 +142,10 @@ endif else begin
     ppscale = 1.000
     ppunit = '[Pa]'
 endelse
+prePa[i] = dblarr(N_ELEMENTS(pre))
 for i = 0, N_ELEMENTS(pre)-1 do begin
-    pre[i] = pre[i] * ppscale
+    prePa[i] =  pre[i]           ;; pressure in [Pa]
+    pre[i]   = pre[i] * ppscale  ;; pressure in user defined units
 endfor
 
 
@@ -482,10 +300,6 @@ for k = 0,N_ELEMENTS(tg)-1 do begin ; loop over all tags
 ;;  find min and max of the tag concentration
     xmin = MIN(vmr[*,k])
     xmax = MAX(vmr[*,k])
-    ;;TKS;; s1='xmin = min(vmr.mat'+string(k,format='(I0)')+'[0,0:N_ELEMENTS(alt)-1])' 
-    ;;TKS;; r1 = execute(s1)
-    ;;TKS;; s1='xmax = max(vmr.mat'+string(k,format='(I0)')+'[0,0:N_ELEMENTS(alt)-1])' 
-    ;;TKS;; r1 = execute(s1)
     if ((xmin/xmax) GT 0.10) then begin
         xmin = xmin *  0.100
         xmax = xmax * 10.000
@@ -494,31 +308,16 @@ for k = 0,N_ELEMENTS(tg)-1 do begin ; loop over all tags
 ;;  water vapor tag found?
     if ( STRPOS(tg[k],'H2O') GE 0) then begin
         h2otag    = k
-        ;;TKS;; for z = 0, N_ELEMENTS(alt)-1 do begin
-        ;;TKS;;     s1 = 'h2ovmr['+string(z,format='(I)')+'] = vmr.mat'+$
-        ;;TKS;;          string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
-        ;;TKS;;     r1 = execute(s1)
-        ;;TKS;; endfor
     endif
 
 ;;  water cloud in the tag group?
     if ( STRPOS(tg[k],'liquidcloud') GE 0) then begin
         watercloudtag = k
-        ;;TKS;;for z = 0, N_ELEMENTS(alt)-1 do begin
-        ;;TKS;;    s1 = 'liquidcloudprofile['+string(z,format='(I)')+'] = vmr.mat'+$
-        ;;TKS;;         string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
-        ;;TKS;;    r1 = execute(s1)
-        ;;TKS;;endfor
     endif
 
 ;;  ice cloud in the tag group?
     if ( STRPOS(tg[k],'icecloud') GE 0) then begin
         icecloudtag = k
-        ;;TKS;;for z = 0, N_ELEMENTS(alt)-1 do begin
-        ;;TKS;;    s1 = 'icecloudprofile['+string(z,format='(I)')+'] = vmr.mat'+$
-        ;;TKS;;         string(k,format='(I0)')+'[0,'+string(z,format='(I)')+']' 
-        ;;TKS;;    r1 = execute(s1)
-        ;;TKS;;endfor
     endif
 
 ;;  counts plots per single page
@@ -562,54 +361,8 @@ for k = 0,N_ELEMENTS(tg)-1 do begin ; loop over all tags
 
         posi = posi + 1
     endif
-    ;;TKS;;s1=   sxlog+$
-    ;;TKS;;      'vmr.mat'+string(k,format='(I0)')+'[0,0:N_ELEMENTS(alt)-1], '+$
-    ;;TKS;;      'pre[0:N_ELEMENTS(alt)-1]*ppscale, '+$
-    ;;TKS;;      'title=total_title, '+$
-    ;;TKS;;      'yrange=[ppscale*max(pre[0:N_ELEMENTS(alt)-1]), ppscale*min(pre[0:N_ELEMENTS(alt)-1])], '+$
-    ;;TKS;;      'xrange=[xmin, xmax], '+$
-    ;;TKS;;      'xtitle=ax, '+$
-    ;;TKS;;      'XCHARSIZE=1.2, '+$
-    ;;TKS;;      'YCHARSIZE=1.2, '+$
-    ;;TKS;;      'color=colors[index], '+$
-    ;;TKS;;      al+$
-    ;;TKS;;      'thick=thick, '+$
-    ;;TKS;;      'xstyle=1, '+$
-    ;;TKS;;      'ystyle=4, '+$
-    ;;TKS;;      'POSITION=[posvec[0:3,'+string(posi,format='(I0)')+']]'
-    ;;TKS;;r1 = execute(s1)
 endfor
 
-
-
-
-;; print, '---------------------------------------------------'
-;; print, 'T=200K P_SW = ',WVSatPressureLiquidWater(200.0),'Pa'
-;; print, 'T=210K P_SW = ',WVSatPressureLiquidWater(210.0),'Pa'
-;; print, 'T=220K P_SW = ',WVSatPressureLiquidWater(220.0),'Pa'
-;; print, 'T=230K P_SW = ',WVSatPressureLiquidWater(230.0),'Pa'
-;; print, 'T=240K P_SW = ',WVSatPressureLiquidWater(240.0),'Pa'
-;; print, 'T=250K P_SW = ',WVSatPressureLiquidWater(250.0),'Pa'
-;; print, 'T=260K P_SW = ',WVSatPressureLiquidWater(260.0),'Pa'
-;; print, 'T=270K P_SW = ',WVSatPressureLiquidWater(270.0),'Pa'
-;; print, 'T=280K P_SW = ',WVSatPressureLiquidWater(280.0),'Pa'
-;; print, 'T=290K P_SW = ',WVSatPressureLiquidWater(290.0),'Pa'
-;; print, 'T=300K P_SW = ',WVSatPressureLiquidWater(300.0),'Pa'
-;; print, 'T=310K P_SW = ',WVSatPressureLiquidWater(310.0),'Pa'
-;; print, '---------------------------------------------------'
-;; print, 'T=200K P_SI = ',WVSatPressureIce(200.0),'Pa'
-;; print, 'T=210K P_SI = ',WVSatPressureIce(210.0),'Pa'
-;; print, 'T=220K P_SI = ',WVSatPressureIce(220.0),'Pa'
-;; print, 'T=230K P_SI = ',WVSatPressureIce(230.0),'Pa'
-;; print, 'T=240K P_SI = ',WVSatPressureIce(240.0),'Pa'
-;; print, 'T=250K P_SI = ',WVSatPressureIce(250.0),'Pa'
-;; print, 'T=260K P_SI = ',WVSatPressureIce(260.0),'Pa'
-;; print, 'T=270K P_SI = ',WVSatPressureIce(270.0),'Pa'
-;; print, 'T=280K P_SI = ',WVSatPressureIce(280.0),'Pa'
-;; print, 'T=290K P_SI = ',WVSatPressureIce(290.0),'Pa'
-;; print, 'T=300K P_SI = ',WVSatPressureIce(300.0),'Pa'
-;; print, 'T=310K P_SI = ',WVSatPressureIce(310.0),'Pa'
-;; print, '---------------------------------------------------'
 
 
 
@@ -666,14 +419,10 @@ if ( h2otag GE 0) then begin
         if (ttunit EQ '[C]') then TT = temperature[0,z]+273.15
         esw = 0.000
         esi = 0.000
-        esw = ppscale * WVSatPressureLiquidWater(TT)
-        esi = ppscale * WVSatPressureIce(TT)
+        esw = ppscale * WaterVaporSatPressure(TT, prePa[i], phase='water', punit='Pa', corr='yes')
+        esi = ppscale * WaterVaporSatPressure(TT, prePa[i], phase='ice', punit='Pa', corr='yes')
         RHliquid[z] = 100.00 * ( pre[z] * vmr[z,h2otag] ) / esw ; [%] 
         RHice[z]    = 100.00 * ( pre[z] * vmr[z,h2otag] ) / esi ; [%]
-;        print,'----------------------------------------------------------------------------'
-;        print, 'h= ',alt[z],' ',zunit,', p= ',pre[z],' ',ppunit,', T= ', TT,' ',ttunit
-;        print, 'VMR= ',vmr[z,h2otag],', RH_l= ', RHliquid[z],',   RH_i= ', RHice[z]
-;        print, 'P= ',pre[z],' ',ppunit,', e_sw= ',esw,' ',ppunit,', e_si= ',esi,' ',ppunit
     endfor
 
     if (posi GE 6) then begin

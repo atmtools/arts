@@ -3399,9 +3399,9 @@ void MPM93O2AbsModel( MatrixView          xsec,
 {
   //
   // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
-  //         0           1        2       3        4      5      6
-  //         f0          a1       a2      a3       a4     a5     a6
-  //        [GHz]     [kHz/hPa]   [1]   [MHz/hPa]  [1]    [10³/hPa]
+  //         0             1           2         3         4      5        6
+  //         f0           a1           a2       a3        a4      a5       a6
+  //        [GHz]      [kHz/hPa]      [1]    [MHz/hPa]    [1]       [10³/hPa]
   const Numeric mpm93[44][7] = { 
     {   50.474238,       0.094,      9.694,    0.890,     0.0,   0.240,    0.790}, // 0
     {   50.987749,       0.246,      8.694,    0.910,     0.0,   0.220,    0.780}, // 1
@@ -11804,8 +11804,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.7 $ */
-/*     created:	        $Date: 2002/12/20 15:08:30 $ */
+/*     revision:	        $Revision: 1.26.2.8 $ */
+/*     created:	        $Date: 2003/04/03 14:22:14 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

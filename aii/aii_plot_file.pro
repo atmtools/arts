@@ -1,13 +1,91 @@
 ; ==========================================================================
 ; ####################### ARTS IDL INTERFACE PROCEDURE #####################
 ; ==========================================================================
+;;
+FUNCTION PSPlotOpen, text, n
+;;
+;; ---------------------------------------------------------------------
+;; NAME    : PSPlotOpen
+;; PURPOSE : opens a postscript file for IDL plots
+;; EXTERNAL: calls procedure aii_plot_file
+;; INPUT   : text  STRING   postscript file name (without extension) 
+;;           n     INTEGER  postscript format 
+;;                          1: postscript portrait
+;;                          2: postscript landscape
+;;                          3: encapsulated postscript portrait
+;;                          4: encapsulated postscript landscape
+;; OUTPUT  : ok    INTEGER  flag if everything went well (0=ok, 1=error)
+;; ---------------------------------------------------------------------
+;;
+;; flag: 0=ok, 1=error occured
+ok = 1
 ;
-pro aii_plot_file, action=action, $
-                   fname=fname, $
-                   fformat=fformat, $
-                   show=show, $
-                   print=print, $
-                   outdir=outdir
+;; use aii_plot_file for writing into plot output file
+aii_plot_file, action='begin', fname=text, fformat=n
+;
+ok = 0
+;
+!P.MULTI     = 0
+!P.FONT      = 1
+!P.CHARSIZE  = 1.5
+!X.CHARSIZE  = 1
+!Y.CHARSIZE  = 1
+!P.THICK     = 8
+!X.THICK     = 5
+!Y.THICK     = 5
+!X.CHARSIZE  = 1.5
+!Y.CHARSIZE  = 1.5
+!P.CHARSIZE  = 1.5
+!P.CHARTHICK = 4
+;!X.MARGIN    = [0,0]
+;!Y.MARGIN    = [0,0]
+;
+DEVICE, /times, font_size=12
+;
+!P.MULTI     = [0,1,1]
+!P.POSITION  = [0.2, 0.2, 0.9, 0.8]
+;
+RETURN, ok
+END
+;;
+;; ============================================================================
+;;
+FUNCTION PSPlotClose, a, b, c
+;;
+;; ------------------------------------------------------------------------
+;; NAME    : PSPlotClose
+;; PURPOSE : close a postscript file for IDL plots
+;; EXTERNAL: calls procedure aii_plot_file
+;; INPUT   : a  STRING  open postscript file with ghostview a='yes' or 'no'
+;;           b  STRING  send postscript file to printer     b='yes' or 'no'
+;;           c  STRING  move postscript file to directory   c="DIRNAME"
+;;           d  STRING  write datum lower left corner       d='yes' or 'no'
+;; OUTPUT  : ok INTEGER flag if everything went well (0=ok, 1=error)
+;; ------------------------------------------------------------------------
+;;
+ok = 1  ;; flag: 0=ok, 1=error occured
+aii_plot_file, action='end', $
+               show=a,       $
+               print=b,      $
+               outdir=c,     $
+               writedate=d
+ok = 0
+;
+RETURN, ok
+END
+
+;; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+; ==========================================================================
+;
+pro aii_plot_file, action=action,      $
+                   fname=fname,        $
+                   fformat=fformat,    $
+                   show=show,          $
+                   print=print,        $
+                   outdir=outdir,      $
+                   writedate=writedate
 ;
 ;==========================================================================
 ;
@@ -53,6 +131,9 @@ pro aii_plot_file, action=action, $
 ;       print   (string)   variable which handles the printing on the
 ;                          standard printer of the output file.
 ;                          Possible values are 'yes' and 'no'.
+;       writedate (string) state if the user name and date should be
+;                          written into the plot.  
+;                          Possible values are 'yes' and 'no'.
 ;
 ; OUTPUTS:
 ;       no own output, but handling of graphical device output.
@@ -91,6 +172,10 @@ ENDIF
 ;
 IF NOT KEYWORD_SET(show) THEN BEGIN
     show = 'no'  ; default value
+ENDIF
+;
+IF NOT KEYWORD_SET(writedate) THEN BEGIN
+    writedate = 'NO' ; default value
 ENDIF
 ;
 ; check input parameter action' of correctness:
@@ -220,7 +305,8 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.color      = !P.background
 ;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /PORTRAIT, /COLOR
+              DEVICE, FILENAME=USERFILENAME, /times, /PORTRAIT, $
+                      XSIZE=21.0, YSIZE=29.6, XOFFS=0.0,  YOFFS=0.0, /COLOR
 ;              DEVICE,/PORTRAIT
 ;              DEVICE, /COLOR
 ;              DEVICE, SET_FONT='Times'
@@ -232,7 +318,8 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.color      = !P.background
 ;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /LANDSCAPE, /COLOR  
+              DEVICE, FILENAME=USERFILENAME, /times, /LANDSCAPE, $
+                      YSIZE=21.0, XSIZE=29.6, XOFFS=0.0,  YOFFS=0.0, /COLOR  
 ;              DEVICE, /LANDSCAPE
 ;              DEVICE, /COLOR
 ;              DEVICE, SET_FONT='Times'
@@ -244,7 +331,7 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.color      = !P.background
 ;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /PORTRAIT, /ENCAPSULATED, /COLOR
+              DEVICE, FILENAME=USERFILENAME, /times, /PORTRAIT, /ENCAPSULATED, /COLOR
 ;              DEVICE, /ENCAPSULATED
 ;              DEVICE, /COLOR
 ;              DEVICE, /PORTRAIT
@@ -257,7 +344,7 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.color      = !P.background
 ;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME, SET_FONT='Times', /LANDSCAPE, /ENCAPSULATED, /COLOR
+              DEVICE, FILENAME=USERFILENAME, /times, /LANDSCAPE, /ENCAPSULATED, /COLOR
 ;              DEVICE, /ENCAPSULATED
 ;              DEVICE, /COLOR
 ;              DEVICE, /LANDSCAPE
@@ -303,24 +390,34 @@ endif
 ;
 if (action EQ 'end') then begin
 ;
-; a) close output file
+; a) write date and user name into the lower left corner of the plot
+; ------------------------------------------------------------------
+    IF (STRUPCASE(writedate) EQ 'YES') THEN BEGIN
+        XYOUTS, 0.1, 0.05, $
+                aii_writedatum(), $
+                CHARSIZE=0.45, $
+                ALIGNMENT=0.0, $
+                /NORMAL
+    ENDIF
+
+; b) close output file
 ; --------------------
     IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN DEVICE, /close_file
     SET_PLOT, DEVICENAME
 ;
-; b) print info
+; c) print info
 ; -------------
     print, ' * aii_plot_file> dir   : ','>>'+outdir+'<<'
     print, ' * aii_plot_file> file  : ','>>'+USERFILENAME+'<<'
     print, ' * aii_plot_file> format: ',FORMAT_VEC[ANTWORT]
 ;
-; c) move output file into specified directory
+; d) move output file into specified directory
 ; --------------------------------------------
     IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
-        spawn, 'mv '+USERFILENAME+' '+outdir
+        spawn, 'mv -u '+USERFILENAME+' '+outdir
     ENDIF
 ;
-; d) close device and open ghostview
+; e) close device and open ghostview
 ; ----------------------------------
     IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
         if (show EQ 'yes') then begin
@@ -332,7 +429,7 @@ if (action EQ 'end') then begin
         endelse
     ENDIF
 ;
-; e) printing
+; f) printing
 ; -----------
     IF ((ANTWORT GE 1) AND (ANTWORT LE 4)) THEN BEGIN
         if (print EQ 'yes') then begin
@@ -343,7 +440,7 @@ if (action EQ 'end') then begin
         endelse
     ENDIF
 ;
-; f) set back to saved original user settings
+; g) set back to saved original user settings
 ; -------------------------------------------
     !P = PUSERINITIAL
 ;

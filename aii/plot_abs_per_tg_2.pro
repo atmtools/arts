@@ -2,76 +2,29 @@
 ; ####################### ARTS IDL INTERFACE PROCEDURE #####################
 ; ==========================================================================
 ;
-function aii_file_exists, filename
-;; checks whether the file filename exists and returns 1 for yes and 0
-;; for no
-
-YES = 1
-NO  = 0
-
-get_lun,unit
-openr,unit,filename,error=err
-free_lun,unit
-
-if (err ne 0) then return,NO   $
-else return,YES
-end
-
-
-PRO aii_readfile,filename,output
-;; checks whether the is file present by using aii_file_exists,
-;; compressed, or gzipped, and reads it if possible by using
-;; read_datafile into output variable
-
-;; do we have to uncompress?
-com=-1
-
-;; uncompressed
-if aii_file_exists(filename) then begin
-    filename = filename
-    com = 0
-endif 
-
-;; compressed
-if aii_file_exists(filename+'.Z') then begin
-    filename = filename+'.Z'
-    com = 1
-endif 
-
-;; gzipped
-if aii_file_exists(filename+'.gz') then begin
-    filename = filename+'.gz'
-    com = 1
-endif 
-
-;; file not found
-if com eq -1 then begin
-    print,'Error: File not found: '+filename
-    stop
-endif
-
-; read the file
-if ( com ) then begin
-	dummyname = './'+filename+'.arts.dummy.this.should.not.be.here'	
-	print,'  decompressing...'
-	spawn,'zcat '+filename+' > '+dummyname
-
-	; read in from dummyname
-        output=read_datafile(dummyname, /check)
-
-	;remove the dummy matrix file
-	spawn,'rm '+dummyname
-endif else begin
-	; read in from filename
-        output=read_datafile(filename, /check)
-endelse
-
-end
+PRO plot_abs_per_tg_2, jobname,                          $
+                       abs=abs,                          $
+                       f=f,                              $
+                       alt=alt,                          $
+                       altitude=altitude,                $
+                       read=read,                        $
+                       add_to_title=add_to_title,        $
+                       avoid_tg=avoid_tg,                $
+                       color=color,                      $
+                       cm=cm,                            $
+                       xrange=xrange,                    $
+                       yrange=yrange,                    $
+                       nostamp=nostamp,                  $
+                       jobdir=jobdir,                    $
+                       pressure=pressure,                $
+                       temperature=temperature,          $
+                       absunit=absunit,                  $
+                       plotfilename=plotfilename,        $
+                       plotfileformat=plotfileformat,    $
+                       plotsum=plotsum,                  $
+                       plotyaxis=plotyaxis
 ;
-; ==========================================================================
-; ##########################################################################
-; ==========================================================================
-;
+;***************************************************************************
 ;; reads an arts abs_per_tg file, frequency file, and altitude file ,
 ;; and plots the different tag group absorption, the tag groups are
 ;; identified by reading the arts controlfile. procedure does not plot
@@ -123,27 +76,8 @@ end
 ;;     2001-12-04 TKS  alpha version created 
 ;;
 ;***************************************************************************
-;
-PRO plot_abs_per_tg_2, jobname, f, abs, alt, $
-                       altitude=altitude, $
-                       read=read,$
-                       add_to_title=add_to_title,$
-                       avoid_tg=avoid_tg, $
-                       color=color, $
-                       cm=cm,$
-                       xrange=xrange, $
-                       yrange=yrange,$
-                       nostamp=nostamp, $
-                       jobdir=jobdir, $
-                       pressure=pressure, $
-                       temperature=temperature, $
-                       absunit=absunit, $
-                       plotfilename=plotfilename,$
-                       plotfileformat=plotfileformat, $
-                       plotsum=plotsum, $
-                       plotyaxis=plotyaxis
-;======================================================
-;
+
+
 ;; set directory name apropriate
 if keyword_set(jobdir) then begin 
     jobdirname = jobdir+jobname
@@ -172,7 +106,7 @@ tot_tg= (size(tg,/DIMENSIONS))[0]
 
 ;; now reads the absorption per tag, and the altitudes and
 ;; frequencies, only ascii arrays are allowed currently
-if not keyword_set(read) then begin
+if not keyword_set(abs) then begin
     print,'Reading absorption data...'
     aa = jobdirname+'.abs_per_tg.aa'
     abs = aa_read_general(aa)
@@ -191,7 +125,7 @@ endif
 
 
 ;; 6) now read frequency data 
-if not keyword_set(read) then begin
+if not keyword_set(f) then begin
     print,'Reading frequency data...'
     f   = aa_read_general(jobdirname+'.f_mono.aa')
 endif
@@ -200,25 +134,12 @@ if (nrows ne N_ELEMENTS(f[*])) then begin
     print,'       frequencies like the frequency vector'
     stop
 endif
-;; get GHz range
-;nghz = 0
-;FOR i = 0,nrows-1 DO BEGIN
-;    IF (freqs[i] LT 1000.5) THEN BEGIN
-;        nghz = i
-;    ENDIF
-;ENDFOR
-;print, 'nghz= ',nghz
-;;retrieve temperature info:
-;strT=strarr(nmats)
-;FOR i = 0, nmats-1 DO BEGIN
-;    strT[i] = STRING(abs[i,0,0], FORMAT='(F5.1)')+' K'
-;ENDFOR
 
 
 ;; now read altitude data 
-if not keyword_set(read) then begin
-print,'Reading altitude data...'
-alt = aa_read_general(jobdirname+'.z_abs.aa')
+if not keyword_set(alt) then begin
+    print,'Reading altitude data...'
+    alt = aa_read_general(jobdirname+'.z_abs.aa')
 endif
 if (ncols ne N_ELEMENTS(alt[*])) then begin
     print,'Error: absorption per tag has not the same numbers of'
@@ -242,8 +163,9 @@ string_title_alt = ' '
 if not keyword_set(altitude) then begin
     ialtitude = 0
 endif else begin
+    print,'preferred altitude [km]:',altitude
     ialtitude = 0
-    delta_h = 100000.0
+    delta_h = 1.000E5
     for i = 0, N_ELEMENTS(alt)-1 do begin 
         hz = alt[i]
         if ( ABS(hz-(altitude*1000.0)) LT delta_h) then begin 
@@ -254,9 +176,9 @@ endif else begin
 ;;    ialtitude = (where(alt gt (altitude*1000.0)))[0]
     if (ialtitude LT 0) then begin
         ialtitude = 0
-        print, 'selected altitude: ',1.0E3*alt[ialtitude],'km'
     endif
 endelse
+print, 'selected altitude: ',(1.0E-3*alt[ialtitude]),'km'
 string_title_alt = string(alt[ialtitude]/1000.0,format='(F5.1)')+' km'
 
 
@@ -413,7 +335,7 @@ for i = 0,tag_index_max-1 do print, ' ',i,': ',tg[tag_index[i]]
 !X.OMARGIN  = [0,0]
 !Y.OMARGIN  = [0,0]
 !P.REGION   = [0.0, 0.0, 0.0, 0.0]
-!P.POSITION = [0.025, 0.1, 0.6, 0.9]
+!P.POSITION = [0.1, 0.1, 0.7, 0.9]
 plotpos = !P.POSITION
 !P.CHARTHICK = 5.0
 !P.FONT      = 1
