@@ -1,5 +1,12 @@
 2002-11-22  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-301
+
+	* configure.in: Fixed messed up CFLAGS/CXXFLAGS. Introduced new
+	variable DEBUG_FLAGS.
+
+2002-11-22  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-300
 
 	* src/matpack*.{h,cc}, src/Makefile.am: Added cc files for matpack
