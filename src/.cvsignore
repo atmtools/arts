@@ -30,6 +30,7 @@ test_linalg
 test_matpack
 test_poly
 test_scatproperties
+test_sensor
 test_tensor
 test_xml
 test_zeemanproperties

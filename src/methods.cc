@@ -871,40 +871,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("CloneSize"),
-        DESCRIPTION
-        (
-         "Clone the size of a workspace variable.\n"
-         "\n"
-         "This is a supergeneric method. It can be applied to any two workspace\n"
-         "variables of the same group. It makes the output variable the same\n"
-         "size as the input variable and initializes it. (This means setting all\n"
-         "elements to zero for numeric variables like vectors or matrices.)\n"
-         "\n"
-         "As always, output comes first in the argument list!\n"
-         "\n"
-         "Usage example:\n"
-         "\n"
-         "CloneSize(f_grid,p_grid){}\n"
-         "\n"
-         "Will make the Vector *f_grid* the same length as the Vector *p_grid*\n"
-         "and set all elements to zero.\n"
-         "\n"
-         "Supergeneric output:\n"
-         "   Any_ : The output variable.\n"
-         "\n"
-         "Supergeneric input:\n"
-         "   Any_ : The input variable."
-         ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( Any_ ),
-        GINPUT(  Any_ ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("Copy"),
         DESCRIPTION
         (

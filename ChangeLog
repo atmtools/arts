@@ -1,3 +1,18 @@
+2003-04-25  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-532
+
+	* General: Now I have removed CloneSize, as I promised a long time
+	ago, but never did.
+	
+	* src/m_clonesize.cc: Removed.
+
+	* src/methods.cc: Removed CloneSize.
+
+	* src/Makefile.am: Removed CloneSize.
+
+	* src/.cvsignore: Added test_sensor.
+
 2003-04-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-531
