@@ -204,19 +204,19 @@ strength and shape.
 The strength, or better the line intensity, is given by the quantity
 $S(T)$, where $T$ is absolute temperature. The shape and the position are expressed through the
 line-shape function $F(\nu)$. Thus we have the relation    
-\begin{equation}
+\begin{equation}\label{abs_coeff}
   \alpha(\nu)=nS(T)F(\nu)
 \end{equation} 
 where $n$ is the number density of the absorber, \citet{goodyandyung:89}. The line-shape
 function is normalized as follows
 
-\begin{equation}
+\begin{equation}\label{line_shape_norm}
   \int F(\nu)d\nu=1
 \end{equation}
 The values of $S(T)$ at reference temperature $T_0$ are contained in
 spectroscopic databases. The conversion to different temperatures is
 done by
-\begin{equation}
+\begin{equation}\label{line_intensity}
   S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/(kT)}
     - e^{-E_i/(kT)}}{e^{-E_f/(kT_0)} - e^{-E_i/(kT_0)}}
 \end{equation}
@@ -260,21 +260,21 @@ transform theorem from the time to the frequency domain, \citet{thorne:99}. If w
 consider classically the spontaneous decay of the excited state of
 two-level system in the absence of external radiation, then population
 $n$ of these level decreases according to
-\begin{equation}
+\begin{equation}\label{spon_decay_diff}
   \frac{dn(t)}{dt} = -A\,n(t)
 \end{equation}
 where $A$ is Einstein A coefficient, which equation can also be
 interpreted as the rate of the spontaneously emitted photons because
 of decay. This relation is more usefully in this case to be written in
 the following manner 
-\begin{equation}
+\begin{equation}\label{spon_decay_exp}
   n(t)=n(0)~e^{-At}=n(0)e^{-t/\tau}
 \end{equation}
 where $ \tau$ is the mean lifetime of the excited state. Thus the
 number of spontaneously emitted photons and in this way the flux of
 the emitted radiation then will be proportional to $n$. Therefore we
 can write for the flux $L$ that
-\begin{equation}
+\begin{equation}\label{flux}
   L(t)=L(0)~e^{-t/ \tau}=L(0)~e^{-\gamma t}
 \end{equation}
 By the afore mentioned theorem, multiplying in the time domain by
@@ -282,7 +282,7 @@ $e^{-\gamma t}$ is equivalent to convolving in the frequency domain
 with a function $1/[\nu^2 - (\gamma/4\pi)^2]$. Accordingly the line
 profile of a spectral line at frequency $ \nu_0$ as a normalized
 line-shape function will be, as difined in \citet{thorne:99},
-\begin{equation}
+\begin{equation}\label{natural_lorentz}
   F(\nu)=\frac{1}{\pi}\frac{\gamma/4\pi}{(\nu - \nu_0)^2 + (\gamma/4\pi)^2}
 \end{equation}
 This gives a bell-shaped profile and the function itself is called
@@ -303,7 +303,7 @@ follows the velocity distribution of the particles. Under the conditions
 of thermodynamic equilibrium, we have  a probability distribution for
 the relative velocity $u$ between the gas molecule and the observer 
 of Maxwell type 
-\begin{equation}
+\begin{equation}\label{maxwell_distribution}
   p(u)=\sqrt{\frac{m}{2\pi kT}}~~exp~\left[-\frac{mu^2}{2kT}\right]
 \end{equation}
 where $m$ is the mass of the molecule. Using then the formula for the
@@ -336,17 +336,19 @@ they deal with.  The most popular among these approximations is the
 collisions of the gas particles is very small compared to the average
 time between the collisions. Lorentz was the first to achieve a result
 exploiting this approach, the Lorentz line-shape function:
-\begin{equation}
+\begin{equation}\label{pressure_lorentz}
  F_L(\nu)=\frac{\gamma_L}{\pi}\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}
 \end{equation}
-where $\gamma_L$ is the Lorentz line width, \citet{thorne:99}. As one can see, the result
-(3.9) is pretty similar to (3.5) but the specific line parameters
-$\gamma$ and $\gamma_L$ make them differ significantly in the
-corresponding frequency regions of interest. For atmospheric pressures
-$\gamma_L$ is much greater and because of that, of experimental
+where $\gamma_L$ is the Lorentz line width, \citet{thorne:99}. As one
+can see, the result Eq.\,\ref{pressure_lorentz} is pretty similar to
+Eq.\,\ref{natural_lorentz} but the specific line parameters $\gamma$
+and $\gamma_L$ make them differ significantly in the corresponding
+frequency regions of interest. For atmospheric pressures $\gamma_L$ is
+much greater and because of that, of experimental
 significance in contrast to $\gamma$.\\
 Elaborating the model of Lorentz, van Vleck and Weisskopf made a
-correction to it, \citet{vanvleck:45},particularly for the microwave region:
+correction to it, \citet{vanvleck:45},particularly for the microwave
+region:
 \begin{equation}\label{eq:vvw}
  F_{VVW} (\nu)=\left(\frac{\nu}{\nu_0}\right)^2\frac{\gamma_L}{\pi}
  \left[\frac{1}{(\nu-\nu_0)^2+\gamma_L^2}+\frac{1}{(\nu+\nu_0)^2+\gamma_L^2}\right]
@@ -363,7 +365,7 @@ replaced by $(\nu * \tanh(h*\nu/(2kT)))/(\nu_0 *
 \tanh(h*\nu_0/(2kT)))$, with $k$ the Boltzmann constant, $h$ the Planck
 constant, and $T$ the atmospheric temperature (the denominator is
 actually a consequence of the line strength definition in the
-spectroscopic catalogs). The lineshape Eq.\,\ref{wq:vvw} with this
+spectroscopic catalogs). The lineshape Eq.\,\ref{eq:vvw} with this
 factor can be used for the entire frequency range, since
 the microwave approximation: $\tanh(x) = x$, that leads to the factor
 $(\nu/\nu_0)^2$, is not made.
@@ -372,26 +374,26 @@ The combined picture of a simultaneously Doppler and pressure
 broadened line is the next step of the approximations development. The
 line-shape function has to approximated in this case by the Voigt line-shape
 function 
-\begin{equation}
+\begin{equation}\label{voigt}
  F_{Voigt}(\nu,\nu_0)= \int F_L(\nu,\nu')~F_D(\nu',\nu_0)~d\nu'
 \end{equation}
 though there's no strict justification for its use - the two processes
 are assumed to act independently, which in reality is not the
 fact. Regardless of this flaw, it is the only way up to date to model
-the combination of the broadening processes. The integral in (3.11)
+the combination of the broadening processes. The integral in Eq.\,\ref{voigt}
 can not be computed analytically, so certain approximation algorithms
 must be used.
 
 
 Another possibility would be the combination of the last two equations
-(3.10) and (3.11). The respective result then will be 
-\begin{equation}
+Eq.\,\ref{eq:vvw} and Eq.\,\ref{voigt}. The respective result then will be 
+\begin{equation}\label{voigt_mirror}
  F_S=\left(\frac{\nu}{\nu_0}\right)^2~[F_{Voigt}(\nu,\nu_0)+F_{Voigt}(\nu,-\nu_0)]
 \end{equation}
 The advantage of such a model is that it behaves like a van
 Vleck-Weisskopf line-shape function in the high pressure limit and
 like a Voigt one in the low pressure limit. There is one important
-caveat to the equation (3.12): it has to be made sure that the
+caveat to the equation Eq.\,\ref{voigt}: it has to be made sure that the
 algorithm that is used to compute the Voigt function really produces a
 Lorentz line in the high pressure limit. Another point of significance
 is the demand that the model yields meaningful results far from the
@@ -437,13 +439,13 @@ functions.
 
 According to the Maxwell-Boltzmann distribution law, in $LTE$ the total number
 of gas particles $N_n$  in a state $E_n$ is given by 
-\begin{equation}
+\begin{equation}\label{maxwell_distribution}
  N_n=N_0\frac{g_n}{g_0}e^{-E_n/kT}
 \end{equation}
 where $N_0$ is particle number in the ground state, and $g_n$, $g_o$
 are the statistical weights (degeneracies) of the $n-$state and the
 ground state, \citet{gordyandcook:70}. Thus the total particle number $N$ is given by
-\begin{equation}
+\begin{equation}\label{total_part_number}
  N=\frac{N_0}{g_0}\sum_{n=0}^\infty g_n~e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
 \end{equation}
 The quantity $Q(T)$ is the {\it{partition function}\nocorr} of the
@@ -453,7 +455,7 @@ of the gas particles.
 The partition function for a perfect gas molecule can be represented
 by the product of the {\it{translational}\nocorr} and the
 {\it{internal}\nocorr} partition functions, as defined in \citet{herzberg:45},
-\begin{equation}
+\begin{equation}\label{partition_f_general}
  Q  =  Q_{tr}~Q_{int}
 \end{equation}
 bearing in mind that the respective energies, translational and
@@ -474,7 +476,7 @@ function of the electronic, the vibrational, the rotational, and the
 nuclear spin states. An approximation is used in
 \citet{gordyandcook:70} in order to display the individual
 contribution explicitly
-\begin{equation}
+\begin{equation}\label{int_partition}
  Q_{int}=Q_e~Q_v~Q_r~Q_n
 \end{equation}
 and thus the interaction between these various states is neglected.
@@ -486,7 +488,7 @@ electronic contribution to be considered.\\
 If we neglect the anharmonicities, the vibrational partition function,
 with vibrational energy levels measured with respect to the ground
 state for the {\it harmonic oscillator}, is acording \citet{herzberg:45}
-\begin{equation}
+\begin{equation}\label{vib_partition}
  Q_v=\left(\sum_{\nu_1}e^{-\nu_1 h\omega_1/kT}\right)\left(\sum_{\nu_2}e^{-\nu_2 h\omega_2/kT}\right)...
 \end{equation}
 where $\nu_1$, $\nu_2$,..., the vibrational quantum numbers, can each
@@ -495,12 +497,12 @@ frequencies of the fundamental modes of vibration. The summation is
 taken over all values of $\nu_1$, $\nu_2$,..., and each fundamental
 mode is counted separately. This result is valid for non-degenerate
 vibrations. If we use the simple expression for geometric progression
-\begin{equation}
+\begin{equation}\label{geom_progression}
  \sum_{\nu_i}e^{-\nu_i h\omega_i/kT}=\frac{1}{1-e^{h\omega_i/kT}}
 \end{equation}
 and the degeneracies $d_1$, $d_2$,... of the fundamental modes, we get
 finally for the vibrational partition function
-\begin{equation}
+\begin{equation}\label{vib_partition_fin}
 Q_v=\left(1-e^{h\omega_1/kT}\right)^{-d_1}\left(1-e^{h\omega_2/kT}\right)^{-d_2}...
 \end{equation}
 
@@ -508,7 +510,7 @@ The rotational partition function looks differently for the different
 symmetry types of molecules.
 For diatomic and linear  polyatomic molecules with no center of
 symmetry the corresponding expression is, as defined in \citet{gordyandcook:70}
-\begin{eqnarray}
+\begin{eqnarray}\label{rot_partition}
 Q_r & = & \sum_{J=0}^\infty (2J+1)e^{-hBJ(J+1)/kT}\nonumber\\
    & = & \frac{kT}{hB}+\frac{1}{3}+\frac{1}{15}\frac{hB}{kT}+\frac{4}{315}\left(\frac{hB}{kT}\right)^2+...\nonumber\\
    & \cong & \frac{kT}{hB}
@@ -519,24 +521,24 @@ spatial structure of the molecules, nuclear spin, inversion and
 internal rotation. The general expression in the case of a 
 {\it{ rigid symmetric-}} top molecule according \citet{herzberg:45}
 is
-\begin{equation}
+\begin{equation}\label{rot_partition_symtop}
 Q_r  =  \frac{1}{\sigma}\sum_{J=0}^\infty \sum_{K=-J}^{J}(2J+1)~e^{-h[BJ(J+1)+(A-B)K^2]/kT}
 \end{equation}
 where $\sigma$ is measure of the degree of symmetry. The usual
 symmetric top has $C_3$ or $C_{3\nu}$ symmetry, therefore $\sigma$ = 3. To a good
 approximation, the summation above can expressed as in \citet{gordyandcook:70}
-\begin{equation}
+\begin{equation}\label{rot_partition_top_appro}
 Q_r  = 
 \frac{1}{\sigma}\left[\left(\frac{\pi}{B^2A}\right)\left(\frac{kT}{h}\right)^3\right]^{1/2}=
 \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{B^{2}A}\right)^{1/2}
 \end{equation}
 For an  {\it{asymmetric}} top the formula would then be 
-\begin{equation}
+\begin{equation}\label{rot_partition_asymtop}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{ABC}\right)^{1/2}
 \end{equation}
 and for a {\it{spherical}} top, using the current notation of
 \citet{gordyandcook:70} in the respective expression in \citet{herzberg:45},
-\begin{equation}
+\begin{equation}\label{rot_partition_sphetop}
 Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 \end{equation}
 

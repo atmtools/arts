@@ -1,3 +1,11 @@
+2003-07-29  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-0-110
+
+	* doc/uguide/absorption.tex: Correction to Axels and Olivers
+	commits. :-) Made equation labels/references right throughout the
+	resonance absorption sub-chapter.
+	
 2003-07-29  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-109
