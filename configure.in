@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.299)
+AM_INIT_AUTOMAKE(arts,1.1.300)
 
 AM_MAINTAINER_MODE
 
@@ -291,22 +291,6 @@ esac
 #
 # Compile flags switches
 #
-if test x$USE_MAINTAINER_MODE = xyes; then
-  CFLAGS="$WARNING_FLAGS"
-  if test x$CXX = xg++; then
-    CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
-    CXXFLAGS_FIXED="$CXXFLAGS"
-  fi
-else
-  CFLAGS="$CFLAGS $WARNING_FLAGS"
-  if test x$CXX = xg++; then
-    CXXFLAGS="$CXXFLAGS -ftemplate-depth-20 $WARNING_FLAGS"
-    CXXFLAGS_FIXED="-ftemplate-depth-20 $WARNING_FLAGS"
-  else
-    CXXFLAGS_FIXED="$CXXFLAGS"
-  fi
-fi
-	
 if test x$ac_debug = xyes; then
   CFLAGS="$CFLAGS -g"
   CXXFLAGS="$CXXFLAGS -g"
@@ -317,6 +301,22 @@ else
   CXXFLAGS_FIXED="$CXXFLAGS_FIXED -DNDEBUG"
 fi
 
+if test x$USE_MAINTAINER_MODE = xyes; then
+  CFLAGS="$CFLAGS $WARNING_FLAGS"
+  if test x$CXX = xg++; then
+    CXXFLAGS="-ftemplate-depth-40 $WARNING_FLAGS"
+    CXXFLAGS_FIXED="$CXXFLAGS"
+  fi
+else
+  CFLAGS="$CFLAGS $WARNING_FLAGS"
+  if test x$CXX = xg++; then
+    CXXFLAGS="$CXXFLAGS -ftemplate-depth-40 $WARNING_FLAGS"
+    CXXFLAGS_FIXED="-ftemplate-depth-40 $WARNING_FLAGS"
+  else
+    CXXFLAGS_FIXED="$CXXFLAGS"
+  fi
+fi
+	
 AC_SUBST(CXXFLAGS_FIXED)
 
 
