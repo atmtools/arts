@@ -1,3 +1,14 @@
+2003-03-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-475
+
+	* src/m_ignore.h (Ignore): Managed to suppress the unused
+	parameter warning for parameter *in* with a somewhat nasty
+	hack. But it works, and I made sure that there are some explantory
+	comments why this is done. Oliver, I believe the same trick could
+	be used to make a template function "touch" that works for any
+	type. What do you think?
+
 2003-03-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-474
@@ -42,9 +53,9 @@
 	* arts-1-1-471
 
 	* src/m_ignore.h (Ignore): Issue a level 2 message which WSV is
-	ignored. This avoids the unused parameter warning for
-	*inname*. However, there still is one for *in*. Don't know how to
-	fix this right now.
+	ignored. This avoids the unused parameter warning for *inname*.
+	However, there still is one for *in*. Don't know how to fix this
+	right now.
 
 	* src/m_copy.h (Copy): Removed call of CloneSize.
 
