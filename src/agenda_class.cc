@@ -79,8 +79,12 @@ void Agenda::execute(bool silent) const
   // Manipulate the message level, to allow silent execution:
   if (silent)
     {
-      messages.screen = 0;
-      messages.file   = 0;
+      // Level 4 means that the output should remain visible even for
+      // silent execution.  
+      if ( messages.screen < 4 )
+        messages.screen = 0;
+      if ( messages.file < 4 )
+        messages.file   = 0;
     }
 
   out1 << "Executing " << name() << "\n"
@@ -103,60 +107,60 @@ void Agenda::execute(bool silent) const
       const MdRecord& mdd = md_data[mrr.Id()];
       
       try
-	{
-	  out1 << "- " << mdd.Name() << '\n';
-	
-	  { // Check if all specific input variables are occupied:
-	    const ArrayOfIndex& v(mdd.Input());
-	    for (Index s=0; s<v.nelem(); ++s)
-	      if (!workspace.is_occupied(v[s]))
-		give_up("Method "+mdd.Name()+" needs input variable: "+
-			wsv_data[v[s]].Name());
-	  }
+        {
+          out1 << "- " << mdd.Name() << '\n';
+        
+          { // Check if all specific input variables are occupied:
+            const ArrayOfIndex& v(mdd.Input());
+            for (Index s=0; s<v.nelem(); ++s)
+              if (!workspace.is_occupied(v[s]))
+                give_up("Method "+mdd.Name()+" needs input variable: "+
+                        wsv_data[v[s]].Name());
+          }
 
-	  { // Check if all generic input variables are occupied:
-	    const ArrayOfIndex& v(mrr.Input());
-	    //	    cout << "v.nelem(): " << v.nelem() << endl;
-	    for (Index s=0; s<v.nelem(); ++s)
-	      if (!workspace.is_occupied(v[s]))
-		give_up("Generic Method "+mdd.Name()+" needs input variable: "+
-			wsv_data[v[s]].Name());
-	  }
+          { // Check if all generic input variables are occupied:
+            const ArrayOfIndex& v(mrr.Input());
+            //      cout << "v.nelem(): " << v.nelem() << endl;
+            for (Index s=0; s<v.nelem(); ++s)
+              if (!workspace.is_occupied(v[s]))
+                give_up("Generic Method "+mdd.Name()+" needs input variable: "+
+                        wsv_data[v[s]].Name());
+          }
 
-	  // The output is flagged as occupied before the actual
-	  // function call, so that output of a method can already be used by
-	  // an agenda executed by the method. This is important for
-	  // example in the case of absorption, where an agenda is
-	  // used to compute the lineshape, which needs some input
-	  // data pased by the calling method, such as line-width, etc.. 
+          // The output is flagged as occupied before the actual
+          // function call, so that output of a method can already be used by
+          // an agenda executed by the method. This is important for
+          // example in the case of absorption, where an agenda is
+          // used to compute the lineshape, which needs some input
+          // data pased by the calling method, such as line-width, etc.. 
 
-	  { // Flag the specific output variables as occupied:
-	    const ArrayOfIndex& v(mdd.Output());
-	    for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
-	  }
+          { // Flag the specific output variables as occupied:
+            const ArrayOfIndex& v(mdd.Output());
+            for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
+          }
 
-	  { // Flag the generic output variables as occupied:
-	    const ArrayOfIndex& v(mrr.Output());
-	    for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
-	  }
+          { // Flag the generic output variables as occupied:
+            const ArrayOfIndex& v(mrr.Output());
+            for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
+          }
 
-	  // Call the getaway function:
-	  getaways[mrr.Id()]
-	    ( workspace, mrr );
+          // Call the getaway function:
+          getaways[mrr.Id()]
+            ( workspace, mrr );
 
-	}
+        }
       catch (runtime_error x)
-	{
-	  out0 << "Run-time error in method: " << mdd.Name() << '\n'
-	       << x.what() << '\n';
-	  exit(1);
-	}
+        {
+          out0 << "Run-time error in method: " << mdd.Name() << '\n'
+               << x.what() << '\n';
+          exit(1);
+        }
       catch (logic_error x)
-	{
-	  out0 << "Logic error in method: " << mdd.Name() << '\n'
-	       << x.what() << '\n';
-	  exit(1);
-	}
+        {
+          out0 << "Logic error in method: " << mdd.Name() << '\n'
+               << x.what() << '\n';
+          exit(1);
+        }
     }
 
   out1 << "}\n";
@@ -226,24 +230,24 @@ bool Agenda::is_input(Index var) const
       
       // Is var a specific input?
       {
-	// Get a handle on the Input list for the current method:
-	const ArrayOfIndex& input = md_data[this_method.Id()].Input();
+        // Get a handle on the Input list for the current method:
+        const ArrayOfIndex& input = md_data[this_method.Id()].Input();
 
-	for ( Index j=0; j<input.nelem(); ++j )
-	  {
-	    if ( var == input[j] ) return true;
-	  }
+        for ( Index j=0; j<input.nelem(); ++j )
+          {
+            if ( var == input[j] ) return true;
+          }
       }
 
       // Is var a generic input?
       {
-	// Get a handle on the Input list:
-	const ArrayOfIndex& input = this_method.Input();
+        // Get a handle on the Input list:
+        const ArrayOfIndex& input = this_method.Input();
 
-	for ( Index j=0; j<input.nelem(); ++j )
-	  {
-	    if ( var == input[j] ) return true;
-	  }
+        for ( Index j=0; j<input.nelem(); ++j )
+          {
+            if ( var == input[j] ) return true;
+          }
       }
     }
 
@@ -270,27 +274,27 @@ bool Agenda::is_output(Index var) const
       
       // Is var a specific output?
       {
-	// Make global method data visible:
-	extern const Array<MdRecord>  md_data;
+        // Make global method data visible:
+        extern const Array<MdRecord>  md_data;
 
-	// Get a handle on the Output list for the current method:
-	const ArrayOfIndex& output = md_data[this_method.Id()].Output();
+        // Get a handle on the Output list for the current method:
+        const ArrayOfIndex& output = md_data[this_method.Id()].Output();
 
-	for ( Index j=0; j<output.nelem(); ++j )
-	  {
-	    if ( var == output[j] ) return true;
-	  }
+        for ( Index j=0; j<output.nelem(); ++j )
+          {
+            if ( var == output[j] ) return true;
+          }
       }
 
       // Is var a generic output?
       {
-	// Get a handle on the Output list:
-	const ArrayOfIndex& output = this_method.Output();
+        // Get a handle on the Output list:
+        const ArrayOfIndex& output = this_method.Output();
 
-	for ( Index j=0; j<output.nelem(); ++j )
-	  {
-	    if ( var == output[j] ) return true;
-	  }
+        for ( Index j=0; j<output.nelem(); ++j )
+          {
+            if ( var == output[j] ) return true;
+          }
       }
     }
 

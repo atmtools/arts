@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2000, 2001, 2002 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -43,20 +43,20 @@ void SourceText::AdvanceChar()
     {
       mLineBreak = true;
       do
-	{
-	  if (mLine>=mText.nelem()-1)
-	    {
-	      throw Eot( "",
-			 this->File(),
-			 this->Line(),
-			 this->Column() ); 
-	    }
-	  else
-	    {
-	      ++mLine;
-	      mColumn = 0;
-	    }
-	}
+        {
+          if (mLine>=mText.nelem()-1)
+            {
+              throw Eot( "",
+                         this->File(),
+                         this->Line(),
+                         this->Column() ); 
+            }
+          else
+            {
+              ++mLine;
+              mColumn = 0;
+            }
+        }
       while ( 1 > mText[mLine].nelem() ); // Skip empty lines.
     }
 }
@@ -69,16 +69,16 @@ void SourceText::AdvanceLine()
   do
     {
       if (mLine>=mText.nelem()-1)
-	{
-	  throw Eot( "",
-		     this->File(),
-		     this->Line(),
-		     this->Column() ); 
-	}
+        {
+          throw Eot( "",
+                     this->File(),
+                     this->Line(),
+                     this->Column() ); 
+        }
       else
-	{
-	  ++mLine;
-	}
+        {
+          ++mLine;
+        }
     }
   while ( 1 > mText[mLine].nelem() ); // Skip empty lines.
 }
@@ -122,28 +122,28 @@ void SourceText::Init()
   if ( 1 > mText.nelem() )
     {
       throw Eot( "Empty text!",
-		 this->File(),
-		 this->Line(),
-		 this->Column() ); 
+                 this->File(),
+                 this->Line(),
+                 this->Column() ); 
     }
   else
     {
       // Skip empty lines:
       while ( 1 > mText[mLine].nelem() )
-	{
-	  if (mLine>=mText.nelem()-1)
-	    {
-	      throw Eot( "",
-			 this->File(),
-			 this->Line(),
-			 this->Column() ); 
-	    }
-	  else
-	    {
-	      mLineBreak = true;
-	      ++mLine;
-	    }
-	}
+        {
+          if (mLine>=mText.nelem()-1)
+            {
+              throw Eot( "",
+                         this->File(),
+                         this->Line(),
+                         this->Column() ); 
+            }
+          else
+            {
+              mLineBreak = true;
+              ++mLine;
+            }
+        }
     }
 }
 
@@ -152,8 +152,8 @@ ostream& operator << (ostream& os, const SourceText& text)
 {
   for (Index i=0; i<text.mText.nelem();++i)
     cout << i
-	 << "(" << text.mText[i].nelem() << ")"
-	 << ": " << text.mText[i] << '\n';
+         << "(" << text.mText[i].nelem() << ")"
+         << ": " << text.mText[i] << '\n';
   return(os);
 }
 
@@ -197,26 +197,26 @@ void eat_whitespace(SourceText& text)
   while (is_whitespace(dummy=text.Current())) 
     {
       switch (dummy)
-	{
-	case ' ':
-	case '\r':
-	case '\t':
-	  text.AdvanceChar();
-	  break;
-	case '#':
-	  text.AdvanceLine();
-	  break;
-	default:
-	  {
-	    ostringstream os;
-	    os << "Expected whitespace, but got `" << dummy << "'.";
-	    throw UnexpectedChar( os.str(),
-				  text.File(),
-				  text.Line(),
-				  text.Column() ); 
-	    break;
-	  }
-	}
+        {
+        case ' ':
+        case '\r':
+        case '\t':
+          text.AdvanceChar();
+          break;
+        case '#':
+          text.AdvanceLine();
+          break;
+        default:
+          {
+            ostringstream os;
+            os << "Expected whitespace, but got `" << dummy << "'.";
+            throw UnexpectedChar( os.str(),
+                                  text.File(),
+                                  text.Line(),
+                                  text.Column() ); 
+            break;
+          }
+        }
     }
 }
 
@@ -239,17 +239,17 @@ void read_name(String& name, SourceText& text)
       char dummy = text.Current();
 
       if ( isalnum(dummy) || '_'==dummy )
-	{
-	  name += dummy;
-	  // AdvanceChar sets LineBreak if a line break occured.
-	  text.LineBreak() = false;
-	  text.AdvanceChar();
-	  if ( text.LineBreak() ) stop = true;
-	}
+        {
+          name += dummy;
+          // AdvanceChar sets LineBreak if a line break occured.
+          text.LineBreak() = false;
+          text.AdvanceChar();
+          if ( text.LineBreak() ) stop = true;
+        }
       else
-	{
-	  stop = true;
-	}
+        {
+          stop = true;
+        }
     }
 
   //  cout << "Name: " << name << '\n';
@@ -266,9 +266,9 @@ void assertain_character(char c, SourceText& text)
       ostringstream os;
       os << "Expected `" << c << "', but got `" << text.Current() << "'.";
       throw UnexpectedChar( os.str(),
-			    text.File(),
-			    text.Line(),
-			    text.Column() ); 
+                            text.File(),
+                            text.Line(),
+                            text.Column() ); 
     }
   
   text.AdvanceChar();
@@ -291,29 +291,29 @@ void parse_String(String& res, SourceText& text)
   assertain_character('"',text);
   if ( text.LineBreak() )
     throw IllegalLinebreak( "Line break before end of String.",
-			    text.File(),
-			    text.Line(),
-			    text.Column() ); 
+                            text.File(),
+                            text.Line(),
+                            text.Column() ); 
 
   while (!stop) 
     {
       char dummy = text.Current();
       if ( dummy != '"' )
-	{
-	  res += dummy;
-	  text.AdvanceChar();
+        {
+          res += dummy;
+          text.AdvanceChar();
 
-	  if ( text.LineBreak() )
-	    throw IllegalLinebreak( "Line break before end of String.",
-				    text.File(),
-				    text.Line(),
-				    text.Column() ); 
-	}
+          if ( text.LineBreak() )
+            throw IllegalLinebreak( "Line break before end of String.",
+                                    text.File(),
+                                    text.Line(),
+                                    text.Column() ); 
+        }
       else
-	{
-	  stop = true;
-	  text.AdvanceChar();
-	}
+        {
+          stop = true;
+          text.AdvanceChar();
+        }
     }
 }
 
@@ -340,10 +340,10 @@ void read_integer(String& res, SourceText& text)
       res += dummy;
       text.AdvanceChar();
       if ( text.LineBreak() )
-	throw IllegalLinebreak( "Line break after sign.",
-				text.File(),
-				text.Line(),
-				text.Column() ); 
+        throw IllegalLinebreak( "Line break after sign.",
+                                text.File(),
+                                text.Line(),
+                                text.Column() ); 
     }
 
   if (!isdigit(text.Current()))
@@ -351,24 +351,24 @@ void read_integer(String& res, SourceText& text)
       ostringstream os;
       os << "Expected digit, but got `" << text.Current() << "'.";
       throw UnexpectedChar(os.str(),
-			   text.File(),
-			   text.Line(),
-			   text.Column());
+                           text.File(),
+                           text.Line(),
+                           text.Column());
     }
 
   while (!stop) 
     {
       char chtmp = text.Current();
       if ( isdigit(chtmp) )
-	{
-	  res += chtmp;
-	  text.AdvanceChar();
-	  if ( text.LineBreak() ) stop = true;
-	}
+        {
+          res += chtmp;
+          text.AdvanceChar();
+          if ( text.LineBreak() ) stop = true;
+        }
       else
-	{
-	  stop = true;
-	}
+        {
+          stop = true;
+        }
     }
 }
 
@@ -402,10 +402,10 @@ void read_numeric(String& res, SourceText& text)
       res += dummy;
       text.AdvanceChar();
       if ( text.LineBreak() )
-	throw IllegalLinebreak( "Linebreak after sign.",
-				text.File(),
-				text.Line(),
-				text.Column() ); 
+        throw IllegalLinebreak( "Linebreak after sign.",
+                                text.File(),
+                                text.Line(),
+                                text.Column() ); 
     }
 
   // There could be some digits here:
@@ -414,16 +414,16 @@ void read_numeric(String& res, SourceText& text)
     {
       char chtmp = text.Current();
       if ( isdigit(chtmp) )
-	{
-	  found_digit = true;
-	  res += chtmp;
-	  text.AdvanceChar();
-	  if ( text.LineBreak() ) return; // Line break ends scanning immediately.
-	}
+        {
+          found_digit = true;
+          res += chtmp;
+          text.AdvanceChar();
+          if ( text.LineBreak() ) return; // Line break ends scanning immediately.
+        }
       else
-	{
-	  stop = true;
-	}
+        {
+          stop = true;
+        }
     }
 
   // Next there can be a decimal point
@@ -432,45 +432,45 @@ void read_numeric(String& res, SourceText& text)
       res += ".";
       text.AdvanceChar();
       if ( text.LineBreak() )
-	if (found_digit)
-	  {
-	    // Line break ends scanning immediately, if we have
-	    // already found at least one digit.
-	    return;
-	  }
-	else
-	  {
-	    throw IllegalLinebreak("Expected at least one digit.",
-				   text.File(),
-				   text.Line(),
-				   text.Column());
-	  }
+        if (found_digit)
+          {
+            // Line break ends scanning immediately, if we have
+            // already found at least one digit.
+            return;
+          }
+        else
+          {
+            throw IllegalLinebreak("Expected at least one digit.",
+                                   text.File(),
+                                   text.Line(),
+                                   text.Column());
+          }
 
       // ... followed by optional more digits
       stop = false;
       while (!stop) 
-	{
-	  char chtmp = text.Current();
-	  if ( isdigit(chtmp) )
-	    {
-	      found_digit = true;
-	      res += chtmp;
-	      text.AdvanceChar();
-	      if ( text.LineBreak() ) return; // Line break ends scanning immediately.
-	    }
-	  else
-	    {
-	      stop = true;
-	    }
-	}    
+        {
+          char chtmp = text.Current();
+          if ( isdigit(chtmp) )
+            {
+              found_digit = true;
+              res += chtmp;
+              text.AdvanceChar();
+              if ( text.LineBreak() ) return; // Line break ends scanning immediately.
+            }
+          else
+            {
+              stop = true;
+            }
+        }    
     }
 
   // At this point, we must have found at least one digit.
   if (!found_digit)
     throw ParseError("Expected at least one digit.",
-		     text.File(),
-		     text.Line(),
-		     text.Column());
+                     text.File(),
+                     text.Line(),
+                     text.Column());
 
   // Now there could be a `e' or `E':
   dummy = text.Current();
@@ -479,16 +479,16 @@ void read_numeric(String& res, SourceText& text)
       res += dummy;
       text.AdvanceChar();
       if ( text.LineBreak() )
-	throw IllegalLinebreak( "Linebreak after e/E.",
-				text.File(),
-				text.Line(),
-				text.Column() );
+        throw IllegalLinebreak( "Linebreak after e/E.",
+                                text.File(),
+                                text.Line(),
+                                text.Column() );
       
       // Now there must be an integer (with optional sign)
       {
-	String s;
-	read_integer(s,text);
-	res += s;
+        String s;
+        read_integer(s,text);
+        res += s;
       }
     }
 }
@@ -527,8 +527,8 @@ void parse_numeric(Numeric& n, SourceText& text)
     @see parse_String */
 void parse_Stringvector(ArrayOfString& res, SourceText& text)
 {
-  bool first = true;		// To skip the first comma.
-  res.resize(0);			// Clear the result vector (just in case).
+  bool first = true;            // To skip the first comma.
+  res.resize(0);                        // Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -543,12 +543,12 @@ void parse_Stringvector(ArrayOfString& res, SourceText& text)
       String dummy;
 
       if (first)
-	first = false;
+        first = false;
       else
-	{
-	  assertain_character(',',text);
-	  eat_whitespace(text);
-	}
+        {
+          assertain_character(',',text);
+          eat_whitespace(text);
+        }
 
       parse_String(dummy, text);
       res.push_back(dummy);
@@ -571,8 +571,8 @@ void parse_Stringvector(ArrayOfString& res, SourceText& text)
     @see parse_integer */
 void parse_intvector(ArrayOfIndex& res, SourceText& text)
 {
-  bool first = true;		// To skip the first comma.
-  res.resize(0);			// Clear the result vector (just in case).
+  bool first = true;            // To skip the first comma.
+  res.resize(0);                        // Clear the result vector (just in case).
 
   // Make sure that the current character really is `[' and proceed.
   assertain_character('[',text);
@@ -587,12 +587,12 @@ void parse_intvector(ArrayOfIndex& res, SourceText& text)
       Index dummy;
 
       if (first)
-	first = false;
+        first = false;
       else
-	{
-	  assertain_character(',',text);
-	  eat_whitespace(text);
-	}
+        {
+          assertain_character(',',text);
+          eat_whitespace(text);
+        }
 
       parse_integer(dummy, text);
       res.push_back(dummy);
@@ -615,7 +615,7 @@ void parse_intvector(ArrayOfIndex& res, SourceText& text)
     @see parse_numeric */
 void parse_numvector(Vector& res, SourceText& text)
 {
-  bool first = true;		// To skip the first comma.
+  bool first = true;            // To skip the first comma.
 
   // We need a temporary Array<Numeric>, so that we can use push_back
   // to store the values. FIXME: Need also constructor for Vector from
@@ -635,12 +635,12 @@ void parse_numvector(Vector& res, SourceText& text)
       Numeric dummy;
 
       if (first)
-	first = false;
+        first = false;
       else
-	{
-	  assertain_character(',',text);
-	  eat_whitespace(text);
-	}
+        {
+          assertain_character(',',text);
+          eat_whitespace(text);
+        }
 
       parse_numeric(dummy, text);
       tres.push_back(dummy);
@@ -685,12 +685,12 @@ void parse_numvector(Vector& res, SourceText& text)
 
    @author Stefan Buehler  */
 void parse_method(Index& id, 
-		  Array<TokVal>& values,
-		  ArrayOfIndex& output,
-		  ArrayOfIndex& input,
-		  Agenda&       tasks,
-		  SourceText& text,
-		  bool no_eot=false)
+                  Array<TokVal>& values,
+                  ArrayOfIndex& output,
+                  ArrayOfIndex& input,
+                  Agenda&       tasks,
+                  SourceText& text,
+                  bool no_eot=false)
 {
   extern const Array<WsvRecord> wsv_data;
   extern const Array<MdRecord> md_data;
@@ -701,18 +701,18 @@ void parse_method(Index& id,
   extern const std::map<String, Index> MdRawMap;
   extern const std::map<String, Index> WsvMap;
 
-  Index wsvid;			// Workspace variable id, is used to
-				// access data in wsv_data.
+  Index wsvid;                  // Workspace variable id, is used to
+                                // access data in wsv_data.
 
-  String methodname;		// We need this out here, since it is
-				// set once and later modified.
+  String methodname;            // We need this out here, since it is
+                                // set once and later modified.
 
-  const MdRecord* mdd;		// Handle on the method record. Needed here,
-				// because it is modified.
+  const MdRecord* mdd;          // Handle on the method record. Needed here,
+                                // because it is modified.
 
   bool still_supergeneric=true; // Flag that our MdRecord still is
-				// from md_data_raw, not from
-				// md_data. 
+                                // from md_data_raw, not from
+                                // md_data. 
 
   // Clear all output variables:
   id = 0;
@@ -728,10 +728,10 @@ void parse_method(Index& id,
       // Find method raw id in raw map:
       const map<String, Index>::const_iterator i = MdRawMap.find(methodname);
       if ( i == MdRawMap.end() )
-	throw UnknownMethod(methodname,
-			    text.File(),
-			    text.Line(),
-			    text.Column());
+        throw UnknownMethod(methodname,
+                            text.File(),
+                            text.Line(),
+                            text.Column());
 
       id = i->second;
 
@@ -746,19 +746,19 @@ void parse_method(Index& id,
       // Is this a supergeneric method? If not, take the record in
       // md_data, rather than in md_data_raw:
       if ( !mdd->Supergeneric() )
-	{
-	  // Find explicit method id in MdMap:
-	  const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
-	  assert ( i2 != MdMap.end() );
-	  id = i2->second;	      
-	  
-	  mdd = &md_data[id];
+        {
+          // Find explicit method id in MdMap:
+          const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
+          assert ( i2 != MdMap.end() );
+          id = i2->second;            
+          
+          mdd = &md_data[id];
 
-	  still_supergeneric = false;
+          still_supergeneric = false;
 
-// 	  cout << "Adjusted id=" << id << '\n';   
-// 	  cout << "Adjusted Method: " << mdd->Name() << '\n';
-	}
+//        cout << "Adjusted id=" << id << '\n';   
+//        cout << "Adjusted Method: " << mdd->Name() << '\n';
+        }
     }
   }
 
@@ -770,148 +770,148 @@ void parse_method(Index& id,
     {
       //      cout << "Generic!" << id << mdd->Name() << '\n';
       String wsvname;
-      bool first = true;	// To skip the first comma.
+      bool first = true;        // To skip the first comma.
 
       assertain_character('(',text);
       eat_whitespace(text);
 
       // First read all output Wsvs:
       for ( Index j=0 ; j<mdd->GOutput().nelem() ; ++j )
-	{
-	  if (first)
-	    first = false;
-	  else
-	    {
-	      assertain_character(',',text);
-	      eat_whitespace(text);
-	    }
+        {
+          if (first)
+            first = false;
+          else
+            {
+              assertain_character(',',text);
+              eat_whitespace(text);
+            }
 
-	  read_name(wsvname, text);
+          read_name(wsvname, text);
 
-	  {
-	    // Find Wsv id:
-	    const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
-	    if ( i == WsvMap.end() )
-	      throw UnknownWsv( wsvname,
-				text.File(),
-				text.Line(),
-				text.Column() );
+          {
+            // Find Wsv id:
+            const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
+            if ( i == WsvMap.end() )
+              throw UnknownWsv( wsvname,
+                                text.File(),
+                                text.Line(),
+                                text.Column() );
 
-	    wsvid = i->second;
-	  }
+            wsvid = i->second;
+          }
 
-	  // If this is a supergeneric method, now is the time to find
-	  // out the actual group of the argument(s)!
-	  if ( still_supergeneric )
-	    {
-// 	      cout << "wsvid = " << wsvid << "\n";
-// 	      cout << "wsv_group_names[wsv_data[wsvid].Group()] = "
-// 		   << wsv_group_names[wsv_data[wsvid].Group()] << "\n";
-	      ostringstream os;
-	      os << mdd->Name() << "_sg_"
-		 << wsv_group_names[wsv_data[wsvid].Group()];
-	      methodname = os.str();
+          // If this is a supergeneric method, now is the time to find
+          // out the actual group of the argument(s)!
+          if ( still_supergeneric )
+            {
+//            cout << "wsvid = " << wsvid << "\n";
+//            cout << "wsv_group_names[wsv_data[wsvid].Group()] = "
+//                 << wsv_group_names[wsv_data[wsvid].Group()] << "\n";
+              ostringstream os;
+              os << mdd->Name() << "_sg_"
+                 << wsv_group_names[wsv_data[wsvid].Group()];
+              methodname = os.str();
 
-	      // Find explicit method id in MdMap:
-	      const map<String, Index>::const_iterator i = MdMap.find(methodname);
-	      assert ( i != MdMap.end() );
-	      id = i->second;	      
-	      
-	      mdd = &md_data[id];
+              // Find explicit method id in MdMap:
+              const map<String, Index>::const_iterator i = MdMap.find(methodname);
+              assert ( i != MdMap.end() );
+              id = i->second;         
+              
+              mdd = &md_data[id];
 
-	      still_supergeneric = false;
+              still_supergeneric = false;
 
-// 	      cout << "Adjusted id=" << id << '\n';   
-// 	      cout << "Adjusted Method: " << mdd->Name() << '\n';
-	    }
+//            cout << "Adjusted id=" << id << '\n';   
+//            cout << "Adjusted Method: " << mdd->Name() << '\n';
+            }
 
-	  // Now we have explicitly the method record for the right
-	  // group. From now on no special treatment of supergeneric
-	  // methods should be necessary.
+          // Now we have explicitly the method record for the right
+          // group. From now on no special treatment of supergeneric
+          // methods should be necessary.
 
-	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != mdd->GOutput()[j] )
-	    {
-       	    throw WrongWsvGroup( wsvname+" is not "+
-	                wsv_group_names[mdd->GOutput()[j]]+", it is "+ 
+          // Check that this Wsv belongs to the correct group:
+          if ( wsv_data[wsvid].Group() != mdd->GOutput()[j] )
+            {
+            throw WrongWsvGroup( wsvname+" is not "+
+                        wsv_group_names[mdd->GOutput()[j]]+", it is "+ 
                         wsv_group_names[wsv_data[wsvid].Group()],
-				 text.File(),
-				 text.Line(),
-				 text.Column() );
-	    }
+                                 text.File(),
+                                 text.Line(),
+                                 text.Column() );
+            }
 
-	  // Add this one to the list of output workspace variables:
-	  output.push_back(wsvid);
-	  
-	  eat_whitespace(text);
-	}
+          // Add this one to the list of output workspace variables:
+          output.push_back(wsvid);
+          
+          eat_whitespace(text);
+        }
 
       // Then read all input Wsvs:
       for ( Index j=0 ; j<mdd->GInput().nelem() ; ++j )
-	{
-	  if (first)
-	    first = false;
-	  else
-	    {
-	      assertain_character(',',text);
-	      eat_whitespace(text);
-	    }
+        {
+          if (first)
+            first = false;
+          else
+            {
+              assertain_character(',',text);
+              eat_whitespace(text);
+            }
 
-	  read_name(wsvname, text);
+          read_name(wsvname, text);
 
-	  {
-	    // Find Wsv id:
-	    const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
- 	    if ( i == WsvMap.end() )
- 	      throw UnknownWsv( wsvname,
- 				text.File(),
- 				text.Line(),
- 				text.Column() );
+          {
+            // Find Wsv id:
+            const map<String, Index>::const_iterator i = WsvMap.find(wsvname);
+            if ( i == WsvMap.end() )
+              throw UnknownWsv( wsvname,
+                                text.File(),
+                                text.Line(),
+                                text.Column() );
 
-	    wsvid = i->second;
-	  }
+            wsvid = i->second;
+          }
 
-	  // Is the method data record still supergeneric? This could
-	  // be the case if there are no output arguments, only input
-	  // arguments. In that case, let's find out the actual group!
-	  if ( still_supergeneric )
-	    {
-	      ostringstream os;
-	      os << mdd->Name() << "_sg_"
-		 << wsv_group_names[wsv_data[wsvid].Group()];
-	      methodname = os.str();
+          // Is the method data record still supergeneric? This could
+          // be the case if there are no output arguments, only input
+          // arguments. In that case, let's find out the actual group!
+          if ( still_supergeneric )
+            {
+              ostringstream os;
+              os << mdd->Name() << "_sg_"
+                 << wsv_group_names[wsv_data[wsvid].Group()];
+              methodname = os.str();
 
-	      // Find explicit method id in MdMap:
-	      const map<String, Index>::const_iterator i = MdMap.find(methodname);
-	      assert ( i != MdMap.end() );
-	      id = i->second;	      
+              // Find explicit method id in MdMap:
+              const map<String, Index>::const_iterator i = MdMap.find(methodname);
+              assert ( i != MdMap.end() );
+              id = i->second;         
 
-	      mdd = &md_data[id];
+              mdd = &md_data[id];
 
-	      still_supergeneric = false;
+              still_supergeneric = false;
 
-// 	      cout << "Adjusted id=" << id << '\n';   
-// 	      cout << "Adjusted Method: " << mdd->Name() << '\n';
-	    }
+//            cout << "Adjusted id=" << id << '\n';   
+//            cout << "Adjusted Method: " << mdd->Name() << '\n';
+            }
 
-	  // Now we have explicitly the method record for the right
-	  // group. From now on no special treatment of supergeneric
-	  // methods should be necessary.
+          // Now we have explicitly the method record for the right
+          // group. From now on no special treatment of supergeneric
+          // methods should be necessary.
 
-	  // Check that this Wsv belongs to the correct group:
-	  if ( wsv_data[wsvid].Group() != mdd->GInput()[j] )
-       	    throw WrongWsvGroup( wsvname+" is not "+
-	                wsv_group_names[mdd->GInput()[j]]+", it is "+ 
+          // Check that this Wsv belongs to the correct group:
+          if ( wsv_data[wsvid].Group() != mdd->GInput()[j] )
+            throw WrongWsvGroup( wsvname+" is not "+
+                        wsv_group_names[mdd->GInput()[j]]+", it is "+ 
                         wsv_group_names[wsv_data[wsvid].Group()],
-				 text.File(),
-				 text.Line(),
-				 text.Column() );
+                                 text.File(),
+                                 text.Line(),
+                                 text.Column() );
 
-	  // Add this one to the list of input workspace variables:
-	  input.push_back(wsvid);
-	  
-	  eat_whitespace(text);
-	}
+          // Add this one to the list of input workspace variables:
+          input.push_back(wsvid);
+          
+          eat_whitespace(text);
+        }
 
       assertain_character(')',text);
       eat_whitespace(text);
@@ -947,93 +947,93 @@ void parse_method(Index& id,
       // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
       //
       for ( Index i=0 ; i<mdd->Keywords().nelem() ; ++i )
-	{
-	  if (!isalpha(text.Current()) && 1==mdd->Keywords().nelem())
-	    {
-	      // Parameter specified directly, without a keyword. This is only
-	      // allowed for single parameter methods!
+        {
+          if (!isalpha(text.Current()) && 1==mdd->Keywords().nelem())
+            {
+              // Parameter specified directly, without a keyword. This is only
+              // allowed for single parameter methods!
 
-	      // We don't have to do anything here.
-	    }
-	  else  
-	    {      // Look for the keywords and read the parameters:
-	  
-	      String keyname;
-	      read_name(keyname,text);
+              // We don't have to do anything here.
+            }
+          else  
+            {      // Look for the keywords and read the parameters:
+          
+              String keyname;
+              read_name(keyname,text);
 
-	      // Is the keyname the expected keyname?
-	      if ( keyname != mdd->Keywords()[i] )
-		{
-		  throw UnexpectedKeyword( keyname,
-					   text.File(),
-					   text.Line(),
-					   text.Column());
-		}
+              // Is the keyname the expected keyname?
+              if ( keyname != mdd->Keywords()[i] )
+                {
+                  throw UnexpectedKeyword( keyname,
+                                           text.File(),
+                                           text.Line(),
+                                           text.Column());
+                }
 
-	      eat_whitespace(text);
+              eat_whitespace(text);
 
-	      // Look for '='
-	      assertain_character('=',text);
-	      eat_whitespace(text);
-	    }
+              // Look for '='
+              assertain_character('=',text);
+              eat_whitespace(text);
+            }
 
-	  // Now parse the key value. This can be:
-	  // String_t,    Index_t,    Numeric_t,
-	  // Array_String_t, Array_Index_t, Vector_t,
-	  switch (mdd->Types()[i]) 
-	    {
-	    case String_t:
-	      {
-		String dummy;
-		parse_String(dummy, text);
-		values.push_back(dummy);
-		break;
-	      }
-	    case Index_t:
-	      {
-		Index n;
-		parse_integer(n, text);
-		values.push_back(n);
-		break;
-	      }
-	    case Numeric_t:
-	      {
-		Numeric n;
-		parse_numeric(n, text);
-		values.push_back(n);
-		break;
-	      }
-	    case Array_String_t:
-	      {
-		ArrayOfString dummy;
-		parse_Stringvector(dummy, text);
-		values.push_back(dummy);
-		break;
-	      }
-	    case Array_Index_t:
-	      {
-		ArrayOfIndex dummy;
-		parse_intvector(dummy, text);
-		values.push_back(dummy);
-		break;
-	      }
-	    case Vector_t:
-	      {
-		Vector dummy;
-		parse_numvector(dummy, text);
-		values.push_back(dummy);
-		break;
-	      }
-	    default:
-	      throw logic_error("Impossible parameter type.");
-	      break;
-	    }
+          // Now parse the key value. This can be:
+          // String_t,    Index_t,    Numeric_t,
+          // Array_String_t, Array_Index_t, Vector_t,
+          switch (mdd->Types()[i]) 
+            {
+            case String_t:
+              {
+                String dummy;
+                parse_String(dummy, text);
+                values.push_back(dummy);
+                break;
+              }
+            case Index_t:
+              {
+                Index n;
+                parse_integer(n, text);
+                values.push_back(n);
+                break;
+              }
+            case Numeric_t:
+              {
+                Numeric n;
+                parse_numeric(n, text);
+                values.push_back(n);
+                break;
+              }
+            case Array_String_t:
+              {
+                ArrayOfString dummy;
+                parse_Stringvector(dummy, text);
+                values.push_back(dummy);
+                break;
+              }
+            case Array_Index_t:
+              {
+                ArrayOfIndex dummy;
+                parse_intvector(dummy, text);
+                values.push_back(dummy);
+                break;
+              }
+            case Vector_t:
+              {
+                Vector dummy;
+                parse_numvector(dummy, text);
+                values.push_back(dummy);
+                break;
+              }
+            default:
+              throw logic_error("Impossible parameter type.");
+              break;
+            }
 
-	  eat_whitespace(text);
+          eat_whitespace(text);
 
-	  // Check:
-	  //      cout << "Value: " << mdd->Values()[i] << '\n';
-	}
+          // Check:
+          //      cout << "Value: " << mdd->Values()[i] << '\n';
+        }
     }
 
   // Now look for the closing curly braces.  We have to catch Eot,
@@ -1068,18 +1068,16 @@ void parse_method(Index& id,
           
     @author Stefan Buehler */
 void parse_agenda( Agenda& tasklist,
-		   SourceText& text )
+                   SourceText& text )
 {
-  extern const std::map<String, Index> MdMap;
-  extern const std::map<String, Index> WsvMap;
   extern const Array<MdRecord> md_data;
 
   // For method ids:
-  Index id;		
+  Index id;             
   // For keyword parameter values:
   Array<TokVal> values;
   // Output workspace variables (for generic methods):
-  ArrayOfIndex output;		
+  ArrayOfIndex output;          
   // Input workspace variables (for generic methods):
   ArrayOfIndex input;
   // For Agenda, if ther is any:
@@ -1095,36 +1093,36 @@ void parse_agenda( Agenda& tasklist,
       tasklist.push_back(MRecord(id,values,output,input,tasks));
 
       {
-	// Everything in this block is just to generate some
-	// informative output.  
-	extern const Array<WsvRecord> wsv_data;
+        // Everything in this block is just to generate some
+        // informative output.  
+        extern const Array<WsvRecord> wsv_data;
 
-	out3 << "- " << md_data[id].Name() << "\n";
+        out3 << "- " << md_data[id].Name() << "\n";
 
-	for ( Index j=0 ; j<values.nelem() ; ++j )
-	  {
-	    out3 << "   " 
-		 << md_data[id].Keywords()[j] << ": "
-		 << values[j] << '\n';
-	  }
-	  
-	// Output workspace variables for generic methods:
-	if ( 0 < md_data[id].GOutput().nelem() + md_data[id].GInput().nelem() )
-	  {
-	    out3 << "   Output: ";
-	    for ( Index j=0 ; j<output.nelem() ; ++j )
-	      {
-		out3 << wsv_data[output[j]].Name() << " ";
-	      }
-	    out3 << "\n";
+        for ( Index j=0 ; j<values.nelem() ; ++j )
+          {
+            out3 << "   " 
+                 << md_data[id].Keywords()[j] << ": "
+                 << values[j] << '\n';
+          }
+          
+        // Output workspace variables for generic methods:
+        if ( 0 < md_data[id].GOutput().nelem() + md_data[id].GInput().nelem() )
+          {
+            out3 << "   Output: ";
+            for ( Index j=0 ; j<output.nelem() ; ++j )
+              {
+                out3 << wsv_data[output[j]].Name() << " ";
+              }
+            out3 << "\n";
 
-	    out3 << "   Input: ";
-	    for ( Index j=0 ; j<input.nelem() ; ++j )
-	      {
-		out3 << wsv_data[input[j]].Name() << " ";
-	      }
-	    out3 << "\n";
-	  }
+            out3 << "   Input: ";
+            for ( Index j=0 ; j<input.nelem() ; ++j )
+              {
+                out3 << wsv_data[input[j]].Name() << " ";
+              }
+            out3 << "\n";
+          }
       }
       
       eat_whitespace(text);
@@ -1141,20 +1139,16 @@ void parse_agenda( Agenda& tasklist,
     @author Stefan Buehler */
 void parse_main(Agenda& tasklist, SourceText& text)
 {
-  extern const std::map<String, Index> MdMap;
-  extern const std::map<String, Index> WsvMap;
-
   try 
     {
       extern const Array<MdRecord> md_data;
-      extern const Array<WsvRecord> wsv_data;
 
       // For method ids:
-      Index id;		
+      Index id;         
       // For keyword parameter values:
       Array<TokVal> values;
       // Output workspace variables (for generic methods):
-      ArrayOfIndex output;		
+      ArrayOfIndex output;              
       // Input workspace variables (for generic methods):
       ArrayOfIndex input;
       // For Agenda, if ther is any:
@@ -1166,13 +1160,13 @@ void parse_main(Agenda& tasklist, SourceText& text)
       eat_whitespace(text);
 
       parse_method(id,values,output,input,tasklist,text,true);
-	  
+          
       if ( "Main" != md_data[id].Name() )
-	{
-	  out0 << "The outermost method must be Main!\n"
-	       << "(But it seems to be " << md_data[id].Name() << ".)\n";
-	  exit(1);
-	}
+        {
+          out0 << "The outermost method must be Main!\n"
+               << "(But it seems to be " << md_data[id].Name() << ".)\n";
+          exit(1);
+        }
     }
   catch (const Eot x)
     {

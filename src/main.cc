@@ -79,20 +79,20 @@ void set_reporting_level(Index r)
     {
       // Reporting was specified. Check consistency and set report
       // level accordingly. 
-	
-	// Separate the two digits by taking modulo 10:
+        
+        // Separate the two digits by taking modulo 10:
       Index s = r / 10;
       Index f = r % 10;
-      //	cout << "s=" << s << " f=" << f << "\n";
+      //        cout << "s=" << s << " f=" << f << "\n";
 
-      if ( s<0 || s>3 || f<0 || f>3 )
-	{
-	  cerr << "Illegal value specified for --reporting (-r).\n"
-	       << "The specified value is " << r << ", which would be\n"
-	       << "interpreted as screen=" << s << ", file=" << f << ".\n"
-	       << "Only values of 0-3 are allowed for screen and file.\n";
-	  exit(1);
-	}
+      if ( s<0 || s>4 || f<0 || f>4 )
+        {
+          cerr << "Illegal value specified for --reporting (-r).\n"
+               << "The specified value is " << r << ", which would be\n"
+               << "interpreted as screen=" << s << ", file=" << f << ".\n"
+               << "Only values of 0-3 are allowed for screen and file.\n";
+          exit(1);
+        }
       messages.screen = s;
       messages.file   = f;
     }
@@ -124,15 +124,15 @@ void option_methods(const String& methods)
   if ( "all" == methods )
     {
       cout
-	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Complete list of ARTS workspace methods:\n"
-	<< "---------------------------------------------------------------------\n";
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Complete list of ARTS workspace methods:\n"
+        << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  cout << "- " << md_data_raw[i].Name() << "\n";
-	}
+        {
+          cout << "- " << md_data_raw[i].Name() << "\n";
+        }
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
       return;
     }
 
@@ -150,65 +150,65 @@ void option_methods(const String& methods)
       // List generic methods:
       hitcount = 0;
       cout 
-	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Generic and supergeneric methods that can generate " << wsv_data[wsv_key].Name() 
-	<< ":\n"
-	<< "---------------------------------------------------------------------\n";
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Generic and supergeneric methods that can generate " << wsv_data[wsv_key].Name() 
+        << ":\n"
+        << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  // Get handle on method record:
-	  const MdRecord& mdd = md_data_raw[i];
+        {
+          // Get handle on method record:
+          const MdRecord& mdd = md_data_raw[i];
 
-	  // This if statement checks whether GOutput, the list
-	  // of output variable types contains the group of the
-	  // requested variable.
-	  // The else clause picks up methods with supergeneric input.
-	  if ( count( mdd.GOutput().begin(),
-		      mdd.GOutput().end(),
-		      wsv_data[wsv_key].Group() ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	  else if  ( count( mdd.GOutput().begin(),
-		      mdd.GOutput().end(),
-		      Any_ ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	}
+          // This if statement checks whether GOutput, the list
+          // of output variable types contains the group of the
+          // requested variable.
+          // The else clause picks up methods with supergeneric input.
+          if ( count( mdd.GOutput().begin(),
+                      mdd.GOutput().end(),
+                      wsv_data[wsv_key].Group() ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+          else if  ( count( mdd.GOutput().begin(),
+                      mdd.GOutput().end(),
+                      Any_ ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       // List specific methods:
       hitcount = 0;
       cout 
-	<< "\n---------------------------------------------------------------------\n"
-	<< "Specific methods that can generate " << wsv_data[wsv_key].Name() 
-	<< ":\n"
-	<< "---------------------------------------------------------------------\n";
+        << "\n---------------------------------------------------------------------\n"
+        << "Specific methods that can generate " << wsv_data[wsv_key].Name() 
+        << ":\n"
+        << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  // Get handle on method record:
-	  const MdRecord& mdd = md_data_raw[i];
+        {
+          // Get handle on method record:
+          const MdRecord& mdd = md_data_raw[i];
 
-	  // This if statement checks whether Output, the list
-	  // of output variables contains the workspace
-	  // variable key.
-	  if ( count( mdd.Output().begin(),
-		      mdd.Output().end(),
-		      wsv_key ) ) 
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	}
+          // This if statement checks whether Output, the list
+          // of output variables contains the workspace
+          // variable key.
+          if ( count( mdd.Output().begin(),
+                      mdd.Output().end(),
+                      wsv_key ) ) 
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -220,8 +220,8 @@ void option_methods(const String& methods)
   // difference to the begin() iterator.
   Index group_key =
     find( wsv_group_names.begin(),
-	  wsv_group_names.end(),
-	  methods ) - wsv_group_names.begin();
+          wsv_group_names.end(),
+          methods ) - wsv_group_names.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
@@ -230,39 +230,39 @@ void option_methods(const String& methods)
       // List generic methods:
       hitcount = 0;
       cout 
-	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Generic and supergeneric methods that can generate variables of group " 
-	<< wsv_group_names[group_key] << ":\n"
-	<< "---------------------------------------------------------------------\n";
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Generic and supergeneric methods that can generate variables of group " 
+        << wsv_group_names[group_key] << ":\n"
+        << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  // Get handle on method record:
-	  const MdRecord& mdd = md_data_raw[i];
+        {
+          // Get handle on method record:
+          const MdRecord& mdd = md_data_raw[i];
 
-	  // This if statement checks whether GOutput, the list
-	  // of output variable types contains the
-	  // requested group.
-	  // The else clause picks up methods with supergeneric input.
-	  if ( count( mdd.GOutput().begin(),
-		      mdd.GOutput().end(),
-		      group_key ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	  else if  ( count( mdd.GOutput().begin(),
-		      mdd.GOutput().end(),
-		      Any_ ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	}
+          // This if statement checks whether GOutput, the list
+          // of output variable types contains the
+          // requested group.
+          // The else clause picks up methods with supergeneric input.
+          if ( count( mdd.GOutput().begin(),
+                      mdd.GOutput().end(),
+                      group_key ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+          else if  ( count( mdd.GOutput().begin(),
+                      mdd.GOutput().end(),
+                      Any_ ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -313,31 +313,31 @@ void option_input(const String& input)
       << "Generic and supergeneric methods that can use " << wsv_data[wsv_key].Name() << ":\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  // Get handle on method record:
-	  const MdRecord& mdd = md_data_raw[i];
-	  
-	  // This if statement checks whether GInput, the list
-	  // of input variable types contains the group of the
-	  // requested variable.
-	  // The else clause picks up methods with supergeneric input.
-	  if ( count( mdd.GInput().begin(),
-		      mdd.GInput().end(),
-		      wsv_data[wsv_key].Group() ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	  else if  ( count( mdd.GInput().begin(),
-		      mdd.GInput().end(),
-		      Any_ ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	}
+        {
+          // Get handle on method record:
+          const MdRecord& mdd = md_data_raw[i];
+          
+          // This if statement checks whether GInput, the list
+          // of input variable types contains the group of the
+          // requested variable.
+          // The else clause picks up methods with supergeneric input.
+          if ( count( mdd.GInput().begin(),
+                      mdd.GInput().end(),
+                      wsv_data[wsv_key].Group() ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+          else if  ( count( mdd.GInput().begin(),
+                      mdd.GInput().end(),
+                      Any_ ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       // List specific methods:
       hitcount = 0;
@@ -347,26 +347,26 @@ void option_input(const String& input)
       << ":\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  // Get handle on method record:
-	  const MdRecord& mdd = md_data_raw[i];
+        {
+          // Get handle on method record:
+          const MdRecord& mdd = md_data_raw[i];
 
-	  // This if statement checks whether Output, the list
-	  // of output variables contains the workspace
-	  // variable key.
-	  if ( count( mdd.Input().begin(),
-		      mdd.Input().end(),
-		      wsv_key ) ) 
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	}
+          // This if statement checks whether Output, the list
+          // of output variables contains the workspace
+          // variable key.
+          if ( count( mdd.Input().begin(),
+                      mdd.Input().end(),
+                      wsv_key ) ) 
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -378,8 +378,8 @@ void option_input(const String& input)
   // difference to the begin() iterator.
   Index group_key =
     find( wsv_group_names.begin(),
-	  wsv_group_names.end(),
-	  input ) - wsv_group_names.begin();
+          wsv_group_names.end(),
+          input ) - wsv_group_names.begin();
 
   // group_key == wsv_goup_names.nelem() indicates that a
   // group with this name was not found.
@@ -393,33 +393,33 @@ void option_input(const String& input)
       << wsv_group_names[group_key] << ":\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
-	{
-	  // Get handle on method record:
-	  const MdRecord& mdd = md_data_raw[i];
+        {
+          // Get handle on method record:
+          const MdRecord& mdd = md_data_raw[i];
 
-	  // This if statement checks whether GOutput, the list
-	  // of output variable types contains the
-	  // requested group.
-	  // The else clause picks up methods with supergeneric input.
-	  if ( count( mdd.GInput().begin(),
-		      mdd.GInput().end(),
-		      group_key ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }
-	  else if  ( count( mdd.GInput().begin(),
-		      mdd.GInput().end(),
-		      Any_ ) )
-	    {
-	      cout << "- " << mdd.Name() << "\n";
-	      ++hitcount;
-	    }	}
+          // This if statement checks whether GOutput, the list
+          // of output variable types contains the
+          // requested group.
+          // The else clause picks up methods with supergeneric input.
+          if ( count( mdd.GInput().begin(),
+                      mdd.GInput().end(),
+                      group_key ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }
+          else if  ( count( mdd.GInput().begin(),
+                      mdd.GInput().end(),
+                      Any_ ) )
+            {
+              cout << "- " << mdd.Name() << "\n";
+              ++hitcount;
+            }   }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -457,15 +457,15 @@ void option_workspacevariables(const String& workspacevariables)
   if ( "all" == workspacevariables )
     {
       cout
-	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Complete list of ARTS workspace variables:\n"
-	<< "---------------------------------------------------------------------\n";
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Complete list of ARTS workspace variables:\n"
+        << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<wsv_data.nelem(); ++i )
-	{
-	  cout << "- " << wsv_data[i].Name() << "\n";
-	}
+        {
+          cout << "- " << wsv_data[i].Name() << "\n";
+        }
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
       return;
     }
 
@@ -488,12 +488,12 @@ void option_workspacevariables(const String& workspacevariables)
       << " are of type:\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<mdr.GInput().nelem(); ++i )
-	{
-	  cout << "- " << wsv_group_names[mdr.GInput()[i]] << "\n";
-	  ++hitcount;
-	}
+        {
+          cout << "- " << wsv_group_names[mdr.GInput()[i]] << "\n";
+          ++hitcount;
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       // List specific variables required by this method.
       hitcount = 0;
@@ -502,15 +502,15 @@ void option_workspacevariables(const String& workspacevariables)
       << "Specific workspace variables required by " << mdr.Name() << ":\n"
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<mdr.Input().nelem(); ++i )
-	{
-	  cout << "- " << wsv_data[mdr.Input()[i]].Name() << "\n";
-	  ++hitcount;
-	}
+        {
+          cout << "- " << wsv_data[mdr.Input()[i]].Name() << "\n";
+          ++hitcount;
+        }
       if ( 0==hitcount )
-	cout << "none\n";
+        cout << "none\n";
 
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
 
       return;
     }
@@ -559,7 +559,7 @@ void option_describe(const String& describe)
       // If we are here, then the given name matches a workspace
       // variable.
       cout << wsv_data[i->second] << "\n";
-      return;	  
+      return;     
     }
 
   // If we are here, then the given name does not match anything.
@@ -755,15 +755,15 @@ int main (int argc, char **argv)
   if ( parameters.groups )
     {
       cout
-	<< "\n*-------------------------------------------------------------------*\n"
-	<< "Complete list of ARTS workspace variable groups:\n"
-	<< "---------------------------------------------------------------------\n";
+        << "\n*-------------------------------------------------------------------*\n"
+        << "Complete list of ARTS workspace variable groups:\n"
+        << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<wsv_group_names.nelem(); ++i )
-	{
-	  cout << "- " << wsv_group_names[i] << "\n";
-	}
+        {
+          cout << "- " << wsv_group_names[i] << "\n";
+        }
       cout
-	<< "*-------------------------------------------------------------------*\n\n";
+        << "*-------------------------------------------------------------------*\n\n";
       return(0);
     }
 
@@ -787,14 +787,14 @@ int main (int argc, char **argv)
       String::size_type p = out_basename.rfind(".arts");
 
       if (String::npos==p)
-	{
-	  // This is an error handler for the case that somebody gives
-	  // a supposed file name that does not contain the extension
-	  // ".arts"
+        {
+          // This is an error handler for the case that somebody gives
+          // a supposed file name that does not contain the extension
+          // ".arts"
 
-	  cerr << "The controlfile must have the extension .arts.\n";
-	  polite_goodby();
-	}
+          cerr << "The controlfile must have the extension .arts.\n";
+          polite_goodby();
+        }
       
       // Kill everything starting from the `.'
       out_basename.erase(p);
@@ -812,7 +812,7 @@ int main (int argc, char **argv)
   try
     {
       extern const String out_basename;     // Basis for file name
-      extern ofstream report_file;	// Report file pointer
+      extern ofstream report_file;      // Report file pointer
 
       //      cout << "rep = " << out_basename+".rep" << "\n";
       open_output_file(report_file, out_basename+".rep");
@@ -820,7 +820,7 @@ int main (int argc, char **argv)
   catch (runtime_error x)
     {
       cerr << x.what() << "\n"
-	   << "I have to be able to write to my report file.";
+           << "I have to be able to write to my report file.";
       exit(1);
     }
 
@@ -832,14 +832,14 @@ int main (int argc, char **argv)
   try
     {
       {
-	// Output program name and version number: 
-	// The name (PACKAGE) and the major and minor version number
-	// (VERSION) are set in configure.in. The configuration tools
-	// place them in the file config.h, which is included in arts.h.
+        // Output program name and version number: 
+        // The name (PACKAGE) and the major and minor version number
+        // (VERSION) are set in configure.in. The configuration tools
+        // place them in the file config.h, which is included in arts.h.
   
-	extern const String full_name;
+        extern const String full_name;
 
-	out1 << full_name << "\n";
+        out1 << full_name << "\n";
       }
 
 
@@ -849,14 +849,14 @@ int main (int argc, char **argv)
 
       // The text of the controlfile.
       SourceText text;
-	
+        
       // Read the control text from the control files:
       out3 << "\nReading control files:\n";
       for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
-	{
-	  out3 << "- " << parameters.controlfiles[i] << "\n";
-	  text.AppendFile(parameters.controlfiles[i]);
-	}
+        {
+          out3 << "- " << parameters.controlfiles[i] << "\n";
+          text.AppendFile(parameters.controlfiles[i]);
+        }
 
       // Call the parser to parse the control text:
       parse_main(tasklist, text);

@@ -1,4 +1,4 @@
-/* Copyright (C) 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2001, 2002 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -136,6 +136,7 @@ inline base& Array<base>::operator[](Index n)
   return std::vector<base>::operator[](n);
 }
 
+
 // Non-member functions:
 
 /** Output operator. */
@@ -172,7 +173,7 @@ inline base max(const Array<base>& x)
   for ( ; xi!=xe ; ++xi )
     {
       if ( *xi > max )
-	max = *xi;
+        max = *xi;
     }
 
   return max;
@@ -191,11 +192,63 @@ inline base min(const Array<base>& x)
   for ( ; xi!=xe ; ++xi )
     {
       if ( *xi < min )
-	min = *xi;
+        min = *xi;
     }
 
   return min;
 }
+
+
+//! Find first occurance.
+/*!
+  This returns the index of the first occurance of w in 
+  array x.  
+
+  A return value of -1 indicates that no matching element was found.
+
+  \return The index of the thing we looked for.
+  \param  x   The array to search.
+  \param w The value to look for.
+
+  \author Stefan Buehler
+  \date   2002-11-28
+*/
+template <class base>
+Index find_first( const Array<base>& x,
+                  const base& w )
+{
+  for ( Index i=0; i<x.nelem(); ++i )
+    if ( w == x[i] )
+      return i;
+
+  return -1;
+}
+
+//! Find all occurances.
+/*!
+  This calculates an array of indices of all occurances of w in
+  array x.
+
+  An empty output array means that no occurance was found.
+
+  \retval pos Array with positions of w in the array.
+  \param  x   The array to search.
+  \param  w   The value to look for.
+
+  \author Stefan Buehler
+  \date   2002-11-28
+*/
+template <class base>
+void find_all( ArrayOfIndex       pos,
+               const Array<base>& x,
+               const base&        w )
+{
+  pos.resize(0);
+  for ( Index i=0; i<x.nelem(); ++i )
+    if ( w == x[i] )
+      pos.push_back(i);
+}
+
 
 
 // It is not a good idea to put all the predefined array types in one

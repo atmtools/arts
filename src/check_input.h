@@ -58,81 +58,191 @@ void chk_if_bool(
         const Index&    x );
 
 void chk_if_in_range( 
-	const String&   x_name,
+        const String&   x_name,
         const Index&    x, 
         const Index&    x_low, 
         const Index&    x_high );
 
 void chk_if_over_0( 
-	const String&    x_name,
+        const String&    x_name,
         const Numeric&   x );
 
 void chk_if_in_range( 
-	const String&    x_name,
+        const String&    x_name,
         const Numeric&   x, 
         const Numeric&   x_low, 
         const Numeric&   x_high );
 
 void chk_vector_length( 
-	const String&      x_name,
+        const String&      x_name,
         ConstVectorView    x,
         const Index&       l );
 
 void chk_vector_length( 
-	const String&      x1_name,
-	const String&      x2_name,
+        const String&      x1_name,
+        const String&      x2_name,
         ConstVectorView    x1, 
         ConstVectorView    x2 );
 
 void chk_if_increasing( 
-	const String&      x_name,
+        const String&      x_name,
         ConstVectorView    x );
 
 void chk_if_decreasing( 
-	const String&      x_name,
+        const String&      x_name,
         ConstVectorView    x );
 
 void chk_matrix_ncols( 
-	const String&      x_name,
+        const String&      x_name,
         ConstMatrixView    x,
         const Index&       l );
 
 void chk_matrix_nrows( 
-	const String&      x_name,
+        const String&      x_name,
         ConstMatrixView    x,
         const Index&       l );
 
 void chk_atm_grids( 
-	const Index&      dim,
-	ConstVectorView   p_grid,
-	ConstVectorView   lat_grid,
-	ConstVectorView   lon_grid );
+        const Index&      dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid );
 
 void chk_atm_field( 
-	const String&     x_name,
+        const String&     x_name,
         const Tensor3&    x, 
-	const Index&      dim,
-	ConstVectorView   p_grid,
-	ConstVectorView   lat_grid,
-	ConstVectorView   lon_grid );
+        const Index&      dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid );
 
 void chk_atm_surface( 
-	const String&     x_name,
+        const String&     x_name,
         const Matrix&     x, 
-	const Index&      dim,
-	ConstVectorView   lat_grid,
-	ConstVectorView   lon_grid );
+        const Index&      dim,
+        ConstVectorView   lat_grid,
+        ConstVectorView   lon_grid );
 
 void chk_cloudbox(
-	const Index&          dim,
-	ConstVectorView       p_grid,
-	ConstVectorView       lat_grid,
-	ConstVectorView       lon_grid,
+        const Index&          dim,
+        ConstVectorView       p_grid,
+        ConstVectorView       lat_grid,
+        ConstVectorView       lon_grid,
         const Index&          cloudbox_on, 
-	const ArrayOfIndex&   cloudbox_limits );
+        const ArrayOfIndex&   cloudbox_limits );
 
 void chk_not_empty( 
-	const String&      x_name,
+        const String&      x_name,
         const Agenda&      x );
+
+//! Check if an array contains a value.
+/*!
+  This makes sure that the array *x* contains the element with
+  value *what* exactly once.
+
+  As a bonus, it returns the index of *what* in *x*.
+
+  This template function can be used for arrays of anything, provided
+  that the "==" operator is defined.
+
+  \return The index of the thing we looked for.
+  \param x_name Name of the array to check
+  \param x The array to check
+  \param what The value to look for.
+
+  \author Stefan Buehler
+  \date   2002-11-28
+*/
+template <class T>
+Index chk_contains( const String&   x_name,
+                    const Array<T>& x,
+                    const T&        what )
+{
+  // To generate error messages:
+  ostringstream os;
+
+  // To store the positions:
+  ArrayOfIndex pos;
+
+  // Find all positions of what in x and store in pos:
+  find_all( pos, x, what );
+
+  switch ( pos.nelem() ){
+
+  case 0:
+    // Not found.
+    os << "The array *" << x_name
+       <<  "* must contain the element " << what << ",\n"
+       << "but it does not.";
+    throw runtime_error( os.str() );
+    break;
+
+  case 1:
+    // Found once, this is what we want!
+    return pos[0];
+
+  default:
+    // Found more than once.
+    os << "The array *" << x_name
+       <<  "* must contain the element " << what << "\n"
+       << "exactly once, but it does contain it "
+       << pos.nelem() << " times.";
+    throw runtime_error( os.str() );
+  }
+}
+
+/*===========================================================================
+  === Functions for Tensors
+  ===========================================================================*/
+
+void chk_size( const String&    x_name,
+               ConstVectorView  x,
+               const Index&     c );
+
+void chk_size( const String&    x_name,
+               ConstMatrixView  x,
+               const Index&     r,
+               const Index&     c );
+
+void chk_size( const String&    x_name,
+               ConstTensor3View x,
+               const Index&     p,
+               const Index&     r,
+               const Index&     c );
+
+void chk_size( const String&    x_name,
+               ConstTensor4View x,
+               const Index&     b,
+               const Index&     p,
+               const Index&     r,
+               const Index&     c );
+
+void chk_size( const String&    x_name,
+               ConstTensor5View x,
+               const Index&     s,
+               const Index&     b,
+               const Index&     p,
+               const Index&     r,
+               const Index&     c );
+
+void chk_size( const String&    x_name,
+               ConstTensor6View x,
+               const Index&     v,
+               const Index&     s,
+               const Index&     b,
+               const Index&     p,
+               const Index&     r,
+               const Index&     c );
+
+void chk_size( const String&    x_name,
+               ConstTensor7View x,
+               const Index&     l,
+               const Index&     v,
+               const Index&     s,
+               const Index&     b,
+               const Index&     p,
+               const Index&     r,
+               const Index&     c );
+
 
 #endif  // checkinput_h

@@ -1,5 +1,4 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
-                            Axel von Engeln <engeln@uni-bremen.de>
+/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -51,12 +50,12 @@ public:
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
-  IsotopeRecord(const String&  	        name,
-		const Numeric& 	        abundance,
-		const Numeric& 	        mass,
-		const Index&     	mytrantag,
-		const Index&     	hitrantag,
-		const MakeArray<Index>& jpltags) :
+  IsotopeRecord(const String&           name,
+                const Numeric&          abundance,
+                const Numeric&          mass,
+                const Index&            mytrantag,
+                const Index&            hitrantag,
+                const MakeArray<Index>& jpltags) :
     mname(name),
     mabundance(abundance),
     mmass(mass),
@@ -69,11 +68,11 @@ public:
     // Some consistency checks whether the given data makes sense.
 #ifndef NDEBUG
       {
-	/* 1. All the tags must be positive or -1 */
-	assert( (0<mmytrantag) || (-1==mmytrantag) );
-	assert( (0<mhitrantag) || (-1==mhitrantag) );
-	for ( Index i=0; i<mjpltags.nelem(); ++i )
-	  assert( (0<mjpltags[i]) || (-1==mjpltags[i]) );
+        /* 1. All the tags must be positive or -1 */
+        assert( (0<mmytrantag) || (-1==mmytrantag) );
+        assert( (0<mhitrantag) || (-1==mhitrantag) );
+        for ( Index i=0; i<mjpltags.nelem(); ++i )
+          assert( (0<mjpltags[i]) || (-1==mjpltags[i]) );
       }
 #endif // ifndef NDEBUG
   }
@@ -106,11 +105,11 @@ public:
 
     if ( qtemp < 0. ) 
       {
-	ostringstream os;
-	os << "Partition function of "
-	   << "Isotope = " << mname
-	   << "is unknown.";
-	throw runtime_error(os.str());
+        ostringstream os;
+        os << "Partition function of "
+           << "Isotope = " << mname
+           << "is unknown.";
+        throw runtime_error(os.str());
       }
     return mqcoeff_at_t_ref / qtemp;
   }
@@ -150,8 +149,8 @@ public:
   
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
-		const Index degfr,
-		const MakeArray<IsotopeRecord>& isotope)
+                const Index degfr,
+                const MakeArray<IsotopeRecord>& isotope)
     : mname(name),
       mdegfr(degfr),
       misotope(isotope)
@@ -162,35 +161,35 @@ public:
 
 #ifndef NDEBUG
       {
-	/* Check that the isotopes are correctly sorted. */
-	for ( Index i=0; i<misotope.nelem()-1; ++i )
-	  {
-	    assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
-	  }
+        /* Check that the isotopes are correctly sorted. */
+        for ( Index i=0; i<misotope.nelem()-1; ++i )
+          {
+            assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
+          }
 
-	/* Check that the Mytran tags are correctly sorted. */
-	for ( Index i=0; i<misotope.nelem()-1; ++i )
-	  {
-	    if ( (0<misotope[i].MytranTag()) && (0<misotope[i+1].MytranTag()) )
-	      {
-		assert( misotope[i].MytranTag() < misotope[i+1].MytranTag() );
-	    
-		// Also check that the tags have the same base number:
-		assert( misotope[i].MytranTag()/10 == misotope[i].MytranTag()/10 );
-	      }
-	  }
+        /* Check that the Mytran tags are correctly sorted. */
+        for ( Index i=0; i<misotope.nelem()-1; ++i )
+          {
+            if ( (0<misotope[i].MytranTag()) && (0<misotope[i+1].MytranTag()) )
+              {
+                assert( misotope[i].MytranTag() < misotope[i+1].MytranTag() );
+            
+                // Also check that the tags have the same base number:
+                assert( misotope[i].MytranTag()/10 == misotope[i].MytranTag()/10 );
+              }
+          }
 
-	/* Check that the Hitran tags are correctly sorted. */
-	for ( Index i=0; i<misotope.nelem()-1; ++i )
-	  {
-	    if ( (0<misotope[i].HitranTag()) && (0<misotope[i+1].HitranTag()) )
-	      {
-		assert( misotope[i].HitranTag() < misotope[i+1].HitranTag() );
-	    
-		// Also check that the tags have the same base number:
-		assert( misotope[i].HitranTag()/10 == misotope[i+1].HitranTag()/10 );
-	      }
-	  }
+        /* Check that the Hitran tags are correctly sorted. */
+        for ( Index i=0; i<misotope.nelem()-1; ++i )
+          {
+            if ( (0<misotope[i].HitranTag()) && (0<misotope[i+1].HitranTag()) )
+              {
+                assert( misotope[i].HitranTag() < misotope[i+1].HitranTag() );
+            
+                // Also check that the tags have the same base number:
+                assert( misotope[i].HitranTag()/10 == misotope[i+1].HitranTag()/10 );
+              }
+          }
       }
 #endif // #ifndef NDEBUG
   }
@@ -247,7 +246,7 @@ private:
     ------------------------------------------------------------------      
      0   `@'                         ENTRY        -     marks start of entry
      1   name                         NAME        -     e.g. O3-666
-     2   center frequency         	 F       Hz     e.g. 501.12345e9 
+     2   center frequency                F       Hz     e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
      4   line intensity                 I0   m^2*Hz     per isotope, not per species
      5   reference temp. for I0       T_I0        K
@@ -255,18 +254,18 @@ private:
      7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
      8   self broadened width         SGAM    Hz/Pa
      9   AGAM temp. exponent          NAIR        -     values around .5
-    10   SGAM temp. exponent         NSELF    	  - 
-    11   ref. temp. for AGAM, SGAM   T_GAM    	  K
-    12   number of aux. parameters   N_AUX    	  -
-    13   auxiliary parameter          AUX1    	  -
+    10   SGAM temp. exponent         NSELF        - 
+    11   ref. temp. for AGAM, SGAM   T_GAM        K
+    12   number of aux. parameters   N_AUX        -
+    13   auxiliary parameter          AUX1        -
     14   ... 
-    15   error for F            	DF    	 Hz
+    15   error for F                    DF       Hz
     16   error for I0                  DI0        %
-    17   error for AGAM              DAGAM    	  %
-    18   error for SGAM              DSGAM    	  %
-    19   error for NAIR              DNAIR    	  %
-    20   error for NSELF            DNSELF    	  %
-    21   error for PSF                DPSF    	  %
+    17   error for AGAM              DAGAM        %
+    18   error for SGAM              DSGAM        %
+    19   error for NAIR              DNAIR        %
+    20   error for NSELF            DNSELF        %
+    21   error for PSF                DPSF        %
     22   quantum number code         QCODE            
     23   lower state quanta         QLOWER            
     24   upper state quanta         QUPPER            
@@ -337,31 +336,31 @@ public:
       assertions are not disabled (i.e., if NDEBUG is not #defined),
       assert statements check that the species and isotope data
       exists. */
-  LineRecord( Index  	     	    species,
-	      Index  	     	    isotope,
-	      Numeric 	     	    f,
-	      Numeric 	     	    psf,
-	      Numeric 	     	    i0,
-	      Numeric 	     	    ti0,
-	      Numeric 	     	    elow,
-	      Numeric 	     	    agam,
-	      Numeric 	     	    sgam,
-	      Numeric 	     	    nair,
-	      Numeric 	     	    nself,
-	      Numeric 	     	    tgam,
-	      const ArrayOfNumeric& aux       )
-    : mspecies (species	   ),
-      misotope (isotope	   ),
-      mf       (f      	   ),
-      mpsf     (psf    	   ),
-      mi0      (i0     	   ),
-      mti0     (ti0    	   ),
-      melow    (elow   	   ),
-      magam    (agam   	   ),
-      msgam    (sgam   	   ),
-      mnair    (nair   	   ),
-      mnself   (nself  	   ),
-      mtgam    (tgam   	   ),  
+  LineRecord( Index                 species,
+              Index                 isotope,
+              Numeric               f,
+              Numeric               psf,
+              Numeric               i0,
+              Numeric               ti0,
+              Numeric               elow,
+              Numeric               agam,
+              Numeric               sgam,
+              Numeric               nair,
+              Numeric               nself,
+              Numeric               tgam,
+              const ArrayOfNumeric& aux       )
+    : mspecies (species    ),
+      misotope (isotope    ),
+      mf       (f          ),
+      mpsf     (psf        ),
+      mi0      (i0         ),
+      mti0     (ti0        ),
+      melow    (elow       ),
+      magam    (agam       ),
+      msgam    (sgam       ),
+      mnair    (nair       ),
+      mnself   (nself      ),
+      mtgam    (tgam       ),  
       maux     (aux        )
   {
     // Thanks to Matpack, initialization of misotope with isotope
@@ -575,15 +574,15 @@ public:
     *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
        E (F10.4)     = lower state energy in wavenumbers (cm-1)
        N (F4.2)      = coefficient of temperature dependence of 
-	 	       air-broadened halfwidth
+                       air-broadened halfwidth
     *  N_self (F4.2) = coefficient of temperature dependence of 
-		       self-broadened halfwidth
+                       self-broadened halfwidth
     *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
     *  d (F8.6)      = shift of transition due to pressure (MHz/Torr)
-       V1 (I3) 	     = upper state global quanta index
-       V2 (I3) 	     = lower state global quanta index
-       Q1 (A9) 	     = upper state local quanta
-       Q2 (A9) 	     = lower state local quanta
+       V1 (I3)       = upper state global quanta index
+       V2 (I3)       = lower state global quanta index
+       Q1 (A9)       = upper state local quanta
+       Q2 (A9)       = lower state local quanta
        IERS (I1)     = accuracy index for S
        IERH (I1)     = accuracy index for AGAM
     *  IERN (I1)     = accuracy index for N
@@ -745,7 +744,7 @@ class SpecIsoMap{
 public:
   SpecIsoMap():mspeciesindex(0), misotopeindex(0){}
   SpecIsoMap(const Index& speciesindex,
-		const Index& isotopeindex)
+                const Index& isotopeindex)
     : mspeciesindex(speciesindex),
       misotopeindex(isotopeindex) 
   {}
@@ -798,20 +797,10 @@ public:
   /** Default constructor. */
   SpeciesTag() { /* Nothing to be done here. */ }
 
-  /** Constructor from a tag definition String (Bredbeck
-      notation). For examples see member function Name(). 
-
-      \exception runtime_error The given String could not be mapped to
-      a sensible tag description. */
+  // Documentation is with implementation.
   SpeciesTag(String def); 
 
-  /** Return the full name of this tag according to Bredbeck
-      convention. Examples:
-      \verbatim
-      O3-*-*-*         : All O3 lines
-      O3-666-*-*       : All O3-666 lines
-      O3-*-500e9-501e9 : All O3 lines between 500 and 501 GHz.
-      \endverbatim */
+  // Documentation is with implementation.
   String Name() const;
     
   /** Molecular species index. */
@@ -830,18 +819,45 @@ public:
       If this is <0 it means no upper limit. */
   Numeric Uf() const { return muf; }
 
+  //! Comparison operator for species tags.
+  /*!
+    This returns false as soon as a singe discrepancy is
+    detected. Otherwise it returns true at the end.
+  
+    \param other The other tag to compare to.
+  
+    \return true if the two tags are equal.
+    
+    \author Stefan Buehler
+    \date   2002-11-29
+  */
+  bool operator==(const SpeciesTag& other) const
+  {
+    if ( other.mspecies != mspecies ) return false;
+    if ( other.misotope != misotope ) return false;
+    if ( other.mlf      != mlf      ) return false;
+    if ( other.muf      != muf      ) return false;
+    return true;
+  }
+
 private:
-  // Molecular species index: 
+
+  //! Molecular species index.
   Index mspecies;
-  // Isotopic species index.
-  // If this is equal to the number of isotopes (one more than
-  // allowed) it means all isotopes of this species.
+
+  //! Isotopic species index.
+  /*!
+    If this is equal to the number of isotopes (one more than
+    allowed) it means all isotopes of this species. If it is <0 it
+    means no isotope (no lines), corresponding to "H2O-nl" */
   Index misotope;
-  // The lower line center frequency in Hz.
-  // If this is <0 it means no lower limit. 
+
+  //! The lower limit line center frequency in Hz.
+  /*! If this is <0 it means no lower limit. */
   Numeric mlf;
-  // The upper line center frequency in Hz:
-  // If this is <0 it means no upper limit. 
+
+  //! The upper line center frequency in Hz.
+  /*! If this is <0 it means no upper limit. */
   Numeric muf;
 };
 
@@ -852,10 +868,10 @@ private:
 ostream& operator << (ostream& os, const SpeciesTag& ot);
 
 
-/** This type is not directly used in arts currently. Just added for
-    consistency. Used to define ArrayOfArrayOfSpeciesTag.
+/** A tag group is an array of SpeciesTags. This corresponds to one
+    "species" in the controlfile. Example: "O3-666, O3-668"
 
-    \author Oliver Lemke */
+    \author Stefan Buehler */
 typedef  Array<SpeciesTag> ArrayOfSpeciesTag;
 
 /** Contains the available tag groups. Contrary to the Bredbeck
@@ -867,33 +883,33 @@ typedef  Array<SpeciesTag> ArrayOfSpeciesTag;
 typedef  Array<ArrayOfSpeciesTag> ArrayOfArrayOfSpeciesTag;
 
 
-void get_tagindex_for_Strings( 
-              ArrayOfIndex&   tags1_index, 
-        const ArrayOfArrayOfSpeciesTag&      tags1, 
-        const ArrayOfString&  tags2_Strings );
+// void get_tagindex_for_Strings( 
+//               ArrayOfIndex&   tags1_index, 
+//         const ArrayOfArrayOfSpeciesTag&      tags1, 
+//         const ArrayOfString&  tags2_Strings );
 
-void get_tag_group_index_for_tag_group( 
-              Index&         tags1_index, 
-        const ArrayOfArrayOfSpeciesTag&      tags1, 
-        const Array<SpeciesTag>&  tags2 );
+// void get_tag_group_index_for_tag_group( 
+//               Index&         tags1_index, 
+//         const ArrayOfArrayOfSpeciesTag&      tags1, 
+//         const Array<SpeciesTag>&  tags2 );
 
 String get_tag_group_name( const Array<SpeciesTag>& tg );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
-			   const ArrayOfLineRecord& lines);
+                           const ArrayOfLineRecord& lines);
 
 
 void xsec_species( MatrixView              xsec,
-		   ConstVectorView  	   f_mono,
-		   ConstVectorView  	   p_abs,
-		   ConstVectorView  	   t_abs,           
-		   ConstVectorView  	   h2o_abs,           
-		   ConstVectorView            vmr,
-		   const ArrayOfLineRecord& lines,
-		   const Index             ind_ls,
-		   const Index             ind_lsn,
-		   const Numeric            cutoff);
+                   ConstVectorView         f_mono,
+                   ConstVectorView         p_abs,
+                   ConstVectorView         t_abs,           
+                   ConstVectorView         h2o_abs,           
+                   ConstVectorView            vmr,
+                   const ArrayOfLineRecord& lines,
+                   const Index             ind_ls,
+                   const Index             ind_lsn,
+                   const Numeric            cutoff);
 
 
 // A helper function for energy conversion:
@@ -907,12 +923,12 @@ Numeric wavenumber_to_joule(Numeric e);
 void refr_index_BoudourisDryAir (
                     Vector&     refr_index,
               ConstVectorView   p_abs,
-	      ConstVectorView   t_abs );
+              ConstVectorView   t_abs );
 
 void refr_index_Boudouris (
                     Vector&     refr_index,
               ConstVectorView   p_abs,
               ConstVectorView   t_abs,
-	      ConstVectorView   h2o_abs );
+              ConstVectorView   h2o_abs );
 
 #endif // absorption_h

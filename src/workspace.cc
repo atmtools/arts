@@ -50,7 +50,7 @@ Array<WsvRecord> wsv_data;
 
 void define_wsv_data()
 {
-
+  
   //--------------------< Build the wsv data >--------------------
   // Initialize to empty, just in case.
   wsv_data.resize(0);
@@ -105,6 +105,26 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+    ( NAME( "abs_scalar_gas" ),
+      DESCRIPTION
+      (
+       "Scalar gas absorption for all gas species.\n"
+       "\n"
+       "This contains the absorption for one point in the\n"
+       "atmosphere (one set of pressure, temperature, and VMR values) for all\n"
+       "gas species in the calculation.\n"
+       "\n"
+       "It is used for example as the return value of\n"
+       "abs_gas_scalar_agenda.\n"
+       "\n"
+       "Unit: 1/m\n"
+       "\n"
+       "Dimension: [gas_species]"
+       ),
+      GROUP(Vector_ )));
+
+ wsv_data.push_back
+    (WsvRecord
     ( NAME( "abs_vec" ),
       DESCRIPTION
       (
@@ -138,25 +158,25 @@ void define_wsv_data()
      ( NAME("abs_vec_spt"),
        DESCRIPTION
        (
-	"Absorption Vector for a single particle type.\n"
-	"\n"
-	"This variable contains the elements of absorption vector of a \n"
-	"single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
-	"input as well as the output of the method *abs_vec_sptCalc*. This \n"
-	"variable is a matrix where the first dimension part_types indicate \n"
-	"the particle type under consideration and the second dimension is \n"
+        "Absorption Vector for a single particle type.\n"
+        "\n"
+        "This variable contains the elements of absorption vector of a \n"
+        "single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
+        "input as well as the output of the method *abs_vec_sptCalc*. This \n"
+        "variable is a matrix where the first dimension part_types indicate \n"
+        "the particle type under consideration and the second dimension is \n"
         "the *stokes_dim*.\n"
         "*stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
-	"\n"
-	"ARTS user guide (AUG) gives the formulas used for computing all \n"
-	"the elements of absorption vector.\n"
-	"\n"
-	"Usage:      Input and Output of the method abs_vec_sptCalc\n"
-	"\n"
-	"Unit:        m^2\n"
-	"\n"
-	"Dimensions: [part_types,stokes_dim]"
-	),
+        "\n"
+        "ARTS user guide (AUG) gives the formulas used for computing all \n"
+        "the elements of absorption vector.\n"
+        "\n"
+        "Usage:      Input and Output of the method abs_vec_sptCalc\n"
+        "\n"
+        "Unit:        m^2\n"
+        "\n"
+        "Dimensions: [part_types,stokes_dim]"
+        ),
        GROUP( Matrix_ ) ));
 
    wsv_data.push_back
@@ -227,17 +247,6 @@ void define_wsv_data()
        ),
       GROUP(ArrayOfArrayOfTensor6_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "abs_scalar_gas" ),
-      DESCRIPTION
-      (
-       "by Stefan?\n"
-       "\n"
-       ),
-      GROUP(Vector_ )));
-
-  
   wsv_data.push_back
    (WsvRecord
     ( NAME( "antenna_dim" ),
@@ -526,7 +535,7 @@ void define_wsv_data()
     ( NAME( "convergence_test_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
@@ -554,8 +563,8 @@ void define_wsv_data()
      ( NAME( "els_agenda" ),
        DESCRIPTION
        (
-	"See agendas.cc."
-	),
+        "See agendas.cc."
+        ),
        GROUP(  Agenda_ )));
   
   wsv_data.push_back
@@ -622,14 +631,14 @@ void define_wsv_data()
      ( NAME( "f_grid" ),
        DESCRIPTION
        (
-	"The frequency grid for monochromatic pencil beam calculations.\n"
-	"\n"
-	"What to say here?\n" 
-	"\n" 
-	"Usage:      Set by the user.\n "
-	"\n"   
-	"Unit:        Hz"
-	), 
+        "The frequency grid for monochromatic pencil beam calculations.\n"
+        "\n"
+        "What to say here?\n" 
+        "\n" 
+        "Usage:      Set by the user.\n "
+        "\n"   
+        "Unit:        Hz"
+        ), 
         GROUP( Vector_ )));
 
 
@@ -674,7 +683,7 @@ void define_wsv_data()
         "This has quite a complicated structure. See Doxygen documentation for\n"
         "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
         "once the chapter on the lookup table has been written."        
-	), 
+        ), 
        GROUP( GasAbsLookup_ )));
 
   wsv_data.push_back
@@ -682,13 +691,13 @@ void define_wsv_data()
      ( NAME( "gas_species" ),
        DESCRIPTION
        (
-	"Tag groups for scalar gas absorption.\n"
-	"\n"
-	"This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
-	"available tag groups for the calculation of scalar gas absorption\n"
-	"coefficients.  See online documentation of method *gas_speciesDefine* for\n"
-	"more detailed information how tag groups work and some examples."
-	), 
+        "Tag groups for scalar gas absorption.\n"
+        "\n"
+        "This is an array of arrays of SpeciesTag tag definitions. It defines the\n"
+        "available tag groups for the calculation of scalar gas absorption\n"
+        "coefficients.  See online documentation of method *gas_speciesDefine* for\n"
+        "more detailed information how tag groups work and some examples."
+        ), 
        GROUP( ArrayOfArrayOfSpeciesTag_ )));
 
   wsv_data.push_back
@@ -696,16 +705,16 @@ void define_wsv_data()
      ( NAME( "ground_emission" ),
        DESCRIPTION
        (
-	"The emission from the ground at a specified position.\n"
-	"\n"
-	"See further *ground_refl_agenda*.\n"
-	"\n"
-	"Usage:      Output from *ground_refl_agenda*.. \n"
-	"\n"
-	"Unit:       W / (m^2 Hz sr)\n"
-	"\n"
-	"Dimensions: [ f_grid, stokes_dim ]"
-	), 
+        "The emission from the ground at a specified position.\n"
+        "\n"
+        "See further *ground_refl_agenda*.\n"
+        "\n"
+        "Usage:      Output from *ground_refl_agenda*.. \n"
+        "\n"
+        "Unit:       W / (m^2 Hz sr)\n"
+        "\n"
+        "Dimensions: [ f_grid, stokes_dim ]"
+        ), 
        GROUP( Matrix_ )));
  
  wsv_data.push_back
@@ -713,7 +722,7 @@ void define_wsv_data()
     ( NAME( "ground_refl_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
@@ -722,20 +731,20 @@ void define_wsv_data()
      ( NAME( "ground_refl_coeffs" ),
        DESCRIPTION
        (
-	"The reflection coefficients from the directions given by\n"
-	"*ground_los* to the direction of interest.\n"
-	"\n"
-	"The rows and columns of this tensor holds the reflection coefficient"
-	"matrix for one frequency and one LOS.\n"
-	"\n"
-	"See further *ground_refl_agenda*.\n"
-	"\n"
-	"Usage:      Output from *ground_refl_agenda*.. \n"
-	"\n"
-	"Units:      -\n"
-	"\n"
-	"Dimensions: [ ground_los, f_grid, stokes_dim, stokes_dim ]"
-	), 
+        "The reflection coefficients from the directions given by\n"
+        "*ground_los* to the direction of interest.\n"
+        "\n"
+        "The rows and columns of this tensor holds the reflection coefficient"
+        "matrix for one frequency and one LOS.\n"
+        "\n"
+        "See further *ground_refl_agenda*.\n"
+        "\n"
+        "Usage:      Output from *ground_refl_agenda*.. \n"
+        "\n"
+        "Units:      -\n"
+        "\n"
+        "Dimensions: [ ground_los, f_grid, stokes_dim, stokes_dim ]"
+        ), 
        GROUP( Tensor4_ )));
  
   wsv_data.push_back
@@ -743,17 +752,17 @@ void define_wsv_data()
      ( NAME( "ground_los" ),
        DESCRIPTION
        (
-	"Directions for which to calculate downwelling radiation when \n"
-	"considerin g a ground reflection.\n"
-	"\n"
-	"See further *ground_refl_agenda*.\n"
-	"\n"
-	"Usage: Output from *ground_refl_agenda*.. \n"
-	"\n"
-	"Units: degrees\n"
-	"\n"
-	"Size:  [ any number, 1 or 2 ]"
-	), 
+        "Directions for which to calculate downwelling radiation when \n"
+        "considerin g a ground reflection.\n"
+        "\n"
+        "See further *ground_refl_agenda*.\n"
+        "\n"
+        "Usage: Output from *ground_refl_agenda*.. \n"
+        "\n"
+        "Units: degrees\n"
+        "\n"
+        "Size:  [ any number, 1 or 2 ]"
+        ), 
        GROUP( Matrix_ )));
  
   wsv_data.push_back
@@ -783,7 +792,7 @@ void define_wsv_data()
      ( NAME( "i_field_dim" ), 
        DESCRIPTION
        (
-	"Dimension of the radiation field.\n" 
+        "Dimension of the radiation field.\n" 
        "\n"
        "This variable is important if a 1D atmosphere is considered.\n"
        "1D atmosphere means that all profiles only depend on altitude or \n"
@@ -877,8 +886,8 @@ void define_wsv_data()
      ( NAME( "i_space_agenda" ),
        DESCRIPTION
        (
-	"See agendas.cc."
-	),
+        "See agendas.cc."
+        ),
        GROUP(  Agenda_ )));
   
  wsv_data.push_back
@@ -1115,7 +1124,7 @@ void define_wsv_data()
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_)));
 
@@ -1204,7 +1213,7 @@ void define_wsv_data()
     ( NAME( "opt_prop_gas_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_)));
 
@@ -1214,7 +1223,7 @@ void define_wsv_data()
     ( NAME( "opt_prop_part_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_)));
 
@@ -1411,7 +1420,7 @@ void define_wsv_data()
     ( NAME( "ppath_step_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
@@ -1420,7 +1429,7 @@ void define_wsv_data()
     ( NAME( "rte_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
@@ -1462,7 +1471,7 @@ void define_wsv_data()
     ( NAME( "scalar_gas_absorption_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_)));
   
@@ -1684,7 +1693,7 @@ void define_wsv_data()
     ( NAME( "scat_mono_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
@@ -1803,7 +1812,7 @@ void define_wsv_data()
     ( NAME( "spt_calc_agenda" ),
       DESCRIPTION
       (
-	"See agendas.cc."
+        "See agendas.cc."
        ),
       GROUP( Agenda_)));
 

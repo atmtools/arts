@@ -1,3 +1,55 @@
+2002-11-29  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-323
+
+	* src/agenda_class.cc Untabified.
+	(execute): Implemented reporting level 4
+	to override silent agenda execution.
+
+	* src/main.cc Untabified.
+	(set_reporting_level): Implemented reporting level 4
+	to override silent agenda execution.
+
+	* src/check_input.h: Untabified.
+	(chk_size): Added.
+	(chk_contains): Added. Checks if an array contains a certain
+	value. Has to be here in the .h file, because it is a template
+	function that works for any kind of array.
+
+	* src/check_input.cc: Untabified.
+	(chk_size): Added these functions for Vector up to Tensor7. They
+	are similar to the is_size functions, but throw runtime errors
+	with appropriate messages if the size does not match. Could be
+	convenient for others as well, please use.
+
+	* src/workspace.cc: Untabified.
+	(define_wsv_data): Moved variable
+	abs_scalar_gas to the right place and added documentation. 
+
+	* src/methods.cc: Untabified.
+	(define_md_data_raw): Put in stub for gas_abs_lookupAdapt method
+	(still commented out).
+
+	* src/parser.cc: Untabified. Removed unused variables. (Detected
+	thanks to the great new warnings of Oliver.)
+
+	* src/old_absorption.cc: Moved some stuff to absorption.cc.
+
+	* src/absorption.cc: Untabified. Added some Functions for
+	SpeciesTag. (Moved over from old_absorption.cc and updated.)
+
+	* src/absorption.h: Ditto.
+
+	* src/gas_abs_lookup.h: Updated.
+
+	* src/gas_abs_lookup.cc (find_new_grid_in_old_grid): Added.
+	(Adapt): Worked mainly on this function. It is now more or less
+	complete, but not tested.
+
+	* src/array.h: Untabified.
+	(find_first): Added.
+	(find_all): Added.
+
 2002-11-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-322
@@ -238,7 +290,6 @@
 	absorption, which can be defined in the control file by setting
 	the variable *abs_scalar_gas* in scalar_gas_absorption_agenda.
 	
-
 2002-11-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-309
