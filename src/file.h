@@ -80,7 +80,29 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Basic functions to handle HDF files
+//   STRING IO routines for ASCII files
+////////////////////////////////////////////////////////////////////////////
+
+void write_array_of_string_to_stream(
+              ostream&         os,
+        const ARRAYofstring&   as );
+
+void write_array_of_string_to_file(
+        const string&          filename,
+        const ARRAYofstring&   as );
+
+void read_array_of_string_from_stream(
+        ARRAYofstring&   as,
+        istream&         is );
+
+void read_array_of_string_from_file(
+           ARRAYofstring&   as,
+     const string&          filename );
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Open and close binary
 ////////////////////////////////////////////////////////////////////////////
 
 void binfile_open_out(

@@ -64,17 +64,74 @@ void define_md_data()
 
 //=== INDEX ============================================================
 
-  md_data.push_back
+ // These functions should be changed to handle INDEX
+
+  md_data.push_back     
     ( MdRecord
       ( NAME("IntSet"),
 	DESCRIPTION("Sets an integer workspace variable to the given value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( int_t ),
+	GOUTPUT( int_ ),
 	GINPUT(),
 	KEYWORDS( "value" ),
 	TYPES( int_t )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("IndexWriteAscii"),
+	DESCRIPTION("Writes an integer value to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( int_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("IndexReadAscii"),
+	DESCRIPTION("Reads an integer value from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( int_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("IndexWriteBinary"),
+	DESCRIPTION("Writes an index to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( int_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("IndexReadBinary"),
+	DESCRIPTION("Reads an index from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( int_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
 
 //=== NUMERIC ==========================================================
@@ -89,6 +146,34 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "value" ),
 	TYPES( Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericWriteAscii"),
+	DESCRIPTION("Writes a numeric value to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Numeric_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericReadAscii"),
+	DESCRIPTION("Reads a numeric value from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Numeric_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
@@ -320,6 +405,34 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("ArrayOfIndexWriteAscii"),
+	DESCRIPTION("Writes an integer array to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofsizet_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfIndexReadAscii"),
+	DESCRIPTION("Reads an integer array from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofsizet_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("ArrayOfIndexWriteBinary"),
 	DESCRIPTION("Writes an index array to a binary file.\n"
 		    "The filename can be specified or an empty string.\n"
@@ -485,6 +598,78 @@ void define_md_data()
 	TYPES(    string_t   )));
 
 
+//=== STRING ============================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("StringWriteAscii"),
+	DESCRIPTION("Writes a string to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.as.\n"
+		    "See `ArrayOfStringWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( string_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("StringReadAscii"),
+	DESCRIPTION("Reads a string from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.as.\n"
+		    "See `ArrayOfStringWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( string_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
+//=== ARRAYofSTRING =========================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfStringWriteAscii"),
+	DESCRIPTION("Writes a string array to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.as.\n"
+		    "The format is as follows:\n\n"
+		    "# <comments>\n"
+		    "<n_strings>\n"
+		    "<string 1>\n"
+		    "<string 2>\n"
+		    "...\n\n"
+		    "Example:\n"
+		    "# Generated by arts-0.0.16, Apr 29 2000, 17:38:44\n"
+		    "2\n"
+		    "A string\n"
+		    "Another string"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofstring_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfStringReadAscii"),
+	DESCRIPTION("Reads a string array from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.as.\n"
+		    "See `ArrayOfStringWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofstring_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
 
 //=== MAYBESPARSE ====================================================
 
@@ -497,6 +682,38 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Hmatrix_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
+
+//=== LOS ==================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("LosWriteBinary"),
+	DESCRIPTION("Writes a LOS structure to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( LOS_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("LosReadBinary"),
+	DESCRIPTION("Reads a LOS structure from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( LOS_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
@@ -1155,16 +1372,5 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("Test"),
-  	DESCRIPTION(
-          "xxx."),
-	OUTPUT(),
-        INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
 
 }

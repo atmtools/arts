@@ -51,6 +51,18 @@
 // These functions gives, if filename is empty, the default file name for
 // the different file types.
 
+//// filename_num_ascii ////////////////////////////////////////////////////
+/**
+   Gives the default file name for the numerical ASCII format.
+
+   The default name is only used if the file name is empty.
+
+   \retval   filename     file name
+   \param    varname      variable name
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
 void filename_num_ascii(
               string&  filename,
         const string&  varname )
@@ -62,6 +74,20 @@ void filename_num_ascii(
   }
 }
 
+
+
+//// filename_string_ascii //////////////////////////////////////////////////
+/**
+   Gives the default file name for the string ASCII format.
+
+   The default name is only used if the file name is empty.
+
+   \retval   filename     file name
+   \param    varname      variable name
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
 void filename_string_ascii(
               string&  filename,
         const string&  varname )
@@ -73,6 +99,20 @@ void filename_string_ascii(
   }
 }
 
+
+
+//// filename_bin ////////////////////////////////////////////////////////////
+/**
+   Gives the default file name for the binary format.
+
+   The default name is only used if the file name is empty.
+
+   \retval   filename     file name
+   \param    varname      variable name
+
+   \author Patrick Eriksson              
+   \date   2000-11-01
+*/
 void filename_bin(
               string&  filename,
         const string&  varname )
@@ -105,6 +145,91 @@ void IntSet(// WS Generic Output:
 }
 
 
+// This function shall be modified to handle INDEX
+// PE 001102
+void IndexWriteAscii(
+        const int&      v,
+        const string&   v_name,
+	const string&   f )
+{
+  string filename = f;
+
+  // Create default filename if empty  
+  filename_num_ascii( filename, v_name );
+
+  // Store the value in an ARRAYofMATRIX and write to file
+  ARRAYofMATRIX am(1);
+  am(1).newsize(1,1);
+  am(1) = (Numeric) v;
+  write_array_of_matrix_to_file(filename,am);
+}
+
+
+// This function shall be modified to handle INDEX
+// PE 001102
+void IndexReadAscii(
+	      int&      v,
+        const string&   v_name,
+	const string&   f )
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_num_ascii( filename, v_name );
+
+  // Read the value as ARRAYofMATRIX and move to Numeric
+  ARRAYofMATRIX am;
+  read_array_of_matrix_from_file(am,filename);
+  if ( (am.dim()!=1) || (am(1).dim(1)!=1) || (am(1).dim(2)!=1) )
+  {
+    ostringstream os;
+    os << "The file " << filename << " contains not a single value.";
+    throw runtime_error(os.str());
+  }
+
+  Numeric a = am(1)(1,1);
+
+  if ( (a-floor(a)) != 0 )
+    throw runtime_error("The value in the file is not an integer.");
+  if ( a < 0 )
+    throw runtime_error("The value in the file is negative.");
+
+  v = (int) a;
+}
+
+
+// This function shall be modified to handle INDEX
+void IndexWriteBinary(
+	const int&      v,
+        const string&   var_name,
+	const string&   f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_out( fid, filename );
+  binfile_write_index( filename, fid, v, "INDEX" );
+  binfile_close( fid, filename );
+}
+
+
+// This function shall be modified to handle INDEX
+void IndexReadBinary(
+	      int&      v,
+        const string&   var_name,
+	const string&   f )
+{
+  size_t vtemp;  //To be removed
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_index( vtemp, filename, fid, "INDEX" );
+  v = (int) vtemp;
+  binfile_close( fid, filename );
+}
+
+
 
 //=== NUMERIC ==========================================================
 
@@ -117,6 +242,50 @@ void NumericSet(// WS Generic Output:
 {
   x = value;
   out3 << "  Setting " << x_name << " to " << value << ".\n";
+}
+
+
+// PE 001102
+void NumericWriteAscii(
+        const Numeric&  v,
+        const string&   v_name,
+	const string&   f )
+{
+  string filename = f;
+
+  // Create default filename if empty  
+  filename_num_ascii( filename, v_name );
+
+  // Store the value in an ARRAYofMATRIX and write to file
+  ARRAYofMATRIX am(1);
+  am(1).newsize(1,1);
+  am(1) = v;
+  write_array_of_matrix_to_file(filename,am);
+}
+
+
+// PE 001102
+void NumericReadAscii(
+	      Numeric&  v,
+        const string&   v_name,
+	const string&   f )
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_num_ascii( filename, v_name );
+
+  // Read the value as ARRAYofMATRIX and move to Numeric
+  ARRAYofMATRIX am;
+  read_array_of_matrix_from_file(am,filename);
+  if ( (am.dim()!=1) || (am(1).dim(1)!=1) || (am(1).dim(2)!=1) )
+  {
+    ostringstream os;
+    os << "The file " << filename << " contains not a single numeric value";
+    throw runtime_error(os.str());
+  }
+
+  v = am(1)(1,1);
 }
 
 
@@ -409,6 +578,67 @@ void MatrixReadBinary(
 
 //=== ARRAYofINDEX =====================================================
 
+// This function shall be modified to handle ARRAYofINDEX
+// PE 001102
+void ArrayOfIndexWriteAscii(
+        const ARRAYofsizet&   v,
+        const string&         v_name,
+	const string&         f )
+{
+  string filename = f;
+
+  // Create default filename if empty  
+  filename_num_ascii( filename, v_name );
+
+  // Store the value in an ARRAYofMATRIX and write to file
+  const size_t  n = v.dim();
+  ARRAYofMATRIX am(1);
+  am(1).newsize(1,n);
+  for ( size_t i=1; i<=n; i++ )
+    am(1)(1,i) = (Numeric) v(i);
+  write_array_of_matrix_to_file(filename,am);
+}
+
+
+// This function shall be modified to handle INDEX
+// PE 001102
+void ArrayOfIndexReadAscii(
+	      ARRAYofsizet&   v,
+        const string&         v_name,
+	const string&         f )
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_num_ascii( filename, v_name );
+
+  // Read the value as ARRAYofMATRIX 
+  ARRAYofMATRIX am;
+  read_array_of_matrix_from_file(am,filename);
+  if ( (am.dim()!=1) )
+  {
+    ostringstream os;
+    os << "The file " << filename << " contains more than one vector.";
+    throw runtime_error(os.str());
+  }
+
+  // Move values to v using a vector
+  VECTOR x;
+  to_vector( x, am(1) );
+  const size_t  n = x.dim();
+  v.newsize(n);
+  for ( size_t i=1; i<=n; i++ )
+  {  
+    if ( (x(i)-floor(x(i))) != 0 )
+      throw runtime_error("A value in the file is not an integer.");
+    if ( x(i) < 0 )
+      throw runtime_error("A value in the file is negative.");
+    v(i) = (int) x(i);
+  }
+}
+
+
+
 void ArrayOfIndexWriteBinary(
         const ARRAYofsizet&  v,
         const string&        var_name,
@@ -590,6 +820,94 @@ void ArrayOfMatrixReadBinary(
 
 
 
+//=== STRING ===============================================================
+
+void StringWriteAscii( // WS Generic Input:
+		       const string& s,
+		       // WS Generic Input Names:
+		       const string& s_name,
+		       // Control Parameters:
+		       const string& f)
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_string_ascii( filename, s_name );
+
+  // Convert the string to an array of string:
+  ARRAYofstring as(1);
+  as[0] = s;
+
+  // Write the array of matrix to the file.
+  write_array_of_string_to_file(filename,as);
+}
+
+
+
+void StringReadAscii(   // WS Generic Output:
+			string& s,
+			// WS Generic Output Names:
+			const string& s_name,
+			// Control Parameters:
+			const string& f)
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_string_ascii( filename, s_name );
+
+  // Read the array of matrix from the file:
+  ARRAYofstring as;
+  read_array_of_string_from_file(as,filename);
+
+  // Convert the array of string to a string.
+  if ( 1 != as.dim() )
+    throw runtime_error("You tried to convert an array of string to a string,\n"
+                        "but the dimension of the array is not 1.");
+
+  s = as[0];
+}
+
+
+
+//=== ARRAYofstring ====================================================
+
+void ArrayOfStringWriteAscii( // WS Generic Input:
+			      const ARRAYofstring& as,
+			      // WS Generic Input Names:
+			      const string& as_name,
+			      // Control Parameters:
+			      const string& f)
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_string_ascii( filename, as_name );
+
+  // Write the array of matrix to the file.
+  write_array_of_string_to_file(filename,as);
+}
+
+
+
+void ArrayOfStringReadAscii(   // WS Generic Output:
+			       ARRAYofstring& as,
+			       // WS Generic Output Names:
+			       const string& as_name,
+			       // Control Parameters:
+			       const string& f)
+{
+  string filename = f;
+  
+  // Create default filename if empty  
+  filename_string_ascii( filename, as_name );
+
+  // Read the array of matrix from the file:
+  read_array_of_string_from_file(as,filename);
+}
+
+
+
 //=== MAYBESPARSE ====================================================
 
 /** Generic function to read H matrices.
@@ -624,26 +942,43 @@ void HmatrixReadAscii(// WS Generic Output:
 
 
 
+//=== LOS ================================================================
 
-void Test()
+void LosWriteBinary(
+        const LOS&      los,
+        const string&   var_name,
+	const string&   f )
 {
-  const string filename = "test.hdf"; 
-  const size_t n = 3;
-  ARRAYofMATRIX a(n), b;
   hid_t  fid;
-  
-  for ( size_t i=1; i<=n; i++ )
-  {
-    a(i).newsize(i,i);
-    a(i) = ((Numeric) i)*1.1;
-  }
+  string filename = f;
+  filename_bin( filename, var_name );
   binfile_open_out( fid, filename );
-  binfile_write_matrixarray( filename, fid, a, "MATRIX" ); 
+  binfile_write_vectorarray( filename, fid, los.p, "LOS.P" );
+  binfile_write_vector( filename, fid, los.l_step, "LOS.L_STEP" );
+  binfile_write_indexarray( filename, fid, los.ground, "LOS.GROUND" );
+  binfile_write_indexarray( filename, fid, los.start, "LOS.START" );
+  binfile_write_indexarray( filename, fid, los.stop, "LOS.STOP" );
   binfile_close( fid, filename );
-  binfile_open_in( fid, filename );
-  binfile_read_matrixarray( b, filename, fid, "MATRIX" ); 
-  binfile_close( fid, filename );
-  for (size_t i=1; i<=n; i++ )
-    cout << b(i);
-
 }
+
+
+
+void LosReadBinary(
+	      LOS&      los,
+        const string&   var_name,
+	const string&   f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_vectorarray( los.p, filename, fid, "LOS.P" );
+  binfile_read_vector( los.l_step, filename, fid, "LOS.L_STEP" );
+  binfile_read_indexarray( los.ground, filename, fid, "LOS.GROUND" );
+  binfile_read_indexarray( los.start, filename, fid, "LOS.START" );
+  binfile_read_indexarray( los.stop, filename, fid, "LOS.STOP" );
+  binfile_close( fid, filename );
+}
+
+
+

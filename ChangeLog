@@ -1,3 +1,27 @@
+2000-11-06  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-71
+
+	* Introduced a file format for ARRAYofSTRINGS. The extension is .as.
+        See ArrayOfStringWriteAscii for the file format.
+	When reading, blanks (white space) is for the moment not allowed.
+	Is this accapteble? My answer is no. If anyone can fix this, please
+	go ahead.
+
+	* There should now be a full set of functions for the .am format. 
+	For example, the function NumericWriteAscii exists now.
+
+	* There is also a full set of functions for numeric binary files using
+	HDF 5. But it was probably a mistake of me to pick HDF5 instead of HDF4
+	(I just wanted to use the freshest version). This as it turned out 
+	that there are only functions in Matlab to handle HDF4. In addition,
+	Frank Merino has never told me what version he uses for Odin, but an
+	old e-mail indicates that he uses HDF4 (I how now sent an e-mail to 
+	confirm this).
+	So I am afraid that I have to take one step backward and change the
+	core functions to use HDF4.
+	
+
 2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-70

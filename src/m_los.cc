@@ -548,7 +548,6 @@ void los_inside(
 	  geom2refr( ps, l_temp, zs, c, z_tan, atm_limit, p_abs, z_abs, 
 		                                        refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.dim()-1), l_temp );
-	  //l1 = interp_lin( ps, ls, p_plat(1) );  
 	  l1 = interp_lin( ps, ls, z_plat );  
 	}
         else
@@ -587,9 +586,7 @@ void los_inside(
 	  geom2refr( ps, l_temp, zs, c, z_tan, atm_limit, p_abs, z_abs, 
 		                                        refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.dim()-1), l_temp );
-	  //l1 = interp_lin( ps, ls, p_plat(1) );  
 	  l1 = interp_lin( ps, ls, z_plat );  
-
 	}
         else
 	{
