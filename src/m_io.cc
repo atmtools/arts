@@ -52,6 +52,7 @@
 #include "make_array.h"
 
 
+
 //**************************************************************************
 //
 //  1. Overall ARTS functions
@@ -84,6 +85,7 @@ void RandSetSeed( )
 }
 
 
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -95,7 +97,7 @@ void Test( )
   // This function can be used to test stuff.
 
   //  assert_bool( 2, "XCVF" );
-  assert_length_ncol( Vector(6), "XCVF", Matrix(5,5), "ERTFD" );
+  check_length_ncol( Vector(6), "XCVF", Matrix(5,5), "ERTFD" );
 }
 
 
@@ -982,36 +984,6 @@ void ArrayOfStringReadBinary(
 }
 
 
-//=== MAYBESPARSE ====================================================
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void HmatrixReadAscii(// WS Generic Output:
-			Hmatrix& h,
-			// WS Generic Output Names:
-			const String& h_name,
-			// Control Parameters:
-			const String& f)
-{
-  String filename = f;
- 
-  // Create default filename if empty  
-  filename_ascii( filename, h_name );
-
-  // Read the array of matrix from the file:
-  ArrayOfMatrix am;
-  read_array_of_matrix_from_file(am,filename);
-
-  h.issparse = 0;
-  h.full     = am[0];
-  // Remember to clear the other field
-}
-
-
 
 //=== LOS ==================================================================
 
@@ -1588,6 +1560,29 @@ void MatrixScale(
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-02-21
+*/
+void MatrixDiagonal(
+		    Matrix&           x, 
+                    const String&     x_name,
+                    const Index&      nrows,
+                    const Numeric&    value )
+{
+  x.resize( nrows, nrows );
+  for ( Index i=0; i<Index(nrows); i++ )
+    x(i,i) = value;
+
+  out2 << "  Creating " << x_name << " as a diagonal matrix\n"; 
+  out3 << "          nrows : " << nrows << "\n";
+  out3 << "          value : " << value << "\n";
+}
+
+
+
 //=== STRING ===============================================================
 
 /**
@@ -1624,25 +1619,3 @@ void ArrayOfStringSet(
   out3 << "  Setting " << sa_name << "\n"; 
 }
 
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-02-21
-*/
-void MatrixDiagonal(
-		    Matrix&           x, 
-                    const String&     x_name,
-                    const Index&      nrows,
-                    const Numeric&    value )
-{
-  x.resize( nrows, nrows );
-  for ( Index i=0; i<Index(nrows); i++ )
-    x(i,i) = value;
-
-  out2 << "  Creating " << x_name << " as a diagonal matrix\n"; 
-  out3 << "          nrows : " << nrows << "\n";
-  out3 << "          value : " << value << "\n";
-}

@@ -46,7 +46,6 @@
 #include "auto_wsv.h"          
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
-#include "hmatrix.h"
 #include "los.h"
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
@@ -2666,104 +2665,6 @@ void kManual(
   /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
      /= operators. They all act element-vise. 
      Vectors behave like 1-column matrices, therefore copying y to
-     k works. */
-
-  k_names.resize(1);
-  k_names[0] = name;
-  k_aux.resize(1,2);
-  k_aux(0,0) = grid;
-  k_aux(0,1) = apriori;
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-
-   Adapted to MTL.
-   \date   2001-01-06
-   \author Stefan Buehler
- */
-void kDiffHSmall(
-                    Matrix&          k,
-                    ArrayOfString&   k_names,
-                    Matrix&          k_aux,
-              const Hmatrix&         h1,      
-              const Hmatrix&         h2,      
-              const Vector&          y,
-              const String&          name,
-              const Numeric&         delta,
-              const Numeric&         grid,
-              const Numeric&         apriori )
-{
-  Vector y1, y2;
-  h_apply( y1, h1, y );
-  h_apply( y2, h2, y );
-
-  assert( y1.nelem()==y2.nelem() );
-
-  // Make k one-column matrix of the right size:
-  k.resize( y1.nelem(), 1 );
-
-  // Calculate (y2-y1)/delta:
-  k  = y2;
-  k -= y1;
-  k /= delta;
-
-  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
-     /= operators. They all act element-vise. 
-     Vectors behave like 1-column matrices, therefore copying y to
-     k works. */
-
-  k_names.resize(1);
-  k_names[0] = name;
-  k_aux.resize(1,2);
-  k_aux(0,0) = grid;
-  k_aux(0,1) = apriori;
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-
-   Adapted to MTL.
-   \date   2001-01-06
-   \author Stefan Buehler
- */
-void kDiffHFast(
-                    Matrix&          k,
-                    ArrayOfString&   k_names,
-                    Matrix&          k_aux,
-              const Hmatrix&         h1,      
-              const Hmatrix&         h2,      
-              const Vector&          y,
-              const String&          name,
-              const Numeric&         delta,
-              const Numeric&         grid,
-              const Numeric&         apriori )
-{
-  Vector yd;
-  Hmatrix hd;
-  h_diff( hd, h2, h1 );
-  h_apply( yd, hd, y );
-  
-  // Make k one-column matrix of the right size:
-  k.resize( yd.nelem(), 1 );
-
-  // Divide yd by delta and copy it to k:
-  k  = yd;
-  k /= delta;
-  
-  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
-     /= operators. They all act element-vise. 
-     Vectors behave like 1-column matrices, therefore copying yd to
      k works. */
 
   k_names.resize(1);

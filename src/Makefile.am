@@ -41,7 +41,6 @@ atm_funcs.h \
 absorption.h \
 continua.h \
 los.h \
-hmatrix.h \
 array.h \
 matpackI.h \
 matpackII.h \
@@ -66,8 +65,6 @@ math_funcs.cc \
 atm_funcs.cc \
 m_abs.cc \
 m_batch.cc \
-m_covmatrix.cc \
-m_hmatrix.cc \
 m_io.cc \
 m_los.cc \
 m_wfs.cc \
@@ -81,6 +78,8 @@ matpackI.cc
 
 arts_CLEAN=auto_md.cc
 
+# Is this still valid? (PE 2001-09-19)
+#
 # When making changes to the list of sources above, please remember to
 # also change the lists in the files:
 #       doc/doxygen/Makefile.am

@@ -48,14 +48,6 @@
 #include "matpackI.h"
 #include "mystring.h"
 
-////////////////////////////////////////////////////////////////////////////
-//// mean and standard deviation ////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-
-void mean_row( VectorView m, ConstMatrixView x );
-
-void std_row( VectorView s, ConstMatrixView x, ConstVectorView m );
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -75,6 +67,7 @@ Numeric last( ConstVectorView x );
 bool any( const ArrayOfIndex& x ); 
 
 bool isbool( const Index x );
+
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -120,7 +113,6 @@ Vector nlogspace(
 //   Random data
 /////////////////////////////////////////////////////////////////////////////
 
-
 void rand_uniform(
 		  VectorView r,
 		  const Numeric    x_low,
@@ -139,16 +131,11 @@ void rand_matrix_gaussian(
 			  MatrixView r,
 			  const Numeric    s );
 
-void rand_data_gaussian(
-			MatrixView         z,
-			ConstVectorView    z0,
-			ConstMatrixView    s );
 
 
 ////////////////////////////////////////////////////////////////////////////
 //   Interpolation routines
 ////////////////////////////////////////////////////////////////////////////
-
 
 void interp_lin_vector( VectorView       yi,
 			ConstVectorView  x, 
@@ -167,27 +154,20 @@ Numeric interp_lin(
 		   const Numeric  xi );
 
 
-/////////////////////////////////////////////////////////////////////////////
-//   Factorization of matrices
-/////////////////////////////////////////////////////////////////////////////
-
-void chol(
-	  MatrixView      r, 
-	  ConstMatrixView c );
 
 /////////////////////////////////////////////////////////////////////////////
-//   Assert functions
+//   Check of function input
 /////////////////////////////////////////////////////////////////////////////
 
-void assert_bool( const Index& x, const String& x_name );
+void check_if_bool( const Index& x, const String& x_name );
 
-void assert_lengths( const Vector& x1, const String& x1_name,
+void check_lengths( const Vector& x1, const String& x1_name,
                      const Vector& x2, const String& x2_name );
 
-void assert_length_nrow( const Vector& x, const String& x_name,
+void check_length_nrow( const Vector& x, const String& x_name,
                          const Matrix& A, const String& A_name );
 
-void assert_length_ncol( const Vector& x, const String& x_name,
+void check_length_ncol( const Vector& x, const String& x_name,
                          const Matrix& A, const String& A_name );
 
 #endif  // math_funcs_h

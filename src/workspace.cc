@@ -557,24 +557,6 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("h1",
-      "A transfer matrix for sensor effects and data reduction.\n"
-      "This is typically the total transfer matrix and includedes effects\n"
-      "of both the sensor and data reduction.\n"
-      "This matrix and h2 can also be used to split the sensor calculations\n"
-      "in two parts.",
-      Hmatrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("h2",
-      "A second transfer matrix for sensor effects and data reduction.\n"
-      "This matrix includes typically only effects of the data reduction.\n"
-      "See further h1.",
-      Hmatrix_));
-
-  wsv_data.push_back
-    (WsvRecord
      ("y_cal1",
       "A first calibration spectrum. This spectrum is assumed to be used for\n"
       "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
@@ -602,28 +584,6 @@ void define_wsv_data()
       "The intensity or brightness temperature corresponding to y_cal2.\n"
       "See for example yLoadCalibration for usage.",
       Vector_));
-
-
-
-  //---------------------< Covariance matrices >-------------------------
-  //                      ---------------------
-  wsv_data.push_back
-    (WsvRecord
-     ("s",
-      "The covariance matrix for a single retrieval/error identity.",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("sx",
-      "The covariance matrix associated with kx.",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("sb",
-      "The covariance matrix associated with kb.",
-      Matrix_));
 
 
 

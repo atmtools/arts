@@ -28,11 +28,12 @@
 
    Example on types of functions:
    \begin{enumerate}
-    \item Element-wise application of common scalar functions
+    \item First and last element of a vector
     \item Boolean functions                         
     \item Creation of common vectors                
-    \item Interpolation routines                    
-    \item Integration routines                      
+    \item Generation of random data
+    \item Interpolation routines            
+    \item Check of function input
    \end{enumerate}
 
    \author Patrick Eriksson
@@ -54,73 +55,10 @@
 #include "array.h"
 
 
-//// mean and standard deviation ////////////////////////////////////////////
-//
-/** Calculates the mean of the rows of a matrix.
 
-    Dimensions of m and x must match!
-
-    \retval  m   row means
-    \param   x   a matrix
-    
-    \author Patrick Eriksson 
-    \date   2000-12-06
-*/
-void mean_row( VectorView m, ConstMatrixView x )
-{
-  assert( m.nelem()==x.nrows() );
-
-  for ( Index i=0; i<x.nrows(); ++i ) 
-    {
-      m[i] = x(i,Range(joker)).sum() / x.ncols();
-      // x(i,Range(joker)) picks out the ith row of x. The member
-      // function .sum computes the sum of all elements. This we just
-      // have to divide by the number of columns to get the mean.
-    }
-}
-
-/** Calculates the standard deviation for the rows of a matrix.
-
-    Dimensions of s, x, and m must match! 
-
-    \retval  s   row standard deviations
-    \param   x   a matrix
-    \param   m   row means
-
-    \author Patrick Eriksson 
-    \date   2000-12-06
-*/
-void std_row( VectorView s, ConstMatrixView x, ConstVectorView m  )
-{
-  Vector d(x.ncols());		// We need this to store the deviation
-				// from the mean.
-
-  // Does the given mean provile match the number of rows of the matrix?
-  assert( m.nelem()==x.nrows() );
-  
-  // Does the result vector match the number of rows of the matrix?
-  assert( s.nelem()==x.nrows() );
-  
-  for ( Index i=0; i<x.nrows(); ++i ) 
-    {
-      // Put the deviation form the mean into d
-      // d[j] = x[i,j]-m[j]
-      d = x(i,Range(joker));
-      d -= m[i];
-
-      // Now we have to compute the square of d element-vise:
-      d *= d;
-	
-      // Finally, take the sum and divide by the number of columns - 1.
-      // FIXME: Patrick, I know this is not new, but: Should there
-      // really be the -1 here?
-      s[i] = d.sum() / (x.ncols()-1);
-    }  
-}
-
-
-
+////////////////////////////////////////////////////////////////////////////
 //// first and last /////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
 //
 /** Gives the first value of a vector.
 
@@ -463,59 +401,6 @@ void rand_matrix_gaussian(
   }
 }
 
-//// rand_data_gaussian ////////////////////////////////////////////////////
-/**
-   Creates a matrix with random data fulfilling the given criteria.
-
-   The mean of the data is z0. Standard deviations and correlation 
-   follow the given covariance matrix.
-
-   Each realisation is stored as a column in z. The number of columns
-   in z hence determines the number of realizations generated.
-
-   \retval   z          random matrix
-   \param    z0         mean vector
-   \param    s          covariance matrix
-
-   \author Patrick Eriksson
-   \date   2000-12-07
-*/
-void rand_data_gaussian(
-			MatrixView       z,
-			ConstVectorView  z0,
-			ConstMatrixView   s )
-{
-  const Index n = z.ncols();
-
-  const Index   nrows = z0.nelem();
-  Index         col;
-
-  // Check that s really is a square matrix:
-  assert( s.ncols()==s.nrows() );
-  
-  // Check that the length of the mean vector is consistent with s: 
-  assert ( nrows==s.nrows() );
-
-  // Make Cholesky decomposition of s, l'*l=s
-  Matrix   l(nrows,nrows);
-  l = 0;			// Matpack can assign a scalar to all
-				// elements of a matrix like this.
-  chol(l,s);
-
-  // Create matrix with gaussian data having zero mean and standard deviation 1
-  Matrix   r(nrows,n);
-  rand_matrix_gaussian( r, 1 );
-
-  // Multiply l and r to get z. Note that the order in Matpack is
-  // different from how it used to be with MTL.
-  mult(z,l,r);
-
-  // Add mean vector
-  for ( col=0; col<n; col++ )
-    z(Range(joker),col) += z0;
-  // z(Range(joker),col) picks out a column of z. The += operator adds
-  // the vector z0 to this element-vise.
-}
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -676,82 +561,12 @@ Numeric interp_lin(
 
 
 
-/////////////////////////////////////////////////////////////////////////////
-//   Factorization of matrices
-/////////////////////////////////////////////////////////////////////////////
-
-
-//// chol //// //////////////////////////////////////////////////////////////
-
-/** Choleski factorization (columnwise version). 
-
-    Given c positive definite, the upper triangular matrix r with 
-    positive diagonal elements such that c=r'*r is calculated.
-    Algorithm used from Numerical Methods, Åke Björck, 1990, p46.
-
-    \retval   r       Choleski factor of c
-    \param    c       matrix to be factorized
- 
-    \author Carlos Jimenez
-    \date   2001-02-14
-*/
-
-void chol(
-	  MatrixView         r, 
-          ConstMatrixView    c )
-{
-  const Index nrows = c.nrows(), ncols = c.ncols();
-  Index j, i, k;
-  Numeric a = 0;
-
-  assert( nrows == ncols    );	// This makes only sense for square
-				// matrices, doesn't it?
-  assert( nrows == r.nrows());
-  assert( ncols == r.ncols());
-
-  for (j=0; j<nrows; ++j)
-  {
-    if (j>0)
-    {
-      for (i=0; i<j; ++i)
-      {
-        a = 0;
-        if (i>0)
-	{
-          for (k=0; k<i; ++k)
-	      a = a + r(k,i) * r(k,j);
-	}  
-        r(i,j) = ( c(i,j) - a ) / r(i,i);       
-      }
-    
-      a = 0;
-      for (k=0; k<j; ++k)
-	 a = a + r(k,j) * r(k,j);
-      
-    }
-    r(j,j) = sqrt( c(j,j) - a);
-    
-  }
-
-  // Checking that it works, if c is not positive definite it does not.
-  for (i=0; i<nrows; ++i)
-    for (j=0; j<nrows; ++j)    
-      if ( isnan(r(i,j)) || isinf(r(i,j)) )
-      {
-	// 2001-09-15 FIXME: Patrick, I changed the condition above to
-	// or. Before it was just a single &, I believe this was a
-	// bug. Please verify. - Stefan
-        ostringstream os;
-        os << "Choleski decomposition does not work, c positive definite? \n";
-        throw runtime_error(os.str());
-      }
-}
 
 /////////////////////////////////////////////////////////////////////////////
-//   Assert functions
+//   Check of function input
 /////////////////////////////////////////////////////////////////////////////
 
-//// assert_bool ////////////////////////////////////////////////////////////
+//// check_if_bool ////////////////////////////////////////////////////////////
 //
 /** Asserts that an integer is 0 or 1.
 
@@ -763,7 +578,7 @@ void chol(
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_bool( const Index& x, const String& x_name ) 
+void check_if_bool( const Index& x, const String& x_name ) 
 {
   if ( !(x==0 || x==1) )
   {
@@ -776,7 +591,7 @@ void assert_bool( const Index& x, const String& x_name )
 
 
 
-//// assert_lengths (vector-vector) ///////////////////////////////////////////
+//// check_lengths (vector-vector) ///////////////////////////////////////////
 //
 /** Asserts that two vectors have the same length
 
@@ -790,7 +605,7 @@ void assert_bool( const Index& x, const String& x_name )
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_lengths( const Vector& x1, const String& x1_name,
+void check_lengths( const Vector& x1, const String& x1_name,
                      const Vector& x2, const String& x2_name ) 
 {
   if ( x1.nelem() != x2.nelem() )
@@ -806,7 +621,7 @@ void assert_lengths( const Vector& x1, const String& x1_name,
 
 
 
-//// assert_length_nrow  /////////////////////////////////////////////////////
+//// check_length_nrow  /////////////////////////////////////////////////////
 //
 /** Asserts that the length of a vector and the number of rows of a matrix
     match.
@@ -822,7 +637,7 @@ void assert_lengths( const Vector& x1, const String& x1_name,
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_length_nrow( const Vector& x, const String& x_name,
+void check_length_nrow( const Vector& x, const String& x_name,
                          const Matrix& A, const String& A_name ) 
 {
   if ( x.nelem() != A.nrows() )
@@ -838,7 +653,7 @@ void assert_length_nrow( const Vector& x, const String& x_name,
 
 
 
-//// assert_length_ncol  /////////////////////////////////////////////////////
+//// check_length_ncol  /////////////////////////////////////////////////////
 //
 /** Asserts that the length of a vector and the number of columns of a matrix
     match.
@@ -854,7 +669,7 @@ void assert_length_nrow( const Vector& x, const String& x_name,
     \author Patrick Eriksson
     \date   2001-09-19
 */
-void assert_length_ncol( const Vector& x, const String& x_name,
+void check_length_ncol( const Vector& x, const String& x_name,
                          const Matrix& A, const String& A_name ) 
 {
   if ( x.nelem() != A.ncols() )

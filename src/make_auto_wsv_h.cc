@@ -74,9 +74,7 @@ int main()
       ofs << "#define auto_wsv_h\n\n";
 
       ofs << "#include \"absorption.h\"\n"
-	  << "#include \"los.h\"\n"
-	  << "#include \"hmatrix.h\"\n\n";
-
+	  << "#include \"los.h\"\n\n";
       
       ofs << "/*! This is only used for a consistency check. You can get the\n"
 	  << "    number of workspace variables from wsv_data.nelem(). */\n"

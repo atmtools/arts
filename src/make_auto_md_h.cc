@@ -134,7 +134,6 @@ int main()
       ofs << "#define auto_md_h\n\n";
 
       ofs << "#include \"matpackI.h\"\n"
-	  << "#include \"hmatrix.h\"\n"
 	  << "#include \"los.h\"\n"
 	  << "#include \"absorption.h\"\n"
 	  << "#include \"auto_wsv.h\"\n"

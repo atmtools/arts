@@ -1,3 +1,20 @@
+2001-09-20  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-212
+
+	* WARNING: This version does not run.
+	
+	* Large parts of ARTS are removed. Everything connected with the
+	covariance and H matrices is removed. Of the batch part, only the
+	core calculation function remains, that is now called ybatchCalc.
+
+	* The math_funcs files cleaned up a bit. 
+
+	* The assert_xxx functions renemed to check_xxx. They are found at
+	the end of math_funcs. (I have not got time to more of these 
+	functions).
+	
+
 2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-211

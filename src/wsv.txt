@@ -411,22 +411,6 @@ the number of frequencies. With data reduction there is no general
 relationship between za_y and za_sensor. If the data reduction is
 performed using some eigenvectors, za_y can be set to [1;1;1;...;1]
 
-VARIABLE : h1
-DATA TYPE: Hmatrix
-DESCRIPTION:
-A transfer matrix for sensor effects and data reduction.
-This is typically the total transfer matrix and includedes effects
-of both the sensor and data reduction.
-This matrix and h2 can also be used to split the sensor calculations
-in two parts.
-
-VARIABLE : h2
-DATA TYPE: Hmatrix
-DESCRIPTION:
-A second transfer matrix for sensor effects and data reduction.
-This matrix includes typically only effects of the data reduction.
-See further h1.
-
 VARIABLE : y_cal1
 DATA TYPE: Vector
 DESCRIPTION:
@@ -452,21 +436,6 @@ DATA TYPE: Vector
 DESCRIPTION:
 The intensity or brightness temperature corresponding to y_cal2.
 See for example yLoadCalibration for usage.
-
-VARIABLE : s
-DATA TYPE: Matrix
-DESCRIPTION:
-The covariance matrix for a single retrieval/error identity.
-
-VARIABLE : sx
-DATA TYPE: Matrix
-DESCRIPTION:
-The covariance matrix associated with kx.
-
-VARIABLE : sb
-DATA TYPE: Matrix
-DESCRIPTION:
-The covariance matrix associated with kb.
 
 VARIABLE : batchname
 DATA TYPE: String

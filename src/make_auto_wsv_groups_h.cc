@@ -55,8 +55,7 @@ int main()
 	  << "#define auto_wsv_groups_h\n\n";
 
       ofs << "#include \"los.h\"\n"
-	  << "#include \"absorption.h\"\n"
-	  << "#include \"hmatrix.h\"\n\n";
+	  << "#include \"absorption.h\"\n\n";
       
       ofs << "/*! This is only used for a consistency check. You can get the\n"
 	  << "    number of groups from wsv_group_names.nelem(). */\n"
