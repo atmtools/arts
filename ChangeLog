@@ -1,5 +1,12 @@
 2003-08-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-654
+
+	* Changelog: Corrected typos in my arts-1-1-653 and arts-1-1-652
+	entries.
+	
+2003-08-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-653
 	
 	* src/legendre.h: Added (legendre_poly_norm_schmidt_deriv) and
@@ -11,14 +18,14 @@
 	* arts-1-1-652
 
 	* src/legendre.cc (legendre_poly_norm_schmidt_deriv): Added this
-	funtion for calculating the drivative of the Schmidt
+	function for calculating the derivative of the Schmidt
 	quasi-normalized Legendre polynomials.
 	
 	* src/legendre.cc (legendre_poly_norm_schmidt): Changed the name
 	of (legendre_poly_norm) to (legendre_poly_norm_schmidt) in order
 	to reflect the fact that it is a quasi-normalisation in terms of
 	Schmidt's defition. Due to this normalization the partial order
-	sum of the squares of the two polynomial coeffcicients for a
+	sum of the squares of the two polynomial coefficicients for a
 	given degree remains invariant under an arbitrary rotation of the
 	(theta, phi) coordinate system in the description of the scalar
 	potential, and thus of the magnetic field B.
