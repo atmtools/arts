@@ -772,10 +772,6 @@ void mult( VectorView y,
            const ConstMatrixView& M,
            const ConstVectorView& x );
 
-void mult_old( VectorView y,
-           const ConstMatrixView& M,
-           const ConstVectorView& x );
-
 void mult( MatrixView A,
            const ConstMatrixView& B,
            const ConstMatrixView& C );
