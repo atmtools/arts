@@ -356,20 +356,11 @@
 % Identity matrix
 \newcommand{\IdnMat} 	{\ensuremath{{\bf E}}}
 
-% Cloud box pressure grid
-\newcommand{\ScaP}	{\ensuremath{{ P_s}}}
-
-% Cloud box latitude
-\newcommand{\ScaLat}	{\ensuremath{{\alpha_s}}}
-
-% Cloud boc longitude
-\newcommand{\ScaLon}	{\ensuremath{{\beta_s}}}
-
 % Scattering zenith angle
-\newcommand{\ScaZa} 	{\ensuremath{{\theta}}}
+\newcommand{\ScaZa} 	{\ensuremath{{\psi_s}}}
 
 % Scattering azimuth angle
-\newcommand{\ScaAa} 	{\ensuremath{{\phi}}}
+\newcommand{\ScaAa} 	{\ensuremath{{\omega_s}}}
 
 % Particle type index
 \newcommand{\IPart} 	{\ensuremath{{i_{part}}}}

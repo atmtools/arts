@@ -1114,4 +1114,124 @@ void define_wsv_data()
       ArrayOfMatrix_));
 
 
+  //-------------- < Scattering Stuff >-----------------------------
+  //               --------------------
+
+  wsv_data.push_back
+   (WsvRecord
+    ("scat_aa_grid",
+     "Azimuthal angle grid.\n"
+     "\n"
+     "The azimutal angle grid, on which the intensity field and the \n"
+     "optical scattering properties are stored. The grid has to be defined\n"
+     "if the cloudbox is activated by the flag *cloudbox_on*.\n"
+     "The grid must be sorted in decreasing order, with no repetitions.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The variable is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      degrees ",
+     Vector_ ));
+
+ wsv_data.push_back
+   (WsvRecord
+    ("scat_i_lat",
+     "Intensity field on cloudbox boundary (equal latitude surfaces).\n"
+     "\n"
+     "This variable gives the intensity field from all directions defined \n"
+     "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal \n"
+     "latitude surfaces of the boundary of the cloudbox, which is defined \n"
+     "by the workspace variable *cloudbox_limits*. It contains all four \n"
+     "components of the Stokes vector.\n"
+     "\n"
+     "This variable is used as interface between the clear sky and the \n"
+     "scattering calculations. \n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The variable is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      In/output to/from *scat_iterateCalc* \n"
+     "\n"
+     "Unit:        W / (m^2 Hz sr) \n"
+     "\n"
+     "Dimensions: [ f_grid, p_grid, 2, lon_grid, scat_za_grid \n "
+     "              scat_aa_grid, 4]",
+     Tensor7_ ));
+
+ wsv_data.push_back
+   (WsvRecord
+    ("scat_i_lon",
+     "Intensity field on cloudbox boundary (equal longitude surfaces).\n"
+     "\n"
+     "This variable gives the intensity field from all directions defined \n"
+     "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal \n"
+     "latitude surfaces of the boundary of the cloudbox, which is defined \n"
+     "by the workspace variable *cloudbox_limits*. It contains all four \n"
+     "components of the Stokes vector.\n"
+     "\n"
+     "This variable is used as interface between the clear sky and the \n"
+     "scattering calculations. \n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The variable is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      In/output to/from *scat_iterateCalc* \n"
+     "\n"
+     "Unit:        W / (m^2 Hz sr) \n"
+     "\n"
+     "Dimensions: [ f_grid, p_grid, lat_grid, 2 , scat_za_grid \n "
+     "              scat_aa_grid, 4]",
+     Tensor7_ ));
+
+ wsv_data.push_back
+   (WsvRecord
+    ("scat_i_p",
+     "Intensity field on cloudbox boundary (equal pressure surfaces).\n"
+     "\n"
+     "This variable gives the intensity field from all directions defined \n"
+     "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal \n"
+     "latitude surfaces of the boundary of the cloudbox, which is defined \n"
+     "by the workspace variable *cloudbox_limits*. It contains all four \n"
+     "components of the Stokes vector.\n"
+     "\n"
+     "This variable is used as interface between the clear sky and the \n"
+     "scattering calculations. \n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The variable is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      In/output to/from *scat_iterateCalc* \n"
+     "\n"
+     "Unit:        W / (m^2 Hz sr) \n"
+     "\n"
+     "Dimensions: [ f_grid, 2, lat_grid, lon_grid, scat_za_grid \n "
+     "              scat_aa_grid, 4]",
+     Tensor7_ ));
+
+
+wsv_data.push_back
+   (WsvRecord
+    ("scat_za_grid",
+     "Zenith angle grid.\n"
+     "\n"
+     "The zenith angle grid, on which the intensity field and the \n"
+     "optical scattering properties are stored. The grid has to be defined\n"
+     "if the cloudbox is activated by the flag *cloudbox_on*.\n"
+     "The grid must be sorted in decreasing order, with no repetitions.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The variable is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      degrees ",
+     Vector_ ));
+
 }
