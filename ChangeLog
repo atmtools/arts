@@ -1,3 +1,10 @@
+2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-749
+
+	* src/m_abs_o2_models.cc (test_zeeman): Changed author. Patrick does
+	not deserve it to be blamed for this. :-)
+
 2003-12-08  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-748
