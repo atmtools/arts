@@ -157,7 +157,7 @@ species_data.o: arts.h arts_mpi.h make_array.h absorption.h species_data.cc
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
 # OLE: Temporarely added to work around a bug in gcc 3.0
-xml_io.o: arts.h arts_mpi.h xml_io.h xml_io_private.h bofstream.h bifstream.h
+xml_io.o: arts.h arts_mpi.h xml_io.h xml_io.cc xml_io_private.h bofstream.h bifstream.h
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c xml_io.cc
 
@@ -535,8 +535,6 @@ test_sensor_SOURCES = \
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	file.cc \
 	file.h \
 	groups.cc \
@@ -550,8 +548,6 @@ make_auto_wsv_h_SOURCES = \
 	absorption.h \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_wsv_groups.h \
 	file.cc \
 	file.h \
@@ -568,8 +564,6 @@ make_auto_wsv_h_SOURCES = \
 make_auto_wsv_pointers_cc_SOURCES = \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_wsv_groups.h \
 	file.cc \
 	file.h \
@@ -586,8 +580,6 @@ make_auto_md_h_SOURCES = \
 	absorption.h \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	file.cc \
@@ -625,8 +617,6 @@ make_auto_md_cc_SOURCES = \
 	absorption.h \
 	arts.cc \
 	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	file.cc \
