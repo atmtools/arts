@@ -1,3 +1,23 @@
+2002-11-06  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-276
+
+	* src/xml_io.cc: Added io routines for SpeciesTag, ArrayOfSpeciesTag,
+	ArrayOfArrayOfSpeciesTag.
+	Reading/writing of SpeciesTag writes only the empty tags because the
+	implementation part of SpeciesTag is not yet done.
+	Moved function declarations and template instantations to
+	xml_io_private.h.
+
+	* src/absorption.h: Added type ArrayOfSpeciesTag. At the moment, this
+	type is only used to define ArrayOfArrayOfSpeciesType to keep
+	consistency with the way ArraysOfArrays are defined in arts.
+
+	* src/xml_io_private.h: Added. Separated function declarations and
+	template instantiations from implementation part.
+
+	* src/Makefile.am: Added xml_io_private.h in several places.
+
 2002-11-05  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-275
