@@ -44,6 +44,22 @@
 #include "interpolation.h"
 #include "logic.h"
 
+// File-global constants:
+
+//! The maximum difference from 1 that we allow for a sum check.
+/*!
+  The sum check makes sure that the sum of all weights is
+  approximately 1.
+
+  We cannot use a sharp comparison there, due to numerical
+  noise. The value of 1e-6 is an ad-hoc value.
+
+  This shold be ok, the main point of the test is to make sure that
+  what we have really *are* interpolation weights, and not something
+  else. 
+*/
+const Numeric sum_check_epsilon = 1e-6;
+
 
 //! Macro for interpolation weight loops.
 /*!
@@ -138,10 +154,12 @@ void gridpos( ArrayOfGridPos& gp,
       // safety check.
       assert( is_increasing(old_grid) );
 
-      // We need this to make sure that the new grid points are inside the
-      // old grid:
-      const Numeric og_min = old_grid[0];
-      const Numeric og_max = old_grid[n_old-1];
+      // Limits of extrapolation. We allow the new grid to be half a
+      // grid distance outside the old grid:
+      const Numeric og_min
+        = old_grid[0] - 0.5 * ( old_grid[1] - old_grid[0] );
+      const Numeric og_max
+        = old_grid[n_old-1] + 0.5 * ( old_grid[n_old-1] - old_grid[n_old-2] );
 
       // We will make no firm assumptions about the new grid. But the case
       // that we have in mind is that it is either also sorted, or at
@@ -152,15 +170,24 @@ void gridpos( ArrayOfGridPos& gp,
 
       // Let's get some idea where the first point in the new grid is,
       // relative to the old grid. We use linear interpolation between the
-      // maximum and the minimum of the old grid for this. An assertion
-      // checks that frac is between 0 and 1 (otherwise we would be
-      // outside the old grid).
+      // maximum and the minimum of the old grid for this. (Taking
+      // into account the small allowed extrapolation.)
       Numeric frac = (new_grid[0]-og_min)/(og_max-og_min);
-      assert( 0<=frac && 1>=frac );
-
-      // Initialize current_position. This statement satisfies
-      // 0 <= current_position <= n_old-2
+      
+      // We are not checking if the value of frac is reasonable,
+      // because there is another assertion below to catch the
+      // consequences. 
+      
+      // Initialize current_position: 
       Index   current_position = (Index) rint(frac*(n_old-2));
+
+      // The above statement should satisfy
+      // 0 <= current_position <= n_old-2
+      // Assert that this is indeed the case. 
+//       cout << "frac             = " << frac             << "\n";
+//       cout << "current_position = " << current_position << "\n";
+      assert( 0<= current_position );
+      assert( current_position <= n_old-2 );
 
       // The variables lower and upper are used to remember the value of
       // the old grid at current_position and one above current_position:
@@ -174,22 +201,28 @@ void gridpos( ArrayOfGridPos& gp,
           GridPos& tgp = gp[i_new];
           // And on the current value of the new grid:
           const Numeric tng = new_grid[i_new];
-          assert( og_min<=tng && og_max>=tng ); // New grid point must
-                                                // be inside old grid.
 
-          //       cout << "lower: " << lower << "\n";
-          //       cout << "tng:   " << tng << "\n";
-          //       cout << "upper: " << upper << "\n";
+          // Verify that the new grid is within the limits of
+          // extrapolation that we have defined by og_min and og_max:
+          assert( og_min <= tng    );
+          assert( tng    <= og_max );
+
+//           cout << "lower / tng / upper = "
+//                << lower << " / "
+//                << tng   << " / "
+//                << upper << "\n";
 
           // Is current_position too high?
-          if ( tng < lower )
+          // (The current_position>0 condition is there so that the position
+          // stays 0 for extrapolation.)
+          if ( tng < lower && current_position > 0 )
             {
               do
                 {
                   --current_position;
                   lower = old_grid[current_position];
                 }
-              while ( tng < lower );
+              while ( tng < lower && current_position > 0 );
 
               upper = old_grid[current_position+1];
 
@@ -200,14 +233,16 @@ void gridpos( ArrayOfGridPos& gp,
           else
             {
               // Is it too low? 
-              if ( tng > upper )
+              // (The current_position<n_old condition is there so
+              // that uppers stays n_old-1 for extrapolation.)
+              if ( tng > upper && current_position < n_old-2 )
                 {
                   do
                     {
                       ++current_position;
                       upper = old_grid[current_position+1];
                     }
-                  while ( tng > upper );
+                  while ( tng > upper && current_position < n_old-2 );
 
                   lower = old_grid[current_position];
 
@@ -249,15 +284,29 @@ void gridpos( ArrayOfGridPos& gp,
       assert( is_decreasing(old_grid) );
 
       // The max is now the first point, the min the last point!
-      const Numeric og_max = old_grid[0];
-      const Numeric og_min = old_grid[n_old-1];
+      // I think the sign is right here...
+      const Numeric og_max
+        = old_grid[0] - 0.5 * ( old_grid[1] - old_grid[0] );
+      const Numeric og_min
+        = old_grid[n_old-1] + 0.5 * ( old_grid[n_old-1] - old_grid[n_old-2] );
 
       // We have to take 1- here, because we are starting from the
       // high end.
       Numeric frac = 1 - (new_grid[0]-og_min)/(og_max-og_min);
-      assert( 0<=frac && 1>=frac );
+
+      // We are not checking if the value of frac is reasonable,
+      // because there is another assertion below to catch the
+      // consequences. 
 
       Index   current_position = (Index) rint(frac*(n_old-2));
+
+      // The above statement should satisfy
+      // 0 <= current_position <= n_old-2
+      // Assert that this is indeed the case. 
+//       cout << "frac             = " << frac             << "\n";
+//       cout << "current_position = " << current_position << "\n";
+      assert( 0<= current_position );
+      assert( current_position <= n_old-2 );
 
       // Note, that old_grid[lower] has a higher numerical value than
       // old_grid[upper]! 
@@ -268,22 +317,27 @@ void gridpos( ArrayOfGridPos& gp,
         {
           GridPos& tgp = gp[i_new];
           const Numeric tng = new_grid[i_new];
-          assert( og_min<=tng && og_max>=tng );
 
-          //       cout << "lower: " << lower << "\n";
-          //       cout << "tng:   " << tng << "\n";
-          //       cout << "upper: " << upper << "\n";
+          // Verify that the new grid is within the limits of
+          // extrapolation that we have defined by og_min and og_max:
+          assert( og_min <= tng    );
+          assert( tng    <= og_max );
+
+//           cout << "lower / tng / upper = "
+//                << lower << " / "
+//                << tng   << " / "
+//                << upper << "\n";
 
           // Is current_position too high? (Sign of comparison changed
           // compared to ascending case!)
-          if ( tng > lower )
+          if ( tng > lower && current_position > 0 )
             {
               do
                 {
                   --current_position;
                   lower = old_grid[current_position];
                 }
-              while ( tng > lower );
+              while ( tng > lower && current_position > 0 );
 
               upper = old_grid[current_position+1];
 
@@ -294,15 +348,15 @@ void gridpos( ArrayOfGridPos& gp,
           else
             {
               // Is it too low? (Sign of comparison changed
-          // compared to ascending case!)
-              if ( tng < upper )
+              // compared to ascending case!)
+              if ( tng < upper && current_position < n_old-2 )
                 {
                   do
                     {
                       ++current_position;
                       upper = old_grid[current_position+1];
                     }
-                  while ( tng < upper );
+                  while ( tng < upper && current_position < n_old-2 );
 
                   lower = old_grid[current_position];
 
@@ -801,8 +855,10 @@ Numeric interp( ConstVectorView itw,
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights must always be one. 
-  assert( 1==itw.sum() );
+  // weights (last dimension) must always be approximately one.
+  assert( is_same_within_epsilon( itw.sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // To store interpolated value:
   Numeric tia = 0;
@@ -843,9 +899,11 @@ Numeric interp( ConstVectorView  itw,
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights must always be one. 
-  assert( 1==itw.sum() );
-  
+  // weights (last dimension) must always be approximately one.
+  assert( is_same_within_epsilon( itw.sum(),
+                                  1,
+                                  sum_check_epsilon ) );
+
   // To store interpolated value:
   Numeric tia = 0;
 
@@ -889,8 +947,10 @@ Numeric interp( ConstVectorView  itw,
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights must always be one. 
-  assert( 1==itw.sum() );
+  // weights (last dimension) must always be approximately one.
+  assert( is_same_within_epsilon( itw.sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // To store interpolated value:
   Numeric tia = 0;
@@ -939,8 +999,10 @@ Numeric interp( ConstVectorView  itw,
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights must always be one. 
-  assert( 1==itw.sum() );
+  // weights (last dimension) must always be approximately one.
+  assert( is_same_within_epsilon( itw.sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // To store interpolated value:
   Numeric tia = 0;
@@ -993,8 +1055,10 @@ Numeric interp( ConstVectorView  itw,
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights must always be one. 
-  assert( 1==itw.sum() );
+  // weights (last dimension) must always be approximately one.
+  assert( is_same_within_epsilon( itw.sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // To store interpolated value:
   Numeric tia = 0;
@@ -1051,8 +1115,10 @@ Numeric interp( ConstVectorView  itw,
                                 // weights.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights must always be one. 
-  assert( 1==itw.sum() );
+  // weights (last dimension) must always be approximately one.
+  assert( is_same_within_epsilon( itw.sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // To store interpolated value:
   Numeric tia = 0;
@@ -1475,9 +1541,11 @@ void interp( VectorView            ia,
                                 // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1534,9 +1602,11 @@ void interp( VectorView            ia,
                                 // weights for each position.
   
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1599,9 +1669,11 @@ void interp( VectorView            ia,
                                 // weights for each position.
   
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1670,9 +1742,11 @@ void interp( VectorView            ia,
                                 // weights for each position.
   
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1747,9 +1821,11 @@ void interp( VectorView            ia,
                                 // weights for each position.
   
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -1830,9 +1906,11 @@ void interp( VectorView            ia,
                                 // weights for each position.
   
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the sequence:
   for ( Index i=0; i<n; ++i )
@@ -2257,9 +2335,11 @@ void interp( MatrixView            ia,
                                 // weights for each position.
 
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the new grid:
   for ( Index ir=0; ir<nr; ++ir )
@@ -2329,9 +2409,11 @@ void interp( Tensor3View           ia,
                  8));
 
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,0,0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,0,0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the new grid:
   for ( Index ip=0; ip<np; ++ip )
@@ -2409,9 +2491,11 @@ void interp( Tensor4View           ia,
                  16));
 
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,0,0,0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,0,0,0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the new grid:
   for ( Index ib=0; ib<nb; ++ib )
@@ -2498,9 +2582,11 @@ void interp( Tensor5View           ia,
                  32));
 
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,0,0,0,0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,0,0,0,0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the new grid:
   for ( Index is=0; is<ns; ++is )
@@ -2596,9 +2682,11 @@ void interp( Tensor6View           ia,
                  64));
 
   // Check that interpolation weights are valid. The sum of all
-  // weights (last dimension) must always be one. We only check the
-  // first element.
-  assert( 1==itw(0,0,0,0,0,0,Range(joker)).sum() );
+  // weights (last dimension) must always be approximately one. We
+  // only check the first element.
+  assert( is_same_within_epsilon( itw(0,0,0,0,0,0,Range(joker)).sum(),
+                                  1,
+                                  sum_check_epsilon ) );
   
   // We have to loop all the points in the new grid:
   for ( Index iv=0; iv<nv; ++iv )

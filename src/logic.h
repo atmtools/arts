@@ -86,6 +86,9 @@ bool is_singular( ConstMatrixView A );
 
 bool is_diagonal( ConstMatrixView A );
 
+bool is_same_within_epsilon( const Numeric& a,
+                             const Numeric& b,
+                             const Numeric& epsilon );
 
 ////////////////////////////////////////////////////////////////////////////
 //   Template functions (have to be here in the .h file).

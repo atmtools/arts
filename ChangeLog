@@ -1,3 +1,45 @@
+2002-12-11  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-332
+
+	* src/interpolation.cc: Allow a little bit of extrapolation. To be
+	precise, we require that the new grid is no more than half a grid
+	spacing away on either side of the old grid. Extrapolation to such
+	a short distance should be safe. The main reason for this
+	modification is that it solves the numerical problems that used to
+	occur if the new grid was practically the same as the old
+	grid. (In these cases the edge values of the new grid numerically
+	sometimes happened to fall just outside the old grid.)
+
+	This has the important consequence, that fractional distances can
+	be <0 and >1 for points outside the original grid range. The new
+	condition is that -.5 <= fd <= 1.5. The sum of all weights still
+	is one, of course.
+
+	(All functions:) Modified the assertion that compared the sum of
+	all weights to 1 to use the new "fuzzy" comparison function (see
+	below). This was necessary because numerical noise led to spurious
+	failures of the original sharp assertion statement.
+	
+	* src/logic.cc (is_same_within_epsilon): Added. This function
+	implements comparison of two numbers as recommended by
+	Oliver. Both the two numbers and the comparison epsilon have to be
+	specified.
+
+	I recommend to always use this function for this task in future,
+	so that we have some consistency. It is applicable in cases where
+	there is no physical justification to require a certain absolute
+	agreement. Instead, it checks that the two numbers agree to a
+	certain number of digits.
+
+	* src/logic.h: Updated.
+
+	* src/test_interpolation.cc (test06): Added this test for the new
+	extrapolation feature.
+
+	* src/Makefile.am: Added make_vector to sources for
+	test_interpolation. 
+
 2002-12-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-331

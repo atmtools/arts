@@ -347,3 +347,31 @@ bool is_diagonal( ConstMatrixView A )
         }
  return true;
 }
+
+//! Check, if two numbers agree within a given epsilon.
+/*! 
+  This logical function verifies if two numbers are the same for the
+  desired number of digits. The comparison statement comes from
+  Oliver: ( abs(a-b) <= epsilon * max(a,b) )
+
+  I only modified it to make sure that the right side also is
+  positive. (Both a and b could be negative.)
+
+  The variable epsilon gives the number of digits used for the
+  comparison. (epsilon = 0.0001 for a comparison up to the 5th digit)
+
+  \param a A number.
+  \param b Another number.
+  \param epsilon The epsilon of the required agreement.
+
+\return True if the two numbers are the same.
+*/
+bool is_same_within_epsilon( const Numeric& a,
+                             const Numeric& b,
+                             const Numeric& epsilon )
+{
+  if ( abs(a-b) <= abs( epsilon * max(a,b) ) )
+    return true;
+  else
+    return false;
+}

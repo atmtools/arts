@@ -178,7 +178,9 @@ test_interpolation_SOURCES = \
 	interpolation.h \
 	interpolation.cc \
 	logic.cc \
-	test_interpolation.cc
+	test_interpolation.cc \
+	make_vector.cc \
+	make_vector.h
 
 test_linalg_SOURCES = \
 	arts.h \

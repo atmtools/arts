@@ -19,6 +19,7 @@
 #include "array.h"
 #include "matpackVII.h"
 #include "interpolation.h"
+#include "make_vector.h"
 
 void test01()
 {
@@ -281,7 +282,147 @@ void test05()
   cout << "New field:\n" << nf << "\n";
 }
 
+void test06()
+{
+  cout << "Simple extrapolation cases\n"
+       << "--------------------------\n";
+  //  Vector og(5,5,-1);                // 5,4,3,2,1
+  Vector og(1,5,+1);                // 1, 2, 3, 4, 5
+  MakeVector ng(0.9,1.5,3,4.5,5.1); // 0.9, 1.5, 3, 4.5, 5.1
+
+  cout << "og:\n" << og << "\n";
+  cout << "ng:\n" << ng << "\n";
+
+  // To store the grid positions:
+  ArrayOfGridPos gp(ng.nelem());
+
+  gridpos(gp,og,ng);
+  cout << "gp:\n" << gp << "\n";
+
+  cout << "1D:\n"
+       << "---\n";
+  {
+    // To store interpolation weights:
+    Matrix itw(gp.nelem(),2);
+    interpweights(itw,gp);
+    
+    cout << "itw:\n" << itw << "\n";
+
+    // Original field:
+    Vector of(og.nelem(),0);
+    for ( Index i=0; i<og.nelem(); ++i )
+      of[i] = 10*(i+1);                 // 10, 20, 30, 40, 50
+
+    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Vector nf(ng.nelem());
+
+    interp(nf, itw, of, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
+  cout << "Blue 2D:\n"
+       << "--------\n";
+  {
+    // To store interpolation weights:
+    Matrix itw(gp.nelem(),4);
+    interpweights(itw,gp,gp);
+    
+    cout << "itw:\n" << itw << "\n";
+
+    // Original field:
+    Matrix of(og.nelem(),og.nelem(),0);
+    of(2,2) = 10;                       // 0 Matrix with 10 in the middle
+
+    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Vector nf(ng.nelem());
+
+    interp(nf, itw, of, gp, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
+  cout << "Blue 6D:\n"
+       << "--------\n";
+  {
+    // To store interpolation weights:
+    Matrix itw(gp.nelem(),64);
+    interpweights(itw,gp,gp,gp,gp,gp,gp);
+    
+    //    cout << "itw:\n" << itw << "\n";
+
+    // Original field:
+    Index n = og.nelem();
+    Tensor6 of(n,n,n,n,n,n,0);
+    of(2,2,2,2,2,2) = 10;                       // 0 Tensor with 10 in the middle
+
+    //    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Vector nf(ng.nelem());
+
+    interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
+  cout << "Green 2D:\n"
+       << "---------\n";
+  {
+    // To store interpolation weights:
+    Tensor3 itw(gp.nelem(),gp.nelem(),4);
+    interpweights(itw,gp,gp);
+    
+    for ( Index i=0; i<itw.ncols(); ++i )
+      cout << "itw " << i << ":\n" << itw(Range(joker),Range(joker),i) << "\n";
+
+    // Original field:
+    Matrix of(og.nelem(),og.nelem(),0);
+    of(2,2) = 10;                       // 0 Matrix with 10 in the middle
+
+    cout << "of:\n" << of << "\n";
+
+    // Interpolated field:
+    Matrix nf(ng.nelem(),ng.nelem());
+
+    interp(nf, itw, of, gp, gp);
+
+    cout << "nf:\n" << nf << "\n";
+  }
+
+  cout << "Green 6D:\n"
+       << "---------\n";
+  {
+    // To store interpolation weights:
+    Tensor7 itw(gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                64);
+    interpweights(itw,gp,gp,gp,gp,gp,gp);
+    
+    // Original field:
+    Tensor6 of(og.nelem(),og.nelem(),og.nelem(),og.nelem(),og.nelem(),og.nelem(),0);
+    of(2,2,2,2,2,2) = 10;                       // 0 Tensor with 10 in the middle
+
+    cout << "Middle slice of of:\n" << of(2,2,2,2,Range(joker),Range(joker)) << "\n";
+
+    // Interpolated field:
+    Tensor6 nf(ng.nelem(),ng.nelem(),ng.nelem(),ng.nelem(),ng.nelem(),ng.nelem());
+
+    interp(nf, itw, of, gp, gp, gp, gp, gp, gp);
+
+    cout << "Last slice of nf:\n" << nf(4,4,4,4,Range(joker),Range(joker)) << "\n";
+  }
+}
+
 int main()
 {
-  test04();
+  test06();
 }
