@@ -1,3 +1,26 @@
+2003-06-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-582
+
+	* doc/uguide/Makefile.am (uguide.pdf): Added one more pdflatex run to
+	get cross-references right.
+
+	* doc/doxygen/latex/Makefile.am (refman.ps): Pass -o to dvips.
+	(refman.pdf): Added target for pdf creation. I did not make this the
+	default target because the conversion from ps to pdf takes a very long
+	time.
+
+	* doc/doxygen/latex/.cvsignore: Added refman.pdf.
+
+	* doc/doxygen/Doxyfile.in: Put pdf hyperlinks into dvi file.
+
+	* src/xml_io_*_types.cc (xml_write_to_stream): Added documentation for
+	name parameter.
+
+	* src/xml_io*.cc: Cleanup of docs.
+
+	* src/test_zeemanproperties.cc: Corrected filename in doxygen comment.
+
 2003-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-581
