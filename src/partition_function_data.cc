@@ -336,6 +336,7 @@ void define_partition_species_data()
   iso(it_isotope,	"66",	Qcoeff(	3.5923E-01	,7.3534E-01	,-6.4870E-05	,1.3073E-07) );
   iso(it_isotope,	"68",	Qcoeff(	-4.0039E+00	,1.5595E+00	,-1.5357E-04	,3.0969E-07) );
   iso(it_isotope,	"67",	Qcoeff(	-2.3325E+01	,9.0981E+00	,-8.4435E-04	,1.7062E-06) );
+  iso(it_isotope,	"SelfContStandardType",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"SelfContMPM93",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"SelfContPWR93",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"PWR93",          Qcoeff( 0	,0		,0		,0          ) );
@@ -511,11 +512,11 @@ void define_partition_species_data()
   spec(it_species, it_isotope, "N2");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
-  iso(it_isotope,	"44",	Qcoeff(	1.3684E+00	,1.5756E+00	,-1.8511E-05	,3.8960E-08) );
-  iso(it_isotope,	"SelfContMPM93",    Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"SelfContPWR93",    Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"SelfCont",         Qcoeff( 0	,0		,0		,0          ) );
-  iso(it_isotope,	"SelfContBorysow",  Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"44", Qcoeff(	1.3684E+00	,1.5756E+00	,-1.8511E-05	,3.8960E-08) );
+  iso(it_isotope,	"SelfContMPM93",        Qcoeff( 0	,0		,0		,0   ) );
+  iso(it_isotope,	"SelfContPWR93",        Qcoeff( 0	,0		,0		,0   ) );
+  iso(it_isotope,	"SelfContStandardType", Qcoeff( 0	,0		,0		,0   ) );
+  iso(it_isotope,	"SelfContBorysow",      Qcoeff( 0	,0		,0		,0   ) );
 
 
   // HCN
@@ -813,4 +814,3 @@ void iso(Array<IsotopeRecord>::iterator& ii,
   ii++;
 
 }
-

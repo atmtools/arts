@@ -86,7 +86,7 @@
 % == Forward, inverse and transfer models
 % Total forward model
 \newcommand{\fm}         {\ensuremath{\mathcal{F}}}  
-% Atmospgeric forward model  
+% Atmospheric forward model  
 \newcommand{\fma}        {\ensuremath{\mathcal{F}_a}}  
 % Sensor forward model  
 \newcommand{\fms}        {\ensuremath{\mathcal{F}_s}}  
@@ -129,7 +129,7 @@
 % Transformation between vector spaces
 \newcommand{\B}          {\ensuremath{\mathbf{B}}}  
 %
-% == Gemeral math
+% == General math
 % Make matrix
 \newcommand{\mat}[1]     {\ensuremath{\mathbf{#1}}}
 % Identity matrix
@@ -147,7 +147,8 @@
 \def \ldashdot   {\mbox{--~$\cdot$~--}}
 \def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
 
-  
+% == used for environment longtable  
+\setlength{\LTcapwidth}{0.8\textwidth} % with of the caption in longtable
 
 
 %===   Start of report   ===================================================
@@ -242,7 +243,7 @@ Boston, MA 02111-1307, USA.
 \include{formats}
 \part{Utilities}
 \include{utilities}
-\part{Bibliograpgh and Appendices}
+\part{Bibliography and Appendices}
 
 
 %
@@ -254,7 +255,7 @@ Boston, MA 02111-1307, USA.
 %
 \begin{appendix}
   \include{app_wsv}
-%  \include{app_units}
+  \include{app_units}
 \end{appendix}
 
 %===   End of report   =====================================================

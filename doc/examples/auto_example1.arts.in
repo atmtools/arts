@@ -86,9 +86,7 @@ VectorWriteAscii(p_abs){""}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw{
-	CloudSatWV = "no"
-}
+AtmFromRaw{}
 
 # Set the physical H2O profile from the H2O profile in vmrs:
 h2o_absSet{}

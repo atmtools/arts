@@ -5,7 +5,7 @@
 tgsDefine           { [
          "H2O-PWR98",
 	 "O2-PWR93",
-	 "N2-SelfContPWR93"  ] }
+	 "N2-SelfContStandardType"   ] }
 
 # Set the lineshape function for all calculated tags
 lineshapeDefine     { shape               = "Voigt_Kuntz6"
@@ -20,16 +20,19 @@ lines_per_tgSetEmpty {}
 cont_descriptionInit{}  
 
 cont_descriptionAppend{
-    name       = "H2O-PWR98"
-    parameters = [ ]
+    tagname        = "H2O-PWR98"
+    model          = "Rosenkranz"
+    userparameters = [ ]
 }
 cont_descriptionAppend{
-    name       = "O2-PWR93"
-    parameters = [ ]
+    tagname        = "O2-PWR93"
+    model          = "Rosenkranz"
+    userparameters = [ ]
 }
 cont_descriptionAppend{
-    name       = "N2-SelfContPWR93"
-    parameters = [ ]
+    tagname        = "N2-SelfContStandardType" 
+    model          = "Rosenkranz"
+    userparameters = [ ]
 }
 
 # Read frequency grid from file

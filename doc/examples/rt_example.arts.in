@@ -87,9 +87,7 @@ VectorNLogSpace ( p_abs ) {
    stop  = 0.0914023919463313
    n     = 101 
 }
-AtmFromRaw {
-   ""
-}
+AtmFromRaw {}
 h2o_absSet{
 }
 n2_absSet{

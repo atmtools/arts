@@ -2211,7 +2211,9 @@ void define_md_data()
 	 "always have to call at least *cont_descriptionInit*, even if you do\n"
 	 "not want to use any continua."
 	 ),
-	OUTPUT( cont_description_names_, cont_description_parameters_ ),
+	OUTPUT( cont_description_names_, 
+                cont_description_models_,
+                cont_description_parameters_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -2234,16 +2236,21 @@ void define_md_data()
 	 "Keywords:\n"
 	 "   name       : The name of a continuum model. Must match one of the models\n"
 	 "                implemented in ARTS. \n"
+         "   option     : give here the option of this continuum/full model.\n"
 	 "   parameters : A Vector containing the required number of parameters\n"
 	 "                for the model given. The meaning of the parameters and\n"
-	 "                how many parameters are required depends on the model."
+	 "                how many parameters are required depends on the model.\n"
 	 ),
-	OUTPUT( cont_description_names_, cont_description_parameters_ ),
-	INPUT(  cont_description_names_, cont_description_parameters_ ),
+	OUTPUT( cont_description_names_, 
+                cont_description_models_,
+                cont_description_parameters_ ),
+	INPUT(  cont_description_names_, 
+                cont_description_models_,
+                cont_description_parameters_),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "name",   "parameters" ),
-	TYPES(    String_t, Vector_t     )));
+	KEYWORDS( "tagname",  "model",   "userparameters" ),
+	TYPES(    String_t,   String_t,   Vector_t         )));
 
 
 //=== Input Atmosphere methods ===========================================
@@ -2322,22 +2329,33 @@ void define_md_data()
 	  "Temperature      : Linear interpolation in ln(p)\n"
 	  "Altitude         : Linear interpolation in ln(p)\n"
 	  "VMRs             : Linear interpolation in ln(p)\n"
-	  "Cloud Parameters : Linear interpolation in p\n"
+	  "Cloud Parameters : Linear interpolation in ln(p)\n"
 	  "\n"
-          "   This function is also used for water vapour saturation adjustment\n"
-	  "inside cloud(This may be soon moved out of this function.)\n"
-	  "FIXME: Thomas, please update...\n"
-	  "\n"
-	  "Keywords:\n"
-	  "   CloudSatWV : a flag for setting saturation inside cloud.\n"
-	  "                FIXME: Thomas, please update...\n"
 	  ),
 	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
 	INPUT(    tgs_, p_abs_    , raw_ptz_ , raw_vmrs_ ),
 	GOUTPUT(                       			 ),         
 	GINPUT(                        			 ),
-	KEYWORDS(  "CloudSatWV"             		 ),
-	TYPES(     String_t                    		 )));
+	KEYWORDS(                             		 ),
+	TYPES(                          		 )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("WaterVaporSaturationInClouds"),
+  	DESCRIPTION(
+	  "Calculates the water vapor saturation volume mixing ratio (VMR) in the\n"
+	  "vertical range where liquid or ice clouds are in the atmosphere.\n"
+	  "At the pressure/altitude grid points where the liquid water content (LWC)\n"
+	  "or ice water content (IWC) of the clouds (tags 'liquidcloud' and 'icecloud')\n"
+          "is larger than zero the H2O-VMR is set to liquid water/ice saturation VMR.\n"
+          "The saturation pressure is calculated according to Goff-Gratch equations.\n"
+	  ),
+	OUTPUT(   vmrs_ , p_abs_                         ),
+	INPUT(    vmrs_ , p_abs_ , t_abs_ , tgs_         ),
+	GOUTPUT(                       			 ),         
+	GINPUT(                        			 ),
+	KEYWORDS(                             		 ),
+	TYPES(                          		 )));
 
   md_data.push_back
     ( MdRecord
@@ -2489,7 +2507,8 @@ void define_md_data()
 	OUTPUT(abs_  , abs_per_tg_ ),
 	INPUT(tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
               lines_per_tg_, lineshape_,
-	      cont_description_names_, cont_description_parameters_),
+	      cont_description_names_, cont_description_models_, 
+              cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2562,7 +2581,8 @@ void define_md_data()
                      ),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_,
-		    cont_description_names_, cont_description_parameters_ ),
+		    cont_description_names_, cont_description_parameters_,
+                    cont_description_models_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -3153,7 +3173,7 @@ void define_md_data()
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, abs_, 
           lines_per_tg_, lineshape_, e_ground_, emission_, k_grid_, 
-          cont_description_names_, cont_description_parameters_,
+	       cont_description_names_, cont_description_parameters_,cont_description_models_,
 	  los_, absloswfs_, trans_,
           z_plat_ ,za_pencil_, l_step_, z_abs_, refr_, refr_lfac_, refr_index_,
 	  z_ground_, t_ground_, y_space_, r_geoid_, hse_ ),
@@ -3472,7 +3492,8 @@ void define_md_data()
                // Additional variables for yRte
 	       emission_, y_space_, e_ground_, t_ground_,
                // Additional variables needed for this function
-               batchname_, tgs_, cont_description_names_, cont_description_parameters_ ),
+               batchname_, tgs_, cont_description_names_, cont_description_parameters_,
+	       cont_description_models_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("ncalc", "do_t", "t_file", "do_z", "z_file",
@@ -3508,7 +3529,10 @@ void define_md_data()
                // Additional variables for yRte
 	       emission_, y_space_, e_ground_, 
                // Additional variables needed for this function
-               tgs_, cont_description_names_, cont_description_parameters_ ),
+               tgs_, 
+               cont_description_names_, 
+               cont_description_models_, 
+               cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

@@ -78,7 +78,7 @@ raw_vmrsReadFromScenario
 VectorNLogSpace(p_abs){
         start = 100000
         stop  = 10
-        n     = 140
+        n     = 10
 }
 
 VectorWriteAscii(p_abs){""}
@@ -86,9 +86,7 @@ VectorWriteAscii(p_abs){""}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw{
-	CloudSatWV = "no"
-}
+AtmFromRaw{}
 
 # Set the physical H2O profile from the H2O profile in vmrs:
 h2o_absSet{}
@@ -104,9 +102,9 @@ MatrixWriteAscii (vmrs)  {""}
 
 # Create the frequency grid `f_mono':
 VectorNLinSpace(f_mono){
-        start = 1e9
-        stop  = 200e9
-        n     = 200    
+        start = 50e9
+        stop  = 150e9
+        n     = 100    
 }
 
 # Write frequency grid to file:

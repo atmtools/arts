@@ -64,6 +64,13 @@ void lines_per_tgSetEmpty(// WS Output:
     }
 }
 
+/**
+ 
+   \remark  <a href="http://www.hitran.com/>WWW access of the HITRAN catalog</a>.
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
 void linesReadFromHitran(// WS Output:
                          ArrayOfLineRecord& lines,
                           // Control Parameters:
@@ -140,6 +147,14 @@ void linesReadFromMytran2(// WS Output:
   out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
+
+/**
+ 
+   \remark  <a href="http://spec.jpl.nasa.gov/home.html>WWW access of the JPL catalog</a>.
+
+   \author Thomas Kuhn
+   \date 2001-11-05
+ */
 void linesReadFromJpl(// WS Output:
 		      ArrayOfLineRecord& lines,
 		      // Control Parameters:
@@ -1195,22 +1210,79 @@ void raw_vmrsReadFromFiles(// WS Output:
     vertical range where liquid or ice clouds are in the atmosphere.
     At the pressure/altitude grid points where the liquid water content (LWC) 
     or ice water content (IWC) is larger than zero the H2O-VMR is set to 
-    liquid water/ice saturation VMR (=p_saturation/p_tot)
+    liquid water/ice saturation VMR (=e_s/p_tot).<br>
+    The saturation pressure (e_s) is calculated according to the Goff-Gratch equations 
+    (see functions WVSatPressureLiquidWater and WVSatPressureIce in file continua.cc).
 
-   \param    vmrs           volume mixing ratios per tag group (input/output)
-   \param    t_abs          temperature at pressure level      (input)
-   \param    p_abs          pressure levels                    (input)
-   \param    tgs            the list of tag groups             (input)
+    Before adjustment:<br>
+    <table border=0 frame=void rules=none>
+    <tr>
+      <td>VMR<sub>H2O</sub></td> <td>=</td> <td>H2O volume mixing ratio</td>
+    </tr>
+    <tr>
+      <td>P<sub>tot</sub></td>   <td>=</td> <td>total air pressure</td>
+    </tr>
+    <tr>
+      <td>P<sub>H2O</sub></td>  <td>=</td> <td>H2O partial pressure</td>
+    </tr>
+    <tr>
+      <td>P<sub>dry</sub></td>   <td>=</td> <td>dry air partial pressure</td>
+    </tr>
+    </table>
+
+    after adjustment:<br>
+    <table border=0 frame=void rules=none>
+    <tr>
+       <td>VMR'<sub>H2O</sub></td>   <td>=</td>   <td>H2O volume mixing ratio</td>  
+    </tr>
+    <tr>
+       <td>P'<sub>tot</sub></td>     <td>=</td>   <td>total air pressure</td>  
+    </tr>
+    <tr>
+       <td>P'<sub>H2O</sub></td>     <td>=</td>   <td>H2O partial pressure</td>  
+    </tr>
+    </table>
+
+    H2O saturation pressure over water / ice:<br>
+    e<sub>s</sub><br>
+
+    calculation of the adjustment:<br>
+    <table border=0 frame=void rules=none>
+    <tr>
+       <td>P<sub>H2O</sub></td>    <td>=</td>  <td>VMR<sub>H2O</sub> * P<sub>tot</sub></td>
+    </tr>
+    <tr>
+       <td>P<sub>dry</sub></td>    <td>=</td>  <td>P<sub>tot</sub> * (1.0 - VMR<sub>H2O</sub>)</td>
+    </tr>
+    <tr>
+       <td>P'<sub>H2O</sub></td>   <td>=</td>  <td>e<sub>s</sub></td>
+    </tr>
+    <tr>
+       <td>P'<sub>tot</sub></td>   <td>=</td>  <td>e<sub>s</sub> + P<sub>dry</sub></td>
+    </tr>
+    <tr>
+       <td>VMR'<sub>H2O</sub></td> <td>=</td>  <td>P'<sub>H2O</sub> / P'<sub>tot</sub></td>
+    </tr>
+    </table>
+
+   \param    vmrs      [1]     volume mixing ratios per tag group (input/output)
+   \param    t_abs     [K]     temperature at pressure level      (input)
+   \param    p_abs     [Pa]    pressure levels                    (input)
+   \param    tgs       [1]     the list of tag groups             (input)
 
    \author Thomas Kuhn
    \date 2001-08-02
  */ 
-Index WVsatinClouds( Matrix&    vmrs,  // manipulates this array
-		     const Vector&     t_abs, // constant
-		     const Vector&     p_abs, // constant
-		     const TagGroups&  tgs  ) // constant
+void WaterVaporSaturationInClouds( // WS Input/Output
+				  Matrix&           vmrs,  // manipulates this WS
+				  Vector&           p_abs, // manipulates this WS
+				  // WS Input
+				  const Vector&     t_abs, // constant
+				  const TagGroups&  tgs  ) // constant
 {
 
+  // make sure that the VMR and pressure grid are the same
+  assert ( vmrs.ncols() == p_abs.nelem() );
 
   // The species lookup data
   extern const Array<SpeciesRecord> species_data;
@@ -1228,15 +1300,15 @@ Index WVsatinClouds( Matrix&    vmrs,  // manipulates this array
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
       String tag_name = species_data[tgs[i][0].Species()].Name();
-      if (tag_name == "liquidcloud")
+      if (tag_name == "liquidcloud") // <=== liquid water clouds tag name
 	{
 	  liquid_index = i;
 	}
-      if (tag_name == "icecloud")
+      if (tag_name == "icecloud") // <====== ice water clouds tag name
 	{
 	  ice_index = i;
 	}
-      if (tag_name == "H2O")
+      if (tag_name == "H2O") // <=========== water vapor tags to change VMR
 	{
 	  h2o_index[u++] = i;
 	  //cout << "tag_name=" << tag_name << ",  tag=" << i << ",  u=" << u 
@@ -1244,59 +1316,87 @@ Index WVsatinClouds( Matrix&    vmrs,  // manipulates this array
 	}
     }
 
+
   // if no water vapor profile is in use do not go further
   if (u < 1)
     {
-      cout << "WVsatinClouds: no H2O profile found to adjust for clouds..\n";
-      return 0;
+      out2 << "WaterVaporSaturationInClouds: no H2O profile found to adjust for clouds.\n"
+           << "Therefore no saturation calculation is performed\n";
+      return;
     }
 
+  // ------------------------< saturation over liquid water >------------------------
   // modify the water vapor profiles for saturation over liquid water in a liquid water cloud
   if ( (liquid_index >= 0) && (liquid_index < tgs.nelem()) )
     {
       // sauration over liquid water 
-      for (Index i=0; i<vmrs.ncols() ; ++i)
+      for (Index uu=0; uu<u; ++uu)              // --- loop over all H2O tags
 	{
-	  if (vmrs(liquid_index,i) > 0.000)
+	  for (Index i=0; i<vmrs.ncols() ; ++i) // --- loop over altitude grid
 	    {
-	      for (Index uu=0; uu<u; ++uu)
+	      if (vmrs(liquid_index,i) > 0.000) // --- cloud present or not?
 		{
-		  //cout << "uu=" << uu  << "  (" << p_abs.nelem() << ")" << "\n";
-		  //cout << " h2o_index[uu]=" << h2o_index[uu] << ",  i=" << i << "\n";
-		  //cout << "tag name=" << species_data[tgs[h2o_index[uu]][0].Species()].Name() << "\n";
-		  //cout << "0 vmrs(h2o_index[uu],i)=" << vmrs(h2o_index[uu],i); 
-		  vmrs(h2o_index[uu],i) = ( WVSatPressureLiquidWater( t_abs[i] ) / p_abs[i] );
-		  if (vmrs(h2o_index[uu],i) < 0.000) return 1;
-		  //cout << ",  1 vmrs(h2o_index[uu],i)=" << vmrs(h2o_index[uu],i) << "\n";
-		  //cout << "T=" << t_abs[i] << "K,  ptot=" << p_abs[i] << "Pa,  psat="
-                  //     << WVSatPressureLiquidWater( t_abs[i] ) << "\n";
+		  // dry air part of the total pressure
+		  Numeric p_dry         =  p_abs[i] * ( 1.000e0 - vmrs(h2o_index[uu],i) );
+                  // water vapor saturation over liquid water 
+		  Numeric e_s           =  WVSatPressureLiquidWater( t_abs[i] );
+		  // new total pressure = dry air pressure +  water vapor saturation pressure
+		  p_abs[i]              =  e_s + p_dry;
+		  // new water vapor volume mixing ratio
+		  vmrs(h2o_index[uu],i) =  e_s / p_abs[i];
+		  // check if VMR has strange value
+		  if ( (vmrs(h2o_index[uu],i) < 0.000e0) || (vmrs(h2o_index[uu],i) > 1.000e0) ) 
+		    {
+		      ostringstream os;
+		      os << "WaterVaporSaturationInClouds: The water vapor VMR value " 
+                         << vmrs(h2o_index[uu],i) << "\n"
+                         << " looks strange after setting it to the saturation pressure over liquid water.";
+		      throw runtime_error(os.str());
+		      return;
+		    }
 		}
 	    }
 	}
     }
 
+
+  // ------------------------< saturation over ice water >------------------------
   // modify the water vapor profiles for saturation over ice water in a ice water cloud
   if ( (ice_index >= 0) && (ice_index < tgs.nelem()) )
     {
-      for (Index i=0; i<vmrs.ncols() ; ++i)
+      for (Index uu=0; uu<u; ++uu)              // --- loop over all H2O tags
 	{
-	  if (vmrs(ice_index,i) > 0.000)
+	  for (Index i=0; i<vmrs.ncols() ; ++i) // --- loop over altitude grid
 	    {
-	      // sauration over ice water 
-	      for (Index uu=0; uu<u; ++uu)
+	      if (vmrs(ice_index,i) > 0.000)    // --- cloud present or not?
 		{
-		  //cout << "uu=" << uu  << "  (" << p_abs.nelem() << ")" << "\n";
-		  //cout << " h2o_index[uu]=" << h2o_index[uu] << ",  i=" << i << "\n";
-		  //cout << "tag name=" << species_data[tgs[h2o_index[uu]][0].Species()].Name() << "\n";
-		  vmrs(h2o_index[uu],i) = ( WVSatPressureIce( t_abs[i] ) / p_abs[i] );
-		  if (vmrs(h2o_index[uu],i) < 0.000) return 1;
+		  // dry air part of the total pressure
+		  Numeric p_dry         =  p_abs[i] * ( 1.000e0 - vmrs(h2o_index[uu],i) );
+		  // water vapor saturation over ice
+		  Numeric e_s           =  WVSatPressureIce( t_abs[i] );
+		  // new total pressure = dry air pressure +  water vapor saturation pressure
+		  p_abs[i]              =  e_s + p_dry;
+		  // new water vapor volume mixing ratio
+		  vmrs(h2o_index[uu],i) =  e_s / p_abs[i];
+		  // check if VMR has strange value
+		  if ( (vmrs(h2o_index[uu],i) < 0.000e0)  || (vmrs(h2o_index[uu],i) > 1.000e0) )
+		    {
+		      ostringstream os;
+		      os << "WaterVaporSaturationInClouds: The water vapor VMR value " 
+                         << vmrs(h2o_index[uu],i) << "\n"
+                         << " looks strange after setting it to the saturation pressure over ice.";
+		      throw runtime_error(os.str());
+		      return;
+		    }
 		}
 	    }
 	}
     }
+  
+  return;
+}
 
-  return 0;
-} // end of WVsatinClouds --------------------------------------------------------------------
+
 
 /** Interpolate atmospheric quantities from their individual grids to
     the common p_abs grid. 
@@ -1318,9 +1418,7 @@ void AtmFromRaw(// WS Output:
 		  const TagGroups&       tgs,
 		  const Vector&  	 p_abs,
 		  const Matrix&  	 raw_ptz,
-		  const ArrayOfMatrix&   raw_vmrs,
-		  // Control Parameters:
-		  const String&          CloudSatWV)
+		  const ArrayOfMatrix&   raw_vmrs)
 {
   
   //---------------< 1. Interpolation of temperature and altitude >---------------
@@ -1400,25 +1498,25 @@ void AtmFromRaw(// WS Output:
 	  }
 
 	// Interpolate the profile to the predefined pressure grid:
-	String tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
-	if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
-	  {
-	    // Interpolate linearly the cloud profiles
-	    interpp_cloud( vmrs(j,Range(joker)),
-			   raw(Range(joker),0),
-			   raw(Range(joker),1),
-			   p_abs );
+	//String tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
+	// if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
+	//   {
+	//     // Interpolate linearly the cloud profiles
+	//     interpp_cloud( vmrs(j,Range(joker)),
+	// 		   raw(Range(joker),0),
+	// 		   raw(Range(joker),1),
+	// 		   p_abs );
 	    //	out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
-	  }
-	else
-	  {
+	//   }
+	// else
+	//   {
 	    // Interpolate VMRs:
 	    interpp( vmrs(j,Range(joker)),
 		     raw(Range(joker),0),
 		     raw(Range(joker),1),
 		     p_abs );
 	    // out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
-	  }
+	//   }
 	// The calls to interpp_cloud and inerpp contain some nice
 	// Matpack  features:
 	// 1. vmrs(j,Range(joker)) selects the jth row of vmrs.
@@ -1428,39 +1526,6 @@ void AtmFromRaw(// WS Output:
 	//
 	// Note that you can call the interpolation functions directly
 	// with these selections. 
-      }
-  }
-
-  //---------< 3. Saturation adjustment VMR profiles of H2O tags in clouds >-----------
-  {
-    if( "yes" == CloudSatWV )
-      {
-	assert ( vmrs.ncols() == p_abs.nelem() );
-
-	out2 << "Performing water vapor saturation adjustment for clouds.\n";
-
-	Index satflag = WVsatinClouds( vmrs,  // manipulates this array for H2O tags
-				       t_abs, // constant
-				       p_abs, // constant
-				       tgs);  // constant
-	if (satflag != 0)
-	  {
-	    ostringstream os;
-	    os << "WRONG WATER VAPOR SATURATION CALCULATION IN CLOUD REGION.";
-	    throw runtime_error(os.str());
-	  }
-      }
-    else if ( "no" == CloudSatWV )
-      {
-	out2 << "No water vapor saturation adjustment for clouds.\n";
-      }
-    else
-      {
-	out2 << "Normally it should be yes or no for CloudSatWV.\n"
-	     << "But this will be moved out of this method anyway.\n";
-// 	ostringstream os;
-// 	os << "The keyword CloudSatWV must be yes or no.";
-// 	throw runtime_error(os.str());
       }
   }
 }
@@ -1753,13 +1818,14 @@ void absCalc(// WS Output:
              const ArrayOfArrayOfLineRecord& lines_per_tg,
 	     const ArrayOfLineshapeSpec&     lineshape,
 	     const ArrayOfString&            cont_description_names,
+	     const ArrayOfString&            cont_description_models,
 	     const ArrayOfVector& 	     cont_description_parameters)
 {
   // Dimension checks are performed in the executed functions
 
   // allocate local variable to hold the cross sections per tag group
   ArrayOfMatrix xsec_per_tg;
-
+  
   xsec_per_tgInit( xsec_per_tg, tgs, f_mono, p_abs );
 
   xsec_per_tgAddLines( xsec_per_tg,
@@ -1781,7 +1847,8 @@ void absCalc(// WS Output:
 		       h2o_abs,
 		       vmrs,
 		       cont_description_names,
-		       cont_description_parameters );
+		       cont_description_parameters,
+		       cont_description_models);
 
   absCalcFromXsec(abs,
 		  abs_per_tg,
@@ -2152,7 +2219,8 @@ void xsec_per_tgAddConts(// WS Output:
 			 const Vector&  		  h2o_abs,
 			 const Matrix&                    vmrs,
                          const ArrayOfString&             cont_description_names,
-                         const ArrayOfVector& 		  cont_description_parameters )
+                         const ArrayOfVector& 		  cont_description_parameters,
+                         const ArrayOfString&             cont_description_models )
 {
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -2177,7 +2245,19 @@ void xsec_per_tgAddConts(// WS Output:
   if ( cont_description_names.nelem() !=
        cont_description_parameters.nelem() )
     {
-	ostringstream os;
+      for (Index i=0; i < cont_description_names.nelem(); ++i) 
+	{
+	  cout << "xsec_per_tgAddConts: " << i << " name : " << cont_description_names[i] << "\n";
+	}
+      for (Index i=0; i < cont_description_parameters.nelem(); ++i) 
+	{
+	  cout << "xsec_per_tgAddConts: " << i << " param: " << cont_description_parameters[i] << "\n";
+	}
+      for (Index i=0; i < cont_description_models.nelem(); ++i) 
+	{
+	  cout << "xsec_per_tgAddConts: " << i << " option: " << cont_description_models[i] << "\n";
+	}
+      ostringstream os;
 	os << "The following variables must have the same dimension:\n"
 	   << "cont_description_names:      " << cont_description_names.nelem() << '\n'
 	   << "cont_description_parameters: " << cont_description_parameters.nelem();
@@ -2270,6 +2350,10 @@ void xsec_per_tgAddConts(// WS Output:
 		  out2 << "  Adding " << name
 		       << " to tag group " << i << ".\n";
 
+		  // find the options for this continuum tag from the input array
+                  // of options. The actual field of the array is n:
+                  const String ContOption = cont_description_models[n];
+
 		  // Add the continuum for this tag. The parameters in
 		  // this call should be clear. The vmr is in
 		  // vmrs(i,Range(joker)). The other vmr variable, `h2o_abs'
@@ -2278,6 +2362,7 @@ void xsec_per_tgAddConts(// WS Output:
 		  xsec_continuum_tag( xsec_per_tg[i],
 				      name,
 				      cont_description_parameters[n],
+				      cont_description_models[n], 
 				      f_mono,
 				      p_abs,
 				      t_abs,
@@ -2461,11 +2546,15 @@ void refrCalc (
    \date 2001-03-12 */
 void cont_descriptionInit(// WS Output:
                           ArrayOfString& names,
+                          ArrayOfString& options, 
                           ArrayOfVector& parameters)
 {
   names.resize(0);
+  options.resize(0);
   parameters.resize(0);
-  out2 << "  Initialized cont_description_names and cont_description_parameters.\n";
+  out2 << "  Initialized cont_description_names \n"
+          "              cont_description_models\n"
+          "              cont_description_parameters.\n";
 }
 
 
@@ -2481,16 +2570,22 @@ void cont_descriptionInit(// WS Output:
    \date 2001-03-12 */
 void cont_descriptionAppend(// WS Output:
 		       ArrayOfString& cont_description_names,
+		       ArrayOfString& cont_description_models,
 		       ArrayOfVector& cont_description_parameters,
 		       // Control Parameters:
-		       const String& name,
-		       const Vector& parameters)
+		       const String& tagname,
+                       const String& model,
+                       const Vector& userparameters)
 {
-
   // First we have to check that name matches a continuum species tag.
-  check_continuum_model(name);
+  check_continuum_model(tagname);
+
+  cout << "   + tagname:    " << tagname << "\n";
+  cout << "   + model:      " << model << "\n";
+  cout << "   + parameters: " << userparameters << "\n";
 
   // Add name and parameters to the apropriate variables:
-  cont_description_names.push_back(name);
-  cont_description_parameters.push_back(parameters);
+  cont_description_names.push_back(tagname);
+  cont_description_models.push_back(model);
+  cont_description_parameters.push_back(userparameters);
 }

@@ -1623,7 +1623,8 @@ void k_temp_nohydro (
         const Vector&                     e_ground,
         const Vector&                     k_grid,
         const ArrayOfString&              cont_description_names,
-        const ArrayOfVector& 	          cont_description_parameters )
+	const ArrayOfVector& 	          cont_description_parameters,
+        const ArrayOfString&              cont_description_models )
 {
   // Main sizes
   const Index  nza = los.start.nelem();     // number of zenith angles  
@@ -1684,8 +1685,10 @@ void k_temp_nohydro (
     dummy += 1;			// Matpack can add element-vise like this.
 
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, 
-             h2o_abs, vmrs, lines_per_tg, lineshape, cont_description_names, 
-                                                 cont_description_parameters );
+             h2o_abs, vmrs, lines_per_tg, lineshape, 
+	     cont_description_names, 
+	     cont_description_models,
+             cont_description_parameters);
   }
   abs_dummy.resize(0);
   //
@@ -2033,6 +2036,7 @@ void kTemp (
           const Vector&                      k_grid,
           const ArrayOfString&               cont_description_names,
           const ArrayOfVector& 	             cont_description_parameters,
+          const ArrayOfString&               cont_description_models,
           const Los&                         los,           
           const ArrayOfMatrix&               absloswfs,
           const ArrayOfMatrix&               trans,
@@ -2122,7 +2126,8 @@ void kTemp (
 
     k_temp_nohydro( k, k_names, k_aux, tgs, los, absloswfs, f_mono, 
      p_abs, t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, abs0, trans,
-     e_ground, k_grid, cont_description_names, cont_description_parameters );
+     e_ground, k_grid, cont_description_names, cont_description_parameters,
+     cont_description_models);
   }
 
 
@@ -2160,7 +2165,9 @@ void kTemp (
       out2 << "  ----- Messages from absCalc: --------\n";
       absCalc( abs1k, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
                  lines_per_tg, lineshape, 
-                          cont_description_names, cont_description_parameters);
+	       cont_description_names, 
+	       cont_description_models,
+               cont_description_parameters);
     }
     // Calculate reference spectrum
     out1 << "  Calculating reference spectrum\n";
@@ -2329,8 +2336,10 @@ void kTemp (
   
       out2 << "  ----- Messages from absCalc: --------\n";
       absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-		     lines_per_tg, lineshape, 
-		     cont_description_names, cont_description_parameters);
+	       lines_per_tg, lineshape, 
+	       cont_description_names, 
+	       cont_description_models,
+               cont_description_parameters);
       out2 << "  ----- Messages from losCalc: --------\n";
       losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
 					       refr_index, z_ground, r_geoid );

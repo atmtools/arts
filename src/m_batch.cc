@@ -174,6 +174,7 @@ void ybatchCalc(
         const TagGroups&                  tgs,
 	const ArrayOfString&              cont_description_names,
 	const ArrayOfVector& 		  cont_description_parameters,
+	      const ArrayOfString&              cont_description_models,
       // Control Parameters:
         const Index&                        ncalc,
         const Index&                        do_t,
@@ -307,7 +308,9 @@ void ybatchCalc(
     if ( (i==0) || do_t || ndo || do_f )
       absCalc( abs, abs_per_tag, tgs, f, p_abs, t, n2_abs, h2o_abs, vs, 
 	       lines_per_tag, lineshape, 
-	       cont_description_names, cont_description_parameters);
+	       cont_description_names, 
+	       cont_description_models,
+               cont_description_parameters);
 
     if ( (i==0) || do_z || do_za )   
       losCalc( los, z_tan, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 
@@ -345,6 +348,7 @@ void ybatchFromRadiosonde(// WS Output:
                           const Vector& e_ground,
                           const TagGroups& tgs,
                           const ArrayOfString& cont_description_names,
+			  const ArrayOfString& cont_description_models,
                           const ArrayOfVector& cont_description_parameters)
 {
   // Initialize ybatch:
@@ -391,6 +395,7 @@ void ybatchFromRadiosonde(// WS Output:
              lines_per_tg,
 	     lineshape,
 	     cont_description_names,
+	     cont_description_models,
 	     cont_description_parameters);
 
       // Set t_ground from lowest level of t_abs:

@@ -739,7 +739,7 @@ void VectorNLinSpace(     Vector&  x,
                     const Numeric& stop,
                     const Index& n )
 {
-  if ( n<2 )
+  if ( n<2 ) // changed by TKS since for calculations with laboratory data (original n<2) 
     throw runtime_error("The number of points must be > 1."); 
   nlinspace(x,start,stop,n);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";

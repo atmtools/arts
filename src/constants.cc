@@ -29,6 +29,10 @@
 
    extern const Numeric PI;
 
+   See for example the
+   <a href="http://physics.nist.gov/cuu/index.html">National Institute of Standards and Technology (NIST) </a>  
+   home page for the values of specific constants.<br>
+
    \author Patrick Eriksson
    \date 2000-09-14 
 */
@@ -114,6 +118,25 @@ extern const Numeric COSMIC_BG_TEMP = 2.735;
     \date   08.04.2000
 */
 extern const Numeric SUN_TEMP = 6000.0;
+
+/** Global constant, e (Euler's number)
+    \author Thomas Kuhn
+    \date   08.11.2001
+*/
+// reference: http://thesapps.com/Doug/exp/
+extern const Numeric EULER_NUMBER   = 2.7182818284590452;
+
+/** Global constant, log10(Euler's number)
+    \author Thomas Kuhn
+    \date   08.11.2001
+*/
+extern const Numeric LOG10_EULER_NUMBER = 0.43429448190325176;
+
+/** Global constant, ln(10)
+    \author Thomas Kuhn
+    \date   08.11.2001
+*/
+extern const Numeric NAT_LOG_TEN = 2.3025850929940459;
 
 /** Global constant, ln(2)
     \author Patrick Eriksson 

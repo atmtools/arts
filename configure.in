@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.1.49)
+AM_INIT_AUTOMAKE(arts,0.1.50)
 
 
 #
@@ -325,6 +325,9 @@ Makefile
          doc/examples/absorption_example.arts
          doc/examples/amsu_example.arts
          doc/examples/batch_example.arts
+         doc/examples/clouds_example.arts
+         doc/examples/cont_example.arts
+         doc/examples/fullmodels_example.arts
          doc/examples/radiosonde_example.arts
          doc/examples/rt_example.arts
       doc/emacs/Makefile

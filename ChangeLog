@@ -1,3 +1,103 @@
+2001-11-21  Thomas Kuhn  <tkuhn@uni-bremen.de>
+	
+        * arts-0-1-50
+
+	* changes: 
+	  - Added files: 
+		doc/uguide/Figs/cloud_description_page1.fig
+		doc/uguide/Figs/cloud_description_page2.fig
+		doc/uguide/Figs/cloud_description_page3.fig
+		doc/uguide/Figs/cloud_description_page1.ps
+		doc/uguide/Figs/cloud_description_page2.ps
+		doc/uguide/Figs/cloud_description_page3.ps
+		doc/uguide/Figs/clouds_example.arts_page1.ps
+		doc/uguide/Figs/clouds_example.arts_page2.ps
+		doc/uguide/Figs/clouds_example.arts_page3.ps
+		doc/uguide/Figs/cont_description_page1.fig
+		doc/uguide/Figs/cont_description_page2.fig
+		doc/uguide/Figs/cont_description_page3.fig
+		doc/uguide/Figs/cont_description_page1.ps
+		doc/uguide/Figs/cont_description_page2.ps
+		doc/uguide/Figs/cont_description_page3.ps
+		doc/uguide/Figs/cont_example.arts_page1.ps
+		doc/uguide/Figs/cont_example.arts_page2.ps
+		doc/uguide/Figs/cont_example.arts_page3.ps
+		doc/uguide/Figs/fullmodel_description_page1.fig
+		doc/uguide/Figs/fullmodel_description_page2.fig
+		doc/uguide/Figs/fullmodel_description_page3.fig
+		doc/uguide/Figs/fullmodel_description_page1.ps
+		doc/uguide/Figs/fullmodel_description_page2.ps
+		doc/uguide/Figs/fullmodel_description_page3.ps
+		doc/uguide/Figs/fullmodels_example.arts_page1.ps
+		doc/uguide/Figs/fullmodels_example.arts_page2.ps
+		doc/uguide/Figs/fullmodels_example.arts_page3.ps
+		doc/uguide/app_units.tex
+		doc/examples/clouds_example.arts.in
+		doc/examples/cont_example.arts.in
+		doc/examples/fullmodels_example.arts.in
+	  - changes in files:
+	        src/constants.cc:
+	          added the constants Euler's number, 
+	          log of Euler's number
+	        src/workspace.cc:
+	          added ws cont_description_models for methods
+	          "cont_descriptionInit" and "cont_descriptionAppend".
+	          Also description is added for the ws
+	          cont_description_names, cont_description_models, 
+	          and cont_description_parameters.
+	        src/methods.cc:
+	          added ws cont_description_models to methods
+	          "cont_descriptionInit" and "cont_descriptionAppend".
+	          Also the keywords for "cont_descriptionAppend" are 
+	          changed/added to be now tagname, model, and userparameters.
+	          All the other methods, like "absCalc", which 
+	          use the ws cont_description_names and 
+	          cont_description_parameters already were updated
+	          to have also cont_description_models as input.
+	          The new method "WaterVaporSaturationInClouds" is 
+	          implemented to set the water vapor partial pressure 
+	          to the saturation pressure in clouds.
+	          In "AtmFromRaw" the flag for setting saturation in
+		  clouds is taken away. 
+	          Also in "AtmFromRaw", linear interpolation in 
+	          ln of pressure is valid for clouds now.
+	        src/continua.cc:
+	          Detailed online documentation implemented.
+	          Synthesis of the tags "O2-SelfContPWR93" and 
+	          "O2-SelfContMPM93" to tag "O2-SelfContStandardType" 
+	          since both models are essentially the same.
+	          Also the tag "N2-SelfContPWR93" is now named 
+	          "N2-SelfContStandardType".
+	          Change in the calling function "xsec_per_tgAddConts" 
+	          to check input variables "tagname", "model", and 
+	          "userparameters" for consistency.
+	          Some internal conversion coefficients are stated 
+	          now as global constants of the file continua.cc 
+	          to be more homogeneous in all the functions.
+                src/partition_function_data.cc:
+	          Adjustments of the tag names for O2 and N2.
+	        src/species_data.cc:
+	          Adjustments of the tag names for O2 and N2.
+	        src/m_abs.cc:
+	          Adjustent for the additional ws cont_description_models
+	          to the functions "absCalc" and "xsec_per_tgAddConts".
+	          Revision of the functions "cont_descriptionInit" and 
+	          "cont_descriptionAppend" according to the new input 
+	          parameters defined in methods.cc. 
+	          Adjustment of "AtmFromRaw" to cancel the saturation
+	          flag.
+	          Creation of the function "WaterVaporSaturationInClouds" 
+	          which corresponds to the method 
+	          "WaterVaporSaturationInClouds".
+	        doc/uguide/absorption.tex:
+	          major revision of the chapters describing the 
+	          continua, the full models and the cloud absorption.
+	          Also a detailed description of the implementation 
+	          and usage in arts is added.
+	        doc/uguide/app_units.tex:
+	          Table with the arts units and unit conversion
+	          coefficients.
+	
 2001-11-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-49

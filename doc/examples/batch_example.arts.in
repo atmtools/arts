@@ -51,8 +51,9 @@ lines_per_tgCreateFromLines {
 cont_descriptionInit{
 }
 cont_descriptionAppend{
-    name       = "H2O-MPM93"
-    parameters = [ ]
+    tagname        = "H2O-MPM93"
+    model          = "MPM93"
+    userparameters = [ ]
 }
 
 
@@ -61,15 +62,15 @@ cont_descriptionAppend{
 VectorNLogSpace(p_abs){
         start = 100000
         stop  = 10
-        n     = 46
+        n     = 10
 }
 
 
 ### Monochromatic frequency grid #############################################
 VectorNLinSpace(f_mono){
-        start = 544.2e9
+        start = 544.0e9
         stop  = 545.0e9
-        n     = 800    
+        n     = 10 
 }
 
 
@@ -80,8 +81,7 @@ MatrixReadAscii (raw_ptz)
 raw_vmrsReadFromScenario
         {"@ac_arts_data@/atmosphere/fascod/tropical"}
 
-AtmFromRaw {
-    CloudSatWV = "no" }
+AtmFromRaw {}
 h2o_absSet {
 }
 n2_absSet {

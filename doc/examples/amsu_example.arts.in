@@ -10,7 +10,7 @@ tgsDefine           { [
        	
          "H2O-PWR98",
 	 "O2-PWR93",
-	 "N2-SelfContPWR93"  ] }
+	 "N2-SelfContStandardType"   ] }
 
 # Let's compute weighting function only for H2O.
 wfs_tgsDefine{["H2O-PWR98"]}
@@ -32,16 +32,19 @@ lines_per_tgSetEmpty {}
 cont_descriptionInit{}  
 
 cont_descriptionAppend{
-    name       = "H2O-PWR98"
-    parameters = [ ]
+    tagname        = "H2O-PWR98"
+    model          = "Rosenkranz"
+    userparameters = [ ]
 }
 cont_descriptionAppend{
-    name       = "O2-PWR93"
-    parameters = [ ]
+    tagname        = "O2-PWR93"
+    model          = "Rosenkranz"
+    userparameters = [ ]
 }
 cont_descriptionAppend{
-    name       = "N2-SelfContPWR93"
-    parameters = [ ]
+    tagname        = "N2-SelfContStandardType" 
+    model          = "Rosenkranz"
+    userparameters = [ ]
 }
 
 
@@ -77,7 +80,7 @@ VectorNLogSpace (p_abs)    { start = 1.01300e+05
 
 #Interpolate the atmospheric variables to the above pressure grid.
 
-AtmFromRaw  {""}
+AtmFromRaw  {}
 
 
 # Set the physical H2O profile from the H2O profile in vmrs:

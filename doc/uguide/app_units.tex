@@ -1,0 +1,56 @@
+\levela{ARTS Units and Conversion Factors}
+ \label{app:arts_units}
+
+
+\starthistory
+  2001-21-05 & Created by Thomas Kuhn. \\
+\stophistory
+
+ This appendix gives an overview of the arts physical units 
+ and how they can be converted to other common unit systems.
+ The internal physical units of arts for frequencies is $[$Hz$]$,
+ for pressure $[$Pa$]$ and for the absorption coefficient $[$1/m$]$.
+ Table \ref{tab:app_arts_units} gives some common conversion
+ coefficients to arts units.
+
+\begin{table}[!thb]
+  \begin{center}
+  \begin{tabular}{lllllllllll}
+   \hline
+   $x$ & g/cm$^3$ & = & $y$ & kg/m$^3$ & $\Leftrightarrow$ & $y$ & = &
+   $x$ & $\times$ & $10^{3}$ \\
+   $x$ & g/m$^3$  & = & $y$ & kg/m$^3$ & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{-3}$ \\
+   $x$ & GHz      & = & $y$ & Hz       & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $ 10^{9}$ \\
+   $x$ & 1/GHz    & = & $y$ & 1/Hz     & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{-9}$ \\
+   $x$ & hPa      & = & $y$ & Pa       & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{2}$ \\
+   $x$ & 1/hPa    & = & $y$ & 1/Pa     & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{-2}$ \\
+   $x$ & 1/cm     & = & $y$ & 1/m      & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{2}$ \\
+   $x$ & 1/km     & = & $y$ & 1/m      & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{-3}$ \\
+   $x$ & dB       & = & $y$ & Np       & $\Leftrightarrow$ & $y$ & = & $x$ & / & $[10\cdot\log{(e)}]$ \\
+   $x$ & dB/km    & = & $y$ & 1/m      & $\Leftrightarrow$ & $y$ & = &
+   $x$ & $\times$ & $10^{-3} / [10\cdot\log{(e)}]$ \\
+   $x$ & Np/km    & = & $y$ & 1/m      & $\Leftrightarrow$ & $y$ & = & $x$ & $\times$ & $10^{-3}$ \\
+   \hline
+ \end{tabular}
+ \end{center}
+ \caption{Conversion factors for the physical units used in arts.}
+ \label{tab:app_arts_units}
+\end{table}
+
+Especially for the MPM model versions
+\citep{liebeandlayton:87,liebe:89,liebeetal:93} 
+we get for the pre-factor:
+\begin{eqnarray}
+   \frac{4\cdot\pi}{c} \cdot 10 \cdot \log(e) &=& 0.1820 \cdot 10^{6}~\mbox{dB/km/GHz}\\
+                                              &=& 0.1820 \cdot 10^{-6}~\mbox{dB/m/Hz}
+\end{eqnarray}
+where $c$ is the speed of light ($c=2.9979\cdot 10^{8}$m/s).
+
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "uguide" 
+%%% TeX-master: "main"
+%%% End:
+

@@ -17,6 +17,9 @@ arts_examples_in = \
 	absorption_example.arts.in \
 	amsu_example.arts.in \
 	batch_example.arts.in \
+	clouds_example.arts.in \
+	cont_example.arts.in \
+	fullmodels_example.arts.in \
 	radiosonde_example.arts.in \
 	rt_example.arts.in
 
@@ -24,6 +27,9 @@ arts_examples = \
 	absorption_example.arts \
 	amsu_example.arts \
 	batch_example.arts \
+	clouds_example.arts \
+	cont_example.arts \
+	fullmodels_example.arts \
 	radiosonde_example.arts \
 	rt_example.arts
 
@@ -37,6 +43,9 @@ check:	$(arts) $(arts_examples)
 	$(arts) absorption_example.arts
 	$(arts) amsu_example.arts
 	$(arts) batch_example.arts
+	$(arts) clouds_example.arts
+	$(arts) cont_example.arts
+	$(arts) fullmodels_example.arts
 	$(arts) radiosonde_example.arts
 	$(arts) rt_example.arts
 
