@@ -38,6 +38,7 @@
   === External declarations
   ===========================================================================*/
 
+#include <iostream.h>
 #include "absorption.h"
 #include "arts.h"
 #include "matpackI.h"
