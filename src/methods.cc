@@ -3472,6 +3472,28 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ZaSatOccultation" ),
+        DESCRIPTION
+        (
+         "Calculates zenith angles for satellite occultations.\n"
+         "\n"
+         "The zenith angles are calculated with an interval of *t_sample\n"
+         "with the recieving satellite at height *z_recieve* above the geoid\n"
+         "and the transmitting satellite at height *z_send*.\n"
+         "The zenith angles are restricted by the two tangent altitudes\n"
+         "*z_scan_low* and *z_scan_high*."
+        ),
+        OUTPUT( ppath_step_),
+        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
+               lon_grid_, z_field_, t_field_, r_geoid_, z_ground_ ),
+        GOUTPUT( Vector_ ),
+        GINPUT(),
+        KEYWORDS( "z_recieve", "z_send", "t_sample", 
+                  "z_scan_low", "z_scan_high" ),
+        TYPES( Numeric_t, Numeric_t, Numeric_t,
+               Numeric_t, Numeric_t )));
 
 
 

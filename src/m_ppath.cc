@@ -51,7 +51,9 @@
 #include "special_interp.h"
 #include "xml_io.h"
 
-
+extern const Numeric RAD2DEG;
+extern const Numeric DEG2RAD;
+extern const Numeric EARTH_GRAV_CONST;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -532,7 +534,7 @@ void sensor_posAddGeoidWGS84(
   // latitude and longitude grids.
   // For 2D and 3D, the function is always called with the atmospheric 
   // dimensionality set to 2, and the latitudes of concern are put into 
-  // the latitude grid. An extra dummy value is needed if there is only one 
+  // the latitude grid. An extra dummy value is needed if there is only one
   // position in *sensor_pos*.
 
   if( atmosphere_dim == 1 )
@@ -674,7 +676,7 @@ void VectorZtanToZa(
       os << "The number of altitudes in *" << ztan_v_name << "* must\n"
 	 << "match the number of positions in *sensor_pos*.";
       throw runtime_error( os.str() );
-    }       
+    }
 
   out2 << "   Filling *" << za_v_name << "* with zenith angles, based on\n"
        << "   tangent altitudes from *" << ztan_v_name << ".\n";
@@ -682,9 +684,142 @@ void VectorZtanToZa(
   za_vector.resize(npos);
 
   for( Index i=0; i<npos; i++ )
-    { za_vector[i] = geompath_za_at_r( r_geoid + ztan_vector[i], 100, 
+    { za_vector[i] = geompath_za_at_r( r_geoid + ztan_vector[i], 100,
                                                            sensor_pos(i,0) ); }
 
 }
 
+//! ZaSatOccultation
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-02-10
+*/
+void ZaSatOccultation(
+        // WS Output:
+        Ppath&                  ppath_step,
+        // WS Generic Output:
+        Vector&                 za_out,
+        // WS Generic Output Names:
+        const String&           za_out_name,
+        // WS Input:
+        const Agenda&           ppath_step_agenda,
+        const Index&            atmosphere_dim,
+        const Vector&           p_grid,
+        const Vector&           lat_grid,
+        const Vector&           lon_grid,
+        const Tensor3&          z_field,
+        const Tensor3&          t_field,
+        const Matrix&           r_geoid,
+        const Matrix&           z_ground,
+        // WS Control Parameters:
+        const Numeric&          z_recieve,
+        const Numeric&          z_send,
+        const Numeric&          t_sample,
+        const Numeric&          z_scan_low,
+        const Numeric&          z_scan_high )
+{
+  //Check that indata is valid
+  assert( atmosphere_dim ==1 );
+  if ( z_scan_low >= z_scan_high ) {
+    ostringstream os;
+    os << "The lowest scan altitude *z_scan_low*number is higher or equal\n"
+    << "to the highest scan altitude *z_scan_high*.";
+    throw runtime_error( os.str() );
+  }
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid,
+                                                                    lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid,
+                                                                    lon_grid );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
+
+  //Convert heights to radius
+  const Numeric     r_recieve = r_geoid(0,0) + z_recieve;
+  const Numeric     r_send = r_geoid(0,0) + z_send;
+
+  //Extend upper and lower scan limits to include the limits
+  //and convert to radius
+  const Numeric     d = 3e3;
+  const Numeric     r_scan_max = z_scan_high + d + r_geoid(0,0);
+  const Numeric     r_scan_min = z_scan_low - d + r_geoid(0,0);
+
+  //Calculate max and min zenith angles to cover z_scan_min to z_scan_max
+  const Numeric     za_ref_max = geompath_za_at_r( r_scan_min, 100, r_recieve );
+  const Numeric     za_ref_min = geompath_za_at_r( r_scan_max, 100, r_recieve );
+
+  //Create vector with equally spaced zenith angles
+  const Numeric     za_step = 600.0;
+  Vector za_ref;
+  linspace( za_ref, za_ref_min, za_ref_max, 1/za_step );
+
+  //Calculate ppaths for all angles in za_ref
+  Vector lat_ref( za_ref.nelem() );
+  Vector z_ref( za_ref.nelem() );
+  Index i;
+  for ( i=0; i<za_ref.nelem(); i++ ) {
+    Ppath ppath;
+    ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim,
+                p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid,
+                z_ground, 0, ArrayOfIndex(0), Vector(1,r_recieve),
+                Vector(1,za_ref[i]), 0 );
+    if ( ppath.tan_pos.nelem() != 0 ) {
+      //Calculate the latitude from the recieving sensor, concisting of
+      //the latitude of the atmospheric exist point and the geometric
+      //path from that point to the transmitting satellite
+      lat_ref[i] = geompath_lat_at_za( ppath.los(ppath.np-1,0),
+        ppath.pos(ppath.np-1,1), geompath_za_at_r(
+            ppath.pos(ppath.np-1,0)*sin(DEG2RAD*ppath.los(ppath.np-1,0)),
+            10, r_send ));
+      z_ref[i] = ppath.tan_pos[0] - r_geoid(0,0);
+    } else {
+      //If ppath_calc hits the ground, use linear extrapolation to find the
+      //last point
+      lat_ref[i] = 2*lat_ref[i-1] - lat_ref[i-2];
+      z_ref[i] = 2*z_ref[i-1] - z_ref[i-2];
+      break;
+    }
+  }
+
+  //Create vectors for ppaths that passed above ground
+  Vector za_ref_above = za_ref[Range(0,i)];
+  Vector z_ref_above = z_ref[Range(0,i)];
+  Vector lat_ref_above = lat_ref[Range(0,i)];
+
+  //Retrieve the interpolated latitudes that corresponds to z_scan_high
+  //and z_scan_low
+  GridPos gp_high, gp_low;
+  gridpos( gp_high, z_ref_above, z_scan_high );
+  gridpos( gp_low, z_ref_above, z_scan_low );
+
+  Vector itw_high(2), itw_low(2);
+  interpweights( itw_high, gp_high );
+  interpweights( itw_low, gp_low );
+
+  Numeric lat_min = interp( itw_high, lat_ref_above, gp_high );
+  Numeric lat_max = interp( itw_low, lat_ref_above, gp_low );
+
+  //Create latitude vector with steps corresponding to t_sample
+  //First calculate the lat_sample corresponding to t_sample
+  //NB: satellite velocities defined as opposite
+  Numeric w_send, w_recieve, lat_dot, lat_sample;
+  w_send = sqrt(EARTH_GRAV_CONST/r_send) / r_send;
+  w_recieve = sqrt(EARTH_GRAV_CONST/r_recieve) / r_recieve;
+  lat_dot = (w_send + w_recieve) * RAD2DEG;
+  lat_sample = t_sample * lat_dot;
+
+  Vector lat_out;
+  linspace( lat_out, lat_min, lat_max, lat_sample );
+
+  //Interpolate values in za_out corresponding to latitudes in lat_out
+  ArrayOfGridPos gp(lat_out.nelem());
+  gridpos( gp, lat_ref_above, lat_out );
+  Matrix itw(lat_out.nelem(), 2);
+  interpweights( itw, gp );
+  za_out.resize( lat_out.nelem() );
+  interp( za_out, itw, za_ref_above, gp );
+
+}
 

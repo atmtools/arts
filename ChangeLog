@@ -1,3 +1,12 @@
+2003-02-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-453
+
+	* src/m_ppath.cc (ZaSatOccultation): Created WSM for calculating
+    zenith angles during satellite occultations.
+
+	* src/ppath.h (geompath_lat_at_za): Added method to header file.
+
 2003-02-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-452

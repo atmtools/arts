@@ -83,9 +83,14 @@ struct Ppath {
 double geometrical_ppc( const double& r, const double& za );
 
 double geompath_za_at_r(
-       const double&   ppc,
-       const double&   a_za,
-       const double&   r );
+        const double&   ppc,
+        const double&   a_za,
+        const double&   r );
+
+double geompath_lat_at_za(
+        const double&   za0,
+        const double&   lat0,
+        const double&   za );
 
 bool is_los_downwards( 
         const double&   za,
