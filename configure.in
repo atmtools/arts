@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.233)
+AM_INIT_AUTOMAKE(arts,0.0.234)
 
 
 #
@@ -206,6 +206,21 @@ AC_MSG_RESULT([$ac_maintainer_mode])
 
 
 #
+# Enable/disable debugging
+#
+AC_MSG_CHECKING(whether debugging should be activated)
+AC_ARG_ENABLE(debug,
+[  --enable-debug   Activate debugging mode (default=yes)],
+[case "${enableval}" in
+  yes) ac_debug=yes ;;
+   no) ac_debug=no ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
+esac],[ ac_debug=yes ])
+AM_CONDITIONAL(DEBUGGING, test x$ac_debug = xyes)
+AC_MSG_RESULT([$ac_debug])
+
+
+#
 # Toggle documentation
 #
 AC_MSG_CHECKING(whether documentation should be generated)
@@ -250,12 +265,18 @@ fi
 if test $ac_maintainer_mode = yes; then
   # Turn on debugging
   CFLAGS=""
-  CXXFLAGS="-g -ftemplate-depth-20"
+  CXXFLAGS="-ftemplate-depth-20"
 else
   CFLAGS="$CFLAGS"
   CXXFLAGS="$CXXFLAGS -ftemplate-depth-20"
 fi
 	
+if test $ac_debug = yes; then
+  CFLAGS="$CFLAGS -g"
+else
+  CXXFLAGS="$CXXFLAGS -g"
+fi
+
 
 #
 # Create list of example control files depending on arts-data package
@@ -304,6 +325,7 @@ AC_MSG_RESULT([*******************************************************])
 AC_MSG_RESULT([              ARTS configuration summary])
 AC_MSG_RESULT()
 AC_MSG_RESULT([  Maintainer mode          : $ac_maintainer_mode])
+AC_MSG_RESULT([  Debugging                : $ac_debug])
 AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
 AC_MSG_RESULT([  Integer type             : $ac_integer_type])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
@@ -311,6 +333,9 @@ if test $ac_hdf_support = autodetect; then
   AC_MSG_RESULT([  HDF support              : $ac_hdf (autodetected)])
 else
   AC_MSG_RESULT([  HDF support              : $ac_hdf])
+fi
+if test $ac_hdf_support = no; then
+  AC_MSG_RESULT([  WARNING: Without HDF you cannot use Qpack!!!])
 fi
 AC_MSG_RESULT()
 AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
