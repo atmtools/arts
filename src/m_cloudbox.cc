@@ -262,7 +262,7 @@ void ParticleTypeAdd( //WS Output:
        
        // Put the gridded tensors for each particle type in *amp_mat_raw*.
        for(Index k=0; k<7; k++)
-         amp_mat_raw[6*i+k] = amp_mat_raw_i[k];
+         amp_mat_raw[7*i+k] = amp_mat_raw_i[k];
         
        
        //  Put the gridded tensors for each particle type in *amp_mat_raw*.

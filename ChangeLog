@@ -1,3 +1,14 @@
+2002-06-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-172
+		
+	* src/workspace.cc: Modified the documentation for *amp_mat_raw*
+	and *pnd_field_raw*. We decided that these variables are gridded 
+	fields.
+
+	* src/gridded_fields.cc: Included error messages, runtime errors 
+	instead of 'cout'.
+	
 2002-06-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-171
