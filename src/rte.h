@@ -61,7 +61,6 @@ void ground_reflection_with_emission(
 	const Agenda&         e_ground_agenda,
 	const Index&          blackbody_ground,
 	const Ppath&          ppath,
-	const Index&          ip,
         const Vector&         f_grid,
 	const Index&          stokes_dim );
 

@@ -41,6 +41,7 @@
   === External declarations
   ===========================================================================*/
 
+#include "agenda_class.h"
 #include "arts.h"
 #include "matpackI.h"
 #include "matpackIII.h"
@@ -131,5 +132,8 @@ void chk_cloudbox(
         const Index&          cloudbox_on, 
 	const ArrayOfIndex&   cloudbox_limits );
 
+void chk_not_empty( 
+	const String&      x_name,
+        const Agenda&      x );
 
 #endif  // checkinput_h

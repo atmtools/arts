@@ -618,3 +618,36 @@ void chk_cloudbox(
 	}
     }
 }
+
+
+
+/*===========================================================================
+  === Functions for Agendas
+  ===========================================================================*/
+
+//! chk_not_empty
+/*! 
+    Checks that an agenda is not empty.
+
+    The function gives an error message if the agenda is empty.
+
+    \param    x_name   The name of the agenda.
+    \param    x        A variable of type Agenda.
+
+    \author Patrick Eriksson 
+    \date   2002-08-20
+*/
+void chk_not_empty( 
+	const String&      x_name,
+        const Agenda&      x ) 
+{
+  if( x.nelem() == 0 )
+    {
+      ostringstream os;
+      os << "The agenda *" << x_name << "* is empty.\nIt is not allowed \n"
+	 << "that an agenda that is actually used to be empty.\n"
+	 << "Empty agendas are only created of methods setting dummy values \n"
+	 << "to variables.";
+      throw runtime_error( os.str() );
+    }
+}

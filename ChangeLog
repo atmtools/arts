@@ -1,3 +1,37 @@
+2002-08-21  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-211
+
+	* src/m_scatrte.cc: Added #include <stdio.h> to nmake sprintf known.
+
+	* src/m_physics.cc: Added this file and moved methods for conversion
+	to Tb to this file.
+
+	* src/check_input.cc (chk_not_empty): Added this function to give
+	an error if an agenda is empty (that should never be alowed, or?).
+	This function is now called in "my parts" before an agenda is used.
+
+	The inclusion of agendas in check_input has made that 
+	test_interpolation cannot now be linked. I started to add files to
+	the sources for test_interpolation, but I just needed to add more.
+
+	What to do? Can test interpolation be removed?
+
+	* src/rte.cc: Added header to the functions in the file. Note 
+	especially the function ground_reflection_with_emission that is
+	intended as a general function to call to consider ground reflections
+	with emission.
+
+	* src/m_rte.cc (RteEmissionStd): The function now uses *t_field*
+	to determine the temperature along the propagation path.
+
+	* src/m_rte.cc (RteCalc): The function has been slightly modified as
+	a preperation to include Hb. 
+
+	* doc/uguide/fm_definitions.tex: The existing text, beside part on
+	ground reflections, has been revised and adapted to changes in the
+	source code.
+
 2002-08-20  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-210

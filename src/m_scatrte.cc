@@ -36,6 +36,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <stdio.h>
 #include <stdlib.h>
 #include <cmath>
 #include "arts.h"
@@ -130,7 +131,9 @@ void convergence_flagAbs(//WS Output:
   cout << "Number of iterations:   "<< counter << endl;
   
   char buffer[5];
-  sprintf(buffer, "%d", int(counter));
+
+  throw runtime_error("I had to comment out line 133 in m_scatrte.cc to compile without errors. I had no C handbook at home and didn't know what library that is missing. My compiler complained about sprintf. PE 2002-08-20.");
+  //sprintf(buffer, "%d", int(counter));
 
   xml_write_to_file("i_field_" + string(buffer) + ".xml", i_field);
 
@@ -456,71 +459,6 @@ i_fieldIterate(
     //Convergence test.
     convergence_test_agenda.execute();
   }//end of while loop, convergence is reached.
-}
-
-
-//! Converts intensity in radiance units to brightness temperature unit
-/*! 
- This is used to convert intensity in radiance units to brightness temperature 
-units for a Tensor6. It uses the function invplanck from physics_funcs.cc.  
-The frequency grid is specific input since inside the cloudbox we have only
-one frequency and we need Tensor6 conversions probably only inside the cloudbox.  
- 
-\param y_out        Output : Tensor6 in Brightness temperatures
-\param scat_f_index Input  : frequency index
-\param f_grid       Input  : frequency grid
-\param y_in         Input  : intensity in radiance units
-*/
-void Tensor6ToTbByPlanck( // WS Generic Output:
-			 Tensor6&   y_out,
-			 // WS Generic Output Names:
-			 const String&   y_out_name,
-			 // WS Specific Input: 
-			 const Index& scat_f_index,
-			 const Vector&   f_grid,
-			 // WS Generic Input:
-			 const Tensor6&   y_in,
-			 // WS Generic Input Names:
-			 const String&   y_in_name)
-		
-{
-  // Some lengths
-  const Index nv    = y_in.nvitrines();
-  const Index ns    = y_in.nshelves();
-  const Index nb    = y_in.nbooks();
-  const Index np    = y_in.npages();
-  const Index nr    = y_in.nrows();
-  const Index nc    = y_in.ncols();
-  
-  Numeric f = f_grid[scat_f_index];
-   
-  // Note that y_in and y_out can be the same matrix
-  if ( &y_out != &y_in )
-    { 
-      y_out.resize(nv, ns, nb, np, nr, nc);
-    }
-  
-   
-  for( Index iv = 0; iv < nv; ++ iv )
-    {
-      for( Index is = 0; is < ns; ++ is )
-	{
-	  for( Index ib = 0; ib < nb; ++ ib )
-	    {
-	      for( Index ip = 0; ip < np; ++ ip )
-		{
-		  for( Index ir = 0; ir < nr; ++ ir )
-		    {
-		      for( Index ic = 0; ic < nc; ++ ic)
-			{
-			  y_out(iv, is, ib, ip, ir, ic) = 
-			   invplanck( y_in (iv, is, ib, ip, ir, ic ), f);  
-			}
-		    }
-		}
-	    }
-	}
-    }
 }
 
 

@@ -253,4 +253,16 @@ void interp( Tensor6View       	   ia,
 	     const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
 
+void interp_atmfield( 
+              Vector&         	e, 
+        const Index&          	atmosphere_dim,
+        const Vector&         	p_grid,
+        const Vector&         	lat_grid,
+        const Vector&         	lon_grid,
+	const Tensor3&          x_field,
+ 	const String&           x_field_name,
+        const ArrayOfGridPos&   gp_p,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon );
+
 #endif // interpolation_h

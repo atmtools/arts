@@ -117,8 +117,8 @@ the workspace variable \wsvindex{atmosphere\_dim} to a value between 1
 and 3. Variables for which the size depends on the atmospheric
 dimensionality are checked, when used, to have a size consistent with
 \artsstyle{atmosphere\_dim}. The atmospheric dimensionality is most
-easily set by the functions \wsmindex{SetAtmosphere1D},
-\wsmindex{SetAtmosphere2D} and \wsmindex{SetAtmosphere3D}.
+easily set by the functions \wsmindex{AtmosphereSet1D},
+\wsmindex{AtmosphereSet2D} and \wsmindex{AtmosphereSet3D}.
 
 \begin{description}
   
@@ -228,21 +228,22 @@ easily set by the functions \wsmindex{SetAtmosphere1D},
   in ARTS is that atmospheric quantities (temperature, geometric
   altitude, species VMR etc.) vary linearly with the logarithm of the
   pressure. This corresponds roughly to assuming a linear variation
-  with altitude. To obtain a more intuitive unit for the logarithm of
-  the pressure, the quantity pressure altitude, \PrsAlt, is
-  introduced, and it is defined as
-  \begin{equation}
-   \PrsAlt = \aPrsAlt{s}\left( \log_{10}(\aPrs{0}) - \log_{10}(\Prs) \right)
-   \label{eq:fm_defs:prsalt}
-  \end{equation}
-  where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
-  \fileindex{arts.h}), but suitably selected in such a way that the pressure
-  altitude corresponds roughly to the geometrical altitude.  This
-  correspondence is achieved if the two parameters are treated as a
-  fixed scale height (for decreases of the pressure by a factor of
-  10) and the surface pressure, respectively. Values around
-  $\aPrsAlt{s}=15.5$~km and $\aPrs{0}=1013$~hPa are suitable for
-  simulations dealing with the Earth's atmosphere.
+  with altitude. 
+%  To obtain a more intuitive unit for the logarithm of
+%  the pressure, the quantity pressure altitude, \PrsAlt, is
+%  introduced, and it is defined as
+%  \begin{equation}
+%   \PrsAlt = \aPrsAlt{s}\left( \log_{10}(\aPrs{0}) - \log_{10}(\Prs) \right)
+%   \label{eq:fm_defs:prsalt}
+%  \end{equation}
+%  where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
+%  \fileindex{arts.h}), but suitably selected in such a way that the pressure
+%  altitude corresponds roughly to the geometrical altitude.  This
+%  correspondence is achieved if the two parameters are treated as a
+%  fixed scale height (for decreases of the pressure by a factor of
+%  10) and the surface pressure, respectively. Values around
+%  $\aPrsAlt{s}=15.5$~km and $\aPrs{0}=1013$~hPa are suitable for
+%  simulations dealing with the Earth's atmosphere.
   
 \item[Radius\index{radius}] Geometrical altitudes are
   needed to determine the propagation path through the atmosphere etc.
@@ -379,18 +380,15 @@ simplified manner and accurate results cannot be expected, except when
 some conditions are fulfilled (see
 Section~\ref{sec:fm_defs:groundrefl}).
 
-The temperature of the ground\index{ground temperature} (\aTmp{g}) is
-described by the matrix \wsvindex{t\_ground} that has the same size as
-\artsstyle{r\_geoid} and \artsstyle{z\_ground}. The \textindex{ground
-  emission} is described by the variable \wsvindex{e\_ground}, holding
-the ground emission factor $(e_g)$ of the ground, as a function of
-frequency for each latitude/longitude position. This workspace
-variable is a tensor of order 3, $e_g = e_g(\Frq,\Lat,\Lon)$. The
-emission from the ground is $e_g(\Frq)\Planck(\Frq,\aTmp{g})$, where
-\Planck\ is the Planck blackbody function. That is, the emissivity is
-a value between 0 and 1, where 0 means that the ground has no
-emissivity, and for $e_g=1$ the ground acts as a blackbody for that
-particular frequency.
+The workspace variables for the effective emission temperature of the
+ground \index{ground temperature} (\aTmp{g}) and the emissivity of the
+ground \textindex{ground emissivity} ($e_g$) are \wsvindex{t\_ground}
+and \wsvindex{e\_ground}, respectively. These variables are both set
+by a specific agenda (\wsvindex{t\_ground\_agenda} and
+\wsvindex{e\_ground\_agenda}). For information about these agendas,
+see Section~[**] and the on-line documentation (e.g. \artsstyle{arts -d
+  e\_ground\_agenda}). The modelling of the ground emission and reflectivity
+is discussed in Section~\ref{sec:fm_defs:groundrefl}.
 
 \begin{description}
 \item[Blackbody ground\index{blackbody ground}] The ground can be
@@ -398,16 +396,11 @@ particular frequency.
   box and determination of propagation paths
   (Section~\ref{sec:fm_defs:cloudbox} and \ref{sec:fm_defs:ppaths},
   respectively). This feature is selected by the variable
-  \wsvindex{blackbody\_ground}. For consistency reasons,
-  \artsstyle{e\_ground} is demanded to only contain ones when
-  \artsstyle{blackbody\_ground} is set to 1, but the size $[1,1,1]$ is
-  then allowed also for 2D and 3D to save memory. The ground is only
-  treated to be a blackbody when \artsstyle{blackbody\_ground} is set
-  to 1. If \artsstyle{e\_ground} only contains 1, but
-  \artsstyle{blackbody\_ground} is set to 0, the calculations will be
-  performed such as the radiation is reflected by the ground. A
-  blackbody ground is most easily selected by the function
-  \wsmindex{SetBlackbodyGround}.
+  \wsvindex{blackbody\_ground}. When this variable is set to 1, the
+  content of \artsstyle{e\_ground\_agenda} is neglected, it is assumed
+  that the agenda returns the value 1 for all positions and line-of-sights.
+  A blackbody ground is most easily selected by the function
+  \wsmindex{GroundSetToBlackbody}.
 \end{description}
 
 
@@ -448,8 +441,10 @@ latitude and longitude limits for the cloud box cannot be placed at
 the end points of the corresponding grid as it must be possible to
 calculate the incoming intensity field. The cloud box is activated by
 setting the variable \wsvindex{cloudbox\_on} to 1. The limits of the
-cloud box are stored in \wsvindex{cloudbox\_limits}. These are the only
-variables that must be set if the cloud box is not activated.
+cloud box are stored in \wsvindex{cloudbox\_limits}. It is recommnded
+to use the method \wsmindex{CloudboxOff} when no scattering
+calculations shall be performed. This method assigns dummy values to
+all workspace variables not needed when scattering is neglected.
 
 There exists in fact a small risk for 2D or 3D, and with a reflecting
 ground, that a propagation path into the cloud box has earlier crossed
@@ -497,20 +492,19 @@ gives further insights in how the sensor is treated in ARTS.
 \label{sec:fm_defs:sensorpos}
 
 The observation positions of the sensor are stored in
-\wsvindex{sensor\_pos}. This is a matrix where each row corresponds to a
-sensor position. The number of columns in the matrix equals the
+\wsvindex{sensor\_pos}. This is a matrix where each row corresponds to
+a sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
 matrix (from first to last) are radius, latitude and longitude.
 Accordingly, row $i$ of \artsstyle{sensor\_pos} for a 3D case is
 $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
-\artsstyle{sensor\_los}) must be valid with respect to the model atmosphere
-(see Section~\ref{sec:fm_defs:ppaths}). An obviously incorrect choice
-is to place the senor below the ground altitude. If the sensor is
-placed inside the model atmosphere, any sensor line-of-sight is
-allowed, this including the cases that the sensor is placed on the
-ground looking down, and that the sensor is placed on the boundary of
-the cloud box and looks into the box. The sensor can also be placed
+\artsstyle{sensor\_los}) must be valid with respect to the model
+atmosphere (see Section~\ref{sec:fm_defs:ppaths}). An obviously
+incorrect choice is to place the senor below the ground altitude. If
+the sensor is placed inside the model atmosphere, any sensor
+line-of-sight is allowed, this including the cases that the sensor is
+placed on the ground looking down, and that the sensor is placed
 inside the cloud box.
 
 The fact that the sensor position can be given any value implies that
@@ -518,7 +512,7 @@ the radius must be used in \artsstyle{sensor\_pos}, in contrast to
 \artsstyle{z\_ground} and \artsstyle{z\_field} where the altitude
 above the geoid is applied. This is the case as, for 2D and 3D, the
 sensor can be placed outside the covered latitude and longitude
-ranges, thus outside the defined geoid and the geometrical altitude is
+ranges, thus outside the defined geoid, and the geometrical altitude is
 undefined. 
 
 The sensor is treated to be motionless when calculating the spectrum,
@@ -614,6 +608,10 @@ matrix cannot be used? Claudia promised to look into the problem further. *]
 \levelc{Sensor characteristics and data reduction}
 %===================
 \label{sec:fm_defs:sensorchar}
+
+[* The transfer matrix \aSnsMtr{b} is not yet implemented, but the other
+variables described in this section exist. This means that ARTS so far
+is only capable of performing monochromatic pencil beam calculations. *]
 
 The term ``sensor characteristics''\index{sensor characteristics} 
 is used here as a
@@ -804,63 +802,9 @@ Section~\ref{sec:fm_defs:sensor2}.
 %==============================================================================
 \label{sec:fm_defs:rte}
 
-%\newcommand{\Int}{{\bf I}}
-%\newcommand{\Ext}{{\bf K}}
-%\newcommand{\Abs}{{\bf a}}
-%\newcommand{\Sca}{{\bf Y}}
-%\newcommand{\Dir}{{\bf n}}
-%\newcommand{\Path}{{\bf s}}
-%\newcommand{\Planck}{{\bf B}}
-%\newcommand{\Freq}{\nu}
-%\newcommand{\Dep}{(\Dir,\Freq)}
-
-
-% STEFAN, you should have a look at the file symbol_defs. The quantities for
-% which you have defined commands should be of general interest and they should
-% then be included in that file. For example, there are already macros for
-% frequency (\Frq and \aFrq{i}).
-%
-% I see that you use a capital I for the intensity Stokes vector. I have so
-% far (and I don't think there are any exceptions AUG) used lower case letters
-% for vectors and upper case for matrices. I would be happy if we could stick
-% to this rule, which I think is a standard way to keep matrices and vectors
-% separated. Note the macro \MpiVct in symbol_defs.
-%
-% I just put in a macro for Planck, but then the scalar version. The Planck
-% function here is really not a scalar? If not, maybe you can introduce the
-% macro \VctPlanck? But what symbol should be used? Lower case b is already
-% occupied.
-%
-% I also think that you should put ''your'' symbols in the table found at the
-% start of the section as it is valid for the whole chapter. 
-%
-% Patrick
-
-{\bf THIS IS JUST A FIRST TRY. THIS PART WILL BE MODIFIED.}
-
-
-%\levelc{Radiative transfer equation and important quantities}
-%
-%The radiative transfer equation in the absence of cloud particles is
-%\citep{mishchenko00:_light_scatt_nonsp_partic}: 
-%
-%\begin{equation}
-%  \label{eq:rte_4stokes_no_scat}
-%  \frac{d\Int\Dep}{d\Path} = - \Ext\Dep \Int\Dep + \Abs\Dep\Planck(T)
-%\end{equation}
-%where the meaning of the quantities in this equation is as follows:
-%
-%The specific intensity vector $\Int$
-%
-%
-%
-% where $I$ is the monochromatic pencil beam intensity, $l$ distance
-% along the line of sight (LOS), $l_1$ the point of the considered part
-% of the LOS furthest away from the sensor, $l_2$ the closest point of
-% the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
-% along the LOS and $\sigma$ the source function.
-%
-% [* Please consider also transmission measurements. *]
+The theory of radiative transfer is dealt with in Section~[* a section
+in part IV to be written *]. This section describes how the radiative
+transfer equations are solved practically in ARTS.
 
 
 \levelc{Calculation procedure}
@@ -869,8 +813,8 @@ Section~\ref{sec:fm_defs:sensor2}.
 
 The overall structure of the part solving the radiative transfer
 equation is fixed. The corresponding workspace method is
-\wsmindex{rteCalc}. The calculation procedure of \artsstyle{rteCalc} is
-outlined in Algorithm~\ref{alg:fm_defs:rteCalc}. For further details
+\wsmindex{RteCalc}. The calculation procedure of \artsstyle{RteCalc} is
+outlined in Algorithm~\ref{alg:fm_defs:RteCalc}. For further details
 of each calculation step, see the indicated equation or section.
 
 Two types of spectra can be produced, emission and transmission
@@ -879,12 +823,8 @@ and the ground is neglected. This can be done if the measurements are
 performed against a sufficient strong source, such as the sun. The
 background source is not included in the simulations, the output is
 instead the transmission through the atmosphere (in form of the
-optical thickness, see below). The type of spectra is selected by the
-workspace variable \wsvindex{emission\_on}. In some cases it is of interest
-to have both the emission and the transmission spectra at hand
-simultaneously. This is achieved by [* How? Can we have optional
-output parameters? *]. Weighting functions are only calculated for the
-option selected by \artsstyle{emission\_on}.
+optical thickness, see below). The type of spectra is governed by the
+method selected for \wsmindex{rte\_agenda}.
 
 The primary unit for emission spectra, the unit of \aMpiVct{b} in
 Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
@@ -895,46 +835,52 @@ transmission is provided as the optical thickness (Equation~[**]).
 The optical thickness includes the absorption of the ground if there
 is a ground reflection along the propagation path.
 
-The function \artsstyle{rteCalc}, beside providing atmospheric spectra,
-performs also the calculation of weighting functions for atmospheric
-variables where analytical expressions are used. The core of these
-calculations follows Algorithm~\ref{alg:fm_defs:rteCalc}, but is not
-considered here for simplicity. Weighting functions are treated in
-Section~\ref{sec:fm_defs:wfs}.
-
 \begin{algorithm}[!t]
  \begin{algorithmic}
-  \IF[{Section \ref{sec:fm_defs:scattering}}]{cloud box is turned on}
-   \STATE{determine the intensity field inside the cloud box}
-  \ENDIF
   \STATE{allocate memory for the measurement vector, \MsrVct}
-  \COMMENT{Equation \ref{eq:formalism:fm}}
+  \COMMENT{see Equation \ref{eq:formalism:fm}}
+  \STATE{allocate memory for the vector \aMpiVct{b}}
+  \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
   \FORALL{sensor positions}
-   \STATE{allocate memory for the vector \aMpiVct{b}}
-   \COMMENT{Equation \ref{eq:fm_defs:freqs_of_ib}}
    \FORALL[Section \ref{sec:fm_defs:seqsandblocks}]
                                     {pencil beam directions of the block}
-    \STATE{determine the propagation path}
+    \STATE{determine the propagation path by \artsstyle{ppathCalc}}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
-    \STATE{initialize the vector \MpiVct\ with the radiative background}
-    \COMMENT{Section \ref{sec:fm_defs:ppaths}}
-    \FORALL{steps along propagation path}
-     \STATE{update \MpiVct\ following Equation [**]}
-     \IF{at a point of ground reflection}
-      \STATE{update \MpiVct\ following Equation [**]}
-     \ENDIF
-    \ENDFOR
-    \STATE{copy \MpiVct\ to correct part of \aMpiVct{b}}
+    \STATE{call \artsstyle{rte\_agenda}}
+    \COMMENT{Algorithm \ref{alg:fm_defs:rte_agenda}}
+    \STATE{copy \artsstyle{i\_rte} to correct part of \aMpiVct{b}}
    \ENDFOR
    \STATE{put the product \aSnsMtr{b}\aMpiVct{b} in correct part of \MsrVct}
   \ENDFOR
  \end{algorithmic}
- \caption{Outline of the clear sky radiative transfer calculations. Only
-   calculation of emission spectra is treated here.
-   Optical thicknesses and weighting functions are
-   determined in parallel, if selected, following the same scheme.}
- \label{alg:fm_defs:rteCalc}
+ \caption{Outline of the overall clear sky radiative transfer calculations,
+   performed by \artsstyle{RteCalc}.}
+ \label{alg:fm_defs:RteCalc}
 \end{algorithm}
+
+\begin{algorithm}[!b]
+ \begin{algorithmic}
+   \STATE{allocate memory for the matrix \artsstyle{i\_rte}}
+   \STATE{initialise \artsstyle{i\_rte} following the radiative background}
+   \STATE{determine the temperature along the propagation path}
+   \STATE{set $a_1$ to the absorption at point \artsstyle{np}-1}
+   \FORALL{steps along propagation path}
+     \IF{start point of step is point of ground reflection}
+       \STATE{consider ground reflection, e.g. Equation [**]}
+     \ENDIF
+     \STATE{set $a_2$ to the absorption at end point of path step}
+     \STATE{consider transmission and emission along the step, e.g. Equation [**]}
+     \STATE{$a_1=a_2$}
+   \ENDFOR
+ \end{algorithmic}
+ \caption{Typical structure of a workspace method, considering emission, to 
+   be part of \artsstyle{rte\_agenda}. A method where emission is
+   neglected does not need to determine the temperature and uses
+   expressions such as Equations~[**] and [**] instead of
+   Equations~[**] and [**]. }
+ \label{alg:fm_defs:rte_agenda}
+\end{algorithm}
+
 
 
 \levelc{Propagation paths}
@@ -946,14 +892,15 @@ position from a specified line-of-sight is denoted as the
 \textindex{propagation path}. Propagation paths are described by a set
 of points on the path, and the distance along the path between the
 points. These quantities, and a number of auxiliary variables, are
-stored together in a structure described in Section~[**]. The path
-points are primarily placed at the crossings of the path with the
-atmospheric grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
+stored together in a structure described in
+Section~\ref{sec:ppath:Ppath}. The path points are primarily placed at
+the crossings of the path with the atmospheric grids
+(\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
 \artsstyle{lon\_grid}). A path point is also placed at the sensor if
 it is placed inside the atmosphere.  Ground reflections and tangent
 points are also included if such exist.  There exists also the
 possibility to set an upper limit for the distance along the path
-between the points by [*??*].
+between the points.
 
 The propagation paths are determined basically by starting at the
 sensor and following the path backwards by some \textindex{ray tracing}
@@ -993,14 +940,15 @@ paths are shown in Figure~\ref{fig:fm_defs:ppath_cases1}.
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
 radiative background. The radiative background at the top of the
-atmosphere is given by the workspace variable \wsvindex{i\_space}. This
+atmosphere is given by \wsvindex{i\_space\_agenda}, which sets the
+workspace variable \wsvindex{i\_space}. This
 variable should normally be set to cosmic background radiation, if
 not the sensor is directed towards the sun. Remaining possible
 radiative backgrounds are blackbody radiation from the ground or the
 outgoing intensity field at the boundary of a cloud box. If a
 propagation path is totally outside the model atmosphere, the
 observed monochromatic pencil beam intensity (\MpiVct\ in
-Algorithm~\ref{alg:fm_defs:rteCalc}) equals \artsstyle{i\_space}.
+Algorithm~\ref{alg:fm_defs:RteCalc}) equals \artsstyle{i\_space}.
 
 Not all propagation paths are allowed for 2D and 3D. The paths can
 only enter and leave the model atmosphere at the top of the atmosphere
@@ -1012,11 +960,11 @@ propagation paths must be inside the end points of the latitude and
 longitude grids, but can be above the top of the atmosphere. Hence, it
 is allowed that the propagation path is totally outside the
 atmosphere, as long as the viewing direction is downward and the
-lowest point of the path, then tangent point, is inside the latitude
+lowest point of the path, the tangent point, is inside the latitude
 and longitude limits of the model atmosphere.
 
 Propagation paths are determined by the function \wsmindex{ppathCalc}.
-This function is normally only called from \artsstyle{rteCalc}, but it
+This function is normally only called from \artsstyle{RteCalc}, but it
 can be called separately if needed. The calculation of the path from
 one crossing of the grids to next crossing is defined by
 \wsvindex{ppath\_step\_agenda}. Depending on which function that is
@@ -1141,5 +1089,5 @@ do. *]
 %%% End: 
 % LocalWords:  RTE Eriksson pz mpi SetAtmosphere mkfigs atm VMR WGS WGS pos los
 % LocalWords:  SetBlackbodyGround cloudbox mblock mblock binning Hotelling lat
-% LocalWords:  mishchenko rteCalc rteCalc lon ppath ppathCalc vmr za aa Hb defs
+% LocalWords:  mishchenko RteCalc rteCalc lon ppath ppathCalc vmr za aa Hb defs
 % LocalWords:  AUG scatt nonsp partic sr WFs

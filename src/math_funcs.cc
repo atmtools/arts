@@ -118,7 +118,7 @@ Index last( const ArrayOfIndex& x )
 
     Size of result is adjusted within this function!
 
-    \param   x Output:       linearly spaced vector
+    \param    x       Output: linearly spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
     \param    step    distance between values in x
@@ -151,7 +151,7 @@ void linspace(
 
     The length must be > 1.
 
-    \param   x Output:       linearly spaced vector
+    \param    x       Output: linearly spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
     \param    n       length of x
@@ -183,7 +183,7 @@ void nlinspace(
 
     The length must be > 1.
 
-    \param   x Output:       logarithmically spaced vector
+    \param    x       Output: logarithmically spaced vector
     \param    start   first value in x
     \param    stop    last value of x <= stop
     \param    n       length of x

@@ -2614,3 +2614,86 @@ void interp( Tensor6View       	   ia,
 	}
     }
 }
+
+
+
+/*===========================================================================
+  === Interpolation functions for special purposes
+  ===========================================================================*/
+
+//! interp_atmfield
+/*!
+    Interpolates an atmospheric field starting with grid positions.
+
+    The function performs the interpolation for a number of positions. The
+    return variable (x) is accordingly a vector. The vector must be set to
+    have the same length as the grid position arrays before calling the
+    function. 
+
+    The input atmospheric field is checked to be consistent with the 
+    *atmosphere_dim*, *p_grid*, *lat_grid* and *lon_grid*. The length of
+    the grid position arrays are asserted to be the identical, or for 
+    dimensions not used, that the length is zero.
+
+    \param   x                  Output: Values obtained by the interpolation.
+    \param   atmosphere_dim     As the WSV with the same name.
+    \param   p_grid             As the WSV with the same name.
+    \param   lat_grid           As the WSV with the same name.
+    \param   lon_grid           As the WSV with the same name.
+    \param   x_field            The atmsopheric field to be interpolated.
+    \param   x_field_name       The name of the field as a string, e.g. 
+                                "t_field".
+    \param   gp_p               Pressure grid positions.
+    \param   gp_lat             Latitude grid positions.
+    \param   gp_lon             Longitude grid positions.
+
+    \author Patrick Eriksson 
+    \date   2002-08-20
+*/
+void interp_atmfield( 
+              Vector&         	x, 
+        const Index&          	atmosphere_dim,
+        const Vector&         	p_grid,
+        const Vector&         	lat_grid,
+        const Vector&         	lon_grid,
+	const Tensor3&          x_field,
+ 	const String&           x_field_name,
+        const ArrayOfGridPos&   gp_p,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon )
+{
+  chk_atm_field( x_field_name, x_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+
+  const Index n = gp_p.nelem();
+
+  assert( x.nelem() == n );
+  assert( atmosphere_dim >= 1  &&  atmosphere_dim <= 3 );
+
+  if( atmosphere_dim == 1 )
+    {
+      assert( gp_lat.nelem() == 0 );
+      assert( gp_lon.nelem() == 0 );
+      Matrix itw(n,2);
+      interpweights( itw, gp_p );
+      interp( x, itw, x_field(Range(joker),0,0), gp_p );
+    }
+
+  else if( atmosphere_dim == 2 )
+    {
+      assert( gp_lat.nelem() == n );
+      assert( gp_lon.nelem() == 0 );
+      Matrix itw(n,4);
+      interpweights( itw, gp_p, gp_lat );
+      interp( x, itw, x_field(Range(joker),Range(joker),0), gp_p, gp_lat );
+    }
+
+  else if( atmosphere_dim == 3 )
+    {
+      assert( gp_lat.nelem() == n );
+      assert( gp_lon.nelem() == n );
+      Matrix itw(n,8);
+      interpweights( itw, gp_p, gp_lat, gp_lon );
+      interp( x, itw, x_field, gp_p, gp_lat, gp_lon );
+    }
+}

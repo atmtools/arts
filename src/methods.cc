@@ -1550,10 +1550,6 @@ void define_md_data_raw()
          "points are included for crossings with the grids, tangent points\n"
 	 "and points of ground intersections.\n"
 	 "\n"
-	 "Functions to determine propagation path steps, as this function,\n"
-	 "are normally not called directly. They are instead normally part\n"
-	 "of *ppath_step_agenda* and then called from *ppathCalc*.\n"
-	 "\n"
 	 "As functions of this kind should very seldom be called directly,\n"
 	 "and that the functions can be called a high number of times, these\n"
 	 "functions do not perform any checks of the input that give\n" 
@@ -1662,7 +1658,8 @@ void define_md_data_raw()
         ),
 	OUTPUT( i_rte_, a_pos_, a_los_, i_space_, t_ground_, e_ground_ ),
 	INPUT( i_space_agenda_, t_ground_agenda_, e_ground_agenda_, 
-	       blackbody_ground_, ppath_, f_grid_, stokes_dim_ ),
+	       blackbody_ground_, ppath_, f_grid_, stokes_dim_, 
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
