@@ -466,9 +466,10 @@ i_fieldUpdate1D(// WS Output:
 	
 
 	  //Generate Planck function.
-	  Numeric T = t_field(p_index, 0, 0);
+	  Numeric T1 = t_field(p_index, 0, 0);
+          Numeric T2 = t_field(p_index + 1, 0, 0); 
 	  Numeric f = f_grid[scat_f_index];
-	  planck_function = planck(f, T);
+	  planck_function = 0.5*(planck(f, T1)+planck(f,T2);
 
 	  //Initialize ppath for 1D.
 	  ppath_init_structure(ppath_step, 1, 1);
