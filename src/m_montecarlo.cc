@@ -479,6 +479,9 @@ void ScatteringMonteCarlo (
   Vector I(stokes_dim);
   i_montecarlo_error.resize(stokes_dim);
   Rng rng;
+      Vector pathI(stokes_dim);
+      Vector boundarycontri(stokes_dim);
+      Vector pathinc(stokes_dim);
 
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
@@ -505,9 +508,9 @@ void ScatteringMonteCarlo (
       keepgoing=true;      //flag indicating whether to continue tracing a photon path
       scattering_order=0;              //scattering order
       Q=identity;       //identity matrix
-      Vector pathI(stokes_dim,0.0);
-      Vector boundarycontri(stokes_dim,0.0);
-      Vector pathinc(stokes_dim,0.0);
+      pathI=0.0;
+      boundarycontri=0.0;
+      pathinc=0.0;
       //while the reversed traced photon path remains in the cloud box
       //
       TArray=TArrayLOS;
@@ -611,7 +614,9 @@ void ScatteringMonteCarlo (
 	      rte_los=new_rte_los;
 	      cout <<"photon_number = "<<photon_number << 
 		", scattering_order = " <<scattering_order <<"\n";
-	      if (Q(0,0)<1e-6){ keepgoing=false;}
+	      //Q-value truncation. These seems to stop rounding errors in 
+	      //opticallythick cases
+	      if (Q(0,0)<1e-4){ keepgoing=false;}
 	    }
 	  //	  cout<<"pathI = "<<pathI<<"\n";
 	  
@@ -623,12 +628,12 @@ void ScatteringMonteCarlo (
 	}
     }
   I=Isum;
-  I/=maxiter;
-  I+=IboundaryLOScontri;
+  I/=(Numeric) maxiter;  //For some reason this cast seems to help?
   for(Index j=0; j<stokes_dim; j++)	
     {
       i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
     }
+  I+=IboundaryLOScontri;
   i_rte(0,joker)=I;
 }		
 
