@@ -1,3 +1,21 @@
+2003-01-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-364
+
+	* src/special_interp.h: Fixed typo.
+
+	* src/m_rte.cc (RteEmissionStd): Modified the code added by Claudia
+	to be a bit more efficient and to make use of some special 
+	interpolation functions. 
+
+	PLEASE NOTE: As it is the log of the pressure that is assumed vary
+	linearly with altitude, the ordinary interpolation functions can't
+	be used directly. The function *itw2p* is a special function 
+	for interpolating pressure, but this should be done in very few
+	places.
+
+	Untabified the file.
+
 2003-01-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-363

@@ -41,7 +41,7 @@ void ArrayOfGridPosPrint(
   === Interpolation functions for atmospheric grids, fields and surfaces
   ===========================================================================*/
 
-void interp_atm_field_gp2itw( 
+void interp_atmfield_gp2itw( 
               Matrix&           itw, 
         const Index&            atmosphere_dim,
         ConstVectorView         p_grid,

@@ -397,7 +397,7 @@ void ground_specular_los(
       // Is the solution correct? 
       // At least, it does not work for za = 180.
       if( 0 )
-	{
+        {
       // Interpolate to get radius for the ground at reflection point.
       const Numeric r_ground =
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
@@ -442,7 +442,7 @@ void ground_specular_los(
       // Calculate ground slope along the viewing direction (unit is m/deg).
       Numeric   aa = a_los[1] + 90;
       if( aa > 180 )
-	{ aa -= 360; }
+        { aa -= 360; }
       //
       slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
                                             r15, r35, r36, r16, lat, lon, aa );
@@ -452,7 +452,7 @@ void ground_specular_los(
 
       // Include ground tilt in azimuth angle
       los[1] -= tilt;
-	}
+        }
     }
 }
 

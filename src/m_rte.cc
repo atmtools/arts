@@ -323,60 +323,69 @@ void RteCalc(
    \date   2003-01-07
 */
 void RteEmissionStd(
-                    // WS Output:
-                    Matrix&         i_rte,
-                    Matrix&         abs_vec,
-                    Tensor3&        ext_mat,
-                    Numeric&        a_pressure,
-                    Numeric&        a_temperature,
-                    Vector&         a_vmr_list,
-                    Index&          f_index,
-                    Matrix&         abs_scalar_gas,
-                    // WS Input:
-                    const Ppath&    ppath,
-                    const Vector&   f_grid,
-                    const Index&    stokes_dim,
-                    const Index&    atmosphere_dim,
-                    const Vector&   p_grid,
-                    const Vector&   lat_grid,
-                    const Vector&   lon_grid,
-                    const Tensor3&  t_field,
-                    const Tensor4&  vmr_field,
-                    const Agenda&   scalar_gas_absorption_agenda,
-                    const Agenda&   opt_prop_gas_agenda      
-              )
-
+      // WS Output:
+             Matrix&    i_rte,
+             Matrix&    abs_vec,
+             Tensor3&   ext_mat,
+             Numeric&   a_pressure,
+             Numeric&   a_temperature,
+             Vector&    a_vmr_list,
+             Index&     f_index,
+             Matrix&    abs_scalar_gas,
+       // WS Input:
+       const Ppath&     ppath,
+       const Vector&    f_grid,
+       const Index&     stokes_dim,
+       const Index&     atmosphere_dim,
+       const Vector&    p_grid,
+       const Vector&    lat_grid,
+       const Vector&    lon_grid,
+       const Tensor3&   t_field,
+       const Tensor4&   vmr_field,
+       const Agenda&    scalar_gas_absorption_agenda,
+       const Agenda&    opt_prop_gas_agenda )
 {
   // Relevant checks are assumed to be done in RteCalc
 
   // Some sizes
-  const Index nf      = f_grid.nelem();
-  const Index np      = ppath.np;
+  const Index   nf = f_grid.nelem();
+  const Index   np = ppath.np;
   // Number of species:
-  const Index ns      = vmr_field.nbooks();
+  const Index   ns = vmr_field.nbooks();
+
 
   // If the number of propagation path points is 0 or 1, we are already ready,
   // the observed spectrum equals then the radiative background.
   if( np > 1 )
     {
+      // Determine the pressure at each propagation path point
+      Vector   p_ppath(np);
+      Matrix   itw_p(np,2);
+      //
+      interpweights( itw_p, ppath.gp_p );      
+      itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
+
       // Determine the atmospheric temperature at each propagation path point
       Vector t_ppath(np);
-      interp_atmfield_by_gp( t_ppath, atmosphere_dim, p_grid, lat_grid, 
-                             lon_grid, t_field, "t_field", ppath.gp_p, 
-                             ppath.gp_lat, ppath.gp_lon );
-      
+      //
+      interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
+                               lon_grid, t_field, "t_field", 
+                               ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_p );
+
       // Determine the vmrs at each propagation path point
-      Matrix vmr_ppath(ns,np);
+      Matrix   vmr_ppath(ns,np), itw_field;
+      //
+      interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+                            lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
 
       // We have to loop over all gaseous species to obtain the 
       // full vmr_field.
       for( Index is = 0; is < ns; is ++)
         {
-          interp_atmfield_by_gp( vmr_ppath(is, Range(joker)), atmosphere_dim,
-                                 p_grid, lat_grid, lon_grid, 
-                                 vmr_field(is, Range(joker), Range(joker), 
-                                           Range(joker)), "vmr_field",
-                                 ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+          interp_atmfield_by_itw( vmr_ppath(is, Range(joker)), atmosphere_dim,
+                    p_grid, lat_grid, lon_grid, 
+                    vmr_field(is, Range(joker), Range(joker),  Range(joker)), 
+              "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
       
       // Calculate absorption vector and extinction matrix for all points 
@@ -389,100 +398,91 @@ void RteEmissionStd(
 
       // Variables for extinction matrix and absorption vector at each 
       // propagation path point.
-      ArrayOfTensor3 ext_mat_ppath(np);
-      ArrayOfMatrix abs_vec_ppath(np);
+      ArrayOfTensor3   ext_mat_ppath(np);
+      ArrayOfMatrix    abs_vec_ppath(np);
     
-          for ( Index ip = 0; ip < np; ip ++)
-            { 
-              // The ppath structure includes the grid positions and the grids.
-              // This can be used to get the pressure at the actual ppath
-              // point.
-              // *a_pressure*, *a_temperature* and *a_vmr_list* are input 
-              // to *scalar_gas_absorption_agenda*.
-              a_pressure = p_grid[ppath.gp_p[ip].idx] + ppath.gp_p[ip].fd[0] *
-               (p_grid[ppath.gp_p[ip].idx+1] - p_grid[ppath.gp_p[ip].idx]);
- 
-              a_temperature = t_ppath[ip];
-              a_vmr_list = vmr_ppath(joker, ip);
-             
-              // If f_index < 0, scalar gas absorption is calculated for 
-              // all frequencies in f_grid.
-              f_index = -1;
-              scalar_gas_absorption_agenda.execute();
-              
-              // We don't know how many gas species we have before the first
-              // call of scalar_gas_absorption_agenda. So we have to resize
-              // scalar_gas_array after the first call:
-              if ( ip == 0 )
-                scalar_gas_array.resize(nf, np, abs_scalar_gas.ncols() );
-              scalar_gas_array(joker, ip, joker) =
-                abs_scalar_gas(joker, joker);
+      for ( Index ip = 0; ip < np; ip ++)
+        { 
+          a_pressure    = p_ppath[ip];
+          a_temperature = t_ppath[ip];
+          a_vmr_list    = vmr_ppath(joker,ip);
+          
+          // If f_index < 0, scalar gas absorption is calculated for 
+          // all frequencies in f_grid.
+          f_index = -1;
+          scalar_gas_absorption_agenda.execute();
+          
+          // We don't know how many gas species we have before the first
+          // call of scalar_gas_absorption_agenda. So we have to resize
+          // scalar_gas_array after the first call:
+          //
+          if ( ip == 0 )
+            { scalar_gas_array.resize( nf, np, abs_scalar_gas.ncols() ); }
+          //
+          scalar_gas_array(joker,ip,joker) = abs_scalar_gas(joker,joker);
             
 
-              // Calculate extinction matrix and absorption vector
-              // for all propagation path points.
-         
-              abs_vec_ppath[ip].resize(nf, stokes_dim);
-              ext_mat_ppath[ip].resize(nf, stokes_dim, stokes_dim);
+          // Calculate extinction matrix and absorption vector
+          // for all propagation path points.
           
-              opt_prop_gas_agenda.execute();
-
-              abs_vec_ppath[ip] = abs_vec;
-              ext_mat_ppath[ip] = ext_mat;
-
-            }
+          abs_vec_ppath[ip].resize(nf,stokes_dim);
+          ext_mat_ppath[ip].resize(nf,stokes_dim,stokes_dim);
+          
+          opt_prop_gas_agenda.execute();
+              
+          abs_vec_ppath[ip] = abs_vec;
+          ext_mat_ppath[ip] = ext_mat;
+          
+        }
 
       
-          // Loop the propagation path steps
-          //
-          // The number of path steps is np-1.
-          // The path points are stored in such way that index 0 corresponds to
-          // the point closest to the sensor.
-          //
+      // Loop the propagation path steps
+      //
+      // The number of path steps is np-1.
+      // The path points are stored in such way that index 0 corresponds to
+      // the point closest to the sensor.
+      //
           
-          // Define variables which hold averaged coefficients:
-          Matrix ext_mat_av(stokes_dim, stokes_dim,0.);
-          Vector abs_vec_av(stokes_dim,0.);
+      // Define variables which hold averaged coefficients:
+      Matrix   ext_mat_av(stokes_dim, stokes_dim,0.);
+      Vector   abs_vec_av(stokes_dim,0.);
               
-
-          for( Index ip=np-1; ip>0; ip-- )
+      for( Index ip=np-1; ip>0; ip-- )
+        {
+          for( Index iv=0; iv<nf; iv++ )
             {
-              for( Index iv=0; iv<nf; iv++ )
+              // Calculate averaged values for extinction matrix and 
+              // absorption vector.
+              for (Index i = 0; i < stokes_dim; i++)
                 {
-                  // Calculate averaged values for extinction matrix and 
-                  // absorption vector.
-                  for (Index i = 0; i < stokes_dim; i++)
+                  // Extinction matrix requires a second loop over 
+                  // stokes_dim:
+                  for (Index j = 0; j < stokes_dim; j++)
                     {
-                      // Extinction matrix requires a second loop over 
-                      // stokes_dim:
-                      for (Index j = 0; j < stokes_dim; j++)
-                        {
-                          ext_mat_av(i, j) = 0.5*( ext_mat_ppath[ip]
-                                                       (iv, i, j) +
-                                                      ext_mat_ppath[ip-1]
-                                                       (iv, i, j));
-                        }
-                 
-                      // Absorption vector
-                      abs_vec_av[i] = 0.5*( abs_vec_ppath[ip](iv,i) +
-                                            abs_vec_ppath[ip-1](iv,i) );
+                      ext_mat_av(i, j) = 0.5*( ext_mat_ppath[ip](iv, i, j) +
+                                                ext_mat_ppath[ip-1](iv, i, j));
                     }
-                  
-                  // Calculate an effective blackbody radiation for the step
-                  // The mean of the temperature at the end points is used.
-                  Numeric planck_value = 
-                    planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
-                  
-                  // Dummy vector for scattering integral. It has to be 
-                  // set to 0 for clear sky calculations.
-                  Vector sca_vec_dummy(stokes_dim, 0.);
-
-                  assert (!is_singular( ext_mat_av ));   
-
-                  // Perform the RTE step.
-                  rte_step( i_rte(iv, Range(joker)), ext_mat_av, abs_vec_av,
-                            sca_vec_dummy, ppath.l_step[ip-1], planck_value );
+                 
+                  // Absorption vector
+                  abs_vec_av[i] = 0.5*( abs_vec_ppath[ip](iv,i) +
+                                                   abs_vec_ppath[ip-1](iv,i) );
                 }
+                  
+              // Calculate an effective blackbody radiation for the step
+              // The mean of the temperature at the end points is used.
+              Numeric planck_value = 
+                           planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
+                  
+              // Dummy vector for scattering integral. It has to be 
+              // set to 0 for clear sky calculations.
+              Vector sca_vec_dummy(stokes_dim, 0.);
+
+              assert (!is_singular( ext_mat_av ));   
+
+              // Perform the RTE step.
+              rte_step( i_rte(iv, Range(joker)), ext_mat_av, abs_vec_av,
+                             sca_vec_dummy, ppath.l_step[ip-1], planck_value );
+            }
         }
     }
 }

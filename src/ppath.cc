@@ -501,8 +501,8 @@ void sph2cart(
 */
 void cart2sph(
              Numeric&   r,
-       	     Numeric&   lat,
-       	     Numeric&   lon,
+             Numeric&   lat,
+             Numeric&   lon,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z )
@@ -624,10 +624,10 @@ void poslos2cart(
 */
 void cart2poslos(
              Numeric&   r,
-       	     Numeric&   lat,
-       	     Numeric&   lon,
-       	     Numeric&   za,
-       	     Numeric&   aa,
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   za,
+             Numeric&   aa,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
@@ -661,14 +661,14 @@ void cart2poslos(
       aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
       if( isnan( aa ) )
-	{
-	  if( dlat >= 0 )
-	    { aa = 0; }
-	  else
-	    { aa = 180; }
-	}
+        {
+          if( dlat >= 0 )
+            { aa = 0; }
+          else
+            { aa = 180; }
+        }
       else if( dlon < 0 )
-	{ aa = -aa; }
+        { aa = -aa; }
     }
 
   // For lat = +- 90 the azimuth angle gives the longitude along which the
@@ -705,7 +705,7 @@ void cart2poslos(
 void resolve_lon(
               Numeric&   lon,
         const Numeric&   lon5,
-	const Numeric&   lon6 )
+        const Numeric&   lon6 )
 {
   assert( lon6 >= lon5 );
   assert( ( lon6 - lon5 ) < 360 );
@@ -716,9 +716,9 @@ void resolve_lon(
       const Numeric   diff0   = abs( meanlon - lon );
 
       if( abs( lon + 360 - meanlon ) < diff0 )
-	{ lon += 360; }
+        { lon += 360; }
       else if( abs( lon - 360 - meanlon ) < diff0 )
-	{ lon -= 360; }
+        { lon -= 360; }
     }
 }
 
@@ -735,17 +735,17 @@ void resolve_lon(
    The function considers only crossings in the forward direction, with
    a distance > 0. If no crossing is found, *r* is set to -1.
 
-   \param   r     	Out: Radius of observation position.
-   \param   lat   	Out: Latitude of observation position.
-   \param   lon   	Out: Longitude of observation position.
-   \param   l     	Out: Distance along path between (x,y,z) and the 
+   \param   r           Out: Radius of observation position.
+   \param   lat         Out: Latitude of observation position.
+   \param   lon         Out: Longitude of observation position.
+   \param   l           Out: Distance along path between (x,y,z) and the 
                              crossing point.
-   \param   x     	x-coordinate of observation position.
-   \param   y     	y-coordinate of observation position.
-   \param   z     	z-coordinate of observation position.
-   \param   dx    	x-part of LOS unit vector.
-   \param   dy    	y-part of LOS unit vector.
-   \param   dz    	z-part of LOS unit vector.
+   \param   x           x-coordinate of observation position.
+   \param   y           y-coordinate of observation position.
+   \param   z           z-coordinate of observation position.
+   \param   dx          x-part of LOS unit vector.
+   \param   dy          y-part of LOS unit vector.
+   \param   dz          z-part of LOS unit vector.
    \param   known_dim   Given spherical dimension, 1=r, 2=lat and 3=lon.
    \param   rlatlon     The value for the known dimension.
 
@@ -754,9 +754,9 @@ void resolve_lon(
 */
 void gridcell_crossing_3d(
              Numeric&   r,
-       	     Numeric&   lat,
-       	     Numeric&   lon,
-       	     Numeric&   l,
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   l,
        const Numeric&   x,
        const Numeric&   y,
        const Numeric&   z,
@@ -786,7 +786,7 @@ void gridcell_crossing_3d(
       const Numeric   l2 = -p - sqrt( pp - q );
       
       if( l1 < 0  &&  l2 > 0 )
-	{ l = l2; }
+        { l = l2; }
       else if( l1 > 0  &&  l2 < 0 )
         { l = l1; }
       else if( l1 < l2 )
@@ -795,49 +795,49 @@ void gridcell_crossing_3d(
         { l = l2; }
 
       if( l > 0 )
-	{
-	  r   = rlatlon;
-	  lat = RAD2DEG * asin( ( y+dy*l ) / r );
-	  lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
-	}
+        {
+          r   = rlatlon;
+          lat = RAD2DEG * asin( ( y+dy*l ) / r );
+          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
+        }
     }
 
   else if( known_dim == 2 )
     {
       // The case lat=0 must be handled seperately
       if( abs( rlatlon ) < 1e-9 )
-	{
-	  l = -y / dy;
-	} 
+        {
+          l = -y / dy;
+        } 
       else
-	{
-      	  const Numeric   latrad = DEG2RAD * rlatlon;
-      	        Numeric   t2     = tan( latrad );
-      	                  t2     = t2 * t2;
-      	  const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
-      	  const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
-      	  const Numeric   pp     = p * p;
-      	  const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
+        {
+          const Numeric   latrad = DEG2RAD * rlatlon;
+                Numeric   t2     = tan( latrad );
+                          t2     = t2 * t2;
+          const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
+          const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
+          const Numeric   pp     = p * p;
+          const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
 
-      	  const Numeric   l1 = -p + sqrt( pp - q );
-      	  const Numeric   l2 = -p - sqrt( pp - q );
+          const Numeric   l1 = -p + sqrt( pp - q );
+          const Numeric   l2 = -p - sqrt( pp - q );
 
-      	  if( l1 < 0  &&  l2 > 0 )
-      	    { l = l2; }
-      	  else if( l1 > 0  &&  l2 < 0 )
-      	    { l = l1; }
-      	  else if( l1 < l2 )
-      	    { l = l1; }
-      	  else
-      	    { l = l2; }
-	}
+          if( l1 < 0  &&  l2 > 0 )
+            { l = l2; }
+          else if( l1 > 0  &&  l2 < 0 )
+            { l = l1; }
+          else if( l1 < l2 )
+            { l = l1; }
+          else
+            { l = l2; }
+        }
 
       if( l > 0 )
-	{
-	  lat = rlatlon;
-	  r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
-	  lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
-	}
+        {
+          lat = rlatlon;
+          r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
+          lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
+        }
     }
 
   else
@@ -849,11 +849,11 @@ void gridcell_crossing_3d(
       l = ( z - tanlon*x ) / ( tanlon*dx - dz );
 
       if( l > 0 )
-	{
-	  lon = rlatlon;
-	  lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) );
-	  r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
-	}
+        {
+          lon = rlatlon;
+          lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) );
+          r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
+        }
     }
 }
 
@@ -880,9 +880,9 @@ void gridcell_crossing_3d(
 */
 void geompath_tanpos_3d( 
              Numeric&   r_tan,
-       	     Numeric&   lat_tan,
-       	     Numeric&   lon_tan,
-       	     Numeric&   l_tan,
+             Numeric&   lat_tan,
+             Numeric&   lon_tan,
+             Numeric&   l_tan,
        const Numeric&   r,
        const Numeric&   lat,
        const Numeric&   lon,
@@ -1346,11 +1346,11 @@ Numeric psurface_crossing_2d(
       for( Index i=0; i<4; i++ )
         {
           if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
-	    {
-	      if( ( rp != r0 || roots(i,0) > 0 )  &&  
+            {
+              if( ( rp != r0 || roots(i,0) > 0 )  &&  
                                                   RAD2DEG * roots(i,0) < dlat )
-		{ dlat = RAD2DEG * roots(i,0); }
-	    }
+                { dlat = RAD2DEG * roots(i,0); }
+            }
         }  
 
       // Change sign if zenith angle is negative
@@ -1410,9 +1410,9 @@ Numeric psurface_crossing_2d(
 */
 void psurface_crossing_3d(
              Numeric&   r,
-       	     Numeric&   lat,
-       	     Numeric&   lon,
-       	     Numeric&   l,
+             Numeric&   lat,
+             Numeric&   lon,
+             Numeric&   l,
        const Numeric&   lat1,
        const Numeric&   lat3,
        const Numeric&   lon5,
@@ -1460,22 +1460,22 @@ void psurface_crossing_3d(
       gridcell_crossing_3d( rfound[j], latfound[j], lonfound[j], lfound[j], 
                                             x, y, z, dx, dy, dz, 1, rtest[j] );
       if( rfound[j] > 0 )
-	{
-	  rfound[j] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+        {
+          rfound[j] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                                 r15, r35, r36, r16, lat, lon );
-	  if( rfound[j-1] > 0  &&  rfound[j] > 0  &&  
+          if( rfound[j-1] > 0  &&  rfound[j] > 0  &&  
                         rfound[j-1] >= rtest[j-1]  &&   rfound[j] <= rtest[j] )
-	    {
-	      const Numeric   rq1      = rtest[j-1] / rfound[j-1];
-	      const Numeric   rq2      = rtest[j] / rfound[j];
+            {
+              const Numeric   rq1      = rtest[j-1] / rfound[j-1];
+              const Numeric   rq2      = rtest[j] / rfound[j];
 
-	      rtest[0] = rtest[j-1] + ( rtest[j] - rtest[j-1] ) * 
+              rtest[0] = rtest[j-1] + ( rtest[j] - rtest[j-1] ) * 
                                                    ( 1 - rq1 ) / ( rq2 - rq1 );
-	      gridcell_crossing_3d( rfound[0], latfound[0], lonfound[0], 
+              gridcell_crossing_3d( rfound[0], latfound[0], lonfound[0], 
                                  lfound[0], x, y, z, dx, dy, dz, 1, rtest[0] );
-	      ok = true;
-	    }
-	}
+              ok = true;
+            }
+        }
     }
 
   if( ntest == 1  ||  ok )
@@ -1904,9 +1904,9 @@ void do_gridcell_3d(
 
   // Radius of lower and upper pressure surface at the start position
   const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-				    r1a, r2a, r2b, r1b, lat_start, lon_start );
+                                    r1a, r2a, r2b, r1b, lat_start, lon_start );
   const Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-				    r4a, r3a, r3b, r4b, lat_start, lon_start );
+                                    r4a, r3a, r3b, r4b, lat_start, lon_start );
 
   // Assert radius
   assert( r_start >= rlow );
@@ -1951,42 +1951,42 @@ void do_gridcell_3d(
       l_best   = rupp - r_start;
       endface  = 4;
       if( debug )
-	{
-	  IndexPrint( 4, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  NumericPrint( lat_try, "lat_try" );
-	  NumericPrint( lon_try, "lon_try" );
-	  NumericPrint( l_try, "l_try" );
-	}
+        {
+          IndexPrint( 4, "face" );
+          NumericPrint( r_try, "r_try" );
+          NumericPrint( lat_try, "lat_try" );
+          NumericPrint( lon_try, "lon_try" );
+          NumericPrint( l_try, "l_try" );
+        }
     }
 
   // Nadir looking
   else if( za_start == 180 )
     {
       const Numeric   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-	    rground1a, rground2a, rground2b, rground1b, lat_start, lon_start );
+            rground1a, rground2a, rground2b, rground1b, lat_start, lon_start );
       
       if( rlow > rground )
-	{
-	  r_best  = rlow;
-	  endface = 2;
-	}
+        {
+          r_best  = rlow;
+          endface = 2;
+        }
       else
-	{
-	  r_best  = rground;
-	  endface = 7;
-	}
+        {
+          r_best  = rground;
+          endface = 7;
+        }
       lat_best = lat_start;
       lon_best = lon_start;
       l_best   = r_best - r_start;
       if( debug )
-	{
-	  IndexPrint( 4, "face" );
-	  NumericPrint( r_try, "r_try" );
-	  NumericPrint( lat_try, "lat_try" );
-	  NumericPrint( lon_try, "lon_try" );
-	  NumericPrint( l_try, "l_try" );
-	}
+        {
+          IndexPrint( 4, "face" );
+          NumericPrint( r_try, "r_try" );
+          NumericPrint( lat_try, "lat_try" );
+          NumericPrint( lon_try, "lon_try" );
+          NumericPrint( l_try, "l_try" );
+        }
     }
 
   // Check faces in number order
@@ -1999,169 +1999,169 @@ void do_gridcell_3d(
       //--- Face 1: along lat1
       //
       if( ( abs( aa_start ) > 90  ||  lat_start == 90 )  &&  lat_start != -90 )
-	{
-	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-				                x, y, z, dx, dy, dz, 2, lat1 );
-	  if( debug )
-	    {
-	      IndexPrint( 1, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try < l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 1;
-	    }
-	}
+        {
+          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+                                                x, y, z, dx, dy, dz, 2, lat1 );
+          if( debug )
+            {
+              IndexPrint( 1, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( r_try > 0  &&  l_try < l_best )
+            {
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 1;
+            }
+        }
 
 
       //--- Face 2: lower pressure surface
       //
       if( r_start > rlow )
-	{
-	  psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
+        {
+          psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
              lat1, lat3, lon5, lon6, r1a, r2a, r2b, r1b, x, y, z, dx, dy, dz );
-	  if( debug )
-	    {
-	      IndexPrint( 2, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try < l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 2;
-	    }
-	}
+          if( debug )
+            {
+              IndexPrint( 2, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( r_try > 0  &&  l_try < l_best )
+            {
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 2;
+            }
+        }
 
 
       //--- Face 3: along lat3
       //
       if( ( abs( aa_start ) < 90  ||  lat_start == -90 )  && lat_start != 90 )
-	{
-	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+        {
+          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat3 );
-	  if( debug )
-	    {
-	      IndexPrint( 3, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try < l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 3;
-	    }
-	}
+          if( debug )
+            {
+              IndexPrint( 3, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( r_try > 0  &&  l_try < l_best )
+            {
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 3;
+            }
+        }
 
 
       //--- Face 4: upper pressure surface
       //
       if( r_start < rupp )
-	{
-	  psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
-	     lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4b, x, y, z, dx, dy, dz );
-	  if( debug )
-	    {
-	      IndexPrint( 4, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try < l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 4;
-	    }
-	}
+        {
+          psurface_crossing_3d( r_try, lat_try, lon_try, l_try, 
+             lat1, lat3, lon5, lon6, r4a, r3a, r3b, r4b, x, y, z, dx, dy, dz );
+          if( debug )
+            {
+              IndexPrint( 4, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( r_try > 0  &&  l_try < l_best )
+            {
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 4;
+            }
+        }
       
 
       //--- Face 5: along lon5
       //
       if( aa_start < 0 )
-	{
-	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+        {
+          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 3, lon5 );
-	  if( debug )
-	    {
-	      IndexPrint( 5, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try < l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 5;
-	    }
-	}
+          if( debug )
+            {
+              IndexPrint( 5, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( r_try > 0  &&  l_try < l_best )
+            {
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 5;
+            }
+        }
       
 
       //--- Face 6: along lon6
       //
       if( aa_start > 0 )
-	{
-	  gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
-				                x, y, z, dx, dy, dz, 3, lon6 );
-	  if( debug )
-	    {
-	      IndexPrint( 6, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( r_try > 0  &&  l_try < l_best )
-	    {
-	      r_best   = r_try;
-	      lat_best = lat_try;
-	      lon_best = lon_try;
-	      l_best   = l_try;
-	      endface  = 6;
-	    }
-	}
+        {
+          gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
+                                                x, y, z, dx, dy, dz, 3, lon6 );
+          if( debug )
+            {
+              IndexPrint( 6, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( r_try > 0  &&  l_try < l_best )
+            {
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 6;
+            }
+        }
       
 
       //--- Face 7: the ground
@@ -2170,8 +2170,8 @@ void do_gridcell_3d(
       // if lower pressure surface and the ground are at the same radius.
       //
       if( za_start > 0  &&  ( rground1a >= r1a  ||  rground2a >= r2a  ||  
-			             rground1b >= r1b  ||  rground2b >= r2b ) )
-	{
+                                     rground1b >= r1b  ||  rground2b >= r2b ) )
+        {
           // Numerical inaccuarcy can give problems if
           // *psurface_crossing_3d* is called blindly when *r_start*
           // equals the ground radius. So it is better to check if the
@@ -2180,7 +2180,7 @@ void do_gridcell_3d(
 
           // Ground radius
           const Numeric   r_ground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-	                          rground1a, rground2a, rground2b, rground1b, 
+                                  rground1a, rground2a, rground2b, rground1b, 
                                                         lat_start, lon_start );
 
           // Ground slope [m/deg]
@@ -2218,34 +2218,34 @@ void do_gridcell_3d(
                   endface  = 7;
                 }
             }
-	}
+        }
 
 
       //--- Face 8: tangent point
       //
       if( za_start > 90 )
-	{
-	  Numeric   za_try, aa_try;
-	  cart2poslos( r_try, lat_try, lon_try, za_try, aa_try,
-		           x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
-	  if( debug )
-	    {
-	      IndexPrint( 6, "face" );
-	      NumericPrint( r_try, "r_try" );
-	      if( r_try > 0 )
-		{
-		  NumericPrint( lat_try, "lat_try" );
-		  NumericPrint( lon_try, "lon_try" );
-		  NumericPrint( l_try, "l_try" );
-		}
-	    }
-	  if( za_try <= 90 )
-	    {
-	      geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
-  	                       lat_start, lon_start, za_start, aa_start, ppc );
-	      endface = 8;
-  	    }
-	}
+        {
+          Numeric   za_try, aa_try;
+          cart2poslos( r_try, lat_try, lon_try, za_try, aa_try,
+                           x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
+          if( debug )
+            {
+              IndexPrint( 6, "face" );
+              NumericPrint( r_try, "r_try" );
+              if( r_try > 0 )
+                {
+                  NumericPrint( lat_try, "lat_try" );
+                  NumericPrint( lon_try, "lon_try" );
+                  NumericPrint( l_try, "l_try" );
+                }
+            }
+          if( za_try <= 90 )
+            {
+              geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
+                               lat_start, lon_start, za_start, aa_start, ppc );
+              endface = 8;
+            }
+        }
     }
 
 
@@ -2261,7 +2261,7 @@ void do_gridcell_3d(
     {
       n = Index( ceil( abs( l_best / lmax ) ) );
       if( n < 1 )
-	{ n = 1; }
+        { n = 1; }
     }
   //
   r_v.resize( n+1 );
@@ -2771,22 +2771,22 @@ void ppath_fill_3d(
      const Index&      ilon )
 {
   // Help variables that are common for all points.
-  const Numeric   r1a 	= r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
-  const Numeric   r2a 	= r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
-  const Numeric   r3a 	= r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon);
-  const Numeric   r4a 	= r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);     
-  const Numeric   r1b 	= r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
-  const Numeric   r2b 	= r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
+  const Numeric   r1a   = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
+  const Numeric   r2a   = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
+  const Numeric   r3a   = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon);
+  const Numeric   r4a   = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);     
+  const Numeric   r1b   = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
+  const Numeric   r2b   = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
   const Numeric   r3b   = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1);
   const Numeric   r4b   = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1); 
   const Numeric   lat1  = lat_grid[ilat];
   const Numeric   lat3  = lat_grid[ilat+1];
   const Numeric   lon5  = lon_grid[ilon];
   const Numeric   lon6  = lon_grid[ilon+1];
-  const Numeric   rg1a 	= r_geoid(ilat,ilon);
-  const Numeric   rg2a 	= r_geoid(ilat+1,ilon); 
-  const Numeric   rg2b 	= r_geoid(ilat+1,ilon+1);
-  const Numeric   rg1b 	= r_geoid(ilat,ilon+1);     
+  const Numeric   rg1a  = r_geoid(ilat,ilon);
+  const Numeric   rg2a  = r_geoid(ilat+1,ilon); 
+  const Numeric   rg2b  = r_geoid(ilat+1,ilon+1);
+  const Numeric   rg1b  = r_geoid(ilat,ilon+1);     
   const Numeric   dlat  = lat3 - lat1;
   const Numeric   dlon  = lon6 - lon5;
 
@@ -2828,18 +2828,18 @@ void ppath_fill_3d(
       // the start point.
       //
       if( abs( lat[i] ) < 90 )
-	{
-	  ppath.gp_lon[i].idx   = ilon;
-	  ppath.gp_lon[i].fd[0] = ( lon[i] - lon5 ) / dlon;
-	  ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
-	  gridpos_check_fd( ppath.gp_lon[i] );
-	}
+        {
+          ppath.gp_lon[i].idx   = ilon;
+          ppath.gp_lon[i].fd[0] = ( lon[i] - lon5 ) / dlon;
+          ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
+          gridpos_check_fd( ppath.gp_lon[i] );
+        }
       else
-	{
-	  ppath.gp_lon[i].idx   = 0;
-	  ppath.gp_lon[i].fd[0] = 0;
-	  ppath.gp_lon[i].fd[1] = 1;
-	}
+        {
+          ppath.gp_lon[i].idx   = 0;
+          ppath.gp_lon[i].fd[0] = 0;
+          ppath.gp_lon[i].fd[1] = 1;
+        }
 
       if( i > 0 )
         { ppath.l_step[i-1] = lstep; }
@@ -3103,7 +3103,7 @@ void ppath_start_stepping(
               Vector    itw_tan(2);
               gridpos( gp_tan, lat_grid, geom_tan_pos[1] );
               interpweights( itw_tan, gp_tan );
-	      geom_tan_z = geom_tan_pos[0] - 
+              geom_tan_z = geom_tan_pos[0] - 
                             interp( itw_tan, r_geoid(Range(joker),0), gp_tan );
               geom_tan_atmtop = 
                        interp( itw_tan, z_field(np-1,Range(joker),0), gp_tan );
@@ -3191,9 +3191,9 @@ void ppath_start_stepping(
                   // Calculate the lower and upper altitude radius limit for
                   // the cloud box at the latitude of the sensor
 
-		  const Numeric   rv_low = rv_geoid + interp( itw, 
+                  const Numeric   rv_low = rv_geoid + interp( itw, 
                           z_field(cloudbox_limits[0],Range(joker),0), gp_lat );
-		  const Numeric   rv_upp = rv_geoid + interp( itw, 
+                  const Numeric   rv_upp = rv_geoid + interp( itw, 
                           z_field(cloudbox_limits[1],Range(joker),0), gp_lat );
 
                   if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
@@ -3292,7 +3292,7 @@ void ppath_start_stepping(
             {
               ppath_set_background( ppath, 1 );
               out1 << "  ------- WARNING -------: path is totally outside of "
-		   << "the model atmosphere\n";
+                   << "the model atmosphere\n";
             }
 
           // The path enters the atmosphere
@@ -3570,10 +3570,10 @@ void ppath_start_stepping(
                   // Calculate the lower and upper altitude radius limit for
                   // the cloud box at the latitude of the sensor
 
-		  const Numeric   rv_low = rv_geoid + interp( itw, 
+                  const Numeric   rv_low = rv_geoid + interp( itw, 
                         z_field(cloudbox_limits[0],Range(joker),Range(joker)),
                                                               gp_lat, gp_lon );
-		  const Numeric   rv_upp = rv_geoid + interp( itw, 
+                  const Numeric   rv_upp = rv_geoid + interp( itw, 
                         z_field(cloudbox_limits[1],Range(joker),Range(joker)), 
                                                               gp_lat, gp_lon );
 
@@ -3606,27 +3606,27 @@ void ppath_start_stepping(
             {
               ostringstream os;
               os << "The sensor is north or south (or at the limit) of the "
-		 << "model atmosphere but\nlooks in the wrong direction.\n";
+                 << "model atmosphere but\nlooks in the wrong direction.\n";
               throw runtime_error( os.str() );
             }
 
-	  // Handle cases when the sensor appears to look the wrong way in
+          // Handle cases when the sensor appears to look the wrong way in
           // the west-east direction. We demand that the sensor is inside the
-	  // range of lon_grid even if all longitudes are covered.
+          // range of lon_grid even if all longitudes are covered.
           if( ( a_pos[2] <= lon_grid[0]  &&  a_los[1] < 0 )  || 
                            ( a_pos[2] >= lon_grid[nlon-1]  &&  a_los[1] > 0 ) )
             {
               ostringstream os;
               os << "The sensor is east or west (or at the limit) of the "
-		 << "model atmosphere but\nlooks in the wrong direction.\n";
+                 << "model atmosphere but\nlooks in the wrong direction.\n";
               throw runtime_error( os.str() );
             }
 
-	  // We either checks that:
-	  // 1. the tangent point is above the atmosphere, inside covered 
-	  //    lat and lon ranges
-	  // 2. We try to determine the entrance point, and issues an error
-	  //    if it is not at the top of the atmosphere.
+          // We either checks that:
+          // 1. the tangent point is above the atmosphere, inside covered 
+          //    lat and lon ranges
+          // 2. We try to determine the entrance point, and issues an error
+          //    if it is not at the top of the atmosphere.
           
           // Is tangent point above the model atmosphere
           if( geom_tan_pos[1] >= lat_grid[0]  &&  
@@ -3637,156 +3637,156 @@ void ppath_start_stepping(
             {
               ppath_set_background( ppath, 1 );
               out1 << "  ------- WARNING -------: path is totally outside of "
-		   << "the model atmosphere\n";
+                   << "the model atmosphere\n";
             }
 
           // The path: does it enter the atmosphere, and then where?
           else
             {
-	      // Create a matrix for top of the atmosphere radii
-	      Matrix r_atmtop(nlat,nlon);
-	      //
-	      for( Index ilat=0; ilat<nlat; ilat++ )
-		{
-		  for( Index ilon=0; ilon<nlon; ilon++ )
-		    { r_atmtop(ilat,ilon) = r_geoid(ilat,ilon) +
-			                             z_field(np-1,ilat,ilon); }
-		}
+              // Create a matrix for top of the atmosphere radii
+              Matrix r_atmtop(nlat,nlon);
+              //
+              for( Index ilat=0; ilat<nlat; ilat++ )
+                {
+                  for( Index ilon=0; ilon<nlon; ilon++ )
+                    { r_atmtop(ilat,ilon) = r_geoid(ilat,ilon) +
+                                                     z_field(np-1,ilat,ilon); }
+                }
 
-	      // Handle the case when the sensor radius is obviously too low
-	      Numeric   rtopmin = min( r_atmtop );
-	      if( a_pos[0] <= rtopmin )
-		{
-		  ostringstream os;
-		  os << "The sensor radius is smaller than the minimum radius "
-		     << "of the top of\nthe atmosphere. This gives no possible"
-		     << " OK entrance point for the path.";
-		  throw runtime_error( os.str() );
-		}
+              // Handle the case when the sensor radius is obviously too low
+              Numeric   rtopmin = min( r_atmtop );
+              if( a_pos[0] <= rtopmin )
+                {
+                  ostringstream os;
+                  os << "The sensor radius is smaller than the minimum radius "
+                     << "of the top of\nthe atmosphere. This gives no possible"
+                     << " OK entrance point for the path.";
+                  throw runtime_error( os.str() );
+                }
 
-	      // Handle the case when the path clearly passes above the 
-	      // model atmosphere
-	      Numeric   rtopmax = max( r_atmtop );
-	      if( geom_tan_pos[0] >= rtopmax )
+              // Handle the case when the path clearly passes above the 
+              // model atmosphere
+              Numeric   rtopmax = max( r_atmtop );
+              if( geom_tan_pos[0] >= rtopmax )
                 {
                   ostringstream os;
                   os << "The combination of sensor position and line-of-sight "
                      << "gives a\npropagation path that goes above the model "
                      << "atmosphere, with\na tangent point outside the covered"
                      << " latitude and longitude ranges.\nThe position of the "
-		     << "tangent point is:\n   lat : " << geom_tan_pos[1] 
-		     << "\n   lon : " << geom_tan_pos[2];
+                     << "tangent point is:\n   lat : " << geom_tan_pos[1] 
+                     << "\n   lon : " << geom_tan_pos[2];
                   throw runtime_error( os.str() );
                 }
 
-	      // Sensor pos and LOS in cartesian coordinates
-	      Numeric   x, y, z, dx, dy, dz;
-	      poslos2cart( x, y, z, dx, dy, dz, a_pos[0], a_pos[1], a_pos[2], 
+              // Sensor pos and LOS in cartesian coordinates
+              Numeric   x, y, z, dx, dy, dz;
+              poslos2cart( x, y, z, dx, dy, dz, a_pos[0], a_pos[1], a_pos[2], 
                                                           a_los[0], a_los[1] );
 
-	      // Boolean for that entrance point CANNOT be found
-	      bool   failed = false;
-	     
-	      // Determine the entrance point for the minimum of *r_atmtop*
-	      Numeric   r_top, lat_top, lon_top, l_top;
+              // Boolean for that entrance point CANNOT be found
+              bool   failed = false;
+             
+              // Determine the entrance point for the minimum of *r_atmtop*
+              Numeric   r_top, lat_top, lon_top, l_top;
               psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                  lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1], 
                      rtopmin, rtopmin, rtopmin, rtopmin, x, y, z, dx, dy, dz );
 
-	      // If no crossing was found for min radius, or it is outside
-	      // covered lat and lon ranges, try max radius and make the same
-	      // check. If check not succesful, there is no OK entrance point.
-	      if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
-		  lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
-		{
-		  psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
+              // If no crossing was found for min radius, or it is outside
+              // covered lat and lon ranges, try max radius and make the same
+              // check. If check not succesful, there is no OK entrance point.
+              if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
+                  lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
+                {
+                  psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                   lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
                      rtopmax, rtopmax, rtopmax, rtopmax, x, y, z, dx, dy, dz );
-		  if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
-		      lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
-		    { failed = true; }
-		}
+                  if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
+                      lon_top < lon_grid[0]  ||  lon_top > lon_grid[nlon-1] )
+                    { failed = true; }
+                }
 
-	      // Search iteratively for the entrance point until convergence
-	      // or moving out from covered lat and lon ranges
-	      //
-	      bool   ready = false;
-	      //
-	      while( !failed  &&  !ready )
-		{
-	      	  // Determine radius at found lat and lon
-	      	  GridPos   gp_lattop, gp_lontop;
-	      	  Numeric   lat1, lat3, lon5, lon6, r1a, r2a, r2b, r1b;
-	      	  Index     ilat, ilon;
-	      	  gridpos( gp_lattop, lat_grid, lat_top );
-	      	  ilat = gridpos2gridrange( gp_lattop, abs( a_los[1] ) >= 90 );
-	      	  gridpos( gp_lontop, lon_grid, lon_top );
-	      	  ilon = gridpos2gridrange( gp_lontop, a_los[1] > 0 );   
-  	      	  r1a = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
-  	      	  r2a = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
-  	      	  r1b = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
-  	      	  r2b = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
-  	      	  lat1  = lat_grid[ilat];
-  	      	  lat3  = lat_grid[ilat+1];
-  	      	  lon5  = lon_grid[ilon];
-  	      	  lon6  = lon_grid[ilon+1];
-	      	  r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+              // Search iteratively for the entrance point until convergence
+              // or moving out from covered lat and lon ranges
+              //
+              bool   ready = false;
+              //
+              while( !failed  &&  !ready )
+                {
+                  // Determine radius at found lat and lon
+                  GridPos   gp_lattop, gp_lontop;
+                  Numeric   lat1, lat3, lon5, lon6, r1a, r2a, r2b, r1b;
+                  Index     ilat, ilon;
+                  gridpos( gp_lattop, lat_grid, lat_top );
+                  ilat = gridpos2gridrange( gp_lattop, abs( a_los[1] ) >= 90 );
+                  gridpos( gp_lontop, lon_grid, lon_top );
+                  ilon = gridpos2gridrange( gp_lontop, a_los[1] > 0 );   
+                  r1a = r_geoid(ilat,ilon) + z_field(np-1,ilat,ilon);
+                  r2a = r_geoid(ilat+1,ilon) + z_field(np-1,ilat+1,ilon);
+                  r1b = r_geoid(ilat,ilon+1) + z_field(np-1,ilat,ilon+1);
+                  r2b = r_geoid(ilat+1,ilon+1) + z_field(np-1,ilat+1,ilon+1);
+                  lat1  = lat_grid[ilat];
+                  lat3  = lat_grid[ilat+1];
+                  lon5  = lon_grid[ilon];
+                  lon6  = lon_grid[ilon+1];
+                  r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                        r1a, r2a, r2b, r1b, lat_top, lon_top );
 
-		  // Determine new entance position for latest estimated
-		  // entrance radius
-		  Numeric   lat_top2, lon_top2;
-		  psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
+                  // Determine new entance position for latest estimated
+                  // entrance radius
+                  Numeric   lat_top2, lon_top2;
+                  psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
                   lat_grid[0], lat_grid[nlat-1], lon_grid[0], lon_grid[nlon-1],
-		             r_top, r_top, r_top, r_top, x, y, z, dx, dy, dz );
-		  
-		  // Check if new position is sufficiently close to old
-		  if( abs( lat_top2 - lat_top ) < 1e-6  &&  
-		                             abs( lon_top2 - lon_top ) < 1e-6 )
-		    { ready = true; }
+                             r_top, r_top, r_top, r_top, x, y, z, dx, dy, dz );
+                  
+                  // Check if new position is sufficiently close to old
+                  if( abs( lat_top2 - lat_top ) < 1e-6  &&  
+                                             abs( lon_top2 - lon_top ) < 1e-6 )
+                    { ready = true; }
 
-		  // Have we moved outside covered lat or lon range?
-		  else if( lat_top < lat_grid[0]  ||  
+                  // Have we moved outside covered lat or lon range?
+                  else if( lat_top < lat_grid[0]  ||  
                            lat_top > lat_grid[nlat-1] ||
-		           lon_top < lon_grid[0]  ||  
+                           lon_top < lon_grid[0]  ||  
                            lon_top > lon_grid[nlon-1] )
-		    { failed = true; }
-		  
-		  lat_top = lat_top2;   
-		  lon_top = lon_top2; 
-		}
+                    { failed = true; }
+                  
+                  lat_top = lat_top2;   
+                  lon_top = lon_top2; 
+                }
 
-	      if( failed )
-		{
-		  ostringstream os;
-		  os << "The path does not enter the model atmosphere at the "
-		     << "top.\nThe path reaches the top of the atmosphere "
-		     << "altitude\napproximately at the position:\n"
-		     << "   lat : " << lat_top << "\n   lon : " << lon_top;
-		  throw runtime_error( os.str() );
-		}
+              if( failed )
+                {
+                  ostringstream os;
+                  os << "The path does not enter the model atmosphere at the "
+                     << "top.\nThe path reaches the top of the atmosphere "
+                     << "altitude\napproximately at the position:\n"
+                     << "   lat : " << lat_top << "\n   lon : " << lon_top;
+                  throw runtime_error( os.str() );
+                }
 
-	      // Move found values to *ppath*
-	      //
-	      // Position
-	      ppath.pos(0,0) = r_top;
-	      ppath.pos(0,1) = lat_top;
-	      ppath.pos(0,2) = lon_top;
-	      //
-	      // Grid position
-	      ppath.gp_p[0].idx = np - 2;
-	      ppath.gp_p[0].fd[0] = 1;
-	      ppath.gp_p[0].fd[1] = 0;
-	      gridpos( ppath.gp_lat[0], lat_grid, lat_top ); 
-	      gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
-	      //
-	      // Geometrical altitude
-	      Vector   itw(4);
-	      interpweights( itw, ppath.gp_lat[0], ppath.gp_lon[0] );
-	      ppath.z[0] = ppath.pos(0,0) - interp(itw,  r_geoid,
+              // Move found values to *ppath*
+              //
+              // Position
+              ppath.pos(0,0) = r_top;
+              ppath.pos(0,1) = lat_top;
+              ppath.pos(0,2) = lon_top;
+              //
+              // Grid position
+              ppath.gp_p[0].idx = np - 2;
+              ppath.gp_p[0].fd[0] = 1;
+              ppath.gp_p[0].fd[1] = 0;
+              gridpos( ppath.gp_lat[0], lat_grid, lat_top ); 
+              gridpos( ppath.gp_lon[0], lon_grid, lon_top ); 
+              //
+              // Geometrical altitude
+              Vector   itw(4);
+              interpweights( itw, ppath.gp_lat[0], ppath.gp_lon[0] );
+              ppath.z[0] = ppath.pos(0,0) - interp(itw,  r_geoid,
                                             ppath.gp_lat[0], ppath.gp_lon[0] );
-	      //
-	      // LOS
+              //
+              // LOS
               cart2poslos( r_top, lat_top, lon_top, ppath.los(0,0), 
               ppath.los(0,1), x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
             }
@@ -4204,8 +4204,8 @@ void ppath_start_2d(
               Numeric&    r4,
               Numeric&    lat1,
               Numeric&    lat3,
-	      Numeric&    rground1,
-	      Numeric&    rground2,
+              Numeric&    rground1,
+              Numeric&    rground2,
         const Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -4414,10 +4414,10 @@ void ppath_start_3d(
               Numeric&    lat3,
               Numeric&    lon5,
               Numeric&    lon6,
-	      Numeric&    rground1a,
-	      Numeric&    rground2a,
-	      Numeric&    rground1b,
-	      Numeric&    rground2b,
+              Numeric&    rground1a,
+              Numeric&    rground2a,
+              Numeric&    rground1b,
+              Numeric&    rground2b,
         const Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -4484,9 +4484,9 @@ void ppath_start_3d(
       GridPos   gp_tmp;
       gridpos( gp_tmp, lon_grid, aa_start );
       if( aa_start < 180 )
-	{ ilon = gridpos2gridrange( gp_tmp, 1 ); }
+        { ilon = gridpos2gridrange( gp_tmp, 1 ); }
       else
-	{ ilon = gridpos2gridrange( gp_tmp, 0 ); }
+        { ilon = gridpos2gridrange( gp_tmp, 0 ); }
     }
   else if( lat_start == -90 )
     { 
@@ -4494,17 +4494,17 @@ void ppath_start_3d(
       GridPos   gp_tmp;
       gridpos( gp_tmp, lon_grid, aa_start );
       if( aa_start < 180 )
-	{ ilon = gridpos2gridrange( gp_tmp, 1 ); }
+        { ilon = gridpos2gridrange( gp_tmp, 1 ); }
       else
-	{ ilon = gridpos2gridrange( gp_tmp, 0 ); }
+        { ilon = gridpos2gridrange( gp_tmp, 0 ); }
     }
   else
     { 
       ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 ); 
       if( lon_start < lon_grid[nlon-1] )
-	{ ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); }
+        { ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); }
       else
-	{ ilon = nlon - 2; }
+        { ilon = nlon - 2; }
     }
   //
   lat1 = lat_grid[ilat];
@@ -4545,10 +4545,10 @@ void ppath_start_3d(
         {
           ip--;
           r4a = r1a;   r3a = r2a;   r4b = r1b;   r3b = r2b;
-	  r1a = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
-	  r2a = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
-	  r1b = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
-	  r2b = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
+          r1a = r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
+          r2a = r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
+          r1b = r_geoid(ilat,ilon+1) + z_field(ip,ilat,ilon+1);
+          r2b = r_geoid(ilat+1,ilon+1) + z_field(ip,ilat+1,ilon+1); 
         }
     }
   else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
@@ -4562,10 +4562,10 @@ void ppath_start_3d(
         {
           ip++;
           r1a = r4a;   r2a = r3a;   r1b = r4b;   r2b = r3b;
-	  r3a = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon);
-	  r4a = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);     
-	  r3b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1);
-	  r4b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);     
+          r3a = r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon);
+          r4a = r_geoid(ilat,ilon) + z_field(ip+1,ilat,ilon);     
+          r3b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1);
+          r4b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);     
         }
     }
 
@@ -4628,7 +4628,7 @@ void ppath_end_3d(
   ppath.constant   = ppc;
   //
   ppath_fill_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, 
-		        r_geoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
+                        r_geoid, z_field, lat_grid, lon_grid, ip, ilat, ilon );
 
   // Do end-face specific tasks
   if( endface == 7 )
@@ -5054,8 +5054,8 @@ void ppath_step_geom_3d(
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
-	   ip, ilat, ilon, r1a, r2a, r3a, r4a, r1b, r2b, r3b, r4b, lat1, lat3,
-		  lon5, lon6, rground1a, rground2a, rground1b, rground2b,
+           ip, ilat, ilon, r1a, r2a, r3a, r4a, r1b, r2b, r3b, r4b, lat1, lat3,
+                  lon5, lon6, rground1a, rground2a, rground1b, rground2b,
                ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground );
 
 
@@ -5074,7 +5074,7 @@ void ppath_step_geom_3d(
   Index     endface;
 
   do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, 
-	     r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax, 
+             r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax, 
              r1a, r2a, r3a, r4a, r1b, r2b, r3b, r4b, lat1, lat3, lon5, lon6, 
                                   rground1a, rground2a, rground1b, rground2b );
 
