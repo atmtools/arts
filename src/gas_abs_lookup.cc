@@ -34,9 +34,10 @@
 
 //! Find positions of new grid points in old grid.
 /*! 
-  Uses gridpos to do most of the work.
+  Throw a runtime error if the frequencies of the new grid are not
+  found in the old grid. 
 
-  Comparison of Numerics is a bit tricky.
+  Comparison of Numerics is a bit tricky, we use a tolerance of 1Hz here.
 
   \retval pos      Positions of new grid points in old grid.
   \param  old_grid The old grid.
@@ -47,47 +48,39 @@ void find_new_grid_in_old_grid( ArrayOfIndex& pos,
                                 ConstVectorView new_grid )
 {
   const Index n_new_grid = new_grid.nelem();
+  const Index n_old_grid = old_grid.nelem();
 
   // Make sure that pos has the right size:
   assert( n_new_grid == pos.nelem() );
-  
-  // We can use gridpos to do most of the work!
-  ArrayOfGridPos gp( n_new_grid );
-  gridpos( gp, old_grid, new_grid );
 
-  // Convert to approximate numerical indices
-  Vector approx_pos( n_new_grid );
+  // The frequency difference in Hz that we are willing to tolerate. 1
+  // Hz seems to be on the safe side.
+  const Numeric tolerance = 1;
+
+  // Old grid position:
+  Index j = 0;
+
+  // Loop the new frequencies:
   for ( Index i=0; i<n_new_grid; ++i )
     {
-      const GridPos& tgp = gp[i];
-      approx_pos[i] = tgp.idx + tgp.fd[0];
-      // The last term is necessary, because we could in fact be
-      // almost on the next grid point.
-    }
+      // We have done runtime checks that both the new and the old
+      // frequency gris are sorted in GasAbsLookup::Adapt, so we can
+      // use the fact here.
 
-  // We now have to check if the grid positions stored in gp are
-  // sufficiently close to the grid points for our taste.
-  for ( Index i=0; i<n_new_grid; ++i )
-    {
-      out3 << "  " << new_grid[i] << ": ";
-      // This is the crucial if statement for the comparison of two
-      // numerics!
-      Numeric diff = approx_pos[i] - rint(approx_pos[i]);
-      if ( 0 != diff )
+      while ( abs(new_grid[i]-old_grid[j]) > tolerance )
         {
-          ostringstream os;
-          os << "Found no match for element [" << i << "] of the new grid.\n"
-             << "Value: " << new_grid[i] << "\n"
-             << "Diff:  " << diff;
+          ++j;
+          if ( j>=n_old_grid )
+            {
+              ostringstream os;
+              os << "Cannot find new frequency " << i
+                 << " (" << new_grid[i] << "Hz) in the lookup table frequency grid.";
+              throw runtime_error( os.str() );
+            }
+        }
 
-          throw runtime_error( os.str() );          
-        }
-      else
-        {
-          // Assign to the output array:
-          pos[i] = (Index) rint(approx_pos[i]);
-          out3 << "found, index = " << pos[i] << ".\n";
-        }
+      pos[i] = j;
+      out3 << "    " << new_grid[i] << " found, index = " << pos[i] << ".\n";
     }
 }
 

@@ -1,3 +1,15 @@
+2003-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-687
+	
+	* src/gas_abs_lookup.cc: Fixed bug reported by Patrick and Cory:
+	No runtime error was thrown if the frequencies of the calculation
+	were not included in the lookup table.
+	(find_new_grid_in_old_grid): Completely rewritten. Now the function
+	does its task directly, without using gridpos. It is now shorter
+	and probably faster. Throws a runtime error if the new frequency
+	grid points can not be found in the old grid.
+
 2003-09-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-686
@@ -22,7 +34,6 @@
 
 	* src/methods.cc: Added rte_pos_and_losFromTangentPressure.
 	
-
 2003-09-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-684
