@@ -1,5 +1,11 @@
 2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-392
+
+	* src/ppath.cc: Just a commit to transfer last changes to laptop.
+
+2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-391
 
 	* src/m_cloudbox.cc (CloudboxGetIncoming): Fixed a bug. The longitude

@@ -772,6 +772,9 @@ void gridcell_crossing_3d(
   assert( known_dim >= 1 );
   assert( known_dim <= 3 );
 
+  // Assert that LOS vector is normalised
+  assert( abs( sqrt( dx*dx + dy*dy + dz*dz ) - 1 ) < 1e-6 );
+
   // Set dummy values to be used if there is no crossing
   r   = -1;
   lat = 999;
@@ -780,14 +783,13 @@ void gridcell_crossing_3d(
 
   if( known_dim == 1 )
     {   
-      const Numeric   a  = dx*dx + dy*dy + dz*dz;
-      const Numeric   p  = ( x*dx + y*dy + z*dz ) / a;
+      const Numeric   p  = x*dx + y*dy + z*dz;
       const Numeric   pp = p * p;
-      const Numeric   q  = ( x*x + y*y + z*z - rlatlon*rlatlon ) / a;
+      const Numeric   q  = x*x + y*y + z*z - rlatlon*rlatlon;
 
       const Numeric   l1 = -p + sqrt( pp - q );
       const Numeric   l2 = -p - sqrt( pp - q );
-      
+
       if( l1 < 0  &&  l2 > 0 )
         { l = l2; }
       else if( l1 > 0  &&  l2 < 0 )
@@ -817,10 +819,9 @@ void gridcell_crossing_3d(
           const Numeric   latrad = DEG2RAD * rlatlon;
                 Numeric   t2     = tan( latrad );
                           t2     = t2 * t2;
-          const Numeric   a      = dx*dx + dz*dz - dy*dy/t2;
-          const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) / a;
+          const Numeric   p      = ( x*dx + z*dz -y*dy/t2 ) * t2;
           const Numeric   pp     = p * p;
-          const Numeric   q      = ( x*x + z*z - y*y/t2 ) / a;
+          const Numeric   q      = ( x*x + z*z - y*y/t2 ) * t2;
 
           const Numeric   l1 = -p + sqrt( pp - q );
           const Numeric   l2 = -p - sqrt( pp - q );
@@ -1415,7 +1416,7 @@ Numeric psurface_crossing_2d(
    \author Patrick Eriksson
    \date   2002-12-30
 */
-void psurface_crossing_3d_old(
+void psurface_crossing_3d(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -1442,75 +1443,41 @@ void psurface_crossing_3d_old(
 
   const Numeric   rmin = min( rvalues );
   const Numeric   rmax = max( rvalues );
-        Index     ntest;
-        Vector    rtest;
 
   if( rmax == rmin )
     { gridcell_crossing_3d( r, lat, lon, l, x, y, z, dx, dy, dz, 1, rmin ); }
 
   else
     {
-      ntest  = 5;
-      rtest.resize( ntest );
+      Numeric   rold = -999e3;
 
-      Numeric   r1 = rmin,   r2 = rmax;
-
-      if( za_start <= 90  &&  r_start > rmin )
-        { r1 = r_start; }
-      else if( za_start > 90  &&  r_start < rmax )    
-        { r2 = r_start; }
-
-      nlinspace( rtest, r1, r2, ntest );
-
-      Vector   rfound(ntest), latfound(ntest), lonfound(ntest), lfound(ntest);
-      bool     ok = false;
-
-      for( Index j=0; j<ntest && !ok; j++ )
+      if( za_start <= 90 )
+        { r = rmax; }
+      else if( za_start > 90 )    
         {
-          gridcell_crossing_3d( rfound[j], latfound[j], lonfound[j], lfound[j],
-                                            x, y, z, dx, dy, dz, 1, rtest[j] );
-
-          if( rfound[j] > 0 )
-            {
-              rfound[j] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15, r35, r36, r16, latfound[j], lonfound[j] );
-
-              if( j > 0  &&  rfound[j-1] > 0  &&  rfound[j] > 0  &&  
-                        rfound[j-1] >= rtest[j-1]  &&   rfound[j] <= rtest[j] )
-                {
-                  const Numeric   rq1 = rtest[j-1] / rfound[j-1];
-                  const Numeric   rq2 = rtest[j] / rfound[j];
-
-                  rtest[0] = rtest[j-1] + ( rtest[j] - rtest[j-1] ) * 
-                                                   ( 1 - rq1 ) / ( rq2 - rq1 );
-                  gridcell_crossing_3d( rfound[0], latfound[0], lonfound[0], 
-                                 lfound[0], x, y, z, dx, dy, dz, 1, rtest[0] );
-                  rfound[0] = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                r15, r35, r36, r16, latfound[0], lonfound[0] );
-
-                  ok = true;
-                }
-            }
+          const Numeric rtan = geometrical_ppc( r_start, za_start );
+          
+          if( rtan < rmin )
+            { r = rmin; }
+          else
+            { r = ( r_start + rtan ) / 2; }
         }
 
-      if( ok )
+      while( r > 0  &&  abs( r - rold ) > 1e-3 )
         {
-          r   = rfound[0];
-          lat = latfound[0];
-          lon = lonfound[0];
-          l   = lfound[0];
-        }
-      else
-        {
-          r   = -1;
-          lat = 999;
-          lon = 999;
-          l   = -1;
+          rold = r;
+
+          // Note that *r* cannot be input here !!!
+          gridcell_crossing_3d( r, lat, lon, l, x, y, z, dx, dy, dz, 1, rold );
+
+          if( r > 0 )
+            { r = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                              r15, r35, r36, r16, lat, lon ); }
         }
     }
 }
 
-void psurface_crossing_3d(
+void psurface_crossing_3d_old(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -5605,7 +5572,7 @@ void ppath_start_stepping(
                   r_top = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                        r15, r35, r36, r16, lat_top, lon_top );
 
-                  // Determine new entance position for latest estimated
+                  // Determine new entrance position for latest estimated
                   // entrance radius
                   Numeric   lat_top2, lon_top2;
                   psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
