@@ -1,3 +1,9 @@
+2002-08-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-217
+	
+	* src/physics_funcs.cc (invrayjean): Merged bug fix from arts-1-0.
+
 2002-08-26  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-216
