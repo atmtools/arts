@@ -1,3 +1,13 @@
+2000-12-20  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-95
+
+	* The seed is now reset for each call to a function that generates 
+	random data (thanks Oliver).
+
+	* Some functions added to AMI/general.
+	
+
 2000-12-19  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-94

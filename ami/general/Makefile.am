@@ -15,6 +15,13 @@
 
 EXTRA_DIST = \
         filedate.m \
+        geomtan2za.m \
+        invplanck.m \
+        invrayjean.m \
+        isinteger.m \
         isodd.m \
+        last.m \
+        planck.m \
+        rand_test.m \
         vec2col.m \
         vec2row.m 

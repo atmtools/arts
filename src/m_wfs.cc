@@ -1609,10 +1609,14 @@ void kSpecies (
               const ARRAYofMATRIX&   abs_per_tg,
               const ARRAYofVECTOR&   vmrs,
               const VECTOR&          k_grid,
-              const int&             nr,
+              const string&          tag,
               const string&          unit )
 {
-  ARRAYofsizet  tg_nr(1,nr);
+  ARRAYofstring  tag_name(1);
+  tag_name[0] = tag;
+
+  ARRAYofsizet   tg_nr; 
+  get_tagindex_for_strings( tg_nr, tags, tag_name );
   
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
                                  tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );

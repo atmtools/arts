@@ -14,4 +14,8 @@
 
 function bool = isodd(n)
 
+if ~isinteger(n)
+  error('The given value is not an integer.');
+end
+
 bool = rem(n,2);

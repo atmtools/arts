@@ -45,9 +45,9 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <time.h>
 #include "arts.h"
 #include "math_funcs.h"
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1302,6 +1302,9 @@ void rand_uniform(
         const Numeric&   x_high )
 {
   const Numeric dx = x_high-x_low;
+
+  // Init seed in a "random" way
+  srand( (unsigned int) time( NULL );
 
   r.resize(n);
   for ( size_t i=1; i<=n; i ++)

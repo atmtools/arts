@@ -150,8 +150,6 @@ Implement this method:
 
 SAB 2000-12-09: Remove all resize calls when MTL is completely in place. 
 
-SAB 2000-12-09: Include a good example file for RT. Patrick?
-
 SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
                 been created). Best would be a *general* method (which
                 is more than generic, since it should work for *any*
@@ -164,6 +162,7 @@ PE 2000-12-14:  Spectroscopic data should be converted to SI units when doing
                 routines.
 
 PE 2000-12-14:  Interpolation in m_abs is not done using the standard 
-                function (interpp).
+                function (interpp). (Oooops, it is also mentioned above, 
+                15/12 PE).
 
 PE 2000-12-14:  Do what is possible to make the absorption as fast as possible.

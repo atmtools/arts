@@ -1463,30 +1463,30 @@ void define_md_data()
       ( NAME("kSpecies"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for a single tag.\n"
-          "The tag is selected by the parameter nr, which is the position\n"
-          "for the tag in abs_per_tg.\n"
+          "The tag is selected by the giving the tag name. This string must \n"
+          "exactly the string in ????.\n"
           "The avaliable units are\n"
           "  frac : fractions of linearisation profile \n"
           "  vmr  : volume mixing ratio \n"
           "  nd   : number density\n"
           "\n"
           "Keywords \n"
-          "  nr   : Tag number\n"
-          "  unit : Retrieval unit string."),
+          "  tag  : Tag string.\n"
+          "  unit : Retrieval unit string (see above)."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "nr",   "unit"  ),
-	TYPES(    int_t,  string_t )));
+	KEYWORDS( "tag",     "unit"  ),
+	TYPES(    string_t,  string_t )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("kSpeciesAll"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for all tags that\n"
-          "are included in abs_per_tg. Units as for kSpecies.\n"
+          "are included in ???. Units as for kSpecies.\n"
           "\n"
           "Keywords \n"
           "  unit : Retrieval unit string."),
@@ -1968,7 +1968,7 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT( VECTOR_ ),
 	GINPUT(),
-	KEYWORDS( "low",     "high", "  n" ),
+	KEYWORDS( "low",     "high",    "n" ),
 	TYPES(    Numeric_t, Numeric_t, int_t )));
 
   md_data.push_back
