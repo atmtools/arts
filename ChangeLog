@@ -1,3 +1,14 @@
+2003-11-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+        * arts-1-0-138
+
+	* src/m_wfs.cc (grid2grid_weights_total): Explicit cast first 2
+	parameter to Index when calling Range constructor.
+
+	* configure.in: Add COMPILE_FLAGS to config.h.
+
+	* src/main.cc: Display compile flags with -v.
+
 2003-11-25  Sho Tsujimaru <tsujimaru@crl.go.jp>
                
         * arts-1-0-137
@@ -267,7 +278,6 @@
 	included in species_data.cc. Now all the species, continua, and 
 	clouds, are consistently listed in tables. 
 
->>>>>>> 1.364.4.129
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-119
