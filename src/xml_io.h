@@ -32,7 +32,7 @@
 #ifndef xml_io_h
 #define xml_io_h
 
-#include <fstream>
+#include <iosfwd>
 #include "mystring.h"
 
 ////////////////////////////////////////////////////////////////////////////
