@@ -257,8 +257,7 @@ void define_md_data()
   //
   // Below this line you find methods not touched for ARTS 2. 
   // Please revise the documentation etc. before a methods is moved up.
-  // Place functions following some logic order. Put in new groups if
-  // necessary.
+  // Place functions in alphabetical order. 
   // Finally, all methods below the line will be removed.
   //--------------------------------------------------------------------
 

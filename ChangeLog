@@ -1,3 +1,11 @@
+2002-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-66
+
+	* doc/uguide/development.tex: Fixed typo that lead to LaTeX fail.
+
+	* src/methods.cc (define_md_data): Small change in comment block.
+
 2002-05-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-65
