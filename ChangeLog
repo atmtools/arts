@@ -1,3 +1,12 @@
+2003-01-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-380
+
+	* src/agendas.cc: Fixed bug in *refr_index_agenda* entry.
+
+	* src/m_atmosphere.cc: Checks for raw data commented because they 
+	gave wrong error messages. They will be modified later.
+
 2003-01-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-379
@@ -18,7 +27,7 @@
 
 	* src/m_cloudbox.cc (CloudboxGetIncoming): Some bug fixes.
 
-	* src/refraction.cc: Included iostream.h. 
+	* src/m_refraction.cc: Included iostream.h. 
 	
 2003-01-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
@@ -34,7 +43,7 @@
 
 	* src/m_cloudbox.cc (CloudboxGetIncoming): Some bug fixes.
 
-	* src/refraction.cc: Included iostream.h. 
+	* src/m_refraction.cc: Included iostream.h. 
 
 2003-01-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 

@@ -149,33 +149,43 @@ void AtmFieldsCalc(//WS Output:
   //
   // Raw data
   //
-  if( (is_size(t_field_raw[0], p_grid.nelem(), 1, 1)) 
-      &&(is_size(t_field_raw[1], 1, lat_grid.nelem(), 1)) 
-      &&(is_size(t_field_raw[2], 1, 1, lon_grid.nelem() ))
-      &&(is_size(t_field_raw[3], p_grid.nelem(), lat_grid.nelem(),
-                 lon_grid.nelem() )))
-  {
-      throw runtime_error(
-                          "The raw data for the temperature field"
-                          "has wrong dimensions."
-                          "If you use 1D scenarios and want to do a "
-                          "3D calculation you have to use the method"
-                          "*AtmFieldCalcExpand1D*");
-  }
+ //  cout << "[0:] " << t_field_raw[0].nrows () << endl;
+//   cout << "[1:] " << t_field_raw[1].ncols() << endl;
+//   cout << "[2:] " << t_field_raw[2].npages() << endl;
+//   cout << "[3:] " << t_field_raw[3].nrows() << endl;
+
+//   if (!( (is_size(t_field_raw[0], p_grid.nelem(), 1, 1)) 
+//       &&(is_size(t_field_raw[1], 1,
+//                  lat_grid.nelem() ? lat_grid.nelem() : 1,
+//                  1)) 
+//       &&(is_size(t_field_raw[2], 1, 1, 
+//                  lon_grid.nelem() ? lon_grid.nelem() :1 ))
+//       &&(is_size(t_field_raw[3], p_grid.nelem(),
+//                  lat_grid.nelem() ? lat_grid.nelem() : 1,
+//                  lon_grid.nelem() ? lon_grid.nelem() : 1))))
+//   {
+//       throw runtime_error(
+//                           "The raw data for the temperature field "
+//                           "has wrong dimensions.\n"
+//                           "If you use 1D scenarios and want to do a "
+//                           "3D calculation you have to use the method"
+//                           "*AtmFieldCalcExpand1D*");
+//   }
   
-  if( (is_size(z_field_raw[0], p_grid.nelem(), 1, 1))
-      && (is_size(z_field_raw[1], 1, lat_grid.nelem(), 1))
-      && (is_size(z_field_raw[2], 1, 1, lon_grid.nelem() ))
-      && (is_size(z_field_raw[3], p_grid.nelem(), lat_grid.nelem(),
-                  lon_grid.nelem() )))
-    {
-      throw runtime_error(
-                          "The raw data for the altitude field"
-                          "has wrong dimensions."
-                          "If you use 1D scenarios and want to do a "
-                          "3D calculation you have to use the method"
-                          "*AtmFieldCalcExpand1D*");
-    }
+//   if (!( (is_size(z_field_raw[0], p_grid.nelem(), 1, 1))
+//       && (is_size(z_field_raw[1], 1, lat_grid.nelem(), 1))
+//       && (is_size(z_field_raw[2], 1, 1, lon_grid.nelem() ))
+//       && (is_size(z_field_raw[3], p_grid.nelem(),
+//                   lat_grid.nelem() ? lat_grid.nelem() : 1,
+//                   lon_grid.nelem() ? lon_grid.nelem() : 1))))
+//  {
+//       throw runtime_error(
+//                           "The raw data for the altitude field "
+//                           "has wrong dimensions.\n"
+//                           "If you use 1D scenarios and want to do a "
+//                           "3D calculation you have to use the method "
+//                           "*AtmFieldCalcExpand1D*");
+//     }
 
   // Check vmr_field raw data for all species:
 

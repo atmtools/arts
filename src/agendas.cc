@@ -322,7 +322,8 @@ void define_agenda_data()
              z_field_,
              r_geoid_,
              z_ground_ )));
-
+  
+  agenda_data.push_back
     (AgRecord
      ( NAME( "refr_index_agenda" ),
        DESCRIPTION
