@@ -1,3 +1,10 @@
+2002-11-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-51
+
+	* src/absorption.cc (ReadFromMytran2Stream): Fixed stray ")"
+	bug. (Thanks to Carmen and Patrick for noticing this.)
+
 2002-11-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-50

@@ -854,8 +854,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   // It is important that you intialize here all the new parameters that
   // you added to the line record. (This applies to all the reading
   // functions, also for ARTS, JPL, and HITRAN format.) Parameters
-  // should be either set from the catalogue, or set to -1.
-  )
+  // should be either set from the catalogue, or set to -1.)
 
   // That's it!
   return false;
