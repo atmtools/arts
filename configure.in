@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.753)
+AM_INIT_AUTOMAKE(arts,1.1.754)
 
 AM_MAINTAINER_MODE
 
@@ -82,8 +82,7 @@ AM_CONDITIONAL(HAVE_SSTREAM, test x$ac_sstream = xyes)
 # MPI support
 #
 AC_ARG_WITH([mpi],
-  AC_HELP_STRING([--with-mpi],
-                 [MPI support (default is no)]),
+  [  --with-mpi              MPI support (default is no)],
   [case "${withval}" in
     yes) ac_use_mpi=yes ;;
       *) ac_use_mpi=no ;;
@@ -98,8 +97,7 @@ fi
 # HDF support
 #
 AC_ARG_WITH([hdf],
-  AC_HELP_STRING([--with-hdf=DIR],
-                 [HDF binary file support DIR (default is autodetect)]),
+  [  --with-hdf=DIR          HDF binary file support DIR (default is autodetect)],
   [case "${withval}" in
     autodetect) ac_hdf_support=autodetect ;;
     yes) ac_hdf_support=yes ;;
