@@ -7,7 +7,7 @@ using namespace std;
 #include "xml_io.h"
 
 int
-main (int argc, char *argv[])
+main (int /* argc */, char * /* argv */ [])
 {
   // Create binary file
   Tensor4 v (4,4,4,4);

@@ -6,7 +6,7 @@ using namespace std;
 #include "exceptions.h"
 
 int
-main (int argc, char *argv[])
+main (int /* argc */, char * /* argv */ [])
 {
   String str;
 
