@@ -1,5 +1,23 @@
 2002-11-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-298
+
+	* src/workspace.cc: Removed *scat_rte_agenda*.
+
+	* src/agendas.cc: Removed *scat_rte_agenda*.
+
+	* src/m_scatrte.cc: Modified functions which uses scat_rte_agenda -
+	(i_fieldIterate) and (i_fieldUpdate1D).
+	Included more checks and initialized all variables for the scattering
+	calculations in the beginning of (i_fieldIterate), where they appear
+	first.
+	
+	* src/methods.cc: Changed interface of methods above.
+
+	* src/m_cloudbox.cc: Included more checks.
+
+2002-11-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
 	* arts-1-1-297
 
 	* src/workspace.cc: Included variable for scalar gas absorption
@@ -36,9 +54,9 @@
 	Moved (stokes_vecGeneral) and (stokes_vecScalar) to the new file
 	scat.rte.cc. These methods are ordinary functions now.
 	*scat_rte_agenda* which can use only these functions, will be removed.
-	Replaced *scat_f_index* by *scat_index*.
+	Replaced *scat_f_index* by *f_index*.
 	
-	* src/m_cloudbox.cc: Replaced *scat_f_index* by *scat_index*.
+	* src/m_cloudbox.cc: Replaced *scat_f_index* by f_index*.
 
 	* src/m_scatproperties.cc:
  	Added:
