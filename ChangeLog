@@ -1,3 +1,10 @@
+2003-02-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-455
+
+	* doc/uguide/ppath.tex: Text added to describe the calculation of
+	propagation paths. Not ready, more to write.
+
 2003-02-11  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-454

@@ -1610,13 +1610,7 @@ void do_gridcell_2d(
 
   // --- Lower face 
   //
-  // This face is tricky as there can be two crossings with the
-  // pressure surface before the next latitude grid point is
-  // reached. This is the case as the face is bended inwards. The
-  // zenith angles to the corner points of the cell cannot be used to
-  // determine if there is a crossing or not. Instead we have to call
-  // psurface_crossing_2d for all cases to test if there is a
-  // crossing. We don't need to consider the face if we are standing
+  // We don't need to consider the face if we are standing
   // on the pressure surface.
   //
   if( r_start > rlow  &&  abs(za_start) > ANGTOL )
