@@ -165,7 +165,8 @@ void define_md_data_raw()
 	 "are specified in the control file.  \n"
 	 ),
 	OUTPUT(abs_vec_part_),
-	INPUT(abs_vec_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
+	INPUT(abs_vec_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
+	      scat_lat_index_, scat_lon_index_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -728,7 +729,8 @@ void define_md_data_raw()
 	 "are specified in the control file.  \n"
 	 ),
 	OUTPUT( ext_mat_part_  ),
-        INPUT( ext_mat_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
+        INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
+	       scat_lat_index_, scat_lon_index_),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -1197,7 +1199,8 @@ void define_md_data_raw()
 	 "are specified in the control file.\n"
 	 ),
 	OUTPUT(pha_mat_part_),
-	INPUT(pha_mat_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
+	INPUT(pha_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_,
+	      scat_lat_index_, scat_lon_index_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
