@@ -136,10 +136,31 @@ int main()
           // vector as generic output, this does not mean that it is
           // the same vector!
 
+            {
 
-          ofs << "void " << md_data[i].Name()
-              << "_g(WorkSpace& ws, const MRecord& mr)\n";
-          ofs << "{\n";
+              String ws, mr;
+
+              // Use parameter name only if it is used inside the function
+              // to avoid warnings
+              if (vo.nelem () || vi.nelem ())
+                {
+                  ws = " ws";
+                }
+
+              // Use parameter name only if it is used inside the function
+              // to avoid warnings
+              if ( vgo.nelem () || vgi.nelem ()
+                   || md_data[i].Keywords().nelem())
+                {
+                  mr = " mr";
+                }
+
+              ofs << "void " << md_data[i].Name()
+                << "_g(WorkSpace&" << ws
+                << ", const MRecord&" << mr << ")\n"
+                << "{\n";
+            }
+
 
 
           // Define generic output pointers
