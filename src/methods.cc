@@ -2007,7 +2007,9 @@ void define_md_data()
 
 //=== 1D absorption methods ===============================================
 
- ( NAME( "absCalc" ),
+ md_data.push_back
+    ( MdRecord
+      ( NAME( "absCalc" ),
 	DESCRIPTION(
 	   "Calculate absorption coefficients. \n"
 	   "\n"
