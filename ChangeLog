@@ -1,5 +1,44 @@
 2003-07-24  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-616
+
+	* src/Makefile.am: Added m_general.h.
+
+	* src/m_general.h: Added template function implementation
+	for general supergeneric workspace method Print and explicit
+	prototypes for ArrayOfIndex, ArrayOfString and Ppath Print method.
+
+	* src/m_general.cc: Removed *Print functions.
+	Added explicit implementation of Print for ArrayOfIndex,
+	ArrayOfString, Ppath.
+
+	* src/make_auto_md_cc.cc: Include m_general.h in auto_md.cc.
+
+	* src/m_ppath.cc: Removed PpathPrint. Now covered by general Print
+	method.
+	Include m_general.h
+
+	* src/optproperties.{cc,h}: Added dummy output operator for
+	ArrayOf/SingleScatteringData.
+
+	* src/gas_abs_lookup.{cc,h}: Changed GasAbsLookup from struct to
+	class.
+	Added dummy output operator for GasAbsLookup.
+
+	* src/m_scatrte.cc: Use new Print instead of PpathPrint.
+
+	* src/methods.cc: Added supergeneric Print method.
+	Removed all other *Print methods.
+
+	* src/describe.cc: Do not include sstream.
+
+	* src/montecarlo.{cc,h}: Include sstream in cc instead of h and put
+	appropriate ifndef around.
+
+	* src/m_montecarlo.cc: Do not include sstream.
+
+2003-07-24  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-615
 
 	* src/agendas.cc: Added missing _ after scalar_gas_absorption_agenda
