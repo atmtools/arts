@@ -90,23 +90,30 @@ end
 
 % Plot cloud box
 if exist('cloudbox_on','var') & cloudbox_on
-  i = cloudbox_limits(2);
-  [x1,y1] = cyl2cart( r_geoid(1,i)+z_field(1,i,1), alpha_grid(i) );
-  [x2,y2] = cyl2cart( r_geoid(1,i)+z_field(1,i,cloudbox_limits(1)), ...
+  i = cloudbox_limits(3);
+  [x1,y1] = cyl2cart( r_geoid(1,i)+z_field(1,i,cloudbox_limits(1)), ... 
+                                                               alpha_grid(i) );
+  [x2,y2] = cyl2cart( r_geoid(1,i)+z_field(1,i,cloudbox_limits(2)), ...
                                                                alpha_grid(i) );
   plot( [x1,x2]/lscale, [y1,y2]/lscale, 'm-' );
-  i = cloudbox_limits(3);
-  [x1,y1] = cyl2cart( r_geoid(1,i)+z_field(1,i,1), alpha_grid(i) );
-  [x2,y2] = cyl2cart( r_geoid(1,i)+z_field(1,i,cloudbox_limits(1)), ...
+  i = cloudbox_limits(4);
+  [x1,y1] = cyl2cart( r_geoid(1,i)+z_field(1,i,cloudbox_limits(1)), ...
+                                                               alpha_grid(i) );
+  [x2,y2] = cyl2cart( r_geoid(1,i)+z_field(1,i,cloudbox_limits(2)), ...
                                                                alpha_grid(i) );
   h2 = plot( [x1,x2]/lscale, [y1,y2]/lscale, 'm-' );
   h = [ h, h2 ];
   ltext{length(ltext)+1} = 'cloud box';
-  for i = cloudbox_limits(2):(cloudbox_limits(3)-1)
+  for i = cloudbox_limits(3):(cloudbox_limits(4)-1)
     np = max([ 2, ceil(npd*abs(alpha_grid(i)-alpha_grid(i+1))) ]);
-    plot_psurface( alpha_grid(i), alpha_grid(i+1), ...
+    if cloudbox_limits(1) > 0
+      plot_psurface( alpha_grid(i), alpha_grid(i+1), ...
                (r_geoid(1,i)+z_field(1,i,cloudbox_limits(1)))/lscale, ...
-        (r_geoid(1,i+1)+z_field(1,i+1,cloudbox_limits(1)))/lscale, np, 'm-' );
+         (r_geoid(1,i+1)+z_field(1,i+1,cloudbox_limits(1)))/lscale, np, 'm-' );
+    end
+    plot_psurface( alpha_grid(i), alpha_grid(i+1), ...
+               (r_geoid(1,i)+z_field(1,i,cloudbox_limits(2)))/lscale, ...
+         (r_geoid(1,i+1)+z_field(1,i+1,cloudbox_limits(2)))/lscale, np, 'm-' );
   end
   
 end

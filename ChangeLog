@@ -1,3 +1,11 @@
+2002-03-25  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-18
+
+	* ami/plot: Updated the plot_atm functions to follow the definition
+	of the cloud box. There can now be a gap between the cloud box and the
+	ground. 
+
 2002-03-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-17
