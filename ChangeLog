@@ -1,3 +1,13 @@
+2002-12-19  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* src/absorption.cc (SpeciesTag): Added white space removal to
+	constructor from string for SpeciesTag.
+
+	* src/m_absorption.cc (gas_speciesSet): Moved white space removal
+	to SpeciesTag constuctor.
+
+	* src/xml_io.cc: Work in progress (together with Oliver).
+
 2002-12-18  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-342

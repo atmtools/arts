@@ -71,7 +71,6 @@ SpeciesTag::SpeciesTag(String def)
   // Aux index:
   Index n;
 
-
   // Set frequency limits to default values (no limits):
   mlf = -1;
   muf = -1;
@@ -97,6 +96,23 @@ SpeciesTag::SpeciesTag(String def)
       def  = "";
     }
 
+  // Remove leading whitespace, if there is any:
+  while ( 0 != name.nelem() && (
+                                ' '  == name[0] ||
+                                '\t' == name[0] ||
+                                '\n' == name[0] ||
+                                '\r' == name[0]
+                                )
+          )    name.erase(0,1);
+
+  // Remove trailing whitespace, if there is any:
+  while ( 0 != name.nelem() && (
+                                ' '  == name[name.nelem()-1] ||
+                                '\t' == name[name.nelem()-1] ||
+                                '\n' == name[name.nelem()-1] ||
+                                '\r' == name[name.nelem()-1]
+                                )
+          )    name.erase(name.nelem()-1);
 
   //  cout << "name / def = " << name << " / " << def << endl;
 
@@ -110,7 +126,7 @@ SpeciesTag::SpeciesTag(String def)
   else
     {
       ostringstream os;
-      os << "Species " << name << " is not a valid species.";
+      os << "Species \"" << name << "\" is not a valid species.";
       throw runtime_error(os.str());
     }
 

@@ -1771,6 +1771,8 @@ xml_read_from_stream (istream&    is,
 
   stag = SpeciesTag (strbuf.str ());
 
+  is >> dummy;
+
   tag.read_from_stream (is);
   tag.check_name ("/SpeciesTag");
 }

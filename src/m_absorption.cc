@@ -70,10 +70,6 @@ void gas_speciesSet(// WS Output:
 
       for ( Index s=0; s<tag_def.nelem(); ++s )
         {
-          // Remove leading whitespace, if there is any:
-          while ( ' '  == tag_def[s][0] ||
-                  '\t' == tag_def[s][0]    )    tag_def[s].erase(0,1);
-
           SpeciesTag this_tag(tag_def[s]);
 
           // Safety check: For s>0 check that the tags belong to the same species.
