@@ -24,7 +24,7 @@
 #include "cloudbox.h"
 #include "interpolation.h"
 #include "make_vector.h"
-
+#include "xml_io.h"
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
 /*! 
@@ -89,9 +89,6 @@ void ext_mat_sptCalc(
 	      amp_coeffs,
 	      freq);
     }
- 
-  //cout <<  "The Extinction Matrix for single particle type: " << " \n " 
-  //   <<ext_mat_spt << " \n " ;
 }
 
 
@@ -204,7 +201,7 @@ void abs_vec_sptCalc(
       
       ConstTensor4View pha=pha_mat_spt(i,
 				       Range(joker),
-				      Range(joker),
+				       Range(joker),
 				       Range(joker),
 				       Range(joker));
       
@@ -216,9 +213,9 @@ void abs_vec_sptCalc(
 	      pha,
 	      scat_za_grid,
 	      scat_aa_grid);
+     
     }	   
-  // cout <<  "The Absorption Vector for single particle type: " << " \n " 
-  //   <<abs_vec_spt << " \n " ;
+  
 }
 
 
@@ -963,6 +960,7 @@ void i_fieldSet(Tensor6& i_field,
 	      
 	    }
 	}
+      xml_write_to_file("i_field_Set.xml", i_field);
       //cout<<i_field<<"\n";
     }
   if(atmosphere_dim == 3)

@@ -603,7 +603,7 @@ i_fieldUpdate1D(// WS Output:
 		      scat_f_index, 
                       f_grid);   
    
-      // cout << "ext_mat_spt is calculated"<<"\n";
+          
       // For a 1D atmosphere the azimuthal angle grid is not defined. 
       // Only 1 value, which is arbitrary set to 0, is passed into the function
       // abs_vec_sptCalc. 
@@ -622,12 +622,12 @@ i_fieldUpdate1D(// WS Output:
 		      pha_mat_spt,
 		      scat_za_grid, 
                       scat_aa_grid);
-     
+    
       //cout << "abs_vec_spt is calculated"<<"\n";
 	} // close loop over scat_aa_grid
     }// close loop over scat_za_grid
    
-  
+ 
 
   for(Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     { 
@@ -1127,7 +1127,9 @@ scat_fieldCalc(//WS Output:
   Index Naa = scat_aa_grid.nelem();
   Index Np  = i_field.nvitrines();//STR
   cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
-  Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
+  //Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
+  // now tensor5 after za_index_in index
+  Tensor5 product_field(Np,Nza,Nza, Naa, stokes_dim);
   Vector product_field_vec(stokes_dim);
   // scat_field is of the same size as *i_field*
   scat_field.resize( i_field.nvitrines(),
@@ -1165,7 +1167,7 @@ scat_fieldCalc(//WS Output:
 		      scat_za_grid.nelem(), 
 		      1,
 		      stokes_dim));
-        assert ( is_size( scat_field, 
+    assert ( is_size( scat_field, 
 		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
 		      1, 
 		      1,
@@ -1175,6 +1177,7 @@ scat_fieldCalc(//WS Output:
   }
   //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
+    Tensor5 product_field(Np, Nza, Nza, Naa, stokes_dim);
     
     /*there is a loop only over the pressure index when we calculate
       the pha_mat from pha_mat_spt and pnd_field using the method
@@ -1194,86 +1197,87 @@ scat_fieldCalc(//WS Output:
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
-	for (Index za_index = 0; za_index < Nza; ++ za_index)
+	
+	for (Index za_index_in = 0; za_index_in < Nza; ++ za_index_in)
 	  {
-	    for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-	      {
-		
-		ConstMatrixView pha = pha_mat(za_index,
-					      aa_index,
-					      Range(joker),
-					      Range(joker));
-		//cout<<"numer of vitrines"<<i_field.nvitrines()<<"\n";
-		ConstVectorView ifield_in = 
-		  i_field((p_index-cloudbox_limits[0]),
-			  //changed p_index above
-			  0,0,
-			  za_index,
-			  //aa_index,
-			  0,
-			  Range(joker));
-		
-		// just a multiplication of ifield_in and pha
-		
-		mult (product_field_vec, pha, ifield_in);
-		
-		for (Index i = 0; i < stokes_dim; i++)
+	    
+	    for (Index za_index = 0; za_index < Nza; ++ za_index)
+	     { 
+		for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
 		  {
+				
+		    ConstMatrixView pha = pha_mat(za_index,
+						  aa_index,
+						  Range(joker),
+						  Range(joker));
+
+		    ConstVectorView i_field_in = 
+		      i_field((p_index - cloudbox_limits[0]),
+			      0,
+			      0,
+			      za_index_in,
+			      0,
+			      Range(joker));
+
+		    mult(product_field( (p_index - cloudbox_limits[0]),
+					za_index_in,
+					za_index,
+					aa_index,
+					Range(joker)),
+			 pha, 
+			 i_field_in);
 		    
-		    product_field((p_index-cloudbox_limits[0]),
-				  //changed p_index
-				  za_index,
-				  aa_index, 
-				  i) = product_field_vec[i];
-		  }
-	      }
-	  }
-      }
+		  }//end aa_index loop
+	      }//end za_index_in loop
+	  }//end za_index loop
+      }//end pindex loop
     
-	    /*integration of the product of ifield_in and pha
-	      over zenith angle and azimuth angle grid. It calls
-	      here the integration routine AngIntegrate_trapezoid*/
+    /*integration of the product of ifield_in and pha
+      over zenith angle and azimuth angle grid. It calls
+      here the integration routine AngIntegrate_trapezoid*/
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
-	for (Index za_index = 0; za_index < Nza; ++ za_index)
-	  {
+	// Now only za_index_in index; removed za_index
+	for (Index za_index_in = 0; za_index_in < Nza; ++ za_index_in)
+	{
+	    
 	    for (Index i = 0; i < stokes_dim; i++)
 	      {
-		MatrixView product_field_mat = product_field((p_index-cloudbox_limits[0]),//changed p_index
-							     Range(joker),
-							     Range(joker),
-							     i);
+		MatrixView product_field_mat =
+		  product_field( (p_index - cloudbox_limits[0]),
+				 za_index_in,
+				 Range(joker),
+				 Range(joker),
+				 i);
 		
-	
-		scat_field((p_index-cloudbox_limits[0]),//changed p_index
+		
+		scat_field( (p_index - cloudbox_limits[0]),
 			   0,
 			   0,
-			   za_index, // by STR
-			   //Range(joker),commented by STR
-			   //Range(joker),commented by STR
+			   za_index_in, 
 			   0,
 			   i)  =   AngIntegrate_trapezoid(product_field_mat,
 							  scat_za_grid,
 							  scat_aa_grid);
 		
-	      }
-	  }//i closed it here 
-	
-      }
-  }
+	      }//end i loop
+	  }//end za_index_in loop
+      }//end p_index loop
+    
+  }//end atmosphere_dim = 1
   //cout<<"scat_field"<<scat_field<<"\n";	
   //exit(1);
   
   
   //When atmospheric dimension , atmosphere_dim = 3
-  if( atmosphere_dim == 3 ){
+  //  if( atmosphere_dim == 3 ){
     
     /*there is a loop only over the pressure index when we calculate
       the pha_mat from pha_mat_spt and pnd_field using the method
       pha_matCalc.  */
     
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+    /*for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
 	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
@@ -1300,48 +1304,38 @@ scat_fieldCalc(//WS Output:
 	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
 		   cloudbox_limits[5]; lon_index++)
 	      {
-		for (Index za_index = 0; za_index < Nza; ++ za_index)
+		for (Index za_index_in = 0; za_index_in < Nza; ++ za_index_in)
 		  {
-		    for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-		      {			
-			ConstMatrixView pha = pha_mat(za_index,
-						      aa_index,
-						      Range(joker),
-						      Range(joker));
-			
-			//ifield_in is a vector of size 4 if stokes_dim =1
-			ConstVectorView ifield_in =
-			  i_field((p_index-cloudbox_limits[0]),
-				  //changed p_index above
-				  (lat_index-cloudbox_limits[2]),
-				  //changed lat_index above
-				  (lon_index-cloudbox_limits[4]),
-				  //changed lat_index above
-				  za_index,
-				  aa_index,
-				  Range(joker));
-			
-			// just a multiplication of ifield_in and pha
-			
-			mult (product_field_vec, pha, ifield_in);
-			for (Index i = 0; i < stokes_dim; i++)
-			  {
-			    //??? should this inlcude latitude and longitude also 
+		    for (Index za_index = 0; za_index < Nza; ++ za_index)
+		      {
+			for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+			  {			
 			    product_field((p_index-cloudbox_limits[0]),
-					  za_index,
-					  aa_index,
-					  i) = product_field_vec[i];
+					  za_index,za_index_in,
+					  aa_index, 
+					  i) = pha_mat(za_index,
+						       aa_index,
+						       i,
+						       i) * 
+			      i_field((p_index-cloudbox_limits[0]),
+				      (lat_index-cloudbox_limits[2]),
+				      (lon_index-cloudbox_limits[4]),
+				      za_index_in,
+				      aa_index,
+				      Range(joker));
+			    
 			  }
 		      }
 		  }
 	      }
 	  }
       }
+ 
     
-    /*integration of the product of ifield_in and pha
-      over zenith angle and azimuth angle grid. It 
-      calls here the integration routine 
-      AngIntegrate_trapezoid*/
+    //integration of the product of ifield_in and pha
+    //  over zenith angle and azimuth angle grid. It 
+     //7 calls here the integration routine 
+      //AngIntegrate_trapezoid
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
@@ -1373,8 +1367,15 @@ scat_fieldCalc(//WS Output:
 	      }
 	  }
       }
-  }
+      }
+  static Index counter = 0;
+  counter = counter+1;
+  cout << "Number of iterations:   "<< counter << endl;
   
+  ostringstream os;
+  
+  os << counter;
+  xml_write_to_file("scat_field_" + os.str() + ".xml", scat_field); */
  
 }
   
