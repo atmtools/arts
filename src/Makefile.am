@@ -83,11 +83,11 @@ arts_DEPENDENCIES= \
 	auto_wsv_pointers.cc
 
 methods.o: arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h
-	$(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc
 
 species_data.o: arts.h make_array.h absorption.h
-	$(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
 arts: $(arts_DEPENDENCIES) $(arts_OBJECTS)
