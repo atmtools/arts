@@ -43,100 +43,100 @@ void ArrayOfGridPosPrint(
 
 void interp_atm_field_gp2itw( 
               Matrix&           itw, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon );
+        const ArrayOfGridPos&   gp_lon );
 
 void interp_atmfield_by_itw( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstTensor3View        x_field,
- 	const String&           x_field_name,
+        ConstTensor3View        x_field,
+        const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon,
-	ConstMatrixView         itw );
+        const ArrayOfGridPos&   gp_lon,
+        ConstMatrixView         itw );
 
 void interp_atmfield_by_gp( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstTensor3View        x_field,
- 	const String&           x_field_name,
+        ConstTensor3View        x_field,
+        const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon );
+        const ArrayOfGridPos&   gp_lon );
 
 Numeric interp_atmfield_by_gp( 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstTensor3View        x_field,
- 	const String&           x_field_name,
-        const GridPos&   	gp_p,
-        const GridPos&   	gp_lat,
-	const GridPos&   	gp_lon );
+        ConstTensor3View        x_field,
+        const String&           x_field_name,
+        const GridPos&          gp_p,
+        const GridPos&          gp_lat,
+        const GridPos&          gp_lon );
 
 void interp_atmsurface_gp2itw( 
               Matrix&           itw, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon );
+        const ArrayOfGridPos&   gp_lon );
 
 void interp_atmsurface_by_itw(
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_surface,
- 	const String&           x_surface_name,
+        ConstMatrixView         x_surface,
+        const String&           x_surface_name,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon,
+        const ArrayOfGridPos&   gp_lon,
         ConstMatrixView         itw );
 
 void interp_atmsurface_by_gp( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_field,
- 	const String&           x_field_name,
+        ConstMatrixView         x_field,
+        const String&           x_field_name,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon );
+        const ArrayOfGridPos&   gp_lon );
 
 Numeric interp_atmsurface_by_gp( 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_field,
- 	const String&           x_field_name,
-        const GridPos&   	gp_lat,
-	const GridPos&   	gp_lon );
+        ConstMatrixView         x_field,
+        const String&           x_field_name,
+        const GridPos&          gp_lat,
+        const GridPos&          gp_lon );
 
 void itw2p(
               VectorView       p_values,
         ConstVectorView        p_grid,
-	const ArrayOfGridPos&  gp,
-	ConstMatrixView        itw );
+        const ArrayOfGridPos&  gp,
+        ConstMatrixView        itw );
 
 void z_at_lat_2d(
-	     VectorView   	 z,
-        ConstVectorView   	 p_grid,
-        ConstVectorView   	 lat_grid,
+             VectorView          z,
+        ConstVectorView          p_grid,
+        ConstVectorView          lat_grid,
         ConstMatrixView          z_field,
-	const ArrayOfGridPos&    gp_lat );
+        const ArrayOfGridPos&    gp_lat );
 
 
 #endif // special_interp_h

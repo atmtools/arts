@@ -111,7 +111,7 @@ private:
 void parse_main(Agenda& tasklist, SourceText& text);
 
 void parse_agenda(Agenda& tasklist,
-		  SourceText& text);
+                  SourceText& text);
 
 
 #endif

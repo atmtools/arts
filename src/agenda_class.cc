@@ -449,20 +449,20 @@ void MRecord::print( ostream& os,
       os << '(';
 
       for (Index i=0; i<Output().nelem(); ++i)
-	{
-	  if (first) first=false;
-	  else os << ",";
+        {
+          if (first) first=false;
+          else os << ",";
 
-	  os << wsv_data[Output()[i]];
-	}
+          os << wsv_data[Output()[i]];
+        }
 
       for (Index i=0; i<Input().nelem(); ++i)
-	{
-	  if (first) first=false;
-	  else os << ",";
+        {
+          if (first) first=false;
+          else os << ",";
 
-	  os << wsv_data[Input()[i]];
-	}
+          os << wsv_data[Input()[i]];
+        }
 
       os << ')';
     }

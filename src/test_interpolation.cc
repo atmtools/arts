@@ -24,9 +24,9 @@ void test01()
 {
   cout << "Simple interpolation cases\n"
        << "--------------------------\n";
-  //  Vector og(5,5,-1);		// 5,4,3,2,1
-  Vector og(1,5,+1);		// 1, 2, 3, 4, 5
-  Vector ng(2,5,0.25);		// 2.0, 2,25, 2.5, 2.75, 3.0
+  //  Vector og(5,5,-1);                // 5,4,3,2,1
+  Vector og(1,5,+1);            // 1, 2, 3, 4, 5
+  Vector ng(2,5,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "og:\n" << og << "\n";
   cout << "ng:\n" << ng << "\n";
@@ -48,7 +48,7 @@ void test01()
 
     // Original field:
     Vector of(og.nelem(),0);
-    of[2] = 10;			// 0, 0, 10, 0, 0
+    of[2] = 10;                 // 0, 0, 10, 0, 0
 
     cout << "of:\n" << of << "\n";
 
@@ -71,7 +71,7 @@ void test01()
 
     // Original field:
     Matrix of(og.nelem(),og.nelem(),0);
-    of(2,2) = 10;			// 0 Matrix with 10 in the middle
+    of(2,2) = 10;                       // 0 Matrix with 10 in the middle
 
     cout << "of:\n" << of << "\n";
 
@@ -95,7 +95,7 @@ void test01()
     // Original field:
     Index n = og.nelem();
     Tensor6 of(n,n,n,n,n,n,0);
-    of(2,2,2,2,2,2) = 10;			// 0 Tensor with 10 in the middle
+    of(2,2,2,2,2,2) = 10;                       // 0 Tensor with 10 in the middle
 
     //    cout << "of:\n" << of << "\n";
 
@@ -119,7 +119,7 @@ void test01()
 
     // Original field:
     Matrix of(og.nelem(),og.nelem(),0);
-    of(2,2) = 10;			// 0 Matrix with 10 in the middle
+    of(2,2) = 10;                       // 0 Matrix with 10 in the middle
 
     cout << "of:\n" << of << "\n";
 
@@ -136,17 +136,17 @@ void test01()
   {
     // To store interpolation weights:
     Tensor7 itw(gp.nelem(),
-		gp.nelem(),
-		gp.nelem(),
-		gp.nelem(),
-		gp.nelem(),
-		gp.nelem(),
-		64);
+                gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                gp.nelem(),
+                64);
     interpweights(itw,gp,gp,gp,gp,gp,gp);
     
     // Original field:
     Tensor6 of(og.nelem(),og.nelem(),og.nelem(),og.nelem(),og.nelem(),og.nelem(),0);
-    of(2,2,2,2,2,2) = 10;			// 0 Tensor with 10 in the middle
+    of(2,2,2,2,2,2) = 10;                       // 0 Tensor with 10 in the middle
 
     cout << "Middle slice of of:\n" << of(2,2,2,2,Range(joker),Range(joker)) << "\n";
 
@@ -249,8 +249,8 @@ void test05()
 {
   cout << "Very simple interpolation case\n";
 
-  Vector og(1,5,+1);		// 1, 2, 3, 4, 5
-  Vector ng(2,5,0.25);		// 2.0, 2,25, 2.5, 2.75, 3.0
+  Vector og(1,5,+1);            // 1, 2, 3, 4, 5
+  Vector ng(2,5,0.25);          // 2.0, 2,25, 2.5, 2.75, 3.0
 
   cout << "Original grid:\n" << og << "\n";
   cout << "New grid:\n" << ng << "\n";
@@ -269,7 +269,7 @@ void test05()
 
   // Original field:
   Vector of(og.nelem(),0);
-  of[2] = 10;			// 0, 0, 10, 0, 0
+  of[2] = 10;                   // 0, 0, 10, 0, 0
 
   cout << "Original field:\n" << of << "\n";
 

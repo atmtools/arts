@@ -461,7 +461,7 @@ void define_md_data_raw()
   md_data_raw.push_back
     ( MdRecord
       ( NAME("AtmFieldsCalc"),
-	DESCRIPTION
+        DESCRIPTION
         (
          "Interpolated the atmospheric fields.\n"
          "\n"
@@ -476,18 +476,18 @@ void define_md_data_raw()
          "(*p_grid*, *lat_grid*, *lon_grid*). \n"
          "\n"
         ),
-	OUTPUT(t_field_, z_field_, vmr_field_),
-	INPUT(t_field_raw_, z_field_raw_, vmr_field_raw_, p_grid_, 
+        OUTPUT(t_field_, z_field_, vmr_field_),
+        INPUT(t_field_raw_, z_field_raw_, vmr_field_raw_, p_grid_, 
               lat_grid_, lon_grid_, atmosphere_dim_),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
  md_data_raw.push_back
     ( MdRecord
       ( NAME("AtmRawRead"),
-	DESCRIPTION
+        DESCRIPTION
         (
          "Reads atmospheric data from a scenario.\n"
          "\n"
@@ -517,12 +517,12 @@ void define_md_data_raw()
          "/smiles_local/arts-data/atmosphere/fascod/tropical \n"
          "\n"
         ),
-	OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
-	INPUT(gas_species_),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS("basename"),
-	TYPES(String_t)));
+        OUTPUT(t_field_raw_, z_field_raw_, vmr_field_raw_),
+        INPUT(gas_species_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("basename"),
+        TYPES(String_t)));
 
 
   md_data_raw.push_back
@@ -1938,11 +1938,11 @@ md_data_raw.push_back
          "This function determines a propagation path step by pure\n"
          "geometrical calculations. That is, refraction is neglected. Path\n"
          "points are always included for crossings with the grids, tangent\n"
-	 "points\ and points of ground intersections. The keyword *lmax* \n"
-	 "gives the option to include additional points to ensure that the\n"
-	 "distance along the path between the points does not exceed the \n"
-	 "selected maximum length. No additional points are included if\n"
-	 "*lmax* is set to be negative.\n"
+         "points\ and points of ground intersections. The keyword *lmax* \n"
+         "gives the option to include additional points to ensure that the\n"
+         "distance along the path between the points does not exceed the \n"
+         "selected maximum length. No additional points are included if\n"
+         "*lmax* is set to be negative.\n"
          "\n"
          "As functions of this kind should very seldom be called directly,\n"
          "and that the functions can be called a high number of times, these\n"
@@ -1951,7 +1951,7 @@ md_data_raw.push_back
          "\n"
          "For further information, type see the on-line information for\n"
          "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
-	 "\n"
+         "\n"
          "Keywords: \n"
          "   lmax      : Maximum allowed length between path points."
         ),
@@ -1975,10 +1975,10 @@ md_data_raw.push_back
          "possible. The path is treated to consist of piece-wise geometric \n"
          "steps. A geometric path step is calculated from each point by \n"
          "using the local line-of-sight. Except for 1D zenith angles, the\n"
-	 "path quantities are propagated by solving the differential \n"
-	 "equations by the Euler method. Snell's law for a case with \n"
+         "path quantities are propagated by solving the differential \n"
+         "equations by the Euler method. Snell's law for a case with \n"
          "spherical symmetry is used for 1D to update the zenith angles. \n"
-	 "\n"
+         "\n"
          "See further the on-line information for *ppath_stepGeometric*\n"
          "(type \"arts -d ppath_stepGeometric\") and the user guide for more\n"
          "details on the algorithms used.\n"
@@ -1988,16 +1988,16 @@ md_data_raw.push_back
          "given maximum value, but can be smaller. The ray tracing steps are\n"
          "only used to determine the path, points to describe the path for \n" 
          "*RteCalc* are included as for *ppath_stepGeometric*, this\n"
-	 "including the functionality for the keyword *lmax*.\n"
-	 "\n"
-	 "There exist two options for how to treat the refraction. It can be\n"
-	 "calculated for each ray tracing point. This is selected by setting\n"
-	 "*refrindex* to \"calc\". The other option, *refrindex*=\"interp\",\n"
-	 "means that refraction is calculated for the boundary of grid\n"
-	 "ranges (1D) and cells (2D and 3D) and is then interpolated inside\n"
-	 "the range/cell. The latter option can be much faster, but accurate\n"
-	 "calculations involving zenith angles around 90 degrees requieres\n"
-	 "a fine pressure grid.\n"
+         "including the functionality for the keyword *lmax*.\n"
+         "\n"
+         "There exist two options for how to treat the refraction. It can be\n"
+         "calculated for each ray tracing point. This is selected by setting\n"
+         "*refrindex* to \"calc\". The other option, *refrindex*=\"interp\",\n"
+         "means that refraction is calculated for the boundary of grid\n"
+         "ranges (1D) and cells (2D and 3D) and is then interpolated inside\n"
+         "the range/cell. The latter option can be much faster, but accurate\n"
+         "calculations involving zenith angles around 90 degrees requieres\n"
+         "a fine pressure grid.\n"
          "\n"
          "Keywords: \n"
          "   lraytrace : Maximum length of ray tracing steps.\n"

@@ -80,7 +80,7 @@ void ArrayOfGridPosPrint(
   cout << "  *" << x_name <<"*:\n";
   for( Index i=0; i<x.nelem(); i++ )
     cout << "     " << x[i].idx << "  " << x[i].fd[0] << "  " << x[i].fd[1] 
-	 << "\n";
+         << "\n";
 }
 
 
@@ -116,13 +116,13 @@ void ArrayOfGridPosPrint(
 */
 void interp_atmfield_gp2itw( 
               Matrix&           itw, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon )
+        const ArrayOfGridPos&   gp_lon )
 {
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
 
@@ -186,15 +186,15 @@ void interp_atmfield_gp2itw(
 */
 void interp_atmfield_by_itw( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstTensor3View        x_field,
- 	const String&           x_field_name,
+        ConstTensor3View        x_field,
+        const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon,
+        const ArrayOfGridPos&   gp_lon,
         ConstMatrixView         itw )
 {
   // Check consistency between field and grids
@@ -254,20 +254,20 @@ void interp_atmfield_by_itw(
 */
 void interp_atmfield_by_gp( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstTensor3View        x_field,
- 	const String&           x_field_name,
+        ConstTensor3View        x_field,
+        const String&           x_field_name,
         const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon )
+        const ArrayOfGridPos&   gp_lon )
 {
   Matrix itw;
 
   interp_atmfield_gp2itw( itw, atmosphere_dim, p_grid, lat_grid, 
- 			                      lon_grid, gp_p, gp_lat, gp_lon );
+                                              lon_grid, gp_p, gp_lat, gp_lon );
 
   interp_atmfield_by_itw( x, atmosphere_dim, p_grid, lat_grid, lon_grid,
                             x_field, x_field_name, gp_p, gp_lat, gp_lon, itw );
@@ -283,15 +283,15 @@ void interp_atmfield_by_gp(
     \date   2002-11-13
 */
 Numeric interp_atmfield_by_gp( 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstTensor3View        x_field,
- 	const String&           x_field_name,
-        const GridPos&   	gp_p,
-        const GridPos&   	gp_lat,
-	const GridPos&   	gp_lon )
+        ConstTensor3View        x_field,
+        const String&           x_field_name,
+        const GridPos&          gp_p,
+        const GridPos&          gp_lat,
+        const GridPos&          gp_lon )
 {
   ArrayOfGridPos agp_p(1), agp_lat(0), agp_lon(0);
 
@@ -344,11 +344,11 @@ Numeric interp_atmfield_by_gp(
 */
 void interp_atmsurface_gp2itw( 
               Matrix&           itw, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon )
+        const ArrayOfGridPos&   gp_lon )
 {
   if( atmosphere_dim == 1 )
     {
@@ -406,13 +406,13 @@ void interp_atmsurface_gp2itw(
 */
 void interp_atmsurface_by_itw( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_surface,
- 	const String&           x_surface_name,
+        ConstMatrixView         x_surface,
+        const String&           x_surface_name,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon,
+        const ArrayOfGridPos&   gp_lon,
         ConstMatrixView         itw )
 {
   // Check consistency between field and grids
@@ -471,18 +471,18 @@ void interp_atmsurface_by_itw(
 */
 void interp_atmsurface_by_gp( 
               VectorView        x, 
-        const Index&          	atmosphere_dim,
+        const Index&            atmosphere_dim,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_surface,
- 	const String&           x_surface_name,
+        ConstMatrixView         x_surface,
+        const String&           x_surface_name,
         const ArrayOfGridPos&   gp_lat,
-	const ArrayOfGridPos&   gp_lon )
+        const ArrayOfGridPos&   gp_lon )
 {
   Matrix itw;
 
   interp_atmsurface_gp2itw( itw, atmosphere_dim, lat_grid, 
- 			                            lon_grid, gp_lat, gp_lon );
+                                                    lon_grid, gp_lat, gp_lon );
 
   interp_atmsurface_by_itw( x, atmosphere_dim, lat_grid, lon_grid, 
                               x_surface, x_surface_name, gp_lat, gp_lon, itw );
@@ -501,10 +501,10 @@ Numeric interp_atmsurface_by_gp(
         const Index&       atmosphere_dim,
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
-	ConstMatrixView    x_surface,
- 	const String&      x_surface_name,
+        ConstMatrixView    x_surface,
+        const String&      x_surface_name,
         const GridPos&     gp_lat,
-	const GridPos&     gp_lon )
+        const GridPos&     gp_lon )
 {
   ArrayOfGridPos agp_lat(0), agp_lon(0);
 
@@ -561,7 +561,7 @@ Numeric interp_atmsurface_by_gp(
 void itw2p(
               VectorView       p_values,
         ConstVectorView        p_grid,
-	const ArrayOfGridPos&  gp,
+        const ArrayOfGridPos&  gp,
         ConstMatrixView        itw )
 {
   assert( itw.ncols() == 2 );
@@ -603,9 +603,9 @@ void itw2p(
     \date   2002-11-18
 */
 void z_at_lat_2d(
-	     VectorView   	 z,
-        ConstVectorView   	 p_grid,
-        ConstVectorView   	 lat_grid,
+             VectorView          z,
+        ConstVectorView          p_grid,
+        ConstVectorView          lat_grid,
         ConstMatrixView          z_field,
         const ArrayOfGridPos&    gp_lat )
 {

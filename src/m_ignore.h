@@ -40,9 +40,9 @@
 */
 template< class T >
 void Ignore(// WS Generic Input:
-	    const T& in,
-	    // WS Generic Input Names:
-	    const String& inname)
+            const T& in,
+            // WS Generic Input Names:
+            const String& inname)
 {
   // Nothing to do here.
 }

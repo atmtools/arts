@@ -40,47 +40,47 @@ int main()
       open_output_file(ofs,"auto_wsv_pointers.cc");
 
       ofs << "/** \\file  auto_wsv_pointers.cc\n"
-	  << "    Defines the smart pointers that are used by\n"
-	  << "    the engine to access workspace variables.\n\n"
+          << "    Defines the smart pointers that are used by\n"
+          << "    the engine to access workspace variables.\n\n"
 
-	  << "    This file was generated automatically by make_auto_wsv_pointers_cc.cc.\n"
+          << "    This file was generated automatically by make_auto_wsv_pointers_cc.cc.\n"
 
-	  << "    <b>DO NOT EDIT!</b>\n\n"
+          << "    <b>DO NOT EDIT!</b>\n\n"
 
-	  << "    \\date "
-	  << __DATE__ << ", "
-	  << __TIME__ << " */\n\n";
+          << "    \\date "
+          << __DATE__ << ", "
+          << __TIME__ << " */\n\n";
 
       ofs << "#include \"arts.h\"\n"
-	  << "//#include \"matpackI.h\"\n"
-	  << "#include \"array.h\"\n"
-	  << "#include \"auto_wsv_groups.h\"\n"
-	  << "#include \"wsv_aux.h\"\n"
-	  << "#include \"auto_wsv.h\"\n\n";
+          << "//#include \"matpackI.h\"\n"
+          << "#include \"array.h\"\n"
+          << "#include \"auto_wsv_groups.h\"\n"
+          << "#include \"wsv_aux.h\"\n"
+          << "#include \"auto_wsv.h\"\n\n";
 
       ofs << "/** The array of WSV pointers.\n"
-	  << "    This can be used to access a WSV by its index. */\n"
-	  << "Array<WsvP*> wsv_pointers;\n\n";
+          << "    This can be used to access a WSV by its index. */\n"
+          << "Array<WsvP*> wsv_pointers;\n\n";
       
       ofs << "void define_wsv_pointers(Array<WsvP*>&    ref_wsv_pointers,\n"
-	  << "                         WorkSpace&       workspace)\n"
-	  << "{\n\n";
+          << "                         WorkSpace&       workspace)\n"
+          << "{\n\n";
 
       // Now write the pointers one by one:
       for (Index i=0; i<n_wsv; ++i)
-	{
-	  const WsvRecord& wr = wsv_data[i];
+        {
+          const WsvRecord& wr = wsv_data[i];
 
-	  ofs << "  {\n"
-	      << "    static WsvPointer<"
-	      << wsv_group_names[wr.Group()]
-	      << "> p(&workspace."
-	      << wr.Name()
-	      << ");\n";
+          ofs << "  {\n"
+              << "    static WsvPointer<"
+              << wsv_group_names[wr.Group()]
+              << "> p(&workspace."
+              << wr.Name()
+              << ");\n";
 
-	  ofs << "    ref_wsv_pointers.push_back(&p);\n"
-	      << "  }\n\n";
-	}
+          ofs << "    ref_wsv_pointers.push_back(&p);\n"
+              << "  }\n\n";
+        }
 
       ofs << "};\n";
 

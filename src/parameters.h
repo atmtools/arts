@@ -59,9 +59,9 @@ struct Parameters {
   /** Longer message explaining the options. */
   String helptext;
   /** Only display the help text. */
-  bool help;			
+  bool help;                    
   /** Display version information. */
-  bool version;			
+  bool version;                 
   /** If this is specified (with the -b --basename option), it is used
       as the base name for the report file and for other output
       files. */ 

@@ -2170,15 +2170,15 @@ Tensor5View& Tensor5View::operator-=(const ConstTensor5View& x)
 /** Special constructor to make a Tensor5 view of a Tensor4. */
 Tensor5View::Tensor5View(const Tensor4View& a) :
   ConstTensor5View( a.mdata,
-		    Range(0,1,
-			  a.mbr.mextent*
-			  a.mpr.mextent*
-			  a.mrr.mextent*
-			  a.mcr.mextent),
-		    a.mbr,
-		    a.mpr,
-		    a.mrr,
-		    a.mcr )
+                    Range(0,1,
+                          a.mbr.mextent*
+                          a.mpr.mextent*
+                          a.mrr.mextent*
+                          a.mcr.mextent),
+                    a.mbr,
+                    a.mpr,
+                    a.mrr,
+                    a.mcr )
 {
   // Nothing to do here.
 }

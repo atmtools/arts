@@ -39,14 +39,14 @@
   \param output List of output WSVs.
   \param input List of input WSVs.
 */
-AgRecord::AgRecord( const char 		        name[],
-		    const char 		        description[],
-		    const MakeArray<Index>&     output,
-		    const MakeArray<Index>&     input ) :   
-  mname(          name            	  ),
-  mdescription(   description     	  ),    
-  moutput(        output       	  ),  
-  minput(         input        	  )
+AgRecord::AgRecord( const char                  name[],
+                    const char                  description[],
+                    const MakeArray<Index>&     output,
+                    const MakeArray<Index>&     input ) :   
+  mname(          name                    ),
+  mdescription(   description             ),    
+  moutput(        output          ),  
+  minput(         input           )
 { 
   // We must check that this agenda exists in the workspace
 
@@ -64,7 +64,7 @@ AgRecord::AgRecord( const char 		        name[],
   // still get an assertion failure, then check that you spelled
   // the name in exactly the same way in both places.
   assert( WsvMap.end() !=
-	  WsvMap.find(mname) );
+          WsvMap.find(mname) );
 }
 
 void define_agenda_map()
@@ -115,7 +115,7 @@ bool check_agenda_data()
       // Uncomment the cout statement above and recompile to see which
       // agenda causes the trouble.
       assert( WsvMap.end() !=
-	      WsvMap.find(agenda_data[i].Name()) );
+              WsvMap.find(agenda_data[i].Name()) );
     }
 
   // Check, that each agenda from wsv_data occurs in agenda_data:
@@ -123,23 +123,23 @@ bool check_agenda_data()
     {
       // Is this an agenda WSV?
       if ( Agenda_ == wsv_data[j].Group() )
-	{
-	  //	  cout << "Checking agenda_data for " << wsv_data[j].Name() << ".\n";
+        {
+          //      cout << "Checking agenda_data for " << wsv_data[j].Name() << ".\n";
 
-	  // Find returns end() if the name is not found in the map.  If
-	  // this assertion fails, it means that agenda_data does not contain
-	  // this agenda.
-	  // You have to add a record for your agenda in both files:
-	  // workspace.cc and agendas.cc. The name has to be spelled
-	  // exactly the same in both places.
-	  // Uncomment the cout statement above and recompile to see which
-	  // agenda causes the trouble.
-	  assert( AgendaMap.end() !=
-		  AgendaMap.find(wsv_data[j].Name()) );
+          // Find returns end() if the name is not found in the map.  If
+          // this assertion fails, it means that agenda_data does not contain
+          // this agenda.
+          // You have to add a record for your agenda in both files:
+          // workspace.cc and agendas.cc. The name has to be spelled
+          // exactly the same in both places.
+          // Uncomment the cout statement above and recompile to see which
+          // agenda causes the trouble.
+          assert( AgendaMap.end() !=
+                  AgendaMap.find(wsv_data[j].Name()) );
 
-	  // Counts the number of agenda WSVs in wsv_data:
-	  ++k;
-	}
+          // Counts the number of agenda WSVs in wsv_data:
+          ++k;
+        }
     }
 
   // As a last check we make sure that both lists contain the same
@@ -173,7 +173,7 @@ ostream& operator<<(ostream& os, const AgRecord& agr)
   //  os << "\n-----\nName = " << agr.Name() << '\n\n'
   //     << "Description =\n" << agr.Description() << "\n\n";
 
-  os <<	"Group  = Agenda\n";
+  os << "Group  = Agenda\n";
 
   // Output:
   first = true;
@@ -224,12 +224,12 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
       // No agenda.
       
       os << "\n*-------------------------------------------------------------------*\n"
-	 << "Workspace variable = " << wr.Name() 
-	 << "\n---------------------------------------------------------------------\n"
-	 << "\n" << wr.Description() << "\n" 
-	 << "\n---------------------------------------------------------------------\n"
-	 << "Group = " << wsv_group_names[wr.Group()]
-	 << "\n*-------------------------------------------------------------------*\n";
+         << "Workspace variable = " << wr.Name() 
+         << "\n---------------------------------------------------------------------\n"
+         << "\n" << wr.Description() << "\n" 
+         << "\n---------------------------------------------------------------------\n"
+         << "Group = " << wsv_group_names[wr.Group()]
+         << "\n*-------------------------------------------------------------------*\n";
     }
   else
     {
@@ -239,7 +239,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
       extern const std::map<String, Index> AgendaMap;
 
       map<String, Index>::const_iterator j =
-	AgendaMap.find( wr.Name() );
+        AgendaMap.find( wr.Name() );
 
       // Just for added safety, check that we really found something:
       assert( j != AgendaMap.end() );

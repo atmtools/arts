@@ -87,7 +87,7 @@ bool is_multiple( const Index& x, const Index& y )
   \return True if the size of x is l.
 */
 bool is_size( ConstVectorView   x,
-	      const Index&      n ) 
+              const Index&      n ) 
 {
   return( n == x.nelem() );
 }
@@ -100,11 +100,11 @@ bool is_size( ConstVectorView   x,
   \return True if the size of x is r x c.
 */
 bool is_size( ConstMatrixView   x,
-	      const Index&      r,
-	      const Index&      c ) 
+              const Index&      r,
+              const Index&      c ) 
 {
   return( r == x.nrows() &&
-	  c == x.ncols()     );
+          c == x.ncols()     );
 }
 
 //! Verifies that the size of x is [p,r,c].
@@ -116,13 +116,13 @@ bool is_size( ConstMatrixView   x,
   \return True if the size of x is correct.
 */
 bool is_size( ConstTensor3View  x,
-	      const Index&      p,
-	      const Index&      r,
-	      const Index&      c ) 
+              const Index&      p,
+              const Index&      r,
+              const Index&      c ) 
 {
   return( p == x.npages()     &&
-	  r == x.nrows()      &&
-	  c == x.ncols()     );
+          r == x.nrows()      &&
+          c == x.ncols()     );
 }
 
 //! Verifies that the size of x is [b,p,r,c].
@@ -135,15 +135,15 @@ bool is_size( ConstTensor3View  x,
   \return True if the size of x is correct.
 */
 bool is_size( ConstTensor4View  x,
-	      const Index&      b,
-	      const Index&      p,
-	      const Index&      r,
-	      const Index&      c ) 
+              const Index&      b,
+              const Index&      p,
+              const Index&      r,
+              const Index&      c ) 
 {
   return( b == x.nbooks()     &&
-	  p == x.npages()     &&
-	  r == x.nrows()      &&
-	  c == x.ncols()     );
+          p == x.npages()     &&
+          r == x.nrows()      &&
+          c == x.ncols()     );
 }
 
 //! Verifies that the size of x is [s,b,p,r,c].
@@ -157,17 +157,17 @@ bool is_size( ConstTensor4View  x,
   \return True if the size of x is correct.
 */
 bool is_size( ConstTensor5View  x,
-	      const Index&      s,
-	      const Index&      b,
-	      const Index&      p,
-	      const Index&      r,
-	      const Index&      c ) 
+              const Index&      s,
+              const Index&      b,
+              const Index&      p,
+              const Index&      r,
+              const Index&      c ) 
 {
   return( s == x.nshelves()   &&
-	  b == x.nbooks()     &&
-	  p == x.npages()     &&
-	  r == x.nrows()      &&
-	  c == x.ncols()     );
+          b == x.nbooks()     &&
+          p == x.npages()     &&
+          r == x.nrows()      &&
+          c == x.ncols()     );
 }
 
 //! Verifies that the size of x is [v,s,b,p,r,c].
@@ -182,19 +182,19 @@ bool is_size( ConstTensor5View  x,
   \return True if the size of x is correct.
 */
 bool is_size( ConstTensor6View  x,
-	      const Index&      v,
-	      const Index&      s,
-	      const Index&      b,
-	      const Index&      p,
-	      const Index&      r,
-	      const Index&      c ) 
+              const Index&      v,
+              const Index&      s,
+              const Index&      b,
+              const Index&      p,
+              const Index&      r,
+              const Index&      c ) 
 {
   return( v == x.nvitrines()  &&
-	  s == x.nshelves()   &&
-	  b == x.nbooks()     &&
-	  p == x.npages()     &&
-	  r == x.nrows()      &&
-	  c == x.ncols()     );
+          s == x.nshelves()   &&
+          b == x.nbooks()     &&
+          p == x.npages()     &&
+          r == x.nrows()      &&
+          c == x.ncols()     );
 }
 
 //! Verifies that the size of x is [l,v,s,b,p,r,c].
@@ -210,21 +210,21 @@ bool is_size( ConstTensor6View  x,
   \return True if the size of x is correct.
 */
 bool is_size( ConstTensor7View  x,
-	      const Index&      l,
-	      const Index&      v,
-	      const Index&      s,
-	      const Index&      b,
-	      const Index&      p,
-	      const Index&      r,
-	      const Index&      c ) 
+              const Index&      l,
+              const Index&      v,
+              const Index&      s,
+              const Index&      b,
+              const Index&      p,
+              const Index&      r,
+              const Index&      c ) 
 {
   return( l == x.nlibraries() &&
-	  v == x.nvitrines()  &&
-	  s == x.nshelves()   &&
-	  b == x.nbooks()     &&
-	  p == x.npages()     &&
-	  r == x.nrows()      &&
-	  c == x.ncols()     );
+          v == x.nvitrines()  &&
+          s == x.nshelves()   &&
+          b == x.nbooks()     &&
+          p == x.npages()     &&
+          r == x.nrows()      &&
+          c == x.ncols()     );
 }
 
 //! Checks if a vector is sorted in ascending order.
@@ -239,10 +239,10 @@ bool is_sorted( ConstVectorView   x )
   if( x.nelem() > 1 )
     {
       for( Index i=1; i<x.nelem(); i++ )
-	{
-	  if( x[i] < x[i-1] )
-	    return false;
-	}
+        {
+          if( x[i] < x[i-1] )
+            return false;
+        }
     }
   return true;
 }
@@ -259,10 +259,10 @@ bool is_increasing( ConstVectorView   x )
   if( x.nelem() > 1 )
     {
       for( Index i=1; i<x.nelem(); i++ )
-	{
-	  if( x[i] <= x[i-1] )
-	    return false;
-	}
+        {
+          if( x[i] <= x[i-1] )
+            return false;
+        }
     }
   return true;
 }
@@ -279,10 +279,10 @@ bool is_decreasing( ConstVectorView   x )
   if( x.nelem() > 1 )
     {
       for( Index i=1; i<x.nelem(); i++ )
-	{
-	  if( x[i] >= x[i-1] )
-	    return false;
-	}
+        {
+          if( x[i] >= x[i-1] )
+            return false;
+        }
     }
   return true;
 }
@@ -337,13 +337,13 @@ bool is_diagonal( ConstMatrixView A )
  assert( A.nrows() == A.ncols() );
  
  for( Index i=1; i<A.ncols(); i++ )
-	{
-	  for( Index j=0; j<i; j++ )
-	    {
-	      if( fabs(A(i,j)) > precision ||  
+        {
+          for( Index j=0; j<i; j++ )
+            {
+              if( fabs(A(i,j)) > precision ||  
                   fabs(A(j,i)) > precision )
-		return false;
-	    }
+                return false;
+            }
         }
  return true;
 }

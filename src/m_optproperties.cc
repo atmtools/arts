@@ -43,14 +43,14 @@ particle type.
 */
 
 void ext_mat_sptCalc(
-		     Tensor3& ext_mat_spt,
-		     const Tensor6& amp_mat,
-		     const Index& scat_za_index,
-		     const Index& scat_aa_index,
-		     const Index& f_index,
-		     const Vector& f_grid,
-		     const Index& stokes_dim)
-		     
+                     Tensor3& ext_mat_spt,
+                     const Tensor6& amp_mat,
+                     const Index& scat_za_index,
+                     const Index& scat_aa_index,
+                     const Index& f_index,
+                     const Vector& f_grid,
+                     const Index& stokes_dim)
+                     
 {
   Index npt = ext_mat_spt.npages();
     
@@ -63,12 +63,12 @@ void ext_mat_sptCalc(
       ext_mat_spt.ncols() != stokes_dim){
  
     throw runtime_error(" The dimension of the tensor ext_mat_spt should "
-			"agree to stokes_dim");
+                        "agree to stokes_dim");
   }
     
   if (amp_mat.ncols() != 8)
     throw runtime_error(
-			"Amplitude matrix must have 8 columns.");
+                        "Amplitude matrix must have 8 columns.");
   
  
  
@@ -78,15 +78,15 @@ void ext_mat_sptCalc(
   for (Index i = 0; i < npt; ++i)
     {
       ConstVectorView amp_coeffs = amp_mat(i,
-				      scat_za_index,
-				      scat_aa_index,
-				      scat_za_index,
-				      scat_aa_index,
-				      Range(joker)
-				      );
+                                      scat_za_index,
+                                      scat_aa_index,
+                                      scat_za_index,
+                                      scat_aa_index,
+                                      Range(joker)
+                                      );
       amp2ext(ext_mat_spt(i,Range(joker),Range(joker)),
-	      amp_coeffs,
-	      freq);
+              amp_coeffs,
+              freq);
     }
 }
 
@@ -108,12 +108,12 @@ single particle type.
 
 */
 void ext_mat_sptScat(
-		     Tensor3& ext_mat_spt,
+                     Tensor3& ext_mat_spt,
                      const Tensor5& pha_mat_spt,
-		     const Vector& scat_za_grid,
-		     const Vector& scat_aa_grid,
-		     const Index& stokes_dim)
-		    
+                     const Vector& scat_za_grid,
+                     const Vector& scat_aa_grid,
+                     const Index& stokes_dim)
+                    
 {
 
   Index npt = pha_mat_spt.nshelves();
@@ -134,17 +134,17 @@ void ext_mat_sptScat(
   if (pha_mat_spt.nrows() != stokes_dim || 
       pha_mat_spt.ncols() != stokes_dim ){
     throw runtime_error("The tensor pha_mat_spt should"
-			"have 4 rows and 4 columns");
+                        "have 4 rows and 4 columns");
   }
   
  
   for (Index i = 0; i < npt; ++i)
     {
       ConstTensor4View pha=pha_mat_spt(i,
-				       Range(joker),
-				       Range(joker),
-				       Range(joker),
-				       Range(joker));
+                                       Range(joker),
+                                       Range(joker),
+                                       Range(joker),
+                                       Range(joker));
       
       // ConstVectorView za_grid = scat_za_grid[scat_za_index];
       //ConstVectorView aa_grid = scat_aa_grid[scat_aa_index];
@@ -154,7 +154,7 @@ void ext_mat_sptScat(
                    scat_za_grid,
                    scat_aa_grid);
      
-    }	   
+    }      
 
 }
 
@@ -173,12 +173,12 @@ void ext_mat_sptScat(
 */
 
 void pha_mat_sptCalc(
-		     Tensor5& pha_mat_spt,
-		     const Tensor6& amp_mat,
-		     const Index& scat_za_index,
-		     const Index& scat_aa_index,
-		     const Index& stokes_dim)
-		     
+                     Tensor5& pha_mat_spt,
+                     const Tensor6& amp_mat,
+                     const Index& scat_za_index,
+                     const Index& scat_aa_index,
+                     const Index& stokes_dim)
+                     
 {
   Index npt = pha_mat_spt.nshelves();
  
@@ -190,7 +190,7 @@ void pha_mat_sptCalc(
   if (pha_mat_spt.nrows() != stokes_dim || 
       pha_mat_spt.ncols() != stokes_dim){
     throw runtime_error(" The dimension of the tensor pha_mat_spt should "
-			"agree to stokes_dim");
+                        "agree to stokes_dim");
   }
   if (amp_mat.ncols() != 8){
     throw runtime_error("Amplitude matrix must have 8 columns.");
@@ -200,15 +200,15 @@ void pha_mat_sptCalc(
   for (Index i = 0; i < npt; ++i)
     {
       ConstTensor3View amp_coeffs = amp_mat(i,
-					 scat_za_index,
-					 scat_aa_index,
-					 Range(joker),
-					 Range(joker),
-					 Range(joker)
-					 );
+                                         scat_za_index,
+                                         scat_aa_index,
+                                         Range(joker),
+                                         Range(joker),
+                                         Range(joker)
+                                         );
       amp2pha(pha_mat_spt(i, Range(joker), Range(joker), 
-			  Range(joker), Range(joker)),
-	      amp_coeffs); 
+                          Range(joker), Range(joker)),
+              amp_coeffs); 
     }
 }
 
@@ -226,13 +226,13 @@ void pha_mat_sptCalc(
 
 */
 void abs_vec_sptCalc(
-		     Matrix& abs_vec_spt,
-		     const Tensor3& ext_mat_spt,
-		     const Tensor5& pha_mat_spt,
-		     const Vector& scat_za_grid,
-		     const Vector& scat_aa_grid,
-		     const Index& stokes_dim)
-		     
+                     Matrix& abs_vec_spt,
+                     const Tensor3& ext_mat_spt,
+                     const Tensor5& pha_mat_spt,
+                     const Vector& scat_za_grid,
+                     const Vector& scat_aa_grid,
+                     const Index& stokes_dim)
+                     
 {
   Index npt = abs_vec_spt.nrows();
   Index nza = pha_mat_spt.nbooks(); 
@@ -249,19 +249,19 @@ void abs_vec_sptCalc(
   if (abs_vec_spt.ncols() != stokes_dim ){
     //Dimension should agree to stokes_dim !!!
     throw runtime_error("The dimension of  abs_vec_spt should"
-			"agree to stokes_dim");
+                        "agree to stokes_dim");
   }
   
   if (ext_mat_spt.nrows() != stokes_dim || 
       ext_mat_spt.ncols() != stokes_dim ){
     throw runtime_error("The tensor ext_mat_spt should"
-			" have 4 rows and 4 columns");
+                        " have 4 rows and 4 columns");
   }
   
   if (pha_mat_spt.nrows() != stokes_dim || 
       pha_mat_spt.ncols() != stokes_dim ){
     throw runtime_error("The tensor pha_mat_spt should"
-			"have 4 rows and 4 columns");
+                        "have 4 rows and 4 columns");
   }
   
   
@@ -269,25 +269,25 @@ void abs_vec_sptCalc(
   for (Index i = 0; i < npt; ++i)
     {
       ConstMatrixView ext = ext_mat_spt(i,
-					Range(joker),
-					Range(joker));
+                                        Range(joker),
+                                        Range(joker));
       
       ConstTensor4View pha=pha_mat_spt(i,
-				       Range(joker),
-				       Range(joker),
-				       Range(joker),
-				       Range(joker));
+                                       Range(joker),
+                                       Range(joker),
+                                       Range(joker),
+                                       Range(joker));
       
       // ConstVectorView za_grid = scat_za_grid[scat_za_index];
       //ConstVectorView aa_grid = scat_aa_grid[scat_aa_index];
       
       amp2abs(abs_vec_spt(i, Range(joker)),
-	      ext,
-	      pha,
-	      scat_za_grid,
-	      scat_aa_grid);
+              ext,
+              pha,
+              scat_za_grid,
+              scat_aa_grid);
      
-    }	   
+    }      
 }
 
 
@@ -309,16 +309,16 @@ void abs_vec_sptCalc(
   
 */
 void ext_matAddPart(
-		      Tensor3& ext_mat,
+                      Tensor3& ext_mat,
                       const Tensor3& ext_mat_spt,
-		      const Tensor4& pnd_field,
-		      const Index& atmosphere_dim,
-		      const Index& scat_p_index,
-		      const Index& scat_lat_index,
-		      const Index& scat_lon_index,
-		      const Index& stokes_dim
-		      ) 
-		     
+                      const Tensor4& pnd_field,
+                      const Index& atmosphere_dim,
+                      const Index& scat_p_index,
+                      const Index& scat_lat_index,
+                      const Index& scat_lon_index,
+                      const Index& stokes_dim
+                      ) 
+                     
 {
   Index N_pt = ext_mat_spt.npages();
  
@@ -327,26 +327,26 @@ void ext_matAddPart(
   
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error(
-			"The dimension of stokes vector can be "
-			"only 1,2,3, or 4");
+                        "The dimension of stokes vector can be "
+                        "only 1,2,3, or 4");
   }
 
   if (atmosphere_dim == 1)
     {
       // this is a loop over the different particle types
       for (Index l = 0; l < N_pt; l++)
-	{ 
-	  
-	  // now the last two loops over the stokes dimension.
-	  for (Index m = 0; m < stokes_dim; m++)
-	    {
-	      for (Index n = 0; n < stokes_dim; n++)
-	       //summation of the product of pnd_field and 
-		//ext_mat_spt.
-	      ext_mat_part(m, n) += 
-		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
-	    }
-	}
+        { 
+          
+          // now the last two loops over the stokes dimension.
+          for (Index m = 0; m < stokes_dim; m++)
+            {
+              for (Index n = 0; n < stokes_dim; n++)
+               //summation of the product of pnd_field and 
+                //ext_mat_spt.
+              ext_mat_part(m, n) += 
+                (ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
+            }
+        }
 
       //Add particle extinction matrix to *ext_mat*.
       ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
@@ -357,21 +357,21 @@ void ext_matAddPart(
       
       // this is a loop over the different particle types
       for (Index l = 0; l < N_pt; l++)
-	{ 
-	  
-	  // now the last two loops over the stokes dimension.
-	  for (Index m = 0; m < stokes_dim; m++)
-	    {
-	      for (Index n = 0; n < stokes_dim; n++)
-		 //summation of the product of pnd_field and 
-		//ext_mat_spt.
-		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
-					pnd_field(l, scat_p_index, 
-						  scat_lat_index, 
-						  scat_lon_index));
-	      
-	    } 
-	}
+        { 
+          
+          // now the last two loops over the stokes dimension.
+          for (Index m = 0; m < stokes_dim; m++)
+            {
+              for (Index n = 0; n < stokes_dim; n++)
+                 //summation of the product of pnd_field and 
+                //ext_mat_spt.
+                ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
+                                        pnd_field(l, scat_p_index, 
+                                                  scat_lat_index, 
+                                                  scat_lon_index));
+              
+            } 
+        }
 
       //Add particle extinction matrix to *ext_mat*.
       ext_mat += ext_mat_part;
@@ -397,16 +397,16 @@ void ext_matAddPart(
   \param stokes_dim  Input : stokes dimension
 */
 void abs_vecAddPart(
-		      Matrix& abs_vec,
+                      Matrix& abs_vec,
                       const Matrix& abs_vec_spt,
-		      const Tensor4& pnd_field,
-		      const Index& atmosphere_dim,
-		      const Index& scat_p_index,
-		      const Index& scat_lat_index,
-		      const Index& scat_lon_index,
+                      const Tensor4& pnd_field,
+                      const Index& atmosphere_dim,
+                      const Index& scat_p_index,
+                      const Index& scat_lat_index,
+                      const Index& scat_lon_index,
                       const Index& stokes_dim
                       ) 
-		    
+                    
 {
   Index N_pt = abs_vec_spt.nrows();
   
@@ -421,16 +421,16 @@ void abs_vecAddPart(
     {
       // this is a loop over the different particle types
       for (Index l = 0; l < N_pt ; ++l)
-	{
-	  // now the loop over the stokes dimension.
+        {
+          // now the loop over the stokes dimension.
           //(CE:) in the middle was l instead of m
-	  for (Index m = 0; m < stokes_dim; ++m)
-	     //summation of the product of pnd_field and 
-	    //abs_vec_spt.
-	    abs_vec_part[m] += 
-	      (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
-	  
-	}
+          for (Index m = 0; m < stokes_dim; ++m)
+             //summation of the product of pnd_field and 
+            //abs_vec_spt.
+            abs_vec_part[m] += 
+              (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
+          
+        }
       //Add the particle absorption
       abs_vec(0, Range(joker)) += abs_vec_part;
     }
@@ -439,18 +439,18 @@ void abs_vecAddPart(
     {
       // this is a loop over the different particle types
       for (Index l = 0; l < N_pt ; ++l)
-	{
-	  
-	  // now the loop over the stokes dimension.
-	  for (Index m = 0; m < stokes_dim; ++m)
-	     //summation of the product of pnd_field and 
-	    //abs_vec_spt.
-	    abs_vec_part[m] += (abs_vec_spt(l, m) *
-				pnd_field(l, scat_p_index,
-					  scat_lat_index, 
-					  scat_lon_index));
-	  
-	}
+        {
+          
+          // now the loop over the stokes dimension.
+          for (Index m = 0; m < stokes_dim; ++m)
+             //summation of the product of pnd_field and 
+            //abs_vec_spt.
+            abs_vec_part[m] += (abs_vec_spt(l, m) *
+                                pnd_field(l, scat_p_index,
+                                          scat_lat_index, 
+                                          scat_lon_index));
+          
+        }
       //Add the particle absorption
       abs_vec(0,Range(joker)) += abs_vec_part;
     }
@@ -473,10 +473,10 @@ void abs_vecAddPart(
 // \param scat_p_index Input : The index corresponding to the pressure grid
 // */
 // void abs_vec_gasExample(Vector& abs_vec,
-// 			const Vector& p_grid,
-// 			const Index& atmosphere_dim,
-// 			const Index& stokes_dim,
-// 			const Index& scat_p_index) 
+//                      const Vector& p_grid,
+//                      const Index& atmosphere_dim,
+//                      const Index& stokes_dim,
+//                      const Index& scat_p_index) 
 // {
 //   abs_vec.resize( stokes_dim );
 //   Vector abs_gas( p_grid.nelem() );
@@ -501,41 +501,41 @@ void abs_vecAddPart(
 //  //This is a typical absorption calculated from arts.1.0 (mls)
   
 //     MakeVector typical_abs(0.0164163638663716,
-// 			   0.00768271579907592,
-// 			   0.00294668635075111,
-// 			   0.00125411825404778,
-// 			   0.000570445848162073,
-// 			   0.000236462958473072,
-// 			   4.40975932116215e-05,
-// 			   7.31218846316807e-06,
-// 			   3.643089167928e-06,
-// 			   3.12497184475723e-06);
+//                         0.00768271579907592,
+//                         0.00294668635075111,
+//                         0.00125411825404778,
+//                         0.000570445848162073,
+//                         0.000236462958473072,
+//                         4.40975932116215e-05,
+//                         7.31218846316807e-06,
+//                         3.643089167928e-06,
+//                         3.12497184475723e-06);
     
 // //This is a typical absorption calculated from arts.1.0 (mlw)
   
 //     /*MakeVector typical_abs(0.00433659795310861,
-// 			   0.00267195350007522,
-// 			   0.00122676231151285,
-// 			   0.000524902357458338,
-// 			   0.000142742001685155,
-// 			   4.65799636740885e-05,
-// 			   1.07249251986862e-05,
-// 			   5.85896298848906e-06,
-// 			   4.94996692358466e-06,
-// 			   4.35302994835574e-06);*/
+//                         0.00267195350007522,
+//                         0.00122676231151285,
+//                         0.000524902357458338,
+//                         0.000142742001685155,
+//                         4.65799636740885e-05,
+//                         1.07249251986862e-05,
+//                         5.85896298848906e-06,
+//                         4.94996692358466e-06,
+//                         4.35302994835574e-06);*/
 
 
 //     //The pressure grid for the above calculation (mlw)
 //     MakeVector typical_abs_pgrid(100000,
-// 				 77426.3682681127,
-// 				 59948.4250318941,
-// 				 46415.8883361278,
-// 				 35938.1366380463,
-// 				 27825.5940220712,
-// 				 21544.3469003188,
-// 				 16681.0053720006,
-// 				 12915.4966501488,
-// 				 10000);
+//                               77426.3682681127,
+//                               59948.4250318941,
+//                               46415.8883361278,
+//                               35938.1366380463,
+//                               27825.5940220712,
+//                               21544.3469003188,
+//                               16681.0053720006,
+//                               12915.4966501488,
+//                               10000);
 //     //p_grid is the new pressure grid
 //     ArrayOfGridPos p_gp(p_grid.nelem());
 
@@ -549,12 +549,12 @@ void abs_vecAddPart(
       
 //     for (Index i = 0; i<stokes_dim; ++i)
 //       {
-// 	if (i == 0){
-// 	  abs_vec[i] = abs_gas[scat_p_index];
-// 	}
-// 	else{
-// 	  abs_vec[i] = 0.0;
-// 	}
+//      if (i == 0){
+//        abs_vec[i] = abs_gas[scat_p_index];
+//      }
+//      else{
+//        abs_vec[i] = 0.0;
+//      }
 //       }
 //   }
   
@@ -590,17 +590,17 @@ void ext_matAddGas(Tensor3& ext_mat,
   
     for (Index i =0; i < stokes_dim; ++i)
       {
-	for (Index j =0; j < stokes_dim; ++j)
-	  {
-	    
-	    if ( i == j){
-	      // Dies ist noch Quatsch!!!
-	      ext_mat_gas(i,j) = abs_scalar_gas[0];
-	    }
-	    else{
-	      ext_mat_gas(i,j) = 0.0;
-	    }
-	  }
+        for (Index j =0; j < stokes_dim; ++j)
+          {
+            
+            if ( i == j){
+              // Dies ist noch Quatsch!!!
+              ext_mat_gas(i,j) = abs_scalar_gas[0];
+            }
+            else{
+              ext_mat_gas(i,j) = 0.0;
+            }
+          }
       }
   
   ext_mat(0, Range(joker), Range(joker)) += ext_mat_gas;
@@ -634,7 +634,7 @@ void abs_vecAddGas(Matrix& abs_vec,
     for (Index i = 1; i < stokes_dim; ++i)
       {
         abs_vec_gas[i] = 0.0;
-	  
+          
       }
     
     abs_vec(0, Range(joker)) += abs_vec_gas;
@@ -660,14 +660,14 @@ void abs_vecAddGas(Matrix& abs_vec,
 */
 
 void pha_matCalc(
-		 Tensor4& pha_mat,
-		 const Tensor5& pha_mat_spt,
-		 const Tensor4& pnd_field,
-		 const Index& atmosphere_dim,
-		 const Index& scat_p_index,
-		 const Index& scat_lat_index,
-		 const Index& scat_lon_index) 
-		      
+                 Tensor4& pha_mat,
+                 const Tensor5& pha_mat_spt,
+                 const Tensor4& pnd_field,
+                 const Index& atmosphere_dim,
+                 const Index& scat_p_index,
+                 const Index& scat_lat_index,
+                 const Index& scat_lon_index) 
+                      
 {
 
   Index N_pt = pha_mat_spt.nshelves();
@@ -681,79 +681,79 @@ void pha_matCalc(
   for (Index za_index = 0; za_index < Nza; ++ za_index)
     {
       for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-	{
-	  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
-	       ++ stokes_index_1)
-	    {
-	      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim; 
-		   ++ stokes_index_2)
-		pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2)
+        {
+          for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+               ++ stokes_index_1)
+            {
+              for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim; 
+                   ++ stokes_index_2)
+                pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2)
 
-		  = 0.0;
-	    }
-	}
+                  = 0.0;
+            }
+        }
     }
   if (atmosphere_dim == 1)
     {
       // this is a loop over the different particle types
       for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
-	{
-	  	  
-	  // these are loops over zenith angle and azimuth angle
-	  for (Index za_index = 0; za_index < Nza; ++ za_index)
-	    {
-	      for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-		{
-		  
-		  // now the last two loops over the stokes dimension.
-		  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim; 
-		       ++  stokes_index_1)
-		    {
-		      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
-			   ++ stokes_index_2)
-			 //summation of the product of pnd_field and 
-			  //pha_mat_spt.
-			pha_mat(za_index, aa_index,  
-				     stokes_index_1, stokes_index_2) += 
-			  
-			  (pha_mat_spt(pt_index, za_index, aa_index,  
-				       stokes_index_1, stokes_index_2) * 
-			   pnd_field(pt_index,scat_p_index, 0, 0));
-		    }
-		}
-	    }
-	}
+        {
+                  
+          // these are loops over zenith angle and azimuth angle
+          for (Index za_index = 0; za_index < Nza; ++ za_index)
+            {
+              for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+                {
+                  
+                  // now the last two loops over the stokes dimension.
+                  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim; 
+                       ++  stokes_index_1)
+                    {
+                      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+                           ++ stokes_index_2)
+                         //summation of the product of pnd_field and 
+                          //pha_mat_spt.
+                        pha_mat(za_index, aa_index,  
+                                     stokes_index_1, stokes_index_2) += 
+                          
+                          (pha_mat_spt(pt_index, za_index, aa_index,  
+                                       stokes_index_1, stokes_index_2) * 
+                           pnd_field(pt_index,scat_p_index, 0, 0));
+                    }
+                }
+            }
+        }
     }
-	  
+          
   if (atmosphere_dim == 3)
     {
       // this is a loop over the different particle types
       for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
-	{
-	  
-	  // these are loops over zenith angle and azimuth angle
-	  for (Index za_index = 0; za_index < Nza; ++ za_index)
-	    {
-	      for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-		{
-		  
-		  // now the last two loops over the stokes dimension.
-		  for (Index i = 0;  i < stokes_dim; ++  i)
-		    {
-		      for (Index j = 0; j < stokes_dim; ++ j)
-			{
-			  //summation of the product of pnd_field and 
-			  //pha_mat_spt.
-			  pha_mat(za_index, aa_index, i,j ) += 
-			    (pha_mat_spt(pt_index, za_index, aa_index, i, j) * 
-			     pnd_field(pt_index, scat_p_index,  
-				       scat_lat_index, scat_lon_index));
-			  
-			} 
-		    }
-		}
-	    }
-	}
+        {
+          
+          // these are loops over zenith angle and azimuth angle
+          for (Index za_index = 0; za_index < Nza; ++ za_index)
+            {
+              for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+                {
+                  
+                  // now the last two loops over the stokes dimension.
+                  for (Index i = 0;  i < stokes_dim; ++  i)
+                    {
+                      for (Index j = 0; j < stokes_dim; ++ j)
+                        {
+                          //summation of the product of pnd_field and 
+                          //pha_mat_spt.
+                          pha_mat(za_index, aa_index, i,j ) += 
+                            (pha_mat_spt(pt_index, za_index, aa_index, i, j) * 
+                             pnd_field(pt_index, scat_p_index,  
+                                       scat_lat_index, scat_lon_index));
+                          
+                        } 
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -780,14 +780,14 @@ void pha_matCalc(
 //   \param scat_lon_index Input : Longitude index for scattering calculations.
 // */
 // void ext_mat_partScat(
-// 		      Matrix& ext_mat_part,
-// 		      const Tensor3& ext_mat_spt,
-// 		      const Tensor4& pnd_field,
-// 		      const Index& atmosphere_dim,
-// 		      const Index& scat_p_index,
-// 		      const Index& scat_lat_index,
-// 		      const Index& scat_lon_index) 
-		     
+//                    Matrix& ext_mat_part,
+//                    const Tensor3& ext_mat_spt,
+//                    const Tensor4& pnd_field,
+//                    const Index& atmosphere_dim,
+//                    const Index& scat_p_index,
+//                    const Index& scat_lat_index,
+//                    const Index& scat_lon_index) 
+                     
 // {
 //   Index N_pt = ext_mat_spt.npages();
 //   Index stokes_dim = ext_mat_spt.nrows();
@@ -797,46 +797,46 @@ void pha_matCalc(
 //   for (Index m = 0; m < stokes_dim; m++)
 //     {
 //       for (Index n = 0; n < stokes_dim; n++)
-// 	ext_mat_part(m, n) = 0.0;// Initialisation
+//      ext_mat_part(m, n) = 0.0;// Initialisation
 //     }
  
 //   if (atmosphere_dim == 1)
 //     {
 //       // this is a loop over the different particle types
 //       for (Index l = 0; l < N_pt; l++)
-// 	{ 
-	  
-// 	  // now the last two loops over the stokes dimension.
-// 	  for (Index m = 0; m < stokes_dim; m++)
-// 	    {
-// 	      for (Index n = 0; n < stokes_dim; n++)
-// 	       //summation of the product of pnd_field and 
-// 		//ext_mat_conv_spt.
-// 	      ext_mat_part(m, n) += 
-// 		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
-// 	    }
-// 	}
+//      { 
+          
+//        // now the last two loops over the stokes dimension.
+//        for (Index m = 0; m < stokes_dim; m++)
+//          {
+//            for (Index n = 0; n < stokes_dim; n++)
+//             //summation of the product of pnd_field and 
+//              //ext_mat_conv_spt.
+//            ext_mat_part(m, n) += 
+//              (ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
+//          }
+//      }
 //     }
 //   if (atmosphere_dim == 3)
 //     {
       
 //       // this is a loop over the different particle types
 //       for (Index l = 0; l < N_pt; l++)
-// 	{ 
-	  
-// 	  // now the last two loops over the stokes dimension.
-// 	  for (Index m = 0; m < stokes_dim; m++)
-// 	    {
-// 	      for (Index n = 0; n < stokes_dim; n++)
-// 		 //summation of the product of pnd_field and 
-// 		//ext_mat_conv_spt.
-// 		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
-// 					pnd_field(l, scat_p_index, 
-// 						  scat_lat_index, 
-// 						  scat_lon_index));
-	      
-// 	    } 
-// 	}
+//      { 
+          
+//        // now the last two loops over the stokes dimension.
+//        for (Index m = 0; m < stokes_dim; m++)
+//          {
+//            for (Index n = 0; n < stokes_dim; n++)
+//               //summation of the product of pnd_field and 
+//              //ext_mat_conv_spt.
+//              ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
+//                                      pnd_field(l, scat_p_index, 
+//                                                scat_lat_index, 
+//                                                scat_lon_index));
+              
+//          } 
+//      }
 //     }
 // } 
 
@@ -890,11 +890,11 @@ void pha_matCalc(
   properties are to be calculated 
 */
 void amp_matCalc(Tensor6& amp_mat,
-		 const ArrayOfArrayOfTensor6& amp_mat_raw,
-		 const Index& f_index,
-		 const Vector& f_grid,
-		 const Vector& scat_za_grid,
-		 const Vector& scat_aa_grid)
+                 const ArrayOfArrayOfTensor6& amp_mat_raw,
+                 const Index& f_index,
+                 const Vector& f_grid,
+                 const Vector& scat_za_grid,
+                 const Vector& scat_aa_grid)
 {
   Index N_pt = amp_mat_raw.nelem();
   
@@ -904,7 +904,7 @@ void amp_matCalc(Tensor6& amp_mat,
 
   if (N_0 != 8)
     throw runtime_error(
-			"Amplitude matrix must have 8 columns because there"
+                        "Amplitude matrix must have 8 columns because there"
                         "are 4 real and 4 complex components stored"
                         "separately");
 
@@ -961,40 +961,40 @@ void amp_matCalc(Tensor6& amp_mat,
        formally but with one element given by the f_index*/
        //cout<<f_index<<"\n";
        gridpos (f_gp,
-		amp_mat_raw [ ipt ]  [ 0 ] ( Range(joker), 0, 0, 0, 0, 0),
-		f_grid[Range(f_index, 1)]);
+                amp_mat_raw [ ipt ]  [ 0 ] ( Range(joker), 0, 0, 0, 0, 0),
+                f_grid[Range(f_index, 1)]);
        
        //like for frquency we can get the gridpostions for the angular grids.
 
        gridpos (za_gp, 
-		amp_mat_raw [ ipt ] [  1 ] ( 0, Range(joker), 0, 0, 0, 0),
-		scat_za_grid);
+                amp_mat_raw [ ipt ] [  1 ] ( 0, Range(joker), 0, 0, 0, 0),
+                scat_za_grid);
       
        gridpos (aa_gp,
-		amp_mat_raw [ ipt ] [ 2 ] ( 0, 0, Range(joker), 0, 0, 0),
-	       scat_aa_grid);
+                amp_mat_raw [ ipt ] [ 2 ] ( 0, 0, Range(joker), 0, 0, 0),
+               scat_aa_grid);
 
        gridpos (za_in_gp, 
-		amp_mat_raw [ ipt ] [ 3 ] ( 0, 0, 0, Range(joker), 0, 0),
-	       scat_za_grid);
+                amp_mat_raw [ ipt ] [ 3 ] ( 0, 0, 0, Range(joker), 0, 0),
+               scat_za_grid);
 
        gridpos (aa_in_gp,
-		amp_mat_raw [ ipt ] [ 4] ( 0, 0, 0, 0, Range(joker), 0),
-		scat_aa_grid);
+                amp_mat_raw [ ipt ] [ 4] ( 0, 0, 0, 0, Range(joker), 0),
+                scat_aa_grid);
        
        /*The interpolation weights. Since here we interpolate 
-	 simultaneously in 5 dimensions we require exactly 32 
-	 interpolation weights. (There are 2^n interpolation 
-	 weights for an n-dimensional interpolation. ).  Since
-	 in ARTS we want to save a lot by re-using the weights
-	 the interpolation weights are stored in a tensor whcih
-	 has one more dimension than the output field. The last 
-	 dimension is for weight, this explains the last dimension
-	 of interpolation weight to be 32 in this case.
-	 */
+         simultaneously in 5 dimensions we require exactly 32 
+         interpolation weights. (There are 2^n interpolation 
+         weights for an n-dimensional interpolation. ).  Since
+         in ARTS we want to save a lot by re-using the weights
+         the interpolation weights are stored in a tensor whcih
+         has one more dimension than the output field. The last 
+         dimension is for weight, this explains the last dimension
+         of interpolation weight to be 32 in this case.
+         */
        
        Tensor6 itw(1, scat_za_grid.nelem(), scat_aa_grid.nelem(),
-		   scat_za_grid.nelem(), scat_aa_grid.nelem(), 32);
+                   scat_za_grid.nelem(), scat_aa_grid.nelem(), 32);
 
        //function for computing interpolation weight tensor. For this
        //step also we need only gridpositions, not the field yet.
@@ -1003,38 +1003,38 @@ void amp_matCalc(Tensor6& amp_mat,
        // This is a green interpolation for all columns of source_amp.
        // Loop over the column
        for (Index i = 0 ; i < N_i ; ++ i)
-	 {
-	   /*Select the current column of target.  The first element 
-	     of target is the running variable ipt, whcih gives the
-	     particle type.*/
-	   Tensor5View target_amp = amp_mat(Range(ipt, 1),
-					    Range(joker),
-					    Range(joker),
-					    Range(joker),
-					    Range(joker),
-					    i);
-	   
-	   //Select the current column of source.  Here the first
-	   //element is frequency
-	   ConstTensor5View source_amp = 
-	     amp_mat_raw [ ipt ][6 + 7* ipt](Range(joker),
-				      Range(joker),
-				      Range(joker),
-				      Range(joker),
-				      Range(joker),
-				      i);
+         {
+           /*Select the current column of target.  The first element 
+             of target is the running variable ipt, whcih gives the
+             particle type.*/
+           Tensor5View target_amp = amp_mat(Range(ipt, 1),
+                                            Range(joker),
+                                            Range(joker),
+                                            Range(joker),
+                                            Range(joker),
+                                            i);
+           
+           //Select the current column of source.  Here the first
+           //element is frequency
+           ConstTensor5View source_amp = 
+             amp_mat_raw [ ipt ][6 + 7* ipt](Range(joker),
+                                      Range(joker),
+                                      Range(joker),
+                                      Range(joker),
+                                      Range(joker),
+                                      i);
 
-	   //Interpolation is done :
-	   interp (target_amp, 
-		   itw, 
-		   source_amp, 
-		   f_gp, 
-		   za_gp,
-		   aa_gp,
-		   za_in_gp,
-		   aa_in_gp);
-	   
-	 }//close column index
+           //Interpolation is done :
+           interp (target_amp, 
+                   itw, 
+                   source_amp, 
+                   f_gp, 
+                   za_gp,
+                   aa_gp,
+                   za_in_gp,
+                   aa_in_gp);
+           
+         }//close column index
      }//close particle index loop
    //cout<< amp_mat<<"\n";
 }

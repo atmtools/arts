@@ -436,7 +436,7 @@ xml_open_output_file (ofstream& file, const String& name)
   // valid. We don't want either to happen!
   // FIXME: This does not yet work in  egcs-2.91.66, try again later.
   file.exceptions(ios::badbit |
-		  ios::failbit);
+                  ios::failbit);
   
   // c_str explicitly converts to c String.
   file.open(name.c_str() );
@@ -450,8 +450,8 @@ xml_open_output_file (ofstream& file, const String& name)
     {
       ostringstream os;
       os << "Cannot open output file: " << name << '\n'
-	 << "Maybe you don't have write access "
-	 << "to the directory or the file?";
+         << "Maybe you don't have write access "
+         << "to the directory or the file?";
       throw runtime_error(os.str());
     }
 }
@@ -483,7 +483,7 @@ xml_open_input_file (ifstream& ifs, const String& name)
     {
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
-	 << "Maybe the file does not exist?";
+         << "Maybe the file does not exist?";
       throw runtime_error (os.str ());
     }
 }

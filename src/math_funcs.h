@@ -48,40 +48,40 @@ Index last( const ArrayOfIndex& x );
 
 void linspace(                      
               Vector&     x,           
-	      const Numeric  start,    
-	      const Numeric  stop,        
-	      const Numeric  step );
+              const Numeric  start,    
+              const Numeric  stop,        
+              const Numeric  step );
 
 Vector linspace(             
-		const Numeric  start, 
-		const Numeric  stop,  
-		const Numeric  step );
+                const Numeric  start, 
+                const Numeric  stop,  
+                const Numeric  step );
 
 void nlinspace(         
               Vector&     x, 
-	      const Numeric     start,     
-	      const Numeric     stop,        
-	      const Index       n );
+              const Numeric     start,     
+              const Numeric     stop,        
+              const Index       n );
 
 Vector nlinspace(         
-		 const Numeric     start, 
-		 const Numeric     stop,  
-		 const Index         n );
+                 const Numeric     start, 
+                 const Numeric     stop,  
+                 const Index         n );
 
 void nlogspace(         
-	       Vector&     x, 
-	       const Numeric     start,     
-	       const Numeric     stop,        
-	       const Index         n );
+               Vector&     x, 
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index         n );
 
 Vector nlogspace(  
-		 const Numeric     start, 
-		 const Numeric     stop,  
-		 const Index         n );
+                 const Numeric     start, 
+                 const Numeric     stop,  
+                 const Index         n );
 
 Numeric AngIntegrate_trapezoid(MatrixView Integrand,
-			       ConstVectorView za_grid,
-			       ConstVectorView aa_grid);
+                               ConstVectorView za_grid,
+                               ConstVectorView aa_grid);
 
 Numeric sign( const Numeric& x );
 

@@ -104,7 +104,7 @@ void CloneSize(// WS Generic Output:
                const String& inname)
 {
   out.resize( in.nrows(),
-	      in.ncols() );
+              in.ncols() );
   out = 0;
 }
 
@@ -118,8 +118,8 @@ void CloneSize(// WS Generic Output:
                const String& inname)
 {
   out.resize( in.npages(),
-	      in.nrows(),
-	      in.ncols() );
+              in.nrows(),
+              in.ncols() );
   out = 0;
 }
 
@@ -133,9 +133,9 @@ void CloneSize(// WS Generic Output:
                const String& inname)
 {
   out.resize( in.nbooks(),
-	      in.npages(),
-	      in.nrows(),
-	      in.ncols() );
+              in.npages(),
+              in.nrows(),
+              in.ncols() );
   out = 0;
 }
 
@@ -149,10 +149,10 @@ void CloneSize(// WS Generic Output:
                const String& inname)
 {
   out.resize( in.nshelves(),
-	      in.nbooks(),
-	      in.npages(),
-	      in.nrows(),
-	      in.ncols() );
+              in.nbooks(),
+              in.npages(),
+              in.nrows(),
+              in.ncols() );
   out = 0;
 }
 
@@ -166,11 +166,11 @@ void CloneSize(// WS Generic Output:
                const String& inname)
 {
   out.resize( in.nvitrines(),
-	      in.nshelves(),
-	      in.nbooks(),
-	      in.npages(),
-	      in.nrows(),
-	      in.ncols() );
+              in.nshelves(),
+              in.nbooks(),
+              in.npages(),
+              in.nrows(),
+              in.ncols() );
   out = 0;
 }
 
@@ -184,12 +184,12 @@ void CloneSize(// WS Generic Output:
                const String& inname)
 {
   out.resize( in.nlibraries(),
-	      in.nvitrines(),
-	      in.nshelves(),
-	      in.nbooks(),
-	      in.npages(),
-	      in.nrows(),
-	      in.ncols() );
+              in.nvitrines(),
+              in.nshelves(),
+              in.nbooks(),
+              in.npages(),
+              in.nrows(),
+              in.ncols() );
   out = 0;
 }
 

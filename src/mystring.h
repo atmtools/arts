@@ -63,8 +63,8 @@ public:
   my_basic_string();
   explicit my_basic_string(Index n, char c=' ');
   my_basic_string(const basic_string<charT>& A,
-		  Index pos=0,
-		  Index numpos=my_basic_string<charT>::npos);
+                  Index pos=0,
+                  Index numpos=my_basic_string<charT>::npos);
   my_basic_string(const char A[]);
 
   // Assignment operators:
@@ -130,25 +130,25 @@ inline my_basic_string<charT>::my_basic_string(Index n, char c) :
 */
 template<class charT>
 inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
-					       Index pos,
-					       Index numpos)
+                                               Index pos,
+                                               Index numpos)
 { 
   // Range checks:
-  assert(0<=pos);		// Start index must be 0 or greater 0.
+  assert(0<=pos);               // Start index must be 0 or greater 0.
 
 //   cout << "A = " << A << "\n";
 //   cout << "pos = " << pos << "\n";
 //   cout << "size = " << A.size() << "\n";
 
-  assert(static_cast<typename std::basic_string<charT>::size_type>(pos)<A.size());	
+  assert(static_cast<typename std::basic_string<charT>::size_type>(pos)<A.size());      
   // At most the last element of the original string.
 
   assert( numpos==my_basic_string<charT>::npos ||
-	  ( (numpos >= 0) &&
-	    (static_cast<typename std::basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
-	    )
-	  );  // Number of characters to copy must be at the most the
-	      // number left. -1 means all remaining characters. 
+          ( (numpos >= 0) &&
+            (static_cast<typename std::basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
+            )
+          );  // Number of characters to copy must be at the most the
+              // number left. -1 means all remaining characters. 
 
   // The assertions look complicated, because we have to cast pos and
   // npos to the unsigned size type of basic string to avoid warning

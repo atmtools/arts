@@ -227,7 +227,7 @@ void MatrixScale(
       // Out and in are different. We first have to copy in to out,
       // then multiply by the scalar value.
       out.resize( in.nrows(), in.ncols() );
-      out = in;	
+      out = in; 
       out *= value;
     }
 }
@@ -325,10 +325,10 @@ void Tensor3FillWithVector(
       out3 << "            ncols  : " << nv << "\n";
       t.resize( npages, nrows, nv );
       for( Index i=0; i<npages; i++ )
-	{
-	  for( Index j=0; j<nrows; j++ )
-	    t(i,j,Range(joker)) = v;
-	}
+        {
+          for( Index j=0; j<nrows; j++ )
+            t(i,j,Range(joker)) = v;
+        }
     }
   else if( nrows == 0 )
     {
@@ -339,10 +339,10 @@ void Tensor3FillWithVector(
       out3 << "            ncols  : " << ncols << "\n";
       t.resize( npages, nv, ncols );
       for( Index i=0; i<npages; i++ )
-	{
-	  for( Index j=0; j<ncols; j++ )
-	    t(i,Range(joker),j) = v;
-	}
+        {
+          for( Index j=0; j<ncols; j++ )
+            t(i,Range(joker),j) = v;
+        }
     }
   else if( npages == 0 )
     {
@@ -353,10 +353,10 @@ void Tensor3FillWithVector(
       out3 << "            ncols  : " << ncols << "\n";
       t.resize( nv, nrows, ncols );
       for( Index i=0; i<nrows; i++ )
-	{
-	  for( Index j=0; j<ncols; j++ )
-	    t(Range(joker),i,j) = v;
-	}
+        {
+          for( Index j=0; j<ncols; j++ )
+            t(Range(joker),i,j) = v;
+        }
     }
   else 
     throw runtime_error(
@@ -372,7 +372,7 @@ void Tensor3FillWithVector(
 */
 void Tensor3Set(          Tensor3&   x, 
                     const String&    x_name,
-		    const Index&     npages,
+                    const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
@@ -394,8 +394,8 @@ void Tensor3Set(          Tensor3&   x,
 */
 void Tensor4Set(          Tensor4&   x, 
                     const String&    x_name,
-		    const Index&     nbooks,	  
-		    const Index&     npages,
+                    const Index&     nbooks,      
+                    const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
@@ -418,9 +418,9 @@ void Tensor4Set(          Tensor4&   x,
 */
 void Tensor5Set(          Tensor5&   x, 
                     const String&    x_name,
-		    const Index&     nshelfs,	  
-		    const Index&     nbooks,	  
-		    const Index&     npages,
+                    const Index&     nshelfs,     
+                    const Index&     nbooks,      
+                    const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
@@ -444,10 +444,10 @@ void Tensor5Set(          Tensor5&   x,
 */
 void Tensor6Set(          Tensor6&   x, 
                     const String&    x_name,
-		    const Index&     nvitrines,	  
-		    const Index&     nshelfs,	  
-		    const Index&     nbooks,	  
-		    const Index&     npages,
+                    const Index&     nvitrines,   
+                    const Index&     nshelfs,     
+                    const Index&     nbooks,      
+                    const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
@@ -472,11 +472,11 @@ void Tensor6Set(          Tensor6&   x,
 */
 void Tensor7Set(          Tensor7&   x, 
                     const String&    x_name,
-		    const Index&     nlibraries,	  
-		    const Index&     nvitrines,	  
-		    const Index&     nshelfs,	  
-		    const Index&     nbooks,	  
-		    const Index&     npages,
+                    const Index&     nlibraries,          
+                    const Index&     nvitrines,   
+                    const Index&     nshelfs,     
+                    const Index&     nbooks,      
+                    const Index&     npages,
                     const Index&     nrows,
                     const Index&     ncols,
                     const Numeric&   value )
@@ -514,7 +514,7 @@ void VectorAddScalar(
   if (&out==&in)
     {
       // Out and in are the same. Just add the scalar value.
-      out += value;	
+      out += value;     
     }
   else
     {
@@ -609,10 +609,10 @@ void VectorNLinSpace(     Vector&    x,
    \date   2000-?-?
 */
 void VectorNLogSpace(       Vector&    x, 
-		      const String&    x_name,
-		      const Numeric&   start,
-		      const Numeric&   stop,
-		      const Index&     n )
+                      const String&    x_name,
+                      const Numeric&   start,
+                      const Numeric&   stop,
+                      const Index&     n )
 {
   if ( n<2 )
     throw runtime_error("The number of points must be > 1."); 
@@ -677,7 +677,7 @@ void VectorSet(           Vector&    x,
                     const Numeric&   value )
 {
   x.resize(n);
-  x = value;		
+  x = value;            
   out2 << "  Creating " << x_name << " as a constant vector.\n"; 
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";
@@ -693,15 +693,15 @@ void VectorSet(           Vector&    x,
    \date   2000-?-?
 */
 void VectorSetTakingLengthFromVector(
-              Vector&  	 x, 
-        const String&  	 x_name,
-        const Vector&  	 z,
-        const String&  	 z_name,
-        const Numeric& 	 value )
+              Vector&    x, 
+        const String&    x_name,
+        const Vector&    z,
+        const String&    z_name,
+        const Numeric&   value )
 {
   const Index  n = z.nelem();
   x.resize(n);
-  x = value;		
+  x = value;            
   out2 << "  Creating " << x_name << " as a constant vector.\n"; 
   out3 << "            length : " << n << "\n";
   out3 << "             value : " << value << "\n";

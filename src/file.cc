@@ -96,7 +96,7 @@ void open_output_file(ofstream& file, const String& name)
   // valid. We don't want either to happen!
   // FIXME: This does not yet work in  egcs-2.91.66, try again later.
   file.exceptions(ios::badbit |
-		  ios::failbit);
+                  ios::failbit);
   
   // c_str explicitly converts to c String.
   file.open(name.c_str() );
@@ -110,8 +110,8 @@ void open_output_file(ofstream& file, const String& name)
     {
       ostringstream os;
       os << "Cannot open output file: " << name << '\n'
-	 << "Maybe you don't have write access "
-	 << "to the directory or the file?";
+         << "Maybe you don't have write access "
+         << "to the directory or the file?";
       throw runtime_error(os.str());
     }
 }
@@ -145,7 +145,7 @@ void open_input_file(ifstream& file, const String& name)
     {
       ostringstream os;
       os << "Cannot open input file: " << name << '\n'
-	 << "Maybe the file does not exist?";
+         << "Maybe the file does not exist?";
       throw runtime_error(os.str());
     }
 }
@@ -223,7 +223,7 @@ void read_text_from_file(ArrayOfString& text, const String& name)
     {
       ostringstream os;
       os << "Error reading file: " << name << '\n'
-	 << x.what();
+         << x.what();
       throw runtime_error(os.str());
     }
 }
@@ -378,20 +378,20 @@ void read_array_of_matrix_from_stream(ArrayOfMatrix& am,
     {
       //      cout << "- " << i << "\n";
       {
-	Index nr,nc;
-	skip_comments(is);   // Skip comment lines.
-	is >> nr >> nc;
-	//   cout << "nr: " << nr << "\n";
-	//   cout << "nc: " << nc << "\n";
-	am[i].resize(nr,nc);
-	//	  cout << "am[i]: " << am[i].nrows() << " / " << am[i].ncols() << "\n";
-	for(Index ir=0; ir<nr; ++ir)
-	  for(Index ic=0; ic<nc; ++ic)
-	    {
-	      //		cout << "ir / ic = " << ir << " / " << ic << "\n";
-	      skip_comments(is);   // Skip comment lines.
-	      is >> am[i](ir,ic);
-	    }
+        Index nr,nc;
+        skip_comments(is);   // Skip comment lines.
+        is >> nr >> nc;
+        //   cout << "nr: " << nr << "\n";
+        //   cout << "nc: " << nc << "\n";
+        am[i].resize(nr,nc);
+        //        cout << "am[i]: " << am[i].nrows() << " / " << am[i].ncols() << "\n";
+        for(Index ir=0; ir<nr; ++ir)
+          for(Index ic=0; ic<nc; ++ic)
+            {
+              //                cout << "ir / ic = " << ir << " / " << ic << "\n";
+              skip_comments(is);   // Skip comment lines.
+              is >> am[i](ir,ic);
+            }
       }
     }
 
@@ -548,8 +548,8 @@ void read_array_of_String_from_stream(
     as.resize(n);
     for( Index i=0; i<n; ++i )
       {
-	//      cout << "- " << i << "\n";
-	is >> as[i];
+        //      cout << "- " << i << "\n";
+        is >> as[i];
       }
   }
 

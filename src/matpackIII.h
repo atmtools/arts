@@ -316,8 +316,8 @@ protected:
   Tensor3View();
   Tensor3View(Numeric *data, const Range& p, const Range& r, const Range& c);
   Tensor3View(Numeric *data,
-	      const Range& pp, const Range& pr, const Range& pc,
-	      const Range& np, const Range& nr, const Range& nc);
+              const Range& pp, const Range& pr, const Range& pc,
+              const Range& np, const Range& nr, const Range& nc);
 };
 
 /** The Tensor3 class. This is a Tensor3View that also allocates storage

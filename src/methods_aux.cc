@@ -43,24 +43,24 @@
   inferred from the presence of Any_ in the generic input or output
   list. 
 */
-MdRecord::MdRecord(const char 		        name[],
-		   const char 		        description[],
-		   const MakeArray<Index>&      output,
-		   const MakeArray<Index>&      input,   
-		   const MakeArray<Index>&      goutput,
-		   const MakeArray<Index>&      ginput,   
-		   const MakeArray<String>&     keywords,
-		   const MakeArray<TokValType>& types,
-		   bool                         agenda_method,
-		   bool                         suppress_header ) :
-    mname(          name            	  ),
-    mdescription(   description     	  ),    
-    moutput(        output       	  ),  
-    minput(         input        	  ),   
-    mgoutput(       goutput      	  ),  
-    mginput(        ginput       	  ),   
-    mkeywords(      keywords     	  ),
-    mtypes(         types        	  ),
+MdRecord::MdRecord(const char                   name[],
+                   const char                   description[],
+                   const MakeArray<Index>&      output,
+                   const MakeArray<Index>&      input,   
+                   const MakeArray<Index>&      goutput,
+                   const MakeArray<Index>&      ginput,   
+                   const MakeArray<String>&     keywords,
+                   const MakeArray<TokValType>& types,
+                   bool                         agenda_method,
+                   bool                         suppress_header ) :
+    mname(          name                  ),
+    mdescription(   description           ),    
+    moutput(        output                ),  
+    minput(         input                 ),   
+    mgoutput(       goutput               ),  
+    mginput(        ginput                ),   
+    mkeywords(      keywords              ),
+    mtypes(         types                 ),
     magenda_method(   agenda_method       ),
     msupergeneric(    false               ),
     msuppress_header( suppress_header     ),
@@ -77,11 +77,11 @@ MdRecord::MdRecord(const char 		        name[],
       // Find out if this method is supergeneric, and set the flag if
       // yes:
       for ( Index j=0; j<mgoutput.nelem(); ++j )
-	if ( Any_ == mgoutput[j] )
-	  msupergeneric = true;
+        if ( Any_ == mgoutput[j] )
+          msupergeneric = true;
       for ( Index j=0; j<mginput.nelem(); ++j )
-	if ( Any_ == mginput[j] )
-	  msupergeneric = true;
+        if ( Any_ == mginput[j] )
+          msupergeneric = true;
     }
 
 
@@ -101,9 +101,9 @@ MdRecord::MdRecord(const char 		        name[],
 //   const ArrayOfIndex&  vgi=mdd.GInput();    // Generic Input
 
 //   for ( Index j=0; j<vgo.nelem(); ++j )
-//     if ( Any_ == vgo[j] )		is_supergeneric = true;
+//     if ( Any_ == vgo[j] )            is_supergeneric = true;
 //   for ( Index j=0; j<vgi.nelem(); ++j )
-//     if ( Any_ == vgi[j] )		is_supergeneric = true;
+//     if ( Any_ == vgi[j] )            is_supergeneric = true;
 
 //   return is_supergeneric;
 // }
@@ -143,9 +143,9 @@ void MdRecord::subst_any_with_group( Index g )
 //   }
   
   for ( Index j=0; j<mgoutput.nelem(); ++j )
-    if ( Any_ == mgoutput[j] )		mgoutput[j] = g;
+    if ( Any_ == mgoutput[j] )          mgoutput[j] = g;
   for ( Index j=0; j<mginput.nelem(); ++j )
-    if ( Any_ == mginput[j] )		mginput[j] = g;
+    if ( Any_ == mginput[j] )           mginput[j] = g;
 
   // Set the field for the actual group:
   mactual_group = g;
@@ -180,31 +180,31 @@ void expand_md_data_raw_to_md_data()
       const MdRecord& mdd = md_data_raw[i];
 
       if ( !mdd.Supergeneric() )
-	{
-	  md_data.push_back(mdd);
-	}
+        {
+          md_data.push_back(mdd);
+        }
       else
-	{
-	  // Special treatment for supergeneric methods:
+        {
+          // Special treatment for supergeneric methods:
 
-	  // We have to create method records for all groups!
-	  for ( Index j=0; j<wsv_group_names.nelem(); ++j )
-	    {
-	      // Any_ itself is also a group, but we don't want to
-	      // create a record for Any_!
-	      if ( Any_ != j )
-		{
-		  // Not a reference but a copy this time, since we
-		  // have to manipulate this.
-		  MdRecord mdlocal = mdd;
-		      
-		  mdlocal.subst_any_with_group( j );
+          // We have to create method records for all groups!
+          for ( Index j=0; j<wsv_group_names.nelem(); ++j )
+            {
+              // Any_ itself is also a group, but we don't want to
+              // create a record for Any_!
+              if ( Any_ != j )
+                {
+                  // Not a reference but a copy this time, since we
+                  // have to manipulate this.
+                  MdRecord mdlocal = mdd;
+                      
+                  mdlocal.subst_any_with_group( j );
 
-		  md_data.push_back(mdlocal);
-		}
-	    }
+                  md_data.push_back(mdlocal);
+                }
+            }
 
-	}
+        }
     }
 }
 
@@ -227,23 +227,23 @@ void define_md_map()
       const MdRecord& mdd = md_data[i];
 
 //       cout << "mdd.ActualGroup() = "
-// 	   << mdd.ActualGroup() << "\n";
+//         << mdd.ActualGroup() << "\n";
 
 //       cout << "wsv_group_names[mdd.ActualGroup()] = "
-// 	   << wsv_group_names[mdd.ActualGroup()] << "\n";
+//         << wsv_group_names[mdd.ActualGroup()] << "\n";
 
       // For supergeneric methods, add group to method name
       String methodname;
       ostringstream os;
       if ( mdd.Supergeneric() )
-	{
-	  os << mdd.Name() << "_sg_"
-	     << wsv_group_names[mdd.ActualGroup()];
-	}
+        {
+          os << mdd.Name() << "_sg_"
+             << wsv_group_names[mdd.ActualGroup()];
+        }
       else
-	{
-	  os << mdd.Name();
-	}
+        {
+          os << mdd.Name();
+        }
       methodname = os.str();
 
       MdMap[methodname] = i;
@@ -272,7 +272,7 @@ void define_md_raw_map()
 
 
 ostream& MdRecord::PrintTemplate(ostream& os,
-				 bool show_description) const
+                                 bool show_description) const
 {
   extern const  ArrayOfString wsv_group_names;
 
@@ -292,20 +292,20 @@ ostream& MdRecord::PrintTemplate(ostream& os,
       os << '(';
 
       for (Index i=0; i<GOutput().nelem(); ++i)
-	{
-	  if (first) first=false;
-	  else os << ",\n";
+        {
+          if (first) first=false;
+          else os << ",\n";
 
-	  os << wsv_group_names[GOutput()[i]];
-	}
+          os << wsv_group_names[GOutput()[i]];
+        }
 
       for (Index i=0; i<GInput().nelem(); ++i)
-	{
-	  if (first) first=false;
-	  else os << ",\n";
+        {
+          if (first) first=false;
+          else os << ",\n";
 
-	  os << wsv_group_names[GInput()[i]];
-	}
+          os << wsv_group_names[GInput()[i]];
+        }
 
       os << ')';
     }
@@ -324,7 +324,7 @@ ostream& MdRecord::PrintTemplate(ostream& os,
   for (Index i=0; i<Keywords().nelem(); ++i)
     {
       os << "\t" << setw(maxsize)
-	 << Keywords()[i] << " = \n";
+         << Keywords()[i] << " = \n";
     }
 
   os << '}';

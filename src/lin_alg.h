@@ -42,16 +42,16 @@ ludcmp(MatrixView LU,
 // LU backsubstitution
 void 
 lubacksub(VectorView x, 
-	  ConstMatrixView LU,
-	  ConstVectorView b,
-	  const ArrayOfIndex& indx);
+          ConstMatrixView LU,
+          ConstVectorView b,
+          const ArrayOfIndex& indx);
 
 
 // Exponential of a Matrix
 void 
 matrix_exp(MatrixView F,
-	   ConstMatrixView A, 
-	   const Index& q);
+           ConstMatrixView A, 
+           const Index& q);
 
 
 // Maximum absolute row sum norm 

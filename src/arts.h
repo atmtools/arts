@@ -56,7 +56,7 @@
 #include <config.h>
 #else
 #error "Please run ./configure in the top arts directory before compiling."
-#endif		
+#endif          
 
 // C Assert macro:
 #include <cassert>
@@ -118,7 +118,7 @@ typedef Array<Numeric> ArrayOfNumeric;
 
 //---------------< Global function declarations: >---------------
 // Documentations are with function definitions.
-void define_wsv_group_names();	
+void define_wsv_group_names();  
 void define_species_data();
 void define_lineshape_data();
 void define_lineshape_norm_data();

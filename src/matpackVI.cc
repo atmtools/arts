@@ -72,8 +72,8 @@ ConstTensor6View ConstTensor6View::operator()
     const Range& p, const Range& r, const Range& c) const
 {
   return ConstTensor6View(mdata,
-			  mvr, msr, mbr, mpr, mrr, mcr,
-			  v,   s,   b,   p,   r,   c);
+                          mvr, msr, mbr, mpr, mrr, mcr,
+                          v,   s,   b,   p,   r,   c);
 }
 
 // Result 5D (6 combinations)
@@ -898,12 +898,12 @@ ConstVectorView  ConstTensor6View::operator()
 ConstIterator6D ConstTensor6View::begin() const
 {
   return ConstIterator6D( ConstTensor5View(mdata+mvr.mstart,
-					  msr,
-					  mbr,
-					  mpr,
-					  mrr,
-					  mcr),
-			  mvr.mstride);
+                                          msr,
+                                          mbr,
+                                          mpr,
+                                          mrr,
+                                          mcr),
+                          mvr.mstride);
 }
 
 /** Return const iterator behind last sub-tensor. */
@@ -911,9 +911,9 @@ ConstIterator6D ConstTensor6View::end() const
 {
   return ConstIterator6D( ConstTensor5View(mdata + mvr.mstart +
                                           (mvr.mextent)*mvr.mstride,
-					  msr,
-					  mbr,
-					  mpr,
+                                          msr,
+                                          mbr,
+                                          mpr,
                                           mrr,
                                           mcr),
                           mvr.mstride );
@@ -1556,8 +1556,8 @@ Tensor6View Tensor6View::operator()
     const Range& p, const Range& r, const Range& c)
 {
   return Tensor6View(mdata,
-			  mvr, msr, mbr, mpr, mrr, mcr,
-			  v,   s,   b,   p,   r,   c);
+                          mvr, msr, mbr, mpr, mrr, mcr,
+                          v,   s,   b,   p,   r,   c);
 }
 
 
@@ -2396,25 +2396,25 @@ ConstIterator6D Tensor6View::end() const
 Iterator6D Tensor6View::begin()
 {
   return Iterator6D( Tensor5View(mdata+mvr.mstart,
-				msr,
-				mbr,
-				mpr,
-				mrr,
-				mcr),
-		     mvr.mstride);
+                                msr,
+                                mbr,
+                                mpr,
+                                mrr,
+                                mcr),
+                     mvr.mstride);
 }
 
 /** Return iterator behind last sub-tensor. */
 Iterator6D Tensor6View::end()
 {
   return Iterator6D( Tensor5View(mdata + mvr.mstart +
-				(mvr.mextent)*mvr.mstride,
-				msr,
-				mbr,
-				mpr,
-				mrr,
-				mcr),
-		     mvr.mstride );
+                                (mvr.mextent)*mvr.mstride,
+                                msr,
+                                mbr,
+                                mpr,
+                                mrr,
+                                mcr),
+                     mvr.mstride );
 }
 
 /** Assignment operator. This copies the data from another Tensor6View
@@ -2605,17 +2605,17 @@ Tensor6View& Tensor6View::operator-=(const ConstTensor6View& x)
 /** Special constructor to make a Tensor6 view of a Tensor5. */
 Tensor6View::Tensor6View(const Tensor5View& a) :
   ConstTensor6View( a.mdata,
-		    Range(0,1,
-			  a.msr.mextent*
-			  a.mbr.mextent*
-			  a.mpr.mextent*
-			  a.mrr.mextent*
-			  a.mcr.mextent),
-		    a.msr,
-		    a.mbr,
-		    a.mpr,
-		    a.mrr,
-		    a.mcr )
+                    Range(0,1,
+                          a.msr.mextent*
+                          a.mbr.mextent*
+                          a.mpr.mextent*
+                          a.mrr.mextent*
+                          a.mcr.mextent),
+                    a.msr,
+                    a.mbr,
+                    a.mpr,
+                    a.mrr,
+                    a.mcr )
 {
   // Nothing to do here.
 }
@@ -2632,12 +2632,12 @@ Tensor6View::Tensor6View() :
     own Tensor6View part. The row range rr must have a
     stride to account for the length of one row. */
 Tensor6View::Tensor6View(Numeric *data,
-				const Range& v,
-				const Range& s,
-				const Range& b,
-				const Range& p,
-				const Range& r,
-				const Range& c) :
+                                const Range& v,
+                                const Range& s,
+                                const Range& b,
+                                const Range& p,
+                                const Range& r,
+                                const Range& c) :
   ConstTensor6View(data, v, s, b, p, r, c)
 {
   // Nothing to do here.
@@ -2655,18 +2655,18 @@ Tensor6View::Tensor6View(Numeric *data,
     \param p Previous range.
     \param n New Range.  */
 Tensor6View::Tensor6View(Numeric *data,
-				const Range& pv,
-				const Range& ps,
-				const Range& pb,
-				const Range& pp,
-				const Range& pr,
-				const Range& pc,
-				const Range& nv,
-				const Range& ns,
-				const Range& nb,
-				const Range& np,
-				const Range& nr,
-				const Range& nc) :
+                                const Range& pv,
+                                const Range& ps,
+                                const Range& pb,
+                                const Range& pp,
+                                const Range& pr,
+                                const Range& pc,
+                                const Range& nv,
+                                const Range& ns,
+                                const Range& nb,
+                                const Range& np,
+                                const Range& nr,
+                                const Range& nc) :
   ConstTensor6View(data,pv,ps,pb,pp,pr,pc,nv,ns,nb,np,nr,nc)
 {
   // Nothing to do here.
@@ -2685,8 +2685,8 @@ void copy(ConstIterator6D origin,
       // We use the copy function for the next smaller rank of tensor
       // recursively:
       copy(origin->begin(),
-	   origin->end(),
-	   target->begin());
+           origin->end(),
+           target->begin());
     }
 }
 
@@ -2722,12 +2722,12 @@ Tensor6::Tensor6() :
 Tensor6::Tensor6(Index v, Index s, Index b,
                         Index p, Index r, Index c) :
   Tensor6View( new Numeric[v*s*b*p*r*c],
-	       Range(0,v,s*b*p*r*c),
-	       Range(0,s,b*p*r*c),
-	       Range(0,b,p*r*c),
-	       Range(0,p,r*c),
-	       Range(0,r,c),
-	       Range(0,c))
+               Range(0,v,s*b*p*r*c),
+               Range(0,s,b*p*r*c),
+               Range(0,b,p*r*c),
+               Range(0,p,r*c),
+               Range(0,r,c),
+               Range(0,c))
 {
   // Nothing to do here.
 }
@@ -2736,12 +2736,12 @@ Tensor6::Tensor6(Index v, Index s, Index b,
 Tensor6::Tensor6(Index v, Index s, Index b,
                         Index p, Index r, Index c, Numeric fill) :
   Tensor6View( new Numeric[v*s*b*p*r*c],
-	       Range(0,v,s*b*p*r*c),
-	       Range(0,s,b*p*r*c),
-	       Range(0,b,p*r*c),
-	       Range(0,p,r*c),
-	       Range(0,r,c),
-	       Range(0,c))
+               Range(0,v,s*b*p*r*c),
+               Range(0,s,b*p*r*c),
+               Range(0,b,p*r*c),
+               Range(0,p,r*c),
+               Range(0,r,c),
+               Range(0,c))
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
@@ -2754,13 +2754,13 @@ Tensor6::Tensor6(Index v, Index s, Index b,
     and copies the data. */
 Tensor6::Tensor6(const ConstTensor6View& m) :
   Tensor6View( new Numeric[m.nvitrines()*m.nshelves()*m.nbooks()
-			   *m.npages()*m.nrows()*m.ncols()],
-	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.npages(), m.nrows()*m.ncols() ),
-	       Range( 0, m.nrows(), m.ncols() ),
-	       Range( 0, m.ncols() ) )
+                           *m.npages()*m.nrows()*m.ncols()],
+               Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.npages(), m.nrows()*m.ncols() ),
+               Range( 0, m.nrows(), m.ncols() ),
+               Range( 0, m.ncols() ) )
 {
   copy(m.begin(),m.end(),begin());
 }
@@ -2769,13 +2769,13 @@ Tensor6::Tensor6(const ConstTensor6View& m) :
     and copies the data. */
 Tensor6::Tensor6(const Tensor6& m) :
   Tensor6View( new Numeric[m.nvitrines()*m.nshelves()*m.nbooks()
-			   *m.npages()*m.nrows()*m.ncols()],
-	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.npages(), m.nrows()*m.ncols() ),
-	       Range( 0, m.nrows(), m.ncols() ),
-	       Range( 0, m.ncols() ) )
+                           *m.npages()*m.nrows()*m.ncols()],
+               Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.npages(), m.nrows()*m.ncols() ),
+               Range( 0, m.nrows(), m.ncols() ),
+               Range( 0, m.ncols() ) )
 {
   // There is a catch here: If m is an empty tensor, then it will have
   // dimensions of size 0. But these are used to initialize the stride
@@ -2806,7 +2806,7 @@ Tensor6& Tensor6::operator=(const Tensor6& m)
     {
       // Adjust if previously empty.
       resize( m.mvr.mextent, m.msr.mextent, m.mbr.mextent,
-	      m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
+              m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
     }
   else
     {
@@ -2835,7 +2835,7 @@ Tensor6& Tensor6::operator=(Numeric x)
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values. */
 void Tensor6::resize(Index v, Index s, Index b,
-			    Index p, Index r, Index c)
+                            Index p, Index r, Index c)
 {
   assert( 0<=v );
   assert( 0<=s );
@@ -2913,9 +2913,9 @@ void transform( Tensor6View y,
   assert( y.nvitrines() == x.nvitrines() );
   assert( y.nshelves()  == x.nshelves()  );
   assert( y.nbooks()    == x.nbooks()    );
-  assert( y.npages() 	== x.npages()    );
-  assert( y.nrows()  	== x.nrows()     );
-  assert( y.ncols()  	== x.ncols()     );
+  assert( y.npages()    == x.npages()    );
+  assert( y.nrows()     == x.nrows()     );
+  assert( y.ncols()     == x.ncols()     );
 
   const ConstIterator6D xe = x.end();
   ConstIterator6D       xi = x.begin();

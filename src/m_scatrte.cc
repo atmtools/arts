@@ -87,7 +87,7 @@ extern const Numeric PI;
   \param i_field Radiation field.
   \param i_field_old Old radiation field.
   \param cloudbox_limits Limits of the cloudbox.
-  \param scat_za_grid 	Zenith angle grid.
+  \param scat_za_grid   Zenith angle grid.
   \param scat_aa_grid Azimuth angle grid.
   \param atmosphere_dim Atmospheric dimension.
   Keyword : 
@@ -137,7 +137,7 @@ void convergence_flagAbs(//WS Output:
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
                         "The dimension of stokes vector must be"
-			"1,2,3, or 4");
+                        "1,2,3, or 4");
   
   // Does i_field have the right dimension? 
   if (atmosphere_dim == 3){
@@ -191,12 +191,12 @@ void convergence_flagAbs(//WS Output:
                scat_za_index++)
             {
               Numeric diff = 
-		fabs( i_field(( p_index-cloudbox_limits[0]), 
-			      0, 0, scat_za_index, 0, stokes_index) -
-		      i_field_old(( p_index-cloudbox_limits[0]),
-				  0, 0, scat_za_index, 0, stokes_index ));
+                fabs( i_field(( p_index-cloudbox_limits[0]), 
+                              0, 0, scat_za_index, 0, stokes_index) -
+                      i_field_old(( p_index-cloudbox_limits[0]),
+                                  0, 0, scat_za_index, 0, stokes_index ));
              
-	      
+              
               // If the absolute difference of the components is 
               // larger than the pre-defined values, return to
               // *i_fieldIterarte and do another iteration
@@ -226,23 +226,23 @@ void convergence_flagAbs(//WS Output:
                        scat_aa_index++)
                         {
                           Numeric diff =
-			    fabs( i_field((p_index-cloudbox_limits[0]),
-					  (lat_index-cloudbox_limits[2]),
-					  (lon_index-cloudbox_limits[4]), 
-					  scat_za_index,
-					  scat_aa_index, 
-					  stokes_index) -
-				  i_field_old((p_index-cloudbox_limits[0]),
-					      (lat_index-cloudbox_limits[2]),
-					      (lon_index-cloudbox_limits[4]), 
-					      scat_za_index,
-					      scat_aa_index, 
-					      stokes_index ));
+                            fabs( i_field((p_index-cloudbox_limits[0]),
+                                          (lat_index-cloudbox_limits[2]),
+                                          (lon_index-cloudbox_limits[4]), 
+                                          scat_za_index,
+                                          scat_aa_index, 
+                                          stokes_index) -
+                                  i_field_old((p_index-cloudbox_limits[0]),
+                                              (lat_index-cloudbox_limits[2]),
+                                              (lon_index-cloudbox_limits[4]), 
+                                              scat_za_index,
+                                              scat_aa_index, 
+                                              stokes_index ));
                           
                           // If the absolute difference of the components is 
                           // larger than the pre-defined values, return to
                           // *i_fieldIterarte* and do another iteration
-			  
+                          
                           if( diff > epsilon[stokes_index])
                             return;
 
@@ -337,11 +337,11 @@ void convergence_flagAbs(//WS Output:
 */
 void
 i_fieldIterate(
-		    // WS Output:
-		    Tensor6& i_field,
-		    Ppath& ppath_step,
-		    Tensor6& i_field_old,
-		    Tensor6& scat_field,
+                    // WS Output:
+                    Tensor6& i_field,
+                    Ppath& ppath_step,
+                    Tensor6& i_field_old,
+                    Tensor6& scat_field,
                     Vector& sca_vec,
                     Vector& stokes_vec,
                     Numeric& a_planck_value,
@@ -366,18 +366,18 @@ i_fieldIterate(
                     const Agenda& scalar_gas_absorption_agenda,
                     const Agenda& convergence_test_agenda,
                     const Agenda& ppath_step_agenda,
- 		    const Tensor6& amp_mat,
-		    const ArrayOfIndex& cloudbox_limits,
-		    const Vector& scat_za_grid,
-		    const Vector& scat_aa_grid,
-		    const Vector& p_grid,
-		    const Vector& lat_grid,
-		    const Vector& lon_grid,
-		    const Tensor3& t_field,
-		    const Tensor3& z_field,
-		    const Matrix& r_geoid,
-		    const Vector& f_grid,
-		    const Index& f_index,
+                    const Tensor6& amp_mat,
+                    const ArrayOfIndex& cloudbox_limits,
+                    const Vector& scat_za_grid,
+                    const Vector& scat_aa_grid,
+                    const Vector& p_grid,
+                    const Vector& lat_grid,
+                    const Vector& lon_grid,
+                    const Tensor3& t_field,
+                    const Tensor3& z_field,
+                    const Matrix& r_geoid,
+                    const Vector& f_grid,
+                    const Index& f_index,
                     const Index& stokes_dim,
                     const Index& atmosphere_dim,
                     const Tensor4& pnd_field,
@@ -387,8 +387,8 @@ i_fieldIterate(
   // Check the input:
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
-			"The dimension of stokes vector must be"
-			"1,2,3, or 4");
+                        "The dimension of stokes vector must be"
+                        "1,2,3, or 4");
 
   if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
     throw runtime_error(
@@ -411,23 +411,23 @@ i_fieldIterate(
     
     // Does i_field have the right dimension? 
     assert ( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
    
   }
  
   else if (atmosphere_dim == 1 ){
     assert ( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
   }
   
   else if (atmosphere_dim == 2){
@@ -448,18 +448,18 @@ i_fieldIterate(
 
   // Initialize variables:
   i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
                      stokes_dim);
   i_field_old = 0.;
 
   scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
                      stokes_dim);
   scat_field = 0.;
 
@@ -611,8 +611,8 @@ agendas. These are:
 */
 void
 i_fieldUpdate1D(// WS Output:
-		Tensor6& i_field,
-		Ppath& ppath_step,
+                Tensor6& i_field,
+                Ppath& ppath_step,
                 Vector& stokes_vec,
                 Vector& sca_vec,
                 Numeric& a_planck_value,
@@ -631,18 +631,18 @@ i_fieldUpdate1D(// WS Output:
                 const Agenda& opt_prop_part_agenda,
                 const Agenda& opt_prop_gas_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
-		const Agenda& ppath_step_agenda,
+                const Agenda& ppath_step_agenda,
                 const Tensor6& amp_mat,
-		const Tensor6& scat_field,
-		const ArrayOfIndex& cloudbox_limits,
-		const Vector& scat_za_grid,
-		const Vector& scat_aa_grid,
+                const Tensor6& scat_field,
+                const ArrayOfIndex& cloudbox_limits,
+                const Vector& scat_za_grid,
+                const Vector& scat_aa_grid,
                 const Vector& p_grid,
                 const Tensor3& t_field,
-		const Tensor3& z_field,
-		const Matrix& r_geoid,
-		const Vector& f_grid,
-		const Index& f_index,
+                const Tensor3& z_field,
+                const Matrix& r_geoid,
+                const Vector& f_grid,
+                const Index& f_index,
                 const Tensor4& pnd_field,
                 const Index& stokes_dim,
                 const Index& atmosphere_dim,
@@ -660,20 +660,20 @@ i_fieldUpdate1D(// WS Output:
                         "1,2,3, or 4");
   
   assert( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
 
   assert( is_size( scat_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));  
+                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));  
   
   assert( is_size( stokes_vec, stokes_dim));
   
@@ -747,14 +747,14 @@ i_fieldUpdate1D(// WS Output:
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
       for(Index p_index = cloudbox_limits[0]; p_index
-	<= cloudbox_limits[1]; p_index ++)
-	{
-	  
-// 	  //Print the loop indices (just for testing the function)
-	  
+        <= cloudbox_limits[1]; p_index ++)
+        {
+          
+//        //Print the loop indices (just for testing the function)
+          
 //            cout << "\n loop indices: \n";
-// 	  cout << "\n scat_za_index ---------"<< scat_za_index;
-// 	  cout << "\n p_index       ---------"<< p_index;
+//        cout << "\n scat_za_index ---------"<< scat_za_index;
+//        cout << "\n p_index       ---------"<< p_index;
 //              cout << "\n stokes_dim    ---------"<< stokes_dim;
 //             cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
 //                        << cloudbox_limits[1] <<"\n";
@@ -884,7 +884,7 @@ i_fieldUpdate1D(// WS Output:
                                        0, 0, scat_za_index, 0, i)) ;
                   // Extract stokes_vec from i_field.
                   stokes_vec[i] = i_field((p_index-cloudbox_limits[0]) + 1,
-				       0, 0, scat_za_index, 0, i);
+                                       0, 0, scat_za_index, 0, i);
                   
                 }// Closes loop over stokes_dim.
              
@@ -1125,8 +1125,8 @@ agendas. These are:
 */
 void
 i_fieldUpdate1D_PlaneParallel(// WS Output:
-		Tensor6& i_field,
-		Ppath& ppath_step,
+                Tensor6& i_field,
+                Ppath& ppath_step,
                 Vector& stokes_vec,
                 Vector& sca_vec,
                 Numeric& a_planck_value,
@@ -1145,18 +1145,18 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                 const Agenda& opt_prop_part_agenda,
                 const Agenda& opt_prop_gas_agenda,
                 const Agenda& scalar_gas_absorption_agenda,
-		const Agenda& ppath_step_agenda,
+                const Agenda& ppath_step_agenda,
                 const Tensor6& amp_mat,
-		const Tensor6& scat_field,
-		const ArrayOfIndex& cloudbox_limits,
-		const Vector& scat_za_grid,
-		const Vector& scat_aa_grid,
+                const Tensor6& scat_field,
+                const ArrayOfIndex& cloudbox_limits,
+                const Vector& scat_za_grid,
+                const Vector& scat_aa_grid,
                 const Vector& p_grid,
                 const Tensor3& t_field,
-		const Tensor3& z_field,
-		const Matrix& r_geoid,
-		const Vector& f_grid,
-		const Index& f_index,
+                const Tensor3& z_field,
+                const Matrix& r_geoid,
+                const Vector& f_grid,
+                const Index& f_index,
                 const Tensor4& pnd_field,
                 const Index& stokes_dim,
                 const Index& atmosphere_dim,
@@ -1174,20 +1174,20 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                         "1,2,3, or 4");
   
   assert( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
 
   assert( is_size( scat_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));  
+                      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));  
   
   assert( is_size( stokes_vec, stokes_dim));
   
@@ -1249,14 +1249,14 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
       for(Index p_index = cloudbox_limits[0]; p_index
-	<= cloudbox_limits[1]; p_index ++)
-	{
-	  
-	  //Print the loop indices (just for testing the function)
-	  
+        <= cloudbox_limits[1]; p_index ++)
+        {
+          
+          //Print the loop indices (just for testing the function)
+          
            cout << "\n loop indices: \n";
-	  cout << "\n scat_za_index ---------"<< scat_za_index;
-	  cout << "\n p_index       ---------"<< p_index;
+          cout << "\n scat_za_index ---------"<< scat_za_index;
+          cout << "\n p_index       ---------"<< p_index;
              cout << "\n stokes_dim    ---------"<< stokes_dim;
             cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
                        << cloudbox_limits[1] <<"\n";
@@ -1329,18 +1329,18 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
             {
             
               Numeric z_field_above = z_field((p_index+1),0,0);
-	      Numeric z_field_0 = z_field((p_index),0,0);
-	      Numeric cos_theta;
-	     
-	      if(scat_za_grid[scat_za_index] == 90){
-		 cos_theta = 0.5 * (fabs(cos(scat_za_grid[scat_za_index-1]* PI/180))+
-				    fabs(cos(scat_za_grid[scat_za_index+1]* PI/180)));
-	      }
-	      else {
-	       cos_theta = cos(scat_za_grid[scat_za_index]* PI/180);
-	      }
-	      l_step =  (z_field_above -  z_field_0)/cos_theta ;
-	     
+              Numeric z_field_0 = z_field((p_index),0,0);
+              Numeric cos_theta;
+             
+              if(scat_za_grid[scat_za_index] == 90){
+                 cos_theta = 0.5 * (fabs(cos(scat_za_grid[scat_za_index-1]* PI/180))+
+                                    fabs(cos(scat_za_grid[scat_za_index+1]* PI/180)));
+              }
+              else {
+               cos_theta = cos(scat_za_grid[scat_za_index]* PI/180);
+              }
+              l_step =  (z_field_above -  z_field_0)/cos_theta ;
+             
               for (Index i = 0; i < stokes_dim; i++)
                 {
                   
@@ -1369,7 +1369,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
                                        0, 0, scat_za_index, 0, i)) ;
                   // Extract stokes_vec from i_field.
                   stokes_vec[i] = i_field((p_index-cloudbox_limits[0]) + 1,
-				       0, 0, scat_za_index, 0, i);
+                                       0, 0, scat_za_index, 0, i);
                   
                 }// Closes loop over stokes_dim.
              
@@ -1409,13 +1409,13 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-	      Numeric z_field_below = z_field((p_index-1),0,0);
-	      Numeric z_field_0 = z_field((p_index),0,0);
-	   
-	      Numeric cos_theta = fabs(cos(scat_za_grid[scat_za_index]* PI/180));
-	   
-	      l_step =  (z_field_0 -  z_field_below)/ cos_theta;
-	   
+              Numeric z_field_below = z_field((p_index-1),0,0);
+              Numeric z_field_0 = z_field((p_index),0,0);
+           
+              Numeric cos_theta = fabs(cos(scat_za_grid[scat_za_index]* PI/180));
+           
+              l_step =  (z_field_0 -  z_field_below)/ cos_theta;
+           
               // Loop over the Stokes dimensions
               for (Index i = 0; i < stokes_dim; i++)
                 {
@@ -1497,22 +1497,22 @@ angles.
 
 void
 scat_fieldCalc(//WS Output:
-	       Tensor6& scat_field,
-	       Tensor4& pha_mat,
+               Tensor6& scat_field,
+               Tensor4& pha_mat,
                Tensor5& pha_mat_spt,
-	       //WS Input: 
+               //WS Input: 
                const Tensor6& amp_mat,
-	       const Tensor6& i_field,
+               const Tensor6& i_field,
                const Tensor4& pnd_field,
-	       const Vector& scat_za_grid,
-	       const Vector& scat_aa_grid,
-	       const Vector& p_grid,
-	       const Vector& lat_grid,
-	       const Vector& lon_grid,
-	       const Index& stokes_dim,
-	       const Index& atmosphere_dim,
-	       const ArrayOfIndex& cloudbox_limits
-	       )
+               const Vector& scat_za_grid,
+               const Vector& scat_aa_grid,
+               const Vector& p_grid,
+               const Vector& lat_grid,
+               const Vector& lon_grid,
+               const Index& stokes_dim,
+               const Index& atmosphere_dim,
+               const ArrayOfIndex& cloudbox_limits
+               )
   
 {
   // Some useful indices :
@@ -1540,47 +1540,47 @@ scat_fieldCalc(//WS Output:
   if (atmosphere_dim ==3){
     
     assert ( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
     assert ( is_size( scat_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-		      scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(),
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                      scat_za_grid.nelem(), 
+                      scat_aa_grid.nelem(),
+                      stokes_dim));
     assert ( is_size( pnd_field, 
-		      N_pt,
-		      p_grid.nelem(),
-		      lat_grid.nelem(), 
-		      lon_grid.nelem()));
+                      N_pt,
+                      p_grid.nelem(),
+                      lat_grid.nelem(), 
+                      lon_grid.nelem()));
     
   }
   
   else if (atmosphere_dim == 1 ){
     assert ( is_size( i_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
     assert ( is_size( scat_field, 
-		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-		      1, 
-		      1,
-		      scat_za_grid.nelem(), 
-		      1,
-		      stokes_dim));
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
     assert ( is_size( pnd_field, 
-		      N_pt,
-		      p_grid.nelem(),
-		      1, 
-		      1));
+                      N_pt,
+                      p_grid.nelem(),
+                      1, 
+                      1));
   }
   
    //When atmospheric dimension , atmosphere_dim = 1
@@ -1589,84 +1589,84 @@ scat_fieldCalc(//WS Output:
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
+         p_index++)
       {
        
-	//There is only loop over zenith angle grid ; no azimuth angle grid.
-	for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
-	  {
+        //There is only loop over zenith angle grid ; no azimuth angle grid.
+        for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+          {
             pha_mat_sptCalc(pha_mat_spt,
                             amp_mat,
                             za_prop,
                             0,
-			    stokes_dim);
-	    
+                            stokes_dim);
+            
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                         atmosphere_dim, p_index, 0, 
                         0);
-	    // za_in and aa_in are for incoming zenith and azimutha 
-	    //angle direction for which pha_mat is calculated
-	    
-	    for (Index za_in = 0; za_in < Nza; ++ za_in)
-	      { 
-		for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-		  {
-		    //This is a matrix with last two dimensions 
-		    //being that of stokes_dim
-		    ConstMatrixView pha = pha_mat(za_in,
-						  aa_in,
-						  Range(joker),
-						  Range(joker));
+            // za_in and aa_in are for incoming zenith and azimutha 
+            //angle direction for which pha_mat is calculated
+            
+            for (Index za_in = 0; za_in < Nza; ++ za_in)
+              { 
+                for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                  {
+                    //This is a matrix with last two dimensions 
+                    //being that of stokes_dim
+                    ConstMatrixView pha = pha_mat(za_in,
+                                                  aa_in,
+                                                  Range(joker),
+                                                  Range(joker));
 
-		    //the incoming field expressed as a vector for all
-		    //pressure points, and looking angles
-		    ConstVectorView i_field_in = 
-		      i_field((p_index - cloudbox_limits[0]),
-			      0,
-			      0,
-			      za_prop,
-			      0,
-			      Range(joker));
+                    //the incoming field expressed as a vector for all
+                    //pressure points, and looking angles
+                    ConstVectorView i_field_in = 
+                      i_field((p_index - cloudbox_limits[0]),
+                              0,
+                              0,
+                              za_prop,
+                              0,
+                              Range(joker));
 
-		    // multiplication of intensity field vector and 
-		    //pha_mat matrix
-		    mult(product_field( za_in,
-					aa_in,
-					Range(joker)),
-			 pha, 
-			 i_field_in);
-			    
-		  }//end aa_in loop
-	      }//end za_in loop
-	    /*integration of the product of ifield_in and pha
-	      over zenith angle and azimuth angle grid. It calls
-	      here the integration routine AngIntegrate_trapezoid*/
-	   
-	    for (Index i = 0; i < stokes_dim; i++)
-	      {
-		
-		MatrixView product_field_mat =
-		  product_field( Range(joker),
-				 Range(joker),
-				 i);
-		// scat_field is also defined for all points inside the cloud
-		//box for each propagion angle
-		scat_field( (p_index - cloudbox_limits[0]),
-			    0,
-			    0,
-			    za_prop, 
-			    0,
-			    i)  =   AngIntegrate_trapezoid(product_field_mat,
-							   scat_za_grid,
-							   scat_aa_grid);
-		
-	      }//end i loop
-	  }//end za_prop loop
+                    // multiplication of intensity field vector and 
+                    //pha_mat matrix
+                    mult(product_field( za_in,
+                                        aa_in,
+                                        Range(joker)),
+                         pha, 
+                         i_field_in);
+                            
+                  }//end aa_in loop
+              }//end za_in loop
+            /*integration of the product of ifield_in and pha
+              over zenith angle and azimuth angle grid. It calls
+              here the integration routine AngIntegrate_trapezoid*/
+           
+            for (Index i = 0; i < stokes_dim; i++)
+              {
+                
+                MatrixView product_field_mat =
+                  product_field( Range(joker),
+                                 Range(joker),
+                                 i);
+                // scat_field is also defined for all points inside the cloud
+                //box for each propagion angle
+                scat_field( (p_index - cloudbox_limits[0]),
+                            0,
+                            0,
+                            za_prop, 
+                            0,
+                            i)  =   AngIntegrate_trapezoid(product_field_mat,
+                                                           scat_za_grid,
+                                                           scat_aa_grid);
+                
+              }//end i loop
+          }//end za_prop loop
       }//end p_index loop
     
   }//end atmosphere_dim = 1
 
-  //cout<<"scat_field"<<scat_field<<"\n";	
+  //cout<<"scat_field"<<scat_field<<"\n";       
   //exit(1);
   
   
@@ -1678,89 +1678,89 @@ scat_fieldCalc(//WS Output:
       using the method pha_matCalc.  */
     
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
+         p_index++)
       {
-	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-	       cloudbox_limits[3]; lat_index++)
-	  {
-	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-		   cloudbox_limits[5]; lon_index++)
-	      {
-		pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			    atmosphere_dim, p_index, lat_index, 
-			    lon_index);
-	      }
-	  }
-	
+        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+               cloudbox_limits[3]; lat_index++)
+          {
+            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+                   cloudbox_limits[5]; lon_index++)
+              {
+                pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                            atmosphere_dim, p_index, lat_index, 
+                            lon_index);
+              }
+          }
+        
       }
     
     // Get pha_mat at the grid positions
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
+         p_index++)
       {
-	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-	       cloudbox_limits[3]; lat_index++)
-	  {
-	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-		   cloudbox_limits[5]; lon_index++)
-	      {
-		//za_prop and aa_prop are the propagation directions
-		for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
-		  {
-		    for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
-		      {
-			//za_in and aa_in are the incoming directions
-			//for which pha_mat_spt is calculated
-			for (Index za_in = 0; za_in < Nza; ++ za_in)
-			  {
-			    for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-			      {	
-				
-				ConstMatrixView pha = pha_mat(za_in,
-						  aa_in,
-						  Range(joker),
-						  Range(joker));
+        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+               cloudbox_limits[3]; lat_index++)
+          {
+            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+                   cloudbox_limits[5]; lon_index++)
+              {
+                //za_prop and aa_prop are the propagation directions
+                for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
+                  {
+                    for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
+                      {
+                        //za_in and aa_in are the incoming directions
+                        //for which pha_mat_spt is calculated
+                        for (Index za_in = 0; za_in < Nza; ++ za_in)
+                          {
+                            for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                              { 
+                                
+                                ConstMatrixView pha = pha_mat(za_in,
+                                                  aa_in,
+                                                  Range(joker),
+                                                  Range(joker));
 
-				ConstVectorView i_field_in = 
-				  i_field((p_index - cloudbox_limits[0]),
-					  (lat_index - cloudbox_limits[1]),
-					  (lon_index - cloudbox_limits[2]),
-					  za_prop,
-					  aa_prop,
-					  Range(joker));
-				
-				mult(product_field( za_in,
-						    aa_in,
-						    Range(joker)),
-				     pha, 
-				     i_field_in);
-				
-			      }//end aa_in loop
-			  }//end za_in loop
-			//integration of the product of ifield_in and pha
-			//over zenith angle and azimuth angle grid. It 
-			//calls here the integration routine 
-			//AngIntegrate_trapezoid
-			for (Index i = 0; i < stokes_dim; i++)
-			  {
-			    MatrixView product_field_mat =
-			      product_field( Range(joker),
-					     Range(joker),
-					     i);
-			    scat_field( (p_index - cloudbox_limits[0]),
-					(lat_index - cloudbox_limits[1]),
-					(lon_index - cloudbox_limits[2]),
-					za_prop, 
-					aa_prop,
-					i)  =  
-			      AngIntegrate_trapezoid(product_field_mat,
-						     scat_za_grid,
-						     scat_aa_grid);
-			  }//end i loop
-		      }//end aa_prop loop
-		  }//end za_prop loop
-	      }//end lon loop
-	  }// end lat loop
+                                ConstVectorView i_field_in = 
+                                  i_field((p_index - cloudbox_limits[0]),
+                                          (lat_index - cloudbox_limits[1]),
+                                          (lon_index - cloudbox_limits[2]),
+                                          za_prop,
+                                          aa_prop,
+                                          Range(joker));
+                                
+                                mult(product_field( za_in,
+                                                    aa_in,
+                                                    Range(joker)),
+                                     pha, 
+                                     i_field_in);
+                                
+                              }//end aa_in loop
+                          }//end za_in loop
+                        //integration of the product of ifield_in and pha
+                        //over zenith angle and azimuth angle grid. It 
+                        //calls here the integration routine 
+                        //AngIntegrate_trapezoid
+                        for (Index i = 0; i < stokes_dim; i++)
+                          {
+                            MatrixView product_field_mat =
+                              product_field( Range(joker),
+                                             Range(joker),
+                                             i);
+                            scat_field( (p_index - cloudbox_limits[0]),
+                                        (lat_index - cloudbox_limits[1]),
+                                        (lon_index - cloudbox_limits[2]),
+                                        za_prop, 
+                                        aa_prop,
+                                        i)  =  
+                              AngIntegrate_trapezoid(product_field_mat,
+                                                     scat_za_grid,
+                                                     scat_aa_grid);
+                          }//end i loop
+                      }//end aa_prop loop
+                  }//end za_prop loop
+              }//end lon loop
+          }// end lat loop
       }// end p loop
   }// end atmosphere_dim = 3
  
@@ -1803,46 +1803,46 @@ propagation path
 \date 2002-10-09
 */
 void ScatteringMain(//WS Output 
-		   Tensor7& scat_i_p,
-		   Tensor7& scat_i_lat,
-		   Tensor7& scat_i_lon,
-		   Index& f_index,
+                   Tensor7& scat_i_p,
+                   Tensor7& scat_i_lat,
+                   Tensor7& scat_i_lon,
+                   Index& f_index,
                    Ppath& ppath,
-		   Ppath& ppath_step,
-		   Matrix& i_rte,
-		   Matrix& y_rte,
-		   Matrix& i_space,
-		   Matrix& ground_emission,
-		   Matrix& ground_los,
-		   Tensor4& ground_refl_coeffs,
-		   Index& mblock_index,
-		   Vector& a_los,
-		   Vector& a_pos,
+                   Ppath& ppath_step,
+                   Matrix& i_rte,
+                   Matrix& y_rte,
+                   Matrix& i_space,
+                   Matrix& ground_emission,
+                   Matrix& ground_los,
+                   Tensor4& ground_refl_coeffs,
+                   Index& mblock_index,
+                   Vector& a_los,
+                   Vector& a_pos,
                    GridPos& a_gp_p,
                    GridPos& a_gp_lat,
                    GridPos& a_gp_lon,
                    //WS  Input :
                    const Agenda& scat_mono_agenda,
-		   const Index& cloudbox_on, 
-		   const ArrayOfIndex& cloudbox_limits,
-		   const Index& atmosphere_dim,
-		   const Index& stokes_dim,
-		   const Vector& scat_za_grid,
-		   const Vector& scat_aa_grid,
-		   const Vector& f_grid,
-		   const Agenda& ppath_step_agenda,
-		   const Agenda& rte_agenda,
-		   const Agenda& i_space_agenda,
-		   const Agenda& ground_refl_agenda,
-		   const Vector& p_grid,
-		   const Vector& lat_grid,
-		   const Vector& lon_grid,
-		   const Tensor3& z_field,
-		   const Tensor3& t_field,
-		   const Matrix& r_geoid,
-		   const Matrix& z_ground
+                   const Index& cloudbox_on, 
+                   const ArrayOfIndex& cloudbox_limits,
+                   const Index& atmosphere_dim,
+                   const Index& stokes_dim,
+                   const Vector& scat_za_grid,
+                   const Vector& scat_aa_grid,
+                   const Vector& f_grid,
+                   const Agenda& ppath_step_agenda,
+                   const Agenda& rte_agenda,
+                   const Agenda& i_space_agenda,
+                   const Agenda& ground_refl_agenda,
+                   const Vector& p_grid,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid,
+                   const Tensor3& z_field,
+                   const Tensor3& t_field,
+                   const Matrix& r_geoid,
+                   const Matrix& z_ground
                    )
-		  
+                  
 {
   Index Nza = scat_za_grid.nelem();
   Index Nf = f_grid.nelem();
@@ -1864,7 +1864,7 @@ void ScatteringMain(//WS Output
 
   if( !cloudbox_on )
     throw runtime_error( "The cloud box is not activated and no incoming "
-			 "field can be returned." );
+                         "field can be returned." );
 
 
   CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,

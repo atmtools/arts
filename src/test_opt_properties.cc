@@ -35,13 +35,13 @@ int main(void)
   for( Index i = 0; i<4; i++)
     {
       for (Index j = 0; j<4; j++)
-	//ext_matrix(l_cross,amp,freq);
-	cout << " " << l_cross(i,j);
+        //ext_matrix(l_cross,amp,freq);
+        cout << " " << l_cross(i,j);
     }
       cout << "\n";
       /*===========================================================
-	checking integration
-	==========================================================*/
+        checking integration
+        ==========================================================*/
       Vector A(361);
       Vector A1(361);
       Numeric X;
@@ -55,16 +55,16 @@ int main(void)
       cout<<"Step length :" << h <<"\n" ;
       for (Numeric theta=0;theta<ulim+1;theta=theta+1)
       {
-    	A[theta]=sin(theta*DEG2RAD);
-	//A[theta]=theta;
-	A1[theta]=DEG2RAD*A[theta];
-	  //cout<<theta<<"  "<<A[theta] <<"\n";
+        A[theta]=sin(theta*DEG2RAD);
+        //A[theta]=theta;
+        A1[theta]=DEG2RAD*A[theta];
+          //cout<<theta<<"  "<<A[theta] <<"\n";
       }
       single_trapez(X,A1,llim,ulim,h);
       cout << "Integral of the Expression "<< " " <<X<<"\n" ;
       /*=========================================================
-	testing for double integration============================
-	=======================================================*/
+        testing for double integration============================
+        =======================================================*/
       Matrix B(181,361);
       Matrix B1(181,361);
       //Vector B1(5);
@@ -85,37 +85,37 @@ int main(void)
        cout<<"Number of points outer integral:" << N2  <<"\n" ;
       cout<<"Step length - outer integral:" << h2 <<"\n" ;
       for (Numeric i=llim2;i<ulim2+1;i=i+1)
-	{
-	  for (Numeric j=llim1;j<ulim1+1;j=j+1)
-	    {
-	      B(i,j)=sin(j*DEG2RAD);
-	      B1(i,j)=DEG2RAD*B(i,j);
-	      
-	    }
-	}
+        {
+          for (Numeric j=llim1;j<ulim1+1;j=j+1)
+            {
+              B(i,j)=sin(j*DEG2RAD);
+              B1(i,j)=DEG2RAD*B(i,j);
+              
+            }
+        }
       double_trapez(Y2,B1,llim1,llim2,ulim1,ulim2,h1,h2);
       cout << " Double Integral of the Expression "<< " " <<Y2<<"\n" ;
 /*=========================================================
-	testing for double integration through successive single integration
-	=======================================================*/
+        testing for double integration through successive single integration
+        =======================================================*/
       Matrix C(181,361); //Defining the matrix dimension
       Vector CC1(181);   
       Numeric CCC,CC;
       for (Numeric i=llim2;i<ulim2+1;i=i+1)
-	{
-	  for (Numeric j=llim1;j<ulim1+1;j=j+1)
-	    {
-	      C(i,j)=sin(j*DEG2RAD);//Matrix definition;simple sin(theta)
-	    }
-	}
+        {
+          for (Numeric j=llim1;j<ulim1+1;j=j+1)
+            {
+              C(i,j)=sin(j*DEG2RAD);//Matrix definition;simple sin(theta)
+            }
+        }
       for (Numeric i=llim2;i<ulim2+1;i=i+1)
-	{
-	  Vector C1=C(i,Range(joker));
-	  C1 *= DEG2RAD;
-	  //trapezoidal integration for the columns corresponding to each rows
-	  single_trapez(CC,C1,llim1,ulim1,h1);
-	  CC1[i]=CC;
-	}
+        {
+          Vector C1=C(i,Range(joker));
+          C1 *= DEG2RAD;
+          //trapezoidal integration for the columns corresponding to each rows
+          single_trapez(CC,C1,llim1,ulim1,h1);
+          CC1[i]=CC;
+        }
       //trapezoidal integration for the  rows
       single_trapez(CCC,CC1,llim2,ulim2,h2);
       cout << " Double Integral of the Expression through successive single integrations "<< " " <<CCC<<"\n";

@@ -71,7 +71,7 @@ extern const Numeric COSMIC_BG_TEMP;
 void MatrixCBR(
         // WS Output:
               Matrix&   m,
-	// WS Generic Output Names:
+        // WS Generic Output Names:
         const String&   m_name,
         // WS Input:
         const Index&    stokes_dim,
@@ -107,7 +107,7 @@ void MatrixCBR(
 void MatrixPlanck(
         // WS Output:
               Matrix&   m,
-	// WS Generic Output Names:
+        // WS Generic Output Names:
         const String&   m_name,
         // WS Input:
         const Index&    stokes_dim,
@@ -176,7 +176,7 @@ void MatrixToTbByPlanck(
     {
       ostringstream os;
       os << "The length of *" << f_grid_name << "* is not an integer multiple "
-	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+         << "of the\nnumber of rows of *" << y_in_name << "*.";
       throw runtime_error( os.str() );
     }
 
@@ -194,12 +194,12 @@ void MatrixToTbByPlanck(
   for( Index iv=0; iv<nf; iv++ )
     {
       for( irep=0; irep<nrep; irep++ )
-	{  
-	  ii = irep*nf + iv;
+        {  
+          ii = irep*nf + iv;
 
-	  for( icol=0; icol<ncols; icol++ )
-	    { y_out(ii,icol) = invplanck( y_in(ii,icol), f_grid[iv] ); }
-	}
+          for( icol=0; icol<ncols; icol++ )
+            { y_out(ii,icol) = invplanck( y_in(ii,icol), f_grid[iv] ); }
+        }
     }
 }
 
@@ -246,7 +246,7 @@ void MatrixToTbByRJ(
     {
       ostringstream os;
       os << "The length of *" << f_grid_name << "* is not an integer multiple "
-	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+         << "of the\nnumber of rows of *" << y_in_name << "*.";
       throw runtime_error( os.str() );
     }
 
@@ -267,15 +267,15 @@ void MatrixToTbByRJ(
   if( nrep == 1  &&  ncols == 1 )
     {
       for( Index iv=0; iv<nf; iv++ )
-	{
-	  for( irep=0; irep<nrep; irep++ )
-	    {  
-	      ii = irep*nf + iv;
-	      
-	      for( icol=0; icol<ncols; icol++ )
-		{ y_out(ii,icol) = invrayjean( y_in(ii,icol), f_grid[iv] ); }
-	    }
-	}
+        {
+          for( irep=0; irep<nrep; irep++ )
+            {  
+              ii = irep*nf + iv;
+              
+              for( icol=0; icol<ncols; icol++ )
+                { y_out(ii,icol) = invrayjean( y_in(ii,icol), f_grid[iv] ); }
+            }
+        }
     }
 
   else
@@ -288,17 +288,17 @@ void MatrixToTbByRJ(
       Numeric scfac;
 
       for( Index iv=0; iv<nf; iv++ )
-	{
-	  scfac = invrayjean( 1, f_grid[iv] );
+        {
+          scfac = invrayjean( 1, f_grid[iv] );
 
-	  for( irep=0; irep<nrep; irep++ )
-	    {  
-	      ii = irep*nf + iv;
+          for( irep=0; irep<nrep; irep++ )
+            {  
+              ii = irep*nf + iv;
 
-	      for( icol=0; icol<ncols; icol++ )
-	        { y_out(ii,icol) = scfac * y_in(ii,icol); }
-	    }
-	}
+              for( icol=0; icol<ncols; icol++ )
+                { y_out(ii,icol) = scfac * y_in(ii,icol); }
+            }
+        }
     }
 }
 
@@ -318,17 +318,17 @@ cloudbox.
 \param y_in         Input  : intensity in radiance units
 */
 void Tensor6ToTbByPlanck( // WS Generic Output:
-			 Tensor6&   y_out,
-			 // WS Generic Output Names:
-			 const String&   y_out_name,
-			 // WS Specific Input: 
-			 const Index& scat_f_index,
-			 const Vector&   f_grid,
-			 // WS Generic Input:
-			 const Tensor6&   y_in,
-			 // WS Generic Input Names:
-			 const String&   y_in_name)
-		
+                         Tensor6&   y_out,
+                         // WS Generic Output Names:
+                         const String&   y_out_name,
+                         // WS Specific Input: 
+                         const Index& scat_f_index,
+                         const Vector&   f_grid,
+                         // WS Generic Input:
+                         const Tensor6&   y_in,
+                         // WS Generic Input Names:
+                         const String&   y_in_name)
+                
 {
   // Some lengths
   const Index nv    = y_in.nvitrines();
@@ -350,22 +350,22 @@ void Tensor6ToTbByPlanck( // WS Generic Output:
   for( Index iv = 0; iv < nv; ++ iv )
     {
       for( Index is = 0; is < ns; ++ is )
-	{
-	  for( Index ib = 0; ib < nb; ++ ib )
-	    {
-	      for( Index ip = 0; ip < np; ++ ip )
-		{
-		  for( Index ir = 0; ir < nr; ++ ir )
-		    {
-		      for( Index ic = 0; ic < nc; ++ ic)
-			{
-			  y_out(iv, is, ib, ip, ir, ic) = 
-			   invplanck( y_in (iv, is, ib, ip, ir, ic ), f);  
-			}
-		    }
-		}
-	    }
-	}
+        {
+          for( Index ib = 0; ib < nb; ++ ib )
+            {
+              for( Index ip = 0; ip < np; ++ ip )
+                {
+                  for( Index ir = 0; ir < nr; ++ ir )
+                    {
+                      for( Index ic = 0; ic < nc; ++ ic)
+                        {
+                          y_out(iv, is, ib, ip, ir, ic) = 
+                           invplanck( y_in (iv, is, ib, ip, ir, ic ), f);  
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -411,7 +411,7 @@ void VectorToTbByPlanck(
     {
       ostringstream os;
       os << "The length of *" << f_grid_name << "* is not an integer multiple "
-	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+         << "of the\nnumber of rows of *" << y_in_name << "*.";
       throw runtime_error( os.str() );
     }
 
@@ -429,10 +429,10 @@ void VectorToTbByPlanck(
   for( Index iv=0; iv<nf; iv++ )
     {
       for( irep=0; irep<nrep; irep++ )
-	{  
-	  ii = irep*nf + iv;
-	  y_out[ii] = invplanck( y_in[ii], f_grid[iv] );
-	}
+        {  
+          ii = irep*nf + iv;
+          y_out[ii] = invplanck( y_in[ii], f_grid[iv] );
+        }
     }
 }
 
@@ -478,7 +478,7 @@ void VectorToTbByRJ(
     {
       ostringstream os;
       os << "The length of *" << f_grid_name << "* is not an integer multiple "
-	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+         << "of the\nnumber of rows of *" << y_in_name << "*.";
       throw runtime_error( os.str() );
     }
 
@@ -499,7 +499,7 @@ void VectorToTbByRJ(
     {
       // Here we just loop the frequencies and call invrayjean
       for( Index iv=0; iv<nf; iv++ )
-	{ y_out[iv] = invrayjean( y_in[iv], f_grid[iv] ); }
+        { y_out[iv] = invrayjean( y_in[iv], f_grid[iv] ); }
     }
 
   else
@@ -513,15 +513,15 @@ void VectorToTbByRJ(
       Index   irep, ii;
 
       for( Index iv=0; iv<nf; iv++ )
-	{
-	  scfac = invrayjean( 1, f_grid[iv] );
+        {
+          scfac = invrayjean( 1, f_grid[iv] );
 
-	  for( irep=0; irep<nrep; irep++ )
-	    {  
-	      ii = irep*nf + iv;
-	      y_out[ii] = scfac * y_in[ii];
-	    }
-	}
+          for( irep=0; irep<nrep; irep++ )
+            {  
+              ii = irep*nf + iv;
+              y_out[ii] = scfac * y_in[ii];
+            }
+        }
     }
 }
 

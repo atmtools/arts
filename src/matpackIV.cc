@@ -1159,13 +1159,13 @@ Tensor4View& Tensor4View::operator-=(const ConstTensor4View& x)
 /** Special constructor to make a Tensor4 view of a Tensor3. */
 Tensor4View::Tensor4View(const Tensor3View& a) :
   ConstTensor4View( a.mdata,
-		    Range(0,1,
-			  a.mpr.mextent*
-			  a.mrr.mextent*
-			  a.mcr.mextent),
-		    a.mpr,
-		    a.mrr,
-		    a.mcr )
+                    Range(0,1,
+                          a.mpr.mextent*
+                          a.mrr.mextent*
+                          a.mcr.mextent),
+                    a.mpr,
+                    a.mrr,
+                    a.mcr )
 {
   // Nothing to do here.
 }

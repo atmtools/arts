@@ -55,8 +55,8 @@ public:
   void print( ostream& os,
               const String& indent ) const;
 private:
-  String         mname;	/*!< Agenda name. */
-  Array<MRecord> mml;	/*!< The actual list of methods to execute. */
+  String         mname; /*!< Agenda name. */
+  Array<MRecord> mml;   /*!< The actual list of methods to execute. */
 };
 
 // Documentation with implementation.
@@ -76,10 +76,10 @@ class MRecord {
 public:
   MRecord(){ /* Nothing to do here. */ }
   MRecord(const Index id,
-	  const Array<TokVal>& values,
-	  const ArrayOfIndex& output,
-	  const ArrayOfIndex& input,
-	  const Agenda&       tasks)
+          const Array<TokVal>& values,
+          const ArrayOfIndex& output,
+          const ArrayOfIndex& input,
+          const Agenda&       tasks)
     : mid(id),
       mvalues( values ),
       moutput( output ),

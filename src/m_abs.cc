@@ -1,7 +1,7 @@
 /* Copyright (C) 2000, 2001 Stefan Buehler   <sbuehler@uni-bremen.de>
-                      	    Patrick Eriksson <patrick@rss.chalmers.se>
-		      	    Axel von Engeln  <engeln@uni-bremen.de>
-		      	    Thomas Kuhn      <tkuhn@uni-bremen.de>
+                            Patrick Eriksson <patrick@rss.chalmers.se>
+                            Axel von Engeln  <engeln@uni-bremen.de>
+                            Thomas Kuhn      <tkuhn@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -97,32 +97,32 @@ void linesReadFromHitran(// WS Output:
     {
       LineRecord lr;
       if ( lr.ReadFromHitranStream(is) )
-	{
-	  // If we are here the read function has reached eof and has
-	  // returned no data.
-	  go_on = false;
-	}
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
       else
-	{
-	  if ( fmin <= lr.F() )
-	    {
-	      if ( lr.F() <= fmax )
-		lines.push_back(lr);
-	      else
-		go_on = false;
-	    }
-	}
+        {
+          if ( fmin <= lr.F() )
+            {
+              if ( lr.F() <= fmax )
+                lines.push_back(lr);
+              else
+                go_on = false;
+            }
+        }
     }
   out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 
 void linesReadFromMytran2(// WS Output:
-			  ArrayOfLineRecord& lines,
+                          ArrayOfLineRecord& lines,
                           // Control Parameters:
-			  const String& filename,
-			  const Numeric& fmin,
-			  const Numeric& fmax)
+                          const String& filename,
+                          const Numeric& fmin,
+                          const Numeric& fmax)
 {
   ifstream is;
 
@@ -137,18 +137,18 @@ void linesReadFromMytran2(// WS Output:
     {
       LineRecord lr;
       if ( lr.ReadFromMytran2Stream(is) )
-	{
-	  // If we are here the read function has reached eof and has
-	  // returned no data.
-	  go_on = false;
-	}
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
       else
-	{
-	  // lines are not necessarily frequency sorted 
-	  if ( fmin <= lr.F() )
-	    if ( lr.F() <= fmax )
-	      lines.push_back(lr);
-	}
+        {
+          // lines are not necessarily frequency sorted 
+          if ( fmin <= lr.F() )
+            if ( lr.F() <= fmax )
+              lines.push_back(lr);
+        }
     }
   out2 << "  Read " << lines.nelem() << " lines.\n";
 }
@@ -162,11 +162,11 @@ void linesReadFromMytran2(// WS Output:
    \date 2001-11-05
  */
 void linesReadFromJpl(// WS Output:
-		      ArrayOfLineRecord& lines,
-		      // Control Parameters:
-		      const String& filename,
-		      const Numeric& fmin,
-		      const Numeric& fmax)
+                      ArrayOfLineRecord& lines,
+                      // Control Parameters:
+                      const String& filename,
+                      const Numeric& fmin,
+                      const Numeric& fmax)
 {
   ifstream is;
 
@@ -181,33 +181,33 @@ void linesReadFromJpl(// WS Output:
     {
       LineRecord lr;
       if ( lr.ReadFromJplStream(is) )
-	{
-	  // If we are here the read function has reached eof and has
-	  // returned no data.
-	  go_on = false;
-	}
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
       else
-	{
-	  // we expect lines to be sorted
-	  if ( fmin <= lr.F() )
-	    {
-	      if ( lr.F() <= fmax )
-		lines.push_back(lr);
-	      else
-		go_on = false;
-	    }
-	}
+        {
+          // we expect lines to be sorted
+          if ( fmin <= lr.F() )
+            {
+              if ( lr.F() <= fmax )
+                lines.push_back(lr);
+              else
+                go_on = false;
+            }
+        }
     }
   out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 
 void linesReadFromArts(// WS Output:
-		       ArrayOfLineRecord& lines,
-		       // Control Parameters:
-		       const String& filename,
-		       const Numeric& fmin,
-		       const Numeric& fmax)
+                       ArrayOfLineRecord& lines,
+                       // Control Parameters:
+                       const String& filename,
+                       const Numeric& fmin,
+                       const Numeric& fmax)
 {
   // The input stream:
   ifstream is;
@@ -228,24 +228,24 @@ void linesReadFromArts(// WS Output:
     is >> v;
     if ( v!=lr.Version() )
       {
-	ostringstream os;
-	
-	// If what we read is the version String, it should have at elast 9 characters.
-	if ( 9 <= v.nelem() )
-	  {
-	    if ( "ARTSCAT" == v.substr(0,7) )
-	    {
-	      os << "The ARTS line file you are trying contains a version tag "
-		 << "different from the current version.\n"
-		 << "Tag in file:     " << v << "\n"
-		 << "Current version: " << lr.Version();
-	      throw runtime_error(os.str());
-	    }
-	  }
+        ostringstream os;
+        
+        // If what we read is the version String, it should have at elast 9 characters.
+        if ( 9 <= v.nelem() )
+          {
+            if ( "ARTSCAT" == v.substr(0,7) )
+            {
+              os << "The ARTS line file you are trying contains a version tag "
+                 << "different from the current version.\n"
+                 << "Tag in file:     " << v << "\n"
+                 << "Current version: " << lr.Version();
+              throw runtime_error(os.str());
+            }
+          }
 
-	os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-	   << "Probably it was created with an older version of ARTS that used different units.";
-	throw runtime_error(os.str());
+        os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+           << "Probably it was created with an older version of ARTS that used different units.";
+        throw runtime_error(os.str());
       }
   }
 
@@ -253,30 +253,30 @@ void linesReadFromArts(// WS Output:
   while ( go_on )
     {
       if ( lr.ReadFromArtsStream(is) )
-	{
-	  // If we are here the read function has reached eof and has
-	  // returned no data.
-	  go_on = false;
-	}
+        {
+          // If we are here the read function has reached eof and has
+          // returned no data.
+          go_on = false;
+        }
       else
-	{
-	  if ( fmin <= lr.F() )
-	    {
-	      // lines are not necessarily frequency sorted 
-	      if ( fmin <= lr.F() )
-		if ( lr.F() <= fmax )
-		  {
-		    lines.push_back(lr);
-		    //		    out3 << lr << "\n";
-		  }
-	    }
-	}
+        {
+          if ( fmin <= lr.F() )
+            {
+              // lines are not necessarily frequency sorted 
+              if ( fmin <= lr.F() )
+                if ( lr.F() <= fmax )
+                  {
+                    lines.push_back(lr);
+                    //              out3 << lr << "\n";
+                  }
+            }
+        }
     }
   out2 << "  Read " << lines.nelem() << " lines.\n";
 }
 
 void linesElowToJoule(// WS Output:
-		      ArrayOfLineRecord& lines )
+                      ArrayOfLineRecord& lines )
 {
   for ( Index i=0; i<lines.nelem(); ++i )
     lines[i].melow = wavenumber_to_joule(lines[i].melow); 
@@ -302,10 +302,10 @@ void linesElowToJoule(// WS Output:
   Example usage:
 
   lines_per_tgReadFromCatalogues{
-  	filenames = [ "../data/cat1.dat", "../data/cat2.dat" ]
-	formats   = [ "MYTRAN2",          "HITRAN96"         ]
-	fmin      = [ 0,                  0                  ]
-	fmax      = [ 2000e9,             100e9              ]
+        filenames = [ "../data/cat1.dat", "../data/cat2.dat" ]
+        formats   = [ "MYTRAN2",          "HITRAN96"         ]
+        fmin      = [ 0,                  0                  ]
+        fmax      = [ 2000e9,             100e9              ]
   }
 
   In this example, lines for the first tag group will be taken from
@@ -327,17 +327,17 @@ void linesElowToJoule(// WS Output:
   \author Stefan Buehler
   \date 2000-01-19 */
 void lines_per_tgReadFromCatalogues(// WS Output:
-				    ArrayOfArrayOfLineRecord& lines_per_tg,
-				    // WS Input:
-				    const ArrayOfArrayOfSpeciesTag& tgs,
+                                    ArrayOfArrayOfLineRecord& lines_per_tg,
+                                    // WS Input:
+                                    const ArrayOfArrayOfSpeciesTag& tgs,
                                     // Control Parameters:
                                     const ArrayOfString& filenames,
                                     const ArrayOfString& formats,
                                     const Vector& fmin,
                                     const Vector& fmax)
 {
-  const Index n_tg   = tgs.nelem();	// # tag groups
-  const Index n_cat = filenames.nelem();	// # tag Catalogues
+  const Index n_tg   = tgs.nelem();     // # tag groups
+  const Index n_cat = filenames.nelem();        // # tag Catalogues
 
   // Check that dimensions of the keyword parameters are consistent
   // (must all be the same). 
@@ -348,12 +348,12 @@ void lines_per_tgReadFromCatalogues(// WS Output:
     {
       ostringstream os;
       os << "lines_per_tgReadFromCatalogues: All keyword\n"
-	 << "parameters must get the same number of arguments.\n"
-	 << "You specified:\n"
-	 << "filenames: " << n_cat         << "\n"
-	 << "formats:   " << formats.nelem() << "\n"
-	 << "fmin:      " << fmin.nelem()    << "\n"
-	 << "fmax:      " << fmax.nelem();
+         << "parameters must get the same number of arguments.\n"
+         << "You specified:\n"
+         << "filenames: " << n_cat         << "\n"
+         << "formats:   " << formats.nelem() << "\n"
+         << "fmin:      " << fmin.nelem()    << "\n"
+         << "fmax:      " << fmax.nelem();
       throw runtime_error(os.str());
     }
   
@@ -364,10 +364,10 @@ void lines_per_tgReadFromCatalogues(// WS Output:
     {
       ostringstream os;
       os << "lines_per_tgReadFromCatalogues: You specified more\n"
-	 << "catalugues than you have tag groups.\n"
-	 << "You specified:\n"
-	 << "Catalogues: " << n_cat << "\n"
-	 << "tgs: " << n_tg;
+         << "catalugues than you have tag groups.\n"
+         << "You specified:\n"
+         << "Catalogues: " << n_cat << "\n"
+         << "tgs: " << n_tg;
       throw runtime_error(os.str());
     }
 
@@ -378,10 +378,10 @@ void lines_per_tgReadFromCatalogues(// WS Output:
     {
       ostringstream os;
       os << "lines_per_tgReadFromCatalogues: You must have at\n"
-	 << "least one catalogue and at least one tag group.\n"
-	 << "You specified:\n"
-	 << "Catalogues: " << n_cat << "\n"
-	 << "tgs: " << n_tg;
+         << "least one catalogue and at least one tag group.\n"
+         << "You specified:\n"
+         << "Catalogues: " << n_cat << "\n"
+         << "tgs: " << n_tg;
       throw runtime_error(os.str());
     }
 
@@ -390,8 +390,8 @@ void lines_per_tgReadFromCatalogues(// WS Output:
   // real catalogues, along with a data structure that tells us which
   // tag groups should use this catalogue.
 
-  MakeArray<String> 	 real_filenames ( filenames[0] );
-  MakeArray<String> 	 real_formats   ( formats[0]   );
+  MakeArray<String>      real_filenames ( filenames[0] );
+  MakeArray<String>      real_formats   ( formats[0]   );
   MakeArray<Numeric>     real_fmin      ( fmin[0]      );
   MakeArray<Numeric>     real_fmax      ( fmax[0]      );
 
@@ -401,63 +401,63 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
   // The last specified catalogue, to which we should assign all
   // remaining lines. Index of this one in real_ arrays.
-  Index last_cat = 0;		
+  Index last_cat = 0;           
 
   for ( Index i=1; i<n_tg; ++i )
     {
       // Is there a catalogue specified?
       if ( n_cat > i )
-	{
-	  // Yes, there is a catalogue.
+        {
+          // Yes, there is a catalogue.
 
-	  // Has this been specified before?
-	  // We use the STL find algorithm to look for the catalogue
-	  // name in the real_catalogues. Find returns an iterator, so
-	  // to get an index we have to take the difference to
-	  // .begin(). 
-	  const Index that_cat = find( real_filenames.begin(),
-					real_filenames.end(),
-					filenames[i] ) - real_filenames.begin();
-	  if ( that_cat < real_filenames.nelem() )
-	    {
-	      // Yes, it has been specified before
-	      // ==> Assign to that catalogue
-	      real_tgs[that_cat].push_back(i);
+          // Has this been specified before?
+          // We use the STL find algorithm to look for the catalogue
+          // name in the real_catalogues. Find returns an iterator, so
+          // to get an index we have to take the difference to
+          // .begin(). 
+          const Index that_cat = find( real_filenames.begin(),
+                                        real_filenames.end(),
+                                        filenames[i] ) - real_filenames.begin();
+          if ( that_cat < real_filenames.nelem() )
+            {
+              // Yes, it has been specified before
+              // ==> Assign to that catalogue
+              real_tgs[that_cat].push_back(i);
 
-	      // Verify, that format, fmin, and fmax are consistent:
-	      if ( formats[i] != real_formats[that_cat] ||
-		   fmin[i]    != real_fmin[that_cat]    ||
-		   fmax[i]    != real_fmax[that_cat] 	   )
-		{
-		  ostringstream os;
-		  os << "lines_per_tgReadFromCatalogues: If you specify the\n"
-		     << "same catalogue repeatedly, format, fmin, and fmax must be\n"
-		     << "consistent. There is an inconsistency between\n"
-		     << "catalogue " << that_cat << " and " << i << ".";
-		  throw runtime_error(os.str());
-		}
-	    }
-	  else
-	    {
-	      // No, it has not been specified before.
-	      // ==> Add an entry to real_tgs and the other real_ variables:
-	      real_tgs.push_back( MakeArray<Index>(i) );
+              // Verify, that format, fmin, and fmax are consistent:
+              if ( formats[i] != real_formats[that_cat] ||
+                   fmin[i]    != real_fmin[that_cat]    ||
+                   fmax[i]    != real_fmax[that_cat]       )
+                {
+                  ostringstream os;
+                  os << "lines_per_tgReadFromCatalogues: If you specify the\n"
+                     << "same catalogue repeatedly, format, fmin, and fmax must be\n"
+                     << "consistent. There is an inconsistency between\n"
+                     << "catalogue " << that_cat << " and " << i << ".";
+                  throw runtime_error(os.str());
+                }
+            }
+          else
+            {
+              // No, it has not been specified before.
+              // ==> Add an entry to real_tgs and the other real_ variables:
+              real_tgs.push_back( MakeArray<Index>(i) );
 
-	      real_filenames.push_back( filenames[i] );
-	      real_formats.push_back  ( formats[i]   );  
-	      real_fmin.push_back     ( fmin[i]      );     
-	      real_fmax.push_back     ( fmax[i]      );
+              real_filenames.push_back( filenames[i] );
+              real_formats.push_back  ( formats[i]   );  
+              real_fmin.push_back     ( fmin[i]      );     
+              real_fmax.push_back     ( fmax[i]      );
 
-	      last_cat = i;	// assign remainder of lines to this
-				// catalogue, if there is no other catalogue.
-	    }
-	}
+              last_cat = i;     // assign remainder of lines to this
+                                // catalogue, if there is no other catalogue.
+            }
+        }
       else
-	{
-	  // No, there is no catalogue.
-	  // ==> Assign to the last catalogue
-	  real_tgs[last_cat].push_back(i);
-	}
+        {
+          // No, there is no catalogue.
+          // ==> Assign to the last catalogue
+          real_tgs[last_cat].push_back(i);
+        }
     }
 
   Index n_real_cat = real_filenames.nelem(); // # real catalogues to read
@@ -468,7 +468,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
     {
       out3 << "  " << real_filenames[i] << ":";
       for ( Index s=0; s<real_tgs[i].nelem(); ++s )
-	out3 << " " << real_tgs[i][s];
+        out3 << " " << real_tgs[i][s];
       out3 << "\n";
     }
 
@@ -483,37 +483,37 @@ void lines_per_tgReadFromCatalogues(// WS Output:
       // Read catalogue:
 
       if ( "HITRAN96"==real_formats[i] )
-	{
-	  linesReadFromHitran( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
-	}
+        {
+          linesReadFromHitran( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+        }
       else if ( "MYTRAN2"==real_formats[i] )
-	{
-	  linesReadFromMytran2( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
-	}
+        {
+          linesReadFromMytran2( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+        }
       else if ( "JPL"==real_formats[i] )
-	{
-	  linesReadFromJpl( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
-	}
+        {
+          linesReadFromJpl( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+        }
       else if ( "ARTS"==real_formats[i] )
-	{
-	  linesReadFromArts( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
-	}
+        {
+          linesReadFromArts( lines, real_filenames[i], real_fmin[i], real_fmax[i] );
+        }
       else
-	{
-	  ostringstream os;
-	  os << "lines_per_tgReadFromCatalogues: You specified the\n"
+        {
+          ostringstream os;
+          os << "lines_per_tgReadFromCatalogues: You specified the\n"
              << "format `" << real_formats[i] << "', which is unknown.\n"
-	     << "Allowd formats are: HITRAN96, MYTRAN2, JPL, ARTS.";
-	  throw runtime_error(os.str());
-	}
+             << "Allowd formats are: HITRAN96, MYTRAN2, JPL, ARTS.";
+          throw runtime_error(os.str());
+        }
 
       // We need to make subset tgs for the groups that should
       // be read from this catalogue.
       ArrayOfArrayOfSpeciesTag  these_tgs(real_tgs[i].nelem());
       for ( Index s=0; s<real_tgs[i].nelem(); ++s )
-	{
-	  these_tgs[s] = tgs[real_tgs[i][s]];
-	}
+        {
+          these_tgs[s] = tgs[real_tgs[i][s]];
+        }
 
       // Create these_lines_per_tg:
       ArrayOfArrayOfLineRecord these_lines_per_tg;
@@ -521,9 +521,9 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 
       // Put these lines in the right place in lines_per_tg:
       for ( Index s=0; s<real_tgs[i].nelem(); ++s )
-	{
-	  lines_per_tg[real_tgs[i][s]] = these_lines_per_tg[s];
-	}
+        {
+          lines_per_tg[real_tgs[i][s]] = these_lines_per_tg[s];
+        }
     }
 }
 
@@ -576,92 +576,92 @@ void lines_per_tgCreateFromLines(// WS Output:
 
       // Loop the tag groups:
       for ( j=0; j<tgs.nelem() && !found ; ++j ) 
-	{
-	  // A tag group can contain several tags:
-	  for ( Index k=0; k<tgs[j].nelem() && !found; ++k )
-	    {
-	      // Get a reference to the current tag (not really
-	      // necessary, but makes for nicer notation below):
-	      const SpeciesTag& this_tag = tgs[j][k];
+        {
+          // A tag group can contain several tags:
+          for ( Index k=0; k<tgs[j].nelem() && !found; ++k )
+            {
+              // Get a reference to the current tag (not really
+              // necessary, but makes for nicer notation below):
+              const SpeciesTag& this_tag = tgs[j][k];
 
-	      // Now we will test different attributes of the line
-	      // against matching attributes of the tag. If any
-	      // attribute does not match, we continue with the next tag
-	      // in the tag group. (Exception: Species, see just below.)
+              // Now we will test different attributes of the line
+              // against matching attributes of the tag. If any
+              // attribute does not match, we continue with the next tag
+              // in the tag group. (Exception: Species, see just below.)
 
-	      // Test species. If this attribute does not match we don`t
-	      // have to test the other tags in this group, since all
-	      // tags must belong to the same species.
-	      if ( this_tag.Species() != this_line.Species() ) break;
+              // Test species. If this attribute does not match we don`t
+              // have to test the other tags in this group, since all
+              // tags must belong to the same species.
+              if ( this_tag.Species() != this_line.Species() ) break;
 
-	      // Test isotope. The isotope can either match directly, or
-	      // the Isotope of the tag can be one larger than the
-	      // number of isotopes, which means `all'. Test the second
-	      // condition first, since this will probably be more often
-	      // used.
-	      if ( this_tag.Isotope() != this_line.SpeciesData().Isotope().nelem() )
-		if ( this_tag.Isotope() != this_line.Isotope() )
-		  continue;
+              // Test isotope. The isotope can either match directly, or
+              // the Isotope of the tag can be one larger than the
+              // number of isotopes, which means `all'. Test the second
+              // condition first, since this will probably be more often
+              // used.
+              if ( this_tag.Isotope() != this_line.SpeciesData().Isotope().nelem() )
+                if ( this_tag.Isotope() != this_line.Isotope() )
+                  continue;
 
-	    // Test frequncy range we take both the lower (Lf) and the
-	    // upper (Uf) border frequency to include the `equal' case.
-	    // Both Lf and Uf can also be negative, which means `no limit'
+            // Test frequncy range we take both the lower (Lf) and the
+            // upper (Uf) border frequency to include the `equal' case.
+            // Both Lf and Uf can also be negative, which means `no limit'
 
-	    // Take the lower limit first:
-	      if ( this_tag.Lf() >= 0 )
-		if ( this_tag.Lf() > this_line.F() )
-		  continue;
+            // Take the lower limit first:
+              if ( this_tag.Lf() >= 0 )
+                if ( this_tag.Lf() > this_line.F() )
+                  continue;
 
-	    // Then the upper limit:
-	      if ( this_tag.Uf() >= 0 )
-		if ( this_tag.Uf() < this_line.F() )
-		  continue;
+            // Then the upper limit:
+              if ( this_tag.Uf() >= 0 )
+                if ( this_tag.Uf() < this_line.F() )
+                  continue;
 
-	    // When we get here, this_tag has survived all tests. That
-	    // means it matches the line perfectly!
-	      found = true;
-	    }
-	}
+            // When we get here, this_tag has survived all tests. That
+            // means it matches the line perfectly!
+              found = true;
+            }
+        }
 
       // If a matching tag was found, this line can be used in the
       // calculation. Add it to the line list for this tag group.
       if (found)
-	{
-	  // We have to use j-1 here, since j was still increased by
-	  // one after the matching tag has been found.
-	  lines_per_tg[j-1].push_back(this_line);
+        {
+          // We have to use j-1 here, since j was still increased by
+          // one after the matching tag has been found.
+          lines_per_tg[j-1].push_back(this_line);
 
-	  // Flag this species as used, if not already done:
-	  if ( !species_used[this_line.Species()] )
-	    species_used[this_line.Species()] = true;
-	}
+          // Flag this species as used, if not already done:
+          if ( !species_used[this_line.Species()] )
+            species_used[this_line.Species()] = true;
+        }
       else
-	{
-	  // Safety feature: Issue a warning messages if the lines for a
-	  // species are only partly covered by tags.
-	  if ( species_used[this_line.Species()] )
-	    {
-	      out0 << "Your tags include other lines of species "
-		   << this_line.SpeciesData().Name()
-		   << ",\n"
-		   << "why do you not include line "
-		   << i
-		   << " (at "
-		   << this_line.F()
-		   << " Hz)?\n";
-	    }
-	}
+        {
+          // Safety feature: Issue a warning messages if the lines for a
+          // species are only partly covered by tags.
+          if ( species_used[this_line.Species()] )
+            {
+              out0 << "Your tags include other lines of species "
+                   << this_line.SpeciesData().Name()
+                   << ",\n"
+                   << "why do you not include line "
+                   << i
+                   << " (at "
+                   << this_line.F()
+                   << " Hz)?\n";
+            }
+        }
    }
 
   // Write some information to the lowest priority output stream.
   for (Index i=0; i<tgs.nelem(); ++i)
     {
-	out3 << "  " << i << ":";
+        out3 << "  " << i << ":";
 
-	for (Index s=0; s<tgs[i].nelem(); ++s)
-	  out3 << " " << tgs[i][s].Name();
+        for (Index s=0; s<tgs[i].nelem(); ++s)
+          out3 << " " << tgs[i][s].Name();
 
-	out3 << ": " << lines_per_tg[i].nelem() << " lines\n";
+        out3 << ": " << lines_per_tg[i].nelem() << " lines\n";
     }
 
 }
@@ -690,18 +690,18 @@ void lines_per_tgAddMirrorLines(// WS Output:
 
       // Loop through all lines of this tag group:
       {
-	// It is important that we determine the size of ll *before*
-	// we start the loop. After all, we are adding elements. And
-	// we cerainly don't want to continue looping the newly added
-	// elements, we want to loop only the original elements.
-	Index n=ll.nelem();
-	for ( Index j=0; j<n; ++j )
-	  {
-	    LineRecord dummy = ll[j];
-	    dummy.setF( -dummy.F() );
-	    //	    cout << "Adding ML at f = " << dummy.F() << "\n";
-	    ll.push_back(dummy);
-	  }
+        // It is important that we determine the size of ll *before*
+        // we start the loop. After all, we are adding elements. And
+        // we cerainly don't want to continue looping the newly added
+        // elements, we want to loop only the original elements.
+        Index n=ll.nelem();
+        for ( Index j=0; j<n; ++j )
+          {
+            LineRecord dummy = ll[j];
+            dummy.setF( -dummy.F() );
+            //      cout << "Adding ML at f = " << dummy.F() << "\n";
+            ll.push_back(dummy);
+          }
       }
     }
 
@@ -718,10 +718,10 @@ void lines_per_tgAddMirrorLines(// WS Output:
 
     \author Axel von Engeln and Stefan Buehler */
 void lines_per_tgCompact(// WS Output:
-			 ArrayOfArrayOfLineRecord& lines_per_tg,
-			 // WS Input:
-			 const ArrayOfLineshapeSpec& lineshape,
-			 const Vector& f_mono)
+                         ArrayOfArrayOfLineRecord& lines_per_tg,
+                         // WS Input:
+                         const ArrayOfLineshapeSpec& lineshape,
+                         const Vector& f_mono)
 {
 
   // Make sure lines_per_tg and lineshape have the same dimension:
@@ -729,7 +729,7 @@ void lines_per_tgCompact(// WS Output:
     {
       ostringstream os;
       os << "Dimension of lines_per_tg does\n"
-	 << "not match that of lineshape.";
+         << "not match that of lineshape.";
       throw runtime_error(os.str());
     }
   
@@ -737,13 +737,13 @@ void lines_per_tgCompact(// WS Output:
   for ( Index s=0; s<f_mono.nelem()-1; ++s )
     {
       if ( f_mono[s+1] <= f_mono[s] )
-	{
-	  ostringstream os;
-	  os << "The frequency grid f_mono is not properly sorted.\n"
-	     << "f_mono[" << s << "] = " << f_mono[s] << "\n"
-	     << "f_mono[" << s+1 << "] = " << f_mono[s+1];
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "The frequency grid f_mono is not properly sorted.\n"
+             << "f_mono[" << s << "] = " << f_mono[s] << "\n"
+             << "f_mono[" << s+1 << "] = " << f_mono[s+1];
+          throw runtime_error(os.str());
+        }
     }
 
   // Cycle through all tag groups:
@@ -754,38 +754,38 @@ void lines_per_tgCompact(// WS Output:
 
       // Check whether cutoff is defined:
       if ( cutoff != -1)
-	{
-	  // Get a reference to the current list of lines to save typing:
-	  ArrayOfLineRecord& ll = lines_per_tg[i];
+        {
+          // Get a reference to the current list of lines to save typing:
+          ArrayOfLineRecord& ll = lines_per_tg[i];
 
-	  // Calculate the borders:
-	  Numeric upp = f_mono[f_mono.nelem()-1] + cutoff;
-	  Numeric low = f_mono[0] - cutoff;
+          // Calculate the borders:
+          Numeric upp = f_mono[f_mono.nelem()-1] + cutoff;
+          Numeric low = f_mono[0] - cutoff;
 
-	  // Cycle through all lines within this tag group. 
-	  for ( ArrayOfLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
-	    {
-	      // Center frequency:
-	      const Numeric F0 = j->F();
+          // Cycle through all lines within this tag group. 
+          for ( ArrayOfLineRecord::iterator j=ll.begin(); j<ll.end(); ++j )
+            {
+              // Center frequency:
+              const Numeric F0 = j->F();
 
-	      if ( ( F0 < low) || ( F0 > upp) )
-		{
-		  j = ll.erase(j) - 1;
-		  // We need the -1 here, otherwise due to the
-		  // following increment we would miss the element
-		  // behind the erased one, which is now at the
-		  // position of the erased one.
-		}
-	    }
-	}
+              if ( ( F0 < low) || ( F0 > upp) )
+                {
+                  j = ll.erase(j) - 1;
+                  // We need the -1 here, otherwise due to the
+                  // following increment we would miss the element
+                  // behind the erased one, which is now at the
+                  // position of the erased one.
+                }
+            }
+        }
     }
 }
 
 
 void linesWriteAscii(// WS Input:
-		      const ArrayOfLineRecord& lines,
-		      // Control Parameters:
-		      const String& f)
+                      const ArrayOfLineRecord& lines,
+                      // Control Parameters:
+                      const String& f)
 {
   String filename = f;
   
@@ -806,9 +806,9 @@ void linesWriteAscii(// WS Input:
 
 
 void lines_per_tgWriteAscii(// WS Input:
-			      const ArrayOfArrayOfLineRecord& lines_per_tg,
-			      // Control Parameters:
-			      const String& f)
+                              const ArrayOfArrayOfLineRecord& lines_per_tg,
+                              // Control Parameters:
+                              const String& f)
 {
   String filename = f;
   
@@ -835,9 +835,9 @@ void lines_per_tgWriteAscii(// WS Input:
 
 
 void tgsDefine(// WS Output:
-	       ArrayOfArrayOfSpeciesTag& tgs,
-	       // Control Parameters:
-	       const ArrayOfString& tags)
+               ArrayOfArrayOfSpeciesTag& tgs,
+               // Control Parameters:
+               const ArrayOfString& tags)
 {
   tgs.resize(tags.nelem());
 
@@ -854,21 +854,21 @@ void tgsDefine(// WS Output:
       bool go_on = true;
       String these_tags = tags[i];
       while (go_on)
-	{
-	  Index n = these_tags.find(',');
-	  if ( n == these_tags.npos ) // npos indicates `not found'
-	    {
-	      // There are no more commas.
-	      //	      cout << "these_tags: (" << these_tags << ")\n";
-	      tag_def.push_back(these_tags);
-	      go_on = false;
-	    }
-	  else
-	    {
-	      tag_def.push_back(these_tags.substr(0,n));
-	      these_tags.erase(0,n+1);
-	    }
-	}
+        {
+          Index n = these_tags.find(',');
+          if ( n == these_tags.npos ) // npos indicates `not found'
+            {
+              // There are no more commas.
+              //              cout << "these_tags: (" << these_tags << ")\n";
+              tag_def.push_back(these_tags);
+              go_on = false;
+            }
+          else
+            {
+              tag_def.push_back(these_tags.substr(0,n));
+              these_tags.erase(0,n+1);
+            }
+        }
 
       // tag_def now holds the different tag Strings for this group.
       //      cout << "tag_def =\n" << tag_def << endl;
@@ -877,20 +877,20 @@ void tgsDefine(// WS Output:
       tgs[i].resize(0);
 
       for ( Index s=0; s<tag_def.nelem(); ++s )
-	{
-	  // Remove leading whitespace, if there is any:
-	  while ( ' '  == tag_def[s][0] ||
-		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
+        {
+          // Remove leading whitespace, if there is any:
+          while ( ' '  == tag_def[s][0] ||
+                  '\t' == tag_def[s][0]    )    tag_def[s].erase(0,1);
 
-	  SpeciesTag this_tag(tag_def[s]);
+          SpeciesTag this_tag(tag_def[s]);
 
-	  // Safety check: For s>0 check that the tags belong to the same species.
-	  if (s>0)
-	    if ( tgs[i][0].Species() != this_tag.Species() )
-	      throw runtime_error("Tags in a tag group must belong to the same species.");
+          // Safety check: For s>0 check that the tags belong to the same species.
+          if (s>0)
+            if ( tgs[i][0].Species() != this_tag.Species() )
+              throw runtime_error("Tags in a tag group must belong to the same species.");
 
-	  tgs[i].push_back(this_tag);
-	}
+          tgs[i].push_back(this_tag);
+        }
     }
 
   // Print list of tag groups to the most verbose output stream:
@@ -899,9 +899,9 @@ void tgsDefine(// WS Output:
     {
       out3 << "\n  " << i << ":";
       for ( Index s=0; s<tgs[i].nelem(); ++s )
-	{
-	  out3 << " " << tgs[i][s].Name();
-	}
+        {
+          out3 << " " << tgs[i][s].Name();
+        }
     }
   out3 << '\n';
 
@@ -909,7 +909,7 @@ void tgsDefine(// WS Output:
 }
 
 void tgsDefineAllInScenario(// WS Output:
-			    ArrayOfArrayOfSpeciesTag& tgs,
+                            ArrayOfArrayOfSpeciesTag& tgs,
                             // Control Parameters:
                             const String& basename)
 {
@@ -928,30 +928,30 @@ void tgsDefineAllInScenario(// WS Output:
 
       // Try to open VMR file:
       try
-	{
-	  ifstream file;
-	  open_input_file(file, filename);
+        {
+          ifstream file;
+          open_input_file(file, filename);
 
-	  // Ok, if we get here the file was found.
+          // Ok, if we get here the file was found.
 
-	  // Add to included list:
-	  included.push_back(specname);
+          // Add to included list:
+          included.push_back(specname);
 
-	  // Convert name of species to a SpeciesTag object:
-	  SpeciesTag this_tag(specname);
+          // Convert name of species to a SpeciesTag object:
+          SpeciesTag this_tag(specname);
 
-	  // Create Array of SpeciesTags with length 1 (our tag group has only one tag):
-	  Array<SpeciesTag> this_group(1);
-	  this_group[0] = this_tag;
+          // Create Array of SpeciesTags with length 1 (our tag group has only one tag):
+          Array<SpeciesTag> this_group(1);
+          this_group[0] = this_tag;
 
-	  // Add this tag group to tgs:
-	  tgs.push_back(this_group);
-	}
+          // Add this tag group to tgs:
+          tgs.push_back(this_group);
+        }
       catch (runtime_error x)
-	{
-	  // Ok, the file for the species could not be found.
-	  excluded.push_back(specname);
-	}
+        {
+          // Ok, the file for the species could not be found.
+          excluded.push_back(specname);
+        }
     }
   
   // Some nice output:
@@ -965,12 +965,12 @@ void tgsDefineAllInScenario(// WS Output:
 }
 
 void lineshapeDefine(// WS Output:
-		     ArrayOfLineshapeSpec&    lineshape,
-		     // WS Input:
-		     const ArrayOfArrayOfSpeciesTag&         tgs,
-		     const String&            shape,
-		     const String&            normalizationfactor,
-		     const Numeric&           cutoff)
+                     ArrayOfLineshapeSpec&    lineshape,
+                     // WS Input:
+                     const ArrayOfArrayOfSpeciesTag&         tgs,
+                     const String&            shape,
+                     const String&            normalizationfactor,
+                     const Numeric&           cutoff)
 {
   // Make lineshape and normalization factor data visible:
   extern const Array<LineshapeRecord> lineshape_data;
@@ -987,10 +987,10 @@ void lineshapeDefine(// WS Output:
     {
       const String& str = lineshape_data[i].Name();
       if (str == shape) 
-	{
-	  out2 << "  Selected lineshape: " << str << "\n";
-	  found0=i;
-	}
+        {
+          out2 << "  Selected lineshape: " << str << "\n";
+          found0=i;
+        }
     }
 
   // Is this normalization to the lineshape available?
@@ -999,14 +999,14 @@ void lineshapeDefine(// WS Output:
     {
       const String& str = lineshape_norm_data[i].Name();
       if (str == normalizationfactor) 
-	{
-	  out2 << "  Selected normalization factor  : " << normalizationfactor << "\n";
+        {
+          out2 << "  Selected normalization factor  : " << normalizationfactor << "\n";
 
-	  if ( (cutoff != -1) && (cutoff < 0.0) )
-	    throw runtime_error("  Cutoff must be -1 or positive.");
-	  out2 << "  Selected cutoff frequency [Hz] : " << cutoff << "\n";
-	  found1=i;
-	}
+          if ( (cutoff != -1) && (cutoff < 0.0) )
+            throw runtime_error("  Cutoff must be -1 or positive.");
+          out2 << "  Selected cutoff frequency [Hz] : " << cutoff << "\n";
+          found1=i;
+        }
     }
 
 
@@ -1027,12 +1027,12 @@ void lineshapeDefine(// WS Output:
 }
 
 void lineshape_per_tgDefine(// WS Output:
-			    ArrayOfLineshapeSpec& lineshape,
-			    // WS Input:
-			    const ArrayOfArrayOfSpeciesTag&      tgs,
-			    const ArrayOfString&  shape,
-			    const ArrayOfString&  normalizationfactor,
-			    const Vector&         cutoff )
+                            ArrayOfLineshapeSpec& lineshape,
+                            // WS Input:
+                            const ArrayOfArrayOfSpeciesTag&      tgs,
+                            const ArrayOfString&  shape,
+                            const ArrayOfString&  normalizationfactor,
+                            const Vector&         cutoff )
 {
   // Make lineshape and normalization factor data visible:
   extern const Array<LineshapeRecord> lineshape_data;
@@ -1046,7 +1046,7 @@ void lineshape_per_tgDefine(// WS Output:
     {
       ostringstream os;
       os << "lineshape_per_tgDefine: number of elements does\n"
-	 << "not match the number of tag groups defined.";
+         << "not match the number of tag groups defined.";
       throw runtime_error(os.str());
     }
       
@@ -1059,49 +1059,49 @@ void lineshape_per_tgDefine(// WS Output:
     {
       Index found0=-1;
       for ( Index i=0; i<lineshape_data.nelem() && (found0 == -1); ++i )
-	{
-	  const String& str = lineshape_data[i].Name();
-	  if (str == shape[k]) 
-	    {
-	      out2 << "  Tag Group: [";
-	      for (Index s=0; s<tgs[k].nelem()-1; ++s)
-		out2 << tgs[k][s].Name() << ", "; 
-	      out2 << tgs[k][tgs[k].nelem()-1].Name() << "]\n";
-	      out2 << "  Selected lineshape: " << str << "\n";
-	      found0=i;
-	    }
-	}
+        {
+          const String& str = lineshape_data[i].Name();
+          if (str == shape[k]) 
+            {
+              out2 << "  Tag Group: [";
+              for (Index s=0; s<tgs[k].nelem()-1; ++s)
+                out2 << tgs[k][s].Name() << ", "; 
+              out2 << tgs[k][tgs[k].nelem()-1].Name() << "]\n";
+              out2 << "  Selected lineshape: " << str << "\n";
+              found0=i;
+            }
+        }
 
       // Is this normalization to the lineshape available?
       Index found1=-1;
       for ( Index i=0; i<lineshape_norm_data.nelem() && (found1 == -1); ++i )
-	{
-	  const String& str = lineshape_norm_data[i].Name();
-	  if (str == normalizationfactor[k]) 
-	    {
-	      out2 << "  Selected normalization factor: " << normalizationfactor[k] << "\n";
-	      if ( (cutoff[k] != -1) && (cutoff[k] < 0.0) )
-		throw runtime_error("  Cutoff must be -1 or positive.");
-	      out2 << "  Selected cutoff frequency    : " << cutoff[k] << "\n";
-	      found1=i;
-	    }
-	}
+        {
+          const String& str = lineshape_norm_data[i].Name();
+          if (str == normalizationfactor[k]) 
+            {
+              out2 << "  Selected normalization factor: " << normalizationfactor[k] << "\n";
+              if ( (cutoff[k] != -1) && (cutoff[k] < 0.0) )
+                throw runtime_error("  Cutoff must be -1 or positive.");
+              out2 << "  Selected cutoff frequency    : " << cutoff[k] << "\n";
+              found1=i;
+            }
+        }
 
 
       // did we find the lineshape and normalization factor?
       if (found0 == -1)
-	{
-	  ostringstream os;
-	  os << "Selected lineshape not available: "<< shape[k] <<"\n";
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "Selected lineshape not available: "<< shape[k] <<"\n";
+          throw runtime_error(os.str());
+        }
       if (found1 == -1)
-	{
-	  ostringstream os;
-	  os << "Selected normalization to lineshape not available: "<< 
-	    normalizationfactor[k] <<"\n";
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "Selected normalization to lineshape not available: "<< 
+            normalizationfactor[k] <<"\n";
+          throw runtime_error(os.str());
+        }
 
       // now set the lineshape variables 
       lineshape[k].SetInd_ls( found0 );
@@ -1127,8 +1127,8 @@ void raw_vmrsReadFromScenario(// WS Output:
     {
       // Determine the name.
       String name =
-	basename + "." +
-	species_data[tgs[i][0].Species()].Name() + ".aa";
+        basename + "." +
+        species_data[tgs[i][0].Species()].Name() + ".aa";
       
       // Add an element for this tag group to the vmr profiles:
       raw_vmrs.push_back(Matrix());
@@ -1139,7 +1139,7 @@ void raw_vmrsReadFromScenario(// WS Output:
       
       // state the source of profile.
       out3 << "  " << species_data[tgs[i][0].Species()].Name()
-	   << " profile read from file: " << name << "\n";
+           << " profile read from file: " << name << "\n";
     }
 }
 
@@ -1157,13 +1157,13 @@ void raw_vmrsReadFromScenario(// WS Output:
    \date 2001-08-02 / 2001-09-19
  */ 
 void raw_vmrsReadFromFiles(// WS Output:
-		           ArrayOfMatrix&   raw_vmrs,
-			   // WS Input:
-			   const ArrayOfArrayOfSpeciesTag& tgs,
-			   // Control Parameters:
-			   const ArrayOfString&  seltags,
-			   const ArrayOfString&  filenames,
-			   const String&         basename)
+                           ArrayOfMatrix&   raw_vmrs,
+                           // WS Input:
+                           const ArrayOfArrayOfSpeciesTag& tgs,
+                           // Control Parameters:
+                           const ArrayOfString&  seltags,
+                           const ArrayOfString&  filenames,
+                           const String&         basename)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1184,7 +1184,7 @@ void raw_vmrsReadFromFiles(// WS Output:
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
      true_filenames[i] +=
-	species_data[tgs[i][0].Species()].Name() + ".aa";
+        species_data[tgs[i][0].Species()].Name() + ".aa";
      // Should be identical to how the filenames are constructed in
      // raw_vmrsReadFromScenario! 
     }
@@ -1208,7 +1208,7 @@ void raw_vmrsReadFromFiles(// WS Output:
       
       // state the source of profile.
       out3 << "  " << species_data[tgs[i][0].Species()].Name()
-	   << " profile read from file: " << true_filenames[i] << "\n";
+           << " profile read from file: " << true_filenames[i] << "\n";
     }
 }
 
@@ -1280,11 +1280,11 @@ void raw_vmrsReadFromFiles(// WS Output:
    \date 2001-08-02
  */ 
 void WaterVaporSaturationInClouds( // WS Input/Output
-				  Matrix&           vmrs,  // manipulates this WS
-				  Vector&           p_abs, // manipulates this WS
-				  // WS Input
-				  const Vector&     t_abs, // constant
-				  const ArrayOfArrayOfSpeciesTag&  tgs  ) // constant
+                                  Matrix&           vmrs,  // manipulates this WS
+                                  Vector&           p_abs, // manipulates this WS
+                                  // WS Input
+                                  const Vector&     t_abs, // constant
+                                  const ArrayOfArrayOfSpeciesTag&  tgs  ) // constant
 {
 
   // make sure that the VMR and pressure grid are the same
@@ -1307,19 +1307,19 @@ void WaterVaporSaturationInClouds( // WS Input/Output
     {
       String tag_name = species_data[tgs[i][0].Species()].Name();
       if (tag_name == "liquidcloud") // <=== liquid water clouds tag name
-	{
-	  liquid_index = i;
-	}
+        {
+          liquid_index = i;
+        }
       if (tag_name == "icecloud") // <====== ice water clouds tag name
-	{
-	  ice_index = i;
-	}
+        {
+          ice_index = i;
+        }
       if (tag_name == "H2O") // <=========== water vapor tags to change VMR
-	{
-	  h2o_index[u++] = i;
-	  //cout << "tag_name=" << tag_name << ",  tag=" << i << ",  u=" << u 
+        {
+          h2o_index[u++] = i;
+          //cout << "tag_name=" << tag_name << ",  tag=" << i << ",  u=" << u 
           //     << ",  h2o_index[u]=" << h2o_index[u] << "\n";
-	}
+        }
     }
 
 
@@ -1337,32 +1337,32 @@ void WaterVaporSaturationInClouds( // WS Input/Output
     {
       // sauration over liquid water 
       for (Index uu=0; uu<u; ++uu)              // --- loop over all H2O tags
-	{
-	  for (Index i=0; i<vmrs.ncols() ; ++i) // --- loop over altitude grid
-	    {
-	      if (vmrs(liquid_index,i) > 0.000) // --- cloud present or not?
-		{
-		  // dry air part of the total pressure
-		  Numeric p_dry         =  p_abs[i] * ( 1.000e0 - vmrs(h2o_index[uu],i) );
+        {
+          for (Index i=0; i<vmrs.ncols() ; ++i) // --- loop over altitude grid
+            {
+              if (vmrs(liquid_index,i) > 0.000) // --- cloud present or not?
+                {
+                  // dry air part of the total pressure
+                  Numeric p_dry         =  p_abs[i] * ( 1.000e0 - vmrs(h2o_index[uu],i) );
                   // water vapor saturation over liquid water 
-		  Numeric e_s           =  WVSatPressureLiquidWater( t_abs[i] );
-		  // new total pressure = dry air pressure +  water vapor saturation pressure
-		  p_abs[i]              =  e_s + p_dry;
-		  // new water vapor volume mixing ratio
-		  vmrs(h2o_index[uu],i) =  e_s / p_abs[i];
-		  // check if VMR has strange value
-		  if ( (vmrs(h2o_index[uu],i) < 0.000e0) || (vmrs(h2o_index[uu],i) > 1.000e0) ) 
-		    {
-		      ostringstream os;
-		      os << "WaterVaporSaturationInClouds: The water vapor VMR value " 
+                  Numeric e_s           =  WVSatPressureLiquidWater( t_abs[i] );
+                  // new total pressure = dry air pressure +  water vapor saturation pressure
+                  p_abs[i]              =  e_s + p_dry;
+                  // new water vapor volume mixing ratio
+                  vmrs(h2o_index[uu],i) =  e_s / p_abs[i];
+                  // check if VMR has strange value
+                  if ( (vmrs(h2o_index[uu],i) < 0.000e0) || (vmrs(h2o_index[uu],i) > 1.000e0) ) 
+                    {
+                      ostringstream os;
+                      os << "WaterVaporSaturationInClouds: The water vapor VMR value " 
                          << vmrs(h2o_index[uu],i) << "\n"
                          << " looks strange after setting it to the saturation pressure over liquid water.";
-		      throw runtime_error(os.str());
-		      return;
-		    }
-		}
-	    }
-	}
+                      throw runtime_error(os.str());
+                      return;
+                    }
+                }
+            }
+        }
     }
 
 
@@ -1371,32 +1371,32 @@ void WaterVaporSaturationInClouds( // WS Input/Output
   if ( (ice_index >= 0) && (ice_index < tgs.nelem()) )
     {
       for (Index uu=0; uu<u; ++uu)              // --- loop over all H2O tags
-	{
-	  for (Index i=0; i<vmrs.ncols() ; ++i) // --- loop over altitude grid
-	    {
-	      if (vmrs(ice_index,i) > 0.000)    // --- cloud present or not?
-		{
-		  // dry air part of the total pressure
-		  Numeric p_dry         =  p_abs[i] * ( 1.000e0 - vmrs(h2o_index[uu],i) );
-		  // water vapor saturation over ice
-		  Numeric e_s           =  WVSatPressureIce( t_abs[i] );
-		  // new total pressure = dry air pressure +  water vapor saturation pressure
-		  p_abs[i]              =  e_s + p_dry;
-		  // new water vapor volume mixing ratio
-		  vmrs(h2o_index[uu],i) =  e_s / p_abs[i];
-		  // check if VMR has strange value
-		  if ( (vmrs(h2o_index[uu],i) < 0.000e0)  || (vmrs(h2o_index[uu],i) > 1.000e0) )
-		    {
-		      ostringstream os;
-		      os << "WaterVaporSaturationInClouds: The water vapor VMR value " 
+        {
+          for (Index i=0; i<vmrs.ncols() ; ++i) // --- loop over altitude grid
+            {
+              if (vmrs(ice_index,i) > 0.000)    // --- cloud present or not?
+                {
+                  // dry air part of the total pressure
+                  Numeric p_dry         =  p_abs[i] * ( 1.000e0 - vmrs(h2o_index[uu],i) );
+                  // water vapor saturation over ice
+                  Numeric e_s           =  WVSatPressureIce( t_abs[i] );
+                  // new total pressure = dry air pressure +  water vapor saturation pressure
+                  p_abs[i]              =  e_s + p_dry;
+                  // new water vapor volume mixing ratio
+                  vmrs(h2o_index[uu],i) =  e_s / p_abs[i];
+                  // check if VMR has strange value
+                  if ( (vmrs(h2o_index[uu],i) < 0.000e0)  || (vmrs(h2o_index[uu],i) > 1.000e0) )
+                    {
+                      ostringstream os;
+                      os << "WaterVaporSaturationInClouds: The water vapor VMR value " 
                          << vmrs(h2o_index[uu],i) << "\n"
                          << " looks strange after setting it to the saturation pressure over ice.";
-		      throw runtime_error(os.str());
-		      return;
-		    }
-		}
-	    }
-	}
+                      throw runtime_error(os.str());
+                      return;
+                    }
+                }
+            }
+        }
     }
   
   return;
@@ -1417,14 +1417,14 @@ void WaterVaporSaturationInClouds( // WS Input/Output
     Step 3 is only carried out if keyword CloudSatWV is set to "yes".
  */
 void AtmFromRaw(// WS Output:
-		  Vector& 	 t_abs,
-		  Vector& 	 z_abs,
-		  Matrix&        vmrs,
-		  // WS Input:      
-		  const ArrayOfArrayOfSpeciesTag&       tgs,
-		  const Vector&  	 p_abs,
-		  const Matrix&  	 raw_ptz,
-		  const ArrayOfMatrix&   raw_vmrs)
+                  Vector&        t_abs,
+                  Vector&        z_abs,
+                  Matrix&        vmrs,
+                  // WS Input:      
+                  const ArrayOfArrayOfSpeciesTag&       tgs,
+                  const Vector&          p_abs,
+                  const Matrix&          raw_ptz,
+                  const ArrayOfMatrix&   raw_vmrs)
 {
   
   //---------------< 1. Interpolation of temperature and altitude >---------------
@@ -1432,10 +1432,10 @@ void AtmFromRaw(// WS Output:
     // Safety check: Make sure that raw_ptz really is a [x,3] matrix:
     if ( 3 != raw_ptz.ncols() )
       {
-	ostringstream os;
-	os << "The variable raw_ptz does not have the right dimensions,\n"
-	   << "ncols() should be 3, but is actually "<< raw_ptz.ncols();
-	throw runtime_error(os.str());
+        ostringstream os;
+        os << "The variable raw_ptz does not have the right dimensions,\n"
+           << "ncols() should be 3, but is actually "<< raw_ptz.ncols();
+        throw runtime_error(os.str());
       }
 
 
@@ -1451,9 +1451,9 @@ void AtmFromRaw(// WS Output:
 
     // The interpolation function must be replaced
     /* interpp( tz_intp,
-	     raw_ptz(Range(joker),0),
-	     transpose(raw_ptz(Range(joker),Range(1,joker))),
-	     p_abs ); */
+             raw_ptz(Range(joker),0),
+             transpose(raw_ptz(Range(joker),Range(1,joker))),
+             p_abs ); */
     // The first Matpack expression selects the first column of
     // raw_ptz as a vector. The second Matpack expression gives the
     // transpose of the last two columns of raw_ptz. The function
@@ -1461,15 +1461,15 @@ void AtmFromRaw(// WS Output:
 
     // Extract t_abs:
     t_abs.resize( tz_intp.ncols() );
-    t_abs = tz_intp(0,Range(joker));	// Matpack can copy the first row of
-					// tz_intp to t_abs like this. But
-					// t_abs has to have the right size!
+    t_abs = tz_intp(0,Range(joker));    // Matpack can copy the first row of
+                                        // tz_intp to t_abs like this. But
+                                        // t_abs has to have the right size!
 
     // Extract z_abs:
     z_abs.resize( tz_intp.ncols() );
-    z_abs = tz_intp(1,Range(joker));	// Matpack can copy the second row of
-					// tz_intp to t_abs like this. But
-					// t_abs has to have the right size!
+    z_abs = tz_intp(1,Range(joker));    // Matpack can copy the second row of
+                                        // tz_intp to t_abs like this. But
+                                        // t_abs has to have the right size!
   }
 
   //---------------< 2. Interpolation of VMR profiles >---------------
@@ -1487,53 +1487,53 @@ void AtmFromRaw(// WS Output:
     for ( Index j=0; j<raw_vmrs.nelem(); ++j )
       {
 
-	// Get a reference to the profile we are concerned with:
-	const Matrix& raw = raw_vmrs[j];
+        // Get a reference to the profile we are concerned with:
+        const Matrix& raw = raw_vmrs[j];
 
-	// Raw should be a matrix with dimension [x,2], the first column
-	// is the raw pressure grid, the second column the VMR values.
+        // Raw should be a matrix with dimension [x,2], the first column
+        // is the raw pressure grid, the second column the VMR values.
       
-	// Safety check to ensure this:
-	if ( 2 != raw.ncols() )
-	  {
-	    ostringstream os;
-	    os << "The variable raw_vmrs("
-	       << j
-	       << ") does not have the right dimensions,\n"
-	       << "ncols() should be 2, but is actually "<< raw.ncols();
-	    throw runtime_error(os.str());
-	  }
+        // Safety check to ensure this:
+        if ( 2 != raw.ncols() )
+          {
+            ostringstream os;
+            os << "The variable raw_vmrs("
+               << j
+               << ") does not have the right dimensions,\n"
+               << "ncols() should be 2, but is actually "<< raw.ncols();
+            throw runtime_error(os.str());
+          }
 
-	// Interpolate the profile to the predefined pressure grid:
-	//String tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
-	// if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
-	//   {
-	//     // Interpolate linearly the cloud profiles
-	//     interpp_cloud( vmrs(j,Range(joker)),
-	// 		   raw(Range(joker),0),
-	// 		   raw(Range(joker),1),
-	// 		   p_abs );
-	    //	out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
-	//   }
-	// else
-	//   {
-	    // Interpolate VMRs:
+        // Interpolate the profile to the predefined pressure grid:
+        //String tag_name = species_data[tgs[j][0].Species()].Name(); // name of the tag
+        // if ( (tag_name == "liquidcloud") || (tag_name == "icecloud") )
+        //   {
+        //     // Interpolate linearly the cloud profiles
+        //     interpp_cloud( vmrs(j,Range(joker)),
+        //                 raw(Range(joker),0),
+        //                 raw(Range(joker),1),
+        //                 p_abs );
+            //  out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
+        //   }
+        // else
+        //   {
+            // Interpolate VMRs:
             // The interpolation function must be replaced
-	    /* interpp( vmrs(j,Range(joker)),
-		     raw(Range(joker),0),
-		     raw(Range(joker),1),
-		     p_abs ); */
-	    // out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
-	//   }
-	// The calls to interpp_cloud and inerpp contain some nice
-	// Matpack  features:
-	// 1. vmrs(j,Range(joker)) selects the jth row of vmrs.
-	// 2. raw(Range(joker),0) and raw(Range(joker),1) select the
-	// first and second column of raw. We don't need transpose
-	// here, since the selected objects are vectors. 
-	//
-	// Note that you can call the interpolation functions directly
-	// with these selections. 
+            /* interpp( vmrs(j,Range(joker)),
+                     raw(Range(joker),0),
+                     raw(Range(joker),1),
+                     p_abs ); */
+            // out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
+        //   }
+        // The calls to interpp_cloud and inerpp contain some nice
+        // Matpack  features:
+        // 1. vmrs(j,Range(joker)) selects the jth row of vmrs.
+        // 2. raw(Range(joker),0) and raw(Range(joker),1) select the
+        // first and second column of raw. We don't need transpose
+        // here, since the selected objects are vectors. 
+        //
+        // Note that you can call the interpolation functions directly
+        // with these selections. 
       }
   }
 }
@@ -1547,9 +1547,9 @@ void AtmFromRaw(// WS Output:
    \date   2001-01-18
 */
 void h2o_absSet(
-		Vector&          h2o_abs,
-		const ArrayOfArrayOfSpeciesTag& tgs,
-		const Matrix&    vmrs )
+                Vector&          h2o_abs,
+                const ArrayOfArrayOfSpeciesTag& tgs,
+                const Matrix&    vmrs )
 {
   const Index   n = tgs.nelem();
   Index   found = -1;
@@ -1567,7 +1567,7 @@ void h2o_absSet(
     throw runtime_error("h2o_absSet: No tag group contains water!");
   
   h2o_abs.resize( vmrs.ncols() );
-  h2o_abs = vmrs(found,Range(joker));	
+  h2o_abs = vmrs(found,Range(joker));   
   // Matpack can copy the contents of vectors like this. The
   // dimensions must be the same! The expression
   // vmrs(found,Range(joker)) selects the row with index corresponding
@@ -1584,10 +1584,10 @@ void h2o_absSet(
    \date   2001-08-14
 */
 void vmrsScale(
-	       Matrix&                vmrs,
-	       const ArrayOfArrayOfSpeciesTag&       tgs,
-	       const ArrayOfString&   scaltgs,
-	       const Vector&          scalfac)
+               Matrix&                vmrs,
+               const ArrayOfArrayOfSpeciesTag&       tgs,
+               const ArrayOfString&   scaltgs,
+               const Vector&          scalfac)
 {
   Index                            itag;
   ArrayOfIndex                     tagindex;      
@@ -1622,9 +1622,9 @@ void vmrsScale(
    \date   2001-01-18
 */
 void n2_absSet(
-	       Vector&            n2_abs,
-	       const   ArrayOfArrayOfSpeciesTag& tgs,
-	       const   Matrix&    vmrs )
+               Vector&            n2_abs,
+               const   ArrayOfArrayOfSpeciesTag& tgs,
+               const   Matrix&    vmrs )
 {
   const Index   n = tgs.nelem();
   Index     found = -1;
@@ -1669,7 +1669,7 @@ void n2_absSet(
                                     models
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
-					 cont_description_names 
+                                         cont_description_names 
 
    \author Axel von Engeln
    \date 2001-01-11
@@ -1678,21 +1678,21 @@ void n2_absSet(
    \date 2001-03-13
  */
 void absCalc(// WS Output:
-             Matrix&        		     abs,
-             ArrayOfMatrix& 		     abs_per_tg,
-             // WS Input:		  
-	     const ArrayOfArrayOfSpeciesTag&                tgs,
-             const Vector&  		     f_mono,
-             const Vector&  		     p_abs,
-             const Vector&  		     t_abs,
-	     const Vector&  		     n2_abs,
-	     const Vector&  		     h2o_abs,
+             Matrix&                         abs,
+             ArrayOfMatrix&                  abs_per_tg,
+             // WS Input:                 
+             const ArrayOfArrayOfSpeciesTag&                tgs,
+             const Vector&                   f_mono,
+             const Vector&                   p_abs,
+             const Vector&                   t_abs,
+             const Vector&                   n2_abs,
+             const Vector&                   h2o_abs,
              const Matrix&                   vmrs,
              const ArrayOfArrayOfLineRecord& lines_per_tg,
-	     const ArrayOfLineshapeSpec&     lineshape,
-	     const ArrayOfString&            cont_description_names,
-	     const ArrayOfString&            cont_description_models,
-	     const ArrayOfVector& 	     cont_description_parameters)
+             const ArrayOfLineshapeSpec&     lineshape,
+             const ArrayOfString&            cont_description_names,
+             const ArrayOfString&            cont_description_models,
+             const ArrayOfVector&            cont_description_parameters)
 {
   // Dimension checks are performed in the executed functions
 
@@ -1702,31 +1702,31 @@ void absCalc(// WS Output:
   xsec_per_tgInit( xsec_per_tg, tgs, f_mono, p_abs );
 
   xsec_per_tgAddLines( xsec_per_tg,
-		       tgs,
-		       f_mono,
-		       p_abs,
-		       t_abs,
-		       h2o_abs,
-		       vmrs,
-		       lines_per_tg,
-		       lineshape );
+                       tgs,
+                       f_mono,
+                       p_abs,
+                       t_abs,
+                       h2o_abs,
+                       vmrs,
+                       lines_per_tg,
+                       lineshape );
 
   xsec_per_tgAddConts( xsec_per_tg,
-		       tgs,
-		       f_mono,
-		       p_abs,
-		       t_abs,
-		       n2_abs,
-		       h2o_abs,
-		       vmrs,
-		       cont_description_names,
-		       cont_description_parameters,
-		       cont_description_models);
+                       tgs,
+                       f_mono,
+                       p_abs,
+                       t_abs,
+                       n2_abs,
+                       h2o_abs,
+                       vmrs,
+                       cont_description_names,
+                       cont_description_parameters,
+                       cont_description_models);
 
   absCalcFromXsec(abs,
-		  abs_per_tg,
-		  xsec_per_tg,
-		  vmrs );
+                  abs_per_tg,
+                  xsec_per_tg,
+                  vmrs );
 
 }
 
@@ -1747,11 +1747,11 @@ void absCalc(// WS Output:
    \date   2001-01-11
 */
 void absCalcFromXsec(// WS Output:
-		     Matrix&        		     abs,
-		     ArrayOfMatrix& 		     abs_per_tg,
-		     // WS Input:		  
-		     const ArrayOfMatrix&            xsec_per_tg,
-		     const Matrix&                   vmrs)
+                     Matrix&                         abs,
+                     ArrayOfMatrix&                  abs_per_tg,
+                     // WS Input:                 
+                     const ArrayOfMatrix&            xsec_per_tg,
+                     const Matrix&                   vmrs)
 {
   // Check that vmrs and xsec_per_tg really have compatible
   // dimensions. In vmrs there should be one row for each tg:
@@ -1759,8 +1759,8 @@ void absCalcFromXsec(// WS Output:
     {
       ostringstream os;
       os << "Variable vmrs must have compatible dimension to xsec_per_tg.\n"
-	 << "vmrs.nrows() = " << vmrs.nrows() << '\n'
-	 << "xsec_per_tg.nelem() = " << xsec_per_tg.nelem();
+         << "vmrs.nrows() = " << vmrs.nrows() << '\n'
+         << "xsec_per_tg.nelem() = " << xsec_per_tg.nelem();
       throw runtime_error(os.str());
     }
 
@@ -1771,8 +1771,8 @@ void absCalcFromXsec(// WS Output:
     {
       ostringstream os;
       os << "Variable vmrs must have same numbers of altitudes as xsec_per_tg.\n"
-	 << "vmrs.ncols() = " << vmrs.ncols() << '\n'
-	 << "xsec_per_tg[0].ncols() = " << xsec_per_tg[0].ncols();
+         << "vmrs.ncols() = " << vmrs.ncols() << '\n'
+         << "xsec_per_tg[0].ncols() = " << xsec_per_tg[0].ncols();
       throw runtime_error(os.str());
     }  
   
@@ -1780,7 +1780,7 @@ void absCalcFromXsec(// WS Output:
   // is the same as that of xsec_per_tg. The dimension of abs should
   // be equal to one of the xsec_per_tg enries.
   abs.resize( xsec_per_tg[0].nrows(), xsec_per_tg[0].ncols() );
-  abs = 0;			// Matpack can set all elements like this.
+  abs = 0;                      // Matpack can set all elements like this.
 
   abs_per_tg.resize( xsec_per_tg.nelem() );
 
@@ -1793,21 +1793,21 @@ void absCalcFromXsec(// WS Output:
 
       // Make this element of xsec_per_tg the right size:
       abs_per_tg[i].resize( xsec_per_tg[i].nrows(), xsec_per_tg[i].ncols() );
-      abs_per_tg[i] = 0;	// Initialize all elements to 0.
+      abs_per_tg[i] = 0;        // Initialize all elements to 0.
 
       // Loop through all altitudes
       for ( Index j=0; j<xsec_per_tg[i].ncols(); j++)
-	{
-	  // Loop through all frequencies
-	  for ( Index k=0; k<xsec_per_tg[i].nrows(); k++)
-	    {
-	      abs_per_tg[i](k,j) = xsec_per_tg[i](k,j) * vmrs(i,j);
-	    }
-	}
+        {
+          // Loop through all frequencies
+          for ( Index k=0; k<xsec_per_tg[i].nrows(); k++)
+            {
+              abs_per_tg[i](k,j) = xsec_per_tg[i](k,j) * vmrs(i,j);
+            }
+        }
 
       // Add up to the total absorption:
-      abs += abs_per_tg[i];	// In Matpack you can use the +=
-				// operator to do elementwise addition.
+      abs += abs_per_tg[i];     // In Matpack you can use the +=
+                                // operator to do elementwise addition.
     }
 }
 
@@ -1826,12 +1826,12 @@ void absCalcFromXsec(// WS Output:
    \date   2001-03-12
 */
 void xsec_per_tgInit(// WS Output:
-		     ArrayOfMatrix&   xsec_per_tg,
-		     // WS Input:
-		     const ArrayOfArrayOfSpeciesTag& tgs,
-		     const Vector&    f_mono,
-		     const Vector&    p_abs
-		     )
+                     ArrayOfMatrix&   xsec_per_tg,
+                     // WS Input:
+                     const ArrayOfArrayOfSpeciesTag& tgs,
+                     const Vector&    f_mono,
+                     const Vector&    p_abs
+                     )
 {
   // Initialize xsec_per_tg. The array dimension of xsec_per_tg
   // is the same as that of lines_per_tg.
@@ -1843,7 +1843,7 @@ void xsec_per_tgInit(// WS Output:
     {
       // Make this element of abs_per_tg the right size:
       xsec_per_tg[i].resize( f_mono.nelem(), p_abs.nelem() );
-      xsec_per_tg[i] = 0;	// Matpack can set all elements like this.
+      xsec_per_tg[i] = 0;       // Matpack can set all elements like this.
     }
 
   out2 << "  Initialized xsec_per_tg.\n"
@@ -1869,16 +1869,16 @@ void xsec_per_tgInit(// WS Output:
    \date   2001-01-11
 */
 void xsec_per_tgAddLines(// WS Output:
-			 ArrayOfMatrix& 		  xsec_per_tg,
-			 // WS Input:		  
-			 const ArrayOfArrayOfSpeciesTag&                 tgs,
-			 const Vector&  		  f_mono,
-			 const Vector&  		  p_abs,
-			 const Vector&  		  t_abs,
-			 const Vector&  		  h2o_abs,
-			 const Matrix&                    vmrs,
-			 const ArrayOfArrayOfLineRecord&  lines_per_tg,
-			 const ArrayOfLineshapeSpec&      lineshape)
+                         ArrayOfMatrix&                   xsec_per_tg,
+                         // WS Input:             
+                         const ArrayOfArrayOfSpeciesTag&                 tgs,
+                         const Vector&                    f_mono,
+                         const Vector&                    p_abs,
+                         const Vector&                    t_abs,
+                         const Vector&                    h2o_abs,
+                         const Matrix&                    vmrs,
+                         const ArrayOfArrayOfLineRecord&  lines_per_tg,
+                         const ArrayOfLineshapeSpec&      lineshape)
 {
   // Check that all paramters that should have the number of tag
   // groups as a dimension are consistent.
@@ -1890,18 +1890,18 @@ void xsec_per_tgAddLines(// WS Output:
     const Index n_shapes = lineshape.nelem();
 
     if ( n_tgs != n_xsec  ||
-	 n_tgs != n_vmrs  ||
-	 n_tgs != n_lines ||
-	 n_tgs != n_shapes   )
+         n_tgs != n_vmrs  ||
+         n_tgs != n_lines ||
+         n_tgs != n_shapes   )
       {
-	ostringstream os;
-	os << "The following variables must all have the same dimension:\n"
-	   << "tgs:          " << tgs.nelem() << '\n'
-	   << "xsec_per_tg:  " << xsec_per_tg.nelem() << '\n'
-	   << "vmrs:         " << vmrs.nrows() << '\n'
-	   << "lines_per_tg: " << lines_per_tg.nelem() << '\n'
-	   << "lineshape:    " << lineshape.nelem();
-	throw runtime_error(os.str());
+        ostringstream os;
+        os << "The following variables must all have the same dimension:\n"
+           << "tgs:          " << tgs.nelem() << '\n'
+           << "xsec_per_tg:  " << xsec_per_tg.nelem() << '\n'
+           << "vmrs:         " << vmrs.nrows() << '\n'
+           << "lines_per_tg: " << lines_per_tg.nelem() << '\n'
+           << "lineshape:    " << lineshape.nelem();
+        throw runtime_error(os.str());
       }
   }  
 
@@ -1917,22 +1917,22 @@ void xsec_per_tgAddLines(// WS Output:
     Numeric ffac;
     if ( f_mono[0] < 3e12 )
       {
-	funit = "GHz"; ffac = 1e9;
+        funit = "GHz"; ffac = 1e9;
       }
     else
       {
-	extern const Numeric SPEED_OF_LIGHT;
-	funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
+        extern const Numeric SPEED_OF_LIGHT;
+        funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
       }
     for ( Index i=0; i<lines_per_tg.nelem(); ++i )
       {
-	for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
-	  {
-// 	    out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
-// 		 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-// 		 << lines_per_tg[i][l].I0() << ")\n"; 
-	    nlines++;
-	  }
+        for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
+          {
+//          out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
+//               << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+//               << lines_per_tg[i][l].I0() << ")\n"; 
+            nlines++;
+          }
       }
     out2 << "  Total number of transistions : " << nlines << "\n";
   }
@@ -1941,7 +1941,7 @@ void xsec_per_tgAddLines(// WS Output:
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
       out2 << "  Tag group " << i
-	   << " (" << get_tag_group_name(tgs[i]) << "): ";
+           << " (" << get_tag_group_name(tgs[i]) << "): ";
       
       // Get a pointer to the line list for the current species. This
       // is just so that we don't have to type lines_per_tg[i] over
@@ -1953,108 +1953,108 @@ void xsec_per_tgAddLines(// WS Output:
       
       // Skip the call to xsec_per_tg if the line list is empty.
       if ( 0 < ll.nelem() )
-	{
+        {
 
-	  // Get the name of the species. The member function name of a
-	  // LineRecord returns the full name (species + isotope). So
-	  // it is for us more convenient to get the species index
-	  // from the LineRecord member function Species(), and then
-	  // use this to look up the species name in species_data.
-	  extern const Array<SpeciesRecord> species_data;
-	  String species_name = species_data[ll[0].Species()].Name();
+          // Get the name of the species. The member function name of a
+          // LineRecord returns the full name (species + isotope). So
+          // it is for us more convenient to get the species index
+          // from the LineRecord member function Species(), and then
+          // use this to look up the species name in species_data.
+          extern const Array<SpeciesRecord> species_data;
+          String species_name = species_data[ll[0].Species()].Name();
 
-	  // Get the name of the lineshape. For that we use the member
-	  // function Ind_ls() to the lineshape data ls, which returns
-	  // an index. With that index we can go into lineshape_data
-	  // to get the name.
-	  // We will need this for safety checks later on.
-	  extern const Array<LineshapeRecord> lineshape_data;
-	  String lineshape_name = lineshape_data[ls.Ind_ls()].Name();
+          // Get the name of the lineshape. For that we use the member
+          // function Ind_ls() to the lineshape data ls, which returns
+          // an index. With that index we can go into lineshape_data
+          // to get the name.
+          // We will need this for safety checks later on.
+          extern const Array<LineshapeRecord> lineshape_data;
+          String lineshape_name = lineshape_data[ls.Ind_ls()].Name();
 
 
-	  // The use of overlap parameters for oxygen lines only makes
-	  // sense if the special Rosenkranz lineshape is used
-	  // (Rosenkranz_Voigt_Drayson or Rosenkranz_Voigt_Kuntz6). 
-	  // Likewise, the use of these lineshapes only makes sense if
-	  // overlap parameters are available. We will test both these
-	  // conditions.
+          // The use of overlap parameters for oxygen lines only makes
+          // sense if the special Rosenkranz lineshape is used
+          // (Rosenkranz_Voigt_Drayson or Rosenkranz_Voigt_Kuntz6). 
+          // Likewise, the use of these lineshapes only makes sense if
+          // overlap parameters are available. We will test both these
+          // conditions.
 
-	  // First of all, let's find out if the species we are
-	  // dealing with is oxygen. 
-	  if ( "O2" == species_name )
-	    {
-	      // Do we have overlap parameters in the aux fields of
-	      // the LineRecord?
-	      if ( 0 != ll[0].Naux() )
-		{
-		  // Yes. So let's make sure that the lineshape is one
-		  // that can use these parameters. 
-		  if ( "Rosenkranz_Voigt_Drayson" != lineshape_name &&
-		       "Rosenkranz_Voigt_Kuntz6"  != lineshape_name    )
-		    {
-		      ostringstream os;
-		      os 
-			<< "You are using a line catalogue that contains auxiliary parameters to\n"
-			<< "take care of overlap for oxygen lines. But you are not using a\n"
-			<< "lineshape that uses these parameters. Use Rosenkranz_Voigt_Drayson or\n"
-			<< "Rosenkranz_Voigt_Kuntz6.";
-		      throw runtime_error(os.str());		      
-		    }
-		}		
-	    }
+          // First of all, let's find out if the species we are
+          // dealing with is oxygen. 
+          if ( "O2" == species_name )
+            {
+              // Do we have overlap parameters in the aux fields of
+              // the LineRecord?
+              if ( 0 != ll[0].Naux() )
+                {
+                  // Yes. So let's make sure that the lineshape is one
+                  // that can use these parameters. 
+                  if ( "Rosenkranz_Voigt_Drayson" != lineshape_name &&
+                       "Rosenkranz_Voigt_Kuntz6"  != lineshape_name    )
+                    {
+                      ostringstream os;
+                      os 
+                        << "You are using a line catalogue that contains auxiliary parameters to\n"
+                        << "take care of overlap for oxygen lines. But you are not using a\n"
+                        << "lineshape that uses these parameters. Use Rosenkranz_Voigt_Drayson or\n"
+                        << "Rosenkranz_Voigt_Kuntz6.";
+                      throw runtime_error(os.str());                  
+                    }
+                }               
+            }
 
-	  // Now we go the opposite way. Let's see if the Rosenkranz
-	  // lineshapes are used.
-	  if ( "Rosenkranz_Voigt_Drayson" == lineshape_name ||
-	       "Rosenkranz_Voigt_Kuntz6"  == lineshape_name    )
-	    {
-	      // Is the species oxygen, as it should be?
-	      if ( "O2" != species_name )
-		{
-		  ostringstream os;
-		  os 
-		    << "You are trying to use one of the special Rosenkranz lineshapes with\n"
-		    << "overlap correction for a species other than oxygen. Your species is\n"
-		    << species_name << ".\n"
-		    << "Select another lineshape for this species.";
-		    throw runtime_error(os.str());		      
-		}
-	      else
-		{
-		  // Do we have overlap parameters in the aux fields of
-		  // the LineRecord?
-		  if ( 0 == ll[0].Naux() )
-		    {
-		      ostringstream os;
-		      os 
-			<< "You are trying to use one of the special Rosenkranz lineshapes with\n"
-			<< "overlap correction. But your line file does not contain aux\n"
-			<< "parameters. (I've checked only the first LineRecord). Use a line file\n"
-			<< "with overlap parameters.";
-			throw runtime_error(os.str());		      
-		    }
-		}
-	    }
+          // Now we go the opposite way. Let's see if the Rosenkranz
+          // lineshapes are used.
+          if ( "Rosenkranz_Voigt_Drayson" == lineshape_name ||
+               "Rosenkranz_Voigt_Kuntz6"  == lineshape_name    )
+            {
+              // Is the species oxygen, as it should be?
+              if ( "O2" != species_name )
+                {
+                  ostringstream os;
+                  os 
+                    << "You are trying to use one of the special Rosenkranz lineshapes with\n"
+                    << "overlap correction for a species other than oxygen. Your species is\n"
+                    << species_name << ".\n"
+                    << "Select another lineshape for this species.";
+                    throw runtime_error(os.str());                    
+                }
+              else
+                {
+                  // Do we have overlap parameters in the aux fields of
+                  // the LineRecord?
+                  if ( 0 == ll[0].Naux() )
+                    {
+                      ostringstream os;
+                      os 
+                        << "You are trying to use one of the special Rosenkranz lineshapes with\n"
+                        << "overlap correction. But your line file does not contain aux\n"
+                        << "parameters. (I've checked only the first LineRecord). Use a line file\n"
+                        << "with overlap parameters.";
+                        throw runtime_error(os.str());                
+                    }
+                }
+            }
 
-	  out2 << ll.nelem() << " transitions\n";
-	  xsec_species( xsec_per_tg[i],
-			f_mono,
-			p_abs,
-			t_abs,
-			h2o_abs,
-			vmrs(i,Range(joker)),
-			ll,
-			ls.Ind_ls(),
-			ls.Ind_lsn(),
-			ls.Cutoff());
-	  // Note that we call xsec_species with a row of vmrs,
-	  // selected by the above Matpack expression. This is
-	  // possible, because xsec_species is using Views.
-	}
+          out2 << ll.nelem() << " transitions\n";
+          xsec_species( xsec_per_tg[i],
+                        f_mono,
+                        p_abs,
+                        t_abs,
+                        h2o_abs,
+                        vmrs(i,Range(joker)),
+                        ll,
+                        ls.Ind_ls(),
+                        ls.Ind_lsn(),
+                        ls.Cutoff());
+          // Note that we call xsec_species with a row of vmrs,
+          // selected by the above Matpack expression. This is
+          // possible, because xsec_species is using Views.
+        }
       else
-	{
-	  out2 << ll.nelem() << " transitions, skipping\n";
-	}
+        {
+          out2 << ll.nelem() << " transitions, skipping\n";
+        }
     }
 }
 
@@ -2074,7 +2074,7 @@ void xsec_per_tgAddLines(// WS Output:
                                     models
    \param    cont_description_parameters continuum parameters for the
                                          models listed in
-					 cont_description_names 
+                                         cont_description_names 
 
    \throw runtime_error something went wrong
 
@@ -2082,17 +2082,17 @@ void xsec_per_tgAddLines(// WS Output:
    \date   2001-03-12
 */
 void xsec_per_tgAddConts(// WS Output:
-			 ArrayOfMatrix& 		  xsec_per_tg,
-			 // WS Input:		  
-			 const ArrayOfArrayOfSpeciesTag&                 tgs,
-			 const Vector&  		  f_mono,
-			 const Vector&  		  p_abs,
-			 const Vector&  		  t_abs,
-			 const Vector&  		  n2_abs,
-			 const Vector&  		  h2o_abs,
-			 const Matrix&                    vmrs,
+                         ArrayOfMatrix&                   xsec_per_tg,
+                         // WS Input:             
+                         const ArrayOfArrayOfSpeciesTag&                 tgs,
+                         const Vector&                    f_mono,
+                         const Vector&                    p_abs,
+                         const Vector&                    t_abs,
+                         const Vector&                    n2_abs,
+                         const Vector&                    h2o_abs,
+                         const Matrix&                    vmrs,
                          const ArrayOfString&             cont_description_names,
-                         const ArrayOfVector& 		  cont_description_parameters,
+                         const ArrayOfVector&             cont_description_parameters,
                          const ArrayOfString&             cont_description_models )
 {
   // Check that all paramters that should have the number of tag
@@ -2104,12 +2104,12 @@ void xsec_per_tgAddConts(// WS Output:
 
     if ( n_tgs != n_xsec || n_tgs != n_vmrs )
       {
-	ostringstream os;
-	os << "The following variables must all have the same dimension:\n"
-	   << "tgs:          " << tgs.nelem() << '\n'
-	   << "xsec_per_tg:  " << xsec_per_tg.nelem() << '\n'
-	   << "vmrs:         " << vmrs.nrows();
-	throw runtime_error(os.str());
+        ostringstream os;
+        os << "The following variables must all have the same dimension:\n"
+           << "tgs:          " << tgs.nelem() << '\n'
+           << "xsec_per_tg:  " << xsec_per_tg.nelem() << '\n'
+           << "vmrs:         " << vmrs.nrows();
+        throw runtime_error(os.str());
       }
   }
 
@@ -2119,22 +2119,22 @@ void xsec_per_tgAddConts(// WS Output:
        cont_description_parameters.nelem() )
     {
       for (Index i=0; i < cont_description_names.nelem(); ++i) 
-	{
-	  cout << "xsec_per_tgAddConts: " << i << " name : " << cont_description_names[i] << "\n";
-	}
+        {
+          cout << "xsec_per_tgAddConts: " << i << " name : " << cont_description_names[i] << "\n";
+        }
       for (Index i=0; i < cont_description_parameters.nelem(); ++i) 
-	{
-	  cout << "xsec_per_tgAddConts: " << i << " param: " << cont_description_parameters[i] << "\n";
-	}
+        {
+          cout << "xsec_per_tgAddConts: " << i << " param: " << cont_description_parameters[i] << "\n";
+        }
       for (Index i=0; i < cont_description_models.nelem(); ++i) 
-	{
-	  cout << "xsec_per_tgAddConts: " << i << " option: " << cont_description_models[i] << "\n";
-	}
+        {
+          cout << "xsec_per_tgAddConts: " << i << " option: " << cont_description_models[i] << "\n";
+        }
       ostringstream os;
-	os << "The following variables must have the same dimension:\n"
-	   << "cont_description_names:      " << cont_description_names.nelem() << '\n'
-	   << "cont_description_parameters: " << cont_description_parameters.nelem();
-	throw runtime_error(os.str());
+        os << "The following variables must have the same dimension:\n"
+           << "cont_description_names:      " << cont_description_names.nelem() << '\n'
+           << "cont_description_parameters: " << cont_description_parameters.nelem();
+        throw runtime_error(os.str());
     }
 
   // ...and that indeed the names match valid continuum models:
@@ -2153,100 +2153,100 @@ void xsec_per_tgAddConts(// WS Output:
       // Go through the tags in the current tag group to see if they
       // are continuum tags:  
       for ( Index s=0; s<tgs[i].nelem(); ++s )
-	{
-	  // First of all, we have to make sure that this is not a
-	  // tag that means `all isotopes', because this should not
-	  // include continuum. For such tags, tag.Isotope() will
-	  // return the number of isotopes (i.e., one more than the
-	  // allowed index range).
-	  if ( tgs[i][s].Isotope() <
-	       species_data[tgs[i][s].Species()].Isotope().nelem() )
-	    {
-	      // If we get here, it means that the tag describes a
-	      // specific isotope. Could be a continuum tag!
-		
-	      // The if clause below checks whether the abundance of this tag
-	      // is negative. (Negative abundance marks continuum tags.)
-	      // It does the following:
-	      //
-	      // 1. species_data contains the lookup table of species
-	      // 	  specific data. We need the right entry in this
-	      // 	  table. The index of this is obtained by calling member function
-	      // 	  Species() on the tag. Thus we have:
-	      // 	  species_data[tgs[i][s].Species()].
-	      //
-	      // 2. Member function Isotope() on the above biest gives
-	      //    us the array of isotope specific data. This we have
-	      //    to subscribe with the right isotope index, which we
-	      //    get by calling member function Isotope on the
-	      //    tag. Thus we have:
-	      //    Isotope()[tgs[i][s].Isotope()]
-	      //
-	      // 3. Finally, from the isotope data we need to get the mixing
-	      //    ratio by calling the member function Abundance().
-	      if ( 0 >
-		   species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Abundance() )
-		{
-		  // We have identified a continuum tag!
+        {
+          // First of all, we have to make sure that this is not a
+          // tag that means `all isotopes', because this should not
+          // include continuum. For such tags, tag.Isotope() will
+          // return the number of isotopes (i.e., one more than the
+          // allowed index range).
+          if ( tgs[i][s].Isotope() <
+               species_data[tgs[i][s].Species()].Isotope().nelem() )
+            {
+              // If we get here, it means that the tag describes a
+              // specific isotope. Could be a continuum tag!
+                
+              // The if clause below checks whether the abundance of this tag
+              // is negative. (Negative abundance marks continuum tags.)
+              // It does the following:
+              //
+              // 1. species_data contains the lookup table of species
+              //          specific data. We need the right entry in this
+              //          table. The index of this is obtained by calling member function
+              //          Species() on the tag. Thus we have:
+              //          species_data[tgs[i][s].Species()].
+              //
+              // 2. Member function Isotope() on the above biest gives
+              //    us the array of isotope specific data. This we have
+              //    to subscribe with the right isotope index, which we
+              //    get by calling member function Isotope on the
+              //    tag. Thus we have:
+              //    Isotope()[tgs[i][s].Isotope()]
+              //
+              // 3. Finally, from the isotope data we need to get the mixing
+              //    ratio by calling the member function Abundance().
+              if ( 0 >
+                   species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Abundance() )
+                {
+                  // We have identified a continuum tag!
 
-		  // Get only the continuum name. The full tag name is something like:
-		  // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
-		  const String name =
-		    species_data[tgs[i][s].Species()].Name() + "-"
-		    + species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Name();
+                  // Get only the continuum name. The full tag name is something like:
+                  // H2O-HITRAN96Self-*-*. We want only the `H2O-HITRAN96Self' part:
+                  const String name =
+                    species_data[tgs[i][s].Species()].Name() + "-"
+                    + species_data[tgs[i][s].Species()].Isotope()[tgs[i][s].Isotope()].Name();
   
-		  // Check that this corresponds to a valid continuum
-		  // model:
-		  check_continuum_model(name);
+                  // Check that this corresponds to a valid continuum
+                  // model:
+                  check_continuum_model(name);
 
-		  // Check, if we have parameters for this model. For
-		  // this, the model name must be listed in
-		  // cont_description_names.
-		  const Index n =
-		    find( cont_description_names.begin(),
-			  cont_description_names.end(),
-			  name ) - cont_description_names.begin();
+                  // Check, if we have parameters for this model. For
+                  // this, the model name must be listed in
+                  // cont_description_names.
+                  const Index n =
+                    find( cont_description_names.begin(),
+                          cont_description_names.end(),
+                          name ) - cont_description_names.begin();
 
-		  // n==cont_description_names.nelem() indicates that
-		  // the name was not found.
-		  if ( n==cont_description_names.nelem() )
-		    {
-		      ostringstream os;
-		      os << "Cannot find model " << name
-			 << " in cont_description_names.";
-		      throw runtime_error(os.str());		      
-		    }
+                  // n==cont_description_names.nelem() indicates that
+                  // the name was not found.
+                  if ( n==cont_description_names.nelem() )
+                    {
+                      ostringstream os;
+                      os << "Cannot find model " << name
+                         << " in cont_description_names.";
+                      throw runtime_error(os.str());                  
+                    }
 
-		  // Ok, the tag specifies a valid continuum model and
-		  // we have continuum parameters.
-		  
-		  out2 << "  Adding " << name
-		       << " to tag group " << i << ".\n";
+                  // Ok, the tag specifies a valid continuum model and
+                  // we have continuum parameters.
+                  
+                  out2 << "  Adding " << name
+                       << " to tag group " << i << ".\n";
 
-		  // find the options for this continuum tag from the input array
+                  // find the options for this continuum tag from the input array
                   // of options. The actual field of the array is n:
                   const String ContOption = cont_description_models[n];
 
-		  // Add the continuum for this tag. The parameters in
-		  // this call should be clear. The vmr is in
-		  // vmrs(i,Range(joker)). The other vmr variable, `h2o_abs'
-		  // contains the real H2O vmr, which is needed for
-		  // the oxygen continuum.
-		  xsec_continuum_tag( xsec_per_tg[i],
-				      name,
-				      cont_description_parameters[n],
-				      cont_description_models[n], 
-				      f_mono,
-				      p_abs,
-				      t_abs,
-				      n2_abs,
-				      h2o_abs,
-				      vmrs(i,Range(joker)) );
-		  // Calling this function with a row of Matrix vmrs
-		  // is possible because it uses Views.
-		}
-	    }
-	}
+                  // Add the continuum for this tag. The parameters in
+                  // this call should be clear. The vmr is in
+                  // vmrs(i,Range(joker)). The other vmr variable, `h2o_abs'
+                  // contains the real H2O vmr, which is needed for
+                  // the oxygen continuum.
+                  xsec_continuum_tag( xsec_per_tg[i],
+                                      name,
+                                      cont_description_parameters[n],
+                                      cont_description_models[n], 
+                                      f_mono,
+                                      p_abs,
+                                      t_abs,
+                                      n2_abs,
+                                      h2o_abs,
+                                      vmrs(i,Range(joker)) );
+                  // Calling this function with a row of Matrix vmrs
+                  // is possible because it uses Views.
+                }
+            }
+        }
     }
 
 }
@@ -2271,7 +2271,7 @@ void abs_per_tgReduce(// WS Output:
   // method twice by accident).
   if ( abs_per_tg.nelem()!=tgs.nelem() )
     throw(runtime_error("The variables abs_per_tg and tgs must\n"
-			"have the same dimension."));
+                        "have the same dimension."));
 
   // Erase could be very inefficient in this case, since elements
   // behind the erased one are copied in order to fill the
@@ -2288,15 +2288,15 @@ void abs_per_tgReduce(// WS Output:
 
       abs_per_tg_out[i].resize( abs_per_tg[n].nrows(), abs_per_tg[n].ncols() );
       abs_per_tg_out[i] = abs_per_tg[n]; // Matpack can copy the contents of
-					 // matrices like this. The dimensions
-					 // must be the same! 
+                                         // matrices like this. The dimensions
+                                         // must be the same! 
     }  
 
   // Copy the generated matrices back to abs_per_tg
   abs_per_tg.resize( wfs_tgs.nelem() );
-  abs_per_tg = abs_per_tg_out;	// FIXME: It should be checked whether
-				// this works correctly. Does my Array
-				// implementation work as it should? 
+  abs_per_tg = abs_per_tg_out;  // FIXME: It should be checked whether
+                                // this works correctly. Does my Array
+                                // implementation work as it should? 
 }
 
 
@@ -2346,11 +2346,11 @@ void cont_descriptionInit(// WS Output:
    \author Stefan Buehler
    \date 2001-03-12 */
 void cont_descriptionAppend(// WS Output:
-		       ArrayOfString& cont_description_names,
-		       ArrayOfString& cont_description_models,
-		       ArrayOfVector& cont_description_parameters,
-		       // Control Parameters:
-		       const String& tagname,
+                       ArrayOfString& cont_description_names,
+                       ArrayOfString& cont_description_models,
+                       ArrayOfVector& cont_description_parameters,
+                       // Control Parameters:
+                       const String& tagname,
                        const String& model,
                        const Vector& userparameters)
 {

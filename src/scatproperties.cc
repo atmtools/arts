@@ -71,8 +71,8 @@ extern const Numeric SPEED_OF_LIGHT;
 */
 
 void amp2ext(MatrixView ext,
-	     ConstVectorView amp_coeffs,
-	     const Numeric& freq)
+             ConstVectorView amp_coeffs,
+             const Numeric& freq)
 {
   Index stokes_dim = ext.nrows();
 
@@ -157,12 +157,12 @@ void amp2ext(MatrixView ext,
 */
 
 void amp2pha(Tensor4View phasemat,
-	     ConstTensor3View amp_coeffs)
+             ConstTensor3View amp_coeffs)
 {
   Index stokes_dim = phasemat.nrows();
   if (stokes_dim > 4 || stokes_dim <1){
     throw runtime_error("the dimension of stokes vector" 
-			" can be only 1,2,3, or 4");
+                        " can be only 1,2,3, or 4");
   }
   Index nza = phasemat.nbooks();
   Index naa = phasemat.npages();
@@ -173,18 +173,18 @@ void amp2pha(Tensor4View phasemat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	 
-	   phasemat(i, j, 0, 0) = 0.5 * 1e-12 * (Re_S11ij * Re_S11ij + 
-						Im_S11ij * Im_S11ij + 
-						Re_S12ij * Re_S12ij + 
-						Im_S12ij * Im_S12ij +
-						Re_S21ij * Re_S21ij + 
-						Im_S21ij * Im_S21ij +
-						Re_S22ij * Re_S22ij + 
-						Im_S22ij * Im_S22ij);
+        {
+         
+           phasemat(i, j, 0, 0) = 0.5 * 1e-12 * (Re_S11ij * Re_S11ij + 
+                                                Im_S11ij * Im_S11ij + 
+                                                Re_S12ij * Re_S12ij + 
+                                                Im_S12ij * Im_S12ij +
+                                                Re_S21ij * Re_S21ij + 
+                                                Im_S21ij * Im_S21ij +
+                                                Re_S22ij * Re_S22ij + 
+                                                Im_S22ij * Im_S22ij);
           
-	}
+        }
     }
   
   if(1 == stokes_dim){
@@ -196,35 +196,35 @@ void amp2pha(Tensor4View phasemat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	 
-	  phasemat(i, j, 0, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
-						 Im_S11ij * Im_S11ij - 
-						 Re_S12ij * Re_S12ij - 
-						 Im_S12ij * Im_S12ij +
-						 Re_S21ij * Re_S21ij +
-						 Im_S21ij * Im_S21ij -
-						 Re_S22ij * Re_S22ij -
-						 Im_S22ij * Im_S22ij);
-	  
-	  phasemat(i, j, 1, 0) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
-						 Im_S11ij * Im_S11ij +
-						 Re_S12ij * Re_S12ij + 
-						 Im_S12ij * Im_S12ij - 
-						 Re_S21ij * Re_S21ij - 
-						 Im_S21ij * Im_S21ij - 
-						 Re_S22ij * Re_S22ij - 
-						 Im_S22ij * Im_S22ij);
-	  
-	  phasemat(i, j, 1, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
-						 Im_S11ij * Im_S11ij - 
-						 Re_S12ij * Re_S12ij - 
-						 Im_S12ij * Im_S12ij -
-						 Re_S21ij * Re_S21ij - 
-						 Im_S21ij * Im_S21ij + 
-						 Re_S22ij + Re_S22ij + 
-						 Im_S22ij * Im_S22ij);
-	}
+        {
+         
+          phasemat(i, j, 0, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
+                                                 Im_S11ij * Im_S11ij - 
+                                                 Re_S12ij * Re_S12ij - 
+                                                 Im_S12ij * Im_S12ij +
+                                                 Re_S21ij * Re_S21ij +
+                                                 Im_S21ij * Im_S21ij -
+                                                 Re_S22ij * Re_S22ij -
+                                                 Im_S22ij * Im_S22ij);
+          
+          phasemat(i, j, 1, 0) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
+                                                 Im_S11ij * Im_S11ij +
+                                                 Re_S12ij * Re_S12ij + 
+                                                 Im_S12ij * Im_S12ij - 
+                                                 Re_S21ij * Re_S21ij - 
+                                                 Im_S21ij * Im_S21ij - 
+                                                 Re_S22ij * Re_S22ij - 
+                                                 Im_S22ij * Im_S22ij);
+          
+          phasemat(i, j, 1, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
+                                                 Im_S11ij * Im_S11ij - 
+                                                 Re_S12ij * Re_S12ij - 
+                                                 Im_S12ij * Im_S12ij -
+                                                 Re_S21ij * Re_S21ij - 
+                                                 Im_S21ij * Im_S21ij + 
+                                                 Re_S22ij + Re_S22ij + 
+                                                 Im_S22ij * Im_S22ij);
+        }
     }
   
   if(2 == stokes_dim){
@@ -236,32 +236,32 @@ void amp2pha(Tensor4View phasemat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  phasemat(i, j, 0, 2) = -  1e-12 * (Re_S11ij * Re_S12ij +
-					     Im_S11ij * Im_S12ij + 
-					     Re_S22ij * Re_S21ij + 
-					     Im_S22ij * Im_S21ij);
-	  
-	  phasemat(i, j, 1, 2) = - 1e-12 *  (Re_S11ij * Re_S12ij +
-					     Im_S11ij * Im_S12ij -
-					     Re_S22ij * Re_S21ij -
-					     Im_S22ij * Im_S21ij);
-	  
-	  phasemat(i, j, 2, 0) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
-					     Im_S11ij * Im_S21ij + 
-					     Re_S22ij * Re_S12ij + 
-					     Im_S22ij * Im_S12ij);
+        {
+          phasemat(i, j, 0, 2) = -  1e-12 * (Re_S11ij * Re_S12ij +
+                                             Im_S11ij * Im_S12ij + 
+                                             Re_S22ij * Re_S21ij + 
+                                             Im_S22ij * Im_S21ij);
+          
+          phasemat(i, j, 1, 2) = - 1e-12 *  (Re_S11ij * Re_S12ij +
+                                             Im_S11ij * Im_S12ij -
+                                             Re_S22ij * Re_S21ij -
+                                             Im_S22ij * Im_S21ij);
+          
+          phasemat(i, j, 2, 0) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
+                                             Im_S11ij * Im_S21ij + 
+                                             Re_S22ij * Re_S12ij + 
+                                             Im_S22ij * Im_S12ij);
 
-	  phasemat(i, j, 2, 1) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
-					     Im_S11ij * Im_S21ij -
-					     Re_S22ij * Re_S12ij - 
-					     Im_S22ij * Im_S12ij);
-	  
-	  phasemat(i, j, 2, 2) = 1e-12 *  (Re_S11ij * Re_S22ij + 
-					   Im_S11ij * Im_S22ij +
-					   Re_S12ij * Re_S21ij + 
-					   Im_S12ij * Im_S21ij);
-	}
+          phasemat(i, j, 2, 1) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
+                                             Im_S11ij * Im_S21ij -
+                                             Re_S22ij * Re_S12ij - 
+                                             Im_S22ij * Im_S12ij);
+          
+          phasemat(i, j, 2, 2) = 1e-12 *  (Re_S11ij * Re_S22ij + 
+                                           Im_S11ij * Im_S22ij +
+                                           Re_S12ij * Re_S21ij + 
+                                           Im_S12ij * Im_S21ij);
+        }
     }
   
   if(3 == stokes_dim){
@@ -273,42 +273,42 @@ void amp2pha(Tensor4View phasemat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  phasemat(i, j, 0, 3) = - 1e-12 * (Im_S11ij * Re_S12ij -
-					    Re_S11ij * Im_S12ij -
-					    Im_S22ij * Re_S21ij + 
-					    Re_S22ij * Im_S21ij);
-	  
-	  phasemat(i, j, 1, 3) = - 1e-12 * (Im_S11ij * Re_S12ij - 
-					    Re_S11ij * Im_S12ij + 
-					    Im_S22ij * Re_S21ij - 
-					    Re_S22ij * Im_S21ij);
-	  
-	  phasemat(i, j, 2, 3) = 1e-12 * (Im_S11ij * Re_S22ij - 
-					  Re_S11ij * Im_S22ij +
-					  Im_S21ij * Re_S12ij - 
-					  Re_S21ij * Im_S12ij);
-	  
-	  phasemat(i, j, 3, 0) = - 1e-12 * (Im_S21ij * Re_S11ij - 
-					    Re_S21ij * Im_S11ij +
-					    Im_S22ij * Re_S12ij - 
-					    Re_S22ij * Im_S12ij);
-	  
-	  phasemat(i, j, 3, 1) = - 1e-12 * (Im_S21ij * Re_S11ij - 
-					    Re_S21ij * Im_S11ij - 
-					    Im_S22ij * Re_S12ij + 
-					    Re_S22ij * Im_S12ij);
-	  
-	  phasemat(i, j, 3, 2) = 1e-12 * (Im_S22ij * Re_S11ij - 
-					  Re_S22ij * Im_S11ij - 
-					  Im_S12ij * Re_S21ij + 
-					  Re_S12ij * Im_S21ij); 
-	  
-	  phasemat(i, j, 3, 3) = 1e-12 * (Re_S22ij * Re_S11ij + 
-					  Im_S22ij * Im_S11ij - 
-					  Re_S12ij * Re_S21ij - 
-					  Im_S12ij * Im_S21ij); 
-	}
+        {
+          phasemat(i, j, 0, 3) = - 1e-12 * (Im_S11ij * Re_S12ij -
+                                            Re_S11ij * Im_S12ij -
+                                            Im_S22ij * Re_S21ij + 
+                                            Re_S22ij * Im_S21ij);
+          
+          phasemat(i, j, 1, 3) = - 1e-12 * (Im_S11ij * Re_S12ij - 
+                                            Re_S11ij * Im_S12ij + 
+                                            Im_S22ij * Re_S21ij - 
+                                            Re_S22ij * Im_S21ij);
+          
+          phasemat(i, j, 2, 3) = 1e-12 * (Im_S11ij * Re_S22ij - 
+                                          Re_S11ij * Im_S22ij +
+                                          Im_S21ij * Re_S12ij - 
+                                          Re_S21ij * Im_S12ij);
+          
+          phasemat(i, j, 3, 0) = - 1e-12 * (Im_S21ij * Re_S11ij - 
+                                            Re_S21ij * Im_S11ij +
+                                            Im_S22ij * Re_S12ij - 
+                                            Re_S22ij * Im_S12ij);
+          
+          phasemat(i, j, 3, 1) = - 1e-12 * (Im_S21ij * Re_S11ij - 
+                                            Re_S21ij * Im_S11ij - 
+                                            Im_S22ij * Re_S12ij + 
+                                            Re_S22ij * Im_S12ij);
+          
+          phasemat(i, j, 3, 2) = 1e-12 * (Im_S22ij * Re_S11ij - 
+                                          Re_S22ij * Im_S11ij - 
+                                          Im_S12ij * Re_S21ij + 
+                                          Re_S12ij * Im_S21ij); 
+          
+          phasemat(i, j, 3, 3) = 1e-12 * (Re_S22ij * Re_S11ij + 
+                                          Im_S22ij * Im_S11ij - 
+                                          Re_S12ij * Re_S21ij - 
+                                          Im_S12ij * Im_S21ij); 
+        }
     }
   
   if(4 == stokes_dim){
@@ -341,7 +341,7 @@ void amp2ext_scat(MatrixView ext_scat,
   Index stokes_dim = pha.nrows();
   if (stokes_dim > 4 || stokes_dim <1){
     throw runtime_error("the dimension of stokes vector" 
-			"can be only 1,2,3, or 4");
+                        "can be only 1,2,3, or 4");
   }
 
   Index nza = pha.nbooks();
@@ -363,11 +363,11 @@ void amp2ext_scat(MatrixView ext_scat,
   for (Index i = 0;i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  Z11_integrated = AngIntegrate_trapezoid(Z11_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          Z11_integrated = AngIntegrate_trapezoid(Z11_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
 
   ext_scat(0,0) = Z11_integrated;
@@ -385,11 +385,11 @@ void amp2ext_scat(MatrixView ext_scat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  Z21_integrated = AngIntegrate_trapezoid(Z21_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          Z21_integrated = AngIntegrate_trapezoid(Z21_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
 
   ext_scat(1,0) = Z21_integrated;
@@ -408,11 +408,11 @@ void amp2ext_scat(MatrixView ext_scat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  Z31_integrated = AngIntegrate_trapezoid(Z31_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          Z31_integrated = AngIntegrate_trapezoid(Z31_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
   
   ext_scat(2,0) = Z31_integrated;
@@ -427,12 +427,12 @@ void amp2ext_scat(MatrixView ext_scat,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  
-	  Z41_integrated = AngIntegrate_trapezoid(Z41_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          
+          Z41_integrated = AngIntegrate_trapezoid(Z41_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
 
   ext_scat(3,0) = Z41_integrated;
@@ -469,15 +469,15 @@ void amp2ext_scat(MatrixView ext_scat,
 */
 
 void amp2abs(VectorView abs,
-	     ConstMatrixView ext,
-	     ConstTensor4View pha,
-	     ConstVectorView za_grid,
-	     ConstVectorView aa_grid)
+             ConstMatrixView ext,
+             ConstTensor4View pha,
+             ConstVectorView za_grid,
+             ConstVectorView aa_grid)
 {
   Index stokes_dim = abs.nelem();
   if (stokes_dim > 4 || stokes_dim <1){
     throw runtime_error("the dimension of stokes vector" 
-			"can be only 1,2,3, or 4");
+                        "can be only 1,2,3, or 4");
   }
   Index nza = pha.nbooks();
   Index naa = pha.npages();
@@ -496,11 +496,11 @@ void amp2abs(VectorView abs,
   for (Index i = 0;i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  Z11_integrated = AngIntegrate_trapezoid(Z11_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          Z11_integrated = AngIntegrate_trapezoid(Z11_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
 
   abs[0] = ext(0, 0) - Z11_integrated;
@@ -516,11 +516,11 @@ void amp2abs(VectorView abs,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  Z21_integrated = AngIntegrate_trapezoid(Z21_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          Z21_integrated = AngIntegrate_trapezoid(Z21_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
 
   abs[1] = ext(1, 0)- Z21_integrated;
@@ -537,11 +537,11 @@ void amp2abs(VectorView abs,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  Z31_integrated = AngIntegrate_trapezoid(Z31_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          Z31_integrated = AngIntegrate_trapezoid(Z31_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
   
   abs[2] = ext(2, 0) - Z31_integrated;
@@ -558,12 +558,12 @@ void amp2abs(VectorView abs,
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
-	{
-	  
-	  Z41_integrated = AngIntegrate_trapezoid(Z41_mat,
-						  za_grid,
-						  aa_grid);
-	}
+        {
+          
+          Z41_integrated = AngIntegrate_trapezoid(Z41_mat,
+                                                  za_grid,
+                                                  aa_grid);
+        }
     }
 
   abs[3] = ext(3, 0) - Z41_integrated;

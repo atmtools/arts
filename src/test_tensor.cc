@@ -203,8 +203,8 @@ void test5()
  *********************/
 
 void fill_tensor6(Tensor6& x,
-		  Index v, Index s, Index b,
-		  Index p, Index r, Index c)
+                  Index v, Index s, Index b,
+                  Index p, Index r, Index c)
 {
   // Lets fill the tensor with special values, so that we can
   // immediately see the vitrine, shelf, etc.
@@ -217,11 +217,11 @@ void fill_tensor6(Tensor6& x,
   for (Index is = 0; is < s; is++)
     for (Index iv = 0; iv < v; iv++)
       for (Index ib = 0; ib < b; ib++)
-	for (Index ip = 0; ip < p; ip++)
-	  for (Index ir = 0; ir < r; ir++)
-	    for (Index ic = 0; ic < c; ic++)
-	      x(iv, is, ib, ip, ir, ic)
-		= ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000;
+        for (Index ip = 0; ip < p; ip++)
+          for (Index ir = 0; ir < r; ir++)
+            for (Index ic = 0; ic < c; ic++)
+              x(iv, is, ib, ip, ir, ic)
+                = ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000;
 }
 
 void test6()
@@ -230,7 +230,7 @@ void test6()
 
   Tensor6 a;
   fill_tensor6(a,
-	       3, 2, 2, 3, 3, 4);  // 3 vitrines, 2 shelves,
+               3, 2, 2, 3, 3, 4);  // 3 vitrines, 2 shelves,
                                    // 2 books, 3 pages,
                                    // 3 rows, 4 columns
 
@@ -252,9 +252,9 @@ void test6()
  *********************/
 
 void fill_tensor7(Tensor7& x,
-		  Index l,
-		  Index v, Index s, Index b,
-		  Index p, Index r, Index c)
+                  Index l,
+                  Index v, Index s, Index b,
+                  Index p, Index r, Index c)
 {
   // Lets fill the tensor with special values, so that we can
   // immediately see the vitrine, shelf, etc.
@@ -267,12 +267,12 @@ void fill_tensor7(Tensor7& x,
   for (Index il = 0; il < l; il++)
     for (Index is = 0; is < s; is++)
       for (Index iv = 0; iv < v; iv++)
-	for (Index ib = 0; ib < b; ib++)
-	  for (Index ip = 0; ip < p; ip++)
-	    for (Index ir = 0; ir < r; ir++)
-	      for (Index ic = 0; ic < c; ic++)
-		x(il, iv, is, ib, ip, ir, ic)
-		  = ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000 + il*1000000;
+        for (Index ib = 0; ib < b; ib++)
+          for (Index ip = 0; ip < p; ip++)
+            for (Index ir = 0; ir < r; ir++)
+              for (Index ic = 0; ic < c; ic++)
+                x(il, iv, is, ib, ip, ir, ic)
+                  = ic + ir*10 + ip*100 + ib*1000 + is*10000 + iv*100000 + il*1000000;
 }
 
 void test7()
@@ -281,7 +281,7 @@ void test7()
 
   Tensor7 a;
   fill_tensor7(a,
-	       2, 3, 2, 2, 3, 3, 4);  // 2 libraries,
+               2, 3, 2, 2, 3, 3, 4);  // 2 libraries,
                                       // 3 vitrines, 2 shelves,
                                       // 2 books, 3 pages,
                                       // 3 rows, 4 columns
@@ -309,13 +309,13 @@ void test8()
 
   Tensor7 a;
   fill_tensor7(a,
-	       2, 3, 2, 2, 3, 3, 4);  // 2 libraries,
+               2, 3, 2, 2, 3, 3, 4);  // 2 libraries,
                                       // 3 vitrines, 2 shelves,
                                       // 2 books, 3 pages,
                                       // 3 rows, 4 columns
 
-  Index I(1);			// Select element 1.
-  Range R(1,1);			// Select one element starting at index 1.
+  Index I(1);                   // Select element 1.
+  Range R(1,1);                 // Select one element starting at index 1.
 
   cout << setprecision(10) << a(I,I,I,I,I,I,I) << "\n";
   cout << setprecision(10) << a(I,I,I,I,I,I,R) << "\n";
@@ -458,8 +458,8 @@ void test9()
                                        // 3 rows, 4 columns
                                        // Fill with zeroes.
 
-  Index I(1);			// Select element 1.
-  Range R(1,1);			// Select one element starting at index 1.
+  Index I(1);                   // Select element 1.
+  Range R(1,1);                 // Select one element starting at index 1.
 
   a(I,I,I,I,I,I,I) += 1;
   a(I,I,I,I,I,I,R) += 1;

@@ -47,22 +47,22 @@ public:
   AgRecord() :
     mname(        ""              ),
     mdescription( ""              ),
-    moutput(      0       	  ),  
-    minput(       0        	  )
+    moutput(      0               ),  
+    minput(       0               )
   {
         // Nothing to do here.
   };
 
   // Initializing constructor. Implementation in .cc file.
-  AgRecord( const char 		        name[],
-	    const char 		        description[],
-	    const MakeArray<Index>&     output,
-	    const MakeArray<Index>&     input );
+  AgRecord( const char                  name[],
+            const char                  description[],
+            const MakeArray<Index>&     output,
+            const MakeArray<Index>&     input );
 
-  const String&            Name()         const { return mname;        	 }   
-  const String&            Description()  const { return mdescription; 	 }
-  const ArrayOfIndex&      Output()       const { return moutput;      	 }
-  const ArrayOfIndex&      Input()        const { return minput;       	 }
+  const String&            Name()         const { return mname;          }   
+  const String&            Description()  const { return mdescription;   }
+  const ArrayOfIndex&      Output()       const { return moutput;        }
+  const ArrayOfIndex&      Input()        const { return minput;         }
 
   //! Assignment operator.
   /*! To override the default assignment operator. AgRecords cannot be

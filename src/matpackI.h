@@ -593,8 +593,8 @@ protected:
   ConstMatrixView();
   ConstMatrixView(Numeric *data, const Range& r, const Range& c);
   ConstMatrixView(Numeric *data,
-		  const Range& pr, const Range& pc,
-		  const Range& nr, const Range& nc);
+                  const Range& pr, const Range& pc,
+                  const Range& nr, const Range& nc);
 
   // Data members:
   // -------------
@@ -693,8 +693,8 @@ protected:
   MatrixView();
   MatrixView(Numeric *data, const Range& r, const Range& c);
   MatrixView(Numeric *data,
-	     const Range& pr, const Range& pc,
-	     const Range& nr, const Range& nc);
+             const Range& pr, const Range& pc,
+             const Range& nr, const Range& nc);
 };
 
 /** The Matrix class. This is a MatrixView that also allocates storage

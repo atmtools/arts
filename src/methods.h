@@ -40,39 +40,39 @@ public:
   MdRecord():
     mname(      ""              ),
     mdescription( ""              ),
-    moutput(      0       	  ),  
-    minput(       0        	  ),   
-    mgoutput(     0      	  ),  
-    mginput(      0       	  ),   
-    mkeywords(    0     	  ),
-    mtypes(       0        	  ),
+    moutput(      0               ),  
+    minput(       0               ),   
+    mgoutput(     0               ),  
+    mginput(      0               ),   
+    mkeywords(    0               ),
+    mtypes(       0               ),
     magenda_method(false),
     msupergeneric(false),
     msuppress_header(false)
   {};
 
   // Initializing constructor. Implementation in methods_aux.cc.
-  MdRecord(const char 		        name[],
-	   const char 		        description[],
-	   const MakeArray<Index>&      output,
-	   const MakeArray<Index>&      input,   
-	   const MakeArray<Index>&      goutput,
-	   const MakeArray<Index>&      ginput,   
-	   const MakeArray<String>&     keywords,
-	   const MakeArray<TokValType>& types,
-	   bool                         agenda_method   = false,
-	   bool                         suppress_header = false
-	   );
+  MdRecord(const char                   name[],
+           const char                   description[],
+           const MakeArray<Index>&      output,
+           const MakeArray<Index>&      input,   
+           const MakeArray<Index>&      goutput,
+           const MakeArray<Index>&      ginput,   
+           const MakeArray<String>&     keywords,
+           const MakeArray<TokValType>& types,
+           bool                         agenda_method   = false,
+           bool                         suppress_header = false
+           );
 
   // Methods returning the lookup information:
-  const String&            Name()           const { return mname;        	 }   
-  const String&            Description()    const { return mdescription; 	 }
-  const ArrayOfIndex&      Output()         const { return moutput;      	 }
-  const ArrayOfIndex&      Input()          const { return minput;       	 }
-  const ArrayOfIndex&      GOutput()        const { return mgoutput;     	 }
-  const ArrayOfIndex&      GInput()         const { return mginput;      	 }
-  const Array<String>&     Keywords()       const { return mkeywords;    	 }
-  const Array<TokValType>& Types()          const { return mtypes;       	 }
+  const String&            Name()           const { return mname;                }   
+  const String&            Description()    const { return mdescription;         }
+  const ArrayOfIndex&      Output()         const { return moutput;              }
+  const ArrayOfIndex&      Input()          const { return minput;               }
+  const ArrayOfIndex&      GOutput()        const { return mgoutput;             }
+  const ArrayOfIndex&      GInput()         const { return mginput;              }
+  const Array<String>&     Keywords()       const { return mkeywords;            }
+  const Array<TokValType>& Types()          const { return mtypes;               }
   bool                     AgendaMethod()   const { return magenda_method;       }
   bool                     Supergeneric()   const { return msupergeneric;        }
   bool                     SuppressHeader() const { return msuppress_header;     }

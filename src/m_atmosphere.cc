@@ -385,8 +385,8 @@ void AtmRawRead(//WS Output:
     {
       // Determine the name.
       file_name =
-	basename + "." +
-	species_data[gas_species[i][0].Species()].Name() + ".xml";
+        basename + "." +
+        species_data[gas_species[i][0].Species()].Name() + ".xml";
       
       // Add an element for this tag group to the vmr profiles:
       ArrayOfTensor3 vmr_field_data;
@@ -397,7 +397,7 @@ void AtmRawRead(//WS Output:
       
       // state the source of profile.
       out3 << "  " << species_data[gas_species[i][0].Species()].Name()
-	   << " profile read from file: " << file_name << "\n";
+           << " profile read from file: " << file_name << "\n";
     }
 }
   
@@ -441,16 +441,16 @@ void GroundNoScatteringSingleEmissivity(
               Matrix&    ground_los, 
               Tensor4&   ground_refl_coeffs,
         const Vector&    f_grid,
-	const Index&     stokes_dim,
-	const GridPos&   a_gp_p,
-	const GridPos&   a_gp_lat,
-	const GridPos&   a_gp_lon,
-	const Vector&    a_los,
+        const Index&     stokes_dim,
+        const GridPos&   a_gp_p,
+        const GridPos&   a_gp_lat,
+        const GridPos&   a_gp_lon,
+        const Vector&    a_los,
         const Index&     atmosphere_dim,
         const Vector&    p_grid,
         const Vector&    lat_grid,
         const Vector&    lon_grid,
-	const Matrix&    r_geoid,
+        const Matrix&    r_geoid,
         const Matrix&    z_ground,
         const Tensor3&   t_field,
         const Numeric&   e )
@@ -497,10 +497,10 @@ void GroundNoScatteringSingleEmissivity(
       ground_emission(i,0) = e * planck( f_grid[i], t ); 
       ground_refl_coeffs(0,i,0,0) = 1 - e;
       for( Index is=1; is<stokes_dim; is++ )
-	{ 
-	  ground_emission(i,is) = 0; 
-	  ground_refl_coeffs(0,i,is,is) = 1 - e;
-	}
+        { 
+          ground_emission(i,is) = 0; 
+          ground_refl_coeffs(0,i,is,is) = 1 - e;
+        }
       // Note that other elements of ground_feld_coeffs are set to 0 above.
     }
 
@@ -531,10 +531,10 @@ void GroundTreatAsBlackbody(
               Matrix&    ground_los, 
               Tensor4&   ground_refl_coeffs,
         const Vector&    f_grid,
-	const Index&     stokes_dim,
-	const GridPos&   a_gp_p,
-	const GridPos&   a_gp_lat,
-	const GridPos&   a_gp_lon,
+        const Index&     stokes_dim,
+        const GridPos&   a_gp_p,
+        const GridPos&   a_gp_lat,
+        const GridPos&   a_gp_lon,
         const Index&     atmosphere_dim,
         const Vector&    p_grid,
         const Vector&    lat_grid,
@@ -573,7 +573,7 @@ void GroundTreatAsBlackbody(
     { 
       ground_emission(i,0) = planck( f_grid[i], t ); 
       for( Index is=1; is<stokes_dim; is++ )
-	{ ground_emission(i,is) = 0; }
+        { ground_emission(i,is) = 0; }
     }
 }
 
@@ -698,15 +698,15 @@ void r_geoidWGS84(
       Numeric sv, cv, rv;
       for( Index lat=0; lat<nlat; lat++ )
         {
-	  // Check that the latutide is inside [-90,90]
+          // Check that the latutide is inside [-90,90]
           if( ( lat_grid[lat] < -90 ) || ( lat_grid[lat] > 90 ) )
-	    {
-	      ostringstream os;
-	      os << "The accepted range for latitudes in this function is "
+            {
+              ostringstream os;
+              os << "The accepted range for latitudes in this function is "
                  << "[-90,90],\nbut a value of " << lat_grid[lat] 
-		 << " was found.";
-	      throw runtime_error( os.str() );
-	    }	    
+                 << " was found.";
+              throw runtime_error( os.str() );
+            }       
 
           // Cosine and sine of the latitude.
           cv = cos( lat_grid[lat] * DEG2RAD ); 
@@ -717,7 +717,7 @@ void r_geoidWGS84(
       
           // Loop longitudes and fill *r_geoid*.
           for( Index lon=0; lon<nlon; lon++ )
-	    r_geoid(lat,lon) = rv;
+            r_geoid(lat,lon) = rv;
         }
     }
   out3 << "            nrows  : " << r_geoid.nrows() << "\n";

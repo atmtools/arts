@@ -103,22 +103,22 @@
 */
 void get_radiative_background(
               Matrix&         i_rte,
-	      Ppath&          ppath_step,
-	      Vector&         a_pos,
-	      Vector&         a_los,
-	      GridPos&        a_gp_p,
-	      GridPos&        a_gp_lat,
-	      GridPos&        a_gp_lon,
+              Ppath&          ppath_step,
+              Vector&         a_pos,
+              Vector&         a_los,
+              GridPos&        a_gp_p,
+              GridPos&        a_gp_lat,
+              GridPos&        a_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los, 
-	      Tensor4&        ground_refl_coeffs,
-	const Ppath&          ppath,
-	const Index&          mblock_index,
-	const Agenda&         ppath_step_agenda,
-	const Agenda&         rte_agenda,
-	const Agenda&         i_space_agenda,
-	const Agenda&         ground_refl_agenda,
+              Tensor4&        ground_refl_coeffs,
+        const Ppath&          ppath,
+        const Index&          mblock_index,
+        const Agenda&         ppath_step_agenda,
+        const Agenda&         rte_agenda,
+        const Agenda&         i_space_agenda,
+        const Agenda&         ground_refl_agenda,
         const Index&          atmosphere_dim,
         ConstVectorView       p_grid,
         ConstVectorView       lat_grid,
@@ -135,8 +135,8 @@ void get_radiative_background(
         ConstVectorView       scat_za_grid,
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
-	const Index&          stokes_dim,
-	const Index&          antenna_dim )
+        const Index&          stokes_dim,
+        const Index&          antenna_dim )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -169,98 +169,98 @@ void get_radiative_background(
 
     case 1:   //--- Space ---------------------------------------------------- 
       {
-	chk_not_empty( "i_space_agenda", i_space_agenda );
-	i_space_agenda.execute();
+        chk_not_empty( "i_space_agenda", i_space_agenda );
+        i_space_agenda.execute();
 
-	if( i_space.nrows() != nf  ||  i_space.ncols() != stokes_dim )
-	  throw runtime_error( "The size of *i_space* returned from "
+        if( i_space.nrows() != nf  ||  i_space.ncols() != stokes_dim )
+          throw runtime_error( "The size of *i_space* returned from "
                                            "*i_space_agenda* is not correct.");
 
-	i_rte = i_space;
+        i_rte = i_space;
       }
       break;
 
 
     case 2:   //--- The ground -----------------------------------------------
       {
-	chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
-	ground_refl_agenda.execute();
+        chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
+        ground_refl_agenda.execute();
 
-	if( ground_emission.nrows() != nf  ||  
+        if( ground_emission.nrows() != nf  ||  
                                         ground_emission.ncols() != stokes_dim )
-	  throw runtime_error(
-		  "The size of the created *ground_emission* is not correct.");
+          throw runtime_error(
+                  "The size of the created *ground_emission* is not correct.");
 
-	i_rte = ground_emission;
+        i_rte = ground_emission;
 
-	// Calculate the spectra hitting the ground
-	//
-	// Some local variables must be used not to over-write WSVs that must
-	// be preserved.
-	Matrix     y_rte_local;            
-	Matrix     i_rte_local;            
-	Ppath      ppath_local;
-	Index      mblock_index_local;
-	Matrix     ground_emission_local;       
-	Matrix     ground_los_local;
-	Tensor4    ground_refl_coeffs_local;
-	// Set zenith and azimuthal angles (note that these variables are not
-	// function input). Each ground los is here treated as measurement
-	// block, with no za and aa grids.
-	Index    nlos = ground_los.nrows();
-	Matrix   sensor_pos( nlos, a_pos.nelem() );
-	Matrix   sensor_los( nlos, a_los.nelem() );
-	for( Index ilos=0; ilos < nlos; ilos++ )
-	  {
-	    sensor_pos( ilos, Range(joker) ) = a_pos;
-	    sensor_los( ilos, Range(joker) ) = ground_los( ilos, Range(joker));
-	  }
-	Vector   mblock_za_grid(1,0);
-	Vector   mblock_aa_grid(0);
-	if( antenna_dim > 1 )
-	  {
-	    mblock_aa_grid.resize(1);
-	    mblock_aa_grid = 0;
-	  }
-	//
-	RteCalc( y_rte_local, ppath_local, ppath_step, i_rte_local, 
-		 mblock_index_local, a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
-		 i_space, ground_emission_local, ground_los_local, 
-		 ground_refl_coeffs_local, ppath_step_agenda, rte_agenda, 
-		 i_space_agenda, ground_refl_agenda, 
-		 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
+        // Calculate the spectra hitting the ground
+        //
+        // Some local variables must be used not to over-write WSVs that must
+        // be preserved.
+        Matrix     y_rte_local;            
+        Matrix     i_rte_local;            
+        Ppath      ppath_local;
+        Index      mblock_index_local;
+        Matrix     ground_emission_local;       
+        Matrix     ground_los_local;
+        Tensor4    ground_refl_coeffs_local;
+        // Set zenith and azimuthal angles (note that these variables are not
+        // function input). Each ground los is here treated as measurement
+        // block, with no za and aa grids.
+        Index    nlos = ground_los.nrows();
+        Matrix   sensor_pos( nlos, a_pos.nelem() );
+        Matrix   sensor_los( nlos, a_los.nelem() );
+        for( Index ilos=0; ilos < nlos; ilos++ )
+          {
+            sensor_pos( ilos, Range(joker) ) = a_pos;
+            sensor_los( ilos, Range(joker) ) = ground_los( ilos, Range(joker));
+          }
+        Vector   mblock_za_grid(1,0);
+        Vector   mblock_aa_grid(0);
+        if( antenna_dim > 1 )
+          {
+            mblock_aa_grid.resize(1);
+            mblock_aa_grid = 0;
+          }
+        //
+        RteCalc( y_rte_local, ppath_local, ppath_step, i_rte_local, 
+                 mblock_index_local, a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon,
+                 i_space, ground_emission_local, ground_los_local, 
+                 ground_refl_coeffs_local, ppath_step_agenda, rte_agenda, 
+                 i_space_agenda, ground_refl_agenda, 
+                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
                  r_geoid, 
                  z_ground, cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
-		 scat_i_lon, scat_za_grid, scat_aa_grid, sensor_pos, 
-		 sensor_los, f_grid, stokes_dim, antenna_dim, 
-		 mblock_za_grid, mblock_aa_grid );
+                 scat_i_lon, scat_za_grid, scat_aa_grid, sensor_pos, 
+                 sensor_los, f_grid, stokes_dim, antenna_dim, 
+                 mblock_za_grid, mblock_aa_grid );
 
-	// Decompose the calculated spectra (y_rte_local) and add the values
-	// to i_rte, considering the ground reflection coeff. matrix.
-	for( Index ilos=0; ilos < nlos; ilos++ )
-	  {
-	    Matrix i_ground(nf,stokes_dim);
+        // Decompose the calculated spectra (y_rte_local) and add the values
+        // to i_rte, considering the ground reflection coeff. matrix.
+        for( Index ilos=0; ilos < nlos; ilos++ )
+          {
+            Matrix i_ground(nf,stokes_dim);
 
-	    i_ground = y_rte_local(Range(ilos*nf,nf),Range(joker));
-	    
-	    for( Index iv=0; iv<nf; iv++ )
-	      {
-		if( stokes_dim == 1 )
-		  {
-		    i_rte(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
+            i_ground = y_rte_local(Range(ilos*nf,nf),Range(joker));
+            
+            for( Index iv=0; iv<nf; iv++ )
+              {
+                if( stokes_dim == 1 )
+                  {
+                    i_rte(iv,0) += ground_refl_coeffs(ilos,iv,0,0) * 
                                                                 i_ground(iv,0);
-		  }
-		else
-		  {
-		    Vector stokes_vec(stokes_dim);
-		    mult( stokes_vec, 
+                  }
+                else
+                  {
+                    Vector stokes_vec(stokes_dim);
+                    mult( stokes_vec, 
                        ground_refl_coeffs(ilos,iv,Range(joker),Range(joker)), 
                                                    i_ground(iv,Range(joker)) );
-		    for( Index is=0; is < stokes_dim; is++ )
-		      { i_rte(iv,is) += stokes_vec[is]; }
-		  }
-	      }
-	  }
+                    for( Index is=0; is < stokes_dim; is++ )
+                      { i_rte(iv,is) += stokes_vec[is]; }
+                  }
+              }
+          }
       }
       break;
 
@@ -268,8 +268,8 @@ void get_radiative_background(
     case 3:   //--- Cloudbox surface -----------------------------------------
 
       {
-	CloudboxGetOutgoing( i_rte, "i_rte", scat_i_p, scat_i_lat, scat_i_lon, 
-			   a_gp_p, a_gp_lat, a_gp_lon, a_los, 
+        CloudboxGetOutgoing( i_rte, "i_rte", scat_i_p, scat_i_lat, scat_i_lon, 
+                           a_gp_p, a_gp_lat, a_gp_lon, a_los, 
                            cloudbox_on, cloudbox_limits, atmosphere_dim,
                               stokes_dim, scat_za_grid, scat_aa_grid, f_grid );
       }
@@ -278,8 +278,8 @@ void get_radiative_background(
 
     case 4:   //--- Inside of cloudbox ---------------------------------------
       {
-	throw runtime_error( "RTE calculations starting inside the cloud box "
-			                               "are not yet handled" );
+        throw runtime_error( "RTE calculations starting inside the cloud box "
+                                                       "are not yet handled" );
       }
       break;
 
@@ -314,15 +314,15 @@ void get_radiative_background(
     \date   2002-09-22
 */
 void ground_specular_los(
-	      VectorView   los,
+              VectorView   los,
         const Index&       atmosphere_dim,
         ConstMatrixView    r_geoid,
         ConstMatrixView    z_ground,
-	ConstVectorView    lat_grid,
-	ConstVectorView    lon_grid,
-	const GridPos&     a_gp_lat,
-	const GridPos&     a_gp_lon,
-	ConstVectorView    a_los )
+        ConstVectorView    lat_grid,
+        ConstVectorView    lon_grid,
+        const GridPos&     a_gp_lat,
+        const GridPos&     a_gp_lon,
+        ConstVectorView    a_los )
 {
   assert( atmosphere_dim >= 1  &&  atmosphere_dim <= 3 );
 
@@ -350,16 +350,16 @@ void ground_specular_los(
 
       // Calculate LOS neglecting any tilt of the ground
       if( a_los[0] >= 0 )
-	{ los[0] = 180 - a_los[0]; }
+        { los[0] = 180 - a_los[0]; }
       else
-	{ los[0] = -180 - a_los[0]; }
+        { los[0] = -180 - a_los[0]; }
 
       // Interpolate to get radius for the ground at reflection point.
       const Numeric r_ground =
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-      	                      r_geoid, "r_geoid", a_gp_lat, a_gp_lon ) +
+                              r_geoid, "r_geoid", a_gp_lat, a_gp_lon ) +
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-      	                            z_ground, "z_ground", a_gp_lat, a_gp_lon );
+                                    z_ground, "z_ground", a_gp_lat, a_gp_lon );
 
       // Calculate ground slope (unit is m/deg).
       Numeric slope = psurface_slope_2d( lat_grid, r_geoid(Range(joker),0), 
@@ -378,7 +378,7 @@ void ground_specular_los(
   else if( atmosphere_dim == 3 )
     {
       throw runtime_error( "Calculation of LOS for ground reflections is not "
-			                           "yet implemented for 3D." );
+                                                   "yet implemented for 3D." );
     }
 }
 
@@ -417,12 +417,12 @@ void ground_specular_los(
     \date   2002-09-16
 */
 void rte_step_clearsky_with_emission(
-	      VectorView    stokes_vec,		       
+              VectorView    stokes_vec,                
         const Index&        stokes_dim,
-	ConstMatrixView     ext_mat_gas,
-	ConstVectorView     abs_vec_gas,
-	const Numeric&      l_step,
-	const Numeric&      a_planck_value )
+        ConstMatrixView     ext_mat_gas,
+        ConstVectorView     abs_vec_gas,
+        const Numeric&      l_step,
+        const Numeric&      a_planck_value )
 {
   // Asserts
   assert( stokes_dim >= 1  &  stokes_dim <= 4 );
@@ -450,46 +450,46 @@ void rte_step_clearsky_with_emission(
       bool diagonal = true;
       //
       for( Index i=1; diagonal  && i<stokes_dim; i++ )
-	{
-	  for( Index j=0; diagonal && j<i; j++ )
-	    {
-	      if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) != 0 )
-		{ diagonal = false; }
-	    }
-	  assert( !diagonal  ||  ( diagonal  && abs_vec_gas[i] == 0 ) );
-	}
+        {
+          for( Index j=0; diagonal && j<i; j++ )
+            {
+              if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) != 0 )
+                { diagonal = false; }
+            }
+          assert( !diagonal  ||  ( diagonal  && abs_vec_gas[i] == 0 ) );
+        }
 
 
       // Unpolarised
       if( diagonal )
-	{
-	  // Stokes dim 1
-	  assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
-	  Numeric transm = exp( -l_step * abs_vec_gas[0] );
-	  stokes_vec[0] = stokes_vec[0] * transm + 
+        {
+          // Stokes dim 1
+          assert( ext_mat_gas(0,0) == abs_vec_gas[0] );
+          Numeric transm = exp( -l_step * abs_vec_gas[0] );
+          stokes_vec[0] = stokes_vec[0] * transm + 
                                                 ( 1- transm ) * a_planck_value;
 
-	  // Stokes dims > 1
-	  for( Index i=1; i<stokes_dim; i++ )
-	    { stokes_vec[i] *= exp( -l_step * ext_mat_gas(i,i) ); }
-	}
+          // Stokes dims > 1
+          for( Index i=1; i<stokes_dim; i++ )
+            { stokes_vec[i] *= exp( -l_step * ext_mat_gas(i,i) ); }
+        }
 
 
       // Polarised
       else
-	{
-	  // Here we use the general method for the cloud box.
-	  // As this is a WSM and stokes_vec there is defined as Vector (and
-	  // not VectorView), stokes_vec must be copied to a vector
-	  //
-	  Vector sv(stokes_dim);
-	  sv = stokes_vec;
-	  //
+        {
+          // Here we use the general method for the cloud box.
+          // As this is a WSM and stokes_vec there is defined as Vector (and
+          // not VectorView), stokes_vec must be copied to a vector
+          //
+          Vector sv(stokes_dim);
+          sv = stokes_vec;
+          //
           stokes_vecGeneral( sv, ext_mat_gas, abs_vec_gas, 
-		    Vector(stokes_dim,0), l_step, a_planck_value );
-	  //
-	  stokes_vec = sv;
-	}
+                    Vector(stokes_dim,0), l_step, a_planck_value );
+          //
+          stokes_vec = sv;
+        }
     }
 }
 
@@ -579,18 +579,18 @@ rte_step(//Output and Input:
       if( is_diagonal(ext_mat_av) )
         {
            // Stokes dim 1
-	  assert( ext_mat_av(0,0) == abs_vec_av[0] );
-	  Numeric transm = exp( -l_step * abs_vec_av[0] );
-	  stokes_vec[0] = stokes_vec[0] * transm + 
+          assert( ext_mat_av(0,0) == abs_vec_av[0] );
+          Numeric transm = exp( -l_step * abs_vec_av[0] );
+          stokes_vec[0] = stokes_vec[0] * transm + 
                                                 ( 1- transm ) * a_planck_value;
 
-	  // Stokes dims > 1
-	  for( Index i=1; i<stokes_dim; i++ )
+          // Stokes dims > 1
+          for( Index i=1; i<stokes_dim; i++ )
             {
             assert( abs_vec_av[i] == 0.);
-	    stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); 
+            stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); 
             }
-	}
+        }
       
       //General case
       else
@@ -680,7 +680,7 @@ stokes_vecGeneral(//WS Output and Input:
   for(Index i=0; i<stokes_dim; i++)
     {
       for(Index j=0; j<stokes_dim; j++)
-	LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
+        LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
     }
   mult(term2, LU, x); // term2: second term of the solution of the RTE with
                       //fixed scattered field

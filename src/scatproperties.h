@@ -13,8 +13,8 @@
 
 
 void amp2ext(MatrixView ext,
-	     ConstVectorView amp_coeffs,
-	     const Numeric& freq);
+             ConstVectorView amp_coeffs,
+             const Numeric& freq);
 
 void amp2ext_scat(MatrixView ext_scat,
                   ConstTensor4View pha,
@@ -22,13 +22,13 @@ void amp2ext_scat(MatrixView ext_scat,
                   ConstVectorView aa_grid);
 
 void amp2pha(Tensor4View phasemat,
-	     ConstTensor3View amp_coeffs);
+             ConstTensor3View amp_coeffs);
 
 void amp2abs(VectorView abs,
-	     ConstMatrixView ext,
-	     ConstTensor4View pha,
-	     ConstVectorView za_grid,
-	     ConstVectorView aa_grid);
+             ConstMatrixView ext,
+             ConstTensor4View pha,
+             ConstVectorView za_grid,
+             ConstVectorView aa_grid);
 
 
 

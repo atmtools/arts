@@ -29,11 +29,11 @@
 #include "agenda_record.h"
 
 void AgendaSet(// WS Generic Output:
-	       Agenda& output_agenda,
-	       // WS Generic Output Names:
-	       const String& agenda_name,
-	       // Agenda from controlfile:
-	       const Agenda& input_agenda)
+               Agenda& output_agenda,
+               // WS Generic Output Names:
+               const String& agenda_name,
+               // Agenda from controlfile:
+               const Agenda& input_agenda)
 {
   // Make external data visible
   extern const Array<WsvRecord> wsv_data;
@@ -66,17 +66,17 @@ void AgendaSet(// WS Generic Output:
       Index this_wsv = this_data.Output()[i];
 
       if ( !output_agenda.is_output(this_wsv) )
-	{
-	  ostringstream os;
-	  os << "The agenda " << output_agenda.name()
-	     << " must generate the output WSV "
-	     << wsv_data[this_wsv] << ",\n"
-	     << "but it does not. It only generates:\n";
-	  for ( Index j=0; j<wsv_data.nelem(); ++j )
-	    if ( output_agenda.is_output(j) )
-	      os << wsv_data[j].Name() << "\n";
-	  throw runtime_error (os.str());
-	}
+        {
+          ostringstream os;
+          os << "The agenda " << output_agenda.name()
+             << " must generate the output WSV "
+             << wsv_data[this_wsv] << ",\n"
+             << "but it does not. It only generates:\n";
+          for ( Index j=0; j<wsv_data.nelem(); ++j )
+            if ( output_agenda.is_output(j) )
+              os << wsv_data[j].Name() << "\n";
+          throw runtime_error (os.str());
+        }
     }
 
   // Check that the input used by the actual methods in the
@@ -87,22 +87,22 @@ void AgendaSet(// WS Generic Output:
       Index this_wsv = this_data.Input()[i];
 
       if ( !output_agenda.is_input(this_wsv) )
-	{
-	  ostringstream os;
-	  os << "The agenda " << output_agenda.name()
-	     << " must use the input WSV "
-	     << wsv_data[this_wsv].Name() << ",\n"
-	     << "but it does not. It only uses:\n";
-	  for ( Index j=0; j<wsv_data.nelem(); ++j )
-	    if ( output_agenda.is_input(j) )
-	      os << wsv_data[j].Name() << "\n";
-	  throw runtime_error (os.str());
-	}
+        {
+          ostringstream os;
+          os << "The agenda " << output_agenda.name()
+             << " must use the input WSV "
+             << wsv_data[this_wsv].Name() << ",\n"
+             << "but it does not. It only uses:\n";
+          for ( Index j=0; j<wsv_data.nelem(); ++j )
+            if ( output_agenda.is_input(j) )
+              os << wsv_data[j].Name() << "\n";
+          throw runtime_error (os.str());
+        }
     }
 }
 
 void Main(// Agenda from controlfile:
-	  const Agenda& input_agenda)
+          const Agenda& input_agenda)
 {
   input_agenda.execute();
 }

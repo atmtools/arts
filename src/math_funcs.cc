@@ -128,9 +128,9 @@ Index last( const ArrayOfIndex& x )
 */
 void linspace(                      
               Vector&     x,           
-	      const Numeric     start,    
-	      const Numeric     stop,        
-	      const Numeric     step )
+              const Numeric     start,    
+              const Numeric     stop,        
+              const Numeric     step )
 {
   Index n = (Index) floor( (stop-start)/step ) + 1;
   if ( n<1 )
@@ -160,12 +160,12 @@ void linspace(
     \date   2000-06-27
 */
 void nlinspace(         
-	       Vector&     x, 
-	       const Numeric     start,     
-	       const Numeric     stop,        
-	       const Index       n )
+               Vector&     x, 
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index       n )
 {
-  assert( 1<n );		// Number of points must be greatere 1.
+  assert( 1<n );                // Number of points must be greatere 1.
   x.resize(n);
   Numeric step = (stop-start)/(n-1) ;
   for ( Index i=0; i<n; i++ )
@@ -192,13 +192,13 @@ void nlinspace(
     \date   2000-06-27
 */
 void nlogspace(         
-	       Vector&     x, 
-	       const Numeric     start,     
-	       const Numeric     stop,        
-	       const Index         n )
+               Vector&     x, 
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index         n )
 {
   // Number of points must be greatere 1:
-  assert( 1<n );	
+  assert( 1<n );        
   // Only positive numbers are allowed for start and stop:
   assert( 0<start );
   assert( 0<stop );
@@ -232,9 +232,9 @@ void nlogspace(
     \date   2000-06-27
 */
 Vector nlogspace(  
-		 const Numeric start, 
-		 const Numeric stop,  
-		 const Index     n )
+                 const Numeric start, 
+                 const Numeric stop,  
+                 const Index     n )
 {
   Vector x;
   nlogspace( x, start, stop, n );
@@ -251,8 +251,8 @@ Vector nlogspace(
  * @return The resulting integral
  */
 Numeric AngIntegrate_trapezoid(MatrixView Integrand,
-			       ConstVectorView za_grid,
-			       ConstVectorView aa_grid)
+                               ConstVectorView za_grid,
+                               ConstVectorView aa_grid)
 {
   //is_size(za_grid.nelem(),aa_grid.nelem());
  
@@ -267,16 +267,16 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
       //Numeric sintheta = sin(za_grid[i] * DEG2RAD);
       
       for (Index j = 0; j < m - 1; ++j)
-	{
-	  res1[i] +=  0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
-	    (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
-	}
+        {
+          res1[i] +=  0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+            (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
+        }
     }
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i)
     {
       res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * 
-	(za_grid[i + 1] - za_grid[i]);
+        (za_grid[i + 1] - za_grid[i]);
     }
   
   //cout<<res<<"\n";

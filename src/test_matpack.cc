@@ -97,7 +97,7 @@ int test1()
     Numeric n=0;
     for (Index i=0; i<M.nrows(); ++i)
       for (Index j=0; j<M.ncols(); ++j)
-	M(i,j) = ++n;
+        M(i,j) = ++n;
   }
 
   cout << "\nM =\n" << M << "\n";
@@ -309,9 +309,9 @@ void test12()
 void test13()
 {
   // Mix vector and one-column matrix in += operator.
-  const Vector v(1,8,1);	// The const is necessary here to
-				// avoid compiler warnings about
-				// different conversion paths.
+  const Vector v(1,8,1);        // The const is necessary here to
+                                // avoid compiler warnings about
+                                // different conversion paths.
   Matrix M(v);
   M += v;
   cout << "M = \n" << M << "\n";
@@ -525,7 +525,7 @@ void test31()
   for ( Index i=0; i<a.npages(); ++i )
     for ( Index j=0; j<a.nrows(); ++j )
       for ( Index k=0; k<a.ncols(); ++k )
-	a(i,j,k) = ++fill;
+        a(i,j,k) = ++fill;
 
   cout << "a =\n" << a << "\n";
 
@@ -576,7 +576,7 @@ void test31()
   for ( Index i=0; i<a.npages(); ++i )
     for ( Index j=0; j<a.nrows(); ++j )
       for ( Index k=0; k<a.ncols(); ++k )
-	a(i,j,k) = ++fill;
+        a(i,j,k) = ++fill;
 
   cout << "Max(a) = ...\n";
 
@@ -592,8 +592,8 @@ void test32()
   for ( Index j=0; j<A.nrows(); ++j )
     for ( Index k=0; k<A.ncols(); ++k )
       {
-	X(j,k) = 1;
-	A(j,k) = j+k;
+        X(j,k) = 1;
+        A(j,k) = j+k;
       }
   cout << "A:\n" << A << "\n";
   cout << "X:\n" << X << "\n";
@@ -614,12 +614,12 @@ void test33()
 
   {
     cout << "1. Make a scalar look like a vector:\n";
-    Numeric a = 3.1415;		// Just any number here.
+    Numeric a = 3.1415;         // Just any number here.
     VectorView av(a);
     cout << "a, viewed as a vector: " << av << "\n";
     av[0] += 1;
     cout << "a, after the first element\n"
-	 << "of the vector has been increased by 1: " << a << "\n";
+         << "of the vector has been increased by 1: " << a << "\n";
   }
 
   {
@@ -650,22 +650,22 @@ void test33()
     at7(0,0,0,0,0,2,0) -=1 ;
 
     cout << "After subtracting 1 from at7(0,0,0,0,0,2,0)\n"
-	 << "a = " << a << "\n";
+         << "a = " << a << "\n";
 
     cout << "\nAll in one go:\n";
-    Numeric b = 3.1415;		// Just any number here.
+    Numeric b = 3.1415;         // Just any number here.
     Tensor7View bt7 =
       Tensor6View(
-		  Tensor5View(
-			      Tensor4View(
-					  Tensor3View(
-						      MatrixView(
-								 VectorView(b)
-								 )
-						      )
-					  )
-			      )
-		  );
+                  Tensor5View(
+                              Tensor4View(
+                                          Tensor3View(
+                                                      MatrixView(
+                                                                 VectorView(b)
+                                                                 )
+                                                      )
+                                          )
+                              )
+                  );
     cout << "bt7:\n" << bt7 << "\n";
   }
 }

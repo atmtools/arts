@@ -61,16 +61,16 @@ struct Ppath {
   Index             refraction;
   String            method;
   Numeric           constant;
-  Matrix    	    pos;
-  Vector    	    z;
+  Matrix            pos;
+  Vector            z;
   Vector            l_step;
   ArrayOfGridPos    gp_p;
   ArrayOfGridPos    gp_lat;
   ArrayOfGridPos    gp_lon;
-  Matrix    	    los;
-  String    	    background;
+  Matrix            los;
+  String            background;
   Vector            tan_pos;
-  Vector    	    geom_tan_pos;
+  Vector            geom_tan_pos;
 };
 
 
@@ -84,9 +84,9 @@ bool is_los_downwards_2d(
         const Numeric&   tilt );
 
 Numeric psurface_slope_2d(
-	ConstVectorView   lat_grid,	      
-	ConstVectorView   r_geoid,
-	ConstVectorView   z_surf,
+        ConstVectorView   lat_grid,           
+        ConstVectorView   r_geoid,
+        ConstVectorView   z_surf,
         const GridPos&    gp,
         const Index&      upwards );
 
@@ -95,12 +95,12 @@ Numeric psurface_tilt_2d(
         const Numeric&   c );
 
 void ppath_init_structure( 
-	      Ppath&      ppath,
-	const Index&      atmosphere_dim,
-	const Index&      np );
+              Ppath&      ppath,
+        const Index&      atmosphere_dim,
+        const Index&      np );
 
 void ppath_set_background( 
-	      Ppath&      ppath,
+              Ppath&      ppath,
         const Index&      case_nr );
 
 Index ppath_what_background( const Ppath&   ppath );
@@ -117,48 +117,48 @@ void ppath_start_stepping(
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         ConstVectorView       sensor_pos,
-	ConstVectorView       sensor_los );
+        ConstVectorView       sensor_los );
 
 void ppath_step_geom_1d(
-	      Ppath&      ppath,
+              Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
-	const Numeric&    lmax );
+        const Numeric&    lmax );
 
 void ppath_step_geom_2d(
-	      Ppath&      ppath,
+              Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
-	const Numeric&    lmax );
+        const Numeric&    lmax );
 
 void ppath_step_refr_1d(
-	      Ppath&      ppath,
+              Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
-	const String&     rtrace_method,
-	const Numeric&    lraytrace,
-	const Numeric&    lmax,
+        const String&     rtrace_method,
+        const Numeric&    lraytrace,
+        const Numeric&    lmax,
         const String&     refrindex );
 
 void ppath_step_refr_2d(
-	      Ppath&      ppath,
+              Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
-	const String&     rtrace_method,
-	const Numeric&    lraytrace,
-	const Numeric&    lmax,
+        const String&     rtrace_method,
+        const Numeric&    lraytrace,
+        const Numeric&    lmax,
         const String&     refrindex );
 
 #endif  // ppath_h

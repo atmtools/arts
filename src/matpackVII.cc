@@ -78,8 +78,8 @@ ConstTensor7View ConstTensor7View::operator()
     const Range& p, const Range& r, const Range& c) const
 {
   return ConstTensor7View(mdata,
-			  mlr, mvr, msr, mbr, mpr, mrr, mcr,
-			  l,   v,   s,   b,   p,   r,   c);
+                          mlr, mvr, msr, mbr, mpr, mrr, mcr,
+                          l,   v,   s,   b,   p,   r,   c);
 }
 // |------
 ConstTensor6View ConstTensor7View::operator()
@@ -89,8 +89,8 @@ ConstTensor6View ConstTensor7View::operator()
 {
   CHECK(l);
   return ConstTensor6View(mdata + OFFSET(l),
-			  mvr, msr, mbr, mpr, mrr, mcr,
-			  v,   s,   b,   p,   r,   c);
+                          mvr, msr, mbr, mpr, mrr, mcr,
+                          v,   s,   b,   p,   r,   c);
 }
 
 // ------|
@@ -1198,8 +1198,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(b);
   CHECK(p);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p),
-			   mlr, mrr, mcr, 
-			   l,   r,   c     );
+                           mlr, mrr, mcr, 
+                           l,   r,   c     );
 }
 // |||||--
 ConstMatrixView  ConstTensor7View::operator()
@@ -1213,8 +1213,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(b);
   CHECK(p);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p),
-			  mrr, mcr, 
-			  r,   c     );
+                          mrr, mcr, 
+                          r,   c     );
 }
 
 // -|||-|-
@@ -1228,8 +1228,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(b);
   CHECK(r);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(r),
-			   mlr, mpr, mcr, 
-			   l,   p,   c     );
+                           mlr, mpr, mcr, 
+                           l,   p,   c     );
 }
 // ||||-|-
 ConstMatrixView  ConstTensor7View::operator()
@@ -1243,8 +1243,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(b);
   CHECK(r);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(r),
-			  mpr, mcr, 
-			  p,   c     );
+                          mpr, mcr, 
+                          p,   c     );
 }
 
 // -||-||-
@@ -1258,8 +1258,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(r),
-			   mlr, mbr, mcr, 
-			   l,   b,   c     );
+                           mlr, mbr, mcr, 
+                           l,   b,   c     );
 }
 // |||-||-
 ConstMatrixView  ConstTensor7View::operator()
@@ -1273,8 +1273,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(r),
-			  mbr, mcr, 
-			  b,   c     );
+                          mbr, mcr, 
+                          b,   c     );
 }
 
 // -|-|||-
@@ -1288,8 +1288,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-			   mlr, msr, mcr, 
-			   l,   s,   c     );
+                           mlr, msr, mcr, 
+                           l,   s,   c     );
 }
 // ||-|||-
 ConstMatrixView  ConstTensor7View::operator()
@@ -1303,8 +1303,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-			  msr, mcr, 
-			  s,   c     );
+                          msr, mcr, 
+                          s,   c     );
 }
 
 // --||||-
@@ -1318,8 +1318,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  ConstTensor3View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-			   mlr, mvr, mcr, 
-			   l,   v,   c     );
+                           mlr, mvr, mcr, 
+                           l,   v,   c     );
 }
 // |-||||-
 ConstMatrixView  ConstTensor7View::operator()
@@ -1333,8 +1333,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-			  mvr, mcr, 
-			  v,   c     );
+                          mvr, mcr, 
+                          v,   c     );
 }
 
 // -|||--|
@@ -1348,8 +1348,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(b);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(c),
-			   mlr, mpr, mrr, 
-			   l,   p,   r     );
+                           mlr, mpr, mrr, 
+                           l,   p,   r     );
 }
 // ||||--|
 ConstMatrixView  ConstTensor7View::operator()
@@ -1363,8 +1363,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(b);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(c),
-			  mpr, mrr, 
-			  p,   r     );
+                          mpr, mrr, 
+                          p,   r     );
 }
 
 // -||-|-|
@@ -1378,8 +1378,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(c),
-			   mlr, mbr, mrr, 
-			   l,   b,   r     );
+                           mlr, mbr, mrr, 
+                           l,   b,   r     );
 }
 // |||-|-|
 ConstMatrixView  ConstTensor7View::operator()
@@ -1393,8 +1393,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(c),
-			  mbr, mrr, 
-			  b,   r     );
+                          mbr, mrr, 
+                          b,   r     );
 }
 
 // -|-||-|
@@ -1408,8 +1408,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-			   mlr, msr, mrr, 
-			   l,   s,   r     );
+                           mlr, msr, mrr, 
+                           l,   s,   r     );
 }
 // ||-||-|
 ConstMatrixView  ConstTensor7View::operator()
@@ -1423,8 +1423,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-			  msr, mrr, 
-			  s,   r     );
+                          msr, mrr, 
+                          s,   r     );
 }
 
 // --|||-|
@@ -1438,8 +1438,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-			   mlr, mvr, mrr, 
-			   l,   v,   r     );
+                           mlr, mvr, mrr, 
+                           l,   v,   r     );
 }
 // |-|||-|
 ConstMatrixView  ConstTensor7View::operator()
@@ -1453,8 +1453,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-			  mvr, mrr, 
-			  v,   r     );
+                          mvr, mrr, 
+                          v,   r     );
 }
 
 // -||--||
@@ -1468,8 +1468,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(r) + OFFSET(c),
-			   mlr, mbr, mpr, 
-			   l,   b,   p     );
+                           mlr, mbr, mpr, 
+                           l,   b,   p     );
 }
 // |||--||
 ConstMatrixView  ConstTensor7View::operator()
@@ -1483,8 +1483,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(r) + OFFSET(c),
-			  mbr, mpr, 
-			  b,   p     );
+                          mbr, mpr, 
+                          b,   p     );
 }
 
 // -|-|-||
@@ -1498,8 +1498,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-			   mlr, msr, mpr, 
-			   l,   s,   p     );
+                           mlr, msr, mpr, 
+                           l,   s,   p     );
 }
 // ||-|-||
 ConstMatrixView  ConstTensor7View::operator()
@@ -1513,8 +1513,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-			  msr, mpr, 
-			  s,   p     );
+                          msr, mpr, 
+                          s,   p     );
 }
 
 // --||-||
@@ -1528,8 +1528,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-			   mlr, mvr, mpr, 
-			   l,   v,   p     );
+                           mlr, mvr, mpr, 
+                           l,   v,   p     );
 }
 // |-||-||
 ConstMatrixView  ConstTensor7View::operator()
@@ -1543,8 +1543,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-			  mvr, mpr, 
-			  v,   p     );
+                          mvr, mpr, 
+                          v,   p     );
 }
 
 // -|--|||
@@ -1558,8 +1558,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(v) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-			   mlr, msr, mbr, 
-			   l,   s,   b     );
+                           mlr, msr, mbr, 
+                           l,   s,   b     );
 }
 // ||--|||
 ConstMatrixView  ConstTensor7View::operator()
@@ -1573,8 +1573,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-			  msr, mbr, 
-			  s,   b     );
+                          msr, mbr, 
+                          s,   b     );
 }
 
 // --|-|||
@@ -1588,8 +1588,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(s) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-			   mlr, mvr, mbr, 
-			   l,   v,   b     );
+                           mlr, mvr, mbr, 
+                           l,   v,   b     );
 }
 // |-|-|||
 ConstMatrixView  ConstTensor7View::operator()
@@ -1603,8 +1603,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-			  mvr, mbr, 
-			  v,   b     );
+                          mvr, mbr, 
+                          v,   b     );
 }
 
 // ---||||
@@ -1618,8 +1618,8 @@ ConstTensor3View  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstTensor3View(mdata + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-			   mlr, mvr, msr, 
-			   l,   v,   s     );
+                           mlr, mvr, msr, 
+                           l,   v,   s     );
 }
 // |--||||
 ConstMatrixView  ConstTensor7View::operator()
@@ -1633,8 +1633,8 @@ ConstMatrixView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstMatrixView(mdata + OFFSET(l) + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-			  mvr, msr, 
-			  v,   s     );
+                          mvr, msr, 
+                          v,   s     );
 }
 
 // -|||||-
@@ -1842,23 +1842,23 @@ ConstVectorView  ConstTensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  ConstVectorView( mdata +
-			   OFFSET(v) + OFFSET(s) + OFFSET(b) +
-			   OFFSET(p) + OFFSET(r) + OFFSET(c),
-			   mlr,
-			   l    );
+                           OFFSET(v) + OFFSET(s) + OFFSET(b) +
+                           OFFSET(p) + OFFSET(r) + OFFSET(c),
+                           mlr,
+                           l    );
 }
 
 /** Return const iterator to first sub-tensor. */
 ConstIterator7D ConstTensor7View::begin() const
 {
   return ConstIterator7D( ConstTensor6View(mdata+mlr.mstart,
-					   mvr,
-					   msr,
-					   mbr,
-					   mpr,
-					   mrr,
-					   mcr),
-			  mlr.mstride);
+                                           mvr,
+                                           msr,
+                                           mbr,
+                                           mpr,
+                                           mrr,
+                                           mcr),
+                          mlr.mstride);
 }
 
 /** Return const iterator behind last sub-tensor. */
@@ -1866,12 +1866,12 @@ ConstIterator7D ConstTensor7View::end() const
 {
   return ConstIterator7D( ConstTensor6View(mdata + mlr.mstart +
                                           (mlr.mextent)*mlr.mstride,
-					   mvr,
-					   msr,
-					   mbr,
-					   mpr,
-					   mrr,
-					   mcr),
+                                           mvr,
+                                           msr,
+                                           mbr,
+                                           mpr,
+                                           mrr,
+                                           mcr),
                           mlr.mstride );
 }
 
@@ -1911,7 +1911,7 @@ ConstTensor7View::ConstTensor7View() :
     account for the length of one row. The page range pr must have a
     stride to account for the length of one page. */
 ConstTensor7View::ConstTensor7View(Numeric *data,
-					  const Range& l,
+                                          const Range& l,
                                           const Range& v,
                                           const Range& s,
                                           const Range& b,
@@ -1938,14 +1938,14 @@ ConstTensor7View::ConstTensor7View(Numeric *data,
     joker. However, the used Range constructor converts this to an
     explicit range, consistent with the original Range. */
 ConstTensor7View::ConstTensor7View(Numeric *data,
-					  const Range& pl,
+                                          const Range& pl,
                                           const Range& pv,
                                           const Range& ps,
                                           const Range& pb,
                                           const Range& pp,
                                           const Range& pr,
                                           const Range& pc,
-					  const Range& nl,
+                                          const Range& nl,
                                           const Range& nv,
                                           const Range& ns,
                                           const Range& nb,
@@ -3083,8 +3083,8 @@ Tensor7View Tensor7View::operator()
     const Range& p, const Range& r, const Range& c)
 {
   return Tensor7View(mdata,
-		     mlr, mvr, msr, mbr, mpr, mrr, mcr,
-		     l,   v,   s,   b,   p,   r,   c);
+                     mlr, mvr, msr, mbr, mpr, mrr, mcr,
+                     l,   v,   s,   b,   p,   r,   c);
 }
 // |------
 Tensor6View Tensor7View::operator()
@@ -3094,8 +3094,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(l);
   return Tensor6View(mdata + OFFSET(l),
-		     mvr, msr, mbr, mpr, mrr, mcr,
-		     v,   s,   b,   p,   r,   c);
+                     mvr, msr, mbr, mpr, mrr, mcr,
+                     v,   s,   b,   p,   r,   c);
 }
 
 // ------|
@@ -3106,8 +3106,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(c);
   return Tensor6View(mdata + OFFSET(c),
-		     mlr, mvr, msr, mbr, mpr, mrr,
-		     l,   v,   s,   b,   p,   r);
+                     mlr, mvr, msr, mbr, mpr, mrr,
+                     l,   v,   s,   b,   p,   r);
 }
 // |-----|
 Tensor5View Tensor7View::operator()
@@ -3118,8 +3118,8 @@ Tensor5View Tensor7View::operator()
   CHECK(l);
   CHECK(c);
   return Tensor5View(mdata + OFFSET(l) + OFFSET(c),
-		     mvr, msr, mbr, mpr, mrr,
-		     v,   s,   b,   p,   r);
+                     mvr, msr, mbr, mpr, mrr,
+                     v,   s,   b,   p,   r);
 }
 
 // -----|-
@@ -3130,8 +3130,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(r);
   return Tensor6View(mdata + OFFSET(r),
-		     mlr, mvr, msr, mbr, mpr, mcr,
-		     l,   v,   s,   b,   p,   c);
+                     mlr, mvr, msr, mbr, mpr, mcr,
+                     l,   v,   s,   b,   p,   c);
 }
 // |----|-
 Tensor5View Tensor7View::operator()
@@ -3142,8 +3142,8 @@ Tensor5View Tensor7View::operator()
   CHECK(l);
   CHECK(r);
   return Tensor5View(mdata + OFFSET(l) + OFFSET(r),
-		     mvr, msr, mbr, mpr, mcr,
-		     v,   s,   b,   p,   c);
+                     mvr, msr, mbr, mpr, mcr,
+                     v,   s,   b,   p,   c);
 }
 
 // ----|--
@@ -3154,8 +3154,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(p);
   return Tensor6View(mdata + OFFSET(p),
-		     mlr, mvr, msr, mbr, mrr, mcr,
-		     l,   v,   s,   b,   r,   c);
+                     mlr, mvr, msr, mbr, mrr, mcr,
+                     l,   v,   s,   b,   r,   c);
 }
 // |---|--
 Tensor5View Tensor7View::operator()
@@ -3166,8 +3166,8 @@ Tensor5View Tensor7View::operator()
   CHECK(l);
   CHECK(p);
   return Tensor5View(mdata + OFFSET(l) + OFFSET(p),
-		     mvr, msr, mbr, mrr, mcr,
-		     v,   s,   b,   r,   c);
+                     mvr, msr, mbr, mrr, mcr,
+                     v,   s,   b,   r,   c);
 }
 
 // ---|---
@@ -3178,8 +3178,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(b);
   return Tensor6View(mdata + OFFSET(b),
-		     mlr, mvr, msr, mpr, mrr, mcr,
-		     l,   v,   s,   p,   r,   c);
+                     mlr, mvr, msr, mpr, mrr, mcr,
+                     l,   v,   s,   p,   r,   c);
 }
 // |--|---
 Tensor5View Tensor7View::operator()
@@ -3190,8 +3190,8 @@ Tensor5View Tensor7View::operator()
   CHECK(l);
   CHECK(b);
   return Tensor5View(mdata + OFFSET(l) + OFFSET(b),
-		     mvr, msr, mpr, mrr, mcr,
-		     v,   s,   p,   r,   c);
+                     mvr, msr, mpr, mrr, mcr,
+                     v,   s,   p,   r,   c);
 }
 
 // --|----
@@ -3202,8 +3202,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(s);
   return Tensor6View(mdata + OFFSET(s),
-		     mlr, mvr, mbr, mpr, mrr, mcr,
-		     l,   v,   b,   p,   r,   c);
+                     mlr, mvr, mbr, mpr, mrr, mcr,
+                     l,   v,   b,   p,   r,   c);
 }
 // |-|----
 Tensor5View Tensor7View::operator()
@@ -3214,8 +3214,8 @@ Tensor5View Tensor7View::operator()
   CHECK(l);
   CHECK(s);
   return Tensor5View(mdata + OFFSET(l) + OFFSET(s),
-		     mvr, mbr, mpr, mrr, mcr,
-		     v,   b,   p,   r,   c);
+                     mvr, mbr, mpr, mrr, mcr,
+                     v,   b,   p,   r,   c);
 }
 
 // -|-----
@@ -3226,8 +3226,8 @@ Tensor6View Tensor7View::operator()
 {
   CHECK(v);
   return Tensor6View(mdata + OFFSET(v),
-		     mlr, msr, mbr, mpr, mrr, mcr,
-		     l,   s,   b,   p,   r,   c);
+                     mlr, msr, mbr, mpr, mrr, mcr,
+                     l,   s,   b,   p,   r,   c);
 }
 // ||-----
 Tensor5View Tensor7View::operator()
@@ -3238,8 +3238,8 @@ Tensor5View Tensor7View::operator()
   CHECK(l);
   CHECK(v);
   return Tensor5View(mdata + OFFSET(l) + OFFSET(v),
-		     msr, mbr, mpr, mrr, mcr,
-		     s,   b,   p,   r,   c);
+                     msr, mbr, mpr, mrr, mcr,
+                     s,   b,   p,   r,   c);
 }
 
 // -----||
@@ -3251,8 +3251,8 @@ Tensor5View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor5View(mdata + OFFSET(r) + OFFSET(c),
-		     mlr, mvr, msr, mbr, mpr,
-		     l,   v,   s,   b,   p   );
+                     mlr, mvr, msr, mbr, mpr,
+                     l,   v,   s,   b,   p   );
 }
 // |----||
 Tensor4View Tensor7View::operator()
@@ -3264,8 +3264,8 @@ Tensor4View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(r) + OFFSET(c),
-		     mvr, msr, mbr, mpr,
-		     v,   s,   b,   p   );
+                     mvr, msr, mbr, mpr,
+                     v,   s,   b,   p   );
 }
 
 // ----|-|
@@ -3277,8 +3277,8 @@ Tensor5View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor5View(mdata + OFFSET(p) + OFFSET(c),
-		     mlr, mvr, msr, mbr, mrr,
-		     l,   v,   s,   b,   r    );
+                     mlr, mvr, msr, mbr, mrr,
+                     l,   v,   s,   b,   r    );
 }
 // |---|-|
 Tensor4View Tensor7View::operator()
@@ -3290,8 +3290,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(p) + OFFSET(c),
-		     mvr, msr, mbr, mrr,
-		     v,   s,   b,   r    );
+                     mvr, msr, mbr, mrr,
+                     v,   s,   b,   r    );
 }
 
 // ---|--|
@@ -3303,8 +3303,8 @@ Tensor5View Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return Tensor5View(mdata + OFFSET(b) + OFFSET(c),
-		     mlr, mvr, msr, mpr, mrr,
-		     l,   v,   s,   p,   r    );
+                     mlr, mvr, msr, mpr, mrr,
+                     l,   v,   s,   p,   r    );
 }
 // |--|--|
 Tensor4View Tensor7View::operator()
@@ -3316,8 +3316,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(b) + OFFSET(c),
-		     mvr, msr, mpr, mrr,
-		     v,   s,   p,   r    );
+                     mvr, msr, mpr, mrr,
+                     v,   s,   p,   r    );
 }
 
 // --|---|
@@ -3329,8 +3329,8 @@ Tensor5View Tensor7View::operator()
   CHECK(s);
   CHECK(c);
   return Tensor5View(mdata + OFFSET(s) + OFFSET(c),
-		     mlr, mvr, mbr, mpr, mrr,
-		     l,   v,   b,   p,   r    );
+                     mlr, mvr, mbr, mpr, mrr,
+                     l,   v,   b,   p,   r    );
 }
 // |-|---|
 Tensor4View Tensor7View::operator()
@@ -3342,8 +3342,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(c),
-		     mvr, mbr, mpr, mrr,
-		     v,   b,   p,   r    );
+                     mvr, mbr, mpr, mrr,
+                     v,   b,   p,   r    );
 }
 
 // -|----|
@@ -3355,8 +3355,8 @@ Tensor5View Tensor7View::operator()
   CHECK(v);
   CHECK(c);
   return Tensor5View(mdata + OFFSET(v) + OFFSET(c),
-		     mlr, msr, mbr, mpr, mrr,
-		     l,   s,   b,   p,   r    );
+                     mlr, msr, mbr, mpr, mrr,
+                     l,   s,   b,   p,   r    );
 }
 // ||----|
 Tensor4View Tensor7View::operator()
@@ -3368,8 +3368,8 @@ Tensor4View Tensor7View::operator()
   CHECK(v);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(c),
-		     msr, mbr, mpr, mrr,
-		     s,   b,   p,   r    );
+                     msr, mbr, mpr, mrr,
+                     s,   b,   p,   r    );
 }
 
 // ----||-
@@ -3381,8 +3381,8 @@ Tensor5View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor5View(mdata + OFFSET(p) + OFFSET(r),
-		     mlr, mvr, msr, mbr, mcr,
-		     l,   v,   s,   b,   c    );
+                     mlr, mvr, msr, mbr, mcr,
+                     l,   v,   s,   b,   c    );
 }
 // |---||-
 Tensor4View Tensor7View::operator()
@@ -3394,8 +3394,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(p) + OFFSET(r),
-		     mvr, msr, mbr, mcr,
-		     v,   s,   b,   c    );
+                     mvr, msr, mbr, mcr,
+                     v,   s,   b,   c    );
 }
 
 // ---|-|-
@@ -3407,8 +3407,8 @@ Tensor5View Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return Tensor5View(mdata + OFFSET(b) + OFFSET(r),
-		     mlr, mvr, msr, mpr, mcr,
-		     l,   v,   s,   p,   c    );
+                     mlr, mvr, msr, mpr, mcr,
+                     l,   v,   s,   p,   c    );
 }
 // |--|-|-
 Tensor4View Tensor7View::operator()
@@ -3420,8 +3420,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(b) + OFFSET(r),
-		     mvr, msr, mpr, mcr,
-		     v,   s,   p,   c    );
+                     mvr, msr, mpr, mcr,
+                     v,   s,   p,   c    );
 }
 
 // --|--|-
@@ -3433,8 +3433,8 @@ Tensor5View Tensor7View::operator()
   CHECK(s);
   CHECK(r);
   return Tensor5View(mdata + OFFSET(s) + OFFSET(r),
-		     mlr, mvr, mbr, mpr, mcr,
-		     l,   v,   b,   p,   c    );
+                     mlr, mvr, mbr, mpr, mcr,
+                     l,   v,   b,   p,   c    );
 }
 // |-|--|-
 Tensor4View Tensor7View::operator()
@@ -3446,8 +3446,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(r),
-		     mvr, mbr, mpr, mcr,
-		     v,   b,   p,   c    );
+                     mvr, mbr, mpr, mcr,
+                     v,   b,   p,   c    );
 }
 
 // -|---|-
@@ -3459,8 +3459,8 @@ Tensor5View Tensor7View::operator()
   CHECK(v);
   CHECK(r);
   return Tensor5View(mdata + OFFSET(v) + OFFSET(r),
-		     mlr, msr, mbr, mpr, mcr,
-		     l,   s,   b,   p,   c    );
+                     mlr, msr, mbr, mpr, mcr,
+                     l,   s,   b,   p,   c    );
 }
 // ||---|-
 Tensor4View Tensor7View::operator()
@@ -3472,8 +3472,8 @@ Tensor4View Tensor7View::operator()
   CHECK(v);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(r),
-		     msr, mbr, mpr, mcr,
-		     s,   b,   p,   c    );
+                     msr, mbr, mpr, mcr,
+                     s,   b,   p,   c    );
 }
 
 // ---||--
@@ -3485,8 +3485,8 @@ Tensor5View Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return Tensor5View(mdata + OFFSET(b) + OFFSET(p),
-		     mlr, mvr, msr, mrr, mcr,
-		     l,   v,   s,   r,   c    );
+                     mlr, mvr, msr, mrr, mcr,
+                     l,   v,   s,   r,   c    );
 }
 // |--||--
 Tensor4View Tensor7View::operator()
@@ -3498,8 +3498,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(b) + OFFSET(p),
-		     mvr, msr, mrr, mcr,
-		     v,   s,   r,   c    );
+                     mvr, msr, mrr, mcr,
+                     v,   s,   r,   c    );
 }
 
 // --|-|--
@@ -3511,8 +3511,8 @@ Tensor5View Tensor7View::operator()
   CHECK(s);
   CHECK(p);
   return Tensor5View(mdata + OFFSET(s) + OFFSET(p),
-		     mlr, mvr, mbr, mrr, mcr,
-		     l,   v,   b,   r,   c    );
+                     mlr, mvr, mbr, mrr, mcr,
+                     l,   v,   b,   r,   c    );
 }
 // |-|-|--
 Tensor4View Tensor7View::operator()
@@ -3524,8 +3524,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(p);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(p),
-		     mvr, mbr, mrr, mcr,
-		     v,   b,   r,   c    );
+                     mvr, mbr, mrr, mcr,
+                     v,   b,   r,   c    );
 }
 
 // -|--|--
@@ -3537,8 +3537,8 @@ Tensor5View Tensor7View::operator()
   CHECK(v);
   CHECK(p);
   return Tensor5View(mdata + OFFSET(v) + OFFSET(p),
-		     mlr, msr, mbr, mrr, mcr,
-		     l,   s,   b,   r,   c    );
+                     mlr, msr, mbr, mrr, mcr,
+                     l,   s,   b,   r,   c    );
 }
 // ||--|--
 Tensor4View Tensor7View::operator()
@@ -3550,8 +3550,8 @@ Tensor4View Tensor7View::operator()
   CHECK(v);
   CHECK(p);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(p),
-		     msr, mbr, mrr, mcr,
-		     s,   b,   r,   c    );
+                     msr, mbr, mrr, mcr,
+                     s,   b,   r,   c    );
 }
 
 // --||---
@@ -3563,8 +3563,8 @@ Tensor5View Tensor7View::operator()
   CHECK(s);
   CHECK(b);
   return Tensor5View(mdata + OFFSET(s) + OFFSET(b),
-		     mlr, mvr, mpr, mrr, mcr,
-		     l,   v,   p,   r,   c    );
+                     mlr, mvr, mpr, mrr, mcr,
+                     l,   v,   p,   r,   c    );
 }
 // |-||---
 Tensor4View Tensor7View::operator()
@@ -3576,8 +3576,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(b);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b),
-		     mvr, mpr, mrr, mcr,
-		     v,   p,   r,   c    );
+                     mvr, mpr, mrr, mcr,
+                     v,   p,   r,   c    );
 }
 
 // -|-|---
@@ -3589,8 +3589,8 @@ Tensor5View Tensor7View::operator()
   CHECK(v);
   CHECK(b);
   return Tensor5View(mdata + OFFSET(v) + OFFSET(b),
-		     mlr, msr, mpr, mrr, mcr,
-		     l,   s,   p,   r,   c    );
+                     mlr, msr, mpr, mrr, mcr,
+                     l,   s,   p,   r,   c    );
 }
 // ||-|---
 Tensor4View Tensor7View::operator()
@@ -3602,8 +3602,8 @@ Tensor4View Tensor7View::operator()
   CHECK(v);
   CHECK(b);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b),
-		     msr, mpr, mrr, mcr,
-		     s,   p,   r,   c    );
+                     msr, mpr, mrr, mcr,
+                     s,   p,   r,   c    );
 }
 
 // -||----
@@ -3615,8 +3615,8 @@ Tensor5View Tensor7View::operator()
   CHECK(v);
   CHECK(s);
   return Tensor5View(mdata + OFFSET(v) + OFFSET(s),
-		     mlr, mbr, mpr, mrr, mcr,
-		     l,   b,   p,   r,   c    );
+                     mlr, mbr, mpr, mrr, mcr,
+                     l,   b,   p,   r,   c    );
 }
 // |||----
 Tensor4View Tensor7View::operator()
@@ -3628,8 +3628,8 @@ Tensor4View Tensor7View::operator()
   CHECK(v);
   CHECK(s);
   return Tensor4View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s),
-		     mbr, mpr, mrr, mcr,
-		     b,   p,   r,   c    );
+                     mbr, mpr, mrr, mcr,
+                     b,   p,   r,   c    );
 }
 
 // ----|||
@@ -3642,8 +3642,8 @@ Tensor4View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mlr, mvr, msr, mbr, 
-		     l,   v,   s,   b     );
+                     mlr, mvr, msr, mbr, 
+                     l,   v,   s,   b     );
 }
 // |---|||
 Tensor3View Tensor7View::operator()
@@ -3656,8 +3656,8 @@ Tensor3View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mvr, msr, mbr, 
-		     v,   s,   b     );
+                     mvr, msr, mbr, 
+                     v,   s,   b     );
 }
 
 // ---|-||
@@ -3670,8 +3670,8 @@ Tensor4View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		     mlr, mvr, msr, mpr, 
-		     l,   v,   s,   p     );
+                     mlr, mvr, msr, mpr, 
+                     l,   v,   s,   p     );
 }
 // |--|-||
 Tensor3View Tensor7View::operator()
@@ -3684,8 +3684,8 @@ Tensor3View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		     mvr, msr, mpr, 
-		     v,   s,   p     );
+                     mvr, msr, mpr, 
+                     v,   s,   p     );
 }
 
 // --|--||
@@ -3698,8 +3698,8 @@ Tensor4View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(s) + OFFSET(r) + OFFSET(c),
-		     mlr, mvr, mbr, mpr, 
-		     l,   v,   b,   p     );
+                     mlr, mvr, mbr, mpr, 
+                     l,   v,   b,   p     );
 }
 // |-|--||
 Tensor3View Tensor7View::operator()
@@ -3712,8 +3712,8 @@ Tensor3View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(r) + OFFSET(c),
-		     mvr, mbr, mpr, 
-		     v,   b,   p     );
+                     mvr, mbr, mpr, 
+                     v,   b,   p     );
 }
 
 // -|---||
@@ -3726,8 +3726,8 @@ Tensor4View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(r) + OFFSET(c),
-		     mlr, msr, mbr, mpr, 
-		     l,   s,   b,   p     );
+                     mlr, msr, mbr, mpr, 
+                     l,   s,   b,   p     );
 }
 // ||---||
 Tensor3View Tensor7View::operator()
@@ -3740,8 +3740,8 @@ Tensor3View Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(r) + OFFSET(c),
-		     msr, mbr, mpr, 
-		     s,   b,   p     );
+                     msr, mbr, mpr, 
+                     s,   b,   p     );
 }
 
 // ---||-|
@@ -3754,8 +3754,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		     mlr, mvr, msr, mrr, 
-		     l,   v,   s,   r     );
+                     mlr, mvr, msr, mrr, 
+                     l,   v,   s,   r     );
 }
 // |--||-|
 Tensor3View Tensor7View::operator()
@@ -3768,8 +3768,8 @@ Tensor3View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		     mvr, msr, mrr, 
-		     v,   s,   r     );
+                     mvr, msr, mrr, 
+                     v,   s,   r     );
 }
 
 // --|-|-|
@@ -3782,8 +3782,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(s) + OFFSET(p) + OFFSET(c),
-		     mlr, mvr, mbr, mrr, 
-		     l,   v,   b,   r     );
+                     mlr, mvr, mbr, mrr, 
+                     l,   v,   b,   r     );
 }
 // |-|-|-|
 Tensor3View Tensor7View::operator()
@@ -3796,8 +3796,8 @@ Tensor3View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(p) + OFFSET(c),
-		     mvr, mbr, mrr, 
-		     v,   b,   r     );
+                     mvr, mbr, mrr, 
+                     v,   b,   r     );
 }
 
 // -|--|-|
@@ -3810,8 +3810,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(p) + OFFSET(c),
-		     mlr, msr, mbr, mrr, 
-		     l,   s,   b,   r     );
+                     mlr, msr, mbr, mrr, 
+                     l,   s,   b,   r     );
 }
 // ||--|-|
 Tensor3View Tensor7View::operator()
@@ -3824,8 +3824,8 @@ Tensor3View Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(p) + OFFSET(c),
-		     msr, mbr, mrr, 
-		     s,   b,   r     );
+                     msr, mbr, mrr, 
+                     s,   b,   r     );
 }
 
 // --||--|
@@ -3838,8 +3838,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(c),
-		     mlr, mvr, mpr, mrr, 
-		     l,   v,   p,   r     );
+                     mlr, mvr, mpr, mrr, 
+                     l,   v,   p,   r     );
 }
 // |-||--|
 Tensor3View Tensor7View::operator()
@@ -3852,8 +3852,8 @@ Tensor3View Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(c),
-		     mvr, mpr, mrr, 
-		     v,   p,   r     );
+                     mvr, mpr, mrr, 
+                     v,   p,   r     );
 }
 
 // -|-|--|
@@ -3866,8 +3866,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(c),
-		     mlr, msr, mpr, mrr, 
-		     l,   s,   p,   r     );
+                     mlr, msr, mpr, mrr, 
+                     l,   s,   p,   r     );
 }
 // ||-|--|
 Tensor3View Tensor7View::operator()
@@ -3880,8 +3880,8 @@ Tensor3View Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(c),
-		     msr, mpr, mrr, 
-		     s,   p,   r     );
+                     msr, mpr, mrr, 
+                     s,   p,   r     );
 }
 
 // -||---|
@@ -3894,8 +3894,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(c);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(c),
-		     mlr, mbr, mpr, mrr, 
-		     l,   b,   p,   r     );
+                     mlr, mbr, mpr, mrr, 
+                     l,   b,   p,   r     );
 }
 // |||---|
 Tensor3View Tensor7View::operator()
@@ -3908,8 +3908,8 @@ Tensor3View Tensor7View::operator()
   CHECK(s);
   CHECK(c);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(c),
-		     mbr, mpr, mrr, 
-		     b,   p,   r     );
+                     mbr, mpr, mrr, 
+                     b,   p,   r     );
 }
 
 // ---|||-
@@ -3922,8 +3922,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		     mlr, mvr, msr, mcr, 
-		     l,   v,   s,   c     );
+                     mlr, mvr, msr, mcr, 
+                     l,   v,   s,   c     );
 }
 // |--|||-
 Tensor3View Tensor7View::operator()
@@ -3936,8 +3936,8 @@ Tensor3View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		     mvr, msr, mcr, 
-		     v,   s,   c     );
+                     mvr, msr, mcr, 
+                     v,   s,   c     );
 }
 
 // --|-||-
@@ -3950,8 +3950,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(s) + OFFSET(p) + OFFSET(r),
-		     mlr, mvr, mbr, mcr, 
-		     l,   v,   b,   c     );
+                     mlr, mvr, mbr, mcr, 
+                     l,   v,   b,   c     );
 }
 // |-|-||-
 Tensor3View Tensor7View::operator()
@@ -3964,8 +3964,8 @@ Tensor3View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(p) + OFFSET(r),
-		     mvr, mbr, mcr, 
-		     v,   b,   c     );
+                     mvr, mbr, mcr, 
+                     v,   b,   c     );
 }
 
 // -|--||-
@@ -3978,8 +3978,8 @@ Tensor4View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(p) + OFFSET(r),
-		     mlr, msr, mbr, mcr, 
-		     l,   s,   b,   c     );
+                     mlr, msr, mbr, mcr, 
+                     l,   s,   b,   c     );
 }
 // ||--||-
 Tensor3View Tensor7View::operator()
@@ -3992,8 +3992,8 @@ Tensor3View Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(p) + OFFSET(r),
-		     msr, mbr, mcr, 
-		     s,   b,   c     );
+                     msr, mbr, mcr, 
+                     s,   b,   c     );
 }
 
 // --||-|-
@@ -4006,8 +4006,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(r),
-		     mlr, mvr, mpr, mcr, 
-		     l,   v,   p,   c     );
+                     mlr, mvr, mpr, mcr, 
+                     l,   v,   p,   c     );
 }
 // |-||-|-
 Tensor3View Tensor7View::operator()
@@ -4020,8 +4020,8 @@ Tensor3View Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(r),
-		     mvr, mpr, mcr, 
-		     v,   p,   c     );
+                     mvr, mpr, mcr, 
+                     v,   p,   c     );
 }
 
 // -|-|-|-
@@ -4034,8 +4034,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(r),
-		     mlr, msr, mpr, mcr, 
-		     l,   s,   p,   c     );
+                     mlr, msr, mpr, mcr, 
+                     l,   s,   p,   c     );
 }
 // ||-|-|-
 Tensor3View Tensor7View::operator()
@@ -4048,8 +4048,8 @@ Tensor3View Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(r),
-		     msr, mpr, mcr, 
-		     s,   p,   c     );
+                     msr, mpr, mcr, 
+                     s,   p,   c     );
 }
 
 // -||--|-
@@ -4062,8 +4062,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(r);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(r),
-		     mlr, mbr, mpr, mcr, 
-		     l,   b,   p,   c     );
+                     mlr, mbr, mpr, mcr, 
+                     l,   b,   p,   c     );
 }
 // |||--|-
 Tensor3View Tensor7View::operator()
@@ -4076,8 +4076,8 @@ Tensor3View Tensor7View::operator()
   CHECK(s);
   CHECK(r);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(r),
-		     mbr, mpr, mcr, 
-		     b,   p,   c     );
+                     mbr, mpr, mcr, 
+                     b,   p,   c     );
 }
 
 // --|||--
@@ -4090,8 +4090,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return Tensor4View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(p),
-		     mlr, mvr, mrr, mcr, 
-		     l,   v,   r,   c     );
+                     mlr, mvr, mrr, mcr, 
+                     l,   v,   r,   c     );
 }
 // |-|||--
 Tensor3View Tensor7View::operator()
@@ -4104,8 +4104,8 @@ Tensor3View Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(p),
-		     mvr, mrr, mcr, 
-		     v,   r,   c     );
+                     mvr, mrr, mcr, 
+                     v,   r,   c     );
 }
 
 // -|-||--
@@ -4118,8 +4118,8 @@ Tensor4View Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(p),
-		     mlr, msr, mrr, mcr, 
-		     l,   s,   r,   c     );
+                     mlr, msr, mrr, mcr, 
+                     l,   s,   r,   c     );
 }
 // ||-||--
 Tensor3View Tensor7View::operator()
@@ -4132,8 +4132,8 @@ Tensor3View Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(p),
-		     msr, mrr, mcr, 
-		     s,   r,   c     );
+                     msr, mrr, mcr, 
+                     s,   r,   c     );
 }
 
 // -||-|--
@@ -4146,8 +4146,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(p);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(p),
-		     mlr, mbr, mrr, mcr, 
-		     l,   b,   r,   c     );
+                     mlr, mbr, mrr, mcr, 
+                     l,   b,   r,   c     );
 }
 // |||-|--
 Tensor3View Tensor7View::operator()
@@ -4160,8 +4160,8 @@ Tensor3View Tensor7View::operator()
   CHECK(s);
   CHECK(p);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(p),
-		     mbr, mrr, mcr, 
-		     b,   r,   c     );
+                     mbr, mrr, mcr, 
+                     b,   r,   c     );
 }
 
 // -|||---
@@ -4174,8 +4174,8 @@ Tensor4View Tensor7View::operator()
   CHECK(s);
   CHECK(b);
   return Tensor4View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b),
-		     mlr, mpr, mrr, mcr, 
-		     l,   p,   r,   c     );
+                     mlr, mpr, mrr, mcr, 
+                     l,   p,   r,   c     );
 }
 // ||||---
 Tensor3View Tensor7View::operator()
@@ -4188,8 +4188,8 @@ Tensor3View Tensor7View::operator()
   CHECK(s);
   CHECK(b);
   return Tensor3View(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b),
-		     mpr, mrr, mcr, 
-		     p,   r,   c     );
+                     mpr, mrr, mcr, 
+                     p,   r,   c     );
 }
 
 // -||||--
@@ -4203,8 +4203,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p),
-		      mlr, mrr, mcr, 
-		      l,   r,   c     );
+                      mlr, mrr, mcr, 
+                      l,   r,   c     );
 }
 // |||||--
 MatrixView  Tensor7View::operator()
@@ -4218,8 +4218,8 @@ MatrixView  Tensor7View::operator()
   CHECK(b);
   CHECK(p);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p),
-		     mrr, mcr, 
-		     r,   c     );
+                     mrr, mcr, 
+                     r,   c     );
 }
 
 // -|||-|-
@@ -4233,8 +4233,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(r),
-		      mlr, mpr, mcr, 
-		      l,   p,   c     );
+                      mlr, mpr, mcr, 
+                      l,   p,   c     );
 }
 // ||||-|-
 MatrixView  Tensor7View::operator()
@@ -4248,8 +4248,8 @@ MatrixView  Tensor7View::operator()
   CHECK(b);
   CHECK(r);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(r),
-		     mpr, mcr, 
-		     p,   c     );
+                     mpr, mcr, 
+                     p,   c     );
 }
 
 // -||-||-
@@ -4263,8 +4263,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(r),
-		      mlr, mbr, mcr, 
-		      l,   b,   c     );
+                      mlr, mbr, mcr, 
+                      l,   b,   c     );
 }
 // |||-||-
 MatrixView  Tensor7View::operator()
@@ -4278,8 +4278,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(r),
-		     mbr, mcr, 
-		     b,   c     );
+                     mbr, mcr, 
+                     b,   c     );
 }
 
 // -|-|||-
@@ -4293,8 +4293,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		      mlr, msr, mcr, 
-		      l,   s,   c     );
+                      mlr, msr, mcr, 
+                      l,   s,   c     );
 }
 // ||-|||-
 MatrixView  Tensor7View::operator()
@@ -4308,8 +4308,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		     msr, mcr, 
-		     s,   c     );
+                     msr, mcr, 
+                     s,   c     );
 }
 
 // --||||-
@@ -4323,8 +4323,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  Tensor3View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		      mlr, mvr, mcr, 
-		      l,   v,   c     );
+                      mlr, mvr, mcr, 
+                      l,   v,   c     );
 }
 // |-||||-
 MatrixView  Tensor7View::operator()
@@ -4338,8 +4338,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		     mvr, mcr, 
-		     v,   c     );
+                     mvr, mcr, 
+                     v,   c     );
 }
 
 // -|||--|
@@ -4353,8 +4353,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(c),
-		      mlr, mpr, mrr, 
-		      l,   p,   r     );
+                      mlr, mpr, mrr, 
+                      l,   p,   r     );
 }
 // ||||--|
 MatrixView  Tensor7View::operator()
@@ -4368,8 +4368,8 @@ MatrixView  Tensor7View::operator()
   CHECK(b);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(c),
-		     mpr, mrr, 
-		     p,   r     );
+                     mpr, mrr, 
+                     p,   r     );
 }
 
 // -||-|-|
@@ -4383,8 +4383,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(c),
-		      mlr, mbr, mrr, 
-		      l,   b,   r     );
+                      mlr, mbr, mrr, 
+                      l,   b,   r     );
 }
 // |||-|-|
 MatrixView  Tensor7View::operator()
@@ -4398,8 +4398,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(c),
-		     mbr, mrr, 
-		     b,   r     );
+                     mbr, mrr, 
+                     b,   r     );
 }
 
 // -|-||-|
@@ -4413,8 +4413,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		      mlr, msr, mrr, 
-		      l,   s,   r     );
+                      mlr, msr, mrr, 
+                      l,   s,   r     );
 }
 // ||-||-|
 MatrixView  Tensor7View::operator()
@@ -4428,8 +4428,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		     msr, mrr, 
-		     s,   r     );
+                     msr, mrr, 
+                     s,   r     );
 }
 
 // --|||-|
@@ -4443,8 +4443,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		      mlr, mvr, mrr, 
-		      l,   v,   r     );
+                      mlr, mvr, mrr, 
+                      l,   v,   r     );
 }
 // |-|||-|
 MatrixView  Tensor7View::operator()
@@ -4458,8 +4458,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		     mvr, mrr, 
-		     v,   r     );
+                     mvr, mrr, 
+                     v,   r     );
 }
 
 // -||--||
@@ -4473,8 +4473,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(s) + OFFSET(r) + OFFSET(c),
-		      mlr, mbr, mpr, 
-		      l,   b,   p     );
+                      mlr, mbr, mpr, 
+                      l,   b,   p     );
 }
 // |||--||
 MatrixView  Tensor7View::operator()
@@ -4488,8 +4488,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(r) + OFFSET(c),
-		     mbr, mpr, 
-		     b,   p     );
+                     mbr, mpr, 
+                     b,   p     );
 }
 
 // -|-|-||
@@ -4503,8 +4503,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		      mlr, msr, mpr, 
-		      l,   s,   p     );
+                      mlr, msr, mpr, 
+                      l,   s,   p     );
 }
 // ||-|-||
 MatrixView  Tensor7View::operator()
@@ -4518,8 +4518,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		     msr, mpr, 
-		     s,   p     );
+                     msr, mpr, 
+                     s,   p     );
 }
 
 // --||-||
@@ -4533,8 +4533,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(s) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		      mlr, mvr, mpr, 
-		      l,   v,   p     );
+                      mlr, mvr, mpr, 
+                      l,   v,   p     );
 }
 // |-||-||
 MatrixView  Tensor7View::operator()
@@ -4548,8 +4548,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		     mvr, mpr, 
-		     v,   p     );
+                     mvr, mpr, 
+                     v,   p     );
 }
 
 // -|--|||
@@ -4563,8 +4563,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(v) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		      mlr, msr, mbr, 
-		      l,   s,   b     );
+                      mlr, msr, mbr, 
+                      l,   s,   b     );
 }
 // ||--|||
 MatrixView  Tensor7View::operator()
@@ -4578,8 +4578,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     msr, mbr, 
-		     s,   b     );
+                     msr, mbr, 
+                     s,   b     );
 }
 
 // --|-|||
@@ -4593,8 +4593,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(s) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		      mlr, mvr, mbr, 
-		      l,   v,   b     );
+                      mlr, mvr, mbr, 
+                      l,   v,   b     );
 }
 // |-|-|||
 MatrixView  Tensor7View::operator()
@@ -4608,8 +4608,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mvr, mbr, 
-		     v,   b     );
+                     mvr, mbr, 
+                     v,   b     );
 }
 
 // ---||||
@@ -4623,8 +4623,8 @@ Tensor3View  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  Tensor3View(mdata + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		      mlr, mvr, msr, 
-		      l,   v,   s     );
+                      mlr, mvr, msr, 
+                      l,   v,   s     );
 }
 // |--||||
 MatrixView  Tensor7View::operator()
@@ -4638,8 +4638,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(l) + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mvr, msr, 
-		     v,   s     );
+                     mvr, msr, 
+                     v,   s     );
 }
 
 // -|||||-
@@ -4654,8 +4654,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  MatrixView(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		     mlr, mcr,  
-		     l,   c      );
+                     mlr, mcr,  
+                     l,   c      );
 }
 // ||||||-
 VectorView  Tensor7View::operator()
@@ -4670,8 +4670,8 @@ VectorView  Tensor7View::operator()
   CHECK(p);
   CHECK(r);
   return  VectorView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r),
-		     mcr,  
-		     c      );
+                     mcr,  
+                     c      );
 }
 
 // -||||-|
@@ -4686,8 +4686,8 @@ MatrixView  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		     mlr, mrr,  
-		     l,   r      );
+                     mlr, mrr,  
+                     l,   r      );
 }
 // |||||-|
 VectorView  Tensor7View::operator()
@@ -4702,8 +4702,8 @@ VectorView  Tensor7View::operator()
   CHECK(p);
   CHECK(c);
   return  VectorView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(c),
-		     mrr,  
-		     r      );
+                     mrr,  
+                     r      );
 }
 
 // -|||-||
@@ -4718,8 +4718,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		     mlr, mpr,  
-		     l,   p      );
+                     mlr, mpr,  
+                     l,   p      );
 }
 // ||||-||
 VectorView  Tensor7View::operator()
@@ -4734,8 +4734,8 @@ VectorView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  VectorView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(b) + OFFSET(r) + OFFSET(c),
-		     mpr,  
-		     p      );
+                     mpr,  
+                     p      );
 }
 
 // -||-|||
@@ -4750,8 +4750,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mlr, mbr,  
-		     l,   b      );
+                     mlr, mbr,  
+                     l,   b      );
 }
 // |||-|||
 VectorView  Tensor7View::operator()
@@ -4766,8 +4766,8 @@ VectorView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  VectorView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(s) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mbr,  
-		     b      );
+                     mbr,  
+                     b      );
 }
 
 // -|-||||
@@ -4782,8 +4782,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mlr, msr,  
-		     l,   s      );
+                     mlr, msr,  
+                     l,   s      );
 }
 // ||-||||
 VectorView  Tensor7View::operator()
@@ -4798,8 +4798,8 @@ VectorView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  VectorView(mdata + OFFSET(l) + OFFSET(v) + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     msr,  
-		     s      );
+                     msr,  
+                     s      );
 }
 
 // --|||||
@@ -4814,8 +4814,8 @@ MatrixView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  MatrixView(mdata + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mlr, mvr,  
-		     l,   v      );
+                     mlr, mvr,  
+                     l,   v      );
 }
 // |-|||||
 VectorView  Tensor7View::operator()
@@ -4830,8 +4830,8 @@ VectorView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  VectorView(mdata + OFFSET(l) + OFFSET(s) + OFFSET(b) + OFFSET(p) + OFFSET(r) + OFFSET(c),
-		     mvr,  
-		     v      );
+                     mvr,  
+                     v      );
 }
 
 // -||||||
@@ -4847,10 +4847,10 @@ VectorView  Tensor7View::operator()
   CHECK(r);
   CHECK(c);
   return  VectorView( mdata +
-		      OFFSET(v) + OFFSET(s) + OFFSET(b) +
-		      OFFSET(p) + OFFSET(r) + OFFSET(c),
-		      mlr,
-		      l    );
+                      OFFSET(v) + OFFSET(s) + OFFSET(b) +
+                      OFFSET(p) + OFFSET(r) + OFFSET(c),
+                      mlr,
+                      l    );
 }
 
 /** Return  iterator to sub-tensor. Has to be redefined here, since it is
@@ -4870,27 +4870,27 @@ ConstIterator7D Tensor7View::end() const
 Iterator7D Tensor7View::begin()
 {
   return Iterator7D( Tensor6View(mdata+mlr.mstart,
-				 mvr,
-				 msr,
-				 mbr,
-				 mpr,
-				 mrr,
-				 mcr),
-		     mlr.mstride);
+                                 mvr,
+                                 msr,
+                                 mbr,
+                                 mpr,
+                                 mrr,
+                                 mcr),
+                     mlr.mstride);
 }
 
 /** Return iterator behind last sub-tensor. */
 Iterator7D Tensor7View::end()
 {
   return Iterator7D( Tensor6View(mdata + mlr.mstart +
-				(mlr.mextent)*mlr.mstride,
-				 mvr,
-				 msr,
-				 mbr,
-				 mpr,
-				 mrr,
-				 mcr),
-		     mlr.mstride );
+                                (mlr.mextent)*mlr.mstride,
+                                 mvr,
+                                 msr,
+                                 mbr,
+                                 mpr,
+                                 mrr,
+                                 mcr),
+                     mlr.mstride );
 }
 
 /** Assignment operator. This copies the data from another Tensor7View
@@ -5088,19 +5088,19 @@ Tensor7View& Tensor7View::operator-=(const ConstTensor7View& x)
 /** Special constructor to make a Tensor7 view of a Tensor6. */
 Tensor7View::Tensor7View(const Tensor6View& a) :
   ConstTensor7View( a.mdata,
-		    Range(0,1,
-			  a.mvr.mextent*
-			  a.msr.mextent*
-			  a.mbr.mextent*
-			  a.mpr.mextent*
-			  a.mrr.mextent*
-			  a.mcr.mextent),
-		    a.mvr,
-		    a.msr,
-		    a.mbr,
-		    a.mpr,
-		    a.mrr,
-		    a.mcr )
+                    Range(0,1,
+                          a.mvr.mextent*
+                          a.msr.mextent*
+                          a.mbr.mextent*
+                          a.mpr.mextent*
+                          a.mrr.mextent*
+                          a.mcr.mextent),
+                    a.mvr,
+                    a.msr,
+                    a.mbr,
+                    a.mpr,
+                    a.mrr,
+                    a.mcr )
 {
   // Nothing to do here.
 }
@@ -5116,13 +5116,13 @@ Tensor7View::Tensor7View() :
 /** Explicit constructor. This one is used by Tensor7 to initialize its
     own Tensor7View part. */
 Tensor7View::Tensor7View(Numeric *data,
-				const Range& l,
-				const Range& v,
-				const Range& s,
-				const Range& b,
-				const Range& p,
-				const Range& r,
-				const Range& c) :
+                                const Range& l,
+                                const Range& v,
+                                const Range& s,
+                                const Range& b,
+                                const Range& p,
+                                const Range& r,
+                                const Range& c) :
   ConstTensor7View(data, l, v, s, b, p, r, c)
 {
   // Nothing to do here.
@@ -5140,20 +5140,20 @@ Tensor7View::Tensor7View(Numeric *data,
     \param p Previous range.
     \param n New Range.  */
 Tensor7View::Tensor7View(Numeric *data,
-				const Range& pl,
-				const Range& pv,
-				const Range& ps,
-				const Range& pb,
-				const Range& pp,
-				const Range& pr,
-				const Range& pc,
-				const Range& nl,
-				const Range& nv,
-				const Range& ns,
-				const Range& nb,
-				const Range& np,
-				const Range& nr,
-				const Range& nc) :
+                                const Range& pl,
+                                const Range& pv,
+                                const Range& ps,
+                                const Range& pb,
+                                const Range& pp,
+                                const Range& pr,
+                                const Range& pc,
+                                const Range& nl,
+                                const Range& nv,
+                                const Range& ns,
+                                const Range& nb,
+                                const Range& np,
+                                const Range& nr,
+                                const Range& nc) :
   ConstTensor7View(data,pl,pv,ps,pb,pp,pr,pc,nl,nv,ns,nb,np,nr,nc)
 {
   // Nothing to do here.
@@ -5172,8 +5172,8 @@ void copy(ConstIterator7D origin,
       // We use the copy function for the next smaller rank of tensor
       // recursively:
       copy(origin->begin(),
-	   origin->end(),
-	   target->begin());
+           origin->end(),
+           target->begin());
     }
 }
 
@@ -5207,32 +5207,32 @@ Tensor7::Tensor7() :
 /** Constructor setting size. This constructor has to set the strides
     in the page and row ranges correctly! */
 Tensor7::Tensor7(Index l,
-			Index v, Index s, Index b,
+                        Index v, Index s, Index b,
                         Index p, Index r, Index c) :
   Tensor7View( new Numeric[l*v*s*b*p*r*c],
-	       Range(0,l,v*s*b*p*r*c),
-	       Range(0,v,s*b*p*r*c),
-	       Range(0,s,b*p*r*c),
-	       Range(0,b,p*r*c),
-	       Range(0,p,r*c),
-	       Range(0,r,c),
-	       Range(0,c))
+               Range(0,l,v*s*b*p*r*c),
+               Range(0,v,s*b*p*r*c),
+               Range(0,s,b*p*r*c),
+               Range(0,b,p*r*c),
+               Range(0,p,r*c),
+               Range(0,r,c),
+               Range(0,c))
 {
   // Nothing to do here.
 }
 
 /** Constructor setting size and filling with constant value. */
 Tensor7::Tensor7(Index l,
-			Index v, Index s, Index b,
+                        Index v, Index s, Index b,
                         Index p, Index r, Index c, Numeric fill) :
   Tensor7View( new Numeric[l*v*s*b*p*r*c],
-	       Range(0,l,v*s*b*p*r*c),
-	       Range(0,v,s*b*p*r*c),
-	       Range(0,s,b*p*r*c),
-	       Range(0,b,p*r*c),
-	       Range(0,p,r*c),
-	       Range(0,r,c),
-	       Range(0,c))
+               Range(0,l,v*s*b*p*r*c),
+               Range(0,v,s*b*p*r*c),
+               Range(0,s,b*p*r*c),
+               Range(0,b,p*r*c),
+               Range(0,p,r*c),
+               Range(0,r,c),
+               Range(0,c))
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
@@ -5246,13 +5246,13 @@ Tensor7::Tensor7(Index l,
 Tensor7::Tensor7(const ConstTensor7View& m) :
   Tensor7View( new Numeric[m.nlibraries()*m.nvitrines()*m.nshelves()
                            *m.nbooks()*m.npages()*m.nrows()*m.ncols()],
-	       Range( 0, m.nlibraries(), m.nvitrines()*m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.npages(), m.nrows()*m.ncols() ),
-	       Range( 0, m.nrows(), m.ncols() ),
-	       Range( 0, m.ncols() ) )
+               Range( 0, m.nlibraries(), m.nvitrines()*m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.npages(), m.nrows()*m.ncols() ),
+               Range( 0, m.nrows(), m.ncols() ),
+               Range( 0, m.ncols() ) )
 {
   copy(m.begin(),m.end(),begin());
 }
@@ -5262,13 +5262,13 @@ Tensor7::Tensor7(const ConstTensor7View& m) :
 Tensor7::Tensor7(const Tensor7& m) :
   Tensor7View( new Numeric[m.nlibraries()*m.nvitrines()*m.nshelves()
                            *m.nbooks()*m.npages()*m.nrows()*m.ncols()],
-	       Range( 0, m.nlibraries(), m.nvitrines()*m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
-	       Range( 0, m.npages(), m.nrows()*m.ncols() ),
-	       Range( 0, m.nrows(), m.ncols() ),
-	       Range( 0, m.ncols() ) )
+               Range( 0, m.nlibraries(), m.nvitrines()*m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
+               Range( 0, m.npages(), m.nrows()*m.ncols() ),
+               Range( 0, m.nrows(), m.ncols() ),
+               Range( 0, m.ncols() ) )
 {
   // There is a catch here: If m is an empty tensor, then it will have
   // dimensions of size 0. But these are used to initialize the stride
@@ -5299,8 +5299,8 @@ Tensor7& Tensor7::operator=(const Tensor7& m)
     {
       // Adjust if previously empty.
       resize( m.mlr.mextent,
-	      m.mvr.mextent, m.msr.mextent, m.mbr.mextent,
-	      m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
+              m.mvr.mextent, m.msr.mextent, m.mbr.mextent,
+              m.mpr.mextent, m.mrr.mextent, m.mcr.mextent ); 
     }
   else
     {
@@ -5330,8 +5330,8 @@ Tensor7& Tensor7::operator=(Numeric x)
     nothing. All data is lost after resizing! The new tensor is not
     initialized, so it will contain random values. */
 void Tensor7::resize( Index l,
-			     Index v, Index s, Index b,
-			     Index p, Index r, Index c)
+                             Index v, Index s, Index b,
+                             Index p, Index r, Index c)
 {
   assert( 0<=l );
   assert( 0<=v );
@@ -5416,9 +5416,9 @@ void transform( Tensor7View y,
   assert( y.nvitrines()  == x.nvitrines()  );
   assert( y.nshelves()   == x.nshelves()   );
   assert( y.nbooks()     == x.nbooks()     );
-  assert( y.npages() 	 == x.npages()     );
-  assert( y.nrows()  	 == x.nrows()      );
-  assert( y.ncols()  	 == x.ncols()      );
+  assert( y.npages()     == x.npages()     );
+  assert( y.nrows()      == x.nrows()      );
+  assert( y.ncols()      == x.ncols()      );
 
   const ConstIterator7D xe = x.end();
   ConstIterator7D       xi = x.begin();

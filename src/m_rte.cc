@@ -68,24 +68,24 @@
 void RteCalc(
         // WS Output:
               Matrix&         y_rte,
-	      Ppath&          ppath,
-	      Ppath&          ppath_step,
-	      Matrix&         i_rte,
-	      Index&          mblock_index,
-	      Vector&         a_pos,
-	      Vector&         a_los,
-	      GridPos&        a_gp_p,
-	      GridPos&        a_gp_lat,
-	      GridPos&        a_gp_lon,
+              Ppath&          ppath,
+              Ppath&          ppath_step,
+              Matrix&         i_rte,
+              Index&          mblock_index,
+              Vector&         a_pos,
+              Vector&         a_los,
+              GridPos&        a_gp_p,
+              GridPos&        a_gp_lat,
+              GridPos&        a_gp_lon,
               Matrix&         i_space,
               Matrix&         ground_emission, 
               Matrix&         ground_los, 
-	      Tensor4&        ground_refl_coeffs,
+              Tensor4&        ground_refl_coeffs,
         // WS Input:
-	const Agenda&         ppath_step_agenda,
-	const Agenda&         rte_agenda,
-	const Agenda&         i_space_agenda,
-	const Agenda&         ground_refl_agenda,
+        const Agenda&         ppath_step_agenda,
+        const Agenda&         rte_agenda,
+        const Agenda&         i_space_agenda,
+        const Agenda&         ground_refl_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -102,12 +102,12 @@ void RteCalc(
         const Vector&         scat_za_grid,
         const Vector&         scat_aa_grid,
         const Matrix&         sensor_pos,
-	const Matrix&         sensor_los,
+        const Matrix&         sensor_los,
         const Vector&         f_grid,
-	const Index&          stokes_dim,
+        const Index&          stokes_dim,
         const Index&          antenna_dim,
         const Vector&         mblock_za_grid,
-	const Vector&         mblock_aa_grid )
+        const Vector&         mblock_aa_grid )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -135,15 +135,15 @@ void RteCalc(
   for( Index row=0; row<z_field.nrows(); row++ )
     {
       for( Index col=0; col<z_field.ncols(); col++ )
-	{
-	  // I could not get the compliler to accept a solution without dummy!!
-	  Vector dummy(z_field.npages());
-	  dummy = z_field(Range(joker),row,col);
-	  ostringstream os;
-	  os << "z_field (for latitude nr " << row << " and longitude nr " 
+        {
+          // I could not get the compliler to accept a solution without dummy!!
+          Vector dummy(z_field.npages());
+          dummy = z_field(Range(joker),row,col);
+          ostringstream os;
+          os << "z_field (for latitude nr " << row << " and longitude nr " 
              << col << ")";
-	  chk_if_increasing( os.str(), dummy ); 
-	}
+          chk_if_increasing( os.str(), dummy ); 
+        }
     }
 
   // Check that there is no gap between the ground and lowest pressure surface
@@ -151,27 +151,27 @@ void RteCalc(
   for( Index row=0; row<z_ground.nrows(); row++ )
     {
       for( Index col=0; col<z_ground.ncols(); col++ )
-	{
-	  if( z_ground(row,col)<z_field(0,row,col) || 
+        {
+          if( z_ground(row,col)<z_field(0,row,col) || 
                        z_ground(row,col)>=z_field(z_field.npages()-1,row,col) )
-	    {
-	      ostringstream os;
-	      os << "The ground altitude (*z_ground*) cannot be outside of the"
-		 << " altitudes in *z_field*.";
-		if( atmosphere_dim > 1 )
-		  os << "\nThis was found to be the case for:\n" 
-		     << "latitude " << lat_grid[row];
-		if( atmosphere_dim > 2 )
-		  os << "\nlongitude " << lon_grid[col];
-	      throw runtime_error( os.str() );
-	    }
-	}
+            {
+              ostringstream os;
+              os << "The ground altitude (*z_ground*) cannot be outside of the"
+                 << " altitudes in *z_field*.";
+                if( atmosphere_dim > 1 )
+                  os << "\nThis was found to be the case for:\n" 
+                     << "latitude " << lat_grid[row];
+                if( atmosphere_dim > 2 )
+                  os << "\nlongitude " << lon_grid[col];
+              throw runtime_error( os.str() );
+            }
+        }
     }
 
   // Cloud box
   //  
   chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
-		                                cloudbox_on, cloudbox_limits );
+                                                cloudbox_on, cloudbox_limits );
 
   // Frequency grid
   //
@@ -188,13 +188,13 @@ void RteCalc(
   if( antenna_dim == 1 )
     {
       if( mblock_aa_grid.nelem() != 0 )
-	throw runtime_error( 
-	      "For antenna_dim = 1, the azimuthal angle grid must be empty." );
+        throw runtime_error( 
+              "For antenna_dim = 1, the azimuthal angle grid must be empty." );
     }
   else
     {
       if( mblock_aa_grid.nelem() == 0 )
-	throw runtime_error( 
+        throw runtime_error( 
                       "The measurement block azimuthal angle grid is empty." );
       chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
     }
@@ -218,8 +218,8 @@ void RteCalc(
     {
       ostringstream os;
       os << "The number of rows of sensor_pos and sensor_los must be "
-	 << "identical, but sensor_pos has " << nmblock << " rows,\n"
-	 << "while sensor_los has " << sensor_los.nrows() << " rows.";
+         << "identical, but sensor_pos has " << nmblock << " rows,\n"
+         << "while sensor_los has " << sensor_los.nrows() << " rows.";
       throw runtime_error( os.str() );
     }
 
@@ -243,7 +243,7 @@ void RteCalc(
   Index    nydone = 0;                 // Number of positions in y_rte done
   Index    nbdone;                     // Number of positions in ib done
   Index    nblock = nf*nza*naa;        // Number of spectral values of 1 block
-  Vector   los(	sensor_los.ncols() );  // LOS of interest
+  Vector   los( sensor_los.ncols() );  // LOS of interest
   Index    iaa, iza;
   //
   for( mblock_index=0; mblock_index<nmblock; mblock_index++ )
@@ -251,27 +251,27 @@ void RteCalc(
       nbdone = 0;
 
       for( iza=0; iza<nza; iza++ )
-	{
-	  for( iaa=0; iaa<naa; iaa++ )
-	    {
-	      // LOS of interest
-	      los     = sensor_los( mblock_index, Range(joker) );
-	      los[0] += mblock_za_grid[iza];
-	      if( antenna_dim == 2 )
-		{ los[1] += mblock_aa_grid[iaa]; }
-	    
+        {
+          for( iaa=0; iaa<naa; iaa++ )
+            {
+              // LOS of interest
+              los     = sensor_los( mblock_index, Range(joker) );
+              los[0] += mblock_za_grid[iza];
+              if( antenna_dim == 2 )
+                { los[1] += mblock_aa_grid[iaa]; }
+            
 
-	      // Determine propagation path
-	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-		        p_grid, lat_grid, lon_grid, z_field, t_field, 
+              // Determine propagation path
+              ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+                        p_grid, lat_grid, lon_grid, z_field, t_field, 
                               r_geoid, z_ground,
-			      cloudbox_on, cloudbox_limits, 
-			          sensor_pos(mblock_index,Range(joker)), los );
+                              cloudbox_on, cloudbox_limits, 
+                                  sensor_pos(mblock_index,Range(joker)), los );
 
-	      // Determine the radiative background
-	      get_radiative_background( i_rte, ppath_step, 
-		      a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon, i_space, 
-	              ground_emission, ground_los, ground_refl_coeffs, ppath, 
+              // Determine the radiative background
+              get_radiative_background( i_rte, ppath_step, 
+                      a_pos, a_los, a_gp_p, a_gp_lat, a_gp_lon, i_space, 
+                      ground_emission, ground_los, ground_refl_coeffs, ppath, 
                       mblock_index, ppath_step_agenda, rte_agenda, 
                       i_space_agenda, ground_refl_agenda, atmosphere_dim, 
                       p_grid, lat_grid, lon_grid, z_field, t_field, 
@@ -280,16 +280,16 @@ void RteCalc(
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
                       stokes_dim, antenna_dim );
 
-	      // Execute the *rte_agenda*
-	      rte_agenda.execute();
-	      
-	      // Copy i_rte to ib
+              // Execute the *rte_agenda*
+              rte_agenda.execute();
+              
+              // Copy i_rte to ib
               ib(Range(nbdone,nf),Range(joker)) = i_rte;
             
-	      // Increase nbdone
-	      nbdone += nf;
-	    }
-	}
+              // Increase nbdone
+              nbdone += nf;
+            }
+        }
 
       // Copy ib to y_rte
       // The matrix Hb shall be applied here
@@ -313,9 +313,9 @@ void RteEmissionStd(
         // WS Output:
               Matrix&         i_rte,
         // WS Input:
-	const Ppath&          ppath,
+        const Ppath&          ppath,
         const Vector&         f_grid,
-	const Index&          stokes_dim,
+        const Index&          stokes_dim,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -359,20 +359,20 @@ void RteEmissionStd(
       // the point closest to the sensor.
       //
       for( Index ip=np-1; ip>0; ip-- )
-	{
-	  for( Index iv=0; iv<nf; iv++ )
-	    {
-	      // Calculate an effective blackbody radiation for the step
-	      // The mean of the temperature at the end points is used.
-	      Numeric planck_value = 
+        {
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              // Calculate an effective blackbody radiation for the step
+              // The mean of the temperature at the end points is used.
+              Numeric planck_value = 
                            planck( f_grid[iv], (t_ppath[ip]+t_ppath[ip-1])/2 );
 
-	      // Perform the RTE step.
-	      rte_step_clearsky_with_emission( i_rte( iv, Range(joker) ), 
+              // Perform the RTE step.
+              rte_step_clearsky_with_emission( i_rte( iv, Range(joker) ), 
                          stokes_dim, ext_mat_gas, abs_vec_gas, 
                                             ppath.l_step[ip-1], planck_value );
-	    }
-	}
+            }
+        }
     }
 }
 

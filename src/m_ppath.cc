@@ -185,9 +185,9 @@ void a_posSet(
 void ppathCalc(
         // WS Output:
               Ppath&          ppath,
-	      Ppath&          ppath_step,
+              Ppath&          ppath_step,
         // WS Input:
-	const Agenda&         ppath_step_agenda,
+        const Agenda&         ppath_step_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -299,81 +299,81 @@ void ppathCalc(
 
       // Check if the top of the atmosphere is reached
       if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
-	{ ppath_set_background( ppath_step, 1 ); }
+        { ppath_set_background( ppath_step, 1 ); }
 
       // Check that path does not exit at a latitude or longitude end face
       if( atmosphere_dim >= 2 )
-	{
-	  if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
-	    {
-	      ostringstream os;
-	      os << "The path exits the atmosphere through the lower latitude"
-		 << " end face.\nThe exit point is at an altitude of " 
+        {
+          if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
+            {
+              ostringstream os;
+              os << "The path exits the atmosphere through the lower latitude"
+                 << " end face.\nThe exit point is at an altitude of " 
                  << ppath_step.z[n-1]/1e3 << " km.";
-	      throw runtime_error( os.str() );
-	    }
-	  if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
-	    {
-	      ostringstream os;
-	      os << "The path exits the atmosphere through the upper latitude"
-		 << " end face.\nThe exit point is at an altitude of " 
+              throw runtime_error( os.str() );
+            }
+          if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
+            {
+              ostringstream os;
+              os << "The path exits the atmosphere through the upper latitude"
+                 << " end face.\nThe exit point is at an altitude of " 
                  << ppath_step.z[n-1]/1e3 << " km.";
-	      throw runtime_error( os.str() );
-	    }
+              throw runtime_error( os.str() );
+            }
 
-	  if( atmosphere_dim == 3 )
-	    {
-	      if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
-		{
-		  ostringstream os;
-		  os << "The path exits the atmosphere through the lower " 
-		     << "longitude end face.\nThe exit point is at an altitude"
-		     << "of " << ppath_step.z[n-1]/1e3 << " km.";
-		  throw runtime_error( os.str() );
-		}
-	      if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
-		{
-		  ostringstream os;
-		  os << "The path exits the atmosphere through the upper "
-		     << "longitude end face.\nThe exit point is at an altitude"
-		     << "of " << ppath_step.z[n-1]/1e3 << " km.";
-		  throw runtime_error( os.str() );
-		}
-	    }
-	}
+          if( atmosphere_dim == 3 )
+            {
+              if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
+                {
+                  ostringstream os;
+                  os << "The path exits the atmosphere through the lower " 
+                     << "longitude end face.\nThe exit point is at an altitude"
+                     << "of " << ppath_step.z[n-1]/1e3 << " km.";
+                  throw runtime_error( os.str() );
+                }
+              if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
+                {
+                  ostringstream os;
+                  os << "The path exits the atmosphere through the upper "
+                     << "longitude end face.\nThe exit point is at an altitude"
+                     << "of " << ppath_step.z[n-1]/1e3 << " km.";
+                  throw runtime_error( os.str() );
+                }
+            }
+        }
       
     
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
-	{
-	  Numeric ipos = Numeric( ppath_step.gp_p[n-1].idx ) + 
+        {
+          Numeric ipos = Numeric( ppath_step.gp_p[n-1].idx ) + 
                                                     ppath_step.gp_p[n-1].fd[0];
-	  if( ipos >= Numeric( cloudbox_limits[0] )  && 
-	                                ipos <= Numeric( cloudbox_limits[1] ) )
-	    {
-	      if( atmosphere_dim == 1 )
-		{ ppath_set_background( ppath_step, 3 ); }
-	      else
-		{
-		  ipos = Numeric( ppath_step.gp_lat[n-1].idx ) + 
+          if( ipos >= Numeric( cloudbox_limits[0] )  && 
+                                        ipos <= Numeric( cloudbox_limits[1] ) )
+            {
+              if( atmosphere_dim == 1 )
+                { ppath_set_background( ppath_step, 3 ); }
+              else
+                {
+                  ipos = Numeric( ppath_step.gp_lat[n-1].idx ) + 
                                                   ppath_step.gp_lat[n-1].fd[0];
-		  if( ipos >= Numeric( cloudbox_limits[2] )  && 
-	                                ipos <= Numeric( cloudbox_limits[3] ) )
-		    {
-		      if( atmosphere_dim == 2 )
-			{ ppath_set_background( ppath_step, 3 ); }
-		      else
-			{
-			  ipos = Numeric( ppath_step.gp_lon[n-1].idx ) + 
+                  if( ipos >= Numeric( cloudbox_limits[2] )  && 
+                                        ipos <= Numeric( cloudbox_limits[3] ) )
+                    {
+                      if( atmosphere_dim == 2 )
+                        { ppath_set_background( ppath_step, 3 ); }
+                      else
+                        {
+                          ipos = Numeric( ppath_step.gp_lon[n-1].idx ) + 
                                                   ppath_step.gp_lon[n-1].fd[0];
-			  if( ipos >= Numeric( cloudbox_limits[4] )  && 
-	                                ipos <= Numeric( cloudbox_limits[5] ) )
-			    { ppath_set_background( ppath_step, 3 ); } 
-			}
-		    }
-		}
-	    }
-	}
+                          if( ipos >= Numeric( cloudbox_limits[4] )  && 
+                                        ipos <= Numeric( cloudbox_limits[5] ) )
+                            { ppath_set_background( ppath_step, 3 ); } 
+                        }
+                    }
+                }
+            }
+        }
     } // End path steps
   
  
@@ -394,54 +394,54 @@ void ppathCalc(
       Index n = ppath_array[i].np;
 
       if( n )
-	{
-	  // First index to include
-	  Index i1 = 1;
-	  if( i == 0 )
-	    { i1 = 0; }
+        {
+          // First index to include
+          Index i1 = 1;
+          if( i == 0 )
+            { i1 = 0; }
 
-	  // Vectors and matrices that can be handled by ranges.
-	  ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];
-	  ppath.pos( Range(np,n-i1), Range(joker) ) = 
+          // Vectors and matrices that can be handled by ranges.
+          ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];
+          ppath.pos( Range(np,n-i1), Range(joker) ) = 
                             ppath_array[i].pos( Range(i1,n-i1), Range(joker) );
-	  ppath.los( Range(np,n-i1), Range(joker) ) = 
-	                    ppath_array[i].los( Range(i1,n-i1), Range(joker) );
+          ppath.los( Range(np,n-i1), Range(joker) ) = 
+                            ppath_array[i].los( Range(i1,n-i1), Range(joker) );
 
-	  // For i==1, there is no defined l_step. For higher i, all 
-	  // values in l_step shall be copied.
-	  if( i > 0 )
-	    { ppath.l_step[ Range(np-1,n-1) ] = ppath_array[i].l_step; }
+          // For i==1, there is no defined l_step. For higher i, all 
+          // values in l_step shall be copied.
+          if( i > 0 )
+            { ppath.l_step[ Range(np-1,n-1) ] = ppath_array[i].l_step; }
 
-	  // Grid positions must be handled by a loop
-	  for( Index j=i1; j<n; j++ )
-	    { ppath.gp_p[np+j-i1] = ppath_array[i].gp_p[j]; }
-	  if( atmosphere_dim >= 2 )
-	    {
-	      for( Index j=i1; j<n; j++ )
-		{ ppath.gp_lat[np+j-i1] = ppath_array[i].gp_lat[j]; }
-	    }
-	  if( atmosphere_dim == 3 )
-	    {
-	      for( Index j=i1; j<n; j++ )
-		{ ppath.gp_lon[np+j-i1] = ppath_array[i].gp_lon[j]; }
-	    }
+          // Grid positions must be handled by a loop
+          for( Index j=i1; j<n; j++ )
+            { ppath.gp_p[np+j-i1] = ppath_array[i].gp_p[j]; }
+          if( atmosphere_dim >= 2 )
+            {
+              for( Index j=i1; j<n; j++ )
+                { ppath.gp_lat[np+j-i1] = ppath_array[i].gp_lat[j]; }
+            }
+          if( atmosphere_dim == 3 )
+            {
+              for( Index j=i1; j<n; j++ )
+                { ppath.gp_lon[np+j-i1] = ppath_array[i].gp_lon[j]; }
+            }
 
-	  // Fields just set once
-	  if( ppath_array[i].tan_pos.nelem() )
-	    {
-	      ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
-	      ppath.tan_pos               = ppath_array[i].tan_pos; 
-	    }
-	  if( ppath_array[i].geom_tan_pos.nelem() )
-	    {
-	      ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
-	      ppath.geom_tan_pos          = ppath_array[i].geom_tan_pos; 
-	    }
+          // Fields just set once
+          if( ppath_array[i].tan_pos.nelem() )
+            {
+              ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
+              ppath.tan_pos               = ppath_array[i].tan_pos; 
+            }
+          if( ppath_array[i].geom_tan_pos.nelem() )
+            {
+              ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
+              ppath.geom_tan_pos          = ppath_array[i].geom_tan_pos; 
+            }
 
-	  // Increase number of points done
-	  np += n - i1;
-	 
-	}
+          // Increase number of points done
+          np += n - i1;
+         
+        }
     }  
   ppath.method     = ppath_step.method;
   ppath.refraction = ppath_step.refraction;
@@ -538,9 +538,9 @@ void ppath_stepRefractionEuler(
         const Matrix&    r_geoid,
         const Matrix&    z_ground,
         // Control Parameters:
-	const Numeric&   lraytrace,
+        const Numeric&   lraytrace,
         const Numeric&   lmax,
-	const String&    refrindex )
+        const String&    refrindex )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we do only asserts. The keywords are checked here,
@@ -654,16 +654,16 @@ void sensor_posAddGeoidWGS84(
     {
       Vector lats;
       if( npos == 1 )
-	{
-	  lats.resize(2);
-	  lats[0] = sensor_pos(0,1);
-	  lats[1] = lats[0] + 1;
-	}
+        {
+          lats.resize(2);
+          lats[0] = sensor_pos(0,1);
+          lats[1] = lats[0] + 1;
+        }
       else
-	{
-	  lats.resize(npos);
+        {
+          lats.resize(npos);
           lats = sensor_pos( Range(joker), 1 );
-	}
+        }
 
       // The size of the r-matrix is set inside the function.
       Matrix r;
@@ -671,7 +671,7 @@ void sensor_posAddGeoidWGS84(
       
       // Add the geoid radius to the geometric altitudes
       for( Index i=0; i<npos; i++ )
-	sensor_pos(i,0) += r(i,0);
+        sensor_pos(i,0) += r(i,0);
     }
 }
 
@@ -712,39 +712,39 @@ void sensor_posAddRgeoid(
       // Check that positions in sensor_pos are inside the lat and lon grids
       if( min(sensor_pos(Range(joker),1)) < lat_grid[0]  || 
                              max(sensor_pos(Range(joker),1)) > last(lat_grid) )
-	throw runtime_error(
+        throw runtime_error(
              "You have given a position with a latitude outside *lat_grid*." );
       if( atmosphere_dim == 3 )
-	{
-	  if( min(sensor_pos(Range(joker),2)) < lon_grid[0]  || 
+        {
+          if( min(sensor_pos(Range(joker),2)) < lon_grid[0]  || 
                             max(sensor_pos(Range(joker),2)) >= last(lon_grid) )
-	    throw runtime_error(
+            throw runtime_error(
             "You have given a position with a longitude outside *lat_grid*." );
-	}
+        }
 
       if( atmosphere_dim == 2 )
-	{
-	  ArrayOfGridPos gp(npos);
-	  Matrix itw(npos,2);
-	  gridpos( gp, lat_grid, sensor_pos(Range(joker),1) );
-	  interpweights( itw, gp );
-	  Vector v_rgeoid(npos);
-	  interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp );
-	  for( Index i=0; i<npos; i++ )
-	    { sensor_pos(i,0) += v_rgeoid[i]; } 
-	}
+        {
+          ArrayOfGridPos gp(npos);
+          Matrix itw(npos,2);
+          gridpos( gp, lat_grid, sensor_pos(Range(joker),1) );
+          interpweights( itw, gp );
+          Vector v_rgeoid(npos);
+          interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp );
+          for( Index i=0; i<npos; i++ )
+            { sensor_pos(i,0) += v_rgeoid[i]; } 
+        }
       else
-	{
-	  ArrayOfGridPos gp_lat(npos), gp_lon(npos);
-	  Matrix itw(npos,4);
-	  gridpos( gp_lat, lat_grid, sensor_pos(Range(joker),1) );
-	  gridpos( gp_lon, lon_grid, sensor_pos(Range(joker),2) );
-	  interpweights( itw, gp_lat, gp_lon );
-	  Vector v_rgeoid(npos);
-	  interp( v_rgeoid, itw, r_geoid, gp_lat, gp_lon );
-	  for( Index i=0; i<npos; i++ )
-	    { sensor_pos(i,0) += v_rgeoid[i]; } 
-	}
+        {
+          ArrayOfGridPos gp_lat(npos), gp_lon(npos);
+          Matrix itw(npos,4);
+          gridpos( gp_lat, lat_grid, sensor_pos(Range(joker),1) );
+          gridpos( gp_lon, lon_grid, sensor_pos(Range(joker),2) );
+          interpweights( itw, gp_lat, gp_lon );
+          Vector v_rgeoid(npos);
+          interp( v_rgeoid, itw, r_geoid, gp_lat, gp_lon );
+          for( Index i=0; i<npos; i++ )
+            { sensor_pos(i,0) += v_rgeoid[i]; } 
+        }
     }
 }
 

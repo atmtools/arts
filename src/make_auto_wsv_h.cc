@@ -58,131 +58,131 @@ int main()
       open_output_file(ofs2,"auto_wsv.txt");
 
       ofs << "/*! \\file  auto_wsv.h\n"
-	  << "    \\brief Declares the enum type that acts as a\n"
-	  << "    handle for workspace variables. Also declares the\n"
-	  << "    workspace itself.\n\n"
+          << "    \\brief Declares the enum type that acts as a\n"
+          << "    handle for workspace variables. Also declares the\n"
+          << "    workspace itself.\n\n"
 
-	  << "    This file was generated automatically by make_auto_wsv_h.cc.\n"
+          << "    This file was generated automatically by make_auto_wsv_h.cc.\n"
 
-	  << "    <b>DO NOT EDIT!</b>\n\n"
+          << "    <b>DO NOT EDIT!</b>\n\n"
 
-	  << "    \\date "
-	  << __DATE__ << ", "
-	  << __TIME__ << " */\n\n";
+          << "    \\date "
+          << __DATE__ << ", "
+          << __TIME__ << " */\n\n";
 
       ofs << "#ifndef auto_wsv_h\n";
       ofs << "#define auto_wsv_h\n\n";
 
       ofs << "#include \"absorption.h\"\n"
-	  << "#include \"agenda_class.h\"\n"
-	  << "#include \"ppath.h\"\n"
+          << "#include \"agenda_class.h\"\n"
+          << "#include \"ppath.h\"\n"
           << "#include \"matpackIII.h\"\n"
           << "#include \"gas_abs_lookup.h\"\n"
           << "\n";
       
       ofs << "//! Total number of workspace variables.\n"
-	  << "/*! \n"
-	  << "  This is mainly used for a consistency check. You can get the\n"
-	  << "  number of workspace variables from wsv_data.nelem(). \n"
-	  << "  \n"
-	  << "  However, this is used by member functions of Workspace. For\n"
-	  << "  example by the default constructor to initialize the occupied\n"
-	  << "  array. Also for range checking in is_occupied, set, and free\n"
-	  << "  member functions. \n"
-	  << "*/\n"
-	  << "#define N_WSV " << n_wsv << "\n\n";
+          << "/*! \n"
+          << "  This is mainly used for a consistency check. You can get the\n"
+          << "  number of workspace variables from wsv_data.nelem(). \n"
+          << "  \n"
+          << "  However, this is used by member functions of Workspace. For\n"
+          << "  example by the default constructor to initialize the occupied\n"
+          << "  array. Also for range checking in is_occupied, set, and free\n"
+          << "  member functions. \n"
+          << "*/\n"
+          << "#define N_WSV " << n_wsv << "\n\n";
 
       ofs << "enum WsvHandle{\n";
       for (Index i=0; i<n_wsv-1; ++i)
-	{
-	  ofs << "  " << wsv_data[i].Name() << "_,\n";
-	}
+        {
+          ofs << "  " << wsv_data[i].Name() << "_,\n";
+        }
       ofs << "  " << wsv_data[n_wsv-1].Name() << "_\n";
       ofs << "};\n\n";
 
       // Now the workspace itself:
 
       ofs << "/** The declaration of the (great) workspace. */\n"
-	  << "class WorkSpace {\n"
-	  << "public:\n"
-	  << "  WorkSpace();\n"
-	  << "  bool is_occupied(Index i) const;\n"
-	  << "  void set(Index i);\n"
-	  << "  void free(Index i);\n"
-	  << "private:\n"
-	  << "  /** Keeps track which elements are occupied.\n"
-	  << "      For some strange reason, Array<bool> does not work, hence\n"
-	  << "      this is implemented internally as an Array of Index.*/\n"	  
-	  << "  Array<Index> moccupied;\n"
-	  << "public:\n";
+          << "class WorkSpace {\n"
+          << "public:\n"
+          << "  WorkSpace();\n"
+          << "  bool is_occupied(Index i) const;\n"
+          << "  void set(Index i);\n"
+          << "  void free(Index i);\n"
+          << "private:\n"
+          << "  /** Keeps track which elements are occupied.\n"
+          << "      For some strange reason, Array<bool> does not work, hence\n"
+          << "      this is implemented internally as an Array of Index.*/\n"     
+          << "  Array<Index> moccupied;\n"
+          << "public:\n";
       
       for (Index i=0; i<n_wsv; ++i)
-	{
-	  // First of all write the comment as a doxygen header.
-	  // For this we have to make some small replacements for
-	  // indendation and put everything starting from the second
-	  // sentence into a verbatim environment.  
-	  {
-	    // Local copy of the description String:
-	    String s = wsv_data[i].Description();
+        {
+          // First of all write the comment as a doxygen header.
+          // For this we have to make some small replacements for
+          // indendation and put everything starting from the second
+          // sentence into a verbatim environment.  
+          {
+            // Local copy of the description String:
+            String s = wsv_data[i].Description();
 
-	    // Add indentation:
-	    replace_all(s,"\n","\n    "); 
+            // Add indentation:
+            replace_all(s,"\n","\n    "); 
 
-	    // Look for the end of the first sentence. There we have
-	    // to include the beginning of the verbatim
-	    // environment. Not earlier, because the first sentence
-	    // has a special meaning.
-	    Index full_stop = s.find('.');
+            // Look for the end of the first sentence. There we have
+            // to include the beginning of the verbatim
+            // environment. Not earlier, because the first sentence
+            // has a special meaning.
+            Index full_stop = s.find('.');
 
-	    // We have to check against the case that the point was
-	    // not found. In that case we set full_stop to the length
-	    // of the entire test. If it was found, we increase the
-	    // value by one, since we want to include the point in the
-	    // first part.
-	    if ( full_stop==s.npos )
-	      full_stop = s.nelem();
-	    else
-	      full_stop += 1;
+            // We have to check against the case that the point was
+            // not found. In that case we set full_stop to the length
+            // of the entire test. If it was found, we increase the
+            // value by one, since we want to include the point in the
+            // first part.
+            if ( full_stop==s.npos )
+              full_stop = s.nelem();
+            else
+              full_stop += 1;
 
-	    String first(s,0,full_stop);
+            String first(s,0,full_stop);
 
-	    // Rest will contain the rest of the documentation. It could
-	    // be empty!
-	    String rest = "";
+            // Rest will contain the rest of the documentation. It could
+            // be empty!
+            String rest = "";
 
-	    if ( full_stop!=s.nelem() )
-	      rest = String(s,full_stop);
+            if ( full_stop!=s.nelem() )
+              rest = String(s,full_stop);
 
-	    // Remove leading whitespace and linebreaks in rest:
-	    while (
-		   0 < rest.nelem() &&
-		   ( ' ' == rest[0] || '\n' == rest[0] )
-		   )
-	      {
-		rest.erase(0,1);
-	      }
+            // Remove leading whitespace and linebreaks in rest:
+            while (
+                   0 < rest.nelem() &&
+                   ( ' ' == rest[0] || '\n' == rest[0] )
+                   )
+              {
+                rest.erase(0,1);
+              }
 
-	    ofs << "/** " << first;
-	    if ( 0==rest.nelem() )
-	      {
-		ofs << " */\n";
-	      }
-	    else
-	      {
-		ofs << '\n'
-		    << "    \\verbatim\n"
-		    << "    " << rest << '\n'
-		    << "    \\endverbatim */\n";
-	      }
-	  }
+            ofs << "/** " << first;
+            if ( 0==rest.nelem() )
+              {
+                ofs << " */\n";
+              }
+            else
+              {
+                ofs << '\n'
+                    << "    \\verbatim\n"
+                    << "    " << rest << '\n'
+                    << "    \\endverbatim */\n";
+              }
+          }
 
-	  ofs << "  "
-	      << wsv_group_names[wsv_data[i].Group()]
-	      << " "
-	      << wsv_data[i].Name() << ";\n";
+          ofs << "  "
+              << wsv_group_names[wsv_data[i].Group()]
+              << " "
+              << wsv_data[i].Name() << ";\n";
 
-	}
+        }
       ofs << "};\n\n";
 
       ofs << "#endif  // auto_wsv_h\n";

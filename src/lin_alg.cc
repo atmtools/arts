@@ -75,7 +75,7 @@ ludcmp(MatrixView LU,
             big = temp;
         }
       if (big == 0.)
-	throw runtime_error("ludcmp: Matrix is singular");
+        throw runtime_error("ludcmp: Matrix is singular");
       vv[i] = 1.0/big; // save scaling
       }
   
@@ -106,14 +106,14 @@ ludcmp(MatrixView LU,
           for(Index k=0; k<dim; k++)
             {
               dum = LU(imax,k);
-	      LU(imax,k) = LU(j,k);
+              LU(imax,k) = LU(j,k);
               LU(j,k) = dum;
             }
           d = -d;
           vv[imax] = vv[j];
-	  indx[j] = imax;
-	  indx[imax] =j;
-	 }
+          indx[j] = imax;
+          indx[imax] =j;
+         }
      
       if(LU(j,j) == 0.0) LU(j,j) = TINY;
       
@@ -145,9 +145,9 @@ ludcmp(MatrixView LU,
 */
 void 
 lubacksub(VectorView x, 
-	  ConstMatrixView LU, 
-	  ConstVectorView b, 
-	  const ArrayOfIndex& indx)
+          ConstMatrixView LU, 
+          ConstVectorView b, 
+          const ArrayOfIndex& indx)
 {
   Index ip,dim;
   Numeric sum;
@@ -178,7 +178,7 @@ lubacksub(VectorView x,
     {
       sum = x[i];
       for (Index j=i+1; j<dim; j++)
-	sum -= LU(i,j)*x[j];
+        sum -= LU(i,j)*x[j];
       x[i] = sum/LU(i,i);
     }
 }
@@ -197,8 +197,8 @@ lubacksub(VectorView x,
 */
 void 
 matrix_exp(MatrixView F,
-	   ConstMatrixView A,
-	   const Index& q)
+           ConstMatrixView A,
+           const Index& q)
 {
   Numeric A_norm_inf, c;
   Numeric j;
@@ -234,13 +234,13 @@ matrix_exp(MatrixView F,
     {
       Numeric k_n = (Numeric)(k+1);
       c *= (q_n-k_n+1)/((2*q_n-k_n+1)*k_n);
-      mult(B,F,X);		// X = F * X
+      mult(B,F,X);              // X = F * X
       X = B;
-      cX = X;			
-      cX *= c;			// cX = X*c
-      N += cX;			// N = N + X*c
-      cX *= pow(-1,k_n);	// cX = (-1)^k*c*X
-      D += cX;			// D = D + (-1)^k*c*X
+      cX = X;                   
+      cX *= c;                  // cX = X*c
+      N += cX;                  // N = N + X*c
+      cX *= pow(-1,k_n);        // cX = (-1)^k*c*X
+      D += cX;                  // D = D + (-1)^k*c*X
     }
 
   /*Solve the equation system DF=N for F using LU decomposition,
@@ -254,16 +254,16 @@ matrix_exp(MatrixView F,
   for(Index i=0; i<n; i++)
     {
       for(Index k=0; k<n; k++)
-	N_col_vec[k] = N(k,i);	// extract column vectors of N
+        N_col_vec[k] = N(k,i);  // extract column vectors of N
       lubacksub(F_col_vec, X, N_col_vec, indx);
       for(Index k=0; k<n; k++)
-	F(k,i) = F_col_vec[k];	// construct F matrix  from column vectors 
+        F(k,i) = F_col_vec[k];  // construct F matrix  from column vectors 
     }
   
   /* The square of F gives the result. */
     for(Index k=0; k<j_index; k++)
     {
-      mult(B,F,F);		// F = F^2
+      mult(B,F,F);              // F = F^2
       F = B;
     }
  
@@ -290,10 +290,10 @@ norm_inf(ConstMatrixView A)
     {
       //Calculate the row sum for all rows
       for(Index i=0; i<A.ncols(); i++)
-	row_sum[j] += fabs(A(i,j));
+        row_sum[j] += fabs(A(i,j));
       //Pick out the row with the highest row sum
       if(j>0 && row_sum[j] < row_sum[j-1])
-	row_sum[j] = row_sum[j-1];
+        row_sum[j] = row_sum[j-1];
     }
   norm_inf = row_sum[n-1];
 

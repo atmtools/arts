@@ -21,7 +21,7 @@
   Notes:
 
   There are two different ways to index: 
-  S.rw(3,4) = 1;		// Read and write
+  S.rw(3,4) = 1;                // Read and write
   cout << S.ro(3,4);            // Read only
 
   This distinction is necessary, because rw() creates elements if they
@@ -56,10 +56,10 @@ protected:
   // Constructors:
   SparseView();
   SparseView(std::vector<Numeric> *data,
-		  std::vector<Index>   *rowind,
-		  std::vector<Index>   *colptr,
-		  const Range&         rr,
-		  const Range&         cr		  );
+                  std::vector<Index>   *rowind,
+                  std::vector<Index>   *colptr,
+                  const Range&         rr,
+                  const Range&         cr                 );
 
   // Data members:
   /** The actual data values. */
@@ -146,9 +146,9 @@ inline Numeric& SparseView::rw(Index r, Index c)
     {
       Index rowi = (*mrowind)[i]; 
       if ( r <  rowi )
-	break;
+        break;
       if ( r == rowi )
-	return (*mdata)[i];
+        return (*mdata)[i];
     }
 
   // If we are here, then the requested data element does not yet
@@ -157,8 +157,8 @@ inline Numeric& SparseView::rw(Index r, Index c)
   // We have to adjust the array of column pointers. The values
   // in all columns above the current one have to be increased by 1. 
   for ( std::vector<Index>::iterator j = mcolptr->begin() + c + 1;
-	j < mcolptr->end();
-	++j )
+        j < mcolptr->end();
+        ++j )
     ++(*j);
 
   // We have to insert the new element in *mrowind and *mdata just one
@@ -197,9 +197,9 @@ inline Numeric SparseView::ro(Index r, Index c) const
     {
       Index rowi = (*mrowind)[i]; 
       if ( r <  rowi )
-	return 0;
+        return 0;
       if ( r == rowi )
-	return (*mdata)[i];
+        return (*mdata)[i];
     }
   return 0;
 }
@@ -220,10 +220,10 @@ inline SparseView::SparseView() :
     own SubMatrix part. The row range rr must have a
     stride to account for the length of one row. */
 inline SparseView::SparseView(std::vector<Numeric> *data,   
-					std::vector<Index>   *rowind, 
-					std::vector<Index>   *colptr, 
-					const Range&         rr,      
-					const Range&         cr       ) :
+                                        std::vector<Index>   *rowind, 
+                                        std::vector<Index>   *colptr, 
+                                        const Range&         rr,      
+                                        const Range&         cr       ) :
   mdata(data),
   mrowind(rowind),
   mcolptr(colptr),
@@ -259,10 +259,10 @@ inline Sparse::Sparse()
 */
 inline Sparse::Sparse(Index r, Index c) :
   SparseView( new std::vector<Numeric>,
-		   new std::vector<Index>,
-		   new std::vector<Index>(c+1,0),
-		   Range(0,r),
-		   Range(0,c) )
+                   new std::vector<Index>,
+                   new std::vector<Index>(c+1,0),
+                   Range(0,r),
+                   Range(0,c) )
 {
   // Nothing to do here.
 }
@@ -271,10 +271,10 @@ inline Sparse::Sparse(Index r, Index c) :
     sets the size and copies the data. */
 inline Sparse::Sparse(const Sparse& m) :
   SparseView( new std::vector<Numeric>(*m.mdata),
-		   new std::vector<Index>(*m.mrowind),
-		   new std::vector<Index>(*m.mcolptr),
-		   m.mrr,
-		   m.mcr )
+                   new std::vector<Index>(*m.mrowind),
+                   new std::vector<Index>(*m.mcolptr),
+                   m.mrr,
+                   m.mcr )
 {
   // Nothing to do here. 
 }
@@ -305,27 +305,27 @@ inline std::ostream& operator<<(std::ostream& os, const SparseView& v)
 
       // Loop through the elements in this column:
       for ( Index i=begin; i<end; ++i )
-	{
-	  Index r = (*v.mrowind)[i]; 
+        {
+          Index r = (*v.mrowind)[i]; 
 
-	  // Now we know the true row r and column c. Convert to aparent r
-	  // and c using the Ranges mrr and mcr,
+          // Now we know the true row r and column c. Convert to aparent r
+          // and c using the Ranges mrr and mcr,
 
-	  Index ra = (r-v.mrr.mstart)/v.mrr.mstride;
-	  Index ca = (c-v.mcr.mstart)/v.mcr.mstride;
+          Index ra = (r-v.mrr.mstart)/v.mrr.mstride;
+          Index ca = (c-v.mcr.mstart)/v.mcr.mstride;
 
-	  // Are the aparent row ra and column ca inside the active range?
-	  if ( 0 <= ra &&
-	       ra < v.mrr.mextent &&
-	       0 <= ca &&
-	       ca < v.mcr.mextent     )
-	    {
-	      // Yes, they are! Let's output this element.
-	      os << setw(3) << ra << " "
-		 << setw(3) << ca << " "
-		 << setw(3) << (*v.mdata)[i] << "\n";
-	    }
-	}
+          // Are the aparent row ra and column ca inside the active range?
+          if ( 0 <= ra &&
+               ra < v.mrr.mextent &&
+               0 <= ca &&
+               ca < v.mcr.mextent     )
+            {
+              // Yes, they are! Let's output this element.
+              os << setw(3) << ra << " "
+                 << setw(3) << ca << " "
+                 << setw(3) << (*v.mdata)[i] << "\n";
+            }
+        }
     }
 
   return os;

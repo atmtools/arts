@@ -224,7 +224,7 @@ basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::basic_stringbuf(ios_base::openmode _CS_
 
 template <class _CS_cT, class _CS_Tr, class _CS_Al>
 basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::basic_stringbuf(string_type const &_CS_s,
-							 ios_base::openmode _CS_m):
+                                                         ios_base::openmode _CS_m):
   _CS_m_mode(_CS_m),
   _CS_m_beg(_CS_s.size() > 0? new _CS_cT[_CS_s.size()]: 0),
   _CS_m_end(_CS_m_beg + _CS_s.size())
@@ -288,17 +288,17 @@ basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::pbackfail(int_type _CS_c)
     {
       if (traits_type::eq_int_type(_CS_c, traits_type::eof()))
         {
-	  gbump(-1);
+          gbump(-1);
           return traits_type::not_eof(_CS_c);
         }
       else
-	if (traits_type::eq(traits_type::to_char_type(_CS_c), gptr()[-1])
-	    || (_CS_m_mode & ios_base::out) != 0)
-	  {
-	    gbump(-1);
-	    traits_type::assign(*gptr(), traits_type::to_char_type(_CS_c));
+        if (traits_type::eq(traits_type::to_char_type(_CS_c), gptr()[-1])
+            || (_CS_m_mode & ios_base::out) != 0)
+          {
+            gbump(-1);
+            traits_type::assign(*gptr(), traits_type::to_char_type(_CS_c));
             return _CS_c;
-	  }
+          }
     }
   // fails if
   // - no read position is available
@@ -316,39 +316,39 @@ basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::overflow(int_type _CS_c)
   else if (_CS_m_mode & ios_base::out)
     {
       if (_CS_m_beg == 0)
-	{
-	  _CS_m_beg = new _CS_cT[64];
-	  _CS_m_end = _CS_m_beg + 64;
-	  setp(_CS_m_beg, _CS_m_beg);
-	}
+        {
+          _CS_m_beg = new _CS_cT[64];
+          _CS_m_end = _CS_m_beg + 64;
+          setp(_CS_m_beg, _CS_m_beg);
+        }
 
       if (pptr() != epptr())
-	{
-	  traits_type::assign(*pptr(), traits_type::to_char_type(_CS_c));
-	  pbump(1);
-	}
+        {
+          traits_type::assign(*pptr(), traits_type::to_char_type(_CS_c));
+          pbump(1);
+        }
       else if (epptr() != _CS_m_end)
-	{
-	  traits_type::assign(*pptr(), traits_type::to_char_type(_CS_c));
-	  setp(pbase(), epptr() + 1);
-	  pbump(epptr() - pbase());
-	  if (_CS_m_mode & ios_base::in)
-	    setg(eback(), gptr(), pptr());
-	}
+        {
+          traits_type::assign(*pptr(), traits_type::to_char_type(_CS_c));
+          setp(pbase(), epptr() + 1);
+          pbump(epptr() - pbase());
+          if (_CS_m_mode & ios_base::in)
+            setg(eback(), gptr(), pptr());
+        }
       else
         {
-	  streamsize _CS_size = _CS_m_end - _CS_m_beg;
-	  _CS_cT* _CS_nv = new _CS_cT[2 * _CS_size];
-	  traits_type::copy(_CS_nv, _CS_m_beg, _CS_size);
-	  delete[] _CS_m_beg;
-	  _CS_m_beg = _CS_nv;
-	  _CS_m_end = _CS_nv + 2 * _CS_size;
-	  traits_type::assign(_CS_m_beg[_CS_size], traits_type::to_char_type(_CS_c));
-	  setp(_CS_m_beg, _CS_m_beg + _CS_size + 1);
-	  pbump(_CS_size + 1);
+          streamsize _CS_size = _CS_m_end - _CS_m_beg;
+          _CS_cT* _CS_nv = new _CS_cT[2 * _CS_size];
+          traits_type::copy(_CS_nv, _CS_m_beg, _CS_size);
+          delete[] _CS_m_beg;
+          _CS_m_beg = _CS_nv;
+          _CS_m_end = _CS_nv + 2 * _CS_size;
+          traits_type::assign(_CS_m_beg[_CS_size], traits_type::to_char_type(_CS_c));
+          setp(_CS_m_beg, _CS_m_beg + _CS_size + 1);
+          pbump(_CS_size + 1);
 
-	  if (_CS_m_mode & ios_base::in)
-	    setg(pbase(), pbase() + (egptr() - gptr()), pptr());
+          if (_CS_m_mode & ios_base::in)
+            setg(pbase(), pbase() + (egptr() - gptr()), pptr());
         }
       return _CS_c;
     }
@@ -387,7 +387,7 @@ basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::seekoff(off_type _CS_off,
       break;
     case ios_base::cur:
       if ((_CS_which & (ios_base::in | ios_base::out)) == (ios_base::in | ios_base::out)
-	  && pptr() != gptr())
+          && pptr() != gptr())
         return pos_type(off_type(-1));
       _CS_np = (_CS_which & ios_base::in)? gptr(): pptr();
 
@@ -402,24 +402,24 @@ basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::seekoff(off_type _CS_off,
     {
     case ios_base::in:
       if (_CS_m_mode & ios_base::in)
-	gbump(_CS_np - gptr());
+        gbump(_CS_np - gptr());
       else
-	return pos_type(off_type(-1));
+        return pos_type(off_type(-1));
       break;
     case ios_base::out:
-	if (_CS_m_mode & ios_base::out)
-	  pbump(_CS_np - pptr());
-	else
-	  return pos_type(off_type(-1));
-	break;
+        if (_CS_m_mode & ios_base::out)
+          pbump(_CS_np - pptr());
+        else
+          return pos_type(off_type(-1));
+        break;
     case ios_base::in | ios_base::out:
       if ((_CS_m_mode & (ios_base::in | ios_base::out)) == (ios_base::in | ios_base::out))
-	{
-	  gbump(_CS_np - gptr());
-	  pbump(_CS_np - pptr());
-	}
+        {
+          gbump(_CS_np - gptr());
+          pbump(_CS_np - pptr());
+        }
       else
-	return pos_type(off_type(-1));
+        return pos_type(off_type(-1));
       break;
     default:
       return pos_type(off_type(-1));
@@ -431,7 +431,7 @@ basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::seekoff(off_type _CS_off,
 template <class _CS_cT, class _CS_Tr, class _CS_Al>
 typename basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::pos_type
 basic_stringbuf<_CS_cT, _CS_Tr, _CS_Al>::seekpos(pos_type _CS_pos,
-								   ios_base::openmode _CS_which)
+                                                                   ios_base::openmode _CS_which)
 {
   _CS_cT* _CS_p = (_CS_m_mode & ios_base::out)? epptr(): egptr();
   if (_CS_pos < 0 || (_CS_p - _CS_m_beg) < _CS_pos)
@@ -478,7 +478,7 @@ _CS_basic_sstream_base<_CS_cT, _CS_Tr, _CS_Al>::
 template <class _CS_cT, class _CS_Tr, class _CS_Al>
 _CS_basic_sstream_base<_CS_cT, _CS_Tr, _CS_Al>::
     _CS_basic_sstream_base(_CS_string_type const& _CS_str,
-				 ios_base::openmode _CS_mode):
+                                 ios_base::openmode _CS_mode):
       _CS_m_ssbuf(_CS_str, _CS_mode)
 {
 }
@@ -535,7 +535,7 @@ basic_ostringstream<_CS_cT, _CS_Tr, _CS_Al>::basic_ostringstream(
     _CS_string_type const& _CS_str,
     ios_base::openmode _CS_mode):
   _CS_basic_sstream_base<_CS_cT, _CS_Tr, _CS_Al>(_CS_str,
-									 _CS_mode | ios_base::out),
+                                                                         _CS_mode | ios_base::out),
   ios(&_CS_m_ssbuf),
   basic_ostream<_CS_cT, _CS_Tr>(&_CS_m_ssbuf)
 {
