@@ -1,3 +1,11 @@
+2002-05-30 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-106
+
+	* src/workspace.cc: Added more workspace variables for scattering.
+
+	* src/linalg.cc (ludcp) Modified documentation of the function. 
+
 2002-05-30  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-105
@@ -35,7 +43,7 @@
 	* Started on the RTE part, but found it hard before the agendas are
 	ready. So I leave this for the moment.
 
-2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+2002-05-30 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-103
 

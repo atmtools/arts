@@ -33,8 +33,8 @@
 
 //! LU decomposition.
 /*!
-  Given a matrix A this routine replaces it by the LU decompostion of a rowwise permutation of 
-  itself. (Compare Numerical Recipies in C, pages 36-48.)
+  This function performes a LU Decomposition of the matrix A.
+  (Compare Numerical Recipies in C, pages 36-48.)
   
   \param LU Output: returns L and U in one matrix
   \param indx Output: Vector that records the row permutation.

@@ -57,7 +57,8 @@ void i_field_update1D(
 		     ConstTensor3View z_field,
 		     ConstMatrixView z_ground,
 		     ConstMatrixView r_geoid,
-		     const Numeric f,
+		     ConstVectorView f_grid,
+		     const Index f_index,
 		     const Index blackbody_ground,
 		     const Index stokes_dim
 		     );

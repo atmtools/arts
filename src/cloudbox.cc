@@ -27,13 +27,11 @@
 #include "cloudbox.h"
 
 
-
-
 //! 1D RT calculation inside the cloud box.
 /*! 
   This function loops over all grid points and all directions and performs 
-  the RT calculation
-  with a fixed scattering integral. 
+  the RT calculation with a fixed scattering integral for one frequency 
+  of the frequency grid specified by *f_index*. 
 
   Note: The function uses the same input and output variables as the
   equivalent function for the 
@@ -50,14 +48,15 @@
   \param cloudbox_limits Limits of the cloudbox.
   \param scat_za_grid  Zenith angle grid inside the cloud box.
   \param scat_aa_grid  Azimuthal angle grid inside the cloud box.
-  \param p_grid        Pressure grid inside the cloud box.
-  \param lat_grid      Latitude grid inside the cloud box.
-  \param lon_grid      Longitude grid inside the cloud box.
-  \param t_field       Planck function field for alls grid points.
+  \param p_grid        Pressure grid.
+  \param lat_grid      Latitude grid.
+  \param lon_grid      Longitude grid.
+  \param t_field       Temperature field for alls grid points.
   \param z_field       Geometrical altitude field.
   \param z_ground      Ground altitude.
   \param r_geoid       Matrix containing geoids.
-  \param f             Frequency.
+  \param f_grid        Frequency grid.
+  \param f_index       Frequency index.
   \param blackbody_ground Flag to treat ground as blackbody.
   \param stokes_dim    The number of Stokes components to be calculated.
 */
@@ -76,7 +75,8 @@ void i_field_update1D(
 		     ConstTensor3View z_field,
 		     ConstMatrixView z_ground,
 		     ConstMatrixView r_geoid,
-		     const Numeric f,
+		     ConstVectorView f_grid,
+		     const Index f_index,
 		     const Index blackbody_ground,
 		     const Index stokes_dim
 		     )
@@ -132,6 +132,7 @@ void i_field_update1D(
 	  //5. Generate Planck function.
 	  Numeric T = t_field(p_index, 0, 0);
 	  Numeric B;
+	  Numeric f = f_grid[f_index];
 	  planck(B, f, T);
 	  
 	  //Initialize ppath for 1D.
@@ -264,12 +265,12 @@ void rte_scat_vecCalc(VectorView sto_vec,
       for(Index j=0; j<dim; j++)
 	LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
     }
-  mult(term2, LU, x); // term2: second term of the solution of the RTE with fixed 
-                      // scattered field
+  mult(term2, LU, x); // term2: second term of the solution of the RTE with
+                      //fixed scattered field
 
   
-  mult(term1, exp_ext_mat, sto_vec);// term1: first term of the solution of the RTE with 
-                                    // fixed scattered field
+  mult(term1, exp_ext_mat, sto_vec);// term1: first term of the solution of
+                                    // the RTE with fixed scattered field
   
   for (Index i=0; i<dim; i++) 
     sto_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
