@@ -1,5 +1,11 @@
 2004-07-09  Mattias Ekström <ekstrom@rss.chalmers.se>
 
+	* arts-1-1-845
+
+	* Forgot to set the new version number.
+
+2004-07-09  Mattias Ekström <ekstrom@rss.chalmers.se>
+
 	* src/methods.cc: Removed sensor_pol as input to RteCalc.
 	Added sensor_responseMultiMixerBackend, which intended to
 	be used instead of sensor_responseMixer and
