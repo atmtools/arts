@@ -54,7 +54,7 @@
 
 /* Here's a template record entry:  (PE 2001-09-18)
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "FunctionName" ),
 	DESCRIPTION
@@ -102,7 +102,7 @@
 
   /* Here's an empty record entry:  (PE 2001-09-18)
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "" ),
 	DESCRIPTION
@@ -147,7 +147,7 @@ void define_md_data_raw()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vec_partCalc"),
   	DESCRIPTION
@@ -862,7 +862,7 @@ void define_md_data_raw()
 	TYPES(    Numeric_t )));
 
 
-  md_data.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ext_mat_partCalc"),
   	DESCRIPTION
