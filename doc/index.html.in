@@ -61,7 +61,9 @@
     
     <h2> Example ARTS control files</h2>
 
-    <p>
+    <p><font color="#ff0000"><b>--- Under construction ---</b></font>
+    <p> Have a look at <a href="examples">arts/doc/examples/*.arts</a>.
+<!--    <p>
       The package contains everything that you need to run these
       examples. Currently they are:
 
@@ -74,7 +76,8 @@
       <li>
 	<a href="examples/auto_full.arts"> auto_full.arts</a> (an end-to-end
 	job).
-    </ul>
+</ul>
+-->
 
     <hr noshade  size="3" color="#990099">
 
