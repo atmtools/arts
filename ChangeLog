@@ -1,3 +1,11 @@
+2003-10-23  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-709	
+	
+	* src/m_scatrte.cc (scat_fieldCalc): Added a check that when you
+	define a cloud in terms of the pnd_field,  it is within the limits
+	of the cloudbox.  
+
 2003-10-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-708

@@ -2650,7 +2650,7 @@ void ybatchMetProfiles(//Output
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
        			 vmr_field_h2o);
      
-      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/new_forecastfields/size200/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd200.xml", 
+      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml", 
        		 pnd_field_here);
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
@@ -2661,7 +2661,7 @@ void ybatchMetProfiles(//Output
       // N_p is the number of elements in the pressure grid
       
       z_ground(0,0) = z_field_raw[3](0,0,0);
-
+      cout<<"z_ground"<<z_ground<<endl;
       Index N_p = t_field_raw[0].npages();
        
       vmr_field_raw[0] = vmr_field_h2o;
@@ -2688,7 +2688,7 @@ void ybatchMetProfiles(//Output
       vmr_field_raw[2][0] = vmr_field_raw[0][0];
       vmr_field_raw[2][1] = vmr_field_raw[0][1];
       vmr_field_raw[2][2] = vmr_field_raw[0][2];
-      vmr_field_raw[2][3] (joker, joker, joker) = 0.209;
+      vmr_field_raw[2][3] (joker, joker, joker) =  0.209;
       
       Index level_counter = 0;
       Numeric cl_grid_min, cl_grid_max;
@@ -2704,6 +2704,7 @@ void ybatchMetProfiles(//Output
 // 	      cl_grid_max = t_field_raw[0](ip, 0, 0);
 // 	    }
 // 	}
+      cout<<"level_counter-before"<< level_counter<<endl;
       cl_grid_min = t_field_raw[0](0, 0, 0);
        for (Index ip = 0; ip< N_p; ++ip)
  	{
@@ -2713,8 +2714,9 @@ void ybatchMetProfiles(//Output
 	      cl_grid_max = t_field_raw[0](ip, 0, 0);
 	    }
 	}
-      cout<<"maximum"<< cl_grid_max<<endl;
-      cout<<"minimum"<< cl_grid_min<<endl;
+       cout<<"level_counter"<< level_counter<<endl;
+       cout<<"maximum"<< cl_grid_max<<endl;
+       cout<<"minimum"<< cl_grid_min<<endl;
 
       pnd_field_raw[0] = pnd_field_here;
      

@@ -3080,21 +3080,43 @@ scat_fieldCalc(//WS Output:
   
    //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
-
+    for (Index p_index = 0; p_index <= cloudbox_limits[0] ;
+	 p_index++)
+      {
+	for (Index p_type = 0; p_type < N_pt; ++ p_type)
+	  {
+	    if( pnd_field(p_type,p_index,0,0) != 0 )
+	      {
+		throw runtime_error("The cloud exists below the  "
+				    "lower cloudbox limit");
+	      }
+	  }
+      }
+    for (Index p_index = cloudbox_limits[1]; p_index < p_grid.nelem() ;
+	 p_index++)
+      {
+	for (Index p_type = 0; p_type < N_pt; ++ p_type)
+	  {
+	    if( pnd_field(p_type,p_index,0,0) != 0 )
+	      {
+		throw runtime_error("The cloud exists above the  "
+				    "upper cloudbox limit");
+	      }
+	  }
+      }
     scat_aa_index = 0;
-  
+    
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
          p_index++)
       {
-        
-        //There is only loop over zenith angle grid ; no azimuth angle grid.
+	//There is only loop over zenith angle grid ; no azimuth angle grid.
         for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
           {
             // Calculate the phase matric of a single particle type
             pha_mat_spt_agenda.execute(scat_za_index || p_index - cloudbox_limits[0]);
-
+	    
 
             // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
