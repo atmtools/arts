@@ -32,5 +32,12 @@ autoheader
 echo "- automake."
 automake --add-missing --copy --gnu
 
-./configure --enable-maintainer-mode $@
+
+if test "`hostname | grep smiles`"; then
+    ARTS_DATA_PATH="--with-arts-data=/pool/lookup2/arts-data"
+else
+    ARTS_DATA_PATH=
+fi
+
+./configure --enable-maintainer-mode $ARTS_DATA_PATH $@
 exit
