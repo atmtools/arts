@@ -1,3 +1,22 @@
+2004-01-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-777
+	
+	* src/m_cloudbox.cc (CloudboxGetOutgoing): Fixed interpolation
+	on cloudbox boundary in 3D part of the function.
+	Interpolation was only done for angles, not for positions.
+
+	Fixed numerical problem.
+	One has to compare the grid-positions with cloudbox limits.
+      	It is not sufficient to take just the index as it is  
+      	ambiguous. If for example a point lies on the lower pressure 
+      	boundary of the cloudbox, the index of the grid-position for 
+      	the pressure coordinate can correspond to cloudbox_limits[0]
+      	or to cloudbox_limits[0]-1 depending on the interpolation 
+      	weights. This had not been taken into account.
+
+	* src/rte.cc: Only cosmetic change. 
+	
 2004-01-15  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-776

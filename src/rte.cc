@@ -168,10 +168,10 @@ void get_radiative_background(
   if( atmosphere_dim > 2 )
     { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
 
-  out3 << "Radiative background: " << ppath_what_background(ppath) 
-       << " \n (1) - Space, (2) - ground, (3) - cloudbox \n";
+  out3 << "Radiative background: " << ppath.background << "\n";
 
-  // Initialize i_rte to the radiative background
+
+    // Initialize i_rte to the radiative background
   switch ( ppath_what_background( ppath ) )
     {
 
