@@ -1,3 +1,11 @@
+2002-07-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-186
+
+	* src/ppath.cc: More work on 2D geom paths. A number of bugs fixed.
+	Not all cases yet tested. Getting there slowly.
+	(Mainly a commit to transfer changes to the laptop).
+
 2002-07-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-185

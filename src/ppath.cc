@@ -75,16 +75,7 @@ extern const Numeric RAD2DEG;
 // The variable R_EPS gives the accepted inaccuracy in radius when checking
 // if a position is inside a grid cell. 
 //
-Numeric R_EPS = 1e-8;
-//
-//if( sizeof(Numeric) == 4 )   
-//  {
-//    R_EPS = 1e-5;        // float
-//  }
-//else                         
-//  {
-//    R_EPS = 1e-10;       // double
-//  }
+const Numeric R_EPS = 1e-3;
 
 
 
@@ -469,36 +460,6 @@ Numeric za_geom2other_point(
   === Functions related to slope and tilt of the ground and pressure surfaces
   ===========================================================================*/
 
-//! psurface_r_at_lat_2d
-/*!
-   Returns the radius of a pressure surface for a given latitude.
-
-   The function calculates the radius given the radius at the latitude
-   grid points surrounding the latitude of interest.
-
-   \return         Radius at the given latitude.
-   \param   r1     Radius at the grid point 2.      
-   \param   lat1   Latitude at the grid point 2.      
-   \param   r2     Radius at the grid point 2.      
-   \param   lat2   Latitude at the grid point 2.      
-   \param   lat    Latitude of interest ( lat1 <= lat <= lat2 ).
-
-   \author Patrick Eriksson
-   \date   2002-07-03
-*/
-Numeric psurface_r_at_lat_2d(
-       const Numeric&   r1,
-       const Numeric&   lat1,
-       const Numeric&   r2,
-       const Numeric&   lat2, 
-       const Numeric&   lat )
-{
-  assert( lat >= lat1  && lat <= lat2 );
- 
-  return r1 + ( r2 - r1 ) * ( lat - lat1 ) / ( lat2 - lat1 );
-}
-
-
 //! psurface_slope_2d
 /*!
    Calculates the radial slope of the ground or a pressure surface for 2D.
@@ -690,10 +651,9 @@ Numeric psurface_crossing_2d(
   Numeric dlat = 999;
   for( Index i=0; i<n-1; i++ )
     {
-      if( roots(i,1) == 0 )
+      if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
 	{
-	  if( ( roots(i,0) > 0  ||  ( r != r1  &&  roots(i,0) == 0 ) )  &&
-	                                          RAD2DEG * roots(i,0) < dlat )
+	  if( ( roots(i,0) > 0 || r != r1 )  &&  RAD2DEG * roots(i,0) < dlat )
 	    { dlat = RAD2DEG * roots(i,0); }
 	}
     }  
@@ -914,6 +874,7 @@ Index ppath_what_background( const Ppath&   ppath )
 
    The ppath1 structure must be allocated before calling the function. The
    structure can be allocated to hold more points than found in ppath2.
+   The data of ppath2 is placed in the first positions of ppath1.
 
    \param   ppath1    Output: PPath structure.
    \param   ppath2    The Ppath structure to be copied.
@@ -925,14 +886,17 @@ void ppath_copy(
 	   Ppath&      ppath1,
      const Ppath&      ppath2 )
 {
+  assert( ppath1.np >= ppath2.np ); 
+
+  // The field np shall not be copied !!!
+
   ppath1.dim        = ppath2.dim;
-  ppath1.np         = ppath2.np;
   ppath1.refraction = ppath2.refraction;
   ppath1.method     = ppath2.method;
   ppath1.constant   = ppath2.constant;
   ppath1.background = ppath2.background;
 
-  for( Index i=1; i<ppath2.np; i++ )
+  for( Index i=0; i<ppath2.np; i++ )
     {
       ppath1.pos(i,0)      = ppath2.pos(i,0);
       ppath1.pos(i,1)      = ppath2.pos(i,1);
@@ -1004,13 +968,11 @@ void ppath_append(
 
   Ppath   ppath;
   ppath_init_structure( ppath, ppath1.dim, n1 );
-  
   ppath_copy( ppath, ppath1 );
 
   ppath_init_structure( ppath1, ppath1.dim, n1 + n2 - 1 );
-
   ppath_copy( ppath1, ppath );
-  
+
   // Append data from ppath2
   Index i1;
   for( Index i=1; i<n2; i++ )
@@ -1071,7 +1033,7 @@ void ppath_append(
    \param   z_field    Geometrical altitudes
    \param   lat_grid   Latitude grid.
    \param   ip         Pressure grid range.
-   \param   ilat        Latitude grid range.
+   \param   ilat       Latitude grid range.
 
    \author Patrick Eriksson
    \date   2002-07-03
@@ -1094,21 +1056,29 @@ void ppath_fill_2d(
       ppath.pos(i,1) = lat[i];
       ppath.los(i,0) = za[i];
       
+      // Some help variables
+      Numeric r1, r2, w = ( lat[i] - lat_grid[ilat] ) / 
+                                         ( lat_grid[ilat+1] - lat_grid[ilat] );
+
       // Radius of lower and upper face at present latitude
-      const Numeric rlow = psurface_r_at_lat_2d( 
-              r_geoid[ilat] + z_field(ip,ilat), lat_grid[ilat], 
-              r_geoid[ilat+1] + z_field(ip,ilat+1), lat_grid[ilat+1], lat[i] );
-      const Numeric rupp = psurface_r_at_lat_2d( 
-            r_geoid[ilat] + z_field(ip+1,ilat), lat_grid[ilat], 
-            r_geoid[ilat+1] + z_field(ip+1,ilat+1), lat_grid[ilat+1], lat[i] );
+      //
+      r1 = r_geoid[ilat] + z_field(ip,ilat);
+      r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);
+      const Numeric rlow = r1 + w * ( r2 - r1 );
+      //
+      r1 = r_geoid[ilat] + z_field(ip+1,ilat);
+      r2 = r_geoid[ilat+1] + z_field(ip+1,ilat+1);
+      const Numeric rupp = r1 + w * ( r2 - r1 );
 
       // Geometrical altitude of lower and upper face at present latitude
-      const Numeric zlow = psurface_r_at_lat_2d( 
-                                z_field(ip,ilat), lat_grid[ilat], 
-                                z_field(ip,ilat+1), lat_grid[ilat+1], lat[i] );
-      const Numeric zupp = psurface_r_at_lat_2d( 
-                              z_field(ip+1,ilat), lat_grid[ilat], 
-                              z_field(ip+1,ilat+1), lat_grid[ilat+1], lat[i] );
+      //
+      r1 = z_field(ip,ilat);
+      r2 = z_field(ip,ilat+1);
+      const Numeric zlow = r1 + w * ( r2 - r1 );
+      //
+      r1 = z_field(ip+1,ilat);
+      r2 = z_field(ip+1,ilat+1);
+      const Numeric zupp = r1 + w * ( r2 - r1 );
 
       ppath.gp_p[i].idx   = ip;
       ppath.gp_p[i].fd[0] = ( r[i] - rlow ) / ( rupp - rlow );
@@ -2078,7 +2048,17 @@ void ppath_step_geom_2d(
   // limits for the grid cell of interest.
   const Index ip = gridpos2gridrange( ppath.gp_p[imax], fabs(za_start) <= 90);
   const Index ilat = gridpos2gridrange( ppath.gp_lat[imax], za_start >= 0 );
-  IndexPrint(ip,"ip");
+  //
+  out3 << "  pressure grid range  : " << ip << "\n";
+  out3 << "  latitude grid range  : " << ilat << "\n";
+
+
+  // The corners and the faces of the grid cell are numbered in anti-clockwise
+  // direction. The lower left corner is number 1. The left face is number 1.
+  // For the coding of end point, the ground is given number 5 and a tangent
+  // point 6.
+
+
   // Get radius for the corners of the grid cell
   const Numeric r1 = r_geoid[ilat] + z_field(ip,ilat);        // lower-left
   const Numeric r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);    // lower-right
@@ -2087,7 +2067,7 @@ void ppath_step_geom_2d(
 
   // Latitudes of left and right end face
   const Numeric lat1 = lat_grid[ilat];
-  const Numeric lat2 = lat_grid[ilat+1];
+  const Numeric lat3 = lat_grid[ilat+1];
 
   // Latitude distance between start point and left grid cell boundary
   const Numeric dlat_left  = lat_start - lat1;
@@ -2095,32 +2075,39 @@ void ppath_step_geom_2d(
   // Latitude distance to latitude end face in the viewing direction
   Numeric dlat_endface;
   if( za_start >= 0 )
-    { dlat_endface = lat2 - lat_start; }
+    { dlat_endface = lat3 - lat_start; }
   else
     { dlat_endface = -dlat_left; }
 
   // Radial slope of pressure surface limits of the grid cell
-  const Numeric c1 = psurface_slope_2d( lat_grid, r_geoid, 
+  const Numeric c2 = psurface_slope_2d( lat_grid, r_geoid, 
 		z_field(ip,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
-  const Numeric c3 = psurface_slope_2d( lat_grid, r_geoid, 
+  const Numeric c4 = psurface_slope_2d( lat_grid, r_geoid, 
 	      z_field(ip+1,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
 
   // Assert that grid cell is OK and that start position is inside the cell.
   assert( r1 < r4 );
   assert( r2 < r3 );
-  assert( lat_start >= lat1  &&  lat_start <= lat2 );
-  NumericPrint( r_start - ( r1 + c1 * dlat_left ), "rdiff" );
-  assert( r_start >= r1 + c1 * dlat_left - R_EPS );
-  assert( r_start <= r4 + c3 * dlat_left + R_EPS );
+  assert( lat_start >= lat1  &&  lat_start <= lat3 );
+  assert( r_start >= r1 + c2 * dlat_left - R_EPS );
+  assert( r_start <= r4 + c4 * dlat_left + R_EPS );
+
 
   // We shall now determine at what face of the grid cell the path step ends.
   // If the step passes a tangent point or the ground, we call this function
   // iteratively for the second part.
 
   // The end point is most easily determined by the latitude difference to 
-  // the start point. For maximum accuracy we determine on the same time the
-  // radius (instead of calculating it later from dlat2end).
-  Numeric dlat2end, r_end;
+  // the start point. For some cases there exist several crossings and we want 
+  // the one clsoest in latitude to the start point. The latitude distance 
+  // for the crossing shall not exceed dlat2end.
+  // The variable endface is a number coding of at what cell face (including 
+  // the ground and tangent points) the end point is found. This is needed to
+  // set values for the end point is most accurate way.
+  //
+  Numeric dlat2end;
+  Index   endface;   
+
 
   // --- Lower face (pressure surface ip).
   //
@@ -2130,16 +2117,18 @@ void ppath_step_geom_2d(
   // The zenith angles to the corner points of the cell cannot be used to 
   // determine if there is a crossing or not. Instead we have to call 
   // psurface_crossing_2d for all cases to test if there is a crossing.
+  // We don't need to consider the face if we are standing on the pressure 
+  // surface (or is below due to numerical inaccuracy).
   //
-  dlat2end = psurface_crossing_2d( r_start, za_start, r1+c1*dlat_left, c1 );
+  Numeric a_r = r1+c2*dlat_left;   // A variable used for varoius radii
   //
-  if( fabs(dlat2end) < fabs(dlat_endface) )
-    { r_end = r1 + c1 * ( dlat_left + dlat2end ); }
+  if( r_start > a_r )
+    { 
+      dlat2end = psurface_crossing_2d( r_start, za_start, a_r, c2 );
+      endface = 2;
+    }
 
   // --- The ground.
-  //
-  // Flag for ground reflection
-  bool ground = false;
   //
   // Ground radius at latitude end points, and ground slope
   const Numeric rground1 = r_geoid[ilat] + z_ground[ilat];
@@ -2147,18 +2136,19 @@ void ppath_step_geom_2d(
   const Numeric cground = psurface_slope_2d( lat_grid, r_geoid, 
 		                 z_ground, ppath.gp_lat[imax], za_start >= 0 );
   //
-  assert( r_start >= rground1 + cground * dlat_left );
+  a_r = rground1+cground*dlat_left;
+  //
+  assert( r_start > a_r );
   //
   // Is the ground at least partly inside the grid cell
   if( rground1 >= r1  ||  rground2 >= r2 )
     {
-      Numeric dlat2ground = psurface_crossing_2d( r_start, za_start, 
-                                         rground1+cground*dlat_left, cground );
+      Numeric dlat2ground = psurface_crossing_2d( r_start, za_start, a_r,
+                                                                     cground );
       if( fabs(dlat2ground) < fabs(dlat2end) )
 	{
-	  ground   = true; 
 	  dlat2end = dlat2ground;
-	  r_end    = rground1 + cground * ( dlat_left + dlat2end );
+	  endface  = 5;
 	}
     }
 
@@ -2171,15 +2161,23 @@ void ppath_step_geom_2d(
       // We can here determine by zenith angles if there is a crossing with
       // the pressure surface. This should save some time compared to call
       // psurface_crossing_2d blindly.
+      // Note that the path step can both start and end at the face.
+      // We must ensure that numerical inaccuracy does make that r_start is
+      // above the pressure surface.
 
+      a_r = r4+c4*dlat_left;
+
+      Numeric r_tmp = r_start;
+      if( r_tmp > a_r )
+	{ r_tmp = a_r; }
+      
       if( ( za_start >= 0  &&  
-            za_start <= za_geom2other_point( r_start, lat_start, r3, lat2 ) )  
+            za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )  
                  ||
-	  ( za_start >= za_geom2other_point( r_start, lat_start, r4, lat1 ) ) )
+	  ( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 ) ) )
 	{
-	  dlat2end = psurface_crossing_2d( r_start, za_start, r4+c3*dlat_left,
-                                                                          c3 );
-	  r_end = r4 + c3 * ( dlat_left + dlat2end ); 
+	  dlat2end = psurface_crossing_2d( r_tmp, za_start, a_r, c4 );
+	  endface  = 4;
 	}
     }
 
@@ -2187,21 +2185,36 @@ void ppath_step_geom_2d(
   if( fabs(dlat2end) > fabs(dlat_endface) )
     { 
       dlat2end = dlat_endface; 
-      r_end    = geompath_r_at_lat( ppc, lat_start, za_start, 
-                                                        lat_start + dlat2end );
+      if( za_start >= 0 )
+	{ endface  = 3; }
+      else
+	{ endface  = 1; }
     }
 
-  // Check if a tangent point is passed before dlat2end is reached. If yes,
-  // set the flag tanpoint and r_end to the radius of the tangent point.
+  // Check if a tangent point is passed before dlat2end is reached.
+  if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
+    { endface  = 6; }
+
+
+  // Calculate radius for end point
   //
-  bool tanpoint = false;
+  Numeric r_end = -1;
   //
-  if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat_endface) ) < 90 ) 
-    {
-      tanpoint = true;
-      ground   = 0;
-      r_end    = geompath_r_at_za( ppc, 90 );    // +/- 90 does not matter
-    }
+  out3 << "  end face number code : " << endface << "\n";
+  //
+  if( endface == 1 )
+    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
+  else if( endface == 2 )
+    { r_end = r1 + c2 * ( dlat_left + dlat2end ); }
+  else if( endface == 3 )
+    { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
+  else if( endface == 4 )
+    { r_end = r4 + c4 * ( dlat_left + dlat2end ); }
+  else if( endface == 5 )
+    { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
+  else if( endface == 6 )
+    { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
+
 
   // Calculate basic variables from r_start to r_end.
   //
@@ -2211,14 +2224,11 @@ void ppath_step_geom_2d(
   geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
                                                        za_start, r_end, lmax );
   //
-  const Index np = r_v.nelem();
-
-  NumericPrint(lat_v[np-1]-lat_start-dlat2end,"dlat2end2");
-  //lat_v[np-1] = lat_start + dlat2end;
+  const Index ilast = r_v.nelem() - 1;
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, atmosphere_dim, np );
+  ppath_init_structure(  ppath, atmosphere_dim, r_v.nelem() );
   //
   if( lmax < 0 )
     { ppath.method     = "2D basic geometrical"; }
@@ -2230,46 +2240,80 @@ void ppath_step_geom_2d(
   ppath_fill_2d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_field, lat_grid, 
 		                                                    ip, ilat );
   //
-  if( tanpoint )
-    {
-      ppath.tan_pos.resize(2);
-      ppath.tan_pos[0] = last( r_v );
-      ppath.tan_pos[1] = last( lat_v );
-    }
-  //
-  if( ground )
+  if( endface == 5 )
     {
       if( blackbody_ground )
 	{ ppath_set_background( ppath, 2 ); }
       else
 	{
 	  ppath.ground     = 1;
-	  ppath.i_ground   = np - 1;
+	  ppath.i_ground   = ilast;
 	}
     }
+  else if( endface == 6 )
+    {
+      ppath.tan_pos.resize(2);
+      ppath.tan_pos[0] = r_v[ilast];
+      ppath.tan_pos[1] = lat_v[ilast];
+    }
+
+  // To avoid numerical inaccuracy as far as possible, we set values to match
+  // the end of grid ranges when possible:
+  if( endface == 1 )
+    {
+      ppath.pos(ilast,1) = lat1;
+      gridpos_force_end_fd( ppath.gp_lat[ilast] );
+    }
+  else if( endface == 2  ||  endface == 4 )
+    {
+      ppath.pos(ilast,0) = r_end;
+      gridpos_force_end_fd( ppath.gp_p[ilast] );
+    }
+  else if( endface == 3 )
+    {
+      ppath.pos(ilast,1) = lat3;
+      gridpos_force_end_fd( ppath.gp_lat[ilast] );
+    }
+  else if( endface == 5 )
+    { ppath.pos(ilast,0) = r_end; }
+  else if( endface == 6 )
+    { ppath.los(ilast,0) = sign(za_start)*90; }
+
 
   // Make second part if not ready with path step:
-  if( tanpoint  ||  ( ground && !blackbody_ground ) )
+  if( endface == 6  ||  ( endface == 5  &&  !blackbody_ground ) )
     {
       Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
       // Adjust end zenith angle if ground reflection
-      if( ground )
+      if( endface == 5 )
 	{
 	  // Calculate angular tilt of the ground
 	  const Numeric gtilt = psurface_tilt_2d( 
                         rground1 + cground * ( last(lat_v) - lat1 ), cground );
 
 	  // Angle after ground reflection
-	  angle_after_ground_2d( ppath2.los(np-1,0), gtilt );
+	  angle_after_ground_2d( ppath2.los(ilast,0), gtilt );
+	  
+	  out3 << "  --- Imaginary step to handle ground reflection -----\n"; 
+	}
+      else
+	{
+	  out3 << "  --- Imaginary step to include tangent point --------\n"; 
 	}
 
       // Call this function recursively
       ppath_step_geom_2d( ppath2, atmosphere_dim, p_grid, lat_grid, z_field,
 			           r_geoid, z_ground, blackbody_ground, lmax );
 
+      out3 << "  ----------------------------------------------------\n"; 
+
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
+
+      PpathPrint(ppath,"ppath");
+      Exit();
     }
 }

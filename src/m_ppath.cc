@@ -301,6 +301,7 @@ void ppathCalc(
 
 
   // Some messages
+  out2 << "  -------------------------------------\n";
   out2 << "  sensor radius        : " << a_pos[0]/1e3 << " km\n";
   if( atmosphere_dim >= 2 )    
     out2 << "  sensor latitude      : " << a_pos[1] << "\n";
@@ -324,6 +325,8 @@ void ppathCalc(
                         lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
                         cloudbox_on, cloudbox_limits, a_pos, a_los );
 
+  out2 << "  -------------------------------------\n";
+
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
   //
@@ -334,6 +337,7 @@ void ppathCalc(
   ppath_array.push_back( ppath_step );
   // 
   Index   np = ppath_step.np;   // Counter for number of points of the path
+  Index   istep = 0;            // Counter for number of steps
   //
   const Index imax_p   = p_grid.nelem() - 1;
   const Index imax_lat = lat_grid.nelem() - 1;
@@ -341,9 +345,16 @@ void ppathCalc(
   //
   while( !ppath_what_background( ppath_step ) )
     {
+
       // Call ppath_step agenda
+      //
+      istep++;
+      out3 << "  path step number     : " << istep << "\n";
+      //
       ppath_step_agenda.execute();
-      PpathPrint(ppath_step,"ppath_step");
+
+      //PpathPrint(ppath_step,"ppath_step");
+
       // Number of points in returned path step
       const Index n = ppath_step.np;
 
