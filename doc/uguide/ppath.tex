@@ -289,13 +289,16 @@ are:
      blackbody ground intersection, the propagation path is followed by
      looping from $\mathbf{np}-1$ down to 0 (which corresponds to the tangent
      point) and then back up to $\mathbf{np}-1$. See further [**].
-  \item[pos] [Matrix] The propagation path positions. This matrix has 
+   \item[pos] [Matrix] The propagation path positions. This matrix has
      $\mathbf{np}$ rows and up to 3 columns. Each row holds a position
-     where column 1 is the pressure, column 2 the latitude and column 3 the
-     longitude (cf. Section~\ref{sec:fm_defs:sensorpos}). The number of 
-     columns for 1D and 2D is 2, while for 3D it is 3. The latitudes are 
-     stored for 1D cases as these can be of interest for some applications 
-     and are useful if the propagation path shall be plotted.
+     where column 1 is the pressure, column 2 the latitude and column
+     3 the longitude (cf. Section~\ref{sec:fm_defs:sensorpos}). The
+     number of columns for 1D and 2D is 2, while for 3D it is 3. The
+     latitudes are stored for 1D cases as these can be of interest for
+     some applications and are useful if the propagation path shall be
+     plotted. The latitudes for 1D give the angular distance to the
+     sensor (see also Section~\ref{sec:fm_defs:atmdim}). The 1D case is 
+     discussed further at the end of the section.
   \item[z] [Vector] The geometrical altitude for each path position. The
      length of this vector is accordingly $\mathbf{np}$. This is a help
      variable for plotting, and similar purposes, and shall not be used to
@@ -329,9 +332,9 @@ are:
      there is an additional column giving the azimuthal angle. The zenith and
      azimuthal angles are defined in Section~\ref{sec:fm_defs:los}.
      If the radiative background is the cloud box, the line-of-sight
-     with index $\mathbf{i\_start}$
-     gives the direction for the relevant direction of the cloud box intensity
-     field.     
+     with index $\mathbf{i\_start}$ gives the direction for the relevant 
+     direction of the cloud box intensity field. The given zenith angles for
+     1D cases are discussed at the end of the section.    
   \item[background] [String] The radiative background for the propagation path,
      that is, [**] in Equation~[**]. The possible options for this field
      are 'Cosmic background radiation', 'Blackbody ground', 'Inside cloud box'
@@ -349,6 +352,11 @@ are:
      is included in $\mathbf{pos}$ but is also stored here for simplicity
      reasons.
 \end{description}
+
+For 1D
+     downward observations, the latitudes are valid for the part of the
+     propagation path between the tangent point and the sensor. 
+
 
 
 
@@ -415,28 +423,51 @@ numerical inaccuracies. If the calculations are based solely on the
 values for the neighbouring point, a numerical inaccuracy can
 accumulate when going from one point to next.
 
+The zenith angle for a given radius is easily determined by
+Equation~\ref{eq:ppath:geomconst} (\funcindex{r2psi})
+\begin{equation}
+  \ZntAng = \sin^{-1}(p_c/\Rds)
+  \label{eq:ppath:r2psi}
+\end{equation}
+Note that the zenith angle given by Equation~\ref{eq:ppath:r2psi} is
+always inside the range $[0\degree,90\degree]$ and a correction of the
+angle must be done for 2D calculations(Section~\ref{sec:ppath:2Dwithout}).
+
 The relationship between the distance along the path for an
 infinitesimal change in radius is here denoted as the
-\textindex{geometrical factor}, $g$. If refraction is neglected, three
+\textindex{geometrical factor}, $g$. If refraction is neglected, valid
 expressions for the geometrical factor are
 \begin{equation}
-  g = \frac{1}{\cos(\ZntAng)} = \frac{1}{\sqrt{1-\sin^2(\ZntAng)}}
+  g = \frac{\DiffD l}{\DiffD r} 
+           = \frac{1}{\cos(\ZntAng)} = \frac{1}{\sqrt{1-\sin^2(\ZntAng)}}
                                             = \frac{\Rds}{\sqrt{\Rds^2-c^2}}
   \label{eq:ppath:geomfac}
 \end{equation}
-The primitive function [* correct term? *] of the geometrical factor is
+The primitive function of the geometrical factor is 
 \begin{equation}
-  \int{g(\Rds)}\,\DiffD r = \sqrt{\Rds^2-c^2}
-  \label{eq:ppath:primofg}
+  \int{g}\,\DiffD r = \sqrt{\Rds^2-p_c^2} 
+\end{equation}
+This means that the distance along the path from the tangent point
+(real or imaginary) is (\funcindex{r2l})
+\begin{equation}
+  \PpathLng(\Rds) - \PpathLng(p_c) = \sqrt{\Rds^2-p_c^2} 
+  \label{eq:ppath:r2l}
+\end{equation}
+As refraction is here neglected, the tangent
+point, the point of concern and the centre of the coordinate system
+make up a right triangle and Equation~\ref{eq:ppath:r2l}
+corresponds to the Pythagorean relation where $p_c$ is the radius of
+the tangent point. The distance between the two points ($\Delta
+\PpathLng$) is obtained by taking the difference of
+Equation~\ref{eq:ppath:r2l} for the two radii. 
+
+By noting that the zenith angle and the latitude distance to the
+tangent point sum up to 90\degree, we have that (\funcindex{r2alpha})
+\begin{equation}
+  \Lat(\Rds) - \Lat(p_c) = 90\degree - \sin^{-1}(p_c/\Rds)
+  \label{eq:ppath:r2alpha}
 \end{equation}
 
-
-%The distance
-%along the path to point 2 is ()
-\begin{equation}
-  \Delta\PpathLng = 
-  \label{eq:ppath:}
-\end{equation}
 
 
 
