@@ -16,7 +16,7 @@
    USA. */
 
 /**
-  Notes:
+  Implementation of Matrix, Vector, and such stuff.
 
   A VectorView consists of the data, which is stored in a continuous piece
   of memory, and a selection, specified by start, extend, and
@@ -48,8 +48,7 @@
   constructors which automatically set the dimensions to
   match.
 
-  Things work in the same way for the type Matrix. FIXME: Describe the
-  different ways to extract MatrixViews and VectorViews from a Matrix.
+  Things work in the same way for the type Matrix. 
 
   There exist operators *=, /=, +=, and -= to multiply  (divide,...)
   by a scalar. Plain operators *,... do not exist, because they would
@@ -59,13 +58,12 @@
   efficient, since the return value is just a scalar. 
 
   There is a constructor for vector filling it with a sequence of
-  values. FIXME: Explain in more detail.
+  values. 
 
   Matrices:
 
   You can extract sub matrices (MatrixView) using Range objects. You
-  can also extract rows and columns this way (FIXME: explain this in
-  more detail).
+  can also extract rows and columns this way.
 
   transpose(A) Returns a special MatrixView that is the transpose of the
   original. The original is not changed by this!
@@ -86,7 +84,8 @@
 
   mult(transpose(b),transpose(a),M);    // b^t = a^t * M
 
-  FIXME: Write about transform.
+  See the section about Matrices and Vectors in the ARTS user guide
+  for more details.
   
   \author Stefan Buehler
   \date   2001-06-12

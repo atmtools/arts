@@ -1,6 +1,22 @@
+2001-10-31  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-32
+
+	* src/matpackI.h: Cosmetic changes to doxygen comments.
+
+	* doc/uguide/matrix_vector.tex: Finished the first draft of this
+	chapter. Now it contains a description of Vector, Matrix, and
+	Array. 
+
+	* README: Removed one outdated sentence about arts-data.
+	
+
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-31
+
+	* All of the following changes belong to the effort to compile
+	ARTS on marvin.
 
 	* configure.in: First check for libjpeg. Otherwise static linking
 	does not work when the libraries are added in the wrong order
@@ -19,9 +35,6 @@
 	* src/arts.h: Added #include <cstddef> on top which contains
 	definition of size_t required to compile on marvin with HP's
 	broken gcc.
-
-	* All of the following changes belong to the effort to compile
-	ARTS on marvin.
 	
 	
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
@@ -339,12 +352,8 @@
 
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the whole Line Section.
-<<<<<<< ChangeLog
  
-=======
-
 	
->>>>>>> 1.275
 2001-10-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-259
@@ -3210,6 +3219,7 @@
 	* Put in parts in AUG (just parts pages, no move of chapters was 
 	needed). AUG is divided into 3 parts.
 
+	
 2000-11-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-77
@@ -3262,12 +3272,14 @@
 	* example1.arts and other arts controlfiles modified, since
 	Patrick renamed some of the workspace methods.
 
+	
 2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-74
 
 	* src/m_hmatrix.cc file had still hdf5 included, removed.
 
+	
 2000-11-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-73
@@ -3283,6 +3295,7 @@
 	* The binary files are now displayed using hdp or vshow. See further
 	AUG.
 
+	
 2000-11-07  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-72
@@ -3313,6 +3326,7 @@
 	* abundance: Information on the source and calculation of the
 	abundance used in arts is located at: aux/abundances/
 
+	
 2000-11-06  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-71
@@ -3357,6 +3371,7 @@
 
 	* The LOS structure uses now ARRAYofsizet instead of ARRAY<int>
 
+	
 2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-68
@@ -3394,6 +3409,7 @@
 	after data type). Did the same in m_io.cc. Corrected some function 
 	descriptions in methods.cc.
 
+	
 2000-11-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-67
