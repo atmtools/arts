@@ -1,3 +1,34 @@
+2002-11-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-317
+	
+	* src/logic.{cc,h} (is_singular), (is_diagonal): Implemented these 
+	functions to check whether a matrix is singular or diagonal. 
+
+	* src/agendas.cc (scat_mono_agenda): Modified input and 
+	documentation. The method *amp_matCalc* has to be part of the 
+	agenda as *amp_mat* stores the amplitude matrix for one
+	frequency. Before we calculated amp_mat outside the agenda but this 
+	can not work for more frequencies.
+
+	* src/rte.cc (rte_step): Used is_diagonal.
+
+	* src/scatrte.cc (ScatteringMain): Included a switch: If the frequency
+	grid holds only 2 frequencys the radiation field inside the 
+	cloudbox is only calculated for the first frequency.
+	(i_fieldUpdate1D):
+	Used is_singular.
+	Executing all agendas silently now.
+
+	* src/m_ppath.cc (ppathCalc): Ppath_step angenda is here executed
+	silently now (exept when it is called for the first time).
+
+	* src/m_cloudbox.cc: Removed some "couts" which were only used
+	for debugging.
+
+	* src/m_optproperties.cc (ext_matAddGas), (abs_vecAddGas): Minor
+	modifications.
+	
 2002-11-28  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-316
