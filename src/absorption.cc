@@ -1637,11 +1637,15 @@ void abs_species( MATRIX&                  abs,
   const Numeric sqrt_invPI =  sqrt(1/PI);
 
   // Constant within the Doppler Broadening calculation:
-  const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
-				      AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
+  static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
+					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
-  // dimension of f_mono
-  size_t nf = f_mono.dim();
+  // Constant to convert lower state energy
+  static const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
+
+  // dimension of f_mono, lines
+  INDEX nf = f_mono.dim();
+  INDEX nl = lines.size();
 
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
@@ -1703,31 +1707,22 @@ void abs_species( MATRIX&                  abs,
     
     //out3 << "  p = " << p_i << " Pa\n";
 
-    // Calculate total number density from pressure and temperature. n
-    // = n0*T0/p0 * p/T, ideal gas law
-    Numeric n;
-    {
-      // FIXME: Should these be moved to constants.cc?
-      // The number density cab ne calculated as n  = p/KB/t. No new 
-      // constants are needed (PE 001215). 
-      const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
-      const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
-      const Numeric n_0   = 2.686763E25;         /* Loschmidt constant [m^-3] */
-      const Numeric fac   = n_0 * T_0_C / p_0;
-      n = fac * p_i / t_i;
-    }
+    // Calculate total number density from pressure and temperature.
+    // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
+    Numeric n = p_i / BOLTZMAN_CONST / t_i;
 
     // For the pressure broadening, we also need the partial pressure:
     const Numeric p_partial = p_i * vmr(i);
 
 
     // Loop all lines:
-    for ( size_t l=0; l<lines.size(); ++l )
+    for ( size_t l=0; l< nl; ++l )
       {
 
 	// lines[l] is used several times, this construct should be
 	// faster (Oliver Lemke)
-	LineRecord l_l = lines[l];
+	LineRecord l_l = lines[l];  // which line are we dealing with
+	Numeric F0 = l_l.F();       // center frequency
 
 	// Intensity is already in the right units (Hz*m^2). It also
 	// includes already the isotopic ratio. Needs
@@ -1735,11 +1730,10 @@ void abs_species( MATRIX&                  abs,
 	Numeric intensity = l_l.I0();
 
 	// Lower state energy is in wavenumbers
-	Numeric e_lower = l_l.Elow() *  PLANCK_CONST * SPEED_OF_LIGHT
-	  * 1E2;
+	Numeric e_lower = l_l.Elow() * lower_energy_const;
 
 	// Upper state energy
-	Numeric e_upper = e_lower + l_l.F() * PLANCK_CONST;
+	Numeric e_upper = e_lower + F0 * PLANCK_CONST;
 
 	// get the ratio of the partition function
 	Numeric part_fct_ratio = 0.0;
@@ -1758,11 +1752,11 @@ void abs_species( MATRIX&                  abs,
 	  }
 
 	// Boltzmann factors
-	Numeric nom = exp(- e_lower / (BOLTZMAN_CONST * t_i ) ) - 
-       	              exp(- e_upper /( BOLTZMAN_CONST * t_i ) );
+	Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
+       	              exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
 
-	Numeric denom = exp(- e_lower / (BOLTZMAN_CONST * l_l.Ti0() ) ) - 
-       	                exp(- e_upper /( BOLTZMAN_CONST * l_l.Ti0() ) );
+	Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
+       	                exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
 
 
 	// intensity at temperature
@@ -1780,14 +1774,14 @@ void abs_species( MATRIX&                  abs,
 
 	// 3. Doppler broadening without the sqrt(ln(2)) factor, which
 	// seems to be redundant FIXME: verify .
-	Numeric sigma = l_l.F() * doppler_const * 
+	Numeric sigma = F0 * doppler_const * 
 	  sqrt( t_i / l_l.IsotopeData().Mass());
 
 
 	// Calculate the line shape:
 	lineshape_data[ind_ls].Function()(ls,
 					  aux,
-					  l_l.F(),
+					  F0,
 					  gamma,
 					  sigma,
 					  f_mono,
@@ -1796,7 +1790,7 @@ void abs_species( MATRIX&                  abs,
 
 	// Calculate the chosen normalization factor:
  	lineshape_norm_data[ind_lsn].Function()(fac,
-						l_l.F(),
+						F0,
 						f_mono,
 						nf);
 

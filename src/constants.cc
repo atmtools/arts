@@ -150,3 +150,27 @@ extern const Numeric ATM2PA         = 1.01325e5;
     \date   2000-10-31
 */
 extern const Numeric TORR2PA        = 133.3227;
+
+/** Global constant, Temperature in Celsius of 0 Kelvin.
+
+    \author Axel von Engeln
+    \date   2000-12-19
+*/
+extern const Numeric TEMP_0_C =  273.15;
+
+/** Global constant, Standard pressure in Pa.
+
+    \author Axel von Engeln
+    \date   2000-12-19
+*/
+extern const Numeric PRES_STAND = 101300.25;
+
+/** Global constant,  Loschmidt constant [m^-3].
+
+    \author Axel von Engeln
+    \date   2000-12-19
+*/
+extern const Numeric LOSCHMIDT_CONST = 2.686763E25;
+
+
+

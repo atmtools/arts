@@ -106,7 +106,7 @@ void lineshape_doppler(VECTOR&       ls,
 //------------------------------------------------------------------------
 
 // help function for lineshape_voigt_kuntz1
-long bfun_(Numeric y, Numeric x)
+long bfun6_(Numeric y, Numeric x)
 {
   /* System generated locals */
   long int ret_val;
@@ -126,7 +126,7 @@ long bfun_(Numeric y, Numeric x)
     ret_val = 4;
   }
   return ret_val;
-} /* bfun_ */
+} /* bfun6_ */
 
 
 
@@ -262,8 +262,8 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
   stackp = 1;
   stack[stackp - 1] = 1;
   stack[stackp + 19] = nf;
-  stack[stackp + 39] = bfun_(y, x[0]);
-  stack[stackp + 59] = bfun_(y, x[nf-1]);
+  stack[stackp + 39] = bfun6_(y, x[0]);
+  stack[stackp + 59] = bfun6_(y, x[nf-1]);
  L2:
   imin = stack[stackp - 1];
   imax = stack[stackp + 19];
@@ -293,13 +293,13 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
   imitte = (imax + imin) / 2;
   stack[stackp - 1] = imitte + 1;
   stack[stackp + 19] = imax;
-  stack[stackp + 39] = bfun_(y, x[imitte]);
+  stack[stackp + 39] = bfun6_(y, x[imitte]);
   stack[stackp + 59] = bmax;
   ++stackp;
   stack[stackp - 1] = imin;
   stack[stackp + 19] = imitte;
   stack[stackp + 39] = bmin;
-  stack[stackp + 59] = bfun_(y, x[imitte-1]);
+  stack[stackp + 59] = bfun6_(y, x[imitte-1]);
  L3:
   if (stackp > 0) {
     goto L2;
