@@ -1,5 +1,18 @@
 2003-08-14  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-646
+
+	* src/legendre.cc: Declare variables inside the blocks where they are
+	used, not at the top of the function.
+	Minor optimizations.
+
+	* src/legendre.h: Cosmetics.
+
+	* src/test_legendre.cc: Added CPU time measurement over loop of
+	1000000 calculations.
+
+2003-08-14  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-645
 
 	* src/legendre.{cc,h}: Added. Function calculates associated Legendre
