@@ -2859,7 +2859,7 @@ void Tensor6::resize(Index v, Index s, Index b,
        mrr.mextent!=r ||
        mcr.mextent!=c )
     {
-      delete mdata;
+      delete[] mdata;
       mdata = new Numeric[v*s*b*p*r*c];
 
       mvr.mstart = 0;
@@ -2894,7 +2894,7 @@ Tensor6::~Tensor6()
 {
 //   cout << "Destroying a Tensor6:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete[] mdata;
 }
 
 

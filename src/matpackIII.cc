@@ -837,7 +837,7 @@ void Tensor3::resize(Index p, Index r, Index c)
        mrr.mextent!=r ||
        mcr.mextent!=c )
     {
-      delete mdata;
+      delete[] mdata;
       mdata = new Numeric[p*r*c];
 
       mpr.mstart = 0;
@@ -860,7 +860,7 @@ Tensor3::~Tensor3()
 {
 //   cout << "Destroying a Tensor3:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete[] mdata;
 }
 
 

@@ -5358,7 +5358,7 @@ void Tensor7::resize( Index l,
        mrr.mextent!=r ||
        mcr.mextent!=c )
     {
-      delete mdata;
+      delete[] mdata;
       mdata = new Numeric[l*v*s*b*p*r*c];
 
       mlr.mstart = 0;
@@ -5397,7 +5397,7 @@ Tensor7::~Tensor7()
 {
 //   cout << "Destroying a Tensor7:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete[] mdata;
 }
 
 

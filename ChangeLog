@@ -1,3 +1,25 @@
+2003-08-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-639
+
+	* src/matpackI.cc: Replaced delete by delete[] in destructors, to
+	fix bug reported by valgrind. 
+
+	* src/matpackIII.cc: Replaced delete by delete[] in destructor, to
+	fix bug reported by valgrind. 
+
+	* src/matpackIV.cc: Replaced delete by delete[] in destructor, to
+	fix bug reported by valgrind. 
+
+	* src/matpackV.cc: Replaced delete by delete[] in destructor, to
+	fix bug reported by valgrind. 
+
+	* src/matpackVI.cc: Replaced delete by delete[] in destructor, to
+	fix bug reported by valgrind. 
+
+	* src/matpackVII.cc: Replaced delete by delete[] in destructor, to
+	fix bug reported by valgrind. 
+
 2003-08-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-638

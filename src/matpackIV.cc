@@ -1379,7 +1379,7 @@ void Tensor4::resize(Index b, Index p, Index r, Index c)
        mrr.mextent != r ||
        mcr.mextent != c )
     {
-      delete mdata;
+      delete[] mdata;
       mdata = new Numeric[b*p*r*c];
 
       mbr.mstart = 0;
@@ -1406,7 +1406,7 @@ Tensor4::~Tensor4()
 {
 //   cout << "Destroying a Tensor4:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete[] mdata;
 }
 
 

@@ -717,7 +717,7 @@ void Vector::resize(Index n)
   assert( 0<=n );
   if ( mrange.mextent != n )
     {
-      delete mdata;
+      delete[] mdata;
       mdata = new Numeric[n];
       mrange.mstart = 0;
       mrange.mextent = n;
@@ -729,7 +729,7 @@ void Vector::resize(Index n)
     allocate storage. */
 Vector::~Vector()
 {
-  delete mdata;
+  delete[] mdata;
 }
 
 
@@ -1467,7 +1467,7 @@ void Matrix::resize(Index r, Index c)
 
   if ( mrr.mextent!=r || mcr.mextent!=c )
     {
-      delete mdata;
+      delete[] mdata;
       mdata = new Numeric[r*c];
 
       mrr.mstart = 0;
@@ -1486,7 +1486,7 @@ Matrix::~Matrix()
 {
 //   cout << "Destroying a Matrix:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete[] mdata;
 }
 
 
