@@ -472,7 +472,7 @@ void ScatteringMonteCarlo (
         {
           mc_error[j]=sqrt((Isquaredsum[j]/mc_iteration_count-I[j]*I[j])/mc_iteration_count);
         }
-      if (std_err>0 && mc_iteration_count>1 && mc_error[0]<std_err_i){break;}
+      if (std_err>0 && mc_iteration_count>=100 && mc_error[0]<std_err_i){break;}
       if (max_time>0 && (Index)(time(NULL)-start_time)>=max_time){break;}
       if (max_iter>0 && mc_iteration_count>=max_iter){break;}
     }
