@@ -21,7 +21,7 @@
 
   \param GasAbsLookup Absorption lookup table.
 */
-void gas_abs_lookupInit(GasAbsLookup& x)
+void gas_abs_lookupInit(GasAbsLookup& /* x */)
 {
   // Nothing to do here.
   // That means, we rely on the default constructor.
