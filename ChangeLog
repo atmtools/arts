@@ -1,5 +1,12 @@
 2001-09-20  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-0-0-209
+	
+	* configure.in: Changed AC_VERBOSE to AC_MSG_RESULT.
+	
+	
+2001-09-20  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-0-0-208
 
 	* reconf: Pass --enable-maintainer-mode and all options given to
