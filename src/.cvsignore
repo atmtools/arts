@@ -1,0 +1,10 @@
+config.h.in
+stamp-h.in
+Makefile.in
+Makefile
+config.h
+stamp-h
+.deps
+make_wsv_h
+wsv.h
+arts
