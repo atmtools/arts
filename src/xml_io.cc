@@ -2102,7 +2102,7 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream& is_xml,
                       SpeciesTag& stag,
-                      bifstream *pbifs = NULL)
+                      bifstream * = NULL)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
@@ -2160,7 +2160,7 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const SpeciesTag& stag,
-                     bofstream *pbofs = NULL)
+                     bofstream * = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -2190,7 +2190,7 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream& is_xml,
                       String&  str,
-                      bifstream *pbifs = NULL)
+                      bifstream * = NULL)
 {
   ArtsXMLTag tag;
   stringbuf  strbuf;
@@ -2248,7 +2248,7 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const String& str,
-                     bofstream *pbofs = NULL)
+                     bofstream * = NULL)
 {
   ArtsXMLTag open_tag;
   ArtsXMLTag close_tag;
@@ -3044,17 +3044,17 @@ xml_write_to_stream (ostream& os_xml,
 // FIXME: These should be implemented, sooner or later...
 
 void
-xml_read_from_stream (istream& is_xml,
-                      Agenda& agenda,
-                      bifstream *pbifs = NULL)
+xml_read_from_stream (istream&,
+                      Agenda&,
+                      bifstream * = NULL)
 {
   throw runtime_error("Method not implemented!");
 }
 
 void
-xml_write_to_stream (ostream& os_xml,
-                     const Agenda& agenda,
-                     bofstream *pbofs = NULL)
+xml_write_to_stream (ostream&,
+                     const Agenda&,
+                     bofstream * = NULL)
 {
   throw runtime_error("Method not implemented!");
 }
