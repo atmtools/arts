@@ -1,3 +1,18 @@
+2002-11-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-274
+
+	* doc/uguide/scattering.tex: Updated the description of the iterative
+	method.
+
+	* doc/uguide/sybol_defs: New sybols for the fields (radiation field and
+	scattered field).
+
+	* doc/uguide/references.bib: Added a new reference (Sreerekhas paper).
+
+	* doc/uguide/Figs/scattering: Added this directory. Included also 
+	figures for scattering part here.
+
 2002-10-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-273
