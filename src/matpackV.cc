@@ -24,130 +24,6 @@
 
 #include "matpackV.h"
 
-// Functions for Iterator5D
-// ------------------------
-
-/** Default constructor. */
-Iterator5D::Iterator5D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-Iterator5D::Iterator5D(const Iterator5D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-Iterator5D::Iterator5D(const Tensor4View& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here.
-}
-
-/** Prefix increment operator. */
-Iterator5D& Iterator5D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool Iterator5D::operator!=(const Iterator5D& other) const
-{
-  if ( msv.mdata +
-       msv.mbr.mstart +
-       msv.mpr.mstart +
-       msv.mrr.mstart +
-       msv.mcr.mstart
-       !=
-       other.msv.mdata +
-       other.msv.mbr.mstart +
-       other.msv.mpr.mstart +
-       other.msv.mrr.mstart +
-       other.msv.mcr.mstart )
-    return true;
-  else
-    return false;
-}
-
-/** The -> operator is needed, so that we can write i->begin() to get
-    the 4D iterators. */
-Tensor4View* const Iterator5D::operator->()
-{
-  return &msv;
-}
-
-/** Dereferencing. */
-Tensor4View& Iterator5D::operator*()
-{
-  return msv;
-}
-
-// Functions for ConstIterator5D
-// -----------------------------
-
-/** Default constructor. */
-ConstIterator5D::ConstIterator5D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-ConstIterator5D::ConstIterator5D(const ConstIterator5D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-ConstIterator5D::ConstIterator5D(const ConstTensor4View& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here.
-}
-
-/** Prefix increment operator. */
-ConstIterator5D& ConstIterator5D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool ConstIterator5D::operator!=(const ConstIterator5D& other) const
-{
-  if ( msv.mdata +
-       msv.mbr.mstart +
-       msv.mpr.mstart +
-       msv.mrr.mstart +
-       msv.mcr.mstart
-       !=
-       other.msv.mdata +
-       other.msv.mbr.mstart +
-       other.msv.mpr.mstart +
-       other.msv.mrr.mstart +
-       other.msv.mcr.mstart )
-    return true;
-  else
-    return false;
-}
-
-/** The -> operator is needed, so that we can write i->begin() to get
-    the 4D iterators. */
-const ConstTensor4View* ConstIterator5D::operator->() const
-{
-  return &msv;
-}
-
-/** Dereferencing. */
-const ConstTensor4View& ConstIterator5D::operator*() const
-{
-  return msv;
-}
-
 // Functions for ConstTensor5View:
 // ------------------------------
 
@@ -870,33 +746,6 @@ ConstVectorView ConstTensor5View::operator()(Index s,
                          c);
 }
 
-/** Plain const index operator. */
-Numeric ConstTensor5View::operator()(Index s,
-                                            Index b,
-                                            Index p,
-                                            Index r,
-                                            Index c) const
-{
-  // Check if indices are valid:
-  assert( 0 <= s );
-  assert( 0 <= b );
-  assert( 0 <= p );
-  assert( 0 <= r );
-  assert( 0 <= c );
-  assert( s < msr.mextent );
-  assert( b < mbr.mextent );
-  assert( p < mpr.mextent );
-  assert( r < mrr.mextent );
-  assert( c < mcr.mextent );
-
-  return *( mdata +
-            msr.mstart + s * msr.mstride +
-            mbr.mstart + b * mbr.mstride +
-            mpr.mstart + p * mpr.mstride +
-            mrr.mstart + r * mrr.mstride +
-            mcr.mstart + c * mcr.mstride );
-}
-
 /** Return const iterator to first shelf. */
 ConstIterator5D ConstTensor5View::begin() const
 {
@@ -1016,6 +865,409 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor5View& v)
 
 // Functions for Tensor5View:
 // -------------------------
+
+/** Const index operator for subrange. We have to also account for the
+    case, that *this is already a subrange of a Tensor5. This allows
+    correct recursive behavior. Has to be redefined here, since it is
+    hiden by the non-const operator of the derived class. */
+ConstTensor5View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                const Range& p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor4View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor4View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                const Range& p,
+                                                const Range& r,
+                                                Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor4View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor4View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                const Range& p,
+                                                Index r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor4View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor4View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                Index p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor4View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor4View Tensor5View::operator()(const Range& s,
+                                                Index b,
+                                                const Range& p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor4View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor4View Tensor5View::operator()(Index s,
+                                                const Range& b,
+                                                const Range& p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                const Range& p,
+                                                Index r,
+                                                Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                Index p,
+                                                const Range& r,
+                                                Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(const Range& s,
+                                                const Range& b,
+                                                Index p,
+                                                Index r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(const Range& s,
+                                                Index b,
+                                                const Range& p,
+                                                Index r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(const Range& s,
+                                                Index b,
+                                                const Range& p,
+                                                const Range& r,
+                                                Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(const Range& s,
+                                                Index b,
+                                                Index p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(Index s,
+                                                const Range& b,
+                                                Index p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(Index s,
+                                                const Range& b,
+                                                const Range& p,
+                                                Index r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(Index s,
+                                                const Range& b,
+                                                const Range& p,
+                                                const Range& r,
+                                                Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor5View::operator()(Index s,
+                                                Index b,
+                                                const Range& p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(const Range& s,
+                                               const Range& b,
+                                               Index p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(const Range& s,
+                                               Index b,
+                                               const Range& p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(const Range& s,
+                                               Index b,
+                                               Index p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(const Range& s,
+                                               Index b,
+                                               Index p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(Index s,
+                                               const Range& b,
+                                               Index p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(Index s,
+                                               const Range& b,
+                                               Index p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(Index s,
+                                               const Range& b,
+                                               const Range& p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               const Range& p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               const Range& p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               Index p,
+                                               const Range& r,
+                                               const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by four.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor5View::operator()(const Range& s,
+                                               Index b,
+                                               Index p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by four.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor5View::operator()(Index s,
+                                               const Range& b,
+                                               Index p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by four.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               const Range& p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by four.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               Index p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by four.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor5View::operator()(Index s,
+                                               Index b,
+                                               Index p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor5View::operator()(s,b,p,r,c);
+}
 
 /** Index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor5. This allows
@@ -1706,32 +1958,7 @@ VectorView Tensor5View::operator()(Index s,
                     c);
 }
 
-/** Plain const index operator. */
-Numeric& Tensor5View::operator()(Index s,
-                                        Index b,
-                                        Index p,
-                                        Index r,
-                                        Index c)
-{
-  // Check if indices are valid:
-  assert( 0 <= s );
-  assert( 0 <= b );
-  assert( 0 <= p );
-  assert( 0 <= r );
-  assert( 0 <= c );
-  assert( s < msr.mextent );
-  assert( b < mbr.mextent );
-  assert( p < mpr.mextent );
-  assert( r < mrr.mextent );
-  assert( c < mcr.mextent );
 
-  return *( mdata +
-            msr.mstart + s * msr.mstride +
-            mbr.mstart + b * mbr.mstride +
-            mpr.mstart + p * mpr.mstride +
-            mrr.mstart + r * mrr.mstride +
-            mcr.mstart + c * mcr.mstride );
-}
 /** Return const iterator to first shelf. Has to be redefined here, since it is
     hiden by the non-const operator of the derived class.*/
 ConstIterator5D Tensor5View::begin() const

@@ -39,13 +39,38 @@
 class Iterator4D {
 public:
   // Constructors:
-  Iterator4D();
-  Iterator4D(const Iterator4D& o);
-  Iterator4D(const Tensor3View& x, Index stride);
+  /** Default constructor. */
+  Iterator4D() { /* Nothing to do here. */ }
+
+  /** Copy constructor. */
+  Iterator4D(const Iterator4D& o) : msv(o.msv), mstride(o.mstride)
+      { /* Nothing to do here. */ }
+
+  /** Explicit constructor. */
+  Iterator4D(const Tensor3View& x, Index stride)
+    : msv(x), mstride(stride)
+      { /* Nothing to do here. */ }
 
   // Operators:
-  Iterator4D& operator++();
-  bool operator!=(const Iterator4D& other) const;
+  /** Prefix increment operator. */
+  Iterator4D& operator++() { msv.mdata += mstride; return *this; }
+
+  /** Not equal operator, needed for algorithms like copy. */
+  bool operator!=(const Iterator4D& other) const
+    { if ( msv.mdata +
+           msv.mpr.mstart +
+           msv.mrr.mstart +
+           msv.mcr.mstart
+           !=
+           other.msv.mdata +
+           other.msv.mpr.mstart +
+           other.msv.mrr.mstart +
+           other.msv.mcr.mstart )
+        return true;
+      else
+        return false;
+    }
+
   Tensor3View* const operator->();
   Tensor3View& operator*();
 
@@ -60,13 +85,41 @@ private:
 class ConstIterator4D {
 public:
   // Constructors:
-  ConstIterator4D();
-  ConstIterator4D(const ConstIterator4D& o);
-  ConstIterator4D(const ConstTensor3View& x, Index stride);
+  // Functions for ConstIterator4D
+  // -----------------------------
+
+  /** Default constructor. */
+  ConstIterator4D() { /* Nothing to do here. */ }
+
+  /** Copy constructor. */
+  ConstIterator4D(const ConstIterator4D& o) : msv(o.msv), mstride(o.mstride)
+      { /* Nothing to do here. */ }
+
+  /** Explicit constructor. */
+  ConstIterator4D(const ConstTensor3View& x, Index stride)
+    : msv(x), mstride(stride)
+      { /* Nothing to do here. */ }
 
   // Operators:
-  ConstIterator4D& operator++();
-  bool operator!=(const ConstIterator4D& other) const;
+  /** Prefix increment operator. */
+  ConstIterator4D& operator++() { msv.mdata += mstride; return *this; }
+
+  /** Not equal operator, needed for algorithms like copy. */
+  bool operator!=(const ConstIterator4D& other) const
+    { if ( msv.mdata +
+           msv.mpr.mstart +
+           msv.mrr.mstart +
+           msv.mcr.mstart
+           !=
+           other.msv.mdata +
+           other.msv.mpr.mstart +
+           other.msv.mrr.mstart +
+           other.msv.mcr.mstart )
+        return true;
+      else
+        return false;
+    }
+
   const ConstTensor3View* operator->() const;
   const ConstTensor3View& operator*()  const;
 
@@ -122,7 +175,24 @@ public:
   ConstVectorView  operator()( Index b,        Index p,        const Range& r, Index c        ) const;
   ConstVectorView  operator()( Index b,        Index p,        Index r,        const Range& c ) const;
 
-  Numeric          operator()( Index b,        Index p,        Index r,        Index c        ) const;
+  /** Plain const index operator. */
+  Numeric operator()(Index b, Index p, Index r, Index c) const
+    { // Check if indices are valid:
+      assert( 0 <= b );
+      assert( 0 <= p );
+      assert( 0 <= r );
+      assert( 0 <= c );
+      assert( b < mbr.mextent );
+      assert( p < mpr.mextent );
+      assert( r < mrr.mextent );
+      assert( c < mcr.mextent );
+
+      return *( mdata +
+                mbr.mstart + b * mbr.mstride +
+                mpr.mstart + p * mpr.mstride +
+                mrr.mstart + r * mrr.mstride +
+                mcr.mstart + c * mcr.mstride );
+    }
 
   // Functions returning iterators:
   ConstIterator4D begin() const;
@@ -172,11 +242,34 @@ protected:
     which also allocates storage. */
 class Tensor4View : public ConstTensor4View {
 public:
-  /* The following statement avoids the need of reimplementing all const
-   * operators again in this class */
-  using ConstTensor4View::operator();
+
+  // Const index operators:
+  ConstTensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c ) const;
+
+  ConstTensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        ) const;
+  ConstTensor3View operator()( const Range& b, const Range& p, Index r,        const Range& c ) const;
+  ConstTensor3View operator()( const Range& b, Index p,        const Range &r, const Range& c ) const;
+  ConstTensor3View operator()( Index b,        const Range& p, const Range& r, const Range& c ) const;
+
+  ConstMatrixView  operator()( const Range& b, const Range& p, Index r,        Index c        ) const;
+  ConstMatrixView  operator()( const Range& b, Index p,        const Range& r, Index c        ) const;
+  ConstMatrixView  operator()( const Range& b, Index p,        Index r,        const Range& c ) const;
+  ConstMatrixView  operator()( Index b,        const Range& p, Index r,        const Range& c ) const;
+  ConstMatrixView  operator()( Index b,        const Range& p, const Range& r, Index c        ) const;
+  ConstMatrixView  operator()( Index b,        Index p,        const Range& r, const Range& c ) const;
+
+  ConstVectorView  operator()( const Range& b, Index p,        Index r,        Index c        ) const;
+  ConstVectorView  operator()( Index b,        const Range& p, Index r,        Index c        ) const;
+  ConstVectorView  operator()( Index b,        Index p,        const Range& r, Index c        ) const;
+  ConstVectorView  operator()( Index b,        Index p,        Index r,        const Range& c ) const;
+
+  /** Plain const index operator. Has to be redefined here, since it is
+    hiden by the non-const operator of the derived class. */
+  Numeric operator()(Index b, Index p, Index r, Index c) const
+    { return ConstTensor4View::operator()(b,p,r,c); }
 
   // Non-const index operators:
+
   Tensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c );
 
   Tensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        );
@@ -196,7 +289,24 @@ public:
   VectorView  operator()( Index b,        Index p,        const Range& r, Index c        );
   VectorView  operator()( Index b,        Index p,        Index r,        const Range& c );
 
-  Numeric&    operator()( Index b,        Index p,        Index r,        Index c        );
+  /** Plain non-const index operator. */
+  Numeric& operator()(Index b, Index p, Index r, Index c)
+    { // Check if indices are valid:
+      assert( 0 <= b );
+      assert( 0 <= p );
+      assert( 0 <= r );
+      assert( 0 <= c );
+      assert( b < mbr.mextent );
+      assert( p < mpr.mextent );
+      assert( r < mrr.mextent );
+      assert( c < mcr.mextent );
+
+      return *( mdata +
+                mbr.mstart + b * mbr.mstride +
+                mpr.mstart + p * mpr.mstride +
+                mrr.mstart + r * mrr.mstride +
+                mcr.mstart + c * mcr.mstride );
+    }
 
   // Functions returning const iterators:
   ConstIterator4D begin() const;

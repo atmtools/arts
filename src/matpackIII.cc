@@ -24,97 +24,6 @@
 
 #include "matpackIII.h"
 
-// Functions for Iterator3D
-// ------------------------
-
-/** Default constructor. */
-Iterator3D::Iterator3D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-Iterator3D::Iterator3D(const Iterator3D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-Iterator3D::Iterator3D(const MatrixView& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here. 
-}
-
-/** Prefix increment operator. */
-Iterator3D& Iterator3D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool Iterator3D::operator!=(const Iterator3D& other) const
-{
-  if ( msv.mdata +
-       msv.mrr.mstart +
-       msv.mcr.mstart 
-       !=
-       other.msv.mdata +
-       other.msv.mrr.mstart +
-       other.msv.mcr.mstart )
-    return true;
-  else
-    return false;
-}
-
-// Functions for ConstIterator3D
-// -----------------------------
-
-/** Default constructor. */
-ConstIterator3D::ConstIterator3D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-ConstIterator3D::ConstIterator3D(const ConstIterator3D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-ConstIterator3D::ConstIterator3D(const ConstMatrixView& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here. 
-}
-
-/** Prefix increment operator. */
-ConstIterator3D& ConstIterator3D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool ConstIterator3D::operator!=(const ConstIterator3D& other) const
-{
-  if ( msv.mdata +
-       msv.mrr.mstart +
-       msv.mcr.mstart
-       !=
-       other.msv.mdata +
-       other.msv.mrr.mstart +
-       other.msv.mcr.mstart )
-    return true;
-  else
-    return false;
-}
-
-
 // Functions for ConstTensor3View:
 // ------------------------------
 
@@ -227,23 +136,6 @@ ConstVectorView ConstTensor3View::operator()(const Range& p,
                          mpr, p);
 }
 
-/** Plain const index operator. */
-Numeric ConstTensor3View::operator()(Index p, Index r, Index c) const
-{
-  // Check if indices are valid:
-  assert( 0<=p );
-  assert( 0<=r );
-  assert( 0<=c );
-  assert( p<mpr.mextent );
-  assert( r<mrr.mextent );
-  assert( c<mcr.mextent );
-
-  return *( mdata +
-            mpr.mstart + p*mpr.mstride +
-            mrr.mstart + r*mrr.mstride +
-            mcr.mstart + c*mcr.mstride );
-}
-
 /** Return const iterator to first page. */
 ConstIterator3D ConstTensor3View::begin() const
 {
@@ -343,6 +235,84 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
 
 // Functions for Tensor3View:
 // -------------------------
+
+/** Const index operator for subrange. We have to also account for the
+    case, that *this is already a subrange of a Tensor3. This allows
+    correct recursive behavior. Has to be redefined here, since it is
+    hiden by the non-const operator of the derived class. */
+ConstTensor3View Tensor3View::operator()(const Range& p,
+						const Range& r,
+						const Range& c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor3View::operator()(const Range& p,
+                                                    const Range& r,
+                                                    Index c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor3View::operator()(const Range& p,
+                                                    Index        r,
+                                                    const Range& c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor3View::operator()(Index p,
+                                                    const Range& r,
+                                                    const Range& c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor3View::operator()(Index p,
+                                                    Index r,
+                                                    const Range& c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor3View::operator()(Index p,
+                                                    const Range& r,
+                                                    Index c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor3View::operator()(const Range& p,
+                                                    Index r,
+                                                    Index c) const
+{
+  return ConstTensor3View::operator()(p,r,c);  
+}
+
 
 /** Index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor3. This allows

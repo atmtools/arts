@@ -35,20 +35,42 @@
 class Iterator3D {
 public:
   // Constructors:
-  Iterator3D();
-  Iterator3D(const Iterator3D& o);
-  Iterator3D(const MatrixView& x, Index stride);
+  /** Default constructor. */
+  Iterator3D() { /* Nothing to do here. */ }
+
+  /** Copy constructor. */
+  Iterator3D(const Iterator3D& o) : msv(o.msv), mstride(o.mstride)
+      { /* Nothing to do here. */ }
+
+  /** Explicit constructor. */
+  Iterator3D(const MatrixView& x, Index stride) : msv(x), mstride(stride)
+      { /* Nothing to do here. */ }
 
   // Operators:
-  Iterator3D& operator++();
-  bool operator!=(const Iterator3D& other) const;
+  /** Prefix increment operator. */
+  Iterator3D& operator++()
+    { msv.mdata += mstride; return *this; }
+
+  /** Not equal operator, needed for algorithms like copy. */
+  bool operator!=(const Iterator3D& other) const
+    { if ( msv.mdata +
+           msv.mrr.mstart +
+           msv.mcr.mstart
+           !=
+           other.msv.mdata +
+           other.msv.mrr.mstart +
+           other.msv.mcr.mstart )
+        return true;
+      else
+        return false;
+    }
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  MatrixView* const Iterator3D::operator->() { return &msv; }
+  MatrixView* const operator->() { return &msv; }
 
   /** Dereferencing. */
-  MatrixView& Iterator3D::operator*() { return msv; }
+  MatrixView& operator*() { return msv; }
  
 private:
   /** Current position. */
@@ -61,20 +83,42 @@ private:
 class ConstIterator3D {
 public:
   // Constructors:
-  ConstIterator3D();
-  ConstIterator3D(const ConstIterator3D& o);
-  ConstIterator3D(const ConstMatrixView& x, Index stride);
+  /** Default constructor. */
+  ConstIterator3D() { /* Nothing to do here. */ }
+
+  /** Copy constructor. */
+  ConstIterator3D(const ConstIterator3D& o) : msv(o.msv), mstride(o.mstride)
+      { /* Nothing to do here. */ }
+
+  /** Explicit constructor. */
+  ConstIterator3D(const ConstMatrixView& x, Index stride)
+    : msv(x), mstride(stride)
+      { /* Nothing to do here. */ }
 
   // Operators:
-  ConstIterator3D& operator++();
-  bool operator!=(const ConstIterator3D& other) const;
+  /** Prefix increment operator. */
+  ConstIterator3D& operator++() { msv.mdata += mstride; return *this; }
+
+  /** Not equal operator, needed for algorithms like copy. */
+  bool operator!=(const ConstIterator3D& other) const
+    { if ( msv.mdata +
+           msv.mrr.mstart +
+           msv.mcr.mstart
+           !=
+           other.msv.mdata +
+           other.msv.mrr.mstart +
+           other.msv.mcr.mstart )
+        return true;
+      else
+        return false;
+    }
 
   /** The -> operator is needed, so that we can write i->begin() to get
     the 1D iterators. */
-  const ConstMatrixView* ConstIterator3D::operator->() const { return &msv; }
+  const ConstMatrixView* operator->() const { return &msv; }
 
   /** Dereferencing. */
-  const ConstMatrixView& ConstIterator3D::operator*() const { return msv; }
+  const ConstMatrixView& operator*() const { return msv; }
 
 
 private:
@@ -124,7 +168,21 @@ public:
   ConstVectorView  operator()( Index p,        const Range& r, Index c        ) const;
   ConstVectorView  operator()( const Range& p, Index r,        Index c        ) const;
 
-  Numeric          operator()( Index p,        Index r,        Index c) const;
+  /** Plain const index operator. */
+  Numeric operator()(Index p, Index r, Index c) const
+    { // Check if indices are valid:
+      assert( 0<=p );
+      assert( 0<=r );
+      assert( 0<=c );
+      assert( p<mpr.mextent );
+      assert( r<mrr.mextent );
+      assert( c<mcr.mextent );
+
+      return *( mdata +
+                mpr.mstart + p*mpr.mstride +
+                mrr.mstart + r*mrr.mstride +
+                mcr.mstart + c*mcr.mstride );
+    }
 
   // Functions returning iterators:
   ConstIterator3D begin() const;
@@ -173,11 +231,25 @@ protected:
     which also allocates storage. */
 class Tensor3View : public ConstTensor3View {
 public:
-  /* The following statement avoids the need of reimplementing all const
-   * operators again in this class */
-  using ConstTensor3View::operator();
+
+  // Const index operators:
+  ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
+
+  ConstMatrixView  operator()( const Range& p, const Range& r, Index c        ) const;
+  ConstMatrixView  operator()( const Range& p, Index r,        const Range& c ) const;
+  ConstMatrixView  operator()( Index p,        const Range& r, const Range& c ) const;
+
+  ConstVectorView  operator()( Index p,        Index r,        const Range& c ) const;
+  ConstVectorView  operator()( Index p,        const Range& r, Index c        ) const;
+  ConstVectorView  operator()( const Range& p, Index r,        Index c        ) const;
+
+  /** Plain const index operator. Has to be redefined here, since it is
+    hiden by the non-const operator of the derived class. */
+  Numeric operator()(Index p, Index r, Index c) const
+    { return ConstTensor3View::operator()(p,r,c); }
 
   // Non-const index operators:
+
   Tensor3View operator()( const Range& p, const Range& r, const Range& c );
 
   MatrixView  operator()( const Range& p, const Range& r, Index c        );

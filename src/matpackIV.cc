@@ -25,53 +25,6 @@
 #include "matpackIV.h"
 
 
-// Functions for Iterator4D
-// ------------------------
-
-/** Default constructor. */
-Iterator4D::Iterator4D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-Iterator4D::Iterator4D(const Iterator4D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-Iterator4D::Iterator4D(const Tensor3View& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here.
-}
-
-/** Prefix increment operator. */
-Iterator4D& Iterator4D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool Iterator4D::operator!=(const Iterator4D& other) const
-{
-  if ( msv.mdata +
-       msv.mpr.mstart +
-       msv.mrr.mstart +
-       msv.mcr.mstart
-       !=
-       other.msv.mdata +
-       other.msv.mpr.mstart +
-       other.msv.mrr.mstart +
-       other.msv.mcr.mstart )
-    return true;
-  else
-    return false;
-}
-
 /** The -> operator is needed, so that we can write i->begin() to get
     the 3D iterators. */
 Tensor3View* const Iterator4D::operator->()
@@ -83,53 +36,6 @@ Tensor3View* const Iterator4D::operator->()
 Tensor3View& Iterator4D::operator*()
 {
   return msv;
-}
-
-// Functions for ConstIterator4D
-// -----------------------------
-
-/** Default constructor. */
-ConstIterator4D::ConstIterator4D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-ConstIterator4D::ConstIterator4D(const ConstIterator4D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-ConstIterator4D::ConstIterator4D(const ConstTensor3View& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here.
-}
-
-/** Prefix increment operator. */
-ConstIterator4D& ConstIterator4D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool ConstIterator4D::operator!=(const ConstIterator4D& other) const
-{
-  if ( msv.mdata +
-       msv.mpr.mstart +
-       msv.mrr.mstart +
-       msv.mcr.mstart
-       !=
-       other.msv.mdata +
-       other.msv.mpr.mstart +
-       other.msv.mrr.mstart +
-       other.msv.mcr.mstart )
-    return true;
-  else
-    return false;
 }
 
 /** The -> operator is needed, so that we can write i->begin() to get
@@ -467,29 +373,6 @@ ConstVectorView ConstTensor4View::operator()(Index b,
                          c);
 }
 
-/** Plain const index operator. */
-Numeric ConstTensor4View::operator()(Index b,
-                                            Index p,
-                                            Index r,
-                                            Index c) const
-{
-  // Check if indices are valid:
-  assert( 0 <= b );
-  assert( 0 <= p );
-  assert( 0 <= r );
-  assert( 0 <= c );
-  assert( b < mbr.mextent );
-  assert( p < mpr.mextent );
-  assert( r < mrr.mextent );
-  assert( c < mcr.mextent );
-
-  return *( mdata +
-            mbr.mstart + b * mbr.mstride +
-            mpr.mstart + p * mpr.mstride +
-            mrr.mstart + r * mrr.mstride +
-            mcr.mstart + c * mcr.mstride );
-}
-
 /** Return const iterator to first book. */
 ConstIterator4D ConstTensor4View::begin() const
 {
@@ -598,6 +481,186 @@ std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v)
 
 // Functions for Tensor4View:
 // -------------------------
+
+/** Const index operator for subrange. We have to also account for the
+    case, that *this is already a subrange of a Tensor4. This allows
+    correct recursive behavior. Has to be redefined here, since it is
+    hiden by the non-const operator of the derived class. */
+ConstTensor4View Tensor4View::operator()(const Range& b,
+                                                const Range& p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor4View::operator()(const Range& b,
+                                                const Range& p,
+                                                const Range& r,
+                                                Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor4View::operator()(const Range& b,
+                                                const Range& p,
+                                                Index r,
+                                                const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor4View::operator()(const Range& b,
+                                                Index p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstTensor3View. (Reducing the dimension by one.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstTensor3View Tensor4View::operator()(Index b,
+                                                const Range& p,
+                                                const Range& r,
+                                                const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor4View::operator()(const Range& b,
+                                               const Range& p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor4View::operator()(const Range& b,
+                                               Index p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor4View::operator()(const Range& b,
+                                               Index p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor4View::operator()(Index b,
+                                               const Range& p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor4View::operator()(Index b,
+                                               const Range& p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstMatrixView. (Reducing the dimension by two.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstMatrixView Tensor4View::operator()(Index b,
+                                               Index p,
+                                               const Range& r,
+                                               const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor4View::operator()(const Range& b,
+                                               Index p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor4View::operator()(Index b,
+                                               const Range& p,
+                                               Index r,
+                                               Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor4View::operator()(Index b,
+                                               Index p,
+                                               const Range& r,
+                                               Index c       ) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
+
+/** Const index operator returning an object of type
+    ConstVectorView. (Reducing the dimension by three.) Has to be
+    redefined here, since it is hiden by the non-const operator of the
+    derived class. */
+ConstVectorView Tensor4View::operator()(Index b,
+                                               Index p,
+                                               Index r,
+                                               const Range& c) const
+{
+  return ConstTensor4View::operator()(b,p,r,c);
+}
 
 /** Index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Tensor4. This allows
@@ -890,29 +953,6 @@ VectorView Tensor4View::operator()(Index b,
                     mrr.mstart + r * mrr.mstride,
                     mcr,
                     c);
-}
-
-/** Plain non-const index operator. */
-Numeric& Tensor4View::operator()(Index b,
-                                        Index p,
-                                        Index r,
-                                        Index c)
-{
-  // Check if indices are valid:
-  assert( 0 <= b );
-  assert( 0 <= p );
-  assert( 0 <= r );
-  assert( 0 <= c );
-  assert( b < mbr.mextent );
-  assert( p < mpr.mextent );
-  assert( r < mrr.mextent );
-  assert( c < mcr.mextent );
-
-  return *( mdata +
-            mbr.mstart + b * mbr.mstride +
-            mpr.mstart + p * mpr.mstride +
-            mrr.mstart + r * mrr.mstride +
-            mcr.mstart + c * mcr.mstride );
 }
 
 /** Return const iterator to first book. Has to be redefined here, since it is
