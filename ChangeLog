@@ -1,3 +1,22 @@
+2002-06-25  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-165
+
+	* doc/uguide/scattering.tex : Some modifications in the part
+	regarding the calculation of scattering properties.  Added the
+	section about calculating the scattering integral.
+	
+	* src/m_scatproperties.cc, m_scatrte.cc, workspace.cc, methods.cc:
+	Renamed workspace variable pha_mat_part to pha_mat.
+
+	* src/m_scatproperties.cc, m_scatrte.cc, workspace.cc, methods.cc:
+	Renamed workspace method pha_mat_partCalc to pha_matCalc.
+
+	* src/m_scatrte.cc, methods.cc: Renamed workspace method 
+	scat_integralCalc to scat_fieldCalc to be consistent with the
+	naming scheme in ARTS.
+	
+
 2002-06-25  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-1-164

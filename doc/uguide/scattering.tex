@@ -34,7 +34,7 @@
               & \artsstyle{i\_field\_old}  & needed for the iteration\\
 i$_I$         &                             & Stokes component \\
 \ExtMat       & -                        & total extinction matrix \\
-\SExMat        & \artsstyle{ext\_mat} & extinction matrix for a
+\SExMat        & \artsstyle{ext\_mat} & extinction martrix for a
 single particle type\\
 \AbsVec       & -                        & total absorption vector \\
 \SAbVec       & \artsstyle{abs\_vec} &   absorption vector for a
@@ -73,277 +73,6 @@ box\\
 \newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
 
 
-\levelb{Polarization and Stokes Parameters}
-%=====================================================================
-\label{sec:scattering:pol_stokes}
-
-FIXME: some nice introductory sentence (motivation) here.
-
-Plane monochromatic electromagnetic waves are commonly written in the form
-\begin{equation} 
-  \label{eq:scattering:e_field}
-  \VctStl{E}(\VctStl{x},t) = \left[E_v \atop E_h\right] 
-  e^{i(\VctStl{k}\VctStl{x} - \omega t)}
-\end{equation}
-where $\VctStl{E}$ is the electric field vector, the subscripts $v$
-and $h$ denote the components with vertical and horizontal
-polarization, respectively. $E_v$ and $E_h$, the amplitudes, are
-complex numbers, $\VctStl{k}$ and $\omega$ are the wavenumber vector
-and the angular frequency, respectively, of the plane wave.  It is
-always implicitly understood that the actual, physical, electric field
-is the real part of the above expression. Rewriting the complex
-amplitudes $E_v$ and $E_h$ using real, positive amplitudes $a_v$ and
-$a_h$, and phases $\delta_v$ and $\delta_v$, 
-\begin{equation}
-  \label{eq:scattering:compl_ampl}
-  E_v=a_v e^{i\delta_v}\mbox{ , }
-  E_h=a_h e^{i\delta_h}
-\end{equation}
-the actual electric field vector $\VctStl{\tilde{E}}$ is
-\begin{equation}
-  \label{eq:scattering:actual_efield}
-  \VctStl{\tilde{E}}(\VctStl{x},t) = \Re[\VctStl{E}(\VctStl{x},t)] 
-    = \left[a_v\cdot \cos(\VctStl{k}\VctStl{x} - \omega t + \delta_v) 
-                       \atop 
-            a_h\cdot \cos(\VctStl{k}\VctStl{x} - \omega t + \delta_h) 
-       \right] 
-\end{equation}
-
-In general, instruments do not measure the electric or magnetic field
-vectors of an electromagnetic wave, but rather the time-averaged
-intensity, i.e., the energy flux, $F$. This is the time-averaged Poynting
-vector (which, in turn, is proportional to the square of the electric
-field), thus:
-\begin{eqnarray}
-  F%(\VctStl{x}) 
-  &=& 
-  \sqrt{\frac{\epsilon}{\mu}}\overline{(\VctStl{E}(\VctStl{x},t))^2}\\
-   \nonumber
-  &=&
-  \sqrt{\frac{\epsilon}{\mu}}\left(
-    a_v^2\overline{\cos^2(\VctStl{k}\VctStl{x} - \omega t + \delta_v)}
-    + a_h^2\overline{\cos^2(\VctStl{k}\VctStl{x} - \omega t + \delta_h)}
-   \right)
-  \label{eq:scattering:intensity}
-\end{eqnarray}
-The overline denotes the time average
-%, which is taken over one oscillation period $T$ ($T=2\pi\omega$). 
-%Since the time average of
-which for cosine squares is 1/2, thus:
-\begin{equation}
-  \label{eq:scattering:intensity_}
- F(\VctStl{x}) = 
-  \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}(
-    a_v^2 + a_h^2)  
-\end{equation}
-Taking into account that for plane, monochromatic waves 
-the time average always results in a factor
-$\frac{1}{2}$, we can also directly write the intensity using the
-electric field vector in complex notation
-(Eq.~\ref{eq:scattering:e_field}).
-\begin{eqnarray}
-  \label{eq:scattering:intensity_from_complex}
-  F(\VctStl{x}) &=&  \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
-                      \VctStl{E} (\VctStl{x},t) 
-                    \cdot \VctStl{E}^\ast (\VctStl{x},t)\\ \nonumber
-               &=&     \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
-                     (E_v E_v^\ast + E_h E_h^\ast)
-\end{eqnarray}
-where the asterisk denotes complex conjugation%
-\footnote{Note that the same argumentation works for ???} .
-
-Commonly the factor  $\frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}$ is
-omitted, and in addition to the flux, three more intensity quantities
-are defined as in the following equations. They are called 
-\emph{Stokes parameters}:
-\begin{eqnarray}
-  \label{eq:scattering:stokesparam_I}
-  I &=&   E_v E_v^\ast + E_h E_h^\ast \\
-  \label{eq:scattering:stokesparam_Q}
-  Q &=&   E_v E_v^\ast - E_h E_h^\ast \\
-  \label{eq:scattering:stokesparam_U}
-  U &=& - E_v E_h^\ast - E_h E_v^\ast \\
-  \label{eq:scattering:stokesparam_V}
-  V &=& i(E_h E_v^\ast - E_v E_h^\ast)
-\end{eqnarray}
-Using the amplitude/phase notation from
-Eq.~(\ref{eq:scattering:compl_ampl}),
-we can rewrite the Stokes parameters as 
-\begin{eqnarray}
-  \label{eq:scattering:stokesparam_alt_I}
- I &=& a_v^2 + a_h^2\\
-  \label{eq:scattering:stokesparam_alt_Q}
- Q &=& a_v^2 - a_h^2\\
-  \label{eq:scattering:stokesparam_alt_U}
- U &=&  - a_v a_h \cos(\delta_v-\delta_h)\\
-  \label{eq:scattering:stokesparam_alt_V}
- V &=&   a_v a_h \sin(\delta_v-\delta_h)
-\end{eqnarray}
-The Stokes parameters fully characterize the electromagnetic wave and
-therefore contain the same information as the electric field vector
-(except for one absolute phase).  Since instruments generally measure
-intensities (fluxes), describing electromagnetic radiation by the
-Stokes parameters is more practical than describing it by the electric
-(or magnetic) field vector. Furthermore, the Stokes parameters are
-always real numbers.
-
- 
-In order understand what the Stokes parameters mean, we have to go
-back to the electric field vector and see what polarization state it
-describes.  To do so, we look at the curve that the tip of the
-physical electric field vector $\VctStl{\tilde{E}}$ describes with
-time at a fixed position $\VctStl{x_0}$:
-\begin{eqnarray}
-  \tilde{E}_v (t) &=& a_v \cos(\Delta_v - \omega t)\\
-  \tilde{E}_h (t) &=& a_h \cos(\Delta_h - \omega t)
-\end{eqnarray}
-where $\Delta_{v,h} = \VctStl{k}\VctStl{x_0} + \delta_{v,h}$. 
-To see that this is an ellipse, we first split the cosines using
-the addition theorem:
-\begin{eqnarray}
-  \label{eq:scattering:tip_of_fieldvec1}
-  \tilde{E}_v (t) &=&   a_v \cos\Delta_v \cos(\omega t)
-                      + a_v \sin\Delta_v \sin(\omega t)\\
-  \label{eq:scattering:tip_of_fieldvec2}
-  \tilde{E}_h (t) &=&   a_h \cos\Delta_h \cos(\omega t)
-                      + a_h \sin\Delta_h \sin(\omega t)
-\end{eqnarray}
-
-In order to have the tip of $\VctStl{\tilde{E}}$ describe an ellipse with semi-major axis $a_0 \cos\beta$
-and
-semi-minor axis $a_0 \sin\beta$, where $a_0^2 = a_v^2 + a_h^2$, 
-it should have the following form
-\begin{eqnarray}
-  \label{eq:scattering:ellipse_parallel}
- \tilde{E}_v (t) &=&   a_0 \sin\beta \cos(\omega t)\\
- \tilde{E}_h (t) &=&   a_0 \cos\beta \sin(\omega t)
-\end{eqnarray}
-Here $\beta$ must be between $-45\degree$ and $45\degree$: the tip of the
-vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm 45\degree$
-(circular polarization), oscillates along the $h$-axis for $\beta
-= 0$ (linear polarization) and else describes an ellipse. The sense of
-rotation is clockwise (???) for positive and counterclockwise (???)
-for negative
-$\beta$. Since $|\tan\beta|$ is the ratio of the semi-minor and
-semi-major axes of the ellipse, $\beta$ is called the ellipticity
-angle.
-
-Note that the semi-major axis is oriented along the positive $h$-axis.  To
-have the major axis of the ellipse enclose an arbitrary angle $\zeta$
-($0 \leq \zeta < 180\degree$) with the $h$-axis, we apply a rotation
-matrix and get the equation for an ellipse with arbitrary shape
-(ellipticity) and orientation:
-\begin{eqnarray}
-  \label{eq:scattering:ellipse_rotated1}
- \tilde{E}_v (t) &=&  a_0(  \sin\beta \cos(\omega t) \cos\zeta
-                           +\cos\beta \sin(\omega t) \sin\zeta )\\
-  \label{eq:scattering:ellipse_rotated2}
- \tilde{E}_h (t) &=&  a_0( -\sin\beta \cos(\omega t) \sin\zeta
-                           +\cos\beta \sin(\omega t) \cos\zeta )
-\end{eqnarray}
-
-Now we want to establish a direct connection between the parameters
-$\beta$ and $\zeta$ describing the shape (ellipticity) and orientation
-of the polarization ellipse on the one hand, and the amplitudes $a_v$
-and $a_h$ and phases $\delta_v$ and $\delta_v$ of the components of
-the electric field vector on the other hand.  Comparing the
-$\sin(\omega t)$ and $\cos(\omega t)$ terms in
-Eqs.~(\ref{eq:scattering:ellipse_rotated1})%
--(\ref{eq:scattering:ellipse_rotated2}) with the corresponding terms
-in Eqs.~(\ref{eq:scattering:tip_of_fieldvec1})%
--(\ref{eq:scattering:tip_of_fieldvec2}), we get:
-\begin{eqnarray}
-  \label{eq:scattering:corresp1a}
- a_v \cos\Delta_v &=& a_0 \sin\beta \cos\zeta\\
-  \label{eq:scattering:corresp1b}
- a_v \sin\Delta_v &=& a_0 \cos\beta \sin\zeta
-\end{eqnarray}
-and 
-\begin{eqnarray}
-  \label{eq:scattering:corresp2a}
- a_h \cos\Delta_h &=& -a_0 \sin\beta \sin\zeta\\
-  \label{eq:scattering:corresp2b}
- a_h \sin\Delta_h &=&  a_0 \cos\beta \cos\zeta
-\end{eqnarray}
-Multiplying Eq.~(\ref{eq:scattering:corresp1a}) with
-Eq.~(\ref{eq:scattering:corresp2a}), and
-Eq.~(\ref{eq:scattering:corresp1b}) with
-Eq.~(\ref{eq:scattering:corresp2b}) and adding up the results, we get
-\begin{equation}
-  a_v a_h (\cos\Delta_v\cos\Delta_h + \sin\Delta_v\sin\Delta_h)
-  = a_0^2 \sin\zeta\cos\zeta (\cos^2\beta - \sin^2\beta) 
-\end{equation}
-Using the addition theorems for sinusoidals and taking into account
-that
-$\Delta_v-\Delta_h = \delta_v-\delta_h$:
-\begin{equation}
-  \label{eq:scattering:sinzetacosbeta}
-  \frac{a_v a_h}{a_0^2} \cos(\delta_v-\delta_h)
-  = \frac{1}{2}\sin(2\zeta)\cos(2\beta)
-\end{equation}
-In a similar way, subtracting the product of
-Eq.~(\ref{eq:scattering:corresp1b}) with
-Eq.~(\ref{eq:scattering:corresp2a}) from the product of
-Eq.~(\ref{eq:scattering:corresp1a}) with
-Eq.~(\ref{eq:scattering:corresp2b}) and adding up the results, we get
-\begin{equation}
-  \label{eq:scattering:sinbeta}
-  -\frac{a_v a_h}{a_0^2} \sin(\delta_v-\delta_h)
-  = \frac{1}{2}\sin(2\beta)
-\end{equation}
-The above two equations tell us how to translate the amplitudes
-($a_v$, $a_h$) and phases ($\delta_v$, $\delta_h$) of the vertical and
-horizontal component of the electric field into the orientation and
-shape of the ellipse that the tip of the electric field vector describes with
-time.  We can obtain one further relation by subtracting the sum of
-the squares of Eq.~(\ref{eq:scattering:corresp2a}) and
-Eq.~(\ref{eq:scattering:corresp2b}) from the sum of the squares of
-Eq.~(\ref{eq:scattering:corresp1a}) and
-Eq.~(\ref{eq:scattering:corresp1b}):
-\begin{equation}
-  \label{eq:scattering:cosbetazeta}
- a_v^2 - a_h^2 =  -a_0^2 \cos(2\zeta)\cos(2\beta)
-\end{equation}
-Finally, we use the above 3 equations
-(\ref{eq:scattering:sinzetacosbeta}), 
-(\ref{eq:scattering:sinbeta}) and 
-(\ref{eq:scattering:cosbetazeta}) to rewrite the Stokes parameters
-(Eqs.~\ref{eq:scattering:stokesparam_alt_I}%
--\ref{eq:scattering:stokesparam_alt_V}) 
-as
-\begin{eqnarray}
-  \label{eq:scattering:stokesparam_alt2_I}
- I &=& a_0^2\\
-  \label{eq:scattering:stokesparam_alt2_Q}
- Q &=&  -a_0^2 \cos(2\zeta)\cos(2\beta)\\ 
-  \label{eq:scattering:stokesparam_alt2_U}
- U &=& -a_o^2 \sin(2\zeta)\cos(2\beta)\\
-  \label{eq:scattering:stokesparam_alt2_V}
- V &=& -a_0^2 \sin(2\beta)
-\end{eqnarray}
-
-Thus, we can get the orientation angle $\zeta$ of the ellipse from
-\begin{equation}
-  \label{eq:scattering:tan2zeta}
- \tan(2\zeta) = \frac{U}{V}
-\end{equation}
-Since $0 \leq 2\zeta < 360\degree$, there are 2 solutions for $\zeta$ for a
-given pair $U,V$. This ambiguity is resolved by looking at
-Eq.~\ref{eq:scattering:stokesparam_alt2_Q}, taking into account that
-$|\beta| \leq 45\degree$ and thus $\cos(2\beta) \geq 0$:
-The sign of $\cos(2\zeta)$ must be the same as the sign of $-Q$.
-
-We get the ellipticity angle $\beta$  from
-\begin{equation}
-  \label{eq:scattering:tan2beta}
- \tan(2\beta) = - \frac{V}{(Q^2 + U^2)^{1/2}}  
-\end{equation}
-
-\texttt{FIXME: Measuring the Stokes parameters}
-
-\texttt{FIXME: Partial Polarization}
-
-
 
 
 \levelb{General radiative transfer equation}
@@ -364,14 +93,14 @@ Formally it is a four dimensional vector equation where \StoVec
 $(I,Q,U,V)$ is the Stokes vector.
 Its first component $I$ is the monochromatic flux, the
 second and third components $Q$ and $U$ describe the state of linear
-polarization and the last component $V$ denotes the state of circular
-polarization of the radiation propagating in the direction \PDir.
+polarisation and the last component $V$ denotes the state of circular
+polarisation of the radiation propagating in the direction \PDir.
 \DiffD $s$ denotes the pathlength element along direction \PDir. \Frq\ 
 is the frequency of the radiation.
 
 The first term of Equation (\ref{eq:scattering:RTE}) corresponds to the extinction of
 radiation determined by the extinction coefficient matrix \ExtMat
-. For microwave radiation traveling through the atmosphere we
+. For microwave radiation travelling through the atmosphere we
 have extinction due to gaseous
 absorption, particle absorption and  particle scattering. Lambert's law
 states that the extinction process is
@@ -439,7 +168,7 @@ $K_{11}$, the scalar absorption coefficient is given by the first
 element of the absorption vector $a_1$ and the scalar scattering
 coefficient is the first element of the scattering efficiency matrix
 $Y_{11}$.\\
-Substituting these definitions the scalar radiative transfer equation
+Substituting these definitions the scalar radiative transfer eqaution
 into (\ref{eq:scattering:RTE}) is obtained:
 \begin{eqnarray}
   \label{eq:scattering:scalar_rte}
@@ -547,7 +276,7 @@ After each iteration the convergence is checked. If
 \end{eqnarray}
 a solution to the vector radiative transfer Equation (\ref{eq:scattering:RTE})
 has been
-found. An analogous convergence test is done for the scalar case.
+found. An analogeous convergence test is done for the scalar case.
 
 \levelb{Database for the single scattering properties}
 %============================================================
@@ -640,7 +369,7 @@ Stokes dimension is only one, only the element $\ExtMat_{11}$ will be
 nonzero, it corresponds to the scalar extinction cross section. \\
 As input for calculating the particle extinction the following
 variables are required:
-\wsvindex{pnd}, i.e. the particle number density, and 
+\wsvindex{pnd\_field}, i.e. the particle number density, and 
 \wsvindex{ext\_mat\_spt}, which contains the extinction cross section
 matrices for each chosen particle type. How this variable is generated
 is explained in Section \ref{sec:scattering:ext_mat_spt}. For calculating the
@@ -667,7 +396,7 @@ ext_matCalc{}      // Function which sums up
 
 \vspace{2ex}
 \noindent
-The methods \wsmindex{ext\_mat\_partCalc} and
+The workspace methods \wsmindex{ext\_mat\_partCalc} and
 \wsmindex{ext\_mat\_gasCalc} are explained in Sections
 \ref{sec:scattering:ext_mat_part} and \ref{sec:scattering:ext_mat_gas}
 respectively.
@@ -680,12 +409,14 @@ The workspace method \wsmindex{ext\_mat\_partCalc} gives as output the
 particle extinction matrix \aExtMat{p} stored in the variable
 \wsvindex{ext\_mat\_part} which has the chosen Stokes dimension. So in
 the most general case it is a 4x4 matrix.\\
-Input is first the workspace variable \wsvindex{ext\_mat\_spt} (see Section
-\ref{sec:scattering:ext_mat_spt}). The second input variable are the
-local particle number densities \artsstyle{pnd} for all particle types,
-that means \artsstyle{pnd} is of dimension $N_{pt}$ (number of
-particle types). \\
-The function sums up the extinction matrices for all particle types
+First input is the workspace variable \wsvindex{ext\_mat\_spt} (see Section
+\ref{sec:scattering:ext_mat_spt}). The second input variable is the
+local particle number densities \artsstyle{pnd\_field} for all particle types,
+that means \artsstyle{pnd\_field} is a Tensor4 with dimension 
+[$N_{pt}, N_{p}, N_{lat}, N_{lon}$]. The other workspace variable
+inputs required are \wsvindex{atmosphere\_dim}, \wsvindex{scat\_p\_index},
+\wsvindex{scat\_lat\_index}, and \wsvindex{scat\_lon\_index}. \\
+The method sums up the extinction matrices for all particle types
 weighted with the particle number density:
 \begin{eqnarray}
   \aExtMat{p} = \sum_i \PDen_i \aSExMat{p}_i 
@@ -702,7 +433,7 @@ weighted with the particle number density:
 
 From the database for single scattering properties (see Section 
 \ref{sec:scattering:database}) the extinction matrices for each
-particle type can be derived using the workspace method
+particle type can be calculated using the workspace method
 \wsmindex{ext\_mat\_sptCalc}.\\
 Output is a tensor including local extinction matrices for each
 particle type, so it is of the dimension [$N_{pt}, N_{I}, N_{I}$],
@@ -718,7 +449,7 @@ explained in Section \ref{sec:scattering:database}.
 
 
 The extinction cross section matrices \SExMat{} are
-calculated for all particle types chosen in the control
+calculated for all patricle types chosen in the control
 file. The following formulas are used:
 \begin{eqnarray}
   \label{eq:gen_ext_matrix}
@@ -749,12 +480,14 @@ file. The following formulas are used:
 
 Output of the workspace method \wsmindex{pha\_matCalc} is the phase
 matrix stored in the variable \wsvindex{pha\_mat}  with dimension
-according to the chosen Stokes
-dimension, so in general it is a 4x4 matrix.\\
+[$N_{\ScaZa}, N_{\ScaAa}, N_{I}, N_{I}$], where $N_{I}$ denotes the
+chosen Stokes dimension.  $N_{\ScaZa}$ and 
+$N_{\ScaAa}$ are the number of angles in the angular grids defined for
+the scattering calculations.\\
 Input is first the workspace variable \wsvindex{pha\_mat\_spt} (see Section
 \ref{sec:scattering:pha_mat_spt}). The second input variable is the
-local particle number density vector \artsstyle{pnd} for all particle types
-chosen in the control file.
+local particle number density vector \artsstyle{pnd\_field} for all
+particle types chosen in the control file.\\
 The function sums up the phase matrices for all particle types
 weighted with the particle number density.
 \begin{eqnarray}
@@ -818,7 +551,7 @@ as a $N_I$ component vector, i.e. one dimension for each Stokes component. If th
 Stokes dimension is only one, it will only have one component
 corresponding to the scalar absorption coefficient. \\
 Input for this agenda are the following variables:
-the particle number density \wsvindex{pnd} and 
+the particle number density \wsvindex{pnd\_field} and 
 \wsvindex{abs\_vec\_spt}, which contains the absorption vectors  for
 each chosen particle type. How this variable is obtained
 is described in Section \ref{sec:scattering:abs_vec_spt}. For calculating 
@@ -860,10 +593,13 @@ The workspace method \wsmindex{abs\_vec\_partCalc} gives as output the
 particle absorption vector \aAbsVec{p} stored in the variable
 \wsvindex{abs\_vec\_part} which has the chosen Stokes dimension, so in
 general a four component vector.\\
-Input is first the workspace variable \wsvindex{abs\_vec\_spt} (see Section
-\ref{sec:scattering:abs_vec_spt}). The second input variable are the
-local particle number densities \artsstyle{pnd} for all particle types
-chosen in the control file.
+First input is the workspace variable \wsvindex{abs\_vec\_spt} (see Section
+\ref{sec:scattering:abs_vec_spt}). The second input variable is the
+local particle number densities \artsstyle{pnd\_field} for all particle types,
+that means \artsstyle{pnd\_field} is a Tensor4 with dimension 
+[$N_{pt}, N_{p}, N_{lat}, N_{lon}$]. The other workspace variable
+inputs required are \wsvindex{atmosphere\_dim}, \wsvindex{scat\_p\_index},
+\wsvindex{scat\_lat\_index}, and \wsvindex{scat\_lon\_index}. \\  
 The function sums up the absorption vectors for all particle types
 weighted with the particle number density.
 \begin{eqnarray}
@@ -1050,7 +786,7 @@ which is stored in the workspace variable
 %=====================================================================
 The method \wsmindex{i\_fieldIterate} solves the RTE using the
 iterative method.  The function has
-included switches to adapt automatically to the atmospheric
+inculded switches to adapt automatically to the atmospheric
 dimensionality specified
 in the workspace variable \wsvindex{atmosphere\_dim}. Note that only
 1D or 3D scattering calculations are possible. 
@@ -1086,6 +822,27 @@ to put \artsstyle{i\_field}.
 \levelc{Method to compute the scattered field}
 %=========================================
 \label{sec:scattering:sca_fieldCalc}
+The method \wsmindex{scat\_integralCalc} does exactly what is
+described in Section 
+\ref{sec:scattering:scat_int}.  The output of this method is
+\wsvindex{scat\_field} which has the same dimension as
+\artsstyle{i\_field}.  This is generated by integrating the product of
+intensity field \artsstyle{i\_field} and phase matrix
+\artsstyle{pha\_mat} over all incident zenith and azimuth angles.  In
+addition to \artsstyle{i\_field}, phase matrix for single 
+particle \artsstyle{pha\_mat\_spt}, the particle number density field
+\artsstyle{pnd\_field} are also inputs to this method.  They are used
+to calculate the phase matrix \artsstyle{pha\_mat} by calling the
+method \artsstyle{pha\_mat\_partCalc}(see Section
+\ref{sec:scattering:pha_mat} ). \\ 
+The integration method used is the trapezoidal integration implemented
+by the function \artsstyle{AngIntegrate\_trapezoid} in the file
+\artsstyle{math\_funcs.cc}.  This explains why we need this
+computation of scattered field to be
+put in as an agenda since there can be different methods by which we
+can perform the integral. 
+The output \artsstyle{scat\_field} is used in the
+methods \artsstyle{i\_fieldUpdate1D} and \artsstyle{i\_fieldIterate}.
 
 \levelc{Methods for solving the RT with fixed scattering integral}
 %==================================================================
@@ -1094,7 +851,7 @@ to put \artsstyle{i\_field}.
 \leveld{Workspace method \artsstyle{i\_fieldUpdate1D}}
 %===================================================================
 For a 1D atmosphere the method  \wsmindex{i\_fieldUpdate1D} is used to
-evaluate the RT Equation (\ref{eq:scattering:RTE_sol}) and update the
+evalutate the RT Equation (\ref{eq:scattering:RTE_sol}) and update the
 radiation field \wsvindex{i\_field} for each iteration. 
 The function loops over pressures given in \wsvindex{p\_grid} and
 propagation directions given in \wsvindex{scat\_za\_grid}.  
@@ -1116,7 +873,7 @@ performed:
 \item A  propagation path starting at the current point specified by
   the internal variable \artsstyle{p\_index} is initialized. Its
   direction is specified by \artsstyle{scat\_za\_index}. Using the
-  \wsvindex{ppath\_step\_agenda} (cf. Section
+  \wsvindex{ppath\_step\_agenda} (cp. Section
   \ref{sec:ppath:stepcalc}) 
   the intersection point with the next
   layer is determined as well as the pathlength d{\bf s} from the starting
@@ -1156,7 +913,7 @@ includes the inverse of \ExtMat\ multiplied with a vector. This is
 computed numerically by a LU decomposition as described in the
 Sections \ref{sec:lin_alg:backsub} and
 \ref{sec:lin_alg:lu_decomp}. The functions used here are
-\artsstyle{ludcmp} and \artsstyle{lubacksub}. The matrix exponential is
+\artsstyle{ludcmp} and \artsstyle{lubacksub}. The matrix emponential is
 computed using again \artsstyle{matrix\_exp}.\\
 Finally the method sums up the two terms to get the updated Stokes Vector. 
  
@@ -1185,5 +942,3 @@ matrix inverse, such that the standard C math library is sufficient.
 %%% mode: latex
 %%% TeX-master: "uguide"
 %%% End: 
-% LocalWords:  Emde ext abs vec pha pnd sca lat lon za aa pt FIXME Eq Eqs scatt
-% LocalWords:  mishchenko nonsp partic
