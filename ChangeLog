@@ -1,3 +1,15 @@
+2003-07-29  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-624
+	
+	* src/m_cloudbox.cc (ybatchMetProfiles): Modified the method so
+	that the lower cloudbox limit is the lowest pressure level. This
+	makes it possible to set the ground emissivity other than
+	1. Improved documentation also.
+
+	* src/m_scatrte.cc, src/scatrte.cc: Removed unnecesary couts which
+	I used to test the ground emissivity part.  
+
 2003-07-29  Cory Davis  <cory@met.ed.ac.uk>
 	
 	* arts-1-1-623

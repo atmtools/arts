@@ -50,7 +50,7 @@
 #include "special_interp.h"
 #include "scatrte.h"
 #include "logic.h"
-
+#include "check_input.h"
 
 
 
@@ -387,8 +387,7 @@ void cloud_ppath_update1D(
       out3 << "Interpolate temperature field\n";
       interp( t_int, itw, 
               t_field(joker, 0, 0), ppath_step.gp_p );
-      cout<<"t_field[1]  before "<<" "<<t_field(1,0,0) <<endl;
-      cout<<"t_field[0] before "<<" "<<t_field(0,0,0) <<endl;
+      
       // 
       // The vmr_field is needed for the gaseous absorption 
       // calculation.
@@ -417,9 +416,15 @@ void cloud_ppath_update1D(
       // at the intersection with the next layer and propagating
       // to the considered point.
       stokes_vec = i_field_int(joker, ppath_step.np-1);
-      cout<<"ppath_step.np-1"<<""<<ppath_step.np-1<<endl;
+      
+      // ppath_what_background(ppath_step) tells the 
+      // radiative background.  More information in the 
+      // function get_radiative_background.
+      // if there is no background we proceed the RT
+
       Index bkgr = ppath_what_background(ppath_step);
-      cout<<"background"<<bkgr<<endl;
+      
+      // if 0, there is no background
       if (bkgr == 0)
 	{
 	  
@@ -507,47 +512,50 @@ void cloud_ppath_update1D(
 		  0, 0,
 		  scat_za_index, 0,
 		  joker) = stokes_vec;
-	}
+	}// if loop end - for non_ground background
+
+      // bkgr=2 indicates that the background is ground
       else if (bkgr == 2)
 	{
-	  cout<<"scattering angle"<<" "<<scat_za_grid[scat_za_index]<<endl;
-	  
+	  //Set rte_pos, rte_gp_p and rte_los to match the last point
+	  //in ppath.
 	  Index np = ppath_step.np;
+	  //pos
 	  rte_pos.resize( atmosphere_dim );
 	  rte_pos = ppath_step.pos(np-1,Range(0,atmosphere_dim));
+	  //los
 	  rte_los.resize( ppath_step.los.ncols() );
 	  rte_los = ppath_step.los(np-1,joker);
-	  cout<<"rte_los"<<" "<<rte_los<<endl;
+	  //gp_p
 	  gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
-	  
+	  // Executes the ground reflection agenda
+	  chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
 	  ground_refl_agenda.execute();
 
-	  cout<<"p_index"<<" "<<p_index<<endl;
-	  cout<<"cloudbox_limits[0]"<<" "<<cloudbox_limits[0]<<endl;
-	  cout<<"p_indexcloudbox_limits[0]"<<" "<<p_index-cloudbox_limits[0]<<endl;
-	  Index     nlos = ground_los.nrows();
-	  cout<<"ground_los"<<" "<<ground_los<<endl;
-	  
-	  //
-	  Vector i_field_local(stokes_dim,0);
-	  
+	  // Check returned variables
+	  if( ground_emission.nrows() != f_grid.nelem()  ||  
+	      ground_emission.ncols() != stokes_dim )
+	    throw runtime_error(
+                  "The size of the created *ground_emission* is not correct.");
+
+	  Index nlos = ground_los.nrows();
+
+	  // Define a local vector i_field_sum which adds the 
+	  // products of groudnd_refl_coeffs with the downwelling 
+	  // radiation for each elements of ground_los
+	  Vector i_field_sum(stokes_dim,0);
+	  // Loop over the ground_los elements
 	  for( Index ilos=0; ilos < nlos; ilos++ )
 	    {
 	      if( stokes_dim == 1 )
 		{
-		  cout<<"ground_reflection coefficients"<<""<<ground_refl_coeffs(ilos,f_index,0,0) <<endl;
-		  cout<<"i_field"<<" "<< i_field(cloudbox_limits[0],
-						 0, 0,
-						 (scat_za_grid.nelem() -1 - scat_za_index), 0,
-						 0)<<endl;
-		  i_field_local[0] += ground_refl_coeffs(ilos,f_index,0,0) *
+		  i_field_sum[0] += ground_refl_coeffs(ilos,f_index,0,0) *
 		    i_field(cloudbox_limits[0],
 			    0, 0,
 			    (scat_za_grid.nelem() -1 - scat_za_index), 0,
 			    0);
-	      cout<<"i_field_local"<<""<<i_field_local[0] <<endl;
 		}
-	      else
+	      else 
 		{
 		  Vector stokes_vec(stokes_dim);
 		  mult( stokes_vec, 
@@ -558,31 +566,27 @@ void cloud_ppath_update1D(
 				joker));
 		  for( Index is=0; is < stokes_dim; is++ )
 		    { 
-		      i_field_local[is] += stokes_vec[is];
+		      i_field_sum[is] += stokes_vec[is];
 		    }
 		  
 		}
 	    }
+	  // Copy from *i_field_sum* to *i_field*, and add the ground emission
 	  for( Index is=0; is < stokes_dim; is++ )
 	    {
-	      
-	      cout<<"ground emission"<<""<<ground_emission <<endl;
 	      i_field (cloudbox_limits[0],
 		       0, 0,
 		       scat_za_index, 0,
-		       is) = i_field_local[is] + ground_emission(f_index,is);
-	      cout<<"i_field_local after adding emission"<<""<<i_field(cloudbox_limits[0],
-								       0, 0,
-								       scat_za_index, 0,
-								       is)<<endl;
+		       is) = i_field_sum[is] + ground_emission(f_index,is);
 	    }
-	  
+	  // now the RT is done to the next point in the path.
+	  // 
 	  Vector stokes_vec_local;
 	  stokes_vec_local = i_field (cloudbox_limits[0],
 				      0, 0,
 				      scat_za_index, 0,
 				      joker);
-	  cout<<"stokes_vec_local "<<""<<stokes_vec_local[0]<<endl;
+	  
 	  for( Index k= ppath_step.np-1; k > 0; k--)
 	    {
 	      // Length of the path between the two layers.
@@ -656,9 +660,9 @@ void cloud_ppath_update1D(
 		  0, 0,
 		  scat_za_index, 0,
 		  joker) = stokes_vec_local;
-	  cout<<"stokes_vec_local"<<" "<<stokes_vec_local <<endl;
-	}//end if bkgr = 2
-    }    //end if inside cloudbox
+	  
+	}//end else loop over ground
+    }//end if inside cloudbox
 }
 
 

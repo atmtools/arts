@@ -2016,7 +2016,7 @@ void CloudboxGetIncoming(// WS Output:
   method.  See documentation of WSM *met_profile_calc_agenda* for more
   information on this agenda
 
-\param ybatch FIXME: Add documentation.
+\param ybatch spectra for a batch of metoffice profiles
 \param t_field_raw temperature field
 \param z_field_raw altitude field
 \param vmr_field_raw VMR field
@@ -2024,21 +2024,21 @@ void CloudboxGetIncoming(// WS Output:
 \param pnd_field particle number density field
 \param y spectra
 \param p_grid pressure grid
-\param sensor_los FIXME: Add documentation.
-\param cloudbox_on FIXME: Add documentation.
-\param cloudbox_limits FIXME: Add documentation.
-\param z_ground FIXME: Add documentation.
-\param gas_species FIXME: Add documentation.
-\param met_profile_path FIXME: Add documentation.
+\param sensor_los sensor line of sight
+\param cloudbox_on flag to activate cloudbox
+\param cloudbox_limits limits of the cloudbox
+\param z_ground ground height
+\param gas_species tag group absorption
+\param met_profile_path path of metoffice data
 \param met_profile_calc_agenda agenda for absorption calculation and RT methods
 \param f_grid frequency grid
-\param met_amsu_data FIXME: Add documentation.
-\param sensor_pos FIXME: Add documentation.
-\param r_geoid FIXME: Add documentation.
-\param lat_grid FIXME: Add documentation.
-\param lon_grid FIXME: Add documentation.
-\param atmosphere_dim FIXME: Add documentation.
-\param nelem_p_grid FIXME: Add documentation.
+\param met_amsu_data amsu data set
+\param sensor_pos sensor position 
+\param r_geoid geoid radius
+\param lat_grid latitude grid
+\param lon_grid longitude grid
+\param atmosphere_dim atmospheric dimensionality
+\param nelem_p_grid number of elements in pressure grid
 
   \author Sreerekha T.R.
   \date 2003-04-17
@@ -2159,7 +2159,7 @@ void ybatchMetProfiles(//Output
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
        			 vmr_field_h2o);
      
-      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/size200/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd200.xml", 
+      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/new_forecastfields/size200/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd200.xml", 
        		 pnd_field_here);
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
@@ -2199,20 +2199,26 @@ void ybatchMetProfiles(//Output
       vmr_field_raw[2][2] = vmr_field_raw[0][2];
       vmr_field_raw[2][3] (joker, joker, joker) = 0.209;
       
-      //xml_write_to_file(met_profile_basenames[i]+ ".N2.xml", vmr_field_raw[1]);
-      //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
-
       Index level_counter = 0;
       Numeric cl_grid_min, cl_grid_max;
-      for (Index ip = 0; ip< N_p; ++ip)
+     //  for (Index ip = 0; ip< N_p; ++ip)
+//  	{
+// 	  if(pnd_field_here[3](ip, 0, 0) != 0.0) 
+// 	    {
+// 	      ++level_counter;
+// 	      if(level_counter == 1)
+// 		{
+// 		  cl_grid_min = t_field_raw[0](ip, 0, 0);
+// 		}
+// 	      cl_grid_max = t_field_raw[0](ip, 0, 0);
+// 	    }
+// 	}
+      cl_grid_min = t_field_raw[0](0, 0, 0);
+       for (Index ip = 0; ip< N_p; ++ip)
  	{
 	  if(pnd_field_here[3](ip, 0, 0) != 0.0) 
 	    {
 	      ++level_counter;
-	      if(level_counter == 1)
-		{
-		  cl_grid_min = t_field_raw[0](ip, 0, 0);
-		}
 	      cl_grid_max = t_field_raw[0](ip, 0, 0);
 	    }
 	}
@@ -2235,8 +2241,8 @@ void ybatchMetProfiles(//Output
       cloudbox_limits.resize( atmosphere_dim*2 );
       if(level_counter == 0)
 	{
-	  cl_grid_min = p_grid[10];
-	  cl_grid_max = p_grid[11];
+	  //cl_grid_min = p_grid[0];
+	  cl_grid_max = p_grid[1];
 	  cloudboxSetManually(cloudbox_on, 
 			      cloudbox_limits,
 			      atmosphere_dim,
@@ -2250,16 +2256,15 @@ void ybatchMetProfiles(//Output
       else
 	{
 	  
-	  if(cl_grid_min >= p_grid[1])
-	    {
-	       cout<<"Did it reache here"<<endl;
-	       cl_grid_min = p_grid[1];
-	      if(cl_grid_max >= p_grid[1])
-		{
-		  cl_grid_max = p_grid[2];
-		}
-	    }
-
+	  // if(cl_grid_min >= p_grid[1])
+// 	    {
+// 	       cout<<"Did it reache here"<<endl;
+// 	       cl_grid_min = p_grid[1];
+// 	      if(cl_grid_max >= p_grid[1])
+// 		{
+// 		  cl_grid_max = p_grid[2];
+// 		}
+// 	    }
 	  if(cl_grid_min == cl_grid_max)
 	    {
 	      --cl_grid_max;
@@ -2306,22 +2311,22 @@ void ybatchMetProfiles(//Output
   method.  See documentation of WSM *met_profile_calc_agenda* for more
   information on this agenda
 
-\param ybatch FIXME: Add documentation.
+\param ybatch spectra for a batch of metoffice profiles
 \param t_field_raw temperature field
 \param z_field_raw altitude field
 \param vmr_field_raw VMR field
 \param y spectra
 \param p_grid pressure grid
-\param sensor_los FIXME: Add documentation.
-\param z_ground FIXME: Add documentation.
-\param gas_species FIXME: Add documentation.
+\param sensor_los sensor line of sight
+\param z_ground ground height
+\param gas_species species under consideration
 \param met_profile_path Path to the MO profiles
 \param met_profile_calc_agenda agenda for absorption calculation and RT methods
 \param f_grid frequency grid
-\param met_amsu_data FIXME: Add documentation.
-\param sensor_pos FIXME: Add documentation.
-\param r_geoid FIXME: Add documentation.
-\param nelem_p_grid FIXME: Add documentation.
+\param met_amsu_data the latlon information in amsu obs
+\param sensor_pos sensor position
+\param r_geoid geoid radius
+\param nelem_p_grid number of levels in the pressure grid.
 
   \author Sreerekha T.R.
   \date 2003-04-17

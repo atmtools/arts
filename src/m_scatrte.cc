@@ -1103,7 +1103,7 @@ i_fieldUpdateSeq1D(// WS Output:
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
-      cout<<"scat_za_grid at the start of the looping"<<scat_za_grid[scat_za_index]<<endl;
+      
       //Only dummy variables:
       Index scat_lat_index = 0;
       Index scat_lon_index = 0;
@@ -1135,8 +1135,7 @@ i_fieldUpdateSeq1D(// WS Output:
       // Sequential update for uplooking angles
       if ( scat_za_grid[scat_za_index] <= 90) 
         {
-          cout<<"Uplooking Loop-----------------------------------------"<<endl;
-          // Loop over all positions inside the cloud box defined by the 
+	  // Loop over all positions inside the cloud box defined by the 
           // cloudbox_limits exculding the upper boundary. For uplooking
           // directions, we start from cloudbox_limits[0] and go up
           // to cloudbox_limits[1] to do a sequential update of the
@@ -1160,10 +1159,9 @@ i_fieldUpdateSeq1D(// WS Output:
         }
       else if ( scat_za_grid[scat_za_index] > theta_lim) 
         {
-	   cout<<"Downlooking Loop-----------------------------------------"<<endl;
-      //
-      // Sequential updating for downlooking angles
-      //
+	  //
+	  // Sequential updating for downlooking angles
+	  //
           for(Index p_index = cloudbox_limits[0]+1; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
