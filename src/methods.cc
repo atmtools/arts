@@ -133,15 +133,15 @@ void define_md_data()
 	TYPES(Numeric_t, Numeric_t, int_t)));
 
 
-
-//
-//=== Array of Matrix and Array of Vector Write Methods
-//
+  //
+  //=== Array of Matrix and Array of Vector Write Methods
+  //
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteToFile"),
 	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "The filename is <basename>.<variable_name>.am.\n"
+		    "The filename can also be an empty string.\n"
+		    "In that case the name is set to <basename>.<variable_name>.am.\n"
 		    "The format is as follows:\n\n"
 		    "# <comments>\n"
 		    "<n_array_elements>\n"
@@ -164,46 +164,21 @@ void define_md_data()
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(ARRAYofMATRIX_),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfMatrixWriteToNamedFile"),
-	DESCRIPTION("Writes a variable of this type to a named file.\n"
-		    "The filename has to be specified.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(ARRAYofMATRIX_),
-	KEYWORDS("filename"),
-	TYPES(string_t)));
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteToFile"),
 	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
-	OUTPUT(), 
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(ARRAYofVECTOR_),
-	KEYWORDS(),
-	TYPES()));
-  
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfVectorWriteToNamedFile"),
-	DESCRIPTION("Writes a variable of this type to a named file.\n"
-		    "The filename has to be specified.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(ARRAYofVECTOR_),
-	KEYWORDS("filename"),
-	TYPES(string_t)));
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
 
 
@@ -214,51 +189,27 @@ void define_md_data()
     ( MdRecord
       ( NAME("MatrixWriteToFile"),
 	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(MATRIX_),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixWriteToNamedFile"),
-	DESCRIPTION("Writes a variable of this type to a named file.\n"
-		    "The filename has to be specified.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(MATRIX_),
-	KEYWORDS("filename"),
-	TYPES(string_t)));
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteToFile"),
 	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
-	OUTPUT(), 
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(VECTOR_),
-	KEYWORDS(),
-	TYPES()));
-  
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorWriteToNamedFile"),
-	DESCRIPTION("Writes a variable of this type to a named file.\n"
-		    "The filename has to be specified.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(VECTOR_),
-	KEYWORDS("filename"),
-	TYPES(string_t)));
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
 
 
@@ -268,20 +219,9 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadFromFile"),
-	DESCRIPTION("Reads a variable of this type from a file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(ARRAYofMATRIX_),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfMatrixReadFromNamedFile"),
-	DESCRIPTION("Reads a variable of this type from a named file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+	DESCRIPTION("Writes a variable of this type to a file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(ARRAYofMATRIX_),
@@ -292,22 +232,9 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadFromFile"),
-	DESCRIPTION("Reads a variable of this type from a file.\n"
-		    "The filename has to be specified.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(ARRAYofVECTOR_),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-  
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfVectorReadFromNamedFile"),
-	DESCRIPTION("Reads a variable of this type from a named file.\n"
-		    "The filename has to be specified.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+	DESCRIPTION("Writes a variable of this type to a file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(ARRAYofVECTOR_),
@@ -322,26 +249,28 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixReadFromFile"),
-	DESCRIPTION("Reads a variable of this type from a file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+	DESCRIPTION("Writes a variable of this type to a file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(MATRIX_),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("VectorReadFromFile"),
-	DESCRIPTION("Reads a variable of this type from a file.\n"
-		    "See `ArrayOfMatrixWriteToFile' for a description of the format."),
+	DESCRIPTION("Writes a variable of this type to a file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "See `ArrayOfMatrixWriteToFile' for more details."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(VECTOR_),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
   
 
 
@@ -386,7 +315,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("linesWriteToNamedFile"),
+      ( NAME("linesWriteToFile"),
   	DESCRIPTION(
           "Write the content of the workspace variable lines to the\n"
 	  "given file in ARTS line format."),

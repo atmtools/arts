@@ -1,20 +1,20 @@
 #AllAbsExample{}
 
-#VectorWriteToFile(p_abs){}
+#VectorWriteToFile(p_abs){""}
             
-#MatrixWriteToFile(abs){}
+#MatrixWriteToFile(abs){""}
 
-#MatrixReadFromFile(abs){}
+#MatrixReadFromFile(abs){""}
 
-#MatrixWriteToNamedFile(abs){"dummy.abs.a"}
+#MatrixWriteToFile(abs){"dummy.abs.a"}
 
-#VectorReadFromFile(p_abs){}
+#VectorReadFromFile(p_abs){""}
 
-#VectorWriteToNamedFile(p_abs){"dummy.p_abs.a"}
+#VectorWriteToFile(p_abs){"dummy.p_abs.a"}
 
-#ArrayOfMatrixReadFromFile(source){}
+#ArrayOfMatrixReadFromFile(source){""}
 
-#ArrayOfMatrixWriteToNamedFile(source){"dummy.source.a"}
+#ArrayOfMatrixWriteToFile(source){"dummy.source.a"}
 
 #VectorLinSpace(p_abs){
 #	start = 0
@@ -22,7 +22,7 @@
 #	step  = .1
 #}
 
-#VectorWriteToFile(p_abs){}
+#VectorWriteToFile(p_abs){""}
 
 linesReadFromHitran(lines){
 #	filename = "/pool/lookup/hitran92/hitran92_h2o_le160.dat"
@@ -32,7 +32,7 @@ linesReadFromHitran(lines){
 	fmax     = 1000e12
 }
 
-linesWriteToNamedFile{"lines.dat"} 
+#linesWriteToFile{""} 
  
 tag_groupsDefine{
       [ "O3-666-500e9-501.0001e9, O3-686",
@@ -42,7 +42,7 @@ tag_groupsDefine{
 
 IntSet(n_profiles){1}
 
-ArrayOfMatrixReadFromNamedFile (ptz) 
+ArrayOfMatrixReadFromFile (ptz) 
 {"../data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 raw_vmr_profilesReadFromScenario{"../data/atmosphere/fascod/midlatitude-summer"}

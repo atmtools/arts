@@ -178,7 +178,7 @@ void write_array_of_matrix_to_file(const string& filename,
 {
   ofstream of;
 
-  out2 << "  Writing file: " << filename << '\n';
+  out2 << "  Writing " << filename << '\n';
   open_output_file(of, filename);
 
   // Write the array of matrix to the stream:
@@ -227,7 +227,7 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
     throw runtime_error("Input finished, but end of stream not reached.");
 
   // Some output to the lowest priority stream:
-  out3 << "  Read object with dimensions: "
+  out3 << "  Dimensions: "
        << am.dim() << ", ";
   for ( size_t i=0; i<am.size(); ++i )
     {
@@ -242,6 +242,8 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
 {
   ifstream ifs;
 
+  out2 << "  Reading " << filename << '\n';
+  
   // Open input stream:
   open_input_file(ifs, filename);
   // No need to check for error, because open_input_file throws a

@@ -6,6 +6,7 @@
 #include "file.h"
 #include "absorption.h"
 #include "workspace.h"
+#include "md.h"
 
 void AllAbsExample(// WS Output:
                    VECTOR& f_abs,
@@ -78,11 +79,20 @@ void linesReadFromHitran(// WS Output:
 }
 
 
-void linesWriteToNamedFile(// WS Input:
-                           const ARRAYofLineRecord& lines,
-                           // Control Parameters:
-                           const string& filename)
+void linesWriteToFile(// WS Input:
+		      const ARRAYofLineRecord& lines,
+		      // Control Parameters:
+		      const string& f)
 {
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+".lines.al";
+    }
+
   ofstream os;
 
   out2 << "  Writing file: " << filename << '\n';
@@ -180,11 +190,11 @@ void raw_vmr_profilesReadFromScenario(// WS Output:
 	basename + "." +
 	species_data[tag_groups[i][0].Species()].Name() + ".am";
 
-      cout << name << endl;
+      // Add an element for this tag group to the vmr profiles:
+      raw_vmr_profiles.push_back(MATRIX());
 
-
-
-
-
+      // Read the VMR:
+      // (We use the workspace method MatrixReadFromFile for this.)
+      MatrixReadFromFile(raw_vmr_profiles[i],"",name);
     }
 }

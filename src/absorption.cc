@@ -67,12 +67,11 @@ void define_species_data()
   // (missing in JPL)
   // Source: 
   // Degrees of freedom from Schanda:`Physical Fundamentals of Remote Sensing'
-  // FIXME: Did I really enter the degees of freedom? Check again in Schanda (Axel has it).
   // Isotope ratios: HITRAN92 tables.3
   species_data.push_back
     ( SpeciesRecord
       ( NAME("CO2"),
-	DEGFR(3),
+	DEGFR(2),
 	ISOTOPES
 	(//   Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|

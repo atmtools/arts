@@ -108,55 +108,40 @@ void VectorNLogSpace(     VECTOR&  x,
 //
 
 void ArrayOfMatrixWriteToFile(// WS Generic Input:
-                              const ARRAYofMATRIX& am,
-                              // WS Generic Input Names:
-                              const string& am_name)
+			      const ARRAYofMATRIX& am,
+			      // WS Generic Input Names:
+			      const string& am_name,
+			      // Control Parameters:
+			      const string& f)
 {
-  extern const string basename;                       
-  string filename = basename+"."+am_name+".am";
-
-  // Write the array of matrix to the file.
-  write_array_of_matrix_to_file(filename,am);
-}
-
-void ArrayOfMatrixWriteToNamedFile(// WS Generic Input:
-                                   const ARRAYofMATRIX& am,
-                                   // WS Generic Input Names:
-                                   const string& am_name,
-                                   // Control Parameters:
-                                   const string& filename)
-{
-
-  // Write the array of matrix to the file.
-  write_array_of_matrix_to_file(filename,am);
-}
-
-void ArrayOfVectorWriteToFile(// WS Generic Input:
-                              const ARRAYofVECTOR& av,
-                              // WS Generic Input Names:
-                              const string& av_name)
-{
-  extern const string basename;                       
-  string filename = basename+"."+av_name+".am";
-
-  // Convert the array of vector to an array of matrix:
-  ARRAYofMATRIX am(av.dim());
-  for (size_t i=0; i<av.dim(); ++i)
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
     {
-      to_matrix(am[i],av[i]);
+      extern const string basename;                       
+      filename = basename+"."+am_name+".am";
     }
 
   // Write the array of matrix to the file.
   write_array_of_matrix_to_file(filename,am);
 }
 
-void ArrayOfVectorWriteToNamedFile(// WS Output:
-                                   const ARRAYofVECTOR& av,
-                                   // WS Variable Names:
-                                   const string& av_name,
-                                   // Control Parameters:
-                                   const string& filename)
+void ArrayOfVectorWriteToFile(// WS Output:
+			      const ARRAYofVECTOR& av,
+			      // WS Variable Names:
+			      const string& av_name,
+			      // Control Parameters:
+			      const string& f)
 {
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+av_name+".am";
+    }
 
   // Convert the array of vector to an array of matrix:
   ARRAYofMATRIX am(av.dim());
@@ -175,12 +160,20 @@ void ArrayOfVectorWriteToNamedFile(// WS Output:
 //
 
 void MatrixWriteToFile(// WS Generic Input:
-                       const MATRIX& m,
-                       // WS Generic Input Names:
-                       const string& m_name)
+		       const MATRIX& m,
+		       // WS Generic Input Names:
+		       const string& m_name,
+		       // Control Parameters:
+		       const string& f)
 {
-  extern const string basename;                       
-  string filename = basename+"."+m_name+".am";
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+m_name+".am";
+    }
 
   // Convert the matrix to an array of matrix:
   ARRAYofMATRIX am(1,m);
@@ -189,47 +182,21 @@ void MatrixWriteToFile(// WS Generic Input:
   write_array_of_matrix_to_file(filename,am);
 }
 
-void MatrixWriteToNamedFile(// WS Generic Input:
-                            const MATRIX& m,
-                            // WS Generic Input Names:
-                            const string& m_name,
-                            // Control Parameters:
-                            const string& filename)
+void VectorWriteToFile(// WS Output:
+		       const VECTOR& v,
+		       // WS Variable Names:
+		       const string& v_name,
+		       // Control Parameters:
+		       const string& f)
 {
-
-  // Convert the matrix to an array of matrix:
-  ARRAYofMATRIX am(1,m);
-
-  // Write the array of matrix to the file.
-  write_array_of_matrix_to_file(filename,am);
-}
-
-void VectorWriteToFile(// WS Generic Input:
-                       const VECTOR& v,
-                       // WS Generic Input Names:
-                       const string& v_name)
-{
-  extern const string basename;                       
-  string filename = basename+"."+v_name+".am";
-
-  // Convert the vector to a matrix:
-  MATRIX m;
-  to_matrix(m,v);
-
-  // Convert the matrix to an array of matrix:
-  ARRAYofMATRIX am(1,m);
-
-  // Write the array of matrix to the file.
-  write_array_of_matrix_to_file(filename,am);
-}
-
-void VectorWriteToNamedFile(// WS Output:
-                            const VECTOR& v,
-                            // WS Variable Names:
-                            const string& v_name,
-                            // Control Parameters:
-                            const string& filename)
-{
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+v_name+".am";
+    }
 
   // Convert the vector to a matrix:
   MATRIX m;
@@ -249,46 +216,41 @@ void VectorWriteToNamedFile(// WS Output:
 //
 
 void ArrayOfMatrixReadFromFile(// WS Generic Output:
-                               ARRAYofMATRIX& am,
-                               // WS Generic Output Names:
-                               const string& am_name)
+			       ARRAYofMATRIX& am,
+			       // WS Generic Output Names:
+			       const string& am_name,
+			       // Control Parameters:
+			       const string& f)
 {
-  extern const string basename;                       
-  string filename = basename+"."+am_name+".am";
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+am_name+".am";
+    }
 
-  // Read the array of matrix from the file:
-  read_array_of_matrix_from_file(am,filename);
-}
-
-void ArrayOfMatrixReadFromNamedFile(// WS Generic Output:
-				    ARRAYofMATRIX& am,
-				    // WS Generic Output Names:
-				    const string& am_name,
-				    // Control Parameters:
-				    const string& filename)
-{
   // Read the array of matrix from the file:
   read_array_of_matrix_from_file(am,filename);
 }
 
 void ArrayOfVectorReadFromFile(// WS Generic Output:
-                               ARRAYofVECTOR& av,
-                               // WS Generic Output Names:
-                               const string& av_name)
+			       ARRAYofVECTOR& av,
+			       // WS Generic Output Names:
+			       const string& av_name,
+			       // Control Parameters:
+			       const string& f)
 {
-  extern const string basename;                       
-  string filename = basename+"."+av_name+".am";
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+av_name+".am";
+    }
 
-  ArrayOfVectorReadFromNamedFile(av,av_name,filename);
-}
-
-void ArrayOfVectorReadFromNamedFile(// WS Generic Output:
-				    ARRAYofVECTOR& av,
-				    // WS Generic Output Names:
-				    const string& av_name,
-				    // Control Parameters:
-				    const string& filename)
-{
   // Read an array of matrix from the file:
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
@@ -308,23 +270,21 @@ void ArrayOfVectorReadFromNamedFile(// WS Generic Output:
 //
 
 void MatrixReadFromFile(// WS Generic Output:
-                        MATRIX& m,
-                        // WS Generic Output Names:
-                        const string& m_name)
+			MATRIX& m,
+			// WS Generic Output Names:
+			const string& m_name,
+			// Control Parameters:
+			const string& f)
 {
-  extern const string basename;                       
-  string filename = basename+"."+m_name+".am";
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+m_name+".am";
+    }
 
-  MatrixReadFromNamedFile(m,m_name,filename);
-}
-
-void MatrixReadFromNamedFile(// WS Generic Output:
-			     MATRIX& m,
-			     // WS Generic Output Names:
-			     const string& m_name,
-			     // Control Parameters:
-			     const string& filename)
-{
   // Read the array of matrix from the file:
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);
@@ -338,23 +298,21 @@ void MatrixReadFromNamedFile(// WS Generic Output:
 }
 
 void VectorReadFromFile(// WS Generic Output:
-                        VECTOR& v,
-                        // WS Generic Output Names:
-                        const string& v_name)
+			VECTOR& v,
+			// WS Generic Output Names:
+			const string& v_name,
+			// Control Parameters:
+			const string& f)
 {
-  extern const string basename;                       
-  string filename = basename+"."+v_name+".am";
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+v_name+".am";
+    }
 
-  VectorReadFromNamedFile(v,v_name,filename);
-}
-
-void VectorReadFromNamedFile(// WS Generic Output:
-			     VECTOR& v,
-			     // WS Generic Output Names:
-			     const string& v_name,
-			     // Control Parameters:
-			     const string& filename)
-{
   // Read an array of matrix from the file:
   ARRAYofMATRIX am;
   read_array_of_matrix_from_file(am,filename);

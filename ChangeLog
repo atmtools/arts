@@ -8,9 +8,19 @@
 	raw_vmr_profiles,
 	t_and_all_vmrs 
 
+	* raw_vmr_profilesReadFromScenario: Added this method. It does
+	just what the name says.
+	
 	* Changed standart data file extension from .a to .am (you can
 	read this as `arts matrix' or as `array of matrix', as you
 	like). The single a seems to be already in use by other programs. 
+
+	* Removed the WriteToNamedFile and ReadFromNamedFile methods. Now,
+	there are only ReadFromFile and WriteToFile methods, which take a
+	filename as a keyword parameter. You can give an empty string as
+	the name, then the default name is chosen. It was simply too
+	nerve-wracking to have to duplicate each and every IO function for
+	these two cases.
 
 2000-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
