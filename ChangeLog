@@ -1,3 +1,11 @@
+2003-01-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-376
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Some bug fixes.
+
+	* src/refraction.cc: Included iostream.h. 
+
 2003-01-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-375
@@ -41,7 +49,6 @@
 	into files.
 
 	* doc/examples/Makefile.am: Included example above.
-	
 	
 2003-01-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
