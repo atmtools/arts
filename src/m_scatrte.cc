@@ -114,8 +114,15 @@ void convergence_flagAbs(//WS Output:
   const Index N_aa = i_field.nrows();
   const Index stokes_dim = i_field.ncols();
    
-  iteration_counter +=1;
+  out2 << "Number of iteration: " << iteration_counter << "\n";
 
+  if (iteration_counter > 50)
+    throw runtime_error("Error in DOIT calculation: \n"
+                        "Method does not converge. Please check"
+                        "numerical grids!");
+
+  iteration_counter +=1;
+  
   // Check if i_field and i_field_old have the same dimensions:
   assert(is_size( i_field_old, 
                   N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
@@ -223,6 +230,13 @@ void convergence_flagLsq(//WS Output:
   const Index N_za = i_field.npages();
   const Index N_aa = i_field.nrows();
     
+  out2 << "Number of iteration: " << iteration_counter << "\n";
+
+  if (iteration_counter > 50)
+    throw runtime_error("Error in DOIT calculation: \n"
+                        "Method does not converge. Please check"
+                        "numerical grids!");
+
   Vector lqs(4, 0.);
   iteration_counter += 1;
   
@@ -334,8 +348,15 @@ void convergence_flagAbs_BT(//WS Output:
   const Index N_aa = i_field.nrows();
   const Index stokes_dim = i_field.ncols();
 
+  out2 << "Number of iteration: " << iteration_counter << "\n";
+
+  if (iteration_counter > 50)
+    throw runtime_error("Error in DOIT calculation: \n"
+                        "Method does not converge. Please check"
+                        "numerical grids!");
+
   iteration_counter += 1;
-   
+  
   // Check if i_field and i_field_old have the same dimensions:
   assert(is_size( i_field_old, 
                   N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));

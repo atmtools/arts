@@ -56,6 +56,8 @@
 #include "interpolation.h"
 #include "special_interp.h"
 #include "cloudbox.h"
+#include "optproperties.h"
+#include "math_funcs.h"
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
@@ -93,6 +95,56 @@ void cloudboxOff(
   scat_aa_grid.resize(0);
   scat_za_interp = 0;
 }
+
+
+//! cloudboxOff
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-05-11
+*/
+void cloudboxSetEmpty(//WS Output:
+                      Tensor4& pnd_field,
+                      ArrayOfSingleScatteringData& scat_data_raw,
+                      //WS Input:
+                      const Vector& p_grid,
+                      const Vector& lat_grid,
+                      const Vector& lon_grid)
+{
+  // 3D  atmosphere
+  if (lat_grid.nelem()>0)
+    {
+      //Resize pnd_field and set it to 0:
+      pnd_field.resize(1, p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem());
+      pnd_field = 0.;
+    }
+  else // 1D atmosphere
+     {
+      //Resize pnd_field and set it to 0:
+      pnd_field.resize(1, p_grid.nelem(), 1, 1);
+      pnd_field = 0.;
+     }
+  
+  //Resize scat_data_raw and set it to 0:
+  // Number iof particle types
+  scat_data_raw.resize(1);
+  scat_data_raw[0].ptype = PTYPE_MACROS_ISO;
+  scat_data_raw[0].description = " ";
+  // Grids which contain full ranges which one wants to calculate
+  nlinspace(scat_data_raw[0].f_grid, 1e9, 10000e9, 5);  
+  nlinspace(scat_data_raw[0].T_grid, 0, 400, 5);
+  nlinspace(scat_data_raw[0].za_grid, 0, 180, 5);
+  nlinspace(scat_data_raw[0].aa_grid, 0, 360, 5);
+  // Resize the data arrays
+  scat_data_raw[0].pha_mat_data.resize(5,5,5,1,1,1,6);
+  scat_data_raw[0].pha_mat_data = 0.;
+  scat_data_raw[0].ext_mat_data.resize(5,5,1,1,1);
+  scat_data_raw[0].ext_mat_data = 0.;
+  scat_data_raw[0].abs_vec_data.resize(5,5,1,1,1);
+  scat_data_raw[0].abs_vec_data = 0.;
+}
+
 
 //! cloudboxSetIncomingForTauCalc1D
 /*!

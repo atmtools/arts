@@ -1,3 +1,20 @@
+2004-08-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-849
+	
+	* src/m_cloudbox.cc (cloudboxSetEmpty): Included this method. It sets 
+	the particle number density field to zero and includes a 
+	dummy *scat_data_raw*. The method can be used for clearsky DOIT 
+	calculattions. One can compare the radiation field obtained in 
+	this way with the clearsky calculation without cloudbox, to estimate
+	interpolation errorsin the DOIT calculations.
+
+	* src/methods.cc: Included (cloudboxSetEmpty).
+	
+	* src/m_scatrte.cc (convergence_testXXX): Included check. If number 
+	of iteration > 50, the program will interrupt with an error 
+	message.
+
 2004-08-02  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-848

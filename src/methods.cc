@@ -1113,6 +1113,31 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "cloudboxSetEmpty" ),
+        DESCRIPTION
+        (
+         "Sets the cloudbox empty for clearsky DOIT calculations. \n"
+         "\n"
+         "Scattering calculations using the DOIT method include \n"
+         "interpolation errors. If one is interested in the cloud effect, \n"
+         "should compare the DOIT result with a clearsky calculation using \n"
+         "an empty cloudbox. That means that the iterative method is \n"
+         "performed for a cloudbox including no particles. This method sets \n"
+         "the particle number density field to zero and creates a \n"
+         "dummy *scat_data_raw* structure. For a cleasky calculation, \n"
+         "the methods *ParticleTypeAdd* and *pnd_fieldCalc* can be \n"
+         "replaced by this method. \n"
+         "\n"
+         ),
+        OUTPUT( pnd_field_, scat_data_raw_),
+        INPUT( p_grid_, lat_grid_, lon_grid_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "cloudboxSetManually" ),
         DESCRIPTION
         (
