@@ -3327,14 +3327,6 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
       Numeric W1     = vmrh2o * WTOT;                                // [molecules/cm^2]
       Numeric XKT    = Tave / 1.4387752e0;                           // = (T*k_B)/(h*c)    
 
-      cout << "vmrh2o = " << vmrh2o  << "\n"
-           << "Pave   = " << Pave    << "\n"
-	   << "Tave   = " << Tave    << "\n"
-           << "Patm   = " << Patm    << "\n"
-           << "W1     = " << W1      << "\n"
-           << "WTOT   = " << WTOT    << "\n"
-           << "XKT    = " << XKT     << "\n";
-      
       // Molecular cross section calculated by CKD.
       // The cross sectionis calculated on the predefined 
       // CKD wavenumber grid.
@@ -3604,7 +3596,6 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
    \param    p_abs          predefined pressure grid             [Pa]
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            CO2 volume mixing ratio profile      [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD version 2.4.1 written by<br>  
@@ -3802,7 +3793,6 @@ void CKD_241_co2( MatrixView         xsec,
    \param    p_abs          predefined pressure grid             [Pa]
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            CO2 volume mixing ratio profile      [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \note     This absorption model is taken from the FORTRAN77 code of 
              CKD_MT version 1.00 written by<br>  
@@ -4010,7 +4000,6 @@ void CKD_mt_co2( MatrixView          xsec,
    \param    p_abs          predefined pressure grid             [Pa]
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            N2 volume mixing ratio profile       [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \remark   Borysow, A, and L. Frommhold,<br> 
              Collision-induced rototranslational absorption spectra of N2-N2
@@ -4259,7 +4248,6 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
    \param    p_abs          predefined pressure grid             [Pa]
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            N2 volume mixing ratio profile       [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \remark   Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and 
              J._M. Hartmann,<br> 
@@ -4475,7 +4463,6 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
    \param    p_abs          predefined pressure grid             [Pa]
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            O2 volume mixing ratio profile       [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \remark   F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman, 
              J.-M. Hartmann, Ch. Boulet,<br>
@@ -4691,7 +4678,6 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            O2 volume mixing ratio profile       [1]
    \param    n2_abs         N2 volume mixing ratio profile       [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \remark   B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,<br> 
              Absolute Intensities for the O2 1.27 micron continuum absorption,<br>   
@@ -4897,8 +4883,6 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
    \param    p_abs          predefined pressure grid             [Pa]
    \param    t_abs          predefined temperature grid          [K] 
    \param    vmr            O2 volume mixing ratio profile       [1]
-   \param    n2_abs         N2 volume mixing ratio profile       [1]
-   \param    h2o_abs        H2O volume mixing ratio profile      [1]
 
    \remark   Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,<br>
              Observed  Atmospheric Collision Induced Absorption in Near Infrared Oxygen Bands,<br>
@@ -16292,8 +16276,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.16 $ */
-/*     created:	        $Date: 2003/11/21 10:51:42 $ */
+/*     revision:	        $Revision: 1.26.2.17 $ */
+/*     created:	        $Date: 2003/11/21 11:28:04 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

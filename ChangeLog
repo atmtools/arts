@@ -1,4 +1,12 @@
 2003-11-21  Thomas Kuhn <tkuhn@uni-bremen.de>
+                                                                                             
+               
+        * arts-1-0-135
+                                                                                             
+        * src/continua.cc: removed some cout comments and updated some 
+	  doxygen comments.
+
+2003-11-21  Thomas Kuhn <tkuhn@uni-bremen.de>
 
 	* arts-1-0-134
 
