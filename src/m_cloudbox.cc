@@ -673,7 +673,12 @@ void i_fieldSetConst(//WS Output:
                         const Tensor7& scat_i_lat,
                         const Tensor7& scat_i_lon,
                         const Vector& f_grid,
+/* FIXME f_index is only used in assertion */
+#ifndef NDEBUG
                         const Index& f_index,
+#else
+                        const Index&,
+#endif
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
