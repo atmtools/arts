@@ -24,6 +24,7 @@ arts_examples_in = \
 	rt_example.arts.in \
 	scatproperties_example.arts.in \
 	i_field_example.arts.in
+
 arts_examples = \
 	absorption_example.arts \
 	amsu_example.arts \
@@ -33,8 +34,8 @@ arts_examples = \
 	fullmodels_example.arts \
 	radiosonde_example.arts \
 	rt_example.arts \
-	scatproperties_example.arts
-
+	scatproperties_example.arts \
+	i_field_example.arts.in
 
 examplesdoc_DATA = $(arts_examples)
 
