@@ -16,7 +16,7 @@
 
 function result = xmlReadVector(fid, attrlist)
 
-nr = str2num (xmlGetAttrValue (attrlist, 'nrows'));
+nr = str2num (xmlGetAttrValue (attrlist, 'nelem'));
 
 result = fscanf (fid, '%f', nr);
 xmlCheckSize (nr, size (result));
