@@ -1392,7 +1392,8 @@ void k_contabs (
               const Vector&          k_grid,
               const Index&           order,
               const Numeric&         flow,
-              const Numeric&         fhigh )
+              const Numeric&         fhigh,
+              const String&          lunit )
 {
   if ( los.p.nelem() != absloswfs.nelem() )
     throw runtime_error(
@@ -1402,21 +1403,30 @@ void k_contabs (
   // Main sizes
   const Index  nza = los.start.nelem();     // number of zenith angles  
   const Index  np  = k_grid.nelem();        // number of retrieval altitudes
-  const Index  npoints = order+1;          // number of off-set points
+  const Index  npoints = order+1;           // number of off-set points
   const Index  nv  = f_mono.nelem();        // number of frequencies
 
   // Check given frequency limits
-  assert( flow >= 0 );
-  assert( fhigh >= 0 );
   if ( flow >= fhigh )
     throw runtime_error(
              "The lower frequency limit equals or is above the upper limit." );
-  if ( flow >= f_mono[nv-1] )
+  if ( flow < f_mono[0] )
     throw runtime_error(
-                  "The lower frequency limit is above all values of f_mono." );
-  if ( fhigh <= f_mono[0] )
+                  "The lower frequency limit is below all values of f_mono." );
+  if ( fhigh > f_mono[nv-1] )
     throw runtime_error(
-                  "The upper frequency limit is below all values of f_mono." );
+                  "The upper frequency limit is above all values of f_mono." );
+
+  // Check length unit
+  //
+  Numeric scfac;
+  //
+  if ( lunit == "m" )
+    scfac = 1.0;
+  else if ( lunit == "km" )
+    scfac = 0.001;
+  else
+    throw runtime_error("Allowed length units are \"m\" and \"km\".");
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1434,9 +1444,9 @@ void k_contabs (
 
   // Determine first and last frequency index inside given limits
   Index   ilow, ihigh;
-  for( ilow=0; ilow<nv && f_mono[ilow] < flow; ilow++ )
+  for( ilow=0; ilow<(nv-1) && f_mono[ilow] < flow; ilow++ )
     {}
-  for( ihigh=ilow; ihigh<nv && f_mono[ihigh] <= fhigh; ihigh++ )
+  for( ihigh=ilow; ihigh<(nv-1) && f_mono[ihigh+1] <= fhigh; ihigh++ )
     {}
 
   // Other variables
@@ -1476,6 +1486,7 @@ void k_contabs (
   // function consistent with k_species, this loop order was selected.)
   //
   out2 << "  You have selected " << npoints << " off-set fit points.\n";
+  out2 << "  Length unit is " << lunit << "\n";
   for ( ipoint=0; ipoint<npoints; ipoint++ ) 
   {
     out2 << "  Doing point " << ipoint << "\n";
@@ -1483,7 +1494,7 @@ void k_contabs (
     // Fill K_NAMES and K_AUX
     {
       ostringstream os;
-      os << "Continuum: " << fpoints[ipoint] << " Hz, Point " 
+      os << "Continuum: " << fpoints[ipoint]/1e9 << " GHz, Point " 
          << ipoint+1 << "/" << npoints;
       k_names[ipoint] = os.str();
     }
@@ -1547,7 +1558,7 @@ void k_contabs (
 	    {
               for ( iw=i1; iw<=(Index)is(ip,1); iw++ )
                 a[iv] += absloswfs[iza](iv,iw) * w[iw-i1];
-              k(iv0+iv,ip0+ip) = a[iv] * b[iv];                    
+              k(iv0+iv,ip0+ip) = scfac * a[iv] * b[iv];                    
 	    }
           }            
         }
@@ -1995,7 +2006,8 @@ void kContAbs (
               const Vector&          k_grid,
 	      const Index&           order,
               const Numeric&         f_low,
-              const Numeric&         f_high )
+              const Numeric&         f_high,
+              const String&          l_unit )
 {
   // Input is checked in k_contabs  
 
@@ -2006,7 +2018,8 @@ void kContAbs (
   if ( f2 < 0 )
     f2 = last( f_mono );
 
-  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order, f1, f2);
+  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order, f1, f2,
+                                                                      l_unit );
 }
 
 

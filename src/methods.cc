@@ -3126,19 +3126,23 @@ void define_md_data()
           "first value of *f_mono*, and *f_high* to the last value of \n"
           "*f_mono*. The frequency limits cannot be outside the range of \n"
           "*f_mono*. \n"
+          "   The WFs can be calculated for different length units, selected\n"
+          "by the keyword *l_unit*. For example, if *l_unit* is set to \n"
+          "\"km\", the WFs corresponds to an absorpion with unit [1/km]. \n"
           "   The WFs for each frequency point are kept together, and the \n"
           "WF matrix for the different frequency points are appended. \n"
           "\n"
           "Keywords \n"
           "  order : Polynomial order (>=0). \n"
           "  f_low : Frequency of first fit point. \n"
-          " f_high : Frequency of last fit point. " ),
+          " f_high : Frequency of last fit point. \n"
+          " l_unit : Length unit. Avaliable units are \"m\" and \"km\"." ),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "order", "f_low",   "f_high" ),
-	TYPES(    Index_t,   Numeric_t, Numeric_t )));
+	KEYWORDS( "order", "f_low",   "f_high",    "l_unit" ),
+	TYPES(    Index_t,   Numeric_t, Numeric_t, String_t )));
 
   md_data.push_back
     ( MdRecord
