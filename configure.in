@@ -13,7 +13,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.213)
+AM_INIT_AUTOMAKE(arts,0.0.214)
 
 # Maintainer mode switch. DOC++, as well as all LaTeX documents (DOC++
 # and AUG) are only processed in maintainer mode. This is necessary so
@@ -205,7 +205,7 @@ Makefile
       doc/doxygen/Doxyfile
       doc/doxygen/html/Makefile
       doc/uguide/Makefile 
-      doc/uguide/version.tex 
+      doc/uguide/auto_version.tex 
          doc/uguide/Figs/Makefile 
       doc/examples/Makefile 
       doc/emacs/Makefile
