@@ -43,7 +43,7 @@ void define_md_data()
 	DESCRIPTION("Reads all important absorption related variables from the\n."
 		    "given files."),
 	GENERIC(false),
-	OUTPUT(p_abs_, f_abs_, t_abs_, abs_),
+	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
 	INPUT(),
 	KEYWORDS(),
 	TYPES()));

@@ -639,7 +639,9 @@ void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
 }
 
 /** Parse the Contents of text as ARTS control input. 
-  
+
+    @return True: This was the last method.
+
     @param id     Output. Method id.
     @param values Output. Keyword parameter values for this method.
     @param output Output. Output workspace variables (for generic methods).
@@ -663,7 +665,7 @@ void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
    @exception UnexpectedKeyword
 
    @author Stefan Buehler  */
-void parse_method(int& id, 
+bool parse_method(int& id, 
 		  ARRAY<TokVal>& values,
 		  ARRAY<size_t>& output,
 		  ARRAY<size_t>& input,
@@ -671,9 +673,9 @@ void parse_method(int& id,
 		  const std::map<string, int> MdMap,
 		  const std::map<string, int> WsvMap)
 {
+  extern ARRAY<WsvRecord> wsv_data;
+  extern ARRAY<MdRecord> md_data;
 
-  extern const MdRecord md_data[];	
-  extern const WsvRecord wsv_data[];
   int wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
 
@@ -890,6 +892,19 @@ void parse_method(int& id,
       // Check:
       //      cout << "Value: " << md_data[id].Values()[i] << '\n';
     }
+
+  // Now look for the closing curly braces.
+  // We have to catch Eot, because after a method description is a
+  // good place to end the control file. 
+  try
+    {
+      assertain_character('}',text);
+    }
+  catch (const Eot x)
+    {
+      return true;
+    }
+  return false;
 }
 
 /** Parse the Contents of text as ARTS control input. 
@@ -910,8 +925,8 @@ void parse(ARRAY<MRecord>& tasklist,
 	   const std::map<string, int> MdMap,
 	   const std::map<string, int> WsvMap)
 {
-  extern const MdRecord md_data[];	
-  bool go_on = true;
+  extern const ARRAY<MdRecord> md_data;
+  bool last = false;
   // For method ids:
   int id;		
  // For keyword parameter values:
@@ -921,24 +936,30 @@ void parse(ARRAY<MRecord>& tasklist,
   // Input workspace variables (for generic methods):
   ARRAY<size_t> input;
 
-  out3 << "Tasklist:\n";
+  out3 << "\nParsing, tasklist:\n";
 
-  while (go_on)
+  eat_whitespace(text);
+
+  while (!last)
     {
-      eat_whitespace(text);
-      parse_method(id,values,output,input,text,MdMap,WsvMap);
+      last = parse_method(id,values,output,input,text,MdMap,WsvMap);
+
       // Append taks to task list:
       tasklist.push_back(MRecord(id,values,output,input));
-      out3 << md_data[id].Name() << "\n";
 
-      try
-	{
-	  eat_whitespace(text);
-	}
-      catch (const Eot x)
-	{
-	  go_on = false;
-	}
+      out3 << "- " << md_data[id].Name() << "\n";
+
+      // If last is set, then we have anyway reached the end of the
+      // text, so we don't have to eat whitespace.
+      if (!last)
+	try
+	  {
+	    eat_whitespace(text);
+	  }
+	catch (const Eot x)
+	  {
+	    last = true;
+	  }
     }
 }
 
@@ -970,7 +991,7 @@ void parse_main(ARRAY<MRecord>& tasklist, SourceText& text)
 	    i<tasklist.end();
 	    ++i )
 	{
-	  cout << md_data[i->Id()].Name() << '\n';
+	  //	  cout << md_data[i->Id()].Name() << '\n';
 	  for ( size_t j=0 ; j<i->Values().size() ; ++j )
 	    {
 	      cout << "   " 

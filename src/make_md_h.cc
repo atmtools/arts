@@ -263,7 +263,6 @@ int main()
 	  << "#include \"md.h\"\n"
 	  << "\n";
 
-
       // Write all get-away functions:
       // -----------------------------
       for (size_t i=0; i<n_md; ++i)

@@ -1,5 +1,10 @@
 2000-03-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0.0.3.
+	* Arts can now parse specific (i.e., not generic) methods. There
+	so far is only a single method, AllAbsExample, which sets the
+	absorption parameters.
+	
 	* arts-0.0.2.
 	* make_md_h.cc: Added.
 	* math_funcs.h: Added.

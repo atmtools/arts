@@ -76,7 +76,7 @@ int main (int argc, char **argv)
     {
       // Some global variables that we need:
       extern WorkSpace workspace;
-      extern ARRAY<WsvRecord> wsv_data;
+      //      extern ARRAY<WsvRecord> wsv_data;
       extern ARRAY<MdRecord> md_data;
 
       {
@@ -100,10 +100,10 @@ int main (int argc, char **argv)
 	// really used to access the workspace variables.
 	// YES!! It works.
 	// FIXME: Remove all this.
-	WsvP   *wp = wsv_data[basename_].Pointer(); 
-	string *s = *wp;
-	*s = "test";
-	cout << "workspace.basename = " << workspace.basename << '\n';
+// 	WsvP   *wp = wsv_data[basename_].Pointer(); 
+// 	string *s = *wp;
+// 	*s = "test";
+// 	cout << "workspace.basename = " << workspace.basename << '\n';
       }
 
       // Initialize the md data:
@@ -111,10 +111,10 @@ int main (int argc, char **argv)
 
       {
 	// Quick test:
-	for (size_t i=0; i<md_data.size(); ++i)
-	  {
-	    cout << md_data[i].Name() << '\n';
-	  }
+// 	for (size_t i=0; i<md_data.size(); ++i)
+// 	  {
+// 	    cout << md_data[i].Name() << '\n';
+// 	  }
       }
 
       // The list of methods to execute and their keyword data from
@@ -125,8 +125,10 @@ int main (int argc, char **argv)
       SourceText text;
 	
       // Read the control text from the control files:
+      out3 << "\nReading control files:\n";
       for ( size_t i=0; i<parameters.controlfiles.size(); ++i )
 	{
+	  out3 << "- " << parameters.controlfiles[i] << '\n';
 	  text.AppendFile(parameters.controlfiles[i]);
 	}
 
@@ -134,12 +136,15 @@ int main (int argc, char **argv)
       parse_main(tasklist, text);
 
       // Execute the methods in tasklist.
+      out3 << "\nExecuting methods:\n";
       for (size_t i=0; i<tasklist.size(); ++i)
 	try
 	  {
 	    // The array holding the pointers to the getaway functions:
 	    extern void (*getaways[])(WorkSpace&, const ARRAY<TokVal>&);
 
+	    out1 << "- " << md_data[tasklist[i].Id()].Name() << '\n';
+	    
 	    getaways[tasklist[i].Id()]
 	      ( workspace, tasklist[i].Values() );
 	  }
@@ -156,6 +161,6 @@ int main (int argc, char **argv)
       exit(1);
     }
 
-
+  out1 << "Goodbye.\n";
   return(0);
 }

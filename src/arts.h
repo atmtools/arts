@@ -33,7 +33,7 @@
 #include <map>
 #include <stdarg.h>
 #include <math.h>
-#include <typeinfo>
+//#include <typeinfo>
 #include <stdexcept>
 //#include <algorithm>
 #include <ctype.h>
