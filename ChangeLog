@@ -1,3 +1,10 @@
+2002-12-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-55
+
+	* ami/arts/arts_version.m: Added this function. It returns a string
+	describing the ARTS version used.
+
 2002-11-15  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-54

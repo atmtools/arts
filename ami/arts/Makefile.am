@@ -15,6 +15,7 @@
 
 EXTRA_DIST = \
         arts.m \
+	arts_version.m \
 	get_artstype.m \
         qtool.m \
         read_artsvar.m \
