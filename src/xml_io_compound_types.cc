@@ -271,7 +271,7 @@ xml_read_from_stream (istream& is_xml,
   xml_read_from_stream (is_xml, jpltags, pbifs);
 
   tag.read_from_stream (is_xml);
-  tag.check_name ("/SpeciesRecord");
+  tag.check_name ("/IsotopeRecord");
 
   irecord = IsotopeRecord (name, abundance, mass, mytrantag, hitrantag,
                            jpltags);
