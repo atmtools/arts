@@ -1,5 +1,14 @@
 2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-755
+
+	* Missed this with last commit. :-(
+
+	* autogen.sh: Don't call automake with --force. Breaks compatibility
+	with automake 1.4.
+
+2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-754
 
 	* configure.in: Fixed bug reported by Cory. Macro AC_HELP_STRING is
