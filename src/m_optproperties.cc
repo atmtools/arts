@@ -337,8 +337,8 @@ void pha_mat_sptFromData( // Output:
                 }
             }
         }
-       xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
-       xml_write_to_file("pha_mat_data_int.xml", pha_mat_data_int);
+      //       xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
+      // xml_write_to_file("pha_mat_data_int.xml", pha_mat_data_int);
                           
        
        Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);

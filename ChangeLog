@@ -1,3 +1,13 @@
+2003-06-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-560
+
+	* src/optproperties.cc: Included special cases, which were missing
+	before. Now the database is working for all Stokes dimensions. 
+	
+	* src/lin_alg.cc: Modified the code according to suggestions in the
+	programming seminar.
+
 2003-06-02  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-559

@@ -70,7 +70,7 @@ ludcmp(MatrixView LU,
       big = 0.0;
       for (Index j=0; j<dim; j++)
         {
-          if ((temp = fabs(LU(i,j))) > big)
+          if ((temp = abs(LU(i,j))) > big)
             big = temp;
         }
       if (big == 0.)
@@ -123,8 +123,6 @@ ludcmp(MatrixView LU,
             LU(i,j) *=dum;
         }
     }
-
-  vv[Range(0,dim)] = 0.0;
 }
 
  
@@ -148,10 +146,7 @@ lubacksub(VectorView x,
           ConstVectorView b, 
           const ArrayOfIndex& indx)
 {
-  Index ip,dim;
-  Numeric sum;
- 
-  dim = LU.nrows(); 
+  Index dim = LU.nrows(); 
 
   /* Check if the dimensions of the input matrix and vectors agree and if LU is a quadratic matrix.*/
   assert(is_size(LU, dim, dim));
@@ -161,13 +156,12 @@ lubacksub(VectorView x,
   
   for(Index i=0; i<dim; i++)
      {
-       ip = indx[i];
-       x[ip] = b[i];
+       x[indx[i]] = b[i];
      }
  
   for (Index i=0; i<dim; i++)
     {
-      sum = x[i];
+     Numeric sum = x[i];
      for (Index j=0; j<=i-1; j++)
        sum -= LU(i,j)*x[j]; 
       x[i] = sum;
@@ -175,7 +169,7 @@ lubacksub(VectorView x,
 
   for(Index i=dim-1; i>=0; i--)
     {
-      sum = x[i];
+      Numeric sum = x[i];
       for (Index j=i+1; j<dim; j++)
         sum -= LU(i,j)*x[j];
       x[i] = sum/LU(i,i);
@@ -190,7 +184,8 @@ lubacksub(VectorView x,
   Golub, G. H. and C. F. Van Loan, Matrix Computation, p. 384, 
   Johns Hopkins University Press, 1983.
   
-  \param F Output: The matrix exponential of A.
+  \param F Output: The matrix exponential of A (Has to be initialized before
+  calling the function.
   \param A Input: arbitrary square matrix
   \param q Input: Parameter for the accuracy of the computation
 */
@@ -211,6 +206,7 @@ matrix_exp(MatrixView F,
 
   A_norm_inf = norm_inf(A);
 
+  // This formular is derived in the book by Golub and Van Loan.
   j = 1 +  floor(1./log(2.)*log(A_norm_inf));
   
   if(j<0) j=0.;
@@ -243,7 +239,7 @@ matrix_exp(MatrixView F,
     }
 
   /*Solve the equation system DF=N for F using LU decomposition,
-   use the backsubstitution routung for columns of N*/ 
+   use the backsubstitution routine for columns of N*/ 
 
    /* Now use X  for the LU decomposition matrix of D.*/
   ArrayOfIndex indx(n);
@@ -252,11 +248,9 @@ matrix_exp(MatrixView F,
 
   for(Index i=0; i<n; i++)
     {
-      for(Index k=0; k<n; k++)
-        N_col_vec[k] = N(k,i);  // extract column vectors of N
+      N_col_vec = N(joker,i);  // extract column vectors of N
       lubacksub(F_col_vec, X, N_col_vec, indx);
-      for(Index k=0; k<n; k++)
-        F(k,i) = F_col_vec[k];  // construct F matrix  from column vectors 
+      F(joker,i) = F_col_vec;  // construct F matrix  from column vectors 
     }
   
   /* The square of F gives the result. */
@@ -278,24 +272,20 @@ matrix_exp(MatrixView F,
   
   \return Maximum absolute row sum norm 
 */
-Numeric 
-norm_inf(ConstMatrixView A)
+Numeric norm_inf(ConstMatrixView A)
 {
-  const Index n = A.nrows();  
-  Vector row_sum(n,0.);
-  Numeric norm_inf;
+  Numeric norm_inf = 0;
   
   for(Index j=0; j<A.nrows(); j++)
     {
+      Numeric row_sum = 0;
       //Calculate the row sum for all rows
       for(Index i=0; i<A.ncols(); i++)
-        row_sum[j] += fabs(A(i,j));
+        row_sum += abs(A(i,j));
       //Pick out the row with the highest row sum
-      if(j>0 && row_sum[j] < row_sum[j-1])
-        row_sum[j] = row_sum[j-1];
+      if( norm_inf < row_sum)
+        norm_inf = row_sum;
     }
-  norm_inf = row_sum[n-1];
-
   return norm_inf;
 }
 
@@ -307,7 +297,10 @@ norm_inf(ConstMatrixView A)
 void 
 id_mat(MatrixView I)
 {
+
   const Index n = I.ncols();
+  assert(n == I.nrows());
+  
   I = 0;
   for(Index i=0; i<n; i++)
     I(i,i) = 1.;

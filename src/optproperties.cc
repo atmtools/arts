@@ -381,10 +381,10 @@ void pha_mat_labCalc(//Output:
                       const Numeric& aa_inc,
                       const Numeric& theta_rad)
 {
-  const Numeric za_sca_rad = za_sca * DEG2RAD;
-  const Numeric za_inc_rad = za_inc * DEG2RAD;
-  const Numeric aa_sca_rad = aa_sca * DEG2RAD;
-  const Numeric aa_inc_rad = aa_inc * DEG2RAD;
+  Numeric za_sca_rad = za_sca * DEG2RAD;
+  Numeric za_inc_rad = za_inc * DEG2RAD;
+  Numeric aa_sca_rad = aa_sca * DEG2RAD;
+  Numeric aa_inc_rad = aa_inc * DEG2RAD;
   const Numeric theta = RAD2DEG * theta_rad;
   const Index stokes_dim = pha_mat_lab.ncols();
 
@@ -434,22 +434,33 @@ void pha_mat_labCalc(//Output:
           }
         }
       }
-    else if(// Scattering frame equals laboratory frame
-            (za_inc == 0) || (za_sca == 180) ||
-        // Scattering frame is "mirrored" laboratory frame
-        (za_sca == 0) || (za_inc == 180) ||
-        // "Grosskreis"
-        (aa_sca == aa_inc) || (aa_sca == aa_inc-360) || 
-            (aa_inc == aa_sca-360) )
-      {
-        // FIXME: Wich formulas do we need in these special cases. The values
-        // are very small, so the overall error is small ... but this needs to
-        // be fixed 
-        pha_mat_lab = 0;
-      } 
+   //  else if(// Scattering frame equals laboratory frame
+//             (za_inc == 0) || (za_sca == 180) ||
+//         // Scattering frame is "mirrored" laboratory frame
+//         (za_sca == 0) || (za_inc == 180) ||
+//         // "Grosskreis"
+//         (aa_sca == aa_inc) || (aa_sca == aa_inc-360) || 
+//             (aa_inc == aa_sca-360) )
+//       {
+//         // FIXME: Wich formulas do we need in these special cases. The values
+//         // are very small, so the overall error is small ... but this needs to
+//         // be fixed
+//         pha_mat_lab = 0;
+//       } 
     else if( (aa_sca - aa_inc) > 0 && (aa_sca - aa_inc) < 180 ||  
              (aa_sca - aa_inc) > -360 && (aa_sca - aa_inc) < -180 )
       {
+        // In these cases we have to take limiting value
+        // (according personal communication with Mishchenko)
+        if (za_inc_rad == 0)
+          za_inc_rad = 1e-6;
+        if (za_inc_rad == PI)
+           za_inc_rad = PI - 1e-6;
+        if (za_sca_rad == 0)
+          za_sca_rad = 1e-6; 
+        if (za_sca_rad == PI)
+           za_sca_rad = PI - 1e-6;
+        
         const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
                                       * cos(theta_rad))/
                                  (sin(za_inc_rad)*sin(theta_rad));
@@ -491,6 +502,17 @@ void pha_mat_labCalc(//Output:
   else if ( (aa_sca - aa_inc) > -180 && (aa_sca - aa_inc) < 0 ||
               (aa_sca - aa_inc) > 180 && (aa_sca - aa_inc) < 360 )
       {
+        // In these cases we have to take limiting value
+        // (according personal communication with Mishchenko)
+        if (za_inc_rad == 0)
+          za_inc_rad = 1e-6;
+        if (za_inc_rad == PI)
+           za_inc_rad = PI - 1e-6;
+        if (za_sca_rad == 0)
+          za_sca_rad = 1e-6; 
+        if (za_sca_rad == PI)
+           za_sca_rad = PI - 1e-6;
+        
         const Numeric cos_sigma1 =  (cos(za_sca_rad) - cos(za_inc_rad)
                                      * cos(theta_rad))/
                                      (sin(za_inc_rad)*sin(theta_rad));
@@ -498,7 +520,6 @@ void pha_mat_labCalc(//Output:
                                      *cos(theta_rad))/
           (sin(za_sca_rad)*sin(theta_rad));
         
-               
         const Numeric C1 = 2 * cos_sigma1 * cos_sigma1 - 1;
         const Numeric C2 = 2 * cos_sigma2 * cos_sigma2 - 1;
         
