@@ -1,5 +1,12 @@
 2003-07-29  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-0-111
+
+	* doc/uguide/absorption.tex: Found one more bad equation
+	reference, formmally OK but logically not, and corrected it.
+
+2003-07-29  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-0-110
 
 	* doc/uguide/absorption.tex: Correction to Axels and Olivers
