@@ -41,6 +41,7 @@
 #include "array.h"
 #include "absorption.h"
 #include "ppath.h"
+#include "optproperties.h"
 #include "agenda_class.h"
 #include "auto_md.h"
 
@@ -370,11 +371,11 @@ void CloneSize(// WS Generic Output:
 }
 
 void CloneSize(// WS Generic Output:
-               Ppath& out,
+               Ppath&,
                // WS Generic Output Names:
                const String& outname,
                // WS Generic Input:
-               const Ppath& in,
+               const Ppath&,
                // WS Generic Input Names:
                const String& inname)
 {
@@ -383,11 +384,11 @@ void CloneSize(// WS Generic Output:
 }
 
 void CloneSize(// WS Generic Output:
-               Agenda& out,
+               Agenda&,
                // WS Generic Output Names:
                const String& outname,
                // WS Generic Input:
-               const Agenda& in,
+               const Agenda&,
                // WS Generic Input Names:
                const String& inname)
 {
@@ -396,11 +397,11 @@ void CloneSize(// WS Generic Output:
 }
 
 void CloneSize(// WS Generic Output:
-               GridPos& out,
+               GridPos&,
                // WS Generic Output Names:
                const String& outname,
                // WS Generic Input:
-               const GridPos& in,
+               const GridPos&,
                // WS Generic Input Names:
                const String& inname)
 {
@@ -409,14 +410,28 @@ void CloneSize(// WS Generic Output:
 }
 
 void CloneSize(// WS Generic Output:
-               GasAbsLookup& out,
+               GasAbsLookup&,
                // WS Generic Output Names:
                const String& outname,
                // WS Generic Input:
-               const GasAbsLookup& in,
+               const GasAbsLookup&,
                // WS Generic Input Names:
                const String& inname)
 {
   out2 << "  Making " << outname << " the same size as " << inname << ".\n";
   out2 << "  Nothing to do for this group.\n";
 }
+
+void CloneSize(// WS Generic Output:
+               SingleScatteringData&,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const SingleScatteringData&,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out2 << "  Making " << outname << " the same size as " << inname << ".\n";
+  out2 << "  Nothing to do for this group.\n";
+}
+
