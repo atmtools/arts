@@ -1,3 +1,18 @@
+2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-103
+
+	* src/cloudbox.cc/.h: Added these files for internal calculations 
+	concerning scattering.
+	(i_field_update1D): Added. Updates i_field on all points inside 
+	the cloudbox.
+	(rte_scat_vecCalc): Added. Performs 1D radiative 
+ 	transfer calculation with fixed scattering vector.	
+
+	* src/linalg.cc/.h: (id_mat) Changed name of the function which 
+	returns the identity matrix, as there was a conflict with another
+	internal function named identity.
+
 2002-05-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-102

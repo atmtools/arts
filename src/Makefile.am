@@ -94,7 +94,12 @@ arts_SOURCES = \
 	agenda.h \
 	agenda.cc \
 	logic.h \
-	logic.cc
+	logic.cc \
+	lin_alg.h\
+	lin_alg.cc\
+	cloudbox.h\
+	cloudbox.cc
+
 
 arts_DEPENDENCIES= \
 	auto_md.cc \

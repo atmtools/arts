@@ -199,9 +199,9 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q)
      see user guide for accuracy */
   //  Index q = 8;
   Numeric q_n = (Numeric)(q);
-  identity(D);
-  identity(N);
-  identity(X);
+  id_mat(D);
+  id_mat(N);
+  id_mat(X);
   c = 1.;
 
   for(Index k=0; k<q; k++)
@@ -278,7 +278,7 @@ Numeric norm_inf(ConstMatrixView A)
 /*! 
   \param I Output: identity matrix
 */
-void identity(MatrixView I)
+void id_mat(MatrixView I)
 {
   const Index n = I.ncols();
   I = 0;

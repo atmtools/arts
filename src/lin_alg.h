@@ -55,6 +55,6 @@ Numeric norm_inf(ConstMatrixView A);
 
 
 // Identity Matrix
-void identity(MatrixView I);
+void id_mat(MatrixView I);
 
 #endif    // linalg_h
