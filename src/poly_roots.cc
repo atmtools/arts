@@ -102,13 +102,9 @@ poly_root_solve (Vector &coeffs)
   for (int i = 0; i < a; i++)
     c[i] = coeffs[a - i - 1];
 
-  for (int i = 0; i < a; i++)
-      cout << "c: " << c[i] << "   coeff: " << coeffs[a - i - 1] << endl;
-
   gsl_poly_complex_workspace *w = gsl_poly_complex_workspace_alloc (a);
 
   int status = gsl_poly_complex_solve (c, a, w, s);
-  cout << "Result: " << status << endl;
 
   Matrix solution (a - 1, 2, 0);
 
