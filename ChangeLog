@@ -1,5 +1,12 @@
 2003-07-31  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-628
+
+	* src/m_general.cc: Include unistd.h. Otherwise function sysconf is
+	unknown on gcc2 systems.
+
+2003-07-31  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-627
 
 	* src/methods.cc, src/m_general.cc: Added dummy Print method for
