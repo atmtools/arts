@@ -971,7 +971,6 @@ void groundFlatSea(
   //
   const Numeric costheta = sqrt( 1 - sintheta*sintheta );
 
-  //cout << RAD2DEG * asin(sintheta) << "\n";
 
   // The expressions for the dielectric constant are taken from the file
   // epswater93.m (by C. Mätzler), part of Atmlab.
@@ -993,7 +992,7 @@ void groundFlatSea(
   //
   e_ground.resize( f_mono.nelem() );
   //
-  for( Index i=0; i<f_mono.nelem()-1; i++ )
+  for( Index i=0; i<f_mono.nelem(); i++ )
     {
       const Complex  ifGHz( 0.0, f_mono[i]/1e9 );
 
@@ -1001,10 +1000,6 @@ void groundFlatSea(
                                 (e0-e1) / (1.0-ifGHz/f1);
       const Complex  n2 = sqrt( eps );
             Complex  a,b;
-
-            //cout << eps << "\n";
-            //cout << n2 << "\n";
-            //cout << asin((n1*sintheta)/n2) << "\n";
 
       if( pol == "v" )
         { 
@@ -1023,9 +1018,6 @@ void groundFlatSea(
       const Numeric   r = abs( ( a - b ) / ( a + b ) );
 
       e_ground[i] = 1 - r * r;
-
-      //cout << r*r << "\n";
-      //exit(0);
     }
 }
 

@@ -1,3 +1,10 @@
+2004-03-26  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-162
+
+	* src/m_los.cc (groundFlatSea): Fixed a bug. Last value of e_ground
+	was not filled. Too long time since I did C programing!
+	
 2004-03-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-161
