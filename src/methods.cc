@@ -1937,8 +1937,12 @@ md_data_raw.push_back
          "\n"
          "This function determines a propagation path step by pure\n"
          "geometrical calculations. That is, refraction is neglected. Path\n"
-         "points are included for crossings with the grids, tangent points\n"
-         "and points of ground intersections.\n"
+         "points are always included for crossings with the grids, tangent\n"
+	 "points\ and points of ground intersections. The keyword *lmax* \n"
+	 "gives the option to include additional points to ensure that the\n"
+	 "distance along the path between the points does not exceed the \n"
+	 "selected maximum length. No additional points are included if\n"
+	 "*lmax* is set to be negative.\n"
          "\n"
          "As functions of this kind should very seldom be called directly,\n"
          "and that the functions can be called a high number of times, these\n"
@@ -1946,35 +1950,10 @@ md_data_raw.push_back
          "detailed error messages, but asserts are performed (if turned on).\n"
          "\n"
          "For further information, type see the on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
-        ),
-        OUTPUT( ppath_step_ ),
-        INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, r_geoid_, z_ground_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_stepGeometricWithLmax" ),
-        DESCRIPTION
-        (
-         "As *ppath_stepGeometric* but with a length criterion for the\n"
-         "distance between the path points.\n"
-         "\n"
-         "This function works as *ppath_stepGeometric* but additional points\n"
-         "are included in the propagation path to ensure that the distance\n"
-         "along the path between the points does not exceed the selected\n"
-         "maximum length. The length criterion is set by the keyword\n"
-         "argument.\n"
-         "\n"
-         "See further the on-line information for *ppath_stepGeometric*\n"
-         "(type \"arts -d ppath_stepGeometric\").\n"
-         "\n"
+         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\").\n"
+	 "\n"
          "Keywords: \n"
-         "   lmax : Maximum allowed length between path points.\n"
+         "   lmax      : Maximum allowed length between path points."
         ),
         OUTPUT( ppath_step_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
@@ -1982,31 +1961,6 @@ md_data_raw.push_back
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "lmax" ),
-        TYPES(    Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_stepRefraction1D" ),
-        DESCRIPTION
-        (
-         "A special function to calculate path with refraction for 1D.\n"
-         "\n"
-         "This function works rather similar to *ppath_stepRefractionEuler*,\n"
-         "but gives symmetric paths (around tangent points), a more accurate\n"
-         "altitude for tangent points and calculates the refractive index\n"
-         "for each ray tracing point.\n"
-         "\n"
-         "See the user guide for more details on the algorithm used.\n"
-         "\n"
-         "Keywords: \n"
-         "   lraytrace : Maximum length of ray tracing steps.\n"
-        ),
-        OUTPUT( ppath_step_ ),
-        INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, t_field_, r_geoid_, z_ground_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "lraytrace" ),
         TYPES(    Numeric_t )));
 
   md_data_raw.push_back
@@ -2020,57 +1974,43 @@ md_data_raw.push_back
          "Refraction is taken into account by probably the simplest approach\n"
          "possible. The path is treated to consist of piece-wise geometric \n"
          "steps. A geometric path step is calculated from each point by \n"
-         "using the local line-of-sight. Snell's law for a case with \n"
-         "spherical symmetry is used for 1D to calculate the zenith angles. \n"
-         "For 2D and 3D, the zenith angles, and for 3D also the azimuth \n"
-         "angles, are propagated by solving the differential equation by the\n"
-         "Euler method. See the user guide for more details on the \n"
-         "algorithms used.\n"
+         "using the local line-of-sight. Except for 1D zenith angles, the\n"
+	 "path quantities are propagated by solving the differential \n"
+	 "equations by the Euler method. Snell's law for a case with \n"
+         "spherical symmetry is used for 1D to update the zenith angles. \n"
+	 "\n"
+         "See further the on-line information for *ppath_stepGeometric*\n"
+         "(type \"arts -d ppath_stepGeometric\") and the user guide for more\n"
+         "details on the algorithms used.\n"
          "\n"
          "The maximum length of each ray tracing step is given by the \n"
          "keyword argument *lraytrace*. The length will never exceed the \n" 
          "given maximum value, but can be smaller. The ray tracing steps are\n"
          "only used to determine the path, points to describe the path for \n" 
-         "*RteCalc* are included as for *ppath_stepGeometric*. \n"
-         "\n"
-         "Keywords: \n"
-         "   lraytrace : Maximum length of ray tracing steps.\n"
-        ),
-        OUTPUT( ppath_step_ ),
-        INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, t_field_, r_geoid_, z_ground_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "lraytrace" ),
-        TYPES(    Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppath_stepRefractionEulerWithLmax" ),
-        DESCRIPTION
-        (
-         "As *ppath_stepRefractionEuler* but with a length criterion for the\n"
-         "distance between the path points.\n"
-         "\n"
-         "This function works as *ppath_stepRefractionEuler* but additional\n"
-         "points are included in the returned propagation path to ensure \n"
-         "that the distance along the path between the points does not\n"
-         "exceed the selected maximum length. The length criterion is set \n"
-         "by the keyword argument *lmax*. The length of the ray tracing \n"
-         "steps are determined by *lraytrace* as for \n"
-         "*ppath_stepRefractionStd*.\n"
+         "*RteCalc* are included as for *ppath_stepGeometric*, this\n"
+	 "including the functionality for the keyword *lmax*.\n"
+	 "\n"
+	 "There exist two options for how to treat the refraction. It can be\n"
+	 "calculated for each ray tracing point. This is selected by setting\n"
+	 "*refrindex* to \"calc\". The other option, *refrindex*=\"interp\",\n"
+	 "means that refraction is calculated for the boundary of grid\n"
+	 "ranges (1D) and cells (2D and 3D) and is then interpolated inside\n"
+	 "the range/cell. The latter option can be much faster, but accurate\n"
+	 "calculations involving zenith angles around 90 degrees requieres\n"
+	 "a fine pressure grid.\n"
          "\n"
          "Keywords: \n"
          "   lraytrace : Maximum length of ray tracing steps.\n"
          "   lmax      : Maximum allowed length between path points.\n"
+         "   refrindex : \"calc\" or \"interp\". See further above."
         ),
         OUTPUT( ppath_step_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                z_field_, t_field_, r_geoid_, z_ground_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "lraytrace", "lmax" ),
-        TYPES(    Numeric_t,   Numeric_t )));
+        KEYWORDS( "lraytrace", "lmax",    "refrindex" ),
+        TYPES(    Numeric_t,   Numeric_t, String_t    )));
 
   md_data_raw.push_back
     ( MdRecord

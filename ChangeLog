@@ -1,3 +1,24 @@
+2002-12-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-328
+
+	* src/ppath.cc: There are now fewer WSM, only ppath_stepGeometric
+	and ppath_stepRefractionEuler. The different options are now selected
+	by keywords. I found this easier than having a lot of WSMs. Especially
+	as I decided to add another option for the refraction method. There is
+	now an option for how the refractive index shall be determined, always
+	calculated from scratch or interpolated from grid cell boundaries.
+	See the on-line help for info.
+
+	The special 1D option is not active for the moment. I have done this
+	now in several ways and the results is always the same. If the tangent
+	point is forced to be (very) exact, then the results do not converge
+	when decreasing the ray tracing length. On the other hand, if the
+	ray tracing is free to find its own tangent altitude, the results 
+	converge (and a very close to perfect tangent altitude is found). It 
+	must be the case that rounding errors balance each other in the second
+	case. 
+
 2002-12-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-327

@@ -493,55 +493,13 @@ void ppath_stepGeometric(
         const Vector&    lon_grid,
         const Tensor3&   z_field,
         const Matrix&    r_geoid,
-        const Matrix&    z_ground )
-{
-  // Input checks here would be rather costly as this function is called
-  // many times. So we perform asserts in the sub-functions, but no checks 
-  // here. This commented in the on-line information.
-
-  // Note that lmax is here set to -1.
-
-  if( atmosphere_dim == 1 )
-    { ppath_step_geom_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-                                             r_geoid(0,0), z_ground(0,0), -1 );
-    }
-  else if( atmosphere_dim == 2 )
-    { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
-             z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
-                                                z_ground(Range(joker),0), -1 );
-    }
-  else
-    {
-      throw runtime_error( "3D propagation path steps are not yet handled." );
-    }
-}
-
-
-
-//! ppath_stepGeometricWithLmax
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
-void ppath_stepGeometricWithLmax(
-        // WS Output:
-              Ppath&     ppath_step,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    p_grid,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Tensor3&   z_field,
-        const Matrix&    r_geoid,
         const Matrix&    z_ground,
         // Control Parameters:
         const Numeric&   lmax )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
-  // here. This commented in the on-line information for ppath_stepGeometric.
+  // here.
 
   if( atmosphere_dim == 1 )
     { ppath_step_geom_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
@@ -560,53 +518,12 @@ void ppath_stepGeometricWithLmax(
 
 
 
-//! ppath_stepRefraction1D
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-12-02
-*/
-void ppath_stepRefraction1D(
-        // WS Output:
-              Ppath&     ppath_step,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    p_grid,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Tensor3&   z_field,
-        const Tensor3&   t_field,
-        const Matrix&    r_geoid,
-        const Matrix&    z_ground,
-        // Control Parameters:
-	const Numeric&   lraytrace )
-{
-  // Input checks here would be rather costly as this function is called
-  // many times. So we perform asserts in the sub-functions, but no checks 
-  // here. This commented in the on-line information.
-
-  // Note that lmax is here set to -1.
-
-  if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d_special( ppath_step, p_grid, 
-                       z_field(Range(joker),0,0), t_field(Range(joker),0,0), 
-                  r_geoid(0,0), z_ground(0,0), "linear_euler", lraytrace, -1 );
-    }
-  else 
-    {
-      throw runtime_error( "This function is only intended for 1D." );
-    }
-}
-
-
-
 //! ppath_stepRefractionEuler
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-11-14
+   \date   2002-05-28
 */
 void ppath_stepRefractionEuler(
         // WS Output:
@@ -621,72 +538,28 @@ void ppath_stepRefractionEuler(
         const Matrix&    r_geoid,
         const Matrix&    z_ground,
         // Control Parameters:
-	const Numeric&   lraytrace )
-{
-  // Input checks here would be rather costly as this function is called
-  // many times. So we perform asserts in the sub-functions, but no checks 
-  // here. This commented in the on-line information.
-
-  // Note that lmax is here set to -1.
-
-  if( atmosphere_dim == 1 )
-    { ppath_step_refr_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-                t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
-                                               "linear_euler", lraytrace, -1 );
-    }
-  else if( atmosphere_dim == 2 )
-    { ppath_step_refr_2d( ppath_step, p_grid, lat_grid,
-                        z_field(Range(joker),Range(joker),0), 
-                        t_field(Range(joker),Range(joker),0), 
-                        r_geoid(Range(joker),0), z_ground(Range(joker),0), 
-                                               "linear_euler", lraytrace, -1 );
-    }
-  else
-    {
-      throw runtime_error( "3D propagation path steps are not yet handled." );
-    }
-}
-
-
-
-//! ppath_stepRefractionEulerWithLmax
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-28
-*/
-void ppath_stepRefractionEulerWithLmax(
-        // WS Output:
-              Ppath&     ppath_step,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    p_grid,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Tensor3&   z_field,
-        const Tensor3&   t_field,
-        const Matrix&    r_geoid,
-        const Matrix&    z_ground,
-        // Control Parameters:
 	const Numeric&   lraytrace,
-        const Numeric&   lmax )
+        const Numeric&   lmax,
+	const String&    refrindex )
 {
   // Input checks here would be rather costly as this function is called
-  // many times. So we perform asserts in the sub-functions, but no checks 
-  // here. This commented in the on-line information for ppath_stepGeometric.
+  // many times. So we do only asserts. The keywords are checked here,
+  // other input in the sub-functions to make them as simple as possible.
+
+  assert( lraytrace > 0 );
+  assert( refrindex == "calc"  ||  refrindex == "interp" );
 
   if( atmosphere_dim == 1 )
     { ppath_step_refr_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
                    t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
-                                             "linear_euler", lraytrace, lmax );
+                                  "linear_euler", lraytrace, lmax, refrindex );
     }
   else if( atmosphere_dim == 2 )
     { ppath_step_refr_2d( ppath_step, p_grid, lat_grid,
                        z_field(Range(joker),Range(joker),0), 
                        t_field(Range(joker),Range(joker),0), 
                        r_geoid(Range(joker),0), z_ground(Range(joker),0), 
-                                             "linear_euler", lraytrace, lmax );
+                                  "linear_euler", lraytrace, lmax, refrindex );
     }
   else
     {
