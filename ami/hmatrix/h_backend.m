@@ -53,7 +53,6 @@ f1     = f1/1e6;
 f2     = f2/1e6;
 f_back = f_back/1e6;
 
-
 %=== Check if backend channels totally inside frequency grid
 if f1(1) > f2(1)+f_back(1)
   error(sprintf('You must increase your frequency grid downwards with %.3e MHz',f1(1)-(f2(1)+f_back(1))));
