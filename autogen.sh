@@ -218,7 +218,7 @@ for configure_ac in $configure_files; do
 	fi
 
 	printbold "Running $AUTOMAKE..."
-	$AUTOMAKE --gnu --force --copy --add-missing || exit 1
+	$AUTOMAKE --gnu --copy --add-missing || exit 1
 
 	printbold "Running $AUTOCONF..."
 	$AUTOCONF || exit 1
