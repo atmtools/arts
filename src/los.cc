@@ -841,12 +841,12 @@ void ppath_1d (
     }
 
   // Check that the sensor not is below the ground.
-  if( r_s < r_geoid + z_ground )
+  if( r_s <= r_geoid + z_ground )
     {
       ostringstream os;
-      os << "The sensor position cannot be below the ground altitude.\n"
-         << "The ground altitude is here " << z_ground/1e3 << " km and the "
-         << "sensor altitude is " << (r_s-r_geoid)/1e3 << " km."; 
+      os << "The sensor position cannot be below, or equal to, the ground "
+         << "altitude.\nThe ground altitude is here " << z_ground/1e3 
+         << " km and the sensor altitude is " << (r_s-r_geoid)/1e3 << " km."; 
       throw runtime_error( os.str() );
     }
 
@@ -881,16 +881,54 @@ void ppath_1d (
     for( ppath.i_stop=0; ppath.z[ppath.i_stop]!=(r_s-r_geoid); 
                                                            ppath.i_stop++ ) {}
 
+  // Intersection with cloud box? 
+  if( cloudbox_on )
+    {
+      // Start point inside cloud box?
+      if( ip_p[ppath.i_stop]<cloudbox_limits[0] || 
+           ( ip_p[ppath.i_stop]==cloudbox_limits[0] && fabs(psi_s)>90) )
+	{
+    	  truncate_vector( ppath.z, ppath.i_stop, ppath.i_stop );
+    	  truncate_vector( ip_p, ppath.i_stop, ppath.i_stop );
+    	  truncate_vector( alpha, ppath.i_stop, ppath.i_stop );
+    	  truncate_vector( psi, ppath.i_stop, ppath.i_stop );
+    	  truncate_vector( ppath.l_step, 0 );
+	  ppath.background = "Inside cloud box";
+	  ppath.i_start    = 0;
+	  ppath.i_stop     = 0;
+	  ppath.ground     = 0;
+    	  ppath.np         = 1;
+	}
+
+      // Intersection with cloud box?
+      else if( ip_p[0]<cloudbox_limits[0] )
+	{
+          // Find index of first point above cloud box limit
+          Index i1, np;
+          for( i1=0; ip_p[i1]<cloudbox_limits[0]; i1++ ) {} 
+
+	  ppath.background = "Surface of cloud box";
+    	  np               = ppath.np;
+	  ppath.np         = np - i1;
+	  ppath.i_stop     = ppath.np - 1;
+	  ppath.i_start    = 0;
+	  ppath.ground     = 0;
+    	  truncate_vector( ppath.z, i1, np-1 );
+    	  truncate_vector( ip_p, i1, np-1 );
+    	  truncate_vector( alpha, i1, np-1 );
+    	  truncate_vector( psi, i1, np-1 );
+    	  truncate_vector( ppath.l_step, i1, np-2 );
+	}
+    }
+
   // Ignore part of the PPATH before ground reflection if blackbody ground.
   // The start index is then always 0. As the PPATH has then the ground as
-  // background, there is no ground intersction along the PPATH (ground=0).
+  // background, there is no ground intersection along the PPATH (ground=0).
   // If i_stop deviates from np-1, the vectors shall be truncated 
   // (corresponds to downward observation from within the atmosphere and 
   // blackbody ground).
-  // Note that if we are standing on the ground looking down, i_stop=0 and
-  // np becomes 1. In this case we have no propagation path, the stored
-  // point gives the position of the ground emission.
-  if( ppath.ground && blackbody_ground )
+  // Note the "else if" here with respect to cloud box.
+  else if( ppath.ground && blackbody_ground )
     {
       ppath.background = "Blackbody ground";
       ppath.i_start    = 0;
@@ -909,43 +947,6 @@ void ppath_1d (
     	}
     }
 
-  // Intersection with cloud box? (Note the "else" here with respect to above)
-  else if( cloudbox_on )
-    {
-      // Start point inside cloud box?
-      if( ip_p[ppath.i_stop]<cloudbox_limits[0] || 
-           ( ip_p[ppath.i_stop]<=cloudbox_limits[0] && fabs(psi_s)>90) )
-	{
-	  ppath.background = "Inside cloud box";
-	  ppath.i_start    = 0;
-	  ppath.ground     = 0;
-    	  ppath.np         = 1;
-    	  truncate_vector( ppath.z, 1 );
-    	  truncate_vector( ip_p, 1 );
-    	  truncate_vector( alpha, 1 );
-    	  truncate_vector( psi, 1 );
-    	  truncate_vector( ppath.l_step, 0 );
-	}
-
-      // Intersection with cloud box?
-      else if( ip_p[0]<cloudbox_limits[0] )
-	{
-          // Find index of first point above cloud box limit
-          Index i1, np;
-          for( i1=0; ip_p[i1]<cloudbox_limits[0]; i1++ ) {} 
-
-	  ppath.background = "Surface of cloud box";
-    	  np               = ppath.np;
-	  ppath.np         = np - i1;
-	  ppath.i_start    = ppath.np - 1;
-	  ppath.ground     = 0;
-    	  truncate_vector( ppath.z, i1, np-1 );
-    	  truncate_vector( ip_p, i1, np-1 );
-    	  truncate_vector( alpha, i1, np-1 );
-    	  truncate_vector( psi, i1, np-1 );
-    	  truncate_vector( ppath.l_step, i1, np-2 );
-	}
-    }
 
   // Convert altitudes to pressures
   Vector p(ppath.np);
@@ -1044,32 +1045,30 @@ void ppathCalc(
 	}
       if( dim >= 2 )
 	{
-	  if( cloudbox_limits[1]<0 || cloudbox_limits[1]>alpha_grid.nelem() ||
-                 cloudbox_limits[2]<=cloudbox_limits[1] || 
-                 cloudbox_limits[2]>=alpha_grid.nelem() )
+	  if( cloudbox_limits[2]<=cloudbox_limits[1] || cloudbox_limits[1]<1 ||
+                                cloudbox_limits[2]>=alpha_grid.nelem()-1 )
 	    {
 	      ostringstream os;
 	      os << "Incorrect value(s) for cloud box latitude limit(s) found."
 		 << "\nValues are either out of range or upper limit is not "
-		 << "greater than lower limit.\n"
-		 << "With present length of *alpha_grid*, OK values are 0 - " 
-		 << alpha_grid.nelem() << ".\nThe latitude limits are set to " 
+		 << "greater than lower limit.\nWith present length of "
+                 << "*alpha_grid*, OK values are 1 - " << alpha_grid.nelem()-2
+                 << ".\nThe latitude index limits are set to " 
 		 << cloudbox_limits[1] << " - " << cloudbox_limits[2] << ".";
 	      throw runtime_error( os.str() );
 	    }
 	}
       if( dim >= 3 )
 	{
-	  if( cloudbox_limits[3]<0 || cloudbox_limits[3]>beta_grid.nelem() ||
-                 cloudbox_limits[4]<=cloudbox_limits[3] || 
-                 cloudbox_limits[4]>=beta_grid.nelem() )
+	  if( cloudbox_limits[4]<=cloudbox_limits[3] || cloudbox_limits[3]<1 ||
+                                cloudbox_limits[4]>=beta_grid.nelem()-1 )
 	    {
 	      ostringstream os;
 	      os << "Incorrect value(s) for cloud box longitude limit(s) found"
 		 << ".\nValues are either out of range or upper limit is not "
-		 << "greater than lower limit.\n"
-		 << "With present length of *beta_grid*, OK values are 0 - " 
-		 << beta_grid.nelem() << ".\nThe longitude limits are set to " 
+		 << "greater than lower limit.\nWith present length of "
+                 << "*beta_grid*, OK values are 1 - " << beta_grid.nelem()-2
+                 << ".\nThe longitude limits are set to " 
 		 << cloudbox_limits[3] << " - " << cloudbox_limits[4] << ".";
 	      throw runtime_error( os.str() );
 	    }
@@ -1150,7 +1149,7 @@ void test_new_los()
   // Sensor  
   Vector sensor_pos(1), sensor_los(1);
   sensor_pos[0] = EARTH_RADIUS + 20e3;
-  sensor_los[0] = 110;
+  sensor_los[0] = 98;
 
   ppathCalc( ppath, dim, p_grid, alpha_grid, beta_grid, z_field, r_geoid, 
  	         z_ground, e_ground, refr_on, cloudbox_on, cloudbox_limits,

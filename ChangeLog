@@ -1,3 +1,10 @@
+2002-03-05  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-17
+
+	* src/los.cc: Cloud box - 1D paths ready. The sensor must now be above
+	the ground and cannot be on the ground.
+
 2002-03-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-16
