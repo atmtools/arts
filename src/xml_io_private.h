@@ -131,7 +131,8 @@ void
 xml_parse_error (const String& str_error);
 
 void
-xml_read_header_from_stream (istream& is, FType &ftype);
+xml_read_header_from_stream (istream& is, FileType &ftype,
+                             NumericType &ntype, EndianType &etype);
 
 void
 xml_read_footer_from_stream (istream& is);
@@ -374,77 +375,77 @@ template void
 xml_read_from_file<Vector> (const String&, Vector&);
 
 template void
-xml_write_to_file<Agenda> (const String&, const Agenda&, FType);
+xml_write_to_file<Agenda> (const String&, const Agenda&, FileType);
 
 template void
-xml_write_to_file<ArrayOfGridPos> (const String&, const ArrayOfGridPos&, FType);
+xml_write_to_file<ArrayOfGridPos> (const String&, const ArrayOfGridPos&, FileType);
 
 template void
-xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FType);
+xml_write_to_file<ArrayOfIndex> (const String&, const ArrayOfIndex&, FileType);
 
 template void
-xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&, FType);
+xml_write_to_file<ArrayOfMatrix> (const String&, const ArrayOfMatrix&, FileType);
 
 template void
-xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&, FType);
+xml_write_to_file<ArrayOfTensor3> (const String&, const ArrayOfTensor3&, FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfTensor3> (const String&,
-                                          const ArrayOfArrayOfTensor3&, FType);
+                                          const ArrayOfArrayOfTensor3&, FileType);
 
 template void
-xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&, FType);
+xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&, FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfTensor6> (const String&,
-                                          const ArrayOfArrayOfTensor6&, FType);
+                                          const ArrayOfArrayOfTensor6&, FileType);
 
 template void
-xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&, FType);
+xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&, FileType);
 
 template void
-xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&, FType);
+xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&, FileType);
 
 template void
-xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FType);
+xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FileType);
 
 template void
-xml_write_to_file<GridPos> (const String&, const GridPos&, FType);
+xml_write_to_file<GridPos> (const String&, const GridPos&, FileType);
 
 template void
-xml_write_to_file<Index> (const String&, const Index&, FType);
+xml_write_to_file<Index> (const String&, const Index&, FileType);
 
 template void
-xml_write_to_file<Matrix> (const String&, const Matrix&, FType);
+xml_write_to_file<Matrix> (const String&, const Matrix&, FileType);
 
 template void
-xml_write_to_file<Numeric> (const String&, const Numeric&, FType);
+xml_write_to_file<Numeric> (const String&, const Numeric&, FileType);
 
 template void
-xml_write_to_file<Ppath> (const String&, const Ppath&, FType);
+xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);
 
 template void
-xml_write_to_file<String> (const String&, const String&, FType);
+xml_write_to_file<String> (const String&, const String&, FileType);
 
 template void
-xml_write_to_file<Tensor3> (const String&, const Tensor3&, FType);
+xml_write_to_file<Tensor3> (const String&, const Tensor3&, FileType);
 
 template void
-xml_write_to_file<Tensor4> (const String&, const Tensor4&, FType);
+xml_write_to_file<Tensor4> (const String&, const Tensor4&, FileType);
 
 template void
-xml_write_to_file<Tensor5> (const String&, const Tensor5&, FType);
+xml_write_to_file<Tensor5> (const String&, const Tensor5&, FileType);
 
 template void
-xml_write_to_file<Tensor6> (const String&, const Tensor6&, FType);
+xml_write_to_file<Tensor6> (const String&, const Tensor6&, FileType);
 
 template void
-xml_write_to_file<Tensor7> (const String&, const Tensor7&, FType);
+xml_write_to_file<Tensor7> (const String&, const Tensor7&, FileType);
 
 template void
-xml_write_to_file<Vector> (const String&, const Vector&, FType);
+xml_write_to_file<Vector> (const String&, const Vector&, FileType);
 
 template void
-xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&, const ArrayOfArrayOfSpeciesTag&, FType);
+xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&, const ArrayOfArrayOfSpeciesTag&, FileType);
 
 #endif  /* xml_io_private_h */

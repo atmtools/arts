@@ -22,7 +22,7 @@
 /*!
   \file   xml_io.h
   \author Oliver Lemke <olemke@uni-bremen.de>
-  \date   Fri May 10 09:43:57 2002
+  \date   2002-05-10
 
   \brief This file contains basic functions to handle XML data files.
 
@@ -34,7 +34,9 @@
 
 #include "mystring.h"
 
-typedef enum {FTYPE_ASCII, FTYPE_BINARY} FType;
+typedef enum {FILE_TYPE_ASCII, FILE_TYPE_BINARY} FileType;
+typedef enum {NUMERIC_TYPE_FLOAT, NUMERIC_TYPE_DOUBLE} NumericType;
+typedef enum {ENDIAN_TYPE_LITTLE, ENDIAN_TYPE_BIG} EndianType;
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -57,6 +59,6 @@ xml_read_from_file (const String& filename,
 template<typename T> void
 xml_write_to_file (const String& filename,
                    const      T& data,
-                           FType ftype = FTYPE_ASCII);
+                           FileType ftype = FILE_TYPE_ASCII);
 
 #endif
