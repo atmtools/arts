@@ -1,3 +1,17 @@
+2001-11-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-49
+
+	* doc/uguide/concept.tex: Added practical
+	information about useful command line parameters and such things.
+
+	* doc/examples/.cvsignore: Cleaned up, using the new naming
+	convention. Ignored are now:
+	"*.arts", "*.rep", "*_example.*.aa", "*_example.*.ab".
+
+	* doc/examples/amsu_example.arts.in: Fixed name of output file
+	from _y_mono to .y_mono
+
 2001-11-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-48

@@ -17,7 +17,8 @@
 %  \stophistory
 %
 \starthistory
-  000616 & Created by Stefan Buehler, based on my DPG2000 poster.
+  000616 & Created by Stefan Buehler, based on my DPG2000 poster.\\
+  011121 & Practical hints added by Stefan Buehler.
 \stophistory
 
 %
@@ -36,7 +37,8 @@
 This section describes the basic ideas underlying ARTS. It also
 introduces some terminology. You should read it if you want
 to understand how the program works and how it can be used
-efficiently.
+efficiently. At the end of the chapter, there is also some practical
+information about useful command line parameters and such things. 
 
 
 \levelb{Introduction}
@@ -159,7 +161,7 @@ program even more freedom than specific methods. A generic method is
 for example \verb|VectorReadAscii|, which can be used to read any
 workspace variable which is a vector from an ASCII file. For example
 \begin{quote}
-  \verb|VectorReadAscii(f_mono){"freqeuency_grid.dat"}|
+  \verb|VectorReadAscii(f_mono){"freqeuency_grid.aa"}|
 \end{quote}
 will read the specified file and generate the workspace variable
 \verb|f_grid|.
@@ -177,107 +179,108 @@ will read the specified file and generate the workspace variable
 Generic methods are particularly useful for IO operations like in the
 example above. No new IO functions are necessary for new workspace
 variables, as long as they are of standard types already known to the
-program (for example vectors or matrices).  Section
-\ref{sec:concept:example} gives a short example of a controlfile which
-illustrates the use of both generic and specific methods.
+program (for example vectors or matrices). 
 
-
-\levelb{An example controlfile}
+\levelb{Practical hints}
 %=================================
-\label{sec:concept:example}
+\label{sec:concept:practical}
 
-{\footnotesize
+The subdirectory \verb|examples| of the \verb|doc| directory contains
+some example controlfiles. You should study them to learn more about
+how the program works. You can also run these controlfiles like this:
+\begin{quote}
 \begin{verbatim}
-# An example ARTS controlfile that calculates absorption
-# coefficients. 
-# SAB 16.06.2000
-
-# --------------------< A specific method >--------------------
-#                      -------------------
-# Read the spectroscopic line data from the HITRAN catalogue and
-# create the workspace variable `lines':
-linesReadFromHitran {
-   filename = "../../data/spectroscopy/hitran96/hitran96_h2o.par"
-   fmin     = 0
-   fmax     = 1000e12 
-}
-
-# Optionally write the line list to a file:
-linesWriteToFile{""} 
-
- 
-# This defines the list of tag groups (`tag_groups'). Absorption
-# coefficients will be calculated separately for each tag group. This
-# is necessary in order to calculate weighting functions later on.
-# The lines are assigned to the tag groups in the order as the groups
-# are specified here. That means the last group H2O gets assigned all
-# the H2O lines that do not fit in any other group.
-tag_groupsDefine{
-      [ "H2O-161",
-        "H2O-181",
-        "H2O-171",
-        "H2O" ] 
-}
-
-# This separates the lines into the different tag groups and creates
-# the workspace variable `lines_per_tg':
-lines_per_tgCreateFromLines{}
-
-lines_per_tgWriteToFile{""} 
-
-
-# --------------------< A generic method >--------------------
-#                      ------------------
-# Read the pressure, temperature, and altitude profiles and create 
-# the workspace variable `raw_ptz_1d':
-MatrixReadFromFile (raw_ptz_1d) 
-        {"../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
-
-# The same for the input VMR profiles:
-raw_vmrs_1dReadFromScenario
-        {"../../data/atmosphere/fascod/midlatitude-summer"}
-
-# Optionally write this to a file:
-ArrayOfMatrixWriteToFile (raw_vmrs_1d) {""}
-
-
-# Create the pressure grid `p_abs':
-VectorLinSpace(p_abs){
-        start = 1000
-        stop  = 1
-        step  = -1 
-}
-
-VectorWriteToFile(p_abs){""}
-
-
-# Now interpolate all the raw atmospheric input onto the pressure 
-# grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw1D{}
-
-# Optionally write these to files:
-VectorWriteToFile (t_abs) {""}
-VectorWriteToFile (z_abs) {""}
-ArrayOfVectorWriteToFile (vmrs)  {""}
-
-
-# Create the frequency grid `f_abs':
-VectorLinSpace(f_abs){
-        start = 1
-        stop  = 1000
-        step  = 1    
-}
-
-
-# Calculate absorption coefficients, both total (`abs') and 
-# separately for each tag group (`abs_per_tg'):
-absCalc{}
-
-# These we definitely want to write to files!
-MatrixWriteToFile (abs) {""}
-ArrayOfMatrixWriteToFile (abs_per_tg) {""}
+  arts absorption_example.arts
 \end{verbatim}
-}
+\end{quote}
+This assumes that you are inside the directory where the controlfiles
+are, and that the \verb|arts| executable is in your path.  You can
+also run all of the examples, by saying
+\begin{quote}
+\begin{verbatim}
+  make check
+\end{verbatim}
+\end{quote}
+
+ARTS offers a number of useful command line parameters. In general,
+there is a short form and a long form for each parameter. The short
+form consists of a minus sign and a single letter, whereas the long
+form consists of two minus signs and a descriptive name. To get a full
+list, type
+\begin{quote}
+\begin{verbatim}
+  arts -h
+\end{verbatim}
+\end{quote}
+or
+\begin{quote}
+\begin{verbatim}
+  arts --help
+\end{verbatim}
+\end{quote}
+Most useful at the beginning should be the \verb|-d|
+(\verb|--describe|), \verb|-m| (\verb|--methods|), \verb|-w|
+(\verb|--workspacevariables|), and \verb|-i| (\verb|--input|) flags.
+For instance, the \verb|-d| (\verb|--describe|) flag gives you online
+documentation for any workspace method or workspace variable. Usage:
+\begin{quote}
+\begin{verbatim}
+  arts -d f_mono
+\end{verbatim}
+\end{quote}
+will print documentation about the workspace variable \verb|f_mono|, which
+happens to be the monochromatic frequency grid.
+
+But what methods and variables are available? You can find out by
+typing
+\begin{quote}
+\begin{verbatim}
+  arts -m all
+\end{verbatim}
+\end{quote}
+which will list all workspace methods, or by typing 
+\begin{quote}
+\begin{verbatim}
+  arts -w all
+\end{verbatim}
+\end{quote}
+which will list all workspace variables. As you can see, these lists
+are quite long. But you can get more specific information:
+\begin{quote}
+\begin{verbatim}
+  arts -m f_mono
+\end{verbatim}
+\end{quote}
+will give you a list of all methods that can generate the workspace
+variable \verb|f_mono|. Specific and generic methods are listed
+separately. Generic methods are in this case all methods producing a
+Vector, since \verb|f_mono| belongs to this group. A similar task is
+performed by the \verb|-i| (\verb|--input|) flag, with the difference
+that \verb|arts -i f_mono| will list those methods that require
+\verb|f_mono| as \emph{input}, whereas \verb|arts -m f_mono| lists
+those that produce \verb|f_mono| as output. Finally,
+\begin{quote}
+\begin{verbatim}
+  arts -w absCalc
+\end{verbatim}
+\end{quote}
+will give you all variables required by the method \verb|absCalc|
+(the variable \verb|f_mono| happens to be one of them).
+
+Using these command line parameters, it is easy to build up a
+controlfile. The trick is, to start at the end. Say you want to
+compute absorption coefficients. First of all, you have to find out
+in which workspace variable these are stored. Look at the list
+produced by \verb|arts -w all|. You can use \verb|arts -d| to look at
+some candidates a bit more closely. This way, you will find out that
+\verb|abs| is the variable you are looking for.
+
+In the next step, you can use \verb|arts -m abs| to find all methods
+that can calculate \verb|abs|. So, you will find the method
+\verb|absCalc|. Now you can use \verb|arts -w absCalc| to find out the
+required input variables of that method. Then you can use the
+\verb|-m| flag again, to find the methods producing these variables,
+and so on.
 
 %%% Local Variables: 
 %%% mode: latex

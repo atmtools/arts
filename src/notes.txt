@@ -1,25 +1,97 @@
 
-Absorption Stuff:
+1. Method conventions:
 
-1D / 2D:
+INPUT abs
+OUTPUT abs
 
-Input Atmosphere stuff is 1D, so is RTE. Only the absorption
-coefficient calculation itself is already 2D, since this is
-practically no extra effort.
-
-Reason for 1D input: It is not enough to just read a list of
-profiles. They could be on different horizontal grids. In fact one
-must somehow specify the horizontal coordinate to do proper horizontal
-interpolation. 
+Means: Abs *must* exist before (already enforced).
 
 
-Matpack:
+INPUT 
+OUTPUT abs
 
-Basic types:
+Means: Abs may or may not exist before. It is the responsibility of
+the programmer to specify (and document!) how the method deals with
+previous content of abs. This must be explained in the online
+documentation for the method.
 
-Numeric, Index, Vector, Matrix, Array
 
-Open questions:
+2. Convention for Generic methods: The same argument may occur both as
+an input and an output argument. Example
 
-How do the binfile... routines in file.cc react to having Index
-(=long) instead of size_t?
+VectorAdd(p_abs,p_abs)
+
+will flip the order of the elements of p_abs.
+
+
+3. There will be a few `generic' WSVs of each group. Convention:
+
+index1, index2, matrix1, matrix2, etc..
+
+4. Setting up method lists:
+
+   MethodListDefine (already implemented)
+   ArrayOfMethodListDefine (needed for example for the absorption
+   			    methods, where we want to be able to
+                            specify the lineshape 
+   			    separately for each tg).
+
+5. Outline of new absorption structure:
+
+WSVs: tgs, lines, lines_per_tg
+Methods: Stays as it is:
+
+WSV: lineshape was in the past a complicated variable containing identification
+     of the lineshape to use. In future:
+
+     ArrayOfIndex lineshape_methods: The lineshape methods to use for
+                                     each tg.
+
+WSVs for lineshapes: 
+     Vector lineshape: The output
+     Numeric f0:       Center frequency
+     f_mono:           frequency grid 
+     Numeric gamma:    Pressure broadening parameter
+     Numeric sigma:    Dopler broadening parameter
+
+Methods: Each lineshape function will be a method:
+
+Name				 Output	       Input
+
+lineshapeDoppler		 lineshape     f0, f_mono, gamma
+lineshapeLorentz		 lineshape     f0, f_mono, gamma
+lineshapeVoigtKuntz3		 lineshape     f0, f_mono, gamma, sigma
+lineshapeVoigtKuntz4		 lineshape     f0, f_mono, gamma, sigma
+lineshapeVoigtKuntz6		 lineshape     f0, f_mono, gamma, sigma
+lineshapeVoigtDrayson		 lineshape     f0, f_mono, gamma, sigma
+lineshapeRosenkranzVoigtDrayson	 lineshape     f0, f_mono, gamma, sigma
+lineshapeRosenkranzVoigtKuntz6	 lineshape     f0, f_mono, gamma, sigma
+                       
+
+Furthermore, there are methods for the normalization:
+
+lineshapeNormQuadratic           lineshape	lineshape, f0, f_mono
+
+This one multiplies the lineshape with a (f/f0)^2 term. In this case,
+lineshape is both input and output, as it must exist before.
+
+For ease of use, lets have specific methods to set up the method
+lists:
+
+# For all tgs the same lineshapes:
+lineshape_methodsDefine{["lineshapeVoigtDrayson","lineshapeNormQuadratic"]}
+
+# Or individually:
+tgsDefine{["O3","H2O","ClO"]}
+lineshape_methodsDefinePerTg{
+  name = "O3"
+  methods = ["lineshapeVoigtDrayson","lineshapeNormQuadratic"]
+}
+lineshape_methodsDefinePerTg{
+  name = "ClO"
+  methods = ["lineshapeVoigtDrayson","lineshapeNormQuadratic"]
+}
+
+Note that we did not define the methods for the tg H2O, which is ok as
+long as we use one of the complete absorption models for this tg.
+
