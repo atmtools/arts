@@ -537,9 +537,6 @@ int main (int argc, char **argv)
   // the coefficients of the partition function that we need for the
   // absorption part, and check that the inputs are sorted the same way:
   define_species_data();
-  define_q_data();
-  check_q_data();
-
 
   // And also the species map:
   define_species_map();

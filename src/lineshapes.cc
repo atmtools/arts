@@ -107,6 +107,7 @@ void lineshape_voigt_kuntz1(VECTOR&       prb,
     are only calculated once thus further accelerating the 
     algorithm
 
+    \verbatim
     --------------------------------------------------------------------
     x(nx)   (in)    :Distance from line center in units of Doppler
                     :halfwidths
@@ -123,6 +124,9 @@ void lineshape_voigt_kuntz1(VECTOR&       prb,
             76021 Karlsruhe, Germany. 
             email: kuntz@imk.fzk.de 
 
+    \endverbatim
+
+
     About 'voigt1' : The program was originally written by M. Kuntz
     in Fortran77 but has been translated into C by Frank Merino and 
     into C++ by Oliver Lemke and Axel von Engeln. fak is set to 1.0.
@@ -133,7 +137,7 @@ void lineshape_voigt_kuntz1(VECTOR&       prb,
 {
 
   // seems not necessary for Doppler correction
-  //  extern const Numeric SQRT_NAT_LOG_2;
+  //    extern const Numeric SQRT_NAT_LOG_2;
 
       int lauf[5][5], stack[20][4], stackp, bmin, bmax;
       Numeric static a8,b8,c8,d8,e8,f8,g8,h8,o8,p8,q8,r8,s8,t8,a7,b7,c7,d7,e7,f7, 

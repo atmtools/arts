@@ -121,14 +121,50 @@ public:
       can be more than one JPL tag for an isotopic species, because in
       JPL different vibrational states have different tags. */
   const ARRAY<int>&   JplTags()      const { return mjpltags;      }
-  
+
+  void SetPartitionFctCoeff( const ARRAY<Numeric>& qcoeff )
+  {
+    mqcoeff = qcoeff;
+    mqcoeff_at_t_ref = -1.;
+  }
+
+  Numeric CalculatePartitionFctRatio( Numeric temperature ) const
+  {
+    Numeric qtemp = CalculatePartitionFctAtTemp( temperature );
+
+    if ( qtemp < 0. ) 
+      {
+	ostringstream os;
+	os << "Partition function of "
+	   << "Isotope = " << mname
+	   << "is unknown."
+	   << endl;
+	throw runtime_error(os.str());
+      }
+    return mqcoeff_at_t_ref / qtemp;
+  }
+
+  // calculate the partition function at the reference temperature
+  void CalculatePartitionFctAtRefTemp( Numeric temperature )
+  {
+    //    if (mqcoeff_at_t_ref <= -1.0 )     
+    mqcoeff_at_t_ref = CalculatePartitionFctAtTemp( temperature );
+  }
+
 private:
+
+  // calculate the partition fct at a certain temperature
+  // this is only the prototyping
+  Numeric CalculatePartitionFctAtTemp( Numeric temperature ) const;
+
   string mname;
   Numeric mabundance;
   Numeric mmass;
   int mmytrantag;
   int mhitrantag;
   ARRAY<int> mjpltags;
+  ARRAY<Numeric> mqcoeff;
+  Numeric mqcoeff_at_t_ref;
 };
 
 
@@ -183,6 +219,7 @@ public:
   const string&               Name()     const { return mname;     }   
   int                         Degfr()    const { return mdegfr;    }
   const ARRAY<IsotopeRecord>& Isotope()  const { return misotope;  }
+  ARRAY<IsotopeRecord>&       Isotope()        { return misotope;  }
   
 private:
   /** Species name. */
@@ -325,9 +362,12 @@ public:
   {
     // Check if this species is legal, i.e., if species and isotope
     // data exists.
-    extern const ARRAY<SpeciesRecord> species_data;
+    extern ARRAY<SpeciesRecord> species_data;
     assert( mspecies < species_data.size() );
     assert( misotope < species_data[mspecies].Isotope().size() );
+    // if ever this constructor is used, here is the calculation of
+    // the partition fct at the reference temperature
+    species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 ) ;
   }
 
   /** The index of the molecular species that this line belongs
@@ -546,74 +586,6 @@ ostream& operator << (ostream& os, const LineRecord& lr);
 
     \author Stefan Buehler  */
 void define_species_map();
-
-
-/** Contains the lookup data of the partition function coefficients
-    for one isotope. 
-    \author Axel von Engeln */
-class QIsotopeRecord{
-public:
-  /** Default constructor. Needed by make_array. */
-  QIsotopeRecord() { /* Nothing to do here */ }
-  /** Constructor that sets the values. */
-  QIsotopeRecord(const string&         name,
-		 const ARRAY<Numeric>& coeff)
-    : mname(name),
-      mcoeff(coeff)
-  {
-    // Some consistency checks whether the given data makes sense.
-#ifndef NDEBUG
-    {
-      /* 1. name must be given */
-      assert( (mname != "") );
-    }
-#endif // ifndef NDEBUG
-  }
-
-  const string&         Name()         const { return mname;  }
-  const ARRAY<Numeric>& Coeff()        const { return mcoeff; }
-  
-private:
-  /** Isotope names. */
-  string mname;
-  /** coefficients of the 3rd order polynmial in temperature:
-      c0,c1,c2,c3 */
-  ARRAY<Numeric> mcoeff;
-};
-
-
-/** Contains the lookup data for the partition function of each
-    species.
-    \author Axel von Engeln */
-class QRecord{
-public:
-  /** Default constructor. Needed by make_array. */
-  QRecord() { /* Nothing to do here */ }
-  /** Constructor used in define_q_data. */
-  QRecord(const string&      	         name,
-	  const ARRAY<QIsotopeRecord>&   isotope)
-    : mname(name),
-      misotope(isotope)
-  {
-    // Some consistency checks whether the given data makes sense.
-#ifndef NDEBUG
-      {
-	/* 1. name must be defined */
-	assert( (mname != "") );
-      }
-#endif // ifndef NDEBUG
-  }
-
-  const string&                   Name()      const { return mname;  }
-  const ARRAY<QIsotopeRecord>& Isotope()      const { return misotope;   }
-  
-private:
-  /** Species names. */
-  string mname;
-  /** isotope name (arts convention) and coefficients of the 3rd order
-      polynmial in temperature: c0,c1,c2,c3 */
-  ARRAY<QIsotopeRecord> misotope;
-};
 
 
 

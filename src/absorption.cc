@@ -37,6 +37,25 @@
 std::map<string, size_t> SpeciesMap;
 
 
+// member fct of isotoperecord, calculates the partition fct at the
+// given temperature  from the partition fct coefficients (3rd order
+// polynomial in temperature)
+Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
+						    temperature ) const
+{
+  Numeric result = 0.;
+  Numeric exponent = 1.;
+
+  ARRAY<Numeric>::const_iterator it;
+
+  for (it=mqcoeff.begin(); it != mqcoeff.end(); it++)
+    {
+      result += *it * exponent;
+      exponent *= temperature;
+    }
+  return result;
+}
+
 void define_species_map()
 {
   extern const ARRAY<SpeciesRecord> species_data;
@@ -117,7 +136,7 @@ void extract(T&      x,
 bool LineRecord::ReadFromHitranStream(istream& is)
 {
   // Global species lookup data:
-  extern const ARRAY<SpeciesRecord> species_data;
+  extern ARRAY<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
   // isotope lists. Could be any number, it just has to be made sure
@@ -457,7 +476,12 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
   // Reference temperature for Intensity in K.
   // (This is fix for HITRAN)
-  mti0 = 296.0;					  
+  mti0 = 296.0;
+
+  // calculate the partition fct at the reference temperature. This is
+  // done for all lines read from the catalogue, even the ones never
+  // used in calculation. FIXME: are there better ways to implement this?
+  species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
 
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN)
@@ -733,8 +757,7 @@ void write_lines_to_stream(ostream& os,
     with assert. Also, the input vectors p_abs, t_abs, and vmr must
     all have the same dimension.
 
-    This is a strongly simplified routine which serves mainly
-    the purpose of demonstration.
+    This is still in the developing state.
 
     \retval abs   Absorption coefficients.
     \param f_mono Frequency grid.
@@ -753,7 +776,6 @@ void abs_species( MATRIX&                  abs,
 {
   // Make lineshape and species lookup data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
-  extern const ARRAY<SpeciesRecord> species_data;
 
   // speed of light constant
   extern const Numeric SPEED_OF_LIGHT;
@@ -763,6 +785,16 @@ void abs_species( MATRIX&                  abs,
 
   // Avogadros constant
   extern const Numeric AVOGADROS_NUMB;
+
+  // Planck constant
+  extern const Numeric PLANCK_CONST;
+
+  // sqrt(ln(2))
+  // extern const Numeric SQRT_NAT_LOG_2;
+
+  // Constant within the Doppler Broadening calculation:
+  const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
+					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
   // Define the vector for the line shape function here, so that we
   // don't need so many free store allocations.
@@ -806,6 +838,7 @@ void abs_species( MATRIX&                  abs,
   // Loop all pressures:
   for ( size_t i=1; i<=p_abs.dim(); ++i )
   {
+
     out3 << "  p = " << p_abs(i) << " Pa\n";
 
     // Calculate total number density from pressure and
@@ -813,7 +846,7 @@ void abs_species( MATRIX&                  abs,
     // n = n0*T0/p0 * p/T, ideal gas law
     Numeric n;
     {
-      // FOXME: Should these be moved to constants.cc?
+      // FIXME: Should these be moved to constants.cc?
       const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
       const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
       const Numeric n_0   = 2.686763E25;         /* Loschmidt constant [m^-3] */
@@ -837,10 +870,42 @@ void abs_species( MATRIX&                  abs,
 	// only to be multiplied by total number density, VMR, and lineshape. 
 	Numeric intensity = l_l.I0();
 
-	// FIXME: We should calculate the temperature dependence of the
-	// intensities here.
+	// Lower state energy is in wavenumbers
+	Numeric e_lower = l_l.Elow() *  PLANCK_CONST * SPEED_OF_LIGHT
+	  * 1E2;
 
-	  
+	// Upper state energy
+	Numeric e_upper = e_lower + l_l.F() * PLANCK_CONST;
+
+	// get the ratio of the partition function
+	Numeric part_fct_ratio = 0.0;
+	try 
+	  {
+	    part_fct_ratio =
+	      l_l.IsotopeData().CalculatePartitionFctRatio( t_abs(i) );
+	  }
+
+	catch (runtime_error e)
+	  {
+	    ostringstream os;
+	    os << "Partition function of "
+	       << "Species-Isotope = " << l_l.Name()
+	       << "is unknown." << endl;
+	  }
+
+	// Boltzmann factors
+	Numeric nom = exp(- e_lower / (BOLTZMAN_CONST * t_abs(i) ) ) - 
+       	              exp(- e_upper /( BOLTZMAN_CONST * t_abs(i) ) );
+
+	Numeric denom = exp(- e_lower / (BOLTZMAN_CONST * l_l.Ti0() ) ) - 
+       	                exp(- e_upper /( BOLTZMAN_CONST * l_l.Ti0() ) );
+
+
+	// intensity at temperature
+	intensity *= part_fct_ratio * nom / denom;
+
+
+
 	// 2. Get pressure broadened line width:
 	// (Agam is in Hz/Pa, p_abs is in Pa, f_mono is in Hz,
 	// gamma is in Hz/Pa)
@@ -855,10 +920,8 @@ void abs_species( MATRIX&                  abs,
 
 	// Doppler broadening without the sqrt(ln(2)) factor, which
 	// seems to be redundant FIXME: verify .
-	Numeric sigma
-	  = l_l.F() / SPEED_OF_LIGHT * 
-	  sqrt( 2.0 * BOLTZMAN_CONST * t_abs(i) * AVOGADROS_NUMB / 
-		species_data[l_l.Species()].Isotope()[l_l.Isotope()].Mass());
+	Numeric sigma = l_l.F() * doppler_const * 
+	  sqrt( t_abs(i) / l_l.IsotopeData().Mass());
 
 	// Get line shape:
 	// FIXME: we need an index to this, extracted from the
@@ -873,11 +936,33 @@ void abs_species( MATRIX&                  abs,
 				     sigma,
 				     f_mono);
 
+
+
 	// Add line to abs:
+	// the lineshape function do not include the (F/F0)^2 factor,
+	// as far as I can see, which is done over here FIXME: can we
+	// do that by passing a factor to the lineshape function? This
+	// factor varies with the lineshape fucntion, the current
+	// factor is only for the kuntz voigt routines. AvE
+
+	// constant sqrt(1/pi)
+	const Numeric sqrt_1_pi =  0.564189584;
+
+	Numeric factor = 1.0 / ( l_l.F() * l_l.F() ) / sigma * sqrt_1_pi;
 	for ( size_t j=1; j<=f_mono.dim(); ++j )
 	  {
 	    abs(j,i) = abs(j,i)
-	      + n * vmr(i) * intensity * ls(j);
+	      + n * vmr(i) * intensity * ls(j) * factor * f_mono(j) *
+	      f_mono(j);
+
+	    if (i == 20)
+	      {
+		cout << f_mono(j) << ' ' << n * intensity << ' ' <<
+		  abs(j,i) << ' ' <<  ls(j) * factor * f_mono(j) *
+		  f_mono(j)  << endl;
+	      }
+
+
 	  }
       }
   }

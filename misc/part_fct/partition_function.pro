@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.1 2000/08/22 09:39:06 axel Exp $
+; $Id: partition_function.pro,v 1.2 2000/10/09 16:11:43 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -35,9 +35,9 @@ PRO make_plot,part_fct,data_def,t_arr,ind,title,leg_str
 ;; plot routine
 
 window,1
-plot,t_arr[ind],part_fct[0,*],title=title, $
+plot,t_arr[ind],part_fct[0,ind],title=title, $
   xtitle='Temperature [K]', ytitle='Partition Function [1]',xstyle=1
-for i=1,data_def-1 do oplot,t_arr[ind],part_fct[i,*],linestyle=i
+for i=1,data_def-1 do oplot,t_arr[ind],part_fct[i,ind],linestyle=i
         
 ;; make a simple legend
 arr1=indgen(data_def) - indgen(data_def)
@@ -580,6 +580,7 @@ for ii=0,n_elements(loop_index)-1 do begin
             part_fct[1,*] = Q_temp_hit
             part_fct[2,*] = Q_temp_hit_in_sidf
 
+
             data_def=3
 
             title='HITRAN/JPL Partition Functions'
@@ -790,12 +791,12 @@ for ii=0,n_elements(loop_index)-1 do begin
             c=(a-b)/a * 100.0
             qual = string(max( abs(c) ),format='(F5.2)')
             ;; entry string
-            arts_ent = '	 REC(	"'+$
+            arts_ent = '"'+$
               strip(string(species_arr[loop_index[ii]].arts_tag))+'",	Qcoeff(	'+ $
               strip(string(hit_coeff[0],format='(E11.4)'))+'	,'+$
               strip(string(hit_coeff[1],format='(E11.4)'))+'	,'+$
               strip(string(hit_coeff[2],format='(E11.4)'))+'	,'+$
-              strip(string(hit_coeff[3],format='(E11.4)'))+') )'
+              strip(string(hit_coeff[3],format='(E11.4)'))+') );'
         endif 
 
         if hitran and hit_ok and not jpl then begin
@@ -803,12 +804,12 @@ for ii=0,n_elements(loop_index)-1 do begin
             ;; quality not defined
             qual = '----'
             ;; entry string
-            arts_ent = '	 REC(	"'+$
+            arts_ent = '"'+$
               strip(string(species_arr[loop_index[ii]].arts_tag))+'",	Qcoeff(	'+ $
               strip(string(hit_coeff[0],format='(E11.4)'))+'	,'+$
               strip(string(hit_coeff[1],format='(E11.4)'))+'	,'+$
               strip(string(hit_coeff[2],format='(E11.4)'))+'	,'+$
-              strip(string(hit_coeff[3],format='(E11.4)'))+') )'
+              strip(string(hit_coeff[3],format='(E11.4)'))+') );'
         endif
 
         if jpl and jpl_ok and not hitran then begin
@@ -830,12 +831,12 @@ for ii=0,n_elements(loop_index)-1 do begin
             qual = string(max( abs(c) ),format='(F5.2)')
 
             ;; entry string
-            arts_ent = '	 REC(	"'+$
+            arts_ent = '"'+$
               strip(string(species_arr[loop_index[ii]].arts_tag))+'",	Qcoeff(	'+ $
               strip(string(entry[0],format='(E11.4)'))+'	,'+$
               strip(string(entry[1],format='(E11.4)'))+'	,'+$
               strip(string(entry[2],format='(E11.4)'))+'	,'+$
-              strip(string(entry[3],format='(E11.4)'))+') )'
+              strip(string(entry[3],format='(E11.4)'))+') );'
         endif
 
         if not hit_ok and not jpl_ok then begin
@@ -843,12 +844,12 @@ for ii=0,n_elements(loop_index)-1 do begin
             ;; quality not defined
             qual = '----'
             ;; entry string
-            arts_ent = '	 REC(	"'+$
+            arts_ent = '"'+$
               strip(string(species_arr[loop_index[ii]].arts_tag))+'",	Qcoeff(	'+ $
               strip(string(hit_coeff[0],format='(E11.4)'))+'	,'+$
               strip(string(hit_coeff[1],format='(E11.4)'))+'	,'+$
               strip(string(hit_coeff[2],format='(E11.4)'))+'	,'+$
-              strip(string(hit_coeff[3],format='(E11.4)'))+') )'
+              strip(string(hit_coeff[3],format='(E11.4)'))+') );'
         endif
 
 
@@ -884,15 +885,10 @@ if keyword_set(make_arts_entry) then begin
         printf,10,'  // Quality: '+string(arts_arr[i].quality[0:iso-1],$
                                         format='('+strip(string(iso))+'(A7))')
 
-        printf,10,'  q_data.push_back'
-        printf,10,'    ( QRecord'
-        printf,10,'      ( NAME("'+strip(arts_arr[i].name)+'"),'
-        printf,10,'	ISOTOPE'
-        printf,10,'	(//	Name		c0		c1		c2		c3'
-        printf,10,'	 //			|		|		|		|'
-        for j=0,count-2 do printf,10,arts_arr[i].iso[j]+','
-        printf,10,arts_arr[i].iso[count-1]
-        printf,10,'	 ) ) );'
+        printf,10,'  spec(it_species, it_isotope, "'+strip(arts_arr[i].name)+'");'
+        printf,10,'  //			Name		c0		c1		c2		c3'
+        printf,10,'  //			|		|		|		|		|'
+        for j=0,count-1 do printf,10,'  iso(it_isotope,	'+arts_arr[i].iso[j]
         printf,10,'' & printf,10,'' & printf,10,''
 
     endfor

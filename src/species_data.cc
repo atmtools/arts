@@ -119,7 +119,20 @@ ARRAY<SpeciesRecord> species_data;
   \author Axel von Engeln  
   \date   2000-08-08 
 */
+
+
+// prototyping
+void define_basic_species_data();
+extern void define_partition_species_data();
+
 void define_species_data()
+{
+  define_basic_species_data();
+  define_partition_species_data();
+}
+
+
+void define_basic_species_data()
 {
   extern ARRAY<SpeciesRecord> species_data;
 

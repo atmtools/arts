@@ -131,8 +131,6 @@ typedef double Numeric;
 // Documentations are with function definitions.
 void define_wsv_group_names();	
 void define_species_data();
-void define_q_data();
-void check_q_data();
 void define_lineshape_data();
 
 //

@@ -1,3 +1,25 @@
+2000-10-09  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-58
+
+	* lineshape voigt approximation of kuntz implemented, currently
+	only one accuracy level, others will follow. this lineshape is
+	hard wired in absorption.cc, will be a controlfile input soon.
+
+	* partition function coefficients reorganized, they are now part
+	of IsotopeRecord
+
+	* comparison with old forward model performed, using the kuntz
+	lineshape. Results are within 1% error in the absorption
+	coefficients for the specific calculation H2O_183GHz where only
+	this line was considered. Larger errors up to 10 % are found at
+	higher altitudes, guess that is an interpolation problem of the
+	input vmr profiles. Controlfiles, etc can be found in a new
+	directory: arts/aux/iup_forward_comp
+
+	* errors with the documentation, guess that is caused by a
+	previous check in, since I did not do anything over there.
+
 2000-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-57

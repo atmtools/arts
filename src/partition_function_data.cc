@@ -35,15 +35,9 @@
 #include "absorption.h"
 
 
-/*! The lookup information for all the different species. */
-ARRAY<QRecord> q_data;
-
 
 /*! \name Some #defines for better readability */
 //@{ 
-#define NAME(x)      x				
-#define ISOTOPE      make_array<QIsotopeRecord>	
-#define REC	     QIsotopeRecord		
 #define Qcoeff	     make_array<Numeric>		
 //@} 
 
@@ -214,685 +208,523 @@ ARRAY<QRecord> q_data;
   \author Axel von Engeln  
   \date   2000-08-21 
 */
-void define_q_data()
+
+void spec(ARRAY<SpeciesRecord>::iterator& is,
+	  ARRAY<IsotopeRecord>::iterator& ii,
+	  string name);
+
+void iso(ARRAY<IsotopeRecord>::iterator& ii,
+	 string name,
+	 const ARRAY<Numeric>& coeff);
+
+
+void define_partition_species_data()
 {
-  extern ARRAY<QRecord> q_data;
+  extern ARRAY<SpeciesRecord> species_data;
 
-  // Initialize to zero, just in case:
-  q_data.clear();
-
-  /* Here's an empty template record entry:
-
-  // species
-  // Coeff:
-  // Quality:
-  q_data.push_back
-    ( QRecord
-      ( NAME(""),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"",	Qcoeff(			,		,		,) ),
-	 REC(	"",	Qcoeff(			,		,		,) )
-	 ) ) );
-
-  */
+  ARRAY<SpeciesRecord>::iterator it_species = species_data.begin();
+  ARRAY<IsotopeRecord>::iterator it_isotope;
 
 
   // H2O
   // Coeff:       1      1      1      1      2      2
   // Quality:    0.33   0.33   0.39   0.50   0.33   0.35
-  q_data.push_back
-    ( QRecord
-      ( NAME("H2O"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"161",	Qcoeff(	-4.4405E+00	,2.7678E-01	,1.2536E-03	,-4.8938E-07) ),
-	 REC(	"181",	Qcoeff(	-4.3624E+00	,2.7647E-01	,1.2802E-03	,-5.2046E-07) ),
-	 REC(	"171",	Qcoeff(	-2.5767E+01	,1.6458E+00	,7.6905E-03	,-3.1668E-06) ),
-	 REC(	"162",	Qcoeff(	-2.3916E+01	,1.3793E+00	,6.1246E-03	,-2.1530E-06) ),
-	 REC(	"182",	Qcoeff(	-5.1419E+00	,2.4479E-01	,1.0199E-03	,-4.2468E-07) ),
-	 REC(	"262",	Qcoeff(	-3.7362E+01	,1.7225E+00	,7.1688E-03	,-2.9865E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "H2O");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"161",	Qcoeff(	-4.4405E+00	,2.7678E-01	,1.2536E-03	,-4.8938E-07) );
+  iso(it_isotope,	"181",	Qcoeff(	-4.3624E+00	,2.7647E-01	,1.2802E-03	,-5.2046E-07) );
+  iso(it_isotope,	"171",	Qcoeff(	-2.5767E+01	,1.6458E+00	,7.6905E-03	,-3.1668E-06) );
+  iso(it_isotope,	"162",	Qcoeff(	-2.3916E+01	,1.3793E+00	,6.1246E-03	,-2.1530E-06) );
+  iso(it_isotope,	"182",	Qcoeff(	-5.1419E+00	,2.4479E-01	,1.0199E-03	,-4.2468E-07) );
+  iso(it_isotope,	"262",	Qcoeff(	-3.7362E+01	,1.7225E+00	,7.1688E-03	,-2.9865E-06) );
 
 
 
   // CO2
   // Coeff:       1      1      1      1      1      1      1      1
   // Quality:    ----   ----   8.76   8.67   ----   ----   ----   ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("CO2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"626",	Qcoeff(	-1.3617E+00	,9.4899E-01	,-6.9259E-04	,2.5974E-06) ),
-	 REC(	"636",	Qcoeff(	-2.0631E+00	,1.8873E+00	,-1.3669E-03	,5.4032E-06) ),
-	 REC(	"628",	Qcoeff(	-2.9175E+00	,2.0114E+00	,-1.4786E-03	,5.5941E-06) ),
-	 REC(	"627",	Qcoeff(	-1.6558E+01	,1.1733E+01	,-8.5844E-03	,3.2379E-05) ),
-	 REC(	"638",	Qcoeff(	-4.4685E+00	,4.0330E+00	,-2.9590E-03	,1.1770E-05) ),
-	 REC(	"637",	Qcoeff(	-2.6263E+01	,2.3350E+01	,-1.7032E-02	,6.7532E-05) ),
-	 REC(	"828",	Qcoeff(	-1.4811E+00	,1.0667E+00	,-7.8758E-04	,3.0133E-06) ),
-	 REC(	"728",	Qcoeff(	-1.7600E+01	,1.2445E+01	,-9.1837E-03	,3.4915E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "CO2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"626",	Qcoeff(	-1.3617E+00	,9.4899E-01	,-6.9259E-04	,2.5974E-06) );
+  iso(it_isotope,	"636",	Qcoeff(	-2.0631E+00	,1.8873E+00	,-1.3669E-03	,5.4032E-06) );
+  iso(it_isotope,	"628",	Qcoeff(	-2.9175E+00	,2.0114E+00	,-1.4786E-03	,5.5941E-06) );
+  iso(it_isotope,	"627",	Qcoeff(	-1.6558E+01	,1.1733E+01	,-8.5844E-03	,3.2379E-05) );
+  iso(it_isotope,	"638",	Qcoeff(	-4.4685E+00	,4.0330E+00	,-2.9590E-03	,1.1770E-05) );
+  iso(it_isotope,	"637",	Qcoeff(	-2.6263E+01	,2.3350E+01	,-1.7032E-02	,6.7532E-05) );
+  iso(it_isotope,	"828",	Qcoeff(	-1.4811E+00	,1.0667E+00	,-7.8758E-04	,3.0133E-06) );
+  iso(it_isotope,	"728",	Qcoeff(	-1.7600E+01	,1.2445E+01	,-9.1837E-03	,3.4915E-05) );
 
 
 
   // O3
   // Coeff:       1      1      1      1      1
   // Quality:    1.30   5.82   5.88   5.25   5.29
-  q_data.push_back
-    ( QRecord
-      ( NAME("O3"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"666",	Qcoeff(	-1.6443E+02	,6.9047E+00	,1.0396E-02	,2.6669E-05) ),
-	 REC(	"668",	Qcoeff(	-3.5222E+02	,1.4796E+01	,2.1475E-02	,5.9891E-05) ),
-	 REC(	"686",	Qcoeff(	-1.7466E+02	,7.2912E+00	,1.0093E-02	,2.9991E-05) ),
-	 REC(	"667",	Qcoeff(	-2.0540E+03	,8.5998E+01	,1.2667E-01	,3.3026E-04) ),
-	 REC(	"676",	Qcoeff(	-1.0148E+03	,4.2494E+01	,6.2586E-02	,1.6319E-04) )
-	 ) ) );
+  spec(it_species, it_isotope, "O3");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"666",	Qcoeff(	-1.6443E+02	,6.9047E+00	,1.0396E-02	,2.6669E-05) );
+  iso(it_isotope,	"668",	Qcoeff(	-3.5222E+02	,1.4796E+01	,2.1475E-02	,5.9891E-05) );
+  iso(it_isotope,	"686",	Qcoeff(	-1.7466E+02	,7.2912E+00	,1.0093E-02	,2.9991E-05) );
+  iso(it_isotope,	"667",	Qcoeff(	-2.0540E+03	,8.5998E+01	,1.2667E-01	,3.3026E-04) );
+  iso(it_isotope,	"676",	Qcoeff(	-1.0148E+03	,4.2494E+01	,6.2586E-02	,1.6319E-04) );
 
 
 
   // N2O
   // Coeff:       1      1      1      1      1
   // Quality:   12.71  13.33  12.83  12.11   ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("N2O"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"446",	Qcoeff(	2.4892E+01	,1.4979E+01	,-7.6213E-03	,4.6310E-05) ),
-	 REC(	"456",	Qcoeff(	3.6318E+01	,9.5497E+00	,-2.3943E-03	,2.6842E-05) ),
-	 REC(	"546",	Qcoeff(	2.4241E+01	,1.0179E+01	,-4.3002E-03	,3.0425E-05) ),
-	 REC(	"448",	Qcoeff(	6.7708E+01	,1.4878E+01	,-1.0730E-03	,3.4254E-05) ),
-	 REC(	"447",	Qcoeff(	5.0069E+02	,8.4526E+01	,8.3494E-03	,1.7154E-04) )
-	 ) ) );
+  spec(it_species, it_isotope, "N2O");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"446",	Qcoeff(	2.4892E+01	,1.4979E+01	,-7.6213E-03	,4.6310E-05) );
+  iso(it_isotope,	"456",	Qcoeff(	3.6318E+01	,9.5497E+00	,-2.3943E-03	,2.6842E-05) );
+  iso(it_isotope,	"546",	Qcoeff(	2.4241E+01	,1.0179E+01	,-4.3002E-03	,3.0425E-05) );
+  iso(it_isotope,	"448",	Qcoeff(	6.7708E+01	,1.4878E+01	,-1.0730E-03	,3.4254E-05) );
+  iso(it_isotope,	"447",	Qcoeff(	5.0069E+02	,8.4526E+01	,8.3494E-03	,1.7154E-04) );
 
 
 
   // CO
   // Coeff:       1      1      1      1      1      1
   // Quality:    0.03   0.01   0.01   0.02   ----   ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("CO"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"26",	Qcoeff(	2.7758E-01	,3.6290E-01	,-7.4669E-06	,1.4896E-08) ),
-	 REC(	"36",	Qcoeff(	5.3142E-01	,7.5953E-01	,-1.7810E-05	,3.5160E-08) ),
-	 REC(	"28",	Qcoeff(	2.6593E-01	,3.8126E-01	,-9.2083E-06	,1.8086E-08) ),
-	 REC(	"27",	Qcoeff(	1.6376E+00	,2.2343E+00	,-4.9025E-05	,9.7389E-08) ),
-	 REC(	"38",	Qcoeff(	5.1216E-01	,7.9978E-01	,-2.1784E-05	,4.2749E-08) ),
-	 REC(	"37",	Qcoeff(	3.2731E+00	,4.6577E+00	,-6.9833E-05	,1.8853E-07) )
-	 ) ) );
+  spec(it_species, it_isotope, "CO");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"26",	Qcoeff(	2.7758E-01	,3.6290E-01	,-7.4669E-06	,1.4896E-08) );
+  iso(it_isotope,	"36",	Qcoeff(	5.3142E-01	,7.5953E-01	,-1.7810E-05	,3.5160E-08) );
+  iso(it_isotope,	"28",	Qcoeff(	2.6593E-01	,3.8126E-01	,-9.2083E-06	,1.8086E-08) );
+  iso(it_isotope,	"27",	Qcoeff(	1.6376E+00	,2.2343E+00	,-4.9025E-05	,9.7389E-08) );
+  iso(it_isotope,	"38",	Qcoeff(	5.1216E-01	,7.9978E-01	,-2.1784E-05	,4.2749E-08) );
+  iso(it_isotope,	"37",	Qcoeff(	3.2731E+00	,4.6577E+00	,-6.9833E-05	,1.8853E-07) );
 
 
 
   // CH4
   // Coeff:       1      1      1
   // Quality:    ----   ----  22.18
-  q_data.push_back
-    ( QRecord
-      ( NAME("CH4"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"211",	Qcoeff(	-2.6479E+01	,1.1557E+00	,2.6831E-03	,1.5117E-06) ),
-	 REC(	"311",	Qcoeff(	-5.2956E+01	,2.3113E+00	,5.3659E-03	,3.0232E-06) ),
-	 REC(	"212",	Qcoeff(	-2.1577E+02	,9.3318E+00	,2.1779E-02	,1.2183E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "CH4");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"211",	Qcoeff(	-2.6479E+01	,1.1557E+00	,2.6831E-03	,1.5117E-06) );
+  iso(it_isotope,	"311",	Qcoeff(	-5.2956E+01	,2.3113E+00	,5.3659E-03	,3.0232E-06) );
+  iso(it_isotope,	"212",	Qcoeff(	-2.1577E+02	,9.3318E+00	,2.1779E-02	,1.2183E-05) );
 
 
 
   // O2
   // Coeff:       1      1      1
   // Quality:    0.06   0.68   0.71
-  q_data.push_back
-    ( QRecord
-      ( NAME("O2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"66",	Qcoeff(	3.5923E-01	,7.3534E-01	,-6.4870E-05	,1.3073E-07) ),
-	 REC(	"68",	Qcoeff(	-4.0039E+00	,1.5595E+00	,-1.5357E-04	,3.0969E-07) ),
-	 REC(	"67",	Qcoeff(	-2.3325E+01	,9.0981E+00	,-8.4435E-04	,1.7062E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "O2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"66",	Qcoeff(	3.5923E-01	,7.3534E-01	,-6.4870E-05	,1.3073E-07) );
+  iso(it_isotope,	"68",	Qcoeff(	-4.0039E+00	,1.5595E+00	,-1.5357E-04	,3.0969E-07) );
+  iso(it_isotope,	"67",	Qcoeff(	-2.3325E+01	,9.0981E+00	,-8.4435E-04	,1.7062E-06) );
 
 
 
   // NO
   // Coeff:       1      1      1
   // Quality:    1.56   ----   ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("NO"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"46",	Qcoeff(	-2.5296E+01	,2.6349E+00	,5.8517E-03	,-5.2020E-06) ),
-	 REC(	"56",	Qcoeff(	-1.4990E+01	,1.8240E+00	,4.0261E-03	,-3.5648E-06) ),
-	 REC(	"48",	Qcoeff(	-2.6853E+01	,2.7816E+00	,6.1493E-03	,-5.4410E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "NO");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"46",	Qcoeff(	-2.5296E+01	,2.6349E+00	,5.8517E-03	,-5.2020E-06) );
+  iso(it_isotope,	"56",	Qcoeff(	-1.4990E+01	,1.8240E+00	,4.0261E-03	,-3.5648E-06) );
+  iso(it_isotope,	"48",	Qcoeff(	-2.6853E+01	,2.7816E+00	,6.1493E-03	,-5.4410E-06) );
 
 
 
   // SO2
   // Coeff:       1      1      2      2
   // Quality:    9.28   9.25   0.35   0.35
-  q_data.push_back
-    ( QRecord
-      ( NAME("SO2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"626",	Qcoeff(	-2.4056E+02	,1.1101E+01	,2.2164E-02	,5.2334E-05) ),
-	 REC(	"646",	Qcoeff(	-2.4167E+02	,1.1151E+01	,2.2270E-02	,5.2550E-05) ),
-	 REC(	"636",	Qcoeff(	-8.9492E+02	,3.8997E+01	,1.6619E-01	,-7.0199E-05) ),
-	 REC(	"628",	Qcoeff(	-4.8125E+02	,2.0825E+01	,8.8091E-02	,-3.6976E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "SO2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"626",	Qcoeff(	-2.4056E+02	,1.1101E+01	,2.2164E-02	,5.2334E-05) );
+  iso(it_isotope,	"646",	Qcoeff(	-2.4167E+02	,1.1151E+01	,2.2270E-02	,5.2550E-05) );
+  iso(it_isotope,	"636",	Qcoeff(	-8.9492E+02	,3.8997E+01	,1.6619E-01	,-7.0199E-05) );
+  iso(it_isotope,	"628",	Qcoeff(	-4.8125E+02	,2.0825E+01	,8.8091E-02	,-3.6976E-05) );
 
 
 
   // NO2
   // Coeff:       1
   // Quality:    3.46
-  q_data.push_back
-    ( QRecord
-      ( NAME("NO2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"646",	Qcoeff(	-5.3042E+02	,2.4216E+01	,6.6856E-02	,4.3823E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "NO2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"646",	Qcoeff(	-5.3042E+02	,2.4216E+01	,6.6856E-02	,4.3823E-05) );
 
 
 
   // NH3
   // Coeff:       1      1      2
   // Quality:    2.07  22.22   0.52
-  q_data.push_back
-    ( QRecord
-      ( NAME("NH3"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"4111",	Qcoeff(	-6.2293E+01	,3.0915E+00	,9.4575E-03	,1.8416E-06) ),
-	 REC(	"5111",	Qcoeff(	-4.2130E+01	,2.0569E+00	,6.3387E-03	,1.2127E-06) ),
-	 REC(	"4112",	Qcoeff(	-1.0529E+02	,4.9832E+00	,3.0955E-02	,-1.4409E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "NH3");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"4111",	Qcoeff(	-6.2293E+01	,3.0915E+00	,9.4575E-03	,1.8416E-06) );
+  iso(it_isotope,	"5111",	Qcoeff(	-4.2130E+01	,2.0569E+00	,6.3387E-03	,1.2127E-06) );
+  iso(it_isotope,	"4112",	Qcoeff(	-1.0529E+02	,4.9832E+00	,3.0955E-02	,-1.4409E-05) );
 
 
 
   // HNO3
   // Coeff:       2
   // Quality:    0.38
-  q_data.push_back
-    ( QRecord
-      ( NAME("HNO3"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"146",	Qcoeff(	-1.0936E+03	,4.6423E+01	,1.9143E-01	,-7.9439E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "HNO3");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"146",	Qcoeff(	-1.0936E+03	,4.6423E+01	,1.9143E-01	,-7.9439E-05) );
 
 
 
   // OH
   // Coeff:       1      1      1
   // Quality:    0.85   0.84   1.04
-  q_data.push_back
-    ( QRecord
-      ( NAME("OH"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"61",	Qcoeff(	8.7390E+00	,1.5977E-01	,3.8291E-04	,-3.5669E-07) ),
-	 REC(	"81",	Qcoeff(	8.6770E+00	,1.6175E-01	,3.8223E-04	,-3.5466E-07) ),
-	 REC(	"62",	Qcoeff(	1.0239E+01	,4.3783E-01	,1.0477E-03	,-9.4570E-07) )
-	 ) ) );
+  spec(it_species, it_isotope, "OH");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"61",	Qcoeff(	8.7390E+00	,1.5977E-01	,3.8291E-04	,-3.5669E-07) );
+  iso(it_isotope,	"81",	Qcoeff(	8.6770E+00	,1.6175E-01	,3.8223E-04	,-3.5466E-07) );
+  iso(it_isotope,	"62",	Qcoeff(	1.0239E+01	,4.3783E-01	,1.0477E-03	,-9.4570E-07) );
 
 
 
   // HF
   // Coeff:       1      2
   // Quality:    0.02   0.04
-  q_data.push_back
-    ( QRecord
-      ( NAME("HF"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"19",	Qcoeff(	1.5486E+00	,1.3350E-01	,5.9154E-06	,-4.6889E-09) ),
-	 REC(	"29",	Qcoeff(	3.4435E-01	,6.3996E-02	,4.2331E-07	,-3.0344E-10) )
-	 ) ) );
+  spec(it_species, it_isotope, "HF");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"19",	Qcoeff(	1.5486E+00	,1.3350E-01	,5.9154E-06	,-4.6889E-09) );
+  iso(it_isotope,	"29",	Qcoeff(	3.4435E-01	,6.3996E-02	,4.2331E-07	,-3.0344E-10) );
 
 
 
   // HCl
   // Coeff:       1      1      2      2
   // Quality:    2.32   2.30   0.03   0.03
-  q_data.push_back
-    ( QRecord
-      ( NAME("HCl"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"15",	Qcoeff(	2.8627E+00	,5.3122E-01	,6.7464E-06	,-1.6730E-09) ),
-	 REC(	"17",	Qcoeff(	2.8617E+00	,5.3203E-01	,6.6553E-06	,-1.5168E-09) ),
-	 REC(	"25",	Qcoeff(	1.2492E+00	,5.1693E-01	,-1.0216E-06	,2.4388E-09) ),
-	 REC(	"27",	Qcoeff(	1.2017E+00	,5.1911E-01	,-3.3197E-06	,4.9817E-09) )
-	 ) ) );
+  spec(it_species, it_isotope, "HCl");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"15",	Qcoeff(	2.8627E+00	,5.3122E-01	,6.7464E-06	,-1.6730E-09) );
+  iso(it_isotope,	"17",	Qcoeff(	2.8617E+00	,5.3203E-01	,6.6553E-06	,-1.5168E-09) );
+  iso(it_isotope,	"25",	Qcoeff(	1.2492E+00	,5.1693E-01	,-1.0216E-06	,2.4388E-09) );
+  iso(it_isotope,	"27",	Qcoeff(	1.2017E+00	,5.1911E-01	,-3.3197E-06	,4.9817E-09) );
 
 
 
   // HBr
   // Coeff:       1      1
   // Quality:    1.89   1.89
-  q_data.push_back
-    ( QRecord
-      ( NAME("HBr"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"19",	Qcoeff(	2.7963E+00	,6.6532E-01	,3.4255E-06	,5.2274E-09) ),
-	 REC(	"11",	Qcoeff(	2.7953E+00	,6.6554E-01	,3.2931E-06	,5.4823E-09) )
-	 ) ) );
+  spec(it_species, it_isotope, "HBr");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"19",	Qcoeff(	2.7963E+00	,6.6532E-01	,3.4255E-06	,5.2274E-09) );
+  iso(it_isotope,	"11",	Qcoeff(	2.7953E+00	,6.6554E-01	,3.2931E-06	,5.4823E-09) );
 
 
 
   // HI
   // Coeff:       1
   // Quality:    ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("HI"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"17",	Qcoeff(	4.0170E+00	,1.3003E+00	,-1.1409E-05	,4.0026E-08) )
-	 ) ) );
+  spec(it_species, it_isotope, "HI");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"17",	Qcoeff(	4.0170E+00	,1.3003E+00	,-1.1409E-05	,4.0026E-08) );
 
 
 
   // ClO
   // Coeff:       1      1
   // Quality:    0.83   0.81
-  q_data.push_back
-    ( QRecord
-      ( NAME("ClO"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"56",	Qcoeff(	9.0968E+01	,7.0918E+00	,1.1639E-02	,3.0145E-06) ),
-	 REC(	"76",	Qcoeff(	9.2598E+01	,7.2085E+00	,1.1848E-02	,3.1305E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "ClO");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"56",	Qcoeff(	9.0968E+01	,7.0918E+00	,1.1639E-02	,3.0145E-06) );
+  iso(it_isotope,	"76",	Qcoeff(	9.2598E+01	,7.2085E+00	,1.1848E-02	,3.1305E-06) );
 
 
 
   // OCS
   // Coeff:       1      1      1      1
   // Quality:   19.14  19.14  20.48  20.07
-  q_data.push_back
-    ( QRecord
-      ( NAME("OCS"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"622",	Qcoeff(	-9.3697E-01	,3.6090E+00	,-3.4552E-03	,1.7462E-05) ),
-	 REC(	"624",	Qcoeff(	-1.1536E+00	,3.7028E+00	,-3.5582E-03	,1.7922E-05) ),
-	 REC(	"632",	Qcoeff(	-6.1015E-01	,7.2200E+00	,-7.0044E-03	,3.6708E-05) ),
-	 REC(	"822",	Qcoeff(	-2.1569E-01	,3.8332E+00	,-3.6783E-03	,1.9177E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "OCS");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"622",	Qcoeff(	-9.3697E-01	,3.6090E+00	,-3.4552E-03	,1.7462E-05) );
+  iso(it_isotope,	"624",	Qcoeff(	-1.1536E+00	,3.7028E+00	,-3.5582E-03	,1.7922E-05) );
+  iso(it_isotope,	"632",	Qcoeff(	-6.1015E-01	,7.2200E+00	,-7.0044E-03	,3.6708E-05) );
+  iso(it_isotope,	"822",	Qcoeff(	-2.1569E-01	,3.8332E+00	,-3.6783E-03	,1.9177E-05) );
 
 
 
   // H2CO
   // Coeff:       1      1      1      2      2
   // Quality:    3.55   3.94   1.39   0.34   0.34
-  q_data.push_back
-    ( QRecord
-      ( NAME("H2CO"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"1126",	Qcoeff(	-1.1760E+02	,4.6885E+00	,1.5088E-02	,3.5367E-06) ),
-	 REC(	"1136",	Qcoeff(	-2.4126E+02	,9.6134E+00	,3.0938E-02	,7.2579E-06) ),
-	 REC(	"1128",	Qcoeff(	-1.1999E+02	,5.2912E+00	,1.4686E-02	,4.3505E-06) ),
-	 REC(	"1226",	Qcoeff(	-7.8182E+01	,3.2960E+00	,1.2870E-02	,-5.2158E-06) ),
-	 REC(	"2226",	Qcoeff(	-4.2971E+02	,1.8783E+01	,7.9045E-02	,-3.3104E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "H2CO");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"1126",	Qcoeff(	-1.1760E+02	,4.6885E+00	,1.5088E-02	,3.5367E-06) );
+  iso(it_isotope,	"1136",	Qcoeff(	-2.4126E+02	,9.6134E+00	,3.0938E-02	,7.2579E-06) );
+  iso(it_isotope,	"1128",	Qcoeff(	-1.1999E+02	,5.2912E+00	,1.4686E-02	,4.3505E-06) );
+  iso(it_isotope,	"1226",	Qcoeff(	-7.8182E+01	,3.2960E+00	,1.2870E-02	,-5.2158E-06) );
+  iso(it_isotope,	"2226",	Qcoeff(	-4.2971E+02	,1.8783E+01	,7.9045E-02	,-3.3104E-05) );
 
 
 
   // HOCl
   // Coeff:       1      1
   // Quality:    3.89   3.89
-  q_data.push_back
-    ( QRecord
-      ( NAME("HOCl"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"165",	Qcoeff(	-7.3640E+02	,3.4149E+01	,9.3554E-02	,6.7409E-05) ),
-	 REC(	"167",	Qcoeff(	-7.4923E+02	,3.4747E+01	,9.5251E-02	,6.8523E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "HOCl");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"165",	Qcoeff(	-7.3640E+02	,3.4149E+01	,9.3554E-02	,6.7409E-05) );
+  iso(it_isotope,	"167",	Qcoeff(	-7.4923E+02	,3.4747E+01	,9.5251E-02	,6.8523E-05) );
 
 
 
   // N2
   // Coeff:       1
   // Quality:    ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("N2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"44",	Qcoeff(	1.3684E+00	,1.5756E+00	,-1.8511E-05	,3.8960E-08) )
-	 ) ) );
+  spec(it_species, it_isotope, "N2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"44",	Qcoeff(	1.3684E+00	,1.5756E+00	,-1.8511E-05	,3.8960E-08) );
 
 
 
   // HCN
   // Coeff:       1      1      1      2
   // Quality:    6.84   7.05   7.13   1.42
-  q_data.push_back
-    ( QRecord
-      ( NAME("HCN"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"124",	Qcoeff(	-1.3992E+00	,2.9619E+00	,-1.7464E-03	,6.5937E-06) ),
-	 REC(	"134",	Qcoeff(	-2.5869E+00	,6.0744E+00	,-3.5719E-03	,1.3654E-05) ),
-	 REC(	"125",	Qcoeff(	-1.1408E+00	,2.0353E+00	,-1.2159E-03	,4.6375E-06) ),
-	 REC(	"224",	Qcoeff(	-1.0261E+01	,1.9009E+00	,-1.1334E-03	,2.3164E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "HCN");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"124",	Qcoeff(	-1.3992E+00	,2.9619E+00	,-1.7464E-03	,6.5937E-06) );
+  iso(it_isotope,	"134",	Qcoeff(	-2.5869E+00	,6.0744E+00	,-3.5719E-03	,1.3654E-05) );
+  iso(it_isotope,	"125",	Qcoeff(	-1.1408E+00	,2.0353E+00	,-1.2159E-03	,4.6375E-06) );
+  iso(it_isotope,	"224",	Qcoeff(	-1.0261E+01	,1.9009E+00	,-1.1334E-03	,2.3164E-06) );
 
 
 
   // CH3Cl
   // Coeff:       1      1
   // Quality:    5.86   5.92
-  q_data.push_back
-    ( QRecord
-      ( NAME("CH3Cl"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"215",	Qcoeff(	-9.1416E+02	,3.4081E+01	,7.5461E-03	,1.7933E-04) ),
-	 REC(	"217",	Qcoeff(	-9.2868E+02	,3.4621E+01	,7.6674E-03	,1.8217E-04) )
-	 ) ) );
+  spec(it_species, it_isotope, "CH3Cl");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"215",	Qcoeff(	-9.1416E+02	,3.4081E+01	,7.5461E-03	,1.7933E-04) );
+  iso(it_isotope,	"217",	Qcoeff(	-9.2868E+02	,3.4621E+01	,7.6674E-03	,1.8217E-04) );
 
 
 
   // H2O2
   // Coeff:       1
   // Quality:   14.46
-  q_data.push_back
-    ( QRecord
-      ( NAME("H2O2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"1661",	Qcoeff(	-3.6499E+02	,1.3712E+01	,3.8658E-02	,2.3052E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "H2O2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"1661",	Qcoeff(	-3.6499E+02	,1.3712E+01	,3.8658E-02	,2.3052E-05) );
 
 
 
   // C2H2
   // Coeff:       1      1
   // Quality:    ----   ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("C2H2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"1221",	Qcoeff(	-8.3088E+00	,1.4484E+00	,-2.5946E-03	,8.4612E-06) ),
-	 REC(	"1231",	Qcoeff(	-6.6736E+01	,1.1592E+01	,-2.0779E-02	,6.7719E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "C2H2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"1221",	Qcoeff(	-8.3088E+00	,1.4484E+00	,-2.5946E-03	,8.4612E-06) );
+  iso(it_isotope,	"1231",	Qcoeff(	-6.6736E+01	,1.1592E+01	,-2.0779E-02	,6.7719E-05) );
 
 
 
   // C2H6
   // Coeff:       1
   // Quality:    ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("C2H6"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"1221",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) )
-	 ) ) );
+  spec(it_species, it_isotope, "C2H6");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"1221",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
 
 
 
   // PH3
   // Coeff:       1
   // Quality:    3.70
-  q_data.push_back
-    ( QRecord
-      ( NAME("PH3"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"1111",	Qcoeff(	-1.5068E+02	,6.4718E+00	,1.2588E-02	,1.4759E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "PH3");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"1111",	Qcoeff(	-1.5068E+02	,6.4718E+00	,1.2588E-02	,1.4759E-05) );
 
 
 
   // COF2
   // Coeff:       1
   // Quality:   16.72
-  q_data.push_back
-    ( QRecord
-      ( NAME("COF2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"269",	Qcoeff(	-5.4180E+03	,1.8868E+02	,-3.3139E-01	,1.8650E-03) )
-	 ) ) );
+  spec(it_species, it_isotope, "COF2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"269",	Qcoeff(	-5.4180E+03	,1.8868E+02	,-3.3139E-01	,1.8650E-03) );
 
 
 
   // SF6
   // Coeff:       1
   // Quality:    ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("SF6"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"29",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) )
-	 ) ) );
+  spec(it_species, it_isotope, "SF6");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"29",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
 
 
 
   // H2S
   // Coeff:       1      1      1      2
   // Quality:    0.60   ----   ----   0.40
-  q_data.push_back
-    ( QRecord
-      ( NAME("H2S"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"121",	Qcoeff(	-1.5521E+01	,8.3130E-01	,3.3656E-03	,-8.5691E-07) ),
-	 REC(	"141",	Qcoeff(	-1.5561E+01	,8.3337E-01	,3.3744E-03	,-8.5937E-07) ),
-	 REC(	"131",	Qcoeff(	-6.2170E+01	,3.3295E+00	,1.3480E-02	,-3.4323E-06) ),
-	 REC(	"122",	Qcoeff(	-1.7216E+01	,7.3676E-01	,2.8697E-03	,-1.1650E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "H2S");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"121",	Qcoeff(	-1.5521E+01	,8.3130E-01	,3.3656E-03	,-8.5691E-07) );
+  iso(it_isotope,	"141",	Qcoeff(	-1.5561E+01	,8.3337E-01	,3.3744E-03	,-8.5937E-07) );
+  iso(it_isotope,	"131",	Qcoeff(	-6.2170E+01	,3.3295E+00	,1.3480E-02	,-3.4323E-06) );
+  iso(it_isotope,	"122",	Qcoeff(	-1.7216E+01	,7.3676E-01	,2.8697E-03	,-1.1650E-06) );
 
 
 
   // HCOOH
   // Coeff:       1      2      2      2
   // Quality:   12.54   6.53   0.55   0.57
-  q_data.push_back
-    ( QRecord
-      ( NAME("HCOOH"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"1261",	Qcoeff(	-2.9550E+03	,1.0349E+02	,-1.3146E-01	,8.7787E-04) ),
-	 REC(	"1361",	Qcoeff(	2.0081E+02	,-4.9619E+00	,2.3524E-01	,-4.0531E-04) ),
-	 REC(	"2261",	Qcoeff(	-2.5614E+01	,8.4704E+00	,1.2417E-01	,-1.1758E-04) ),
-	 REC(	"1262",	Qcoeff(	-5.7615E+01	,9.5919E+00	,1.0930E-01	,-1.0134E-04) )
-	 ) ) );
+  spec(it_species, it_isotope, "HCOOH");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"1261",	Qcoeff(	-2.9550E+03	,1.0349E+02	,-1.3146E-01	,8.7787E-04) );
+  iso(it_isotope,	"1361",	Qcoeff(	2.0081E+02	,-4.9619E+00	,2.3524E-01	,-4.0531E-04) );
+  iso(it_isotope,	"2261",	Qcoeff(	-2.5614E+01	,8.4704E+00	,1.2417E-01	,-1.1758E-04) );
+  iso(it_isotope,	"1262",	Qcoeff(	-5.7615E+01	,9.5919E+00	,1.0930E-01	,-1.0134E-04) );
 
 
 
   // HO2
   // Coeff:       1
   // Quality:    1.10
-  q_data.push_back
-    ( QRecord
-      ( NAME("HO2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"166",	Qcoeff(	-1.5684E+02	,7.4450E+00	,2.6011E-02	,-9.2704E-07) )
-	 ) ) );
+  spec(it_species, it_isotope, "HO2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"166",	Qcoeff(	-1.5684E+02	,7.4450E+00	,2.6011E-02	,-9.2704E-07) );
 
 
 
   // O
   // Coeff:       1
-  // Quality:   ----
-  q_data.push_back
-    ( QRecord
-      ( NAME("O"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"6",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) )
-	 ) ) );
+  // Quality:    ----
+  spec(it_species, it_isotope, "O");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"6",	Qcoeff(	-1.0000E+00	,0.0000E+00	,0.0000E+00	,0.0000E+00) );
 
 
 
   // ClONO2
   // Coeff:       2      2
   // Quality:    1.87   1.85
-  q_data.push_back
-    ( QRecord
-      ( NAME("ClONO2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"5646",	Qcoeff(	-4.9350E+03	,2.7375E+02	,7.2257E+00	,-4.2583E-03) ),
-	 REC(	"7646",	Qcoeff(	-4.9554E+03	,2.7955E+02	,7.4136E+00	,-4.3714E-03) )
-	 ) ) );
+  spec(it_species, it_isotope, "ClONO2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"5646",	Qcoeff(	-4.9350E+03	,2.7375E+02	,7.2257E+00	,-4.2583E-03) );
+  iso(it_isotope,	"7646",	Qcoeff(	-4.9554E+03	,2.7955E+02	,7.4136E+00	,-4.3714E-03) );
 
 
 
   // NO+
   // Coeff:       1
   // Quality:    0.01
-  q_data.push_back
-    ( QRecord
-      ( NAME("NO+"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"46",	Qcoeff(	9.1798E-01	,1.0416E+00	,-1.1614E-05	,2.4499E-08) )
-	 ) ) );
+  spec(it_species, it_isotope, "NO+");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"46",	Qcoeff(	9.1798E-01	,1.0416E+00	,-1.1614E-05	,2.4499E-08) );
 
 
 
   // OClO
   // Coeff:       2      2
   // Quality:    1.55   0.75
-  q_data.push_back
-    ( QRecord
-      ( NAME("OClO"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"656",	Qcoeff(	-4.4583E+03	,1.2893E+02	,2.1655E-01	,-4.4496E-05) ),
-	 REC(	"676",	Qcoeff(	-3.6048E+03	,1.1569E+02	,2.5805E-01	,-7.0900E-05) )
-	 ) ) );
+  spec(it_species, it_isotope, "OClO");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"656",	Qcoeff(	-4.4583E+03	,1.2893E+02	,2.1655E-01	,-4.4496E-05) );
+  iso(it_isotope,	"676",	Qcoeff(	-3.6048E+03	,1.1569E+02	,2.5805E-01	,-7.0900E-05) );
 
 
 
   // BrO
   // Coeff:       2      2
   // Quality:    0.09   0.09
-  q_data.push_back
-    ( QRecord
-      ( NAME("BrO"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"96",	Qcoeff(	-8.8945E+00	,1.3384E+01	,-1.6496E-03	,1.4828E-06) ),
-	 REC(	"16",	Qcoeff(	-8.4100E+00	,1.3433E+01	,-1.6322E-03	,1.4620E-06) )
-	 ) ) );
+  spec(it_species, it_isotope, "BrO");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"96",	Qcoeff(	-8.8945E+00	,1.3384E+01	,-1.6496E-03	,1.4828E-06) );
+  iso(it_isotope,	"16",	Qcoeff(	-8.4100E+00	,1.3433E+01	,-1.6322E-03	,1.4620E-06) );
 
 
 
   // H2SO4
   // Coeff:       2
   // Quality:    0.39
-  q_data.push_back
-    ( QRecord
-      ( NAME("H2SO4"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"126",	Qcoeff(	-6.6207E+03	,2.6856E+02	,1.0187E+00	,-4.0717E-04) )
-	 ) ) );
+  spec(it_species, it_isotope, "H2SO4");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"126",	Qcoeff(	-6.6207E+03	,2.6856E+02	,1.0187E+00	,-4.0717E-04) );
 
 
 
   // Cl2O2
   // Coeff:       2      2
   // Quality:    0.29   0.30
-  q_data.push_back
-    ( QRecord
-      ( NAME("Cl2O2"),
-	ISOTOPE
-	(//	Name		c0		c1		c2		c3
-	 //			|		|		|		|
-	 REC(	"565",	Qcoeff(	-1.6546E+04	,7.0845E+02	,2.9249E+00	,-1.2097E-03) ),
-	 REC(	"765",	Qcoeff(	-1.6863E+04	,7.2610E+02	,3.0201E+00	,-1.2538E-03) )
-	 ) ) );
-
+  spec(it_species, it_isotope, "Cl2O2");
+  //			Name		c0		c1		c2		c3
+  //			|		|		|		|		|
+  iso(it_isotope,	"565",	Qcoeff(	-1.6546E+04	,7.0845E+02	,2.9249E+00	,-1.2097E-03) );
+  iso(it_isotope,	"765",	Qcoeff(	-1.6863E+04	,7.2610E+02	,3.0201E+00	,-1.2538E-03) );
 
 }
 
 
-void check_q_data()
+void spec(ARRAY<SpeciesRecord>::iterator& is,
+	  ARRAY<IsotopeRecord>::iterator& ii,
+	  string name)
 {
-  /* routine assures that the species_data and the q_data are sorted
-     the same way, for all molecules and isotopes, safety check. */
   
-  extern ARRAY<QRecord> q_data;
-  extern ARRAY<SpeciesRecord> species_data;
+#ifndef NDEBUG
+  {
+    assert( name == is->Name() );
+  }
+#endif
 
-  for (size_t i=0; i<q_data.size(); ++i)
-    {
-      const QRecord& qd = q_data[i];
-      const SpeciesRecord& sd = species_data[i];
+  ii = is->Isotope().begin();
+
+  is++;
+
+}
 
 
-      // check whether the species names are sorted the same way in
-      // species_data and q_data
-      assert( qd.Name() == sd.Name() );
-      
-      for (size_t j=0;j<qd.Isotope().size(); ++j)
-	{
+void iso(ARRAY<IsotopeRecord>::iterator& ii,
+	 string name,
+	 const ARRAY<Numeric>& coeff)
+{
+#ifndef NDEBUG
+  {
+    assert( name == ii->Name() );
+  }
+#endif
 
-	  // check whether all isotopes of a species are sorted the
-	  // same way in species_data and q_data
-	  assert( qd.Isotope()[j].Name() == sd.Isotope()[j].Name() );
-	}
-    }
+  ii->SetPartitionFctCoeff(coeff);
+
+  ii++;
+
 }
 
