@@ -37,23 +37,24 @@
 #define scatrte_h
 
 void cloud_fieldsCalc(// Output:
-                   Tensor5View ext_mat_field,
-                   Tensor4View abs_vec_field,
-                   Index& scat_p_index,
-                   Index& scat_lat_index,
-                   Index& scat_lon_index,
-                   Tensor3& ext_mat,
-                   Matrix& abs_vec, 
-                   // Input:
-                   const Index& scat_za_index,
-                   const Index& scat_aa_index,
-                   const Agenda& spt_calc_agenda,
-                   const Agenda& opt_prop_part_agenda,
-                   const ArrayOfIndex& cloudbox_limits);
+                        Tensor5View ext_mat_field,
+                        Tensor4View abs_vec_field,
+                        Index& scat_p_index,
+                        Index& scat_lat_index,
+                        Index& scat_lon_index, 
+                        Tensor3View ext_mat,
+                        MatrixView abs_vec,  
+                        // Input:
+                        const Index& scat_za_index,
+                        const Index& scat_aa_index,
+                        const Agenda& spt_calc_agenda,
+                        const Agenda& opt_prop_part_agenda,
+                        const ArrayOfIndex& cloudbox_limits
+                        );
 
 void cloud_ppath_update1D(
-                  Tensor6& i_field,
-                  Vector& stokes_vec,
+                  Tensor6View i_field,
+                  VectorView stokes_vec,
                    // scalar_gas_abs_agenda:
                   Numeric& a_pressure,
                   Numeric& a_temperature,
@@ -65,24 +66,85 @@ void cloud_ppath_update1D(
                   Ppath& ppath_step, 
                   const Index& p_index,
                   const Index& scat_za_index,
-                  const Vector& scat_za_grid,
+                  ConstVectorView scat_za_grid,
                   const ArrayOfIndex& cloudbox_limits,
-                  const Tensor6& scat_field,
+                  ConstTensor6View scat_field,
                   // Calculate scalar gas absorption:
                   const Agenda& scalar_gas_absorption_agenda,
-                  const Tensor4& vmr_field,
+                  ConstTensor4View vmr_field,
                   // Gas absorption:
                   const Agenda& opt_prop_gas_agenda,
                   // Propagation path calculation:
                   const Agenda& ppath_step_agenda,
-                  const Vector& p_grid,
-                  const Tensor3& z_field,
-                  const Matrix& r_geoid,
+                  ConstVectorView p_grid,
+                  ConstTensor3View z_field,
+                  ConstMatrixView r_geoid,
                   // Calculate thermal emission:
-                  const Tensor3& t_field,
-                  const Vector& f_grid,
+                  ConstTensor3View t_field,
+                  ConstVectorView f_grid,
                   const Index& f_index,
+                  //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field
                   );
+
+void cloud_ppath_update3D(
+                  Tensor6View i_field,
+                  VectorView stokes_vec,
+                   // scalar_gas_abs_agenda:
+                  Numeric& a_pressure,
+                  Numeric& a_temperature,
+                  Vector& a_vmr_list,
+                  // opt_prop_xxx_agenda:
+                  Tensor3& ext_mat,
+                  Matrix& abs_vec,  
+                  // ppath_step_agenda:
+                  Ppath& ppath_step, 
+                  const Index& p_index,
+                  const Index& lat_index,
+                  const Index& lon_index,
+                  const Index& scat_za_index,
+                  const Index& scat_aa_index,
+                  ConstVectorView scat_za_grid,
+                  ConstVectorView scat_aa_grid,
+                  const ArrayOfIndex& cloudbox_limits,
+                  ConstTensor6View scat_field,
+                  // Calculate scalar gas absorption:
+                  const Agenda& scalar_gas_absorption_agenda,
+                  ConstTensor4View vmr_field,
+                  // Gas absorption:
+                  const Agenda& opt_prop_gas_agenda,
+                  // Propagation path calculation:
+                  const Agenda& ppath_step_agenda,
+                  ConstVectorView p_grid,
+                  ConstVectorView lat_grid,
+                  ConstVectorView lon_grid,
+                  ConstTensor3View z_field,
+                  ConstMatrixView r_geoid,
+                  // Calculate thermal emission:
+                  ConstTensor3View t_field,
+                  ConstVectorView f_grid,
+                  const Index& f_index,
+                  //particle opticla properties
+                  ConstTensor5View ext_mat_field,
+                  ConstTensor4View abs_vec_field
+                  );
+
+void ppath_step_in_cloudbox(Ppath& ppath_step,
+                            const Agenda& ppath_step_agenda,
+                            const Index& p,
+                            const Index& lat, 
+                            const Index& lon,
+                            ConstTensor3View z_field,
+                            ConstMatrixView r_geoid,
+                            ConstVectorView scat_za_grid,
+                            ConstVectorView aa_grid,
+                            const Index& scat_za_index,
+                            const Index& scat_aa_index,
+                            ConstVectorView lat_grid,
+                            ConstVectorView lon_grid);
+
+bool is_inside_cloudbox(const Ppath& ppath_step,
+                        const ArrayOfIndex& cloudbox_limits);
+
 #endif //scatrte_h

@@ -1,3 +1,26 @@
+2003-06-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-565
+	
+	* src/m_scatrte.cc (i_fieldUpdataSeq3D): Added this method.
+	It updates the radiation field sequentially for a 3D 
+	cloudbox. Should be much faster than (i_fieldUpdata3D),but
+	I have not yet tested the method.
+	
+	* src/scatrte{.cc,.h} (cloud_fieldsCalc): Fixed a bug.
+	Included three new functions:
+	(cloud_ppath_update3D): Used in the 3D sequential update. All
+	interpolations on the intersection points and the RT step
+	calculation are done in this function.
+	(ppath_step_in_cloudbox): Sets up a ppath structure for a 
+	given point and calculates the intersection point with 
+	the next grid cell boundary.
+	(is_inside_cloudbox): Checks, whether the intersection point 
+	of the propagation path with the next gridcell is inside or 
+	outside the cloudbox.
+
+	* src/methods.cc: Included (i_fieldUpdateSeq3D).
+	
 2003-06-05  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-564

@@ -1119,9 +1119,11 @@ i_fieldUpdateSeq1D(// WS Output:
       // Stokes vector:
       //
       // For the radiative transfer equation we 
-      // need the Stokes vector at the lower cloudbox boundary
+
+      // need the Stokes vector at the upper cloudbox boundary
       stokes_vec[joker] = i_field(cloudbox_limits[1] - p_low, 0, 0,
                                   scat_za_index, 0, joker);
+
       
       // Find out, if the next point is in the cloudbox. 
       // For most angles it is clear, but we don not now exactly, for which
@@ -1880,7 +1882,660 @@ void i_fieldUpdate3D(// WS Output:
 }// end of function.
 
                         
+//! 3D RT calculation inside the cloud box.
+/*! 
+  This function loops over all grid points and all directions and performs 
+  the RT calculation with a fixed scattering integral for one frequency 
+  of the frequency grid specified by *f_index*. 
+  
+  The loop over directions is the outermost loop. Here the optical properties
+  for single particle types are calculated as they are not depending on the 
+  position of the particles. 
+  The inner loop is the loop over the positions. Inside this loop the total 
+  optical properties including the partile types as well as the gaseous
+  species are calculated. Then the radiative transfer equation can be computed.
+
+  WS Output:
+  \param i_field Updated radiation field inside the cloudbox. 
+  Variables used in scalar_gas_abs_agenda:
+  \param abs_scalar_gas
+  \param a_pressure
+  \param a_temperature
+  \param a_vmr_list
+  Variables used in spt_calc_agenda:
+  \param scat_za_index
+  \param scat_aa_index
+  Variables used in opt_prop_xxx_agenda:
+  \param ext_mat
+  \param abs_vec  
+  \param scat_p_index
+  \param scat_lat_index
+  \param scat_lon_index
+  Variables used in ppath_step_agenda:
+  \param ppath_step
+  WS Input:
+  \param i_field_old Old radiation field.
+  \param scat_field Scattered field.
+  \param cloudbox_limits 
+  Calculate scalar gas absorption:
+  \param scalar_gas_absorption_agenda
+  \param vmr_field
+  Optical properties for single particle type:
+  \param spt_calc_agenda
+  \param scat_za_grid
+  \param scat_aa_grid
+  Optical properties for gases and particles:
+  \param opt_prop_part_agenda
+  \param pnd_field
+  \param opt_prop_gas_agenda
+  Propagation path calculation:
+  \param ppath_step_agenda
+  \param p_grid
+  \param lat_grid
+  \param lon_grid
+  \param z_field
+  \param r_geoid
+  Calculate thermal emission:
+  \param t_field
+  \param f_grid
+  \param f_index
+
+  \author Claudia Emde
+  \date 2003-01-07
+*/
+void i_fieldUpdateSeq3D(// WS Output:
+                     Tensor6& i_field,
+                     // scalar_gas_abs_agenda:
+                     Matrix& abs_scalar_gas,
+                     Numeric& a_pressure,
+                     Numeric& a_temperature,
+                     Vector& a_vmr_list,
+                     // spt_calc_agenda:
+                     Index& scat_za_index,
+                     Index& scat_aa_index,
+                     // opt_prop_xxx_agenda:
+                     Tensor3& ext_mat,
+                     Matrix& abs_vec,  
+                     Index& scat_p_index,
+                     Index& scat_lat_index,
+                     Index& scat_lon_index,
+                     // ppath_step_agenda:
+                     Ppath& ppath_step, 
+                     // WS Input:
+                     const Tensor6& i_field_old,
+                     const Tensor6& scat_field,
+                     const ArrayOfIndex& cloudbox_limits,
+                     // Calculate scalar gas absorption:
+                     const Agenda& scalar_gas_absorption_agenda,
+                     const Tensor4& vmr_field,
+                     // Optical properties for single particle type:
+                     const Agenda& spt_calc_agenda,
+                     const Vector& scat_za_grid,
+                     const Vector& scat_aa_grid,
+                     // Optical properties for gases and particles:
+                     const Agenda& opt_prop_part_agenda,
+                     const Tensor4& pnd_field,
+                     const Agenda& opt_prop_gas_agenda,
+                     // Propagation path calculation:
+                     const Agenda& ppath_step_agenda,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     const Tensor3& z_field,
+                     const Matrix& r_geoid,
+                     // Calculate thermal emission:
+                     const Tensor3& t_field,
+                     const Vector& f_grid,
+                     const Index& f_index
+                     )
+{
+  
+  out2 << "i_fieldUpdate3D: Radiative transfer calculatiuon in cloudbox. \n";
+  out2 << "------------------------------------------------------------- \n";
+
+  const Index stokes_dim = scat_field.ncols();
+  const Index atmosphere_dim = 3;
+
+  // The definition of the azimth angle grids is different for clearsky and
+  // cloudbox. (SHOULD BE FIXED!!!!)
+  Vector aa_grid(scat_aa_grid.nelem());
+  for(Index i = 0; i<scat_aa_grid.nelem(); i++)
+    aa_grid[i] = scat_aa_grid[i] - 180;
+  
+  Vector sca_vec_av(stokes_dim,0); 
+
+
+  //Check the input
+  if (stokes_dim < 0 || stokes_dim > 4)
+    throw runtime_error(
+                        "The dimension of stokes vector must be"
+                        "1,2,3, or 4");
+  
+  assert( is_size( i_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+		      (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                      (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
+		       scat_za_grid.nelem(), 
+		       scat_aa_grid.nelem(),
+		       stokes_dim));
+
+  assert( is_size( scat_field, 
+		     (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+		     (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                     (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
+		      scat_za_grid.nelem(), 
+		      scat_aa_grid.nelem(),
+		      stokes_dim));
+   
+  // Is the frequency index valid?
+  assert( f_index <= f_grid.nelem() );
+
+  // End of checks
+
+
+
+  // Number of zenith angles.
+  const Index N_scat_za = scat_za_grid.nelem();
+  // Number of azimuth angles
+  const Index N_scat_aa = scat_aa_grid.nelem();
+
+ 
+  //=======================================================================
+  // Calculate coefficients for all positions in the cloudbox 
+  //=======================================================================
+  out3 << "Calculate single particle properties \n";
+
+  // At this place only the particle properties are calculated. Gaseous
+  // absorption is calculated inside the radiative transfer part. Inter-
+  // polating absorption coefficients for gaseous species gives very bad
+  // results, so they are 
+  // calulated for interpolated VMRs, temperature and pressure.
+  
+  // To use special interpolation functions for atmospheric fields we 
+  // use ext_mat_field and abs_vec_field:
+  Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+                        stokes_dim, stokes_dim, 0.);
+  Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+                        stokes_dim, 0.);
+
+  //Loop over all directions, defined by scat_za_grid 
+  for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
+    {
+      //Loop over azimuth directions (scat_aa_grid)
+      for(scat_aa_index = 0; scat_aa_index < N_scat_aa; scat_aa_index ++)
+        {
+          cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
+                           scat_lat_index, scat_lon_index,
+                           ext_mat, abs_vec, scat_za_index, scat_aa_index,
+                           spt_calc_agenda, 
+                           opt_prop_part_agenda, cloudbox_limits);
+        
+          //==================================================================
+          // Radiative transfer inside the cloudbox
+          //==================================================================
+
+          // Sequential update. I determine the paths to end up in the 
+          // corners of the cloudbox. 
+          // First of all we have to find out, if for the given direction a 
+          // point is inside the cloudbox. Then for this direction the RT
+          // calculation is done from the opposite side of the cloudbox.
+
+          // Altogether we have 8 corners and when we determine from all
+          // corners
+          // directions pointing inside the cloudbox we end up with all
+          // directions as is should be.
+
+          // Define shorter names for cloudbox_limits.
+
+          const Index p_low = cloudbox_limits[0];
+          const Index p_up = cloudbox_limits[1];
+          const Index lat_low = cloudbox_limits[2];
+          const Index lat_up = cloudbox_limits[3];
+          const Index lon_low = cloudbox_limits[4];
+          const Index lon_up = cloudbox_limits[5];
+
+          Vector stokes_vec(stokes_dim,0.);
+        
+          // 1. corner:
+          //---------------------------------------------------------------
+          Index p = p_low;
+          Index lat = lat_low; 
+          Index lon = lon_low;
           
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(p_up - p_low, lat_up - lat_low,
+                                      lon_up - lon_low,
+                                      scat_za_index, scat_aa_index, joker);
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_up; p_index > p_low; p_index --)
+                {
+                  for(Index lat_index = lat_up; lat_index > lat_low;
+                      lat_index --)
+                    {
+                      for(Index lon_index = lon_up; lon_index > lon_low;
+                          lon_index --)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+
+          // 2. corner:
+          //---------------------------------------------------------------
+          p = p_up;
+          lat = lat_low; 
+          lon = lon_low;
+
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(0, lat_up - lat_low,
+                                      lon_up - lon_low,
+                                      scat_za_index, scat_aa_index, joker);  
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+            
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_low; p_index < p_up; p_index ++)
+                {
+                  for(Index lat_index = lat_up; lat_index > lat_low;
+                      lat_index --)
+                    {
+                      for(Index lon_index = lon_up; lon_index > lon_low;
+                          lon_index --)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+                
+          // 3. corner:
+          //---------------------------------------------------------------
+          p = p_low;
+          lat = lat_up; 
+          lon = lon_low;
+
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(p_up - p_low, 0, lon_up - lon_low,
+                                      scat_za_index, scat_aa_index, joker);
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_up; p_index > p_low; p_index --)
+                {
+                  for(Index lat_index = lat_low; lat_index < lat_up;
+                      lat_index ++)
+                    {
+                      for(Index lon_index = lon_up; lon_index > lon_low;
+                          lon_index --)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+
+          // 4. corner:
+          //---------------------------------------------------------------
+          p = p_low;
+          lat = lat_low; 
+          lon = lon_up;
+
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(p_up - p_low, lat_up - lat_low, 0,
+                                      scat_za_index, scat_aa_index, joker);
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_up; p_index > p_low; p_index --)
+                {
+                  for(Index lat_index = lat_up; lat_index > lat_low;
+                      lat_index --)
+                    {
+                      for(Index lon_index = lon_low; lon_index < lon_up;
+                          lon_index ++)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+
+          // 5. corner:
+          //---------------------------------------------------------------
+          p = p_up;
+          lat = lat_up; 
+          lon = lon_low;
+          
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(0, 0, lon_up - lon_low,
+                                      scat_za_index, scat_aa_index, joker);
+
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_low; p_index < p_up; p_index ++)
+                {
+                  for(Index lat_index = lat_low; lat_index < lat_up;
+                      lat_index ++)
+                    {
+                      for(Index lon_index = lon_up; lon_index > lon_low;
+                          lon_index --)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+
+          // 6. corner:
+          //---------------------------------------------------------------
+          p = p_up;
+          lat = lat_low; 
+          lon = lon_up;
+
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(0, lat_up - lat_low, 0,
+                                      scat_za_index, scat_aa_index, joker);
+
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_low; p_index < p_up; p_index ++)
+                {
+                  for(Index lat_index = lat_up; lat_index > lat_low;
+                      lat_index --)
+                    {
+                      for(Index lon_index = lon_low; lon_index < lon_up;
+                          lon_index ++)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+
+          // 7. corner:
+          //---------------------------------------------------------------
+          p = p_low;
+          lat = lat_up; 
+          lon = lon_up;
+
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(p_up - p_low, 0, 0,
+                                      scat_za_index, scat_aa_index, joker);
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits))
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_up; p_index > p_low; p_index --)
+                {
+                  for(Index lat_index = lat_low; lat_index < lat_up;
+                      lat_index ++)
+                    {
+                      for(Index lon_index = lon_low; lon_index < lon_up;
+                          lon_index ++)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+                          
+          // 8. corner:
+          //---------------------------------------------------------------
+          p = p_up;
+          lat = lat_up; 
+          lon = lon_up;
+          
+          // Stokes vector:
+          //
+          // For the radiative transfer equation we 
+          // need the Stokes vector at opposite corner
+          stokes_vec[joker] = i_field(0, 0, 0,
+                                      scat_za_index, scat_aa_index, joker);
+
+          ppath_step_in_cloudbox(ppath_step, ppath_step_agenda, p, lat, lon, 
+                                 z_field, r_geoid, scat_za_grid, 
+                                 aa_grid, scat_za_index, scat_aa_index, lat_grid, lon_grid);
+
+          // Check whether the next point is inside or outside the
+          // cloudbox. Only if the next point lies inside the
+          // cloudbox a radiative transfer step caclulation has to
+          // be performed.
+          if( is_inside_cloudbox(ppath_step, cloudbox_limits) )
+            {
+              // Loop over all positions inside the cloud box defined by the 
+              // cloudbox_limits.
+              for(Index p_index = p_low; p_index < p_up; p_index ++)
+                {
+                  for(Index lat_index = lat_low; lat_index < lat_up;
+                      lat_index ++)
+                    {
+                      for(Index lon_index = lon_low; lon_index < lon_up;
+                          lon_index ++)
+                        {
+                          cloud_ppath_update3D(i_field, stokes_vec, 
+                                               a_pressure, a_temperature, 
+                                               a_vmr_list, ext_mat, abs_vec,
+                                               ppath_step, p_index, lat_index, 
+                                               lon_index, scat_za_index, 
+                                               scat_aa_index, scat_za_grid, 
+                                               scat_aa_grid, cloudbox_limits, 
+                                               scat_field, 
+                                               scalar_gas_absorption_agenda,
+                                               vmr_field, 
+                                               opt_prop_gas_agenda,
+                                               ppath_step_agenda, p_grid, 
+                                               lat_grid, lon_grid, z_field, 
+                                               r_geoid, t_field, f_grid, f_index,
+                                               ext_mat_field, abs_vec_field);
+
+                        } // end of loop over lon_grid
+                    }  // end of loop over lat_grid
+                } // end loop over p_grid
+            }
+        }// end loop over scat_aa_grid
+    }// end loop over scat_za_grid
+                        
+  out2 << "Finished i_fieldUpdate3D.\n";
+}// end of function.          
       
 
 
@@ -2537,7 +3192,7 @@ scat_fieldCalc(//WS Output:
               }//end za_in loop
             /*integration of the product of ifield_in and pha
               over zenith angle and azimuth angle grid. It calls
-              here the integration routine AngIntegrate_trapezoid_opti*/
+              here the integration routine AngIntegrate_trapezoid*/
            
             for (Index i = 0; i < stokes_dim; i++)
               {
@@ -2553,10 +3208,9 @@ scat_fieldCalc(//WS Output:
                             0,
                             za_prop, 
                             0,
-                            i)  =   AngIntegrate_trapezoid_opti(product_field_mat,
-                                                                scat_za_grid,
-                                                                scat_aa_grid,
-                                                                grid_stepsize);
+                            i)  =   AngIntegrate_trapezoid(product_field_mat,
+                                                           scat_za_grid,
+                                                           scat_aa_grid);
                 
               }//end i loop
           }//end za_prop loop
@@ -2631,7 +3285,7 @@ scat_fieldCalc(//WS Output:
                       //integration of the product of ifield_in and pha
                         //over zenith angle and azimuth angle grid. It 
                         //calls here the integration routine 
-                        //AngIntegrate_trapezoid_opti
+                        //AngIntegrate_trapezoid
                       for (Index i = 0; i < stokes_dim; i++)
                         {
                             MatrixView product_field_mat =
@@ -2646,10 +3300,9 @@ scat_fieldCalc(//WS Output:
                                         za_prop, 
                                         aa_prop,
                                         i)  =  
-                              AngIntegrate_trapezoid_opti(product_field_mat,
-                                                          scat_za_grid,
-                                                          scat_aa_grid,
-                                                          grid_stepsize);
+                              AngIntegrate_trapezoid(product_field_mat,
+                                                     scat_za_grid,
+                                                     scat_aa_grid);
                             
                         }//end i loop
                     }//end aa_prop loop
