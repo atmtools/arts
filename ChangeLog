@@ -1,3 +1,15 @@
+2004-05-31  Cory Davis (rsh)   <cory@fog>
+
+	* arts-1-1-825
+
+	* doc/uguide/montecarlo.tex, doc/uguide/references.bib: Fixed
+	references. Added flowchart figure.
+
+	* doc/uguide/Figs/montecarlo/,
+	doc/uguide/Figs/montecarlo/flowchart.pdf,
+	doc/uguide/Figs/montecarlo/Makefile.am: Added. Also made
+	appropriate changes to Figs/Makefile.am, and configure.in
+
 2004-05-31  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-824

@@ -43,7 +43,7 @@
  \label{sec:montecarlo:intro}
 
 \emph{Much of the following has been taken from an article submitted to IEEE
-TGARS, although here there is a more detailed description of how the
+TGARS \citep{davisetal:04}, although here there is a more detailed description of how the
 algorithm is implemented in ARTS, and how to use it.} 
 
 Discrete ordinates (DOM) type methods are attractive
@@ -64,22 +64,22 @@ algorithms makes parallel computing trivial.
 
 Among the available Backward Monte Carlo RT models, several do not
 allow a thermal source, or do not consider polarization fully (i.e.
-allowing a non-diagonal extinction matrix) (e.g. \cite{liu96}), and
-some consider neither (e.g. \cite{oikarenenetal}, \cite{ishimoto}).
+allowing a non-diagonal extinction matrix) (e.g. \cite{liuetal:96}), and
+some consider neither (e.g. \cite{oikarenenetal:99}, \cite{ishimoto:02}).
 
 A useful reference for model development in this study, is the
-Backward-Forward Monte Carlo (BFMC) model described by \cite{liu96}.  
+Backward-Forward Monte Carlo (BFMC) model described by \cite{liuetal:96}.  
 In BMFC photon paths are traced backwards
 from the sensor, with scattering angles and path lengths randomly
 chosen from probability density functions (PDF) determined by the scattering
 phase function, and a scalar extinction coefficient respectively.  The
 phase matrices for every scattering event and scalar extinction are
 then sequentially applied to the source Stokes vector to give the Stokes
-vector contribution for each photon.  As presented in \cite{liu96}, the model is only
+vector contribution for each photon.  As presented in \cite{liuetal:96}, the model is only
 applicable to cases where the extinction matrix is diagonal - that is,
  where there is macroscopically isotropic and mirror-symmetric
  scattering media.  This prompted Roberti and Kummerow
- \cite{roberti99} to abandon the Backward-Forward Monte Carlo method and
+ \cite{roberti:99} to abandon the Backward-Forward Monte Carlo method and
  choose a modified Forward Monte Carlo model. However, in this study the
  attractive features of Liu's Backward-Forward model are retained by
  utilizing importance sampling, a well known technique in Monte Carlo
@@ -90,7 +90,8 @@ applicable to cases where the extinction matrix is diagonal - that is,
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\section{Model}
+\levelb{Model}
+ \label{sec:montecarlo:model}
 The radiative transfer model solves the vector
 radiative transfer equation (VRTE):
 \begin{eqnarray}
@@ -114,7 +115,7 @@ orientations and particle types. The argument $\mathbf{n}$ has been
 retained to signify that in general these properties depend on the
 direction of propagation. 
 
-To apply Monte Carlo integration to the problem, the VRTE needs to be expressed in integral form. (e.g. \cite{hochstadt})
+To apply Monte Carlo integration to the problem, the VRTE needs to be expressed in integral form. (e.g. \cite{hochstadt:64})
 \begin{eqnarray}
 \lefteqn{\mathbf{I(n,s_0)}=\mathbf{O(u_0,s_0)I(n,u_0)}+}\nonumber\\
 & \int_{u_0}^{s_0}\mathbf{O(s',s_0)}\left(\mathbf{K_a(n)}I_b(T) +\int_{4\pi}\mathbf{Z(n,n')}\mathbf{I(n')}d\mathbf{n'}\right)ds'\nonumber
@@ -123,7 +124,7 @@ To apply Monte Carlo integration to the problem, the VRTE needs to be expressed 
 \label{intVRTE}
 \end{equation}
 , where $\mathbf{O(s',s)}$ is the evolution operator defined by
-\cite{landi85}. $\mathbf{u_0}$ is the point where the line of sight intersects
+\cite{landi:85}. $\mathbf{u_0}$ is the point where the line of sight intersects
 the far boundary of the scattering domain, and $\mathbf{s_0}$ is the
 exit point where the outgoing Stokes vector is calculated.
 In general there is no closed form expression for $\mathbf{O(s',s)}$.
@@ -153,7 +154,7 @@ Eq. \ref{intVRTE}.
 The aim in importance sampling is to choose probability density functions
 (PDFs) for the independent variables that are
 as close as possible to being proportional to the integrand
-\cite{liu01}. This concentrates computational effort on regions where
+\cite{liu:01}. This concentrates computational effort on regions where
 the integrand is most significant and also reduces the variance in the contributions of each photon, thus reducing
 the number of photons and hence CPU time required to give a
 prescribed accuracy.  Eq. \ref{intVRTE} suggests that the PDF for
@@ -167,7 +168,7 @@ Since PDFs are scalar functions, and that we consider the first element of the
 Stokes vector most important, we choose PDFs that are proportional to the
 (1,1) element of $\mathbf{O(s',s)}$ and $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\levelb{Algorithm}
+\levelc{Algorithm}
  \label{sec:montecarlo:alg}
 The model algorithm proceeds as follows:
 
@@ -235,7 +236,7 @@ g(\theta_{inc},\phi_{inc})=\frac{Z_{11}(\theta_{scat},\phi_{scat},
 \label{gdir}
 \end{equation}
 , which is
-sampled by the rejection method as described in \cite{liu01}.
+sampled by the rejection method as described in \cite{liu:01}.
 
 Calculate the matrix
 \begin{equation}
@@ -313,6 +314,13 @@ When simulating an MLS measurement, an extra clear sky RT calculation
 is performed from the cloud box exit to the sensor, with the Monte
 Carlo result from Eq. \ref{cbexit} taken as the radiative background.
 
+\begin{figure}[h]
+\begin{center}
+\includegraphics[height=0.9\vsize]{Figs/montecarlo/flowchart}
+\caption{Flowchart illustrating ScatteringMonteCarlo algorithm}
+\end{center}
+\label{fig:montecarlo:flowchart}
+\end{figure}
 \levelb{Implementation in ARTS: ScatteringMonteCarlo}
  \label{sec:montecarlo:implementation}
 

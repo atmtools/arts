@@ -37,6 +37,7 @@ texfiles = \
 	formats.tex \
 	rte_theory.tex \
 	main.tex \
+	montecarlo.tex \
 	measerr.tex \
         ppath.tex \
 	polarization.tex \
