@@ -5,6 +5,9 @@
 \starthistory
   2002-06-04 & Restarted for ARTS-1-1 by Stefan Buehler.\\
   2003-03-10 & Lookup tables added by Stefan Buehler.\\
+  2003-03-28 & Documentation for WSM abs\_scalar\_gas\_fieldCalc
+               extended by Stefan Buehler after comment from Sreerekha
+               T.\ R..
 \stophistory
 
 \startsymbolswithunits
@@ -26,7 +29,7 @@
 
 Calculating gas absorption coefficient spectra in a line by line way
 is quite an expensive thing to do. Sometimes contributions from
-thousands or tenthousands of lines have to be summed up. To make
+thousands or ten thousands of lines have to be summed up. To make
 matters worse, this has to be done over and over again for each point
 in the atmosphere.
 
@@ -38,7 +41,7 @@ but on the atmospheric state variables:
 \item Trace gas concentrations
 \end{itemize}
 
-The basic idea of the lookup table is to precalculate absorption for
+The basic idea of the lookup table is to pre-calculate absorption for
 discrete combinations of these variables, and then use interpolation
 to extract absorption for the actual atmospheric state.
 
@@ -111,7 +114,8 @@ This is handled by storing perturbations, similar to the temperature
 case. The user can select for which species perturbations should be
 stored. (The so called `nonlinear species'.)
 
-\textbf{This feature is not yet used. [FIXME: Update this when it works.]}
+\textbf{This feature is not yet used.}
+\FIXME{Update this when it works.}
 
 
 \levelc{Implementation}
@@ -294,9 +298,61 @@ absorbers.
 The \artsstyle{abs\_scalar\_gasExtractFromLookup} method is meant to
 be used inside the agenda \wsaindex{scalar\_gas\_absorption\_agenda},
 which is used in several places where absorption coefficients are
-needed, both inside the scattering box and outside. If you want to
-calculate absorption coefficients for the entire atmospheric field,
-you can use the WSM \wsmindex{abs\_scalar\_gas\_fieldCalc}.
+needed, both inside the scattering box and outside. 
+
+It is also possible to calculate absorption for the entire atmospheric
+field.  This is done by the method
+\wsmindex{abs\_scalar\_gas\_fieldCalc}, which is useful in two
+different contexts:
+
+\begin{enumerate}
+\item For testing and plotting gas absorption. (For RT
+  calculations, gas absorption is calculated or extracted locally,
+  therefore there is no need to calculate a global field. But this
+  method is handy for easy plotting of absorption vs. pressure, for
+  example.)
+\item Inside the scattering region, monochromatic absorption is
+  pre-calculated for the entire atmospheric field.
+  \FIXME{At least that's the plan, isn't it Claudia? Please remove
+    this FIXME when that works.}
+\end{enumerate}
+
+Because of the different usage contexts, the method
+\artsstyle{abs\_scalar\_gas\_fieldCalc} can calculate absorption
+either for all frequencies in the frequency grid (input variable
+\wsvindex{f\_index}$<$0), or just for the frequency indicated by the
+input variable \artsstyle{f\_index} (\artsstyle{f\_index}$>=$0).
+
+The following controlfile section illustrates the use of the lookup
+table together with \artsstyle{abs\_scalar\_gas\_fieldCalc}. This is
+not a complete controlfile. \FIXME{Eventually there should be a good
+  complete example in doc/examples. For the moment you can look at the
+examples in ~sbuehler/arts\_calc/abs\_lookup\_2/.}
+
+\begin{verbatim}
+# Read lookup table:
+ReadXML(gas_abs_lookup){"some_table.xml"}
+
+# Adapt lookup table:
+gas_abs_lookupAdapt{}
+
+# Set agenda for extracting absorption
+AgendaSet(scalar_gas_absorption_agenda){
+  abs_scalar_gasExtractFromLookup{}
+}
+
+# Input to abs_scalar_gasExtractFromLookup{}, 
+# means to calculate all frequencies.
+IndexSet(f_index){-1}
+
+# Calculate scalar gas absorption field. (This assumes that 
+# also the WSVs f_grid, atmosphere_dim, p_grid, lat_grid, 
+# lon_grid, t_field, and vmr_field have been defined.)
+abs_scalar_gas_fieldCalc{}
+
+# Write out the field:
+WriteXML(abs_scalar_gas_field){""}
+\end{verbatim}
 
 Use the online documentation for the methods and variables mentioned
 to learn more.

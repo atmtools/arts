@@ -1,3 +1,14 @@
+2003-03-28  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-510
+
+	* doc/uguide/uguide.tex: Added \FIXME command. Usage: \FIXME{Put
+	your remark here.} This will typeset the remark in bold and add
+	FIXME: in front of it.
+
+	* doc/uguide/absorption.tex: Documentation for
+	abs_scalar_gas_FieldCalc extended after comment from Sreerekha.
+
 2003-03-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-509

@@ -10,7 +10,7 @@
 %\includeonly{polarization}
 %\includeonly{integration}
 %\includeonly{scattering}
-%\includeonly{absorption}
+\includeonly{absorption}
 %
 %
 % allow us to use if-then-else in TeX macros
@@ -160,6 +160,10 @@
 %
 % Index command to make index for a ARTS data structure. Works as \wsmindex.
 \newcommand{\typeindex}[1] {\artsstyle{#1}\index{data types!#1}}
+
+
+% For FIXMEs:
+\newcommand{\FIXME}[1]{{\bfseries FIXME: #1}}
 
 
 %%% BEGIN PDF/LaTeX specific options
