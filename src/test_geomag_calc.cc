@@ -17,6 +17,7 @@
 #include "geomag_calc.h"
 #include "xml_io.h"
 
+extern const Numeric EARTH_RADIUS;
 
 int main(void) 
 {// Output
@@ -64,7 +65,7 @@ int main(void)
 
 
   // Defining the geocetric radius to the point.
-  const Numeric r = a + z;
+  const Numeric r = EARTH_RADIUS + z;
 
   try
     {
