@@ -735,7 +735,7 @@ void transpose( Sparse& A,
     {
       // Looping over columns in B to get the elements in the right order,
       // this will turn into row index in A.
-      for (size_t i=0; i<B.mcolptr->size(); ++i)
+      for (size_t i=0; i<B.mcolptr->size()-1; i++)
         {
           // Since only one element can occupy one row in a column, we
           // only need to call find() once per column in B.

@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.728)
+AM_INIT_AUTOMAKE(arts,1.1.729)
 
 AM_MAINTAINER_MODE
 

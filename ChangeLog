@@ -1,3 +1,14 @@
+2003-12-01  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-729
+
+	* src/matpackII.cc: Corrected loop in transpose function. This should
+	remove the bug in the mult (sparse-sparse) function.
+
+	* src/test_sparse.cc: Added function for testing of transpose, and 
+	changed the mult test. The both functions reads matrices from xml files
+	to make testing of large matrices easier.
+
 2003-12-01  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-728	

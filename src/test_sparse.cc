@@ -308,20 +308,63 @@ void test45()
           "files:\n";
 
   Sparse A, B;
+  String a = "antenna.xml";
+  String b = "backend.xml";
 
   try {
-    xml_read_from_file ("antenna.xml", A);
-    xml_read_from_file ("backend.xml", B);
+    cout << "  Reading " << a << "...";
+    xml_read_from_file (a, A);
+    cout << "done.\n  Reading " << b << "...";
+    xml_read_from_file (b, B);
+    cout << "done.\n";
   } catch (runtime_error e) {
     cerr << e.what () << endl;
   }
 
-  Sparse C(A.nrows(),B.ncols());
-  mult(C,A,B);
+  Sparse C(B.nrows(),A.ncols());
+  cout << "  Performing multiplication...";
+  mult(C,B,A);
+  cout << "done.\n";
 
-  cout << "C=A*B:\n" << A << "\n";
+  //cout << "C=A*B:\n" << A << "\n";
+  try {
+    cout << "  Writing product to file: test45.xml...";
+    xml_write_to_file ("test45.xml", C);
+    cout << "done.\n";
+  } catch (runtime_error e) {
+    cerr << e.what () << endl;
+  }
 }
 
+void test46()
+{
+  cout << "Test transpose with large matrix read from xml file:\n";
+
+  Sparse A;
+  String a = "backend.xml";
+
+  try {
+    cout << "  Reading " << a << "...";
+    xml_read_from_file (a, A);
+    cout << "done.\n";
+  } catch (runtime_error e) {
+    cerr << e.what () << endl;
+  }
+
+  //cout << "A:\n" << A << endl;
+
+  Sparse B(A.ncols(), A.nrows());
+  transpose(B,A);
+
+  try {
+    cout << "  Writing transpose(A) to file test46.xml" << endl;
+    xml_write_to_file ("test46.xml", B);
+  } catch (runtime_error e) {
+    cerr << e.what () << endl;
+  }
+
+  //cout << "transpose(A):\n" << B << endl;
+}
 
 int main()
 {
@@ -334,6 +377,7 @@ int main()
   //  test43();
   //  test44();
     test45();
+    test46();
 
   return 0;
 }
