@@ -1,3 +1,13 @@
+2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-149
+	
+	* Merged back changes from arts-1.1.
+
+	* autogen.sh: Omit --force for automake.
+
+	* configure.in: Don't use AC_HELP_STRING macro.
+
 2003-12-08  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-148
