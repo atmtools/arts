@@ -181,7 +181,7 @@ The fact that the geoid is an ellipsoid, instead of a sphere, opens up
 for the two different definitions of the latitude. The
 \qindex{geocentric latitude}, which is the the one used here, is the
 angle between the equatorial plane and the vector from the coordinate
-system center to the position of concern. The \qindex{geodetic
+system centre to the position of concern. The \qindex{geodetic
   latitude} is also defined with respect to the equatorial plane, but
 the angle to the normal to the reference ellipsoid is considered here, as
 shown in Figure~\ref{fig:ppath:lats}. It could be mentioned that a
@@ -205,7 +205,7 @@ mid-latitudes and the maximum value is about 12 arc-minutes.
 The \qindex{zenith} and \qindex{nadir} directions shall normally be
 defined to follow the normal to the reference ellipsoid, but, if
 nothing else is mentioned, these directions are here treated to go
-along the vector the center of the coordinate system, as indicated in
+along the vector the centre of the coordinate system, as indicated in
 Figure~\ref{fig:ppath:lats}. This latter definition is preferred
 as it results in that a propagation path in the zenith/nadir direction
 can be described by a single latitude and longitude value. The
@@ -243,11 +243,198 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 %===================
 \label{sec:ppath:Ppath}
 
+The ARTS definition of a propagation path is given in
+Section~\ref{sec:fm_defs:ppaths}.  A propagation path is represented by
+a structure of type \verb|Ppath|. This structure holds also
+auxiliary variables to facilitate the radiative transfer calculations
+and to speed up the interpolation (if performed). The fields of \verb|Ppath|
+where the data type is given inside square
+brackets, are:
+\begin{description}
+  \item[dim] [Index] The atmospheric dimensionality. This field shall always 
+     be equal to the workspace variable \verb|atmosphere_dim|.
+  \item[np] [Index] Number of positions to define the propagation path. The 
+     number of rows, or the length, of $\mathbf{pos}$, $\mathbf{z}$, 
+     $\mathbf{indexpos}$, $\mathbf{l\_step}$ and $\mathbf{los}$ shall be
+     equal to $\mathbf{np}$. The number of radiative transfer steps along the 
+     path is $\mathbf{np}-1$. If $\mathbf{np}\leq 1$, the observed spectrum 
+     equals the radiative background. When the path is totally outside the 
+     atmosphere $\mathbf{np}=0$. If the sensor is placed on the ground and 
+     looks down, the sensor is inside the cloud box, or the sensor is at the 
+     cloud box boundary but looks into the box, $\mathbf{np}=1$ where the 
+     stored values correspond to the sensor position.
+  \item[i\_start] [Index] The index of the position corresponding to the 
+     starting point of the path. For 2D and 3D, the paths are stored in
+     reversed order and the value of $\mathbf{i\_start}$ is always 
+     $\mathbf{np}-1$. The primary reason to why the fields $\mathbf{i\_start}$
+     and $\mathbf{i\_stop}$ were introduced is to make use of the symmetry
+     in 1D downward looking observations. For 1D, the positions are stored 
+     starting with the lowest point of the path and $\mathbf{i\_start}$ can
+     have any value between 0 and $\mathbf{np}-1$. If the sensor zenith angle
+     is $\geq 90\degree$, then $\mathbf{i\_start} = \mathbf{np}-1$. For
+     downward observations with an intersection of the path by a blackbody 
+     ground $\mathbf{i\_start}$ equals 0. For other downward looking cases,
+     $\mathbf{i\_start}$ corresponds to the sensor if it is placed inside
+     the model atmosphere, or $\mathbf{i\_start} = \mathbf{np}-1$ if the
+     sensor is above the top of the atmosphere.
+  \item[i\_stop] [Index] The index of the position corresponding to the 
+     end point of the path (inside the model atmosphere), which is the 
+     sensor position if inside the atmosphere, or a point at the highest
+     pressure surface if the sensor is outside the model atmosphere. 
+     For 2D and 3D, $\mathbf{i\_stop}$ equals always 0, while for 1D it 
+     can be any value from 0 to $\mathbf{np}-1$ depending on the position 
+     of the sensor. A practical example: for 1D limb sounding without an
+     blackbody ground intersection, the propagation path is followed by
+     looping from $\mathbf{np}-1$ down to 0 (which corresponds to the tangent
+     point) and then back up to $\mathbf{np}-1$. See further [**].
+  \item[pos] [Matrix] The propagation path positions. This matrix has 
+     $\mathbf{np}$ rows and up to 3 columns. Each row holds a position
+     where column 1 is the pressure, column 2 the latitude and column 3 the
+     longitude (cf. Section~\ref{sec:fm_defs:sensorpos}). The number of 
+     columns for 1D and 2D is 2, while for 3D it is 3. The latitudes are 
+     stored for 1D cases as these can be of interest for some applications 
+     and are useful if the propagation path shall be plotted.
+  \item[z] [Vector] The geometrical altitude for each path position. The
+     length of this vector is accordingly $\mathbf{np}$. This is a help
+     variable for plotting, and similar purposes, and shall not be used to
+     interpolate the atmospheric fields, as pressure is the main altitude
+     coordinate.
+  \item[l\_step] [Vector] The length along the propagation path between
+     the positions in $\mathbf{pos}$. The length of the vector is
+     $\mathbf{np}-1$. 
+  \item[gridindex] [Matrix] The fractional grid indexes of the positions.
+     The intention of this field is to speed up interpolation of the 
+     atmospheric fields. The matrix has $\mathbf{np}$ rows and $\mathbf{dim}$ 
+     columns, where column 1 refers to the pressure grid, column 2 to the 
+     latitude grid and column 3 to the longitude grid. Note that this matrix,
+     in contrast to $\mathbf{pos}$, has only one column for 1D. This is the 
+     case as the latitude position is of no interest for 1D when interpolating
+     an atmospheric field. 
+
+     The grid index is best described by some examples. A grid index of
+     2 means that the position equals the grid value with index 2, and
+     a grid index of 2.5 signifies that the position is half the way between
+     grid points 2 and 3. A more formal definition is (using latitudes):
+     if $i$ is the highest index such as $\aLat{i}\leq\Lat$, then the grid
+     index is $i+(\Lat-\aLat{i})/(\aLat{i+1}-\aLat{i})$, where \Lat\ is the 
+     latitude of the position and \aLat{i}\ is grid point $i$. The grid index 
+     for a position at the upper end of the grid is $\VctLng-1$ where
+     \VctLng\ is the length of the grid. The vertical box position is given 
+     with respect to pressure altitudes (Equation~\ref{eq:fm_defs:prsalt}).
+  \item[los] [Matrix] The line-of-sight of the propagation path at each
+     point. The number of rows of the matrix is $\mathbf{np}$. For 1D
+     and 2D, the matrix has a single column holding the zenith angle. For 3D
+     there is an additional column giving the azimuthal angle. The zenith and
+     azimuthal angles are defined in Section~\ref{sec:fm_defs:los}.
+     If the radiative background is the cloud box, the line-of-sight
+     with index $\mathbf{i\_start}$
+     gives the direction for the relevant direction of the cloud box intensity
+     field.     
+  \item[background] [String] The radiative background for the propagation path,
+     that is, [**] in Equation~[**]. The possible options for this field
+     are 'Cosmic background radiation', 'Blackbody ground', 'Inside cloud box'
+     and 'Surface of cloud box', where the source of radiation should be clear
+     the content of the strings.
+  \item[ground] [Index] A boolean to indicate that there is an intersection
+     of the path by the ground. If the ground is treated to be a blackbody,
+     $\mathbf{ground}$ can only have the value of 0.
+  \item[i\_ground] [Index] The position index of the ground. Undefined if 
+     $\mathbf{ground}=0$. For 1D, $\mathbf{i\_ground}$ can only have the 
+     value of 0. Row $\mathbf{i\_ground}$ of $\mathbf{pos}$ gives the 
+     position of the ground reflection.
+  \item[tan\_pos] [Vector] The position of the tangent point, if such exists.
+     The vector has otherwise length 0. If a tangent point exists, this point
+     is included in $\mathbf{pos}$ but is also stored here for simplicity
+     reasons.
+\end{description}
 
 
-\levelb{Some basic geometrical relationships}
+
+\levelb{Some basic 1D and 2D geometrical relationships}
 %===================
 \label{sec:ppath:basicgeom}
+
+This section gives some expressions to determine positions along a
+propagation path for 1D and 2D atmospheres when refection is
+neglected. The quantities used are defined in
+Figure~\ref{fig:ppath:1d2dgeom}. The ARTS function for making the
+calculation of concern is given inside paranthesis above each
+equation, if not stated explicitely.
+
+\begin{figure}[!t]
+ \begin{center}
+  \begin{minipage}[c]{0.65\textwidth}
+   \begin{center}
+   \begin{picture}(200,170)(0,0)
+     \put(0,0){\vector(1,4){25}}
+     \dottedline(25,100)(35,140)
+     \put(25,100){\arc{30}{-1.31}{-0.23}}
+     \put(50,0){\vector(1,2){60}}
+     \dottedline(110,120)(130,160)
+     \put(110,120){\arc{30}{-1.1}{-0.23}}
+     \drawline(25,100)(110,120)
+     \dottedline(0,94.12)(25,100)
+     \dottedline(110,120)(145,128.24)
+     \put(145,128.24){\vector(4,1){25}}
+     \put(0,-80){\arc{200}{-1.52}{-1.02}}
+     \put(7,70){$\aRds{1}$}
+     \put(99,90){$\aRds{2}$}
+     \put(25,17){$\Delta\Lat$}
+     \put(35,113){$\aZntAng{1}$}
+     \put(122,131){$\aZntAng{2}$}
+     \put(60,113){$\Delta \PpathLng$}
+     \put(150,110){\small\shortstack[l]{propagation\\direction}}
+   \end{picture}
+   \end{center}
+  \end{minipage}%
+  \begin{minipage}[c]{0.35\textwidth}
+   \caption{Radius (\Rds) and zenith angle (\ZntAng) for two points along
+     the propagation path, and the distance along the path ($\Delta\PpathLng$)
+     and the latitude difference ($\Delta\Lat$) between these points.}
+   \label{fig:ppath:1d2dgeom}
+  \end{minipage}
+ \end{center}
+\end{figure}   
+
+The law of sines that the product $\Rds\sin(\ZntAng)$ is constant
+along the propagation path (cf. Equation~[**]):
+\begin{equation}
+  p_c = \Rds\sin(\ZntAng)
+  \label{eq:ppath:geomconst}
+\end{equation}
+The propagation path constant $p_c$ is determined by the position and
+line-of-sight of the sensor, a calculation done by the function
+\verb|ppath_constant|. The constant equals also the radius of the path
+tangent point of the path, that is found along an imaginary
+prolongation of the path behind the sensor if the viewing direction is
+upwards. The expressions below are based on $p_c$ as the usage of a
+global constant for the path should decrease the sensitivity to
+numerical inaccuracies. If the calculations are based solely on the
+values for the neighbouring point, a numerical inaccuracy can
+accumulate when going from one point to next.
+
+The relationship between the distance along the path for an
+infinitesimal change in radius is here denoted as the
+\qindex{geometrical factor}, $g$. If refraction is neglected, three
+expressions for the geometrical factor are
+\begin{equation}
+  g = \frac{1}{\cos(\ZntAng)} = \frac{1}{\sqrt{1-\sin^2(\ZntAng)}}
+                                            = \frac{\Rds}{\sqrt{\Rds^2-c^2}}
+  \label{eq:ppath:geomfac}
+\end{equation}
+The primitive function [* correct term? *] of the geometrical factor is
+\begin{equation}
+  \int{g(\Rds)}\,\DiffD r = \sqrt{\Rds^2-c^2}
+  \label{eq:ppath:geomfac}
+\end{equation}
+
+
+%The distance
+%along the path to point 2 is (\verb|r1_za1_r2_2_dl|)
+\begin{equation}
+  \Delta\PpathLng = 
+  \label{eq:ppath:}
+\end{equation}
 
 
 

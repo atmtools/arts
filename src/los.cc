@@ -87,8 +87,8 @@ struct Ppath {
   Index     i_start;
   Index     i_stop;
   Matrix    pos;
-  Matrix    ip_pos;
   Vector    z;
+  Matrix    ip_pos;
   Vector    l_step;
   Matrix    los;
   String    background;

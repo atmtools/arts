@@ -100,8 +100,8 @@
 \newcommand{\Ind}           {\ensuremath{i}}  
 \newcommand{\aInd}[1]       {\ensuremath{i_{#1}}}  
 
-% Partial derivative symbol
-\newcommand{\PrtDrv}        {\ensuremath{\mathrm{d}}}  
+% Differential d
+\newcommand{\DiffD}         {\ensuremath{\mathrm{d}}}  
 
 
 
@@ -272,6 +272,10 @@
 % Latitude
 \newcommand{\Lat}        {\ensuremath{\alpha}}  
 \newcommand{\aLat}[1]    {\ensuremath{\alpha_{#1}}}  
+
+% Length along the propagation path
+\newcommand{\PpathLng}        {\ensuremath{l}}  
+\newcommand{\aPpathLng}[1]    {\ensuremath{l_{#1}}}  
 
 % Longitude
 \newcommand{\Lon}        {\ensuremath{\beta}}  

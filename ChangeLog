@@ -1,3 +1,11 @@
+2002-04-11  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-48
+
+	* doc/uguide/ppath.tex: Description of the propagation path structure,
+	Ppath. Started on general geometric expressions for calculating the
+	path.
+
 2002-04-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-47
@@ -8,7 +16,7 @@
 
 	* arts-1-1-46
 
-	* doc/uguide/ppath.tex: Completed the part aboit geodetic issues.
+	* doc/uguide/ppath.tex: Completed the part about geodetic issues.
 
 2002-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 

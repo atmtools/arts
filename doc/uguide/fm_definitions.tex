@@ -491,13 +491,18 @@ The observation positions of the sensor are stored in
 \verb|sensor_pos|. This is a matrix where each row corresponds to a
 sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
-matrix (from first to last) are radius, latitude and longitude. 
+matrix (from first to last) are radius, latitude and longitude.
 Accordingly, row $i$ of \verb|sensor_pos| for a 3D case is
 $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
 \verb|sensor_los|) must be valid with respect to the model atmosphere
-(see Section~\ref{sec:fm_defs:ppaths}). An obviously incorrect choice is to
-place the senor below the ground altitude.
+(see Section~\ref{sec:fm_defs:ppaths}). An obviously incorrect choice
+is to place the senor below the ground altitude. If the sensor is
+placed inside the model atmosphere, any sensor line-of-sight is
+allowed, this including the cases that the sensor is placed on the
+ground looking down, and that the sensor is placed on the boundary of
+the cloud box and looks into the box. The sensor can also be placed
+inside the cloud box.
 
 The fact that the sensor position can be given any value results in
 that the radius must be used in \verb|sensor_pos|, in contrast to
