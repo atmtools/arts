@@ -44,7 +44,7 @@
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
-#include "scat_rte.h"
+#include "lin_alg.h"
 
 //! get_radiative_background
 /*!
@@ -450,7 +450,7 @@ void rte_step_clearsky_with_emission(
 	{
 	  for( Index j=0; diagonal && j<i; j++ )
 	    {
-	      if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) )
+	      if( ext_mat_gas(i,j) != 0  ||  ext_mat_gas(j,i) != 0 )
 		{ diagonal = false; }
 	    }
 	  assert( !diagonal  ||  ( diagonal  && abs_vec_gas[i] == 0 ) );
@@ -483,7 +483,7 @@ void rte_step_clearsky_with_emission(
 	  sv = stokes_vec;
 	  //
           stokes_vecGeneral( sv, ext_mat_gas, abs_vec_gas, 
-		    Vector(stokes_dim,0), l_step, a_planck_value, stokes_dim );
+		    Vector(stokes_dim,0), l_step, a_planck_value );
 	  //
 	  stokes_vec = sv;
 	}
@@ -492,3 +492,211 @@ void rte_step_clearsky_with_emission(
 
 
 
+//! rte_step
+/*!
+    Solves monochromatic VRTE for an atmospheric slab with constant 
+    conditions.
+
+    The function can be used for clearsky and cloudbox calculations.
+
+    The function is best explained by considering a homogenous layer. That is,
+    the physical conditions inside the layer are constant. In reality they
+    are not constant, so in practical all coefficients have to be averaged 
+    before calling this function. Total extinction and absorption 
+    inside the layer are described by *ext_mat_av* and *abs_vec_av* 
+    respectively,
+    the blackbdody radiation of the layer is given by *a_planck_value*
+    and the propagation path length through the layer is *l_step*.
+
+    There is an additional scattering source term in the 
+    VRTE, the scattering integral term. For this function a constant
+    scattering term is assumed. The radiative transfer sterp is only a part 
+    the iterative solution of the scattering problem, for more 
+    information consider AUG. In the clearsky case this variable has to be
+    set to 0.
+
+    When calling the function, the vector *stokes_vec* shall contain the
+    Stokes vector for the incoming radiation. The function returns this
+    vector, then containing the outgoing radiation on the other side of the 
+    layer.
+
+    The function performs the calculations differently depending on the
+    conditions to improve the speed. There are three cases: <br>
+       1. Scalar absorption (stokes_dim = 1). <br>
+       2. The matrix ext_mat_gas is diagonal (unpolarised absorption). <br>
+       3. The total general case.
+
+    \param   stokes_vec         Input/Output: A Stokes vector.
+    \param   ext_mat_av         Input: Averaged extinction matrix.
+    \param   abs_vec_av         Input: Averaged absorption vector.
+    \param   sca_vec_av         Input: averaged scattering vector.
+    \param   l_step             Input: The length of the RTE step.
+    \param   a_planck_value     Input: Blackbody radiation.
+
+    \author Patrick Eriksson, Claudia Emde 
+    \date   2002-11-22
+*/
+void
+rte_step(//Output and Input:
+              VectorView stokes_vec,
+              //Input
+              ConstMatrixView ext_mat_av,
+              ConstVectorView abs_vec_av,
+              ConstVectorView sca_vec_av, 
+              const Numeric& l_step,
+              const Numeric& a_planck_value )
+{
+
+  //Stokes dimension:
+  Index stokes_dim = stokes_vec.nelem();
+
+  //Check inputs:
+  assert(is_size(ext_mat_av, stokes_dim, stokes_dim)); 
+  assert(is_size(abs_vec_av, stokes_dim));
+  assert(is_size(sca_vec_av, stokes_dim));
+  assert( a_planck_value >= 0 );
+  assert( l_step > 0 );
+
+
+  // Scalar case: 
+  if( stokes_dim == 1 )
+    { 
+      stokes_vec[0] = stokes_vec[0] * exp(-ext_mat_av(0,0) * l_step) + 
+        (abs_vec_av[0] * a_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
+        * (1 - exp(-ext_mat_av(0,0) * l_step));
+    }
+  // Vector case: 
+  else
+    {
+      // We have here two cases, diagonal or non-diagonal ext_mat_gas
+      // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
+      // non-zero value in position 1.
+    
+      bool diagonal = true;
+      //
+      for( Index i=1; diagonal  && i<stokes_dim; i++ )
+	{
+	  for( Index j=0; diagonal && j<i; j++ )
+	    {
+	      if( ext_mat_av(i,j) != 0  ||  ext_mat_av(j,i) )
+		{ diagonal = false; }
+	    }
+	  assert( !diagonal  ||  ( diagonal  && abs_vec_av[i] == 0 ) );
+	}
+
+
+      // Unpolarised
+      if( diagonal )
+        {
+           // Stokes dim 1
+	  assert( ext_mat_av(0,0) == abs_vec_av[0] );
+	  Numeric transm = exp( -l_step * abs_vec_av[0] );
+	  stokes_vec[0] = stokes_vec[0] * transm + 
+                                                ( 1- transm ) * a_planck_value;
+
+	  // Stokes dims > 1
+	  for( Index i=1; i<stokes_dim; i++ )
+	    { stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); }
+	}
+      
+      //General case
+      else
+        {
+          stokes_vecGeneral(stokes_vec, ext_mat_av, abs_vec_av, sca_vec_av,
+                            l_step, a_planck_value);
+        }
+    }
+}
+
+
+
+//! Calculate vector radiative transfer with fixed scattering integral
+/*! 
+  This function computes the radiative transfer for a thin layer.
+  It is a general function which works for both, the vector and the scalar 
+  RTE. 
+  All coefficients and the scattered field vector are assumed to be constant
+  inside the grid cell/layer.
+  Then an analytic solution can be found (see AUG for details). 
+  
+  \param stokes_vec Output and Input: Stokes Vector after traversing a grid
+                 cell/layer. 
+  \param ext_mat_av Input: Extinction coefficient matrix.
+  \param abs_vec_av Input: Absorption coefficient vector.
+  \param sca_vec_av Input: Scattered field vector.
+  \param l_step  Input: Pathlength through a grid cell/ layer.
+  \param a_planck_value  Input: Planck function.
+
+  \author Claudia Emde
+  \date 2002-06-08
+*/
+
+void
+stokes_vecGeneral(//WS Output and Input:
+                  VectorView stokes_vec,
+                  //Input
+                  ConstMatrixView ext_mat_av,
+                  ConstVectorView abs_vec_av,
+                  ConstVectorView sca_vec_av, 
+                  const Numeric& l_step,
+                  const Numeric& a_planck_value )
+{ 
+
+  //Stokes dimension:
+  Index stokes_dim = stokes_vec.nelem();
+
+  //Check inputs:
+  assert(is_size(ext_mat_av, stokes_dim, stokes_dim)); 
+  assert(is_size(abs_vec_av, stokes_dim));
+  assert(is_size(sca_vec_av, stokes_dim));
+  assert( a_planck_value >= 0 );
+  assert( l_step > 0 );
+
+  //Initialize internal variables:
+
+  // Matrix LU used for LU decompostion and as dummy variable:
+  Matrix LU(stokes_dim, stokes_dim); 
+  ArrayOfIndex indx(stokes_dim); // index for pivoting information 
+  Vector b(stokes_dim); // dummy variable 
+  Vector x(stokes_dim); // solution vector for K^(-1)*b
+  Matrix I(stokes_dim, stokes_dim);
+
+  Vector B_abs_vec(stokes_dim);
+  B_abs_vec = abs_vec_av;
+  B_abs_vec *= a_planck_value; 
+  
+  for (Index i=0; i<stokes_dim; i++) 
+    b[i] = B_abs_vec[i] + sca_vec_av[i];  // b = abs_vec * B + sca_vec
+
+  // solve K^(-1)*b = x
+  ludcmp(LU, indx, ext_mat_av);
+  lubacksub(x, LU, b, indx);
+
+  Matrix ext_mat_ds(stokes_dim, stokes_dim);
+  ext_mat_ds = ext_mat_av;
+  ext_mat_ds *= -l_step; // ext_mat_ds = -ext_mat*ds
+  
+  Index q = 10;  // index for the precision of the matrix exponential function
+  Matrix exp_ext_mat(stokes_dim, stokes_dim);
+  matrix_exp(exp_ext_mat, ext_mat_ds, q);
+
+  Vector term1(stokes_dim);
+  Vector term2(stokes_dim);
+  
+  id_mat(I);
+  for(Index i=0; i<stokes_dim; i++)
+    {
+      for(Index j=0; j<stokes_dim; j++)
+	LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
+    }
+  mult(term2, LU, x); // term2: second term of the solution of the RTE with
+                      //fixed scattered field
+
+  
+  mult(term1, exp_ext_mat, stokes_vec);// term1: first term of the solution of
+                                    // the RTE with fixed scattered field
+  
+  for (Index i=0; i<stokes_dim; i++) 
+    stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
+
+}

@@ -55,7 +55,7 @@
 #include "math_funcs.h"
 #include "messages.h"
 #include "xml_io.h"
-#include "scat_rte.h"
+#include "rte.h"
 
 extern const Numeric PI;
 
@@ -926,29 +926,31 @@ i_fieldUpdate1D(// WS Output:
               cout << "abs_vec:..." << abs_vec << endl; 
               cout << "ext_mat:..." << ext_mat << endl; */
 
-              if (atmosphere_dim == 1)
-                stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
-                                 sca_vec_av, l_step, a_planck_value, 
-                                 stokes_dim);
-              else
-                {
-                  bool singular_K = true;
-                  for(Index i=0; i<stokes_dim && singular_K; i++){
-                    for(Index j = 0; j<stokes_dim && singular_K; j++){
-                      if(ext_mat_av(i,j) != 0.)
-                        singular_K = false;
-                    }
-                  }
+             //  if (stokes_dim  == 1)
+//                 stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
+//                                  sca_vec_av, l_step, a_planck_value, 
+//                                  stokes_dim);
+//               else
+//                 {
+//                   bool singular_K = true;
+//                   for(Index i=0; i<stokes_dim && singular_K; i++){
+//                     for(Index j = 0; j<stokes_dim && singular_K; j++){
+//                       if(ext_mat_av(i,j) != 0.)
+//                         singular_K = false;
+//                     }
+//                   }
                   
-                  if ( !singular_K ){ 
-                    // Call scat_rte_agenda:
-                    // scat_rte_agenda.execute();
-                    stokes_vecGeneral(stokes_vec_av, ext_mat_av, abs_vec_av, 
-                                      sca_vec_av, l_step, a_planck_value, 
-                                      stokes_dim);
-                  }
-                }
-              
+//                   if ( !singular_K ){ 
+//                     // Call scat_rte_agenda:
+//                     // scat_rte_agenda.execute();
+//                     stokes_vecGeneral(stokes_vec_av, ext_mat_av, abs_vec_av, 
+//                                       sca_vec_av, l_step, a_planck_value, 
+//                                       stokes_dim);
+//                   }
+//                 }
+              rte_step(stokes_vec_av, ext_mat_av, abs_vec_av, 
+                       sca_vec_av, l_step, a_planck_value);
+
               // Assign calculated Stokes Vector to i_field. 
               i_field((p_index - cloudbox_limits[0]), 0, 0, scat_za_index, 0,
                       Range(joker)) = stokes_vec;
@@ -1042,29 +1044,33 @@ i_fieldUpdate1D(// WS Output:
               cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
                 /ext_mat(0,0);
               cout << "abs_vec:..." << abs_vec << endl;
-              cout << "ext_mat:..." << ext_mat << endl;*/
-            if (atmosphere_dim == 1)
-                stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
-                                 sca_vec_av, l_step, a_planck_value, 
-                                 stokes_dim);
-              else
-                {
-                  bool singular_K = true;
-                  for(Index i=0; i<stokes_dim && singular_K; i++){
-                    for(Index j = 0; j<stokes_dim && singular_K; j++){
-                      if(ext_mat_av(i,j) != 0.)
-                        singular_K = false;
-                    }
-                  }
+        //       cout << "ext_mat:..." << ext_mat << endl;*/
+//             if (atmosphere_dim == 1)
+//                 stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
+//                                  sca_vec_av, l_step, a_planck_value, 
+//                                  stokes_dim);
+//               else
+//                 {
+//                   bool singular_K = true;
+//                   for(Index i=0; i<stokes_dim && singular_K; i++){
+//                     for(Index j = 0; j<stokes_dim && singular_K; j++){
+//                       if(ext_mat_av(i,j) != 0.)
+//                         singular_K = false;
+//                     }
+//                   }
                   
-                  if ( !singular_K ){ 
-                    // Call scat_rte_agenda:
-                    // scat_rte_agenda.execute();
-                    stokes_vecGeneral(stokes_vec_av, ext_mat_av, abs_vec_av, 
-                                      sca_vec_av, l_step, a_planck_value, 
-                                      stokes_dim);
-                  }
-                }
+//                   if ( !singular_K ){ 
+//                     // Call scat_rte_agenda:
+//                     // scat_rte_agenda.execute();
+//                     stokes_vecGeneral(stokes_vec_av, ext_mat_av, abs_vec_av, 
+//                                       sca_vec_av, l_step, a_planck_value, 
+//                                       stokes_dim);
+//                   }
+//                 }
+
+              rte_step(stokes_vec_av, ext_mat_av, abs_vec_av, 
+                       sca_vec_av, l_step, a_planck_value);
+
             
               // Assign calculated Stokes Vector to i_field. 
               i_field((p_index - cloudbox_limits[0]), 0, 0, scat_za_index, 0,

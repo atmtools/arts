@@ -106,4 +106,28 @@ void rte_step_clearsky_with_emission(
 	const Numeric&      l_step,
         const Numeric&      a_planck_value );
 
+void
+rte_step(//Output and Input:
+         VectorView stokes_vec,
+         //Input
+         ConstMatrixView ext_mat_av,
+         ConstVectorView abs_vec_av,
+         ConstVectorView sca_vec_av, 
+         const Numeric& l_step,
+         const Numeric& a_planck_value );
+
+
+void
+stokes_vecGeneral(//WS Output and Input:
+                  VectorView stokes_vec,
+                  //Input
+                  ConstMatrixView ext_mat_av,
+                  ConstVectorView abs_vec_av,
+                  ConstVectorView sca_vec_av, 
+                  const Numeric& l_step,
+                  const Numeric& a_planck_value );
+
+
+
+
 #endif  // rte_h
