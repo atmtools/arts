@@ -1,5 +1,7 @@
 2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-0-0-232
+
 	* src/Makefile.am: Set the appropriate LD_FLAGS depending on
 	HDF_SUPPORT.
 
