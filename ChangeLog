@@ -1,3 +1,25 @@
+2003-12-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-768
+
+	* src/rng.cc: Include cstring for memcpy to fix compilation with
+	gcc 2.96.
+
+	* Fixes for upcoming gcc 3.4
+
+	* src/array.h, src/mystring.h: Prepend this-> to all call of member
+	functions that do not depend on the template type.
+	(See http://gcc.gnu.org/onlinedocs/gcc/Name-lookup.html for detailed
+	explanation).
+
+	* src/array.h: Include iomanip for setw.
+
+	* src/m_general.h: Include stdexcept for runtime_error.
+
+	* src/b[io]fstream.cc (pos): Return value of tellg/tellp is of type
+	streampos which cannot be casted in long directly. Casting to
+	streamoff fixes this problem.
+
 2003-12-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-767
