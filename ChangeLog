@@ -1,3 +1,13 @@
+2003-01-09  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-367
+
+	* src/xml_io.cc: Improved parsing of String and SpeciesTag.
+
+	IMPORTANT: Strings in ARTS XML file !!!MUST!!! be put inside quotes
+	"". I think nobody wrote strings to xml files before but if so, you
+	have to edit your xml files and add the quotes manually.
+
 2003-01-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-366
