@@ -1,6 +1,8 @@
 2005-03-17  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-1-0-174
+
+	* configure.in: increased version number
 	
 	* src/m_batch.cc (ybatchFromRadiosonde): Added a keyword
 	*za_per_profile* to use separate za_pencil for each radiosonde.  
