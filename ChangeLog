@@ -1,3 +1,13 @@
+2002-10-22  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-271
+
+	* src/m_lineshapes.cc (elsVoigt_Kuntz6, elsVoigt_Drayson): Added
+	these new lineshapes, the Voigt-Kuntz approximation with relative
+	accuracy better than 2*10^-6 and the Voigt-Drayson one.
+
+	* src/methods.cc: Added the respective descriptions for these lineshapes.
+	
 2002-10-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-270
