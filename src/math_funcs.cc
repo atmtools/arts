@@ -240,21 +240,22 @@ Vector nlogspace(
   return x; 
 }                     
 
-/** 
- * 
- * 
- * @param Integrand The Matrix to be integrated
- * @param za_grid Input : The zenith angle grid 
- * @param aa_grid Input : The azimuth angle grid 
- * 
- * @return The resulting integral
- */
+//! AngIntegrate_trapezoid
+/*! 
+    Performs an integration of a matrix over all directions defined in angular
+    grids using the trapezoidal integration method.
+
+    \param Integrand The Matrix to be integrated
+    \param za_grid Input : The zenith angle grid 
+    \param aa_grid Input : The azimuth angle grid 
+    
+    \return The resulting integral
+*/
 Numeric AngIntegrate_trapezoid(MatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid)
 {
-  //is_size(za_grid.nelem(),aa_grid.nelem());
- 
+
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);
@@ -263,7 +264,6 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
   for (Index i = 0; i < n ; ++i)
     {
       res1[i] = 0.0;
-      //Numeric sintheta = sin(za_grid[i] * DEG2RAD);
       
       for (Index j = 0; j < m - 1; ++j)
         {

@@ -1,3 +1,16 @@
+2003-01-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-419
+	
+	* doc/uguide/main.tex: Included index command to make an index for 
+	workspace agendas (\wsaindex). It works as \wsmindex.
+	
+	* doc/uguide/scattering.tex: Rewritten documentation for 
+	(i_fieldUpdateXX).
+
+	* src/math_funcs.cc (AngIntegrate_trapezoid): Modified doxygen
+	header.
+
 2003-01-23  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-418
