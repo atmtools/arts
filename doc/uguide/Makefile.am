@@ -12,9 +12,9 @@ SUBDIRS = Figs
 
 artsdocdir = $(pkgdatadir)/doc
 
-thisdocdir = $(artsdocdir)/uguide
+uguidedocdir = $(artsdocdir)/uguide
 
-thisdoc_DATA = uguide.ps uguide_pdf.pdf
+uguidedoc_DATA = uguide.ps uguide_pdf.pdf
 
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -22,32 +22,32 @@ thisdoc_DATA = uguide.ps uguide_pdf.pdf
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 texfiles = \
-agu.bst \
-references.bib \
-chapter_template.tex \
-concept.tex \
-development.tex \
-formalism.tex \
-formats.tex \
-los1d.tex \
-main.tex \
-measerr.tex \
-reduction.tex \
-rte.tex \
-sensor.tex \
-uguide.tex \
-uguide_pdf.tex \
-utilities.tex \
-wfuns_atm.tex \
-wfuns_sensor.tex \
-app_wsv.tex \
-app_math.tex
+	agu.bst \
+	references.bib \
+	chapter_template.tex \
+	concept.tex \
+	development.tex \
+	formalism.tex \
+	formats.tex \
+	los1d.tex \
+	main.tex \
+	measerr.tex \
+	reduction.tex \
+	rte.tex \
+	sensor.tex \
+	uguide.tex \
+	uguide_pdf.tex \
+	utilities.tex \
+	wfuns_atm.tex \
+	wfuns_sensor.tex \
+	app_wsv.tex \
+	app_math.tex
 
 EXTRA_DIST = \
-$(texfiles) \
-uguide.dvi \
-uguide.ps \
-uguide_pdf.pdf
+	$(texfiles) \
+	uguide.dvi \
+	uguide.ps \
+	uguide_pdf.pdf
 
 # The dependence of uguide.dvi on configure.in is there to make sure
 # that the documentation is rebuilt when the release number in
@@ -84,4 +84,13 @@ uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles)
 
 CLEANFILES = *.aux *.log
 
-MAINTAINERCLEANFILES = uguide_pdf.bbl uguide_pdf.blg uguide.bbl uguide.blg uguide.dvi uguide.ps uguide_pdf.pdf main.toc auto_version.tex
+MAINTAINERCLEANFILES = \
+	uguide_pdf.bbl \
+	uguide_pdf.blg \
+	uguide.bbl \
+	uguide.blg \
+	uguide.dvi \
+	uguide.ps \
+	uguide_pdf.pdf \
+	main.toc \
+	auto_version.tex
