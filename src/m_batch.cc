@@ -147,6 +147,36 @@ void temperature_profiles(
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
+   \author Carlos Jimenez
+   \date   2001-26-01
+*/
+void BatchdataGaussianNoiseNoCorrelation(
+     // WS Input
+        const string&   batchname,
+     // GInput
+        const VECTOR&   grid1,
+        const VECTOR&   grid2,
+        const string&   grid1_name,
+        const string&   grid2_name,
+     // Control Parameters
+        const int&      n,
+        const Numeric&  stddev)
+{
+  string fname = "";
+  MATRIX m(grid1.size()*grid2.size(),n);
+  setto( m, 0);
+
+  filename_batch( fname,  batchname, "noise" );
+  out2 << "  Creating " << n << " vectors with gaussian noise.\n";
+  rand_matrix_gaussian( m, stddev);  
+  MatrixWriteBinary(m,"",fname); 
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
    \author Patrick Eriksson
    \date   2000-12-06
 */
@@ -248,7 +278,7 @@ void BatchdataGaussianTemperatureProfilesNoHydro(
 */
 void BatchdataGaussianSpeciesProfiles(
       // WS Input:
-        const TagGroups&       tags,
+        const TagGroups&       tgs,
         const ARRAYofVECTOR&   vmrs,
         const VECTOR&          p_abs,
         const VECTOR&          t_abs,
@@ -268,7 +298,7 @@ void BatchdataGaussianSpeciesProfiles(
   if ( ntags == 0 )
     throw runtime_error("No tags specified, no use in calling this function.");
   else
-    get_tagindex_for_strings( tagindex, tags, do_tags );
+    get_tagindex_for_strings( tagindex, tgs, do_tags );
   
   // Loop the tags
   for ( size_t itag=0; itag<ntags; itag++ )
@@ -276,7 +306,7 @@ void BatchdataGaussianSpeciesProfiles(
     // Determine the name of the molecule for itag
     // The species lookup data:
     extern const ARRAY<SpeciesRecord> species_data;
-    string molname = species_data[tags[tagindex[itag]][0].Species()].Name();
+    string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
 
     // Create filename
     fname = "";
@@ -535,6 +565,14 @@ void ybatchAbsAndRte(
   const size_t   ndo = do_tags.size();      // Number of tags to do here 
   ARRAYofsizet   tagindex;                  // Index in tgs for do_tags 
    
+  if ( ndo != tag_files.size() )
+  {
+    ostringstream os;
+    os << "There is " << ndo << " tga groups and only " << tag_files.size() 
+       << " tag_files, even if they are empty they should match.\n";
+      throw runtime_error(os.str());
+  }
+
   // Check if do_tags can be found in tgs and store indeces
   if ( ndo > 0 )
     get_tagindex_for_strings( tagindex, tgs, do_tags );
@@ -571,20 +609,24 @@ void ybatchAbsAndRte(
   // Species profiles
          size_t itag;
   ARRAYofVECTOR vs(ntgs);
+
   for ( itag=0; itag<ntgs; itag++ )
   {
     // Copy original vmr profile.
     resize( vs[itag], np );
     copy( vmrs[itag], vs[itag] );
   }
+
   ARRAYofMATRIX VMRs(ndo);
   extern const ARRAY<SpeciesRecord> species_data; // The species lookup data:
   for ( itag=0; itag<ndo; itag++ )
   {
     // Determine the name of the molecule for itag
     string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
+    cout << "itag" << itag  <<"\n";
     read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, ncalc );
   }
+
 
 
   //--- Loop and calculate the spectra --------------------------------------
@@ -632,6 +674,19 @@ void ybatchAbsAndRte(
 	copy( columns(VMRs[itag])[i], vs[tagindex[itag]] );	
       }
     // Do the calculations
+    
+    //cout << "tgs: " << tgs.size() << "\n";
+    //cout << "f: " << f.size() << "\n";
+    //cout << "p_abs: " << p_abs.size() << "\n";
+    //cout << "t: " << t.size() << "\n";
+    //cout << "h2o_abs: " << h2o_abs.size() << "\n";
+    //cout << "vs: " << vs.size() << "\n";
+    //cout << "vs0: " << vs[0].size() << "\n";
+    //cout << "vs1: " << vs[1].size() << "\n";
+    //cout << "vs2: " << vs[2].size() << "\n";
+    //cout << "vs3: " << vs[3].size() << "\n";
+
+
 
     if ( (i==0) || do_t || ndo || do_f )
       absCalc( abs, abs_per_tag, tgs, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape);

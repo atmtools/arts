@@ -468,12 +468,15 @@ void rand_data_gaussian(
 
   // Make Cholesky decomposition of s, l'*l=s
   MATRIX   l(nrows,nrows);
-  //chol(l,s);
-  
-  
   setto(l,0.0);
-  for ( row=0; row<nrows; row++ )
-  l[row][row] = sqrt( s[row][row] );
+  chol(l,s);
+
+
+  
+  //setto(l,0.0);
+  //for ( row=0; row<nrows; row++ )
+    //l[row][row] = sqrt( s[row][row] );
+  
 
   // Create matrix with gaussian data having zero mean and standard deviation 1
   MATRIX   r(nrows,n);
@@ -592,9 +595,6 @@ void chol(
   assert( nrows == r.nrows());
   assert( ncols == r.ncols());
 
-
-  setto( r, 0.0 );
-
   for (j=0; j<nrows; ++j)
   {
     if (j>0)
@@ -618,4 +618,16 @@ void chol(
     r[j][j] = sqrt( c[j][j] - a);
     
   }
+
+
+  // Checking that it works, if r is positive definite it does not
+  for (i=0; i<nrows; ++i)
+    for (j=0; j<nrows; ++j)    
+      if ( isnan(r[i][j]) & isinf(r[i][j]) )
+      {
+        ostringstream os;
+        os << "Choleski decomposition does not work, s positive definite? \n";
+        throw runtime_error(os.str());
+      }
+
 }

@@ -1,3 +1,17 @@
+2001-03-07  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	*arts-0-0-135
+	
+	* math_funcs.cc: incluiding the Choleski decomposition in rand_data_
+        gaussian so a Choleski decomposition s=l'*l is done and l is used to 
+        generate the random data.
+
+	*methods.cc, m_covmatrix.cc: new worskpace method BatchdataGaussian
+        NoiseNoCorrelation to generate noise without inter-channel correlation. 
+
+	*m_batch.cc: BatchdataGaussianSpeciesProfiles updated for tgs
+
+
 2001-03-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-134

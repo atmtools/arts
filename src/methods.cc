@@ -2353,10 +2353,33 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("BatchdataGaussianNoiseNoCorrelation"),
+  	DESCRIPTION(
+          "Creates a set of noise vectors suitable for batch calculations.\n"
+          "The produced vectors have elements taken from a Gaussia\n"
+          "distribution of zero mean and stddev, simulating the thermal\n"
+          "noise of a sensor with no inter-channel correlation.\n"
+          "The length of the vectors is the product of the sizes of the two\n"
+          "given vectors, typically f_sensor, za_sensor.\n"
+          "The vectors are written to the file batchname.noise.ab  \n"
+          "\n"
+          "Keywords \n"
+          "  n       : Number of random vectors to produce.\n"
+          "  stddev  : Standard deviation.\n"),
+	OUTPUT(),
+	INPUT( batchname_ ),
+	GOUTPUT(),
+	GINPUT( VECTOR_, VECTOR_ ),
+	KEYWORDS( "n", "stddev" ),
+	TYPES(    int_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("BatchdataGaussianZeroMean"),
   	DESCRIPTION(
           "Creates a set of vectors suitable for batch calculations.\n"
-          "The produced vectors have zero mean and its statistics match the\n"           "given covariance matrix.\n"
+          "The produced vectors have zero mean and its statistics match the\n"  
+          "given covariance matrix.\n"
           "The vectors are written to the file\n"
           "   batchname.varname.ab  \n"
           "where varname is the given keyword string.\n"
