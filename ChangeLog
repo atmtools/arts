@@ -1,3 +1,13 @@
+2003-06-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-88
+
+	* configure.in: DO NO FORGET TO INCREASE THE VERSION NUMBER HERE!!!
+	Version was still 1.0.83. :-((
+
+	* methods.cc: Fixed bug in kSpectro MdRecord which breaks compilation
+	with gcc3.3. Multi-line string literals are not allowed in ANSI-C++.
+
 2003-06-10  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-87
