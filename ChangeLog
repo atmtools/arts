@@ -1,3 +1,23 @@
+2003-01-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-356
+
+	* Paths above the pole are now basically working, except along lon
+	+-180 degrees. Numerical inaccuracy is especially tricky around the
+	poles (with the equations I have derived at least) and I don't
+	think I will manage to solve all problems. Right now I consider
+	to take back my decision to restrict lon_grid to [-180,180], which
+	would be better for the usage and paths exectly at the border of
+	the atmosphere could be avoided. But I want to document the present
+	solution.
+
+	* src/ppath.cc: Fixes in several functions to make things work for
+	paths passing the poles. The fixes are needed as the longitude is
+	undefined at the poles and as the azimuth angle is defined in
+	other way at the poles.
+
+	* src/m_ppath.cc (ppathCalc): Some fixes for the same reasons as above.
+
 2003-01-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-355

@@ -260,7 +260,7 @@ void chk_if_increasing(
     {
       ostringstream os;
       os << "The vector *" << x_name <<  "* must have strictly\n"
-         << "increasing values, but this is not the case.";
+         << "increasing values, but this is not the case.\n";
       os << "x = " << x << "\n";
       throw runtime_error( os.str() );
     }
@@ -290,7 +290,7 @@ void chk_if_decreasing(
     {
       ostringstream os;
       os << "The vector *" << x_name <<  "* must have strictly\ndecreasing "
-         << "values, but this is not the case.";
+         << "values, but this is not the case.\n";
       throw runtime_error( os.str() );
     }
 }

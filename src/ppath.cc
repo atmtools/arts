@@ -550,7 +550,9 @@ void poslos2cart(
        const Numeric&   za,
        const Numeric&   aa )
 {
-  // lat=90 is most easily handled as a special case
+  // lat=+-90 
+  // For lat = +- 90 the azimuth angle gives the longitude along which the
+  // LOS goes
   if( abs( lat ) > 89.999999 )
     {
       const Numeric   s = sign( lat );
@@ -658,12 +660,19 @@ void cart2poslos(
     {
       aa = RAD2DEG * acos( r * dlat / sin( DEG2RAD * za ) );
 
-      assert( !isnan( aa ) );
-
-      if( dlon < 0 )
+      if( isnan( aa ) )
+	{
+	  if( dlat >= 0 )
+	    { aa = 0; }
+	  else
+	    { aa = 180; }
+	}
+      else if( dlon < 0 )
 	{ aa = -aa; }
     }
 
+  // For lat = +- 90 the azimuth angle gives the longitude along which the
+  // LOS goes
   else
     { aa = RAD2DEG * atan2( dz, dx ); }
 }
@@ -1845,8 +1854,8 @@ void do_gridcell_3d(
   // Assert latitude and longitude
   assert( lat_start >= lat1 );
   assert( lat_start <= lat3 );
-  assert( lon_start >= lon5 );
-  assert( lon_start <= lon6 );
+  assert( !( abs( lat_start) < 90  &&  lon_start < lon5 ) );
+  assert( !( abs( lat_start) < 90  &&  lon_start > lon6 ) );
 
   // Radius of lower and upper pressure surface at the start position
   const Numeric   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -1874,7 +1883,7 @@ void do_gridcell_3d(
   Numeric   rlow_try, rhigh_try;
 
   // Local debug option
-  bool   debug = false;
+  bool   debug = true;
   //
   if( debug )
     {
@@ -1886,9 +1895,13 @@ void do_gridcell_3d(
       NumericPrint( rupp, "rupp" );
     }
 
+  // As the longitude is undefined at the poles and as the azimuth angle
+  // is defined in other way at the poles, some extra checks are needed
+  // in the if-statements below.
+
   //--- Face 1: along lat1
   //
-  if( abs( aa_start ) > 90 )
+  if( ( abs( aa_start ) > 90  ||  lat_start == 90 )  &&  lat_start != -90 )
     {
       gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat1 );
@@ -1903,8 +1916,8 @@ void do_gridcell_3d(
 	      NumericPrint( l_try, "l_try" );
 	    }
 	}
-      if( r_try > 0  &&  l_try < l_best  &&  lon_try >= lon5  &&  
-                                                              lon_try <= lon6 )
+      if( r_try > 0  &&  l_try < l_best  &&  ( lat1 == -90  ||
+				   ( lon_try >= lon5  &&  lon_try <= lon6 ) ) )
 	{
 	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                         r1a, r2a, r2b, r2a, lat_try, lon_try );
@@ -1954,7 +1967,7 @@ void do_gridcell_3d(
 
   //--- Face 3: along lat3
   //
-  if( abs( aa_start ) < 90 )
+  if( ( abs( aa_start ) < 90  ||  lat_start == -90 )  && lat_start != 90 )
     {
       gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat3 );
@@ -1969,8 +1982,8 @@ void do_gridcell_3d(
 	      NumericPrint( l_try, "l_try" );
 	    }
 	}
-      if( r_try > 0  &&  l_try < l_best  &&  lon_try >= lon5  &&  
-                                                              lon_try <= lon6 )
+      if( r_try > 0  &&  l_try < l_best  &&  ( lat3 == 90  ||  
+				    (lon_try >= lon5  &&  lon_try <= lon6 ) ) )
 	{
 	  rlow_try  = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                         r1a, r2a, r2b, r2a, lat_try, lon_try );
@@ -2669,8 +2682,6 @@ void ppath_fill_3d(
      const Index&      ilon )
 {
   // Help variables that are common for all points.
-  const Numeric   dlat  = lat_grid[ilat+1] - lat_grid[ilat];
-  const Numeric   dlon  = lon_grid[ilon+1] - lon_grid[ilon];
   const Numeric   r1a 	= r_geoid(ilat,ilon) + z_field(ip,ilat,ilon);
   const Numeric   r2a 	= r_geoid(ilat+1,ilon) + z_field(ip,ilat+1,ilon); 
   const Numeric   r3a 	= r_geoid(ilat+1,ilon) + z_field(ip+1,ilat+1,ilon);
@@ -2687,6 +2698,8 @@ void ppath_fill_3d(
   const Numeric   rg2a 	= r_geoid(ilat+1,ilon); 
   const Numeric   rg2b 	= r_geoid(ilat+1,ilon+1);
   const Numeric   rg1b 	= r_geoid(ilat,ilon+1);     
+  const Numeric   dlat  = lat3 - lat1;
+  const Numeric   dlon  = lon6 - lon5;
 
   for( Index i=0; i<r.nelem(); i++ )
     {
@@ -2716,15 +2729,28 @@ void ppath_fill_3d(
 
       // Latitude grid index
       ppath.gp_lat[i].idx   = ilat;
-      ppath.gp_lat[i].fd[0] = ( lat[i] - lat_grid[ilat] ) / dlat;
+      ppath.gp_lat[i].fd[0] = ( lat[i] - lat1 ) / dlat;
       ppath.gp_lat[i].fd[1] = 1 - ppath.gp_lat[i].fd[0];
       gridpos_check_fd( ppath.gp_lat[i] );
 
       // Longitude grid index
-      ppath.gp_lon[i].idx   = ilon;
-      ppath.gp_lon[i].fd[0] = ( lon[i] - lon_grid[ilon] ) / dlon;
-      ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
-      gridpos_check_fd( ppath.gp_lon[i] );
+      //
+      // The longitude  is undefined at the poles. The grid index is set to
+      // the start point.
+      //
+      if( abs( lat[i] ) < 90 )
+	{
+	  ppath.gp_lon[i].idx   = ilon;
+	  ppath.gp_lon[i].fd[0] = ( lon[i] - lon5 ) / dlon;
+	  ppath.gp_lon[i].fd[1] = 1 - ppath.gp_lon[i].fd[0];
+	  gridpos_check_fd( ppath.gp_lon[i] );
+	}
+      else
+	{
+	  ppath.gp_lon[i].idx   = 0;
+	  ppath.gp_lon[i].fd[0] = 0;
+	  ppath.gp_lon[i].fd[1] = 1;
+	}
 
       if( i > 0 )
         { ppath.l_step[i-1] = lstep; }
@@ -3381,10 +3407,12 @@ void ppath_start_stepping(
             }
 
           // Check that not at latitude end point and looks out
-          if( a_pos[1] == lat_grid[0]  &&  abs( a_los[1] > 90 ) )
+          if( a_pos[1] > -90  &&  a_pos[1] == lat_grid[0]  &&  
+                                                       abs( a_los[1] > 90 ) )
             throw runtime_error( "The sensor is at the lower latitude end "
                    "point and the absolute value of the azimuth angle > 90." );
-          if( a_pos[1] == lat_grid[nlat-1]  &&  abs( a_los[1] ) <= 90 ) 
+          if( a_pos[1] < 90  &&  a_pos[1] == lat_grid[nlat-1]  &&  
+                                                       abs( a_los[1] ) <= 90 ) 
             throw runtime_error( "The sensor is at the upper latitude end "
                   "point and the absolute value of the azimuth angle <= 90." );
 
@@ -4356,11 +4384,36 @@ void ppath_start_3d(
   // more asserts below ...
 
 
-  // Determine interesting latitude grid range and latitude end points of 
-  // the range.
+  // Lower index of lat and lon ranges of interest
   //
-  ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 );
-  ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); 
+  // The longitude is undefined at the poles and as the azimuth angle
+  // is defined in other way at the poles.
+  //
+  if( lat_start > 89.999999 )
+    { 
+      ilat = nlat - 2;
+      GridPos   gp_tmp;
+      gridpos( gp_tmp, lon_grid, aa_start );
+      if( aa_start < 180 )
+	{ ilon = gridpos2gridrange( gp_tmp, 1 ); }
+      else
+	{ ilon = gridpos2gridrange( gp_tmp, 0 ); }
+    }
+  else if( lat_start < -89.999999 )
+    { 
+      ilat = 0; 
+      GridPos   gp_tmp;
+      gridpos( gp_tmp, lon_grid, aa_start );
+      if( aa_start < 180 )
+	{ ilon = gridpos2gridrange( gp_tmp, 1 ); }
+      else
+	{ ilon = gridpos2gridrange( gp_tmp, 0 ); }
+    }
+  else
+    { 
+      ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 ); 
+      ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); 
+    }
   //
   lat1 = lat_grid[ilat];
   lat3 = lat_grid[ilat+1];

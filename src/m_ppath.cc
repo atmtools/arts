@@ -350,6 +350,16 @@ void ppathCalc(
       chk_vector_length( "a_los", a_los, 2 );
       chk_if_in_range( "sensor zenith angle", a_los[0], 0, 180 );
       chk_if_in_range( "sensor azimuth angle", a_los[1], -180, 180 );
+      if( a_pos[2] == -180  &&  a_los[1] < 0 )
+	{
+	  throw runtime_error( 
+                            "For lon = -180, the azimuth angle must be >= 0" );
+	}
+      if( a_pos[2] == 180  &&  a_los[1] >= 0 )
+	{
+	  throw runtime_error( 
+                            "For lon = 180, the azimuth angle must be < 0" );
+	}
     }
   
   //--- End: Check input ------------------------------------------------------
@@ -408,6 +418,7 @@ void ppathCalc(
       istep++;
       //
       ppath_step_agenda.execute( istep-1 );
+
       
       // Number of points in returned path step
       const Index n = ppath_step.np;
@@ -465,7 +476,8 @@ void ppathCalc(
 	  // Longitude 
 	  // Note that it must be if and else if here. Otherwise -180 will
 	  // be shifted to 180 and then later back to -180.
-	  if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 ) )
+	  if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 )  &&
+	                                    abs( ppath_step.pos(n-1,1) ) < 90 )
 	    {
 	      // Check if the longitude point can be shifted +360 degrees
 	      if( lon_grid[imax_lon] - lon_grid[0] == 360 )
@@ -483,7 +495,8 @@ void ppathCalc(
 		  throw runtime_error( os.str() );
 		}
 	    }
-	  else if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ))
+	  else if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ) &&
+	                                    abs( ppath_step.pos(n-1,1) ) < 90 )
 	    {
 	      // Check if the longitude point can be shifted -360 degrees
 	      if( lon_grid[imax_lon] - lon_grid[0] == 360 )
@@ -491,7 +504,6 @@ void ppathCalc(
 		  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) - 360;
 		  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
 			                               ppath_step.pos(n-1,2) );
-		  PpathPrint( ppath_step, "modstep" );
 		}
 	      else
 		{
