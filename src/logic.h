@@ -31,6 +31,8 @@
 
 bool is_bool( const Index& x );
 
+bool is_multiple( const Index& x, const Index& y );
+
 bool is_size( ConstVectorView   x,
  	      const Index&      l );
 

@@ -181,24 +181,22 @@ void define_agenda_data()
        (
 	"Sets the workspace variable *i_space* to match the assumptions \n"
 	"regarding the radiation entering the atmosphere at the start of a \n"
-	"propagation path.\n"
+	"propagation path. \n"
 	"\n"
 	"The main usage of this agenda is to be called from *RteCalc*. \n"
 	"\n"
 	"If only cosmic background radiation is considered, *i_space* can be\n"
 	"set be before *RteCalc* and the agenda only needs to include ????. \n"
 	"\n"
-	"If the radiation entering the atmosphere has some direction \n"
-	"dependency, such as when radiation from the sun is considered, it \n"
-	"can be assumed that the last point in *ppath* can be used to \n"
-	"determine the direction for which incoming radiation shall be \n" 
-	"calculated. However, for maximum flexibility, *ppath* is not a \n"
-	"mandatory input of the agenda. \n"
+	"A function calling this agenda shall set *a_pos* and *a_los* to \n"
+	"the position and line-of-sight for which the entering radiation \n"
+	"shall be determined. The position and line-of-sight must be known, \n"
+	"for example, when radiation from the sun is considered. \n"
 	"\n"
 	"Usage:   Called from *RteCalc*."
 	),
        OUTPUT(  i_space_ ),
-       INPUT(  f_grid_, stokes_dim_ )));
+       INPUT(  f_grid_, stokes_dim_, a_pos_, a_los_ )));
 
   agenda_data.push_back
     (AgRecord

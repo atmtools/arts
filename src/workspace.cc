@@ -313,35 +313,15 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "meridian_angle_1d" ),
-      DESCRIPTION
-      (
-       "The meridian angle for a 1D observation.\n"
-       "\n"
-       "This variable is only used when calculating a curvature radius of the\n"
-       "geoid for 1D cases. The given value shall be the angle between the\n"
-       "observation and meridian plane where 0 degrees means an observation in\n"
-       "the N-S direction.\n"
-       "\n"
-       "Values shall be in the range [-180,180].\n"
-       "\n"
-       "Usage:      Set by the user.\n"
-       "\n"
-       "Unit:       degrees"
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "a_los" ),
       DESCRIPTION
       (
-       "A line-of-sight (for test purposes).\n"
+       "A line-of-sight.\n"
        "\n"
-       "The purpose of this variable and *a_pos* are to enable calling of\n"
-       "*ppathCalc* and maybe other methods from the workspace. This can be\n"
-       "of interest both for testing of the methods and to display\n"
-       "intermediate results as the propagation path. \n"
+       "The main purpose of this variable and *a_pos* is communication with \n"
+       "different agendas involved in the RTE calculations. These variables \n"
+       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
+       "methods) from the workspace. \n"
        "\n"
        "For 1D and 2D cases, *a_los* is a vector of length 1 holding the \n"
        "zenith angle. For 3D, the length of the vector is 2, where the\n"
@@ -349,8 +329,7 @@ void define_wsv_data()
        "in the ARTS user guide (AUG). Look in the index for \"zenith angle\"\n"
        "and \"azimuthal angle\".\n"
        "\n"
-       "Usage: To call *ppathCalc* as an individual method. Other\n"
-       "       purposes can be possible.\n"
+       "Usage: See above.\n"
        "\n"
        "Units: [ degree, degree ]\n"
        "\n"
@@ -363,21 +342,20 @@ void define_wsv_data()
     ( NAME( "a_pos" ),
       DESCRIPTION
       (
-       "A geographical position (for test purposes).\n"
+       "A geographical position.\n"
        "\n"
-       "The purpose of this variable and *a_los* are to enable calling of\n"
-       "*ppathCalc* and maybe other methods from the workspace. This can be\n"
-       "of interest both for testing of the methods and to display\n"
-       "intermediate results as the propagation path. \n"
-       "\n"
+       "The main purpose of this variable and *a_los* is communication with \n"
+       "different agendas involved in the RTE calculations. These variables \n"
+       "can also be used to enable calling of *ppathCalc* (and maybe other \n"
+       "methods) from the workspace. \n"
+        "\n"
        "This variable is a vector with a length equalling the atmospheric\n"
        "dimensionality. The first element is the radius (from the coordinate\n"
-       "system centre) of the position. Element 2 is the latitude and element\n"
-       "3 is the longitude. Please note that the vertical position is given\n"
-       "as the radius, not the altitude above the geoid.\n"
+       "system centre) of the position. Element 2 is the latitude and \n"
+       "element 3 is the longitude. Please note that the vertical position \n"
+       "is given as the radius, not the altitude above the geoid.\n"
        "\n"
-       "Usage: To call *ppathCalc* as an individual method. Other\n"
-       "       purposes can be possible.\n"
+       "Usage: See above. \n"
        "\n"
        "Units: [ m, degree, degree ]\n"
        "\n"
@@ -677,8 +655,7 @@ void define_wsv_data()
      ( NAME( "f_grid" ),
        DESCRIPTION
        (
-	"The frequency grid for monochromatic pencil beam\n"
-	"calculations.\n"
+	"The frequency grid for monochromatic pencil beam calculations.\n"
 	"\n"
 	"Text will be written (PE).\n" 
 	"\n" 
@@ -1019,6 +996,24 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "mblock_index" ),
+      DESCRIPTION
+      (
+       "Index of measurement block in work inside *RteCalc*.\n"
+       "\n"
+       "The WSM *RteCalc* uses this variable as index for the measurement \n"
+       "block in consideration. This means that new variables can more \n"
+       "easily be connected with the measurement blocks and be used inside \n"
+       "agendas connected with the RTE calculations. A future possbile \n"
+       "extension can be to assign a time for each measurement block to \n"
+       "know, for example, the position of the sun. \n"
+       "\n"
+       "Usage:      See above.\n"
+       ),
+      GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "mblock_za_grid" ),
       DESCRIPTION
       (
@@ -1031,6 +1026,26 @@ void define_wsv_data()
        "Unit:       degrees "
        ),
       GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "meridian_angle_1d" ),
+      DESCRIPTION
+      (
+       "The meridian angle for a 1D observation.\n"
+       "\n"
+       "This variable is only used when calculating a curvature radius of \n"
+       "the geoid for 1D cases. The given value shall be the angle between \n"
+       "the observation and meridian plane where 0 degrees means an \n" 
+       "observation in the N-S direction.\n"
+       "\n"
+       "Values shall be in the range [-180,180].\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       degrees"
+       ),
+      GROUP( Numeric_ )));
 
  wsv_data.push_back
    (WsvRecord

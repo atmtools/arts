@@ -44,6 +44,8 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "logic.h"
+#include "math_funcs.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "messages.h"
@@ -57,32 +59,247 @@ extern const Numeric COSMIC_BG_TEMP;
   ===========================================================================*/
 
 
-//! i_spaceCBR
+//! MatrixCBR
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-28
 */
-void i_spaceCBR(
+void MatrixCBR(
         // WS Output:
-              Matrix&         i_space,
+              Matrix&   m,
+	// WS Generic Output Names:
+        const String&   m_name,
         // WS Input:
-	      const Vector&   f_grid,
-              const Index&    stokes_dim )
+        const Index&    stokes_dim,
+        // WS Generic Input:
+        const Vector&   f,
+        // WS Generic Input Names:
+        const String&   f_name )
 {
-  const Index n = f_grid.nelem();
+  const Index n = f.nelem();
 
   if( n == 0 )
-    throw runtime_error( "The frequency grid is empty." );
+    throw runtime_error( "The given frequency vector is empty." );
 
-  out2 << "  Setting *i_space* to hold cosmic background radiation.\n";
+  out2 << "  Setting *" << m_name << "* to hold cosmic background "
+       << "radiation.\n";
 
-  i_space.resize(n,stokes_dim);
-  i_space = 0;
+  m.resize(n,stokes_dim);
+  m = 0;
 
   for( Index i=0; i<n; i++ )
-    { i_space(i,0) = planck( f_grid[i], COSMIC_BG_TEMP ); }
+    { m(i,0) = planck( f[i], COSMIC_BG_TEMP ); }
+}
+
+
+
+//! MatrixPlanck
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void MatrixPlanck(
+        // WS Output:
+              Matrix&   m,
+	// WS Generic Output Names:
+        const String&   m_name,
+        // WS Input:
+        const Index&    stokes_dim,
+        // WS Generic Input:
+        const Vector&   f,
+        // WS Generic Input Names:
+        const String&   f_name,
+        // Control Parameters:
+        const Numeric&  t )
+{
+  const Index n = f.nelem();
+
+  if( n == 0 )
+    throw runtime_error( "The given frequency vector is empty." );
+
+  out2 << "  Setting *" << m_name << "* to hold blackbody radiation for a\n"
+       << "temperature of " << t << " K.\n";
+
+  m.resize(n,stokes_dim);
+  m = 0;
+
+  for( Index i=0; i<n; i++ )
+    { m(i,0) = planck( f[i], t ); }
+}
+
+
+
+//! MatrixToTbByPlanck
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-08-11
+*/
+void MatrixToTbByPlanck(
+        // WS Generic Output:
+              Matrix&   y_out,
+        // WS Generic Output Names:
+        const String&   y_out_name,
+        // WS Generic Input:
+        const Matrix&   y_in,
+        const Vector&   f_grid,
+        // WS Generic Input Names:
+        const String&   y_in_name,
+        const String&   f_grid_name )
+{
+  // Some lengths
+  const Index nin   = y_in.nrows();
+  const Index ncols = y_in.ncols();
+  const Index nf    = f_grid.nelem();
+
+  // Check sizes
+  if( nf == 0 )
+    {
+      ostringstream os;
+      os << "The vector *" << f_grid << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( nin == 0  ||  ncols == 0 )
+    {
+      ostringstream os;
+      os << "The matrix *" << y_in << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( !is_multiple( nin, nf ) )
+    {
+      ostringstream os;
+      os << "The length of *" << f_grid_name << "* is not an integer multiple "
+	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+      throw runtime_error( os.str() );
+    }
+
+  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << "," 
+       << f_grid_name << ")\n" ;
+
+  // Note that y_in and y_out can be the same matrix
+  if ( &y_out != &y_in )
+    { y_out.resize(nin,ncols); }
+
+  // Nummber of repitions of the frequency values
+  const Index nrep = integer_div(nin,nf);
+        Index ii, irep, icol;
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      for( irep=0; irep<nrep; irep++ )
+	{  
+	  ii = irep*nf + iv;
+
+	  for( icol=0; icol<ncols; icol++ )
+	    { y_out(ii,icol) = invplanck( y_in(ii,icol), f_grid[iv] ); }
+	}
+    }
+}
+
+
+
+//! MatrixToTbByRJ
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-08-11
+*/
+void MatrixToTbByRJ(
+        // WS Generic Output:
+              Matrix&   y_out,
+        // WS Generic Output Names:
+        const String&   y_out_name,
+        // WS Generic Input:
+        const Matrix&   y_in,
+        const Vector&   f_grid,
+        // WS Generic Input Names:
+        const String&   y_in_name,
+        const String&   f_grid_name )
+{
+  // Some lengths
+  const Index nin   = y_in.nrows();
+  const Index ncols = y_in.ncols();
+  const Index nf    = f_grid.nelem();
+
+  // Check sizes
+  if( nf == 0 )
+    {
+      ostringstream os;
+      os << "The vector *" << f_grid << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( nin == 0  ||  ncols == 0 )
+    {
+      ostringstream os;
+      os << "The matrix *" << y_in << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( !is_multiple( nin, nf ) )
+    {
+      ostringstream os;
+      os << "The length of *" << f_grid_name << "* is not an integer multiple "
+	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+      throw runtime_error( os.str() );
+    }
+
+  out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << "," 
+       << f_grid_name << ")\n" ;
+
+  // Note that y_in and y_out can be the same matrix
+  if ( &y_out != &y_in )
+    { y_out.resize(nin,ncols); }
+
+  // Nummber of repitions of the frequency values
+  const Index nrep = integer_div(nin,nf);
+        Index irep, ii, icol;
+
+  // To be as fast as possible, there is a special versions for nrep=1 
+  // and ncols=1 
+  
+  if( nrep == 1  &&  ncols == 1 )
+    {
+      for( Index iv=0; iv<nf; iv++ )
+	{
+	  for( irep=0; irep<nrep; irep++ )
+	    {  
+	      ii = irep*nf + iv;
+	      
+	      for( icol=0; icol<ncols; icol++ )
+		{ y_out(ii,icol) = invrayjean( y_in(ii,icol), f_grid[iv] ); }
+	    }
+	}
+    }
+
+  else
+    {
+      // Here we try to save time by determining the scaling from radiances
+      // to brightness temperature for each frequency, and applying this
+      // scaling on each repition for that frequency. Note that relationship
+      // between radiance and Tb is linear for a given frequency.
+
+      Numeric scfac;
+      Index   irep, ii, icol;
+
+      for( Index iv=0; iv<nf; iv++ )
+	{
+	  scfac = invrayjean( 1, f_grid[iv] );
+
+	  for( irep=0; irep<nrep; irep++ )
+	    {  
+	      ii = irep*nf + iv;
+
+	      for( icol=0; icol<ncols; icol++ )
+	        { y_out(ii,icol) = scfac * y_in(ii,icol); }
+	    }
+	}
+    }
+
 }
 
 
@@ -100,6 +317,7 @@ void RteCalc(
 	      Ppath&          ppath,
 	      Ppath&          ppath_step,
 	      Matrix&         i_rte,
+	      Index&          mblock_index,
         // WS Input:
 	const Agenda&         ppath_step_agenda,
 	const Agenda&         rte_agenda,
@@ -243,21 +461,21 @@ void RteCalc(
   // Resize *y_rte* to have the correct size.
   y_rte.resize( nmblock * nf * nza * naa, stokes_dim );
 
-  // Variables needed below
-  Vector los( sensor_los.ncols() );   // LOS for a MPB calculation
-  Index  nfdone=0;                    // Number of frequencies done
-
 
   // Loop:  measurement block / zenith angle / azimuthal angle
   //
-  for( Index imblock=0; imblock<nmblock; imblock++ )
+  Index    nfdone = 0;                 // Number of frequencies done
+  Vector   los(	sensor_los.ncols() );  // LOS of interest
+  Index    iaa, iza;
+  //
+  for( mblock_index=0; mblock_index<nmblock; mblock_index++ )
     {
-      for( Index iza=0; iza<nza; iza++ )
+      for( iza=0; iza<nza; iza++ )
 	{
-	  for( Index iaa=0; iaa<naa; iaa++ )
+	  for( iaa=0; iaa<naa; iaa++ )
 	    {
 	      // LOS of interest
-	      los     = sensor_los( imblock, Range(joker) );
+	      los     = sensor_los( mblock_index, Range(joker) );
 	      los[0] += mblock_za_grid[iza];
 	      if( antenna_dim == 2 )
 		{ los[1] += mblock_aa_grid[iaa]; }
@@ -266,7 +484,7 @@ void RteCalc(
 	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
 		        p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
 			    blackbody_ground, cloudbox_on, cloudbox_limits, 
-			               sensor_pos(imblock,Range(joker)), los );
+			          sensor_pos(mblock_index,Range(joker)), los );
 
 	      // Execute the *rte_agenda*
 	      rte_agenda.execute();
@@ -294,6 +512,8 @@ void RteEmissionStd(
         // WS Output:
               Matrix&         i_rte,
 	      Matrix&         i_space,
+	      Vector&         a_pos,
+	      Vector&         a_los,
         // WS Input:
 	const Agenda&         i_space_agenda,
 	const Ppath&          ppath,
@@ -306,6 +526,12 @@ void RteEmissionStd(
 
   // Resize i_rte to have the correct the size
   i_rte.resize( nf, stokes_dim );
+
+  // Set a_pos and a_los to match the last point in ppath
+  a_pos.resize( ppath.pos.ncols() );
+  a_pos = ppath.pos(np-1,Range(joker));
+  a_los.resize( ppath.los.ncols() );
+  a_los = ppath.los(np-1,Range(joker));
 
   // Initialize i_rte to the radiative background
   switch ( ppath_what_background( ppath ) )
@@ -323,9 +549,9 @@ void RteEmissionStd(
       }
     }
 
-  // If the number of propagation path points is > 2, we are already ready,
+  // If the number of propagation path points is 1, we are already ready,
   // the observed spectrum equals the radiative background.
-  if( np >= 2 )
+  if( np > 1 )
     {
 
       // Determine the atmospheric temperature at each propagation path point
@@ -376,6 +602,73 @@ void RteEmissionStd(
 
 
 
+//! VectorToTbByPlanck
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-08-11
+*/
+void VectorToTbByPlanck(
+        // WS Generic Output:
+              Vector&   y_out,
+        // WS Generic Output Names:
+        const String&   y_out_name,
+        // WS Generic Input:
+        const Vector&   y_in,
+        const Vector&   f_grid,
+        // WS Generic Input Names:
+        const String&   y_in_name,
+        const String&   f_grid_name )
+{
+  // Some lengths
+  const Index nin = y_in.nelem();
+  const Index nf  = f_grid.nelem();
+
+  // Check sizes
+  if( nf == 0 )
+    {
+      ostringstream os;
+      os << "The vector *" << f_grid << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( nin == 0 )
+    {
+      ostringstream os;
+      os << "The vector *" << y_in << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( !is_multiple( nin, nf ) )
+    {
+      ostringstream os;
+      os << "The length of *" << f_grid_name << "* is not an integer multiple "
+	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+      throw runtime_error( os.str() );
+    }
+
+  out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << "," 
+       << f_grid_name << ")\n" ;
+
+  // Note that y_in and y_out can be the same vector
+  if ( &y_out != &y_in )
+    { y_out.resize(nin); }
+
+  // Nummber of repitions of the frequency values
+  const Index nrep = integer_div(nin,nf);
+        Index irep, ii;
+
+  for( Index iv=0; iv<nf; iv++ )
+    {
+      for( irep=0; irep<nrep; irep++ )
+	{  
+	  ii = irep*nf + iv;
+	  y_out[ii] = invplanck( y_in[ii], f_grid[iv] );
+	}
+    }
+}
+
+
+
 //! VectorToTbByRJ
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
@@ -390,15 +683,35 @@ void VectorToTbByRJ(
         const String&   y_out_name,
         // WS Generic Input:
         const Vector&   y_in,
-        const Vector&   y_in_name,
+        const Vector&   f_grid,
         // WS Generic Input Names:
-        const String&   f_grid,
+        const String&   y_in_name,
         const String&   f_grid_name )
 {
-  // Length of y_in
+  // Some lengths
   const Index nin = y_in.nelem();
+  const Index nf  = f_grid.nelem();
 
-  throw runtime_error("The implementation of this function is not yet ready");
+  // Check sizes
+  if( nf == 0 )
+    {
+      ostringstream os;
+      os << "The vector *" << f_grid << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( nin == 0 )
+    {
+      ostringstream os;
+      os << "The vector *" << y_in << "* is empty.";
+      throw runtime_error( os.str() );
+    }
+  if( !is_multiple( nin, nf ) )
+    {
+      ostringstream os;
+      os << "The length of *" << f_grid_name << "* is not an integer multiple "
+	 << "of the\nnumber of rows of *" << y_in_name << "*.";
+      throw runtime_error( os.str() );
+    }
 
   out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << "," 
        << f_grid_name << ")\n" ;
@@ -407,7 +720,40 @@ void VectorToTbByRJ(
   if ( &y_out != &y_in )
     { y_out.resize(nin); }
 
+  // Nummber of repitions of the frequency values
+  const Index nrep = integer_div(nin,nf);
+
+  // To be as fast as possible, there are special versions for nrep=1 
+  // and nrep>1.
   
+  if( nrep == 1 )
+    {
+      // Here we just loop the frequencies and call invrayjean
+      for( Index iv=0; iv<nf; iv++ )
+	{ y_out[iv] = invrayjean( y_in[iv], f_grid[iv] ); }
+    }
+
+  else
+    {
+      // Here we try to save time by determining the scaling from radiances
+      // to brightness temperature for each frequency, and applying this
+      // scaling on each repition for that frequency. Note that relationship
+      // between radiance and Tb is linear for a given frequency.
+
+      Numeric scfac;
+      Index   irep, ii;
+
+      for( Index iv=0; iv<nf; iv++ )
+	{
+	  scfac = invrayjean( 1, f_grid[iv] );
+
+	  for( irep=0; irep<nrep; irep++ )
+	    {  
+	      ii = irep*nf + iv;
+	      y_out[ii] = scfac * y_in[ii];
+	    }
+	}
+    }
 }
 
 
@@ -425,6 +771,9 @@ void yNoPolarisation(
         // WS Input:
         const Matrix&         y_rte )
 {
+  out2 << "   Creates *y* from *y_rte* assuming equal sensitivity to all "
+       << "polarisations.\n";
+
   y.resize( y_rte.nrows() );
 
   y = y_rte( Range(joker), 0 );

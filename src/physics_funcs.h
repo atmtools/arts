@@ -47,21 +47,21 @@
   === Functions in physics_funcs.h
   ===========================================================================*/
 
-Numeric  invplanck (
-		const Numeric& f,
-		const Numeric& za );
+Numeric invplanck(
+        const Numeric&  i,
+        const Numeric&  f );
 
-Numeric invrayjean (
-		 const Numeric& f,
-		 const Numeric& za );
+Numeric invrayjean(
+        const Numeric&  i,
+        const Numeric&  f );
 
-Numeric number_density (
-		     const Numeric& p,
-		     const Numeric& t );
+Numeric number_density(  
+        const Numeric&   p,
+        const Numeric&   t );
 
-Numeric planck (
-	     const Numeric&  f,
-	     const Numeric&  t );
+Numeric planck( 
+        const Numeric&   f, 
+        const Numeric&   t );
 
 
 #endif // physics_h

@@ -31,7 +31,12 @@
   The condition should have a simple and intuitive meaning!
 */
 
+
+
+#include <math.h> 
 #include "logic.h"
+
+
 
 //! Checks if a variable equals 0 or 1.
 /*!
@@ -42,6 +47,29 @@ bool is_bool( const Index& x )
 {
   return ( x==0 || x==1 );
 }
+
+
+
+//! Checks if an integer is a multiple of another integer.
+/*!
+  The function returns true if y * n = x, where n is an integer.
+
+  The choice of y = 0 is not allowed.
+
+   \return       True if x is a multiple of y.
+   \param    x   Nominator of the integer division.
+   \param    y   Denominator of the integer division.
+
+   \author Patrick Eriksson 
+   \date   2002-08-11 
+*/
+bool is_multiple( const Index& x, const Index& y )
+{
+  assert( y != 0 );
+  return ( 0 == fmod( Numeric(x), Numeric(y) ) );
+}
+
+
 
 //! Verifies that the size of x is l.
 /*! 

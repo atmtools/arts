@@ -1048,26 +1048,6 @@ void define_md_data_raw()
 	GINPUT( ),
 	KEYWORDS( "value" ),
 	TYPES(     Index_t   )));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("i_spaceCBR"),
-	DESCRIPTION
-	(
-	 "Sets *i_space* to hold cosmic background radiation (CBR).\n"
-	 "\n"
-	 "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
-	 "are zero. The cosmic radiation is modelled as a blackbody\n"
-	 "radiation for a temperature given by the global constant\n"
-	 "COSMIC_BG_TEMP, set in the file constants.cc."
-	),
-	OUTPUT( i_space_ ),
-	INPUT( f_grid_, stokes_dim_ ),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
-
   
   md_data_raw.push_back
     ( MdRecord
@@ -1171,6 +1151,38 @@ void define_md_data_raw()
 	TYPES(),
 	AGENDAMETHOD( true )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("MatrixCBR"),
+	DESCRIPTION
+	(
+	 "Sets a matrix to hold cosmic background radiation (CBR).\n"
+	 "\n"
+	 "The CBR is assumed to be un-polarized and Stokes components 2-4\n"
+	 "are zero. Number of Stokes components, that equals the number \n"
+	 "of columns in the created matrix, is determined by *stokes_dim. \n"
+	 "The number of rows in the created matrix equals the length of the \n"
+	 "given frequency vector. \n"
+	 "\n"
+	 "The cosmic radiation is modelled as blackbody radiation for the \n"
+	 "temperature given by the global constant COSMIC_BG_TEMP, set in \n"
+	 "the file constants.cc. The frequencies are taken from the generic \n"
+	 "input vector. A standard way to use the function should be: \n"
+	 "   MatrixCBR(i_space,f_grid){} \n"
+	 "\n"
+         "Generic output: \n"
+         "   Matrix : Matrix with cosmic background radiation. \n"
+	 "\n"
+         "Generic input: \n"
+         "   Vector : A set of frequencies. "
+	),
+	OUTPUT(),
+	INPUT( stokes_dim_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( ),
+	TYPES( )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("MatrixFillWithVector"),
@@ -1203,6 +1215,33 @@ void define_md_data_raw()
 	GINPUT( Vector_ ),
 	KEYWORDS( "nrows", "ncols"   ),
 	TYPES(    Index_t, Index_t )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("MatrixPlanck"),
+	DESCRIPTION
+	(
+	 "Sets a matrix to hold blackbody radiation.\n"
+	 "\n"
+	 "This function works as MatrixCBR but the temperature for which \n"
+	 "(unpolarised) balckbody radiation shall be calculated is selected \n"
+	 "as a keyword argument.\n"
+	 "\n"
+         "Generic output: \n"
+         "   Matrix : Matrix with cosmic background radiation. \n"
+	 "\n"
+         "Generic input: \n"
+         "   Vector : A set of frequencies. \n"
+	 "\n"
+         "Keyword: \n"
+         "   t : Temperature for the balckbody radiation. "
+	),
+	OUTPUT(),
+	INPUT( stokes_dim_ ),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( "t" ),
+	TYPES(    Numeric_t )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -1265,6 +1304,58 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS( "nrows", "ncols", "value"   ),
 	TYPES(    Index_t, Index_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixToTbByPlanck" ),
+	DESCRIPTION
+        (
+	 "Converts a matrix of radiances to brightness temperatures by \n"
+	 "inverting the Planck function.\n"
+	 "\n"
+	 "This function works as *MatrixToTbByRJ*. However, this function \n"
+	 "is not recommended in connection with inversions, but can be used \n"
+	 "to display calculated spectra in a temperature scale.\n"
+	 "\n"
+         "Generic output: \n"
+         "   Matrix : A matrix with brightness temperature values. \n"
+         "\n"
+         "Generic input: \n"
+         "   Matrix : A matrix with radiance values. \n"
+         "   Vector : A set of frequencies. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_, Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "MatrixToTbByRJ" ),
+	DESCRIPTION
+        (
+	 "Converts a matrix of radiances to brightness temperatures by \n"
+	 "the Rayleigh-Jeans approximation of the Planck function.\n"
+	 "\n"
+	 "This function works as *VectorToTbByRJ*, but operates on a matrix.\n"
+	 "Each column of the matrix is treated to contain a spectral vector,\n"
+	 "with frequencies repeated as assumed in *VectorToTbByRJ*. \n"
+	 "\n"
+         "Generic output: \n"
+         "   Matrix : A matrix with brightness temperature values. \n"
+         "\n"
+         "Generic input: \n"
+         "   Matrix : A matrix with radiance values. \n"
+         "   Vector : A set of frequencies. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_, Vector_ ),
+	KEYWORDS(),
+	TYPES()));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -1541,7 +1632,7 @@ void define_md_data_raw()
          "\n"
          "More text will be written (PE)."
         ),
-	OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_ ),
+	OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_, mblock_index_ ),
 	INPUT( ppath_step_agenda_, rte_agenda_, 
 	       atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
                r_geoid_, z_ground_, blackbody_ground_, cloudbox_on_,  
@@ -1562,7 +1653,7 @@ void define_md_data_raw()
          "\n"
          "More text will be written (PE)."
         ),
-	OUTPUT( i_rte_, i_space_ ),
+	OUTPUT( i_rte_, i_space_, a_pos_, a_los_ ),
 	INPUT( i_space_agenda_, 
 	       ppath_, f_grid_, stokes_dim_ ),
 	GOUTPUT(),
@@ -2126,18 +2217,45 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "VectorToTbByPlanck" ),
+	DESCRIPTION
+        (
+	 "Converts a vector of radiances to brightness temperatures by \n"
+	 "inverting the Planck function.\n"
+	 "\n"
+	 "This function works as *VectorToTbByRJ*. However, this function \n"
+	 "is not recommended in connection with inversions, but can be used \n"
+	 "to display calculated spectra in a temperature scale.\n"
+	 "\n"
+         "Generic output: \n"
+         "   Vector : A vector with brightness temperature values. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : A vector with radiance values. \n"
+         "   Vector : A set of frequencies. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_, Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "VectorToTbByRJ" ),
 	DESCRIPTION
         (
-	 "Converts a vector of intensities to brightness temperatures by \n"
+	 "Converts a vector of radiances to brightness temperatures by \n"
 	 "the Rayleigh-Jeans approximation of the Planck function.\n"
 	 "\n"
 	 "This function performs a linear transformation of spectral \n"
-	 "intensities to an approximative temperature scale. The advantage \n"
+	 "radiances to an approximative temperature scale. The advantage \n"
 	 "of this linear transformation is that the obtained values can be \n"
 	 "used for retrievals if the weighting functions are handled \n" 
-	 "likewise. This is not the case if the intensities are converted \n"
-	 "to temparatures by the Planck function directly. \n"
+	 "likewise (by *MatrixToTbByRJ*). This is not the case if the \n"
+	 "radiances are converted to temparatures by the Planck function \n"
+	 "directly. \n"
 	 "\n"
 	 "The conversion requieres that the frequency of each intensity \n"
 	 "value is known. The last general input vector is assumed to be a \n"
@@ -2145,7 +2263,7 @@ md_data_raw.push_back
 	 "the first general input vector are obtained by repeating the last \n"
 	 "vector an integer number of times. \n"
 	 "\n"
-	 "If *y* shall be converted from intensities to brightness \n"
+	 "If *y* shall be converted from radiances to brightness \n"
 	 "temperatures and no instrument response has been applied, the \n"
 	 "conversion is done as: \n"
 	 "   VectorToTbByRJ(y,y,f_grid){} \n"
@@ -2154,8 +2272,8 @@ md_data_raw.push_back
          "   Vector : A vector with brightness temperature values. \n"
          "\n"
          "Generic input: \n"
-         "   Vector : A vector with intensity values. \n"
-         "   Vector : A set of frequencies." 
+         "   Vector : A vector with radiance values. \n"
+         "   Vector : A set of frequencies. " 
         ),
 	OUTPUT(),
 	INPUT(),

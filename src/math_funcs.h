@@ -40,6 +40,8 @@
 
 
 
+Index integer_div( const Index& x, const Index& y );
+
 Numeric last( ConstVectorView x );
 
 Index last( const ArrayOfIndex& x );

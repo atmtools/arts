@@ -50,6 +50,27 @@ extern const Numeric DEG2RAD;
  *** The functions (in alphabetical order)
  *****************************************************************************/
 
+//! integer_div
+/*! 
+    Performs an integer division.
+
+    The function asserts that the reminder of the division x/y is 0.
+
+    \return      The quotient
+    \param   x   Nominator
+    \param   y   Denominator
+
+    \author Patrick Eriksson 
+    \date   2002-08-11
+*/
+Index integer_div( const Index& x, const Index& y )
+{
+  assert( is_multiple( x, y ) );
+  return x/y;
+}
+
+
+
 //! last
 /*! 
     Returns the last value of a vector.

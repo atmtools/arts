@@ -1262,9 +1262,7 @@ void ppath_start_stepping(
   // This function contains no checks or asserts as it is only a sub-function
   // to ppathCalc where the input is checked carefully.
 
-  // Assume that there is a point to put into ppath.
-  // If the path is totally outside the atmosphere, the function shall be
-  // called again with 0 as last argument.
+  // Allocate the ppath structure
   ppath_init_structure(  ppath, atmosphere_dim, 1 );
 
   // Number of pressure levels
@@ -1281,9 +1279,6 @@ void ppath_start_stepping(
       // Radius for the top of the atmosphere
       const Numeric r_top = r_geoid(0,0) + z_field(np-1,0,0);
 
-      out2 << "  sensor altitude      : " << (a_pos[0]-r_geoid(0,0))/1e3 
-	   << " km\n";
-
       // The only forbidden case here is that the sensor is below the ground
       if( a_pos[0] < r_ground )
 	{
@@ -1293,6 +1288,9 @@ void ppath_start_stepping(
              << "The sensor must be above the ground.";
 	  throw runtime_error(os.str());
 	}
+
+      out2 << "  sensor altitude      : " << (a_pos[0]-r_geoid(0,0))/1e3 
+	   << " km\n";
 
       // If downwards, calculate geometrical tangent position
       Vector geom_tan_pos(0);
@@ -1307,16 +1305,18 @@ void ppath_start_stepping(
 	       << (geom_tan_pos[0]-r_geoid(0,0))/1e3 << " km\n";
 	}
 
+      // Put sensor position and LOS in ppath as first guess
+      ppath.pos(0,0) = a_pos[0];
+      ppath.los(0,0) = a_los[0];
+      ppath.pos(0,1) = 0; 
+      ppath.z[0]     = ppath.pos(0,0) - r_geoid(0,0);
+      
 
       // The sensor is inside the model atmosphere, 1D ------------------------
       if( a_pos[0] < r_top )
 	{
-	  // Put some values into ppath. Use these values below (instead of
-	  // a_pos and a_los) as they can be modified on the way.
-          ppath.pos(0,0) = a_pos[0];
-          ppath.los(0,0) = a_los[0];
-	  ppath.pos(0,1) = 0; 
-	  ppath.z[0]     = ppath.pos(0,0) - r_geoid(0,0);
+	  // Use below the values in ppath (instead of a_pos and a_los) as 
+	  // they can be modified on the way.
      
 	  // Is the sensor on the ground looking down?
 	  if( ppath.pos(0,0) == r_ground  &&  ppath.los(0,0) > 90 )
@@ -1353,7 +1353,7 @@ void ppath_start_stepping(
       else
 	{
 	  // Upward observations are not allowed here
-	  if( fabs(a_los[0]) <= 90 )
+	  if( a_los[0] <= 90 )
 	      throw runtime_error("When the sensor is placed outside the model"
                          " atmosphere, upward observations are not allowed." );
 
@@ -1362,12 +1362,11 @@ void ppath_start_stepping(
 	  ppath.constant = geom_tan_pos[0];
  
 	  // Path is above the atmosphere
-	  if( a_los[0] <= 90  ||  ppath.constant  >= r_top )
+	  if( ppath.constant >= r_top )
 	    {
-	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
 	      out1 << "  --- WARNING ---, path is totally outside of the "
-		   << "model atmosphere";
+		   << "model atmosphere\n";
 	    }
 
 	  // Path enters the atmosphere
@@ -1382,8 +1381,8 @@ void ppath_start_stepping(
 	    }
 	}
 
-      // Get grid position for the end point, if there is one.
-      if( ppath.np == 1 )
+      // Get grid position for the end point, if it is inside the atmosphere.
+      if( ppath.z[0] <= z_field(np-1,0,0) )
 	{ gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z ); }
 
       // Set geometrical tangent point position
@@ -1465,6 +1464,11 @@ void ppath_start_stepping(
 	    }
 	}
 
+      // Put sensor position and LOS in ppath as first guess
+      ppath.pos(0,0) = a_pos[0];
+      ppath.pos(0,1) = a_pos[1];
+      ppath.los(0,0) = a_los[0];
+
       // The sensor is inside the model atmosphere, 2D ------------------------
       if( is_inside )
 	{
@@ -1486,12 +1490,11 @@ void ppath_start_stepping(
 	    throw runtime_error( "The sensor is at the upper latitude end "
                                             "point and the zenith angle > 0" );
 	  
-	  // Put some values into ppath. Use these values below (instead of
-	  // a_pos and a_los) as they can be modified on the way.
-          ppath.pos(0,0) = a_pos[0];
-          ppath.pos(0,1) = a_pos[1];
-          ppath.los(0,0) = a_los[0];
+	  // Geometrical altitude
 	  ppath.z[0]     = ppath.pos(0,0) - rv_geoid;
+
+	  // Use below the values in ppath (instead of a_pos and a_los) as 
+	  // they can be modified on the way.
      
 	  // Grid positions
 	  ppath.gp_lat[0].idx   = gp_lat[0].idx;
@@ -1650,7 +1653,6 @@ void ppath_start_stepping(
                            geom_tan_pos[1] <= lat_grid[nlat-1]   &&  
                                                 geom_tan_z >= geom_tan_atmtop )
 	    {
-	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
 	      out1 << "  --- WARNING ---: path is totally outside of the "
 		   << "model atmosphere\n";
@@ -1984,8 +1986,6 @@ void ppath_step_geom_1d(
     }
 
 }
-
-
 
 
 

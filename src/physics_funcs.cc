@@ -57,91 +57,74 @@ extern const Numeric BOLTZMAN_CONST;
 
 //! invplanck
 /*!
-   Convert radiance to Plack brightness temperature.
+   Converts a radiance to Plack brightness temperature.
 
-    \return y Output:spectrum vector       
-    \param  f       frequency
-    \param  za      zenith angle
+    \return     Planck brightness temperature
+    \param  i   radiance
+    \param  f   frequency
 
     \author Patrick Eriksson 
-    \date   2000-09-28 
+    \date   2002-08-11
 */
-Numeric invplanck (
-		const Numeric&  f,
-		const Numeric&  za )
+Numeric invplanck(
+        const Numeric&  i,
+        const Numeric&  f )
 {
-  Numeric y;
+  assert( i >= 0 );
+  assert( f > 0 );
 
   // Use always double to avoid numerical problem (see invrayjean)
-  const double   a = PLANCK_CONST/BOLTZMAN_CONST;
-  const double   b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-        double   c,d;
+  static const double a = PLANCK_CONST / BOLTZMAN_CONST;
+  static const double b = 2 * PLANCK_CONST / ( SPEED_OF_LIGHT*SPEED_OF_LIGHT );
 
-  // Check input
-  if ( y > 1e-4 )  
-    throw runtime_error("The spectrum cannot be in expected intensity unit "
-                        "(impossible value detected).");
-  
-  c = a*f;
-  d = b*pow(f,3);
-  y = c / ( log(d/y+1) );
-  return y;
+  return   a * f / log( b*pow(f,3)/i + 1 );
 }
 
 
 
 //! invrayjean
 /*! 
-   Converts radiance to Rayleigh-Jean brightness temperature.
+   Converts a radiance to Rayleigh-Jean brightness temperature.
 
-    \return y Output:spectrum vector       
-    \param  f       frequency
-    \param  za      zenith angle
+    \return     RJ brightness temperature
+    \param  i   radiance
+    \param  f   frequency
 
     \author Patrick Eriksson 
     \date   2000-09-28 
 */
-Numeric invrayjean (
-		 const Numeric&  f,
-		 const Numeric&  za )
+Numeric invrayjean(
+        const Numeric&  i,
+        const Numeric&  f )
 {
-  Numeric y;
-  
- // The function returned NaNs when a and b were set to be Numeric (PE 010404)
-  const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
-        double   b;
+  assert( i >= 0 );
+  assert( f > 0 );
 
-  // Check input
-  if (y > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit "
-                                               "(impossible value detected).");
-	
-  b = a/(f*f);
-  y = b * y;
-  return y;
+  // Double must be used here (if not, the result can be NaN when using float)
+  static const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+
+  return   a * i / ( f * f );
 }
 
 
 //! number_density
 /*! 
-   Calculates the number density.
+   Calculates the atmospheric number density.
    
-   \return  nd Output: number density
-   \param  p  Input: pressure
-   \param  t  Input: temperature
+   \return     number density
+   \param  p   pressure
+   \param  t   temperature
    
    \author Patrick Eriksson 
    \date   2000-04-08 
 */
-Numeric number_density (  
-		     const Numeric& p,
-		     const Numeric& t )
+Numeric number_density(  
+        const Numeric&   p,
+        const Numeric&   t )
 {
-  Numeric nd;
-  // Calculate p / (t*BOLTZMAN_CONST):
-  assert( t > 0 );
-  nd = p/(t*BOLTZMAN_CONST);
-  return nd;
+  assert( p >= 0 );
+  assert( t >= 0 );
+  return   p / ( t * BOLTZMAN_CONST );
 }
 
 
@@ -150,26 +133,25 @@ Numeric number_density (
 /*! 
   Calculates the Planck function for a single temperature.
   
-  \return B Output: the blackbody radiation
-  \param  f Input: frequency value
-  \param  t Input: temperature value
+  \return     blackbody radiation
+  \param  f   frequency
+  \param  t   temperature
   
   \author Patrick Eriksson 
   \date   2000-04-08 
 */
-Numeric planck (
-	       const Numeric& f,
-	       const Numeric& t )
+Numeric planck( 
+        const Numeric&   f, 
+        const Numeric&   t )
 {
-  Numeric B;
+  assert( f > 0 );
+  assert( t >= 0 );
 
   // Double must be used here (if not, a becomes 0 when using float)
-  static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const double  b = PLANCK_CONST/BOLTZMAN_CONST;
-  const double  c = b/t; 
+  static const double a = 2 * PLANCK_CONST / (SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const double b = PLANCK_CONST / BOLTZMAN_CONST;
   
-  B = a * f*f*f / ( exp( f*c ) - 1.0 );
-  return B;
+  return   a * f*f*f / ( exp( b*f/t ) - 1 );
 }
 
 
