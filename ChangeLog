@@ -1,3 +1,32 @@
+2003-02-04  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-445
+
+	* src/Makefile.am: Added m_xml.cc to arts_SOURCES.
+
+	* src/test_binaryio.cc: Updated.
+
+	* src/m_xml.h: Rename FType to FileType and FTYPE_{ASCII,BINARY} to
+	FILE_TYPE_{ASCII,BINARY}.
+	WriteXML gets file_format as input.
+	Added output_file_formatSet{Ascii,Binary}.
+
+	* src/m_xml.cc: Added.
+
+	* src/xml_io.cc: Renamed FType to FileType and FTYPE_{ASCII,BINARY} to
+	FILE_TYPE_{ASCII,BINARY}.
+	(xml_read_header_from_stream): Read endian type and
+	numeric type from input file.
+
+	* src/xml_io.h, src/xml_io_private.h: Rename FType to FileType.
+
+	* src/methods.cc: Added output_file_formatSet{Ascii,Binary}.
+	WriteXML gets output_file_format as input.
+
+	* src/workspace.cc: Added variable output_file_format.
+	
+	* src/.cvsignore: Added *.swp to ignore vim temporary files.
+
 2003-02-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-444
@@ -26,7 +55,6 @@
 	* m_cloudbox.cc (CloudboxGetIncoming): Fixed 1D part. Didn't work 
 	after some modifications for the 3D part.
 
->>>>>>> 1.819
 2003-02-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-442
