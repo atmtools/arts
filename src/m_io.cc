@@ -241,7 +241,7 @@ void VectorWriteAscii(// WS Output:
   filename_ascii( filename, v_name );
 
   // Convert the vector to a 1-column matrix:
-  Matrix m(static_cast<const Vector>(v));
+  Matrix m(v);
   // The static_cast to const Vector here is necessary to suppress a
   // warning message from the compiler about different possible
   // conversion paths. 
@@ -735,7 +735,7 @@ void VectorSetLengthFromVector(
               Vector&  x, 
         const String&  x_name,
         const Vector&  z,
-        const String&  z_name,
+        const String&  /* z_name */,
         const Numeric& value )
 {
   const Index  n = z.nelem();
@@ -804,7 +804,7 @@ void VectorPressuresForLinAltitudes(
                      // WS Generic Output:
                      Vector&         p,
                      // WS Generic Output Names:
-                     const String&   p_name,
+                     const String&   /* p_name */,
                      // WS Input:
                      const Vector&   p_abs,
                      const Vector&   z_abs,
@@ -953,7 +953,7 @@ void VectorPlanck(
                     Vector&   y,
               const String&   y_name,
               const Vector&   f,
-              const String&   f_name,
+              const String&   /* f_name */,
               const Numeric&  t )
 {
   if ( t > 0 )
@@ -1076,7 +1076,7 @@ void VectorScale(
 void VectorMatrixMultiply(// WS Generic Output:
                           Vector& y,
                           // WS Generic Output Names:
-                          const String& y_name,
+                          const String& /* y_name */,
                           // WS Generic Input:
                           const Matrix& M,
                           const Vector& x,
@@ -1228,7 +1228,7 @@ void MatrixDiagonal(
 void MatrixMatrixMultiply(// WS Generic Output:
                           Matrix& Y,
                           // WS Generic Output Names:
-                          const String& Y_name,
+                          const String& /* Y_name */,
                           // WS Generic Input:
                           const Matrix& M,
                           const Matrix& X,
@@ -1267,7 +1267,7 @@ void MatrixMatrixMultiply(// WS Generic Output:
 void MatrixMatrixAdd(// WS Generic Output:
                           Matrix& Y,
                           // WS Generic Output Names:
-                          const String& Y_name,
+                          const String& /* Y_name */,
                           // WS Generic Input:
                           const Matrix& M,
                           const Matrix& X,
