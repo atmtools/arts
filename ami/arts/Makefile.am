@@ -23,5 +23,6 @@ EXTRA_DIST = \
         sstring_get_i.m \
         sstring_length.m \
         tag2mo.m \
+	test_Kt.m \
 	write_artsvar.m \
 	write_datafile.m

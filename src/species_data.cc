@@ -823,8 +823,8 @@ void define_basic_species_data()
 	ISOTOPES
 	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
-	 REC("169"	,.505579E+00	,96.	,-1	,371	,TAGS( )),
-	 REC("161"	,.491894E+00	,98.	,-1	,372	,TAGS( ))
+	 REC("169"	,.505579E+00	,96.	,-1	,371	,TAGS(96001)),
+	 REC("161"	,.491894E+00	,98.	,-1	,372	,TAGS(98002))
 	 ) ) );
 
   // C2H4
