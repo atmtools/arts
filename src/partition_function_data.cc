@@ -99,7 +99,7 @@
   given in the table below, which list the difference found for the
   partition function and the one found in the ratio (Q(300K)/Q/T)):
 
-\verbatim
+<pre>
   NAME     JPL TAG    HITRAN    Difference: Q / Ratio [%]   
   CH4      17003       63     > 10.0 /  > 10.0       
   NH3      18002      112     > 10.0 /  > 10.0       
@@ -110,7 +110,7 @@
   O        16001      341     no coeff defined in tips
   ClONO2   97002      351     no coeff defined in tips
   ClONO2   99001      352     no coeff defined in tips
-\endverbatim
+</pre>
 
   Certain species in the HITRAN database were marked in the tips
   program with a partition function equals -1 for all temperatures,
@@ -155,7 +155,7 @@
   <dt> Isotope Name:
   <dd> Arts convention
 
-  <dt> Coefficients: 
+  <dt> Coefficients:
   <dd> Generally taken from the tips program, version September 23,
   1997. Partition functions for species included only in JPL were
   calculated according to the JPL recommended scheme, and a 3rd order
@@ -175,11 +175,10 @@
   <td> 1: <td> tips program, version September 23, 1997
 
   <tr>
-  <td >2: <td> polynomial fit to JPL data
+  <td> 2: <td> polynomial fit to JPL data
 
   <tr>
-  <td >3: <td> wild guess or copied from main isotope
-
+  <td> 3: <td> wild guess or copied from main isotope
   </table>
 
   <dt> Quality:
@@ -194,15 +193,15 @@
   percent (range 150 to 300 K).
 
   <tr>
-  <td >2: <td> the difference in ratio between the polynomial fit to
+  <td> 2: <td> the difference in ratio between the polynomial fit to
   the JPL data and the original data (interpolation with the
   recommended scheme) (range 150 to 300 K).
 
-  <tr> 
-  <td >3: <td> The value is always 0, because for this case we
+  <tr>
+  <td> 3: <td> The value is always 0, because for this case we
   have no quality estimate.
-
   </table>
+
   </dl>
 
   \author Axel von Engeln  
