@@ -683,12 +683,12 @@ Vector& Vector::operator=(const Vector& v)
   \author Stefan Buehler
   \date   2002-12-19
 */
-Vector& Vector::operator=(const Array<Numeric>& x)
+/*Vector& Vector::operator=(const Array<Numeric>& x)
 {
   resize( x.nelem() ); 
   VectorView::operator=(x);
   return *this;
-}
+}*/
 
 /** Assignment operator from scalar. Assignment operators are not
     inherited. */  
@@ -1767,7 +1767,7 @@ Numeric min(const ConstMatrixView& x)
     is a .push_back method for it. Then, after collecting we usually
     have to transfer the content to a Vector. With this assignment
     operator that's easy. */
-VectorView VectorView::operator=(const Array<Numeric>& v)
+/*VectorView VectorView::operator=(const Array<Numeric>& v)
 {
   //  cout << "Assigning VectorView from Array<Numeric>.\n";
 
@@ -1784,5 +1784,5 @@ VectorView VectorView::operator=(const Array<Numeric>& v)
     *target = *i;
 
   return *this;
-}
+}*/
 

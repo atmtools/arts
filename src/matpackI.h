@@ -373,7 +373,7 @@ public:
   VectorView operator=(const ConstVectorView& v);
   VectorView operator=(const VectorView& v);
   VectorView operator=(const Vector& v);
-  VectorView operator=(const Array<Numeric>& v);
+/*  VectorView operator=(const Array<Numeric>& v); */
   VectorView operator=(Numeric x);
 
   // Other operators:
@@ -521,7 +521,7 @@ public:
 
   // Assignment operators:
   Vector& operator=(const Vector& v);
-  Vector& operator=(const Array<Numeric>& v);
+/*  Vector& operator=(const Array<Numeric>& v); */
   Vector& operator=(Numeric x);
 
   // Resize function:
