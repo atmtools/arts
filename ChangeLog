@@ -1,3 +1,11 @@
+2004-09-03  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-861
+
+	* src/m_optproperties.cc: Modified T-interpolation. Now the
+	temperature can be slightly outside the T_gerid in the scattering
+	data and the data will be extrapolated. 
+
 2004-08-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-860

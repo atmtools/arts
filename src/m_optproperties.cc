@@ -274,10 +274,10 @@ void pha_mat_sptFromDataDOITOpt( // Output:
     
       if( scat_data_mono[i_pt].T_grid.nelem() > 1)
         {
-          chk_if_in_range("T_grid", rte_temperature, 
-                          scat_data_mono[i_pt].T_grid[0],
-                          scat_data_mono[i_pt].T_grid
-                          [scat_data_mono[i_pt].T_grid.nelem()-1]);
+          //     chk_if_in_range("T_grid", rte_temperature, 
+          //                scat_data_mono[i_pt].T_grid[0],
+          //                scat_data_mono[i_pt].T_grid
+          //                [scat_data_mono[i_pt].T_grid.nelem()-1]);
           
           // Gridpositions:
           gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
@@ -1492,10 +1492,10 @@ void opt_prop_sptFromMonoData( // Output and Input:
       
       if (t_grid.nelem() > 1)
         {
-          if ((rte_temperature<t_grid[0])||(rte_temperature>t_grid[t_grid.nelem()-1]))
-            {
-              throw runtime_error("rte_temperature outside scattering data temperature range");
-            }
+                 //   if ((rte_temperature<t_grid[0])||(rte_temperature>t_grid[t_grid.nelem()-1]))
+//             {
+//               throw runtime_error("rte_temperature outside scattering data temperature range");
+//             }
           
           //interpolate over temperature
           gridpos(t_gp, scat_data_mono[i_pt].T_grid, rte_temperature);
@@ -1627,10 +1627,10 @@ void pha_mat_sptFromMonoData( // Output:
       
       if( scat_data_mono[i_pt].T_grid.nelem() > 1)
         {
-          chk_if_in_range("T_grid", rte_temperature, 
-                          scat_data_mono[i_pt].T_grid[0],
-                          scat_data_mono[i_pt].T_grid
-                          [scat_data_mono[i_pt].T_grid.nelem()-1]);
+  //         chk_if_in_range("T_grid", rte_temperature, 
+//                           scat_data_mono[i_pt].T_grid[0],
+//                           scat_data_mono[i_pt].T_grid
+//                           [scat_data_mono[i_pt].T_grid.nelem()-1]);
           
           // Gridpositions:
           gridpos(T_gp, scat_data_mono[i_pt].T_grid, rte_temperature); 
