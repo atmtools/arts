@@ -85,7 +85,8 @@ void get_radiative_background(
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
         const Index&          stokes_dim,
-        const Index&          agenda_verb );
+        const Index&          agenda_verb,
+        const Index&          scat_za_interp);
 
 void ground_specular_los(
               VectorView   los,
@@ -151,7 +152,8 @@ void rte_calc(
         const Vector&         mblock_aa_grid,
         const bool&           check_input,
         const bool&           apply_sensor,
-        const bool&           agenda_verb );
+        const bool&           agenda_verb,
+        const Index&          scat_za_interp);
 
 void
 rte_step(//Output and Input:

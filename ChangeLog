@@ -1,3 +1,55 @@
+2004-03-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-802
+
+	* src/m_scatrte.cc (convergence_flagLsq): Added this method. Perfromes
+	a least square convergence test. I think the method is especially 
+	useful for off-limb cases as that convergence there is much better. 
+	For these calculations a least square test should be sufficient.
+
+	(iteration_counterIncrease): Removed. It is now part of the 
+	convergence test methods. The convergence test functions output
+	the number of required iterations. 
+
+	(convergence_flagAbs), (convergence_flagAbsBT): Included iteration 
+	counter.
+			
+	(scat_za_interpSet): Added. This method can optionally if one wants
+	to use cubic interpolation in the zenith angle dimension. By default
+	linear interpolation is used. 
+
+	(i_fieldUpdateSeq{1D,3D}): Included switch for cubic interpolation
+	*scat_za_interp*.
+		
+	(scat_fieldCalcLimb): Included *scat_za_interp* switch for 1D.
+	
+	* src/scatrte.{cc,h}: (cloud_ppath_update1D): Included switch
+	for cubic interpolation.
+	(cloud_ppath_update3D): Included already the variable *scat_za_interp*
+	but not yet the interpolation.
+	
+	* src/m_rte.cc: Included *scat_za_interp* in (RteCalc),
+	which has to be used to get the radiative background when cloudbox 
+	is switched on. 
+
+	* src/rte.{cc,h}: Included *scat_za_interp* in (rte_calc). 
+
+	Included in all (rte_calc) calls a 0 for scat_za_interp, where 
+	this veriable is not needed, because the radiative background is 
+	definetely not the cloudbox:
+
+	* src/m_cloudbox.cc, src/m_montecarlo.cc
+	(cloudboxOff),(cloudboxSetManually), (cloudboxSetManuallyAltitude)
+	 Initialized *scat_za_interp* in these functions which can be used 
+	alternatively.
+
+	* src/workspace.cc: Included *scat_za_interp*.
+	
+	* src/methods.cc: Added (scat_za_interpSet).
+
+	Note: Cubic interpolation is so far only implemented for 1D!!!
+
+	
 2004-03-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-801
@@ -14,8 +66,8 @@
 	It seems that this interpolation is much more accurate, especially for 
 	directions between nadir and limb, where the zenith angle resolution 
 	is rather coarse.
-	(CloudboxGetOutgoing): Splitted the method in sub-functions (shifted to 
-	cloudbox.cc.
+	(CloudboxGetOutgoing): Splitted the method in sub-functions (shifted
+	to cloudbox.cc).
 		
 	* src/cloudbox.{cc,h}: Added the following functions:
 	cloudbox_getOutgoing1D

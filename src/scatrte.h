@@ -90,7 +90,8 @@ void cloud_ppath_update1D(
                   //particle opticla properties
                   ConstTensor5View ext_mat_field,
                   ConstTensor4View abs_vec_field,
-		  const Agenda& ground_refl_agenda //STR
+		  const Agenda& ground_refl_agenda, //STR
+                  const Index& scat_za_interp
                   );
 
 void cloud_ppath_update1D_planeparallel(
@@ -175,7 +176,8 @@ void cloud_ppath_update3D(
 			  const Index& f_index,
 			  //particle opticla properties
 			  ConstTensor5View ext_mat_field,
-			  ConstTensor4View abs_vec_field
+			  ConstTensor4View abs_vec_field,
+                          const Index& scat_za_interp
 			  );
 
 

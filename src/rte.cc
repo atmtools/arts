@@ -142,7 +142,8 @@ void get_radiative_background(
         ConstVectorView       scat_aa_grid,
         ConstVectorView       f_grid,
         const Index&          stokes_dim,
-        const Index&          agenda_verb )
+        const Index&          agenda_verb,
+        const Index&          scat_za_interp)
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -261,8 +262,9 @@ void get_radiative_background(
                    cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
                    scat_i_lon, scat_za_grid, scat_aa_grid, 
                    sensor_response, sensor_pos, sensor_los, sensor_pol,
-                   sensor_rot, f_grid, stokes_dim, antenna_dim,
-                   mblock_za_grid, mblock_aa_grid, false, false, agenda_verb );
+                          sensor_rot, f_grid, stokes_dim, antenna_dim,
+                          mblock_za_grid, mblock_aa_grid, false, false, 
+                          agenda_verb, 0 );
 
                 // Add the calculated spectrum (*i_rte*) to *i_sum*,
                 // considering the reflection coeff. matrix.
@@ -309,10 +311,28 @@ void get_radiative_background(
     case 3:   //--- Cloudbox surface -----------------------------------------
 
       {
-        CloudboxGetOutgoing( i_rte, "i_rte", scat_i_p, scat_i_lat, scat_i_lon, 
-                           rte_gp_p, rte_gp_lat, rte_gp_lon, rte_los, 
-                           cloudbox_on, cloudbox_limits, atmosphere_dim,
-                              stokes_dim, scat_za_grid, scat_aa_grid, f_grid );
+        if(scat_za_interp == 0)
+          {
+            CloudboxGetOutgoing( i_rte, "i_rte", scat_i_p, scat_i_lat, 
+                                 scat_i_lon, 
+                                 rte_gp_p, rte_gp_lat, rte_gp_lon,
+                                 rte_los, 
+                                 cloudbox_on, cloudbox_limits,
+                                 atmosphere_dim,
+                                 stokes_dim, scat_za_grid, scat_aa_grid,
+                                 f_grid );
+          }
+        else
+          {
+            CloudboxGetOutgoingCubic( i_rte, "i_rte", scat_i_p, scat_i_lat, 
+                                      scat_i_lon, 
+                                      rte_gp_p, rte_gp_lat, rte_gp_lon,
+                                      rte_los, 
+                                      cloudbox_on, cloudbox_limits,
+                                      atmosphere_dim,
+                                      stokes_dim, scat_za_grid, scat_aa_grid,
+                                      f_grid );
+          }
       }
       break;
 
@@ -578,7 +598,8 @@ void rte_calc(
         const Vector&         mblock_aa_grid,
         const bool&           check_input,
         const bool&           apply_sensor,
-        const bool&           agenda_verb )
+        const bool&           agenda_verb,
+        const Index&          scat_za_interp)
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -792,7 +813,7 @@ void rte_calc(
                       r_geoid, z_ground, 
                       cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
-                      stokes_dim, ag_verb );
+                                        stokes_dim, ag_verb, scat_za_interp );
 
 	      
               // Execute the *rte_agenda*

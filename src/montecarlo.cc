@@ -200,7 +200,7 @@ void Cloudbox_ppath_rteCalc(
             scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
             sensor_pol_dummy, sensor_rot_dummy,
             f_grid,stokes_dim, antenna_dim_dummy, mblock_za_grid_dummy,
-            mblock_aa_grid_dummy, false, false, true);
+            mblock_aa_grid_dummy, false, false, true, 0);
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
   
@@ -707,7 +707,7 @@ void montecarloGetIncoming(
             scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
             sensor_pol_dummy, sensor_rot_dummy,
             f_grid,stokes_dim, antenna_dim_dummy, mblock_za_grid_dummy,
-            mblock_aa_grid_dummy, false, false, true);
+            mblock_aa_grid_dummy, false, false, true, 0);
   
   for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
 }

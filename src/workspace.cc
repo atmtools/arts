@@ -2143,6 +2143,21 @@ wsv_data.push_back
        ),
       GROUP( Index_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_za_interp" ),
+      DESCRIPTION
+      (
+       "Flag for interplation method in zenith angle dimension.\n"
+       " \n"
+       "0 - linear interpolation \n"
+       "1 - cubic interpolation \n"
+       "Default is linear interpolation. \n"
+       "\n"
+       "Usage: Set by user in *scat_za_interpSet*. \n"
+       " \n"
+       ),
+      GROUP( Index_ )));
 
   wsv_data.push_back
    (WsvRecord

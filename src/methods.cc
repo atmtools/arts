@@ -1125,7 +1125,7 @@ md_data_raw.push_back
          "empty."
         ),
         OUTPUT( cloudbox_on_, cloudbox_limits_, scat_i_p_, scat_i_lat_,
-                scat_i_lon_, scat_za_grid_, scat_aa_grid_ ),
+                scat_i_lon_, scat_za_grid_, scat_aa_grid_, scat_za_interp_),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
@@ -1167,7 +1167,7 @@ md_data_raw.push_back
          "   lon1 : Lower longitude point.\n"
          "   lon2 : Upper longitude point."
         ),
-        OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+        OUTPUT( cloudbox_on_, cloudbox_limits_, scat_za_interp_ ),
         INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -1209,7 +1209,7 @@ md_data_raw.push_back
          "   lon1 : Lower longitude point.\n"
          "   lon2 : Upper longitude point."
         ),
-        OUTPUT( cloudbox_on_, cloudbox_limits_ ),
+        OUTPUT( cloudbox_on_, cloudbox_limits_, scat_za_interp_ ),
         INPUT( atmosphere_dim_, z_field_, lat_grid_, lon_grid_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -1308,12 +1308,30 @@ md_data_raw.push_back
          "\n"
          "Unit of *epsilon* is that of radiance.\n"
         ),
-        OUTPUT(convergence_flag_),
+        OUTPUT(convergence_flag_, iteration_counter_),
         INPUT(i_field_, i_field_old_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS("epsilon"),
         TYPES(Vector_t)));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("convergence_flagLsq"),
+        DESCRIPTION
+        (
+         "Convergence test (Least square).\n"
+         "\n"
+         "More to be written (CE).\n"
+         "\n"
+        ),
+        OUTPUT(convergence_flag_, iteration_counter_),
+        INPUT(i_field_, i_field_old_, f_grid_, f_index_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS("epsilon"),
+        TYPES(Vector_t)));
+  
 
   md_data_raw.push_back     
     ( MdRecord
@@ -1350,7 +1368,7 @@ md_data_raw.push_back
          "\n"
          "Unit of *epsilon* is that of brightness temperature(RJ).\n"
         ),
-        OUTPUT(convergence_flag_),
+        OUTPUT(convergence_flag_, iteration_counter_),
         INPUT(i_field_, i_field_old_, f_grid_, f_index_),
         GOUTPUT( ),
         GINPUT( ),
@@ -1775,7 +1793,7 @@ md_data_raw.push_back
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_, ground_refl_agenda_),
+              f_grid_, f_index_, ground_refl_agenda_, scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1834,7 +1852,7 @@ md_data_raw.push_back
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
               r_geoid_, t_field_,
-              f_grid_, f_index_),
+              f_grid_, f_index_, scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1886,24 +1904,7 @@ md_data_raw.push_back
         KEYWORDS( "value" ),
         TYPES(     Index_t   )));
   
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("iteration_counterIncrease"),
-        DESCRIPTION
-        (
-         "Increase iteration counter. \n"
-         "\n"
-         "This function can be used for writing the separate iteration \n"
-         "fields into differtent files using *Tensor6WriteIteration*.\n"
-         ),
-        OUTPUT(iteration_counter_),
-        INPUT(iteration_counter_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-  
-   md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("elsDoppler"),
         DESCRIPTION
@@ -3107,7 +3108,8 @@ md_data_raw.push_back
                scat_za_grid_, scat_aa_grid_, sensor_response_,
                sensor_pos_, sensor_los_, sensor_pol_, sensor_rot_, 
                f_grid_, stokes_dim_,
-               antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+               antenna_dim_, mblock_za_grid_, mblock_aa_grid_, 
+               scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3333,7 +3335,8 @@ md_data_raw.push_back
                 scat_aa_index_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_,
                scat_aa_grid_,  
-               atmosphere_dim_, cloudbox_limits_, za_grid_size_),
+               atmosphere_dim_, cloudbox_limits_, za_grid_size_, 
+               scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3391,6 +3394,30 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_za_interpSet" ),
+        DESCRIPTION
+        (
+       "Define interpolation method for zenith angle dimension.\n"
+       "\n"
+       "You can use this method to choose the inerpolation method for \n"
+       "interpolations in the zenith angle dimension. This method has to be \n"
+       "used after (!) *cloudboxSetManually*.\n"
+       "By default, linear interpolation is used.\n"
+       "\n"
+       "Keyword:\n"
+       "  interp_method - 'linear' or 'cubic' \n"
+       "\n"
+         ),
+        OUTPUT( scat_za_interp_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("interp_method"),
+        TYPES(String_t)));
+ 
+
  md_data_raw.push_back
    ( MdRecord
       ( NAME( "ScatteringInit" ),
@@ -3406,7 +3433,7 @@ md_data_raw.push_back
         OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
                scat_za_index_, scat_aa_index_, pha_mat_,
                pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
-               i_field_),
+               i_field_, iteration_counter_),
         INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
               za_grid_size_, 
               cloudbox_limits_, scat_data_raw_),

@@ -2763,7 +2763,7 @@ void interp( Tensor6View           ia,
   \return interpolated value
 
   \author Claudia Emde
-  \date 2003-04-12
+  \date 2004-03-17
 */
 Numeric interp_cubic(ConstVectorView x,
                      ConstVectorView y,
@@ -2773,11 +2773,12 @@ Numeric interp_cubic(ConstVectorView x,
   Index N_x = x.nelem();
 
   assert(N_x == y.nelem());
-  Vector xa(3), ya(3);
+  Vector xa(4), ya(4);
   Numeric y_int;
   Numeric dy_int;
   y_int = 0.;
-  
+
+
   // Pick out three points for interpolation
   if((gp.fd[0] <= 0.5 && gp.idx > 0) || gp.idx == N_x-2 )
     {
@@ -2815,8 +2816,107 @@ Numeric interp_cubic(ConstVectorView x,
     {
       assert(false);
     }
-  // Polinominal interpolation, n = 3
+
+  
+
+
+  /*
+  if ( x.nelem() > 3)
+    {
+  
+      // Take 4 points
+      if( gp.idx == 0 )
+        {
+          xa[0] = - x[gp.idx + 1];
+          xa[1] = x[gp.idx + 0];
+          xa[2] = x[gp.idx + 1];
+          xa[3] = x[gp.idx + 2];
+          
+          ya[0] = y[gp.idx + 1];
+          ya[1] = y[gp.idx + 0];
+          ya[2] = y[gp.idx + 1];
+          ya[3] = y[gp.idx + 2]; 
+         }
+      else if(gp.idx == N_x-1)
+        {
+          xa[0] = x[gp.idx - 1];
+          xa[1] = x[gp.idx - 0];
+          xa[2] = 2*x[gp.idx] - x[gp.idx-1];
+          xa[3] = 2*x[gp.idx] - x[gp.idx-2];
+          
+          ya[0] = y[gp.idx - 1];
+          ya[1] = y[gp.idx - 0];
+          ya[2] = y[gp.idx - 1];
+          ya[3] = y[gp.idx - 2];
+        }
+      else if(gp.idx == N_x-2)
+        {
+          xa[0] = x[gp.idx - 2];
+          xa[1] = x[gp.idx - 1];
+          xa[2] = x[gp.idx ];
+          xa[3] = x[gp.idx + 1];
+          
+          ya[0] = y[gp.idx - 2];
+          ya[1] = y[gp.idx - 1];
+          ya[2] = y[gp.idx];
+          ya[3] = y[gp.idx + 1];
+        }
+      else 
+        {
+          xa[0] = x[gp.idx - 1];
+          xa[1] = x[gp.idx];
+          xa[2] = x[gp.idx + 1];
+          xa[3] = x[gp.idx + 2];
+          
+          ya[0] = y[gp.idx - 1];
+          ya[1] = y[gp.idx];
+          ya[2] = y[gp.idx + 1];
+          ya[3] = y[gp.idx + 2];
+        }
+      // Polinominal interpolation, n = 4
+      polint(y_int, dy_int, xa, ya, 4, x_i); 
+
+      
+    
+  else 
+    {
+      cout << " only 3 points used in interpolation " << endl;
+
+      if( gp.idx == 0 )
+        {
+          xa[0] = x[gp.idx];
+          xa[1] = x[gp.idx + 1];
+          xa[2] = x[gp.idx + 2];
+      
+          ya[0] = y[gp.idx];
+          ya[1] = y[gp.idx + 1];
+          ya[2] = y[gp.idx + 2];
+        }
+      else if(gp.idx == N_x-1)
+        {
+          xa[0] = x[gp.idx - 2];
+          xa[1] = x[gp.idx - 1];
+          xa[2] = x[gp.idx];
+      
+          ya[0] = y[gp.idx - 2];
+          ya[1] = y[gp.idx - 1];
+          ya[2] = y[gp.idx];
+        }
+      else 
+        {
+          xa[0] = x[gp.idx - 1];
+          xa[1] = x[gp.idx];
+          xa[2] = x[gp.idx + 1];
+      
+          ya[0] = y[gp.idx - 1];
+          ya[1] = y[gp.idx];
+          ya[2] = y[gp.idx + 1]; 
+          }
+  */
+      // Polinominal interpolation, n = 3
   polint(y_int, dy_int, xa, ya, 3, x_i); 
+      // }
+
   return y_int;
 }
 
@@ -2851,8 +2951,6 @@ void polint(Numeric& y_int,
   Index ns = 1;
   Numeric den, dif, dift, ho, hp, w;
   
-  //cout << " xa " << xa << endl << " ya " << ya << endl << " x " << x << endl; 
-
   dif = abs(x-xa[0]);
 
   Vector c(n);

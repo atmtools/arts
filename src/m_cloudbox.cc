@@ -81,7 +81,8 @@ void cloudboxOff(
         Tensor7&         scat_i_lat,
         Tensor7&         scat_i_lon,
         Vector&          scat_za_grid,
-        Vector&          scat_aa_grid )
+        Vector&          scat_aa_grid,
+        Index&           scat_za_interp)
 {
   cloudbox_on = 0;
   cloudbox_limits.resize(0);
@@ -90,6 +91,7 @@ void cloudboxOff(
   scat_i_lon.resize(0,0,0,0,0,0,0);
   scat_za_grid.resize(0);
   scat_aa_grid.resize(0);
+  scat_za_interp = 0;
 }
 
 //! cloudboxSetIncomingForTauCalc1D
@@ -163,6 +165,7 @@ void cloudboxSetManually(
         // WS Output:
         Index&          cloudbox_on,
         ArrayOfIndex&   cloudbox_limits,
+        Index&          scat_za_interp,
         // WS Input:
         const Index&    atmosphere_dim,
         const Vector&   p_grid,
@@ -176,6 +179,9 @@ void cloudboxSetManually(
         const Numeric& lon1,
         const Numeric& lon2 )
 {
+  // Default interpolation is linear (scat_za_interp = 0)
+  scat_za_interp = 0;
+
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -281,6 +287,7 @@ void cloudboxSetManuallyAltitude(
         // WS Output:
         Index&          cloudbox_on,
         ArrayOfIndex&   cloudbox_limits,
+        Index&          scat_za_interp,
         // WS Input:
         const Index&    atmosphere_dim,
         const Tensor3&  z_field,
@@ -294,6 +301,9 @@ void cloudboxSetManuallyAltitude(
         const Numeric& lon1,
         const Numeric& lon2 )
 {
+  // Default interpolation is linear (scat_za_interp = 0)
+  scat_za_interp = 0;
+
   // Check existing WSV
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   
@@ -1704,7 +1714,7 @@ void CloudboxGetIncoming(// WS Output:
                sensor_pol_dummy, sensor_rot_dummy,
                f_grid, stokes_dim, antenna_dim_dummy,
                mblock_za_grid_dummy, mblock_aa_grid_dummy,
-               check_input, apply_sensor, 1 );
+               check_input, apply_sensor, 1, 0 );
 
           check_input = false;
 
@@ -1736,7 +1746,7 @@ void CloudboxGetIncoming(// WS Output:
                  sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                  f_grid, stokes_dim, antenna_dim_dummy,
                  mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                 check_input, apply_sensor, 1 );
+                    check_input, apply_sensor, 1, 0 );
 
           
           scat_i_p( Range(joker), 1, 0,0,
@@ -1820,7 +1830,7 @@ void CloudboxGetIncoming(// WS Output:
                                f_grid, stokes_dim, 
                                antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy, 
-                               check_input, apply_sensor, 1 );
+                                check_input, apply_sensor, 1, 0 );
 
                       check_input = false;
 
@@ -1875,7 +1885,7 @@ void CloudboxGetIncoming(// WS Output:
                                sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                               check_input, apply_sensor, 1 );
+                                check_input, apply_sensor, 1, 0 );
           
                       scat_i_p( Range(joker), 1, lat_index, lon_index, 
                                 scat_za_index, scat_aa_index,
@@ -1928,7 +1938,7 @@ void CloudboxGetIncoming(// WS Output:
                                sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                               check_input, apply_sensor, 1 );
+                                check_input, apply_sensor, 1, 0 );
           
                       scat_i_lat( Range(joker), p_index, 0, lon_index, 
                                 scat_za_index, scat_aa_index,
@@ -1981,7 +1991,7 @@ void CloudboxGetIncoming(// WS Output:
                                sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                               check_input, apply_sensor, 1 );
+                                check_input, apply_sensor, 1, 0 );
           
                       scat_i_lat( Range(joker), p_index, 1, lon_index, 
                                 scat_za_index, scat_aa_index,
@@ -2034,7 +2044,7 @@ void CloudboxGetIncoming(// WS Output:
                                sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                               check_input, apply_sensor, 1 );
+                                check_input, apply_sensor, 1, 0 );
           
                       scat_i_lon( Range(joker), p_index, lat_index, 0, 
                                 scat_za_index, scat_aa_index,
@@ -2087,7 +2097,7 @@ void CloudboxGetIncoming(// WS Output:
                                sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                                f_grid, stokes_dim, antenna_dim_dummy, 
                                mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                               check_input, apply_sensor, 1 );
+                                check_input, apply_sensor, 1, 0 );
           
                       scat_i_lon( Range(joker), p_index, lat_index, 1, 
                                 scat_za_index, scat_aa_index,
@@ -2266,7 +2276,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                 f_grid, stokes_dim, 
                 antenna_dim_dummy, 
                 mblock_za_grid_dummy, mblock_aa_grid_dummy, 
-                check_input, apply_sensor, 1 );
+                check_input, apply_sensor, 1, 0 );
       
       check_input = false;
 
@@ -2316,7 +2326,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                 sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                 f_grid, stokes_dim, antenna_dim_dummy, 
                 mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                check_input, apply_sensor, 1 );
+                check_input, apply_sensor, 1, 0 );
       
 
       for (Index lat = 0; lat < Nlat_cloud; lat ++)
@@ -2369,7 +2379,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                    check_input, apply_sensor, 1 );
+                    check_input, apply_sensor, 1, 0 );
 
           
           for (Index lon = 0; lon < Nlon_cloud; lon ++)
@@ -2420,7 +2430,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                    check_input, apply_sensor, 1 );
+                    check_input, apply_sensor, 1, 0 );
           
           for (Index lon = 0; lon < Nlon_cloud; lon ++)
             {
@@ -2468,7 +2478,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                    check_input, apply_sensor, 1 );
+                    check_input, apply_sensor, 1, 0 );
 
           for (Index lat = 0; lat < Nlat_cloud; lat ++)
             {
@@ -2515,7 +2525,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                     sensor_los, sensor_pol_dummy, sensor_rot_dummy,
                     f_grid, stokes_dim, antenna_dim_dummy, 
                     mblock_za_grid_dummy, mblock_aa_grid_dummy,
-                    check_input, apply_sensor, 1 );
+                    check_input, apply_sensor, 1, 0 );
 
           
           for (Index lat = 0; lat < Nlat_cloud; lat ++)
@@ -2780,9 +2790,11 @@ void ybatchMetProfiles(//Output
 	  cl_grid_max = p_grid[1];
 	}
       
+      Index dummy_interp;
+
       //Cloudbox is set.
       cloudboxSetManually(cloudbox_on, 
-			  cloudbox_limits,
+			  cloudbox_limits, dummy_interp,
 			  atmosphere_dim,
 			  p_grid,
 			  lat_grid,

@@ -84,6 +84,7 @@ extern const Numeric RAD2DEG;
 
   WS Output:
   \param convergence_flag Flag for convergence test.
+  \param iteration_counter
   WS Input:
   \param i_field Radiation field.
   \param i_field_old Old radiation field.
@@ -96,6 +97,7 @@ extern const Numeric RAD2DEG;
 */
 void convergence_flagAbs(//WS Output:
                       Index& convergence_flag,
+                      Index& iteration_counter,
                       // WS Input:
                       const Tensor6& i_field,
                       const Tensor6& i_field_old,
@@ -112,6 +114,8 @@ void convergence_flagAbs(//WS Output:
   const Index N_aa = i_field.nrows();
   const Index stokes_dim = i_field.ncols();
    
+  iteration_counter +=1;
+
   // Check if i_field and i_field_old have the same dimensions:
   assert(is_size( i_field_old, 
                   N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
@@ -141,7 +145,7 @@ void convergence_flagAbs(//WS Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            fabs( i_field(p_index, lat_index, lon_index, 
+                            abs( i_field(p_index, lat_index, lon_index, 
                                           scat_za_index, scat_aa_index, 
                                           stokes_index) -
                                   i_field_old(p_index, lat_index, 
@@ -166,7 +170,122 @@ void convergence_flagAbs(//WS Output:
   
   // Convergence test has been successful, convergence_flag can be set to 1.
   convergence_flag = 1;
+  out2 << "Number of DOIT-iterations: " << iteration_counter << "\n";
 }
+
+
+//! Convergence test (Least Square). 
+/*! 
+  The function perferms a least square convergence test of two successive
+  iteration fields. 
+  The Vector *epsilon* includes values determining the accuracy in Rayleigh 
+  Jeans BT. 
+  Elements of *epsilon* correspond to elements of the Stokes vector. At least 
+  the accuracy of the intensity (first element) has to be specified. The other 
+  elements are optional input. 
+
+  The conditions have to be valid for all positions in the cloudbox and
+  for all directions.
+  Then convergence_flag is set to 1. 
+
+  WS Output:
+  \param convergence_flag Flag for convergence test.
+  \param iteration_counter
+  WS Input:
+  \param i_field Radiation field.
+  \param i_field_old Old radiation field.
+  \param f_grid Frequency grid
+  \param f_index Frequency index
+  Keyword : 
+  \param epsilon   Limiting values for the convergence test
+
+  \author Claudia Emde
+  \date 2004-03-17
+
+*/
+void convergence_flagLsq(//WS Output:
+                      Index& convergence_flag,
+                      Index& iteration_counter,
+                      // WS Input:
+                      const Tensor6& i_field,
+                      const Tensor6& i_field_old,
+                      const Vector& f_grid,
+                      const Index& f_index,
+                      // Keyword:
+                      const Vector& epsilon)
+{
+  //Check the input:
+  assert( convergence_flag == 0 );
+  
+  const Index N_p = i_field.nvitrines();
+  const Index N_lat = i_field.nshelves();
+  const Index N_lon = i_field.nbooks();
+  const Index N_za = i_field.npages();
+  const Index N_aa = i_field.nrows();
+  const Index stokes_dim = i_field.ncols();
+  
+  Vector lqs(4, 0.);
+  iteration_counter += 1;
+  
+  // Check if i_field and i_field_old have the same dimensions:
+  assert(is_size( i_field_old, 
+                  N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
+
+  //The number of elements in epsilon must be between 1 and 4.
+  assert( 1 <= epsilon.nelem() <= 4);
+ 
+  
+  for (Index i = 0; i < epsilon.nelem(); i ++)
+    {
+      for (Index p_index = 0; p_index < N_p; p_index++)
+        { 
+          for (Index lat_index = 0; lat_index < N_lat; lat_index++)
+            {
+              for (Index lon_index = 0; lon_index <N_lon; lon_index++)
+                {
+                  for (Index scat_za_index = 0; scat_za_index < N_za;
+                       scat_za_index++)
+                    {
+                      for (Index scat_aa_index = 0; scat_aa_index < N_aa;
+                           scat_aa_index++)
+                        {
+                          lqs[i] 
+                            += pow(
+                                   i_field(p_index, lat_index, lon_index, 
+                                           scat_za_index, scat_aa_index, i) -
+                                   i_field_old(p_index, lat_index, 
+                                               lon_index, scat_za_index,
+                                               scat_aa_index, i) 
+                                   , 2);
+                        }// End loop scat_aa_grid. 
+                    }// End loop scat_za_grid.
+                }// End loop lon_grid. 
+            }// End loop lat_grid.
+        } // End p_grid.
+   
+
+      lqs[i] = sqrt(lqs[i]);
+      lqs[i] /= (N_p*N_lat*N_lon*N_za*N_aa);
+
+      // Convert difference to Rayleigh Jeans BT
+      lqs[i] = invrayjean(lqs[i], f_grid[f_index]);
+      out1 << "lqs: " << lqs << "\n";
+      
+      if (lqs[i] >= epsilon[i])
+        {
+        convergence_flag = 0;
+        }
+      else
+        {
+        // Convergence test has been successful,
+        // convergence_flag can be set to 1.
+        convergence_flag = 1;
+        out1 << "Number of DOIT-iterations: " << iteration_counter << "\n";
+        }
+    } // end loop stokes_index
+  
+}
+
 
 //! Convergence test in BT(maximum absolute difference in BT(RJ)). 
 /*! 
@@ -181,6 +300,7 @@ void convergence_flagAbs(//WS Output:
  
   WS Output:
   \param convergence_flag Fag for convergence test.
+  \param iteration_counter
   WS Input:
   \param i_field Radiation field.
   \param i_field_old Old radiation field.
@@ -196,6 +316,7 @@ void convergence_flagAbs(//WS Output:
 */
 void convergence_flagAbs_BT(//WS Output:
                             Index& convergence_flag,
+                            Index& iteration_counter,
                             // WS Input:
                             const Tensor6& i_field,
                             const Tensor6& i_field_old,
@@ -213,6 +334,8 @@ void convergence_flagAbs_BT(//WS Output:
   const Index N_za = i_field.npages();
   const Index N_aa = i_field.nrows();
   const Index stokes_dim = i_field.ncols();
+
+  iteration_counter += 1;
    
   // Check if i_field and i_field_old have the same dimensions:
   assert(is_size( i_field_old, 
@@ -269,6 +392,7 @@ void convergence_flagAbs_BT(//WS Output:
   
   // Convergence test has been successful, convergence_flag can be set to 1.
   convergence_flag = 1;
+  out2 << "Number of DOIT-iterations:" << iteration_counter << "\n";
 }
 
 
@@ -369,8 +493,8 @@ i_fieldIterate(
     scat_rte_agenda.execute(true);
 
     //Convergence test.
-    out2 << "Execute convergence_test_agenda. \n";
-    convergence_test_agenda.execute(true);
+    //out2 << "Execute convergence_test_agenda. \n";
+    convergence_test_agenda.execute(0);
 
   }//end of while loop, convergence is reached.
 }
@@ -1015,7 +1139,8 @@ i_fieldUpdateSeq1D(// WS Output:
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-                   const Agenda& ground_refl_agenda //STR
+                   const Agenda& ground_refl_agenda, //STR
+                   const Index& scat_za_interp
                    )
 {
   
@@ -1133,7 +1258,8 @@ i_fieldUpdateSeq1D(// WS Output:
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field,
-                                   abs_vec_field,ground_refl_agenda); 
+                                   abs_vec_field,ground_refl_agenda,
+                                   scat_za_interp); 
             }
         }
       else if ( scat_za_grid[scat_za_index] > theta_lim) 
@@ -1155,7 +1281,8 @@ i_fieldUpdateSeq1D(// WS Output:
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field, 
-                                   abs_vec_field,ground_refl_agenda); 
+                                   abs_vec_field,ground_refl_agenda,
+                                   scat_za_interp); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       
@@ -1190,7 +1317,8 @@ i_fieldUpdateSeq1D(// WS Output:
                                        opt_prop_gas_agenda, ppath_step_agenda,
                                        p_grid,  z_field, r_geoid, t_field, 
                                        f_grid, f_index, ext_mat_field, 
-                                       abs_vec_field,ground_refl_agenda);
+                                       abs_vec_field,ground_refl_agenda,
+                                       scat_za_interp);
                 }
             }
         } 
@@ -1923,7 +2051,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                      // Calculate thermal emission:
                      const Tensor3& t_field,
                      const Vector& f_grid,
-                     const Index& f_index
+                     const Index& f_index,
+                     const Index& scat_za_interp
                      )
 {
   
@@ -2053,7 +2182,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                lat_grid, lon_grid, z_field, 
                                                r_geoid, t_field, f_grid,
                                                f_index,
-                                               ext_mat_field, abs_vec_field);
+                                               ext_mat_field, abs_vec_field,
+                                               scat_za_interp);
                         }
                     }
                 }
@@ -2086,7 +2216,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                lat_grid, lon_grid, z_field, 
                                                r_geoid, t_field, f_grid,
                                                f_index,
-                                               ext_mat_field, abs_vec_field);
+                                               ext_mat_field, abs_vec_field,
+                                               scat_za_interp);
                         }
                     }
                 }
@@ -2138,7 +2269,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                                                    r_geoid, t_field, f_grid,
                                                    f_index,
                                                    ext_mat_field,
-                                                   abs_vec_field); 
+                                                   abs_vec_field,
+                                                   scat_za_interp); 
                             }
                         }
                     }
@@ -2679,6 +2811,7 @@ scat_fieldCalc(//WS Output:
     \param atmosphere_dim Atmospheric dimension
     \param cloudbox_limits Limits of the cloudbox.
     \param za_gridsize Number of grid points in zenith angle grid.
+    \param scat_za_interp
 
 \author Claudia Emde
 \date 2003-11-28
@@ -2699,7 +2832,8 @@ scat_fieldCalcLimb(//WS Output:
                const Vector& scat_aa_grid,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
-               const Index& za_grid_size
+               const Index& za_grid_size,
+               const Index& scat_za_interp
                )
   
 {
@@ -2771,8 +2905,19 @@ scat_fieldCalcLimb(//WS Output:
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
+              /* Original lin int.
               interp(i_field_int(joker, i), itw_za_i, 
                      i_field(p_index, 0, 0, joker, 0, i), gp_za_i);
+              */
+              // Cubic
+              for(Index za = 0; za < za_grid.nelem(); za++)
+                {
+                  i_field_int(za, i) = 
+                    interp_cubic(scat_za_grid, 
+                                 i_field(p_index, 0, 0, joker, 0, i),
+                                 za_grid[za],
+                                 gp_za_i[za]);
+                }
             }       
           
           //There is only loop over zenith angle grid; no azimuth angle grid.
@@ -2837,25 +2982,39 @@ scat_fieldCalcLimb(//WS Output:
         // Interpolation on scat_za_grid, which is used in radiative transfer 
         // part.
         for (Index i = 0; i < stokes_dim; i++)
-          { 
-            interp(scat_field(p_index,
-                              0,
-                              0,
-                              joker,
-                              0,
-                              i),
-                   itw_za,
-                   scat_field_org(joker, i),
-                   gp_za);
+          {
+            if(scat_za_interp == 0) // linear interpolation
+              {
+                interp(scat_field(p_index,
+                                  0,
+                                  0,
+                                joker,
+                                  0,
+                                  i),
+                       itw_za,
+                       scat_field_org(joker, i),
+                       gp_za);
+              }
+            else // cubic interpolation
+              {
+                for(Index za = 0; za < scat_za_grid.nelem(); za++)
+                  {
+                    scat_field(p_index, 0, 0, za, 0, i) = 
+                      interp_cubic(za_grid, 
+                                   scat_field_org(joker, i),
+                                   scat_za_grid[za],
+                                   gp_za[za]);
+                  }
+              }
           }
-      }//end p_index loop
-    
-  }//end atmosphere_dim = 1
-
+        }//end p_index loop
+      
+    }//end atmosphere_dim = 1
+  
   
   if( atmosphere_dim == 3 ){
     
-
+    
     assert ( is_size( i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) +1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
@@ -2988,6 +3147,8 @@ scat_fieldCalcLimb(//WS Output:
   \param ext_mat_spt: Extinction matrix for a single particle type.
   \param abs_vec_spt: Absorption vector for a single particle type.
   \param i_field : Radiation field
+  \param iteration_counter
+  \param scat_za_interp
   \param scat_field: Scattered field.
   \param stokes_dim: Stokes dimension.
   \param atmosphere_dim: Atmospheric dimension.
@@ -3008,6 +3169,7 @@ void ScatteringInit(
                     Matrix& abs_vec_spt,
                     Tensor6& scat_field,
                     Tensor6& i_field,
+                    Index& iteration_counter,
                     const Index& stokes_dim,
                     const Index& atmosphere_dim,
                     const Vector& scat_za_grid,
@@ -3052,7 +3214,8 @@ void ScatteringInit(
   ext_mat_spt.resize(N_pt, stokes_dim, stokes_dim);
   ext_mat_spt = 0.;  
 
-             
+  iteration_counter = 0;
+
   if (atmosphere_dim == 1)
     {
       i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
@@ -3133,20 +3296,38 @@ void ScatteringMain(
 }
 
 
-
-//! Increase iteration counter.  
+//! Define interpolation method for zenith angle dimension
 /*!
-  This function has to be used if you want to write the separate iteration 
-  fields into differtent files using *Tensor6WriteIteration*.
+  You can use this method to choose the inerpolation method for 
+  interpolations in the zenith angle dimension. This method has to be used 
+  after (!) *cloudboxSetManually*.
+  By default, linear interpolation is used.
+      
+  WS Output: 
+  \param scat_za_interp Flag for interpolation method
+  
+  Keyword:
+  \param method Interpolation method: "linear" or "cubic"
 
-  \param iteration_counter Counter for the number of iterations.
-*/
-void iteration_counterIncrease(Index& iteration_counter)
+  \author Claudia Emde
+  \date 2004-03-18
+     
+*/ 
+void scat_za_interpSet(
+                       Index& scat_za_interp,
+                       //Keyword
+                       const String& method
+                       )
 {
-  iteration_counter += 1;
-}   
+  if(method == "linear")
+    scat_za_interp = 0;
+  else if (method == "cubic")
+    scat_za_interp = 1;
+  else
+    throw runtime_error("Possible interpolation methods are 'linear' "
+                        "and 'cubic'.\n");
+}
 
- 
  
 //! Write iterated fields.
 /*!

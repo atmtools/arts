@@ -222,6 +222,7 @@ void cloud_fieldsCalc(// Output:
   \param abs_vec_field
   Ground reflection 
   \param ground_refl_agenda
+  \param scat_za_interp
 
   \author Claudia Emde
   \date 2002-06-04
@@ -266,7 +267,8 @@ void cloud_ppath_update1D(
 			  //particle optical properties
 			  ConstTensor5View ext_mat_field,
 			  ConstTensor4View abs_vec_field,
-			  const Agenda& ground_refl_agenda //STR
+			  const Agenda& ground_refl_agenda, //STR
+                          const Index& scat_za_interp
 			  )
 {
   const Index stokes_dim = i_field.ncols();
@@ -345,7 +347,11 @@ void cloud_ppath_update1D(
       Vector stokes_vec(stokes_dim);
       //Tensor3 ext_mat_gas(stokes_dim, stokes_dim, ppath_step.np);
       //Matrix abs_vec_gas(stokes_dim, ppath_step.np);
-                        
+      // For cubic interpolation
+      Tensor3 sca_vec_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 0.);
+      Tensor3 i_field_int_za(stokes_dim, ppath_step.np, scat_za_grid.nelem(), 0.);
+
+
       // Calculate the average of the coefficients for the layers
       // to be considered in the 
       // radiative transfer calculation.
@@ -373,15 +379,40 @@ void cloud_ppath_update1D(
 	  //
 	  // Scattered field:
 	  //
-	  // Interpolation of sca_vec:
-	  //
-	  out3 << "Interpolate scat_field:\n";
-	  interp( sca_vec_int(i, joker), itw_p_za, 
-		  scat_field(joker, 0, 0, joker, 0, i), cloud_gp_p, gp_za);
-	  out3 << "Interpolate i_field:\n";
-	  interp( i_field_int(i, joker), itw_p_za, 
-		  i_field(joker, 0, 0, joker, 0, i), cloud_gp_p, gp_za);
-	}
+          //
+          out3 << "Interpolate scat_field and i_field:\n";
+          if(scat_za_interp == 0) // linear interpolation
+            {
+              interp( sca_vec_int(i, joker), itw_p_za, 
+                      scat_field(joker, 0, 0, joker, 0, i), cloud_gp_p, gp_za);
+              interp( i_field_int(i, joker), itw_p_za, 
+                      i_field(joker, 0, 0, joker, 0, i), cloud_gp_p, gp_za);
+            }
+          else //cubic interpolation
+            {
+              for (Index za = 0; za < scat_za_grid.nelem(); za++)
+                {
+                  interp( sca_vec_int_za(i, joker, za), itw, 
+                          scat_field(joker, 0, 0, za, 0, i), cloud_gp_p);
+                  out3 << "Interpolate i_field:\n";
+                  interp( i_field_int_za(i, joker, za), itw, 
+                          i_field(joker, 0, 0, za, 0, i), cloud_gp_p);
+                }
+              for (Index ip = 0; ip < ppath_step.np; ip ++)
+                {
+                  sca_vec_int(i, ip) = 
+                    interp_cubic(scat_za_grid, 
+                                 sca_vec_int_za(i, ip, joker),
+                                 los_grid[ip],
+                                 gp_za[ip]);
+                  i_field_int(i, ip) = 
+                    interp_cubic(scat_za_grid, 
+                                 i_field_int_za(i, ip, joker),
+                                 los_grid[ip],
+                                 gp_za[ip]);
+                }
+            }
+        }
       //
       // Planck function
       // 
@@ -767,7 +798,8 @@ void cloud_ppath_update3D(
 			  const Index& f_index,
 			  //particle optical properties
 			  ConstTensor5View ext_mat_field,
-			  ConstTensor4View abs_vec_field
+			  ConstTensor4View abs_vec_field,
+                          const Index& //scat_za_interp
 			  )
 {
   const Index stokes_dim = i_field.ncols();
