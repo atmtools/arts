@@ -1,3 +1,11 @@
+2004-01-23  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-780
+	
+	* aux/abundances/*, aux/iup_forward_comp/H2O_183GHz/*,
+	aux/iup_forward_comp/fascod/*, aux/iup_forward_comp/master_b/*,
+	aux/iup_forward_comp/o2_spin_rot, aux/part_fct/*: Removed.
+
 2004-01-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-779

@@ -1,6 +1,0 @@
-Directory-Pfade von         ->Dummy User                    <-  fuer FORWARD und INVERSION (max. 60 bytes)
-Poynter u. Pickett Katalog  ->/lookup/jpl/newcat/           <-  catpath
-Atmosphaeren - Modelle      ->/lookup/modatm/               <-  atmpath
-VMR - Profile               ->/lookup/modvmr/               <-  vmrpath
-FORWARD Output - Daten      ->./                            <-  datpath
-INVERSION Output - Daten    ->./                            <-  inv_pfad
