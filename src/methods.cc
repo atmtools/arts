@@ -2767,6 +2767,26 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("mc_errorApplySensor"),
+        DESCRIPTION
+        (
+         "Applies the sensor response on *mc_error*.\n"
+         "\n"
+         "The values in *mc_error* are weighted together assuming that the\n"
+         "calculation error is independent between Stokes components, and \n"
+         "is normal distributed. That is, if e=mc_error and H is the sensor\n"
+         "response, the following calculation is performed (Matlab syntax):\n"
+         "   e = sqrt( abs(H)*(e.*e) ) " 
+        ),
+        OUTPUT( mc_error_ ),
+        INPUT( mc_error_, sensor_response_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("NumericSet"),
         DESCRIPTION
         (

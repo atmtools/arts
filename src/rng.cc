@@ -36,6 +36,7 @@ generator from the GNU Scientific Library <http://www.gnu.org/software/gsl/>.
 #include <cstring>
 #include <iostream>
 #include "arts.h"
+#include "messages.h"
 /*!
 Constructor creates instance of gsl_rng of type gsl_rng_mt19937 and seeds it 
 with the system time
@@ -63,7 +64,7 @@ void Rng::seed(unsigned long int n)
 {
 seed_no=n;
 gsl_rng_set(r,seed_no);
- cout << "RNG seed: " << seed_no << "\n";
+ out2 << "RNG seed: " << seed_no << "\n";
 };
 
 

@@ -864,8 +864,8 @@ void surfaceFlat(
   const Index   nf = f_grid.nelem();
 
   surface_los.resize( 1, rte_los.nelem() );
-  surface_los = rte_los;
-  surface_specular_los( surface_los(0,joker), atmosphere_dim );
+  surface_los(0,joker) = rte_los;
+  surface_specular_los( rte_los, atmosphere_dim );
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize( 1, nf, stokes_dim, stokes_dim );
@@ -942,8 +942,8 @@ void surfaceSingleEmissivity(
   const Index   nf = f_grid.nelem();
 
   surface_los.resize( 1, rte_los.nelem() );
-  surface_los = rte_los;
-  surface_specular_los( surface_los(0,joker), atmosphere_dim );
+  surface_los(0,joker) = rte_los;
+  surface_specular_los( rte_los, atmosphere_dim );
 
   surface_emission.resize( nf, stokes_dim );
   surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);

@@ -70,6 +70,37 @@ extern const Numeric SPEED_OF_LIGHT;
 
 
 
+//! mc_errorApplySensor
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2005-03-15
+*/
+void mc_errorApplySensor(
+           Vector&   mc_error,
+     const Sparse&   sensor_response )
+{
+  const Index   n = mc_error.nelem();
+
+  if( sensor_response.ncols() != n )
+    {
+      throw runtime_error(
+                     "Mismatch in size of *sensor_response* and *mc_error*." );
+    }
+
+  Vector  i( n );
+  for( Index j=0; j<n; j++ )
+    { i[j] = mc_error[j]*mc_error[j]; }
+  mc_error.resize( sensor_response.nrows() );
+  Sparse H(sensor_response);
+  // Here it shall be abs(H)
+  mult( mc_error, H, i );
+  transform( mc_error, sqrt, mc_error );
+}
+
+
+
 //! scat_iPutMonteCarlo
 /*! 
 calculates interface Tensors scat_i_p, scat_i_lat, and scat_i_lon.  This is

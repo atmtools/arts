@@ -1,3 +1,26 @@
+2005-03-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-930
+
+	* src/m_montecarlo.cc (mc_errorApplySensor): Started on this method.
+	It is not completely finished. The absolute value of a sparse matrix
+	elements must calculated. Mattias help!
+
+	The only relevant sensor response with MC so far is polarisation.
+	The idea is that, if the sensor is set-up:
+	   mc_errorApplySensor{}
+	will give an error estimate for measured polarisations.
+
+	Cory: What do you say. Look at on-line doc for assumptions.
+	
+	* src/m_atmosphere.cc (surfaceFlat): Fixed bug caused by unexpected
+	matrix/vector interaction. Mail sent to arts-dev on the subject.
+
+	(surfaceSingleEmissivity): As above.
+
+	* src/rng.cc: Changed output of rng seed from stream cout to 
+	stream out2.
+
 2005-03-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-929
