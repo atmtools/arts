@@ -48,14 +48,14 @@ using namespace std;
  * Date:   2003-08-20
  */
 template <typename T>
-class IndexComp : public std::binary_function<int,int,bool>
+class IndexComp : public std::binary_function<Index, Index, bool>
 {
    const T	&m_data;
 
 public:
    IndexComp (const T &data ) : m_data (data) {}
 
-   bool operator()(int a, int b) const
+   bool operator()(Index a, Index b) const
    {
       return (m_data[a] < m_data[b]);
    }
@@ -88,7 +88,7 @@ get_sorted_indexes (ArrayOfIndex &sorted, const T &data)
       i++;
     }
 
-  std::sort(sorted.begin(), sorted.end(), IndexComp<T>(data));
+  std::sort (sorted.begin(), sorted.end(), IndexComp<T>(data));
 }
 
 #endif /* sorting_h */
