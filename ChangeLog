@@ -1,3 +1,14 @@
+2005-01-21  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-914
+
+	* doc/uguide/sensor.tex: Updated the sensor part of the user guide.
+	I've fixed all references and figures, but there are still a few
+	fixme's that has to be fixed and probably som polishing of the text.
+
+	* doc/uguide/Figs/sensor/folding.mps: Added figure that visualises
+	the folding of the spectra in the mixer. 
+
 2005-01-18  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-913
