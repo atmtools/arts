@@ -24,6 +24,8 @@ arts_SOURCES = \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	auto_wsv_pointers.cc \
+	bifstream.h \
+	bifstream.cc \
 	bofstream.h \
 	bofstream.cc \
 	check_input.cc \
