@@ -1,5 +1,14 @@
 2001-10-07  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-0-1-0
+
+	* This is pre-release 1.
+	
+	* doc/uguide/Figs/Makefile.am (EXTRA_DIST): Removed *calerror*.
+	
+
+2001-10-07  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-0-0-267
 	
 	* src/Makefile.am (methods.o): Added -I.. to be compatible with
