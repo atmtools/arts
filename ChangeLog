@@ -1,8 +1,17 @@
+2002-03-08  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-9
+
+        * Added these functions to AMI: mkfig_1gridbox_2d, mkfig_ppath_2d,
+        plot_1gridbox_2d, plot_atm_2d, plot_ppath, plot_psurface, 
+        alpha_between_r1_r2, cyl2cart, do_1gridbox_2d_geom, ppath_2d_3d,
+        psurface_crossing, tilt_of_psurface and wgs84.
+
 2002-02-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-9
 
-	* ami/file/write_linefile.m: The falg to append or not was set to the
+	* ami/file/write_linefile.m: The flag to append or not was set to the
 	wrong the default value.
 
 2002-02-07  Patrick Eriksson  <patrick@rss.chalmers.se>
@@ -34,7 +43,7 @@
 
 	* doc/arts-splash.gif: Added.
 
-	* doc/Makefile.am (EXTRA_DIST), doc/index.html.in: Added
+q	* doc/Makefile.am (EXTRA_DIST), doc/index.html.in: Added
 	arts-splash.gif.
 
 2002-01-22  Patrick Eriksson  <patrick@rss.chalmers.se>

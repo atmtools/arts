@@ -19,8 +19,14 @@ EXTRA_DIST = \
 	axes_nx1.m \
 	fig_size.m \
 	lpr.m \
+	mkfig_1gridbox_2d.m \
+	mkfig_ppath_2d.m \
 	pline.m \
 	plineleg.m \
+	plot_1gridbox_2d.m \
+	plot_atm_2d.m \
+	plot_ppath.m \
+	plot_psurface.m \
 	suptitle.m \
 	text2.m \
 	text3.m \
