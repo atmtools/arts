@@ -54,13 +54,13 @@
     \date   2001-01-16 
     \author Stefan Buehler 
 */
-void lineshape_no_shape(  Vector&       ls,
-                          Vector&       X,
-                          Numeric       f0,
-                          Numeric       gamma,
-                          Numeric       sigma,
-                          VectorView f_mono,
-                          const Index  nf)
+void lineshape_no_shape(  Vector&       /* ls */,
+                          Vector&       /* X */,
+                          Numeric       /* f0 */,
+                          Numeric       /* gamma */,
+                          Numeric       /* sigma */,
+                          VectorView    /* f_mono */,
+                          const Index   /* nf */)
 {
   // This function should never be called so throw an error here: 
   throw runtime_error("The no_shape lineshape is only a placeholder, but you tried\n"
@@ -81,10 +81,10 @@ void lineshape_no_shape(  Vector&       ls,
     \author Stefan Buehler 
     \date 2000-06-16 */
 void lineshape_lorentz(Vector&       ls,
-                       Vector&       X,
+                       Vector&       /* X */,
                        Numeric       f0,
                        Numeric       gamma,
-                       Numeric       sigma,
+                       Numeric       /* sigma */,
                        VectorView f_mono,
                        const Index  nf)
 {
@@ -120,9 +120,9 @@ void lineshape_lorentz(Vector&       ls,
     \author Axel von Engeln
     \date 2000-12-06 */
 void lineshape_doppler(Vector&       ls,
-                       Vector&       x,
+                       Vector&       /* x */,
                        Numeric       f0,
-                       Numeric       gamma,
+                       Numeric       /* gamma */,
                        Numeric       sigma,
                        VectorView f_mono,
                        const Index  nf)
@@ -1845,10 +1845,10 @@ void chi_cousin(
     \date 2000-09-04 */
 void lineshape_CO2_lorentz(
             Vector&   ls,
-            Vector&   X,
+            Vector&   /* X */,
             Numeric   f0,
             Numeric   gamma,
-            Numeric   sigma,
+            Numeric   /* sigma */,
       VectorView      f_mono,
       const Index     nf )
 {
@@ -1934,9 +1934,9 @@ void lineshape_CO2_drayson(
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(Vector&       fac,
-                            Numeric       f0,
-                            VectorView f_mono,
-                            const Numeric T,
+                            Numeric       /* f0 */,
+                            VectorView    f_mono,
+                            const Numeric /* T */,
                             const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1963,8 +1963,8 @@ void lineshape_norm_no_norm(Vector&       fac,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(Vector&       fac,
                            Numeric       f0,
-                           VectorView f_mono,
-                           const Numeric T,
+                           VectorView    f_mono,
+                           const Numeric /* T */,
                            const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -1990,8 +1990,8 @@ void lineshape_norm_linear(Vector&       fac,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_quadratic(Vector&       fac,
                               Numeric       f0,
-                              VectorView f_mono,
-                              const Numeric T,
+                              VectorView    f_mono,
+                              const Numeric /* T */,
                               const Index   nf)
 {
   // FIXME: nf is actually redundant. Could be thrown out in the
@@ -2026,11 +2026,10 @@ void lineshape_norm_quadratic(Vector&       fac,
     \author Axel von Engeln 2003-07-28 */
 void lineshape_norm_VVH(Vector&       fac,
                         Numeric       f0,
-                        VectorView f_mono,
+                        VectorView    f_mono,
                         const Numeric T,
                         const Index   nf)
 {
-  extern const Numeric PI;
   extern const Numeric PLANCK_CONST;
   extern const Numeric BOLTZMAN_CONST;
 
