@@ -1,3 +1,14 @@
+2004-10-07  Cory Davis  <cory@localhost.localdomain>
+
+	* arts-1-1-895
+	
+	* tests/testall.py (ArtsRun): A baby arts run class for the
+	handling of test cases. 
+	(MonteCarloTest): Added tests for the accuracy of the total
+	radiance and polarization difference. OK Oliver, lets see your
+	makefile do this! ;)
+	
+
 2004-10-06  Cory Davis  <cory@localhost.localdomain>
 
 	* arts-1-1-894

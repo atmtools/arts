@@ -1,29 +1,43 @@
 import os
 import unittest
 
-def dotest(name):
-    exit_status=os.system('../src/arts -r 03 '+name+'.arts >/dev/null')
-    assert exit_status==0,'Error occurred while running '+name+'.arts\n'
-
-
+class ArtsRun:
+    """A baby arts run class for handling test cases"""
+    def __init__(self,control_file):
+        """Initialised by the control file name"""
+        self.control_file=control_file
+    def run(self):
+        """Run the control file"""
+        w,r,e=os.popen3('../src/arts '+self.control_file)
+        self.output=r.read()
+        self.error=e.read()
+    def get_val(self,name):
+        """get a Numeric or vector value from standard output. Always returns a list
+        .  This is where numpy would be nice"""
+        str_list=self.output[self.output.index('*'+name+'*'):].splitlines()[1].split()
+        #convert to list of floats
+        val_list=[]
+        for s in str_list:
+            val_list.append(float(s))
+        return val_list
+            
 class MonteCarloTest(unittest.TestCase):
     """Testing the ARTS-MC algorithm"""
-    def testRunsWithNoErrors(self):
+    MCrun=ArtsRun('simpleMC.arts')
+    def test1(self):
         """Simple Monte Carlo test should run with no errors"""
-        dotest('simpleMC')
+        self.MCrun.run()
+        assert self.MCrun.error=='','Error running simpleMC.arts: '+self.MCrun.error
+    def test2(self):
+        """Total radiance should be close to 142K"""
+        I=self.MCrun.get_val('y')[0]
+        assert abs(I-140) < 4, 'I (='+str(I)+'K) is too far away from 140K'
+    def test3(self):
+        """Polarization difference should be close to 0 K"""
+        Q=self.MCrun.get_val('y')[1]
+        assert abs(Q) < 1, 'Q (='+str(Q)+'K) is too far away from 0K'
         
 
-class DOIT1DTest(unittest.TestCase):
-    """Testing the DOIT-1D algorithm"""
-    def testRunsWithNoErrors(self):
-        """Simple 1D DOIT test should run with no errors"""
-        dotest('simpleDOIT1D')
-
-class DOIT3DTest(unittest.TestCase):
-    """Testing the DOIT-3D algorithm"""
-    def testRunsWithNoErrors(self):
-        """Simple 3D DOIT test should run with no errors"""
-        dotest('simpleDOIT3D')
 
 if __name__=='__main__':
     unittest.main()
