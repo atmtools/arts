@@ -59,9 +59,9 @@ if ARTS_GENDOCS
 # show up explicitly in EXTRA_DIST, since this is distributed automatically.
 
 uguide.dvi: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
-	latex  uguide > /dev/null
+	latex  uguide
 	bibtex uguide
-	latex  uguide > /dev/null
+	latex  uguide
 	latex  uguide
 	rm -f  *.aux
 
@@ -69,9 +69,9 @@ uguide.ps: uguide.dvi
 	dvips -f uguide > uguide.ps
 
 uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
-	pdflatex uguide_pdf > /dev/null
+	pdflatex uguide_pdf
 	bibtex uguide_pdf
-	pdflatex  uguide_pdf > /dev/null
+	pdflatex  uguide_pdf
 	pdflatex  uguide_pdf
 	rm -f  *.aux
 
