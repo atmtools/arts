@@ -83,6 +83,7 @@ int main()
           << "#include \"m_general.h\"\n"
           << "#include \"gridded_fields.h\"\n"
           << "#include \"jacobian.h\"\n"
+          << "#include \"mc_interp.h\"\n"
           << "\n";
       
       ofs << "//! Total number of workspace variables.\n"

@@ -1,3 +1,35 @@
+2005-02-28  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+        * arts-1-1-924
+
+        * src/groups.cc (define_wsv_group_names): Added SLIData2
+
+        * src/workspace.cc (define_wsv_data): changed group of mc_incoming
+        to SLIData2.
+
+        * src/xml_io_compound_types.{cc,h} (xml_read_from_stream): Added.
+        (xml_write_to_stream): Added.
+
+        * src/make_auto_wsv_h.cc (main): added << "#include
+        \"mc_interp.h\"\n\n";
+
+        * src/make_auto_wsv_groups_h.cc (main): added << "#include
+        \"mc_interp.h\"\n\n";
+        
+        * src/Makefile.am (arts_SOURCES): added mc_interp.{cc,h}.
+
+        * src/m_montecarlo.cc (ScatteringMonteCarlo): update
+        incoming_lookup option.
+
+        * src/xml_io_instantiation.{cc,h}: Added entries for SLIData2
+
+        * src/mc_interp.{cc,h}: Added.
+
+        * tests/simpleMCWithIncomingLookup.arts: Added. 
+
+        * tests/testall.py (MonteCarloTest2): Added tests for new control
+        file simpleMCWithIncomingLookup.arts. 
+
 2005-02-25  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-923
@@ -51,6 +83,7 @@
 
 	* Figs/rte_theory: Included figures. 
 	
+>>>>>>> 1.1316
 2005-02-21  Cory Davis  <cdavis@staffmail.ed.ac.uk>
 
 	* arts-1-1-921

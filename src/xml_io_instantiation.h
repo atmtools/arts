@@ -148,6 +148,9 @@ template void
 xml_read_from_file<SingleScatteringData> (const String&, SingleScatteringData&);
 
 template void
+xml_read_from_file<SLIData2> (const String&, SLIData2&);
+
+template void
 xml_read_from_file<SpeciesRecord> (const String&, SpeciesRecord&);
 
 template void
@@ -180,6 +183,10 @@ xml_write_to_file<RetrievalQuantity> (const String&,
 template void
 xml_write_to_file<SingleScatteringData> (const String&,
                                          const SingleScatteringData&, FileType);
+
+template void
+xml_write_to_file<SLIData2> (const String&,
+                             const SLIData2&, FileType);
 
 template void
 xml_write_to_file<SpeciesRecord> (const String&, const SpeciesRecord&,

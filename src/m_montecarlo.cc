@@ -55,6 +55,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "rng.h"
 #include <ctime>
 #include <fstream>
+#include "mc_interp.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -153,13 +154,7 @@ void ScatteringMonteCarlo (
                            GridPos&              rte_gp_p,
                            GridPos&              rte_gp_lat,
                            GridPos&              rte_gp_lon,
-                           // Matrix&               i_space,
-                           //Matrix&               surface_emission,
-                           //Matrix&               surface_los, 
-                           //Tensor4&              surface_refl_coeffs,
                            Matrix&               iy,
-                           //Vector&               scat_za_grid,
-                           //Vector&               scat_aa_grid,
                            Numeric&              rte_pressure,
                            Numeric&              rte_temperature,
                            Vector&               rte_vmr_list,
@@ -167,7 +162,7 @@ void ScatteringMonteCarlo (
                            Tensor3&              ext_mat,
                            Matrix&               abs_vec,
                            Index&                f_index,
-                           ArrayOfMatrix& mc_incoming,
+                           SLIData2& mc_incoming,
                            // WS Input:
                            const Agenda&         ppath_step_agenda,
                            const Index&          atmosphere_dim,
@@ -375,7 +370,8 @@ void ScatteringMonteCarlo (
               if ( incoming_lookup )
                 {
                   Iboundary=0;
-                  Iboundary[0]=mcGetIncomingFromData(rte_pos,rte_los,mc_incoming);
+                  //Iboundary[0]=mcGetIncomingFromData(rte_pos,rte_los,mc_incoming);
+                  Iboundary[0]=mc_incoming.interpolate(rte_pos[0],rte_los[0]);
                 }
               else
                 {

@@ -103,6 +103,8 @@ arts_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_interp.cc \
+	mc_interp.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -338,6 +340,8 @@ test_geomag_calc_SOURCES = \
 	matpackVI.h \
 	matpackVII.cc \
 	matpackVII.h \
+	mc_interp.cc \
+	mc_interp.h \
 	messages.cc \
 	messages.h \
 	methods.cc \

@@ -1390,14 +1390,14 @@ wsv_data.push_back
        (
         "Incoming radiance lookup table for Monte Carlo calculations\n"
         "\n"
-        "\n"
+        "SLIData2 object with x1=r (in m), x2=LOS zentiah angle, and\n"
+        "y=incoming radiance in W / (m^2 Hz sr)]\n"
         "Usage: Input for ScatteringMonteCarlo.. \n"
         "\n"
         "Units: [m,degrees,W / (m^2 Hz sr)]\n"
         "\n"
-        "Size:  [nr,1],[nza,1],[ nr,nza ]"
         ), 
-       GROUP( ArrayOfMatrix_ )));
+       GROUP( SLIData2_ )));
 
 
   wsv_data.push_back

@@ -42,7 +42,7 @@
 #include "bifstream.h"
 #include "bofstream.h"
 #include "jacobian.h"
-
+#include "mc_interp.h"
 
 ////////////////////////////////////////////////////////////////////////////
 //   Overloaded reading/writing routines for XML streams
@@ -103,6 +103,14 @@ xml_read_from_stream (istream&, SingleScatteringData&,
 
 void
 xml_write_to_stream (ostream&, const SingleScatteringData&,
+                     bofstream * = NULL,
+                     const String& = "");
+
+void
+xml_read_from_stream (istream&, SLIData2&,
+                      bifstream * = NULL);
+void
+xml_write_to_stream (ostream&, const SLIData2&,
                      bofstream * = NULL,
                      const String& = "");
 

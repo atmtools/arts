@@ -595,6 +595,56 @@ xml_write_to_stream (ostream& os_xml,
 }
 
 
+//=== SLIData2 =====================================================
+//! Reads SLIData2 from XML input stream
+/*!
+  \param is_xml   XML Input stream
+  \param srecord  SLIData return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+
+void
+xml_read_from_stream (istream& is_xml,
+                      SLIData2 &slidata,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+  
+  tag.read_from_stream (is_xml);
+  tag.check_name ("SLIData2");
+
+  xml_read_from_stream (is_xml, slidata.x1a, pbifs);
+  xml_read_from_stream (is_xml, slidata.x2a, pbifs);
+  xml_read_from_stream (is_xml, slidata.ya, pbifs);
+  
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/SLIData2");
+}
+
+
+void
+xml_write_to_stream (ostream& os_xml,
+                     const SLIData2 &slidata,
+                     bofstream *pbofs,
+                     const String &name)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("SLIData2");
+  if (name.length ())
+    open_tag.add_attribute ("name", name);
+  open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, slidata.x1a, pbofs);
+  xml_write_to_stream (os_xml, slidata.x2a, pbofs);
+  xml_write_to_stream (os_xml, slidata.ya, pbofs);
+  
+  close_tag.set_name ("/SLIData2");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
 //=== SpeciesRecord ================================================
 
 //! Reads SpeciesRecord from XML input stream
