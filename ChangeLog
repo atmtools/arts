@@ -1,3 +1,10 @@
+2005-03-17  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-174
+	
+	* src/m_batch.cc (ybatchFromRadiosonde): Added a keyword
+	*za_per_profile* to use separate za_pencil for each radiosonde.  
+
 2004-10-11  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-0-173

@@ -5,7 +5,7 @@
    under the terms of the GNU General Public License as published by the
    Free Software Foundation; either version 2, or (at your option) any
    later version.
-
+   
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -146,7 +146,7 @@ void read_batchdata(
    \date   2000-12-06
 */
 void ybatchCalc(
-      // WS Output:
+                // WS Output:
               Matrix&                     ybatch,
       // WS Input:
         const Vector&                     f_mono,
@@ -174,7 +174,7 @@ void ybatchCalc(
         const TagGroups&                  tgs,
         const ArrayOfString&              cont_description_names,
         const ArrayOfVector&              cont_description_parameters,
-              const ArrayOfString&              cont_description_models,
+        const ArrayOfString&              cont_description_models,
       // Control Parameters:
         const Index&                        ncalc,
         const Index&                        do_t,
@@ -354,20 +354,56 @@ void ybatchFromRadiosonde(// WS Output:
                           const ArrayOfVector& cont_description_parameters,
 			  //Keyword
 			  const Index& fine_abs_grid,
-                          const Index& interpolation_in_rh)
+                          const Index& interpolation_in_rh,
+                          const Index& za_batch)
 {
   // Check value of the keyword
-  check_if_bool(fine_abs_grid , "Finegrid keyword" );
-  check_if_bool(interpolation_in_rh , "Interpolation in RH keyword" );
+  check_if_bool(fine_abs_grid, "Finegrid keyword" );
+  check_if_bool(interpolation_in_rh, "Interpolation in RH keyword" );
+  check_if_bool(za_batch, "za_batch keyword" );
 
-  // Initialize ybatch:
-  ybatch.resize( f_mono.nelem()*za_pencil.nelem(), radiosonde_data.nelem() );
-  ybatch = 0;
+  // this variable is keep the original za_pencil 
+  Vector za_pencil_profile;
+
+  if (!za_batch)
+    {
+      // Initialize ybatch:
+      ybatch.resize( f_mono.nelem()*za_pencil.nelem(), radiosonde_data.nelem() );
+      ybatch = 0;
+      za_pencil_profile.resize( za_pencil.nelem() );
+      za_pencil_profile = za_pencil;
+    }
+  //The za_pencil vector now contains one za_pencil for each profile   
+  else
+    {
+      //Check whether the number of matrices and the number of za_pencil
+      //are the same
+      if ( radiosonde_data.nelem() != za_pencil.nelem() )
+        {
+          ostringstream os;
+          os << "The number of Radiosonde profiles is " << radiosonde_data.nelem() << "\n" 
+             << "The number of zenith angles given is " << za_pencil.nelem() << "\n"
+             << "But these two are expected to be the same.\n";
+          throw runtime_error(os.str());
+        }
+      // Initialize ybatch: since there can be only one angle for each profile 
+      // the size of ybatch does not depend on the angles.
+      ybatch.resize( f_mono.nelem(), radiosonde_data.nelem() );
+      ybatch = 0;
+      za_pencil_profile.resize(1);
+    }
   
   // Loop over all radiosonde profiles:
   for ( Index i=0; i<radiosonde_data.nelem(); ++i )
     {
       const Matrix& rd = radiosonde_data[i];
+      
+      // When za_batch is set, it should be extracted from 
+      // the za_pencil for each profile
+      if (za_batch)
+        {
+          za_pencil_profile[0] = za_pencil[i];
+        } 
       
       // Check whether the launch has reached upto 100 hpa
       Numeric min_p = rd(rd.nrows() - 1, 0);
@@ -547,25 +583,25 @@ void ybatchFromRadiosonde(// WS Output:
 		   h2o_abs,
 		   refr,
 		   refr_model);
-	  
-	  // Calculate the line of sight:
-	  Los los;
-	  Vector z_tan;
-	  losCalc(// Output:
-		  los,
-		  z_tan,
-		  // Input:
-		  z_plat,
-		  za_pencil,
-		  l_step,
-		  p_abs,
-		  z_abs,
-		  refr,
-		  refr_lfac,
-		  refr_index,
-		  z_ground,
-		  r_geoid);
-	  
+          
+          // Calculate the line of sight:
+          Los los;
+              Vector z_tan;
+              losCalc(// Output:
+                      los,
+                      z_tan,
+                      // Input:
+                      z_plat,
+                      za_pencil_profile,
+                      l_step,
+                      p_abs,
+                      z_abs,
+                      refr,
+                      refr_lfac,
+                      refr_index,
+                      z_ground,
+                      r_geoid);
+              
 	  // Calculate source:
 	  ArrayOfMatrix source;
 	  sourceCalc(// Output:
@@ -601,8 +637,8 @@ void ybatchFromRadiosonde(// WS Output:
 		t_ground);
 	  
 	  // Convert Radiance to Planck Tb
-	  yTB(y, f_mono, za_pencil);
-	  
+          yTB(y, f_mono, za_pencil_profile);
+          
 	  // Assign y to this column of ybatch:
 	  ybatch(Range(joker),i) = y;
 	}
@@ -637,6 +673,7 @@ void ybatchFromRadiosondeGlobal(// WS Output:
                           const ArrayOfString& cont_description_models,
                           const ArrayOfVector& cont_description_parameters)
 {
+  
   // Initialize ybatch:
   ybatch.resize( f_mono.nelem()*za_pencil.nelem(), radiosonde_data.nelem() );
   ybatch = 0;
@@ -646,40 +683,33 @@ void ybatchFromRadiosondeGlobal(// WS Output:
     {
       const Matrix& rd = radiosonde_data[i];
 
-      // Create t_abs, z_abs:
-
-      // For the interpolated profiles:
-      
-            
       ConstVectorView p_raw = rd(Range(joker),0);
-      ConstVectorView z_raw = rd(Range(joker),1);
-      ConstVectorView t_raw = rd(Range(joker),2);
-      
-      Vector p_abs;
+      ConstVectorView t_raw = rd(Range(joker),1);
+      ConstVectorView z_raw = rd(Range(joker),2);
 
+      Vector p_abs;
+      
       VectorNLogSpace (p_abs,"p_abs",p_raw[0],p_raw[p_raw.nelem()-1],100);
       Vector t_abs( p_abs.nelem() );
       Vector z_abs( p_abs.nelem() );
                        
-      interpp (t_abs,p_raw,t_raw,p_abs);
-      interpp (z_abs,p_raw,z_raw,p_abs);        
+      interpp ( t_abs, p_raw, t_raw, p_abs );
+      interpp ( z_abs, p_raw, z_raw, p_abs );        
       
       // Create vmrs:
-      
-      ConstVectorView h20_raw = rd(Range(joker),4);
-      
-      Matrix vmrs(3,p_abs.nelem());
-      interpp (vmrs(0,Range(joker)),p_raw,h20_raw,p_abs);
-      //vmrs(0,Range(joker)) = rd(Range(joker),4);     // H2O
-      vmrs(1,Range(joker)) = 0.209;                  // O2 
-      vmrs(2,Range(joker)) = 0.782;                  // N2
+      ConstVectorView h2o_raw = rd( Range(joker), 3 );
+            
+      Matrix vmrs( tgs.nelem(), p_abs.nelem() );
+      interpp ( vmrs(0, Range( joker ) ), p_raw,h2o_raw, p_abs );
+      vmrs( 1, Range( joker ) ) = 0.209;                  // O2 
+      vmrs( 2, Range( joker ) ) = 0.782;                  // N2
 
       // Set the physical H2O profile from the H2O profile in vmrs:
-      Vector h2o_abs = vmrs(0,Range(joker));
+      Vector h2o_abs = vmrs( 0, Range( joker ) );
       
       // Set the physical N2 profile from the N2 profile in vmrs:
-      Vector n2_abs = vmrs(2,Range(joker));
-
+      Vector n2_abs  = vmrs( 2, Range( joker ) );
+      
       // Calculate absorption:
       Matrix        abs;
       ArrayOfMatrix abs_per_tg;

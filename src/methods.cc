@@ -3878,7 +3878,17 @@ md_data.push_back
          "\n"
          "  interp_rh : Flag for interpolation of H2O profile in RH\n"
          "  0 = Normal ARTS interpolation in VMRs\n"
-         "  1 = Interpolation in RH."),
+         "  1 = Interpolation in RH."
+         "\n"
+         "  za_per_profile : Flag for giving separate za_pencils for each profile\n"
+         "\n"
+         "  0 = As before, za_penil(s) will be same for all profiles\n"
+         "  1 = separate za_pencil for each profile\n"
+         "If this keyword is set to 1, please make sure that the number of elements\n"
+         "in the za_pencil and the number of radiosonde profiles are the same. The\n"
+         "function now assumes that first element of the za_pencil is for the first\n"
+         "radiosonde profile and the second element of the za_pencil is for the second\n"
+         "radiosonde profile and so on.\n"),
 	OUTPUT( ybatch_ ),
 	INPUT( // Variables needed for absCalc
                radiosonde_data_, f_mono_, lines_per_tg_, lineshape_, 
@@ -3894,8 +3904,8 @@ md_data.push_back
                cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "finegrid" ,  "interp_rh"),
-	TYPES(  Index_t, Index_t  )));
+	KEYWORDS( "finegrid" ,  "interp_rh",  "za_per_profile"),
+	TYPES(  Index_t, Index_t, Index_t  )));
 
 md_data.push_back
     ( MdRecord
