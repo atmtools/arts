@@ -1,5 +1,14 @@
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
+        * arts-0-0-254
+	
+	* configure.in: Added default sizes for cross-compiling to all
+	AC_CHECK_SIZEOF calls to avoid the autoconf warnings (AC_TRY_RUN
+	called without ....).
+
+	
+2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
+
         * arts-0-0-253
 	
 	* doc/uguide/absorption.tex: Removed ending .eps for
