@@ -15,18 +15,28 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/* The make_vector functions can be used to initialize
-   VECTORS in the source code. Usage is as simple as:
+/*!
+  \file   make_vector.h
+  \brief  The make_vector functions can be used to initialize
+          VECTORS in the source code. 
 
-   VECTOR x        = make_vector(33.2, 17.3, 3.8);
+  Usage is as simple as:
 
-   which will generate a VECTOR with the desired arguments. At the
-   moment, up to 20 arguments are possible. If more are needed this
-   can be easily extended.
+  \code
+  VECTOR x        = make_vector(33.2, 17.3, 3.8);
+  \endcode
 
-   History:
-   SAB 02.08.1999 Created.  
-   SAB 28.03.2000 Moved make_array to separate file. */
+  which will generate a VECTOR with the desired arguments. At the
+  moment, up to 20 arguments are possible. If more are needed this
+  can be easily extended.
+
+  \author Stefan Buehler
+  \date   1999-08-02
+
+  Moved make_array to separate file.
+  \author Stefan Buehler
+  \date   2000-03-28
+*/
 
 #ifndef make_vector_h
 #define make_vector_h

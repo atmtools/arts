@@ -15,23 +15,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      methods_aux.cc
+/*!
+  \file   methods_aux.cc
+  \brief  Auxiliary material for the workspace
+          methods, which used to be in methods.cc. 
 
-INCLUDES:  This file contains auxiliary material for the workspace
-           methods, which used to be in methods.cc. The reason for the
-           separation is that the stuff here hardly ever should be
-           changed, whereas methods.cc has to be edited each time a
-           new method is added. See methods.h for more
-	   documentation. 
+  The reason for the separation is that the stuff here hardly ever
+  should be changed, whereas methods.cc has to be edited each time a
+  new method is added. See methods.h for more documentation.
 
-FUNCTIONS: void define_md_map()
-           ostream& MdRecord::PrintTemplate(ostream& os,
-	                                    bool show_description=true) const
-	   ostream& operator<<(ostream& os, const MdRecord& mdr)
-
-HISTORY:   10.06.2000 Created by Stefan Buehler
------------------------------------------------------------------------*/
+  \author Stefan Buehler
+  \date 2000-06-10 */
 
 #include "arts.h"
 #include "make_array.h"

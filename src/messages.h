@@ -50,14 +50,12 @@
    (except error messages), 1 = only out1, 2 = out1+out2, 3 = all
    output.
 
-   \verbatim
-   History:
-   SAB 30.06.99 Created.
-   SAB 03.11.99 Introduced Out0, which prints to stderr rather than
-                stdout. 
-   \endverbatim
+   \author Stefan Buehler 
+   \date   1999-06-30
 
-   @author Stefan Buehler */
+   Introduced Out0, which prints to stderr rather than stdout.
+   \author Stefan Buehler 
+   \date   1999-11-03 */
 class Messages {
 public:
   /** Default constructor. Set both levels to -1. The default output
@@ -74,11 +72,11 @@ public:
     only if the priority is higher 
     than specified in messages.
   
-    @param os       Stream to print to (cout or cerr).
-    @param priority Priority of this message (0-3, 0=highest).
-    @param t        The stuff to print (can be of any type).
-    @author Stefan Buehler 
-    @see Messages  */
+    \param os       Stream to print to (cout or cerr).
+    \param priority Priority of this message (0-3, 0=highest).
+    \param t        The stuff to print (can be of any type).
+    \author Stefan Buehler 
+    \see Messages  */
 template<class T> 
 void MessagePrint(ostream& os, int priority, const T& t)
 {
@@ -103,7 +101,7 @@ void MessagePrint(ostream& os, int priority, const T& t)
     Nothing is done in this class, it just servers to group the four
     output stream classes together.
 
-    @see Messages */
+    \see Messages */
 //class OutStream {
 //};
 
@@ -111,25 +109,25 @@ void MessagePrint(ostream& os, int priority, const T& t)
 /** Highest priority output stream. This stream is only used for error 
     messages and can not be turned off. You should not use this
     directly. Instead, throw an error with an appropriate message.
-    @see Out1 Out2 Out3 */
+    \see Out1 Out2 Out3 */
 class Out0 {
 };
 
 /** Engine output stream. Used  by the engine to report which methods it is 
     calling. Do not use this inside your methods.
-    @see Out0 Out2 Out3 */
+    \see Out0 Out2 Out3 */
 class Out1 {
 };
 
 /** Medium priority output stream. Use this for normal informational
     messages. 
-    @see Out0 Out1 Out3  */
+    \see Out0 Out1 Out3  */
 class Out2 {
 };
 
 /** Lowest priority output stream. This should be used for stuff that
     you would not normally want to see. 
-    @see Out0 Out1 Out2  */
+    \see Out0 Out1 Out2  */
 class Out3 {
 };
 

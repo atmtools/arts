@@ -15,46 +15,55 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/* This is a little C++ program that generates the file md.h from the
-   workspace methods data md_data. The file md.h declares the enum
-   type MdHandle that is used to access the method data, so it has
-   to be made sure that the two are allways consistent.
+/*!
+  \file   make_md_h.cc
+  \brief  This is a little C++ program that generates the file md.h from the
+          workspace methods data md_data. 
 
-   A second file is produced: md.cc.
-   This contains the `get-away' functions that provided the interface
-   between the engine and the workspace methods. The get-functions all 
-   have the same arguments:
+  The file md.h declares the enum
+  type MdHandle that is used to access the method data, so it has
+  to be made sure that the two are allways consistent.
 
-   void get_away_example_g(WorkSpace& ws,
-			   const MRecord& mr);
+  A second file is produced: md.cc.
+  This contains the `get-away' functions that provided the interface
+  between the engine and the workspace methods. The get-functions all 
+  have the same arguments:
 
-   Their names all have the extension _g
+  \code
+     void get_away_example_g(WorkSpace& ws,
+     const MRecord& mr);
+  \endcode
 
-   Pointers to the get-away functions are stored in the array
-   `getaway'. 
+  Their names all have the extension _g
 
-   Each get-away function simply contains a function call to the
-   matching workspace method. The parameters are arranged similar to
-   the follwing example:
+  Pointers to the get-away functions are stored in the array
+  `getaway'. 
+
+  Each get-away function simply contains a function call to the
+  matching workspace method. The parameters are arranged similar to
+  the follwing example:
    
-   void SomeMethod(owsv1,iwsv1,iwsv2,iwsv3,c1,c2,c3,...)
+  \code
+  void SomeMethod(owsv1,iwsv1,iwsv2,iwsv3,c1,c2,c3,...)
+  \endcode
 
-   First come the output workspace variables, then the input workspace 
-   variables, and then the control parameters. There can be an
-   arbitrary number of parameters of each type, but the most usual
-   case is to have only one output workspace variable. 
+  First come the output workspace variables, then the input workspace 
+  variables, and then the control parameters. There can be an
+  arbitrary number of parameters of each type, but the most usual
+  case is to have only one output workspace variable. 
 
-   The same variable may be both in the list of input and in the list
-   of output workspace variables. This case makes good sense,
-   actually, if you think for example of a method that adds an offset
-   to the absorption coefficients. IN THAT CASE THE VARIABLE IS ADDED
-   TO THE LIST ONLY ONCE, namely among the OUTPUT variables.
+  The same variable may be both in the list of input and in the list
+  of output workspace variables. This case makes good sense,
+  actually, if you think for example of a method that adds an offset
+  to the absorption coefficients. IN THAT CASE THE VARIABLE IS ADDED
+  TO THE LIST ONLY ONCE, namely among the OUTPUT variables.
 
-   For generic methods the names of the actual workspace variables are
-   also passed on to the method function.
+  For generic methods the names of the actual workspace variables are
+  also passed on to the method function.
 
-   History:
-   SAB 29.07.99 Created.  */
+  \author Stefan Buehler
+  \date   2000-07-29
+*/
 
 #include "arts.h"
 #include "token.h"

@@ -15,22 +15,31 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/* The make_array objects can be used to initialize
-   ARRAYS in the source code. Usage is as simple as:
+/*  */
 
-   ARRAY<string> y = make_array<string>("ab", "cde");
+/*!
+  \file   make_array.h
+  \brief  The make_array objects can be used to initialize
+          ARRAYS in the source code. 
 
-   which will make an ARRAY with the desired arguments. At the
-   moment, up to 20 arguments are possible. If more are needed this
-   can be easily extended.
+  Usage is as simple as:
 
-   This has to be solved with a class, since template *functions*
-   would have to be explicitly instantiated (because we want to use
-   make_array in different source files). Putting functions
-   definitions in a .h file does not work (leads to linker errors).
+  \code
+     ARRAY<string> y = make_array<string>("ab", "cde");
+  \endcode
+
+  which will make an ARRAY with the desired arguments. At the
+  moment, up to 20 arguments are possible. If more are needed this
+  can be easily extended.
+
+  This has to be solved with a class, since template *functions*
+  would have to be explicitly instantiated (because we want to use
+  make_array in different source files). Putting functions
+  definitions in a .h file does not work (leads to linker errors).
    
-   History:
-   SAB 28.03.2000 Created.  */
+  \author Stefan Buehler
+  \date   2000-03-28
+*/
 
 #ifndef make_array_h
 #define make_array_h

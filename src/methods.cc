@@ -16,22 +16,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      methods.cc
+/*!
+  \file   methods.cc
+  \brief  Definition of method description data.
 
-INCLUDES:  This file contains only the function define_md_data, which
-           sets the WSV lookup data. You have to change this function
-	   each time you add a new method. See methods.h for more
-	   documentation. 
+  This file contains only the definition of the function
+  define_md_data, which sets the WSV lookup data. You have to change
+  this function each time you add a new method. See methods.h for more
+  documentation.
 
-GLOBALS:   None defined
-
-FUNCTIONS: void define_md_data()
-
-HISTORY:   10.06.2000 Created by Stefan Buehler
------------------------------------------------------------------------*/
-/* Implementation of MdRecord and of the compound to hold the
-   records. See methods.h for more documentation. */
+  \author Stefan Buehler
+  \date 2000-06-10 */
 
 #include "arts.h"
 #include "make_array.h"

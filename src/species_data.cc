@@ -49,6 +49,8 @@ ARRAY<SpeciesRecord> species_data;
 /*!
   \brief Define species lookup data.
 
+  \author Stefan Buehler, Axel von Engeln
+
   <h1>Source for entries</h1>
   <!------------------------>
 
@@ -114,15 +116,8 @@ ARRAY<SpeciesRecord> species_data;
   Some more information can be found at /pool/lookup/jpl/cat7_00/abundancies,
   where the idl script that reads/converts the abundances is located.
 
-  08.08.00 AvE
-
-  \author Stefan Buehler, Axel von Engeln  
-
-  <b>History</b>
-  <dl>
-  <dt> 2000-08-08 Axel von_Engeln:
-  <dd> Added all JPL/HITRAN species and documentation.
-  </dl>
+  \author Axel von Engeln  
+  \date   2000-08-08 
 */
 void define_species_data()
 {

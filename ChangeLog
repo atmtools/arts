@@ -1,10 +1,18 @@
 2000-09-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-46
+
+	* Cosmetic changes to doxygen comments all over the place.
+
+
+2000-09-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-0-45
 
 	* doc/emacs: Added makros for inserting documentation
 	headers. There is some html documentation, check out
 	doc/index.html. 
+
 
 2000-09-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 

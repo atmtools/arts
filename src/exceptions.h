@@ -15,21 +15,18 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-//
-// The declarations of all the exception classes.
-//
-// runtime_error
-//      IOError
-//           CannotOpenOutputFile
-//           CannotOpenInputFile
-//           ReadError
-//
-// FIXME: Do I need things derived from logic_error? -- Should be
-//        better done with assert.
-//        Throw out trace stuff and vector include.
-//
-// History:
-// SAB 24.09.99 Started.
+/*!
+  \file   exceptions.h
+  \brief  The declarations of all the exception classes.
+
+  Dedicated exception classes are used only by the parser. Otherwise,
+  only runtime_error is used. Furthermore, errors that corresponds to
+  bugs in the program rather than incorrect input should be handled by
+  assertions.
+
+  \author Stefan Buehler
+  \date   1999-09-24
+*/
 
 #ifndef exceptions_h
 #define exceptions_h
@@ -123,7 +120,6 @@ public:
 		     int c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
-
 
 
 

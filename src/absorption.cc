@@ -85,11 +85,11 @@ ostream& operator << (ostream& os, const LineRecord& lr)
 /** Extract something from a HITRAN line. This is just a small helper
     function to safe some typing. 
 
-    @param x Output.    What was extracted from the beginning of the line.
-    @param line Output. What was extracted is also cut away from line.
-    @param n            The width of the stuff to extract.
+    \retval x    What was extracted from the beginning of the line.
+    \retval line What was extracted is also cut away from line.
+    \param n     The width of the stuff to extract.
 
-    @author Stefan Buehler */
+    \author Stefan Buehler */
 template<class T>
 void extract(T&      x,
 	     string& line,

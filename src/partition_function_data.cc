@@ -201,19 +201,11 @@ ARRAY<QRecord> q_data;
   recommended scheme) (range 150 to 300 K).
 
   </table>
-
   </dl>
 
-  21.08.00 AvE
-
   \author Axel von Engeln  
-
-  <b>History</b>
-  <dl>
-  <dt> 2000-08-21 Axel von_Engeln:
-  <dd> generated 
-  </dl> */
-
+  \date   2000-08-21 
+*/
 void define_q_data()
 {
   extern ARRAY<QRecord> q_data;

@@ -16,6 +16,9 @@
 ;; - generalize comment types - right now these reflect my personal
 ;;   style and the fact that I'm doing all of my work in C++.
 
+;; Stefan Buehler 2000-09-13
+;; added history for file and function comments
+
 ;;; Code:
 
 (defvar doxygen-date-format "%Y-%m-%d"

@@ -15,11 +15,14 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/* This file contains the declaration of the class MdRecord, which
-   contains all information for one workspace method.
+/*!
+  \file   methods.h
+  \brief  Declaration of the class MdRecord.
 
-   History:
-   SAB 27.07.1999 Started.
+  The class MdRecord contains all information for one workspace method. 
+
+  \author Stefan Buehler
+  \date   1999-07-27
 */
 
 #ifndef methods_h

@@ -15,20 +15,17 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      workspace_aux.cc
+/*!
+  \file   workspace_aux.cc
+  \brief  Auxiliary material for the workspace
 
-INCLUDES:  This file contains auxiliary material for the
-           workspace, which used to be in workspace.cc. The reason for
-	   the separation is that the stuff here hardly ever should be
-	   changed, whereas workspace.cc has to be edited each time
-	   a new variable is added. 
+  This file contains auxiliary material for the workspace, which used
+  to be in workspace.cc. The reason for the separation is that the
+  stuff here hardly ever should be changed, whereas workspace.cc has
+  to be edited each time a new variable is added.
 
-FUNCTIONS: void define_wsv_map()
-           ostream& operator<<(ostream& os, const WsvRecord& wr)
-
-HISTORY:   10.06.2000 Created by Stefan Buehler
------------------------------------------------------------------------*/
+  \author Stefan Buehler
+  \date 2000-06-10 */
 
 #include "arts.h"
 #include "vecmat.h"

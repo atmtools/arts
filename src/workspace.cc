@@ -28,12 +28,9 @@
   \author Stefan Buehler
   \date   2000-06-10
 
-  <b>History:</b>
-  <dl>
-  <dt> 2000-08-10 Stefan Buehler</dt>
-  <dd> Removed the wsv pointers. They are now in a separate place.</dd>
-  </dl>
-*/
+  Removed the wsv pointers. They are now in a separate place.
+  \author Stefan Buehler
+  \date   2000-08-10 */
 
 #include "arts.h"
 #include "vecmat.h"

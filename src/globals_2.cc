@@ -15,20 +15,23 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*-----------------------------------------------------------------------
-FILE:      globals_2.cc
+/*!
+  \file   globals_2.cc
+  \brief  Global variable definitions that 
+	  depend on the automatically generated header file wsv.h
 
-INCLUDES:  This file contains all global variable definitions that DO
-	   depend on the automatically generated header file wsv.h. It
-	   is necessary to have these in a separate file for compiler
-	   technical reasons. (With g++-2.95.2 it does not work to
-	   declare them constant in the same file where they are
-	   defined.)
+  This file contains all global variable definitions that DO depend on
+  the automatically generated header file wsv.h. It is necessary to
+  have these in a separate file for compiler technical reasons. (With
+  g++-2.95.2 it does not work to declare them constant in the same
+  file where they are defined.)
+  
+  Maybe this file should be removed in the future. There is not much
+  stuff here.  
 
-FUNCTIONS: None
+  \author Stefan Buehler
+  \date 2000-06-10 */
 
-HISTORY:   10.06.2000 Created by Stefan Buehler
------------------------------------------------------------------------*/
 
 #include "arts.h"
 #include "vecmat.h"
