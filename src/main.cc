@@ -705,7 +705,8 @@ int main (int argc, char **argv)
            << "Compiled on " << OS_NAME << " " << OS_VERSION
            << " with "
            << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
-           << " precision." << endl;
+           << " precision." << endl
+           << "Compile flags: " << COMPILE_FLAGS << endl;
       return(0);
     }
 
