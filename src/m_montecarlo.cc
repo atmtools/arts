@@ -544,7 +544,7 @@ void ScatteringMonteCarlo (
   Numeric g_los_csc_theta;
   Numeric albedo;
   Numeric dist_to_boundary;
-  Numeric K11;
+  // (ole) FIXME: Numeric K11;
   Index N_pt=pnd_field.nbooks();
   Vector pnd_vec(N_pt);
   time_t start_time=time(NULL);
