@@ -1,3 +1,10 @@
+2002-08-29  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-225
+
+	* src/m_scatproperties.cc: Removed *psh_mat_conv_sptCalc*. This was 
+	only needed for testing.
+
 2002-08-29  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-224
