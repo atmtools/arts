@@ -1,3 +1,10 @@
+2003-04-10  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-522
+
+	* src/matpackII.cc (transpose): Replaced Index* by
+	std::vector<Index>::iterator to fix compilation error.
+
 2003-04-09  Mattias Ekström  <ekstrom@rss. chalmers.se>
 
 	* arts-1-1-521
