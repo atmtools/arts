@@ -58,27 +58,6 @@
 <!-- 	from a LaTeX source). -->
     </ul>
 
-    
-    <h2> Example ARTS control files</h2>
-
-    <p><font color="#ff0000"><b>--- Under construction ---</b></font>
-    <p> Have a look at <a href="examples">arts/doc/examples/*.arts</a>.
-<!--    <p>
-      The package contains everything that you need to run these
-      examples. Currently they are:
-
-    <ul>
-      <li>
-	<a href="examples/auto_example1.arts"> auto_example1.arts</a> (calculates
-	absorption coefficients).
-      <li>
-	<a href="examples/cont.arts"> cont.arts</a> (shows how to use continua).
-      <li>
-	<a href="examples/auto_full.arts"> auto_full.arts</a> (an end-to-end
-	job).
-</ul>
--->
-
     <hr noshade  size="3" color="#990099">
 
     <address><a href="mailto:sbuehler@uni-bremen.de">Stefan Buehler</a></address>
