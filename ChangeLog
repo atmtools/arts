@@ -1,3 +1,12 @@
+2002-01-09  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-75
+
+	* ami/arts/tag2mo.m: A function to convert a tag string to the molecule
+	name.
+
+	* ami/path/subfolders.m: New function.
+
 2002-01-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-74
@@ -12,7 +21,7 @@
 	* arts-0-1-73
 
 	* doc/uguide/absorption.tex: Editted the Line Catalogs subchapter(3.1.3).      
-	
+
 2002-01-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-72

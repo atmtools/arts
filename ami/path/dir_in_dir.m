@@ -16,7 +16,7 @@
 
 function s = dir_in_dir( maindir, subdir )
 
-s = [maindir,'/',subdir];
+s = fullfile( maindir, subdir, '' );
 
 if ~exist( s , 'dir' )
 
