@@ -10,7 +10,7 @@ main (void)
   v[4] = 1;
   v[8] = 8;
 
-  int status = poly_root_solve (v, s);
+  int status = poly_root_solve (s, v);
 
   cout << status << endl;
   cout << s << endl;
