@@ -1,3 +1,10 @@
+2001-10-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-0-1-23
+
+	* doc/uguide/absrption.tex: editing and resolving warnings in the Tex
+	code.
+	
 2001-10-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-22

@@ -211,14 +211,12 @@ $S(T)$, where $T$ is absolute temperature.. The shape and the position are expre
 line-shape function $F(\nu)$. Thus we have the relation    
 \begin{equation}
   \alpha(\nu)=nS(T)F(\nu)
-\label{}
 \end{equation} 
 where $n$ is the number density of the absorber. The line-shape
 function is normalized as follows
 
 \begin{equation}
   \int F(\nu)d\nu=1
-\label{}
 \end{equation}
 The values of $S(T)$ at reference temperature $T_0$ are contained in spectroscopic databases. The conversion to different
 temperatures is done by
@@ -702,20 +700,23 @@ VectorNLogSpace(p_abs){
         n     = 140
 }
 \end{verbatim}
-with output {\verb p_abs } . Again, it can be optionally written into
-a file - {\verb VectorWriteAscii } {\verb (p_abs) } {\verb {""} } .\\
+with output {\verb p_abs }. Again, it can be optionally written into
+a file with
+\begin{verbatim}
+VectorWriteAscii(p_abs){""} 
+\end{verbatim}
 The corresponding temperatures to the pressure as well as the VMRs is
 realized through loading the respective input profiles, defined by the
 workspace variables {\verb raw_ptz } and {\verb raw_vmrs }. The
 corresponding methods are
 \begin{verbatim}
 MatrixReadAscii (raw_ptz) 
-        {"../../arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
+{"/arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
 \end{verbatim}
 and
 \begin{verbatim}
 raw_vmrsReadFromScenario
-        {"../../arts-data/atmosphere/fascod/midlatitude-summer"}
+{"/arts-data/atmosphere/fascod/midlatitude-summer"}
 \end{verbatim}
 where the profiles are read from the available in ARTS atmospheric
 scenarios, in this case the one { \verb midlatitude-summer }.\\
@@ -738,8 +739,8 @@ The next variable to be set is {\verb lines_per_tg } , done by the
 method
 \begin{verbatim}
 lines_per_tgReadFromCatalogues{
-   filenames = ["../../arts-data/spectroscopy/jpl00/jpl00.cat",
-     "../../arts-dat/spectroscopy/hitran96/hitran96_lowfreq.par"]
+  filenames = ["/arts-data/spectroscopy/jpl00/jpl00.cat",
+    "/arts-dat/spectroscopy/hitran96/hitran96_lowfreq.par"]
    formats = [ "JPL", "HITRAN96" ]
    fmin    = [ 0,         0      ]       
    fmax    = [ 200e9,     200e9  ]   
@@ -748,13 +749,15 @@ lines_per_tgReadFromCatalogues{
 where lines from individual catalogs (here JPL and HITRAN96) are
 assigned to the different defined tag groups. Another possibility of
 doing this is to call two other methods one after another:
+{\small
 \begin{verbatim}
 linesReadFromHitran {
- filename = "../../arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
- fmin     = 1e9
- fmax     = 200e9
+filename = "/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
+fmin     = 1e9
+fmax     = 200e9
 }
 \end{verbatim}
+}
 and thus creating the variable {\verb lines } , used afterward as
 input in 
 \begin{verbatim}
@@ -800,17 +803,17 @@ The last input variable for {\verb absCalc } to be discussed is
 through 
 \begin{verbatim}
 lineshapeDefine{
-              shape = "Voigt_Kuntz6" 
-              normalizationfactor = "linear"
-              cutoff = -1
+  shape = "Voigt_Kuntz6" 
+  normalizationfactor = "linear"
+  cutoff = -1
 }
 \end{verbatim}
 or to set it individually for each tag group
 \begin{verbatim}
 lineshape_per_tgDefine{
-  shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6","Voigt_Kuntz6"]
-  normalizationfactor = ["quadratic","no_norm","linear","linear"]
-  cutoff = [-1,-1,-1,-1]
+  shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6",]
+  normalizationfactor = ["quadratic","no_norm","linear",]
+  cutoff = [-1,-1,-1]
 }
 \end{verbatim}
 More elucidation on the three parameters {\verb shape } ,
