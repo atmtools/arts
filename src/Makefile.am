@@ -67,6 +67,7 @@ arts_SOURCES = \
 	m_absorption.cc \
 	m_copy.h \
 	m_ignore.h \
+	m_sensor.cc \
 	m_xml.cc \
 	m_xml.h \
 	main.cc \
@@ -387,6 +388,7 @@ test_zeemanproperties_SOURCES = \
 	m_refraction.cc \
 	m_rte.cc \
 	m_scatrte.cc \
+	m_sensor.cc \
 	m_clonesize.cc \
 	m_absorption.cc \
 	m_copy.h \

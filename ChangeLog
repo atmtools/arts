@@ -1,7 +1,16 @@
+2003-02-25  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-459
+
+	* src/m_basic_types.cc: Added VSM Tenso3Scale, Tensor4Scale,
+  Tensor5Scale, Tensor6Scale and Tensor7Scale.
+
+  * src/m_sensor.cc: Added this file for sensor modelling.
+  
 2003-02-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-458
-	
+
 	* src/m_rte.cc (RteEmissionStd): Removed a variable not used (with
 	apossible size of up to 10 Mb!) and moved some lines to outside a
 	for loop (to maybe save some time).
@@ -21,7 +30,7 @@
 
 	* arts-1-1-456
 
-	* src/main.cc: Set default reporting level for report file to 0. My 
+	* src/main.cc: Set default reporting level for report file to 0. My
 	ARTS jobs crash because the report file becaomes too large when I 
 	use report level 3.
 

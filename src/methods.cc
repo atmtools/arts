@@ -2838,7 +2838,35 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("SensorIntegrationVector"),
+        DESCRIPTION
+        (
+         "Returns a vector that approximates an integral of products.\n"
+         "\n"
+         "The output (row) vector multiplied with an unknown (column)\n"
+         "vector approximates the integral of the product between the two\n"
+         "functions corresponding to the two vectors.\n"
+         "\n"
+         "See ARTS User Guide (ver. 1.0.64), chapter 7 Sensor modelling,\n"
+         "section 7.2 Integration as vector multiplication, for more details.\n"
+         "\n"
+         "Generic output: \n"
+         "   Vector: the (row) vector.\n"
+         "Generic input: \n"
+         "   Vector: the values of the known function.\n"
+         "   Vector: the grid of the known function.\n"
+         "   Vector: the grid of the unknown function."
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Vector_ ),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("StringPrint"),
         DESCRIPTION
@@ -2898,6 +2926,32 @@ md_data_raw.push_back
         KEYWORDS( "npages", "nrows", "ncols"   ),
         TYPES(    Index_t,  Index_t, Index_t )));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Tensor3Scale"),
+        DESCRIPTION
+        (
+         "Scales a workspace tensor3 with the specified value. \n"
+         "\n"
+         "The result can either be stored in the input tensor3 or\n"
+         "in a new tensor3.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor3 : The scaled tensor3. \n"
+         "\n"
+         "Global input: \n"
+         "   Tensor3 : The tensor3 to be scaled.\n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The scale factor. "
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor3_ ),
+        GINPUT( Tensor3_ ),
+        KEYWORDS( "value"   ),
+        TYPES( Numeric_t )));
+
  md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor3Set"),
@@ -2910,10 +2964,10 @@ md_data_raw.push_back
          "   Tensor3 : The tensor3 to be created. \n"
          "\n"
          "Keywords:\n"
-         "   npages : The number of pages of the tensor3 to create. \n" 
+         "   npages : The number of pages of the tensor3 to create. \n"
          "   nrows  : The number of rows of the tensor3 to create. \n"
          "   ncols  : The number of columns of the tensor3 to create. \n"
-         "   value  : The value of the tensor3 elements. " 
+         "   value  : The value of the tensor3 elements. "
         ),
         OUTPUT(),
         INPUT(),
@@ -2921,6 +2975,32 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "npages", "nrows", "ncols", "value"   ),
         TYPES( Index_t, Index_t, Index_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Tensor4Scale"),
+        DESCRIPTION
+        (
+         "Scales a workspace tensor4 with the specified value. \n"
+         "\n"
+         "The result can either be stored in the input tensor4 or\n"
+         "in a new tensor4.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor4 : The scaled tensor4. \n"
+         "\n"
+         "Global input: \n"
+         "   Tensor4 : The tensor4 to be scaled.\n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The scale factor. "
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor4_ ),
+        GINPUT( Tensor4_ ),
+        KEYWORDS( "value"   ),
+        TYPES( Numeric_t )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -2935,10 +3015,10 @@ md_data_raw.push_back
          "\n"
          "Keywords:\n"
          "   nbooks : The number of books of the tensor4 to create. \n"
-         "   npages : The number of pages of the tensor4 to create. \n" 
+         "   npages : The number of pages of the tensor4 to create. \n"
          "   nrows  : The number of rows of the tensor4 to create. \n"
          "   ncols  : The number of columns of the tensor4 to create. \n"
-         "   value  : The value of the tensor4 elements. " 
+         "   value  : The value of the tensor4 elements. "
         ),
         OUTPUT(),
         INPUT(),
@@ -2946,6 +3026,32 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "nbooks", "npages", "nrows", "ncols", "value"   ),
         TYPES( Index_t, Index_t, Index_t, Index_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Tensor5Scale"),
+        DESCRIPTION
+        (
+         "Scales a workspace tensor5 with the specified value. \n"
+         "\n"
+         "The result can either be stored in the input tensor5 or\n"
+         "in a new tensor5.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor5 : The scaled tensor5. \n"
+         "\n"
+         "Global input: \n"
+         "   Tensor5 : The tensor5 to be scaled.\n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The scale factor. "
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor5_ ),
+        GINPUT( Tensor5_ ),
+        KEYWORDS( "value"   ),
+        TYPES( Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -2961,10 +3067,10 @@ md_data_raw.push_back
          "Keywords:\n"
          "   nshelfs : The number of shelfs of the tensor5 to create. \n"
          "   nbooks  : The number of books of the tensor5 to create. \n"
-         "   npages  : The number of pages of the tensor5 to create. \n" 
+         "   npages  : The number of pages of the tensor5 to create. \n"
          "   nrows   : The number of rows of the tensor5 to create. \n"
          "   ncols   : The number of columns of the tensor5 to create. \n"
-         "   value   : The value of the tensor5 elements. " 
+         "   value   : The value of the tensor5 elements. "
         ),
         OUTPUT(),
         INPUT(),
@@ -2972,6 +3078,32 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "nshelfs", "nbooks", "npages", "nrows", "ncols", "value" ),
         TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("Tensor6Scale"),
+        DESCRIPTION
+        (
+         "Scales a workspace tensor6 with the specified value. \n"
+         "\n"
+         "The result can either be stored in the input tensor6 or\n"
+         "in a new tensor6.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor6 : The scaled tensor6. \n"
+         "\n"
+         "Global input: \n"
+         "   Tensor6 : The tensor6 to be scaled.\n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The scale factor. "
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor6_ ),
+        GINPUT( Tensor6_ ),
+        KEYWORDS( "value"   ),
+        TYPES( Numeric_t )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -2988,10 +3120,10 @@ md_data_raw.push_back
          "   nvitrines : The number of vitrines of the tensor6 to create. \n"
          "   nshelfs   : The number of shelfs of the tensor6 to create. \n"
          "   nbooks    : The number of books of the tensor6 to create. \n"
-         "   npages    : The number of pages of the tensor6 to create. \n" 
+         "   npages    : The number of pages of the tensor6 to create. \n"
          "   nrows     : The number of rows of the tensor6 to create. \n"
          "   ncols     : The number of columns of the tensor6 to create. \n"
-         "   value     : The value of the tensor6 elements. " 
+         "   value     : The value of the tensor6 elements. "
         ),
         OUTPUT(),
         INPUT(),
@@ -2999,7 +3131,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "nvitrines", "nshelfs", "nbooks", "npages", "nrows",
                   "ncols", "value" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
+        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t,
                Numeric_t )));
 
  md_data_raw.push_back
@@ -3025,6 +3157,32 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("Tensor7Scale"),
+        DESCRIPTION
+        (
+         "Scales a workspace tensor7 with the specified value. \n"
+         "\n"
+         "The result can either be stored in the input tensor7 or\n"
+         "in a new tensor7.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor7 : The scaled tensor7. \n"
+         "\n"
+         "Global input: \n"
+         "   Tensor7 : The tensor7 to be scaled.\n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The scale factor. "
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Tensor7_ ),
+        GINPUT( Tensor7_ ),
+        KEYWORDS( "value"   ),
+        TYPES( Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Tensor7Set"),
         DESCRIPTION
         (
@@ -3039,21 +3197,21 @@ md_data_raw.push_back
          "   nvitrines  : The number of vitrines of the tensor7 to create. \n"
          "   nshelfs    : The number of shelfs of the tensor7 to create. \n"
          "   nbooks     : The number of books of the tensor7 to create. \n"
-         "   npages     : The number of pages of the tensor7 to create. \n" 
+         "   npages     : The number of pages of the tensor7 to create. \n"
          "   nrows      : The number of rows of the tensor7 to create. \n"
          "   ncols      : The number of columns of the tensor7 to create. \n"
-         "   value      : The value of the tensor7 elements. " 
+         "   value      : The value of the tensor7 elements. "
         ),
         OUTPUT(),
         INPUT(),
         GOUTPUT( Tensor7_ ),
         GINPUT(),
-        KEYWORDS( "nlibraries", "nvitrines", "nshelfs", "nbooks", "npages", 
+        KEYWORDS( "nlibraries", "nvitrines", "nshelfs", "nbooks", "npages",
                   "nrows", "ncols", "value" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
+        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t,
                Index_t, Numeric_t )));
 
- md_data_raw.push_back     
+ md_data_raw.push_back
     ( MdRecord
       ( NAME("Tensor6WriteIteration"),
         DESCRIPTION
@@ -3073,8 +3231,8 @@ md_data_raw.push_back
        "'iteration_field_6.xml' ...\n"
        "\n"
        "If you want to save all the iterations the array has to contain \n"
-       "just one element set to 0: 'iterations = [0]'.\n" 
-       "\n"           
+       "just one element set to 0: 'iterations = [0]'.\n"
+       "\n"
        "Note: The workspace variable iteration_counter has to be set as 0 \n"
        "in the control file before using this method.\n"
        "\n"
@@ -3086,7 +3244,7 @@ md_data_raw.push_back
         KEYWORDS("iterations"),
         TYPES(Array_Index_t )));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Test"),
         DESCRIPTION

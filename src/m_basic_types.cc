@@ -525,6 +525,34 @@ void Tensor3FillWithVector(
              "The size argument for either pages, rows or columns must be 0.");
 }
 
+//! Tensor3Scale
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-02-25
+*/
+void Tensor3Scale(        Tensor3&  out,
+                    const String&   out_name,
+                    const Tensor3&  in,
+                    const String&   in_name,
+                    const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.npages(), in.nrows(), in.ncols() );
+    out = in;
+    out *= value;
+  }
+}
+
 //! Tensor3Set
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -545,6 +573,34 @@ void Tensor3Set(          Tensor3&   x,
   out3 << "            npages : " << npages << "\n";
   out3 << "             nrows : " << nrows  << "\n";
   out3 << "             ncols : " << ncols  << "\n";
+}
+
+//! Tensor4Scale
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-02-24
+*/
+void Tensor4Scale(        Tensor4&  out,
+                    const String&   out_name,
+                    const Tensor4&  in,
+                    const String&   in_name,
+                    const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.nbooks(), in.npages(), in.nrows(), in.ncols() );
+    out = in;
+    out *= value;
+  }
 }
 
 //! Tensor4Set
@@ -571,6 +627,35 @@ void Tensor4Set(          Tensor4&   x,
   out3 << "             ncols : " << ncols  << "\n";
 }
 
+//! Tensor5Scale
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-02-25
+*/
+void Tensor5Scale(        Tensor5&  out,
+                    const String&   out_name,
+                    const Tensor5&  in,
+                    const String&   in_name,
+                    const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.nshelves(), in.nbooks(), in.npages(),
+      in.nrows(), in.ncols() );
+    out = in;
+    out *= value;
+  }
+}
+
 //! Tensor5Set
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -595,6 +680,35 @@ void Tensor5Set(          Tensor5&   x,
   out3 << "            npages : " << npages  << "\n";
   out3 << "             nrows : " << nrows   << "\n";
   out3 << "             ncols : " << ncols   << "\n";
+}
+
+//! Tensor6Scale
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-02-25
+*/
+void Tensor6Scale(        Tensor6&  out,
+                    const String&   out_name,
+                    const Tensor6&  in,
+                    const String&   in_name,
+                    const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.nvitrines(), in.nshelves(), in.nbooks(),
+      in.npages(), in.nrows(), in.ncols() );
+    out = in;
+    out *= value;
+  }
 }
 
 //! Tensor6Set
@@ -625,6 +739,35 @@ void Tensor6Set(          Tensor6&   x,
   out3 << "             ncols : " << ncols     << "\n";
 }
 
+//! Tensor7Scale
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-02-25
+*/
+void Tensor7Scale(        Tensor7&  out,
+                    const String&   out_name,
+                    const Tensor7&  in,
+                    const String&   in_name,
+                    const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  // Note that in and out can be the same vector
+  if (&out==&in) {
+    // Out and in are the same. Just multiply by the scalar value.
+    out *= value;
+  } else {
+    // Out and in are different. We first have to copy in to out,
+    // then multiply by the scalar value.
+    out.resize( in.nlibraries(), in.nvitrines(), in.nshelves(),
+      in.nbooks(), in.npages(), in.nrows(), in.ncols() );
+    out = in;
+    out *= value;
+  }
+}
+
 //! Tensor7Set
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -647,7 +790,7 @@ void Tensor7Set(          Tensor7&   x,
   x = value;
   out2 << "  " << x_name << " = " << value      << "\n";
   out3 << "        nlibraries : " << nlibraries << "\n";
-  out3 << "         nvitrines : " << nvitrines  << "\n";    
+  out3 << "         nvitrines : " << nvitrines  << "\n";
   out3 << "           nshelfs : " << nshelfs    << "\n";
   out3 << "            nbooks : " << nbooks     << "\n";
   out3 << "            npages : " << npages     << "\n";
