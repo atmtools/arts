@@ -1,11 +1,20 @@
+2001-01-26  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-114
+
+	* vecmat.h: Fixed bug in transf() function. The type of the
+	mathematical function is now double (&my_func)(double). Numeric
+	does not work here, since mathematical functions for float do not
+	exist.
+
+	
 2001-01-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
-	* arts-0-0113
+	* arts-0-0-113
 
 	* Changes in reading and writing of binary files. There were some 
 	really bad bugs that now should be fixed. The reading and writing
 	of matrices shall now be somewhat faster.
-
 	
 
 2001-01-24  Stefan Buehler  <sbuehler@uni-bremen.de>

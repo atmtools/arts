@@ -120,7 +120,9 @@ void resize(string& x, INDEX n)
 /** A generic transform function for vectors, which can be used to
     implement mathematical functions operating on all
     elements. Because we have this, we don't need explicit functions
-    like sqrt for vectors!
+    like sqrt for vectors! The type of the mathematical function is
+    double (&my_func)(double). Numeric would not work here, since
+    mathematical functions for float do not exist!
 
    \retval   y   the results of the function acting on each element of x
    \param    my_func a function (e.g., sqrt)
@@ -129,7 +131,7 @@ void resize(string& x, INDEX n)
     \date   2000-12-27
     \author Stefan Buehler */
 void transf( const VECTOR& x,
-		       Numeric (&my_func)(Numeric),
+		       double (&my_func)(double),
 		       VECTOR& y )
 {
   assert( x.size()==y.size() );
@@ -145,7 +147,7 @@ void transf( const VECTOR& x,
     \date   2000-12-27
     \author Stefan Buehler */
 VECTOR transf( const VECTOR& x,
-			 Numeric (&my_func)(Numeric) )
+			 double (&my_func)(double) )
 {
   VECTOR y(x.size());
   transf( x, my_func, y );
@@ -158,7 +160,9 @@ VECTOR transf( const VECTOR& x,
 /** A generic transform function for matrices, which can be used to
     implement mathematical functions operating on all
     elements. Because we have this, we don't need explicit functions
-    like sqrt for matrices!
+    like sqrt for matrices! The type of the mathematical function is
+    double (&my_func)(double). Numeric would not work here, since
+    mathematical functions for float do not exist!
 
    \retval   y   the results of the function acting on each element of x
    \param    my_func a function (e.g., sqrt)
@@ -167,7 +171,7 @@ VECTOR transf( const VECTOR& x,
     \date   2000-12-27
     \author Stefan Buehler */
 void transf( const MATRIX& x,
-	     Numeric (&my_func)(Numeric),
+	     double (&my_func)(double),
 	     MATRIX& y )
 {
   // This code is adapted from the function twod_copy_default in file
@@ -198,7 +202,7 @@ void transf( const MATRIX& x,
     \date   2000-12-27
     \author Stefan Buehler */
 MATRIX transf( const MATRIX& x,
-	       Numeric (&my_func)(Numeric) )
+	       double (&my_func)(double) )
 {
   MATRIX y( x.nrows(), x.ncols() );
   transf( x, my_func, y );

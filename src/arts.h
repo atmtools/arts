@@ -88,7 +88,7 @@
 /** The type to use for all floating point numbers. You should never
     use float or double explicitly, unless you have a very good
     reason. Always use this type instead.  */
-typedef double Numeric;
+typedef float Numeric;
 
 //--------------------< Set integer type >--------------------
 /** The type to use for all integer numbers and indices. You should never

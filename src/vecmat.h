@@ -428,18 +428,18 @@ void resize(string& x, INDEX n);
 // }
 
 void transf( const VECTOR& x,
-	     Numeric (&my_func)(Numeric),
+	     double (&my_func)(double),
 	     VECTOR& y );
 
 VECTOR transf( const VECTOR& x,
-	       Numeric (&my_func)(Numeric) );
+	       double (&my_func)(double) );
 
 void transf( const MATRIX& x,
-	     Numeric (&my_func)(Numeric),
+	     double (&my_func)(double),
 	     MATRIX& y );
 
 MATRIX transf( const MATRIX& x,
-	       Numeric (&my_func)(Numeric) );
+	       double (&my_func)(double) );
 
 
 
