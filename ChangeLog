@@ -1,3 +1,16 @@
+2004-05-19  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+        * arts-1-1-822
+
+        * doc/uguide/polarization.tex: included factor 1/2 sqrt(epsilon/mu) 
+        to make the Stokes components real intensities (radiances) 
+        instead of just squared electric fields. Restated definition of 
+        Stokes components in the general case, i.e. with the ensemble
+        averages.
+
+	* doc/uguide/symbol_defs.tex: added definition of ensemble average 
+        \EnsAvr, denoted by angular brackets.
+ 
 2004-05-17  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-1-821
