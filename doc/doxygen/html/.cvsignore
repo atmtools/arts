@@ -5,3 +5,4 @@ Makefile
 Makefile.in
 doxygen.css
 formula.repository
+graph_legend.dot
