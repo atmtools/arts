@@ -8,9 +8,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-INCLUDES       = -I$(top_srcdir)/src/tnt
 bin_PROGRAMS   = arts
-SUBDIRS        = tnt
 
 # Set libraries:
 #LDADD = -lhdf5 -lz 
