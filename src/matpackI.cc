@@ -1514,7 +1514,10 @@ Numeric operator*(const ConstVectorView& a, const ConstVectorView& b)
     match. No memory reallocation takes place, only the data is
     copied. Using this function on overlapping MatrixViews belonging
     to the same Matrix will lead to unpredictable results. In
-    particular, this means that A and B must not be the same matrix! */
+    particular, this means that A and B must not be the same matrix!
+    The implementation here is different from the other multiplication
+    routines. It does not use iterators but a more drastic approach to gain
+    maximum performance.  */
 void mult( VectorView y,
            const ConstMatrixView& M,
            const ConstVectorView& x )
@@ -1522,6 +1525,7 @@ void mult( VectorView y,
   // Check dimensions:
   assert( y.mrange.mextent == M.mrr.mextent );
   assert( M.mcr.mextent == x.mrange.mextent );
+  assert( M.mcr.mextent != 0 && M.mrr.mextent != 0);
 
   // Let's first find the pointers to the starting positions
   Numeric *mdata   = M.mdata + M.mcr.mstart + M.mrr.mstart;
@@ -1552,46 +1556,6 @@ void mult( VectorView y,
     }
 }
 
-// Old mult function TODO: Remove if new mult works
-void mult_old( VectorView y,
-               const ConstMatrixView& M,
-               const ConstVectorView& x )
-{
-  // Check dimensions:
-  assert( y.nelem() == M.nrows() );
-  assert( M.ncols() == x.nelem() );
-
-  // Let's get a 1D iterator for y:
-  const Iterator1D ye = y.end();
-  Iterator1D       yi = y.begin();
-
-  // ... a 2D iterator for M:
-  ConstIterator2D  mi = M.begin();
-
-  // ... and 1D iterators pointing to the start and end of x:
-  const ConstIterator1D xs = x.begin();
-  const ConstIterator1D xe = x.end();
-
-  // This walks through the rows of y and M:
-  for ( ; yi!=ye ; ++yi, ++mi )
-    {
-      // Compute the scalar product between this row of M and x: 
-      Numeric dummy = 0;
-      
-      // Iterators for row of M:
-      ConstIterator1D       ri = mi->begin();
-
-      // ... and for x (always initialized to the start of x):
-      ConstIterator1D       xi = xs;
-
-      for ( ; xi!=xe ; ++xi, ++ri )
-        {
-          dummy += (*ri) * (*xi);
-        }
-
-      *yi = dummy;
-    }
-}
 
 /** Matrix multiplication. A = B*C. Note that the order is different
     from MTL, output comes first! Dimensions of A, B, and C must
