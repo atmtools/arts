@@ -15,5 +15,4 @@
 
 EXTRA_DIST = \
 	*.m \
-	*.eps \
 	*.pdf 

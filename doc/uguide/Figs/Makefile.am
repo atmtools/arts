@@ -17,6 +17,5 @@ SUBDIRS=fm_definitions ppath scattering polarization interpolation
 
 EXTRA_DIST = \
 	*.m \
-	*.eps \
 	*.pdf \
 	*.fig
