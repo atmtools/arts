@@ -1616,9 +1616,9 @@ void CloudboxGetIncoming(// WS Output:
                          Ppath& ppath_step,
                          Matrix& i_rte,
                          Matrix& i_space,
-                         Matrix& ground_emission,
-                         Matrix& ground_los,
-                         Tensor4& ground_refl_coeffs,
+                         Matrix& surface_emission,
+                         Matrix& surface_los,
+                         Tensor4& surface_refl_coeffs,
                          Vector& rte_los,
                          Vector& rte_pos,
                          GridPos& rte_gp_p,
@@ -1634,14 +1634,14 @@ void CloudboxGetIncoming(// WS Output:
                          const Agenda& ppath_step_agenda,
                          const Agenda& rte_agenda,
                          const Agenda& i_space_agenda,
-                         const Agenda& ground_refl_agenda,
+                         const Agenda& surface_agenda,
                          const Vector& p_grid,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
                          const Tensor3& z_field,
                          const Tensor3& t_field,
                          const Matrix& r_geoid,
-                         const Matrix& z_ground
+                         const Matrix& z_surface
                          )
 
 {
@@ -1712,12 +1712,12 @@ void CloudboxGetIncoming(// WS Output:
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
                rte_pos, rte_los, rte_gp_p,
                rte_gp_lat, rte_gp_lon,
-               i_space, ground_emission, ground_los,
-               ground_refl_coeffs, ppath_step_agenda, rte_agenda, 
-               i_space_agenda, ground_refl_agenda,
+               i_space, surface_emission, surface_los,
+               surface_refl_coeffs, ppath_step_agenda, rte_agenda, 
+               i_space_agenda, surface_agenda,
                atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field,
                r_geoid,
-               z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
+               z_surface, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
                scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid, scat_aa_grid,
                sensor_response_dummy, sensor_pos, sensor_los,
                sensor_rot_dummy, f_grid, stokes_dim, antenna_dim_dummy,
@@ -1742,12 +1742,12 @@ void CloudboxGetIncoming(// WS Output:
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
                  rte_pos, rte_los, rte_gp_p,
                  rte_gp_lat, rte_gp_lon,
-                 i_space, ground_emission, ground_los,
-                 ground_refl_coeffs, ppath_step_agenda, rte_agenda,
-                 i_space_agenda, ground_refl_agenda, 
+                 i_space, surface_emission, surface_los,
+                 surface_refl_coeffs, ppath_step_agenda, rte_agenda,
+                 i_space_agenda, surface_agenda, 
                  atmosphere_dim, p_grid, lat_grid, lon_grid, z_field,
                  t_field, r_geoid,
-                 z_ground, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
+                 z_surface, cloudbox_on_dummy, cloudbox_limits, scat_i_p_dummy,
                  scat_i_lat_dummy,
                  scat_i_lon_dummy, scat_za_grid, scat_aa_grid,
                  sensor_response_dummy, sensor_pos, sensor_los,
@@ -1836,13 +1836,13 @@ void CloudboxGetIncoming(// WS Output:
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
-                               i_space, ground_emission, ground_los, 
-                               ground_refl_coeffs, ppath_step_agenda,
+                               i_space, surface_emission, surface_los, 
+                               surface_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
-                               i_space_agenda, ground_refl_agenda, 
+                               i_space_agenda, surface_agenda, 
                                atmosphere_dim, p_grid, lat_grid, lon_grid,
                                z_field,
-                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               t_field, r_geoid, z_surface, cloudbox_on_dummy,
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid, aa_grid, sensor_response_dummy,
@@ -1890,13 +1890,13 @@ void CloudboxGetIncoming(// WS Output:
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
-                               i_space, ground_emission, ground_los, 
-                               ground_refl_coeffs, ppath_step_agenda,
+                               i_space, surface_emission, surface_los, 
+                               surface_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
-                               i_space_agenda, ground_refl_agenda, 
+                               i_space_agenda, surface_agenda, 
                                atmosphere_dim, p_grid, lat_grid, lon_grid,
                                z_field,
-                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               t_field, r_geoid, z_surface, cloudbox_on_dummy,
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
@@ -1943,13 +1943,13 @@ void CloudboxGetIncoming(// WS Output:
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
-                               i_space, ground_emission, ground_los, 
-                               ground_refl_coeffs, ppath_step_agenda,
+                               i_space, surface_emission, surface_los, 
+                               surface_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
-                               i_space_agenda, ground_refl_agenda, 
+                               i_space_agenda, surface_agenda, 
                                atmosphere_dim, p_grid, lat_grid, lon_grid,
                                z_field,
-                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               t_field, r_geoid, z_surface, cloudbox_on_dummy,
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
@@ -1996,13 +1996,13 @@ void CloudboxGetIncoming(// WS Output:
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
-                               i_space, ground_emission, ground_los, 
-                               ground_refl_coeffs, ppath_step_agenda,
+                               i_space, surface_emission, surface_los, 
+                               surface_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
-                               i_space_agenda, ground_refl_agenda, 
+                               i_space_agenda, surface_agenda, 
                                atmosphere_dim, p_grid, lat_grid, lon_grid,
                                z_field,
-                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               t_field, r_geoid, z_surface, cloudbox_on_dummy,
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
@@ -2049,13 +2049,13 @@ void CloudboxGetIncoming(// WS Output:
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
-                               i_space, ground_emission, ground_los, 
-                               ground_refl_coeffs, ppath_step_agenda,
+                               i_space, surface_emission, surface_los, 
+                               surface_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
-                               i_space_agenda, ground_refl_agenda, 
+                               i_space_agenda, surface_agenda, 
                                atmosphere_dim, p_grid, lat_grid, lon_grid,
                                z_field,
-                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               t_field, r_geoid, z_surface, cloudbox_on_dummy,
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
@@ -2102,13 +2102,13 @@ void CloudboxGetIncoming(// WS Output:
                       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
-                               i_space, ground_emission, ground_los, 
-                               ground_refl_coeffs, ppath_step_agenda,
+                               i_space, surface_emission, surface_los, 
+                               surface_refl_coeffs, ppath_step_agenda,
                                rte_agenda, 
-                               i_space_agenda, ground_refl_agenda, 
+                               i_space_agenda, surface_agenda, 
                                atmosphere_dim, p_grid, lat_grid, lon_grid,
                                z_field,
-                               t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                               t_field, r_geoid, z_surface, cloudbox_on_dummy,
                                cloudbox_limits, scat_i_p_dummy,
                                scat_i_lat_dummy, scat_i_lon_dummy,
                                scat_za_grid,
@@ -2164,9 +2164,9 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                          Ppath& ppath_step,
                          Matrix& i_rte, 
                          Matrix& i_space,
-                         Matrix& ground_emission,
-                         Matrix& ground_los,
-                         Tensor4& ground_refl_coeffs,
+                         Matrix& surface_emission,
+                         Matrix& surface_los,
+                         Tensor4& surface_refl_coeffs,
                          Vector& rte_los,
                          Vector& rte_pos,
                          GridPos& rte_gp_p,
@@ -2182,14 +2182,14 @@ void CloudboxGetIncoming1DAtm(// WS Output:
                          const Agenda& ppath_step_agenda,
                          const Agenda& rte_agenda,
                          const Agenda& i_space_agenda,
-                         const Agenda& ground_refl_agenda,
+                         const Agenda& surface_agenda,
                          const Vector& p_grid,
                          const Vector& lat_grid,
                          const Vector& lon_grid,
                          const Tensor3& z_field,
                          const Tensor3& t_field,
                          const Matrix& r_geoid,
-                         const Matrix& z_ground
+                         const Matrix& z_surface
                          )
 
 {
@@ -2295,13 +2295,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                 rte_pos, rte_los, rte_gp_p, 
                 rte_gp_lat, rte_gp_lon,
-                i_space, ground_emission, ground_los, 
-                ground_refl_coeffs, ppath_step_agenda,
+                i_space, surface_emission, surface_los, 
+                surface_refl_coeffs, ppath_step_agenda,
                 rte_agenda, 
-                i_space_agenda, ground_refl_agenda, 
+                i_space_agenda, surface_agenda, 
                 atmosphere_dim, p_grid, lat_grid, lon_grid,
                 z_field,
-                t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                t_field, r_geoid, z_surface, cloudbox_on_dummy,
                 cloudbox_limits, scat_i_p_dummy,
                 scat_i_lat_dummy, scat_i_lon_dummy,
                 scat_za_grid,
@@ -2346,13 +2346,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
       rte_calc( y_dummy, ppath, ppath_step, i_rte,
                 rte_pos, rte_los, rte_gp_p, 
                 rte_gp_lat, rte_gp_lon,
-                i_space, ground_emission, ground_los, 
-                ground_refl_coeffs, ppath_step_agenda,
+                i_space, surface_emission, surface_los, 
+                surface_refl_coeffs, ppath_step_agenda,
                 rte_agenda, 
-                i_space_agenda, ground_refl_agenda, 
+                i_space_agenda, surface_agenda, 
                 atmosphere_dim, p_grid, lat_grid, lon_grid,
                 z_field,
-                t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                t_field, r_geoid, z_surface, cloudbox_on_dummy,
                 cloudbox_limits, scat_i_p_dummy,
                 scat_i_lat_dummy, scat_i_lon_dummy,
                 scat_za_grid,
@@ -2399,13 +2399,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
-                    i_space, ground_emission, ground_los, 
-                    ground_refl_coeffs, ppath_step_agenda,
+                    i_space, surface_emission, surface_los, 
+                    surface_refl_coeffs, ppath_step_agenda,
                     rte_agenda, 
-                    i_space_agenda, ground_refl_agenda, 
+                    i_space_agenda, surface_agenda, 
                     atmosphere_dim, p_grid, lat_grid, lon_grid,
                     z_field,
-                    t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                    t_field, r_geoid, z_surface, cloudbox_on_dummy,
                     cloudbox_limits, scat_i_p_dummy,
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
@@ -2450,13 +2450,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
-                    i_space, ground_emission, ground_los, 
-                    ground_refl_coeffs, ppath_step_agenda,
+                    i_space, surface_emission, surface_los, 
+                    surface_refl_coeffs, ppath_step_agenda,
                     rte_agenda, 
-                    i_space_agenda, ground_refl_agenda, 
+                    i_space_agenda, surface_agenda, 
                     atmosphere_dim, p_grid, lat_grid, lon_grid,
                     z_field,
-                    t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                    t_field, r_geoid, z_surface, cloudbox_on_dummy,
                     cloudbox_limits, scat_i_p_dummy,
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
@@ -2498,13 +2498,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
-                    i_space, ground_emission, ground_los, 
-                    ground_refl_coeffs, ppath_step_agenda,
+                    i_space, surface_emission, surface_los, 
+                    surface_refl_coeffs, ppath_step_agenda,
                     rte_agenda, 
-                    i_space_agenda, ground_refl_agenda, 
+                    i_space_agenda, surface_agenda, 
                     atmosphere_dim, p_grid, lat_grid, lon_grid,
                     z_field,
-                    t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                    t_field, r_geoid, z_surface, cloudbox_on_dummy,
                     cloudbox_limits, scat_i_p_dummy,
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
@@ -2545,13 +2545,13 @@ void CloudboxGetIncoming1DAtm(// WS Output:
           rte_calc( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
-                    i_space, ground_emission, ground_los, 
-                    ground_refl_coeffs, ppath_step_agenda,
+                    i_space, surface_emission, surface_los, 
+                    surface_refl_coeffs, ppath_step_agenda,
                     rte_agenda, 
-                    i_space_agenda, ground_refl_agenda, 
+                    i_space_agenda, surface_agenda, 
                     atmosphere_dim, p_grid, lat_grid, lon_grid,
                     z_field,
-                    t_field, r_geoid, z_ground, cloudbox_on_dummy,
+                    t_field, r_geoid, z_surface, cloudbox_on_dummy,
                     cloudbox_limits, scat_i_p_dummy,
                     scat_i_lat_dummy, scat_i_lon_dummy,
                     scat_za_grid,
@@ -2609,7 +2609,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
   \param sensor_los Agenda input: Sensor line of sight
   \param cloudbox_on Agenda input: Flag to activate cloudbox
   \param cloudbox_limits Agenda input: Limits of the cloudbox
-  \param z_ground Agenda input: Ground height
+  \param z_surface Agenda input: Surface height
   \param gas_species Tag group absorption
   \param met_profile_path Path of metoffice data
   \param met_profile_calc_agenda Agenda for absorption calculation and RT methods
@@ -2641,7 +2641,7 @@ void ybatchMetProfiles(//Output
 		       Matrix& sensor_los,
 		       Index& cloudbox_on,
 		       ArrayOfIndex& cloudbox_limits,
-		       Matrix& z_ground,
+		       Matrix& z_surface,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
 		       const Agenda& met_profile_calc_agenda,
@@ -2683,7 +2683,7 @@ void ybatchMetProfiles(//Output
   ConstVectorView lat = met_amsu_data(Range(joker),0);
   ConstVectorView lon = met_amsu_data(Range(joker),1);
   
-  z_ground.resize(1,1);
+  z_surface.resize(1,1);
   
   // The spectra .
   y.resize(f_grid.nelem());
@@ -2740,8 +2740,8 @@ void ybatchMetProfiles(//Output
       //Write the profile number into a file.
       out2<<"profile_number.xml"<< i;
       
-      // Set z_ground from lowest level of z_field 
-      z_ground(0,0) = z_field_raw.data(0,0,0);
+      // Set z_surface from lowest level of z_field 
+      z_surface(0,0) = z_field_raw.data(0,0,0);
       
       /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
 	 array is for species.
@@ -2842,7 +2842,7 @@ void ybatchMetProfiles(//Output
 	Output of met_profile_calc_agenda : y
 	Input to met_profile_calc_agenda  : t_field_raw,
 	z_field_raw, vmr_field_raw, pnd_field_raw, p_grid,
-	sensor_los, cloudbox_on, cloudbox_limits, z_ground, */
+	sensor_los, cloudbox_on, cloudbox_limits, z_surface, */
 		       
       met_profile_calc_agenda.execute();
       
@@ -2877,7 +2877,7 @@ void ybatchMetProfiles(//Output
   \param y spectra
   \param p_grid pressure grid
   \param sensor_los sensor line of sight
-  \param z_ground ground height
+  \param z_surface surface height
   \param gas_species species under consideration
   \param met_profile_path Path to the MO profiles
   \param met_profile_calc_agenda agenda for absorption calculation and RT methods
@@ -2898,7 +2898,7 @@ void ybatchMetProfilesClear(//Output
 			    Vector& y,
 			    Vector& p_grid,
 			    Matrix& sensor_los,
-			    Matrix& z_ground,
+			    Matrix& z_surface,
 			    //Input
 			    const ArrayOfArrayOfSpeciesTag& gas_species,
 			    const Agenda& met_profile_calc_agenda,
@@ -2934,7 +2934,7 @@ void ybatchMetProfilesClear(//Output
   Vector oro_height;
   oro_height = met_amsu_data(Range(joker),5);
   
-  z_ground.resize(1,1);
+  z_surface.resize(1,1);
   for (Index i = 0; i < no_profiles; ++ i)
     {
       ostringstream lat_os, lon_os;
@@ -2994,9 +2994,9 @@ void ybatchMetProfilesClear(//Output
       // the first element of the species is water vapour. 
       
       // N_p is the number of elements in the pressure grid
-      //z_ground(0,0) = oro_height[i]+ 0.01;
-      z_ground(0,0) = z_field_raw.data(0,0,0);
-      cout<<"z_ground"<<z_ground<<endl;
+      //z_surface(0,0) = oro_height[i]+ 0.01;
+      z_surface(0,0) = z_field_raw.data(0,0,0);
+      cout<<"z_surface"<<z_surface<<endl;
       Index N_p = t_field_raw.p_grid.nelem();
       
       vmr_field_raw[0] = vmr_field_raw_h2o;

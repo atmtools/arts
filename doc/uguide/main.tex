@@ -4,14 +4,10 @@
 \begin{document}
 
 
-\bibliographystyle{agu}
 
-
+%--- Title page
 %
-% === Title page
-%
-% To suppress hyperref
-% warning about duplicate page labels:
+% To suppress hyperref warning about duplicate page labels:
 \renewcommand{\thepage}{title \arabic{page}} 
 
 \thispagestyle{plain}
@@ -23,12 +19,11 @@
   \vspace*{1cm}
   {\Large \bf Patrick Eriksson\footnote{
       Department of Radio and Space Science, 
-      Chalmers University of Technology, SE-41296 G\"oteborg, Sweden
-      (patrick@rss.chalmers.se)} and
+      Chalmers University of Technology, SE-41296 G\"oteborg, Sweden} 
+      and
     Stefan B\"uhler\footnote{
       Institute of Environmental Physics, University of Bremen, 
-      P.O. Box 33044, D-28334 Bremen, Germany
-      (sbuehler@uni-bremen.de)}  
+      P.O. Box 33044, D-28334 Bremen, Germany}  
     }\\
    \vspace*{2cm}
    {\large \today\\
@@ -38,11 +33,11 @@
 \vspace*{4cm}
 {\normalsize \bf
   \noindent
-  This is a working document. The implementation approaches and the
-  algorithms are preliminary and can be subject to changes.  For
-  continuous reports on changes of the source code and this user guide,
-  subscribe to the ARTS developers mailing list at 
-  \verb|www.sat.uni-bremen.de/lists|.
+  The content and usage of ARTS are not only described by this
+  document. An overview of ARTS documentation and help features are
+  given in Section~\ref{sec:intro:guide}. For continuous reports on
+  changes of the source code and this user guide, subscribe to the
+  ARTS developers mailing list at \verb|www.sat.uni-bremen.de/lists|.
 
   We welcome gladly comments and reports on errors in the document.
   Send then an e-mail to: \verb|patrick@rss.chalmers.se| or 
@@ -54,7 +49,7 @@
 \vspace*{\fill}
 \noindent
 \begin{verbatim}
-Copyright (C) 2000,2001,2002,2003 
+Copyright (C) 2000,2001,2002,2003,2004
 Stefan Buehler <sbuehler@uni-bremen.de>
 Patrick Eriksson <patrick@rss.chalmers.se>
 
@@ -96,23 +91,24 @@ Boston, MA 02111-1307, USA.
      \ref{sec:matpack} and \ref{sec:interpolation}.\\
   sbuehler@uni-bremen.de & &        \\
 \hline
-  Cory Davis$^c$ & & Section \ref{sec:montecarlo} \\
+  Cory Davis$^c$ & & Section \ref{sec:montecarlo}. \\
   cory@met.ed.ac.uk & & \\
 \hline
-  Mattias Ekstr\"om$^b$ & & Section \ref{sec:sensor}, \ref{sec:matpack:sparse} \\
+  Mattias Ekstr\"om$^b$ & & Section \ref{sec:sensor}, 
+     \ref{sec:matpack:sparse}. \\
   ekstrom@rss.chalmers.se & & \\
 \hline
   Claudia Emde$^a$ & & Sections \ref{sec:scattering} and \ref{sec:lin_alg}.\\
   claudia@sat.physik.uni-bremen.de & & \\
 \hline
   Patrick Eriksson$^b$ &  & Editor, report structure, 
-    Sections \ref{sec:fm_defs:atmosphere}, \ref{sec:fm_defs:sensor1}, \\
+    Sections \ref{sec:fm_defs:atmosphere}, \ref{sec:fm_defs:polarisation}, \\
   Patrick.Eriksson@rss.chalmers.se & & 
-    \ref{sec:fm_defs:rte}, \ref{sec:formalism}, \ref{sec:ppath},
-    \ref{sec:surface} and \ref{sec:rte_theory}.\\
+    \ref{sec:fm_defs:sensor1}, \ref{sec:fm_defs:rte}, \ref{sec:formalism}, 
+    \ref{sec:ppath}, \ref{sec:surface} and \ref{sec:rte_theory}.\\
 \hline
   Oliver Lemke$^a$ & & Latex fixes and automatic generation of\\
-  olemke@sat.physik.uni-bremen.de & & appendices\\
+  olemke@sat.physik.uni-bremen.de & & appendices.\\
 \hline
   Christian Melsheimer$^a$ & & Section \ref{sec:polarization}.\\
   cmels@sat.physik.uni-bremen.de & & \\
@@ -155,6 +151,7 @@ Boston, MA 02111-1307, USA.
 %
 % === The chapters
 %
+\part{Overview}
 \include{introduction}
 \include{concept}
 \include{fm_definitions}
@@ -176,42 +173,28 @@ Boston, MA 02111-1307, USA.
 \part{Implementation Issues}
 \include{development}
 \include{agendas}
+%
 \part{Mathematical functions}
 \include{matrix_vector}
 \include{interpolation}
+\include{integration}
 \include{lin_alg}
+%
 \part{Theoretical background}
 \include{rte_theory}
 \include{polarization}
-\include{integration}
 %\include{formats}
 %\part{Utilities}
 %\include{utilities}
-
-
 %
-% ===   Bibliography
-                                %
+%
+%                                %
 \part{Bibliography and Appendices}
-%
 \bibliography{references}
-%
-% ===   Appendices
-%
 \begin{appendix}
-
 \include{app_groups}
 \include{app_methods}
-
-
-%  \include{app_wsv}
-%  \include{app_units}
-
 \end{appendix}
-
-
-%
-% ===   Index
 %
 \part{Index}
 \printindex

@@ -198,14 +198,14 @@ void ppathCalc(
         const Vector&         lon_grid,
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
-        const Matrix&         z_ground,
+        const Matrix&         z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,
         const Vector&         rte_los )
 {
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-             p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
+             p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                         cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1, 0 );
 }
 
@@ -229,7 +229,7 @@ void ppath_stepGeometric(
         const Vector&    lon_grid,
         const Tensor3&   z_field,
         const Matrix&    r_geoid,
-        const Matrix&    z_ground,
+        const Matrix&    z_surface,
         // Control Parameters:
         const Numeric&   lmax )
 {
@@ -239,16 +239,16 @@ void ppath_stepGeometric(
 
   if( atmosphere_dim == 1 )
     { ppath_step_geom_1d( ppath_step, p_grid, z_field(joker,0,0), 
-                                         r_geoid(0,0), z_ground(0,0), lmax ); }
+                                         r_geoid(0,0), z_surface(0,0), lmax ); }
 
   else if( atmosphere_dim == 2 )
     { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
-         z_field(joker,joker,0), r_geoid(joker,0), z_ground(joker,0), lmax ); }
+         z_field(joker,joker,0), r_geoid(joker,0), z_surface(joker,0), lmax ); }
 
 
   else if( atmosphere_dim == 3 )
     { ppath_step_geom_3d( ppath_step, p_grid, lat_grid, lon_grid,
-                                          z_field, r_geoid, z_ground, lmax ); }
+                                          z_field, r_geoid, z_surface, lmax ); }
 
   else
     { throw runtime_error( "The atmospheric dimensionality must be 1-3." ); }
@@ -280,7 +280,7 @@ void ppath_stepRefractionEuler(
         const Tensor3&    t_field,
         const Tensor4&    vmr_field,
         const Matrix&     r_geoid,
-        const Matrix&     z_ground,
+        const Matrix&     z_surface,
         // Control Parameters:
         const Numeric&    lraytrace,
         const Numeric&    lmax )
@@ -295,7 +295,7 @@ void ppath_stepRefractionEuler(
     { ppath_step_refr_1d( ppath_step, rte_pressure, rte_temperature, 
                           rte_vmr_list, refr_index, refr_index_agenda,
                           p_grid, z_field(joker,0,0), t_field(joker,0,0), 
-                       vmr_field(joker,joker,0,0), r_geoid(0,0), z_ground(0,0),
+                       vmr_field(joker,joker,0,0), r_geoid(0,0), z_surface(0,0),
                                            "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 2 )
@@ -303,14 +303,14 @@ void ppath_stepRefractionEuler(
                           rte_vmr_list, refr_index, refr_index_agenda,
                           p_grid, lat_grid, z_field(joker,joker,0),
                        t_field(joker,joker,0), vmr_field(joker, joker,joker,0),
-                          r_geoid(joker,0), z_ground(joker,0), 
+                          r_geoid(joker,0), z_surface(joker,0), 
                                            "linear_euler", lraytrace, lmax ); }
 
   else if( atmosphere_dim == 3 )
     { ppath_step_refr_3d( ppath_step, rte_pressure, rte_temperature, 
                           rte_vmr_list, refr_index, refr_index_agenda,
                           p_grid, lat_grid, lon_grid, z_field, 
-                          t_field, vmr_field, r_geoid, z_ground, 
+                          t_field, vmr_field, r_geoid, z_surface, 
                                            "linear_euler", lraytrace, lmax ); }
 
   else
@@ -587,7 +587,7 @@ void ZaSatOccultation(
         const Vector&           lon_grid,
         const Tensor3&          z_field,
         const Matrix&           r_geoid,
-        const Matrix&           z_ground,
+        const Matrix&           z_surface,
         // WS Control Parameters:
         const Numeric&          z_recieve,
         const Numeric&          z_send,
@@ -607,7 +607,7 @@ void ZaSatOccultation(
   chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid,
                                                                     lon_grid );
   chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
-  chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
 
   //Convert heights to radius
   const Numeric     r_recieve = r_geoid(0,0) + z_recieve;
@@ -639,7 +639,7 @@ void ZaSatOccultation(
     Ppath ppath;
     ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim,
                 p_grid, lat_grid, lon_grid, z_field, r_geoid,
-                z_ground, 0, ArrayOfIndex(0), Vector(1,r_recieve),
+                z_surface, 0, ArrayOfIndex(0), Vector(1,r_recieve),
                 Vector(1,za_ref[i]), 1, 0 );
     if ( ppath.tan_pos.nelem() != 0 ) {
       //Calculate the latitude from the recieving sensor, concisting of
@@ -651,7 +651,7 @@ void ZaSatOccultation(
             10, r_send ));
       z_ref[i] = ppath.tan_pos[0] - r_geoid(0,0);
     } else {
-      //If ppath_calc hits the ground, use linear extrapolation to find the
+      //If ppath_calc hits the surface, use linear extrapolation to find the
       //last point
       lat_ref[i] = 2*lat_ref[i-1] - lat_ref[i-2];
       z_ref[i] = 2*z_ref[i-1] - z_ref[i-2];
@@ -659,7 +659,7 @@ void ZaSatOccultation(
     }
   }
 
-  //Create vectors for ppaths that passed above ground
+  //Create vectors for ppaths that passed above surface
   Vector za_ref_above = za_ref[Range(0,i)];
   Vector z_ref_above = z_ref[Range(0,i)];
   Vector lat_ref_above = lat_ref[Range(0,i)];
@@ -720,7 +720,7 @@ void rte_pos_and_losFromTangentPressure(
 					const Vector &     lon_grid,
 					const Agenda &     ppath_step_agenda,
 					const Matrix &     r_geoid,
-					const Matrix &     z_ground,
+					const Matrix &     z_surface,
 					// Control Parameters:
 					const Numeric&   tan_p
 					)
@@ -758,7 +758,7 @@ void rte_pos_and_losFromTangentPressure(
   bool outside_cloudbox=true;
   Index agenda_verb=1;
   ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
-	     lon_grid,z_field, r_geoid, z_ground,cloudbox_on, cloudbox_limits,
+	     lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
 	     rte_pos, rte_los, outside_cloudbox,agenda_verb);
   rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los = ppath.los(ppath.np-1,joker);

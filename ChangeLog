@@ -1,3 +1,29 @@
+2004-06-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-835
+
+	IMPORTANT: Note that you need to change your control files.
+	Change "ground_refl_agenda" to "surface_agenda", and change all
+	"ground_" to "surface_" and all "_ground" to "_surface".
+
+	This follows a decision at the Bredbeck workshop.
+	
+	* General change from calling the bottom level "ground", to call it
+	"surface". To avoid confusion, pressure surfaces are now denoted as
+	pressure levels. On the same time, ground_refl_agenda is renamed to
+	surface_agenda.
+	
+	* doc/uguide/fm_definitions.tex: Wrote a section on Stokes
+	dimensionality, and short text for absorption section explaining
+	that a look-up table must be used so far. Reviewed clear sky RT 
+	section.
+
+	* doc/uguide/main.tex: Some cleaning. Moved integration chapter to
+	correct part. Put first chapters into a part (Overview).
+
+	* doc/uguide/uguide.tex: Moved around stuff to clean up and improve
+	logic.
+
 2004-06-18  Mattias Ekström <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-833
@@ -17,7 +43,7 @@
 
 2004-06-17  Mattias Ekström <ekstrom@rss.chalmers.se>
 
-	* arts-1-1-832
+	* arts-1-1-833
 
 	* doc/uguide/Figs/sensor: Added folder with files Makefile.am,
 	ant_diag.mp and ant_diag.pdf to CVS repository.

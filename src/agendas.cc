@@ -129,40 +129,40 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "ground_refl_agenda" ),
+     ( NAME( "surface_agenda" ),
        DESCRIPTION
        (
-        "Describes the properties of the ground to consider when there is a\n"
-        "ground reflection.\n"
+        "Describes the properties of the surface to consider when there is a\n"
+        "surface reflection.\n"
         "\n"
-        "The ground properties are described by the WSVs *ground_emission*,\n"
-        "*ground_los* and *ground_refl_coeffs*.\n"
+        "The surface properties are described by the WSVs\n"
+        "*surface_emission*, *surface_los* and *surface_refl_coeffs*.\n"
         "\n"
-        "The upwelling radiation from the ground is calculated as the sum of\n"
-        "*ground_emission* and the spectra calculated for the directions\n"
-        "given by *ground_los*, multiplicated with the weights in\n"
-        "*ground_refl_coeffs*. Or (for frequency i): \n"
+        "The upwelling radiation from the surface is calculated as the sum\n"
+        "of *surface_emission* and the spectra calculated for the directions\n"
+        "given by *surface_los*, multiplicated with the weights in\n"
+        "*surface_refl_coeffs*. Or (for frequency i): \n"
         "   i_up = i_emission + sum_over_los( W*i_down ) \n"
         "where i_up is the upwelling radiation, i_emission is row i of\n"
-        "*ground_emission*, W is the reflection matrix in \n"
-        "*ground_refl_coeffs* for the frequency and LOS of concern and \n"
+        "*surface_emission*, W is the reflection matrix in \n"
+        "*surface_refl_coeffs* for the frequency and LOS of concern and \n"
         "i_down is the downwelling radiation for the LOS given in\n"
-        "*ground_los*. \n"
+        "*surface_los*. \n"
         "\n"
-        "With other words, the scattering properties of the ground are \n"
-        "described by the variables *ground_los* and *ground_refl_coeffs*.\n"
+        "With other words, the scattering properties of the surface are \n"
+        "described by the variables *surface_los* and *surface_refl_coeffs*.\n"
         "\n"
         "A function calling this agenda shall set *rte_los* and *rte_gp_XXX*\n"
-        "to match the line-of-sight and position at the ground reflection\n"
+        "to match the line-of-sight and position at the surface reflection\n"
         "point.\n"
         "\n"
         "See further the user guide.\n"
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_  ),
+       OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_  ),
        INPUT(  f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-               rte_los_, r_geoid_, z_ground_, t_field_ )));
+               rte_los_, r_geoid_, z_surface_, t_field_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -224,7 +224,7 @@ void define_agenda_data()
        OUTPUT( y_ ),
        INPUT(t_field_raw_, vmr_field_raw_, z_field_raw_, pnd_field_raw_,
 	     p_grid_, sensor_los_, cloudbox_on_, cloudbox_limits_,
-	     z_ground_)));
+	     z_surface_)));
 
   agenda_data.push_back
     (AgRecord
@@ -364,19 +364,18 @@ void define_agenda_data()
         "\n"
         "The agenda performs only calculations to next crossing of a grid, \n"
         "all other tasks must be performed by the calling method, with one \n"
-        "exception. If there is an intersection of a blackbody ground, the \n"
+        "exception. If there is an intersection of a blackbody surface, the \n"
         "calculations stop at this point. This is flagged by setting the \n" 
         "background field of *ppath_step*. Beside this, the calling method \n" 
         "must check if the starting point of the calculations is inside the \n"
-        "scattering box or below the ground level, and check if the last \n"
+        "scattering box or below the surface level, and check if the last \n"
         "point of the path has been reached. The starting point (the end \n"
         "furthest away from the sensor) of a full propagation path can be \n"
-        "the top of the atmosphere, a blackbody ground (if \n"
-        "*blackbody_ground* = 1) and the cloud box.\n"
+        "the top of the atmosphere, the surface and the cloud box.\n"
         "\n"
         "The *ppath_step_agenda* put in points along the propagation path \n"
         "at all crossings with the grids, tangent points and points of \n"
-        "ground reflection. It is also allowed to make agendas that put in \n"
+        "surface reflection. It is also allowed to make agendas that put in \n"
         "additional points to fulfil some criterion, such as a maximum \n"
         "distance along the path between the points. Accordingly, the \n"
         "number of new points of each step can exceed one.\n"
@@ -395,7 +394,7 @@ void define_agenda_data()
              lon_grid_,
              z_field_,
              r_geoid_,
-             z_ground_ )));
+             z_surface_ )));
   
   agenda_data.push_back
     (AgRecord
@@ -438,8 +437,8 @@ void define_agenda_data()
         "Calculate scalar gas absorption.\n"
         "\n"
         "This agenda should calculate absorption coefficients for all gas\n"
-        "species as a function of the given atmospheric state for one point in\n"
-        "the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
+        "species as a function of the given atmospheric state for one point\n"
+        "in the atmosphere. The result is returned in *abs_scalar_gas*, the\n"
         "atmospheric state has to be specified by *rte_pressure*,\n"
         "*rte_temperature*, and *rte_vmr_list*\n"
         "\n"
@@ -450,8 +449,8 @@ void define_agenda_data()
         "2. f_index >= 0 : Return absorption for the frequency indicated by\n"
         "   f_index. \n"
         "\n"
-        "The methods inside this agenda may require a lot of additional input\n"
-        "variables, such as *f_grid*, *species*, etc.."
+        "The methods inside this agenda may require a lot of additional\n"
+        "input variables, such as *f_grid*, *species*, etc.."
         ),
        OUTPUT( abs_scalar_gas_ ),
        INPUT(  f_index_,

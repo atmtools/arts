@@ -509,17 +509,17 @@ void AtmosphereSet3D(
 
 
 
-//! groundNoScatteringSingleEmissivity
+//! surfaceNoScatteringSingleEmissivity
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-09-22
 */
-void groundNoScatteringSingleEmissivity(
-              Matrix&    ground_emission, 
-              Matrix&    ground_los, 
-              Tensor4&   ground_refl_coeffs,
+void surfaceNoScatteringSingleEmissivity(
+              Matrix&    surface_emission, 
+              Matrix&    surface_los, 
+              Tensor4&   surface_refl_coeffs,
         const Vector&    f_grid,
         const Index&     stokes_dim,
         const GridPos&   rte_gp_p,
@@ -531,7 +531,7 @@ void groundNoScatteringSingleEmissivity(
         const Vector&    lat_grid,
         const Vector&    lon_grid,
         const Matrix&    r_geoid,
-        const Matrix&    z_ground,
+        const Matrix&    z_surface,
         const Tensor3&   t_field,
         const Numeric&   e )
 {
@@ -540,48 +540,48 @@ void groundNoScatteringSingleEmissivity(
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
   chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
-  chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, lon_grid );
   chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
                                                                     lon_grid );
   chk_if_in_range( "the keyword *e*", e, 0, 1 );
   //---------------------------------------------------------------------------
 
   out2 << 
-        "  Sets the ground to have no scattering and a constant emissivity.\n";
+        "  Sets the surface to have no scattering and a constant emissivity.\n";
   out3 << 
-        "     Ground temperature is obtained by interpolation of *t_field*.\n";
+        "     Surface temperature is obtained by interpolation of *t_field*.\n";
 
   // Some sizes
   const Index   nf = f_grid.nelem();
 
   // Resize output arguments
-  ground_emission.resize( nf, stokes_dim );
-  ground_los.resize( 1, rte_los.nelem() );
-  ground_refl_coeffs.resize( 1, nf, stokes_dim, stokes_dim );
-  ground_refl_coeffs = 0;
+  surface_emission.resize( nf, stokes_dim );
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_refl_coeffs.resize( 1, nf, stokes_dim, stokes_dim );
+  surface_refl_coeffs = 0;
 
-  // Determine the temperature at the point of the ground reflection
+  // Determine the temperature at the point of the surface reflection
   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
               lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
 
-  out3 << "     Ground temperature is                     : " << t << "\n";
+  out3 << "     Surface temperature is                     : " << t << "\n";
 
-  // Fill ground_emission and ground_refl_coeffs
+  // Fill surface_emission and surface_refl_coeffs
   for( Index i=0; i<nf; i++ )
     { 
-      ground_emission(i,0) = e * planck( f_grid[i], t ); 
-      ground_refl_coeffs(0,i,0,0) = 1 - e;
+      surface_emission(i,0) = e * planck( f_grid[i], t ); 
+      surface_refl_coeffs(0,i,0,0) = 1 - e;
       for( Index is=1; is<stokes_dim; is++ )
         { 
-          ground_emission(i,is) = 0; 
-          ground_refl_coeffs(0,i,is,is) = 1 - e;
+          surface_emission(i,is) = 0; 
+          surface_refl_coeffs(0,i,is,is) = 1 - e;
         }
-      // Note that other elements of ground_refl_coeffs are set to 0 above.
+      // Note that other elements of surface_refl_coeffs are set to 0 above.
     }
 
   // Calculate LOS for downwelling radiation
-  ground_specular_los( ground_los(0,joker), atmosphere_dim, r_geoid,
-                z_ground, lat_grid, lon_grid, rte_gp_lat,rte_gp_lon, rte_los );
+  surface_specular_los( surface_los(0,joker), atmosphere_dim, r_geoid,
+                z_surface, lat_grid, lon_grid, rte_gp_lat,rte_gp_lon, rte_los );
 
   out3 << "     Zenith angle for upwelling radiation is   : " 
        << rte_los[0] << "\n";
@@ -591,27 +591,27 @@ void groundNoScatteringSingleEmissivity(
            << rte_los[1] << "\n";
     }
   out3 << "     Zenith angle for downwelling radiation is : " 
-       << ground_los(0,0) << "\n";
+       << surface_los(0,0) << "\n";
   if( atmosphere_dim > 2 )
     {
       out3 << "     Azimuth angle for downwelling radiation is: " 
-           << ground_los(0,1) << "\n";
+           << surface_los(0,1) << "\n";
     }
 }
 
 
 
-//! groundTreatAsBlackbody
+//! surfaceTreatAsBlackbody
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-09-17
 */
-void groundTreatAsBlackbody(
-              Matrix&    ground_emission, 
-              Matrix&    ground_los, 
-              Tensor4&   ground_refl_coeffs,
+void surfaceTreatAsBlackbody(
+              Matrix&    surface_emission, 
+              Matrix&    surface_los, 
+              Tensor4&   surface_refl_coeffs,
         const Vector&    f_grid,
         const Index&     stokes_dim,
         const GridPos&   rte_gp_p,
@@ -631,31 +631,31 @@ void groundTreatAsBlackbody(
                                                                     lon_grid );
   //---------------------------------------------------------------------------
 
-  out2 << "  Sets the ground to be a blackbody.\n";
+  out2 << "  Sets the surface to be a blackbody.\n";
   out3 << 
-        "     Ground temperature is obtained by interpolation of *t_field*.\n";
+        "     Surface temperature is obtained by interpolation of *t_field*.\n";
 
-  // Set ground_los and ground_refl_coeffs to be empty as no downwelling
+  // Set surface_los and surface_refl_coeffs to be empty as no downwelling
   // spectra shall be calculated
-  ground_los.resize(0,0);
-  ground_refl_coeffs.resize(0,0,0,0);
+  surface_los.resize(0,0);
+  surface_refl_coeffs.resize(0,0,0,0);
   
   // Some sizes
   const Index   nf = f_grid.nelem();
 
-  // Resize ground_emission.
-  ground_emission.resize(nf,stokes_dim);
+  // Resize surface_emission.
+  surface_emission.resize(nf,stokes_dim);
 
-  // Determine the temperature at the point of the ground reflection
+  // Determine the temperature at the point of the surface reflection
   const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
               lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
 
-  // Fill ground_emission with unpolarised blackbody radiation
+  // Fill surface_emission with unpolarised blackbody radiation
   for( Index i=0; i<nf; i++ )
     { 
-      ground_emission(i,0) = planck( f_grid[i], t ); 
+      surface_emission(i,0) = planck( f_grid[i], t ); 
       for( Index is=1; is<stokes_dim; is++ )
-        { ground_emission(i,is) = 0; }
+        { surface_emission(i,is) = 0; }
     }
 }
 

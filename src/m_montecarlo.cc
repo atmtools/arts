@@ -87,7 +87,7 @@ void Cloudbox_ppathCalc(
         const Vector&         lon_grid,
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
-        const Matrix&         z_ground,
+        const Matrix&         z_surface,
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,
         const Vector&         rte_los)
@@ -136,7 +136,7 @@ void Cloudbox_ppathCalc(
 
   //
   cloudbox_ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-                      lon_grid, z_field, r_geoid, z_ground, rte_pos, rte_los );
+                      lon_grid, z_field, r_geoid, z_surface, rte_pos, rte_los );
 
   out2 << "  -------------------------------------\n";
 
@@ -389,9 +389,9 @@ void ScatteringMonteCarlo (
                            GridPos&              rte_gp_lat,
                            GridPos&              rte_gp_lon,
                            Matrix&               i_space,
-                           Matrix&               ground_emission,
-                           Matrix&               ground_los, 
-                           Tensor4&              ground_refl_coeffs,
+                           Matrix&               surface_emission,
+                           Matrix&               surface_los, 
+                           Tensor4&              surface_refl_coeffs,
                            Matrix&               i_rte,
                            Vector&               scat_za_grid,
                            Vector&               scat_aa_grid,
@@ -415,13 +415,13 @@ void ScatteringMonteCarlo (
                            const Vector&         lon_grid,
                            const Tensor3&        z_field,
                            const Matrix&         r_geoid,
-                           const Matrix&         z_ground,
+                           const Matrix&         z_surface,
                            const ArrayOfIndex&   cloudbox_limits,
                            const Index&          stokes_dim,
                            //Stuff needed by RteCalc
                            const Agenda&         rte_agenda,
                            const Agenda&         i_space_agenda,
-                           const Agenda&         ground_refl_agenda,
+                           const Agenda&         surface_agenda,
                            const Tensor3&        t_field,
                            const Vector&         f_grid,
                            //Stuff needed by TArrayCalc
@@ -523,16 +523,16 @@ void ScatteringMonteCarlo (
                          abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
                          scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
                          rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
-                         rte_gp_lat, rte_gp_lon, i_space, ground_emission, 
-                         ground_los, ground_refl_coeffs, f_index, scat_za_index, 
+                         rte_gp_lat, rte_gp_lon, i_space, surface_emission, 
+                         surface_los, surface_refl_coeffs, f_index, scat_za_index, 
                          scat_aa_index, ext_mat_spt, abs_vec_spt, pnd_ppathLOS, 
                          ppath_step_agenda, atmosphere_dim, 
-                         p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
+                         p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
                          cloudbox_limits, record_ppathcloud, record_ppath, 
                          opt_prop_gas_agenda, spt_calc_agenda, 
                          scalar_gas_absorption_agenda, stokes_dim, t_field, 
                          vmr_field, rte_agenda, i_space_agenda, 
-                         ground_refl_agenda, f_grid, 0, 0,pnd_field);
+                         surface_agenda, f_grid, 0, 0,pnd_field);
   
 
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
@@ -565,7 +565,7 @@ void ScatteringMonteCarlo (
               //We need to calculate a new propagation path. In the future, we may be 
               //able to take some shortcuts here
               Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-                                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_ground,
+                                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
                                  cloudbox_limits, rte_pos,rte_los);
               if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
                                                    photon_number,scattering_order);}
@@ -602,11 +602,11 @@ void ScatteringMonteCarlo (
               //Get incoming//////
               montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
                         rte_gp_lat,rte_gp_lon,ppath,ppath_step,i_space,
-                        ground_emission,ground_los,ground_refl_coeffs,
+                        surface_emission,surface_los,surface_refl_coeffs,
                         scat_za_grid,scat_aa_grid,ppath_step_agenda,
-                        rte_agenda,i_space_agenda,ground_refl_agenda,t_field,
+                        rte_agenda,i_space_agenda,surface_agenda,t_field,
                         p_grid,lat_grid,lon_grid,z_field,r_geoid,
-                        z_ground,cloudbox_limits,ppathcloud,atmosphere_dim,
+                        z_surface,cloudbox_limits,ppathcloud,atmosphere_dim,
                         f_grid,stokes_dim);
               
               if (record_ppath)

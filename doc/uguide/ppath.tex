@@ -58,7 +58,7 @@ calculating a number of path steps. A path step is the path from a
 point to the next crossing of either the pressure, latitude or
 longitude grid (Figure~\ref{fig:ppath:ex1}). There is one exception to
 this definition of a path step, and that is when there is an
-intersection with the ground, which ends the propagation path at that
+intersection with the surface, which ends the propagation path at that
 point. The starting point for the calculation of a path step is
 normally a grid crossing point, but can also be an arbitrary point
 inside the atmosphere, such as the sensor position. Only points inside
@@ -128,16 +128,16 @@ considered, or not, when the sensor is placed inside the atmosphere.
 
 The agenda performs only calculations to next crossing of a grid, all
 other tasks are performed by \wsmindex{ppathCalc}, with one exception.
-If there is an intersection with the ground, the calculations stop at
+If there is an intersection with the surface, the calculations stop at
 this point. This is flagged by setting the background field of
 \artsstyle{ppath\_step}. Beside this, \wsmindex{ppathCalc} checks if
 the starting point of the calculations is inside the scattering box or
-below the ground level, and check if the last point of the path has
+below the surface level, and check if the last point of the path has
 been reached. 
 
 The \artsstyle{ppath\_step\_agenda} put in points along the
 propagation path at all crossings with the grids, tangent points and
-points of ground reflection. Additional points can be included in the
+points of surface reflection. Additional points can be included in the
 propagation paths. For example, an upper distance between the points
 defining the path can be set for \artsstyle{ppath\_stepGeometric} by
 the keyword \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
@@ -238,13 +238,13 @@ the data type is given inside square brackets, are:
      
    \item[background] [String] The radiative background for the
      propagation path. The possible
-     options for this field are 'space', 'blackbody ground', 'cloud
+     options for this field are 'space', 'blackbody surface', 'cloud
      box interior' and 'cloud box surface', where the source of
      radiation should be clear the content of the strings.
      
    \item[tan\_pos] [Vector] The position of the tangent point. This
      vector is only set if there exists a tangent point (above the
-     ground level), the length of the vector is otherwise 0. The
+     surface level), the length of the vector is otherwise 0. The
      tangent point is defined as the point with the lowest radius
      along the path. This means that (the absolute value of) the
      zenith angle at the tangent point is always 90\degree. For 2D
@@ -253,7 +253,7 @@ the data type is given inside square brackets, are:
      
    \item[geom\_tan\_pos] [Vector] The position of the geometrical
      tangent point. This vector is set for all downward observations.
-     Refraction and ground reflections are neglected when calculating
+     Refraction and surface reflections are neglected when calculating
      this tangent point position. This field is not handled by
      \artsstyle{ppath\_step\_agenda}. Definition of the tangent point
      as for \artsstyle{tan\_pos}.
@@ -333,17 +333,17 @@ other tasks, which include:
   the geometrical tangent point is calculated.
 \item If the sensor is placed inside the model atmosphere
   \begin{itemize}
-  \item Checks that the sensor is placed above the ground level. If
+  \item Checks that the sensor is placed above the surface level. If
     not, an error is issued.
   \item Checks for 2D and 3D and when the sensor position as at an end
     point of the latitude or longitude grid, that the LOS is inwards
     with respect to the atmospheric limit.
-  \item If the sensor and ground altitudes are equal, and the sensor
+  \item If the sensor and surface altitudes are equal, and the sensor
     LOS is downward, the radiative background is set to be the
-    ground. For 2D and 3D, the tilt of the ground radius is considered
+    surface. For 2D and 3D, the tilt of the surface radius is considered
     when determining if the LOS is downward.
   \item If the cloud box is active and the sensor position is inside
-    the cloud box, the radiative background is set to be ``cloud box
+    the cloud box, the radiative backsurface is set to be ``cloud box
     interior''. All sensor positions on the cloud box surface are for
     2D and 3D treated as points inside the box (for simplicity
     reasons), while for 1D the behavior is as expected.
@@ -710,7 +710,7 @@ determined. If the line-of-sight is upwards ($\|\ZntAng| \leq
 90\degree$), then the start point of the step gives the lowest radius,
 and the radius of the pressure surface above gives the highest value.
 In the case of a downwards line-of-sight, the lowest radius is either
-the tangent point, the pressure surface below or the ground. The
+the tangent point, the pressure surface below or the surface. The
 needed quantities to describe the propagation path between the two
 found radii are calculated by the function
 \funcindex{geompath\_from\_r1\_to\_r2}, that has the option to
@@ -1090,7 +1090,7 @@ considered. For limb sounding and a fixed zenith angle, the tangent
 point is moved downwards compared to the pure geometrical case
 (Figure~\ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
 refraction in general gives higher intensities. However, the
-propagation path is still symmetric around tangent and ground points.
+propagation path is still symmetric around tangent and surface points.
 
 The refraction causes a bending of the path, which gives a deviation
 from the geometrical approximation of propagation along a straight
@@ -1529,7 +1529,7 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 \label{sec:ppath:cfile}
 
 
-Some examples on how the geoid radius and the ground altitude can be set:
+Some examples on how the geoid radius and the surface altitude can be set:
 \begin{verbatim}
 
 # Set the geoid to model WGS84 for 2D and 3D.
@@ -1559,8 +1559,8 @@ r_geoidSpherical {
   r = -1
 }
 
-# Set a constant ground altitude of 1 km
-MatrixSetTakingSizeFromMatrix( z_ground, r_geoid ) {
+# Set a constant surface altitude of 1 km
+MatrixSetTakingSizeFromMatrix( z_surface, r_geoid ) {
   value = 1e3
 }
 

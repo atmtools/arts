@@ -189,10 +189,10 @@ void cloud_fieldsCalc(// Output:
   Variables used in opt_prop_xxx_agenda:
   \param ext_mat
   \param abs_vec 
-  Ground related variables:
-  \param ground_los
-  \param ground_emission
-  \param ground_refl_coeffs
+  Surface related variables:
+  \param surface_los
+  \param surface_emission
+  \param surface_refl_coeffs
   \param rte_los
   \param rte_pos
   \param rte_gp_p
@@ -221,8 +221,8 @@ void cloud_fieldsCalc(// Output:
   Optical properties of particles
   \param ext_mat_field
   \param abs_vec_field
-  Ground reflection 
-  \param ground_refl_agenda
+  Surface reflection 
+  \param surface_agenda
   \param scat_za_interp
 
   \author Claudia Emde
@@ -237,10 +237,10 @@ void cloud_ppath_update1D(
 			  // opt_prop_xxx_agenda:
 			  Tensor3& ext_mat,
 			  Matrix& abs_vec,  
-			  // ground related variables STR
-			  Matrix& ground_los,
-			  Matrix& ground_emission,
-			  Tensor4& ground_refl_coeffs,
+			  // surface related variables STR
+			  Matrix& surface_los,
+			  Matrix& surface_emission,
+			  Tensor4& surface_refl_coeffs,
 			  Vector& rte_los,
 			  Vector& rte_pos,
 			  GridPos& rte_gp_p,
@@ -268,7 +268,7 @@ void cloud_ppath_update1D(
 			  //particle optical properties
 			  ConstTensor5View ext_mat_field,
 			  ConstTensor4View abs_vec_field,
-			  const Agenda& ground_refl_agenda, //STR
+			  const Agenda& surface_agenda, //STR
                           const Index& scat_za_interp
 			  )
 {
@@ -550,7 +550,7 @@ void cloud_ppath_update1D(
 		  joker) = stokes_vec;
 	}// if loop end - for non_ground background
 
-      // bkgr=2 indicates that the background is ground
+      // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
 	{
 	  //Set rte_pos, rte_gp_p and rte_los to match the last point
@@ -564,28 +564,28 @@ void cloud_ppath_update1D(
 	  rte_los = ppath_step.los(np-1,joker);
 	  //gp_p
 	  gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
-	  // Executes the ground reflection agenda
-	  chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
-	  ground_refl_agenda.execute(true);
+	  // Executes the surface reflection agenda
+	  chk_not_empty( "surface_agenda", surface_agenda );
+	  surface_agenda.execute(true);
 
 	  // Check returned variables
-	  if( ground_emission.nrows() != f_grid.nelem()  ||  
-	      ground_emission.ncols() != stokes_dim )
+	  if( surface_emission.nrows() != f_grid.nelem()  ||  
+	      surface_emission.ncols() != stokes_dim )
 	    throw runtime_error(
-                  "The size of the created *ground_emission* is not correct.");
+                  "The size of the created *surface_emission* is not correct.");
 
-	  Index nlos = ground_los.nrows();
+	  Index nlos = surface_los.nrows();
 
 	  // Define a local vector i_field_sum which adds the 
 	  // products of groudnd_refl_coeffs with the downwelling 
-	  // radiation for each elements of ground_los
+	  // radiation for each elements of surface_los
 	  Vector i_field_sum(stokes_dim,0);
-	  // Loop over the ground_los elements
+	  // Loop over the surface_los elements
 	  for( Index ilos=0; ilos < nlos; ilos++ )
 	    {
 	      if( stokes_dim == 1 )
 		{
-		  i_field_sum[0] += ground_refl_coeffs(ilos,f_index,0,0) *
+		  i_field_sum[0] += surface_refl_coeffs(ilos,f_index,0,0) *
 		    i_field(cloudbox_limits[0],
 			    0, 0,
 			    (scat_za_grid.nelem() -1 - scat_za_index), 0,
@@ -595,7 +595,7 @@ void cloud_ppath_update1D(
 		{
 		  Vector stokes_vec2(stokes_dim);
 		  mult( stokes_vec2, 
-			ground_refl_coeffs(ilos,0,joker,joker), 
+			surface_refl_coeffs(ilos,0,joker,joker), 
 			i_field(cloudbox_limits[0],
 				0, 0,
 				(scat_za_grid.nelem() -1 - scat_za_index), 0,
@@ -607,13 +607,13 @@ void cloud_ppath_update1D(
 		  
 		}
 	    }
-	  // Copy from *i_field_sum* to *i_field*, and add the ground emission
+	  // Copy from *i_field_sum* to *i_field*, and add the surface emission
 	  for( Index is=0; is < stokes_dim; is++ )
 	    {
 	      i_field (cloudbox_limits[0],
 		       0, 0,
 		       scat_za_index, 0,
-		       is) = i_field_sum[is] + ground_emission(f_index,is);
+		       is) = i_field_sum[is] + surface_emission(f_index,is);
 	    }
 	  // now the RT is done to the next point in the path.
 	  // 
@@ -697,7 +697,7 @@ void cloud_ppath_update1D(
 		  scat_za_index, 0,
 		  joker) = stokes_vec_local;
 	  
-	}//end else loop over ground
+	}//end else loop over surface
     }//end if inside cloudbox
 }
 
@@ -1388,10 +1388,10 @@ void cloud_ppath_update1D_planeparallel(
 					// opt_prop_xxx_agenda:
 					Tensor3& ext_mat,
 					Matrix& abs_vec,  
-					// ground related variables STR
-					Matrix& ground_los,
-					Matrix& ground_emission,
-					Tensor4& ground_refl_coeffs,
+					// surface related variables STR
+					Matrix& surface_los,
+					Matrix& surface_emission,
+					Tensor4& surface_refl_coeffs,
 					Vector& rte_los,
 					Vector& rte_pos,
 					GridPos& rte_gp_p,
@@ -1419,7 +1419,7 @@ void cloud_ppath_update1D_planeparallel(
 					//particle opticla properties
 					ConstTensor5View ext_mat_field,
 					ConstTensor4View abs_vec_field,
-					const Agenda& ground_refl_agenda //STR
+					const Agenda& surface_agenda //STR
 					)
 {
   const Index stokes_dim = i_field.ncols();
@@ -1663,7 +1663,7 @@ void cloud_ppath_update1D_planeparallel(
 	  
 	}// if loop end - for non_ground background
       
-      // bkgr=2 indicates that the background is ground
+      // bkgr=2 indicates that the background is surface
       else if (bkgr == 2)
 	{
 	  cout<<"Does it ever reach here---------Then it is wrong..!!!"<<endl;
@@ -1681,28 +1681,28 @@ void cloud_ppath_update1D_planeparallel(
 	  rte_gp_p.fd[0] = 0;
 	  rte_gp_p.fd[1] = 1;
 	  //gridpos_copy( rte_gp_p, ppath_step.gp_p[np-1] ); 
-	  // Executes the ground reflection agenda
-	  chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
-	  ground_refl_agenda.execute();
+	  // Executes the surface reflection agenda
+	  chk_not_empty( "surface_agenda", surface_agenda );
+	  surface_agenda.execute();
 	  
 	  // Check returned variables
-	  if( ground_emission.nrows() != f_grid.nelem()  ||  
-	      ground_emission.ncols() != stokes_dim )
+	  if( surface_emission.nrows() != f_grid.nelem()  ||  
+	      surface_emission.ncols() != stokes_dim )
 	    throw runtime_error(
-                  "The size of the created *ground_emission* is not correct.");
+                  "The size of the created *surface_emission* is not correct.");
 
-	  Index nlos = ground_los.nrows();
+	  Index nlos = surface_los.nrows();
 
 	  // Define a local vector i_field_sum which adds the 
 	  // products of groudnd_refl_coeffs with the downwelling 
-	  // radiation for each elements of ground_los
+	  // radiation for each elements of surface_los
 	  Vector i_field_sum(stokes_dim,0);
-	  // Loop over the ground_los elements
+	  // Loop over the surface_los elements
 	  for( Index ilos=0; ilos < nlos; ilos++ )
 	    {
 	      if( stokes_dim == 1 )
 		{
-		  i_field_sum[0] += ground_refl_coeffs(ilos,f_index,0,0) *
+		  i_field_sum[0] += surface_refl_coeffs(ilos,f_index,0,0) *
 		    i_field(cloudbox_limits[0],
 			    0, 0,
 			    (scat_za_grid.nelem() -1 - scat_za_index), 0,
@@ -1712,7 +1712,7 @@ void cloud_ppath_update1D_planeparallel(
 		{
 		  Vector stokes_vec2(stokes_dim);
 		  mult( stokes_vec2, 
-			ground_refl_coeffs(ilos,0,joker,joker), 
+			surface_refl_coeffs(ilos,0,joker,joker), 
 			i_field(cloudbox_limits[0],
 				0, 0,
 				(scat_za_grid.nelem() -1 - scat_za_index), 0,
@@ -1724,13 +1724,13 @@ void cloud_ppath_update1D_planeparallel(
 		  
 		}
 	    }
-	  // Copy from *i_field_sum* to *i_field*, and add the ground emission
+	  // Copy from *i_field_sum* to *i_field*, and add the surface emission
 	  for( Index is=0; is < stokes_dim; is++ )
 	    {
 	      i_field (cloudbox_limits[0],
 		       0, 0,
 		       scat_za_index, 0,
-		       is) = i_field_sum[is] + ground_emission(f_index,is);
+		       is) = i_field_sum[is] + surface_emission(f_index,is);
 	    }
 	 
 	  //cout<<"scat_za_grid"<<scat_za_grid[scat_za_index]<<endl;
@@ -1833,7 +1833,7 @@ void cloud_ppath_update1D_planeparallel(
 		  scat_za_index, 0,
 		  joker) = stokes_vec_local;
 	  
-	}//end else loop over ground
+	}//end else loop over surface
     }//end if inside cloudbox
 }
 

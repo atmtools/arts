@@ -1062,10 +1062,10 @@ i_fieldUpdate1D(// WS Output:
   \param scat_p_index
   Variables used in ppath_step_agenda:
   \param ppath_step
-  Ground related variables:
-  \param ground_los
-  \param ground_emission
-  \param ground_refl_coeffs
+  Surface related variables:
+  \param surface_los
+  \param surface_emission
+  \param surface_refl_coeffs
   \param rte_los
   \param rte_pos
   \param rte_gp_p
@@ -1090,8 +1090,8 @@ i_fieldUpdate1D(// WS Output:
   \param t_field
   \param f_grid
   \param f_index
-  Ground reflection
-  \param ground_refl_agenda
+  Surface reflection
+  \param surface_agenda
 
   \author Claudia Emde
   \date 2002-05-30
@@ -1111,10 +1111,10 @@ i_fieldUpdateSeq1D(// WS Output:
                    Index& scat_p_index,
                    // ppath_step_agenda:
                    Ppath& ppath_step, 
-                   // ground related variables STR
-                   Matrix& ground_los,
-                   Matrix& ground_emission,
-                   Tensor4& ground_refl_coeffs,
+                   // surface related variables STR
+                   Matrix& surface_los,
+                   Matrix& surface_emission,
+                   Tensor4& surface_refl_coeffs,
                    Vector& rte_los,
                    Vector& rte_pos,
                    GridPos& rte_gp_p,
@@ -1139,7 +1139,7 @@ i_fieldUpdateSeq1D(// WS Output:
                    const Tensor3& t_field,
                    const Vector& f_grid,
                    const Index& f_index,
-                   const Agenda& ground_refl_agenda, //STR
+                   const Agenda& surface_agenda, //STR
                    const Index& scat_za_interp
                    )
 {
@@ -1255,8 +1255,8 @@ i_fieldUpdateSeq1D(// WS Output:
             {
               cloud_ppath_update1D(i_field, 
                                    rte_pressure, rte_temperature, rte_vmr_list,
-                                   ext_mat, abs_vec, ground_los,
-                                   ground_emission, ground_refl_coeffs,
+                                   ext_mat, abs_vec, surface_los,
+                                   surface_emission, surface_refl_coeffs,
                                    rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
@@ -1264,7 +1264,7 @@ i_fieldUpdateSeq1D(// WS Output:
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field,
-                                   abs_vec_field,ground_refl_agenda,
+                                   abs_vec_field,surface_agenda,
                                    scat_za_interp); 
             }
         }
@@ -1278,8 +1278,8 @@ i_fieldUpdateSeq1D(// WS Output:
             {
               cloud_ppath_update1D(i_field,  
                                    rte_pressure, rte_temperature, rte_vmr_list,
-                                   ext_mat, abs_vec, ground_los,
-                                    ground_emission, ground_refl_coeffs,
+                                   ext_mat, abs_vec, surface_los,
+                                    surface_emission, surface_refl_coeffs,
                                     rte_los, rte_pos, rte_gp_p, ppath_step, 
                                    p_index, scat_za_index, scat_za_grid,
                                    cloudbox_limits, scat_field,
@@ -1287,7 +1287,7 @@ i_fieldUpdateSeq1D(// WS Output:
                                    opt_prop_gas_agenda, ppath_step_agenda,
                                    p_grid,  z_field, r_geoid, t_field, 
                                    f_grid, f_index, ext_mat_field, 
-                                   abs_vec_field,ground_refl_agenda,
+                                   abs_vec_field,surface_agenda,
                                    scat_za_interp); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
@@ -1305,7 +1305,7 @@ i_fieldUpdateSeq1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]; p_index
                 <= cloudbox_limits[1]; p_index ++)
             {
-              // For this case the cloudbox goes down to the ground an we
+              // For this case the cloudbox goes down to the surface an we
               // look downwards. These cases are outside the cloudbox and 
               // not needed. Switch is included here, as ppath_step_agenda 
               // gives an error for such cases.
@@ -1314,8 +1314,8 @@ i_fieldUpdateSeq1D(// WS Output:
                   cloud_ppath_update1D(i_field,  
                                        rte_pressure, rte_temperature, 
                                        rte_vmr_list,
-                                       ext_mat, abs_vec, ground_los,
-                                       ground_emission, ground_refl_coeffs,
+                                       ext_mat, abs_vec, surface_los,
+                                       surface_emission, surface_refl_coeffs,
                                        rte_los, rte_pos, rte_gp_p, ppath_step, 
                                        p_index, scat_za_index, scat_za_grid,
                                        cloudbox_limits, scat_field,
@@ -1323,7 +1323,7 @@ i_fieldUpdateSeq1D(// WS Output:
                                        opt_prop_gas_agenda, ppath_step_agenda,
                                        p_grid,  z_field, r_geoid, t_field, 
                                        f_grid, f_index, ext_mat_field, 
-                                       abs_vec_field,ground_refl_agenda,
+                                       abs_vec_field,surface_agenda,
                                        scat_za_interp);
                 }
             }
@@ -1350,7 +1350,7 @@ i_fieldUpdateSeq1D(// WS Output:
   It is recommended to use i_fieldUpdateSeq3D as it is much more 
   efficient (see AUG).
 
-  Note: Ground reflection is not yet implemented in 3D scattering 
+  Note: Surface reflection is not yet implemented in 3D scattering 
   calculations.
 
   WS Output:
@@ -1968,7 +1968,7 @@ void i_fieldUpdate3D(// WS Output:
   optical properties including the partile types as well as the gaseous
   species are calculated. Then the radiative transfer equation can be computed.
 
-  Note: Ground reflection is not yet implemented in 3D scattering 
+  Note: Surface reflection is not yet implemented in 3D scattering 
   calculations.
 
   WS Output:
@@ -2249,7 +2249,7 @@ void i_fieldUpdateSeq3D(// WS Output:
             {
               for(Index p_index = p_low; p_index <= p_up; p_index ++)
                 {
-                  // For this case the cloudbox goes down to the ground an we
+                  // For this case the cloudbox goes down to the surface an we
                   // look downwards. These cases are outside the cloudbox and 
                   // not needed. Switch is included here, as ppath_step_agenda 
                   // gives an error for such cases.
@@ -2368,10 +2368,10 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 Index& scat_p_index,
                 // ppath_step_agenda:
                 Ppath& ppath_step, 
-                // ground related variables STR
-                Matrix& ground_los,
-                Matrix& ground_emission,
-                Tensor4& ground_refl_coeffs,
+                // surface related variables STR
+                Matrix& surface_los,
+                Matrix& surface_emission,
+                Tensor4& surface_refl_coeffs,
                 Vector& rte_los,
                 Vector& rte_pos,
                 GridPos& rte_gp_p,
@@ -2396,7 +2396,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                 const Tensor3& t_field,
                 const Vector& f_grid,
                 const Index& f_index,
-                const Agenda& ground_refl_agenda //STR
+                const Agenda& surface_agenda //STR
                 )
 {
 
@@ -2495,8 +2495,8 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
             {
               cloud_ppath_update1D_planeparallel(i_field, 
                                                  rte_pressure, rte_temperature, rte_vmr_list,
-                                                 ext_mat, abs_vec, ground_los,
-                                                 ground_emission, ground_refl_coeffs,
+                                                 ext_mat, abs_vec, surface_los,
+                                                 surface_emission, surface_refl_coeffs,
                                                  rte_los, rte_pos, rte_gp_p, ppath_step, 
                                                  p_index, scat_za_index, scat_za_grid,
                                                  cloudbox_limits, scat_field,
@@ -2504,7 +2504,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                                                  opt_prop_gas_agenda, ppath_step_agenda,
                                                  p_grid,  z_field, r_geoid, t_field, 
                                                  f_grid, f_index, ext_mat_field,
-                                                 abs_vec_field,ground_refl_agenda); 
+                                                 abs_vec_field,surface_agenda); 
             }   
         }
       else if ( scat_za_grid[scat_za_index] > 90) 
@@ -2517,8 +2517,8 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
             {
               cloud_ppath_update1D_planeparallel(i_field,  
                                                  rte_pressure, rte_temperature, rte_vmr_list,
-                                                 ext_mat, abs_vec, ground_los,
-                                                 ground_emission, ground_refl_coeffs,
+                                                 ext_mat, abs_vec, surface_los,
+                                                 surface_emission, surface_refl_coeffs,
                                                  rte_los, rte_pos, rte_gp_p, ppath_step, 
                                                  p_index, scat_za_index, scat_za_grid,
                                                  cloudbox_limits, scat_field,
@@ -2526,7 +2526,7 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
                                                  opt_prop_gas_agenda, ppath_step_agenda,
                                                  p_grid,  z_field, r_geoid, t_field, 
                                                  f_grid, f_index, ext_mat_field, 
-                                                 abs_vec_field,ground_refl_agenda); 
+                                                 abs_vec_field,surface_agenda); 
             }// Close loop over p_grid (inside cloudbox).
         } // end if downlooking.
       

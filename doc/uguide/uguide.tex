@@ -1,22 +1,27 @@
-%
-% === General definitions and packages to use
-%
 \documentclass[11pt,twoside,a4paper,fleqn]{book} 
 %\documentclass[11pt,twoside,a4paper,fleqn,draft]{book} 
-%\includeonly{development,matrix_vector,interpolation,agendas,app_groups}
+
 %\includeonly{development,agendas,app_groups}
-%\includeonly{introduction,concept,fm_definitions}
-%\includeonly{scattering,fm_definitions,ppath}
-%\includeonly{polarization}
-%\includeonly{integration}
-%\includeonly{scattering}
-%\includeonly{absorption}
+
+
+%--- Packages to use
 %
-%
-% allow us to use if-then-else in TeX macros
+\usepackage[]{fancyhdr}   
+\usepackage[]{natbib}
+\usepackage{alltt}
+\usepackage{times}
+\usepackage{verbatim}
+\usepackage{lscape}         % landscape mode of a single page
+\usepackage[]{longtable}    % allow tables longer than one page
+\usepackage{makeidx}        % index of terms
+\usepackage{tabularx}       % allows line breaking in table columns
+\usepackage{algorithm}      % for describing algorithms with pseudo-code
+\usepackage{algorithmic}
 \usepackage{ifthen}
 
-% Detect if we're running PDFLaTeX or good 'ol vanilla LaTeX
+
+
+%--- Detect if we're running PDFLaTeX or good 'ol vanilla LaTeX
 \newif\ifpdf
   \ifx\pdfoutput\undefined
   \pdffalse
@@ -25,43 +30,9 @@
   \pdftrue
 \fi
 
-%
-% === General definitions and packages to use
-%
-\usepackage[]{fancyhdr}   
-\usepackage[]{natbib}
-\usepackage{alltt}
-\usepackage{times}
-\usepackage{verbatim}
-\usepackage{lscape}      % landscape mode of a single page
-\usepackage[]{longtable} % allow tables longer than one page
-\usepackage{makeidx}     % index of terms
-\usepackage{tabularx}    % allows line breaking in table columns
-\usepackage{algorithm}   % for describing algorithms with pseudo-code
-\usepackage{algorithmic}
-
-% To avoid hyperref error:
-\newcommand{\theHalgorithm}{\theHchapter.\arabic{algorithm}}
-
-%
-% === Some layout commands
-%
-\sloppy
-\raggedbottom
-\hbadness=10000
-\graphicspath{{Figs/}}
-\makeindex
-%
-% with of the caption in longtable:
-\setlength{\LTcapwidth}{0.9\textwidth} 
-%
-% Change brace type for comments in algorithmic
-\renewcommand{\algorithmiccomment}[1]{(#1)}
 
 
-
-%
-% === Margins
+%--- Margins
 %
 \voffset-2.0cm
 \headheight16pt
@@ -72,8 +43,8 @@
 \textwidth14.0cm
 
 
-%
-% === Headings
+
+%--- Headings
 %
 \pagestyle{fancy}
 \renewcommand{\chaptermark}[1]{\markboth{#1}{}}
@@ -90,8 +61,38 @@
 }  
 
 
+
+%--- Some layout commands
 %
-% === Page layout definitions
+\sloppy
+\raggedbottom
+\hbadness=10000
+\graphicspath{{Figs/}}
+\makeindex
+\bibliographystyle{agu}
+
+
+
+%--- Some fixes
+
+%- To avoid hyperref error:
+\newcommand{\theHalgorithm}{\theHchapter.\arabic{algorithm}}
+
+%- Width of the caption in longtable:
+\setlength{\LTcapwidth}{0.9\textwidth} 
+
+%- Change brace type for comments in algorithmic
+\renewcommand{\algorithmiccomment}[1]{(#1)}
+
+
+
+%--- Symbol definitions
+%
+\input{symbol_defs.tex}
+
+
+
+%- Page layout definitions
 %
 % Chapters and sections.
 \newcommand{\levela}[1]    {\chapter{#1}}
@@ -99,13 +100,46 @@
 \newcommand{\levelc}[1]    {\subsection{#1}}
 \newcommand{\leveld}[1]    {\subsubsection{#1}}
 \newcommand{\levele}[1]    {\paragraph{#1}}
-%
-% Document history
+
+
+
+%--- BEGIN PDF/LaTeX specific options
+\ifpdf
+  \usepackage[pdftex]{graphicx}    % includegraphics
+  \DeclareGraphicsExtensions{.pdf}
+  \usepackage{color}
+  \usepackage
+    [pdftex,                         % or dvips
+     colorlinks=true,
+     pdftitle={ARTS User Guide},
+     pdfauthor={xyz},
+     pdfsubject={},
+     pdfkeywords={},
+     bookmarks=true,
+     bookmarksopen=false,
+     pdfpagemode=None,
+     plainpages=false,
+     pdfpagelabels]
+  {hyperref}
+  \setcounter{tocdepth}{3}
+\else
+  \usepackage[dvips]{graphicx}    % includegraphics
+  \DeclareGraphicsExtensions{.eps}
+  \setcounter{tocdepth}{1}
+\fi
+
+
+
+%--- Command definitions -----------------------------------------------------
+
+
+%- Document history
 \newcommand{\starthistory} {\begin{table}[b]  \begin{tabular}{l p{11cm}} 
                              \hline {\bf History} & \\ }
 \newcommand{\stophistory}  {\end{tabular} \end{table} }
-%
-% Symbol table
+
+
+%- Symbol table
 \newcommand{\startsymbols} {\begin{table}[!t] \begin{center} 
                             \begin{tabular}{l l l}
                             {\bf Here} & {\bf In ARTS} & {\bf Description} 
@@ -116,28 +150,20 @@
                             and a short description of the quantity. }
                             \end{center} \end{table}}      
 \newcommand{\startsymbolswithunits} 
-                            {\begin{table}[!t] \begin{center} 
-                            \begin{tabular}{l l l l}
-                            {\bf Here} & {\bf Unit} & {\bf In ARTS} & {\bf Description} 
-                            \\ \hline \\ } 
+                   {\begin{table}[!t] \begin{center} 
+                   \begin{tabular}{l l l l}
+                   {\bf Here} & {\bf Unit} & {\bf In ARTS} & {\bf Description} 
+                   \\ \hline \\ } 
 \newcommand{\stopsymbolswithunits} {\stopsymbols}
 
-%
-% === Symbol definitions
-%
-\input{symbol_defs.tex}
 
 
-
-%
-% === Command to write a ARTS variable or function with special style
+%- Command to write a ARTS variable or function with special style
 %
 \newcommand{\artsstyle}[1]      {\texttt{#1}}
 
 
-
-%
-% === Commands for easy indexing of term
+%- Commands for easy indexing of term
 %
 % Index command to use when text and index reference are equal. Otherwise
 % the normal \index command must be used.
@@ -163,48 +189,18 @@
 \newcommand{\typeindex}[1] {\artsstyle{#1}\index{data types!#1}}
 
 
-% For FIXMEs:
+%- For FIXMEs:
 \newcommand{\FIXME}[1]{{\bfseries FIXME: #1}}
 
-
-%%% BEGIN PDF/LaTeX specific options
-\ifpdf
-%%% PDFLaTeX -- options for PDF generation
-  \usepackage[pdftex]{graphicx}    % includegraphics
-  \DeclareGraphicsExtensions{.pdf}
-
-  \usepackage{color}
-
-  \usepackage
-    [pdftex,                         % or dvips
-     colorlinks=true,
-     pdftitle={ARTS User Guide},
-     pdfauthor={xyz},
-     pdfsubject={},
-     pdfkeywords={},
-     bookmarks=true,
-     bookmarksopen=false,
-     pdfpagemode=None,
-     plainpages=false,
-     pdfpagelabels]
-  {hyperref}
-
-  \setcounter{tocdepth}{3}
-
-\else
-%%% BEGIN LaTeX-specific options
-
-  \usepackage[dvips]{graphicx}    % includegraphics
-  \DeclareGraphicsExtensions{.eps}
-
-  \setcounter{tocdepth}{1}
-
-%%% END of PDF/LaTeX specific options
-\fi
+%------------------------------------------------------------------------------
 
 
 
+
+%--- Go to main.tex
+%
 \input{main}
+
 
 %%% Local Variables: 
 %%% mode: latex

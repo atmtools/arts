@@ -96,14 +96,14 @@ bool is_los_downwards(
         const double&   za,
         const double&   tilt );
 
-double psurface_slope_2d(
+double plevel_slope_2d(
         ConstVectorView   lat_grid,           
         ConstVectorView   r_geoid,
         ConstVectorView   z_surf,
         const GridPos&    gp,
         const double&     za );
 
-double psurface_slope_3d(
+double plevel_slope_3d(
         const double&   lat1,
         const double&   lat3,
         const double&   lon5,
@@ -116,7 +116,7 @@ double psurface_slope_3d(
         const double&   lon,
         const double&   aa );
 
-double psurface_angletilt(
+double plevel_angletilt(
         const double&   r,
         const double&   c );
 
@@ -140,7 +140,7 @@ void ppath_step_geom_1d(
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         const double&     r_geoid,
-        const double&     z_ground,
+        const double&     z_surface,
         const double&     lmax );
 
 void ppath_step_geom_2d(
@@ -149,7 +149,7 @@ void ppath_step_geom_2d(
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
-        ConstVectorView   z_ground,
+        ConstVectorView   z_surface,
         const double&     lmax );
 
 void ppath_step_geom_3d(
@@ -159,7 +159,7 @@ void ppath_step_geom_3d(
         ConstVectorView    lon_grid,
         ConstTensor3View   z_field,
         ConstMatrixView    r_geoid,
-        ConstMatrixView    z_ground,
+        ConstMatrixView    z_surface,
 	const double&      lmax );
 
 void ppath_step_refr_1d(
@@ -174,7 +174,7 @@ void ppath_step_refr_1d(
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
         const double&     r_geoid,
-        const double&     z_ground,
+        const double&     z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
         const double&     lmax );
@@ -192,7 +192,7 @@ void ppath_step_refr_2d(
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
         ConstVectorView   r_geoid,
-        ConstVectorView   z_ground,
+        ConstVectorView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
         const double&     lmax );
@@ -211,7 +211,7 @@ void ppath_step_refr_3d(
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstMatrixView   r_geoid,
-        ConstMatrixView   z_ground,
+        ConstMatrixView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
         const double&     lmax );
@@ -226,7 +226,7 @@ void ppath_calc(
         const Vector&         lon_grid,
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
-        const Matrix&         z_ground,
+        const Matrix&         z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,

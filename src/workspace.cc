@@ -820,14 +820,14 @@ wsv_data.push_back
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "ground_emission" ),
+     ( NAME( "surface_emission" ),
        DESCRIPTION
        (
-        "The emission from the ground at a specified position.\n"
+        "The emission from the surface at a specified position.\n"
         "\n"
-        "See further *ground_refl_agenda* and the user guide.\n"
+        "See further *surface_agenda* and the user guide.\n"
         "\n"
-        "Usage:      Output from *ground_refl_agenda*.. \n"
+        "Usage:      Output from *surface_agenda*.. \n"
         "\n"
         "Unit:       W / (m^2 Hz sr)\n"
         "\n"
@@ -837,7 +837,7 @@ wsv_data.push_back
  
  wsv_data.push_back
    (WsvRecord
-    ( NAME( "ground_refl_agenda" ),
+    ( NAME( "surface_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."
@@ -846,11 +846,11 @@ wsv_data.push_back
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "ground_refl_coeffs" ),
+     ( NAME( "surface_refl_coeffs" ),
        DESCRIPTION
        (
         "The reflection coefficients from the directions given by\n"
-        "*ground_los* to the direction of interest.\n"
+        "*surface_los* to the direction of interest.\n"
         "\n"
         "The rows and columns of this tensor holds the reflection\n"
         "coefficient matrix for one frequency and one LOS. The reflection\n"
@@ -858,30 +858,30 @@ wsv_data.push_back
         "downwelling radiation. For example, if the surface has isotropic\n"
         "scattering, without absorbing and incoming radiation, and the\n"
         "downwelling radiation is calculated at ten angles (i.e. the length\n"
-        "of *ground_los* is ten), the ground reflection coefficients \n"
+        "of *surface_los* is ten), the surface reflection coefficients \n"
         "are 0.1.\n"
         "\n"
-        "See further *ground_refl_agenda* and the user guide.\n"
+        "See further *surface_agenda* and the user guide.\n"
         "\n"
-        "Usage:      Output from *ground_refl_agenda*. \n"
+        "Usage:      Output from *surface_agenda*. \n"
         "\n"
         "Units:      -\n"
         "\n"
-        "Dimensions: [ ground_los, f_grid, stokes_dim, stokes_dim ]"
+        "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]"
         ), 
        GROUP( Tensor4_ )));
  
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "ground_los" ),
+     ( NAME( "surface_los" ),
        DESCRIPTION
        (
         "Directions for which to calculate downwelling radiation when \n"
-        "considerin g a ground reflection.\n"
+        "considerin g a surface reflection.\n"
         "\n"
-        "See further *ground_refl_agenda* and the user guide.\n"
+        "See further *surface_agenda* and the user guide.\n"
         "\n"
-        "Usage: Output from *ground_refl_agenda*. \n"
+        "Usage: Output from *surface_agenda*. \n"
         "\n"
         "Units: degrees\n"
         "\n"
@@ -1374,7 +1374,7 @@ wsv_data.push_back
        "This variable must always be defined. The grid must be sorted in\n"
        "decreasing order, with no repetitions.\n"
        "\n"
-       "No gap between the lowermost pressure level and the ground is \n"
+       "No gap between the lowermost pressure level and the surface is \n"
        "allowed. The uppermost pressure level defines the practical upper\n"
        "limit of the atmosphere as vacuum is assumed above.\n"
        "\n"
@@ -1800,7 +1800,7 @@ wsv_data.push_back
        "\n"
        "Geometrical altitudes are defined as the vertical distance above the\n"
        "geoid, and the geoid is the reference surface used when giving, for\n"
-       "example, *z_ground* and *z_field*. \n"
+       "example, *z_surface* and *z_field*. \n"
        "\n"
        "The geoid is defined by giving the radius from the coordinate centre\n"
        "to the geoid surface for each crossing of the latitude and longitude\n"
@@ -2867,22 +2867,22 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "z_ground" ),
+    ( NAME( "z_surface" ),
       DESCRIPTION
       (
-       "The ground altitude.\n"
+       "The surface altitude.\n"
        "\n"
-       "This variable defines the shape of the ground, by giving the\n"
+       "This variable defines the shape of the surface, by giving the\n"
        "geometrical altitude above the geiod for each crossing of the \n"
-       "latitude and longitude grids. Any shape of the ground is accepted.\n"
-       "No gap between the ground and the lowermost pressure level is \n"
+       "latitude and longitude grids. Any shape of the surface is accepted.\n"
+       "No gap between the surface and the lowermost pressure level is \n"
        "allowed.\n"
        "\n"
        "The radius (from the coordinate centre) for a point between the grid\n"
        "crossings is obtained by a linear (1D) or bi-linear (2D) \n"
-       "interpolation of the sum of *r_geoid* and *r_ground*. With other \n"
-       "words, the radius for the ground is assumed to vary linear along the\n"
-       "latitudes and longitudes in *lat_grid* and *lon_grid*.\n"
+       "interpolation of the sum of *r_geoid* and *z_surface*. With other \n"
+       "words, the radius for the surface is assumed to vary linear along \n"
+       "the latitudes and longitudes in *lat_grid* and *lon_grid*.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"

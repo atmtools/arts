@@ -810,12 +810,12 @@ void geompath_tanpos_3d(
 
 
 /*===========================================================================
-  === Functions related to slope and tilt of the ground and pressure surfaces
+  === Functions related to slope and tilt of the surface and pressure levels
   ===========================================================================*/
 
-//! psurface_slope_2d
+//! plevel_slope_2d
 /*!
-   Calculates the radial slope of the ground or a pressure surface for 2D.
+   Calculates the radial slope of the surface or a pressure level for 2D.
 
    The radial slope is here the derivative of the radius with respect to the
    latitude. The unit is accordingly m/degree.
@@ -831,15 +831,15 @@ void geompath_tanpos_3d(
    \return              The radial slope [m/degree]
    \param   lat_grid    The latitude grid.
    \param   r_geoid     Radius of the geoid for the latitude dimension.
-   \param   z_surf      Geometrical altitude of the ground, or the pressure
-                        surface of interest, for the latitide dimension
+   \param   z_surf      Geometrical altitude of the surface, or the pressure
+                        level of interest, for the latitide dimension
    \param   gp          Latitude grid position for the position of interest
    \param   za          LOS zenith angle.
 
    \author Patrick Eriksson
    \date   2002-06-03
 */
-double psurface_slope_2d(
+double plevel_slope_2d(
         ConstVectorView   lat_grid,           
         ConstVectorView   r_geoid,
         ConstVectorView   z_surf,
@@ -854,12 +854,12 @@ double psurface_slope_2d(
 
 
 
-//! psurface_slope_2d
+//! plevel_slope_2d
 /*!
-   Calculates the radial slope of the ground or a pressure surface for 2D.
+   Calculates the radial slope of the surface or a pressure level for 2D.
 
    This function returns the same quantity as the function above, but takes
-   the radius and latitude at two points of the pressure surface, instead
+   the radius and latitude at two points of the pressure level, instead
    of vector input. That is, for this function the interesting latitude range
    is known when calling the function.
 
@@ -872,7 +872,7 @@ double psurface_slope_2d(
    \author Patrick Eriksson
    \date   2002-12-21
 */
-double psurface_slope_2d(
+double plevel_slope_2d(
         const double&   lat1,
         const double&   lat2,
         const double&   r1,
@@ -885,7 +885,7 @@ double psurface_slope_2d(
 
 //! rsurf_at_latlon
 /*!
-   Determines the radius of a pressure surface or the ground given the
+   Determines the radius of a pressure level or the surface given the
    radius at the corners of a 3D grid cell.
 
    \return         Radius at the given latitude and longitude.
@@ -916,7 +916,7 @@ double rsurf_at_latlon(
        const double&   lon )
 {
   // We can't have any assert of *lat* and *lon* here as we can go outside
-  // the ranges when called from *psurface_slope_3d*.
+  // the ranges when called from *plevel_slope_3d*.
 
   if( lat == lat1 )
     { return   r15 + ( lon - lon5 ) * ( r16 - r15 ) / ( lon6 -lon5 ); }
@@ -937,13 +937,13 @@ double rsurf_at_latlon(
 
 
 
-//! psurface_slope_3d
+//! plevel_slope_3d
 /*!
-   Calculates the local radial slope of the ground or a pressure surface 
+   Calculates the local radial slope of the surface or a pressure level 
    for 3D.
 
    The function works basically as the non-vector version of
-   *psurface_slope_2d*, but the position and viewing direction must
+   *plevel_slope_2d*, but the position and viewing direction must
    here be specicified as the slope varies inside the cell grid, in
    constrast to a 2D latitude grid range.
 
@@ -965,7 +965,7 @@ double rsurf_at_latlon(
    \author Patrick Eriksson
    \date   2002-12-30
 */
-double psurface_slope_3d(
+double plevel_slope_3d(
         const double&   lat1,
         const double&   lat3,
         const double&   lon5,
@@ -994,7 +994,7 @@ double psurface_slope_3d(
   // Calculate the distance corresponding to *dang*
   const double   l = r0 * DEG2RAD * dang;
 
-  // Calculate radius of the pressure surface at the lat/lon, the distance
+  // Calculate radius of the pressure level at the lat/lon, the distance
   // *l* away.
   double   r2, lat2, lon2, za2, aa2;
   cart2poslos( r2, lat2, lon2, za2, aa2, x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
@@ -1006,9 +1006,9 @@ double psurface_slope_3d(
 
 
 
-//! psurface_slope_3d
+//! plevel_slope_3d
 /*!
-   Calculates the radial slope of the ground or a pressure surface for 3D.
+   Calculates the radial slope of the surface or a pressure level for 3D.
 
    The radial slope is here the derivative of the radius with respect
    to an angular change (in degrees) along the great circle along the
@@ -1027,8 +1027,8 @@ double psurface_slope_3d(
    \param   lat_grid    The latitude grid.
    \param   lon_grid    The longitude grid.
    \param   r_geoid     As the WSV with the same name.
-   \param   z_surf      Geometrical altitude of the ground, or the pressure
-                        surface of interest.
+   \param   z_surf      Geometrical altitude of the surface, or the pressure
+                        level of interest.
    \param   gp_lat      Latitude grid position for the position of interest.
    \param   gp_lon      Longitude grid position for the position of interest.
    \param   aa          Azimuth angle.
@@ -1036,7 +1036,7 @@ double psurface_slope_3d(
    \author Patrick Eriksson
    \date   2002-06-03
 */
-double psurface_slope_3d(
+double plevel_slope_3d(
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,  
         ConstMatrixView   r_geoid,
@@ -1066,27 +1066,27 @@ double psurface_slope_3d(
   const double   r36  = r_geoid(ilat+1,ilon+1) + z_surf(ilat+1,ilon+1);
   const double   r16  = r_geoid(ilat,ilon+1) + z_surf(ilat,ilon+1);
 
-  return   psurface_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
+  return   plevel_slope_3d( lat1, lat3, lon5, lon6, r15, r35, r36, r16, 
                                                                 lat, lon, aa );
 }
 
 
 
-//! psurface_angletilt
+//! plevel_angletilt
 /*!
-   Calculates the angular tilt of the ground or a pressure surface.
+   Calculates the angular tilt of the surface or a pressure level.
 
    Note that the tilt value is a local value. The tilt for a constant
    slope value, is different for different radii.
 
    \return        The angular tilt.
-   \param    r    The radius for the surface at the point of interest.
-   \param    c    The radial slope, as returned by e.g. psurface_slope_2d.
+   \param    r    The radius for the level at the point of interest.
+   \param    c    The radial slope, as returned by e.g. plevel_slope_2d.
 
    \author Patrick Eriksson
    \date   2002-06-03
 */
-double psurface_angletilt(
+double plevel_angletilt(
         const double&   r,
         const double&   c )
 {
@@ -1100,19 +1100,19 @@ double psurface_angletilt(
 //! is_los_downwards
 /*!
    Determines if a line-of-sight is downwards compared to the angular tilt
-   of the ground or a pressure surface.
+   of the surface or a pressure level.
 
    For example, this function can be used to determine if the line-of-sight
-   goes into the ground for a starting point exactly on the ground radius.
+   goes into the surface for a starting point exactly on the surface radius.
   
-   As the radius of the ground and pressure surfaces varies as a function of
+   As the radius of the surface and pressure levels varies as a function of
    latitude, it is not clear if a zenith angle of 90 is above or below e.g.
-   the ground.
+   the surface.
  
    \return         Boolean that is true if LOS is downwards.
    \param   za     Zenith angle of line-of-sight.
-   \param   tilt   Angular tilt of the ground or the pressure surface (as
-                   returned by psurface_angletilt)
+   \param   tilt   Angular tilt of the surface or the pressure level (as
+                   returned by plevel_angletilt)
 
    \author Patrick Eriksson
    \date   2002-06-03
@@ -1132,13 +1132,13 @@ bool is_los_downwards(
 
 
 
-//! psurface_crossing_2d
+//! plevel_crossing_2d
 /*!
-   Calculates the angular distance to a crossing of a 2D pressure surface
-   or the ground.
+   Calculates the angular distance to a crossing of a 2D pressure level
+   or the surface.
 
    The function solves the problem mentioned above for a pressure
-   surface, or the ground, where the radius changes linearly as a
+   level, or the surface, where the radius changes linearly as a
    function of latitude. No analytical solution to the original
    problem has been found. The problem involves sine and cosine of the
    latitude difference and these functions are replaced with their
@@ -1155,12 +1155,12 @@ bool is_los_downwards(
    The function only looks for crossings in the forward direction of
    the given zenith angle. This means that if r>r0 and the absolute
    value of the zenith angle is < 90, no crossing will be found (if
-   not the slope of the pressure surface happen to be very strong).
+   not the slope of the pressure level happen to be very strong).
 
    For downlooking cases, only the part down to the tangent point is
    considered.
    
-   If the given path point is on the pressure surface (r=r0), the
+   If the given path point is on the pressure level (r=r0), the
    solution 0 is rejected.
  
    The latitude difference is set to 999 if no crossing exists.
@@ -1170,14 +1170,14 @@ bool is_los_downwards(
    \return         The angular distance to the crossing.
    \param   rp     Radius of a point of the path inside the grid cell
    \param   za     Zenith angle of the path at r.
-   \param   r0     Radius of the pressure surface or the ground at the
+   \param   r0     Radius of the pressure level or the surface at the
                    latitude of r.
-   \param   c      Linear slope term, as returned by psurface_slope_2d.
+   \param   c      Linear slope term, as returned by plevel_slope_2d.
 
    \author Patrick Eriksson
    \date   2002-06-07
 */
-double psurface_crossing_2d(
+double plevel_crossing_2d(
         const double&   rp,
         const double&   za,
         const double&   r0,
@@ -1204,9 +1204,9 @@ double psurface_crossing_2d(
     }
 
   // If rp>=r0, check if the given LOS goes in the direction towards
-  // the pressure surface.  If not, return 999.
+  // the pressure level.  If not, return 999.
   //
-  if( rp >= r0   &&  !is_los_downwards( za,  psurface_angletilt( r0, c ) ) )
+  if( rp >= r0   &&  !is_los_downwards( za,  plevel_angletilt( r0, c ) ) )
     { return no_crossing; }
 
   // The case with c=0 can be handled analytically
@@ -1273,17 +1273,17 @@ double psurface_crossing_2d(
 
 
 
-//! psurface_crossing_3d
+//! plevel_crossing_3d
 /*!
-   Calculates the radius of a crossing of a 3D pressure surface or the ground.
+   Calculates the radius of a crossing of a 3D pressure level or the surface.
 
    The function solves the problem mentioned above for a pressure
-   surface, or the ground, for 3D cases. The problem is solved by making
+   level, or the surface, for 3D cases. The problem is solved by making
    calculations for five radii, between the min and max values among
    *r15*, *r35*, *r36* and *r16*. For each test radius, the latitude and 
    longitude for the crossing of the path and the assumed radius are 
    calculated. The test radius is then compared to the radius of the 
-   pressure surface, or the ground, for the found latitude and longitude.
+   pressure level, or the surface, for the found latitude and longitude.
    These two radii shall ideally be identical. A radius is selected by
    an interpolation between the test radii.
 
@@ -1299,7 +1299,7 @@ double psurface_crossing_2d(
    \param   lat       Out: Latitude of found crossing.
    \param   lon       Out: Longitude of found crossing.
    \param   l         Out: Length along the path to the crossing.
-   \param   r_surf    Radius of the surface
+   \param   r_surf    Radius of the level
    \param   r_start   Radius of observation point.
    \param   lat_start Latitude of start point.
    \param   lon_start Longitude of start point.
@@ -1314,7 +1314,7 @@ double psurface_crossing_2d(
    \author Patrick Eriksson
    \date   2002-12-30
 */
-void psurface_crossing_3d(
+void plevel_crossing_3d(
              double&    r,
              double&    lat,
              double&    lon,
@@ -1405,9 +1405,9 @@ void psurface_crossing_3d(
    \param   za_start    LOS zenith angle at start point.
    \param   ppc         Propagation path constant.
    \param   lmax        Maximum allowed length along the path. -1 = no limit.
-   \param   ra          Radius of lower pressure surface.
-   \param   rb          Radius of upper pressure surface (rb > ra);
-   \param   rground     Radius for the ground.
+   \param   ra          Radius of lower pressure level.
+   \param   rb          Radius of upper pressure level (rb > ra);
+   \param   rsurface     Radius for the surface.
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -1426,7 +1426,7 @@ void do_gridrange_1d(
         const double&   lmax,
         const double&   ra,
         const double&   rb,
-        const double&   rground )
+        const double&   rsurface )
 {
   double   r_start = r_start0;
 
@@ -1443,7 +1443,7 @@ void do_gridrange_1d(
   // Get end radius of the path step (r_end). If looking downwards, it must 
   // be checked if:
   //    a tangent point is passed
-  //    there is an intersection with the ground
+  //    there is an intersection with the surface
   //
   double r_end;
   //
@@ -1459,12 +1459,12 @@ void do_gridrange_1d(
     {
       // The tangent radius equals here ppc.
 
-      if( ( ra > rground )  &&  ( ra > ppc ) )
+      if( ( ra > rsurface )  &&  ( ra > ppc ) )
         {
           r_end   = ra;
           endface = 1;
         }
-      else if( ppc >= rground )
+      else if( ppc >= rsurface )
         {
           r_end    = ppc;
           tanpoint = 1;
@@ -1473,7 +1473,7 @@ void do_gridrange_1d(
         }
       else
         {
-          r_end   = rground;
+          r_end   = rsurface;
           endface = 7;
         }
     }
@@ -1499,17 +1499,17 @@ void do_gridrange_1d(
    exits the grid cell is denoted as the end face. The following
    number coding is used for the variable *endface*: <br>
    1: The face at the lower latitude point. <br>
-   2: The face at the lower (geometrically) pressure surface. <br>
+   2: The face at the lower (geometrically) pressure level. <br>
    3: The face at the upper latitude point. <br>
-   4: The face at the upper (geometrically) pressure surface. <br>
-   7: The end point is an intersection with the ground. 
+   4: The face at the upper (geometrically) pressure level. <br>
+   7: The end point is an intersection with the surface. 
 
    The corner points are names r[lat][a,b]. For example: r3b.
    The latitudes are numbered to match the end faces. This means that
    the lower latitude has number 1, and the upper number 3. The pressure
-   surfaces are named as a and b: <br>
-   a: Lower pressure surface (highest pressure). <br>
-   b: Upper pressure surface (lowest pressure).
+   levels are named as a and b: <br>
+   a: Lower pressure level (highest pressure). <br>
+   b: Upper pressure level (lowest pressure).
 
    Path points are included if *lmax*>0 and the distance to the end
    point is > than *lmax*.
@@ -1534,8 +1534,8 @@ void do_gridrange_1d(
    \param   r3a         Radius of lower-right corner of the grid cell.
    \param   r3b         Radius of upper-right corner of the grid cell (r3b>r3a)
    \param   r1b         Radius of upper-left corner of the grid cell (r1b>r1a).
-   \param   rground1    Radius for the ground at *lat1*.
-   \param   rground3    Radius for the ground at *lat3*.
+   \param   rsurface1    Radius for the surface at *lat1*.
+   \param   rsurface3    Radius for the surface at *lat3*.
 
    \author Patrick Eriksson
    \date   2002-11-28
@@ -1558,8 +1558,8 @@ void do_gridcell_2d(
         const double&   r3a,
         const double&   r3b,
         const double&   r1b,
-        const double&   rground1,
-        const double&   rground3 )
+        const double&   rsurface1,
+        const double&   rsurface3 )
 {
   double   r_start = r_start0;
 
@@ -1567,15 +1567,15 @@ void do_gridcell_2d(
   assert( lat_start >= lat1 );
   assert( lat_start <= lat3 );
 
-  // Slopes of pressure surfaces
-  const double  c2 = psurface_slope_2d( lat1, lat3, r1a, r3a );
-  const double  c4 = psurface_slope_2d( lat1, lat3, r1b, r3b );
-  const double  cground = psurface_slope_2d( lat1, lat3, rground1, rground3 );
+  // Slopes of pressure levels
+  const double  c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
+  const double  c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
+  const double  csurface = plevel_slope_2d( lat1, lat3, rsurface1, rsurface3 );
 
   // Latitude distance between start point and left grid cell boundary
   const double dlat_left  = lat_start - lat1;
 
-  // Radius of lower and upper pressure surface at *lat_start*.
+  // Radius of lower and upper pressure level at *lat_start*.
   const double   rlow = r1a + c2*dlat_left;
   const double   rupp = r1b + c4*dlat_left;
 
@@ -1609,31 +1609,31 @@ void do_gridcell_2d(
   // --- Lower face 
   //
   // We don't need to consider the face if we are standing
-  // on the pressure surface.
+  // on the pressure level.
   //
   if( r_start > rlow  &&  abs(za_start) > ANGTOL )
     {
-      dlat2end = psurface_crossing_2d( r_start, za_start, rlow, c2 );
+      dlat2end = plevel_crossing_2d( r_start, za_start, rlow, c2 );
       endface = 2;  // This variable will be re-set if there was no crossing
     }
 
 
-  // --- The ground.
+  // --- The surface.
   //
-  // Check shall be done only if the ground is, at least partly, inside 
+  // Check shall be done only if the surface is, at least partly, inside 
   // the grid cell.
   //
-  if( rground1 >= r1a  ||  rground3 >= r3a )
+  if( rsurface1 >= r1a  ||  rsurface3 >= r3a )
     {
-      double r_ground = rground1 + cground * dlat_left;
+      double r_surface = rsurface1 + csurface * dlat_left;
      
-      assert( r_start >= r_ground );
+      assert( r_start >= r_surface );
 
-      double dlat2ground = psurface_crossing_2d( r_start, za_start, r_ground,
-                                                                     cground );
-      if( abs(dlat2ground) <= abs(dlat2end) )
+      double dlat2surface = plevel_crossing_2d( r_start, za_start, r_surface,
+                                                                     csurface );
+      if( abs(dlat2surface) <= abs(dlat2end) )
         {
-          dlat2end = dlat2ground;
+          dlat2end = dlat2surface;
           endface  = 7;
         }
     }
@@ -1643,15 +1643,15 @@ void do_gridcell_2d(
   // remaining cell faces. The same applies after testing upper face.
 
 
-  // --- Upper face  (pressure surface ip+1).
+  // --- Upper face  (pressure level ip+1).
   //
   if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180-ANGTOL )
     {
       // For cases when the tangent point is in-between *r_start* and
-      // the pressure surface, 999 is returned. This case will anyhow
+      // the pressure level, 999 is returned. This case will anyhow
       // be handled correctly.
 
-      double dlattry = psurface_crossing_2d( r_start, za_start, rupp, c4 );
+      double dlattry = plevel_crossing_2d( r_start, za_start, rupp, c4 );
 
       if( abs(dlattry) < abs(dlat2end) )
         {
@@ -1706,7 +1706,7 @@ void do_gridcell_2d(
   else if( endface == 4 )
     { r_end = r1b + c4 * ( dlat_left + dlat2end ); }
   else if( endface == 7 )
-    { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
+    { r_end = rsurface1 + csurface * ( dlat_left + dlat2end ); }
 
   // Fill the return vectors
   //
@@ -1746,7 +1746,7 @@ void do_gridcell_2d(
 
    The corner points are numbered as *do_gridcell_2d*, but 5 or 6 is added
    after the latitude number to indicate the longitude. This means that
-   r16a, is the corner at lat1, lon6 and pressure surface a.
+   r16a, is the corner at lat1, lon6 and pressure level a.
 
    See further *do_gridcell_2d*.
 
@@ -1769,18 +1769,18 @@ void do_gridcell_2d(
    \param   lat3        Latitude of right end face (face 3) of the grid cell.
    \param   lon5        Lower longitude limit of the grid cell.
    \param   lon6        Upper longitude limit of the grid cell.
-   \param   r15a        Radius of corner: lower p-surface,*lat1* and *lon5*.
-   \param   r35a        Radius of corner: lower p-surface,*lat3* and *lon5*.
-   \param   r36a        Radius of corner: lower p-surface,*lat3* and *lon6*.
-   \param   r16a        Radius of corner: lower p-surface,*lat1* and *lon6*.
-   \param   r15b        Radius of corner: upper p-surface,*lat1* and *lon5*.
-   \param   r35b        Radius of corner: upper p-surface,*lat3* and *lon5*.
-   \param   r36b        Radius of corner: upper p-surface,*lat3* and *lon6*.
-   \param   r16b        Radius of corner: upper p-surface,*lat1* and *lon6*.
-   \param   rground15   Radius for the ground at *lat1* and *lon5*.
-   \param   rground35   Radius for the ground at *lat3* and *lon5*.
-   \param   rground36   Radius for the ground at *lat3* and *lon6*.
-   \param   rground16   Radius for the ground at *lat1* and *lon6*.
+   \param   r15a        Radius of corner: lower p-level,*lat1* and *lon5*.
+   \param   r35a        Radius of corner: lower p-level,*lat3* and *lon5*.
+   \param   r36a        Radius of corner: lower p-level,*lat3* and *lon6*.
+   \param   r16a        Radius of corner: lower p-level,*lat1* and *lon6*.
+   \param   r15b        Radius of corner: upper p-level,*lat1* and *lon5*.
+   \param   r35b        Radius of corner: upper p-level,*lat3* and *lon5*.
+   \param   r36b        Radius of corner: upper p-level,*lat3* and *lon6*.
+   \param   r16b        Radius of corner: upper p-level,*lat1* and *lon6*.
+   \param   rsurface15   Radius for the surface at *lat1* and *lon5*.
+   \param   rsurface35   Radius for the surface at *lat3* and *lon5*.
+   \param   rsurface36   Radius for the surface at *lat3* and *lon6*.
+   \param   rsurface16   Radius for the surface at *lat1* and *lon6*.
 
    \author Patrick Eriksson
    \date   2002-11-28
@@ -1813,10 +1813,10 @@ void do_gridcell_3d(
         const double&   r35b,
         const double&   r36b,
         const double&   r16b,
-        const double&   rground15,
-        const double&   rground35,
-        const double&   rground36,
-        const double&   rground16 )
+        const double&   rsurface15,
+        const double&   rsurface35,
+        const double&   rsurface36,
+        const double&   rsurface16 )
 {
   double   r_start   = r_start0;
   double   lat_start = lat_start0;
@@ -1838,7 +1838,7 @@ void do_gridcell_3d(
   else if( lon_start > lon6 )
     { lon_start = lon6; }
 
-  // Radius of lower and upper pressure surface at the start position
+  // Radius of lower and upper pressure level at the start position
   double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15a, r35a, r36a, r16a, lat_start, lon_start );
   double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -1868,9 +1868,9 @@ void do_gridcell_3d(
     {
 // FIXME only needed for assertion
 #ifndef NDEBUG
-      const double c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+      const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
                       r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-      const double tilt = psurface_angletilt( r_start, c );
+      const double tilt = plevel_angletilt( r_start, c );
 #endif
 
       assert( !is_los_downwards( za_start, tilt ) );
@@ -1879,9 +1879,9 @@ void do_gridcell_3d(
     {
 // FIXME only needed for assertion
 #ifndef NDEBUG
-      const double c = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+      const double c = plevel_slope_3d( lat1, lat3, lon5, lon6, 
                       r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-      const double tilt = psurface_angletilt( r_start, c );
+      const double tilt = plevel_angletilt( r_start, c );
 #endif
 
       assert( is_los_downwards( za_start, tilt ) );
@@ -1917,18 +1917,18 @@ void do_gridcell_3d(
   // Nadir looking
   else if( za_start > 180-ANGTOL )
     {
-      const double   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                   rground15, rground35, rground36, rground16, 
+      const double   rsurface = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                                   rsurface15, rsurface35, rsurface36, rsurface16, 
                                                 lat_start, lon_start );
       
-      if( rlow > rground )
+      if( rlow > rsurface )
         {
           r_end  = rlow;
           endface = 2;
         }
       else
         {
-          r_end  = rground;
+          r_end  = rsurface;
           endface = 7;
         }
       lat_end = lat_start;
@@ -1970,10 +1970,10 @@ void do_gridcell_3d(
       if( za_start > 90 )
         { l_tan = sqrt( r_start*r_start - ppc*ppc ); }
 
-      bool   do_ground = false;
-      if( rground15 >= r15a  ||  rground35 >= r35a  ||  
-                                     rground36 >= r36a  ||  rground16 >= r16a )
-        { do_ground = true; }
+      bool   do_surface = false;
+      if( rsurface15 >= r15a  ||  rsurface35 >= r35a  ||  
+                                     rsurface36 >= r36a  ||  rsurface16 >= r16a )
+        { do_surface = true; }
 
 
       while( !ready )
@@ -2025,14 +2025,14 @@ void do_gridcell_3d(
               else if( r_end > rupp )
                 { inside = false;   endface = 4; }
 
-              if( do_ground )
+              if( do_surface )
                 {
-                  const double   r_ground = 
+                  const double   r_surface = 
                                   rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  rground15, rground35, rground36, rground16, 
+                                  rsurface15, rsurface35, rsurface36, rsurface16, 
                                                             lat_end, lon_end );
 
-                  if( r_ground+RTOL >= rlow  &&  r_end <= r_ground+RTOL )
+                  if( r_surface+RTOL >= rlow  &&  r_end <= r_surface+RTOL )
                     { inside = false;   endface = 7; }
                 }
             }              
@@ -2091,8 +2091,8 @@ void do_gridcell_3d(
       else if( endface == 6 )
         { lon_end = lon6; }
       else if( endface == 7 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rground15, 
-                         rground35, rground36, rground16, lat_end, lon_end ); }
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15, 
+                         rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
 
       //--- Tangent point?
       //
@@ -2200,7 +2200,7 @@ void do_gridcell_3d(
 /*!
    Initiates a Ppath structure to hold the given number of points.
 
-   All fields releated with the ground, symmetry and tangent point are set
+   All fields releated with the surface, symmetry and tangent point are set
    to 0 or empty. The background field is set to background case 0. The
    constant field is set to -1. The refraction field is set to 0.
 
@@ -2262,8 +2262,8 @@ void ppath_init_structure(
    The case numbers are:                    <br>
       0. Not yet set.                       <br>
       1. Space.                             <br>
-      2. The ground.                        <br>
-      3. The surface of the cloud box.      <br>
+      2. The surface.                        <br>
+      3. The level of the cloud box.      <br>
       4. The interior of the cloud box.     
 
    \param   ppath            Output: A Ppath structure.
@@ -2285,10 +2285,10 @@ void ppath_set_background(
       ppath.background = "space";
       break;
     case 2:
-      ppath.background = "ground";
+      ppath.background = "surface";
       break;
     case 3:
-      ppath.background = "cloud box surface";
+      ppath.background = "cloud box level";
       break;
     case 4:
       ppath.background = "cloud box interior";
@@ -2320,9 +2320,9 @@ Index ppath_what_background( const Ppath&   ppath )
     { return 0; }
   else if( ppath.background == "space" )
     { return 1; }
-  else if( ppath.background == "ground" )
+  else if( ppath.background == "surface" )
     { return 2; }
-  else if( ppath.background == "cloud box surface" )
+  else if( ppath.background == "cloud box level" )
     { return 3; }
   else if( ppath.background == "cloud box interior" )
     { return 4; }
@@ -2676,7 +2676,7 @@ void ppath_fill_3d(
 
   for( Index i=0; i<r.nelem(); i++ )
     {
-      // Radius of pressure surfaces at present lat and lon
+      // Radius of pressure levels at present lat and lon
       const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                       r15a, r35a, r36a, r16a, lat[i], lon[i] );
       const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -2801,7 +2801,7 @@ void ppath_start_1d(
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         const double&     r_geoid,
-        const double&     z_ground
+        const double&     z_surface
 #else
         ConstVectorView,
         ConstVectorView,
@@ -2838,11 +2838,11 @@ void ppath_start_1d(
   assert( ppath.gp_p[imax].fd[0] >= 0 );
   assert( ppath.gp_p[imax].fd[0] <= 1 );
   //
-  assert( r_start >= r_geoid + z_ground - 1e-6 );
+  assert( r_start >= r_geoid + z_surface - 1e-6 );
   assert( za_start >= 0  &&  za_start <= 180 );
 
 
-  // Determine index of the pressure surface being the lower limit for the
+  // Determine index of the pressure level being the lower limit for the
   // grid range of interest.
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
@@ -2898,7 +2898,7 @@ void ppath_end_1d(
 
   // Different options depending on position of end point of step:
 
-  //--- End point is the ground
+  //--- End point is the surface
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
 
@@ -2910,7 +2910,7 @@ void ppath_end_1d(
       ppath.tan_pos[1] = lat_v[np-1];
     }
 
-  //--- End point is on top of a pressure surface
+  //--- End point is on top of a pressure level
   else
     {
       gridpos_force_end_fd( ppath.gp_p[np-1] );
@@ -2943,8 +2943,8 @@ void ppath_start_2d(
               double&     r3a,
               double&     r3b,
               double&     r1b,
-              double&     rground1,
-              double&     rground3,
+              double&     rsurface1,
+              double&     rsurface3,
         const Ppath&      ppath,
 // FIXME only used for assertion
 #ifndef NDEBUG
@@ -2955,7 +2955,7 @@ void ppath_start_2d(
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
-        ConstVectorView   z_ground
+        ConstVectorView   z_surface
         )
 {
   // Number of points in the incoming ppath
@@ -2980,7 +2980,7 @@ void ppath_start_2d(
   assert( is_increasing( lat_grid ) );
   assert( is_size( z_field, npl, nlat ) );
   assert( is_size( r_geoid, nlat ) );
-  assert( is_size( z_ground, nlat ) );
+  assert( is_size( z_surface, nlat ) );
   //
   assert( ppath.dim == 2 );
   assert( ppath.np >= 1 );
@@ -3008,10 +3008,10 @@ void ppath_start_2d(
   lat3 = lat_grid[ilat+1];
 
   // Determine interesting pressure grid range. Do this first assuming that
-  // the pressure surfaces are not tilted (that is, abs(za_start<=90) always
+  // the pressure levels are not tilted (that is, abs(za_start<=90) always
   // mean upward observation). 
   // Set radius for the corners of the grid cell and the radial slope of 
-  // pressure surface limits of the grid cell to match the found ip.
+  // pressure level limits of the grid cell to match the found ip.
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], abs(za_start) <= 90);
   //
@@ -3020,18 +3020,18 @@ void ppath_start_2d(
   r3b = r_geoid[ilat+1] + z_field(ip+1,ilat+1);  // upper-right
   r1b = r_geoid[ilat] + z_field(ip+1,ilat);      // upper-left
   
-  // Slopes of pressure surfaces
-  double   c2 = psurface_slope_2d( lat1, lat3, r1a, r3a );
-  double   c4 = psurface_slope_2d( lat1, lat3, r1b, r3b );
+  // Slopes of pressure levels
+  double   c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
+  double   c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
-  // of the pressure surface (that is, 90 + tilt of pressure surface), and in
+  // of the pressure level (that is, 90 + tilt of pressure level), and in
   // that case if ip must be changed. This check is only needed when the
-  // start point is on a pressure surface.
+  // start point is on a pressure level.
   //
   if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
     {
-      double tilt = psurface_angletilt( r_start, c2 );
+      double tilt = plevel_angletilt( r_start, c2 );
 
       if( is_los_downwards( za_start, tilt ) )
         {
@@ -3039,12 +3039,12 @@ void ppath_start_2d(
           r1b = r1a;   r3b = r3a;   c4 = c2;
           r1a = r_geoid[ilat] + z_field(ip,ilat);
           r3a = r_geoid[ilat+1] + z_field(ip,ilat+1);
-          c2 = psurface_slope_2d( lat1, lat3, r1a, r3a );
+          c2 = plevel_slope_2d( lat1, lat3, r1a, r3a );
         }
     }
   else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
     {
-      double tilt = psurface_angletilt( r_start, c4 );
+      double tilt = plevel_angletilt( r_start, c4 );
 
       if( !is_los_downwards( za_start, tilt ) )
         {
@@ -3052,16 +3052,16 @@ void ppath_start_2d(
           r1a = r1b;   r3a = r3b;   c2 = c4;
           r3b = r_geoid[ilat+1] + z_field(ip+1,ilat+1);
           r1b = r_geoid[ilat] + z_field(ip+1,ilat);    
-          c4 = psurface_slope_2d( lat1, lat3, r1b, r3b );
+          c4 = plevel_slope_2d( lat1, lat3, r1b, r3b );
         }
     }
 
   out3 << "  pressure grid range  : " << ip << "\n";
   out3 << "  latitude grid range  : " << ilat << "\n";
 
-  // Ground radius at latitude end points
-  rground1 = r_geoid[ilat] + z_ground[ilat];
-  rground3 = r_geoid[ilat+1] + z_ground[ilat+1];
+  // Surface radius at latitude end points
+  rsurface1 = r_geoid[ilat] + z_surface[ilat];
+  rsurface3 = r_geoid[ilat+1] + z_surface[ilat+1];
 }
 
 
@@ -3164,10 +3164,10 @@ void ppath_start_3d(
               double&     r35b,
               double&     r36b,
               double&     r16b,
-              double&     rground15,
-              double&     rground35,
-              double&     rground36,
-              double&     rground16,
+              double&     rsurface15,
+              double&     rsurface35,
+              double&     rsurface36,
+              double&     rsurface16,
               Ppath&      ppath,
 // FIXME only used for assertion
 #ifndef NDEBUG
@@ -3179,7 +3179,7 @@ void ppath_start_3d(
               ConstVectorView   lon_grid,
               ConstTensor3View  z_field,
               ConstMatrixView   r_geoid,
-              ConstMatrixView   z_ground )
+              ConstMatrixView   z_surface )
 {
   // Number of points in the incoming ppath
   const Index imax = ppath.np - 1;
@@ -3208,7 +3208,7 @@ void ppath_start_3d(
   assert( is_increasing( lon_grid ) );
   assert( is_size( z_field, npl, nlat, nlon ) );
   assert( is_size( r_geoid, nlat, nlon ) );
-  assert( is_size( z_ground, nlat, nlon ) );
+  assert( is_size( z_surface, nlat, nlon ) );
   //
   assert( ppath.dim == 3 );
   assert( ppath.np >= 1 );
@@ -3274,10 +3274,10 @@ void ppath_start_3d(
   lon6 = lon_grid[ilon+1];
 
   // Determine interesting pressure grid range. Do this first assuming that
-  // the pressure surfaces are not tilted (that is, abs(za_start<=90) always
+  // the pressure levels are not tilted (that is, abs(za_start<=90) always
   // mean upward observation). 
   // Set radius for the corners of the grid cell and the radial slope of 
-  // pressure surface limits of the grid cell to match the found ip.
+  // pressure level limits of the grid cell to match the found ip.
   //
   ip = gridpos2gridrange( ppath.gp_p[imax], za_start <= 90 );
   //
@@ -3290,10 +3290,10 @@ void ppath_start_3d(
   r36b = r_geoid(ilat+1,ilon+1) + z_field(ip+1,ilat+1,ilon+1); 
   r16b = r_geoid(ilat,ilon+1) + z_field(ip+1,ilat,ilon+1);
 
-  // This part is a fix to catch start postions on top of a pressure surface
+  // This part is a fix to catch start postions on top of a pressure level
   // that does not have an end fractional distance for the first step.
   {
-    // Radius of lower and upper pressure surface at the start position
+    // Radius of lower and upper pressure level at the start position
     const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
 				r15a, r35a, r36a, r16a, lat_start, lon_start );
     const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -3303,16 +3303,16 @@ void ppath_start_3d(
   }
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
-  // of the pressure surface (that is, 90 + tilt of pressure surface), and in
+  // of the pressure level (that is, 90 + tilt of pressure level), and in
   // that case if ip must be changed. This check is only needed when the
-  // start point is on a pressure surface.
+  // start point is on a pressure level.
   //
   if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
     {
-      // Slope and angular tilt of lower pressure surface
-      double c2 = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+      // Slope and angular tilt of lower pressure level
+      double c2 = plevel_slope_3d( lat1, lat3, lon5, lon6, 
                       r15a, r35a, r36a, r16a, lat_start, lon_start, aa_start );
-      double tilt = psurface_angletilt( r_start, c2 );
+      double tilt = plevel_angletilt( r_start, c2 );
 
       if( is_los_downwards( za_start, tilt ) )
         {
@@ -3326,10 +3326,10 @@ void ppath_start_3d(
     }
   else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
     {
-      // Slope and angular tilt of lower pressure surface
-      double c4 = psurface_slope_3d( lat1, lat3 ,lon5, lon6, 
+      // Slope and angular tilt of lower pressure level
+      double c4 = plevel_slope_3d( lat1, lat3 ,lon5, lon6, 
                       r15b, r35b, r36b, r16b, lat_start, lon_start, aa_start );
-      double tilt = psurface_angletilt( r_start, c4 );
+      double tilt = plevel_angletilt( r_start, c4 );
 
       if( !is_los_downwards( za_start, tilt ) )
         {
@@ -3346,11 +3346,11 @@ void ppath_start_3d(
   out3 << "  latitude grid range  : " << ilat << "\n";
   out3 << "  longitude grid range : " << ilon << "\n";
 
-  // Ground radius at latitude/longitude corner points
-  rground15 = r_geoid(ilat,ilon) + z_ground(ilat,ilon);
-  rground35 = r_geoid(ilat+1,ilon) + z_ground(ilat+1,ilon);
-  rground36 = r_geoid(ilat+1,ilon+1) + z_ground(ilat+1,ilon+1);
-  rground16 = r_geoid(ilat,ilon+1) + z_ground(ilat,ilon+1);
+  // Surface radius at latitude/longitude corner points
+  rsurface15 = r_geoid(ilat,ilon) + z_surface(ilat,ilon);
+  rsurface35 = r_geoid(ilat+1,ilon) + z_surface(ilat+1,ilon);
+  rsurface36 = r_geoid(ilat+1,ilon+1) + z_surface(ilat+1,ilon+1);
+  rsurface16 = r_geoid(ilat,ilon+1) + z_surface(ilat,ilon+1);
 }
 
 
@@ -3640,7 +3640,7 @@ void from_raytracingarrays_to_ppath_vectors_3d(
 
    This is the core function to determine 1D propagation path steps by pure
    geometrical calculations. Path points are included for crossings with the 
-   grids, tangent points and points of ground intersections. In addition,
+   grids, tangent points and points of surface intersections. In addition,
    points are included in the propgation path to ensure that the distance
    along the path between the points does not exceed the selected maximum 
    length (lmax). If lmax is <= 0, this means that no length criterion shall
@@ -3655,7 +3655,7 @@ void from_raytracingarrays_to_ppath_vectors_3d(
    \param   p_grid            Pressure grid.
    \param   z_field           Geometrical altitudes corresponding to p_grid.
    \param   r_geoid           Geoid radius.
-   \param   z_ground          Ground altitude.
+   \param   z_surface          Surface altitude.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -3666,19 +3666,19 @@ void ppath_step_geom_1d(
         ConstVectorView   p_grid,
         ConstVectorView   z_field,
         const double&     r_geoid,
-        const double&     z_ground,
+        const double&     z_surface,
         const double&     lmax )
 {
   // Starting radius, zenith angle and latitude
   double r_start, lat_start, za_start;
 
-  // Index of the pressure surface being the lower limit for the
+  // Index of the pressure level being the lower limit for the
   // grid range of interest.
   Index ip;
 
   // Determine the variables defined above, and make asserts of input
   ppath_start_1d( r_start, lat_start, za_start, ip,
-                                   ppath, p_grid, z_field, r_geoid, z_ground );
+                                   ppath, p_grid, z_field, r_geoid, z_surface );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -3700,7 +3700,7 @@ void ppath_step_geom_1d(
   //
   do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                    r_start, lat_start, za_start, ppc, lmax, 
-                r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_ground );
+                r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_surface );
 
 
   // Fill *ppath*
@@ -3724,7 +3724,7 @@ void ppath_step_geom_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_geom_1d( ppath2, p_grid, z_field, r_geoid, z_ground, lmax );
+      ppath_step_geom_1d( ppath2, p_grid, z_field, r_geoid, z_surface, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -3747,7 +3747,7 @@ void ppath_step_geom_1d(
    \param   lat_grid          Latitude grid.
    \param   z_field           Geometrical altitudes
    \param   r_geoid           Geoid radii.
-   \param   z_ground          Ground altitudes.
+   \param   z_surface          Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -3759,7 +3759,7 @@ void ppath_step_geom_2d(
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
-        ConstVectorView   z_ground,
+        ConstVectorView   z_surface,
         const double&     lmax )
 {
   // Radius, zenith angle and latitude of start point.
@@ -3769,12 +3769,12 @@ void ppath_step_geom_2d(
   Index   ip, ilat;
 
   // Radii and latitudes set by *ppath_start_2d*.
-  double   lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3;
+  double   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3;
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
-                  lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3,
-                         ppath, p_grid, lat_grid, z_field, r_geoid, z_ground );
+                  lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
+                         ppath, p_grid, lat_grid, z_field, r_geoid, z_surface );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -3793,7 +3793,7 @@ void ppath_step_geom_2d(
 
   do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
-                                      r1a, r3a, r3b, r1b, rground1, rground3 );
+                                      r1a, r3a, r3b, r1b, rsurface1, rsurface3 );
 
 
   // Fill *ppath*
@@ -3820,7 +3820,7 @@ void ppath_step_geom_2d(
 
       // Call this function recursively
       ppath_step_geom_2d( ppath2, p_grid, lat_grid, z_field,
-                                                     r_geoid, z_ground, lmax );
+                                                     r_geoid, z_surface, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -3844,7 +3844,7 @@ void ppath_step_geom_2d(
    \param   lon_grid          Longitude grid.
    \param   z_field           Geometrical altitudes
    \param   r_geoid           Geoid radii.
-   \param   z_ground          Ground altitudes.
+   \param   z_surface          Surface altitudes.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -3857,7 +3857,7 @@ void ppath_step_geom_3d(
         ConstVectorView    lon_grid,
         ConstTensor3View   z_field,
         ConstMatrixView    r_geoid,
-        ConstMatrixView    z_ground,
+        ConstMatrixView    z_surface,
         const double&      lmax )
 {
   // Radius, zenith angle and latitude of start point.
@@ -3870,14 +3870,14 @@ void ppath_step_geom_3d(
   //
   double   lat1, lat3, lon5, lon6;
   double   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b;
-  double   rground15, rground35, rground36, rground16;
+  double   rsurface15, rsurface35, rsurface36, rsurface16;
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
                   ip, ilat, ilon, lat1, lat3, lon5, lon6,
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
-                  rground15, rground35, rground36, rground16,
-               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground );
+                  rsurface15, rsurface35, rsurface36, rsurface16,
+               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -3898,7 +3898,7 @@ void ppath_step_geom_3d(
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                                  rground15, rground35, rground36, rground16 );
+                                  rsurface15, rsurface35, rsurface36, rsurface16 );
 
   // Fill *ppath*
   //
@@ -3925,7 +3925,7 @@ void ppath_step_geom_3d(
 
       // Call this function recursively
       ppath_step_geom_3d( ppath2, p_grid, lat_grid, lon_grid, z_field,
-                                                     r_geoid, z_ground, lmax );
+                                                     r_geoid, z_surface, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -3953,7 +3953,7 @@ void ppath_step_geom_3d(
    end radius is adopted to the distance to the end radius.
 
    The refractive index is assumed to vary linearly between the pressure
-   surfaces.
+   levels.
 
    As the ray tracing is performed from the last end point, the found path
    will not be symmetric around the tangent point.
@@ -3982,9 +3982,9 @@ void ppath_step_geom_3d(
    \param   refr_index_agenda   FIXME: Add documentation.
    \param   ppc          Propagation path constant.
    \param   lraytrace    Maximum allowed length for ray tracing steps.
-   \param   r1           Radius of lower pressure surface.
-   \param   r3           Radius of upper pressure surface (r3 > r1).
-   \param   r_ground     Radius of the ground.
+   \param   r1           Radius of lower pressure level.
+   \param   r3           Radius of upper pressure level (r3 > r1).
+   \param   r_surface     Radius of the surface.
    \param   r_geoid      Geoid radii.
    \param   p_grid       Pressure grid.
    \param   z_field      Geometrical altitudes corresponding to p_grid.
@@ -4013,7 +4013,7 @@ void raytrace_1d_linear_euler(
         const double&          lraytrace,
         const double&          r1,
         const double&          r3,
-        const double&          r_ground,
+        const double&          r_surface,
         const double&          r_geoid,
         ConstVectorView        p_grid,
         ConstVectorView        z_field,
@@ -4035,7 +4035,7 @@ void raytrace_1d_linear_euler(
 
       // Where will a geometric path exit the grid cell?
       do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint, r, lat, za,
-                                              ppc_step, -1, r1, r3, r_ground );
+                                              ppc_step, -1, r1, r3, r_surface );
 
       assert( r_v.nelem() == 2 );
 
@@ -4119,7 +4119,7 @@ void raytrace_1d_linear_euler(
    adopted to the distance to the end radius.
 
    The refractive index is assumed to vary linearly along the pressure
-   surfaces and the latitude grid points.
+   levels and the latitude grid points.
 
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of AUG.
@@ -4150,8 +4150,8 @@ void raytrace_1d_linear_euler(
    \param   r3a             Radius of lower-right corner of the grid cell.
    \param   r3b             Radius of upper-right corner of the grid cell.
    \param   r1b             Radius of upper-left corner of the grid cell.
-   \param   rground1        Radius for the ground at *lat1*.
-   \param   rground3        Radius for the ground at *lat3*.
+   \param   rsurface1        Radius for the surface at *lat1*.
+   \param   rsurface3        Radius for the surface at *lat3*.
    \param   p_grid          The WSV with the same name.
    \param   lat_grid        The WSV with the same name.
    \param   r_geoid         The WSV with the same name.
@@ -4184,8 +4184,8 @@ void raytrace_2d_linear_euler(
         const double&          r3a,
         const double&          r3b,
         const double&          r1b,
-        const double&          rground1,
-        const double&          rground3,
+        const double&          rsurface1,
+        const double&          rsurface3,
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
         ConstVectorView        r_geoid,
@@ -4209,7 +4209,7 @@ void raytrace_2d_linear_euler(
       // Where will a geometric path exit the grid cell?
       do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                      r, lat, za, ppc_step, -1, lat1, lat3, r1a, r3a, r3b, r1b, 
-                                                          rground1, rground3 );
+                                                          rsurface1, rsurface3 );
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
@@ -4314,7 +4314,7 @@ void raytrace_2d_linear_euler(
    adopted to the distance to the end radius.
 
    The refractive index is assumed to vary linearly along the pressure
-   surfaces and the latitude grid points.
+   levels and the latitude grid points.
 
    For more information read the chapter on propagation paths in AUG.
    The algorithm used is described in that part of AUG.
@@ -4348,18 +4348,18 @@ void raytrace_2d_linear_euler(
    \param   lat3           Latitude of right end face of the grid cell.
    \param   lon5           Lower longitude of the grid cell.
    \param   lon6           Upper longitude of the grid cell.
-   \param   r15a           Radius of corner: lower p-surface,*lat1* and *lon5*.
-   \param   r35a           Radius of corner: lower p-surface,*lat3* and *lon5*.
-   \param   r36a           Radius of corner: lower p-surface,*lat3* and *lon6*.
-   \param   r16a           Radius of corner: lower p-surface,*lat1* and *lon6*.
-   \param   r15b           Radius of corner: upper p-surface,*lat1* and *lon5*.
-   \param   r35b           Radius of corner: upper p-surface,*lat3* and *lon5*.
-   \param   r36b           Radius of corner: upper p-surface,*lat3* and *lon6*.
-   \param   r16b           Radius of corner: upper p-surface,*lat1* and *lon6*.
-   \param   rground15      Radius for the ground at *lat1* and *lon5*.
-   \param   rground35      Radius for the ground at *lat3* and *lon5*.
-   \param   rground36      Radius for the ground at *lat3* and *lon6*.
-   \param   rground16      Radius for the ground at *lat1* and *lon6*.   
+   \param   r15a           Radius of corner: lower p-level,*lat1* and *lon5*.
+   \param   r35a           Radius of corner: lower p-level,*lat3* and *lon5*.
+   \param   r36a           Radius of corner: lower p-level,*lat3* and *lon6*.
+   \param   r16a           Radius of corner: lower p-level,*lat1* and *lon6*.
+   \param   r15b           Radius of corner: upper p-level,*lat1* and *lon5*.
+   \param   r35b           Radius of corner: upper p-level,*lat3* and *lon5*.
+   \param   r36b           Radius of corner: upper p-level,*lat3* and *lon6*.
+   \param   r16b           Radius of corner: upper p-level,*lat1* and *lon6*.
+   \param   rsurface15      Radius for the surface at *lat1* and *lon5*.
+   \param   rsurface35      Radius for the surface at *lat3* and *lon5*.
+   \param   rsurface36      Radius for the surface at *lat3* and *lon6*.
+   \param   rsurface16      Radius for the surface at *lat1* and *lon6*.   
    \param   p_grid         The WSV with the same name.
    \param   lat_grid       The WSV with the same name.
    \param   lon_grid       The WSV with the same name.
@@ -4403,10 +4403,10 @@ void raytrace_3d_linear_euler(
         const double&          r35b,
         const double&          r36b,
         const double&          r16b,
-        const double&          rground15,
-        const double&          rground35,
-        const double&          rground36,
-        const double&          rground16,
+        const double&          rsurface15,
+        const double&          rsurface35,
+        const double&          rsurface36,
+        const double&          rsurface16,
         ConstVectorView        p_grid,
         ConstVectorView        lat_grid,
         ConstVectorView        lon_grid,
@@ -4433,7 +4433,7 @@ void raytrace_3d_linear_euler(
       do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, tanpoint,
                     r, lat, lon, za, aa, ppc_step, -1, lat1, lat3, lon5, lon6, 
                     r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
-                                  rground15, rground35, rground36, rground16 );
+                                  rsurface15, rsurface35, rsurface36, rsurface16 );
 
       assert( r_v.nelem() == 2 );
 
@@ -4613,7 +4613,7 @@ void raytrace_3d_linear_euler(
    \param   t_field           Temperatures corresponding to p_grid.
    \param   vmr_field         VMR values corresponding to p_grid.
    \param   r_geoid           Geoid radius.
-   \param   z_ground          Ground altitude.
+   \param   z_surface          Surface altitude.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -4634,7 +4634,7 @@ void ppath_step_refr_1d(
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
         const double&     r_geoid,
-        const double&     z_ground,
+        const double&     z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
         const double&     lmax )
@@ -4642,13 +4642,13 @@ void ppath_step_refr_1d(
   // Starting radius, zenith angle and latitude
   double   r_start, lat_start, za_start;
 
-  // Index of the pressure surface being the lower limit for the
+  // Index of the pressure level being the lower limit for the
   // grid range of interest.
   Index   ip;
 
   // Determine the variables defined above, and make asserts of input
   ppath_start_1d( r_start, lat_start, za_start, ip, 
-                                   ppath, p_grid, z_field, r_geoid, z_ground );
+                                   ppath, p_grid, z_field, r_geoid, z_surface );
 
   // Assert not done for geometrical calculations
   assert( t_field.nelem() == p_grid.nelem() );
@@ -4698,7 +4698,7 @@ void ppath_step_refr_1d(
       raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, endface,
         tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
             rte_vmr_list, refr_index, refr_index_agenda, ppc, lraytrace, 
-            r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid + z_ground, 
+            r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid + z_surface, 
                                 r_geoid, p_grid, z_field, t_field, vmr_field );
     }
 #ifndef NDEBUG
@@ -4738,7 +4738,7 @@ void ppath_step_refr_1d(
 
       ppath_step_refr_1d( ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                       refr_index, refr_index_agenda, p_grid, z_field, t_field,
-                vmr_field, r_geoid, z_ground, rtrace_method, lraytrace, lmax );
+                vmr_field, r_geoid, z_surface, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -4769,7 +4769,7 @@ void ppath_step_refr_1d(
    \param   t_field           Atmospheric temperatures.
    \param   vmr_field         VMR values.
    \param   r_geoid           Geoid radii.
-   \param   z_ground          Ground altitudes.
+   \param   z_surface          Surface altitudes.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -4791,7 +4791,7 @@ void ppath_step_refr_2d(
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
         ConstVectorView   r_geoid,
-        ConstVectorView   z_ground,
+        ConstVectorView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
         const double&     lmax )
@@ -4803,12 +4803,12 @@ void ppath_step_refr_2d(
   Index   ip, ilat;
 
   // Radii and latitudes set by *ppath_start_2d*.
-  double   lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3;
+  double   lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3;
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
-                  lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3,
-                         ppath, p_grid, lat_grid, z_field, r_geoid, z_ground );
+                  lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
+                         ppath, p_grid, lat_grid, z_field, r_geoid, z_surface );
 
   // Assert not done for geometrical calculations
   assert( t_field.nrows() == p_grid.nelem() );
@@ -4846,7 +4846,7 @@ void ppath_step_refr_2d(
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
         tanpoint, r_start, lat_start, za_start, rte_pressure, rte_temperature, 
                     rte_vmr_list, refr_index, refr_index_agenda, lraytrace, 
-                          lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3,
+                          lat1, lat3, r1a, r3a, r3b, r1b, rsurface1, rsurface3,
                       p_grid, lat_grid, r_geoid, z_field, t_field, vmr_field );
     }
 #ifndef NDEBUG
@@ -4887,7 +4887,7 @@ void ppath_step_refr_2d(
       ppath_step_refr_2d( ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                     refr_index, refr_index_agenda, p_grid, lat_grid, z_field, 
                     t_field, vmr_field, 
-                           r_geoid, z_ground, rtrace_method, lraytrace, lmax );
+                           r_geoid, z_surface, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -4919,7 +4919,7 @@ void ppath_step_refr_2d(
    \param   t_field           Atmospheric temperatures.
    \param   vmr_field         VMR values.
    \param   r_geoid           Geoid radii.
-   \param   z_ground          Ground altitudes.
+   \param   z_surface          Surface altitudes.
    \param   rtrace_method     String giving which ray tracing method to use.
                               See the function for options.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -4942,7 +4942,7 @@ void ppath_step_refr_3d(
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
         ConstMatrixView   r_geoid,
-        ConstMatrixView   z_ground,
+        ConstMatrixView   z_surface,
         const String&     rtrace_method,
         const double&     lraytrace,
         const double&     lmax )
@@ -4957,14 +4957,14 @@ void ppath_step_refr_3d(
   //
   double   lat1, lat3, lon5, lon6;
   double   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b;
-  double   rground15, rground35, rground36, rground16;
+  double   rsurface15, rsurface35, rsurface36, rsurface16;
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_3d( r_start, lat_start, lon_start, za_start, aa_start, 
                   ip, ilat, ilon, lat1, lat3, lon5, lon6,
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b, 
-                  rground15, rground35, rground36, rground16,
-               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground );
+                  rsurface15, rsurface35, rsurface36, rsurface16,
+               ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface );
 
   // Assert not done for geometrical calculations
   assert( t_field.npages() == p_grid.nelem() );
@@ -5010,7 +5010,7 @@ void ppath_step_refr_3d(
                                 refr_index, refr_index_agenda, lraytrace, 
                                 lat1, lat3, lon5, lon6, 
                                 r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
-                                rground15, rground35, rground36, rground16,
+                                rsurface15, rsurface35, rsurface36, rsurface16,
                                 p_grid, lat_grid, lon_grid, 
                                 r_geoid, z_field, t_field, vmr_field );
     }
@@ -5054,7 +5054,7 @@ void ppath_step_refr_3d(
       ppath_step_refr_3d( ppath2, rte_pressure, rte_temperature, rte_vmr_list,
                           refr_index, refr_index_agenda, p_grid, lat_grid, 
                           lon_grid, z_field, t_field, vmr_field, 
-                          r_geoid, z_ground, rtrace_method, lraytrace, lmax );
+                          r_geoid, z_surface, rtrace_method, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -5087,7 +5087,7 @@ void ppath_step_refr_3d(
 
    (b): If it is found that the end point of the path is at an illegal position
    a detailed error message is given. Not allowed cases are: <br>  
-      1. The sensor is placed below ground level. <br> 
+      1. The sensor is placed below surface level. <br> 
       2. For 2D and 3D, the path leaves the model atmosphere at a latitude or
          longitude end face. <br> 
       3. For 2D and 3D, the path is totally outside the atmosphere and the 
@@ -5105,7 +5105,7 @@ void ppath_step_refr_3d(
    \param   lon_grid          The longitude grid.
    \param   z_field           The field of geometrical altitudes.
    \param   r_geoid           The geoid radius.
-   \param   z_ground          Ground altitude.
+   \param   z_surface          Surface altitude.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
    \param   outside_cloudbox  Boolean to flag if the propagation path is 
@@ -5128,7 +5128,7 @@ void ppath_start_stepping(
         ConstVectorView       lon_grid,
         ConstTensor3View      z_field,
         ConstMatrixView       r_geoid,
-        ConstMatrixView       z_ground,
+        ConstMatrixView       z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const bool&           outside_cloudbox,
@@ -5149,19 +5149,19 @@ void ppath_start_stepping(
   //-- 1D ---------------------------------------------------------------------
   if( atmosphere_dim == 1 )
     {
-      // Radius for the ground
-      const double r_ground = r_geoid(0,0) + z_ground(0,0);
+      // Radius for the surface
+      const double r_surface = r_geoid(0,0) + z_surface(0,0);
 
       // Radius for the top of the atmosphere
       const double r_top = r_geoid(0,0) + z_field(np-1,0,0);
 
-      // The only forbidden case here is that the sensor is below the ground
-      if( rte_pos[0] < r_ground )
+      // The only forbidden case here is that the sensor is below the surface
+      if( rte_pos[0] < r_surface )
         {
           ostringstream os;
           os << "The sensor is placed " 
-             << (r_ground - rte_pos[0])/1e3 << " km below ground level.\n"
-             << "The sensor must be above the ground.";
+             << (r_surface - rte_pos[0])/1e3 << " km below surface level.\n"
+             << "The sensor must be above the surface.";
           throw runtime_error(os.str());
         }
 
@@ -5195,10 +5195,10 @@ void ppath_start_stepping(
           // Use below the values in ppath (instead of rte_pos and rte_los) as 
           // they can be modified on the way.
      
-          // Is the sensor on the ground looking down?
+          // Is the sensor on the surface looking down?
           // If yes and the sensor is inside the cloudbox, the background will
           // be changed below.
-          if( ppath.pos(0,0) == r_ground  &&  ppath.los(0,0) > 90 )
+          if( ppath.pos(0,0) == r_surface  &&  ppath.los(0,0) > 90 )
             { ppath_set_background( ppath, 2 ); }
 
           // Check sensor position with respect to cloud box.
@@ -5286,11 +5286,11 @@ void ppath_start_stepping(
 
       // Is the sensor inside the latitude range of the model atmosphere,
       // and below the top of the atmosphere? If yes, is_inside = true.
-      // Store geoid and ground radii, grid position and interpolation weights
+      // Store geoid and surface radii, grid position and interpolation weights
       // for later use.
       //
       bool      is_inside = false;   
-      double    rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
+      double    rv_geoid=-1, rv_surface=-1;  // -1 to avoid compiler warnings
       GridPos   gp_lat;
       Vector    itw(2);
       //
@@ -5300,7 +5300,7 @@ void ppath_start_stepping(
           interpweights( itw, gp_lat );
 
           rv_geoid  = interp( itw, r_geoid(joker,0), gp_lat );
-          rv_ground = rv_geoid + interp( itw, z_ground(joker,0), gp_lat );
+          rv_surface = rv_geoid + interp( itw, z_surface(joker,0), gp_lat );
 
           out2 << "  sensor altitude        : " << (rte_pos[0]-rv_geoid)/1e3 
                << " km\n";
@@ -5356,13 +5356,13 @@ void ppath_start_stepping(
       // The sensor is inside the model atmosphere, 2D ------------------------
       if( is_inside )
         {
-          // Check that the sensor is above the ground
-          if( rte_pos[0] < rv_ground )
+          // Check that the sensor is above the surface
+          if( rte_pos[0] < rv_surface )
             {
               ostringstream os;
               os << "The sensor is placed " 
-                 << (rv_ground - rte_pos[0])/1e3 << " km below ground level.\n"
-                 << "The sensor must be above the ground.";
+                 << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
+                 << "The sensor must be above the surface.";
               throw runtime_error(os.str());
             }
 
@@ -5386,24 +5386,24 @@ void ppath_start_stepping(
           ppath.gp_lat[0].fd[1] = gp_lat.fd[1];
 
           // Create a vector with the geometrical altitude of the pressure 
-          // surfaces for the sensor latitude and use it to get ppath.gp_p.
+          // levels for the sensor latitude and use it to get ppath.gp_p.
           Vector z_grid(np);
           z_at_lat_2d( z_grid, p_grid, lat_grid, 
                                               z_field(joker,joker,0), gp_lat );
           gridpos( ppath.gp_p, z_grid, ppath.z );
 
-          // Is the sensor on the ground looking down?
-          if( ppath.pos(0,0) == rv_ground )
+          // Is the sensor on the surface looking down?
+          if( ppath.pos(0,0) == rv_surface )
             {
-              // Calculate radial slope of the ground
-              const double rslope = psurface_slope_2d( lat_grid, 
-                        r_geoid(joker,0), z_ground(joker,0), 
+              // Calculate radial slope of the surface
+              const double rslope = plevel_slope_2d( lat_grid, 
+                        r_geoid(joker,0), z_surface(joker,0), 
                                                       gp_lat, ppath.los(0,0) );
 
-              // Calculate angular tilt of the ground
-              const double atilt = psurface_angletilt( rv_ground, rslope);
+              // Calculate angular tilt of the surface
+              const double atilt = plevel_angletilt( rv_surface, rslope);
 
-              // Are we looking down into the ground?
+              // Are we looking down into the surface?
               // If yes and the sensor is inside the cloudbox, the background 
               // will be changed below.
               if( is_los_downwards( ppath.los(0,0), atilt ) )
@@ -5510,7 +5510,7 @@ void ppath_start_stepping(
               // Find the latitude where the path passes top of the atmosphere.
 
               // We are handling this in a rather dumb way. A test is performed
-              // for each latitude range using psurface_crossing_2d.
+              // for each latitude range using plevel_crossing_2d.
               // A bit smarter algorithm was considered but that made the code 
               // more messy.
               // The case when the sensor is placed inside lat_grid must be
@@ -5562,7 +5562,7 @@ void ppath_start_stepping(
                   double za0 = abs( geompath_za_at_r( ppath.constant, 
                                                             rte_los[0], r0 ) );
 
-                  // Calculate radius and slope to use in psurface_crossing_2d
+                  // Calculate radius and slope to use in plevel_crossing_2d
                   double rv1 = r_geoid(ilat0,0) + z_field(np-1,ilat0,0);
                   double rv2 = r_geoid(ilat0+istep,0) + 
                                                    z_field(np-1,ilat0+istep,0);
@@ -5573,7 +5573,7 @@ void ppath_start_stepping(
                   if( lat0 != lat_grid[ilat0] )
                     { rv1 = rv1 + c * abs( lat0 - lat_grid[ilat0] ); } 
 
-                  double dlat = psurface_crossing_2d( r0, za0, rv1, c );
+                  double dlat = plevel_crossing_2d( r0, za0, rv1, c );
 
                   if( dlat <= latstep )
                     {
@@ -5625,11 +5625,11 @@ void ppath_start_stepping(
 
       // Is the sensor inside the latitude and longitude ranges of the
       // model atmosphere, and below the top of the atmosphere? If
-      // yes, is_inside = true. Store geoid and ground radii, grid
+      // yes, is_inside = true. Store geoid and surface radii, grid
       // position and interpolation weights for later use.
       //
       bool      is_inside = false;   
-      double   rv_geoid=-1, rv_ground=-1;  // -1 to avoid compiler warnings
+      double   rv_geoid=-1, rv_surface=-1;  // -1 to avoid compiler warnings
       GridPos   gp_lat, gp_lon;
       Vector    itw(4);
       //
@@ -5641,7 +5641,7 @@ void ppath_start_stepping(
           interpweights( itw, gp_lat, gp_lon );
 
           rv_geoid  = interp( itw, r_geoid, gp_lat, gp_lon );
-          rv_ground = rv_geoid + interp( itw, z_ground, gp_lat, gp_lon );
+          rv_surface = rv_geoid + interp( itw, z_surface, gp_lat, gp_lon );
 
           out2 << "  sensor altitude        : " << (rte_pos[0]-rv_geoid)/1e3 
                << " km\n";
@@ -5704,13 +5704,13 @@ void ppath_start_stepping(
       // The sensor is inside the model atmosphere, 3D ------------------------
       if( is_inside )
         {
-          // Check that the sensor is above the ground
-          if( rte_pos[0] < rv_ground )
+          // Check that the sensor is above the surface
+          if( rte_pos[0] < rv_surface )
             {
               ostringstream os;
               os << "The sensor is placed " 
-                 << (rv_ground - rte_pos[0])/1e3 << " km below ground level.\n"
-                 << "The sensor must be above the ground.";
+                 << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
+                 << "The sensor must be above the surface.";
               throw runtime_error(os.str());
             }
 
@@ -5747,23 +5747,23 @@ void ppath_start_stepping(
           ppath.gp_lon[0].fd[1] = gp_lon.fd[1];
 
           // Create a vector with the geometrical altitude of the pressure 
-          // surfaces for the sensor latitude and use it to get ppath.gp_p.
+          // levels for the sensor latitude and use it to get ppath.gp_p.
           Vector z_grid(np);
           z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
                                                               gp_lat, gp_lon );
           gridpos( ppath.gp_p, z_grid, ppath.z );
 
-          // Is the sensor on the ground looking down?
-          if( ppath.pos(0,0) == rv_ground )
+          // Is the sensor on the surface looking down?
+          if( ppath.pos(0,0) == rv_surface )
             {
-              // Calculate radial slope of the ground
-              const double rslope = psurface_slope_3d( lat_grid, lon_grid,
-                          r_geoid, z_ground, gp_lat, gp_lon, ppath.los(0,1)  );
+              // Calculate radial slope of the surface
+              const double rslope = plevel_slope_3d( lat_grid, lon_grid,
+                          r_geoid, z_surface, gp_lat, gp_lon, ppath.los(0,1)  );
 
-              // Calculate angular tilt of the ground
-              const double atilt = psurface_angletilt( rv_ground, rslope);
+              // Calculate angular tilt of the surface
+              const double atilt = plevel_angletilt( rv_surface, rslope);
 
-              // Are we looking down into the ground?
+              // Are we looking down into the surface?
               // If yes and the sensor is inside the cloudbox, the background 
               // will be changed below.
               if( is_los_downwards( ppath.los(0,0), atilt ) )
@@ -5774,10 +5774,10 @@ void ppath_start_stepping(
           if( cloudbox_on )
             {
               // To check all possible cases here when the sensor is at the
-              // surface and can either look into or out from the box needs
+              // level and can either look into or out from the box needs
               // a lot of coding.
               // So we are instead sloppy and set all cases when the sensor
-              // is inside or at the surface to be inside the box.
+              // is inside or at the level to be inside the box.
               // The neglected cases should be very unlikely in for real
               // situations.
 
@@ -5913,7 +5913,7 @@ void ppath_start_stepping(
              
               // Determine the entrance point for the minimum of *r_atmtop*
               double   r_top, lat_top, lon_top, l_top;
-              psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
+              plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
                                   rtopmin, rte_pos[0], rte_pos[1], rte_pos[2], 
                                   rte_los[0], x, y, z, dx, dy, dz );
 
@@ -5923,7 +5923,7 @@ void ppath_start_stepping(
               if( lat_top < lat_grid[0]  ||  lat_top > lat_grid[nlat-1] ||
                   lon_top < lat_grid[0]  ||  lon_top > lat_grid[nlat-1] )
                 {
-                  psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
+                  plevel_crossing_3d( r_top, lat_top, lon_top, l_top, 
                                    rtopmax, rte_pos[0], rte_pos[1], rte_pos[2],
                                    rte_los[0], x, y, z, dx, dy, dz );
 
@@ -5961,7 +5961,7 @@ void ppath_start_stepping(
                   // Determine new entrance position for latest estimated
                   // entrance radius
                   double   lat_top2, lon_top2;
-                  psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
+                  plevel_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
                                     r_top, rte_pos[0], rte_pos[1], rte_pos[2], 
                                     rte_los[0], x, y, z, dx, dy, dz );
                   
@@ -6076,7 +6076,7 @@ void ppath_start_stepping(
    \param lon_grid           The longitude grid.
    \param z_field            The field of geometrical altitudes.
    \param r_geoid            The geoid radius.
-   \param z_ground           Ground altitude.
+   \param z_surface           Surface altitude.
    \param cloudbox_on        Flag to activate the cloud box.
    \param cloudbox_limits    Index limits of the cloud box.
    \param rte_pos            The position of the sensor.
@@ -6105,7 +6105,7 @@ void ppath_calc(
         const Vector&         lon_grid,
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
-        const Matrix&         z_ground,
+        const Matrix&         z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,
@@ -6170,7 +6170,7 @@ void ppath_calc(
   // allowed path.
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-            lon_grid, z_field, r_geoid, z_ground,
+            lon_grid, z_field, r_geoid, z_surface,
             cloudbox_on, cloudbox_limits, outside_cloudbox, rte_pos, rte_los );
 
   out2 << "  -------------------------------------\n";

@@ -8,7 +8,7 @@
 
 
 Basic facts regarding the treatment of surface emission and
-reflections are given in Section~\ref{sec:fm_defs:groundrefl}.  Let us
+reflections are given in Section~\ref{sec:fm_defs:surface}.  Let us
 start with a simple example in order to explain the usage of the
 workspace variables describing the surface properties. We will here
 assume that the surface has an isotropic scattering, where all
@@ -17,15 +17,15 @@ polarisation states. We assume further a 1D simulation and that the
 downwelling radiation shall be calculated for nine zenith angles. The
 relevant workspace variables should then be set as follows:
   
- \wsvindex{ground\_emission}: A matrix (of correct size) of zeros.
+ \wsvindex{surface\_emission}: A matrix (of correct size) of zeros.
 
- \wsvindex{ground\_los}: A vector of length 9, covering the zenith
+ \wsvindex{surface\_los}: A vector of length 9, covering the zenith
  angle range. A possible choice would be [5,15,25,\dots,85].
  
- \wsvindex{ground\_refl\_coeffs}: Each reflection matrix is a diagonal
+ \wsvindex{surface\_refl\_coeffs}: Each reflection matrix is a diagonal
  matrix with the value 1/9 throughout on the diagonal. That is, all
  elements with index (:,:,i,i) is 1/9. Size matching
- \artsstyle{ground\_los}, \artsstyle{f\_grid} and
+ \artsstyle{surface\_los}, \artsstyle{f\_grid} and
  \artsstyle{stokes\_dim}
 
 
@@ -79,7 +79,7 @@ relevant workspace variables should then be set as follows:
  \end{equation}
  where $\Re(\cdot)$ denotes the complex real part.
  For cases where medium 1 is air, $n_1$ can (in this context) be set to 1.
- 
+
  The power reflection coefficients are converted to an intensity
  reflection coefficient as
  \begin{equation}
@@ -89,72 +89,72 @@ relevant workspace variables should then be set as follows:
  where $|\!\cdot\!|$ denotes the absolute value. Note that $R$ can be
  complex, while $r$ is always real.
  
- The surface reflection can be seen as a scattering event and
- Section~\ref{sec:polarization:ampmatrix} can be used to derive the
- reflection matrix values. The scattering amplitude functions of
- Equation~\ref{eq:polarisation:ampmatrix1} are simply
- \begin{eqnarray}
-   S_2 &=& R_v, \\
-   S_1 &=& R_h, \\
-   S_3 = S_4 &=& =0.
- \end{eqnarray}
- This leads to that the transformation matrix for a specular ground
- reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
- \begin{equation}
-   \label{eq:rte:specular_matrix}
-   \MtrStl{F} =
-      \left[\begin{array}{cccc}
-        \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
-        \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
-     0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
-     0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
-      \end{array}
-      \right].
- \end{equation}
- If the downwelling radiatio is unpolarised, the reflected part of the
- upwelling radiation is
- \begin{equation}
-   \MtrStl{F}
-   \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
-   \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
-   \end{array} \right].
- \end{equation}
- as expected.
+% The surface reflection can be seen as a scattering event and
+% Section~\ref{sec:polarization:ampmatrix} can be used to derive the
+% reflection matrix values. The scattering amplitude functions of
+% Equation~\ref{eq:polarisation:ampmatrix1} are simply
+% \begin{eqnarray}
+%   S_2 &=& R_v, \\
+%   S_1 &=& R_h, \\
+%   S_3 = S_4 &=& =0.
+% \end{eqnarray}
+% This leads to that the transformation matrix for a specular surface
+% reflection is (compare to \citet[Sec.\ 5.4.3]{liou:02})
+% \begin{equation}
+%   \label{eq:rte:specular_matrix}
+%   \MtrStl{F} =
+%      \left[\begin{array}{cccc}
+%        \frac{r_v+r_h}{2}&\frac{r_v-r_h}{2}&0&0\\
+%        \frac{r_v-r_h}{2}&\frac{r_v+r_h}{2}&0&0\\
+%     0&0&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}&i\frac{R_hR_v^\ast-R_vR_h^\ast}{2}\\
+%     0&0&i\frac{R_vR_h^\ast-R_hR_v^\ast}{2}&\frac{R_hR_v^\ast+R_vR_h^\ast}{2}\\
+%      \end{array}
+%      \right].
+% \end{equation}
+% If the downwelling radiatio is unpolarised, the reflected part of the
+% upwelling radiation is
+% \begin{equation}
+%   \MtrStl{F}
+%   \left[ \begin{array}{c} I\\0\\0\\0 \end{array} \right] =
+%   \left[ \begin{array}{c} I(r_v+r_h)/2\\I(r_v-r_h)/2\\0\\0 
+%   \end{array} \right].
+% \end{equation}
+% as expected.
 
- The workspace variable \artsstyle{ground\_los} shall here
- of course be set to have the length 1. The specular direction is
- calculated by the internal function \funcindex{ground\_specular\_los}.
+% The workspace variable \artsstyle{surface\_los} shall here
+% of course be set to have the length 1. The specular direction is
+% calculated by the internal function \funcindex{surface\_specular\_los}.
 
- [* Fill in what workspace methods that match this section. *]
+% [* Fill in what workspace methods that match this section. *]
 
 
-\levelc{Surface emission}
- \label{sec:rte:surface:emission}
+%\levelc{Surface emission}
+% \label{sec:rte:surface:emission}
  
- [* Can we relate \artsstyle{ground\_refl\_coeffs} and
- \artsstyle{ground\_emission}? 
+% [* Can we relate \artsstyle{surafce\_refl\_coeffs} and
+% \artsstyle{surface\_emission}? 
 
- The emission for specular reflection should be 
- \begin{equation}
-    \left[\begin{array}{c}
-      B\left(1-\frac{r_v+r_h}{2}\right) \\
-      B\frac{r_h-r_v}{2} \\
-      0\\0
-    \end{array}\right]
- \end{equation}
- Correct? *]
+% The emission for specular reflection should be 
+% \begin{equation}
+%    \left[\begin{array}{c}
+%      B\left(1-\frac{r_v+r_h}{2}\right) \\
+%      B\frac{r_h-r_v}{2} \\
+%      0\\0
+%    \end{array}\right]
+% \end{equation}
+% Correct? *]
 
  
-\levelc{Surface properties}
- \label{sec:rte:surfprop}
+%\levelc{Surface properties}
+% \label{sec:rte:surfprop}
  
- This section discusses the propertiesof various surface materials and
- conditions.
+% This section discusses the propertiesof various surface materials and
+% conditions.
  
-\levelc{Sea water}
- \label{sec:rte:surfprop:water}
+%\levelc{Sea water}
+% \label{sec:rte:surfprop:water}
 
- What is the standard model for $\epsilon$?
+% What is the standard model for $\epsilon$?
 
  
 

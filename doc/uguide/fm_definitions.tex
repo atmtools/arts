@@ -3,9 +3,7 @@
 
 
 \starthistory
-  020330 & Sections on absorption, compulsory sensor variables and sketch 
-           of RTE written by Patrick Eriksson.\\
-  030306 & Finished the pieces above for present functionality of ARTS. \\
+  030306 & Sections on atmosphere, sensor and RT written by Patrick Eriksson.\\
 \stophistory
 
 
@@ -55,13 +53,13 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   \includegraphics*[width=0.98\hsize]{Figs/fm_definitions/atm_dim_1d}
   \caption{Schematic of a 1D atmosphere. The atmosphere is 
     here spherically symmetric. This means that the radius of the
-    geoid, the ground and all the pressure surfaces are constant
+    geoid, the surface and all the pressure levels are constant
     around the globe. The fields are specified by a value for each
-    pressure surface. The extension of the cloud box is either from
-    the ground up to a pressure surface, or between two pressure
-    surfaces (which is the case shown in the figure). The figure shows
-    further that the ground must be above the lowermost pressure
-    surface. }
+    pressure level. The extension of the cloud box is either from
+    the surface up to a pressure level, or between two pressure
+    levels (which is the case shown in the figure). The figure shows
+    further that the surface must be above the lowermost pressure
+    level. }
   \label{fig:fm_defs:1d}  
  \end{center}
 \end{figure}
@@ -70,10 +68,10 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 \begin{figure}[!t]
  \begin{center}
   \includegraphics*[width=0.98\hsize]{Figs/fm_definitions/atm_dim_2d}
-  \caption{Schematic of a 2D atmosphere. The radii (for the geoid, the ground
-    and the pressure surfaces) vary here linear between the latitude
+  \caption{Schematic of a 2D atmosphere. The radii (for the geoid, the surface
+    and the pressure levels) vary here linear between the latitude
     grid points. The atmospheric fields vary linearly along the
-    pressure surfaces and the latitude grid points (that is, along the
+    pressure levels and the latitude grid points (that is, along the
     dotted lines). Inside the grid cells, the fields have a bi-linear
     variation. The cloud box is not defined for 2D.  }
   \label{fig:fm_defs:2d}
@@ -110,9 +108,9 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   used here for simplicity and historical reasons, not because it is a
   true 1D case (a strictly 1D atmosphere would just extend along a
   line). A spherical symmetry means that atmospheric fields and the
-  ground extend in all three dimensions, but they have no latitude and
+  surface extend in all three dimensions, but they have no latitude and
   longitude variation. This means that, for example, atmospheric
-  fields vary only as a function of altitude and the ground
+  fields vary only as a function of altitude and the surface
   constitutes the surface of a sphere. The radial coordinate is
   accordingly sufficient when dealing with atmospheric quantities, but
   the angular distance between the sensor and a point along the
@@ -152,7 +150,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   \caption{Schematic of a 3D atmosphere. Plotting symbols as in 
     Figure~\ref{fig:fm_defs:2d}. Radii and fields are here defined to
     vary linearly along the latitude and longitude grid points. This
-    means that surfaces (such as the radius of the ground) have a
+    means that surfaces (such as the radius of the surface) have a
     bi-linear variation inside the area limited by two latitude and
     longitude grid values, while the atmospheric fields have a
     tri-linear variation inside the grid cells. }
@@ -186,7 +184,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   
 \item[Pressure\index{pressure}] The main altitude coordinate is
   pressure. This is most clearly manifested by the fact that the
-  vertical atmospheric grid consists of surfaces with equal pressure.
+  vertical atmospheric grid consists of levels with equal pressure.
   The vertical grid is consistently denoted as the pressure grid and
   the corresponding workspace variable is \wsvindex{p\_grid}. The
   choice of having pressure as main altitude coordinate results in
@@ -227,11 +225,11 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
   geometrical altitude signifies here the difference in radius between
   a point and the geoid (Section~\ref{sec:fm_defs:geoid}) along the
   vector to the center of the coordinate system
-  (Equation~\ref{eq:fm_defs:zground}). Hence, the geometrical altitude
+  (Equation~\ref{eq:fm_defs:zsurface}). Hence, the geometrical altitude
   is not measured along the local zenith direction (the normal to the
   reference geoid). Geometrical altitudes are mainly used to
-  facilitate the input of the ground altitude, the altitude of the
-  pressure surfaces etc. This is the case as these quantities are known
+  facilitate the input of the surface altitude, the altitude of the
+  pressure levels etc. This is the case as these quantities are known
   rather with respect to the geoid than with respect to the Earth's
   center.
 
@@ -245,15 +243,15 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 As mentioned above, the vertical grid of the atmosphere consists of a
 set of layers with equal pressure, the pressure grid
 (\wsvindex{p\_grid}).  This grid must of course always be specified.
-It is not allowed that there is an altitude gap between the ground and
-the lowermost pressure surface.  That is, the ground pressure must be
-smaller than the pressure of the lowermost vertical grid surface. On
-the other hand, it is not necessary to match the ground and the first
-pressure surface, the pressure grid can extend below the ground level.
+It is not allowed that there is an altitude gap between the surface and
+the lowermost pressure level.  That is, the surface pressure must be
+smaller than the pressure of the lowermost vertical grid level. On
+the other hand, it is not necessary to match the surface and the first
+pressure level, the pressure grid can extend below the surface level.
 The upper end of the pressure grid gives the practical upper limit of
 the atmosphere as vacuum is assumed above. With other words, no
 absorption and refraction take place above the uppermost pressure
-surface.
+level.
 
 A \textindex{latitude} grid (\wsvindex{lat\_grid}) must be specified
 for 2D and 3D.  For 2D, the latitudes shall be treated as the angular
@@ -287,10 +285,10 @@ Section~\ref{sec:fm_defs:geoid}) has for 1D the size $[1,1]$.
 The basic atmospheric quantities are represented by their values at
 each crossing of the involved grids (indicated by thick dots in
 Figures~\ref{fig:fm_defs:1d}~-~\ref{fig:fm_defs:3dcross}), or for 1D
-at each pressure surface (thick dots in Figure~\ref{fig:fm_defs:1d}).
+at each pressure level (thick dots in Figure~\ref{fig:fm_defs:1d}).
 This representation is denoted as the field\index{atmospheric field}
 of the quantity. The field must, at least, be specified for the
-geometric altitude of the pressure surfaces (\wsvindex{z\_field}), the
+geometric altitude of the pressure levels (\wsvindex{z\_field}), the
 temperature (\wsvindex{t\_field}) and considered atmospheric species
 (\artsstyle{vmr\_field}).  The fields are assumed to be piece-wise
 linear functions vertically (with pressure altitude as the vertical
@@ -308,13 +306,13 @@ page.
 
 
 
-\levelc{The geoid and the ground}
+\levelc{The geoid and the surface}
 %===================
 \label{sec:fm_defs:geoid}
 
 The \textindex{geoid} is an imaginary surface used as a
-reference when specifying the ground altitude and the altitude
-of pressure surfaces. Any shape of the geoid is allowed but a smoothly
+reference when specifying the surface altitude and the altitude
+of pressure levels. Any shape of the geoid is allowed but a smoothly
 varying geoid is the natural choice, with the centers of the geoid and
 the coordinate system coinciding. The geoid should normally be set to
 the reference ellipsoid for some global geodetic datum, such as
@@ -327,22 +325,22 @@ each crossing of the latitude and longitude grids,
 $\aRds{\odot}=\aRds{\odot}(\Lat,\Lon)$. The geoid is not defined
 outside the ranges covered by the latitude and longitude grids, with
 the exception for 1D where the geoid by definition is a full sphere.
-The ground altitude, \aAlt{g}, is given as the geometrical altitude
-above the geoid. The radius for the ground is accordingly
+The surface altitude, \aAlt{g}, is given as the geometrical altitude
+above the geoid. The radius for the surface is accordingly
 \begin{equation}
   \aRds{g} = \aRds{\odot} + \aAlt{g}
- \label{eq:fm_defs:zground}
+ \label{eq:fm_defs:zsurface}
 \end{equation}
 As described in
-Section~\ref{sec:fm_defs:grids}, a gap between the ground and the 
+Section~\ref{sec:fm_defs:grids}, a gap between the surface and the 
 lowermost pressure level is not allowed.
 
-The ARTS variable for the \textindex{ground altitude}
-(\wsvindex{z\_ground}) is a matrix of the same size as the geoid
-matrix. For 1D, the ground is a sphere by definition (as the geoid),
+The ARTS variable for the \textindex{surface altitude}
+(\wsvindex{z\_surface}) is a matrix of the same size as the geoid
+matrix. For 1D, the surface is a sphere by definition (as the geoid),
 while for 2D and 3D any shape is allowed and a rough model of the
-ground topography can be made. The treatment of ground emission
-and reflectivity is discussed in Section~\ref{sec:fm_defs:groundrefl}.
+surface topography can be made. The treatment of surface emission
+and reflectivity is discussed in Section~\ref{sec:fm_defs:surface}.
 
 
 \levelc{The cloud box}
@@ -361,7 +359,7 @@ performed in 1D and 3D mode, but not for 2D.
 The cloud box is defined to be rectangular in the used coordinate
 system, with limits exactly at points of the involved grids. This
 means, for example, that the vertical limits of the cloud box are two
-pressure surfaces. For 3D, the horisontal extension of the cloud box
+pressure levels. For 3D, the horisontal extension of the cloud box
 is between two points of the latitude grid and likewise in the
 longitude direction (Figure~\ref{fig:fm_defs:3dcross}). The latitude
 and longitude limits for the cloud box cannot be placed at the end
@@ -380,34 +378,67 @@ radiation coming out from the cloud box. {\bf It is the task of the
   user to define the cloud box in such way that the link between the
   outgoing and ingoing radiation fields of the cloud box can be
   neglected}. The main point to consider here is radiation reflected
-by the ground. To be formally correct there should never be a gap
-between the ground and the cloud box. This is the case as radiation
+by the surface. To be formally correct there should never be a gap
+between the surface and the cloud box. This is the case as radiation
 leaving the cloud box can then be reflected back into the cloud box by
-the ground. If it is considered that the ground is a scattering object
-it is clear that the ground should in general be part of the cloud
+the surface. If it is considered that the surface is a scattering object
+it is clear that the surface should in general be part of the cloud
 box. However, for many cases it can be accepted to have a gap between
-the ground and the cloud box, with the gain that the cloud box can be
-made smaller. Such a case is when the ground is treated to act as
-blackbody, the ground is then not reflecting any radiation.
-Reflections from the ground can also be neglected if the zenith
-optical thickness of the atmosphere between the ground and cloud box
+the surface and the cloud box, with the gain that the cloud box can be
+made smaller. Such a case is when the surface is treated to act as
+blackbody, the surface is then not reflecting any radiation.
+Reflections from the surface can also be neglected if the zenith
+optical thickness of the atmosphere between the surface and cloud box
 is sufficiently high.
 
 
 
-\levelb{Polarisation and Stokes dimensionality}
+\levelb{Stokes dimensionality}
 %==============================================================================
 \label{sec:fm_defs:polarisation}
 
-[* To be written *]
+To full polarisation state of radiation can be described by the Stokes
+vector. The vector can be defined in different ways, but it has always
+four elements. The Stokes vector, \StoVec, is here written as
+\begin{equation}
+  \label{eq:fm_defs:stokevec}
+  \StoVec = \left[
+  \begin{array}{c}
+   I\\Q\\U\\V
+  \end{array}
+  \right],
+\end{equation}
+where the first component ($I$) is the full intensity of the
+radiation, the second component ($Q$) is the difference between
+vertical and horisontal polarisation, the third component ($U$) is the
+difference for $\pm$45$^\circ$ polarisation and the last component
+($Q$) is the difference between left and right circular polarisation.
+Further details on polarisation and definition of the Stokes vector
+are found in Section~\ref{sec:polarization}.
+
+ARTS is a fully polarised forward model, but can be run with a smaller
+number of Stokes components. The selection is made with the workspace
+variable \wsvindex{stokes\_dim}. For example, gaseous absorption and
+emission are in general unpolarisad, and if not scattering has to be
+considered it is suffucient to only include the first Stokes
+components in the simulations. To include higher order Stokes
+components only results in slower calculations. The general case is
+here denoted as \textindex{vector radiative transfer}, while
+\textindex{scalar radiative transfer} refers to the case when only
+the first Stokes component is considered.
 
 
 
-\levelb{Absorption and refractive index}
+\levelb{Absorption}
 %==============================================================================
 \label{sec:fm_defs:absorption}
 
-[* To be written *]
+Absorption can not yet be calculated internally inside this ARTS
+version. So far absorption has to be imported, where for example the
+operation ARTS version (1.0.x) can be used to calculate the needed
+absorption coefficients. The absorption is put into a look-up table
+and the absorption is later extracted from this table by
+interpolation, as described in Section~\ref{sec:absorption}.
 
 
 
@@ -426,9 +457,9 @@ variables for the sensor that always must be specified are
 \artsstyle{sensor\_pol}, \artsstyle{antenna\_dim},
 \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and
 \artsstyle{Hb}. These variables are presented separately below. The
-discussion of sensor workspace variables is continued in Section~[**].
-Section~\ref{sec:fm_defs:rte} gives further insights in how the sensor
-is treated in ARTS.
+discussion of sensor workspace variables is continued in
+Section~\ref{sec:sensor}. Section~\ref{sec:fm_defs:rte} gives further
+insights in how the sensor is treated in ARTS.
 
 
 \levelc{Sensor position\index{sensor position}}
@@ -445,15 +476,15 @@ $(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
 \artsstyle{sensor\_los}) must be valid with respect to the model
 atmosphere (see Section~\ref{sec:fm_defs:ppaths}). An obviously
-incorrect choice is to place the senor below the ground altitude. If
+incorrect choice is to place the senor below the surface altitude. If
 the sensor is placed inside the model atmosphere, any sensor
 line-of-sight is allowed, this including the cases that the sensor is
-placed on the ground looking down, and that the sensor is placed
+placed on the surface looking down, and that the sensor is placed
 inside the cloud box.
 
 The fact that the sensor position can be given any value implies that
 the radius must be used in \artsstyle{sensor\_pos}, in contrast to
-\artsstyle{z\_ground} and \artsstyle{z\_field} where the altitude
+\artsstyle{z\_surface} and \artsstyle{z\_field} where the altitude
 above the geoid is applied. This is the case as, for 2D and 3D, the
 sensor can be placed outside the covered latitude and longitude
 ranges, thus outside the defined geoid, and the geometrical altitude is
@@ -756,14 +787,14 @@ Section~[**]. %\ref{sec:fm_defs:sensor2}.
 %==============================================================================
 \label{sec:fm_defs:rte}
 
-The theory of radiative transfer is dealt with in
+An introduction to radiative transfer theory is given in
 Section~\ref{sec:rte_theory}. This section describes how the radiative
 transfer equations are solved practically in ARTS. The general
 presentation assumes that the simulations deal with an emission
 measurement. Focus is put on emission measurements as ARTS is intended
 primarily for such observations. However, simulations of transmission
 measurements are also possible, which is discussed especially in
-Section~[**].%\ref{sec:fm_defs:trans_sim}.
+Section~\ref{sec:fm_defs:trans_sim}.
 
 
 \levelc{Calculation procedure}
@@ -780,8 +811,7 @@ The primary unit for emission spectra, the unit of \aMpiVct{b} in
 Equation~\ref{eq:fm_defs:measseq}, is [W/(Hz$\cdot$m$^2\cdot$sr)].
 The emission intensity corresponds directly with the definition of the
 Planck function in Equation~\ref{eq:rtetheory:planck}, no scaling
-terms are applied.  Conversion to brightness temperature is treated in
-Section~[**].
+terms are applied.  
 
 \begin{algorithm}[!t]
  \begin{algorithmic}
@@ -803,8 +833,8 @@ Section~[**].
           $\MsrVct_{rte}$}
   \ENDFOR
  \end{algorithmic}
- \caption{Outline of the overall clear sky radiative transfer calculations,
-   performed by \artsstyle{RteCalc}.}
+ \caption{Outline of the overall clear sky radiative transfer calculations
+   (\artsstyle{RteCalc}).}
  \label{alg:fm_defs:RteCalc}
 \end{algorithm}
 
@@ -822,11 +852,11 @@ described in Section~\ref{sec:ppath:Ppath}. The path points are
 primarily placed at the crossings of the path with the atmospheric
 grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
 \artsstyle{lon\_grid}). A path point is also placed at the sensor if
-it is placed inside the atmosphere.  Points of ground reflections and
+it is placed inside the atmosphere.  Points of surface reflections and
 tangent points are also included if such exist. More points can also
 be added to the propagation path, for example, by setting an upper
 limit for the distance along the path between the points (see
-Figure~\ref{fig:fm_defs:ppath_ground}).
+Figure~\ref{fig:fm_defs:ppath_surface}).
 
 \begin{figure}[!p]
  \begin{center}
@@ -882,10 +912,10 @@ atmosphere, geometrical calculations are used (as there is no
 refraction in space) to find the crossing between the path and the top
 of the atmosphere where the ray tracing then starts. Paths are tracked
 backwards until the top of the atmosphere is reached, or there is an
-intersection with the cloud box or the ground. The propagation path
-(or paths) before a ground reflection is calculated when determining
-the up-welling radiation from the ground
-(Section~\ref{sec:fm_defs:groundrefl}). Example on propagation
+intersection with the cloud box or the surface. The propagation path
+(or paths) before a surface reflection is calculated when determining
+the up-welling radiation from the surface
+(Section~\ref{sec:fm_defs:surface}). Example on propagation
 paths are shown in Figures~\ref{fig:fm_defs:ppath_cases2} and 
 \ref{fig:fm_defs:ppath_cases1}.
  
@@ -921,11 +951,12 @@ include \wsmindex{ppath\_stepGeometric} and
 
 The radiative intensity at the starting point of the path, and in the
 direction of the line-of-sight at that point, is denoted as the
-radiative background. Four possible radiative backgrounds exist:
+\textindex{radiative background}. Four possible radiative backgrounds
+exist:
 \begin{description}
 \item[Space] When the propagation path starts at the top of the
-  atmosphere, space gives the radiative background. The normal case
-  should be to set the radiation at the top of the atmosphere to
+  atmosphere, space is the radiative background. The normal case
+  should be to set the radiation at the top of the atmosphere to be
   cosmic background radiation. An exception is when the sensor is
   directed towards the sun. The radiative background at the top of
   the atmosphere is determined by \wsvindex{i\_space\_agenda}, which
@@ -933,11 +964,11 @@ radiative background. Four possible radiative backgrounds exist:
   path is totally outside the model atmosphere, the observed
   monochromatic pencil beam intensity (\aMpiVct{b}\ in
   Algorithm~\ref{alg:fm_defs:RteCalc}) equals \artsstyle{i\_space}.
-\item[The ground] The sum of ground emission and radiation reflected
-  by the ground is the radiative background when the propagation path
-  intersects with the ground. The calculation of the up-welling
-  radiation from the ground is described in
-  Section~\ref{sec:fm_defs:groundrefl}.
+\item[The surface] The sum of surface emission and radiation reflected
+  by the surface is the radiative backsurface when the propagation path
+  intersects with the surface. The calculation of the up-welling
+  radiation from the surface is described in
+  Section~\ref{sec:fm_defs:surface}.
 \item[Surface of cloud box] For cases when the propagation path enters
   the cloud box the radiative background is the intensities leaving
   the cloud box. The outgoing field of the cloud box must be
@@ -954,15 +985,15 @@ radiative background. Four possible radiative backgrounds exist:
 It should be noted that except for the first case above, the
 determination of the radiative background involves further radiative
 transfer calculations. For example, the radiation reflected by the
-ground can be calculated by a recursive call of \artsstyle{RteCalc}
+surface can be calculated by a recursive call of \artsstyle{RteCalc}
 and the radiative background for that calculation is then space or the
 cloud box. The intensity field entering the cloud box is calculated by
 calls of \artsstyle{RteCalc} (with cloud box deactivated) and the
-radiative background is then space or the ground. This results in that
+radiative background is then space or the surface. This results in that
 space is normally the ultimate radiative background for the
 calculations. The exception is for propagation paths that intersects
-with the ground, and the ground is treated to act as a blackbody. For
-such cases, the propagation path effectively starts at the ground.
+with the surface, and the surface is treated to act as a blackbody. For
+such cases, the propagation path effectively starts at the surface.
 
 
 \levelc{The agenda for clear sky radiative transfer, \artsstyle{rte\_agenda}}
@@ -984,8 +1015,8 @@ is possible to use \artsstyle{rte\_agenda} also outside of
 The radiative transfer equation can be solved in many ways, and with
 different level of refinement. The standard approach in ARTS is to
 solve the radiative transfer from one point of the propagation path to
-next. The simplest expression that can be used in this way is (cf.
-Equation~\ref{eq:rtetheory:layer})
+next. The simplest expression, for scalar radiative transfer, that can
+be used in this way is (cf.  Equation~\ref{eq:rtetheory:layer})
 \begin{equation}
   \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
   \label{eq:fm_defs:rte_step}
@@ -994,29 +1025,28 @@ where $\Mpi(\Frq)$ is the monochromatic (and unpolarised) intensity,
 $i$ is path step index, \Oth\ is the optical thickness along the path
 of the step, $B$ the Planck function, and $\aTmp{i}$ is the mean of
 the temperature at the end points of the step. This expression, and
-the corresponding ones for polarised cases, are implemented in the
-method \wsmindex{RteEmissionStd}. All methods for
+the corresponding ones for vector radiative transfer, are implemented
+in the method \wsmindex{RteEmissionStd}. All methods for
 \artsstyle{rte\_agenda} adapt automatically to the value of
-\wsvindex{stokes\_dim} (see also Section~\ref{sec:fm_defs:polarisation}). 
-Other methods to solve the radiative transfer problem are discussed in
-Section~[**].
+\wsvindex{stokes\_dim} (see also
+Section~\ref{sec:fm_defs:polarisation}).
 
 
 
 \levelc{Surface effects}
 %===================
-\label{sec:fm_defs:groundrefl}
+\label{sec:fm_defs:surface}
 
 The radiative properties of the surface are handled by
-\wsaindex{ground\_refl\_agenda}. This agenda sets the workspace
-variables \wsvindex{ground\_emission}, \wsvindex{ground\_los} and
-\wsvindex{ground\_refl\_coeffs}. These three variables defines
+\wsaindex{surface\_agenda}. This agenda sets the workspace
+variables \wsvindex{surface\_emission}, \wsvindex{surface\_los} and
+\wsvindex{surface\_refl\_coeffs}. These three variables define
 together the properties of the surface. The general
 expression used to model surface emission and reflections is
-(Figure~\ref{fig:fm_defs:ground_refl})
+(Figure~\ref{fig:fm_defs:surface_refl})
 \begin{equation}
   \MpiVct_g^u = \MpiVct_e + \sum_l^{} \mathbf{R}_l \MpiVct_l^d
-  \label{eq:fm_defs:groundrefl}
+  \label{eq:fm_defs:surfacerefl}
 \end{equation}
 where \MpiVct\ is the Stokes vector for one frequency, $\MpiVct_g^u$
 is the total upward travelling intensity from the surface along the
@@ -1025,20 +1055,20 @@ $\MpiVct_l^d$ is the downward travelling intensity reaching the surface
 along direction $l$, and $\mathbf{R}_l$ is the reflection coefficient
 matrix from direction $l$ to the present propagation path. The
 emission from the surface $(\MpiVct_e)$ is stored in
-\artsstyle{ground\_emission}, the directions $l$ for which downward
-travelling intensities are given by \artsstyle{ground\_los}, and the
+\artsstyle{surface\_emission}, the directions $l$ for which downward
+travelling intensities are given by \artsstyle{surface\_los}, and the
 reflection coefficients $(\mathbf{R})$ are stored in
-\artsstyle{ground\_refl\_coeffs}. The slope of the surface is
+\artsstyle{surface\_refl\_coeffs}. The slope of the surface is
 considered when calculating the specular direction of surface
-reflections, as shown in Figure~\ref{fig:fm_defs:ppath_ground}.
+reflections, as shown in Figure~\ref{fig:fm_defs:ppath_surface}.
 Surface reflections and emission are discussed further
 in Section~\ref{sec:surface}.
 
 \begin{figure}[!p]
  \begin{center}
   \includegraphics*[width=0.95\hsize]{Figs/fm_definitions/ground_refl}
-  \caption{Schematic of Equation \ref{eq:fm_defs:groundrefl}.}
-  \label{fig:fm_defs:ground_refl}
+  \caption{Schematic of Equation \ref{eq:fm_defs:surfacerefl}.}
+  \label{fig:fm_defs:surface_refl}
  \end{center}
 \end{figure}
 
@@ -1049,10 +1079,10 @@ in Section~\ref{sec:surface}.
     angle of the sensor line-of-sight is the same for the two paths (but with
     different sign, which matters here as this is a 2D case), and the paths
     would have been symmetric around the latitude of the sensor without a 
-    ground slope. The maximum path step length is here set to be a value
+    surface slope. The maximum path step length is here set to be a value
     equaling half the vertical distance between the two shown pressure
     surfaces.}
-  \label{fig:fm_defs:ppath_ground}
+  \label{fig:fm_defs:ppath_surface}
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
@@ -1109,50 +1139,24 @@ for this purpose.\footnote{Further discussion can be found in message
 
 
 
+\levelc{Simulation of transmission measurements}
+%===================
+\label{sec:fm_defs:trans_sim}
 
+This feature is not yet implemented, but could easily be added if such
+simulations are needed.
 
-
-%\levelc{Simulation of transmission measurements}
-%%===================
-%\label{sec:fm_defs:trans_sim}
-
-%[* It is not yet clear exactly how this will be done. *]
-
-
-
-%\levelb{Additional sensor and data reduction variables} 
-%%===================
-%\label{sec:fm_defs:sensor2}
-
-%[* Will be written when these variables are introduced into ARTS. *]
-
-%%\artsstyle{antenna\_psi\_grid}, \aSnsMtr{b}, \aSnsMtr{c}
-
-%\levelc{How to model different measurement sequences in best way?}
-%%===================
-%\label{sec:fm_defs:howtomeasseq}
-%%
-%%[* Discuss e.g. the relationship between \artsstyle{sensor\_los} and the block LOS grids. *]
 
 
 \levelb{Scattering}
 %==============================================================================
 \label{sec:fm_defs:scattering}
 
-[ To be written. *]
+[* To be written. *]
 
 %[* Special quantities and considerations for scattering ... *]
 
 
-
-%\levelb{Weighting functions}
-%==============================================================================
-%\label{sec:fm_defs:wfs}
-
-%[* This part is still quite unclear. However, the analytical
-%atmospheric WFs will be calculated on the same time as spectra. We
-%need to find a good way to specify the WFs which is a complex thing to
-%do. *]
 
 
 %%% Local Variables: 
@@ -1160,6 +1164,6 @@ for this purpose.\footnote{Further discussion can be found in message
 %%% TeX-master: "uguide"
 %%% End: 
 % LocalWords:  RTE Eriksson pz mpi SetAtmosphere mkfigs atm VMR WGS WGS pos los
-% LocalWords:  SetBlackbodyGround cloudbox mblock mblock binning Hotelling lat
+% LocalWords:  cloudbox mblock mblock binning Hotelling lat
 % LocalWords:  mishchenko RteCalc rteCalc lon ppath ppathCalc vmr za aa Hb defs
 % LocalWords:  AUG scatt nonsp partic sr WFs

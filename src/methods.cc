@@ -89,7 +89,7 @@
         ),
         OUTPUT(),
         INPUT( z_plat_, p_abs_, z_abs_, l_step_, refr_, refr_lfac_,
-               refr_index_, r_geoid_, z_ground_ ),
+               refr_index_, r_geoid_, z_surface_ ),
         GOUTPUT( Vector_ ),
         GINPUT(),
         KEYWORDS( "delta_t", "z_tan_lim" ),
@@ -966,7 +966,7 @@ md_data_raw.push_back
         ),
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_ground_, 
+               lon_grid_, z_field_, r_geoid_, z_surface_, 
                cloudbox_limits_, rte_pos_, rte_los_ ),
         GOUTPUT(),
         GINPUT(),
@@ -993,13 +993,13 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
-               i_rte_, i_space_, ground_emission_, ground_los_,
-               ground_refl_coeffs_,
+               i_rte_, i_space_, surface_emission_, surface_los_,
+               surface_refl_coeffs_,
                rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                 scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
-                i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
-                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
+                i_space_agenda_, surface_agenda_, p_grid_, lat_grid_,
+                lon_grid_, z_field_, t_field_, r_geoid_, z_surface_),
 
         GOUTPUT(),
         GINPUT(),
@@ -1025,13 +1025,13 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, ppath_, ppath_step_,
-               i_rte_, i_space_, ground_emission_, ground_los_,
-               ground_refl_coeffs_,
+               i_rte_, i_space_, surface_emission_, surface_los_,
+               surface_refl_coeffs_,
                rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
         INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
                 scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
-                i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
-                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
+                i_space_agenda_, surface_agenda_, p_grid_, lat_grid_,
+                lon_grid_, z_field_, t_field_, r_geoid_, z_surface_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1786,14 +1786,14 @@ md_data_raw.push_back
          ),
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_, ground_los_, ground_emission_,
-               ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+               scat_p_index_, ppath_step_, surface_los_, surface_emission_,
+               surface_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_, ground_refl_agenda_, scat_za_interp_),
+              f_grid_, f_index_, surface_agenda_, scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1809,7 +1809,7 @@ md_data_raw.push_back
          "calculation using a fixed value for the scattering integral stored\n"
          "in *scat_field*.\n"
          "\n"
-         "Note: Ground reflection is not yet implemented in 3D scattering \n"
+         "Note: Surface reflection is not yet implemented in 3D scattering \n"
          "calculations.\n"
          "\n " 
         ),
@@ -1838,7 +1838,7 @@ md_data_raw.push_back
          "calculation using a fixed value for the scattering integral stored\n"
          "in *scat_field*.\n"
          "\n"
-         "Note: Ground reflection is not yet implemented in 3D scattering \n"
+         "Note: Surface reflection is not yet implemented in 3D scattering \n"
          "calculations.\n"
          "\n " 
         ),
@@ -1871,14 +1871,14 @@ md_data_raw.push_back
          ),
         OUTPUT(i_field_, rte_pressure_, rte_temperature_,
                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_, ground_los_, ground_emission_,
-               ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+               scat_p_index_, ppath_step_, surface_los_, surface_emission_,
+               surface_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
         INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
               opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_, ground_refl_agenda_),
+              f_grid_, f_index_, surface_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2051,35 +2051,35 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("groundNoScatteringSingleEmissivity"),
+      ( NAME("surfaceNoScatteringSingleEmissivity"),
         DESCRIPTION
         (
-         "Treats the ground to not cause any scattering, and to have a\n"
+         "Treats the surface to not cause any scattering, and to have a\n"
          "reflection coefficient of 1-e. \n"
          "\n"
-         "The size of *ground_emission* is set to [ nf, stokes_dim ] where \n"
+         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
          "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
-         "The temperature of the ground is obtained by interpolating \n"
-         "*t_field* to the position of the ground reflection. The obtained \n"
+         "The temperature of the surface is obtained by interpolating \n"
+         "*t_field* to the position of the surface reflection. The obtained \n"
          "temperature and *f_grid* are then used as input to the Planck\n"
-         "function. The emission from the ground is then calculated as eB,\n"
+         "function. The emission from the surface is then calculated as eB,\n"
          "where B is the Planck function.\n"
          "\n"
          "It is here assumed that the downwelling radiation to consider\n"
-         "comes from a single direction and the returned *ground_los*\n"
-         "contains only one LOS. The slope of the ground is considered\n"
+         "comes from a single direction and the returned *surface_los*\n"
+         "contains only one LOS. The slope of the surface is considered\n"
          "when calculating the LOS for the downwelling radiation. The\n"
-         "reflection matrices in *ground_refl_coeffs* are all set to be\n"
+         "reflection matrices in *surface_refl_coeffs* are all set to be\n"
          "diagonal matrices, where all diagonal elements are 1-e.\n"
          "\n"
          "Keywords: \n"
-         "   e : Ground emissivity. Must be a value in the range [0,1].\n"
+         "   e : Surface emissivity. Must be a value in the range [0,1].\n"
          "       All frequencies are assumed to have the same e."
         ),
-        OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
+        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
         INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
                rte_los_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               r_geoid_,z_ground_, t_field_ ),
+               r_geoid_,z_surface_, t_field_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS(    "e"    ),
@@ -2087,30 +2087,30 @@ md_data_raw.push_back
  
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("groundTreatAsBlackbody"),
+      ( NAME("surfaceTreatAsBlackbody"),
         DESCRIPTION
         (
-         "Sets the ground variables (see below) to model a blackbdoy ground.\n"
+         "Sets the surface variables (see below) to model a blackbdoy surface.\n"
          "\n"
-         "The function creates the variables *ground_emission*, *ground_los*\n"
-         "and *ground_refl_coeffs*. When the ground is treated to act as a\n"
+         "The function creates the variables *surface_emission*, *surface_los*\n"
+         "and *surface_refl_coeffs*. When the surface is treated to act as a\n"
          "blackbody, no downwelling radiation needs to be calculated and\n"
-         "*ground_los* and *ground_refl_coeffs* are set to be empty.\n"
+         "*surface_los* and *surface_refl_coeffs* are set to be empty.\n"
          "\n"
-         "The size of *ground_emission* is set to [ nf, stokes_dim ] where \n"
+         "The size of *surface_emission* is set to [ nf, stokes_dim ] where \n"
          "nf is the length of *f_grid*. Columns 2-4 are set to zero.\n"
          "\n"
-         "The temperature of the ground is obtained by interpolating \n"
-         "*t_field* to the position of the ground reflection. The obtained \n"
+         "The temperature of the surface is obtained by interpolating \n"
+         "*t_field* to the position of the surface reflection. The obtained \n"
          "temperature and *f_grid* are then used as input to the Planck\n"
          "function and the calculated blackbody radiation is put into the\n"
-         "first column of *ground_emission*.\n"
+         "first column of *surface_emission*.\n"
          "\n"
          "Note that this function does not use *rte_los*, *r_geoid* and\n"
-         "*z_ground* as input, and if used inside *ground_refl_agenda*,\n"
+         "*z_surface* as input, and if used inside *surface_agenda*,\n"
          "ignore commands for those variables must be added to the agenda."
         ),
-        OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
+        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
         INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
         GOUTPUT( ),
@@ -2858,7 +2858,7 @@ md_data_raw.push_back
         ),
         OUTPUT( ppath_, ppath_step_ ),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_ground_, 
+               lon_grid_, z_field_, r_geoid_, z_surface_, 
                cloudbox_on_, cloudbox_limits_, rte_pos_, rte_los_ ),
         GOUTPUT(),
         GINPUT(),
@@ -2876,7 +2876,7 @@ md_data_raw.push_back
          "This function determines a propagation path step by pure\n"
          "geometrical calculations. That is, refraction is neglected. Path\n"
          "points are always included for crossings with the grids, tangent\n"
-         "points and points of ground intersections. The keyword *lmax* \n"
+         "points and points of surface intersections. The keyword *lmax* \n"
          "gives the option to include additional points to ensure that the\n"
          "distance along the path between the points does not exceed the \n"
          "selected maximum length. No additional points are included if\n"
@@ -2895,7 +2895,7 @@ md_data_raw.push_back
         ),
         OUTPUT( ppath_step_ ),
         INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               z_field_, r_geoid_, z_ground_ ),
+               z_field_, r_geoid_, z_surface_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "lmax" ),
@@ -2936,7 +2936,7 @@ md_data_raw.push_back
                 refr_index_ ),
         INPUT( refr_index_agenda_, ppath_step_, atmosphere_dim_, p_grid_, 
                lat_grid_, lon_grid_, z_field_, t_field_, vmr_field_, r_geoid_,
-               z_ground_ ),
+               z_surface_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS( "lraytrace", "lmax"    ),
@@ -3089,10 +3089,10 @@ md_data_raw.push_back
          "atmosphere for the considered viewing direction. The next step is\n"
          "to determine the spectrum at the starting point of the propagation\n"
          "path. The start point of the propagation path can be found at the\n"
-         "top of the atmosphere, the ground, or at the boundary or inside\n"
+         "top of the atmosphere, the surface, or at the boundary or inside\n"
          "the cloud box. To determine the start spectrum can involve a\n"
          "recursive call of *RteCalc (for example to calculate the radiation\n"
-         "refelected by the ground). After this, the vector radiative\n"
+         "refelected by the surface). After this, the vector radiative\n"
          "transfer equation is solved to the end point of the propagation\n"
          "path. Finally, the polarisation and intensity response of the \n"
          "sensor are applied.\n"
@@ -3101,11 +3101,11 @@ md_data_raw.push_back
         ),
         OUTPUT( y_, ppath_, ppath_step_, i_rte_,
                 rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-                i_space_, ground_emission_, ground_los_, ground_refl_coeffs_ ),
+                i_space_, surface_emission_, surface_los_, surface_refl_coeffs_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
-               ground_refl_agenda_,
+               surface_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               t_field_, r_geoid_, z_ground_, cloudbox_on_, cloudbox_limits_, 
+               t_field_, r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
                scat_i_p_, scat_i_lat_, scat_i_lon_, 
                scat_za_grid_, scat_aa_grid_, sensor_response_,
                sensor_pos_, sensor_los_, sensor_rot_, f_grid_, stokes_dim_,
@@ -3222,7 +3222,7 @@ md_data_raw.push_back
         ),
         OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
         INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
-               ppath_step_agenda_, r_geoid_, z_ground_ ),
+               ppath_step_agenda_, r_geoid_, z_surface_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("tan_p"),
@@ -3526,14 +3526,14 @@ md_data_raw.push_back
           "if keyword parameter silent is non-zero iterative output showing the photon\n"
          "number and scattering order are suppressed" ),
         OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
-               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, ground_emission_,
-               ground_los_, ground_refl_coeffs_, i_rte_, 
+               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, surface_emission_,
+               surface_los_, surface_refl_coeffs_, i_rte_, 
                scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
                rte_vmr_list_, ext_mat_, abs_vec_, f_index_, scat_za_index_, 
                scat_aa_index_, ext_mat_spt_, abs_vec_spt_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
-              lon_grid_, z_field_, r_geoid_, z_ground_, cloudbox_limits_,
-              stokes_dim_, rte_agenda_, i_space_agenda_, ground_refl_agenda_,
+              lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_limits_,
+              stokes_dim_, rte_agenda_, i_space_agenda_, surface_agenda_,
               t_field_, scat_za_grid_,
               scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
               spt_calc_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
@@ -4432,7 +4432,7 @@ md_data_raw.push_back
          "\n"
          "A possible usage of the function is: \n"
          "  VectorSetLengthFromVector(vector1,f_grid){value=0.75} \n"
-         "where *vector1* then can be used to set *e_ground*. \n"
+         "where *vector1* then can be used to set *e_surface*. \n"
          "\n"
          "Generic output: \n"
          "   Vector : The vector to be created. \n"
@@ -4637,7 +4637,7 @@ md_data_raw.push_back
          ),
         OUTPUT( ybatch_, y_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
 		pnd_field_raw_,	 p_grid_, sensor_los_,cloudbox_on_, 
-		cloudbox_limits_, z_ground_),
+		cloudbox_limits_, z_surface_),
         INPUT(gas_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
 	      sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
 	      scat_data_raw_),
@@ -4675,7 +4675,7 @@ md_data_raw.push_back
          "from the profiles inside the function\n"
          ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-                 y_, p_grid_, sensor_los_, z_ground_),
+                 y_, p_grid_, sensor_los_, z_surface_),
         INPUT(gas_species_, met_profile_calc_agenda_, 
               f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
         GOUTPUT(),
@@ -4698,7 +4698,7 @@ md_data_raw.push_back
         ),
         OUTPUT( ppath_step_),
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
-               lon_grid_, z_field_, r_geoid_, z_ground_ ),
+               lon_grid_, z_field_, r_geoid_, z_surface_ ),
         GOUTPUT( Vector_ ),
         GINPUT(),
         KEYWORDS( "z_recieve", "z_send", "t_sample", 

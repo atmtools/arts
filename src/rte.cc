@@ -76,14 +76,14 @@ extern const Numeric DEG2RAD;
     \param   rte_gp_lat         Output: As the WSV with the same name.
     \param   rte_gp_lon         Output: As the WSV with the same name.
     \param   i_space            Output: As the WSV with the same name.
-    \param   ground_emission    Output: As the WSV with the same name.
-    \param   ground_los         Output: As the WSV with the same name.
-    \param   ground_refl_coeffs Output: As the WSV with the same name.
+    \param   surface_emission    Output: As the WSV with the same name.
+    \param   surface_los         Output: As the WSV with the same name.
+    \param   surface_refl_coeffs Output: As the WSV with the same name.
     \param   ppath              Input: As the WSV with the same name.
     \param   ppath_step_agenda  Input: As the WSV with the same name.
     \param   rte_agenda         Input: As the WSV with the same name.
     \param   i_space_agenda     Input: As the WSV with the same name.
-    \param   ground_refl_agenda Input: As the WSV with the same name.
+    \param   surface_agenda Input: As the WSV with the same name.
     \param   atmosphere_dim     Input: As the WSV with the same name.
     \param   p_grid             Input: As the WSV with the same name.
     \param   lat_grid           Input: As the WSV with the same name.
@@ -91,7 +91,7 @@ extern const Numeric DEG2RAD;
     \param   z_field            Input: As the WSV with the same name.
     \param   t_field            Input: As the WSV with the same name.
     \param   r_geoid            Input: As the WSV with the same name.
-    \param   z_ground           Input: As the WSV with the same name.
+    \param   z_surface           Input: As the WSV with the same name.
     \param   cloudbox_on        Input: As the WSV with the same name.
     \param   cloudbox_limits    Input: As the WSV with the same name.
     \param   scat_i_p           Input: As the WSV with the same name.
@@ -117,14 +117,14 @@ void get_radiative_background(
               GridPos&        rte_gp_lat,
               GridPos&        rte_gp_lon,
               Matrix&         i_space,
-              Matrix&         ground_emission,
-              Matrix&         ground_los, 
-              Tensor4&        ground_refl_coeffs,
+              Matrix&         surface_emission,
+              Matrix&         surface_los, 
+              Tensor4&        surface_refl_coeffs,
               Ppath&          ppath,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         i_space_agenda,
-        const Agenda&         ground_refl_agenda,
+        const Agenda&         surface_agenda,
         const Index&          atmosphere_dim,
         ConstVectorView       p_grid,
         ConstVectorView       lat_grid,
@@ -132,7 +132,7 @@ void get_radiative_background(
         const Tensor3&        z_field,
         const Tensor3&        t_field,
         ConstMatrixView       r_geoid,
-        ConstMatrixView       z_ground,
+        ConstMatrixView       z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Tensor7&        scat_i_p,
@@ -190,24 +190,24 @@ void get_radiative_background(
       break;
 
 
-    case 2:   //--- The ground -----------------------------------------------
+    case 2:   //--- The surface -----------------------------------------------
       {
-        chk_not_empty( "ground_refl_agenda", ground_refl_agenda );
-        ground_refl_agenda.execute( agenda_verb );
+        chk_not_empty( "surface_agenda", surface_agenda );
+        surface_agenda.execute( agenda_verb );
 
         // Check returned variables
-        if( ground_emission.nrows() != nf  ||  
-                                        ground_emission.ncols() != stokes_dim )
+        if( surface_emission.nrows() != nf  ||  
+                                        surface_emission.ncols() != stokes_dim )
           throw runtime_error(
-                  "The size of the created *ground_emission* is not correct.");
+                  "The size of the created *surface_emission* is not correct.");
 
-        // If *ground_los* is empty, the upwelling radiation is just
-        // the ground emission. Else, the downwelling radiation shall
-        // be calculated and be added with the ground emission.
+        // If *surface_los* is empty, the upwelling radiation is just
+        // the surface emission. Else, the downwelling radiation shall
+        // be calculated and be added with the surface emission.
         //
-        if( ground_los.nrows() == 0 )
+        if( surface_los.nrows() == 0 )
           {
-            i_rte = ground_emission;
+            i_rte = surface_emission;
           }
 
         else
@@ -218,20 +218,20 @@ void get_radiative_background(
             ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
             ppath_copy( pp_copy, ppath );
 
-            // Copy ground data to local variables the ground variables can be
+            // Copy surface data to local variables the surface variables can be
             // changed below by call of *rte_calc*. There is no need to copy
-            // *ground_los*.
-            Index     nlos = ground_los.nrows();
-            Matrix    ground_emission_local(nf,stokes_dim);
-            Tensor4   ground_refl_coeffs_local(nlos,nf,stokes_dim,stokes_dim);
+            // *surface_los*.
+            Index     nlos = surface_los.nrows();
+            Matrix    surface_emission_local(nf,stokes_dim);
+            Tensor4   surface_refl_coeffs_local(nlos,nf,stokes_dim,stokes_dim);
             //
-            ground_emission_local    = ground_emission;
-            ground_refl_coeffs_local = ground_refl_coeffs;
+            surface_emission_local    = surface_emission;
+            surface_refl_coeffs_local = surface_refl_coeffs;
 
             // Sum of reflected radiation
             Matrix   i_sum(nf,stokes_dim,0);
 
-            // Each ground los is here treated as a 
+            // Each surface los is here treated as a 
             // measurement block, with no za and aa grids.
             Matrix   sensor_pos( 1, rte_pos.nelem() );
                      sensor_pos( 0, joker ) = rte_pos;
@@ -250,14 +250,14 @@ void get_radiative_background(
 
             for( Index ilos=0; ilos<nlos; ilos++ )
               {
-                sensor_los( 0, joker ) = ground_los( ilos, joker);
+                sensor_los( 0, joker ) = surface_los( ilos, joker);
 
                 rte_calc( y_local, ppath, ppath_step, i_rte,
                    rte_pos, rte_los, rte_gp_p, rte_gp_lat, rte_gp_lon,
-                   i_space, ground_emission, ground_los, ground_refl_coeffs, 
+                   i_space, surface_emission, surface_los, surface_refl_coeffs, 
                    ppath_step_agenda, rte_agenda, i_space_agenda, 
-                   ground_refl_agenda, atmosphere_dim, p_grid, lat_grid, 
-                   lon_grid, z_field, t_field, r_geoid, z_ground, 
+                   surface_agenda, atmosphere_dim, p_grid, lat_grid, 
+                   lon_grid, z_field, t_field, r_geoid, z_surface, 
                    cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat,
                    scat_i_lon, scat_za_grid, scat_aa_grid, 
                    sensor_response, sensor_pos, sensor_los,
@@ -273,7 +273,7 @@ void get_radiative_background(
                     if( stokes_dim == 1 )
                       {
                         i_sum(iv,0) += 
-                                 ground_refl_coeffs(ilos,iv,0,0) * i_rte(iv,0);
+                                 surface_refl_coeffs(ilos,iv,0,0) * i_rte(iv,0);
                       }
                     else
                       {
@@ -282,7 +282,7 @@ void get_radiative_background(
                             for( Index is=0; is<stokes_dim; is++ )
                               {
                                 i_sum(iv,is0) += 
-                                      ground_refl_coeffs(ilos,iv,is0,is) * 
+                                      surface_refl_coeffs(ilos,iv,is0,is) * 
                                                                   i_rte(iv,is);
                               }
                           }
@@ -290,12 +290,12 @@ void get_radiative_background(
                   }
               }
 
-            // Copy from *i_sum* to *i_rte*, and add the ground emission
+            // Copy from *i_sum* to *i_rte*, and add the surface emission
             for( Index iv=0; iv<nf; iv++ )
               {
                 for( Index is=0; is<stokes_dim; is++ )
                   { 
-                    i_rte(iv,is) = i_sum(iv,is) + ground_emission_local(iv,is);
+                    i_rte(iv,is) = i_sum(iv,is) + surface_emission_local(iv,is);
                   }
               }
 
@@ -352,18 +352,18 @@ void get_radiative_background(
 
 
 
-//! ground_specular_los
+//! surface_specular_los
 /*!
-    Calculates the LOS for a specular ground reflection.
+    Calculates the LOS for a specular surface reflection.
 
     The function calculates the LOS for the downwelling radiation to consider
-    when the ground is treated to give no scattering. The tilt of the ground
+    when the surface is treated to give no scattering. The tilt of the surface
     (that is, a change in radius as a function of latitude etc.) is considered.
 
     \param   los                Output: As the WSV with the same name.
     \param   atmosphere_dim     Input: As the WSV with the same name.
     \param   r_geoid            Input: As the WSV with the same name.
-    \param   z_ground           Input: As the WSV with the same name.
+    \param   z_surface           Input: As the WSV with the same name.
     \param   lat_grid           Input: As the WSV with the same name.
     \param   lon_grid           Input: As the WSV with the same name.
     \param   rte_gp_lat         Input: As the WSV with the same name.
@@ -373,11 +373,11 @@ void get_radiative_background(
     \author Patrick Eriksson 
     \date   2002-09-22
 */
-void ground_specular_los(
+void surface_specular_los(
               VectorView   los,
         const Index&       atmosphere_dim,
         ConstMatrixView    r_geoid,
-        ConstMatrixView    z_ground,
+        ConstMatrixView    z_surface,
         ConstVectorView    lat_grid,
         ConstVectorView    lon_grid,
         const GridPos&     rte_gp_lat,
@@ -390,10 +390,10 @@ void ground_specular_los(
     {
       assert( r_geoid.nrows() == 1 );
       assert( r_geoid.ncols() == 1 );
-      assert( z_ground.nrows() == 1 );
-      assert( z_ground.ncols() == 1 );
+      assert( z_surface.nrows() == 1 );
+      assert( z_surface.ncols() == 1 );
       assert( rte_los.nelem() == 1 );
-      assert( rte_los[0] > 90 );      // Otherwise ground refl. not possible
+      assert( rte_los[0] > 90 );      // Otherwise surface refl. not possible
       assert( rte_los[0] <= 180 ); 
       assert( los.nelem() == 1 );
 
@@ -403,33 +403,33 @@ void ground_specular_los(
   else if( atmosphere_dim == 2 )
     {
       assert( r_geoid.ncols() == 1 );
-      assert( z_ground.ncols() == 1 );
+      assert( z_surface.ncols() == 1 );
       assert( rte_los.nelem() == 1 );
       assert( los.nelem() == 1 );
       assert( abs(rte_los[0]) <= 180 ); 
 
       
-      // Calculate LOS neglecting any tilt of the ground
+      // Calculate LOS neglecting any tilt of the surface
       los[0] = sign( rte_los[0] ) * 180 - rte_los[0];
 
-      // Interpolate to get radius for the ground at reflection point.
-      const Numeric r_ground =
+      // Interpolate to get radius for the surface at reflection point.
+      const Numeric r_surface =
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
                               r_geoid, "r_geoid", rte_gp_lat, rte_gp_lon ) +
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-                                z_ground, "z_ground", rte_gp_lat, rte_gp_lon );
+                                z_surface, "z_surface", rte_gp_lat, rte_gp_lon );
 
-      // Calculate ground slope (unit is m/deg).
-      Numeric slope = psurface_slope_2d( lat_grid, r_geoid(joker,0), 
-                                   z_ground(joker,0), rte_gp_lat, rte_los[0] );
+      // Calculate surface slope (unit is m/deg).
+      Numeric slope = plevel_slope_2d( lat_grid, r_geoid(joker,0), 
+                                   z_surface(joker,0), rte_gp_lat, rte_los[0] );
 
-      // Calculate ground (angular) tilt (unit is deg).
-      Numeric tilt = psurface_angletilt( r_ground, slope );
+      // Calculate surface (angular) tilt (unit is deg).
+      Numeric tilt = plevel_angletilt( r_surface, slope );
 
       // Check that rte_los contains a downward LOS
       assert( is_los_downwards( rte_los[0], tilt ) );
       
-      // Include ground tilt
+      // Include surface tilt
       los[0] -= 2 * tilt;
     }
 
@@ -446,21 +446,21 @@ void ground_specular_los(
       assert( rte_gp_lon.idx >= 0 );
       assert( rte_gp_lon.idx <= ( lon_grid.nelem() - 2 ) );
 
-      // Calculate LOS neglecting any tilt of the ground
+      // Calculate LOS neglecting any tilt of the surface
       los[0] = 180 - rte_los[0];
       los[1] = rte_los[1];
 
-      // Below you find a first version to include the ground tilt.
+      // Below you find a first version to include the surface tilt.
       // Is the solution correct? 
       // At least, it does not work for za = 180.
       if( 0 )
         {
-      // Interpolate to get radius for the ground at reflection point.
-      const Numeric r_ground =
+      // Interpolate to get radius for the surface at reflection point.
+      const Numeric r_surface =
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
                               r_geoid, "r_geoid", rte_gp_lat, rte_gp_lon ) +
           interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
-                                z_ground, "z_ground", rte_gp_lat, rte_gp_lon );
+                                z_surface, "z_surface", rte_gp_lat, rte_gp_lon );
 
       // Restore latitude and longitude values
       Vector   itw(2);
@@ -470,7 +470,7 @@ void ground_specular_los(
       interpweights( itw, rte_gp_lon );
       lon = interp( itw, lon_grid, rte_gp_lon );
 
-      // Calculate ground slope along the viewing direction (unit is m/deg).
+      // Calculate surface slope along the viewing direction (unit is m/deg).
       //
       Index   ilat = gridpos2gridrange( rte_gp_lat, abs( rte_los[1] ) <= 90 ); 
       Index   ilon = gridpos2gridrange( rte_gp_lon, rte_los[1] >= 0 );
@@ -479,35 +479,35 @@ void ground_specular_los(
       Numeric   lat3 = lat_grid[ilat+1];
       Numeric   lon5 = lon_grid[ilon];
       Numeric   lon6 = lon_grid[ilon+1];
-      Numeric   r15  = r_geoid(ilat,ilon) + z_ground(ilat,ilon);
-      Numeric   r35  = r_geoid(ilat+1,ilon) + z_ground(ilat+1,ilon);
-      Numeric   r16  = r_geoid(ilat,ilon+1) + z_ground(ilat,ilon+1);
-      Numeric   r36  = r_geoid(ilat+1,ilon+1) + z_ground(ilat+1,ilon+1);
+      Numeric   r15  = r_geoid(ilat,ilon) + z_surface(ilat,ilon);
+      Numeric   r35  = r_geoid(ilat+1,ilon) + z_surface(ilat+1,ilon);
+      Numeric   r16  = r_geoid(ilat,ilon+1) + z_surface(ilat,ilon+1);
+      Numeric   r36  = r_geoid(ilat+1,ilon+1) + z_surface(ilat+1,ilon+1);
       //
-      Numeric slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+      Numeric slope = plevel_slope_3d( lat1, lat3, lon5, lon6, 
                                     r15, r35, r36, r16, lat, lon, rte_los[1] );
 
-      // Calculate ground (angular) tilt (unit is deg).
-      Numeric tilt = psurface_angletilt( r_ground, slope );
+      // Calculate surface (angular) tilt (unit is deg).
+      Numeric tilt = plevel_angletilt( r_surface, slope );
 
       // Check that rte_los contains a downward LOS
       assert( is_los_downwards( rte_los[0], tilt ) );
       
-      // Include ground tilt in zenith angle
+      // Include surface tilt in zenith angle
       los[0] -= 2 * tilt;
 
-      // Calculate ground slope along the viewing direction (unit is m/deg).
+      // Calculate surface slope along the viewing direction (unit is m/deg).
       Numeric   aa = rte_los[1] + 90;
       if( aa > 180 )
         { aa -= 360; }
       //
-      slope = psurface_slope_3d( lat1, lat3, lon5, lon6, 
+      slope = plevel_slope_3d( lat1, lat3, lon5, lon6, 
                                             r15, r35, r36, r16, lat, lon, aa );
 
-      // Calculate ground (angular) tilt (unit is deg).
-      tilt = psurface_angletilt( r_ground, slope );
+      // Calculate surface (angular) tilt (unit is deg).
+      tilt = plevel_angletilt( r_surface, slope );
 
-      // Include ground tilt in azimuth angle
+      // Include surface tilt in azimuth angle
       los[1] -= tilt;
         }
     }
@@ -563,13 +563,13 @@ void rte_calc(
               GridPos&        rte_gp_lat,
               GridPos&        rte_gp_lon,
               Matrix&         i_space,
-              Matrix&         ground_emission, 
-              Matrix&         ground_los, 
-              Tensor4&        ground_refl_coeffs,
+              Matrix&         surface_emission, 
+              Matrix&         surface_los, 
+              Tensor4&        surface_refl_coeffs,
         const Agenda&         ppath_step_agenda,
         const Agenda&         rte_agenda,
         const Agenda&         i_space_agenda,
-        const Agenda&         ground_refl_agenda,
+        const Agenda&         surface_agenda,
         const Index&          atmosphere_dim,
         const Vector&         p_grid,
         const Vector&         lat_grid,
@@ -577,7 +577,7 @@ void rte_calc(
         const Tensor3&        z_field,
         const Tensor3&        t_field,
         const Matrix&         r_geoid,
-        const Matrix&         z_ground,
+        const Matrix&         z_surface,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Tensor7&        scat_i_p,
@@ -634,7 +634,7 @@ void rte_calc(
       //
       chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
 
-      // Basic checks of atmospheric, geoid and ground variables
+      // Basic checks of atmospheric, geoid and surface variables
       //  
       chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
       chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
@@ -644,7 +644,7 @@ void rte_calc(
                                                                     lon_grid );
       chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, 
                                                                     lon_grid );
-      chk_atm_surface( "z_ground", z_ground, atmosphere_dim, lat_grid, 
+      chk_atm_surface( "z_surface", z_surface, atmosphere_dim, lat_grid, 
                                                                     lon_grid );
 
       // Check that z_field has strictly increasing pages.
@@ -660,18 +660,18 @@ void rte_calc(
             }
         }
 
-      // Check that there is no gap between the ground and lowest pressure 
+      // Check that there is no gap between the surface and lowest pressure 
       // surface
       //
-      for( Index row=0; row<z_ground.nrows(); row++ )
+      for( Index row=0; row<z_surface.nrows(); row++ )
         {
-          for( Index col=0; col<z_ground.ncols(); col++ )
+          for( Index col=0; col<z_surface.ncols(); col++ )
             {
-              if( z_ground(row,col)<z_field(0,row,col) ||
-                       z_ground(row,col)>=z_field(z_field.npages()-1,row,col) )
+              if( z_surface(row,col)<z_field(0,row,col) ||
+                       z_surface(row,col)>=z_field(z_field.npages()-1,row,col) )
                 {
                   ostringstream os;
-                  os << "The ground altitude (*z_ground*) cannot be outside "
+                  os << "The surface altitude (*z_surface*) cannot be outside "
                      << "of the altitudes in *z_field*.";
                   if( atmosphere_dim > 1 )
                     os << "\nThis was found to be the case for:\n"
@@ -786,18 +786,18 @@ void rte_calc(
               // Determine propagation path
               ppath_calc( ppath, ppath_step, ppath_step_agenda, 
                           atmosphere_dim, p_grid, lat_grid, lon_grid, 
-                          z_field, r_geoid, z_ground,
+                          z_field, r_geoid, z_surface,
                           cloudbox_on, cloudbox_limits,
                           sensor_pos(mblock_index,joker), los, 1, ag_verb );
 
               // Determine the radiative background
               get_radiative_background( i_rte, ppath_step, rte_pos, rte_los, 
                       rte_gp_p, rte_gp_lat, rte_gp_lon, i_space, 
-                      ground_emission, ground_los, ground_refl_coeffs, ppath, 
+                      surface_emission, surface_los, surface_refl_coeffs, ppath, 
                       ppath_step_agenda, rte_agenda, 
-                      i_space_agenda, ground_refl_agenda, atmosphere_dim, 
+                      i_space_agenda, surface_agenda, atmosphere_dim, 
                       p_grid, lat_grid, lon_grid, z_field, t_field, 
-                      r_geoid, z_ground, 
+                      r_geoid, z_surface, 
                       cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
                                         stokes_dim, ag_verb, scat_za_interp );
