@@ -1,0 +1,422 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Polarization and Stokes Parameters}
+ \label{sec:polarization}
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+   260602 & Created and written by Christian Melsheimer.\\
+\stophistory
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \artsstyle{...} & text ... \\
+%    ... & \artsstyle{...} & text ... \\
+%    ....
+%  \stopsymbols
+%
+%=====================================================================
+
+
+%=====================================================================
+% Definition of new commands:
+% ====================================================================
+%\newcommand{\DirFre} {(\PDir, \Frq)}
+%\newcommand{\DirFrePr} {\ensuremath{(\PDir^\prime, \Frq)}}
+
+
+
+FIXME: some nice introductory sentence (motivation) here.
+
+\levelb{Plane Monochromatic Waves}
+%=====================================================================
+\label{sec:polarization:monochrom}
+
+Plane monochromatic electromagnetic waves are commonly written in the form
+\begin{equation} 
+  \label{eq:polarization:e_field}
+  \VctStl{E}(\VctStl{x},t) = \left[E_v \atop E_h\right] 
+  e^{i(\VctStl{k}\VctStl{x} - \omega t)}
+\end{equation}
+where $\VctStl{E}$ is the electric field vector, the subscripts $v$
+and $h$ denote the components with vertical and horizontal
+polarization, respectively. $E_v$ and $E_h$, the amplitudes, are
+complex numbers, $\VctStl{k}$ and $\omega$ are the wavenumber vector
+and the angular frequency, respectively, of the plane wave.  It is
+always implicitly understood that the actual, physical, electric field
+is the real part of the above expression. Rewriting the complex
+amplitudes $E_v$ and $E_h$ using real, positive amplitudes $a_v$ and
+$a_h$, and phases $\delta_v$ and $\delta_v$, 
+\begin{equation}
+  \label{eq:polarization:compl_ampl}
+  E_v=a_v e^{i\delta_v}\mbox{ , }
+  E_h=a_h e^{i\delta_h}
+\end{equation}
+the actual electric field vector $\VctStl{\tilde{E}}$ is
+\begin{equation}
+  \label{eq:polarization:actual_efield}
+  \VctStl{\tilde{E}}(\VctStl{x},t) = \Re[\VctStl{E}(\VctStl{x},t)] 
+    = \left[a_v\cdot \cos(\VctStl{k}\VctStl{x} - \omega t + \delta_v) 
+                       \atop 
+            a_h\cdot \cos(\VctStl{k}\VctStl{x} - \omega t + \delta_h) 
+       \right] 
+\end{equation}
+
+In general, instruments do not measure the electric or magnetic field
+vectors of an electromagnetic wave, but rather the time-averaged
+intensity, i.e., the energy flux, $F$. This is the time-averaged Poynting
+vector (which, in turn, is proportional to the square of the electric
+field), thus:
+\begin{eqnarray}
+  F%(\VctStl{x}) 
+  &=& 
+  \sqrt{\frac{\epsilon}{\mu}}\overline{(\VctStl{E}(\VctStl{x},t))^2}\\
+   \nonumber
+  &=&
+  \sqrt{\frac{\epsilon}{\mu}}\left(
+    a_v^2\overline{\cos^2(\VctStl{k}\VctStl{x} - \omega t + \delta_v)}
+    + a_h^2\overline{\cos^2(\VctStl{k}\VctStl{x} - \omega t + \delta_h)}
+   \right)
+  \label{eq:polarization:intensity}
+\end{eqnarray}
+The overline denotes the time average
+%, which is taken over one oscillation period $T$ ($T=2\pi\omega$). 
+%Since the time average of
+which for cosine squares is 1/2, thus:
+\begin{equation}
+  \label{eq:polarization:intensity_}
+ F(\VctStl{x}) = 
+  \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}(
+    a_v^2 + a_h^2)  
+\end{equation}
+Taking into account that for plane, monochromatic waves 
+the time average always results in a factor
+$\frac{1}{2}$, we can also directly write the intensity using the
+electric field vector in complex notation
+(Eq.~\ref{eq:polarization:e_field}).
+\begin{eqnarray}
+  \label{eq:polarization:intensity_from_complex}
+  F(\VctStl{x}) &=&  \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
+                      \VctStl{E} (\VctStl{x},t) 
+                    \cdot \VctStl{E}^\ast (\VctStl{x},t)\\ \nonumber
+               &=&     \frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}
+                     (E_v E_v^\ast + E_h E_h^\ast)
+\end{eqnarray}
+where the asterisk denotes complex conjugation%
+\footnote{Note that the same argumentation works for ???} .
+
+Commonly the factor  $\frac{1}{2}\sqrt{\frac{\epsilon}{\mu}}$ is
+omitted, and in addition to the flux, three more intensity quantities
+are defined as in the following equations. They are called 
+\emph{Stokes parameters}:
+\begin{eqnarray}
+  \label{eq:polarization:stokesparam_I}
+  I &=&   E_v E_v^\ast + E_h E_h^\ast \\
+  \label{eq:polarization:stokesparam_Q}
+  Q &=&   E_v E_v^\ast - E_h E_h^\ast \\
+  \label{eq:polarization:stokesparam_U}
+  U &=& - E_v E_h^\ast - E_h E_v^\ast \\
+  \label{eq:polarization:stokesparam_V}
+  V &=& i(E_h E_v^\ast - E_v E_h^\ast)
+\end{eqnarray}
+Using the amplitude/phase notation from
+Eq.~(\ref{eq:polarization:compl_ampl}),
+we can rewrite the Stokes parameters as 
+\begin{eqnarray}
+  \label{eq:polarization:stokesparam_alt_I}
+ I &=& a_v^2 + a_h^2\\
+  \label{eq:polarization:stokesparam_alt_Q}
+ Q &=& a_v^2 - a_h^2\\
+  \label{eq:polarization:stokesparam_alt_U}
+ U &=&  - a_v a_h \cos(\delta_v-\delta_h)\\
+  \label{eq:polarization:stokesparam_alt_V}
+ V &=&   a_v a_h \sin(\delta_v-\delta_h)
+\end{eqnarray}
+The Stokes parameters fully characterize the electromagnetic wave and
+therefore contain the same information as the electric field vector
+(except for one absolute phase).  Since instruments generally measure
+intensities (fluxes), describing electromagnetic radiation by the
+Stokes parameters is more practical than describing it by the electric
+(or magnetic) field vector. Furthermore, the Stokes parameters are
+always real numbers.
+
+ 
+In order understand what the Stokes parameters mean, we have to go
+back to the electric field vector and see what polarization state it
+describes.  To do so, we look at the curve that the tip of the
+physical electric field vector $\VctStl{\tilde{E}}$ describes with
+time at a fixed position $\VctStl{x_0}$:
+\begin{eqnarray}
+  \tilde{E}_v (t) &=& a_v \cos(\Delta_v - \omega t)\\
+  \tilde{E}_h (t) &=& a_h \cos(\Delta_h - \omega t)
+\end{eqnarray}
+where $\Delta_{v,h} = \VctStl{k}\VctStl{x_0} + \delta_{v,h}$. 
+To see that this is an ellipse, we first split the cosines using
+the addition theorem:
+\begin{eqnarray}
+  \label{eq:polarization:tip_of_fieldvec1}
+  \tilde{E}_v (t) &=&   a_v \cos\Delta_v \cos(\omega t)
+                      + a_v \sin\Delta_v \sin(\omega t)\\
+  \label{eq:polarization:tip_of_fieldvec2}
+  \tilde{E}_h (t) &=&   a_h \cos\Delta_h \cos(\omega t)
+                      + a_h \sin\Delta_h \sin(\omega t)
+\end{eqnarray}
+
+In order to have the tip of $\VctStl{\tilde{E}}$ describe an ellipse with semi-major axis $a_0 \cos\beta$
+and
+semi-minor axis $a_0 \sin\beta$, where $a_0^2 = a_v^2 + a_h^2$, 
+it should have the following form
+\begin{eqnarray}
+  \label{eq:polarization:ellipse_parallel}
+ \tilde{E}_v (t) &=&   a_0 \sin\beta \cos(\omega t)\\
+ \tilde{E}_h (t) &=&   a_0 \cos\beta \sin(\omega t)
+\end{eqnarray}
+Here $\beta$ must be between $-45\degree$ and $45\degree$: the tip of
+the vector $\VctStl{\tilde{E}}$ describes a circle for $\beta = \pm
+45\degree$ (circular polarization), oscillates along the $h$-axis for
+$\beta = 0$ (linear polarization) and else describes an ellipse. The
+sense of rotation is counterclockwise for positive and clockwise for
+negative $\beta$. Since $|\tan\beta|$ is the ratio of the semi-minor
+and semi-major axes of the ellipse, $\beta$ is called the ellipticity
+angle.
+
+Note that the semi-major axis is oriented along the positive $h$-axis.  To
+have the major axis of the ellipse enclose an arbitrary angle $\zeta$
+($0 \leq \zeta < 180\degree$) with the $h$-axis, we apply a rotation
+matrix and get the equation for an ellipse with arbitrary shape
+(ellipticity) and orientation:
+\begin{eqnarray}
+  \label{eq:polarization:ellipse_rotated1}
+ \tilde{E}_v (t) &=&  a_0(  \sin\beta \cos(\omega t) \cos\zeta
+                           +\cos\beta \sin(\omega t) \sin\zeta )\\
+  \label{eq:polarization:ellipse_rotated2}
+ \tilde{E}_h (t) &=&  a_0( -\sin\beta \cos(\omega t) \sin\zeta
+                           +\cos\beta \sin(\omega t) \cos\zeta )
+\end{eqnarray}
+
+Now we want to establish a direct connection between the parameters
+$\beta$ and $\zeta$ describing the shape (ellipticity) and orientation
+of the polarization ellipse on the one hand, and the amplitudes $a_v$
+and $a_h$ and phases $\delta_v$ and $\delta_v$ of the components of
+the electric field vector on the other hand.  Comparing the
+$\sin(\omega t)$ and $\cos(\omega t)$ terms in
+Eqs.~(\ref{eq:polarization:ellipse_rotated1})%
+-(\ref{eq:polarization:ellipse_rotated2}) with the corresponding terms
+in Eqs.~(\ref{eq:polarization:tip_of_fieldvec1})%
+-(\ref{eq:polarization:tip_of_fieldvec2}), we get:
+\begin{eqnarray}
+  \label{eq:polarization:corresp1a}
+ a_v \cos\Delta_v &=& a_0 \sin\beta \cos\zeta\\
+  \label{eq:polarization:corresp1b}
+ a_v \sin\Delta_v &=& a_0 \cos\beta \sin\zeta
+\end{eqnarray}
+and 
+\begin{eqnarray}
+  \label{eq:polarization:corresp2a}
+ a_h \cos\Delta_h &=& -a_0 \sin\beta \sin\zeta\\
+  \label{eq:polarization:corresp2b}
+ a_h \sin\Delta_h &=&  a_0 \cos\beta \cos\zeta
+\end{eqnarray}
+Multiplying Eq.~(\ref{eq:polarization:corresp1a}) with
+Eq.~(\ref{eq:polarization:corresp2a}), and
+Eq.~(\ref{eq:polarization:corresp1b}) with
+Eq.~(\ref{eq:polarization:corresp2b}) and adding up the results, we get
+\begin{equation}
+  a_v a_h (\cos\Delta_v\cos\Delta_h + \sin\Delta_v\sin\Delta_h)
+  = a_0^2 \sin\zeta\cos\zeta (\cos^2\beta - \sin^2\beta) 
+\end{equation}
+Using the addition theorems for sinusoidals and taking into account
+that
+$\Delta_v-\Delta_h = \delta_v-\delta_h$:
+\begin{equation}
+  \label{eq:polarization:sinzetacosbeta}
+  \frac{a_v a_h}{a_0^2} \cos(\delta_v-\delta_h)
+  = \frac{1}{2}\sin(2\zeta)\cos(2\beta)
+\end{equation}
+In a similar way, subtracting the product of
+Eq.~(\ref{eq:polarization:corresp1b}) with
+Eq.~(\ref{eq:polarization:corresp2a}) from the product of
+Eq.~(\ref{eq:polarization:corresp1a}) with
+Eq.~(\ref{eq:polarization:corresp2b}) and adding up the results, we get
+\begin{equation}
+  \label{eq:polarization:sinbeta}
+  -\frac{a_v a_h}{a_0^2} \sin(\delta_v-\delta_h)
+  = \frac{1}{2}\sin(2\beta)
+\end{equation}
+The above two equations tell us how to translate the amplitudes
+($a_v$, $a_h$) and phases ($\delta_v$, $\delta_h$) of the vertical and
+horizontal component of the electric field into the orientation and
+shape of the ellipse that the tip of the electric field vector describes with
+time.  We can obtain one further relation by subtracting the sum of
+the squares of Eq.~(\ref{eq:polarization:corresp2a}) and
+Eq.~(\ref{eq:polarization:corresp2b}) from the sum of the squares of
+Eq.~(\ref{eq:polarization:corresp1a}) and
+Eq.~(\ref{eq:polarization:corresp1b}):
+\begin{equation}
+  \label{eq:polarization:cosbetazeta}
+ a_v^2 - a_h^2 =  -a_0^2 \cos(2\zeta)\cos(2\beta)
+\end{equation}
+Finally, we use the above 3 equations
+(\ref{eq:polarization:sinzetacosbeta}), 
+(\ref{eq:polarization:sinbeta}) and 
+(\ref{eq:polarization:cosbetazeta}) to rewrite the Stokes parameters
+(Eqs.~\ref{eq:polarization:stokesparam_alt_I}%
+-\ref{eq:polarization:stokesparam_alt_V}) 
+as
+\begin{eqnarray}
+  \label{eq:polarization:stokesparam_alt2_I}
+ I &=& a_0^2\\
+  \label{eq:polarization:stokesparam_alt2_Q}
+ Q &=&  -a_0^2 \cos(2\zeta)\cos(2\beta)\\ 
+  \label{eq:polarization:stokesparam_alt2_U}
+ U &=& -a_o^2 \sin(2\zeta)\cos(2\beta)\\
+  \label{eq:polarization:stokesparam_alt2_V}
+ V &=& -a_0^2 \sin(2\beta)
+\end{eqnarray}
+
+Thus, we can get the orientation angle $\zeta$ of the ellipse from
+\begin{equation}
+  \label{eq:polarization:tan2zeta}
+ \tan(2\zeta) = \frac{U}{V}
+\end{equation}
+Since $0 \leq 2\zeta < 360\degree$, there are 2 solutions for $\zeta$ for a
+given pair $U,V$. This ambiguity is resolved by looking at
+Eq.~\ref{eq:polarization:stokesparam_alt2_Q}, taking into account that
+$|\beta| \leq 45\degree$ and thus $\cos(2\beta) \geq 0$:
+The sign of $\cos(2\zeta)$ must be the same as the sign of $-Q$.
+
+We get the ellipticity angle $\beta$  from
+\begin{equation}
+  \label{eq:polarization:tan2beta}
+ \tan(2\beta) = - \frac{V}{(Q^2 + U^2)^{1/2}}  
+\end{equation}
+
+$I$ is the total intensity of the radiation, 
+$Q$ is the difference in the intensity of the vertically and
+horizontally polarized components, 
+
+FIXME: $U$ (45\degree ...), $V$ (left-/right-circular ...)
+
+$I$ is always non-negative, and $Q$, $U$, and $V$ are between $+I$ and $-I$,
+since they can be expressed as a product of $I$ with sines and/or
+cosines
+(Eqs. \ref{eq:polarization:stokesparam_alt2_Q}-%
+\ref{eq:polarization:stokesparam_alt2_V}). 
+Note also that the 4 Stokes parameters are not independent, since the
+following equality applies:
+\begin{equation}
+  \label{eq:polarization:Isquare}
+  I^2 = Q^2 + U^2 + V^2
+\end{equation}
+
+\levelb{Measuring Stokes Parameters}
+%=====================================================================
+\label{sec:polarization:measuring}
+FIXME: Measuring the Stokes parameters
+
+
+\levelb{Partial Polarization}
+%=====================================================================
+\label{sec:polarization:part_pol}
+The last equation and in fact all the above is valid for the ideal case of a 
+monochromatic plane wave that is completely polarized, i.e. where the
+amplitudes $a_v$ and
+$a_h$ and the phases $\delta_v$ and $\delta_v$ are fixed and do not
+vary with time. This means that the plane wave is emitted by one
+coherent source.
+
+In reality, the amplitudes and phases fluctuate, since the radiation
+originates from several sources that do not emit radiation coherently,
+or since the emission from one source is not coherent with time. This
+means that the polarization state fluctuates as well and that in
+addition we usually have a superposition of several incoherent waves.
+Typically, such fluctuations have time scales that are longer than the
+period ($2\pi/\omega$) of the oscillation, but that are still shorter
+than the integration time of the instrument that measures the
+radiation. Thus, the instrument measures a superposition of time averages
+over of the fluctuating polarization. If the fluctuations are
+completely random for all the sources or if the different sources are
+incoherent (uncorrelated?), then there is no preferred(??)
+orientation, ellipticity or handedness, and the radiation is called
+unpolarized. If the fluctuations are not completely random, the
+radiation is called partially polarized.
+
+To quantify this rather heuristic argumentation, we express the
+above-mentioned ideas in the language of the Stokes parameters:
+The Stokes parameters $I$, $Q$, $U$, $V$
+derived from measurements come from the superposition of
+radiation from many sources and/or the average over emission events with individual Stokes
+parameters $I_i$, $Q_i$, $U_i$, $V_i$.  Since the different
+sources/emission events are incoherent, the Stokes parameters -- which
+are intensity, not amplitude quantities -- can
+simply be added up:
+\begin{equation}
+  \label{eq:polarization:summed_stokes}
+  I = \sum_i I_i \: \mbox{, }\; 
+  Q = \sum_i Q_i \: \mbox{, }\; 
+  U = \sum_i U_i \: \mbox{, }\; 
+  V = \sum_i V_i
+\end{equation}
+In the case of unpolarized radiation, i.e. when the amplitudes and
+phases, or equivalently, the orientation angle $\zeta$ and the
+ellipticity angle $\beta$ are completely random, $Q$, $U$, and $V$
+each cancel out.
+
+For each $i$, the equality $I_i^2 = Q_i^2 + U_i^2 + V_i^2$
+holds. Thus, we get for partially polarized radiation:
+\begin{eqnarray}
+  I^2 &=& \left(\sum_i I\right)^2\\ \nonumber
+      &\geq& \sum_i I_i^2 = \sum_i (Q_i^2  + U_i^2 + V_i^2)\\ \nonumber
+      &=& Q^2 + U^2 + V^2
+  \label{eq:polarization:stokes_inequality}
+\end{eqnarray}
+The inequality follows from  the mathematical fact that the square of
+a sum of non-negative numbers is greater or equal than the sum of the
+squares. 
+
+Now we can define a measure for the degree of polarization, $p$:
+\begin{equation}
+  \label{eq:polarization:pol_degree}
+  p = \frac{Q^2 + U^2 + V^2}{I^2}
+\end{equation}
+For completely polarized radiation, $Q^2 + U^2 + V^2 = I^2$, so $p =
+1$, and for unpolarized radiation, $Q = U = V = 0$, so $p = 0$.
+
+Furthermore, it can be convenient to define the the polarized
+component of radiation by
+\begin{equation}
+  \label{eq:polarization:pol_compoent}
+  I_p^2 = Q^2 + U^2 + V^2
+\end{equation}
+and the unpolarized component as
+\begin{equation}
+  \label{eq:polarization:unpol_compoent}
+  I_u = I - I_p
+\end{equation}
+
+In addition, we can define measures for the circularity and the
+linearity of the polarization.
+
+FIXME (...to be continued...)
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 
+% LocalWords:  ext matrix abs vec pha pnd sca lat lon za aa pt FIXME Eq
+% LocalWords:  Eqs mishchenko scatt nonsp partic RTE
