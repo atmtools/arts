@@ -44,20 +44,31 @@ do
              if [ x$INSIDE_DESC = xno ]
              then
                  cat << EOF
-\\footnotesize\\begin{verbatim}
+{\\footnotesize\\tt
 EOF
+#\\footnotesize\\begin{verbatim}
                  INSIDE_DESC=yes
              else
-                 echo "$j"
+                 echo "$j\\vspace{1em}"
              fi
              ;;
          "Types ="*)
-             echo "$j"
-             echo "\\end{verbatim}"
+             echo "\\noindent $j" \
+              | sed "s/_/\\\_/g"
+             echo "}"
+             #echo "\\end{verbatim}"
              INSIDE_DESC=no
              ;;
          *)
-             echo "$j"
+             if [ -z "$j" ]; then
+                 echo "\\vspace{1em}"
+             else
+                 echo "\\noindent $j" \
+                  | sed "s/_/\\\_/g" \
+                  | sed "s/\#/\\\#/g" \
+                  | sed "s/\^/\\\^/g"
+                 echo
+             fi
              ;;
         esac
 
