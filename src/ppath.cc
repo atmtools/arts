@@ -735,10 +735,10 @@ void resolve_lon(
    \date   2002-12-30
 */
 void gridcell_crossing_3d(
-             Numeric&   r,
-             Numeric&   lat,
-             Numeric&   lon,
-             Numeric&   l,
+             double&    r,
+             double&    lat,
+             double&    lon,
+             double&    l,
        const double&    x,
        const double&    y,
        const double&    z,
@@ -887,16 +887,16 @@ void gridcell_crossing_3d(
    \date   2002-12-31
 */
 void geompath_tanpos_3d( 
-             Numeric&   r_tan,
-             Numeric&   lat_tan,
-             Numeric&   lon_tan,
-             Numeric&   l_tan,
-       const double&    r,
-       const double&    lat,
-       const double&    lon,
-       const double&    za,
-       const double&    aa,
-       const double&    ppc )
+             Numeric&    r_tan,
+             Numeric&    lat_tan,
+             Numeric&    lon_tan,
+             Numeric&    l_tan,
+       const Numeric&    r,
+       const Numeric&    lat,
+       const Numeric&    lon,
+       const Numeric&    za,
+       const Numeric&    aa,
+       const Numeric&    ppc )
 {
   assert( za >= 90 );
   assert( r >= ppc );
@@ -905,15 +905,13 @@ void geompath_tanpos_3d(
                                   // and maximum precision
   poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa );
 
-  const double   ltmp = sqrt( r*r - ppc*ppc );
+  l_tan = sqrt( r*r - ppc*ppc );
 
-  l_tan = Numeric( ltmp );
-
-  double rtmp, lattmp, lontmp;
-  cart2sph( rtmp, lattmp, lontmp, x+dx*ltmp, y+dy*ltmp, z+dz*ltmp );
-  r_tan   = Numeric( rtmp );
-  lat_tan = Numeric( lattmp );
-  lon_tan = Numeric( lontmp );
+  double   rtmp, lattmp, lontmp;
+  cart2sph( rtmp, lattmp, lontmp, x+dx*l_tan, y+dy*l_tan, z+dz*l_tan );
+  r_tan   = rtmp;
+  lat_tan = lattmp;
+  lon_tan = lontmp;
 
   assert( abs( r_tan - ppc ) < 0.1 );
 }
@@ -1428,10 +1426,10 @@ Numeric psurface_crossing_2d(
    \date   2002-12-30
 */
 void psurface_crossing_3d(
-             Numeric&   r,
-             Numeric&   lat,
-             Numeric&   lon,
-             Numeric&   l,
+             double&    r,
+             double&    lat,
+             double&    lon,
+             double&    l,
        const Numeric&   lat1,
        const Numeric&   lat3,
        const Numeric&   lon5,
@@ -1446,12 +1444,12 @@ void psurface_crossing_3d(
        const Numeric    za_start,
        const Numeric    aa_start,
        const Numeric    rlatlon,
-       const Numeric&   x,
-       const Numeric&   y,
-       const Numeric&   z,
-       const Numeric&   dx,
-       const Numeric&   dy,
-       const Numeric&   dz )
+       const double&    x,
+       const double&    y,
+       const double&    z,
+       const double&    dx,
+       const double&    dy,
+       const double&    dz )
 {
   assert( za_start >=   0 );
   assert( za_start <= 180 );
@@ -2001,9 +1999,9 @@ void do_gridcell_3d(
   endface  = 0;
   tanpoint = 0;
   //
-  Numeric   l_best  = 99999e3;
-  Numeric   r_best, lat_best, lon_best, r_try, lat_try, lon_try, l_try;
-  Numeric   rlow_try, rhigh_try;
+  double   l_best  = 99999e3;
+  double   r_best, lat_best, lon_best, r_try, lat_try, lon_try, l_try;
+  double   rlow_try, rhigh_try;
 
   // Local debug option
   const bool   debug = false;
@@ -2330,8 +2328,14 @@ void do_gridcell_3d(
 
           if( l_try < l_best )
             {
-              geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
-                               lat_start, lon_start, za_start, aa_start, ppc );
+              Numeric   rtmp, lattmp, lontmp, ltmp;
+                geompath_tanpos_3d( rtmp, lattmp, lontmp, ltmp,
+                                    r_start, lat_start, lon_start, 
+                                    za_start, aa_start, ppc );
+              r_best   = rtmp;
+              lat_best = lattmp;
+              lon_best = lontmp;
+              l_best   = ltmp;
               endface  = 0;
               tanpoint = 1;
             }
@@ -2377,14 +2381,21 @@ void do_gridcell_3d(
   za_v[0]  = za_start;
   aa_v[0]  = aa_start;
   //
-  lstep = l_best / n;
+  double  ldouble = l_best / n;
+  lstep = ldouble;
   // 
   for( Index j=1; j<=n; j++ )
     {
-      const Numeric   l  = lstep * j;
-      cart2poslos( r_v[j], lat_v[j], lon_v[j], za_v[j], aa_v[j],
+      const double   l  = ldouble * j;
+      double   rtmp, lattmp, lontmp, zatmp, aatmp;
+      cart2poslos( rtmp, lattmp, lontmp, zatmp, aatmp,
                                           x+dx*l, y+dy*l, z+dz*l, dx, dy, dz );
-    }
+      r_v[j]   = rtmp;
+      lat_v[j] = lattmp;
+      lon_v[j] = lontmp;
+      za_v[j]  = zatmp;
+      aa_v[j]  = aatmp;
+   }
 
 
   //--- Set last point especially, which should improve the accuracy
@@ -4648,7 +4659,9 @@ void raytrace_3d_linear_euler(
             }
 
           // Shall lon values be shifted?
-          resolve_lon( lon_new, lon5, lon6 );
+          Numeric   lontmp = lon_new;
+          resolve_lon( lontmp, lon5, lon6 );
+          lon_new = lontmp;
 
           za = za_new;
           aa = aa_new;
@@ -6051,7 +6064,7 @@ void ppath_start_stepping(
               bool   failed = false;
              
               // Determine the entrance point for the minimum of *r_atmtop*
-              Numeric   r_top, lat_top, lon_top, l_top;
+              double   r_top, lat_top, lon_top, l_top;
               psurface_crossing_3d( r_top, lat_top, lon_top, l_top, 
                          lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
                          lon_grid[nlon-1], rtopmin, rtopmin, rtopmin, rtopmin,
@@ -6103,7 +6116,7 @@ void ppath_start_stepping(
 
                   // Determine new entrance position for latest estimated
                   // entrance radius
-                  Numeric   lat_top2, lon_top2;
+                  double   lat_top2, lon_top2;
                   psurface_crossing_3d( r_top, lat_top2, lon_top2, l_top, 
                                 lat_grid[0], lat_grid[nlat-1], lon_grid[0], 
                                 lon_grid[nlon-1], r_top, r_top, r_top, r_top,
@@ -6168,8 +6181,11 @@ void ppath_start_stepping(
                                             ppath.gp_lat[0], ppath.gp_lon[0] );
               //
               // LOS
-              cart2poslos( r_top, lat_top, lon_top, ppath.los(0,0), 
-              ppath.los(0,1), x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
+              double   zatmp, aatmp;
+              cart2poslos( r_top, lat_top, lon_top, zatmp, aatmp,
+                           x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
+              ppath.los(0,0) = zatmp;
+              ppath.los(0,1) = aatmp;
               //
               // Correct found LOS for some special cases
               if( a_los[0] == 180 )
