@@ -55,8 +55,18 @@ extern const Numeric BOLTZMAN_CONST;
 
 //// planck (matrix version) ///////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Calculates a blackbody radiation (the Planck function) matrix.
+
+    Each row of the returned matrix corresponds to a frequency, while each
+    column corresponds to a temperature.
+
+    \retval B       output: the blackbody radiation
+    \param  f       a frequency grid
+    \param  t       a temperature profile
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void planck (
               MATRIX&     B, 
         const VECTOR&     f,
@@ -81,10 +91,17 @@ void planck (
 
 
 
-//// (vector version) ///////////////////////////////////////////////////////
+//// planck (vector version) ////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Calculates the Planck function for a single temperature.
+
+    \retval B       output: the blackbody radiation
+    \param  f       a frequency grid
+    \param  t       a temperature value
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void planck (
              VECTOR&    B,
        const VECTOR&    f,
@@ -100,8 +117,15 @@ void planck (
 
 //// number_density (scalar version) ////////////////////////////////////////
 //
-// Patrick Eriksson 2000-09-04
-//
+/** Calculates the number density (scalar version).
+
+    \return         number density
+    \param  p       pressure
+    \param  t       temperature
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 Numeric number_density (
        const Numeric&   p,
        const Numeric&   t )
@@ -113,8 +137,15 @@ Numeric number_density (
 
 //// number_density (vector version) ////////////////////////////////////////
 //
-// Patrick Eriksson 2000-09-04
-//
+/** Calculates the number density (vector version).
+
+    \return nd      number density
+    \param  p       pressure
+    \param  t       temperature
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 VECTOR number_density (
        const VECTOR&    p,
        const VECTOR&    t )
@@ -124,15 +155,21 @@ VECTOR number_density (
 
 
 
-
 /////////////////////////////////////////////////////////////////////////////
 //   Tangent altitudes.
 /////////////////////////////////////////////////////////////////////////////
 
 //// ztan_geom //////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Calculates the geometrical tangent altitude (no refraction).
+
+    \return        the tangent altitude
+    \param za      the angle between zenith and the LOS
+    \param z_plat  the platform altitude
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 Numeric ztan_geom(
         const Numeric&     za,
         const Numeric&     z_plat )
@@ -153,8 +190,24 @@ Numeric ztan_geom(
 
 //// rte_iterate
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Performs a single iteration for RTE calculations (one zenith angle).
+
+    The vector Y is not initilised, the obtained values are added to Y.
+    Note that only a single iteration is performed.
+
+    This function can be used to calculate emission spectra for parts of
+    the atmosphere.
+        
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  S             source function matrix
+    \param  n_f           number of frequencies
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void rte_iterate (
              VECTOR&   y,
        const int&      start_index,
@@ -183,8 +236,24 @@ void rte_iterate (
 
 //// rte ////////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Performs the RTE calculations for one zenith angle.
+
+    This function allows calculation of emission spectra for single
+    zenith angles in function beside yRteXx.
+        
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  S             source function matrix
+    \param  y_space       intensity entering the atmosphre at start of LOS
+    \param  ground        flag/index for ground intersection
+    \param  e_ground      ground emissivity
+    \param  y_ground      ground blackbody radiation 
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void rte (
              VECTOR&   y,
        const int&      start_index,
@@ -250,8 +319,24 @@ void rte (
 
 //// bl_iterate /////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Performs a single iteration for BL calculations (one zenith angle).
+
+    The vector Y is not initilised, Y is multiplied with the obtained values.
+    Note that only a single iteration is performed.
+
+    This function can be used to calculate transmissions for parts of
+    the atmosphere.
+        
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  S             source function matrix
+    \param  n_f           number of frequencies
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void bl_iterate (
              VECTOR&   y,
        const int&      start_index,
@@ -279,8 +364,21 @@ void bl_iterate (
 
 //// bl //////////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Performs the BL (transmission) calculations for one zenith angle.
+
+    This function allows calculation of transmission spectra for single
+    zenith angles in functions beside yBlXx.
+        
+    \retval y             the spectrum
+    \param  start_index   start index for the integration
+    \param  stop_index    stop index for the integration
+    \param  Tr            transmission matrix
+    \param  ground        flag/index for ground intersection
+    \param  e_ground      ground emissivity
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void bl (
              VECTOR&   y,
        const int&      start_index,
@@ -323,8 +421,21 @@ void bl (
 
 //// z2p ///////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Converts an altitude vector to pressures.
+
+    The log. of the pressures are interpolated linearly.
+    In Matlab notation:
+
+      p = exp(interp1(z0,log(p0),z,'linear'))
+
+    \retval p       output: the pressures at z
+    \param  z0      original altitude grid
+    \param  p0      original pressure grid
+    \param  z       new altitude grid
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void z2p(
               VECTOR&     p,
         const VECTOR&     z0,
@@ -339,8 +450,21 @@ void z2p(
 
 //// interpp (vector version) ///////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Interpolates a vertical profile at a new set of pressures.
+
+    A linear interpolation using log. pressure is applied.
+    In Matlab notation, the following expression is used:
+
+      p = interp1(log(p0),x,log(p),'linear')
+
+    \retval x       output: the interpolated values at p
+    \param  p0      original pressure grid
+    \param  x0      the profile to be interpolated
+    \param  p       new pressure grid
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void interpp(
               VECTOR&     x, 
         const VECTOR&     p0,
@@ -354,8 +478,22 @@ void interpp(
 
 //// interpp (matrix version) ///////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-04-08
-//
+/** Interpolates a matrix, such as an absorption matrix, at a new 
+    set of pressures.
+
+    A linear interpolation using log. pressure is applied.
+    In Matlab notation, the following expression is used:
+
+      A = interp1(log(p0),A0,log(p),'linear')
+
+    \retval A       output: the interpolated values at p
+    \param  p0      original pressure grid
+    \param  A0      the matrix to be interpolated
+    \param  p       new pressure grid
+
+    \author Patrick Eriksson 
+    \date   2000-04-08 
+*/
 void interpp(
               MATRIX&  A,
         const VECTOR&  p0, 

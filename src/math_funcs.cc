@@ -56,9 +56,15 @@
 
 //// sqrt //////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
-void sqrt( VECTOR& y, const VECTOR& x )   // vector parameter version
+/** Gives the elementwise square root of a vector.
+   
+   \retval   y   the square root of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
+void sqrt( VECTOR& y, const VECTOR& x ) 
 {
   int n = x.dim();
   y.newsize(n);
@@ -66,7 +72,15 @@ void sqrt( VECTOR& y, const VECTOR& x )   // vector parameter version
     y(i) = sqrt(x(i));
 }
 
-VECTOR sqrt( const VECTOR& x )            // vector return version
+/** Gives the elementwise square root of a vector (return version).
+   
+   \return       the square root of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
+VECTOR sqrt( const VECTOR& x )     
 {
   VECTOR y;
   sqrt( y, x );
@@ -77,9 +91,15 @@ VECTOR sqrt( const VECTOR& x )            // vector return version
 
 //// exp ///////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
-void exp( VECTOR& y, const VECTOR& x )   // vector parameter version
+/** Gives the elementwise exponential of a vector.
+   
+   \retval   y   the exponential of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
+void exp( VECTOR& y, const VECTOR& x ) 
 {
   int n = x.dim();
   y.newsize(n);
@@ -87,14 +107,30 @@ void exp( VECTOR& y, const VECTOR& x )   // vector parameter version
     y(i) = exp(x(i));
 }
 
-VECTOR exp( const VECTOR& x )            // vector return version
+/** Gives the elementwise exponential of a vector (return version).
+   
+   \return       the exponential of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
+VECTOR exp( const VECTOR& x )    
 {
   VECTOR y;
   exp( y, x );
   return y; 
 }
 
-void exp( MATRIX& Y, const MATRIX& X )   // matrix parameter version
+/** Gives the elementwise exponential of a matrix.
+   
+   \retval   y   the exponential of x
+   \param    x   a matrix
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
+void exp( MATRIX& Y, const MATRIX& X )   
 {
   int m = X.dim(1);
   int n = X.dim(2);
@@ -104,7 +140,15 @@ void exp( MATRIX& Y, const MATRIX& X )   // matrix parameter version
       Y(i,j) = exp(X(i,j)); }
 }
 
-MATRIX exp( const MATRIX& X )            // matrix return version
+/** Gives the elementwise exponential of a matrix (return version).
+   
+   \return       the exponential of x
+   \param    x   a matrix
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
+MATRIX exp( const MATRIX& X )  
 {
   MATRIX Y;
   exp( Y, X );
@@ -115,8 +159,14 @@ MATRIX exp( const MATRIX& X )            // matrix return version
 
 //// log ////////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** Gives the elementwise natural logarithm of a vector.
+   
+   \retval   y   the natural logarithm of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
 void log( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
   int n = x.dim();
@@ -125,6 +175,14 @@ void log( VECTOR& y, const VECTOR& x )   // vector parameter version
     y(i) = log(x(i));
 }
 
+/** Gives the elementwise natural logarithm of a vector (return version).
+   
+   \return       the natural logarithm of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
 VECTOR log( const VECTOR& x )            // vector return version
 {
   VECTOR y;
@@ -132,6 +190,14 @@ VECTOR log( const VECTOR& x )            // vector return version
   return y; 
 }
 
+/** Gives the elementwise natural logarithm of a matrix.
+   
+   \retval   y   the natural logarithm of x
+   \param    x   a matrix
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
 void log( MATRIX& Y, const MATRIX& X )   // matrix parameter version
 {
   int m = X.dim(1);
@@ -142,6 +208,14 @@ void log( MATRIX& Y, const MATRIX& X )   // matrix parameter version
       Y(i,j) = log(X(i,j)); }
 }
 
+/** Gives the elementwise natural logarithm of a matrix (return version).
+   
+   \return       the natural logarithm of x
+   \param    x   a matrix
+
+   \author Patrick Eriksson
+   \date   2000-06-27
+*/
 MATRIX log( const MATRIX& X )            // matrix return version
 {
   MATRIX Y;
@@ -153,8 +227,14 @@ MATRIX log( const MATRIX& X )            // matrix return version
 
 //// min and max ////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** Gives the minimum value of a vector.
+
+    \return      the minimum value of x
+    \param   x   a vector
+
+    \author Patrick Eriksson 
+    \date   2000-06-27
+*/
 Numeric min( const VECTOR& x )
 {
   int n = x.dim();
@@ -167,6 +247,14 @@ Numeric min( const VECTOR& x )
   return y; 
 }
 
+/** Gives the minimum value of a matrix.
+
+    \return      the minimum value of A
+    \param   A   a matrix
+
+    \autho  Stefan Buehler
+    \date   2000-06-27
+*/
 Numeric min( const MATRIX& A )
 {
   int r = A.dim(1);
@@ -183,6 +271,14 @@ Numeric min( const MATRIX& A )
   return y; 
 }
 
+/** Gives the maximum value of a vector.
+
+    \return      the maximum value of x
+    \param   x   a vector
+
+    \author Patrick Eriksson 
+    \date   2000-06-27
+*/
 Numeric max( const VECTOR& x )
 {
   int n = x.dim();
@@ -195,6 +291,14 @@ Numeric max( const VECTOR& x )
   return y; 
 }
 
+/** Gives the maximum value of a matrix.
+
+    \return       the maximum value of A
+    \param    A   a matrix
+
+    \autho  Stefan Buehler
+    \date   2000-06-27
+*/
 Numeric max( const MATRIX& A )
 {
   int r = A.dim(1);
@@ -215,13 +319,27 @@ Numeric max( const MATRIX& A )
 
 //// first and last /////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** Gives the first value of a vector.
+
+    \return       the first value of x
+    \param    x   a vector
+
+    \author Patrick Eriksson 
+    \date   2000-06-27
+*/
 Numeric first( const VECTOR& x )
 {
   return x(1); 
 }
 
+/** Gives the last value of a vector.
+
+    \return      the last value of x
+    \param   x   a vector
+
+    \author Patrick Eriksson 
+    \date   2000-06-27
+*/
 Numeric last( const VECTOR& x )
 {
   return x(x.dim()); 
@@ -235,8 +353,14 @@ Numeric last( const VECTOR& x )
 
 //// any ///////////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** True if any element of a boolean vector, b, is not 0.
+
+    \return       a boolean, true if any x is != 0
+    \param    x   a vector
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
 bool any( const ARRAY<int>& x ) 
 {
   for ( size_t i=1; i<=x.dim(); i++ ) {
@@ -254,8 +378,21 @@ bool any( const ARRAY<int>& x )
 
 //// linspace //////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** Linearly spaced vector with specified spacing. 
+
+    The first element of x is always start. The next value is start+step etc.
+    Note that the last value can deviate from stop.
+    The step can be both positive and negative. 
+    (in Matlab notation: start:step:stop)
+
+    \retval   x       linearly spaced vector
+    \param    start   first value in x
+    \param    stop    last value of x <= stop
+    \param    step    distance between values in x
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
 void linspace(                      
               VECTOR&     x,           
         const Numeric     start,    
@@ -270,7 +407,23 @@ void linspace(
     x(i) = start + (i-1)*step;
 }
 
-VECTOR linspace(                 // As above but return version
+/** Linearly spaced vector with specified spacing (return version). 
+
+    The first element of the returned vector is always start. 
+    The next value is start+step etc.
+    Note that the last value can deviate from stop.
+    The step can be both positive and negative. 
+    (in Matlab notation: start:step:stop)
+
+    \return           linearly spaced vector
+    \param    start   first value in x
+    \param    stop    last value of x <= stop
+    \param    step    distance between values in x
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
+VECTOR linspace(  
         const Numeric start, 
         const Numeric stop,  
         const Numeric step )
@@ -280,6 +433,21 @@ VECTOR linspace(                 // As above but return version
   return x; 
 }
       
+/** Linearly spaced vector with specified length. 
+
+    Returns a vector equally and linearly spaced between start and stop 
+    of length n. (equals the Matlab function linspace)
+
+    The length must be > 1.
+
+    \retval   x       linearly spaced vector
+    \param    start   first value in x
+    \param    stop    last value of x <= stop
+    \param    n       length of x
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
 void nlinspace(         
               VECTOR&     x, 
         const Numeric     start,     
@@ -294,6 +462,21 @@ void nlinspace(
     x(i) = start + (i-1)*step;
 }
 
+/** Linearly spaced vector with specified length (return version). 
+
+    Returns a vector equally and linearly spaced between start and stop 
+    of length n. (equals the Matlab function linspace)
+
+    The length must be > 1.
+
+    \return   x       linearly spaced vector
+    \param    start   first value in x
+    \param    stop    last value of x <= stop
+    \param    n       length of x
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
 VECTOR nlinspace(                 // As above but return version
         const Numeric start, 
         const Numeric stop,  
@@ -307,8 +490,21 @@ VECTOR nlinspace(                 // As above but return version
 
 //// nlogspace /////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** Logarithmically spaced vector with specified length. 
+
+    Returns a vector logarithmically spaced vector between start and 
+    stop of length n (equals the Matlab function logspace)
+
+    The length must be > 1.
+
+    \retval   x       logarithmically spaced vector
+    \param    start   first value in x
+    \param    stop    last value of x <= stop
+    \param    n       length of x
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
 void nlogspace(         
               VECTOR&     x, 
         const Numeric     start,     
@@ -328,7 +524,22 @@ void nlogspace(
   x(n) = stop;
 }
 
-VECTOR nlogspace(                 // As above but return version
+/** Logarithmically spaced vector with specified length (return version). 
+
+    Returns a vector logarithmically spaced vector between start and 
+    stop of length n (equals the Matlab function logspace)
+
+    The length must be > 1.
+
+    \return   x       logarithmically spaced vector
+    \param    start   first value in x
+    \param    stop    last value of x <= stop
+    \param    n       length of x
+
+    \author Patrick Eriksson
+    \date   2000-06-27
+*/
+VECTOR nlogspace(  
         const Numeric start, 
         const Numeric stop,  
         const int     n )
@@ -399,8 +610,20 @@ int interp_check(
 
 //// interp_lin ////////////////////////////////////////////////////////////
 //
-// Patrick Eriksson 2000-06-29
-//
+/** Multiple linear interpolation of a vector.
+
+    The vector x specifies the points at which the data y is given. 
+
+    The size of yi is the same as for xi.
+
+    \retval  yi      interpolated values 
+    \param   x       the x grid
+    \param   y       the function to interpolate
+    \param   xi      interpolation points
+
+    \author Patrick Eriksson
+    \date   2000-06-29
+*/
 void interp_lin(          
               VECTOR&  yi,
         const VECTOR&  x, 
@@ -422,7 +645,21 @@ void interp_lin(
   }
 }      
 
-VECTOR interp_lin(               // As above but return version
+/** Multiple linear interpolation of a vector (return version).
+
+    The vector x specifies the points at which the data y is given. 
+
+    The size of yi is the same as for xi.
+
+    \return          interpolated values 
+    \param   x       the x grid
+    \param   y       the function to interpolate
+    \param   xi      interpolation points
+
+    \author Patrick Eriksson
+    \date   2000-06-29
+*/
+VECTOR interp_lin( 
         const VECTOR&  x, 
         const VECTOR&  y, 
         const VECTOR&  xi )
@@ -432,7 +669,19 @@ VECTOR interp_lin(               // As above but return version
   return yi;
 }        
 
-Numeric interp_lin(              // As above but for only one point
+/** Single linear interpolation of a vector (return version).
+
+    The vector x specifies the points at which the data y is given. 
+
+    \return          interpolated value
+    \param   x       the x grid
+    \param   y       the function to interpolate
+    \param   xi      interpolation point
+
+    \author Patrick Eriksson
+    \date   2000-06-29
+*/
+Numeric interp_lin(
         const VECTOR&  x, 
         const VECTOR&  y, 
         const Numeric  xi )
@@ -442,6 +691,18 @@ Numeric interp_lin(              // As above but for only one point
   return yi(1);
 }        
 
+/** Multiple linear interpolation of matrix rows.
+
+    The vector x specifies the points at which the data y is given. 
+
+    \retval  Yi      interpolated values 
+    \param   x       the x grid
+    \param   Y       the function to interpolate
+    \param   xi      interpolation points
+
+    \author Patrick Eriksson
+    \date   2000-06-29
+*/
 void interp_lin_row(    
               MATRIX&  Yi,
         const VECTOR&  x, 
@@ -464,6 +725,18 @@ void interp_lin_row(
   }
 }        
 
+/** Multiple linear interpolation of matrix rows (return version).
+
+    The vector x specifies the points at which the data y is given. 
+
+    \retval  Yi      interpolated values 
+    \param   x       the x grid
+    \param   Y       the function to interpolate
+    \param   xi      interpolation points
+
+    \author Patrick Eriksson
+    \date   2000-06-29
+*/
 MATRIX interp_lin_row(       // As above but return version
         const VECTOR&  x, 
         const MATRIX&  Y, 
@@ -474,6 +747,18 @@ MATRIX interp_lin_row(       // As above but return version
   return Yi;
 }        
 
+/** Multiple linear interpolation of matrix columns.
+
+    The vector x specifies the points at which the data y is given. 
+
+    \retval  Yi      interpolated values 
+    \param   x       the x grid
+    \param   Y       the function to interpolate
+    \param   xi      interpolation points
+
+    \author Stefan Buehler
+    \date   2000-06-29
+*/
 void interp_lin_col(    
               MATRIX&  Yi,
         const VECTOR&  x, 
@@ -496,6 +781,18 @@ void interp_lin_col(
   }
 }        
 
+/** Multiple linear interpolation of matrix columns (return version).
+
+    The vector x specifies the points at which the data y is given. 
+
+    \return          interpolated values 
+    \param   x       the x grid
+    \param   Y       the function to interpolate
+    \param   xi      interpolation points
+
+    \author Stefan Buehler
+    \date   2000-06-29
+*/
 MATRIX interp_lin_col(       // As above but return version
         const VECTOR&  x, 
         const MATRIX&  Y, 
@@ -583,6 +880,18 @@ MATRIX integr_lin(              // As above but return version
 /////////////////////////////////////////////////////////////////////////////
 
 //// to_matrix //////////////////////////////////////////////////////////////
+//
+/** Converts a vector to a matrix. 
+
+    For a vector of length n, the dimension of the matrix is [n,1], in other 
+    words, the vector is interpreted as a column vector.
+
+    \retval   W       the matrix, size n x 1
+    \param    x       a vector of length n
+
+    \author Stefan Buehler 
+    \date 2000-09-01
+*/
 void to_matrix(MATRIX& W, const VECTOR& x)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
@@ -594,6 +903,17 @@ void to_matrix(MATRIX& W, const VECTOR& x)
     }
 }
 
+/** Converts a vector to a matrix (return version). 
+
+    For a vector of length n, the dimension of the matrix is [n,1], in other 
+    words, the vector is interpreted as a column vector.
+
+    \return           the matrix, size n x 1
+    \param    x       a vector of length n
+
+    \author Stefan Buehler 
+    \date 2000-09-01
+*/
 MATRIX to_matrix(const VECTOR& x)
 {
   MATRIX W;
@@ -605,8 +925,22 @@ MATRIX to_matrix(const VECTOR& x)
 
 //// to_vector //////////////////////////////////////////////////////////////
 //
-// Stefan Buehler 2000-09-01
-//
+/** Conversion of a matrix to a vector.
+
+    The matrix can either be a column (n x 1) or row (1 x n) vector.
+
+    Uses the functions row and col.
+
+    \retval  x       the vector, length n
+    \param   W       matrix, size (n x 1) or (1 x n)
+
+    @exception runtime_error None of the dimensions of W was 1.
+
+    @see row col
+
+    \author Stefan Buehler 
+    \date 2000-09-01
+*/
 void to_vector(VECTOR& x, const MATRIX& W)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
@@ -626,6 +960,22 @@ void to_vector(VECTOR& x, const MATRIX& W)
 			"but none of the dimensions is 1.");
 }
 
+/** Conversion of a matrix to a vector (return version).
+
+    The matrix can either be a column (n x 1) or row (1 x n) vector.
+
+    Uses the functions row and col.
+
+    \return  x       the vector, length n
+    \param   W       matrix, size (n x 1) or (1 x n)
+
+    @exception runtime_error None of the dimensions of W was 1.
+
+    @see row col
+
+    \author Stefan Buehler 
+    \date 2000-09-01
+*/
 VECTOR to_vector(const MATRIX& W)
 {
   VECTOR x;
@@ -641,8 +991,15 @@ VECTOR to_vector(const MATRIX& W)
 
 //// row ////////////////////////////////////////////////////////////////////
 //
-// Stefan Buehler 2000-09-01
-//
+/** Extracts row i of MATRIX A.
+
+    \retval   x   row i of A as a vector
+    \param    i   row index
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 void row(VECTOR& x,
 	 size_t i,
 	 const MATRIX& A)
@@ -659,6 +1016,15 @@ void row(VECTOR& x,
     }
 }
 
+/** Extracts row i of MATRIX A (return version).
+
+    \return       row i of A as a vector
+    \param    i   row index
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 VECTOR row(size_t i,
 	   const MATRIX& A)
 {
@@ -667,6 +1033,15 @@ VECTOR row(size_t i,
   return x;
 }
 
+/** Extracts column i of MATRIX A.
+
+    \retval   x   column i of A as a vector
+    \param    i   column index
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 void row(MATRIX& X,
 	 size_t i,
 	 size_t k,
@@ -689,6 +1064,15 @@ void row(MATRIX& X,
       }
 }
 
+/** Extracts column i of MATRIX A (return version).
+
+    \return       column i of A as a vector
+    \param    i   column index
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 MATRIX row(size_t i,
 	    size_t k,
 	    const MATRIX& A)
@@ -702,8 +1086,16 @@ MATRIX row(size_t i,
 
 //// column /////////////////////////////////////////////////////////////////
 //
-// Stefan Buehler 2000-09-01
-//
+/** Extracts rows i to k of MATRIX A.
+
+    \retval   X   the extracted part of A
+    \param    i   first row to extract
+    \param    k   last row to extract
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 void col(VECTOR& x,
 	 size_t i,
 	 const MATRIX& A)
@@ -720,6 +1112,16 @@ void col(VECTOR& x,
     }
 }
 
+/** Extracts rows i to k of MATRIX A (return version).
+
+    \return       the extracted part of A
+    \param    i   first row to extract
+    \param    k   last row to extract
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 VECTOR col(size_t i,
 	   const MATRIX& A)
 {
@@ -728,6 +1130,16 @@ VECTOR col(size_t i,
   return x;
 }
 
+/** Extracts coulmns i to k of MATRIX A.
+
+    \retval   X   the extracted part of A
+    \param    i   first column to extract
+    \param    k   last column to extract
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 void col(MATRIX& X,
 	  size_t i,
 	  size_t k,
@@ -750,6 +1162,16 @@ void col(MATRIX& X,
       }
 }
 
+/** Extracts coulmns i to k of MATRIX A (return version).
+
+    \return       the extracted part of A
+    \param    i   first column to extract
+    \param    k   last column to extract
+    \param    A   a matrix.
+
+    \author Stefan Buehler 
+    \date   2000-09-01
+*/
 MATRIX col(size_t i,
 	    size_t k,
 	    const MATRIX& A)

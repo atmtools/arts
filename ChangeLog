@@ -1,3 +1,15 @@
+2000-09-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-50
+
+	* Stefan and I decided that doxygen headers should be placed in .cc
+	instead of .h files (when appropiate). This partly to make it easier
+ 	to put in histories. 
+
+	* Following this decesion, I moved doxy headers from atm_funcs.h and
+	math_funcs.h to corresponding .cc files.
+	
+
 2000-09-18  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-49
