@@ -100,6 +100,7 @@ public:
     out0 << "MdRecord cannot be assigned!\n"
          << "You tried to assign: " << m << "\n";
     arts_exit ();
+    return MdRecord();
   }
 
   // Needed by make_auto_md_h.cc. See documentation there.

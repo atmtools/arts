@@ -70,6 +70,7 @@ public:
   AgRecord operator=(const AgRecord& m){
     cout << "AgRecord cannot be assigned!\n";
     arts_exit ();
+    return AgRecord();
       }
 private:
 
