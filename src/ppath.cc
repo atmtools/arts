@@ -74,7 +74,6 @@ const double   RTOL = 1;
 #endif
 
 
-
 // As RTOL but for latitudes and longitudes.
 //
 #ifdef USE_DOUBLE
@@ -84,7 +83,6 @@ const double   LATLONTOL = 1e-6;
 #endif
 
 
-
 // This variable defines how much zenith and azimuth angles can
 // deviate from 0, 90 and 180 degrees, but still be treated to be 0,
 // 90 or 180.  For example, an azimuth angle of 180-ANGTOL/2 will
@@ -92,7 +90,11 @@ const double   LATLONTOL = 1e-6;
 // angles are not allowed to go outside their defined range.  This
 // means, for example, that values above 180 are never allowed.
 //
+#ifdef USE_DOUBLE
+const double   ANGTOL = 1e-7; 
+#else
 const double   ANGTOL = 1e-4; 
+#endif
 
 
 // Latitudes with an absolute value > POLELAT are considered to be on
@@ -1957,11 +1959,12 @@ void do_gridcell_3d(
       // The search algorith is bisection, the next length to test is the
       // mean value of the minimum and maximum length limits.
 
-               l_end = 1;
+               l_end  = 1;
 
-      double   l_acc = 1e-3;
-      double   l_in  = 0, l_out = l_end;
-      bool     ready = false, startup = true;
+      double   l_acc  = 1e-3;
+      double   l_in   = 0, l_out = l_end;
+      bool     ready  = false, startup = true;
+      bool     abs_aa = abs( aa_start );
 
       double   l_tan = 99e6;
       if( za_start > 90 )
@@ -1989,7 +1992,7 @@ void do_gridcell_3d(
             { resolve_lon( lon_end, lon5, lon6 ); }
           
           // Special fixes for west-east observations
-          if( abs(aa_start) - 90 < ANGTOL )
+          if( abs( aa_start - 90 ) < ANGTOL )
             {
               if( lat_start == 0 )
                 { lat_end = 0; }
@@ -2062,8 +2065,6 @@ void do_gridcell_3d(
               if( ( l_out - l_in ) < l_acc )
                 { ready = true; }
             }
-          //IndexPrint( inside, "inside");
-          //IndexPrint( endface, "endface");
         }
 
       // Now when we are ready, we remove the correction terms. Otherwise
@@ -2081,7 +2082,7 @@ void do_gridcell_3d(
         { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, r36a, 
                                                     r16a, lat_end, lon_end ); }
       else if( endface == 3 )
-        { lat_end = lat3; Exit(); }
+        { lat_end = lat3; }
       else if( endface == 4 )
         { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, r36b, 
                                                     r16b, lat_end, lon_end ); }
@@ -4163,9 +4164,9 @@ void raytrace_2d_linear_euler(
   bool ready = false;
 
   // Variables for output from do_gridcell_2d
-  Vector    r_v, lat_v, za_v;
+  Vector   r_v, lat_v, za_v;
   double   lstep, dlat = 9999, r_new, lat_new;
-  Index     agenda_verb = 0;
+  Index    agenda_verb = 0;
 
   while( !ready )
     {
@@ -4245,6 +4246,13 @@ void raytrace_2d_linear_euler(
       r   = r_new;
       lat = lat_new;
 
+      // If the path is zenith/nadir along a latitude end face, we must check
+      // that the path does not exit with new *za*.
+      if( lat == lat1  &&  za < 0 )
+        { endface = 1;   ready = 1; }
+      else if( lat == lat3  &&  za > 0 )
+        { endface = 3;   ready = 1; }
+      
       // Store found point
       r_array.push_back( r );
       lat_array.push_back( lat );
@@ -4389,6 +4397,7 @@ void raytrace_3d_linear_euler(
 
       assert( r_v.nelem() == 2 );
 
+
       // If *lstep* is < *lraytrace*, extract the found end point and
       // we are ready.
       // Otherwise, we make a geometrical step with length *lraytrace*.
@@ -4470,27 +4479,22 @@ void raytrace_3d_linear_euler(
           const double   sinaa = sin( aa_rad );
           const double   cosaa = cos( aa_rad );
 
-          // Screen out very small values for *dndlat* and *dnlon* to avoid
-          // rounding errors for cases when those variables should be 0.
-          if( abs( lat ) < 90  &&  
-                         ( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) )
-            {
-              if( za < ANGTOL  ||  za > 180-ANGTOL )
-                { aa = RAD2DEG * atan2( dndlon, dndlat); }
-              else
-                { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
-              
-              // Make sure that obtained *aa* is inside valid range
-              if( aa > 180 )
-                { aa -= 360; }
-              else if( aa < -180 )
-                { aa += 360; }
-            }
+
+          if( za < ANGTOL  ||  za > 180-ANGTOL )
+            { aa = RAD2DEG * atan2( dndlon, dndlat); }
+          else
+            { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
+          
+          // Make sure that obtained *aa* is inside valid range
+          if( aa > 180 )
+            { aa -= 360; }
+          else if( aa < -180 )
+            { aa += 360; }
 
           if( za != 0  &&  abs( za ) != 180 )
             { za += aterm * ( -sinza * dndr + cos(za_rad) * 
                                        ( cosaa * dndlat + sinaa * dndlon ) ); }
-          else if( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) 
+          else
             { za += aterm * ( cos(za_rad) * 
                                        ( cosaa * dndlat + sinaa * dndlon ) ); }
           
@@ -4504,6 +4508,13 @@ void raytrace_3d_linear_euler(
       r   = r_new;
       lat = lat_new;
       lon = lon_new;
+
+      // If the path is north-south along a longitude end face, we
+      // must check that the path does not exit with new *aa*.
+      if( lon == lon5  &&  aa < 0 )
+        { endface = 5;   ready = 1; }
+      else if( lon == lon6  &&  aa > 0 )
+        { endface = 6;   ready = 1; }
 
       // Store found point
       r_array.push_back( r );
@@ -5283,9 +5294,9 @@ void ppath_start_stepping(
           if( ( a_pos[1] == lat_grid[0]  &&   a_los[0] < 0 ) )
             throw runtime_error( "The sensor is at the lower latitude end "
                                            "point and the zenith angle < 0." );
-          if( a_pos[1] == lat_grid[nlat-1]  &&   a_los[0] > 0 ) 
+          if( a_pos[1] == lat_grid[nlat-1]  &&   a_los[0] >= 0 ) 
             throw runtime_error( "The sensor is at the upper latitude end "
-                                           "point and the zenith angle > 0." );
+                                          "point and the zenith angle >= 0." );
           
           // Geometrical altitude
           ppath.z[0] = ppath.pos(0,0) - rv_geoid;
