@@ -1,3 +1,13 @@
+2002-03-26  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-39
+
+	* src/test_tensor.cc (test8): Added a cute little test that checks
+	all 128 const index functions.
+	(test9): And another cute tests that checks the non-const index
+	functions. 
+	Result: Everything seems to work fine!
+
 2002-03-25  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-38

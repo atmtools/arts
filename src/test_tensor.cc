@@ -299,8 +299,300 @@ void test7()
        << a(1,1,1,1,1,Range(joker),1) << "\n\n";
 }
 
+void test8()
+{
+  cout << "Test Tensor7:\n"
+       << "The output of this test should be all ones!\n\n";
+
+  Tensor7 a;
+  fill_tensor7(a,
+	       2, 3, 2, 2, 3, 3, 4);  // 2 libraries,
+                                      // 3 vitrines, 2 shelves,
+                                      // 2 books, 3 pages,
+                                      // 3 rows, 4 columns
+
+  Index I(1);			// Select element 1.
+  Range R(1,1);			// Select one element starting at index 1.
+
+  cout << setprecision(10) << a(I,I,I,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,I,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,I,R,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,I,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(I,R,R,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,I,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,I,R,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,I,R,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,I,R,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,I,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,I,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,I,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,I,R,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,R,I,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,R,I,R) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,R,R,I) << "\n";
+  cout << setprecision(10) << a(R,R,R,R,R,R,R) << "\n";
+}
+
+void test9()
+{
+  cout << "Test Tensor7:\n"
+       << "The output of this test should be 128\n\n";
+
+  Tensor7 a(2, 3, 2, 2, 3, 3, 4, 0.0); // 2 libraries,
+                                       // 3 vitrines, 2 shelves,
+                                       // 2 books, 3 pages,
+                                       // 3 rows, 4 columns
+                                       // Fill with zeroes.
+
+  Index I(1);			// Select element 1.
+  Range R(1,1);			// Select one element starting at index 1.
+
+  a(I,I,I,I,I,I,I) += 1;
+  a(I,I,I,I,I,I,R) += 1;
+  a(I,I,I,I,I,R,I) += 1;
+  a(I,I,I,I,I,R,R) += 1;
+  a(I,I,I,I,R,I,I) += 1;
+  a(I,I,I,I,R,I,R) += 1;
+  a(I,I,I,I,R,R,I) += 1;
+  a(I,I,I,I,R,R,R) += 1;
+  a(I,I,I,R,I,I,I) += 1;
+  a(I,I,I,R,I,I,R) += 1;
+  a(I,I,I,R,I,R,I) += 1;
+  a(I,I,I,R,I,R,R) += 1;
+  a(I,I,I,R,R,I,I) += 1;
+  a(I,I,I,R,R,I,R) += 1;
+  a(I,I,I,R,R,R,I) += 1;
+  a(I,I,I,R,R,R,R) += 1;
+  a(I,I,R,I,I,I,I) += 1;
+  a(I,I,R,I,I,I,R) += 1;
+  a(I,I,R,I,I,R,I) += 1;
+  a(I,I,R,I,I,R,R) += 1;
+  a(I,I,R,I,R,I,I) += 1;
+  a(I,I,R,I,R,I,R) += 1;
+  a(I,I,R,I,R,R,I) += 1;
+  a(I,I,R,I,R,R,R) += 1;
+  a(I,I,R,R,I,I,I) += 1;
+  a(I,I,R,R,I,I,R) += 1;
+  a(I,I,R,R,I,R,I) += 1;
+  a(I,I,R,R,I,R,R) += 1;
+  a(I,I,R,R,R,I,I) += 1;
+  a(I,I,R,R,R,I,R) += 1;
+  a(I,I,R,R,R,R,I) += 1;
+  a(I,I,R,R,R,R,R) += 1;
+  a(I,R,I,I,I,I,I) += 1;
+  a(I,R,I,I,I,I,R) += 1;
+  a(I,R,I,I,I,R,I) += 1;
+  a(I,R,I,I,I,R,R) += 1;
+  a(I,R,I,I,R,I,I) += 1;
+  a(I,R,I,I,R,I,R) += 1;
+  a(I,R,I,I,R,R,I) += 1;
+  a(I,R,I,I,R,R,R) += 1;
+  a(I,R,I,R,I,I,I) += 1;
+  a(I,R,I,R,I,I,R) += 1;
+  a(I,R,I,R,I,R,I) += 1;
+  a(I,R,I,R,I,R,R) += 1;
+  a(I,R,I,R,R,I,I) += 1;
+  a(I,R,I,R,R,I,R) += 1;
+  a(I,R,I,R,R,R,I) += 1;
+  a(I,R,I,R,R,R,R) += 1;
+  a(I,R,R,I,I,I,I) += 1;
+  a(I,R,R,I,I,I,R) += 1;
+  a(I,R,R,I,I,R,I) += 1;
+  a(I,R,R,I,I,R,R) += 1;
+  a(I,R,R,I,R,I,I) += 1;
+  a(I,R,R,I,R,I,R) += 1;
+  a(I,R,R,I,R,R,I) += 1;
+  a(I,R,R,I,R,R,R) += 1;
+  a(I,R,R,R,I,I,I) += 1;
+  a(I,R,R,R,I,I,R) += 1;
+  a(I,R,R,R,I,R,I) += 1;
+  a(I,R,R,R,I,R,R) += 1;
+  a(I,R,R,R,R,I,I) += 1;
+  a(I,R,R,R,R,I,R) += 1;
+  a(I,R,R,R,R,R,I) += 1;
+  a(I,R,R,R,R,R,R) += 1;
+  a(R,I,I,I,I,I,I) += 1;
+  a(R,I,I,I,I,I,R) += 1;
+  a(R,I,I,I,I,R,I) += 1;
+  a(R,I,I,I,I,R,R) += 1;
+  a(R,I,I,I,R,I,I) += 1;
+  a(R,I,I,I,R,I,R) += 1;
+  a(R,I,I,I,R,R,I) += 1;
+  a(R,I,I,I,R,R,R) += 1;
+  a(R,I,I,R,I,I,I) += 1;
+  a(R,I,I,R,I,I,R) += 1;
+  a(R,I,I,R,I,R,I) += 1;
+  a(R,I,I,R,I,R,R) += 1;
+  a(R,I,I,R,R,I,I) += 1;
+  a(R,I,I,R,R,I,R) += 1;
+  a(R,I,I,R,R,R,I) += 1;
+  a(R,I,I,R,R,R,R) += 1;
+  a(R,I,R,I,I,I,I) += 1;
+  a(R,I,R,I,I,I,R) += 1;
+  a(R,I,R,I,I,R,I) += 1;
+  a(R,I,R,I,I,R,R) += 1;
+  a(R,I,R,I,R,I,I) += 1;
+  a(R,I,R,I,R,I,R) += 1;
+  a(R,I,R,I,R,R,I) += 1;
+  a(R,I,R,I,R,R,R) += 1;
+  a(R,I,R,R,I,I,I) += 1;
+  a(R,I,R,R,I,I,R) += 1;
+  a(R,I,R,R,I,R,I) += 1;
+  a(R,I,R,R,I,R,R) += 1;
+  a(R,I,R,R,R,I,I) += 1;
+  a(R,I,R,R,R,I,R) += 1;
+  a(R,I,R,R,R,R,I) += 1;
+  a(R,I,R,R,R,R,R) += 1;
+  a(R,R,I,I,I,I,I) += 1;
+  a(R,R,I,I,I,I,R) += 1;
+  a(R,R,I,I,I,R,I) += 1;
+  a(R,R,I,I,I,R,R) += 1;
+  a(R,R,I,I,R,I,I) += 1;
+  a(R,R,I,I,R,I,R) += 1;
+  a(R,R,I,I,R,R,I) += 1;
+  a(R,R,I,I,R,R,R) += 1;
+  a(R,R,I,R,I,I,I) += 1;
+  a(R,R,I,R,I,I,R) += 1;
+  a(R,R,I,R,I,R,I) += 1;
+  a(R,R,I,R,I,R,R) += 1;
+  a(R,R,I,R,R,I,I) += 1;
+  a(R,R,I,R,R,I,R) += 1;
+  a(R,R,I,R,R,R,I) += 1;
+  a(R,R,I,R,R,R,R) += 1;
+  a(R,R,R,I,I,I,I) += 1;
+  a(R,R,R,I,I,I,R) += 1;
+  a(R,R,R,I,I,R,I) += 1;
+  a(R,R,R,I,I,R,R) += 1;
+  a(R,R,R,I,R,I,I) += 1;
+  a(R,R,R,I,R,I,R) += 1;
+  a(R,R,R,I,R,R,I) += 1;
+  a(R,R,R,I,R,R,R) += 1;
+  a(R,R,R,R,I,I,I) += 1;
+  a(R,R,R,R,I,I,R) += 1;
+  a(R,R,R,R,I,R,I) += 1;
+  a(R,R,R,R,I,R,R) += 1;
+  a(R,R,R,R,R,I,I) += 1;
+  a(R,R,R,R,R,I,R) += 1;
+  a(R,R,R,R,R,R,I) += 1;
+  a(R,R,R,R,R,R,R) += 1;
+
+  cout << "The sum is: " << a(I,I,I,I,I,I,I) << "\n";
+}
+
+
 int main()
 {
-  test7();
+  test9();
   return 0;
 }
