@@ -1,5 +1,26 @@
 2002-05-15  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-82
+	
+	* doc/examples/xml.arts: Small conversion example.
+
+	* src/xml_io.{h,cc}: Header/footer functions renamed.
+	
+	(class ArtsXMLTag): Renamed member functions to match ARTS style.
+
+	Implemented Vector, Matrix, ArrayOfMatrix writing functions.
+
+	* src/m_xml.cc: Use generic read/write functions for all data
+	types.
+	
+	Removed dummy from Vector, Matrix, ArrayOfMatrix functions.
+
+	*** Still under development *** Reading only works for Numeric and
+	Index at the moment. *** Documentation still missing in most
+	parts.
+
+2002-05-15  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-81
 	
 	* src/xml_io.{h,cc}: Implemented XML parser.
