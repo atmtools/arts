@@ -119,9 +119,8 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   extern const ARRAY<SpeciesRecord> species_data;
 
   // This value is used to flag missing data both in species and
-  // isotope lists. This is based on the assumption that there are a
-  // lot more species than isotopes. Anyway, we also add 100, because
-  // at the moment we have only 3 species and more than 3 isotopes.
+  // isotope lists. Could be any number, it just has to be made sure
+  // that it is neither the index of a species nor of an isotope.
   const size_t missing = species_data.size() + 100;
 
   // We need a species index sorted by HITRAN tag. Keep this in a

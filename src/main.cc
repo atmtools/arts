@@ -519,9 +519,13 @@ int main (int argc, char **argv)
   define_wsv_map();
 
 
-  // While we are at it, we can also initialize the molecular data
-  // that we need for the absorption part: 
+  // While we are at it, we can also initialize the molecular data and
+  // the coefficients of the partition function that we need for the
+  // absorption part, and check that the inputs are sorted the same way:
   define_species_data();
+  define_q_data();
+  check_q_data();
+
 
   // And also the species map:
   define_species_map();

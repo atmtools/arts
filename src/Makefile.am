@@ -66,6 +66,7 @@ m_wfs.cc \
 absorption.cc \
 wsv_pointers.cc \
 species_data.cc \
+partition_function_data.cc \
 lineshapes.cc
 
 # When making changes to the list of sources above, please remember to

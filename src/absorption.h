@@ -16,7 +16,7 @@
    USA. */
 
 /** @file
-    Declarations required for the calculation of absorption ciefficients.
+    Declarations required for the calculation of absorption coefficients.
 
     @author Stefan Buehler
 */
@@ -535,6 +535,75 @@ ostream& operator << (ostream& os, const LineRecord& lr);
 
     @author Stefan Buehler  */
 void define_species_map();
+
+
+/** Contains the lookup data of the partition function coefficients
+    for one isotope. 
+    @author Axel von Engeln */
+class QIsotopeRecord{
+public:
+  /** Default constructor. Needed by make_array. */
+  QIsotopeRecord() { /* Nothing to do here */ }
+  /** Constructor that sets the values. */
+  QIsotopeRecord(const string&         name,
+		 const ARRAY<Numeric>& coeff)
+    : mname(name),
+      mcoeff(coeff)
+  {
+    // Some consistency checks whether the given data makes sense.
+#ifndef NDEBUG
+    {
+      /* 1. name must be given */
+      assert( (mname != "") );
+    }
+#endif // ifndef NDEBUG
+  }
+
+  const string&         Name()         const { return mname;  }
+  const ARRAY<Numeric>& Coeff()        const { return mcoeff; }
+  
+private:
+  /** Isotope names. */
+  string mname;
+  /** coefficients of the 3rd order polynmial in temperature:
+      c0,c1,c2,c3 */
+  ARRAY<Numeric> mcoeff;
+};
+
+
+/** Contains the lookup data for the partition function of each
+    species.
+    @author Axel von Engeln */
+class QRecord{
+public:
+  /** Default constructor. Needed by make_array. */
+  QRecord() { /* Nothing to do here */ }
+  /** Constructor used in define_q_data. */
+  QRecord(const string&      	         name,
+	  const ARRAY<QIsotopeRecord>&   isotope)
+    : mname(name),
+      misotope(isotope)
+  {
+    // Some consistency checks whether the given data makes sense.
+#ifndef NDEBUG
+      {
+	/* 1. name must be defined */
+	assert( (mname != "") );
+      }
+#endif // ifndef NDEBUG
+  }
+
+  const string&                   Name()      const { return mname;  }
+  const ARRAY<QIsotopeRecord>& Isotope()      const { return misotope;   }
+  
+private:
+  /** Species names. */
+  string mname;
+  /** isotope name (arts convention) and coefficients of the 3rd order
+      polynmial in temperature: c0,c1,c2,c3 */
+  ARRAY<QIsotopeRecord> misotope;
+};
+
 
 
 //------------------------------< Tag Group Stuff >------------------------------
