@@ -3079,9 +3079,9 @@ scat_fieldCalc(//WS Output:
   
   // Grid stepsize of zenith and azimuth angle grid, these are needed for the 
   // integration function. 
-  Vector grid_stepsize(2);
-  grid_stepsize[0] = 180/(za_grid_size - 1);
-  grid_stepsize[1] = 360/(Naa - 1);
+  // Vector grid_stepsize(2);
+  // grid_stepsize[0] = 180/(za_grid_size - 1);
+  // grid_stepsize[1] = 360/(Naa - 1);
     
   Tensor3 product_field(za_grid_size, Naa, stokes_dim, 0);
   
@@ -3175,10 +3175,9 @@ scat_fieldCalc(//WS Output:
                 // scat_field is also defined for all points inside the cloud
                 //box for each propagion angle
                 scat_field_org(scat_za_index, i)=
-                  AngIntegrate_trapezoid_opti(product_field_mat,
+                  AngIntegrate_trapezoid(product_field_mat,
                                               za_grid,
-                                              scat_aa_grid,
-                                              grid_stepsize);
+                                              scat_aa_grid);
                 
               }//end i loop
           }//end za_prop loop

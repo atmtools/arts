@@ -1,3 +1,11 @@
+2003-11-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-716
+
+	* src/m_scatrte.cc (scat_fieldCalc): Used *AngIntegrate_trapezoid* 
+	instead of *AngIntegrate_trapezoid_opti*. There seems to be a bug in
+	the optimized routine for very fine zenith angle resolution. 
+
 2003-11-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-715
