@@ -1416,7 +1416,11 @@ xml_read_from_stream (istream& is,
           is >> matrix (r, c);
           if (is.fail ())
             {
-              xml_parse_error ("Error while reading data");
+              ostringstream os;
+              os << "Error reading Matrix:"
+                 << "\n  Row   : " << r
+                 << "\n  Column: " << c;
+              xml_parse_error (os.str());
             }
         }
     }
@@ -1613,7 +1617,12 @@ xml_read_from_stream (istream& is,
               is >> tensor (p, r, c);
               if (is.fail ())
                 {
-                  xml_parse_error ("Error while reading data");
+                  ostringstream os;
+                  os << "Error reading Tensor3:"
+                     << "\n  Page  : " << p
+                     << "\n  Row   : " << r
+                     << "\n  Column: " << c;
+                  xml_parse_error (os.str());
                 }
             }
         }
@@ -1703,7 +1712,13 @@ xml_read_from_stream (istream& is,
                   is >> tensor (b, p, r, c);
                   if (is.fail ())
                     {
-                      xml_parse_error ("Error while reading data");
+                      ostringstream os;
+                      os << "Error reading Tensor4:"
+                         << "\n  Book  : " << b
+                         << "\n  Page  : " << p
+                         << "\n  Row   : " << r
+                         << "\n  Column: " << c;
+                      xml_parse_error (os.str());
                     }
                 }
             }
@@ -1801,7 +1816,14 @@ xml_read_from_stream (istream& is,
                       is >> tensor (s, b, p, r, c);
                       if (is.fail ())
                         {
-                          xml_parse_error ("Error while reading data");
+                          ostringstream os;
+                          os << "Error reading Tensor5:"
+                             << "\n  Shelf : " << s
+                             << "\n  Book  : " << b
+                             << "\n  Page  : " << p
+                             << "\n  Row   : " << r
+                             << "\n  Column: " << c;
+                          xml_parse_error (os.str());
                         }
                     }
                 }
@@ -1907,14 +1929,15 @@ xml_read_from_stream (istream& is,
                           is >> tensor (v, s, b, p, r, c);
                           if (is.fail ())
                             {
-                              ostringstream ostr;
-                              ostr << "Expected " << nvitrines * nshelves
-                                * nbooks * npages * nrows * ncols
-                                   << " elements, error after reading "
-                                   << v * s * b * p * r * c
-                                   << " elements.";
-                              xml_parse_error ("Error while reading data: "
-                                               + ostr.str());
+                              ostringstream os;
+                              os << "Error reading Tensor6:"
+                                 << "\n  Vitrine: " << v
+                                 << "\n  Shelf  : " << s
+                                 << "\n  Book   : " << b
+                                 << "\n  Page   : " << p
+                                 << "\n  Row    : " << r
+                                 << "\n  Column : " << c;
+                              xml_parse_error (os.str());
                             }
                         }
                     }
@@ -2129,7 +2152,10 @@ xml_read_from_stream (istream& is,
       is >> vector[n];
       if (is.fail ())
         {
-          xml_parse_error ("Error while reading data");
+          ostringstream os;
+          os << "Error reading Vector:"
+             << "\n  Element: " << n;
+          xml_parse_error (os.str());
         }
     }
 
