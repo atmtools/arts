@@ -37,8 +37,10 @@
   
 */
 
-#include "interpolation.h"
+#include <math.h>
+#include "array.h"
 #include "check_input.h"
+#include "interpolation.h"
 #include "logic.h"
 
 //! Macro for interpolation weight loops.

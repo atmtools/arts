@@ -41,7 +41,11 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <math.h>
+#include "check_input.h"
 #include "ppath.h"
+#include "math_funcs.h"
+#include "messages.h"
 #include "logic.h"
 
 extern const Numeric DEG2RAD;

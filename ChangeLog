@@ -1,3 +1,18 @@
+2002-05-13  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-73
+
+	* Cleaned up a bit regarding included .h files in ppath, check_input,
+	math_funcs and ???.
+	
+	* src/interpolation.cc: Had to include some more .h files (which, don't
+	remember now).
+
+	* src/m_ppath.cc (ppathCalc): Started on this function.
+
+	* src/check_input.cc: Changed alpha_grid and beta_grid to lat_grid and
+	lon_grid. Removed all assert functions.
+
 2002-05-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-72

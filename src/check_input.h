@@ -35,35 +35,12 @@
 #define checkinput_h
 
 
-#include <math.h>
-#include <stdexcept>
 #include "arts.h"
-#include "math_funcs.h"
 #include "matpackI.h"
 #include "matpackIII.h"
-#include "messages.h"          
 #include "mystring.h"
 
 
-
-void assert_size( 
-	ConstVectorView   x,
-	const Index&      l );
-
-void assert_size( 
-	ConstMatrixView   x,
-	const Index&      nrows,
-	const Index&      ncols );
-
-void assert_size( 
-	const Tensor3&    x,
-	const Index&      npages,
-	const Index&      nrows,
-	const Index&      ncols );
-
-void assert_maxdim_of_tensor(
-	const Tensor3&   x,
-	const Index&     dim );
 
 void chk_if_bool( 
         const String&   x_name,

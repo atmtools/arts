@@ -319,32 +319,22 @@ void define_md_data()
 	KEYWORDS( "value"   ),
 	TYPES(    Numeric_t )));
 
-  /* Just started to design the function, not yet implemented
   md_data.push_back
     ( MdRecord
       ( NAME( "ppathCalc" ),
 	DESCRIPTION
         (
-	 "\n"
-         "\n"
-         "Global input: \n"
-         "   \n"
-         "\n"
-         "Global output: \n"
-         "   \n"
-         "\n"
-         "Keywords:\n"
-         "   " 
+	 "To be written. The function is being implemented.\n"
+         ""
         ),
 	OUTPUT( ppath_ ),
-	INPUT( atmospheric_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
                r_geoid_, z_ground_, blackbody_ground_, 
                cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-  */
 
   md_data.push_back
     ( MdRecord

@@ -87,8 +87,8 @@ using namespace std;
 // for now, since it is still missing in the current version of EGCS
 // (egcs-2.91.66). Should be removed when stringstreams work as they
 // should in the standard EGCS distribution.
-//#include "sstream.h"
-#include <sstream>
+#include "sstream.h"
+//#include <sstream>
 
 
 //--------------------< Set floating point type >--------------------

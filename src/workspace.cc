@@ -407,7 +407,7 @@ void define_wsv_data()
      "\n"
      "A propagation path step is defined as the path between some point to\n"
      "a crossing with either the pressure, latitude or longitude grid,\n"
-     "and this agenda performs the calculations to determine such\n"
+     "and this agenda performs the calculations to determine such a\n"
      "partial propagation path. The starting point is normally a grid\n"
      "crossing point, but can also be an arbitrary point inside the\n"
      "atmosphere, such as the sensor position. Only points inside the model\n"

@@ -43,7 +43,6 @@
 #include <math.h>
 #include "arts.h"
 #include "file.h"
-#include "math_funcs.h"
 #include "messages.h"
 #include "auto_md.h"
 #include "make_array.h"

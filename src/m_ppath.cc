@@ -36,10 +36,34 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
+#include "ppath.h"
+
 
 
 
 ////////////////////////////////////////////////////////////////////////////
 //   The functions
 ////////////////////////////////////////////////////////////////////////////
+
+void ppathCalc(// WS Output:
+                     Ppath&          ppath,
+               // WS Input:
+               const Index&          atmosphere_dim,
+               const Vector&         p_grid,
+               const Vector&         lat_grid,
+               const Vector&         lon_grid,
+               const Tensor3&        z_field,
+               const Matrix&         r_geoid,
+               const Matrix&         z_ground,
+               const Index&          blackbody_ground,
+               const Index&          cloudbox_on, 
+               const ArrayOfIndex&   cloudbox_limits,
+               const Vector&         sensor_pos,
+               const Vector&         sensor_los )
+{
+  // Check input
+  
+
+}
+
 

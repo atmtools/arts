@@ -37,109 +37,9 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <stdexcept>
 #include "check_input.h"
 #include "logic.h"
-
-
-
-////////////////////////////////////////////////////////////////////////////
-//   Functions to assert the size of a vector, matrix or tensor.
-////////////////////////////////////////////////////////////////////////////
-
-//// assert_size (Vector) /////////////////////////////////////////////////////
-/** 
-    Asserts that a vector has the expected length.
-
-    \param    x   A variable of type Vector.
-    \param    l   The expected length of x.
-
-    \author Patrick Eriksson 
-    \date   2004-04-15
-*/
-void assert_size( 
-	ConstVectorView   x,
-	const Index&      l ) 
-{
-  assert( x.nelem() == l );
-}
-
-
-
-//// assert_size (Matrix) /////////////////////////////////////////////////////
-/** 
-    Asserts that a matrix has the expected size.
-
-    \param    x       A variable of type Matrix.
-    \param    nrows   The expected number of rows of x.
-    \param    ncols   The expected number of columns of x.
-
-    \author Patrick Eriksson 
-    \date   2004-04-15
-*/
-void assert_size( 
-	ConstMatrixView   x,
-	const Index&      nrows,
-	const Index&      ncols ) 
-{
-  assert( x.ncols() == ncols );
-  assert( x.nrows() == nrows );
-}
-
-
-
-//// assert_size (Tensor3) ////////////////////////////////////////////////////
-/** 
-    Asserts that a tensor of order 3 has the expected size.
-
-    \param    x       A variable of type Tensor3.
-    \param    npages  The expected number of pages of x.
-    \param    nrows   The expected number of rows of x.
-    \param    ncols   The expected number of columns of x.
-
-    \author Patrick Eriksson 
-    \date   2004-04-15
-*/
-void assert_size( 
-	const Tensor3&    x,
-	const Index&      npages,
-	const Index&      nrows,
-	const Index&      ncols ) 
-{
-  assert( x.ncols() == ncols );
-  assert( x.nrows() == nrows );
-  assert( x.npages() == npages );
-}
-
-
-
-//// assert_maxdim_of_sensor //////////////////////////////////////////////////
-/** 
-    Asserts that the effective dimension of a tensor of order 3 does not
-    exceed the expected value.
-
-    For dimensions not used, the size shall be 1.
-
-    \param    x     A variable of type Tensor3.
-    \param    dim   The expected effective dimension of x.
-
-    \author Patrick Eriksson 
-    \date   2004-04-15
-*/
-void assert_maxdim_of_tensor(
-	const Tensor3&   x,
-	const Index&     dim )
-{
-  assert( dim >= 1 );
-  assert( dim <= 3 );
-
-  if( dim == 1 )
-    {
-      assert( x.nrows() == 1 );
-      assert( x.ncols() == 1 );
-    }
-  else if( dim == 2 )
-    assert( x.ncols() == 1 );
-}
 
 
 
@@ -410,8 +310,8 @@ void chk_if_decreasing(
 
     \param    dim          The atmospheric dimensionality.
     \param    p_grid       The pressure grid.
-    \param    alpha_grid   The latitude grid.
-    \param    beta_grid    The longitude grid.
+    \param    lat_grid     The latitude grid.
+    \param    lon_grid     The longitude grid.
 
     \author Patrick Eriksson 
     \date   2004-04-15
@@ -419,39 +319,42 @@ void chk_if_decreasing(
 void chk_atm_grids( 
 	const Index&      dim,
 	ConstVectorView   p_grid,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid )
+	ConstVectorView   lat_grid,
+	ConstVectorView   lon_grid )
 {
+  // p_grid
   if( p_grid.nelem() < 2 )
     throw runtime_error( "The length of *p_grid* must be >= 2." );
   chk_if_decreasing( "p_grid", p_grid );
 
+  // lat_grid
   if( dim == 1 )
     {
-      if( alpha_grid.nelem() != 0 )
+      if( lat_grid.nelem() != 0 )
 	throw runtime_error(
-                          "For dim=1, the length of *alpha_grid* must be 0." );
+                          "For dim=1, the length of *lat_grid* must be 0." );
     }
   else
     {
-      if( alpha_grid.nelem() < 2 )
+      if( lat_grid.nelem() < 2 )
 	throw runtime_error(
-                         "For dim>1, the length of *alpha_grid* must be >=2.");
-      chk_if_increasing( "alpha_grid", alpha_grid );
+                         "For dim>1, the length of *lat_grid* must be >=2.");
+      chk_if_increasing( "lat_grid", lat_grid );
     }
 
+  // lon_grid
   if( dim < 3 )
     { 
-      if( beta_grid.nelem() != 0 )
+      if( lon_grid.nelem() != 0 )
 	throw runtime_error(
-                           "For dim<3, the length of *beta_grid* must be 0." );
+                           "For dim<3, the length of *lon_grid* must be 0." );
     }
   else
     {
-      if( beta_grid.nelem() < 2 )
+      if( lon_grid.nelem() < 2 )
 	throw runtime_error(
-                          "For dim=3, the length of *beta_grid* must be >=2.");
-      chk_if_increasing( "beta_grid", beta_grid );
+                          "For dim=3, the length of *lon_grid* must be >=2.");
+      chk_if_increasing( "lon_grid", lon_grid );
     }
 }
 
@@ -467,8 +370,8 @@ void chk_atm_grids(
     \param    x            A variable holding an atmospheric field.
     \param    dim          The atmospheric dimensionality.
     \param    p_grid       The pressure grid.
-    \param    alpha_grid   The latitude grid.
-    \param    beta_grid    The longitude grid.
+    \param    lat_grid   The latitude grid.
+    \param    lon_grid    The longitude grid.
 
     \author Patrick Eriksson 
     \date   2004-04-15
@@ -478,14 +381,14 @@ void chk_atm_field(
         const Tensor3&    x, 
 	const Index&      dim,
 	ConstVectorView   p_grid,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid )
+	ConstVectorView   lat_grid,
+	ConstVectorView   lon_grid )
 {
   Index npages=p_grid.nelem(), nrows=1, ncols=1;
   if( dim > 1 )
-    nrows = alpha_grid.nelem();
+    nrows = lat_grid.nelem();
   if( dim > 2 )
-    ncols = beta_grid.nelem();
+    ncols = lon_grid.nelem();
   if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ) 
     {
       ostringstream os;
@@ -510,8 +413,8 @@ void chk_atm_field(
     \param    x_name       The name of the atmospheric surface.
     \param    x            A variable holding an atmospheric surface.
     \param    dim          The atmospheric dimensionality.
-    \param    alpha_grid   The latitude grid.
-    \param    beta_grid    The longitude grid.
+    \param    lat_grid   The latitude grid.
+    \param    lon_grid    The longitude grid.
 
     \author Patrick Eriksson 
     \date   2004-04-15
@@ -520,14 +423,14 @@ void chk_atm_surface(
 	const String&     x_name,
         const Matrix&     x, 
 	const Index&      dim,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid )
+	ConstVectorView   lat_grid,
+	ConstVectorView   lon_grid )
 {
   Index ncols=1, nrows=1;
   if( dim > 1 )
-    nrows = alpha_grid.nelem();
+    nrows = lat_grid.nelem();
   if( dim > 2 )
-    ncols = beta_grid.nelem();
+    ncols = lon_grid.nelem();
   if( x.ncols()!=ncols || x.nrows()!=nrows ) 
     {
       ostringstream os;
