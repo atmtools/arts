@@ -1346,13 +1346,13 @@ void PWR98H2OAbsModel( MatrixView        xsec,
   const Numeric PWRws[15] = { 0.01349, 0.01491, 0.01080, 0.01350, 0.01541,
                               0.00900, 0.00788, 0.01275, 0.00983, 0.01095,
                               0.01313, 0.01320, 0.01140, 0.01253, 0.01275 };
+
   // T-exponent of self-broadening [1]
   const Numeric PWRxs[15] = { 0.61, 0.85, 0.54, 0.74, 0.89,
 			      0.52, 0.50, 0.67, 0.65, 0.64,
 			      0.72, 1.00, 0.68, 0.84, 0.78 };
-
-
-  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+ 
+   // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
   // standard values for the MPM87 model (P. W. Rosenkranz., Radio Science, 33(4), 919, 1998):
   const Numeric CC_PWR98 = 1.00000;
   const Numeric CL_PWR98 = 1.00000;
@@ -16276,8 +16276,8 @@ static int cs__0 = 0;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.19 $ */
-/*     created:	        $Date: 2003/12/08 11:02:39 $ */
+/*     revision:	        $Revision: 1.26.2.20 $ */
+/*     created:	        $Date: 2003/12/08 21:13:55 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

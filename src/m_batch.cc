@@ -353,10 +353,12 @@ void ybatchFromRadiosonde(// WS Output:
                           const ArrayOfString& cont_description_models,
                           const ArrayOfVector& cont_description_parameters,
 			  //Keyword
-			  const Index& fine_abs_grid)
+			  const Index& fine_abs_grid,
+                          const Index& interpolation_in_rh)
 {
   // Check value of the keyword
-  check_if_bool(fine_abs_grid , "finegrid keyword" );
+  check_if_bool(fine_abs_grid , "Finegrid keyword" );
+  check_if_bool(interpolation_in_rh , "Interpolation in RH keyword" );
 
   // Initialize ybatch:
   ybatch.resize( f_mono.nelem()*za_pencil.nelem(), radiosonde_data.nelem() );
@@ -443,20 +445,50 @@ void ybatchFromRadiosonde(// WS Output:
 	      t_abs.resize(p_abs.nelem());
 	      z_abs.resize(p_abs.nelem());
 	      
-	      // Interpolating the profiles on p_abs
+              // Interpolating the profiles on p_abs
 	      interpp (t_abs, p_raw, t_raw, p_abs);
-	      interpp (z_abs, p_raw, z_raw, p_abs);    
-	      
-	      // Create vmrs:
-	      Vector vmr_raw(n_rows + 1);
+	      interpp (z_abs, p_raw, z_raw, p_abs);
+              
+              // Create vmrs:
+	      Vector vmr_raw(n_rows + 1); 
 	      
 	      vmr_raw[0] = rd(0,3);
 	      vmr_raw[Range(1, n_rows)] = rd(Range(joker),3);   // H2O	 
-	      
-	      vmrs.resize(3, p_abs.nelem());
-	      
-	      // Interpolating H2O VMR on p_abs grid
-	      interpp (vmrs(0, Range(joker)), p_raw, vmr_raw, p_abs);
+              
+              vmrs.resize(3, p_abs.nelem());
+
+              // Checking whether the interpolation should be done 
+              // in vmr or RH
+              if (interpolation_in_rh)
+                {
+                  // Interpolating RH  on p_abs grid and converting back to
+                  // H2O VMR
+                  Vector sat_pres_raw(n_rows + 1);
+                  Vector sat_pres_abs(p_abs.nelem());
+                  Vector rh_raw(n_rows + 1);
+                  Vector rh_abs(p_abs.nelem());
+
+                  sat_pres_raw = e_eq_water(t_raw);
+
+                  sat_pres_abs = e_eq_water(t_abs);
+                  
+                  for ( Index j=0; j<rh_raw.nelem(); ++j )
+                    {
+                      rh_raw[j]  =  vmr_raw[j] * 100.0 / sat_pres_raw[j];
+                    }
+                  
+                  interpp (rh_abs, p_raw, rh_raw, p_abs);
+                  
+                  for ( Index j=0; j<rh_abs.nelem(); ++j )
+                    {
+                      vmrs(0, j)  =  rh_abs[j] * sat_pres_abs[j] / 100.0;
+                    }
+                }
+              else
+                {
+                  // Interpolating H2O VMR on p_abs grid
+                  interpp (vmrs(0, Range(joker)), p_raw, vmr_raw, p_abs);
+                }
 	      
 	      vmrs(1,Range(joker)) = 0.209;                     // O2 
 	      vmrs(2,Range(joker)) = 0.782;                     // N2

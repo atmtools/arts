@@ -3854,8 +3854,8 @@ md_data.push_back
                cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "finegrid" ),
-	TYPES(  Index_t   )));
+	KEYWORDS( "finegrid" ,  "interp_rh"),
+	TYPES(  Index_t, Index_t  )));
 
 md_data.push_back
     ( MdRecord

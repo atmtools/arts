@@ -1,3 +1,4 @@
+@ aii_checks
 ; ==========================================================================
 ; ####################### ARTS IDL INTERFACE PROCEDURE #####################
 ; ==========================================================================
@@ -328,7 +329,7 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.background = dummy
               SET_PLOT, 'PS'
               DEVICE, FILENAME=USERFILENAME, /times, /LANDSCAPE, $
-                      YSIZE=21.0, XSIZE=29.6, XOFFS=0.0,  YOFFS=29.6, /COLOR  
+                       YSIZE=21.0, XSIZE=29.6, XOFFS=0.0,  YOFFS=29.6, /COLOR  
 ;              DEVICE, /LANDSCAPE
 ;              DEVICE, /COLOR
 ;              DEVICE, SET_FONT='Times'
@@ -340,7 +341,8 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.color      = !P.background
 ;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME, /times, /PORTRAIT, /ENCAPSULATED, /COLOR
+              DEVICE, FILENAME=USERFILENAME, /times, /PORTRAIT, /ENCAPSULATED, $
+                      XSIZE=21.0, YSIZE=29.6, XOFFS=0.0,  YOFFS=0.0, /COLOR
 ;              DEVICE, /ENCAPSULATED
 ;              DEVICE, /COLOR
 ;              DEVICE, /PORTRAIT
@@ -353,7 +355,8 @@ if (STRLOWCASE(action) EQ 'begin') then begin
 ;              !P.color      = !P.background
 ;              !P.background = dummy
               SET_PLOT, 'PS'
-              DEVICE, FILENAME=USERFILENAME, /times, /LANDSCAPE, /ENCAPSULATED, /COLOR
+              DEVICE, FILENAME=USERFILENAME, /times, /LANDSCAPE, /ENCAPSULATED, /COLOR , $
+                      YSIZE=21.0, XSIZE=29.6, XOFFS=0.0,  YOFFS=29.6
 ;              DEVICE, /ENCAPSULATED
 ;              DEVICE, /COLOR
 ;              DEVICE, /LANDSCAPE

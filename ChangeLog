@@ -1,3 +1,12 @@
+2003-12-08  Viju O.-J.  <vojohn@uni-bremen.de>
+
+	* arts-1-0-148
+	
+	* src/m_batch.cc (ybatchFromRadiosonde): Added keyword interp_rh 
+	to do the interpolation of water vapor profile in RH.
+	
+	* src/atm_funcs.cc (e_eq_ice): Initialized e_eq.
+
 2003-12-08  Mashrab Kuvatov  <kmashrab@sat.physik.uni-bremen.de>
 	
 	* arts-1-0-147

@@ -1009,6 +1009,9 @@ Vector e_eq_water(
   c = -2.711193e-2;
   d = 1.673952e-5;
   e = 2.433502;
+  
+  // Initializing e_eq
+  e_eq.resize(t.nelem());
 
   for ( cur_elem = 0; cur_elem < t.nelem(); cur_elem++ )
     {
@@ -1050,6 +1053,9 @@ Vector e_eq_ice(
   c = 1.0613868e-2;
   d = -1.3198825e-5;
   e = -0.49382577;
+
+  // Initializing e_eq
+  e_eq.resize(t.nelem());
 
   for ( cur_elem = 0; cur_elem < t.nelem(); cur_elem++ )
     {
