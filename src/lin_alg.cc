@@ -39,7 +39,7 @@
 #include "make_vector.h"
 #include "array.h"
 #include "logic.h"
-
+#include <iostream>
 
 //! LU decomposition.
 /*!
@@ -70,11 +70,14 @@ ludcmp(MatrixView LU,
       indx[i]= i;
       big = 0.0;
       for (Index j=0; j<dim; j++)
-        if ((temp = fabs(LU(i,j))) > big) big = temp;
-      if (big == 0)
+        {
+          if ((temp = fabs(LU(i,j))) > big)
+            big = temp;
+        }
+      if (big == 0.)
 	throw runtime_error("ludcmp: Matrix is singular");
       vv[i] = 1.0/big; // save scaling
-    }
+      }
   
   for (Index j=0; j<dim; j++)
     {
@@ -208,14 +211,16 @@ matrix_exp(MatrixView F,
   assert(is_size(F,n,n));
 
   A_norm_inf = norm_inf(A);
+
   j = 1 +  floor(1./log(2.)*log(A_norm_inf));
+  
   if(j<0) j=0.;
   Index j_index = (Index)(j);
 
   // Scale matrix
   F = A;
   F /= pow(2,j);
-
+ 
   /* The higher q the more accurate is the computation, 
      see user guide for accuracy */
   //  Index q = 8;
@@ -238,12 +243,12 @@ matrix_exp(MatrixView F,
       D += cX;			// D = D + (-1)^k*c*X
     }
 
-
   /*Solve the equation system DF=N for F using LU decomposition,
    use the backsubstitution routung for columns of N*/ 
 
    /* Now use X  for the LU decomposition matrix of D.*/
   ArrayOfIndex indx(n);
+
   ludcmp(X, indx, D);
 
   for(Index i=0; i<n; i++)
@@ -277,15 +282,15 @@ matrix_exp(MatrixView F,
 Numeric 
 norm_inf(ConstMatrixView A)
 {
-  const Index n = A.ncols();  
+  const Index n = A.nrows();  
   Vector row_sum(n);
   Numeric norm_inf;
   
-  for(Index j=0; j<A.ncols(); j++)
+  for(Index j=0; j<A.nrows(); j++)
     {
       //Calculate the row sum for all rows
       for(Index i=0; i<A.ncols(); i++)
-	row_sum[j] += A(i,j);
+	row_sum[j] += fabs(A(i,j));
       //Pick out the row with the highest row sum
       if(j>0 && row_sum[j] < row_sum[j-1])
 	row_sum[j] = row_sum[j-1];

@@ -1045,7 +1045,7 @@ void CloudboxGetIncoming(// WS Output:
       sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[0],
                                                          0,0);
 
-      for (Index scat_za_index = 0; scat_za_index < Nza-1; scat_za_index ++)
+      for (Index scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
         {
           sensor_los(0, 0) =  scat_za_grid[scat_za_index];
       
@@ -1074,7 +1074,7 @@ void CloudboxGetIncoming(// WS Output:
        sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[1],
                                                0,0);
        
-      for (Index scat_za_index = 0; scat_za_index < Nza; ++ scat_za_index)
+      for (Index scat_za_index = 0; scat_za_index < Nza;  scat_za_index ++)
         {
           sensor_los(0, 0) =  scat_za_grid[scat_za_index];
 

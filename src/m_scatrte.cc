@@ -806,7 +806,6 @@ i_fieldUpdate1D(// WS Output:
               cout << "sca_vec:..." << sca_vec << endl;
               cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
                 /ext_mat(0,0);
-              cout << "sca_vec:..." << sca_vec << endl;
               cout << "abs_vec:..." << abs_vec << endl;
               cout << "ext_mat:..." << ext_mat << endl;
 
@@ -1034,7 +1033,7 @@ stokes_vecGeneral(//WS Output and Input:
   Matrix ext_mat_ds(stokes_dim, stokes_dim);
   ext_mat_ds = ext_mat;
   ext_mat_ds *= -l_step; // ext_mat = -ext_mat*ds
-
+  
   Index q = 10;  // index for the precision of the matrix exponential function
   Matrix exp_ext_mat(stokes_dim, stokes_dim);
   matrix_exp(exp_ext_mat, ext_mat_ds, q);
