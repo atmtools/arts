@@ -48,3 +48,9 @@ bofstream &operator<< <double> (bofstream &bof, double n);
 template
 bofstream &operator<< <float> (bofstream &bof, float n);
 
+template
+bofstream &operator<< <int> (bofstream &bof, int n);
+
+template
+bofstream &operator<< <long> (bofstream &bof, long n);
+

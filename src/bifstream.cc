@@ -48,3 +48,9 @@ bifstream &operator>> <double> (bifstream &bif, double &n);
 template
 bifstream &operator>> <float> (bifstream &bif, float &n);
 
+template
+bifstream &operator>> <int> (bifstream &bif, int &n);
+
+template
+bifstream &operator>> <long> (bifstream &bif, long &n);
+
