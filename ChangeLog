@@ -1,3 +1,19 @@
+2003-06-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-586
+
+	* src/xml_io_instantiation.h, src/xml_io_array_types.{cc,h}: Added
+	Array<IsotopeRecord> reading/writing routines.
+
+	* src/xml_io_instantiation.h, src/xml_io_compound_types.{cc,h}: Added
+	IsotopeRecord reading/writing routines.
+	Completed SpeciesRecord routines.
+
+	* src/make_array.h: Added constructor to convert normal array to
+	MakeArray.
+
+	* src/test_xml.cc: Updated to test writing of species_data.
+
 2003-06-24  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-585
@@ -9,7 +25,6 @@
 
 	* src/test_zeemanproperties.cc: Minor changes - changed units to SI.
 	
-
 2003-06-23  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-584
