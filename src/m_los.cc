@@ -760,6 +760,43 @@ void r_geoidWGS84(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2001-01-22
+*/
+void NoGround( 
+              Numeric&   z_ground,
+              Numeric&   t_ground,
+              VECTOR&    e_ground,
+        const Numeric&   z_keyword )
+{
+  z_ground = z_keyword;
+  t_ground = 0;
+  resize( e_ground, 0 );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-22
+*/
+void NoRefraction( 
+              int&       refr,
+              VECTOR&    refr_index,
+              Numeric&   l_step_refr )
+{
+  refr = 0;
+  resize( refr_index, 0 );
+  l_step_refr = 0;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2000-?-?
 */
 void losCalc(       LOS&        los,
@@ -779,13 +816,17 @@ void losCalc(       LOS&        los,
   // Some checks                                                      
   if ( z_ground < z_abs[0] )
     throw runtime_error(
-      "There is a gap between the ground and the lowest absorption altitude");
+      "There is a gap between the ground and the lowest absorption altitude.");
   if ( z_plat < z_ground )
-    throw runtime_error("Your platform altitude is below the ground");
+    throw runtime_error("Your platform altitude is below the ground.");
   if ( z_plat < z_abs[0] )  
     throw runtime_error(
-      "The platform cannot be below the lowest absorption altitude");
-
+      "The platform cannot be below the lowest absorption altitude.");
+  if ( refr && ( p_abs.size() != refr_index.size() ) )
+    throw runtime_error(
+      "Refraction is turned on, but the length of refr_index does not match\n"
+      "the length of p_abs (are dummy vales used?).");
+    
   // Reallocate the l_step, ground, start and stop vectors
   resize( los.p,      n	);
   resize( los.l_step, n	);
@@ -819,52 +860,6 @@ void losCalc(       LOS&        los,
   else
     los_inside( los, z_plat, za, l_step, atm_limit, z_ground, r_geoid, refr, 
                                      z_abs, p_abs, refr_index, l_step_refr );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void losNoRefraction(
-                    LOS&        los,
-              const Numeric&    z_plat,
-              const VECTOR&     za,
-              const Numeric&    l_step,
-              const VECTOR&     p_abs,
-              const VECTOR&     z_abs,
-              const Numeric&    z_ground,
-              const Numeric&    r_geoid )
-{
-  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) , z_ground,
-                                                                    r_geoid ); 
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void losUpward(
-                    LOS&        los,
-              const Numeric&    z_plat,
-              const VECTOR&     za,
-              const Numeric&    l_step,
-              const VECTOR&     p_abs,
-              const VECTOR&     z_abs,
-              const Numeric&    r_geoid )
-{
-  if ( max(za) > 90 )
-    throw runtime_error("At least one zenith angle > 90 degrees, that is, not upwards. Use losCalc or losNoRefraction.");
-
-  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) , z_plat,
-                                                                    r_geoid ); 
 }
 
 
@@ -1048,11 +1043,17 @@ void yRte (
   VECTOR   y_ground(f_mono.size()); 
   if ( any_ground(los.ground) )  
   {
-    out2 << "  There are intersections with the ground.\n";
-    planck( y_ground, f_mono, t_ground );
+    if ( t_ground <= 0 )
+      throw runtime_error(
+          "There are intersections with the ground, but the ground\n"
+          "temperature is set to be <=0 (are dummy values used?).");
     if ( e_ground.size() != nf )
       throw runtime_error(
-          "The frequency and ground emission vectors have different lengths.");
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+    out2 << "  There are intersections with the ground.\n";
+    planck( y_ground, f_mono, t_ground );
   }
 
   // Loop zenith angles
@@ -1084,29 +1085,6 @@ void yRte (
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void yRteNoGround (
-                    VECTOR&          y,
-              const LOS&             los,   
-              const VECTOR&          f_mono,
-              const VECTOR&          y_space,
-              const ARRAYofMATRIX&   source,
-              const ARRAYofMATRIX&   trans )
-{
-  if ( any_ground(los.ground) )  
-    throw runtime_error("There is at least one intersection with the ground "
-                        "and this function cannot be used.");
-
-  yRte( y, los, f_mono, y_space, source, trans, VECTOR(0), 0.0 );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
 void yBl (
                     VECTOR&          y,
               const LOS&             los,   
@@ -1128,10 +1106,12 @@ void yBl (
   // Check if the ground emission vector has the correct length
   if ( any_ground(los.ground) )  
   {
-    out2 << "  There are intersections with the ground.\n";
     if ( e_ground.size() != nf )
-      throw runtime_error("The frequency and ground emission vectors have "
-                          "different lengths.");
+      throw runtime_error(
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+    out2 << "  There are intersections with the ground.\n";
   }
         
   // Loop zenith angles
@@ -1152,19 +1132,6 @@ void yBl (
     iy0 += nf;           
   }
   out3 << "\n";
-}
-
-
-
-void yBlNoGround (
-                    VECTOR&          y,
-              const LOS&             los,   
-              const ARRAYofMATRIX&   trans )
-{
-  if ( any_ground(los.ground) )  
-    throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
-
-  yBl( y, los, trans, VECTOR(0) );
 }
 
 

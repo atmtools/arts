@@ -89,15 +89,13 @@ void k_append (
   const size_t  nri2 = k_names.size();
         size_t  iri;
 
-
   MATRIX ktemp(ny1,nx1), ktemp_index(nri1,2), ktemp_aux(nx1,3);
   ARRAYofstring ktemp_names(nri1);
   if ( nx1 > 0 )
   {
-    // Check that sizes match
     if ( ny1 != ny2 )
       throw runtime_error(
-            "The two WF matrices have different number of rows."); 
+            "The two WF matrices have different number of rows." ); 
 
     // Make copy of Kx data
     copy( kx,       ktemp );
@@ -135,78 +133,6 @@ void k_append (
     kx_index[nri1+iri][1] = nx1 + (iri+1)*l - 1;
   } 
 }
-/*
-{
-  // Size of Kx and K
-  const size_t  ny1  = kx.nrows();         // length of measurement vector (y)
-  const size_t  nx1  = kx.ncols();         // length of state vector (x)
-  const size_t  nri1 = kx_names.size();  // number of retrieval identities
-  const size_t  ny2  = k.nrows();  
-  const size_t  nx2  = k.ncols();  
-  const size_t  nri2 = k_names.size();
-        size_t  iy, ix, iri;
-
-  MATRIX ktemp(ny1,nx1), ktemp_index(nri1,2), ktemp_aux(nx1,3);
-  ARRAYofstring ktemp_names(nri1);
-  if ( nx1 > 0 )
-  {
-    // Check that sizes match
-    if ( ny1 != ny2 )
-      throw runtime_error(
-            "The two WF matrices have different number of rows."); 
-
-    // Make copy of Kx data
-    copy( kx,       ktemp );
-    copy( kx_index, ktemp_index );
-    copy( kx_aux,   ktemp_aux );
-    for ( iri=0; iri<nri1; iri++ )
-      ktemp_names[iri] = kx_names[iri];
-  }
-
-  // Reallocate the Kx data
-  resize( kx,       ny2,       nx1+nx2 );
-  resize( kx_names, nri1+nri2          );
-  resize( kx_index, nri1+nri2, 2       );
-  resize( kx_aux,   nx1+nx2,   3       );
-
-  // Move Kx to Ktot
-  if ( nx1 > 0 )
-  {
-    for ( ix=0; ix<nx1; ix++ )
-    {
-      for ( iy=0; iy<ny1; iy++ )
-        kx[iy][ix]  = ktemp[iy][ix];
-      kx_aux[ix][0] = ktemp_aux[ix][0];
-      kx_aux[ix][1] = ktemp_aux[ix][1];
-      kx_aux[ix][2] = ktemp_aux[ix][2];
-    }    
-    for ( iri=0; iri<nri1; iri++ )
-    {
-      kx_names[iri]    = ktemp_names[iri];
-      kx_index[iri][0] = ktemp_index[iri][0];
-      kx_index[iri][1] = ktemp_index[iri][1];
-    } 
-  }
-
-  // Move K to Ktot
-  for ( ix=0; ix<nx2; ix++ )
-  {
-    for ( iy=0; iy<ny2; iy++ )
-      kx[iy][nx1+ix]  = k[iy][ix];
-    kx_aux[nx1+ix][0] = k_aux[ix][0];
-    kx_aux[nx1+ix][1] = k_aux[ix][1];
-    kx_aux[nx1+ix][2] = k_aux[ix][2];
-  }    
-  // Calculate the vector length for each identity in K
-  size_t l = (size_t) floor(nx2/nri2);
-  for ( iri=0; iri<nri2; iri++ )
-  {
-    kx_names[nri1+iri] = k_names[iri];
-    kx_index[nri1+iri][0] = nx1 + (iri-1)*l;
-    kx_index[nri1+iri][1] = nx1 + iri*l - 1;
-  } 
-}
-*/
 
 
 
@@ -216,7 +142,7 @@ void k_append (
 
 //// p2grid ////////////////////////////////////////////////////////////////
 /**
-   Converts a pressure grid to grid fitting the grid functions below.
+   Converts a pressure grid to a grid fitting the grid functions below.
 
    -log(p) is used as altitude variable. The minus is included to get
     increasing values, a demand for the grid functions. 
@@ -1033,8 +959,6 @@ void sourceloswfs (
    The expression used are described in sub-section 5 of the AUG section
    "Atmospheric WFs".
 
-   The species WF matrix is appended to the total WF matrix (using k_join).
-
    The avaliable units are
      1 fractions of linearisation state 
      2 volume mixing ratio
@@ -1105,7 +1029,6 @@ void k_species (
         VECTOR  vmr, p, t;                 // for conversion to VMR and ND 
         VECTOR  nd;                        // number density
 
-
   // Set up K and additional data. Set all values of K to 0
   resize(k,nza*nv,ntg*np);
   setto( k, 0.0);
@@ -1123,16 +1046,7 @@ void k_species (
     // Present tag nr
     tg = tg_nr[itg];
 
-    // Check that the selected tag nr exist
-    if ( tg < 0 )
-      throw runtime_error("The tag nr must be >= 0."); 
-    if ( tg > abs_per_tg.size()-1 )
-      throw runtime_error("You have selected a non-existing tag nr."); 
-
-    if ( ntg==1 )
-      out2 << "  Doing tag " << tg << "\n";
-    else
-      out2 << "  Doing tag " << tg << " (" << itg << " of " << ntg << ")\n";
+    out2 << "  Doing " << tags[tg][0].Name() << "\n";
 
     // Fill K_NAMES and K_INDEX
     k_names[itg]   = tags[tg][0].Name();
@@ -1201,10 +1115,6 @@ void k_species (
         // Get the LOS points affected by each retrieval point
 	//        lplos = -1.0 * log(los.p[iza]);
         p2grid( lplos, los.p[iza] );
-	  //resize( lplos, los.p[iza].size() );
-	  //copy( los.p[iza], lplos );
-	  //transf( lplos, log, lplos );
-	  //copy( scaled(lplos,-1), lplos );
         grid2grid_index( is, lplos, lgrid );
 
         // Loop retrieval points
@@ -1255,10 +1165,9 @@ void k_species (
    "Atmospheric WFs".
 
    The continuum is fitted be determining an off-set at a number of
-   points (order+1) that are evenly spread between the lowest and
-   highest frequency of f_mono.
-
-   The WF matrix is appended to the total WF matrix (using k_join).
+   points (order+1) that are evenly spread between the frequencies
+   specified by the two index given. The weighting functions are zero
+   outside these limits.
 
    \retval   k            weighting function matrix
    \retval   k_names      identity name(s)
@@ -1268,6 +1177,8 @@ void k_species (
    \param    f_mono       frequency absoprtion grid
    \param    k_grid       retrieval grid
    \param    order        polynomial order
+   \param    ilow         index for lower frequency limit
+   \param    iupp         index for upper frequency limit
 
    \author Patrick Eriksson
    \date   2000-09-15
@@ -1275,6 +1186,10 @@ void k_species (
    Adapted to MTL. 
    \date   2001-01-05
    \author Stefan Buehler
+
+   Made it possible to have arbitrary frequency limits (ilow and iupp).
+   \date   2001-01-21
+   \author Patrick Eriksson
 */
 void k_contabs (
                     MATRIX&          k,
@@ -1284,13 +1199,15 @@ void k_contabs (
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
               const VECTOR&          k_grid,
-              const size_t&          order )
+              const size_t&          order,
+              const size_t&          ilow,
+              const size_t&          iupp )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
-  const size_t  nv  = f_mono.size();        // number of frequencies
   const size_t  np  = k_grid.size();        // number of retrieval altitudes
   const size_t  npoints = order+1;          // number of off-set points
+  const size_t  nv  = f_mono.size();        // number of frequencies
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1307,13 +1224,21 @@ void k_contabs (
         size_t  iv, iv0;                   // Frequency indices
         size_t  i1, iw;                    // weight indices
 
+  // Frequency limits
+  if ( ilow > iupp )
+    throw logic_error("The frequency limits must be ordered.");
+  if ( ilow < 0 )
+    throw logic_error("The index for the lower limit must be >=0.");
+  if ( iupp >= nv )
+    throw logic_error(
+                   "The index for the upper limit is above length of f_mono.");
+
   // Other variables
         VECTOR  fpoints;                   // frequencies of the off-set points
         VECTOR  b(nv);                     // fit base function
         MATRIX  is;                        // matrix for storing LOS index
         VECTOR  w;                         // weights for LOS WFs
         VECTOR  a(nv);                     // temporary vector
-
 
   // Check that the selected polynomial order
   if ( order < 0 )
@@ -1326,7 +1251,7 @@ void k_contabs (
   resize(k_aux,npoints*np,3);
 
   // Calculate the frequencies of the off-set points
-  nlinspace( fpoints, f_mono[0], f_mono[nv-1], npoints );
+  nlinspace( fpoints, f_mono[ilow], f_mono[iupp], npoints );
 
   // The calculations
   // Loop order:
@@ -1364,8 +1289,8 @@ void k_contabs (
       {
         if ( ip != ipoint )
 	{ 
-          for ( iv=0; iv<nv; iv++ )
-            b[iv] *= (f_mono[iv]-fpoints[ip]) / (fpoints[ipoint]-fpoints[ip]);
+          for ( iv=ilow; iv<=iupp; iv++ )
+            b[iv] *= (f_mono[iv]-fpoints[ip]) / ( fpoints[ipoint]-fpoints[ip]);
 	}
       }
     }
@@ -1404,7 +1329,7 @@ void k_contabs (
             // This is possible as the columns of dkappa/dkp are identical.  
             setto( a, 0.0 );                     
             i1 = (size_t)is[ip][0];       // first LOS point to consider
-            for ( iv=0; iv<nv; iv++ )
+            for ( iv=ilow; iv<=iupp; iv++ )
 	    {
               for ( iw=i1; iw<=(size_t)is[ip][1]; iw++ )
                 a[iv] += absloswfs[iza][iv][iw] * w[iw-i1];
@@ -1437,8 +1362,6 @@ void k_contabs (
 
    The expression used are described in sub-section 7 of the AUG section
    "Atmospheric WFs".
-
-   The temperature WF matrix is appended to the total WF matrix (using k_join).
 
    \retval   k                 weighting function matrix
    \retval   k_names           identity name(s)
@@ -1708,31 +1631,6 @@ void absloswfsCalc (
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void absloswfsNoGround (
-                    ARRAYofMATRIX&   absloswfs,
-              const LOS&             los,   
-              const ARRAYofMATRIX&   source,
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          y,
-              const VECTOR&          y_space,
-              const VECTOR&          f_mono )
-{
-  if ( any_ground(los.ground) )  
-    throw runtime_error("There is at least one intersection with the ground "
-                        "and this function cannot be used.");
-
-  absloswfsCalc( absloswfs, los,source, trans, y, y_space, f_mono, VECTOR(0), 
-                                                                        -1.0 );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
 void kSpecies (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1781,9 +1679,8 @@ void kSpeciesAll (
               const string&          unit )
 {
   const size_t  ntg = abs_per_tg.size();     // number of retrieval tags
-  ARRAYofsizet  tg_nr;
+  ARRAYofsizet  tg_nr(ntg);
   
-  resize(tg_nr,ntg);
   for ( size_t i=0; i<ntg; i++ )
     tg_nr[i] = i;
 
@@ -1809,7 +1706,53 @@ void kContAbs (
               const VECTOR&          k_grid,
               const int&             order )
 {
-  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order );
+  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
+                                                          0, f_mono.size()-1 );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-01-21
+*/
+void kContAbsSpecifiedLimits (
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const LOS&             los,           
+              const ARRAYofMATRIX&   absloswfs,
+              const VECTOR&          f_mono,
+              const VECTOR&          k_grid,
+		    const int&             order,
+              const Numeric&         f_low,
+              const Numeric&         f_high )
+{
+  if ( f_low > f_high )
+    throw runtime_error(
+       "The lower frequency limit has a higher value than the upper limit." ); 
+
+  const INDEX   nf = f_mono.size();
+        INDEX   i_low, i_high;
+  for( i_low=0; i_low<nf && f_mono[i_low] < f_low; i_low++ )
+    {}
+  cout << "ilow: " << i_low << "\n";
+  if ( i_low == nf )
+    throw runtime_error(
+       "The lower frequency limit is above all values of f_mono." ); 
+
+  for( i_high=i_low; i_high<nf && f_mono[i_high] <= f_high; i_high++ )
+    {}
+  cout << "ihigh: " << i_high << "\n";
+  if ( i_high == 0 )
+    throw runtime_error(
+       "The upper frequency limit is below all values of f_mono." ); 
+  i_high--;
+
+  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
+                                                              i_low, i_high );
 }
 
 
@@ -1843,38 +1786,6 @@ void kTempNoHydro (
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
                   t_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
                   lineshape_norm, abs, trans, e_ground, k_grid );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void kTempNoHydroNoGround (
-			         MATRIX&          k,
-			         ARRAYofstring&   k_names,
-			         MATRIX&          k_aux,
-			   const TagGroups&       tag_groups,
-			   const LOS&             los,           
-			   const ARRAYofMATRIX&   absloswfs,
-			   const VECTOR&          f_mono,
-			   const VECTOR&          p_abs,
-			   const VECTOR&          t_abs,
-			   const VECTOR&          h2o_abs,	 
-			   const ARRAYofVECTOR&   vmrs,
-			   const ARRAYofARRAYofLineRecord& lines_per_tg,
-			   const ARRAYofsizet&    lineshape,
-			   const ARRAYofsizet&    lineshape_norm,
-			   const MATRIX&          abs,            
-			   const ARRAYofMATRIX&   trans,
-			   const VECTOR&          k_grid )
-{
-  k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs, t_abs, 
-		  h2o_abs, vmrs, lines_per_tg, lineshape, lineshape_norm, abs,
-                  trans, VECTOR(0), k_grid );
 }
 
 
@@ -2016,6 +1927,117 @@ void kDiffHFast(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2001-01-21
+ */
+void kPointingOffSet(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const Numeric&         z_plat,
+              const VECTOR&          za_pencil,
+              const Numeric&         l_step,
+              const VECTOR&          p_abs,
+              const VECTOR&          z_abs,
+              const VECTOR&          t_abs,
+              const VECTOR&          f_mono,
+              const int&             refr,
+              const Numeric&         l_step_refr,
+              const VECTOR&          refr_index,
+              const Numeric&         z_ground,
+              const Numeric&         r_geoid,
+              const MATRIX&          abs,
+              const VECTOR&          y_space,
+              const VECTOR&          e_ground,
+              const Numeric&         t_ground,
+              const VECTOR&          y,
+              const Numeric&         delta )
+{
+  // Create new zenith angle grid
+  const INDEX  nza = za_pencil.size();
+  VECTOR za_new( nza );
+  copy( za_pencil, za_new );
+  add( za_new, VECTOR(nza,delta), za_new );
+
+  out2 << "  ----- Messages from losCalc: --------\n";
+  LOS los;
+  losCalc( los, z_plat, za_new, l_step, p_abs, z_abs, refr, l_step_refr, 
+                                              refr_index, z_ground, r_geoid );
+  out2 << "  -------------------------------------\n";
+
+  ARRAYofMATRIX source, trans;
+  out2 << "  ----- Messages from sourceCalc: -----\n";
+  sourceCalc( source, los, p_abs, t_abs, f_mono );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from transCalc: ------\n";
+  transCalc( trans, los, p_abs, abs );
+  out2 << "  -------------------------------------\n";
+  VECTOR y_new;
+  out2 << "  ----- Messages from yRte: -----------\n";
+  yRte( y_new, los, f_mono, y_space, source, trans, e_ground, t_ground );
+  out2 << "  -------------------------------------\n";
+
+  // Make k one-column matrix of the right size:
+  const INDEX   nv = y.size();
+  resize( k, nv, 1 );
+
+  // k = (y_new - y) / delta
+  VECTOR dummy( nv );
+  add( y_new, scaled(y,-1), dummy );
+  copy( scaled(dummy,1/delta), columns(k)[0] );
+
+  resize( k_names, 1 );
+  k_names[0] = "Pointing off-set";
+  resize( k_aux, 1, 3 );
+  setto( k_aux, 0.0 );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-21
+ */
+void kCalibration(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const VECTOR&          y,
+              const VECTOR&          y_ref,
+       	      const string&          name )
+{
+  const INDEX   ny = y.size();
+  const INDEX   nf = y_ref.size();
+  const INDEX   nza = INDEX( floor(ny/nf) );
+
+  if ( nza*nf != ny )
+    throw runtime_error("The length of y_ref does not match the length of y");
+  
+  // Make k one-column matrix of the right size:
+  resize( k, ny, 1 );
+
+  // k = y - y_ref
+  INDEX j,i,i0;
+  for ( j=0; j<nza; j++ )    
+  {
+    i0 = j*nf;
+    for ( i=0; i<nf; i++ )
+      k[i0+i][0] = y[i0+i] - y_ref[i];
+  }
+
+  resize( k_names, 1 );
+  k_names[0] = "Calibration";
+  resize( k_aux, 1, 3 );
+  setto( k_aux, 0.0 );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2000-?-?
 */
 void kxInit (
@@ -2093,23 +2115,30 @@ void kbAppend (
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2000-?-?
+   \date   2001-01-21
 */
-void kxAppendUsingH (
-		    MATRIX&          kx,
-		    ARRAYofstring&   kx_names,
-		    MATRIX&          kx_index,
-		    MATRIX&          kx_aux,
-              const MATRIX&          k,
-              const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux,
-              const Hmatrix&         h,
-              const string&          hname )
+void kxAllocate (
+                    MATRIX&          kx,
+                    ARRAYofstring&   kx_names,
+                    MATRIX&          kx_index,
+                    MATRIX&          kx_aux,
+              const VECTOR&          y,
+              const string&          y_name,
+              const int&             ni,
+              const int&             nx )
 {
-  out2 << "  Applies " << hname << "\n";
-  MATRIX k2;
-  h_apply( k2, h, k );
-  k_append( kx, kx_names, kx_index, kx_aux, k2, k_names, k_aux );
+  const INDEX  ny = y.size();
+
+  out2 << "  Allocates memory for a weighting function matrix having:\n" 
+       << "    " << ny << " frequency points\n"
+       << "    " << nx << " state variables\n"
+       << "    " << ni << " retrieval identities\n";
+
+  resize( kx,       ny, nx );
+  resize( kx_names, ni     );
+  resize( kx_index, ni, 2  );
+  setto(  kx_index, -1.0 );
+  resize( kx_aux,   nx, 3  );
 }
 
 
@@ -2118,21 +2147,108 @@ void kxAppendUsingH (
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2000-?-?
+   \date   2001-01-21
 */
-void kbAppendUsingH (
+void kbAllocate (
+                    MATRIX&          kb,
+                    ARRAYofstring&   kb_names,
+                    MATRIX&          kb_index,
+                    MATRIX&          kb_aux,
+              const VECTOR&          y,
+              const string&          y_name,
+              const int&             ni,
+              const int&             nx )
+{
+  kxAllocate( kb, kb_names, kb_index, kb_aux, y, y_name, ni, nx );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-21
+*/
+void kxPutInK (
+		    MATRIX&          kx,
+		    ARRAYofstring&   kx_names,
+		    MATRIX&          kx_index,
+		    MATRIX&          kx_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux )
+{
+  const INDEX  ny  = kx.nrows();
+  const INDEX  nx  = kx.ncols();
+  const INDEX  ni  = kx_names.size();
+  const INDEX  nx2 = k.ncols();
+  const INDEX  ni2 = k_names.size();
+
+  if ( ny != k.nrows() )
+    throw runtime_error("The two WF matrices have different number of rows.");
+
+  // Determine old length of x and number of identities
+  INDEX  ni1, nx1;
+  for( ni1=0; ni1<ni && kx_index[ni1][1]>=0; ni1++ )
+    {}
+  if ( ni1 == ni )
+    throw runtime_error("All retrieval/error identity positions used.");
+  if ( ni1 == 0 )
+    nx1 = 0;
+  else
+    nx1 = INDEX( kx_index[ni1-1][1] + 1);
+
+  // Check if new data fit
+  if ( (ni1+ni2) > ni )
+  {
+    ostringstream os;
+    os << "There is not room for so many retrieval/error identities.\n" 
+       << ni-(ni1+ni2) << " positions are missing";
+      throw runtime_error(os.str());
+  }
+  if ( (nx1+nx2) > nx )
+  {
+    ostringstream os;
+    os << "The k-matrix does not fit in kx.\n" 
+       << nx-(nx1+nx2) << " columns are missing";
+      throw runtime_error(os.str());
+  }
+
+  out2 << "  Putting k in kx as\n" 
+       << "    identity " << ni1 << " - " << ni1+ni2-1 << "\n"
+       << "      column " << nx1 << " - " << nx1+nx2-1 << "\n";
+ 
+  // Calculate the vector length for each identity in K
+  size_t l = (size_t) floor(nx2/ni2);
+
+  // Move K to Kx
+  copy( k,       kx.sub_matrix( 0, ny, nx1, nx1+nx2 ) );
+  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 3 ) );
+  for ( INDEX iri=0; iri<ni2; iri++ )
+  {
+    kx_names[ni1+iri]    = k_names[iri];
+    kx_index[ni1+iri][0] = nx1 + iri*l;
+    kx_index[ni1+iri][1] = nx1 + (iri+1)*l - 1;
+  }   
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-21
+*/
+void kbPutInK (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,
 		    MATRIX&          kb_index,
 		    MATRIX&          kb_aux,
               const MATRIX&          k,
               const ARRAYofstring&   k_names,
-              const MATRIX&          k_aux,
-              const Hmatrix&         h,
-              const string&          hname )
+              const MATRIX&          k_aux )
 {
-  out2 << "  Applies " << hname << "\n";
-  MATRIX k2;
-  h_apply( k2, h, k );
-  k_append( kb, kb_names, kb_index, kb_aux, k2, k_names, k_aux );
+  kxPutInK( kb, kb_names, kb_index, kb_aux, k, k_names, k_aux );
 }

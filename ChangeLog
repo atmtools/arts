@@ -1,3 +1,22 @@
+2001-01-23  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-111
+
+	* Removed special functions for no ground and no refraction. It became
+	messy to make several versions at so many places. Instead I have made
+	two small functions called NoGround and NoRefraction to set dummy 
+	values for the ground and refraction variables (however the ground 
+	altitude must be specified). This solution makes the functions assuming
+	a special calculation order, that is functions calling workspace 
+	methods as absCalc and losCalc, more general.
+
+	* Added functions to calculate WFs for pointing off-set and a 
+	proportional calibration error. It is now also possible to calculate
+	WFs for continuum absorption fit for portions of the total frequency
+	range. This can be used to make seperate fits in primary and image
+	frequency band.
+	
+
 2001-01-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-110

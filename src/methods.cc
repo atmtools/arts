@@ -1370,6 +1370,41 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("NoGround"),
+  	DESCRIPTION(
+          "Sets the ground altitude and gives the other ground variables\n"
+          "(t_ground and e_ground) dummy values. \n"
+          "The ground altitude is set to the specified value. Note that\n"
+          "z_abs must cover the ground altitude.\n"
+          "The ground temperature (t_ground) is set to 0. \n"
+          "The ground emission vector (e_ground) is set to be empty.\n"
+          "If there is a ground intersection and only this function is\n"
+          "used to set the ground variables, there will be error messages."),
+	OUTPUT( z_ground_, t_ground_, e_ground_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "z_ground" ),
+	TYPES(    Numeric_t  )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NoRefraction"),
+  	DESCRIPTION(
+          "Sets the refraction flag (refr) to zero and gives other \n"
+          "refraction variables (refr_index and l_step_refr) dummy values. \n"
+          "If the refraction later is turned on, the variables refr_index \n"
+          "and l_step_refr must be given propoer values, or there will be\n"
+          "error messages."),
+	OUTPUT( refr_, refr_index_, l_step_refr_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("losCalc"),
   	DESCRIPTION(
           "A general function to determine LOS for a 1D atmosphere.\n"
@@ -1379,36 +1414,6 @@ void define_md_data()
 	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
                refr_, l_step_refr_, refr_index_, z_ground_, r_geoid_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("losNoRefraction"),
-  	DESCRIPTION(
-          "Determines the LOS for a 1D atmosphere without refraction.\n"
-          "The ground altitude must be specified."),
-	OUTPUT( los_ ),
-	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, z_ground_, 
-                                                             r_geoid_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("losUpward"),
-  	DESCRIPTION(
-          "Determines the LOS for a 1D atmosphere when neglecting refraction\n"
-          "and there is no ground intersections. The typical case is upward\n"
-          "observations, but the function could also be of interest for limb\n"
-          "sounding observations strictly above about 20 km.\n"
-          "Refraction and ground altitude variables are NOT needed."),
-	OUTPUT( los_ ),
-	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, r_geoid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1486,21 +1491,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("yRteNoGround"),
-  	DESCRIPTION(
-          "This function can be used instead of yRte if there is no\n"
-          "intersection with the ground.\n"
-          "With other words, the ground emission and temperature are NOT\n"
-          "needed when using this function."),
-	OUTPUT( y_ ),
-	INPUT( los_, f_mono_, y_space_, source_, trans_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("yBl"),
   	DESCRIPTION(
           "Calculates the total transmission throught the atmosphere,\n"
@@ -1508,20 +1498,6 @@ void define_md_data()
           "This function requires that e_ground is set."),
 	OUTPUT( y_ ),
 	INPUT( los_, trans_, e_ground_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("yBlNoGround"),
-  	DESCRIPTION(
-          "This function can be used instead of yBl if there is no\n"
-          "intersection with the ground. The ground emission is NOT needed \n"
-          "when using this function."),
-	OUTPUT( y_ ),
-	INPUT( los_, trans_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1600,18 +1576,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("absloswfsNoGround"),
-  	DESCRIPTION(
-          "As klosCalc but does not need any ground variables"),
-	OUTPUT( absloswfs_ ),
-	INPUT( los_, source_, trans_, y_, y_space_, f_mono_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("kSpecies"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for a single tag.\n"
@@ -1671,14 +1635,35 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("kContAbsSpecifiedLimits"),
+  	DESCRIPTION(
+          "Calculates 1D weighting functions for fit of continuum absorption\n"
+          "by polynomials with selectable order.\n"
+          "The continuum is fitted be determining an off-set at a number of\n"
+          "points (order+1) that are evenly spread between the given\n"
+          "frequency limits.\n"
+          "This functions can be used to make seperate fits in the primary\n"
+          "and image bands.\n"
+          "\n"
+          "Keywords \n"
+          "  order : Polynomial order (>=0)."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "order", "f_low",   "f_high" ),
+	TYPES(    int_t,   Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("kTempNoHydro"),
   	DESCRIPTION(
           "Calculates temperature 1D weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
-	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
-	       trans_, e_ground_, k_grid_ ),
+	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
+               h2o_abs_, vmrs_, lines_per_tg_, lineshape_, lineshape_norm_, 
+               abs_, trans_, e_ground_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1686,15 +1671,34 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kTempNoHydroNoGround"),
+      ( NAME("kPointingOffSet"),
   	DESCRIPTION(
-          "As kTempNoHydro but does not need any ground variables"),
+          "Calculates the WF for a pointing off-set.\n"
+          "The functions uses losCalc, transCalc, sourceCalc and yRte to\n"
+          "calculate a new spectrum for a changed zenith angles grid.\n"
+          "\n"
+          "Keywords \n"
+          "  delta : Size of zenith angle perturbation."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
-	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
-	       trans_, k_grid_ ),
+	INPUT( z_plat_, za_pencil_, l_step_, p_abs_, z_abs_, t_abs_, f_mono_,
+               refr_, l_step_refr_, refr_index_, z_ground_, r_geoid_, 
+               abs_, y_space_, e_ground_, t_ground_, y_ ),
 	GOUTPUT(),
 	GINPUT(),
+	KEYWORDS( "delta"   ),
+	TYPES(    Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kCalibration"),
+  	DESCRIPTION(
+          "Calculates the WF for a proportional calibration error. \n"
+          "The WF is simply : k = y - y_ref where y_ref is the specified\n"
+          "vector."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( y_ ),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
 	KEYWORDS(),
 	TYPES()));
 
@@ -1763,8 +1767,8 @@ void define_md_data()
   	DESCRIPTION(
           "Initializes Kx weighting function matrix and help variables\n"
           "(kx_names, kx_index and kx_aux).\n"
-          "Use this function before the WF calculations are started or\n"
-          "restarted."),
+          "Use this function before the WF calculations are started and\n"
+          "together with kxAppend."),
 	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -1778,8 +1782,8 @@ void define_md_data()
   	DESCRIPTION(
           "Initializes Kb weighting function matrix and help variables\n"
           "(kb_names, kb_index and kb_aux).\n"
-          "Use this function before the WF calculations are started or\n"
-          "restarted."),
+          "Use this function before the WF calculations are started and\n"
+          "together with kbAppend."),
 	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -1792,7 +1796,9 @@ void define_md_data()
       ( NAME("kxAppend"),
   	DESCRIPTION(
           "Appends the K matrix to Kx and handles additional data\n"
-          "correspondingly."),
+          "correspondingly. All the data are reallocated to make space for\n"
+          "the new data. This function is accordingly slow for large data\n"
+          "sizes, and it can be better to use kxAllocate and kxPutInK."),
 	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
         INPUT( kx_, kx_names_, kx_index_, kx_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
@@ -1805,7 +1811,9 @@ void define_md_data()
       ( NAME("kbAppend"),
   	DESCRIPTION(
           "Appends the K matrix to Kb and handles additional data\n"
-          "correspondingly."),
+          "correspondingly. All the data are reallocated to make space for\n"
+          "the new data. This function is accordingly slow for large data\n"
+          "sizes, and it can be better to use kbAllocate and kbPutInK."),
 	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
         INPUT( kb_, kb_names_, kb_index_, kb_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
@@ -1815,27 +1823,74 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kxAppendUsingH"),
+      ( NAME("kxAllocate"),
   	DESCRIPTION(
-          "Applies a H matrix on the K matrix and appends the result to Kx.\n"
-          "Additional data are treated correspondingly."),
+          "Allocates memory for Kx  and help variables (kx_names, kx_index \n"
+          "and kx_aux). The number of frequencies is taken from the length \n"
+          "of the given vecyor (typically y)\n"
+          "Use this function before the WF calculations are started and\n"
+          "together with kxPutInK.\n"
+          "\n"
+          "Keywords \n"
+          "  ni : Number of retrieval identities (species profiles,\n"
+          "              pointing off-set etc.).\n"
+          "  nx : Final length of x."),
+	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "ni",  "nx"  ),
+	TYPES(    int_t, int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kbAllocate"),
+  	DESCRIPTION(
+          "Allocates memory for Kb  and help variables (kb_names, kb_index \n"
+          "and kb_aux). The number of frequencies is taken from the length \n"
+          "of the given vecyor (typically y)\n"
+          "Use this function before the WF calculations are started and\n"
+          "together with kbPutInK.\n"
+          "\n"
+          "Keywords \n"
+          "  ni : Number of error identities (temperature profile etc.).\n"
+          "  nx : Final length of x."),
+	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "ni",  "nx"  ),
+	TYPES(    int_t, int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kxPutInK"),
+  	DESCRIPTION(
+          "Puts K in Kx and handles additional data correspondingly.\n"
+          "K is placed in the first free columns of Kx.\n"
+          "No reallocation is performed (in contrast to kxAppend) and an\n"
+          "error message is given if k does not fit into kx. The kx-data are\n"
+          "allocated by the function kxAllocate."),
 	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
         INPUT( kx_, kx_names_, kx_index_, kx_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
-	GINPUT( Hmatrix_ ),
+	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kbAppendUsingH"),
+      ( NAME("kbPutInK"),
   	DESCRIPTION(
-          "Applies a H matrix on the K matrix and appends the result to Kb.\n"
-          "Additional data are treated correspondingly."),
+          "Puts K in Kb and handles additional data correspondingly.\n"
+          "K is placed in the first free columns of Kb.\n"
+          "No reallocation is performed (in contrast to kbAppend) and an\n"
+          "error message is given if k does not fit into kb. The kb-data are\n"
+          "allocated by the function kbAllocate."),
 	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
         INPUT( kb_, kb_names_, kb_index_, kb_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
-	GINPUT( Hmatrix_ ),
+	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 
