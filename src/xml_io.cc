@@ -42,7 +42,6 @@
   Checks whether the name of the tag is correct. Throws runtime
   error otherwise.
   
-  \param is Input stream
   \param expected_name Expected tag name
 */
 void
@@ -651,7 +650,8 @@ xml_write_to_file (const String& filename,
   <Array type="ArrayOfSpeciesTag"> and if so, write the values to 'aastag'
   parameter.
 
-  \param is     Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param aastag ArrayOfArrayOfSpeciesTag return value
 */
 void
@@ -692,7 +692,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfArrayOfSpeciesTag to XML output stream
 /*!
-  \param os     Output stream
+  \param os_xml   XML Output stream
+  \param os_data  Data Output stream
   \param aastag ArrayOfArrayOfSpeciesTag
 */
 void
@@ -730,7 +731,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="ArrayOfTensor3">
   and if so, write the values to 'aatensor3' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param aatensor3 ArrayOfArrayOfTensor3 return value
 */
 void
@@ -771,7 +773,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfArrayOfTensor3 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml   XML Output stream
+  \param os_data  Data Output stream
   \param aatensor3 ArrayOfArrayOfTensor3
 */
 void
@@ -809,7 +812,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="ArrayOfTensor6">
   and if so, write the values to 'aatensor6' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param aatensor6 ArrayOfArrayOfTensor6 return value
 */
 void
@@ -849,7 +853,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfArrayOfTensor6 to XML output stream
 /*!
-  \param os        Output stream
+  \param os_xml        XML Output stream
+  \param os_data       Data Output stream
   \param aatensor6 ArrayOfArrayOfTensor6
 */
 void
@@ -887,7 +892,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="GridPos">
   and if so, write the values to 'agpos' parameter.
 
-  \param is    Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param agpos ArrayOfGridPos return value
 */
 void
@@ -928,7 +934,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfGridPos to XML output stream
 /*!
-  \param os    Output stream
+  \param os_xml    XML Output stream
+  \param os_data   Data Output stream
   \param agpos ArrayOfGridPos
 */
 void
@@ -966,7 +973,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="Index">
   and if so, write the values to 'aindex' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param aindex ArrayOfIndex return value
 */
 void
@@ -1007,7 +1015,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfIndex to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml   XML Output stream
+  \param os_data  Data Output stream
   \param aindex ArrayOfIndex
 */
 void
@@ -1044,7 +1053,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="Matrix">
   and if so, write the values to 'amatrix' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param amatrix ArrayOfMatrix return value
 */
 void
@@ -1085,7 +1095,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfMatrix to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml   XML Output stream
+  \param os_data  Data Output stream
   \param amatrix ArrayOfMatrix
 */
 void
@@ -1123,7 +1134,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="SpeciesTag">
   and if so, write the values to 'astag' parameter.
 
-  \param is    Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param astag ArrayOfSpeciesTag return value
 */
 void
@@ -1163,7 +1175,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfSpeciesTag to XML output stream
 /*!
-  \param os    Output stream
+  \param os_xml   XML Output stream
+  \param os_data  Data Output stream
   \param astag ArrayOfSpeciesTag
 */
 void
@@ -1201,7 +1214,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="Tensor3">
   and if so, write the values to 'atensor3' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param atensor3 ArrayOfTensor3 return value
 */
 void
@@ -1242,7 +1256,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfTensor3 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param atensor3 ArrayOfTensor3
 */
 void
@@ -1280,7 +1295,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="Tensor6">
   and if so, write the values to 'atensor6' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param atensor6 ArrayOfTensor6 return value
 */
 void
@@ -1320,7 +1336,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfTensor6 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param atensor6 ArrayOfTensor6
 */
 void
@@ -1358,7 +1375,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="String">
   and if so, write the values to 'astring' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param astring ArrayOfString return value
 */
 void
@@ -1398,7 +1416,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfString to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param astring ArrayOfString
 */
 void
@@ -1435,7 +1454,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Array type="Vector">
   and if so, write the values to 'amatrix' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param avector ArrayOfVector return value
 */
 void
@@ -1476,7 +1496,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfVector to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param amatrix ArrayOfVector
 */
 void
@@ -1515,7 +1536,8 @@ xml_write_to_stream (ostream& os_xml,
   and if so, verifies the order of the components and writes them
   to the 'gal' parameter.
 
-  \param is  Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param gal GasAbsLookup return value
 */
 void
@@ -1545,7 +1567,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes GasAbsLookup to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param gas GasAbsLookup
 */
 void
@@ -1582,7 +1605,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <GridPos>
   and if so, write the values to 'gpos' parameter.
 
-  \param is   Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param gpos GridPos return value
 */
 void
@@ -1605,7 +1629,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes GridPos to XML output stream
 /*!
-  \param os    Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param gpos  GridPos
 */
 void
@@ -1637,7 +1662,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Index> and if so,
   write the value to 'index' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param index Index return value
 */
 void
@@ -1663,7 +1689,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Index to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param index Index value
 */
 void
@@ -1692,7 +1719,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Matrix> and if so,
   write the values to 'matrix' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param matrix Matrix return value
 */
 void
@@ -1733,7 +1761,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Matrix to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param matrix Matrix
 */
 void
@@ -1780,7 +1809,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Numeric> and if so,
   write the value to 'numeric' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param numeric Numeric return value
 */
 void
@@ -1806,7 +1836,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Numeric to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param numeric Numeric value
 */
 void
@@ -1838,7 +1869,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Ppath>
   and if so, write the values to 'ppath' parameter.
 
-  \param is    Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param ppath Ppath return value
 */
 void
@@ -1873,7 +1905,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Ppath to XML output stream
 /*!
-  \param os    Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param ppath Ppath
 */
 void
@@ -1916,7 +1949,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <SpeciesTag>
   and if so, write the values to 'stag' parameter.
 
-  \param is   Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param stag SpeciesTag return value
 */
 void
@@ -1973,7 +2007,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes SpeciesTag to XML output stream
 /*!
-  \param os   Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param stag SpeciesTag
 */
 void
@@ -2002,7 +2037,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <String> and if so,
   write the value to 'str' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param str String return value
 */
 void
@@ -2059,7 +2095,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes String to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param str String value
 */
 void
@@ -2089,7 +2126,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Tensor3> and if so,
   write the values to 'tensor' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param tensor Tensor return value
 */
 void
@@ -2135,7 +2173,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Tensor3 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param tensor Tensor
 */
 void
@@ -2184,7 +2223,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Tensor4> and if so,
   write the values to 'tensor' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param tensor Tensor return value
 */
 void
@@ -2235,7 +2275,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Tensor4 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param tensor Tensor
 */
 void
@@ -2288,7 +2329,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Tensor5> and if so,
   write the values to 'tensor' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param tensor Tensor return value
 */
 void
@@ -2344,7 +2386,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Tensor5 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param tensor Tensor
 */
 void
@@ -2401,7 +2444,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Tensor6> and if so,
   write the values to 'tensor' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param tensor Tensor return value
 */
 void
@@ -2462,7 +2506,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Tensor6 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param tensor Tensor
 */
 void
@@ -2523,7 +2568,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Tensor7> and if so,
   write the values to 'tensor' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param tensor Tensor return value
 */
 void
@@ -2580,7 +2626,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Tensor7 to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param tensor Tensor
 */
 void
@@ -2645,7 +2692,8 @@ xml_write_to_stream (ostream& os_xml,
   Checks whether the next tag in input stream is <Vector> and if so,
   write the values to 'vector' parameter.
 
-  \param is Input stream
+  \param is_xml  XML Input stream
+  \param is_data Data Input stream
   \param vector Vector return value
 */
 void
@@ -2681,7 +2729,8 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Vector to XML output stream
 /*!
-  \param os Output stream
+  \param os_xml  XML Output stream
+  \param os_data Data Output stream
   \param vector Vector
 */
 void
