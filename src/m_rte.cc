@@ -46,9 +46,10 @@
 #include "check_input.h"
 #include "logic.h"
 #include "math_funcs.h"
+#include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
-#include "messages.h"
+#include "rte.h"
 
 extern const Numeric COSMIC_BG_TEMP;
 
@@ -511,43 +512,29 @@ void RteCalc(
 void RteEmissionStd(
         // WS Output:
               Matrix&         i_rte,
-	      Matrix&         i_space,
 	      Vector&         a_pos,
 	      Vector&         a_los,
+              Matrix&         i_space,
+              Numeric&        t_ground,
+	      Matrix&         e_ground,
         // WS Input:
 	const Agenda&         i_space_agenda,
+	const Agenda&         t_ground_agenda,
+	const Agenda&         e_ground_agenda,
+	const Index&          blackbody_ground,
 	const Ppath&          ppath,
         const Vector&         f_grid,
-        const Index&          stokes_dim )
+	const Index&          stokes_dim )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
   const Index np      = ppath.np;
 
-  // Resize i_rte to have the correct the size
-  i_rte.resize( nf, stokes_dim );
-
-  // Set a_pos and a_los to match the last point in ppath
-  a_pos.resize( ppath.pos.ncols() );
-  a_pos = ppath.pos(np-1,Range(joker));
-  a_los.resize( ppath.los.ncols() );
-  a_los = ppath.los(np-1,Range(joker));
-
-  // Initialize i_rte to the radiative background
-  switch ( ppath_what_background( ppath ) )
-    {
-    case 1:   //--- Space ---------------------------------------------------- 
-      i_space_agenda.execute();
-      i_rte = i_space;
-      break;
-    default:
-      {
-	ostringstream os;
-	os << "Unknown radiative background (code nr. " 
-	   << ppath_what_background( ppath ) << ")";
-	throw runtime_error( os.str() );
-      }
-    }
+  // Init i_rte to the radiative background
+  set_to_radiative_background(
+                    i_rte, i_space, a_pos, a_los, t_ground, 
+                    i_space_agenda, t_ground_agenda, blackbody_ground, 
+                                                   ppath, f_grid, stokes_dim );
 
   // If the number of propagation path points is 1, we are already ready,
   // the observed spectrum equals the radiative background.
@@ -578,7 +565,10 @@ void RteEmissionStd(
 	  // A ground reflection at point ip?
 	  if( ppath.ground  && ppath.i_ground == ip )
 	    {
-	      throw runtime_error("Ground reflections are not yet handled.");
+	      ground_reflection_with_emission( 
+                       i_rte, t_ground, e_ground, a_pos, a_los, 
+                       t_ground_agenda, e_ground_agenda, blackbody_ground, 
+                                               ppath, ip, f_grid, stokes_dim );
 	    }
 	  
 	  // Consider absorption and emission from point ip to ip-1 for

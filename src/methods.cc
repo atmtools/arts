@@ -723,29 +723,6 @@ void define_md_data_raw()
 	KEYWORDS( ),
 	TYPES( )));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("e_groundSet"),
-	DESCRIPTION
-	(
-	 "Sets the ground emissivity to a constant value.\n"
-	 "\n"
-	 "The size of *e_ground* is automatically determined by the\n"
-	 "latitude , longitude and frequency grids.\n"
-	 "\n"
-	 "If the ground shall be treated as a blackbody, use the\n"
-	 "function *GroundSetToBlackbody*.\n"
-	 "\n"
-         "Keywords: \n"
-         "   value : The ground emissivity."
-	),
-	OUTPUT( e_ground_ ),
-	INPUT( atmosphere_dim_, lat_grid_, lon_grid_, f_grid_ ),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( "value" ),
-	TYPES(    Numeric_t )));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ext_matCalc"),
@@ -868,10 +845,9 @@ void define_md_data_raw()
       ( NAME("GroundSetToBlackbody"),
 	DESCRIPTION
         (
-         "Sets *blackbody_ground* to 1 and creates *e_ground* as a tensor\n"
-	 "with size [1,1,1] having the value 1."
+         "Sets *blackbody_ground* to 1 and *e_ground_agenda* to be empty."
         ),
-	OUTPUT( blackbody_ground_, e_ground_ ),
+	OUTPUT( blackbody_ground_, e_ground_agenda_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1653,9 +1629,9 @@ void define_md_data_raw()
          "\n"
          "More text will be written (PE)."
         ),
-	OUTPUT( i_rte_, i_space_, a_pos_, a_los_ ),
-	INPUT( i_space_agenda_, 
-	       ppath_, f_grid_, stokes_dim_ ),
+	OUTPUT( i_rte_, a_pos_, a_los_, i_space_, t_ground_, e_ground_ ),
+	INPUT( i_space_agenda_, t_ground_agenda_, e_ground_agenda_, 
+	       blackbody_ground_, ppath_, f_grid_, stokes_dim_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2196,8 +2172,9 @@ md_data_raw.push_back
          "Creates a workspace vector with the same length as another vector,\n"
          "and sets all values of the new vector to the specified value. \n"
          "\n"
-         "A common usage of the function should be: \n"
-         "  VectorSetLengthFromVector(e_ground,f_mono){value=0.75} \n"
+         "A possible usage of the function is: \n"
+         "  VectorSetLengthFromVector(vector1,f_grid){value=0.75} \n"
+	 "where *vector1* then can be used to set *e_ground*. \n"
          "\n"
          "Generic output: \n"
          "   Vector : The vector to be created. \n"

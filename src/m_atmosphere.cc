@@ -41,6 +41,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include "agenda_class.h"
 #include "arts.h"
 #include "check_input.h"
 #include "matpackI.h"
@@ -130,69 +131,23 @@ void AtmosphereSet3D(
 
 
 
-//! e_groundSet
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-29
-*/
-void e_groundSet(
-        // WS Output:
-              Tensor3&   e_ground,
-        // WS Input:
-        const Index&     atmosphere_dim,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Vector&    f_grid,
-        // Control Parameters:
-        const Numeric& value )
-{
-  // Check input (use dummy for *p_grid*).
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, Vector(2,2,-1), lat_grid, lon_grid );
-  if( f_grid.nelem() == 0 )
-    throw runtime_error( "The frequency grid is empty." );
-  chk_if_increasing( "f_grid", f_grid );
-
-  Index nlat = lat_grid.nelem();
-  Index nlon = lon_grid.nelem();
-  if( atmosphere_dim < 2 )
-    { nlat = 1; }
-  if( atmosphere_dim < 3 )
-    { nlon = 1; }
-
-  out2 << "  e_ground = " << value << "\n";
-  out3 << "            npages : " << f_grid.nelem() << "\n";
-  out3 << "            nrows  : " << nlat << "\n";
-  out3 << "            ncols  : " << nlon << "\n";
-
-  e_ground.resize( f_grid.nelem(), nlat, nlon );
-  e_ground = value;
-}
-
-
-
 //! GroundSetToBlackbody
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-05-27
+   \date   2002-08-12
 */
 void GroundSetToBlackbody(
         // WS Output:
               Index&     blackbody_ground,
-              Tensor3&   e_ground )
+              Agenda&    e_ground_agenda )
 {
   out2 << "  blackbody_ground = 1\n";
-  out2 << "  e_ground = 1\n";
-  out3 << "            npages : 1\n";
-  out3 << "            nrows  : 1\n";
-  out3 << "            ncols  : 1\n";
+  out2 << "  sets *e_ground_agenda* to be empty\n";
   blackbody_ground = 1;
-  e_ground.resize(1,1,1);
-  e_ground(0,0,0) = 1;
+  e_ground_agenda.resize( 0 );
+
 }
 
 

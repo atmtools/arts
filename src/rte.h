@@ -39,6 +39,7 @@
   === External declarations
   ===========================================================================*/
 
+#include "agenda_class.h"
 #include "arts.h"
 #include "ppath.h"
 #include "matpackI.h"
@@ -50,7 +51,40 @@
   === Functions in rte.cc
   ===========================================================================*/
 
+void ground_reflection_with_emission(
+              Matrix&         i_rte,
+              Numeric&        t_ground,
+	      Matrix&         e_ground,
+	      Vector&         a_pos,
+	      Vector&         a_los,
+	const Agenda&         t_ground_agenda,
+	const Agenda&         e_ground_agenda,
+	const Index&          blackbody_ground,
+	const Ppath&          ppath,
+	const Index&          ip,
+        const Vector&         f_grid,
+	const Index&          stokes_dim );
 
+void radiation_from_blackbody_ground(
+              Matrix&         i_rte,
+	const Agenda&         t_ground_agenda,
+	const Index&          blackbody_ground,
+        const Vector&         f_grid,
+	const Index&          stokes_dim,
+	const Numeric&        t_ground );
+
+void set_to_radiative_background(
+              Matrix&         i_rte,
+              Matrix&         i_space,
+	      Vector&         a_pos,
+	      Vector&         a_los,
+              Numeric&        t_ground,
+	const Agenda&         i_space_agenda,
+	const Agenda&         t_ground_agenda,
+	const Index&          blackbody_ground,
+	const Ppath&          ppath,
+        const Vector&         f_grid,
+	const Index&          stokes_dim );
 
 
 

@@ -371,13 +371,14 @@ void define_wsv_data()
        "Flag to force the ground to be treated as a blackbody.\n"
        "\n"
        "This variable must have the value 0 or 1, where 1 means that the\n"
-       "ground is treated as a blackbody (an emissivity of 1). This choice\n"
-       "affects the starting point of propagation paths (including an inter-\n"
-       "section with the ground) and the allowed choice for the scattering\n"
-       "box.\n"
+       "ground is treated as a blackbody (an emissivity of 1 at all \n"
+       "locations). This choice affects the practical starting point of \n"
+       "propagation paths (including an inter-section with the ground) and \n"
+       "the allowed choice for the cloud box.\n"
        "\n"
-       "When *blackbody_ground* is set to 1, all values of *e_ground* must\n"
-       "equal 1.\n"
+       "When this variable is set to 1, the content of *e_ground_agenda* is \n"
+       "neglected, and that agenda can be set to be empty. This can be  \n"
+       "achieved by using *GroundSetToBlackbody*. \n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
@@ -485,32 +486,28 @@ void define_wsv_data()
       (
        "Ground emissivity.\n"
        "\n"
-       "The emission of the ground is calculated as the product between\n"
-       "*e_ground* and the Planck function for the temperature given by\n"
-       "*t_ground*. The ground emissivity and temperature are interpolated to\n"
-       "the point of interest before the product is calculated.\n"
-       "\n"
-       "The ground emissivity is a value in the range [0,1].\n"
-       "\n"
-       "The emissivity for a point between the grid crossings is obtained by\n"
-       "linear (1D) or bi-linear (2D) interpolation of the *e_ground*.\n"
-       "No interpolation in frequency is performed.\n"
-       "\n"
-       "If the ground is assumed to be a blackbody (*blackbody_ground* = 1),\n"
-       "all values of *e_ground* must equal 1. For such cases, *e_ground*\n"
-       "can be set to have the size 1x1x1.\n"
+       "To be written (PE). \n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by user.\n"
+       "Usage:      Set by *e_ground_agenda*..\n"
        "\n"
        "Unit:       - (0-1)\n"
        "\n"
-       "Dimensions: [ f_grid, lat_grid, lon_grid ]"
+       "Dimensions: [ f_grid, ? ]"
        ),
-      GROUP( Tensor3_ )));
+      GROUP( Matrix_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "e_ground_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -1698,27 +1695,30 @@ void define_wsv_data()
       (
        "Effective emission temperature of the ground.\n"
        "\n"
-       "The emission of the ground is calculated as the product between\n"
-       "*e_ground* and the Planck function for the temperature given by\n"
-       "*t_ground*. The ground emissivity and temperature are interpolated to\n"
-       "the point of interest before the product is calculated.\n"
-       "\n"
-       "The temperatures can be set to any values >= 0 K. \n"
-       "\n"
-       "The temperature for a point between the grid crossings is obtained by\n"
-       "linear (1D) or bi-linear (2D) interpolation of the *t_ground*.\n"
+       "This variable gives the temperature to use when calculating the \n"
+       "emission from the ground. This temperature can deviate from the \n"
+       "temperature of the air just above the ground. In short, the \n"
+       "emission of the ground is calculated as the product between \n"
+       "*e_ground* and the Planck function *t_ground*. \n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Set by user.\n"
+       "Usage:      Set by t_ground_agenda.\n"
        "\n"
-       "Unit:       K\n"
-       "\n"
-       "Dimensions: [ lat_grid, lon_grid ]"
+       "Unit:       K "
        ),
-      GROUP( Matrix_ )));
+      GROUP( Numeric_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "t_ground_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
 
   wsv_data.push_back
    (WsvRecord

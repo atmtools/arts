@@ -176,6 +176,26 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "e_ground_agenda" ),
+       DESCRIPTION
+       (
+	"Sets the workspace variable *e_ground* to match the assumptions \n"
+	"regarding the effective emissivity of the ground. \n"
+	"\n"
+	"A function calling this agenda shall set *a_pos* and *a_los* to \n"
+	"the position and LOS, respectively, for the ground reflection. \n"
+	"These variables can then be used to extract the emissivity from \n"
+	"a database for the given position and direction. \n"
+	"\n"
+	"Note that the agenda is ignored if *blackbody_ground* is set to 1.\n"
+	"\n"
+	"Usage:   Called from functions part of *rte_agenda*."
+	),
+       OUTPUT(  e_ground_ ),
+       INPUT(  f_grid_, a_pos_, a_los_ )));
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "i_space_agenda" ),
        DESCRIPTION
        (
@@ -356,5 +376,22 @@ void define_agenda_data()
              l_step_,
              planck_function_,
              stokes_dim_)));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "t_ground_agenda" ),
+       DESCRIPTION
+       (
+	"Sets the workspace variable *t_ground* to match the assumptions \n"
+	"regarding the effective emission temperature of the ground. \n"
+	"\n"
+	"A function calling this agenda shall set *a_pos* to the position \n"
+	"for the ground reflection. The WSV *a_pos* can then be used to \n"
+	"extract *t_ground* from a database, or to interpolate *t_field*.\n"
+	"\n"
+	"Usage:   Called from functions part of *rte_agenda*."
+	),
+       OUTPUT(  t_ground_ ),
+       INPUT(  a_pos_ )));
 
 }

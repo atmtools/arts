@@ -1,3 +1,18 @@
+2002-08-14  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-203
+
+	* src/m_rte.cc (RteEmissionStd): Pieces of this function have been 
+	lifted out to be functions in rte.cc. This to make it easier to make
+	other verions of methods for rte_agenda.
+
+	* src/workspace.cc: The variable *e_ground* is now a matrix to allow
+	more elaborated treatments of ground reflections later.
+
+	* To summerize. The ground is now included in the RTE part. Spectra
+	can be produced, but only for dummy atmospheric temperature and 
+	absorption. No connection with the cloud box yet.
+
 2002-08-11  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-202
