@@ -162,6 +162,9 @@
 % Vector of monochromatic pencil beam intensities
 \newcommand{\MpiVct}           {\VctStl{i}}  
 
+% Vector of monochromatic pencil beam intensities with subscript
+\newcommand{\aMpiVct}[1]       {\MpiVct\ensuremath{_#1}}
+
 % Measurement error vector
 \newcommand{\MsrErrVct}        {\ensuremath{\varepsilon}}  
 

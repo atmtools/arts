@@ -1,3 +1,10 @@
+2002-03-27  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-40
+
+	* doc/uguide/fm_definitions.tex: Writing on the sensor section and
+	started on the clear sky RTE section. 
+
 2002-03-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-39

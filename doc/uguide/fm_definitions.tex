@@ -72,7 +72,7 @@ found here. It should be described what the terms means, the order in
 which dimensions are given, how sizes are specified here in the guide,
 how different dimensionalities are handled etc. 
 
-Vectors, matrices and tensors are indexed by roundbraces, e.g.
+Vectors, matrices and tensors are indexed by round braces, e.g.
 \begin{equation}
   \Alt(\aInd{\Prs},\aInd{\Lat},\aInd{\Lon})
 \end{equation}
@@ -104,11 +104,12 @@ degree of complexity, the \qindex{atmospheric dimensionality}. There
 exist three levels for the complexity of the atmosphere, 1D, 2D and
 3D, where 1D and 2D can be treated as special cases of 3D. The
 significance of these different atmospheric dimensionalities, and the
-coordinate systems used, are described below. The atmospheric
-dimensionality is selected by setting the workspace variable
-\verb|atmosphere_dim| to a value between 1 and 3. Variables for which
-the size depends on the atmospheric dimensionality are checked, when
-used, to have a size consistent with \verb|atmosphere_dim|.
+coordinate systems used, are described below in this section. The
+atmospheric dimensionality is selected by setting the workspace
+variable \verb|atmosphere_dim| to a value between 1 and 3. Variables
+for which the size depends on the atmospheric dimensionality are
+checked, when used, to have a size consistent with
+\verb|atmosphere_dim|.
 
 \begin{description}
   
@@ -229,7 +230,7 @@ used, to have a size consistent with \verb|atmosphere_dim|.
   where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
   \verb|arts.h|), but suitably selected in such way that the pressure
   altitude corresponds roughly with the geometrical altitude.  This
-  correspondance is achieved if the two parameters are treated as a
+  correspondence is achieved if the two parameters are treated as a
   fixed scale height (for decreases of the pressure with a factor of
   10) and the surface pressure, respectively. Values around
   $\aPrsAlt{s}=15.5$~km and $\aPrs{0}=1013$~hPa are suitable for
@@ -438,11 +439,22 @@ the box boundaries. This can happen for propagation paths close to the
 nadir direction and if the ground is tilted in such way that the
 surface of the ground points towards the cloud box. The first crossing
 of the cloud box is neglected for such cases, the cloud box is simply
-turned off when determing the radiation field going into the cloud
+turned off when determining the radiation field going into the cloud
 box.
 
 
-\levelb{Compulsary sensor and data reduction variables}
+\levelb{Absorption and refractive index}
+%==============================================================================
+\label{sec:fm_defs:absorption}
+
+[* Considerations for the calculation of absorption and refractive
+index ...  Tags, line-by-line, absorption models etc. The old \verb|f_mono|
+should be called \verb|f_grid|, or? (Note that I have used the name
+\verb|f_grid| above.)*]
+
+
+
+\levelb{Compulsory sensor and data reduction variables}
 %==============================================================================
 \label{sec:fm_defs:sensor1}
 
@@ -451,17 +463,19 @@ sensor\index{sensor, the}. The forward model is constructed in such
 way that a sensor must exists. For cases when only monochromatic
 pencil beam radiation is of interest, the positions and directions for
 which the radiation shall be calculated are given by specifying an
-imaginery sensor with infinite frequency and angular resolution. The
+imaginary sensor with infinite frequency and angular resolution. The
 workspace variables for the sensor that always must be specified are
 \verb|sensor_pos|, \verb|sensor_los|, \verb|sensor_pol|,
 \verb|antenna_dim|, \verb|psi_block_grid| and \verb|Hb|. For cases
-with 2D antenna patterns (a feature not yet implemented, see below),
-the workspace variable \verb|omega_block_grid| is also compulsary.
-These variables are presented below, where they are first discussed
-individually and then later together when it is described how
+with 2D antenna patterns (a feature not yet implemented), the
+workspace variable \verb|omega_block_grid| is also compulsory.  These
+variables are presented separately below in this section.  The
+discussion of sensor workspace variables is continued in
+Section~\ref{sec:fm_defs:sensor2}, where it is also described how
 different measurement sequences are modelled in the most practical way
-(section~\ref{sec:fm_defs:measseqs}). Remaining sensor workspace
-variables are described last in Section~\ref{sec:fm_defs:sensor2}.
+(Section~\ref{sec:fm_defs:howtomeasseq}). The
+Section~\ref{sec:fm_defs:rte} gives further insights in how the sensor
+is treated in ARTS.
 
 
 \levelc{Sensor position\index{sensor position}}
@@ -489,7 +503,8 @@ outside the defined geoid and the geometrical altitude is undefined.
 
 The sensor is treated to be motionless when calculating the spectrum,
 or spectra, for each given observation position. One or several
-spectra can be calculated for each position as described below.
+spectra can be calculated for each position as described in
+Section~\ref{sec:fm_defs:seqsandblocks}.
 
 
 \levelc{Line-of-sight\index{line-of-sight}}
@@ -551,7 +566,8 @@ number of rows for \verb|sensor_los| must be the same as for
 %===================
 \label{sec:fm_defs:sensorpol}
 
-[* How shall this be handled? \verb|sensor_pol| *]
+[* How shall this be handled? Can a transfer matrix be used?
+\verb|sensor_pol| *]
 
 
 \levelc{Sensor characteristics and data reduction}
@@ -559,17 +575,18 @@ number of rows for \verb|sensor_los| must be the same as for
 \label{sec:fm_defs:sensorchar}
 
 Sensor characteristics\index{sensor characteristics} is used here as a
-comprehensive term for the response, beside polarisation effects, of
-all sensor parts that affect how the field of monochromatic pencil
-beam intensities are translated to the recorded spectrum. For example,
-the antenna pattern, the side-band filtering and response of the
-spectrometer channels are normally the most important charcteristics
-for a microwave heterodyne radiometer. Any processing of the spectral
-data that takes place before the retrieval is denoted as \qindex{data
-  reduction}. The most common processing is to represent the original
-spectra with a smaller set of values, that is, a reduction of the data
-size. The most common data reduction techniques is binning and
-Hotelling transformation by an eigenvector expansion (Section~[**]).
+comprehensive term for the response of all sensor parts, beside
+polarisation effects, that affect how the field of monochromatic
+pencil beam intensities are translated to the recorded spectrum. For
+example, the antenna pattern, the side-band filtering and response of
+the spectrometer channels are normally the most important
+characteristics for a microwave heterodyne radiometer. Any processing
+of the spectral data that takes place before the retrieval is denoted
+as \qindex{data reduction}. The most common processing is to represent
+the original spectra with a smaller set of values, that is, a
+reduction of the data size. The most common data reduction techniques
+is binning and Hotelling transformation by an eigenvector expansion
+(Section~[**]).
 
 The influence of sensor characteristics and data reduction is in ARTS
 incorporated by transfer matrices\index{sensor transfer matrix}, as
@@ -581,25 +598,25 @@ workspace functions.
 
 The creation of sensor and data reduction transfer matrices is not
 (yet?) included in ARTS and no workspace variables exist to describe
-the indivudual sensor parts etc. The sensor and data reduction are
+the individual sensor parts etc. The sensor and data reduction are
 described as a series of units, each having its own transfer matrix.
 There is only one compulsory transfer matrix and it is \aSnsMtr{b}
-(\verb|Hb|), where the subscript $b$ stands for block (see
-Section~\ref{sec:fm_defs:measseqs}). There are several workspace
+(\verb|Hb|), where the subscript $b$ stands for block (see further
+Section~\ref{sec:fm_defs:seqsandblocks}). There are several workspace
 variables associated with this transfer matrix where
 \verb|antenna_dim|, \verb|psi_block_grid| and \verb|omega_block_grid|
 are the possibly compulsory ones.
 
 The variable \verb|antenna_dim| gives the dimensionality of the
 antenna pattern\index{antenna pattern dimensionality}, where the
-options are 1 and 2, standing for 1D and 2D, respectivly. A 1D antenna
+options are 1 and 2, standing for 1D and 2D, respectively. A 1D antenna
 dimensionality means that the azimuthal extension of the antenna
 pattern is neglected, there is only a zenith angle variation of the
 response. A 2D antenna pattern is converted to a 1D pattern by
 integrating the azimuthal response for each zenith angle. ARTS handles
 not yet 2D antenna patterns and the only allowed choice for
-\verb|antenna_dim| is 1. The presentation below assumes that 2D option
-is implemented.
+\verb|antenna_dim| is 1. The presentation below assumes that the 2D
+option is implemented.
 
 For each sensor position, a number of monochromatic pencil beam
 spectra are calculated. The monochromatic frequencies are given by
@@ -613,39 +630,103 @@ beam zenith angle $i$ is calculated as
   \label{eq:fm_defs:psi_grid}
 \end{equation}
 where \aZntAng{0} is the sensor line-of-sight for the position and
-$\Delta\aZntAng{i}$ is value $i$ of \verb|psi_block_grid|.
-With other words, the values of \verb|psi_block_grid| and
-\verb|omega_block_grid| give the calculation grid to use when the
-intensity field is weighted with the antenna response. For 1D antenna
-patterns, \verb|omega_block_grid| is assumed to be a vector of length
-1 with the value 0 (any existing values are ignored).  The transfer
-matrix \verb|Hb| is applied on the monochromatic pencil beam spectra
-for each sensor position as described in
-Section~\ref{sec:fm_defs:measseqs}.
+$\Delta\aZntAng{i}$ is value $i$ of \verb|psi_block_grid|.  With other
+words, \verb|psi_block_grid| and \verb|omega_block_grid| are the
+calculation grids to use when the intensity field is weighted with the
+antenna response. For 1D antenna patterns, \verb|omega_block_grid| is
+assumed to be a vector of length 1 with the value 0 (any existing
+values are ignored). 
 
 
-\levelc{How to model a different measurement sequences?} 
+\levelc{Measurement sequences and blocks}
 %===================
-\label{sec:fm_defs:measseqs}
+\label{sec:fm_defs:seqsandblocks}
 
+The series of observations modelled by the simulations is denoted as
+the \qindex{measurement sequence}. That is, a measurement sequence covers all
+spectra recorded at all considered sensor positions
+(\verb|sensor_pos|). The observations performed at one position is
+referred to as a \qindex{measurement block}. 
+
+A measurement block corresponds to one or several recorded spectra,
+depending on the measurement conditions and the atmospheric
+dimensionality. A block can consists of several spectra when there is
+no effective motion of the sensor with respect to the atmospheric
+fields. It should be noted that for 1D cases, a motion along a
+constant radius has no influence on the simulated spectra as the same
+atmospheric fields are seen for a given viewing direction. It is
+normally favourable, if possible, to handle all spectra as a single
+block, instead of using a block for each sensor position. This is the
+case as the antenna patterns for the different line-of-sights are
+normally overlapping and a pencil beam spectrum can be used in
+connection with several measurement spectra. If a measurement sequence
+is divided into several blocks even if a single block would be
+sufficient, pencil beam spectra for close line-of-sights can be
+calculated several times, which of course if unnecessary.  To
+summerise, for cases when the sensor is not in motion, or with a 1D
+atmosphere and a sensor not moving vertically, the aim should be to
+use a single block for the measurement sequence. This discussion is
+continued in Section~\ref{sec:fm_defs:howtomeasseq}.
+
+For each block, pencil beam spectra are calculated for the
+line-of-sights obtained when summing \verb|sensor_los| and
+\verb|psi_block_grid| (and possibly \verb|omega_block_grid|), as
+described in Section~\ref{sec:fm_defs:sensorchar}. The pencil beam
+spectra for each line-of-sight are appended vertically to form a
+common vector, \aMpiVct{b}. Values are put in following the order
+in \verb|f_grid|. Hence, the frequencies for this vector are
 \begin{equation}
-  \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\MpiVct_1 \\ 
-                                    \aSnsMtr{b}\MpiVct_2 \\
+  \aMpiVct{b} = 
+  \left[ \begin{array}{c} 
+     \left[
+          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
+     \right] \\
+     \vdots \\
+     \left[
+          \begin{array}{c} \aFrq{1}\\\vdots\\\aFrq{n} \end{array} 
+     \right]
+     \end{array} \right]
+  \label{eq:fm_defs:freqs_of_ib}
+\end{equation}
+where \aFrq{i} is element $i$ of \verb|f_grid| and $n$ the length of
+the same vector. The order of the angles inside \verb|psi_block_grid|
+and \verb|omega_block_grid| is followed when looping the pencil beam
+directions, where the zenith angle direction is the innermost loop.
+That is, for 2D antenna patterns all zenith angles are looped for the
+first azimuthal angle etc.
+
+The transfer matrix \verb|Hb| is applied on each \aMpiVct{b} and the
+results are appended vertically, following the order of the positions
+in \verb|sensor_pos|:
+\begin{equation}
+  \MsrVct = \left[ \begin{array}{c} \aSnsMtr{b}\aMpiVct{1} \\ 
+                                    \aSnsMtr{b}\aMpiVct{2} \\
                                     \vdots                  \\
-                                    \aSnsMtr{b}\MpiVct_n \end{array} \right]
+                                    \aSnsMtr{b}\aMpiVct{n} \end{array} \right]
   \label{eq:fm_defs:measseq}
 \end{equation}
+where $1$ indicates the first sensor position etc. This equation shows
+that \verb|Hb| shall contain at least a description of the antenna
+response. The matrix \verb|Hb| can also cover other sensor
+characteristics and data reduction if the features of concern are
+common for all measurement blocks. If this is not the case, those
+features must be handled by the other existing transfer matrices or by
+other means, as described in Section~\ref{sec:fm_defs:howtomeasseq}.
 
-
-\levelb{Absorption and refractive index}
-%==============================================================================
-\label{sec:fm_defs:absorption}
-
-[* Considerations for the calculation of absorption and refractive
-index ...  Tags, line-by-line, absorption models etc. The old \verb|f_mono|
-should be called \verb|f_grid|, or? (Note that I have used the name
-\verb|f_grid| above.)*]
-
+It should be noted that the compulsory sensor variables give no
+information about the content of the obtained \MsrVct, as it is not
+clear which parts and features the block transfer matrix covers. If
+\verb|Hb| only incorporates the antenna pattern, the result is a set
+of hypothetical spectra corresponding to a point inside the sensor. On
+the other hand, if \verb|Hb| includes the whole of the sensor and an
+eigenvector data reduction, the result is not even a spectrum is
+traditional meaning, it is just a row of coefficients with a vague
+physical meaning. To handle quantities appearing at a stage between
+monochromatic pencil beam intensities and the final representation of
+the measurements (where the total transformation can involve more
+steps than the multiplication with \verb|Hb|), additional sensor
+variables must be introduced, as described in
+Section~\ref{sec:fm_defs:sensor2}.
 
 
 \levelb{Clear sky radiative transfer}
@@ -677,7 +758,7 @@ should be called \verb|f_grid|, or? (Note that I have used the name
 % far (and I don't think there are any exceptions AUG) used lower case letters
 % for vectors and upper case for matrices. I would be happy if we could stick
 % to this rule, which I think is a standard way to keep matrices and vectors
-% seperated. Note the macro \MpiVct in symbol_defs.
+% separated. Note the macro \MpiVct in symbol_defs.
 %
 % I just put in a macro for Planck, but then the scalar version. The Planck
 % function here is really not a scalar? If not, maybe you can introduce the
@@ -708,16 +789,65 @@ The specific intensity vector $\Int$
  along the line of sight (LOS), $l_1$ the point of the considered part
  of the LOS furthest away from the sensor, $l_2$ the closest point of
  the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
- along the LOS and $\sigma$ the source function.\footnote{The symbols
-   $\kappa$ and $\sigma$ are used here for the absorption and the source 
-   function \emph{along} the LOS. The more commonly used symbols, $k$ and
-   $S$, respectively, are used below to express the variables as
-   functions of altitude.}
+ along the LOS and $\sigma$ the source function.
+
+
+
+
+\levelc{Calculation procedure}
+%===================
+\label{sec:fm_defs:calcproc}
+
+The overall structure of the part solving the radiative transfer
+equation is fixed and is handled by the function \verb|rteCalc|. This
+function, beside providing atmospheric spectra, performs also the
+calculation of weighting functions for atmospheric variables based on
+analytical expressions, which is treated in
+Section~\ref{sec:fm_defs:wfs}.  The calculation procedure can be
+outlined as: \\
+
+if cloudbox on 
+
+\quad determine the intensity field inside the cloud box 
+
+allocate memory for the measurement vector, \MsrVct 
+
+for each sensor position 
+
+\quad allocate memory for the vector \aMpiVct{b}
+
+\quad for each pencil beam direction of the block 
+
+\quad\quad determine the propagation path
+
+\quad\quad initialise the vector \MpiVct\ with the radiative background
+
+\quad\quad for each step along propagation path
+
+\quad\quad\quad if at ground reflection
+
+\quad\quad\quad\quad update \MpiVct\ following Equation~[**]
+
+\quad\quad\quad else
+
+\quad\quad\quad\quad update \MpiVct\ following Equation~[**] or [**]
+
+\quad\quad copy \MpiVct\ to correct part of \aMpiVct{b}
+
+\quad put the product \aSnsMtr{b}\aMpiVct{b} in correct part of \MsrVct \\
+
+\noindent
+For further details of each step, see the indicated equation or section.
 
 
 \levelc{Propagation paths}
 %===================
 \label{sec:fm_defs:ppaths}
+
+
+\levelc{Solving the radiative transfer equation}
+%===================
+\label{sec:fm_defs:solverte}
 
 
 \levelc{Ground reflections}
@@ -737,12 +867,29 @@ diffuse ground reflections in a simple way? *]
 \verb|antenna_psi_grid|, \aSnsMtr{b}, \aSnsMtr{c}
 
 
+\levelc{How to model different measurement sequences in best way?}
+%===================
+\label{sec:fm_defs:howtomeasseq}
+
+[* Discuss e.g. the relationship between \verb|sensor_los| and the block LOS grids. *]
+
 
 \levelb{Scattering}
 %==============================================================================
 \label{sec:fm_defs:scattering}
 
 [* Special quantities and considerations for scattering ... *]
+
+
+
+\levelb{Weighting functions}
+%==============================================================================
+\label{sec:fm_defs:wfs}
+
+[* This part is still quite unclear. However, the analytical
+atmospheric WFs will be calculated on the same time as spectra. We
+need to find a good way to specify the WFs which is a complex thing to
+do. *]
 
 
 %%% Local Variables: 
