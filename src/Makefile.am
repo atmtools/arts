@@ -80,6 +80,7 @@ arts_SOURCES = \
 	math_funcs.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
 	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
@@ -416,6 +417,7 @@ test_zeemanproperties_SOURCES = \
 	math_funcs.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
 	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \

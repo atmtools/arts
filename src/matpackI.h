@@ -86,7 +86,7 @@
 
   See the section about Matrices and Vectors in the ARTS user guide
   for more details.
-  
+
   \author Stefan Buehler
   \date   2001-06-12
  */
@@ -161,7 +161,7 @@ public:
   friend class ConstIterator5D;
   friend class ConstIterator6D;
   friend class ConstIterator7D;
-  friend class SparseMatrixView;
+  friend class SparseView;
   friend class ConstTensor3View;
   friend class Tensor3View;
   friend class Tensor3;
@@ -177,7 +177,9 @@ public:
   friend class ConstTensor7View;
   friend class Tensor7View;
   friend class Tensor7;
-  friend std::ostream& operator<<(std::ostream& os, const SparseMatrixView& v);
+  friend class Sparse;
+  friend std::ostream& operator<<(std::ostream& os, const SparseView& v);
+  friend void mult (VectorView y, const SparseView& M, const ConstVectorView& x );
 
 private:
   /** The start index. */
@@ -397,6 +399,7 @@ public:
   friend class Tensor5View;
   friend class Tensor6View;
   friend class Tensor7View;
+  friend class SparseView;
 
   // A special constructor, that allows to make a VectorView of a scalar.
   VectorView(Numeric& a);

@@ -24,6 +24,7 @@
 #include "make_vector.h"
 #include "math_funcs.h"
 #include "describe.h"
+#include "matpackII.cc"
 
 /** Define the global joker objekt. */
 Joker joker;
@@ -147,25 +148,33 @@ void test2()
 }
 
 
-// void test3()
-// {
-//   SparseMatrix M(10,15);
+void test3()
+{
+  Sparse M(10,15);
 
-//   cout << "M.nrows(), M.ncols() = "
-//        << M.nrows() << ", " << M.ncols() << "\n";
+  cout << "M.nrows(), M.ncols() = "
+       << M.nrows() << ", " << M.ncols() << "\n";
+   for (Index i=0; i<10; ++i)
+    M.rw(i,i) = i+1;
 
-//   for (Index i=0; i<10; ++i)
-//     M(i,i) = i+1;
+  cout << "\nM = \n" << M;
 
-//   cout << "\nM = \n" << M;
+  Sparse S(M);
+  S.rw(2,0) = 5;
 
-//   const SparseMatrix S(M);
+  cout << "\nS(2,0) = " << S.ro(2,0) << "\n";
 
-//   cout << "\nS(2,0) = " << S(2,0) << "\n";
+  cout << "\nS = \n" << S;
 
-//   cout << "\nS = \n" << S;
+  Vector y(20, 0.0);
+  Vector x(1,30,1);
 
-// }
+  mult(y[Range(1,10,2)], S, x[Range(1,15,2)]);
+
+  cout << "\ny = \n" << y << "\n";
+
+}
+
 
 void test4()
 {
@@ -748,6 +757,7 @@ int main()
 {
 //   test1();
 //   test2();
+  test3();
 //   test4();
 //   test5();
 //   test6();
@@ -777,8 +787,8 @@ int main()
 //   test30();
 //   test31();
 //   test32();
-   test33();
-   test34();
+//   test33();
+//   test34();
 //   test35();
 //   test36();
 //  test37();
