@@ -23,7 +23,7 @@
  */
 
 #include "arts.h"
-#define SUBVERSION "202"
+#define SUBVERSION "203"
 
 String subversion = SUBVERSION;
 String full_name  = static_cast<String>(PACKAGE)

@@ -1,3 +1,12 @@
+2001-09-13  Nikolay Koulev <nkoulev@uni-bremen.de>
+
+	* arts-0-0-203
+
+	* doc/uguide/absorption.tex: Started to update 
+	
+	* doc/uguide/main.tex, doc/uguide/uguide.tex: Corrected some bugs.
+	
+	
 2001-09-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-202
