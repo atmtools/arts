@@ -1,6 +1,7 @@
 *.aux
 *.eps
 *.tex
+*.ttf
 *.md5
 Makefile
 Makefile.in

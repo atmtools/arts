@@ -1,3 +1,11 @@
+2004-09-30  Oliver Lemke  <olemke@core-dump.info>
+
+	* arts-1-1-888
+
+	* doc/doxygen/latex/.cvsignore: Added *.ttf.
+
+	* src/m_batch.cc: Include cmath to fix compilation with newer gcc.
+
 2004-10-01  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-887

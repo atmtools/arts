@@ -39,6 +39,9 @@
   === External declarations
   ===========================================================================*/
 
+#include <cmath>
+using namespace std;
+
 #include "arts.h"
 #include "auto_md.h"
 #include "math_funcs.h"
