@@ -136,8 +136,8 @@ class Range{
 public:
   // Constructors:
   Range(Index start, Index extent, Index stride=1);
-  Range(Index start, Joker joker, Index stride=1);
-  Range(Joker joker, Index stride=1);
+  Range(Index start, Joker      j, Index stride=1);
+  Range(Joker     j, Index stride=1);
   Range(Index max_size, const Range& r);
   Range(const Range& p, const Range& n);
 
