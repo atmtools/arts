@@ -777,6 +777,8 @@ make_auto_wsv_h_SOURCES = \
 	arts.cc \
 	arts.h \
 	auto_wsv_groups.h \
+	binio.cc \
+	binio.h \
 	file.cc \
 	file.h \
 	groups.cc \
@@ -794,6 +796,8 @@ make_auto_wsv_pointers_cc_SOURCES = \
 	arts.cc \
 	arts.h \
 	auto_wsv_groups.h \
+	binio.cc \
+	binio.h \
 	file.cc \
 	file.h \
 	groups.cc \
@@ -811,6 +815,8 @@ make_auto_md_h_SOURCES = \
 	arts.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
+	binio.cc \
+	binio.h \
 	file.cc \
 	file.h \
 	globals_2.cc \
@@ -850,6 +856,8 @@ make_auto_md_cc_SOURCES = \
 	arts.h \
 	auto_wsv.h \
 	auto_wsv_groups.h \
+	binio.cc \
+	binio.h \
 	file.cc \
 	file.h \
 	globals_2.cc \
