@@ -1,3 +1,14 @@
+2002-06-06  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-121	
+
+	* src/test_scatproperties.cc (main): renamed
+	src/test_opt_properties.cc to test_scatproperties.cc to be 
+	consistent.
+
+	* src/workspace.cc: corrected the dimension of pha_mat_spt.
+	
+
 2002-06-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-120

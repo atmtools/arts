@@ -129,7 +129,7 @@ noinst_PROGRAMS = \
 	test_tensor \
 	test_linalg \
 	test_interpolation \
-	test_opt_properties\
+	test_scatproperties\
 	test_xml
 
 test_interpolation_SOURCES = \
@@ -166,13 +166,13 @@ test_linalg_SOURCES = \
 	logic.h\
 	logic.cc
 
-test_opt_properties_SOURCES = \
+test_scatproperties_SOURCES = \
 	arts.h \
 	matpackI.h \
 	matpackI.cc \
 	make_vector.h\
 	make_vector.cc\
-	test_opt_properties.cc\
+	test_scatproperties.cc\
 	scatproperties.h\
 	scatproperties.cc\
 	constants.cc\

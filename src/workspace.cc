@@ -99,6 +99,29 @@ void define_wsv_data()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
+
+  wsv_data.push_back
+   (WsvRecord
+    ("abs_vec_spt",
+     "Absorption Vector for a single particle type.\n"
+     "\n"
+     "This variable contains the elements of absorption vector of a \n"
+     "single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
+     "input as well as the output of the method *abs_vec_sptCalc*. This \n"
+     "variable is a matrix where the first dimension part_types indicate \n"
+     "the particle type under consideration and the second dimension is the\n"
+     "*stokes_dim*. *stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
+     "\n"
+     "ARTS user guide (AUG) gives the formulas used for computing all \n"
+     "the elements of absorption vector.\n"
+     "\n"
+     "Usage:      Input and Output of the method abs_vec_sptCalc\n"
+     "\n"
+     "Unit:        m^2\n"
+     "\n"
+     "Dimensions: [part_types,stokes_dim]",
+     Matrix_ ));
+
   wsv_data.push_back
    (WsvRecord
     ("amp_mat",
@@ -154,28 +177,7 @@ void define_wsv_data()
      "will be defined",
      Tensor6_ ));
 
-  wsv_data.push_back
-   (WsvRecord
-    ("abs_vec_spt",
-     "Absorption Vector for a single particle type.\n"
-     "\n"
-     "This variable contains the elements of absorption vector of a \n"
-     "single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
-     "input as well as the output of the method *abs_vec_sptCalc*. This \n"
-     "variable is a matrix where the first dimension *part_types* indicate \n"
-     "the particle type under consideration and the second dimension is the\n"
-     "*stokes_dim*. *stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
-     "\n"
-     "ARTS user guide (AUG) gives the formulas used for computing all \n"
-     "the elements of absorption vector.\n"
-     "\n"
-     "Usage:      Input and Output of the method abs_vec_sptCalc\n"
-     "\n"
-     "Unit:        m^2\n"
-     "\n"
-     "Dimensions: [part_types,stokes_dim]",
-     Matrix_ ));
-
+  
   wsv_data.push_back
    (WsvRecord
     ("antenna_dim",
@@ -751,7 +753,7 @@ void define_wsv_data()
      "\n"
      "Unit:        m^2\n"
      "\n"
-     "Dimensions: [part_types,za_in_index,aa_in_index,stokes_dim, stokes_dim]",
+     "Dimensions: [part_types,scat_za_grid,scat_aa_grid,stokes_dim, stokes_dim]",
      Tensor5_ ));
 
 
