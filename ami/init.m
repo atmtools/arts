@@ -51,3 +51,17 @@ COSMIC_BG_TEMP = 2.735;
 SUN_TEMP       = 6000.0;
 NAT_LOG_2      = 0.69314718055994;
 ATM2HPA        = 1.01325e3;                                   
+
+
+
+%=== Try to add the arts-data top folder to the search path
+%
+c = get_artsconfig('ARTS_DATA_PATH');
+%
+if isstr( c )
+  % Remove "-chars
+  c = c( 2:(length(c)-1) );
+  addpath( c );
+else
+  fprintf('WARNING, could not determine path of arts-data.\n');
+end 

@@ -24,7 +24,7 @@
 % HISTORY: 2002.01.01  Created by Patrick Eriksson
 
 
-function L = write_linefile( filename, flims )
+function L = read_linefile( filename, flims )
 
 
 %=== Default values

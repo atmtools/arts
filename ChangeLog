@@ -1,3 +1,23 @@
+2002-08-14  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-40
+
+	* ami/file/vtag2arts.data: O-6 was missing in the file.
+
+	* ami/file/get_artsconfig.m: Extracts a configuration setting for arts.
+
+	* ami/init.m: The init script now automatically adds the top folder
+	of arts-data to the search path (to use the function arts_data_path).
+	The information is taken from arts/config.h. Fancy, or?
+
+	* ami/file/arts_path.m: Created this function to obtain the path to
+	the arts top folder.
+
+	* ami/file/cira86.m: Created this function that returns CIRA 
+	temperatures and altitudes for arbitrary month, latitude and pressure.
+
+	* ami/physics/zpot2zgeom.m: Created this function. 
+
 2002-08-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-39
