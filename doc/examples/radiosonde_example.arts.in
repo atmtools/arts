@@ -33,7 +33,7 @@ cont_descriptionAppend{
 }
 
 # Read frequency grid from file
-VectorReadAscii(f_mono){"f_mono.out"} 
+VectorReadAscii(f_mono){"f_mono.aa"} 
 
 ### The ground ################################################################
 # Set the ground emissivity
