@@ -1,3 +1,14 @@
+2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
+
+        * arts-0-0-253
+	
+	* doc/uguide/absorption.tex: Removed ending .eps for
+	refractive_water_comp_T.eps, LWCcloud.eps and IWCcloud.eps.
+
+	* doc/examples/.cvsignore: Added all auto_full.* files except
+	auto_full.arts.in.
+
+	
 2001-10-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-252
