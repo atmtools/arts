@@ -8,7 +8,6 @@
 	The main thing is that we decided that the most basic variable is
 	put in as the outermost index in matrices and tensors. That is,
 	reversed order compared to before.
-	
 
 2002-03-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 

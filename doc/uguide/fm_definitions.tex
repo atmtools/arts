@@ -72,58 +72,21 @@ found here. It should be described what the terms means, the order in
 which dimensions are given, how sizes are specified here in the guide,
 how different dimensionalities are handled etc. 
 
-Shall we use round braces for specifying a value, e.g.
+Vectors, matrices and tensors are indexed by roundbraces, e.g.
 \begin{equation}
-  \Alt(\aInd{\Lon},\aInd{\Lat},\aInd{\Prs})
+  \Alt(\aInd{\Prs},\aInd{\Lat},\aInd{\Lon})
 \end{equation}
-and square braces for giving the size:
+This is not consistent with how vectors are indexed in ARTS, but it
+would be confusing to use square braces, this as square braces are
+used for sizes. A size is given as $
+[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$, or the size:
 \begin{equation}
-  \Alt \SzeSmb [\aVctLng{\Lon},\aVctLng{\Lat},\aVctLng{\Prs}]
+  \Alt \SzeSmb [\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]
 \end{equation}
-(is the \SzeSmb\ the correct symbol to use here?)? To not confuse
-ourselves, we should use the same dimension order as inside ARTS, or? 
+The concept of rows, columns, pages etc. should be described so a
+particular dimension can be identified in a consistent manner.
 
-SAB: Ok to the round an square braces. How about 1-based / 0-based
-indexing? Would it be possible to use 0-based also in the text. Would
-be less confusing.
-
-Certainly yes to take care that the dimension order is the same in
-Program and Uguide. Hm, maybe there is still need for discussion here,
-see remark in the text, marked by (*). I think if we have an object of
-type (a,b,c), it will be very confusing to speak of 'c' as the first
-dimension. This is true neither for program, nor for documentation,
-'a' comes first! But 'a' is the *outermost* dimension here.
-
-Should we avoid numbers and speak of the page dimension, row
-dimension, and column dimension in this case? 
-
-(**) Another thing: I find the ordering of the spatial dimensions just
-confusing. (Don't kill me.) If the dimensions are fixed, the order is
-really arbitrary, pure definition.  What if we overthrow our old
-decision and make the order:
-
-\begin{verbatim}
-Dimemensions of some important variables:
-
-Position: p, alpha, beta, as needed.
-
-Atmospheric fields (like t_field): Tensor3(p,alpha,beta)
-
-Grids: p_grid, alpha_grid, beta_grid
-
-Radiation field:  (p,lat,lon,phi,omega,f,S)
-(Scalar 1-d case: (p,  1,  1,phi,    1,f,1))
-(That's a one there, f is frequency, S is the index of the Stokes
-component (0-3).)
-
-To define a line of sight: Vector(5)(p,lat,lon,phi,omega)
-\end{verbatim}
-
-I find this somewhat more intuitive, and it has the advantage that for
-sensor\_pos and sensor\_los you can give just the required number of
-columns, starting with p or phi. (See also remark there.)
-
-*]
+The indexing is 0-based as in ARTS. *]
 
 
 
@@ -140,27 +103,32 @@ The structure of the atmosphere can be defined to have different
 degree of complexity, the \qindex{atmospheric dimensionality}. There
 exist three levels for the complexity of the atmosphere, 1D, 2D and
 3D, where 1D and 2D can be treated as special cases of 3D. The
-significance of these different atmospheric dimensionalities [* does
-this form of the word exist? SAB: I don't know a better word, so leave
-it. *], and the coordinate systems used, are
-here described.
+significance of these different atmospheric dimensionalities, and the
+coordinate systems used, are described below. The atmospheric
+dimensionality is selected by setting the workspace variable
+\verb|atmosphere_dim| to a value between 1 and 3. Variables for which
+the size depends on the atmospheric dimensionality are checked, when
+used, to have a size consistent with \verb|atmosphere_dim|.
 
-\leveld{\qindex{3D}} In this, the most general, case, the
-atmospheric fields vary in all three spatial coordinates, as in a true
-atmosphere. A spherical coordinate system is used where the dimensions
-are radius (\Rds), latitude (\Lat) and longitude (\Lon), and a
-position is given as $(\Lon,\Lat,\Rds)$. With other words, the
-standard way to specify a geographical position is followed. However,
-the way to specify the radial position differs depending on the
-context, which is described in Section~\ref{sec:fm_defs:altitudes}.
-The valid range for latitudes goes from -90\degree to +90\degree,
-where +90\degree corresponds to the North pole etc. Longitudes are
-counted from the Greenwich meridian with positive values towards the
-east. The meridian at the Greenwich antipode has longitude +180\degree
-and longitudes smaller or equal to -180\degree are not allowed. The
-poles are considered to be placed at longitude 0\degree. [* SAB: I
-don't understand this last sentence. Aren't the poles at all
-longitudes? *]
+\leveld{\qindex{3D}} In this, the most general, case, the atmospheric
+fields vary in all three spatial coordinates, as in a true atmosphere.
+A spherical coordinate system is used where the dimensions are radius
+(\Rds), latitude (\Lat) and longitude (\Lon), and a position is given
+as $(\Lon,\Lat,\Rds)$. With other words, the standard way to specify a
+geographical position is followed. However, the way to specify the
+radial position differs depending on the context, which is described
+in Section~\ref{sec:fm_defs:altitudes}. The valid range for latitudes
+is [-90\degree,+90\degree], where +90\degree corresponds to the North
+pole etc. Longitudes are counted from the Greenwich meridian with
+positive values towards the east. Longitudes can have values from
+-360\degree to +360\degree. When the difference between the last and
+first value of the longitude grid is $\geq 360\degree$ then the whole
+globe is considered to be covered. The user must ensure that the
+atmospheric fields for \Lon and $\Lon+360\degree$ are equal. If a
+point of propagation path is found to be outside the range of the
+longitude grid, this will results in an error if not the whole globe
+is covered. Otherwise, the longitude is shifted with 360\degree in
+the relevant direction.
 
 \leveld{\qindex{1D}} A 1D atmosphere can be described as being
 spherically symmetric. The term 1D is used here for simplicity and
@@ -189,8 +157,7 @@ is accordingly not needed and a polar system, consisting of a radial
 and an angular coordinate, is used. The 2D case is most likely used
 for satellite measurements where the atmosphere is observed inside the
 orbit plane. The angular coordinate corresponds then to the angular
-distance along the satellite track [* is this a clear description?
-SAB: Yes, I think it is clear. *], but the coordinate is for
+distance along the satellite track, but the coordinate is for
 simplicity denoted as the latitude. The zero point for the 2D latitude
 is arbitrary. No lower and upper limit exists for the 2D latitude, and
 this allows that measurements from several subsequent orbits can be
@@ -233,7 +200,7 @@ Figure~\ref{fig:fm_defs:2d}.
 \leveld{Pressure \index{pressure} and \qindex{pressure altitude}} The
 main altitude coordinate is pressure. This is most clearly manifested
 by the fact that the vertical atmospheric grid consists of surfaces
-with equal pressure.  The vertical grid is consistently denoted as the
+with equal pressure. The vertical grid is consistently denoted as the
 pressure grid and the corresponding workspace variable is called
 \verb|p_grid|. The choice of having pressure as main altitude
 coordinate results in that atmospheric quantities are retrieved as a
@@ -251,36 +218,12 @@ introduced, and it is defined as
 \end{equation}
 where \aPrsAlt{s} and \aPrs{0} are arbitrary parameters (set in
 \verb|arts.h|), but suitably selected in such way that the pressure
-altitude corresponds roughly with the geometrical altitude. [* Values
-around $\aPrsAlt{s}=1013$~hPa and $\aPrs{0}=15.5$~km are suitable for
-simulations dealing with the Earth's atmosphere. SAB: P0 and pzs are
-mixed up above. Also, why not mention that pzs is the scale height?
-Suggested new version:
-
-The two parameters correspond to the scale height and the surface
-pressure, respectively. Values around $\aPrsAlt{s}=15.5$~km and
-$\aPrs{0}=1013$~hPa are suitable for simulations dealing with the
-Earth's atmosphere.
-
-*]
-
-[* According to what I have written, \verb|p_grid| is in pressure.
-The question is if we shall have a parallel variable for the pressure
-altitude, or if we shall make a repeated conversion of \verb|p_grid|
-when needed? My guess is that it is not necessary to make this
-conversion many times, partly as the interpolation weights are
-pre-calculated by my index positions. What do you say? 
-
-SAB: I fear that having two vertical variables that are alternatively
-used would be a source of confusion and bugs. We should decide on one
-of the two. Methods needing the other one should make an internal
-conversion. I have no strong opinion which one is better. Pressure
-seems more straight forward, though.
-
-If I understand what you wrote correctly, you suggest that p\_grid
-should be the vertical variable, and pz\_grid calculated only when
-needed. If this is feasible without high cost, I think it is the best
-solution.  *]
+altitude corresponds roughly with the geometrical altitude.  This
+correspondance is achieved if the two parameters are treated as a
+fixed scale height (for decreases of the pressure with a factor of 10)
+and the surface pressure, respectively. Values around
+$\aPrsAlt{s}=15.5$~km and $\aPrs{0}=1013$~hPa are suitable for
+simulations dealing with the Earth's atmosphere.
 
 \leveld{Radius \index{radius}} Beside pressure, geometrical altitudes
 are needed to determine the propagation path through the atmosphere
@@ -327,66 +270,28 @@ calculated for the vector going from the centre of the coordinate
 system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
 latitudes (see Section~\ref{sec:ppath:geoid}). This is an accordance
-to the definition of geometric altitudes found above. For 3D, a
-longitude grid (\verb|beta_grid|) must also be specified. Valid ranges
-for latitude and longitude values are given in
-Section~\ref{sec:fm_defs:atmdim}.  The atmosphere is treated to be
-undefined outside the latitude and longitude ranges covered by the
-grids. This results in that a propagation path is not allowed to
-cross a latitude or longitude end face of the atmosphere, it can only
-enter or leave the atmosphere through the top of the atmosphere (the
-uppermost pressure level). See further Section~\ref{sec:fm_defs:rte}.
-The volume (or area for 2D) covered by the grids is denoted as the
+to the definition of geometric altitudes found above. 
+For 3D, a longitude grid (\verb|beta_grid|) must also be specified.
+Valid ranges for latitude and longitude values are given in
+Section~\ref{sec:fm_defs:atmdim}. 
+
+The atmosphere is treated to be undefined outside the latitude and
+longitude ranges covered by the grids, if not the whole globe is
+covered. This results in that a propagation path is not allowed to
+cross a latitude or longitude end face of the atmosphere, if such
+exists, it can only enter or leave the atmosphere through the top of
+the atmosphere (the uppermost pressure level). See further
+Sections~\ref{sec:fm_defs:atmdim} and \ref{sec:fm_defs:rte}. The
+volume (or area for 2D) covered by the grids is denoted as the
 \qindex{model atmosphere}.
 
 If the longitude and latitude grids are not used for the selected
-atmospheric dimensionality, the the longitude grid (for 1D and 2D) and
-also the latitude grid (for 1D) are set to be empty [* SAB: I swapped
-the order in the above two sentences, otherwise I wouldn't understand
-them. Are they now correct? *], but the when dealing with the size of
-variables the grid length shall be treated to be one
-($\aVctLng{\Lat}=1$ and/or $\aVctLng{\Lon}=1$). For example, the
-matrix describing the geoid (see Section~\ref{sec:fm_defs:geoid}) has
-for 1D the size $[1,1]$.
-
-[* SAB: I think you are suggesting that just the existence of alpha\_grid
-and beta\_grid should be considered as the switch to decide which
-dimensionality we have. While this is very elegant, it could be in
-practice confusing for the user. What if she just forgot to specify
-beta\_grid? Or, how should the program behave if beta\_grid is there but
-alpha\_grid not?
-
-Suggestion: Have one WSV define the dimensionality explicitly:
-
-\begin{verbatim}
-  wsv_data.push_back
-    (WsvRecord
-     ("dimension",
-     "The dimensionality of the calculation. For details, see user guide,\n"
-     "Chapter 2. Allowed values:\n"
-     "\n"
-     "1: 1-D\n"
-     "2: 2-D\n"
-     "3: 3-D\n",
-      Index_));
-\end{verbatim}
-      
-All methods dealing with geometry can then verify that the grids
-specified (p\_grid, alpha\_grid, beta\_grid) are consistent with
-the chosen dimensionality.
-
-Actually, maybe we need a similar flag to specify how many Stokes
-components should be used.
-
-\begin{verbatim}
-  wsv_data.push_back
-    (WsvRecord
-     ("polarization",
-     "How many Stokes components are used. Allowed value: 1-4.",
-      Index_));
-\end{verbatim}
-
-What do you think, Patrick? *]
+atmospheric dimensionality, then the longitude grid (for 1D and 2D)
+and the latitude grid (for 1D) are set to be empty, but the when
+dealing with the size of variables the grid length shall be treated to
+be one ($\aVctLng{\Lat}=1$ and/or $\aVctLng{\Lon}=1$). For example,
+the matrix describing the geoid (see Section~\ref{sec:fm_defs:geoid})
+has for 1D the size $[1,1]$.
 
 The basic atmospheric quantities are represented by their values at
 each crossing of the involved grids (indicated by thick dots in
@@ -403,42 +308,28 @@ Section~\ref{sec:fm_defs:altitudes}), and along the latitude and
 longitude edges of 2D and 3D grid boxes. For points inside 2D and 3D
 grid boxes, multidimensional linear interpolation is applied (that is,
 bilinear interpolation for 2D etc.). Note especially that this is also
-valid for the field of geometrical altitudes (\verb|z_field|).
+valid for the field of geometrical altitudes (\verb|z_field|).  Fields
+are rank-3 tensors, for example \verb|z_field| has the dimensions
+$[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$.  That means each
+field is like a book, with one page for each pressure grid point, one
+row for each latitude grid point, and one column for each longitude
+grid point. In the 1-D case there is just one row and one column on each
+page.
 
-[* SAB: Stupid question: How does bilinear interpolation work
-exactly? Do you first interpolate one coordinate on two grid faces,
-and then the other one between the face values? Does the order make a
-difference? And how is this in 3-D? Maybe we can talk about it on the
-phone. *]
-
-[* SAB: I think it would be important to explicitly specify the
-structure of the field variables here. For example:
-
-Fields are rank-3 tensors, for example \verb|z_field| has the
-dimensions $[n_\beta,n_\alpha,n_P]$. FIXME: Re-sort, if we decide to
-change the order! That means each field is like a book, with one page
-for each longitude grid point, one row for each latitude grid point,
-and one column for each pressure grid point. In the 1-D case there is
-just one page with a single row of text.
-
-I think the order p, alpha, beta would be better, see remark (**) at the
-beginning.
-
-*]
 
 
 \levelc{The geoid and the ground}
 %===================
 \label{sec:fm_defs:geoid}
 
-The geoid, \aRds{\odot}, is an imagery [* SAB: do you mean imaginary?
-*] surface used as a reference surface when specifying the ground
-altitude and the altitude of pressure surfaces. Any shape of the geoid
-is allowed but a smoothly varying geoid is the natural choice, with
-the centres of the geoid and the coordinate system coinciding. The
-geoid should normally be set to the reference ellipsoid for some
-global geodetic datum, such as WGS-84. For further reading on geoid
-ellipsoids and WGS-84, see Section~\ref{sec:ppath:geoid}.
+The geoid, \aRds{\odot}, is an imaginary surface used as a reference
+surface when specifying the ground altitude and the altitude of
+pressure surfaces. Any shape of the geoid is allowed but a smoothly
+varying geoid is the natural choice, with the centres of the geoid and
+the coordinate system coinciding. The geoid should normally be set to
+the reference ellipsoid for some global geodetic datum, such as
+WGS-84. For further reading on geoid ellipsoids and WGS-84, see
+Section~\ref{sec:ppath:geoid}.
 
 Inside ARTS, the geoid is represented as a matrix (\verb|r_geoid|),
 holding the geoid radius for each crossing of the latitude and
@@ -481,18 +372,14 @@ which scattering shall be considered is denoted as the cloud box, and
 it is discussed here as it acts as an additional atmospheric limit
 when calculating propagation paths (see Section~\ref{sec:fm_defs:rte}). 
 
-The cloud box is defined in such way that a propagation path that
-leaves the cloud box has no opportunity to cross the cloud box
+The cloud box is defined in such way that a propagation path 
+entering the cloud box at one position has not crossed the cloud box
 boundary at any other location (remember that there is no scattering
 outside the cloud box). This requires that the lower limit of the
 cloud box is throughout the ground. This is the case as if there would
-be a gap between the ground and the cloud box, paths leaving the cloud
-box in the nadir direction would re-enter the cloud box after a
-reflection in the ground. [* I just realized that with a tilted ground
-surface it is possible that a path bounces back into the cloud box.
-What shall we do with this? SAB: I would just mention here that this
-case is ignored. :-) Or better, mention this after the next paragraph,
-because otherwise the reader will not understand the problem. *]
+be a gap between the ground and the cloud box, paths entering the
+cloud box from below after a ground reflection have passed through the
+cloud box on the way down, at least for propagations paths close to nadir.
 
 Beside the lower vertical limit, the cloud box is defined to be
 rectangular in the used coordinate system, with limits exactly at
@@ -502,6 +389,13 @@ the cloud box is between two points of the latitude grid
 (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D but then also with
 a longitude extension between two grid points.
 
+There exists in fact a small risk for 2D and 3D that a propagation
+path into the cloud box has earlier crossed the box boundaries. This
+can happen for propagation paths close to the nadir direction and if
+the ground is tilted in such way that the surface of the ground points
+towards the cloud box. The first crossing of the cloud box is
+neglected for such cases, the cloud box is simply turned off when
+determing the radiation field going into the cloud box.
 
 
 \levelb{The sensor and data reduction}
@@ -515,12 +409,12 @@ pencil beam radiation is of interest, the positions and directions for
 which the radiation shall be calculated are given by specifying an
 imagery sensor with infinite frequency and angular resolution. The
 workspace variables for the sensor that always must be specified are
-\verb|sensor_pos|, \verb|sensor_los|, \verb|antenna_psi_grid| and
-\verb|Ha|. These variables are presented below, where they are first
-discussed individually and then later together when it is described
-how different measurement sequences are modelled in the most practical
-way. Remaining sensor workspace variables are described last in this
-section.
+\verb|sensor_pos|, \verb|sensor_los|, \verb|sensor_pol|, \verb|antenna_dim|,
+\verb|antenna_psi_grid| and \verb|Ha| and \verb|Hd|. These variables
+are presented below, where they are first discussed individually and
+then later together when it is described how different measurement
+sequences are modelled in the most practical way. Remaining sensor
+workspace variables are described last in this section.
 
 
 \levelc{Sensor position \index{sensor position}}
@@ -533,22 +427,8 @@ sensor position. The number of columns in the matrix equals the
 atmospheric dimensionality (1 column for 1D etc.). The columns of the
 matrix (from first to last) are radius, latitude and longitude. 
 
-[*
-SAB: (*) Why do you give the columns backward? Is this an accident or a
-misunderstanding? The only thing that is `backward' about Tensors, is
-that new higher dimensions are added at the beginning, which is quite
-natural (think of a book containing pages containing rows containing
-columns). I think longitude should be first here. 
-
-Or better, we should change the order of the dimensions in the fields,
-see remark at the beginning, then your sentence would be correct.
-
-*]
-
-
-
 Accordingly, row $i$ of \verb|sensor_pos| for a 3D case is
-$(\aLon{i},\aLat{i},\aRds{i})$. The sensor position can be set to any
+$(\aRds{i},\aLat{i},\aLon{i})$. The sensor position can be set to any
 value, but the resulting propagation paths (also dependent on
 \verb|sensor_los|) must be valid with respect to the model atmosphere
 (see Section~\ref{sec:fm_defs:rte}). An obviously incorrect choice is to
@@ -577,7 +457,7 @@ dimensionalities, while the azimuthal angle only is defined for 3D.
 The term line-of-sight is not only used in connection with the sensor,
 it is also used to describe the local propagation direction along the
 path taken by the observed radiation (Section~\ref{sec:fm_defs:rte}).
-The zenith and azimuthal angles are defined identical in both these
+The zenith and azimuthal angles are defined identical in these two
 contexts. This is expected as the position of the sensor is the end
 point of the propagation path. The line-of-sight of propagation paths
 is defined in the direction a photon travels to reach the sensor,
@@ -589,7 +469,7 @@ directions. As a true sensor has a limited spatial resolution
 infinite number of line-of-sights associated with the sensor, but in
 the forward model spectra are only calculated for a discrete set of
 directions. If a sensor line-of-sight is mentioned without any
-comments, this refers to the direction in which the centre of the
+comments, it refers to the direction in which the centre of the
 antenna pattern is directed.
 
 The \qindex{zenith angle}, \ZntAng, is simply the angle between the
@@ -616,18 +496,16 @@ Section~[**]. The sensor line-of-sights are stored in
 \verb|sensor_los|. This workspace variable is a matrix, where the
 first column holds zenith angles and the second column is azimuthal
 angles. For 1D and 2D there is only one column in the matrix, while
-for 3D a row $i$ of the matrix is $(\aAzmAng{i},\aZntAng{i})$. The
+for 3D a row $i$ of the matrix is $(\aZntAng{i},\aAzmAng{i})$. The
 number of rows for \verb|sensor_los| must be the same as for
 \verb|sensor_pos|.
 
-[* SAB: Again, I think it is confusing, if the order of the columns is
-oposite from the indices of the matrix it refers to. *]
 
 \levelc{Sensor polarisation \index{sensor polarisation}}
 %===================
 \label{sec:fm_defs:sensorpol}
 
-[* How shall this be handled? *]
+[* How shall this be handled? \verb|sensor_pol| *]
 
 
 \levelc{Sensor characteristics \index{sensor characteristics} and
@@ -636,21 +514,20 @@ oposite from the indices of the matrix it refers to. *]
 \label{sec:fm_defs:sensorchar}
 
 Sensor characteristics is used here as a comprehensive term for the
-response of all sensor parts that affects how the field of
+response of all sensor parts that affect how the field of
 monochromatic pencil beam intensities are translated to the recorded
 spectrum. For example, the antenna pattern, the side-band filtering
 and response of the spectrometer channels are normally the most
 important charcteristics for a microwave heterodyne radiometer. Any
-processing of the spectral data that takes place before is denoted as
-data reduction. The most common processing is to represent the
-original spectra with a smaller set of values, that is, a reduction of
-the data size. The most common data reduction techniques is binning
-and Hotelling transformation by an eigenvector expansion
-(Section~[**]). The sensor modelling in ARTS assumes that the sensor
-characteristics are identical for all measured spectra.
+processing of the spectral data that takes place before the retrieval
+is denoted as data reduction. The most common processing is to
+represent the original spectra with a smaller set of values, that is,
+a reduction of the data size. The most common data reduction
+techniques is binning and Hotelling transformation by an eigenvector
+expansion (Section~[**]).
 
 The influence of sensor characteristics and data reduction is in ARTS
-incorporated by a transfer matrices, as described in
+incorporated by transfer matrices, as described in
 Section~\ref{sec:formalism:sensor}. The application of these transfer
 matrices assumes that each step is a linear operation, which should be
 the case for the response of the parts of a well designed instrument.
@@ -659,8 +536,8 @@ A possible non-linear data reduction must be handled seperately.
 The creation of sensor and data reduction transfer matrices is not
 (yet?) included in ARTS and no workspace variables exist to describe
 the indivudual sensor parts etc. The sensor and data reduction are
-described a series of blocks, each having its own transfer matrix.  It
-is necessary to introduce a number of transfer matrices for various
+described as a series of blocks, each having its own transfer matrix.
+It is necessary to introduce a number of transfer matrices for various
 reasons. At least three matrices are needed, denoted as \aSnsMtr{a},
 \aSnsMtr{b} and \aSnsMtr{c}.
 
@@ -675,7 +552,7 @@ reasons. At least three matrices are needed, denoted as \aSnsMtr{a},
 %===================
 \label{sec:fm_defs:sensorvars}
 
-\aSnsMtr{b} and \aSnsMtr{c} are described above.
+\verb|antenna_psi_grid|, \aSnsMtr{b}, \aSnsMtr{c}
 
 
 \levelb{Absorption and refractive index}

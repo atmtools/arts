@@ -198,17 +198,20 @@ Tensor dimensions are:
 
 Dimemensions of some important variables:
 
-Position: lon, lat, p/z, as needed.
+Atmospheric fields (like t_field): Tensor3(p,alpha,beta)
 
-Atmospheric fields (like t_abs): Tensor3(lon,lat,p/z)
+Grids: p_grid, alpha_grid, beta_grid
 
-Grids: lon_grid, lat_grid, p_grid (or z_grid)
+Position: Matrix with number of columns equal to atmospheric dimensionality.
+          The columns are (p, alpha, beta).
 
-Radiation field: (lon,lat,p/z,theta,phi)
-(1-d case:       (1,  1,  p/z,theta,1  ) )
-(that's a one there!)
+Radiation field:  (p,alpha,beta,phi,omega,f,S)
+(Scalar 1-d case: (p,  1,  1,phi,    1,f,1))
+(That's a one there, f is frequency, S is the index of the Stokes
+component (0-3).)
 
-To define a line of sight: Vector(5)(lon,lat,p/z,theta,phi)
+A line of sight (for a given position): Vector(2)(phi,omega)
+
 
 Interpolation routine:
 
