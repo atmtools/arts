@@ -66,7 +66,10 @@ autotexfiles = \
 EXTRA_DIST = \
 	$(texfiles) \
 	$(autotexfiles) \
-	uguide.pdf
+	uguide.pdf \
+	arts_groups_to_latex.sh \
+	arts_methods_to_latex.sh
+
 
 if MAINTAINER_MODE
 
@@ -92,9 +95,6 @@ auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
 
 auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
 	./arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
-
-EXTRA_DIST = arts_groups_to_latex.sh\
-	     arts_methods_to_latex.sh
 
 CLEANFILES = *.aux \
 	     *.log \
