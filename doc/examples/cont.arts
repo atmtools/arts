@@ -19,7 +19,9 @@ tgsDefine{
 	"CO2-ContRosenkranzSelf",
 	"CO2-ContRosenkranzForeign",
 	"N2-ContRosenkranzSelf",
-	"O2-ContRosenkranz"] 
+	"O2-ContRosenkranz",
+	"H2O-MPM93droplet",
+        "H2O-MPM93ice"] 
 }
 #
 # ********************************************************************
@@ -99,10 +101,27 @@ cont_descriptionAppend{
     name       = "O2-ContRosenkranz"
     parameters = [ 1.108e-14, 0.8 ]
 }
+# ---------- water/ice particles ---------------
+# MPM93 model for liquid water/ice particle absorption:
+# liquid water droplet parameters
+# w :  suspended water droplet density, valid range: 0-10.0e-3 kg/m3
+# m :  specific weight of the droplet,  fixed value: 1.000e3 kg/m3
+cont_descriptionAppend{
+    name       = "H2O-MPM93droplet"
+    parameters = [ 1.000e-3, 1.000e3 ]
+}
+# ice particle parameters
+# w :  suspended ice particle density,    valid range: 0-10.0e-3 kg/m3
+# m :  specific weight of ice particles,  fixed value: 0.916e3 kg/m
+cont_descriptionAppend{
+    name       = "H2O-MPM93ice"
+    parameters = [ 1.000e-3, 0.916e3 ]
+}
+#
 # ********************************************************************
 # Read spectral line data from HITRAN catalogue for 0-200 GHz:
 lines_per_tgReadFromCatalogues{
-  filenames = ["arts/data/spectroscopy/hitran96/hitran96_lowfreq.par"]
+  filenames = ["../../data/spectroscopy/hitran96/hitran96_lowfreq.par"]
   formats = [ "HITRAN96" ]
   fmin    = [     0.0e9  ]       
   fmax    = [     1.5e12  ]   
@@ -114,11 +133,11 @@ lines_per_tgWriteToFile{""}
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz_1d':
 MatrixReadAscii (raw_ptz_1d) 
-        {"arts/data/atmosphere/fascod/midlatitude-summer.tz.am"}
+        {"../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 # The same for the input VMR profiles:
 raw_vmrs_1dReadFromScenario
-        {"arts/data/atmosphere/fascod/midlatitude-summer"}
+        {"../../data/atmosphere/fascod/midlatitude-summer"}
 
 # Optionally write this to a file:
 #ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}

@@ -18,6 +18,35 @@
                                 "Atmospheric Remote Sensing by Microwave Radiometry",
                                 John Wiley & Sons, Inc., 1993
 
+   A) Suspended water droplet absorption parameterization from MPM93 model
+      H. J. Liebe and G. A. Hufford and M. G. Cotton,
+      "Propagation modeling of moist air and suspended water/ice
+      particles at frequencies below 1000 GHz",
+      AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+      Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
+      
+   B) Ice crystal absorption parameterization from MPM93 model
+      H. J. Liebe and G. A. Hufford and M. G. Cotton,
+      "Propagation modeling of moist air and suspended water/ice
+      particles at frequencies below 1000 GHz",
+      AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+      Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
+
+
+   The following unit conversions are used:
+   (SI units: meter, kilogram, second, ampere, Kelvin, candela) 
+   x GHz   = y Hz       <===>      y = x * 1.00e9
+   x 1/GHz = y 1/Hz     <===>      y = x * 1.00e-9
+   x hPa   = y Pa       <===>      y = x * 1.00e2
+   x 1/hPa = y 1/Pa     <===>      y = x * 1.00e-2
+   x 1/cm  = y 1/m      <===>      y = x * 1.0e2
+   x 1/km  = y 1/m      <===>      y = x * 1.00e-3
+   x Np    = y 1        <===>      y = x
+   x dB    = y Np       <===>      y = x / (10.0 * log10(e))
+   x dB/km = y 1/m      <===>      y = x * 1.00e-3 / (10.0 * log10(e))
+   x g/cm3 = y kg/m3    <===>      y = x * 1.00e3
+   x g/m3  = y kg/m3    <===>      y = x * 1.00e-3
+
    \author Thomas Kuhn
    \date   2001-03-27
 */
@@ -195,6 +224,10 @@ Numeric MPM93ContinuumPseudoLineShapeFunction( Numeric gamma,
 }
 //
 // MPM93 H2O pseudo continuum line parameters:
+// see publication side of National Telecommunications and Information Administration
+//   http://www.its.bldrdoc.gov/pub/all_pubs/all_pubs.html
+// and ftp side for downloading the MPM93 original source code:
+//   ftp://ftp.its.bldrdoc.gov/pub/mpm93/
 void MPM93_h2o_continuum( MATRIX&           xsec,
 			  Numeric	    MPM93fopcl, // default: 1780.0*10^9 Hz
 			  Numeric	    MPM93b1pcl, // default: 22300.0 Hz/Pa
@@ -234,7 +267,7 @@ void MPM93_h2o_continuum( MATRIX&           xsec,
       // Loop frequency:
       for ( size_t s=0; s<n_f; ++s )
 	{
-	  xsec[s][i] += 0.182 * 0.001 / (10.0*log10(2.718281828))  * 
+	  xsec[s][i] += 0.182 * 0.001 / (10.000*log10(2.718281828))  * 
 	                f_mono[s] * strength * 
 	                MPM93ContinuumPseudoLineShapeFunction(gam, MPM93fopcl, f_mono[s]); 
 	  //	  cout << "xsec[" << s << "][" << i << "]: " << xsec[s][i] << "\n";
@@ -423,6 +456,219 @@ void Rosenkranz_co2_foreign_continuum( MATRIX&           xsec,
 //
 // #################################################################################
 //
+// saturation water vapor pressure over liquid water,
+// calculated according to Goff and Gratch formula.
+// The saturation water vapor pressure is in units of Pa
+Numeric WVSatPressureLiquidWater(Numeric t)
+{
+  Numeric theta  = 373.16 / (t + 273.16);
+  Numeric es     = 100.000 * 
+                   ( -7.90298 * (theta-1.000) +
+		     5.02808 * log10(theta) -
+		     1.3816e-7 * ( pow( 10.00, (11.344*(1.00-(1.00/theta))) ) - 1.000 ) +
+		     8.1328e-3 * ( pow( 10.00, (-3.49149*(theta-1.00))) - 1.000) +
+		     log10(1013.246) );
+  return es;
+}
+//
+// #################################################################################
+//
+// saturation water vapor pressure over ice,
+// calculated according to Goff and Gratch formula.
+// The saturation water vapor pressure is in units of Pa
+Numeric WVSatPressureIce(Numeric t)
+{
+  Numeric theta  = 273.16 / (t + 273.16);
+  Numeric es     = 100.000 * 
+                  (-9.09718  * (theta-1.000) -
+		   3.56654  * log10(theta)  +
+		   0.876793 * (1.000-(1.000/theta)) +
+		   log10(6.1071) );
+  return es;
+}
+// #################################################################################
+//
+//   A) cloud and fog absorption parameterization from MPM93 model
+//      input parameters:
+//      w :  suspended water droplet density, valid range: 0-10.00e-3 kg/m3
+//      m :  specific weight of the droplet,  fixed value:     1.00e3 kg/m3
+//      The internal numerical values (and units) are the same as in MPM93
+//
+void MPM93WaterDropletAbs( MATRIX&           xsec,
+			   Numeric	        w, // suspended water droplet density
+			   Numeric	        m, // specific droplet weight 
+			   const VECTOR&   f_mono,
+			   const VECTOR&    p_abs,
+			   const VECTOR&    t_abs,
+			   const VECTOR&      vmr	 )
+{
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Check that suspended water droplet density and specific weight of the droplet
+  // are in the correct limits
+  if ((w < 0.00) || (w > 10.00e-3) || (fabs(m-1.000e3)> 0.100)) {
+    ostringstream os;
+    os << "MPM93WaterDropletAbs: \n"
+       << "suspended liquid water particle density,       valid range: 0-10.00e-3 kg/m3,  w=" << w << "\n"
+       << "specific weight of the liquid water particle,  fixed value:     1.00e3 kg/m3,  m=" << m << "\n"
+       << ".";
+    throw runtime_error(os.str());
+    return;
+  }
+
+  // Loop pressure/temperature:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // water vapor saturation pressure over liquid water [Pa]
+      // Numeric es       = WVSatPressureLiquidWater(t_abs[i]);
+      // water vapor partial pressure [Pa]
+      // Numeric e        = p_abs[i] * vmr[i];      
+      // relative humidity [1]
+      // Numeric RH       = e / es;
+  
+      // relative inverse temperature [1]
+      Numeric theta    = 300.000 / t_abs[i];
+      // relaxation frequencies [GHz]
+      Numeric gamma1   = 20.20 - 146.40*(theta-1.000) + 316.00*(theta-1.000)*(theta-1.000);
+      Numeric gamma2   = 39.80 * gamma1; 
+      // static and high-frequency permittivities
+      Numeric epsilon0 = 103.30 * (theta-1.000) + 77.66;
+      Numeric epsilon1 = 0.0671 * epsilon0;
+      Numeric epsilon2 = 3.52;
+
+      // Loop frequency:
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	  // real part of the complex permittivity of water (double-debye model)
+	  Numeric Reepsilon  = epsilon0 - 
+	                       pow((f_mono[s]*1.000e-9),2) *
+	                       ( ((epsilon0-epsilon1)/
+				  (pow((f_mono[s]*1.000e-9),2) + pow(gamma1,2))) + 
+                                 ((epsilon1-epsilon2)/
+				  (pow((f_mono[s]*1.000e-9),2) + pow(gamma2,2))) );
+	  // imaginary part of the complex permittivity of water (double-debye model)
+	  Numeric Imepsilon  = (f_mono[s]*1.000e-9) *
+	                       ( (gamma1*(epsilon0-epsilon1)/
+				  (pow((f_mono[s]*1.000e-9),2) + pow(gamma1,2))) + 
+                                 (gamma2*(epsilon1-epsilon2)/
+				 (pow((f_mono[s]*1.000e-9),2) + pow(gamma2,2))) );
+	  // the imaginary part of the complex refractivity of suspended liquid water particle [ppm]
+	  // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
+          // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+          // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
+          // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
+          // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
+          // the factor of 1.0e6 is included below in the constant 41.90705.
+	  Numeric ImNw = 1.500 * (w/m) * 
+ 	                ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+	  // liquid water particle absorption cross section [1/m]
+	  // The vmr of H2O will be multiplied at the stage of absorption 
+	  // calculation: abs = vmr * xsec.
+          // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
+	  xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw / vmr[i];
+	}
+    }
+
+}
+//
+// #################################################################################
+//
+//   A) ice particle absorption parameterization from MPM93 model
+//      input parameters:
+//      w :  suspended ice particle density,    valid range: 0-10.0e-3 kg/m3
+//      m :  specific weight of ice particles,  fixed value:   0.916e3 kg/m3
+//      The internal numerical values (and units) are the same as in MPM93
+//
+void MPM93IceCrystalAbs( MATRIX&           xsec,
+			 Numeric	      w, // suspended ice particle density
+			 Numeric	      m, // specific ice particles weight 
+			 const VECTOR&   f_mono,
+			 const VECTOR&    p_abs,
+			 const VECTOR&    t_abs,
+			 const VECTOR&      vmr	 )
+{
+  const size_t n_p = p_abs.size();	// Number of pressure levels
+  const size_t n_f = f_mono.size();	// Number of frequencies
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.size() );
+  assert ( n_p==vmr.size()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+  
+  // Check that suspended water droplet density and specific weight of the droplet
+  // are in the correct limits
+  if ((w < 0.00) || (w > 10.00e-3) || (fabs(m-0.916e3)> 0.100)) {
+    ostringstream os;
+    os << "MPM93IceCrystalAbs: \n"
+       << "suspended ice particle density,       valid range: 0-10.0e-3 kg/m3,   w=" << w << "\n"
+       << "specific weight of the ice particle,  fixed value:   0.916e3 kg/m3,   m=" << m << "\n"
+       << ".";
+    throw runtime_error(os.str());
+    return;
+  }
+
+
+  // Loop pressure/temperature:
+  for ( size_t i=0; i<n_p; ++i )
+    {
+      // water vapor saturation pressure over ice [Pa]
+      // Numeric es = WVSatPressureIce(t_abs[i]);
+      // water vapor partial pressure [Pa]
+      // Numeric e  = p_abs[i] * vmr[i];
+      // relative humidity [1]
+      // Numeric RH = e / es;
+  
+      // relative inverse temperature [1]
+      Numeric theta = 300.000 / t_abs[i];
+      // inverse frequency T-dependency function [Hz]
+      Numeric ai = (62.000 * theta - 11.600) * exp(-22.100 * (theta-1.000)) * 1.000e-4;
+      // linear frequency T-dependency function [1/Hz]
+      Numeric bi = 0.542e-6 * 
+                   ( -24.17 + (116.79/theta) + pow((theta/(theta-0.9927)),2) );
+
+      // Loop frequency:
+      for ( size_t s=0; s<n_f; ++s )
+	{
+	  // real part of the complex permittivity of ice
+	  Numeric Reepsilon  = 3.15;
+	  // imaginary part of the complex permittivity of water
+	  Numeric Imepsilon  = ( ( ai/(f_mono[s]*1.000e-9) ) +
+				 ( bi*(f_mono[s]*1.000e-9) ) );
+	  // the imaginary part of the complex refractivity of suspended ice particles.
+	  // In MPM93 w is in g/m3 and m is in g/cm3. Because of the units used in arts,
+          // a factor of 1.000e6 must be multiplied with the ratio (w/m):
+          // MPM93: (w/m)_MPM93  in   (g/m3)/(g/cm3)
+          // arts:  (w/m)_arts   in  (kg/m3)/(kg/m3)
+          // ===> (w/m)_MPM93 = 1.0e6 * (w/m)_arts
+          // the factor of 1.0e6 is included below in the constant 41.90705.
+	  Numeric ImNw = 1.500 * (w/m) * 
+ 	                ( 3.000 * Imepsilon / ( pow((Reepsilon+2.000),2) + pow(Imepsilon,2) ) );
+	  // ice particle absorption cross section [1/m]
+	  // The vmr of H2O will be multiplied at the stage of absorption 
+	  // calculation: abs = vmr * xsec.
+          // 41.90705 = (0.182 * 0.001 / (10.000*log10(2.718281828))) * 1.000e6
+	  xsec[s][i] += 41.90705 * (f_mono[s]*1.000e-9) * ImNw / vmr[i];
+	}
+    }
+
+}
+//
+// #################################################################################
+//
 /** Calculates continuum absorption for one continuum tag. Note, that
     only one tag can be taken at a time. That means for water vapor
     you will have to call this function two times, once with the
@@ -460,7 +706,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			 const VECTOR&              vmr )
 {
   //
-  out3 << "  Continuum paramters are: " << parameters << "\n";
+  // out3 << "  Continuum paramters are: " << parameters << "\n";
   //
   // A simple switch statement does not work here, because the
   // switching condition is not a simple value. So we need to use a
@@ -477,6 +723,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
@@ -512,6 +759,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
@@ -550,16 +798,17 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
-      // parameters[0] : pseudo continuum line frequency                      [Hz]
-      // parameters[1] : pseudo continuum line strength parameter             [Hz/Pa]
-      // parameters[2] : pseudo continuum line strength temperature parameter [1]
-      // parameters[3] : pseudo continuum line broadening parameter           [Hz/Pa]
-      // parameters[4] : pseudo continuum line broadening parameter           [1]
-      // parameters[5] : pseudo continuum line broadening parameter           [1]
-      // parameters[6] : pseudo continuum line broadening parameter           [1]
+      // parameters[0] : pseudo continuum line frequency                      default: 1780.0*10^9 Hz
+      // parameters[1] : pseudo continuum line strength parameter             default: 22300.0 Hz/Pa
+      // parameters[2] : pseudo continuum line strength temperature parameter default: 0.952
+      // parameters[3] : pseudo continuum line broadening parameter           default: 17.6*10^4 Hz/Pa
+      // parameters[4] : pseudo continuum line broadening parameter           default: 30.5
+      // parameters[5] : pseudo continuum line broadening parameter           default: 2
+      // parameters[6] : pseudo continuum line broadening parameter           default: 5
       //
       // units:
       //  a) output 
@@ -592,10 +841,20 @@ void xsec_continuum_tag( MATRIX&                    xsec,
     }
   else if ( "H2O-ContCKDSelf"==name ) // ----------------------------------------
     {
+	  ostringstream os;
+	  os << "CKD self continuum model not yet implemented"
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
 
     }
   else if ( "H2O-ContCKDForeign"==name ) // -------------------------------------
     {
+	  ostringstream os;
+	  os << "CKD foreign continuum model not yet implemented"
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
 
     }
   // ============= O2 continuum =================================================
@@ -615,6 +874,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
@@ -657,6 +917,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
@@ -699,6 +960,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 				      t_abs,
 				      vmr );
       */
+      return;
     }  
   // ============= CO2 continuum ================================================
   else if ( "CO2-ContRosenkranzSelf"==name )
@@ -716,6 +978,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
@@ -756,6 +1019,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 	     << "parameters, but you specified " << parameters.size()
 	     << ".";
 	  throw runtime_error(os.str());
+	  return;
 	}
       
       // specific continuum parameters:
@@ -783,12 +1047,113 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 					n2_abs,
 					vmr );
     }
+  // ============= cloud and fog absorption from MPM93 ==========================
+  else if ( "H2O-MPM93droplet"==name )
+    {
+      // Suspended water droplet absorption parameterization from MPM93 model
+      // H. J. Liebe and G. A. Hufford and M. G. Cotton,
+      // "Propagation modeling of moist air and suspended water/ice
+      //  particles at frequencies below 1000 GHz",
+      // AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+      // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
+
+      // Check if the right number of paramters has been specified:
+      if ( 2 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM93 liquid water particle absorption model " << name << " requires two input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // liquid water droplet parameters:
+      // parameters[0] : suspended water droplet density   range: 0-10 g/m3
+      // parameters[1] : specific droplet weight           value:    1 g/cm3
+      //
+      // valid atmospheric condition:
+      // temperature      : 233 to 323 K
+      // relative humidity:   1 to 100 %
+      // 
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [g/m3]
+      //     parameters[1] : [g/m3]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     n2_abs        : [1]
+      //     vmr           : [1]
+      //
+      MPM93WaterDropletAbs(xsec,
+			   parameters[0],     // suspended water droplet density
+			   parameters[1],     // specific droplet weight 
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   vmr );
+    }
+  // ============= ice particle absorption from MPM93 ============================
+  else if ( "H2O-MPM93ice"==name )
+    {
+      // Ice particle absorption parameterization from MPM93 model
+      // H. J. Liebe and G. A. Hufford and M. G. Cotton,
+      // "Propagation modeling of moist air and suspended water/ice
+      //  particles at frequencies below 1000 GHz",
+      // AGARD 52nd Specialists Meeting of the Electromagnetic Wave
+      // Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 
+
+      // Check if the right number of paramters has been specified:
+      if ( 2 != parameters.size() )
+	{
+	  ostringstream os;
+	  os << "MPM93 ice particle absorption model " << name << " requires two input\n"
+	     << "parameters, but you specified " << parameters.size()
+	     << ".";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      
+      // ice crystal parameters:
+      // parameters[0] : suspended ice particle density   range:  0-10 g/m3
+      // parameters[1] : specific ice particle weight     value: 0.916 g/cm3
+      //
+      // valid atmospheric condition:
+      // temperature      : 233 to 323 K
+      // relative humidity:   1 to 100 %
+      // 
+      // units:
+      //  a) output 
+      //     xsec          : [1/m],
+      //  b) input
+      //     parameters[0] : [g/m3]
+      //     parameters[1] : [g/cm3]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     n2_abs        : [1]
+      //     vmr           : [1]
+      //
+      MPM93IceCrystalAbs(xsec,
+			 parameters[0],     // suspended water droplet density
+			 parameters[1],     // specific droplet weight 
+			 f_mono,
+			 p_abs,
+			 t_abs,
+			 vmr );
+    }
   else // -----------------------------------------------------------------------
     {
       ostringstream os;
       os << "Continuum tag `" << name << "' not implemented.";
       throw runtime_error(os.str());
+      return;
     }
+
+  return;
 }
 //
 // #################################################################################

@@ -241,6 +241,8 @@ void define_partition_species_data()
   iso(it_isotope,	"ContMPM93",             Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContCKDSelf",           Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContCKDForeign",        Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM93droplet",          Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM93ice",              Qcoeff( 0	,0		,0		,0          ) );
 
 
   // CO2

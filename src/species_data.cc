@@ -189,7 +189,9 @@ void define_basic_species_data()
 	 REC( "ContRosenkranzForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
   	 REC( "ContCKDSelf"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
-  	 REC( "ContCKDForeign"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
+  	 REC( "ContCKDForeign"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM93droplet"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+	 REC( "MPM93ice"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
 
   // CO2 
