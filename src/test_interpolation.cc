@@ -16,6 +16,7 @@
    USA. */
 
 #include <iostream>
+#include <cmath>
 #include "array.h"
 #include "matpackVII.h"
 #include "interpolation.h"

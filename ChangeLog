@@ -1,3 +1,16 @@
+2004-03-30  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-808
+
+	* src/test_interpolation.cc: Minor fix. Include cmath for pow.
+
+	* doc/uguide/arts_{groups,methods}_to_latex.sh: tail +5 is not POSIX
+	compliant and fails with newer coreutils. Replaced by appropriate
+	grep command.
+
+	* configure.in: On some systems HDF is compiled with szip support. In
+	that case we have to link against it. Added check.
+
 2004-04-13  Cory Davis  <cory@zvi.jpl.nasa.gov>
 
 	* arts-1-1-807

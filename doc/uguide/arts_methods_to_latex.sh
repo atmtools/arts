@@ -8,7 +8,7 @@ then
     exit 1
 fi
 
-METHOD_LIST=`$ARTS -m all | tail +5 | sed 's/^-//' | sed 's/^.-*.$//'`
+METHOD_LIST=`$ARTS -m all | grep '^- ' | sed 's/^-//' | sed 's/^.-*.$//'`
 
 echo "%------------------------------------------------------------"
 echo "% This file has been generated automatically by the script"

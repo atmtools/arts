@@ -8,7 +8,7 @@ then
     exit 1
 fi
 
-GROUP_LIST=`$ARTS -g | tail +5 | sed 's/^-//' | sed 's/^.-*.$//'`
+GROUP_LIST=`$ARTS -g | grep '^- ' | sed 's/^-//' | sed 's/^.-*.$//'`
 
 echo "%------------------------------------------------------------"
 echo "% This file has been generated automatically by the script"
