@@ -1,3 +1,14 @@
+2002-08-29  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-224
+	
+	* doc/examples/clearsky_field.xml : This is modified and
+	corresponds to midlatitude summer case.  
+
+	* src/m_scatproperties.cc : Modified the method
+	abs_vec_gasExample.  The example absorption now corresponds to
+	midlatitude summer case.
+
 2002-08-29  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-223

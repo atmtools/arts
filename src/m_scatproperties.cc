@@ -91,6 +91,43 @@ void ext_mat_sptCalc(
     }
 }
 
+void ext_mat_spt_convCalc(
+		     Tensor3& ext_mat_spt,
+		     const Tensor5& pha_mat_spt,
+		     const Vector& scat_za_grid,
+		     const Vector& scat_aa_grid)
+		     
+{
+  Index npt = ext_mat_spt.npages();
+  Index stokes_dim = ext_mat_spt.nrows();
+
+  if (ext_mat_spt.nrows() != stokes_dim || 
+      ext_mat_spt.ncols() != stokes_dim){
+ 
+    throw runtime_error(" The dimension of the tensor ext_mat_spt should "
+			"agree to stokes_dim");
+  }
+  //cout << "The stokes dimension is :" << stokes_dim<<"\n";
+  //cout << "The scat_za_index : " << scat_za_index  << " \n " ;
+  //cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
+  // cout << "Number of particle type : " << npt  << " \n " ;
+  
+   
+  for (Index i = 0; i < npt; ++i)
+    {
+       ConstTensor4View pha=pha_mat_spt(i,
+				       Range(joker),
+				       Range(joker),
+				       Range(joker),
+				       Range(joker));
+
+       amp2scat(ext_mat_spt(i,Range(joker),Range(joker)),
+		pha,
+		scat_za_grid,
+		scat_aa_grid);
+    }
+}
+
 
 //! this function calculates phase matrix for a single particle type from 
 //  the amplitude matrix
@@ -214,7 +251,9 @@ void abs_vec_sptCalc(
 	      scat_za_grid,
 	      scat_aa_grid);
      
-    }	   
+    }
+  //This is for convergence test ONLY !!!!!!!
+  //abs_vec_spt = 0.0;
   
 }
 
@@ -351,7 +390,6 @@ void abs_vec_partCalc(
 	  
 	}
     }
-  
   cout <<  "The Absorption Vector for particle : " << " \n " 
      <<abs_vec_part << " \n " ;
   if (atmosphere_dim == 3)
@@ -399,7 +437,7 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
   abs_vec_gas.resize( stokes_dim );
   Vector abs_gas( p_grid.nelem() );
   if (atmosphere_dim == 1){
-    //This is a typical absorption calculated from arts.1.0
+    //This is a typical absorption calculated from arts.1.0 for tropical
     MakeVector typical_abs(0.016414284648894,
 			   0.00065204114511011,
 			   0.000156049846860233,
@@ -410,6 +448,17 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 			   6.70848900165098e-07,
 			   4.06285725309355e-07,
 			   2.57499613700983e-07);
+    //This is a typical absorption calculated from arts.1.0 for mid-latitude
+    /*MakeVector typical_abs(0.00433659795310861,
+			   0.00267195350007522,
+			   0.00122676231151285,
+			   0.000524902357458338,
+			   0.000142742001685155,
+			   4.65799636740885e-05,
+			   1.07249251986862e-05,
+			   5.85896298848906e-06,
+			   4.94996692358466e-06,
+			   4.35302994835574e-06);*/
     //The pressure grid for the above calculation
     MakeVector typical_abs_pgrid(100000,
 				 77426.3682681127,
@@ -440,6 +489,8 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 	else{
 	  abs_vec_gas[i] = 0.0;
 	}
+	//this is for convergence test ONLY !!!!!!!
+	//abs_vec_gas[i] = 0.0;
       }
   }
   
@@ -1245,7 +1296,7 @@ void i_fieldSetConst(//WS Output:
                         const ArrayOfIndex& cloudbox_limits,
                         const Index& atmosphere_dim,
                         // Keyword       
-                        const Numeric& i_field_value)
+                        const Numeric& value)
 {
   if(atmosphere_dim == 1)
   {
@@ -1263,16 +1314,19 @@ void i_fieldSetConst(//WS Output:
       {
         i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index, 0, 0) = 
           scat_i_p(0, 1, 0, 0, za_index, 0, 0);
-        i_field(0, 0, 0, za_index, 0, 0) = 
-          scat_i_p(0, 0, 0, 0, za_index, 0, 0);
+	
+	i_field(0, 0, 0, za_index, 0, 0) = 
+	  scat_i_p(0, 0, 0, 0, za_index, 0, 0);
+	
         for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
                cloudbox_limits[0] ; scat_p_index++ )
           // The field inside the cloudbox is set to some arbitrary value.
-          i_field(scat_p_index, 0, 0, za_index, 0, 0) =  i_field_value;
+          i_field(scat_p_index, 0, 0, za_index, 0, 0) =  value;
+	
       }    
-         
+    
   }
-
+  
   if(atmosphere_dim == 3)
     {
       throw runtime_error(
