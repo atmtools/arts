@@ -25,7 +25,6 @@
   \date   2003-06-11
 
   \brief This file contains basic functions to handle XML data files.
-
 */
 
 #include "arts.h"
@@ -40,6 +39,7 @@
 #include "matpackV.h"
 #include "matpackVI.h"
 #include "matpackVII.h"
+#include "gridded_fields.h"
 #include "bofstream.h"
 #include "bifstream.h"
 
@@ -114,6 +114,66 @@ xml_write_to_stream (ostream& os_xml,
   xml_write_to_stream (os_xml, gal.xsec, pbofs);
 
   close_tag.set_name ("/GasAbsLookup");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+}
+
+
+//=== GriddedField ===========================================================
+
+//! Reads GriddedField from XML input stream
+/*!
+  Checks whether the next tag in input stream is <GriddedField>
+  and if so, verifies the order of the components and writes them
+  to the 'gfield' parameter.
+
+  \param is_xml  XML Input stream
+  \param gfield  GriddedField return value
+  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      GriddedField3& gfield,
+                      bifstream *pbifs)
+{
+  ArtsXMLTag tag;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("GriddedField3");
+
+  xml_read_from_stream (is_xml, gfield.p_grid, pbifs);
+  xml_read_from_stream (is_xml, gfield.lat_grid, pbifs);
+  xml_read_from_stream (is_xml, gfield.lon_grid, pbifs);
+  xml_read_from_stream (is_xml, gfield.data, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/GriddedField3");
+}
+
+
+//! Writes GriddedField3 to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param gfield  GriddedField
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const GriddedField3& gfield,
+                     bofstream *pbofs)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("GriddedField3");
+  open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, gfield.p_grid, pbofs);
+  xml_write_to_stream (os_xml, gfield.lat_grid, pbofs);
+  xml_write_to_stream (os_xml, gfield.lon_grid, pbofs);
+  xml_write_to_stream (os_xml, gfield.data, pbofs);
+
+  close_tag.set_name ("/GriddedField3");
   close_tag.write_to_stream (os_xml);
   os_xml << '\n';
 }

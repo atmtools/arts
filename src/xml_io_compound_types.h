@@ -20,7 +20,7 @@
 //   File description
 ////////////////////////////////////////////////////////////////////////////
 /*!
-  \file   xml_io_private.h
+  \file   xml_io_compound_types.h
   \author Oliver Lemke <olemke@uni-bremen.de>
   \date   2003-06-11
 
@@ -38,6 +38,7 @@
 #include "absorption.h"
 #include "gas_abs_lookup.h"
 #include "optproperties.h"
+#include "gridded_fields.h"
 #include "bifstream.h"
 #include "bofstream.h"
 
@@ -57,6 +58,12 @@ xml_read_from_stream (istream&, GasAbsLookup&, bifstream * = NULL);
 
 void
 xml_write_to_stream (ostream&, const GasAbsLookup&, bofstream * = NULL);
+
+void
+xml_read_from_stream (istream&, GriddedField3&, bifstream * = NULL);
+
+void
+xml_write_to_stream (ostream&, const GriddedField3&, bofstream * = NULL);
 
 void
 xml_read_from_stream (istream&, GridPos&, bifstream * = NULL);

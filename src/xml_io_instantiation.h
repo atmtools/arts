@@ -124,6 +124,9 @@ template void
 xml_read_from_file<GasAbsLookup> (const String&, GasAbsLookup&);
 
 template void
+xml_read_from_file<GriddedField3> (const String&, GriddedField3&);
+
+template void
 xml_read_from_file<GridPos> (const String&, GridPos&);
 
 template void
@@ -143,6 +146,10 @@ xml_write_to_file<Agenda> (const String&, const Agenda&, FileType);
 
 template void
 xml_write_to_file<GasAbsLookup> (const String&, const GasAbsLookup&, FileType);
+
+template void
+xml_write_to_file<GriddedField3> (const String&, const GriddedField3&,
+                                  FileType);
 
 template void
 xml_write_to_file<GridPos> (const String&, const GridPos&, FileType);
