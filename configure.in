@@ -13,7 +13,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.215)
+AM_INIT_AUTOMAKE(arts,0.0.216)
 
 # Maintainer mode switch. DOC++, as well as all LaTeX documents (DOC++
 # and AUG) are only processed in maintainer mode. This is necessary so
@@ -174,8 +174,8 @@ if test $ac_maintainer_mode = yes; then
   CFLAGS=""
   CXXFLAGS="-g -ftemplate-depth-20"
 else
-  CFLAGS="$CFLAGS -O0"
-  CXXFLAGS="$CXXFLAGS -O0 -ftemplate-depth-20"
+  CFLAGS="$CFLAGS"
+  CXXFLAGS="$CXXFLAGS -ftemplate-depth-20"
 fi
 	
 dnl Kicked out:

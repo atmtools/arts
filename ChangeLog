@@ -1,5 +1,14 @@
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-216
+
+	* configure.in: Removed the O0 flags for the end user
+	mode. Beware, with optimization not all files compile. But I want
+	to test how much faster the program has got...
+	
+
+2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-0-215
 
 	* General: Changed default ascii file extensions from .am to .aa.
