@@ -1,3 +1,11 @@
+2002-06-14  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-140
+	
+	* src/scatproperties.cc,
+	  m_scatproperties.cc : a quick modification on the 
+		coding style following Oliver's suggestions.
+	
 2002-06-14  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-139
