@@ -83,7 +83,9 @@ void amp2ext(MatrixView ext,
   assert (is_size(amp_coeffs, 8));
   
   const Numeric wavelength = SPEED_OF_LIGHT / freq;
-  
+
+  cout<<"Wavelength corresponding to this frequency"<<wavelength<<"\n";
+
   ext(0, 0) = wavelength * (Im_S11 + Im_S22) ; 
   
   if( 1 == stokes_dim ){

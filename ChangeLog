@@ -1,3 +1,17 @@
+2002-06-25  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-161
+	
+	* src/m_scatrte.cc: The method scat_integralCalc is 
+	extended for 3-d case.  
+
+	* src/m_scatproperties.cc : Added more comments and 
+	checks.
+
+	* doc/examples/scatproperties_example.arts.in : I used 
+	this control file to check the methods used for 
+	calculating single scattering properties.
+
 2002-06-24  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-160
@@ -10,10 +24,9 @@
 
 	* src/methods.cc: The inputs are changed here also. The 
 	documentation is also modified.
-	
-	
+		
 2002-06-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
-
+	
 	* arts-1-1-159
 
 	* m/scatrte.cc (i_fieldUpdate1D) and (i_fieldIterate): Some
@@ -39,7 +52,6 @@
 	to methods abs_vec_partCalc, ext_mat_partCalc, pha_mat_partCalc.
 
 	* src/methods.cc : Changed the inputs for the above methods.
-
 
 2002-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 

@@ -16,7 +16,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.160)
+AM_INIT_AUTOMAKE(arts,1.1.161)
 
 
 #
@@ -372,6 +372,7 @@ Makefile
          doc/examples/fullmodels_example.arts
          doc/examples/radiosonde_example.arts
          doc/examples/rt_example.arts
+	 doc/examples/scatproperties_example.arts
    m4/Makefile 
    src/Makefile
 ])

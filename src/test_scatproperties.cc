@@ -14,16 +14,16 @@ int main(void)
   Vector amp(8);
   Vector za(18),aa(36);
   Matrix l_cross(4,4);
-  Numeric freq =  325*1e+9; 
+  Numeric freq =  5.01*1e+11; 
   // elements of amplitude matrix
   amp[0] = 1;
-  amp[1] = 0;
-  amp[2] = 0;
-  amp[3] = 0;
-  amp[4] = 0;
-  amp[5] = 0;
-  amp[6] = 0;
-  amp[7] = 0;
+  amp[1] = 1;
+  amp[2] = 1;
+  amp[3] = 1;
+  amp[4] = 1;
+  amp[5] = 1;
+  amp[6] = 1;
+  amp[7] = 1;
   
   cout << "\n Extinction Matrix  test \n";
   cout << "Amplitude matrix: \n";

@@ -9,6 +9,9 @@
   ===========================================================================*/
 
 #include <stdexcept>
+#include <iostream>
+#include <stdlib.h>
+#include <math.h>
 #include "arts.h"
 #include "array.h"
 #include "check_input.h"
@@ -18,6 +21,7 @@
 #include "scatproperties.h"
 #include "logic.h"
 #include "auto_md.h"
+#include "cloudbox.h"
 
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
@@ -41,6 +45,15 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
   Index npt = ext_mat_spt.npages();
   Index stokes_dim = ext_mat_spt.nrows();
 
+  if (ext_mat_spt.nrows() != stokes_dim || 
+      ext_mat_spt.ncols() != stokes_dim){
+ 
+    throw runtime_error(" The dimension of the tensor ext_mat_spt should "
+			"agree to stokes_dim");
+  }
+  cout << "The stokes dimension is :" << stokes_dim<<"\n";
+  cout << "The scat_za_index : " << scat_za_index  << " \n " ;
+  cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
   if (amp_mat.ncols() != 8)
     throw runtime_error(
 			"Amplitude matrix must have 8 columns.");
@@ -53,6 +66,8 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
 
   //find out frequency
   Numeric freq = f_grid[scat_f_index];
+
+  cout << "The frequency: " << freq  << " \n " ;
   
   for (Index i = 0; i < npt; ++i)
     {
@@ -63,11 +78,15 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
 				      scat_aa_index,
 				      Range(joker)
 				      );
-      
+     
+      cout << "The amplitude vector : " << " \n " 
+	   << amp_coeffs << " \n " ;
       amp2ext(ext_mat_spt(i,Range(joker),Range(joker)),
 	      amp_coeffs,
 	      freq);
     }
+  cout <<  "The Extinction Matrix for single particle type: " << " \n " 
+       <<ext_mat_spt << " \n " ;
 }
 
 
@@ -93,8 +112,8 @@ void pha_mat_sptCalc(Tensor5& pha_mat_spt,
 
   if (pha_mat_spt.nrows() != stokes_dim || 
       pha_mat_spt.ncols() != stokes_dim){
-    throw runtime_error(" The tensor pha_mat_spt should have"
-			"4 rows and 4 columns.");
+    throw runtime_error(" The dimension of the tensor pha_mat_spt should "
+			"agree to stokes_dim");
   }
   if (amp_mat.ncols() != 8){
     throw runtime_error("Amplitude matrix must have 8 columns.");
@@ -135,58 +154,58 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
 		     const Vector& scat_aa_grid
 		     )
 {
- Index npt = abs_vec_spt.nrows();
- Index stokes_dim = abs_vec_spt.ncols();
- //(CE:) Corrected this, there was books and shelves before!!
- Index nza = pha_mat_spt.nbooks(); 
- Index naa = pha_mat_spt.npages(); 
- assert (is_size(scat_za_grid, nza));
- assert (is_size(scat_aa_grid, naa));
- 
- if (abs_vec_spt.ncols() != stokes_dim ){
-   //FIXME: Dimension should agree to stokes_dim !!!
+  Index npt = abs_vec_spt.nrows();
+  Index stokes_dim = abs_vec_spt.ncols();
+  Index nza = pha_mat_spt.nbooks(); 
+  Index naa = pha_mat_spt.npages(); 
+  
+  assert (is_size(scat_za_grid, nza));
+  assert (is_size(scat_aa_grid, naa));
+  
+  if (abs_vec_spt.ncols() != stokes_dim ){
+    //FIXME: Dimension should agree to stokes_dim !!!
     throw runtime_error("The dimension of  abs_vec_spt should"
 			"agree to stokes_dim");
- }
-
- if (ext_mat_spt.nrows() != stokes_dim || 
-     ext_mat_spt.ncols() != stokes_dim ){
-   throw runtime_error("The tensor ext_mat_spt should"
-		       " have 4 rows and 4 columns");
- }
-
- if (pha_mat_spt.nrows() != stokes_dim || 
-     pha_mat_spt.ncols() != stokes_dim ){
-   throw runtime_error("The tensor pha_mat_spt should"
-		       "have 4 rows and 4 columns");
- }
-
- if ((stokes_dim > 4) || (stokes_dim <1)){
+  }
+  
+  if (ext_mat_spt.nrows() != stokes_dim || 
+      ext_mat_spt.ncols() != stokes_dim ){
+    throw runtime_error("The tensor ext_mat_spt should"
+			" have 4 rows and 4 columns");
+  }
+  
+  if (pha_mat_spt.nrows() != stokes_dim || 
+      pha_mat_spt.ncols() != stokes_dim ){
+    throw runtime_error("The tensor pha_mat_spt should"
+			"have 4 rows and 4 columns");
+  }
+  
+  if ((stokes_dim > 4) || (stokes_dim <1)){
     throw runtime_error("The dimension of stokes vector "
                         "can be only 1,2,3, or 4");
- }
-
- for (Index i = 0; i < npt; ++i)
-   {
-     ConstMatrixView ext = ext_mat_spt(i,
+  }
+  
+  for (Index i = 0; i < npt; ++i)
+    {
+      ConstMatrixView ext = ext_mat_spt(i,
+					Range(joker),
+					Range(joker));
+      
+      ConstTensor4View pha=pha_mat_spt(i,
+				       Range(joker),
+				      Range(joker),
 				       Range(joker),
 				       Range(joker));
-     
-     ConstTensor4View pha=pha_mat_spt(i,
-				      Range(joker),
-				      Range(joker),
-				      Range(joker),
-				      Range(joker));
-    
-     // ConstVectorView za_grid = scat_za_grid[scat_za_index];
-     //ConstVectorView aa_grid = scat_aa_grid[scat_aa_index];
-     
-     amp2abs(abs_vec_spt(i, Range(joker)),
-	     ext,
+      
+      // ConstVectorView za_grid = scat_za_grid[scat_za_index];
+      //ConstVectorView aa_grid = scat_aa_grid[scat_aa_index];
+      
+      amp2abs(abs_vec_spt(i, Range(joker)),
+	      ext,
 	     pha,
-	     scat_za_grid,
-	     scat_aa_grid);
-   }	   
+	      scat_za_grid,
+	      scat_aa_grid);
+    }	   
 }
 
 
@@ -216,14 +235,14 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 		     )
 {
   Index N_pt = ext_mat_spt.npages();
-  Index N_i = ext_mat_spt.nrows();
+  Index stokes_dim = ext_mat_spt.nrows();
   
   // (CE:) Size of ext_mat is not known before...
-  ext_mat_part.resize(N_i, N_i);
+  ext_mat_part.resize(stokes_dim, stokes_dim);
   
-  for (Index m = 0; m < N_i; m++)
+  for (Index m = 0; m < stokes_dim; m++)
     {
-      for (Index n = 0; n < N_i; n++)
+      for (Index n = 0; n < stokes_dim; n++)
 	ext_mat_part(m, n) = 0.0;// Initialisation
     }
   if (atmosphere_dim == 1)
@@ -233,16 +252,17 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 	{ 
 	  
 	  // now the last two loops over the stokes dimension.
-	  for (Index m = 0; m < N_i; m++)
+	  for (Index m = 0; m < stokes_dim; m++)
 	    {
-	      for (Index n = 0; n < N_i; n++)
-		
-		ext_mat_part(m, n) += 
-		  (ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
+	      for (Index n = 0; n < stokes_dim; n++)
+	      
+	      ext_mat_part(m, n) += 
+		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
 	    }
 	}
     }
-  
+   cout <<  "The Extinction Matrix : " << " \n " 
+       <<ext_mat_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       
@@ -251,9 +271,9 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 	{ 
 	  
 	  // now the last two loops over the stokes dimension.
-	  for (Index m = 0; m < N_i; m++)
+	  for (Index m = 0; m < stokes_dim; m++)
 	    {
-	      for (Index n = 0; n < N_i; n++)
+	      for (Index n = 0; n < stokes_dim; n++)
 		
 		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
 					pnd_field(l, scat_p_index, 
@@ -292,12 +312,12 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 		      )
 {
   Index N_pt = abs_vec_spt.nrows();
-  Index N_i = abs_vec_spt.ncols();
+  Index stokes_dim = abs_vec_spt.ncols();
   
   //(CE:) Resize abs_vec_part
-  abs_vec_part.resize(N_i);
+  abs_vec_part.resize(stokes_dim);
   
-  for (Index m = 0; m < N_i; ++m)
+  for (Index m = 0; m < stokes_dim; ++m)
     {
       
       abs_vec_part[m] = 0.0;// Initialisation
@@ -309,7 +329,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 	{
 	  // now the loop over the stokes dimension.
           //(CE:) in the middle was l instead of m
-	  for (Index m = 0; m < N_i; ++m)
+	  for (Index m = 0; m < stokes_dim; ++m)
 	    
 	    abs_vec_part[m] += 
 	      (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
@@ -325,7 +345,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 	{
 	  
 	  // now the loop over the stokes dimension.
-	  for (Index m = 0; m < N_i; ++m)
+	  for (Index m = 0; m < stokes_dim; ++m)
 	    
 	    abs_vec_part[m] += (abs_vec_spt(l, m) *
 				pnd_field(l, scat_p_index,
@@ -368,21 +388,23 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
   Index N_pt = pha_mat_spt.nshelves();
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
-  Index N_i = pha_mat_spt.nrows();
+  Index stokes_dim = pha_mat_spt.nrows();
 
   //(CE:) Resize pha_mat_part:
-  pha_mat_part.resize(Nza, Naa, N_i, N_i);
+  pha_mat_part.resize(Nza, Naa, stokes_dim, stokes_dim);
 
   // Initialisation
   for (Index za_index = 0; za_index < Nza; ++ za_index)
     {
       for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
 	{
-	  for (Index stokes_index = 0; stokes_index < N_i; ++ stokes_index)
+	  for (Index stokes_index = 0; stokes_index < stokes_dim;
+	       ++ stokes_index)
 	    {
-	      for (Index stokes_index = 0; stokes_index < N_i; 
+	      for (Index stokes_index = 0; stokes_index < stokes_dim; 
 		   ++ stokes_index)
 		pha_mat_part(za_index, aa_index, stokes_index, stokes_index)
+
 		  = 0.0;
 	    }
 	}
@@ -400,10 +422,10 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 		{
 		  
 		  // now the last two loops over the stokes dimension.
-		  for (Index stokes_index = 0; stokes_index < N_i; 
+		  for (Index stokes_index = 0; stokes_index < stokes_dim; 
 		       ++  stokes_index)
 		    {
-		      for (Index stokes_index = 0; stokes_index < N_i;
+		      for (Index stokes_index = 0; stokes_index < stokes_dim;
 			   ++ stokes_index)
 			
 			pha_mat_part(za_index, aa_index,  
@@ -431,9 +453,9 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 		{
 		  
 		  // now the last two loops over the stokes dimension.
-		  for (Index i = 0;  i < N_i; ++  i)
+		  for (Index i = 0;  i < stokes_dim; ++  i)
 		    {
-		      for (Index j = 0; j < N_i; ++ j)
+		      for (Index j = 0; j < stokes_dim; ++ j)
 			{
 			  
 			  pha_mat_part(za_index, aa_index, i,j ) += 
@@ -465,15 +487,15 @@ void ext_matCalc(Matrix& ext_mat,
 		  const Matrix& ext_mat_gas
 		  )
 {
-  Index N_i = ext_mat_part.nrows(); 
-  //CloneSize(ext_mat_gas, ext_mat_part){}
+  Index stokes_dim = ext_mat_part.nrows(); 
+  
   
   //(CE:) Define size of ext_mat:
-  ext_mat.resize(N_i, N_i);
+  ext_mat.resize(stokes_dim, stokes_dim);
 
   ext_mat = ext_mat_part;
   ext_mat += ext_mat_gas;
-
+  cout<<"Totaal extinction matrix"<<"\n"<< ext_mat<<"\n";
 }
 
 //! Total Absorption Vector
@@ -491,11 +513,10 @@ void abs_vecCalc(Vector& abs_vec,
 		  const Vector& abs_vec_gas
 		  )
 {
-  Index N_i = abs_vec_part.nelem(); 
-  //CloneSize(abs_vec_gas, abs_vec_part){}
-  
+  Index stokes_dim = abs_vec_part.nelem(); 
+   
   //(CE:) Resize abs_vec
-  abs_vec.resize(N_i);
+  abs_vec.resize(stokes_dim);
   
   abs_vec = abs_vec_part;
   abs_vec += abs_vec_gas;
