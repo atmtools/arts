@@ -61,6 +61,31 @@
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
+   \author Oliver Lemke/Axel von Engeln
+   \date   2003-07-23
+*/
+void Echo(const String& message,
+          const Index& output_level)
+{
+  ostringstream os;
+  os <<  message << '\n';
+
+  switch (output_level)
+    {
+    case 0: out0 << os.str (); break;
+    case 1: out1 << os.str (); break;
+    case 2: out2 << os.str (); break;
+    case 3: out3 << os.str (); break;
+    default:
+       throw runtime_error ("Output level must have value from 0-3");
+    }
+
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
    \author Patrick Eriksson
    \date   2000-?-?
 */
@@ -810,6 +835,12 @@ void VectorNLogSpace( Vector&  x,
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-06-12
+*/
 void VectorCopy(
                       Vector&   y2,
                 const String&   name_y2,
@@ -823,6 +854,44 @@ void VectorCopy(
                                 // must be the same! 
 }
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Oliver Lemke/Axel von Engeln
+   \date   2003-07-23
+*/
+void VectorCopyFromMatrix(
+                      Vector&   v,
+                const String&  /* v_name */,
+                const Matrix&   m,
+                const String&  /* m_name */,
+                const String&   orientation,
+                const Index&    index )
+{
+  if (orientation == String ("col"))
+    {
+      if (index < m.ncols ())
+        {
+          v.resize (m.nrows ());
+          v = m (joker, index);
+        }
+      else
+        throw runtime_error ("Index out of column bounds");
+    }
+  else if (orientation == String ("row"))
+    {
+      if (index < m.nrows ())
+        {
+          v.resize (m.ncols ());
+          v = m (index, joker);
+        }
+      else
+        throw runtime_error ("Index out of row bounds");
+    }
+  else
+    throw runtime_error ("Orientation must be either \"row\" or \"col\"");
+}
 
 
 /**

@@ -123,6 +123,27 @@ void define_md_data()
 //=== Overall ARTS functions
 //======================================================================
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "Echo" ),
+	DESCRIPTION
+        (
+	 "Outputs a string.\n"
+         "\n"
+         "A detailed description of the function. Please, try to be as \n"
+         "\n"
+         "Keywords:\n"
+         "   message   : Message for output on screen.\n"
+         "   level     : Output level for the message.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "message", "level" ),
+	TYPES(    String_t, Index_t    )));
+
+
   md_data.push_back     
     ( MdRecord
       ( NAME("Exit"),
@@ -440,6 +461,52 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("VectorCopy"),
+        DESCRIPTION
+        (
+         "Creates a copy of a vector. \n"
+         "\n"
+         "Generic output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The vector to be copied. "
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorCopyFromMatrix"),
+        DESCRIPTION
+        (
+         "Copies a row or a column from a matrix to a vector"
+         "\n"
+         "Generic output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Generic input: \n"
+         "   Matrix : The source matrix. \n"
+         "\n"
+         "Keywords:\n"
+         "   orientation : Could be either \"col\" or \"row\". \n"
+         "   index       : Row or column number to be copied. \n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT(  Matrix_ ),
+	KEYWORDS( "orientation", "index"   ),
+	TYPES(    String_t,      Index_t   )));
+
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("VectorSet"),
 	DESCRIPTION
         (
@@ -530,7 +597,7 @@ void define_md_data()
          "\n"
          "Keywords:\n"
          "   start : The start value. \n"
-         "    stop : The end value. \n"  
+         "    stop : The end value. \n"
          "       n : Number of elements of the vector. " 
         ),
 	OUTPUT(),
@@ -592,26 +659,6 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "delta_z", "p_start", "p_stop"  ),
 	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorCopy"),
-	DESCRIPTION
-        (
-         "Creates a copy of a vector. \n"
-         "\n"
-         "Generic output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : The vector to be copied. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS(),
-	TYPES()));
 
   md_data.push_back
     ( MdRecord
