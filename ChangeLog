@@ -1,3 +1,28 @@
+2002-06-05  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-118
+
+	* doc/uguide/agendas.tex: Continued to work on this.
+
+	* doc/uguide/development.tex: Added references to the WSV, WSM,
+	and agendas chapter in howtos.
+
+	* src/agenda.h: Added set_name() and name() member functions to
+	class Agenda, also added private member mname.
+
+	* src/agenda.cc: Added implementation of set_name() and name().
+
+	* src/main.cc: Set name for Main agenda.
+
+	* src/parser.cc (parse_method): Removed duplicate level 3
+	output. Cleaned up agenda output.
+
+	* src/workspace.cc (define_wsv_data): Replace "function" by "method".
+
+	* src/m_method_list.cc: Removed.
+
+	* src/method_list.h: Removed.
+
 2002-06-05  Sreerekha T.R.  <claudia@sat.physik.uni-bremen.de>
 	
 	* arts-1-1-117
@@ -52,7 +77,7 @@
 
 	* doc/uguide/fm_definitions.tex: Polished the text. I happen to do this
 	on the same time as Christian did his changes below and this caused
-	a number of conflicts when updating. I hope that I managed to keep yout
+	a number of conflicts when updating. I hope that I managed to keep your
 	changes Christian. 
 
 	* doc/uguide/ppath.tex: Polished the text. Conflicts as above.

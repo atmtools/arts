@@ -828,13 +828,13 @@ void parse_method(Index& id,
   assertain_character('{',text);
   eat_whitespace(text);
 
-  out3 << "- " << md_data[id].Name() << "\n";
-
   // There are two kind of methods, agenda methods, which have other
   // methods in the body, and normal methods, expecting keywords and
   // values. Let's take the agenda case first...
   if ( md_data[id].AgendaMethod() )
     {
+      out3 << "- " << md_data[id].Name() << "\n";
+
       out3 << "{\n";
 
       parse_agenda(tasks,text,MdMap,WsvMap);

@@ -68,7 +68,7 @@ void define_wsv_data()
      dimensions if necessary. Also some detailed discussion of the
      members if your variable is a structure.
 
-     Usage:      Set by user (or "Function output.")
+     Usage:      Set by user (or "Method output.")
 
      Units:      E.g., kg/m
 
@@ -93,7 +93,7 @@ void define_wsv_data()
   /////////////////////////////////////////////////////////////////////////////
   // Let's put in the variables in alphabetical order. This gives a clear rule
   // for where to place a new variable and this gives a nicer results when
-  // the functions are listed by "arts -w all".
+  // the methods are listed by "arts -w all".
   // No distinction is made between uppercase and lowercase letters. The sign
   // "_" comes after all letters.
   // Patrick Eriksson 2002-05-08
@@ -164,8 +164,8 @@ void define_wsv_data()
      "dimensionality, variables which size changes with the dimensionality\n"
      "are checked to match this variable. \n"
      "\n"
-     "Functions adapt automatically to this variable. That is, it should\n"
-     "not be needed to change any functions if the dimensionality is\n"
+     "Methods adapt automatically to this variable. That is, it should\n"
+     "not be needed to change any methods if the dimensionality is\n"
      "changed.\n"
      "\n"
      "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
@@ -197,8 +197,8 @@ void define_wsv_data()
      "A line-of-sight (for test purposes).\n"
      "\n"
      "The purpose of this variable and *a_pos* are to enable calling of\n"
-     "*ppathCalc* and maybe other functions from the workspace. This can be\n"
-     "of interest both for testing of the functions and to display\n"
+     "*ppathCalc* and maybe other methods from the workspace. This can be\n"
+     "of interest both for testing of the methods and to display\n"
      "intermediate results as the propagation path. \n"
      "\n"
      "For 1D and 2D cases, *a_los* is a vector of length 1 holding the \n"
@@ -207,7 +207,7 @@ void define_wsv_data()
      "in the ARTS user guide (AUG). Look in the index for \"zenith angle\"\n"
      "and \"azimuthal angle\".\n"
      "\n"
-     "Usage: To call *ppathCalc* as an individual function. Other\n"
+     "Usage: To call *ppathCalc* as an individual method. Other\n"
      "       purposes can be possible.\n"
      "\n"
      "Units: [ degree, degree ]\n"
@@ -221,8 +221,8 @@ void define_wsv_data()
      "A geographical position (for test purposes).\n"
      "\n"
      "The purpose of this variable and *a_los* are to enable calling of\n"
-     "*ppathCalc* and maybe other functions from the workspace. This can be\n"
-     "of interest both for testing of the functions and to display\n"
+     "*ppathCalc* and maybe other methods from the workspace. This can be\n"
+     "of interest both for testing of the methods and to display\n"
      "intermediate results as the propagation path. \n"
      "\n"
      "This variable is a vector with a length equalling the atmospheric\n"
@@ -231,7 +231,7 @@ void define_wsv_data()
      "3 is the longitude. Please note that the vertical position is given\n"
      "as the radius, not the altitude above the geoid.\n"
      "\n"
-     "Usage: To call *ppathCalc* as an individual function. Other\n"
+     "Usage: To call *ppathCalc* as an individual method. Other\n"
      "       purposes can be possible.\n"
      "\n"
      "Units: [ m, degree, degree ]\n"
@@ -267,7 +267,7 @@ void define_wsv_data()
      "\n"
      "Scattering calculations are confined to a part of the atmosphere\n"
      "denoted as the cloud box. The extension of the cloud box is given by\n"
-     "*cloudbox_limits*. This variable tells functions if a cloud box is\n"
+     "*cloudbox_limits*. This variable tells methods if a cloud box is\n"
      "activated or not. \n"
      "\n"
      "See further the ARTS user guide (AUG). Use the index to find where\n"
@@ -314,7 +314,7 @@ void define_wsv_data()
      "this variable is discussed. The variable is listed as a subentry to\n"
      "\"workspace variables\".\n"
      "\n"
-     "Usage: Set by the user, either directly or using a function\n"
+     "Usage: Set by the user, either directly or using a method\n"
      "       checking the extension of scattering particles.\n"
      "\n"
      "Unit:  Index values.\n"
@@ -590,7 +590,7 @@ void define_wsv_data()
      "the frequency grid, so that we can subtract the lineshape value at the\n"
      "cutoff. \n"
      "\n"
-     "Usage: Agenda input, set automatically by calling function.\n"
+     "Usage: Agenda input, set automatically by calling method.\n"
      "\n"
      "Unit: Hz",
      Vector_ ));
@@ -602,7 +602,7 @@ void define_wsv_data()
      "\n"
      "Used as input by methods calculating the lineshape function.\n"
      "\n"
-     "Usage: Agenda input, set automatically by calling function.\n"
+     "Usage: Agenda input, set automatically by calling method.\n"
      "\n"
      "Unit: Hz.",
      Numeric_ ));
@@ -614,7 +614,7 @@ void define_wsv_data()
      "\n"
      "Used as input by methods calculating the lineshape function.\n"
      "\n"
-     "Usage: Agenda input, set automatically by calling function.\n"
+     "Usage: Agenda input, set automatically by calling method.\n"
      "\n"
      "Unit: Hz.",
      Numeric_ ));
@@ -626,7 +626,7 @@ void define_wsv_data()
      "\n"
      "Used as input by methods calculating the lineshape function.\n"
      "\n"
-     "Usage: Agenda input, set automatically by calling function.\n"
+     "Usage: Agenda input, set automatically by calling method.\n"
      "\n"
      "Unit: Hz.",
      Numeric_ ));
@@ -738,7 +738,7 @@ void define_wsv_data()
      "find where the data structure, Ppath, for propagation paths is \n"
      "discussed. It is listed as a subentry to \"data structures\".\n"
      "\n"
-     "Usage:      Output from the function *ppathCalc*.\n"
+     "Usage:      Output from the method *ppathCalc*.\n"
      "\n"
      "Members:    To be written.",
      Ppath_ ));
@@ -774,10 +774,10 @@ void define_wsv_data()
      "as the sensor position. Only points inside the model atmosphere are\n"
      "handled.\n"
      "\n"
-     "The communication between this agenda and the calling function is\n"
+     "The communication between this agenda and the calling method is\n"
      "handled by *ppath_step*. That variable is used both as input and\n"
      "output to *ppath_step_agenda*. The agenda gets back *ppath_step*\n" 
-     "as returned to the calling function and the last path point hold by\n"
+     "as returned to the calling method and the last path point hold by\n"
      "the structure is accordingly the starting point for the new \n"
      "calculations. If a total propagation path shall be determined, this\n"
      "agenda is called repeatedly until the starting point of the\n"
@@ -793,17 +793,17 @@ void define_wsv_data()
      "calculations starting at the sensor). This initialisation is not\n"
      "handled by *ppath_step_agenda*. All fields of *ppath_step* are set\n"
      "by *ppath_step_agenda*. If the sensor is above the model atmosphere\n"
-     "the field *constant* can be initiated by the calling function.\n"
+     "the field *constant* can be initiated by the calling method.\n"
      "Otherwise the field shall be set to negative and it is set to the\n"
      "correct value by *ppath_step* at the first call. This procedure is\n"
      "needed as the path constant changes if refraction is considered, or\n"
      "not, when the sensor is placed inside the atmosphere .\n"
      "\n"
      "The agenda performs only calculations to next crossing of a grid, all\n"
-     "other tasks must be performed by the calling function, with one\n"
+     "other tasks must be performed by the calling method, with one\n"
      "exception. If there is an intersection of a blackbody ground, the\n"
      "calculations stop at this point. This is flagged by setting the\n"
-     "background field of *ppath_step*. Beside this, the calling function\n"
+     "background field of *ppath_step*. Beside this, the calling method\n"
      "must check if the starting point of the calculations is inside the \n"
      "scattering box or below the ground level, and check if the last point\n"
      "of the path has been reached. The starting point (the end furthest\n"
@@ -856,7 +856,7 @@ void define_wsv_data()
      "this variable is discussed. The variable is listed as a subentry to\n"
      "\"workspace variables\".\n"
      "\n"
-     "Usage:      Set by using a function for a geodetic datum.\n"
+     "Usage:      Set by using a method for a geodetic datum.\n"
      "\n"
      "Unit:       m\n"
      "\n"
@@ -888,7 +888,7 @@ void define_wsv_data()
      "Frequency index for scattering calculations. \n"
      "\n"
      "The calculations inside the cloudbox are only done for one frequency.\n"
-     "at a time. Some functions used for scattering calculation require the \n"
+     "at a time. Some methods used for scattering calculation require the \n"
      "frequency. *f_index* holds the information, for which frequency the  \n"
      "scattering calcultations are performed.\n"
      "\n"
@@ -1115,7 +1115,7 @@ void define_wsv_data()
      "Flag to determine whether XML output is binary or ascii\n"
      "\n"
      "This flag has to be set using the workspace method SetXMLOutputBinary\n"
-     "or SetXMLOutputAscii. One of these functions MUST be called before\n"
+     "or SetXMLOutputAscii. One of these methods MUST be called before\n"
      "writing the first output file."
      "\n"
      "Usage:      Set by user.",
@@ -1128,7 +1128,7 @@ void define_wsv_data()
      "\n"
      "Text will be written (PE).\n"
      "\n"
-     "Usage:      Output from *rteCalc* and functions to apply sensor\n"
+     "Usage:      Output from *rteCalc* and methods to apply sensor\n"
      "            characteristics.\n"
      "\n"
      "Unit:       Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
@@ -1149,7 +1149,7 @@ void define_wsv_data()
      "in increasing order, with no repetitions. Otherwise the altitudes can\n"
      "be set to arbitrary values. Hydrostatic equilibrium is not applied \n"
      "automatically. If hydrostatic equilibrium applies, *z_field* must be\n"
-     "set by a function ensuring that this criterium is fulfilled.\n"
+     "set by a method ensuring that this criterium is fulfilled.\n"
      "\n"
      "The radius (from the coordinate centre) for a point between the grid\n"
      "crossings is obtained by a (multi-)linear interpolation of the sum of\n"
@@ -1160,7 +1160,7 @@ void define_wsv_data()
      "\"workspace variables\".\n"
      "\n"
      "Usage:      Set by the user by interpolation of a climatology, or set\n"
-     "            by a function for applying hydrostatic equilibrium.\n"
+     "            by a method for applying hydrostatic equilibrium.\n"
      "\n"
      "Unit:       m\n"
      "\n"

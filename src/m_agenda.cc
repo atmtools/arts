@@ -34,6 +34,7 @@ void AgendaSet(// WS Generic Output:
 {
   output_agenda.resize(input_agenda.nelem());
   output_agenda = input_agenda;
+  output_agenda.set_name(agenda_name);
 }
 
 void Main(// Agenda from controlfile:

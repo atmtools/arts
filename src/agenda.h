@@ -50,7 +50,10 @@ public:
   Agenda& operator=(const Agenda& x);
   bool is_input(Index var) const;
   bool is_output(Index var) const;
+  void set_name(const String& name);
+  String name() const;
 private:
+  String         mname;	/*!< Agenda name. */
   Array<MRecord> mml;	/*!< The actual list of methods to execute. */
 };
 

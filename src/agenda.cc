@@ -69,7 +69,8 @@ void Agenda::execute() const
   // The array holding the pointers to the getaway functions:
   extern const void (*getaways[])(WorkSpace&, const MRecord&);
 
-  out3 << "\nExecuting methods:\n";
+  out1 << "Executing " << name() << "\n"
+       << "{\n";
 
 //   for (Index i=0; i<mml.nelem(); ++i)
 //     {
@@ -143,6 +144,9 @@ void Agenda::execute() const
 	  exit(1);
 	}
     }
+
+  out1 << "}\n";
+
 }
 
 //! Set size to n.
@@ -170,6 +174,8 @@ Index Agenda::nelem() const
 */
 Agenda& Agenda::operator=(const Agenda& x)
 {
+//   cout << name() << ": " << mml.nelem() << "\n"
+//        << x.name() << ": " << x.mml.nelem() << "\n\n";
   assert( mml.nelem() == x.mml.nelem() );
   mml = x.mml;
   return *this;
@@ -271,4 +277,26 @@ bool Agenda::is_output(Index var) const
 
   // Ok, that means var is no output at all.
   return false;
+}
+
+//! Set agenda name.
+/*! 
+  This sets the private member mname to the given string. 
+
+  \param name The name for the agenda.
+*/
+void Agenda::set_name(const String& name)
+{
+  mname = name;
+}
+
+//! Agenda name.
+/*! 
+  Returns the private member mname.
+
+  \return The name of this agenda.
+*/
+String Agenda::name() const
+{
+  return mname;
 }

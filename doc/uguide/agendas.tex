@@ -1,50 +1,11 @@
-%
-% To start the document, use
-%  \levela{...}
-% For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
-%
-\levela{WSVs, WSMs, and agendas}
- \label{sec:agendas}
 
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
+\levela{WSVs, WSMs, and agendas}
+%-------------------------------
+\label{sec:agendas}
+
 \starthistory
   020605 & Created by Stefan Buehler.\\
 \stophistory
-
-
-%
-% Symbol table, format:
-%  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
-%    ....
-%  \stopsymbols
-%
-%
-%\startsymbols
-%  \Ind           & -                 & vector/matrix/tensor index           \\
-%  \aInd{\Lat}    & -                 & the \Ind:th latitude                 \\
-%  \VctLng        & -                 & vector length or size of matrix/tensor for a dimension \\
-%  \aVctLng{\Lat} & -                 & length of the latitude grid \\
-%  \Prs           & \artsstyle{p}     & pressure                             \\
-%  \PrsAlt        & \artsstyle{pz}    & pressure altitude                    \\
-%  \Rds           & \artsstyle{r}     & radius from the geoid centre         \\
-%  \Alt           & \artsstyle{z}     & geometrical altitude above the geoid \\
-%  \Lat           & \artsstyle{alpha} & latitude                             \\
-%  \Lon           & \artsstyle{beta}  & longitude                            \\
-%  \ZntAng        & \artsstyle{psi}   & zenith angle                         \\
-%  \AzmAng        & \artsstyle{omega} & azimuth angle                      \\
-% \label{symtable:ppath_defs}     
-%\stopsymbols
 
 This chapter deals with the main components of ARTS: \emph{Workspace
   variables}\index{workspace variables} (\textindex{WSVs}) and
@@ -52,702 +13,141 @@ This chapter deals with the main components of ARTS: \emph{Workspace
 Furthermore, it explains the use of \textindex{agendas}, a special
 group of WSVs.
 
-
-
-A propagation path is the way the radiation travels to reach the
-sensor for a specified line-of-sight. A general description of
-propagation paths is given in Section~\ref{sec:fm_defs:ppaths} and it
-can be a good idea to read that section before continuing here. This
-section describes how propagation paths are described and calculated.
-In addition, at the end of the section some geodetic issues are
-discussed, such as the choice of reference ellipsoid for the geoid.
-
-
 \levelb{Implementation files}
-%===
-Variables and functions related to propagation paths are defined in the files:
+%----------------------------
+\label{sec:agendas:files}
+
+The two most important files are:
 \begin{itemize}
-\item \fileindex{ppath.h}
-\item \fileindex{ppath.cc}
-\item \fileindex{m\_ppath.cc}
-\item \fileindex{m\_atmosphere.cc}
+\item \fileindex{workspace.cc}: Definition and documentation of WSVs.
+\item\fileindex{methods.cc}: Definition and documentation of WSMs. The
+  implementations of WSMs reside in files named
+  \artsstyle{m\_something.cc}.
 \end{itemize}
-The first file, \artsstyle{ppath.h}, contains the definition of the
-structure to describe propagation paths, \typeindex{Ppath}. The
-second file, \artsstyle{ppath.cc}, contains functions to perform
-calculations to determine propagation paths. The third file,
-\artsstyle{m\_ppath.cc}, contains the workspace functions related to
-propagation path, but these functions mainly checks the input and the
-actual calculations are performed by sub-functions in
-\artsstyle{ppath.cc}. The fourth file, \artsstyle{m\_atmosphere.cc},
-contains functions to set the geoid radius.
-
-
-
-
-\levelb{Calculation approach}
-%===================
-\label{sec:ppath:approach}
-
-A full propagation path is stored in the workspace variable
-\wsvindex{ppath}, that is of the type \artsstyle{Ppath} (see next
-section). The paths are determined by calculating a number of path
-steps. A path step is the path from a point to the next crossing
-of either the pressure, latitude or longitude grid. There is one
-exception to this definition of a path step, and that is when there
-is an intersection with a blackbody ground, which ends the propagation
-path at that point. The starting point for the calculation of a path
-step is normally a grid crossing point, but can also be an arbitrary
-point inside the atmosphere, such as the sensor position. Only points
-inside the model atmosphere are handled. The path steps are stored in
-the workspace variable \wsvindex{ppath\_step}, that is of the same
-type as \artsstyle{ppath}. The path steps are calculated by an agenda
-called \wsvindex{ppath\_step\_agenda}. Example on functions that can
-be used in \artsstyle{ppath\_step\_agenda} are
-\wsmindex{ppath\_stepGeometric} and
-\wsmindex{ppath\_stepGeometricWithLmax}.
-
-Propagation paths are calculated with the workspace function
-\wsmindex{ppathCalc}. The communication between this function and
-\artsstyle{ppath\_step\_agenda} is handled by \artsstyle{ppath\_step}.
-That variable is used both as input and output to
-\artsstyle{ppath\_step\_agenda}.  The agenda gets back
-\artsstyle{ppath\_step} as returned to \wsmindex{ppathCalc} and the
-last path point hold by the structure is accordingly the starting
-point for the new calculations. If a total propagation path shall be
-determined, the agenda is called repeatedly until the starting point
-of the propagation path is found and \artsstyle{ppath\_step} will hold
-all path steps that together make up \artsstyle{ppath}. The starting
-point is included in the returned structure.
-
-The path is determined by starting at the end point and moving
-backwards to the starting point. The calculations are initiated by
-filling \artsstyle{ppath\_step} with the practical end point of the
-path. This is either the position of the sensor (true or
-hypothetical), or some point at the top of the atmosphere (determined
-by geometrical calculations starting at the sensor). This
-initialisation is not handled by \artsstyle{ppath\_step\_agenda}. 
-The field \artsstyle{constant} is set by \artsstyle{ppathCalc}
-to the correct value if the sensor is above the model atmosphere.
-Otherwise, the field is set to be negative and is corrected by
-\artsstyle{ppath\_step\_agenda} at the first call. This procedure is
-needed as the propagation path constant changes if refraction is
-considered, or not, when the sensor is placed inside the atmosphere.
-
-The agenda performs only calculations to next crossing of a grid, all
-other tasks are performed by \wsmindex{ppathCalc}, with one exception.
-If there is an intersection of a blackbody ground, the calculations
-stop at this point. This is flagged by setting the background field of
-\artsstyle{ppath\_step}. Beside this, \wsmindex{ppathCalc} checks
-if the starting point of the calculations is inside the scattering box
-or below the ground level, and check if the last point of the path has
-been reached. The starting point (the end furthest away from the
-sensor) of a full propagation path can be the top of the atmosphere, a
-blackbody ground and the cloud box.
-
-The \artsstyle{ppath\_step\_agenda} put in points along the
-propagation path at all crossings with the grids, tangent points and
-points of ground reflection. There exists also functions for
-\artsstyle{ppath\_step\_agenda}, such as
-\artsstyle{ppath\_stepGeometricWithLmax}, that put in additional
-points to ensure that the length along the path between the points
-does not exceed a specified limit.
-
-
-
-\levelb{The propagation path data structure}
-%===================
-\label{sec:ppath:Ppath}
-
-A propagation path is represented by a structure of type
-\typeindex{Ppath}. This structure holds also auxiliary variables to
-facilitate the radiative transfer calculations and to speed up the
-interpolation (if performed). The fields of \artsstyle{Ppath}, where
-the data type is given inside square brackets, are:
-\begin{description}
-
-  \item[dim] [Index] The atmospheric dimensionality. This field shall always 
-     be equal to the workspace variable \artsstyle{atmosphere\_dim}.
-     
-   \item[np] [Index] Number of positions to define the propagation
-     path. The number of rows of \artsstyle{pos} and \artsstyle{los},
-     and the length of \artsstyle{z}, \artsstyle{gp\_p},
-     \artsstyle{gp\_lat} and \artsstyle{gp\_lon}, shall be equal to
-     \artsstyle{np}. The length of \artsstyle{l\_step} is
-     \artsstyle{np} - 1. If \artsstyle{np} $\leq$ 1, the observed
-     spectrum is identical to the radiative background. For cases
-     where the sensor is placed inside the model atmosphere and
-
-     \artsstyle{np} = 1, the stored position is identical to the sensor
-     position and that position can be used to determinate the radiative
-     background (see below).
-
-   \item[refraction] [Index] A flag (0 or 1) to indicate if refraction
-     has been considered when determining the path. A value of 1 means
-     that refraction has been considered.
-
-   \item[method] [String] A string describing the calculation approach.
-     For example, '1D basic geometrical'.
-     
-   \item[constant] [Numeric] The propagation path constant. Such a
-     constant can be assigned to all geometrical paths and for 1D
-     cases (with or without refraction). See
-     Sections~\ref{sec:ppath:basicgeom} and [**]. This field can be
-     initiated to a negative value to indicate that the constant is
-     undefined or not yet set. For cases where the constant applies,
-     \wsvindex{ppath\_step\_agenda} sets this constant at the first
-     call of the agenda if the given value is negative.
-
-   \item[pos] [Matrix] The position of the propagation path points.
-     This matrix has \artsstyle{np} rows and up to 3 columns. Each row
-     holds a position where column 1 is the radius, column 2 the
-     latitude and column 3 the longitude (cf.
-     Section~\ref{sec:fm_defs:sensorpos}). The number of columns for
-     1D and 2D is 2, while for 3D it is 3. The latitudes are stored
-     for 1D cases as these can be of interest for some applications
-     and are useful if the propagation path shall be plotted. The
-     latitudes for 1D give the angular distance to the sensor (see
-     further Section~\ref{sec:fm_defs:atmdim}).
-     
-     The propagation path is stored in reversed order, that is, the
-     position with index 0 is the path point closest to the sensor
-     (and equals the sensor position if it is inside the atmosphere).
-     The full path is stored also for 1D cases with symmetry around a
-     tangent point (in contrast to ARTS-1). 
-     
-  \item[z] [Vector] The geometrical altitude for each path position. The
-     length of this vector is accordingly \artsstyle{np}. This is a help
-     variable for plotting and similar purposes. It shall not be used to
-     interpolate the atmospheric fields, as pressure is the main altitude
-     coordinate.
-
-  \item[l\_step] [Vector] The length along the propagation path between
-     the positions in \artsstyle{pos}. The length of the vector is
-     \artsstyle{np} - 1. 
-     
-   \item[gp\_p] [ArrayOfGridPos] Index position with respect to the
-     pressure grid. The structure for grid positions is described in
-     Section~\ref{sec:interpolation:gridpos}. 
-     
-   \item[gp\_lat] [ArrayOfGridPos] As \artsstyle{gp\_p} but with
-     respect to the latitude grid.
-
-   \item[gp\_lon] [ArrayOfGridPos] As \artsstyle{gp\_p} but with
-     respect to the longitude grid.
-     
-   \item[los] [Matrix] The line-of-sight of the propagation path at
-     each point. The number of rows of the matrix is \artsstyle{np}.
-     For 1D and 2D, the matrix has a single column holding the zenith
-     angle. For 3D there is an additional column giving the azimuth
-     angle. The zenith and azimuth angles are defined in
-     Section~\ref{sec:fm_defs:los}. If the radiative background is the
-     cloud box, the last position (in \artsstyle{pos}) and
-     line-of-sight give the relevant information needed when
-     extracting the radiative background from the cloud box intensity
-     field.
-     
-   \item[background] [String] The radiative background for the
-     propagation path. The possible
-     options for this field are 'space', 'blackbody ground', 'cloud
-     box interior' and 'cloud box surface', where the source of
-     radiation should be clear the content of the strings.
-
-  \item[ground] [Index] A boolean to indicate that there is an intersection
-     of the path by the ground. If the ground is treated to be a blackbody,
-     \artsstyle{ground} can only have the value of 0.
-     
-   \item[i\_ground] [Index] The position index of the ground.
-     Undefined if \artsstyle{ground} = 0. Row \artsstyle{i\_ground} of
-     \artsstyle{pos} gives the position of the ground reflection, which
-     is needed for determining the ground emissivity for 2D and 3D cases.
-     
-   \item[tan\_pos] [Vector] The position of the tangent point. This
-     vector is only set if there exists a tangent point (above the
-     ground level), the length of the vector is otherwise 0.
-     
-   \item[geom\_tan\_pos] [Vector] The position of the geometrical
-     tangent point. This vector is set for all downward observations.
-     Refraction and ground reflections are neglected when calculating
-     this tangent point position. This field is not covered by
-     \artsstyle{ppath\_step\_agenda}.
-     
-    \item[symmetry] [Index] A boolean to indicate that the atmospheric
-      conditions are symmetric around some point. This will the case
-      for 1D and downward observations. This boolean shows only that a
-      symmetry point exists, it will not affect the later
-      calculations.  To make use of the symmetry on the radiative
-      transfer calculations, the workspace variable [* to be defined
-      *] must be set to 1.
-
-   \item[i\_symmetry] [Index] The index of the symmetry point if 
-     \artsstyle{symmetry}=1. Otherwise undefined.
-
-\end{description}
-
-
-
-
-\levelb{Some basic geometrical relationships}
-%===================
-\label{sec:ppath:basicgeom}
-
-This section gives some expressions to determine positions along a
-propagation path when refraction is neglected. The expressions deal
-only with propagation path inside a plane, where the latitude angle is
-the angular distance from an arbitrary point. This means that the
-expressions given here can be directly applied for 1D and 2D, but not for
-3D. The ARTS function for making the calculation of concern is given
-inside parenthesis above each equation, if not stated explicitly. A
-part of a geometrical propagation path is shown in
-Figure~\ref{fig:ppath:1d2dgeom}.
-
-\begin{figure}[!t]
- \begin{center}
-  \begin{minipage}[c]{0.65\textwidth}
-   \begin{center}
-    \includegraphics*[width=0.9\hsize]{Figs/ppath/geom1d}
-   \end{center}
-  \end{minipage}%
-  \begin{minipage}[c]{0.35\textwidth}
-   \caption{The radius (\Rds) and zenith angle (\ZntAng) for two points along
-     the propagation path, and the distance along the path ($\Delta\PpathLng$)
-     and the latitude difference ($\Delta\Lat$) between these points.}
-   \label{fig:ppath:1d2dgeom}
-  \end{minipage}
- \end{center}
-\end{figure}   
-
-The law of sines gives that the product must $\Rds\sin(\ZntAng)$ be
-constant along the propagation path:
-\begin{equation}
-  p_c = \Rds\sin(\ZntAng)
-  \label{eq:ppath:geomconst}
-\end{equation}
-where the absolute value is taken for 2D zenith angles as they can for
-such cases be negative. The propagation path constant, $p_c$, is
-determined by the position and line-of-sight of the sensor, a
-calculation done by the function \funcindex{geometrical\_ppc}. The
-constant equals also the radius of the tangent point of the path (that
-is found along an imaginary prolongation of the path behind the sensor
-if the viewing direction is upwards). The expressions below are based
-on $p_c$ as the usage of a global constant for the path should
-decrease the sensitivity to numerical inaccuracies. If the
-calculations are based solely on the values for the neighbouring
-point, a numerical inaccuracy can accumulate when going from one point
-to next. The propagation path constant is stored in the field
-\artsstyle{constant} of \wsvindex{ppath} and \wsvindex{ppath\_step}.
-
-The relationship between the distance along the path for an
-infinitesimal change in radius is here denoted as the
-\textindex{geometrical factor}, $g$. If refraction is neglected, valid
-expressions for the geometrical factor are
-\begin{equation}
-  g = \frac{\DiffD l}{\DiffD r} 
-           = \frac{1}{\cos(\ZntAng)} = \frac{1}{\sqrt{1-\sin^2(\ZntAng)}}
-                                            = \frac{\Rds}{\sqrt{\Rds^2-p_c^2}}
-  \label{eq:ppath:g_geom}
-\end{equation}
-For the radiative transfer calculations, only the distance between the
-points, $\Delta \PpathLng$, is of interest, but for the internal
-propagation path calculations the length from the tangent point (real
-or imaginary), \PpathLng, is used. By integrating
-Equation~\ref{eq:ppath:g_geom}, we get that
-(\funcindex{geomppath\_l\_at\_r})
-\begin{equation}
-  \PpathLng(\Rds) = \sqrt{\Rds^2-p_c^2} 
-  \label{eq:ppath:r2l}
-\end{equation}
-As refraction is here neglected, the tangent point, the point of
-concern and the centre of the coordinate system make up a right
-triangle and Equation~\ref{eq:ppath:r2l} corresponds to the
-Pythagorean relation where $p_c$ is the radius of the tangent point.
-The distance between two points ($\Delta \PpathLng$) is obtained by
-taking the difference of Equation~\ref{eq:ppath:r2l} for the two
-radii.
-
-The radius for a given \PpathLng\ is simply (\funcindex{geomppath\_r\_at\_l})
-\begin{equation}
-  \Rds(\PpathLng) = \sqrt{\PpathLng^2+p_c^2} 
-  \label{eq:ppath:l2r}
-\end{equation}
-The zenith angle for a given radius is (\funcindex{geomppath\_za\_at\_r})
-\begin{equation}
-  \ZntAng(\Rds) = \left\{
-   \begin{array}{ll}
-    180 - \sin^{-1}(p_c/\Rds) & 
-                   \textrm{for}\quad 90\degree < \aZntAng{a} \leq 180\degree\\
-    \sin^{-1}(p_c/\Rds) & 
-                   \textrm{for}\quad 0\degree \leq \aZntAng{a} \leq 90\degree\\
-    -\sin^{-1}(p_c/\Rds) & 
-                   \textrm{for}\quad -90\degree \leq \aZntAng{a} < 0\degree\\
-    \sin^{-1}(p_c/\Rds) - 180 & 
-                  \textrm{for}\quad -180\degree \leq \aZntAng{a} < -90\degree\\
-   \end{array}   \right.
-  \label{eq:ppath:r2psi}
-\end{equation}
-where \aZntAng{a} is any zenith angle valid for the path on the same
-side of the tangent point. For example, for a 1D case, the part of the
-path between the tangent point and the sensor has zenith angles
-$90\degree < \aZntAng{a} \leq 180\degree$.
-
-The latitude for a point is most easily determined by its zenith angle
-\funcindex{geomppath\_lat\_at\_za})
-\begin{equation}
-  \Lat(\ZntAng) = \aLat{0} + \ZntAng - \aZntAng{0} 
-  \label{eq:ppath:za2lat}
-\end{equation}
-where \aZntAng{0} and \aLat{0} are the zenith angle and latitude of some 
-other point of the path. Equation~\ref{eq:ppath:za2lat} is based on the 
-fact that the quantities \aZntAng{1}, \aZntAng{2} and $\Delta\Lat$
-fulfil the relationship
-\begin{equation}
-  \Delta\Lat = \aZntAng{1} - \aZntAng{2},
-\end{equation}
-this independently of the sign of the zenith angles. The definitions
-used here result in that the absolute value of the zenith angle always
-decreases towards zero when following the path in the line-of-sight
-direction, that is, when going away from the sensor. It should then be
-remembered that the latitudes for 1D measures the angular distance to
-the sensor, and for 2D a positive zenith angle means observation
-towards higher latitudes.
-
-
-
-
-\levelb{Calculation of propagations path steps}
-%===================
-\label{sec:ppath:stepcalc}
-
-This section describes the calculation of the propagation path steps
-for different atmospheric dimensionalities, and when refraction is
-considered or not. The case when refraction is neglected is also
-denoted as geometrical calculations. The workspace functions for
-propagation path step calculations adjust automatically to the
-atmospheric dimensionality, but the actual calculations are performed
-a sub-functions for each dimensionality.
-
-Workspace functions to calculate geometrical propagation steps are:
+It is very likely that you will have to edit these. Less likely, but
+possibly, you also have to edit:
 \begin{itemize}
-\item \artsstyle{ppath\_stepGeometric}
-\item \artsstyle{ppath\_stepGeometricWithLmax}
+\item \fileindex{groups.cc}: Definition of WSV groups.
 \end{itemize}
 
+\vspace{2ex}
+When ARTS is built, a number of source code files are generated
+automatically. They are listed here in the order in which they are
+generated: 
+\begin{itemize}
+\item \fileindex{auto\_wsv\_groups.h}:\\
+  Generated from \artsstyle{groups.cc}.
+\item \fileindex{auto\_wsv.h}, \fileindex{auto\_wsv\_pointers.cc}:\\
+  Generated from \artsstyle{auto\_wsv\_groups.h} and \artsstyle{workspace.cc}. 
+\item \fileindex{auto\_md.h}, \fileindex{auto\_md.cc}:\\
+  Generated from \artsstyle{auto\_wsv\_groups.h},
+  \artsstyle{auto\_wsv.h}, and \artsstyle{methods.cc}.
+\end{itemize}
+This is achieved by a set of simple C++ programs:
+\begin{itemize}
+\item \fileindex{make\_auto\_wsv\_groups\_h.cc}
+\item \fileindex{make\_auto\_wsv\_h.cc}
+\item \fileindex{make\_auto\_wsv\_pointers\_cc.cc}
+\item \fileindex{make\_auto\_md\_h.cc}
+\item \fileindex{make\_auto\_md\_cc.cc}
+\end{itemize}
+The meaning of the names should be self-explanatory. There is one program
+for each file to be generated.  The generation of the
+\artsstyle{auto\_} files happens automatically when you do a
+\artsstyle{make}. Therefore, never edit any of these files.
 
-\levelc{Some general remarks}
-%===================
+Finally, there are some files that contain the internal implementation
+of WSVs, WSMs, and agendas. These are:
+\begin{itemize}
+\item \fileindex{wsv\_aux.h}, \fileindex{wsv\_aux.cc},
+  \fileindex{workspace\_aux.cc}: Implementation of class
+  \typeindex{WsvRecord}, which stores the lookup information for one
+  WSV, plus auxiliary stuff for the workspace.
+\item \fileindex{methods.h}, \fileindex{methods\_aux.cc}:
+  Implementation of class \typeindex{MdRecord}, which stores the
+  lookup information for one WSM.
+\item \fileindex{agenda.h}, \fileindex{agenda.cc}: Implementation of
+  class \typeindex{MRecord}, which stores runtime information for one WSM,
+  and class \typeindex{Agenda}, which stores an agenda.
+\end{itemize}
 
-The grid positions are calculated on the same time as the path is
-determined. The main reason to this is that the grid positions make it
-possible to quickly determine inside which grid box the path step is
-found. Without the grid positions, each call of the functions would
-need a costly search to locate the starting position in the grids.  If
-you are not familiar with grid positions, it is recommended to read
-Section~\ref{sec:interpolation} before you continue here.
-
-The limited numerical accuracy requires some care when setting the
-grid positions. First of all, rounding errors can give a fractional
-distance $< 0$ or $> 1$ and this must be avoided. The function
-\funcindex{gridpos\_check\_fd} was created for this purpose, and
-should be called for each grid position. This function just
-sets all values below 0 to 0 and all value above 1 to 1. In addition,
-the grid position for the end point of a path step (beside when there
-is an intersection with a blackbody ground) must have a fractional
-distance of exactly 0 or 1, but this is not ensured by
-\artsstyle{gridpos\_check\_fd} and for end points the function
-\funcindex{gridpos\_force\_end\_fd} shall also be called. There will
-be an error if \artsstyle{gridpos\_force\_end\_fd} is called with
-original fractional distances deviating more than 1\topowerten{-6}
-from 0 and 1.
-
-Some care is needed to determine in which grid range a path step is
-found. First of all, there exists an ambiguity for the fractional
-distance at the grid points. It can either be 0 or 1. In addition, if
-a position is exactly on top of a grid point, the observation
-direction determines the interesting grid range. As an help to resolve
-these question there is the function \funcindex{gridpos2gridrange}.
-This function takes an argument describing the direction of the
-line-of-sight with respect to the grids. This argument shall be set to
-1 if the viewing direction is towards higher indexes. The direction
-argument can be set with the following logical expressions, for the
-different combinations of atmospheric dimensionality and grid of
-interest:
-
- {\bf 1D-3D, pressure}: $\quad |\ZntAng| \leq 90\degree$
-
- {\bf 2D, latitude}: $\quad \ZntAng \geq 0\degree$
-
- {\bf 3D, latitude}: $\quad \AzmAng \leq 90\degree$
-
- {\bf 3D, longitude}: $\quad \AzmAng \geq 0\degree$
+\vspace{2ex}
+As mentioned above, you will not have to modify any of these files,
+they are listed here just for reference. Normally, you only have to
+modify \artsstyle{workspace.cc} and \artsstyle{methods.cc}.
 
 
-\levelc{1D without refraction}
-%===================
-\label{sec:ppath:1Dwithout}
+\levelb{Workspace Variables or WSVs}
+%--------------------------
+\label{sec:agendas:wsvs}
 
-The calculations are outlined in Algorithm~\ref{alg:ppath:1Dgeom}. The
-basic problem is to determine the end and turning radii for the
-propagation path. When these radii are determined, it is
-straightforward to determine the quantities to be included in the
-\artsstyle{Ppath} structure. Needed mathematics are given by
-Equations~\ref{eq:ppath:geomconst}~-~\ref{eq:ppath:za2lat}.
+All important variables in ARTS are WSVs. This means that they can be
+manipulated by a list of WSMs, which is specified in the ARTS
+controlfile. There exists a predefined list of possible WSVs. This
+list defines the \emph{workspace}. One can think of each WSV as a
+`slot' in the workspace: The WSV can be either \emph{set}, or
+\emph{unset}. Set means that the WSV has a well-defined content, unset
+means that it has no well-defined content. At the start of an ARTS job
+all WSVs are unset.
 
-\begin{algorithm}[!t]
- \begin{algorithmic}
-  \STATE{set \aRds{start} to match the last position of input \artsstyle{ppath} structure}
-  \IF{\artsstyle{ppath.constant} $< 0$}
-   \STATE{calculate the propagation path constant}
-  \ENDIF
-  \STATE{determine the lower index of the interesting pressure grid range, \aInd{0}}
-  \STATE{create a vector holding a minimum set of radii to describe the path, \aRds{s}:}
-  \IF{$\aZntAng{start} \leq 90\degree$}
-   \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\Rds[\aInd{0}+1]\,\}$}
-   \COMMENT{$\Rds[\aInd{0}+1]$ = radius for pressure level with index $\aInd{0}+1$}
-  \ELSE
-   \STATE{calculate radius for tangent point, \aRds{tan}}
-   \STATE{calculate radius for ground, \aRds{ground}}
+WSVs are defined in the file \fileindex{workspace.cc}. A typical
+definition looks like this:
 
-   \IF{ \aRds{tan} $\geq$ both \Rds[\aInd{0}] and \aRds{ground}}
-    \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\aRds{tan}\,,\,\Rds[\aInd{0}+1]\,\}$}
-   \ELSE
-    \IF{ \Rds[\aInd{0}] $>$ \aRds{ground} }
-     \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\Rds[\aInd{0}]\,\}$}
-    \ELSE
-     \IF{ blackbody ground }
-      \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\aRds{ground}\,\}$}
-     \ELSE
-      \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\aRds{ground}\,,\,\Rds[\aInd{0}+1]\,\}$}
-     \ENDIF
-    \ENDIF
-   \ENDIF
-  \ENDIF
-  \STATE{calculate the distance to the tangent point for the radii in \aRds{s}}
-  \IF{length criterion set}
-   \STATE{calculate needed number of sub-steps between the radii in \aRds{s}}
-  \ELSE
-   \STATE{the number of needed sub-steps is throughout 1}
-  \ENDIF
-  \FORALL{radii in \aRds{s}}
-   \FORALL{sub-steps}
-    \STATE{take radii from \aRds{s} or calculate by Eq. \ref{eq:ppath:l2r}}
-    \STATE{use Eqs. \ref{eq:ppath:r2psi} and \ref{eq:ppath:za2lat} to determine zenith angle and latitude}
-    \STATE{calculate vertical grid position}
-   \ENDFOR
-  \ENDFOR
- \end{algorithmic}
- \caption{Outline of the calculation of 1D geometrical propagation path steps.}
- \label{alg:ppath:1Dgeom}
-\end{algorithm}
+{\small
+\begin{verbatim}
+  wsv_data.push_back
+   (WsvRecord
+    ("f_grid",
+     "The frequency grid for monochromatic pencil beam\n"
+     "calculations.\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       Hz",
+     Vector_ ));
+\end{verbatim}}
 
+All WSV definitions have the same three elements:
+\begin{enumerate}
+\item The \emph{name} of the WSV. It has to be used with exactly the
+  same name in the code.
+\item The \emph{documentation}. This is normally much longer than in
+  the example here. It must fully describe the WSV, its purpose, and
+  its normal usage. See file \artsstyle{workspace.cc} for instructions
+  how to write the documentation.
+\item The \emph{group} to which the WSV belongs. You can think of a
+  group as something similar to a C++ data type. The WSV in the
+  example belongs to the group \artsstyle{Vector}. The allowed groups
+  are defined in file \fileindex{groups.cc}. Note that you have to add
+  an underscore to the group name.
+  % FIXME: Add reference to list of groups in appendix here, when implemented.
+\end{enumerate}
 
+\levelb{Workspace Methods or WSMs}
+%--------------------------
+\label{sec:agendas:wsms}
 
-\levelc{1D with refraction}
-%===================
-\label{sec:ppath:1Dwith}
+WSMs manipulate WSVs to produce other WSVs. There are three kinds of
+WSM:
+\begin{enumerate}
+\item Specific WSM.
+\item Generic WSM.
+\item Agenda WSM.
+\end{enumerate}
+As in the case of WSVs, there is a central place in ARTS where
+information on the available WSMs is stored. This place is the file
+\fileindex{methods.cc}. It contains a record for each WSM, which
+schematically looks like this: 
 
-Not yet implemented.
+FIXME: Continue here.
 
+\begin{verbatim}
 
-\levelc{2D without refraction}
-%===================
-\label{sec:ppath:2Dwithout}
+\end{verbatim}
 
-Not yet implemented.
-
-
-\levelc{2D with refraction}
-%===================
-\label{sec:ppath:2Dwith}
-
-Not yet implemented.
-
-
-\levelc{3D without refraction}
-%===================
-\label{sec:ppath:3Dwithout}
-
-Not yet implemented.
-
-
-\levelc{3D with refraction}
-%===================
-\label{sec:ppath:3Dwith}
-
-Not yet implemented.
-
-
-\levelb{Geoid ellipsoids and geodetic datums}
-%===================
-\label{sec:ppath:geoids}
-
-This section defines the geoid ellipsoid and discusses related
-issues. The geoid is introduced in Section~\ref{sec:fm_defs:geoid}.
-The workspace variable representing the geoid is \wsvindex{r\_geoid}.
-
-
-\levelc{Geoid ellipsoids}
-%===================
-\label{sec:ppath:geoid}
-
-All geodetic datums are based on a reference ellipsoid\index{geoid
-  ellipsoid}. The ellipsoid is rotationally symmetric around the
-north-south axis. That is, the ellipsoid radius has no longitude
-variation, it is only a function of latitude. The ellipsoid is
-described by an equatorial radius, \aRds{e}, and a polar radius,
-\aRds{p}. These radii are indicated in Figure~\ref{fig:ppath:lats}.
-The radius of the ellipsoid for a given latitude is
-\begin{equation}
- \aRds{\odot}(\Lat) = \sqrt{\frac{\aRds{e}^2\aRds{p}^2}
-                    {\aRds{e}^2\sin^2\Lat+\aRds{p}^2\cos^2\Lat}}
- \label{eq:ppath:ellipsradius} 
-\end{equation}
-The radius given by Equation~\ref{eq:ppath:ellipsradius} can be
-directly applied for 2D and 3D cases. On the other hand, for 1D cases
-the reference geoid is by definition a sphere and the radius of this
-sphere shall be selected in such way that it represents the local
-shape of a reference ellipsoid. This is achieved by setting
-\aRds{\odot} to the radius of curvature of the ellipsoid. The
-curvature radius differs from the local radius except at the equator
-and an east-west direction. For example, at the equator and a
-north-south direction, the curvature radius is smaller then the local
-radius, while at the poles (for all directions) it is greater
-(see further Figure~\ref{fig:ppath:wgs84radii}). 
-
-The \textindex{curvature radius}, \aRds{c}, of an ellipsoid is 
-\citep{rodgers:00}
-\begin{equation}
- \aRds{c} = \frac{1}{\aRds{ns}^{-1}\cos^2 \Lat + \aRds{ew}^{-1}\sin^2 \Lat}
- \label{eq:ppath:curvradius} 
-\end{equation}
-where \aRds{ns} and \aRds{ew} are the north-south and east-west curvature radius, respectively,
-\begin{eqnarray}
- \aRds{ns} &=& \aRds{e}^2\aRds{p}^2 (
-           \aRds{e}^2\cos^2\AzmAng+\aRds{p}^2\sin^2\AzmAng )^{-\frac{3}{2}} \\
- \aRds{ew} &=& \aRds{e}^2 (
-           \aRds{e}^2\cos^2\AzmAng+\aRds{p}^2\sin^2\AzmAng )^{-\frac{1}{2}} 
- \label{eq:ppath:rew} 
-\end{eqnarray}
-The azimuth angle, \AzmAng, is defined in
-Section~\ref{sec:fm_defs:los}. The latitude and azimuth angle to
-apply in Equations \ref{eq:ppath:curvradius}~-~\ref{eq:ppath:rew}
-shall rather be valid for a middle point of the propagation paths
-(such as some tangent point), instead of the sensor position. 
-
-\begin{figure}[!p]
- \begin{center}
-  \begin{minipage}[c]{0.65\textwidth}
-   \begin{center}
-    \includegraphics*[width=0.9\hsize]{Figs/ppath/latitudes}
-   \end{center}
-  \end{minipage}%
-  \begin{minipage}[c]{0.35\textwidth}
-   \caption{Definition of the ellipsoid radii, \aRds{e} and \aRds{p}, 
-     geocentric latitude, \Lat, and geodetic latitude, \Lat$^*$. The
-     dotted line is the normal to the local tangent of the geoid
-     ellipsoid. The zenith and nadir directions, and geometrical
-     altitudes, are here defined to follow the solid line.}
-   \label{fig:ppath:lats}
-  \end{minipage}
- \end{center}
-\end{figure}   
-
-\begin{figure}[!p]
- \begin{minipage}[c]{0.65\textwidth}
- \includegraphics*[width=0.96\textwidth]{ppath/wgs84_radii}
- \end{minipage}%
- \begin{minipage}[c]{0.35\textwidth}
-  \caption{The ellipsoid radius (\aRds{\odot}) and curvature radius (\aRds{c})
-    for the
-    WGS-84 reference ellipsoid. The curvature radii are valid for the
-    north-south direction.}
-  \label{fig:ppath:wgs84radii}
- \end{minipage}%
-\end{figure}   
-        
-\begin{figure}[!p]
- \begin{minipage}[c]{0.65\textwidth}
- \includegraphics*[width=0.96\textwidth]{ppath/wgs84_latdiff}
- \end{minipage}%
- \begin{minipage}[c]{0.35\textwidth}
-  \caption{The change of the WGS-84 ellipsoid radius for  1\degree\ 
-            latitude differences.}
-  \label{fig:ppath:latdiff}
- \end{minipage}%
-\end{figure}   
-
-
-
-\levelc{Geocentric and geodetic latitudes}
-%===================
-\label{sec:ppath:geolat}
-
-The fact that the geoid is an ellipsoid, instead of a sphere, opens up
-for the two different definitions of the latitude. The
-\textindex{geocentric latitude}, which is the the one used here, is the
-angle between the equatorial plane and the vector from the coordinate
-system centre to the position of concern. The \textindex{geodetic
-  latitude} is also defined with respect to the equatorial plane, but
-the angle to the normal to the reference ellipsoid is considered here, as
-shown in Figure~\ref{fig:ppath:lats}. It could be mentioned that a
-geocentric latitude does not depend on the geoid ellipsoid used, while
-the geodetic latitudes change if another reference ellipsoid is
-selected. An approximative relationship between the geodetic
-($\Lat^*$) and geocentric (\Lat) latitudes is \citep{montenbruck:00}
-\begin{equation}
- \Lat^* = \Lat + f\,\sin(2\Lat)  
- \label{eq:ppath:lats}
-\end{equation}
-where $f$ is the flattening of the ellipse:
-\begin{equation}
- f = \frac{\aRds{e}-\aRds{p}}{\aRds{e}}
- \label{eq:ppath:flattening}
-\end{equation}
-The value of $f$ for the Earth is about 1/298.26. This means that the
-largest differences between \Lat\ and $\Lat^*$ are found at
-mid-latitudes and the maximum value is about 12 arc-minutes.
-
-The \textindex{zenith} and \textindex{nadir} directions shall normally be
-defined to follow the normal to the reference ellipsoid, but, if
-nothing else is mentioned, these directions are here treated to go
-along the vector the centre of the coordinate system, as indicated in
-Figure~\ref{fig:ppath:lats}. This latter definition is preferred
-as it results in that a propagation path in the zenith/nadir direction
-can be described by a single latitude and longitude value. The
-difference in geometrical altitude when using these two possible
-definitions on the zenith direction is proportional to the deviation
-between geocentric and geodetic latitude (Equation~\ref{eq:ppath:lats}).
-For an altitude of 100~km around $\Lat=45\degree$, the difference is
-about 350~m.
-
-
-\levelc{Geodetic datums}
-%===================
-\label{sec:ppath:geodatums}
-
-Table~\ref{tab:ppath:geodatums} gives the equatorial and polar radii
-of the reference ellipsoid for the geodetic datums handled by ARTS.
-
-\begin{table}[!h]
-  \begin{center}
-    \begin{tabular}{c c c c l}
-     Datum & \aRds{e} & \aRds{p} & $1/f$ & Reference \vspace*{1mm} \\ 
-     \hline 
-     WGS-84 & 6378.137 km & \emph{6356.752 km} & 298.2572235 & {\small \citet{montenbruck:00}}  \rule{0mm}{5mm} \vspace*{1mm} \\
-     \hline
-    \end{tabular}
-    \caption{Equatorial and polar radius of reference ellipsoids. Values 
-      given as \emph{italic} are 
-      derived by the other two values and Equation~\ref{eq:ppath:flattening}.}
-    \label{tab:ppath:geodatums}
-  \end{center}
-\end{table}
-
-
-
-\levelb{Control file examples}
-%===================
-\label{sec:ppath:cfile}
-
+\levelb{Agendas}
+%--------------------------
+\label{sec:agendas:agendas}
 
 
 

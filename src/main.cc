@@ -795,6 +795,8 @@ int main (int argc, char **argv)
 
       // Call the parser to parse the control text:
       parse_main(tasklist, text);
+      
+      tasklist.set_name("Main");
 
       // Execute main agenda:
       Main(tasklist);
