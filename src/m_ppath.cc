@@ -201,10 +201,11 @@ void DoGridcell2D(
 
   Vector    r, lat, za;
   Numeric   lstep;
-  Index     endface;
+  Index     endface, tanpoint;
 
-  do_gridcell_2d( r, lat, za, lstep, endface, r_start, lat_start, za_start, 
-               ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3 );
+  do_gridcell_2d( r, lat, za, lstep, endface, tanpoint, r_start, lat_start, 
+                  za_start, ppc, lmax, lat1, lat3, r1a, r3a, r3b, r1b, 
+                                                          rground1, rground3 );
 
   String filename;
 
@@ -262,10 +263,10 @@ void DoGridcell3D(
 
   Vector    r, lat, lon, za, aa;
   Numeric   lstep;
-  Index     endface;
+  Index     endface, tanpoint;
 
-  do_gridcell_3d( r, lat, lon, za, aa, lstep, endface, r_start, lat_start, 
-                  lon_start, za_start, aa_start, ppc, lmax, 
+  do_gridcell_3d( r, lat, lon, za, aa, lstep, endface, tanpoint, 
+                  r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3,  lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
                                   rground15, rground35, rground36, rground16 );

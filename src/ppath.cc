@@ -1594,6 +1594,7 @@ void psurface_crossing_3d_old(
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
+   \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start     Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
@@ -1612,6 +1613,7 @@ void do_gridrange_1d(
               Vector&    za_v,
               Numeric&   lstep,
               Index&     endface,
+              Index&     tanpoint,
         const Numeric&   r_start,
         const Numeric&   lat_start,
         const Numeric&   za_start,
@@ -1632,6 +1634,9 @@ void do_gridrange_1d(
   //
   Numeric r_end;
   //
+  endface  = 0;
+  tanpoint = 0;
+  //
   if( za_start <= 90 )
     { 
       r_end   = rb; 
@@ -1648,8 +1653,8 @@ void do_gridrange_1d(
         }
       else if( ppc >= rground )
         {
-          r_end   = ppc;
-          endface = 8;
+          r_end    = ppc;
+          tanpoint = 1;
         }
       else
         {
@@ -1664,7 +1669,7 @@ void do_gridrange_1d(
                                                        za_start, r_end, lmax );
 
   // Force end zenith angle to be exact when we know the correct value
-  if( endface == 8 )
+  if( tanpoint )
     { za_v[za_v.nelem()-1] = 90; }
 }
 
@@ -1682,8 +1687,7 @@ void do_gridrange_1d(
    2: The face at the lower (geometrically) pressure surface. <br>
    3: The face at the upper latitude point. <br>
    4: The face at the upper (geometrically) pressure surface. <br>
-   7: The end point is an intersection with the ground. <br>
-   8: The end point is a tangent point.
+   7: The end point is an intersection with the ground. 
 
    The corner points are names r[lat][a,b]. For example: r3b.
    The latitudes are numbered to match the end faces. This means that
@@ -1703,6 +1707,7 @@ void do_gridrange_1d(
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
+   \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start     Radius of start point.
    \param   lat_start   Latitude of start point.
    \param   za_start    LOS zenith angle at start point.
@@ -1726,6 +1731,7 @@ void do_gridcell_2d(
               Vector&    za_v,
               Numeric&   lstep,
               Index&     endface,
+              Index&     tanpoint,
         const Numeric&   r_start,
         const Numeric&   lat_start,
         const Numeric&   za_start,
@@ -1772,7 +1778,8 @@ void do_gridcell_2d(
   // the one closest in latitude to the start point. The latitude distance 
   // for the crossing shall not exceed dlat2end.
   //
-  Numeric dlat2end = 999;
+  Numeric   dlat2end = 999;
+            endface = 0;
 
 
   // --- Lower face 
@@ -1853,19 +1860,30 @@ void do_gridcell_2d(
         { endface  = 1; }
     }
 
+  assert( endface );
 
-  // Check if a tangent point is passed before dlat2end is reached.
-  if( abs(za_start) > 90  &&  ( abs(za_start) - abs(dlat2end) ) < 90 ) 
-    { endface  = 8; }
+  // Check there is a tangent point inside the grid cell
+  if( abs(za_start) > 90  &&  ( abs(za_start) - abs(dlat2end) ) <= 90 ) 
+    { 
+      tanpoint = 1;
+
+      // Check if the tangent point is closer than the end point
+      if( ( abs(za_start) - 90 ) < dlat2end )
+        { endface = 0; }
+    }
+  else
+    { tanpoint = 0; }
 
 
   // Calculate radius for end point.
   // To obtain best possible accuracy it is calculated to match found end face,
   // and not based on dlat2end.
   //
-  Numeric r_end = -1;
+  Numeric   r_end = -1;
   //
-  if( endface == 1 )
+  if( tanpoint )
+    { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
+  else if( endface == 1 )
     { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat1 ); }
   else if( endface == 2 )
     { r_end = r1a + c2 * ( dlat_left + dlat2end ); }
@@ -1875,8 +1893,6 @@ void do_gridcell_2d(
     { r_end = r1b + c4 * ( dlat_left + dlat2end ); }
   else if( endface == 7 )
     { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
-  else if( endface == 8 )
-    { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
 
 
   // Fill the return vectors
@@ -1887,12 +1903,13 @@ void do_gridcell_2d(
 
   // Force end latitude and zenith angle to be exact when we know the 
   // correct value
+  if( tanpoint )
+    { za_v[za_v.nelem()-1] = 90; }
+  //
   if( endface == 1 )
     { lat_v[lat_v.nelem()-1] = lat1; }
   else if( endface == 3 )
     { lat_v[lat_v.nelem()-1] = lat3; }
-  else if( endface == 8 )
-    { za_v[za_v.nelem()-1] = 90; }
 }
 
 
@@ -1920,6 +1937,7 @@ void do_gridcell_2d(
    \param   za_v        Out: Vector with LOS zenith angle at found path points.
    \param   lstep       Out: Vector with length along the path between points.
    \param   endface     Out: Number coding for exit face. See above.
+   \param   tanpoint    Out: Set to 1 if end point is a tangent point.
    \param   r_start     Radius of start point.
    \param   lat_start   Latitude of start point.
 
@@ -1934,6 +1952,7 @@ void do_gridcell_3d(
               Vector&    aa_v,
               Numeric&   lstep,
               Index&     endface,
+              Index&     tanpoint,
         const Numeric&   r_start,
         const Numeric&   lat_start,
         const Numeric&   lon_start,
@@ -1984,7 +2003,8 @@ void do_gridcell_3d(
   // The crossing with the lowest distance *l* is what we want.
   // See the 2D function for comments on the different cases.
   //
-  endface = 0;
+  endface  = 0;
+  tanpoint = 0;
   //
   Numeric   l_best  = 99999e3;
   Numeric   r_best, lat_best, lon_best, r_try, lat_try, lon_try, l_try;
@@ -2060,7 +2080,7 @@ void do_gridcell_3d(
 
       //--- Face 1: along lat1
       //
-      if( lat_start == 90  ||  ( abs( aa_start >= 180 ) && lat_start != -90 ) )
+      if( lat_start != -90 )
         {
           gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat1 );
@@ -2117,7 +2137,7 @@ void do_gridcell_3d(
 
       //--- Face 3: along lat3
       //
-      if( lat_start == -90  ||  ( aa_start != 0  &&  lat_start != 90 ) )
+      if( lat_start != 90 )
         {
           gridcell_crossing_3d( r_try, lat_try, lon_try, l_try, 
                                                 x, y, z, dx, dy, dz, 2, lat3 );
@@ -2145,7 +2165,7 @@ void do_gridcell_3d(
 
       //--- Face 4: upper pressure surface
       //
-      if( r_start < rupp )
+      // A step can both start and end on the surface, so must test all cases
         {
           psurface_crossing_3d( r_try, lat_try, lon_try, l_try, lat1, lat3, 
                                 lon5, lon6, r15b, r35b, r36b, r16b, 
@@ -2233,8 +2253,8 @@ void do_gridcell_3d(
       // Note "l_try <= l_best", whick means that the ground will be picked
       // if lower pressure surface and the ground are at the same radius.
       //
-      if( za_start > 0  &&  ( rground15 >= r15a  ||  rground35 >= r35a  ||  
-                                   rground36 >= r36a  ||  rground16 >= r16a ) )
+      if( rground15 >= r15a  ||  rground35 >= r35a  ||  
+                                     rground36 >= r36a  ||  rground16 >= r16a )
         {
           // Numerical inaccuarcy can give problems if
           // *psurface_crossing_3d* is called blindly when *r_start*
@@ -2286,35 +2306,46 @@ void do_gridcell_3d(
         }
 
 
-      //--- Face 8: tangent point
+      // Check that some end face has been found
+      assert( endface );
+
+
+      //--- Tangent point?
       //
       if( za_start > 90 )
         {
-          Numeric   za_try, aa_try;
-          cart2poslos( r_try, lat_try, lon_try, za_try, aa_try,
-                           x+dx*l_best, y+dy*l_best, z+dz*l_best, dx, dy, dz );
-          if( debug )
+          l_try = sqrt( r_start*r_start - ppc*ppc ); 
+
+          if( l_try < l_best )
             {
-              IndexPrint( 8, "face" );
-              NumericPrint( r_try, "r_try" );
-              if( r_try > 0 )
-                {
-                  NumericPrint( lat_try, "lat_try" );
-                  NumericPrint( lon_try, "lon_try" );
-                }
-            }
-          if( za_try <= 90 )
-            {
-              geompath_tanpos_3d( r_best, lat_best, lon_best, l_best, r_start, 
+              geompath_tanpos_3d( r_try, lat_try, lon_try, l_try, r_start, 
                                lat_start, lon_start, za_start, aa_start, ppc );
-              endface = 8;
+              r_best   = r_try;
+              lat_best = lat_try;
+              lon_best = lon_try;
+              l_best   = l_try;
+              endface  = 0;
+              tanpoint = 1;
+            }
+          else if( l_try == l_best )
+            {
+              tanpoint = 1;
             }
         }
      }
 
-
-  // Check that some end face has been found
-  assert( endface );
+  if( debug )
+    {
+      IndexPrint( endface, "endface" );
+      IndexPrint( tanpoint, "tanpoint" );
+      if( endface )
+        {
+          NumericPrint( r_best, "r_best" );
+          NumericPrint( lat_best, "lat_best" );
+          NumericPrint( lon_best, "lon_best" );
+          NumericPrint( l_best, "l_best" );
+        }
+    }
 
 
   //--- Create return vectors
@@ -2358,9 +2389,9 @@ void do_gridcell_3d(
   //--- Set last zenith angle to be as accurate as possible
   if( za_start == 0 )
     { za_v[n] = 0; }
-  else if( abs( za_start ) == 180 )
+  else if( za_start == 180 )
     { za_v[n] = za_start; }
-  else if( endface == 8 )
+  else if( tanpoint )
     { za_v[n] = 90; }
   else
     { za_v[n] = geompath_za_at_r( ppc, za_start, r_v[n] ); }
@@ -3050,6 +3081,7 @@ void ppath_end_1d(
         const Numeric&    r_geoid,
         const Index&      ip,
         const Index&      endface,
+        const Index&      tanpoint,
         const String&     method,
         const Index&      refraction,
         const Numeric&    ppc )
@@ -3078,7 +3110,7 @@ void ppath_end_1d(
     { ppath_set_background( ppath, 2 ); }
 
   //--- End point is a tangent point
-  else if( endface == 8 )
+  else if( tanpoint )
     {
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[np-1];
@@ -3255,6 +3287,7 @@ void ppath_end_2d(
         const Index&      ip,
         const Index&      ilat,
         const Index&      endface,
+        const Index&      tanpoint,
         const String&     method,
         const Index&      refraction,
         const Numeric&    ppc )
@@ -3278,7 +3311,7 @@ void ppath_end_2d(
   // Do end-face specific tasks
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
-  else if( endface == 8 )
+  else if( tanpoint )
     {
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[np-1];
@@ -3537,6 +3570,7 @@ void ppath_end_3d(
         const Index&      ilat,
         const Index&      ilon,
         const Index&      endface,
+        const Index&      tanpoint,
         const String&     method,
         const Index&      refraction,
         const Numeric&    ppc )
@@ -3560,7 +3594,7 @@ void ppath_end_3d(
   // Do end-face specific tasks
   if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
-  else if( endface == 8 )
+  if( tanpoint )
     {
       ppath.tan_pos.resize(3);
       ppath.tan_pos[0] = r_v[np-1];
@@ -3798,10 +3832,10 @@ void ppath_step_geom_1d(
   // Vars to hold found path points, path step length and coding for end face
   Vector    r_v, lat_v, za_v;
   Numeric   lstep;
-  Index     endface;
+  Index     endface, tanpoint;
   //
-  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r_start, lat_start, 
-                   za_start, ppc, lmax, 
+  do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint,
+                   r_start, lat_start, za_start, ppc, lmax, 
                 r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_ground );
 
 
@@ -3814,11 +3848,11 @@ void ppath_step_geom_1d(
     { method     = "1D geometrical with length criterion"; }
   //
   ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                              method, 0, ppc );
+                                                    tanpoint, method, 0, ppc );
 
 
   // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 8 )
+  if( endface == 0  &&  tanpoint )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
@@ -3894,9 +3928,9 @@ void ppath_step_geom_2d(
   // Vars to hold found path points, path step length and coding for end face
   Vector    r_v, lat_v, za_v;
   Numeric   lstep;
-  Index     endface;
+  Index     endface, tanpoint;
 
-  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
+  do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                   r_start, lat_start, za_start, ppc, lmax, lat1, lat3, 
                                       r1a, r3a, r3b, r1b, rground1, rground3 );
 
@@ -3910,12 +3944,12 @@ void ppath_step_geom_2d(
     { method     = "2D geometrical with length criterion"; }
   //
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-                                           ip, ilat, endface, method, 0, ppc );
+                                 ip, ilat, endface, tanpoint, method, 0, ppc );
 
 
   // Make part after a tangent point.
   //
-  if( endface == 8 )
+  if( endface == 0  &&  tanpoint )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
@@ -4000,9 +4034,9 @@ void ppath_step_geom_3d(
   // Vars to hold found path points, path step length and coding for end face
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
   Numeric   lstep;
-  Index     endface;
+  Index     endface, tanpoint;
 
-  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, 
+  do_gridcell_3d( r_v, lat_v, lon_v, za_v, aa_v, lstep, endface, tanpoint,
                   r_start, lat_start, lon_start, za_start, aa_start, ppc, lmax,
                   lat1, lat3, lon5, lon6, 
                   r15a, r35a, r36a, r16a, r15b, r35b, r36b, r16b,
@@ -4017,12 +4051,13 @@ void ppath_step_geom_3d(
     { method     = "3D geometrical with length criterion"; }
   //
   ppath_end_3d( ppath, r_v, lat_v, lon_v, za_v, aa_v, lstep, lat_grid, 
-         lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, method, 0, ppc );
+                lon_grid, z_field, r_geoid, ip, ilat, ilon, endface, tanpoint,
+                                                              method, 0, ppc );
 
 
   // Make part after a tangent point.
   //
-  if( endface == 8 )
+  if( endface == 0  &&  tanpoint )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
@@ -4095,6 +4130,7 @@ void raytrace_1d_linear_euler(
               Array<Numeric>&   za_array,
               Array<Numeric>&   l_array,
               Index&            endface,
+              Index&            tanpoint,
               Numeric           r,
               Numeric           lat,
               Numeric           za,
@@ -4127,8 +4163,9 @@ void raytrace_1d_linear_euler(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will this path exit the grid cell?
-      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, r, lat, za, ppc_step,
-                                                        -1, r1, r3, r_ground );
+      do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint, r, lat, za,
+                                              ppc_step, -1, r1, r3, r_ground );
+
       assert( r_v.nelem() == 2 );
 
       // If *lstep* is < *lraytrace*, extract the found end point and
@@ -4166,7 +4203,7 @@ void raytrace_1d_linear_euler(
       
       const Numeric   ppc_local = ppc / refr_index; 
 
-      if( ready  &&  endface == 8 )
+      if( ready  &&  tanpoint )
         { za = 90; }
       else if( ppc_local < r_new )
         { za = geompath_za_at_r( ppc_local, za, r_new ); }
@@ -4177,9 +4214,9 @@ void raytrace_1d_linear_euler(
           throw logic_error(
             "Error in raytrace_1d_linear_euler. Report this error to Patrick");
                               // If we end up here, then numerical inaccuracy
-          //za      = 90;     // has brought us below the true tangent point.  
-          //ready   = 1;      // We save this situation by setting this point
-          //endface = 8;      // to be a tangent point.
+          //za       = 90;     // has brought us below the true tangent point.
+          //ready    = 1;      // We save this situation by setting this point
+          //tanpoint = 1;      // to be a tangent point.
         }
   
       r   = r_new;
@@ -4242,6 +4279,7 @@ void raytrace_2d_linear_euler(
               Array<Numeric>&   za_array,
               Array<Numeric>&   l_array,
               Index&            endface,
+              Index&            tanpoint,
               Numeric           r,
               Numeric           lat,
               Numeric           za,
@@ -4273,7 +4311,7 @@ void raytrace_2d_linear_euler(
       const Numeric   ppc_step = geometrical_ppc( r, za );
 
       // Where will this path exit the grid cell?
-      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
+      do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                      r, lat, za, ppc_step, -1, lat1, lat3, r1a, r3a, r3b, r1b, 
                                                           rground1, rground3 );
       assert( r_v.nelem() == 2 );
@@ -4307,7 +4345,7 @@ void raytrace_2d_linear_euler(
         }
 
       // Calculate LOS zenith angle at found point.
-      if( ready  &&  endface == 8 )
+      if( ready  &&  tanpoint )
         { za = 90; }
       else
         {
@@ -4428,7 +4466,7 @@ void ppath_step_refr_1d(
   String   method;
   //
   // Number coding for end face
-  Index   endface;
+  Index   endface, tanpoint;
   //
   if( rtrace_method  == "linear_euler" )
     {
@@ -4438,7 +4476,7 @@ void ppath_step_refr_1d(
         { method = "1D linear Euler, with length criterion"; }
 
       raytrace_1d_linear_euler( r_array, lat_array, za_array, l_array, endface,
-            r_start, lat_start, za_start, a_pressure, a_temperature, 
+            tanpoint, r_start, lat_start, za_start, a_pressure, a_temperature, 
             a_vmr_list, refr_index, refr_index_agenda, ppc, lraytrace, 
             r_geoid+z_field[ip], r_geoid+z_field[ip+1], p_grid, z_field, 
                              t_field, vmr_field, r_geoid, r_geoid + z_ground );
@@ -4462,11 +4500,11 @@ void ppath_step_refr_1d(
 
   // Fill *ppath*
   ppath_end_1d( ppath, r_v, lat_v, za_v, lstep, z_field, r_geoid, ip, endface, 
-                                                              method, 1, ppc );
+                                                    tanpoint, method, 1, ppc );
 
 
   //--- End point is a tangent point
-  if( endface == 8 )
+  if( endface == 0  &&  tanpoint )
     {
       // Make part from tangent point and up to the starting pressure level.
       //
@@ -4572,7 +4610,7 @@ void ppath_step_refr_2d(
   String   method;
   //
   // Number coding for end face
-  Index   endface;
+  Index   endface, tanpoint;
   //
   if( rtrace_method  == "linear_euler" )
     {
@@ -4582,7 +4620,7 @@ void ppath_step_refr_2d(
         { method = "2D linear Euler, with length criterion"; }
 
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
-                    r_start, lat_start, za_start, a_pressure, a_temperature, 
+            tanpoint, r_start, lat_start, za_start, a_pressure, a_temperature, 
                     a_vmr_list, refr_index, refr_index_agenda, lraytrace, 
                           lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3 );
     }
@@ -4605,12 +4643,12 @@ void ppath_step_refr_2d(
 
   // Fill *ppath*
   ppath_end_2d( ppath, r_v, lat_v, za_v, lstep, lat_grid, z_field, r_geoid, 
-                                            ip, ilat, endface, method, 1, -1 );
+                                  ip, ilat, endface, tanpoint, method, 1, -1 );
 
 
   // Make part after a tangent point.
   //
-  if( endface == 8 )
+  if( endface == 0  &&  tanpoint )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );

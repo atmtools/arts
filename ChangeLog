@@ -1,3 +1,24 @@
+2003-01-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-393
+
+	* src/ppath.cc (gridcell_crossing_3d): I discovered that there is
+	an inconsistency between the tangent point position obtained by
+	doing repeated path steps, and a direct calculation with 
+	geompath_tanpos_3d. The error, as a vertical displacement, is about
+	1.5 km. I have spent some time on trying to understand this, and
+	my guess is that the problems appear in this function, but I have no
+	final confirmation, and I don't know right now what to do about it. 
+	
+	* src/ppath.cc (do_gridcell_1/2/3d): The tangent point is now not
+	flagged as as an end face. A new flag especially for the tangent
+	point has been introduced. No real imrpovement, but more logically
+	as the tangent point is not an end face.
+	
+	* src/ppath.cc (do_gridcell_3d): Cases when a path step both starts 
+	and ends at the top surface, without having a tangent point inside the
+	cell is now handled.
+
 2003-01-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-392
