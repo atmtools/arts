@@ -361,7 +361,7 @@ Numeric last( const VECTOR& x )
     \author Patrick Eriksson
     \date   2000-06-27
 */
-bool any( const ARRAY<int>& x ) 
+bool any( const ARRAYofsizet& x ) 
 {
   for ( size_t i=1; i<=x.dim(); i++ ) {
     if ( x(i) )

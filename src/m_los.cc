@@ -32,7 +32,7 @@
      3. solving the radiative transfer equation
    
    Functions in this file assumes LTE and no scattering.
-   The LOS is defined by a structure of type Los, defined in los.h.
+   The LOS is defined by a structure of type LOS, defined in los.h.
 
    \author Patrick Eriksson
    \date 2000-09-14 
@@ -415,13 +415,13 @@ void space_refr(
    \date   2000-09-14
 */
 void los_space(
-                    Los&        los,
+                    LOS&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
               const Numeric&    atm_limit,
               const Numeric&    z_ground,
-              const int&        refr,
+              const size_t&     refr,
               const VECTOR&     z_abs,
               const VECTOR&     p_abs,
               const VECTOR&     refr_index,
@@ -485,13 +485,13 @@ void los_space(
    \date   2000-09-14
 */
 void los_inside(
-                    Los&        los,
+                    LOS&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
               const Numeric&    atm_limit,
               const Numeric&    z_ground,
-              const int&        refr,
+              const bool&       refr,
               const VECTOR&     z_abs,
               const VECTOR&     p_abs,
               const VECTOR&     refr_index,
@@ -499,14 +499,14 @@ void los_inside(
 {
   Numeric z_tan, za_ground; 
   Numeric a, b, c, l1;         // see below (c can be the LOS constant)
-  int     n = za.dim();        // the number of zenith angles
+  size_t  n = za.dim();        // the number of zenith angles
 
   // Set all step lengths to the user defined value as a first guess.
   // Note that the step length can be changed in the sub-functions.
   los.l_step = l_step;
 
   // Loop the zenith angles
-  for ( int i=1; i<=n; i++ )
+  for ( size_t i=1; i<=n; i++ )
   { 
     // Calculate the LOS constant
     if ( refr )
@@ -560,7 +560,7 @@ void los_inside(
         }
 
 	// Adjust l_step downwards to get an integer number of steps
-	los.stop(i)   = (int) ceil( l1 / l_step + 1.0 );  
+	los.stop(i)   = (size_t) ceil( l1 / l_step + 1.0 );  
 	los.l_step(i) = l1 / ( (Numeric)los.stop(i) - 1.0 );
         if ( refr )
 	  space_refr( los.p(i), los.l_step(i), c, z_tan, atm_limit, z_ground, 
@@ -599,7 +599,7 @@ void los_inside(
 	  l1     = sqrt(b*b-c*c) - sqrt(a*a-c*c); // distance platform-ground
         }
         // Adjust l_step downwards to get an integer number of steps
-	los.stop(i)   = 1 + (int) ceil( l1 / l_step );
+	los.stop(i)   = 1 + (size_t) ceil( l1 / l_step );
 	los.l_step(i) = l1 / ( (double)los.stop(i) - 1.0 );
         if ( refr )
 	  upward_refr( los.p(i), los.l_step(i), c, z_ground, za_ground, 
@@ -633,7 +633,6 @@ void los_inside(
    must be set when using this function. The ground altitude must
    also be specified.
 
-
    \retval   los           the los structure
    \param    z_plat        platform altitude
    \param    za            zentith angles
@@ -648,7 +647,7 @@ void los_inside(
    \author Patrick Eriksson
    \date   2000-09-14
 */
-void losCalc(       Los&        los,
+void losCalc(       LOS&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
@@ -726,7 +725,7 @@ void losCalc(       Los&        los,
    \date   2000-09-14
 */
 void losNoRefraction(
-                    Los&        los,
+                    LOS&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
@@ -760,7 +759,7 @@ void losNoRefraction(
    \date   2000-09-14
 */
 void losUpward(
-                    Los&        los,
+                    LOS&        los,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
@@ -798,7 +797,7 @@ void losUpward(
 */
 void sourceCalc(
                     ARRAYofMATRIX&   source,
-              const Los&             los,   
+              const LOS&             los,   
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,
               const VECTOR&          f_mono )
@@ -863,7 +862,7 @@ void sourceCalc(
 */
 void transCalc(
                     ARRAYofMATRIX&   trans,
-              const Los&             los,   
+              const LOS&             los,   
               const VECTOR&          p_abs,
               const MATRIX&          abs )
 {    
@@ -1009,7 +1008,7 @@ void y_spacePlanck(
 */
 void yRte (
                     VECTOR&          y,
-              const Los&             los,   
+              const LOS&             los,   
               const VECTOR&          f_mono,
               const VECTOR&          y_space,
               const ARRAYofMATRIX&   source,
@@ -1083,7 +1082,7 @@ void yRte (
 */
 void yRteNoGround (
                     VECTOR&          y,
-              const Los&             los,   
+              const LOS&             los,   
               const VECTOR&          f_mono,
               const VECTOR&          y_space,
               const ARRAYofMATRIX&   source,
@@ -1116,7 +1115,7 @@ void yRteNoGround (
 */
 void yBl (
                     VECTOR&          y,
-              const Los&             los,   
+              const LOS&             los,   
               const ARRAYofMATRIX&   trans,
               const VECTOR&          e_ground )
 {
@@ -1179,7 +1178,7 @@ void yBl (
 */
 void yBlNoGround (
                     VECTOR&          y,
-              const Los&             los,   
+              const LOS&             los,   
               const ARRAYofMATRIX&   trans )
 {
   if ( any(los.ground) )  

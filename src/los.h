@@ -49,9 +49,9 @@
     \verbatim
        ARRAYofVECTOR  p;
        VECTOR         l_step;
-       ARRAY<int>     ground;
-       ARRAY<int>     start;
-       ARRAY<int>     stop;
+       ARRAYofsizet   ground;
+       ARRAYofsizet   start;
+       ARRAYofsizet   stop;
     where 
        p        The pressures along LOS
        l_step   The geometrical length along LOS between the points.
@@ -95,12 +95,12 @@
     \author Patrick Eriksson 
     \date   07.06.00 
 */
-struct Los {
+struct LOS {
   ARRAYofVECTOR  p;
   VECTOR         l_step;
-  ARRAY<int>     ground;
-  ARRAY<int>     start;
-  ARRAY<int>     stop;
+  ARRAYofsizet   ground;
+  ARRAYofsizet   start;
+  ARRAYofsizet   stop;
 };
 
 #endif  // los_h

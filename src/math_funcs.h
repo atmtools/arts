@@ -160,7 +160,7 @@ Numeric last( const VECTOR& x );
 //   Logical functions
 ////////////////////////////////////////////////////////////////////////////
 
-bool any( const ARRAY<int>& x ); 
+bool any( const ARRAYofsizet& x ); 
 
 
 

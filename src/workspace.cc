@@ -279,7 +279,7 @@ void define_wsv_data()
     (WsvRecord
      ("los",
       "Structure to define the line of sight (LOS). See los.h.", 
-      Los_));
+      LOS_));
 
   wsv_data.push_back
     (WsvRecord

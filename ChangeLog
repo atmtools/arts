@@ -1,3 +1,50 @@
+2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-69
+
+	* Sorry, but I think that I did the last commit in src. This is mainly
+	to fix this error, and to give you the last version of thr ChangeLog
+	and TODO. (Some extra in TODO compared to my e-mail).
+
+	* The LOS structure uses now ARRAYofsizet instead of ARRAY<int>
+
+2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-68
+
+	* First version handling binary data files. For the moment there are
+	function to read and write binary files for NUMERIC, VECTOR and MATRIX.
+	To add functions for other data types (beside strings) should be 
+	straightforward, using the general interface functions to HDF.
+
+	* To test the binary-IO, make a control file called test.arts as:
+	     VectorNLinSpace (z_abs)     { start = 1.1
+                                           stop  = 13.65
+                                           n     = 15 }
+             VectorWriteBinary (z_abs) {""}
+             VectorReadBinary (z_abs)  {""}
+             VectorWriteAscii (z_abs) {""}
+        The binary files can be displayed by the HDF tool h5dump:
+	   h5dump test.z_abs.ab
+	If everything is OK, the ASCII file shall have the same content, check
+	by
+	   more test.z_abs.am
+	Note the different extensions.
+	Another HDF tool function is h5ls that showes the structure of the data
+	(without displaying any data values, in contrast to h5dump).
+	
+	* To make a distinction between ASCII and binary files, the ASCII
+	functions have changed name as:
+	  WriteToFile  -> WriteAscii
+	  ReadFromFile -> ReadAscii
+	The binary functions are denoted correspondingly:
+	                  WriteBinary
+	                  ReadBinary
+
+	* Cleaned up the IO parts in methods.cc (the functions are now ordered
+	after data type). Did the same in m_io.cc. Corrected some function 
+	descriptions in methods.cc.
+
 2000-11-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-67

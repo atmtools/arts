@@ -717,8 +717,8 @@ void define_md_data()
 	INPUT( f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS("nr"),
-	TYPES(int_t)));
+	KEYWORDS( "nr" ),
+	TYPES( int_t )));
 
   md_data.push_back
     ( MdRecord
