@@ -51,7 +51,7 @@
   ===========================================================================*/
 
 void antenna_transfer_matrix(
-           SparseView   H,
+           Sparse&      H,
       ConstVectorView   m_za,
       ConstMatrixView   srm,
       ConstVectorView   x_f );
@@ -83,7 +83,7 @@ void sensor_summation_vector(
       ConstMatrixView   sfrm );
 
 void spectrometer_transfer_matrix(
-           SparseView   H,
+           Sparse&      H,
       ConstMatrixView   srm,
       ConstVectorView   x_s,
       ConstVectorView   x_f );
