@@ -1,9 +1,13 @@
 %------------------------------------------------------------------------
 % NAME:    hFreqSwitch
 %
-%          Includes in H the result of a frequency switching
+%          Includes in H the result of a (backend) frequency switching
 %          (no folding).
 %          
+%          This function works for cases where the frequency switching
+%          is performed (or can be approximated) by a movement of the
+%          backend channels (no IF switch). 
+%
 %          The given frequency shift is the total frequency shift
 %          assuming a symmetric throw. Accordingly, an observed line with
 %          center frequency F0, will appear at F0-F_SHIFT/2 and at 
