@@ -417,6 +417,8 @@ void define_md_data_raw()
       ( NAME("AntennaSet1D"),
         DESCRIPTION
         (
+         "To set the antenna dimension to be 1D.\n"
+         "\n"
          "Sets *antenna_dim* to 1 and sets *mblock_aa_grid* to be empty."
         ),
         OUTPUT( antenna_dim_, mblock_aa_grid_ ),
@@ -431,6 +433,8 @@ void define_md_data_raw()
       ( NAME("AntennaSet2D"),
         DESCRIPTION
         (
+         "To set the antenna dimension to be 2D.\n"
+         "\n"
          "Sets *antenna_dim* to 2.\n"
          "\n"
          "It is only allowed to set *antenna_dim* to 2 when *atmosphere_dim*\n"
@@ -464,6 +468,8 @@ void define_md_data_raw()
       ( NAME("AtmosphereSet1D"),
         DESCRIPTION
         (
+         "To set the atmosheric dimension to be 1D.\n"
+         "\n"
          "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
          "\n"
          "The latitude and longitude grids are set to be empty."
@@ -480,6 +486,8 @@ void define_md_data_raw()
       ( NAME("AtmosphereSet2D"),
         DESCRIPTION
         (
+         "To set the atmosheric dimension to be 2D.\n"
+         "\n"
          "Sets *atmosphere_dim* to 2 and gives some variables dummy values.\n"
          "\n"
          "The longitude grid is set to be empty. The variables *lat_1d*\n"
@@ -498,6 +506,8 @@ void define_md_data_raw()
       ( NAME("AtmosphereSet3D"),
         DESCRIPTION
         (
+         "To set the atmosheric dimension to be 3D.\n"
+         "\n"
          "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
          "\n"
          "The variables *lat_1d* and *meridian_angle_1d* are given\n"
@@ -805,7 +815,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("CloudboxOff"),
+      ( NAME("cloudboxOff"),
         DESCRIPTION
         (
          "Deactivates the cloud box. \n"
@@ -825,7 +835,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "CloudboxSetManually" ),
+      ( NAME( "cloudboxSetManually" ),
         DESCRIPTION
         (
          "Sets the cloud box to encompass the given positions.\n"
@@ -1554,7 +1564,6 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
-
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("IndexSet"),
@@ -1736,7 +1745,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("GroundNoScatteringSingleEmissivity"),
+      ( NAME("groundNoScatteringSingleEmissivity"),
         DESCRIPTION
         (
          "Treats the ground to not cause any scattering, and to have a\n"
@@ -1762,8 +1771,8 @@ md_data_raw.push_back
          "       All frequencies are assumed to have the same e."
         ),
         OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
+               rte_los_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
                r_geoid_,z_ground_, t_field_ ),
         GOUTPUT( ),
         GINPUT( ),
@@ -1772,7 +1781,7 @@ md_data_raw.push_back
  
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("GroundTreatAsBlackbody"),
+      ( NAME("groundTreatAsBlackbody"),
         DESCRIPTION
         (
          "Sets the ground variables (see below) to model a blackbdoy ground.\n"
@@ -2615,7 +2624,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("RefrIndexFieldAndGradients"),
+      ( NAME("refr_indexFieldAndGradients"),
         DESCRIPTION
         (
          "Calculates the field and gradients of the refractive index.\n"
@@ -2717,13 +2726,30 @@ md_data_raw.push_back
       ( NAME( "RteCalc" ),
         DESCRIPTION
         (
-         "Main function for calculation of spectra and WFs.\n"
+         "Main function for calculation of spectra.\n"
          "\n"
-         "More text will be written (PE)."
+         "Spectra are calculated in a fixed manner, by this function.\n"
+         "The function calculates monochromatic spectra for all pencil beam\n"
+         "directions and applies the sensor response WSVs on obtained\n"
+         "values.\n"
+         "\n"
+         "The first step is to calculate the propagation path through the\n"
+         "atmosphere for the considered viewing direction. The next step is\n"
+         "to determine the spectrum at the starting point of the propagation\n"
+         "path. The start point of the propagation path can be found at the\n"
+         "top of the atmosphere, the ground, or at the boundary or inside\n"
+         "the cloud box. To determine the start spectrum can involve a\n"
+         "recursive call of *RteCalc (for example to calculate the radiation\n"
+         "refelected by the ground). After this, the vector radiative\n"
+         "transfer equation is solved to the end point of the propagation\n"
+         "path. Finally, the polarisation and intensity response of the \n"
+         "sensor are applied.\n"
+         "\n"
+         "See further the user guide."
         ),
         OUTPUT( y_, ppath_, ppath_step_, i_rte_,
-                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_,
-                ground_emission_, ground_los_, ground_refl_coeffs_ ),
+                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
+                i_space_, ground_emission_, ground_los_, ground_refl_coeffs_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
                ground_refl_agenda_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
@@ -2746,13 +2772,17 @@ md_data_raw.push_back
          "Standard RTE function with emission.\n"
          "\n"
          "This function does a clearsky radiative transfer calculation for\n"
-         "a given propagation path. \n"
+         "a given propagation path. Designed to be part of *rte_agenda*.\n"
+         "\n"
          "Gaseous emission and absorption is calculated for each propagation\n"
-         " path point using the agenda *gas_absorption_agenda*. \n"
+         "path point using the agenda *gas_absorption_agenda*. \n"
          "Absorption vector and extinction matrix are created using \n" 
          "*opt_prop_part_agenda*.\n"
-         "The coefficients for the radiative transfer are averaged between\n" 
-         "two successive propagation path points. \n"
+         "Absorption and extinction variables are averaged between two\n" 
+         "successive propagation path points. The same applies to the\n"
+         "Planck function values.\n"
+         "\n"
+         "See futher the user guide."
         ),
         OUTPUT( i_rte_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
                 rte_vmr_list_, f_index_ ),
@@ -2933,6 +2963,7 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
 md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_iPutMonteCarlo" ),
@@ -3065,7 +3096,7 @@ md_data_raw.push_back
       ( NAME( "sensorOff" ),
         DESCRIPTION
         (
-         "Sets sensor WSV to obtain monochromatic pencil beam values.\n"
+         "Sets sensor WSVs to obtain monochromatic pencil beam values.\n"
          "\n"
          "The variables are set as follows:\n"
          "   sensor_response : As returned by *sensor_responseInit*.\n"

@@ -1,3 +1,17 @@
+2003-07-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-618
+
+	* src/methods.cc: Revised the description of "my" methods.
+
+	Renamed methods as follows:
+	   CloudboxOff                  ->   cloudboxOff
+	   CloudboxSetManually          ->   cloudboxSetManually
+	   GroundNoScatteringSingleEmissivity    -> 
+	                                     groundNoScatteringSingleEmissivity
+	   GroundTreatAsBlackbody       ->   groundTreatAsBlackbody     
+	   RefrIndexFieldAndGradients   ->   refr_indexFieldAndGradients
+
 2003-07-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-617
@@ -50,6 +64,7 @@
 	* src/agendas.cc: Added missing _ after scalar_gas_absorption_agenda
 	in rte_agenda.
 
+>>>>>>> 1.999
 2003-07-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-614

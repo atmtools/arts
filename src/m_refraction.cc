@@ -53,14 +53,14 @@
   === WSMs
   ===========================================================================*/
 
-//! RefrIndexFieldAndGradients
+//! refr_indexFieldAndGradients
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2003-01-19
 */
-void RefrIndexFieldAndGradients(
+void refr_indexFieldAndGradients(
       // WS Output:
             Numeric&                    refr_index,
             Numeric&                    a_pressure,

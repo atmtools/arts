@@ -536,14 +536,14 @@ void AtmosphereSet3D(
 
 
 
-//! GroundNoScatteringSingleEmissivity
+//! groundNoScatteringSingleEmissivity
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-09-22
 */
-void GroundNoScatteringSingleEmissivity(
+void groundNoScatteringSingleEmissivity(
               Matrix&    ground_emission, 
               Matrix&    ground_los, 
               Tensor4&   ground_refl_coeffs,
@@ -628,14 +628,14 @@ void GroundNoScatteringSingleEmissivity(
 
 
 
-//! GroundTreatAsBlackbody
+//! groundTreatAsBlackbody
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-09-17
 */
-void GroundTreatAsBlackbody(
+void groundTreatAsBlackbody(
               Matrix&    ground_emission, 
               Matrix&    ground_los, 
               Tensor4&   ground_refl_coeffs,

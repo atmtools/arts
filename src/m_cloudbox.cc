@@ -64,14 +64,14 @@ extern const Numeric PI;
 
 
 
-//! CloudboxOff
+//! cloudboxOff
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-11
 */
-void CloudboxOff(
+void cloudboxOff(
         // WS Output:
         Index&           cloudbox_on,
         ArrayOfIndex&    cloudbox_limits,
@@ -92,14 +92,14 @@ void CloudboxOff(
 
 
 
-//! CloudboxSetManually
+//! cloudboxSetManually
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
    \date   2002-05-19
 */
-void CloudboxSetManually(
+void cloudboxSetManually(
         // WS Output:
         Index&          cloudbox_on,
         ArrayOfIndex&   cloudbox_limits,
@@ -1217,7 +1217,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
   if( scat_za_grid.nelem() == 0 )
     throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
 
-                                            "values from *CloudboxOff used?" );
+                                            "values from *cloudboxOff used?" );
 
  if(atmosphere_dim == 1)
    {
@@ -2237,7 +2237,7 @@ void ybatchMetProfiles(//Output
 	{
 	  cl_grid_min = p_grid[10];
 	  cl_grid_max = p_grid[11];
-	  CloudboxSetManually(cloudbox_on, 
+	  cloudboxSetManually(cloudbox_on, 
 			      cloudbox_limits,
 			      atmosphere_dim,
 			      p_grid,
@@ -2265,7 +2265,7 @@ void ybatchMetProfiles(//Output
 	      --cl_grid_max;
 	    }
 	  
-	  CloudboxSetManually(cloudbox_on, 
+	  cloudboxSetManually(cloudbox_on, 
 			      cloudbox_limits,
 			      atmosphere_dim,
 			      p_grid,
