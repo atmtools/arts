@@ -22,7 +22,7 @@ public:
   void Adapt();
 
   // Documentation is with the implementation!
-  void GasAbsLookup::Extract( VectorView sga,
+  void GasAbsLookup::Extract( MatrixView sga,
                               Index      f_index,
                               Numeric    p,
                               Numeric    T,

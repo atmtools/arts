@@ -1,3 +1,34 @@
+2002-11-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-295
+
+	* src/gas_abs_lookup.cc: Continued work on the lookup table. I
+	have now a first implementation for the simple case without
+	temperature interpolation. The next step is to test this.
+
+	* src/gas_abs_lookup.h: Updated.
+
+	* src/m_absorption.cc: Added. This should hold workspace methods
+	related to the general calculation of absorption coefficients.
+
+	* src/workspace.cc (define_wsv_data): Added gas_abs_lookup.
+
+	* src/methods.cc (define_md_data_raw): Added gas_abs_lookupInit.
+
+	* src/make_auto_wsv_h.cc: Updated.
+
+	* src/make_auto_wsv_groups_h.cc: Updated.
+
+	* src/m_clonesize.cc: Updated.
+
+	* src/groups.cc (define_wsv_group_names): Added group GasAbsLookup.
+
+	* doc/examples/absorption_lookup_example.arts.in: Added.
+
+	* configure.in: Added new example file.
+
+	* src/Makefile.am: Updated.
+
 2002-11-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-294

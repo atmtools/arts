@@ -56,6 +56,7 @@ arts_SOURCES = \
 	m_scatproperties.cc \
 	m_scatrte.cc \
 	m_clonesize.cc \
+	m_absorption.cc \
 	m_copy.h \
 	m_ignore.h \
 	m_xml.h \
@@ -149,104 +150,12 @@ noinst_PROGRAMS = \
 	test_xml
 
 test_interpolation_SOURCES = \
-	absorption.cc \
-	absorption.h \
 	array.h \
-	arts.h \
-	auto_md.cc \
-	auto_md.h \
-	auto_wsv.h \
-	auto_wsv_groups.h \
-	auto_wsv_pointers.cc \
-	check_input.cc \
-	check_input.h \
-	constants.cc \
-	continua.cc \
-	continua.h \
-	exceptions.h \
-	file.cc \
-	file.h \
-	getopt.c \
-	getopt.h \
-	getopt1.c \
-	globals_2.cc \
-	gridded_fields.cc\
-	gridded_field.h\
-	groups.cc \
-	interpolation.cc \
+	matpackVII.h \
 	interpolation.h \
-	iotraits.h \
-	m_lineshapes.cc \
-	m_agenda.cc \
-        m_atmosphere.cc \
-	m_basic_types.cc \
-	m_cloudbox.cc \
-	m_general.cc \
-	m_hdf.cc \
-	m_io.cc \
-	m_physics.cc \
-	m_ppath.cc \
-	m_rte.cc \
-	m_scatproperties.cc \
-	m_scatrte.cc \
-	m_clonesize.cc \
-	m_copy.h \
-	m_ignore.h \
-	m_xml.h \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.h \
-	messages.cc \
-	messages.h \
-	methods.cc \
-	methods.h \
-	methods_aux.cc \
-	parameters.cc \
-	parameters.h \
-	parser.cc \
-	parser.h \
-	partition_function_data.cc \
-	ppath.h \
-	ppath.cc \
-	poly_roots.h \
-	poly_roots.cc \
-	physics_funcs.cc \
-	physics_funcs.h \
-	rte.cc \
-	rte.h \
-	special_interp.cc \
-	special_interp.h \
-	species_data.cc \
-	sstream.h \
-	token.cc \
-	token.h \
-	version.cc \
-	workspace.cc \
-	workspace_aux.cc \
-	wsv_aux.h \
-	wsv_aux.cc \
-	xml_io.h \
-	xml_io_private.h \
-	xml_io.cc \
-	agenda_class.h \
-	agenda_class.cc \
-	agenda_record.h \
-	agenda_record.cc \
-	agendas.cc \
-	logic.h \
+	interpolation.cc \
 	logic.cc \
-	lin_alg.h\
-	lin_alg.cc\
-	scatproperties.cc \
-	scatproperties.h \
-	supergeneric.h \
 	test_interpolation.cc
-
 
 test_linalg_SOURCES = \
 	arts.h \

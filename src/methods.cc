@@ -974,6 +974,23 @@ void define_md_data_raw()
 	KEYWORDS( ),
 	TYPES( )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("gas_abs_lookupInit"),
+	DESCRIPTION
+	(
+	 "Creates an empty gas absorption lookup table.\n"
+         "\n"
+         "This is mainly there to help developers. For example, you can write\n"
+         "the empty table to an XML file, to see the file format."
+	),
+	OUTPUT( gas_abs_lookup_ ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("Ignore"),

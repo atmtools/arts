@@ -30,8 +30,9 @@
 #include "arts.h"
 #include "array.h"
 #include "mystring.h"
-#include "supergeneric.h"
-#include "ppath.h"
+// #include "supergeneric.h"
+// #include "ppath.h"
+// #include "gas_abs_lookup.h"
 
 /*! The names associated with Wsv groups as Strings.
   See function define_wsv_group_names for more information. */
@@ -82,5 +83,6 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Ppath");
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("GridPos");
+  wsv_group_names.push_back("GasAbsLookup");
 }
 

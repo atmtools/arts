@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.294)
+AM_INIT_AUTOMAKE(arts,1.1.295)
 
 AM_MAINTAINER_MODE
 
@@ -331,6 +331,7 @@ Makefile
             doc/uguide/Figs/fm_definitions/Makefile 
             doc/uguide/Figs/ppath/Makefile 
       doc/examples/Makefile 
+         doc/examples/absorption_lookup_example.arts
          doc/examples/absorption_example.arts
          doc/examples/amsu_example.arts
          doc/examples/batch_example.arts

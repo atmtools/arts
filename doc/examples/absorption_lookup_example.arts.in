@@ -1,0 +1,12 @@
+# This is a controlfile to test and demonstrate the use of the gas
+# absorption lookup tables.
+#
+# SAB 20.11.2002
+
+Main{
+
+gas_abs_lookupInit{}
+
+WriteXML(gas_abs_lookup){""}
+
+}

@@ -7,3 +7,4 @@ Makefile.in
 absorption_example.f_grid.xml
 absorption_example.ls.xml
 absorption_example.ls_sigma.xml
+absorption_lookup_example.gas_abs_lookup.xml

@@ -372,3 +372,15 @@ void CloneSize(// WS Generic Output:
 {
   out2 << "  Nothing to do for this group.\n";
 }
+
+void CloneSize(// WS Generic Output:
+               GasAbsLookup& out,
+               // WS Generic Output Names:
+               const String& outname,
+               // WS Generic Input:
+               const GasAbsLookup& in,
+               // WS Generic Input Names:
+               const String& inname)
+{
+  out2 << "  Nothing to do for this group.\n";
+}

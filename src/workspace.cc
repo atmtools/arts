@@ -667,6 +667,23 @@ void define_wsv_data()
  
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "gas_abs_lookup" ),
+       DESCRIPTION
+       (
+        "An absorption lookup table.\n"
+        "\n"
+        "This holds an absorption lookup table, as well as all information that\n"
+        "is necessary to use the table to extract absorption. Extraction\n"
+        "routines are implemented as member functions. \n"
+        "\n"
+        "This has quite a complicated structure. See Doxygen documentation for\n"
+        "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
+        "once the chapter on the lookup table has been written."        
+	), 
+       GROUP( GasAbsLookup_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "gas_tgs" ),
        DESCRIPTION
        (

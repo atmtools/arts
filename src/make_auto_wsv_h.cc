@@ -76,7 +76,9 @@ int main()
       ofs << "#include \"absorption.h\"\n"
 	  << "#include \"agenda_class.h\"\n"
 	  << "#include \"ppath.h\"\n"
-          << "#include \"matpackIII.h\"\n\n";
+          << "#include \"matpackIII.h\"\n"
+          << "#include \"gas_abs_lookup.h\"\n"
+          << "\n";
       
       ofs << "//! Total number of workspace variables.\n"
 	  << "/*! \n"

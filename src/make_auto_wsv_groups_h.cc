@@ -58,7 +58,8 @@ int main()
       ofs << "#include <iostream>\n"
           << "#include \"supergeneric.h\"\n"
           << "#include \"ppath.h\"\n"
-	  << "#include \"absorption.h\"\n\n";
+	  << "#include \"absorption.h\"\n\n"
+	  << "#include \"gas_abs_lookup.h\"\n\n";
       
       ofs << "// Declare existence of class Agenda. We cannot include agenda.h here,\n"
 	  << "// because that would generate a dependency loop.\n"
