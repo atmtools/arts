@@ -169,6 +169,7 @@ public:
   friend std::ostream& operator<<(std::ostream& os, const SparseMatrixView& v);
 
 
+
 private:
   /** The start index. */
   Index mstart;
@@ -257,6 +258,7 @@ public:
   friend class ConstTensor3View;
   friend class ConstTensor4View;
   friend class ConstTensor5View;
+  friend int poly_root_solve (Vector &coeffs, Matrix &roots);
 
 protected:
   // Constructors:
@@ -454,6 +456,7 @@ public:
   friend class ConstTensor4View;
   friend class ConstTensor5View;
   friend ConstMatrixView transpose(ConstMatrixView m);
+  friend int poly_root_solve (Vector &coeffs, Matrix &roots);
 
 protected:
   // Constructors:
