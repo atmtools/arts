@@ -428,7 +428,7 @@ LATEX_BATCHMODE       = NO
 # is optimised for Word 97 and may not look too pretty with other readers 
 # or editors.
 
-GENERATE_RTF          = YES
+GENERATE_RTF          = NO
 
 # The RTF_OUTPUT tag is used to specify where the RTF docs will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 
@@ -464,7 +464,7 @@ RTF_STYLESHEET_FILE   =
 # If the GENERATE_MAN tag is set to YES (the default) Doxygen will 
 # generate man pages 
 
-GENERATE_MAN          = YES
+GENERATE_MAN          = NO
 
 # The MAN_OUTPUT tag is used to specify where the man pages will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 
