@@ -1,3 +1,10 @@
+2001-04-04  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-0-0-153
+	
+	* Initialize output to zero! This is important, because otherwise
+          the output variable could `remember' old values.
+
 2001-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-152
@@ -16,7 +23,7 @@
 2001-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-151
-
+	
 	* Deleted wsv.txt in ami/arts from CVS. This function is auto-generated
 	when compliling ARTS and is copied to ami when running the init script.
 	Axel had some problems with this function and I hope it is best to keep
@@ -37,6 +44,7 @@
 
 	* TODO list updated
 
+	
 2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
 
 	* arts-0-0-149

@@ -179,7 +179,10 @@ void linesReadFromArts(// WS Output:
 	      // lines are not necessarily frequency sorted 
 	      if ( fmin <= lr.F() )
 		if ( lr.F() <= fmax )
-		  lines.push_back(lr);
+		  {
+		    lines.push_back(lr);
+		    //		    out3 << lr << "\n";
+		  }
 	    }
 	}
     }

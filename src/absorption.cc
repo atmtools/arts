@@ -116,6 +116,10 @@ void extract(T&      x,
 	     string& line,
 	     size_t  n)
 {
+  // Initialize output to zero! This is important, because otherwise
+  // the output variable could `remember' old values.
+  x = T(0);
+  
   // This will contain the short substring with the item to extract.
   // Make it a string stream, for easy parsing,
   // extracting substring of width n from line:
@@ -1669,7 +1673,8 @@ void write_lines_to_stream(ostream& os,
 {
   for ( size_t i=0; i<lines.size(); ++i )
     {
-      os << lines[i] << '\n';
+      //      out3 << lines[i] << "\n";
+      os << lines[i] << "\n";
     }
 }
 
