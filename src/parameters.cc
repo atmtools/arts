@@ -62,14 +62,16 @@ bool get_parameters(int argc, char **argv)
     { "methods",     	    required_argument, NULL, 'm' },
     { "workspacevariables", required_argument, NULL, 'w' },
     { "describe",    	    required_argument, NULL, 'd' },
+    { "groups",     	    no_argument,       NULL, 'g' },
     { NULL,                 no_argument,       NULL, 0   }
   };
 
   parameters.usage =
-    "Usage: arts [-hvbrmwd] [--help] [--version] [--basename <name>]\n"
+    "Usage: arts [-hvbrmwdg] [--help] [--version] [--basename <name>]\n"
     "       [--reporting xy]\n"
     "       [--methods all|<variable> ] [--workspacevariables all|<method> ]\n"
     "       [--describe <method or variable>]\n"
+    "       [--groups]\n"
     "       file1.arts file2.arts ...";
 
   parameters.helptext =
@@ -84,15 +86,17 @@ bool get_parameters(int argc, char **argv)
     "                    (only error messages) to 3 (everything).\n"
     "-m, --methods       If this is given the argument `all',\n"
     "                    it simply prints a list of all methods.\n"
-    "                    If it is given the name of a variable, it\n"
-    "                    prints all methods that produce this\n"
-    "                    variable as output.\n"
+    "                    If it is given the name of a variable\n"
+    "                    (or variable group), it prints all\n"
+    "                    methods that produce this\n"
+    "                    variable (or group) as output.\n"
     "-w, --workspacevariables  If this is given the argument `all',\n"
     "                    it simply prints a list of all variables.\n"
     "                    If it is given the name of a method, it\n"
     "                    prints all variables needed by this method.\n"
     "-d, --describe      Print the description string of the given\n"
-    "                    workspace variable or method.";
+    "                    workspace variable or method.\n"
+    "-g  --groups        List all workspace variable groups.";
 
   // Set the short options automatically from the last columns of
   // longopts.
@@ -174,6 +178,9 @@ bool get_parameters(int argc, char **argv)
 	  break;
 	case 'd':
 	  parameters.describe = optarg;
+	  break;
+	case 'g':
+	  parameters.groups = true;
 	  break;
 	default:
 	  // There were strange options.

@@ -23,7 +23,8 @@ struct Parameters {
     reporting(-1),
     methods(""),
     workspacevariables(""),
-    describe("")
+    describe(""),
+    groups(false)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
   string usage;
@@ -59,6 +60,8 @@ struct Parameters {
   /** Print the description string of the given workspace variable or
       method. */
   string describe;
+  /** Print a list of all workspace variable groups. */
+  bool groups;
 };
 
 

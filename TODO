@@ -4,5 +4,3 @@ SAB 29.01.2000 do not compile documentation as default (maybe put it
 SAB 30.01.2000 Turn off all debugging options with ./configure flag.
                (Do not give the -g flag to the compiler, set NDEBUG.)
 SAB 27.03.2000 Add an author field to MdRecord.
-SAB 11.05.2000 Add --groups command line parameter that lists all wsv
-               groups.  

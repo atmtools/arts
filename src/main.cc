@@ -111,6 +111,301 @@ void polite_goodby()
   exit(1);
 }
 
+/** Set the reporting level, either the default or based on
+    reporting. If reporting was specified, check if the values make
+    sense. The value -1 for reporting means that it was (probably)
+    not given on the command line, since this is the initialization
+    value.
+    @param r Reporting level from Command line.
+    @author Stefan Buehler */
+void set_reporting_level(int r)
+{
+  // The global variable that holds the message levels for screen and file.
+  extern Messages messages;
+
+  if ( -1 == r )
+    {
+      // Reporting was not specified, set default. (Only the
+      // important stuff to the screen, everything to the file.)
+      messages.screen = 1;
+      messages.file   = 3;
+    }
+  else
+    {
+      // Reporting was specified. Check consistency and set report
+      // level accordingly. 
+	
+	// Separate the two digits by taking modulo 10:
+      int s = r / 10;
+      int f = r % 10;
+      //	cout << "s=" << s << " f=" << f << '\n';
+
+      if ( s<0 || s>3 || f<0 || f>3 )
+	{
+	  cerr << "Illegal value specified for --reporting (-r).\n"
+	       << "The specified value is " << r << ", which would be\n"
+	       << "interpreted as screen=" << s << ", file=" << f << ".\n"
+	       << "Only values of 0-3 are allowed for screen and file.\n";
+	  exit(1);
+	}
+      messages.screen = s;
+      messages.file   = f;
+    }
+}
+
+
+/** React to option `methods'. If given the argument `all', it
+    should simply prints a list of all methods. If given the name of
+    a variable, it should print all methods that produce this
+    variable as output.
+
+    @param methods All or name of a variable.
+    @author Stefan Buehler */
+void option_methods(const string& methods)
+{
+  // Make global data visible:
+  extern const ARRAY<MdRecord>  md_data;
+  extern const ARRAY<WsvRecord> wsv_data;
+  //  extern const std::map<string, size_t> MdMap;
+  extern const std::map<string, size_t> WsvMap;
+  extern const ARRAY<string> wsv_group_names;
+
+  // This is used to count the number of matches to a query, so
+  // that `none' can be output if necessary
+  size_t hitcount;
+
+  // First check if the user gave the special name `all':
+
+  if ( "all" == methods )
+    {
+      cout << "Complete list of ARTS methods:\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  cout << "- " << md_data[i].Name() << '\n';
+	}
+      return;
+    }
+
+  // Ok, so the user has probably specified a workspace variable or
+  // workspace variable group.
+
+  // Check if the user gave the name of a specific variable.
+  map<string, size_t>::const_iterator mi =
+    WsvMap.find(methods);
+  if ( mi != WsvMap.end() )
+    {
+      // If we are here, then the given name matches a variable.
+      size_t wsv_key = mi->second;
+
+      // List generic methods:
+      hitcount = 0;
+      cout << "Generic methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  // This if statement checks whether GOutput, the list
+	  // of output variable types contains the group of the
+	  // requested variable.
+	  if ( count( md_data[i].GOutput().begin(),
+		      md_data[i].GOutput().end(),
+		      wsv_data[wsv_key].Group() ) )
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	      ++hitcount;
+	    }
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      // List specific methods:
+      hitcount = 0;
+      cout << "Specific methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  // This if statement checks whether Output, the list
+	  // of output variables contains the workspace
+	  // variable key.
+	  if ( count( md_data[i].Output().begin(),
+		      md_data[i].Output().end(),
+		      wsv_key ) ) 
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	      ++hitcount;
+	    }
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      return;
+    }
+
+  // Check if the user gave the name of a variable group.
+
+  // We use the find algorithm from the STL to do this. It
+  // returns an iterator, so to get the index we take the
+  // difference to the begin() iterator.
+  size_t group_key =
+    find( wsv_group_names.begin(),
+	  wsv_group_names.end(),
+	  methods ) - wsv_group_names.begin();
+
+  // group_key == wsv_goup_names.size() indicates that a
+  // group with this name was not found.
+  if ( group_key != wsv_group_names.size() )
+    {
+      // List generic methods:
+      hitcount = 0;
+      cout << "Generic methods that can generate variables "
+	   << "of group " << wsv_group_names[group_key] << ":\n";
+      for ( size_t i=0; i<md_data.size(); ++i )
+	{
+	  // This if statement checks whether GOutput, the list
+	  // of output variable types contains the
+	  // requested group.
+	  if ( count( md_data[i].GOutput().begin(),
+		      md_data[i].GOutput().end(),
+		      group_key ) )
+	    {
+	      cout << "- " << md_data[i].Name() << '\n';
+	      ++hitcount;
+	    }
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      return;
+    }
+
+  // If we are here it means that what the user specified is neither
+  // `all', nor a variable, nor a variable group.
+  cerr << "The name " << methods << " matches neither `all',\n"
+       << "nor the name of a workspace variable, nor the name\n"
+       << "of a workspace variable group.\n";
+  exit(1);
+}
+
+
+/** React to option `workspacevariables'. If given the argument `all',
+    it should simply prints a list of all variables. If given the
+    name of a method, it should print all variables that are needed
+    by that method.
+
+    @param  workspacevariables All or name of a method.
+    @author Stefan Buehler */
+void option_workspacevariables(const string& workspacevariables)
+{
+  // Make global data visible:
+  extern const ARRAY<MdRecord>  md_data;
+  extern const ARRAY<WsvRecord> wsv_data;
+  extern const std::map<string, size_t> MdMap;
+  //  extern const std::map<string, size_t> WsvMap;
+  extern const ARRAY<string> wsv_group_names;
+
+  // This is used to count the number of matches to a query, so
+  // that `none' can be output if necessary
+  size_t hitcount;
+
+  // First check for `all':
+
+  if ( "all" == workspacevariables )
+    {
+      cout << "Complete list of ARTS workspace variables:\n";
+      for ( size_t i=0; i<wsv_data.size(); ++i )
+	{
+	  cout << "- " << wsv_data[i].Name() << '\n';
+	}
+      return;
+    }
+
+
+  // Now check if the user gave the name of a method.
+  map<string, size_t>::const_iterator mi =
+    MdMap.find(workspacevariables);
+  if ( mi != MdMap.end() )
+    {
+      // If we are here, then the given name matches a method.
+      // Assign the data record for this method to a local
+      // variable for easier access:
+      const MdRecord& mdr = md_data[mi->second];
+      
+      // List generic variables required by this method.
+      hitcount = 0;
+      cout << "Generic workspace variables required by " << mdr.Name()
+	   << " are of type:\n";
+      for ( size_t i=0; i<mdr.GInput().size(); ++i )
+	{
+	  cout << "- " << wsv_group_names[mdr.GInput()[i]] << '\n';
+	  ++hitcount;
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      // List specific variables required by this method.
+      hitcount = 0;
+      cout << "Specific workspace variables required by " << mdr.Name() << ":\n";
+      for ( size_t i=0; i<mdr.Input().size(); ++i )
+	{
+	  cout << "- " << wsv_data[mdr.Input()[i]].Name() << '\n';
+	  ++hitcount;
+	}
+      if ( 0==hitcount )
+	cout << "none\n";
+
+      return;
+    }
+
+  // If we are here, then the user specified nothing that makes sense.
+  cerr << "The name " << workspacevariables << " matches neither `all',\n" 
+       << "nor the name of a workspace method.\n";
+  exit(1);
+}
+
+
+/** React to option `describe'. This should print the description
+    string of the given workspace variable or method.
+
+    @param describe What to describe.
+    @author Stefan Buehler */
+void option_describe(const string& describe)
+{
+  // Make global data visible:
+  extern const ARRAY<MdRecord>  md_data;
+  extern const ARRAY<WsvRecord> wsv_data;
+  extern const std::map<string, size_t> MdMap;
+  extern const std::map<string, size_t> WsvMap;
+  //  extern const ARRAY<string> wsv_group_names;
+
+  // Let's first assume it is a method that the user wants to have
+  // described.
+
+  // Find method id:
+  map<string, size_t>::const_iterator i =
+    MdMap.find(describe);
+  if ( i != MdMap.end() )
+    {
+      // If we are here, then the given name matches a method.
+      cout << md_data[i->second] << '\n';
+      return;
+    }
+
+  // Ok, let's now assume it is a variable that the user wants to have
+  // described.
+
+  // Find wsv id:
+  i = WsvMap.find(describe);
+  if ( i != WsvMap.end() )
+    {
+      // If we are here, then the given name matches a workspace
+      // variable. 
+      cout << wsv_data[i->second] << '\n';
+      return;
+    }
+
+  // If we are here, then the given name does not match anything.
+  cerr << "The name " << describe
+       << " matches neither method nor variable.\n";
+  exit(1);      
+}
+
 
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
@@ -156,47 +451,6 @@ int main (int argc, char **argv)
     }
 
 
-  // Set the reporting level, either the default or based on
-  // reporting. If reporting was specified, check if the values make
-  // sense. The value -1 for reporting means that it was (probably)
-  // not given on the command line, since this is the initialization
-  // value.
-  {
-    // The global variable that specifies the output level for screen
-    // and file:
-    extern Messages messages;
-    int r = parameters.reporting;
-
-    if ( -1 == r )
-      {
-	// Reporting was not specified, set default. (Only the
-	// important stuff to the screen, everything to the file.)
-	messages.screen = 1;
-	messages.file   = 3;
-      }
-    else
-      {
-	// Reporting was specified. Check consistency and set report
-	// level accordingly. 
-	
-	// Separate the two digits by taking modulo 10:
-	int s = r / 10;
-	int f = r % 10;
-	//	cout << "s=" << s << " f=" << f << '\n';
-
-	if ( s<0 || s>3 || f<0 || f>3 )
-	  {
-	    cerr << "Illegal value specified for --reporting (-r).\n"
-		 << "The specified value is " << r << ", which would be\n"
-		 << "interpreted as screen=" << s << ", file=" << f << ".\n"
-		 << "Only values of 0-3 are allowed for screen and file.\n";
-	    return(1);
-	  }
-	messages.screen = s;
-	messages.file   = f;
-      }
-  }
-
 
   // For the next couple of options we need to have the workspce and
   // method lookup data.
@@ -215,10 +469,10 @@ int main (int argc, char **argv)
   define_wsv_map();
 
   // Make all these data visible:
-  extern const ARRAY<MdRecord>  md_data;
-  extern const ARRAY<WsvRecord> wsv_data;
-  extern const std::map<string, size_t> MdMap;
-  extern const std::map<string, size_t> WsvMap;
+  //  extern const ARRAY<MdRecord>  md_data;
+  //  extern const ARRAY<WsvRecord> wsv_data;
+  //  extern const std::map<string, size_t> MdMap;
+  //  extern const std::map<string, size_t> WsvMap;
   extern const ARRAY<string> wsv_group_names;
 
   // Now we are set to deal with the more interesting command line
@@ -231,108 +485,7 @@ int main (int argc, char **argv)
   // variable as output.
   if ( "" != parameters.methods )
     {
-      // This is used to count the number of matches to a query, so
-      // that `none' can be output if necessary
-      size_t hitcount;
-
-      if ( "all" == parameters.methods )
-	{
-	  cout << "Complete list of ARTS methods:\n";
-	  for ( size_t i=0; i<md_data.size(); ++i )
-	    {
-	      cout << "- " << md_data[i].Name() << '\n';
-	    }
-	}
-      else
-	{
-	  // Check if the user gave the name of a specific variable.
-	  map<string, size_t>::const_iterator i =
-	    WsvMap.find(parameters.methods);
-	  if ( i != WsvMap.end() )
-	    {
-	      // If we are here, then the given name matches a variable.
-	      size_t wsv_key = i->second;
-
-	      // List generic methods:
-	      hitcount = 0;
-	      cout << "Generic methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
-	      for ( size_t i=0; i<md_data.size(); ++i )
-		{
-		  // This if statement checks whether GOutput, the list
-		  // of output variable types contains the group of the
-		  // requested variable.
-		  if ( count( md_data[i].GOutput().begin(),
-			      md_data[i].GOutput().end(),
-			      wsv_data[wsv_key].Group() ) )
-		    {
-		      cout << "- " << md_data[i].Name() << '\n';
-		      ++hitcount;
-		    }
-		}
-	      if ( 0==hitcount )
-		cout << "none\n";
-
-	      // List specific methods:
-	      hitcount = 0;
-	      cout << "Specific methods that can generate " << wsv_data[wsv_key].Name() << ":\n";
-	      for ( size_t i=0; i<md_data.size(); ++i )
-		{
-		  // This if statement checks whether Output, the list
-		  // of output variables contains the workspace
-		  // variable key.
-		  if ( count( md_data[i].Output().begin(),
-			      md_data[i].Output().end(),
-			      wsv_key ) ) 
-		    {
-		      cout << "- " << md_data[i].Name() << '\n';
-		      ++hitcount;
-		    }
-		}
-	      if ( 0==hitcount )
-		cout << "none\n";
-	    }
-	  else
-	    {
-	      // Check if the user gave the name of a variable group.
-
-	      // We use the find algorithm from the STL to do this. It
-	      // returns an iterator, so to get the index we take the
-	      // difference to the begin() iterator.
-	      size_t group_key =
-		find( wsv_group_names.begin(),
-		      wsv_group_names.end(),
-		      parameters.methods ) - wsv_group_names.begin();
-
-	      // group_key == wsv_goup_names.size() indicates that a
-	      // group with this name was not found.
-	      if ( group_key != wsv_group_names.size() )
-		{
-		  // List generic methods:
-		  hitcount = 0;
-		  cout << "Generic methods that can generate variables "
-		       << "of group " << wsv_group_names[group_key] << ":\n";
-		  for ( size_t i=0; i<md_data.size(); ++i )
-		    {
-		      // This if statement checks whether GOutput, the list
-		      // of output variable types contains the
-		      // requested group.
-		      if ( count( md_data[i].GOutput().begin(),
-				  md_data[i].GOutput().end(),
-				  group_key ) )
-			{
-			  cout << "- " << md_data[i].Name() << '\n';
-			  ++hitcount;
-			}
-		    }
-		  if ( 0==hitcount )
-		    cout << "none\n";
-		}
-	    }
-	  
-	}
-
-
-
+      option_methods(parameters.methods);
       return(0);
     }
   
@@ -342,45 +495,30 @@ int main (int argc, char **argv)
   // by that method.
   if ( "" != parameters.workspacevariables )
     {
-      cerr << "Option `workspacevariables' is not yet implemented, sorry.\n";
-      return(1);
+      option_workspacevariables(parameters.workspacevariables);
+      return(0);
     }
 
   // React to option `describe'. This should print the description
   // string of the given workspace variable or method.
   if ( "" != parameters.describe )
     {
-      // Let's first assume it is a method that the user wants to have
-      // described.
+      option_describe(parameters.describe);
+      return(0);
+    }
 
-      // Find method id:
-      map<string, size_t>::const_iterator i =
-	MdMap.find(parameters.describe);
-      if ( i != MdMap.end() )
+  
+  // React to option `groups'. This should simply print a list of all
+  // workspace variable groups.
+  if ( parameters.groups )
+    {
+      cout << "Complete list of ARTS workspace variable groups:\n";
+      for ( size_t i=0; i<wsv_group_names.size(); ++i )
 	{
-	  // If we are here, then the given name matches a method.
-	  cout << md_data[i->second] << '\n';
-	  return(0);
+	  cout << "- " << wsv_group_names[i] << '\n';
 	}
 
-      // Ok, let's now assume it is a variable that the user wants to have
-      // described.
-
-      // Find wsv id:
-      i = WsvMap.find(parameters.describe);
-      if ( i != WsvMap.end() )
-	{
-	  // If we are here, then the given name matches a workspace
-	  // variable. 
-	  cout << wsv_data[i->second] << '\n';
-	  return(0);
-	}
-
-      // If we are here, then the given name does not match anything.
-      cerr << "The name " << parameters.describe
-	   << " matches neither method nor variable.\n";
-
-      return(1);      
+      return(0);
     }
 
 
@@ -405,6 +543,9 @@ int main (int argc, char **argv)
       basename.erase(p);
     }
 
+  // Set the reporting level, either from reporting command line
+  // option or default.  
+  set_reporting_level(parameters.reporting);
 
 
   //--------------------< Open report file >--------------------

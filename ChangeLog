@@ -1,3 +1,18 @@
+2000-05-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-20
+
+	* Added implementation of --workspacevariables (-w) command line
+	option. 
+
+	* Put the handling of the more complex command line options
+	(-r,-d,-m,-w) in subroutines.
+
+	* Added command line option --groups (-g) which simply lists all
+	wsv groups.
+
+	* This means the command line options are complete for now.
+
 2000-05-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-19
