@@ -1,3 +1,28 @@
+2005-04-05  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-935
+	
+	* src/m_atmosphere.cc (AtmFieldsCalc): Included checks for the 
+	dimension of the atmospheric data. 
+
+	* src/m_cloudbox.cc (ParticleTypeAdd, ParticleTypeAddAll):
+	Included checks for the single scattering data and the particle 
+	numbre density fields.
+
+	* src/cloudbox.{cc,h} (chk_pnd_data, chk_pnd_raw_data, 
+	chk_single_scattering_data): Created these functions. The last one
+	checks the consistency of the single scattering properties file, 
+	whether the dimensions of the data is consistent with the chosen 
+ 	particle type. 
+
+	* src/methods.cc: Modified input of WSMs ParticleTypeAdd and
+	ParticleTypeAddAll.
+
+	* AUTHORS: Updated.
+	
+	* doc/uguide/Figs/rte_theory/coordinate_system.pdf: Modified. Used the
+	common ARTS symbols in this plot.
+	
 2005-03-29  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-934

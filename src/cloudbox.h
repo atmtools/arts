@@ -30,6 +30,24 @@
 
 #include "matpackVII.h"
 #include "interpolation.h"
+#include "optproperties.h"
+#include "array.h"
+#include "gridded_fields.h"
+
+void chk_pnd_data(
+                  const GriddedField3& pnd_field_raw,
+                  const String& pnd_field_file,
+                  const Index& atmosphere_dim);
+
+void chk_pnd_raw_data(
+                      const ArrayOfGriddedField3& pnd_field_raw,
+                      const String& pnd_field_file,
+                      const Index& atmosphere_dim);
+
+void chk_single_scattering_data(
+                                const SingleScatteringData& scat_data_raw,
+                                const String& scat_data_file,
+                                const VectorView f_grid);
 
 void iy_interp_cloudbox_field(
             Matrix&         iy,

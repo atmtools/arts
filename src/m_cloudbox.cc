@@ -64,8 +64,6 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-
-
 //! cloudboxOff
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -1018,26 +1016,30 @@ void ParticleTypeInit( //WS Output:
   
   \param scat_data_raw Single scattering data.
   \param pnd_field_raw Particle number density field data.
-  \param filename_scat_data Filename for a file containing the filenames of the 
-                       single scattering data files.
+  \param atmosphere_dim Atmospheric dimension.
+  \param f_grid Frequency grid.
+  \param filename_scat_data Filename of file, which contains the 
+  filenames of the single scattering data files.
   \param pnd_field_file Filename for pnd field data.
-
+  
   \author Claudia Emde
   \date 2004-03-08
-
-  */
+*/
 void ParticleTypeAddAll( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
+                 // WS Input
+                 const Index& atmosphere_dim,
+                 const Vector& f_grid,
                  // Keyword:
                  const String& filename_scat_data,
                  const String& pnd_field_file)
 {
- 
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   
   ArrayOfString data_files;
   xml_read_from_file(filename_scat_data, data_files);
-
   scat_data_raw.resize(data_files.nelem());
   
   for (Index i = 0; i<data_files.nelem(); i++)
@@ -1046,11 +1048,18 @@ void ParticleTypeAddAll( //WS Output:
       out2 << "Read single scattering data\n";
       xml_read_from_file( data_files[i], 
                           scat_data_raw[i]);
+      
+      chk_single_scattering_data(scat_data_raw[i],
+                                 data_files[i], f_grid);  
+      
     }
   
   out2 << "Read particle number density date \n";
   xml_read_from_file(pnd_field_file, pnd_field_raw);
-       
+  
+  chk_pnd_raw_data(pnd_field_raw,
+                   pnd_field_file, atmosphere_dim);
+
 }
 
 
@@ -1061,14 +1070,10 @@ void ParticleTypeAddAll( //WS Output:
   number density fields. The data is added to *scat_data_raw* and 
   *pnd_field_raw*. 
   
-  There is one database for particle number density fields ( ....),
-  which includes the following particle types:
-
-  Another database (....) contains the single scattering properties for 
-  hydro-meteor species.
-  
   \param scat_data_raw Single scattering data.
   \param pnd_field_raw Particle number density field data.
+  \param atmosphere_dim Atmospheric dimension.
+  \param f_grid Frequency grid.
   \param scat_data_file Filename for scattering data.
   \param pnd_field_file Filename for pnd field data.
 
@@ -1080,10 +1085,16 @@ void ParticleTypeAddAll( //WS Output:
 void ParticleTypeAdd( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
-                 // Keyword:
+                 // WS Input:
+                 const Index& atmosphere_dim,
+                 const Vector& f_grid,
+                 // Keywords:
                  const String& scat_data_file,
-                 const String& pnd_field_file)
+                 const String& pnd_field_file
+          )
 {
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
   
   // Append *scat_data_raw* and *pnd_field_raw* with empty Arrays of Tensors. 
   SingleScatteringData scat_data;
@@ -1093,15 +1104,17 @@ void ParticleTypeAdd( //WS Output:
   pnd_field_raw.push_back(pnd_field_data);
   
   out2 << "Read single scattering data\n";
+  xml_read_from_file(scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
+
+  chk_single_scattering_data(scat_data_raw[scat_data_raw.nelem()-1],
+                             scat_data_file, f_grid);       
   
-  xml_read_from_file( scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
+  out2 << "Read particle number density field\n";
+  xml_read_from_file(pnd_field_file,
+                     pnd_field_raw[pnd_field_raw.nelem()-1]);
   
-  out2 << "Read particle number density date \n";
-  if (pnd_field_file.nelem()>0)
-    {
-     xml_read_from_file(pnd_field_file,pnd_field_raw[pnd_field_raw.nelem()-1]);
-    }   
-   
+  chk_pnd_data(pnd_field_raw[pnd_field_raw.nelem()-1],
+               pnd_field_file, atmosphere_dim);
 }
 
 
@@ -1121,12 +1134,12 @@ void ParticleTypeAdd( //WS Output:
 */
 
 void pnd_fieldCalc(//WS Output:
-           Tensor4& pnd_field,
+                   Tensor4& pnd_field,
                    //WS Input
                    const Vector& p_grid,
                    const Vector& lat_grid,
                    const Vector& lon_grid,
-           const ArrayOfGriddedField3& pnd_field_raw,
+                   const ArrayOfGriddedField3& pnd_field_raw,
                    const Index& atmosphere_dim
                    )
 {

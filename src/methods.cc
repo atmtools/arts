@@ -3057,7 +3057,7 @@ void define_md_data_raw()
          "\n"
          ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
-        INPUT(),
+        INPUT(atmosphere_dim_, f_grid_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("filename_scat_data", "filename_pnd_field"),
@@ -3087,7 +3087,7 @@ void define_md_data_raw()
          "\n"
          ),
         OUTPUT(scat_data_raw_, pnd_field_raw_),
-        INPUT(),
+        INPUT(atmosphere_dim_, f_grid_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("filename_scat_data", "filename_pnd_field"),

@@ -178,7 +178,20 @@ void AtmFieldsCalc(//WS Output:
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
-      
+      if( !( t_field_raw.lat_grid.nelem() == 1 &&
+             t_field_raw.lon_grid.nelem() == 1 ))
+        throw runtime_error(
+                            "Temperature data (T_field) has wrong dimension "
+                            "(2D or 3D).\n"
+                            );
+
+      if( !( z_field_raw.lat_grid.nelem() == 1 &&
+             z_field_raw.lon_grid.nelem() == 1 ))
+        throw runtime_error(
+                            "Altitude data (z_field) has wrong dimension "
+                            "(2D or 3D).\n"
+                            );
+
       //Resize variables
       t_field.resize(p_grid.nelem(), 1, 1);
       z_field.resize(p_grid.nelem(), 1, 1);
@@ -220,9 +233,18 @@ void AtmFieldsCalc(//WS Output:
       // Loop over the gaseous species:
       for (Index gas_i = 0; gas_i < vmr_field_raw.nelem(); gas_i++)
         {
+          if( !( vmr_field_raw[gas_i].lat_grid.nelem() == 1 &&
+                 vmr_field_raw[gas_i].lon_grid.nelem() == 1 ))
+            {
+              ostringstream os; 
+              os << "VMR data of the " << gas_i << "th species has "
+                 << "wrong dimension (2D or 3D). \n";
+              throw runtime_error( os.str() );
+            }
+          
           // Calculate grid positions:
           p2gridpos(gp_p, vmr_field_raw[gas_i].p_grid, p_grid);
-      
+          
           // Interpolation weights:
           interpweights( itw, gp_p);
           
@@ -236,8 +258,8 @@ void AtmFieldsCalc(//WS Output:
   //=========================================================================
   else if(atmosphere_dim == 2)
     {
-      if( t_field_raw.lat_grid.nelem() == 0 &&
-          t_field_raw.lon_grid.nelem() == 0 )
+      if( t_field_raw.lat_grid.nelem() == 1 &&
+          t_field_raw.lon_grid.nelem() == 1 )
         throw runtime_error(
                             "Raw data has wrong dimension (1D). "
                             "You have to use \n"
@@ -306,8 +328,8 @@ void AtmFieldsCalc(//WS Output:
   // atmosphere_dim = 3    
   else
     {
-      if( t_field_raw.lat_grid.nelem() == 0 &&
-          t_field_raw.lon_grid.nelem() == 0 )
+      if( t_field_raw.lat_grid.nelem() == 1 &&
+          t_field_raw.lon_grid.nelem() == 1 )
         throw runtime_error(
                             "Raw data has wrong dimension. You have to use \n"
                             "AtmFieldsCalcExpand1D instead of AtmFieldsCalc."

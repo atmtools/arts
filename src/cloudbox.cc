@@ -35,11 +35,282 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "make_vector.h"
-#include "array.h"
 #include "logic.h"
 #include "ppath.h"
 #include "physics_funcs.h"
-#include "array.h"
+#include "math_funcs.h"
+#include "check_input.h"
+
+
+//! Check particle number density files
+/*!
+  This function checks, whether the particle number density file
+  has the right atmospheric dimension.
+
+  \param pnd_field_raw pnd field data
+  \param pnd_field_file pnd field filename
+  \param atmosphere_dim atmospheric dimension
+
+  \author Claudia Emde
+  \date   2005-04-05
+*/ 
+void chk_pnd_data(
+                  const GriddedField3& pnd_field_raw,
+                  const String& pnd_field_file,
+                  const Index& atmosphere_dim
+                  )
+{
+  // The consistency of the dimensions is checked in the reading routine. 
+  // We only need to check here, whether the atmospheric dimension is correct.
+  
+  out3 << "Check particle number density file " << pnd_field_file 
+       << "\n"; 
+
+  if (atmosphere_dim == 1 && (pnd_field_raw.lat_grid.nelem() != 1 
+                              || pnd_field_raw.lon_grid.nelem() != 1))
+    {
+      ostringstream os; 
+      os << "The atmospheric dimension is 1D but the particle "
+         << "number density file * " << pnd_field_file 
+         << " is for a 3D atmosphere. \n";
+      throw runtime_error( os.str() );
+    }
+  
+  else if( atmosphere_dim == 3 &&   (pnd_field_raw.lat_grid.nelem() == 1 
+                                     || pnd_field_raw.lon_grid.nelem() == 1))
+    {
+     ostringstream os; 
+      os << "The atmospheric dimension is 3D but the particle "
+         << "number density file * " << pnd_field_file 
+         << " is for a 1D or a 2D atmosphere. \n";
+      throw runtime_error( os.str() );
+    } 
+  else
+    out3 << "Particle number density data is o.k. \n";
+  
+}
+
+//! Check particle number density files (pnd_field_raw)
+/*!
+  This function checks, whether the particle number density file
+  has the right atmospheric dimension.
+
+  \param pnd_field_raw pnd field raw data (array for all particle types)
+  \param pnd_field_file pnd field filename
+  \param atmosphere_dim atmospheric dimension
+
+  \author Claudia Emde
+  \date   2005-04-05
+*/ 
+void chk_pnd_raw_data(
+                      const ArrayOfGriddedField3& pnd_field_raw,
+                      const String& pnd_field_file,
+                      const Index& atmosphere_dim
+                      )
+{
+  for( Index i = 0; i < pnd_field_raw.nelem(); i++)
+    {
+      out3 << "Element in pnd_field_raw_file:" << i << "\n";
+      chk_pnd_data(pnd_field_raw[i],
+                   pnd_field_file, atmosphere_dim);
+    }
+}
+
+//! Check single scattering data files
+/*!
+  This function checks, whether a datafile containing the single scattering 
+  properties of a particle type includes the required frequencies and 
+  temperatures and whether the angular grids are defined correctly.
+  Furthermore it checks the self consistency of the data by checking the 
+  dimensions of pha_mat, ext_mat and abs_vec depening on the ptype case. 
+  
+  \param scat_data_raw Single scattering data
+  \param scat_data_file Filename of the data to be checked.
+  \param f_grid        Frequency grid
+  \param t_field       Temperature field
+  
+  \author Claudia Emde
+  \date   2005-04-04
+*/
+void chk_single_scattering_data(
+                                const SingleScatteringData& scat_data_raw,
+                                const String& scat_data_file,
+                                const VectorView f_grid
+                                )
+{
+  out2 << "Check single scattering properties file "<< scat_data_file 
+       << "\n";
+
+  if (scat_data_raw.ptype != 10 && 
+      scat_data_raw.ptype != 20 &&
+      scat_data_raw.ptype != 30)
+    {
+      ostringstream os; 
+      os << "Ptype value in file" << scat_data_file << "is wrong."
+         << "It must be \n"
+         << "10 - arbitrary oriented particles \n"
+         << "20 - randomly oriented particles or \n"
+         << "30 - horizontally aligned particles.\n";
+      throw runtime_error( os.str() );
+    }
+  
+  if (!(scat_data_raw.f_grid[0] <= f_grid[0] &&
+        last(f_grid) <= 
+        last(scat_data_raw.f_grid) ))
+    {
+      ostringstream os;
+      os << "The range of frequency grid in the single scattering"
+         << " properties datafile " 
+         << scat_data_file << " does not contain all values of"
+         << "*f_grid*.";
+      throw runtime_error( os.str() );
+    }
+
+  // Here we only check whether the temperature grid is of the unit K, not 
+  // whether it corresponds to the required values it T_field. The second 
+  // option is not trivial since here one has to look whether the pnd_field 
+  // is none zero for the corresponding temperature. This check done in the 
+  // functions where the multiplication with the particle number density is 
+  // done. 
+
+  if (!(0. < scat_data_raw.T_grid[0] && last(scat_data_raw.T_grid) < 300.))
+    {
+      ostringstream os;
+      os << "The temperature values in " <<  scat_data_file 
+         << " are negative or very large. Check whether you have used the "
+         << "right unit [Kelvin].";
+      throw runtime_error( os.str() );
+    }
+  
+  if (scat_data_raw.za_grid[0] != 0.)
+    {
+      ostringstream os;
+      os << "The first value of the za grid in the single" 
+         << " scattering properties datafile " 
+         << scat_data_file << " must be 0.";
+        throw runtime_error( os.str() );
+    } 
+
+  if (last(scat_data_raw.za_grid) != 180.)
+    {
+      ostringstream os;
+      os << "The last value of the za grid in the single"
+         << " scattering properties datafile " 
+         << scat_data_file << " must be 180.";
+      throw runtime_error( os.str() );
+    } 
+  
+  if (scat_data_raw.ptype == 10 && scat_data_raw.aa_grid[0] != -180.)
+     {
+       ostringstream os;
+       os << "For ptype = 10 (general orientation) the first value"
+          << " of the aa grid in the single scattering"
+          << " properties datafile " 
+          << scat_data_file << "must be -180.";
+         throw runtime_error( os.str() );
+     } 
+  
+  if (scat_data_raw.ptype == 30 && scat_data_raw.aa_grid[0] != 0.)
+    {
+      ostringstream os;
+      os << "For ptype = 30 (horizontal orientation)"
+         << " the first value"
+         << " of the aa grid in the single scattering"
+         << " properties datafile " 
+         << scat_data_file << "must be 0.";
+        throw runtime_error( os.str() );
+    }   
+  
+  if (last(scat_data_raw.aa_grid) != 180.)
+    {
+      ostringstream os;
+      os << "The last value of the aa grid in the single"
+         << " scattering properties datafile " 
+         << scat_data_file << " must be 180.";
+        throw runtime_error( os.str() );
+    }   
+
+  ostringstream os_pha_mat;
+  os_pha_mat << "pha_mat* in the file *" << scat_data_file;
+  ostringstream os_ext_mat;
+  os_ext_mat << "ext_mat* in the file * " << scat_data_file;
+  ostringstream os_abs_vec;
+  os_abs_vec << "abs_vec* in the file * " << scat_data_file;
+  
+  switch (scat_data_raw.ptype){
+    
+  case PTYPE_GENERAL:
+    
+    out2 << "Datafile is for arbitrarily orientated particles. \n";
+    
+    chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
+             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(), 
+              16); 
+    
+    chk_size(os_ext_mat.str(), scat_data_raw.ext_mat_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
+             7);
+    
+    chk_size(os_abs_vec.str(), scat_data_raw.abs_vec_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
+             4);
+    break;
+    
+  case PTYPE_MACROS_ISO: 
+    
+    out2 << "Datafile is for randomly oriented particles, i.e., "
+         << "macroscopically isotropic and mirror-symmetric scattering "
+         << "media. \n";
+    
+    chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem(), 1, 1, 1, 6);
+    
+    chk_size(os_ext_mat.str(), scat_data_raw.ext_mat_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             1, 1, 1);
+    
+    chk_size(os_abs_vec.str(), scat_data_raw.abs_vec_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             1, 1, 1);
+    break; 
+    
+  case PTYPE_HORIZ_AL:
+    
+    out2 << "Datafile is for horizontally aligned particles. \n"; 
+    
+    chk_size(os_pha_mat.str(), scat_data_raw.pha_mat_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem(), scat_data_raw.aa_grid.nelem(),
+             scat_data_raw.za_grid.nelem()/2+1, 1, 
+             16); 
+
+    chk_size(os_ext_mat.str(), scat_data_raw.ext_mat_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem()/2+1, 1, 
+             3);
+    
+    chk_size(os_abs_vec.str(), scat_data_raw.abs_vec_data,
+             scat_data_raw.f_grid.nelem(), scat_data_raw.T_grid.nelem(),
+             scat_data_raw.za_grid.nelem()/2+1, 1, 
+             2);
+    break;
+
+  case PTYPE_SPHERICAL:
+    throw runtime_error(
+                        "Special case for spherical particles not"
+                        "implemented."
+                        "Use p20 (randomly oriented particles) instead."
+                        );
+    
+  }
+
+}
+
 
 
 //! Interpolation of cloud box intensity field
