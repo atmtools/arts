@@ -27,55 +27,7 @@
   equation. 
 */
 
-#include <math.h>
-
 #include "lin_alg.h"
-
-
-//! Linear equation sytem solver.
-/*! 
-  Linear equations of the type Kx=y are solved using the LU-decomposition method. 
-  (This function should also be used for calculating K^(-1)y, as it is more effective
-  than calculating the inverse of K and then multipying with y.)
-
-  \param x Output: Solution vector x.
-  \param K Input: Matrix K.
-  \param y Input: "Right-hand-side-vector" y
-*/
-void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y)
-{
-
-  /* For the LU decomposition K has to be quadratic and the "right hand side vector" x   
-     has to be of the same dimension. */
-  assert(K.nrows() == K.ncols());
-  assert(K.nrows() == y.nelem());
-
-  static Matrix A;
-  if (A.nrows() != K.nrows() || A.ncols() != K.ncols())
-    A.resize(K.nrows(), K.ncols());
-
-  static Matrix LU;
-  if (LU.nrows() != K.nrows() || LU.ncols() != K.ncols())
-    LU.resize(K.nrows(), K.ncols());
-
-  static ArrayOfIndex indx;
-  if (K.nrows() != indx.nelem())
-    indx.resize(K.nrows());
-
-  /*Copy K to the variable used in the functions ludcmp.*/
-  A = K;
-  
-
-  /* Perform a LU-decomposition.*/
-  ludcmp(LU, indx, A);
-  
-  /* Perform the backsubstitution to solve the equation system. */
-  lubacksub(x, LU, y, indx);
-
-}
-
-
-
 
 
 
@@ -131,8 +83,6 @@ void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A)
               imax = i;
             }
         }
-      //  indx[j] = j;
-
       if (j!=imax)
         {
           for(Index k=0; k<dim; k++)
@@ -180,6 +130,12 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
   float sum;
  
   dim = LU.nrows(); 
+
+  /* Check if the dimensions of the input matrix and vectors agree and if LU is a quadratic matrix.*/
+  is_size(LU, dim, dim);
+  is_size(b, dim);
+  is_size(indx, dim);
+
   
   for(Index i=0; i<dim; i++)
      {
@@ -214,14 +170,18 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
   
   \param F Output: The matrix exponential of A.
   \param A Input: arbitrary square matrix
+  \param q Input: Parameter for the accuracy of the computation
 */
-void matrix_exp(MatrixView F, MatrixView A)
+void matrix_exp(MatrixView F, MatrixView A, Index q)
 {
   Numeric A_norm_inf, c;
   Numeric j;
   const Index n = A.ncols(); 
   Matrix D(n,n), N(n,n), X(n,n), cX(n,n), B(n,n);
   Vector N_col_vec(n), F_col_vec(n);
+
+  /* check if A is a quadratic matrix */
+  is_size(A,n,n);
 
   A_norm_inf = norm_inf(A);
   j = 1 +  floor(1./log(2.)*log(A_norm_inf));
@@ -231,7 +191,7 @@ void matrix_exp(MatrixView F, MatrixView A)
 
   /* The higher q the more accurate is the computation, 
      see user guide for accuracy */
-  Index q = 8;
+  //  Index q = 8;
   Numeric q_n = (Numeric)(q);
   identity(D, n);
   identity(N, n);
@@ -247,7 +207,7 @@ void matrix_exp(MatrixView F, MatrixView A)
       cX = X;			
       cX *= c;			// cX = X*c
       N += cX;			// N = N + X*c
-      cX *= pow(-1,k_n);		// cX = (-1)^k*c*X
+      cX *= pow(-1,k_n);	// cX = (-1)^k*c*X
       D += cX;			// D = D + (-1)^k*c*X
     }
 
@@ -323,3 +283,44 @@ void identity(MatrixView I, const Index& n)
 }
 
 
+//! Linear equation sytem solver.
+/*! 
+  Linear equations of the type Kx=y are solved using the LU-decomposition method. 
+  (This function should also be used for calculating K^(-1)y, as it is more effective
+  than calculating the inverse of K and then multipying with y.)
+
+  \param x Output: Solution vector x.
+  \param K Input: Matrix K.
+  \param y Input: "Right-hand-side-vector" y
+*/
+void lusolve(VectorView x, ConstMatrixView K, ConstVectorView y)
+{
+
+  /* For the LU decomposition K has to be quadratic and the "right hand side vector" x   
+     has to be of the same dimension. */
+  assert(K.nrows() == K.ncols());
+  assert(K.nrows() == y.nelem());
+
+  static Matrix A;
+  if (A.nrows() != K.nrows() || A.ncols() != K.ncols())
+    A.resize(K.nrows(), K.ncols());
+
+  static Matrix LU;
+  if (LU.nrows() != K.nrows() || LU.ncols() != K.ncols())
+    LU.resize(K.nrows(), K.ncols());
+
+  static ArrayOfIndex indx;
+  if (K.nrows() != indx.nelem())
+    indx.resize(K.nrows());
+
+  /*Copy K to the variable used in the functions ludcmp.*/
+  A = K;
+  
+
+  /* Perform a LU-decomposition.*/
+  ludcmp(LU, indx, A);
+  
+  /* Perform the backsubstitution to solve the equation system. */
+  lubacksub(x, LU, y, indx);
+
+}

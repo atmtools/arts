@@ -86,8 +86,9 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
   
   \param F Output: The matrix exponential of A.
   \param A Input: arbitrary square matrix
+  \param q Input: Parameter for the accuracy of the computation
 */
-void matrix_exp(MatrixView F, MatrixView A);
+void matrix_exp(MatrixView F, MatrixView A, Index q);
 
 
 //! Maximum absolute row sum norm 
