@@ -3,9 +3,11 @@
 #
 
 Main {
-  ArrayOfMatrixReadAscii(abs_per_tg){"radiosondes.aa"}
-  ArrayOfMatrixWriteXML(abs_per_tg){"radiosondes.xml"}
+  ReadXML(amp_mat_raw){"ampmat.xml"}
 
-#  VectorReadAscii(f_mono) {"f_mono.aa"}
-#  VectorWriteXML(f_mono) {"f_mono.xml"}
+  output_file_formatSetAscii {}
+  WriteXML(amp_mat_raw){"ampmat2.xml"}
+  output_file_formatSetBinary {}
+  WriteXML(amp_mat_raw){"ampmat3.xml"}
+
 }
