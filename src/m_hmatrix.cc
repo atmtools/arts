@@ -234,12 +234,4 @@ void MatrixApplyH(// WS Generic Output:
 }
 
 
-void Test()
-{
-  string name="test.hdf";
-  hid_t fid;
-  binfile_open( fid, name );
-  binfile_write_matrix( fid, MATRIX(2,2,1.5) );
-  binfile_close( fid, name );
-  exit(1);
-}
+

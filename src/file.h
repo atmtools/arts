@@ -83,20 +83,71 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
 //   Basic functions to handle HDF files
 ////////////////////////////////////////////////////////////////////////////
 
-void binfile_open(
+void binfile_open_out(
               hid_t&    fid,
-        const string&   name );
+        const string&   filename );
+
+void binfile_open_in(
+              hid_t&    fid,
+        const string&   filename );
 
 void binfile_close(
               hid_t&    fid,
-        const string&   name );
+        const string&   filename );
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions to read and write binary data for ARTS data types
+////////////////////////////////////////////////////////////////////////////
+
+void binfile_write_size_t(
+        const string&   filename,
+        const hid_t&    fid,
+        const size_t&   x,
+        const string&   dataname );
+
+void binfile_read_size_t(
+              size_t&   x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname );
+
+void binfile_write_numeric(
+        const string&   filename,
+        const hid_t&    fid,
+        const Numeric&  x,
+        const string&   dataname );
+
+void binfile_read_numeric(
+              Numeric&  x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname );
+
+void binfile_write_vector(
+        const string&   filename,
+        const hid_t&    fid,
+        const VECTOR&   x,
+        const string&   dataname );
+
+void binfile_read_vector(
+              VECTOR&   x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname );
 
 void binfile_write_matrix(
+        const string&   filename,
         const hid_t&    fid,
-        const MATRIX&   a );
+        const MATRIX&   x,
+        const string&   dataname );
 
-
-
+void binfile_read_matrix(
+              MATRIX&   x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname );
 
 
 #endif

@@ -408,58 +408,500 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
 //   Basic functions to handle HDF files
 ////////////////////////////////////////////////////////////////////////////
 
-void binfile_open(
-              hid_t&    fid,
-        const string&   name )
+string get_numeric_type_string( )
 {
-  fid = H5Fcreate( name.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-  // Handle errors
+  if ( sizeof(Numeric) == sizeof(float) )
+    return "float";
+  else if ( sizeof(Numeric) == sizeof(double) )
+    return "double";
+  else
+    throw runtime_error("Numeric must be double or float.");
+}
+
+
+void binfile_open_out(
+              hid_t&    fid,
+        const string&   filename )
+{
+  fid = H5Fcreate( filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+  if ( fid < 0 )
+  {
+    ostringstream os;
+    os << "Cannot create output file: " << filename << '\n'
+       << "Maybe you don't have write access to the directory or the file?";
+    throw runtime_error(os.str());
+  }
+}
+
+
+void binfile_open_in(
+              hid_t&    fid,
+        const string&   filename )
+{
+  fid = H5Fopen( filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT );
+  if ( fid < 0 )
+  {
+    ostringstream os;
+    os << "Cannot open input file: " << filename << '\n'
+       << "Maybe you don't have read access to the directory or the file?";
+    throw runtime_error(os.str());
+  }
 }
 
 
 void binfile_close(
               hid_t&    fid,
-        const string&   name )
+        const string&   filename )
 {
   herr_t  status;
 
   status = H5Fclose( fid );
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot close file: " << filename;
+    throw runtime_error(os.str());
+  }
+}
+
+
+void binfile_get_dataids(
+              hid_t&    set_id,
+              hid_t&    space_id,
+        const hid_t&    fid,
+        const string&   filename,
+        const string&   dataname )
+{
+  const string   s = "\\" + dataname;
+ 
+  // Open data set
+  set_id = H5Dopen( fid, s.c_str() );
+
   // Handle errors
+  if ( set_id < 0 )
+  {
+    ostringstream os;
+    os << "Cannot open set: "<<dataname<<" in file: "<<filename<<"\n"
+       << "Maybe the file contains data of other type?";
+    throw runtime_error(os.str());
+  }
+
+  // Open data space
+  space_id = H5Dget_space( set_id );
+  // Handle errors
+  if ( space_id < 0 )
+  {
+    ostringstream os;
+    os << "Cannot open data space in file: " << filename;
+    throw runtime_error(os.str());
+  }
+}
+
+
+void binfile_close_set(
+              hid_t&    set_id,
+        const string&   filename )
+{
+  herr_t status = H5Dclose( set_id );
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot close data set in file: " << filename;
+    throw runtime_error(os.str());
+  }
+}
+
+
+void binfile_close_space(
+              hid_t&    space_id,
+        const string&   filename )
+{
+  herr_t status = H5Sclose( space_id );
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot close data space in file: " << filename;
+    throw runtime_error(os.str());
+  }
+}
+
+
+void binfile_get_rank(
+              size_t&   rank,
+        const string&   filename,
+        const hid_t&    set_id,
+        const hid_t&    space_id )
+{
+  rank     = H5Sget_simple_extent_ndims( space_id );
+}
+
+
+void binfile_get_size(
+              hsize_t*  dims,
+        const string&   filename,
+        const hid_t&    set_id,
+        const hid_t&    space_id )
+{
+  hsize_t maxdims[5];
+  H5Sget_simple_extent_dims( space_id, dims, maxdims );
+}
+
+
+void binfile_read_init(
+              hid_t&    set_id, 
+              size_t&   rank,
+              hsize_t*  dims,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname,
+        const size_t&   rank0,
+        const hsize_t*  dims0 )
+{
+  hid_t  space_id;
+
+  // Get identifier for data set and space 
+  binfile_get_dataids( set_id, space_id, fid, filename, dataname );
+
+  // Get and check data rank
+  binfile_get_rank( rank, filename, set_id, space_id );
+  if ( rank != rank0 )
+  {
+    ostringstream os;
+    os << "The opened data set (" << dataname << ") has rank " << rank << ",\n"
+       << "but a rank of " << rank0 << " was expected.";
+    throw runtime_error(os.str());
+  }
+
+  // Get and check data size
+  binfile_get_size( dims, filename, set_id, space_id );
+  if ( dims0 != NULL )
+  {
+    for ( size_t i=0; i<rank; i++ )
+    {
+      if ( (dims0[i]>0) && (dims[i]!=dims0[i]) )
+      {
+	ostringstream os;
+	os << "For dimension " << i+1 << "the data size is " << dims[i] <<"\n"
+	   << "but the expected length is " << dims0[i];
+	throw runtime_error(os.str());
+      }
+    }
+  }
+
+  // Close data space
+  binfile_close_space( space_id, filename );
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Core read and write functions for binary files
+////////////////////////////////////////////////////////////////////////////
+
+void binfile_write(
+        const hid_t&    fid,
+        const string&   filename,
+        const string&   dataname,
+        const string&   datatype,
+        const size_t&   rank,
+        const hsize_t*  dims,
+        const void*     dpointer )
+{
+        hid_t    space_id, set_id;
+        herr_t   status;
+  const string   s = "\\" + dataname;
+
+  // Create the data space
+  space_id = H5Screate_simple( rank, dims, NULL );
+  if ( space_id < 0 )
+  {
+    ostringstream os;
+    os << "Cannot create data space in file: " << filename << '\n'
+       << "Is the file opened for writing?";
+    throw runtime_error(os.str());
+  }
+
+  // Create the data set and write data
+  if ( datatype == "size_t" ) 
+  {
+    if ( sizeof(size_t) == sizeof(unsigned) )
+    {
+      set_id = H5Dcreate( fid, s.c_str(), H5T_STD_I32BE, space_id, 
+                                                                H5P_DEFAULT );
+      status = H5Dwrite( set_id, H5T_NATIVE_UINT, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+      cout << "a\n";
+    }
+    else if ( sizeof(size_t) == sizeof(unsigned long) )
+    { 
+      set_id = H5Dcreate( fid, s.c_str(), H5T_STD_I64BE, space_id, 
+                                                                H5P_DEFAULT );
+      status = H5Dwrite( set_id, H5T_NATIVE_ULONG, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+      cout << "b\n";
+    }
+    else
+      throw runtime_error("Unknown data size of size_t.");
+  }
+
+  else if ( datatype == "Numeric" ) 
+  {
+    // Determine if NUMERIC is float or double
+    string numtype = get_numeric_type_string();
+
+    if ( numtype == "float" )
+    {
+      set_id = H5Dcreate( fid, s.c_str(), H5T_IEEE_F32LE, space_id, 
+                                                                 H5P_DEFAULT);
+      status = H5Dwrite( set_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+    }
+    else if ( numtype == "double" ) 
+    {
+      set_id = H5Dcreate( fid, s.c_str(), H5T_IEEE_F64LE, space_id, 
+                                                                 H5P_DEFAULT);
+      status = H5Dwrite( set_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+    }
+    else
+      throw runtime_error("Numeric must be double or float.");
+  }
+
+  else
+  {
+    ostringstream os;
+    os << "The data type " << datatype << " is not handled";
+    throw runtime_error(os.str());
+  }
+
+  // Handle errors
+  if ( set_id < 0 )
+  {
+    ostringstream os;
+    os << "Cannot create data set in file: " << filename << '\n'
+       << "Is the file opened for writing?";
+    throw runtime_error(os.str());
+  }
+  //
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot write data to file: " << filename;
+    throw runtime_error(os.str());
+  }
+
+  // Close data set and space
+  binfile_close_space( space_id, filename );
+  binfile_close_set( set_id, filename );
+}
+
+
+void binfile_read(
+              void*     dpointer,
+              hid_t&    set_id,
+        const string&   filename,
+        const string&   datatype,
+        const bool&     close_set )
+{
+  // Read the data
+  herr_t status;
+  if ( datatype == "size_t" ) 
+    status = H5Dread( set_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+
+  else if ( datatype == "Numeric" ) 
+  {
+    // Determine if NUMERIC is float or double
+    string numtype = get_numeric_type_string();
+
+    if ( numtype == "float" )
+      status = H5Dread( set_id, H5T_NATIVE_FLOAT, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+    else if ( numtype == "double" ) 
+      status = H5Dread( set_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+    else
+      throw runtime_error("Numeric must be double or float.");
+  }
+
+  else
+  {
+    ostringstream os;
+    os << "The data type " << datatype << " is not handled";
+    throw runtime_error(os.str());
+  }
+
+  // Handle errors
+  if ( status < 0 )
+  {
+    ostringstream os;
+    os << "Cannot read data from file: " << filename << "\n"
+       << "Maybe the file data have another data format than assumed";;
+    throw runtime_error(os.str());
+  }
+
+  // Close data set?
+  if ( close_set )
+    binfile_close_set( set_id, filename );
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Functions to read and write binary data for ARTS data types
+////////////////////////////////////////////////////////////////////////////
+
+void binfile_write_size_t(
+        const string&   filename,
+        const hid_t&    fid,
+        const size_t&   x,
+        const string&   dataname )
+{
+  size_t  a[1];
+  a[0] = x;
+  hsize_t  dims[1];
+  dims[0] = 1;
+  binfile_write( fid,  filename, dataname, "size_t", 1, dims, a );
+}
+
+
+void binfile_read_size_t(
+              size_t&   x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname )
+{
+  // We expect rank 1 and a length of 1
+  const size_t   rank0 = 1;
+        hsize_t  dims0[rank0];  dims0[0] = 1;
+  //-------------------------------------------
+        hsize_t  dims[rank0];
+        hid_t    set_id;
+        size_t   rank, a[rank0];
+
+  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0,dims0);
+  binfile_read( a, set_id, filename, "size_t", 1 );
+  x = a[0];  
+}
+
+
+void binfile_write_numeric(
+        const string&   filename,
+        const hid_t&    fid,
+        const Numeric&  x,
+        const string&   dataname )
+{
+  Numeric  a[1];
+  a[0] = x;
+  hsize_t  dims[1];
+  dims[0] = 1;
+  binfile_write( fid,  filename, dataname, "Numeric", 1, dims, a );
+}
+
+
+void binfile_read_numeric(
+              Numeric&  x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname )
+{
+  // We expect rank 1 and a length of 1
+  const size_t   rank0 = 1;
+        hsize_t  dims0[rank0];  dims0[0] = 1;
+  //-------------------------------------------
+        hsize_t  dims[rank0];
+        hid_t    set_id;
+        size_t   rank;
+        Numeric  a[rank0];
+
+  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0,dims0);
+  binfile_read( a, set_id, filename, "Numeric", 1 );
+  x = a[0];  
+}
+
+
+void binfile_write_vector(
+        const string&   filename,
+        const hid_t&    fid,
+        const VECTOR&   x,
+        const string&   dataname )
+{
+  const size_t  n = x.dim();
+        size_t  i;
+       hsize_t  dims[1];
+  dims[0] = n;
+
+  Numeric a[n];
+  for ( i=0; i<n; i++ )
+    a[i] = x(i+1);
+  binfile_write( fid,  filename, dataname, "Numeric", 1, dims, a );
+}
+
+
+void binfile_read_vector(
+              VECTOR&   x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname )
+{
+  // We expect rank 1 (any length)
+  const size_t   rank0 = 1;
+  //-------------------------------------------
+        hsize_t  dims[rank0];
+        size_t   rank, n, i;
+        hid_t    set_id;
+
+  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0, NULL);
+  n = dims[0];
+  x.newsize(n);
+  Numeric a[n];
+  binfile_read( a, set_id, filename, "Numeric", 1 );
+  for ( i=0; i<n; i++ )
+    x(i+1) = a[i];
 }
 
 
 void binfile_write_matrix(
+        const string&   filename,
         const hid_t&    fid,
-        const MATRIX&   a )
+        const MATRIX&   x,
+        const string&   dataname )
 {
-  hid_t    space_id, set_id;
-  hsize_t  dims[2];
-  herr_t   status;
+  const size_t  nrows = x.dim(1);
+  const size_t  ncols = x.dim(2);
+        size_t  i, j;
+       hsize_t  dims[2];
+  dims[0] = nrows;
+  dims[1] = ncols;
 
-  // Create test data
-  double   b[2][3];
-  int      i,j;
-  for ( i=0; i<2; i++ )
-    for ( j=0; j<3; j++ )
-      b[i][j] = 1.1;
-
-  // Create data space
-  //dims[0]  = a.dim(1);  
-  //dims[1]  = a.dim(2);  
-  dims[0]  = 2;  
-  dims[1]  = 3;  
-  space_id = H5Screate_simple( 2, dims, NULL );
-
-  // Create the data set
-  set_id = H5Dcreate( fid, "/matrix", H5T_IEEE_F64LE, space_id, H5P_DEFAULT);
-
-
-  // Write the data
-  status = H5Dwrite( set_id, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, 
-                                                          H5P_DEFAULT, b );
-
-  // Close
-  status = H5Dclose( set_id );
-  status = H5Sclose( space_id );
+  Numeric a[nrows][ncols];
+  for ( i=0; i<nrows; i++ )
+    for ( j=0; j<ncols; j++ )
+      a[i][j] = x(i+1,j+1);
+  binfile_write( fid,  filename, dataname, "Numeric", 2, dims, a );
 }
 
+
+void binfile_read_matrix(
+              MATRIX&   x,
+        const string&   filename,
+        const hid_t&    fid,
+        const string&   dataname )
+{
+  // We expect rank 2 (any size)
+  const size_t   rank0 = 2;
+  //-------------------------------------------
+        hsize_t  dims[rank0];
+        size_t   rank, nrows, ncols, i, j;
+        hid_t    set_id;
+
+  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0, NULL);
+  nrows = dims[0];
+  ncols = dims[1];
+  x.newsize(nrows,ncols);
+  Numeric a[nrows][ncols];
+  binfile_read( a, set_id, filename, "Numeric", 1 );
+  for ( i=0; i<nrows; i++ )
+    for ( j=0; j<ncols; j++ )
+      x(i+1,j+1) = a[i][j];
+}
+       

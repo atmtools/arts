@@ -1237,7 +1237,11 @@ void k_contabs (
     out2 << "  Doing point " << ipoint << "\n";
 
     // Fill K_NAMES and K_AUX
-    k_names(ipoint)   = "Continuum absorption, point ?";
+    {
+      ostringstream os;
+      os << "Continuum absorption, point " << ipoint;
+      k_names(ipoint) = os.str();
+    }
     for ( ip=1; ip<=np; ip++ )
     {
        k_aux(ip0+ip,1) = k_grid(ip);

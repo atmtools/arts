@@ -62,19 +62,22 @@ void define_md_data()
 //=== IO methods
 //======================================================================
 
-//
-//=== Scalars
-//
+//=== INDEX ============================================================
+
   md_data.push_back
     ( MdRecord
       ( NAME("IntSet"),
 	DESCRIPTION("Sets an integer workspace variable to the given value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(int_t),
+	GOUTPUT( int_t ),
 	GINPUT(),
-	KEYWORDS("value"),
-	TYPES(int_t)));
+	KEYWORDS( "value" ),
+	TYPES( int_t )));
+
+
+
+//=== NUMERIC ==========================================================
 
   md_data.push_back
     ( MdRecord
@@ -82,16 +85,42 @@ void define_md_data()
 	DESCRIPTION("Sets a workspace variable of type Numeric to a value."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(Numeric_),
+	GOUTPUT( Numeric_ ),
 	GINPUT(),
-	KEYWORDS("value"),
-	TYPES(Numeric_t)));
+	KEYWORDS( "value" ),
+	TYPES( Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericWriteBinary"),
+	DESCRIPTION("Writes a numeric value to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Numeric_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericReadBinary"),
+	DESCRIPTION("Reads a numeric from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Numeric_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
 
 
 
-//
-//=== Vector initialization
-//
+//=== VECTOR ==========================================================
 
   md_data.push_back
     ( MdRecord
@@ -147,16 +176,191 @@ void define_md_data()
 	KEYWORDS("start", "stop", "n"),
 	TYPES(Numeric_t, Numeric_t, int_t)));
 
-
-  //
-  //=== Array of Matrix and Array of Vector Write Methods
-  //
   md_data.push_back
     ( MdRecord
-      ( NAME("ArrayOfMatrixWriteToFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
+      ( NAME("VectorCopy"),
+	DESCRIPTION("Copies a vector."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorWriteAscii"),
+	DESCRIPTION("Writes a vector to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorReadAscii"),
+	DESCRIPTION("Reads a vector from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorWriteBinary"),
+	DESCRIPTION("Writes a vector to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorReadBinary"),
+	DESCRIPTION("Reads a vector from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
+
+//=== MATRIX ==========================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixCopy"),
+	DESCRIPTION("Copies a matrix."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT( MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixWriteAscii"),
+	DESCRIPTION("Writes a matrix to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( MATRIX_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixReadAscii"),
+	DESCRIPTION("Reads a matrix from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixWriteBinary"),
+	DESCRIPTION("Writes a matrix to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( MATRIX_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixReadBinary"),
+	DESCRIPTION("Reads a matrix from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
+
+//=== ARRAYofINDEX =====================================================
+
+
+
+//=== ARRAYofVECTOR ====================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfVectorWriteAscii"),
+	DESCRIPTION("Writes an ARRAYofVECTOR to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofVECTOR_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfVectorReadAscii"),
+	DESCRIPTION("Reads an ARRAYofVECTOR from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofVECTOR_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+  
+
+
+
+//=== ARRAYofMATRIX ====================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfMatrixWriteAscii"),
+	DESCRIPTION("Writes an ARRAYofMATRIX to an ASCII file.\n"
 		    "The filename can also be an empty string.\n"
-		    "In that case the name is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "The format is as follows:\n\n"
 		    "# <comments>\n"
 		    "<n_array_elements>\n"
@@ -178,150 +382,34 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT(ARRAYofMATRIX_),
+	GINPUT( ARRAYofMATRIX_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
   md_data.push_back
     ( MdRecord
-      ( NAME("ArrayOfVectorWriteToFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
+      ( NAME("ArrayOfMatrixReadAscii"),
+	DESCRIPTION("Reads an ARRAYofMATRIX from an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT(),
-	GINPUT(ARRAYofVECTOR_),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-
-
-
-//
-//=== Matrix and Vector Write Methods
-//
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixWriteToFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(MATRIX_),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorWriteToFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(VECTOR_),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-
-
-
-//
-//=== Array of Matrix and Vector Read Methods
-//
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfMatrixReadFromFile"),
-	DESCRIPTION("Read a variable of this type from a file.\n"
-		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(ARRAYofMATRIX_),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfVectorReadFromFile"),
-	DESCRIPTION("Read a variable of this type from a file.\n"
-		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(ARRAYofVECTOR_),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-  
-
-//
-//=== Matrix and Vector Read Methods
-//
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixReadFromFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(MATRIX_),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorReadFromFile"),
-	DESCRIPTION("Writes a variable of this type to a file.\n"
-		    "The filename can be specified or an empty string.\n"
-		    "See `ArrayOfMatrixWriteToFile' for more details."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(VECTOR_),
+	GOUTPUT( ARRAYofMATRIX_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
 
-//
-//=== Copy Methods
-//
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorCopy"),
-	DESCRIPTION("Copies a vector."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( VECTOR_ ),
-	GINPUT( VECTOR_ ),
-	KEYWORDS(),
-	TYPES()));
+
+//=== MAYBESPARSE ====================================================
 
   md_data.push_back
     ( MdRecord
-      ( NAME("MatrixCopy"),
-	DESCRIPTION("Copies a matrix."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( MATRIX_ ),
-	GINPUT( MATRIX_ ),
-	KEYWORDS(),
-	TYPES()));
-
-
-//
-//=== H Matrices
-//
-  md_data.push_back
-    ( MdRecord
-      ( NAME("HmatrixReadFromFile"),
-	DESCRIPTION("Reads a H matrix from a file.\n"
-		    "The filename can be specified or be an empty string"),
+      ( NAME("HmatrixReadAscii"),
+	DESCRIPTION("Reads a H matrix from an ASCII file.\n"
+		    "The filename can be specified or be an empty string\n"
+		    "If empty, it is set to <basename>.<variable_name>.am."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Hmatrix_ ),
@@ -335,10 +423,8 @@ void define_md_data()
 //=== Absorption methods
 //======================================================================
 
+//=== Spectroscopic methods ============================================
 
-//
-//=== Spectroscopic methods
-//
   md_data.push_back
     ( MdRecord
       ( NAME("linesReadFromHitran"),
@@ -423,10 +509,11 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "tags" ),
 	TYPES(    ARRAY_string_t   )));
-  
-//
-//=== 1D Input Atmosphere methods
-//
+
+
+
+//=== Input Atmosphere methods ===========================================
+
   md_data.push_back
     ( MdRecord
       ( NAME("raw_vmrs_1dReadFromScenario"),
@@ -496,24 +583,9 @@ void define_md_data()
 	KEYWORDS(                      			 ),
 	TYPES(                         			 )));
 
-//
-//=== 2D absorption methods
-//
 
-//
-//=== 1D absorption methods
-//
-  md_data.push_back
-    ( MdRecord
-      ( NAME("AllAbsExample"),
-	DESCRIPTION("Reads all important absorption related variables\n"
-		    "from the given files."),
-	OUTPUT(f_mono_, p_abs_, t_abs_, abs_),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+
+//=== 1D absorption methods ===============================================
 
   md_data.push_back
     ( MdRecord
@@ -545,7 +617,6 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
   
 
 
@@ -997,18 +1068,6 @@ void define_md_data()
         INPUT(),
 	GOUTPUT( MATRIX_ ),
 	GINPUT( Hmatrix_, MATRIX_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("Test"),
-  	DESCRIPTION(
-          "xxxxxx."),
-	OUTPUT(),
-        INPUT(),
-	GOUTPUT(),
-	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 

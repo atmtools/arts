@@ -327,8 +327,8 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
       raw_vmrs_1d.push_back(MATRIX());
 
       // Read the VMR:
-      // (We use the workspace method MatrixReadFromFile for this.)
-      MatrixReadFromFile(raw_vmrs_1d[i],"",name);
+      // (We use the workspace method MatrixReadAscii for this.)
+      MatrixReadAscii(raw_vmrs_1d[i],"",name);
     }
 }
 
@@ -544,37 +544,6 @@ void AtmFromRaw1D(// WS Output:
   }
 }
 
-void AllAbsExample(// WS Output:
-                   VECTOR& f_mono,
-                   VECTOR& p_abs,
-                   VECTOR& t_abs,
-                   MATRIX& abs)
-{
-  // Patrick, you can set these variables to reasonable
-  // values here to have a test case.
-  f_mono = VECTOR(3,"500e9 501e9 502e9");
-  p_abs = VECTOR(4,"1000 100 10 1");
-  t_abs = VECTOR(4,"300 250 260 290");
-  abs   = MATRIX(f_mono.size(),p_abs.size(),
-		 "1000 800 600 400 "
-		 "1001 801 601 401 "
-		 "1002 802 602 402 ");
-  
-  // Safety check:
-  if ( p_abs.size() != t_abs.size() )
-    {
-      ostringstream os;
-      os << "Dimensions of p_abs and t_abs must be the same!\n"
-	 << "p_abs.size() = " << p_abs.size() << '\n'
-	 << "t_abs.size() = " << t_abs.size() << '\n';
-      throw runtime_error(os.str());
-    }
-
-//   out3 << "f_mono:\n" << f_mono << '\n';
-//   out3 << "p_abs:\n" << p_abs << '\n';
-//   out3 << "t_abs:\n" << t_abs << '\n';
-//   out3 << "abs:\n"   << abs << '\n';
-}
 
 
 void absCalc(// WS Output:
