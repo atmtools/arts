@@ -1456,6 +1456,58 @@ void define_wsv_data()
        ),
       GROUP( Tensor7_ )));
 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_lat_index" ),
+      DESCRIPTION
+      (
+       "Latitude index for scattering calculations.\n"
+       "\n"
+       "This variable is used in methods used for computing scattering\n"
+       "properties of particles like ext_mat_partCalc and pha_mat_partCalc.\n"
+       "This holds the information about the position for which the \n"
+       "scattering calculations are done. \n"
+       "\n"
+       "Usage:    Input to the methods *ext_mat_partCalc*, *pha_mat_partCalc*\n"
+       "\n"
+       ),
+     GROUP( Index_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_lon_index" ),
+      DESCRIPTION
+      (
+       "Longitude index for scattering calculations.\n"
+       "\n"
+       "This variable is used in methods used for computing scattering\n"
+       "properties of particles like ext_mat_partCalc and pha_matCalc.\n"
+       "This holds the information about the position for which the \n"
+       "scattering calculations are done.  \n"
+       "\n"
+       "Usage:    Input to the methods *ext_mat_agenda*, *pha_mat_sptCalc*\n"
+       "\n"
+       ),
+     GROUP( Index_ ))); 
+
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_p_index" ),
+      DESCRIPTION
+      (
+       "Pressure index for scattering calculations.\n"
+       "\n"
+       "This variable is used in methods used for computing scattering\n"
+       "properties of particles like ext_mat_partCalc and pha_matCalc.\n"
+       "This holds the information about the location for which the \n"
+       "scattering calculations are done.\n"  
+       "\n"
+       "Usage:    Input to the methods *ext_mat_partCalc*, *pha_matCalc*\n"
+       "\n"
+       ),
+     GROUP( Index_ ))); 
   wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_rte_agenda" ),

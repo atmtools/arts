@@ -45,7 +45,7 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
     throw runtime_error(
 			"Amplitude matrix must have 8 columns.");
   
-  if (stokes_dim > 4 || stokes_dim <1){
+  if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error(
 			"The dimension of stokes vector can be "
 			"only 1,2,3, or 4");
@@ -99,7 +99,7 @@ void pha_mat_sptCalc(Tensor5& pha_mat_spt,
   if (amp_mat.ncols() != 8){
     throw runtime_error("Amplitude matrix must have 8 columns.");
   }
-  if (stokes_dim > 4 || stokes_dim <1){
+  if ((stokes_dim > 4) || (stokes_dim <1)){
     throw runtime_error("The dimension of stokes vector" 
                          "can be only 1,2,3, or 4");
   }
@@ -137,12 +137,14 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
 {
  Index npt = abs_vec_spt.nrows();
  Index stokes_dim = abs_vec_spt.ncols();
- Index nza = pha_mat_spt.nshelves(); 
- Index naa = pha_mat_spt.nbooks(); 
+ //(CE:) Corrected this, there was books and shelves before!!
+ Index nza = pha_mat_spt.nbooks(); 
+ Index naa = pha_mat_spt.npages(); 
  assert (is_size(scat_za_grid, nza));
  assert (is_size(scat_aa_grid, naa));
-
+ 
  if (abs_vec_spt.ncols() != stokes_dim ){
+   //FIXME: Dimension should agree to stokes_dim !!!
     throw runtime_error("The vector abs_vec_spt should have 4 columns");
  }
 
@@ -158,7 +160,7 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
 		       "have 4 rows and 4 columns");
  }
 
- if (stokes_dim > 4 || stokes_dim <1){
+ if ((stokes_dim > 4) || (stokes_dim <1)){
     throw runtime_error("The dimension of stokes vector "
                         "can be only 1,2,3, or 4");
  }
@@ -209,6 +211,9 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 {
   Index N_pt = ext_mat_spt.npages();
   Index N_i = ext_mat_spt.nrows();
+
+  // (CE:) Size of ext_mat is not known before...
+  ext_mat_part.resize(N_i, N_i);
    
   for (Index m = 0; m < N_i; m++)
     {
@@ -220,7 +225,10 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
       // this is a loop over the different particle types
       for (Index l = 0; l < N_pt; l++)
 	{ 
-	  
+
+          //FIXME!!!! no loop over p_grid as ext_mat_part should be the 
+	  // 4x4 extinction matrix for one position (CE)!!!!
+
 	  // the loop are over the p_grid
 	  for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
 	    {
@@ -292,7 +300,9 @@ void abs_vec_partCalc(Vector& abs_vec_part,
   Index N_pt = abs_vec_spt.nrows();
   Index N_i = abs_vec_spt.ncols();
  
- 
+  //(CE:) Resize abs_vec_part
+  abs_vec_part.resize(N_i);
+  
   for (Index m = 0; m < N_i; ++m)
     {
       
@@ -307,10 +317,9 @@ void abs_vec_partCalc(Vector& abs_vec_part,
       for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
 	{
 	  
-	  
-	      
-	      // now the loop over the stokes dimension.
-	      for (Index m = 0; l < N_i; ++m)
+          // now the loop over the stokes dimension.
+          //(CE:) in the middle was l instead of m
+	      for (Index m = 0; m < N_i; ++m)
 		
 		abs_vec_part[m] += 
 		  (abs_vec_spt(l, m) * pnd_field(l, i, 0, 0));
@@ -335,7 +344,7 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 		  
 		 
 		      // now the loop over the stokes dimension.
-		      for (Index m = 0; l < N_i; ++m)
+		      for (Index m = 0; m < N_i; ++m)
 			
 			abs_vec_part[m] += 
 			  (abs_vec_spt(l, m) * pnd_field(l, i, j, k));
@@ -374,6 +383,9 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
   Index Nza = pha_mat_spt.nbooks();
   Index Naa = pha_mat_spt.npages();
   Index N_i = pha_mat_spt.nrows();
+
+  //(CE:) Resize pha_mat_part:
+  pha_mat_part.resize(Nza, Naa, N_i, N_i);
 
   // Initialisation
   for (Index za_index = 0; za_index < Nza; ++ za_index)
@@ -492,6 +504,10 @@ void ext_matCalc(Matrix& ext_mat,
 {
   Index N_i = ext_mat_part.nrows(); 
   //CloneSize(ext_mat_gas, ext_mat_part){}
+  
+  //(CE:) Define size of ext_mat:
+  ext_mat.resize(N_i, N_i);
+
   ext_mat = ext_mat_part;
   ext_mat += ext_mat_gas;
 
@@ -514,6 +530,10 @@ void abs_vecCalc(Vector& abs_vec,
 {
   Index N_i = abs_vec_part.nelem(); 
   //CloneSize(abs_vec_gas, abs_vec_part){}
+  
+  //(CE:) Resize abs_vec
+  abs_vec.resize(N_i);
+  
   abs_vec = abs_vec_part;
   abs_vec += abs_vec_gas;
 

@@ -1,3 +1,12 @@
+2002-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-155
+		
+	* src/m_scatproperties.cc: Fixed and marked some bugs.
+
+	* src/workspace.cc: Added variables *scat_p_index*, 
+	*scat_lat_index*, *scat_lon_index*.
+
 2002-06-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-154
