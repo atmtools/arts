@@ -1,3 +1,26 @@
+2002-08-15  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-204
+
+	* src/m_scatproperties.cc (abs_vec_gasExample): Added this
+	method.  This method is implemented for test purposes.  It is
+	necessary to have some realistic values of absorption coefficents
+	for radiative transfer calculations. The absorption coefficients
+	calculated using ARTS.1.0 are used in this method and they are
+	interpolated onto the pressure grid used for RT calculations.
+
+	* src/m_scatproperties.cc (ext_mat_gasExample): This method is
+	also for facilitating test calculations.  This gives extinction
+	matrix for gaseous species.  The diagonal elements are the
+	absorption coefficients calculated from abs_vec_gasExample and the
+	off-diagonal elements are zero.  
+
+	* src/methods.cc : Added the above two methods with minimum
+	documentations. 
+	
+	* doc/examples/i_field_example.arts : This is an example control
+	file which can be used to test the scattering RT calculation.
+	
 2002-08-14  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-203

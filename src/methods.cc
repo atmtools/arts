@@ -149,6 +149,22 @@ void define_md_data_raw()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("abs_vec_gasExample"),
+	DESCRIPTION
+	(
+	 "This is only an example method created to perform test \n"
+	 "calculations.\n"
+	 ),
+	OUTPUT(abs_vec_gas_),
+	INPUT(p_grid_,  atmosphere_dim_, stokes_dim_, scat_p_index_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+  
   md_data_raw.push_back
     ( MdRecord
       ( NAME("amp_matCalc"),
@@ -750,7 +766,20 @@ void define_md_data_raw()
 	GINPUT( ),
 	KEYWORDS( ),
 	TYPES( )));
-
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ext_mat_gasExample"),
+	DESCRIPTION
+	(
+	 "This is only an example method created to perform test \n"
+	 "calculations.\n"
+	 ),
+	OUTPUT(ext_mat_gas_),
+	INPUT(abs_vec_gas_, atmosphere_dim_, stokes_dim_, scat_p_index_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ext_mat_partCalc"),

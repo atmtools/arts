@@ -23,6 +23,7 @@
 #include "auto_md.h"
 #include "cloudbox.h"
 #include "interpolation.h"
+#include "make_vector.h"
 
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
@@ -276,8 +277,8 @@ void ext_mat_partCalc(
 	    }
 	}
     }
-  //cout <<  "The Extinction Matrix : " << " \n " 
-  //   <<ext_mat_part << " \n " ;
+  cout <<  "The Extinction Matrix for particle: " << " \n " 
+     <<ext_mat_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       
@@ -354,8 +355,8 @@ void abs_vec_partCalc(
 	}
     }
   
-  //cout <<  "The Absorption Vector : " << " \n " 
-  //   <<abs_vec_part << " \n " ;
+  cout <<  "The Absorption Vector for particle : " << " \n " 
+     <<abs_vec_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       // this is a loop over the different particle types
@@ -376,6 +377,118 @@ void abs_vec_partCalc(
     }
 } 
 
+//! Method for creating an absorption vector for gases for test purposes
+/*! 
+  
+The aim of this method is just to give a reasonable value for absorption 
+coefficients that can be used to test the radiative transfer calculation.
+This method takes pressure grids and absorption values corresponding to them
+from ARTS.1.0 and interpolates it onto the pressure grid under consideration 
+for radiative transfer calculation.
+
+\param abs_vec_gas Output : The gaseous absorption vector
+\param p_grid Input : pressure grid on whiich the radiative transfer 
+calculations are done
+\param atmosphere_dim Input : atmospheric dimension(here  considered only 1D)
+\param stokes_dim Input : stokes dimension
+\param scat_p_index Input : The index corresponding to the pressure grid
+*/
+void abs_vec_gasExample(Vector& abs_vec_gas,
+			const Vector& p_grid,
+			const Index& atmosphere_dim,
+			const Index& stokes_dim,
+			const Index& scat_p_index) 
+{
+  abs_vec_gas.resize( stokes_dim );
+  Vector abs_gas( p_grid.nelem() );
+  if (atmosphere_dim == 1){
+    //This is a typical absorption calculated from arts.1.0
+    MakeVector typical_abs(0.016414284648894,
+			   0.00065204114511011,
+			   0.000156049846860233,
+			   4.54320063675961e-05,
+			   1.52191594739311e-05,
+			   5.13136166733503e-06,
+			   1.37451108959307e-06,
+			   6.70848900165098e-07,
+			   4.06285725309355e-07,
+			   2.57499613700983e-07);
+    //The pressure grid for the above calculation
+    MakeVector typical_abs_pgrid(100000,
+				 77426.3682681127,
+				 59948.4250318941,
+				 46415.8883361278,
+				 35938.1366380463,
+				 27825.5940220712,
+				 21544.3469003188,
+				 16681.0053720006,
+				 12915.4966501488,
+				 10000);
+    //p_grid is the new pressure grid
+    ArrayOfGridPos p_gp(p_grid.nelem());
+
+    gridpos(p_gp, typical_abs_pgrid, p_grid);
+
+    Matrix itw(p_grid.nelem(),2);
+
+    interpweights(itw, p_gp);
+    //interpolating absorption coefficients from typical_abs_pgrid to p_grid
+    interp(abs_gas, itw, typical_abs, p_gp);
+      
+    for (Index i = 0; i<stokes_dim; ++i)
+      {
+	if (i == 0){
+	  abs_vec_gas[i] = abs_gas[scat_p_index];
+	}
+	else{
+	  abs_vec_gas[i] = 0.0;
+	}
+      }
+  }
+  
+}  
+//! Method for creating an extinction matrix for gases for test purposes
+/*! 
+
+ This method is also for test purposes and is very simple.  It takes 
+absorption coefficients from the method abs_vec_gasExample and put them 
+along the diagonal of a 4 X 4 matrix (if stokes_dim = 4) and the 
+off-diagonal elements are set to zero.
+
+\param ext_mat_gas Output : The extinction matrix corresponding to gaseous 
+species
+\param abs_vec_gas Input : absorption from gaseous species
+\param atmosphere_dim Input : atmospheric dimension
+\param stokes_dim Input : stokes dimension
+\param scat_p_index Input : the pressure index corresponding to the radiative 
+transfer calculation
+*/
+void ext_mat_gasExample(Matrix& ext_mat_gas,
+			const Vector& abs_vec_gas,
+			const Index& atmosphere_dim,
+			const Index& stokes_dim,
+			const Index& scat_p_index)
+{
+  ext_mat_gas.resize(stokes_dim, stokes_dim);
+  if (atmosphere_dim == 1){
+  
+    for (Index i =0; i < stokes_dim; ++i)
+      {
+	for (Index j =0; j < stokes_dim; ++j)
+	  {
+	    
+	    if ( i == j){
+	      
+	      ext_mat_gas(i,j) = abs_vec_gas[i];
+	    }
+	    else{
+	      ext_mat_gas(i,j) = 0.0;
+	    }
+	  }
+      }
+  }
+ 
+}
 
 //! Phase Matrix for the particle 
 /*! 

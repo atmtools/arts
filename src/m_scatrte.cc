@@ -108,6 +108,7 @@ void convergence_flagAbs(//WS Output:
                       // Keyword:
                       const Vector& epsilon)
 {
+  cout<<"i_field"<<"  "<<i_field<<"\n";
   //Check the input:
   assert( convergence_flag == 0 );
   assert( atmosphere_dim == 1 || atmosphere_dim == 3 );
@@ -152,8 +153,7 @@ void convergence_flagAbs(//WS Output:
 	      cout<<"DIFF"<<diff<<"\n";
             } // End loop scat_za_grid.
         }// End loop p_grid.
-    exit(1);
-  } // End 1D atmosphere.
+     } // End 1D atmosphere.
               
   
   //3D atmosphere:
@@ -604,7 +604,7 @@ i_fieldUpdate1D(// WS Output:
 		      pha_mat_spt,
 		      scat_za_grid, 
                       scat_aa_grid);
-    
+     
       //cout << "abs_vec_spt is calculated"<<"\n";
 	}//STR : this loop closing
     }//STR : this loop closing
@@ -664,7 +664,42 @@ i_fieldUpdate1D(// WS Output:
 	  //Get the coefficients for the radiative transfer:
           // We need the average value for the traversed layer.
 	  
-          //1.Extinction Matrix.
+          
+          //3. Absorption Vector.
+          
+          // Calculate abs_vec for the given point:
+          Vector abs_vec_0(stokes_dim); 
+          scat_p_index = p_index;
+          abs_vec_agenda.execute();
+          abs_vec_0 = abs_vec;
+
+          // Calculate abs_vec for the grid point above:
+          Vector abs_vec_above(stokes_dim);
+          scat_p_index = p_index + 1;
+          abs_vec_agenda.execute();
+          abs_vec_above = abs_vec;
+
+          // Calculate abs_vec for the grid point below:
+          Vector abs_vec_below(stokes_dim);
+          scat_p_index = p_index - 1;
+          abs_vec_agenda.execute();
+          abs_vec_below = abs_vec;
+
+          // Calculate the mean value:
+          for( Index i=0; i<stokes_dim; i++ )
+            {
+              if ( ppath_step.z[0] < ppath_step.z[1] )
+                abs_vec = 0.5*( abs_vec_0[i] + abs_vec_above[i] );
+              else if ( ppath_step.z[0] > ppath_step.z[1] )
+                abs_vec = 0.5*( abs_vec_0[i] + abs_vec_above[i] );
+              else if ( ppath_step.z[0] == ppath_step.z[1] )
+                throw runtime_error(
+                                    "Zenith angle too close to 90°"
+                                    "FIXTHIS!!!!"
+                                    );
+            }
+	  cout<<"abs_vec"<<"  "<<abs_vec<<"\n";
+	 //1.Extinction Matrix.
 	  
           // Calculate ext_mat for the given point:
           Matrix ext_mat_0(stokes_dim, stokes_dim); 
@@ -702,41 +737,8 @@ i_fieldUpdate1D(// WS Output:
               }
             }
 	
-          
-          //3. Absorption Vector.
-          
-          // Calculate abs_vec for the given point:
-          Vector abs_vec_0(stokes_dim); 
-          scat_p_index = p_index;
-          abs_vec_agenda.execute();
-          abs_vec_0 = abs_vec;
-
-          // Calculate abs_vec for the grid point above:
-          Vector abs_vec_above(stokes_dim);
-          scat_p_index = p_index + 1;
-          abs_vec_agenda.execute();
-          abs_vec_above = abs_vec;
-
-          // Calculate abs_vec for the grid point below:
-          Vector abs_vec_below(stokes_dim);
-          scat_p_index = p_index - 1;
-          abs_vec_agenda.execute();
-          abs_vec_below = abs_vec;
-
-          // Calculate the mean value:
-          for( Index i=0; i<stokes_dim; i++ )
-            {
-              if ( ppath_step.z[0] < ppath_step.z[1] )
-                abs_vec = 0.5*( abs_vec_0[i] + abs_vec_above[i] );
-              else if ( ppath_step.z[0] > ppath_step.z[1] )
-                abs_vec = 0.5*( abs_vec_0[i] + abs_vec_above[i] );
-              else if ( ppath_step.z[0] == ppath_step.z[1] )
-                throw runtime_error(
-                                    "Zenith angle too close to 90°"
-                                    "FIXTHIS!!!!"
-                                    );
-            }
-	 
+	  cout<<"ext_mat"<<"  "<<ext_mat<<"\n";
+	  exit(1);
          
           // Get sca_vec and stokes_vec from the fields and calculate
           // the average values for the layer. 
@@ -882,7 +884,9 @@ i_fieldUpdate1D(// WS Output:
 	  // Close all loops.
 	}
     }
-  cout<<i_field<<"\n";
+  //cout<<i_field<<"\n";
+  
+  //exit(1);
 }
 
 
@@ -928,7 +932,6 @@ stokes_vecGeneral(//WS Output and Input:
   // check if the dimensions agree
   assert(is_size(abs_vec, stokes_dim));
   assert(is_size(sca_vec, stokes_dim));
-
 
   //Initialize internal variables:
 
@@ -977,7 +980,7 @@ stokes_vecGeneral(//WS Output and Input:
   for (Index i=0; i<stokes_dim; i++) 
     stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
 
-    
+  
 }
 
 
@@ -1023,8 +1026,9 @@ stokes_vecScalar(//WS Input and Output:
   // coefficients are 1 component vectors.                       
   assert(is_size(abs_vec, stokes_dim)); 
   assert(is_size(sca_vec, stokes_dim));
-
+  
   //Introduce scalar variables:
+  
   
   //Extinction coefficient:
   Numeric ext_coeff = ext_mat(0,0);
@@ -1043,6 +1047,7 @@ stokes_vecScalar(//WS Input and Output:
  
   //Put the first component back into *sto_vec*:
   stokes_vec[0] = stokes_vec1D;
+  
 }
 		
 
@@ -1158,6 +1163,7 @@ scat_fieldCalc(//WS Output:
 		    0);
       }
     
+    
     // Get pha_mat at the grid positions
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
@@ -1172,13 +1178,14 @@ scat_fieldCalc(//WS Output:
 					      Range(joker),
 					      Range(joker));
 		//cout<<"numer of vitrines"<<i_field.nvitrines()<<"\n";
-		ConstVectorView ifield_in = i_field((p_index-cloudbox_limits[0]),
-						    //changed p_index above
-						    0,0,
-						    za_index,
-						    //aa_index,
-						    0,
-						    Range(joker));
+		ConstVectorView ifield_in = 
+		  i_field((p_index-cloudbox_limits[0]),
+			  //changed p_index above
+			  0,0,
+			  za_index,
+			  //aa_index,
+			  0,
+			  Range(joker));
 		
 		// just a multiplication of ifield_in and pha
 		
@@ -1187,15 +1194,16 @@ scat_fieldCalc(//WS Output:
 		for (Index i = 0; i < stokes_dim; i++)
 		  {
 		    
-		    product_field((p_index-cloudbox_limits[0]),//changed p_index
+		    product_field((p_index-cloudbox_limits[0]),
+				  //changed p_index
 				  za_index,
 				  aa_index, 
 				  i) = product_field_vec[i];
 		  }
 	      }
-	    }
+	  }
       }
-	    
+    
 	    /*integration of the product of ifield_in and pha
 	      over zenith angle and azimuth angle grid. It calls
 	      here the integration routine AngIntegrate_trapezoid*/
