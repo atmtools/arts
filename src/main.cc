@@ -53,7 +53,7 @@ void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,
 void polite_goodby()
 {
   cerr << "Try `arts --help' for help.\n";
-  exit(1);
+  arts_exit ();
 }
 
 /** Set the reporting level, either the default or based on
@@ -91,7 +91,7 @@ void set_reporting_level(Index r)
                << "The specified value is " << r << ", which would be\n"
                << "interpreted as screen=" << s << ", file=" << f << ".\n"
                << "Only values of 0-3 are allowed for screen and file.\n";
-          exit(1);
+          arts_exit ();
         }
       messages.screen = s;
       messages.file   = f;
@@ -272,7 +272,7 @@ void option_methods(const String& methods)
   cerr << "The name " << methods << " matches neither `all',\n"
        << "nor the name of a workspace variable, nor the name\n"
        << "of a workspace variable group.\n";
-  exit(1);
+  arts_exit ();
 }
 
 /** React to option `input'. Given the name of
@@ -428,7 +428,7 @@ void option_input(const String& input)
   // a variable nor a variable group.
   cerr << "The name " << input << " matches neither the name of a\n"
        << "workspace variable, nor the name of a workspace variable group.\n";
-  exit(1);
+  arts_exit ();
 }
 
 
@@ -518,7 +518,7 @@ void option_workspacevariables(const String& workspacevariables)
   // If we are here, then the user specified nothing that makes sense.
   cerr << "The name " << workspacevariables << " matches neither `all',\n" 
        << "nor the name of a workspace method.\n";
-  exit(1);
+  arts_exit ();
 }
 
 
@@ -565,7 +565,7 @@ void option_describe(const String& describe)
   // If we are here, then the given name does not match anything.
   cerr << "The name " << describe
        << " matches neither method nor variable.\n";
-  exit(1);      
+  arts_exit ();      
 }
 
 
@@ -592,6 +592,7 @@ void check_built_headers()
   assert( N_WSV        == wsv_data.nelem()        );
 
 }
+
 
 /** This is the main function of ARTS. (You never guessed that, did you?)
     The getopt_long function is used to parse the command line parameters.
@@ -635,14 +636,20 @@ int main (int argc, char **argv)
       cout << full_name
         << " (compiled " << __DATE__ << " " << __TIME__
         << " on " << OS_NAME << " " << OS_VERSION << ")" << endl
-        << "Features included or not: " << endl << "  "
+        << "Features enabled/disabled in this build: " << endl
+        << "  "
+        << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
+        << " precision" << endl
+        << "  "
 #ifndef HDF_SUPPORT
         << "no "
 #endif
         << "HDF support" << endl
         << "  "
-        << ((sizeof (Numeric) == sizeof (double)) ? "double" : "float")
-        << " precision" << endl;
+#ifndef HAVE_MPI
+        << "no "
+#endif
+        << "MPI support" << endl;
       return(0);
     }
 
@@ -821,7 +828,7 @@ int main (int argc, char **argv)
     {
       cerr << x.what() << "\n"
            << "I have to be able to write to my report file.";
-      exit(1);
+      arts_exit ();
     }
 
   // Now comes the global try block. Exceptions caught after this
@@ -870,7 +877,7 @@ int main (int argc, char **argv)
   catch (runtime_error x)
     {
       out0 << x.what() << "\n";
-      exit(1);
+      arts_exit ();
     }
 
   out1 << "Goodbye.\n";
