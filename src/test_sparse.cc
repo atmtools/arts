@@ -227,10 +227,10 @@ void test41()
 
   cout << "Testing with a fully occupied matrix:\n";
 
-  for ( Index r=0; r<4; r++ )
-    for ( Index c=0; c<5; c++ )
+  for ( Index ri=0; ri<4; ri++ )
+    for ( Index ci=0; ci<5; ci++ )
       {
-        B.rw(r,c) = r*10+c;
+        B.rw(ri,ci) = ri*10+ci;
       }
 
   cout << "B:\n" << B << "\n";
