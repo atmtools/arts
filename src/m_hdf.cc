@@ -36,6 +36,8 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#ifdef HDF_SUPPORT
+
 #include <hdf.h>
 #include <math.h>
 #include "arts.h"
@@ -1810,3 +1812,4 @@ void LosReadBinary(
   binfile_close( fid, filename );
 }
 
+#endif // HDF_SUPPORT
