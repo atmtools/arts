@@ -543,8 +543,8 @@ void GasAbsLookup::Extract( Matrix&         sga,
   GridPos pgp;
   gridpos( pgp,
            p_grid,
-           p ); 
-  
+           p );
+
   // This bit is obsolete, we do linear interpolation in p!
   //   Vector log_p_grid( n_p_grid );
   //   transform( log_p_grid,
@@ -577,11 +577,11 @@ void GasAbsLookup::Extract( Matrix&         sga,
           // Verify, that abs has the right dimensions for this case:
           assert( is_size( xsec,
                            1,          // temperature perturbations
-                           n_species,  // species  
+                           n_species,  // species
                            n_f_grid,   // frequency grid points
-                           n_p_grid    // pressure levels      
+                           n_p_grid    // pressure levels
                            ) );
-          
+
           // Loop over frequency:
           for ( Index s=f_start; s<f_extent; ++s )
             {
@@ -658,7 +658,7 @@ void GasAbsLookup::Extract( Matrix&         sga,
               t_grid += t_ref[pi];
 
               // Temperature grid position:
-              GridPos tgp;       // only a scalar 
+              GridPos tgp;       // only a scalar
               gridpos( tgp, t_grid, T );
 
               // Temperature interpolation weights:

@@ -109,6 +109,8 @@ arts_SOURCES = \
 	refraction.cc \
 	rte.cc \
 	rte.h \
+	sensor.cc \
+	sensor.h \
 	special_interp.cc \
 	special_interp.h \
 	species_data.cc \
@@ -435,6 +437,8 @@ test_zeemanproperties_SOURCES = \
 	refraction.cc \
 	rte.cc \
 	rte.h \
+	sensor.cc \
+	sensor.h \
 	special_interp.cc \
 	special_interp.h \
 	species_data.cc \

@@ -29,6 +29,7 @@
 #define describe_h
 
 #include "matpackVII.h"
+#include "mystring.h"
 
 string describe( ConstTensor7View x );
 string describe( ConstTensor6View x );

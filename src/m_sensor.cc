@@ -26,7 +26,7 @@
   \author Mattias Ekström <ekstrom@rss.chalmers.se>
   \date   2003-02-13
 
-  \brief  Workspace functions releated to sensor modelling variables.
+  \brief  Workspace functions related to sensor modelling variables.
 
   These functions are listed in the doxygen documentation as entries of the
   file auto_md.h.
@@ -47,12 +47,13 @@
 #include "ppath.h"
 #include "special_interp.h"
 #include "xml_io.h"
+#include "sensor.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! SensorIntegrationVector
+//! sensorIntegrationVector
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -73,16 +74,10 @@ void SensorIntegrationVector(
         const String&   f_grid_name,
         const String&   g_grid_name )
 {
-  //Create a reference grid vector containing all f_grid and g_grid
-  //strictly sorted.
-  Vector x_grid( f_grid.nelem() + g_grid.nelem() );
-
-  //Add numbers from f_grid and g_grid in a sorted way.
-  //This is maybe an awkward way to do it.
-  Index i_f = 0, i_g = 0;
-  for( Index i=0; i<x_grid.nelem(); i++ ) {
-    //plocka värden från vektorerna i rätt ordning, skippa ifall det matchar
-  }
+  //Call sensor_integration_vector in sensor.cc
+  h_out = sensor_integration_vector( f_values, f_grid, g_grid);
 
 }
+
+
 

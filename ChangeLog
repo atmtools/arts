@@ -1,8 +1,24 @@
+2003-02-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-464
+
+	* src/sensor.cc (sensor_integration_vector): Added file and created 
+	function that calculates the (row) vector that multiplied with an 
+	unknown (column) vector approximates the integral of products between 
+	two functions, where the two vectors are the quantizied representation
+	of the functions. See ARTS 1 User Guide, chapter 7 Sensor modelling 
+	for an in-depths explanation.
+
+	* src/sensor.h: Added the file.
+
+	* src/describe.h: Added line; #include "mystring.h". We need it for
+	the compilation.
+
 2003-02-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-463
 
-	* src/rte.cc (get_radiative_background): Fixed a bug for cases with 
+	* src/rte.cc (get_radiative_background): Fixed a bug for cases with
 	ground reflection. Bug reported by Sreerekha. The bug had no effect
 	for a blackbody ground.
 
