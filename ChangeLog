@@ -1,3 +1,14 @@
+2002-12-17  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-339
+
+	* src/Makefile.am: Merged changes from arts-1-0 branch.
+	Reintroduced BUILT_SOURCES to fix bug discovered by Christian,
+	removed special targets and explicit dependencies for make_auto*.
+
+	* src/logic.cc: Include algorithm for max function.
+	Include cmath instead of math.h
+
 2002-12-17  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-338
