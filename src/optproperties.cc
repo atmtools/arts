@@ -320,6 +320,7 @@ void interpolate_scat_angle(//Output:
                             const Numeric& za_inc_rad,
                             const Numeric& aa_inc_rad)
 {
+  // cout << "Interpolation on scattering angle" << endl;
   assert (pha_mat_data.ncols() == 6);
 
   // Calculation of the scattering angle:
@@ -388,7 +389,7 @@ void pha_mat_labCalc(//Output:
   const Numeric theta = RAD2DEG * theta_rad;
   const Index stokes_dim = pha_mat_lab.ncols();
 
-  
+  // cout << "Transformation of phase matrix:" <<endl; 
   
   // Scattering matrix elements:
   const Numeric F11 = pha_mat_int[0];

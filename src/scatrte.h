@@ -42,8 +42,8 @@ void cloud_fieldsCalc(// Output:
                         Index& scat_p_index,
                         Index& scat_lat_index,
                         Index& scat_lon_index, 
-                        Tensor3View ext_mat,
-                        MatrixView abs_vec,  
+                        Tensor3& ext_mat,
+                        Matrix& abs_vec,  
                         // Input:
                         const Index& scat_za_index,
                         const Index& scat_aa_index,

@@ -705,7 +705,7 @@ void ext_matAddPart(
         }
 
       //Add particle extinction matrix to *ext_mat*.
-      ext_mat += ext_mat_part;
+      ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
 
     }
 
@@ -716,7 +716,7 @@ void ext_matAddPart(
   
   This function sums up the absorption vectors for all particle 
   types weighted with particle number density
-  \param abs_vec_part Output : physical absorption vector 
+  \param abs_vec Output : physical absorption vector 
   for the particles for given angles. 
   \param abs_vec_spt Input : absorption for the single particle type
   \param pnd_field Input : particle number density givs the local 

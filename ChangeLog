@@ -1,3 +1,25 @@
+2003-06-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-570
+
+	* src/m_scatrte.cc (i_fieldUpdataSeq3D): Small modifications.
+
+	* src/scatrte{.cc,.h} (cloud_fieldsCalc): Fixed a bug here. 
+	I used VectorView instead of Vector& for a workspace variable which is 
+	initialized inside the function. This changes the address of the 
+	workspace variable.
+	(cloud_ppath_update3D): Only a small modification.
+	
+	* src/optproperties{.cc, .h}: Fixed a bug in (ext_matTransform)
+
+	The 3D calculations are working now with the new database and the
+	sequential update. But it is still very slow as the transformation 
+	of the phase matrix from the scattering frame to the laboratory frame
+	has to be done for each point and each angle combination. This part 
+	takes most of the time. 
+	(1 iteration for 2 stokes dimensions on my PC takes 2:50 h!, more than
+	2 hours for the calculation of the scattering integral!)
+	
 2003-06-06  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-569

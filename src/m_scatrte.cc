@@ -2051,11 +2051,20 @@ void i_fieldUpdateSeq3D(// WS Output:
   // results, so they are 
   // calulated for interpolated VMRs, temperature and pressure.
   
+   // Define shorter names for cloudbox_limits.
+
+  const Index p_low = cloudbox_limits[0];
+  const Index p_up = cloudbox_limits[1];
+  const Index lat_low = cloudbox_limits[2];
+  const Index lat_up = cloudbox_limits[3];
+  const Index lon_low = cloudbox_limits[4];
+  const Index lon_up = cloudbox_limits[5];
+
   // To use special interpolation functions for atmospheric fields we 
   // use ext_mat_field and abs_vec_field:
-  Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+  Tensor5 ext_mat_field(p_up-p_low+1, lat_up-lat_low+1, lon_up-lon_low+1,
                         stokes_dim, stokes_dim, 0.);
-  Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+  Tensor4 abs_vec_field(p_up-p_low+1, lat_up-lat_low+1, lon_up-lon_low+1,
                         stokes_dim, 0.);
 
   //Loop over all directions, defined by scat_za_grid 
@@ -2069,7 +2078,8 @@ void i_fieldUpdateSeq3D(// WS Output:
                            ext_mat, abs_vec, scat_za_index, scat_aa_index,
                            spt_calc_agenda, 
                            opt_prop_part_agenda, cloudbox_limits);
-        
+          
+
           //==================================================================
           // Radiative transfer inside the cloudbox
           //==================================================================
@@ -2085,14 +2095,7 @@ void i_fieldUpdateSeq3D(// WS Output:
           // directions pointing inside the cloudbox we end up with all
           // directions as is should be.
 
-          // Define shorter names for cloudbox_limits.
-
-          const Index p_low = cloudbox_limits[0];
-          const Index p_up = cloudbox_limits[1];
-          const Index lat_low = cloudbox_limits[2];
-          const Index lat_up = cloudbox_limits[3];
-          const Index lon_low = cloudbox_limits[4];
-          const Index lon_up = cloudbox_limits[5];
+         
 
           Vector stokes_vec(stokes_dim,0.);
         
@@ -3516,7 +3519,7 @@ scat_fieldCalcFromAmpMat(//WS Output:
       }//end p_index loop
     
   }//end atmosphere_dim = 1
-  xml_write_to_file("scat_field.xml", scat_field);    
+  //  xml_write_to_file("scat_field.xml", scat_field);    
   //cout<<"scat_field"<<scat_field<<"\n";	
   //arts_exit ();
   

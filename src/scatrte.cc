@@ -80,11 +80,12 @@
 void cloud_fieldsCalc(// Output:
                         Tensor5View ext_mat_field,
                         Tensor4View abs_vec_field,
+                        // Communication variables for *opt_prop_part_agenda*
                         Index& scat_p_index,
                         Index& scat_lat_index,
                         Index& scat_lon_index, 
-                        Tensor3View ext_mat,
-                        MatrixView abs_vec,  
+                        Tensor3& ext_mat,
+                        Matrix& abs_vec,  
                         // Input:
                         const Index& scat_za_index,
                         const Index& scat_aa_index,
@@ -95,9 +96,14 @@ void cloud_fieldsCalc(// Output:
 {
   
   const Index atmosphere_dim = cloudbox_limits.nelem()/2;
+  const Index stokes_dim = ext_mat_field.ncols();
   
   assert( atmosphere_dim == 1 || atmosphere_dim ==3 );
   
+  assert(stokes_dim == ext_mat_field.nrows() &&
+         stokes_dim == abs_vec_field.ncols());
+  
+
   const Index p_low = cloudbox_limits[0];
   const Index p_up = cloudbox_limits[1];
 
@@ -141,18 +147,18 @@ void cloud_fieldsCalc(// Output:
               // output on the screen (no other reason for argument 
               // in agenda.execute).
               opt_prop_part_agenda.execute(scat_za_index ||
-                                           scat_aa_index ||
-                                           scat_p_index-p_low ||
-                                           scat_lat_index- lat_low||
-                                           scat_lon_index- lon_low);
-                      
+                                            scat_aa_index ||
+                                            scat_p_index-p_low ||
+                                            scat_lat_index- lat_low||
+                                            scat_lon_index- lon_low);
+           
               // Store coefficients in arrays for the whole cloudbox.
               abs_vec_field(scat_p_index - p_low, 
                             scat_lat_index - lat_low,
                             scat_lon_index- lon_low,
                             joker) = 
                 abs_vec(0, joker);
-          
+              
               ext_mat_field(scat_p_index - p_low, 
                             scat_lat_index - lat_low,
                             scat_lon_index - lon_low,
@@ -648,8 +654,27 @@ void cloud_ppath_update3D(
                   )
 {
 
+  
   const Index atmosphere_dim = 3;
   const Index stokes_dim = stokes_vec.nelem();
+
+  assert( is_size( i_field, 
+                   (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                   (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                   (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
+                   scat_za_grid.nelem(), 
+                   scat_aa_grid.nelem(),
+                   stokes_dim));
+  
+  assert( is_size( scat_field, 
+                   (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
+                   (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
+                   (cloudbox_limits[5] - cloudbox_limits[4]) + 1,
+                   scat_za_grid.nelem(), 
+                   scat_aa_grid.nelem(),
+                   stokes_dim));
+
+  assert( stokes_vec.nelem() == stokes_dim);
 
   // Grid ranges inside cloudbox:
   const Range p_range = Range(cloudbox_limits[0],
@@ -716,7 +741,7 @@ void cloud_ppath_update3D(
   // reasonable values. 
   // PpathPrint( ppath_step, "ppath");
 
-  const Numeric TOL = 1e-2;  
+  const Numeric TOL = 1e-6;  
   
   // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -806,7 +831,8 @@ void cloud_ppath_update3D(
          cloud_gp_p, cloud_gp_lat, cloud_gp_lon );
 
       // Ppath_step always has 2 points, the starting
-      // point and the intersection point.
+      // point and the intersection point. If more points are included 
+      // it can become larger.
       Tensor3 ext_mat_int(stokes_dim, stokes_dim, 
                           ppath_step.np);
       Matrix abs_vec_int(stokes_dim, ppath_step.np);
@@ -877,30 +903,6 @@ void cloud_ppath_update3D(
              cloud_gp_lat,
              cloud_gp_lon,
              itw_field);
-          //
-          // Stokes vector:
-          //
-          // Interpolation of i_field_old.
-          out3 << "Interpolate i_field_old:\n";
-          interp_atmfield_by_itw
-            (sto_vec_int(i, joker),
-             atmosphere_dim,
-             p_grid[p_range],
-             lat_grid[lat_range],
-             lon_grid[lon_range],
-             i_field(joker, joker, joker, scat_za_index,
-                         scat_aa_index, i),
-             "i_field",
-             cloud_gp_p,
-             cloud_gp_lat,
-             cloud_gp_lon,
-             itw_field);
-          // 
-          // For the radiative transfer equation we 
-          // need the Stokes vector at the intersection
-          // point.
-          //
-          stokes_vec[i] = sto_vec_int(i,ppath_step.np);
         }
       //
       // Planck function
@@ -951,8 +953,13 @@ void cloud_ppath_update3D(
       // 
       // Interpolate pressure, latitude, longitude
       //
-      itw2p( p_int, p_grid, ppath_step.gp_p, itw_field); 
-                       
+      Matrix itw_p(ppath_step.gp_p.nelem(),2);
+      interpweights(itw_p, ppath_step.gp_p);
+
+      itw2p( p_int, p_grid, ppath_step.gp_p, itw_p); 
+      
+      a_vmr_list.resize(N_species);
+       
       // Radiative transfer from one layer to the next,
       // starting at the intersection with the next layer 
       // and propagating to the considered point.
