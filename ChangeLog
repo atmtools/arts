@@ -1,3 +1,60 @@
+2003-12-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-1-740
+
+	* src/methods.cc: removed method "absO2Model" for the moment. An
+	equivalent method will follow later. Added a preliminary method
+	test_zeeman which executes the zeeman agenda for test purposes.
+	This is not a permanent construction. Furthermore the I/O of
+	method absO2ZeemanModel is modified according to the interface to
+	the RT method from which it is called. Additionally a new method 
+	ZeemanO2Settings is introduced which fills two workspace variables
+	named zeeman_o2_onoff and zeeman_o2_pressure_limit. these two
+	workspace variables sets the flag if Zeeman splitting should be
+	considered or not and from which pressure level on the Zeeman
+	effect should be calculated.
+	
+	* src/workspace.cc: definition of the Index workspace variable
+	zeeman_o2_onoff and the numeric variable
+	zeeman_o2_pressure_limit. The variable zeeman_o2_onoff is a flag
+	for turning Zeeman effect in O2 extinction calculation off or on
+	and zeeman_o2_pressure_limit gives the pressure level from which
+	on the O2 Zeemen effect should be considered when zeeman_o2_onoff=1.
+	Furthermore species_index is added as workspace variable. This
+	ArrayOfIndex yields the tag position of key species like N2, O2,
+	H2O, O3, CO2. See also SPECIES_INDEX_* in src/absorption.h for the
+	order of the specified tags.
+	
+	* src/absorption.h: included definitions for species_index which
+	is used to identify key species from the tags. The specified key
+	species are SPECIES_INDEX_N2=0, SPECIES_INDEX_O2=1,
+	SPECIES_INDEX_H2O=2, SPECIES_INDEX_O3=3, SPECIES_INDEX_CO2=4.
+	
+	* src/agendas.cc: geomag_los removed from INPUT in
+	zeeman_prop_agenda. In opt_prop_gas_agenda abs_scalar_gas removed 
+	from INPUT. BOTH ARE PRELIMINARY VERSIONS TO GET ZEEMAN RUNNING. 
+
+	* src/m_abs_o2_models.h: blank, not used at the moment.
+
+	* src/m_abs_o2_models.cc: modified the structure of the oxygen
+	absorption calculation with/without Zeeman splitting. The original
+	Zeeman code is divided into several parts. There are the internal
+	functions CEF (complex) which returns the complex error function
+	according to Hui et al. JQSRT, 1978 which is reproduced in the Janssen
+	book Chapter 2 (P. W. Rosenkranz) p.66. Furthermore the function
+	Zeeman_o2_splitting_factors (void) returns the center frequency
+	shift and intensity scaling factor for the O2 lines due to the
+	Zeeman effect. The function PWRO2Mixing (void) returns the
+	original absorption coefficient with Van Vleck-Weisskopf + line
+	mixing line shape function from the Rosenkranz O2 absorption
+	model. Both, PWRO2Mixing and the function Zeeman_o2_line_splitting
+	(void) are called from the internal function absPWRO2Model which
+	is itself called by the method absO2ZeemanModel.
+	!WARNING! THIS IS STILL AN INTERNAL VERSION AND NOT FOR 
+	SCIENTIFIC USE.
+
+	* doc/examples/o2_can_zeeman_do.arts update to test Zeeman
+
 2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-739

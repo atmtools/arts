@@ -164,7 +164,10 @@ void RteEmissionStd(
        const Tensor3&   t_field,
        const Tensor4&   vmr_field,
        const Agenda&    scalar_gas_absorption_agenda,
-       const Agenda&    opt_prop_gas_agenda )
+       const Agenda&    opt_prop_gas_agenda,
+       const Agenda&    zeeman_prop_agenda,
+       const Index&     zeeman_o2_onoff, 
+       const Numeric&   zeeman_o2_pressure_limit )
 {
   // Relevant checks are assumed to be done in RteCalc
 
@@ -245,6 +248,11 @@ void RteEmissionStd(
 
           scalar_gas_absorption_agenda.execute( ip );
 
+	  if ( (zeeman_o2_onoff == 1) && (rte_pressure < zeeman_o2_pressure_limit) )
+	    {
+	      zeeman_prop_agenda.execute( ip );
+	    }
+ 
           opt_prop_gas_agenda.execute( ip ); 
 
           for( Index iv=0; iv<nf; iv++ )

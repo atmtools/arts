@@ -18,12 +18,7 @@
 #ifndef ABS_O2_MODELS_H_INCLUDED
 #define ABS_O2_MODELS_H_INCLUDED
 
-class ZeemanSettings {
-public:
-  bool zeeman;
-  Numeric altitude;
-  Index quantum_number;
-};
+// Hallo ich bins, der Zeeman!
 
 #endif // ABS_O2_MODELS_H_INCLUDED
 

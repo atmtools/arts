@@ -2528,6 +2528,21 @@ wsv_data.push_back
        ),
       GROUP( Agenda_ )));
 
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "species_index" ),
+      DESCRIPTION
+      (
+       "This ArrayOfIndex yields the tag positions of key species like\n"
+       "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
+       "For example species_index[2] gives the first H2Otag position in the\n"
+       "controle file specified list of tags for which calculations should\n"
+       "be performed."
+  ),
+      GROUP( ArrayOfIndex_ )));
+
+
    wsv_data.push_back
    (WsvRecord
     ( NAME( "stokes_vec" ),
@@ -2898,4 +2913,29 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
  
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "zeeman_o2_onoff" ),
+      DESCRIPTION
+      (
+       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+       "splitting for the microwave range (1-1000 GHz).\n"
+       "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
+       "and if zeeman_o2_onoff=0 the Zeeman effect is omitted."
+       ),
+      GROUP( Index_ )));
+
+ 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "zeeman_o2_pressure_limit" ),
+      DESCRIPTION
+      (
+       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+       "splitting for the microwave range (1-1000 GHz).\n"
+       "This variable sets the upper pressure limit [Pa] at which the\n"
+       " Zeeman splitting is taken into account\n"
+       ),
+      GROUP( Numeric_ )));
+
 }

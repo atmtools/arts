@@ -942,4 +942,15 @@ void refr_index_Boudouris (
               ConstVectorView   t_abs,
               ConstVectorView   h2o_abs );
 
+//=====================================================================
+//           Definitions for species_index
+//=====================================================================
+
+#define SPECIES_INDEX_N2 0
+#define SPECIES_INDEX_O2 1
+#define SPECIES_INDEX_H2O 2
+#define SPECIES_INDEX_O3 3
+#define SPECIES_INDEX_CO2 4
+#define SPECIES_INDEX_COUNT 5
+
 #endif // absorption_h

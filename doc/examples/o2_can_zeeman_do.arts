@@ -10,37 +10,94 @@ output_file_formatSetAscii{}
 
 # Create frequency grid:
 VectorNLinSpace(f_grid){
+  start =  50.0000e9
+  stop  =  70.0000e9
+  n     =  500
 #  start =  30.0000e9
 #  stop  =  90.0000e9
 #  n     =  120
-  start =  115.0000e9
-  stop  =  125.0000e9
-  n     =  10
+#  start =  115.0000e9
+#  stop  =  125.0000e9
+#  n     =  10
 }
+# 0=false 1=true
+ZeemanO2Settings{
+	         ZeemanO2OnOff = 0
+	         ZeemanO2PressureLimit = 1.000e3
+	        }
+
+
 
 # ... and write to file.
 WriteXML(f_grid){""}
 
 # Create a pressure vector [Pa]:
-VectorSetExplicitly(abs_p){[3.0000e4, 3.0000e2, 3.0000e0]}
+NumericSet(rte_pressure){5.0000e2}
 
 # Create a temperature vector [K]:
-VectorSetExplicitly(abs_t){[235.0e0, 276.0e0, 196.0e0]}
+NumericSet(rte_temperature){276.0e0}
 
 # Create a vmr vector [absolute numbers]:
-VectorSetExplicitly(abs_vmr){[1.000000e-02 , 1.000000e-04 , 2.000000e-06 ]}
+#                                  O2        H2O
+VectorSetExplicitly(rte_vmr_list){[0.2100e0, 1.000000e-04]}
+
+ReadXML(species_index){"species_index.xml"}
+
+
 
 # Write these to files:
-WriteXML(abs_p){""}
-WriteXML(abs_t){""}
-WriteXML(abs_vmr){""}
+#WriteXML(){""}
+#WriteXML(abs_t){""}
+#WriteXML(abs_vmr){""}
+
+IndexSet(stokes_dim){
+	value = 4
+}
+
+IndexSet(f_index){
+	value = -1
+}
+
+AgendaSet(zeeman_prop_agenda)
+{
+	StringSet(abs_model){"PWR98"}
+	VectorSetExplicitly(abs_user_parameters){[]}
+	absO2ZeemanModel{}
+}
+  	
+
+
+  AgendaSet(zeeman_prop_agenda)
+   {
+	StringSet(abs_model){"PWR98"}
+	VectorSetExplicitly(abs_user_parameters){[]}
+	absO2ZeemanModel{}
+   }
+  
+  AgendaSet( opt_prop_gas_agenda ) {
+    ext_matInit{}
+    abs_vecInit{}
+    ext_matAddGasZeeman{}
+    abs_vecAddGasZeeman{}
+	
+  }
+
+ReadXML(geomag_los){"geomag_los.xml"}
+
+IndexSet(ppath_index){0}
+
+ test_zeeman{}
+
+
 
 # ------------------------------------------------------------------
 # O2 Zeeman absorption model
-StringSet(abs_model){"PWR98"}
-VectorSetExplicitly(abs_user_parameters){[]}
-absPWRO2Model{}
-WriteXML(abs){"o2_can_do_abs_PWRO2Model_file.xml"}
+#StringSet(abs_model){"PWR98"}
+#VectorSetExplicitly(abs_user_parameters){[]}
+#absO2Model{}
+#WriteXML(abs){"absO2Model_file.xml"}
 # ------------------------------------------------------------------
+#Print(ext_mat_zee){1}
+#Print(abs_vec_zee){1}
 
 }

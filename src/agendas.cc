@@ -261,8 +261,7 @@ void define_agenda_data()
         "   abs_scalar_gas : Scalar gas absorption. \n"
         ),
        OUTPUT( ext_mat_, abs_vec_ ),
-       INPUT( ext_mat_, abs_vec_, 
-              abs_scalar_gas_)));
+       INPUT( ext_mat_, abs_vec_)));
 
 
  agenda_data.push_back
@@ -591,7 +590,7 @@ void define_agenda_data()
         "  geomag_los: Magnetic field along LOS plus angle  \n"
         "\n"
           ),
-       OUTPUT( geomag_los_ ),
+       OUTPUT(  ),
        INPUT(  )));
 
 

@@ -311,10 +311,55 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
-
+  /*
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("absO2Model"),
+        DESCRIPTION
+        (
+         "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
+	 " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
+         "Output:\n"
+         "   abs    : absorption coefficients [1/m], \n"
+         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
+         "\n"
+         "Input:\n"
+         "   f_grid              : Frequency grid [Hz].\n"
+         "   abs_p               : List of pressures [Pa].\n"
+         "   abs_t               : List of temperatures [K].\n"
+         "                         (Must have same length as abs_p!)\n"
+         "   abs_vmr             : List of H2O volume mixing ratios [absolute number].\n"
+         "                         Must have same length as abs_p!\n"
+         "   abs_model           : String specifying the model to use.\n"
+         "                         Allowed options are:\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\" or \"*Scaling\". \n"
+         "                         In that case, abs_user_parameters must have \n"
+         "                         4 or 1 element(s) respectively.\n"
+	 "                         abs_model==\"user\": \n"
+         "                         1. O2 Continuum scaling factor\n"
+         "                         2. O2 line strength scaling factor\n"
+         "                         3. O2 line pressure broadening scaling factor\n"
+         "                         4. O2 line mixing scaling factor\n"
+	 "                         abs_model==\"*Scaling\": \n"
+         "                         1. O2 absorption overall scaling factor\n"
+         "                         Note:\n"
+         "                         abs_user_parameters must be empty if one of the\n"
+         "                         pre-defined models is used."
+        ),
+        OUTPUT( abs_ ),
+        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+                abs_model_, abs_user_parameters_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+  */
+
+
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("absO2ZeemanModel"),
         DESCRIPTION
         (
          "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
@@ -347,9 +392,12 @@ void define_md_data_raw()
          "                         abs_user_parameters must be empty if one of the\n"
          "                         pre-defined models is used."
         ),
-        OUTPUT( abs_ ),
-        INPUT(  geomag_los_, f_grid_, abs_p_, abs_t_, abs_vmr_,
-                abs_model_, abs_user_parameters_ ),
+        OUTPUT( ext_mat_zee_, abs_vec_zee_),
+        INPUT(  geomag_los_, f_grid_, f_index_, 
+                zeeman_o2_onoff_, zeeman_o2_pressure_limit_, 
+                ppath_index_, rte_pressure_, 
+		rte_temperature_,rte_vmr_list_, species_index_,
+                abs_model_, abs_user_parameters_, stokes_dim_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -3229,7 +3277,8 @@ md_data_raw.push_back
         INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
                vmr_field_, scalar_gas_absorption_agenda_, 
-               opt_prop_gas_agenda_ ),
+               opt_prop_gas_agenda_, 
+               zeeman_prop_agenda_, zeeman_o2_onoff_, zeeman_o2_pressure_limit_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -4781,6 +4830,24 @@ md_data_raw.push_back
                Numeric_t, Numeric_t )));
 
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ZeemanO2Settings"),
+        DESCRIPTION
+        (
+         "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+         "splitting for the microwave range (1-1000 GHz)\n"
+         "\n"
+         "Keywords:\n"
+         "   ZeemanOnOff   : The start value. \n"
+         "   PressureLimit : The end value.   \n"  
+        ),
+        OUTPUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_ ),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "ZeemanO2OnOff", "ZeemanO2PressureLimit" ),
+        TYPES(    Index_t,       Numeric_t )));
 
 
 
@@ -5772,6 +5839,21 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "filename" ),
         TYPES(    String_t   )));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("test_zeeman"),
+        DESCRIPTION(
+                    "\n"
+		    ),
+	OUTPUT(),
+        INPUT(zeeman_prop_agenda_, opt_prop_gas_agenda_),
+        GOUTPUT( ),
+        GINPUT(),
+        KEYWORDS( ),
+        TYPES()));
+
+
 #endif // HDF_SUPPORT
 
 
