@@ -12,8 +12,6 @@ bin_PROGRAMS = arts
 
 # Set libraries:
 
-LDADD = -lmfhdf -ldf -ljpeg -lz
-
 # not needed at the moment: -ljpeg -lnsl -lm
 
 arts_SOURCES = \
@@ -83,6 +81,14 @@ arts_DEPENDENCIES= \
 	auto_wsv.h \
 	auto_wsv_groups.h \
 	auto_wsv_pointers.cc
+
+methods.o:
+	$(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc
+
+species_data.o:
+	$(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
+	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
 arts: $(arts_DEPENDENCIES) $(arts_OBJECTS)
 	@rm -f arts
