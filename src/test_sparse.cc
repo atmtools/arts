@@ -268,6 +268,26 @@ void test43()
   cout << "A now:\n" << A << "\n";
 }
 
+void test44()
+{
+  cout << "Test to insert row in sparse:\n";
+
+  Vector v(5,0.0);
+
+  Sparse B(4,5);
+  Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
+  Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
+  for ( Index i=0; i<9; i++ )
+    B.rw(r[i],c[i]) = i+1;
+
+  cout << "B:\n" << B << "\n";
+  cout << "v:\n" << v << "\n";
+
+  B.insert_row(3, v);
+  
+  cout << "B (after insertion):\n" << B << "\n";
+}
+
 int main()
 {
   //  test3();
@@ -276,7 +296,8 @@ int main()
   //  test40();
   //  test41();
   //  test42();
-  test43();
+  //  test43();
+  test44();
 
   return 0;
 }

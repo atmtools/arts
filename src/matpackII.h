@@ -64,6 +64,9 @@ public:
   Sparse();
   Sparse(Index r, Index c);
   Sparse(const Sparse& m);
+  
+  // Insert functions
+  void insert_row(Index r, Vector v);
 
   // Resize function:
   void resize(Index r, Index c);

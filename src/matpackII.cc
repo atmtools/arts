@@ -233,7 +233,7 @@ Sparse::Sparse() :
 Sparse::Sparse(Index r, Index c) :
   mdata(new std::vector<Numeric>),
   mrowind(new std::vector<Index>),
-  mcolptr(new std::vector<Index>(c+1,0)),    
+  mcolptr(new std::vector<Index>(c+1,0)),
   mrr(r),
   mcr(c)
 {
@@ -276,9 +276,183 @@ Sparse::~Sparse()
   delete mcolptr;
 }
 
+//! Insert row function
+/*!
+  Inserts a Vector as row of elements at the given position.
+  
+  The row index must agree with the size of the matrix. This
+  function can not be used to expand the matrix.
+  Only non-zero values will be stored. If the destination row
+  already exist it will be overwritten.
+
+  \param r Where to insert the row
+  \param v Vector to be inserted.
+
+  \author Mattias Ekström <ekstrom@rss.chalmers.se>
+  \date   2003-08-11
+*/
+void Sparse::insert_row(Index r, Vector v)
+{
+  // Check if the row index and the Vector length are valid
+  assert( 0<=r );
+  assert( r<mrr );
+  assert( v.nelem()==mcr );
+
+  // Calculate number of non-zero elements in Vector v.
+  Index vnnz=0;
+  for (Index i=0; i<v.nelem(); i++)
+    {
+      if (v[i]!=0)
+        {
+          vnnz++;
+        }
+    }
+
+  // Count number of already existing elements in this row. Create
+  // reference mrowind and mdata vector that copies of the real mrowind and
+  // mdata. Resize the real mrowind and mdata to the correct output size.
+  Index rnnz = vnnz - count(mrowind->begin(),mrowind->end(),r);
+  std::vector<Index> mrowind_ref(mrowind->size());
+  copy(mrowind->begin(), mrowind->end(), mrowind_ref.begin());
+  std::vector<Numeric> mdata_ref(mdata->size());
+  copy(mdata->begin(), mdata->end(), mdata_ref.begin());
+  mrowind->resize(mrowind_ref.size()+rnnz);
+  mdata->resize(mdata_ref.size()+rnnz);
+
+  // Create iterators to the output vectors to keep track of current
+  // positions.
+  std::vector<Index>::iterator mrowind_it = mrowind->begin();
+  std::vector<Numeric>::iterator mdata_it = mdata->begin();
+
+  // Create a variable to store the change to mcolptr for each run
+  Index colptr_mod = 0;
+
+  // Loop through Vector v and insert the non-zero elements.
+  for (Index i=0; i<v.nelem(); i++)
+    {
+      // Get mdata- and mrowind iterators to start and end of this
+      // (the i:th) reference column.
+      std::vector<Numeric>::iterator dstart =
+        mdata_ref.begin()+(*mcolptr)[i];
+      std::vector<Numeric>::iterator dend =
+        mdata_ref.begin()+(*mcolptr)[i+1];
+      std::vector<Index>::iterator rstart =
+        mrowind_ref.begin()+(*mcolptr)[i];
+      std::vector<Index>::iterator rend =
+        mrowind_ref.begin()+(*mcolptr)[i+1];
+
+      // Apply mcolptr change now that we have the iterators to the
+      // data and row indices.
+      (*mcolptr)[i] = colptr_mod;
+
+      if (v[i]!=0)
+        {
+          // Check if r exist within this column, and get iterator for
+          // mdata
+          std::vector<Index>::iterator rpos = find(rstart,rend,r);
+          std::vector<Numeric>::iterator dpos = dstart+(rpos-rstart);
+          if (rpos!=rend)
+            {
+              // The index was found, replace the value in mdata with the
+              // value from v.
+              *dpos = v[i];
+
+              // Copy this column to the ouput vectors.
+              copy(rstart,rend,mrowind_it);
+              copy(dstart,dend,mdata_it);
+
+              // Adjust the position iterators accordingly.
+              mrowind_it += rend-rstart;
+              mdata_it += dend-dstart;
+
+              // Set the mcolptr step, for next loop
+              colptr_mod = (*mcolptr)[i]+(rend-rstart);
+            }
+          else
+            {
+              // The row index was not found, look for the first index
+              // greater than r
+              rpos = find_if(rstart,rend,bind2nd(greater<Index>(),r));
+              dpos = dstart+(rpos-rstart);
+
+              // Copy the first part of the column to the output vector.
+              copy(rstart,rpos,mrowind_it);
+              copy(dstart,dpos,mdata_it);
+
+              // Make sure mrowind_it and mdata_it points at the first
+              // 'empty' position.
+              mrowind_it += rpos-rstart;
+              mdata_it += dpos-dstart;
+
+              // Insert the new value from v in mdata and the row index r in
+              // mrowind.
+              *mrowind_it = r;
+              *mdata_it = v[i];
+
+              // Again, make sure mrowind_it and mdata_it points at the
+              // first 'empty' position.
+              mrowind_it++;
+              mdata_it++;
+
+               // Copy the rest of this column to the output vectors.
+              copy(rpos,rend,mrowind_it);
+              copy(dpos,dend,mdata_it);
+
+              // Adjust the iterators a last time
+              mrowind_it += rend-rpos;
+              mdata_it += dend-dpos;
+
+              // Set the mcolptr step, for next loop
+              colptr_mod = (*mcolptr)[i]+(rend-rstart+1);
+            }
+        }
+      else
+        {
+          // Check if r exist within this column, and get iterator for
+          // mdata
+          std::vector<Index>::iterator rpos = find(rstart,rend,r);
+          std::vector<Numeric>::iterator dpos = dstart+(rpos-rstart);
+          if (rpos!=rend)
+            {
+              // The index was found and we use remove_copy to copy the rest
+              // of the column to mrowind_new and mdata_new.
+              remove_copy(rstart,rend,mrowind_it, *rpos);
+              remove_copy(dstart,dend,mdata_it, *dpos);
+
+              // Increase the mrowind_it and mdata_it
+              mrowind_it += rend-rstart-1;
+              mdata_it += dend-dstart-1;
+
+              // Set the mcolptr step, for next loop
+              colptr_mod = (*mcolptr)[i]+(rend-rstart-1);
+            }
+          else
+            {
+              // The row index was not found, all we need is to copy this
+              // columns to the output mrowind and mdata vectors.
+              copy(rstart,rend,mrowind_it);
+              copy(dstart,dend,mdata_it);
+
+              // Adjust the mrowind_it and mdata_it iterators
+              mrowind_it += rend-rstart;
+              mdata_it += dend-dstart;
+
+              // Set the mcolptr step, for next loop
+              colptr_mod = (*mcolptr)[i]+(rend-rstart);
+            }
+        }
+    }
+  // Apply mcolptr change for the one extra mcolptr element.
+  *(mcolptr->end()-1) = colptr_mod;
+
+  // Clean up?
+  //delete mrowind_ref;
+  //delete mdata_ref;
+}
+
 //! Resize function.
 /*!
-  If the size is already correct this function does nothing. 
+  If the size is already correct this function does nothing.
 
   All data is lost after resizing! The new Sparse is not initialised
   so it will be empty.
@@ -347,14 +521,14 @@ Sparse& Sparse::operator=(const Sparse& m)
 }
 
 //! Output operator for Sparse.
-/*!   
+/*!
   \param os Output stream.
   \param v Sparse matrix to print.
 
   \return Output stream.
 
   \author Stefan Buehler <sbuehler@uni-bremen.de>
-  \date   Tue Jul 15 15:05:40 2003 
+  \date   Tue Jul 15 15:05:40 2003
 */
 std::ostream& operator<<(std::ostream& os, const Sparse& v)
 {
@@ -392,7 +566,7 @@ std::ostream& operator<<(std::ostream& os, const Sparse& v)
 
   y = M*x, where M is sparse.
 
-  Output comes first! 
+  Output comes first!
 
   Dimensions of y, M, and x must match. No memory reallocation takes
   place, only the data is copied.
@@ -402,7 +576,7 @@ std::ostream& operator<<(std::ostream& os, const Sparse& v)
   \param x Vector for multiplication.
 
   \author Stefan Buehler <sbuehler@uni-bremen.de>
-  \date   Tue Jul 15 15:05:40 2003 
+  \date   Tue Jul 15 15:05:40 2003
 */
 void mult( VectorView y,
            const Sparse& M,
