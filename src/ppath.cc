@@ -1439,8 +1439,7 @@ void ppath_start_stepping(
   //-- 2D ---------------------------------------------------------------------
   else if( atmosphere_dim == 2 )
     {
-      // Number of points in the pressure and latitude grids
-      const Index   np = p_grid.nelem();
+      // Number of points in the latitude grids
       const Index   nlat = lat_grid.nelem();
 
       // Is the sensor inside the latitude range of the model atmosphere,
