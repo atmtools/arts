@@ -1,50 +1,11 @@
-%
-% To start the document, use
-%  \levela{...}
-% For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
-%
 \levela{Propagation paths and the geoid}
  \label{sec:ppath}
 
-%
-% Document history, format:
-%  \starthistory
-%    date1 & text .... \\
-%    date2 & text .... \\
-%    ....
-%  \stophistory
-%
+
 \starthistory
-  02xxxx & xxx.\\
+  030215 & Written by Patrick Eriksson.\\
 \stophistory
 
-
-%
-% Symbol table, format:
-%  \startsymbols
-%    ... & \artsstyle{...} & text ... \\
-%    ... & \artsstyle{...} & text ... \\
-%    ....
-%  \stopsymbols
-%
-%
-%\startsymbols
-%  \Ind           & -                 & vector/matrix/tensor index           \\
-%  \aInd{\Lat}    & -                 & the \Ind:th latitude                 \\
-%  \VctLng        & -                 & vector length or size of matrix/tensor for a dimension \\
-%  \aVctLng{\Lat} & -                 & length of the latitude grid \\
-%  \Prs           & \artsstyle{p}     & pressure                             \\
-%  \PrsAlt        & \artsstyle{pz}    & pressure altitude                    \\
-%  \Rds           & \artsstyle{r}     & radius from the geoid center         \\
-%  \Alt           & \artsstyle{z}     & geometrical altitude above the geoid \\
-%  \Lat           & \artsstyle{alpha} & latitude                             \\
-%  \Lon           & \artsstyle{beta}  & longitude                            \\
-%  \ZntAng        & \artsstyle{psi}   & zenith angle                         \\
-%  \AzmAng        & \artsstyle{omega} & azimuth angle                      \\
-% \label{symtable:ppath_defs}     
-%\stopsymbols
 
 
 A propagation path is the way the radiation travels to reach the
@@ -98,7 +59,7 @@ type as \artsstyle{ppath}. The path steps are calculated by an agenda
 called \wsvindex{ppath\_step\_agenda}. Example on methods that can
 be used in \artsstyle{ppath\_step\_agenda} are
 \wsmindex{ppath\_stepGeometric} and
-\wsmindex{ppath\_stepGeometricWithLmax}.
+\wsmindex{ppath\_stepRefractionEuler}.
 
 Propagation paths are calculated with the workspace method
 \wsmindex{ppathCalc}. The communication between this method and
@@ -138,11 +99,10 @@ been reached.
 
 The \artsstyle{ppath\_step\_agenda} put in points along the
 propagation path at all crossings with the grids, tangent points and
-points of ground reflection. There exists also methods for
-\artsstyle{ppath\_step\_agenda}, such as
-\artsstyle{ppath\_stepGeometricWithLmax}, that put in additional
-points to ensure that the length along the path between the points
-does not exceed a specified limit.
+points of ground reflection. Additional points can be included in the
+propagation paths. For example, an upper distance between the points
+defining the path can be set for \artsstyle{ppath\_stepGeometric} by
+the keyword \artsstyle{lmax}.
 
 
 
@@ -153,7 +113,7 @@ does not exceed a specified limit.
 A propagation path is represented by a structure of type
 \typeindex{Ppath}. This structure holds also auxiliary variables to
 facilitate the radiative transfer calculations and to speed up the
-interpolation (if performed). The fields of \artsstyle{Ppath}, where
+interpolation. The fields of \artsstyle{Ppath}, where
 the data type is given inside square brackets, are:
 \begin{description}
 
@@ -273,22 +233,6 @@ inside parenthesis above each equation, if not stated explicitly. A
 part of a geometrical propagation path is shown in
 Figure~\ref{fig:ppath:1d2dgeom}.
 
-\begin{figure}[!t]
- \begin{center}
-  \begin{minipage}[c]{0.65\textwidth}
-   \begin{center}
-    \includegraphics*[width=0.9\hsize]{Figs/ppath/geom1d}
-   \end{center}
-  \end{minipage}%
-  \begin{minipage}[c]{0.35\textwidth}
-   \caption{The radius (\Rds) and zenith angle (\ZntAng) for two points along
-     the propagation path, and the distance along the path ($\Delta\PpathLng$)
-     and the latitude difference ($\Delta\Lat$) between these points.}
-   \label{fig:ppath:1d2dgeom}
-  \end{minipage}
- \end{center}
-\end{figure}   
-
 The law of sines gives that the product must $\Rds\sin(\ZntAng)$ be
 constant along the propagation path:
 \begin{equation}
@@ -308,6 +252,22 @@ calculations are based solely on the values for the neighboring
 point, a numerical inaccuracy can accumulate when going from one point
 to next. The propagation path constant is stored in the field
 \artsstyle{constant} of \wsvindex{ppath} and \wsvindex{ppath\_step}.
+
+\begin{figure}[!t]
+ \begin{center}
+  \begin{minipage}[c]{0.65\textwidth}
+   \begin{center}
+    \includegraphics*[width=0.9\hsize]{Figs/ppath/geom1d}
+   \end{center}
+  \end{minipage}%
+  \begin{minipage}[c]{0.35\textwidth}
+   \caption{The radius (\Rds) and zenith angle (\ZntAng) for two points along
+     the propagation path, and the distance along the path ($\Delta\PpathLng$)
+     and the latitude difference ($\Delta\Lat$) between these points.}
+   \label{fig:ppath:1d2dgeom}
+  \end{minipage}
+ \end{center}
+\end{figure}   
 
 The relationship between the distance along the path for an
 infinitesimal change in radius is here denoted as the
@@ -346,6 +306,7 @@ The radius for a given zenith angle is simply obtained by rearranging
 Equation~\ref{eq:ppath:geomconst} (\funcindex{geomppath\_r\_at\_za})
 \begin{equation}
   \Rds(\ZntAng) = \frac{p_c}{sin(\ZntAng)}
+  \label{eq:ppath:za2r}
 \end{equation}
 The zenith angle for a given radius is (\funcindex{geomppath\_za\_at\_r})
 \begin{equation}
@@ -367,7 +328,7 @@ side of the tangent point. For example, for a 1D case, the part of the
 path between the tangent point and the sensor has zenith angles
 $90\degree < \aZntAng{a} \leq 180\degree$.
 
-The latitude for a point is most easily determined by its zenith angle
+The latitude for a point is most easily determined by its zenith angle \\
 (\funcindex{geomppath\_lat\_at\_za})
 \begin{equation}
   \Lat(\ZntAng) = \aLat{0} + \ZntAng - \aZntAng{0} 
@@ -379,6 +340,7 @@ fact that the quantities \aZntAng{1}, \aZntAng{2} and $\Delta\Lat$
 fulfill the relationship
 \begin{equation}
   \Delta\Lat = \aZntAng{1} - \aZntAng{2},
+  \label{eq:ppath:dlat}
 \end{equation}
 this independently of the sign of the zenith angles. The definitions
 used here result in that the absolute value of the zenith angle always
@@ -388,102 +350,13 @@ remembered that the latitudes for 1D measures the angular distance to
 the sensor, and for 2D a positive zenith angle means observation
 towards higher latitudes.
 
+The radius for a given latitude (\funcindex{geomppath\_r\_at\_lat})
+is obtained by combining Equations \ref{eq:ppath:za2lat} and
+\ref{eq:ppath:za2r}.
 
 
-\levelb{Crossings of pressure surfaces}
-%===================
-\label{sec:ppath:psurf}
 
-This section deals with how to find the crossing between a geometrical
-path and pressure surface which radius is allowed to vary. The
-definitions given in Sections~\ref{sec:fm_defs:atmdim} results in that
-for a 2D case the radius of a pressure surface varies linearly from
-one point of the latitude grid to next. Furthermore, the radius of a
-pressure surface in a 3D case has a bi-linear variation on the face of
-grid cell and a 2D cross-section through a 3D grid cell will then give
-a quadratic variation of the pressure surface radius. A general
-function to calculate geometrical crossings with pressure surfaces
-must accordingly be able to handle quadratric radius variations.
-Figure~\ref{fig:ppath:psurf_crossing} gives a schematic description of
-the problem at hand.
-
-\begin{figure}
- \begin{minipage}[c]{0.45\textwidth}
- \includegraphics*[width=0.92\textwidth]{ppath/psurf_crossing}
- \end{minipage}%
- \begin{minipage}[c]{0.55\textwidth}
-  \caption{Quantities used to describe how to find the crossing between a 
-    geometrical propagation path and a pressure surface. The angle
-    \Lat\ is the angular distance from a reference point on the path.
-    The problem at hand is to find \Lat\ for the crossing point.
-    The radius of the pressure surface at $\Lat = 0$ is denoted as $r_0$.}
-  \label{fig:ppath:psurf_crossing}
- \end{minipage}%
-\end{figure}   
-
-The law of sine gives the following relationsship for the crossing
-point:
-\begin{equation}
-  \frac{\sin\Theta_p}{\aRds{0}+c_1\Lat+c_2\Lat^2} = 
-                                \frac{\sin(\pi-\Lat-\Theta_p)}{\aRds{p}}
-\end{equation}
-which can be re-written to
-\begin{equation}
-   \aRds{p} \sin(\Theta_p) = (\aRds{0}+c_1\Lat+c_2\Lat^2) 
-           (\sin\Theta_p \cos\Lat + \cos\Theta_p \sin\Lat)
- \label{eq:ppath:psurf1}
-\end{equation}
-This equation has no analytical solution. A first step to find an
-approximative solution is to note that \Lat\ will be limited to
-relatively small values. For example, if it shall be possible for the
-angular distance \Lat\ to reach the value of 3\degree, the vertical
-spacing between the pressure surfaces must be about 8~km, while it
-normally is below 2~km. For angles $\Lat \leq 3\degree$, the sine and
-cosine terms can be replaced with the two first terms of their Taylor
-expansions with a relative accuracy of $< 4\topowerten{-7}$. That is,
-\begin{eqnarray}
-  \cos \Lat & \approx & 1 - \Lat^2 / 2    \nonumber \\
-  \sin \Lat & \approx & \Lat - \Lat^3 / 6 \nonumber
-\end{eqnarray}
-Equation~\ref{eq:ppath:psurf1} becomes with these replacements a
-polynomial equation of order 5:
-\begin{eqnarray}
-  0 & = & p_0 + p_1 \aLat{1} + p_2 \aLat{2} + p_3 \aLat{3} + p_4 \aLat{4} 
-              + p_5 \aLat{5} \\
-  p_0 & = & (\aRds{0}-\aRds{p}) \sin\Theta_p \nonumber \\ 
-  p_1 & = & \aRds{0}\cos\Theta_p + c_1 \sin\Theta_p \nonumber \\ 
-  p_2 & = & -(\aRds{0}\sin\Theta_p)/2 + c_1\cos\Theta_p + 
-                                                c_2\sin\Theta_p \nonumber \\ 
-  p_3 & = & -(\aRds{0}\cos\Theta_p)/6 - (c_1\sin\Theta_p)/2 + 
-                                                c_2\cos\Theta_p \nonumber \\ 
-  p_4 & = & -(c_1 \cos\Theta_p)/6 - (c_2 \sin\Theta_p)/2  \nonumber \\ 
-  p_5 & = & -(c_2 \cos\Theta_p)/6 \nonumber  
-\end{eqnarray}
-This equation is solved numerically with the root finding algorithm
-implemented in the function \funcindex{poly\_root\_solve}. Solutions of
-interest shall not be imaginary.
-
-
-\levelb{Calculation of propagations path steps}
-%===================
-\label{sec:ppath:stepcalc}
-
-This section describes the calculation of the propagation path steps
-for different atmospheric dimensionalities, and when refraction is
-considered or not. The case when refraction is neglected is also
-denoted as geometrical calculations. The workspace methods for
-propagation path step calculations adjust automatically to the
-atmospheric dimensionality, but the actual calculations are performed
-a sub-functions for each dimensionality.
-
-Workspace methods to calculate geometrical propagation steps are:
-\begin{itemize}
-\item \artsstyle{ppath\_stepGeometric}
-\item \artsstyle{ppath\_stepGeometricWithLmax}
-\end{itemize}
-
-
-\levelc{Some general remarks}
+\levelc{Propagation paths and grid positions}
 %===================
 
 The grid positions are calculated on the same time as the path is
@@ -502,13 +375,10 @@ distance $< 0$ or $> 1$ and this must be avoided. The function
 should be called for each grid position. This function just
 sets all values below 0 to 0 and all value above 1 to 1. In addition,
 the grid position for the end point of a path step (beside when there
-is an intersection with the ground) must have a fractional
+is an intersection with the ground) must have one fractional
 distance of exactly 0 or 1, but this is not ensured by
 \artsstyle{gridpos\_check\_fd} and for end points the function
-\funcindex{gridpos\_force\_end\_fd} shall also be called. There will
-be an error if \artsstyle{gridpos\_force\_end\_fd} is called with
-original fractional distances deviating more than 1\topowerten{-6}
-from 0 and 1.
+\funcindex{gridpos\_force\_end\_fd} shall also be called.
 
 Some care is needed to determine in which grid range a path step is
 found. First of all, there exists an ambiguity for the fractional
@@ -532,14 +402,28 @@ interest:
  {\bf 3D, longitude}: $\quad \AzmAng \geq 0\degree$
 
 
-\levelc{1D without refraction}
+
+\levelb{Calculation of geometrical propagations paths}
 %===================
-\label{sec:ppath:1Dwithout}
+\label{sec:ppath:stepcalc}
+
+This section describes the calculation of geometrical propagation
+paths for different atmospheric dimensionalities. That is, the effect
+of refraction is neglected. These calculations are performed by the
+workspace method \artsstyle{ppath\_stepGeometric}. This method, as all
+methods for propagation path steps, adjust automatically to the
+atmospheric dimensionality, but the actual calculations are performed
+a sub-function for each dimensionality.
+
+
+\levelc{1D}
+%===================
+\label{sec:ppath:1Dgeom}
 
 This case is handled by the function
 \funcindex{ppath\_step\_geom\_1d}.  The lowest and highest radius
 value along the path step is first determined. If the line-of-sight is
-upwards ($\quad |\ZntAng| \leq 90\degree$), then the start point of
+upwards ($\|\ZntAng| \leq 90\degree$), then the start point of
 the step gives the lowest radius, and the radius of the pressure
 surface above gives the highest value. In the case of a downwards
 line-of-sight, the lowest radius is either the tangent
@@ -556,38 +440,79 @@ above, is obtained by a recursive call of
 \artsstyle{ppath\_step\_geom\_1d}.
 
 
-\levelc{1D with refraction}
+\levelc{2D}
 %===================
-\label{sec:ppath:1Dwith}
+\label{sec:ppath:2Dgeom}
 
-Not yet implemented.
+The definitions given in Sections~\ref{sec:fm_defs:atmdim} results in
+that for a 2D case the radius of a pressure surface varies linearly
+from one point of the latitude grid to next. This is main additional
+problem to solve, compared to the 1D case.
+Figure~\ref{fig:ppath:psurf_crossing} gives a schematic description of
+the problem at hand.
+
+The law of sine gives the following relationsship for the crossing
+point:
+\begin{equation}
+  \frac{\sin\Theta_p}{\aRds{0}+c\Lat} = 
+                                \frac{\sin(\pi-\Lat-\Theta_p)}{\aRds{p}}
+\end{equation}
+which can be re-written to
+
+\begin{figure}
+ \begin{minipage}[c]{0.45\textwidth}
+ \includegraphics*[width=0.92\textwidth]{ppath/psurf_crossing}
+ \end{minipage}%
+ \begin{minipage}[c]{0.55\textwidth}
+  \caption{Quantities used to describe how to find the crossing between a 
+    geometrical propagation path and a tilted pressure surface. The
+    angle \Lat\ is the angular distance from a reference point on the
+    path. The problem at hand is to find \Lat\ for the crossing
+    point. The radius of the pressure surface at $\Lat = 0$ is
+    denoted as $r_0$. The tilt of the pressure surface is $c$.}
+  \label{fig:ppath:psurf_crossing}
+ \end{minipage}%
+\end{figure}   
+
+\begin{equation}
+   \aRds{p} \sin(\Theta_p) = (\aRds{0}+c\Lat) 
+           (\sin\Theta_p \cos\Lat + \cos\Theta_p \sin\Lat)
+ \label{eq:ppath:psurf1}
+\end{equation}
+This equation has no analytical solution. A first step to find an
+approximative solution is to note that \Lat\ will be limited to
+relatively small values. For example, if it shall be possible for the
+angular distance \Lat\ to reach the value of 3\degree, the vertical
+spacing between the pressure surfaces must be about 8~km, while it
+normally is below 2~km. For angles $\Lat \leq 3\degree$, the sine and
+cosine terms can be replaced with the two first terms of their Taylor
+expansions with a relative accuracy of $< 4\topowerten{-7}$. That is,
+\begin{eqnarray}
+  \cos \Lat & \approx & 1 - \Lat^2 / 2    \nonumber \\
+  \sin \Lat & \approx & \Lat - \Lat^3 / 6 \nonumber
+\end{eqnarray}
+Equation~\ref{eq:ppath:psurf1} becomes with these replacements a
+polynomial equation of order 4:
+\begin{eqnarray}
+  0 & = & p_0 + p_1 \Lat + p_2 \Lat^2 + p_3 \Lat^3 + p_4 \Lat^4 \\
+  p_0 & = & (\aRds{0}-\aRds{p}) \sin\Theta_p \nonumber \\ 
+  p_1 & = & \aRds{0}\cos\Theta_p + c \sin\Theta_p \nonumber \\ 
+  p_2 & = & -(\aRds{0}\sin\Theta_p)/2 + c\cos\Theta_p  \nonumber \\ 
+  p_3 & = & -(\aRds{0}\cos\Theta_p)/6 - (c\sin\Theta_p)/2 \nonumber \\ 
+  p_4 & = & -(c \cos\Theta_p)/6  \nonumber 
+  \label{eq:ppath:psurf2}
+\end{eqnarray}
+This equation is solved numerically with the root finding algorithm
+implemented in the function \funcindex{poly\_root\_solve}. Solutions of
+interest shall not be imaginary.
 
 
-\levelc{2D without refraction}
+\levelc{3D}
 %===================
-\label{sec:ppath:2Dwithout}
+\label{sec:ppath:3Dgeom}
 
+To be written.
 
-
-\levelc{2D with refraction}
-%===================
-\label{sec:ppath:2Dwith}
-
-Not yet implemented.
-
-
-\levelc{3D without refraction}
-%===================
-\label{sec:ppath:3Dwithout}
-
-Not yet implemented.
-
-
-\levelc{3D with refraction}
-%===================
-\label{sec:ppath:3Dwith}
-
-Not yet implemented.
 
 
 \levelb{Geoid ellipsoids and geodetic datums}

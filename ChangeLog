@@ -1,3 +1,10 @@
+2003-02-11  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-454
+
+	* doc/uguide/ppath.tex: Modified existing text as a first step to
+	finish this chapter in AUG.
+
 2003-02-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-453
