@@ -60,7 +60,7 @@ raw_vmrsReadFromScenario { "@ac_arts_data@/atmosphere/fascod/tropical" }
 
 # Reading frequency grid from the file
 
-VectorReadAscii(f_mono){"f_mono.out"} 
+VectorReadAscii(f_mono){"f_mono.aa"} 
 
 # Write frequency grid to file:
 
@@ -180,7 +180,7 @@ kTemp { hse = 0
 
 ### Save monochromatic spectra and K #####################################
 
-VectorWriteAscii( y ) {"amsu_y_mono.aa"}
+VectorWriteAscii( y ) {"amsu_example_y_mono.aa"}
 
 ### Conversion to different temperature scales ################################
 
