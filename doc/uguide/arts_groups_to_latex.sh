@@ -21,7 +21,9 @@ echo "% DO NOT EDIT!"
 echo "%------------------------------------------------------------"
 echo "%"
 
-echo "\\begin{itemize}"
+cat << EOF
+\\begin{itemize}
+EOF
 
 for i in $GROUP_LIST
 do
@@ -30,7 +32,9 @@ cat << EOF
 EOF
 done
 
-echo "\\end{itemize}"
+cat << EOF
+\\end{itemize}
+EOF
 
 # Local variables:
 # mode: ksh
