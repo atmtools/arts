@@ -10,10 +10,6 @@
 
 bin_PROGRAMS = arts
 
-# Set libraries:
-
-# not needed at the moment: -ljpeg -lnsl -lm
-
 arts_SOURCES = \
 	abs_o2_models.h \
 	absorption.cc \
@@ -65,8 +61,6 @@ arts_SOURCES = \
 	m_cloudbox.cc \
 	m_general.cc \
 	m_general.h \
-	m_hdf.cc \
-	m_io.cc \
 	m_optproperties.cc \
 	m_physics.cc \
 	m_ppath.cc \
@@ -297,8 +291,6 @@ test_geomag_calc_SOURCES = \
 	m_cloudbox.cc \
 	m_general.cc \
 	m_general.h \
-	m_hdf.cc \
-	m_io.cc \
 	m_montecarlo.cc \
 	m_optproperties.cc \
 	m_physics.cc \

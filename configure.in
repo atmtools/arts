@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.842)
+AM_INIT_AUTOMAKE(arts,1.1.843)
 
 dnl Put the ACLOCAL flags in the Makefile
 ACLOCAL="$ACLOCAL -I m4 $ACLOCAL_FLAGS"
@@ -90,46 +90,6 @@ if test x$ac_use_mpi = xyes; then
   AC_CHECK_HEADER(mpi.h, AC_DEFINE_UNQUOTED(HAVE_MPI, , Use MPI support), [AC_MSG_ERROR(mpi.h not found)])
 fi
 
-#
-# HDF support
-#
-AC_ARG_WITH([hdf],
-  [  --with-hdf=DIR          HDF binary file support DIR (default is autodetect)],
-  [case "${withval}" in
-    autodetect) ac_hdf_support=autodetect ;;
-    yes) ac_hdf_support=yes ;;
-     no) ac_hdf_support=no ;;
-      *) ac_hdf_support=unknown ;;
-   esac],
-  [ac_hdf_support=autodetect])
-
-if test x$ac_hdf_support = xunknown; then
-  if test -d "${withval}/lib" -a -d "${withval}/include"; then
-    LDFLAGS="$LDFLAGS -L${withval}/lib"
-    CPPFLAGS="$CPPFLAGS -I${withval}/include"
-    ac_hdf=yes
-  else
-    AC_MSG_ERROR(${withval}/lib and/or ${withval}/include not found)
-    ac_hdf=no
-  fi
-fi
-
-if test x$ac_hdf_support = xno; then
-  ac_hdf=no
-else
-  AC_CHECK_LIB(sz, SZ_DecompressInit,, ac_szlib=no, )
-  AC_CHECK_LIB(z, gzopen,, ac_hdf=no, )
-  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lz )
-  AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
-  AC_CHECK_LIB(mfhdf, Hopen,, ac_hdf=no, -ldf -ljpeg -lz )
-  AC_CHECK_LIB(df, DFopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
-fi
-
-if test x$ac_hdf = xyes; then
-  AC_DEFINE_UNQUOTED(HDF_SUPPORT, , Compile with HDF support)
-fi
-
-AM_CONDITIONAL(HDF_SUPPORT, test x$ac_hdf_support = xyes)
 
 #
 # Default Numeric type
@@ -164,113 +124,6 @@ esac],[ ac_index_type=long ])
 
 AC_MSG_RESULT(Setting Index type to $ac_index_type)
 AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default Index type)
-
-
-#
-# This is needed to put the corrects data paths into the example files
-# in doc/examples:
-#
-AC_ARG_WITH(arts-data,
-[  --with-arts-data=ARG       Set path to the arts data files]
-[                             (default=$PREFIX/share/arts-data)],
-[case "${withval}" in
-  yes) ac_arts_data=default ;;
-   no) ac_arts_data=no ;;
-    *) ac_arts_data=${withval};;
-esac], [ac_arts_data=default])
-
-if test x$ac_arts_data = xdefault; then
-  ac_arts_data="${prefix}/share/arts-data"
-fi
-
-if test ! x$ac_arts_data = xno; then
-  #
-  # Simple check to see whether the arts-data package exists
-  # at the given location
-  #
-  AC_MSG_CHECKING(for arts data in $ac_arts_data)
-  if test -d "${ac_arts_data}"; then
-    AC_MSG_RESULT(found)
-  else
-    AC_MSG_RESULT(not found)
-    ac_arts_data=no
-  fi
-
-  if test ! x$ac_arts_data = xno; then
-    AC_MSG_CHECKING(for atmospheric data in $ac_arts_data)
-    if test -d "${ac_arts_data}/atmosphere"; then
-      AC_MSG_RESULT(found)
-    else
-      AC_MSG_RESULT(not found)
-      ac_arts_data=no
-    fi
-  fi
-  
-  if test ! x$ac_arts_data = xno; then
-    AC_MSG_CHECKING(for spectroscopy data in $ac_arts_data)
-    if test -d ${ac_arts_data}/spectroscopy; then
-      AC_MSG_RESULT(found)
-    else
-      AC_MSG_RESULT(not found)
-      ac_arts_data=no
-    fi
-  fi
-fi
-
-AM_CONDITIONAL(ARTS_DATA_PATH, test ! x$ac_arts_data = xno)
-AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
-AC_SUBST(ac_arts_data)
-
-AC_ARG_WITH(arts-xml-data,
-[  --with-arts-xml-data=ARG   Set path to the arts xml data files]
-[                             (default=$PREFIX/share/arts-xml-data)],
-[case "${withval}" in
-  yes) ac_arts_xml_data=default ;;
-   no) ac_arts_xml_data=no ;;
-    *) ac_arts_xml_data=${withval};;
-esac], [ac_arts_xml_data=default])
-
-if test x$ac_arts_xml_data = xdefault; then
-  ac_arts_xml_data="${prefix}/share/arts-xml-data"
-fi
-
-if test ! x$ac_arts_xml_data = xno; then
-  #
-  # Simple check to see whether the arts-data package exists
-  # at the given location
-  #
-  AC_MSG_CHECKING(for arts xml data in $ac_arts_xml_data)
-  if test -d "${ac_arts_xml_data}"; then
-    AC_MSG_RESULT(found)
-  else
-    AC_MSG_RESULT(not found)
-    ac_arts_xml_data=no
-  fi
-
-  if test ! x$ac_arts_xml_data = xno; then
-    AC_MSG_CHECKING(for atmospheric data in $ac_arts_xml_data)
-    if test -d "${ac_arts_xml_data}/atmosphere"; then
-      AC_MSG_RESULT(found)
-    else
-      AC_MSG_RESULT(not found)
-      ac_arts_xml_data=no
-    fi
-  fi
-  
-  if test ! x$ac_arts_xml_data = xno; then
-    AC_MSG_CHECKING(for scattering data in $ac_arts_data)
-    if test -d ${ac_arts_xml_data}/scattering; then
-      AC_MSG_RESULT(found)
-    else
-      AC_MSG_RESULT(not found)
-      ac_arts_xml_data=no
-    fi
-  fi
-fi
-
-AM_CONDITIONAL(ARTS_XML_DATA_PATH, test ! x$ac_arts_xml_data = xno)
-AC_DEFINE_UNQUOTED(ARTS_XML_DATA_PATH, "$ac_arts_xml_data", ARTS xml data path)
-AC_SUBST(ac_arts_xml_data)
 
 
 #
@@ -458,30 +311,11 @@ AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
 AC_MSG_RESULT([  Index type               : $ac_index_type])
 AC_MSG_RESULT([  Use MPI                  : $ac_use_mpi])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
-if test $ac_hdf_support = autodetect; then
-  AC_MSG_RESULT([  HDF support              : $ac_hdf (autodetected)])
-else
-  AC_MSG_RESULT([  HDF support              : $ac_hdf])
-fi
-if test $ac_hdf = no; then
-  AC_MSG_RESULT([  WARNING: Without HDF you cannot use Qpack!!!])
-fi
 AC_MSG_RESULT()
 AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
 AC_MSG_RESULT([  CFLAGS   : $CFLAGS])
 AC_MSG_RESULT([  CXXFLAGS : $CXXFLAGS])
 AC_MSG_RESULT([  LDFLAGS  : $LDFLAGS])
-AC_MSG_RESULT()
-if test $ac_arts_xml_data = no; then
-  AC_MSG_RESULT([  ARTS xml data path : not installed])
-else
-  AC_MSG_RESULT([  ARTS xml data path : $ac_arts_xml_data])
-fi
-if test $ac_arts_data = no; then
-  AC_MSG_RESULT([  ARTS data path     : not installed])
-else
-  AC_MSG_RESULT([  ARTS data path     : $ac_arts_data])
-fi
 AC_MSG_RESULT([*******************************************************])
 AC_MSG_RESULT()
 

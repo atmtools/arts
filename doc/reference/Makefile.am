@@ -25,19 +25,22 @@ artsexecutable = $(top_builddir)/src/arts
 texfiles = \
 	app_groups.tex \
 	app_methods.tex \
+	app_variables.tex \
 	main.tex \
 	reference.tex
 
 autotexfiles = \
 	auto_groups.tex \
-	auto_methods.tex
+	auto_methods.tex \
+	auto_variables.tex
 
 EXTRA_DIST = \
 	$(texfiles) \
 	$(autotexfiles) \
 	reference.pdf \
 	arts_groups_to_latex.sh \
-	arts_methods_to_latex.sh
+	arts_methods_to_latex.sh \
+	arts_variables_to_latex.sh
 
 
 if MAINTAINER_MODE
@@ -61,6 +64,9 @@ auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
 
 auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
 	./arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
+
+auto_variables.tex: arts_variables_to_latex.sh $(artsexecutable)
+	./arts_variables_to_latex.sh $(artsexecutable) > auto_variables.tex
 
 CLEANFILES = *.aux \
 	     *.log \
@@ -103,6 +109,17 @@ auto_groups.tex:
 	@echo
 
 auto_methods.tex:
+	@echo
+	@echo "=========================================================="
+	@echo
+	@echo "The documentation is only re-generated in maintainer mode."
+	@echo "To activate maintainer mode call configure with the option"
+	@echo "--enable-maintainer-mode"
+	@echo
+	@echo "=========================================================="
+	@echo
+
+auto_variables.tex:
 	@echo
 	@echo "=========================================================="
 	@echo

@@ -1,3 +1,29 @@
+2004-07-06  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-843
+
+	* configure.in: Removed hdf checks.
+	Removed options --with-arts-data and --with-arts-xml-data.
+
+	* src/Makefile.am: Removed m_hdf.cc, m_io.cc from *_SOURCES.
+
+	* src/methods.cc (define_md_data_raw):
+	Removed all ascii and hdf routines.
+
+	* src/m_io.cc, src/m_hdf.cc: Removed.
+
+	* src/reference/arts_variables_to_latex.sh,
+	src/reference/app_variables.tex: Added.
+
+	* src/reference/Makefile.am: Added new files for variables docs.
+
+	* src/reference/main.tex: Include app_variables.
+	Cleanup.
+
+	* src/reference/app_groups.tex: Fixed history entry.
+
+	* src/reference/.cvsignore: Added auto_variables.tex.
+
 2004-07-05  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-842
