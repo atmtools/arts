@@ -1,6 +1,25 @@
+2002-11-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-304
+
+	* src/matpack*.{h,cc}: Moved implementation of iterator stuff into
+	class definitions to get them inlined because we need maximum
+	performance here.
+
+	Removed reimplementation of 'operater() const' from the view classes
+	and replaced them with a single 'using ConstXXXView::operator()'.
+	This forces the compiler to call the correct const function for
+	the non-const View classes. All in all, 254 function implementations
+	removed from matpack.
+
+	* src/matpackI.h: Fixed copy/paste error in last version.
+
+	* src/xml_io.cc: Bug fixes to avoid possible use of uninitialized
+	variables in try-catch-blocks.
+
 2002-11-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
-	* arts-1-1-303	
+	* arts-1-1-303
 
 	* src/m_optproperties.cc: Renamed (m_scatproperties.cc) as this file
 	now contains all workspace methods for calculating optical 
