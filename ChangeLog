@@ -1,3 +1,16 @@
+2003-12-09  Mashrab Kuvatov  <kmashrab@sat.physik.uni-bremen.de>
+
+	* arts-1-0-150
+	
+	* src/m_batch.cc (ybatchFromRadiosonde): Changed e_eq_water call.
+
+	* src/atm_funcs.cc (e_eq_water): Changed it, so that it has input
+	and output variables.
+	
+	* src/atm_funcs.cc (e_eq_ice): Ditto.
+
+	* src/atm_funcs.h: Changed declaration of e_eq_water and e_eq_ice.
+	
 2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-149

@@ -987,21 +987,22 @@ Numeric ztan_refr(
 
     Sontag's formula:
     
-    e = exp( a/T + b + c*T + d*T^2 + e*log(T) )
+    e_eq = exp( a/T + b + c*T + d*T^2 + e*log(T) )
 
-    Returns equilibrium water vapor pressure in [Pa].
-
-    \param  t       a temperature value in [K]
+    \retval e_eq       equilibrium water vapor pressure in [Pa]
+    \param  t          a temperature value in [K]
 
     \author Mashrab Kuvatov
     \date   2003-12-08 
 */
-Vector e_eq_water(
-                  Vector      t)
+void e_eq_water( VectorView          e_eq,
+                  ConstVectorView    t )
 {
-  Vector e_eq;
   Index cur_elem;
   double a, b, c, d, e, t_cur;
+
+  // make sure e_eq and t has the same length
+  assert( e_eq.nelem() == t.nelem() );
 
   // Coefficients for Sontag's formula
   a = -6096.9385;
@@ -1010,16 +1011,11 @@ Vector e_eq_water(
   d = 1.673952e-5;
   e = 2.433502;
   
-  // Initializing e_eq
-  e_eq.resize(t.nelem());
-
   for ( cur_elem = 0; cur_elem < t.nelem(); cur_elem++ )
     {
       t_cur = t[cur_elem];
       e_eq[cur_elem] = exp( a / t_cur + b + c * t_cur + d * t_cur * t_cur + e * log( t_cur ) );
     }
-  return  e_eq;
-
 }
 
 //// e_eq_ice ////////////////////////////////////////////////
@@ -1030,23 +1026,24 @@ Vector e_eq_water(
     Zeitschrift, 3, 51-66, 1994.
 
     Sontag's formula:
-    
-    e = exp( a/T + b + c*T + d*T^2 + e*log(T) )
 
-    Returns equilibrium water vapor pressure in [Pa].
+    e_eq = exp( a/T + b + c*T + d*T^2 + e*log(T) )
 
-    \param  t       a temperature value in [K]
+    \retval e_eq       equilibrium water vapor pressure in [Pa]
+    \param  t          a temperature value in [K]
 
     \author Mashrab Kuvatov
     \date   2003-12-08 
 */
-Vector e_eq_ice(
-                  Vector      t)
+void e_eq_ice( VectorView          e_eq,
+                  ConstVectorView    t )
 {
-  Vector e_eq;
   Index cur_elem;
   double a, b, c, d, e, t_cur;
   
+  // make sure e_eq and t has the same length
+  assert( e_eq.nelem() == t.nelem() );
+
   // Coefficients for Sontag's formula
   a = -6024.5282;
   b = 29.32707;
@@ -1054,14 +1051,9 @@ Vector e_eq_ice(
   d = -1.3198825e-5;
   e = -0.49382577;
 
-  // Initializing e_eq
-  e_eq.resize(t.nelem());
-
   for ( cur_elem = 0; cur_elem < t.nelem(); cur_elem++ )
     {
       t_cur = t[cur_elem];
       e_eq[cur_elem] = exp( a / t_cur + b + c * t_cur + d * t_cur * t_cur + e * log( t_cur ) );
     }
-  return  e_eq;
-
 }

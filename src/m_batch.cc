@@ -468,9 +468,9 @@ void ybatchFromRadiosonde(// WS Output:
                   Vector rh_raw(n_rows + 1);
                   Vector rh_abs(p_abs.nelem());
 
-                  sat_pres_raw = e_eq_water(t_raw);
+                  e_eq_water(sat_pres_raw, t_raw);
 
-                  sat_pres_abs = e_eq_water(t_abs);
+                  e_eq_water(sat_pres_abs, t_abs);
                   
                   for ( Index j=0; j<rh_raw.nelem(); ++j )
                     {

@@ -203,8 +203,10 @@ Numeric ztan_refr(
         ConstVectorView    refr_index,
         const Numeric   r_geoid );
 
-Vector e_eq_water( Vector      t);
+void e_eq_water( VectorView          e_eq,
+                 ConstVectorView    t );
 
-Vector e_eq_ice( Vector      t);
+void e_eq_ice( VectorView          e_eq,
+               ConstVectorView    t );
 
 #endif // atmfuncs_h
