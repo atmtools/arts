@@ -1,3 +1,11 @@
+2001-11-09  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-36
+
+	* src/file.cc (read_array_of_matrix_from_stream): Allow comments
+	also in the middle of the file.
+	(skip_comments): Made a separate function out of this,
+
 2001-11-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-35

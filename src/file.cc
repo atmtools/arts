@@ -334,7 +334,33 @@ void write_array_of_matrix_to_file(const String& filename,
   write_array_of_matrix_to_stream(of,am);
 }
 
+/** A helper function that skips lines containing comments. Comments
+    are all lines that have a # at the beginning. (Maybe preceded by
+    whitespace. 
 
+    \param is The input stream.
+
+    \author Stefan Buehler
+    \date   2001-11-09
+*/
+void skip_comments(istream & is)
+{
+  bool comments=true;
+  char c;
+  String linebuffer;
+  while (comments)
+    {
+      is >> ws;
+      is.get(c);
+      if ('#'==c)
+          getline(is,linebuffer);
+      else
+        {
+          is.unget();
+          comments = false;
+        }
+    }
+}
 
 //// read_array_of_matrix_from_stream ///////////////////////////////////////
 /** A helper function that reads an array of matrix from a stream.
@@ -346,50 +372,31 @@ void write_array_of_matrix_to_file(const String& filename,
 void read_array_of_matrix_from_stream(ArrayOfMatrix& am,
                                       istream& is)
 {
-  // First, skip all the lines that have a # at the beginning. (Maybe
-  // preceded by whitespace.)
-  bool comments=true;
-  char c;
-  String linebuffer;
-  while (comments)
+  Index n;
+  skip_comments(is);   // Skip comment lines.
+  is >> n;
+  //  cout << "n: " << n << "\n";
+  am.resize(n);
+  for( Index i=0; i<n; ++i )
     {
-      is >> ws;
-      is.get(c);
-      if ('#'==c)
-          getline(is,linebuffer);
-
-      else
-        {
-          is.unget();
-          comments = false;
-        }
-    }
-
-  // Read the Array of Matrices. 
-  {
-    Index n;
-    is >> n;
-    //  cout << "n: " << n << "\n";
-    am.resize(n);
-    for( Index i=0; i<n; ++i )
+      //      cout << "- " << i << "\n";
       {
-	//      cout << "- " << i << "\n";
-	{
-	  Index nr,nc;
-	  is >> nr >> nc;
-	  //   cout << "nr: " << nr << "\n";
-	  //   cout << "nc: " << nc << "\n";
-	  am[i].resize(nr,nc);
-	  //	  cout << "am[i]: " << am[i].nrows() << " / " << am[i].ncols() << "\n";
-	  for(Index ir=0; ir<nr; ++ir)
-	    for(Index ic=0; ic<nc; ++ic)
-	      {
-		//		cout << "ir / ic = " << ir << " / " << ic << "\n";
-		is >> am[i](ir,ic);
-	      }
-	}
+	Index nr,nc;
+	skip_comments(is);   // Skip comment lines.
+	is >> nr >> nc;
+	//   cout << "nr: " << nr << "\n";
+	//   cout << "nc: " << nc << "\n";
+	am[i].resize(nr,nc);
+	//	  cout << "am[i]: " << am[i].nrows() << " / " << am[i].ncols() << "\n";
+	for(Index ir=0; ir<nr; ++ir)
+	  for(Index ic=0; ic<nc; ++ic)
+	    {
+	      //		cout << "ir / ic = " << ir << " / " << ic << "\n";
+	      skip_comments(is);   // Skip comment lines.
+	      is >> am[i](ir,ic);
+	    }
       }
-  }
+    }
 
   if ( is.fail() || is.bad() )
     throw runtime_error("Stream gave fail or bad.");
