@@ -32,6 +32,7 @@
 
 #include "arts.h"
 #include "matpackI.h"
+#include "matpackII.h"
 #include "matpackIII.h"
 #include "matpackVI.h"
 #include "array.h"
@@ -636,7 +637,7 @@ void define_wsv_data()
        "Dimensions: [f_grid, stokes_dim, stokes_dim]"
        ),
        GROUP( Tensor3_ )));
-  
+
   wsv_data.push_back
      (WsvRecord
     ( NAME( "ext_mat_spt" ),
@@ -665,7 +666,7 @@ void define_wsv_data()
        "Dimensions: [part_types,stokes_dim, stokes_dim]"
        ),
       GROUP( Tensor3_ )));
-    
+
   wsv_data.push_back
     (WsvRecord
      ( NAME( "f_grid" ),
@@ -673,12 +674,12 @@ void define_wsv_data()
        (
         "The frequency grid for monochromatic pencil beam calculations.\n"
         "\n"
-        "What to say here?\n" 
-        "\n" 
+        "What to say here?\n"
+        "\n"
         "Usage:      Set by the user.\n "
-        "\n"   
+        "\n"
         "Unit:        Hz"
-        ), 
+        ),
         GROUP( Vector_ )));
 
   wsv_data.push_back
@@ -702,8 +703,21 @@ void define_wsv_data()
        "                     *opt_prop_gas_agenda\n"
        "                     *opt_prop_part_agenda*.\n"
        "\n"
-       ), 
-      GROUP( Index_ ))); 
+       ),
+      GROUP( Index_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "f_sensor" ),
+       DESCRIPTION
+       (
+        "The frequency grid for sensor channels.\n"
+        "\n"
+        "Usage:      Input to *sensor_responseBackend*.\n "
+        "\n"
+        "Unit:       Hz"
+        ),
+        GROUP( Vector_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -718,7 +732,7 @@ void define_wsv_data()
         "\n"
         "This has quite a complicated structure. See Doxygen documentation for\n"
         "class GasAbsLookup for details. FIXME: Add here a reference to AUG,\n"
-        "once the chapter on the lookup table has been written."        
+        "once the chapter on the lookup table has been written."
         ), 
        GROUP( GasAbsLookup_ )));
 
@@ -1936,6 +1950,26 @@ void define_wsv_data()
        "Unit:  [ m, degrees, degrees ]\n"
        "\n"
        "Size:  [ number of measurement blocks, atmosphere_dim ]"
+       ),
+      GROUP( Matrix_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response" ),
+      DESCRIPTION
+      (
+        "The response block matrix modelling the total sensor response.\n"
+		"\n"
+		"The matrix is the product of all the individual sensor response\n"
+		"matrices. Therefore its dimension are depending on the sensor\n"
+		"configuration and where in the calculations we are.\n"
+		"The *sensor_response* has to initialised by the *sensor_responseInit* method.\n"
+		"\n"
+		"Usage:		Output/input to the *sensor_response...* methods.\n"
+		"\n"
+		"Units:		1\n"
+		"\n"
+		"Dimension: See the individual *sensor_response...* method documentation."
        ),
       GROUP( Matrix_ )));
 

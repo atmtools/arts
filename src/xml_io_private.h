@@ -36,6 +36,7 @@
 #include <stdexcept>
 #include <cfloat>
 #include "matpackI.h"
+#include "matpackII.h"
 #include "matpackIII.h"
 #include "matpackIV.h"
 #include "matpackV.h"
@@ -261,6 +262,12 @@ xml_write_to_stream (ostream&, const SingleScatteringData&,
                      bofstream *);
 
 void
+xml_read_from_stream (istream&, Sparse&, bifstream *);
+
+void
+xml_write_to_stream (ostream&, const Sparse&, bofstream *);
+
+void
 xml_read_from_stream (istream&, SpeciesTag&, bifstream *);
 
 void
@@ -377,6 +384,9 @@ template void
 xml_read_from_file<SingleScatteringData> (const String&, SingleScatteringData&);
 
 template void
+xml_read_from_file<Sparse> (const String&, Sparse&);
+
+template void
 xml_read_from_file<SpeciesTag> (const String&, SpeciesTag&);
 
 template void
@@ -465,6 +475,9 @@ xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);
 template void
 xml_write_to_file<SingleScatteringData> (const String&,
                                          const SingleScatteringData&, FileType);
+
+template void
+xml_write_to_file<Sparse> (const String&, const Sparse&, FileType);
 
 template void
 xml_write_to_file<SpeciesTag> (const String&, const SpeciesTag&, FileType);

@@ -2698,7 +2698,7 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("refr_indexUnit"),
         DESCRIPTION
@@ -2729,7 +2729,7 @@ void define_md_data_raw()
          "More text will be written (PE)."
         ),
         OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_, mblock_index_,
-                a_pos_, a_los_, a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, 
+                a_pos_, a_los_, a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_,
                 ground_emission_, ground_los_, ground_refl_coeffs_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, i_space_agenda_,
                ground_refl_agenda_,
@@ -3072,6 +3072,70 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseAntenna1D"),
+        DESCRIPTION
+        (
+         "Returns the response block matrix after it has been modified by\n"
+		 "a 1D antenna response.\n"
+         "\n"
+         "The generic input matrix is a two-column matrix where the first\n"
+		 "column describes a relative grid of angles and the second column\n"
+		 "desrcibes the antenna diagram. Such a matrix can be set up by\n"
+		 "*GaussianResponse*.\n"
+		 "\n"
+		 "Generic Input: \n"
+		 "   Matrix : The antenna response matrix."
+        ),
+        OUTPUT( sensor_response_ ),
+        INPUT( f_grid_, mblock_za_grid_, antenna_dim_ ),
+        GOUTPUT( ),
+        GINPUT( Matrix_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseBackend"),
+        DESCRIPTION
+        (
+         "Returns the response block matrix after it has been modified by\n"
+		 "a spectrometer backend response.\n"
+         "\n"
+         "The generic input matrix is a two-column matrix where the first\n"
+		 "column describes a relative grid of frequencies and the second\n"
+		 "column desrcibes the backend response. Such a matrix can be set up\n"
+		 "by *GaussianResponse*.\n"
+		 "\n"
+		 "Generic Input: \n"
+		 "   Matrix : The backend response matrix."
+        ),
+        OUTPUT( sensor_response_ ),
+        INPUT( f_grid_, f_sensor_ ),
+        GOUTPUT( ),
+        GINPUT( Matrix_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responseInit"),
+        DESCRIPTION
+        (
+         "Initialises the response block matrix to an identity matrix.\n"
+         "\n"
+         "The initialised matrix is a quadratic matrix with sidelength equal\n"
+		 "to the product of the length of *f_grid*, *mblock_za_grid* and\n"
+		 "*mblock_aa_grid*."
+        ),
+        OUTPUT( sensor_response_ ),
+        INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

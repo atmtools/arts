@@ -15,6 +15,9 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
+#ifndef matpackII_h
+#define matpackII_h
+
 #include <vector>
 #include "matpackI.h"
 
@@ -111,3 +114,5 @@ void mult( SparseView A,
 
 void transpose( SparseView A,
                 const SparseView B );
+
+#endif

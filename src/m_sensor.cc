@@ -76,6 +76,9 @@ void GaussianResponse(// WS Generic Output:
   Index nrows = Index (ceil(TotWidth / MaxSpacing)+1);
   r_matrix.resize(nrows,2);
 
+  out2 << "Setting up a sensor response matrix in *"
+       << r_matrix_name << "*\n with gaussian distribution.\n";
+
   //Set up grid column
   Vector tmp(nrows);
   nlinspace(tmp, -TotWidth/2, TotWidth/2, nrows);
@@ -88,6 +91,95 @@ void GaussianResponse(// WS Generic Output:
   for( Index i=0; i<nrows; i++) {
   	r_matrix(i,1) = 1/(sigma*sqrt(2*PI)) *
 					exp(-pow(r_matrix(i,0),2.0)/(2*pow(sigma,2.0)));
+  }
+}
+
+void sensor_responseAntenna1D(// WS Output:
+                   			  Matrix&			sensor_response,
+                   			  // WS Input:
+                   			  const Vector&		f_grid,
+                   			  const Vector&		mblock_za_grid,
+							  const Index&		antenna_dim,
+         					  // WS Generic Input:
+                   			  const Matrix&		srm,
+                   			  // WS Generic Input Names:
+                   			  const String&		srm_name )
+{
+  //Check that the antenna has the right dimension
+  assert(antenna_dim==1);
+
+  //Check that sensor_response has the right size, i.e. has been initialised
+  Index n = f_grid.nelem() * mblock_za_grid.nelem();
+  if( sensor_response.ncols() != n ) {
+    ostringstream os;
+    os << "The sensor block response matrix *sensor_response* has not been\n"
+	   << "initialised or some sensor in front of the antenna has not been\n"
+       << "considered.";
+    throw runtime_error( os.str() );
+  }
+
+  out2 << "   Calculating the antenna response using values and grid from *"
+       << srm_name << "*.\n";
+
+  //FIXME: Temporary solution, change when Sparse has been added to groups
+  Sparse antenna_response( f_grid.nelem(), n);
+  antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
+
+  Matrix sensor_response_tmp = sensor_response;
+  sensor_response.resize( f_grid.nelem(), n);
+  mult( sensor_response, antenna_response, sensor_response_tmp);
+}
+
+void sensor_responseBackend(// WS Output:
+                 			Matrix&			sensor_response,
+                 			// WS Input:
+                 			const Vector&	f_grid,
+                 			const Vector&	f_grid_backend,
+                 			// WS Generic Input:
+                 			const Matrix&	srm,
+                 			// WS Generic Input Names:
+                 			const String&	srm_name)
+{
+  //Check that sensor_response has the right size, i.e. has been initialised
+  if( sensor_response.nrows() != f_grid_backend.nelem() ||
+      sensor_response.ncols() != f_grid.nelem()) {
+    ostringstream os;
+    os << "The sensor block response matrix *sensor_response* has not been\n"
+	   << "initialised or some sensor in front of the backend has not been\n"
+	   << "considered.";
+    throw runtime_error( os.str());
+  }
+
+  out2 << "   Calculating the backend response using values and grid from *"
+       << srm_name << "*.\n";
+
+  //FIXME: Temporary solution, change when Sparse has been added to groups
+  Sparse backend_response( f_grid_backend.nelem(), f_grid.nelem());
+  spectrometer_transfer_matrix( backend_response, srm, f_grid_backend, f_grid);
+
+  Matrix sensor_response_tmp = sensor_response;
+  sensor_response.resize( f_grid_backend.nelem(), f_grid.nelem());
+  mult( sensor_response, backend_response, sensor_response_tmp);
+}
+
+void sensor_responseInit(// WS Output:
+              			 Matrix&			sensor_response,
+              			 // WS Input:
+              			 const Vector&		f_grid,
+              			 const Vector&		mblock_za_grid,
+              			 const Vector&		mblock_aa_grid,
+              			 const Index&		antenna_dim )
+{
+  //FIXME: Check the antenna dimension??
+  assert( antenna_dim == 1);
+
+  //Resize matrix and store values
+  //FIXME: Keep this as close to Sparse procedure as possible for future switch
+  Index n = f_grid.nelem() * mblock_za_grid.nelem() * mblock_aa_grid.nelem();
+  sensor_response.resize(n,n);
+
+  for( Index i=0; i<n; i++) {
+  	sensor_response(i,i) = 1;
   }
 }
 

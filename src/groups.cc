@@ -64,6 +64,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("String");
   wsv_group_names.push_back("Vector");
   wsv_group_names.push_back("Matrix");
+  wsv_group_names.push_back("Sparse");
   wsv_group_names.push_back("Tensor3");
   wsv_group_names.push_back("Tensor4");
   wsv_group_names.push_back("Tensor5");

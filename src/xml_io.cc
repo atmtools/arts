@@ -2264,6 +2264,39 @@ xml_write_to_stream (ostream& os_xml,
   os_xml << '\n';
 }
 
+//=== Sparse ====================================================
+
+//! Reads Sparse from XML input stream
+/*!
+  Checks whether the next tag in input stream is <Sparse>
+  and if so, write the next values to 'sparse' parameter.
+
+  \param is_xml  XML Input stream
+  \param sparse  Sparse return value
+  \param pbifs   Pointer to binary input stream, NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      Sparse& sparse,
+					  bifstream * /* pbifs */ = NULL)
+{
+  //FIXME: This is a dummy function
+}
+
+//! Writes Sparse to XML output stream
+/*!
+  \param os_xml  XML Output stream
+  \param sparse  Sparse
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const Sparse& sparse,
+                     bofstream * /* pbofs */ = NULL)
+{
+  //FIXME: This is a dummy function
+}
+
 
 //=== SpeciesTag ================================================
 
