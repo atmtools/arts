@@ -1,3 +1,10 @@
+2003-12-16  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-762
+
+	* doc/examples/o2_can_zeeman_do.arts: Updated according the last
+	changes to the (opt_prop_gas_agenda) done by Claudia.
+
 2003-12-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-761

@@ -57,23 +57,26 @@ IndexSet(f_index){
 	value = -1
 }
 
-AgendaSet(zeeman_prop_agenda)
-{
-	StringSet(abs_model){"PWR98"}
-	VectorSetExplicitly(abs_user_parameters){[]}
-	absO2ZeemanModel{}
-}
+#  AgendaSet(zeeman_prop_agenda)
+# {
+# 	StringSet(abs_model){"PWR98"}
+# 	VectorSetExplicitly(abs_user_parameters){[]}
+# 	absO2ZeemanModel{}
+# } 
   	
 
 
-  AgendaSet(zeeman_prop_agenda)
-   {
-	StringSet(abs_model){"PWR98"}
-	VectorSetExplicitly(abs_user_parameters){[]}
-	absO2ZeemanModel{}
-   }
+#  AgendaSet(zeeman_prop_agenda)
+#   {
+#	StringSet(abs_model){"PWR98"}
+#	VectorSetExplicitly(abs_user_parameters){[]}
+#	absO2ZeemanModel{}
+#   }
   
   AgendaSet( opt_prop_gas_agenda ) {
+    StringSet(abs_model){"PWR98"}
+    VectorSetExplicitly(abs_user_parameters){[]}
+    absO2ZeemanModel{}
     ext_matInit{}
     abs_vecInit{}
     ext_matAddGasZeeman{}
