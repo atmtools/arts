@@ -162,17 +162,19 @@ void define_md_data()
 	 "that the methods ext_mat_sptCalc and pha_mat_sptCalc are done \n"
 	 "before calling this method. \n"
 	 "\n"
-	 "The output of the method abs_vec_sptCalc is abs_vec_spt(Matrix,\n"
-	 "size: [Npt,stokes_dim]). The input to the method abs_vec_sptCalc\n"
-	 "are abs_vec_spt, *pha_mat_spt*(Tensor 5,\n"
-	 "size: [Npt,Nza,Naa,stokes_dim,stokes_dim]),and ext_mat_spt(Tensor 3,\n"
-	 "size = [Npt,stokes_dim,stokes_dim]).This method calls the  \n"
-	 "function amp2abs which does the actual physics, that of computing\n"
-	 "the elements of absorption vector from the elements of extinction \n"
-	 "matrix and phase matrix."
+	 "The output of the method *abs_vec_sptCalc* is *abs_vec_spt* \n"
+         "(Matrix, size: [Npt,stokes_dim]). The input to the method \n"
+	 "*abs_vec_sptCalc are abs_vec_spt, *pha_mat_spt*(Tensor 5,*\n"
+	 "size: [Npt,Nza,Naa,stokes_dim,stokes_dim]), *ext_mat_spt* \n"
+	 "(Tensor 3,size = [Npt,stokes_dim,stokes_dim]), *scat_za_grid*\n"
+	 "(Vector,size = [Nza]) and *scat_aa_grid* (Vector,size = [Naa]).\n"
+	 "This method calls the function amp2abs which does the actual\n"
+	 "physics, that of computing the elements of absorption vector \n"
+	 "from the elements of extinction matrix and phase matrix.\n"
 	 ),
 	OUTPUT(abs_vec_spt_),
-	INPUT(abs_vec_spt_,ext_mat_spt_,pha_mat_spt_ ),
+	INPUT(abs_vec_spt_,ext_mat_spt_,pha_mat_spt_,scat_za_grid_,
+	      scat_aa_grid_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

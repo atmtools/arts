@@ -132,11 +132,17 @@ void pha_mat_sptCalc(Tensor5& pha_mat_spt,
 
 void abs_vec_sptCalc(Matrix& abs_vec_spt,
 		     const Tensor3& ext_mat_spt,
-		     const Tensor5& pha_mat_spt
+		     const Tensor5& pha_mat_spt,
+		     const Vector& scat_za_grid,
+		     const Vector& scat_aa_grid
 		     )
 {
  Index npt = abs_vec_spt.nrows();
  Index stokes_dim = abs_vec_spt.ncols();
+ Index nza = pha_mat_spt.nshelves(); 
+ Index naa = pha_mat_spt.nbooks(); 
+ assert (is_size(scat_za_grid, nza));
+ assert (is_size(scat_aa_grid, naa));
 
  if (abs_vec_spt.ncols() != stokes_dim ){
     throw runtime_error("The vector abs_vec_spt should have 4 columns");
@@ -170,10 +176,15 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
 				      Range(joker),
 				      Range(joker),
 				      Range(joker));
+    
+     // ConstVectorView za_grid = scat_za_grid[scat_za_index];
+     //ConstVectorView aa_grid = scat_aa_grid[scat_aa_index];
      
      amp2abs(abs_vec_spt(i, Range(joker)),
 	     ext,
-	     pha);
+	     pha,
+	     scat_za_grid,
+	     scat_aa_grid);
    }	   
 }
 

@@ -327,7 +327,9 @@ void amp2pha(Tensor4View phasemat,
 
 void amp2abs(VectorView abs,
 	     ConstMatrixView ext,
-	     ConstTensor4View pha)
+	     ConstTensor4View pha,
+	     ConstVectorView za_grid,
+	     ConstVectorView aa_grid)
 {
   Index stokes_dim = abs.nelem();
   if (stokes_dim > 4 || stokes_dim <1){
@@ -339,8 +341,10 @@ void amp2abs(VectorView abs,
   assert (is_size(pha, nza, naa, stokes_dim, stokes_dim));
   assert (is_size(ext, stokes_dim, stokes_dim));
   assert (is_size(abs, stokes_dim));
-  Vector za_grid(nza);
-  Vector aa_grid(naa);
+  assert (is_size(za_grid,nza));
+  assert (is_size(aa_grid,naa));
+  //Vector za_grid(nza);
+  //Vector aa_grid(naa);
   Numeric Z11_integrated, Z21_integrated, Z31_integrated, Z41_integrated ;
   Matrix Z11_mat = pha (Range(joker), Range(joker), 0, 0);
   for (Index i = 0;i < nza; ++i)

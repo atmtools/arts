@@ -22,13 +22,19 @@ void amp2ext(MatrixView ext,
 
 void amp2pha(Tensor4View phasemat,
 	     ConstTensor3View amp_coeffs);
+
 void amp2abs(VectorView abs,
 	     ConstMatrixView ext,
-	     ConstTensor4View pha);
+	     ConstTensor4View pha,
+	     ConstVectorView za_grid,
+	     ConstVectorView aa_grid);
+
 void ext_mat_partCalc(MatrixView ext_mat_part,
 		      MatrixView ext_mat_spt,
 		      VectorView pnd);
+
 Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
 			       ConstVectorView za_grid,
 			       ConstVectorView aa_grid);
+
 #endif    // scatproperties_h
