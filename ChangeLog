@@ -1,3 +1,10 @@
+2001-09-24  Mashrab  <kmashrab@uni-bremen.de>
+
+	* arts-0-0-224
+	
+	* src/methods.cc: Updated online docs for binary
+	read-write methods.
+
 2001-09-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-223
