@@ -728,6 +728,18 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("xml_output_type",
+     "Flag to determine whether XML output is binary or ascii\n"
+     "\n"
+     "This flag has to be set using the workspace method SetXMLOutputBinary\n"
+     "or SetXMLOutputAscii. One of these functions MUST be called before\n"
+     "writing the first output file."
+     "\n"
+     "Usage:      Set by user.",
+     Index_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("y",
      "The measurement vector.\n"
      "\n"
