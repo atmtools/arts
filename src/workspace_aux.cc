@@ -27,8 +27,8 @@
   \author Stefan Buehler
   \date 2000-06-10 */
 
-#include <map>
 #include "arts.h"
+#include <map>
 #include "matpackI.h"
 #include "array.h"
 #include "auto_wsv_groups.h"

@@ -27,10 +27,10 @@
   \author Stefan Buehler
 */
 
+#include "arts.h"
 #include <map>
 #include <cfloat>
 #include <math.h>
-#include "arts.h"
 #include "absorption.h"
 #include "math_funcs.h"
 #include "auto_md.h"

@@ -33,8 +33,8 @@
   \date 2000-06-10 */
 
 
-#include <map>
 #include "arts.h"
+#include <map>
 #include "array.h"
 #include "auto_wsv.h"
 #include "auto_wsv_groups.h"

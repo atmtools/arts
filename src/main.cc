@@ -28,12 +28,13 @@
    \date   2001-07-24
 */
 
+#include "arts.h"
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
 #include <map>
-#include "arts.h"
 #include "parameters.h"
 #include "messages.h"
 #include "exceptions.h"

@@ -15,8 +15,8 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-#include <map>
 #include "arts.h"
+#include <map>
 #include "messages.h"
 #include "exceptions.h"
 #include "file.h"
