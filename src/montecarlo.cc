@@ -562,8 +562,23 @@ void interpTArray(Matrix& T,
   K = interp(itw,ext_matArray,gp[0]);
   delta_s = pathlength - cum_l_step[gp[0].idx];
   opt_depth_mat = K;
-  opt_depth_mat*=-delta_s;
-  matrix_exp(incT,opt_depth_mat,6);
+  opt_depth_mat+=ext_matArray[gp[0].idx];
+  opt_depth_mat*=-delta_s/2;
+  if ( stokes_dim == 1 )
+    {
+      incT(0,0)=exp(opt_depth_mat(0,0));
+    }
+  else if ( is_diagonal( opt_depth_mat))
+    {
+      for ( Index i=0;i<stokes_dim;i++)
+	{
+	  incT(i,i)=exp(opt_depth_mat(i,i));
+	}
+    }
+  else
+    {
+      matrix_exp(incT,opt_depth_mat,10);
+    }
   mult(T,TArray[gp[0].idx],incT);
   
   K_abs = interp(itw, abs_vecArray,gp[0]);
@@ -1199,7 +1214,21 @@ void TArrayCalc(
       opt_depth_mat=ext_matArray[i];
       opt_depth_mat+=ext_matArray[i-1];
       opt_depth_mat*=-ppath.l_step[i-1]/2;
-      matrix_exp(incT,opt_depth_mat,6);
+      if ( stokes_dim == 1 )
+	{
+	  incT(0,0)=exp(opt_depth_mat(0,0));
+	}
+      else if ( is_diagonal( opt_depth_mat))
+	{
+	  for ( Index j=0;j<stokes_dim;j++)
+	    {
+	      incT(j,j)=exp(opt_depth_mat(j,j));
+	    }
+	}
+      else
+	{
+	  matrix_exp(incT,opt_depth_mat,10);
+	}
       TArray[i]=zeroMatrix;
       mult(TArray[i],TArray[i-1],incT);
     }

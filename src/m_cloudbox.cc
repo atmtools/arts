@@ -1061,11 +1061,15 @@ void ParticleTypeAdd( //WS Output:
   pnd_field_raw.push_back(pnd_field_data);
   
   out2 << "Read single scattering data\n";
+  
   xml_read_from_file( scat_data_file, scat_data_raw[scat_data_raw.nelem()-1]);
   
   out2 << "Read particle number density date \n";
-  xml_read_from_file(pnd_field_file, pnd_field_raw[pnd_field_raw.nelem()-1]);
-       
+  if (pnd_field_file.nelem()>0)
+    {
+     xml_read_from_file(pnd_field_file,pnd_field_raw[pnd_field_raw.nelem()-1]);
+    }   
+   
 }
 
 
