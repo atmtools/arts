@@ -303,7 +303,14 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("y",
-      "Final emission or absorption spectrum.",
+      "The working spectrum.",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("y0",
+      "A reference spectrum. This variable can be used e.g. to save a copy\n"
+      "of Y or to compare the spectra before and after some operation(s).",
       VECTOR_));
 
 
@@ -327,28 +334,21 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("k",
-      "The weighting function (WF) matrix.",
+      "The weighting functions (WFs) for a single retrieval identity.",
       MATRIX_));
 
   wsv_data.push_back
     (WsvRecord
      ("k_names",
-      "Name on each retrieval identity of the weighting function matrix.",
+      "Name(s) on the retrieval identity associated with K.",
       ARRAYofstring_));
 
   wsv_data.push_back
     (WsvRecord
-     ("k_index",
-      "This is a two-column matrix holding first and last index of the state\n"
-      "vector for each retrieval identity. That is, each row corresponds to\n"
-      "a retrieval identity, as [i_first,i_last].",
-      MATRIX_));
-
-  wsv_data.push_back
-    (WsvRecord
      ("k_aux",
-      "Auxiliary data for the weighting function matrix. The number of rows\n"
-      "equals the length of the state vector (the number of columns of K).\n"
+      "Auxiliary data for K. The number of rows of this matrix equals the\n"
+      "length of the state vector for the retrieval identity (the number of\n"
+      "columns of K).\n"
       "The columns hold different quantities:\n"
       "  Col 1: retrieval grid (or correspondingly)\n"
       "  Col 2: a priori values\n"
@@ -357,9 +357,79 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("h",
-      "The instrument matrix. Patrick, please put more information here.",
-      SPARSEMATRIX_));
+     ("kx",
+      "The state weighting function matrix.",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kx_names",
+      "Names on the retrieval identities associated with KX.",
+      ARRAYofstring_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kx_index",
+      "This is a two-column matrix holding first and last index of the state\n"
+      "vector for each retrieval identity. That is, each row corresponds to\n"
+      "a retrieval identity as [i_first,i_last].",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kx_aux",
+      "Auxiliary data for KX. As K_AUX but with the data of the different\n"
+      "retrieval identies appended vertically.",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kb",
+      "The model parameters weighting function matrix.",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kb_names",
+      "Names on the model parameter identities associated with KB.",
+      ARRAYofstring_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kb_index",
+      "This is a two-column matrix holding first and last index of the model\n"
+      "parameter vector (b) for each  identity. That is, each row \n"
+      "corresponds to a forward model identity as [i_first,i_last].",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("kb_aux",
+      "Auxiliary data for KB. As K_AUX but with the data of the different\n"
+      "forward model identies appended vertically.",
+      MATRIX_));
+
+
+  //--------------------< H matrices >--------------------
+  //                     ------------
+  wsv_data.push_back
+    (WsvRecord
+     ("h1",
+      "A transfer matrix for sensor effects and data reduction.\n"
+      "This is typically the total transfer matrix and includedes effects\n"
+      "of both the sensor and data reduction.\n"
+      "This matrix and H2 can also be used to split the sensor calculations\n"
+      "in two parts.",
+      Hmatrix_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("h2",
+      "A second transfer matrix for sensor effects and data reduction.\n"
+      "This matrix includes typically only effects of the data reduction.\n"
+      "See further H1.",
+      Hmatrix_));
+
 
   //  cout << "size = " << wsv_data.size() << '\n';
 }

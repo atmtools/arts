@@ -121,7 +121,7 @@ void VectorNLogSpace(     VECTOR&  x,
 
 
 //
-//--------------------< Array of Matrix and Array of Vector Write Methods >--------------------
+//-----------< Array of Matrix and Array of Vector Write Methods >------------
 //
 
 void ArrayOfMatrixWriteToFile(// WS Generic Input:
@@ -229,7 +229,7 @@ void VectorWriteToFile(// WS Output:
 
 
 //
-//--------------------< Array of Matrix and Array of Vector Read Methods >--------------------
+//-------------< Array of Matrix and Array of Vector Read Methods >--------
 //
 
 void ArrayOfMatrixReadFromFile(// WS Generic Output:
@@ -343,4 +343,45 @@ void VectorReadFromFile(// WS Generic Output:
   // Convert the matrix to a vector:
   to_vector(v,m);
 }
+
+
+
+//
+//--------------------< H matrix Methods >--------------------
+//
+
+/** Generic function to read H matrices.
+
+    \retval h        H matrix
+    \param  h_name   which H matrix (h_total or h_data)
+    \param  f        filename (if empty, the default name is used)
+
+    \author Patrick Eriksson 
+    \date   2000-10-06 
+*/
+void HmatrixReadFromFile(// WS Generic Output:
+			Hmatrix& h,
+			// WS Generic Output Names:
+			const string& h_name,
+			// Control Parameters:
+			const string& f)
+{
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
+    {
+      extern const string basename;                       
+      filename = basename+"."+h_name+".am";
+    }
+
+  // Read the array of matrix from the file:
+  ARRAYofMATRIX am;
+  read_array_of_matrix_from_file(am,filename);
+
+  h.issparse = 0;
+  h.full     = am[0];
+  // Remember to clear the other field
+}
+
 

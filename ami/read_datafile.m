@@ -22,7 +22,7 @@ function x = read_datafile(filename)
 %=== Open file for reading
 fid = fopen(filename,'r');
 if fid < 0
-  error('Error while opening file for writing');
+  error('Error while opening file for reading');
 end
 
 

@@ -955,12 +955,12 @@ void abs_species( MATRIX&                  abs,
 	      + n * vmr(i) * intensity * ls(j) * factor * f_mono(j) *
 	      f_mono(j);
 
-	    if (i == 20)
-	      {
-		cout << f_mono(j) << ' ' << n * intensity << ' ' <<
-		  abs(j,i) << ' ' <<  ls(j) * factor * f_mono(j) *
-		  f_mono(j)  << endl;
-	      }
+	    // if (i == 20)
+	    //  {
+	    //    cout << f_mono(j) << ' ' << n * intensity << ' ' <<
+	    //      abs(j,i) << ' ' <<  ls(j) * factor * f_mono(j) *
+	    //      f_mono(j)  << endl;
+	    //  }
 
 
 	  }

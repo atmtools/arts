@@ -6,15 +6,15 @@
 %          An ARTS ArrayOfMatrix is in Matlab given as a cell. See also
 %          READ_DATAFILE.
 %
-% FORMAT:  write_datafile(filename,x,heading [,prec])
+% FORMAT:  write_datafile(filename,x, [heading,prec])
 %
 % RETURN:  -
 % IN:      filename    full file name
 %          x           the data to store
-%          heading     heading text as character matrix (see STR2MAT)
+% OPTIONAL heading     heading text as character matrix (see STR2MAT)
 %                      The function puts in '# ' at the start of each line. 
 %                      Heading can be empty ([])
-% OPTIONAL prec        number of decimals to use, default 6
+%          prec        number of decimals to use, default 6
 %                      If PREC=0, integer values are assumed          
 %------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ end
 
 
 %=== Print heading
-if ~isempty(heading)
+if exist('heading') & ~isempty(heading)
   for i = 1:size(heading,1)
     fprintf(fid,'# %s\n',heading(i,:));
   end
@@ -53,18 +53,33 @@ fprintf(fid,'#\n');
 
 %=== Write the data
 
+%= Temporary solution to handle sparse
+if strcmp(class(x),'sparse')
+  x = full(x);
+end
+
+%= Character array
+if strcmp(class(x),'char')
+  error('Character arrays are not handled');
+
+%= Character array
+elseif strcmp(class(x),'struct')
+  error('Structure arrays are not handled');
+
 %= Vector or matrix
-if strcmp(class(x),'double')
+elseif strcmp(class(x),'double')
   fprintf(fid,'1\n');
   write_mat(fid,x,prec);
 
 %= Array of matrices
-else
+elseif strcmp(class(x),'cell')
   fprintf(fid,'%d\n',length(x));
   for i = 1:length(x)
     write_mat(fid,x{i},prec);
   end
 
+else
+  error('Unknown data type');
 end  
 
 

@@ -37,4 +37,4 @@ Hd         = 1;
 f_sensor   = f_mono;
 za_sensor  = za_pencil;
 
-[f_y,za_y] = h_fix_ys(f_sensor,za_sensor)
+[f_y,za_y] = h_fix_ys(f_sensor,za_sensor);

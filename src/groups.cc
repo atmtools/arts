@@ -74,4 +74,6 @@ void define_wsv_group_names()
   wsv_group_names.push_back("ARRAYofARRAYofLineRecord");
   wsv_group_names.push_back("TagGroups");
   wsv_group_names.push_back("SPARSEMATRIX");
+  wsv_group_names.push_back("Hmatrix");
 }
+

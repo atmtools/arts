@@ -38,6 +38,7 @@ math_funcs.h \
 atm_funcs.h \
 absorption.h \
 los.h \
+hmatrix.h \
 constants.cc \
 getopt.c \
 getopt1.c \
@@ -62,16 +63,17 @@ m_abs.cc \
 m_io.cc \
 m_los.cc \
 m_wfs.cc \
+m_hmatrix.cc \
 absorption.cc \
 wsv_pointers.cc \
 species_data.cc \
 partition_function_data.cc \
-lineshapes.cc
+lineshapes.cc 
+
 
 # When making changes to the list of sources above, please remember to
 # also change the lists in the files:
-# 	doc/doc++/html/Makefile.am and 
-# 	doc/doc++/tex/Makefile.am
+#       doc/doxygen/Makefile.am
 
 
 noinst_PROGRAMS = make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
@@ -81,7 +83,7 @@ arts.h vecmat.h file.h \
 vecmat.cc version.cc file.cc messages.cc groups.cc make_wsv_groups_h.cc
 
 make_wsv_h_SOURCES = \
-arts.h vecmat.h file.h absorption.h los.h \
+arts.h vecmat.h file.h absorption.h los.h hmatrix.h \
 wsv_groups.h wsv_aux.h \
 vecmat.cc version.cc groups.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc
@@ -92,7 +94,7 @@ vecmat.cc version.cc groups.cc messages.cc file.cc workspace.cc make_wsv_pointer
 
 make_md_h_SOURCES = \
 arts.h vecmat.h wsv.h token.h messages.h file.h \
-absorption.h los.h \
+absorption.h los.h hmatrix.h \
 wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
 vecmat.cc version.cc globals_2.cc \

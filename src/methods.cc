@@ -286,7 +286,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
-  
+
 
 
 //======================================================================
@@ -679,6 +679,8 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+
+
 //======================================================================
 //=== Weighting function (WF) methods
 //======================================================================
@@ -715,21 +717,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kInit"),
-  	DESCRIPTION(
-          "Initializes the weighting function matrix (k) and help variables\n"
-          "(k_names, k_index and k_aux).\n"
-          "Use this function before the WF calculations are started or\n"
-          "restarted."),
-	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("kSpecies"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for a single tag.\n"
@@ -739,7 +726,7 @@ void define_md_data()
           "  1 fractions of linearisation state \n"
           "  2 volume mixing ratio \n"
           "  3 number density"),
-	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
@@ -753,7 +740,7 @@ void define_md_data()
   	DESCRIPTION(
           "Calculates species 1D weighting functions for all tags that\n"
           "are included in abs_per_tg. Units as for kSpecies."),
-	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
                                                               vmrs_, k_grid_),
 	GOUTPUT(),
@@ -770,7 +757,7 @@ void define_md_data()
           "The continuum is fitted be determining an off-set at a number of\n"
           "points (order+1) that are evenly spread between the lowest and\n"
           "highest frequency of f_mono."),
-	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -783,7 +770,7 @@ void define_md_data()
   	DESCRIPTION(
           "Calculates temperature 1D weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
-	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
                    lines_per_tg_, abs_, trans_, e_ground_, t_ground_, k_grid_),
 	GOUTPUT(),
@@ -796,7 +783,7 @@ void define_md_data()
       ( NAME("kTempNoHydroNoGround"),
   	DESCRIPTION(
           "As kTempNoHydro but does not need any ground variables"),
-	OUTPUT( k_, k_names_, k_index_, k_aux_ ),
+	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
                    lines_per_tg_, abs_, trans_, k_grid_),
 	GOUTPUT(),
@@ -806,15 +793,102 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("hTest"),
+      ( NAME("kxInit"),
   	DESCRIPTION(
-          "Play around with sparse matrix h."),
-	OUTPUT( h_ ),
-	INPUT(h_),
+          "Initializes Kx weighting function matrix and help variables\n"
+          "(kx_names, kx_index and kx_aux).\n"
+          "Use this function before the WF calculations are started or\n"
+          "restarted."),
+	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
+	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 
-}
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kbInit"),
+  	DESCRIPTION(
+          "Initializes Kb weighting function matrix and help variables\n"
+          "(kb_names, kb_index and kb_aux).\n"
+          "Use this function before the WF calculations are started or\n"
+          "restarted."),
+	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kxAppend"),
+  	DESCRIPTION(
+          "Appends the K matrix to Kx and handles additional data\n"
+          "correspondingly."),
+	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
+        INPUT( kx_, kx_names_, kx_index_, kx_aux_, k_, k_names_, k_aux_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kbAppend"),
+  	DESCRIPTION(
+          "Appends the K matrix to Kb and handles additional data\n"
+          "correspondingly."),
+	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
+        INPUT( kb_, kb_names_, kb_index_, kb_aux_, k_, k_names_, k_aux_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kxAppendUsingH"),
+  	DESCRIPTION(
+          "Applies a H matrix on the K matrix and appends the result to Kx.\n"
+          "Additional data are treated correspondingly."),
+	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
+        INPUT( kx_, kx_names_, kx_index_, kx_aux_, k_, k_names_, k_aux_ ),
+	GOUTPUT(),
+	GINPUT( Hmatrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kbAppendUsingH"),
+  	DESCRIPTION(
+          "Applies a H matrix on the K matrix and appends the result to Kb.\n"
+          "Additional data are treated correspondingly."),
+	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
+        INPUT( kb_, kb_names_, kb_index_, kb_aux_, k_, k_names_, k_aux_ ),
+	GOUTPUT(),
+	GINPUT( Hmatrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+
+
+//======================================================================
+//=== Methods associated with the H matrices
+//======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("HmatrixReadFromFile"),
+	DESCRIPTION("Reads a H matrix from a file.\n"
+		    "The filename can be specified or be an empty string"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Hmatrix_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+}

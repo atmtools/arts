@@ -96,3 +96,35 @@ SAB 2000-10-05: Create IDL version of AMI. (Wolfram)
 
 SAB 2000-10-05: Fix pdf version of Uguide. (Oliver)
 
+PE  2000-10-16: After some discussions with Stefan, an outline for the H
+                and WFs is:
+                - the H matrix will be "maybe sparse", i.e. it can be both full
+                  or sparse.
+                - At least two matrices are needed and there will be h1 and h2.
+                  One will typically be the total matrix, while the second 
+                  describes data reduction. The two matrices can also be used 
+                  to split the sensor calculations in two parts for e.g. get
+                  WFs for some sensor part.
+                - I will introduce the variables y0, kx and kb (kx and kb as 
+                  in the Rodgers formalism).
+                - The H matrix will be applied manually. 
+                   ApplyHOnVector(y,h1,y)
+                   ApplyHOnMatrix(k,h1,k)
+                - There will be a function to copy vectors, mainly to copy y.
+                  To compare spectra with and without sensor
+                   CopyVector(y0,y)
+                   ApplyHOnVector(y,h1,y)                   
+                - The WF functions will be changed. They will now return the
+                  K matrix for only the retrieval identity of interest (i.e.
+                  they will not append the matrices).
+                - The WFs are appended to kx and kb, something like:
+                   kxInit()
+                   kbInit()
+                   kSpecies...
+                   kxAppend() or kxAppendUsingH(h1)
+                   kSomeVariable...  
+                   kxAppend() or kxAppendUsingH(h1)
+                   kTemperature...
+                   kbAppend() or kbAppendUsingK(h1)
+                  The append functions take also care of the additional 
+                  variables (kx_names, kx_aux etc.)

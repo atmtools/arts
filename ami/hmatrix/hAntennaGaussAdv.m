@@ -57,7 +57,7 @@ ant    = exp(-1*za_ant.^2/(2*si*si))/si/sqrt(2*pi);
 
 
 %=== Get H for the antenna pattern
-[Hant,za_new] = ...
+[Hant,za_sensor] = ...
          h_antenna(f_sensor,za_sensor,za_obs,za_ant,ant,fscale,f0,move,dza);
 
 
@@ -66,4 +66,4 @@ H = h_x_h(Hant,H);
 
 
 %=== Create new F_Y and ZA_Y
-[f_y,za_y] = h_fix_ys(f_sensor,za_sensor)
+[f_y,za_y] = h_fix_ys(f_sensor,za_sensor);

@@ -704,10 +704,6 @@ void losCalc(       Los&        los,
   else
     los_inside( los, z_plat, za, l_step, atm_limit, z_ground, refr, 
                                      z_abs, p_abs, refr_index, l_step_refr );
-
-  out1<<los.p(1);
-  out1<<los.l_step(1)<<"\n";
-  exit(1);
 }
 
 

@@ -55,103 +55,100 @@ extern const Numeric BOLTZMAN_CONST;
 //   Function(s) to join two WF matrices and related variables
 ////////////////////////////////////////////////////////////////////////////
 
-//// k_join ////////////////////////////////////////////////////////////////
+//// k_append ////////////////////////////////////////////////////////////////
 /**
-   Appends the WF matrix for a retrieval identity to the total WF matrix.
+   Appends the K matrix to either Kx or Kb.
 
-   \retval   ktot         total WF matrix
-   \param    knew         WF matrix for an additional identity
-   \retval   ktot_names   identity names for ktot
-   \param    knew_names   identity name for knew
-   \retval   ktot_index   identity indecies for ktot
-   \param    knew_index   identity indecies for knew
-   \retval   ktot_aux     additional data for ktot
-   \param    knew_aux     additional data for knew
+   \retval   kx           the Kx matrix
+   \retval   kx_names     identity names for KX
+   \retval   kx_index     identity indecies KX
+   \retval   kx_aux       additional data KX
+   \input    k            the K matrix
+   \input    k_names      identity names for K
+   \input    k_aux        additional data K
 
    \author Patrick Eriksson
-   \date   2000-09-11
+   \date   2000-10-20
 */
-void k_join (
-                    MATRIX&          ktot,
-              const MATRIX&          knew,
-                    ARRAYofstring&   ktot_names,
-              const ARRAYofstring&   knew_names,
-                    MATRIX&          ktot_index,
-              const MATRIX&          knew_index,
-                    MATRIX&          ktot_aux, 
-              const MATRIX&          knew_aux )
+void k_append (
+		    MATRIX&          kx,
+		    ARRAYofstring&   kx_names,
+		    MATRIX&          kx_index,
+		    MATRIX&          kx_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux )
 {
-  // Size of KTOT
-  const size_t  ny1 = ktot.dim(1);  // length of measurement vector (y)
-  const size_t  nx1 = ktot.dim(2);  // length of state vector (x)
+  // Size of Kx and K
+  const size_t  ny1 = kx.dim(1);        // length of measurement vector (y)
+  const size_t  nx1 = kx.dim(2);        // length of state vector (x)
+  const size_t  nri1 = kx_names.dim();  // number of retrieval identities
+  const size_t  ny2 = k.dim(1);  
+  const size_t  nx2 = k.dim(2);  
+  const size_t  nri2 = k_names.dim();
+        size_t  iy, ix, iri;
 
-  // If KTOT is empty, just copy the new data
-  if ( (ny1==0) && (nx1==0) )
+
+  MATRIX ktemp, ktemp_index, ktemp_aux;
+  ARRAYofstring ktemp_names;
+  if ( nx1 > 0 )
   {
-    ktot       = knew;
-    ktot_names = knew_names;
-    ktot_index = knew_index;
-    ktot_aux   = knew_aux;
-  }
-
-  // If KTOT not empty, append data
-  else
-  {
-    // More sizes
-    const size_t  ny2  = knew.dim(1);
-    const size_t  nx2  = knew.dim(2);
-    const size_t  nri1 = ktot_names.dim();  // number of retrieval identities
-    const size_t  nri2 = knew_names.dim();
-
-    // Indices used   
-    size_t  iy, ix, ix2, iri, iri2;
-
     // Check that sizes match
     if ( ny1 != ny2 )
-      throw runtime_error("The two WF matrices have different number of rows."); 
+      throw runtime_error(
+            "The two WF matrices have different number of rows."); 
 
-    // Make temporary storage for old data and reallocate the KTOT vars.
-    const MATRIX           ktemp       = ktot;
-    const MATRIX           ktemp_index = ktot_index;
-    const MATRIX           ktemp_aux   = ktot_aux;
-    const ARRAYofstring    ktemp_names = ktot_names;;
-    ktot.newsize(ny1,nx1+nx2);
-    ktot_index.newsize(nri1+nri2,2);
-    ktot_aux.newsize(nx1+nx2,3);
-    ktot_names.newsize(nri1+nri2);
+    // Make copy of Kx data
+    ktemp       = kx;
+    ktemp_index = kx_index;
+    ktemp_aux   = kx_aux;
+    ktemp_names.newsize(nri1);
+    for ( iri=1; iri<=nri1; iri++ )
+      ktemp_names(iri) = kx_names(iri);
+  }
 
-    // Put in old KTOT "to the left" and KNEW "to the right"
+  // Reallocate the Kx data
+  kx.newsize(ny2,nx1+nx2);
+  kx_names.newsize(nri1+nri2);
+  kx_index.newsize(nri1+nri2,2);
+  kx_aux.newsize(nx1+nx2,3);
+
+  // Move Kx to Ktot
+  if ( nx1 > 0 )
+  {
     for ( ix=1; ix<=nx1; ix++ )
     {
       for ( iy=1; iy<=ny1; iy++ )
-        ktot(iy,ix)  = ktemp(iy,ix);
-      ktot_aux(ix,1) = ktemp_aux(ix,1);
-      ktot_aux(ix,2) = ktemp_aux(ix,2);
-      ktot_aux(ix,3) = ktemp_aux(ix,3);
-    }
-    for ( ix=1; ix<=nx2; ix++ )
-    {
-      ix2 = nx1 + ix;
-      for ( iy=1; iy<=ny1; iy++ )
-        ktot(iy,ix2)  = knew(iy,ix);
-      ktot_aux(ix2,1) = knew_aux(ix,1);
-      ktot_aux(ix2,2) = knew_aux(ix,2);
-      ktot_aux(ix2,3) = knew_aux(ix,3);
-    }  
+        kx(iy,ix)  = ktemp(iy,ix);
+      kx_aux(ix,1) = ktemp_aux(ix,1);
+      kx_aux(ix,2) = ktemp_aux(ix,2);
+      kx_aux(ix,3) = ktemp_aux(ix,3);
+    }    
     for ( iri=1; iri<=nri1; iri++ )
     {
-      ktot_names(iri)   = ktemp_names(iri);
-      ktot_index(iri,1) = ktemp_index(iri,1);
-      ktot_index(iri,2) = ktemp_index(iri,2);
-    } 
-    for ( iri=1; iri<=nri2; iri++ )
-    {
-      iri2 = nri1 + iri;
-      ktot_names(iri2)   = knew_names(iri);
-      ktot_index(iri2,1) = knew_index(iri,1) + ktemp_index(nri1,2);
-      ktot_index(iri2,2) = knew_index(iri,2) + ktemp_index(nri1,2);
+      kx_names(iri)   = ktemp_names(iri);
+      kx_index(iri,1) = ktemp_index(iri,1);
+      kx_index(iri,2) = ktemp_index(iri,2);
     } 
   }
+
+  // Move K to Ktot
+  for ( ix=1; ix<=nx2; ix++ )
+  {
+    for ( iy=1; iy<=ny2; iy++ )
+      kx(iy,nx1+ix)  = k(iy,ix);
+    kx_aux(nx1+ix,1) = k_aux(ix,1);
+    kx_aux(nx1+ix,2) = k_aux(ix,2);
+    kx_aux(nx1+ix,3) = k_aux(ix,3);
+  }    
+  // Calculate the vector length for each identity in K
+  size_t l = (size_t) floor(nx2/nri2);
+  for ( iri=1; iri<=nri2; iri++ )
+  {
+    kx_names(nri1+iri)   = k_names(iri);
+    kx_index(nri1+iri,1) = nx1 + (iri-1)*l + 1;
+    kx_index(nri1+iri,2) = nx1 + iri*l;
+  } 
 }
 
 
@@ -959,10 +956,9 @@ void sourceloswfs (
      2 volume mixing ratio
      3 number density
 
-   \retval   ktot         total K matrix
-   \retval   ktot_names   identity names for ktot
-   \retval   ktot_index   identity indecies for ktot
-   \retval   ktot_aux     additional data for ktot
+   \retval   k            weighting function matrix
+   \retval   k_names      identity name(s)
+   \retval   k_aux        additional data
    \param    los          line of sight structure
    \param    absloswfs    absorption LOS Wfs
    \param    p_abs        pressure grid for abs. calculations
@@ -978,10 +974,9 @@ void sourceloswfs (
    \date   2000-09-15
 */
 void k_species (
-                    MATRIX&          ktot,
-                    ARRAYofstring&   ktot_names,
-                    MATRIX&          ktot_index,
-                    MATRIX&          ktot_aux,
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          p_abs,
@@ -1022,11 +1017,11 @@ void k_species (
         VECTOR  nd;                        // number density
 
 
-  // Set-up local K and additional data. Set all values of K to 0
-  MATRIX         k(nza*nv,ntg*np,0.0);
-  ARRAYofstring  k_names(ntg);
-  MATRIX         k_index(ntg,2);
-  MATRIX         k_aux(ntg*np,3);
+  // Set up K and additional data. Set all values of K to 0
+  k.newsize(nza*nv,ntg*np);
+  k = 0.0;
+  k_names.newsize(ntg);
+  k_aux.newsize(ntg*np,3);
 
   // The calculations
   // Loop order:
@@ -1051,8 +1046,6 @@ void k_species (
       out2 << "  Doing tag " << tg << " (" << itg << " of " << ntg << ")\n";
 
     // Fill K_NAMES and K_INDEX
-    k_index(itg,1) = ip0+1;
-    k_index(itg,2) = ip0+np;
     k_names(itg)   = tags(tg)(1).Name();
 
     // Interpolate to get the total absorption and the VMR values at the 
@@ -1146,9 +1139,6 @@ void k_species (
     // Increase retrieval altitude index off-set 
     ip0 += np;
   }  
-
-  // Combine total and local K matrices
-  k_join( ktot, k, ktot_names, k_names, ktot_index, k_index, ktot_aux, k_aux );
 }
 
 
@@ -1169,10 +1159,9 @@ void k_species (
 
    The WF matrix is appended to the total WF matrix (using k_join).
 
-   \retval   ktot         total K matrix
-   \retval   ktot_names   identity names for ktot
-   \retval   ktot_index   identity indecies for ktot
-   \retval   ktot_aux     additional data for ktot
+   \retval   k            weighting function matrix
+   \retval   k_names      identity name(s)
+   \retval   k_aux        additional data
    \param    los          line of sight structure
    \param    absloswfs    absorption LOS Wfs
    \param    f_mono       frequency absoprtion grid
@@ -1183,10 +1172,9 @@ void k_species (
    \date   2000-09-15
 */
 void k_contabs (
-                    MATRIX&          ktot,
-                    ARRAYofstring&   ktot_names,
-                    MATRIX&          ktot_index,
-                    MATRIX&          ktot_aux,
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
@@ -1224,11 +1212,11 @@ void k_contabs (
   if ( order < 0 )
     throw runtime_error("The polynomial order must be >= 0."); 
 
-  // Set-up local K and additional data. Set all values of K to 0
-  MATRIX         k(nza*nv,npoints*np,0.0);
-  ARRAYofstring  k_names(npoints);
-  MATRIX         k_index(npoints,2);
-  MATRIX         k_aux(npoints*np,3);
+  // Set up K and additional data. Set all values of K to 0
+  k.newsize(nza*nv,npoints*np);
+  k = 0.0;
+  k_names.newsize(npoints);
+  k_aux.newsize(npoints*np,3);
 
   // Calculate the frequencies of the off-set points
   nlinspace( fpoints, f_mono(1), f_mono(nv), npoints );
@@ -1248,9 +1236,7 @@ void k_contabs (
   {
     out2 << "  Doing point " << ipoint << "\n";
 
-    // Fill K_NAMES, K_INDEX and K_AUX
-    k_index(ipoint,1) = ip0+1;
-    k_index(ipoint,2) = ip0+np;
+    // Fill K_NAMES and K_AUX
     k_names(ipoint)   = "Continuum absorption, point ?";
     for ( ip=1; ip<=np; ip++ )
     {
@@ -1324,9 +1310,6 @@ void k_contabs (
     // Increase retrieval altitude index off-set 
     ip0 += np;
   }  
-
-  // Combine total and local K matrices
-  k_join( ktot, k, ktot_names, k_names, ktot_index, k_index, ktot_aux, k_aux );
 }
 
 
@@ -1345,17 +1328,16 @@ void k_contabs (
 
    The temperature WF matrix is appended to the total WF matrix (using k_join).
 
-   \retval   ktot         total K matrix
-   \retval   ktot_names   identity names for ktot
-   \retval   ktot_index   identity indecies for ktot
-   \retval   ktot_aux     additional data for ktot
+   \retval   k            weighting function matrix
+   \retval   k_names      identity name(s)
+   \retval   k_aux        additional data
    \param    los          line of sight structure
    \param    absloswfs    absorption LOS Wfs
    \param    f_mono       frequency absorption grid
    \param    p_abs        pressure grid for abs. calculations
    \param    t_abs        temperatures at p_abs
    \param    vmrs         VMR profiles at p_abs
-   \param   ineRecord lines_per_tg lines tag sorted
+   \param    lines_per_tg lines tag sorted
    \param    abs          total absorption
    \param    trans        transmissions         
    \param    e_ground     ground emissivity
@@ -1366,10 +1348,9 @@ void k_contabs (
    \date   2000-09-15
 */
 void k_temp_nohydro (
-                    MATRIX&          ktot,
-                    ARRAYofstring&   ktot_names,
-                    MATRIX&          ktot_index,
-                    MATRIX&          ktot_aux,
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
@@ -1412,13 +1393,12 @@ void k_temp_nohydro (
        Numeric  c,d;                       // temporary values
 
 
-  // Set-up local K and additional data. Set all values of K to 0
-  MATRIX         k(nza*nv,np,0.0);
-  ARRAYofstring  k_names(1,"Temperature");
-  MATRIX         k_index(1,2);
-  MATRIX         k_aux(np,3);
-  k_index(1,1)   = 1;
-  k_index(1,2)   = np;
+  // Set up K and additional data. Set all values of K to 0
+  k.newsize(nza*nv,np);
+  k = 0.0;
+  k_names.newsize(1);
+  k_names(1) = "Temperature";
+  k_aux.newsize(np,3);
   interpp( t, p_abs, t_abs, k_grid ); 
   for ( ip=1; ip<=np; ip++ )
   {
@@ -1512,9 +1492,6 @@ void k_temp_nohydro (
     iv0 += nv;
   }  
    out3 << "\n";
-
-  // Combine total and local K matrices
-  k_join( ktot, k, ktot_names, k_names, ktot_index, k_index, ktot_aux, k_aux );
 }
 
 
@@ -1651,37 +1628,6 @@ void absloswfsNoGround (
 
 
 
-// kInit
-/**
-   Initializes the weighting function matrix and help variables.
-
-   This function initializes k, k_names, k_index and k_aux.
-
-   Use this function before the WF calculations are started or
-   restarted.
-
-   \retval   k         total WF matrix
-   \retval   k_names   identity names
-   \retval   k_index   identity indecies
-   \retval   k_aux     additional data
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
-void kInit (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_index,
-                    MATRIX&          k_aux )
-{
-  k.newsize(0,0);
-  k_names.newsize(0);
-  k_index.newsize(0,0);
-  k_aux.newsize(0,0);
-}
-
-
-
 //// kSpecies //////////////////////////////////////////////////////////////
 /**
    Calculates species 1D weighting functions for a single tag.
@@ -1695,8 +1641,7 @@ void kInit (
      3 number density
 
    \retval   k           total WF matrix
-   \retval   k_names     identity names
-   \retval   k_index     identity indecies
+   \retval   k_names     identity name(s)
    \retval   k_aux       additional data
    \param    los         line of sight structure
    \param    absloswfs   absorption LOS Wfs
@@ -1715,7 +1660,6 @@ void kInit (
 void kSpecies (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
-                    MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
@@ -1730,7 +1674,7 @@ void kSpecies (
 {
   ARRAYofsizet  tg_nr(1,nr);
   
-  k_species( k, k_names, k_index, k_aux, los, absloswfs, p_abs, t_abs, 
+  k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
                                  tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
@@ -1744,8 +1688,7 @@ void kSpecies (
    are included in abs_per_tg. Units as for kSpecies.
 
    \retval   k           total WF matrix
-   \retval   k_names     identity names
-   \retval   k_index     identity indecies
+   \retval   k_names     identity name(s)
    \retval   k_aux       additional data
    \param    los         line of sight structure
    \param    absloswfs   absorption LOS Wfs
@@ -1763,7 +1706,6 @@ void kSpecies (
 void kSpeciesAll (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
-                    MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
@@ -1782,7 +1724,7 @@ void kSpeciesAll (
   for ( size_t i=1; i<=ntg; i++ )
     tg_nr(i) = i;
 
-  k_species( k, k_names, k_index, k_aux, los, absloswfs, p_abs, t_abs, 
+  k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
                                  tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
@@ -1800,8 +1742,7 @@ void kSpeciesAll (
    highest frequency of f_mono.
 
    \retval   k           total WF matrix
-   \retval   k_names     identity names
-   \retval   k_index     identity indecies
+   \retval   k_names     identity name(s)
    \retval   k_aux       additional data
    \param    los         line of sight structure
    \param    absloswfs   absorption LOS Wfs
@@ -1815,7 +1756,6 @@ void kSpeciesAll (
 void kContAbs (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
-                    MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
@@ -1823,7 +1763,7 @@ void kContAbs (
               const VECTOR&          k_grid,
               const int&             order )
 {
-  k_contabs( k, k_names, k_index, k_aux, los, absloswfs, f_mono, k_grid, order );
+  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order );
 }
 
 
@@ -1836,8 +1776,7 @@ void kContAbs (
    hydrostatic equilibrium.
 
    \retval   k        	    total WF matrix
-   \retval   k_names  	    identity names
-   \retval   k_index  	    identity indecies
+   \retval   k_names  	    identity name(s)
    \retval   k_aux    	    additional data
    \param    los      	    line of sight structure
    \param    absloswfs	    absorption LOS Wfs
@@ -1858,7 +1797,6 @@ void kContAbs (
 void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
-                    MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
@@ -1873,8 +1811,8 @@ void kTempNoHydro (
               const Numeric&         t_ground,
               const VECTOR&          k_grid )
 {
-  k_temp_nohydro( k, k_names, k_index, k_aux, los, absloswfs, f_mono, p_abs, 
-          t_abs, vmrs, lines_per_tg, abs, trans, e_ground, t_ground, k_grid );
+  k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
+                 vmrs, lines_per_tg, abs, trans, e_ground, t_ground, k_grid );
 }
 
 
@@ -1887,8 +1825,7 @@ void kTempNoHydro (
    and ground reflections.
 
    \retval   k        	    total WF matrix
-   \retval   k_names  	    identity names
-   \retval   k_index  	    identity indecies
+   \retval   k_names  	    identity name(s)
    \retval   k_aux    	    additional data
    \param    los      	    line of sight structure
    \param    absloswfs	    absorption LOS Wfs
@@ -1907,7 +1844,6 @@ void kTempNoHydro (
 void kTempNoHydroNoGround (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
-                    MATRIX&          k_index,
                     MATRIX&          k_aux,
               const Los&             los,           
               const ARRAYofMATRIX&   absloswfs,
@@ -1920,24 +1856,197 @@ void kTempNoHydroNoGround (
               const ARRAYofMATRIX&   trans,
               const VECTOR&          k_grid )
 {
-  k_temp_nohydro( k, k_names, k_index, k_aux, los, absloswfs, f_mono, p_abs, 
-          t_abs, vmrs, lines_per_tg, abs, trans, VECTOR(0), 0, k_grid );
+  k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
+                       vmrs, lines_per_tg, abs, trans, VECTOR(0), 0, k_grid );
 }
 
 
 
+//// kxInit //////////////////////////////////////////////////////////////////
+/**
+   Initializes the Kx weighting function matrix and help variables.
 
+   This function initializes kx, kx_names, kx_index and kx_aux.
 
+   Use this function before the WF calculations are started or
+   restarted.
 
+   \retval   kx         total WF matrix
+   \retval   kx_names   identity names
+   \retval   kx_index   identity indecies
+   \retval   kx_aux     additional data
 
-void hTest(// WS Output:
-           SPARSEMATRIX& h)
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
+void kxInit (
+                    MATRIX&          kx,
+                    ARRAYofstring&   kx_names,
+                    MATRIX&          kx_index,
+                    MATRIX&          kx_aux )
 {
-  SPARSEMATRIX A(10000,10000,3,"1.0 1.0 1.0","1 2 3","1 2 3");
-  
-  h = A;
+  kx.newsize(0,0);
+  kx_names.newsize(0);
+  kx_index.newsize(0,0);
+  kx_aux.newsize(0,0);
+}
 
-  out1 << "  h = \n"
-       << h << '\n';
 
+
+//// kbInit //////////////////////////////////////////////////////////////////
+/**
+   Initializes the Kb weighting function matrix and help variables.
+
+   This function initializes kb, kb_names, kb_index and kb_aux.
+
+   Use this function before the WF calculations are started or
+   restarted.
+
+   \retval   kb         total WF matrix
+   \retval   kb_names   identity names
+   \retval   kb_index   identity indecies
+   \retval   kb_aux     additional data
+
+   \author Patrick Eriksson
+   \date   2000-09-18
+*/
+void kbInit (
+                    MATRIX&          kb,
+                    ARRAYofstring&   kb_names,
+                    MATRIX&          kb_index,
+                    MATRIX&          kb_aux )
+{
+  kxInit( kb, kb_names, kb_index, kb_aux );
+}
+
+
+
+//// kxAppend ////////////////////////////////////////////////////////////////
+/**
+   Appends the K matrix to Kx and handles additional data correspondingly.
+
+   \retval   kx           the Kx matrix
+   \retval   kx_names     identity names for Kx
+   \retval   kx_index     identity indecies Kx
+   \retval   kx_aux       additional data Kx
+   \input    k            the K matrix
+   \input    k_names      identity names for K
+   \input    k_aux        additional data K
+
+   \author Patrick Eriksson
+   \date   2000-10-20
+*/
+void kxAppend (
+		    MATRIX&          kx,
+		    ARRAYofstring&   kx_names,
+		    MATRIX&          kx_index,
+		    MATRIX&          kx_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux )
+{
+  k_append( kx, kx_names, kx_index, kx_aux, k, k_names, k_aux );
+}
+
+
+
+//// kbAppend ////////////////////////////////////////////////////////////////
+/**
+   Appends the K matrix to Kb and handles additional data correspondingly.
+
+   \retval   kb           the Kb matrix
+   \retval   kb_names     identity names for Kb
+   \retval   kb_index     identity indecies Kb
+   \retval   kb_aux       additional data Kb
+   \input    k            the K matrix
+   \input    k_names      identity names for K
+   \input    k_aux        additional data K
+
+   \author Patrick Eriksson
+   \date   2000-10-20
+*/
+void kbAppend (
+		    MATRIX&          kb,
+		    ARRAYofstring&   kb_names,
+		    MATRIX&          kb_index,
+		    MATRIX&          kb_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux )
+{
+  k_append( kb, kb_names, kb_index, kb_aux, k, k_names, k_aux );
+}
+
+
+
+//// kxAppendUsingH //////////////////////////////////////////////////////////
+/**
+   Applies a H matrix on the K matrix and appends the result to Kx.
+
+   Additional data are treated correspondingly.
+
+   \retval   kx           the Kx matrix
+   \retval   kx_names     identity names for Kx
+   \retval   kx_index     identity indecies Kx
+   \retval   kx_aux       additional data Kx
+   \input    k            the K matrix
+   \input    k_names      identity names for K
+   \input    k_aux        additional data K
+   \input    h            a H matrix
+
+   \author Patrick Eriksson
+   \date   2000-10-22
+*/
+void kxAppendUsingH (
+		    MATRIX&          kx,
+		    ARRAYofstring&   kx_names,
+		    MATRIX&          kx_index,
+		    MATRIX&          kx_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux,
+              const Hmatrix&         h,
+              const string&          hname )
+{
+  out2 << "  Applies " << hname << "\n";
+  MATRIX k2;
+  h_apply( k2, h, k );
+  k_append( kx, kx_names, kx_index, kx_aux, k2, k_names, k_aux );
+}
+
+
+
+//// kbAppendUsingH //////////////////////////////////////////////////////////
+/**
+   Applies a H matrix on the K matrix and appends the result to Kb.
+
+   Additional data are treated correspondingly.
+
+   \retval   kb           the Kb matrix
+   \retval   kb_names     identity names for Kb
+   \retval   kb_index     identity indecies Kb
+   \retval   kb_aux       additional data Kb
+   \input    k            the K matrix
+   \input    k_names      identity names for K
+   \input    k_aux        additional data K
+   \input    h            a H matrix
+
+   \author Patrick Eriksson
+   \date   2000-10-22
+*/
+void kbAppendUsingH (
+		    MATRIX&          kb,
+		    ARRAYofstring&   kb_names,
+		    MATRIX&          kb_index,
+		    MATRIX&          kb_aux,
+              const MATRIX&          k,
+              const ARRAYofstring&   k_names,
+              const MATRIX&          k_aux,
+              const Hmatrix&         h,
+              const string&          hname )
+{
+  out2 << "  Applies " << hname << "\n";
+  MATRIX k2;
+  h_apply( k2, h, k );
+  k_append( kb, kb_names, kb_index, kb_aux, k2, k_names, k_aux );
 }

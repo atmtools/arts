@@ -46,6 +46,7 @@ $(top_srcdir)/src/math_funcs.h \
 $(top_srcdir)/src/atm_funcs.h \
 $(top_srcdir)/src/absorption.h \
 $(top_srcdir)/src/los.h \
+$(top_srcdir)/src/hmatrix.h \
 $(top_srcdir)/src/constants.cc \
 $(top_srcdir)/src/getopt.c \
 $(top_srcdir)/src/getopt1.c \
@@ -69,7 +70,8 @@ $(top_srcdir)/src/m_abs.cc \
 $(top_srcdir)/src/m_io.cc \
 $(top_srcdir)/src/m_los.cc \
 $(top_srcdir)/src/m_wfs.cc \
-$(top_srcdir)/src/absorption.cc
+$(top_srcdir)/src/absorption.cc \
+$(top_srcdir)/src/hmatrix.cc
 
 touse = \
 $(toexamine) \
