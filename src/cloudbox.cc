@@ -122,13 +122,13 @@ void iy_interp_cloudbox_field(
     { border = 1; }
   if( atmosphere_dim == 3  &&  border > 100 )
     {
-      if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[2] ) )
+      if( is_gridpos_at_index_i( rte_gp_lat, cloudbox_limits[2] ) )
         { border = 2; }
-      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[3] ) )
+      else if( is_gridpos_at_index_i( rte_gp_lat, cloudbox_limits[3] ) )
         { border = 3; }
-      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[4] ) )
+      else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[4] ) )
         { border = 4; }
-      else if( is_gridpos_at_index_i( rte_gp_p, cloudbox_limits[5] ) )
+      else if( is_gridpos_at_index_i( rte_gp_lon, cloudbox_limits[5] ) )
         { border = 5; }
     }
   //
@@ -166,6 +166,7 @@ void iy_interp_cloudbox_field(
   // If outside, something is wrong
   if( border > 100 )
     {
+      
       throw runtime_error( 
                  "Given position has been found to be outside the cloudbox." );
     }
@@ -325,7 +326,7 @@ void iy_interp_cloudbox_field(
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp( itw, 
-                    scat_i_lon( iv, joker, joker, border-4, joker, joker, is ),
+                     scat_i_lon( iv, joker, joker, border-4, joker, joker, is ),
                                       cb_gp_p, cb_gp_lat, gp_za, gp_aa );
                 }
             }
