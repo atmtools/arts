@@ -151,9 +151,11 @@ public:
   friend class Iterator2D;
   friend class Iterator3D;
   friend class Iterator4D;
+  friend class Iterator5D;
   friend class ConstIterator2D;
   friend class ConstIterator3D;
   friend class ConstIterator4D;
+  friend class ConstIterator5D;
   friend class SparseMatrixView;
   friend class ConstTensor3View;
   friend class Tensor3View;
@@ -161,6 +163,9 @@ public:
   friend class ConstTensor4View;
   friend class Tensor4View;
   friend class Tensor4;
+  friend class ConstTensor5View;
+  friend class Tensor5View;
+  friend class Tensor5;
   friend std::ostream& operator<<(std::ostream& os, const SparseMatrixView& v);
 
 
@@ -251,6 +256,7 @@ public:
   friend class ConstMatrixView;
   friend class ConstTensor3View;
   friend class ConstTensor4View;
+  friend class ConstTensor5View;
 
 protected:
   // Constructors:
@@ -321,6 +327,7 @@ public:
   friend class MatrixView;
   friend class Tensor3View;
   friend class Tensor4View;
+  friend class Tensor5View;
 
 protected:
   // Constructors:
@@ -445,6 +452,7 @@ public:
   friend class ConstIterator3D;
   friend class ConstTensor3View;
   friend class ConstTensor4View;
+  friend class ConstTensor5View;
   friend ConstMatrixView transpose(ConstMatrixView m);
 
 protected:
@@ -523,6 +531,7 @@ public:
   friend class Iterator3D;
   friend class Tensor3View;
   friend class Tensor4View;
+  friend class Tensor5View;
   friend ConstMatrixView transpose(ConstMatrixView m);
   friend MatrixView transpose(MatrixView m);
 

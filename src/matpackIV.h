@@ -65,7 +65,7 @@ public:
   ConstIterator4D& operator++();
   bool operator!=(const ConstIterator4D& other) const;
   const ConstTensor3View* operator->() const;
-  const ConstTensor3View& operator*() const;
+  const ConstTensor3View& operator*()  const;
 
 private:
   /** Current position. */
@@ -96,8 +96,8 @@ public:
   // Member functions:
   Index nbooks() const;
   Index npages() const;
-  Index nrows() const;
-  Index ncols() const;
+  Index nrows()  const;
+  Index ncols()  const;
 
   // Const index operators:
   ConstTensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c ) const;
@@ -123,11 +123,12 @@ public:
 
   // Functions returning iterators:
   ConstIterator4D begin() const;
-  ConstIterator4D end() const;
+  ConstIterator4D end()   const;
 
   // Friends:
   friend class Tensor4View;
-
+  friend class ConstIterator5D;
+  friend class ConstTensor5View;
 
 protected:
   // Constructors:
@@ -211,7 +212,7 @@ public:
 
   // Functions returning const iterators:
   ConstIterator4D begin() const;
-  ConstIterator4D end() const;
+  ConstIterator4D end()   const;
   // Functions returning iterators:
   Iterator4D begin();
   Iterator4D end();
@@ -237,6 +238,8 @@ public:
   // friend class VectorView;
   // friend ConstTensor4View transpose(ConstTensor4View m);
   // friend Tensor4View transpose(Tensor4View m);
+  friend class Iterator5D;
+  friend class Tensor5View;
 
 protected:
   // Constructors:
@@ -289,14 +292,12 @@ inline void copy(Numeric x,
                  const Iterator4D& end);
 
 
-
 // Declare the existance of class Array:
 template<class base>
 class Array;
 
 /** An array of Tensor4. */
 typedef Array<Tensor4> ArrayOfTensor4;
-
 
 
 // Functions for Iterator4D
@@ -784,16 +785,19 @@ inline ConstIterator4D ConstTensor4View::end() const
 /** Default constructor. This is necessary, so that we can have a
     default constructor for derived classes. */
 inline ConstTensor4View::ConstTensor4View() :
-  mbr(0,0,1), mpr(0,0,1), mrr(0,0,1), mcr(0,0,1), mdata(NULL)
+  mbr(0,0,1),
+  mpr(0,0,1),
+  mrr(0,0,1),
+  mcr(0,0,1),
+  mdata(NULL)
 {
   // Nothing to do here.
 }
 
 /** Explicit constructor. This one is used by Tensor4 to initialize
-    its own Tensor4View part. The row range rr must have a stride to
-    account for the length of one row. The page range pr must have a
-    stride to account for the length of one page. The book range br
-    must have a stride to account for the length of one book. */
+    its own Tensor4View part. The page range pr must have a stride to
+    account for the length of one page. The book range br must have a
+    stride to account for the length of one book. */
 inline ConstTensor4View::ConstTensor4View(Numeric *data,
                                           const Range& br,
                                           const Range& pr,
@@ -1508,7 +1512,7 @@ inline Tensor4View& Tensor4View::operator*=(const ConstTensor4View& x)
   ConstIterator4D  xb = x.begin();
   Iterator4D        b = begin();
   const Iterator4D eb = end();
-  for ( ; b != eb ; ++b,++xb )
+  for ( ; b != eb ; ++b, ++xb )
     {
       *b *= *xb;
     }
@@ -1525,7 +1529,7 @@ inline Tensor4View& Tensor4View::operator/=(const ConstTensor4View& x)
   ConstIterator4D  xb = x.begin();
   Iterator4D        b = begin();
   const Iterator4D eb = end();
-  for ( ; b != eb ; ++b,++xb )
+  for ( ; b != eb ; ++b, ++xb )
     {
       *b /= *xb;
     }
@@ -1542,7 +1546,7 @@ inline Tensor4View& Tensor4View::operator+=(const ConstTensor4View& x)
   ConstIterator4D  xb = x.begin();
   Iterator4D        b = begin();
   const Iterator4D eb = end();
-  for ( ; b != eb ; ++b,++xb )
+  for ( ; b != eb ; ++b, ++xb )
     {
       *b += *xb;
     }
@@ -1559,7 +1563,7 @@ inline Tensor4View& Tensor4View::operator-=(const ConstTensor4View& x)
   ConstIterator4D  xb = x.begin();
   Iterator4D        b = begin();
   const Iterator4D eb = end();
-  for ( ; b != eb ; ++b,++xb )
+  for ( ; b != eb ; ++b, ++xb )
     {
       *b -= *xb;
     }
@@ -1620,7 +1624,7 @@ inline void copy(ConstIterator4D origin,
                  const ConstIterator4D& end,
                  Iterator4D target)
 {
-  for ( ; origin != end ; ++origin,++target )
+  for ( ; origin != end ; ++origin, ++target )
     {
       // We use the copy function for the next smaller rank of tensor
       // recursively:

@@ -1,3 +1,21 @@
+2002-03-08  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
+
+	* arts-1-1-20
+
+	* src/matpackV.h: Added new file for tensor 5.
+
+	* src/matpackIV.h: Added four friend class declarations.
+
+	* src/matpackIII.h: Added two friend class declarations.
+
+	* src/matpackI.h: Added nine friend class declarations.
+
+	* src/test_tensor.cc: Added some tests for tensor 4 and tensor 5.
+
+	* doc/uguide/utilities.tex: Corrected explanation for error message
+	"There is some garbage at the end of the file." of the IDL reading
+	routine 'read_datafile.pro'.
+	
 2002-03-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-19
@@ -68,7 +86,7 @@
 	test for selecting a book and a test for selecting the first
 	letter of every page of every book.
 
-2002-02-21  Wolfram Haas    <wolhaas@hermes.fho-emden.de>
+2002-02-21  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-1-1-12
 
