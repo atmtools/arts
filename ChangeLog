@@ -1,3 +1,9 @@
+2001-08-24  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-198
+
+	* Added functions axes_1xn/nx1 to ami/plot
+
 2001-08-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-197
