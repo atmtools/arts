@@ -1,3 +1,11 @@
+2003-09-08  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-0-126
+
+	* src/continua.cc: bug fix in O2 continuum band v0<-v0.
+
+	* aii/plot_abs_per_tg_2.pro: small change in plot format
+
 2003-09-08  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
 	* arts-1-0-125

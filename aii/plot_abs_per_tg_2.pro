@@ -351,7 +351,11 @@ P_ini = !P
 !P.multi    = [0,1,1]
 
 ;; settings for the plot
-plotpos = [0.1, 0.1, 0.7, 0.9]
+if (plotfileformat gt 2) then begin
+    plotpos = [0.25, 0.2, 0.75, 0.9]
+endif else begin
+    plotpos = [0.1, 0.1, 0.7, 0.9]
+endelse
 !P.THICK = 8
 thick = !P.THICK
  

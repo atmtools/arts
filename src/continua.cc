@@ -2863,9 +2863,9 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
   if ( (V1ABS < N2N2_N2F_ckd_mt_100_v1) || (V1ABS > N2N2_N2F_ckd_mt_100_v2) ||
        (V2ABS < N2N2_N2F_ckd_mt_100_v1) || (V2ABS > N2N2_N2F_ckd_mt_100_v2) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 N2-N2 CIA fundamental band:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "   CKD_MT 1.00 N2-N2 CIA fundamental band:\n"
+	    << "   input frequency vector exceeds range of model validity" << '\n';
     }
 
 
@@ -2942,7 +2942,6 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 	    {
 	      Numeric C0 = factor * xn2[J] * exp(xn2t[J]*xktfac) / VJ;
 	      SN2 = tau_fac * C0;
-	      //cout << "factor=" << factor  << " xn2t=" << xn2t[J] << " xktfac=" << xktfac << " C0=" << C0 << " tau_fac=" << tau_fac ;
 	    }
 
 	  // CKD cross section without radiative field
@@ -2960,8 +2959,6 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
 	    }
 	}
@@ -3060,9 +3057,9 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
   if ( (V1ABS < O2O2_O2F_ckd_mt_100_v1) || (V1ABS > O2O2_O2F_ckd_mt_100_v2) ||
        (V2ABS < O2O2_O2F_ckd_mt_100_v1) || (V2ABS > O2O2_O2F_ckd_mt_100_v2) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 O2-O2 CIA fundamental band:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "   CKD_MT 1.00 O2-O2 CIA fundamental band:\n"
+	    << "   input frequency vector exceeds range of model validity" << '\n';
     }
 
 
@@ -3152,8 +3149,6 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
 	    }
 	}
@@ -3261,9 +3256,9 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   if ( (V1ABS < O2_00_ckd_mt_100_v1) || (V1ABS > O2_00_ckd_mt_100_v2) ||
        (V2ABS < O2_00_ckd_mt_100_v1) || (V2ABS > O2_00_ckd_mt_100_v2) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 O2 v0<-v0 band:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "   CKD_MT 1.00 O2 v0<-v0 band:\n"
+	    << "   input frequency vector exceeds range of model validity" << '\n';
     }
 
 
@@ -3274,27 +3269,33 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
   
+  cout << " v0v0  0 \n";
+
   int I1 = (int) ((V1C-O2_00_ckd_mt_100_v1) / O2_00_ckd_mt_100_dv);
-  if (V1C < O2_00_ckd_mt_100_v1) I1 = -1;
+  if (V1C < O2_00_ckd_mt_100_v1) I1 = I1-1;
   V1C    = O2_00_ckd_mt_100_v1 + (O2_00_ckd_mt_100_dv * (Numeric)I1);
 
   int I2 = (int) ((V2C-O2_00_ckd_mt_100_v1) / O2_00_ckd_mt_100_dv);
 
   int NPTC = I2-I1+3;
-  if (NPTC > O2_00_ckd_mt_100_npt) NPTC = O2_00_ckd_mt_100_npt+1;
+  //if (NPTC > O2_00_ckd_mt_100_npt) NPTC = O2_00_ckd_mt_100_npt+1;
 
   V2C    = V1C + O2_00_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
-  Numeric C[NPTC+addF77fields];
+  cout << " v0v0  1:   NPTC=" << NPTC << " " << I1 << " " << I2 
+       << " addF77fields=" << addF77fields << "\n";
+
+  Numeric CO[(int)(NPTC+addF77fields)];
+
 
   for (Index J = 1 ; J <= NPTC ; ++J)
     {
-      C[J]  = 0.000e0;
+      CO[J]  = 0.000e0;
       Index I = I1+J;
       if ( (I > 0) && (I <= O2_00_ckd_mt_100_npt) ) 
 	{
 	  Numeric VJ  = V1C + (DVC * (Numeric)(J-1)); 
-	  C[J]  = O2_00_ckd_mt_100[I] / VJ;
+	  CO[J]  = O2_00_ckd_mt_100[I] / VJ;
 	}
     }
 
@@ -3331,9 +3332,9 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 	{
 	  Numeric VJ  = V1C + (DVC * (Numeric)(J-1)); 
 	  Numeric SO2 = 0.0e0;
-	  if (C[J] > 0.0e0)
+	  if (CO[J] > 0.0e0)
 	    {
-	      SO2 = ADJWO2 * C[J];
+	      SO2 = ADJWO2 * CO[J];
 	    }
 
 	  // CKD cross section without radiative field
@@ -3351,8 +3352,6 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
 	    }
 	}
@@ -3467,8 +3466,8 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
        (V2ABS < O2_00_ckd_mt_100_v1) || (V2ABS > O2_00_ckd_mt_100_v2) )
     {
       out3  << "WARNING\n"
-            << "CKD_MT 1.00 O2 v0<-v0 band:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+            << "   CKD_MT 1.00 O2 v0<-v0 band:\n"
+	    << "   input frequency vector exceeds range of model validity" << '\n';
     }
 
 
@@ -3568,8 +3567,6 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 	    {
 	      // arts cross section [1/m]
 	      // interpolate the k vector on the f_mono grid
-	      //	      cout << " V1C=" << V1C << " V2C=" << V2C << " DVC=" << DVC << " V=" << V << "\n";
-	      //              cout << " lower end of k=" << 1  << " upper end of k=" << NPTC << "\n";
 	      xsec(s,i) +=  ScalingFac * 1.000e2 * XINT_FUN(V1C,V2C,DVC,k,V) * RADFN_FUN(V,XKT);
 	    }
 	}
@@ -14436,8 +14433,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.11 $ */
-/*     created:	        $Date: 2003/08/29 00:21:06 $ */
+/*     revision:	        $Revision: 1.26.2.12 $ */
+/*     created:	        $Date: 2003/09/08 15:07:18 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */
