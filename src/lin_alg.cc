@@ -174,7 +174,7 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
   \param A Input: arbitrary square matrix
   \param q Input: Parameter for the accuracy of the computation
 */
-void matrix_exp(MatrixView F, MatrixView A, Index q)
+void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q)
 {
   Numeric A_norm_inf, c;
   Numeric j;
@@ -182,29 +182,33 @@ void matrix_exp(MatrixView F, MatrixView A, Index q)
   Matrix D(n,n), N(n,n), X(n,n), cX(n,n), B(n,n);
   Vector N_col_vec(n), F_col_vec(n);
 
-  /* check if A is a quadratic matrix */
+  /*Check if A and F are a quadratic and of the same dimension. */
   assert(is_size(A,n,n));
+  assert(is_size(F,n,n));
 
   A_norm_inf = norm_inf(A);
   j = 1 +  floor(1./log(2.)*log(A_norm_inf));
   if(j<0) j=0.;
   Index j_index = (Index)(j);
-  A /= pow(2,j);
+
+  // Scale matrix
+  F = A;
+  F /= pow(2,j);
 
   /* The higher q the more accurate is the computation, 
      see user guide for accuracy */
   //  Index q = 8;
   Numeric q_n = (Numeric)(q);
-  identity(D, n);
-  identity(N, n);
-  identity(X, n);
+  identity(D);
+  identity(N);
+  identity(X);
   c = 1.;
 
   for(Index k=0; k<q; k++)
     {
       Numeric k_n = (Numeric)(k+1);
       c *= (q_n-k_n+1)/((2*q_n-k_n+1)*k_n);
-      mult(B,A,X);		// X = A * X
+      mult(B,F,X);		// X = F * X
       X = B;
       cX = X;			
       cX *= c;			// cX = X*c
@@ -213,11 +217,11 @@ void matrix_exp(MatrixView F, MatrixView A, Index q)
       D += cX;			// D = D + (-1)^k*c*X
     }
 
+
   /*Solve the equation system DF=N for F using LU decomposition,
    use the backsubstitution routung for columns of N*/ 
 
- 
-  /* Now use X  for the LU decomposition matrix of D.*/
+   /* Noe use X  for the LU decomposition matrix of D.*/
   ArrayOfIndex indx(n);
   ludcmp(X, indx, D);
 
@@ -240,10 +244,6 @@ void matrix_exp(MatrixView F, MatrixView A, Index q)
 }
 
 
-
-
-
-
 //! Maximum absolute row sum norm 
 /*! 
   This function returns the maximum absolute row sum norm of a 
@@ -255,17 +255,20 @@ void matrix_exp(MatrixView F, MatrixView A, Index q)
 */
 Numeric norm_inf(ConstMatrixView A)
 {
-  Vector row_sum(4);
+  const Index n = A.ncols();  
+  Vector row_sum(n);
   Numeric norm_inf;
   
   for(Index j=0; j<A.ncols(); j++)
     {
-  for(Index i=0; i<A.ncols(); i++)
-    row_sum[j] += A(i,j);
-  if(j>0 && row_sum[j] < row_sum[j-1])
-    row_sum[j] = row_sum[j-1];
+      //Calculate the row sum for all rows
+      for(Index i=0; i<A.ncols(); i++)
+	row_sum[j] += A(i,j);
+      //Pick out the row with the highest row sum
+      if(j>0 && row_sum[j] < row_sum[j-1])
+	row_sum[j] = row_sum[j-1];
     }
-  norm_inf = row_sum[3];
+  norm_inf = row_sum[n-1];
 
   return norm_inf;
 }
@@ -273,12 +276,11 @@ Numeric norm_inf(ConstMatrixView A)
 
 //! Identity Matrix
 /*! 
-  
   \param I Output: identity matrix
-  \param n Input: dimension
 */
-void identity(MatrixView I, const Index& n)
+void identity(MatrixView I)
 {
+  const Index n = I.ncols();
   I = 0;
   for(Index i=0; i<n; i++)
     I(i,i) = 1.;

@@ -47,7 +47,7 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
 
 
 // Exponential of a Matrix
-void matrix_exp(MatrixView F, MatrixView A, Index q);
+void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q);
 
 
 // Maximum absolute row sum norm 
@@ -55,6 +55,6 @@ Numeric norm_inf(ConstMatrixView A);
 
 
 // Identity Matrix
-void identity(MatrixView I, const Index& n);
+void identity(MatrixView I);
 
 #endif    // linalg_h
