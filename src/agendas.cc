@@ -406,6 +406,23 @@ void define_agenda_data()
        OUTPUT( abs_scalar_gas_ ),
        INPUT(  f_index_,
                a_pressure_, a_temperature_, a_vmr_list_ )));
+  
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "scat_field_agenda" ),
+       DESCRIPTION
+       (
+        "Calculation of the scattering integral. \n"
+        "\n"
+        "Different methods for calculating the scattering integral have been\n"
+        "implemented. Here you can define the method which should be taken \n"
+        "in your calculation. \n"
+        "\n"
+        ),
+        OUTPUT( scat_field_ ),
+        INPUT(  i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, p_grid_, 
+                lat_grid_, lon_grid_, cloudbox_limits_)));
+
 
   agenda_data.push_back
     (AgRecord
@@ -443,8 +460,30 @@ void define_agenda_data()
              f_grid_,
              f_index_,
              scat_za_grid_,
-             scat_aa_grid_,
-             amp_mat_raw_)));
+             scat_aa_grid_)));
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "scat_rte_agenda" ),
+       DESCRIPTION
+       (
+        "Radiative transfer calculation in cloudbox. \n"
+        "\n"
+        "Differnt methods for the radiative transfer calculation are:\n"
+        "*i_fieldUpdate{1,3}D*: 'Normal' function for successive order of\n"
+        "                      scattering method. \n"
+        "*i_fieldUpdateSeq{1,3}D*: Seqential update of the radiation field. \n"
+        "                      This method is much faster than the 'normal'\n"
+        "                      method. \n"
+        "*i_fieldUpdate{1,3}DPlaneParallel*: The same method as \n"
+        "                      *i_fieldUpdateSeq*** but with plane- \n"
+        "                      oarallel geometry. \n"
+        "\n"
+        ),
+        OUTPUT( i_field_),
+        INPUT(  i_field_old_, scalar_gas_absorption_agenda_, spt_calc_agenda_,
+                opt_prop_part_agenda_, opt_prop_gas_agenda_,
+                ppath_step_agenda_)));
 
  agenda_data.push_back
     (AgRecord
@@ -469,8 +508,8 @@ void define_agenda_data()
         "Then the method *ext_mat_sptScat* has to be used. \n"
         "\n"
         ),
-       OUTPUT( ext_mat_spt_, abs_vec_spt_, pha_mat_spt_),
-       INPUT(  pha_mat_spt_, abs_vec_spt_, ext_mat_spt_, amp_mat_,
+       OUTPUT( ext_mat_spt_, abs_vec_spt_),
+       INPUT(  abs_vec_spt_, ext_mat_spt_,
                scat_za_index_, scat_aa_index_,
                scat_za_grid_, scat_aa_grid_ )));
 

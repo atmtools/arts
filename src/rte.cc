@@ -822,12 +822,19 @@ void rte_step(//Output and Input:
   for (Index i = 1; i < stokes_dim; i++)
     if (abs_vec_av[i] != 0)
       unpol_abs_vec = false;
+  
+  bool unpol_sca_vec = true;
 
+  for (Index i = 1; i < stokes_dim; i++)
+    if (sca_vec_av[i] != 0)
+      unpol_sca_vec = false;
+
+
+  const Numeric   trans = exp(-ext_mat_av(0,0) * l_step);
 
   // Scalar case: 
   if( stokes_dim == 1 )
     { 
-      Numeric   trans = exp(-ext_mat_av(0,0) * l_step);
       stokes_vec[0] = stokes_vec[0] * trans + 
         (abs_vec_av[0] * a_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
         * (1 - trans);
@@ -839,20 +846,22 @@ void rte_step(//Output and Input:
       // non-zero value in position 1.
     
       // Unpolarised
-  else if( is_diagonal(ext_mat_av) && unpol_abs_vec )
+  else if( is_diagonal(ext_mat_av) && unpol_abs_vec && unpol_sca_vec )
     {
       // Stokes dim 1
       //    assert( ext_mat_av(0,0) == abs_vec_av[0] );
-          Numeric transm = exp( -l_step * abs_vec_av[0] );
-          stokes_vec[0] = stokes_vec[0] * transm + 
-            ( 1- transm ) * a_planck_value;
-          
-          // Stokes dims > 1
-          for( Index i=1; i<stokes_dim; i++ )
-            {
-              //      assert( abs_vec_av[i] == 0.);
-              stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); 
-            }
+      //   Numeric transm = exp( -l_step * abs_vec_av[0] );
+      stokes_vec[0] = stokes_vec[0] * trans + 
+        (abs_vec_av[0] * a_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
+        * (1 - trans);
+      
+      // Stokes dims > 1
+      for( Index i=1; i<stokes_dim; i++ )
+        {
+          //      assert( abs_vec_av[i] == 0.);
+          stokes_vec[i] = stokes_vec[i] * trans + 
+            sca_vec_av[i] / ext_mat_av(i,i)  * (1 - trans);
+        }
     }
   
   
@@ -907,7 +916,7 @@ stokes_vecGeneral(//WS Output and Input:
   assert(is_size(abs_vec_av, stokes_dim));
   assert(is_size(sca_vec_av, stokes_dim));
   assert( a_planck_value >= 0 );
-  assert( l_step > 0 );
+  // assert( l_step > 0 );
 
   //Initialize internal variables:
 

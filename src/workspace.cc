@@ -1637,18 +1637,6 @@ wsv_data.push_back
 
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "scat_data_file" ),
-        DESCRIPTION
-        (
-         "Filename foe single scattering data"
-         "\n"
-         "Usage: As keyword in *ParticleTypeAdd*. \n"
-         "\n"
-         ),
-        GROUP( String_ ))); 
-
-   wsv_data.push_back
-     (WsvRecord
       ( NAME( "scat_data_raw" ),
         DESCRIPTION
         (
@@ -1660,6 +1648,15 @@ wsv_data.push_back
          "\n"
          ),
         GROUP( ArrayOfSingleScatteringData_ ))); 
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_field_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ ))); 
 
 
    wsv_data.push_back
@@ -1834,6 +1831,16 @@ wsv_data.push_back
        ),
      GROUP( Index_ ))); 
  
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_rte_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ ))); 
+ 
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_za_grid" ),

@@ -2031,7 +2031,7 @@ void ybatchMetProfiles(//Output
 		       Vector& p_grid,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
-		       const ArrayOfString& part_types,
+		       const ArrayOfSingleScatteringData& scat_data_raw,
 		       const String& met_profile_path,
 		       const ArrayOfString& met_profile_basenames,
 		       const Agenda& met_profile_calc_agenda,
@@ -2056,8 +2056,8 @@ void ybatchMetProfiles(//Output
       vmr_field_raw[i].resize(4);
     }
 
-  pnd_field_raw.resize(part_types.nelem());
-  pnd_field.resize(part_types.nelem(),p_grid.nelem(), 1,1);
+  pnd_field_raw.resize(scat_data_raw.nelem());
+  pnd_field.resize(scat_data_raw.nelem(),p_grid.nelem(), 1,1);
 
   y.resize(f_grid.nelem());
   ybatch.resize(no_profiles, f_grid.nelem());

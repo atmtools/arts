@@ -1,3 +1,47 @@
+2003-05-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-534
+
+	* src/agendas.cc: Added *scat_rte_agenda* and *scat_field_agenda*.
+	These agendas are useful, because we have now many methods for
+	calculating the 'cloudy' RT (sequential update, plane parallel or
+	the 'normal' old method).
+	For the scattering integral we have two methods which have to be 
+	chosen according to the database format (amp_mat or 
+	SingleScatteringData.
+
+	It is now possible to do the scattering calculations with both data-
+	base formats. The amplitude-matrix format will be removed later,
+	but now we should keep it to eb able to compare the results.
+
+	* src/m_scatrte.cc(i_fieldIterate): Modified. Execxute agendas above 
+	instead of functions.
+	(ScatteringInitAmpMat): New method. Used for initializing scattering
+	variables if amp_mat is used as data-format.
+	(scat_fieldCalc): The standart function for calculating the scattering
+	integral. Uses Single ScatteringData structure.
+	(scat_fieldCalcFromAmpMat): Scattering integral calculation from
+	amplitude matrix.
+
+	* src/m_optproperties(pha_mat_sptCalc), (opt_prop_sptCalc): Bugs fixed.
+
+	* src/optproperties(pha_matTransform): Included different cases which 
+	have to be considered for the coordinate transform. 
+	There still seems to be a problem if the zenith angle of the
+	direction of the scattered radiation is 0.
+	
+	* src/methods.cc: Included new methods changes described 
+	above.
+
+	* src/workspace.cc: Removed *part_types*. Redundant now.
+	
+	* src/m_cloudbox.cc(ybatchMetProfiles): Removed *part_types* and 
+	included *scat_raw_data* instead to get the information about the 
+	number of particle types.
+
+	* src/rte.cc (rte_step): Modified unpoarized part. The scattering term
+	has been missing there.
+	
 2003-04-30  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-533
