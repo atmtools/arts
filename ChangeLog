@@ -1,3 +1,14 @@
+2003-09-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-684
+	
+	* src/m_scatrte.cc (scat_fieldCalc): Fixed the bug in the calculation of 
+	the scattering integral. Now, the model results are in good agreement 
+	with the RAL calculations. 
+	
+	* src/m_cloudbox.cc (i_fieldSetConst): Slightly modified checks of input 
+	variables.
+
 2003-09-04  Mattias Ekström  <ekstrom@chalmers.se>
 
 	* arts-1-1-683

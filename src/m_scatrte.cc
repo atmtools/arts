@@ -3098,8 +3098,8 @@ scat_fieldCalc(//WS Output:
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                          atmosphere_dim, p_index, 0, 
                          0);
-            
 
+            
             // za_in and aa_in are for incoming zenith and azimutha 
             //angle direction for which pha_mat is calculated
             for (Index za_in = 0; za_in < Nza; ++ za_in)
@@ -3112,16 +3112,16 @@ scat_fieldCalc(//WS Output:
                                                   aa_in,
                                                   Range(joker),
                                                   Range(joker));
-
                     //the incoming field expressed as a vector for all
                     //pressure points, and looking angles
                     ConstVectorView i_field_in = 
                       i_field((p_index - cloudbox_limits[0]),
                               0,
                               0,
-                              scat_za_index,
+                              za_in,
                               0,
                               Range(joker));
+                    
 
                     // multiplication of intensity field vector and 
                     //pha_mat matrix

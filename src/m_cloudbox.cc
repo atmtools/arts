@@ -656,27 +656,15 @@ void i_fieldSetConst(//WS Output:
                         "atmospheric dimensions. So its dimension must"
                         "be 2 x *atmosphere_dim*"); 
 
-  if ( !is_size(scat_i_p, f_grid.nelem(), 2, Nlat_cloud, 
-                Nlon_cloud, N_za, N_aa, stokes_dim)  
-       || !is_size(scat_i_lat, f_grid.nelem(), Np_cloud, 2, 
-                   Nlon_cloud, N_za, N_aa, stokes_dim)  
-       || !is_size(scat_i_lon, f_grid.nelem(), Np_cloud,  
-                   Nlat_cloud, 2, N_za, N_aa, stokes_dim) )
-    throw runtime_error(
-                        "One of the interface variables (*scat_i_p*, "
-                        "*scat_i_lat* or *scat_i_lon*) does not have "
-                        "the right dimensions.  \n Probably you have "
-                        "calculated them before for another value of "
-                        "*stokes_dim*."
-                        );
 
-  
+ 
   if(atmosphere_dim == 1)
-  {
-       
+    {
+      cout << "atm_dim = 1" << endl; 
+      
     // Define the size of i_field.
     i_field.resize((cloudbox_limits[1] - cloudbox_limits[0])+1, 1, 1,  N_za,
-                   1, 1);
+                   1, N_i);
     i_field = 0.;
 
     // Loop over all zenith angle directions.
@@ -697,12 +685,26 @@ void i_fieldSetConst(//WS Output:
               i_field(scat_p_index, 0, 0, za_index, 0, i) =  i_field_values[i];
           }    
       }
-  }
-  
-  else
+    }
+  else 
     {
+      if ( !is_size(scat_i_p, f_grid.nelem(), 2, Nlat_cloud, 
+                Nlon_cloud, N_za, N_aa, stokes_dim)  
+           || !is_size(scat_i_lat, f_grid.nelem(), Np_cloud, 2, 
+                       Nlon_cloud, N_za, N_aa, stokes_dim)  
+           || !is_size(scat_i_lon, f_grid.nelem(), Np_cloud,  
+                       Nlat_cloud, 2, N_za, N_aa, stokes_dim) )
+        throw runtime_error(
+                            "One of the interface variables (*scat_i_p*, "
+                            "*scat_i_lat* or *scat_i_lon*) does not have "
+                            "the right dimensions.  \n Probably you have "
+                            "calculated them before for another value of "
+                            "*stokes_dim*."
+                            );
       
+
       
+      cout << "atm_dim = 3" << endl;      
       i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
                      (cloudbox_limits[3]- cloudbox_limits[2])+1,
                      (cloudbox_limits[5]- cloudbox_limits[4])+1,
