@@ -1,4 +1,4 @@
-\levela{Sensor modeling}
+\chapter{Sensor modeling}
  \label{sec:sensor}
 
 
@@ -65,17 +65,17 @@ of characteristics.
 %here.
 
 %--------------------------
-\levelb{Internal functions}
+\section{Internal functions}
 Description of the concept with forward matrices. Show pictures?
 
-\levelc{Weighting}
+\subsection{Weighting}
 Decribe how the weighting matrices work and are derived.
 
-\levelc{Summation}
+\subsection{Summation}
 Decribe how the summation matrices work and are derived.
 
 %----------------------------------
-\levelb{Instrument characteristics}
+\section{Instrument characteristics}
 \FIXME{rewrite}
 
 In an effort to keep a consitency between the different sensor parts, 
@@ -112,17 +112,17 @@ How this is implemented for each sensor part will be described in the
 sections concerning the different sensor parts.
 
 %--------------------------------------
-\levelb{Sensor response initialisation}
+\section{Sensor response initialisation}
 Even if the monochromatic pencil beam spectrum is studied without any sensor influence, the sensor variables, especially \SnsMtr\ has to be set. The reason is that the WSM \artsstyle{RteCalc} always applies a \SnsMtr\ to the spectrum or spectra. On the other hand if a response from a sensor system should be applied to the spectral values the sensor variables has to be initialised properly. For these tasks there exist two WSMs, \artsstyle{sensorOff} and \artsstyle{sensor\_responseInit}. At least one of these has to be included in the control file.
 
-\levelc{No sensor}
+\subsection{No sensor}
 If the calculated monochromatic pencil beams is to be studied as is, i.e.~there is no sensor system present in the simulation, only one WSM is needed \artsstyle{sensor\_off}. It sets all the necessary sensor variables so that the monochromatic pencil beams are unchanged. This means setting \SnsMtr\ to be an identity matrix. Other variables that are set by \artsstyle{sensor\_off} are \artsstyle{sensor\_pol}, \artsstyle{sensor\_rot}, \artsstyle{antenna\_dim}, \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and all the \artsstyle{sensor\_response\_}\ldots variables.
 The syntax to disable the sensor in the simulation is simply;
 \begin{verbatim}
 sensorOff{}
 \end{verbatim}
 
-\levelc{Initialisation}
+\subsection{Initialisation}
 When there is a sensor system present in the simulation the sensor response variables has to be set up in a correct way. The WSM \artsstyle{sensor\_responseInit} takes care of this. It sets the \SnsMtr\ to be an identity matrix with size so that is it applicable to the monochromatic pencil beam column vector. It also initialises
 the \artsstyle{sensor\_response\_}\ldots variables, \artsstyle{sensor\_response\_f}, \artsstyle{sensor\_response\_za}, \artsstyle{sensor\_response\_aa} and \artsstyle{sensor\_response\_pol}. These are updated by all succeeding sensor response WSMs, and therefor gives the accurate output grids and values for the frequency and zenith- and azimuth angle grids and number of polarisations. The output grids for the initial sensor response are \artsstyle{f\_grid}, \artsstyle{mblock\_za\_grid} and
 \artsstyle{mblock\_aa\_grid} and the number of polarisation equals \artsstyle{stokes\_dim}. These WSV has to be set prior to calling \artsstyle{sensor\_responseInit} together with the position and line-of-sight of the sensor and the atmosphere dimension.
@@ -145,7 +145,7 @@ sensor_responseInit {}
 \end{verbatim}
 
 %-----------------------------
-\levelb{Polarisation response}
+\section{Polarisation response}
 Taking polarisation into account, and assuming no losses, the measured intensity for a certain direction and frequency , $I_p$, is
 \begin{equation}
 \label{eq:sensor:pol:response}
@@ -173,7 +173,7 @@ sensor_responsePolarisation {}
 and now \SnsMtr\ is updated to include the polarisation response.
 
 %------------------------
-\levelb{Antenna response}
+\section{Antenna response}
 \label{sec:sensor:antenna}
 The influence of the antenna can be expressed as a weighting between the antenna response, $w_\mathrm{a}$, as a function of viewing direction and the MPBR field, $I$:
 \begin{equation}
@@ -189,7 +189,7 @@ In ARTS the pencil beams are calculated for each measurement block at the angles
 given by \artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid} added to the current line-of-sight, \artsstyle{sensor\_los}, as described in \ref{sec:fm_defs:sensorchar}. The weights  $w_\mathrm{a}$ are described by the WSV \artsstyle{antenna\_diagram} that describes the angular dependent antenna pattern. 
 ARTS is prepared to handle a full 3D environment with a 2D antenna, but so far only methods for 1D antennas have been developped. 
 
-\levelc{Antenna diagram}
+\subsection{Antenna diagram}
 \FIXME{Change of concept?}
 
 The antenna diagram $w_\mathrm{a}$ in ARTS is represented by a structure \artsstyle{antenna\_diagram} that consists of an array of arrays of matrices. The reason to use such a complicated structure is to preserve as much variability as possible when describing the antenna pattern. With this structure it is possible to define the antenna response for different viewing angles, polarisations and frequencies. 
@@ -204,7 +204,7 @@ Since there only exists a method 1D antennae, $w_\mathrm{a}$ is so far only defi
 \end{center}
 \end{figure}
 
-\levelc{1D antenna}
+\subsection{1D antenna}
 Here it will be assumed that the variation of $I$ in one angular dimension can be neglected, and that the weighting can be described by an one dimensional integral:
 \begin{eqnarray}
 \label{eq:sensor:antenna:1D}
@@ -229,7 +229,7 @@ sensor_responseAntenna1D( vector_1 ) {}
 \end{verbatim}
 
 %------------------------------------------
-\levelb{Mixer and sideband filter response}
+\section{Mixer and sideband filter response}
 \begin{verbatim}
 ReadXML( lo ) {
   "../xml/lo.xml"
@@ -243,7 +243,7 @@ sensor_responseMixer( matrix_1 ) {}
 \end{verbatim}
 
 %------------------------
-\levelb{Backend response}
+\section{Backend response}
 \begin{verbatim}
 ReadXML( matrix_1 ) {
   "../xml/ac_channel.xml"
@@ -258,27 +258,27 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 
 
 %---------------------------
-\levelb{Auxiliary functions}
+\section{Auxiliary functions}
 \artsstyle{ConvertIFToRF} \ldots
 
-\levelb{Control file example}
+\section{Control file example}
 
 \hrule
 
 
 %-------------------------
-\levelb{Workspace methods}
+\section{Workspace methods}
 \label{sec:sensor:WSM}
 
 %------------------------------------------------------
-\levelb{Controlfile implementation(flow, step-by-step)}
+\section{Controlfile implementation(flow, step-by-step)}
 
 
 
-%\levelb{Implementation strategy}
+%\section{Implementation strategy}
 % \label{sec:sensor:strategy}
 
-%\levelc{The sensor transfer matrix}
+%\subsection{The sensor transfer matrix}
 % \label{sec:sensor:strategy:h}
  
 % The modeling of a sensor part is either a summation of different
@@ -311,7 +311,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % calculate $\Hm$.
 
 
-%\levelc{Normalization of \Hm}
+%\subsection{Normalization of \Hm}
 % \label{sec:sensor:strategy:norm}
  
 % It is important that the transfer matrix for
@@ -326,7 +326,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % the elements of each row of \Hm\ is 1.
 
 
-%\levelb{Integration as vector multiplication} 
+%\section{Integration as vector multiplication} 
 % \label{sec:sensor:integr}
   
 % The effect of both the antenna and the spectrometer can be expressed
@@ -349,7 +349,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % points must be known to solve this problem.
 
 
-%\levelc{Piecewise linear functions} 
+%\subsection{Piecewise linear functions} 
 % \label{sec:sensor:integr:lins}
  
 % In this section the problem of
@@ -429,7 +429,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % zeros before the calculation starts.
 
 
-%\levelc{Practical solution} 
+%\subsection{Practical solution} 
 % \label{sec:sensor:integr:practical}
  
 % The functions $f$ and $g$ can in Qpack be treated to be piecewice
@@ -466,7 +466,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % solved by the function \verb|pbasis_integrate|.
 
 
-%\levelb{Summation as vector multiplication}
+%\section{Summation as vector multiplication}
 % \label{sec:sensor:mixer}
   
 % The influence of the mixer and sideband filter of the sensor
@@ -501,7 +501,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % interpolation in the primary band that could cause unexpected effects.  
 
 
-%\levelc{Piecewise linear functions} 
+%\subsection{Piecewise linear functions} 
 % \label{sec:sensor:mixer:lins}
 
 % If the intensity is assumed to vary linearly between the points of the
@@ -535,7 +535,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % \end{eqnarray}
 
 
-%\levelc{Practical solution} 
+%\subsection{Practical solution} 
 % \label{sec:sensor:mixer:practical}
  
 % The responses of the sideband filter is determined by linear or cubic
@@ -549,7 +549,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % performed in the AMI function \verb|h_matrix|.
 
  
-%\levelb{Brightness temperature} 
+%\section{Brightness temperature} 
 % \label{sec:sensor:tb}
 
 % Some kind of calibration process, either in absolute or relative units,
@@ -558,7 +558,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % to brightness and Rayleigh-Jeans temperatures is also treated in this section.
 
 
-%\levelc{Conversion to Planck brightness temperature} 
+%\subsection{Conversion to Planck brightness temperature} 
 % \label{sec:sensor:tb_planck}
 
 % The brightness temperature is defined as the temperature a blackbody 
@@ -583,7 +583,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % intuitive understanding of the emission magnitude.
 
 
-%\levelc{Conversion to Rayleigh-Jean temperature} 
+%\subsection{Conversion to Rayleigh-Jean temperature} 
 % \label{sec:sensor:tb:rj}
 
 % For lower frequencies where $h\f \ll k_BT$ the Planck function can
@@ -611,7 +611,7 @@ sensor_responseBackend( arrayofmatrix_1 ) {}
 % $T_b$ and $T_{rj}$ is not negligible \citep{eriksson:97a}.
 
 
-%\levelb{Control file examples}
+%\section{Control file examples}
 % \label{sec:sensor:cfe}
 
 % The following sequence of ARTS functions can be used to store the

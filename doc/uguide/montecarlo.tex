@@ -1,11 +1,11 @@
 %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{Reversed Monte Carlo Scattering Module : ARTS-MC}
+\chapter{Reversed Monte Carlo Scattering Module : ARTS-MC}
  \label{sec:montecarlo}
 
 
@@ -39,7 +39,7 @@
 
 
 
-\levelb{Introduction}
+\section{Introduction}
  \label{sec:montecarlo:intro}
 
 \emph{Much of the following has been taken from an article submitted to IEEE
@@ -90,7 +90,7 @@ applicable to cases where the extinction matrix is diagonal - that is,
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-\levelb{Model}
+\section{Model}
  \label{sec:montecarlo:model}
 The radiative transfer model solves the vector
 radiative transfer equation (VRTE):
@@ -168,7 +168,7 @@ Since PDFs are scalar functions, and that we consider the first element of the
 Stokes vector most important, we choose PDFs that are proportional to the
 (1,1) element of $\mathbf{O(s',s)}$ and $\mathbf{Z}(\theta_{scat},\phi_{scat},\theta_{inc},\phi_{inc})$. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\levelc{Algorithm}
+\subsection{Algorithm}
  \label{sec:montecarlo:alg}
 The model algorithm proceeds as follows:
 
@@ -321,10 +321,10 @@ Carlo result from Eq. \ref{cbexit} taken as the radiative background.
 \end{center}
 \label{fig:montecarlo:flowchart}
 \end{figure}
-\levelb{Implementation in ARTS: ScatteringMonteCarlo}
+\section{Implementation in ARTS: ScatteringMonteCarlo}
  \label{sec:montecarlo:implementation}
 
-\levelb{Future Plans}
+\section{Future Plans}
  \label{sec:montecarlo:plans}
  
 %%% Local Variables: 

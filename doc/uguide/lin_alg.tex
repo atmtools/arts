@@ -1,4 +1,4 @@
-\levela{Linear algebra functions}
+\chapter{Linear algebra functions}
 %--------------------------------------------------------------------------
 \label{sec:lin_alg}
 
@@ -16,7 +16,7 @@ exponential. This section describes the functions which are implemented
 in ARTS and it gives instructions how these functions can be used, also
 for other purposes than the radiative transfer calculations.
 
-\levelb{Implementation files}
+\section{Implementation files}
 %-------------------------------------------------------------------------
 \label{sec:lin_alg:files}
 
@@ -44,7 +44,7 @@ Furthermore logical functions contained in
 are used to check the dimensions of input matrices for various functions.
 
 
-\levelb{Linear Equation Systems}
+\section{Linear Equation Systems}
 %------------------------------------------------------------------------
 \label{sec:lin_alg:lineqsys}
 
@@ -89,7 +89,7 @@ equation sytem of the type
   \artsstyle{cout << x;}
 \end{itemize}
 
-\levelc{LU Decomposition}
+\subsection{LU Decomposition}
 %------------------------------------------------------------------------
 \label{sec:lin_alg:lu_decomp}
 
@@ -175,7 +175,7 @@ index vector contains for example the elements $(2,1,0)$ the first and
 the last row of a three dimensional matrix would be exchanged.
 
 
-\levelc{Forward- and Backsubstitution}
+\subsection{Forward- and Backsubstitution}
 %---------------------------------------------------------------
 \label{sec:lin_alg:backsub}
 An equation system of the form
@@ -217,7 +217,7 @@ vector. Output of the function is the solution vector ${\bf x}$ to the
 equation system.
 
 
-\levelc{More Applications of the LU Decomposition}
+\subsection{More Applications of the LU Decomposition}
 %-------------------------------------------------------------------
 \label{lu_applications}
 
@@ -247,7 +247,7 @@ backsubstitute with the columns of B and you get the columns of {\bf
 
 \end{itemize}
 
-\levelb{Matrix Exponential Function}
+\section{Matrix Exponential Function}
 %----------------------------------------------------------------
 \label{sec:lin_alg:mat_exp}
 
@@ -270,7 +270,7 @@ that convergence is obtained not until 59 terms. And if a relative
 accuracy of only 10$^{-5}$ is taken, the method even leads to a wrong
 result due to rounding errors.
 
-\levelc{Pad\'e Approximation}
+\subsection{Pad\'e Approximation}
 %----------------------------------------------------------------------
 \label{sec:pade_approximation}
 

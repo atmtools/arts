@@ -1,11 +1,11 @@
 %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{The art of developing ARTS}
+\chapter{The art of developing ARTS}
  \label{sec:development}
 
 %
@@ -45,7 +45,7 @@ want to use ARTS, you should not need to read it. \textbf{But if you
   carefully, since it can safe you a lot of work to understand how
   things are organized.}
 
-\levelb{Organization}
+\section{Organization}
 %====================
 \label{sec:development:org}
  
@@ -80,7 +80,7 @@ thing you should need is an ANSI-C++ compiler and the standard Unix
 with the GNU C++ compiler, no other compilers have been tried so
 far.
 
-\levelb{The ARTS build system}
+\section{The ARTS build system}
 %============================
 
 As mentioned above, GNU tools are used to construct the ARTS
@@ -105,7 +105,7 @@ very good in the GNU system, so we had to use some tricks to make sure
 that the Doxygen automatic documentation and the User Guide work as they
 should. 
 
-%\levelc{Configure options}
+%\subsection{Configure options}
 %%============================
 
 % FIXME: Oliver, please put in a part here about the different
@@ -124,7 +124,7 @@ should.
 %\end{description}
 
 
-\levelc{Adding Directories or files}
+\subsection{Adding Directories or files}
 %==================================
 
 If you add directories or just files, you have to make sure that they
@@ -135,13 +135,13 @@ the \fileindex{Makefile.am} file in that directory to make sure that your
 stuff goes into the distribution. It is a good idea to always check
 the release in order to see if the things you added are really there.
 
-\levelb{Conventions}
+\section{Conventions}
 %===================
 \label{sec:development:conv}
 
 Here are some general rules for ARTS programming:
 
-\levelc{} Never use \artsstyle{float} or \artsstyle{double} explicitly, use the
+\subsection{} Never use \artsstyle{float} or \artsstyle{double} explicitly, use the
 type \typeindex{Numeric} instead.  This is set by \artsstyle{configure} (to
 \artsstyle{double} by default). Thus, it is possible to compile the program
 for \artsstyle{float} by simply running configure with a different option.
@@ -151,13 +151,13 @@ for \artsstyle{float} by simply running configure with a different option.
 In the same way, use \typeindex{Index} for all integers. It can take on positive
 or negative values.
 
-\levelc{} Use \artsstyle{Vector} and \artsstyle{Matrix} for mathematical vectors
+\subsection{} Use \artsstyle{Vector} and \artsstyle{Matrix} for mathematical vectors
 and matrices (with elements of type \artsstyle{Numeric}). Use
 \artsstyle{Array<something>} to create an array of \artsstyle{something}s. Commonly
 used Arrays have been predefined, they have names like
 \artsstyle{ArrayOfString}, \artsstyle{ArrayOfMatrix}, and so forth.
 
-\levelc{Terminology}
+\subsection{Terminology}
 Calculations are carried out in the so called workspace (WS), on
 workspace variables (WSVs). A WSV is for example the variable
 containing the absorption coefficients. The WSVs are manipulated by 
@@ -165,7 +165,7 @@ workspace methods (WSMs). The WSMs to use are specified in the
 controlfile in the same order in which they will be
 executed. 
 
-\levelc{Global variables}
+\subsection{Global variables}
    Are not visible by default. To use them you have to declare them
    like this:
    \begin{quote}
@@ -193,14 +193,14 @@ executed.
    The only exception from this rule are the output streams \artsstyle{out0} to
    \artsstyle{out3}, which are visible by default.
 
-\levelc{Files}
+\subsection{Files}
 Always use the \artsstyle{open\_output\_file} and \artsstyle{open\_input\_file}
 functions to open files. This switches on exceptions, so that any
 error occurring later on with this file will result in an
 exception. (Currently not really implemented in the GNU compiler,
 but please use it anyway.)
 
-\levelc{Version numbers} 
+\subsection{Version numbers} 
 The package version number is set in file \fileindex{configure.in} in the
 top level ARTS directory. Always increase this when you do a CVS
 commit, even for small changes. in such cases increase the last digit
@@ -208,13 +208,13 @@ by one. If you make a new distribution, increase the middle digit by
 one and omit the last digit. If you make a bug-fix distribution, you
 can add the last digit to indicate this. 
 
-\levelc{Header files} 
+\subsection{Header files} 
 The global header file \fileindex{arts.h} \emph{must} be included by every
 file. Apart from that you have to see yourself what header files you
 need. If you use functions from the C or C++ standard library, you
 have to also include the appropriate header file.
 
-\levelc{Documentation}
+\subsection{Documentation}
 Doxygen is used to generate automatic source code documentation. See
 \begin{quote}
   \artsstyle{http://www.stack.nl/~dimitri/doxygen/}
@@ -282,7 +282,7 @@ standard key-bindings are:
 \end{quote}
 You can call the macros also by name, e.g., \artsstyle{doxymacs-insert-file-comment}.
 
-\leveld{File comment:}
+\subsubsection{File comment:}
 
 Generated by \artsstyle{doxymacs-insert-file-comment}.
 
@@ -299,7 +299,7 @@ Generated by \artsstyle{doxymacs-insert-file-comment}.
 */
 \end{verbatim}
 
-\leveld{Function comment:}
+\subsubsection{Function comment:}
 
 Generated by \artsstyle{doxymacs-insert-function-comment}.
 If arguments are modified by the function you should
@@ -327,7 +327,7 @@ them for important functions.
 int dummy(int& a, int b);
 \end{verbatim}
 
-\leveld{Generic multi-line comment:}
+\subsubsection{Generic multi-line comment:}
 
 Generated by \artsstyle{doxymacs-insert-blank-multiline-comment}.
 
@@ -339,7 +339,7 @@ Generated by \artsstyle{doxymacs-insert-blank-multiline-comment}.
 */
 \end{verbatim}
 
-\leveld{Generic single-line comment:}
+\subsubsection{Generic single-line comment:}
 
 Generated by \artsstyle{doxymacs-insert-blank-singleline-comment}.
 
@@ -348,11 +348,11 @@ Generated by \artsstyle{doxymacs-insert-blank-singleline-comment}.
 \end{verbatim}
 
 
-\levelb{Extending ARTS}
+\section{Extending ARTS}
 %======================
  \label{sec:development:extending}
 
-\levelc{How to add a workspace variable}
+\subsection{How to add a workspace variable}
 %---------------------------------------
 
 You should read Section{sec:agendas:wsvs} to understand what workspace
@@ -381,7 +381,7 @@ variable can be added.
 \end{enumerate}
 
 
-\levelc{How to add a workspace variable group}
+\subsection{How to add a workspace variable group}
 %--------------------------------------------
 
 You should read Section{sec:agendas:wsvs} to understand what workspace
@@ -398,7 +398,7 @@ group can be added.
 
 
 
-\levelc{How to add a workspace method}
+\subsection{How to add a workspace method}
 %-------------------------------------
 
 You should read Section{sec:agendas:wsms} to understand what workspace
@@ -431,7 +431,7 @@ method can be added.
 \end{enumerate}
 
 
-\levelc{How to add a source code file}
+\subsection{How to add a source code file}
 %---------------------------------------
 \begin{enumerate}
 \item Create your file. Names of files containing workspace methods should
@@ -446,7 +446,7 @@ method can be added.
 \end{enumerate}
 
 
-\levelc{How to add an example file}
+\subsection{How to add an example file}
 %---------------------------------------
 \begin{enumerate}
 \item Create your own example file. The filename should end with
@@ -463,7 +463,7 @@ method can be added.
 \end{enumerate}
 
 
-\levelb{CVS issues}
+\section{CVS issues}
 %======================
  \label{sec:development:cvs}
 
@@ -477,7 +477,7 @@ documentation or our own CVS Howto on:
 
 
 
-\levelc{How to check out arts}
+\subsection{How to check out arts}
 %-----------------------------
 \begin{enumerate}
 \item Go to a temporary directory.
@@ -485,7 +485,7 @@ documentation or our own CVS Howto on:
 \end{enumerate}
 
 
-\levelc{How to update (if you already have a copy)}
+\subsection{How to update (if you already have a copy)}
 %--------------------------------------------------
 \begin{enumerate}
 \item Go to the top ARTS directory (called simply \artsstyle{arts}).
@@ -498,7 +498,7 @@ documentation or our own CVS Howto on:
 \end{enumerate}
 
 
-\levelc{How to commit your changes}
+\subsection{How to commit your changes}
 %---------------------------------------
 \begin{enumerate}
 \item You should make sure that the program compiles and runs without
@@ -556,7 +556,7 @@ documentation or our own CVS Howto on:
 \end{enumerate}
 
 
-\levelc{How to cut a release}
+\subsection{How to cut a release}
 %----------------------------
 \label{sec:release}
 \begin{enumerate}
@@ -577,7 +577,7 @@ documentation or our own CVS Howto on:
 \end{enumerate}
 
 
-\levelc{How to move your arts working directory}
+\subsection{How to move your arts working directory}
 %----------------------------------------------
 \textbf{Never try to move CVS directories!} Instead:
 \begin{enumerate}
@@ -592,7 +592,7 @@ documentation or our own CVS Howto on:
 \item Check out a new copy (see other howto above).
 \end{enumerate}
 
-\levelb{Debugging (use of assert)}
+\section{Debugging (use of assert)}
 %================================
 \label{sec:development:assert}
  

@@ -1,11 +1,11 @@
  %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{Gas Absorption}
+\chapter{Gas Absorption}
  \label{sec:absorption}
 
 
@@ -187,7 +187,7 @@ continua and spectral lines.
 % The following section is written by Nikolay Koulev, iup Bremen, nkoulev@uni-bremen.de
 % ================================================================================
 
-\levelb{Line Absorption}
+\section{Line Absorption}
 %-----------------------
 \label{sec:line_absorption}
 
@@ -236,7 +236,7 @@ functions is treated in the following subsection. Another one is
 dedicated to the partition functions and their calculation..
 
 
-\levelc{Line Shape Functions} Up to date there is no way to calculate
+\subsection{Line Shape Functions} Up to date there is no way to calculate
 the line-shape functions analytically just from the theoretical
 expressions of quantum dynamics, statistical physics, and theoretical
 mechanics. Certain approximations have to be made to account for
@@ -400,7 +400,7 @@ and should be valid near the line centers throughout the microwave region.
 
 
 
-\levelc{Partition Functions}
+\subsection{Partition Functions}
 
 The treatment of the partition functions is directly related to the molecular
 energy states and their statistical distribution during the
@@ -531,7 +531,7 @@ Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 
 
 
-\levelc{Line Catalogs} There are several spectroscopic catalogs
+\subsection{Line Catalogs} There are several spectroscopic catalogs
 implemented in ARTS: HITRAN, JPL, MYTRAN, and the ARTS inherent
 catalog format.
 
@@ -620,7 +620,7 @@ fields are present.
 
 
 
-\levelc{Species specific data}
+\subsection{Species specific data}
 
 The following part treats the species related data in ARTS - all
 currently implemented species with the respective molecular masses,
@@ -1330,7 +1330,7 @@ species are to be found in \artsstyle{/arts/src/partition\_function\_data.cc}.
 
 
 
-\levelc{ARTS Workspace Variables and Methods}
+\subsection{ARTS Workspace Variables and Methods}
 
 Both expressions (3.1) and (3.3) are used for the line by line
 calculations of the absorption. In order to calculate it certain 
@@ -1596,7 +1596,7 @@ ArrayOfMatrixWriteAscii (abs_per_tg) {""}
 % The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
 % ================================================================================
 
-\levelb{Continuum Absorption}
+\section{Continuum Absorption}
 \label{levelb:ContAbs}
 % ===========================
 
@@ -1645,7 +1645,7 @@ absorption is the dependency on the square of the molecular density.
 
 
 
-\levelc{Water Vapor Continuum Models}
+\subsection{Water Vapor Continuum Models}
 \label{leveld:h2o_Cont}
 %------------------------------------
 As shown by \cite{liebeandlayton:87}, \cite{pwr:98}, and \cite{ma:90},
@@ -1692,7 +1692,7 @@ Table \ref{tab:wvcontparam} gives some commonly used continuum parameter sets.
  \label{tab:wvcontparam}
 \end{table}
 
-\leveld{The MPM93 Continuum Parameterization}
+\subsubsection{The MPM93 Continuum Parameterization}
 \label{leveld:mpm93:contabs}
 %-----------------------------------------------
 In the MPM93 model \citep{liebeetal:93}, the water 
@@ -1806,7 +1806,7 @@ by a single laboratory measurement at 138\,GHz.
 
 
 
-\levelc{Oxygen Continuum Absorption}
+\subsection{Oxygen Continuum Absorption}
 \label{levelc:o2cont}
 %-----------------------------------
 As pointed out by \citet{vv:87}, the standard theory for
@@ -1868,7 +1868,7 @@ and thus proportional to the dry air pressure\footnote{The absorption
 
 
 
-\levelc{Nitrogen Continuum Absorption}
+\subsection{Nitrogen Continuum Absorption}
 \label{levelc:n2cont}
 %-------------------------------------
 Since molecular nitrogen has in its unperturbed state no electric or 
@@ -1937,7 +1937,7 @@ extended with measurements in the far--infrared.
 
 
 
-\levelc{Carbon dioxide Continuum Absorption}
+\subsection{Carbon dioxide Continuum Absorption}
 \label{levelc:co2cont}
 %--------------------------------------------
 \citet{pwr:93} gives a similar parameterization for the $\coz$-continuum 
@@ -1965,7 +1965,7 @@ only approximately 0.04\,\% of the nitrogen partial pressure up to
 
 
 
-\levelc{ARTS Workspace Variables and Methods}
+\subsection{ARTS Workspace Variables and Methods}
 \label{levelc:ArtsImplementationContinuum}
 % -------------------------------------------
 % This section explains how the above described continua are represented 
@@ -2473,7 +2473,7 @@ $\coz-\nz$  & model &=& "Rosenkranz" &  {\small Sec. \ref{levelc:co2cont}}  &  \
 
 
 
-\leveld{ARTS Example Control File for the Continuum Tags}
+\subsubsection{ARTS Example Control File for the Continuum Tags}
 \label{leveld:ArtsContExampleControlFile}
 % -------------------------------------------
 Below you will find an example of a control file for all 
@@ -2503,7 +2503,7 @@ properly. You can find this example in the arts directory
 
 
 
-\levelb{Complete Absorption Models}
+\section{Complete Absorption Models}
 \label{levelb:CompAbsMod}
 % =================================
 The MPM absorption model of Liebe and coworkers consists of modules for 
@@ -2531,7 +2531,7 @@ $\oz$  & MPM93, PWR98 \\
 
 
 
-\levelc{Complete Water Vapor Models}
+\subsection{Complete Water Vapor Models}
 \label{levelc:CompWatVapMod}
 % ==================================
 In ARTS several complete water vapor absorption models are implemented and 
@@ -2560,7 +2560,7 @@ models are not necessarily compatible and should therefore not be
 interchanged between different models.
 
 
-\leveld{MPM87 Water Vapor Absorption Model}
+\subsubsection{MPM87 Water Vapor Absorption Model}
 \label{leveld:mpm87}
 %------------------------------------------
 This version, which is described in \cite{liebeandlayton:87} and 
@@ -2575,7 +2575,7 @@ spectral lines, $\alphampmoc$:
 
 
 
-\levele{Water Vapor Line Absorption:}
+\paragraph{Water Vapor Line Absorption:}
 \label{levele:mpm87_h2olines}
 %-----------------------------------
 The MPM87 \cite{liebeandlayton:87} water vapor line catalog consists 
@@ -2694,7 +2694,7 @@ early version of MPM81 \cite{liebe:81}.
 \end{longtable}
 
 
-\levele{Water Vapor Continuum Absorption:}
+\paragraph{Water Vapor Continuum Absorption:}
 \label{levele:mpm87_h2ocont}
 %----------------------------------------
 The water vapor continuum absorption coefficient in MPM87, $\alphampmoc$, 
@@ -2726,7 +2726,7 @@ The determined values of the continuum parameters are:
 
 
 
-\leveld{MPM89 Water Vapor Absorption Model}
+\subsubsection{MPM89 Water Vapor Absorption Model}
 \label{leveld:mpm89}
 %------------------------------------------
 %
@@ -2741,7 +2741,7 @@ term not attributed to spectral lines, $\alphampmmc$:
 All the absorption coefficients are calculated in units of \mbox{dB/km}.
 
 
-\levele{Water Vapor Line Absorption:}
+\paragraph{Water Vapor Line Absorption:}
 \label{levele:mpm89_h2olines}
 %-----------------------------------
 The MPM89 water vapor line catalog consists of the same 30 lines 
@@ -2857,7 +2857,7 @@ $\bsk$ in the case of MPM89 whereas in MPM87 a single parameter
 \end{longtable}
 
 
-\levele{Water Vapor Continuum Absorption:}
+\paragraph{Water Vapor Continuum Absorption:}
 \label{levele:mpm89_h2ocont}
 %----------------------------------------
 The MPM89 continuum absorption coefficients in, $\alphampmmc$, 
@@ -2881,7 +2881,7 @@ with
 
 
 
-\leveld{MPM93 Water Vapor Absorption Model}
+\subsubsection{MPM93 Water Vapor Absorption Model}
 \label{leveld:mpm93}
 %----------------------------------------------
 This version, which is described in \cite{liebeetal:93} and 
@@ -2902,7 +2902,7 @@ distinguish a self- and foreign broadening term in the continuum.
 
 
 
-\levele{Water Vapor Line Absorption:}
+\paragraph{Water Vapor Line Absorption:}
 \label{levele:mpm93_h2olines}
 %-----------------------------------
 The water vapor line spectrum of MPM93 \cite{liebeetal:93} 
@@ -3030,7 +3030,7 @@ concerning the water vapor line absorption is the updated line catalog.
 
 
 
-\levele{The MPM93 Continuum Parameterization:}
+\paragraph{The MPM93 Continuum Parameterization:}
 \label{levele:mpm93:h2ocont}
 %-----------------------------------------------
 In the MPM93 version the water vapor continuum is parameterized as an
@@ -3044,11 +3044,11 @@ found in Section \ref{leveld:h2o_Cont} of this guide.
 
 
 
-\leveld{CP98 Water Vapor Absorption Model}
+\subsubsection{CP98 Water Vapor Absorption Model}
 \label{leveld:cp98}
 %---------------------------------------------
 
-\levele{Line Absorption}
+\paragraph{Line Absorption}
 \label{levele:cp98_h2oline}
 %--------------------------
 component \citep{cruzpol:98} for the water vapor line absorption 
@@ -3118,7 +3118,7 @@ California (11. December 1991) and West Palm Beach, Florida
 (8.-21. March 1992)} in the USA.
 
 
-\levele{Water Vapor Continuum Absorption:}
+\paragraph{Water Vapor Continuum Absorption:}
 \label{levele:cp98_h2ocont}
 %-----------------------------------------
 The CP98 model uses the same water vapor continuum 
@@ -3142,7 +3142,7 @@ and is not so reliable than $C_L$ and $C_W$.
 
 
 
-\leveld{PWR98 Water Vapor Absorption Model}
+\subsubsection{PWR98 Water Vapor Absorption Model}
 \label{leveld:pwr98_h2o}
 %------------------------------------------
 The water vapor continuum formulation of \citet{pwr:98} is a re-investigation 
@@ -3161,7 +3161,7 @@ However, some important differences exist compared with MPM89:
 \end{itemize}
 
 
-\levele{Water Vapor Line Absorption:}
+\paragraph{Water Vapor Line Absorption:}
 \label{levele:pwr98_h2oline}
 %------------------------------------
 The local line absorption is defined as 
@@ -3256,7 +3256,7 @@ are significantly different).
 
 
 
-\levele{Water Vapor Continuum Absorption:}
+\paragraph{Water Vapor Continuum Absorption:}
 \label{levele:pwr98_h2ocont}
 %-----------------------------------------
 The continuum absorption in R98 has the same functional dependence on frequency,
@@ -3287,7 +3287,7 @@ temperature dependence and therefore on $\xs$ and $\xd$.
 
 
 
-\levelc{Complete Oxygen Models}
+\subsection{Complete Oxygen Models}
 \label{levelc:02_models}
 %==============================
 %
@@ -3317,12 +3317,12 @@ models are not necessarily compatible and should therefore not be interchanged.
 
 
 
-\leveld{PWR93 Oxygen Absorption Model}
+\subsubsection{PWR93 Oxygen Absorption Model}
 \label{leveld:O2_pwr98}
 %-------------------------------------
 
 
-\levele{Resonant Oxygen Absorption}
+\paragraph{Resonant Oxygen Absorption}
 %\label{levele:02_pwr98_line}
 \label{levele:pwr93_o2lines}
 %----------------------------------
@@ -3463,7 +3463,7 @@ tabulated in Table \ref{tab:pwr02line}.
 \end{longtable}
 %\setlength{\LTcapwidth}{0.8\textwidth}
 
-\levele{Oxygen Continuum Absorption:}
+\paragraph{Oxygen Continuum Absorption:}
 \label{levele:pwr98_o2cont}
 %-----------------------------------
 As pointed out by Van~Vleck \cite{vv:87}, the standard theory for
@@ -3493,11 +3493,11 @@ and thus proportional to the dry air pressure\footnote{The absorption
 
 
 
-\leveld{MPM93 Oxygen Absorption Model}
+\subsubsection{MPM93 Oxygen Absorption Model}
 \label{levelb:O2_mpm93}
 %-------------------------------------
 
-\levele{Oxygen Line Absorption:}
+\paragraph{Oxygen Line Absorption:}
 \label{levele:mpm93_o2lines}
 %-------------------------------
 The oxygen line catalog has 44 lines from which 37 lines build the 
@@ -3648,7 +3648,7 @@ is remarkably higher than in the R93 model.
 \end{longtable}
 %\setlength{\LTcapwidth}{0.8\textwidth}
 
-\levele{Oxygen Continuum Absorption:}
+\paragraph{Oxygen Continuum Absorption:}
 \label{levele:mpm93_o2cont}
 %-----------------------------------
 As pointed out by Van~Vleck \cite{vv:87}, the standard theory for
@@ -3676,7 +3676,7 @@ and thus proportional to the dry air pressure\footnote{The absorption
 
 
 
-\levelc{ARTS Workspace Variables and Methods}
+\subsection{ARTS Workspace Variables and Methods}
 \label{levelc:ArtsImplementationCompleteModels}
 % ---------------------------------------------
 
@@ -4133,7 +4133,7 @@ cont_descriptionAppend{
 
 
 
-\leveld{ARTS Example Control File for the Full Model Tags}
+\subsubsection{ARTS Example Control File for the Full Model Tags}
 \label{leveld:ArtsFullModelExampleControlFile}
 % --------------------------------------------------------
 Below you will find an example of a control file for all 
@@ -4166,11 +4166,11 @@ You can find this example in the arts directory
 % The following section is written by Thomas Kuhn, iup Bremen, tkuhn@uni-bremen.de
 % ================================================================================
 
-\levela{Cloud Absorption}
+\chapter{Cloud Absorption}
 \label{labela:cloudabsorption}
 %=============================
 
-\levelb{Liquid water and ice particle absorption}
+\section{Liquid water and ice particle absorption}
 \label{levelb:lipartabs}
 %*************************************************
 So far only absorption due to air was described. However 
@@ -4345,7 +4345,7 @@ cirrostratus  & Cs    & 0.2                           & \cite{salby:96}\\
 
 
 
-\levelb{Variability and Uncertainty in Cloud Absorption}
+\section{Variability and Uncertainty in Cloud Absorption}
 \label{levelb:ref_uncert_clouds}
 %--------------------------------------------------------
 In the case of clouds three sources of uncertainties can be considered
@@ -4398,7 +4398,7 @@ of \citet{costaetal:00}.
 
 
 
-\levelb{Water Vapor Saturation Adjustment in the Cloud}
+\section{Water Vapor Saturation Adjustment in the Cloud}
 \label{levelb:WV_sat_in_cloud}
 %--------------------------------------------------------
 
@@ -4505,7 +4505,7 @@ with
 
 
 
-\levelb{ARTS Workspace Variables and Methods}
+\section{ARTS Workspace Variables and Methods}
 \label{levelb:ArtsImplementationCloudAbsorption}
 % ----------------------------------------------
 
@@ -4717,7 +4717,7 @@ saturation over ice is taken.
 
 
 
-\leveld{ARTS Example Control File for the Full Model Tags}
+\subsubsection{ARTS Example Control File for the Full Model Tags}
 \label{leveld:ArtsCloudModelExampleControlFile}
 % --------------------------------------------------------
 Below you will find an example of a control file for all 

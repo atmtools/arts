@@ -1,4 +1,4 @@
-\levela{The forward model: concepts, definitions and overview}
+\chapter{The forward model: concepts, definitions and overview}
  \label{sec:fm_defs}
 
 
@@ -25,12 +25,12 @@ construct a control file for your simulation problem.
 
 
 
-\levelb{The atmosphere}
+\section{The atmosphere}
 %==============================================================================
 \label{sec:fm_defs:atmosphere}
 
 
-\levelc{Atmospheric dimensionality}
+\subsection{Atmospheric dimensionality}
 %===================
 \label{sec:fm_defs:atmdim}
 
@@ -176,7 +176,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 
 
 
-\levelc{Altitude coordinates}
+\subsection{Altitude coordinates}
 %===================
 \label{sec:fm_defs:altitudes}
 
@@ -236,7 +236,7 @@ easily set by the functions \wsmindex{AtmosphereSet1D},
 \end{description}
 
 
-\levelc{Atmospheric grids and fields}
+\subsection{Atmospheric grids and fields}
 %===================
 \label{sec:fm_defs:grids}
 
@@ -306,7 +306,7 @@ page.
 
 
 
-\levelc{The geoid and the surface}
+\subsection{The geoid and the surface}
 %===================
 \label{sec:fm_defs:geoid}
 
@@ -343,7 +343,7 @@ surface topography can be made. The treatment of surface emission
 and reflectivity is discussed in Section~\ref{sec:fm_defs:surface}.
 
 
-\levelc{The cloud box}
+\subsection{The cloud box}
 %===================
 \label{sec:fm_defs:cloudbox}
 
@@ -393,7 +393,7 @@ is sufficiently high.
 
 
 
-\levelb{Stokes dimensionality}
+\section{Stokes dimensionality}
 %==============================================================================
 \label{sec:fm_defs:polarisation}
 
@@ -429,7 +429,7 @@ the first Stokes component is considered.
 
 
 
-\levelb{Absorption}
+\section{Absorption}
 %==============================================================================
 \label{sec:fm_defs:absorption}
 
@@ -442,7 +442,7 @@ interpolation, as described in Section~\ref{sec:absorption}.
 
 
 
-\levelb{Compulsory sensor and data reduction variables}
+\section{Compulsory sensor and data reduction variables}
 %==============================================================================
 \label{sec:fm_defs:sensor1}
 
@@ -462,7 +462,7 @@ Section~\ref{sec:sensor}. Section~\ref{sec:fm_defs:rte} gives further
 insights in how the sensor is treated in ARTS.
 
 
-\levelc{Sensor position\index{sensor position}}
+\subsection{Sensor position\index{sensor position}}
 %===================
 \label{sec:fm_defs:sensorpos}
 
@@ -496,7 +496,7 @@ spectra can be calculated for each position as described in
 Section~\ref{sec:fm_defs:seqsandblocks}.
 
 
-\levelc{Line-of-sight\index{line-of-sight}}
+\subsection{Line-of-sight\index{line-of-sight}}
 %===================
 \label{sec:fm_defs:los}
 
@@ -573,7 +573,7 @@ $(\aZntAng{i},\aAzmAng{i})$. The number of rows for
 \artsstyle{sensor\_pos}.
 
 
-\levelc{Sensor polarization\index{sensor polarization}}
+\subsection{Sensor polarization\index{sensor polarization}}
 %===================
 \label{sec:fm_defs:sensorpol}
 
@@ -581,7 +581,7 @@ $(\aZntAng{i},\aAzmAng{i})$. The number of rows for
 
 
 
-\levelc{Sensor characteristics and data reduction}
+\subsection{Sensor characteristics and data reduction}
 %===================
 \label{sec:fm_defs:sensorchar}
 
@@ -650,7 +650,7 @@ the grid (relative to the sensor line-of-sight) for the calculation of
 the intensity field that will be weighted with the antenna response.
 
 
-\levelc{Measurement sequences and blocks}
+\subsection{Measurement sequences and blocks}
 %===================
 \label{sec:fm_defs:seqsandblocks}
 
@@ -783,7 +783,7 @@ Section~[**]. %\ref{sec:fm_defs:sensor2}.
 
 
 
-\levelb{Clear sky radiative transfer}
+\section{Clear sky radiative transfer}
 %==============================================================================
 \label{sec:fm_defs:rte}
 
@@ -797,7 +797,7 @@ measurements are also possible, which is discussed especially in
 Section~\ref{sec:fm_defs:trans_sim}.
 
 
-\levelc{Calculation procedure}
+\subsection{Calculation procedure}
 %===================
 \label{sec:fm_defs:calcproc}
 
@@ -839,7 +839,7 @@ terms are applied.
 \end{algorithm}
 
 
-\levelc{Propagation paths}
+\subsection{Propagation paths}
 %===================
 \label{sec:fm_defs:ppaths}
 
@@ -945,7 +945,7 @@ include \wsmindex{ppath\_stepGeometric} and
 \wsmindex{ppath\_stepRefractionEuler}.
 
 
-\levelc{The radiative background}
+\subsection{The radiative background}
 %===================
 \label{sec:fm_defs:rad_bkgr}
 
@@ -996,7 +996,7 @@ with the surface, and the surface is treated to act as a blackbody. For
 such cases, the propagation path effectively starts at the surface.
 
 
-\levelc{The agenda for clear sky radiative transfer, \artsstyle{rte\_agenda}}
+\subsection{The agenda for clear sky radiative transfer, \artsstyle{rte\_agenda}}
 %===================
 \label{sec:fm_defs:rte_agenda}
 
@@ -1033,7 +1033,7 @@ Section~\ref{sec:fm_defs:polarisation}).
 
 
 
-\levelc{Surface effects}
+\subsection{Surface effects}
 %===================
 \label{sec:fm_defs:surface}
 
@@ -1089,7 +1089,7 @@ in Section~\ref{sec:surface}.
 
 
 
-\levelc{Calculation accuracy}
+\subsection{Calculation accuracy}
 %===================
 \label{sec:fm_defs:accuracy}
 
@@ -1139,7 +1139,7 @@ for this purpose.\footnote{Further discussion can be found in message
 
 
 
-\levelc{Simulation of transmission measurements}
+\subsection{Simulation of transmission measurements}
 %===================
 \label{sec:fm_defs:trans_sim}
 
@@ -1148,7 +1148,7 @@ simulations are needed.
 
 
 
-\levelb{Scattering}
+\section{Scattering}
 %==============================================================================
 \label{sec:fm_defs:scattering}
 

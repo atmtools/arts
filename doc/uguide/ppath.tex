@@ -1,4 +1,4 @@
-\levela{Propagation paths and the geoid}
+\chapter{Propagation paths and the geoid}
  \label{sec:ppath}
 
 
@@ -17,7 +17,7 @@ In addition, at the end of the section some geodetic issues are
 discussed, such as the choice of reference ellipsoid for the geoid.
 
 
-\levelb{Implementation files}
+\section{Implementation files}
 %===
 Variables and functions related to propagation paths are defined in the files:
 \begin{itemize}
@@ -39,7 +39,7 @@ contains methods to set the geoid radius.
 
 
 
-\levelb{Calculation approach}
+\section{Calculation approach}
 %===================
 \label{sec:ppath:approach}
 
@@ -144,7 +144,7 @@ the keyword \artsstyle{lmax} (see Figure~\ref{fig:ppath:ex2}).
 
 
 
-\levelb{The propagation path data structure}
+\section{The propagation path data structure}
 %===================
 \label{sec:ppath:Ppath}
 
@@ -261,7 +261,7 @@ the data type is given inside square brackets, are:
 
 
 
-\levelb{Structure of implementation}
+\section{Structure of implementation}
 %===================
 \label{sec:ppath:structure}
 
@@ -273,7 +273,7 @@ be part of the control file. Propagation paths, or steps, are
 generated from inside other functions.
 
 
-\levelc{Main functions for clear sky paths}
+\subsection{Main functions for clear sky paths}
 %===================
 
 The master function to calculate full clear sky propagation paths is
@@ -361,7 +361,7 @@ other tasks, which include:
 For further details, see the code.
 
 
-\levelc{Scattering calculations}
+\subsection{Scattering calculations}
 %===================
 
 Complete paths are not used when doing the scattering calculations
@@ -375,7 +375,7 @@ latitude and longitude grids (3D). See further
 Section~\ref{sec:scattering}.
 
 
-\levelc{Main functions for propagation path steps}
+\subsection{Main functions for propagation path steps}
 %===================
 
 Example on workspace methods to calculate propagation path steps are
@@ -426,7 +426,7 @@ step function. Algorithm~\ref{alg:ppath:ppath_step_geom_2d} summerizes
 this for geometrical 2D steps.
 
 
-\levelb{General comments}
+\section{General comments}
 %===================
 \label{sec:ppath:comments}
 
@@ -438,7 +438,7 @@ problems. These practical problems are discussed briefly in this
 section. For further details, see the code.
 
 
-\levelc{Numerical precision}
+\subsection{Numerical precision}
 %===================
 
 The aim here is not to make a complete discussion around the limited
@@ -500,7 +500,7 @@ expressions needed for positions on the poles.
 
 
 
-\levelc{Propagation paths and grid positions}
+\subsection{Propagation paths and grid positions}
 %===================
 
 The grid positions are calculated on the same time as the path is
@@ -549,7 +549,7 @@ interest:
 
 
 
-\levelb{Some basic geometrical relationships for 1D and 2D}
+\section{Some basic geometrical relationships for 1D and 2D}
 %===================
 \label{sec:ppath:basicgeom}
 
@@ -687,7 +687,7 @@ is obtained by combining Equations \ref{eq:ppath:za2lat} and
 
 
 
-\levelb{Calculation of geometrical propagations paths}
+\section{Calculation of geometrical propagations paths}
 %===================
 \label{sec:ppath:stepcalc}
 
@@ -700,7 +700,7 @@ atmospheric dimensionality, but the actual calculations are performed
 a sub-function for each dimensionality.
 
 
-\levelc{1D}
+\subsection{1D}
 %===================
 \label{sec:ppath:1Dgeom}
 
@@ -719,7 +719,7 @@ points. The mathematics of \artsstyle{geompath\_from\_r1\_to\_r2} are
 given by Equations~\ref{eq:ppath:geomconst}~-~\ref{eq:ppath:za2lat}.
 
 
-\levelc{2D}
+\subsection{2D}
 %===================
 \label{sec:ppath:2Dgeom}
 
@@ -813,7 +813,7 @@ interest (Figure~\ref{fig:ppath:ex3}).
 
 
 
-\levelc{3D}
+\subsection{3D}
 %===================
 \label{sec:ppath:3Dgeom}
 
@@ -1060,7 +1060,7 @@ not used with present algorithms.\footnote{The expressions mentioned
 
 
 
-\levelb{Refraction with simple Euler scheme}
+\section{Refraction with simple Euler scheme}
 %===================
 \label{sec:ppath:refreuler}
 
@@ -1152,7 +1152,7 @@ accurately determined, but on the cost of more time consuming
 calculations.
 
 
-\levelc{1D}
+\subsection{1D}
 \label{sec:ppath:refr1D}
 %-----------------------
 \begin{figure}[!p]
@@ -1219,7 +1219,7 @@ refractive index.
 
 
 
-\levelc{2D}
+\subsection{2D}
 \label{sec:ppath:refr2D}
 %-----------------------
 \begin{figure}[!t]
@@ -1292,7 +1292,7 @@ index.
 
 
 
-\levelc{3D}
+\subsection{3D}
 \label{sec:ppath:refr3D}
 %----------------------
 For 3D, the geomtrical expressions are used to
@@ -1335,7 +1335,7 @@ multiplication with the term $1/(\Rds\cos\Lat)$.
 
 
 
-\levelb{Geoid ellipsoids and geodetic datums}
+\section{Geoid ellipsoids and geodetic datums}
 %===================
 \label{sec:ppath:geoids}
 
@@ -1344,7 +1344,7 @@ issues. The geoid is introduced in Section~\ref{sec:fm_defs:geoid}.
 The workspace variable representing the geoid is \wsvindex{r\_geoid}.
 
 
-\levelc{Geoid ellipsoids}
+\subsection{Geoid ellipsoids}
 %===================
 \label{sec:ppath:geoid}
 
@@ -1457,7 +1457,7 @@ shall rather be valid for a middle point of the propagation paths
 % This figure was produced by the Matlab function mkfigs_geoid
 
 
-\levelc{Geocentric and geodetic latitudes}
+\subsection{Geocentric and geodetic latitudes}
 %===================
 \label{sec:ppath:geolat}
 
@@ -1500,7 +1500,7 @@ For an altitude of 100~km around $\Lat=45\degree$, the difference is
 about 350~m.
 
 
-\levelc{Geodetic datums}
+\subsection{Geodetic datums}
 %===================
 \label{sec:ppath:geodatums}
 
@@ -1524,7 +1524,7 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 
 
 
-\levelb{Control file examples}
+\section{Control file examples}
 %===================
 \label{sec:ppath:cfile}
 

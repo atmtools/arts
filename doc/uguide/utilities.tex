@@ -1,11 +1,11 @@
 %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{Utilities}
+\chapter{Utilities}
  \label{sec:utilities}
 
 %
@@ -30,14 +30,14 @@ some information about the functions.
 
 
 
-\levelb{The ARTS-IDL interface: AII}
+\section{The ARTS-IDL interface: AII}
 \label{sec:utilities:aii}
 
-\levelc{Introduction}
+\subsection{Introduction}
 The following sections show the usage of the IDL reading and writing
 routines.
-\levelc{IDL reading routines}
-\leveld{read\_datafile}
+\subsection{IDL reading routines}
+\subsubsection{read\_datafile}
 This function reads data from a file in ARTS ASCII data format.
 \begin{center}
 \begin{tabular}{|l|ll|}
@@ -83,7 +83,7 @@ IDL> print, x.mat2
       -1.3467120       2.4578230
        3.5689340      -4.6790450
 \end{verbatim}
-\levele{Error messages}
+\paragraph{Error messages}
 \begin{itemize}
   \item \texttt{Blank lines are not allowed.}
         \begin{enumerate}
@@ -133,7 +133,7 @@ If the 'check'-keyword is set, the following error messages can occur:
         The number of columns indicated in the file is larger or
         smaller than the actually available number of columns.
 \end{itemize}
-\leveld{read\_artsvar}
+\subsubsection{read\_artsvar}
 This function reads an ARTS variable.
 \begin{center}
 \begin{tabular}{|l|ll|}
@@ -151,8 +151,8 @@ This function reads an ARTS variable.
 \end{center}
 The data is read from the file '\textit{basename.varname.}am'. For
 details see 'read\_datafile'.
-\levelc{IDL writing routines} \label{writing}
-\leveld{write\_datafile}
+\subsection{IDL writing routines} \label{writing}
+\subsubsection{write\_datafile}
 This procedure writes data to a file in ARTS format.
 \begin{center}
 \begin{tabular}{|l|ll|}
@@ -225,7 +225,7 @@ The result is:
 2.300000e+00
 3.400000e+00
 \end{verbatim}
-\leveld{write\_artsvar}
+\subsubsection{write\_artsvar}
 This procedure writes an ARTS variable to a file in ARTS format.
 \begin{center}
 \begin{tabular}{|l|ll|}

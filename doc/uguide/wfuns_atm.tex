@@ -1,11 +1,11 @@
 %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{Atmospheric weighting functions}
+\chapter{Atmospheric weighting functions}
  \label{sec:wfuns}
 
 
@@ -51,10 +51,10 @@ perturbation calculations.
 
 
 
-\levelb{Calculation approaches}
+\section{Calculation approaches}
  \label{sec:wfuns:approaches}
 
-  \levelc{Pure numerical calculation} 
+  \subsection{Pure numerical calculation} 
   The most straightforward method to determine WFs is by perturbing
   one parameter at a time. For example, the WF for the state variable
   $p$ can always be calculated as
@@ -82,7 +82,7 @@ perturbation calculations.
   further Sec. \ref{sec:formalism}).
  
 
-  \levelc{Analytical expressions} 
+  \subsection{Analytical expressions} 
   \label{sec:wfuns:approaches:anal}
   For some atmospheric variables, such as species abundance, it is
   possible to derive a semi-analytical expression for the WFs. This is
@@ -180,7 +180,7 @@ perturbation calculations.
   
   
 
-\levelb{Absorption LOS WFs with emission}
+\section{Absorption LOS WFs with emission}
  \label{sec:wfuns:absloswfs}
 
  The absorption line of sight weighting functions are defined as
@@ -200,7 +200,7 @@ perturbation calculations.
  \citet{master00}.
 
 
- \levelc{Single pass}
+ \subsection{Single pass}
  \label{sec:wfuns:single}
  
  This section derives the absorption LOS WFs for cases when each
@@ -345,7 +345,7 @@ perturbation calculations.
 
 
  
- \levelc{1D limb sounding}
+ \subsection{1D limb sounding}
  \label{sec:wfuns:limb}
     
  For limb sounding and when the atmosphere is assumed to be consist of
@@ -482,7 +482,7 @@ perturbation calculations.
 
  
 
- \levelc{1D downward looking observations}
+ \subsection{1D downward looking observations}
   \label{sec:wfuns:down}
   Downward observation from an aircraft or a balloon can mainly be
   treated as a combination of limb sounding and upward looking
@@ -511,7 +511,7 @@ perturbation calculations.
 
 
 
-\levelb{Absorption LOS WFs for optical thicknesses}
+\section{Absorption LOS WFs for optical thicknesses}
  \label{sec:wfuns:absloswfs2}
 
  This section treats the absorption LOS WFs for cases when emission
@@ -519,7 +519,7 @@ perturbation calculations.
  of ARTS is optical thicknesses (instead of e.g. transmissions) and
  for these conditions the absorption LOS WFs get very simple.
 
- \levelc{Single pass}
+ \subsection{Single pass}
  The optical thickness $(\tau)$ is for single pass cases (cf. Eq. 
  \ref{eq:rte:tau})
  \begin{equation}
@@ -536,7 +536,7 @@ perturbation calculations.
  \end{eqnarray}
 
 
- \levelc{1D limb sounding}
+ \subsection{1D limb sounding}
  For limb sounding each altitude is passed twice and the total optical 
  thickness is double the optical thickness from the tangent point to the
  atmospheric limit. This fact results in that the absorption LOS WFs
@@ -548,7 +548,7 @@ perturbation calculations.
  \end{eqnarray}
  
 
- \levelc{1D downward looking observations}
+ \subsection{1D downward looking observations}
  If $q$ is the point where the sensor is placed, the optical thickness
  is
  \begin{equation}
@@ -566,7 +566,7 @@ perturbation calculations.
 
 
 
-\levelb{Source line of sight weighting functions}
+\section{Source line of sight weighting functions}
  \label{sec:wfuns:sourceloswfs}
 
  The source line of sight weighting functions are defined as
@@ -580,7 +580,7 @@ perturbation calculations.
  section follows closely Section \ref{sec:wfuns:absloswfs}.
 
 
- \levelc{Single pass}
+ \subsection{Single pass}
   \label{sec:wfuns:single2}
   As, for example,
   \begin{equation}
@@ -615,7 +615,7 @@ perturbation calculations.
   absorption LOS WFs (Sec. \ref{sec:wfuns:single}).
 
 
- \levelc{1D limb sounding}
+ \subsection{1D limb sounding}
   \label{sec:wfuns:limb2}
   The 1D limb sounding source LOS WFs are (derived using Eq.
   \ref{eq:wfuns:limb1})
@@ -634,7 +634,7 @@ perturbation calculations.
   \ref{sec:wfuns:limb}).
 
 
- \levelc{1D downward looking observations}
+ \subsection{1D downward looking observations}
   \label{sec:wfuns:down2}
   The source LOS WFs for downward looking observations are determined
   by the upward and the limb sounding expressions in the same manner
@@ -651,10 +651,10 @@ perturbation calculations.
 
 
 
-\levelb{Transformation from vertical altitudes to distances along LOS}
+\section{Transformation from vertical altitudes to distances along LOS}
  \label{sec:wfuns:bases}
  
- \levelc{Basis functions} 
+ \subsection{Basis functions} 
  The source function and the absorption, both
  as a function of vertical altitude $(\mat{k})$ and along the LOS
  $(\kappa)$, are assumed to vary linear between the points of the grid
@@ -665,7 +665,7 @@ perturbation calculations.
  as tenth functions (Fig. \ref{fig:wfuns:zbasis}).
  
  
- \levelc{Transformation from $z$ to $l$} 
+ \subsection{Transformation from $z$ to $l$} 
  The forward model uses
  internally a grid along the line of sight (Sec. \ref{sec:los}), while
  the atmospheric WF matrices are calculated for some user specified
@@ -748,7 +748,7 @@ perturbation calculations.
  must be determined for each calculation of a WF matrix.
 
 
-\levelb{Species WFs}
+\section{Species WFs}
  \label{sec:wfuns:species}
  
  As it is assumed here that the species have no influence on
@@ -814,7 +814,7 @@ perturbation calculations.
  as $\xt^p=1$.
 
 
-\levelb{Continuum absorption WFs}
+\section{Continuum absorption WFs}
  \label{sec:wfuns:cont}
 
  These WFs are used to fit unknown absorption that varies smoothly inside
@@ -899,7 +899,7 @@ perturbation calculations.
  other words, they are identical for all $p$.
 
 
-\levelb{Temperature profile WFs}
+\section{Temperature profile WFs}
  \label{sec:wfuns:temp}
  
  A critical factor for the calculation of temperature WFs is if
@@ -911,7 +911,7 @@ perturbation calculations.
  measurements).
 
 
- \levelc{Without hydrostatic equilibrium}
+ \subsection{Without hydrostatic equilibrium}
  
  For some measurement situations it can be questionable to assume that
  the pressure, temperature and geometrical altitude, valid for the
@@ -976,7 +976,7 @@ perturbation calculations.
  $T_0$ the assumed temperature profile.
  
 
- \levelc{With hydrostatic equilibrium}
+ \subsection{With hydrostatic equilibrium}
  
  The gases in the atmosphere behave like an ideal gas, and the pressure,
  the temperature and the vertical altitudes above one point are
@@ -988,7 +988,7 @@ perturbation calculations.
  information (type \verb|arts -d kTemp|).
 
 
-%\levelb{WF for ground emission factor}
+%\section{WF for ground emission factor}
 % \label{sec:wfuns:eground}
 % 
 % This WF is not yet implemented but this can easily be done.

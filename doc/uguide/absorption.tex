@@ -1,4 +1,4 @@
-\levela{Gas absorption}
+\chapter{Gas absorption}
  \label{sec:absorption}
 
 
@@ -22,10 +22,10 @@
  \label{symtable:absorption}     
 \stopsymbolswithunits
 
-\levelb{The gas absorption lookup table}
+\section{The gas absorption lookup table}
 \label{sec:absorption:lookup}
 
-\levelc{Introduction}
+\subsection{Introduction}
 
 Calculating gas absorption coefficient spectra in a line by line way
 is quite an expensive thing to do. Sometimes contributions from
@@ -45,7 +45,7 @@ The basic idea of the lookup table is to pre-calculate absorption for
 discrete combinations of these variables, and then use interpolation
 to extract absorption for the actual atmospheric state.
 
-\levelc{Lookup table concept}
+\subsection{Lookup table concept}
 
 The fundamental law of Beer\footnote{According to C.\ Melsheimer,
   Beer's law is: `The taller the glass, the darker the brew, the less
@@ -74,7 +74,7 @@ Therefore, the lookup table should store \AbsXsec, rather than
 \AbsCoef. We then have to worry only about the dependence of \AbsXsec\
 on the atmospheric state variables.
 
-\leveld{Pressure dependence}
+\subsubsection{Pressure dependence}
 
 The pressure dependence is the most important dependence of
 \AbsXsec. It comes from the fact that the width of the line shape
@@ -82,7 +82,7 @@ functions is governed by pressure broadening. We have to store the
 \aAbsXsec{i} on some pressure grid and interpolate if we need them for
 intermediate values.
 
-\leveld{Temperature dependence}
+\subsubsection{Temperature dependence}
 
 This is the next effect to take into account. Both the line widths and
 the line intensities depend on temperature. Of course, only certain
@@ -96,7 +96,7 @@ for three different temperatures for each pressure level:
 $[T_R(p)-10\,\mbox{K},\, T_R(p),\, T_R(p)+10\,\mbox{K}]$, where
 $T_R(p)$ is the reference temperature for each pressure level.
 
-\leveld{Trace gas concentration dependence}
+\subsubsection{Trace gas concentration dependence}
 
 This is a second order effect. The width of the line depends not only
 on total pressure, but also on the partial pressure of one or more
@@ -118,13 +118,13 @@ stored. (The so called `nonlinear species'.)
 \FIXME{Update this when it works.}
 
 
-\levelc{Implementation}
+\subsection{Implementation}
 %-------------------------------------------------------------------------
 The gas absorption lookup table is implemented by the class
 \typeindex{GasAbsLookup}, which resides in the files
 \fileindex{gas\_abs\_lookup.cc} and \fileindex{gas\_abs\_lookup.h}.
 
-\leveld{Lookup table structure}
+\subsubsection{Lookup table structure}
 
 Below you find the actual declaration of the class GasAbsLookup with
 extensive comments.
@@ -270,7 +270,7 @@ private:
 \end{verbatim}
 }
 
-\leveld{Workspace variables and methods}
+\subsubsection{Workspace variables and methods}
 
 The lookup table itself is stored in the WSV
 \wsvindex{gas\_abs\_lookup}. After loading (with \artsstyle{ReadXML}),

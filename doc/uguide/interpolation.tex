@@ -1,11 +1,11 @@
 %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{\textindex{Interpolation}}
+\chapter{\textindex{Interpolation}}
 %-------------------------------------------------------------------------
 \label{sec:interpolation}
 
@@ -46,7 +46,7 @@ dimensions. (Is the 6D case called hexa-linear interpolation?)  The
 necessary functions and their interaction will be explained in this
 chapter.
 
-\levelb{Implementation files}
+\section{Implementation files}
 %-------------------------------------------------------------------------
 
 Variables and functions related to interpolation are defined in the files:
@@ -58,7 +58,7 @@ Variables and functions related to interpolation are defined in the files:
 The first two files contain the declarations and implementation, the
 last file some usage examples.
 
-\levelb{Green and blue interpolation}
+\section{Green and blue interpolation}
 %-------------------------------------------------------------------------
 
 \begin{figure}[htbp]
@@ -88,7 +88,7 @@ somehow, which is described in the next section.
 
 
 
-\levelb{Grid positions}
+\section{Grid positions}
 %-------------------------------------------------------------------------
 \label{sec:interpolation:gridpos}
 
@@ -141,7 +141,7 @@ both cases.
 Grid positions for a whole new grid are stored in an \artsstyle{Array<GridPos>}
 (called \artsstyle{ArrayOfGridPos}). 
 
-\levelb{Setting up grid position arrays}
+\section{Setting up grid position arrays}
 %----------------------------------------------------------------------
 
 There is only one function to set up grid position arrays, namely 
@@ -175,7 +175,7 @@ void gridpos( ArrayOfGridPos& gp,
   all!
 \end{itemize}
 
-\levelb{\textindex{Interpolation weights}}
+\section{\textindex{Interpolation weights}}
 %----------------------------------------------------------------------
 
 As explained in the `Numerical Recipes'
@@ -233,7 +233,7 @@ In the case of a `blue' type interpolation, the weights are
 always stored in a matrix, since the output field is always 1D (a
 vector). 
 
-\levelb{Setting up interpolation weight tensors}
+\section{Setting up interpolation weight tensors}
 %----------------------------------------------------------------------
 
 Interpolation weight tensors can be computed by a family of functions,
@@ -242,7 +242,7 @@ used depends on the dimension of the input and output quantities. For
 this step we still do not need the actual fields, just the grid
 positions.
 
-\levelc{Blue interpolation}
+\subsection{Blue interpolation}
 
 In this case the functions are:
 
@@ -273,7 +273,7 @@ given grid position arrays and the dimension of the interpolation
 interpreted as defining a sequence of positions they must all have
 the same length.
 
-\levelc{Green interpolation}
+\subsection{Green interpolation}
 
 In this case the functions are:
 
@@ -313,7 +313,7 @@ lengths. Of course, \artsstyle{itw} must be consistent with the length of
 all the grid position arrays, and with the dimension of the
 interpolation (last dimension $2^n$).
 
-\levelb{The actual interpolation}
+\section{The actual interpolation}
 %----------------------------------------------------------------------
 
 For this final step we need the grid positions, the
@@ -323,7 +323,7 @@ and the sum is taken (see Equation
 \ref{eq:interpolation:weights}). The \funcindex{interp} family of functions
 performs this step.
 
-\levelc{Blue interpolation}
+\subsection{Blue interpolation}
 
 {\small
 \begin{verbatim}
@@ -369,7 +369,7 @@ void interp( VectorView            ia,
 \end{verbatim}
 }
 
-\levelc{Green interpolation}
+\subsection{Green interpolation}
 
 {\small
 \begin{verbatim}
@@ -411,10 +411,10 @@ void interp( Tensor6View           ia,
 \end{verbatim}
 }
 
-\levelb{Examples}
+\section{Examples}
 %----------------------------------------------------------------------
 
-\levelc{A simple example}
+\subsection{A simple example}
 
 This example is contained in file \fileindex{test\_interpolation.cc}.
 
@@ -488,7 +488,7 @@ New field:
 \end{verbatim}
 }
 
-\levelc{A more elaborate example}
+\subsection{A more elaborate example}
 
 What if you want to interpolate only some dimensions of a tensor,
 while retaining others? --- You have to make a loop yourself, but it
@@ -608,7 +608,7 @@ page 2:
 \end{verbatim}
 }
 
-\levelb{Summary}
+\section{Summary}
 %----------------------------------------------------------------------
 
 Now you probably understand better what was written at the very

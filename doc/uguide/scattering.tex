@@ -1,11 +1,11 @@
 %
 % To start the document, use
-%  \levela{...}
+%  \chapter{...}
 % For lover level, sections use
-%  \levelb{...}
-%  \levelc{...}
+%  \section{...}
+%  \subsection{...}
 %
-\levela{Scattering}
+\chapter{Scattering}
  \label{sec:scattering}
 
 %
@@ -74,7 +74,7 @@
 {\ensuremath{(\PDir, \PDir^\prime, \Frq, \Tmp)}}
 
 
-\levelb{Vector radiative transfer equation (VRTE)}
+\section{Vector radiative transfer equation (VRTE)}
 %=====================================================================
 \label{sec:scattering:general_rte}
  
@@ -184,7 +184,7 @@ Molecular scattering is neglected as it is not important in the
 considered frequency range from 10 to 1000 GHz.
 
 
-\levelb{Scalar radiative transfer equation}
+\section{Scalar radiative transfer equation}
 %======================================================
 \label{sec:scattering:scalar_rte}
 
@@ -218,7 +218,7 @@ the scattering efficiency matrix $Y_{11}$:
   \Frq)
 \end{eqnarray}
 
-\levelb{Iteration scheme for solving the vector RTE}
+\section{Iteration scheme for solving the vector RTE}
 %===============================
 \label{sec:scattering:solution_rte}
 
@@ -227,7 +227,7 @@ general radiative transfer equation. A numerical solution can be
 obtained using for example an iterative method. The method implemented
 in ARTS is described in this section.
 
-\levelc{Basic definitions}
+\subsection{Basic definitions}
 \begin{itemize}
 \item{\bf Cloudbox}
   
@@ -289,7 +289,7 @@ calculation is only done for one frequency at a time.
 \end{itemize}
 
 
-\levelc{First guess field}
+\subsection{First guess field}
 %===========================================================================
 
 The starting point of the iteration method is the first guess field
@@ -305,7 +305,7 @@ iterative solution. Our test calculations have shown, that taking the
 clearsky field as first guess is reasonable.
 
 
-\levelc{First scattering integral field}
+\subsection{First scattering integral field}
 %============================================================================
 
 The next step is solving the scattering integral
@@ -331,7 +331,7 @@ cloudbox for all directions:
 \end{eqnarray}
 
 
-\levelc{Averaging of the coefficients of the VRTE}
+\subsection{Averaging of the coefficients of the VRTE}
 %============================================================================
 \label{scattering:av_coeff}
 
@@ -394,7 +394,7 @@ Here $\bar{\ExtMat}$, $\bar{\AbsVec}$, $\bar{\Planck}$ and
 $\bar{\ScaInt^{(0)}}$ are the averaged quantities.
 
 
-\levelc{Radiative transfer with fixed scattered field and averaged
+\subsection{Radiative transfer with fixed scattered field and averaged
   coefficients}
 %===================================================================
 
@@ -451,7 +451,7 @@ iteration field \aIFld{1}:
 \end{eqnarray}
 
 
-\levelc{Iterations}
+\subsection{Iterations}
 
 The first iteration field is used to evaluate the scattered field
 \ScaInt\ again at all grid points inside the cloudbox:
@@ -500,7 +500,7 @@ Thus the $n$-th order iteration is given by:
 \end{eqnarray}
 
 
-\levelc{Convergence test}
+\subsection{Convergence test}
 
 After each iteration the convergence is checked. If
 \begin{eqnarray}
@@ -517,7 +517,7 @@ been found:
 
 
 
-\levelb{Iteration scheme for solving the scalar RTE}
+\section{Iteration scheme for solving the scalar RTE}
 %===============================
 \label{sec:scattering:solution_rte_scalar}
 \begin{itemize}
@@ -572,11 +572,11 @@ cloudbox for all directions.
 \end{itemize}
 
 
-\levelb{Characterization of clouds by combination of hydrometeor species}
+\section{Characterization of clouds by combination of hydrometeor species}
 %============================================================
 \label{sec:scattering:hydrometeor_species}
 
-\levelc{Optical properties of particle ensembles}
+\subsection{Optical properties of particle ensembles}
 %===========================================================
 \label{sec:scattering:particle_ensembles}
 
@@ -624,7 +624,7 @@ $ <{\bf K}>$ and $<{\bf Z}>$ are the average extinction matrix and the average a
 In ARTS a ``hydrometoer species'' is defined by its single scattering properties (phase matrix, extincrion matrix and absorption vector). A hydrometeor species can represent an ensemble of particles, for example a size and aspect ratio distribution of ellipsoids. The point is that one species corresponds to a fixed phase matrix. 
 
 
-\leveld{Structure containing single scattering data of hydrometeor species}
+\subsubsection{Structure containing single scattering data of hydrometeor species}
 %============================================================
 \label{sec:scattering:single_scattering_data}
 
@@ -705,7 +705,7 @@ Again, the order of matrix elements depends on the chosen case.
 \end{itemize}
 
 
-\leveld{Macroscopically isotropic and mirror-symmetric scattering media}
+\subsubsection{Macroscopically isotropic and mirror-symmetric scattering media}
 %===========================================================================
 \label{sec:scattering:rand_orientation}
 
@@ -732,7 +732,7 @@ Therefore the size of \verb abs_vec_data \ for this case is the same as
 \hspace*{2ex}\begin{verbatim} [N_f 1 1 1]\end{verbatim}
 
 
-\leveld{Horizontally aligned plates and columns}
+\subsubsection{Horizontally aligned plates and columns}
 %===========================================================================
 \label{sec:scattering:az_orientation}
 
@@ -768,7 +768,7 @@ means that the size of  \verb abs_vec_data \ is
 
 
 
-\leveld{Spherical particles}
+\subsubsection{Spherical particles}
 %===========================================================================
 \label{sec:scattering:spherical_particles}
 
@@ -783,7 +783,7 @@ means that the size of  \verb abs_vec_data \ is
   same way as for the randomly oriented case.
   For this case we can of course also use the T-matrix code for randomly oriented particles.
 
-\leveld{General case}
+\subsubsection{General case}
 %===========================================================================
 \label{sec:general_case}
 
@@ -810,7 +810,7 @@ The size of \verb abs_vec_data \ is accordingly:
 
 
 
-\levelc{Database for particle number density fields}
+\subsection{Database for particle number density fields}
 %==========================================================
 \label{sec:scattering:pnd_data}
 
@@ -821,7 +821,7 @@ longitude grid. The forth element contains the data for the particle
 number density. Each chosen particle type has to be defined together
 with a particle number density field.
 
-\levelc{Reading the databases}
+\subsection{Reading the databases}
 %===========================================================
 \label{sec:scattering:read_data}
 
@@ -877,12 +877,12 @@ ParticleTypeAdd{
 \end{verbatim}
  
 
-\levelb{Radiative transfer implementation in the cloudbox}
+\section{Radiative transfer implementation in the cloudbox}
 %=================================================================
 \label{sec:scattering:rt_cloudbox}
 
 
-\levelc{Scattering main function}
+\subsection{Scattering main function}
 %=====================================
 \label{sec:scattering:main_function}
 For a scattering calculation only the workspace method
@@ -955,7 +955,7 @@ Then \wsaindex{scat\_mono\_agenda}(see Section
 \ref{sec:scattering:scat_mono_ag}) is executed inside a loop over all frequencies
 defined in \wsvindex{f\_grid}.
 
-\levelc{Numerical grids and fields}
+\subsection{Numerical grids and fields}
 %====================================================================
 \label{sec:scattering:grids}
 The calculations inside the cloudbox are performed on the common
@@ -1006,7 +1006,7 @@ $N_{aa}$ are the size of the zenith and azimuth angle grids and
 $N_{I}$ is the Stokes dimension.
 
 
-\levelc{Interface between cloudbox and clearsky}
+\subsection{Interface between cloudbox and clearsky}
 %================================================================
 \label{sec:scattering:interface}
 The interface between the clearsky part and the cloudbox part of the
@@ -1053,21 +1053,21 @@ Inside the scattering box we need to specify only
 
 
 
-\leveld{Clearsky field on cloudbox boundary} The method
+\subsubsection{Clearsky field on cloudbox boundary} The method
 \wsmindex{CloudboxGetIncoming} calculates for each grid point on the
 cloudbox boundary in each propagation direction the radiation field
 using the method \wsmindex{RteCalc}, which performs a clearsky
 radiative transfer calculation.  Output of this method are the
 interface variables listed above.
 
-\leveld{Scattered field on cloudbox boundary} The scattered field on
+\subsubsection{Scattered field on cloudbox boundary} The scattered field on
 the cloudbox boundary for given position and direction is obtained by
 using the method \wsmindex{CloudboxGetOutgoing}. The method performs
 an interpolation from the interface variables on the requested
 position and direction.
 
 
-\levelc{Solution of the monochromatic VRTE}
+\subsection{Solution of the monochromatic VRTE}
 %========================================================================
 \label{sec:scattering:scat_mono_ag}
 
@@ -1090,7 +1090,7 @@ AgendaSet(scat_mono_agenda) {
 The methods used by this agenda are described below.
 
  
-\leveld{First guess field}
+\subsubsection{First guess field}
 %=======================================================================
 
 The workspace method \wsmindex{i\_fieldSetClearsky} uses a linear 3D
@@ -1125,7 +1125,7 @@ same solution field, it can be assumed that the solution field is the
 correct one.
 
 
-\leveld{Iteration}
+\subsubsection{Iteration}
 %=====================================================================
 The method \wsmindex{i\_fieldIterate} solves the VRTE using the
 iterative method.  The function has included switches to adapt
@@ -1153,7 +1153,7 @@ The solution of the radiative transfer equation is returned as output
 using the variable \artsstyle{i\_field}.
 
 
-\levelc{Computation of the scattered field}
+\subsection{Computation of the scattered field}
 %=========================================
 \label{sec:scattering:sca_fieldCalc}
 
@@ -1192,7 +1192,7 @@ integration methods are not implemented yet.
 %methods \artsstyle{i\_fieldUpdate1D} and \artsstyle{i\_fieldIterate}.
 
 
-\levelc{Solving the VRTE with fixed scattering integral}
+\subsection{Solving the VRTE with fixed scattering integral}
 %==================================================================
 \label{sec:scattering:RT_methods}
 
@@ -1216,7 +1216,7 @@ these functions can be found in Section
 
 Boths functions consist basically of two parts:
 
-\leveld{Calculate coefficients of VRTE} In the first part, the
+\subsubsection{Calculate coefficients of VRTE} In the first part, the
 coefficients required for the radiative transfer calculation are
 determined for all gridpoints inside the cloudbox and on the cloudbox
 boundary. These coefficients are the total absorption vector, the
@@ -1276,7 +1276,7 @@ All coefficients are stored in arrays during the monochromatic
 radiative transfer equation. They aer replaced when the calculation
 for the next frequency starts.
 
-\leveld{Radiative transfer step with constant coefficients}
+\subsubsection{Radiative transfer step with constant coefficients}
 
 In this part several steps are executed inside a loop over all
 positions inside the cloudbox and all directions to obtain the
@@ -1297,14 +1297,14 @@ radiation field:
 
 
 
-\levelc{Single scattering properties}
+\subsection{Single scattering properties}
 %==================================================================
 \label{sec:scattering:single_scat_prop}
 
 {\bf FIXME: Description of the functions needed for new database format}
 
 
-\levelc{Radiative transfer step calculation with averaged
+\subsection{Radiative transfer step calculation with averaged
   coefficients}
 %=================================================================
 \label{sec:scattering:rte_step}
@@ -1356,7 +1356,7 @@ Vector.
   another place}
 
 
-\levelc{Convergence test method}
+\subsection{Convergence test method}
 %====================================
 \label{sec:scattering:conv_method}
 

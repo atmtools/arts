@@ -1,3 +1,13 @@
+2004-06-28  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-836
+
+	* Bredbeck AI
+
+	* doc/uguide/*.tex: Replaced \level[abcde] by \chapter, \section...
+
+	* doc/uguide/uguide.tex: Removed \level[abcde] macros.
+
 2004-06-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-835

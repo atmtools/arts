@@ -1,5 +1,5 @@
 
-\levela{Workspace variable groups and file formats}
+\chapter{Workspace variable groups and file formats}
  \label{sec:formats}
  
 \starthistory
@@ -26,10 +26,10 @@ is similar to a type in C or C++. For example, \verb|String| and
 \verb|Vector| are both groups. To get a complete list of workspace
 variable groups, call ARTS like this: \verb|arts -g|.
 
-\levelb{Important workspace variable groups}
+\section{Important workspace variable groups}
  \label{sec:formats:datatypes}
 
-\levelc{Atomic groups}
+\subsection{Atomic groups}
 \label{sec:formats:atomic}
  
 The most basic, the atomic, groups of ARTS are:
@@ -62,7 +62,7 @@ it consists of a number of characters, but as characters are not used
 in ARTS, strings are the most basic text type in ARTS.
   
 
-\levelc{Numeric groups}
+\subsection{Numeric groups}
 \label{sec:formats:nummath}
  
 Numeric values can be stored in vectors or matrices for which
@@ -79,7 +79,7 @@ powerfull, they are described in more detail in a separate section,
 which you should read if you want to do ARTS development (to be written). 
 %[FIXME: Put reference here.]
 
-\levelc{Arrays based on atomic and numeric groups}
+\subsection{Arrays based on atomic and numeric groups}
  \label{sec:formats:atomic_arrays}
  
 Arrays correspond to vectors but are not treated as mathematical
@@ -95,7 +95,7 @@ are:
 \item ArrayOfMatrix
 \end{itemize}
 
-\levelc{Structures based on atomic and numeric groups}
+\subsection{Structures based on atomic and numeric groups}
 
 The \verb|Los| is a structure to describe the line of sight (LOS).
 The structure holds for example the pressures along the LOS. To make the
@@ -108,7 +108,7 @@ The LOS calculations are further described in Section \ref{sec:los}.
 
 
 
-\levelb{File formats}
+\section{File formats}
  \label{sec:formats:files}
  
  All ARTS data, beside the spectroscopic variables, can be stored to,
@@ -117,7 +117,7 @@ The LOS calculations are further described in Section \ref{sec:los}.
  extension for ASCCI files is \verb|.aa| (ARTS ASCII) and for binary
  files it is \verb|.ab| (ARTS binary).
  
- \levelc{ASCII}
+ \subsection{ASCII}
   \label{sec:formats:file:ascii}
   
   All data types based on \verb|Numeric| and \verb|Index| that can be
@@ -175,7 +175,7 @@ String 3
  \end{table}
  
 
-\levelc{Binary}
+\subsection{Binary}
  \label{sec:formats:file:binary}
   
  Binary files are created and read by using HDF 4 (Sec.
@@ -186,7 +186,7 @@ String 3
  changed.
 
 
-\leveld{General binary file format}
+\subsubsection{General binary file format}
  \label{sec:formats:file:binary:general}
  
  The binary files for data types that can be treated as special cases
@@ -255,7 +255,7 @@ String 3
  have one column.
  
 
-\leveld{Display tools}
+\subsubsection{Display tools}
  \label{sec:formats:file:binary:display}
 
  The content of the binary files can be displayed using some command
@@ -276,7 +276,7 @@ String 3
 
 
 
-\levelb{HDF}
+\section{HDF}
  \label{sec:formats:hdf}
 
  The HDF home page is found at \\
