@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.768)
+AM_INIT_AUTOMAKE(arts,1.1.769)
 
 AM_MAINTAINER_MODE
 
@@ -134,38 +134,38 @@ fi
 AM_CONDITIONAL(HDF_SUPPORT, test x$ac_hdf_support = xyes)
 
 #
-# Default floating-point type
+# Default Numeric type
 #
 AC_ARG_WITH(numeric-type,
-[  --with-numeric-type=ARG    Set floating-point type (default=double)],
+[  --with-numeric-type=ARG    Set Numeric type (default=double)],
 [case "${withval}" in
   double) ac_numeric_type=double ;;
    float) ac_numeric_type=float ;;
        *) AC_MSG_ERROR(bad value ${withval} for --with-numeric-type) ;;
 esac],[ ac_numeric_type=double ])
 
-AC_MSG_RESULT(Setting floating-point type to $ac_numeric_type)
-AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default floating-point type)
+AC_MSG_RESULT(Setting Numeric type to $ac_numeric_type)
+AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default Numeric type)
 if test x$ac_numeric_type = xdouble; then
   AC_DEFINE_UNQUOTED(USE_DOUBLE,, Whether double precision is in use)
 fi
 
 
 #
-# Default integer type
+# Default Index type
 #
-AC_ARG_WITH(integer-type,
-[  --with-integer-type=ARG    Set integer type (default=long)],
+AC_ARG_WITH(index-type,
+[  --with-index-type=ARG      Set Index type (default=long)],
 [case "${withval}" in
-  short) ac_integer_type=short ;;
-  int)  ac_integer_type=int ;;
-  long)  ac_integer_type=long ;;
-  size_t)  ac_integer_type=size_t ;;
-    *) AC_MSG_ERROR(bad value ${withval} for --with-integer-type) ;;
-esac],[ ac_integer_type=long ])
+  short) ac_index_type=short ;;
+  int)  ac_index_type=int ;;
+  long)  ac_index_type=long ;;
+  size_t)  ac_index_type=size_t ;;
+    *) AC_MSG_ERROR(bad value ${withval} for --with-index-type) ;;
+esac],[ ac_index_type=long ])
 
-AC_MSG_RESULT(Setting integer type to $ac_integer_type)
-AC_DEFINE_UNQUOTED(INDEX, $ac_integer_type, Default integer type)
+AC_MSG_RESULT(Setting Index type to $ac_index_type)
+AC_DEFINE_UNQUOTED(INDEX, $ac_index_type, Default Index type)
 
 
 #
@@ -224,8 +224,8 @@ AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
 AC_SUBST(ac_arts_data)
 
 AC_ARG_WITH(arts-xml-data,
-[  --with-arts-xml-data=ARG       Set path to the arts xml data files]
-[                                 (default=$PREFIX/share/arts-xml-data)],
+[  --with-arts-xml-data=ARG   Set path to the arts xml data files]
+[                             (default=$PREFIX/share/arts-xml-data)],
 [case "${withval}" in
   yes) ac_arts_xml_data=default ;;
    no) ac_arts_xml_data=no ;;
@@ -452,8 +452,8 @@ AC_MSG_RESULT([              ARTS configuration summary])
 AC_MSG_RESULT()
 AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
-AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
-AC_MSG_RESULT([  Integer type             : $ac_integer_type])
+AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
+AC_MSG_RESULT([  Index type               : $ac_index_type])
 AC_MSG_RESULT([  Use MPI                  : $ac_use_mpi])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
 if test $ac_hdf_support = autodetect; then
