@@ -1,3 +1,43 @@
+2001-09-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-208
+
+	* reconf: Pass --enable-maintainer-mode and all options given to
+	reconf to configure.
+
+	* src/file.cc: Added cfloat to includes for compatibility with glibc 2.2.x
+	
+	* configure.in: Added several configure options
+	
+	  --enable-maintainer-mode: For arts developers. Activates debug
+	  compiler flags and documentation generation.
+
+	  --enable-docs: Same as before. Used to regenerate the documentian
+	  even without activating maintainer-mode.
+
+	  --with-numeric-type=ARG: The default floating-point type is
+	  double. You can change this by giving float as ARG.
+
+	  --with-integer-type=ARG: The default integer type in arts is
+	  long. You can give short, int, long or size_t as ARG. WARNING: Only
+	  change this if you know what you're doing because not every type
+	  may work. Depends on the operating system.
+
+	Added a check for HDF4 header files and libraries.
+
+	Added check for doxygen, latex and pdflatex if documentation
+	generation is activated.
+
+	Added a configuration summary output after the configure script
+	run is complete.
+
+	Re-ordered the test sequence. Basic tests first, higher level tests
+	at the end.
+
+	* src/arts.h: Changed typedefs for Numeric and Index to be set to
+	the types specified in config.h.
+
+	
 2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-207
