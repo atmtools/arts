@@ -157,6 +157,12 @@ xml_set_stream_precision (ostream &os);
 ////////////////////////////////////////////////////////////////////////////
 
 void
+xml_read_from_stream (istream&, Array<SpeciesRecord>&, bifstream *);
+
+void
+xml_write_to_stream (ostream&, const Array<SpeciesRecord>&, bofstream *);
+
+void
 xml_read_from_stream (istream&, ArrayOfArrayOfSpeciesTag&, bifstream *);
 
 void
@@ -268,6 +274,12 @@ void
 xml_write_to_stream (ostream&, const Sparse&, bofstream *);
 
 void
+xml_read_from_stream (istream&, SpeciesRecord&, bifstream *);
+
+void
+xml_write_to_stream (ostream&, const SpeciesRecord&, bofstream *);
+
+void
 xml_read_from_stream (istream&, SpeciesTag&, bifstream *);
 
 void
@@ -324,12 +336,17 @@ template void
 xml_read_from_file<Agenda> (const String&, Agenda&);
 
 template void
+xml_read_from_file< Array<SpeciesRecord> > (const String&,
+                                            Array<SpeciesRecord>&);
+
+template void
 xml_read_from_file<ArrayOfArrayOfSpeciesTag> (const String&,
                                               ArrayOfArrayOfSpeciesTag&);
 
 template void
 xml_read_from_file<ArrayOfSingleScatteringData> (const String&,
                                               ArrayOfSingleScatteringData&);
+
 template void
 xml_read_from_file<ArrayOfArrayOfTensor3> (const String&,
                                            ArrayOfArrayOfTensor3&);
@@ -385,6 +402,9 @@ xml_read_from_file<SingleScatteringData> (const String&, SingleScatteringData&);
 
 template void
 xml_read_from_file<Sparse> (const String&, Sparse&);
+
+template void
+xml_read_from_file<SpeciesRecord> (const String&, SpeciesRecord&);
 
 template void
 xml_read_from_file<SpeciesTag> (const String&, SpeciesTag&);
@@ -480,6 +500,10 @@ template void
 xml_write_to_file<Sparse> (const String&, const Sparse&, FileType);
 
 template void
+xml_write_to_file<SpeciesRecord> (const String&, const SpeciesRecord&,
+                                  FileType);
+
+template void
 xml_write_to_file<SpeciesTag> (const String&, const SpeciesTag&, FileType);
 
 template void
@@ -502,6 +526,11 @@ xml_write_to_file<Tensor7> (const String&, const Tensor7&, FileType);
 
 template void
 xml_write_to_file<Vector> (const String&, const Vector&, FileType);
+
+template void
+xml_write_to_file<Array<SpeciesRecord> > (const String&,
+                                          const Array<SpeciesRecord>&,
+                                          FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&,

@@ -758,6 +758,88 @@ xml_write_to_file (const String& filename,
 //   Overloaded functions for reading/writing data from/to XML stream
 ////////////////////////////////////////////////////////////////////////////
 
+//=== Array<SpeciesRecord> ================================================
+
+//! Reads SpeciesData from XML input stream
+/*!
+  Checks whether the next tag in input stream is
+  <Array type="SpeciesRecord"> and if so, write the values to 'asrecord'
+  parameter.
+
+  \param is_xml    XML Input stream
+  \param asrecord  SpeciesData return value
+  \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      Array<SpeciesRecord>& asrecord,
+                      bifstream *pbifs = NULL)
+{
+  ArtsXMLTag tag;
+  Index nelem;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Array");
+  tag.check_attribute ("type", "SpeciesRecord");
+
+  tag.get_attribute_value ("nelem", nelem);
+  asrecord.resize (nelem);
+
+  Index n;
+  try
+    {
+      for (n = 0; n < nelem; n++)
+        {
+          xml_read_from_stream (is_xml, asrecord[n], pbifs);
+        }
+    } catch (runtime_error e) {
+      ostringstream os;
+      os << "Error reading SpeciesData: "
+         << "\n Element: " << n
+         << "\n" << e.what();
+      throw runtime_error(os.str());
+    }
+
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Array");
+}
+
+
+//! Writes SpeciesData to XML output stream
+/*!
+  \param os_xml    XML Output stream
+  \param asrecord  SpeciesData
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const Array<SpeciesRecord>& asrecord,
+                     bofstream *pbofs = NULL)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("Array");
+
+  open_tag.add_attribute ("type", "SpeciesData");
+  open_tag.add_attribute ("nelem", asrecord.nelem ());
+
+  open_tag.write_to_stream (os_xml);
+  os_xml << '\n';
+
+  for (Index n = 0; n < asrecord.nelem (); n++)
+    {
+      xml_write_to_stream (os_xml, asrecord[n], pbofs);
+    }
+
+  close_tag.set_name ("/Array");
+  close_tag.write_to_stream (os_xml);
+
+  os_xml << '\n';
+}
+
+
 //=== ArrayOfArrayOfSpeciesTag ================================================
 
 //! Reads ArrayOfArrayOfSpeciesTag from XML input stream
@@ -2278,7 +2360,7 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream& is_xml,
                       Sparse& sparse,
-					  bifstream * /* pbifs */ = NULL)
+                      bifstream * /* pbifs */ = NULL)
 {
   //FIXME: This is a dummy function
 }
@@ -2295,6 +2377,63 @@ xml_write_to_stream (ostream& os_xml,
                      bofstream * /* pbofs */ = NULL)
 {
   //FIXME: This is a dummy function
+}
+
+
+//=== SpeciesRecord ================================================
+
+//! Reads SpeciesRecord from XML input stream
+/*!
+  Checks whether the next tag in input stream is <SpeciesRecord>
+  and if so, write the values to 'srecord' parameter.
+
+  \param is_xml   XML Input stream
+  \param srecord  SpeciesRecord return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
+*/
+void
+xml_read_from_stream (istream& is_xml,
+                      SpeciesRecord& srecord,
+                      bifstream *pbifs = NULL)
+{
+  ArtsXMLTag tag;
+  String sname;
+  Index degfr;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("SpeciesRecord");
+
+  xml_read_from_stream (is_xml, sname, pbifs);
+  xml_read_from_stream (is_xml, degfr, pbifs);
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/SpeciesRecord");
+}
+
+
+//! Writes SpeciesRecord to XML output stream
+/*!
+  \param os_xml   XML Output stream
+  \param srecord  SpeciesRecord
+  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+*/
+void
+xml_write_to_stream (ostream& os_xml,
+                     const SpeciesRecord& srecord,
+                     bofstream *pbofs = NULL)
+{
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+
+  open_tag.set_name ("SpeciesRecord");
+  open_tag.write_to_stream (os_xml);
+
+  xml_write_to_stream (os_xml, srecord.Name (), pbofs);
+  xml_write_to_stream (os_xml, srecord.Degfr (), pbofs);
+
+  close_tag.set_name ("/SpeciesRecord");
+  close_tag.write_to_stream (os_xml);
+  os_xml << '\n';
 }
 
 
