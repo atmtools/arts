@@ -3507,8 +3507,6 @@ void define_md_data()
                  Array_String_t, Array_String_t,
                  Index_t,  String_t, Index_t,   String_t  )));
 
-#endif // HDF_SUPPORT
-
   md_data.push_back
     ( MdRecord
       ( NAME("ybatchFromRadiosonde"),
@@ -3578,6 +3576,8 @@ md_data.push_back
 	GINPUT(),
 	KEYWORDS(),
 	TYPES(     )));
+
+#endif // HDF_SUPPORT
 
 //======================================================================
 //=== Methods as Workspace Variables
