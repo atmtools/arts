@@ -1,3 +1,14 @@
+2003-07-30  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-113
+
+	* src/m_los.cc (y_rte, y_tau): Changed input parameters to Views.
+	Added input params z_start and z_end to allow calculation for zenith
+	angle range. Needed by sourcetransyCalcSaveMemory.
+	(yCalc): Pass z_start and z_end to y_rte and y_tau.
+	(sourcetransyCalcSaveMemory): Implemented loop over frequency and
+	zenith angles.
+
 2003-07-30  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-0-112
