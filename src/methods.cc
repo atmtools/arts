@@ -225,6 +225,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("IndexWriteBinary"),
@@ -271,7 +272,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
+#endif // HDF_SUPPORT
 
 //=== NUMERIC ==========================================================
 
@@ -352,6 +353,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("NumericWriteBinary"),
@@ -397,7 +399,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
+#endif // HDF_SUPPORT
 
 
 //=== Vector ==========================================================
@@ -560,6 +562,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteBinary"),
@@ -605,6 +608,8 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+#endif // HDF_SUPPORT
+
 
   md_data.push_back
     ( MdRecord
@@ -748,6 +753,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixWriteBinary"),
@@ -793,6 +799,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+#endif // HDF_SUPPORT
 
   md_data.push_back
     ( MdRecord
@@ -863,6 +870,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexWriteBinary"),
@@ -908,7 +916,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
+#endif // HDF_SUPPORT
 
 
 //=== ArrayOfVector ====================================================
@@ -966,6 +974,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteBinary"),
@@ -1011,7 +1020,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
+#endif // HDF_SUPPORT
 
 
 
@@ -1089,6 +1098,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteBinary"),
@@ -1134,7 +1144,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
+#endif // HDF_SUPPORT
 
 //=== STRING ============================================================
 
@@ -1202,6 +1212,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("StringWriteBinary"),
@@ -1247,6 +1258,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+#endif // HDF_SUPPORT
 
 
 //=== ArrayOfSTRING =========================================================
@@ -1328,6 +1340,7 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfStringWriteBinary"),
@@ -1373,6 +1386,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+#endif // HDF_SUPPORT
 
   md_data.push_back
     ( MdRecord
@@ -1390,6 +1404,7 @@ void define_md_data()
 
 //=== LOS ==================================================================
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("LosWriteBinary"),
@@ -1435,7 +1450,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
-
+#endif // HDF_SUPPPORT
 
 
 //======================================================================
@@ -2949,6 +2964,7 @@ void define_md_data()
 //=== Batch Calculation Methods
 //======================================================================
 
+#ifdef HDF_SUPPORT
   md_data.push_back
     ( MdRecord
       ( NAME("ybatchCalc"),
@@ -3018,5 +3034,6 @@ void define_md_data()
                  Array_String_t, Array_String_t,
                  Index_t,  String_t, Index_t,   String_t  )));
 
+#endif // HDF_SUPPORT
 }
 
