@@ -1,5 +1,11 @@
 2002-02-24  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-1-15
+
+	* Just some minor changes in los.cc to be backed up.
+
+2002-02-24  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-1-14
 
 	* src/los.cc: Further work on the propagation path calculations. No
