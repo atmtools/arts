@@ -56,7 +56,9 @@ texfiles = \
 # future, and generate the version file by calling arts -v?)
 # SAB 2002-06-07
 
-autotexfiles = 	auto_groups.tex
+autotexfiles = \
+	auto_groups.tex \
+	auto_methods.tex
 
 EXTRA_DIST = \
 	$(texfiles) \
@@ -104,7 +106,10 @@ uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
 # command (levela, etc.) confuse the translator.
 
 auto_groups.tex: arts_groups_to_latex.sh $(artsexecutable)
-	arts_groups_to_latex.sh $(artsexecutable) > auto_groups.tex
+	./arts_groups_to_latex.sh $(artsexecutable) > auto_groups.tex
+
+auto_methods.tex: arts_methods_to_latex.sh $(artsexecutable)
+	./arts_methods_to_latex.sh $(artsexecutable) > auto_methods.tex
 
 CLEANFILES = *.aux *.log
 
@@ -156,6 +161,17 @@ uguide_pdf.pdf:
 	@echo
 
 auto_groups.tex:
+	@echo
+	@echo "=========================================================="
+	@echo
+	@echo "The documentation is only re-generated in maintainer mode."
+	@echo "To activate maintainer mode call configure with the option"
+	@echo "--enable-maintainer-mode"
+	@echo
+	@echo "=========================================================="
+	@echo
+
+auto_methods.tex:
 	@echo
 	@echo "=========================================================="
 	@echo
