@@ -133,7 +133,7 @@ ArtsXMLTag::check_attribute (const String& aname, const String& value)
 void
 ArtsXMLTag::get_attribute_value (const String& aname, String& value)
 {
-  value = "*not found*";
+  value = "*N/A*";
 
   Array<XMLAttribute>::iterator it = attribs.begin ();
   while (it != attribs.end ())
@@ -458,12 +458,13 @@ xml_parse_error (const String& str_error)
   \param is Input stream
 */
 void
-xml_read_header_from_stream (istream& is, FType &ftype)
+xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
+                             EndianType &etype)
 {
   char str[6];
   stringbuf strbuf;
   ArtsXMLTag tag;
-  String strftype;
+  String strtype;
 
   is.get (str, 6);
 
@@ -483,11 +484,66 @@ xml_read_header_from_stream (istream& is, FType &ftype)
 
   tag.read_from_stream (is);
   tag.check_name ("arts");
-  tag.get_attribute_value ("format", strftype);
-  if (strftype == "binary")
-    ftype = FTYPE_BINARY;
+
+  // Check file format
+  tag.get_attribute_value ("format", strtype);
+  if (strtype == "binary")
+    {
+      ftype = FILE_TYPE_BINARY;
+    }
   else
-    ftype = FTYPE_ASCII;
+    {
+      ftype = FILE_TYPE_ASCII;
+    }
+
+  // Check endian type
+  tag.get_attribute_value ("endian_type", strtype);
+  if (strtype == "little")
+    {
+      etype = ENDIAN_TYPE_LITTLE;
+    }
+  if (strtype == "big")
+    {
+      etype = ENDIAN_TYPE_BIG;
+    }
+  if (strtype == "*N/A*")
+    {
+      out1 << "  Warning: Endian type not specified in XML file, "
+        <<    "assuming little endian (PC)\n";
+      etype = ENDIAN_TYPE_LITTLE;
+    }
+  else
+    {
+      ostringstream os;
+      os << "  Error: Unknown endian type \"" << strtype
+        <<  "\" specified in XML file.\n";
+        throw runtime_error(os.str());
+    }
+
+  // Check numeric type
+  tag.get_attribute_value ("numeric_type", strtype);
+  if (strtype == "float")
+    {
+      ntype = NUMERIC_TYPE_FLOAT;
+    }
+  else if (strtype == "double")
+    {
+      ntype = NUMERIC_TYPE_DOUBLE;
+    }
+  else if (strtype == "*N/A*")
+    {
+      out1 << "  Warning: Numeric type not specified in XML file, "
+        <<    "assuming double\n";
+      ntype = NUMERIC_TYPE_DOUBLE;
+    }
+  else
+    {
+      ostringstream os;
+      os << "  Error: Unknown numeric type \"" << strtype
+        <<  "\" specified in XML file.\n";
+        throw runtime_error(os.str());
+    }
+
 }
 
 
@@ -512,7 +568,7 @@ xml_read_footer_from_stream (istream& is)
   \param os Output stream
 */
 void
-xml_write_header_to_stream (ostream& os, FType ftype)
+xml_write_header_to_stream (ostream& os, FileType ftype)
 {
   ArtsXMLTag tag;
 
@@ -522,10 +578,10 @@ xml_write_header_to_stream (ostream& os, FType ftype)
   tag.set_name ("arts");
   switch (ftype)
     {
-  case FTYPE_ASCII:
+  case FILE_TYPE_ASCII:
     tag.add_attribute ("format", "ascii");
     break;
-  case FTYPE_BINARY:
+  case FILE_TYPE_BINARY:
     tag.add_attribute ("format", "binary");
     break;
     }
@@ -594,7 +650,9 @@ xml_read_from_file (const String& filename,
                     T&            type)
 {
   ifstream ifs;
-  FType ftype;
+  FileType ftype;
+  NumericType ntype;
+  EndianType etype;
 
   out2 << "  Reading " << filename << '\n';
   
@@ -609,8 +667,8 @@ xml_read_from_file (const String& filename,
   // filename.
   try
     {
-      xml_read_header_from_stream (ifs, ftype);
-      if (ftype == FTYPE_ASCII)
+      xml_read_header_from_stream (ifs, ftype, ntype, etype);
+      if (ftype == FILE_TYPE_ASCII)
         {
           xml_read_from_stream (ifs, type);
         }
@@ -643,7 +701,7 @@ xml_read_from_file (const String& filename,
 template<typename T> void
 xml_write_to_file (const String& filename,
                    const T&      type,
-                         FType   ftype)
+                         FileType   ftype)
 {
   ofstream ofs;
 
@@ -653,7 +711,7 @@ xml_write_to_file (const String& filename,
   try
     {
       xml_write_header_to_stream (ofs, ftype);
-      if (ftype == FTYPE_ASCII)
+      if (ftype == FILE_TYPE_ASCII)
         {
           xml_write_to_stream (ofs, type);
         }
