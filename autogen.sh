@@ -163,7 +163,7 @@ check_m4macros() {
     return $cm_status
 }
 
-configure_files="`find $srcdir -name '{arch}' -prune -o -name configure.ac -print -or -name configure.in -print`"
+configure_files="`find $srcdir -name '{arch}' -prune -o -name configure.ac -print -o -name configure.in -print`"
 
 DIE=0
 
