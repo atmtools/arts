@@ -24,6 +24,23 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
+void Cloudbox_ppathCalc(
+        //  Output:
+              Ppath&          ppath,
+              Ppath&          ppath_step,
+        //  Input:
+        const Agenda&         ppath_step_agenda,
+        const Index&          atmosphere_dim,
+        const Vector&         p_grid,
+        const Vector&         lat_grid,
+        const Vector&         lon_grid,
+        const Tensor3&        z_field,
+        const Matrix&         r_geoid,
+        const Matrix&         z_surface,
+        const ArrayOfIndex&   cloudbox_limits,
+        const Vector&         rte_pos,
+	      const Vector&         rte_los);
+
 void Cloudbox_ppath_rteCalc(
                              Ppath&                ppathcloud,
                              Ppath&                ppath,

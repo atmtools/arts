@@ -1,3 +1,16 @@
+2004-10-06  Cory Davis  <cory@localhost.localdomain>
+
+	* arts-1-1-894
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Although MC was
+	running without crashing - it was giving the wrong answer by a
+	mile. Something was wrong with using ppath_calc inside the
+	cloud-box.  Maybe in particular when starting from the boundary
+	looking in.  Changed back to using Cloudbox_ppathCalc.  Now I seem
+	to be able to replicate some old runs.
+
+	* src/montecarlo.{cc,h}: moved Cloudbox_ppathCalc here from m_montecarlo.cc.
+
 2004-10-06  Cory Davis  <cory@geosl504>
 
 	* arts-1-1-893

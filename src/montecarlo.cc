@@ -49,6 +49,252 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! Cloudbox_ppath_calc
+/*! 
+  This function performs the same task as ppath_calc, except inside the
+  cloudbox.  It has been derived from the clear sky version.  See the 
+  online help (arts -d FUNCTION_NAME) for a description of parameters.
+   
+\author Cory Davis
+\date 2003-06-19
+  
+*/
+
+void Cloudbox_ppathCalc(
+        //  Output:
+              Ppath&          ppath,
+              Ppath&          ppath_step,
+        //  Input:
+        const Agenda&         ppath_step_agenda,
+        const Index&          atmosphere_dim,
+        const Vector&         p_grid,
+        const Vector&         lat_grid,
+        const Vector&         lon_grid,
+        const Tensor3&        z_field,
+        const Matrix&         r_geoid,
+        const Matrix&         z_surface,
+        const ArrayOfIndex&   cloudbox_limits,
+        const Vector&         rte_pos,
+        const Vector&         rte_los)
+{
+  // This function is a WSM but it is normally only called from RteCalc. 
+  // For that reason, this function does not repeat input checks that are
+  // performed in RteCalc, it only performs checks regarding the sensor 
+  // position and LOS.
+
+  //--- Check input -----------------------------------------------------------
+
+  // Sensor position and LOS
+  //
+  chk_vector_length( "rte_pos", rte_pos, atmosphere_dim );
+  chk_if_over_0( "sensor radius", rte_pos[0] );
+  if( atmosphere_dim < 3 )
+    {
+        ostringstream os;
+        os << "cloudbox_ppath_calc only works for a 3D atmosphere";
+        throw runtime_error( os.str() );
+    }
+  else
+    {
+      chk_if_in_range( "sensor latitude", rte_pos[1], -90, 90 );
+      chk_if_in_range( "sensor longitude", rte_pos[2], -360, 360 );
+      chk_vector_length( "rte_los", rte_los, 2 );
+      chk_if_in_range( "sensor zenith angle", rte_los[0], 0, 180 );
+      chk_if_in_range( "sensor azimuth angle", rte_los[1], -180, 180 );
+    }
+  
+  //--- End: Check input ------------------------------------------------------
+
+
+  // Some messages
+  out2 << "  -------------------------------------\n";
+  out2 << "  sensor radius          : " << rte_pos[0]/1e3 << " km\n";
+  if( atmosphere_dim == 3 )
+    out2 << "  sensor longitude       : " << rte_pos[2] << "\n";
+  out2 << "  sensor zenith angle    : " << rte_los[0] << "\n";
+  if( atmosphere_dim == 3 )
+    out2 << "  sensor azimuth angle   : " << rte_los[1] << "\n";
+  
+  
+  
+  // Initiate the partial Ppath structure. 
+
+  //
+  cloudbox_ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
+                      lon_grid, z_field, r_geoid, z_surface, rte_pos, rte_los );
+
+  out2 << "  -------------------------------------\n";
+
+  // Perform propagation path steps until the starting point is found, which
+  // is flagged by ppath_step by setting the background field.
+  //
+  // The results of each step, returned by ppath_step_agenda as a new 
+  // ppath_step, are stored as an array of Ppath structures.
+  //
+  Array<Ppath>   ppath_array;
+  ppath_array.push_back( ppath_step );
+  // 
+  Index   np = ppath_step.np;   // Counter for number of points of the path
+  Index   istep = 0;            // Counter for number of steps
+//
+
+  
+  while( !ppath_what_background( ppath_step ) )
+    {
+
+      // Call ppath_step agenda. 
+      // The new path step is added to *ppath_array* last in the while block
+      //
+      istep++;
+      //
+      ppath_step_agenda.execute( true );
+
+      // Before everything is tested carefully, we consider more than 1000
+      // path points to be an indication on that the calcululations have
+      // got stuck in an infinite loop.
+      if( istep > 5000 )
+        {
+          throw logic_error(
+             "5000 path points have been reached. Is this an infinite loop?" );
+        }
+      //     cout << "istep = " << istep << "\n";
+      // Number of points in returned path step
+      const Index n = ppath_step.np;
+
+      // Increase the total number
+      np += n - 1;
+      
+      // Check if there is an intersection with the cloud box boundary,
+        //remembering that this function will only be called within the
+        //cloud box
+      
+      double ipos = double( ppath_step.gp_p[n-1].idx ) + 
+                                                    ppath_step.gp_p[n-1].fd[0];
+      if( ipos <= double( cloudbox_limits[0] )  || 
+                                        ipos >= double( cloudbox_limits[1] ) )
+        { ppath_set_background( ppath_step, 3 ); }
+      else   
+          {
+          ipos = double( ppath_step.gp_lat[n-1].idx ) + 
+                                              ppath_step.gp_lat[n-1].fd[0];
+          if( ipos <= double( cloudbox_limits[2] )  || 
+                                    ipos >= double( cloudbox_limits[3] ) )
+             { ppath_set_background( ppath_step, 3 ); }
+          else
+         {
+           ipos = double( ppath_step.gp_lon[n-1].idx ) + 
+                                              ppath_step.gp_lon[n-1].fd[0];
+              if( ipos <= double( cloudbox_limits[4] )  || 
+                                    ipos >= double( cloudbox_limits[5] ) )
+                    { ppath_set_background( ppath_step, 3 ); } 
+            }
+        }
+        
+      // Put new ppath_step in ppath_array
+      ppath_array.push_back( ppath_step );
+      //     cout <<"what background? "<< ppath_what_background( ppath_step )<< "\n";
+    } // End path steps
+  
+ 
+  // Combine all structures in ppath_array to form the return Ppath structure.
+  //
+  ppath_init_structure( ppath, atmosphere_dim, np );
+  //
+  np = 0;   // Now used as counter for points moved to ppath
+  //
+  for( Index i=0; i<ppath_array.nelem(); i++ )
+    {
+      // For the first structure, the first point shall be included, but the
+      // first structure can also be empty. 
+      // For later structures, the first point shall not be included, but
+      // there will always be at least two points.
+      // Only the first structure can be empty.
+
+      Index n = ppath_array[i].np;
+
+      if( n )
+        {
+          // First index to include
+          Index i1 = 1;
+          if( i == 0 )
+            { i1 = 0; }
+          else
+            { assert( n > 1 ); }
+
+          // Vectors and matrices that can be handled by ranges.
+          ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];
+          ppath.pos( Range(np,n-i1), joker ) = 
+                                   ppath_array[i].pos( Range(i1,n-i1), joker );
+          ppath.los( Range(np,n-i1), joker ) = 
+                                   ppath_array[i].los( Range(i1,n-i1), joker );
+
+          // For i==1, there is no defined l_step. For higher i, all 
+          // values in l_step shall be copied.
+          if( i > 0 )
+            { ppath.l_step[ Range(np-1,n-1) ] = ppath_array[i].l_step; }
+
+          // Grid positions must be handled by a loop
+          for( Index j=i1; j<n; j++ )
+            { ppath.gp_p[np+j-i1] = ppath_array[i].gp_p[j]; }
+          if( atmosphere_dim >= 2 )
+            {
+              for( Index j=i1; j<n; j++ )
+                { ppath.gp_lat[np+j-i1] = ppath_array[i].gp_lat[j]; }
+            }
+          if( atmosphere_dim == 3 )
+            {
+              for( Index j=i1; j<n; j++ )
+                { ppath.gp_lon[np+j-i1] = ppath_array[i].gp_lon[j]; }
+            }
+
+          // Fields just set once
+          if( ppath_array[i].tan_pos.nelem() )
+            {
+              ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
+              ppath.tan_pos               = ppath_array[i].tan_pos; 
+            }
+          if( ppath_array[i].geom_tan_pos.nelem() )
+            {
+              ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
+              ppath.geom_tan_pos          = ppath_array[i].geom_tan_pos; 
+            }
+
+          // Increase number of points done
+          np += n - i1;
+         
+        }
+    }  
+  ppath.method     = ppath_step.method;
+  ppath.refraction = ppath_step.refraction;
+  ppath.constant   = ppath_step.constant;
+  ppath.background = ppath_step.background;
+
+  
+
+  out3 << "  number of path steps  : " << istep           << "\n";
+  out3 << "  number of path points : " << ppath.z.nelem() << "\n";
+
+
+  // If refraction has been considered, make a simple check that the
+  // refraction at the top of the atmosphere is sufficiently close to 1.
+  if( ppath.refraction  &&  min( z_field(z_field.npages()-1,0,0) ) < 60e3 )
+    {
+      out2 << "  *** WARNING****\n" 
+           << "  The calculated propagation path can be inexact as the "
+           << "atmosphere\n  only extends to " 
+           <<  min( z_field(z_field.npages()-1,0,0) ) << " km. \n" 
+           << "  The importance of this depends on the observation "
+           << "geometry.\n  It is recommended that the top of the atmosphere "
+           << "is not below 60 km.\n";
+    }
+}
+
+
+
+
+
+
+
 //! Cloudbox_ppath_rteCalc
 
 /*!
@@ -151,13 +397,13 @@ void Cloudbox_ppath_rteCalc(
   Tensor7 scat_i_lon_dummy;
  
   //  cout << "Cloudbox_ppathCalc\n";
-  //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-  //                   p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-  //                 cloudbox_limits, rte_pos,rte_los);
+  Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+                     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
+                   cloudbox_limits, rte_pos,rte_los);
   
-  ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-			 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
-			 cloudbox_limits, rte_pos,rte_los,0);
+  //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+  //			 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+  //		 cloudbox_limits, rte_pos,rte_los,0);
   if (record_ppathcloud)
     {
       //Record ppathcloud.  This is useful for debugging and educational 
