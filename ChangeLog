@@ -1,3 +1,11 @@
+2005-02-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-917
+
+	* src/ppath.cc (ppath_start_stepping): Included RTOL when comparing
+	surface radius with start of ppath. Numerical inaccuracy can here give
+	problems.
+
 2005-02-14  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-916

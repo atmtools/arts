@@ -5163,12 +5163,12 @@ void ppath_start_stepping(
       const double r_top = r_geoid(0,0) + z_field(np-1,0,0);
 
       // The only forbidden case here is that the sensor is below the surface
-      if( rte_pos[0] < r_surface )
+      if( (rte_pos[0] + RTOL) < r_surface )
         {
           ostringstream os;
-          os << "The sensor is placed " 
+          os << "The ppath starting point is placed " 
              << (r_surface - rte_pos[0])/1e3 << " km below surface level.\n"
-             << "The sensor must be above the surface.";
+             << "This point must be above the surface.";
           throw runtime_error(os.str());
         }
 
@@ -5364,13 +5364,13 @@ void ppath_start_stepping(
       if( is_inside )
         {
           // Check that the sensor is above the surface
-          if( rte_pos[0] < rv_surface )
+          if( (rte_pos[0] + RTOL) < rv_surface )
             {
-              ostringstream os;
-              os << "The sensor is placed " 
-                 << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
-                 << "The sensor must be above the surface.";
-              throw runtime_error(os.str());
+            ostringstream os;
+            os << "The ppath starting point is placed " 
+               << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
+               << "This point must be above the surface.";
+            throw runtime_error(os.str());
             }
 
           // Check that not at latitude end point and looks out
@@ -5712,13 +5712,13 @@ void ppath_start_stepping(
       if( is_inside )
         {
           // Check that the sensor is above the surface
-          if( rte_pos[0] < rv_surface )
+          if( (rte_pos[0] + RTOL) < rv_surface )
             {
-              ostringstream os;
-              os << "The sensor is placed " 
-                 << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
-                 << "The sensor must be above the surface.";
-              throw runtime_error(os.str());
+            ostringstream os;
+            os << "The ppath starting point is placed " 
+               << (rv_surface - rte_pos[0])/1e3 << " km below surface level.\n"
+               << "This point must be above the surface.";
+            throw runtime_error(os.str());
             }
 
           // Check that not at latitude end point and looks out
