@@ -62,6 +62,7 @@ public:
   long pos();
 
   void putByte (bofstream::Byte b);
+  void putRaw (const char *c, streamsize n) { this->write (c, n); }
 };
 
 
