@@ -132,6 +132,10 @@ Some notes about the art of programing on ARTS:
       This will create new Makefiles which take your new file into
       account. 
 
+   e) Go to src and run:
+      $ cvs add <my_file>
+      to make your file known to CVS.
+
 ----------------------------------------------------------------------
 CVS stuff:
 
