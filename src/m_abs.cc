@@ -1110,24 +1110,39 @@ void AtmFromRaw1D(// WS Output:
     // The reason why we take tz_raw as a matrix is that the
     // interpolation can then be done simultaneously, hence slightly
     // more efficient.
-    MATRIX tz_intp( p_abs.size(), 2 );
-    interp_lin_matrix( trans(tz_intp),
-		       columns(raw_ptz_1d)[0],
-		       trans(raw_ptz_1d.sub_matrix(0,
-						   raw_ptz_1d.nrows(),
-						   1,
-						   raw_ptz_1d.ncols())),
-		       p_abs );
+
+    // We need to make temporary copies of things. Unnefficient!
+    // FIXME: Improve this when we have better MATRIX functionality.
+
+    // For the interpolated profiles:
+    MATRIX tz_intp( 2, p_abs.size() );
+
+    // The original pressure grid:
+    VECTOR p0( raw_ptz_1d.nrows() );
+    copy(columns(raw_ptz_1d)[0],p0);
+
+    // The matrix to interpolate:
+    MATRIX tz( 2, raw_ptz_1d.nrows() );
+    copy(trans(raw_ptz_1d.sub_matrix(0,
+				     raw_ptz_1d.nrows(),
+				     1,
+				     raw_ptz_1d.ncols())),
+	 tz);
+
+    interpp( tz_intp,
+	     p0,
+	     tz,
+	     p_abs );
 
     // Extract t_abs:
     //    col( t_abs, 1, tz_intp );
-    resize( t_abs, tz_intp.nrows() );
-    copy( columns(tz_intp)[0], t_abs );
+    resize( t_abs, tz_intp.ncols() );
+    copy( tz_intp[0], t_abs );
 
     // Extract z_abs:
     //    col( z_abs, 2, tz_intp );
-    resize( z_abs, tz_intp.nrows() );
-    copy( columns(tz_intp)[1], z_abs );
+    resize( z_abs, tz_intp.ncols() );
+    copy( tz_intp[1], z_abs );
   }
 
   //---------------< 2. Interpolation of VMR profiles >---------------
@@ -1155,14 +1170,19 @@ void AtmFromRaw1D(// WS Output:
 	    throw runtime_error(os.str());
 	  }
 
+	// Split the matrix into pressure and vmr vector:
+	VECTOR p_raw(raw.nrows()), vmr_raw(raw.nrows());
+	copy(columns(raw)[0],p_raw);
+	copy(columns(raw)[1],vmr_raw);
+
 	// Make vmrs[j] the right size:
 	resize( vmrs[j], p_abs.size() );
 	
 	// Interpolate:
-	interp_lin_vector( vmrs[j],
-			   columns(raw)[0],
-			   columns(raw)[1],
-			   p_abs );
+	interpp( vmrs[j],
+		 p_raw,
+		 vmr_raw,
+		 p_abs );
 	//	out3 << "This VMR: " << vmrs[j] << "\n";
       }
   }

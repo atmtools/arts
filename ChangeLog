@@ -1,3 +1,18 @@
+2001-05-14  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-0-167
+
+	* m_abs.cc: Switched interpolation in AtmFromRaw1d from linear
+	interpolation to log pressure interpolation using interpp. Because
+	adaptors and submatrices are not accepted by interpp, some
+	temporary copies have to be made. This is horrible, we need a
+	better matrix/vector implementation!
+
+	* The reason for the change was that nadir weighting functions
+	showed some strange wiggles. The change did reduce the wiggles
+	considerably, but they are still visible.
+
+	
 2001-05-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-166
