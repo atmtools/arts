@@ -50,7 +50,6 @@ public:
              ios::openmode mode = ios::out | ios::trunc | ios::binary)
   : ofstream (name, mode) { }
 
-  ~bofstream () { }
 };
 
 
