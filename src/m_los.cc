@@ -48,6 +48,7 @@
 #include <cmath>
 #include "arts.h"
 #include "atm_funcs.h"          
+#include "complex.h"          
 #include "matpackI.h"
 #include "los.h"
 #include "math_funcs.h"          
@@ -938,48 +939,93 @@ void groundFlatSea(
         const Numeric&   r_geoid,
         const Index&     refr,
         const Vector&    refr_index,
-        const String&    pol )
+        const String&    pol,
+        const Numeric&   t_skin )
 {
   if( z_abs[0] > 0  ||  z_abs[z_abs.nelem()-1] < 0 )
-    throw runtime_error( "The WSV *z_abs* must span over 0 m." );
+    throw runtime_error( "The WSV *z_abs* must span 0 m." );
   if( min(f_mono) < 10e9  ||  max(f_mono) > 1000e9 )
     throw runtime_error( 
            "Frequencies below 10 GHz or above 1000 GHz are not allowed." );
 
   z_ground = z_abs[0];
-  t_ground = interpz( p_abs, z_abs, t_abs, 0 );
 
-  Numeric  n1 = 1, n2 = 1;
+  if( t_skin > 0 )
+    { t_ground = t_skin; }
+  else
+    { t_ground = interpz( p_abs, z_abs, t_abs, 0 ); }
+
+  // Calculate indidence angle
+  Numeric  n_plat = 1, n_ground = 1;
   if( refr )
     {
-      n1 =  n_for_z( z_plat, p_abs, z_abs, refr_index, last(z_abs) );
-      n2 =  n_for_z( z_ground, p_abs, z_abs, refr_index, last(z_abs) );
+      n_plat =  n_for_z( z_plat, p_abs, z_abs, refr_index, last(z_abs) );
+      n_ground =  n_for_z( z_ground, p_abs, z_abs, refr_index, last(z_abs) );
     }
-  Numeric sintheta = n1 * (r_geoid+z_plat) * sin(DEG2RAD*max(za_pencil))
-                                                 / ( n2 * (r_geoid+z_ground) );
-  cout << sintheta << "\n";
+  Numeric sintheta = n_plat * (r_geoid+z_plat) * sin(DEG2RAD*max(za_pencil))
+                                           / ( n_ground * (r_geoid+z_ground) );
+  // If no LOS hits the ground, sintheta will be > 1. We set the angle then
+  // to 90 degreees.
   if( sintheta > 1 )
     { sintheta = 1; }
+  //
   const Numeric costheta = sqrt( 1 - sintheta*sintheta );
 
-  cout << RAD2DEG * asin(sintheta) << "\n";
+  //cout << RAD2DEG * asin(sintheta) << "\n";
 
-  // Relative dielectric constant
-  const Numeric   ep = 5;
-  const Numeric   epp = 10;
+  // The expressions for the dielectric constant are taken from the file
+  // epswater93.m (by C. Mätzler), part of Atmlab.
+  // The cosntant e2 is here set to 3.52, which according to Mätzler 
+  // corresponds to Liebe 1993.
+
+  // Some constants
+  const Numeric   theta = 1 - 300 / t_ground;
+  const Numeric   e0    = 77.66 - 103.3 * theta;
+  const Numeric   e1    = 0.0671 * e0;
+  const Numeric   f1    = 20.2 + 146.4 * theta + 316 * theta * theta;
+  const Numeric   e2    = 3.52;  
+  const Numeric   f2    = 39.8 * f1;
+  //
+  const Numeric   n1    = 1;
   
+
+  // Loop frequencies
+  //
+  e_ground.resize( f_mono.nelem() );
+  //
   for( Index i=0; i<f_mono.nelem()-1; i++ )
     {
-      e_ground[i] = ep + epp;
-      e_ground[i] = costheta;
-  
+      const Complex  ifGHz( 0.0, f_mono[i]/1e9 );
+
+      const Complex  eps = e2 + (e1-e2) / (1.0-ifGHz/f2) + 
+                                (e0-e1) / (1.0-ifGHz/f1);
+      const Complex  n2 = sqrt( eps );
+            Complex  a,b;
+
+            //cout << eps << "\n";
+            //cout << n2 << "\n";
+            //cout << asin((n1*sintheta)/n2) << "\n";
+
       if( pol == "v" )
-        {}
+        { 
+          a = n2 * costheta;
+          b = n1 * cos( asin((n1*sintheta)/n2) );
+        }
       else if( pol == "h" )
-        {}
+        { 
+          a = n1 * costheta;
+          b = n2 * cos( asin((n1*sintheta)/n2) );          
+        }
       else
         throw runtime_error( 
                         "The keyword argument *pol* must be \"v\" or \"h\"." );
+
+      const Numeric   r = abs( ( a - b ) / ( a + b ) );
+
+      e_ground[i] = 1 - r * r;
+
+      //cout << r*r << "\n";
+      //exit(0);
     }
 }
 

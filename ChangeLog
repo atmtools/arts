@@ -1,3 +1,20 @@
+2004-03-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-161
+
+	* src/complex.cc,h: Copied these files from ARTS-1.1.
+
+	Added functions for asin and acos.
+	(I will add this to ARTS-1.1 later)
+
+	* src/m_los.cc (groundFlatSea): Finished the method. Added skin
+	temperature as keyword argument.
+
+	The method gives same results as a combination of epswater93.m (in
+	Atmlab) and an old personal Matlab function (well tested) for the
+	reflection coefficients of a surface with complex dieleectric
+	constant.
+
 2004-03-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-160

@@ -50,6 +50,7 @@
 #include "auto_md.h"
 #include "make_array.h"
 
+#include "complex.h"
 
 
 //**************************************************************************
@@ -107,8 +108,10 @@ void Test( )
 {
   // This function can be used to test stuff.
 
-  //  assert_bool( 2, "XCVF" );
-  check_length_ncol( Vector(6), "XCVF", Matrix(5,5), "ERTFD" );
+  Complex a = Complex(0.0,-3.0);
+
+  cout << asin( a ) << "\n";
+  cout << acos( a ) << "\n";
 }
 
 

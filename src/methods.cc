@@ -2987,26 +2987,31 @@ void define_md_data()
           "the sea, without wind effects. The emissivity is calculated from\n"
           "the dielectric constant by the Fresnel equations.\n"
           "\n"
-          "The altitude is set to 0 m. The temperature is obtained by \n"
-          "interpolating *t_abs*. The incident angle (of reflection) is \n"
-          "calculated for max of *za_pencil*. Refraction is considered\n"
-          "or not, depending on value of *refr*. This means that *refrCalc*\n"
-          "must be called before this method if refraction is considered.\n"
-          "The emissivity depends on the selected polarisation. The \n"  
-          "refractive index of air is set to 1.\n"
+          "The altitude is set to 0 m. The skin temperature is set by the\n"
+          "keyword argument *t_skin*. If this argument is set to be <= 0,\n"
+          "the temperature is obtained by interpolating *t_abs*. \n"
           "\n"
-          "The relative dielectric constant is calculated following ?. \n"
-          "The method is accordingly only valid between ? and ? GHz.\n"
+          "The incident angle (of reflection) is calculated for max of \n"
+          "*za_pencil*. Refraction is considered or not, depending on value \n"
+          "of *refr*. This means that *refrCalc* must be called before this \n"
+          "method if refraction is considered. The emissivity depends on the\n"
+          "selected polarisation. The refractive index of air is set to 1.\n"
+          "\n"
+          "The relative dielectric constant is calculated following\n"
+          "Liebe et al. 1991 Int. J. IR+mm Waves 12(12), 659-675. \n"
+          "The method does not consider salinity and is restricted to the\n"
+          "range 5 - 1000 GHz (below 5 GHz salinity must be considered).\n"
           "\n"
           "Keywords \n"
-          "  pol : Polarisation. Calid options are \"v\" or \"h\"."),
+          "  pol    : Polarisation. Calid options are \"v\" or \"h\".\n"
+          "  t_skin : Skin temperature. "),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
 	INPUT( p_abs_, t_abs_, z_abs_, f_mono_, za_pencil_, z_plat_, r_geoid_,
            refr_, refr_index_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "pol"       ),
-	TYPES(    String_t )));
+	KEYWORDS( "pol",    "t_skin"  ),
+	TYPES(    String_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
