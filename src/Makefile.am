@@ -41,6 +41,7 @@ arts_SOURCES = \
 	lineshapes.cc \
 	m_abs.cc \
 	m_agenda.cc \
+        m_atmosphere.cc \
 	m_basic_types.cc \
 	m_cloudbox.cc \
 	m_general.cc \

@@ -296,6 +296,68 @@ void chk_if_decreasing(
 
 
 ////////////////////////////////////////////////////////////////////////////
+//   Functions for Matrix
+////////////////////////////////////////////////////////////////////////////
+
+//// chk_matrix_ncols //////////////////////////////////////////////////////
+/** 
+    Checks that a matrix has the specified number of columns.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type Vector.
+    \param    l        The expected length of x.
+
+    \author Patrick Eriksson 
+    \date   2002-05-16
+*/
+void chk_matrix_ncols( 
+	const String&      x_name,
+        ConstMatrixView    x,
+        const Index&       l ) 
+{
+  if ( x.ncols() != l )
+    {
+      ostringstream os;
+      os << "The matrix *" << x_name <<  "* must have " << l << " columns,\n"
+         << "but the number of columns is " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+//// chk_matrix_nrows //////////////////////////////////////////////////////
+/** 
+    Checks that a matrix has the specified number of rows.
+
+    The function gives an error message if this is not the case.
+
+    \param    x_name   The name of the variable.
+    \param    x        A variable of type Vector.
+    \param    l        The expected length of x.
+
+    \author Patrick Eriksson 
+    \date   2002-05-16
+*/
+void chk_matrix_nrows( 
+	const String&      x_name,
+        ConstMatrixView    x,
+        const Index&       l ) 
+{
+  if ( x.nrows() != l )
+    {
+      ostringstream os;
+      os << "The matrix *" << x_name <<  "* must have " << l << " rows,\n"
+         << "but the number of rows is " << x.nrows() << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
 //   Functions related to atmospheric grids, fields and surfaces.
 ////////////////////////////////////////////////////////////////////////////
 

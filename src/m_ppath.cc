@@ -36,6 +36,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "arts.h"
+#include "auto_md.h"
 #include "ppath.h"
 
 
@@ -44,6 +45,39 @@
 //   The functions
 ////////////////////////////////////////////////////////////////////////////
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-16
+*/
+void a_posAddGeoidWGS84(
+        // WS Output:
+              Vector&    a_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Numeric&   latitude_1d,
+        const Numeric&   azimuth_angle_1d )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_vector_length( "a_pos", a_pos, atmosphere_dim );
+
+  // Use *sensor_posAddGeoidWGS84* to perform the calculations.
+  Matrix m(1,a_pos.nelem());
+  m(0,Range(joker)) = a_pos;
+  sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, azimuth_angle_1d);
+  a_pos[0] = m(0,0);
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-16
+*/
 void ppathCalc(
         // WS Output:
               Ppath&          ppath,
@@ -139,5 +173,77 @@ void ppathCalc(
   //
 
 }
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-16
+*/
+void sensor_posAddGeoidWGS84(
+        // WS Output:
+              Matrix&    sensor_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Numeric&   latitude_1d,
+        const Numeric&   azimuth_angle_1d )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_matrix_ncols( "sensor_pos", sensor_pos, atmosphere_dim );
+
+  // Number of positions
+  const Index npos = sensor_pos.nrows();
+  if( npos == 0 )
+    throw runtime_error("The number of positions is 0, must be at least 1.");
+
+  // The function *r_geoidWGS84 is used to get the geoid radius, but some
+  // tricks are needed as this a WSF to set *r_geoid* for all crossings of the
+  // latitude and longitude grids.
+  // For 2D and 3D, the function is always called with the atmospheric 
+  // dimensionality set to 2, and the latitudes of concern are put into 
+  // the latitude grid. An extra dummy value is needed if there is only one 
+  // position in *sensor_pos*.
+
+
+  if( atmosphere_dim == 1 )
+    {
+      Vector lats(0);
+
+      // The size of the r-matrix is set inside the function.
+      Matrix r;
+      r_geoidWGS84( r, 1, lats, Vector(0), latitude_1d, azimuth_angle_1d );
+      
+      // Add the geoid radius to the geometric altitudes
+      sensor_pos(Range(joker),0) += r(0,0);
+    }
+
+  else
+    {
+      Vector lats;
+      if( npos == 1 )
+	{
+	  lats.resize(2);
+	  lats[0] = sensor_pos(0,1);
+	  lats[1] = lats[0] + 1;
+	}
+      else
+	{
+	  lats.resize(npos);
+          lats = sensor_pos( Range(joker), 1 );
+	}
+
+      // The size of the r-matrix is set inside the function.
+      Matrix r;
+      r_geoidWGS84( r, 2, lats, Vector(0), -999, -999 );
+      
+      // Add the geoid radius to the geometric altitudes
+      for( Index i=0; i<npos; i++ )
+	sensor_pos(i,0) += r(i,0);
+    }
+}
+
 
 

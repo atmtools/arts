@@ -311,7 +311,6 @@ void Tensor3FillWithVector(
   else 
     throw runtime_error(
              "The size argument for either pages, rows or columns must be 0.");
-  cout << t << "\n";
 }
 
 

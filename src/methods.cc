@@ -139,6 +139,33 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME( "a_posAddGeoidWGS84" ),
+	DESCRIPTION
+        (
+	 "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
+         "\n"
+         "This function assumes that the first element of *a_pos* is set\n"
+         "to the geometric altitude for the position of the sensor. \n"
+         "The variable *a_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "taken from the WGS-84 reference ellipsiod.\n"
+         "\n"
+         "For 1D, the geoid radius is set to the radius of curvature of the\n"
+         "WGS-84 ellipsiod for the position and observation direction \n"
+         "described with *latitude_1d* and *azimuth_angle_1d*.\n"
+         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
+         "ellipsiod for the latitude value in *a_pos*."
+        ),
+	OUTPUT( a_pos_ ),
+	INPUT( a_pos_, atmosphere_dim_, latitude_1d_, azimuth_angle_1d_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("AgendaDefine"),
   	DESCRIPTION
 	( 
@@ -384,6 +411,34 @@ void define_md_data()
 	GINPUT( ArrayOfVector_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("PrintMatrix"),
+	DESCRIPTION
+	(
+	 "Prints a matrix onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Matrix_ ),
+	KEYWORDS( ),
+	TYPES( )));
+
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("PrintVector"),
+	DESCRIPTION
+	(
+	 "Prints a vector onto the screen."
+	),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( ),
+	GINPUT( Vector_ ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back     
     ( MdRecord
@@ -795,20 +850,108 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("SetAtmosphericDimensionality"),
+      ( NAME( "r_geoidWGS84" ),
 	DESCRIPTION
         (
-         "Sets *atmosphere_dim* and gives some variables dummy values.\n"
+	 "Sets the geoid radius to match the WGS-84 reference ellipsiod.\n"
          "\n"
-         "The function sets *atmosphere_dim* to the selected value. The\n"
-         "latitude and longitude grids are set to be empty."
+         "For 1D, the geoid radius is set to the radius of curvature of the\n"
+         "WGS-84 ellipsiod for the position and observation direction \n"
+         "described with *latitude_1d* and *azimuth_angle_1d*.\n"
+         "For 2D and 3D, *r_geoid* is set to the radius of the WGS-84\n"
+         "ellipsiod for the crossing points of the latitude and longitude\n"
+         "grids.\n"
+         "\n"
+         "Please note that the latitude grid must contain true latitudes\n"
+         "if the function shall give correct result, and not just arbitrary\n"
+         "orbit angles which is allowed for 2D cases."
+        ),
+	OUTPUT( r_geoid_ ),
+	INPUT( atmosphere_dim_, lat_grid_, lon_grid_, latitude_1d_,
+               azimuth_angle_1d_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "sensor_posAddGeoidWGS84" ),
+	DESCRIPTION
+        (
+	 "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
+         "\n"
+         "This function assumes that the first element of *sensor_pos* is\n"
+         "set to the geometric altitude for the positions of the sensor. \n"
+         "The variable *sensor_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "taken from the WGS-84 reference ellipsiod.\n"
+         "\n"
+         "For 1D, the geoid radius is set to the radius of curvature of the\n"
+         "WGS-84 ellipsiod for the position and observation direction \n"
+         "described with *latitude_1d* and *azimuth_angle_1d*.\n"
+         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
+         "ellipsiod for the latitude values in *sensor_pos*."
+        ),
+	OUTPUT( sensor_pos_ ),
+	INPUT( sensor_pos_, atmosphere_dim_, latitude_1d_, 
+                                                         azimuth_angle_1d_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SetAtmosphere1D"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* to 1 and gives some variables dummy values.\n"
+         "\n"
+         "The latitude and longitude grids are set to be empty."
         ),
 	OUTPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "dim" ),
-	TYPES(    Index_t )));
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SetAtmosphere2D"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* to 2 and gives some variables dummy values.\n"
+         "\n"
+         "The longitude grid is set to be empty. The variables *latitude_1d*\n"
+         "and *azimuth_angle_1d* are given values that cause an error\n"
+         "message if used."
+        ),
+	OUTPUT( atmosphere_dim_, lon_grid_, latitude_1d_, azimuth_angle_1d_),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SetAtmosphere3D"),
+	DESCRIPTION
+        (
+         "Sets *atmosphere_dim* to 3 and gives some variables dummy values.\n"
+         "\n"
+         "The variables *latitude_1d* and *azimuth_angle_1d* are given\n"
+         "values that cause an error message if used."
+        ),
+	OUTPUT( atmosphere_dim_, latitude_1d_, azimuth_angle_1d_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
   md_data.push_back
     ( MdRecord

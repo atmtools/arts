@@ -84,6 +84,16 @@ void chk_if_decreasing(
 	const String&      x_name,
         ConstVectorView    x );
 
+void chk_matrix_ncols( 
+	const String&      x_name,
+        ConstMatrixView    x,
+        const Index&       l );
+
+void chk_matrix_nrows( 
+	const String&      x_name,
+        ConstMatrixView    x,
+        const Index&       l );
+
 void chk_atm_grids( 
 	const Index&      dim,
 	ConstVectorView   p_grid,

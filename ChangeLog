@@ -1,3 +1,29 @@
+2002-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-84
+
+	* src/workspace.cc: Added the WSV:
+	   azimuth_angle_1d
+	   latitude_1d
+	   sensor_pos  (not finsihed)
+
+	* src/m_atmosphere.cc: Created this file to hold functions to
+	set up the model atmosphere. Added the WSF:
+	   r_geoidWGS84 
+
+	* src/m_ppath.cc: Added the WSFs:
+	   a_posAddGeoidWGS84 
+	   sensor_posAddGeoidWGS84 
+
+	* src/m_general.cc: Added the WSFs:
+	   SetAtmosphere1D
+	   SetAtmosphere2D
+	   SetAtmosphere3D
+	   PrintMatrix
+	   PrintVector
+	The function series PrintXxx is not ready. I will make more functions 
+	later, but only for basic types (up to Tensor3?).
+	
 2002-05-15  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-83

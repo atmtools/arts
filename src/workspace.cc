@@ -119,6 +119,23 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("azimuth_angle_1d",
+     "The azimuthal angle for a 1D observation.\n"
+     "\n"
+     "This variable is onlyu used when calculating a curvature radius of the\n"
+     "geoid for 1D cases. The given value shall be the angle between the\n"
+     "observation and meridian plane where 0 degrees means an observation in\n"
+     "the N-S direction.\n"
+     "\n"
+     "Values shall be in the range [-180,180].\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      degrees",
+     Numeric_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("a_los",
      "A line-of-sight (for test purposes).\n"
      "\n"
@@ -312,6 +329,26 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("latitude_1d",
+     "The latitude for a 1D observation.\n"
+     "\n"
+     "This variable is used to assign a latitude valid for a 1D case. A\n"
+     "special variable is needed for 1D as there exists no latitude grid for\n"
+     "such cases. The variable can be used, for example, to set the geoid\n"
+     "radius or select atmospheric profiles from a 2D/3D climatology. \n"
+     "\n"
+     "For limb sounding, the choosen latitude should normally be selected\n"
+     "to be valid for the tangent points, rather than for the sensor.\n"
+     "\n"
+     "Values shall be inside the range [-90,90].\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      degrees",
+     Numeric_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("lon_grid",
      "The longitude grid.\n"
      "\n"
@@ -322,6 +359,8 @@ void define_wsv_data()
      "For 1D and 2D calculations this vector shall be set to be empty, but\n"
      "the number of longitudes shall be considered to be 1 when examining\n"
      "the size of variables.\n"
+     "\n"
+     "Allowed values for longidudes are the range [-360,360].\n"
      "\n"
      "See further the ARTS user guide (AUG). Use the index to find where\n"
      "this variable is discussed. The variable is listed as a subentry to\n"
@@ -482,6 +521,17 @@ void define_wsv_data()
      "Units:      m\n"
      "\n"
      "Dimensions: [ lat_grid, lon_grid ]",
+     Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("sensor_pos",
+     "The sensor position for each measurement block.\n"
+     "\n"
+     "Text will be written. Right now I just want to make WSF for this\n"
+     "variable, that also will be used for other purposes.\n"
+     "\n"
+     "Dimensions: [ number of measurement blocks, atmospheric dimensionality ]",
      Matrix_ ));
 
   wsv_data.push_back

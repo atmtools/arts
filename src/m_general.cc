@@ -67,20 +67,98 @@ void Exit()
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2002-05-16
+*/
+void PrintMatrix(
+        // WS Generic Input:
+        const Matrix&   x,
+        // WS Generic Input Names:
+        const String&   x_name )
+{
+  cout << "  *" << x_name <<"*:\n";
+  for( Index i=0; i<x.nrows(); i++ )
+    {
+      cout << "     ";
+      for( Index j=0; j<x.ncols(); j++ )
+        cout << x(i,j) << " ";
+      cout << "\n";
+    }
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-16
+*/
+void PrintVector(
+        // WS Generic Input:
+        const Vector&   x,
+        // WS Generic Input Names:
+        const String&   x_name )
+{
+  cout << "  *" << x_name <<"*:\n";
+  for( Index i=0; i<x.nelem(); i++ )
+    cout << "     " << x[i] << "\n";
+}
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2002-05-11
 */
-void SetAtmosphericDimensionality(
+void SetAtmosphere1D(
         // WS Output:
               Index&    atmosphere_dim,
               Vector&   lat_grid,
-              Vector&   lon_grid,
-        // Control Parameters:
-        const Index&    dim )
+              Vector&   lon_grid )
 {
-  chk_if_in_range( "the keyword *dim*", dim, 1, 3 );
-  atmosphere_dim = dim;
+  atmosphere_dim = 1;
   lat_grid.resize(0);
   lon_grid.resize(0);
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void SetAtmosphere2D(
+        // WS Output:
+              Index&    atmosphere_dim,
+              Vector&   lon_grid,
+              Numeric&  latitude_1d,
+              Numeric&  azimuth_angle_1d )
+{
+  atmosphere_dim = 2;
+  lon_grid.resize(0);
+  latitude_1d = -999;
+  azimuth_angle_1d = -999;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-11
+*/
+void SetAtmosphere3D(
+        // WS Output:
+              Index&    atmosphere_dim,
+              Numeric&  latitude_1d,
+              Numeric&  azimuth_angle_1d )
+{
+  atmosphere_dim = 3;
+  latitude_1d = -999;
+  azimuth_angle_1d = -999;
 }
 
 
