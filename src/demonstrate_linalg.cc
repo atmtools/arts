@@ -100,6 +100,10 @@ main()
 
   // How to copy a submatrix to a matrix:
   MAT::submatrix_type S1 = A.sub_matrix(0,3,0,2);
+
+  // Test [][] indexing for submatrix:
+  cout << "S1[1][1]: " << S1[1][1] << "\n";
+
   MAT S2(S1.nrows(),S1.ncols());
   copy(S1,S2);
   cout << "The same copied: ";
