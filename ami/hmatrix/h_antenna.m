@@ -8,7 +8,7 @@
 %          antenna values (W_ANT) do not need to be normalised.
 %
 % FORMAT:  [H,za_new] = h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,...
-%                                                   fscale,f0,move,dza,report)
+%                                                          fscale,f0,move,dza)
 %
 % RETURN:  H           antenna H matrix
 %          za_new      new zenith angle grid (=ZA2)
@@ -34,7 +34,7 @@
 
 
 function [H,za_new] = ...
-         h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,fscale,f0,move,dza,report)
+                 h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,fscale,f0,move,dza)
 
 
 za1    = vec2col(za1);
@@ -60,7 +60,7 @@ end
 
 %=== Include possible effect of moving antenna
 if move
-  ant = moving_ant(za_ant,w_ant,dza);
+  w_ant = moving_ant(za_ant,w_ant,dza);
 end
 
 

@@ -1283,7 +1283,8 @@ void k_contabs (
     // Fill K_NAMES and K_AUX
     {
       ostringstream os;
-      os << "Continuum absorption: " << fpoints[ipoint] << " Hz";
+      os << "Continuum: " << fpoints[ipoint] << " Hz, Point " 
+         << ipoint+1 << "/" << npoints;
       k_names[ipoint] = os.str();
     }
     for ( ip=0; ip<np; ip++ )
@@ -1434,7 +1435,7 @@ void k_temp_nohydro (
         size_t  i1, iw;                    // weight indices
 
   // Other variables
-        VECTOR  t(k_grid.size());            // temperature at retrieval points
+        VECTOR  t(k_grid.size());          // temperature at retrieval points
         MATRIX  abs1k;                     // absorption for t_abs+1K
         MATRIX  dabs_dt;                   // see below
  ARRAYofMATRIX  abs_dummy;                 // dummy absorption array
@@ -1449,7 +1450,7 @@ void k_temp_nohydro (
   resize(k,nza*nv,np);
   setto(k, 0.0);
   resize(k_names,1);
-  k_names[0] = "Temperature: No hydro. eq.";
+  k_names[0] = "Temperature: no hydro. eq.";
   resize(k_aux,np,2);
   interpp( t, p_abs, t_abs, k_grid ); 
   for ( ip=0; ip<np; ip++ )
@@ -2073,7 +2074,7 @@ void kPointingOffSet(
   copy( scaled(dummy,1/delta), columns(k)[0] );
 
   resize( k_names, 1 );
-  k_names[0] = "Pointing off-set";
+  k_names[0] = "Pointing: off-set";
   resize( k_aux, 1, 2 );
   setto( k_aux, 0.0 );
 }
@@ -2114,7 +2115,7 @@ void kCalibration(
   }
 
   resize( k_names, 1 );
-  k_names[0] = "Calibration";
+  k_names[0] = "Calibration: scaling";
   resize( k_aux, 1, 2 );
   setto( k_aux, 0.0 );
 }

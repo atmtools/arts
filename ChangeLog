@@ -1,3 +1,11 @@
+2001-03-07  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-134
+
+	* Fixed a small bug in the H-matrix part of AMI.
+
+	
+
 2001-03-01  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-0-0-133
