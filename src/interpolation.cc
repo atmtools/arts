@@ -444,10 +444,10 @@ void gridpos_copy( GridPos&  gp_new,  const GridPos&  gp_old )
 void gridpos_check_fd( GridPos&   gp )
 {
   // Catch values that "must" be wrong
-  assert( gp.fd[0] > -0.001 );
-  assert( gp.fd[0] < 1.001 );
-  assert( gp.fd[1] > -0.001 );
-  assert( gp.fd[1] < 1.001 );
+  assert( gp.fd[0] > -0.01 );
+  assert( gp.fd[0] < 1.01 );
+  assert( gp.fd[1] > -0.01 );
+  assert( gp.fd[1] < 1.01 );
 
   if( gp.fd[0] < 0 )
     { gp.fd[0] = 0; }
@@ -486,15 +486,15 @@ void gridpos_force_end_fd( GridPos&   gp )
 {
   if( gp.fd[0] < 0.5 )
     {
-      assert( fabs( gp.fd[0] ) <= 1e-3 );
-      assert( fabs(gp.fd[1] -1 ) <= 1e-3 );
+      assert( fabs( gp.fd[0] ) <= 1e-2 );
+      assert( fabs(gp.fd[1] -1 ) <= 1e-2 );
       gp.fd[0] = 0;
       gp.fd[1] = 1;
     }
   else
     {
-      assert( fabs( gp.fd[1] ) <= 1e-3 );
-      assert( fabs(gp.fd[0] -1 ) <= 1e-3 );
+      assert( fabs( gp.fd[1] ) <= 1e-2 );
+      assert( fabs(gp.fd[0] -1 ) <= 1e-2 );
       gp.fd[0] = 1;
       gp.fd[1] = 0;
     }    

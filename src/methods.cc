@@ -2368,6 +2368,22 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppathCalcTest" ),
+        DESCRIPTION
+        (
+         "A temporary test function."
+        ),
+        OUTPUT( ppath_, ppath_step_ ),
+        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, t_field_, r_geoid_, z_ground_, 
+               cloudbox_on_, cloudbox_limits_, sensor_pos_, sensor_los_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("PpathPrint"),

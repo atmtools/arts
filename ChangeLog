@@ -1,3 +1,17 @@
+2003-02-02  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-438
+
+	* src/ppath.cc (psurface_slope_3d): Applied bigger disturbance for
+	float.
+	
+	(do_gridcell_2d): Upper pressure surface is now checked even if start
+	point is on top of that surface. This is needed for tilted surfaces.
+
+	(psurface_crossing_2d): Included a threshold for r0=rp.
+
+	* src/ppath.cc: Smaller fixes here and there.
+	
 2003-01-28  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-437

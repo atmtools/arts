@@ -329,6 +329,33 @@ void ppathCalc(
 }
 
 
+void ppathCalcTest(
+        // WS Output:
+              Ppath&          ppath,
+              Ppath&          ppath_step,
+        // WS Input:
+        const Agenda&         ppath_step_agenda,
+        const Index&          atmosphere_dim,
+        const Vector&         p_grid,
+        const Vector&         lat_grid,
+        const Vector&         lon_grid,
+        const Tensor3&        z_field,
+        const Tensor3&        t_field,
+        const Matrix&         r_geoid,
+        const Matrix&         z_ground,
+        const Index&          cloudbox_on, 
+        const ArrayOfIndex&   cloudbox_limits,
+        const Matrix&         sensor_pos,
+        const Matrix&         sensor_los )
+{
+  for( Index i=0; i<sensor_pos.nrows(); i++ )
+    ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+                p_grid, lat_grid, lon_grid, z_field, t_field, 
+                r_geoid, z_ground, cloudbox_on, cloudbox_limits, 
+                sensor_pos(i,joker), sensor_los(i,joker), 0 );
+}
+
+
 
 //! ppath_stepGeometric
 /*!

@@ -674,6 +674,9 @@ void cart2poslos(
    fit *lon5* and *lon6*. No error is given if it is not possible to
    obtain a value between *lon5* and *lon6*. 
 
+   The function exists both in a float and double version to avoid
+   unnecessary copying of data for Numeric=float.
+
    \param   lon    In/Out: Longitude, possible shifted when returned.
    \param   lon5   Lower limit of probable range for lon.
    \param   lon6   Upper limit of probable range for lon
@@ -700,6 +703,7 @@ void resolve_lon(
         { lon -= 360; }
     }
 }
+#ifndef USE_DOUBLE
 void resolve_lon(
               float&   lon,
         const float&   lon5,
@@ -719,7 +723,7 @@ void resolve_lon(
         { lon -= 360; }
     }
 }
-
+#endif
 
 
 //! gridcell_crossing_3d
@@ -1126,7 +1130,13 @@ Numeric psurface_slope_3d(
         const Numeric&   aa )
 {
   // Size of test angular distance. Unit is degrees.
+#ifdef USE_DOUBLE
   const Numeric   dang = 1e-4;
+#else
+  // For Numeric=float we need a bigger distance to avoid a too high influence
+  // of numerical problems.
+  const Numeric   dang = 1e-1;
+#endif
 
   // Radius at point of interest
   const Numeric   r0 = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -1374,6 +1384,12 @@ Numeric psurface_crossing_2d(
   // Approximative solution:
   else
     {
+      // If r0=rp, numerical inaccuracy can give a false solution, very close
+      // to 0, that we must throw away.
+      Numeric   dmin = 0;
+      if( r0 == rp )
+        { dmin = 1e-12; }
+
       // The nadir angle in radians, and cosine and sine of that angle
       const Numeric   beta = DEG2RAD * ( 180 - abs(za) );
       const Numeric   cv = cos( beta );
@@ -1403,7 +1419,7 @@ Numeric psurface_crossing_2d(
       //
       for( Index i=0; i<4; i++ )
         {
-          if( roots(i,1) == 0  &&   roots(i,0) > 0  &&  roots(i,0) < dlat )
+          if( roots(i,1) == 0  &&   roots(i,0) > dmin  &&  roots(i,0) < dlat )
             { dlat = roots(i,0); }
         }  
 
@@ -1742,10 +1758,11 @@ void do_gridcell_2d(
 
 
   // Assert that start point is inside the grid cell
+  // (some extra tolerance is needed for radius)
   assert( lat_start >= lat1 );
   assert( lat_start <= lat3 );
-  assert( r_start >= rlow );
-  assert( r_start <= rupp );
+  assert( r_start >= rlow - 1 );
+  assert( r_start <= rupp + 1 );
 
 
   // The end point is most easily determined by the latitude difference to 
@@ -1803,24 +1820,17 @@ void do_gridcell_2d(
 
   // --- Upper face  (pressure surface ip+1).
   //
-  // If the start point is on the pressure surface, we don't need to do any
-  // check as there must be a tangent point before a possible crossing.
-  //
-  if( r_start < rupp  &&  abs(dlat2end) > abs(dlat_endface)  &&  
-                                                           abs_za_start < 180 )
+  if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180 )
     {
-      // We can here determine by zenith angles if there is a crossing with
-      // the pressure surface. This should save some time compared to call
-      // psurface_crossing_2d blindly.
+      // For cases when the tangent point is in-between *r_start* and
+      // the pressure surface, 999 is returned. This case will anyhow
+      // be handled correctly.
 
-      if( za_start >= za_geom2other_point( r_start, lat_start, r1b, lat1 )  &&
-             za_start <= za_geom2other_point( r_start, lat_start, r3b, lat3 ) )
+      Numeric dlattry = psurface_crossing_2d( r_start, za_start, rupp, c4 );
+
+      if( abs(dlattry) < abs(dlat2end) )
         {
-          // For cases when the tangent point is in-between *r_start* and
-          // the pressure surface, 999 is returned. This case will anyhow
-          // be handled correctly.
-
-          dlat2end = psurface_crossing_2d( r_start, za_start, rupp, c4 );
+          dlat2end = dlattry;
           endface  = 4;
         }
     }
@@ -1950,7 +1960,7 @@ void do_gridcell_2d(
    \author Patrick Eriksson
    \date   2002-11-28
 */
-void do_gridcell_3d_try(
+void do_gridcell_3d(
               Vector&    r_v,
               Vector&    lat_v,
               Vector&    lon_v,
@@ -1995,10 +2005,9 @@ void do_gridcell_3d_try(
   Numeric   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                 r15b, r35b, r36b, r16b, lat_start, lon_start );
 
-  // Assert radius
-  assert( r_start >= rlow );
-  assert( r_start <= rupp );
-  assert( r_start >= ppc );
+  // Assert radius (some extra tolerance is needed for radius)
+  assert( r_start >= rlow - 1e-6 );
+  assert( r_start <= rupp + 1e-6 );
 
   // Assert that not standing at the edge looking out.
   // As these asserts are rather costly, they should maybe be removed
@@ -2031,7 +2040,7 @@ void do_gridcell_3d_try(
                                                           za_start, aa_start );
 
 
-  // ???
+  // Determine the position of the end point
   //
   endface  = 0;
   tanpoint = 0;
@@ -2051,6 +2060,7 @@ void do_gridcell_3d_try(
       NumericPrint( rupp, "rupp" );
     }
 
+  // Zenith and nadir looking are handled as special cases
 
   // Zenith looking
   if( za_start == 0 )
@@ -2121,8 +2131,19 @@ void do_gridcell_3d_try(
           NumericPrint( lon_corr, "lon_corr" );
         }
 
-      double   l_in = 0, l_out;
+      // The end point is found by testing different step lengths until the
+      // step length has been determined by a precision of *l_acc*.
+      //
+      // The first step is to found a length that goes outside the grid cell, 
+      // to find an upper limit. The lower limit is set to 0. The upper
+      // limit is found be testing lengths of 1, 10 100 ... m.
+      // The search algorith is bisection, the next length to test is the
+      // mean value of the minimum and maximum length limits.
+
                l_end = 1;
+
+      double   l_acc = 1e-3;
+      double   l_in  = 0, l_out;
       bool     ready = false, startup = true;
 
       Numeric   l_tan = 99e6;
@@ -2169,8 +2190,15 @@ void do_gridcell_3d_try(
           else if( lon_end > lon6 )
             { inside = false;   endface = 6; }
 
-          if( inside )
-            {
+          // For Numeric=float and short steps, the numerical inaccuarcy
+          // can move a point outside the grid cell incorrectly.
+          // To avoid this, only step lengths above some limit are tested.
+#ifdef USE_DOUBLE
+          if( inside  ) 
+#else
+          if( inside  &&  l_end > 1 )
+#endif
+           {
               rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                     r15a, r35a, r36a, r16a, lat_end, lon_end );
               rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -2217,7 +2245,7 @@ void do_gridcell_3d_try(
               
               l_end = ( l_out + l_in ) / 2;
               
-              if( ( l_out - l_in ) < 1e-3 )
+              if( ( l_out - l_in ) < l_acc )
                 { ready = true; }
             }
 
@@ -2230,6 +2258,15 @@ void do_gridcell_3d_try(
               NumericPrint( l_out, "l_out" );
             }
         }
+
+      // Now when we are ready, we remove the correction terms. Otherwise
+      // we can end up in an infinite loop if the step length is smaller
+      // than the correction.
+      r_end   += r_corr;
+      lat_end += lat_corr;
+      lon_end += lon_corr;
+
+      // Set the relevant coordinate to be consistent with found endface.
       //
       if( endface == 1 )
         { lat_end = lat1; }
@@ -2364,7 +2401,10 @@ void do_gridcell_3d_try(
   //--- Set last azimuth angle to be as accurate as possible for
   //    zenith and nadir observations
   if( abs( lat_start ) < 90  &&  ( aa_start == 0  ||  abs( aa_start) == 180 ) )
-    {  aa_v[n] = aa_start; }
+    {  
+      aa_v[n]  = aa_start; 
+      lon_v[n] = lon_start;
+    }
 
   // Shall lon values be shifted (value 0 and n+1 are already OK)?
   for( Index j=1; j<n; j++ )
@@ -2373,7 +2413,7 @@ void do_gridcell_3d_try(
 
 
 
-void do_gridcell_3d(
+void do_gridcell_3d_old(
               Vector&    r_v,
               Vector&    lat_v,
               Vector&    lon_v,
@@ -3723,6 +3763,15 @@ void ppath_start_2d(
   Numeric   c2 = psurface_slope_2d( lat1, lat3, r1a, r3a );
   Numeric   c4 = psurface_slope_2d( lat1, lat3, r1b, r3b );
 
+  //NumericPrint( r_start, "r_start" );
+  //NumericPrint( r_start-(r1a+c2*(lat_start-lat1)), "dr" );
+  //NumericPrint( r_start-(r1b+c4*(lat_start-lat1)), "dr" );
+  //NumericPrint( z_field(ip,ilat), "z_field(ip,ilat)" );
+  //NumericPrint( z_field(ip,ilat+1), "z_field(ip,ilat+1)" );
+  //NumericPrint( z_field(ip+1,ilat), "z_field(ip+1,ilat)" );
+  //NumericPrint( z_field(ip+1,ilat+1), "z_field(ip+1,ilat+1)" );
+  //NumericPrint( za_start, "za" );
+  //NumericPrint( psurface_angletilt( r_start, c4 ), "tilt" );
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure surface (that is, 90 + tilt of pressure surface), and in
@@ -3732,6 +3781,7 @@ void ppath_start_2d(
   if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
     {
       Numeric tilt = psurface_angletilt( r_start, c2 );
+
       if( is_los_downwards( za_start, tilt ) )
         {
           ip--;
@@ -3744,6 +3794,7 @@ void ppath_start_2d(
   else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
     {
       Numeric tilt = psurface_angletilt( r_start, c4 );
+
       if( !is_los_downwards( za_start, tilt ) )
         {
           ip++;
@@ -4034,7 +4085,7 @@ void ppath_start_3d(
   out3 << "  latitude grid range  : " << ilat << "\n";
   out3 << "  longitude grid range : " << ilon << "\n";
 
-  // Ground radius at latitude end points, and ground slope
+  // Ground radius at latitude/longitude corner points
   rground15 = r_geoid(ilat,ilon) + z_ground(ilat,ilon);
   rground35 = r_geoid(ilat+1,ilon) + z_ground(ilat+1,ilon);
   rground36 = r_geoid(ilat+1,ilon+1) + z_ground(ilat+1,ilon+1);
@@ -4744,6 +4795,7 @@ void raytrace_1d_linear_euler(
 
           const Numeric   r_new = geompath_r_at_l( ppc_step, 
                                          geompath_l_at_r(ppc_step,r) + lstep );
+
           dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
           r     = r_new;
@@ -4764,19 +4816,21 @@ void raytrace_1d_linear_euler(
 
       if( ready  &&  tanpoint )
         { za = 90; }
-      else if( ppc_local < r )
+      else if( r >= ppc_local )
         { za = geompath_za_at_r( ppc_local, za, r ); }
       else
-        {                   
-          // If this error happens, activate the old code
-          // I am not sure that this can happen (PE 030117)
-          throw logic_error(
-            "Error in raytrace_1d_linear_euler. Report this error to Patrick");
-                              // If we end up here, then numerical inaccuracy
-          //za       = 90;     // has brought us below the true tangent point.
-          //ready    = 1;      // We save this situation by setting this point
-          //tanpoint = 1;      // to be a tangent point.
+        {           
+          Exit();        
+          if( za > 90 )
+            { 
+              ready    = true;  
+              tanpoint = 1;  
+              endface  = 0;
+            }
+          r        = ppc_local;
+          za       = 90;
         }
+      NumericPrint( za, "za" );
   
       // Store found point
       r_array.push_back( r );
@@ -5142,7 +5196,7 @@ void raytrace_3d_linear_euler(
             { za_new = geompath_za_at_r( ppc_step, za, r_new ); }
 
           //--- Set azimuth angle and lon. to be as accurate as possible for
-          //    zenith and nadir observations
+          //    north-south observations
           if( abs( lat ) < 90  &&  ( aa == 0  ||  abs( aa ) == 180 ) )
             { 
               aa_new  = aa; 
@@ -5185,7 +5239,7 @@ void raytrace_3d_linear_euler(
           const Numeric   cosaa = cos( aa_rad );
 
           // Screen out very small values for *dndlat* and *dnlon* to avoid
-          // rounding errors for cases when thos variables should be 0.
+          // rounding errors for cases when those variables should be 0.
           if( abs( lat ) < 90  &&  
                          ( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) )
             {
@@ -5197,7 +5251,7 @@ void raytrace_3d_linear_euler(
               // Make sure that obtained *aa* is inside valid range
               if( aa > 180 )
                 { aa -= 360; }
-              else if( aa < 180 )
+              else if( aa < -180 )
                 { aa += 360; }
             }
 

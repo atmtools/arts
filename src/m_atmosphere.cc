@@ -524,7 +524,7 @@ void AtmosphereSet3D(
               Numeric&  latitude_1d,
               Numeric&  meridian_angle_1d )
 {
-  out2 << "  Sets the atmospheric dimensionality to 2.\n";
+  out2 << "  Sets the atmospheric dimensionality to 3.\n";
   out3 << "    atmosphere_dim = 3\n";
   out3 << "    lat_1d = -999\n";
   out3 << "    meridian_angle_1d = -999\n";
