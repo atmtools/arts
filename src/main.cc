@@ -8,6 +8,7 @@
 #include "methods.h"
 #include "parser.h"
 #include "md.h"
+#include "absorption.h"
 
 
 /** Print the error message and exit. */
@@ -467,6 +468,12 @@ int main (int argc, char **argv)
 
   // Initialize WsvMap
   define_wsv_map();
+
+
+  // While we are at it, we can also initialize the molecular data
+  // that we need for the absorption part: 
+  define_species_data();
+
 
   // Make all these data visible:
   //  extern const ARRAY<MdRecord>  md_data;

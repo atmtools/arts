@@ -543,7 +543,7 @@ void to_vector(VECTOR& x, const MATRIX& W)
       for (size_t i=1; i<=x.dim() ; ++i)
 	x(i) = W(i,1);
     }
-  else if ( 1 == W.dim(2) )
+  else if ( 1 == W.dim(1) )
     {
       x.newsize(W.dim(2));
       for (size_t i=1; i<=x.dim() ; ++i)

@@ -65,6 +65,13 @@ struct Los {
 };
 
 
+/** Holds the definition of the available tag groups. 
+ */
+//struct Tags {
+//
+//
+//};
+
 
 // ======================================================================
 // === Definition of the (great) workspace

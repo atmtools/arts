@@ -29,6 +29,7 @@ make_vector.h \
 make_array.h \
 math_funcs.h \
 atm_funcs.h \
+absorption.h \
 constants.cc \
 getopt.c \
 getopt1.c \
@@ -47,7 +48,8 @@ math_funcs.cc \
 atm_funcs.cc \
 m_abs.cc \
 m_io.cc \
-m_los.cc
+m_los.cc \
+absorption.cc
 
 noinst_PROGRAMS = make_wsv_h make_md_h
 

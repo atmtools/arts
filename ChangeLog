@@ -1,3 +1,23 @@
+2000-05-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-21
+
+	* Added species lookup data. I filled in the data only for H2O and
+	O3, because I'm too lazy right now. 
+
+	Molecular masses: From looking at the table in forward_4_96,
+	glob_def.c, the relative difference between the actual mass and
+	the mass simply estimated from the Atom number is only 0.001. This
+	seems not worth the trouble. Anyway, the field for the mass is
+	there. Should anybody feel like adding the true numbers, just go
+	ahead.
+
+2000-05-15  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* math_funcs.cc: Bug fix in
+	void to_vector(VECTOR& x, const MATRIX& W)
+
+
 2000-05-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-20
