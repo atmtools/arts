@@ -34,10 +34,10 @@ extern const Numeric SPEED_OF_LIGHT;
 #define Re_S22ij amp_coeffs(i,j,6) 
 #define Im_S22ij amp_coeffs(i,j,7)
  
-//! Calculates extinction cross-section matrix for a single particle type for
-// given combination of  angles. 
+//! Calculates extinction cross-section matrix for given angles 
 /*! 
-  
+  Calculates extinction cross-section matrix for a single particle type for
+  given combination of  angles. 
   This function calculates the extinction matrix from the amplitude matrix
   elements for given angles theta, phi, theta', phi'. It is called by the 
   method ext_mat-sptCalc which selects the right angles of all the variables.
@@ -86,7 +86,7 @@ void amp2ext(MatrixView ext,
   
   const Numeric wavelength = SPEED_OF_LIGHT / freq;
 
-  //cout<<"Wavelength corresponding to this frequency"<<wavelength<<"\n";
+  
   //  cout<<"Imaginariy part of S11"<<Im_S11<<"\n";
   //cout << "Amplitude matrix " << amp_coeffs  << " \n " ;
   ext(0, 0) = wavelength * (Im_S11 + Im_S22) * 1e-6; 
@@ -136,8 +136,7 @@ void amp2ext(MatrixView ext,
   
 }
 
-//! Calculates phase  matrix for a single particle type for
-// given combination of  outgoing angles. 
+//! Calculates phase  matrix for given combination of outgoing angles. 
 
 /*!
   This function calculatest the phase matrix from the amplitude matrix
@@ -318,7 +317,7 @@ void amp2pha(Tensor4View phasemat,
   // if stokes_dim =4 all 16 elements need be evaluated.
 }
 
-//! Calculates extinction coefficeint for the convergence test.
+//! Calculates extinction crossection for the convergence test.
 /*! 
   For the convergence test, an extinction coefficient which only contains
   extinction due to particle scattering is required. This can be 
@@ -447,7 +446,7 @@ void amp2ext_scat(MatrixView ext_scat,
 
 
 
-//! calculates absorption coefficeint vector for given angles.
+//! calculates absorption vector for given angles.
 /*! 
   This function calculates absorption vector from phase matrix elements
   and extinction matrix elements for given angle combinations.  This 

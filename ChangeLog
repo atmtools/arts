@@ -1,3 +1,20 @@
+2002-12-19  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-344
+	
+	* src/m_optproperties.cc: The method *amp_matCalc* is modified to
+	include the case of macroscopically symmetric and isotropic
+	particles.  Removed the argument *stokes_dim* from
+	the methods calculating scattering properties. Modified
+	accordingly when they are called in m_scatrte.cc.  Also did some
+	cosmetic changes so that they look better in doxygen.  
+
+	* src/methods.cc: Removed the input stokes_dim from the methods
+	calculating scattering properties. 
+	
+	* src/scattproperties.cc: Cosmetic changes so that they look
+	better in doxygen. 
+	
 2002-12-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-343

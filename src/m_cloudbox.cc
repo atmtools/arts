@@ -644,10 +644,10 @@ void i_fieldSetConst(//WS Output:
             //set the value for the upper boundary
             i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
                     0, i) = 
-              scat_i_p(0, 1, 0, 0, za_index, 0, i);
+	      scat_i_p(0, 1, 0, 0, za_index, 0, i);
             //set the value for the lower boundary 
-            i_field(0, 0, 0, za_index, 0, i) = 
-              scat_i_p(0, 0, 0, 0, za_index, 0, i);
+            i_field(0, 0, 0, za_index, 0, i) =  
+	      scat_i_p(0, 0, 0, 0, za_index, 0, i);
             for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
                    cloudbox_limits[0]; scat_p_index++ )
               // The field inside the cloudbox is set to some arbitrary value.

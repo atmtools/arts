@@ -700,7 +700,7 @@ i_fieldUpdate1D(// WS Output:
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
-  const Index N_scat_aa = scat_aa_grid.nelem();
+  //const Index N_scat_aa = scat_aa_grid.nelem();
 
 
   //=======================================================================
@@ -1222,7 +1222,7 @@ i_fieldUpdate1D_PlaneParallel(// WS Output:
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
-  const Index N_scat_aa = scat_aa_grid.nelem();
+  //const Index N_scat_aa = scat_aa_grid.nelem();
 
 
   // Create scalar absorption and store it in an array. This avoids 
@@ -1537,11 +1537,8 @@ scat_fieldCalc(//WS Output:
   Index Nza_prop = i_field.npages();
   Index Naa = scat_aa_grid.nelem();
   Index Naa_prop = i_field.ncols();
-  Index Np  = i_field.nvitrines();
+  //Index Np  = i_field.nvitrines();
 
-  // cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
-  //Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
-  // now tensor5 after za_index_in index
   Tensor3 product_field(Nza, Naa, stokes_dim,0);
  
   
@@ -1614,8 +1611,7 @@ scat_fieldCalc(//WS Output:
             pha_mat_sptCalc(pha_mat_spt,
                             amp_mat,
                             za_prop,
-                            0,
-                            stokes_dim);
+                            0);
             
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                         atmosphere_dim, p_index, 0, 
@@ -1784,13 +1780,19 @@ scat_fieldCalc(//WS Output:
 
 //! Main function for the radiative transfer in cloudbox.  
 /*!
-This function executes the method *CloudboxGetIncoming* to get the clearsky field on the boundary of the cloudbox, which is stored in the interface variable **scat_i_p*, *scat_i_lat* and *scat_i_lon*.
+This function executes the method *CloudboxGetIncoming* to get 
+the clearsky field on the boundary of the cloudbox, which is 
+stored in the interface variable **scat_i_p*, *scat_i_lat* and
+*scat_i_lon*.
 
 Then it executes *scat_mono_agenda* dor each frequency in *f_grid*.   
  
-\param scat_i_p  intensity field on the cloudb box boundary w.r.t pressure grid
-\param scat_i_lat intensity field on the cloudb box boundary w.r.t latitude grid
-\param scat_i_lon intensity field on the cloudb box boundary w.r.t longitude grid
+\param scat_i_p  intensity field on the cloudb box boundary w.r.t
+pressure grid
+\param scat_i_lat intensity field on the cloudb box boundary w.r.t 
+latitude grid
+\param scat_i_lon intensity field on the cloudb box boundary w.r.t
+longitude grid
 \param f_index the frequency index for scatttering calculations
 \param a_gp_p a grid position with respect to the pressure grid
 \param a_gp_lat a grid position with respect to the latitude grid
