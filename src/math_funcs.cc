@@ -239,7 +239,7 @@ double pow (float f, double d)
     Performs an integration of a matrix over all directions defined in angular
     grids using the trapezoidal integration method.
 
-    \param Integrand The Matrix to be integrated
+    \param Integrand Input : The Matrix to be integrated
     \param za_grid Input : The zenith angle grid 
     \param aa_grid Input : The azimuth angle grid 
     
@@ -272,7 +272,6 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
         (za_grid[i + 1] - za_grid[i]);
     }
   
-  //cout<<res<<"\n";
   return res;
 }
 
@@ -286,9 +285,10 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
     the stepsize is constant. If it is, it uses a faster method, if not, it
     uses the old one.
 
-    \param Integrand The Matrix to be integrated
+    \param Integrand Input : The Matrix to be integrated
     \param za_grid Input : The zenith angle grid 
-    \param aa_grid Input : The azimuth angle grid 
+    \param aa_grid Input : The azimuth angle grid
+    \param grid_stepsize Input : stepsize of the grid
     
     \return The resulting integral
 
@@ -336,7 +336,7 @@ Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
     {
       res = AngIntegrate_trapezoid(Integrand, za_grid, aa_grid);
     }
-  //cout<<res<<"\n";
+
   return res;
 }
 
@@ -348,7 +348,7 @@ Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
     The integrand is independant of the azimuth angle. The integration over
     the azimuth angle gives a 2*PI
 
-    \param Integrand The vector to be integrated
+    \param Integrand Input : The vector to be integrated
     \param za_grid Input : The zenith angle grid 
 
     \author Claas Teichmann
@@ -372,7 +372,6 @@ Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
         * (za_grid[i + 1] - za_grid[i]);
     }
   
-  //cout<<res<<"\n";
   return res;
 }
 

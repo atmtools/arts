@@ -1,3 +1,9 @@
+2003-06-18  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-578
+
+	* src/math_funcs.cc: Modified comments
+
 2003-06-18  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-577
