@@ -997,22 +997,7 @@ void define_md_data_raw()
 	KEYWORDS(),
 	TYPES()));
 
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "i_fieldtoTb" ),
-	DESCRIPTION
-        (
-	 "Converts *i_field* in radiance units to brightness temperature \n"
-	 "units \n"
-	 ),
-	OUTPUT(i_field_Tb_),
-	INPUT( f_grid_, scat_f_index_, i_field_, atmosphere_dim_),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
- md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldUpdate1D" ),
 	DESCRIPTION
@@ -1996,6 +1981,27 @@ md_data_raw.push_back
 		  "ncols", "value" ),
 	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
 	       Numeric_t )));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Tensor6ToTbByPlanck" ),
+	DESCRIPTION
+        (
+	 "Converts a Tensor6 of radiances to brightness temperatures by \n"
+	 "inverting the Planck function. \n"
+	 "\n"
+	 "Generic output: \n"
+         "   Tensor6 : A Tensor6 with brightness temperature values. \n"
+         "\n"
+         "Generic input: \n"
+         "   Tenosr6 : A Tensor6 with radiance values. \n"
+	 ),
+	OUTPUT(),
+	INPUT(scat_f_index_, f_grid_),
+	GOUTPUT( Tensor6_ ),
+	GINPUT( Tensor6_ ),
+	KEYWORDS(),
+	TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

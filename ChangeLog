@@ -1,3 +1,25 @@
+2002-08-20  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-210
+	
+	* src/m_scatrte.cc: Added the method *Tensor6ToTbByPlanck* and
+	removed the method i_fieldtoTb.  This
+	is a Generic method following yesterday's discussion.  But the
+	frequency grid is taken as specific input.  This is because,
+	inside cloudbox we have only one frequency which is specified by
+	the variable scat_f_index.  And mostly intensity fields inside the
+	cloudbox only are Tensor6. 
+
+	* src/methods.cc : Added the method Tensor6ToTbByPlanck and
+	removed the method i_fieldtoTb.
+
+	* doc/examples/i_field_example.i_field_Tb.xml : Removed this
+	output file following ARTS convention of not including the output
+	files. 
+
+	* doc//examples/i_field_example.arts.in : Usage of Generic method
+	Tensor6ToTbByPlanck instead of i_fieldtoTb.
+
 2002-08-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-209

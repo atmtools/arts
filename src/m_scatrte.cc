@@ -58,7 +58,6 @@
 
 extern const Numeric PI;
 
-
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -459,50 +458,69 @@ i_fieldIterate(
   }//end of while loop, convergence is reached.
 }
 
-//! Method converts i_field in radiance unit to brightness temperature unit
+
+//! Converts intensity in radiance units to brightness temperature unit
 /*! 
-  
-\param i_field_Tb i_field in brightness temperature units
-\param f_grid frequency grid
-\param scat_f_index frequency index
-\param i_field intensity field in the scattering box
-\param atmosphere_dim atmospheric dimension
+ This is used to convert intensity in radiance units to brightness temperature 
+units for a Tensor6. It uses the function invplanck from physics_funcs.cc.  
+The frequency grid is specific input since inside the cloudbox we have only
+one frequency and we need Tensor6 conversions probably only inside the cloudbox.  
+ 
+\param y_out        Output : Tensor6 in Brightness temperatures
+\param scat_f_index Input  : frequency index
+\param f_grid       Input  : frequency grid
+\param y_in         Input  : intensity in radiance units
 */
-void
-i_fieldtoTb(// WS Output:
-	    Tensor6& i_field_Tb,
-	    // WS Input:
-	    const Vector& f_grid,
-	    const Index& scat_f_index,
-	    const Tensor6& i_field,
-	    const Index& atmosphere_dim)
-  
+void Tensor6ToTbByPlanck( // WS Generic Output:
+			 Tensor6&   y_out,
+			 // WS Generic Output Names:
+			 const String&   y_out_name,
+			 // WS Specific Input: 
+			 const Index& scat_f_index,
+			 const Vector&   f_grid,
+			 // WS Generic Input:
+			 const Tensor6&   y_in,
+			 // WS Generic Input Names:
+			 const String&   y_in_name)
+		
 {
-  Numeric f = f_grid[scat_f_index];
-  //  i_field_Tb has same dimension as i_field
-  i_field_Tb.resize(i_field.nvitrines(),
-		    i_field.nshelves(),
-		    i_field.nbooks(),
-		    i_field.npages(),
-		    i_field.nrows(),
-		    i_field.ncols());
-  //now implemented only when atmosphere_dim = 1
-  if(atmosphere_dim == 1)
-    {
-      for (Index i = 0; i < i_field.nvitrines(); ++ i)
-	{
-	  for (Index l = 0; l < i_field.npages(); ++ l)
-	    {
-	      for (Index n = 0; n < i_field.ncols(); ++ n)
-		{
-		  // invplanck is a function in phhysics_funcs.cc
-		  i_field_Tb ( i, 0, 0, l, 0, n )
-		    = invplanck( i_field ( i, 0, 0, l, 0, n ), f);
-		} 
-	    } 
-	}  
-    } 
+  // Some lengths
+  const Index nv    = y_in.nvitrines();
+  const Index ns    = y_in.nshelves();
+  const Index nb    = y_in.nbooks();
+  const Index np    = y_in.npages();
+  const Index nr    = y_in.nrows();
+  const Index nc    = y_in.ncols();
   
+  Numeric f = f_grid[scat_f_index];
+   
+  // Note that y_in and y_out can be the same matrix
+  if ( &y_out != &y_in )
+    { 
+      y_out.resize(nv, ns, nb, np, nr, nc);
+    }
+  
+   
+  for( Index iv = 0; iv < nv; ++ iv )
+    {
+      for( Index is = 0; is < ns; ++ is )
+	{
+	  for( Index ib = 0; ib < nb; ++ ib )
+	    {
+	      for( Index ip = 0; ip < np; ++ ip )
+		{
+		  for( Index ir = 0; ir < nr; ++ ir )
+		    {
+		      for( Index ic = 0; ic < nc; ++ ic)
+			{
+			  y_out(iv, is, ib, ip, ir, ic) = 
+			   invplanck( y_in (iv, is, ib, ip, ir, ic ), f);  
+			}
+		    }
+		}
+	    }
+	}
+    }
 }
 
 
