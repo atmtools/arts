@@ -8,8 +8,13 @@ tgsDefine{
 	"H2O-MPM89",
 	"H2O-MPM93",
 	"H2O-PWR98",
+	"O2-PWR88",
 	"O2-PWR93",
-	"O2-MPM93"
+	"O2-MPM93",
+	"O2-MPM92",
+	"O2-MPM89",
+	"O2-MPM87",
+	"O2-MPM85"
       ] 
 }
 #
@@ -63,8 +68,44 @@ cont_descriptionAppend{
 #
 # Rosenkranz O2 absorption model (line + continuum):
 cont_descriptionAppend{
+    tagname        = "O2-PWR88"
+    model          = "Rosenkranz"
+    userparameters = [ ]
+}
+#
+# Rosenkranz O2 absorption model (line + continuum):
+cont_descriptionAppend{
     tagname        = "O2-PWR93"
     model         = "Rosenkranz"
+    userparameters = [ ]
+}
+#
+#
+# MPM85 O2 absorption model (lines + continuum)
+cont_descriptionAppend{
+    tagname        = "O2-MPM85"
+    model          = "MPM85"
+    userparameters = [ ]
+}
+#
+# MPM87 O2 absorption model (lines + continuum)
+cont_descriptionAppend{
+    tagname        = "O2-MPM87"
+    model          = "MPM87"
+    userparameters = [ ]
+}
+#
+# MPM89 O2 absorption model (lines + continuum)
+cont_descriptionAppend{
+    tagname        = "O2-MPM89"
+    model          = "MPM89"
+    userparameters = [ ]
+}
+#
+# MPM92 O2 absorption model (lines + continuum)
+cont_descriptionAppend{
+    tagname        = "O2-MPM92"
+    model          = "MPM92"
     userparameters = [ ]
 }
 #
@@ -117,17 +158,11 @@ n2_absSet{}
 #
 #----------------------------------------------------
 #
-# Read spectral line data from HITRAN96 catalogue for 
-# the frequency range from 1 to 2 GHz.
-# This in not essential for the continuum tags but 
-# bust be given as input for absCalc below.
-# ATTENTION! THE PATH AND FILE NAMES ARE USER SPECIFIC!
-lines_per_tgReadFromCatalogues{
-  filenames = [ "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par" ]
-  formats   = [ "HITRAN96" ]
-  fmin      = [ 1.0e9 ]
-  fmax      = [ 2.0e9 ]
-}
+# no external line catalog is needed
+lines_per_tgSetEmpty{}
+#
+#----------------------------------------------------
+#
 # Create an example frequency grid `f_mono'
 VectorNLinSpace(f_mono){
         start =    100.0e9
@@ -139,32 +174,11 @@ VectorNLinSpace(f_mono){
 #
 #
 # Set the lineshape function for each continuum tag
-lineshape_per_tgDefine{
-        shape               = [ "no_shape", 
-                                "no_shape", 
-                                "no_shape",
-                                "no_shape",
-                                "no_shape",
-                                "no_shape",
-                                "no_shape", 
-                                "no_shape"]
-        normalizationfactor = [ "no_norm", 
-                                "no_norm", 
-                                "no_norm", 
-                                "no_norm",
-                                "no_norm",
-                                "no_norm", 
-                                "no_norm", 
-                                "no_norm"]
-        cutoff              = [ -1,
-                                -1, 
-                                -1, 
-                                -1, 
-                                -1,        
-                                -1,
-                                -1, 
-                                -1]
-}
+lineshapeDefine{
+               shape =               "no_shape" 
+               normalizationfactor = "no_norm"
+               cutoff =              -1
+	       }
 #
 #----------------------------------------------------
 #

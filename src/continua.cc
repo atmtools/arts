@@ -1790,6 +1790,791 @@ void MPM93_H2O_continuum( MatrixView          xsec,
 // #################################################################################
 // ################################# OXYGEN MODELS #################################
 // #################################################################################
+/** 
+
+   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+                            O2 according to MPM89 [1/m]
+   \param    CCin           scaling factor for the O2-continuum   [1]
+   \param    CLin           scaling factor for the O2-line strengths [1]
+   \param    CWin           scaling factor for the O2-line widths    [1]
+   \param    COin           scaling factor for the O2-line coupling  [1]
+   \param    model          allows user defined input parameter set 
+                            (CCin, CLin, CWin, and COin)<br> or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid           [Hz]
+   \param    p_abs          predefined pressure                 [Pa]
+   \param    t_abs          predefined temperature grid         [K] 
+   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    vmr            O2 volume mixing ratio profile     [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'MPM85', 'MPM85Lines', 'MPM85Continuum', 'MPM85NoCoupling', 
+             and 'user'. See the user guide for detailed explanations.
+
+   \remark   Reference: H. J. Liebe,<br>
+             <i>An updated model for millimeter wave propagation in moist air,</i>,<br>
+	     Radio Science, vol. 20, pp. 1069-1089, 1985
+   \author Thomas Kuhn
+   \date 2002-04-05
+ */ 
+
+void MPM85O2AbsModel( MatrixView          xsec,
+		      const Numeric	  CCin,       // continuum scale factor 
+		      const Numeric	  CLin,       // line strength scale factor
+		      const Numeric	  CWin,       // line broadening scale factor
+		      const Numeric	  COin,       // line coupling scale factor
+		      const String&       model,
+		      ConstVectorView     f_mono,
+		      ConstVectorView     p_abs,
+		      ConstVectorView     t_abs,
+		      ConstVectorView     h2o_abs,
+		      ConstVectorView     vmr )
+{
+  //
+  // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
+  //      0             1           2         3          4      5         6
+  //      f0           a1          a2        a3         a4     a5        a6
+  //    [GHz]      [kHz/hPa]      [1]     [MHz/hPa]    [1]   [1/kPa]     [1]
+  const Numeric mpm85[48][7] = { 
+   { 49.452379 ,       0.12 ,    11.830 ,    8.40 ,    0.0 ,  5.600 ,   1.700 },
+   { 49.962257 ,       0.34 ,    10.720 ,    8.50 ,    0.0 ,  5.600 ,   1.700 },
+   { 50.474238 ,       0.94 ,     9.690 ,    8.60 ,    0.0 ,  5.600 ,   1.700 },
+   { 50.987748 ,       2.46 ,     8.690 ,    8.70 ,    0.0 ,  5.500 ,   1.700 },
+   { 51.503350 ,       6.08 ,     7.740 ,    8.90 ,    0.0 ,  5.600 ,   1.800 },
+   { 52.021409 ,      14.14 ,     6.840 ,    9.20 ,    0.0 ,  5.500 ,   1.800 },
+   { 52.542393 ,      31.02 ,     6.000 ,    9.40 ,    0.0 ,  5.700 ,   1.800 },
+   { 53.066906 ,      64.10 ,     5.220 ,    9.70 ,    0.0 ,  5.300 ,   1.900 },
+   { 53.595748 ,     124.70 ,     4.480 ,   10.00 ,    0.0 ,  5.400 ,   1.800 },
+   { 54.129999 ,     228.00 ,     3.810 ,   10.20 ,    0.0 ,  4.800 ,   2.000 },
+   { 54.671157 ,     391.80 ,     3.190 ,   10.50 ,    0.0 ,  4.800 ,   1.900 },
+   { 55.221365 ,     631.60 ,     2.620 ,   10.79 ,    0.0 ,  4.170 ,   2.100 },
+   { 55.783800 ,     953.50 ,     2.115 ,   11.10 ,    0.0 ,  3.750 ,   2.100 },
+   { 56.264777 ,     548.90 ,     0.010 ,   16.46 ,    0.0 ,  7.740 ,   0.900 },
+   { 56.363387 ,    1344.00 ,     1.655 ,   11.44 ,    0.0 ,  2.970 ,   2.300 },
+   { 56.968180 ,    1763.00 ,     1.255 ,   11.81 ,    0.0 ,  2.120 ,   2.500 },
+   { 57.612481 ,    2141.00 ,     0.910 ,   12.21 ,    0.0 ,  0.940 ,   3.700 },
+   { 58.323874 ,    2386.00 ,     0.621 ,   12.66 ,    0.0 , -0.550 ,  -3.100 },
+   { 58.446589 ,    1457.00 ,     0.079 ,   14.49 ,    0.0 ,  5.970 ,   0.800 },
+   { 59.164204 ,    2404.00 ,     0.386 ,   13.19 ,    0.0 , -2.440 ,   0.100 },
+   { 59.590982 ,    2112.00 ,     0.207 ,   13.60 ,    0.0 ,  3.440 ,   0.500 },
+   { 60.306057 ,    2124.00 ,     0.207 ,   13.82 ,    0.0 , -4.130 ,   0.700 },
+   { 60.434775 ,    2461.00 ,     0.386 ,   12.97 ,    0.0 ,  1.320 ,  -1.000 },
+   { 61.150558 ,    2504.00 ,     0.621 ,   12.48 ,    0.0 , -0.360 ,   5.800 },
+   { 61.800152 ,    2298.00 ,     0.910 ,   12.07 ,    0.0 , -1.590 ,   2.900 },
+   { 62.411212 ,    1933.00 ,     1.255 ,   11.71 ,    0.0 , -2.660 ,   2.300 },
+   { 62.486253 ,    1517.00 ,     0.078 ,   14.68 ,    0.0 , -4.770 ,   0.900 },
+   { 62.997974 ,    1503.00 ,     1.660 ,   11.39 ,    0.0 , -3.340 ,   2.200 },
+   { 63.568515 ,    1087.00 ,     2.110 ,   11.08 ,    0.0 , -4.170 ,   2.000 },
+   { 64.127764 ,     733.50 ,     2.620 ,   10.78 ,    0.0 , -4.480 ,   2.000 },
+   { 64.678900 ,     463.50 ,     3.190 ,   10.50 ,    0.0 , -5.100 ,   1.800 },
+   { 65.224067 ,     274.80 ,     3.810 ,   10.20 ,    0.0 , -5.100 ,   1.900 },
+   { 65.764769 ,     153.00 ,     4.480 ,   10.00 ,    0.0 , -5.700 ,   1.800 },
+   { 66.302088 ,      80.09 ,     5.220 ,    9.70 ,    0.0 , -5.500 ,   1.800 },
+   { 66.836827 ,      39.46 ,     6.000 ,    9.40 ,    0.0 , -5.900 ,   1.700 },
+   { 67.369595 ,      18.32 ,     6.840 ,    9.20 ,    0.0 , -5.600 ,   1.800 },
+   { 67.900862 ,       8.01 ,     7.740 ,    8.90 ,    0.0 , -5.800 ,   1.700 },
+   { 68.431001 ,       3.30 ,     8.690 ,    8.70 ,    0.0 , -5.700 ,   1.700 },
+   { 68.960306 ,       1.28 ,     9.690 ,    8.60 ,    0.0 , -5.600 ,   1.700 },
+   { 69.489021 ,       0.47 ,    10.720 ,    8.50 ,    0.0 , -5.600 ,   1.700 },
+   { 70.017342 ,       0.16 ,    11.830 ,    8.40 ,    0.0 , -5.600 ,   1.700 },
+  { 118.750341 ,     945.00 ,     0.000 ,   15.92 ,    0.0 , -0.440 ,   0.900 },
+  { 368.498350 ,      67.90 ,     0.020 ,   19.20 ,    0.6 ,  0.000 ,   0.000 },
+  { 424.763120 ,     638.00 ,     0.011 ,   19.16 ,    0.6 ,  0.000 ,   0.000 },
+  { 487.249370 ,     235.00 ,     0.011 ,   19.20 ,    0.6 ,  0.000 ,   0.000 },
+  { 715.393150 ,      99.60 ,     0.089 ,   18.10 ,    0.6 ,  0.000 ,   0.000 },
+  { 773.838730 ,     671.00 ,     0.079 ,   18.10 ,    0.6 ,  0.000 ,   0.000 },
+  { 834.145330 ,     180.00 ,     0.079 ,   18.10 ,    0.6 ,  0.000 ,   0.000 },
+};
+
+  // number of lines of Liebe O2-line catalog (0-47 lines)
+  const Index i_first = 0;
+  const Index i_last  = 47; // all the spec. lines up to 1THz
+  // const Index i_last  = 40; // only the 60GHz complex + 118GHz line
+  
+
+  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // standard values for the MPM85 model (Liebe, Radio Science, 20, 1069-1089, 1985):
+  const Numeric CC_MPM85 = 1.00000;
+  const Numeric CL_MPM85 = 1.00000;
+  const Numeric CW_MPM85 = 1.00000;
+  const Numeric CO_MPM85 = 1.00000;
+  // ---------------------------------------------------------------------------------------
+
+
+  // select the parameter set (!!model dominates values!!):
+  Numeric CC, CL, CW, CO;
+  if ( model == "MPM85" )
+    {
+      CC = CC_MPM85;
+      CL = CL_MPM85;
+      CW = CW_MPM85;
+      CO = CO_MPM85;
+    }
+  else if ( model == "MPM85Lines" )
+    {
+      CC = 0.000;
+      CL = CL_MPM85;
+      CW = CW_MPM85;
+      CO = CO_MPM85;
+    }
+  else if ( model == "MPM85Continuum" )
+    {
+      CC = CC_MPM85;
+      CL = 0.000;
+      CW = 0.000;
+      CO = 0.000;
+    }
+  else if ( model == "MPM85NoCoupling" )
+    {
+      CC = CC_MPM85;
+      CL = CL_MPM85;
+      CW = CW_MPM85;
+      CO = 0.000;
+    }
+  else if ( model == "user" )
+    {
+      CC = CCin;
+      CL = CLin;
+      CW = CWin;
+      CO = COin;
+    }
+  else
+    {
+      ostringstream os;
+      os << "O2-MPM85: ERROR! Wrong model values given.\n"
+	 << "Valid models are: 'MPM85' 'MPM85Lines' 'MPM85Continuum' 'MPM85NoCoupling' " 
+         << "and 'user'" << '\n';
+      throw runtime_error(os.str());
+    }
+  out3  << "O2-MPM85: (model=" << model << ") parameter values in use:\n" 
+	<< " CC = " << CC << "\n"
+	<< " CL = " << CL << "\n"
+	<< " CW = " << CW << "\n"
+	<< " CO = " << CO << "\n";
+  
+
+  // O2 continuum parameters of MPM92:
+  const Numeric	S0 =  3.070e-4; // line strength                        [ppm]
+  const Numeric G0 =  5.600e-3;  // line width                           [GHz/kPa]
+  const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+  // const = VMR * ISORATIO = 0.20946 * 0.99519
+  // this constant is already incorporated into the line strength, so we 
+  // have top devide the line strength by this value since arts multiplies xsec
+  // by these variables later in absCalc.
+  const Numeric	VMRISO = 0.2085;
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // check if O2-VMR will cause an underflow due to division by zero:
+      if (vmr[i] < VMRCalcLimit)
+	{
+	  ostringstream os;
+	  os << "ERROR: MPM87 O2 full absorption model has detected a O2 volume mixing ratio of " 
+	     << vmr[i] << " which is below the threshold of " << VMRCalcLimit << ".\n"
+	     << "Therefore no calculation is performed.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+
+      // relative inverse temperature [1]
+      Numeric theta     = (300.0 / t_abs[i]);
+      // H2O partial pressure [kPa]
+      Numeric pwv       = Pa_to_kPa * p_abs[i] * h2o_abs[i];
+      // dry air partial pressure [kPa]
+      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      // here the total pressure is devided by the O2 vmr for the 
+      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      Numeric pda_dummy = pda;
+      // O2 continuum strength [ppm]
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      // O2 continuum pseudo line broadening [GHz]
+      Numeric gam_cont      =  G0 * ( pda + 1.10*pwv ) *  pow( theta, X0 ); // GHz
+      
+      // Loop over input frequency
+      for ( Index s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  // O2 continuum absorption [1/m]
+	  // cross section: xsec = absorption / var
+	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	  // here the rolloff parameter FAC is implemented!
+	  // Numeric FAC =  1.000 / ( pow( ff, 2) + pow( 60.000, 2) );
+	  // if we let the non-proofen rollofff away as in further version: 
+	  Numeric FAC =  1.000 ;
+	  Numeric Nppc =  CC * 2.000 * strength_cont * FAC * ff * gam_cont /
+	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	  
+	  // Loop over MPM85 O2 spectral lines:
+	  Numeric Nppl  = 0.0;
+	  for ( Index l = i_first; l <= i_last; ++l )
+	    {
+	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+	      Numeric strength = CL * mpm85[l][1] * 1.000e-6  * pda_dummy * 
+		                      pow(theta, 3) * exp(mpm85[l][2]*(1.000-theta)) /
+		                      mpm85[l][0];
+	      // line broadening parameter [GHz]
+	      Numeric gam      = CW * ( mpm85[l][3] * 1.000e-3 * 
+	                              ( (       pda * pow(theta, (0.80-mpm85[l][4]))) + 
+                                        (1.10 * pwv * theta) ) );
+	      // line mixing parameter [1]
+	      Numeric delta    = CO * mpm85[l][5] * 1.000e-3 * 
+			              pda * pow(theta, mpm85[l][6]);
+	      // absorption [dB/km] like in the original MPM92
+	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm85[l][0], ff, delta); 
+	    }
+	  // in MPM85 there is a cutoff for O2 line absorption if abs_l < 0 
+	  // absorption cannot be less than 0 according to MPM87 philosophy.
+	  // since this cutoff is only 'detectable' in the source code and not in the
+          // publications we assume this cutoff also for MPM85 since it is also 
+          // implemented in MPM87. 
+	  if (Nppl < 0.000)  Nppl = 0.0000;
+	  //
+	  // O2 line absorption [1/m]
+	  // cross section: xsec = absorption / var
+	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	  xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+// 
+/** 
+
+   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+                            O2 according to MPM89 [1/m]
+   \param    CCin           scaling factor for the O2-continuum   [1]
+   \param    CLin           scaling factor for the O2-line strengths [1]
+   \param    CWin           scaling factor for the O2-line widths    [1]
+   \param    COin           scaling factor for the O2-line coupling  [1]
+   \param    model          allows user defined input parameter set 
+                            (CCin, CLin, CWin, and COin)<br> or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid           [Hz]
+   \param    p_abs          predefined pressure                 [Pa]
+   \param    t_abs          predefined temperature grid         [K] 
+   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    vmr            O2 volume mixing ratio profile     [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'MPM87', 'MPM87Lines', 'MPM87Continuum', 'MPM87NoCoupling', 
+             and 'user'. See the user guide for detailed explanations.
+
+   \remark   Reference: H. J. Liebe and D. H. Layton,<br>
+             <i>Millimeter-wave properties of the atmosphere: 
+                Laboratory studies and propagation modelling</i>,<br>
+	     U.S. Dept. of Commerce, National Telecommunications and Information
+	     Administration, Institute for Communication Sciences, rep. 87-224,<br>
+             325 Broadway, Boulder, CO 80303-3328
+
+   \author Thomas Kuhn
+   \date 2002-04-05
+ */ 
+
+void MPM87O2AbsModel( MatrixView          xsec,
+		      const Numeric	  CCin,       // continuum scale factor 
+		      const Numeric	  CLin,       // line strength scale factor
+		      const Numeric	  CWin,       // line broadening scale factor
+		      const Numeric	  COin,       // line coupling scale factor
+		      const String&       model,
+		      ConstVectorView     f_mono,
+		      ConstVectorView     p_abs,
+		      ConstVectorView     t_abs,
+		      ConstVectorView     h2o_abs,
+		      ConstVectorView     vmr )
+{
+  //
+  // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
+  //         0            1           2        3          4        5        6
+  //         f0           a1          a2       a3         a4      a5        a6
+  //        [GHz]      [kHz/hPa]     [1]    [MHz/hPa]    [1]         [1/kPa]
+  const Numeric mpm87[48][7] = { 
+    { 49.452379 ,       0.12 ,    11.830 ,    8.40 ,    0.0 ,  6.600 ,   1.700}, // 0
+    { 49.962257 ,       0.34 ,    10.720 ,    8.50 ,    0.0 ,  6.600 ,   1.700}, // 1
+    { 50.474238 ,       0.94 ,     9.690 ,    8.60 ,    0.0 ,  6.600 ,   1.700}, // 2 
+    { 50.987748 ,       2.46 ,     8.690 ,    8.70 ,    0.0 ,  6.500 ,   1.700}, // 3
+    { 51.503350 ,       6.08 ,     7.740 ,    8.90 ,    0.0 ,  6.627 ,   1.800}, // 4
+    { 52.021409 ,      14.14 ,     6.840 ,    9.20 ,    0.0 ,  6.347 ,   1.800}, // 5
+    { 52.542393 ,      31.02 ,     6.000 ,    9.40 ,    0.0 ,  6.046 ,   1.800}, // 6
+    { 53.066906 ,      64.10 ,     5.220 ,    9.70 ,    0.0 ,  5.719 ,   1.900}, // 7
+    { 53.595748 ,     124.70 ,     4.480 ,   10.00 ,    0.0 ,  5.400 ,   1.800}, // 8
+    { 54.129999 ,     228.00 ,     3.810 ,   10.20 ,    0.0 ,  5.157 ,   2.000}, // 9
+    { 54.671157 ,     391.80 ,     3.190 ,   10.50 ,    0.0 ,  4.783 ,   1.900}, // 10
+    { 55.221365 ,     631.60 ,     2.620 ,   10.79 ,    0.0 ,  4.339 ,   2.100}, // 11
+    { 55.783800 ,     953.50 ,     2.115 ,   11.10 ,    0.0 ,  4.011 ,   2.100}, // 12
+    { 56.264777 ,     548.90 ,     0.010 ,   16.46 ,    0.0 ,  2.772 ,   0.900}, // 13
+    { 56.363387 ,    1344.00 ,     1.655 ,   11.44 ,    0.0 ,  3.922 ,   2.300}, // 14
+    { 56.968180 ,    1763.00 ,     1.255 ,   11.81 ,    0.0 ,  3.398 ,   2.500}, // 15
+    { 57.612481 ,    2141.00 ,     0.910 ,   12.21 ,    0.0 ,  1.145 ,   3.200}, // 16
+    { 58.323874 ,    2386.00 ,     0.621 ,   12.66 ,    0.0 , -0.317 ,  -2.500}, // 17
+    { 58.446589 ,    1457.00 ,     0.079 ,   14.49 ,    0.0 ,  6.270 ,   0.800}, // 18
+    { 59.164204 ,    2404.00 ,     0.386 ,   13.19 ,    0.0 , -4.119 ,   0.100}, // 19
+    { 59.590982 ,    2112.00 ,     0.207 ,   13.60 ,    0.0 ,  6.766 ,   0.500}, // 20
+    { 60.306057 ,    2124.00 ,     0.207 ,   13.82 ,    0.0 , -6.183 ,   0.700}, // 21
+    { 60.434775 ,    2461.00 ,     0.386 ,   12.97 ,    0.0 ,  3.290 ,  -0.400}, // 22
+    { 61.150558 ,    2504.00 ,     0.621 ,   12.48 ,    0.0 , -1.591 ,   3.500}, // 23
+    { 61.800152 ,    2298.00 ,     0.910 ,   12.07 ,    0.0 , -2.068 ,   2.900}, // 24
+    { 62.411212 ,    1933.00 ,     1.255 ,   11.71 ,    0.0 , -4.158 ,   2.300}, // 25
+    { 62.486253 ,    1517.00 ,     0.078 ,   14.68 ,    0.0 , -4.068 ,   0.900}, // 26
+    { 62.997974 ,    1503.00 ,     1.660 ,   11.39 ,    0.0 , -4.482 ,   2.200}, // 27
+    { 63.568515 ,    1087.00 ,     2.110 ,   11.08 ,    0.0 , -4.442 ,   2.000}, // 28
+    { 64.127764 ,     733.50 ,     2.620 ,   10.78 ,    0.0 , -4.687 ,   2.000}, // 29
+    { 64.678900 ,     463.50 ,     3.190 ,   10.50 ,    0.0 , -5.074 ,   1.800}, // 30
+    { 65.224067 ,     274.80 ,     3.810 ,   10.20 ,    0.0 , -5.403 ,   1.900}, // 31
+    { 65.764769 ,     153.00 ,     4.480 ,   10.00 ,    0.0 , -5.610 ,   1.800}, // 32
+    { 66.302088 ,      80.09 ,     5.220 ,    9.70 ,    0.0 , -5.896 ,   1.800}, // 33
+    { 66.836827 ,      39.46 ,     6.000 ,    9.40 ,    0.0 , -6.194 ,   1.700}, // 34
+    { 67.369595 ,      18.32 ,     6.840 ,    9.20 ,    0.0 , -6.468 ,   1.800}, // 35
+    { 67.900862 ,       8.01 ,     7.740 ,    8.90 ,    0.0 , -6.718 ,   1.700}, // 36
+    { 68.431001 ,       3.30 ,     8.690 ,    8.70 ,    0.0 , -6.700 ,   1.700}, // 37
+    { 68.960306 ,       1.28 ,     9.690 ,    8.60 ,    0.0 , -6.600 ,   1.700}, // 38
+    { 69.489021 ,       0.47 ,    10.720 ,    8.50 ,    0.0 , -6.600 ,   1.700}, // 39
+    { 70.017342 ,       0.16 ,    11.830 ,    8.40 ,    0.0 , -6.600 ,   1.700}, // 40
+   { 118.750341 ,     945.00 ,     0.000 ,   16.30 ,    0.0 , -0.134 ,   0.800}, // 41
+  {  368.498350 ,      67.90 ,     0.020 ,   19.20 ,    0.6 ,  0.000 ,   0.000}, // 42
+  {  424.763120 ,     638.00 ,     0.011 ,   19.16 ,    0.6 ,  0.000 ,   0.000}, // 43
+  {  487.249370 ,     235.00 ,     0.011 ,   19.20 ,    0.6 ,  0.000 ,   0.000}, // 44
+  {  715.393150 ,      99.60 ,     0.089 ,   18.10 ,    0.6 ,  0.000 ,   0.000}, // 45
+  {  773.838730 ,     671.00 ,     0.079 ,   18.10 ,    0.6 ,  0.000 ,   0.000}, // 46
+  {  834.145330 ,     180.00 ,     0.079 ,   18.10 ,    0.6 ,  0.000 ,   0.000}  // 47
+  };
+
+  // number of lines of Liebe O2-line catalog (0-47 lines)
+  const Index i_first = 0;
+  const Index i_last  = 47; // all the spec. lines up to 1THz
+  // const Index i_last  = 40; // only the 60GHz complex + 118GHz line
+  
+
+  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // standard values for the MPM87 model (NITA Report 87-224):
+  const Numeric CC_MPM87 = 1.00000;
+  const Numeric CL_MPM87 = 1.00000;
+  const Numeric CW_MPM87 = 1.00000;
+  const Numeric CO_MPM87 = 1.00000;
+  // ---------------------------------------------------------------------------------------
+
+
+  // select the parameter set (!!model dominates values!!):
+  Numeric CC, CL, CW, CO;
+  if ( model == "MPM87" )
+    {
+      CC = CC_MPM87;
+      CL = CL_MPM87;
+      CW = CW_MPM87;
+      CO = CO_MPM87;
+    }
+  else if ( model == "MPM87Lines" )
+    {
+      CC = 0.000;
+      CL = CL_MPM87;
+      CW = CW_MPM87;
+      CO = CO_MPM87;
+    }
+  else if ( model == "MPM87Continuum" )
+    {
+      CC = CC_MPM87;
+      CL = 0.000;
+      CW = 0.000;
+      CO = 0.000;
+    }
+  else if ( model == "MPM87NoCoupling" )
+    {
+      CC = CC_MPM87;
+      CL = CL_MPM87;
+      CW = CW_MPM87;
+      CO = 0.000;
+    }
+  else if ( model == "user" )
+    {
+      CC = CCin;
+      CL = CLin;
+      CW = CWin;
+      CO = COin;
+    }
+  else
+    {
+      ostringstream os;
+      os << "O2-MPM87: ERROR! Wrong model values given.\n"
+	 << "Valid models are: 'MPM87' 'MPM87Lines' 'MPM87Continuum' 'MPM87NoCoupling' " 
+         << "and 'user'" << '\n';
+      throw runtime_error(os.str());
+    }
+  out3  << "O2-MPM87: (model=" << model << ") parameter values in use:\n" 
+	<< " CC = " << CC << "\n"
+	<< " CL = " << CL << "\n"
+	<< " CW = " << CW << "\n"
+	<< " CO = " << CO << "\n";
+  
+
+  // O2 continuum parameters of MPM92:
+  const Numeric	S0 =  3.070e-4; // line strength                        [ppm]
+  const Numeric G0 =  4.800e-3;  // line width                           [GHz/kPa]
+  const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+  // const = VMR * ISORATIO = 0.20946 * 0.99519
+  // this constant is already incorporated into the line strength, so we 
+  // have top devide the line strength by this value since arts multiplies xsec
+  // by these variables later in absCalc.
+  const Numeric	VMRISO = 0.2085;
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // check if O2-VMR will cause an underflow due to division by zero:
+      if (vmr[i] < VMRCalcLimit)
+	{
+	  ostringstream os;
+	  os << "ERROR: MPM87 O2 full absorption model has detected a O2 volume mixing ratio of " 
+	     << vmr[i] << " which is below the threshold of " << VMRCalcLimit << ".\n"
+	     << "Therefore no calculation is performed.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+
+      // relative inverse temperature [1]
+      Numeric theta     = (300.0 / t_abs[i]);
+      // H2O partial pressure [kPa]
+      Numeric pwv       = Pa_to_kPa * p_abs[i] * h2o_abs[i];
+      // dry air partial pressure [kPa]
+      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      // here the total pressure is devided by the O2 vmr for the 
+      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      Numeric pda_dummy = pda;
+      // O2 continuum strength [ppm]
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      // O2 continuum pseudo line broadening [GHz]
+      Numeric gam_cont      =  G0 * ( pda + 1.10*pwv ) *  pow( theta, X0 ); // GHz
+      
+      // Loop over input frequency
+      for ( Index s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  // O2 continuum absorption [1/m]
+	  // cross section: xsec = absorption / var
+	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	  Numeric Nppc =  CC * 2.000 * strength_cont * ff * gam_cont /
+	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	  
+	  // Loop over MPM87 O2 spectral lines:
+	  Numeric Nppl  = 0.0;
+	  for ( Index l = i_first; l <= i_last; ++l )
+	    {
+	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+	      Numeric strength = CL * mpm87[l][1] * 1.000e-6  * pda_dummy * 
+		                      pow(theta, 3) * exp(mpm87[l][2]*(1.000-theta)) /
+		                      mpm87[l][0];
+	      // line broadening parameter [GHz]
+	      Numeric gam      = CW * ( mpm87[l][3] * 1.000e-3 * 
+	                              ( (       pda * pow(theta, (0.80-mpm87[l][4]))) + 
+                                        (1.10 * pwv * theta) ) );
+	      // line mixing parameter [1]
+	      Numeric delta    = CO * mpm87[l][5] * 1.000e-3 * 
+			              pda * pow(theta, mpm87[l][6]);
+	      // absorption [dB/km] like in the original MPM92
+	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm87[l][0], ff, delta); 
+	    }
+	  // in MPM87 there is a cutoff for O2 line absorption if abs_l < 0 
+	  // absorption cannot be less than 0 according to MPM87 source code.
+	  if (Nppl < 0.000)  Nppl = 0.0000;
+	  //
+	  // O2 line absorption [1/m]
+	  // cross section: xsec = absorption / var
+	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	  xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+// 
+/** 
+
+   \retval    xsec          cross section (absorption/volume mixing ratio) of 
+                            O2 according to MPM89 [1/m]
+   \param    CCin           scaling factor for the O2-continuum   [1]
+   \param    CLin           scaling factor for the O2-line strengths [1]
+   \param    CWin           scaling factor for the O2-line widths    [1]
+   \param    COin           scaling factor for the O2-line coupling  [1]
+   \param    model          allows user defined input parameter set 
+                            (CCin, CLin, CWin, and COin)<br> or choice of 
+                            pre-defined parameters of specific models (see note below).
+   \param    f_mono         predefined frequency grid           [Hz]
+   \param    p_abs          predefined pressure                 [Pa]
+   \param    t_abs          predefined temperature grid         [K] 
+   \param    h2o_abs        H2O volume mixing ratio profile    [1]
+   \param    vmr            O2 volume mixing ratio profile     [1]
+
+   \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
+             are neglected (model dominates over parameters).<br>
+             Allowed models: 'MPM89', 'MPM89Lines', 'MPM89Continuum', 'MPM89NoCoupling', 
+             and 'user'. See the user guide for detailed explanations.
+
+   \remark   Reference: H. J. Liebe,<br>
+             <i>MPM - an atmospheric millimeter-wave propagation model</i>,<br>
+             Int. J. Infrared and Mill. Waves, Vol 10, pp. 631-650, 1989.
+
+   \author Thomas Kuhn
+   \date 2002-04-05
+ */ 
+
+void MPM89O2AbsModel( MatrixView          xsec,
+		      const Numeric	  CCin,       // continuum scale factor 
+		      const Numeric	  CLin,       // line strength scale factor
+		      const Numeric	  CWin,       // line broadening scale factor
+		      const Numeric	  COin,       // line coupling scale factor
+		      const String&       model,
+		      ConstVectorView     f_mono,
+		      ConstVectorView     p_abs,
+		      ConstVectorView     t_abs,
+		      ConstVectorView     h2o_abs,
+		      ConstVectorView     vmr )
+{
+  //
+  // Coefficients are from Liebe et al., AGARD CP-May93, Paper 3/1-10
+  //         0            1           2        3          4        5        6
+  //         f0           a1          a2       a3         a4      a5        a6
+  //        [GHz]      [kHz/hPa]     [1]    [MHz/hPa]    [1]         [1/kPa]
+  const Numeric mpm89[44][7] = { 
+    {   50.474238,        0.94 ,    9.694 ,    8.60 ,    0.0 ,  1.600 ,   5.520 }, // 0
+    {   50.987749,        2.46 ,    8.694 ,    8.70 ,    0.0 ,  1.400 ,   5.520 }, // 1
+    {   51.503350,        6.08 ,    7.744 ,    8.90 ,    0.0 ,  1.165 ,   5.520 }, // 2
+    {   52.021410,       14.14 ,    6.844 ,    9.20 ,    0.0 ,  0.883 ,   5.520 }, // 3
+    {   52.542394,       31.02 ,    6.004 ,    9.40 ,    0.0 ,  0.579 ,   5.520 }, // 4
+    {   53.066907,       64.10 ,    5.224 ,    9.70 ,    0.0 ,  0.252 ,   5.520 }, // 5
+    {   53.595749,      124.70 ,    4.484 ,   10.00 ,    0.0 , -0.066 ,   5.520 }, // 6
+    {   54.130000,      228.00 ,    3.814 ,   10.20 ,    0.0 , -0.314 ,   5.520 }, // 7
+    {   54.671159,      391.80 ,    3.194 ,   10.50 ,    0.0 , -0.706 ,   5.520 }, // 8
+    {   55.221367,      631.60 ,    2.624 ,   10.79 ,    0.0 , -1.151 ,   5.514 }, // 9
+    {   55.783802,      953.50 ,    2.119 ,   11.10 ,    0.0 , -0.920 ,   5.025 }, // 10
+    {   56.264775,      548.90 ,    0.015 ,   16.46 ,    0.0 ,  2.881 ,  -0.069 }, // 11
+    {   56.363389,     1344.00 ,    1.660 ,   11.44 ,    0.0 , -0.596 ,   4.750 }, // 12
+    {   56.968206,     1763.00 ,    1.260 ,   11.81 ,    0.0 , -0.556 ,   4.104 }, // 13
+    {   57.612484,     2141.00 ,    0.915 ,   12.21 ,    0.0 , -2.414 ,   3.536 }, // 14
+    {   58.323877,     2386.00 ,    0.626 ,   12.66 ,    0.0 , -2.635 ,   2.686 }, // 15
+    {   58.446590,     1457.00 ,    0.084 ,   14.49 ,    0.0 ,  6.848 ,  -0.647 }, // 16
+    {   59.164207,     2404.00 ,    0.391 ,   13.19 ,    0.0 , -6.032 ,   1.858 }, // 17
+    {   59.590983,     2112.00 ,    0.212 ,   13.60 ,    0.0 ,  8.266 ,  -1.413 }, // 18
+    {   60.306061,     2124.00 ,    0.212 ,   13.82 ,    0.0 , -7.170 ,   0.916 }, // 19
+    {   60.434776,     2461.00 ,    0.391 ,   12.97 ,    0.0 ,  5.664 ,  -2.323 }, // 20
+    {   61.150560,     2504.00 ,    0.626 ,   12.48 ,    0.0 ,  1.731 ,  -3.039 }, // 21
+    {   61.800154,     2298.00 ,    0.915 ,   12.07 ,    0.0 ,  1.738 ,  -3.797 }, // 22
+    {   62.411215,     1933.00 ,    1.260 ,   11.71 ,    0.0 , -0.048 ,  -4.277 }, // 23
+    {   62.486260,     1517.00 ,    0.083 ,   14.68 ,    0.0 , -4.290 ,   0.238 }, // 24
+    {   62.997977,     1503.00 ,    1.665 ,   11.39 ,    0.0 ,  0.134 ,  -4.860 }, // 25
+    {   63.568518,     1087.00 ,    2.115 ,   11.08 ,    0.0 ,  0.541 ,  -5.079 }, // 26
+    {   64.127767,      733.50 ,    2.620 ,   10.78 ,    0.0 ,  0.814 ,  -5.525 }, // 27
+    {   64.678903,      463.50 ,    3.195 ,   10.50 ,    0.0 ,  0.415 ,  -5.520 }, // 28
+    {   65.224071,      274.80 ,    3.815 ,   10.20 ,    0.0 ,  0.069 ,  -5.520 }, // 29
+    {   65.764772,      153.00 ,    4.485 ,   10.00 ,    0.0 , -0.143 ,  -5.520 }, // 30
+    {   66.302091,       80.09 ,    5.225 ,    9.70 ,    0.0 , -0.428 ,  -5.520 }, // 31
+    {   66.836830,       39.46 ,    6.005 ,    9.40 ,    0.0 , -0.726 ,  -5.520 }, // 32
+    {   67.369598,       18.32 ,    6.845 ,    9.20 ,    0.0 , -1.002 ,  -5.520 }, // 33
+    {   67.900867,        8.01 ,    7.745 ,    8.90 ,    0.0 , -1.255 ,  -5.520 }, // 34
+    {   68.431005,        3.30 ,    8.695 ,    8.70 ,    0.0 , -1.500 ,  -5.520 }, // 35
+    {   68.960311,        1.28 ,    9.695 ,    8.60 ,    0.0 , -1.700 ,  -5.520 }, // 36
+    {  118.750343,      945.00 ,    0.009 ,   16.30 ,    0.0 , -0.247 ,   0.003 }, // 37
+    {  368.498350,       67.90 ,    0.049 ,   19.20 ,    0.6 ,  0.000 ,   0.000 }, // 38
+    {  424.763124,      638.00 ,    0.044 ,   19.16 ,    0.6 ,  0.000 ,   0.000 }, // 39
+    {  487.249370,      235.00 ,    0.049 ,   19.20 ,    0.6 ,  0.000 ,   0.000 }, // 40
+    {  715.393150,       99.60 ,    0.145 ,   18.10 ,    0.6 ,  0.000 ,   0.000 }, // 41
+    {  773.839675,      671.00 ,    0.130 ,   18.10 ,    0.6 ,  0.000 ,   0.000 }, // 42
+    {  834.145330,      180.00 ,    0.147 ,   18.10 ,    0.6 ,  0.000 ,   0.000 }  // 43
+  };
+
+  // number of lines of Liebe O2-line catalog (0-43 lines)
+  const Index i_first = 0;
+  const Index i_last  = 43; // all the spec. lines up to 1THz
+  // const Index i_last  = 37; // only the 60GHz complex + 118GHz line
+  
+
+  // --------- STANDARD MODEL PARAMETERS ---------------------------------------------------
+  // standard values for the MPM89 model (IJIMW, Vol 10, pp. 631-650, 1989):
+  const Numeric CC_MPM89 = 1.00000;
+  const Numeric CL_MPM89 = 1.00000;
+  const Numeric CW_MPM89 = 1.00000;
+  const Numeric CO_MPM89 = 1.00000;
+  // ---------------------------------------------------------------------------------------
+
+
+  // select the parameter set (!!model dominates values!!):
+  Numeric CC, CL, CW, CO;
+  if ( model == "MPM89" )
+    {
+      CC = CC_MPM89;
+      CL = CL_MPM89;
+      CW = CW_MPM89;
+      CO = CO_MPM89;
+    }
+  else if ( model == "MPM89Lines" )
+    {
+      CC = 0.000;
+      CL = CL_MPM89;
+      CW = CW_MPM89;
+      CO = CO_MPM89;
+    }
+  else if ( model == "MPM89Continuum" )
+    {
+      CC = CC_MPM89;
+      CL = 0.000;
+      CW = 0.000;
+      CO = 0.000;
+    }
+  else if ( model == "MPM89NoCoupling" )
+    {
+      CC = CC_MPM89;
+      CL = CL_MPM89;
+      CW = CW_MPM89;
+      CO = 0.000;
+    }
+  else if ( model == "user" )
+    {
+      CC = CCin;
+      CL = CLin;
+      CW = CWin;
+      CO = COin;
+    }
+  else
+    {
+      ostringstream os;
+      os << "O2-MPM89: ERROR! Wrong model values given.\n"
+	 << "Valid models are: 'MPM89' 'MPM89Lines' 'MPM89Continuum' 'MPM89NoCoupling' " 
+         << "and 'user'" << '\n';
+      throw runtime_error(os.str());
+    }
+  out3  << "O2-MPM89: (model=" << model << ") parameter values in use:\n" 
+	<< " CC = " << CC << "\n"
+	<< " CL = " << CL << "\n"
+	<< " CW = " << CW << "\n"
+	<< " CO = " << CO << "\n";
+  
+
+  // O2 continuum parameters of MPM92:
+  const Numeric	S0 =  6.140e-4; // line strength                        [ppm]
+  const Numeric G0 =  5.60e-3;  // line width                           [GHz/kPa]
+  const Numeric	X0 =  0.800;    // temperature dependence of line width [1]
+
+  const Index n_p = p_abs.nelem();	// Number of pressure levels
+  const Index n_f = f_mono.nelem();	// Number of frequencies
+
+  // const = VMR * ISORATIO = 0.20946 * 0.99519
+  // this constant is already incorporated into the line strength, so we 
+  // have top devide the line strength by this value since arts multiplies xsec
+  // by these variables later in absCalc.
+  const Numeric	VMRISO = 0.2085;
+
+  // Check that dimensions of p_abs, t_abs, and vmr agree:
+  assert ( n_p==t_abs.nelem() );
+  assert ( n_p==vmr.nelem()   );
+
+  // Check that dimensions of xsec are consistent with n_f
+  // and n_p. It should be [n_f,n_p]:
+  assert ( n_f==xsec.nrows() );
+  assert ( n_p==xsec.ncols() );
+
+  // Loop pressure/temperature (pressure in hPa therefore the factor 0.01)
+  for ( Index i=0; i<n_p; ++i )
+    {
+      // check if O2-VMR will cause an underflow due to division by zero:
+      if (vmr[i] < VMRCalcLimit)
+	{
+	  ostringstream os;
+	  os << "ERROR: MPM89 O2 full absorption model has detected a O2 volume mixing ratio of " 
+	     << vmr[i] << " which is below the threshold of " << VMRCalcLimit << ".\n"
+	     << "Therefore no calculation is performed.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+
+      // relative inverse temperature [1]
+      Numeric theta     = (300.0 / t_abs[i]);
+      // H2O partial pressure [kPa]
+      Numeric pwv       = Pa_to_kPa * p_abs[i] * h2o_abs[i];
+      // dry air partial pressure [kPa]
+      Numeric pda       = (Pa_to_kPa * p_abs[i]) - pwv;
+      // here the total pressure is devided by the O2 vmr for the 
+      // P_dry calculation because we calculate xsec and not abs: abs = vmr * xsec
+      Numeric pda_dummy = pda;
+      // O2 continuum strength [ppm]
+      Numeric strength_cont =  S0 * pda_dummy * pow( theta, 2 );
+      // O2 continuum pseudo line broadening [GHz]
+      Numeric gam_cont      =  G0 * (pwv+pda) *  pow( theta, X0 ); // GHz
+      
+      // Loop over input frequency
+      for ( Index s=0; s<n_f; ++s )
+	{
+	  // input frequency in [GHz]
+	  Numeric ff = f_mono[s] * Hz_to_GHz; 
+	  // O2 continuum absorption [1/m]
+	  // cross section: xsec = absorption / var
+	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	  Numeric Nppc =  CC * strength_cont * ff * gam_cont /
+	                  ( pow( ff, 2) + pow( gam_cont, 2) );
+	  
+	  // Loop over MPM89 O2 spectral lines:
+	  Numeric Nppl  = 0.0;
+	  for ( Index l = i_first; l <= i_last; ++l )
+	    {
+	      // line strength [ppm]   S=A(1,I)*P*V**3*EXP(A(2,I)*(1.-V))*1.E-6
+	      Numeric strength = CL * mpm89[l][1] * 1.000e-6  * pda_dummy * 
+		                      pow(theta, 3) * exp(mpm89[l][2]*(1.000-theta)) /
+		                      mpm89[l][0];
+	      // line broadening parameter [GHz]
+	      Numeric gam      = CW * ( mpm89[l][3] * 1.000e-3 * 
+	                              ( (       pda * pow(theta, (0.80-mpm89[l][4]))) + 
+                                        (1.10 * pwv * theta) ) );
+	      // line mixing parameter [1]
+	      Numeric delta    = CO * ( (mpm89[l][5] + mpm89[l][6] * theta) * 1.000e-3 * 
+			                pda * pow(theta, 0.8) );
+	      // absorption [dB/km] like in the original MPM92
+	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm89[l][0], ff, delta); 
+	    }
+	  // in MPM89 we adopt the cutoff for O2 line absorption if abs_l < 0 
+	  // absorption cannot be less than 0 according to MPM87 source code.
+	  if (Nppl < 0.000)  Nppl = 0.0000;
+	  //
+	  // O2 line absorption [1/m]
+	  // cross section: xsec = absorption / var
+	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
+	  xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
+	}
+    }
+  return;
+}
+//
+// #################################################################################
+// 
 //
 /** 
 
@@ -2032,16 +2817,14 @@ void MPM92O2AbsModel( MatrixView          xsec,
 	      // absorption [dB/km] like in the original MPM92
 	      Nppl            += strength * MPMLineShapeO2Function(gam, mpm92[l][0], ff, delta); 
 	    }
-	  // in MPM92 there is a cutoff for O2 line absorption if abs_l < 0 
-	  // absorption cannot be less than 0 according to MPM92 philosophy.
-	  if (Nppl < 0.0)  Nppl = 0.0;
+	  // in MPM92 we adopt the cutoff for O2 line absorption if abs_l < 0 
+	  // absorption cannot be less than 0 according to MPM878 and MPM93 source code.
+	  // if (Nppl < 0.000)  Nppl = 0.0000;
 	  //
 	  // O2 line absorption [1/m]
 	  // cross section: xsec = absorption / var
 	  // the vmr of O2 will be multiplied at the stage of absorption calculation:
 	  xsec(s,i) += dB_km_to_1_m * 0.1820 * ff * (Nppl+Nppc) / VMRISO;
-	  // out2 << "O2-MPM92:" << "P_tot=" << p_abs[i] << ", f=" << ff 
-          //      << ", Nppl=" << Nppl << ", Nppc=" <<  Nppc << "\n";
 	}
     }
   return;
@@ -2353,7 +3136,8 @@ void PWR93O2AbsModel( MatrixView        xsec,
 		      const Numeric     CLin,      // model parameter
 		      const Numeric     CWin,      // model parameter
 		      const Numeric     COin,      // model parameter
-		      const String&     model,
+		      const String&     model,     // model selection string
+		      const String&     version,   // PWR93 or PWR88 Y coeff.
 		      ConstVectorView   f_mono,
 		      ConstVectorView   p_abs,
 		      ConstVectorView   t_abs,
@@ -2412,16 +3196,30 @@ void PWR93O2AbsModel( MatrixView        xsec,
                              0.890, 0.890, 1.920, 1.920, 
                              1.920, 1.810, 1.810, 1.810};
   // y parameter for the calculation of Y [1/bar]
-  const Numeric Y300[n_lines] = { -0.0233,  0.2408, -0.3486,  0.5227,
-			     -0.5430,  0.5877, -0.3970,  0.3237, 
-                             -0.1348,  0.0311,  0.0725, -0.1663, 
-                              0.2832, -0.3629,  0.3970, -0.4599,
-                              0.4695, -0.5199,  0.5187, -0.5597,
-                              0.5903, -0.6246,  0.6656, -0.6942,
-                              0.7086, -0.7325,  0.7348, -0.7546,
-                              0.7702, -0.7864,  0.8083, -0.8210,
-                              0.8439, -0.8529,  0.0000,  0.0000,
-                              0.0000,  0.0000,  0.0000,  0.0000};
+  const Numeric Y93[n_lines] = { -0.0233,  0.2408, -0.3486,  0.5227,
+			         -0.5430,  0.5877, -0.3970,  0.3237, 
+                                 -0.1348,  0.0311,  0.0725, -0.1663, 
+                                  0.2832, -0.3629,  0.3970, -0.4599,
+                                  0.4695, -0.5199,  0.5187, -0.5597,
+                                  0.5903, -0.6246,  0.6656, -0.6942,
+                                  0.7086, -0.7325,  0.7348, -0.7546,
+                                  0.7702, -0.7864,  0.8083, -0.8210,
+                                  0.8439, -0.8529,  0.0000,  0.0000,
+                                  0.0000,  0.0000,  0.0000,  0.0000};
+
+  // y parameter for the calculation of Y [1/bar].
+  // These values are from P. W. Rosenkranz, Interference coefficients for the 
+  // overlapping oxygen lines in air, JQSRT, 1988, Volume 39, 287-297.
+  const Numeric Y88[n_lines] = { -0.0244,  0.2772, -0.4068,  0.6270,
+                                 -0.6183,  0.6766, -0.4119,  0.3290, 
+                                 -0.0317,  0.1591,  0.1145, -0.2068, 
+                                  0.3398, -0.4158,  0.3922, -0.4482,
+                                  0.4011, -0.4442,  0.4339, -0.4687,
+                                  0.4783, -0.5074,  0.5157, -0.5403,
+                                  0.5400, -0.5610,  0.5719, -0.5896,
+                                  0.6046, -0.6194,  0.6347, -0.6468, 
+                                  0.6627, -0.6718,  0.0000,  0.0000,
+                                  0.0000,  0.0000,  0.0000,  0.0000};
 
   // v parameter for the calculation of Y [1/bar]
   const Numeric V[n_lines] ={  0.0079, -0.0978,  0.0844, -0.1273,
@@ -2450,7 +3248,9 @@ void PWR93O2AbsModel( MatrixView        xsec,
 
 
   // select the parameter set (!!model dominates values!!):
-  Numeric CC, CL, CW, CO;
+  Numeric CC, CL, CW, CO, Y300[n_lines];
+  int oldnewflag = 0;
+
   if ( model == "Rosenkranz" )
     {
       CC = CC_PWR93;
@@ -2500,7 +3300,31 @@ void PWR93O2AbsModel( MatrixView        xsec,
 	<< " CW = " << CW << "\n"
 	<< " CO = " << CO << "\n";
   
-  
+
+  // determin if version Rosenkranz 1993 or Rosenkranz 1988 is selected
+  if ( (version != "PWR93") && (version != "PWR88") )
+    {
+      ostringstream os;
+      os << "O2-PWR93/PWR88: ERROR! Wrong version is selected.\n"
+	 << "Valid versions are:\n" 
+         << "  'PWR93'  for the oxygen absorption model described in  " 
+         << "           P. W. Rosenkranz, Chapter 2, in M. A. Janssen,\n"
+         << "           Atmospheric Remote Sensing by Microwave Radiometry,\n"
+         << "           John Wiley & Sons, Inc., 1993.\n"
+         << "  'PWR88'  for the oxygen absorption model described in \n" 
+         << "           P. W. Rosenkranz, Interference coefficients for the \n" 
+	 << "           overlapping oxygen lines in air, \n"
+         << "           JQSRT, 1988, Volume 39, 287-297.\n";
+      throw runtime_error(os.str());
+    }
+  if ( version == "PWR93" ) {
+    for ( Index i=0; i<n_lines; ++i ) Y300[i] = Y93[i];
+  }
+  if ( version == "PWR88" ) {
+    for ( Index i=0; i<n_lines; ++i ) Y300[i] = Y88[i];
+  }
+
+
   const Index n_p = p_abs.nelem();	// Number of pressure levels
   const Index n_f = f_mono.nelem();	// Number of frequencies
 
@@ -4311,6 +5135,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
   *CONTAGMODINFO*   O2-MPM92:                MPM92, MPM92Lines, MPM92Continuum, MPM92NoCoupling, user
   *CONTAGMODINFO*   O2-MPM93:                MPM93, MPM93Lines, MPM93Continuum, MPM93NoCoupling, user
   *CONTAGMODINFO*   O2-PWR93:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
+  *CONTAGMODINFO*   O2-PWR88:                Rosenkranz, RosenkranzLines, RosenkranzContinuum, user
   *CONTAGMODINFO*   O2-SelfContMPM93:        MPM93, user
   *CONTAGMODINFO*   O2-SelfContPWR93:        Rosenkranz, user
   *CONTAGMODINFO*   O2-GenerealCont:         Rosenkranz, MPM93, user
@@ -5232,13 +6057,20 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	}
     }
   // ============= O2 full model ========================================================
-  else if ( "O2-PWR93"==name )
+  else if ( "O2-PWR88"==name )
     {
       //  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
       //  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
       //  BY MICROWAVE RADIOMETRY (M.A. JANSSEN, ED. 1993)
-      //  AND H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
+      //  AND 
+      //  H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
       //  (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
+      //  AND
+      //  P. W. ROSENKRANZ, INTERFERENCE COEFFICIENTS FOR THE 
+      //  OVERLAPPING OXYGEN LINES IN AIR, JQSRT, 1988, VOLUME 39, 287-297.
+      //
+      //  the only difference to the 1993 version is the line mixing 
+      //  parameter Y, which is taken from the above reference JQSRT, 1988.
       //
       //  specific continuum parameters and units:
       //  OUTPUT 
@@ -5255,6 +6087,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
       //     vmr           : [1]
       //
       const int Nparam = 4;
+      char *version="PWR88";
       if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
 	{
 	  out3 << "Full model " << name << " is running with \n"
@@ -5265,6 +6098,7 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   parameters[2], // line broadening scale factor
 			   parameters[3], // line coupling scale factor
 			   model,
+			   version,
 			   f_mono,
 			   p_abs,
 			   t_abs,
@@ -5290,6 +6124,87 @@ void xsec_continuum_tag( MatrixView                 xsec,
 			   0.00,
 			   0.00,
 			   model,
+			   version,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Full model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 2.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "O2-PWR93"==name )
+    {
+      //  REFERENCE FOR EQUATIONS AND COEFFICIENTS:
+      //  P.W. ROSENKRANZ, CHAP. 2 AND APPENDIX, IN ATMOSPHERIC REMOTE SENSING
+      //  BY MICROWAVE RADIOMETRY (M.A. JANSSEN, ED. 1993)
+      //  AND H.J. LIEBE ET AL, JQSRT V.48, PP.629-643 (1992)
+      //  (EXCEPT: SUBMILLIMETER LINE INTENSITIES FROM HITRAN92)
+      //
+      //  specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT
+      //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
+      //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
+      //     parameters[1] : line broadening scale factor,  default CW = 1.000 [1]
+      //     parameters[1] : line coupling scale factor,    default CO = 1.000 [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs,      : [1]
+      //     vmr           : [1]
+      //
+      const int Nparam = 4;
+      char *version="PWR93";
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Full model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  PWR93O2AbsModel( xsec,
+			   parameters[0], // continuum term scale factor
+			   parameters[1], // line strength scale factor
+			   parameters[2], // line broadening scale factor
+			   parameters[3], // line coupling scale factor
+			   model,
+			   version,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Full model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Full model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  PWR93O2AbsModel( xsec,
+			   0.00,
+			   0.00,
+			   0.00,
+			   0.00,
+			   model,
+			   version,
 			   f_mono,
 			   p_abs,
 			   t_abs,
@@ -5438,6 +6353,235 @@ void xsec_continuum_tag( MatrixView                 xsec,
 	  out3 << "Full model " << name << " running with \n" 
                << "the parameters for model " << model << ".\n";
 	  MPM92O2AbsModel( xsec,
+			   0.00,
+			   0.00,
+			   0.00,
+			   0.00,
+			   model,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Full model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 2.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "O2-MPM89"==name )
+    {
+      //   H. J. Liebe,
+      //   MPM - an atmospheric millimeter-wave propagation model,
+      //   Int. J. Infrared and Mill. Waves, Vol 10, pp. 631-650, 1989.
+      //
+      //  specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT
+      //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
+      //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
+      //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
+      //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs,      : [1]
+      //     vmr           : [1]
+      //
+      const int Nparam = 4;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Full model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  MPM89O2AbsModel( xsec,
+			   parameters[0], // continuum term scale factor
+			   parameters[1], // line strength scale factor
+			   parameters[2], // line broadening scale factor
+			   parameters[3], // line coupling scale factor
+			   model,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Full model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Full model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  MPM89O2AbsModel( xsec,
+			   0.00,
+			   0.00,
+			   0.00,
+			   0.00,
+			   model,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Full model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 2.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "O2-MPM87"==name )
+    {
+      //   H. J. Liebe and D. H. Layton,
+      //   Millimeter-wave properties of the atmosphere: 
+      //   Laboratory studies and propagation modelling,
+      //   NITA Report 87-224, 
+      //   U.S. Dept. of Commerce, National Telecommunications and Information
+      //   Administration, Institute for Communication Sciences, rep. 87-224,
+      //   325 Broadway, Boulder, CO 80303-3328
+      //
+      //  specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT
+      //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
+      //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
+      //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
+      //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs,      : [1]
+      //     vmr           : [1]
+      //
+      const int Nparam = 4;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Full model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  MPM87O2AbsModel( xsec,
+			   parameters[0], // continuum term scale factor
+			   parameters[1], // line strength scale factor
+			   parameters[2], // line broadening scale factor
+			   parameters[3], // line coupling scale factor
+			   model,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Full model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Full model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  MPM87O2AbsModel( xsec,
+			   0.00,
+			   0.00,
+			   0.00,
+			   0.00,
+			   model,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model != "user") && (parameters.nelem() != 0) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "ERROR: Full model " << name << " requires NO input\n"
+	     << "parameters for the model " << model << ",\n"
+	     << "but you specified " << parameters.nelem() << " parameters.\n"
+	     << "This ambiguity can not be solved by arts.\n"
+             << "Please see the arts user guide chapter 2.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+    }
+  // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  else if ( "O2-MPM85"==name )
+    {
+      //   H. J. Liebe and D. H. Layton,
+      //   An updated model for millimeter wave propagation in moist air
+      //   Radio Science, vol. 20, pp. 1069-1089, 1985
+      //
+      //  specific continuum parameters and units:
+      //  OUTPUT 
+      //     xsec          : [1/m],
+      //  INPUT
+      //     parameters[0] : continuum term scale factor,   default CC = 1.000 [1]
+      //     parameters[1] : line strength scale factor,    default CL = 1.000 [1]
+      //     parameters[2] : line broadening scale factor,  default CW = 1.000 [1]
+      //     parameters[3] : line coupling scale factor,    default CO = 1.000 [1]
+      //     f_mono        : [Hz]
+      //     p_abs         : [Pa]
+      //     t_abs         : [K]
+      //     h2o_abs,      : [1]
+      //     vmr           : [1]
+      //
+      const int Nparam = 4;
+      if ( (model == "user") && (parameters.nelem() == Nparam) ) // -------------------------
+	{
+	  out3 << "Full model " << name << " is running with \n"
+	       << "user defined parameters according to model " << model << ".\n";
+	  MPM85O2AbsModel( xsec,
+			   parameters[0], // continuum term scale factor
+			   parameters[1], // line strength scale factor
+			   parameters[2], // line broadening scale factor
+			   parameters[3], // line coupling scale factor
+			   model,
+			   f_mono,
+			   p_abs,
+			   t_abs,
+			   h2o_abs,
+			   vmr );
+	}
+      else if ( (model == "user") && (parameters.nelem() != Nparam) ) // --------------------
+	{
+	  ostringstream os;
+	  os << "Full model " << name << " requires " << Nparam << " input\n"
+	     << "parameters for the model " << model << ",\n"
+             << "but you specified " << parameters.nelem() << " parameters.\n";
+	  throw runtime_error(os.str());
+	  return;
+	}
+      else if ( (model != "user") && (parameters.nelem() == 0) ) // --------------------
+	{
+	  out3 << "Full model " << name << " running with \n" 
+               << "the parameters for model " << model << ".\n";
+	  MPM85O2AbsModel( xsec,
 			   0.00,
 			   0.00,
 			   0.00,
@@ -9617,8 +10761,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.1 $ */
-/*     created:	        $Date: 2002/03/17 01:28:09 $ */
+/*     revision:	        $Revision: 1.26.2.2 $ */
+/*     created:	        $Date: 2002/04/05 23:10:57 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

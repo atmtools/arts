@@ -158,6 +158,58 @@ void CKD24_H20( MatrixView          xsec,      // calculated x-section
 // oxygen line+continuum absorption models
 //////////////////////////////////////////////////////////////////////////// 
 
+void MPM85O2AbsModel( MatrixView        xsec,        // calculated x-section
+		      const Numeric     CC,          // model parameter
+		      const Numeric     CL,          // model parameter
+		      const Numeric     CW,          // model parameter
+		      const Numeric     CO,          // model parameter
+		      const String&     model,       // model option
+		      ConstVectorView   f_mono,      // frequency vector
+		      ConstVectorView   p_abs,       // pressure vector
+		      ConstVectorView   t_abs,       // temperature vector
+		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   vmr );       // O2 vmr profile
+
+
+void MPM87O2AbsModel( MatrixView        xsec,        // calculated x-section
+		      const Numeric     CC,          // model parameter
+		      const Numeric     CL,          // model parameter
+		      const Numeric     CW,          // model parameter
+		      const Numeric     CO,          // model parameter
+		      const String&     model,       // model option
+		      ConstVectorView   f_mono,      // frequency vector
+		      ConstVectorView   p_abs,       // pressure vector
+		      ConstVectorView   t_abs,       // temperature vector
+		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   vmr );       // O2 vmr profile
+
+
+void MPM89O2AbsModel( MatrixView        xsec,        // calculated x-section
+		      const Numeric     CC,          // model parameter
+		      const Numeric     CL,          // model parameter
+		      const Numeric     CW,          // model parameter
+		      const Numeric     CO,          // model parameter
+		      const String&     model,       // model option
+		      ConstVectorView   f_mono,      // frequency vector
+		      ConstVectorView   p_abs,       // pressure vector
+		      ConstVectorView   t_abs,       // temperature vector
+		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   vmr );       // O2 vmr profile
+
+
+void MPM92O2AbsModel( MatrixView        xsec,        // calculated x-section
+		      const Numeric     CC,          // model parameter
+		      const Numeric     CL,          // model parameter
+		      const Numeric     CW,          // model parameter
+		      const Numeric     CO,          // model parameter
+		      const String&     model,       // model option
+		      ConstVectorView   f_mono,      // frequency vector
+		      ConstVectorView   p_abs,       // pressure vector
+		      ConstVectorView   t_abs,       // temperature vector
+		      ConstVectorView   h2o_abs,     // H2O vmr profile
+		      ConstVectorView   vmr );       // O2 vmr profile
+
+
 void MPM93O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CC,          // model parameter
 		      const Numeric     CL,          // model parameter
@@ -176,6 +228,7 @@ void PWR93O2AbsModel( MatrixView        xsec,        // calculated x-section
 		      const Numeric     CW,          // model parameter
 		      const Numeric     CO,          // model parameter
 		      const String&     model,       // model option
+		      const String&     version,     // model version 1993 or 1988
 		      ConstVectorView   f_mono,      // frequency vector
 		      ConstVectorView   p_abs,       // pressure vector
 		      ConstVectorView   t_abs,       // temperature vector

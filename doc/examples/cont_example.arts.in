@@ -9,6 +9,7 @@ tgsDefine{
         "O2-SelfContStandardType",
         "N2-SelfContStandardType",
         "N2-SelfContMPM93",
+	"N2-SelfContBorysow",
         "CO2-SelfContPWR93",
         "CO2-ForeignContPWR93"
       ] 
@@ -44,6 +45,20 @@ cont_descriptionAppend{
     userparameters = [ ]
 }
 #
+# CKD2.4 original parameters:
+cont_descriptionAppend{
+    tagname        = "H2O-SelfContCKD24"
+    model          = "CKD24"
+    userparameters = [ ]
+}
+#
+# CKD2.4 original parameters:
+cont_descriptionAppend{
+    tagname        = "H2O-ForeignContCKD24"
+    model          = "CKD24"
+    userparameters = [ ]
+}
+#
 # ----- O2 continuum 
 #
 # Standard O2-air continuum:
@@ -65,6 +80,13 @@ cont_descriptionAppend{
 cont_descriptionAppend{
     tagname        = "N2-SelfContMPM93"
     model          = "MPM93"
+    userparameters = [ ]
+}
+#
+# Borysow-Frommhold original parameters:
+cont_descriptionAppend{
+    tagname        = "N2-SelfContBorysow"
+    model          = "BF86"
     userparameters = [ ]
 }
 #
@@ -115,18 +137,10 @@ n2_absSet{}
 #
 #----------------------------------------------------
 #
-# Read spectral line data from HITRAN96 catalogue for 
-# the frequency range from 1 to 2 GHz.
-# This in not essential for the continuum tags but 
-# bust be given as input for absCalc below.
-# ATTENTION! THE PATH AND FILE NAMES ARE USER SPECIFIC!
+# no external line catalog is needed
+lines_per_tgSetEmpty{}
 #
-lines_per_tgReadFromCatalogues{
-  filenames = [ "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par" ]
-  formats   = [ "HITRAN96" ]
-  fmin      = [ 1.0e9 ]
-  fmax      = [ 2.0e9 ]
-}
+#----------------------------------------------------
 #
 # Create an example frequency grid `f_mono'
 VectorNLinSpace(f_mono){
@@ -137,34 +151,13 @@ VectorNLinSpace(f_mono){
 #
 #----------------------------------------------------
 #
-#
 # Set the lineshape function for each continuum tag
-lineshape_per_tgDefine{
-        shape               = [ "no_shape", 
-                                "no_shape", 
-                                "no_shape",
-                                "no_shape",
-                                "no_shape",
-                                "no_shape",
-                                "no_shape", 
-                                "no_shape"]
-        normalizationfactor = [ "no_norm", 
-                                "no_norm", 
-                                "no_norm", 
-                                "no_norm",
-                                "no_norm",
-                                "no_norm", 
-                                "no_norm", 
-                                "no_norm"]
-        cutoff              = [ -1,
-                                -1, 
-                                -1, 
-                                -1, 
-                                -1,        
-                                -1,
-                                -1, 
-                                -1]
-}
+lineshapeDefine{
+               shape =               "no_shape" 
+               normalizationfactor = "no_norm"
+               cutoff =              -1
+               }
+#
 #----------------------------------------------------
 # calculate the absorption coefficients, unit=1/meter
 absCalc{}

@@ -1,3 +1,16 @@
+2002-04-06  Thomas Kuhn  <tkuhn@uni-bremen.de>
+ 
+        * arts-1-0-20
+
+        * src/continua.cc: implementation of the oxygen models
+          MPM85, MPM87, MPM89, and PWR88.
+
+        * doc/examples/cont_example.arts.in: update with 
+          N2-continuum of Borysow and H2O-continuum of CKD2.4
+
+        * doc/examples/fullmodels_example.arts.in: update with 
+          oxygen models MPM85, MPM87, MPM89, MPM92 and PWR88. 
+
 2002-03-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-19

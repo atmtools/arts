@@ -314,8 +314,12 @@ void define_basic_species_data()
 	 REC( "SelfContMPM93"	,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "SelfContPWR93"	,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "PWR93"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "PWR88"	,-1.	,-1.	,-1	,-1	,TAGS()),
 	 REC( "MPM93"	,-1.	,-1.	,-1	,-1	,TAGS()),
-	 REC( "MPM92"	,-1.	,-1.	,-1	,-1	,TAGS())
+	 REC( "MPM92"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "MPM89"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "MPM87"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "MPM85"	,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // NO

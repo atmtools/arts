@@ -347,8 +347,12 @@ void define_partition_species_data()
   iso(it_isotope,	"SelfContMPM93",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"SelfContPWR93",   Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"PWR93",          Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"PWR88",          Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM93",          Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"MPM92",          Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM89",          Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM87",          Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"MPM85",          Qcoeff( 0	,0		,0		,0          ) );
 
   // NO
   // Coeff:       1      1      1
