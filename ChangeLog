@@ -1,3 +1,27 @@
+2001-09-27  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-240
+
+	* Revised the weighting function functions. Some function names
+	and some keyword input have been changed. The aim has been to have
+	a single function for each retrieval type. However, there are two
+	versions for species. On-line information updated and check of
+	function input is added.
+
+	* kSpeciesAll is now called kSpecies as this should be the standard
+	function for species. The old kSpecies is now called kSpeciesSingle.
+
+	* There is a problem with kSpecies and vmrs. It is now assumed
+	that vmrs has the same length as abs_per_tgs, but this is now not
+	the case. I will fix this later.
+	
+	* There is now only a single kContAbs function. See the on-line info.
+
+	* There is now only a single kTemp function. See the on-line info.
+	
+	* No bigger bug checks. Will be done.
+	
+
 2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
 	
 	* arts-0-0-239

@@ -479,6 +479,32 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("VectorPressuresForLinAltitudes"),
+	DESCRIPTION(
+           "Calculates a set of pressures corresponding to a linear set\n"
+           "of altitudes. \n"
+           "\n"
+           "The linear set of altitudes is defined by an altitude step and \n"
+           "a start and stop pressure. \n"
+           "   The conversions between pressures and altitudes are based on\n"
+           "*p_abs* and *z_abs*. \n"
+           "\n"
+           "Global output: \n"
+           "   Vector : Return vector for the pressure grid created. \n"
+           "\n"
+           "Keywords:\n"
+           "     delta_z : altitude step\n"
+           "     p_start : start pressure\n"
+           "     p_stop  : stop pressure."  ),
+	OUTPUT(),
+	INPUT( p_abs_, z_abs_ ),
+	GOUTPUT( Vector_ ),
+	GINPUT(),
+	KEYWORDS( "delta_z", "p_start", "p_stop"  ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("VectorCopy"),
 	DESCRIPTION("Copies a vector."),
 	OUTPUT(),
@@ -2326,7 +2352,7 @@ md_data.push_back
     ( MdRecord
       ( NAME("emissionOn"),
   	DESCRIPTION(
-	  "Turns on emission by setting the emission flag to 1."),
+	  "Turns on emission by setting the emission flag to 1. \n"),
 	OUTPUT( emission_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -2350,9 +2376,9 @@ md_data.push_back
     ( MdRecord
       ( NAME("losCalc"),
   	DESCRIPTION(
-          "Calculates the line-of-sight (LOS), with and without refraction.\n"
+          "Calculates the line-of-sight (LOS).\n"
           "\n"
-          "See AUG for details about the calculations.."),
+          "See AUG for details about the calculations."),
 	OUTPUT( los_, z_tan_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
                 refr_, refr_lfac_, refr_index_, z_ground_, r_geoid_ ),
@@ -2526,10 +2552,16 @@ md_data.push_back
       ( NAME("wfs_tgsDefine"),
   	DESCRIPTION(
           "Set up the list of tag groups for which weighting functions will \n"
-	  "be calculated. The specified Strings must be a subgroup of the\n"
-          "absorption tag groups (tgs).\n"
-	  "Example:\n"
-	  "wfs_tgs = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
+	  "be calculated. \n"
+          "\n"
+          "The *wfs_tgs* are specified exactly as *tgs* (see tgsDefine). \n"
+          "The selected tag groups must be a subgroup of the absorption \n"
+          "tags (*tgs*). \n"
+	  "   See the functions abs_per_tgReduce and kSpeciesAll for futher \n"
+          "information around *wfs_tgs*. \n"
+          "\n"
+          "Keywords \n"
+          "  wfs_tgs : String with tag groups."),
 	OUTPUT( wfs_tgs_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -2542,9 +2574,10 @@ md_data.push_back
       ( NAME("absloswfsCalc"),
   	DESCRIPTION(
           "Calculates absorption line of sight weighting functions (LOS WFs)\n"
-          "for 1D atmospheres with or without emission.\n"
+          "\n"
           "These WFs are the derivative of the spectra with respect to the \n"
-          "absorption at the LOS points. See further the ARTS user guide."),
+          "absorption at the LOS points. See AUG for more detailed \n"
+          "definition and details about the calculations."),
 	OUTPUT( absloswfs_ ),
 	INPUT( emission_, los_, source_, trans_, y_, y_space_, f_mono_, 
                                                         e_ground_, t_ground_ ),
@@ -2557,37 +2590,28 @@ md_data.push_back
     ( MdRecord
       ( NAME("kSpecies"),
   	DESCRIPTION(
-          "Calculates species 1D weighting functions for a single tag.\n"
-          "The tag is selected by the giving the tag name. This String must \n"
-          "match exactly the String in wfs_tgs. The original absorption\n"
-          "array (abs_per_tg) must been reduced to match wfs_tags. \n"
+          "Calculates species weighting functions (WFs) for all *wfs_tgs*.\n"
+          "\n"
+          "The WFs are calculated by (semi-)analytical expressions, where it\n"
+          "is assumed that there is a linear relationship between the amount\n"
+          "of the species and the absorption, and that the LOS is not \n"
+          "affected by changes of the species. These assumtions should be\n"
+          "valid generally for observations above the tropopause (as long \n"
+          "LTE applies), but is not true for tropospheric water vapor. \n"
+          "See AUG for details about the calculations. \n"
+          "   The WFs for the different tag groups in *wfs_tgs* are appended\n"
+          "to form a single matrix. The absorption array (*abs_per_tg*) must\n"
+          "have been reduced to match *wfs_tags* (by using the function \n"
+          "abs_per_tgReduce). The unit of the returned WFs are described \n"
+          "below.\n"
+          "\n"
           "The avaliable units are\n"
           "  frac : fractions of linearisation profile \n"
           "  vmr  : volume mixing ratio \n"
           "  nd   : number density\n"
           "\n"
           "Keywords \n"
-          "  tag  : Tag String.\n"
-          "  unit : Retrieval unit String (see above)."),
-	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, p_abs_, t_abs_, wfs_tgs_, abs_per_tg_, 
-                                                              vmrs_, k_grid_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "tag",     "unit"  ),
-	TYPES(    String_t,  String_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("kSpeciesAll"),
-  	DESCRIPTION(
-          "Calculates species 1D weighting functions for all tags that\n"
-          "are included in wfs_tags. Units as for kSpecies.\n"
-          "The original absorption array (abs_per_tg) must been reduced to \n"
-          "match wfs_tags. \n"
-          "\n"
-          "Keywords \n"
-          "  unit : Retrieval unit String."),
+          "  unit : Retrieval unit string (see above)."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, p_abs_, t_abs_, wfs_tgs_, abs_per_tg_, 
                                                               vmrs_, k_grid_ ),
@@ -2598,37 +2622,48 @@ md_data.push_back
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kContAbs"),
+      ( NAME("kSpeciesSingle"),
   	DESCRIPTION(
-          "Calculates 1D weighting functions for fit of continuum absorption\n"
-          "by polynomials with selectable order.\n"  
-          "The continuum is fitted be determining an off-set at a number of\n"
-          "points (order+1) that are evenly spread between the lowest and\n"
-          "highest frequency of f_mono.\n"
+          "Calculates species weighting functions (WFs) for a single tag \n"
+          "group.\n"
+          "\n"
+          "The tag group is selected by the giving the full name. This \n"
+          "string must match exactly the string in *wfs_tgs* (and then the \n"
+          "string in *tgs*). Otherwise as the function kSpecies (this \n"
+          "including units). \n"
           "\n"
           "Keywords \n"
-          "  order : Polynomial order (>=0)."),
+          "  tg   : Tag group string.\n"
+          "  unit : Retrieval unit string (see kSpecies)."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
+	INPUT( los_, absloswfs_, p_abs_, t_abs_, wfs_tgs_, abs_per_tg_, 
+                                                              vmrs_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "order" ),
-	TYPES(    Index_t   )));
+	KEYWORDS( "tg",      "unit"  ),
+	TYPES(    String_t,  String_t )));
 
   md_data.push_back
     ( MdRecord
-      ( NAME("kContAbsSpecifiedLimits"),
+      ( NAME("kContAbs"),
   	DESCRIPTION(
-          "Calculates 1D weighting functions for fit of continuum absorption\n"
-          "by polynomials with selectable order.\n"
-          "The continuum is fitted be determining an off-set at a number of\n"
-          "points (order+1) that are evenly spread between the given\n"
-          "frequency limits.\n"
-          "This functions can be used to make seperate fits in the primary\n"
-          "and image bands.\n"
+          "Calculates weighting functions (WFs) for polynomial fit of \n"
+          "continuum  absorption. \n"
+          "\n"  
+          "The continuum is fitted by determining an off-set at a number of \n"
+          "points (order+1) that are evenly spread between the lowest and \n"
+          "upper frequency limit. See AUG for more details.\n"
+          "   If the limits are set to be negative, *f_low* is set to the \n"
+          "first value of *f_mono*, and *f_high* to the last value of \n"
+          "*f_mono*. The frequency limits cannot be outside the range of \n"
+          "*f_mono*. \n"
+          "   The WFs for each frequency point are kept together, and the \n"
+          "WF matrix for the different frequency points are appended. \n"
           "\n"
           "Keywords \n"
-          "  order : Polynomial order (>=0)."),
+          "  order : Polynomial order (>=0). \n"
+          "  f_low : Frequency of first fit point. \n"
+          " f_high : Frequency of last fit point. " ),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
 	GOUTPUT(),
@@ -2649,54 +2684,23 @@ md_data.push_back
 	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, abs_, 
           lines_per_tg_, lineshape_, e_ground_, emission_, k_grid_, 
           cont_description_names_, cont_description_parameters_,
+	  los_, absloswfs_, trans_,
           z_plat_ ,za_pencil_, l_step_, z_abs_, refr_, refr_lfac_, refr_index_,
 	  z_ground_, t_ground_, y_space_, r_geoid_, hse_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("kTempFast"),
-  	DESCRIPTION(
-          "As kTemp but faster as the absorption is assumed to be perfectly\n"
-          "linear between t_abs and t_abs+1K.\n"
-          "The difference between this function and kTemp should in general\n"
-          "be negliable."),
-	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, abs_, 
-          lines_per_tg_, lineshape_, e_ground_, emission_, k_grid_, 
-          cont_description_names_, cont_description_parameters_,
-          z_plat_ ,za_pencil_, l_step_, z_abs_, refr_, refr_lfac_, refr_index_,
-	  z_ground_, t_ground_, y_space_, r_geoid_, hse_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("kTempNoHydro"),
-  	DESCRIPTION(
-          "Calculates temperature weighting functions WITHOUT including\n"
-          "hydrostatic equilibrium."),
-	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( tgs_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, n2_abs_, 
-          h2o_abs_, vmrs_, lines_per_tg_, lineshape_, abs_, trans_, e_ground_, 
-          k_grid_, cont_description_names_, cont_description_parameters_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS( "hse",   "fast"  ),
+	TYPES(    Index_t, Index_t )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("kPointingOffSet"),
   	DESCRIPTION(
           "Calculates the WF for a pointing off-set.\n"
-          "The functions uses losCalc, transCalc, sourceCalc and yRte to\n"
-          "calculate a new spectrum for a changed zenith angles grid.\n"
+          "\n"
+          "The Wf is siimply the difference between *y* and the spectrum \n"
+          "obtained when adding *delta* to *za_pencil*, diveded by *delta*.\n"
+          "That is, a pure perturbation calculation is performed. \n"
           "\n"
           "Keywords \n"
           "  delta : Size of zenith angle perturbation."),
@@ -2716,9 +2720,9 @@ md_data.push_back
 	   "Calculates the WF(s) for ground emission coefficent(s).\n"
            "\n"
            "The ground emission WF(s) are calculated by semi-analytical\n"
-           "expressions (see AUG). With SINGLE_E=0, a WF is returned for \n"
+           "expressions (see AUG). With single_e=0, a WF is returned for \n"
            "the emission coefficient of each monochromatic frequency. \n"
-           "On the other hand, when SINGLE_E=1, the ground emission is \n"
+           "On the other hand, when single_e=1, the ground emission is \n"
            "treated as a single varaible (that is, no frequency dependency) \n"
            "and there is only a single WF to be calculated. The latter \n"
            "option requieres that all elements of E_GROUND are set to the \n"
@@ -2740,10 +2744,18 @@ md_data.push_back
       ( NAME("kCalibration"),
   	DESCRIPTION(
           "Calculates the WF for a proportional calibration error. \n"
-          "The WF is simply : k = y - y_ref where y_ref is the specified\n"
-          "vector."),
+          "\n"
+          "The WF is simply : k = y - y0 where y0 is the specified \n"
+          "vector. The y0-vector shhould typically be the radiance (or TB) \n"
+          "of the load used for load switching. For example: \n"
+          "   VectorPlanck(y0,f_mono){temp=2.7} \n"
+          "   kCalibration(y0){} \n"
+          "\n"
+          "Global input: \n"
+	  "   Vector : A vector with spectrum for calibration reference \n"
+          "            point. This vector should typically be *y0*. "),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( y_ ),
+	INPUT( y_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT( Vector_ ),
 	KEYWORDS(),
@@ -2754,6 +2766,7 @@ md_data.push_back
       ( NAME("kManual"),
   	DESCRIPTION(
           "Calculates a weighting function using y and y0.\n"
+          "\n"
           "The weighting function is calculated as: k = (y-y0)/delta\n"
           "That is, delta is the magnitude of the perturbation done.\n"
           "\n"
@@ -2775,6 +2788,7 @@ md_data.push_back
   	DESCRIPTION(
           "Initializes Kx weighting function matrix and help variables\n"
           "(kx_names, kx_lengths and kx_aux).\n"
+          "\n"
           "Use this function before the WF calculations are started and\n"
           "together with kxAppend."),
 	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
@@ -2790,6 +2804,7 @@ md_data.push_back
   	DESCRIPTION(
           "Initializes Kb weighting function matrix and help variables\n"
           "(kb_names, kb_lengths and kb_aux).\n"
+          "\n"
           "Use this function before the WF calculations are started and\n"
           "together with kbAppend."),
 	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
@@ -2804,9 +2819,11 @@ md_data.push_back
       ( NAME("kxAppend"),
   	DESCRIPTION(
           "Appends the K matrix to Kx and handles additional data\n"
-          "correspondingly. All the data are reallocated to make space for\n"
-          "the new data. This function is accordingly slow for large data\n"
-          "sizes, and it can be better to use kxAllocate and kxPutInK."),
+          "correspondingly. \n"
+          "\n"
+          "All the data are reallocated to make space for the new data.\n"
+          "This function is accordingly slow for large data sizes,\n"
+          "and it can be better to use kxAllocate and kxPutInK."),
 	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
         INPUT( kx_, kx_names_, kx_lengths_, kx_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
@@ -2819,9 +2836,11 @@ md_data.push_back
       ( NAME("kbAppend"),
   	DESCRIPTION(
           "Appends the K matrix to Kb and handles additional data\n"
-          "correspondingly. All the data are reallocated to make space for\n"
-          "the new data. This function is accordingly slow for large data\n"
-          "sizes, and it can be better to use kbAllocate and kbPutInK."),
+          "correspondingly. \n"
+          "\n"
+          "All the data are reallocated to make space for the new data.\n"
+          "This function is accordingly slow for large data sizes,\n"
+          "and it can be better to use kbAllocate and kbPutInK."),
 	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
         INPUT( kb_, kb_names_, kb_lengths_, kb_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
@@ -2834,10 +2853,16 @@ md_data.push_back
       ( NAME("kxAllocate"),
   	DESCRIPTION(
           "Allocates memory for kx and help variables (kx_names, kx_lengths \n"
-          "and kx_aux). The number of frequencies is taken from the length \n"
-          "of the given vector (typically y)\n"
-          "Use this function before the WF calculations are started and\n"
+          "and kx_aux).\n" 
+          "\n"
+          "The total number of frequencies is taken from the length \n"
+          "of the given vector (typically y).\n"
+          "   Use this function before the WF calculations are started and\n"
           "together with kxPutInK.\n"
+          "\n"
+          "Global input: \n"
+	  "   Vector : A vector with same length as the appended spectra.\n"
+          "            The typical choice is *y*.\n"
           "\n"
           "Keywords \n"
           "  ni : Number of retrieval identities (species profiles,\n"
@@ -2854,20 +2879,27 @@ md_data.push_back
     ( MdRecord
       ( NAME("kbAllocate"),
   	DESCRIPTION(
-          "Allocates memory for kb and help variables (kb_names, kb_lengths\n"
-          "and kb_aux). The number of frequencies is taken from the length \n"
-          "of the given vector (typically y)\n"
-          "Use this function before the WF calculations are started and\n"
+          "Allocates memory for kx and help variables (kb_names, kb_lengths \n"
+          "and kb_aux). \n"
+          "\n"
+          "The total number of frequencies is taken from the length \n"
+          "of the given vector (typically y).\n"
+          "   Use this function before the WF calculations are started and\n"
           "together with kbPutInK.\n"
           "\n"
+          "Global input: \n"
+	  "   Vector : A vector with same length as the appended spectra.\n"
+          "            The typical choice is *y*.\n"
+          "\n"
           "Keywords \n"
-          "  ni : Number of error identities (temperature profile etc.).\n"
-          "  nx : Final length of x."),
+          "  ni : Number of retrieval identities (species profiles,\n"
+          "              pointing off-set etc.).\n"
+          "  nb : Final length of b."),
 	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT( Vector_ ),
-	KEYWORDS( "ni",  "nx"  ),
+	KEYWORDS( "ni",  "nb"  ),
 	TYPES(    Index_t, Index_t )));
 
   md_data.push_back
@@ -2875,8 +2907,9 @@ md_data.push_back
       ( NAME("kxPutInK"),
   	DESCRIPTION(
           "Puts K in Kx and handles additional data correspondingly.\n"
+          "\n"
           "K is placed in the first free columns of Kx.\n"
-          "No reallocation is performed (in contrast to kxAppend) and an\n"
+          "   No reallocation is performed (in contrast to kxAppend) and an\n"
           "error message is given if k does not fit into kx. The kx-data are\n"
           "allocated by the function kxAllocate."),
 	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
@@ -2891,8 +2924,9 @@ md_data.push_back
       ( NAME("kbPutInK"),
   	DESCRIPTION(
           "Puts K in Kb and handles additional data correspondingly.\n"
+          "\n"
           "K is placed in the first free columns of Kb.\n"
-          "No reallocation is performed (in contrast to kbAppend) and an\n"
+          "   No reallocation is performed (in contrast to kbAppend) and an\n"
           "error message is given if k does not fit into kb. The kb-data are\n"
           "allocated by the function kbAllocate."),
 	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
@@ -2901,27 +2935,6 @@ md_data.push_back
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("LinAltsFromPres"),
-	DESCRIPTION(
-           "Calculates a set of pressures corresponding to a linear set\n"
-           "of altitudes, for instance, to set a k_grid with the altitudes\n"
-           "equally spaced. The method uses p_abs and z_abs to go an\n"
-           "forward and backwards from pressure to altitude. The linear \n"
-           "set of altitudes is given with an altitude step and a starting\n"
-           "and stopping pressure.\n"
-           "Keywords:\n"
-           "     delta_z   : altitude step\n"
-           "     p_start   : starting pressure\n"
-           "     p_stop    : stopping pressure."  ),
-	OUTPUT(),
-	INPUT( p_abs_, z_abs_ ),
-	GOUTPUT(Vector_ ),
-	GINPUT(),
-	KEYWORDS("delta_z","p_start","p_stop"),
-	TYPES(   Numeric_t, Numeric_t, Numeric_t )));
 
 
 

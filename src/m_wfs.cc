@@ -1176,9 +1176,18 @@ void k_species (
               const ArrayOfIndex&    tg_nr,
               const String&          unit )
 {
+  check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
+  check_length_nrow( p_abs, "p_abs", vmrs, "vmrs" );
+  if ( tags.nelem() != abs_per_tg.nelem() )
+    throw runtime_error(
+                       "Lengths of *wfs_tgs* and *abs_per_tg* do not match." );
+  if ( los.p.nelem() != absloswfs.nelem() )
+    throw runtime_error(
+     "The number of zenith angles is not the same in *los* and *absloswfs*." );
+
   // Main sizes
   const Index  nza = los.start.nelem();      // number of zenith angles  
-  const Index  nv  = abs_per_tg[0].nrows(); // number of frequencies
+  const Index  nv  = abs_per_tg[0].nrows();  // number of frequencies
   const Index  ntg = tg_nr.nelem();          // number of retrieval tags to do
   const Index  np  = k_grid.nelem();         // number of retrieval altitudes
 
@@ -1277,7 +1286,7 @@ void k_species (
     }
     else
       throw runtime_error(
-        "Allowed retrieval units are \"frac\", \"vmr\" and \"nd\"."); 
+        "Allowed species retrieval units are \"frac\", \"vmr\" and \"nd\"."); 
 
     // Set frequency zenith angle index off-set to 0
     iv0 = 0;                 
@@ -1381,15 +1390,33 @@ void k_contabs (
               const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
-              const Index&          order,
+              const Index&           order,
               const Numeric&         flow,
               const Numeric&         fhigh )
 {
+  if ( los.p.nelem() != absloswfs.nelem() )
+    throw runtime_error(
+     "The number of zenith angles is not the same in *los* and *absloswfs*." );
+  check_length_nrow( f_mono, "f_mono", absloswfs[0], 
+                                                 "the matrices of absloswfs" );
   // Main sizes
   const Index  nza = los.start.nelem();     // number of zenith angles  
   const Index  np  = k_grid.nelem();        // number of retrieval altitudes
   const Index  npoints = order+1;          // number of off-set points
   const Index  nv  = f_mono.nelem();        // number of frequencies
+
+  // Check given frequency limits
+  assert( flow < 0 );
+  assert( fhigh < 0 );
+  if ( flow >= fhigh )
+    throw runtime_error(
+             "The lower frequency limit equals or is above the upper limit." );
+  if ( flow >= f_mono[nv-1] )
+    throw runtime_error(
+                  "The lower frequency limit is above all values of f_mono." );
+  if ( fhigh <= f_mono[0] )
+    throw runtime_error(
+                  "The upper frequency limit is below all values of f_mono." );
 
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
@@ -1404,17 +1431,6 @@ void k_contabs (
         Index  ip, ip0=0;                 // Retrieval point indices
         Index  iv, iv0;                   // Frequency indices
         Index  i1, iw;                    // weight indices
-
-  // Check given frequency limits
-  if ( flow >= fhigh )
-    throw runtime_error(
-       "The lower frequency limit equals or is above the upper limit." ); 
-  if ( flow >= f_mono[nv-1] )
-    throw runtime_error(
-       "The lower frequency limit is above all values of f_mono." ); 
-  if ( fhigh <= f_mono[0] )
-    throw runtime_error(
-       "The upper frequency limit is below all values of f_mono." ); 
 
   // Determine first and last frequency index inside given limits
   Index   ilow, ihigh;
@@ -1588,26 +1604,26 @@ void k_contabs (
    \date   2000-09-15
 */
 void k_temp_nohydro (
-		           Matrix&                        k,
-		           ArrayOfString&                 k_names,
-		           Matrix&                        k_aux,
-		     const TagGroups&                     tag_groups,
-		     const Los&                           los,           
-		     const ArrayOfMatrix&                 absloswfs,
-		     const Vector&                        f_mono,
-		     const Vector&                        p_abs,
-		     const Vector&                        t_abs,
-		     const Vector&                        n2_abs,	   
-		     const Vector&                        h2o_abs,	   
-		     const Matrix&                        vmrs,
-		     const ArrayOfArrayOfLineRecord&      lines_per_tg,
-		     const ArrayOfLineshapeSpec&          lineshape,
-		     const Matrix&                        abs,            
-		     const ArrayOfMatrix&                 trans,
-		     const Vector&                        e_ground,
-		     const Vector&                        k_grid,
-		     const ArrayOfString&         cont_description_names,
-                     const ArrayOfVector& 	  cont_description_parameters )
+              Matrix&                     k,
+              ArrayOfString&              k_names,
+              Matrix&                     k_aux,
+        const TagGroups&                  tag_groups,
+        const Los&                        los,           
+        const ArrayOfMatrix&              absloswfs,
+        const Vector&                     f_mono,
+        const Vector&                     p_abs,
+        const Vector&                     t_abs,
+        const Vector&                     n2_abs,	   
+        const Vector&                     h2o_abs,	   
+        const Matrix&                     vmrs,
+        const ArrayOfArrayOfLineRecord&   lines_per_tg,
+        const ArrayOfLineshapeSpec&       lineshape,
+        const Matrix&                     abs,            
+        const ArrayOfMatrix&              trans,
+        const Vector&                     e_ground,
+        const Vector&                     k_grid,
+        const ArrayOfString&              cont_description_names,
+        const ArrayOfVector& 	          cont_description_parameters )
 {
   // Main sizes
   const Index  nza = los.start.nelem();     // number of zenith angles  
@@ -1909,50 +1925,13 @@ void kSpecies (
               const ArrayOfMatrix&   abs_per_tg,
               const Matrix&          vmrs,
               const Vector&          k_grid,
-              const String&          tag,
               const String&          unit )
 {
-  if ( wfs_tgs.nelem() != abs_per_tg.nelem() )
-    throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
+  // Check of input is performed in k_species
 
-  ArrayOfString  tag_name(1);
-  tag_name[0] = tag;
-
-  ArrayOfIndex   tg_nr; 
-  get_tagindex_for_Strings( tg_nr, wfs_tgs, tag_name );
-  
-  k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-	     wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void kSpeciesAll (
-                    Matrix&          k,
-                    ArrayOfString&   k_names,
-                    Matrix&          k_aux,
-              const Los&             los,           
-              const ArrayOfMatrix&   absloswfs,
-              const Vector&          p_abs,
-              const Vector&          t_abs,             
-              const TagGroups&       wfs_tgs,
-              const ArrayOfMatrix&   abs_per_tg,
-              const Matrix&          vmrs,
-              const Vector&          k_grid,
-              const String&          unit )
-{
-  const Index  ntg = wfs_tgs.nelem();     // number of retrieval tags
+  const Index   ntg = wfs_tgs.nelem();     // number of retrieval tags
   ArrayOfIndex  tg_nr(ntg);
 
-  if ( ntg != abs_per_tg.nelem() )
-    throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
-  
   for ( Index i=0; i<ntg; i++ )
     tg_nr[i] = i;
 
@@ -1968,18 +1947,31 @@ void kSpeciesAll (
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void kContAbs (
+void kSpeciesSingle (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
-              const Vector&          f_mono,
+              const Vector&          p_abs,
+              const Vector&          t_abs,             
+              const TagGroups&       wfs_tgs,
+              const ArrayOfMatrix&   abs_per_tg,
+              const Matrix&          vmrs,
               const Vector&          k_grid,
-              const Index&             order )
+              const String&          tg,
+              const String&          unit )
 {
-  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
-                                                first(f_mono), last(f_mono) );
+  // Check of input is performed in k_species
+
+  ArrayOfString  tg_name(1);
+  tg_name[0] = tg;
+
+  ArrayOfIndex   tg_nr; 
+  get_tagindex_for_Strings( tg_nr, wfs_tgs, tg_name );
+  
+  k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
+                 	     wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -1990,7 +1982,7 @@ void kContAbs (
    \author Patrick Eriksson
    \date   2000-01-21
 */
-void kContAbsSpecifiedLimits (
+void kContAbs (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
@@ -1998,12 +1990,20 @@ void kContAbsSpecifiedLimits (
               const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
-	      const Index&             order,
+	      const Index&           order,
               const Numeric&         f_low,
               const Numeric&         f_high )
 {
-  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order,
-                                                              f_low, f_high );
+  // Input is checked in k_contabs  
+
+  Numeric f1=f_low, f2=f_high;
+
+  if ( f1 < 0 )
+    f1 = first( f_mono );
+  if ( f2 < 0 )
+    f2 = last( f_mono );
+
+  k_contabs( k, k_names, k_aux, los, absloswfs, f_mono, k_grid, order, f1, f2);
 }
 
 
@@ -2015,349 +2015,336 @@ void kContAbsSpecifiedLimits (
    \date   2000-04-18
 */
 void kTemp (
-                Matrix&                   k,
-                ArrayOfString&            k_names,
-                Matrix&                   k_aux,
-          const TagGroups&                tgs,
-          const Vector&                   f_mono,
-          const Vector&                   p_abs,
-          const Vector&                   t_abs,
-          const Vector&                   n2_abs,
-          const Vector&                   h2o_abs,
-          const Matrix&                   vmrs,
-	  const Matrix&                   abs0,
-          const ArrayOfArrayOfLineRecord& lines_per_tg,
-          const ArrayOfLineshapeSpec&     lineshape,
-          const Vector&                   e_ground,
-          const Index&                      emission,
-          const Vector&                   k_grid,
-          const ArrayOfString&            cont_description_names,
-          const ArrayOfVector& 	          cont_description_parameters,
-    	  const Numeric&    		  z_plat,
-    	  const Vector&     		  za,
-    	  const Numeric&    		  l_step,
-    	  const Vector&     		  z_abs,
-    	  const Index&        		  refr,
-    	  const Index&        		  refr_lfac,
-    	  const Vector&     		  refr_index,
-    	  const Numeric&    		  z_ground,
-          const Numeric&                  t_ground,
-    	  const Vector&     		  y_space,
-    	  const Numeric&    		  r_geoid,
-          const Vector&     		  hse0 )
+                Matrix&                      k,
+                ArrayOfString&               k_names,
+                Matrix&                      k_aux,
+          const TagGroups&                   tgs,
+          const Vector&                      f_mono,
+          const Vector&                      p_abs,
+          const Vector&                      t_abs,
+          const Vector&                      n2_abs,
+          const Vector&                      h2o_abs,
+          const Matrix&                      vmrs,
+	  const Matrix&                      abs0,
+          const ArrayOfArrayOfLineRecord&    lines_per_tg,
+          const ArrayOfLineshapeSpec&        lineshape,
+          const Vector&                      e_ground,
+          const Index&                       emission,
+          const Vector&                      k_grid,
+          const ArrayOfString&               cont_description_names,
+          const ArrayOfVector& 	             cont_description_parameters,
+          const Los&                         los,           
+          const ArrayOfMatrix&               absloswfs,
+          const ArrayOfMatrix&               trans,
+    	  const Numeric&    		     z_plat,
+    	  const Vector&     		     za,
+    	  const Numeric&    		     l_step,
+    	  const Vector&     		     z_abs,
+    	  const Index&        		     refr,
+    	  const Index&        		     refr_lfac,
+    	  const Vector&     		     refr_index,
+    	  const Numeric&    		     z_ground,
+          const Numeric&                     t_ground,
+    	  const Vector&     		     y_space,
+    	  const Numeric&    		     r_geoid,
+          const Vector&     		     hse,
+	  // Keywords
+          const Index&                       kw_hse,
+          const Index&                       kw_fast )
 {
-  // Check input
-  if ( hse0[0] == 0 )
-    throw runtime_error("Hydrostatic equilibrium must be turned on.");
-
-  // Main sizes
-  const Index  nza  = za.nelem();          // number of zenith angles  
-  const Index  nv   = f_mono.nelem();      // number of frequencies
-  const Index  np   = k_grid.nelem();      // number of retrieval altitudes
-  const Index  nabs = p_abs.nelem();       // number of absorption altitudes
-
-  // Vectors for the reference state
-  Vector z0(nabs), y0, t0(np);
-
-  // Local copy of hse
-  Vector hse( hse0 );		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
-
-  // Calculate reference z_abs with a high number of iterations
-  hse[4] = 5;
-  z0 = z_abs;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
-  hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse );
-  hse[4] = hse0[4];
-
-  // Calculate reference spectrum
-  out1 << "  Calculating reference spectrum\n";
-  out2 << "  ----- Messages from losCalc: --------\n";
-  Los    los;
-  Vector z_tan;
-  losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
-                                              refr_index, z_ground, r_geoid );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from sourceCalc: -----\n";
-  ArrayOfMatrix source, trans;
-  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from transCalc: ------\n";
-  transCalc( trans, los, p_abs, abs0 );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from yRte: -----------\n";
-  yCalc( y0, emission, los, f_mono, y_space, source, trans, 
-                                                         e_ground, t_ground );
-  out2 << "  -------------------------------------\n";
-
-  // Allocate K and fill aux. variables
-  k.resize(nza*nv,np);
-  k_names.resize(1);
-  k_names[0] = "Temperature: with hydrostatic eq.";
-  k_aux.resize(np,2);
-  interpp( t0, p_abs, t_abs, k_grid ); 
-  for ( Index ip=0; ip<np; ip++ )
+  check_if_bool( kw_hse, "hse keyword" );
+  check_if_bool( kw_fast, "fast keyword" );      
+  check_if_bool( emission, "emission" );
+  check_if_bool( refr, "refr" );
+  check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
+  check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
+  check_lengths( p_abs, "p_abs", h2o_abs, "h2o_abs" );  
+  check_lengths( p_abs, "p_abs", n2_abs, "n2_abs" );  
+  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+  check_length_nrow( p_abs, "p_abs", abs0, "abs" );
+  check_length_nrow( p_abs, "p_abs", vmrs, "vmrs" );
+  check_length_nrow( f_mono, "f_mono", abs0, "abs" );
+  if ( los.p.nelem() != za.nelem() )
+    throw runtime_error(
+               "The number of zenith angles of *za* and *los* are different.");
+  //
+  if ( !kw_hse )
   {
-     k_aux(ip,0) = k_grid[ip];
-     k_aux(ip,1) = t0[ip];
+    if ( los.p.nelem() != trans.nelem() )
+      throw runtime_error(
+            "The number of zenith angles of *los* and *trans* are different.");
+    check_length_nrow( f_mono, "f_mono", trans[0], 
+                                       "the transmission matrices (in trans)");
+    check_length_nrow( p_abs, "p_abs", trans[0], 
+                                       "the transmission matrices (in trans)");
+    if ( los.p.nelem() != absloswfs.nelem() )
+      throw runtime_error(
+      "The number of zenith angles is not the same in *los* and *absloswfs*.");
   }
-
-  // Determine conversion between grids        
-  Matrix is;
-  Vector lpabs, lgrid;
-  p2grid( lpabs, p_abs );
-  p2grid( lgrid, k_grid );
-  grid2grid_index( is, lpabs, lgrid );
-
-  // Loop retrieval altitudes and calculate new spectra
-  //
-  Matrix         abs;
-  ArrayOfMatrix  abs_dummy;
-  Vector y, t(nabs), w;
-  Index  i1, iw, iv;
-  //
-  for ( Index ip=0; ip<np; ip++ )
-  {
-    out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
-
-    // Create disturbed temperature profile
-    grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
-		                                                  lgrid, ip );
-    i1 = Index( is(ip,0) );    // first p_abs point to consider
-    t = t_abs;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
-    for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
-      t[iw] += w[iw-i1];
-
-    out2 << "  ----- Messages from absCalc: --------\n";
-    absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-	     lines_per_tg, lineshape, 
-	     cont_description_names, cont_description_parameters);
-    out2 << "  ----- Messages from losCalc: --------\n";
-    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
-                                              refr_index, z_ground, r_geoid );
-    out2 << "  -------------------------------------\n";
-    out2 << "  ----- Messages from sourceCalc: -----\n";
-    ArrayOfMatrix source, trans;
-    sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
-    out2 << "  -------------------------------------\n";
-    out2 << "  ----- Messages from transCalc: ------\n";
-    transCalc( trans, los, p_abs, abs );
-    out2 << "  -------------------------------------\n";
-    out2 << "  ----- Messages from yRte: -----------\n";
-    yCalc( y, emission, los, f_mono, y_space, source, trans, 
-							  e_ground, t_ground );
-    out2 << "  -------------------------------------\n";
-
-    // Fill K
-    for ( iv=0; iv<nza*nv; iv++ )
-      k(iv,ip) = y[iv] - y0[iv];
+  else
+  { 
+    if ( hse[0]==0 )
+      throw runtime_error( "Hydrostatic eq. must be considered generally" 
+                           "when calculating WFs with hydrostatic eq.");
   }
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-04-21
-*/
-void kTempFast (
-                Matrix&                   k,
-                ArrayOfString&            k_names,
-                Matrix&                   k_aux,
-          const TagGroups&                tgs,
-          const Vector&                   f_mono,
-          const Vector&                   p_abs,
-          const Vector&                   t_abs,
-          const Vector&                   n2_abs,
-          const Vector&                   h2o_abs,
-          const Matrix&                   vmrs,
-	  const Matrix&                   abs0,
-          const ArrayOfArrayOfLineRecord& lines_per_tg,
-          const ArrayOfLineshapeSpec&     lineshape,
-          const Vector&                   e_ground,
-          const Index&                      emission,
-          const Vector&                   k_grid,
-          const ArrayOfString&            cont_description_names,
-          const ArrayOfVector& 	          cont_description_parameters,
-    	  const Numeric&    		  z_plat,
-    	  const Vector&     		  za,
-    	  const Numeric&    		  l_step,
-    	  const Vector&     		  z_abs,
-    	  const Index&        		  refr,
-    	  const Index&        		  refr_lfac,
-    	  const Vector&     		  refr_index,
-    	  const Numeric&    		  z_ground,
-          const Numeric&                  t_ground,
-    	  const Vector&     		  y_space,
-    	  const Numeric&    		  r_geoid,
-          const Vector&     		  hse0 )
-{
-  // Check input
-  if ( hse0[0] == 0 )
-    throw runtime_error("Hydrostatic equilibrium must be turned on.");
-
-  // Main sizes
-  const Index  nza  = za.nelem();          // number of zenith angles  
-  const Index  nv   = f_mono.nelem();      // number of frequencies
-  const Index  np   = k_grid.nelem();      // number of retrieval altitudes
-  const Index  nabs = p_abs.nelem();       // number of absorption altitudes
-
-  // Vectors for the reference state
-  Vector z0(nabs), y0, t0(np);
-
-  // Local copy of hse
-  Vector hse( hse0 );		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
-
-  // Calculate reference z_abs with a high number of iterations
-  hse[4] = 5;
-  z0 = z_abs;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
-  hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse );
-  hse[4] = hse0[4];
-
-  // Calculate absorption for + 1K
-  Matrix         abs1k, abs(nv,nabs);
-  ArrayOfMatrix  abs_dummy;
   //
+  if ( any_ground(los.ground) )  
   {
-    Vector  t(t_abs);		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
-    t += 1.;			// With Matpack you can add 1 to all
-				// elements to a Vector like this.
+    if ( t_ground <= 0 )
+      throw runtime_error(
+          "There are intersections with the ground, but the ground\n"
+          "temperature is set to be <=0 (are dummy values used?).");
+    if ( e_ground.nelem() != f_mono.nelem() )
+      throw runtime_error(
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+  }
+  if ( emission ) 
+    check_lengths( f_mono, "f_mono", y_space, "y_space" );
+
+  //
+  // Three options:
+  // 1. no hydrostatic eq., use analytical expressions
+  // 2. hydrostatic eq., fast version
+  // 3. hydrostatic eq., accurate version
+  //
+
+  // No hydrostatic eq., use analytical expressions
+  //---------------------------------------------------------------------------
+  if ( !kw_hse )
+    k_temp_nohydro( k, k_names, k_aux, tgs, los, absloswfs, f_mono, 
+     p_abs, t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, abs0, trans,
+     e_ground, k_grid, cont_description_names, cont_description_parameters );
+
+
+  // Hydrostatic eq., fast version
+  //---------------------------------------------------------------------------
+  else if ( kw_fast )
+  {
+    // Main sizes
+    const Index  nza  = za.nelem();          // number of zenith angles  
+    const Index  nv   = f_mono.nelem();      // number of frequencies
+    const Index  np   = k_grid.nelem();      // number of retrieval altitudes
+    const Index  nabs = p_abs.nelem();       // number of absorption altitudes
+  
+    // Vectors for the reference state
+    Vector z0(nabs), y0, t0(np);
+  
+    // Local copy of hse
+    Vector hse_local( hse );
+  
+    // Calculate reference z_abs with a high number of iterations
+    hse_local[4] = 5;
+    z0 = z_abs;
+    hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse_local );
+    hse_local[4] = hse[4];
+  
+    // Calculate absorption for + 1K
+    Matrix         abs1k, abs(nv,nabs);
+    ArrayOfMatrix  abs_dummy;
     //
-    out1 << "  Calculating absorption for t_abs + 1K \n";
-    out2 << "  ----- Messages from absCalc: --------\n";
-    absCalc( abs1k, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
-	     lines_per_tg, lineshape, 
-	     cont_description_names, cont_description_parameters);
-  }
-  // Calculate reference spectrum
-  out1 << "  Calculating reference spectrum\n";
-  out2 << "  ----- Messages from losCalc: --------\n";
-  Los    los;
-  Vector z_tan;
-  losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
-                                              refr_index, z_ground, r_geoid );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from sourceCalc: -----\n";
-  ArrayOfMatrix source, trans;
-  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from transCalc: ------\n";
-  transCalc( trans, los, p_abs, abs0 );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from yRte: -----------\n";
-  yCalc( y0, emission, los, f_mono, y_space, source, trans, 
-                                                         e_ground, t_ground );
-  out2 << "  -------------------------------------\n";
-
-  // Allocate K and fill aux. variables
-  k.resize(nza*nv,np);
-  k_names.resize(1);
-  k_names[0] = "Temperature: with hydrostatic eq.";
-  k_aux.resize(np,2);
-  interpp( t0, p_abs, t_abs, k_grid ); 
-  for ( Index ip=0; ip<np; ip++ )
-  {
-     k_aux(ip,0) = k_grid[ip];
-     k_aux(ip,1) = t0[ip];
-  }
-
-  // Determine conversion between grids        
-  Matrix is;
-  Vector lpabs, lgrid;
-  p2grid( lpabs, p_abs );
-  p2grid( lgrid, k_grid );
-  grid2grid_index( is, lpabs, lgrid );
-
-  // Loop retrieval altitudes and calculate new spectra
-  //
-  Vector y, w;
-  Index  i1, iw, iv;
-  //
-  for ( Index ip=0; ip<np; ip++ )
-  {
-    out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
-
-    // Create absorption matrix corresponding to temperature disturbance
-    grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
-		                                                  lgrid, ip );
-    i1 = Index( is(ip,0) );    // first p_abs point to consider
-    abs = abs0;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
-    for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
     {
-      for ( iv=0; iv<nv; iv++ )
-        abs(iv,iw) = (1-w[iw-i1])*abs0(iv,iw) + w[iw-i1]*abs1k(iv,iw);
+      Vector  t(t_abs);
+      t += 1.;
+      //
+      out1 << "  Calculating absorption for t_abs + 1K \n";
+      out2 << "  ----- Messages from absCalc: --------\n";
+      absCalc( abs1k, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
+                 lines_per_tg, lineshape, 
+                          cont_description_names, cont_description_parameters);
     }
-
+    // Calculate reference spectrum
+    out1 << "  Calculating reference spectrum\n";
     out2 << "  ----- Messages from losCalc: --------\n";
+    Los    los;
+    Vector z_tan;
     losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
-                                              refr_index, z_ground, r_geoid );
+					       refr_index, z_ground, r_geoid );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from sourceCalc: -----\n";
     ArrayOfMatrix source, trans;
     sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from transCalc: ------\n";
-    transCalc( trans, los, p_abs, abs );
+    transCalc( trans, los, p_abs, abs0 );
     out2 << "  -------------------------------------\n";
     out2 << "  ----- Messages from yRte: -----------\n";
-    yCalc( y, emission, los, f_mono, y_space, source, trans, 
+    yCalc( y0, emission, los, f_mono, y_space, source, trans, 
 							  e_ground, t_ground );
     out2 << "  -------------------------------------\n";
-
-    // Fill K
-    for ( iv=0; iv<nza*nv; iv++ )
-      k(iv,ip) = y[iv] - y0[iv];
+  
+    // Allocate K and fill aux. variables
+    k.resize(nza*nv,np);
+    k_names.resize(1);
+    k_names[0] = "Temperature: with hydrostatic eq.";
+    k_aux.resize(np,2);
+    interpp( t0, p_abs, t_abs, k_grid ); 
+    for ( Index ip=0; ip<np; ip++ )
+    {
+       k_aux(ip,0) = k_grid[ip];
+       k_aux(ip,1) = t0[ip];
+    }
+  
+    // Determine conversion between grids        
+    Matrix is;
+    Vector lpabs, lgrid;
+    p2grid( lpabs, p_abs );
+    p2grid( lgrid, k_grid );
+    grid2grid_index( is, lpabs, lgrid );
+  
+    // Loop retrieval altitudes and calculate new spectra
+    //
+    Vector y, w;
+    Index  i1, iw, iv;
+    //
+    for ( Index ip=0; ip<np; ip++ )
+    {
+      out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
+  
+      // Create absorption matrix corresponding to temperature disturbance
+      grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
+								   lgrid, ip );
+      i1 = Index( is(ip,0) );    // first p_abs point to consider
+      abs = abs0;			// Matpack can copy the contents of
+					// vectors like this. The dimensions
+					// must be the same! 
+      for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
+      {
+	for ( iv=0; iv<nv; iv++ )
+	  abs(iv,iw) = (1-w[iw-i1])*abs0(iv,iw) + w[iw-i1]*abs1k(iv,iw);
+      }
+  
+      out2 << "  ----- Messages from losCalc: --------\n";
+      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+					       refr_index, z_ground, r_geoid );
+      out2 << "  -------------------------------------\n";
+      out2 << "  ----- Messages from sourceCalc: -----\n";
+      ArrayOfMatrix source, trans;
+      sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+      out2 << "  -------------------------------------\n";
+      out2 << "  ----- Messages from transCalc: ------\n";
+      transCalc( trans, los, p_abs, abs );
+      out2 << "  -------------------------------------\n";
+      out2 << "  ----- Messages from yRte: -----------\n";
+      yCalc( y, emission, los, f_mono, y_space, source, trans, 
+							  e_ground, t_ground );
+      out2 << "  -------------------------------------\n";
+  
+      // Fill K
+      for ( iv=0; iv<nza*nv; iv++ )
+	k(iv,ip) = y[iv] - y0[iv];
+    }
   }
-}
 
 
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void kTempNoHydro (
-                  Matrix&                   k,
-                  ArrayOfString&            k_names,
-                  Matrix&                   k_aux,
-            const TagGroups&                tag_groups,
-	    const Los&                      los,           
-	    const ArrayOfMatrix&            absloswfs,
-	    const Vector&                   f_mono,
-	    const Vector&                   p_abs,
-	    const Vector&                   t_abs,
-	    const Vector&                   n2_abs,
-	    const Vector&                   h2o_abs,
-	    const Matrix&                   vmrs,
-	    const ArrayOfArrayOfLineRecord& lines_per_tg,
-	    const ArrayOfLineshapeSpec&     lineshape,
-	    const Matrix&                   abs,            
-	    const ArrayOfMatrix&            trans,
-	    const Vector&                   e_ground,
-	    const Vector&                   k_grid,
-	    const ArrayOfString&            cont_description_names,
-            const ArrayOfVector& 	    cont_description_parameters )
-{
-  k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
-                  t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
-                  abs, trans, e_ground, k_grid,
-		  cont_description_names, cont_description_parameters );  
+  // Hydrostatic eq., accurate version
+  //---------------------------------------------------------------------------
+  else
+  {
+    // Main sizes
+    const Index  nza  = za.nelem();          // number of zenith angles  
+    const Index  nv   = f_mono.nelem();      // number of frequencies
+    const Index  np   = k_grid.nelem();      // number of retrieval altitudes
+    const Index  nabs = p_abs.nelem();       // number of absorption altitudes
+  
+    // Vectors for the reference state
+    Vector z0(nabs), y0, t0(np);
+  
+    // Local copy of hse
+    Vector hse_local( hse );
+  
+    // Calculate reference z_abs with a high number of iterations
+    hse_local[4] = 5;
+    z0 = z_abs;	
+    hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse_local );
+    hse_local[4] = hse[4];
+  
+    // Calculate reference spectrum
+    out1 << "  Calculating reference spectrum\n";
+    out2 << "  ----- Messages from losCalc: --------\n";
+    Los    los;
+    Vector z_tan;
+    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+	        			       refr_index, z_ground, r_geoid );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from sourceCalc: -----\n";
+    ArrayOfMatrix source, trans;
+    sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from transCalc: ------\n";
+    transCalc( trans, los, p_abs, abs0 );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from yRte: -----------\n";
+    yCalc( y0, emission, los, f_mono, y_space, source, trans, 
+							  e_ground, t_ground );
+    out2 << "  -------------------------------------\n";
+  
+    // Allocate K and fill aux. variables
+    k.resize(nza*nv,np);
+    k_names.resize(1);
+    k_names[0] = "Temperature: with hydrostatic eq.";
+    k_aux.resize(np,2);
+    interpp( t0, p_abs, t_abs, k_grid ); 
+    for ( Index ip=0; ip<np; ip++ )
+    {
+       k_aux(ip,0) = k_grid[ip];
+       k_aux(ip,1) = t0[ip];
+    }
+  
+    // Determine conversion between grids        
+    Matrix is;
+    Vector lpabs, lgrid;
+    p2grid( lpabs, p_abs );
+    p2grid( lgrid, k_grid );
+    grid2grid_index( is, lpabs, lgrid );
+  
+    // Loop retrieval altitudes and calculate new spectra
+    //
+    Matrix         abs;
+    ArrayOfMatrix  abs_dummy;
+    Vector y, t(nabs), w;
+    Index  i1, iw, iv;
+    //
+    for ( Index ip=0; ip<np; ip++ )
+    {
+      out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
+  
+      // Create disturbed temperature profile
+      grid2grid_weights( w, lpabs, Index(is(ip,0)), Index(is(ip,1)), 
+								   lgrid, ip );
+      i1 = Index( is(ip,0) );    // first p_abs point to consider
+      t = t_abs;			// Matpack can copy the contents of
+					// vectors like this. The dimensions
+					// must be the same! 
+      for ( iw=i1; iw<=Index(is(ip,1)); iw++ )
+	t[iw] += w[iw-i1];
+  
+      out2 << "  ----- Messages from absCalc: --------\n";
+      absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
+		     lines_per_tg, lineshape, 
+		     cont_description_names, cont_description_parameters);
+      out2 << "  ----- Messages from losCalc: --------\n";
+      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+					       refr_index, z_ground, r_geoid );
+      out2 << "  -------------------------------------\n";
+      out2 << "  ----- Messages from sourceCalc: -----\n";
+      ArrayOfMatrix source, trans;
+      sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+      out2 << "  -------------------------------------\n";
+      out2 << "  ----- Messages from transCalc: ------\n";
+      transCalc( trans, los, p_abs, abs );
+      out2 << "  -------------------------------------\n";
+      out2 << "  ----- Messages from yRte: -----------\n";
+      yCalc( y, emission, los, f_mono, y_space, source, trans, 
+							  e_ground, t_ground );
+      out2 << "  -------------------------------------\n";
+  
+      // Fill K
+      for ( iv=0; iv<nza*nv; iv++ )
+	k(iv,ip) = y[iv] - y0[iv];
+    }
+  }
 }
 
 
@@ -2379,20 +2366,29 @@ void kPointingOffSet(
               const Vector&          z_abs,
               const Vector&          t_abs,
               const Vector&          f_mono,
-              const Index&             refr,
-              const Index&             refr_lfac,
+              const Index&           refr,
+              const Index&           refr_lfac,
               const Vector&          refr_index,
               const Numeric&         z_ground,
               const Numeric&         r_geoid,
               const Matrix&          abs,
-  	      const Index&             emission,
+  	      const Index&           emission,
               const Vector&          y_space,
               const Vector&          e_ground,
               const Numeric&         t_ground,
               const Vector&          y,
               const Numeric&         delta )
 {
-  check_if_bool( emission, "emission" );                                      
+  check_if_bool( emission, "emission" );
+  check_if_bool( refr, "refr" );
+  check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
+  check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
+  check_lengths( p_abs, "p_abs", refr_index, "refr_index" );  
+  check_length_nrow( p_abs, "p_abs", abs, "abs" );
+  check_length_nrow( f_mono, "f_mono", abs, "abs" );
+  if ( emission ) 
+    check_lengths( f_mono, "f_mono", y_space, "y_space" );
+
 
   // Create new zenith angle grid
   //  const Index  nza = za_pencil.nelem();
@@ -2447,6 +2443,8 @@ void kPointingOffSet(
   k_aux = 0.0;			// Matpack can set all elements like this.
 }
 
+
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -2470,8 +2468,50 @@ void kEground(
 {
   check_if_bool( emission, "emission" );                                      
   check_if_bool( emission, "single_e" );                                      
+  check_lengths( f_mono, "f_mono", e_ground, "e_ground" );
+  if ( los.p.nelem() != za_pencil.nelem() )
+    throw runtime_error(
+               "The number of zenith angles of *za* and *los* are different.");
+  //
+  if ( los.p.nelem() != trans.nelem() )
+    throw runtime_error(
+            "The number of zenith angles of *los* and *trans* are different.");
+  check_length_nrow( f_mono, "f_mono", trans[0], 
+                                       "the transmission matrices (in trans)");
+  //
+  if ( emission )
+  {
+    if ( los.p.nelem() != source.nelem() )
+      throw runtime_error(
+           "The number of zenith angles of *los* and *source* are different.");
+    check_length_nrow( f_mono, "f_mono", source[0], 
+  				            "the source matrices (in source)");
+  }
+  //
+  if ( any_ground(los.ground) )  
+  {
+    if ( t_ground <= 0 )
+      throw runtime_error(
+          "There are intersections with the ground, but the ground\n"
+          "temperature is set to be <=0 (are dummy values used?).");
+    if ( e_ground.nelem() != f_mono.nelem() )
+      throw runtime_error(
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+  }
+  //
+  if ( single_e ) 
+  {
+    for ( INDEX iv=1; iv<f_mono.nelem(); iv++ )
+    {
+      if ( e_ground[iv] != e_ground[0] )
+        throw runtime_error(
+          "A single ground emission value is assumed, but all values of\n"
+          "*e_ground* are not the same.");
+    }    
+  }
 
-  // If single_e, check that all values of e are identical
 
   // Main sizes
   const Index  nza  = za_pencil.nelem();   // number of zenith angles  
@@ -2572,32 +2612,32 @@ void kCalibration(
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
               const Vector&          y,
-              const Vector&          y_ref,
+              const Vector&          f_mono,
+              const Vector&          y0,
        	      const String&          name )
 {
+  check_lengths( f_mono, "f_mono", y0, "y0" );
+
   const Index   ny = y.nelem();
-  const Index   nf = y_ref.nelem();
+  const Index   nf = f_mono.nelem();
   const Index   nza = Index( floor(ny/nf) );
 
-  if ( nza*nf != ny )
-    throw runtime_error("The length of y_ref does not match the length of y");
-  
   // Make k one-column matrix of the right size:
   k.resize( ny, 1 );
 
-  // k = y - y_ref
+  // k = y - y0
   Index j,i,i0;
   for ( j=0; j<nza; j++ )    
   {
     i0 = j*nf;
     for ( i=0; i<nf; i++ )
-      k(i0+i,0) = y[i0+i] - y_ref[i];
+      k(i0+i,0) = y[i0+i] - y0[i];
   }
 
   k_names.resize( 1 );
   k_names[0] = "Calibration: scaling";
   k_aux.resize( 1, 2 );
-  k_aux = 0.0;			// Matpack can set all elements like this.
+  k_aux = 0.0;		
 }
 
 
@@ -2623,7 +2663,7 @@ void kManual(
               const Numeric&         grid,
               const Numeric&         apriori )
 {
-  assert( y.nelem()==y0.nelem() );
+  check_lengths( y, "y", y0, "y0" );
 
   // Make k one-column matrix of the right size:
   k.resize( y.nelem(), 1 );
@@ -2632,11 +2672,6 @@ void kManual(
   k = y;
   k -= y0;
   k /= delta;
-
-  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
-     /= operators. They all act element-vise. 
-     Vectors behave like 1-column matrices, therefore copying y to
-     k works. */
 
   k_names.resize(1);
   k_names[0] = name;
@@ -2862,31 +2897,4 @@ void kbPutInK (
               const Matrix&          k_aux )
 {
   kxPutInK( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
-}
-
-void LinAltsFromPres(// WS Generic Output:
-                     Vector&         p,
-                     // WS Generic Output Names:
-                     const String&   p_name,
-                     // WS Input:
-                     const Vector&   p_abs,
-                     const Vector&   z_abs,
-                     // Control Parameters:
-                     const Numeric&  delta_z,
-                     const Numeric&  p_start,
-                     const Numeric&  p_stop)
-
-{
-      
-  Vector p_lim(2), z_lim(2);
-  p_lim[0] = p_start; 
-  p_lim[1] = p_stop; 
-  
-  interpp(z_lim,p_abs,z_abs,p_lim);
-
-  Vector z;
-  linspace(z,z_lim[0],z_lim[1],delta_z);
-  p.resize( z.nelem());
-  z2p(p, z_abs, p_abs, z);
-  
 }

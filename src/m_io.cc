@@ -754,6 +754,34 @@ void VectorNLinSpace(     Vector&  x,
 
 
 
+void VectorPressuresForLinAltitudes(
+                     // WS Generic Output:
+                     Vector&         p,
+                     // WS Generic Output Names:
+                     const String&   p_name,
+                     // WS Input:
+                     const Vector&   p_abs,
+                     const Vector&   z_abs,
+                     // Control Parameters:
+                     const Numeric&  delta_z,
+                     const Numeric&  p_start,
+                     const Numeric&  p_stop)
+
+{
+  Vector p_lim(2), z_lim(2);
+  p_lim[0] = p_start; 
+  p_lim[1] = p_stop; 
+  
+  interpp(z_lim,p_abs,z_abs,p_lim);
+
+  Vector z;
+  linspace(z,z_lim[0],z_lim[1],delta_z);
+  p.resize( z.nelem());
+  z2p(p, z_abs, p_abs, z);
+}
+
+
+
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
