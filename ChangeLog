@@ -1,3 +1,9 @@
+2003-04-25  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-530
+
+	* src/sensor.cc: Added normalisation to sensor_integration_vector.
+
 2003-04-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-529

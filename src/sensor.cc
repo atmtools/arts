@@ -149,6 +149,14 @@ void sensor_integration_vector(
 
     }
   }
+  
+  //Normalize h, start with summing all elements...
+  Numeric h_sum = 0;
+  for (Index i=0; i<h.nelem(); i++ ) {
+	h_sum += h[i];
+  }
+  //and divide each element of h with the sum.
+  h /= h_sum;
 }
 
 //! antenna_transfer_matrix
