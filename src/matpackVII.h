@@ -7216,8 +7216,8 @@ inline Tensor7::Tensor7(Index l,
 /** Copy constructor from Tensor7View. This automatically sets the size
     and copies the data. */
 inline Tensor7::Tensor7(const ConstTensor7View& m) :
-  Tensor7View( new Numeric[m.nlibraries()*m.nvitrines()*m.nshelves()*m.nbooks(),
-			   m.npages()*m.nrows()*m.ncols()],
+  Tensor7View( new Numeric[m.nlibraries()*m.nvitrines()*m.nshelves()
+                           *m.nbooks()*m.npages()*m.nrows()*m.ncols()],
 	       Range( 0, m.nlibraries(), m.nvitrines()*m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
@@ -7232,8 +7232,8 @@ inline Tensor7::Tensor7(const ConstTensor7View& m) :
 /** Copy constructor from Tensor7. This automatically sets the size
     and copies the data. */
 inline Tensor7::Tensor7(const Tensor7& m) :
-  Tensor7View( new Numeric[m.nlibraries()*m.nvitrines()*m.nshelves()*m.nbooks(),
-			   m.npages()*m.nrows()*m.ncols()],
+  Tensor7View( new Numeric[m.nlibraries()*m.nvitrines()*m.nshelves()
+                           *m.nbooks()*m.npages()*m.nrows()*m.ncols()],
 	       Range( 0, m.nlibraries(), m.nvitrines()*m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),

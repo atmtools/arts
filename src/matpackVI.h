@@ -3750,8 +3750,8 @@ inline Tensor6::Tensor6(Index v, Index s, Index b,
 /** Copy constructor from Tensor6View. This automatically sets the size
     and copies the data. */
 inline Tensor6::Tensor6(const ConstTensor6View& m) :
-  Tensor6View( new Numeric[m.nvitrines()*m.nshelves()*m.nbooks(),
-			   m.npages()*m.nrows()*m.ncols()],
+  Tensor6View( new Numeric[m.nvitrines()*m.nshelves()*m.nbooks()
+			   *m.npages()*m.nrows()*m.ncols()],
 	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
@@ -3765,8 +3765,8 @@ inline Tensor6::Tensor6(const ConstTensor6View& m) :
 /** Copy constructor from Tensor6. This automatically sets the size
     and copies the data. */
 inline Tensor6::Tensor6(const Tensor6& m) :
-  Tensor6View( new Numeric[m.nvitrines()*m.nshelves()*m.nbooks(),
-			   m.npages()*m.nrows()*m.ncols()],
+  Tensor6View( new Numeric[m.nvitrines()*m.nshelves()*m.nbooks()
+			   *m.npages()*m.nrows()*m.ncols()],
 	       Range( 0, m.nvitrines(), m.nshelves()*m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nshelves(), m.nbooks()*m.npages()*m.nrows()*m.ncols() ),
 	       Range( 0, m.nbooks(), m.npages()*m.nrows()*m.ncols() ),
