@@ -159,6 +159,7 @@ arts_SOURCES = \
 	scatproperties.h \
 	supergeneric.h \
         zeemanproperties.cc \
+        zeemanproperties.h \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc
 
@@ -568,6 +569,7 @@ test_zeemanproperties_SOURCES = \
 	scatproperties.h \
 	supergeneric.h \
 	zeemanproperties.cc \
+        zeemanproperties.h \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc \
 	test_zeemanproperties.cc
