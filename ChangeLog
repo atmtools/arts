@@ -1,3 +1,10 @@
+2003-05-19  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-545
+	
+	* src/m_cloudbox.cc: Added include cmath for proper use of abs.
+	Use showpoint and fixed from namespace ios.
+
 2003-05-16  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-544
