@@ -81,6 +81,7 @@ arts_SOURCES = \
 	m_xml.cc \
 	m_xml.h \
 	m_continua_ckd.cc \
+	m_batch.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \

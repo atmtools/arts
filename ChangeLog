@@ -1,3 +1,29 @@
+2004-09-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-868
+
+	* src/m_batch.cc: Added this file and implemented WSMs added to
+	methods.cc. It compiles but no practical test yet.
+
+	* src/methods.cc: Arranged methods in alphabetical order. Or
+	at least something close to it. There were many many methods
+	to move around. After an update I got a crash with Mattias commit
+	and there were so many merge problems that I could not resolve
+	it. I had to make a seperate checkout, copy that methods.cc
+	and start all over. In total I have spent > 1 hour on this. 
+	So please try to think about things like these. Not fun at
+	all to sort it out.
+
+	Added: ybatchCalc, BatchUpdateMatrix, BatchUpdateNumeric,
+	BatchUpdateTensor3 BatchUpdateTensor4 and BatchUpdateVector.
+
+	* src/agendas.cc: Added agendas for batch calcations 
+	(batch_XXX_agenda).
+
+	* src/workspace.cc: Arranged variables in alphabetical order. 
+	Added: ybatch, ybatch_index, ybatch_n, tensor3_2, tensor4_1, 
+	tensor4_2, tensor5_2.
+
 2004-09-15  Mattias Ekström <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-867
@@ -291,6 +317,7 @@
 	Included code that truncates the transmittance vector below a
 	certain threshold (1e-12) 
 
+>>>>>>> 1.1257
 2004-08-09  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-852

@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2002
+/* Copyright (C) 2000, 2001, 2002, 2003, 2004
    Stefan Buehler <buehler@uni-bremen.de>
    Patrick Eriksson <patrick@rss.chalmers.se>
 
@@ -160,62 +160,6 @@ void define_md_data_raw()
 //      KEYWORDS(),
 //      TYPES()));
 
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("absMPM02_H2O"),
-        DESCRIPTION
-        (
-         "Calculate water vapor absorption\n"
-         "\n"
-         "Corrected version of MPM93 by TKS, iup, 2002 The H2O lines at\n"
-         "547.676440 GHz and 552.020960 GHz are isotopic lines: 547 GHz is from\n"
-         "the isotope 1-8-1 (HITRAN code 181, JPL code 20003) with an isotopic\n"
-         "ratio of 0.00199983 and 552 GHz is from the isotope 1-7-1 (HITRAN code\n"
-         "171, JPL code 19003) with an isotopic ratio of 0.00037200.\n"
-         "\n"
-         "The original source code of MPM93 has these isotopic ratios not\n"
-         "included in the line strength parameter b1, which is an error. In the\n"
-         "arts implementation the line strength parameter b1 of these two lines\n"
-         "is multiplied with the appropriate isotopic ratio.\n"
-         "\n"
-         "Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton, Propagation\n"
-         "modeling of moist air and suspended water/ice particles at frequencies\n"
-         "below 1000 GHz, AGARD 52nd Specialists Meeting of the Electromagnetic\n"
-         "Wave Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21.\n"
-         "\n"
-         "Output:\n"
-         "   abs    : absorption coefficients [1/m], \n"
-         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
-         "\n"
-         "Input:\n"
-         "   f_grid : Frequency grid [Hz].\n"
-         "   abs_p  : List of pressures [Pa].\n"
-         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
-         "   abs_vmr   : List of volume mixing ratios [absolute number].\n"
-         "               Must have same length as abs_p!\n"
-         "   abs_model : String specifying the model to use. Allowed options:\n"
-         "               \"MPM02\"          - Calculate lines and continuum.\n"
-         "               \"MPM02Lines\"     - Calculate only lines.\n"
-         "               \"MPM02Continuum\" - Calculate only continuum.\n"
-         "               \"user\"           - Use parameters given by abs_user_parameters,\n"
-         "                                    instead of the predefined settings.\n"
-         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
-         "                         abs_user_parameters must have 3 elements:\n"
-         "                         1. Continuum scaling factor\n"
-         "                         2. Line strength scaling factor\n"
-         "                         3. Line broadening scaling factor\n"
-         "                         Setting all scaling factors to 1 gives the\n"
-         "                         same behavior as abs_model==\"MPM02\".\n"
-         "                         Must be empty if one of the predefined models is used."
-        ),
-        OUTPUT( abs_ ),
-        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
-                abs_model_, abs_user_parameters_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
 
   md_data_raw.push_back     
     ( MdRecord
@@ -311,6 +255,62 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("absMPM02_H2O"),
+        DESCRIPTION
+        (
+         "Calculate water vapor absorption\n"
+         "\n"
+         "Corrected version of MPM93 by TKS, iup, 2002 The H2O lines at\n"
+         "547.676440 GHz and 552.020960 GHz are isotopic lines: 547 GHz is from\n"
+         "the isotope 1-8-1 (HITRAN code 181, JPL code 20003) with an isotopic\n"
+         "ratio of 0.00199983 and 552 GHz is from the isotope 1-7-1 (HITRAN code\n"
+         "171, JPL code 19003) with an isotopic ratio of 0.00037200.\n"
+         "\n"
+         "The original source code of MPM93 has these isotopic ratios not\n"
+         "included in the line strength parameter b1, which is an error. In the\n"
+         "arts implementation the line strength parameter b1 of these two lines\n"
+         "is multiplied with the appropriate isotopic ratio.\n"
+         "\n"
+         "Reference: H. J. Liebe and G. A. Hufford and M. G. Cotton, Propagation\n"
+         "modeling of moist air and suspended water/ice particles at frequencies\n"
+         "below 1000 GHz, AGARD 52nd Specialists Meeting of the Electromagnetic\n"
+         "Wave Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21.\n"
+         "\n"
+         "Output:\n"
+         "   abs    : absorption coefficients [1/m], \n"
+         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
+         "\n"
+         "Input:\n"
+         "   f_grid : Frequency grid [Hz].\n"
+         "   abs_p  : List of pressures [Pa].\n"
+         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
+         "   abs_vmr   : List of volume mixing ratios [absolute number].\n"
+         "               Must have same length as abs_p!\n"
+         "   abs_model : String specifying the model to use. Allowed options:\n"
+         "               \"MPM02\"          - Calculate lines and continuum.\n"
+         "               \"MPM02Lines\"     - Calculate only lines.\n"
+         "               \"MPM02Continuum\" - Calculate only continuum.\n"
+         "               \"user\"           - Use parameters given by abs_user_parameters,\n"
+         "                                    instead of the predefined settings.\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
+         "                         abs_user_parameters must have 3 elements:\n"
+         "                         1. Continuum scaling factor\n"
+         "                         2. Line strength scaling factor\n"
+         "                         3. Line broadening scaling factor\n"
+         "                         Setting all scaling factors to 1 gives the\n"
+         "                         same behavior as abs_model==\"MPM02\".\n"
+         "                         Must be empty if one of the predefined models is used."
+        ),
+        OUTPUT( abs_ ),
+        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+                abs_model_, abs_user_parameters_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
   /*
   md_data_raw.push_back     
     ( MdRecord
@@ -354,8 +354,6 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
   */
-
-
 
   md_data_raw.push_back     
     ( MdRecord
@@ -586,26 +584,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("antenna_diagramAppendArray"),
-        DESCRIPTION
-        (
-         "Appends a ArrayOfMatrix to *antenna_diagram*.\n"
-         "\n"
-         "This method can be used both to initialise and expand\n"
-         "the viewing angles of *antenna_diagram*. At least one viewing\n"
-         "angle must be given in *antenna_diagram*, and the array that\n"
-         "is appended must have at least one element but not more than\n"
-         "the number of polarisation given by *sensor_pol*."
-        ),
-        OUTPUT( antenna_diagram_ ),
-        INPUT( sensor_pol_ ),
-        GOUTPUT(),
-        GINPUT( ArrayOfMatrix_ ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("AntennaSet1D"),
         DESCRIPTION
         (
@@ -636,6 +614,26 @@ void define_md_data_raw()
         INPUT( atmosphere_dim_ ),
         GOUTPUT(),
         GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("antenna_diagramAppendArray"),
+        DESCRIPTION
+        (
+         "Appends a ArrayOfMatrix to *antenna_diagram*.\n"
+         "\n"
+         "This method can be used both to initialise and expand\n"
+         "the viewing angles of *antenna_diagram*. At least one viewing\n"
+         "angle must be given in *antenna_diagram*, and the array that\n"
+         "is appended must have at least one element but not more than\n"
+         "the number of polarisation given by *sensor_pol*."
+        ),
+        OUTPUT( antenna_diagram_ ),
+        INPUT( sensor_pol_ ),
+        GOUTPUT(),
+        GINPUT( ArrayOfMatrix_ ),
         KEYWORDS(),
         TYPES()));
 
@@ -679,6 +677,56 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS( "text"         ),
         TYPES(    Array_String_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AtmFieldsCalc"),
+        DESCRIPTION
+        (
+         "Interpolated the atmospheric fields.\n"
+         "\n"
+         "An atmospheric scenario includes the following data for each \n"
+         "position (pressure, latitude, longitude) in the atmosphere: \n"
+         "           1. temperature field \n"
+         "           2. the corresponding altitude field \n"
+         "           3. vmr fields for the gaseous species \n"
+         "This methods interpolates the fields from the raw data\n"
+         "(*t_field_raw*, *z_field_raw*) which can be stored on \n"
+         "arbitrary grids on the grids for the calculation\n"
+         "(*p_grid*, *lat_grid*, *lon_grid*). "
+        ),
+        OUTPUT(t_field_, z_field_, vmr_field_),
+        INPUT(p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
+              vmr_field_raw_, atmosphere_dim_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AtmFieldsCalcExpand1D"),
+        DESCRIPTION
+        (
+         "Interpolate 1D raw atmospheric fields to create  2D or 3D \n"
+         "homogenous atmospheric fields.\n"
+         "\n"
+         "The method works as *AtmFieldsCalc* but accepts only raw 1D\n"
+         "atmsopheres. The raw atmsophere is interpolated to *p_grid* and \n"
+         "the obtained values are applied for all latitudes, and also \n"
+         "longitudes for 3D, to create a homogenous atmsophere. \n"
+         "\n"
+         "Note that the method only deals with the atmospheric fields, and\n"
+         "to create a 2D or 3D version of a 1D case, a demand is also that\n"
+         "the geoid radius is set to be constant for all latitudes/longitudes."
+        ),
+        OUTPUT( t_field_, z_field_, vmr_field_ ),
+        INPUT( p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
+               vmr_field_raw_, atmosphere_dim_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -737,56 +785,6 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("AtmFieldsCalc"),
-        DESCRIPTION
-        (
-         "Interpolated the atmospheric fields.\n"
-         "\n"
-         "An atmospheric scenario includes the following data for each \n"
-         "position (pressure, latitude, longitude) in the atmosphere: \n"
-         "           1. temperature field \n"
-         "           2. the corresponding altitude field \n"
-         "           3. vmr fields for the gaseous species \n"
-         "This methods interpolates the fields from the raw data\n"
-         "(*t_field_raw*, *z_field_raw*) which can be stored on \n"
-         "arbitrary grids on the grids for the calculation\n"
-         "(*p_grid*, *lat_grid*, *lon_grid*). "
-        ),
-        OUTPUT(t_field_, z_field_, vmr_field_),
-        INPUT(p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
-              vmr_field_raw_, atmosphere_dim_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("AtmFieldsCalcExpand1D"),
-        DESCRIPTION
-        (
-         "Interpolate 1D raw atmospheric fields to create  2D or 3D \n"
-         "homogenous atmospheric fields.\n"
-         "\n"
-         "The method works as *AtmFieldsCalc* but accepts only raw 1D\n"
-         "atmsopheres. The raw atmsophere is interpolated to *p_grid* and \n"
-         "the obtained values are applied for all latitudes, and also \n"
-         "longitudes for 3D, to create a homogenous atmsophere. \n"
-         "\n"
-         "Note that the method only deals with the atmospheric fields, and\n"
-         "to create a 2D or 3D version of a 1D case, a demand is also that\n"
-         "the geoid radius is set to be constant for all latitudes/longitudes."
-        ),
-        OUTPUT( t_field_, z_field_, vmr_field_ ),
-        INPUT( p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
-               vmr_field_raw_, atmosphere_dim_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
  md_data_raw.push_back
     ( MdRecord
       ( NAME("AtmRawRead"),
@@ -827,131 +825,90 @@ void define_md_data_raw()
         KEYWORDS("basename"),
         TYPES(String_t)));
 
-
-  md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_losSet" ),
+      ( NAME("BatchUpdateMatrix"),
         DESCRIPTION
         (
-         "Sets *rte_los* to the given angles.\n"
+         "Updates a WSV of type Matrix for batch calculations.\n"
          "\n"
-         "The keyword argument *za* is put in as first element of *rte_los*\n"
-         "and *aa* as the second element. However, when *atmosphere_dim* is\n"
-         "set to 1D or 2D, the length of *rte_los* is set to 1 and only the\n"
-         "given zenith angle is considered.\n"
-         "\n"
-         "Keywords: \n"
-         "   za : Zenith angle of sensor line-of-sight.\n"
-         "   aa : Azimuth angle of sensor line-of-sight."
+         "Copies page *ybatch_index* from input Tensor3 variable to create \n"
+         "output Matrix."
         ),
-        OUTPUT( rte_los_ ),
-        INPUT( atmosphere_dim_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "za",      "aa"      ),
-        TYPES(    Numeric_t, Numeric_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "rte_posAddGeoidWGS84" ),
-        DESCRIPTION
-        (
-         "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
-         "\n"
-         "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor. \n"
-         "The variable *rte_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "taken from the WGS-84 reference ellipsiod.\n"
-         "\n"
-         "For 1D, the geoid radius is set to the radius of curvature of the\n"
-         "WGS-84 ellipsiod for the position and observation direction \n"
-         "described with *lat_1d* and *meridian_angle_1d*.\n"
-         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
-         "ellipsiod for the latitude value in *rte_pos*."
-        ),
-        OUTPUT( rte_pos_ ),
-        INPUT( rte_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
-        GOUTPUT(),
-        GINPUT(),
+        OUTPUT( ),
+        INPUT( ybatch_index_ ),
+        GOUTPUT( Matrix_ ),
+        GINPUT(  Tensor3_ ),
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_posAddRgeoid" ),
+      ( NAME("BatchUpdateNumeric"),
         DESCRIPTION
         (
-         "Adds a geoid radius by interpolating *r_geoid*.\n"
+         "Updates a WSV of type Numeric for batch calculations.\n"
          "\n"
-         "This function assumes that the first element of *rte_pos* is set\n"
-         "to the geometric altitude for the position of the sensor. \n"
-         "The variable *rte_pos* shall contain the radius instead of the\n"
-         "altitude and that can be achieved by this function. The function\n"
-         "adds a geoid radius to the given altitude. The geoid radius is\n"
-         "obtained by interpolation of *r_geoid*. There is an error if the\n"
-         "given position is outside the latitude and longitude grids."
+         "Copies column *ybatch_index* from input Vector variable to create \n"
+         "output Numeric."
         ),
-        OUTPUT( rte_pos_ ),
-        INPUT( rte_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
-        GOUTPUT(),
-        GINPUT(),
+        OUTPUT( ),
+        INPUT( ybatch_index_ ),
+        GOUTPUT( Numeric_ ),
+        GINPUT(  Vector_ ),
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_posSet" ),
+      ( NAME("BatchUpdateTensor3"),
         DESCRIPTION
         (
-         "Sets *rte_pos* to the given co-ordinates.\n"
+         "Updates a WSV of type Tensor3 for batch calculations.\n"
          "\n"
-         "The keyword argument *r_or_z* is put in as first element of\n"
-         "*rte_pos*, *lat* as the second element and *lon* as third element.\n"
-         "However, the length of *rte_pos* is set to *atmosphere_dim* and\n"
-         "keyword arguments for dimensions not used are ignored.\n"
-         "\n"
-         "The first keyword argument can either be a radius, or an altitude\n"
-         "above the geoid. In the latter case, a function such as\n"
-         "*rte_posAddGeoidWGS84* should also be called to obtain a radius as\n"
-         "first element of *rte_pos*.\n"
-         "\n"
-         "Keywords: \n"
-         "   r_or_z : Radius or geometrical altitude of sensor position.\n"
-         "   lat : Latitude of sensor position.\n"
-         "   lon : Longitude of sensor position."
+         "Copies book *ybatch_index* from input Tensor4 variable to create \n"
+         "output Tensor3."
         ),
-        OUTPUT( rte_pos_ ),
-        INPUT( atmosphere_dim_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "r_or_z",  "lat",     "lon"     ),
-        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
-
-md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "Cloudbox_ppathCalc" ),
-        DESCRIPTION
-        (
-         "Main function for calculation of propagation paths within the \n"
-           "cloud box. This function will be used in *ScatteringMonteCarlo*\n"
-         "\n"
-         "\n"
-         "The definition of a propgation path cannot be accomodated here.\n"
-         "For more information read the chapter on propagation paths in the\n"
-         "ARTS user guide and read the  on-line information for\n"
-         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
-        ),
-        OUTPUT( ppath_, ppath_step_ ),
-        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_surface_, 
-               cloudbox_limits_, rte_pos_, rte_los_ ),
-        GOUTPUT(),
-        GINPUT(),
+        OUTPUT( ),
+        INPUT( ybatch_index_ ),
+        GOUTPUT( Tensor3_ ),
+        GINPUT(  Tensor4_ ),
         KEYWORDS(),
         TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("BatchUpdateTensor4"),
+        DESCRIPTION
+        (
+         "Updates a WSV of type Tensor4 for batch calculations.\n"
+         "\n"
+         "Copies shelf *ybatch_index* from input Tensor5 variable to create \n"
+         "output Tensor4."
+        ),
+        OUTPUT( ),
+        INPUT( ybatch_index_ ),
+        GOUTPUT( Tensor4_ ),
+        GINPUT(  Tensor5_ ),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("BatchUpdateVector"),
+        DESCRIPTION
+        (
+         "Updates a WSV of type Vector for batch calculations.\n"
+         "\n"
+         "Copies row *ybatch_index* from input Matrix variable to create \n"
+         "output Vector."
+        ),
+        OUTPUT( ),
+        INPUT( ybatch_index_ ),
+        GOUTPUT( Vector_ ),
+        GINPUT(  Matrix_ ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -984,6 +941,35 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "CloudboxSetIncomingForTauCalc1D" ),
+        DESCRIPTION
+        (
+         "This method sets the intensity field at the pressure boundaries of\n"
+         "the cloudbox.\n"
+         "\n"
+         "The method sets the upper intensity field to zero and the lower\n"
+         "is calculated as 1/-cos(za), where angles za are taken from the\n"
+         "scat_za_grid vector. This gives intensity 1 from the downlooking\n"
+         "direction and increasing values for decreasing zenith angle.\n"
+         "\n"
+         "The incoming clearsky radiation is set to zero at the vertical\n"
+         "limits of the cloudbox.\n"
+         "\n"
+         "This is implemented only for the case of 1D atmosphere at present\n"
+         "\n"
+         "Keywords: \n"
+         "   za_low : Lower zenith angle limit for incoming intensity.\n"
+         ),
+        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_ ),
+        INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
+               f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "za_low" ),
+        TYPES( Numeric_t )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -1061,36 +1047,6 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
   
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "CloudboxSetIncomingForTauCalc1D" ),
-        DESCRIPTION
-        (
-         "This method sets the intensity field at the pressure boundaries of\n"
-         "the cloudbox.\n"
-         "\n"
-         "The method sets the upper intensity field to zero and the lower\n"
-         "is calculated as 1/-cos(za), where angles za are taken from the\n"
-         "scat_za_grid vector. This gives intensity 1 from the downlooking\n"
-         "direction and increasing values for decreasing zenith angle.\n"
-         "\n"
-         "The incoming clearsky radiation is set to zero at the vertical\n"
-         "limits of the cloudbox.\n"
-         "\n"
-         "This is implemented only for the case of 1D atmosphere at present\n"
-         "\n"
-         "Keywords: \n"
-         "   za_low : Lower zenith angle limit for incoming intensity.\n"
-         ),
-        OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_ ),
-        INPUT( cloudbox_limits_, atmosphere_dim_, stokes_dim_, scat_za_grid_,
-               f_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS( "za_low" ),
-        TYPES( Numeric_t )));
-
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("cloudboxOff"),
@@ -1221,6 +1177,121 @@ md_data_raw.push_back
         TYPES( Numeric_t, Numeric_t, Numeric_t, Numeric_t, Numeric_t, 
                Numeric_t )));
 
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "Cloudbox_ppathCalc" ),
+        DESCRIPTION
+        (
+         "Main function for calculation of propagation paths within the \n"
+           "cloud box. This function will be used in *ScatteringMonteCarlo*\n"
+         "\n"
+         "\n"
+         "The definition of a propgation path cannot be accomodated here.\n"
+         "For more information read the chapter on propagation paths in the\n"
+         "ARTS user guide and read the  on-line information for\n"
+         "*ppath_step_agenda* (type \"arts -d ppath_step_agenda\")."
+        ),
+        OUTPUT( ppath_, ppath_step_ ),
+        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, r_geoid_, z_surface_, 
+               cloudbox_limits_, rte_pos_, rte_los_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("convergence_flagAbs"),
+        DESCRIPTION
+        (
+         "Convergence test (maximum absolute difference).\n"
+         "\n"
+         "The function calculates the absolute differences for two successive\n"
+         "iteration fields. It picks out the maximum values for each Stokes \n"
+         "component separately. The convergence test is fullfilled under the\n"
+         "following conditions: \n"
+         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
+         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
+         "|U(m+1) - U(m)| < epsilon_3    \n"
+         "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "\n"
+         "The limits for convergence have to be set in the controlfile by \n"
+         "setting the vector *epsilon* to appropriate values.\n"
+         "\n"
+         "The conditions have to be valid for all positions in the cloudbox \n"
+         "and for all directions.\n"  
+         "Then *convergence_flag* is set to 1.\n"
+         "\n"
+         "Unit of *epsilon* is that of radiance.\n"
+        ),
+        OUTPUT(convergence_flag_, iteration_counter_),
+        INPUT(i_field_, i_field_old_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS("epsilon"),
+        TYPES(Vector_t)));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("convergence_flagLsq"),
+        DESCRIPTION
+        (
+         "Convergence test (Least square).\n"
+         "\n"
+         "More to be written (CE).\n"
+         "\n"
+        ),
+        OUTPUT(convergence_flag_, iteration_counter_),
+        INPUT(i_field_, i_field_old_, f_grid_, f_index_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS("epsilon"),
+        TYPES(Vector_t)));
+  
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("convergence_flagAbs_BT"),
+        DESCRIPTION
+        (
+         "Convergence test (maximum absolute difference in Rayleigh-Jeans\n"
+         "Brightness temperature units)\n"
+         "\n"
+         "This method work exactly similar to convergence_flagAbs except that\n"
+         "now we se the convergence criteria keyword *epsilon* to Brightness\n"
+         "temperature units. /n"
+         "\n"
+         "Note that we use Rayleigh Jeans Brightness temperature for epsilon.\n"
+         "This is because epsilon is a difference of intensity and Planck BT\n"
+         "is not linear for small radiance values.  For higher stokes components\n"
+         "also Planck BT cannot be used because of the same reason.\n"
+         "\n"
+         "The function calculates the absolute differences for two successive\n"
+         "iteration fields. It picks out the maximum values for each Stokes \n"
+         "component separately. The convergence test is fullfilled under the\n"
+         "following conditions: \n"
+         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
+         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
+         "|U(m+1) - U(m)| < epsilon_3    \n"
+         "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "\n"
+         "The limits for convergence have to be set in the controlfile by \n"
+         "setting the vector *epsilon* to appropriate values.\n"
+         "\n"
+         "The conditions have to be valid for all positions in the cloudbox \n"
+         "and for all directions.\n"  
+         "Then *convergence_flag* is set to 1.\n"
+         "\n"
+         "Unit of *epsilon* is that of brightness temperature(RJ).\n"
+        ),
+        OUTPUT(convergence_flag_, iteration_counter_),
+        INPUT(i_field_, i_field_old_, f_grid_, f_index_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS("epsilon"),
+        TYPES(Vector_t)));
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ConvertIFToRF"),
@@ -1287,97 +1358,124 @@ md_data_raw.push_back
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
-  md_data_raw.push_back     
+ md_data_raw.push_back
     ( MdRecord
-      ( NAME("convergence_flagAbs"),
+      ( NAME("elsDoppler"),
         DESCRIPTION
         (
-         "Convergence test (maximum absolute difference).\n"
+         "The Doppler lineshape.\n"
          "\n"
-         "The function calculates the absolute differences for two successive\n"
-         "iteration fields. It picks out the maximum values for each Stokes \n"
-         "component separately. The convergence test is fullfilled under the\n"
-         "following conditions: \n"
-         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
-         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
-         "|U(m+1) - U(m)| < epsilon_3    \n"
-         "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "This computes the Doppler lineshape as:\n"
          "\n"
-         "The limits for convergence have to be set in the controlfile by \n"
-         "setting the vector *epsilon* to appropriate values.\n"
+         "els[i] = 1/(sqrt(PI) * ls_sigma) /\n"
+         "         exp(-(els_f_grid[i]/ls_sigma)^2)\n"
          "\n"
-         "The conditions have to be valid for all positions in the cloudbox \n"
-         "and for all directions.\n"  
-         "Then *convergence_flag* is set to 1.\n"
+         "Note that the frequency grid els_f_grid must hold\n"
+         "offset frequencies from line center. Hence, the\n"
+         "line center frequency is not needed as input.\n"
          "\n"
-         "Unit of *epsilon* is that of radiance.\n"
+         "Output:\n"
+         "   els        : The lineshape function [1/Hz]\n"
+         "\n"
+         "Input:\n"
+         "   ls_sigma   : Line width [Hz].\n"
+         "   els_f_grid : Frequency grid [Hz]."
         ),
-        OUTPUT(convergence_flag_, iteration_counter_),
-        INPUT(i_field_, i_field_old_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS("epsilon"),
-        TYPES(Vector_t)));
+        OUTPUT( els_ ),
+        INPUT(  ls_sigma_, els_f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES())); 
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
-      ( NAME("convergence_flagLsq"),
+      ( NAME("elsLorentz"),
         DESCRIPTION
         (
-         "Convergence test (Least square).\n"
+         "The Lorentz lineshape.\n"
          "\n"
-         "More to be written (CE).\n"
+         "This computes the simple Lorentz lineshape as:\n"
          "\n"
+         "els[i] = 1/PI * ls_gamma /\n"
+         "         ( (els_f_grid[i])^2 + ls_gamma^2 )\n"
+         "\n"
+         "Note that the frequency grid els_f_grid must hold\n"
+         "offset frequencies from line center. Hence, the\n"
+         "line center frequency is not needed as input.\n"
+         "\n"
+         "Output:\n"
+         "   els        : The lineshape function [1/Hz]\n"
+         "\n"
+         "Input:\n"
+         "   ls_gamma   : Line width [Hz].\n"
+         "   els_f_grid : Frequency grid [Hz]."
         ),
-        OUTPUT(convergence_flag_, iteration_counter_),
-        INPUT(i_field_, i_field_old_, f_grid_, f_index_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS("epsilon"),
-        TYPES(Vector_t)));
-  
+        OUTPUT( els_ ),
+        INPUT(  ls_gamma_, els_f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
-  md_data_raw.push_back     
+ md_data_raw.push_back
     ( MdRecord
-      ( NAME("convergence_flagAbs_BT"),
+      ( NAME("elsVoigt_Drayson"),
         DESCRIPTION
         (
-         "Convergence test (maximum absolute difference in Rayleigh-Jeans\n"
-         "Brightness temperature units)\n"
+         "The Voigt Drayson linshape.\n"
          "\n"
-         "This method work exactly similar to convergence_flagAbs except that\n"
-         "now we se the convergence criteria keyword *epsilon* to Brightness\n"
-         "temperature units. /n"
+         "This computes the Voigt profile\n"
+         "through the Drayson approximation.\n"
          "\n"
-         "Note that we use Rayleigh Jeans Brightness temperature for epsilon.\n"
-         "This is because epsilon is a difference of intensity and Planck BT\n"
-         "is not linear for small radiance values.  For higher stokes components\n"
-         "also Planck BT cannot be used because of the same reason.\n"
+         "Note that the frequency grid els_f_grid must hold\n"
+         "offset frequencies from line center. Hence, the\n"
+         "line center frequency is not needed as input.\n"
          "\n"
-         "The function calculates the absolute differences for two successive\n"
-         "iteration fields. It picks out the maximum values for each Stokes \n"
-         "component separately. The convergence test is fullfilled under the\n"
-         "following conditions: \n"
-         "|I(m+1) - I(m)| < epsilon_1     Intensity.\n"
-         "|Q(m+1) - Q(m)| < epsilon_2     The other Stokes components.\n" 
-         "|U(m+1) - U(m)| < epsilon_3    \n"
-         "|V(m+1) - V(m)| < epsilon_4    \n" 
+         "Output:\n"
+         "   els        : The lineshape function [1/Hz]\n"
          "\n"
-         "The limits for convergence have to be set in the controlfile by \n"
-         "setting the vector *epsilon* to appropriate values.\n"
-         "\n"
-         "The conditions have to be valid for all positions in the cloudbox \n"
-         "and for all directions.\n"  
-         "Then *convergence_flag* is set to 1.\n"
-         "\n"
-         "Unit of *epsilon* is that of brightness temperature(RJ).\n"
+         "Input:\n"
+         "   ls_sigma   : Lorentz width [Hz].\n"
+         "   ls_gamma   : Doppler width [Hz].\n"
+         "   els_f_grid : Frequency grid [Hz]."
         ),
-        OUTPUT(convergence_flag_, iteration_counter_),
-        INPUT(i_field_, i_field_old_, f_grid_, f_index_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS("epsilon"),
-        TYPES(Vector_t)));
+        OUTPUT( els_ ),
+        INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("elsVoigt_Kuntz6"),
+        DESCRIPTION
+        (
+         "The Voigt-Kuntz linshape.\n"
+         "\n"
+         "This computes the Voigt profile\n"
+         "through the Kuntz algorithm with\n"
+         "a relative accuracy better than 2*10-6.\n"
+         "\n"
+         "Note that the frequency grid els_f_grid must hold\n"
+         "offset frequencies from line center. Hence, the\n"
+         "line center frequency is not needed as input.\n"
+         "\n"
+         "Output:\n"
+         "   els        : The lineshape function [1/Hz]\n"
+         "\n"
+         "Input:\n"
+         "   ls_sigma   : Lorentz width [Hz].\n"
+         "   ls_gamma   : Doppler width [Hz].\n"
+         "   els_f_grid : Frequency grid [Hz]."
+        ),
+        OUTPUT( els_ ),
+        INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1633,6 +1731,31 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("grid_sizeSet"),
+        DESCRIPTION
+        (
+         "Set *grid_size* for scattering integral."
+         "\n"
+         "In this method the grid sizes (number of points of zenith grid \n"
+         "and azimuth  angle grid) for the scattering integral calculation \n"
+         "can be specified. For the calculation of the scattering integral\n"
+         "equidistant grids are appropriate as the peak of the phase \n"
+         "function can be anywhere, depending on incoming and scattered \n"
+         "directions." 
+         "\n"
+         "Keywords: \n"
+         "  N_za_grid : Number of points in zenith angle grid. \n"
+         "  N_aa_grid : Number of points in azimuth angle grid. \n"
+         ),
+        OUTPUT( za_grid_size_, scat_aa_grid_),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("N_za_grid", "N_aa_grid"),
+        TYPES(Index_t, Index_t)));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Ignore"),
         DESCRIPTION
         (
@@ -1668,7 +1791,27 @@ md_data_raw.push_back
         AGENDAMETHOD(   false ),
         SUPPRESSHEADER( true  )));
 
-  md_data_raw.push_back
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("IndexSet"),
+        DESCRIPTION
+        (
+         "Sets an index workspace variable to the given value. \n"
+         "\n"
+         "Generic output: \n"
+         "   Index : The index variable to be set. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : A positive integer." 
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( Index_ ),
+        GINPUT( ),
+        KEYWORDS( "value" ),
+        TYPES(     Index_t   )));
+  
+   md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldIterate" ),
         DESCRIPTION
@@ -1803,6 +1946,31 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "i_fieldUpdateSeq1D_PlaneParallel" ),
+        DESCRIPTION
+        (
+         "Updates the i_field during the iteration sequentially.\n"
+         "It performs the RT \n"
+         "calculation using a fixed value for the scattering integral stored \n"
+         "in *scat_field*.\n"
+         "\n" 
+         ),
+        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
+               rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+               scat_p_index_, ppath_step_, surface_los_, surface_emission_,
+               surface_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+        INPUT(scat_field_, cloudbox_limits_, 
+              scalar_gas_absorption_agenda_,
+              vmr_field_, spt_calc_agenda_, scat_za_grid_, 
+              opt_prop_part_agenda_, opt_prop_gas_agenda_,
+              ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
+              f_grid_, f_index_, surface_agenda_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1861,198 +2029,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "i_fieldUpdateSeq1D_PlaneParallel" ),
-        DESCRIPTION
-        (
-         "Updates the i_field during the iteration sequentially.\n"
-         "It performs the RT \n"
-         "calculation using a fixed value for the scattering integral stored \n"
-         "in *scat_field*.\n"
-         "\n" 
-         ),
-        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
-               rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_, surface_los_, surface_emission_,
-               surface_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
-        INPUT(scat_field_, cloudbox_limits_, 
-              scalar_gas_absorption_agenda_,
-              vmr_field_, spt_calc_agenda_, scat_za_grid_, 
-              opt_prop_part_agenda_, opt_prop_gas_agenda_,
-              ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_, surface_agenda_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("IndexSet"),
-        DESCRIPTION
-        (
-         "Sets an index workspace variable to the given value. \n"
-         "\n"
-         "Generic output: \n"
-         "   Index : The index variable to be set. \n"
-         "\n"
-         "Keywords:\n"
-         "   value : A positive integer." 
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( Index_ ),
-        GINPUT( ),
-        KEYWORDS( "value" ),
-        TYPES(     Index_t   )));
-  
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("elsDoppler"),
-        DESCRIPTION
-        (
-         "The Doppler lineshape.\n"
-         "\n"
-         "This computes the Doppler lineshape as:\n"
-         "\n"
-         "els[i] = 1/(sqrt(PI) * ls_sigma) /\n"
-         "         exp(-(els_f_grid[i]/ls_sigma)^2)\n"
-         "\n"
-         "Note that the frequency grid els_f_grid must hold\n"
-         "offset frequencies from line center. Hence, the\n"
-         "line center frequency is not needed as input.\n"
-         "\n"
-         "Output:\n"
-         "   els        : The lineshape function [1/Hz]\n"
-         "\n"
-         "Input:\n"
-         "   ls_sigma   : Line width [Hz].\n"
-         "   els_f_grid : Frequency grid [Hz]."
-        ),
-        OUTPUT( els_ ),
-        INPUT(  ls_sigma_, els_f_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES())); 
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("elsLorentz"),
-        DESCRIPTION
-        (
-         "The Lorentz lineshape.\n"
-         "\n"
-         "This computes the simple Lorentz lineshape as:\n"
-         "\n"
-         "els[i] = 1/PI * ls_gamma /\n"
-         "         ( (els_f_grid[i])^2 + ls_gamma^2 )\n"
-         "\n"
-         "Note that the frequency grid els_f_grid must hold\n"
-         "offset frequencies from line center. Hence, the\n"
-         "line center frequency is not needed as input.\n"
-         "\n"
-         "Output:\n"
-         "   els        : The lineshape function [1/Hz]\n"
-         "\n"
-         "Input:\n"
-         "   ls_gamma   : Line width [Hz].\n"
-         "   els_f_grid : Frequency grid [Hz]."
-        ),
-        OUTPUT( els_ ),
-        INPUT(  ls_gamma_, els_f_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("elsVoigt_Drayson"),
-        DESCRIPTION
-        (
-         "The Voigt Drayson linshape.\n"
-         "\n"
-         "This computes the Voigt profile\n"
-         "through the Drayson approximation.\n"
-         "\n"
-         "Note that the frequency grid els_f_grid must hold\n"
-         "offset frequencies from line center. Hence, the\n"
-         "line center frequency is not needed as input.\n"
-         "\n"
-         "Output:\n"
-         "   els        : The lineshape function [1/Hz]\n"
-         "\n"
-         "Input:\n"
-         "   ls_sigma   : Lorentz width [Hz].\n"
-         "   ls_gamma   : Doppler width [Hz].\n"
-         "   els_f_grid : Frequency grid [Hz]."
-        ),
-        OUTPUT( els_ ),
-        INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("elsVoigt_Kuntz6"),
-        DESCRIPTION
-        (
-         "The Voigt-Kuntz linshape.\n"
-         "\n"
-         "This computes the Voigt profile\n"
-         "through the Kuntz algorithm with\n"
-         "a relative accuracy better than 2*10-6.\n"
-         "\n"
-         "Note that the frequency grid els_f_grid must hold\n"
-         "offset frequencies from line center. Hence, the\n"
-         "line center frequency is not needed as input.\n"
-         "\n"
-         "Output:\n"
-         "   els        : The lineshape function [1/Hz]\n"
-         "\n"
-         "Input:\n"
-         "   ls_sigma   : Lorentz width [Hz].\n"
-         "   ls_gamma   : Doppler width [Hz].\n"
-         "   els_f_grid : Frequency grid [Hz]."
-        ),
-        OUTPUT( els_ ),
-        INPUT(  ls_sigma_, ls_gamma_, els_f_grid_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("grid_sizeSet"),
-        DESCRIPTION
-        (
-         "Set *grid_size* for scattering integral."
-         "\n"
-         "In this method the grid sizes (number of points of zenith grid \n"
-         "and azimuth  angle grid) for the scattering integral calculation \n"
-         "can be specified. For the calculation of the scattering integral\n"
-         "equidistant grids are appropriate as the peak of the phase \n"
-         "function can be anywhere, depending on incoming and scattered \n"
-         "directions." 
-         "\n"
-         "Keywords: \n"
-         "  N_za_grid : Number of points in zenith angle grid. \n"
-         "  N_aa_grid : Number of points in azimuth angle grid. \n"
-         ),
-        OUTPUT( za_grid_size_, scat_aa_grid_),
-        INPUT(),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS("N_za_grid", "N_aa_grid"),
-        TYPES(Index_t, Index_t)));
-
-
 
   md_data_raw.push_back
     ( MdRecord
@@ -2471,34 +2447,6 @@ md_data_raw.push_back
         KEYWORDS( "value"   ),
         TYPES(    Numeric_t )));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("output_file_formatSetAscii"),
-        DESCRIPTION
-        (
-         "Sets the output file format to ASCII."
-        ),
-        OUTPUT( output_file_format_),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("output_file_formatSetBinary"),
-        DESCRIPTION
-        (
-         "Sets the output file format to binary."
-        ),
-        OUTPUT( output_file_format_),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
  md_data_raw.push_back
     ( MdRecord
       ( NAME("opt_prop_sptFromData"),
@@ -2561,6 +2509,34 @@ md_data_raw.push_back
         KEYWORDS( ),
         TYPES( )));
  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("output_file_formatSetAscii"),
+        DESCRIPTION
+        (
+         "Sets the output file format to ASCII."
+        ),
+        OUTPUT( output_file_format_),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("output_file_formatSetBinary"),
+        DESCRIPTION
+        (
+         "Sets the output file format to binary."
+        ),
+        OUTPUT( output_file_format_),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
  md_data_raw.push_back
    ( MdRecord
       ( NAME( "ParticleTypeAddAll" ),
@@ -3073,6 +3049,141 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "rte_losSet" ),
+        DESCRIPTION
+        (
+         "Sets *rte_los* to the given angles.\n"
+         "\n"
+         "The keyword argument *za* is put in as first element of *rte_los*\n"
+         "and *aa* as the second element. However, when *atmosphere_dim* is\n"
+         "set to 1D or 2D, the length of *rte_los* is set to 1 and only the\n"
+         "given zenith angle is considered.\n"
+         "\n"
+         "Keywords: \n"
+         "   za : Zenith angle of sensor line-of-sight.\n"
+         "   aa : Azimuth angle of sensor line-of-sight."
+        ),
+        OUTPUT( rte_los_ ),
+        INPUT( atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "za",      "aa"      ),
+        TYPES(    Numeric_t, Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_posAddGeoidWGS84" ),
+        DESCRIPTION
+        (
+         "Adds a geoid radius according to WGS-84 to a geometric altitude.\n"
+         "\n"
+         "This function assumes that the first element of *rte_pos* is set\n"
+         "to the geometric altitude for the position of the sensor. \n"
+         "The variable *rte_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "taken from the WGS-84 reference ellipsiod.\n"
+         "\n"
+         "For 1D, the geoid radius is set to the radius of curvature of the\n"
+         "WGS-84 ellipsiod for the position and observation direction \n"
+         "described with *lat_1d* and *meridian_angle_1d*.\n"
+         "For 2D and 3D, the geoid radius is set to the radius of the WGS-84\n"
+         "ellipsiod for the latitude value in *rte_pos*."
+        ),
+        OUTPUT( rte_pos_ ),
+        INPUT( rte_pos_, atmosphere_dim_, lat_1d_, meridian_angle_1d_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_posAddRgeoid" ),
+        DESCRIPTION
+        (
+         "Adds a geoid radius by interpolating *r_geoid*.\n"
+         "\n"
+         "This function assumes that the first element of *rte_pos* is set\n"
+         "to the geometric altitude for the position of the sensor. \n"
+         "The variable *rte_pos* shall contain the radius instead of the\n"
+         "altitude and that can be achieved by this function. The function\n"
+         "adds a geoid radius to the given altitude. The geoid radius is\n"
+         "obtained by interpolation of *r_geoid*. There is an error if the\n"
+         "given position is outside the latitude and longitude grids."
+        ),
+        OUTPUT( rte_pos_ ),
+        INPUT( rte_pos_, atmosphere_dim_, lat_grid_, lon_grid_, r_geoid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_posSet" ),
+        DESCRIPTION
+        (
+         "Sets *rte_pos* to the given co-ordinates.\n"
+         "\n"
+         "The keyword argument *r_or_z* is put in as first element of\n"
+         "*rte_pos*, *lat* as the second element and *lon* as third element.\n"
+         "However, the length of *rte_pos* is set to *atmosphere_dim* and\n"
+         "keyword arguments for dimensions not used are ignored.\n"
+         "\n"
+         "The first keyword argument can either be a radius, or an altitude\n"
+         "above the geoid. In the latter case, a function such as\n"
+         "*rte_posAddGeoidWGS84* should also be called to obtain a radius as\n"
+         "first element of *rte_pos*.\n"
+         "\n"
+         "Keywords: \n"
+         "   r_or_z : Radius or geometrical altitude of sensor position.\n"
+         "   lat : Latitude of sensor position.\n"
+         "   lon : Longitude of sensor position."
+        ),
+        OUTPUT( rte_pos_ ),
+        INPUT( atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "r_or_z",  "lat",     "lon"     ),
+        TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_posShift" ),
+        DESCRIPTION
+        (
+         "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath."
+        ),
+        OUTPUT( rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
+        INPUT( ppath_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_pos_and_losFromTangentPressure" ),
+        DESCRIPTION
+        (
+         "If you are doing limb calculations it can be useful to specify\n"
+         "viewing direction and sensor position by the tangent pressure.\n"
+         "This function takes tan_p as a keyword argument and sets rte_los\n"
+         "and rte_pos to the apropriate position on the edge of the modelled\n"
+         "atmosphere\n\n"
+         "This function is a work in progress. Only 1D is currently supported"
+        ),
+        OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
+        INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
+               ppath_step_agenda_, r_geoid_, z_surface_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("tan_p"),
+        TYPES(Numeric_t)));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "r_geoidSpherical" ),
         DESCRIPTION
         (
@@ -3118,15 +3229,72 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
- md_data_raw.push_back
+  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_posShift" ),
+      ( NAME("ScatteringDataPrepareDOITOpt"),
         DESCRIPTION
         (
-         "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath."
-        ),
-        OUTPUT( rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
-        INPUT( ppath_, atmosphere_dim_ ),
+         "Prepare single scattering data for a DOIT scattering calculation.\n"
+         "\n"
+         "This function has can be used for scatttering calcualtions using the\n" 
+         " DOIT method. \n"
+         "\n"
+         "First the scattering data is interpolated in frequency using\n"
+         "*scat_data_monoCalc*. Then phase matrix data is \n"
+         "transformed of interpolated from the data to the laboratory frame \n"
+         "for all possible combinations of the angles contained in the angular\n"
+         "grids defined by *grid_sizeSet*. The resultung phase matrices are \n"
+         "stored in *pha_mat_sptFromDataDOITOpt*, which is used in the method\n"
+         "*pha_mat_sptFromDataDOITOpt*. \n"
+         "\n" 
+          ),
+        OUTPUT( pha_mat_sptDOITOpt_, scat_data_mono_),
+        INPUT( za_grid_size_, scat_aa_grid_, scat_data_raw_, f_grid_, 
+               f_index_, atmosphere_dim_, stokes_dim_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+ md_data_raw.push_back
+   ( MdRecord
+      ( NAME( "ScatteringInit" ),
+        DESCRIPTION
+        (
+         "Initialize variables for a scattering calculation. \n"
+         "\n"
+         "Variables needed in the scattering calculations are initialzed\n"
+         "here. This method has to be executed before using \n"
+         "*ScatteringMain*.\n"
+         "\n"
+         ),
+        OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
+               scat_za_index_, scat_aa_index_, pha_mat_,
+               pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
+               i_field_, iteration_counter_),
+        INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
+              za_grid_size_, 
+              cloudbox_limits_, scat_data_raw_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+   ( MdRecord
+      ( NAME( "ScatteringGridOptimization" ),
+        DESCRIPTION
+        (
+         "This methods executes *scat_grid_optimization_agenda*. \n"
+         "\n"
+         "Grid optimization takes a rather long time, as the whole \n"
+         "scattering calculation is performed on a very fine zenith angle \n"
+         "grid. If the number of elements in *f_grid* is greater than 1,\n"
+         "the calculation is cancelled.\n"
+         "\n"
+         ),
+        OUTPUT(),
+        INPUT(f_grid_, scat_grid_optimization_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3134,23 +3302,57 @@ md_data_raw.push_back
 
  md_data_raw.push_back
     ( MdRecord
-      ( NAME( "rte_pos_and_losFromTangentPressure" ),
+      ( NAME( "ScatteringMain" ),
         DESCRIPTION
         (
-         "If you are doing limb calculations it can be useful to specify\n"
-         "viewing direction and sensor position by the tangent pressure.\n"
-         "This function takes tan_p as a keyword argument and sets rte_los\n"
-         "and rte_pos to the apropriate position on the edge of the modelled\n"
-         "atmosphere\n\n"
-         "This function is a work in progress. Only 1D is currently supported"
-        ),
-        OUTPUT( rte_pos_, rte_los_, ppath_, ppath_step_ ),
-        INPUT( atmosphere_dim_, p_grid_, z_field_, lat_grid_, lon_grid_,
-               ppath_step_agenda_, r_geoid_, z_surface_ ),
+         "This method executes *scat_mono_agenda* for each frequency defined\n"
+         "in *f_grid* \n"
+         "\n"
+         ),
+        OUTPUT(f_index_),
+        INPUT(f_grid_, scat_mono_agenda_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("tan_p"),
-        TYPES(Numeric_t)));
+        KEYWORDS(),
+        TYPES()));
+ 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ScatteringMonteCarlo" ),
+        DESCRIPTION
+        (
+         "This method performs a single pencil beam monochromatic scattering\n"
+         "calculation using a Monte Carlo algorithm \n"
+         "\n"
+         "\n"
+         "The main output variables *i_rte* and *i_montecarlo_error* represent the \n"
+         "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
+         "The keyword parameter `maxiter\' describes the number of `photons\'\n"
+         "used in the simulation (more photons means smaller *Ierror*).\n"
+         "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
+         "enable the saving of internal and external ppath data for diagnostic purposes.\n"
+         "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
+         " max_iter.\n Negative values of rng_seed seed the random number generator \n "
+         "according to system time, positive rng_seed values are taken literally.\n"
+          "if keyword parameter silent is non-zero iterative output showing the photon\n"
+         "number and scattering order are suppressed" ),
+        OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
+               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, surface_emission_,
+               surface_los_, surface_refl_coeffs_, i_rte_, 
+               scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
+               rte_vmr_list_, ext_mat_, abs_vec_, f_index_),
+        INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
+              lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_limits_,
+              stokes_dim_, rte_agenda_, i_space_agenda_, surface_agenda_,
+              t_field_, scat_za_grid_,
+              scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
+              scalar_gas_absorption_agenda_, vmr_field_,
+              scat_data_mono_, pnd_field_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
+                 "record_histdata", "histdata_filename"),
+        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t)));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3403,105 +3605,6 @@ md_data_raw.push_back
         KEYWORDS("interp_method"),
         TYPES(String_t)));
  
-
- md_data_raw.push_back
-   ( MdRecord
-      ( NAME( "ScatteringInit" ),
-        DESCRIPTION
-        (
-         "Initialize variables for a scattering calculation. \n"
-         "\n"
-         "Variables needed in the scattering calculations are initialzed\n"
-         "here. This method has to be executed before using \n"
-         "*ScatteringMain*.\n"
-         "\n"
-         ),
-        OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
-               scat_za_index_, scat_aa_index_, pha_mat_,
-               pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
-               i_field_, iteration_counter_),
-        INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
-              za_grid_size_, 
-              cloudbox_limits_, scat_data_raw_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-   ( MdRecord
-      ( NAME( "ScatteringGridOptimization" ),
-        DESCRIPTION
-        (
-         "This methods executes *scat_grid_optimization_agenda*. \n"
-         "\n"
-         "Grid optimization takes a rather long time, as the whole \n"
-         "scattering calculation is performed on a very fine zenith angle \n"
-         "grid. If the number of elements in *f_grid* is greater than 1,\n"
-         "the calculation is cancelled.\n"
-         "\n"
-         ),
-        OUTPUT(),
-        INPUT(f_grid_, scat_grid_optimization_agenda_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ScatteringMain" ),
-        DESCRIPTION
-        (
-         "This method executes *scat_mono_agenda* for each frequency defined\n"
-         "in *f_grid* \n"
-         "\n"
-         ),
-        OUTPUT(f_index_),
-        INPUT(f_grid_, scat_mono_agenda_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
- 
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ScatteringMonteCarlo" ),
-        DESCRIPTION
-        (
-         "This method performs a single pencil beam monochromatic scattering\n"
-         "calculation using a Monte Carlo algorithm \n"
-         "\n"
-         "\n"
-         "The main output variables *i_rte* and *i_montecarlo_error* represent the \n"
-         "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
-         "The keyword parameter `maxiter\' describes the number of `photons\'\n"
-         "used in the simulation (more photons means smaller *Ierror*).\n"
-         "Non-zero values of keyword parameters record_ppathcloud and record_ppath\n"
-         "enable the saving of internal and external ppath data for diagnostic purposes.\n"
-         "  record_ppathcloud and record_ppath should be set to 0 for large values of\n"
-         " max_iter.\n Negative values of rng_seed seed the random number generator \n "
-         "according to system time, positive rng_seed values are taken literally.\n"
-          "if keyword parameter silent is non-zero iterative output showing the photon\n"
-         "number and scattering order are suppressed" ),
-        OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, rte_pos_, rte_los_,
-               rte_gp_p_, rte_gp_lat_, rte_gp_lon_, i_space_, surface_emission_,
-               surface_los_, surface_refl_coeffs_, i_rte_, 
-               scat_za_grid_,scat_aa_grid_, rte_pressure_, rte_temperature_, 
-               rte_vmr_list_, ext_mat_, abs_vec_, f_index_),
-        INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
-              lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_limits_,
-              stokes_dim_, rte_agenda_, i_space_agenda_, surface_agenda_,
-              t_field_, scat_za_grid_,
-              scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
-              scalar_gas_absorption_agenda_, vmr_field_,
-              scat_data_mono_, pnd_field_),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
-                 "record_histdata", "histdata_filename"),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t)));
-
  md_data_raw.push_back
     ( MdRecord
       ( NAME( "sensorOff" ),
@@ -3773,33 +3876,6 @@ md_data_raw.push_back
         OUTPUT( sensor_response_ ),
         INPUT( sensor_rot_, antenna_los_, antenna_dim_, stokes_dim_,
                sensor_response_f_, sensor_response_za_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ScatteringDataPrepareDOITOpt"),
-        DESCRIPTION
-        (
-         "Prepare single scattering data for a DOIT scattering calculation.\n"
-         "\n"
-         "This function has can be used for scatttering calcualtions using the\n" 
-         " DOIT method. \n"
-         "\n"
-         "First the scattering data is interpolated in frequency using\n"
-         "*scat_data_monoCalc*. Then phase matrix data is \n"
-         "transformed of interpolated from the data to the laboratory frame \n"
-         "for all possible combinations of the angles contained in the angular\n"
-         "grids defined by *grid_sizeSet*. The resultung phase matrices are \n"
-         "stored in *pha_mat_sptFromDataDOITOpt*, which is used in the method\n"
-         "*pha_mat_sptFromDataDOITOpt*. \n"
-         "\n" 
-          ),
-        OUTPUT( pha_mat_sptDOITOpt_, scat_data_mono_),
-        INPUT( za_grid_size_, scat_aa_grid_, scat_data_raw_, f_grid_, 
-               f_index_, atmosphere_dim_, stokes_dim_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -4710,6 +4786,39 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "ybatchCalc" ),
+        DESCRIPTION
+        (
+         "Performs batch calculations."
+         "\n"
+         "The method performs the following:"
+         "   1. Executes *batch_pre_agenda*.\n"
+         "   2. Performs a-d with *ybatch_index* = 0 : (*ybatch_n*-1).\n"
+         "    a. Executes *batch_update_agenda*.\n"
+         "    b. Executes *batch_calc_agenda*.\n"
+         "    c. If *ybatch_index* = 0, allocates memory for *ybatch* based\n"
+         "       on *ybatch_n* and length of *y*.\n"
+         "    d. Make copy of *y* in column *ybatch_index* of *ybatch*.\n"
+         "   3. Executes *batch_post_agenda*.\n"
+         "\n"
+         "See the user guide for practical examples.\n"
+         "\n"
+         "Note that *y* and other variables modified by the involved agendas\n"
+         "(e.g. *vmr_field*) are not restored by the method. If original\n"
+         "values must be preserved, a copy must be made in "
+         "*batch_pre_agenda* and\n"
+         "a reversed copy method call must be made in *batch_post_agenda*."
+         ),
+        OUTPUT( ybatch_, ybatch_index_, y_  ),
+        INPUT( batch_pre_agenda_, batch_update_agenda_, batch_calc_agenda_, 
+               batch_post_agenda_, ybatch_n_ ), 
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME( "ybatchMetProfiles" ),
         DESCRIPTION
         (
@@ -4826,7 +4935,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "ZeemanO2OnOff", "ZeemanO2PressureLimit","ZeemanO2Line" ),
         TYPES(    Index_t,       Numeric_t,               Index_t)));
-
 
 
 

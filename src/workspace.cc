@@ -458,6 +458,42 @@ void define_wsv_data()
        ),
       GROUP( Index_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_calc_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_post_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_pre_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "batch_update_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "cloudbox_on" ),
@@ -817,38 +853,23 @@ wsv_data.push_back
        ),
       GROUP( Vector_ )));
 
-wsv_data.push_back
-    (WsvRecord
-    ( NAME( "za_grid_size" ),
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iteration_counter" ),
       DESCRIPTION
       (
-       "This vector contains the discretisation of the zenith angle grid \n"
-       "for the scattering integral caluclation. \n"
+       "Counter for iterations.\n"
        "\n"
-       "The zenith angle grid is defined from 0 to 180°.\n"
-       "za_grid_size is the number of points of the zenith angle grid and \n"
+       "This variable holds the number of iterations which have been \n"
+       "while solving the RTE with scattering. \n"
+       "It is used in the method *Tensor6WriteIteration* and has to be set \n"
+       "0 in the control file if this method is used.\n"
        "\n"
-       "Usage: Output of *grid_sizeSet*.\n"
+       "Usage: Set by user. \n"
        "\n"
        ),
       GROUP( Index_ )));
 
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "i_montecarlo_error" ),
-       DESCRIPTION
-       (
-        "Error in *I* from ScatteringMonteCarlo.\n"
-        "\n"
-        "\n"
-        "Usage: Output from ScatteringMonteCArlo.. \n"
-        "\n"
-        "Units: W / (m^2 Hz sr)\n"
-        "\n"
-        "Size:  [ stokes_dim ]"
-        ), 
-       GROUP( Vector_ )));
- 
   wsv_data.push_back
     (WsvRecord
      ( NAME( "i_field" ), 
@@ -896,6 +917,22 @@ wsv_data.push_back
        ),
       GROUP( Tensor6_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "i_montecarlo_error" ),
+       DESCRIPTION
+       (
+        "Error in *I* from ScatteringMonteCarlo.\n"
+        "\n"
+        "\n"
+        "Usage: Output from ScatteringMonteCArlo.. \n"
+        "\n"
+        "Units: W / (m^2 Hz sr)\n"
+        "\n"
+        "Size:  [ stokes_dim ]"
+        ), 
+       GROUP( Vector_ )));
+ 
    wsv_data.push_back
    (WsvRecord
     ( NAME( "i_rte" ),
@@ -1049,41 +1086,6 @@ wsv_data.push_back
        "         ..."
       ),
       GROUP( ArrayOfRetrievalQuantity_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "l_step" ),
-      DESCRIPTION
-      (
-       "The pathlegth through one grid cell/layer.\n"
-       "\n"
-       "The pathlength is required in the methods for RT step calculations,\n"
-       "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
-       "It can be calculated using the *ppath_step_agenda*.\n"
-       "\n"
-       "Usage:      Calculated in *i_fieldUpdate1D*."
-       "\n"
-       "Unit:       m \n"
-       ),
-      GROUP( Numeric_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "iteration_counter" ),
-      DESCRIPTION
-      (
-       "Counter for iterations.\n"
-       "\n"
-       "This variable holds the number of iterations which have been \n"
-       "while solving the RTE with scattering. \n"
-       "It is used in the method *Tensor6WriteIteration* and has to be set \n"
-       "0 in the control file if this method is used.\n"
-       "\n"
-       "Usage: Set by user. \n"
-       "\n"
-       ),
-      GROUP( Index_ )));
-
 
  wsv_data.push_back
    (WsvRecord
@@ -1266,6 +1268,23 @@ wsv_data.push_back
        ),
       GROUP( Numeric_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "l_step" ),
+      DESCRIPTION
+      (
+       "The pathlegth through one grid cell/layer.\n"
+       "\n"
+       "The pathlength is required in the methods for RT step calculations,\n"
+       "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
+       "It can be calculated using the *ppath_step_agenda*.\n"
+       "\n"
+       "Usage:      Calculated in *i_fieldUpdate1D*."
+       "\n"
+       "Unit:       m \n"
+       ),
+      GROUP( Numeric_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "matrix_1" ),
@@ -1284,15 +1303,6 @@ wsv_data.push_back
   wsv_data.push_back
    (WsvRecord
     ( NAME( "main_agenda" ),
-      DESCRIPTION
-      (
-        "See agendas.cc."
-       ),
-      GROUP( Agenda_)));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "met_profile_calc_agenda" ),
       DESCRIPTION
       (
         "See agendas.cc."
@@ -1381,6 +1391,15 @@ wsv_data.push_back
  
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "met_profile_calc_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "opt_prop_gas_agenda" ),
       DESCRIPTION
       (
@@ -1412,31 +1431,6 @@ wsv_data.push_back
        "\n"
        ),
       GROUP( String_ )));
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "p_grid" ),
-      DESCRIPTION
-      (
-       "The pressure grid.\n"
-       "\n"
-       "The pressure surfaces on which the atmospheric fields are defined.\n"
-       "This variable must always be defined. The grid must be sorted in\n"
-       "decreasing order, with no repetitions.\n"
-       "\n"
-       "No gap between the lowermost pressure level and the surface is \n"
-       "allowed. The uppermost pressure level defines the practical upper\n"
-       "limit of the atmosphere as vacuum is assumed above.\n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage: Set by the user.\n"
-       "\n"
-       "Unit:  Pa"
-       ),
-      GROUP( Vector_ )));
 
     wsv_data.push_back
    (WsvRecord
@@ -1484,7 +1478,6 @@ wsv_data.push_back
        ),
       GROUP( Tensor5_ )));
 
-
     wsv_data.push_back
    (WsvRecord
     ( NAME( "pha_mat_spt_agenda" ),
@@ -1493,7 +1486,6 @@ wsv_data.push_back
         "See agendas.cc."
        ),
       GROUP( Agenda_ ))); 
-
 
    wsv_data.push_back
    (WsvRecord
@@ -1518,8 +1510,6 @@ wsv_data.push_back
        "stokes_dim, stokes_dim]"
        ),
       GROUP( ArrayOfTensor7_ )));
-
-
 
    wsv_data.push_back
    (WsvRecord
@@ -1638,6 +1628,31 @@ wsv_data.push_back
         "See agendas.cc."
        ),
       GROUP( Agenda_ )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "p_grid" ),
+      DESCRIPTION
+      (
+       "The pressure grid.\n"
+       "\n"
+       "The pressure surfaces on which the atmospheric fields are defined.\n"
+       "This variable must always be defined. The grid must be sorted in\n"
+       "decreasing order, with no repetitions.\n"
+       "\n"
+       "No gap between the lowermost pressure level and the surface is \n"
+       "allowed. The uppermost pressure level defines the practical upper\n"
+       "limit of the atmosphere as vacuum is assumed above.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  Pa"
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -2522,6 +2537,20 @@ wsv_data.push_back
        ),
       GROUP( Sparse_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "species_index" ),
+      DESCRIPTION
+      (
+       "This ArrayOfIndex yields the tag positions of key species like\n"
+       "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
+       "For example species_index[2] gives the first H2Otag position in the\n"
+       "controle file specified list of tags for which calculations should\n"
+       "be performed."
+  ),
+      GROUP( ArrayOfIndex_ )));
+
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "stokes_dim" ),
@@ -2541,21 +2570,6 @@ wsv_data.push_back
         "See agendas.cc."
        ),
       GROUP( Agenda_ )));
-
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "species_index" ),
-      DESCRIPTION
-      (
-       "This ArrayOfIndex yields the tag positions of key species like\n"
-       "N2 (=0), O2 (=1), H2O (=2), O3 (=3), CO2 (=4).\n"
-       "For example species_index[2] gives the first H2Otag position in the\n"
-       "controle file specified list of tags for which calculations should\n"
-       "be performed."
-  ),
-      GROUP( ArrayOfIndex_ )));
-
 
    wsv_data.push_back
    (WsvRecord
@@ -2646,7 +2660,7 @@ wsv_data.push_back
         ), 
        GROUP( Tensor3_ )));
 
-  wsv_data.push_back
+ wsv_data.push_back
     (WsvRecord
      ( NAME( "surface_fastem_constants" ),
        DESCRIPTION
@@ -2793,6 +2807,21 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "tensor3_2" ),
+      DESCRIPTION
+      (
+       "An arbitrary Tensor3.\n"
+       "\n"
+       "This variable is a general variable of type Tensor3.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Tensor3_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "tensor4_1" ),
       DESCRIPTION
       (
@@ -2805,6 +2834,51 @@ wsv_data.push_back
        "Usage: Set by user."
        ),
       GROUP( Tensor4_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "tensor4_2" ),
+      DESCRIPTION
+      (
+       "An arbitrary Tensor4.\n"
+       "\n"
+       "This variable is a general variable of type Tensor4.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Tensor4_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "tensor5_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary Tensor5.\n"
+       "\n"
+       "This variable is a general variable of type Tensor5.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Tensor5_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "tensor5_2" ),
+      DESCRIPTION
+      (
+       "An arbitrary Tensor4.\n"
+       "\n"
+       "This variable is a general variable of type Tensor5.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Tensor5_ )));
 
  wsv_data.push_back
     (WsvRecord
@@ -2820,6 +2894,16 @@ wsv_data.push_back
        "Usage: Set by user."
        ),
        GROUP( Tensor6_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "timer" ),
+      DESCRIPTION
+      (
+       "Stores the starting time for time measurements.\n"
+       "\n"
+       ),
+      GROUP( Timer_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -2872,16 +2956,6 @@ wsv_data.push_back
        "\n"
        ),
       GROUP( GriddedField3_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "timer" ),
-      DESCRIPTION
-      (
-       "Stores the starting time for time measurements.\n"
-       "\n"
-       ),
-      GROUP( Timer_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3018,16 +3092,44 @@ wsv_data.push_back
     ( NAME( "ybatch" ),
       DESCRIPTION
       (
-       "Spectra for a batch of metoffice profiles.\n"
-       "The spectra is in the columns of the matrix and the rows\n"
-       "corresponds to the number of profiles.\n"
+       "Batch of spectra.\n"
        "\n"
-       "Usage: Output from batch methods.\n"
+       "Each column of *ybatch* corresponds to a spectrum. \n"
+       "See further *ybatchCalc*.\n"
+       "\n"
+       "Usage: Most commonly produced by *ybatch*.\n"
        "\n"
        "Unit:  Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
        "       optical thickness."
        ),
       GROUP( Matrix_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ybatch_index" ),
+      DESCRIPTION
+      (
+       "Index of batch case.\n"
+       "\n"
+       "See further *ybatchCalc*.\n"
+       "\n"
+       "Usage: Set by *ybatchCalc*, for communication with "
+       "*bach_update_agenda*."
+       ),
+      GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ybatch_n" ),
+      DESCRIPTION
+      (
+       "Number of batch cases defined.\n"
+       "\n"
+       "See further *ybatchCalc*.\n"
+       "\n"
+       "Usage: Output from *batch_pre_agenda*."
+       ),
+      GROUP( Index_ )));
 
 //  wsv_data.push_back
 //    (WsvRecord
@@ -3038,6 +3140,58 @@ wsv_data.push_back
 //        ),
 //       GROUP( Agenda_ )));
 
+
+wsv_data.push_back
+    (WsvRecord
+    ( NAME( "za_grid_size" ),
+      DESCRIPTION
+      (
+       "This vector contains the discretisation of the zenith angle grid \n"
+       "for the scattering integral caluclation. \n"
+       "\n"
+       "The zenith angle grid is defined from 0 to 180°.\n"
+       "za_grid_size is the number of points of the zenith angle grid and \n"
+       "\n"
+       "Usage: Output of *grid_sizeSet*.\n"
+       "\n"
+       ),
+      GROUP( Index_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "zeeman_o2_onoff" ),
+      DESCRIPTION
+      (
+       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+       "splitting for the microwave range (1-1000 GHz).\n"
+       "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
+       "and if zeeman_o2_onoff=0 the Zeeman effect is omitted."
+       ),
+      GROUP( Index_ )));
+ 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "zeeman_o2_pressure_limit" ),
+      DESCRIPTION
+      (
+       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
+       "splitting for the microwave range (1-1000 GHz).\n"
+       "This variable sets the upper pressure limit [Pa] at which the\n"
+       " Zeeman splitting is taken into account\n"
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "zeeman_o2_line" ),
+      DESCRIPTION
+      (
+       "Calculate this line with Zeeman splitting, lines are\n"
+       "identified by their upper rotational angular momentum quantum\n"
+       "number N, postive values of zeeman_o2_line are N+ transitions,\n"
+       "negative are N-."
+       ),
+      GROUP( Index_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -3131,42 +3285,5 @@ wsv_data.push_back
        ),
       GROUP( Matrix_ )));
  
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "zeeman_o2_onoff" ),
-      DESCRIPTION
-      (
-       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-       "splitting for the microwave range (1-1000 GHz).\n"
-       "If zeeman_o2_onoff=1 the Zeeman effect is considered,\n"
-       "and if zeeman_o2_onoff=0 the Zeeman effect is omitted."
-       ),
-      GROUP( Index_ )));
-
- 
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "zeeman_o2_pressure_limit" ),
-      DESCRIPTION
-      (
-       "Make the Zeeman specific settings for O2 Zeeman spectral line\n"
-       "splitting for the microwave range (1-1000 GHz).\n"
-       "This variable sets the upper pressure limit [Pa] at which the\n"
-       " Zeeman splitting is taken into account\n"
-       ),
-      GROUP( Numeric_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     (NAME( "zeeman_o2_line" ),
-      DESCRIPTION
-      (
-       "Calculate this line with Zeeman splitting, lines are\n"
-       "identified by their upper rotational angular momentum quantum\n"
-       "number N, postive values of zeeman_o2_line are N+ transitions,\n"
-       "negative are N-."
-       ),
-      GROUP( Index_ )));
-
 
 }
