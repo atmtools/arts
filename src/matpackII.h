@@ -58,7 +58,6 @@ public:
   Numeric& rw(Index r, Index c);
   Numeric  ro(Index r, Index c) const;
 
-  Numeric& operator() (Index r, Index c);
   Numeric  operator() (Index r, Index c) const;
 
   // Friends:
@@ -67,6 +66,7 @@ public:
   friend void mult (MatrixView A, const SparseView B, const MatrixView C );
   friend void mult (SparseView A, const SparseView B, const SparseView C );
   friend void transpose (SparseView A, const SparseView B );
+  friend void transpose2 (SparseView A, const SparseView B );
   // IO functions must be friends:
   friend void xml_write_to_stream (ostream& os_xml, const Sparse& sparse, 
                                    bofstream *pbofs, const String &name);
@@ -111,8 +111,6 @@ public:
   // Destructor:
   ~Sparse();
 
-  Numeric& operator() (Index r, Index c)
-    { return SparseView::operator() (r, c); }
   Numeric operator() (Index r, Index c) const
     { return SparseView::operator() (r, c); }
 };
@@ -126,7 +124,7 @@ void mult( VectorView y,
 void mult( MatrixView A,
            const SparseView B,
            const MatrixView C );
-           
+
 void mult( SparseView A,
            const SparseView B,
            const SparseView C );

@@ -55,8 +55,6 @@ Index SparseView::nnz() const
   return *(mcolptr->end()-1);
 }
 
-Numeric& SparseView::rw (Index r, Index c)
-{ return (*this)(r, c); }
 
 /** Plain index operator. This has to correctly handle two cases:
 
@@ -65,7 +63,7 @@ Numeric& SparseView::rw (Index r, Index c)
 
     2. The element does not exist. In this case it is created.
 */
-Numeric& SparseView::operator ()(Index r, Index c)
+Numeric& SparseView::rw (Index r, Index c)
 {
   // Check if indices are valid:
   assert( 0<=r );
@@ -117,11 +115,11 @@ Numeric& SparseView::operator ()(Index r, Index c)
   return *( mdata->insert( mdata->begin()+i, 0 ) );
 }
 
-Numeric SparseView::ro (Index r, Index c) const
-{ return (*this)(r, c); }
+Numeric SparseView::operator() (Index r, Index c) const
+{ return this->ro(r, c); }
 
 /** Plain const index operator. */
-Numeric SparseView::operator() (Index r, Index c) const
+Numeric SparseView::ro (Index r, Index c) const
 {
   // Check if indices are valid:
   assert( 0<=r );
@@ -288,14 +286,14 @@ std::ostream& operator<<(std::ostream& os, const SparseView& v)
           // Now we know the true row r and column c. Convert to apparent r
           // and c using the Ranges mrr and mcr,
 
-          Index ra = (r-v.mrr.mstart)/v.mrr.mstride;
-          Index ca = (c-v.mcr.mstart)/v.mcr.mstride;
+          Index ra = (r-v.mrr.get_start ())/v.mrr.get_stride ();
+          Index ca = (c-v.mcr.get_start ())/v.mcr.get_stride ();
 
           // Are the apparent row ra and column ca inside the active range?
           if ( 0 <= ra &&
-               ra < v.mrr.mextent &&
+               ra < v.mrr.get_extent () &&
                0 <= ca &&
-               ca < v.mcr.mextent     )
+               ca < v.mcr.get_extent ())
             {
               // Yes, they are! Let's output this element.
               os << setw(3) << ra << " "
@@ -347,18 +345,18 @@ void mult( VectorView y,
           // Now we know the true row r and column c. Convert to apparent r
           // and c using the Ranges mrr and mcr,
 
-          Index ra = (r-M.mrr.mstart)/M.mrr.mstride;
-          Index ca = (c-M.mcr.mstart)/M.mcr.mstride;
+          Index ra = (r-M.mrr.get_start ())/M.mrr.get_stride ();
+          Index ca = (c-M.mcr.get_start ())/M.mcr.get_stride ();
 
           // Convert apparent indices to true for the VectorViews
-          //Index ry = ra*y.mrange.mstride + y.mrange.mstart;
-          //Index cx = ca*x.mrange.mstride + x.mrange.mstart;
+          //Index ry = ra*y.mrange.get_stride () + y.mrange.get_start ();
+          //Index cx = ca*x.mrange.get_stride () + x.mrange.get_start ();
 
           // Are the apparent row ra and column ca inside the active range?
           if ( 0 <= ra &&
-               ra < M.mrr.mextent &&
+               ra < M.mrr.get_extent () &&
                0 <= ca &&
-               ca < M.mcr.mextent     )
+               ca < M.mcr.get_extent ())
             {
               // Yes, they are! Let's compute this element.
               // y[i] = M(i,j) * x[j]
@@ -412,14 +410,14 @@ void mult( MatrixView A,
 
         // Now we know the true row r and column c. Convert to apparent r
         // and c using the Ranges mrr and mcr,
-        Index ra = (r-B.mrr.mstart)/B.mrr.mstride;
-        Index ca = (c-B.mcr.mstart)/B.mcr.mstride;
+        Index ra = (r-B.mrr.get_start ())/B.mrr.get_stride ();
+        Index ca = (c-B.mcr.get_start ())/B.mcr.get_stride ();
 
         // Are the apparent row ra and column ca inside the active range?
         if ( 0 <= ra &&
-             ra < B.mrr.mextent &&
+             ra < B.mrr.get_extent () &&
              0 <= ca &&
-             ca < B.mcr.mextent     )
+             ca < B.mcr.get_extent ())
         {
           // Yes, they are! Multiply it with corresponding column in C
           // and add the product to the right element in A
@@ -450,7 +448,7 @@ void transpose( SparseView A,
 
   // Loop through the existing rows of B and check them vs columns of C
   for (Index l=0; l<(signed)rowind.size(); l++) {
-    Index i = (rowind[l]-B.mrr.mstart)/B.mrr.mstride;
+    Index i = (rowind[l]-B.mrr.get_start ())/B.mrr.get_stride ();
 
     // Loop through columns and get the values for the specific row
     for (Index j=0; j<B.ncols(); j++) {
@@ -463,17 +461,16 @@ void transpose( SparseView A,
       Index end = (*B.mcolptr)[j+1];
 
       // If row index is within the span of this column, search for it
-      Index firstB = ((*B.mrowind)[begin]-B.mrr.mstart)/B.mrr.mstride;
-      Index lastB = ((*B.mrowind)[end-1]-B.mrr.mstart)/B.mrr.mstride;
+      Index firstB = ((*B.mrowind)[begin]-B.mrr.get_start ())/B.mrr.get_stride ();
+      Index lastB = ((*B.mrowind)[end-1]-B.mrr.get_start ())/B.mrr.get_stride ();
       if (i>=firstB && i<=lastB) {
         for (Index k=begin; k<end; ++k) {
-          if ( i == ((*B.mrowind)[k]-B.mrr.mstart)/B.mrr.mstride )
+          if ( i == ((*B.mrowind)[k]-B.mrr.get_start ())/B.mrr.get_stride ())
             A.rw(j,i) = B.ro(i,j);
         }
       }
     }
   }
-  // Should rowind be destructed?
 }
 
 
@@ -526,10 +523,14 @@ void mult( SparseView A,
       */
 
       //Check that the columns are non-empty, ...
-      Index firstBt = ((*Bt.mrowind)[beginBt]-Bt.mrr.mstart)/Bt.mrr.mstride;
-      Index lastBt = ((*Bt.mrowind)[endBt-1]-Bt.mrr.mstart)/Bt.mrr.mstride;
-      Index firstC = ((*C.mrowind)[beginC]-C.mrr.mstart)/C.mrr.mstride;
-      Index lastC = ((*C.mrowind)[endC-1]-C.mrr.mstart)/C.mrr.mstride;
+      Index firstBt = ((*Bt.mrowind)[beginBt]-Bt.mrr.get_start ())
+        / Bt.mrr.get_stride ();
+      Index lastBt = ((*Bt.mrowind)[endBt-1]-Bt.mrr.get_start ())
+        / Bt.mrr.get_stride ();
+      Index firstC = ((*C.mrowind)[beginC]-C.mrr.get_start ())
+        / C.mrr.get_stride ();
+      Index lastC = ((*C.mrowind)[endC-1]-C.mrr.get_start ())
+        / C.mrr.get_stride ();
       if ( endBt-beginBt!=0 && endC-beginC!=0
           // (NB: last index actually points to next columns first)
           // that they are overlapping and ...
@@ -545,8 +546,8 @@ void mult( SparseView A,
         while ( j<endC && i<endBt ) {
           //cout<<"B("<<cBt<<","<<i<<")*C("<<j<<","<<cC<<")="<<Bt.ro(i,cBt)<<"*"<<C.ro(j,cC)<<"="<<Bt.ro(i,cBt)*C.ro(j,cC)<<endl;
           //cout <<"i="<<(*Bt.mrowind)[i]<<",j="<<(*C.mrowind)[j]<<",";
-          Index c = ((*C.mrowind)[j]-C.mrr.mstart)/C.mrr.mstride;
-          Index bt =((*Bt.mrowind)[i]-Bt.mrr.mstart)/Bt.mrr.mstride;
+          Index c = ((*C.mrowind)[j]-C.mrr.get_start ())/C.mrr.get_stride ();
+          Index bt =((*Bt.mrowind)[i]-Bt.mrr.get_start ())/Bt.mrr.get_stride ();
           //if ((*C.mrowind)[j]>(*Bt.mrowind)[i]) {
           if (c>bt) {
             i++;
