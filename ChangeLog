@@ -1,3 +1,25 @@
+2000-09-26  Oliver Lemke  <oliver@uni-bremen.de>
+
+	* arts-0-0-54
+
+	* UserGuide: Added pdf output. Divided main.tex in uguide.tex and
+	uguide_pdf.tex. Changed the makefile to generate pdf and ps output
+	by default. The pdf version requires all figures in pdf-format.
+	The conversion from eps to pdf should be done with the epstopdf
+	command.
+
+	epstopdf <figure.eps>
+
+	Remember to convert new figures to pdf and do a cvs add.
+
+	* Added default graphics extension in uguide.tex and uguide_pdf.tex
+	Now eps and pdf extension in includegraphics commands are no longer
+	necessary. LaTeX and PDFTeX will pick the right file automatically.
+
+	* Fixed bug in uguide/Makefile.am: dvips' output on some systems
+	is send to lpr by default. Added -f option.
+	
+
 2000-09-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-53
