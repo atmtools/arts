@@ -1,3 +1,15 @@
+2002-09-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-247
+	
+	* configure.in: Removed ami subdirs.
+
+	* ami/: Purged.
+	
+	* ami/Makefile.am: Removed subdirs.
+
+	* ami/init.m: Removed subdirs.
+
 2002-09-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-246
