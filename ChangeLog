@@ -1,5 +1,7 @@
 2003-05-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-551	
+	
 	* src/methods.cc: Included documentation for recently added
 	methods related to the new database format.
 
