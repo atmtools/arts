@@ -1,3 +1,18 @@
+2002-05-31  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-109
+
+	* src/methods.cc: Two new functions, a_posSet and a_losSet.
+
+	* src/ppath.cc (ppath_start_stepping): Started to include 2D cases.
+
+	* doc/uguide/ppath.tex: Polished old text and wrote some pages of new 
+	text. The chapter is now up to date with what has been implemented. 
+
+	* doc/uguide: Made new versions of figures created by Latex commands.
+	The new figures are made in xfig. So there should now not be any errors
+	due to this when making uguide_pdf.
+
 2002-05-31  Sreerekha T.R.  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-108

@@ -31,27 +31,27 @@
 %  \stopsymbols
 %
 %
-\startsymbols
-  \Ind           & \artsstyle{i}         & vector/matrix/tensor index        \\
-  \aInd{\Lat}    & \artsstyle{i\_alpha}  & the \Ind:th latitude              \\
-  \VctLng        & \artsstyle{n}         & vector length or size of matrix/tensor for a dimension \\
-  \aVctLng{\Lat} & \artsstyle{n\_alpha}  & length of the latitude grid       \\
-  $e_g$          & \artsstyle{e\_ground} & ground emissivity                 \\
-  \Prs           & \artsstyle{p}         & pressure                          \\
-  \PrsAlt        & \artsstyle{pz}        & pressure altitude                 \\
-  \Rds           & \artsstyle{r}         & radius from the centre of the coordinate system         \\
-  \Tmp           & \artsstyle{t}         & temperature                       \\
-  \Alt           & \artsstyle{z}         & geometrical altitude above the geoid \\
-  \Planck        & \artsstyle{source}    & Planck function                   \\
-  \Lat           & \artsstyle{alpha}     & latitude                          \\
-  \Lon           & \artsstyle{beta}      & longitude                         \\
-  \ZntAng        & \artsstyle{psi}       & zenith angle                      \\
-  \AzmAng        & \artsstyle{omega}     & azimuthal angle                   \\
-  \MpiVct        & \artsstyle{mpi}       & vector with monochromatic pencil beam values \\
-  \MsrVct        & \artsstyle{y}         & measurement vector                \\
-  \SnsMtr        & \artsstyle{h}         & sensor and data reduction transfer matrix \\
- \label{symtable:fm_defs}     
-\stopsymbols
+%\startsymbols
+%  \Ind           & \artsstyle{i}         & vector/matrix/tensor index        \\
+%  \aInd{\Lat}    & \artsstyle{i\_alpha}  & the \Ind:th latitude              \\
+%  \VctLng        & \artsstyle{n}         & vector length or size of matrix/tensor for a dimension \\
+%  \aVctLng{\Lat} & \artsstyle{n\_alpha}  & length of the latitude grid       \\
+%  $e_g$          & \artsstyle{e\_ground} & ground emissivity                 \\
+%  \Prs           & \artsstyle{p}         & pressure                          \\
+%  \PrsAlt        & \artsstyle{pz}        & pressure altitude                 \\
+%  \Rds           & \artsstyle{r}         & radius from the centre of the coordinate system         \\
+%  \Tmp           & \artsstyle{t}         & temperature                       \\
+%  \Alt           & \artsstyle{z}         & geometrical altitude above the geoid \\
+%  \Planck        & \artsstyle{source}    & Planck function                   \\
+%  \Lat           & \artsstyle{alpha}     & latitude                          \\
+%  \Lon           & \artsstyle{beta}      & longitude                         \\
+%  \ZntAng        & \artsstyle{psi}       & zenith angle                      \\
+%  \AzmAng        & \artsstyle{omega}     & azimuthal angle                   \\
+%  \MpiVct        & \artsstyle{mpi}       & vector with monochromatic pencil beam values \\
+%  \MsrVct        & \artsstyle{y}         & measurement vector                \\
+%  \SnsMtr        & \artsstyle{h}         & sensor and data reduction transfer matrix \\
+% \label{symtable:fm_defs}     
+%\stopsymbols
 
 
 
@@ -446,9 +446,10 @@ latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D but
 then also with a longitude extension between two grid points.  The
 latitude and longitude limits for the cloud box cannot be placed at
 the end points of the corresponding grid as it must be possible to
-calculate the incoming intensity field. The cloud
-box is activated by setting the variable \wsvindex{cloudbox\_on} to 1. The
-limits of the cloud box are stored in \wsvindex{cloudbox\_limits}.
+calculate the incoming intensity field. The cloud box is activated by
+setting the variable \wsvindex{cloudbox\_on} to 1. The limits of the
+cloud box are stored in \wsvindex{cloudbox\_limits}. These are the only
+variables that must be set if the cloud box is not activated.
 
 There exists in fact a small risk for 2D or 3D, and with a reflecting
 ground, that a propagation path into the cloud box has earlier crossed
@@ -474,6 +475,8 @@ have used the name \wsvindex{f\_grid} elsewhere.)*]
 \levelb{Compulsory sensor and data reduction variables}
 %==============================================================================
 \label{sec:fm_defs:sensor1}
+
+{\bf THIS IS JUST A FIRST TRY. THE SENSOR PART WILL BE CHANGED.}
 
 The instrument that detects the simulated radiation is denoted as the
 sensor\index{sensor, the}. The forward model is constructed in such
@@ -556,25 +559,10 @@ the centre of the antenna pattern is directed.
 
 \begin{figure}[!t]
  \begin{center}
-  \begin{minipage}[c]{0.4\textwidth}
-   \begin{picture}(100,110)
-    \put(10,10){\vector(0,1){100}}
-    \put(0,114){zenith}
-    \put(10,10){\vector(1,0){100}}
-    \put(97,0){north}
-    \put(10,10){\vector(-1,0){20}}
-    \put(-20,0){south}
-    \put(10,10){\vector(1,1){80}}
-    \put(65,93){line-of-sight}
-    \put(10,10){\arc{40}{-1.5708}{-0.7854}}
-    \put(18,34){\ZntAng}
-    \dottedline(90,90)(90,35)(10,10)
-    \drawline(85,33.4)(85,38.4)(90,40)
-    \put(10,10){\arc{50}{-.3}{0}}
-    \put(38,12){\AzmAng}
-   \end{picture}
+  \begin{minipage}[c]{0.6\textwidth}
+   \includegraphics*[width=0.99\hsize]{Figs/fm_definitions/za_and_aa_angles}
   \end{minipage}%
-  \begin{minipage}[c]{0.50\textwidth}
+  \begin{minipage}[c]{0.4\textwidth}
    \caption{Definition of zenith angle, \ZntAng, and azimuthal angle, 
        \AzmAng, for a line-of-sight. The figure shows a line-of-sight
        with a negative azimuthal angle.}
@@ -819,21 +807,16 @@ Section~\ref{sec:fm_defs:sensor2}.
 %==============================================================================
 \label{sec:fm_defs:rte}
 
-\newcommand{\Int}{{\bf I}}
-\newcommand{\Ext}{{\bf K}}
-\newcommand{\Abs}{{\bf a}}
-\newcommand{\Sca}{{\bf Y}}
-\newcommand{\Dir}{{\bf n}}
-\newcommand{\Path}{{\bf s}}
+%\newcommand{\Int}{{\bf I}}
+%\newcommand{\Ext}{{\bf K}}
+%\newcommand{\Abs}{{\bf a}}
+%\newcommand{\Sca}{{\bf Y}}
+%\newcommand{\Dir}{{\bf n}}
+%\newcommand{\Path}{{\bf s}}
 %\newcommand{\Planck}{{\bf B}}
-\newcommand{\Freq}{\nu}
-\newcommand{\Dep}{(\Dir,\Freq)}
+%\newcommand{\Freq}{\nu}
+%\newcommand{\Dep}{(\Dir,\Freq)}
 
-\startsymbols
-  \Ind           & -                 & vector/matrix/tensor index           \\
-  \Int           & 
- \label{symtable:fm_defs_rt}     
-\stopsymbols
 
 % STEFAN, you should have a look at the file symbol_defs. The quantities for
 % which you have defined commands should be of general interest and they should
@@ -856,28 +839,31 @@ Section~\ref{sec:fm_defs:sensor2}.
 %
 % Patrick
 
-\levelc{Radiative transfer equation and important quantities}
-
-The radiative transfer equation in the absence of cloud particles is
-\citep{mishchenko00:_light_scatt_nonsp_partic}: 
-
-\begin{equation}
-  \label{eq:rte_4stokes_no_scat}
-  \frac{d\Int\Dep}{d\Path} = - \Ext\Dep \Int\Dep + \Abs\Dep\Planck(T)
-\end{equation}
-where the meaning of the quantities in this equation is as follows:
-
-The specific intensity vector $\Int$
+{\bf THIS IS JUST A FIRST TRY. THis PART WILL BE MODIFIED.}
 
 
-
- where $I$ is the monochromatic pencil beam intensity, $l$ distance
- along the line of sight (LOS), $l_1$ the point of the considered part
- of the LOS furthest away from the sensor, $l_2$ the closest point of
- the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
- along the LOS and $\sigma$ the source function.
-
-[* Please consider also transmission measurements. *]
+%\levelc{Radiative transfer equation and important quantities}
+%
+%The radiative transfer equation in the absence of cloud particles is
+%\citep{mishchenko00:_light_scatt_nonsp_partic}: 
+%
+%\begin{equation}
+%  \label{eq:rte_4stokes_no_scat}
+%  \frac{d\Int\Dep}{d\Path} = - \Ext\Dep \Int\Dep + \Abs\Dep\Planck(T)
+%\end{equation}
+%where the meaning of the quantities in this equation is as follows:
+%
+%The specific intensity vector $\Int$
+%
+%
+%
+% where $I$ is the monochromatic pencil beam intensity, $l$ distance
+% along the line of sight (LOS), $l_1$ the point of the considered part
+% of the LOS furthest away from the sensor, $l_2$ the closest point of
+% the LOS, $I_1$ the intensity at $l_1$, $\kappa$ the total absorption
+% along the LOS and $\sigma$ the source function.
+%
+% [* Please consider also transmission measurements. *]
 
 
 \levelc{Calculation procedure}

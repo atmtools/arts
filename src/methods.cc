@@ -498,6 +498,29 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME( "a_losSet" ),
+	DESCRIPTION
+        (
+	 "Sets *a_los* to the given angles.\n"
+         "\n"
+	 "The keyword argument *za* is put in as first element of *a_los*\n"
+	 "and *aa* as the second element. However, when *atmosphere_dim* is\n"
+	 "set to 1D or 2D, the length of *a_los* is set to 1 and only the\n"
+	 "given zenith angle is considered.\n"
+         "\n"
+         "Keywords: \n"
+         "   za : Zenith angle of sensor line-of-sight.\n"
+         "   aa : Azimuth angle of sensor line-of-sight."
+        ),
+	OUTPUT( a_los_ ),
+	INPUT( atmosphere_dim_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "za",      "aa"      ),
+	TYPES(    Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME( "a_posAddGeoidWGS84" ),
 	DESCRIPTION
         (
@@ -522,6 +545,35 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "a_posSet" ),
+	DESCRIPTION
+        (
+	 "Sets *a_pos* to the given co-ordinates.\n"
+         "\n"
+	 "The keyword argument *r_or_z* is put in as first element of\n"
+	 " *a_pos*, *lat* as the second element and *lon* as third element.\n"
+	 "However, the length of *a_pos* is set to *atmosphere_dim* and\n"
+	 " keyword arguments for dimensions not used are ignored.\n"
+         "\n"
+	 "The first keyword argument can either be a radius, or an altitude\n"
+	 "above the geoid. In the latter case, a function such as\n"
+	 "*a_posAddGeoidWGS84* should also be called to obtain a radius as\n"
+	 "first element of *a_pos*.\n"
+         "\n"
+         "Keywords: \n"
+         "   r_or_z : Radius or geometrical altitude of sensor position.\n"
+         "   lat : Latitude of sensor position.\n"
+         "   lon : Longitude of sensor position."
+        ),
+	OUTPUT( a_pos_ ),
+	INPUT( atmosphere_dim_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "r_or_z",  "lat",     "lon"     ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord

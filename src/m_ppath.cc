@@ -55,12 +55,43 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
+//! a_losSet
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-30
+*/
+void a_losSet(
+        // WS Output:
+              Vector&    a_los,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        // Control Parameters:
+        const Numeric&   za,
+        const Numeric&   aa )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  if( atmosphere_dim == 1 )
+    { a_los.resize(1); }
+  else
+    {
+      a_los.resize(2);
+      a_los[1] = aa;
+    }
+  a_los[0] = za;
+}
+
+
+
 //! a_posAddGeoidWGS84
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2002-05-16
+   \date   2002-05-20
 */
 void a_posAddGeoidWGS84(
         // WS Output:
@@ -79,6 +110,36 @@ void a_posAddGeoidWGS84(
   m(0,Range(joker)) = a_pos;
   sensor_posAddGeoidWGS84( m, atmosphere_dim, latitude_1d, meridian_angle_1d);
   a_pos[0] = m(0,0);
+}
+
+
+
+//! a_posSet
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-30
+*/
+void a_posSet(
+        // WS Output:
+              Vector&    a_pos,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        // Control Parameters:
+        const Numeric&   r_or_z,
+        const Numeric&   lat,
+        const Numeric&   lon )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+
+  a_pos.resize(atmosphere_dim);
+  a_pos[0] = r_or_z;
+  if( atmosphere_dim >= 2 )
+    { a_pos[1] = lat; }
+  if( atmosphere_dim == 3 )
+    { a_pos[2] = lon; }
 }
 
 
@@ -434,12 +495,12 @@ void ppath_stepGeometric(
   // many times. So we perform asserts in the sub-functions, but no checks 
   // here. This commented in the on-line information.
 
-  // Note that lmax is here set to 9999 km
+  // Note that lmax is here set to -1.
 
   if( atmosphere_dim == 1 )
     { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
                z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
-                                                    blackbody_ground, 9999e3 );
+                                                        blackbody_ground, -1 );
     }
   else
     {

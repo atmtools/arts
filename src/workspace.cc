@@ -73,6 +73,8 @@ void define_wsv_data()
      Units:      E.g., kg/m
 
      Dimensions: [ first dimension, second dimension, ... ]
+        or
+     Size:       [ .., nrows, ncols ]
 
      Members:    Here you would list the members if your
                  variable is a structure.
@@ -83,6 +85,8 @@ void define_wsv_data()
 
      Give the keywords above only if they apply, i.e., Members only
      for a structure, Units only for a physical variable. 
+     Use either Dimensions or Size, depending on what is most appropiate for
+     the variable.
   */
 
 
@@ -179,12 +183,12 @@ void define_wsv_data()
      "in the ARTS user guide (AUG). Look in the index for \"zenith angle\"\n"
      "and \"azimuthal angle\".\n"
      "\n"
-     "Usage:      To call *ppathCalc* as an individual function. Other\n"
-     "            purposes can be possible.\n"
+     "Usage: To call *ppathCalc* as an individual function. Other\n"
+     "       purposes can be possible.\n"
      "\n"
-     "Units:      [ degree, degree ]\n"
+     "Units: [ degree, degree ]\n"
      "\n"
-     "Dimensions: [ 1 for 1D and 2D, 2 for 3D ]",
+     "Size:  [ 1 or 2 ]",
      Vector_ ));
 
   wsv_data.push_back
@@ -203,12 +207,12 @@ void define_wsv_data()
      "3 is the longitude. Please note that the vertical position is given\n"
      "as the radius, not the altitude above the geoid.\n"
      "\n"
-     "Usage:      To call *ppathCalc* as an individual function. Other\n"
-     "            purposes can be possible.\n"
+     "Usage: To call *ppathCalc* as an individual function. Other\n"
+     "       purposes can be possible.\n"
      "\n"
-     "Units:      [ m, degree, degree ]\n"
+     "Units: [ m, degree, degree ]\n"
      "\n"
-     "Dimensions: [ atmosphere_dim ]",
+     "Size:  [ atmosphere_dim ]",
      Vector_ ));
 
   wsv_data.push_back
@@ -286,12 +290,12 @@ void define_wsv_data()
      "this variable is discussed. The variable is listed as a subentry to\n"
      "\"workspace variables\".\n"
      "\n"
-     "Usage:      Set by the user, either directly or using a function\n"
-     "            checking the extension of scattering particles.\n"
+     "Usage: Set by the user, either directly or using a function\n"
+     "       checking the extension of scattering particles.\n"
      "\n"
-     "Unit:       Index values.\n"
+     "Unit:  Index values.\n"
      "\n"
-     "Dimensions: [ 2 * atmosphere_dim ]",
+     "Size:  [ 2 * atmosphere_dim ]",
      ArrayOfIndex_ ));
 
   wsv_data.push_back
@@ -797,11 +801,11 @@ void define_wsv_data()
      "\n"
      "Text will be written (PE).\n"
      "\n"
-     "Usage:      Set by the user.\n"
+     "Usage: Set by the user.\n"
      "\n"
-     "Unit:       [ degrees, degrees ]\n"
+     "Unit:  [ degrees, degrees ]\n"
      "\n"
-     "Dimensions: [ number of measurement blocks, 1 or 2 ]",
+     "Size:  [ number of measurement blocks, 1 or 2 ]",
      Matrix_ ));
 
   wsv_data.push_back
@@ -814,11 +818,11 @@ void define_wsv_data()
      "Range for zenith angles is [0,180] beside for 2D where it\n"
      "is [-180,180].\n"
      "\n"
-     "Usage:      Set by the user.\n"
+     "Usage: Set by the user.\n"
      "\n"
-     "Unit:       [ m, degrees, degrees ]\n"
+     "Unit:  [ m, degrees, degrees ]\n"
      "\n"
-     "Dimensions: [ number of measurement blocks, atmosphere_dim ]",
+     "Size:  [ number of measurement blocks, atmosphere_dim ]",
      Matrix_ ));
 
   wsv_data.push_back

@@ -64,6 +64,8 @@ extern const Numeric RAD2DEG;
 /*! 
    Calculates the propagation path constant for pure geometrical calculations.
 
+   Both positive and negative zenith angles are handled.
+
    \return         Path constant.
    \param   r      Radius of the sensor position.
    \param   za     Zenith angle of the sensor line-of-sight.
@@ -142,11 +144,7 @@ Numeric geompath_lat_at_za(
   assert( fabs(za0) <= 180 );
   assert( fabs(za) <= 180 );
   assert( (za0>=0&&za>=0) || (za0<0&&za<0) );
-  const Numeric dlat = fabs( za0 - za );
-  if( za0 > 0 )
-    { return lat0 + dlat; }
-  else
-    { return lat0 - dlat; }
+  return lat0 + za0 - za;
 }
 
 
@@ -557,7 +555,34 @@ void ppath_start_stepping(
   //-- 2D ---------------------------------------------------------------------
   else if( atmosphere_dim == 2 )
     {
-      throw runtime_error("The function handles not yet 2D.");
+      // Number of points in the pressure and latitude grids
+      const Index   np = p_grid.nelem();
+      const Index   nlat = lat_grid.nelem();
+
+      // If the sensor is inside the latitude range of the model atmosphere,
+      // calculate radius for the ground and the top of the atmosphere for
+      // the sensor latitude.
+      Index   is_inside = 0;
+      Numeric r_ground, r_top;
+      //
+      if( a_pos[1] >= lat_grid[0]  &&  a_pos[1] <= lat_grid[nlat-1] )
+	{
+	  is_inside = 1;
+	  ArrayOfGridPos gp(1);
+	  Matrix itw(1,2);
+	  Vector v_rgeoid, v_zground, v_ztop;
+	  gridpos( gp, lat_grid, Vector(a_pos[1]) );
+	  interpweights( itw, gp );
+	  interp( v_rgeoid, itw, r_geoid(Range(joker),0), gp );
+	  interp( v_zground, itw, z_ground(Range(joker),0), gp );
+	  interp( v_ztop, itw, z_field(np-1,Range(joker),0), gp );
+	  r_ground = v_rgeoid[0] + v_zground[0];
+	  r_top    = v_rgeoid[0] + v_ztop[0];
+	  NumericPrint(r_ground,"r_ground");
+	  NumericPrint(r_top,"r_top");
+	}
+
+
     }  // End 2D
 
 
@@ -585,7 +610,8 @@ void ppath_start_stepping(
    grids, tangent points and points of ground intersections. In addition,
    points are included in the propgation path to ensure that the distance
    along the path between the points does not exceed the selected maximum 
-   length (lmax).
+   length (lmax). If lmax is <= 0, this means that no length criterion shall
+   be applied.
 
    Note that the input variables are here compressed to only hold data for
    a 1D atmosphere. For example, z_grid is z_field(:,0,0).
@@ -622,7 +648,6 @@ void ppath_step_geom_1d(
   assert( p_grid.nelem() >= 2 );
   assert( r_geoid > 0 );
   assert( is_bool( blackbody_ground ) );
-  assert( lmax > 0 );
   //
   assert( ppath.dim == atmosphere_dim );
   assert( ppath.np >= 1 );
@@ -739,8 +764,13 @@ void ppath_step_geom_1d(
       ls[i] = geompath_l_at_r( ppc, rs[i] );
       if( i > 0 )
 	{
-	  // The absolute value of the length distance is needed here
-	  ns[i-1] = Index( ceil( fabs(ls[i]-ls[i-1]) / lmax ) );
+	  if( lmax > 0 )
+	    {
+	      // The absolute value of the length distance is needed here
+	      ns[i-1] = Index( ceil( fabs(ls[i]-ls[i-1]) / lmax ) );
+	    }
+	  else
+	    { ns[i-1] = 1; }
 	  np   += ns[i-1];
 	}
     }
