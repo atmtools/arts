@@ -49,6 +49,14 @@ public:
   const ARRAY<string>&     Keywords()     const { return mkeywords;    }
   const ARRAY<TokValType>& Types()        const { return mtypes;       }
 
+  /** Print method template for the control file. This prints the
+      method data exactly in the same way how it can be included in
+      the control file. The description string is also printed as a
+      comment, but this can be turned off by setting show_comment to
+      false.
+
+      @param show_description Should the description string also be printed?   */
+  ostream& PrintTemplate(ostream& os, bool show_description=true) const;
 private:
 
   /** The name of this method. */
@@ -82,6 +90,14 @@ private:
     lookup table is a global variable. It can be made visible anywhere
     with an extern declaration. */
 void define_md_data();
+
+/** Define MdMap. MdMap can be used to find method data by method
+    name. */
+void define_md_map();
+
+/** Output operator for MdRecord.
+    @author Stefan Buehler */
+ostream& operator<<(ostream& os, const MdRecord& mdr);
 
 
 #endif  // methods_h

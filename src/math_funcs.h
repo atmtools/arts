@@ -78,6 +78,23 @@ MATRIX log( const MATRIX& X );
     @author Patrick Eriksson 27.06.99 */
 Numeric min( const VECTOR& x );
 
+/** Gives the minimum value of a matrix, v = min(A).
+
+    @param   v   Returns: the minimum value of x
+    @param   A   The input matrix
+
+    @author Stefan Buehler 08.05.2000 */
+Numeric min( const MATRIX& A );
+
+/** Gives the minimum value of an array, v = min(x).
+
+    @param   v   Returns: the minimum value of x
+    @param   x   The input array
+
+    @author Stefan Buehler 08.05.2000 */
+template<class T>
+T min( const ARRAY<T>& x );
+
 
 /** Gives the maximum value of a vector, v = min(x).
 
@@ -86,6 +103,23 @@ Numeric min( const VECTOR& x );
 
     @author Patrick Eriksson 27.06.99 */
 Numeric max( const VECTOR& x );
+
+/** Gives the maximum value of a matrix, v = max(A).
+
+    @param   v   Returns: the maximum value of x
+    @param   A   The input matrix
+
+    @author Stefan Buehler 08.05.2000 */
+Numeric max( const MATRIX& A );
+
+/** Gives the maximum value of an array, v = max(x).
+
+    @param   v   Returns: the maximum value of x
+    @param   x   The input array
+
+    @author Stefan Buehler 08.05.2000 */
+template<class T>
+T max( const ARRAY<T>& x );
 
 
 /** Gives the first value of a vector, v = first(x).

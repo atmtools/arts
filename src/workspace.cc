@@ -22,6 +22,10 @@ ARRAY<string> wsv_group_names;
 /** The lookup information for the workspace variables. */
 ARRAY<WsvRecord> wsv_data;
 
+/** The map assiciated with wsv_data. */
+std::map<string, size_t> WsvMap;
+
+
 /** Initializes the workspace lookup data. */
 void define_wsv_data()
 {
@@ -244,6 +248,17 @@ void define_wsv_data()
   }
 
   //  cout << "size = " << wsv_data.size() << '\n';
+}
+
+void define_wsv_map()
+{
+  extern const ARRAY<WsvRecord> wsv_data;
+  extern std::map<string, size_t> WsvMap;
+
+  for ( size_t i=0 ; i<wsv_data.size() ; ++i)
+    {
+      WsvMap[wsv_data[i].Name()] = i;
+    }
 }
 
 

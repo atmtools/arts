@@ -1015,22 +1015,10 @@ void parse(ARRAY<MRecord>& tasklist,
 
 void parse_main(ARRAY<MRecord>& tasklist, SourceText& text)
 {
-  std::map<string, size_t> MdMap;
-  std::map<string, size_t> WsvMap;
-  extern const ARRAY<MdRecord> md_data;
-  extern const ARRAY<WsvRecord> wsv_data;
-
-  // Initialize MdMap
-  for ( size_t i=0 ; i<md_data.size() ; ++i)
-    {
-      MdMap[md_data[i].Name()] = i;
-    }
-
-  // Initialize WsvMap
-  for ( size_t i=0 ; i<wsv_data.size() ; ++i)
-    {
-      WsvMap[wsv_data[i].Name()] = i;
-    }
+  //  extern const ARRAY<MdRecord> md_data;
+  //  extern const ARRAY<WsvRecord> wsv_data;
+  extern const std::map<string, size_t> MdMap;
+  extern const std::map<string, size_t> WsvMap;
 
   try 
     {

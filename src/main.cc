@@ -197,6 +197,34 @@ int main (int argc, char **argv)
       }
   }
 
+
+  // For the next couple of options we need to have the workspce and
+  // method lookup data.
+
+
+  // Initialize the md data:
+  define_md_data();
+
+  // Initialize the wsv data:
+  define_wsv_data();
+
+  // Initialize MdMap
+  define_md_map();
+
+  // Initialize WsvMap
+  define_wsv_map();
+
+  // Make all these data visible:
+  extern const ARRAY<MdRecord>  md_data;
+  extern const ARRAY<WsvRecord> wsv_data;
+  extern const std::map<string, size_t> MdMap;
+  extern const std::map<string, size_t> WsvMap;
+
+
+  // Now we are set to deal with the more interesting command line
+  // switches. 
+
+
   // React to option `methods'. If given the argument `all', it
   // should simply prints a list of all methods. If given the name of
   // a variable, it should print all methods that produce this
@@ -221,8 +249,37 @@ int main (int argc, char **argv)
   // string of the given workspace variable or method.
   if ( "" != parameters.describe )
     {
-      cerr << "Option `describe' is not yet implemented, sorry.\n";
-      return(1);
+      // Let's first assume it is a method that the user wants to have
+      // described.
+
+      // Find method id:
+      map<string, size_t>::const_iterator i =
+	MdMap.find(parameters.describe);
+      if ( i != MdMap.end() )
+	{
+	  // If we are here, then the given name matches a method.
+	  cout << md_data[i->second] << '\n';
+	  return(0);
+	}
+
+      // Ok, let's now assume it is a variable that the user wants to have
+      // described.
+
+      // Find wsv id:
+      i = WsvMap.find(parameters.describe);
+      if ( i != WsvMap.end() )
+	{
+	  // If we are here, then the given name matches a workspace
+	  // variable. 
+	  cout << wsv_data[i->second] << '\n';
+	  return(0);
+	}
+
+      // If we are here, then the given name does not match anything.
+      cerr << "The name " << parameters.describe
+	   << " matches neither method nor variable.\n";
+
+      return(1);      
     }
 
 
@@ -293,30 +350,6 @@ int main (int argc, char **argv)
 	out1 << PACKAGE << " " << VERSION << "." << subversion << '\n';
       }
 
-      // Initialize the wsv data:
-      define_wsv_data();
-
-      {
-	// Quick test that the pointers stored in wsv_data can be
-	// really used to access the workspace variables.
-	// YES!! It works.
-	// FIXME: Remove all this.
-// 	WsvP   *wp = wsv_data[basename_].Pointer(); 
-// 	string *s = *wp;
-// 	*s = "test";
-// 	cout << "workspace.basename = " << workspace.basename << '\n';
-      }
-
-      // Initialize the md data:
-      define_md_data();
-
-      {
-	// Quick test:
-// 	for (size_t i=0; i<md_data.size(); ++i)
-// 	  {
-// 	    cout << md_data[i].Name() << '\n';
-// 	  }
-      }
 
       // The list of methods to execute and their keyword data from
       // the control file. 

@@ -197,4 +197,8 @@ ostream& operator<<(ostream& os, const WsvRecord& wr);
     declaration. */
 void define_wsv_data();
 
+/** Define WsvMap. WsvMap can be used to find workspace variable data
+    by name. */ 
+void define_wsv_map();
+
 #endif  // workshpace_h

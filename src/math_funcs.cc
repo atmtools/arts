@@ -128,7 +128,65 @@ Numeric min( const VECTOR& x )
   return y; 
 }
 
+Numeric min( const MATRIX& A )
+{
+  int r = A.dim(1);
+  int c = A.dim(2);
+
+  Numeric y=A(1,1);
+
+  for ( int i=2; i<=r; i++ )
+    for ( int s=2; s<=c; s++ )
+      {
+	if ( A(i,s) < y )
+	  y = A(i,s);
+      }
+  return y; 
+}
+
+template<class T>
+T min( const ARRAY<T>& x )
+{
+  int n = x.dim();
+  Numeric y=x(1);
+  for ( int i=2; i<=n; i++ )
+  {
+    if ( x(i) < y )
+      y = x(i);
+  }
+  return y; 
+}
+
 Numeric max( const VECTOR& x )
+{
+  int n = x.dim();
+  Numeric y=x(1);
+  for ( int i=2; i<=n; i++ )
+  {
+    if ( x(i) > y )
+      y = x(i);
+  }
+  return y; 
+}
+
+Numeric max( const MATRIX& A )
+{
+  int r = A.dim(1);
+  int c = A.dim(2);
+
+  Numeric y=A(1,1);
+
+  for ( int i=2; i<=r; i++ )
+    for ( int s=2; s<=c; s++ )
+      {
+	if ( A(i,s) > y )
+	  y = A(i,s);
+      }
+  return y; 
+}
+
+template<class T>
+T max( const ARRAY<T>& x )
 {
   int n = x.dim();
   Numeric y=x(1);

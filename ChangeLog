@@ -1,3 +1,11 @@
+2000-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-18
+
+	* Added the implementation of the --describe (-d) command line
+	option. 
+
+	
 2000-04-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-17

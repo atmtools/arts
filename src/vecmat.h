@@ -92,7 +92,6 @@ public:
 };
 
 
-
 /*------------------< Allowed MATRIX and VECTOR operations >------------------
 
   This part defines the MATRIX and VECTOR functionality that will be 
