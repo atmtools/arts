@@ -836,7 +836,7 @@ public:
 
 private:
   // Versin number:
-  const static Index mversion = 3;
+  static const Index mversion = 3;
   // Molecular species index: 
   Index mspecies;
   // Isotopic species index:
