@@ -305,7 +305,7 @@ void convergence_flagAbs(//WS Output:
   \param scat_p_index  Pressure index.
   \param scat_lat_index Latitude index.
   \param scat_lon_index Longitude index.
-                                      
+  \param abs_scalar_gas Scalar gas absorption.                                    
   WS Input:
   \param spt_calc_agenda Agenda for single particle scattering properties.
   \param opt_prop_part_agenda Agenda to compute optical properties 
@@ -358,6 +358,7 @@ i_fieldIterate(
                     Index& scat_lon_index,
                     Index& scat_za_index,
                     Index& scat_aa_index,
+                    Vector& abs_scalar_gas,
                     // WS Input:
                     const Agenda& spt_calc_agenda,
                     const Agenda& opt_prop_part_agenda,
@@ -521,6 +522,7 @@ i_fieldIterate(
                         sca_vec, a_planck_value, l_step,  
                         abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
                         abs_vec,  scat_p_index, scat_za_index, scat_aa_index,
+                        abs_scalar_gas,
                         //Input:
                         spt_calc_agenda,
                         opt_prop_part_agenda, opt_prop_gas_agenda,
@@ -565,6 +567,7 @@ i_fieldIterate(
   \param scat_p_index  Pressure index.
   \param scat_za_index Zenith angle index inside cloudbox.
   \param scat_aa_index Azimuth angle index inside cloudbox.
+  \param abs_scalar_gas Scalar gas absorption.
   WS Input:
   \param spt_calc_agenda Agenda for single particle scattering properties.
   \param opt_prop_part_agenda Agenda to compute optical properties 
@@ -618,6 +621,7 @@ i_fieldUpdate1D(// WS Output:
                 Index& scat_p_index,
                 Index& scat_za_index,
                 Index& scat_aa_index,
+                Vector& abs_scalar_gas,
                 // WS Input:
                 const Agenda& spt_calc_agenda,
                 const Agenda& opt_prop_part_agenda,
@@ -697,13 +701,13 @@ i_fieldUpdate1D(// WS Output:
 
   // Create scalar absorption and store it in an array. This avoids 
   // repeting the calculation for each direction.
+  Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0])+ 1, 0.);
 
   for(Index p_index = cloudbox_limits[0]; p_index
-        <= cloudbox_limits[1]-1; p_index ++)
+        <= cloudbox_limits[1]; p_index ++)
     {
-      Vector scalar_gas_array((cloudbox_limits[1] - cloudbox_limits[0]) + 1);
-      //   scalar_gas_abs_agenda.execute();
-      //    scalar_gas_array[p_index] = abs_scalar_gas;
+      scalar_gas_absorption_agenda.execute();
+      scalar_gas_array[p_index - cloudbox_limits[0]] = abs_scalar_gas[0];
     }
   
   //Loop over all directions, defined by scat_za_grid 
@@ -779,13 +783,13 @@ i_fieldUpdate1D(// WS Output:
 	  
 	  //Print the loop indices (just for testing the function)
 	  
-          // cout << "\n loop indices: \n";
-	  //cout << "\n scat_za_index ---------"<< scat_za_index;
-	  //cout << "\n p_index       ---------"<< p_index;
-          //   cout << "\n stokes_dim    ---------"<< stokes_dim;
-          //  cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
-          //             << cloudbox_limits[1] <<"\n";
-          //cout << endl;
+           cout << "\n loop indices: \n";
+	  cout << "\n scat_za_index ---------"<< scat_za_index;
+	  cout << "\n p_index       ---------"<< p_index;
+             cout << "\n stokes_dim    ---------"<< stokes_dim;
+            cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "
+                       << cloudbox_limits[1] <<"\n";
+          cout << endl;
 
 
           // Calculate abs_vec_array 
@@ -795,22 +799,24 @@ i_fieldUpdate1D(// WS Output:
           ext_mat_array[p_index-cloudbox_limits[0]].
             resize(stokes_dim, stokes_dim); 
           
-          for( Index i = 0; i < cloudbox_limits[1]-cloudbox_limits[0]+1; i++)
-            {
-              abs_vec_array[i] = 0.;
-              ext_mat_array[i] = 0.;
-            }
 
           scat_p_index = p_index; 
           
           // Get scalar gas absorption from array.
-          //abs_scalar_gas = scalar_gas_array[p_index];
+          abs_scalar_gas[0] = scalar_gas_array[p_index- cloudbox_limits[0]];
+          
+          ext_mat = 0.;
+          abs_vec = 0.;
 
           // Calculate total ext_mat and abs_vec.
-          opt_prop_gas_agenda.execute(scat_za_index && 
-                                      (p_index - cloudbox_limits[0]));
-          opt_prop_part_agenda.execute(scat_za_index &&
-                                      (p_index - cloudbox_limits[0]));
+           opt_prop_gas_agenda.execute();
+           opt_prop_part_agenda.execute();
+           
+ 
+         //  opt_prop_gas_agenda.execute(scat_za_index && 
+//                                       (p_index - cloudbox_limits[0]));
+//           opt_prop_part_agenda.execute(scat_za_index &&
+//                                       (p_index - cloudbox_limits[0]));
           
           // Store coefficients in arrays for the whole cloudbox.
           abs_vec_array[p_index-cloudbox_limits[0]] = 
@@ -909,7 +915,7 @@ i_fieldUpdate1D(// WS Output:
                           + scat_field(p_index-cloudbox_limits[0]+1,
                                        0, 0, scat_za_index, 0, i)) ;
                   // Extract stokes_vec from i_field.
-                  stokes_vec_av[i] = i_field((p_index-cloudbox_limits[0]) + 1,
+                  stokes_vec[i] = i_field((p_index-cloudbox_limits[0]) + 1,
 				       0, 0, scat_za_index, 0, i);
                   
                 }// Closes loop over stokes_dim.
@@ -921,13 +927,14 @@ i_fieldUpdate1D(// WS Output:
               Numeric f = f_grid[f_index];
               a_planck_value = planck(f, T);
               
-              /*     cout << "planck: ..." << a_planck_value << endl;
-              cout << "sto_vec:..." << stokes_vec  << endl; 
-              cout << "sca_vec:..." << sca_vec << endl; 
-              cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
-                /ext_mat(0,0); 
-              cout << "abs_vec:..." << abs_vec << endl; 
-              cout << "ext_mat:..." << ext_mat << endl; */
+                cout << "planck: ..." << a_planck_value << endl;
+              cout << "sto_vec:..." << stokes_vec<< endl; 
+              cout << "sca_vec:..." << sca_vec_av << endl; 
+              // cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0]) 
+              //  /ext_mat(0,0); 
+              cout << "abs_vec:..." << abs_vec_av << endl; 
+              cout << "ext_mat:..." << ext_mat_av << endl; 
+              cout << "l_step: ..." << l_step << endl;
 
              //  if (stokes_dim  == 1)
 //                 stokes_vecScalar(stokes_vec_av, ext_mat_av, abs_vec_av, 
@@ -951,7 +958,7 @@ i_fieldUpdate1D(// WS Output:
 //                                       stokes_dim);
 //                   }
 //                 }
-              rte_step(stokes_vec_av, ext_mat_av, abs_vec_av, 
+              rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
                        sca_vec_av, l_step, a_planck_value);
 
               // Assign calculated Stokes Vector to i_field. 
@@ -1071,7 +1078,7 @@ i_fieldUpdate1D(// WS Output:
 //                   }
 //                 }
 
-              rte_step(stokes_vec_av, ext_mat_av, abs_vec_av, 
+              rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
                        sca_vec_av, l_step, a_planck_value);
 
             

@@ -38,6 +38,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <iostream>
 #include "auto_md.h"
 #include "check_input.h"
 #include "logic.h"
@@ -578,11 +579,14 @@ rte_step(//Output and Input:
 	{
 	  for( Index j=0; diagonal && j<i; j++ )
 	    {
-	      if( ext_mat_av(i,j) != 0  ||  ext_mat_av(j,i) )
+	      if( ext_mat_av(i,j) != 0.  ||  ext_mat_av(j,i) != 0. )
 		{ diagonal = false; }
 	    }
-	  assert( !diagonal  ||  ( diagonal  && abs_vec_av[i] == 0 ) );
-	}
+        }
+
+      for (Index i = 1;  diagonal && i < stokes_dim; i++)
+	  assert( !diagonal  ||  ( diagonal  && abs_vec_av[i] == 0. ) );
+	
 
 
       // Unpolarised
@@ -602,8 +606,10 @@ rte_step(//Output and Input:
       //General case
       else
         {
+          cout << "stokes_vec vor " <<stokes_vec;
           stokes_vecGeneral(stokes_vec, ext_mat_av, abs_vec_av, sca_vec_av,
                             l_step, a_planck_value);
+          cout << "stokes_vec nach " <<stokes_vec;
         }
     }
 }

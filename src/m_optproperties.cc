@@ -432,7 +432,7 @@ void abs_vecAddPart(
 	  
 	}
       //Add the particle absorption
-      abs_vec += abs_vec_part;
+      abs_vec(0, Range(joker)) += abs_vec_part;
     }
   
   if (atmosphere_dim == 3)
@@ -594,7 +594,7 @@ void ext_matAddGas(Tensor3& ext_mat,
 	    
 	    if ( i == j){
 	      // Dies ist noch Quatsch!!!
-	      ext_mat_gas(i,j) = abs_scalar_gas[i];
+	      ext_mat_gas(i,j) = abs_scalar_gas[f_index];
 	    }
 	    else{
 	      ext_mat_gas(i,j) = 0.0;
@@ -625,26 +625,20 @@ void abs_vecAddGas(Matrix& abs_vec,
   Index stokes_dim = abs_vec.ncols();
   Vector abs_vec_gas(stokes_dim);
   
-  //FIXME: After the scalar ags function is ready.
+
   if (atmosphere_dim == 1){
+    
+    abs_vec_gas[0] = abs_scalar_gas[f_index];
   
-    for (Index i =0; i < stokes_dim; ++i)
+    for (Index i = 1; i < stokes_dim; ++i)
       {
-	for (Index j =0; j < stokes_dim; ++j)
-	  {
-	    
-	    if ( i == j){
-	      
-	      abs_vec_gas[i] = abs_scalar_gas[f_index];
-	    }
-	    else{
-	      abs_vec_gas[i] = 0.0;
-	    }
-	  }
+        abs_vec_gas[i] = 0.0;
+	  
       }
+    
     abs_vec(0, Range(joker)) += abs_vec_gas;
   }
-
+  
  }
 
 

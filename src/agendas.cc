@@ -348,7 +348,7 @@ void define_agenda_data()
        ""
 	),
        OUTPUT(abs_scalar_gas_),
-       INPUT(f_index_)));
+       INPUT()));
 
   agenda_data.push_back
     (AgRecord

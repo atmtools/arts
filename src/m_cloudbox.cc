@@ -826,8 +826,8 @@ void scat_iPut(//WS Output:
                     1,
                     stokes_dim));
 
-        assert ( is_size( scat_i_p,
-                          N_f, 2, 1, 1, N_za, N_aa, stokes_dim ));
+       assert ( is_size( scat_i_p,
+                          N_f, 2, 1, 1, N_za, 1, stokes_dim ));
 
        for (Index za = 0; za < N_za; za++)
             {
