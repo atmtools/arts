@@ -730,10 +730,8 @@ void pha_mat_singleCalc(
                         Numeric aa_inc,
                         const ArrayOfSingleScatteringData& scat_data_mono,
                         const Index&          stokes_dim,
-                        const VectorView& pnd_vec, 
-                        const Tensor4& scat_theta,//these three are a bit annoying
-                        const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,//
-                        const Tensor5& scat_theta_itws)//
+                        const VectorView& pnd_vec 
+                        )
 {
   Index N_pt=pnd_vec.nelem();
 
@@ -766,8 +764,7 @@ void pha_mat_singleCalc(
                        scat_data_mono[i_pt].za_grid, 
                        scat_data_mono[i_pt].aa_grid,
                        scat_data_mono[i_pt].ptype,scat_za_index, scat_aa_index, 
-                       za_inc_idx,aa_inc_idx, scat_za_grid, scat_aa_grid,
-                       scat_theta, scat_theta_gps, scat_theta_itws);
+                       za_inc_idx,aa_inc_idx, scat_za_grid, scat_aa_grid);
       pha_mat_lab*=pnd_vec[i_pt];
       Z+=pha_mat_lab;
         
@@ -866,9 +863,6 @@ void Sample_los (
                    const VectorView& rte_los,
                    const ArrayOfSingleScatteringData& scat_data_mono,
                    const Index&          stokes_dim,
-                   const Tensor4& scat_theta, // CE: Included 
-                   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
-                   const Tensor5& scat_theta_itws,
                    const VectorView& pnd_vec,
                    const bool& anyptype30,
                    const VectorView& Z11maxvector,
@@ -894,9 +888,7 @@ void Sample_los (
       //The following is based on the assumption that the maximum value of the 
       //phase matrix for a given scattered direction is for forward scattering
       pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
-                         aa_scat,scat_data_mono,stokes_dim,pnd_vec,
-                         scat_theta,scat_theta_gps,
-                         scat_theta_itws);
+                         aa_scat,scat_data_mono,stokes_dim,pnd_vec);
       Z11max=dummyZ(0,0);
     }  
   ///////////////////////////////////////////////////////////////////////  
@@ -909,8 +901,7 @@ void Sample_los (
         -180+new_rte_los[1]:180+new_rte_los[1];
       
       pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-                         aa_inc,scat_data_mono,stokes_dim,pnd_vec,scat_theta,
-                         scat_theta_gps, scat_theta_itws);
+                         aa_inc,scat_data_mono,stokes_dim,pnd_vec);
       
       if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
         {

@@ -262,11 +262,7 @@ void pha_mat_sptFromData( // Output:
                          const Index& scat_za_index, // propagation directions
                          const Index& scat_aa_index,
                          const Index& f_index,
-                         const Vector& f_grid,
-                         const Tensor4& scat_theta,
-                         const ArrayOfArrayOfArrayOfArrayOfGridPos&
-                         scat_theta_gps,
-                         const Tensor5& scat_theta_itws
+                         const Vector& f_grid
                          )
 {
 
@@ -336,25 +332,21 @@ void pha_mat_sptFromData( // Output:
                 }
             }
         }
-      //       xml_write_to_file("pha_mat_data_unspr.xml", pha_mat_data);
-      // xml_write_to_file("pha_mat_data_int.xml", pha_mat_data_int);
-                          
-       
-       Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
-       
-       
-       // Do the transformation into the laboratory coordinate system.
-       for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem(); za_inc_idx ++)
+      
+// Do the transformation into the laboratory coordinate system.
+       for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem(); 
+            za_inc_idx ++)
          {
-           for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem(); aa_inc_idx ++) 
+           for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem(); 
+                aa_inc_idx ++) 
              {
-               pha_matTransform(pha_mat_lab,
+               pha_matTransform(pha_mat_spt
+                                (i_pt, za_inc_idx, aa_inc_idx, joker, joker),
                                 pha_mat_data_int, 
                                 za_datagrid, aa_datagrid,
-                                part_type, scat_za_index, scat_aa_index, za_inc_idx, 
-                                aa_inc_idx, scat_za_grid, scat_aa_grid,
-                                scat_theta, scat_theta_gps, scat_theta_itws);
-               pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker) = pha_mat_lab;
+                                part_type, scat_za_index, scat_aa_index,
+                                za_inc_idx, 
+                                aa_inc_idx, scat_za_grid, scat_aa_grid);
              }
          }
     }
@@ -374,10 +366,7 @@ void pha_mat_sptFromData( // Output:
   The transformation from the database coordinate system to to 
   laboratory coordinate system is done in this function.
 
-  NOTE: This is a special function for 1 particle type, including randomly 
-  oriented particles.
-
-  WS Output:
+    WS Output:
   \param pha_mat_spt Extinction matrix for a single particle type.
   WS Input:
   \param pha_mat_sptDOITOpt Phase matrix data.
@@ -422,14 +411,16 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                aa_inc_idx ++) 
             {
               ConstVectorView pha_mat_int = pha_mat_sptDOITOpt
-                (i_pt, scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx, joker);
+                (i_pt, scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx, 
+                 joker);
               const Numeric theta_rad = scat_theta
                 (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx);
               
               za_inc = za_grid[za_inc_idx];
               aa_inc = scat_aa_grid[aa_inc_idx];
               
-              pha_mat_labCalc(pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker),
+              pha_mat_labCalc(pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, 
+                                          joker, joker),
                               pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, 
                               theta_rad);
             }
@@ -1742,216 +1733,6 @@ void scat_data_rawCheck(//Input:
     }
 }
 
-//! Prepare single scattering data for a DOIT scattering calculation.
-/*! 
-  This function has to be used for scattering calculations using the 
-  DOIT method. It prepares the data in such a way that the code can be 
-  speed-optimized.
-  
-  For different hydrometeor species different preparations are required. 
-  So far, we only the case of randomly oriented particles is implemented. 
-  All files of hydrometeor must have the same angular grids. Otherwise
-  the output variables of this method would become to large.
-
-  For randomly oriented hydrometeor species the scattering angles in the 
-  scattering frame are precalculated for all possible incoming and 
-  scattered directions and stored the the WSV *scat_theta*. In the program 
-  all phase matrix emements have to be interpolated on the scattering angle.
-  This has to be done for each iteration and for all frequencies.
-  
-  Output:
-  \param scat_theta All scattering angles.
-  \param scat_theta_gps Grid positions of scattering angles.
-  \param scat_theta_itws Interpolation weights.
-  Input:
-  \param scat_za_grid Zenith angle grid for scattering calculations.
-  \param scat_aa_grid Azimuth angle grid for scattering calculations.
-  \param scat_data_raw Array of single scattering data for all hydrometeor
-                      species
-
-  \author Claudia Emde
-  \date   2003-08-20
-*/
-void ScatteringDataPrepareDOIT( //Output:
-                               Tensor4& scat_theta,
-                               ArrayOfArrayOfArrayOfArrayOfGridPos& 
-                               scat_theta_gps,
-                               Tensor5& scat_theta_itws,
-                               //Input:
-                               const Vector& scat_za_grid,
-                               const Vector& scat_aa_grid,
-                               const ArrayOfSingleScatteringData& scat_data_raw
-                    )
-{
-  // At the moment this function can only be used for randomly orientes 
-  // particles.
-  // FIXME: Include other cases!!!
- 
-  // Check, whether the angular grids of all data types are the same:
-  // for ( Index i_pt = 1; i_pt < scat_data_raw.nelem(); i_pt ++)
-//     {
-//       if( scat_data_raw[i_pt].za_grid != scat_data_raw[i_pt-1].za_grid)
-//         throw runtime_error("The angular grids of all hydrometeor species\n"
-//                             "must be identical to use this method. \n"
-//                             "If not you can use *ScatteringDataPrepareOff*\n"
-//                             "which works for all file. \n"
-//                             );
-//     }
-     
-  // Initialize variables:
-  scat_theta.resize(scat_za_grid.nelem(),scat_aa_grid.nelem(), 
-                    scat_za_grid.nelem(),scat_aa_grid.nelem());
-  
-  scat_theta_gps.resize(scat_za_grid.nelem());
-
-  for( Index i = 0; i<scat_za_grid.nelem(); i++)
-    scat_theta_gps[i].resize(scat_aa_grid.nelem());
-  
-  for( Index i = 0; i<scat_za_grid.nelem(); i++)
-    {
-      for( Index j = 0; j<scat_aa_grid.nelem(); j++)
-        {
-          scat_theta_gps[i][j].resize(scat_za_grid.nelem());
-        }
-    }
-     
-  for( Index i = 0; i<scat_za_grid.nelem(); i++)
-    {
-      for( Index j = 0; j<scat_aa_grid.nelem(); j++)
-        {
-          for( Index k = 0; k<scat_za_grid.nelem(); k++)
-            {
-              scat_theta_gps[i][j][k].resize(scat_aa_grid.nelem());
-            }
-        }
-    }
-
-  scat_theta_itws.resize(scat_za_grid.nelem(),scat_aa_grid.nelem(), 
-                         scat_za_grid.nelem(),scat_aa_grid.nelem(),2);
-  
-
-  // Calculate all scattering angles for all combinations of incoming 
-  // and scattered directions.
-  
-  // To calculate the gridpositions it is more efficient 
-  // to calculate them for all scattering angles at the 
-  // same time. For this, we need the scattering angles in 
-  // a sorted vector.
-  
-  // First partcle type is taken.
-  Index i_pt = 0;
-
-  // First we create a vector including all scattering angles:
-  Index N_stv = scat_za_grid.nelem() * scat_za_grid.nelem() *
-    scat_aa_grid.nelem() * scat_aa_grid.nelem();
-  Vector scat_theta_vector(N_stv);
-  
-  // Counting index for elements of vector containing scattering angles.
-  Index i = 0;
-  
-  Numeric za_sca_rad, za_inc_rad, aa_sca_rad, aa_inc_rad;
-  Numeric theta_rad;
-  
-  cout << "Calculate scattering angles:" << endl;
-  
-   for (Index za_sca = 0; za_sca < scat_za_grid.nelem(); za_sca ++)
-    {
-      for (Index aa_sca = 0; aa_sca < scat_aa_grid.nelem(); aa_sca ++)
-        {
-          for (Index za_inc = 0; za_inc < scat_za_grid.nelem(); za_inc ++)
-            {
-              for (Index aa_inc = 0; aa_inc < scat_aa_grid.nelem(); aa_inc ++)
-                {
-                  za_sca_rad = scat_za_grid[za_sca] * DEG2RAD;
-                  za_inc_rad = scat_za_grid[za_inc] * DEG2RAD;
-                  aa_sca_rad = scat_aa_grid[aa_sca] * DEG2RAD;
-                  aa_inc_rad = scat_aa_grid[aa_inc] * DEG2RAD;
-                  
-                  theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
-                                   sin(za_sca_rad) * sin(za_inc_rad) * 
-                                   cos(aa_sca_rad - aa_inc_rad));
-                  
-                  scat_theta(za_sca, aa_sca, za_inc, aa_inc)
-                    = theta_rad;
-                  
-                  // cout << "scat_theta: " << scat_theta(za_sca, aa_sca, za_inc, aa_inc) << endl;
-                  
-                  scat_theta_vector[i] = RAD2DEG * theta_rad;
-                  
-                  // Increase i 
-                  i++;
-                }
-            }
-        }
-    }
-    
-   // Sort scat_theta_vector.
-
-   cout << "Sort the scattering angles" << endl;
-
-   // i_sorted is a vector containing the sorting indices.
-   ArrayOfIndex i_sorted;
-   get_sorted_indexes(i_sorted, scat_theta_vector);
-
-   Vector sorted_scat_theta_vector(N_stv);
-
-   for (Index j = 0; j < N_stv; j++)
-     sorted_scat_theta_vector[i_sorted[j]] = scat_theta_vector[j];
-            
-            
-
-   cout<< "Initializae gps, itw" << endl;
-     
-   ArrayOfGridPos gps_sorted_array(N_stv);
-   Matrix itws_sorted_array(N_stv, 2);
-   
-   cout << "calculate gridpos" << endl;
-   
-   gridpos(gps_sorted_array, za_datagrid, sorted_scat_theta_vector);
-
-   cout << "calculate itw" << endl;
-   interpweights(itws_sorted_array, gps_sorted_array);
-   
-   cout << "initialize" << endl;
-   // Sort gridpostions and interpolation weights back into the original order:
-   ArrayOfGridPos gps_array(N_stv);
-   Matrix itws_array(N_stv, 2);
-   
-   
-   
-   cout << "back- sorting" << endl;
-
-   for (Index j = 0; j < N_stv; j++)
-     {
-       gps_array[i_sorted[j]] = gps_sorted_array[j];
-       itws_array(i_sorted[j], joker) = itws_sorted_array(j, joker);
-       //       cout << " sorted array " << gps_sorted_array[j] << endl;
-     }
- 
-   
-   // Put the grid positions and interpolation weights into the WSVs:
-   i = 0;
-   
-   for (Index za_sca = 0; za_sca < scat_za_grid.nelem(); za_sca ++)
-     {
-       for (Index aa_sca = 0; aa_sca < scat_aa_grid.nelem(); aa_sca ++)
-         {
-           for (Index za_inc = 0; za_inc < scat_za_grid.nelem(); za_inc ++)
-             {
-               for (Index aa_inc = 0; aa_inc < scat_aa_grid.nelem(); aa_inc ++)
-                 {
-                   scat_theta_gps[za_sca][aa_sca][za_inc][aa_inc] = 
-                     gps_array[i];
-                   scat_theta_itws(za_sca, aa_sca, za_inc, aa_inc, joker) =
-                     itws_array(i, joker);
-                   i++;
-                   //                   cout << "gps " <<  scat_theta_gps[za_sca][aa_sca][za_inc][aa_inc] << endl;
-                 }
-             }
-         }
-     }
-}
-
 
 //! Prepare single scattering data for a DOIT scattering calculation.
 /*! 
@@ -2084,32 +1865,6 @@ void ScatteringDataPrepareDOITOpt( //Output:
  }
 
  
-//! No preparation of single scattering data.
-/*! 
-  The parameters below are set to be empty. If this function is used 
-  scattering angles, grid positions and interpolation weights are calculated
-  inside the WSM *pha_mat_sptFromData*. 
-  
-  Output:
-  \param scat_theta All scattering angles.
-  \param scat_theta_gps Grid positions of scattering angles.
-  \param scat_theta_itws Interpolation weights.
-  
-  \author Claudia Emde
-  \date   2003-08-20
-*/
-void ScatteringDataPrepareOFF( //Output:
-                               Tensor4& scat_theta,
-                               ArrayOfArrayOfArrayOfArrayOfGridPos& 
-                               scat_theta_gps,
-                               Tensor5& scat_theta_itws
-                               )
-{ 
-  scat_theta.resize(0,0,0,0);
-  scat_theta_gps.resize(0);
-  scat_theta_itws.resize(0,0,0,0,0);
-}
-
 
 //! scat_data_monoCalc
 /*! 
@@ -2312,4 +2067,82 @@ void opt_prop_sptFromMonoData( // Output and Input:
 
 
 }
-                          
+ 
+
+//! Calculates phase matrix for the single particle types.
+/*! 
+  In this function the phase matrix calculated
+  in the laboratory frame. This function is used in the calculation
+  of the scattering integral (*scat_fieldCalc*).
+  
+  This  function is a monochromatic version of pha_mat_sptFromData.
+  
+  WS Output:
+  \param pha_mat_spt Extinction matrix for a single particle type.
+  WS Input:
+  \param scat_data_mono Raw data containing optical properties.
+  \param scat_za_grid Zenith angle grid for scattering calculation.
+  \param scat_aa_grid Azimuth angle grid for scattering calculation.
+  \param scat_za_index Index specifying the propagation direction.
+  \param scat_aa_index  Index specifying the azimuth angle
+  \param f_index Index specifying the frequency.
+  \param f_grid Frequency grid.
+
+  \author Claudia Emde
+  \date   2004-02-11
+*/                        
+void pha_mat_sptFromMonoData( // Output:
+                         Tensor5& pha_mat_spt,
+                         // Input:
+                         const ArrayOfSingleScatteringData& scat_data_mono,
+                         const Index& za_grid_size,
+                         const Vector& scat_aa_grid,
+                         const Index& scat_za_index, // propagation directions
+                         const Index& scat_aa_index
+                         )
+{
+  out3 << "Calculate *pha_mat_spt* from scat_data_mono. \n";
+  
+  Vector za_grid;
+  nlinspace(za_grid, 0, 180, za_grid_size); 
+
+  const Index N_pt = scat_data_mono.nelem();
+  const Index stokes_dim = pha_mat_spt.ncols();
+
+  if (stokes_dim > 4 || stokes_dim < 1){
+    throw runtime_error("The dimension of the stokes vector \n"
+                         "must be 1,2,3 or 4");
+  }
+  
+  assert( pha_mat_spt.nshelves() == N_pt );
+  
+  // Initialisation
+  pha_mat_spt = 0.;
+  
+   // Loop over the included particle_types
+  for (Index i_pt = 0; i_pt < N_pt; i_pt++)
+    {
+      
+      // Do the transformation into the laboratory coordinate system.
+      for (Index za_inc_idx = 0; za_inc_idx < za_grid_size;
+           za_inc_idx ++)
+        {
+          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+               aa_inc_idx ++) 
+            {
+              pha_matTransform( pha_mat_spt
+                                (i_pt, za_inc_idx, aa_inc_idx, joker, joker),
+                                scat_data_mono[i_pt].
+                                pha_mat_data(0, joker, joker, joker, joker,
+                                             joker), 
+                                scat_data_mono[i_pt].za_grid, 
+                                scat_data_mono[i_pt].aa_grid,
+                                scat_data_mono[i_pt].ptype,
+                                scat_za_index, scat_aa_index, 
+                                za_inc_idx, 
+                                aa_inc_idx, za_grid, scat_aa_grid);
+            }
+         }
+    }
+}
+  

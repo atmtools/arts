@@ -123,29 +123,13 @@ void pha_matTransform(//Output
                       const Index& za_inc_idx,
                       const Index& aa_inc_idx,
                       ConstVectorView scat_za_grid,
-                      ConstVectorView scat_aa_grid, 
-                      ConstTensor4View scat_theta,
-                      const ArrayOfArrayOfArrayOfArrayOfGridPos&
-                         scat_theta_gps,
-                      ConstTensor5View scat_theta_itws);
+                      ConstVectorView scat_aa_grid
+                      );
 
 
 
 // Functions for the case: Randomly oriented particles: 
 // ========================================================
-
-void interpolate_scat_angleDOIT(//Output:
-                            VectorView pha_mat_int,
-                            //Input:
-                            ConstTensor5View pha_mat_data,
-                            const Index& za_sca_idx,
-                            const Index& aa_sca_idx,
-                            const Index& za_inc_idx,
-                            const Index& aa_inc_idx,
-                            const ArrayOfArrayOfArrayOfArrayOfGridPos&
-                                scat_theta_gps,
-                            ConstTensor5View scat_theta_itws
-                            );
 
 void interpolate_scat_angle(//Output:
                             VectorView pha_mat_int,

@@ -432,10 +432,7 @@ void ScatteringMonteCarlo (
                            //Other Stuff
                            const ArrayOfSingleScatteringData& scat_data_mono,
                            const Tensor4& pnd_field,
-                           const Tensor4& scat_theta, // CE: Included 
-                           const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
-                           const Tensor5& scat_theta_itws,
-                             // Control Parameters:
+                           // Control Parameters:
                            const Index& maxiter,
                            const Index& rng_seed,
                            const Index& record_ppathcloud,
@@ -657,9 +654,8 @@ void ScatteringMonteCarlo (
                   //Sample new line of sight.
                   
                   Sample_los (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
-                                scat_data_mono,stokes_dim,scat_theta,
-                                scat_theta_gps,scat_theta_itws,
-                                pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
+                              scat_data_mono,stokes_dim,
+                              pnd_vec,anyptype30,Z11maxvector,K(0,0)-K_abs[0]);
                                            
                   Z/=g*g_los_csc_theta*albedo;
                   

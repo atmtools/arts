@@ -335,10 +335,7 @@ void ext_matTransform(//Output and Input
   \param aa_sca Azimuth angle of scattered direction.
   \param za_inc Zenith angle of incoming direction.
   \param aa_inc Azimuth angle of incoming direction.
-  \param scat_theta Scattering angles.
-  \param scat_theta_gps Grid positions of scattering angles.
-  \param scat_theta_itws Interpolation weights of scattering angles.
-
+  
   \author Claudia Emde
   \date   2003-08-19
 */
@@ -354,11 +351,8 @@ void pha_matTransform(//Output
                       const Index& za_inc_idx,
                       const Index& aa_inc_idx,
                       ConstVectorView scat_za_grid,
-                      ConstVectorView scat_aa_grid, 
-                      ConstTensor4View scat_theta,
-                      const ArrayOfArrayOfArrayOfArrayOfGridPos&
-                         scat_theta_gps,
-                      ConstTensor5View scat_theta_itws)
+                      ConstVectorView scat_aa_grid
+                      )
 {
 
   
@@ -391,27 +385,12 @@ void pha_matTransform(//Output
       
       Vector pha_mat_int(6);
       Numeric theta_rad;
+            
+      // Interpolation of the data on the scattering angle:
+      interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
+                             za_datagrid, za_sca, aa_sca,
+                             za_inc, aa_inc);
       
-      if ( is_size(scat_theta, 0, 0, 0, 0))
-        {
-
-          // Interpolation of the data on the scattering angle:
-          interpolate_scat_angle(pha_mat_int, theta_rad, pha_mat_data,
-                                 za_datagrid, za_sca, aa_sca,
-                                 za_inc, aa_inc);
-               
-        }
-      
-      else
-        {
-          // Interpolation of the data on the scattering angle. Use 
-          // precalculated interpolation weights.
-          interpolate_scat_angleDOIT(pha_mat_int, pha_mat_data,
-                                 za_sca_idx, aa_sca_idx,
-                                 za_inc_idx, aa_inc_idx,  
-                                 scat_theta_gps, scat_theta_itws);
-        }
-
       // Caclulate the phase matrix in the laboratory frame:
       pha_mat_labCalc(pha_mat_lab, pha_mat_int, za_sca, aa_sca, za_inc, 
                       aa_inc, theta_rad);

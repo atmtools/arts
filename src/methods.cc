@@ -1,5 +1,5 @@
 /* Copyright (C) 2000, 2001, 2002
-   Stefan Buehler <sbuehler@uni-bremen.de>
+   Stefan Buehler <buehler@uni-bremen.de>
    Patrick Eriksson <patrick@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
@@ -2918,8 +2918,29 @@ md_data_raw.push_back
          ),
         OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, scat_data_raw_, scat_za_grid_, scat_aa_grid_, 
-              scat_za_index_, scat_aa_index_, f_index_, f_grid_, scat_theta_,
-              scat_theta_gps_, scat_theta_itws_),
+              scat_za_index_, scat_aa_index_, f_index_, f_grid_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES())); 
+
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pha_mat_sptFromMonoData" ),
+        DESCRIPTION
+        (
+         "Calculation of the phase matrix for the single particle types.\n"
+         "\n"
+         "In this function the phase matrix calculated \n"
+         "in the laboratory frame. This function is used in the calculation\n"
+         "of the scattering integral (*scat_fieldCalc*).\n"
+         "\n"
+         "Monchromatic version of *pha_mat_sptFromData*.\n"
+         "\n"
+         ),
+        OUTPUT(pha_mat_spt_),
+        INPUT(pha_mat_spt_, scat_data_raw_, za_grid_size_, scat_aa_grid_, 
+              scat_za_index_, scat_aa_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3678,8 +3699,7 @@ md_data_raw.push_back
               t_field_, scat_za_grid_,
               scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
               spt_calc_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
-              scat_data_mono_, pnd_field_, scat_theta_, scat_theta_gps_,
-              scat_theta_itws_),
+              scat_data_mono_, pnd_field_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
@@ -3879,34 +3899,6 @@ md_data_raw.push_back
         KEYWORDS( ),
         TYPES( )));
 
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ScatteringDataPrepareDOIT"),
-        DESCRIPTION
-        (
-         "Prepare single scattering data for a DOIT scattering calculation.\n"
-         "\n"
-         "This function has to be used for scattering calculations using the\n"
-         "DOIT method. It prepares the data in such a way that the code can be\n"
-         "speed-optimized.\n"
-         "\n"
-         "For different hydrometeor species different preparations are required.\n" 
-         "So far, we only the case of randomly oriented particles is implemented.\n" 
-         "\n"
-         "For randomly oriented hydrometeor species the scattering angles in the\n"
-         "scattering frame are precalculated for all possible incoming and\n" 
-         "scattered directions and stored the the WSV *scat_theta*. In the program\n" 
-         "all phase matrix emements have to be interpolated on the scattering angle.\n"
-         "This has to be done for each iteration and for all frequencies.\n"
-         "\n" 
-         ),
-        OUTPUT( scat_theta_, scat_theta_gps_,  scat_theta_itws_),
-        INPUT( scat_za_grid_, scat_aa_grid_, scat_data_raw_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ScatteringDataPrepareDOITOpt"),
@@ -3927,27 +3919,6 @@ md_data_raw.push_back
         OUTPUT( scat_theta_, pha_mat_sptDOITOpt_),
         INPUT( za_grid_size_, scat_aa_grid_, scat_data_raw_, f_grid_, f_index_,
                atmosphere_dim_),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
-
-
-md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ScatteringDataPrepareOFF"),
-        DESCRIPTION
-        (
-        "No preparation of single scattering data.\n"
-        "\n"
-        "The parameters below are set to be empty. If this function is used\n" 
-        "scattering angles, grid positions and interpolation weights are\n"
-        "calculated inside the WSM *pha_mat_sptFromData*.\n"
-        "The output variables are set to be empty. \n"
-        "\n" 
-         ),
-        OUTPUT( scat_theta_, scat_theta_gps_,  scat_theta_itws_),
-        INPUT( ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

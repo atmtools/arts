@@ -1,3 +1,29 @@
+2004-02-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-786
+
+	* src/methods.cc: Removed (ScatteringDataPrepareDOIT), as it is
+	not used. Only (ScatteringDataPrepareDOITOpt) is used. 
+	Removed also (ScatteringDataPrepareOff).
+	Included new WSM: (pha_mat_sptFromMonoData), a monochromatic version
+	of (pha_mat_sptFromData). It can be used in combination with 
+	(scat_monoCalc).
+		
+	* src/workspace.cc: Removed now unused WSVs
+	*scat_theta_gps*, *scat_theta_itws*.
+		
+	* src/optproperties.{cc,h}: Removed (interpolate_scat_angleDOIT).
+	Modified (pha_matTransform) accordingly. 
+	
+	* src/m_optproperties.cc: Included (pha_mat_sptFromMonoData) and 
+	removed (ScatteringDataPrepareDOIT).
+	(pha_mat_sptFromData) modified according to changes above. 
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Removed 
+	scat_theta, scat_theta_gps, scat_theta_itws as input parameters.
+
+	* src/montecarlo.{cc,h} (Sample_los, pha_mt_singleCalc): See above. 
+	
 2004-02-03  Cory Davis <cory@met.ed.ac.uk>
 
         * arts-1-1-785
