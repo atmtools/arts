@@ -1819,8 +1819,8 @@ md_data_raw.push_back
 	 "these two workspace variables we calculate *pha_mat* with\n"
 	 "the method *pha_matCalc*.  \n"
 	 ),
-	OUTPUT( scat_field_, pha_mat_ ),
-	INPUT( i_field_, pha_mat_spt_, pnd_field_, scat_za_grid_, 
+	OUTPUT( scat_field_, pha_mat_, pha_mat_spt_ ),
+	INPUT( amp_mat_, i_field_, pnd_field_, scat_za_grid_, 
 	       scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, stokes_dim_,
 	       atmosphere_dim_, cloudbox_limits_ ),
 	GOUTPUT(),

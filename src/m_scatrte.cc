@@ -119,10 +119,53 @@ void convergence_flagAbs(//WS Output:
   
   //Check the input:
   assert( convergence_flag == 0 );
-  assert( atmosphere_dim == 1 || atmosphere_dim == 3 );
-  assert( cloudbox_limits.nelem() == 2*atmosphere_dim);
-  assert( 0 < stokes_dim < 5 );
+  if( atmosphere_dim != 1 && atmosphere_dim != 3 )
+    throw runtime_error(
+                        "Scattering calculations are not possible for a 2D"
+                        "atmosphere. If you want to do scattering calculations"
+                        "*atmosphere_dim* has to be either 1 or 3"
+                        ); 
 
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*");
+  
+  if (stokes_dim < 0 || stokes_dim > 4)
+    throw runtime_error(
+                        "The dimension of stokes vector must be"
+			"1,2,3, or 4");
+  
+  // Does i_field have the right dimension? 
+  if (atmosphere_dim == 3){
+    assert ( is_size( i_field, 
+                     (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                     (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                     (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                     scat_za_grid.nelem(), 
+                     scat_aa_grid.nelem(),
+                     stokes_dim));
+  }
+  else if (atmosphere_dim == 1 ){
+    assert ( is_size( i_field, 
+                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                      1, 
+                      1,
+                      scat_za_grid.nelem(), 
+                      1,
+                      stokes_dim));
+  }
+  else if (atmosphere_dim == 2){
+    throw runtime_error(
+                        "Scattering calculations are not possible for a 2D"
+                        "atmosphere. If you want to do scattering"
+                        "calculations."
+                        "*atmosphere_dim* has to be either 1 or 3"
+                        );
+  }
+  
   // Check keyword "epsilon":
   if ( epsilon.nelem() != stokes_dim )
     throw runtime_error(
@@ -224,9 +267,7 @@ void convergence_flagAbs(//WS Output:
   A solution for the RTE with scattering is found using an iterative scheme:
 
   1. Calculate scattering integral.
-       To calculate the scattering integral the total scattering matrix is 
-       required. This is obtained using the functions *pha_mat_sptCalc* and 
-       *pha_matCalc*. The method *scat_fieldCalc* performs the integration.
+       The method *scat_fieldCalc* performs the integration.
   2. Calculate RT with fixed scattered field.
        The radiative transfer equation with fixed scattering integral can be 
        solved analytically if the coefficients are assumed to be constant.
@@ -257,11 +298,14 @@ void convergence_flagAbs(//WS Output:
   \param pha_mat_spt   Scattering matrix for a single particle type.
   \param abs_vec_spt   Absorption vector for a single particle type.
   \param ext_mat_spt   Extinction matrix for a single particle type.
+  \param ext_mat       Extinction matrix for given point and direction.
+  \param abs_vec       Absorption vector for given point and direction.
   \param scat_p_index  Pressure index.
   \param scat_lat_index Latitude index.
   \param scat_lon_index Longitude index.
                                       
   WS Input:
+  \param ext_mat_agenda Agenda to compute single particle properties.
   \param ext_mat_agenda Agenda to compute total extinction matrix.
   \param abs_vec_agenda Agenda to compute total absorption vector.
   \param convergence_test_agenda Agenda to perform the convergence test.
@@ -335,11 +379,18 @@ i_fieldIterate(
                     const Vector& part_types
                     )
 {
-  // Check the input
+  // Check the input:
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
 			"The dimension of stokes vector must be"
 			"1,2,3, or 4");
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*"); 
   
   if (atmosphere_dim == 3){
     
@@ -351,9 +402,6 @@ i_fieldIterate(
 		      scat_za_grid.nelem(), 
 		      scat_aa_grid.nelem(),
 		      stokes_dim));
-    
-    //Dimension of cloudbox_limits
-    assert(is_size(cloudbox_limits, 6));
   }
  
   else if (atmosphere_dim == 1 ){
@@ -398,33 +446,9 @@ i_fieldIterate(
     pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 
                        scat_aa_grid.nelem(), stokes_dim, stokes_dim);
     
-    // To calculate the scattering integral, pha_mat_spt is required 
-    // for all directions. Furthermore is is required to calculate 
-    // the absortion vector.
-   
-    Index N_scat_za = scat_za_grid.nelem();
-    Index N_scat_aa = scat_aa_grid.nelem();
-    
-    for(scat_za_index = 0; scat_za_index < N_scat_za;
-        scat_za_index ++)
-      {
-        //If we have i_field_dim == 1, then we can avoid this loop, 
-        //it would always contribute with a factor 2*pi (CE). 
-        //This should be discussed ...
-        
-	//The loop over azimuth angle (STR).
-	for(Index scat_aa_index = 0; scat_aa_index < N_scat_aa;
-	    scat_aa_index ++)
-	  {
-            pha_mat_sptCalc(pha_mat_spt,
-			    amp_mat,
-			    scat_za_index,
-			    scat_aa_index);
-	  }
-      }
-    
     // Calculate the scattered field.
-    scat_fieldCalc(scat_field, pha_mat, i_field, pha_mat_spt, pnd_field, 
+    scat_fieldCalc(scat_field, pha_mat, pha_mat_spt, amp_mat, i_field,
+                   pnd_field, 
                    scat_za_grid, scat_aa_grid, p_grid, lat_grid, lon_grid,
                    stokes_dim, atmosphere_dim, cloudbox_limits);
     
@@ -473,9 +497,12 @@ i_fieldIterate(
   \param l_step        Pathlength step.
   \param abs_vec_spt   Absorption vector for a single particle type.
   \param ext_mat_spt   Extinction matrix for a single particle type.
+  \param pha_mat_spt   Scattering Matrix for a single particle type.
   \param ext_mat       Extinction matrix (4x4 matrix).
   \param abs_vec       Absorprion vector (4 elements).
   \param scat_p_index  Pressure index.
+  \param scat_za_index Zenith angle index inside cloudbox.
+  \param scat_aa_index Azimuth angle index inside cloudbox.
   WS Input:
   \param ext_mat_agenda Agenda to calculate extinction matrix.
   \param abs_vec_agenda Agenda to calculate absorption vector.
@@ -498,12 +525,10 @@ i_fieldIterate(
   \param stokes_dim    The number of Stokes components to be calculated.
   \param atmosphere_dim Dimension of the atmosphere.
   \param part_types    Particle types.
-  \param pha_mat_spt   Scattering matrix for a single particle type.
-  
 
-Some workspace variables have to be defined to execute the agendas. These are:
-         ext_mat       Extinction matrix (4x4 matrix).
-         abs_vec       Absorprion vector (4 elements).
+Some workspace variables have to be defined in the workspace to execute the 
+agendas. These are:
+        
          ext_mat_part  Extinction matrix only for particles 
                        (no gaseous extinction).
          abs_vec_part  Absorprion vector only for particles.             
@@ -538,7 +563,7 @@ i_fieldUpdate1D(// WS Output:
 		const Tensor6& scat_field,
 		const ArrayOfIndex& cloudbox_limits,
 		const Vector& scat_za_grid,
-		const Vector& scat_aa_grid,//STR
+		const Vector& scat_aa_grid,
                 const Vector& p_grid,
                 const Tensor3& t_field,
 		const Tensor3& z_field,
@@ -671,7 +696,6 @@ i_fieldUpdate1D(// WS Output:
           // Calculate ext_mat_array
           ext_mat_array[p_index-cloudbox_limits[0]].
             resize(stokes_dim, stokes_dim); 
-          scat_p_index = p_index;
           ext_mat_agenda.execute();
           ext_mat_array[p_index-cloudbox_limits[0]] = ext_mat;
           
@@ -690,10 +714,6 @@ i_fieldUpdate1D(// WS Output:
       // Radiative transfer inside the cloudbox
       //=====================================================================
 
-      ext_mat.resize(stokes_dim, stokes_dim);
-      abs_vec.resize(stokes_dim);
-      sca_vec.resize(stokes_dim);
-      stokes_vec.resize(stokes_dim);
 
       // Upward propagating direction, 90° is uplooking in the spherical 
       // geometry
@@ -705,7 +725,7 @@ i_fieldUpdate1D(// WS Output:
           for(Index p_index = cloudbox_limits[0]; p_index
                 <= cloudbox_limits[1]-1; p_index ++)
             {
-              
+              cout << "p_index......."<< p_index;
               //Initialize ppath for 1D.
               ppath_init_structure(ppath_step, 1, 1);
               // See documentation of ppath_init_structure for understanding
@@ -734,6 +754,10 @@ i_fieldUpdate1D(// WS Output:
               cout << "l_step:" <<ppath_step.l_step[0] << endl;
               //PpathPrint( ppath_step, "ppath");
               
+              sca_vec.resize(stokes_dim);
+              stokes_vec.resize(stokes_dim);
+              ext_mat.resize(stokes_dim, stokes_dim);
+              abs_vec.resize(stokes_dim);
               
               // Calculate the average of the coefficients for the layers
               // to be considered in the 
@@ -758,20 +782,16 @@ i_fieldUpdate1D(// WS Output:
                                      [p_index-cloudbox_limits[0]][i] +
                                      abs_vec_array
                                      [p_index-cloudbox_limits[0]+1][i] );
-                
+                  
                   // Extract sca_vec from sca_field.
                   sca_vec[i] =
                     0.5*( scat_field(p_index-cloudbox_limits[0], 
                                      0, 0, scat_za_index, 0, i)
                           + scat_field(p_index-cloudbox_limits[0]+1,
                                        0, 0, scat_za_index, 0, i)) ;
-                   
                   // Extract stokes_vec from i_field.
-                  stokes_vec[i] = 
-                    0.5*( i_field((p_index-cloudbox_limits[0]), 0, 0,
-                                  scat_za_index, 0, i)
-                          +i_field((p_index-cloudbox_limits[0]) + 1,
-				       0, 0, scat_za_index, 0, i));
+                  stokes_vec[i] = i_field((p_index-cloudbox_limits[0]) + 1,
+				       0, 0, scat_za_index, 0, i);
                   
                 }// Closes loop over stokes_dim.
              
@@ -791,11 +811,10 @@ i_fieldUpdate1D(// WS Output:
               cout << "abs_vec:..." << abs_vec << endl;
               cout << "ext_mat:..." << ext_mat << endl;
 
-              //    sca_vec[0] = 0.9 * sca_vec[0];
-                            ext_mat(0,0) = 1. * ext_mat(0,0); 
-              
               // Call scat_rte_agenda:
               scat_rte_agenda.execute();
+              
+              cout << "stokes_vec:"<< stokes_vec;
               
               // Assign calculated Stokes Vector to i_field. 
               i_field((p_index - cloudbox_limits[0]), 0, 0, scat_za_index, 0,
@@ -874,10 +893,8 @@ i_fieldUpdate1D(// WS Output:
                                        0, 0, scat_za_index, 0, i)) ;
                   // Extract stokes_vec from i_field.
                   stokes_vec[i] = 
-                    0.5*( i_field((p_index-cloudbox_limits[0]), 0, 0,
-                                  scat_za_index, 0, i)
-                          +i_field((p_index-cloudbox_limits[0]) - 1,
-				       0, 0, scat_za_index, 0, i));
+                    i_field((p_index-cloudbox_limits[0]) - 1,
+                            0, 0, scat_za_index, 0, i);
 
                 }// Closes loop over stokes_dim.  
 
@@ -895,13 +912,19 @@ i_fieldUpdate1D(// WS Output:
               cout << "abs_vec:..." << abs_vec << endl;
               cout << "ext_mat:..." << ext_mat << endl;
 
-              //              sca_vec[0] = 0.9 * sca_vec[0];
-
-                  ext_mat(0,0) = 1. * ext_mat(0,0);
-
-              // Call scat_rte_agenda:
-              scat_rte_agenda.execute();
+              bool singular_K = true;
+              for(Index i=0; i<stokes_dim && singular_K; i++){
+                for(Index j = 0; j<stokes_dim && singular_K; j++){
+                  if(ext_mat(i,j) != 0.)
+                    singular_K = false;
+                }
+              }
               
+              if ( !singular_K ){ 
+                // Call scat_rte_agenda
+                scat_rte_agenda.execute();
+              }
+
               // Assign calculated Stokes Vector to i_field. 
               i_field((p_index - cloudbox_limits[0]), 0, 0, scat_za_index, 0,
                       Range(joker)) = stokes_vec;
@@ -972,6 +995,7 @@ stokes_vecGeneral(//WS Output and Input:
 { 
   // Stokes dimension
   assert(stokes_dim <= 4 && stokes_dim > 0);
+  
   
   stokes_vec.resize(stokes_dim);
  
@@ -1129,10 +1153,11 @@ void
 scat_fieldCalc(//WS Output:
 	       Tensor6& scat_field,
 	       Tensor4& pha_mat,
+               Tensor5& pha_mat_spt,
 	       //WS Input: 
+               const Tensor6& amp_mat,
 	       const Tensor6& i_field,
-	       const Tensor5& pha_mat_spt,
-	       const Tensor4& pnd_field,
+               const Tensor4& pnd_field,
 	       const Vector& scat_za_grid,
 	       const Vector& scat_aa_grid,
 	       const Vector& p_grid,
@@ -1203,28 +1228,23 @@ scat_fieldCalc(//WS Output:
   }
   //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
-    /*there is a loop only over the pressure index when we calculate
-      the pha_mat from pha_mat_spt and pnd_field using the method
-      pha_matCalc.  Note that the
-      lat_index and lon_index are set to zero*/
-    
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++) 
-      {
-	pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-		    atmosphere_dim, p_index, 0, 
-		    0);
-      }
-    
-    
+  
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
+       
 	//There is only loop over zenith angle grid ; no azimuth angle grid.
 	for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
 	  {
+            pha_mat_sptCalc(pha_mat_spt,
+                            amp_mat,
+                            za_prop,
+                            0);
+            pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                        atmosphere_dim, p_index, 0, 
+                        0);
 	    // za_in and aa_in are for incoming zenith and azimutha 
 	    //angle direction for which pha_mat is calculated
 	    for (Index za_in = 0; za_in < Nza; ++ za_in)

@@ -468,7 +468,7 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
   Vector abs_gas( p_grid.nelem() );
   if (atmosphere_dim == 1){
 
-    //     MakeVector typical_abs(0,0,0,0,0,0,0,0,0,0);
+    //         MakeVector typical_abs(0,0,0,0,0,0,0,0,0,0);
 
   //This is a typical absorption calculated from arts.1.0 (tropical)
   
@@ -486,30 +486,30 @@ void abs_vec_gasExample(Vector& abs_vec_gas,
 
  //This is a typical absorption calculated from arts.1.0 (mls)
   
-     MakeVector typical_abs(0.0164163638663716,
-                            0.00768271579907592,
-                            0.00294668635075111,
-                            0.00125411825404778,
-                            0.000570445848162073,
-                            0.000236462958473072,
-                            4.40975932116215e-05,
-                            7.31218846316807e-06,
-                            3.643089167928e-06,
-                            3.12497184475723e-06);
+  //        MakeVector typical_abs(0.0164163638663716,
+//                             0.00768271579907592,
+//                             0.00294668635075111,
+//                             0.00125411825404778,
+//                             0.000570445848162073,
+//                             0.000236462958473072,
+//                             4.40975932116215e-05,
+//                             7.31218846316807e-06,
+//                             3.643089167928e-06,
+//                             3.12497184475723e-06);
 
 
 
     //This is a typical absorption calculated from arts.1.0
-//      MakeVector typical_abs(0.016414284648894,
-// 			   0.00065204114511011,
-// 			   0.000156049846860233,
-// 			   4.54320063675961e-05,
-// 			   1.52191594739311e-05,
-// 			   5.13136166733503e-06,
-// 			   1.37451108959307e-06,
-// 			   6.70848900165098e-07,
-// 			   4.06285725309355e-07,
-// 			   2.57499613700983e-07);
+     MakeVector typical_abs(0.016414284648894,
+			   0.00065204114511011,
+			   0.000156049846860233,
+			   4.54320063675961e-05,
+			   1.52191594739311e-05,
+			   5.13136166733503e-06,
+			   1.37451108959307e-06,
+			   6.70848900165098e-07,
+			   4.06285725309355e-07,
+			   2.57499613700983e-07);
 
 
     //The pressure grid for the above calculation
@@ -1451,8 +1451,10 @@ void i_fieldSetConst(//WS Output:
     // Loop over all zenith angle directions.
     for (Index za_index = 0; za_index < N_za; za_index++)
       {
+        //set the value for the upper boundary
         i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index, 0, 0) = 
           scat_i_p(0, 1, 0, 0, za_index, 0, 0);
+        //set the value for the lower boundary 
         i_field(0, 0, 0, za_index, 0, 0) = 
           scat_i_p(0, 0, 0, 0, za_index, 0, 0);
         for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
