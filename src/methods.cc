@@ -907,6 +907,261 @@ void define_md_data()
 	KEYWORDS( "npages", "nrows", "ncols"   ),
 	TYPES(    Index_t,  Index_t, Index_t )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor3ReadXML"),
+	DESCRIPTION
+        (
+         "Reads a tensor3 from an XML file.\n"
+         "\n"
+         "The tensor3 is read from the file with the\n"
+         "specified name and stored in the given workspace\n"
+         "variable.\n"
+         "If the filename is omitted, the tensor3 is read\n"
+         "from <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor3 : Name of the workspace variable to read.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the input file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor3_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor3WriteXML"),
+	DESCRIPTION
+        (
+         "Writes a tensor3 to an XML file.\n"
+         "\n"
+         "The tensor3 of the given workspace variable\n"
+         "is written to the file with the specified name.\n"
+         "If the filename is omitted, the tensor3 is written\n"
+         "to <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global input: \n"
+         "   Tensor3 : Name of the workspace variable to write.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the output file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Tensor3_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor4ReadXML"),
+	DESCRIPTION
+        (
+         "Reads a tensor4 from an XML file.\n"
+         "\n"
+         "The tensor4 is read from the file with the\n"
+         "specified name and stored in the given workspace\n"
+         "variable.\n"
+         "If the filename is omitted, the tensor4 is read\n"
+         "from <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor4 : Name of the workspace variable to read.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the input file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor4_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor4WriteXML"),
+	DESCRIPTION
+        (
+         "Writes a tensor4 to an XML file.\n"
+         "\n"
+         "The tensor4 of the given workspace variable\n"
+         "is written to the file with the specified name.\n"
+         "If the filename is omitted, the tensor4 is written\n"
+         "to <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global input: \n"
+         "   Tensor4 : Name of the workspace variable to write.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the output file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Tensor4_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor5ReadXML"),
+	DESCRIPTION
+        (
+         "Reads a tensor5 from an XML file.\n"
+         "\n"
+         "The tensor5 is read from the file with the\n"
+         "specified name and stored in the given workspace\n"
+         "variable.\n"
+         "If the filename is omitted, the tensor5 is read\n"
+         "from <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor5 : Name of the workspace variable to read.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the input file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor5_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor5WriteXML"),
+	DESCRIPTION
+        (
+         "Writes a tensor5 to an XML file.\n"
+         "\n"
+         "The tensor5 of the given workspace variable\n"
+         "is written to the file with the specified name.\n"
+         "If the filename is omitted, the tensor5 is written\n"
+         "to <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global input: \n"
+         "   Tensor5 : Name of the workspace variable to write.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the output file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Tensor5_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor6ReadXML"),
+	DESCRIPTION
+        (
+         "Reads a tensor6 from an XML file.\n"
+         "\n"
+         "The tensor6 is read from the file with the\n"
+         "specified name and stored in the given workspace\n"
+         "variable.\n"
+         "If the filename is omitted, the tensor6 is read\n"
+         "from <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor6 : Name of the workspace variable to read.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the input file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor6_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor6WriteXML"),
+	DESCRIPTION
+        (
+         "Writes a tensor6 to an XML file.\n"
+         "\n"
+         "The tensor6 of the given workspace variable\n"
+         "is written to the file with the specified name.\n"
+         "If the filename is omitted, the tensor6 is written\n"
+         "to <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global input: \n"
+         "   Tensor6 : Name of the workspace variable to write.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the output file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Tensor6_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor7ReadXML"),
+	DESCRIPTION
+        (
+         "Reads a tensor7 from an XML file.\n"
+         "\n"
+         "The tensor7 is read from the file with the\n"
+         "specified name and stored in the given workspace\n"
+         "variable.\n"
+         "If the filename is omitted, the tensor7 is read\n"
+         "from <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global output: \n"
+         "   Tensor7 : Name of the workspace variable to read.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the input file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor7_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor7WriteXML"),
+	DESCRIPTION
+        (
+         "Writes a tensor7 to an XML file.\n"
+         "\n"
+         "The tensor7 of the given workspace variable\n"
+         "is written to the file with the specified name.\n"
+         "If the filename is omitted, the tensor7 is written\n"
+         "to <basename>.<variable_name>.xml.\n"
+         "\n"
+         "Global input: \n"
+         "   Tensor7 : Name of the workspace variable to write.\n"
+         "\n"
+         "Keywords: \n"
+         "   filename : Name of the output file.\n"
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( Tensor7_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    String_t   )));
+
   md_data.push_back     
     ( MdRecord
       ( NAME("Test"),
