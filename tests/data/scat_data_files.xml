@@ -1,0 +1,15 @@
+<?xml version= "1.0"?>
+<arts format="ascii" version="1">
+<Array type="String" nelem="10">
+<String>"data/p20f500-503T215-272r3.44483676296NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r18.2363637376NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r45.2085725435NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r85.0358424467NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r138.812403502NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r208.253818669NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r296.094645948NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r406.981445784NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r549.9146453NP-1ar2_0ice.xml"</String>
+<String>"data/p20f500-503T215-272r748.017425307NP-1ar2_0ice.xml"</String>
+</Array>
+</arts>

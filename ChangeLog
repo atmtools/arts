@@ -1,3 +1,17 @@
+2004-10-06  Cory Davis  <cory@geosl504>
+
+	* arts-1-1-893
+
+	* tests/testall.py: Added.  Performs arts unit tests.  Usage:
+	  python testall.py -v.
+
+	* tests/simpleMC.arts: This is basically the control file created
+	by Patrick after recent arts changes.  The only difference is that
+	I have used ParticleTypeAddAll, which makes the control file a lot
+	shorter.  This control file should run with no errors.
+
+	* tests/data/*.xml: Added all the files needed to run simpleMC.arts.
+
 2004-10-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-892
