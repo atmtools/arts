@@ -825,18 +825,24 @@ void scat_iPut(//WS Output:
 /* 
  This method returns the radiances for a given direction and position on the 
  boundary of the cloudbox. It interpolates from *scat_za_grid* on the 
- requested direction. The variable *y_scat* is a matrix with the 
+ requested direction. The variable *i_out* is a matrix with the 
  dimensions [f_grid, stokes_dim].
   
-  \param y_scat Scattered radiance.
+  \param i_out Scattered radiance.
+  \param i_out_name name for the outgoing radiance.
   \param scat_i_p i_field on pressure boundaries.
   \param scat_i_lat i_field on latitude boundaries.
   \param scat_i_lon i_field on longitude boundaries.
-  \param cloudbox_pos Position on the cloudbox boundary.
-  \param cloudbox_los Direction of radiation.
-  \param cloudbox_limits Cloudbox limits.
-  \param atmosphere_dim Atmospheric dimension.
+  \param a_gp_p grid poition of the point on the boundary.
+  \param a_gp_lat grid position.
+  \param a_gp_lon grid position.
+  \param a_los direction.
+  \param cloudbox_on is needed internally.
+  \param atmosphere_dim
   \param stokes_dim Stokes dimension.
+  \param scat_za_grid 
+  \param scat_aa_grid
+  \param f_grid
 
   \author Claudia Emde
   \date 2002-09-10
@@ -940,8 +946,11 @@ void CloudboxGetOutgoing(// WS Generic Output:
    
 }
 
-//! This method gives the radiance at the cloudbox boundary. 
+//! This method gives the radiation field at the cloudbox boundary. 
 /* 
+   For each grid point on the cloudbox boundary in each propagation direction
+   the radiation field is calculated using the method *RteCalc*, which 
+   performs a clearsky radiative transfer calculation.
    
   \param scat_i_p i_field on pressure boundaries.
   \param scat_i_lat i_field on latitude boundaries.
@@ -953,7 +962,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
   \param atmosphere_dim Atmospheric dimension.
   \param stokes_dim Stokes dimension.
 
-  \author Sreerekha T.R.
+  \author Sreerekha T.R., Claudia Emde
   \date 2002-10-07
 
  */    
@@ -1002,14 +1011,7 @@ void CloudboxGetIncoming(// WS Output:
   Index Nlon = lon_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
   Index Ni = stokes_dim;
-  cout<<"N_f"<<Nf<<endl;
-  cout<<"N_p"<<Np<<endl;
-  cout<<"N_lat"<<Nlat<<endl;
-  cout<<"N_lon"<<Nlon<<endl;
-  cout<<"N_za"<<Nza<<endl;
-  cout<<"N_aa"<<Naa<<endl;
-  cout<<"stokes_dim"<<Ni<<endl;
-  
+ 
   i_rte.resize(Nf,Ni);
   i_space.resize(Nf, Ni);
  

@@ -1,3 +1,14 @@
+2002-11-08  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-280
+
+	* doc/uguide/scattering.tex: Restructured this chapter. Also 
+	included some functions which have not been documented so far.
+
+	* src/m_cloudbox.cc: Documentation.
+
+	* src/m_scatrte.cc: Documentation.
+
 2002-11-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-279
