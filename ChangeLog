@@ -1,3 +1,15 @@
+2002-06-14  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-137
+	
+	* src/scatproperties.cc : completed the functions amp2ext,
+	amp2pha,amp2abs called by ext_mat_sptCalc, pha_mat_sptCalc
+	and abs_vec_sptCalc respectively.  Added more documentation
+	in the comment.  Also the new routine for solid angle integration
+	of Matrix is included here. I think it is better to shift this
+	function to math_funcs.cc or so.   
+	
+
 2002-06-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-136
