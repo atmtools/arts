@@ -642,12 +642,12 @@ void pha_matCalc(
     {
       for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
 	{
-	  for (Index stokes_index = 0; stokes_index < stokes_dim;
-	       ++ stokes_index)
+	  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim;
+	       ++ stokes_index_1)
 	    {
-	      for (Index stokes_index = 0; stokes_index < stokes_dim; 
-		   ++ stokes_index)
-		pha_mat(za_index, aa_index, stokes_index, stokes_index)
+	      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim; 
+		   ++ stokes_index_2)
+		pha_mat(za_index, aa_index, stokes_index_1, stokes_index_2)
 
 		  = 0.0;
 	    }
@@ -666,18 +666,18 @@ void pha_matCalc(
 		{
 		  
 		  // now the last two loops over the stokes dimension.
-		  for (Index stokes_index = 0; stokes_index < stokes_dim; 
-		       ++  stokes_index)
+		  for (Index stokes_index_1 = 0; stokes_index_1 < stokes_dim; 
+		       ++  stokes_index_1)
 		    {
-		      for (Index stokes_index = 0; stokes_index < stokes_dim;
-			   ++ stokes_index)
+		      for (Index stokes_index_2 = 0; stokes_index_2 < stokes_dim;
+			   ++ stokes_index_2)
 			 //summation of the product of pnd_field and 
 			  //pha_mat_spt.
 			pha_mat(za_index, aa_index,  
-				     stokes_index, stokes_index) += 
+				     stokes_index_1, stokes_index_2) += 
 			  
 			  (pha_mat_spt(pt_index, za_index, aa_index,  
-				       stokes_index, stokes_index) * 
+				       stokes_index_1, stokes_index_2) * 
 			   pnd_field(pt_index,scat_p_index, 0, 0));
 		    }
 		}

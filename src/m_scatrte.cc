@@ -1435,7 +1435,7 @@ scat_fieldCalc(//WS Output:
 This function executes the method *CloudboxGetIncoming* to get the clearsky field on the boundary of the cloudbox, which is stored in the interface variable **scat_i_p*, *scat_i_lat* and *scat_i_lon*.
 
 Then it executes *scat_mono_agenda* dor each frequency in *f_grid*.   
-/*! 
+ 
 \param scat_i_p  intensity field on the cloudb box boundary w.r.t pressure grid
 \param scat_i_lat intensity field on the cloudb box boundary w.r.t latitude grid
 \param scat_i_lon intensity field on the cloudb box boundary w.r.t longitude grid
