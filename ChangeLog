@@ -1,3 +1,9 @@
+2003-01-28  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-432
+
+	* src/test_zeemanproperties.cc: Fixed bug in the Zeeman test file.
+	
 2003-01-27  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-431
@@ -39,7 +45,7 @@
 
 	* src/zeemanproperties.h: The same for this file.
 
-	* src/test_zeemanproperties.cc: The samefor this file.
+	* src/test_zeemanproperties.cc: The same for this file.
 
 2003-01-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 

@@ -23,12 +23,12 @@ int main(void)
   
   for (Index i=0; i<f_grid.nelem(); i++)
     { 
-      f_grid[i]=117.5 + 1000.*Numeric(i); //Numeric(i) - converts i in Numeric
+      f_grid[i]=117.5 + 0.001*Numeric(i); //Numeric(i) - converts i in Numeric
     }
   Zeeman(f_grid, ext_mat_zee, abs_vec_zee );
 
  
-
+  xml_write_to_file("f_grid.xml",f_grid);
   xml_write_to_file("ext_mat_zee.xml", ext_mat_zee);
   xml_write_to_file("abs_vec_zee.xml", abs_vec_zee);
 }
