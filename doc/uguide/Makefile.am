@@ -14,7 +14,7 @@ artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/uguide
 
-thisdoc_DATA = main.ps
+thisdoc_DATA = uguide.ps uguide_pdf.pdf
 
 
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -24,6 +24,8 @@ thisdoc_DATA = main.ps
 texfiles = \
 agu.bst \
 references.bib \
+uguide.tex \
+uguide_pdf.tex \
 chapter_template.tex \
 concept.tex \
 development.tex \
@@ -39,24 +41,34 @@ wfuns_sensor.tex
 
 EXTRA_DIST = \
 $(texfiles) \
-main.dvi \
-main.ps
+uguide.dvi \
+uguide.ps \
+uguide_pdf.pdf
 
-# The dependence of main.dvi on configure.in is there to make sure
+# The dependence of uguide.dvi on configure.in is there to make sure
 # that the documentation is rebuilt when the release number in
 # configure.in is changed. Dependence on version.tex is intentionally
 # omitted, since this would lead to the documentation being rebuilt
 # after each run of the `configure' script. version.tex.in does not
 # show up explicitly in EXTRA_DIST, since this is distributed automatically.
 
-main.dvi: $(top_srcdir)/configure.in $(texfiles)
-	latex  main 
-	bibtex main
-	latex  main 
-	latex  main 
+uguide.dvi: $(top_srcdir)/configure.in $(texfiles)
+	latex  uguide
+	bibtex uguide
+	latex  uguide
+	latex  uguide
+	rm -f  *.aux
 
-main.ps: main.dvi
-	dvips main
+uguide.ps: uguide.dvi
+	dvips -f uguide > uguide.ps
+
+uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles)
+	pdflatex uguide_pdf
+	bibtex uguide_pdf
+	pdflatex  uguide_pdf
+	pdflatex  uguide_pdf
+	rm -f  *.aux
+
 
 #html: main.ps
 #	latex2html -dir html -split 0 -no_math -local_icons main
@@ -68,4 +80,4 @@ main.ps: main.dvi
 
 CLEANFILES = *.aux *.log
 
-MAINTAINERCLEANFILES = main.bbl main.blg main.dvi main.ps main.toc version.tex
+MAINTAINERCLEANFILES = uguide_pdf.bbl uguide_pdf.blg uguide.bbl uguide.blg uguide.dvi uguide.ps uguide_pdf.pdf main.toc version.tex
