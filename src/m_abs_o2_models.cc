@@ -2326,8 +2326,8 @@ void ZeemanO2Settings( // Output
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
-   \author Patrick Eriksson
-   \date   2001-05-15
+   \author Thomas Kuhn
+   \date   2003-12-08
 */
 void test_zeeman(
 		 const Agenda& zeeman_prop_agenda,
