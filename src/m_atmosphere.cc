@@ -685,14 +685,44 @@ void r_geoidWGS84(
 
 
 
-//! surfaceSpecular
+//! surfaceBlackbody
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2004-05-20
+   \date   2004-05-21
 */
-void surfaceSpecular(
+void surfaceBlackbody(
+              Matrix&    surface_los,
+              Tensor4&   surface_rmatrix,
+              Matrix&    surface_emission,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const Numeric&   surface_skin_t )
+{
+  out2 << "  Sets variables to model a blackbody surface with a temperature "
+       << " of " << surface_skin_t << " K.\n";
+  surface_los.resize(0,0);
+  surface_rmatrix.resize(0,0,0,0);
+
+  const Index   nf = f_grid.nelem();
+  surface_emission.resize( nf, stokes_dim );
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      surface_emission(iv,0) = planck( f_grid[iv], surface_skin_t );
+    }
+}
+
+
+
+//! surfaceCalc
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2004-05-21
+*/
+void surfaceCalc(
               Matrix&         iy,
               Ppath&          ppath,
               Ppath&          ppath_step,
@@ -717,71 +747,198 @@ void surfaceSpecular(
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         f_grid,
         const Index&          stokes_dim,
-        const Numeric&        surface_t,
-        const Vector&         surface_rv,
-        const Vector&         surface_rh )
+        const Matrix&         surface_los,
+        const Tensor4&        surface_rmatrix,
+        const Matrix&         surface_emission )
 {
-  // Check input
-  if( surface_rv.nelem() !=  f_grid.nelem() )
-    throw runtime_error( "Lengths of *surface_rv* and *f_grid* differ." );
-  if( surface_rh.nelem() !=  f_grid.nelem() )
-    throw runtime_error( "Lengths of *surface_rh* and *f_grid* differ." );
-  if( max(surface_rv)<0  ||  max(surface_rv)>1 )
+  // Some sizes
+  const Index   nf   = f_grid.nelem();
+  const Index   nlos = surface_los.nrows();
+
+
+  //--- Check input -----------------------------------------------------------
+  if( surface_los.ncols() != rte_los.nelem() )
     throw runtime_error( 
-                      "*surface_rv* can only contain values in range [0,1]." );
-  if( max(surface_rh)<0  ||  max(surface_rh)>1 )
+                        "Number of columns in *surface_los* is not correct." );
+  if( nlos != surface_rmatrix.nbooks() )
     throw runtime_error( 
-                      "*surface_rh* can only contain values in range [0,1]." );
+                  "Mismatch in size of *surface_los* and *surface_rmatrix*." );
+  if( surface_rmatrix.npages() != nf )
+    throw runtime_error( 
+                       "Mismatch in size of *surface_rmatrix* and *f_grid*." );
+  if( surface_rmatrix.ncols() != stokes_dim  ||  
+      surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
+              "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+  if( surface_emission.ncols() != stokes_dim )
+    throw runtime_error( 
+             "Mismatch between size of *surface_emission* and *stokes_dim*." );
+  if( surface_emission.nrows() != nf )
+    throw runtime_error( 
+                       "Mismatch in size of *surface_emission* and f_grid*." );
+  //---------------------------------------------------------------------------
 
 
-
-  // Make local version of *ppath* that later must be restored 
-  Ppath   pp_copy;
-  ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
-  ppath_copy( pp_copy, ppath );
-
-  // Determine specular direction  
-  surface_specular_los( rte_los, atmosphere_dim );
-
-  // Calculate downwelling radiation and put in local variable
-  const Index   agenda_verb = 0;
-  Vector   pos( rte_pos.nelem() ), los( rte_los.nelem() );
+  // Use local variable to sum up contributions. Start by adding
+  // *surface_emission. (*iy* can not be used as it will be affected
+  // by calls of *iy_calc*)
   //
-  pos = rte_pos;
-  los = rte_los;
-  //  
-  iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, 
-           rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda, 
-           iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, 
-           lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
-           cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );
-  //
-  Matrix   idown( iy.nrows(), iy.ncols() );
-  idown = iy;
+  Matrix   itmp( nf, stokes_dim );
+  itmp = surface_emission;
 
-  // Add up reflected radiation and surface emission
-  //
-  Vector b(stokes_dim);             // Surface emission Stokes vector 
-  Matrix R(stokes_dim, stokes_dim); // Reflection matrix
-  //
-  for( Index i=0; i<f_grid.nelem(); i++ )
+  // Loop *surface_los*-es. If no such LOS, we are ready.
+  if( nlos > 0 )
     {
-      // Set up variables
+      // Make local version of *ppath* that later must be restored 
+      Ppath   pp_copy;
+      ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+      ppath_copy( pp_copy, ppath );
 
-      // THIS PART IS NOT COMPLETE. THERE SHALL BE MORE TERMS
-      const Numeric   rmean = ( surface_rh[i] + surface_rv[i] ) / 2;
-      b[0] = ( 1 - rmean ) * planck( f_grid[i], surface_t );
-      for( Index j=0; j<stokes_dim; j++ )
-        { R(j,j) = rmean; }
+      for( Index ilos=0; ilos<nlos; ilos++ )
+        {
+          // Calculate downwelling radiation for LOS ilos 
+          const Index   agenda_verb = 0;
+          iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
+                   rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda, 
+                   iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
+                   atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                   r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+                   rte_pos, surface_los(ilos,joker),
+                   f_grid, stokes_dim, agenda_verb );
 
-      // Make math
-      mult( iy(i,joker), R, iy(i,joker) ); //
-      iy(i,joker) += b;
+          // Include reflected radiation part in *itmp*
+          //
+          Vector rtmp(stokes_dim);  // Reflected Stokes vector for 1 frequency
+          //
+          for( Index iv=0; iv<nf; iv++ )
+            {
+              mult( rtmp, surface_rmatrix(ilos,iv,joker,joker), iy(iv,joker) );
+              itmp(iv,joker) += rtmp;
+            }
+        }
+
+      // Copy data back to *ppath*.
+      ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+      ppath_copy( ppath, pp_copy );
     }
 
-  // Copy data back to *ppath*.
-  ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
-  ppath_copy( ppath, pp_copy );
+  // Fill *iy* with found radiances
+  iy = itmp;
+}
+
+
+
+//! surfaceFlat
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2004-05-21
+*/
+void surfaceFlat(
+              Matrix&    surface_los,
+              Tensor4&   surface_rmatrix,
+              Matrix&    surface_emission,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const Index&     atmosphere_dim,
+        const Vector&    rte_los,
+        const Numeric&   surface_skin_t,
+        const String&    epsmodel )
+{
+  out2 << "  Sets variables to model a flat surface with:\n"
+       << "     temperature               : " << surface_skin_t << " K.\n"
+       << "     dielectric constant model : " << epsmodel << "\n";
+
+  const Index   nf = f_grid.nelem();
+
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_los = rte_los;
+  surface_specular_los( surface_los(0,joker), atmosphere_dim );
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      // Calculate dielectric constant
+      if( epsmodel == "water-liebe93" )
+        {
+          // Values from epswater93.m (by C. Mätzler), part of Atmlab.
+          // The constant e2 is here set to 3.52, which according to Mätzler 
+          // corresponds to Liebe 1993.
+          /*
+          const Numeric   theta = 1 - 300 / t_ground;
+          const Numeric   e0    = 77.66 - 103.3 * theta;
+          const Numeric   e1    = 0.0671 * e0;
+          const Numeric   f1    = 20.2 + 146.4 * theta + 316 * theta * theta;
+          const Numeric   e2    = 3.52;  
+          const Numeric   f2    = 39.8 * f1;
+          */
+          // To be continued
+        }
+      else
+        {
+          ostringstream os;
+          os << "Not recognised model for dielectric constant: " << epsmodel 
+             << "\n";
+          throw runtime_error( os.str() );
+        }
+
+      // Convert dielectric constant to Rv and Rh by Fresnel equations
+
+      // Create reflection matrix and b vector based on Rh and Rv.
+    }
+}
+
+
+
+//! surfaceSingleEmissivity
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2004-05-21
+*/
+void surfaceSingleEmissivity(
+              Matrix&    surface_los,
+              Tensor4&   surface_rmatrix,
+              Matrix&    surface_emission,
+        const Vector&    f_grid,
+        const Index&     stokes_dim,
+        const Index&     atmosphere_dim,
+        const Vector&    rte_los,
+        const Numeric&   surface_skin_t,
+        const Numeric&   e,
+        const String&    ename )
+{
+  if( e > 1  ||  e < 0 )
+    {
+      ostringstream os;
+      os << "The input variable " << ename 
+         << " must be inside the range [0,1].\n";
+      throw runtime_error( os.str() );
+    }       
+
+  out2 << "  Sets variables to model a flat surface with:\n"
+       << "     temperature : " << surface_skin_t << " K.\n"
+       << "     emissivity  : " << e << "\n";
+
+  const Index   nf = f_grid.nelem();
+
+  surface_los.resize( 1, rte_los.nelem() );
+  surface_los = rte_los;
+  surface_specular_los( surface_los(0,joker), atmosphere_dim );
+
+  surface_emission.resize( nf, stokes_dim );
+  surface_rmatrix.resize(1,nf,stokes_dim,stokes_dim);
+  surface_rmatrix = 0.0;
+
+  for( Index iv=0; iv<nf; iv++ )
+    { 
+      surface_emission(iv,0) = e * planck( f_grid[iv], surface_skin_t );
+      for( Index is=0; is<stokes_dim; is++ )
+        { surface_rmatrix(0,iv,is,is) = 1 - e; }
+    }
 }
 
 
@@ -791,6 +948,114 @@ void surfaceSpecular(
 
 
 
+
+
+
+
+
+
+
+
+
+
+// //! surfaceSpecular
+// /*!
+//    See the the online help (arts -d FUNCTION_NAME)
+
+//    \author Patrick Eriksson
+//    \date   2004-05-20
+// */
+// void surfaceSpecular(
+//               Matrix&         iy,
+//               Ppath&          ppath,
+//               Ppath&          ppath_step,
+//               Vector&         rte_pos,
+//               GridPos&        rte_gp_p,
+//               GridPos&        rte_gp_lat,
+//               GridPos&        rte_gp_lon,
+//               Vector&         rte_los,
+//         const Agenda&         ppath_step_agenda,
+//         const Agenda&         rte_agenda,
+//         const Agenda&         iy_space_agenda,
+//         const Agenda&         iy_surface_agenda,
+//         const Agenda&         iy_cloudbox_agenda,
+//         const Index&          atmosphere_dim,
+//         const Vector&         p_grid,
+//         const Vector&         lat_grid,
+//         const Vector&         lon_grid,
+//         const Tensor3&        z_field,
+//         const Matrix&         r_geoid,
+//         const Matrix&         z_surface,
+//         const Index&          cloudbox_on, 
+//         const ArrayOfIndex&   cloudbox_limits,
+//         const Vector&         f_grid,
+//         const Index&          stokes_dim,
+//         const Numeric&        surface_t,
+//         const Vector&         surface_rv,
+//         const Vector&         surface_rh )
+// {
+//   // Check input
+//   if( surface_rv.nelem() !=  f_grid.nelem() )
+//     throw runtime_error( "Lengths of *surface_rv* and *f_grid* differ." );
+//   if( surface_rh.nelem() !=  f_grid.nelem() )
+//     throw runtime_error( "Lengths of *surface_rh* and *f_grid* differ." );
+//   if( max(surface_rv)<0  ||  max(surface_rv)>1 )
+//     throw runtime_error( 
+//                       "*surface_rv* can only contain values in range [0,1]." );
+//   if( max(surface_rh)<0  ||  max(surface_rh)>1 )
+//     throw runtime_error( 
+//                       "*surface_rh* can only contain values in range [0,1]." );
+
+
+
+//   // Make local version of *ppath* that later must be restored 
+//   Ppath   pp_copy;
+//   ppath_init_structure( pp_copy, atmosphere_dim, ppath.np );
+//   ppath_copy( pp_copy, ppath );
+
+//   // Determine specular direction  
+//   surface_specular_los( rte_los, atmosphere_dim );
+
+//   // Calculate downwelling radiation and put in local variable
+//   const Index   agenda_verb = 0;
+//   Vector   pos( rte_pos.nelem() ), los( rte_los.nelem() );
+//   //
+//   pos = rte_pos;
+//   los = rte_los;
+//   //  
+//   iy_calc( iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon, 
+//            rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda, 
+//            iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, 
+//            lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_on, 
+//            cloudbox_limits, pos, los, f_grid, stokes_dim, agenda_verb );
+//   //
+//   Matrix   idown( iy.nrows(), iy.ncols() );
+//   idown = iy;
+
+//   // Add up reflected radiation and surface emission
+//   //
+//   Vector b(stokes_dim);             // Surface emission Stokes vector 
+//   Matrix R(stokes_dim, stokes_dim); // Reflection matrix
+//   //
+//   for( Index i=0; i<f_grid.nelem(); i++ )
+//     {
+//       // Set up variables
+
+//       // THIS PART IS NOT COMPLETE. THERE SHALL BE MORE TERMS
+//       const Numeric   rmean = ( surface_rh[i] + surface_rv[i] ) / 2;
+//       b[0] = ( 1 - rmean ) * planck( f_grid[i], surface_t );
+//       for( Index j=0; j<stokes_dim; j++ )
+//         { R(j,j) = rmean; }
+
+//       // Make math
+//       mult( iy(i,joker), R, iy(i,joker) ); //
+//       iy(i,joker) += b;
+//     }
+
+//   // Copy data back to *ppath*.
+//   ppath_init_structure( ppath, atmosphere_dim, pp_copy.np );
+//   ppath_copy( ppath, pp_copy );
+// }
 
 
 //   agenda_data.push_back
@@ -842,22 +1107,6 @@ void surfaceSpecular(
 // 	 ),
 // 	GROUP( Agenda_ )));
    
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "surface_emission" ),
-// 	DESCRIPTION
-// 	(
-// 	 "The emission from the surface at a specified position.\n"
-// 	 "\n"
-// 	 "See further *surface_agenda* and the user guide.\n"
-// 	 "\n"
-// 	 "Usage:      Output from *surface_agenda*.. \n"
-// 	 "\n"
-// 	 "Unit:       W / (m^2 Hz sr)\n"
-// 	 "\n"
-// 	 "Dimensions: [ f_grid, stokes_dim ]"
-// 	 ), 
-// 	GROUP( Matrix_ )));
    
 //    wsv_data.push_back
 //      (WsvRecord
@@ -925,50 +1174,6 @@ void surfaceSpecular(
 //         ), 
 //        GROUP( Vector_ )));
 
-//   wsv_data.push_back
-//     (WsvRecord
-//      ( NAME( "surface_los" ),
-//        DESCRIPTION
-//        (
-//         "Directions for which to calculate downwelling radiation when \n"
-//         "considerin g a surface reflection.\n"
-//         "\n"
-//         "See further *surface_agenda* and the user guide.\n"
-//         "\n"
-//         "Usage: Output from *surface_agenda*. \n"
-//         "\n"
-//         "Units: degrees\n"
-//         "\n"
-//         "Size:  [ any number, 1 or 2 ]"
-//         ), 
-//        GROUP( Matrix_ )));
-
-//   wsv_data.push_back
-//     (WsvRecord
-//      ( NAME( "surface_refl_coeffs" ),
-//        DESCRIPTION
-//        (
-//         "The reflection coefficients from the directions given by\n"
-//         "*surface_los* to the direction of interest.\n"
-//         "\n"
-//         "The rows and columns of this tensor holds the reflection\n"
-//         "coefficient matrix for one frequency and one LOS. The reflection\n"
-//         "coefficinets shall take into accound the angular weighting if the\n"
-//         "downwelling radiation. For example, if the surface has isotropic\n"
-//         "scattering, without absorbing and incoming radiation, and the\n"
-//         "downwelling radiation is calculated at ten angles (i.e. the length\n"
-//         "of *surface_los* is ten), the surface reflection coefficients \n"
-//         "are 0.1.\n"
-//         "\n"
-//         "See further *surface_agenda* and the user guide.\n"
-//         "\n"
-//         "Usage:      Output from *surface_agenda*. \n"
-//         "\n"
-//         "Units:      -\n"
-//         "\n"
-//         "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]"
-//         ), 
-//        GROUP( Tensor4_ )));
 
 //   wsv_data.push_back
 //     (WsvRecord

@@ -1507,6 +1507,36 @@ wsv_data.push_back
        ),
       GROUP( Index_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "numeric_1" ),
+      DESCRIPTION
+      (
+      "An arbitrary numeric scalar.\n"
+      "\n"
+      "This variable shall be treated as a general variable of type Numeric.\n"
+      "It can be used, for example, when some intermediate data must be\n"
+      "generated or to copy some data.\n"
+      "\n"
+      "Usage: Set by user."
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "numeric_2" ),
+      DESCRIPTION
+      (
+      "An arbitrary numeric scalar.\n"
+      "\n"
+      "This variable shall be treated as a general variable of type Numeric.\n"
+      "It can be used, for example, when some intermediate data must be\n"
+      "generated or to copy some data.\n"
+      "\n"
+      "Usage: Set by user."
+       ),
+      GROUP( Numeric_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "met_profile_calc_agenda" ),
@@ -2714,8 +2744,18 @@ wsv_data.push_back
      (WsvRecord
       ( NAME( "surface_emission" ),
 	DESCRIPTION
-	(
-	 "Wll be removed."
+	( "The emission from the surface at a specified position.\n"
+	  "\n"
+      "The position is normally specified by *rte_pos* or the combination of\n"
+      "*rte_gp_p*, *rte_gp_lat* and *rte_gp_lon*.\n"
+	  "\n"
+	  "See further *surfaceCalc* and the user guide.\n"
+	  "\n"
+      "Usage:      Input to methods for *iy_surface_agenda*."
+	  "\n"
+	  "Unit:       W / (m^2 Hz sr)\n"
+	  "\n"
+	  "Dimensions: [ f_grid, stokes_dim ]"
 	 ), 
 	GROUP( Matrix_ )));
 
@@ -2724,7 +2764,16 @@ wsv_data.push_back
      ( NAME( "surface_los" ),
        DESCRIPTION
        (
-	    "Will be removed."
+        "Directions for which to calculate downwelling radiation when \n"
+        "considering a surface reflection.\n"
+        "\n"
+        "See further *surfaceCalc* and the user guide.\n"
+        "\n"
+        "Usage: Input to methods for *iy_surface_agenda*."
+        "\n"
+        "Units: degrees\n"
+        "\n"
+        "Size:  [ any number, 1 or 2 ]"
         ), 
        GROUP( Matrix_ )));
 
@@ -2737,42 +2786,39 @@ wsv_data.push_back
         ), 
        GROUP( Tensor4_ )));
 
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "surface_rh" ),
-      DESCRIPTION
-      (
-       "Surface vertical reflection coefficient  for each frequency.\n"
-       "\n"
-       "Usage: Input to methods for *iy_surface_agenda*.\n"
-       "\n"
-       "Dimension: [ f_grid ]\n"
-       "\n"
-       "Unit: A value in range [0,1]."
-       ),
-      GROUP( Vector_ )));
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "surface_rmatrix" ),
+       DESCRIPTION
+       (
+        "The reflection coefficients for the directions given by\n"
+        "*surface_los* to the direction of interest.\n"
+        "\n"
+        "The rows and columns of this tensor holds the reflection\n"
+        "coefficient matrix for one frequency and one LOS. The reflection\n"
+        "coefficients shall take into accound the angular weighting if the\n"
+        "downwelling radiation. For example, if the surface has isotropic\n"
+        "scattering, without absorbtion of incoming radiation, and the\n"
+        "downwelling radiation is calculated at ten angles (i.e. the length\n"
+        "of *surface_los* is ten), the surface reflection coefficients \n"
+        "are 0.1.\n"
+        "\n"
+        "See further *surfaceCalc* and the user guide.\n"
+        "\n"
+        "Usage:      Input to methods for *iy_surface_agenda*."
+        "\n"
+        "Units:      -\n"
+        "\n"
+        "Dimensions: [ surface_los, f_grid, stokes_dim, stokes_dim ]"
+        ), 
+       GROUP( Tensor4_ )));
 
    wsv_data.push_back
    (WsvRecord
-    ( NAME( "surface_rv" ),
+    ( NAME( "surface_skin_t" ),
       DESCRIPTION
       (
-       "Surface vertical reflection coefficient for each frequency.\n"
-       "\n"
-       "Usage: Input to methods for *iy_surface_agenda*.\n"
-       "\n"
-       "Dimension: [ f_grid ]\n"
-       "\n"
-       "Unit: A value in range [0,1]."
-       ),
-      GROUP( Vector_ )));
-
-   wsv_data.push_back
-   (WsvRecord
-    ( NAME( "surface_t" ),
-      DESCRIPTION
-      (
-       "Surface temperature.\n"
+       "Surface skin temperature.\n"
        "\n"
        "Usage:   Input to methods for *iy_surface_agenda*."
        ),

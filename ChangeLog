@@ -1,3 +1,40 @@
+2004-09-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-878
+
+	* Surface part slightly changed. Basically the same scheme as used
+	before last changes, but moved outside RteCalc. That is,
+	surface_emission etc. are back, with the change that
+	surface_refl_coeffs is now called surface_rmatrix.  These
+	variables shall be provided to surfaceCalc, which is a totally
+	general method for iy_surface_agenda. An example:
+        
+	AgendaSet(iy_surface_agenda){
+              InterpAtmFieldToRteGps( surface_skin_t, t_field ){}
+              NumericSet( numeric_1 ){ 0.75 }
+              surfaceSingleEmissivity( numeric_1 ){}
+              surfaceCalc{}
+           }
+
+	* src/m_atmosphere.cc: Created WSMs:
+	   surfaceBlackbody 
+	   surfaceCalc
+	   surfaceSingleEmissivity 
+
+	Started on
+	   surfaceFlat (specular reflection where a model for dielectric
+	                constant is specified)
+	
+	* src/workspace.cc: Introduced numeric_1 and numeric_2 (this has 
+	nothing to do with the emails exchange about Set methods, needed
+	for e.g. surfaceSingleEmissivity).
+
+	Surface WSVs are now (with possible update of old descriptions):
+	  surface_emission
+	  surface_los
+	  surface_rmatrix
+	  surface_skin_t
+
 2004-09-20  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-877

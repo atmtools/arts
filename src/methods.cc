@@ -4175,30 +4175,70 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "surfaceSpecular" ),
+      ( NAME( "surfaceBlackbody" ),
         DESCRIPTION
         (
-         "Models specular reflection of the surface (assuming LTE).\n"
+         "Creates variables to mimic a blackbody surface.\n"
          "\n"
-         "The upwelling radiation is calculated as (using scalar notation):\n"
-         "   i_up = i_down*r + (1-r)*B\n"
-         "where i_down is calculated by recursive RT call, r is the\n"
-         "reflection coefficent and B blackbody radiation for *surface_t*.\n"
+         "This method sets up *surface_los*, *surface_rmatrix* and\n"
+         "*surface_emission* for *surfaceCalc*. In this case, *surface_los*\n"
+         "and *surface_rmatrix* are set to be empty, and *surface_emission*\n"
+         "to hold blackbody radiation for a temperature of *surface_skin_t*."
+        ),
+        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
+        INPUT( f_grid_, stokes_dim_, surface_skin_t_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceCalc" ),
+        DESCRIPTION
+        (
+         "General method for inclusion in *iy_surface_agenda*.\n"
          "\n"
-         "The reflection coefficient must specified seperately for vertical\n"
-         "and horisontal polarisation. In the scalar case, the mean of the\n"
-         "coefficients is applied. The expression above is expanded for\n"
-         "vector RT cases, as described in the user guide."
+         "The upwelling radiation, put into *iy*, is calculated as:\n"
+         "   iy = *surface_emission* + sum_i[ i_down(i) *r(i) ]\n"
+         "where i is LOS index, i_down(i) is downwelling radiation for \n"
+         "direction i in *surface_los*, and r(i) is reflection matrix i in\n"
+         "*surface_rmatrix*.\n"
+         "\n"
+         "See further the user guide."
         ),
         OUTPUT( iy_, ppath_, ppath_step_, rte_pos_, rte_gp_p_, 
                 rte_gp_lat_, rte_gp_lon_, rte_los_ ),
         INPUT( ppath_step_agenda_, rte_agenda_, iy_space_agenda_,
-               iy_surface_agenda_, iy_cloudbox_agenda_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
-               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
-               f_grid_, stokes_dim_, surface_t_, surface_rv_, surface_rh_ ),
+              iy_surface_agenda_, iy_cloudbox_agenda_,
+              atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+              r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, f_grid_, 
+              stokes_dim_, surface_los_, surface_rmatrix_, surface_emission_ ),
         GOUTPUT(),
         GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "surfaceSingleEmissivity" ),
+        DESCRIPTION
+        (
+         "Creates variables to mimic specular reflection by a surface with\n"
+         "a single emissivity.\n"
+         "\n"
+         "A constant emissivity is assumed as a function of frequency and\n"
+         "polarisation (vertical and horisontal reflection coefficients are\n"
+         "equal. The number of directions in *surface_los* is one.\n"
+         "\n"
+         "Generic Input: \n"
+         "   Numeric : Surface emissivity (a value between 0 and 1)."
+        ),
+        OUTPUT( surface_los_, surface_rmatrix_, surface_emission_ ),
+        INPUT( f_grid_, stokes_dim_, atmosphere_dim_, rte_los_, 
+               surface_skin_t_ ),
+        GOUTPUT(),
+        GINPUT( Numeric_t ),
         KEYWORDS(),
         TYPES()));
 
