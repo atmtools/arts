@@ -46,6 +46,46 @@
 % \label{symtable:ppath_defs}     
 %\stopsymbols
 
+\startsymbols
+\StoVec       & \artsstyle{i\_field}       & monochromatic intensity field, Stokes Vector at
+each grid point \\
+              & \artsstyle{i\_field\_old}  & needed only internally
+              for the iteration\\
+              & \artsstyle{scat\_i\_p}   & intensity field on boundary
+              of cloud box on the pressure surfaces\\
+              & \artsstyle{scat\_i\_lat} & \\
+              & \artsstyle{scat\_i\_lon} & \\
+\ExtMat       & -                        & total extinction matrix \\
+\SExMat        & \artsstyle{scat\_ext\_mat} & extinction martrix for a
+single particle type\\
+\AbsVec       & -                        & total absorption vector \\
+\SAbVec       & \artsstyle{scat\_abs\_vec} &   absorption vector for a
+single particle type\\
+\SEfMat       & -                        & scattering efficiency
+matrix\\
+\PhaMat       & \artsstyle{scat\_pha\_mat} & phase matrix for a particle
+type\\
+\AmpMat       & \artsstyle{scat\_amp\_mat} & amplitude matrix\\
+\PDir         & -                        & propagation direction \\
+\Frq          & \artsstyle{f\_grid}       & frequency\\
+\Tmp          & \artsstyle{t\_field}         & temperature\\
+\PDen         & \artsstyle{scat\_part\_dens} & particle density \\
+\ScaInt       & \artsstyle{scattered\_field} & scattered field,
+evaluated scattering integral\\
+\ScaP         & \artsstyle{scat\_p\_grid} & pressure grid inside cloud
+box\\
+\ScaLat       & \artsstyle{scat\_lat\_grid} & latitude grid inside cloud
+box\\
+\ScaLon       & \artsstyle{scat\_lon\_grid} & longitude grid inside cloud
+box\\
+\ScaZa        & \artsstyle{scat\_za\_grid}  & zenith angle \\
+\ScaAa        & \artsstyle{scat\_aa\_grid}  & azimuth angle  \\
+              & \artsstyle{scat\_f\_index}  & frequency index\\
+\IPart        & \artsstyle{scat\_pt\_index} & particle type index\\
+\Planck       &                             & Planck function
+\label{symtable:scattering}
+\stopsymbols
+
 \newcommand{\DirFre} {(\PDir, \Frq)}
 
 
