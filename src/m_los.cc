@@ -372,6 +372,7 @@ void los_1za(
                     INDEX&      ground,
                     INDEX&      start,
                     INDEX&      stop,
+                    Numeric&    z_tan,
               const Numeric&    z_plat,
               const Numeric&    za,
               const Numeric&    l_step_max,
@@ -383,15 +384,20 @@ void los_1za(
               const int&        refr_lfac,
               const VECTOR&     refr_index )
 {
-  Numeric   z_tan;    // Vertical altitude of a tangent point
   Numeric   c;        // LOS constant when considering refraction
 
   // Determine the upper limit of the atmosphere
   const Numeric atm_limit = last(z_abs);
 
   if ( refr )
+  {
     c = refr_constant( r_geoid, za, z_plat, p_abs, z_abs, atm_limit, 
                                                                   refr_index );
+    z_tan = ztan_refr( c, za, z_plat, z_ground, p_abs, z_abs, refr_index, 
+                                                                     r_geoid );
+  }
+  else
+    z_tan  = ztan_geom( za, z_plat, r_geoid );
 
   // Set l_step to its most probable value
   l_step = l_step_max;
@@ -402,12 +408,6 @@ void los_1za(
   {
     INDEX     nz;          // Length of z and psi
     Numeric   psi0 = 0;    // Correction value for psi
-
-    if ( refr )
-      z_tan = ztan_refr( c, za, z_plat, z_ground, p_abs, z_abs, refr_index, 
-                                                                     r_geoid );
-    else
-      z_tan  = ztan_geom( za, z_plat, r_geoid );
 
     out3 << " (z_tan = " << z_tan/1e3 << " km)";
     
@@ -501,12 +501,6 @@ void los_1za(
     // (this is especially a problem where r_geoid is squared).
     double   l1;     // Distance between platform and tangent point or ground
     double   a, b;   // Temporary values
-
-    if ( refr )
-      z_tan = ztan_refr( c, za, z_plat, z_ground, p_abs, z_abs, refr_index, 
-                                                                     r_geoid );
-    else
-      z_tan  = ztan_geom( za, z_plat, r_geoid );
 
     out3 << " (z_tan = " << z_tan/1e3 << " km)";
 
@@ -609,6 +603,133 @@ void los_1za(
       add( VECTOR( start, psi[stop] ), psi );
     }
   }
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   The sub-function to yCalc
+////////////////////////////////////////////////////////////////////////////
+
+/**
+   \author Patrick Eriksson
+   \date   2000-??-??
+*/
+void y_rte (
+                    VECTOR&          y,
+              const LOS&             los,   
+              const VECTOR&          f_mono,
+              const VECTOR&          y_space,
+              const ARRAYofMATRIX&   source,
+              const ARRAYofMATRIX&   trans,
+              const VECTOR&          e_ground,
+              const Numeric&         t_ground )
+{
+  // Some variables
+  const size_t   n=los.start.size();  // Number of zenith angles 
+  const size_t   nf=f_mono.size();    // Number of frequencies 
+        VECTOR   y_tmp(nf);           // Temporary storage for spectra
+        size_t   iy0=0;               // Reference index for output vector
+
+  out2 << "  Integrating the radiative transfer eq. with emission.\n";
+
+  // Resize y
+  resize( y, nf*n );
+        
+  // Set up vector for ground blackbody radiation if any ground intersection
+  // Check also if the ground emission vector has the correct length
+  VECTOR   y_ground(f_mono.size()); 
+  if ( any_ground(los.ground) )  
+  {
+    if ( t_ground <= 0 )
+      throw runtime_error(
+          "There are intersections with the ground, but the ground\n"
+          "temperature is set to be <=0 (are dummy values used?).");
+    if ( e_ground.size() != nf )
+      throw runtime_error(
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+    out2 << "  There are intersections with the ground.\n";
+    planck( y_ground, f_mono, t_ground );
+  }
+
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:      ";
+  for ( size_t i=0; i<n; i++ )
+  {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i; cout.flush();
+    
+    // Iteration is done in seperate function    
+    rte( y_tmp, los.start[i], los.stop[i], trans[i], 
+                 source[i], y_space, los.ground[i], e_ground, y_ground);
+
+    // Move values to output vector
+    copy( y_tmp, y(iy0,iy0+nf) );
+
+    // Update iy0
+    iy0 += nf;   
+  }
+  out3 << "\n";
+}
+
+
+
+/**
+   \author Patrick Eriksson
+   \date   2000-??-??
+*/
+void y_tau (
+                    VECTOR&          y,
+              const LOS&             los,   
+              const ARRAYofMATRIX&   trans,
+              const VECTOR&          e_ground )
+{
+  // Some variables
+  const size_t   n=los.start.size();    // Number of zenith angles 
+  const size_t   nf=trans[0].nrows();   // Number of frequencies 
+        size_t   iy, iy0=0;             // Index for output vector
+        VECTOR   y_tmp;                 // Temporary storage for spectra
+
+  out2 << "  Calculating optical thicknesses.\n";
+
+  // Resize y and set to 1
+  resize( y, nf*n );
+  setto( y, 1.0 );
+
+  // Check if the ground emission vector has the correct length
+  if ( any_ground(los.ground) )  
+  {
+    if ( e_ground.size() != nf )
+      throw runtime_error(
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+    out2 << "  There are intersections with the ground.\n";
+  }
+        
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:     ";
+  for ( size_t i=0; i<n; i++ )
+  {
+    if ( (i%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i; cout.flush();
+    
+    // Iteration is done in seperate function    
+    bl( y_tmp, los.start[i], los.stop[i], trans[i], los.ground[i], e_ground );
+
+    // Convert to optical thicknesses and move values to output vector
+    // copy( y_tmp, y(iy0,iy0+nf) );
+    for ( iy=0; iy<nf; iy++ )
+      y[iy0+iy] = -log( y_tmp[iy] );
+
+    // Update iy0
+    iy0 += nf;           
+  }
+  out3 << "\n";
 }
 
 
@@ -726,12 +847,13 @@ void zaFromZtan(
   {
 
     if (za[i]>z_plat)
-      throw runtime_error("Tangent altitude larger than the platform altitude");      
+      throw runtime_error(
+        "Tangent altitude larger than the platform altitude");      
 
     // No refraction
 
     if (!refr)    
-       za[i] = 90 + RAD2DEG * acos ( (r_geoid + z_tan[i]) / (r_geoid + z_plat) );
+       za[i] = 90 + RAD2DEG*acos ( (r_geoid + z_tan[i]) / (r_geoid + z_plat) );
  
     // Refraction
 
@@ -769,6 +891,7 @@ void zaFromZtan(
    \date   2001-02-15
 */
 void losCalc(       LOS&        los,
+                    VECTOR&     z_tan,
               const Numeric&    z_plat,
               const VECTOR&     za,
               const Numeric&    l_step,
@@ -796,7 +919,7 @@ void losCalc(       LOS&        los,
       "Refraction is turned on, but the length of refr_index does not match\n"
       "the length of p_abs (are dummy vales used?).");
     
-  // Reallocate the l_step, ground, start and stop vectors
+  // Reallocate the los structure and z_tan
   resize( los.p,      n	);
   resize( los.psi,    n	);
   resize( los.z,      n	);
@@ -804,6 +927,7 @@ void losCalc(       LOS&        los,
   resize( los.ground, n	);
   resize( los.start,  n	);
   resize( los.stop,   n	);
+  resize( z_tan,      n	);
 
   // Print messages
   if ( refr == 0 )
@@ -821,7 +945,7 @@ void losCalc(       LOS&        los,
     out3 << "         za: " << za[i] << " degs.";
 
     los_1za( los.z[i], los.psi[i], los.l_step[i], los.ground[i], los.start[i],
-             los.stop[i], z_plat, za[i], l_step, z_ground, r_geoid,
+             los.stop[i], z_tan[i], z_plat, za[i], l_step, z_ground, r_geoid,
                                    p_abs, z_abs, refr, refr_lfac, refr_index );
     out3 << "\n";
 
@@ -841,50 +965,60 @@ void losCalc(       LOS&        los,
 */
 void sourceCalc(
                     ARRAYofMATRIX&   source,
+	      const int&             emission,
               const LOS&             los,   
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,
               const VECTOR&          f_mono )
-{     
-        VECTOR   tlos;                  // temperatures along the LOS
-  const size_t   nza=los.start.size();  // the number of zenith angles  
-  const size_t   nf=f_mono.size();      // the number of frequencies
-        size_t   nlos;                  // the number of pressure points
-        MATRIX   b;                     // the Planck function for TLOS  
-        size_t   iv, ilos;              // frequency and LOS point index
-
-  out2 << "  Calculating the source function for LTE and no scattering.\n";
- 
-  // Resize the source array
-  resize(source,nza);
-
-  // Loop the zenith angles and:
-  //  1. interpolate the temperature
-  //  2. calculate the Planck function for the interpolated temperatures
-  //  3. take the mean of neighbouring Planck values
-  out3 << "    Zenith angle nr:      ";
-  for (size_t i=0; i<nza; i++ ) 
+{
+  if ( emission == 0 )
   {
-    if ( (i%20)==0 )
-      out3 << "\n      ";
-    out3 << " " << i; cout.flush();
+    out2 << "  Setting the source array to be empty.\n";
+    resize( source, 0 );
+  }
 
-    if ( los.p[i].size() > 0 )
+  else
+  {     
+	  VECTOR   tlos;                  // temperatures along the LOS
+    const size_t   nza=los.start.size();  // the number of zenith angles  
+    const size_t   nf=f_mono.size();      // the number of frequencies
+	  size_t   nlos;                  // the number of pressure points
+	  MATRIX   b;                     // the Planck function for TLOS  
+	  size_t   iv, ilos;              // frequency and LOS point index
+  
+    out2 << "  Calculating the source function for LTE and no scattering.\n";
+   
+    // Resize the source array
+    resize(source,nza);
+  
+    // Loop the zenith angles and:
+    //  1. interpolate the temperature
+    //  2. calculate the Planck function for the interpolated temperatures
+    //  3. take the mean of neighbouring Planck values
+    out3 << "    Zenith angle nr:      ";
+    for (size_t i=0; i<nza; i++ ) 
     {
-      nlos = los.p[i].size();
-      resize( tlos, nlos );
-      interpp( tlos, p_abs, t_abs, los.p[i] );
-      resize( b, nf, nlos );
-      planck( b, f_mono, tlos );
-      resize(source[i],nf,nlos-1);
-      for ( ilos=0; ilos<(nlos-1); ilos++ )
+      if ( (i%20)==0 )
+	out3 << "\n      ";
+      out3 << " " << i; cout.flush();
+  
+      if ( los.p[i].size() > 0 )
       {
-        for ( iv=0; iv<nf; iv++ )
-          source[i][iv][ilos] = ( b[iv][ilos] + b[iv][ilos+1] ) / 2.0;
+	nlos = los.p[i].size();
+	resize( tlos, nlos );
+	interpp( tlos, p_abs, t_abs, los.p[i] );
+	resize( b, nf, nlos );
+	planck( b, f_mono, tlos );
+	resize(source[i],nf,nlos-1);
+	for ( ilos=0; ilos<(nlos-1); ilos++ )
+	{
+	  for ( iv=0; iv<nf; iv++ )
+	    source[i][iv][ilos] = ( b[iv][ilos] + b[iv][ilos+1] ) / 2.0;
+	}
       }
-    }
-  }  
-  out3 << "\n";
+    }  
+    out3 << "\n";
+  }
 }
 
 
@@ -984,10 +1118,11 @@ void y_spaceStd(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2000-?-?
+   \date   2001-03-30
 */
-void yRte (
+void yCalc (
                     VECTOR&          y,
+	      const int&             emission,
               const LOS&             los,   
               const VECTOR&          f_mono,
               const VECTOR&          y_space,
@@ -996,54 +1131,32 @@ void yRte (
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
-  // Some variables
-  const size_t   n=los.start.size();  // Number of zenith angles 
-  const size_t   nf=f_mono.size();    // Number of frequencies 
-        VECTOR   y_tmp(nf);           // Temporary storage for spectra
-        size_t   iy0=0;               // Reference index for output vector
+  if ( emission == 0 )
+    y_tau( y, los, trans, e_ground );
+  else
+    y_rte( y, los, f_mono, y_space, source, trans, e_ground, t_ground );
+}
 
-  out2 << "  Integrating the radiative transfer eq. WITHOUT scattering.\n";
 
-  // Resize y
-  resize( y, nf*n );
-        
-  // Set up vector for ground blackbody radiation if any ground intersection
-  // Check also if the ground emission vector has the correct length
-  VECTOR   y_ground(f_mono.size()); 
-  if ( any_ground(los.ground) )  
-  {
-    if ( t_ground <= 0 )
-      throw runtime_error(
-          "There are intersections with the ground, but the ground\n"
-          "temperature is set to be <=0 (are dummy values used?).");
-    if ( e_ground.size() != nf )
-      throw runtime_error(
-          "There are intersections with the ground, but the frequency and\n"
-          "ground emission vectors have different lengths (are dummy values\n"
-          "used?).");
-    out2 << "  There are intersections with the ground.\n";
-    planck( y_ground, f_mono, t_ground );
-  }
 
-  // Loop zenith angles
-  out3 << "    Zenith angle nr:      ";
-  for ( size_t i=0; i<n; i++ )
-  {
-    if ( (i%20)==0 )
-      out3 << "\n      ";
-    out3 << " " << i; cout.flush();
-    
-    // Iteration is done in seperate function    
-    rte( y_tmp, los.start[i], los.stop[i], trans[i], 
-                 source[i], y_space, los.ground[i], e_ground, y_ground);
+/**
+   See the the online help (arts -d FUNCTION_NAME)
 
-    // Move values to output vector
-    copy( y_tmp, y(iy0,iy0+nf) );
+   \author Patrick Eriksson
+   \date   2001-03-30
+*/
+void yTau (
+                    VECTOR&          y,
+	      const int&             emission,
+              const LOS&             los,   
+              const ARRAYofMATRIX&   trans,
+              const VECTOR&          e_ground )
+{
+  if ( emission != 0 )
+    throw runtime_error(
+      "The function yTau can only be used when emission is neglected.");
 
-    // Update iy0
-    iy0 += nf;   
-  }
-  out3 << "\n";
+  y_tau( y, los, trans, e_ground );
 }
 
 
@@ -1054,54 +1167,6 @@ void yRte (
    \author Patrick Eriksson
    \date   2000-?-?
 */
-void yBl (
-                    VECTOR&          y,
-              const LOS&             los,   
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground )
-{
-  // Some variables
-  const size_t   n=los.start.size();    // Number of zenith angles 
-  const size_t   nf=trans[0].nrows();    // Number of frequencies 
-        size_t   iy0=0;                 // Reference index for output vector
-        VECTOR   y_tmp;                 // Temporary storage for spectra
-
-  out2 << "  Calculating total transmission WITHOUT scattering.\n";
-
-  // Resize y and set to 1
-  resize( y, nf*n );
-  setto( y, 1.0 );
-
-  // Check if the ground emission vector has the correct length
-  if ( any_ground(los.ground) )  
-  {
-    if ( e_ground.size() != nf )
-      throw runtime_error(
-          "There are intersections with the ground, but the frequency and\n"
-          "ground emission vectors have different lengths (are dummy values\n"
-          "used?).");
-    out2 << "  There are intersections with the ground.\n";
-  }
-        
-  // Loop zenith angles
-  out3 << "    Zenith angle nr:     ";
-  for ( size_t i=0; i<n; i++ )
-  {
-    if ( (i%20)==0 )
-      out3 << "\n      ";
-    out3 << " " << i; cout.flush();
-    
-    // Iteration is done in seperate function    
-    bl( y_tmp, los.start[i], los.stop[i], trans[i], los.ground[i], e_ground );
-
-    // Move values to output vector
-    copy( y_tmp, y(iy0,iy0+nf) );
-
-    // Update iy0
-    iy0 += nf;           
-  }
-  out3 << "\n";
-}
 
 
 

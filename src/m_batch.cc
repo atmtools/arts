@@ -542,6 +542,7 @@ void ybatchAbsAndRte(
         const VECTOR&                     refr_index,
         const Numeric&                    z_ground,
         const Numeric&                    r_geoid,
+	const int&                        emission,
         const VECTOR&                     y_space,
         const VECTOR&                     e_ground,
         const Numeric&                    t_ground,
@@ -635,9 +636,8 @@ void ybatchAbsAndRte(
          MATRIX   abs;
   ARRAYofMATRIX   abs_per_tag;
             LOS   los;
-  ARRAYofMATRIX   source;
-  ARRAYofMATRIX   trans;
-         VECTOR   y;
+  ARRAYofMATRIX   trans, source;
+         VECTOR   y, z_tan;
 
   out2 << "  Calculating spectra.\n";
 
@@ -696,12 +696,12 @@ void ybatchAbsAndRte(
 	       cont_description_parameters);
 
     if ( (i==0) || do_z || do_za )   
-      losCalc( los, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 
+      losCalc( los, z_tan, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 
                                                refr_index, z_ground, r_geoid );
     if ( (i==0) || do_t || do_z || do_f || do_za )   
-      sourceCalc( source, los, p_abs, t, f );
+      sourceCalc( source, emission, los, p_abs, t, f );
     transCalc( trans, los, p_abs, abs );
-    yRte ( y, los, f, y_space, source, trans, e_ground, t_ground );
+    yCalc ( y, emission, los, f, y_space, source, trans, e_ground, t_ground );
     
     // Move to ybatch
     if ( i == 0 )

@@ -162,17 +162,29 @@ These are the cross sections individually for each tag
 group. The ARRAY contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
-VARIABLE : z_tan
-DATA TYPE: VECTOR
+VARIABLE : emission
+DATA TYPE: int
 DESCRIPTION:
-Tangent altitudes for the LOS [m]. 
-More info when updating the LOS functions.
+Boolean to include emssion in the calculations.
+If this variable is set to 0 (zero) pure transmission calculations 
+be simulated and, for example, yCalc will give optical thicknesses 
+instead of intensities.
 
 VARIABLE : za_pencil
 DATA TYPE: VECTOR
 DESCRIPTION:
 Pencil beam zenith angle, the angle between zenith and the LOS [deg].
 This grid is applied when calculating pencil beam spectra.
+
+VARIABLE : z_tan
+DATA TYPE: VECTOR
+DESCRIPTION:
+Tangent altitude for the different LOS [m].
+These tangent altitudes include the effect of refraction (if set). 
+In the case of a ground intersection, a geometrical prolongation 
+below the ground is applied to determine the tangent altitude. 
+For upward observations where there are no tangent altitudes, 
+z_tan is set to 999 km.
 
 VARIABLE : z_plat
 DATA TYPE: Numeric

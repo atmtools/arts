@@ -1,3 +1,36 @@
+2001-04-02  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-145
+
+	* The power of ARTS! I love ARTS, it is so good. It is now possible 
+	to make retrieval species for pure absorption measurements.
+	I don't want to lessen my fine effort ;-), but this was rather easy to
+	implement due to the excellent structure of ARTS.
+
+	* There is now a WSV called emission that you must set. For "normal"
+	simulation it should be set to 1, while 0 means that emission shall be
+	neglected. For the latter case (pure absorption calculations) the 
+	output unit is changed from transmission to optical thickness. This as
+	optical thicknesses are normally used during the inversion.
+
+	* The WSFs yRte and YBl are removed. The general function to get 
+	spectra is yCalc. This function uses the WSV emission to determine what
+	kind of spectrum to return. For pure absorption calculations there 
+	exist a special function called yTau. However, note that there is no
+	direct overhead involved bu using yCalc as sourceCalc just returns
+	a empty array if emission=0.
+
+	* The function absloswfsCalc takes now also emission as input. There
+	is also a function called absloswfsTau to match yTau. Then you use
+	the kSpecies functions as usual. Great or?
+
+	* The WSF losCalc now also returns z_tan.
+
+	* A warning, I haven't got time for any larger bug controls for these
+	changes, so take care.
+
+	
+
 2001-03-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-144

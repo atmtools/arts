@@ -1579,3 +1579,25 @@ void ArrayOfStringSet(
 
 
 
+//=== SYMMETRIC ==========================================================
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-02-21
+*/
+void SymmetricDiagonal(
+                          SYMMETRIC&  x, 
+                    const string&     x_name,
+                    const int&        nrows,
+                    const Numeric&    value )
+{
+  resize( x, nrows, nrows );
+  for ( INDEX i=0; i<INDEX(nrows); i++ )
+    x[i][i] = value;
+
+  out2 << "  Creating " << x_name << " as a diagonal (symmetric) matrix\n"; 
+  out3 << "          nrows : " << nrows << "\n";
+  out3 << "          value : " << value << "\n";
+}

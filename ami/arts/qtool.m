@@ -36,7 +36,7 @@
 %             result in a function call as "some_fun(Q,fid)". 
 %
 %
-% FORMAT:   [cfile,basename,artscall] = qtool(Q,tmpdir,template [,QE])
+% FORMAT:   [cfile,basename] = qtool(Q,tmpdir,template [,QE])
 %
 % OUT:      cfile      Name on control file.
 %           basename   ARTS basename.

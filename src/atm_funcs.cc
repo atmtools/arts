@@ -669,7 +669,7 @@ Numeric ztan_geom(
   if ( za >= 90 )   
     z_tan = (r_geoid+z_plat)*sin(DEG2RAD*za) - r_geoid; 
   else
-    z_tan = 9.9999e6;
+    z_tan = 999e3;
   return z_tan;
 }
 

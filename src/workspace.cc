@@ -260,16 +260,29 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("z_tan",
-      "Tangent altitudes for the LOS [m]. \n"
-      "More info when updating the LOS functions.",  
-      VECTOR_));
+     ("emission",
+      "Boolean to include emssion in the calculations.\n"
+      "If this variable is set to 0 (zero) pure transmission calculations \n"
+      "be simulated and, for example, yCalc will give optical thicknesses \n" 
+      "instead of intensities.",
+      int_));
 
   wsv_data.push_back
     (WsvRecord
      ("za_pencil",
       "Pencil beam zenith angle, the angle between zenith and the LOS [deg].\n"
       "This grid is applied when calculating pencil beam spectra.",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("z_tan",
+      "Tangent altitude for the different LOS [m].\n"
+      "These tangent altitudes include the effect of refraction (if set). \n"
+      "In the case of a ground intersection, a geometrical prolongation \n"
+      "below the ground is applied to determine the tangent altitude. \n"
+      "For upward observations where there are no tangent altitudes, \n" 
+      "z_tan is set to 999 km.",
       VECTOR_));
 
   wsv_data.push_back

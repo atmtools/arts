@@ -365,9 +365,9 @@ void grid2grid_weights (
 //   Help functions for absloswfsCalc to calculate absorption LOS WFs
 ////////////////////////////////////////////////////////////////////////////
 
-//// absloswfs_1pass ///////////////////////////////////////////////////////
+//// absloswfs_rte_1pass /////////////////////////////////////////////////////
 /**
-   Calculates absorption LOS WFs for single pass cases.
+   Calculates absorption LOS WFs f single pass cases.
 
    Help function for absloswfsCalc treating a single zenith angle.
 
@@ -391,7 +391,7 @@ void grid2grid_weights (
    \author Patrick Eriksson
    \date   2000-09-15
 */
-void absloswfs_1pass (
+void absloswfs_rte_1pass (
                     MATRIX&   k,
                     VECTOR    y,
               const size_t&   start_index,
@@ -469,7 +469,7 @@ void absloswfs_1pass (
 
 
 
-//// absloswfs_limb ///////////////////////////////////////////////////////
+//// absloswfs_rte_limb ///////////////////////////////////////////////////////
 /**
    Calculates absorption LOS WFs for 1D limb sounding.
 
@@ -491,7 +491,7 @@ void absloswfs_1pass (
    \author Patrick Eriksson
    \date   2000-09-15
 */
-void absloswfs_limb (
+void absloswfs_rte_limb (
                     MATRIX&   k,
                     VECTOR    y,              // = y_q^q
               const VECTOR&   y_space,             
@@ -562,7 +562,7 @@ void absloswfs_limb (
 
 
 
-//// absloswfs_down ////////////////////////////////////////////////////////
+//// absloswfs_rte_down //////////////////////////////////////////////////////
 /**
    Calculates absorption LOS WFs for 1D downward looking observations.
 
@@ -586,7 +586,7 @@ void absloswfs_limb (
    \author Patrick Eriksson
    \date   2000-09-15
 */
-void absloswfs_down (
+void absloswfs_rte_down (
                     MATRIX&   k,
               const VECTOR&   y,
               const VECTOR&   y_space,
@@ -620,7 +620,7 @@ void absloswfs_down (
 
   // The indeces below STOP_INDEX are handled by the limb sounding function.
   // The limb function is given Y0 instead of cosmic radiation 
-  absloswfs_limb( k2, y, y0, stop_index, lstep, tr, s, ground, e_ground );  
+  absloswfs_rte_limb( k2, y, y0, stop_index, lstep, tr, s, ground, e_ground );
   for ( iv=0; iv<nf; iv++ )
   {
     for ( q=0; q<stop_index; q++ )
@@ -629,7 +629,7 @@ void absloswfs_down (
 
   // The indeces above STOP_INDEX are handled by the 1pass function.
   // The transmission below STOP_INDEX must here be considered.
-  absloswfs_1pass( k2, y0, start_index, stop_index, lstep, tr, s, 
+  absloswfs_rte_1pass( k2, y0, start_index, stop_index, lstep, tr, s, 
                      ground, e_ground, y_ground );
   for ( iv=0; iv<nf; iv++ )
   {
@@ -654,6 +654,163 @@ void absloswfs_down (
                   2*(s[iv][q]-s[iv][q-1])*tr[iv][q-1] + s[iv][q-1] )*tr0[iv] + 
                                          yqq[iv] - s[iv][q-1] )*tr[iv][q-1];
   }
+}
+
+
+
+//// absloswfs_rte ///////////////////////////////////////////////////////////
+/**
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
+void absloswfs_rte (
+                    ARRAYofMATRIX&   absloswfs,
+              const LOS&             los,   
+              const ARRAYofMATRIX&   source,
+              const ARRAYofMATRIX&   trans,
+              const VECTOR&          y,
+              const VECTOR&          y_space,
+              const VECTOR&          f_mono,
+              const VECTOR&          e_ground,
+              const Numeric&         t_ground )
+{
+  const size_t  nza = los.start.size();   // number of zenith angles  
+  const size_t  nf  = f_mono.size();      // number of frequencies  
+        VECTOR  yp(nf);                   // part of Y
+        size_t  iy0=0;                    // y index
+
+  // Set up vector for ground blackbody radiation
+  VECTOR   y_ground(f_mono.size()); 
+  if ( any_ground(los.ground) )
+    planck( y_ground, f_mono, t_ground );
+
+  // Resize the LOS WFs array
+  resize( absloswfs, nza );
+
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:\n      ";
+  for (size_t i=0; i<nza; i++ ) 
+  {
+    if ( ((i+1)%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i; cout.flush();
+    
+    // Do something only if LOS has any points
+    if ( los.p[i].size() > 0 )
+    {
+
+      // Pick out the part of Y corresponding to the present zenith angle
+      copy( y(iy0,iy0+nf), yp );
+
+      // The calculations are performed in 3 sub-functions
+      //
+      // Upward looking (=single pass)
+      if ( los.stop[i]==0 )
+        absloswfs_rte_1pass( absloswfs[i], yp, los.start[i], 0, los.l_step[i], 
+                     trans[i], source[i], los.ground[i], e_ground, y_ground );
+      //
+      // 1D limb sounding
+      else if ( los.start[i] == los.stop[i] )
+        absloswfs_rte_limb( absloswfs[i], yp, y_space, los.start[i], 
+                los.l_step[i], trans[i], source[i], los.ground[i], e_ground );
+
+      //
+      // 1D downward looking
+      else 
+        absloswfs_rte_down( absloswfs[i], yp, y_space, los.start[i], 
+                            los.stop[i], los.l_step[i], trans[i], source[i], 
+                                           los.ground[i], e_ground, y_ground );
+    }
+
+    iy0 += nf;        
+  }
+
+  out3 << "\n";
+}
+
+
+
+//// absloswfs_tau ///////////////////////////////////////////////////////////
+/**
+   \author Patrick Eriksson
+   \date   2001-03-30
+*/
+void absloswfs_tau (
+                    ARRAYofMATRIX&   absloswfs,
+	      const LOS&             los,
+	      const VECTOR&          f_mono )
+{
+  const size_t  nza = los.start.size();   // number of zenith angles  
+  const size_t  nf  = f_mono.size();      // number of frequencies  
+        Numeric kw, kw2;
+        INDEX   row, col, np;
+
+  // Resize the LOS WFs array
+  resize( absloswfs, nza );
+
+  // Loop zenith angles
+  out3 << "    Zenith angle nr:\n      ";
+  for (size_t i=0; i<nza; i++ ) 
+  {
+    if ( ((i+1)%20)==0 )
+      out3 << "\n      ";
+    out3 << " " << i; cout.flush();
+
+    np = los.start[i] + 1;
+
+    resize( absloswfs[i], nf, np );
+    
+    // Do something only if LOS has any points
+    if ( los.p[i].size() > 0 )
+    {
+
+      // Upward looking (=single pass)
+      if ( los.stop[i]==0 )
+      {
+        kw  = los.l_step[i] / 2.0;
+        kw2 = los.l_step[i];
+        for( row=0; row<nf; row++ )
+	{
+          absloswfs[i][row][0] = kw;
+          absloswfs[i][row][np-1] = kw;
+          for( col=1; col<np-1; col++ )
+            absloswfs[i][row][col] = kw2;
+        }
+      }
+
+      // 1D limb sounding
+      else if ( los.start[i] == los.stop[i] )
+      {
+        kw  = los.l_step[i];
+        kw2 = los.l_step[i] * 2.0;
+        for( row=0; row<nf; row++ )
+	{
+          absloswfs[i][row][0] = kw;
+          absloswfs[i][row][np-1] = kw;
+          for( col=1; col<np-1; col++ )
+            absloswfs[i][row][col] = kw2;
+        }
+      }
+
+      // 1D downward looking
+      else 
+      {
+        kw  = los.l_step[i];
+        kw2 = los.l_step[i] * 2.0;
+        for( row=0; row<nf; row++ )
+	{
+          absloswfs[i][row][0] = kw;
+          absloswfs[i][row][np-1] = kw / 2.0;
+          absloswfs[i][row][los.stop[i]] = kw * 1.5;
+          for( col=1; col<los.stop[i]; col++ )
+            absloswfs[i][row][col] = kw2;
+          for( col=los.stop[i]+1; col<np-1; col++ )
+            absloswfs[i][row][col] = kw;
+        }
+      }
+    }
+  }
+  out3 << "\n";
 }
 
 
@@ -1457,7 +1614,7 @@ void k_temp_nohydro (
   resize(k,nza*nv,np);
   setto(k, 0.0);
   resize(k_names,1);
-  k_names[0] = "Temperature: no hydro. eq.";
+  k_names[0] = "Temperature: no hydrostatic eq.";
   resize(k_aux,np,2);
   interpp( t, p_abs, t_abs, k_grid ); 
   for ( ip=0; ip<np; ip++ )
@@ -1651,10 +1808,11 @@ void wfs_tgsDefine(// WS Output:
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2000-?-?
+   \date   2001-03-30
 */
 void absloswfsCalc (
                     ARRAYofMATRIX&   absloswfs,
+	      const int&             emission,
               const LOS&             los,   
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans,
@@ -1664,58 +1822,33 @@ void absloswfsCalc (
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
-  const size_t  nza = los.start.size();   // number of zenith angles  
-  const size_t  nf  = f_mono.size();      // number of frequencies  
-        VECTOR  yp(nf);                   // part of Y
-        size_t  iy0=0;                    // y index
+  if ( emission == 0 )
+    absloswfs_tau ( absloswfs, los, f_mono );
+  else
+    absloswfs_rte ( absloswfs, los, source, trans, y, y_space, f_mono,     
+                                                          e_ground, t_ground );
+}
 
-  // Set up vector for ground blackbody radiation
-  VECTOR   y_ground(f_mono.size()); 
-  if ( any_ground(los.ground) )
-    planck( y_ground, f_mono, t_ground );
 
-  // Resize the LOS WFs array
-  resize(absloswfs,nza);
 
-  // Loop zenith angles
-  out3 << "    Zenith angle nr:\n      ";
-  for (size_t i=0; i<nza; i++ ) 
-  {
-    if ( ((i+1)%20)==0 )
-      out3 << "\n      ";
-    out3 << " " << i; cout.flush();
-    
-    // Do something only if LOS has any points
-    if ( los.p[i].size() > 0 )
-    {
+/**
+   See the the online help (arts -d FUNCTION_NAME)
 
-      // Pick out the part of Y corresponding to the present zenith angle
-      copy( y(iy0,iy0+nf), yp );
+   \author Patrick Eriksson
+   \date   2001-03-30
+*/
+void absloswfsTau (
+                    ARRAYofMATRIX&   absloswfs,
+	      const int&             emission,
+	      const LOS&             los,
+              const VECTOR&          f_mono )
+{
+  if ( emission != 0 )
+    throw runtime_error(
+      "The function yTau can only be used when emission is neglected.");
 
-      // The calculations are performed in 3 sub-functions
-      //
-      // Upward looking (=single pass)
-      if ( los.stop[i]==0 )
-        absloswfs_1pass( absloswfs[i], yp, los.start[i], 0, los.l_step[i], 
-                     trans[i], source[i], los.ground[i], e_ground, y_ground );
-      //
-      // 1D limb sounding
-      else if ( los.start[i] == los.stop[i] )
-        absloswfs_limb( absloswfs[i], yp, y_space, los.start[i], los.l_step[i],
-                     trans[i], source[i], los.ground[i], e_ground );
+  absloswfs_tau ( absloswfs, los, f_mono );
 
-      //
-      // 1D downward looking
-      else 
-        absloswfs_down( absloswfs[i], yp, y_space, los.start[i], los.stop[i], 
-                        los.l_step[i], trans[i], source[i], los.ground[i], 
-                        e_ground, y_ground );
-    }
-
-    iy0 += nf;        
-  }
-
-  out3 << "\n";
 }
 
 
@@ -2044,6 +2177,7 @@ void kPointingOffSet(
               const Numeric&         z_ground,
               const Numeric&         r_geoid,
               const MATRIX&          abs,
+  	      const int&             emission,
               const VECTOR&          y_space,
               const VECTOR&          e_ground,
               const Numeric&         t_ground,
@@ -2057,21 +2191,23 @@ void kPointingOffSet(
   add( za_new, VECTOR(nza,delta), za_new );
 
   out2 << "  ----- Messages from losCalc: --------\n";
-  LOS los;
-  losCalc( los, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
+  LOS    los;
+  VECTOR z_tan;
+  losCalc( los, z_tan, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
   out2 << "  -------------------------------------\n";
 
   ARRAYofMATRIX source, trans;
   out2 << "  ----- Messages from sourceCalc: -----\n";
-  sourceCalc( source, los, p_abs, t_abs, f_mono );
+  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
   out2 << "  -------------------------------------\n";
   out2 << "  ----- Messages from transCalc: ------\n";
   transCalc( trans, los, p_abs, abs );
   out2 << "  -------------------------------------\n";
   VECTOR y_new;
   out2 << "  ----- Messages from yRte: -----------\n";
-  yRte( y_new, los, f_mono, y_space, source, trans, e_ground, t_ground );
+  yCalc( y_new, emission, los, f_mono, y_space, source, trans, 
+                                                         e_ground, t_ground );
   out2 << "  -------------------------------------\n";
 
   // Make k one-column matrix of the right size:

@@ -883,10 +883,22 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("SymmetricDiagonal"),
+	DESCRIPTION("Creates a diagonal matrix of the type symmetric.\n"
+                    "All diagonal elements are set to the same value."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( SYMMETRIC_ ),
+	GINPUT(),
+	KEYWORDS( "nrows", "value"   ),
+	TYPES(    int_t,   Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("SymmetricWriteAscii"),
 	DESCRIPTION("Writes a covariance matrix to an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -900,7 +912,7 @@ void define_md_data()
       ( NAME("SymmetricReadAscii"),
 	DESCRIPTION("Reads a covariance matrix from an ASCII file.\n"
 		    "The filename can be specified or an empty string.\n"
-		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "If empty, it is set to <basename>.<variable_name>.aa.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
 	OUTPUT(),
 	INPUT(),
@@ -943,7 +955,7 @@ void define_md_data()
       ( NAME("HmatrixReadAscii"),
 	DESCRIPTION("Reads a H matrix from an ASCII file.\n"
 		    "The filename can be specified or be an empty string\n"
-		    "If empty, it is set to <basename>.<variable_name>.am."),
+		    "If empty, it is set to <basename>.<variable_name>.aa."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Hmatrix_ ),
@@ -1540,10 +1552,12 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("zaFromZtan"),
-	DESCRIPTION("Calculates the zenith angles from a set of tangent\n"
-                    "altitudes and a given LOS geometry."),
+	DESCRIPTION(
+           "Calculates the zenith angles corresponding to a set of tangent\n"
+            "altitudes. See the WSV z_tan for definitions."),
 	OUTPUT(),
-	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, refr_, refr_index_, r_geoid_, z_ground_ ),
+	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, refr_, refr_index_, r_geoid_,
+               z_ground_ ),
 	GOUTPUT(VECTOR_ ),
 	GINPUT(),
 	KEYWORDS(),
@@ -1619,11 +1633,9 @@ void define_md_data()
     ( MdRecord
       ( NAME("losCalc"),
   	DESCRIPTION(
-          "A general function to determine LOS for a 1D atmosphere.\n"
-          "Refraction is selected by a flag and the refraction variables\n"
-          "must be set when using this function. The ground altitude must\n"
-          "also be specified."),
-	OUTPUT( los_ ),
+          "Calculates the line-of-sight (LOS) for 1D atmospheres with and\n"
+          "without refraction."),
+	OUTPUT( los_, z_tan_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
                 refr_, refr_lfac_, refr_index_, z_ground_, r_geoid_ ),
 	GOUTPUT(),
@@ -1641,9 +1653,11 @@ void define_md_data()
           "that is, the source function equals the Planck function.\n"
           "The source function is set to the mean of the Planck function at\n"
           "the two LOS points limiting the steps. The temperature at the LOS\n"
-          "points is obtained by linear interpolation"),
+          "points is obtained by linear interpolation.\n"
+          "If emission is neglected (emission=0), the WSV source is set to be"
+          "empty."),
 	OUTPUT( source_ ),
-	INPUT( los_, p_abs_, t_abs_, f_mono_ ),
+	INPUT( emission_, los_, p_abs_, t_abs_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1687,15 +1701,16 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("yRte"),
+      ( NAME("yCalc"),
   	DESCRIPTION(
-          "Solves the general radiative transfer equation (RTE) along the\n"
-          "LOS. With other words, both absorption and emission are\n"
-          "considered.\n"
-          "This function requires that e_ground and t_ground are set."),
+          "Performs the integration of the radiative transfer equation\n"
+          "along the LOS with or without emission.\n"
+          "If emission is considered (emission=1) the outout unit is \n"
+          "intensity, while without emission (emission=0) optical \n"
+          "thicknesses are returned. "),
 	OUTPUT( y_ ),
-	INPUT( los_, f_mono_, y_space_, source_, trans_, e_ground_, 
-                                                                  t_ground_ ),
+	INPUT( emission_, los_, f_mono_, y_space_, source_, trans_, 
+                                                     e_ground_, t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1703,13 +1718,15 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("yBl"),
+      ( NAME("yTau"),
   	DESCRIPTION(
-          "Calculates the total transmission throught the atmosphere,\n"
-          "using the Beer-Lambert (BL) law.\n"
-          "This function requires that e_ground is set."),
+          "As yCalc but to be used only when emission is neglected.\n"
+          "The function returns the optical thicknesses (tau) along the LOS.\n"
+          "Some variables needed for yCalc are not needed here (such as \n"
+          "y_space, source and t_ground). The emission WSV emission must \n"
+          "be set to 0. "),
 	OUTPUT( y_ ),
-	INPUT( los_, trans_, e_ground_ ),
+	INPUT( emission_, los_, trans_, e_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1789,14 +1806,26 @@ void define_md_data()
       ( NAME("absloswfsCalc"),
   	DESCRIPTION(
           "Calculates absorption line of sight weighting functions (LOS WFs)\n"
-          "for 1D.\n"
-          "These WFs are the derivative of the monochromatic pencil beam\n"
-          "intensity with respect to the absorption at the LOS points.\n"
-          "See further the ARTS user guide.\n"
-          "This function requires that e_ground and t_ground are set."),
+          "for 1D atmospheres with or without emission.\n"
+          "These WFs are the derivative of the spectra with respect to the \n"
+          "absorption at the LOS points. See further the ARTS user guide."),
 	OUTPUT( absloswfs_ ),
-	INPUT( los_, source_, trans_, y_, y_space_, f_mono_, e_ground_, 
-                                                                   t_ground_ ),
+	INPUT( emission_, los_, source_, trans_, y_, y_space_, f_mono_, 
+                                                        e_ground_, t_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("absloswfsTau"),
+  	DESCRIPTION(
+          "As absloswfsCalc to be used when neglecting emission and \n"
+          "thus requires less input (e.g. y_space, source and t_ground are\n"
+          "not needed). When using this function the WSV emission must be 0."),
+	OUTPUT( absloswfs_ ),
+	INPUT( emission_, los_, f_mono_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1914,7 +1943,7 @@ void define_md_data()
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( z_plat_, za_pencil_, l_step_, p_abs_, z_abs_, t_abs_, f_mono_,
                refr_, refr_lfac_, refr_index_, z_ground_, r_geoid_, 
-               abs_, y_space_, e_ground_, t_ground_, y_ ),
+               abs_, emission_, y_space_, e_ground_, t_ground_, y_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "delta"   ),
@@ -2702,7 +2731,7 @@ void define_md_data()
 	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, 
                refr_lfac_, refr_index_, z_ground_, r_geoid_,
                // Additional variables for yRte
-	       y_space_, e_ground_, t_ground_,
+	       emission_, y_space_, e_ground_, t_ground_,
                // Additional variables needed for this function
                batchname_, tgs_, cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),

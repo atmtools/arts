@@ -125,13 +125,14 @@ perturbation calculations.
   where $\sigma$ and $\kappa$ are the source function and the absorption 
   along the LOS, respectively.
   
-  The term $\partial\iv / \partial \sigma$ is here denoted as source function 
-  line of sight weighting functions (source LOS WFs) and is
-  discussed in Section \ref{sec:wfuns:sourceloswfs}. The term
-  $\partial\iv/ \partial \kappa$ is denoted as absorption LOS WFs and
-  is discussed in Section \ref{sec:wfuns:absloswfs}. These terms are
-  treated seperately as they are common for all variables influencing
-  the source function or the absorption.
+  The term $\partial\iv / \partial \sigma$ is here denoted as source
+  line of sight weighting functions (source LOS WFs) and is discussed
+  in Section \ref{sec:wfuns:sourceloswfs}. The term $\partial\iv/
+  \partial \kappa$ is denoted as absorption LOS WFs and is discussed
+  in Sections \ref{sec:wfuns:absloswfs} and
+  \ref{sec:wfuns:absloswfs2}. These terms are treated seperately as
+  they are common for all variables influencing the source function or
+  the absorption.
 
   The term $\partial \mat{S}^p/\partial \xt^p$ can often be neglected.
   When scattering is neglected and local thermodynamic equilibrium is
@@ -149,7 +150,7 @@ perturbation calculations.
   
   
 
-\levelb{Absorption line of sight weighting functions}
+\levelb{Absorption LOS WFs with emission}
  \label{sec:wfuns:absloswfs}
 
  The absorption line of sight weighting functions are defined as
@@ -193,14 +194,16 @@ perturbation calculations.
  \end{figure}
 
  By rewriting Equation \ref{eq:rte:rteprod}, the monochromatic pencil beam
- intensity can be expressed as (see Fig. \ref{fig:wfuns:single})
+ intensity can be expressed in the following ways (see Fig. 
+ \ref{fig:wfuns:single})
  \begin{eqnarray}
-   I &=& I_2\zeta_1+\psi_1(1-\zeta_1), \quad q=1 
+   I &=& I_2\zeta_1+\psi_1(1-\zeta_1) \quad (q=1) 
      \nonumber \\
    I &=&\Big[I_{q+1}\zeta_q\zeta_{q-1}+\psi_q(1-\zeta_q)\zeta_{q-1} +
             \psi_{q-1}(1-\zeta_{q-1}) \Big] \Theta^{q-1}_1, \quad 1<q<n 
     \label{eq:wfuns:mpbi} \\
-   I &=& \Big[I_n\zeta_{n-1}+\psi_{n-1}(1-\zeta_{n-1})\Big]\Theta^{n-1}_{1}, \quad q=n
+   I &=& \Big[I_n\zeta_{n-1}+\psi_{n-1}(1-\zeta_{n-1})\Big]\Theta^{n-1}_{1}
+     \quad (q=n)
      \nonumber
  \end{eqnarray}
  where it assumed that the LOS has $n$ points, index 1 is the point
@@ -249,16 +252,16 @@ perturbation calculations.
  The LOS WFs are now easily determined, using the case $1<q<n$ as example
  \begin{equation}
    \K_{\kappa}^q = -\frac{\Delta l}{2} \Big[ 2I_{q+1}\zeta_q\zeta_{q-1}+
-     \psi_q(1-2\zeta_q)\zeta_{q-1} - \psi_{q-1}\zeta_{q-1} \Big] \Theta^{q-1}_1, 
-     \quad 1<q<n
+     \psi_q(1-2\zeta_q)\zeta_{q-1} - \psi_{q-1}\zeta_{q-1} \Big] 
+     \Theta^{q-1}_1, \, 1<q<n
  \end{equation}
  which can be rewritten as
  \begin{eqnarray}
-   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ I_2-\psi_1 \big] \Theta^2_1, \quad q=1 \nonumber \\
+   \K_{\kappa}^1 &=& -\frac{\Delta l}{2} \big[ I_2-\psi_1 \big] \Theta^2_1 \nonumber \\
    \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ 2(I_{q+1}-\psi_q)\zeta_q+
            \psi_q-\psi_{q-1} \big] \Theta^q_1, \quad 1<q<n 
   \label{eq:wfuns:loswfsxx} \\
-   \K_{\kappa}^q &=& -\frac{\Delta l}{2} \big[ I_n-\psi_{n-1} \big] \Theta^n_1, \quad q=n \nonumber
+   \K_{\kappa}^n &=& -\frac{\Delta l}{2} \big[ I_n-\psi_{n-1} \big] \Theta^n_1 \nonumber
  \end{eqnarray}
  Note that one $\zeta_q$ is incorporated in $\Theta^q_q$, and that 
  $\Theta^2_1=\zeta_1$.
@@ -310,8 +313,6 @@ perturbation calculations.
  in $I_1$ when the iteration starts.  
 
 
-
-
  
  \levelc{1D limb sounding}
  \label{sec:wfuns:limb}
@@ -332,18 +333,18 @@ perturbation calculations.
  \begin{eqnarray}
    I & = & \Big(I_2 \Big( \zeta_1\Theta^1_1 \Big)^2 + \psi_1(1-\zeta_1)
             \Big( \Theta^1_1 \Big)^2 \zeta_1+
-            I_1^1\zeta_1+\psi_1(1-\zeta_1) \Big)\Theta^n_{2}, \quad q=1 
+            I_1^1\zeta_1+\psi_1(1-\zeta_1) \Big)\Theta^n_{2} \quad (q=1) 
         \nonumber \\
    I & = & \Big[\Big(I_{q+1}\zeta_q\zeta_{q-1} +\psi_q(1-\zeta_q)\zeta_{q-1} + 
            \psi_{q-1}(1-\zeta_{q-1})\Big)\Big(\Theta^{q-1}_{1}\Big)^2
            \zeta_{q-1}\zeta_q + \nonumber \\
       & & + I_{q-1}^{q-1}\zeta_{q-1}\zeta_q + \psi_{q-1}(1-\zeta_{q-1})
-           \zeta_q + \psi_q(1-\zeta_q) \Big] \Theta^n_{q+1}, \quad 1<q<n
+           \zeta_q + \psi_q(1-\zeta_q) \Big] \Theta^n_{q+1}, \, 1<q<n
   \label{eq:wfuns:limb1}  \\
    I & = & \Big(I_n\zeta_{n-1}+\psi_{n-1}(1-\zeta_{n-1})\Big)\Big
            (\Theta^{n-1}_{1}\Big)^2\zeta_{n-1} + I_{n-1}^{n-1}\zeta_{n-1} +
              \nonumber \\
-      & &  +   \psi_{n-1}(1-\zeta_{n-1}), \quad q=n \nonumber
+      & &  +   \psi_{n-1}(1-\zeta_{n-1}) \quad (q=n) \nonumber
  \end{eqnarray}
  where the expression for $q=1$ is commented below, index 1 of the LOS
  is the tangent (or the ground) point, index $n$ corresponds to the
@@ -404,20 +405,20 @@ perturbation calculations.
  \ref{eq:wfuns:dzeta3} and \ref{eq:wfuns:dzeta4}, the LOS WFs for 1D
  limb sounding can be determined to be
  \begin{eqnarray}
-   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[ \Big( 2I_2\zeta_1+\psi_1(1-
+   \K_{\kappa}^1& = & -\frac{\Delta l}{2}\Big[ \Big( 2I_2\zeta_1+\psi_1(1-
        2\zeta_1)\Big) \Big(\Theta^1_1\Big)^2 +I_1^1-\psi_1 \Big]\Theta^n_1
-          \quad q=1 \nonumber \\
+          \nonumber \\
    \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big(4(I_{q+1}-\psi_q)
            \zeta_{q-1}\zeta_q+
             3(\psi_q-\psi_{q-1})\zeta_{q-1} + 2 \psi_{q-1}
-            \Big) \Big(\Theta^{q-1}_{1}\Big)^2\zeta_{q-1} +  \nonumber \\
+            \Big) \Big(\Theta^{q-1}_{1}\Big)^2\zeta_{q-1}  \nonumber \\
        &  & + 2(I_{q-1}^{q-1}-\psi_{q-1})\zeta_{q-1} + 
             \psi_{q-1}-\psi_q \Big] \Theta^n_{q}, \quad 1<q<n
   \label{eq:wfuns:loswfs2} \\
-   \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big( 2I_n\zeta_{n-1}+
+   \K_{\kappa}^n& = & -\frac{\Delta l}{2}\Big[\Big( 2I_n\zeta_{n-1}+
          \psi_{n-1}(1-2\zeta_{n-1}) \Big)\Big(\Theta^{n-1}_{1}\Big)^2\zeta_{n-1}+ 
              \nonumber \\   
-       & &  + I_{n-1}^{n-1}-\psi_{n-1}\Big] \zeta_{n-1}, \quad q=n \nonumber
+       & &  + I_{n-1}^{n-1}-\psi_{n-1}\Big] \zeta_{n-1} \nonumber
  \end{eqnarray}
  The function calculating these LOS WFs takes the total spectrum as
  input (that is, $I_n^n$) and it is then most suitable to iterate
@@ -479,10 +480,65 @@ perturbation calculations.
 
 
 
-\levelb{Source function line of sight weighting functions}
+\levelb{Absorption LOS WFs for optical thicknesses}
+ \label{sec:wfuns:absloswfs2}
+
+ This section treats the absorption LOS WFs for cases when emission
+ can neglected. For these pure absorption calculations the output
+ of ARTS is optical thicknesses (instead of e.g. transmisions) and
+ for these conditions the absorption LOS WFs get very simple.
+
+ \levelc{Single pass}
+ The optical thickness $(\tau)$ is for single pass cases (cf. Eq. 
+ \ref{eq:rte:tau})
+ \begin{equation}
+   \tau = \Delta l \left( \frac{\kappa_1+\kappa_2}{2} +
+                          \frac{\kappa_2+\kappa_3}{2} + \dots +
+                          \frac{\kappa_{n-2}+\kappa_{n-1}}{2} +
+                          \frac{\kappa_{n-1}+\kappa_n}{2} \right)
+ \end{equation}
+ and we have that
+ \begin{eqnarray}
+   \K_{\kappa}^1& = & \Delta l / 2 \nonumber \\
+   \K_{\kappa}^q& = & \Delta l, \quad 1<q<n  \\
+   \K_{\kappa}^n& = & \Delta l / 2 \nonumber
+ \end{eqnarray}
+
+
+ \levelc{1D limb sounding}
+ For limb sounding each altitude is passed twice and the total optical 
+ thickness is double the optical thickness from the tangent point to the
+ atmospheric limit. This fact results in that the absorption LOS WFs
+ for 1D limb sounding are just the single pass ones multiplicated by two:
+ \begin{eqnarray}
+   \K_{\kappa}^1& = & \Delta l  \nonumber \\
+   \K_{\kappa}^q& = & 2 \Delta l, \quad 1<q<n  \\
+   \K_{\kappa}^n& = & \Delta l  \nonumber
+ \end{eqnarray}
+ 
+
+ \levelc{1D downward looking observations}
+ If $q$ is the point where the sensor is placed, the optical thickness
+ is
+ \begin{equation}
+   \tau = \Delta l \left( \frac{\kappa_q+\kappa_{q-1}}{2} + \dots+
+                          \frac{\kappa_2+\kappa_1}{2} + \dots +
+                          \frac{\kappa_{q-1}+\kappa_q}{2} +
+                          \frac{\kappa_q+\kappa_{q+1}}{2} \dots \right)
+ \end{equation}
+ and the absorption LOS WF for this altitude is accordingly
+ \begin{equation}
+   \K_{\kappa}^q =  \frac{3}{2} \Delta l
+ \end{equation}
+
+
+
+
+
+\levelb{Source line of sight weighting functions}
  \label{sec:wfuns:sourceloswfs}
 
- The source function line of sight weighting functions are defined as
+ The source line of sight weighting functions are defined as
  \begin{equation}
    \K_{\sigma}^q =  \frac{\partial\iv}{\partial \sigma^q}
   \label{eq:wfuns:sloswfs}

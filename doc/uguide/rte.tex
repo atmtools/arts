@@ -71,9 +71,10 @@ spectrum. The main problem, in this context, is how to practically and
 accurately estimate the (continuous) integral in the discrete forward
 model.
  
-The discussion treats mainly measurements of atmospheric emission. The 
-forward model can also handle pure absorption measurements and such 
-observations are also discussed briefly last in the section.
+The discussion treats mainly measurements of atmospheric emission. The
+forward model can also handle pure absorption measurements /that is,
+emission is neglected) and such observations are discussed last in the
+section.
 
 The equations of this section are valid for monochromatic pencil beam
 spectra, that is, no effects of the sensor are considered. How to
@@ -214,6 +215,7 @@ incorporate sensor effects in the spectra is discussed separately
  \begin{equation}
     \tau_i = \frac{\Delta l}{2} \left( \kappa_i+\kappa_{i+1} \right),
                              \quad 1\leq i < n 
+  \label{eq:rte:tau}
  \end{equation}
  The relationship between the optical thicknesses and
  the transmission is
@@ -228,10 +230,7 @@ incorporate sensor effects in the spectra is discussed separately
  matrix provided by the absorption module by linear interpolation,
  using the logarithm of the pressure as altitude
  coordinate\footnote{The logarithm of the pressure is throughout the
-   basic altitude coordinate in ARTS.}. For the moment, linear
- interpolation is the only choice, but if it is found that cubic
- and/or spline interpolation give better accuracy, such interpolations
- will also be implemented.
+   basic altitude coordinate in ARTS.}.
 
 
  \levelc{The source function}  
@@ -304,13 +303,22 @@ incorporate sensor effects in the spectra is discussed separately
  respectively. See further Section \ref{sec:los:ground}.
 
 
-\levelb{Total atmospheric transmission}
+\levelb{Optical thicknesses}
  \label{sec:rte:trans}
   
  The atmospheric emission can be neglected if the observation is
  performed towards a sufficiently strong source, such as the Sun, and
- the measurement gives basically the total atmospheric transmission,
- $\zeta^{tot}$. This transmission is
+ the measurement gives then the total atmospheric transmission,
+ $\zeta^{tot}$. When inverting such observations, the standard
+ approach is to invert the optical thicknesses $(\tau)$ to obtain a
+ more linear inversion problem. For this reason, the output from
+ ARTS when neglecting emission was selected to be optical thicknesses
+ instead of transmission values. However, as the transmission for
+ each step along the LOS is stored for the emission calculations, 
+ ARTS calculates internally transmission spectra that are converted
+ to optical thicknesses.
+
+ This transmission is
  \begin{equation}
    \zeta^{tot} = e^{-\int_{l_1}^{l_2}{\kappa(l)dl}}
   \label{eq:rte:tottrans}
@@ -333,9 +341,16 @@ incorporate sensor effects in the spectra is discussed separately
    \zeta^{tot} = (1-e)\prod_{i=1}^{n-1}\zeta_{i}
   \label{eq:rte:tground}
  \end{equation} 
- where $e$ is the ground emission factor.
+ where $e$ is the ground emission factor. 
+
+ The optical thicknesses are finally calculated as
+ \begin{equation}
+   \tau^{tot} = -\ln(\zeta^{tot})
+  \label{eq:rte:odepth}
+ \end{equation} 
+
  
-  
+ 
 
 
 %%% Local Variables: 
