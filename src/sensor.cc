@@ -394,9 +394,11 @@ void multi_mixer_matrix(
      const Index&           n_pol)
 {
   // Check that the transfer matrix has the right size
+  Index H_nrows=H.nrows();//CPD: H is only used in asserts!!
+  H_nrows+=0;
   assert (H.nrows()==f_ch.nelem()*n_za*n_aa*n_pol);
   assert (H.ncols()==f_mono.nelem()*n_za*n_aa*n_pol);
-
+  
   // Assert that the number of *lo* elements equal the number of
   // polarisations
   assert (lo.nelem()==n_pol);

@@ -1,3 +1,10 @@
+2004-08-02  Cory Davis (rsh)   <cory@fog>
+
+	* arts-1-1-848
+
+	* src/sensor.cc (multi_mixer_matrix): H was only used in asserts.
+	Inserted stupid piece of code until someone fixes this properly.
+
 2004-07-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-847
