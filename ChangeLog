@@ -1,3 +1,16 @@
+2002-10-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-273
+
+	* doc/uguide/fm_definitions.tex: Wrote some new text for RT and ground
+	reflections. 
+
+	* doc/uguide/ppath.tex: Revised old text and wrote new text, especially
+	a section on finding path crossings of pressure surfaces.
+
+	* src/ppath.cc (psurface_crossing_2d): Modified this function to also
+	handle a quadratic slope term.
+
 2002-10-31  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-272

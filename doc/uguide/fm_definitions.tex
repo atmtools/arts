@@ -804,6 +804,7 @@ Conversion to brightness temperature is treated in Section~[**].
     \STATE{determine the propagation path by \artsstyle{ppathCalc}}
     \COMMENT{Section \ref{sec:fm_defs:ppaths}}
     \STATE{determine the radiation at the start of the propagation path}
+    \COMMENT{Section \ref{sec:fm_defs:rad_bkgr}}
     \STATE{call \artsstyle{rte\_agenda}}
     \COMMENT{Algorithm \ref{alg:fm_defs:rte_agenda}}
     \STATE{copy \artsstyle{i\_rte} to correct part of \aMpiVct{b}}
@@ -822,20 +823,19 @@ Conversion to brightness temperature is treated in Section~[**].
 %===================
 \label{sec:fm_defs:ppaths}
 
-A pencil beam path through the atmosphere to reach a specified
-position from a specified line-of-sight is denoted as the
-\textindex{propagation path}. Propagation paths are described by a set
-of points on the path, and the distance along the path between the
-points. These quantities, and a number of auxiliary variables, are
-stored together in a structure described in
-Section~\ref{sec:ppath:Ppath}. The path points are primarily placed at
-the crossings of the path with the atmospheric grids
-(\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
+A pencil beam path through the atmosphere to reach a position from a
+specific line-of-sight is denoted as the \textindex{propagation path}.
+Propagation paths are described by a set of points on the path, and
+the distance along the path between the points. These quantities, and
+a number of auxiliary variables, are stored together in a structure
+described in Section~\ref{sec:ppath:Ppath}. The path points are
+primarily placed at the crossings of the path with the atmospheric
+grids (\artsstyle{p\_grid}, \artsstyle{lat\_grid} and
 \artsstyle{lon\_grid}). A path point is also placed at the sensor if
-it is placed inside the atmosphere.  Ground reflections and tangent
-points are also included if such exist. More points can also be added
-to the propagation path, for example, by setting an upper limit for
-the distance along the path between the points.
+it is placed inside the atmosphere.  Points of ground reflections and
+tangent points are also included if such exist. More points can also
+be added to the propagation path, for example, by setting an upper
+limit for the distance along the path between the points.
 
 The propagation paths are determined basically by starting at the
 sensor and following the path backwards by some \textindex{ray
@@ -898,11 +898,10 @@ direction of the line-of-sight at that point, is denoted as the
 radiative background. Four possible radiative backgrounds exist:
 \begin{description}
 \item[Space] When the propagation path starts at the top of the
-  atmosphere, space is the radiative background. The normal case
+  atmosphere, space gives the radiative background. The normal case
   should be to set the radiation at the top of the atmosphere to
   cosmic background radiation. An exception is when the sensor is
-  directed towards the sun, when the radiative background shall be set
-  to mimic the solar radiation. The radiative background at the top of
+  directed towards the sun. The radiative background at the top of
   the atmosphere is determined by \wsvindex{i\_space\_agenda}, which
   sets the workspace variable \wsvindex{i\_space}. If a propagation
   path is totally outside the model atmosphere, the observed
@@ -913,30 +912,85 @@ radiative background. Four possible radiative backgrounds exist:
   intersects with the ground. The calculation of the up-welling
   radiation from the ground is described in
   Section~\ref{sec:fm_defs:groundrefl}.
-\item[Surface of cloud box] 
-\item[Interior of cloud box] 
+\item[Surface of cloud box] For cases when the propagation path enters
+  the cloud box the radiative background is the intensities leaving
+  the cloud box. The outgoing field of the cloud box must be
+  pre-calculated. How to perform calculations involving scattering are
+  described in Section~\ref{sec:fm_defs:scattering}.
+\item[Interior of cloud box] If the sensor is situated inside the
+  cloud box, there is basically no propagation path. The radiative
+  background, and also the final spectrum, equals the internal
+  intensity field of the cloud box at the position of the sensor.
+  This case requieres some special considerations, as described in
+  Section~\ref{sec:fm_defs:scattering}.
 \end{description}
+It should be noted that except for the first case above, the
+determination of the radiative background involves further radiative
+transfer calculations. For example, the radiation reflected by the
+ground can be calculated by a recursive call of \artsstyle{RteCalc}
+and the radiative background for that calculation is then space or the
+cloud box. The intensity field entering the cloud box is calculated by
+calls of \artsstyle{RteCalc} (with cloud box deactivated) and the
+radiative background is then space or the ground. This results in that
+space is normally the ultimate radiative background for the
+calculations. The exception is for propagation paths that intersects
+with the ground, and the ground is treated to act as a blackbody. For
+such cases, the propagation path effectively starts at the ground.
 
 
-\levelc{The agenda for radiative transfer}
+\levelc{The agenda for clear sky radiative transfer, \artsstyle{rte\_agenda}}
 %===================
 \label{sec:fm_defs:rte_agenda}
 
-\begin{equation}
-  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
-\end{equation}
-
+The task of \wsmindex{rte\_agenda} is to perform the clear sky
+radiative transfer calculation along the given propagation path
+(Algorithm~\ref{alg:fm_defs:rte_agenda}). The determination of the
+radiative background is not part of the task of
+\artsstyle{rte\_agenda}, it is in the standard case done by
+\artsstyle{RteCalc} (see Algorithm~\ref{alg:fm_defs:RteCalc}). In
+fact, methods for \artsstyle{rte\_agenda} just assumes that
+\wsvindex{i\_rte} contains spectral values that make sense and uses
+these values as start values for the calculations. This means that it
+is possible to use \artsstyle{rte\_agenda} also outside of
+\artsstyle{RteCalc}, as long as \wsvindex{i\_rte} and \artsstyle{ppath}
+are set correctly.
 
 \begin{algorithm}[!b]
  \begin{algorithmic}
-   \STATE{determine the temperature along the propagation path}
+   \STATE{determine the temperature along the propagation path by
+     interpolating \wsvindex{t\_field}}
+   \FORALL{propagation path steps}
+   \STATE{absorption ??}
+    \FORALL{frequencies}
+    \STATE{solve the raditaive transfer problem by an expression such 
+      as Eq.~\ref{eq:fm_defs:rte_step}}
+    \ENDFOR
+   \ENDFOR
  \end{algorithmic}
  \caption{Typical structure of a workspace method to 
    be part of \artsstyle{rte\_agenda}. The example is valid for a
-   method considering emission. [* Complete the algorith when
-   absorption is ready. *]}
+   method considering emission.}
  \label{alg:fm_defs:rte_agenda}
 \end{algorithm}
+
+The radiative transfer equation can be solved in many ways, and with
+different level of refinement. The standard approach in ARTS is to
+solve the radiative transfer from one point of the propagation path to
+next. The simplest expression that can be used in this way is
+\begin{equation}
+  \Mpi_{i+1}(\Frq) = \Mpi_i(\Frq)e^{-\aOth{i}} + B(\Frq,\aTmp{i})(1-e^{-\aOth{i}})
+  \label{eq:fm_defs:rte_step}
+\end{equation}
+where $\Mpi(\Frq)$ is the monochromatic (and unpolarised) intensity,
+$i$ is path step index, \Oth\ is the optical thickness along the path
+of the step, $B$ the Planck function, and $\aTmp{i}$ is the mean of
+the temperature at the end points of the step. This expression, and
+the corresponding ones for polarised cases, are implemented in the
+method \wsmindex{RteEmissionStd}. All methods for
+\artsstyle{rte\_agenda} adapt automatically to the value of
+\wsvindex{stokes\_dim} (see also Section~\ref{sec:fm_defs:polarisation}). 
+Other methods to solve the radiative transfer problem are discussed in
+Section~[**].
 
 
 
@@ -944,14 +998,17 @@ radiative background. Four possible radiative backgrounds exist:
 %===================
 \label{sec:fm_defs:groundrefl}
 
-The ground is treated to be a totally flat surface; incoming radiation
-is only reflected in a single direction, with the normal assumption
-that the angle to the surface normal is equal for the incoming and
-outgoing line-of-sight. If there is slope of the ground\index{ground
-  slope} (a variation of the ground radius), this slope is considered
-when determining the line-of-sight for the incoming radiation. This is
-exemplified in Figure~\ref{fig:fm_defs:ppath_cases2}, for a case with
-a very strong ground slope.
+The radiative properties of the ground are handled by
+\wsvindex{ground\_refl\_agenda}. The details of this agenda and the
+associated variables are described in Section~[**].
+
+Three main assumptions regarding the ground properties can be made:
+1. The ground acts as a blackbody. 2. The ground reflects radiation,
+but only in the specular direction. 3. The ground is a reflecting and
+scattering surface. Figure~\ref{fig:fm_defs:ground_refl} gives a
+schematic description of case 3, the most complex situation. The slope
+of the ground is considered when calculating the specular direction of
+ground reflections, as shown in Figure~\ref{fig:fm_defs:ppath_cases2}.
 
 \begin{figure}[!t]
  \begin{center}
@@ -975,40 +1032,6 @@ a very strong ground slope.
  \end{center}
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_ppath_cases.
-
-When solving the radiative transfer equation, a ground reflection is
-included as
-\begin{equation}
-  \Mpi(\Frq) \gets \Mpi(\Frq)(1-e_g(\Frq)) + e_g(\Frq)B(\Frq,\aTmp{g})
-  \label{eq:fm_defs_ground_reflection}
-\end{equation}
-where $e_g$ and \aTmp{g} is the ground emissivity and temperature,
-respectively, for the point where the ground reflection takes place.
-Note that the ground emissivity can vary both with frequency and
-position (Section~\ref{sec:fm_defs:geoid}).
-Equation~\ref{eq:fm_defs_ground_reflection} shows that the path before
-a reflection with a blackbody ground can be neglected. For such cases,
-$\Mpi(\Frq)$ equals $B(\Frq,\aTmp{g})$ independently of the previous
-value of $\Mpi(\Frq)$. The ground emission is treated to be
-unpolarized.
-
-A more detailed treatment of ground intersections would take into
-account the scattering properties of the ground and this limitation of
-the simulations should be considered. However, a requirement for that
-the recorded spectra shall be affected considerably by the ground
-properties is that the optical thickness of the lower troposphere is
-not too high. If it is high, the radiation is absorbed before it
-reaches the sensor. For moderate values on the optical thickness (in
-rough numbers, $1.5<\tau<4$), when some radiation can propagate
-from the ground to the sensor, it should be noted that the intensity
-field (as a function of zenith angle) reaching the ground should be
-relatively homogeneous and the negligence of ground scattering will not
-influence the accuracy of the results too seriously. With a high or
-moderate optical thickness of the lower troposphere, the emission
-reaching the ground will have brightness temperature close to the
-physical temperatures of the lower troposphere, with a relatively low
-angular variation.
-
 
 
 \levelc{Simulation of transmission measurements}

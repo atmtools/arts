@@ -579,7 +579,7 @@ bool is_los_downwards_2d(
    or the ground.
 
    The function solves the problem mentioned above for a pressure
-   surface, or the ground, where the radius changes linearly as a
+   surface, or the ground, where the radius changes quadratically as a
    function of latitude. No analytical solution to the original
    problem has been found. The problem involves sine and cosine of the
    latitude difference and these functions are replaced with their
@@ -588,36 +588,41 @@ bool is_los_downwards_2d(
    grid cell should not exceed 2 degrees, and the accuracy should be
    sufficient for values up to 3 degrees.
 
-   The problem and its solution is further described in AUG. See ???
+   The problem and its solution is further described in AUG. See the
+   chapter on propagation paths.
 
    Both positive and negative zenith angles are handled. 
 
    The function only looks for crossings in the forward direction of
-   the given zenith angle. This means that if r>r1 and the absolute
+   the given zenith angle. This means that if r>r0 and the absolute
    value of the zenith angle is < 90, no crossing will be found (if
    not the slope of the pressure surface happen to be very strong).
    
-   If the given path point is on the pressure surface (r=r1), the
+   If the given path point is on the pressure surface (r=r0), the
    solution 0 is rejected.
  
    The latitude difference is set to 999 of no possible value is found, but
    there will normally be some value < 360 degrees. 
 
+   The variable names below are the same as in AUG.
+
    \return         The angular distance to the crossing.
-   \param   r      Radius of a point of the path inside the grid cell
+   \param   rp     Radius of a point of the path inside the grid cell
    \param   za     Zenith angle of the path at r.
-   \param   r1     Radius of the pressure surface or the ground at the
-                   latitude of r
-   \param   c      Slope, as returned by psurface_slope_2d
+   \param   r0     Radius of the pressure surface or the ground at the
+                   latitude of r.
+   \param   c1     Linear slope term, as returned by psurface_slope_2d.
+   \param   c2     Quadratic slope term.
 
    \author Patrick Eriksson
    \date   2002-06-07
 */
 Numeric psurface_crossing_2d(
-        const Numeric&   r,
+        const Numeric&   rp,
         const Numeric&   za,
-        const Numeric&   r1,
-              Numeric    c )
+        const Numeric&   r0,
+              Numeric    c1,
+              Numeric    c2 )
 {
   assert( fabs(za) <= 180 );
 
@@ -626,14 +631,14 @@ Numeric psurface_crossing_2d(
   // Handle the cases of za=0 and za=180. 
   if( za == 0 )
     {
-      if( r < r1 )
+      if( rp < r0 )
 	{ return 0; }
       else
 	{ return no_crossing; }
     }
   if( fabs(za) == 180 )
     {
-      if( r > r1 )
+      if( rp > r0 )
 	{ return 0; }
       else
 	{ return no_crossing; }
@@ -642,62 +647,81 @@ Numeric psurface_crossing_2d(
   // Check if the given LOS goes in the direction towards the pressure surface.
   // If not, return 999.
   //
-  const bool downwards = is_los_downwards_2d( za, psurface_tilt_2d( r1, c ) );
+  const bool downwards = is_los_downwards_2d( za, psurface_tilt_2d( r0, c1 ) );
   //
-  if( ( r < r1  &&  downwards )  ||  ( r >= r1  &&  !downwards ) )
+  if( ( rp < r0  &&  downwards )  ||  ( rp >= r0  &&  !downwards ) )
     { return no_crossing; }
 
 
-  // The nadir angle in radians, and cosine and sine of that angle
-  const Numeric   beta = DEG2RAD * ( 180 - fabs(za) );
-  const Numeric   cv = cos( beta );
-  const Numeric   sv = sin( beta );
-
-  // Convert slope to m/radian and consider viewing direction
-  c *= RAD2DEG;
-  if( za < 0 )
-    { c = -c; }
-  
-  // The case when c=0 must be treated seperately as the root solving function 
-  // does not accept that the highest polynomial has coefficient = 0.
-  Index n = 5;
-  if( c == 0 )
-    { n = 4; }
-      
-  // The vector of polynomial coefficients
-  Vector p(n);
-  //
-  p[3] = -r1 * cv / 6 - c * sv / 2;
-  p[2] = -r1 * sv / 2 + c * cv;
-  p[1] = r1 * cv + c * sv;
-  p[0] = ( r1 - r ) * sv;
-  //
-  if( n == 5 )
-    { p[4] = -c * cv / 6; }
-
-  // Calculate roots of the polynomial
-  Matrix roots(n-1,2);
-  poly_root_solve( roots, p );
-
-  //MatrixPrint(roots,"roots");
-
-  // Find first root with imaginary part = 0, and real part > 0 or >= 0.
-  // The solution dlat = 0 is not of interest if r = r1.
-  Numeric dlat = no_crossing;
-  for( Index i=0; i<n-1; i++ )
+  // The case with c1=c2=0 can be handled analytically
+  if( c1 == 0  &&  c2 == 0 )
     {
-      if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
-	{
-	  if( ( r != r1 || roots(i,0) > 0 )  &&  RAD2DEG * roots(i,0) < dlat )
-	    { dlat = RAD2DEG * roots(i,0); }
-	}
-    }  
+      return geompath_lat_at_za( za, 0, 
+		       geompath_za_at_r( geometrical_ppc( rp, za ), za, r0 ) );
+    }
 
-  // Change sign if zenith angle is negative
-  if( dlat < no_crossing  &&  za < 0 )
-    { dlat = -dlat; }
 
-  return dlat;
+  // Approximative solution:
+  else
+    {
+
+      // The nadir angle in radians, and cosine and sine of that angle
+      const Numeric   beta = DEG2RAD * ( 180 - fabs(za) );
+      const Numeric   cv = cos( beta );
+      const Numeric   sv = sin( beta );
+
+      // Convert slope to m/radian and consider viewing direction
+      c1 *= RAD2DEG;
+      c2 *= RAD2DEG;
+      if( za < 0 )
+        { 
+          c1 = -c1; 
+          c2 = -c2; 
+        }
+      
+      // The case when c2=0 must be treated seperately as the root solving 
+      // function does not accept that the highest polynomial has 
+      // coefficient = 0.
+      Index n = 6;
+      if( c2 == 0 )
+        { n = 5; }
+          
+      // The vector of polynomial coefficients
+      Vector p(n);
+      //
+      p[0] = ( r0 - rp ) * sv;
+      p[1] = r0 * cv + c1 * sv;
+      p[2] = -r0 * sv / 2 + c1 * cv + c2 * sv;
+      p[3] = -r0 * cv / 6 - c1 * sv / 2 + c2 * cv;
+      p[4] = -c1 * cv / 6 - c2 * sv / 2;
+      //
+      if( n == 6 )
+        { p[5] = -c2 * cv / 6; }
+
+      // Calculate roots of the polynomial
+      Matrix roots(n-1,2);
+      poly_root_solve( roots, p );
+
+      //MatrixPrint(roots,"roots");
+
+      // Find first root with imaginary part = 0, and real part > 0 or >= 0.
+      // The solution dlat = 0 is not of interest if rp = r1.
+      Numeric dlat = no_crossing;
+      for( Index i=0; i<n-1; i++ )
+        {
+          if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
+    	{
+    	  if( ( rp != r0 || roots(i,0) > 0 )  &&  RAD2DEG * roots(i,0) < dlat )
+    	    { dlat = RAD2DEG * roots(i,0); }
+    	}
+        }  
+
+      // Change sign if zenith angle is negative
+      if( dlat < no_crossing  &&  za < 0 )
+        { dlat = -dlat; }
+
+      return dlat;
+    }
 }
 
 
@@ -1623,7 +1647,7 @@ void ppath_start_stepping(
 		  Numeric za0 = geompath_za_at_r( ppath.constant, a_los[0], 
                                                                           r0 );
 
-		  // Calculate radius and slope to use in psurface_crossingh_2d
+		  // Calculate radius and slope to use in psurface_crossing_2d
 		  Numeric rv1 = r_geoid(ilat0,0) + z_field(np-1,ilat0,0);
 		  Numeric rv2 = r_geoid(ilat0+istep,0) + 
 		                                   z_field(np-1,ilat0+istep,0);
@@ -1633,7 +1657,7 @@ void ppath_start_stepping(
 		  if( lat0 != lat_grid[ilat0] )
 		    { rv1 = rv1 + c * ( lat0 - lat_grid[ilat0] ); } 
 
-		  Numeric dlat = psurface_crossing_2d( r0, za0, rv1, c );
+		  Numeric dlat = psurface_crossing_2d( r0, za0, rv1, c, 0 );
 
 		  if( fabs(dlat) <= fabs(latstep) )
 		    {
@@ -2089,7 +2113,7 @@ void ppath_step_geom_2d(
       if( r_tmp < r_surface )
 	{ r_tmp = r_surface; }
 
-      dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c2 );
+      dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c2, 0 );
       endface = 2;  // This variable will be re-set if there was no crossing
     }
 
@@ -2116,7 +2140,7 @@ void ppath_step_geom_2d(
 	  { r_tmp = r_ground; }
 
 	Numeric dlat2ground = psurface_crossing_2d( r_tmp, za_start, r_ground,
-						                     cground );
+						                  cground, 0 );
 	if( fabs(dlat2ground) <= fabs(dlat2end) )
 	  {
 	    dlat2end = dlat2ground;
@@ -2148,7 +2172,7 @@ void ppath_step_geom_2d(
       if( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 )  &&
                 za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )
 	{
-	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4 );
+	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4, 0 );
 	  assert( dlat2end < 999 );
 	  endface  = 4;
 	}

@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Propagation paths}
+\levela{Propagation paths and the geoid}
  \label{sec:ppath}
 
 %
@@ -70,7 +70,7 @@ structure to describe propagation paths, \typeindex{Ppath}. The
 second file, \artsstyle{ppath.cc}, contains functions to perform
 calculations to determine propagation paths. The third file,
 \artsstyle{m\_ppath.cc}, contains the workspace methods related to
-propagation path, but these methods mainly check the input and the
+propagation paths, but these methods mainly check the input and the
 actual calculations are performed by sub-functions in
 \artsstyle{ppath.cc}. The fourth file, \artsstyle{m\_atmosphere.cc},
 contains methods to set the geoid radius.
@@ -88,7 +88,7 @@ section). The paths are determined by calculating a number of path
 steps. A path step is the path from a point to the next crossing
 of either the pressure, latitude or longitude grid. There is one
 exception to this definition of a path step, and that is when there
-is an intersection with a blackbody ground, which ends the propagation
+is an intersection with the ground, which ends the propagation
 path at that point. The starting point for the calculation of a path
 step is normally a grid crossing point, but can also be an arbitrary
 point inside the atmosphere, such as the sensor position. Only points
@@ -129,14 +129,12 @@ considered, or not, when the sensor is placed inside the atmosphere.
 
 The agenda performs only calculations to next crossing of a grid, all
 other tasks are performed by \wsmindex{ppathCalc}, with one exception.
-If there is an intersection of a blackbody ground, the calculations
-stop at this point. This is flagged by setting the background field of
-\artsstyle{ppath\_step}. Beside this, \wsmindex{ppathCalc} checks
-if the starting point of the calculations is inside the scattering box
-or below the ground level, and check if the last point of the path has
-been reached. The starting point (the end furthest away from the
-sensor) of a full propagation path can be the top of the atmosphere, a
-blackbody ground and the cloud box.
+If there is an intersection with the ground, the calculations stop at
+this point. This is flagged by setting the background field of
+\artsstyle{ppath\_step}. Beside this, \wsmindex{ppathCalc} checks if
+the starting point of the calculations is inside the scattering box or
+below the ground level, and check if the last point of the path has
+been reached. 
 
 The \artsstyle{ppath\_step\_agenda} put in points along the
 propagation path at all crossings with the grids, tangent points and
@@ -163,17 +161,16 @@ the data type is given inside square brackets, are:
      be equal to the workspace variable \artsstyle{atmosphere\_dim}.
      
    \item[np] [Index] Number of positions to define the propagation
-     path. The number of rows of \artsstyle{pos} and \artsstyle{los},
-     and the length of \artsstyle{z}, \artsstyle{gp\_p},
-     \artsstyle{gp\_lat} and \artsstyle{gp\_lon}, shall be equal to
-     \artsstyle{np}. The length of \artsstyle{l\_step} is
-     \artsstyle{np} - 1. If \artsstyle{np} $\leq$ 1, the observed
-     spectrum is identical to the radiative background. For cases
-     where the sensor is placed inside the model atmosphere and
-
-     \artsstyle{np} = 1, the stored position is identical to the sensor
-     position and that position can be used to determinate the radiative
-     background (see below).
+     path. Allowed values are $\geq 0$. The number of rows of
+     \artsstyle{pos} and \artsstyle{los}, and the length of
+     \artsstyle{z}, \artsstyle{gp\_p}, \artsstyle{gp\_lat} and
+     \artsstyle{gp\_lon}, shall be equal to \artsstyle{np}. The length
+     of \artsstyle{l\_step} is \artsstyle{np} - 1. If \artsstyle{np}
+     $\leq$ 1, the observed spectrum is identical to the radiative
+     background. For cases where the sensor is placed inside the model
+     atmosphere and \artsstyle{np} = 1, the stored position is
+     identical to the sensor position and that position can be used to
+     determinate the radiative background (see below).
 
    \item[refraction] [Index] A flag (0 or 1) to indicate if refraction
      has been considered when determining the path. A value of 1 means
@@ -213,11 +210,13 @@ the data type is given inside square brackets, are:
      variable for plotting and similar purposes. It shall not be used to
      interpolate the atmospheric fields, as pressure is the main altitude
      coordinate.
-
-  \item[l\_step] [Vector] The length along the propagation path between
-     the positions in \artsstyle{pos}. The length of the vector is
-     \artsstyle{np} - 1. 
      
+   \item[l\_step] [Vector] The length along the propagation path
+     between the positions in \artsstyle{pos}. The first value is the
+     length between the first and secend point etc. For \artsstyle{np}
+     $\geq 2$, the length of the vector is \artsstyle{np} - 1.
+     Otherwise it is 0.
+
    \item[gp\_p] [ArrayOfGridPos] Index position with respect to the
      pressure grid. The structure for grid positions is described in
      Section~\ref{sec:interpolation:gridpos}. 
@@ -245,15 +244,6 @@ the data type is given inside square brackets, are:
      box interior' and 'cloud box surface', where the source of
      radiation should be clear the content of the strings.
 
-  \item[ground] [Index] A boolean to indicate that there is an intersection
-     of the path by the ground. If the ground is treated to be a blackbody,
-     \artsstyle{ground} can only have the value of 0.
-     
-   \item[i\_ground] [Index] The position index of the ground.
-     Undefined if \artsstyle{ground} = 0. Row \artsstyle{i\_ground} of
-     \artsstyle{pos} gives the position of the ground reflection, which
-     is needed for determining the ground emissivity for 2D and 3D cases.
-     
    \item[tan\_pos] [Vector] The position of the tangent point. This
      vector is only set if there exists a tangent point (above the
      ground level), the length of the vector is otherwise 0.
@@ -261,19 +251,8 @@ the data type is given inside square brackets, are:
    \item[geom\_tan\_pos] [Vector] The position of the geometrical
      tangent point. This vector is set for all downward observations.
      Refraction and ground reflections are neglected when calculating
-     this tangent point position. This field is not covered by
+     this tangent point position. This field is not handled by
      \artsstyle{ppath\_step\_agenda}.
-     
-    \item[symmetry] [Index] A boolean to indicate that the atmospheric
-      conditions are symmetric around some point. This will the case
-      for 1D and downward observations. This boolean shows only that a
-      symmetry point exists, it will not affect the later
-      calculations.  To make use of the symmetry on the radiative
-      transfer calculations, the workspace variable [* to be defined
-      *] must be set to 1.
-
-   \item[i\_symmetry] [Index] The index of the symmetry point if 
-     \artsstyle{symmetry}=1. Otherwise undefined.
 
 \end{description}
 
@@ -363,6 +342,11 @@ The radius for a given \PpathLng\ is simply (\funcindex{geomppath\_r\_at\_l})
   \Rds(\PpathLng) = \sqrt{\PpathLng^2+p_c^2} 
   \label{eq:ppath:l2r}
 \end{equation}
+The radius for a given zenith angle is simply obtained by rearranging 
+Equation~\ref{eq:ppath:geomconst} (\funcindex{geomppath\_r\_at\_za})
+\begin{equation}
+  \Rds(\ZntAng) = \frac{p_c}{sin(\ZntAng)}
+\end{equation}
 The zenith angle for a given radius is (\funcindex{geomppath\_za\_at\_r})
 \begin{equation}
   \ZntAng(\Rds) = \left\{
@@ -384,7 +368,7 @@ path between the tangent point and the sensor has zenith angles
 $90\degree < \aZntAng{a} \leq 180\degree$.
 
 The latitude for a point is most easily determined by its zenith angle
-\funcindex{geomppath\_lat\_at\_za})
+(\funcindex{geomppath\_lat\_at\_za})
 \begin{equation}
   \Lat(\ZntAng) = \aLat{0} + \ZntAng - \aZntAng{0} 
   \label{eq:ppath:za2lat}
@@ -405,6 +389,79 @@ the sensor, and for 2D a positive zenith angle means observation
 towards higher latitudes.
 
 
+
+\levelb{Crossings of pressure surfaces}
+%===================
+\label{sec:ppath:psurf}
+
+This section deals with how to find the crossing between a geometrical
+path and pressure surface which radius is allowed to vary. The
+definitions given in Sections~\ref{sec:fm_defs:atmdim} results in that
+for a 2D case the radius of a pressure surface varies linearly from
+one point of the latitude grid to next. Furthermore, the radius of a
+pressure surface in a 3D case has a bi-linear variation on the face of
+grid cell and a 2D cross-section through a 3D grid cell will then give
+a quadratic variation of the pressure surface radius. A general
+function to calculate geometrical crossings with pressure surfaces
+must accordingly be able to handle quadratric radius variations.
+Figure~\ref{fig:ppath:psurf_crossing} gives a schematic description of
+the problem at hand.
+
+\begin{figure}
+ \begin{minipage}[c]{0.45\textwidth}
+ \includegraphics*[width=0.92\textwidth]{ppath/psurf_crossing}
+ \end{minipage}%
+ \begin{minipage}[c]{0.55\textwidth}
+  \caption{Quantities used to describe how to find the crossing between a 
+    geometrical propagation path and a pressure surface. The angle
+    \Lat\ is the angular distance from a reference point on the path.
+    The problem at hand is to find \Lat\ for the crossing point.
+    The radius of the pressure surface at $\Lat = 0$ is denoted as $r_0$.}
+  \label{fig:ppath:psurf_crossing}
+ \end{minipage}%
+\end{figure}   
+
+The law of sine gives the following relationsship for the crossing
+point:
+\begin{equation}
+  \frac{\sin\Theta_p}{\aRds{0}+c_1\Lat+c_2\Lat^2} = 
+                                \frac{\sin(\pi-\Lat-\Theta_p)}{\aRds{p}}
+\end{equation}
+which can be re-written to
+\begin{equation}
+   \aRds{p} \sin(\Theta_p) = (\aRds{0}+c_1\Lat+c_2\Lat^2) 
+           (\sin\Theta_p \cos\Lat + \cos\Theta_p \sin\Lat)
+ \label{eq:ppath:psurf1}
+\end{equation}
+This equation has no analytical solution. A first step to find an
+approximative solution is to note that \Lat\ will be limited to
+relatively small values. For example, if it shall be possible for the
+angular distance \Lat\ to reach the value of 3\degree, the vertical
+spacing between the pressure surfaces must be about 8~km, while it
+normally is below 2~km. For angles $\Lat \leq 3\degree$, the sine and
+cosine terms can be replaced with the two first terms of their Taylor
+expansions with a relative accuracy of $< 4\topowerten{-7}$. That is,
+\begin{eqnarray}
+  \cos \Lat & \approx & 1 - \Lat^2 / 2    \nonumber \\
+  \sin \Lat & \approx & \Lat - \Lat^3 / 6 \nonumber
+\end{eqnarray}
+Equation~\ref{eq:ppath:psurf1} becomes with these replacements a
+polynomial equation of order 5:
+\begin{eqnarray}
+  0 & = & p_0 + p_1 \aLat{1} + p_2 \aLat{2} + p_3 \aLat{3} + p_4 \aLat{4} 
+              + p_5 \aLat{5} \\
+  p_0 & = & (\aRds{0}-\aRds{p}) \sin\Theta_p \nonumber \\ 
+  p_1 & = & \aRds{0}\cos\Theta_p + c_1 \sin\Theta_p \nonumber \\ 
+  p_2 & = & -(\aRds{0}\sin\Theta_p)/2 + c_1\cos\Theta_p + 
+                                                c_2\sin\Theta_p \nonumber \\ 
+  p_3 & = & -(\aRds{0}\cos\Theta_p)/6 - (c_1\sin\Theta_p)/2 + 
+                                                c_2\cos\Theta_p \nonumber \\ 
+  p_4 & = & -(c_1 \cos\Theta_p)/6 - (c_2 \sin\Theta_p)/2  \nonumber \\ 
+  p_5 & = & -(c_2 \cos\Theta_p)/6 \nonumber  
+\end{eqnarray}
+This equation is solved numerically with the root finding algorithm
+implemented in the function \funcindex{poly\_root\_solve}. Solutions of
+interest shall not be imaginary.
 
 
 \levelb{Calculation of propagations path steps}
@@ -433,9 +490,10 @@ The grid positions are calculated on the same time as the path is
 determined. The main reason to this is that the grid positions make it
 possible to quickly determine inside which grid box the path step is
 found. Without the grid positions, each call of the functions would
-need a costly search to locate the starting position in the grids.  If
-you are not familiar with grid positions, it is recommended to read
-Section~\ref{sec:interpolation} before you continue here.
+need a costly search to locate the starting position with respect to
+the grids.  If you are not familiar with grid positions, it is
+recommended to read Section~\ref{sec:interpolation} before you
+continue here.
 
 The limited numerical accuracy requires some care when setting the
 grid positions. First of all, rounding errors can give a fractional
@@ -444,7 +502,7 @@ distance $< 0$ or $> 1$ and this must be avoided. The function
 should be called for each grid position. This function just
 sets all values below 0 to 0 and all value above 1 to 1. In addition,
 the grid position for the end point of a path step (beside when there
-is an intersection with a blackbody ground) must have a fractional
+is an intersection with the ground) must have a fractional
 distance of exactly 0 or 1, but this is not ensured by
 \artsstyle{gridpos\_check\_fd} and for end points the function
 \funcindex{gridpos\_force\_end\_fd} shall also be called. There will
@@ -478,60 +536,24 @@ interest:
 %===================
 \label{sec:ppath:1Dwithout}
 
-The calculations are outlined in Algorithm~\ref{alg:ppath:1Dgeom}. The
-basic problem is to determine the end and turning radii for the
-propagation path. When these radii are determined, it is
-straightforward to determine the quantities to be included in the
-\artsstyle{Ppath} structure. Needed mathematics are given by
+This case is handled by the function
+\funcindex{ppath\_step\_geom\_1d}.  The lowest and highest radius
+value along the path step is first determined. If the line-of-sight is
+upwards ($\quad |\ZntAng| \leq 90\degree$), then the start point of
+the step gives the lowest radius, and the radius of the pressure
+surface above gives the highest value. In the case of a downwards
+line-of-sight, the lowest radius is either the tangent
+point, the pressure surface below or the ground. The needed quantities
+to describe the propagation path between the two found radii are
+calculated by the function \funcindex{geompath\_from\_r1\_to\_r2},
+that has the option to introduce more points to fulfill a length
+criterion between the path points.  The mathematics of
+\artsstyle{geompath\_from\_r1\_to\_r2} are given by
 Equations~\ref{eq:ppath:geomconst}~-~\ref{eq:ppath:za2lat}.
-
-\begin{algorithm}[!t]
- \begin{algorithmic}
-  \STATE{set \aRds{start} to match the last position of input \artsstyle{ppath} structure}
-  \IF{\artsstyle{ppath.constant} $< 0$}
-   \STATE{calculate the propagation path constant}
-  \ENDIF
-  \STATE{determine the lower index of the interesting pressure grid range, \aInd{0}}
-  \STATE{create a vector holding a minimum set of radii to describe the path, \aRds{s}:}
-  \IF{$\aZntAng{start} \leq 90\degree$}
-   \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\Rds[\aInd{0}+1]\,\}$}
-   \COMMENT{$\Rds[\aInd{0}+1]$ = radius for pressure level with index $\aInd{0}+1$}
-  \ELSE
-   \STATE{calculate radius for tangent point, \aRds{tan}}
-   \STATE{calculate radius for ground, \aRds{ground}}
-
-   \IF{ \aRds{tan} $\geq$ both \Rds[\aInd{0}] and \aRds{ground}}
-    \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\aRds{tan}\,,\,\Rds[\aInd{0}+1]\,\}$}
-   \ELSE
-    \IF{ \Rds[\aInd{0}] $>$ \aRds{ground} }
-     \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\Rds[\aInd{0}]\,\}$}
-    \ELSE
-     \IF{ blackbody ground }
-      \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\aRds{ground}\,\}$}
-     \ELSE
-      \STATE{$\aRds{s} = \{\,\aRds{start}\,,\,\aRds{ground}\,,\,\Rds[\aInd{0}+1]\,\}$}
-     \ENDIF
-    \ENDIF
-   \ENDIF
-  \ENDIF
-  \STATE{calculate the distance to the tangent point for the radii in \aRds{s}}
-  \IF{length criterion set}
-   \STATE{calculate needed number of sub-steps between the radii in \aRds{s}}
-  \ELSE
-   \STATE{the number of needed sub-steps is throughout 1}
-  \ENDIF
-  \FORALL{radii in \aRds{s}}
-   \FORALL{sub-steps}
-    \STATE{take radii from \aRds{s} or calculate by Eq. \ref{eq:ppath:l2r}}
-    \STATE{use Eqs. \ref{eq:ppath:r2psi} and \ref{eq:ppath:za2lat} to determine zenith angle and latitude}
-    \STATE{calculate vertical grid position}
-   \ENDFOR
-  \ENDFOR
- \end{algorithmic}
- \caption{Outline of the calculation of 1D geometrical propagation path steps.}
- \label{alg:ppath:1Dgeom}
-\end{algorithm}
-
+For the case when the lowest radius is given by the tangent point, the
+part of path step from the tangent point to the pressure surface
+above, is obtained by a recursive call of
+\artsstyle{ppath\_step\_geom\_1d}.
 
 
 \levelc{1D with refraction}
@@ -544,16 +566,6 @@ Not yet implemented.
 \levelc{2D without refraction}
 %===================
 \label{sec:ppath:2Dwithout}
-
-\begin{figure}
- \begin{minipage}[c]{0.45\textwidth}
- \includegraphics*[width=0.96\textwidth]{ppath/psurf_crossing}
- \end{minipage}%
- \begin{minipage}[c]{0.55\textwidth}
-  \caption{}
-  \label{fig:ppath:psurf_crossing}
- \end{minipage}%
-\end{figure}   
 
 
 
