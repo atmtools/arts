@@ -1,3 +1,39 @@
+2003-06-23  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-584
+
+	* Huge doxygen cleanup: The cleaning involves removal of no longer
+	existent, but still documented parameters, making the order of
+	parameters in the documentation the same as in the function call,
+	documentation of non-documented parameters.
+
+	NOTE: For all parameters I did not know how to comment on, I've put a
+	'FIXME: Add documentation.' into the source code. Please look at your
+	code and replace it with the appropriate documentation. You can also
+	do a
+
+	grep 'FIXME: Add documentation.' *.{cc,h}
+
+	to get an overview of missing documentation. And for the future please
+	remember to adapt the documentation immediately after changing a
+	function's parameters. Otherwise, it is surely forgotten.
+
+	Please have a look a the output of doxygen from time to time and try
+	to fix the warnings if any. (cd doc/doxygen && make)
+
+	* src/agenda_record.cc, src/describe.cc, src/file.cc,
+	src/interpolation.cc, src/logic.h, src/m_abs.cc, src/m_absorption.cc,
+	src/m_cloudbox.cc, src/m_optproperties.cc, src/m_scatrte,
+	src/m_physics, src/check_input.cc, src/continua.cc, src/m_ignore.h,
+	src/main.cc, src/messages.cc, src/refraction.cc,
+	src/scatproperties.cc, src/ppath.cc, src/sensor.cc,
+	src/special_interp.cc, src/species_data.cc, src/test_integration.cc,
+	src/methods.h, src/xml_compound_types.cc src/agenda_class.cc,
+	src/matpack{I,III,IV,V,VI,VII}.cc, src/absorption.h:
+	Updated documentation.
+
+	* doc/doxygen/Doxyfile.in: Exclude old_absorption.cc.
+
 2003-06-23  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-583
@@ -51,7 +87,7 @@
 	* arts-1-1-580
 
 	* src/matpackII.h (SparseView), src/gas_abs_lookup.h (GasAbsLookup):
-	Adapt prototyping for xml_read_from_stream.
+	Adapt prototyping for xml_write_to_stream.
 
 	* src/xml_io_*_types.{cc,h}: Added an optional parameter to all
 	xml_write_to_stream functions. A descriptive name could be supplied
