@@ -800,49 +800,73 @@ void test38()
 {
   cout << "Test sparse matrix - sparse matrix multiplication\n";
 
-  Sparse A(10,5);
-  Sparse B(10,15);
-  Sparse C(15,5);
+  Sparse B(757,2271);
+  Sparse C(B.ncols(),B.ncols());
+  Sparse A(B.nrows(),B.ncols());
 
-  for (Index i=3; i<10; ++i)
-    B.rw(i,i) = i+1;
-  B.rw(0,0) = 1;
-  B.rw(0,1) = 2;
-  B.rw(0,2) = 3;
-
-  for (Index i=0; i<5; i++) {
-    C.rw(i*3,i) = i*3+1;
-    C.rw(i*3+1,i) = i*3+2;
-    C.rw(i*3+2,i) = i*3+3;
+  Index i=0;
+  for (Index j=0; j<B.ncols(); j++) {
+    B.rw(i,j) = (j+1.0);
+    if( i<B.nrows()-1 )
+      i++;
+    else
+      i=0;
   }
+
+  for (Index i=0; i<C.nrows(); i++)
+    C.rw(i,i) = 1;
 
   mult(A,B,C);
 
   cout << "\n(Sparse) A = \n" << A;
+  //cout << "\n(Sparse) B = \n" << B;
+  //cout << "\n(Sparse) C = \n" << C;
 
-  Matrix a(10,5), b(10,15), c(15,5);
+  Matrix a(5,15), b(5,15), c(15,15);
 
-  for (Index i=3; i<10; ++i)
-    b(i,i) = i+1;
-  b(0,0) = 1;
-  b(0,1) = 2;
-  b(0,2) = 3;
-
-  for (Index i=0; i<5; i++) {
-    c(i*3,i) = i*3+1;
-    c(i*3+1,i) = i*3+2;
-    c(i*3+2,i) = i*3+3;
+  i=0;
+  for (Index j=0; j<15; j++) {
+    b(i,j) = j+1;
+    if( i<4 )
+      i++;
+    else
+      i=0;
   }
+
+  for (Index i=0; i<15; i++)
+    c(i,i) = 1;
 
   mult(a,b,c);
 
-  cout << "\n(Full) a = \n" << a << "\n";
+  //cout << "\n(Full) a = \n" << a << "\n";
 
 //  cout << "\n(Sparse) B = \n" << B << "\n";
 //  cout << "\n(Full) b = \n" << b << "\n";
 //  cout << "\n(Sparse) C = \n" << C << "\n";
 //  cout << "\n(Full) c = \n" << c << "\n";
 
+}
+
+void test39() 
+{
+  //Test sparse transpose function
+  Sparse B(10,20);
+  Sparse Bt(B.ncols(), B.nrows());
+
+  Index i=0;
+  for (Index j=0; j<B.ncols(); j=j+2) {
+    B.rw(i,j) = j+1;
+    if( i<B.nrows()-2 )
+      i += 2;
+    else
+      i=0;
+  }
+
+  cout << "\nB = \n" << B;
+
+  transpose(Bt,B);
+
+  cout << "\ntranspose(B) = \n" << Bt << "\n";
 }
 
 int main()
@@ -885,5 +909,7 @@ int main()
 //   test36();
 //  test37();
   test38();
+//  test39();
+
   return 0;
 }

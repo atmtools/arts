@@ -1,3 +1,18 @@
+2003-06-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-574
+
+	* src/m_general.cc: Added SparsePrint.
+
+	* src/methods.cc: Added SparsePrint.
+
+	* src/matpackII.cc: Fixed bug in transpose and mult function.
+
+	*src/xml_io_basictypes.cc: Wrote simple xml_write_to_stream and
+	xml_read_from_stream functions for Sparse matrices.
+
+	*src/workspace.cc: Added general WSV sparse_1.
+
 2003-06-11  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-573

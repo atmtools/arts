@@ -312,9 +312,87 @@ xml_write_to_stream (ostream& os_xml,
 void
 xml_read_from_stream (istream& is_xml,
                       Sparse& sparse,
-                      bifstream * /* pbifs */)
+                      bifstream *pbifs)
 {
-  //FIXME: This is a dummy function
+  ArtsXMLTag tag;
+  Index nrows, ncols, nnz;
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("Sparse");
+
+  tag.get_attribute_value ("nrows", nrows);
+  tag.get_attribute_value ("ncols", ncols);
+  sparse.resize(nrows, ncols);
+  tag.get_attribute_value ("nnz", nnz);
+  
+  ArrayOfIndex rowind(nnz), colind(nnz);
+  Vector data(nnz);
+
+  for( Index i=0; i<nnz; i++) {
+      if (pbifs) {
+          *pbifs >> rowind[i];
+          if (pbifs->fail ()) {
+              ostringstream os;
+              os << " near "
+                << "\n  Row index: " << i;
+              xml_data_parse_error (tag, os.str());
+          }
+      } else {
+          is_xml >> rowind[i];
+          if (is_xml.fail ()) {
+              ostringstream os;
+              os << " near "
+                << "\n  Row index: " << i;
+              xml_data_parse_error (tag, os.str());
+          }
+      }
+  }
+
+  for( Index i=0; i<nnz; i++) {
+      if (pbifs) {
+          *pbifs >> colind[i];
+          if (pbifs->fail ()) {
+              ostringstream os;
+              os << " near "
+                << "\n  Column index: " << i;
+              xml_data_parse_error (tag, os.str());
+          }
+      } else {
+          is_xml >> colind[i];
+          if (is_xml.fail ()) {
+              ostringstream os;
+              os << " near "
+                << "\n  Column index: " << i;
+              xml_data_parse_error (tag, os.str());
+          }
+      }
+  }
+
+  for( Index i=0; i<nnz; i++) {
+      if (pbifs) {
+          *pbifs >> data[i];
+          if (pbifs->fail ()) {
+              ostringstream os;
+              os << " near "
+                << "\n  Data element: " << i;
+              xml_data_parse_error (tag, os.str());
+          }
+      } else {
+          is_xml >> data[i];
+          if (is_xml.fail ()) {
+              ostringstream os;
+              os << " near "
+                << "\n  Data element: " << i;
+              xml_data_parse_error (tag, os.str());
+          }
+      }
+  }
+
+  tag.read_from_stream (is_xml);
+  tag.check_name ("/Sparse");
+  
+  for( Index i=0; i<nnz; i++)
+    sparse.rw(rowind[i], colind[i]) = data[i];
 }
 
 //! Writes Sparse to XML output stream
@@ -326,9 +404,56 @@ xml_read_from_stream (istream& is_xml,
 void
 xml_write_to_stream (ostream& os_xml,
                      const Sparse& sparse,
-                     bofstream * /* pbofs */)
+                     bofstream *pbofs)
 {
-  //FIXME: This is a dummy function
+  ArtsXMLTag open_tag;
+  ArtsXMLTag close_tag;
+  
+  open_tag.set_name("Sparse");
+  open_tag.add_attribute("nrows", sparse.nrows());
+  open_tag.add_attribute("ncols", sparse.ncols());
+  open_tag.add_attribute("nnz", sparse.nnz());
+  
+  open_tag.write_to_stream( os_xml);
+    
+    //FIXME??: open_tag.set_name("Row index");
+    os_xml << '\n';
+    for( Index i=0; i<sparse.nnz(); i++) {
+      if (pbofs)
+        *pbofs << (*sparse.mrowind)[i];
+      else
+        os_xml << (*sparse.mrowind)[i];
+    }
+    //FIXME??: close_tag.set_name("/Row index");
+
+    //FIXME??: open_tag.set_name("Column index");
+    os_xml << '\n';
+    for( size_t i=0; i<sparse.mcolptr->size()-1;  ++i) {
+      for( Index j=0; j<(*sparse.mcolptr)[i+1]-(*sparse.mcolptr)[i]; j++) {
+        if (pbofs)
+          *pbofs << (*sparse.mcolptr)[i];
+        else
+          os_xml << (*sparse.mcolptr)[i];
+      }
+    }
+    //FIXME??: close_tag.set_name("/Column index");
+
+    //FIXME??: open_tag.set_name("Data");
+    os_xml << '\n';
+    xml_set_stream_precision (os_xml);
+    for( Index i=0; i<sparse.nnz(); i++) {
+      if (pbofs)
+        *pbofs << (*sparse.mdata)[i];
+      else
+        os_xml << (*sparse.mdata)[i];
+    }
+    //FIXME??: close_tag.set_name("/Data");
+    os_xml << '\n';
+
+  close_tag.set_name("/Sparse");
+  close_tag.write_to_stream( os_xml);
+
+  os_xml << '\n';
 }
 
 

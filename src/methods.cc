@@ -3217,6 +3217,20 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("SparsePrint"),
+        DESCRIPTION
+        (
+         "Prints the value of a Sparse variable on the screen."
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( Sparse_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("StringPrint"),
         DESCRIPTION
         (

@@ -331,7 +331,7 @@ void sensor_integration_vector(
 
   //Create a reference grid vector, x_ref that containing the values of
   //x_f and x_g strictly sorted.
-  list<Index> l_x;
+  list<Numeric> l_x;
   for (Index i=0; i<x_f.nelem(); i++)
   	l_x.push_back(x_f[i]);
   for (Index i=0; i<x_g.nelem(); i++) {
@@ -344,7 +344,7 @@ void sensor_integration_vector(
 
   Vector x_ref(l_x.size());
   Index i=0;
-  for (list<Index>::iterator li=l_x.begin(); li != l_x.end(); li++) {
+  for (list<Numeric>::iterator li=l_x.begin(); li != l_x.end(); li++) {
 	x_ref[i] = *li;
 	i++;
   }
@@ -392,7 +392,7 @@ void sensor_integration_vector(
       h[i_g+1] += (a1*x3+b1*x2+c1*x1) / dx;
 
     }
-	//i++;
+    //i++;
   }
 
   //Normalize h.

@@ -217,6 +217,22 @@ void NumericPrint(
 }
 
 
+//! SparsePrint
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-06-12
+*/
+void SparsePrint(
+        // WS Generic Input:
+        const Sparse&  x,
+        // WS Generic Input Names:
+        const String&  x_name )
+{
+  cout << "  *" << x_name << "*:\n" << x << "\n";
+}
+
 
 //! StringPrint
 /*!

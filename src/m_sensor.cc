@@ -65,20 +65,20 @@ extern const Numeric PI;
    \date   2003-05-20
 */
 void GaussianResponse(// WS Generic Output:
-                      Matrix&			r_matrix,
+                      Matrix&           r_matrix,
                       // WS Generic Output Names:
-                      const String& 	r_matrix_name,
+                      const String&     r_matrix_name,
                       // Control Parameters:
-                      const Numeric& 	FWHM,
-                      const Numeric& 	TotWidth,
-                      const Numeric& 	MaxSpacing)
+                      const Numeric&    FWHM,
+                      const Numeric&    TotWidth,
+                      const Numeric&    MaxSpacing)
 {
   //Calculate new size of matrix
   Index nrows = Index (ceil(TotWidth / MaxSpacing)+1);
   r_matrix.resize(nrows,2);
 
-  out2 << "Setting up a sensor response matrix in *"
-       << r_matrix_name << "*\n with gaussian distribution.\n";
+  out2 << "  Setting up a sensor response matrix in *"
+       << r_matrix_name << "*\n  with gaussian distribution.\n";
 
   //Set up grid column
   Vector tmp(nrows);
@@ -90,8 +90,8 @@ void GaussianResponse(// WS Generic Output:
 
   //Calculate the normalised gaussian response
   for( Index i=0; i<nrows; i++) {
-  	r_matrix(i,1) = 1/(sigma*sqrt(2*PI)) *
-					exp(-pow(r_matrix(i,0),2.0)/(2*pow(sigma,2.0)));
+    r_matrix(i,1) = 1/(sigma*sqrt(2*PI)) *
+                    exp(-pow(r_matrix(i,0),2.0)/(2*pow(sigma,2.0)));
   }
 }
 
@@ -129,15 +129,24 @@ void sensor_responseAntenna1D(// WS Output:
     throw runtime_error( os.str() );
   }
 
-  out2 << "   Calculating the antenna response using values and grid from *"
+  out2 << "  Calculating the antenna response using values and grid from *"
        << srm_name << "*.\n";
 
   Sparse antenna_response( f_grid.nelem(), n);
   antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
 
-  Sparse sensor_response_tmp = sensor_response;
+  //cout << "sensor_response (pre):\n" << sensor_response << "\n";
+
+  Sparse sensor_response_tmp(sensor_response);
   sensor_response.resize( f_grid.nelem(), n);
   mult( sensor_response, antenna_response, sensor_response_tmp);
+
+  //cout << "sensor_response_tmp:\n" << sensor_response_tmp << "\n";
+
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
+  
+  //cout << "antenna_response:\n" << antenna_response << "\n";
 }
 
 void sensor_responseBackend(// WS Output:
@@ -168,7 +177,7 @@ void sensor_responseBackend(// WS Output:
     throw runtime_error( os.str() );
   }
 
-  out2 << "   Calculating the backend response using values and grid from *"
+  out2 << "  Calculating the backend response using values and grid from *"
        << srm_name << "*.\n";
 
   Sparse backend_response( f_backend.nelem(), f_mixer.nelem());
@@ -177,6 +186,9 @@ void sensor_responseBackend(// WS Output:
   Sparse sensor_response_tmp = sensor_response;
   sensor_response.resize( f_backend.nelem(), f_mixer.nelem());
   mult( sensor_response, backend_response, sensor_response_tmp);
+  
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
 }
 
 void sensor_responseInit(// WS Output:
@@ -187,17 +199,22 @@ void sensor_responseInit(// WS Output:
                          const Vector&      mblock_aa_grid,
                          const Index&       antenna_dim )
 {
-  //FIXME: Check the antenna dimension??
-  assert( antenna_dim == 1);
+  //Check the antenna dimension and resize the matrix accordingly
+  Index n = f_grid.nelem() * mblock_za_grid.nelem();
+  if ( antenna_dim == 2)
+    n *= mblock_aa_grid.nelem();
 
-  //Resize matrix and store values
-  //FIXME: Keep this as close to Sparse procedure as possible for future switch
-  Index n = f_grid.nelem() * mblock_za_grid.nelem() * mblock_aa_grid.nelem();
   sensor_response.resize(n,n);
 
+  //Set matrix to identity matrix
   for( Index i=0; i<n; i++) {
     sensor_response(i,i) = 1;
   }
+
+  out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
+
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
 }
 
 void sensor_responseMixer(// WS Output:
@@ -242,8 +259,8 @@ void sensor_responseMixer(// WS Output:
     throw runtime_error( os.str());
   }
 
-  out2 << "   Calculating the mixer and sideband filter response using values\n"
-       << "   and grid from *" << sfrm_name << "*.\n";
+  out2 << "  Calculating the mixer and sideband filter response using values\n"
+       << "  and grid from *" << sfrm_name << "*.\n";
 
   //Call to calculating function
   Sparse mixer_response(1,1);
@@ -253,6 +270,8 @@ void sensor_responseMixer(// WS Output:
   sensor_response.resize( f_mixer.nelem(), f_grid.nelem());
   mult( sensor_response, mixer_response, sensor_response_tmp);
 
+  out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
+       << "x" << sensor_response.ncols() << "\n";
 }
 
 

@@ -445,11 +445,12 @@ void transpose( SparseView A,
   std::vector<Index> rowind = *B.mrowind;
   sort(rowind.begin(), rowind.end());
   std::vector<Index>::iterator last = unique(rowind.begin(), rowind.end());
-  rowind.erase(last+1, rowind.end());
+  rowind.erase(last, rowind.end());
 
-  // Loop through rows of B and check them vs columns of C
-  for (Index i=*rowind.begin(); i<=*rowind.end(); i++) {
-
+  // Loop through the existing rows of B and check them vs columns of C
+  for (Index l=0; l<rowind.size(); l++) {
+    Index i = rowind[l];
+    
     // Loop through columns and get the values for the specific row
     for (Index j=0; j<B.ncols(); j++) {
       // Get index of first data element of this column:
@@ -458,7 +459,7 @@ void transpose( SparseView A,
       // Get index of first data element of next column. (This always works,
       // because mcolptr has one extra element pointing behind the last
       // column.)
-      const Index end = (*B.mcolptr)[j+1];
+      Index end = (*B.mcolptr)[j+1];
 
       // If row index is within the span of this column, search for it
       if (i>=(*B.mrowind)[begin] && i<=(*B.mrowind)[end-1]) {
@@ -509,15 +510,14 @@ void mult( SparseView A,
       Index endBt = (*Bt.mcolptr)[cBt+1];
 
       //Check that the columns are non-empty, ...
-     if ( (*Bt.mrowind)[endBt]-(*Bt.mrowind)[beginBt]!=0
-           && (*C.mrowind)[endC]-(*C.mrowind)[beginC]!=0
-           // (NB: last index actually points to next columns first)
-           // that they are overlapping and ...
-           && (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
-           && (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1]
-           // that this special case of overlapping is not included.
-           && beginBt!=endC && beginC!=endBt ) {
-        Numeric tempA=0;
+     if ( endBt-beginBt!=0 && endC-beginC!=0
+          // (NB: last index actually points to next columns first)
+          // that they are overlapping and ...
+          && (*Bt.mrowind)[endBt-1]>=(*C.mrowind)[beginC]
+          && (*Bt.mrowind)[beginBt]<=(*C.mrowind)[endC-1]
+          // that this special case of overlapping is not included.
+          /*&& beginBt!=endC && beginC!=endBt*/ ) {
+        Numeric tempA=0.0;
 
         //Go through columns and find matching indices
         Index i=beginBt, j=beginC;
@@ -532,9 +532,10 @@ void mult( SparseView A,
             j++;
           }
         }
+        //cout << "tempA " << tempA << "\n";
 
         //Did we get a sum?
-        if (tempA!=0) {
+        if (tempA!=0.0) {
           //Yes, write it to product A
           A.rw(cBt,cC) = tempA;
         }

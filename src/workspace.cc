@@ -2022,6 +2022,21 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sparse_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary sparse matrix.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type Sparse.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Sparse_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "stokes_dim" ),
       DESCRIPTION
       (

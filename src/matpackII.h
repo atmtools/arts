@@ -21,6 +21,10 @@
 #include <vector>
 #include "matpackI.h"
 
+// Declare existance of some classes:
+class bifstream;
+class bofstream;
+
 /*
   Notes:
 
@@ -62,6 +66,9 @@ public:
   friend void mult (MatrixView A, const SparseView B, const MatrixView C );
   friend void mult (SparseView A, const SparseView B, const SparseView C );
   friend void transpose (SparseView A, const SparseView B );
+  // IO functions must be friends:
+  friend void xml_write_to_stream (ostream& os_xml, const Sparse& sparse, 
+                                   bofstream *pbofs);
 
 protected:
   // Constructors:
