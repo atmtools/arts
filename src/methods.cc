@@ -477,12 +477,33 @@ void define_md_data_raw()
          "\n"
         ),
         OUTPUT(t_field_, z_field_, vmr_field_),
-        INPUT(t_field_raw_, z_field_raw_, vmr_field_raw_, p_grid_, 
-              lat_grid_, lon_grid_, atmosphere_dim_),
+        INPUT(p_grid_, lat_grid_, lon_grid_, t_field_raw_, z_field_raw_, 
+              vmr_field_raw_, atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+   md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AtmFieldsFromAscii2Xml"),
+        DESCRIPTION
+        (
+         "Converts atmospheric data profiles (ascii-format) to xml format.\n"
+         "\n"
+         "This function can be used to convert data into the right format.\n"
+         "The input files are matrices, holding the pressure grid and the \n"
+         "data and output is a 3D gridded field (ArrayOfTensor3). We need \n"
+         "this format, because generally we store the data not only on the \n"
+         "pressure grid, but also on latitude and longitude grid. \n"
+         "\n"
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS("path", "basename"),
+        TYPES(String_t, String_t)));
 
  md_data_raw.push_back
     ( MdRecord

@@ -46,7 +46,8 @@
 #include "messages.h"
 #include "auto_md.h"
 #include "make_array.h"
-
+#include "xml_io.h"
+#include "matpackIII.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -59,6 +60,51 @@
 //  2. ASCII file functions
 //
 //**************************************************************************
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Convert atmospheric profiles data from ascii to xml
+////////////////////////////////////////////////////////////////////////////
+
+void AtmFieldsFromAscii2Xml(
+                            const String& path,
+                            const String& basename
+                        )
+{
+  const String in_filename = path + basename+ ".aa";
+  String out_filename = basename+ ".xml";
+  
+  ArrayOfMatrix am;
+  Matrix matrix;
+
+  read_array_of_matrix_from_file(am, in_filename);
+    if ( 1 != am.nelem() )
+   throw runtime_error("You tried to convert an array of matrix to a matrix,\n"
+                       "but the dimension of the array is not 1.");
+
+  matrix.resize( am[0].nrows(), am[0].ncols() );
+  matrix = am[0];
+
+  ArrayOfTensor3 atm_profiles_raw(4);
+  
+  atm_profiles_raw[0].resize(matrix.nrows(), 1, 1);
+  atm_profiles_raw[1].resize(1, 1, 1);
+  atm_profiles_raw[2].resize(1, 1, 1);
+  atm_profiles_raw[3].resize(matrix.nrows(), 1, 1);
+  
+  atm_profiles_raw[1] = 0.;
+  atm_profiles_raw[2] = 0.;
+
+ 
+  atm_profiles_raw[0](Range(joker), 0, 0) = matrix(Range(joker), 0);
+  atm_profiles_raw[3](Range(joker), 0, 0) = matrix(Range(joker), 1);
+
+  xml_write_to_file( out_filename, atm_profiles_raw );
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   File workspace methods (sorted after workspace variable)

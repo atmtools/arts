@@ -1,3 +1,17 @@
+2002-12-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-331
+
+	* src/m_atmosphere.cc (AtmFieldsCalc): Small modifications. This 
+	method is now tested and is working.
+
+	* src/m_io.cc (AtmFieldsFromAscii2Xml): Included this method. It 
+	converts atmospheric data from ascii to xml and writes the 
+	atmospheric fields (temperature, altitude, vmr) as gridded fields,
+	which can be read using (AtmRawRead).
+
+	* src/methods.cc: Included (AtmFieldsFromAscii2Xml).
+
 2002-12-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-330

@@ -116,7 +116,7 @@ void AtmosphereSet2D(
 
 //! Calculate atmospheric fields.
 /*!
-  This method interpolated the data for atmospheric fields on the atmospheric
+  This method interpolates the data for atmospheric fields on the atmospheric
   grids used for the calculation.
 
    See also the the online help (arts -d FUNCTION_NAME)
@@ -129,19 +129,20 @@ void AtmFieldsCalc(//WS Output:
                    Tensor3& z_field,
                    Tensor4& vmr_field,
                    //WS Input
-                   const ArrayOfTensor3& t_field_raw,
-                   const ArrayOfTensor3& z_field_raw,
-                   const ArrayOfArrayOfTensor3& vmr_field_raw,
                    const Vector& p_grid,
                    const Vector& lat_grid,
                    const Vector& lon_grid,
+                   const ArrayOfTensor3& t_field_raw,
+                   const ArrayOfTensor3& z_field_raw,
+                   const ArrayOfArrayOfTensor3& vmr_field_raw,
                    const Index& atmosphere_dim
                    )
 {
   //==========================================================================
   if ( atmosphere_dim == 1)
     {
-       //Resize variables
+      
+      //Resize variables
       t_field.resize(p_grid.nelem(), 1, 1);
       z_field.resize(p_grid.nelem(), 1, 1);
       vmr_field.resize(vmr_field_raw.nelem(), p_grid.nelem(), 1, 1);
@@ -149,40 +150,33 @@ void AtmFieldsCalc(//WS Output:
  
       // Gridpositions:
       ArrayOfGridPos gp_p(p_grid.nelem());
-      ArrayOfGridPos gp_lat(1);
-      ArrayOfGridPos gp_lon(1);
-
-      Vector lat_grid_dummy(1,0.);
-      Vector lon_grid_dummy(1,0.);
-      
+  
       // Interpolate t_field:
       
       // Calculate grid positions:
       gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
-      gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid_dummy);
-      gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid_dummy);
 
       // Interpolation weights:
-      Tensor4 itw(p_grid.nelem(), 1, 1, 8);
-      // (8 interpolation weights are required for 3D interpolation)
-      interpweights( itw, gp_p, gp_lat, gp_lon );
+      Matrix itw(p_grid.nelem(), 2);
+      // (2 interpolation weights are required for 1D interpolation)
+      interpweights( itw, gp_p);
   
       // Interpolate:
-      interp( t_field, itw, t_field_raw[3],  gp_p, gp_lat, gp_lon);
+      interp( t_field(Range(joker), 0, 0), itw, 
+              t_field_raw[3](Range(joker), 0, 0),  gp_p);
 
   
       // Interpolate z_field:
       
       // Calculate grid positions:
       gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
-      gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid_dummy );
-      gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid_dummy );
-
+     
       // Interpolation weights:
-      interpweights( itw, gp_p, gp_lat, gp_lon );
+      interpweights( itw, gp_p );
       
       // Interpolate:
-      interp( z_field, itw, z_field_raw[3], gp_p, gp_lat, gp_lon);
+      interp( z_field(Range(joker), 0, 0), itw,
+              z_field_raw[3](Range(joker), 0, 0), gp_p);
       
   
       // Interpolate vmr_field. 
@@ -191,17 +185,13 @@ void AtmFieldsCalc(//WS Output:
         {
           // Calculate grid positions:
           gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
-          gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0),
-                  lat_grid_dummy);
-          gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)),
-                  lon_grid_dummy);
-
+      
           // Interpolation weights:
-          interpweights( itw, gp_p, gp_lat, gp_lon );
+          interpweights( itw, gp_p);
           
           // Interpolate:
-          interp( vmr_field(gas_i, Range(joker), Range(joker), Range(joker)),
-                  itw, vmr_field_raw[gas_i][3], gp_p, gp_lat, gp_lon);
+          interp( vmr_field(gas_i, Range(joker), 0, 0),
+                  itw, vmr_field_raw[gas_i][3](Range(joker), 0, 0), gp_p);
         }
       
     }
@@ -219,37 +209,39 @@ void AtmFieldsCalc(//WS Output:
       // Gridpositions:
       ArrayOfGridPos gp_p(p_grid.nelem());
       ArrayOfGridPos gp_lat(lat_grid.nelem());
-      ArrayOfGridPos gp_lon(1);
+      //      ArrayOfGridPos gp_lon(1);
 
-      Vector lon_grid_dummy(1,0.0);
+      // Vector lon_grid_dummy(1,0.0);
       
       // Interpolate t_field:
       
       // Calculate grid positions:
       gridpos( gp_p, t_field_raw[0](Range(joker), 0, 0), p_grid );
       gridpos( gp_lat, t_field_raw[0](0, Range(joker), 0), lat_grid );
-      gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid_dummy );
+      //gridpos( gp_lon, t_field_raw[0](0, 0, Range(joker)), lon_grid_dummy );
       
       // Interpolation weights:
-      Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), 1, 8);
+      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
       // (8 interpolation weights are required for 3D interpolation)
-      interpweights( itw, gp_p, gp_lat, gp_lon );
+      interpweights( itw, gp_p, gp_lat);
       
       // Interpolate:
-      interp( t_field, itw, t_field_raw[3],  gp_p, gp_lat, gp_lon);
+      interp( t_field(Range(joker), Range(joker), 0 ), itw,
+              t_field_raw[3](Range(joker), Range(joker), 0),  gp_p, gp_lat);
       
       
       // Interpolate z_field:
       // Calculate grid positions:
       gridpos( gp_p, z_field_raw[0](Range(joker), 0, 0), p_grid );
       gridpos( gp_lat, z_field_raw[1](0, Range(joker), 0), lat_grid );
-      gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid_dummy );
+      //gridpos( gp_lon, z_field_raw[2](0, 0, Range(joker)), lon_grid_dummy );
       
       // Interpolation weights:
-      interpweights( itw, gp_p, gp_lat, gp_lon );
+      interpweights( itw, gp_p, gp_lat);
       
       // Interpolate:
-      interp( z_field, itw, z_field_raw[3], gp_p, gp_lat, gp_lon);
+      interp( z_field(Range(joker), Range(joker), 0), itw, 
+              z_field_raw[3](Range(joker), Range(joker), 0), gp_p, gp_lat);
       
       
       // Interpolate vmr_field. 
@@ -260,15 +252,16 @@ void AtmFieldsCalc(//WS Output:
           gridpos(gp_p, vmr_field_raw[gas_i][0](Range(joker), 0, 0), p_grid);
           gridpos(gp_lat, vmr_field_raw[gas_i][1](0, Range(joker), 0), 
                   lat_grid);
-          gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)), 
-                  lon_grid_dummy);
+          //   gridpos(gp_lon, vmr_field_raw[gas_i][2](0, 0, Range(joker)), 
+          //       lon_grid_dummy);
           
           // Interpolation weights:
-          interpweights( itw, gp_p, gp_lat, gp_lon );
+          interpweights( itw, gp_p, gp_lat);
           
           // Interpolate:
-          interp( vmr_field(gas_i, Range(joker), Range(joker), Range(joker)),
-                  itw, vmr_field_raw[gas_i][3], gp_p, gp_lat, gp_lon);
+          interp( vmr_field(gas_i, Range(joker), Range(joker), 0),
+                  itw, vmr_field_raw[gas_i][3](Range(joker), Range(joker), 0),
+                  gp_p, gp_lat);
         }
     }
 
