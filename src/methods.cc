@@ -45,18 +45,94 @@ void define_md_data()
 //=== IO methods
 //======================================================================
 
+//
+//=== Scalars
+//
   md_data.push_back
     ( MdRecord
-      ( NAME("AllAbsExample"),
-	DESCRIPTION("Reads all important absorption related variables from the\n"
-		    "given files."),
-	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
+      ( NAME("IntSet"),
+	DESCRIPTION("Sets an integer workspace variable to the given value."),
+	OUTPUT(),
 	INPUT(),
-	GOUTPUT(),
+	GOUTPUT(int_),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS("value"),
+	TYPES(int_)));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericSet"),
+	DESCRIPTION("Sets a workspace variable of type Numeric to a value."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(Numeric_),
+	GINPUT(),
+	KEYWORDS("value"),
+	TYPES(num_)));
+
+
+
+//
+//=== Vector initialization
+//
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorSet"),
+	DESCRIPTION("Creates a workspace vector with the specified length\n"
+                    "and initializes the vector with the given value."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(VECTOR_),
+	GINPUT(),
+	KEYWORDS("length", "value"),
+	TYPES(int_, num_)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorLinSpace"),
+	DESCRIPTION("Creates a linearly spaced vector with defined spacing.\n"
+                    "Format: VectorLinSpace(x){start,stop,step}\n"
+		    "The first element of x is always start.\n"
+		    "The next value is start+step etc.\n"
+		    "Note that the last value can deviate from stop.\n"
+		    "The step can be both positive and negative."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(VECTOR_),
+	GINPUT(),
+	KEYWORDS("start", "stop", "step"),
+	TYPES(num_, num_, num_)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorNLinSpace"),
+	DESCRIPTION("Creates a linearly spaced vector with defined length.\n"
+		    "The length must be larger than 1."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(VECTOR_),
+	GINPUT(),
+	KEYWORDS("start", "stop", "n"),
+	TYPES(num_, num_, int_)));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorNLogSpace"),
+	DESCRIPTION("Creates a logarithmically spaced vector with defined length.\n"
+		    "The length must be larger than 1."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(VECTOR_),
+	GINPUT(),
+	KEYWORDS("start", "stop", "n"),
+	TYPES(num_, num_, int_)));
+
+
+
+//
+//=== Matrix and Vector Write Methods
+//
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteToFile"),
@@ -74,24 +150,7 @@ void define_md_data()
 	GINPUT(VECTOR_),
 	KEYWORDS(),
 	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixWriteToFile"),
-	DESCRIPTION("Writes a workspace variable that is a matrix to a file.\n"
-		    "The filename is <basename>.<variable_name>.a.\n"
-		    "The format is as follows:\n\n"
-		    "# <comments>\n\n"
-		    //		    "\"<variable_name>\"\n\n"
-		    "<n_rows> <n_columns>\n\n"
-		    "<elements>"),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(MATRIX_),
-	KEYWORDS(),
-	TYPES()));
-
+  /*
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteToNamedFile"),
@@ -112,6 +171,23 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("MatrixWriteToFile"),
+	DESCRIPTION("Writes a workspace variable that is a matrix to a file.\n"
+		    "The filename is <basename>.<variable_name>.a.\n"
+		    "The format is as follows:\n\n"
+		    "# <comments>\n\n"
+		    //		    "\"<variable_name>\"\n\n"
+		    "<n_rows> <n_columns>\n\n"
+		    "<elements>"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(MATRIX_),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("MatrixWriteToNamedFile"),
 	DESCRIPTION("Writes a workspace variable that is a matrix to a file.\n"
 		    "The filename has to be specified.\n"
@@ -126,6 +202,12 @@ void define_md_data()
 	GINPUT(MATRIX_),
 	KEYWORDS("filename"),
 	TYPES(str_)));
+*/
+
+
+//
+//=== Matrix and Vector Read Methods
+//
 
   md_data.push_back
     ( MdRecord
@@ -144,7 +226,7 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
+  /*
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixReadFromFile"),
@@ -161,29 +243,26 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+*/
 
+
+//======================================================================
+//=== Absorption methods
+//======================================================================
+  /*
   md_data.push_back
     ( MdRecord
-      ( NAME("NumericSet"),
-	DESCRIPTION("Sets a workspace variable of type Numeric to a value."),
-	OUTPUT(),
+      ( NAME("AllAbsExample"),
+	DESCRIPTION("Reads all important absorption related variables from the\n"
+		    "given files."),
+	OUTPUT(f_abs_, p_abs_, t_abs_, abs_),
 	INPUT(),
-	GOUTPUT(Numeric_),
+	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS("value"),
-	TYPES(num_)));
+	KEYWORDS(),
+	TYPES()));
+  */
 
-  //  md_data.push_back
-  //    ( MdRecord
-  // ( NAME("losTest"),
-  //DESCRIPTION("Just to see if los works."),
-  //OUTPUT(los_),
-  //INPUT(),
-  //GOUTPUT(),
-  //GINPUT(),
-  //KEYWORDS(),
-  //TYPES()));
-  
 
 //======================================================================
 //=== LOS methods
@@ -191,11 +270,13 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("los1dNoRefraction"),
-	DESCRIPTION("Determines the LOS for a 1D atmosphere\n"
-                    "Refraction is neglected"),
-	OUTPUT(los1d_),
-	INPUT(plat_z_ ,view1_),
+      ( NAME("losGeneral"),
+  	DESCRIPTION("A general function to determine LOS for a 1D atmosphere\n"
+                  "Refraction variables and ground altitude and emission\n"
+                  "must be set when using this function."),
+	OUTPUT(los_),
+	INPUT(z_plat_ ,view1_, l_step_, p_abs_, z_abs_, refr_, l_step_refr_, 
+              z_ground_, e_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

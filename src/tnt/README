@@ -1,3 +1,10 @@
+
+PE 08.04.2000
+
+Included some scalar - vector operations in vec.h
+
+
+
 Changes in vecadaptor.h:
 
 SAB 30.01.2000:

@@ -8,6 +8,10 @@
 #include "md.h"
 
 
+//
+//----------------------------< Help functions >----------------------------
+//
+
 /** A helper function that writes a matrix to a stream.
 
     @param os   Output. The stream to write to.
@@ -50,6 +54,7 @@ void write_matrix_to_stream(ostream& os,
       os << '\n';
     }
 }
+
 
 /** A helper function that writes a matrix to a file. Uses
     write_matrix_to_stream. 
@@ -116,7 +121,8 @@ void read_matrix_from_stream(MATRIX& m,
 }
 
 
-/** A helper function that reads a matrix from a file. Uses read_matrix_from_stream.
+/** A helper function that reads a matrix from a file. 
+    Uses read_matrix_from_stream.
 
     @param m         Output. The matrix to read.
     @param filename  The name of the file to read.
@@ -151,9 +157,102 @@ void read_matrix_from_file(MATRIX& m,
 
 
 //
-//------------------------------< Write Methods >------------------------------
+//-------------------< Scalar initialization >--------------------------
 //
 
+void IntSet(// WS Generic Output:
+            int& x,
+            // WS Generic Output Names:
+            const string& x_name,
+            // Control Parameters:
+            const int& value)
+{
+  x = value;
+  out3 << "Setting " << x_name << " to " << value << ".\n";
+}
+
+void NumericSet(// WS Generic Output:
+                Numeric& x,
+                // WS Generic Output Names:
+                const string& x_name,
+                // Control Parameters:
+                const Numeric& value)
+{
+  x = value;
+  out3 << "Setting " << x_name << " to " << value << ".\n";
+}
+
+
+
+//
+//------------------------< Vector initialization >------------------------
+//
+
+void VectorSet(           VECTOR&  x, 
+                    const string&  x_name,
+                    const Integer& n,
+                    const Numeric& value )
+{
+  x.newsize(n);
+  x = value;
+  out3 << "Creating " << x_name << " as a constant vector\n"; 
+  out3 << "       length: " << n << "\n";
+  out3 << "        value: " << value << "\n";
+}
+
+void VectorLinSpace(      VECTOR&  x, 
+                    const string&  x_name,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const Numeric& step )
+{
+  x = linspace(start,stop,step);
+  out3 << "Creating " << x_name << " as linearly spaced vector\n";
+  out3 << "       length: " << x.size() << "\n";
+  out3 << "  first value: " << x(1) << "\n";
+  if ( x.size() > 1 )
+  {
+    out3 << "    step size: " << x(2)-x(1) << "\n";
+    out3 << "   last value: " << x(x.size()) << "\n";
+  }
+}
+
+void VectorNLinSpace(     VECTOR&  x, 
+                    const string&  x_name,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const Integer& n )
+{
+  x = nlinspace(start,stop,n);
+  out3 << "Creating " << x_name << " as linearly spaced vector\n";
+  out3 << "       length: " << n << "\n";
+  out3 << "  first value: " << x(1) << "\n";
+  if ( x.size() > 1 )
+  {
+    out3 << "    step size: " << x(2)-x(1) << "\n";
+    out3 << "   last value: " << x(x.size()) << "\n";
+  }
+}
+
+void VectorNLogSpace(     VECTOR&  x, 
+                    const string&  x_name,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const Integer& n )
+{
+  x = nlogspace(start,stop,n);
+  out3 << "Creating " << x_name << " as logarithmically spaced vector\n";
+  out3 << "       length: " << n << "\n";
+  out3 << "  first value: " << x(1) << "\n";
+  if ( x.size() > 1 )
+    out3 << "   last value: " << x(x.size()) << "\n";
+}
+
+
+
+//
+//--------------------< Matrix and Vector Write Methods >--------------------
+//
 
 void VectorWriteToFile(// WS Generic Input:
                        const VECTOR& v,
@@ -213,12 +312,9 @@ void MatrixWriteToNamedFile(// WS Generic Input:
 
 
 
-
 //
-//------------------------------< Read Methods >------------------------------
+//--------------------< Matrix and Vector Read Methods >--------------------
 //
-
-
 
 void VectorReadFromFile(// WS Generic Output:
                         VECTOR& v,
@@ -237,7 +333,6 @@ void VectorReadFromFile(// WS Generic Output:
   to_vector(v,m);
 }
 
-
 void MatrixReadFromFile(// WS Generic Output:
                         MATRIX& m,
                         // WS Generic Output Names:
@@ -251,24 +346,8 @@ void MatrixReadFromFile(// WS Generic Output:
 }
 
 
-void NumericSet(// WS Generic Output:
-                Numeric& x,
-                // WS Generic Output Names:
-                const string& x_name,
-                // Control Parameters:
-                const Numeric& value)
-{
-  out3 << "Setting " << x_name << " to " << value << ".\n";
-  x = value;
-}
 
 
 
-//void losTest(// WS Output:
-//             Los& los)
-//{
-// size_t ss = los.zs.size();
-//  out3 << "los.zs.size() = " << ss << '\n';
-//  los.zs.newsize(ss+1);
-//}
+
 

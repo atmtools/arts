@@ -384,6 +384,183 @@ T dot_prod(const Vector<T> &A, const Vector<T> &B)
     return sum;
 }
 
+//
+
+
+//
+// This part was changed by PE 000408. Added the operators including scalars
+// and the functions emult and ediv.
+//
+
+//
+// Below are x and y vectors, and c a scalar
+//
+
+
+// + (sum)
+//
+// Allowed: c+x, x+c
+//
+template <class T>
+Vector<T> operator+(const Vector<T> &A, const T& scalar)
+{
+    Subscript N = A.dim();
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = A[i] + scalar;
+
+    return tmp;
+}
+
+template <class T>
+Vector<T> operator+(const T& scalar, const Vector<T> &A)
+{
+    return ( A + scalar );
+}
+
+
+
+// - (difference)
+//
+// Allowed: c-x, x-c
+//
+
+template <class T>
+Vector<T> operator-(const Vector<T> &A, const T& scalar)
+{
+    Subscript N = A.dim();
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = A[i] - scalar;
+
+    return tmp;
+}
+
+template <class T>
+Vector<T> operator-(const T& scalar, const Vector<T> &A)
+{
+    Subscript N = A.dim();
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = scalar - A[i];
+
+    return tmp;
+}
+
+
+
+// * (multiplication with scalar)
+//
+// Allowed: c*x, x*c
+//
+template <class T>
+Vector<T> operator*(const Vector<T> &A, const T& scalar)
+{
+    Subscript N = A.dim();
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = A[i] * scalar;
+
+    return tmp;
+}
+
+template <class T>
+Vector<T> operator*(const T& scalar, const Vector<T> &A)
+{
+    return ( A * scalar );
+}
+
+
+
+//
+// emult (elementwise multiplication)
+//
+// Allowed: emult(x,y)
+//
+template <class T>
+Vector<T> emult( const Vector<T> &A, const Vector<T> &B)
+{
+    Subscript N = A.dim();
+
+    assert(N==B.dim());
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = A[i] * B[i];
+
+    return tmp;
+}
+
+
+
+//
+// / (division with scalar)
+//
+// Allowed: c/x, x/c
+//
+template <class T>
+Vector<T> operator/(const Vector<T> &A, const T& scalar)
+{
+    Subscript N = A.dim();
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = A[i] / scalar;
+
+    return tmp;
+}
+
+template <class T>
+Vector<T> operator/(const T& scalar, const Vector<T> &A)
+{
+    Subscript N = A.dim();
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = scalar / A[i];
+
+    return tmp;
+}
+
+
+// ediv (elementwise divison)
+//
+// Allowed: ediv(x,y)
+//
+template <class T>
+Vector<T> ediv( const Vector<T> &A, const Vector<T> &B)
+{
+    Subscript N = A.dim();
+
+    assert(N==B.dim());
+
+    Vector<T> tmp(N);
+    Subscript i;
+
+    for (i=0; i<N; i++)
+            tmp[i] = A[i] / B[i];
+
+    return tmp;
+}
+
 }   /* namespace TNT */
 
 #endif

@@ -4,7 +4,7 @@
 #include "vecmat.h"
 
 /** The different token value types. These are the types that keyword
-    parameters in the controlfiel can have. */
+    parameters in the controlfile can have. */
 enum TokValType { str_,    int_,    num_,
 	          strvec_, intvec_, numvec_,
                   undefined_ };

@@ -4,6 +4,12 @@
 #include <iostream>
 #include "vecmat.h"
 
+
+//
+// Temporary solution to avoid crash between definition of int_ in token.h and here.
+typedef int Integer;
+
+
 /** Define the enum type that identifies wsv groups.
     This is used to group workspace variables of the same type
     together, so that generic methods can operate on any of them. 
@@ -15,51 +21,74 @@
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     \end{verbatim} */
 enum WsvGroup{
+  string_,
+  Integer_,
+  Numeric_,
   VECTOR_,
   MATRIX_,
-  Numeric_,
-  Los1d_,
+  Los_,
 };
 
 // For consistency check:
-#define N_WSV_GROUPS 4
+#define N_WSV_GROUPS 6
 
 
 
-//
-// Definition of workspace variables of not basic types
-// (Is this really the best place ? !PE!)
-//
+// ======================================================================
+// === Definition of workspace variables of not basic types
+// ======================================================================
 
-/** Holds the data defining the line of sight (LOS) for 1D cases 
+/** Holds the data defining the line of sight (LOS) for 1D cases. 
     The structure has the following fields:
 
-    ARRAY<VECTOR> zs    
-    ARRAY<int> ground
-    ARRAY<int> start
-    ARRAY<int> stop
+      ARRAY<VECTOR>  p;
+      VECTOR         l_step;
+      ARRAY<int>     ground;
+      ARRAY<int>     start;
+      ARRAY<int>     stop;
 
-    Finish this documentation later !PE!
+    where 
+      p          Holds the pressures along LOS where index 1 corresponds to 
+                 the lowest altitude.
+      l_step     The length along LOS between the points.
+      ground     O if no intersection with the ground
+                 1 if intersetion with the ground  
+      start      start index for the iteration
+      stop       stop index for the iteration
+
+    Explain start and stop further !PE!
    */
-struct Los1d {
-      ARRAY<VECTOR> p;
-      ARRAY<int> ground;
-      ARRAY<int> start;
-      ARRAY<int> stop;
+struct Los {
+  ARRAY<VECTOR>  p;
+  VECTOR         l_step;
+  ARRAY<int>     ground;
+  ARRAY<int>     start;
+  ARRAY<int>     stop;
 };
 
 
 
-// Yes, this is the declaration of the great workspace itself.
+// ======================================================================
+// === Definition of the (great) workspace
+// ======================================================================
+
 class WorkSpace {
 public:
   VECTOR  p_abs;
   VECTOR  t_abs;
+  VECTOR  z_abs;
   VECTOR  f_abs;
   MATRIX  abs;
   VECTOR  view1;
-  Numeric plat_z;
-  Los1d   los1d; 
+  Numeric z_plat;
+  Numeric l_step;
+  Integer refr;
+  Numeric l_step_refr;
+  Integer cbgr;
+  Numeric z_ground;
+  Numeric t_ground;
+  VECTOR  e_ground;
+  Los     los; 
 };
 
 
@@ -74,10 +103,11 @@ public:
 class WsvP {
 public:
   virtual operator string*()  { safety(); return NULL; };
+  virtual operator Integer*() { safety(); return NULL; };
+  virtual operator Numeric*() { safety(); return NULL; };
   virtual operator VECTOR*()  { safety(); return NULL; };
   virtual operator MATRIX*()  { safety(); return NULL; };
-  virtual operator Numeric*() { safety(); return NULL; };
-  virtual operator Los1d*()   { safety(); return NULL; };
+  virtual operator Los*()     { safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

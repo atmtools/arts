@@ -1,13 +1,53 @@
+/*-----------------------------------------------------------------------
+FILE:      math_funcs.cc
+
+INCLUDES:  This file contains basic mathematical functions.
+
+           The functions are of different types:
+	    1. Element-wise application of common scalar functions 
+            2. Boolean functions
+	    3. Creation of common vectors
+	    4. Interpolation routines
+	    5. Integration routines
+            6. Conversion between vector and matrix types
+
+FUNCTIONS: sqrt, exp, log, min, max, first, last 
+           any
+           linspace, nlinspace and nlogspace
+           interp_lin, interp_lin_row
+           integr_lin
+           to_matrix, to_vector
+
+HISTORY:   27.06.1999 Created by Patrick Eriksson.
+	   23.03.2000 Stefan Buehler: Adapted to new ARRAY<>, VECTOR and
+	              MATRIX types.
+           07.04.2000 Patrick Eriksson: Added text for doc++ and nlogspace.
+-----------------------------------------------------------------------*/
+
 #include "arts.h"
 #include "math_funcs.h"
 
+
 //
-// Basic mathematical vector functions
+// Basic mathematical vector and vector functions:
+//   Vectors: SQRT, EXP, LOG, MIN, MAX, FIRST and LAST
+//   Matrices: EXP and LOG
 //
-// 27.06.99 Patrick Eriksson   Included:
-//          SQRT, EXP, MIN, MAX, FIRST and LAST
-//
-void sqrt( VECTOR& y, const VECTOR& x )
+
+/** Gives the elementwise square root of a vector.
+    Both return and parameter versions exist, i.e. you can type 
+
+    sqrt(y,x)
+
+    or
+
+    y = sqrt(x)
+
+    @param   y   Output: the square root of x
+    @param   x   The input vector 
+
+    @author Patrick Eriksson 27.06.99 */
+void sqrt( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
   int n = x.size();
   y.newsize(n);
@@ -15,7 +55,7 @@ void sqrt( VECTOR& y, const VECTOR& x )
     y(i) = sqrt(x(i));
 }
 
-VECTOR sqrt( const VECTOR& x )
+VECTOR sqrt( const VECTOR& x )            // vector return version
 {
   VECTOR y;
   sqrt( y, x );
@@ -23,7 +63,22 @@ VECTOR sqrt( const VECTOR& x )
 }
 
 
-void exp( VECTOR& y, const VECTOR& x )
+/** Gives the elementwise exponential of a vector or matrix.
+    Both return and parameter versions exist, i.e. you can type 
+
+    exp(y,x)
+
+    or
+
+    y = exp(x)
+
+    Note that x can be both a vector or a matrix.
+
+    @param   y   Output: y, the exponential of x
+    @param   x   The input vector or matrix
+
+    @author Patrick Eriksson 27.06.99 */
+void exp( VECTOR& y, const VECTOR& x )   // vector parameter version
 {
   int n = x.size();
   y.newsize(n);
@@ -31,14 +86,86 @@ void exp( VECTOR& y, const VECTOR& x )
     y(i) = exp(x(i));
 }
 
-VECTOR exp( const VECTOR& x )
+VECTOR exp( const VECTOR& x )            // vector return version
 {
   VECTOR y;
   exp( y, x );
   return y; 
 }
 
-Numeric min( const VECTOR& x )    // Gives the minimum element of a vector
+void exp( MATRIX& Y, const MATRIX& X )   // matrix parameter version
+{
+  int m = X.dim(1);
+  int n = X.dim(2);
+  Y.newsize(m,n);
+  for ( int i=1; i<=m; i++ ) {
+    for ( int j=1; j<=n; j++ )
+      Y(i,j) = exp(X(i,j)); }
+}
+
+MATRIX exp( const MATRIX& X )            // matrix return version
+{
+  MATRIX Y;
+  exp( Y, X );
+  return Y; 
+}
+
+
+/** Gives the elementwise natural logarith of a vector or matrix.
+    Both return and parameter versions exist, i.e. you can type 
+
+    log(y,x)
+
+    or
+
+    y = log(x)
+
+    Note that x can be both a vector or a matrix.
+
+    @param   y   Output: y, the natural logarith of x
+    @param   x   The input vector or matrix
+
+    @author Patrick Eriksson 27.06.99 */
+void log( VECTOR& y, const VECTOR& x )   // vector parameter version
+{
+  int n = x.size();
+  y.newsize(n);
+  for ( int i=1; i<=n; i++ )
+    y(i) = log(x(i));
+}
+
+VECTOR log( const VECTOR& x )            // vector return version
+{
+  VECTOR y;
+  log( y, x );
+  return y; 
+}
+
+void log( MATRIX& Y, const MATRIX& X )   // matrix parameter version
+{
+  int m = X.dim(1);
+  int n = X.dim(2);
+  Y.newsize(m,n);
+  for ( int i=1; i<=m; i++ ) {
+    for ( int j=1; j<=n; j++ )
+      Y(i,j) = log(X(i,j)); }
+}
+
+MATRIX log( const MATRIX& X )            // matrix return version
+{
+  MATRIX Y;
+  log( Y, X );
+  return Y; 
+}
+
+
+/** Gives the minimum value of a vector, v = min(x).
+
+    @param   v   Returns: the minimum value of x
+    @param   x   The input vector
+
+    @author Patrick Eriksson 27.06.99 */
+Numeric min( const VECTOR& x )
 {
   int n = x.size();
   Numeric y=x(1);
@@ -51,7 +178,13 @@ Numeric min( const VECTOR& x )    // Gives the minimum element of a vector
 }
 
 
-Numeric max( const VECTOR& x )     // Gives the maximum element of a vector
+/** Gives the maximum value of a vector, v = min(x).
+
+    @param   v   Returns: the maximum value of x
+    @param   x   The input vector
+
+    @author Patrick Eriksson 27.06.99 */
+Numeric max( const VECTOR& x )
 {
   int n = x.size();
   Numeric y=x(1);
@@ -64,13 +197,25 @@ Numeric max( const VECTOR& x )     // Gives the maximum element of a vector
 }
 
 
-Numeric first( const VECTOR& x )    // Gives first element of a vector
+/** Gives the first value of a vector, v = first(x).
+
+    @param   v   Returns: the first value of x
+    @param   x   The input vector
+
+    @author Patrick Eriksson 27.06.99 */
+Numeric first( const VECTOR& x )
 {
   return x(1); 
 }
 
 
-Numeric last( const VECTOR& x )     // Gives last element of a vector
+/** Gives the last value of a vector, v = last(x).
+
+    @param   v   Returns: the last value of x
+    @param   x   The input vector
+
+    @author Patrick Eriksson 27.06.99 */
+Numeric last( const VECTOR& x )
 {
   return x(x.size()); 
 }
@@ -80,9 +225,16 @@ Numeric last( const VECTOR& x )     // Gives last element of a vector
 
 //
 // Logical vector functions
-// 27.06.99 Patrick Eriksson   Included: ANY
+//   ANY
 //
-bool any( const ARRAY<bool>& x )         // True if any element of x != 0
+
+/** True if any element of a boolean vector, b, is not 0, b = any(x).
+
+    @param   v   Returns: a boolean, true if any x is != 0
+    @param   x   The input vector
+
+    @author Patrick Eriksson 27.06.99 */
+bool any( const ARRAY<int>& x )         // True if any element of x != 0
 {
   for ( size_t i=1; i<=x.size(); i++ ) {
     if ( x(i) )
@@ -96,16 +248,36 @@ bool any( const ARRAY<bool>& x )         // True if any element of x != 0
 
 //
 // Functions to generate vectors
-//
-// 28.06.99 Patrick Eriksson   Included: LINSPACE and NLINSPACE
-//       
-void linspace(                      // Linearly spaced vector with spacing STEP
-              VECTOR&  x,        // i.e. START:STEP:STOP. Note that last
-        const Numeric     start,    // element can deviate from STOP.
+//   LINSPACE, NLINSPACE, and LOGNSPACE
+//   
+
+/** Linearly spaced vector with specified spacing. 
+    Both return and parameter versions exist:
+
+    linspace(x,start,stop,step)
+
+    x = linspace(start,stop,step)
+
+    The first element of x is always start. The next value is start+step etc.
+    Note that the last value can deviate from stop.
+    The step can be both positive and negative. 
+    (in Matlab notation: start:step:stop)
+
+    @param   x       Output: a linearly spaced vector 
+    @param   start   The start value
+    @param   stop    The stop value
+    @param   step    The spacing of the vector
+
+    @author Patrick Eriksson 27.06.99 */
+void linspace(                      
+              VECTOR&     x,           
+        const Numeric     start,    
         const Numeric     stop,        
         const Numeric     step )
 {
   int n = (int) floor( (stop-start)/step ) + 1;
+  if ( n<1 )
+    n=1;
   x.newsize(n);
   for ( int i=1; i<=n; i++ )
     x(i) = start + (i-1)*step;
@@ -122,16 +294,31 @@ VECTOR linspace(                 // As above but return version
 }
       
 
-void nlinspace(                      // Linearly spaced vector of length N with
-              VECTOR&  x,         // equally spaced points between START 
-        const Numeric     start,     // and STOP.
+/** Linearly spaced vector with specified length. 
+    Both return and parameter versions exist:
+
+    nlinspace(x,start,stop,n)
+
+    x = nlinspace(start,stop,n)
+
+    Returns a vector equally and linearly spaced between start and stop of length n. 
+    (equals the Matlab function linspace)
+    The length must be > 1.
+
+    @param   x       Output: a linearly spaced vector 
+    @param   start   The start value
+    @param   stop    The stop value
+    @param   n       The vector length (>1)
+
+    @author Patrick Eriksson 27.06.99 */
+void nlinspace(         
+              VECTOR&     x, 
+        const Numeric     start,     
         const Numeric     stop,        
         const int         n )
 {
-  #ifdef DO_CHECKS //--------  Safety check  ---------------------------------
-    if ( n<2 )
-      throw runtime_error("NLINSPACE: The number of points must be > 1"); 
-  #endif //------------------  End safety check -------------------------------
+  if ( n<2 )
+    throw runtime_error("NLINSPACE: The number of points must be > 1"); 
   x.newsize(n);
   Numeric step = (stop-start)/(n-1) ;
   for ( int i=1; i<=n; i++ )
@@ -149,65 +336,69 @@ VECTOR nlinspace(                 // As above but return version
 }                     
 
 
+/** Logarithmically spaced vector with specified length. 
+    Both return and parameter versions exist:
 
-//
-// Basic mathematical matrix functions
-//
-// 27.06.99 Patrick Eriksson   Included: EXP and LOG
-//
+    nlogspace(x,start,stop,n)
 
-void exp( MATRIX& Y, const MATRIX& X )        // Elementwise exp
+    x = nlogspace(start,stop,n)
+
+    Returns a vector logarithmically spaced vector between start and 
+    stop of length n (equals the Matlab function logspace)
+    The length must be > 1.
+
+    @param   x       Output: a logarithmically spaced vector 
+    @param   start   The start value
+    @param   stop    The stop value
+    @param   n       The vector length (>1)
+
+    @author Patrick Eriksson 07.04.00 */
+void nlogspace(         
+              VECTOR&     x, 
+        const Numeric     start,     
+        const Numeric     stop,        
+        const int         n )
 {
-  int m = X.dim(1);
-  int n = X.dim(2);
-  Y.newsize(m,n);
-  for ( int i=1; i<=m; i++ ) {
-    for ( int j=1; j<=n; j++ )
-      Y(i,j) = exp(X(i,j)); }
+  if ( n<2 )
+    throw runtime_error("NLOGSPACE: The number of points must be > 1"); 
+  if ( (start<=0) || (stop<=0) )
+    throw runtime_error("NLOGSPACE: Only positive numbers are allowed"); 
+  x.newsize(n);
+  Numeric a = log(start);
+  Numeric step = (log(stop)-a)/(n-1) ;
+  x(1) = start;
+  for ( int i=2; i<n; i++ )
+    x(i) = exp(a + (i-1)*step);
+  x(n) = stop;
 }
 
-MATRIX exp( const MATRIX& X )                // Elementwise exp
+VECTOR nlogspace(                 // As above but return version
+        const Numeric start, 
+        const Numeric stop,  
+        const int     n )
 {
-  MATRIX Y;
-  exp( Y, X );
-  return Y; 
-}
-
-
-void log( MATRIX& Y, const MATRIX& X )       // Elementwise natural log.
-{
-  int m = X.dim(1);
-  int n = X.dim(2);
-  Y.newsize(m,n);
-  for ( int i=1; i<=m; i++ ) {
-    for ( int j=1; j<=n; j++ )
-      Y(i,j) = log(X(i,j)); }
-}
-
-MATRIX log( const MATRIX& X )                // Elementwise natural log.
-{
-  MATRIX Y;
-  log( Y, X );
-  return Y; 
-}
+  VECTOR x;
+  nlogspace( x, start, stop, n );
+  return x; 
+}                     
 
 
 
 
 //
 // Interpolation routines.
-// All functions assume that the interpolation points, XI, are ordered.
+//   Vectors:  INTERP_LIN
+//   Matrices: INTERP_LIN_ROW
 //
-// 27.06.99 Patrick Eriksson   Included:
-//          INTERP_CHECK, INTERP_LIN and INTERP_LIN_ROW
+//   All thefunctions assume that the interpolation points, XI, are ordered.
 //
-void interp_check(                  // Local help function to check input
-	const VECTOR&  x,        // grids.
-        const VECTOR&  xi,
-        const int         n_y )
-{
-  #ifdef DO_CHECKS //--------  Safety check  ---------------------------------
 
+// Local help function to check input grids (PE 29.06.99)
+void interp_check(                  
+	const VECTOR&  x,        
+        const VECTOR&  xi,
+        const int      n_y )
+{
   int n  = x.size();
   int ni = xi.size();
 
@@ -222,12 +413,27 @@ void interp_check(                  // Local help function to check input
 
   if ( n != n_y ) 
     throw runtime_error("INTERPOLATION: Sizes of input data do not match");
-
-  #endif //------------------  End safety check  -----------------------------
 }
 
     
-void interp_lin(            // Linear interpolation of a vector
+/** Linear interpolation of a vector.
+    Both return and parameter versions exist:
+
+    interp_lin(yi,x,y,xi)
+
+    yi = interp_lin(x,y,xi)
+
+    The vector x specifies the points at which the data y is given. 
+    The interpolation points, xi, can either be a scalar (Numeric) or a vector.
+    The type of yi is the same as for xi.
+
+    @param   yi      Output: interpolated values 
+    @param   x       The x grid
+    @param   y       The function to interpolate
+    @param   xi      Interpolation point(s)
+
+    @author Patrick Eriksson 29.06.99 */
+void interp_lin(                  // Linear interpolation of a vector
               VECTOR&  yi,
         const VECTOR&  x, 
         const VECTOR&  y, 
@@ -247,7 +453,7 @@ void interp_lin(            // Linear interpolation of a vector
   }
 }      
 
-VECTOR interp_lin(            // As above but return version
+VECTOR interp_lin(               // As above but return version
         const VECTOR&  x, 
         const VECTOR&  y, 
         const VECTOR&  xi )
@@ -257,17 +463,32 @@ VECTOR interp_lin(            // As above but return version
   return yi;
 }        
 
-Numeric interp_lin(            // As above but for only one point
+Numeric interp_lin(              // As above but for only one point
         const VECTOR&  x, 
         const VECTOR&  y, 
-        const Numeric     xi )
+        const Numeric  xi )
 {
   VECTOR yi(1,xi); 
   interp_lin( yi, x, y, xi );
   return yi(1);
 }        
 
-void interp_lin_row(       // Row-wise linear interpolation of a matrix
+/** Linear interpolation of the rows of a matrix.
+    Both return and parameter versions exist:
+
+    interp_lin_row(Yi,x,Y,xi)
+
+    Yi = interp_lin(x,Y,xi)
+
+    The vector x specifies the points at which the data y is given. 
+
+    @param   Yi      Output: interpolated values 
+    @param   x       The x grid
+    @param   Y       The functions to interpolate
+    @param   xi      Interpolation points
+
+    @author Patrick Eriksson 29.06.99 */
+void interp_lin_row(    
               MATRIX&  Yi,
         const VECTOR&  x, 
         const MATRIX&  Y, 
@@ -302,12 +523,28 @@ MATRIX interp_lin_row(       // As above but return version
 
 
 //
-// Integration functions
+// Integration functions for vectors and matrices
+//    INTEGR_LIN
 //
-// 27.06.99 Patrick Eriksson   Included: INTEGR_LIN
-//
+
+/** Integration of vectors and matrices assuming piecewise linear functions.
+    Both return and parameter versions exist:
+
+    integrs_lin(w,x,y)
+
+    w = interp_lin(x,y)
+
+    The vector x specifies the points at which the data y is given. 
+    The function y is treated to be linear between the points of x and zero outside 
+    the defined range.
+
+    @param   w       Output: the integrated value 
+    @param   x       The x grid
+    @param   y       The function to integrate
+
+    @author Patrick Eriksson 29.06.99 */
 Numeric integr_lin(                // Integrates Y over X assuming that Y is
-        const VECTOR&  x,       // linear between the given points
+        const VECTOR&  x,          // linear between the given points
         const VECTOR&  y )
 {
   size_t i, n = x.size();
@@ -323,8 +560,15 @@ Numeric integr_lin(                // Integrates Y over X assuming that Y is
   return w;
 }
 
+void integr_lin(                    // As above but parameter version
+              Numeric&  w,
+        const VECTOR&   x,  
+        const VECTOR&   y ) 
+{
+  w = integr_lin( x, y );
+}
 
-void integr_lin(                   // Integrates the rows of M assuming that
+void integr_lin(                // Integrates the rows of M assuming that
               MATRIX&  W,       // the functions are linear between the
         const VECTOR&  x,       // given points
         const MATRIX&  M )   
@@ -357,10 +601,25 @@ MATRIX integr_lin(              // As above but return version
 }
 
 
+
 //
 // Vector to matrix conversion:
+//   to_matrix
 //
 
+/** Converts a vector to a matrix. 
+    For a vector of length n, the dimension of the matrix is [n,1], in other 
+    words, the vector is interpreted as a column vector.
+    Both return and parameter versions exist:
+
+    to_matrix(W,x)
+
+    W = to_matrix(x)
+
+    @param   W       Output: the matrix, size n x 1
+    @param   x       The vector, length n
+
+    @author Stefan Buehler */
 void to_matrix(MATRIX& W, const VECTOR& x)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
@@ -374,7 +633,6 @@ void to_matrix(MATRIX& W, const VECTOR& x)
     }
 }
 
-
 MATRIX to_matrix(const VECTOR& x)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more
@@ -387,10 +645,29 @@ MATRIX to_matrix(const VECTOR& x)
 
 
 
+
+//
+// Matrix to vector conversion:
+//   to_vector
+//
+
+/** Conversion of a matrix to a vector.
+    The matrix can either be a column (n x 1) or row (1 x n) vector.
+    Both return and parameter versions exist:
+
+    to_vector(x,W)
+
+    x = to_vector(W)
+
+    @param   x       Output: the vector, length n
+    @param   W       The matrix, size (n x 1) or (1 x n)
+
+    @exception runtime_error None of the dimensions of W was 1.
+
+    @author Stefan Buehler */
 //
 //  Matrix to vector conversion:
 //
-
 void to_vector(VECTOR& x, const MATRIX& W)
 {
   // FIXME: I'm sure this can be made more efficient when TNT has more

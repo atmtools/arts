@@ -15,30 +15,36 @@ SUBDIRS        = tnt
 arts_SOURCES   = \
 arts.h \
 getopt.h \
-messages.h parameters.h \
+messages.h\
+parameters.h \
 vecmat.h \
-exceptions.h file.h \
+exceptions.h \
+file.h \
 workspace.h \
 methods.h \
 token.h \
 parser.h \
 md.h \
-math_funcs.h \
 make_vector.h \
 make_array.h \
+math_funcs.h \
+atm_funcs.h \
+constants.cc \
 getopt.c \
 getopt1.c \
 main.cc \
-version.cc constants.cc \
-messages.cc parameters.cc \
+version.cc \
+messages.cc \
+parameters.cc \
 file.cc \
 workspace.cc \
 methods.cc \
 token.cc \
 parser.cc \
 md.cc \
-math_funcs.cc \
 make_vector.cc \
+math_funcs.cc \
+atm_funcs.cc \
 m_abs.cc \
 m_io.cc \
 m_los.cc

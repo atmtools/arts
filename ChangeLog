@@ -1,3 +1,48 @@
+2000-04-06  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-12
+
+        * Some methods are commented out due to compilation problems
+
+	* Changed definitions of constant to e.g.
+    	    extern const Numeric EARTH_RADIUS   = 6.378e6;
+	To use the constant, type
+	    extern const Numeric EARTH_RADIUS;
+	I had to add extern also at the definition to get it to work.
+	Stefan, is the text in notes.txt really correct?
+
+	* Added doc++ text and file header to constants.cc and math_funcs.cc
+	
+	* Workspace types added (as temporary solution):
+	    Integer
+	
+	* Workspace variables added (or renamed):
+	    VECTOR  z_abs;
+	    VECTOR  view1;
+	    Numeric z_plat;
+	    Numeric l_step;
+	    Integer refr;
+	    Numeric l_step_refr;
+	    Integer cbgr;
+	    Numeric z_ground;
+	    Numeric t_ground;
+	    VECTOR  e_ground;
+	    Los     los; 
+
+	* Methods added:
+	    IntSet
+	    VectorSet
+	    VectorLinSpace
+	    VectorNLinSpace
+	    VectorNLogSpace
+	    losGeneral
+
+	* Files included:
+	    m_los.cc 
+	    atm_funcs.cc
+	    atm_funcs.h
+	  
+
 2000-04-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-11
