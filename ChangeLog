@@ -1,3 +1,12 @@
+2003-08-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-638
+
+	* src/matpackII.cc: Inserted <algorithm> again, I need it for
+	compilation.
+
+	* doc/uguide/matrix_vector.tex: Added section about Sparse.
+
 2003-08-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-637

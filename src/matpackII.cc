@@ -38,7 +38,7 @@
 */
 
 // #include <vector>
-// #include <algorithm>
+#include <algorithm>
 #include <set>
 #include <iostream>             // For debugging.
 #include "matpackII.h"

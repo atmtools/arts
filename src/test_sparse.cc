@@ -244,7 +244,7 @@ void test42()
 void test43()
 {
   cout << "Testing sparse copying:\n";
-  
+
   Sparse B(4,5);
   Index r[] = {0, 1, 1, 2, 2, 2, 3, 1, 3};
   Index c[] = {0, 0, 1, 1, 2, 3, 3, 4, 4};
@@ -254,7 +254,7 @@ void test43()
   cout << "B:\n" << B << "\n";
 
   Sparse A;
-  
+
   A = B;
 
   cout << "A:\n" << A << "\n";
