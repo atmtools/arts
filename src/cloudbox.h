@@ -28,7 +28,18 @@
 #ifndef cloudbox_h
 #define cloudbox_h
 
-
+#include <stdexcept>
+#include <math.h>
+#include "lin_alg.h"
+#include "arts.h"
+#include "auto_md.h"
+#include "matpackI.h"
+#include "make_vector.h"
+#include "array.h"
+#include "logic.h"
+#include "ppath.h"
+#include "interpolation.h"
+#include "physics_funcs.h"
 
 
 void i_field_update1D(

@@ -48,6 +48,7 @@
 #include "matpackVI.h"
 #include "matpackVII.h"
 #include "cloudbox.h"
+#include "logic.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)

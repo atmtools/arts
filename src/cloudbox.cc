@@ -26,25 +26,11 @@
 
 #include "cloudbox.h"
 
-#include <stdexcept>
-#include <math.h>
-#include "lin_alg.h"
-#include "arts.h"
-#include "auto_md.h"
-#include "matpackI.h"
-#include "make_vector.h"
-#include "array.h"
-#include "logic.h"
-#include "ppath.h"
-#include "interpolation.h"
-#include "physics_funcs.h"
-
-
 //! 1D RT calculation inside the cloud box.
 /*! 
   This function loops over all grid points and all directions and performs 
   the RT calculation with a fixed scattering integral for one frequency 
-  of the frequency grid specified by *f_index*. 
+  of the frequency grid specified by *scat_f_index*. 
 
   Note: The function uses the same input and output variables as the
   equivalent function for the 
@@ -69,7 +55,7 @@
   \param z_ground      Ground altitude.
   \param r_geoid       Matrix containing geoids.
   \param f_grid        Frequency grid.
-  \param f_index       Frequency index.
+  \param scat_f_index  Frequency index.
   \param blackbody_ground Flag to treat ground as blackbody.
   \param stokes_dim    The number of Stokes components to be calculated.
 */
@@ -78,7 +64,7 @@ void i_field_update1D(
 		     ConstTensor6View i_field_old,
 		     ConstTensor6View amp_mat,
 		     ConstTensor6View sca_field,
-		     const ArrayOfIndex cloudbox_limits,
+		     const ArrayOfIndex& cloudbox_limits,
 		     ConstVectorView scat_za_grid,
 		     ConstVectorView scat_aa_grid,
 		     ConstVectorView p_grid,
@@ -89,16 +75,24 @@ void i_field_update1D(
 		     ConstMatrixView z_ground,
 		     ConstMatrixView r_geoid,
 		     ConstVectorView f_grid,
-		     const Index scat_f_index,
-		     const Index blackbody_ground,
-		     const Index stokes_dim
+		     const Index& scat_f_index,
+		     const Index& blackbody_ground,
+		     const Index& stokes_dim
 		     )
 {
+
   //Check the input
+ assert ( is_size( i_field, p_grid.nelem(), 1, 
+		   1, scat_za_grid.nelem(), 
+		   scat_aa_grid.nelem(), stokes_dim));
   
+ assert ( is_size( i_field_old, p_grid.nelem(), 1, 
+		   1, scat_za_grid.nelem(), 
+		   scat_aa_grid.nelem(), stokes_dim));  
   
-
-
+ assert ( is_size( sca_field , p_grid.nelem(), 1, 
+		   1, scat_za_grid.nelem(), 
+		   scat_aa_grid.nelem(), stokes_dim));  
 
 
   // Number of zenith angles.
@@ -118,6 +112,11 @@ void i_field_update1D(
       for(Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	  p_index ++)
 	{
+	  //Print the loop indices (just for testing the function)
+
+	  cout << "\n loop indices: \n";
+	  cout << "\n scat_za_index ---------"<< scat_za_index;
+	  cout << "\n p_index       ---------"<< p_index;
 
 	  //Get the coefficients for the radiative transfer:
 	  
@@ -160,8 +159,6 @@ void i_field_update1D(
 	  
 	  // Assign value to ppath.pos:
 	  ppath_step.z[0]     = z_field(p_index,0,0);
-	  cout << "\n scat_za_index ---------"<< scat_za_index;
-	  cout << "\n p_index ---------- "<< p_index;
 	  ppath_step.pos(0,0) = r_geoid(0,0) + ppath_step.z[0];
 	  
 	  // Define the direction:
@@ -178,14 +175,18 @@ void i_field_update1D(
 	  ppath_stepGeometric(ppath_step, 1, p_grid, lat_grid,
 			      lon_grid, z_field, r_geoid, z_ground,
 			      blackbody_ground);
-       
+	 
+	  cout << "\n ";
 	  PpathPrint( ppath_step, "ppath");
   
+	  // In the 3D case an interpolation is required which should have 
+	  // the following structure:
+
 	  // Interpolation of the intensity field on the intersection point.
 	  // i_field_old corresponds to the old grid, the new grid is just
 	  // one point, the intersection point.
   
- 	  cout << "\n interpolation weight" << ppath_step.gp_p;
+	  // 	  cout << "\n interpolation weight" << ppath_step.gp_p;
 // 	  // Calculate interpolation weights.
 // 	  Matrix itw(1,2);
 // 	  interpweights(itw, ppath_step.gp_p);
@@ -242,8 +243,8 @@ void rte_scat_vecCalc(VectorView sto_vec,
 		      ConstMatrixView ext_mat,
 		      ConstVectorView abs_vec,
 		      ConstVectorView sca_vec,
-		      const Numeric ds,
-		      const Numeric B)
+		      const Numeric& ds,
+		      const Numeric& B)
 { 
   // Stokes dimension
   const Index dim = ext_mat.nrows();
