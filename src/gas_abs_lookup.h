@@ -19,8 +19,8 @@
   \file   gas_abs_lookup.h
   \author Stefan Buehler <sbuehler@uni-bremen.de>
   \date   Thu Sep 19 16:49:00 2002
-  
-  \brief  Declarations for the gas absorption lookup table.  
+
+  \brief  Declarations for the gas absorption lookup table.
 */
 
 #ifndef gas_abs_lookup_h
@@ -63,7 +63,8 @@ public:
                                     bifstream *pbifs );
   friend void xml_write_to_stream ( ostream& os_xml,
                                     const GasAbsLookup& gal,
-                                    bofstream *pbofs );
+                                    bofstream *pbofs,
+                                    const String &name);
 
 
 private:
