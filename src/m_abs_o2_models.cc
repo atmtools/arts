@@ -26,14 +26,56 @@
  
 */
 
+
+// =================================================================================
+
+
 #include <iostream>
 #include <cmath>
 #include "arts.h"
 #include "matpackIII.h"
+#include "mystring.h"
 #include "xml_io.h"
 #include "complex.h"
 #include "exceptions.h"
 #include "messages.h"
+#include "abs_o2_models.h"
+
+
+// =================================================================================
+
+
+
+// prototypes of internal functions
+
+Numeric LagrangeInterpol4( ConstVectorView x,
+			   ConstVectorView y,
+			   const Numeric a);
+
+void HUMLIK_vec_Wells ( ConstVectorView X, 
+			Numeric Y, 
+			Vector& K, 
+			Vector& L );
+
+int absPWRO2Model(// WS Output:
+		  Vector&         abs_f_grid,           // absorption coefficient       [1/m]
+		  // WS Input:
+		  const Numeric   geomag_strength,      // mag. field strength          [Gauss]
+		  const Numeric   geomag_angle,         // mag. field orientation angle [radians]
+		  const bool      flag_zeeman,          // Zeeman splitting on or off
+		  const Vector&   f_grid,               // frequency vector             [Hz]
+		  const Numeric   p,                    // pressure                     [Pa]
+		  const Numeric   t,                    // temperature                  [K]
+		  const Numeric   vmro2,                // O2 vmr                       [1]
+		  const Numeric   vmrh2o,               // H2O vmr                      [1]
+		  const String&   abs_model,            // model selection string
+		  const Vector&   abs_user_parameters );// scaling factor(s)
+
+
+
+// =================================================================================
+
+
 
 // arts defined constants
 extern const Numeric EULER_NUMBER;
@@ -63,7 +105,12 @@ const Numeric hPa_to_Pa = 1.000000e2;                       // [hPa/Pa]
 const Numeric Pa_to_hPa = 1.000000e-2;                      // [Pa/hPa]
 
 
-//---------------------------------------------------
+
+// =================================================================================
+
+
+
+//-------------------------------------------------------------------------
 //! Lagrange Interpolation (internal function).
 /*! 
   This function calculates the Lagrange interpolation of four interpolation 
@@ -120,7 +167,7 @@ Numeric LagrangeInterpol4( ConstVectorView x,
       b[i] = 1.000e0;
       for (Index k=0 ; k < 4 ; ++k)
 	{
-	  if ( (k != i) && (abs(x[i]-x[k]) > Dlimit) )  
+	  if ( (k != i) && (fabs(x[i]-x[k]) > Dlimit) )  
 	    b[i] = b[i] * ( (a-x[k]) / (x[i]-x[k]) );
 	};
     };
@@ -134,9 +181,31 @@ Numeric LagrangeInterpol4( ConstVectorView x,
 
 // =================================================================================
 
+/*
+void VVWMixing ( // Output
+		Numeric 
+		 // Input
+                 const Numeric DF, 
+		 const Numeric Y, 
+		 const Numeric Fo, 
+		 const Numeric)
+{
+  // --- calculate line shape function -------------------------------
+  // Van Vleck-Weisskopf line shape (pressure broadening regime)
+  Numeric SF1  = ( DF + (ff-F[l])*Y ) / ( (ff-F[l])*(ff-F[l]) + DF*DF );
+  Numeric SF2  = ( DF - (ff+F[l])*Y ) / ( (ff+F[l])*(ff+F[l]) + DF*DF );
+  // --- sum the line absorption part for a specific -----------------
+  //     point on the frequency grid
+  SUM  += STR * (SF1+SF2) * (ff/F[l]) * (ff/F[l]);
+  
+};
+*/
+
+// =================================================================================
+
 
 //-----------------------------------------------------------------------
-//! HUMLIK_vec_Wells calculates the complex Faddeeva function (internal function)
+//! HUMLIK_Faddeeva_Wells calculates the complex Faddeeva function (internal function)
 /*! 
   This function calculates the complex Faddeeva function according to
   R. J. Wells, Rapid approximation to the Voigt/Faddeeva function and its 
@@ -178,11 +247,10 @@ Numeric LagrangeInterpol4( ConstVectorView x,
   \date   2003-11-30
 */
 
-void HUMLIK_vec_Wells ( int     N, 
-			ConstVectorView X, 
-			Numeric Y, 
-			Vector& K, 
-			Vector& L )
+void HUMLIK_Faddeeva_Wells ( ConstVectorView X, 
+			     Numeric Y, 
+			     Vector& K, 
+			     Vector& L )
 {
 
   /*
@@ -190,6 +258,12 @@ void HUMLIK_vec_Wells ( int     N,
     R0=1.51*EXP(1.144*R) and R1=1.60*EXP(0.554*R) can be set by the the user
     subject to the constraints 14.88<R0<460.4 and 4.85<R1<25.5
   */
+
+  const Index N = X.nelem();	  /* Number of frequencies in the frequency grid */
+
+  K.resize(N); /* resize the output vectors according to the size input vector X */
+  L.resize(N); /* resize the output vectors according to the size input vector X */
+
 
   const Numeric R0 = 146.7;                              /*  Region boundaries  */
   const Numeric R1 = 14.67;                              /*  for R=4            */
@@ -375,7 +449,7 @@ void HUMLIK_vec_Wells ( int     N,
 	};
     };
 
-};  /* end of HUMLIK_vec_Wells */
+};  /* end of HUMLIK_Faddeeva_Wells */
 
 
 
@@ -430,11 +504,18 @@ void ZeemanO2 (// WS Output:
 	       Tensor3& ext_mat_zee, // Tensor3 of the Extinction Matrix for the specified frequency grid in [1/m]. 
 	       Matrix& abs_vec_zee,  // Matrix of the Absorption Vector for the specified frequency grid in [1/m].
 	       // WS Input:
-	       Vector& f_grid,       // Frequency grid.
-	       Numeric& N_r)         // Rotational quantum number indentification of the Zeeman line.
+	       const Vector& LineCenterFreq   // model line center frequencies
+	       const Vector& LineIntensities  // model line intensities 
+               const Vector& LineBroadening   // model line pressure broadening
+	       const Numeric T                // atmospheric temperature
+	       const Vector& f_grid,          // frequency grid.
+	       const Numeric& N_r)            // Rotational quantum number indentification of the Zeeman line.
 
 {
   
+  // molecular weight of oxygen (main isotope) [g/mol]
+  const Numeric MWO2 = 31.989830e0; 
+
   
   // Magnitude of Earth's magnetic field along LOS in [T].
   Numeric B_field;
@@ -891,9 +972,320 @@ void ZeemanO2 (// WS Output:
 
  ******************************************************************************************** */
 
-//
+
+ Complex CEF( const Complex zeta, 
+              const Numeric gamma )
+{
+
+  // The special line shape, Complex Error Function.
+  // see P. W. Rosenkranz Chapter 2 of the Janssen book
+
+  Complex retval = (1/(sqrt(PI)*gamma)) *
+             (  122.60793178 * pow(zeta,0) 
+	      + 214.38238869 * pow(zeta,1) + 181.92853309 * pow(zeta,2) 
+	      +  93.15558046 * pow(zeta,3) +  30.18014220 * pow(zeta,4)
+	      +   5.91262621 * pow(zeta,5) +   0.56418958 * pow(zeta,6)) /
+             (  122.60793178 * pow(zeta,0) + 352.73062511 * pow(zeta,1)
+              + 457.33447878 * pow(zeta,2) + 348.70391772 * pow(zeta,3) 
+              + 170.35400182 * pow(zeta,4) +  53.99290691 * pow(zeta,5)
+              +  10.47985711 * pow(zeta,6) +   1.00000000 * pow(zeta,7));
+  
+  return retval;
+};
+
+
+
+// ########################################################################################
+
+
+void Zeeman_o2_splitting_factors( Numeric& xi,
+				  Numeric& eta,
+				  const Numeric N_r,
+				  const Numeric DeltaM,
+				  const Numeric M)
+{
+
+  
+  // Pi polarization for a N+ Zeeman transition.
+  if (N_r>0 && DeltaM==0) //
+    {
+      // Matrix representation of the relative intensity value 
+      xi  = 3*((abs(N_r)+1)*(abs(N_r)+1)-M*M)
+	/((abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
+      
+      // Zeeman frequency shift value
+      eta = M*(abs(N_r)-1)/(abs(N_r)*(abs(N_r)+1));
+    }
+  // Pi polarization for a N- Zeeman transition.
+  else if (N_r<0 && DeltaM==0)
+    {
+      // Matrix representation of the relative intensity values 
+      xi  = 3*(abs(N_r)*abs(N_r)-M*M)
+	/(abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
+      
+      // Zeeman frequency shift values
+      eta = M*(abs(N_r)+2)/(abs(N_r)*(abs(N_r)+1));
+    }
+  // Sigma+ polarization for a N+ Zeeman transition.
+  else if (N_r>0 && DeltaM==1)
+    {
+      // Matrix representation of the relative intensity
+      xi  = 3*(abs(N_r)+M+1)*(abs(N_r)+M+2)/
+	(4*(abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
+      
+      // Zeeman frequency shift value 
+      eta = (M*(abs(N_r)-1)+abs(N_r))/(abs(N_r)*(abs(N_r)+1));
+    }
+  // Sigma- polarization for a N+ Zeeman transition.
+  else if (N_r>0 && DeltaM==-1)
+    {	
+      // Matrix representation of the relative intensity values
+      xi  = 3*(abs(N_r)-M+1)*(abs(N_r)-M+2)/
+	(4*(abs(N_r)+1)*(2*abs(N_r)+1)*(2*abs(N_r)+3));
+      
+      // Zeeman frequency shift value
+      eta = (M*(abs(N_r)-1)-abs(N_r))/(abs(N_r)*(abs(N_r)+1));
+    }
+  // Sigma+ polarization for a N- Zeeman transition.
+  else if (N_r<0 && DeltaM==1)
+    {
+      // Matrix representation of the relative intensity values
+      xi  = 3*(abs(N_r)-M)*(abs(N_r)-M-1)/
+	(4*abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
+      
+      // Zeeman frequency shift value 
+      eta = (M*(abs(N_r)+2)+(abs(N_r)+1))/(abs(N_r)*(abs(N_r)+1));
+    }
+  // Sigma- polarization for a N- Zeeman transition.
+  else if (N_r<0 && DeltaM==-1)
+    {
+      // Matrix representation of the relative intensity values
+      xi  = 3*(abs(N_r)+M)*(abs(N_r)+M-1)/
+	(4*abs(N_r)*(2*abs(N_r)-1)*(2*abs(N_r)+1));
+      
+      // Zeeman frequency shift value 
+      eta = (M*(abs(N_r)+2)-(abs(N_r)+1))/(abs(N_r)*(abs(N_r)+1));
+    }
+  else 
+    {
+      throw runtime_error("Zeeman_o2_splitting_factors: Error in N_r or DeltaM");
+    };
+  
+  
+  return;
+};
+
+
+
+// ########################################################################################
+
+
+
+// Propagation tensor G_s at a given frequency is in the form of an array 
+// because complex matrices or tensors cannot be handled by ARTS. 
+void Zeeman_o2_line_splitting(// Output:
+			      Array<Complex> G_s,            // propagation tensor
+			      // Input:
+			      const Numeric B_field,         // magnitude of Earth's magnetic field along LOS in [T].
+			      const Numeric phi,             // angle between the directions of Earth's magnetic field and LOS.  
+			      const Numeric f_c,             // spectral line center frequencies
+			      const Numeric S,               // spectral line intensities 
+			      const Numeric gamma_L,         // spectral line pressure broadening
+			      const Numeric gamma_D,         // spectral line  Doppler broadening
+			      const Index   N_r,             // Rotational quantum number indentification of the Zeeman line.
+			      const Numeric f_grid_point)    // frequency grid.
+
+{
+  
+  
+  // Magnitude of Earth's magnetic field along LOS in [T].
+  // Numeric B_field;
+  
+  // Dummy value for the magnetic field in [T].
+  // B_field = 3.5e-5;
+
+  // Angle between the directions of Earth's magnetic field and LOS.    
+  // Numeric phi;
+
+  // Dummy value for phi.
+  // phi = 90./57.2957914331333;
+  
+
+  // Pressure in [Pa]- just provisionary now. 
+  //Later will bw replaced by p_grid.
+  // Numeric p;
+
+  // Test value for the pressure in [Pa] at 95 km 'midlatitude-summer'.
+  // p = 6.200000e-02;
+
+  // Temperature in [K].
+  // Numeric T;
+
+  // Test value for the temperature in [K] at 95 km for 'midlatitude-summer'.
+  // T = 1.783000e+02; 
+  //-------------------------------------------------
+
+    
+  // Doppler broadening line width in [Hz].
+  // Numeric gamma;
+  // Pressure broadening line width [Hz].
+  // Numeric agam;
+  //  Wavenumber claculation.
+  Numeric k_0 = twoPI_c * f_grid_point;
+
+  // Complex refractive index.
+  Complex N_s;
+  
+  // Magnetic susceptibility tensor at a given frequency. 
+  // It's in the form of an array because complex matrices
+  // or tensors cannot be handled by ARTS.
+  Array<Complex> Chi(2*2,0);
+  
+  
+  // Polarization  matrix accounting for the contributions of 
+  // the 3 different polarizations of the components of the Zeeman 
+  // split due to 3 different values of DeltaM.
+  Matrix P;
+  P.resize(2,2);
+
+  
+  // Matrix variable for the content of the zeeman_intensity_coeff.xml.
+  // Matrix N;
+  
+  // Reading in content from zeeman_intensity_coeff.xml.
+  // xml_read_from_file ("zeeman_intensity_coeff.xml", N);
+  
+  Numeric AN_r = 0.00e0;
+  Numeric BN_r = 0.00e0;
+
+  if (N_r>0)
+    { 
+      // Assigning a value of the total angular momentum N of the lower  
+      // level for a N+ Zeeman transition (N -> N+1).
+      AN_r = abs(N_r);
+      
+      // Assigning a value of the number of the split components for each 
+      // of the three possible polarizations of a N+ Zeeman transition.
+      BN_r = 2*abs(N_r)+1;
+      
+      //! Resize of the frequency shift matrix 
+      // for a N+ Zeeman transition.
+      // f_z_mat.resize(2*Index(abs(N_r))+1,3);
+      
+      //! Resize of the relative intensity matrix 
+      // for a N+ Zeeman transition.
+      // xi_mat.resize(2*Index(abs(N_r))+1,3);
+    }
+  else if (N_r<0)
+    {
+      // Assigning a value of the total angular momentum N of the lower 
+      // level for a N- Zeeman transition (N -> N-1).
+      AN_r = abs(N_r)-1;
+      
+      // Assigning a value of the number of the split components for each
+      // of the three possible polarizations of a N- Zeeman transition.
+      BN_r = 2*abs(N_r)-1;
+      
+      
+      // Resize of the frequency shift matrix 
+      // for a N- Zeeman transition.
+      // f_z_mat.resize(2*Index(abs(N_r))-1,3);
+      
+      // Resize of the relative intensity matrix 
+      // for a N- Zeeman transition.
+      // xi_mat.resize(2*Index(abs(N_r))-1,3);
+    };
+  
+  
+  // Starting the loop over the 3 possible values of the change of the 
+  // magnetic quantum number M upon a Zeeman transition.	  
+  for ( Index k=0; k<3; k++ )
+    { 
+      Index DeltaM = k-1;
+      
+      // Starting the loop over 2N+1 or 2N-1 values of
+      // the magnetic quantum number M for a given transition 
+      for (int j=0 ; j<BN_r;j++)
+	{ 
+	  Numeric M = j-AN_r;
+	  
+	  // calculate the splitting factors for the splitted line intensity 
+	  // and frequency shift.
+	  // (1) Intensity factor, or relative intensity, of the 
+	  //     individual components of the Zeeman split relative 
+	  //     to the the intensity of the unsplit line.
+	  Numeric xi = 0.00e0;    
+	  // (2) This the Zeeman frequency shift of the individual 
+	  //     components of the Zeeman split.
+	  Numeric eta = 0.00e0;
+	  Zeeman_o2_splitting_factors( xi, eta, N_r, DeltaM, M);
+
+	  // Center frequency of the of the individual 
+	  // components of the Zeeman split.
+	  Numeric f_z;
+	  f_z = f_c + 28.03e+9 * eta * B_field;
+	  
+	  // Complex argument of the special line shape (CEF), 
+	  // used in the case of Zeeman splitting.
+	  Complex zeta = (gamma_L/gamma_D + complex_i*(f_grid_point - f_z)/gamma_D);
+	  
+	  // The complex refractive index. 
+	  N_s += S * xi * (-1) * complex_i*CEF(zeta, gamma_D);
+	  
+	};
+      
+      // Polarization  matrix accounting for the contributions of 
+      // the 3 different polarizations of the components of the Zeeman 
+      // split due to 3 different values of DeltaM.
+      
+      if (DeltaM==0)
+	{
+	  P(0,0) =  0.5 * sin(phi)     * sin(phi);
+	  P(0,1) = -0.5 * sin(phi)     * sin(phi);
+	  P(1,0) =  0.5 * sin(phi)     * sin(phi);
+	  P(1,1) = -0.5 * sin(phi)     * sin(phi);
+	}
+      else if (DeltaM==1)
+	{
+	  P(0,0) =  0.5 * (1+cos(phi)) * (1+cos(phi));
+	  P(0,1) =  0.5 * sin(phi)     * sin(phi);
+	  P(1,0) =  0.5 * sin(phi)     * sin(phi);
+	  P(1,1) =  0.5 * (1-cos(phi)) * (1-cos(phi));;
+	}
+      else if (DeltaM==-1)
+	{
+	  P(0,0) =  0.5 * (1-cos(phi)) * (1-cos(phi));
+	  P(0,1) =  0.5 * sin(phi)     * sin(phi);
+	  P(1,0) =  0.5 * sin(phi)     * sin(phi);
+	  P(1,1) =  0.5 * (1+cos(phi)) * (1+cos(phi));
+	};
+      
+      
+      // Calculating the halved value of magnetic susceptibility tensor 
+      // at given frequency. It's in the form of an array because 
+      // complex matrices or tensors cannot be handled by ARTS.		
+      Chi[0] += P(0,0)*N_s;
+      Chi[1] += P(0,1)*N_s;
+      Chi[2] += P(1,0)*N_s;
+      Chi[3] += P(1,1)*N_s;
+    };
+  
+  
+  // Calculating the propagation tensor at a given frequency. 
+  // It's in the form of an array because complex matrices or 
+  // tensors cannot be handled by ARTS.
+  G_s[0] = complex_i * k_0 * (1. + Chi[0]);
+  G_s[1] = complex_i * k_0 *       Chi[1];
+  G_s[2] = complex_i * k_0 *       Chi[2];
+  G_s[3] = complex_i * k_0 * (1. + Chi[3]);
+  
+  return;
+};
+
 // #################################################################################
-// 
+
+
+
 //!   P. W. Rosenkranz oxygen absorption model
 /*!
   See arts -d absPWRO2Model for detailed documentation.
@@ -915,15 +1307,13 @@ void ZeemanO2 (// WS Output:
   11-05-97  P. Rosenkranz: 1- line modification.
   12-16-98  P. Rosenkranz: updated submm freq's and intensities from HITRAN96
   
-  \retval   abs            absorption coefficient of oxygen [1/m]
-  \param    f_grid         predefined frequency grid        [Hz]
-  \param    abs_p          predefined pressure              [Pa]
-  \param    abs_t          predefined temperature grid      [K] 
-  \param    abs_vmr        H2O volume mixing ratio profile  [1]
-  \param    model          model version of the P. W. Rosenkranz oxygen absorption model
-  \param    abs_user_parameters  allows user defined input parameter set 
-                                 (CCin, CLin, CWin, and COin)<br> or choice of 
-                                 pre-defined parameters of specific models (see note below).
+  \retval   abs                  absorption coefficient of oxygen [1/m]
+  \param    f_grid               predefined frequency grid        [Hz]
+  \param    abs_p                predefined pressure              [Pa]
+  \param    abs_t                predefined temperature grid      [K] 
+  \param    abs_vmr              H2O volume mixing ratio profile  [1]
+  \param    model                model version of the P. W. Rosenkranz oxygen absorption model
+  \param    abs_user_parameters  scaling factor(s)
 
   \note     Except for  model 'user' the input parameters CCin, CLin, CWin, and COin 
             are neglected (model dominates over parameters).<br>
@@ -962,16 +1352,33 @@ void ZeemanO2 (// WS Output:
   \date 2003-11-28
  */ 
 
-void absPWRO2Model(// WS Output:
-		   Matrix&         abs,           // absorption coefficient   [1/m]
-		   // WS Input:
-		   const Vector&   f_grid,        // frequency vector         [Hz]
-		   const Vector&   abs_p,         // pressure vector          [Pa]
-		   const Vector&   abs_t,         // temperature vector       [K]
-		   const Vector&   abs_vmr,       // H2O vmr                  [1]
-                   const String&   abs_model,     // model selection string (PWR98, PWR93 or PWR88)
-		   const Vector&   abs_user_parameters ) // = [CCin, CLin, CWin, COin]
+int absPWRO2Model(// WS Output:
+		  Tensor3& ext_mat_zee,                 // Tensor3 of the Extinction Matrix [1/m]. 
+		  Matrix&  abs_vec_zee,                 // Matrix of the Absorption Vector  [1/m].
+		  // WS Input:
+		  const Numeric   geomag_strength,      // mag. field strength          [Gauss]
+		  const Numeric   geomag_angle,         // mag. field orientation angle [radians]
+		  const bool      flag_zeeman,          // Zeeman splitting on or off
+		  const Vector&   f_grid,               // frequency vector             [Hz]
+		  const Numeric   p,                    // pressure                     [Pa]
+		  const Numeric   t,                    // temperature                  [K]
+		  const Numeric   vmro2,                // O2 vmr                       [1]
+		  const Numeric   vmrh2o,               // H2O vmr                      [1]
+		  const String&   abs_model,            // model selection string
+		  const Vector&   abs_user_parameters ) // scaling factor(s)
 {
+
+  // return value (1=no error occured, 0=error occured )
+  int retvalue = 1;
+
+
+  // Propagation tensor G_s at a given frequency is in the form of an array 
+  // because complex matrices or tensors cannot be handled by ARTS. 
+  Array<Complex> G_s(2*2);
+
+  // molecular weight of oxygen (main isotope) [g/mol]
+  const Numeric MWO2 = 31.989830e0; 
+
 
   // number of spectral lines in the different model versions
   const Index n_lines_PWR88 = 40; // all O2 lines (range: 50-850 GHz)
@@ -980,16 +1387,16 @@ void absPWRO2Model(// WS Output:
 
 
   // line center frequencies for the model version 1993
-  const Numeric F93[n_lines_PWR93] = { 118.7503,  56.2648,  62.4863,  58.4466,  // 00-03
-				        60.3061,  59.5910,  59.1642,  60.4348,  // 04-07
-				        58.3239,  61.1506,  57.6125,  61.8002,  // 08-11
-				        56.9682,  62.4112,  56.3634,  62.9980,  // 12-15
-				        55.7838,  63.5685,  55.2214,  64.1278,  // 16-19
-				        54.6712,  64.6789,  54.1300,  65.2241,  // 20-23
-				        53.5957,  65.7648,  53.0669,  66.3021,  // 24-27
-				        52.5424,  66.8368,  52.0214,  67.3696,  // 28-31
-				        51.5034,  67.9009, 368.4984, 424.7631,  // 32-35
-				       487.2494, 715.3932, 773.8397, 834.1453}; // 36-39
+  const Numeric F93[n_lines_PWR93] = { 118.7503,  56.2648,  62.4863,  58.4466, 
+				        60.3061,  59.5910,  59.1642,  60.4348, 
+				        58.3239,  61.1506,  57.6125,  61.8002, 
+				        56.9682,  62.4112,  56.3634,  62.9980, 
+				        55.7838,  63.5685,  55.2214,  64.1278, 
+				        54.6712,  64.6789,  54.1300,  65.2241, 
+				        53.5957,  65.7648,  53.0669,  66.3021, 
+				        52.5424,  66.8368,  52.0214,  67.3696, 
+				        51.5034,  67.9009, 368.4984, 424.7631, 
+				       487.2494, 715.3932, 773.8397, 834.1453};
 
   // line center frequencies for the model version 1998
   const Numeric F98[n_lines_PWR98] = { 118.7503,  56.2648,  62.4863,  58.4466,  
@@ -1005,29 +1412,29 @@ void absPWRO2Model(// WS Output:
 
 
   // line strength (taken from HITRAN92) for the model version 1993 at T=300K [cm² * Hz]
-  const Numeric S93[n_lines_PWR93] = { 0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14,
-				       0.3351E-14, 0.3292E-14, 0.3721E-14, 0.3891E-14,
-				       0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
-				       0.2627E-14, 0.3156E-14, 0.1982E-14, 0.2477E-14,
-				       0.1391E-14, 0.1808E-14, 0.9124E-15, 0.1230E-14,
-				       0.5603E-15, 0.7842E-15, 0.3228E-15, 0.4689E-15,
-				       0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15,
-				       0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16,
-				       0.8191E-17, 0.1423E-16, 0.6460E-15, 0.7047E-14, 
-				       0.3011E-14, 0.1826E-14, 0.1152E-13, 0.3971E-14};
+  const Numeric S93[n_lines_PWR93] = {  0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14,
+				        0.3351E-14, 0.3292E-14, 0.3721E-14, 0.3891E-14,
+				        0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
+				        0.2627E-14, 0.3156E-14, 0.1982E-14, 0.2477E-14,
+				        0.1391E-14, 0.1808E-14, 0.9124E-15, 0.1230E-14,
+				        0.5603E-15, 0.7842E-15, 0.3228E-15, 0.4689E-15,
+				        0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15,
+				        0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16,
+				        0.8191E-17, 0.1423E-16, 0.6460E-15, 0.7047E-14, 
+				        0.3011E-14, 0.1826E-14, 0.1152E-13, 0.3971E-14};
 
   // line strength (intensities in the submm range are updated according to HITRAN96)
   // for the model version 1998 at T=300K [cm² * Hz]
-  const Numeric S98[n_lines_PWR98] = { 0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14,
-				       0.3351E-14, 0.3292E-14, 0.3721E-14, 0.3891E-14,
-				       0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
-				       0.2627E-14, 0.3156E-14, 0.1982E-14, 0.2477E-14,
-				       0.1391E-14, 0.1808E-14, 0.9124E-15, 0.1230E-14,
-				       0.5603E-15, 0.7842E-15, 0.3228E-15, 0.4689E-15,
-				       0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15,
-				       0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16,
-				       0.8191E-17, 0.1423E-16, 0.6494E-15, 0.7083E-14, 
-				       0.3025E-14, 0.1835E-14, 0.1158E-13, 0.3993E-14};
+  const Numeric S98[n_lines_PWR98] = {  0.2936E-14, 0.8079E-15, 0.2480E-14, 0.2228E-14,
+				        0.3351E-14, 0.3292E-14, 0.3721E-14, 0.3891E-14,
+				        0.3640E-14, 0.4005E-14, 0.3227E-14, 0.3715E-14,
+				        0.2627E-14, 0.3156E-14, 0.1982E-14, 0.2477E-14,
+				        0.1391E-14, 0.1808E-14, 0.9124E-15, 0.1230E-14,
+				        0.5603E-15, 0.7842E-15, 0.3228E-15, 0.4689E-15,
+				        0.1748E-15, 0.2632E-15, 0.8898E-16, 0.1389E-15,
+				        0.4264E-16, 0.6899E-16, 0.1924E-16, 0.3229E-16,
+				        0.8191E-17, 0.1423E-16, 0.6494E-15, 0.7083E-14, 
+				        0.3025E-14, 0.1835E-14, 0.1158E-13, 0.3993E-14};
 
   // line mixing y parameter for the calculation of Y [1/bar]
   const Numeric Y93[n_lines_PWR98] = { -0.0233,  0.2408, -0.3486,  0.5227,
@@ -1055,10 +1462,6 @@ void absPWRO2Model(// WS Output:
 				        0.6627, -0.6718,  0.0000,  0.0000,
 				        0.0000,  0.0000,  0.0000,  0.0000};
 
-  // widths in MHz/mbar for the O2 continuum
-  const Numeric WB300 = 0.56; // [MHz/mbar]=[MHz/hPa]
-  const Numeric X     = 0.80; // [1]
-
   // temperature exponent of the line strength in [1]
   const Numeric BE[n_lines_PWR93] = {   0.009,   0.015,   0.083,   0.084, 
 				        0.212,   0.212,   0.391,   0.391, 
@@ -1085,14 +1488,14 @@ void absPWRO2Model(// WS Output:
 
 
   // v parameter for the calculation of Y [1/bar]
-  const Numeric V[n_lines_PWR93] ={    0.0079, -0.0978,  0.0844, -0.1273,
-				       0.0699, -0.0776,  0.2309, -0.2825, 
-			      	       0.0436, -0.0584,  0.6056, -0.6619, 
-				       0.6451, -0.6759,  0.6547, -0.6675,
-				       0.6135, -0.6139,  0.2952, -0.2895, 
-				       0.2654, -0.2590,  0.3750, -0.3680, 
-				       0.5085, -0.5002,  0.6206, -0.6091,
-				       0.6526, -0.6393,  0.6640, -0.6475,
+  const Numeric V[n_lines_PWR93] ={     0.0079, -0.0978,  0.0844, -0.1273,
+				        0.0699, -0.0776,  0.2309, -0.2825, 
+			      	        0.0436, -0.0584,  0.6056, -0.6619, 
+				        0.6451, -0.6759,  0.6547, -0.6675,
+				        0.6135, -0.6139,  0.2952, -0.2895, 
+				        0.2654, -0.2590,  0.3750, -0.3680, 
+				        0.5085, -0.5002,  0.6206, -0.6091,
+				        0.6526, -0.6393,  0.6640, -0.6475,
 				       0.6729, -0.6545,  0.0000,  0.0000,
 				       0.0000,  0.0000,  0.0000,  0.0000};
 
@@ -1103,13 +1506,20 @@ void absPWRO2Model(// WS Output:
   const Numeric CO_PWR = 1.00000e0; // scaling factor of the O2 line mixing parameter
 
 
+  // widths in MHz/mbar for the O2 continuum
+  const Numeric WB300 = 0.56; // [MHz/mbar]=[MHz/hPa]
+  const Numeric X     = 0.80; // [1]
+  const Numeric CONTFAC = 1.2300e-10;
+
+
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO;
   Index n_lines = 0;
-  int flag98 = 1;
+  int   flag98  = 1;
   const Numeric *F;
   const Numeric *S300;
   const Numeric *Y300;
+
 
   if ( abs_model == "PWR88" )       // ---------- model version 1988
     {
@@ -1128,8 +1538,8 @@ void absPWRO2Model(// WS Output:
   else if ( abs_model == "PWR88scaling" )
     {
       // check if the input parameter vector has appropriate size
-      if ( abs_user_parameters.nelem() != 4 )
-	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
+      if ( abs_user_parameters.nelem() != 1 )
+	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 1 element.");
       // set the scaling factors
       CC = abs_user_parameters[0]; // scaling factor of the O2 continuum
       CL = abs_user_parameters[1]; // scaling factor of the O2 line intensity
@@ -1201,8 +1611,8 @@ void absPWRO2Model(// WS Output:
   else if ( abs_model == "PWR93scaling" )
     {
       // check if the input parameter vector has appropriate size
-      if ( abs_user_parameters.nelem() != 4 )
-	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
+      if ( abs_user_parameters.nelem() != 1 )
+	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 1 element.");
       // set the scaling factors
       CC = abs_user_parameters[0]; // scaling factor of the O2 continuum
       CL = abs_user_parameters[1]; // scaling factor of the O2 line intensity
@@ -1283,8 +1693,8 @@ void absPWRO2Model(// WS Output:
       // set flag for 1998 version identification
       flag98 = 0;
       // check if the input parameter vector has appropriate size
-      if ( abs_user_parameters.nelem() != 4 )
-	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 4 element.");
+      if ( abs_user_parameters.nelem() != 1 )
+	throw runtime_error("Method absPWRO2Model: Vector abs_user_parameters must have 1 element.");
       // set the scaling factors 
       CC = abs_user_parameters[0]; // scaling factor of the O2 continuum
       CL = abs_user_parameters[2]; // scaling factor of the O2 line intensity
@@ -1310,16 +1720,290 @@ void absPWRO2Model(// WS Output:
   // range of lines to take into account for the line absorption part
   const Index first_line = 0;         // first line for calculation
   const Index last_line  = n_lines-1; // last line for calculation
-  // const Index last_line  = 0; // last line for calculation
+  
+  // scale the parameter with input scaling factors
+  Numeric CONTFAC2 = CC * CONTFAC;
+
+
+  // Make abs the right dimension and inititalize to zero:
+  const Index n_f = f_grid.nelem();
+  // Resize of the tensor consisting of the Zeeman 
+  // Extinction matrix and the frequency grid.
+  ext_mat_zee.resize(n_f,4,4);
+  // Resize of the matrix consisting of the Z
+  //Z eeman absorption vector and the frequency grid.
+  abs_vec_zee.resize(n_f,4);
+
+
+  // relative inverse temperature [1]
+  Numeric TH     = 3.0000e2 / t;
+  Numeric TH1    = (TH-1.000e0);
+  Numeric B      = pow(TH, X);
+  // partial pressure of H2O and dry air [hPa]
+  Numeric PRESWV = Pa_to_hPa * (p * vmrh2o);
+  Numeric PRESDA = Pa_to_hPa * (p * (1.000e0 - vmrh2o));
+  Numeric DEN    = 0.001*(PRESDA*B + 1.1*PRESWV*TH); // [hPa]
+  Numeric DENS   = 0.001*(PRESDA   + 1.1*PRESWV)*TH; // [hPa]
+  Numeric DFNR   = WB300*DEN;                        // [GHz]
+  
+
+  // continuum absorption [1/m/GHz]
+  Numeric CCONT  = CONTFAC2 * pow( TH, (Numeric)2.00e0 ) * p;
+  
+
+  // Loop over user defined input frequency
+  for ( Index s=0; s<n_f; ++s )
+    {
+      // initialization of absorption array with zero
+      // abs_f_grid[s] = 0.000e0;
+
+      // input frequency in [GHz]
+      Numeric ff   = Hz_to_GHz * f_grid[s]; 
+      
+      // initialization of absorption array with O2 continuum [1/m]
+      // continuum absorption [1/m]
+      // abs_f_grid[s] = CONT;
+      Numeric abscont = CCONT * (ff * ff * DFNR / (ff*ff + DFNR*DFNR));
+      
+      
+      // loop over the spectral line center frequencies
+      Numeric SUM  = 0.000e0;
+      for ( Index l=first_line; l<=last_line; ++l )
+	{
+	  
+	  // --- line pressure broadening [GHz] ------------------------------
+	  Numeric DF = 0.000e0;
+	  // change in 118GHz line in 1998 version compared to older versions
+	  if ( (flag98 == 0) && (fabs((F[l]-118.75e0)) < 0.10e0) )
+	    {
+	      // 118 line update in '98 version according to 
+	      // Ph.D. Thesis of M. J. Schwartz, MIT, 1997
+	      DF = CW * W300[l] * DENS; // [GHz]
+	    }
+	  else
+	    {
+	      // versions 1993 and 1988 have a simpler temperature dependence
+	      DF = CW * W300[l] * DEN; // [GHz]
+	    };
+	  
+	  // --- line mixing parameter [1] -----------------------------------
+	  Numeric gamma_D = 1.00e-6;
+
+	  // --- line mixing parameter [1] -----------------------------------
+	  Numeric Y    = CO * 0.001e0 * 0.010e0 * p * B * ( Y300[l] + V[l]*TH1 );
+	  
+	  // --- line strength parameter [1] ---------------------------------
+	  Numeric STR  = CL * S300[l] * exp(-BE[l] * TH1);
+	      
+
+	  if (flag_zeeman)
+	    {
+	      // call Zeeman splitting function for a single spectral line
+	      Index N_r = -1;
+	      Zeeman_o2_line_splitting(G_s, 
+				       geomag_strength, 
+			               geomag_angle, 
+			               F[l],
+			               STR, 
+			               DF,
+			               gamma_D,
+			               N_r,
+			               f_grid[s]);
+	    }
+	  else
+	    {
+	      // call VVW function for line mixing but without Zeeman splitting.
+	      // This is sufficient for the troposhere where ther individual lines 
+	      // are too wide that line mixing and pressure broadening dominate over 
+	      // Zeeman splitting.
+	      
+	      // --- calculate line shape function -------------------------------
+	      // Van Vleck-Weisskopf line shape (pressure broadening regime)
+	      Numeric SF1  = ( DF + (ff-F[l])*Y ) / ( (ff-F[l])*(ff-F[l]) + DF*DF );
+	      Numeric SF2  = ( DF - (ff+F[l])*Y ) / ( (ff+F[l])*(ff+F[l]) + DF*DF );
+	      // --- sum the line absorption part for a specific -----------------
+	      //     point on the frequency grid
+	      SUM  += STR * (SF1+SF2) * (ff/F[l]) * (ff/F[l]);
+	      // fill G_s array here with the simple scalar absorption stuff
+	    };
+
+	  // O2 absorption [1/m] -----------------------------------------------------
+	  // Rosenkranz uses the factor 0.5034e12 in the calculation of the abs coeff.
+	  // This factor is the product of several terms:
+	  // 0.5034e12 = ISORATIO *   VMR   * (Hz/GHz) * (k_B*300K)^-1 
+	  //           = 0.995262 * 0.20946 *   10^-9  * 2.414322e21(hPa*cm^2*km)^-1
+	  //             |---- 0.2085 ----|   |---- 2.414322e12(hPa*cm^2*km)^-1 ---|
+	  //             |---- 0.2085 ----|   |---- 2.414322e10( Pa*cm^2*km)^-1 ---|
+	  // O2ABS = 2.4143e12 * SUM * PRESDA * pow(TH, 3.0) / PI;
+	  // O2ABS = CONT + (2.414322e10 * SUM * p[i] * pow(TH, 3.0) / PI);
+	  // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
+	  // therefore 2.414322e10 --> 2.414322e7
+	  // absorption coefficient [1/m] 
+	  
+	  // First row of the extinction matrix at a given frequency.
+	  ext_mat_zee(s,0,0) =  0.5*(2.*real(G_s[0]) + 2.*real(G_s[3]));
+	  ext_mat_zee(s,0,1) = -0.5*(2.*real(G_s[3]) - 2.*real(G_s[0]));
+	  ext_mat_zee(s,0,2) =  0.5*(2.*real(G_s[1]) + 2.*real(G_s[2]));
+	  ext_mat_zee(s,0,3) =  0.0;
+      
+	  // Second row of the extinction matrix at a given frequency.
+	  ext_mat_zee(s,1,0) = -0.5*(2.*real(G_s[3]) - 2.*real(G_s[0]));
+	  ext_mat_zee(s,1,1) =  0.5*(2.*real(G_s[0]) + 2.*real(G_s[3]));
+	  ext_mat_zee(s,1,2) =  0.0;
+	  ext_mat_zee(s,1,3) =  0.5*(2.*imag(G_s[1]) + 2.*imag(G_s[2]));
+      
+	  // Third row of the extinction matrix.
+	  ext_mat_zee(s,2,0) =  0.5*(2.*real(G_s[1]) + 2.*real(G_s[2]));
+	  ext_mat_zee(s,2,1) =  0.0;
+	  ext_mat_zee(s,2,2) =  0.5*(2.*real(G_s[0]) + 2.*real(G_s[3]));
+	  ext_mat_zee(s,2,3) = -0.5*(2.*imag(G_s[3]) - 2.*imag(G_s[0]));
+      
+	  // Fourth row of the extinction matrix at a given frequency.
+	  ext_mat_zee(s,3,0) =  0.0; 
+	  ext_mat_zee(s,3,1) = -0.5*(2.*imag(G_s[1]) + 2.*imag(G_s[2]));
+	  ext_mat_zee(s,3,2) =  0.5*(2.*imag(G_s[3]) - 2.*imag(G_s[0]));
+	  ext_mat_zee(s,3,3) =  0.5*(2.*real(G_s[0]) + 2.*real(G_s[3]));
+      
+	  // Absorption vector components at a given frequency.
+	  abs_vec_zee(s,0) =  0.5*(2.*real(G_s[0]) + 2.*real(G_s[3]));
+	  abs_vec_zee(s,1) = -0.5*(2.*real(G_s[3]) - 2.*real(G_s[0]));
+	  abs_vec_zee(s,2) =  0.5*(2.*real(G_s[1]) + 2.*real(G_s[2]));
+	  abs_vec_zee(s,3) =  0.0;
+	};
+
+
+      /*
+	abs_f_grid[s] += 2.414322e7 * SUM * vmro2 * p * pow(TH, (Numeric)3.) / PI;
+	cout << " SUM= " << SUM << ", abs_f_grid(s)=" << abs_f_grid[s] << "\n";
+	cout << " B_abs=" << geomag_strength << ", B_phi=" << geomag_angle<< "\n";
+      */
+   };
+
+
+  return retvalue;
+};
+
+
+
+// #################################################################################
+
+
+
+//!   oxygen absorption models
+/*!
+  See arts -d absO2Model for detailed documentation.
+  
+  - REFERENCES FOR EQUATIONS AND COEFFICIENTS:
+    P.W. Rosenkranz, CHAP. 2 and appendix, in ATMOSPHERIC REMOTE SENSING
+    BY MICROWAVE RADIOMETRY (M.A. Janssen, ed., 1993).
+    H.J. Liebe et al, JQSRT vol.48, pp.629-643, 1992.
+    M.J. Schwartz, Ph.D. thesis, M.I.T., 1997.
+  - SUBMILLIMETER LINE INTENSITIES FROM HITRAN96.
+  - This version differs from Liebe's MPM92 in two significant respects:
+    1. It uses the modification of the 1- line width temperature dependence
+       recommended by Schwartz: (1/T).
+    2. It uses the same temperature dependence (X) for submillimeter 
+       line widths as in the 60 GHz band: (1/T)**0.8 
+  
+  history of the Rosenkranz absorption model:
+  05-01-95  P. Rosenkranz: first version
+  11-05-97  P. Rosenkranz: 1- line modification.
+  12-16-98  P. Rosenkranz: updated submm freq's and intensities from HITRAN96
+  
+  \retval   abs            absorption coefficient of oxygen [1/m]
+  \param    f_grid         predefined frequency grid        [Hz]
+  \param    abs_p          predefined pressure              [Pa]
+  \param    abs_t          predefined temperature grid      [K] 
+  \param    abs_vmr        H2O volume mixing ratio profile  [1]
+  \param    model          model version of the P. W. Rosenkranz oxygen absorption model
+  \param    abs_user_parameters  allows user defined input parameter set 
+                                 (CCin, CLin, CWin, and COin)<br> or choice of 
+                                 pre-defined parameters of specific models (see note below).
+
+  \note     Except for  model 'user' the input parameter vector 'abs_user_parameters ' 
+            must have exactly one or four emements which contains the overall scaling factor or the 
+	    scaling factors for the O2 continuum, O2 line intensities, O2 line broadening, 
+            and O2 line mixing.<br>
+	    Allowed models are<br> 
+	    'PWR88'           : Rosenkranz 1993 model with line mixing parameters from 
+                                the JQSRT 1988 paper<br> 
+            'PWR88scaling'    : possibility to scale the whole 'PWR88' model by a constant factor<br> 
+	    'PWR93'           : full Rosenkranz 1993 version as described in the Janssen book<br> 
+	    'PWR93Lines'      : only the line absorption of 'PWR93'<br> 
+	    'PWR93Continuum'  : only the continuum absorption of 'PWR93'<br> 
+	    'PWR93NoCoupling' : full 'PWR93' but without line mixing<br> 
+	    'PWR93scaling'    : possibility to scale the whole 'PWR93' model by a constant factor<br> 
+	    'PWR98'           : full modified Rosenkranz 1993 version 1998 as described in the F77 code<br> 
+	    'PWR98Lines'      : only the line absorption of 'PWR98'<br> 
+	    'PWR98Continuum'  : only the continuum absorption of 'PWR98'<br>
+	    'PWR98NoCoupling' : full 'PWR98' but without line mixing<br>
+	    'PWR98scaling'    : possibility to scale the whole 'PWR98' model by a constant factor<br>
+	    <br> 
+	    See the user guide for detailed explanations.
+
+   \remark   dieeferent pre-defined absorption models can be selected by using
+             the input variable 'abs_model'.<br>
+             <br>  
+             References:<br>  
+             <ol>
+              <li>
+	       P. W. Rosenkranz, Chapter 2: <i>Absorption of Microwaves by 
+               Atmospheric Gases</i>, in M. A. Janssen (editor), 
+               <i>Atmospheric Remote Sensing by Microwave Radiometry</i>,
+               John Wiley & Sons, Inc., 1993.
+              </li>
+	      <li>
+	       P. W. Rosenkranz, <i>Interference coefficients for the 
+               overlapping oxygen lines in air</i>, JQSRT, vol.39, pp.287-297, 1988.
+              </li>
+              <li>
+               H.J. Liebe, P. W. Rosenkranz, G. A. Hufford, 
+               <i>Atmospheric 60GHz Oxygen Spectrum: New Laboratory Measurements 
+               and Line Parameters</i>, JQSRT, vol.48, pp.629-643, 1992.
+              </li>
+              <li>
+               M.J. Schwartz, <i>Observation and Modeling of Atmospheric Oxygen 
+               Millimeter-wave Transmittance</i>, Ph.D. Thesis, M.I.T. (1997).
+              </li>
+             </ol>
+
+
+  \author Thomas Kuhn
+  \date 2003-12-01
+ */ 
+
+void absO2Model(// WS Output:
+		Matrix&         abs,                  // absorption coefficient   [1/m]
+		// WS Input:
+		const Matrix&   geomag_los,           // [Magnetic field B, angle between B and los]
+		const Vector&   f_grid,               // frequency vector         [Hz]
+		const Vector&   abs_p,                // pressure vector          [Pa]
+		const Vector&   abs_t,                // temperature vector       [K]
+		const Vector&   abs_vmr,              // H2O vmr                  [1]
+		const String&   abs_model,            // model selection string
+		const Vector&   abs_user_parameters ) // scaling factor(s)
+{
+
+  
+  // set for the moment the O2 VMR to a constant value of 0.21
+  const Numeric vmro2 = 0.20946e0;
+  // set the lower pressure level where Zeeman splitting is effective.
+  // An average altitude of 30km (see Rosenkranz F77 code description) is assumed.
+  // This yields a pressure level of approximately 13 hPa (MLS atmosphere).
+  const Numeric zeeman_low_limit_p = 1.30000e+03; // MLS, 1.110000e+03 MLW, 1.220000e+03 TROP, 1.020000e+03 SAW
+  const bool Zeeman = false;  // 1=true, 0=false
+
+
+  // internal variables
+  int ok=1;
 
 
   // Check that dimensions of abs_p, abs_t, and abs_vmr agree:
-  const Index n_p = abs_p.nelem();	// Number of pressure levels
-  const Index n_f = f_grid.nelem();	// Number of frequencies
+  const Index n_p = abs_p.nelem();	                     // Number of pressure levels
   if ( (n_p != abs_t.nelem()) || (n_p != abs_vmr.nelem()) )
     {
       ostringstream os;
-      os << "absPWRO2Model: The vectors abs_p, abs_t, and abs_vmr must all have the same length!\n"
+      os << "absO2Model: The vectors abs_p, abs_t, and abs_vmr must all have the same length!\n"
 	 << "Actual lengths: "
          << n_p << ", "
          << abs_t.nelem() << ", "
@@ -1328,127 +2012,73 @@ void absPWRO2Model(// WS Output:
     }
   
 
-  // define the R. J. Wells variables for complex Faddeeva function calculation 
-  Vector Wells_X; 
-  Wells_X.resize(1);
-  Vector Wells_K;
-  Wells_K.resize(1);
-  Vector Wells_L;
-  Wells_L.resize(1);
-  Numeric Wells_Y=0.00;
-  const Numeric MWO2 = 31.989830e0; // molecular weight of oxygen [g/mol]
+  // number of elements in frequency grid
+  const Index n_f = f_grid.nelem();
 
-  // Make abs the right dimension and inititalize to zero:
+
+  // define internal absorption arrays
+  Tensor3 ext_mat_zee;                 // Tensor3 of the Extinction Matrix [1/m]. 
+  ext_mat_zee.resize(n_f,4,4);
+  Matrix  abs_vec_zee;                 // Matrix of the Absorption Vector  [1/m].
+  abs_vec_zee.resize(n_f,4);
+
+  // make abs the right dimension and inititalize to zero:
   abs.resize(n_f,n_p);
 
-  // set O2 VMR to a constant value of 0.21
-  const Numeric vmr_o2 = 0.2100e0;
 
   // Loop pressure/temperature grid points:
   for ( Index i=0; i<n_p; ++i )
     {
-      // relative inverse temperature [1]
-      Numeric TH     = 3.0000e2 / abs_t[i];
-      Numeric TH1    = (TH-1.000e0);
-      Numeric B      = pow(TH, X);
-      // partial pressure of H2O and dry air [hPa]
-      Numeric PRESWV = Pa_to_hPa * (abs_p[i] * abs_vmr[i]);
-      Numeric PRESDA = Pa_to_hPa * (abs_p[i] * (1.000e0 - abs_vmr[i]));
-      Numeric DEN    = 0.001*(PRESDA*B + 1.1*PRESWV*TH); // [hPa]
-      Numeric DENS   = 0.001*(PRESDA   + 1.1*PRESWV)*TH; // [hPa]
-      Numeric DFNR   = WB300*DEN; // [GHz]
-      
-      // continuum absorption [1/m/GHz]
-      Numeric CCONT  = CC * 1.2300e-10 * pow( TH, (Numeric)2.00e0 ) * abs_p[i];
+      Numeric geomag_strength = geomag_los(i,0);
+      // Numeric geomag_strength = 3.50000e-5;
+      Numeric geomag_angle    = geomag_los(i,1);
+      // Numeric geomag_angle    = (90.0000000e0/57.29579e0);
 
-      // Loop over user defined input frequency
-      for ( Index s=0; s<n_f; ++s )
+      // water vapor volume mixing ratio [1]
+      Numeric vmrh2o = abs_vmr[i];
+
+      // check if Zeeman splitting has to be taken into account or not
+      bool flag_zeeman = false;
+      if ( Zeeman && (abs_p[i] <= zeeman_low_limit_p) ) flag_zeeman = true;
+
+      // call the absorption function
+      ok = absPWRO2Model( ext_mat_zee,
+			  abs_vec_zee, 
+			  geomag_strength,
+			  geomag_angle,
+			  flag_zeeman,
+			  f_grid,
+			  abs_p[i],
+			  abs_t[i], 
+			  vmro2,
+			  vmrh2o,
+			  abs_model, 
+			  abs_user_parameters);
+
+      // output variable abs/ext (vector/matrix) should be passed 
+      // to the agenda for gas absorption
+      cout << "ok=" << ok << "\n";
+      if (ok == 0) 
 	{
-	  // input frequency in [GHz]
-	  Numeric ff   = Hz_to_GHz * f_grid[s]; 
-
-	  // continuum absorption [1/m]
-	  Numeric CONT = CCONT * (ff * ff * DFNR / (ff*ff + DFNR*DFNR));
-
-	  // initialization of absorption array with O2 continuum [1/m]
-	  abs(s,i) = CONT;
-
-	  // loop over the spectral line central frequencies
-	  Numeric SUM  = 0.000e0;
-	  for ( Index l=first_line; l<=last_line; ++l )
+	  for ( Index s=0; s<n_f; ++s ) 
 	    {
-
-	      // --- line pressure broadening [GHz] ------------------------------
-	      Numeric DF = 0.000e0;
-	      // change in 118GHz line in 1998 version compared to older versions
-	      if ( (flag98 == 0) && (fabs((F[l]-118.75e0)) < 0.10e0) )
-		{
-		  // 118 line update in '98 version according to 
-		  // Ph.D. Thesis of M. J. Schwartz, MIT, 1997
-		  DF = CW * W300[l] * DENS; // [GHz]
-		}
-	      else
-		{
-		  // versions 1993 and 1988 have a simpler temperature dependence
-		  DF = CW * W300[l] * DEN; // [GHz]
-		};
-	      
-	      // --- line mixing parameter [1] -----------------------------------
-	      Numeric Y    = CO * 0.001e0 * 0.010e0 * abs_p[i] * B * ( Y300[l] + V[l]*TH1 );
-
-	      // --- line strength parameter [1] ---------------------------------
-	      Numeric STR  = CL * S300[l] * exp(-BE[l] * TH1);
-	      
-	      // --- calculate line shape function -------------------------------
-	      // Voigt line shape
-	      Numeric gamma_D = 2.9805e-7 * sqrt(abs_t[i]/MWO2) * F[l];
-	      // branche with positive line center frequency
-	      Wells_Y    = DF / gamma_D;
-	      Wells_X[0] = 0.83255e0 * ( (ff-F[l]) / gamma_D );
-	      Wells_K[0] = 0.000e0;
-	      Wells_L[0] = 0.000e0;
-	      HUMLIK_vec_Wells(1, Wells_X, Wells_Y, Wells_K, Wells_L);
-	      cout << "PRESDA=" << PRESDA << ", Wells_Y=" << Wells_Y
-                   << ",  + Wells_K[0]=" << Wells_K[0] << ", Wells_L[0]" << Wells_L[0] << "\n";
-	      Numeric SF1  = (STR * Wells_K[0] + Y * Wells_L[0]);
-	      // Numeric SF1  = (STR * Wells_K[0]);
-	      // branche with negative line center frequency (mirrored line)
-	      Wells_X[0] = 0.83255e0 * ( (ff+F[l]) / gamma_D );
-	      Wells_K[0] = 0.000e0;
-	      Wells_L[0] = 0.000e0;
-	      HUMLIK_vec_Wells(1, Wells_X, Wells_Y, Wells_K, Wells_L);
-	      cout << "- Wells_K[0]=" << Wells_K[0] << ", Wells_L[0]" << Wells_L[0] << "\n";
-	      Numeric SF2  = (STR * Wells_K[0] + Y * Wells_L[0]);
-	      // Numeric SF2  = (STR * Wells_K[0]);
-	      // --- sum the line absorption part for a specific -----------------
-              //     point on the frequency grid
-	      SUM  += (SF1+SF2) * (ff/F[l]) * (ff/F[l]);
-	      // VVW line shape
-	      /*
-		Numeric SF1  = ( DF + (ff-F[l])*Y ) / ( (ff-F[l])*(ff-F[l]) + DF*DF );
-		Numeric SF2  = ( DF - (ff+F[l])*Y ) / ( (ff+F[l])*(ff+F[l]) + DF*DF );
-	      // --- sum the line absorption part for a specific -----------------
-              //     point on the frequency grid
-	      SUM  += STR * (SF1+SF2) * (ff/F[l]) * (ff/F[l]);
-	      */
+	      // cout << "abs_f_grid[s]=" <<  abs_f_grid[s] << "\n";
+	      //abs_fp_grid(s,i) += abs_f_grid[s];
+	      //abs(s,i)         += abs_f_grid[s];
 	    };
-	  // O2 absorption [1/m]
-	  // Rosenkranz uses the factor 0.5034e12 in the calculation of the abs coeff.
-	  // This factor is the product of several terms:
-	  // 0.5034e12 = ISORATIO *   VMR   * (Hz/GHz) * (k_B*300K)^-1 
-	  //           = 0.995262 * 0.20946 *   10^-9  * 2.414322e21(hPa*cm^2*km)^-1
-	  //             |---- 0.2085 ----|   |---- 2.414322e12(hPa*cm^2*km)^-1 ---|
-	  //             |---- 0.2085 ----|   |---- 2.414322e10( Pa*cm^2*km)^-1 ---|
-	  // O2ABS = 2.4143e12 * SUM * PRESDA * pow(TH, 3.0) / PI;
-	  // O2ABS = CONT + (2.414322e10 * SUM * abs_p[i] * pow(TH, 3.0) / PI);
-	  // unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
-	  // therefore 2.414322e10 --> 2.414322e7
-	  // absorption coefficient [1/m] 
-	  abs(s,i) = 2.414322e7 * SUM * vmr_o2 * abs_p[i] * pow(TH, (Numeric)3.) / PI;
-	  cout << " SUM= " << SUM << ", abs(s,i)=" << abs(s,i) << "\n";
+	}
+      else
+	{
+	  cout << "absO2Model: ERROR in O2 calculation!!\n";
 	};
     };
+
   return;
-}
-//
+};
+
+
+
 // #################################################################################
+
+
+

@@ -1,3 +1,27 @@
+2003-12-02  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-1-733
+
+	* src/m_continua.cc: removed the Lgrange interpolation function
+	from this file.
+
+	* src/m_abs_o2_models.h: added semicolon at the end of the class
+	definition.
+
+	* src/m_abs_o2_models.cc: modified the structure of the oxygen
+	absorption calculation. first a method absO2Model is called from
+	the control file with detailed information about O2 model and
+	Zeeman effect. Then, internally in this method it branches further
+	to the specific O2 model function (e.g. Rosenkranz or Liebe) and 
+	fills there the necessary line information. After this for each 
+	frequency of f_grid this function calculates the ordinary O2 
+	absorption or considers Zeeman splitting. At the end the function 
+	returns ext_mat_zee and abs_vec_zee to the method absO2Model. 
+	To do this the original Zeeman function is divided into suitable 
+	moduls which can be assecced by the O2 model function. 
+	!WARNING! THIS IS STILL AN INTERNAL VERSION AND NOT FOR 
+	SCIENTIFIC USE.
+	
 2003-12-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-732

@@ -314,16 +314,17 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("absPWRO2Model"),
+      ( NAME("absO2Model"),
         DESCRIPTION
         (
          "Calculate oxygen absorption in the 1-1000GHz range from  the absorption"
-	 " model based on P.W.Rosenkranz.\n"
+	 " model based on P.W.Rosenkranz and H. J. Liebe (MPM).\n"
          "Output:\n"
          "   abs    : absorption coefficients [1/m], \n"
          "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
          "\n"
          "Input:\n"
+         "   geomag_los          : magnetic filed strength and angle with respect to the LOS\n"
          "   f_grid              : Frequency grid [Hz].\n"
          "   abs_p               : List of pressures [Pa].\n"
          "   abs_t               : List of temperatures [K].\n"
@@ -332,23 +333,28 @@ void define_md_data_raw()
          "                         Must have same length as abs_p!\n"
          "   abs_model           : String specifying the model to use.\n"
          "                         Allowed options are:\n"
-         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
-         "                         abs_user_parameters must have 4 element:\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\" or \"*Scaling\". \n"
+         "                         In that case, abs_user_parameters must have \n"
+         "                         4 or 1 element(s) respectively.\n"
+	 "                         abs_model==\"user\": \n"
          "                         1. O2 Continuum scaling factor\n"
          "                         2. O2 line strength scaling factor\n"
          "                         3. O2 line pressure broadening scaling factor\n"
          "                         4. O2 line mixing scaling factor\n"
+	 "                         abs_model==\"*Scaling\": \n"
+         "                         1. O2 absorption overall scaling factor\n"
+         "                         Note:\n"
          "                         abs_user_parameters must be empty if one of the\n"
          "                         pre-defined models is used."
         ),
         OUTPUT( abs_ ),
-        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+        INPUT(  geomag_los_, f_grid_, abs_p_, abs_t_, abs_vmr_,
                 abs_model_, abs_user_parameters_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
-
+  
 
 
   md_data_raw.push_back     

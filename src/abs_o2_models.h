@@ -23,7 +23,7 @@ public:
   bool zeeman;
   Numeric altitude;
   Index quantum_number;
-}
+};
 
 #endif // ABS_O2_MODELS_H_INCLUDED
 
