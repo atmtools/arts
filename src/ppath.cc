@@ -830,7 +830,7 @@ void gridcell_crossing_3d(
       if( l > llim )
         {
           lat = rlatlon;
-          r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
+          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
           lon = RAD2DEG * atan2( z+dz*l, x+dx*l );
         }
     }
@@ -860,7 +860,7 @@ void gridcell_crossing_3d(
             }
 
           lon = rlatlon;
-          r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
+          r   = sqrt( pow(x+dx*l,2.) + pow(y+dy*l,2.) + pow(z+dz*l,2.) );
         }
     }
 }
