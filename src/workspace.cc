@@ -102,6 +102,32 @@ void define_wsv_data()
     Patrick Eriksson 2002-05-08
   ----------------------------------------------------------------------*/
 
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_vec" ),
+      DESCRIPTION
+      (
+       "Total absorption vector.\n"
+       "\n"
+       "This variable contains the absorption coefficient vector which \n"
+       "is used in the scattering RT calculation. It is \n"
+       "the physical absorption which includes particle absorption \n"
+       "for all chosen particle types as well as gaseous absorption for\n"
+       "all chosen gaseous species.\n" 
+       "The vector is calculated by the agenda *abs_vec_agenda* \n"
+       "The dimensision of the variable adapts to *stokes_dim*.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage:      Output of the agenda *ext_mat_agenda*. \n"
+       "\n"
+       "Unit:        m^2 \n"
+       "\n"
+       "Dimensions: [stokes_dim]"
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -114,8 +140,9 @@ void define_wsv_data()
 	"single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
 	"input as well as the output of the method *abs_vec_sptCalc*. This \n"
 	"variable is a matrix where the first dimension part_types indicate \n"
-	"the particle type under consideration and the second dimension is the\n"
-	"*stokes_dim*. *stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
+	"the particle type under consideration and the second dimension is \n"
+        "the *stokes_dim*.\n"
+        "*stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
 	"\n"
 	"ARTS user guide (AUG) gives the formulas used for computing all \n"
 	"the elements of absorption vector.\n"
@@ -145,8 +172,11 @@ void define_wsv_data()
        "*amp_mat* stores the real and imaginary elements (i.e. 8 elements)\n"
        "separately. \n" 
        "\n"
-       "Usage: Input to *ext_mat_agenda*, *abs_vec_agenda*, *sca_mat_agenda*.\n"
+       "Usage: Input to *ext_mat_agenda*, *abs_vec_agenda*, \n"
+       "*sca_mat_agenda*\n"
        "Output of *get_amp*. \n"    
+       "\n"
+       "Unit:       m\n"
        "\n"
        "Dimensions: [ part_types, scat_za_grid, scat_aa_grid, \n"
        "              scat_za_grid, scat_aa_grid, amplitude matrix element]"
@@ -164,27 +194,30 @@ void define_wsv_data()
        "It contains all optical properties of the scattering particles.\n"
        "It depends on the frequency, the particle type, the propagation \n"
        "direction and the scattered direction.\n"
-       "*amp_mat_raw* contains is an Array of Tensor6. Each Tensor6 corresonds \n"
+       "*amp_mat_raw* is an Array of Tensor6. Each Tensor6 corresponds \n"
        "to one particle type and contains the amplitude matrix for all \n"
-       "defined in *f_grid* and all prpagation and scattering directions.\n"
+       "frequencies defined in *f_grid* and all prpagation and \n"
+       "scattering directions.\n" 
        "Furthermore it contains the grids where the data is stored on, i.e. \n"
        "*f_grid*, *scat_za_grid*, *scat_aa_grid*, *scat_za_grid* and \n"
-       "*scat_aa_grid*. These are stored in the first element in each dimension, \n"
-       "therefore the size of the frequency dimension for example is the number\n"
-       "of frequencies plus one. \n"
+       "*scat_aa_grid*. These are stored in the first element in each \n" 
+       "dimension, therefore the size of the frequency dimension for \n"
+       "example is the number of frequencies plus one. \n"
        "The amplitude matrix is a 2x2 complex matrix. The workspace variable\n"
-       "*amp_mat* stores the real and imaginary elements (i.e. 8 elements)\n"
-       "separately. \n" 
+       "*amp_mat_raw* stores the real and imaginary elements\n"
+       "(i.e. 8 elements) separately. \n" 
        "\n"
        "Usage: not clear yet \n"     
-       "\n "
+       "\n"
+       "Unit: m \n"
+       "\n"
        "Size: Array[N_pt] \n "
        "      [N_f+1, N_za+1, N_aa+1, N_za+1, N_aa+1, 8] \n"
        "Dimensions: Array [part_types] \n"
-       "      [f_grid, scat_za_grid, scat_aa_grid, scat_za_grid, \n"
-       "       scat_aa_grid, amplitude matrix element]\n"
+       "            [f_grid, scat_za_grid, scat_aa_grid, scat_za_grid, \n"
+       "             scat_aa_grid, amplitude matrix element]\n"
        "\n"
-       "Later the variable type has to be changed!!!! (when Array of Tensors \n"
+       "Later the variable type has to be changed!!!! (when Array of Tensors\n"
        "will be defined"
        ),
       GROUP( Tensor6_ )));
@@ -455,6 +488,33 @@ void define_wsv_data()
 	),
        GROUP(  Agenda_ )));
   
+wsv_data.push_back
+    (WsvRecord
+    ( NAME( "ext_mat" ),
+      DESCRIPTION
+      (
+       "Total extinction matrix.\n"
+       "\n"
+       "This variable contains the extinction coefficient matrix which \n"
+       "is used in the scattering RT calculation. It is \n"
+       "the physical extinction matrix which includes particles extinction \n"
+       "for all chosen particle types and gaseous extinction for all chosen \n"
+       "gaseous species.\n" 
+       "The matrix is calculated by the agenda *ext_mat_agenda* \n"
+       "The dimensision of the variable adapts to *stokes_dim*.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage:      Output of the agenda *ext_mat_agenda*. \n"
+       "\n"
+       "Unit:        m^2 \n"
+       "\n"
+       "Dimensions: [stokes_dim, stokes_dim]"
+       ),
+      GROUP( Matrix_ )));
+
   wsv_data.push_back
     (WsvRecord
     ( NAME( "ext_mat_spt" ),
@@ -511,7 +571,9 @@ void define_wsv_data()
        "cloudbox which is found by an iterative solution.\n"
        "More decription will be written (CE).\n"
        "\n"
-       "Usage: Input and output of *scat_mono_agenda* \n"    
+       "Usage: Input and output of *scat_mono_agenda*. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
        "              scat_aa_grid, stokes_dim ]"
@@ -530,6 +592,8 @@ void define_wsv_data()
        "More decription will be written (CE).\n"
        "\n"
        "Usage: Input of *i_fieldUpdate1D*. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
        "              scat_aa_grid, stokes_dim ]"
@@ -572,7 +636,24 @@ void define_wsv_data()
        ),
       GROUP( Vector_ )));
 
-  wsv_data.push_back
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "l_step" ),
+      DESCRIPTION
+      (
+       "The pathlegth through one grid cell/ layer.\n"
+       "\n"
+       "The pathlength is required in the methods for RT step calculations, \n"
+       "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
+       "It can be calculated using the *ppath_step_agenda*.\n"
+       "\n"
+       "Usage:      Calculated in *i_fieldUpdate1D*."
+       "\n"
+       "Unit:       m \n"
+       ),
+      GROUP( Numeric_ )));
+
+ wsv_data.push_back
    (WsvRecord
     ( NAME( "lat_grid" ),
       DESCRIPTION
@@ -792,6 +873,22 @@ void define_wsv_data()
        ),
       GROUP( Vector_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "planck_function" ),
+      DESCRIPTION
+      (
+       "The Planck function.\n"
+       "\n"
+       "The Planck function is used in the methods for RT step calculations, \n"
+       "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
+       "\n"
+       "Usage:      Calculated in *i_fieldUpdate1D*.\n"
+       "\n"
+       "Unit:       W\n "
+       ),
+      GROUP( Numeric_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "p_grid" ),
@@ -975,10 +1072,36 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Units:      degrees "
+       "Unit:       degrees "
        ),
       GROUP( Vector_ )));
 
+ wsv_data.push_back
+    (WsvRecord
+    ( NAME( "sca_vec" ),
+      DESCRIPTION
+      (
+       "Scattered field vector.\n"
+       "\n"
+       "This variable contains the scattered field vector which \n"
+       "is used in the scattering RT calculation. Physically it is the \n"
+       "amount of radiation which is scattered into the propagation \n"
+       "direction. \n"
+       "The vector is calculated by the agenda *sca_vec_agenda* \n"
+       "The dimensision of the variable adapts to *stokes_dim*.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\"\n"
+       "\n"
+       "Usage:      Output of the agenda *sca_int_agenda*. \n"
+       "\n"
+       "Unit:       W / (m^2 Hz sr) \n"
+       "\n"
+       "Dimensions: [stokes_dim]"
+       ),
+      GROUP( Vector_ )));
+ 
    wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_aa_index" ),
@@ -1009,7 +1132,9 @@ void define_wsv_data()
        "for all points inside the cloudbox. \n"
        "More decription will be written (CE).\n"
        "\n"
-       "Usage: Input of *i_fieldUpdate1D*. \n"    
+       "Usage: Input to *i_fieldUpdate1D*. \n"    
+       "\n"
+       "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
        "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
        "              scat_aa_grid, stokes_dim ]"
@@ -1023,9 +1148,9 @@ void define_wsv_data()
       (
        "Frequency index for scattering calculations. \n"
        "\n"
-       "The calculations inside the cloudbox are only done for one frequency.\n"
+       "The calculations inside the cloudbox are only done for one frequency\n"
        "at a time. Some methods used for scattering calculation require the \n"
-       "frequency. *f_index* holds the information, for which frequency the  \n"
+       "frequency. *f_index* holds the information, for which frequency the \n"
        "scattering calcultations are performed.\n"
        "\n"
        "Usage:      Output of *scat_mono_agenda*.\n"
@@ -1071,7 +1196,7 @@ void define_wsv_data()
        "Intensity field on cloudbox boundary (equal longitude surfaces).\n"
        "\n"
        "This variable gives the intensity field from all directions defined \n"
-       "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal \n"
+       "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal\n"
        "latitude surfaces of the boundary of the cloudbox, which is defined \n"
        "by the workspace variable *cloudbox_limits*. It contains all four \n"
        "components of the Stokes vector.\n"
@@ -1100,7 +1225,7 @@ void define_wsv_data()
        "Intensity field on cloudbox boundary (equal pressure surfaces).\n"
        "\n"
        "This variable gives the intensity field from all directions defined \n"
-       "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal \n"
+       "in *scat_aa_grid* and *scat_za_grid* on each grid point on the equal\n"
        "latitude surfaces of the boundary of the cloudbox, which is defined \n"
        "by the workspace variable *cloudbox_limits*. It contains all four \n"
        "components of the Stokes vector.\n"
@@ -1121,6 +1246,14 @@ void define_wsv_data()
        ),
       GROUP( Tensor7_ )));
 
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_rte_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
 
  wsv_data.push_back
    (WsvRecord
@@ -1140,7 +1273,7 @@ void define_wsv_data()
        "\n"
        "Usage:      Set by the user.\n"
        "\n"
-       "Units:      degrees "
+       "Unit:       degrees "
        ),
       GROUP( Vector_ )));
 
@@ -1213,6 +1346,21 @@ void define_wsv_data()
        "Usage:      Set by the user."
        ),
       GROUP( Index_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "stokes_vec" ),
+      DESCRIPTION
+      (
+       "The Stokes vector.\n"
+       "\n"
+       "The Stokes Vector is a 4 dimensional vector which stores the \n"
+       "Stokes components during the RT calculation, for example in the \n"
+       "methods *sto_vecGeneral* and *sto_vecScalar*. \n"
+       "\n"
+       "Usage:      Calculated internally."
+       ),
+      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord

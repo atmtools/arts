@@ -1,3 +1,36 @@
+2002-06-14  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-136
+
+	* src/methods.cc: Included methods for RT with scattering:
+	(stokes_vecGeneral) General computaion of the RTE, works for all 
+	Stokes dimensions.
+	(stokes_vecScalar) Special function which is more efficient for 
+	computing the scalar RTE.
+
+	* src/agendas.cc (scat_rte_agenda): Agenda to compute the RT inside
+	the cloudbox.
+
+	* src/workspace.cc: Included workspace variables for the methods
+	above:
+	- stokes_vec
+	- l_step
+	- planck_function
+	- ext_mat
+	- abs_vec
+	- sca_vec
+
+	* src/m_cloudbox.cc: (stokes_vecGeneral) and (stokes_vecScalar)
+	added. (i_fieldIterate) and (i_fieldUpdate1D) modified so that
+	(scat_rte_agenda) can be executed.
+
+	* doc/examples/i_field.arts: This example executes now
+	*ppath_step_agenda* and *scat_rte_agenda*).
+
+	* src/cloudbox.cc/h: No functions are left here at the moment.
+
+	* src/Makefile.am: Removed cloudbox.cc/h from arts_SOURCES.
+	
 2002-06-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-135

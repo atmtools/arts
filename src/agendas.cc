@@ -90,7 +90,7 @@ void define_agenda_data()
        OUTPUT(),
        INPUT()));
 
-  // FIXME: Input and Output mast be defined for ppath_step_agenda!
+ 
   agenda_data.push_back
     (AgRecord
      ( NAME( "ppath_step_agenda" ),
@@ -134,8 +134,8 @@ void define_agenda_data()
 	"The agenda performs only calculations to next crossing of a grid, all\n"
 	"other tasks must be performed by the calling method, with one\n"
 	"exception. If there is an intersection of a blackbody ground, the\n"
-	"calculations stop at this point. This is flagged by setting the\n"
-	"background field of *ppath_step*. Beside this, the calling method\n"
+	"calculations stop at this point. This is flagged by setting the\n" 
+	"background field of *ppath_step*. Beside this, the calling method\n" 
 	"must check if the starting point of the calculations is inside the \n"
 	"scattering box or below the ground level, and check if the last point\n"
 	"of the path has been reached. The starting point (the end furthest\n"
@@ -153,10 +153,33 @@ void define_agenda_data()
 	"For more information read the chapter on propagation paths in the\n"
 	"ARTS user guide.\n"
 	"\n"
-	"Usage:      Called from *ppathCalc*."
+	"Usage:             Called from *ppathCalc*."
+        "\n"
+        "Output: \n"    
+        "   ppath_step    : Variable which includes structure for the \n"
+        "                   propagation path step.\n"
+        "\n"
+        "Input: \n"
+        "   ppath_step    : Structure has to be initialized. \n"
+        "   atmosphere_dim: Atmospheric dimension (1-3).\n"
+        "   p_grid        : Pressure grid.\n"
+        "   lat_grid      : Latitude grid. \n"
+        "   lon_grid      : Longitude grid. \n"
+        "   z_field       : Geometrical altitudes.\n"
+        "   r_geoid       : Geoid radius. \n"
+        "   z_ground      : Altitude of the ground. \n"
+        "   blackbody_ground: Flag (1 if earth is treated as blackbody). \n"
 	),
-       OUTPUT(),
-       INPUT()));
+       OUTPUT(ppath_step_),
+       INPUT(ppath_step_,
+             atmosphere_dim_,
+             p_grid_,
+             lat_grid_,
+             lon_grid_,
+             z_field_,
+             r_geoid_,
+             z_ground_,
+             blackbody_ground_)));
 
   agenda_data.push_back
     (AgRecord
@@ -170,5 +193,46 @@ void define_agenda_data()
 	),
        OUTPUT(),
        INPUT()));
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "scat_rte_agenda" ),
+       DESCRIPTION
+       (
+       "Calculate the radiative transfer equation (RTE) with fixed scattering \n "
+       "integral.\n"
+       "\n"
+       "There are different possibilities to compute the RTE with a fixed value \n"
+       "for the scattering integral. These are implemented in the workspace \n"
+       "methods:"
+       "sto_vecGeneral: This method uses the Pade approximation to compute the \n"
+       "         matrix exponential function and a LU decomposition method \n"
+       "         to compute the matrix inverse. This method should not be \n"
+       "         used for the scalar RTE (if *stokes_dim* equals 1), as it\n"
+       "         is numerically not efficient in this case.\n" 
+       "sto_vecScalar: This method can only be used for the scalar RTE. It \n"
+       "         uses the standard exponential function and there is no need \n"
+       "         for a LU decomposition. That means that it is much more \n"
+       "         efficient for the computation of the scalar RTE. \n"
+       "\n"
+       "Output and Input:\n"
+       "   stokes_vec  : The Stokes vector. \n"
+       "\n"
+       "Input:\n"
+       "   ext_mat     : Extinction coefficient matrix.\n"
+       "   abs_vec     : Absorption coefficient vector. \n"
+       "   sca_vec     : Scattered field vector. \n"
+       "   l_step      : Pathlength through a grid cell/ layer.\n"
+       "   planck      : Planck function. \n"
+       "   stokes_dim  : Stokes dimension. \n"
+       ""
+	),
+       OUTPUT(stokes_vec_),
+       INPUT(ext_mat_,
+             abs_vec_,
+             sca_vec_,
+             l_step_,
+             planck_function_,
+             stokes_dim_)));
 
 }

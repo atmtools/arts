@@ -27,11 +27,11 @@ Main {
 
   #---< Absorption >-----------------------------------------------------------
 
-  MatrixSet( abs ) {
-     nrows = 5
-     ncols = 16
-     value = 0
-  }
+ # MatrixSet( abs ) {
+ #    nrows = 5
+ #    ncols = 16
+ #    value = 0
+ # }
 
 
 
@@ -157,13 +157,15 @@ Tensor6Set (i_field){
 VectorSet (part_types){
 	length = 3
 	value = 1
-	}	
- 
+	}
+	
 IndexSet ( scat_f_index ) {
 	value = 1
 	}	
 
-AgendaSet(ppath_step_agenda) { ppath_stepGeometric{} } 
+AgendaSet( ppath_step_agenda ) { ppath_stepGeometric{} } 
+
+AgendaSet( scat_rte_agenda ) { stokes_vecGeneral{} }
 
 i_fieldIterate{}
 

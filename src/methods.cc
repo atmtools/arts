@@ -833,8 +833,10 @@ void define_md_data()
          "calculates *i_field* inside the cloudbox.\n"
          "   " 
         ),
-	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_),
-	INPUT(ppath_step_agenda_, amp_mat_, cloudbox_limits_, scat_za_grid_, scat_aa_grid_, 
+	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, ext_mat_,
+               abs_vec_, sca_vec_, stokes_vec_, planck_function_, l_step_),
+	INPUT(ppath_step_agenda_, scat_rte_agenda_, amp_mat_, cloudbox_limits_,
+              scat_za_grid_, scat_aa_grid_, 
 	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, z_ground_,
 	      r_geoid_, f_grid_, scat_f_index_, part_types_, blackbody_ground_,
 	      stokes_dim_, atmosphere_dim_),
@@ -848,14 +850,17 @@ void define_md_data()
       ( NAME( "i_fieldUpdate1D" ),
 	DESCRIPTION
         (
-	 "Updates the i_field during the iteration. It performs the RT calculation \n"
-         "using a fixed value for the scattering integral stored in *scat_field*.\n"
+	 "Updates the i_field during the iteration. It performs the RT \n"
+         "calculation using a fixed value for the scattering integral stored \n"
+         "in *scat_field*.\n"
          "   " 
         ),
-	OUTPUT(i_field_, ppath_step_),
-	INPUT(ppath_step_agenda_, i_field_old_, amp_mat_, scat_field_, cloudbox_limits_, 
-	      scat_za_grid_, scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, t_field_,
-	      z_field_, z_ground_, r_geoid_, f_grid_, scat_f_index_, blackbody_ground_,
+	OUTPUT(i_field_, ppath_step_, stokes_vec_, ext_mat_, abs_vec_, sca_vec_,
+               planck_function_, l_step_),
+	INPUT(ppath_step_agenda_, scat_rte_agenda_, i_field_old_, amp_mat_,
+              scat_field_, cloudbox_limits_, scat_za_grid_, scat_aa_grid_,
+              p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, 
+              z_ground_, r_geoid_, f_grid_, scat_f_index_, blackbody_ground_,
 	      stokes_dim_),
 	GOUTPUT(),
 	GINPUT(),
@@ -1586,6 +1591,49 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+md_data.push_back     
+    ( MdRecord
+      ( NAME("stokes_vecGeneral"),
+	DESCRIPTION
+	(
+	 "Calculate vector radiative transfer with fixed scattering integral."
+         "\n"
+         "This function computes the radiative transfer for a thin layer.\n"
+         "It is a general function which works for both, the vector and the \n"
+         "scalar RTE. But for the scalar equation it is more efficient to \n"
+         "the method  *stokes_vecScalar*.\n"
+         "All coefficients and the scattered field vector are assumed to be\n"
+         "constant inside the grid cell/layer.\n"
+         "Then an \analytic solution can be found (see AUG for details).\n"
+	),
+	OUTPUT(stokes_vec_),
+	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, planck_function_,
+              stokes_dim_),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
+md_data.push_back     
+    ( MdRecord
+      ( NAME("stokes_vecScalar"),
+	DESCRIPTION
+	(
+	 "Calculate scalar radiative transfer with fixed scattering integral."
+         "\n"
+         "This function computes the radiative transfer for a thin layer. All\n"
+         "coefficients and the scattered field vector  are assumed to be \n"
+         "constant inside the grid cell/layer.\n"
+         "Then an \analytic solution can be found (see AUG for details).\n"
+	),
+	OUTPUT(stokes_vec_),
+	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, planck_function_,
+              stokes_dim_),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
 
   md_data.push_back     
     ( MdRecord

@@ -28,26 +28,5 @@
 #ifndef cloudbox_h
 #define cloudbox_h
 
-#include "matpackI.h"
+#endif //cloudbox_h
 
-void 
-sto_vecCalc(VectorView sto_vec,
-	    ConstMatrixView ext_mat,
-	    ConstVectorView abs_vec,
-	    ConstVectorView sca_vec,
-	    const Numeric& ds,
-	    const Numeric& B,
-	    const Index& stokes_dim);
-
-void 
-sto_vec1DCalc(VectorView sto_vec,
-	      ConstMatrixView ext_mat,
-	      ConstVectorView abs_vec,
-	      ConstVectorView sca_vec,
-	      const Numeric& ds,
-	      const Numeric& B,
-	      const Index& stokes_dim);
-
-
-#endif    // cloudbox_h
- 

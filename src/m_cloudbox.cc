@@ -25,7 +25,7 @@
 
 /*!
   \file   m_cloudbox.cc
-  \author Patrick Eriksson
+  \author Patrick Eriksson and Claudia Emde
   \date   2002-05-08 
 
   \brief  Workspace functions releated to the cloud box.
@@ -41,6 +41,7 @@
 
 #include <stdexcept>
 #include <iostream>
+#include <math.h>
 #include "arts.h"
 #include "array.h"
 #include "auto_md.h"
@@ -53,6 +54,7 @@
 #include "ppath.h"
 #include "agenda_class.h"
 #include "physics_funcs.h"
+#include "lin_alg.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -208,8 +210,16 @@ void CloudboxSetManually(
   \param i_field_old   Old intensity field.
   \param scat_field     Scattering integral at all grid points
                               inside the cloud box.
-  WS Input:
+  \param ext_mat       Extinction matrix.
+  \param abs_vec       Absorption vector.
+  \param sca_vec       Scattered field vector.
+  \param stokes_vec    Stokes vector.    
+  \param planck_function Planck function.
+  \param l_step        Pathlength step. 
+                            
+  WS Input:   
   \param ppath_step_agenda Agenda to compute a propagation path step.
+  \param scat_rte_agenda Agenda to compute the RTE.
   \param amp_mat       Amplitude matrix. 
   \param cloudbox_limits Limits of the cloudbox.
   \param scat_za_grid  Zenith angle grid inside the cloud box.
@@ -222,7 +232,8 @@ void CloudboxSetManually(
   \param z_ground      Ground altitude.
   \param r_geoid       Matrix containing geoids.
   \param f_grid        Frequency grid.
-  \param f_index       Frequency index.
+  \param scat_f_index  Frequency index.
+  \param part_types    Vector containing particle types.
   \param blackbody_ground Flag to treat ground as blackbody.
   \param stokes_dim    The number of Stokes components to be calculated.
   \param atmosphere_dim Atmospheric dimension.
@@ -234,8 +245,15 @@ i_fieldIterate(
 		    Ppath& ppath_step,
 		    Tensor6& i_field_old,
 		    Tensor6& scat_field,
+                    Matrix& ext_mat,
+                    Vector& abs_vec,
+                    Vector& sca_vec,
+                    Vector& stokes_vec,
+                    Numeric& planck_function,
+                    Numeric& l_step,
 		    // WS Input:
-		    const Agenda& ppath_step_agenda,
+                    const Agenda& ppath_step_agenda,
+                    const Agenda& scat_rte_agenda,
 		    const Tensor6& amp_mat,
 		    const ArrayOfIndex& cloudbox_limits,
 		    const Vector& scat_za_grid,
@@ -252,8 +270,8 @@ i_fieldIterate(
 		    const Vector& part_types,
 		    const Index& blackbody_ground,
 		    const Index& stokes_dim,
-		    const Index& atmosphere_dim
-		    )
+                    const Index& atmosphere_dim
+                    )
 {
   // Check the input
   
@@ -285,8 +303,12 @@ i_fieldIterate(
   //Update i_field.
   if( atmosphere_dim == 1 )
     {
-      i_fieldUpdate1D(i_field, ppath_step, ppath_step_agenda, i_field_old,
-		      amp_mat, scat_field,
+      i_fieldUpdate1D(//Output:
+                      i_field, ppath_step, stokes_vec, ext_mat, abs_vec, sca_vec,
+                      planck_function, l_step,
+                      //Input:
+                      ppath_step_agenda, scat_rte_agenda,
+                      i_field_old, amp_mat, scat_field,
 		      cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
 		      lat_grid, lon_grid, t_field, z_field, z_ground,
 		      r_geoid, f_grid, scat_f_index, blackbody_ground, 
@@ -313,8 +335,15 @@ i_fieldIterate(
   WS Output:
   \param i_field       Updated intensity field. 
   \param ppath_step    Propagation path step for RT calculation.
+  \param stokes_vec    Stokes vector.
+  \param ext_mat       Extinction matrix.
+  \param abs_vec       Absorption vector.
+  \param sca_vec       Scattered field vector.
+  \param planck_function Planck function.
+  \param l_step        Pathlength step.
   WS Input:
   \param ppath_step_agenda Agenda to compute a propagation path step.
+  \param scat_rte_agenda Agenda to compute the RTE.
   \param i_field_old   Old intensity field.
   \param amp_mat       Amplitude matrix. 
   \param scat_field     Scattering integral at all grid points
@@ -338,8 +367,15 @@ void
 i_fieldUpdate1D(// WS Output:
 		Tensor6& i_field,
 		Ppath& ppath_step,
+                Vector& stokes_vec,
+                Matrix& ext_mat,
+                Vector& abs_vec,
+                Vector& sca_vec,
+                Numeric& planck_function,
+                Numeric& l_step,
 		// WS Input:
 		const Agenda& ppath_step_agenda,
+                const Agenda& scat_rte_agenda,
 		const Tensor6& i_field_old,
 		const Tensor6& amp_mat,
 		const Tensor6& scat_field,
@@ -357,7 +393,7 @@ i_fieldUpdate1D(// WS Output:
 		const Index& scat_f_index,
 		const Index& blackbody_ground,
 		const Index& stokes_dim
-		)
+             	)
 {
 
   //Check the input
@@ -389,6 +425,7 @@ i_fieldUpdate1D(// WS Output:
 	  cout << "\n loop indices: \n";
 	  cout << "\n scat_za_index ---------"<< scat_za_index;
 	  cout << "\n p_index       ---------"<< p_index;
+          cout << "\n stokes_dim    ---------"<< stokes_dim;
 
 	  //Get the coefficients for the radiative transfer:
 	  
@@ -403,15 +440,24 @@ i_fieldUpdate1D(// WS Output:
 	  // dummy coefficients can be used.
 	  
 	  //extinction matrix
-	  Matrix ext_mat(4,4,3e-12);
-  
-	  //absorption vector
-	  Vector abs_vec(4,1e-14);
-	  
-	  //scattering integral vector;
-	  Vector sca_vec(4);
-	  
-	  //Extract sca_vec from sca_field.
+	  Matrix A(4,4,3e-12);
+          ext_mat.resize(stokes_dim, stokes_dim);
+          ext_mat = A;
+          
+          //absorption vector
+	  Vector b(4,1e-14);
+          abs_vec.resize(stokes_dim); 
+	  abs_vec = b;
+         
+          //scattering integral vector;
+	  Vector s(4,1);
+          sca_vec.resize(stokes_dim);
+          stokes_vec.resize(stokes_dim);
+
+          stokes_vec = s;
+          sca_vec = b;
+	 
+          //Extract sca_vec from sca_field.
 	  for (Index i = 0; i < stokes_dim; i++)
 	    {
 	      sca_vec[i] = scat_field(p_index, 0, 0,
@@ -421,9 +467,8 @@ i_fieldUpdate1D(// WS Output:
 
 	  //Generate Planck function.
 	  Numeric T = t_field(p_index, 0, 0);
-	  Numeric B;
 	  Numeric f = f_grid[scat_f_index];
-	  B = planck(f, T);
+	  planck_function = planck(f, T);
 
 	  //Initialize ppath for 1D.
 	  ppath_init_structure(ppath_step, 1, 1);
@@ -440,103 +485,177 @@ i_fieldUpdate1D(// WS Output:
 	  ppath_step.gp_p[0].fd[0] = 0;
 	  ppath_step.gp_p[0].fd[1] = 1;
 	  
-
-	  // Call ppath_step_agenda 
-	  // Check that the agenda takes te right input:
-
-	  if( !ppath_step_agenda.is_output(ppath_step_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must generate
-                                  ppathh_step as an output.");
-	    }
-
-	  if( !ppath_step_agenda.is_input(atmosphere_dim_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use atmosphere_dim
-                                   as an input.");
-	    }
-
-	  if( !ppath_step_agenda.is_input(p_grid_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use p_grid
-                                   as an input.");
-	    }
-	  
-	  if( !ppath_step_agenda.is_input(lat_grid_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must 
-                                   use lat_grid
-                                   as an input.");
-	    }
-	  
-	  if( !ppath_step_agenda.is_input(lon_grid_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must 
-                                   use lon_grid
-                                   as an input.");
-	    }
-
-	  if( !ppath_step_agenda.is_input(z_field_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must 
-                                   use z_field
-                                   as an input.");
-	    }
-	  
-	  if( !ppath_step_agenda.is_input(r_geoid_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must
-                                   use r_geoid
-                                   as an input.");
-	    }
-
-	  if( !ppath_step_agenda.is_input(z_ground_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must 
-                                   use z_ground
-                                   as an input.");
-	    }
-
-	  if( !ppath_step_agenda.is_input(blackbody_ground_) )
-	    {
-	      throw runtime_error("The agenda ppath_step_agenda must
-                                   use blackbody_ground
-                                   as an input.");
-	    }
-
-	  
-	  // Everything checked. Now call agenda.
-	  ppath_step_agenda.execute();
+	  // Call ppath_step_agenda: 
+          ppath_step_agenda.execute();
 	  
 	  // Check if the agenda has returned ppath.step with reasonable 
 	  // values. 
 	  cout << "\n ";
 	  PpathPrint( ppath_step, "ppath");
-	  
-	   Vector sto_vec(4);
-	  //Calculate vector radiative transfer if *stokes_dim* is greater
-	   //than 1.
-	  if (stokes_dim != 1 && stokes_dim <= 4){
-	    sto_vecCalc(sto_vec, ext_mat, abs_vec, sca_vec, 
-			   ppath_step.l_step[0], B, stokes_dim); 
-	  
-	  }
-	  //Calculate scalar radiative transfer if *stokes_dim* equals 1
-	  else if (stokes_dim == 1) {
-	    sto_vec1DCalc(sto_vec, ext_mat, abs_vec, sca_vec, 
-			   ppath_step.l_step[0], B, stokes_dim); 
-	  }
-	  else if (stokes_dim > 4) {
-	    throw runtime_error("The variable *stokes_dim* can not be greater
-                                 than 4.");
-	  }
+          
+          l_step = ppath_step.l_step[0];
+          
+          // Call scat_rte_agenda:
+          scat_rte_agenda.execute();
 
-	  // Assign claculated Stokes Vector to i_field. 
-	  i_field(p_index, 0, 0, scat_za_index, 0, Range(joker)) = sto_vec;
+	  // Assign calculated Stokes Vector to i_field. 
+	  i_field(p_index, 0, 0, scat_za_index, 0, Range(joker)) = stokes_vec;
   
 	  // Close all loops.
 	}
     }
+}
+
+
+
+//! Calculate vector radiative transfer with fixed scattering integral
+/*! 
+  This function computes the radiative transfer for a thin layer.
+  It is a general function which works for both, the vector and the scalar 
+  RTE. But for the scalar equation it is more efficient to use the method
+  *stokes_vecScalar*.
+  All coefficients and the scattered field vector are assumed to be constant
+  inside the grid cell/layer.
+  Then an analytic solution can be found (see AUG for details). 
+  
+  \param stokes_vec Output and Input: Stokes Vector after traversing a grid
+                 cell/layer. 
+  \param ext_mat Input: Extinction coefficient matrix.
+  \param abs_vec Input: Absorption coefficient vector.
+  \param sca_vec Input: Scattered field vector.
+  \param l_step  Input: Pathlength through a grid cell/ layer.
+  \param planck_function  Input: Planck function.
+  \param stokes_dim Input: Stokes dimension. 
+*/
+void
+stokes_vecGeneral(//WS Output and Input:
+               Vector& stokes_vec,
+               //WS Input:
+               const Matrix& ext_mat,
+               const Vector& abs_vec,
+               const Vector& sca_vec,
+               const Numeric& l_step,
+               const Numeric& planck_function,
+               const Index& stokes_dim)
+{ 
+  // Stokes dimension
+  assert(stokes_dim <= 4 && stokes_dim != 1);
+ 
+  // check, if ext_mat is quadratic
+  assert(is_size(ext_mat, stokes_dim, stokes_dim)); 
+  // check if the dimensions agree
+  assert(is_size(abs_vec, stokes_dim));
+  assert(is_size(sca_vec, stokes_dim));
+
+
+  //Initialize internal variables:
+
+  // Matrix LU used for LU decompostion and as dummy variable:
+  Matrix LU(stokes_dim, stokes_dim); 
+  ArrayOfIndex indx(stokes_dim); // index for pivoting information 
+  Vector b(stokes_dim); // dummy variable 
+  Vector x(stokes_dim); // solution vector for K^(-1)*b
+  Matrix I(stokes_dim, stokes_dim);
+
+  Vector B_abs_vec(stokes_dim);
+  B_abs_vec = abs_vec;
+  B_abs_vec *= planck_function; 
+  
+  for (Index i=0; i<stokes_dim; i++) 
+    b[i] = abs_vec[i] + sca_vec[i];  // b = abs_vec * B + sca_vec
+
+  // solve K^(-1)*b = x
+  ludcmp(LU, indx, ext_mat);
+  lubacksub(x, LU, b, indx);
+
+  Matrix ext_mat_ds(stokes_dim, stokes_dim);
+  ext_mat_ds = ext_mat;
+  ext_mat_ds *= -l_step; // ext_mat = -ext_mat*ds
+
+  Index q = 10;  // index for the precision of the matrix exponential function
+  Matrix exp_ext_mat(stokes_dim, stokes_dim);
+  matrix_exp(exp_ext_mat, ext_mat, q);
+
+  Vector term1(stokes_dim);
+  Vector term2(stokes_dim);
+  
+  id_mat(I);
+  for(Index i=0; i<stokes_dim; i++)
+    {
+      for(Index j=0; j<stokes_dim; j++)
+	LU(i,j) = I(i,j) - exp_ext_mat(i,j); // take LU as dummy variable
+    }
+  mult(term2, LU, x); // term2: second term of the solution of the RTE with
+                      //fixed scattered field
+
+  
+  mult(term1, exp_ext_mat, stokes_vec);// term1: first term of the solution of
+                                    // the RTE with fixed scattered field
+  
+  for (Index i=0; i<stokes_dim; i++) 
+    stokes_vec[i] = term1[i] + term2[i];  // Compute the new Stokes Vector
+
+    
+}
+
+
+
+//! Calculate scalar radiative transfer with fixed scattering integral
+/*! 
+  This function computes the radiative transfer for a thin layer.
+  All coefficients and the scattered field vector are assumed to be constant
+  inside the grid cell/layer.
+  Then an analytic solution can be found (see AUG for details). 
+  
+  \param stokes_vec Output and Input: Stokes Vector after traversing a grid
+                 cell/layer. 
+  \param ext_mat Input: Extinction coefficient matrix.
+  \param abs_vec Input: Absorption coefficient vector.
+  \param sca_vec Input: Scattered field vector.
+  \param l_step  Input: Pathlength through a grid cell/ layer.
+  \param planck_function  Input: Planck function.
+  \param stokes_dim Input: Stokes dimension.
+*/
+void
+stokes_vecScalar(//WS Input and Output:
+              Vector& stokes_vec,
+              //WS Input: 
+	      const Matrix& ext_mat,
+	      const Vector& abs_vec,
+	      const Vector& sca_vec,
+	      const Numeric& l_step,
+	      const Numeric& planck_function,
+	      const Index& stokes_dim)
+{ 
+  //Check if we really consider the scalar case.
+  assert(stokes_dim == 1);
+
+  // Check, if ext_mat is a scalar, i.e. 1x1 matrix
+  assert(is_size(ext_mat, stokes_dim, stokes_dim)); 
+  // Check, if  absorption coefficient and scattering coefficients   
+  // coefficients are 1 component vectors.                       
+  assert(is_size(abs_vec, stokes_dim)); 
+  assert(is_size(sca_vec, stokes_dim));
+
+  //Introduce scalar variables:
+  
+  //Extinction coefficient:
+  Numeric ext_coeff = ext_mat(0,0);
+  //Absorption coefficient:
+  Numeric abs_coeff = abs_vec[0];
+  //Scalar scattering integral:
+  Numeric sca_int1D = sca_vec[0];
+
+  //Intensity:
+  Numeric stokes_vec1D = stokes_vec[0];
+  
+  //Do a radiative transfer step calculation:
+  stokes_vec1D = stokes_vec1D * exp(-ext_coeff*l_step) + 
+    (abs_coeff*planck_function+sca_int1D) /
+    ext_coeff* (1-exp(-ext_coeff*l_step));
+ 
+  //Put the first component back into *sto_vec*:
+  stokes_vec[0] = stokes_vec1D;
 }
 		
 

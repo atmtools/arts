@@ -99,8 +99,6 @@ arts_SOURCES = \
 	logic.cc \
 	lin_alg.h\
 	lin_alg.cc\
-	cloudbox.h\
-	cloudbox.cc \
 	scatproperties.cc \
 	scatproperties.h
 
