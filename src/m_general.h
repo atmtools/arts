@@ -38,6 +38,7 @@
 
 #include <iostream>
 #include <sys/times.h>
+#include <stdexcept>
 #include "messages.h"
 #include "ppath.h"
 #include "special_interp.h"
