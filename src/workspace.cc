@@ -257,6 +257,14 @@ void define_wsv_data()
 
   //--------------------< RT Stuff >--------------------
   //                     ----------
+
+  wsv_data.push_back
+    (WsvRecord
+     ("z_tan",
+      "Tangent altitudes for the LOS [m]. \n"
+      "More info when updating the LOS functions.",  
+      VECTOR_));
+
   wsv_data.push_back
     (WsvRecord
      ("za_pencil",

@@ -162,6 +162,12 @@ These are the cross sections individually for each tag
 group. The ARRAY contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
+VARIABLE : z_tan
+DATA TYPE: VECTOR
+DESCRIPTION:
+Tangent altitudes for the LOS [m]. 
+More info when updating the LOS functions.
+
 VARIABLE : za_pencil
 DATA TYPE: VECTOR
 DESCRIPTION:

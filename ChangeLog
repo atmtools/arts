@@ -1,10 +1,13 @@
-2001-03-27  Stefan Buehler  <sbuehler@uni-bremen.de>
+2001-03-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-141
 
-	* doc/index.html.in: Updated link to Uguide. Added pdf version.
+	* workspace.cc: added a new workspace variable z_tan so a set
+	of tangent altitudes can be specified as input for a given 
+	LOS geometry. Now both z_tan and za_pencil can be used to 
+	define the geometry. Requires changes in LOS functions, 
+	to follow.
 
-	
 2001-03-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-140
