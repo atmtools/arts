@@ -1,3 +1,14 @@
+2003-01-09  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-369
+	
+	* src/xml_io.cc: Moved xml class declarations to xml_io_private.h.
+
+	Reimplemented String and SpeciesTag reading routines to improve error
+	and whitespace handling.
+
+	* src/xml_io_private.h: Moved xml class declarations here.
+
 2003-01-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-368	
