@@ -1,3 +1,10 @@
+2003-07-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-102
+
+	* src/continua.cc: Fixed bug found by Axel. Convert literals to
+	Numeric in pow calls to avoid gcc confusion with float compilation.
+
 2003-07-23  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-101
