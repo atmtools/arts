@@ -1,5 +1,16 @@
 2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-259
+	
+	* doc/uguide/arts_methods_to_latex.sh: Use typewriter font instead
+	of verbatim environment to allow automatic linebreaks.
+
+	* doc/uguide/Makefile.am (uguide_pdf.pdf): Added dependency from
+	autotexfiles.
+	Don't redirect output to /dev/null.
+
+2002-10-14  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-258
 	
 	* doc/uguide/arts_methods_to_latex.sh: Added missing backslash in
