@@ -90,11 +90,17 @@ void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );
 
+void gridpos_check_fd( GridPos&   gp );
+
+void gridpos_force_end_fd( GridPos&   gp );
+
+bool is_gridpos_at_index_i(  
+       const GridPos&   gp,
+       const Index&     i );
+
 Index gridpos2gridrange(
        const GridPos&   gp,
        const bool&      upwards );
-
-void gridpos_check_fd( GridPos&   gp );
 
 
 

@@ -59,23 +59,18 @@ extern const Numeric RAD2DEG;
  *** Functions related to geometrical propagation paths
  *****************************************************************************/
 
-//! geometrical_tangent_radius
+//! geometrical_ppc
 /*! 
-   Calculates the radius of the geometrical tangent point. 
+   Calculates the propagation path constant for pure geometrical calculations.
 
-   If the zenith angle is smaller than 90 degrees, the tangent point is 
-   an imaginary point behind the sensor.
-
-   Positive and negative zenith angles are handled.
-
-   \return         The tangent point radius.
-   \param   r      The radius of the sensor position.
-   \param   za     The zenith angle of the sensor line-of-sight.
+   \return         Path constant.
+   \param   r      Radius of the sensor position.
+   \param   za     Zenith angle of the sensor line-of-sight.
 
    \author Patrick Eriksson
    \date   2002-05-17
 */
-Numeric geometrical_tangent_radius( const Numeric& r, const Numeric& za )
+Numeric geometrical_ppc( const Numeric& r, const Numeric& za )
 {
   assert( r > 0 );
   assert( fabs(za) <= 180 );
@@ -92,30 +87,31 @@ Numeric geometrical_tangent_radius( const Numeric& r, const Numeric& za )
    For downlooking cases, the two points must be on the same side of 
    the tangent point.
 
-   Positive and negative zenith angles are handled.
+   Both positive and negative zenith angles are handled.
 
-   \return         The zenith angle at the second point.
-   \param   r0     The radius of the starting point.
-   \param   za0    The zenith angle of the starting point.
-   \param   r      The radius of the second point.
+   \return         Zenith angle at the point of interest.
+   \param   ppc    Propagation path constant.
+   \param   a_za   A zenith angle along the path on the same side of the 
+                   tangent point as the point of interest.  
+   \param   r      Radius of the point of interest.
 
    \author Patrick Eriksson
    \date   2002-05-17
 */
 Numeric geompath_za_at_r(
-       const Numeric&   r_tan,
+       const Numeric&   ppc,
        const Numeric&   a_za,
        const Numeric&   r )
 {
-  assert( r_tan > 0 );
+  assert( ppc >= 0 );
   assert( fabs(a_za) <= 180 );
-  assert( r >= r_tan );
+  assert( r >= ppc );
   Numeric za;
-  za = RAD2DEG * asin( r_tan / r );
+  za = RAD2DEG * asin( ppc / r );
   if( fabs(a_za) > 90 )
-    za = 180 - za;
+    { za = 180 - za; }
   if( a_za < 0 )
-    za = -za;
+    { za = -za; }
   return za;
 }
 
@@ -146,9 +142,9 @@ Numeric geompath_lat_at_za(
   assert( (za0>=0&&za>=0) || (za0<0&&za<0) );
   const Numeric dlat = za0 - za;
   if( za0 > 0 )
-    return lat0 + dlat;
+    { return lat0 + dlat; }
   else
-    return lat0 - dlat;
+    { return lat0 - dlat; }
 }
 
 
@@ -160,22 +156,22 @@ Numeric geompath_lat_at_za(
    The tangent point is either real or imaginary depending on the zenith
    angle of the sensor. See geometrical_tangent_radius.
 
-   \return         The length along the path from the tangent point.
-   \param   r_tan  Tangent radius
-   \param   r      The radius of the point of concern.
+   \return         Length along the path from the tangent point.
+   \param   ppc    Propagation path constant.
+   \param   r      Radius of the point of concern.
 
    \author Patrick Eriksson
    \date   2002-05-20
 */
 Numeric geompath_l_at_r(
-       const Numeric&   r_tan,
+       const Numeric&   ppc,
        const Numeric&   r )
 {
-  assert( r_tan > 0 );
-  assert( r >= r_tan );
+  assert( ppc >= 0 );
+  assert( r >= ppc );
   
   // Double is hard-coded here to improve accuracy
-  double a=r_tan*r_tan, b=r*r;
+  double a=ppc*ppc, b=r*r;
 
   return sqrt( b - a );
 }
@@ -189,22 +185,22 @@ Numeric geompath_l_at_r(
    The tangent point is either rwal or imaginary depending on the zenith
    angle of the sensor. See geometrical_tangent_radius.
 
-   \return         The radius. 
-   \param   r_tan  Tangent radius
-   \param   l      The length from the tangent point.
+   \return         Radius. 
+   \param   ppc    Propagation path constant.
+   \param   l      Length from the tangent point.
 
    \author Patrick Eriksson
    \date   2002-05-20
 */
 Numeric geompath_r_at_l(
-       const Numeric&   r_tan,
+       const Numeric&   ppc,
        const Numeric&   l )
 {
-  assert( r_tan > 0 );
+  assert( ppc >= 0 );
   assert( l >= 0 );
   
   // Double is hard-coded here to improve accuracy
-  double a=r_tan*r_tan, b=l*l;
+  double a=ppc*ppc, b=l*l;
 
   return sqrt( b + a );
 }
@@ -247,7 +243,9 @@ void angle_after_ground_1D( Numeric& za )
    Initiates a Ppath structure to hold the given number of points.
 
    All fields releated with the ground, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0.
+   to 0 or empty. The background field is set to background case 0. The
+   constant field is set to -1. The refraction field is set to 0.
+
    The length of the l_step field can be adjusted with the lstep_offset
    argument.
 
@@ -271,6 +269,9 @@ void ppath_init_core(
 
   ppath.dim        = atmosphere_dim;
   ppath.np         = np;
+  ppath.refraction = 0;
+  ppath.method     = "-";
+  ppath.constant   = -1;   
   if( atmosphere_dim < 3 )
     {
       ppath.pos.resize( np, 2 );
@@ -284,10 +285,13 @@ void ppath_init_core(
     }
   ppath.gp_p.resize( np );
   if( atmosphere_dim >= 2 )
-      ppath.gp_lat.resize( np );
+    { ppath.gp_lat.resize( np ); }
   ppath.p.resize( np );
   ppath.z.resize( np );
-  ppath.l_step.resize( np + lstep_offset );
+  if( (np + lstep_offset) > 0 )
+    { ppath.l_step.resize( np + lstep_offset ); }
+  else
+    { ppath.l_step.resize( 0 ); }
   ppath_set_background( ppath, 0 );
   ppath.ground     = 0;
   ppath.i_ground   = 0;
@@ -303,7 +307,9 @@ void ppath_init_core(
    Initiates a Ppath structure to hold the given number of points.
 
    All fields releated with the ground, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0.
+   to 0 or empty. The background field is set to background case 0. The
+   constant field is set to -1. The refraction field is set to 0.
+
    The length of the l_step field is here set to np-1.
 
    \param   ppath            Output: A Ppath structure.
@@ -328,7 +334,9 @@ void ppath_init_structure(
    Initiates a Ppath structure to hold the given number of points.
 
    All fields releated with the ground, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0.
+   to 0 or empty. The background field is set to background case 0. The
+   constant field is set to -1. The refraction field is set to 0.
+
    The length of the l_step field is here set to np.
 
    \param   ppath            Output: A Ppath structure.
@@ -416,15 +424,15 @@ Index ppath_what_background(
 	      Ppath&      ppath )
 {
   if( ppath.background == "" )
-    return 0;
+    { return 0; }
   else if( ppath.background == "space" )
-    return 1;
+    { return 1; }
   else if( ppath.background == "blackbody ground" )
-    return 2;
+    { return 2; }
   else if( ppath.background == "cloud box surface" )
-    return 3;
+    { return 3; }
   else if( ppath.background == "cloud box interior" )
-    return 4;
+    { return 4; }
   else
     {
       ostringstream os;
@@ -545,13 +553,13 @@ void ppath_start_stepping(
 	  ppath.z[0]     = ppath.pos(0,0) - r_geoid(0,0);
      
 	  // Is the sensor on the ground looking down?
-	  if( ppath.pos(0,1) < r_ground  &&  ppath.los(0,0) > 90 )
+	  if( ppath.pos(0,0) <= r_ground  &&  ppath.los(0,0) > 90 )
 	    {
 	      angle_after_ground_1D( ppath.los(0,0) );
 	      ppath.ground = 1;
 	      ppath.i_ground = 0;
 	      if( blackbody_ground )
-		ppath_set_background( ppath, 2 );
+		{ ppath_set_background( ppath, 2 ); }
 	    }
 
 	  // Check sensor position with respect to cloud box, if activated
@@ -561,9 +569,7 @@ void ppath_start_stepping(
 	      // Is the sensor inside the cloud box?
 	      if( ppath.z[0] > z_field(cloudbox_limits[0],0,0)  && 
 		                 ppath.z[0] < z_field(cloudbox_limits[1],0,0) )
-		{
-		  ppath_set_background( ppath, 4 );
-		}
+		{ ppath_set_background( ppath, 4 ); }
 
 	      // Is the sensor on the surface of cloud box and looks into box?
 	      if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
@@ -581,7 +587,7 @@ void ppath_start_stepping(
       else
 	{
 	  // Radius of tangent point
-	  const Numeric r_tan = geometrical_tangent_radius(a_pos[0],a_los[0]);
+	  const Numeric r_tan = geometrical_ppc( a_pos[0], a_los[0] );
  
 	  // Path is above the atmosphere
 	  if( a_los[0] <= 90  ||  r_tan  >= r_top )
@@ -604,10 +610,10 @@ void ppath_start_stepping(
       // Get grid positions and pressure for the end point, if there is one.
       if( ppath.np == 1 )
 	{
-	  // Pressure
 	  gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z );
 	  Matrix itw( 1, 2 );
 	  interpweights( itw, ppath.gp_p );
+      // !!!!! Interpolation must be changed
 	  interp( ppath.p[Range(joker)], itw, p_grid, ppath.gp_p );
 	}
     }  // End 1D
@@ -677,22 +683,29 @@ void ppath_step_1d_geom(
   // Start and end point mean here the point where the calculations start and
   // end (which is the reversed order compared to definition of a path).
 
-  // Extract starting radius and zenith angle
-  const Numeric r_start  = ppath.pos(imax,0);
-  const Numeric za_start = ppath.los(imax,0);
+  // Extract starting radius, zenith angle and latitude
+  const Numeric r_start   = ppath.pos(imax,0);
+  const Numeric lat_start = ppath.pos(imax,1);
+  const Numeric za_start  = ppath.los(imax,0);
 
   // More asserts, checking not at any end point of grid and looks out etc.
-  assert( !( ppath.gp_p[imax].idx == 0 && za_start > 90 ) );
-  assert( !( ppath.gp_p[imax].idx == (p_grid.nelem()-2) && 
-                               ppath.gp_p[imax].fd[0]==1 && za_start <= 90 ) );
   assert( r_start >= r_geoid + z_ground );
+  assert( r_start <= r_geoid + last( z_grid ) );
+  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 ) &&  za_start > 90 ));
+  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], p_grid.nelem() - 1 )  && 
+                                                            za_start <= 90 ) );
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { ppc = geometrical_ppc( r_start, za_start ); }
+  else
+    { ppc = ppath.constant; }
 
   // Determine index of the pressure surface being the lower limit for the
   // pressure grid step of interest.
   const Index ilow = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
-
-  // Tangent radius 
-  Numeric r_tan = geometrical_tangent_radius( r_start, za_start );
 
   // Get end/lowest radius of the path step (r_end) and check:
   // if a tangent point is passed
@@ -700,7 +713,7 @@ void ppath_step_1d_geom(
   Numeric r_end;
   bool    tanpoint = false, ground = false;
   if( za_start <= 90 )
-    r_end = r_geoid + z_grid[ ilow + 1 ];
+    { r_end = r_geoid + z_grid[ ilow + 1 ]; }
   else
     {
       // Ground radius
@@ -715,17 +728,18 @@ void ppath_step_1d_geom(
 	  ground_is_low = true;
 	}
 
-      // Looking down but not crossing r_lower
-      if( r_tan >= r_lowest )
+      // Looking down but not crossing r_lower. Note that ppc
+      // here equals the tangent radius.
+      if( ppc >= r_lowest )
 	{
-	  r_end = r_tan;
+	  r_end = ppc;
 	  tanpoint = true;
 	}
       else
 	{
 	  r_end = r_lowest;
 	  if( r_ground == r_lowest )
-	    ground = true;
+	    { ground = true; }
 	}
     }
 
@@ -747,7 +761,7 @@ void ppath_step_1d_geom(
       // If the starting point is not at the upper pressure surface, that 
       // surface must be put in as last radius.
       if( r_start == r_geoid + z_grid[ ilow + 1 ] )
-	rs.resize(3);
+	{ rs.resize(3); }
       else
 	{
 	  rs.resize(4);
@@ -767,10 +781,11 @@ void ppath_step_1d_geom(
   // 
   for( Index i=0; i<rs.nelem(); i++ )
     {
-      ls[i] = geompath_l_at_r( r_tan, rs[i] );
+      ls[i] = geompath_l_at_r( ppc, rs[i] );
       if( i > 0 )
 	{
-	  ns[i-1] = Index( ceil( (ls[i]-ls[i-1]) / lmax ) );
+	  // The absolute value of the length distance is needed here
+	  ns[i-1] = Index( ceil( fabs(ls[i]-ls[i-1]) / lmax ) );
 	  np   += ns[i-1];
 	}
     }
@@ -778,34 +793,59 @@ void ppath_step_1d_geom(
   // If np is 0, something has gone wrong
   assert( np > 0 ); 
 
-  // Re-allocate ppath for return results
+  // Re-allocate ppath for return results and put in some variables
   ppath_partial_init_structure(  ppath, atmosphere_dim, np );
+  //
+  ppath.method     = "1D basic geometrical";
+  ppath.refraction = 0;
+  ppath.constant   = ppc;
 
-  // Go from one radius to next and calculate radii, zenith angles etc.
+  // Go from one radius to next and calculate radii, zenith angles etc. and
+  // fill the return structure.
   //
   np = 0;   // Now used as counter for points done
   //
+  // Any angle valid for the path on the present side of the tangent point. 
+  Numeric a_za = za_start; 
+  //
+  // A reference zenith angle and latitude for the calculation of latitudes.
+  // This solution is needed as there is a step in the zenith angles at ground
+  // reflections.
+  Numeric za_lat0 = za_start;
+  Numeric lat0    = lat_start;
+  //
   for( Index i=0; i<ns.nelem(); i++ )
     {
+      // Note that dl is allowed to be negative
       Numeric dl   = ( ls[i+1] - ls[i] ) / ns[i]; 
       Numeric dz   = z_grid[ilow+1] - z_grid[ilow];
-      Numeric a_za = za_start;   // A zenith angle valid for the path on the
-                                 // present side of the tangent point
+
       for( Index j=1; j<=ns[i]; j++ )
 	{
-	  ppath.pos(np,0)      = geompath_r_at_l( r_tan, ls[i]+dl*j );
-	  ppath.z[np]          = ppath.pos(np,0) - r_geoid;
+	  ppath.pos(np,0)  = geompath_r_at_l( ppc, ls[i]+dl*j );
+	  ppath.z[np]      = ppath.pos(np,0) - r_geoid;
+          ppath.l_step[np] = fabs( dl );
+          ppath.los(np,0)  = geompath_za_at_r( ppc, a_za, ppath.pos(np,0) );
+	  a_za             = ppath.los(np,0);
+          ppath.pos(np,1)  = geompath_lat_at_za( za_lat0, lat0, a_za );
+
+	  // Calculate grid position. Things to consider:
+	  // Rounding errors can give fd-values below 0 or above 1, and the
+	  // last point must have a fd-value of exactly 0 and 1, if not ending
+	  // at a blackbody ground.
           ppath.gp_p[np].idx   = ilow;
 	  ppath.gp_p[np].fd[0] = ( ppath.z[np] - z_grid[ilow] ) / dz;
-	  if( i == (ns.nelem()-1)  &&  j == ns[i] )
-	    ppath.gp_p[np].fd[0] = rint( ppath.gp_p[np].fd[0] );
 	  ppath.gp_p[np].fd[1] = 1 - ppath.gp_p[np].fd[0];
-          //gridpos_check_fd( ppath.gp_p[np] );
-          ppath.l_step[np]     = dl;
-          ppath.los(np,0)      = geompath_za_at_r( r_tan, a_za, 
-                                                             ppath.pos(np,0) );
+          gridpos_check_fd( ppath.gp_p[np] );
+	  if( i == (ns.nelem()-1)  &&  j == ns[i]  && 
+                                              !( ground && blackbody_ground ) )
+	    { gridpos_force_end_fd( ppath.gp_p[np] ); }
+
 	  np ++;
 	}
+
+      // Put in pressure
+      /* To be fixed */      
 
       // Handle tangent points
       if( i==0 )
@@ -814,18 +854,23 @@ void ppath_step_1d_geom(
 	    {
 	      ppath.symmetry   = 1;
 	      ppath.i_symmetry = np - 1;
-              ppath.tan_pos.resize(1);
-	      ppath.tan_pos[0] = r_tan;
+              ppath.tan_pos.resize(2);
+	      ppath.tan_pos[0] = ppc;
+	      ppath.tan_pos[1] = geompath_lat_at_za( za_start, lat_start, 90 );
 	      a_za = 80;   // Any value below 90 degrees is OK
 	    }
 	  else if( ground )
 	    {
-	      // Re-calculate last zenith angle
-	      angle_after_ground_1D( ppath.los(np-1,0) );
-	      a_za = ppath.los(np-1,0);
+	      // Only a_za must be set to the zenith angle after ground 
+              // reflection. As the zenith angle shall be valid for the path
+	      // when leaving the point, the value in ppath.los is correct.
+	      a_za    = ppath.los(np-1,0);
+	      angle_after_ground_1D( a_za );
+	      za_lat0 = a_za;
+	      lat0    = ppath.pos(np-1,1);
 
 	      if( blackbody_ground )
-		ppath_set_background( ppath, 2 );
+		{ ppath_set_background( ppath, 2 ); }
 	      else
 		{
 		  ppath.symmetry   = 1;

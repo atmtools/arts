@@ -219,7 +219,6 @@ void ppathCalc(
                         lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
                         cloudbox_on, cloudbox_limits, a_pos, a_los );
 
-
   // Perform propagation path steps until the starting point is found, which
   // is flagged by ppath_step by setting the background field.
   //
@@ -244,26 +243,23 @@ void ppathCalc(
                     z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
                                                      blackbody_ground, 999e3 );
 
+      // Number of points in returned path step
       const Index n = ppath_partial.np;
 
+      // Increase the total number
       np += n;
 
       // Put new ppath_partial in ppath_array
       ppath_array.push_back( ppath_partial );
 
-      // At what pressure level are we?
-      const Index ip = Index( rint( Numeric(ppath_partial.gp_p[n-1].idx) + 
-                                             ppath_partial.gp_p[n-1].fd[0] ) );
-
       // Check if the top of the atmosphere is reached
-      if( ip == imax_p )
-	ppath_set_background( ppath_partial, 1 );
+      if( is_gridpos_at_index_i( ppath_partial.gp_p[n-1], imax_p ) )
+	{ ppath_set_background( ppath_partial, 1 ); }
 
       // Check that path does not exit at a latitude or longitude end face
       if( atmosphere_dim >= 2 )
 	{
-	  if( ( Numeric(ppath_partial.gp_lat[n-1].idx) +
- 		                       ppath_partial.gp_lat[n-1].fd[0] ) == 0 )
+	  if( is_gridpos_at_index_i( ppath_partial.gp_lat[n-1], 0 ) )
 	    {
 	      ostringstream os;
 	      os << "The path enters the atmosphere through the lower latitude"
@@ -271,7 +267,7 @@ void ppathCalc(
                  << " km.";
 	      throw runtime_error( os.str() );
 	    }
-	  if( ppath_partial.gp_lat[n-1].idx == imax_lat )
+	  if( is_gridpos_at_index_i( ppath_partial.gp_lat[n-1], imax_lat ) )
 	    {
 	      ostringstream os;
 	      os << "The path enters the atmosphere through the upper latitude"
@@ -282,8 +278,7 @@ void ppathCalc(
 
 	  if( atmosphere_dim == 3 )
 	    {
-	      if( ( Numeric(ppath_partial.gp_lon[n-1].idx) +
-		                       ppath_partial.gp_lon[n-1].fd[0] ) == 0 )
+	      if( is_gridpos_at_index_i( ppath_partial.gp_lon[n-1], 0 ) )
 		{
 		  ostringstream os;
 		  os << "The path enters the atmosphere through the lower " 
@@ -291,7 +286,7 @@ void ppathCalc(
 		     << ppath_partial.z[n-1]/1e3 << " km.";
 		  throw runtime_error( os.str() );
 		}
-	      if( ppath_partial.gp_lon[n-1].idx == imax_lon )
+	      if( is_gridpos_at_index_i( ppath_partial.gp_lon[n-1], imax_lon ))
 		{
 		  ostringstream os;
 		  os << "The path enters the atmosphere through the upper "
@@ -305,23 +300,28 @@ void ppathCalc(
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
 	{
-	  if( ppath_partial.gp_p[n-1].idx >= cloudbox_limits[0]  &&
-	           ( Numeric(ppath_partial.gp_p[n-1].idx) + 
-                         ppath_partial.gp_p[n-1].fd[0]) <= cloudbox_limits[1] )
+	  if( is_gridpos_at_index_i( ppath_partial.gp_p[n-1], 
+                                                         cloudbox_limits[0] )
+                                      &&
+              is_gridpos_at_index_i( ppath_partial.gp_p[n-1], 
+                                                         cloudbox_limits[1] ) )
 	    {
 	      if( atmosphere_dim == 1 )
-		ppath_set_background( ppath_partial, 3 );
-	      else if( ppath_partial.gp_lat[n-1].idx >= cloudbox_limits[2]  &&
-	              ( Numeric(ppath_partial.gp_lat[n-1].idx) + 
-                        ppath_partial.gp_lat[n-1].fd[0]) <= cloudbox_limits[3] )
+		{ ppath_set_background( ppath_partial, 3 ); }
+	      else if( is_gridpos_at_index_i( ppath_partial.gp_lat[n-1],
+                                                         cloudbox_limits[2] )
+                                      &&
+                       is_gridpos_at_index_i( ppath_partial.gp_lat[n-1],
+                                                         cloudbox_limits[3] ) )
 		{
 		  if( atmosphere_dim == 2 )
-		    ppath_set_background( ppath_partial, 3 );
-		  else if ( ppath_partial.gp_lon[n-1].idx >= cloudbox_limits[4]
-                                &&
-	              ( Numeric(ppath_partial.gp_lon[n-1].idx) + 
-                       ppath_partial.gp_lon[n-1].fd[0]) <= cloudbox_limits[5] )
-		    ppath_set_background( ppath_partial, 3 );
+		    { ppath_set_background( ppath_partial, 3 ); }
+		  else if( is_gridpos_at_index_i( ppath_partial.gp_lon[n-1],
+                                                         cloudbox_limits[4] )
+                                      &&
+                           is_gridpos_at_index_i( ppath_partial.gp_lon[n-1],
+                                                         cloudbox_limits[5] ) )
+		    { ppath_set_background( ppath_partial, 3 ); }
 		}
 	    }
 	}
@@ -343,7 +343,7 @@ void ppathCalc(
 	  ppath.p[ Range(np,n) ]                 = ppath_array[i].p;
 	  ppath.z[ Range(np,n) ]                 = ppath_array[i].z;
 	  if( i > 0 )
-	    ppath.l_step[ Range(np-1,n) ]     = ppath_array[i].l_step;
+	    { ppath.l_step[ Range(np-1,n) ]      = ppath_array[i].l_step; }
 	  for( Index j=0; j<n; j++ )
 	    {
 	      ppath.gp_p[np+j]                = ppath_array[i].gp_p[j];
@@ -364,7 +364,10 @@ void ppathCalc(
 	      ppath.i_ground                  = np + ppath_array[i].i_ground;
 	    }
 	  if( ppath_array[i].tan_pos.nelem() )
-	    ppath.tan_pos                     = ppath_array[i].tan_pos;
+	    {
+	      ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
+	      ppath.tan_pos                   = ppath_array[i].tan_pos; 
+	    }
 	  if( ppath_array[i].symmetry )
 	    {
 	      ppath.symmetry                  = ppath_array[i].symmetry;
@@ -373,18 +376,20 @@ void ppathCalc(
 	  np += n;
 	}
     }  
+  ppath.method     = ppath_partial.method;
+  ppath.refraction = ppath_partial.refraction;
+  ppath.constant   = ppath_partial.constant;
   ppath.background = ppath_partial.background;
+
 
   // Print the structure
   if( 1 )
     {
       PrintIndex( ppath.dim, "dim" );
       PrintIndex( ppath.np, "np" );
-      PrintMatrix( ppath.pos, "pos" );
-      PrintVector( ppath.p, "p" );
-      PrintVector( ppath.z, "z" );
-      PrintVector( ppath.l_step, "l_step" );
-      PrintMatrix( ppath.los, "los" );
+      PrintString( ppath.method, "method" );
+      PrintIndex( ppath.refraction, "refraction" );
+      PrintNumeric( ppath.constant, "constant" );
       PrintString( ppath.background, "background" );
       PrintIndex( ppath.ground, "ground" );
       if( ppath.ground )
@@ -394,6 +399,11 @@ void ppathCalc(
         PrintIndex( ppath.i_symmetry, "i_symmetry" );
       if( ppath.tan_pos.nelem() )
 	PrintVector( ppath.tan_pos, "tan_pos" );
+      PrintMatrix( ppath.pos, "pos" );
+      //PrintVector( ppath.p, "p" );
+      PrintVector( ppath.z, "z" );
+      PrintVector( ppath.l_step, "l_step" );
+      PrintMatrix( ppath.los, "los" );
     }
 }
 
@@ -430,7 +440,6 @@ void sensor_posAddGeoidWGS84(
   // dimensionality set to 2, and the latitudes of concern are put into 
   // the latitude grid. An extra dummy value is needed if there is only one 
   // position in *sensor_pos*.
-
 
   if( atmosphere_dim == 1 )
     {

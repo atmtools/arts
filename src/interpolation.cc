@@ -322,6 +322,99 @@ void gridpos( ArrayOfGridPos& gp,
 }
 
 
+
+//! gridpos_check_fd
+/*!
+   Checks that the fractional distances have a value in the range [0,1].
+
+   This function can be used when you are sure that the fractional distances
+   have been calculated correctly, but the limited numerical precision can
+   give values below 0 or above 1.
+
+   \param   gp     Output: Grid position structure.
+
+   \author Patrick Eriksson
+   \date   2002-05-21
+*/
+void gridpos_check_fd( GridPos&   gp )
+{
+  if( gp.fd[0] < 0 )
+    { gp.fd[0] = 0; }
+  else if( gp.fd[0] > 1 )
+    { gp.fd[0] = 1; }
+
+  if( gp.fd[1] < 0 )
+    { gp.fd[1] = 0; }
+  else if( gp.fd[1] > 1 )
+    { gp.fd[1] = 1; }
+}
+
+
+
+//! gridpos_force_end_fd
+/*!
+   Forces that the fractional distances are set to 0 or 1.
+
+   This function can be called when it is known that a position is exactly
+   on a grid point. The fractional distance of the grid position is then
+   0 or 1, but rounding errors can give a slightly deviating value.
+
+   The difference between this function and gridpos_check_fd is that this
+   function is only applicable for end points, while the other function can
+   be called for every point.
+
+   The input fractional distances are not allowed to deviate freom 0 and 1
+   with more than 1e-6.
+
+   \param   gp     Output: Grid position structure.
+
+   \author Patrick Eriksson
+   \date   2002-05-22
+*/
+void gridpos_force_end_fd( GridPos&   gp )
+{
+  if( gp.fd[0] < 0.5 )
+    {
+      assert( fabs( gp.fd[0] ) <= 1e-6 );
+      assert( fabs(gp.fd[1] -1 ) <= 1e-6 );
+      gp.fd[0] = 0;
+      gp.fd[1] = 1;
+    }
+  else
+    {
+      assert( fabs( gp.fd[1] ) <= 1e-6 );
+      assert( fabs(gp.fd[0] -1 ) <= 1e-6 );
+      gp.fd[0] = 1;
+      gp.fd[1] = 0;
+    }    
+}
+
+
+
+//! is_gridpos_at_index_i
+/*!
+   Determines if a grid position is at a given grid index.
+
+   \return         True if at index i, else false.
+   \param   gp     Grid position structure.
+   \param   i      The grid index of interest.
+
+   \author Patrick Eriksson
+   \date   2002-05-22
+*/
+bool is_gridpos_at_index_i(  
+       const GridPos&   gp,
+       const Index&     i )
+{
+  if( ( gp.fd[0] == 0  ||  gp.fd[0] == 1 )  &&  
+                                            ( gp.idx + Index(gp.fd[0]) ) == i )
+    { return true; }
+  else
+    { return false; }
+}
+
+
+
 //! gridpos2gridrange
 /*!
    Determines which grid range that is of interest for a given grid position.
@@ -371,34 +464,6 @@ Index gridpos2gridrange(
       else
 	return gp.idx;
     }
-}
-
-
-
-//! gridpos_check_fd
-/*!
-   Checks that the fractional distances have value in the range [0,1].
-
-   This function can be used when you are sure that the fractional distances
-   have been calculated correctly, but the limited numerical precision can
-   give values below 0 or above 1.
-
-   \param   gp     Output: Grid position structure.
-
-   \author Patrick Eriksson
-   \date   2002-05-21
-*/
-void gridpos_check_fd( GridPos&   gp )
-{
-  if( gp.fd[0] < 0 )
-    gp.fd[0] = 0;
-  else if( gp.fd[0] > 1 )
-    gp.fd[0] = 1;
-
-  if( gp.fd[1] < 0 )
-    gp.fd[1] = 0;
-  else if( gp.fd[1] > 1 )
-    gp.fd[1] = 1;
 }
 
 
