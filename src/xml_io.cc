@@ -223,7 +223,7 @@ ArtsXMLTag::read_from_stream (istream& is)
     }
 
   sstr.str (tag.str () + '>');
-  out2 << "Read: " << sstr.str () << '\n';
+  out3 << "Read: " << sstr.str () << '\n';
 
   sstr >> name;
 
@@ -239,7 +239,7 @@ ArtsXMLTag::read_from_stream (istream& is)
       // Tag may have attributes, so read next token
       sstr >> token;
     }
-  out2 << "Name: " << name << '\n';
+  out3 << "Name: " << name << '\n';
 
   //extract attributes
   while (token != ">")
@@ -270,8 +270,8 @@ ArtsXMLTag::read_from_stream (istream& is)
 
     attribs.push_back (attr);
 
-    out2 << "Attr: " << attr.name << '\n';
-    out2 << "Value: " << attr.value << '\n';
+    out3 << "Attr: " << attr.name << '\n';
+    out3 << "Value: " << attr.value << '\n';
 
     if (token[token.length () - 1] == '>')
       {
@@ -283,7 +283,7 @@ ArtsXMLTag::read_from_stream (istream& is)
       }
   }
 
-  out2 << '\n';
+  out3 << '\n';
 
   // Skip comments
   if (name == "comment")
@@ -1629,8 +1629,6 @@ xml_read_from_stream (istream& is,
       xml_parse_error ("Error while reading data");
     }
 
-  out2 << "Data:" << index << '\n';
-
   tag.read_from_stream (is);
   tag.check_name ("/Index");
 }
@@ -1768,8 +1766,6 @@ xml_read_from_stream (istream& is,
     {
       xml_parse_error ("Error while reading data");
     }
-
-  out2 << "Data:" << numeric << '\n';
 
   tag.read_from_stream (is);
   tag.check_name ("/Numeric");
