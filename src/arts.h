@@ -61,29 +61,6 @@
 // We need those to support ansi-compliant compilers (gcc-3x)
 using namespace std;
 
-//----------< Standard library header files: >----------
-
-// Decided that not all standard headers should be included
-// everywhere. Now, each header file of ARTS must include the standad
-// header files that it needs. Only the most basic ones are included
-// here, notably our local sstream implementation. Also cassert.
-
-// #include <iostream>		// Standard stream library
-// #include <iomanip>
-// #include <fstream>
-// #include <string>		// Standard string library
-// #include <vector>
-// #include <map>
-// #include <stdarg.h>
-// #include <math.h>
-// #include <cfloat>
-// #include <typeinfo>
-// #include <stdexcept>
-// //#include <algorithm>
-// #include <ctype.h>
-// #include <climits>
-
-
 //--------------------< Set floating point type >--------------------
 /** The type to use for all floating point numbers. You should never
     use float or double explicitly, unless you have a very good
