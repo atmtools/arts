@@ -404,8 +404,8 @@ xml_open_output_file (ofstream& file, const String& name)
 /*!
   This function opens an XML file for reading.
 
-  \param file Input filestream
-  \param name Filename
+  \param ifs   Input filestream
+  \param name  Filename
 */
 void
 xml_open_input_file (ifstream& ifs, const String& name)
@@ -478,7 +478,10 @@ xml_data_parse_error (ArtsXMLTag &tag, String str_error)
   Check whether XML file has correct version tag and reads arts root
   tag information.
 
-  \param is Input stream
+  \param is     Input stream
+  \param ftype  File type
+  \param ntype  Numeric type
+  \param etype  Endian type
 */
 void
 xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
@@ -572,9 +575,9 @@ xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
 
 //! Reads closing root tag
 /*!
-  Checks whether XML file ends correctly with </arts>.
+  Checks whether XML file ends correctly with \</arts\>.
 
-  \param is Input stream
+  \param is  Input stream
 */
 void
 xml_read_footer_from_stream (istream& is)
@@ -588,7 +591,8 @@ xml_read_footer_from_stream (istream& is)
 
 //! Writes XML header and root tag
 /*!
-  \param os Output stream
+  \param os     Output stream
+  \param ftype  File type
 */
 void
 xml_write_header_to_stream (ostream& os, FileType ftype)
@@ -718,8 +722,9 @@ xml_read_from_file (const String& filename,
   This is a generic functions that is used to write the XML header and
   footer info and calls the overloaded functions to write the data.
 
-  \param filename XML filename
-  \param type Generic input value
+  \param filename  XML filename
+  \param type      Generic input value
+  \param ftype     File type
 */
 template<typename T> void
 xml_write_to_file (const String& filename,
