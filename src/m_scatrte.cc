@@ -1148,9 +1148,15 @@ i_fieldUpdateSeq1D(// WS Output:
   out2 << "------------------------------------------------------------- \n";
   
   const Index stokes_dim = scat_field.ncols();
- 
-  //Check the input
   
+  //Check the input
+  if (cloudbox_limits.nelem() != 2)
+    throw runtime_error(
+                        "The method *i_fieldUpdateSeq1D* requires a 1D \n"
+                        "atmosphere. Check whether you have used \n"
+                        "*AtmosphereSet1D* in your cortrol file.\n"
+                        );
+   
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
                         "The dimension of stokes vector must be"
@@ -2067,6 +2073,14 @@ void i_fieldUpdateSeq3D(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
+  //Check the input
+  if (cloudbox_limits.nelem() != 6)
+    throw runtime_error(
+                        "The method *i_fieldUpdateSeq3D* requires a 3D \n"
+                        "atmosphere. Check whether you have used \n"
+                        "*AtmosphereSet3D* in your cortrol file.\n"
+                        );
+
   assert( is_size( i_field, 
                       (cloudbox_limits[1] - cloudbox_limits[0]) + 1,
                       (cloudbox_limits[3] - cloudbox_limits[2]) + 1, 
@@ -3018,7 +3032,7 @@ scat_fieldCalcLimb(//WS Output:
     }//end atmosphere_dim = 1
   
   
-  if( atmosphere_dim == 3 ){
+  else if( atmosphere_dim == 3 ){
     
     
     assert ( is_size( i_field, 
@@ -3132,6 +3146,9 @@ scat_fieldCalcLimb(//WS Output:
     scat_field(joker, joker, joker, joker, 0, joker) =
       scat_field(joker, joker, joker, joker, Naa-1, joker);
   }// end atm_dim=3
+  else
+    // Atmospheric dimension must be 1 or 3 for scattering calculations.
+    assert(false);
 
   out2 << "Finished scattered field.\n"; 
 }

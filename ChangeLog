@@ -1,3 +1,17 @@
+2004-06-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-826
+	
+	* src/m_cloudbox.cc (CloudboxGetIncoming, CloudboxGetIncoming1DAtm): 
+	Included checks for range of angular grids.
+
+	* src/m_scatrte.cc (i_fieldUpdataSeqXD): Included checks for 
+	atmospheric dimensionality. 
+	
+	* src/scatrte.cc (cloud_ppath_update3D): Included a fix for 
+	ppath step calculations in za=0 and za=180 direction. 
+	Pppath_step_agenda sometimes returns nan values for ppath_setp.los.
+
 2004-05-31  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-825
@@ -1338,7 +1352,7 @@
 	so that it takes sensor_response_za and sensor_response_aa, instead
  	of mblock variables. Also some cosmetics to the output strings.
 
-	* src/m_ppath.cc: Cosmetics to output strings.
+	* src/m_ppath.cc Cosmetics to output strings.
 
 2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
 

@@ -1684,6 +1684,12 @@ void CloudboxGetIncoming(// WS Output:
 
   if(atmosphere_dim == 1)
     {
+      if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
+        throw runtime_error(
+                            "*scat_za_grid* must include 0° and 180° as"
+                            "endpoints."
+                            );
+      
       // In the 1D case this has to be resized again, as some grids are empty,
       // then Nlat, Nlon, Naa is 0.
       scat_i_p.resize(Nf, 2, 1, 1, Nza, 1, Ni);
@@ -1765,6 +1771,18 @@ void CloudboxGetIncoming(// WS Output:
   // atmosphere_dim = 3:
   else
     {
+      if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
+        throw runtime_error(
+                            "*scat_za_grid* must include 0° and 180° as"
+                            "endpoints."
+                            );
+
+      if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa] != 360. )
+        throw runtime_error(
+                            "*scat_aa_grid* must include 0° and 360° as"
+                            "endpoints."
+                            );
+
       Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1;
       Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
       Index Naa = scat_aa_grid.nelem();
@@ -2188,6 +2206,18 @@ void CloudboxGetIncoming1DAtm(// WS Output:
     throw runtime_error(" The cloudbox is not activated. Use "
                         "*cloudboxSetManually* to define \n the cloudbox "
                         "limits.");
+ 
+  if( scat_za_grid[0] != 0. || scat_za_grid[Nza] != 180. )
+        throw runtime_error(
+                            "*scat_za_grid* must include 0° and 180° as"
+                            "endpoints."
+                            );
+
+  if( scat_aa_grid[0] != 0. || scat_aa_grid[Naa] != 360. )
+    throw runtime_error(
+                        "*scat_aa_grid* must include 0° and 360° as"
+                        "endpoints."
+                        );
   
   Index Nf = f_grid.nelem();
   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;

@@ -849,7 +849,7 @@ void cloud_ppath_update3D(
 
   // Call ppath_step_agenda: 
   ppath_step_agenda.execute(true);
-  
+
   const Numeric TOL = 1e-6;  
    // Check whether the next point is inside or outside the
   // cloudbox. Only if the next point lies inside the
@@ -958,8 +958,15 @@ void cloud_ppath_update3D(
           cloud_gp_p[i].idx -= cloudbox_limits[0];  
           cloud_gp_lat[i].idx -= cloudbox_limits[2];
           cloud_gp_lon[i].idx -= cloudbox_limits[4];
+
+          // This is necessary because the ppath_step_agenda sometimes 
+          // returns nan values. (FIXME: Report this problem to Patrick)
+          if (abs(ppath_step.los(0,0)) < TOL)
+            ppath_step.los(i,0) = 0.;
+          if (abs(ppath_step.los(0,0)-180.) < TOL)
+            ppath_step.los(i,0) = 180.;
+
         }
-      
 
       Matrix itw(ppath_step.np, 8);
       interpweights(itw, cloud_gp_p, cloud_gp_lat, cloud_gp_lon);
@@ -977,7 +984,6 @@ void cloud_ppath_update3D(
       for(Index i = 0; i<los_grid_aa.nelem(); i++)
         los_grid_aa[i] = los_grid_aa[i] + 180.;
   
-
       ArrayOfGridPos gp_za(los_grid_za.nelem()); 
       gridpos(gp_za, scat_za_grid, los_grid_za);
 
