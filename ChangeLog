@@ -1,5 +1,17 @@
 2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-97
+
+	* autogen.sh: Added.
+	Use --with-arts-data=/usr/share on smiles PCs.
+
+	* reconf: Renamed to autogen.sh
+
+	* configure.in: Moved setting of arts-data-path to /usr/share on
+	smiles PC to autogen.sh, like in arts2.
+
+2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-96
 
 	* configure.in: Look for arts-data in /usr/share on smiles PCs.
