@@ -70,6 +70,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Tensor5");
   wsv_group_names.push_back("Tensor6");
   wsv_group_names.push_back("Tensor7");
+  wsv_group_names.push_back("Timer");
   wsv_group_names.push_back("ArrayOfIndex");
   wsv_group_names.push_back("ArrayOfString");
   wsv_group_names.push_back("ArrayOfVector");
