@@ -39,6 +39,7 @@ void define_wsv_data()
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
   wsv_group_names.push_back("Numeric");
+  wsv_group_names.push_back("Los");
 
   // As a primitive consistency check, compare the size of
   // wsv_group_names with N_WSV_GROUPS:  
@@ -95,6 +96,17 @@ void define_wsv_data()
        ("dummy1",
 	"This is just to test Numeric WSVs.",
 	Numeric_,
+	&p));
+  }
+
+  {
+    static WsvPointer<Los> p(&workspace.los);
+    wsv_data.push_back
+      (WsvRecord
+       ("los",
+	"Data for the line of sight calculation. FIXME: Patrick, can you\n"
+	"please add some more documentation here?",
+	Los_,
 	&p));
   }
 

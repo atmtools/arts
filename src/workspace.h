@@ -17,11 +17,25 @@
 enum WsvGroup{
   VECTOR_,
   MATRIX_,
-  Numeric_
+  Numeric_,
+  Los_
 };
 
 // For consistency check:
-#define N_WSV_GROUPS 3
+#define N_WSV_GROUPS 4
+
+
+/** FIXME: Patrick, can you add some documentation here? The
+    declaration of this struct does not necessarily have to be here,
+    could also be in a .h file where you have other RTE
+    stuff. Should not be in a m_*.cc file, however. */
+struct Los {
+      ARRAY<VECTOR> zs;
+      ARRAY<int> ground;
+      ARRAY<size_t> start;
+      ARRAY<size_t> stop;
+};
+
 
 
 // Yes, this is the declaration of the great workspace itself.
@@ -32,6 +46,7 @@ public:
   VECTOR t_abs;
   MATRIX abs;
   Numeric dummy1;
+  Los los;
 };
 
 
@@ -49,6 +64,7 @@ public:
   virtual operator VECTOR*() { safety(); return NULL; };
   virtual operator MATRIX*() { safety(); return NULL; };
   virtual operator Numeric*() { safety(); return NULL; };
+  virtual operator Los*()     { safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

@@ -1,5 +1,12 @@
 2000-04-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0.0.8
+
+	* Added workspace variable group Los and workspace variable los on
+	Patrick's request. The declaration of Los is now in file
+	workspace.h, but it could be moved somewhere else in the future.
+
+	
 	* arts-0.0.7
 
 	* parser.cc:
