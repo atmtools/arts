@@ -34,67 +34,6 @@
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   XML parser classes
-////////////////////////////////////////////////////////////////////////////
-
-//! XML attribute class
-/*!
-  Holds the name and value of an XML attribute.
-*/
-
-class XMLAttribute
-{
-public:
-  String name;                  /*!< Attribute name */
-  String value;                 /*!< Attribute value */
-};
-
-
-//! The ARTS XML tag class
-/*!
-  Handles reading, writing and constructing of XML tags.
-*/
-class ArtsXMLTag
-{
-public:
-
-  String&
-  get_name () { return (name); }
-
-  void
-  check_name (const String& expected_name);
-
-  void
-  set_name (const String& new_name) { name = new_name; }
-
-  void
-  add_attribute (const String& aname, const String& value);
-
-  void
-  add_attribute (const String& aname, const Index& value);
-
-  void
-  check_attribute (const String& aname, const String& value);
-
-  void
-  get_attribute_value (const String& aname, String& value);
-
-  void
-  get_attribute_value (const String& aname, Index& value);
-
-  void
-  read_from_stream (istream& is);
-
-  void
-  write_to_stream (ostream& os);
-
-private:
-  String name;                  /*!< Tag name */
-  Array<XMLAttribute> attribs;  /*!< List of attributes */
-};
-
-
-////////////////////////////////////////////////////////////////////////////
 //   ArtsXMLTag implementation
 ////////////////////////////////////////////////////////////////////////////
 
@@ -1960,41 +1899,30 @@ xml_read_from_stream (istream&    is,
   tag.read_from_stream (is);
   tag.check_name ("SpeciesTag");
 
-  // Check whether next char is ". If so, is.get will read nothing
-  // and input stream will become invalid
-  if (is.peek () != '"')
+  // Skip whitespaces
+  bool string_starts_with_quotes = true;
+  do
     {
-      is.get (strbuf, '"');
-      if (is.fail ())
+      is >> dummy;
+      switch (dummy)
         {
-          xml_parse_error ("SpeciesTag must begin with \"");
+      case ' ':
+      case '\"':
+      case '\n':
+      case '\r':
+      case '\t':
+        break;
+      default:
+        string_starts_with_quotes = false;
         }
-      else
-        {
-          bool string_starts_with_quotes = true;
-          for (size_t i = 0;
-               string_starts_with_quotes && i < strbuf.str ().length();
-               i++)
-            {
-              switch (strbuf.str ()[i])
-                {
-              case ' ':
-              case '\n':
-              case '\r':
-              case '\t':
-                    break;
-              default:
-                    string_starts_with_quotes = false;
-                }
-            }
-          if (!string_starts_with_quotes)
-            {
-              xml_parse_error ("String must begin with \"");
-            }
-        }
+    } while (is.good () && dummy != '"' && string_starts_with_quotes);
+
+  // Throw exception if first char after whitespaces is not a quote
+  if (!string_starts_with_quotes)
+    {
+      xml_parse_error ("SpeciesTag must begin with \"");
     }
 
-  is >> dummy;
   is.get (strbuf, '"');
   if (is.fail ())
     {
@@ -2003,6 +1931,7 @@ xml_read_from_stream (istream&    is,
 
   stag = SpeciesTag (strbuf.str ());
 
+  // Ignore quote
   is >> dummy;
 
   tag.read_from_stream (is);
@@ -2054,41 +1983,30 @@ xml_read_from_stream (istream& is,
   tag.read_from_stream (is);
   tag.check_name ("String");
 
-  // Check whether next char is ". If so, is.get will read nothing
-  // and input stream will become invalid
-  if (is.peek () != '"')
+  // Skip whitespaces
+  bool string_starts_with_quotes = true;
+  do
     {
-      is.get (strbuf, '"');
-      if (is.fail ())
+      is >> dummy;
+      switch (dummy)
         {
-          xml_parse_error ("String must begin with \"");
+      case ' ':
+      case '\"':
+      case '\n':
+      case '\r':
+      case '\t':
+        break;
+      default:
+        string_starts_with_quotes = false;
         }
-      else
-        {
-          bool string_starts_with_quotes = true;
-          for (size_t i = 0;
-               string_starts_with_quotes && i < strbuf.str ().length();
-               i++)
-            {
-              switch (strbuf.str ()[i])
-                {
-              case ' ':
-              case '\n':
-              case '\r':
-              case '\t':
-                    break;
-              default:
-                    string_starts_with_quotes = false;
-                }
-            }
-          if (!string_starts_with_quotes)
-            {
-              xml_parse_error ("String must begin with \"");
-            }
-        }
+    } while (is.good () && dummy != '"' && string_starts_with_quotes);
+
+  // Throw exception if first char after whitespaces is not a quote
+  if (!string_starts_with_quotes)
+    {
+      xml_parse_error ("String must begin with \"");
     }
 
-  is >> dummy;
   is.get (strbuf, '"');
   if (is.fail ())
     {
@@ -2097,6 +2015,7 @@ xml_read_from_stream (istream& is,
 
   str = strbuf.str ();
 
+  // Ignore quote
   is >> dummy;
 
   tag.read_from_stream (is);
