@@ -788,8 +788,8 @@ void define_basic_species_data()
         ISOTOPES
         (//  Name,      Isotopic Ratio, Mass,   MY-tag, HI-tag, JPL-tag
          //             |               |       |       |       |
-         REC("96"       ,0.50582466     ,95.00    ,461    ,-1     ,TAGS(95001)),
-         REC("16"       ,0.49431069     ,97.00    ,462    ,-1     ,TAGS(97001))
+         REC("96"       ,0.50582466     ,95.00    ,401    ,-1     ,TAGS(95001)),
+         REC("16"       ,0.49431069     ,97.00    ,402    ,-1     ,TAGS(97001))
          ) ) );
 
   // H2SO4

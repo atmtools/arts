@@ -1,3 +1,10 @@
+2003-05-20  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-78
+
+	* src/species_data.cc changed the MYTRAN tag for BrO 
+	according to new tag from MYTRAN database. 
+
 2003-05-05  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-77
