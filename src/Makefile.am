@@ -128,7 +128,7 @@ species_data.o: arts.h make_array.h absorption.h species_data.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
-arts: $(arts_DEPENDENCIES) $(arts_OBJECTS)
+arts$(EXEEXT): $(arts_DEPENDENCIES) $(arts_OBJECTS)
 	@rm -f arts
 	$(CXXLINK) $(arts_LDFLAGS) $(arts_OBJECTS) $(arts_LDADD) $(LIBS)
 
@@ -413,33 +413,33 @@ make_auto_md_h_DEPENDENCIES = auto_wsv.h auto_wsv_groups.h
 
 make_auto_md_cc_DEPENDENCIES = auto_wsv.h auto_wsv_groups.h
 
-make_auto_wsv_h: $(make_auto_wsv_h_DEPENDENCIES) $(make_auto_wsv_h_OBJECTS)
+make_auto_wsv_h$(EXEEXT): $(make_auto_wsv_h_DEPENDENCIES) $(make_auto_wsv_h_OBJECTS)
 	@rm -f make_auto_wsv_h
 	$(CXXLINK) $(make_auto_wsv_h_LDFLAGS) \
 	           $(make_auto_wsv_h_OBJECTS) \
 	           $(make_auto_wsv_h_LDADD) $(LIBS)
 
-make_auto_wsv_groups_h: $(make_auto_wsv_group_h_DEPENDENCIES) \
+make_auto_wsv_groups_h$(EXEEXT): $(make_auto_wsv_group_h_DEPENDENCIES) \
                         $(make_auto_wsv_groups_h_OBJECTS)
 	@rm -f make_auto_wsv_groups_h
 	$(CXXLINK) $(make_auto_wsv_groups_h_LDFLAGS) \
 	           $(make_auto_wsv_groups_h_OBJECTS) \
 	           $(make_auto_wsv_groups_h_LDADD) $(LIBS)
 
-make_auto_wsv_pointers_cc: $(make_auto_wsv_pointers_cc_DEPENDENCIES) \
+make_auto_wsv_pointers_cc$(EXEEXT): $(make_auto_wsv_pointers_cc_DEPENDENCIES) \
                            $(make_auto_wsv_pointers_cc_OBJECTS)
 	@rm -f make_auto_wsv_pointers_cc
 	$(CXXLINK) $(make_auto_wsv_pointers_cc_LDFLAGS) \
 	           $(make_auto_wsv_pointers_cc_OBJECTS) \
 	           $(make_auto_wsv_pointers_cc_LDADD) $(LIBS)
 
-make_auto_md_h: $(make_auto_md_h_DEPENDENCIES) $(make_auto_md_h_OBJECTS)
+make_auto_md_h$(EXEEXT): $(make_auto_md_h_DEPENDENCIES) $(make_auto_md_h_OBJECTS)
 	@rm -f make_auto_md_h
 	$(CXXLINK) $(make_auto_md_h_LDFLAGS) \
 	           $(make_auto_md_h_OBJECTS) \
 	           $(make_auto_md_h_LDADD) $(LIBS)
 
-make_auto_md_cc: $(make_auto_md_cc_DEPENDENCIES) $(make_auto_md_cc_OBJECTS)
+make_auto_md_cc$(EXEEXT): $(make_auto_md_cc_DEPENDENCIES) $(make_auto_md_cc_OBJECTS)
 	@rm -f make_auto_md_cc
 	$(CXXLINK) $(make_auto_md_cc_LDFLAGS) \
 	           $(make_auto_md_cc_OBJECTS) \
