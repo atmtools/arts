@@ -35,7 +35,7 @@
 #include "arts.h"
 #include "matpackI.h"
 
-Matrix
-poly_root_solve (Vector &coeffs);
+int
+poly_root_solve (Vector &coeffs, Matrix &roots);
 
 #endif  /* poly_roots_h */
