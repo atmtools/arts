@@ -526,14 +526,7 @@ void transpose( Sparse& A,
           // only need to call find() once per column in B.
           std::vector<Index>::iterator elem_it =
             find(B.mrowind->begin()+*(B.mcolptr->begin()+i),
-                 B.mrowind->begin()+*(B.mcolptr->begin()+i+1), c);
-          // FIXME: Stefan: The find command leads to a lot of
-          // compiler warnings, presumably because mrowind and mcolptr
-          // are of type Index, which is a signed integer type,
-          // whereas the iterator type of STL is unsigned. I suggest
-          // that you discuss with Oliver how to make a safe cast
-          // here.
-
+                 B.mrowind->begin()+*(B.mcolptr->begin()+i+1), Index (c));
 
           // If we found the element, store it in A.mrowind and A.mdata
           if (elem_it != B.mrowind->begin()+*(B.mcolptr->begin()+i+1))
