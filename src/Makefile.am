@@ -37,7 +37,7 @@ arts_SOURCES = \
 	getopt1.c \
 	globals_2.cc \
 	gridded_fields.cc\
-	gridded_field.h\
+	gridded_fields.h\
 	groups.cc \
 	interpolation.cc \
 	interpolation.h \
@@ -245,7 +245,6 @@ make_auto_wsv_h_SOURCES = \
 	file.cc \
 	file.h \
 	groups.cc \
-	los.h \
 	make_auto_wsv_h.cc \
 	messages.cc \
 	version.cc \
@@ -274,7 +273,6 @@ make_auto_md_h_SOURCES = \
 	file.h \
 	globals_2.cc \
 	groups.cc \
-	los.h \
 	make_array.h \
 	make_auto_md_h.cc \
 	messages.cc \
@@ -299,7 +297,6 @@ make_auto_md_cc_SOURCES = \
 	file.h \
 	globals_2.cc \
 	groups.cc \
-	los.h \
 	make_array.h \
 	make_auto_md_cc.cc \
 	messages.cc \
