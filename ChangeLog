@@ -1,3 +1,12 @@
+2002-12-17  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-340
+
+	* src/complex.h: Added functions for absolute value and phase of
+	complex numbers.
+        
+	* src/test_complex.cc: Minor changes.
+	
 2002-12-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-339

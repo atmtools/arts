@@ -27,9 +27,9 @@
 #define complex_h
 
 #include <iostream>
+#include <cmath>
 #include "arts.h"
-#include "cmath"
-#include "assert.h"
+
 //! Complex numbers.
 /*! 
   The complex numbers implemented by this class should behave in the
@@ -79,7 +79,7 @@ public:
     return mre;
   }
 
-  //! Real part as value.
+  //! Real part as lvalue.
   Numeric& Re()
   {
     return mre;
@@ -91,23 +91,32 @@ public:
     return mim;
   }
 
-  //! Imaginary part as value.
+  //! Imaginary part as lvalue.
   Numeric& Im()
   {
     return mim;
   }
-  
-  //asolute value
-  //  Numeric Abs()
-  //{
-  // return sqrt( (mre*mre)+(mim*mim))
-  //  }
-  //asolute value as value
-  // Numeric& Abs()
-  //{
-   //return sqrt( (mre*mre)+(mim*mim))
-   //}
 
+  //! Absolute value.
+  Numeric Abs() const
+  {
+    return sqrt( mre*mre + mim*mim );
+  }
+  
+   //! Phase.
+  /*! 
+    \return The phase in egrees.
+
+    \author Nikolay Koulev
+    \date   2002-12-16
+  */
+
+  Numeric Pha() const
+  {   
+    return atan2( mim, mre)*57.2957914331333;
+  }
+  
+ 
   //! Addition of another complex number.
   /*! 
     \param x Another complex number to add to this one.
@@ -126,7 +135,7 @@ public:
 
   //! Subtraction of another complex number.
   /*! 
-    \param x Another complex number to add to this one.
+    \param x Another complex number to subtract from this one.
     
     \return We also return *this, to be consistent with other C += operators. 
 
@@ -141,7 +150,7 @@ public:
   }
   //! Multiplication of another complex number.
   /*! 
-    \param x Another complex number to add to this one.
+    \param x Another complex number to multiply with this one.
     
     \return We also return *this, to be consistent with other C += operators. 
 
@@ -156,7 +165,7 @@ public:
   }
   //! Division of another complex number.
   /*! 
-    \param x Another complex number to add to this one.
+    \param x Another complex number by which to devide this one.
     
     \return We also return *this, to be consistent with other C += operators. 
 
@@ -165,19 +174,15 @@ public:
   */
    Complex operator/=(const Complex& x)
   {
+    assert ((x.mre*x.mre+x.mim*x.mim)!=0);
     mre = (mre*x.mre+mim*x.mim) / (x.mre*x.mre+x.mim*x.mim);
     mim = (mim*x.mre-mre*x.mim) / (x.mre*x.mre+x.mim*x.mim);
-    // assert ((x.mre*x.mre+x.mim*x.mim)!=0)
     return *this;
   }
 
 
-  /*  FIXME: Nikolay, please implement -=, *=, and /= in similar
-      fashion. Don't forget \author and \date tags. Don't forget to
-      put tests in test_complex.cc to see if your operators work
-      correctly. In the case of /= put in an assertion to detect
-      division by zero!
-  */
+  
+  
 
   //! Addition of two complex numbers.
   /*!
@@ -203,7 +208,7 @@ public:
   }
    //! Subtraction of two complex numbers.
   /*!
-    This uses the += operator to add two complex numbers.
+    This uses the -= operator to add two complex numbers.
   
     \param x The other number to add to *this.
     
@@ -223,9 +228,10 @@ public:
     // return result:
     return a;
   } 
+
   //! Multiplication of two complex numbers.
   /*!
-    This uses the += operator to add two complex numbers.
+    This uses the *= operator to add two complex numbers.
   
     \param x The other number to add to *this.
     
@@ -245,9 +251,10 @@ public:
     // return result:
     return a;
    } 
-  //! Multiplication of two complex numbers.
+
+  //! Division of two complex numbers.
   /*!
-    This uses the += operator to add two complex numbers.
+    This uses the /= operator to add two complex numbers.
   
     \param x The other number to add to *this.
     
@@ -267,18 +274,7 @@ public:
     // return result:
     return a;
    } 
-  /*  FIXME: Nikolay, please implement -, *, and / in similar
-      fashion. Note that you should just use the -=, *=, and /=
-      operators to achieve this, as I have done in my example.
-
-      Don't forget \author and \date tags. Don't forget to
-      put tests in test_complex.cc to see if your operators work
-      correctly. 
-
-      When you are done, please check the Doxygen documentation
-      generated for file complex.cc, after you said "make" in the
-      doc/doxygen directory.
-  */
+  
 
 
 
