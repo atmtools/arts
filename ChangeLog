@@ -1,3 +1,13 @@
+2001-09-26  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-231
+
+	* Changed the LOS type name from LOS to Los (but the acronym for the
+	line-of-sight is still LOS).
+
+	* Moved everything connected to the binary HDF files to m_hdf.cc.
+	
+
 2001-09-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-230

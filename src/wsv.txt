@@ -240,7 +240,7 @@ DESCRIPTION:
 The ground emission factor for the frequencies in f_mono [0-1].
 
 VARIABLE : los
-DATA TYPE: LOS
+DATA TYPE: Los
 DESCRIPTION:
 Structure to define the line of sight (LOS). See los.h.
 

@@ -292,7 +292,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("refr",
-      "Boolean to consider refraction (0=no refraction).",
+      "Boolean for inclusion of refraction (0=no refraction, 1=refraction).",
       Index_));
 
   wsv_data.push_back
@@ -300,7 +300,7 @@ void define_wsv_data()
      ("refr_lfac",
       "This factor determines the step length used during the ray tracing \n"
       "performed when considering refraction. \n"
-      "The step length applied is l_step divided by refr_lfac. \n" 
+      "The step length applied is *l_step* divided by *refr_lfac*. \n" 
       "Accordingly, this factor gives how many ray tracing steps that are \n"
       "performed for each step of the LOS.",
       Index_));
@@ -308,7 +308,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("refr_model",
-      "A String giving what refraction model (or parameterization) to use\n"
+      "A string giving what refraction model (or parameterization) to use\n"
       "for the calculation of refractive index.",
       String_));
 
@@ -346,7 +346,7 @@ void define_wsv_data()
     (WsvRecord
      ("los",
       "Structure to define the line of sight (LOS). See los.h.", 
-      LOS_));
+      Los_));
 
   wsv_data.push_back
     (WsvRecord

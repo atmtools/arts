@@ -606,7 +606,7 @@ void check_if_bool( const Index& x, const String& x_name )
     \date   2001-09-19
 */
 void check_lengths( const Vector& x1, const String& x1_name,
-                     const Vector& x2, const String& x2_name ) 
+                    const Vector& x2, const String& x2_name ) 
 {
   if ( x1.nelem() != x2.nelem() )
   {
@@ -638,7 +638,7 @@ void check_lengths( const Vector& x1, const String& x1_name,
     \date   2001-09-19
 */
 void check_length_nrow( const Vector& x, const String& x_name,
-                         const Matrix& A, const String& A_name ) 
+                        const Matrix& A, const String& A_name ) 
 {
   if ( x.nelem() != A.nrows() )
   {
@@ -670,7 +670,7 @@ void check_length_nrow( const Vector& x, const String& x_name,
     \date   2001-09-19
 */
 void check_length_ncol( const Vector& x, const String& x_name,
-                         const Matrix& A, const String& A_name ) 
+                        const Matrix& A, const String& A_name ) 
 {
   if ( x.nelem() != A.ncols() )
   {

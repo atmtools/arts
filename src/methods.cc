@@ -1409,7 +1409,7 @@ void define_md_data()
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
-	GINPUT( LOS_ ),
+	GINPUT( Los_ ),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
@@ -1431,7 +1431,7 @@ void define_md_data()
 		    ),
 	OUTPUT(),
 	INPUT(),
-	GOUTPUT( LOS_ ),
+	GOUTPUT( Los_ ),
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));

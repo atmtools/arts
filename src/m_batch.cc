@@ -258,7 +258,7 @@ void ybatchCalc(
   //--- Loop and calculate the spectra --------------------------------------
          Matrix   abs;
   ArrayOfMatrix   abs_per_tag;
-            LOS   los;
+            Los   los;
   ArrayOfMatrix   trans, source;
          Vector   y, z_tan;
 

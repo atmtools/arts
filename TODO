@@ -76,9 +76,6 @@ SAB 2001-09-24: After the workshop, implement a new ASCII output
                 methods. Don't forget los, lines, lines_per_tg, and
                 raw_vmrs read/write.
 
-SAB 2001-09-25: Patrick, can you please rename the group LOS to Los,
-                in order to be consistent with the other group names?
-
 SAB 2001-09-25: Rename Array<OneTag> to TagGroup and Array<
                 Array<OneTag> > to ArrayOfTagGroup. (After update of
                 online docs, to avoid conflicts.)

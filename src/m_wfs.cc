@@ -680,7 +680,7 @@ void absloswfs_rte_down (
 */
 void absloswfs_rte (
                     ArrayOfMatrix&   absloswfs,
-              const LOS&             los,   
+              const Los&             los,   
               const ArrayOfMatrix&   source,
               const ArrayOfMatrix&   trans,
               const Vector&          y,
@@ -753,7 +753,7 @@ void absloswfs_rte (
 */
 void absloswfs_tau (
                     ArrayOfMatrix&   absloswfs,
-	      const LOS&             los,
+	      const Los&             los,
 	      const Vector&          f_mono )
 {
   const Index  nza = los.start.nelem();   // number of zenith angles  
@@ -1073,7 +1073,7 @@ void sourceloswfs_down (
 */
 void sourceloswfs (
                     ArrayOfMatrix&   sourceloswfs,
-              const LOS&             los,   
+              const Los&             los,   
               const ArrayOfMatrix&   trans,
               const Vector&          f_mono,
               const Vector&          e_ground )
@@ -1165,7 +1165,7 @@ void k_species (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
               const Vector&          p_abs,
               const Vector&          t_abs,             
@@ -1377,7 +1377,7 @@ void k_contabs (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
@@ -1592,7 +1592,7 @@ void k_temp_nohydro (
 		           ArrayOfString&                 k_names,
 		           Matrix&                        k_aux,
 		     const TagGroups&                     tag_groups,
-		     const LOS&                           los,           
+		     const Los&                           los,           
 		     const ArrayOfMatrix&                 absloswfs,
 		     const Vector&                        f_mono,
 		     const Vector&                        p_abs,
@@ -1852,7 +1852,7 @@ void wfs_tgsDefine(// WS Output:
 void absloswfsCalc (
                     ArrayOfMatrix&   absloswfs,
 	      const Index&             emission,
-              const LOS&             los,   
+              const Los&             los,   
               const ArrayOfMatrix&   source,
               const ArrayOfMatrix&   trans,
               const Vector&          y,
@@ -1901,7 +1901,7 @@ void absloswfsCalc (
 void absloswfsTau (
                     ArrayOfMatrix&   absloswfs,
 	      const Index&             emission,
-	      const LOS&             los,
+	      const Los&             los,
               const Vector&          f_mono )
 {
   if ( !isbool( emission ) )  
@@ -1927,7 +1927,7 @@ void kSpecies (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
               const Vector&          p_abs,
               const Vector&          t_abs,             
@@ -1963,7 +1963,7 @@ void kSpeciesAll (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
               const Vector&          p_abs,
               const Vector&          t_abs,             
@@ -1998,7 +1998,7 @@ void kContAbs (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
@@ -2020,7 +2020,7 @@ void kContAbsSpecifiedLimits (
                     Matrix&          k,
                     ArrayOfString&   k_names,
                     Matrix&          k_aux,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   absloswfs,
               const Vector&          f_mono,
               const Vector&          k_grid,
@@ -2101,7 +2101,7 @@ void kTemp (
   // Calculate reference spectrum
   out1 << "  Calculating reference spectrum\n";
   out2 << "  ----- Messages from losCalc: --------\n";
-  LOS    los;
+  Los    los;
   Vector z_tan;
   losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
@@ -2270,7 +2270,7 @@ void kTempFast (
   // Calculate reference spectrum
   out1 << "  Calculating reference spectrum\n";
   out2 << "  ----- Messages from losCalc: --------\n";
-  LOS    los;
+  Los    los;
   Vector z_tan;
   losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
@@ -2363,7 +2363,7 @@ void kTempNoHydro (
                   ArrayOfString&            k_names,
                   Matrix&                   k_aux,
             const TagGroups&                tag_groups,
-	    const LOS&                      los,           
+	    const Los&                      los,           
 	    const ArrayOfMatrix&            absloswfs,
 	    const Vector&                   f_mono,
 	    const Vector&                   p_abs,
@@ -2430,7 +2430,7 @@ void kPointingOffSet(
 				// Vector elements like this.
 
   out2 << "  ----- Messages from losCalc: --------\n";
-  LOS    los;
+  Los    los;
   Vector z_tan;
   losCalc( los, z_tan, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
                                               refr_index, z_ground, r_geoid );
@@ -2490,7 +2490,7 @@ void kEground(
               const Vector&          y_space,
               const Vector&          e_ground,
               const Numeric&         t_ground,
-              const LOS&             los,           
+              const Los&             los,           
               const ArrayOfMatrix&   source,
               const ArrayOfMatrix&   trans,
               const Index&           single_e )

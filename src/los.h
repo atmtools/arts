@@ -40,7 +40,7 @@
 
 /** The line of sight (LOS). 
 
-    The LOS structure has the fields:
+    The LOS structure has the fields (the type name is Los):
     \verbatim
        ArrayOfVector  p
        ArrayOfVector  psi
@@ -100,7 +100,7 @@
     \author Patrick Eriksson 
     \date   07.06.00 
 */
-struct LOS {
+struct Los {
   ArrayOfVector  p;
   ArrayOfVector  psi;
   ArrayOfVector  z;

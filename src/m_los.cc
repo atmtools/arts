@@ -23,7 +23,8 @@
 /**
    \file   m_los.cc
 
-   This file contains functions associated with 1D LOS calculations.
+   This file contains functions associated with 1D line-of-sight (LOS)
+   calculations.
 
    Types of functions are:
 
@@ -673,7 +674,7 @@ void los_1za(
 */
 void y_rte (
                     Vector&          y,
-              const LOS&             los,   
+              const Los&             los,   
               const Vector&          f_mono,
               const Vector&          y_space,
               const ArrayOfMatrix&   source,
@@ -739,7 +740,7 @@ void y_rte (
 */
 void y_tau (
                     Vector&          y,
-              const LOS&             los,   
+              const Los&             los,   
               const ArrayOfMatrix&   trans,
               const Vector&          e_ground )
 {
@@ -1001,7 +1002,7 @@ void zaFromZtan(
    \author Patrick Eriksson
    \date   2001-02-15
 */
-void losCalc(       LOS&        los,
+void losCalc(       Los&        los,
                     Vector&     z_tan,
               const Numeric&    z_plat,
               const Vector&     za,
@@ -1083,7 +1084,7 @@ void losCalc(       LOS&        los,
 void sourceCalc(
                     ArrayOfMatrix&   source,
 	      const Index&             emission,
-              const LOS&             los,   
+              const Los&             los,   
               const Vector&          p_abs,
               const Vector&          t_abs,
               const Vector&          f_mono )
@@ -1151,7 +1152,7 @@ void sourceCalc(
 */
 void transCalc(
                     ArrayOfMatrix&   trans,
-              const LOS&             los,   
+              const Los&             los,   
               const Vector&          p_abs,
               const Matrix&          abs )
 {    
@@ -1243,7 +1244,7 @@ void y_spaceStd(
 void yCalc (
                     Vector&          y,
 	      const Index&             emission,
-              const LOS&             los,   
+              const Los&             los,   
               const Vector&          f_mono,
               const Vector&          y_space,
               const ArrayOfMatrix&   source,
@@ -1284,7 +1285,7 @@ void yCalc (
 void yTau (
                     Vector&          y,
 	      const Index&             emission,
-              const LOS&             los,   
+              const Los&             los,   
               const ArrayOfMatrix&   trans,
               const Vector&          e_ground )
 {
@@ -1591,7 +1592,7 @@ void zaFromDeltat(
     zaFromZtan(za, za_str, z_tan_1, z_plat, p_abs, z_abs, refr, refr_index, r_geoid, z_ground);
     
     // corresponding psi
-    LOS los;
+    Los los;
     losCalc(los,z_tan_2,z_plat,za,l_step,p_abs,z_abs,refr,refr_lfac,refr_index,z_ground,r_geoid);   
     // psi corresponding to the ztan defined for interpolation
     Vector psizb(n);

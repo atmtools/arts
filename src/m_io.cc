@@ -28,7 +28,7 @@
 
    The functions are of two types:
      1. Functions with overall influence on ARTS
-     2. Reading and writing to/from files.
+     2. Reading and writing to/from ASCII files.
      3. Creation by workspace method keywords and generic input
 
    \author Patrick Eriksson
@@ -41,7 +41,6 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
-#include <hdf.h>
 #include <math.h>
 #include "arts.h"
 #include "atm_funcs.h"          
@@ -105,7 +104,7 @@ void Test( )
 
 //**************************************************************************
 //
-//  2. File functions
+//  2. ASCII file functions
 //
 //**************************************************************************
 
@@ -113,8 +112,8 @@ void Test( )
 //   File workspace methods (sorted after workspace variable)
 ////////////////////////////////////////////////////////////////////////////
 
-// The ASCII functions are created by Stefan Buehler around 00????
-// The binary functions are created by Patrick Eriksson around 001102
+// The ASCII functions are created by Stefan Buehler
+
 
 //=== Index ============================================================
 
@@ -170,52 +169,6 @@ void IndexReadAscii(
 
 
 
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-// This function shall be modified to handle Index
-void IndexWriteBinary(
-	const Index&      v,
-        const String&   var_name,
-	const String&   f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_index( filename, fid, v, "Index" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-// This function shall be modified to handle Index
-void IndexReadBinary(
-	      Index&      v,
-        const String&   var_name,
-	const String&   f )
-{
-  Index vtemp;  //To be removed
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_index( vtemp, filename, fid, "Index" );
-  v = (int) vtemp;
-  binfile_close( fid, filename );
-}
-
-
-
 //=== NUMERIC ==========================================================
 
 void NumericWriteAscii(
@@ -257,48 +210,6 @@ void NumericReadAscii(
   }
 
   v = am[0](0,0);
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void NumericWriteBinary(
-        const Numeric&  v,
-        const String&   var_name,
-	const String&   f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_numeric( filename, fid, v, "NUMERIC" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void NumericReadBinary(
-	      Numeric&  v,
-        const String&   var_name,
-	const String&   f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_numeric( v, filename, fid, "NUMERIC" );
-  binfile_close( fid, filename );
 }
 
 
@@ -371,48 +282,6 @@ void VectorReadAscii(// WS Generic Output:
 
 
 
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void VectorWriteBinary(
-        const Vector&  v,
-        const String&  var_name,
-	const String&  f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_vector( filename, fid, v, "VECTOR" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void VectorReadBinary(
-	      Vector&  v,
-        const String&  var_name,
-	const String&  f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_vector( v, filename, fid, "VECTOR" );
-  binfile_close( fid, filename );
-}
-
-
-
 //=== Matrix ==========================================================
 
 void MatrixWriteAscii(// WS Generic Input:
@@ -464,48 +333,6 @@ void MatrixReadAscii(// WS Generic Output:
 
   m.resize( am[0].nrows(), am[0].ncols() );
   m = am[0];
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void MatrixWriteBinary(
-        const Matrix&  v,
-        const String&  var_name,
-	const String&  f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_matrix( filename, fid, v, "MATRIX" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void MatrixReadBinary(
-	      Matrix&  v,
-        const String&  var_name,
-	const String&  f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_matrix( v, filename, fid, "MATRIX" );
-  binfile_close( fid, filename );
 }
 
 
@@ -584,48 +411,6 @@ void ArrayOfIndexReadAscii(
 
 
 
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfIndexWriteBinary(
-        const ArrayOfIndex&  v,
-        const String&        var_name,
-	const String&        f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_indexarray( filename, fid, v, "INDEXARRAY" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfIndexReadBinary(
-	      ArrayOfIndex&  v,
-        const String&        var_name,
-	const String&        f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_indexarray( v, filename, fid, "INDEXARRAY" );
-  binfile_close( fid, filename );
-}
-
-
-
 //=== ArrayOfVector ====================================================
 
 void ArrayOfVectorWriteAscii(// WS Output:
@@ -691,48 +476,6 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
 
 
 
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfVectorWriteBinary(
-        const ArrayOfVector&  v,
-        const String&         var_name,
-	const String&         f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_vectorarray( filename, fid, v, "VECTOR" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfVectorReadBinary(
-	      ArrayOfVector&  v,
-        const String&         var_name,
-	const String&         f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_vectorarray( v, filename, fid, "VECTOR" );
-  binfile_close( fid, filename );
-}
-
-
-
 //=== ArrayOfMatrix ====================================================
 
 void ArrayOfMatrixWriteAscii(// WS Generic Input:
@@ -767,48 +510,6 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
 
   // Read the array of matrix from the file:
   read_array_of_matrix_from_file(am,filename);
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfMatrixWriteBinary(
-        const ArrayOfMatrix&  v,
-        const String&         var_name,
-	const String&         f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_matrixarray( filename, fid, v, "MATRIX" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfMatrixReadBinary(
-	      ArrayOfMatrix&  v,
-        const String&         var_name,
-	const String&         f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_matrixarray( v, filename, fid, "MATRIX" );
-  binfile_close( fid, filename );
 }
 
 
@@ -863,48 +564,6 @@ void StringReadAscii(   // WS Generic Output:
 
 
 
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void StringWriteBinary(
-        const String&  v,
-        const String&  var_name,
-	const String&  f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_String( filename, fid, v, "STRING" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void StringReadBinary(
-	      String&  v,
-        const String&  var_name,
-	const String&  f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_String( v, filename, fid, "STRING" );
-  binfile_close( fid, filename );
-}
-
-
-
 //=== ArrayOfString ====================================================
 
 void ArrayOfStringWriteAscii( // WS Generic Input:
@@ -940,108 +599,6 @@ void ArrayOfStringReadAscii(   // WS Generic Output:
   // Read the array of matrix from the file:
   read_array_of_String_from_file(as,filename);
 }
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfStringWriteBinary(
-        const ArrayOfString&  v,
-        const String&         var_name,
-	const String&         f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_out( fid, filename );
-  binfile_write_Stringarray( filename, fid, v, "STRING" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void ArrayOfStringReadBinary(
-	      ArrayOfString&  v,
-        const String&         var_name,
-	const String&         f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-  binfile_open_in( fid, filename );
-  binfile_read_Stringarray( v, filename, fid, "STRING" );
-  binfile_close( fid, filename );
-}
-
-
-
-//=== LOS ==================================================================
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void LosWriteBinary(
-        const LOS&      los,
-        const String&   var_name,
-	const String&   f )
-{
-  int    fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-
-  binfile_open_out( fid, filename );
-  binfile_write_vectorarray( filename, fid, los.p,      "LOS.P" );
-  binfile_write_vectorarray( filename, fid, los.psi,    "LOS.PSI" );
-  binfile_write_vectorarray( filename, fid, los.z,      "LOS.Z" );
-  binfile_write_vector(      filename, fid, los.l_step, "LOS.L_STEP" );
-  binfile_write_indexarray(  filename, fid, los.ground, "LOS.GROUND" );
-  binfile_write_indexarray(  filename, fid, los.start,  "LOS.START" );
-  binfile_write_indexarray(  filename, fid, los.stop,   "LOS.STOP" );
-  binfile_close( fid, filename );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2000-?-?
-*/
-void LosReadBinary(
-	      LOS&      los,
-        const String&   var_name,
-	const String&   f )
-{
-  int   fid;
-  String filename = f;
-  filename_bin( filename, var_name );
-
-  binfile_open_in( fid, filename );
-  binfile_read_vectorarray( los.p,      filename, fid, "LOS.P" );
-  binfile_read_vectorarray( los.psi,    filename, fid, "LOS.PSI" );
-  binfile_read_vectorarray( los.z,      filename, fid, "LOS.Z" );
-  binfile_read_vector(      los.l_step, filename, fid, "LOS.L_STEP" );
-  binfile_read_indexarray(  los.ground, filename, fid, "LOS.GROUND" );
-  binfile_read_indexarray(  los.start,  filename, fid, "LOS.START" );
-  binfile_read_indexarray(  los.stop,   filename, fid, "LOS.STOP" );
-  binfile_close( fid, filename );
-}
-
-
 
 
 
