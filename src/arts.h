@@ -33,12 +33,61 @@
   \date 16.05.1999 */
 
 /** \mainpage
-    
-    This automatic documentation is still \e very experimental. We
-    have just switched from doc++ to doxygen. You can use the HTML
-    version to browse the source text. Just point and click, and
-    eventually you will see the real implementation of functions and
-    classes. 
+
+    <center><img src="arts-splash.gif" alt="ARTS"></center>
+
+    <h2>What is ARTS?</h2>
+
+    ARTS-1-1-x: 3D version for polarized radiative transfer calculations
+    including particle scattering.
+
+    The new version ARTS-1-1-x is currently being developed. It includes
+    almost all features of the first version and also a number of additional
+    functions.
+
+    One of the main new features is the implementation of particle
+    scattering as for many applications, scattering of microwave radiation
+    by ice particles in the atmosphere emerges as an important issue. The
+    new model should be able to simulate realistic cloud cases for microwave
+    measurements in limb sounding geometry. Modeling radiative transfer
+    through clouds is a complicated topic for various reasons.
+
+    The cloud coverage is vertically and horizontally strongly inhomogeneous
+    which implies that a 3D model is unavoidable for simulating realistic
+    cases. Especially for simulating limb measurements, a 3D geometry is
+    required as the observed region in the atmosphere has a horizontally
+    large extent. Clouds consist of a variety of particle types. There
+    are liquid water clouds but also cirrus clouds which consist of ice
+    particles of different sizes and shapes. Particle scattering leads to
+    polarization effects, therefore modeling only the first component of
+    the Stokes vector, the scalar intensity, is not sufficient. At least
+    the first two components are required, in some cases, depending on the
+    formation of the cloud, even all four components.
+
+    The VRTE (Vector Radiative Transfer Equation) is an inhomogeneous vector
+    differential equation for the Stokes vector. This equation can be
+    solved numerically using an iterative method. So far gaseous absorption
+    is pre-calculated using the first version of ARTS and stored in a
+    lookup table. The particle properties, i.e. extinction, absorption and
+    scattering, are calculated using the T-matrix method and stored in a
+    data base.
+
+    The Zeeman effect is also currently being implemented.
+
+    As the program is modular the user can adjust the control file according
+    to his/her requirements. The atmospheric dimensionality can be chosen to
+    be 1D, 2D or 3D. If clearsky calculations are performed without Zeeman
+    effect it does not make sense to calculate all 4 Stokes components. And
+    for special symmetries in the scattering region, which can be switched
+    on or off, the 3rd and 4th component of the Stokes vector are negligible
+    small. Thus the user also can also decide how many Stokes components
+    shall be simulated.
+
+    <h2>Documentation</h2>
+
+    You can use the HTML version to browse the source text. Just point and
+    click, and eventually you will see the real implementation of functions
+    and classes.
 
     If you are looking for a more comprehensive text, check out the
     Arts User Guide that is also distributed along with the
