@@ -54,10 +54,10 @@
 % FORMAT:  [H,f_y,za_y,Hd] = hRedKx(Q,Hd,f_y,za_y,Hd)
 %
 % RETURN:  Q           Q structure
-%          H           total H matrix after reduction
+%          H           total H matrix after binning
 %          f_y         new frequency vector
 %          za_y        new zenith angle vector 
-%          Hd          data reduction H matrix after reduction
+%          Hd          data reduction H matrix after binning
 % IN:      H           total H matrix before reduction
 %          f_y         input frequency vector 
 %          za_y        input zenith angle vector
@@ -113,6 +113,7 @@ if Q.KRED_N > size(U,2)
    '%d number of eigenvectors cannot be provided.\nOnly %d are possible.',...
     						 Q.KRED_N,size(U,2)));
 end
+
 U    = U( :, 1:Q.KRED_N )';
 H    = h_x_h( U, H );
 Hd   = h_x_h( U, Hd );

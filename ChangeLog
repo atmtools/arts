@@ -1,3 +1,15 @@
+2001-09-03  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-199
+
+	* Added function hRedLimb to ami/hmatrix to make a
+	reduction of a limb spectral space optimized for
+	each retrieval point and species, obviously only
+	to be used with an inversion method doing individual
+	retrievals for each retrieval point, e.g. an ensemble
+	of neural nests. Just implemented, ergo no bugs free,
+	use with caution.
+
 2001-08-24  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-198
