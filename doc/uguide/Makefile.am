@@ -106,13 +106,11 @@ CLEANFILES = *.aux \
 	     uguide.ilg \
 	     uguide.ind \
 	     uguide.out \
+	     uguide.pdf \
 	     uguide.toc
 
 MAINTAINERCLEANFILES = \
 	$(autotexfiles) \
-	uguide.ps \
-	uguide.pdf \
-	uguide.dvi \
 	auto_version.tex
 
 else

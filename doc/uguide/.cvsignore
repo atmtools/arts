@@ -15,6 +15,7 @@ main.ps
 main.toc
 Makefile
 Makefile.in
+make.log
 texput_pdf.log
 uguide.bbl    
 uguide.blg

@@ -1,3 +1,14 @@
+2004-05-15  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-1-819
+
+	* doc/uguide/Makefile.am: Added uguide.pdf to CLEANFILES in maintainer
+	mode.
+	Removed no longer existent uguide.ps and uguide.dvi from
+	MAINTAINERCLEANFILES.
+
+	* doc/uguide/.cvsignore: Added make.log.
+
 2004-05-14  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-1-818
