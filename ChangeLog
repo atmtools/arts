@@ -1,3 +1,11 @@
+2002-03-03  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-16
+
+	* src/los.cc: Started to include a cloud box in the propagation path
+	calculations. In fact it is there, but no test runs have been 
+	performed.
+
 2002-02-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-15

@@ -150,8 +150,8 @@ void chk_if_bool(
 void chk_if_in_range( 
 	const String&   x_name,
         const Index&    x, 
-        const Index&   x_low, 
-        const Index&   x_high )
+        const Index&    x_low, 
+        const Index&    x_high )
 {
   if ( (x<x_low) || (x>x_high) )
     {
@@ -377,6 +377,25 @@ void truncate_vector(
     x.resize(0);
 }
 
+void truncate_vector( 
+	      Vector&   x, 
+	const Index&    i1,
+	const Index&    i2 )        
+{
+  assert( i1 >= 0 );
+  assert( i2 >= 0 );
+  if( i2 >= i1 ) 
+    {
+      Index    n = i2-i1+1;
+      Vector   dummy(n);	  
+      dummy = x[ Range(i1,n) ];
+      x.resize(n); 
+      x = dummy;
+    }
+  else
+    x.resize(0);
+}
+
 
 
 void assert_size( 
@@ -563,6 +582,27 @@ void interp_abs2ppath (
     }
   else
     throw runtime_error("Absorption interpolation only implemented for 1D." );
+}
+
+
+
+void empty_ppath( 
+	      Ppath&      ppath,
+	const Index&      dim )
+{
+  ppath.dim        = dim;
+  ppath.np         = 0;
+  ppath.i_start    = 0;
+  ppath.i_stop     = 0;
+  ppath.background = "Cosmic background radiation";
+  ppath.ground     = 0;
+  ppath.i_ground   = 0;
+  ppath.pos.resize(0,dim);
+  ppath.ip_pos.resize(0,dim);
+  ppath.z.resize(0);
+  ppath.l_step.resize(0);
+  ppath.los.resize(0,0);
+  ppath.tan_pos.resize(0);
 }
 
 
@@ -775,22 +815,30 @@ void ppath_1d_geom (
 
 
 void ppath_1d (
-	      Ppath&      ppath,
-	ConstVectorView   p_grid,
-	ConstVectorView   z_field,
-	const Numeric&    r_geoid,
-	const Numeric&    z_ground,
-        const Index&      refr_on,
-        const Index&      blackbody_ground,
-	const Index&      cloudbox_on,
-	const Numeric&    ppath_lmax,
-	const Numeric&    r_s,
-        const Numeric&    psi_s )
+	      Ppath&          ppath,
+	ConstVectorView       p_grid,
+	ConstVectorView       z_field,
+	const Numeric&        r_geoid,
+	const Numeric&        z_ground,
+        const Index&          refr_on,
+        const Index&          blackbody_ground,
+	const Index&          cloudbox_on,
+	const ArrayOfIndex&   cloudbox_limits,
+	const Numeric&        ppath_lmax,
+	const Numeric&        r_s,
+        const Numeric&        psi_s )
 {
   // Asserts (remaining variables are asserted in the sub-functions).
+  assert( p_grid.nelem() == z_field.nelem() );
   assert( is_bool( refr_on ) );
   assert( is_bool( blackbody_ground ) );
   assert( is_bool( cloudbox_on ) );
+  if( cloudbox_on )
+    {
+      assert( cloudbox_limits.nelem() == 1 );
+      assert( cloudbox_limits[0] >= 1 );
+      assert( cloudbox_limits[0] < p_grid.nelem() );
+    }
 
   // Check that the sensor not is below the ground.
   if( r_s < r_geoid + z_ground )
@@ -802,43 +850,43 @@ void ppath_1d (
       throw runtime_error( os.str() );
     }
 
-  // PPATH variables that always are the same
-  ppath.dim = 1;
-  ppath.i_ground = 0;
+  // Start by setting PPATH to be empty 
+  empty_ppath( ppath, 1 );
 
-  // Set background to CBGR as first guess
-  ppath.background = "Cosmic background radiation";
+  // For simplicity, a full calculation of the path is always done. For cases
+  // with intersection with a blackbody ground or cloud box the path is
+  // truncated later.
 
   // Do stuff that differ between with and without refraction.
   // Stuff going to ppath.pos/ip_pos/los is stored in temporary vectors.
   Vector ip_p, alpha, psi;
   if( refr_on )
     throw runtime_error(
-                 "1D PPATH calculations with refraction not yet implemented" );
+   	         "1D PPATH calculations with refraction not yet implemented" );
   else
     ppath_1d_geom ( ppath.np, ppath.z, ip_p, alpha, ppath.l_step, psi, 
-                        ppath.ground, ppath.tan_pos, z_field, r_geoid,
-                                      z_ground, ppath_lmax, r_s, fabs(psi_s) );
+    		    ppath.ground, ppath.tan_pos, z_field, r_geoid,
+    			      z_ground, ppath_lmax, r_s, fabs(psi_s) );
 
-  // Set i_start and i_stop assuming blackbody_ground and scattering are 0, 
-  // and not blackbody ground.
+  // Set i_start and i_stop assuming that blackbody_ground and cloudbox are 0.
   if( fabs(psi_s) <= 90 )
     ppath.i_stop = 0;
   else
     ppath.i_stop = ppath.np - 1;
   ppath.i_start = ppath.np - 1;
 
-  // Downward observation from inside the atmosphere needs special treatment.
+  // Downward observation from inside the atmosphere is a special case.
   // We must here set i_stop to the index corresponding to the sensor.
   if( fabs(psi_s)>90 && r_s<r_geoid+last2(z_field) )
-    for( ppath.i_stop=0; ppath.z[ppath.i_stop]!=(r_s-r_geoid); ppath.i_stop++ )
-      {}
+    for( ppath.i_stop=0; ppath.z[ppath.i_stop]!=(r_s-r_geoid); 
+                                                           ppath.i_stop++ ) {}
 
   // Ignore part of the PPATH before ground reflection if blackbody ground.
   // The start index is then always 0. As the PPATH has then the ground as
   // background, there is no ground intersction along the PPATH (ground=0).
-  // If i_stop deviates from np-1, the vectors shall be truncated (corresponds
-  // to downward observation from within the atmosphere and blxackbody ground).
+  // If i_stop deviates from np-1, the vectors shall be truncated 
+  // (corresponds to downward observation from within the atmosphere and 
+  // blackbody ground).
   // Note that if we are standing on the ground looking down, i_stop=0 and
   // np becomes 1. In this case we have no propagation path, the stored
   // point gives the position of the ground emission.
@@ -850,21 +898,54 @@ void ppath_1d (
 
       // Truncate vectors
       if( ppath.i_stop < ppath.np-1 )
-	{
-	  const Index    n = ppath.i_stop+1;
-	  ppath.np = n;
-	  truncate_vector( ppath.z, n );
-	  truncate_vector( ip_p, n );
-	  truncate_vector( alpha, n );
-	  truncate_vector( psi, n );
-	  truncate_vector( ppath.l_step, n-1 );
-	}
+    	{
+    	  const Index    n = ppath.i_stop+1;
+    	  ppath.np = n;
+    	  truncate_vector( ppath.z, n );
+    	  truncate_vector( ip_p, n );
+    	  truncate_vector( alpha, n );
+    	  truncate_vector( psi, n );
+    	  truncate_vector( ppath.l_step, n-1 );
+    	}
     }
 
-  // Scatter box
-  if( cloudbox_on )
-    throw runtime_error(
-                  "1D PPATH calculations with cloud box not yet implemented" );
+  // Intersection with cloud box? (Note the "else" here with respect to above)
+  else if( cloudbox_on )
+    {
+      // Start point inside cloud box?
+      if( ip_p[ppath.i_stop]<cloudbox_limits[0] || 
+           ( ip_p[ppath.i_stop]<=cloudbox_limits[0] && fabs(psi_s)>90) )
+	{
+	  ppath.background = "Inside cloud box";
+	  ppath.i_start    = 0;
+	  ppath.ground     = 0;
+    	  ppath.np         = 1;
+    	  truncate_vector( ppath.z, 1 );
+    	  truncate_vector( ip_p, 1 );
+    	  truncate_vector( alpha, 1 );
+    	  truncate_vector( psi, 1 );
+    	  truncate_vector( ppath.l_step, 0 );
+	}
+
+      // Intersection with cloud box?
+      else if( ip_p[0]<cloudbox_limits[0] )
+	{
+          // Find index of first point above cloud box limit
+          Index i1, np;
+          for( i1=0; ip_p[i1]<cloudbox_limits[0]; i1++ ) {} 
+
+	  ppath.background = "Surface of cloud box";
+    	  np               = ppath.np;
+	  ppath.np         = np - i1;
+	  ppath.i_start    = ppath.np - 1;
+	  ppath.ground     = 0;
+    	  truncate_vector( ppath.z, i1, np-1 );
+    	  truncate_vector( ip_p, i1, np-1 );
+    	  truncate_vector( alpha, i1, np-1 );
+    	  truncate_vector( psi, i1, np-1 );
+    	  truncate_vector( ppath.l_step, i1, np-2 );
+	}
+    }
 
   // Convert altitudes to pressures
   Vector p(ppath.np);
@@ -883,20 +964,21 @@ void ppath_1d (
 
 
 void ppathCalc(
-	      Ppath&      ppath,
-	const Index&      dim,
-	ConstVectorView   p_grid,
-	ConstVectorView   alpha_grid,
-	ConstVectorView   beta_grid,
-	const Tensor3&    z_field,
- 	ConstMatrixView   r_geoid,
- 	ConstMatrixView   z_ground,
-	const Tensor3&    e_ground,
-        const Index&      refr_on,
-	const Index&      cloudbox_on,
-	const Numeric&    ppath_lmax,
-	ConstVectorView   sensor_pos,
-	ConstVectorView   sensor_los )
+	      Ppath&          ppath,
+	const Index&          dim,
+	ConstVectorView       p_grid,
+	ConstVectorView       alpha_grid,
+	ConstVectorView       beta_grid,
+	const Tensor3&        z_field,
+ 	ConstMatrixView       r_geoid,
+ 	ConstMatrixView       z_ground,
+	const Tensor3&        e_ground,
+        const Index&          refr_on,
+	const Index&          cloudbox_on,
+	const ArrayOfIndex&   cloudbox_limits,
+	const Numeric&        ppath_lmax,
+	ConstVectorView       sensor_pos,
+	ConstVectorView       sensor_los )
 {
   // Check input:
   // That atm. grids are strictly increasing is checked inside chk_atm_grids.
@@ -927,9 +1009,12 @@ void ppathCalc(
 	    {
 	      ostringstream os;
 	      os << "The ground altitude (*z_ground*) cannot be below the "
-		 << "lowest\naltitude in *z_field* for that position.\n"
-		 << "This was found to be the case for latitude nr " << col
-		 << " and longitude nr " << row << "."; 
+		 << "lowest altitude in *z_field*.";
+		if( dim > 1 )
+		  os << "\nThis was found to be the case for:\nlatitude " 
+		     << alpha_grid[col];
+		if( dim > 2 )
+		  os << "\nlongitude " << beta_grid[row];
 	      throw runtime_error( os.str() );
 	    }
 	}
@@ -938,6 +1023,58 @@ void ppathCalc(
            e_ground(Range(joker),Range(joker),0), dim, alpha_grid, beta_grid );
   chk_if_bool(  "refr_on", refr_on );
   chk_if_bool(  "cloudbox_on", cloudbox_on );
+  if( cloudbox_on )
+    {
+      if( cloudbox_limits.nelem() != dim*2-1 )
+	{
+	  ostringstream os;
+	  os << "The array *cloudbox_limits* has incorrect length.\n"
+	     << "For dim = " << dim << "the length shall be " << dim*2-1
+	     << "but it is " << cloudbox_limits.nelem() << ".";
+	  throw runtime_error( os.str() );
+	}
+      if( cloudbox_limits[0]<1 || cloudbox_limits[0]>=p_grid.nelem() )
+	{
+	  ostringstream os;
+	  os << "Incorrect value for cloud box pressure limit found.\n"
+	     << "With present length of *p_grid*, OK values are 1 - " 
+	     << p_grid.nelem() << ",\nbut the limit is set to " 
+	     << cloudbox_limits[0] << ".";
+	  throw runtime_error( os.str() );
+	}
+      if( dim >= 2 )
+	{
+	  if( cloudbox_limits[1]<0 || cloudbox_limits[1]>alpha_grid.nelem() ||
+                 cloudbox_limits[2]<=cloudbox_limits[1] || 
+                 cloudbox_limits[2]>=alpha_grid.nelem() )
+	    {
+	      ostringstream os;
+	      os << "Incorrect value(s) for cloud box latitude limit(s) found."
+		 << "\nValues are either out of range or upper limit is not "
+		 << "greater than lower limit.\n"
+		 << "With present length of *alpha_grid*, OK values are 0 - " 
+		 << alpha_grid.nelem() << ".\nThe latitude limits are set to " 
+		 << cloudbox_limits[1] << " - " << cloudbox_limits[2] << ".";
+	      throw runtime_error( os.str() );
+	    }
+	}
+      if( dim >= 3 )
+	{
+	  if( cloudbox_limits[3]<0 || cloudbox_limits[3]>beta_grid.nelem() ||
+                 cloudbox_limits[4]<=cloudbox_limits[3] || 
+                 cloudbox_limits[4]>=beta_grid.nelem() )
+	    {
+	      ostringstream os;
+	      os << "Incorrect value(s) for cloud box longitude limit(s) found"
+		 << ".\nValues are either out of range or upper limit is not "
+		 << "greater than lower limit.\n"
+		 << "With present length of *beta_grid*, OK values are 0 - " 
+		 << beta_grid.nelem() << ".\nThe longitude limits are set to " 
+		 << cloudbox_limits[3] << " - " << cloudbox_limits[4] << ".";
+	      throw runtime_error( os.str() );
+	    }
+	}
+    }
   chk_if_over_0( "ppath_lmax", ppath_lmax );
   chk_vector_length( "sensor_pos", sensor_pos, dim );
   if( dim<3 )
@@ -952,7 +1089,7 @@ void ppathCalc(
 
   // Is the ground is perfect blackbody everywhere?
   Index blackbody_ground = 1;
-  for( Index i=0; i<e_ground.npages() && blackbody_ground; i++ )
+  for( Index i=0; blackbody_ground && i<e_ground.npages(); i++ )
     {
       if( min( e_ground(i,Range(joker),Range(joker)) ) < 0.99999 )
 	blackbody_ground = 0;
@@ -963,12 +1100,13 @@ void ppathCalc(
   // algorithm for all dimensions, and 1D is treated seperately.
   if( dim == 1 )
     ppath_1d( ppath, p_grid, z_field(0,0,Range(joker)), r_geoid(0,0),
-                     z_ground(0,0), refr_on, blackbody_ground, cloudbox_on,
-                                    ppath_lmax, sensor_pos[0], sensor_los[0] );
+                 z_ground(0,0), refr_on, blackbody_ground, cloudbox_on, 
+                   cloudbox_limits, ppath_lmax, sensor_pos[0], sensor_los[0] );
   else
     throw runtime_error(
                           "2D and 3D PPATH calculations not yet implemented" );
 }
+
 
 
 void test_new_los()
@@ -996,7 +1134,14 @@ void test_new_los()
   e_ground      = 0.8;
 
   // Booleans
-  Index refr_on = 0, cloudbox_on = 0;
+  Index refr_on = 0;
+
+  // Cloud box
+  Index cloudbox_on;
+  ArrayOfIndex   cloudbox_limits;
+  cloudbox_on = 0;
+  cloudbox_limits.resize(1);
+  cloudbox_limits[0] = 4;
 
   // Path step length
   Numeric ppath_lmax;
@@ -1004,11 +1149,11 @@ void test_new_los()
 
   // Sensor  
   Vector sensor_pos(1), sensor_los(1);
-  sensor_pos[0] = EARTH_RADIUS + 0;
-  sensor_los[0] = 17;
+  sensor_pos[0] = EARTH_RADIUS + 20e3;
+  sensor_los[0] = 110;
 
-  ppathCalc( ppath, dim, p_grid, alpha_grid, beta_grid, z_field, 
-                  r_geoid, z_ground, e_ground, refr_on, cloudbox_on, 
+  ppathCalc( ppath, dim, p_grid, alpha_grid, beta_grid, z_field, r_geoid, 
+ 	         z_ground, e_ground, refr_on, cloudbox_on, cloudbox_limits,
                                           ppath_lmax, sensor_pos, sensor_los );
 
   cout << "z = \n" << ppath.z << "\n";
