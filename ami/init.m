@@ -3,15 +3,22 @@
 %
 %          Initiliaze the ARTS Matlab interface (AMI).
 %
-% FORMAT:  init
+% FORMAT:  init( [ warn ] )
 %
 % RETURN:  -
 % IN:      -
+% OPTIONAL warn   Boolean for display of warnings. Default is 1.
+%                 0 suppresses warnings.
 %------------------------------------------------------------------------
 
 % HISTORY: 12.04.00  Created by Patrick Eriksson. 
 
-function init
+function init( warn )
+
+
+if nargin == 0
+  warn = 1;
+end
 
 
 %=== Extend the Matlab search path to include the AMI dirs.
@@ -63,5 +70,7 @@ if isstr( c )
   c = c( 2:(length(c)-1) );
   addpath( c );
 else
-  fprintf('WARNING, could not determine path of arts-data.\n');
+  if warn
+    fprintf('WARNING, could not determine path of arts-data.\n');
+  end
 end 
