@@ -1,3 +1,16 @@
+2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-1-5
+
+	* BUG in m_batch line 301 temporarily fixed, Stefan please
+	have a look
+
+	* /ami/hmatrix/hRedLimb updated
+	
+	* new mscript /ami/physics/hseCalc.m resembling the hseCalc
+	function of arts, to be used for instance in Qpack/Main/qp_
+	rnd_atm.
+
 2001-10-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-4

@@ -297,7 +297,11 @@ void ybatchCalc(
     for ( itag=0; itag<ndo; itag++ )
       {
 	assert( vs.ncols()==VMRs[itag].nrows() );
-	vs(tagindex[itag],Range(joker)) = VMRs[itag](Range(joker),i); 
+        // bug!!!
+        //vs(tagindex[itag],Range(joker)) = VMRs[itag](Range(joker),i);
+        for ( INDEX iloc=0; iloc<vs.ncols(); iloc++ )
+          vs(tagindex[itag],iloc) = VMRs[itag](iloc,i);
+ 
 	// Set the row of vs for itag from ith column of VMRs[itag].
       }
 

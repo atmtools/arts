@@ -47,6 +47,7 @@
 %          za_y        input zenith angle vector
 %          Hd          data reduction H matrix before reduction
 %          
+% TEMPLATE:            oem_iter1.tmplt
 %
 % HISTORY: 01.08.14  Created by Carlos Jimenez
 %------------------------------------------------------------------------
@@ -61,11 +62,12 @@ out(1,'Setting up reduction matrix optimizing the limb scan (H)');
 %=== Create cfile
 
 out(2,'Running arts to get variables');
-template      = which( 'hRedLimb.tmplt' );
+template      = which( 'oem_iter1.tmplt' );
 tmpdir    = temporary_directory( Q.TMP_AREA );
 
-
-[cfile,basename] = qtool( Q, tmpdir, template);
+QE.DO_NONLIN  = 0;
+QE.RECALC_ABS = 0;
+[cfile,basename] = qtool( Q, tmpdir, template, QE);
 
 %=== Run ARTS and load results
   
@@ -241,7 +243,6 @@ end
 
 
 nind     = length(z_ind);  
-F        = zeros ( nind*nf,nza*nf);
 ind      = (1+ nf * (z_ind(1)-1)):(nf * z_ind(length(z_ind)));
 
 Ka       = Kx(ind,:);
