@@ -331,6 +331,7 @@ return
 % The functions below are copies of the corresponding function in 
 % src/file.cc. For description on input and output of the functions and 
 % more comments, see file.cc.
+%
 
 function fid = binfile_open_in( filename )
 
@@ -381,11 +382,6 @@ function [vdata_id,nrows,ncols] = ...
     error(['Cannot attach the data ',dataname,' in file ',filename]);
   end
 
-  % Set fields to read
-  if hdfvs('setfields',vdata_id,storagetype) < 0
-    error(['Cannot find the field ',storagetype,' in file ',filename,'. Maybe the file contains data of other type.'])
-  end
-
   % Get number of rows and columns
   v = hdfvs('getattr', vdata_id,'vdata',0);
   nrows = double(v(1));
@@ -394,6 +390,13 @@ function [vdata_id,nrows,ncols] = ...
   % Check if number of rows and columns are as expected
   if ((nrows0>0)&(nrows~=nrows0)) | ((ncols0>0)&(ncols~=ncols0))
     error('The data have not the expected size.');
+  end
+
+  % Set fields to read (if not empty)
+  if (nrows > 0) & (ncols > 0)
+    if hdfvs('setfields',vdata_id,storagetype) < 0
+      error(['Cannot find the field ',storagetype,' in file ',filename,'. Maybe the file contains data of other type.'])
+    end
   end
 return
 
@@ -418,10 +421,12 @@ function x = ...
   [vdata_id,nrows,ncols] = ...
             binfile_read_init(fid,filename,dataname,storagetype,nrows0,ncols0);
 
-  %type_in_file = binfile_get_datatype(vdata_id);
-
-  [a,count] = hdfvs('read',vdata_id,nrows*ncols);
-  x = reshape(double(a{1}),ncols,nrows)';
+  if (nrows > 0) & (ncols > 0)
+    [a,count] = hdfvs('read',vdata_id,nrows*ncols);
+    x = reshape(double(a{1}),ncols,nrows)';
+  else
+    x = [];
+  end
 
   binfile_read_end(vdata_id,filename,dataname);
 return
@@ -435,10 +440,12 @@ function x = ...
   [vdata_id,nrows,ncols] = ...
             binfile_read_init(fid,filename,dataname,storagetype,nrows0,ncols0);
 
-  %type_in_file = binfile_get_datatype(vdata_id);
-
-  [a,count] = hdfvs('read',vdata_id,nrows*ncols);
-  x = reshape(char(a{1}),ncols,nrows);
+  if (nrows > 0) & (ncols > 0)
+    [a,count] = hdfvs('read',vdata_id,nrows*ncols);
+    x = reshape(char(a{1}),ncols,nrows);
+  else
+    x = [];
+  end
 
   binfile_read_end(vdata_id,filename,dataname);
 return

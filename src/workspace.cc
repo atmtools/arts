@@ -98,12 +98,11 @@ void define_wsv_data()
     (WsvRecord
      ("raw_vmrs_1d",
       "The individual VMR profiles. Each species VMR profile comes with a\n"
-      "pressure profile. The different species can hence be on different grids.\n"
-      "\n"
-      "Matrix has rows:\n"
+      "pressure profile. The different species can hence be on different\n"
+      "grids.\n"
+      "The matrix has rows:\n"
       "1. Pressure in Pa\n"
       "2. VMR profile (absolute number)\n"
-      "\n"
       "The array dimension is determined by the number of tag groups.", 
       ARRAYofMATRIX_));
 
@@ -284,7 +283,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("source",
-      "Mean source functions between the points of the LOS [W/(m3Hzsr)].",
+      "Mean source functions between the points of the LOS.",
       ARRAYofMATRIX_));
 
   wsv_data.push_back
@@ -296,8 +295,8 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("y_space",
-      "Radiation entering the atmosphere at the start of the LOS\n,"
-      "typically cosmic background radiation, [W/(m2Hzsr)].",
+      "Radiation entering the atmosphere at the start of the LOS,\n"
+      "typically cosmic background radiation.",
       VECTOR_));
 
   wsv_data.push_back
@@ -310,7 +309,7 @@ void define_wsv_data()
     (WsvRecord
      ("y0",
       "A reference spectrum. This variable can be used e.g. to save a copy\n"
-      "of Y or to compare the spectra before and after some operation(s).",
+      "of y or to compare the spectra before and after some operation(s).",
       VECTOR_));
 
 
@@ -340,15 +339,15 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("k_names",
-      "Name(s) on the retrieval identity associated with K.",
+      "Name(s) on the retrieval identity associated with k.",
       ARRAYofstring_));
 
   wsv_data.push_back
     (WsvRecord
      ("k_aux",
-      "Auxiliary data for K. The number of rows of this matrix equals the\n"
+      "Auxiliary data for k. The number of rows of this matrix equals the\n"
       "length of the state vector for the retrieval identity (the number of\n"
-      "columns of K).\n"
+      "columns of k).\n"
       "The columns hold different quantities:\n"
       "  Col 1: retrieval grid (or correspondingly)\n"
       "  Col 2: a priori values\n"
@@ -364,7 +363,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("kx_names",
-      "Names on the retrieval identities associated with KX.",
+      "Names on the retrieval identities associated with kx.",
       ARRAYofstring_));
 
   wsv_data.push_back
@@ -378,7 +377,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("kx_aux",
-      "Auxiliary data for KX. As K_AUX but with the data of the different\n"
+      "Auxiliary data for kx. As k_aux but with the data of the different\n"
       "retrieval identies appended vertically.",
       MATRIX_));
 
@@ -391,7 +390,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("kb_names",
-      "Names on the model parameter identities associated with KB.",
+      "Names on the model parameter identities associated with kb.",
       ARRAYofstring_));
 
   wsv_data.push_back
@@ -405,7 +404,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("kb_aux",
-      "Auxiliary data for KB. As K_AUX but with the data of the different\n"
+      "Auxiliary data for kb. As k_aux but with the data of the different\n"
       "forward model identies appended vertically.",
       MATRIX_));
 
@@ -418,7 +417,7 @@ void define_wsv_data()
       "A transfer matrix for sensor effects and data reduction.\n"
       "This is typically the total transfer matrix and includedes effects\n"
       "of both the sensor and data reduction.\n"
-      "This matrix and H2 can also be used to split the sensor calculations\n"
+      "This matrix and h1 can also be used to split the sensor calculations\n"
       "in two parts.",
       Hmatrix_));
 
@@ -427,7 +426,7 @@ void define_wsv_data()
      ("h2",
       "A second transfer matrix for sensor effects and data reduction.\n"
       "This matrix includes typically only effects of the data reduction.\n"
-      "See further H1.",
+      "See further h1.",
       Hmatrix_));
 
 

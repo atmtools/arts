@@ -258,7 +258,6 @@ else
 
   %=== MATRIX
   elseif strcmp(artstype,'MATRIX') 
-prec
     binfile_write(fid,filename,'MATRIX','MATRIX','NUMERIC',x,prec);
 
   %=== AOVECTOR
@@ -405,57 +404,57 @@ function binfile_write(fid,filename,dataname,storagetype,atomictype,x,prec)
   %=== Write data size
   binfile_write_size( filename, dataname, vdata_id, nrows, ncols );
 
+  
+  %= Create the field
+  if strcmp(atomictype,'INDEX')
+    status1 = hdfvs('setclass',vdata_id,'UINT');
+    status2 = hdfvs('fdefine',vdata_id,storagetype,'uint32',1);
+    a = unit32(x);
+    x = cell(1,1);
+    x{1} = a;
+
+  elseif strcmp(atomictype,'NUMERIC')
+    if prec == 2
+      status1 = hdfvs('setclass',vdata_id,'DOUBLE');
+      status2 = hdfvs('fdefine',vdata_id,storagetype,'double',1);
+    elseif prec == 1
+      status1 = hdfvs('setclass',vdata_id,'FLOAT');
+      status2 = hdfvs('fdefine',vdata_id,storagetype,'float',1);
+      x = single(x);
+    else
+      error('When writing binary, PREC must be 1 or 2.');
+    end
+    a = x';
+    x = cell(1,1);
+    x{1} = a(:)';
+
+  elseif strcmp(atomictype,'CHAR')
+    status1 = hdfvs('setclass',vdata_id,'CHAR');
+    status2 = hdfvs('fdefine',vdata_id,storagetype,'char',1);
+    a = x;
+    x = cell(1,1);
+    x{1} = a;
+
+  else
+    error(['The atomic data type ',atomictype',' is not handled']);
+  end
+
+  %= Handle error
+  if  status1 < 0
+    error(['Cannot set class on ',dataname,' in file ',filename]);
+  end
+  if status2 < 0
+    error(['Cannot create the field ',storagetype,' in file ',filename])
+  end
+
+  %= Finalize the definition of the field
+  if hdfvs('setfields',vdata_id,storagetype) < 0
+    error(['Cannot set the field ',storagetype,' in file ',filename])
+  end
+
+  %= Do actual writing
   %=== Write data (if not empty)
   if (nrows>0) & (ncols>0)
-  
-    %= Create the field
-    if strcmp(atomictype,'INDEX')
-      status1 = hdfvs('setclass',vdata_id,'UINT');
-      status2 = hdfvs('fdefine',vdata_id,storagetype,'uint32',1);
-      a = unit32(x);
-      x = cell(1,1);
-      x{1} = a;
-
-    elseif strcmp(atomictype,'NUMERIC')
-      if prec == 2
-        status1 = hdfvs('setclass',vdata_id,'DOUBLE');
-        status2 = hdfvs('fdefine',vdata_id,storagetype,'double',1);
-      elseif prec == 1
-        status1 = hdfvs('setclass',vdata_id,'FLOAT');
-        status2 = hdfvs('fdefine',vdata_id,storagetype,'float',1);
-        x = single(x);
-      else
-        error('When writing binary, PREC must be 1 or 2.');
-      end
-      a = x';
-      x = cell(1,1);
-      x{1} = a(:)';
-  
-    elseif strcmp(atomictype,'CHAR')
-      status1 = hdfvs('setclass',vdata_id,'CHAR');
-      status2 = hdfvs('fdefine',vdata_id,storagetype,'char',1);
-      a = x;
-      x = cell(1,1);
-      x{1} = a;
-
-    else
-      error(['The atomic data type ',atomictype',' is not handled']);
-    end
-
-    %= Handle error
-    if  status1 < 0
-      error(['Cannot set class on ',dataname,' in file ',filename]);
-    end
-    if status2 < 0
-      error(['Cannot create the field ',storagetype,' in file ',filename])
-    end
-
-    %= Finalize the definition of the field
-    if hdfvs('setfields',vdata_id,storagetype) < 0
-      error(['Cannot set the field ',storagetype,' in file ',filename])
-    end
-
-    %= Do actual writing
     nout = nrows*ncols;
     ndone = hdfvs('write',vdata_id, x );
     if ndone ~= nout 

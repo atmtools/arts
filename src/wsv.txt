@@ -39,12 +39,11 @@ VARIABLE : raw_vmrs_1d
 DATA TYPE: ARRAYofMATRIX
 DESCRIPTION:
 The individual VMR profiles. Each species VMR profile comes with a
-pressure profile. The different species can hence be on different grids.
-
-Matrix has rows:
+pressure profile. The different species can hence be on different
+grids.
+The matrix has rows:
 1. Pressure in Pa
 2. VMR profile (absolute number)
-
 The array dimension is determined by the number of tag groups.
 
 VARIABLE : p_abs
@@ -187,7 +186,7 @@ Structure to define the line of sight (LOS). See los.h.
 VARIABLE : source
 DATA TYPE: ARRAYofMATRIX
 DESCRIPTION:
-Mean source functions between the points of the LOS [W/(m3Hzsr)].
+Mean source functions between the points of the LOS.
 
 VARIABLE : trans
 DATA TYPE: ARRAYofMATRIX
@@ -197,8 +196,8 @@ The transmissions between the points of the LOS [-].
 VARIABLE : y_space
 DATA TYPE: VECTOR
 DESCRIPTION:
-Radiation entering the atmosphere at the start of the LOS
-,typically cosmic background radiation, [W/(m2Hzsr)].
+Radiation entering the atmosphere at the start of the LOS,
+typically cosmic background radiation.
 
 VARIABLE : y
 DATA TYPE: VECTOR
@@ -209,7 +208,7 @@ VARIABLE : y0
 DATA TYPE: VECTOR
 DESCRIPTION:
 A reference spectrum. This variable can be used e.g. to save a copy
-of Y or to compare the spectra before and after some operation(s).
+of y or to compare the spectra before and after some operation(s).
 
 VARIABLE : absloswfs
 DATA TYPE: ARRAYofMATRIX
@@ -232,14 +231,14 @@ The weighting functions (WFs) for a single retrieval identity.
 VARIABLE : k_names
 DATA TYPE: ARRAYofstring
 DESCRIPTION:
-Name(s) on the retrieval identity associated with K.
+Name(s) on the retrieval identity associated with k.
 
 VARIABLE : k_aux
 DATA TYPE: MATRIX
 DESCRIPTION:
-Auxiliary data for K. The number of rows of this matrix equals the
+Auxiliary data for k. The number of rows of this matrix equals the
 length of the state vector for the retrieval identity (the number of
-columns of K).
+columns of k).
 The columns hold different quantities:
   Col 1: retrieval grid (or correspondingly)
   Col 2: a priori values
@@ -253,7 +252,7 @@ The state weighting function matrix.
 VARIABLE : kx_names
 DATA TYPE: ARRAYofstring
 DESCRIPTION:
-Names on the retrieval identities associated with KX.
+Names on the retrieval identities associated with kx.
 
 VARIABLE : kx_index
 DATA TYPE: MATRIX
@@ -265,7 +264,7 @@ a retrieval identity as [i_first,i_last].
 VARIABLE : kx_aux
 DATA TYPE: MATRIX
 DESCRIPTION:
-Auxiliary data for KX. As K_AUX but with the data of the different
+Auxiliary data for kx. As k_aux but with the data of the different
 retrieval identies appended vertically.
 
 VARIABLE : kb
@@ -276,7 +275,7 @@ The model parameters weighting function matrix.
 VARIABLE : kb_names
 DATA TYPE: ARRAYofstring
 DESCRIPTION:
-Names on the model parameter identities associated with KB.
+Names on the model parameter identities associated with kb.
 
 VARIABLE : kb_index
 DATA TYPE: MATRIX
@@ -288,7 +287,7 @@ corresponds to a forward model identity as [i_first,i_last].
 VARIABLE : kb_aux
 DATA TYPE: MATRIX
 DESCRIPTION:
-Auxiliary data for KB. As K_AUX but with the data of the different
+Auxiliary data for kb. As k_aux but with the data of the different
 forward model identies appended vertically.
 
 VARIABLE : h1
@@ -297,7 +296,7 @@ DESCRIPTION:
 A transfer matrix for sensor effects and data reduction.
 This is typically the total transfer matrix and includedes effects
 of both the sensor and data reduction.
-This matrix and H2 can also be used to split the sensor calculations
+This matrix and h1 can also be used to split the sensor calculations
 in two parts.
 
 VARIABLE : h2
@@ -305,5 +304,5 @@ DATA TYPE: Hmatrix
 DESCRIPTION:
 A second transfer matrix for sensor effects and data reduction.
 This matrix includes typically only effects of the data reduction.
-See further H1.
+See further h1.
 

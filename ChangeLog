@@ -1,3 +1,15 @@
+2000-11-13  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-78
+
+	* The writing and reading functions for binary files handle now
+	empty data (both ARTS and AMI). (Does this work for ASCII files?)
+
+	* The binary data files are now described in AUG.
+
+	* Put in parts in AUG (just parts pages, no move of chapters was 
+	needed). AUG is divided into 3 parts.
+
 2000-11-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-77
@@ -23,7 +35,7 @@
 	between double and float. But there are so many combinations, so
 	no guarantees. Tell me if you find any bugs.
 
-	* maka_wsv_h.cc produces now also a text file, wsv.txt, with the
+	* make_wsv_h.cc produces now also a text file, wsv.txt, with the
 	information from workspace.cc. This file is used both for AGU and AMI.
         Feel free to fix an alphabetical order of the variables in wsv.txt.
 	This would look better in AUG.

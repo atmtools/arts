@@ -121,8 +121,12 @@ PE  2000-11-02: Change some data types as follows:
                 and fix IO functions (only binary). Are all those data types
                 really needed? 
 
+PE  2000-11-11: Write the workspace variables in alphabetical order to 
+                wsv.txt.
+
 SAB 2000-11-08: Send information about ARTS to Gerald Nedolua for
                 destribution to NDSC.
 
 SAB 2000-11-10: Adapt sample control file in user guide to new method
                 and WSV names.  
+

@@ -793,15 +793,6 @@ void binfile_read_init(
     throw runtime_error(os.str());
   }
 
-  // Set fields to read
-  if ( VSsetfields( vdata_id, storagetype.c_str() ) < 0 )
-  {
-    ostringstream os;
-    os << "Cannot find the field " << storagetype << " in file " << filename
-       << "\n" << "Maybe the file contains data of other type";
-    throw runtime_error(os.str());
-  }
-
   // Get number of rows and columns
   size_t  v[2];
   if ( VSgetattr( vdata_id, _HDF_VDATA, 0, v ) < 0 )
@@ -827,6 +818,19 @@ void binfile_read_init(
     os << ncols0 << " columns were expected, but the data have " << ncols
        << " columns";
     throw runtime_error(os.str());    
+  }
+
+  // Set fields to read
+  if ( (nrows>0) && (ncols>0) )
+  {
+    if ( VSsetfields( vdata_id, storagetype.c_str() ) < 0 )
+    {
+      cout << dataname << endl;
+      ostringstream os;
+      os << "Cannot find the field " << storagetype << " in file " << filename
+         << "\n" << "Maybe the file contains data of other type";
+      throw runtime_error(os.str());
+    }
   }
 }
 
@@ -940,65 +944,65 @@ void binfile_write(
   // Write data size
   binfile_write_size( filename, dataname, vdata_id, nrows, ncols );
 
-  // Write data (if not empty)
-  if ( (nrows>0) && (ncols>0) )
+  // Create the field
+  int    status1, status2;
+  //
+  if ( atomictype == "INDEX" ) 
   {
-    // Create the field
-    int    status1, status2;
-    //
-    if ( atomictype == "INDEX" ) 
+    status1 = VSsetclass( vdata_id, "UINT"  );
+    status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_UINT32, 1);
+  }     
+  else if ( atomictype == "NUMERIC" ) 
+  {
+    if ( sizeof(Numeric) == 4 )
     {
-      status1 = VSsetclass( vdata_id, "UINT"  );
-      status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_UINT32, 1);
-    }     
-    else if ( atomictype == "NUMERIC" ) 
-    {
-      if ( sizeof(Numeric) == 4 )
-      {
-        status1 = VSsetclass( vdata_id, "FLOAT"  );
-        status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_FLOAT32, 1); 
-      }
-      else
-      {
-        status1 = VSsetclass( vdata_id, "DOUBLE"  );
-        status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_FLOAT64, 1);
-      }
-    }
-  
-    else if ( atomictype == "CHAR" ) 
-    {
-      status1 = VSsetclass( vdata_id, "CHAR"  );
-      status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_CHAR, 1);     
+      status1 = VSsetclass( vdata_id, "FLOAT"  );
+      status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_FLOAT32, 1); 
     }
     else
     {
-      ostringstream os;
-      os << "The atomic data type " << atomictype << " is not handled";
-      throw runtime_error(os.str());
+      status1 = VSsetclass( vdata_id, "DOUBLE"  );
+      status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_FLOAT64, 1);
     }
+  }
 
-    // Handle error
-    if ( status1 < 0 )
-    {
-      ostringstream os;
-      os << "Cannot set class on " << dataname << " in file "<<filename;
-      throw runtime_error(os.str());
-    }
-    if ( status2 < 0 )
-    {
-      ostringstream os;
-      os << "Cannot create the field " << storagetype << " in file "<<filename;
-      throw runtime_error(os.str());
-    }
+  else if ( atomictype == "CHAR" ) 
+  {
+    status1 = VSsetclass( vdata_id, "CHAR"  );
+    status2 = VSfdefine( vdata_id, storagetype.c_str(), DFNT_CHAR, 1);     
+  }
+  else
+  {
+    ostringstream os;
+    os << "The atomic data type " << atomictype << " is not handled";
+    throw runtime_error(os.str());
+  }
 
-    // Finalize the definition of the field
-    if ( VSsetfields( vdata_id, storagetype.c_str() ) < 0 )
-    {
-      ostringstream os;
-      os << "Cannot set the field " << storagetype << " in file " << filename;
-      throw runtime_error(os.str());
-    }
+  // Handle error
+  if ( status1 < 0 )
+  {
+    ostringstream os;
+    os << "Cannot set class on " << dataname << " in file "<<filename;
+    throw runtime_error(os.str());
+  }
+  if ( status2 < 0 )
+  {
+    ostringstream os;
+    os << "Cannot create the field " << storagetype << " in file "<<filename;
+    throw runtime_error(os.str());
+  }
 
+  // Finalize the definition of the field
+  if ( VSsetfields( vdata_id, storagetype.c_str() ) < 0 )
+  {
+    ostringstream os;
+    os << "Cannot set the field " << storagetype << " in file " << filename;
+    throw runtime_error(os.str());
+  }
+
+  // Write data (if not empty)
+  if ( (nrows>0) && (ncols>0) )
+  {
     // Do actual writing
     const size_t   nout = nrows*ncols;
     size_t ndone = VSwrite( vdata_id, dpointer, nout, FULL_INTERLACE );
@@ -1060,20 +1064,23 @@ void binfile_read1(
   // Reallocate x
   x.newsize(n);
 
-  // Do reading and copy data
-  if ( type_in_file == "UINT" )
+  if ( n > 0 )
   {
-    size_t  a[n];
-    VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
-    for ( size_t i=0; i<n; i++ )
-      x[i] = a[i];
-  }
-
-  else
-  {
-    ostringstream os;
-    os << "Files with data type " << type_in_file << " are not handled";
-    throw runtime_error(os.str());
+    // Do reading and copy data
+    if ( type_in_file == "UINT" )
+    {
+      size_t  a[n];
+      VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
+      for ( size_t i=0; i<n; i++ )
+	x[i] = a[i];
+    }
+  
+    else
+    {
+      ostringstream os;
+      os << "Files with data type " << type_in_file << " are not handled";
+      throw runtime_error(os.str());
+    }
   }
 }
 
@@ -1119,38 +1126,41 @@ void binfile_read2(
   // Reallocate x
   x.newsize(nrows,ncols);
 
-  // Do reading and copy data
-  if ( type_in_file == "FLOAT" )
+  if ( (nrows > 0) && (ncols > 0) )
   {
-    float  a[nrows*ncols];
-    size_t i,j,j0;
-    VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-    for ( i=1; i<=nrows; i++ )
+    // Do reading and copy data
+    if ( type_in_file == "FLOAT" )
     {
-      j0 = (i-1)*ncols-1;
-      for ( j=1; j<=ncols; j++ )
-        x(i,j) = a[j0+j];
+      float  a[nrows*ncols];
+      size_t i,j,j0;
+      VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+      for ( i=1; i<=nrows; i++ )
+      {
+	j0 = (i-1)*ncols-1;
+	for ( j=1; j<=ncols; j++ )
+	  x(i,j) = a[j0+j];
+      }
     }
-  }
-
-  else if ( type_in_file == "DOUBLE" )
-  {
-    double a[nrows*ncols];
-    size_t i,j,j0;
-    VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-    for ( i=1; i<=nrows; i++ )
+  
+    else if ( type_in_file == "DOUBLE" )
     {
-      j0 = (i-1)*ncols-1;
-      for ( j=1; j<=ncols; j++ )
-         x(i,j) = a[j0+j];
+      double a[nrows*ncols];
+      size_t i,j,j0;
+      VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+      for ( i=1; i<=nrows; i++ )
+      {
+	j0 = (i-1)*ncols-1;
+	for ( j=1; j<=ncols; j++ )
+	   x(i,j) = a[j0+j];
+      }
     }
-  }
-
-  else
-  {
-    ostringstream os;
-    os << "Files with data type " << type_in_file << " are not handled";
-    throw runtime_error(os.str());
+  
+    else
+    {
+      ostringstream os;
+      os << "Files with data type " << type_in_file << " are not handled";
+      throw runtime_error(os.str());
+    }
   }
 }
 
@@ -1194,20 +1204,23 @@ void binfile_read3(
   // Reallocate x
   x.resize(n);
 
-  // Do reading and copy data
-  if ( type_in_file == "CHAR" )
+  if ( n > 0 )
   {
-    char  a[n];
-    VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
-    for ( size_t i=0; i<n; i++ )
-      x[i] = a[i];
-  }
-
-  else
-  {
-    ostringstream os;
-    os << "Files with data type " << type_in_file << " are not handled";
-    throw runtime_error(os.str());
+    // Do reading and copy data
+    if ( type_in_file == "CHAR" )
+    {
+      char  a[n];
+      VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
+      for ( size_t i=0; i<n; i++ )
+	x[i] = a[i];
+    }
+  
+    else
+    {
+      ostringstream os;
+      os << "Files with data type " << type_in_file << " are not handled";
+      throw runtime_error(os.str());
+    }
   }
 }
 
@@ -1267,7 +1280,7 @@ void binfile_read_index(
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
-  binfile_read1( a, vdata_id, 1, filename, dataname );
+  binfile_read1( a, vdata_id, nrows, filename, dataname );
   x = a(1);
   binfile_read_end( vdata_id, filename, dataname );
 }
@@ -1324,7 +1337,7 @@ void binfile_read_numeric(
 
   binfile_read_init( vdata_id, nrows, ncols, fid, filename, dataname, 
                                                            "SCALAR", 1, 1 );
-  binfile_read2( a, vdata_id, 1, 1, filename, dataname );
+  binfile_read2( a, vdata_id, nrows, ncols, filename, dataname );
   x = a(1,1);
   binfile_read_end( vdata_id, filename, dataname );
 
