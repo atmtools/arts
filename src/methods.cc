@@ -1195,13 +1195,38 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("ConvertIFToRF"),
+        DESCRIPTION
+        (
+         "Convert *sensor_response_f* from IF to RF, the function also\n"
+         "unfolds the measurement spectra *y*.\n"
+         "\n"
+         "This function should be used when the sensor configuration contains\n"
+         "a mixer and the spectra should be given in brightness temperature.\n"
+         "The reason is that the mixer converts the RF to IF, and to be able\n"
+         "to perform the Rayleigh-Jeans conversion from radiance to\n"
+         "brightness temperature, the radiance needs to be given in RF.\n"
+         "\n"
+         "Note that the number of elements in both *sensor_response_f* and\n"
+         "*y* will be increased, up to the doubled size. This depends on how\n"
+         "the frequencies in RF is mapped down to IF in the mixer."
+         ),
+         OUTPUT( sensor_response_f_, y_ ),
+         INPUT( lo_ ),
+         GOUTPUT( ),
+         GINPUT( ),
+         KEYWORDS( ),
+         TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("Copy"),
         DESCRIPTION
         (
          "Copy a workspace variable.\n"
          "\n"
-         "This is a supergeneric method. It can copy any workspace variable to\n"
-         "another workspace variable of the same group. (E.g., a Matrix to\n"
+         "This is a supergeneric method. It can copy any workspace variable\n"
+         "to another workspace variable of the same group. (E.g., a Matrix to\n"
          "another Matrix.)\n"
          "\n"
          "As allways, output comes first in the argument list!\n"
@@ -1210,8 +1235,9 @@ md_data_raw.push_back
          "\n"
          "Copy(f_grid,p_grid){}\n"
          "\n"
-         "Will copy the content of *p_grid* to *f_grid*. The size of *f_grid* is\n"
-         "adjusted automatically (the normal behaviour for workspace methods).\n"
+         "Will copy the content of *p_grid* to *f_grid*. The size of *f_grid*\n"
+         "is adjusted automatically (the normal behaviour for workspace\n"
+         "methods).\n"
          "\n"
          "Supergeneric output:\n"
          "   Any_ : The output variable.\n"
@@ -1302,7 +1328,7 @@ md_data_raw.push_back
         KEYWORDS("epsilon"),
         TYPES(Vector_t)));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("Exit"),
         DESCRIPTION
@@ -2165,13 +2191,13 @@ md_data_raw.push_back
          "ignore commands for those variables must be added to the agenda."
         ),
         OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
+        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
- 
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("lsWithCutoffAdd"),
@@ -3362,7 +3388,7 @@ md_data_raw.push_back
          ),
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
                 scat_aa_index_),
-        INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_, 
+        INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_,
                scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
                atmosphere_dim_, cloudbox_limits_, za_grid_size_),
         GOUTPUT(),
@@ -3671,19 +3697,14 @@ md_data_raw.push_back
          "\n"
          "Generic Input: \n"
          "ArrayOfArrayOfMatrix : The antenna diagram(s).\n"
-         "              Vector : The antenna/beam zenith angle grid.\n"
-         "\n"
-         "Keyword:\n"
-         "       multiply : 0 - no sensor_response multiplication\n"
-         "                  the returned sparse is the antenna response\n"
-         "                  1 - the total sensor response is returned."
+         "              Vector : The antenna/beam zenith angle grid."
         ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
         INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_ ),
         GOUTPUT( ),
         GINPUT( ArrayOfArrayOfMatrix_, Vector_ ),
-        KEYWORDS( "multiply" ),
-        TYPES( Index_t )));
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3709,19 +3730,14 @@ md_data_raw.push_back
          "matrices, the first, of a relative frequency grid.\n"
          "\n"
          "Generic Input: \n"
-         "  ArrayOfMatrix : The backend channel response.\n"
-         "\n"
-         "Keyword:\n"
-         "       multiply : 0 - no sensor_response multiplication\n"
-         "                  the returned sparse is the backend response\n"
-         "                  1 - the total sensor response is returned."
+         "  ArrayOfMatrix : The backend channel response."
         ),
         OUTPUT( sensor_response_, sensor_response_f_ ),
         INPUT( f_backend_, sensor_pol_, sensor_response_za_ ),
         GOUTPUT( ),
         GINPUT( ArrayOfMatrix_ ),
-        KEYWORDS( "multiply" ),
-        TYPES( Index_t )));
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3759,20 +3775,14 @@ md_data_raw.push_back
          "The local oscillator frequency is set by the keyword *lo*.\n"
          "\n"
          "Generic Input: \n"
-         "       Matrix : The sideband filter response matrix.\n"
-         "\n"
-         "Keywords:\n"
-         "           lo : The local oscillator frequency.\n"
-         "     multiply : 0 - no sensor_response multiplication\n"
-         "                  the returned sparse is the backend response\n"
-         "                  1 - the total sensor response is returned."
+         "       Matrix : The sideband filter response matrix."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
-        INPUT( sensor_pol_, sensor_response_za_ ),
+        INPUT( sensor_pol_, sensor_response_za_, lo_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
-        KEYWORDS( "lo", "multiply" ),
-        TYPES( Numeric_t, Index_t )));
+        KEYWORDS( ),
+        TYPES( )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -4290,7 +4300,7 @@ md_data_raw.push_back
          "   Vector : Original vector. \n"
          "\n"
          "Keywords:\n"
-         "   value : The value to be added to the vector."  
+         "   value : The value to be added to the vector."
         ),
         OUTPUT( ),
         INPUT( ),
@@ -4310,15 +4320,15 @@ md_data_raw.push_back
          "equlas always the step value, but note that the last value can  \n"
          "deviate from the stop value. The keyword step can be both positive\n"
          "and negative. \n"
-         "   The vector is [start, start+step, start+2*step, ...]\n "  
+         "   The vector is [start, start+step, start+2*step, ...]\n "
          "\n"
          "Generic output: \n"
          "   Vector : The vector to be created. \n"
          "\n"
          "Keywords:\n"
          "   start : The start value. \n"
-         "    stop : The maximum value of the end value. \n"  
-         "    step : The spacing of the vector. " 
+         "    stop : The maximum value of the end value. \n"
+         "    step : The spacing of the vector. "
         ),
         OUTPUT(),
         INPUT(),
@@ -4515,7 +4525,7 @@ md_data_raw.push_back
          "   Vector : A vector with radiance values. "
         ),
         OUTPUT(),
-        INPUT( sensor_pos_, sensor_los_, sensor_response_f_, 
+        INPUT( sensor_pos_, sensor_los_, sensor_response_f_,
                sensor_response_za_, sensor_response_aa_, sensor_pol_ ),
         GOUTPUT( Vector_ ),
         GINPUT( Vector_ ),

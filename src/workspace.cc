@@ -1143,6 +1143,23 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "lo" ),
+      DESCRIPTION
+      (
+       "The local oscillator frequency.\n"
+       "\n"
+       "The local oscillator frequency is used in a heterodyne system when\n"
+       "the mixer folds the spectra from from radio frequencies (RF) to\n"
+       "intermediate frequencies (IF).\n"
+       "\n"
+       "Unit: Hz\n"
+       "\n"
+       "Usage: Set by the user."
+       ),
+      GROUP( Numeric_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "lon_grid" ),
       DESCRIPTION
       (

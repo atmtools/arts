@@ -140,6 +140,35 @@ void AntennaSet2D(
 
 
 
+//! ConvertIFToRF
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-12-03
+*/
+void ConvertIFToRF(
+                   // WS Output:
+                   Vector&          sensor_response_f,
+                   Vector&          y,
+                   // WS Input:
+                   const Numeric&   lo )
+{
+  // Check that frequencies are not too low. This might be a floating limit.
+  // For this we use the variable f_lim, given in Hz.
+  Index f_lim = 20e9;
+  if( min(sensor_response_f) > f_lim )
+    throw runtime_error("The frequencies seems to already be given in RF.");
+
+  // FIXME: Check that *sensor_response_f* and *y* has consistence sizes
+
+  // Create output vector
+  Vector rf_out( sensor_response_f.nelem()*2 );
+
+}
+
+
+
 //! GaussianResponse
 /*!
    See the online help (arts -d FUNCTION_NAME)
@@ -263,9 +292,7 @@ void sensor_responseAntenna1D(
        const Vector&                antenna_za,
        // WS Generic Input Names:
        const String&                diag_name,
-       const String&                antenna_za_name,
-       // Control Parameters:
-       const Index&                 multiply )
+       const String&                antenna_za_name)
 {
   // Check that the antenna has the right dimension, this implies that the
   // mblock_aa_grid is empty (as set by AntennaSet1D).
@@ -382,26 +409,13 @@ void sensor_responseAntenna1D(
   antenna_transfer_matrix(antenna_response,mblock_za_grid,diag,f_grid,
     antenna_za,sensor_pol.nrows());
 
-  // FIXME: This should only be here because mult doesn't work properly
-  // Check if we want to return the total sensor_response or the
-  // antenna response
-  if (multiply==1) {
-    // It's forbidden to have same matrix as input twice to mult and we
-    // want to multiply antenna_response with sensor_response and store the
-    // result in sensor_response. So we need to create a temporary copy
-    // of sensor_response matrix.
-    Sparse sensor_response_tmp(sensor_response);
-    sensor_response.resize(nout, n);
-    mult( sensor_response, antenna_response, sensor_response_tmp);
-
-    // Some extra information to the user
-    out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
-         << "x" << sensor_response.ncols() << "\n";
-  } else {
-    // Don't multiply antenna_response with sensor_response, just
-    // return antenna_response
-    sensor_response = antenna_response;
-  }
+  // It's forbidden to have same matrix as input twice to mult and we
+  // want to multiply antenna_response with sensor_response and store the
+  // result in sensor_response. So we need to create a temporary copy
+  // of sensor_response matrix.
+  Sparse sensor_response_tmp(sensor_response);
+  sensor_response.resize(nout, n);
+  mult( sensor_response, antenna_response, sensor_response_tmp);
 
   // Some extra information to the user
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
@@ -429,9 +443,7 @@ void sensor_responseBackend(// WS Output:
                             // WS Generic Input:
                             const ArrayOfMatrix&  ch_response,
                             // WS Generic Input Names:
-                            const String&         ch_response_name,
-                            // Control Parameters:
-                            const Index&          multiply)
+                            const String&         ch_response_name)
 {
   // Initialise a output stream for runtime errors, a flag for errors
   // and counters for difference between sensor_response_f and the
@@ -509,22 +521,13 @@ void sensor_responseBackend(// WS Output:
     f_backend,sensor_response_f,sensor_response_za.nelem(),
     sensor_pol.nrows());
 
-  // FIXME: This should only be here because mult doesn't work properly
-  // Check if we should multiply backend_response with sensor_response
-  // and return the product or if we just return the backend_response
-  if (multiply==1) {
-
-    // Here we need a temporary sparse that is copy of the sensor_response
-    // sparse matrix. We need it since the multiplication function can not
-    // take the same object as both input and output.
-    Sparse sensor_response_tmp = sensor_response;
-    sensor_response.resize(f_backend.nelem()*n_za_pol,
-      sensor_response_tmp.ncols());
-    mult(sensor_response,backend_response,sensor_response_tmp);
-  } else {
-    // Just return the backend_response
-    sensor_response = backend_response;
-  }
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse sensor_response_tmp = sensor_response;
+  sensor_response.resize(f_backend.nelem()*n_za_pol,
+    sensor_response_tmp.ncols());
+  mult(sensor_response,backend_response,sensor_response_tmp);
 
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
@@ -607,13 +610,11 @@ void sensor_responseMixer(// WS Output:
                           // WS Input:
                           const Matrix&     sensor_pol,
                           const Vector&     sensor_response_za,
+                          const Numeric&    lo,
                           // WS Generic Input:
                           const Matrix&     filter,
                           // WS Generic Input Names:
-                          const String&     filter_name,
-                          // Control Parameters:
-                          const Numeric&    lo,
-                          const Index&      multiply)
+                          const String&     filter_name)
 {
   // Initialise a output stream for runtime errors, a flag for errors
   // and counters for difference between sensor_response_f and the
@@ -687,24 +688,13 @@ void sensor_responseMixer(// WS Output:
   mixer_transfer_matrix( mixer_response, f_mixer, sensor_response_f, lo,
     filter, sensor_pol.nrows(), sensor_response_za.nelem() );
 
-  // FIXME: This should only be here because mult doesn't work properly
-  // Check if we should multiply backend_response with sensor_response
-  // and return the product or if we just return the backend_response
-  if( multiply==1 ) {
-
-    // Here we need a temporary sparse that is copy of the sensor_response
-    // sparse matrix. We need it since the multiplication function can not
-    // take the same object as both input and output.
-    Sparse sensor_response_tmp = sensor_response;
-    sensor_response.resize( f_mixer.nelem()*n_za_pol,
-      sensor_response_tmp.ncols());
-    mult( sensor_response, mixer_response, sensor_response_tmp);
-  }
-  else
-  {
-    // Just return the mixer response
-    sensor_response = mixer_response;
-  }
+  // Here we need a temporary sparse that is copy of the sensor_response
+  // sparse matrix. We need it since the multiplication function can not
+  // take the same object as both input and output.
+  Sparse sensor_response_tmp = sensor_response;
+  sensor_response.resize( f_mixer.nelem()*n_za_pol,
+    sensor_response_tmp.ncols());
+  mult( sensor_response, mixer_response, sensor_response_tmp);
 
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
