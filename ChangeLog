@@ -1,3 +1,26 @@
+2002-07-26  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-193
+	
+	* src/m_scatproperties.cc (i_fieldSet): This methods interpolates
+	the radiation field on all grid points inside the cloud box from
+	the clear sky field.    This is the first guess for the iterative
+	solution method.  The method is successfully tested for a 1-D case
+	and hope that it works for 3-D too. 
+	
+	* src/methods.cc : Included the method i_fieldSet.
+	
+	* src/workspace.cc : Some minor corrections in the description of 
+	scat_i_p and scat_i_lon.  
+	
+	* doc/examples : In the control file i_field.arts, added the path
+	name for amplitude matrix data file.  But this data file cannot be
+	used, as it has only one frequency and interpolation cannot be
+	done if the old grid has only one point.  I made a new data file
+	with more than one frequency and I am presently working with it
+	for testing the scattering routines.  That data file is not at
+	present in the package arts-data.  
+	
 2002-07-18  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-192

@@ -324,15 +324,15 @@ i_fieldIterate(
  
   if (atmosphere_dim == 3){
  
-   //Does i_field have the right dimension? 
-    assert( is_size( i_field, p_grid.nelem(), lat_grid.nelem(), 
-		      lon_grid.nelem(), scat_za_grid.nelem(), 
-                     scat_aa_grid.nelem(), stokes_dim));
+    // Does i_field have the right dimension? 
+      assert( is_size( i_field, p_grid.nelem(), lat_grid.nelem(), 
+		       lon_grid.nelem(), scat_za_grid.nelem(), 
+		       scat_aa_grid.nelem(), stokes_dim));
     
     //Dimension of cloudbox_limits
     assert(is_size(cloudbox_limits, 6));
-    }
-
+  }
+  
   else if (atmosphere_dim == 1 ){
     assert ( is_size( i_field, p_grid.nelem(), 1, 
 		      1, scat_za_grid.nelem(), 
@@ -376,13 +376,14 @@ i_fieldIterate(
     // To calculate the scattering integral, pha_mat_spt is required 
     // for all directions. Furthermore is is required to calculate 
     // the absortion vector.
-    
+ 
     Index N_scat_za = scat_za_grid.nelem();
     for(Index scat_za_index = 0; scat_za_index < N_scat_za;
         scat_za_index ++)
       {
         ext_mat_sptCalc(ext_mat_spt, amp_mat, scat_za_index, 0, 
                         scat_f_index, f_grid);
+	   
         pha_mat_sptCalc(pha_mat_spt, amp_mat, scat_za_index, 0);
       }
     
@@ -521,13 +522,13 @@ i_fieldUpdate1D(// WS Output:
                         "1,2,3, or 4");
   
   assert ( is_size( i_field, p_grid.nelem(), 1, 
-                    1, scat_za_grid.nelem(), 
-                    1, stokes_dim));
+		    1, scat_za_grid.nelem(), 
+		    1, stokes_dim));
   
   assert ( is_size( scat_field , p_grid.nelem(), 1, 
-                    1, scat_za_grid.nelem(), 
-                    1, stokes_dim));  
-
+		    1, scat_za_grid.nelem(), 
+		    1, stokes_dim));  
+  
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
@@ -539,11 +540,13 @@ i_fieldUpdate1D(// WS Output:
     {
 
       //Calculate optical properties for single particle types:
-
+    
       //Calculate ext_mat_spt for the direction 
       //corresponding to the outer loop:
       ext_mat_sptCalc(ext_mat_spt, amp_mat, scat_za_index, 0, scat_f_index, 
                       f_grid);      
+      cout << "ext_mat_spt is calculated"<<"\n";
+
 
       // For a 1D atmosphere the azimuthal angle grid is not defined. 
       // Only 1 value, which is arbitrary set to 0, is passed into the function

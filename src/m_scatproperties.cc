@@ -57,6 +57,7 @@ void ext_mat_sptCalc(
   cout << "The stokes dimension is :" << stokes_dim<<"\n";
   cout << "The scat_za_index : " << scat_za_index  << " \n " ;
   cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
+  cout << "Number of particle type : " << npt  << " \n " ;
   if (amp_mat.ncols() != 8)
     throw runtime_error(
 			"Amplitude matrix must have 8 columns.");
@@ -81,13 +82,11 @@ void ext_mat_sptCalc(
 				      scat_aa_index,
 				      Range(joker)
 				      );
-     
-      cout << "The amplitude vector : " << " \n " 
-	   << amp_coeffs << " \n " ;
       amp2ext(ext_mat_spt(i,Range(joker),Range(joker)),
 	      amp_coeffs,
 	      freq);
     }
+ 
   cout <<  "The Extinction Matrix for single particle type: " << " \n " 
        <<ext_mat_spt << " \n " ;
 }
@@ -127,6 +126,7 @@ void pha_mat_sptCalc(
     throw runtime_error("The dimension of stokes vector" 
                          "can be only 1,2,3, or 4");
   }
+  
   for (Index i = 0; i < npt; ++i)
     {
       const Tensor3 amp_coeffs = amp_mat(i,
@@ -543,51 +543,51 @@ void abs_vecCalc(
 
 //! Method for getting amp_mat from amp_mat_raw.
 /*! 
-This method converts the raw amplitude matrix data namely amp_mat_raw 
-to workspace variable amp_mat which can be directly used for calculating  
-scattering properties of particles.  The data type of amp_mat_raw is 
-an ArrayOfArrayOfTensor6 which contains one gridded field for each 
-particle type the user wants.  One data file
-contains amp_mat_raw for one particle type.  One data file has
-amp_mat_raw for one particle for a set of frequencies, incoming and 
-outgoing zenith angles and azimuth angles. The frequencies, angles, 
-and the amplitude matrix are each a Tensor 6.  The size of amp_mat_raw 
-is amp_mat_raw[Npt][7].  where Npt is the number of particle types.
-amp_mat_raw[Npt][0] gives the frequency tensor [N_f, 1, 1, 1, 1, 1] 
-where N_f gives the number of frequencies considered in that particular
-database file. Similarly,
-amp_mat_raw[Npt][1] gives the outgoing zenith angle tensor [1,Nza,1,1,1,1],
-amp_mat_raw[Npt][2] gives the outgoing azimuth angle tensor [1,1,Naa,1,1,1], 
-amp_mat_raw[Npt][3] gives the incoming zentih angle tensor [1,1,1,Nza,1,1], 
-amp_mat_raw[Npt][4] gives the incoming azimuth angle tensor [1,1,1,1,Naa,1],
-amp_mat_raw[Npt][5] is a dummy tensor6 and 
-amp_mat_raw[Npt][6] gives amplitude matrix which is also a tensor 6 of
-size [N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number 
-of zenith angles, Naa is the number of azimuth angles and 8 denotes the 
-amplitude matrix elements.  
-
-In this method, we have to interpolate the raw data calculated on a 
-specific angular and frequency grid onto a grid which is set by the user. 
-Since we decide that frequency should be the outermost loop for our 
-radiative transfer calculation the frequency grid contains just one 
-value specified by the index scat_f_index.  The angles for which the 
-calculations are to be done are specified by scat_za_grid and scat_aa_grid.
-
-The output of this method is amp_mat has to be a 
-Tensor6 with the first dimension being that of the particle type, then the
-angles and finally the amplitude matrix element 8. The size of amp_mat is 
-(Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency is taken
-out.
+  This method converts the raw amplitude matrix data namely amp_mat_raw 
+  to workspace variable amp_mat which can be directly used for calculating  
+  scattering properties of particles.  The data type of amp_mat_raw is 
+  an ArrayOfArrayOfTensor6 which contains one gridded field for each 
+  particle type the user wants.  One data file
+  contains amp_mat_raw for one particle type.  One data file has
+  amp_mat_raw for one particle for a set of frequencies, incoming and 
+  outgoing zenith angles and azimuth angles. The frequencies, angles, 
+  and the amplitude matrix are each a Tensor 6.  The size of amp_mat_raw 
+  is amp_mat_raw[Npt][7].  where Npt is the number of particle types.
+  amp_mat_raw[Npt][0] gives the frequency tensor [N_f, 1, 1, 1, 1, 1] 
+  where N_f gives the number of frequencies considered in that particular
+  database file. Similarly,
+  amp_mat_raw[Npt][1] gives the outgoing zenith angle tensor [1,Nza,1,1,1,1],
+  amp_mat_raw[Npt][2] gives the outgoing azimuth angle tensor [1,1,Naa,1,1,1], 
+  amp_mat_raw[Npt][3] gives the incoming zentih angle tensor [1,1,1,Nza,1,1], 
+  amp_mat_raw[Npt][4] gives the incoming azimuth angle tensor [1,1,1,1,Naa,1],
+  amp_mat_raw[Npt][5] is a dummy tensor6 and 
+  amp_mat_raw[Npt][6] gives amplitude matrix which is also a tensor 6 of
+  size [N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number 
+  of zenith angles, Naa is the number of azimuth angles and 8 denotes the 
+  amplitude matrix elements.  
   
-\param amp_mat Output : Amplitude matrix which is interpolated on the 
-required grids set by the user.
-\param amp_mat_raw Input : The original data as read from the database.
-\param scat_f_index Input : The frequency index.
-\param f_grid Input : The frequency grid as required for RT calculation
-\param scat_za_grid Input : The zenith angle grid for which scattering 
-properties are to be calculated 
-\param scat_aa_grid Input : The azimuth angle grid for which scattering 
-properties are to be calculated 
+  In this method, we have to interpolate the raw data calculated on a 
+  specific angular and frequency grid onto a grid which is set by the user. 
+  Since we decide that frequency should be the outermost loop for our 
+  radiative transfer calculation the frequency grid contains just one 
+  value specified by the index scat_f_index.  The angles for which the 
+  calculations are to be done are specified by scat_za_grid and scat_aa_grid.
+  
+  The output of this method is amp_mat has to be a 
+  Tensor6 with the first dimension being that of the particle type, then the
+  angles and finally the amplitude matrix element 8. The size of amp_mat is 
+  (Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency is taken
+  out.
+  
+  \param amp_mat Output : Amplitude matrix which is interpolated on the 
+  required grids set by the user.
+  \param amp_mat_raw Input : The original data as read from the database.
+  \param scat_f_index Input : The frequency index.
+  \param f_grid Input : The frequency grid as required for RT calculation
+  \param scat_za_grid Input : The zenith angle grid for which scattering 
+  properties are to be calculated 
+  \param scat_aa_grid Input : The azimuth angle grid for which scattering 
+  properties are to be calculated 
 */
 void amp_matCalc(Tensor6& amp_mat,
 		 const ArrayOfArrayOfTensor6& amp_mat_raw,
@@ -597,7 +597,7 @@ void amp_matCalc(Tensor6& amp_mat,
 		 const Vector& scat_aa_grid)
 {
   Index N_pt = amp_mat_raw.nelem();
- 
+  
   Index N_za = scat_za_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
   Index N_i = amp_mat_raw [ 0 ] [ 6 ].ncols();
@@ -631,7 +631,7 @@ void amp_matCalc(Tensor6& amp_mat,
        //Define the grid position arrays. 
 
        // for  frequency : 
-       ArrayOfGridPos f_gp(f_grid.nelem()); 
+       ArrayOfGridPos f_gp(1); 
 
        // for outgoing zenith angle grids : 
        ArrayOfGridPos za_gp(scat_za_grid.nelem());
@@ -657,7 +657,7 @@ void amp_matCalc(Tensor6& amp_mat,
        
        f_grid(Range(scat_f_index),1) is the new grid which is also a vector
        formally but with one element given by the scat_f_index*/
-      
+       //cout<<scat_f_index<<"\n";
        gridpos (f_gp,
 		amp_mat_raw [ ipt ]  [ 0 ] ( Range(joker), 0, 0, 0, 0, 0),
 		f_grid[Range(scat_f_index, 1)]);
@@ -691,7 +691,7 @@ void amp_matCalc(Tensor6& amp_mat,
 	 of interpolation weight to be 32 in this case.
 	 */
        
-       Tensor6 itw(f_grid.nelem(), scat_za_grid.nelem(), scat_aa_grid.nelem(),
+       Tensor6 itw(1, scat_za_grid.nelem(), scat_aa_grid.nelem(),
 		   scat_za_grid.nelem(), scat_aa_grid.nelem(), 32);
 
        //function for computing interpolation weight tensor. For this
@@ -734,5 +734,356 @@ void amp_matCalc(Tensor6& amp_mat,
 	   
 	 }//close column index
      }//close particle index loop
+
 }
 
+//! This method interpolates clear sky field on the cloudbox boundary 
+//on all grid points inside the cloud box. 
+
+/*! 
+  This method uses a linear 3D interpolation scheme to obtain the 
+  radiation field on all grid points inside the cloud box form the 
+  clear sky field on the cloud bod boundary.
+  
+  \param i_field Output : Intensity field
+  \param scat_i_p Input : Intensity field on cloudbox boundary 
+  (equal pressure surfaces)
+  \param scat_i_lat Input : Intensity field on cloudbox boundary 
+  (equal latitude surfaces)
+  \param scat_i_lon Input : Intensity field on cloudbox boundary
+  (equal longitude surfaces)
+  \param f_grid Input : frequency grid
+  \param scat_f_index Input : the frequency index for scattering calculation
+  \param p_grid Input : the pressure grid
+  \param lat_grid Input : the latitude grid
+  \param lon_grid Input : the longitude grid
+  \param cloudbox_limits Input : Limits of the cloud box
+  \param atmospere_dim Input : dimension of atmosphere
+*/
+void i_fieldSet(Tensor6& i_field,
+		const Tensor7& scat_i_p,
+		const Tensor7& scat_i_lat,
+		const Tensor7& scat_i_lon,
+		const Vector& f_grid,
+		const Index& scat_f_index,
+		const Vector& p_grid,
+		const Vector& lat_grid,
+		const Vector& lon_grid,
+		const ArrayOfIndex& cloudbox_limits,
+		const Index& atmosphere_dim )
+{
+  if(atmosphere_dim == 1)
+    {
+      Index  N_f = scat_i_p.nlibraries();
+      if (f_grid.nelem() != N_f){
+	
+	throw runtime_error(" scat_i_p should have same frequency  "
+			    " dimension as f_grid");
+      }
+     
+      if(scat_i_p.nvitrines() != 2){
+	throw runtime_error("scat_i_p should have only two elements "
+			    "in pressure grid which corresponds "
+			    "to the two pressure surfaces");
+      }
+      
+     
+      Index N_za = scat_i_p.npages() ;
+   
+      Index N_aa = scat_i_p.nrows();
+   
+      Index N_i = scat_i_p.ncols();
+         
+      //1. interpolation - pressure grid
+      
+      
+      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 1, 1,  N_za, N_aa, N_i);
+      
+      /*the old grid is having only two elements, corresponding to the 
+	cloudbox_limits and the new grid have elements corresponding to
+	all grid points inside the cloudbox plus the cloud_box_limits*/
+
+      ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+      
+      gridpos(p_gp,
+	      p_grid[Range(cloudbox_limits[0], 
+			   2,
+			   (cloudbox_limits[1]- cloudbox_limits[0]))],
+	      p_grid[Range(cloudbox_limits[0], 
+			   (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+      
+      Matrix itw((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+      interpweights ( itw, p_gp );
+      
+      for (Index za_index = 0; za_index < N_za ; ++ za_index)
+	{
+	  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+	    {
+	      for (Index i = 0 ; i < N_i ; ++ i)
+		{
+		  
+		  VectorView target_field = i_field(Range(joker),
+						    0,
+						    0,
+						    za_index,
+						    aa_index,
+						    i);
+		  
+		  ConstVectorView source_field = scat_i_p(scat_f_index,
+							  Range(joker),    
+							  0,
+							  0,
+							  za_index,
+							  aa_index,
+							  i);
+		  
+		  interp(target_field,
+			 itw,
+			 source_field,
+			 p_gp);
+		}
+	      
+	    }
+	}
+      //cout<<i_field<<"\n";
+    }
+  if(atmosphere_dim == 3)
+    {
+      Index  N_f = scat_i_p.nlibraries();
+      if (scat_i_lat.nlibraries() != N_f || 
+	  scat_i_lon.nlibraries() != N_f){
+	
+	throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+			    "same frequency dimension");
+      }
+      Index N_p = scat_i_lat.nvitrines();
+      if(scat_i_lon.nvitrines() != N_p ||
+	 p_grid.nelem()         != N_p ){
+	throw runtime_error("scat_i_lat and scat_i_lon should have  "
+			    "same pressure grid dimension as p_grid");
+      }
+      
+      Index N_lat = scat_i_p.nshelves();
+      
+      if(scat_i_lon.nshelves() != N_lat ||
+	 lat_grid.nelem()      != N_lat){
+	throw runtime_error("scat_i_p and scat_i_lon should have  "
+			    "same latitude grid dimension as lat_grid");
+      }
+  
+      Index N_lon = scat_i_p.nbooks();
+      if(scat_i_lat.nbooks() != N_lon ||
+	 lon_grid.nelem()    != N_lon ){
+	throw runtime_error("scat_i_p and scat_i_lat should have  "
+			    "same longitude grid dimension as lon_grid");
+      }
+      if(scat_i_p.nvitrines() != 2){
+	throw runtime_error("scat_i_p should have only two elements "
+			    "in pressure grid which corresponds "
+			    "to the two pressure surfaces");
+      }
+      
+      if(scat_i_lat.nshelves() != 2){
+	throw runtime_error("scat_i_lat should have only two elements "
+			    "in latitude grid which corresponds "
+			    "to the two latitude surfaces");
+	
+      }
+      if(scat_i_lon.nbooks() != 2){
+	throw runtime_error("scat_i_lon should have only two elements "
+			    "in longitude grid which corresponds "
+			    "to the two longitude surfaces");
+	
+      }
+      Index N_za = scat_i_p.npages() ;
+      if (scat_i_lat.npages() != N_za || 
+	  scat_i_lon.npages() != N_za){
+	
+	throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+			    "same dimension for zenith angles");
+      }
+      Index N_aa = scat_i_p.nrows();
+      if (scat_i_lat.nrows() != N_aa || 
+	  scat_i_lon.nrows() != N_aa){
+	
+	throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+			    "same dimension for azimuth angles");
+      }
+      Index N_i = scat_i_p.ncols();
+      if (scat_i_lat.ncols() != N_i || 
+	  scat_i_lon.ncols() != N_i){
+	
+	throw runtime_error(" scat_i_p, scat_i_lat, scat_i_lon should have  "
+			    "same value for stokes_dim and can take only"
+			    "values 1,2,3 or 4");
+      }
+      
+      //1. interpolation - pressure grid, latitude grid and longitude grid
+      
+   
+      //i_field
+      
+      i_field.resize((cloudbox_limits[1]- cloudbox_limits[0])+1, 
+		     (cloudbox_limits[3]- cloudbox_limits[2])+1,
+		     (cloudbox_limits[5]- cloudbox_limits[4])+1,
+		     N_za, 
+		     N_aa,
+		     N_i);
+      
+      
+      ArrayOfGridPos p_gp((cloudbox_limits[1]- cloudbox_limits[0])+1);
+      ArrayOfGridPos lat_gp((cloudbox_limits[3]- cloudbox_limits[2])+1);
+      ArrayOfGridPos lon_gp((cloudbox_limits[5]- cloudbox_limits[4])+1);
+
+      /*the old grid is having only two elements, corresponding to the 
+	cloudbox_limits and the new grid have elements corresponding to
+	all grid points inside the cloudbox plus the cloud_box_limits*/
+      
+      gridpos(p_gp,
+	      p_grid[Range(cloudbox_limits[0], 
+			   2,
+			   (cloudbox_limits[1]- cloudbox_limits[0]))],
+	      p_grid[Range(cloudbox_limits[0], 
+			   (cloudbox_limits[1]- cloudbox_limits[0])+1)]);
+      gridpos(lat_gp,
+	      lat_grid[Range(cloudbox_limits[2], 
+			     2,
+			     (cloudbox_limits[3]- cloudbox_limits[2]))],
+	      lat_grid[Range(cloudbox_limits[2], 
+			     (cloudbox_limits[3]- cloudbox_limits[2])+1)]);
+      gridpos(lon_gp,
+	      lon_grid[Range(cloudbox_limits[4], 
+			     2,
+			     (cloudbox_limits[5]- cloudbox_limits[4]))],
+	      lon_grid[Range(cloudbox_limits[4], 
+			     (cloudbox_limits[5]- cloudbox_limits[4])+1)]);
+      
+      //interpolation weights corresponding to pressure, latitude and 
+      //longitude grids.
+
+      Matrix itw_p((cloudbox_limits[1]- cloudbox_limits[0])+1, 2);
+      Matrix itw_lat((cloudbox_limits[3]- cloudbox_limits[2])+1, 2);
+      Matrix itw_lon((cloudbox_limits[5]- cloudbox_limits[4])+1, 2);
+
+      interpweights ( itw_p, p_gp );
+      interpweights ( itw_lat, lat_gp );
+      interpweights ( itw_lon, lon_gp );
+
+      // interpolation - pressure grid
+      for (Index lat_index = cloudbox_limits[2]; 
+	   lat_index < cloudbox_limits[3] ; ++ lat_index)
+	{
+	  for (Index lon_index = cloudbox_limits[4]; 
+	       lon_index < cloudbox_limits[5] ; ++ lon_index)
+	    {
+	      for (Index za_index = 0; za_index < N_za ; ++ za_index)
+		{
+		  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+		    {
+		      for (Index i = 0 ; i < N_i ; ++ i)
+			{
+			  
+			  VectorView target_field = i_field(Range(joker),
+							    lat_index,
+							    lon_index,
+							    za_index,
+							    aa_index,
+							    i);
+			  
+			  ConstVectorView source_field = scat_i_p(scat_f_index,
+								  Range(joker),    
+								  lat_index,
+								  lon_index,
+								  za_index,
+								  aa_index,
+								  i);
+			  
+			  interp(target_field,
+				 itw_p,
+				 source_field,
+				 p_gp);
+			}
+		    }
+		}
+	    } 
+	}
+      //interpolation latitude
+      for (Index p_index = cloudbox_limits[0]; 
+	   p_index < cloudbox_limits[1] ; ++ p_index)
+	{
+	  for (Index lon_index = cloudbox_limits[4]; 
+	       lon_index < cloudbox_limits[5] ; ++ lon_index)
+	    {
+	      for (Index za_index = 0; za_index < N_za ; ++ za_index)
+		{
+		  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+		    {
+		      for (Index i = 0 ; i < N_i ; ++ i)
+			{
+			  
+			  VectorView target_field = i_field(p_index,
+							    Range(joker),
+							    lon_index,
+							    za_index,
+							    aa_index,
+							    i);
+			  
+			  ConstVectorView source_field = scat_i_p(scat_f_index,
+								  p_index,
+								  Range(joker),    
+								  lon_index,
+								  za_index,
+								  aa_index,
+								  i);
+			  
+			  interp(target_field,
+				 itw_lat,
+				 source_field,
+				 lat_gp);
+			}
+		    }
+		}
+	    } 
+	}
+      //interpolation -longitude
+      for (Index p_index = cloudbox_limits[0]; 
+	   p_index < cloudbox_limits[1] ; ++ p_index)
+	{
+	  for (Index lat_index = cloudbox_limits[2]; 
+	       lat_index < cloudbox_limits[3] ; ++ lat_index)
+	    {
+	      for (Index za_index = 0; za_index < N_za ; ++ za_index)
+		{
+		  for (Index aa_index = 0; aa_index < N_aa ; ++ aa_index)
+		    {
+		      for (Index i = 0 ; i < N_i ; ++ i)
+			{
+			  
+			  VectorView target_field = i_field(p_index,
+							    lat_index,
+							    Range(joker),
+							    za_index,
+							    aa_index,
+							    i);
+			  
+			  ConstVectorView source_field = scat_i_p(scat_f_index,
+								  p_index,    
+								  lat_index,
+								  Range(joker),
+								  za_index,
+								  aa_index,
+								  i);
+			  
+			  interp(target_field,
+				 itw_lon,
+				 source_field,
+				 lon_gp);
+			}
+		    }
+		}
+	    } 
+	}
+      //end of interpolation
+    }//ends atmosphere_dim = 3
+}
+      

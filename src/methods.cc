@@ -962,7 +962,34 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "i_fieldSet" ),
+	DESCRIPTION
+        (
+	 "This method uses a linear 3D interpolation scheme to obtain the\n"
+	 "radiation field on all grid points inside the cloud box from the\n"
+	 "clear sky field on the cloud bod boundary. This radiation field\n"
+	 "is taken as the first guess radiation field for the iterative \n"
+	 "solution method of the RTE.\n"
+	 "\n"
+	 "The inputs to this method are *scat_i_p*[ N_f, 2, N_lat, N_lon,\n"
+	 "N_za, N_aa, stokes_dim], *scat_i_lat*[ N_f, N_p, 2, N_lon, \n"
+	 "N_za, N_aa, stokes_dim] and *scat_i_lon*[ N_f, N_p, N_lat, 2,\n"
+	 "N_za, N_aa, stokes_dim].  The method has to pick the \n"
+	 "monochromatic radiation field out of these variables.  The \n"
+	 "output of the method is the initial field stored in the \n"
+	 "workspace variable *i_field*[ N_p, N_lat, N_lon, N_za, N_aa,\n"
+	 "stokes_dim].\n"
+	 ),
+	OUTPUT(i_field_),
+	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
+	       scat_f_index_, p_grid_, lat_grid_, lon_grid_, 
+	       cloudbox_limits_, atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
  md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldUpdate1D" ),

@@ -88,6 +88,7 @@ void amp2ext(MatrixView ext,
 
   cout<<"Wavelength corresponding to this frequency"<<wavelength<<"\n";
 
+
   ext(0, 0) = wavelength * (Im_S11 + Im_S22) ; 
   
   if( 1 == stokes_dim ){
@@ -103,7 +104,7 @@ void amp2ext(MatrixView ext,
   if(2 == stokes_dim){
     return;
   }
-
+  
   // if stokes_dim =2 only these 4 elements need be evaluated.
 
   ext(0, 2) = - wavelength * (Im_S12 + Im_S21);
@@ -111,7 +112,7 @@ void amp2ext(MatrixView ext,
   ext(2, 0) = ext(0, 2);
   ext(2, 1) = - ext(1, 2);
   ext(2, 2) = ext(0, 0);
-  
+
   if(3 == stokes_dim){
     return;
   }
@@ -126,6 +127,7 @@ void amp2ext(MatrixView ext,
   ext(3, 1) = - ext(1, 3);
   ext(3, 2) = - ext(2, 3);
   ext(3, 3) = ext(0, 0);
+
   if(4 == stokes_dim){
     return;
   }
@@ -164,6 +166,8 @@ void amp2pha(Tensor4View phasemat,
   }
   Index nza = phasemat.nbooks();
   Index naa = phasemat.npages();
+  cout<< "nza and naa"<<"";
+  cout <<nza<< "   "<<naa<<"\n";
   assert (is_size(amp_coeffs, nza, naa, 8));
   assert (is_size(phasemat, nza, naa, stokes_dim, stokes_dim));
   
