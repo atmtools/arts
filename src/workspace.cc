@@ -458,6 +458,43 @@ void define_wsv_data()
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "cloudbox_los" ),
+      DESCRIPTION
+      (
+       "Direction for scattered radiances on the cloudbox boundary.\n"
+       "\n"
+       "This variable is used as input for the method y_scatCalc, \n"
+       "which returns the scattered radiation at a given point on the \n"
+       "boundary of the cloudbox specified by *cloudbox_pos* and \n"
+       "*cloudbox_los*\n. *cloudbox_los* is a vector giving the requested\n"
+       "direction in terms of [zenith angle, azimuth angle].\n"
+       "\n"
+       "Unit: [Degrees, Degrees]\n"
+       "\n"
+       ), 
+      GROUP( Vector_ ))); 
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "cloudbox_pos" ),
+      DESCRIPTION 
+      ( 
+       "Position for scattered radiances on the cloudbox boundary.\n"
+       "\n"
+       "This variable is used as input for the method y_scatCalc, \n"
+       "which returns the scattered radiation at a given point on the \n"
+       "boundary of the cloudbox specified by *cloudbox_pos* and \n"
+       "*cloudbox_los*\n. *cloudbox_pos* is a vector giving the requested\n"
+       "position in terms of [pressure, latitude, longitude].\n"
+       "For 1D only the first element (pressure) has to be specified.\n"
+       "\n"
+       "Unit: [Pa, Degrees, Degrees]\n"
+       "\n"
+      ), 
+      GROUP( Vector_ ))); 
+
+ wsv_data.push_back
+   (WsvRecord
     ( NAME( "convergence_flag" ),
       DESCRIPTION
       (
@@ -1838,6 +1875,27 @@ void define_wsv_data()
        "Unit:       W/(m^2 Hz sr) or optical thickness.\n"
        "\n"
        "Dimensions: [ ?, stokes_dim ]"
+       ),
+      GROUP( Matrix_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "y_scat" ),
+      DESCRIPTION
+      (
+       "Outgoing radiation on the cloudbox boundary.\n"
+       "\n"
+       "This variable is generated in the method y_scatCalc, which needs\n"
+       "as input a position on the cloudbox boundary specified by \n"
+       "*cloudbox_pos* and the direction specified by *cloudbox_los*. \n"
+       "It is stored as a matrix to store the intensity values for \n"
+       "each frequency and each Stokes component.\n"
+       "\n"
+       "Usage:      Output from *y_scatCalc*.\n"
+       "\n"
+       "Unit:       [Hz, W/(m^2 Hz sr)] \n"
+       "\n"
+       "Dimensions: [ f_grid, stokes_dim ] \n"
        ),
       GROUP( Matrix_ )));
 

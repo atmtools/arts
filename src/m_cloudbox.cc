@@ -306,8 +306,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 	      
 	    }
 	}
-      //xml_write_to_file("i_field_Set.xml", i_field);
-      //cout<<i_field<<"\n";
+
     }
   if(atmosphere_dim == 3)
     {
@@ -555,6 +554,10 @@ void i_fieldSetClearsky(Tensor6& i_field,
 
 /*! 
   This method sets the initial field inside the cloudbox to a constant value.
+
+  The user can specify a value for each Stokes dimension in the control file
+  by the variable i_field_value, which is a vector containing 4 elements, the
+  value of the initial field for each Stokes dimension.
   
   \param i_field Output : Intensity field
   \param scat_i_p Input : Intensity field on cloudbox boundary 
@@ -589,8 +592,9 @@ void i_fieldSetConst(//WS Output:
                         const Vector& lon_grid,
                         const ArrayOfIndex& cloudbox_limits,
                         const Index& atmosphere_dim,
+                        const Index& stokes_dim,
                         // Keyword       
-                        const Numeric& i_field_value)
+                        const Vector& i_field_values)
 {
   if(atmosphere_dim == 1)
   {
@@ -606,20 +610,23 @@ void i_fieldSetConst(//WS Output:
     // Loop over all zenith angle directions.
     for (Index za_index = 0; za_index < N_za; za_index++)
       {
-        //set the value for the upper boundary
-        i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index, 0, 0) = 
-          scat_i_p(0, 1, 0, 0, za_index, 0, 0);
-        //set the value for the lower boundary 
-        i_field(0, 0, 0, za_index, 0, 0) = 
-          scat_i_p(0, 0, 0, 0, za_index, 0, 0);
-        for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
-               cloudbox_limits[0] ; scat_p_index++ )
-          // The field inside the cloudbox is set to some arbitrary value.
-          i_field(scat_p_index, 0, 0, za_index, 0, 0) =  i_field_value;
-      }    
-         
+        for (Index i = 0; i < stokes_dim; i++)
+          { 
+            //set the value for the upper boundary
+            i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
+                    0, i) = 
+              scat_i_p(0, 1, 0, 0, za_index, 0, i);
+            //set the value for the lower boundary 
+            i_field(0, 0, 0, za_index, 0, i) = 
+              scat_i_p(0, 0, 0, 0, za_index, 0, i);
+            for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
+                   cloudbox_limits[0]; scat_p_index++ )
+              // The field inside the cloudbox is set to some arbitrary value.
+              i_field(scat_p_index, 0, 0, za_index, 0, i) =  i_field_values[i];
+          }    
+      }
   }
-
+  
   if(atmosphere_dim == 3)
     {
       throw runtime_error(
@@ -777,6 +784,12 @@ void scat_iPut(//WS Output:
                   scat_i_p(scat_f_index, 1, 0, 0, za, 0, i) = 
                     i_field(cloudbox_limits[1] - cloudbox_limits[0],
                             0, 0, za, 0, i); 
+                  // For 1D scat_i_lat and scat_i_lon are 0.
+                  for(Index j = 0; j<2; j++)
+                    {
+                      scat_i_lat(scat_f_index, j, 0, 0, za, 0, i) = 0.;
+                      scat_i_lon(scat_f_index, j, 0, 0, za, 0, i) = 0.;
+                    }
                 }//end stokes_dim
             }//end za loop
     }//end atmosphere_dim = 1
@@ -787,13 +800,112 @@ void scat_iPut(//WS Output:
   if(atmosphere_dim == 3)
     {
       throw runtime_error(
-                          "i_fieldSetConst for 3D atmosphere will be \n"
+                          "i_fieldSetConst for 3D atmosphere will be"
                           "implemented soon."
                           );
     }
 }
- 
-    
 
 
+//! Scattered radiance on the cloudbox boundary.
+/* 
+ This method returns the radiances for a given direction and position on the 
+ boundary of the cloudbox. It interpolates from *scat_za_grid* on the 
+ requested direction. The variable *y_scat* is a matrix with the 
+ dimensions [f_grid, stokes_dim].
+  
+  \param y_scat Scattered radiance.
+  \param scat_i_p i_field on pressure boundaries.
+  \param scat_i_lat i_field on latitude boundaries.
+  \param scat_i_lon i_field on longitude boundaries.
+  \param cloudbox_pos Position on the cloudbox boundary.
+  \param cloudbox_los Direction of radiation.
+  \param cloudbox_limits Cloudbox limits.
+  \param atmosphere_dim Atmospheric dimension.
+  \param stokes_dim Stokes dimension.
 
+  \author Claudia Emde
+  \date 2002-09-10
+
+ */    
+void y_scatCalc(//WS Output:
+                Matrix& y_scat,
+                //WS Input:
+                const Tensor7& scat_i_p,
+                const Tensor7& scat_i_lat,
+                const Tensor7& scat_i_lon,
+                const Vector& cloudbox_pos,
+                const Vector& cloudbox_los,
+                const ArrayOfIndex& cloudbox_limits,
+                const Index& atmosphere_dim,
+                const Index& stokes_dim,
+                const Vector& scat_za_grid,
+                const Vector& scat_aa_grid,
+                const Vector& f_grid)
+{
+
+ if(atmosphere_dim == 1)
+   {
+     if (cloudbox_pos[0] != cloudbox_limits[0] &&
+         cloudbox_pos[0] != cloudbox_limits[1])
+       throw runtime_error(
+                           "*cloudbox_pos* has to be on the boundary of the "
+                           "cloudbox defined by *cloudbox_limits*."
+                           );
+     
+     //Define a vector to interpolate the outgoing radiance which is 
+     //defined on scat_za_grid on the requested zenith angle in 
+     //*cloudbox_los*.
+     Vector zenith_angle(1);
+     zenith_angle[0] = cloudbox_los[0];
+         
+     //Array to store grid positions
+     ArrayOfGridPos gp(1);
+     //Matrix to store interpolation weights
+     Matrix itw(scat_za_grid.nelem(),2);
+
+     for(Index i = 0; i < stokes_dim; i++)
+       {
+         for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
+           {
+             //This vvariable holds the radiation for a specified frequency.
+             //It is neccessairy because the interpolation is done for 
+             //each frequency separately.
+             Vector y_scat_f(scat_za_grid.nelem());
+
+             //lower boundary
+             if(cloudbox_pos[0] == cloudbox_limits[0])
+               {
+                 ConstVectorView y_f = scat_i_p(f_index, 0, 0, 0, 
+                                                 Range(joker), 0, i);
+                 y_scat_f = y_f;
+               }
+             //upper boundary
+             else if(cloudbox_pos[0] == cloudbox_limits[1])
+               {
+                 ConstVectorView y_f = scat_i_p(f_index, 1, 0, 0,
+                                                 Range(joker), 0, i);
+                 y_scat_f = y_f;
+               }
+             //Define vector for the interpolated radiance.
+             Vector y_scat_los(1);
+             
+             //Do the interpolation:
+             interp(y_scat_los, itw, y_scat_f, gp);
+             
+             //Put the value into the matrix:
+             y_scat(f_index, i) = y_scat_los[0];
+           }//end frequency loop
+       }//end stokes_dim loop
+   }// end atmosphere_dim 1
+
+
+ if(atmosphere_dim == 3)
+    {
+      throw runtime_error(
+                          "i_fieldSetConst for 3D atmosphere will be \n"
+                          "implemented soon."
+                          );
+    }
+   
+}

@@ -1066,11 +1066,11 @@ md_data_raw.push_back
 	OUTPUT(i_field_),
 	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
 	       scat_f_index_, p_grid_, lat_grid_, lon_grid_, 
-	       cloudbox_limits_, atmosphere_dim_),
+	       cloudbox_limits_, atmosphere_dim_, stokes_dim_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("value"),
-	TYPES(Numeric_t)));
+	TYPES(Vector_t)));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1858,7 +1858,7 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
-  md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME( "sensor_posAddGeoidWGS84" ),
 	DESCRIPTION
@@ -1930,7 +1930,7 @@ md_data_raw.push_back
 	KEYWORDS( ),
 	TYPES( )));
 
-md_data_raw.push_back     
+ md_data_raw.push_back     
     ( MdRecord
       ( NAME("stokes_vecScalar"),
 	DESCRIPTION
@@ -2526,8 +2526,26 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
-
-
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "y_scatCalc" ),
+	DESCRIPTION
+        (
+         "Scattered radiance on the cloudbox boundary.\n"
+         "\n"
+         "This method returns the radiances for a given direction and \n"
+         "position on the boundary of the cloudbox. The variable *y_scat* \n"
+         "is a matrix with the dimensions [f_grid, stokes_dim].\n"
+         "\n"
+         ),
+	OUTPUT( y_scat_ ),
+	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, cloudbox_pos_, 
+               cloudbox_los_, cloudbox_limits_, atmosphere_dim_, stokes_dim_,
+               scat_za_grid_, scat_aa_grid_, f_grid_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
 
 
