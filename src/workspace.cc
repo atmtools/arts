@@ -2290,6 +2290,16 @@ wsv_data.push_back
        ),
       GROUP( ArrayOfTensor3_ )));
 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "timer" ),
+      DESCRIPTION
+      (
+       "Stores the starting time for time measurements.\n"
+       "\n"
+       ),
+      GROUP( Timer_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "vector_1" ),
