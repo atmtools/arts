@@ -1,5 +1,12 @@
 2000-04-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-14
+
+	* token.cc: Fixed small bug in definition of TokValTypeName.
+
+	* reconf: Remove links before trying to re-configure.
+	
+	
 	* arts-0-0-13
 
 	* Renamed token types to 

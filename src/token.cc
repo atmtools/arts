@@ -6,7 +6,7 @@
     has to be the name exactly as it appears in declarations of these
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
-string TokValTypeName[6] = {"string", "int", "Numeric",
+string TokValTypeName[7] = {"string", "int", "Numeric",
 			    "ARRAY<String>", "ARRAY<Int>", "VECTOR",
                             "undefined"};
 
