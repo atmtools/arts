@@ -1,5 +1,20 @@
 2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-477
+
+	* src/make_auto_wsv_h.cc: Removed touch member function from WorkSpace.
+
+	* src/agenda_class.h: Removed touch member function from MRecord.
+
+	* src/m_ignore.h: Fixed unused parameter warning.
+
+	* src/make_auto_md_cc.cc: If parameter ws or mr is unused then omit
+	name in function definition to avoid compiler warning.
+
+	* src/xml_io.cc: Fixed unused parameter warnings.
+
+2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-476
 
 	* configure.in: Added doc/uguide/Figs/concept and
