@@ -1,5 +1,5 @@
 /*!
-  \file   test_zeeman.cc
+  \file   test_zeemanproperties.cc
   \author Nikolay Koulev <nkoulev@uni-bremen.de>
   \date   Fri Jan 10 16:46:32 2003
   
