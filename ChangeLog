@@ -1,3 +1,14 @@
+2002-11-28  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-316
+	
+	* src/m_scatrte.cc (i_fieldUpdate1D_PlaneParallel): This method is
+	added.  The method is similar to i_fieldUpdate1D except that it
+	takes that inside the cloudbox the atmosphere is
+	planeparallel. 
+
+	* src/methods.cc : Added the above method.  
+
 2002-11-27  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-315
