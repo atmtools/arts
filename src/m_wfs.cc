@@ -84,7 +84,7 @@ void klos_1pass (
 
 
 
-void klosBasic (
+void klos1d (
                     ARRAYofMATRIX&   k,
               const Los&             los,   
               const ARRAYofMATRIX&   source,

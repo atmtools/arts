@@ -17,8 +17,8 @@
 %  \stophistory
 %
 \starthistory
-  000306 & Created by Patrick Eriksson. This section is based on 
-           \citet{eriksson:99} and \citet{eriksson:00a}. \\
+  000306 & Created by Patrick Eriksson. This section is to a large extent 
+           based on \citet{eriksson:99} and \citet{eriksson:00a}. \\
 \stophistory
 
 
@@ -33,9 +33,9 @@
 %
 %
 \startsymbols
-  \mpbi   & \verb|y|      & monochromatic pencil beam intensity      \\
+  \mpbi   & \verb|-|      & monochromatic pencil beam intensity      \\
   \f      & \verb|f|      & frequency                                \\
-  \view   & \verb|phi|    & viewing angle from zenith                \\
+  \view   & \verb|view|   & viewing angle from zenith                \\
   \iv     & \verb|y|      & vector of monochromatic pencil beam intensities \\
   \y      & \verb|y|      & spectrum recorded by a sensor            \\
   \fm     & \verb|-|      & forward model                            \\
@@ -44,9 +44,11 @@
   \xt     & \verb|-|      & state vector (variables to be retrieved) \\
   $\xt_r$ & \verb|-|      & atmospheric part of \xt                  \\
   $\xt_s$ & \verb|-|      & sensor part of \xt                       \\
+  $\xt_\merr$& \verb|-|   & part of \xt describing measurement errors   \\
   \bt     & \verb|-|      & forward model parameter vector           \\
   $\bt_r$ & \verb|-|      & atmospheric part of \bt                  \\
   $\bt_s$ & \verb|-|      & sensor part of \bt                       \\
+  $\bt_\merr$& \verb|-|   & part of \bt describing measurement errors   \\
   \Kx     & \verb|K|      & state weighting function matrix          \\
   \Kb     & \verb|K|      & model parameter weighting function matrix\\  
  \label{symtable:formalism}     
@@ -58,9 +60,10 @@
 % Introduction
 %
 In this section a theoretical framework for the forward model is
-presented. The presentation follows \citet{rodgers:90}, but the
-distinction between the atmospheric and sensor parts of the forward
-model is also discussed here.   
+presented. The presentation follows \citet{rodgers:90}, but some
+extensions are made, for example, the distinction between the
+atmospheric and sensor parts of the forward model is also discussed
+here.
 
 
 
@@ -125,7 +128,7 @@ model is also discussed here.
  where \iv\ is the vector holding the spectral values for the
  considered set of frequencies and viewing angles (i.e.
  $\iv^i=I(\f^i,\view^i)$, where $i$ is the vector index), and
- $\xt_\fm$ and $\bt_\fm$ are separated correspondingly, i.e.
+ $\xt_\fm$ and $\bt_\fm$ are separated correspondingly, that is,
  $\xt_\fm^T= [\xt_r^T,\xt_s^T]$ and $\bt_\fm^T= [\bt_r^T,\bt_s^T]$. The
  vectors \xt\ and \bt\ can now be expressed as
  \begin{equation}
@@ -170,7 +173,7 @@ model is also discussed here.
  where \Hd\ is the reduction matrix, \Hs\ the sensor matrix, and $\y'$
  and $\merr'$ are the measurement vector and the measurement errors,
  respectively, before data reduction. The matrices \Hd\ and \Hs\ are
- described in Section !! and !!, respectively.
+ described in Section \ref{sec:sensor} and \ref{sec:red}, respectively.
 
 
 
@@ -209,15 +212,15 @@ model is also discussed here.
  species, atmospheric temperature, spectroscopic data etc.
  
  The practical calculation of weighting functions is discussed in
- detail in Sections \ref{sec:wfuns} -- \ref{sec:wfuns_sens}.
+ detail in Sections \ref{sec:wfuns} and \ref{sec:wfuns_sens}.
 
 
  \levelc{Transformation between vector spaces}
  
   It could be of interest to transform a weighting function matrix from
   one vector space to another. The new vector, $\xt'$, is here
-  assumed to be of length $p$ $(\xt' \in \msize{p}{1})$, while the original
-  vector, \xt\ is of length $n$ $(\xt \in \msize{n}{1})$.  The
+  assumed to be of length $n$ $(\xt' \in \msize{n}{1})$, while the original
+  vector, \xt\ is of length $p$ $(\xt \in \msize{p}{1})$.  The
   relationship between the two vector spaces is described by a
   transformation matrix $\B$:
   \begin{equation}
@@ -225,7 +228,7 @@ model is also discussed here.
   \end{equation}
   where $\B \in \msize{p}{n}$. For example, if $\xt'$ is assumed to be
   piecewise linear, then the columns of $\B$ contain tenth functions,
-  i.e. a function that are 1 at the point of interest and decreases
+  that is, a function that are 1 at the point of interest and decreases
   linearly down to zero at the neighbouring points.  The matrix can
   also hold a reduced set of eigenvectors.
     
@@ -233,7 +236,6 @@ model is also discussed here.
   \begin{equation}
     \K_{\xt'} = \frac{\partial \y}{\partial \xt'}
   \end{equation}
-  
   This matrix is related to the weighting function matrix of \xt\ (Eq.
   \ref{eq:formalism:kx}) as
   \begin{equation}
@@ -248,7 +250,8 @@ model is also discussed here.
   \end{equation}
   However, it should be noted that this relationship only holds for
   those \xt\ that can be represented perfectly by some $\xt'$ (or vice
-  versa), i.e.  $\xt=\B\xt'$, and not for all combinations of \xt\ and $\xt'$.
+  versa), that is, $\xt=\B\xt'$, and not for all combinations of \xt\ 
+  and $\xt'$.
 
   If $\xt'$ is the vector to be retrieved, we have that \citep{rodgers:90}
   \begin{equation}
@@ -260,9 +263,9 @@ model is also discussed here.
   \begin{equation}
     \Dy =  \frac{\partial \xret'}{\partial \y}
   \end{equation}
-  i.e. \Dy\ corresponds to $\K_{\xt'}$, not \Kx.
+  that is, \Dy\ corresponds to $\K_{\xt'}$, not \Kx.
   
-  We have now also two possible averaging kernel matrices
+  We have now two possible averaging kernel matrices
   \begin{equation}
     \A_{\xt} 
       = \frac{\partial \xret'}{\partial \xt} 
@@ -278,7 +281,7 @@ model is also discussed here.
       = \A_{\xt} \B
   \end{equation}
   where $\A_{\xt} \in \msize{p}{n}$ and $\A_{\xt'} \in
-  \msize{p}{p}$, i.e. only $\A_{\xt'}$ is square. 
+  \msize{p}{p}$, that is, only $\A_{\xt'}$ is square. 
 
 
 

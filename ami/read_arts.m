@@ -24,7 +24,7 @@ function x = read_arts(basename,varname)
 
 
 %=== Create full file name
-name = sprintf('%s.%s.a',basename,varname);
+name = sprintf('%s.%s.am',basename,varname);
 
 
 %=== Open file for reading

@@ -42,11 +42,11 @@
 % Introduction
 %
 Many observation scenarios give rise to very large measurement
-vectors, larger than can be handled practically, and some kind
-of reduction of the data size is needed. This data reduction can be
-made part of the sensor transfer matrix. In fact, the data reduction
-can be viewed upon as an imaginary second spectrometer. The transfer
-matrix to use is then (Eq. \ref{eq:formalism:Hs})
+vectors, larger than can be handled practically during the inversions,
+and some kind of reduction of the data size is needed. This data
+reduction can be made part of the sensor transfer matrix. In fact, the
+data reduction can be viewed upon as an imaginary second spectrometer.
+The transfer matrix to use is then (Eq. \ref{eq:formalism:Hs})
 \begin{eqnarray}
   \Hm = \Hd \Hs  \nonumber
 \end{eqnarray}
@@ -97,7 +97,7 @@ where \Hd\ is the data reduction matrix and \Hs\ the sensor matrix.
  \end{equation}
  where $\Lambda$ is a diagonal matrix holding the eigenvalues
  corresponding to the eigenvectors, the columns of $\mat{E}$. The
- eigenvectors form an orthogonal basis, i.e.
+ eigenvectors form an orthogonal basis:
  \begin{equation}
    \Id = \mat{E}^T_j\mat{E}_j
  \end{equation}
@@ -107,7 +107,7 @@ where \Hd\ is the data reduction matrix and \Hs\ the sensor matrix.
  \begin{equation}
    \y = \mat{E}^T_j \y'
  \end{equation}
- i.e.
+ that is
  \begin{equation}
    \Hd = \mat{E}^T_j 
  \end{equation}

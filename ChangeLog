@@ -1,3 +1,32 @@
+2000-06-09  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-27
+
+	* Cleaned up the LOS functions and the corresponding parts of the
+	user guide. Included functions to calculate total atmospheric 
+	transmisioion.
+
+	* The compilation gives some warning messages.
+	
+	* The LOS starts now always in space. The case with the blackbody
+ 	ground is not considered anymore. This made the functions simpler.
+
+	* The LOS and RTE functions renamed (sorry about that). 
+	Functions giving spectra are now called yRte, and functions giving
+	transmisiion yBl (Beer-Lambert). Made some functions for special cases
+	where less workspace variables must be set. Some functions name:
+	- los1d
+	- los1dNoRefraction
+	- los1dUpward
+	- source1d
+	- trans1d
+	- yRte
+	- yRteNoGround
+	- yBl
+	- yBlNoGround                          
+
+	* The function startup added to AMI.
+
 2000-06-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-26

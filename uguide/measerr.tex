@@ -46,7 +46,7 @@ Following Equation \ref{eq:formalism:fm},
    \y = \fm + \merr, \nonumber
 \end{eqnarray}
 measurement errors, \merr\, are here defined as errors that are
-additive to the spectrum, i.e. not dependent on the actual spectrum.
+additive to the spectrum, that is, not dependent on the actual spectrum.
 Error sources falling into this category are thermal noise and
 baseline ripples (there is a small influence of the magnitude of the
 spectrum on the thermal noise but this effect is normally totally
@@ -115,39 +115,41 @@ to the spectrum.
  this fact.
  
  The magnitude of the thermal noise, expressed in brightness
- temperature, is generally described by the radiometer noise formula
+ temperature, is described by the radiometer noise formula
  \begin{equation}
-   \sigma_{tn}^i = \frac{T_{rec}+T_a^i}{\sqrt{\Delta \f^i \tau}}
+   \sigma_{tn}^i = \frac{q\left(T_{rec}+T_a^i\right)}{\sqrt{\Delta \f^i \tau}}
   \label{eq:measerr:tn}
  \end{equation}
  where $\sigma_{tn}^i$ is the standard deviation of the thermal noise
- for channel $i$, $T_{rec}$ the receiver noise temperature, $T_a$ the
- antenna temperature, $\Delta \f$ the channel bandwidth and $\tau$ the
- integration time. 
+ for channel $i$, $q$ a compensation factor $T_{rec}$ the receiver
+ noise temperature, $T_a$ the antenna temperature, $\Delta \f$ the
+ channel bandwidth and $\tau$ the integration time.
+ 
+ The factor $q$ is used to compensate for extra noise introduced by
+ the calibration, losses in the spectrometer etc. It is important to
+ define $q$ and $\tau$ consistently. Let us take an ordinary load
+ switching instrument as example, where one half of the time is used
+ to measure the atmosphere and the other half is used to observe a
+ reference load. If then $\tau$ gives the total integration time, $q$
+ should be (about) a factor $\sqrt{2}$ higher than when $\tau$ gives
+ only the integration time for the atmospheric observations.
+
+ 
  
 
  \levelc{Measurement thermal noise}
  \label{sec:measerr:mtn}
  
- As mentioned above, measurement thermal noise is here defined as
- thermal noise that is uncorrelated between the different viewing
- angles. Often it is possible to treat both measurement and calibration
- noise together, e.g. this is the normal case for ground-based
- measurements, and to cover these cases, a noise factor, $q$ is
- included in the radiometer noise formula:
- \begin{equation}
-   \sigma_{tn}^i = \frac{q(T_{rec}+T_a)}{\sqrt{\Delta \f^i \tau}}
-  \label{eq:measerr:qtn}
- \end{equation}
- The factor $q$ is used to compensate for extra noise introduced
- by the calibration, losses in the spectrometer etc. 
- 
- It is important to define $q$ and $\tau$ consistently. Let us take an
- ordinary load switching instrument as example, where one half of the
- time is used to measure the atmosphere and the other half is used to
- observe a reference load. If then $\tau$ gives the total integration
- time, $q$ should be (about) a factor $\sqrt{2}$ higher than when $\tau$
- gives only the integration time for the atmospheric observations.
+% As mentioned above, measurement thermal noise is here defined as
+% thermal noise that is uncorrelated between the different viewing
+% angles. Often it is possible to treat both measurement and calibration
+% noise together, e.g. this is the normal case for ground-based
+% measurements, and to cover these cases, a noise factor, $q$ is
+% included in the radiometer noise formula:
+% \begin{equation}
+%   \sigma_{tn}^i = \frac{q(T_{rec}+T_a)}{\sqrt{\Delta \f^i \tau}}
+%  \label{eq:measerr:qtn}
+% \end{equation}
  
  The thermal noise is often assumed to be uncorrelated between the
  measurement channels, and the corresponding covariance matrix,

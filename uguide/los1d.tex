@@ -18,9 +18,7 @@
 %  \stophistory
 %
 \starthistory
-  000307 & Created and written by Patrick Eriksson. The expressions and 
-           algorithms used here are to a large extent taken from the Odin 
-           sub-mm forward model, described in \citet{eriksson:97a}. \\
+  000307 & Created and written by Patrick Eriksson. \\
 \stophistory
 
 
@@ -34,7 +32,7 @@
 %
 %
 \startsymbols
-  \view     & \verb|phi|     & viewing angle from zenith                  \\
+  \view     & \verb|view|     & viewing angle from zenith                  \\
   $z$       & \verb|z|       & vertical altitude                          \\
   $z_p$     & \verb|z_plat|  & platform altitude                          \\
   $z_t$     & \verb|z_tan|   & tangent altitude                           \\
@@ -42,16 +40,10 @@
   $z_{lim}$ & \verb|z_abs_max|& practical upper limit of the atmosphere   \\
   $l$       & \verb|l|       & distance along LOS                         \\
   $e$       & \verb|gr_emiss|& ground emissivity                          \\
-  $\Delta l$& \verb|step|    & step length along LOS                      \\
+  $\Delta l$& \verb|l_step|  & step length along LOS                      \\
   $l_{lim}$ & \verb|llim|    & distance from lowest LOS point to $z_{lim}$\\
   $l_p$     & \verb|l1|      & distance used for downward observation     \\
-  $i_p$     & \verb|i_plat|  & index for platform altitude for downward obs. \\
-  $g$       & \verb|gterm|   & geometrical term                           \\
-  $g'$      & \verb|g|       & corrected geometrical term                 \\
-  $n$       & \verb|refr|    & refractive index                           \\
-  $\theta$  & -              & angle used of Snell's law                  \\
-  $c$       & \verb|c|       & constant for LOS                           \\
-  $\Delta l_r$& \verb|rstep| & step length to determine LOS with refraction  \\
+  $i_p$     & -              & index for platform altitude for downward obs. \\
  \label{symtable:los}     
 \stopsymbols
 
@@ -62,7 +54,7 @@
 %
 This section describes how the line of sight (LOS) can be determined
 for situations where the atmosphere is assumed to be totally horizontally
-stratified, i.e. an 1 D atmosphere. Expressions are given both for
+stratified, a 1D atmosphere. Expressions are given both for
 pure geometrical calculations and when considering refraction.
 
 
@@ -75,13 +67,13 @@ pure geometrical calculations and when considering refraction.
  is the distance from the lowest point of the LOS.
  
  As an 1D atmosphere is assumed, the conditions are symmetrical around
- the tangent point, or the point of ground reflection, and inside the
+ tangent points and points of ground reflection, and inside the
  forward model only the needed part of the LOS is stored.  The points
- of the LOS are stored by increasing vertical altitude, i.e. the first
+ of the LOS are stored by increasing vertical altitude, that is, the first
  point is the lowest point of the LOS. Index 1 corresponds accordingly
  to either the platform, the tangent point or the ground.  The
  internal description of the LOS is further described in the file
- \verb|los_1d.h|.
+ \verb|workspace.h|.
   
  The line of sight is defined by two variables, the platform altitude,
  $z_p$, and the viewing angle, $\view$, (see Fig. \ref{fig:los1d:geoms}):
@@ -124,76 +116,39 @@ pure geometrical calculations and when considering refraction.
 
   \begin{description}
     \item[Upward looking] signifies observation from within the atmosphere 
-      in an upward direction, i.e. $z_p<z_{lim}$ and $\view\leq90^{\circ}$.
-    \item[Limb Sounding] is here considered to be observation from any point
-      outside the atmosphere, i.e. $z_p \geq z_{lim}$. All viewing angles
-      are covered, and for example nadir looking observations
+      in an upward direction ($z_p<z_{lim}$ and $\view\leq90^{\circ}$).
+    \item[Limb Sounding] covers here all observations from a point
+      outside the atmosphere ($z_p \geq z_{lim}$). All viewing angles
+      are covered, and, for example, nadir looking observations
       ($\view=180$) are treated as limb sounding in the forward model.
-      If the LOS does not pass the atmosphere ($z_{tan}>z_{lim}$), cosmic
-      background radiation is returned.
+      If the LOS does not pass the atmosphere ($z_{tan} \geq z_{lim}$), cosmic
+      background radiation or zero is returned.
     \item[Downward looking] is observation from within the atmosphere in a
-      downward direction, i.e. $z_p<z_{lim}$ and
-      $\view>90^{\circ}$. In contrast to the other two geometries, for
-      downward observations there are two fixed points inside the
-      atmosphere, the platform, and the tangent point or the point of
-      ground reflection.
+      downward direction ($z_p<z_{lim}$ and $\view>90^{\circ}$).
   \end{description}
+ 
 
-  \noindent
-  Observations performed from within the atmosphere with
-  $\view=90^\circ$ are treated in the forward model as upward looking.
-
-  Seven different cases can be distinguished, corresponding to
-  different observation geometries and assumption
-  on ground emission factor ($e$, see Sec. \ref{sec:rte:ground}):
-
-  \begin{enumerate}
-    \item Upward looking observation
-    \item Limb sounding with no ground reflection, i.e. $z_{tan}>=z_g$
-    \item Limb sounding with ground intersection, and the ground is
-      assumed to be perfect blackbody, i.e. $z_{tan}<z_g$ and $e=1$
-    \item Limb sounding with ground intersection, and the ground is
-      assumed to give reflection, i.e. $z_{tan}<z_g$ and $e<1$
-    \item Downward looking with no ground reflection, i.e. $z_{tan}>=z_g$
-    \item Downward looking with ground intersection, and the ground is
-      assumed to be perfect blackbody, i.e. $z_{tan}<z_g$ and $e=1$
-    \item  Downward looking with ground intersection, and the ground is
-      assumed to give reflection, i.e. $z_{tan}<z_g$ and $e<1$
-  \end{enumerate}
-
-  
-
-\levelb{The step length} 
+ 
+\levelb{The step length}
+ 
  As described in Section \ref{sec:rte}, the LOS is divided into equal
- long geometrical steps, $\Delta l$. For upward looking and limb
- sounding observations, the value of $\Delta l$ is selected in such
- way that the LOS gets an integer number of steps between the lowest
- point (i.e. the platform, the ground or the tangent point) of the LOS
- and $z_{lim}$. For downward looking observation, the value of $\Delta
- l$ is determined by the distance along the LOS from the platform to
- the lowest point of the LOS (i.e. either the ground or the tangent
- point). In both cases, the maximum value possible below the upper
- limit defined by the user is selected. With other words, if $l_{lim}$
- is the distance to match (see below), the number of points of the LOS
- is
- \begin{equation}
-    m = 1 + \mathbf{ ceil}(l_{lim}/\Delta l_{max})
-  \label{eq:los:m}
- \end{equation}
- where $\Delta l_{max}$ is the upper limit for $\Delta l$ specified by
- the user, and $\mathbf{ ceil}$ is a function giving the first integer
- larger than the argument. The step length of the LOS is accordingly
- (cf. Fig. \ref{fig:rte:los})
- \begin{equation}
-    \Delta l = \frac{l_{lim}}{m-1}
-  \label{eq:los:dl}
- \end{equation}
+ long geometrical steps, $\Delta l$. The user gives an upper limit for
+ this step length. A point of the LOS is always placed at the sensor
+ (if inside the atmosphere), tangent points and points of ground
+ reflection, but no adjustment to the upper atmospheric limit is made.
+ This gives a single fixed point for limb sounding and upward looking
+ observation and $\Delta l$ is set to the value given by the user.
+ On the other hand, for downward observations there are two fixed points 
+ inside the atmosphere (the platform and the tangent point, or the point of
+ ground reflection) and $\Delta l$ is here adjusted
+ according to the the distance between these two points. See further
+ Section \ref{sec:los:down}.
 
 
 
 \levelb{Geometrical calculations}
   
- The equations of this section are described further, both in text
+  The equations of this section are described further, both in text
  and by figures (with a slightly different notation and definitions
  of the viewing angle) in Section 4 of \citet{eriksson:97a}.
 
@@ -209,9 +164,7 @@ pure geometrical calculations and when considering refraction.
   \begin{equation}
     z = \sqrt{ (R_e+z_p)^2 + l^2 + 2l(R_e+z)\cos(\view) } - R_e
   \end{equation}
-  The number of points of the LOS is determined by Equations 
-  \ref{eq:los:m} and \ref{eq:los:dl}, where $l_{lim}$ is
-  the distance between the sensor and the limit of the atmosphere:
+  The distance between the sensor and the limit of the atmosphere is
   \begin{equation}
       l_{lim} = \sqrt{ (R_e+z_{lim})^2 - (R_e+z_p)^2\sin^2(\view) } - 
                                        (R_e+z_p)\cos(\view)
@@ -230,17 +183,13 @@ pure geometrical calculations and when considering refraction.
   $\sin(180^\circ-\view)=\sin(\view)$ and it must be checked that
   $\view\geq90^\circ$. Viewing angles $<90^\circ$ correspond to an
   imaginary tangent point behind the sensor, and is treated as an
-  observation into the space, i.e. the result is either zero or cosmic
-  background radiation.
+  observation into the space.
   
   The Pythagorean relation gives the distance from the tangent point
   to the atmospheric limit:
   \begin{equation}
       l_{lim} = \sqrt{ (R_e+z_{lim}) - (R_e+z_t)}
   \end{equation}
-  and this distance is used to determine $m$ and $\Delta l$ by
-  Equations \ref{eq:los:m} and \ref{eq:los:dl}.
-
   The vertical altitude as a function of the distance from the
   tangent point is
   \begin{equation}
@@ -262,8 +211,7 @@ pure geometrical calculations and when considering refraction.
   sounding functions by suitable exchange of variables. However, as
   the lowest point of the LOS is either the tangent point or the
   ground, and one point of LOS must fit the sensor altitude, the step
-  length must be adjusted to this distance. Hence, no adjustment to the
-  atmospheric upper limit is done. 
+  length must be adjusted to this distance.
 
   The distance between the sensor and a tangent point is
   \begin{equation}
@@ -276,235 +224,243 @@ pure geometrical calculations and when considering refraction.
             \qquad z_t < z_g
   \end{equation}
   where $z_t$ is determined by Equation \ref{eq:los:ztan}.
- 
-  If $l_{lim}$ is replaced by $l_p$, Equation \ref{eq:los:dl} gives 
-  $\Delta l$, while Equation \ref{eq:los:dl} can be used
-  to determine the index of the LOS point that corresponds to the 
-  platform.
 
-  If the tangent altitude is above the ground $(z_{tan} \geq z_t)$, the
-  the LOS is determined by the same expressions as applied for limb 
-  sounding, but with a fixed value for$\Delta l$, determined from
-  $l_p$. If there is an intersection with the ground, the upward
-  looking expressions can be used as described above for limb
-  sounding, again with a fixed value for $\Delta l$. 
-
-
-
-\levelb{The geometrical term}
- \label{sec:los:gterm}
-
- !! The new scheme for WF do not use the geometrical term. Is there
- another good approach for refraction that also works for 2D. Check Kyle.
- Accordingly, this section is maybe obselete.!!
-  
- The equations above could be determined from trigonometric
- relationships as they not consider refraction. To include the
- effect of refraction, the LOS can be treated to consist of piecewise
- geometrical parts, but another approach is selected here (see Sec.
- \ref{sec:los:refr}) and this approach includes the geometrical term.
-   
-  The geometrical term, $g$, is the ratio between an incremental distance
-  along the LOS and the corresponding change in vertical altitude:
-  \begin{equation}
-    g(z) = \frac{\dd l(z)}{\dd z}
-   \label{eq:los:gterm}
-  \end{equation}
- 
-  \levelc{Derivation}
-    
-   The Snell's law for a spherically geometry says that the following
-   product is constant, $c$, along the LOS \citep[e.g.][]{kyle:91,balluch:97}
-   \begin{equation}
-     c = (R_e+z) n(z) \sin(\theta)
-     \label{eq:los:snell}
-   \end{equation}
-   where $n$ is the refractive index and $\theta$ is the angle
-   between LOS and the vector to the Earth center (Fig.
-   \ref{fig:los:snell}). This relationship is described somewhat more in
-   detail by \citet{eriksson:97a}.
-
-   \begin{figure}[tb]
-    \begin{center}
-      \includegraphics*{Figs/snell.eps}
-      \caption{Definition of the angle $\theta$ in Snell's law for a 
-               spherically geometry (Eq. \ref{eq:los:snell}).}  
-      \label{fig:los:snell} 
-    \end{center} 
-  \end{figure}
-
-  By noticing that 
-  \begin{equation}
-    g(z) = \frac{1}{\cos(\theta)}
-  \end{equation}
-  it can be derived that the geometrical term can be expressed
-  generally as
-  \begin{equation}
-    g(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
-   \label{eq:los:gterm2}
-  \end{equation}
+ The part of the LOS between the sensor and the tangent or ground
+ point gets the following number of points:
+ \begin{equation}
+    m = 1 + \mathbf{ ceil}(l_{lim}/\Delta l_{max})
+  \label{eq:los:m}
+ \end{equation}
+ where $\Delta l_{max}$ is the upper limit for $\Delta l$ specified by
+ the user, and $\mathbf{ ceil}$ is a function giving the first integer
+ larger than the argument. The step length is accordingly
+ \begin{equation}
+    \Delta l = \frac{l_{lim}}{m-1}
+  \label{eq:los:dl}
+ \end{equation} 
+ If the tangent altitude is above the ground ($z_{tan} \geq z_t$), the
+ the LOS is determined by the same expressions as applied for limb
+ sounding, but with the adjusted value for $\Delta l$.
+ If there is an intersection with the ground, the upward
+ looking expressions can be used as described above for limb sounding,
+ again with the adjusted value for $\Delta l$.
 
 
 
- \levelc{Corrected geometrical term}
-  \label{sec:los:gcorr}
-
-  To obtain the LOS with refraction the geometrical term,
-  multiplicated with some other quantities, is integrated vertically.
-  There are two problems associated with this integration, (1) the
-  geometrical term is infinite at tangent points, (2) as the
-  geometrical term is a monotonous function (see Fig. 24 of
-  \citet{eriksson:97a}), the integration routine can consequently
-  under- or overestimate its integrated value.
-    
-  The integral of the geometrical term between two altitudes
-  $(z_1,z_2)$ is the distance along LOS between these two
-  altitudes $(l_{12})$:
-  \begin{equation}
-    l_{12} = \int_{z_1}^{z_2}g(z)\dd z
-   \label{eq:los:gintegr}
-  \end{equation}
-  If refraction is neglected, we can then easily make a correction to
-  the geometrical term in such way that the integration routine
-  applied gives the expected result. The integration routine applied
-  assumes that the integrand is linear between the given points, and
-  an integration of the geometrical term between two points of the LOS
-  would give the result
-  \begin{eqnarray}
-    \frac {(z_{i+1}-z_i)(g_{i+1}-g_i)}{2}   \nonumber
-  \end{eqnarray}
-  The correct answer for this integration is $\Delta l$.  Accordingly, a
-  corrected geometrical term, $g'$, can be calculated iteratively as
-  \begin{equation}
-     g'_i = \frac {2\Delta l} {z_{i+1}-z_i} - g'_{i+1} 
-   \label{eq:los:gcorr}
-  \end{equation}
-  where the iteration is started at the top of the atmosphere where $g'$
-  is set to the value of the geometrical term without refraction, $g_{n=1}$.
-  
-  !! Check if this part shall be moved
-  When $g´$ is determined, the ratio $g'/g_{n=1}$ can be used as a
-  correction factor when integrating the geometrical term with refraction.
-  The basic idea is that the correction factor shall compensate for an
-  inaccurate integration of the geometrical term, i.e. an integration
-  of the product
-  \begin{eqnarray}
-    \frac{g(z)g'(z)}{g_{n=1}(z)}
-   \nonumber
-  \end{eqnarray}
-  should give a more accurate answer then applying Equation
-  \ref{eq:los:gintegr} directly. For example, the scheme described
-  gives a totally correct answer when the refractive index is set to 1
-  (except at tangent points). Hence, the problem of integrating the
-  geometrical term is reduced significantly. Note that the main problem
-  is not the refractive index, which varies relatively slowly, it is
-  the rapid change of the geometrical term around tangent points.
-  However, the term $gg'/g_{n=1}$ is singular at tangent points, and
-  the integration must be started some distance from the tangent point
-  of the case considered. 
-
-  The term $g/g_{n=1}$ can be simplified to
-  \begin{equation}
-    \frac{g(z)}{g_{n=1}(z)} = \sqrt{n(z)\frac{1-n(z_t)}{n(z)-n(z_t)}}
-  \end{equation}
-  
-  
-
-\levelb{LOS with refraction}
- \label{sec:los:refr}
- 
- A smaller integration step is used to calculate LOS with refraction
- than compared to the integration of RTE. This step is here denoted
- $\Delta l_r$. This section is partly based on Section 4 of
- \citet{eriksson:97a}.
- 
- \levelc{Upward looking} 
-  
-  The constant for Snell's law is
-  \begin{equation}
-    c = (R_e+z_p)n(z_p) \sin (\view)
-  \end{equation}
-  Note that $\sin(\theta)=sin(180^\circ-\view)=sin(\view)$.
-    
-  The refracted LOS is determined by first calculating a geometric LOS
-  with steps of $\Delta l_r$ by using the geometrical function for
-  upward geometry. The refractive index is interpolated for these
-  altitudes, and the product $gg'/g_{n=1}$ is integrated, as described
-  in Section \ref{sec:los:gcorr}.  The obtained vector of distances
-  along LOS resulting from this integration is then interpolated at
-  $0, \Delta l, 2\Delta l,\dots$ to yield the final refracted vertical
-  altitudes of LOS.
-    
-  If the viewing angle is very close to $90^\circ$ ($\geq
-  89.999^\circ$), then the limb sounding function is called (with $z_t
-  \gets z_p$).
-
-
-
- \levelc{Limb sounding}
-    
-  Most important for limb sounding is to get a correct tangent
-  altitude, and the calculation of LOS should, if possible, start from
-  the tangent point. Fortunately, Snell's law (Eq.  \ref{eq:los:snell})
-  makes it possible to determine the tangent point without following the
-  LOS downwards from the upper limit of the atmosphere. The angle
-  $\theta$ is at the tangent point $90^\circ$ and thus
-  \begin{equation}
-     (R_e+z_t)n(z_t) = c
-  \end{equation}
-  where
-  \begin{equation}
-    c = (R_e+z_p) \sin(\view)
-  \end{equation}
-  as the refractive index in space is 1.
-  
-  The tangent altitude is calculated practically by calculating the
-  product $\left(R_e+z\right)n\left(z_t\right)$ for the absorption
-  vertical grid, looping downwards until $c$ is greater than this
-  product, and making an interpolation between this and the previous
-  altitude.  This scheme is taken from \citet{eriksson:97a}.
-  
-  If the tangent altitude is found to be below ground level, a
-  geometrical continuation of the LOS is assumed inside the Earth. This
-  tangent altitude can be determined by calling the function that
-  calculates the tangent altitude geometrically, where the platform
-  altitude and the viewing angle is set to
-  \begin{eqnarray}
-    z_p  & \gets & z_g \nonumber \\
-     \view & \gets & \pi-\sin^{-1}\left(\frac{c}{(R_e+z_g)n(z_g)}\right) 
-                                                 \nonumber
-  \end{eqnarray}   
-  The refracted vertical altitudes of the LOS are calculated in a
-  similar manner as for the upward looking case, but, of course, using
-  corresponding limb sounding functions. Howver, the integration of
-  the corrected geometrical term starts at some distance from the
-  tangent point, instead of at the platform.  This distance is
-  determined by the compile time variable \verb|REFR_MIN_FROM_TAN|.
-    
-  If the tangent altitude is below ground level, LOS is determined by
-  the corresponding upward function for refraction as
-  \begin{eqnarray}
-    z_p  & \gets & z_g \nonumber \\
-    \view & \gets & \sin^{-1}\left(\frac{R_e+z_t}{R_e+z_g}\right) 
-                                                 \nonumber
-  \end{eqnarray}   
-  Note that LOS is assumed to be straight below $z_g$ and a
-  geometrical calculation for calculation of $\view$ works for this
-  case.
-
-
- \levelc{Downward looking}
-  
-  The tangent altitude can be calculated with corresponding limb
-  sounding function if it is considered that the refractive index at
-  the platform deviates from unity.
-  
-  The refracted LOS for downward looking observations is obtained by
-  calling repeatedly the upward (if $z_t<z_g$) or the limb sounding
-  (if $z_t\geq z_g$) function for refraction, adjusting the step
-  length until one altitude of the LOS is sufficiently close to the
-  platform altitude. The stop criterion is controlled by the
-  compilation time variable \verb|REFR_DOWN_PREC|.
+%\levelb{The geometrical term}
+% \label{sec:los:gterm}
+%
+% !! The new scheme for WF do not use the geometrical term. Is there
+% another good approach for refraction that also works for 2D. Check Kyle.
+% Accordingly, this section is maybe obselete.!!
+%  
+% The equations above could be determined from trigonometric
+% relationships as they not consider refraction. To include the
+% effect of refraction, the LOS can be treated to consist of piecewise
+% geometrical parts, but another approach is selected here (see Sec.
+% \ref{sec:los:refr}) and this approach includes the geometrical term.
+%   
+%  The geometrical term, $g$, is the ratio between an incremental distance
+%  along the LOS and the corresponding change in vertical altitude:
+%  \begin{equation}
+%    g(z) = \frac{\dd l(z)}{\dd z}
+%   \label{eq:los:gterm}
+%  \end{equation}
+% 
+%  \levelc{Derivation}
+%    
+%   The Snell's law for a spherically geometry says that the following
+%   product is constant, $c$, along the LOS \citep[e.g.][]{kyle:91,balluch:97}
+%   \begin{equation}
+%     c = (R_e+z) n(z) \sin(\theta)
+%     \label{eq:los:snell}
+%   \end{equation}
+%   where $n$ is the refractive index and $\theta$ is the angle
+%   between LOS and the vector to the Earth center (Fig.
+%   \ref{fig:los:snell}). This relationship is described somewhat more in
+%   detail by \citet{eriksson:97a}.
+%
+%   \begin{figure}[tb]
+%    \begin{center}
+%      \includegraphics*{Figs/snell.eps}
+%      \caption{Definition of the angle $\theta$ in Snell's law for a 
+%               spherically geometry (Eq. \ref{eq:los:snell}).}  
+%      \label{fig:los:snell} 
+%    \end{center} 
+%  \end{figure}
+%
+%  By noticing that 
+%  \begin{equation}
+%    g(z) = \frac{1}{\cos(\theta)}
+%  \end{equation}
+%  it can be derived that the geometrical term can be expressed
+%  generally as
+%  \begin{equation}
+%    g(z) = \frac {(R_e+z)n(z)} {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
+%   \label{eq:los:gterm2}
+%  \end{equation}
+%
+%
+%
+% \levelc{Corrected geometrical term}
+%  \label{sec:los:gcorr}
+%
+%  To obtain the LOS with refraction the geometrical term,
+%  multiplicated with some other quantities, is integrated vertically.
+%  There are two problems associated with this integration, (1) the
+%  geometrical term is infinite at tangent points, (2) as the
+%  geometrical term is a monotonous function (see Fig. 24 of
+%  \citet{eriksson:97a}), the integration routine can consequently
+%  under- or overestimate its integrated value.
+%   
+%  The integral of the geometrical term between two altitudes
+%  $(z_1,z_2)$ is the distance along LOS between these two
+%  altitudes $(l_{12})$:
+%  \begin{equation}
+%    l_{12} = \int_{z_1}^{z_2}g(z)\dd z
+%   \label{eq:los:gintegr}
+%  \end{equation}
+%  If refraction is neglected, we can then easily make a correction to
+%  the geometrical term in such way that the integration routine
+%  applied gives the expected result. The integration routine applied
+%  assumes that the integrand is linear between the given points, and
+%  an integration of the geometrical term between two points of the LOS
+%  would give the result
+%  \begin{eqnarray}
+%    \frac {(z_{i+1}-z_i)(g_{i+1}-g_i)}{2}   \nonumber
+%  \end{eqnarray}
+%  The correct answer for this integration is $\Delta l$.  Accordingly, a
+%  corrected geometrical term, $g'$, can be calculated iteratively as
+%  \begin{equation}
+%     g'_i = \frac {2\Delta l} {z_{i+1}-z_i} - g'_{i+1} 
+%   \label{eq:los:gcorr}
+%  \end{equation}
+%  where the iteration is started at the top of the atmosphere where $g'$
+%  is set to the value of the geometrical term without refraction, $g_{n=1}$.
+%  
+%  !! Check if this part shall be moved
+%  When $g´$ is determined, the ratio $g'/g_{n=1}$ can be used as a
+%  correction factor when integrating the geometrical term with refraction.
+%  The basic idea is that the correction factor shall compensate for an
+%  inaccurate integration of the geometrical term, i.e. an integration
+%  of the product
+%  \begin{eqnarray}
+%    \frac{g(z)g'(z)}{g_{n=1}(z)}
+%   \nonumber
+%  \end{eqnarray}
+%  should give a more accurate answer then applying Equation
+%  \ref{eq:los:gintegr} directly. For example, the scheme described
+%  gives a totally correct answer when the refractive index is set to 1
+%  (except at tangent points). Hence, the problem of integrating the
+%  geometrical term is reduced significantly. Note that the main problem
+%  is not the refractive index, which varies relatively slowly, it is
+%  the rapid change of the geometrical term around tangent points.
+%  However, the term $gg'/g_{n=1}$ is singular at tangent points, and
+%  the integration must be started some distance from the tangent point
+%  of the case considered. 
+%
+%  The term $g/g_{n=1}$ can be simplified to
+%  \begin{equation}
+%    \frac{g(z)}{g_{n=1}(z)} = \sqrt{n(z)\frac{1-n(z_t)}{n(z)-n(z_t)}}
+%  \end{equation}
+%  
+%  
+%
+%\levelb{LOS with refraction}
+% \label{sec:los:refr}
+% 
+% A smaller integration step is used to calculate LOS with refraction
+% than compared to the integration of RTE. This step is here denoted
+% $\Delta l_r$. This section is partly based on Section 4 of
+% \citet{eriksson:97a}.
+% 
+% \levelc{Upward looking} 
+%  
+%  The constant for Snell's law is
+%  \begin{equation}
+%    c = (R_e+z_p)n(z_p) \sin (\view)
+%  \end{equation}
+%  Note that $\sin(\theta)=sin(180^\circ-\view)=sin(\view)$.
+%    
+%  The refracted LOS is determined by first calculating a geometric LOS
+%  with steps of $\Delta l_r$ by using the geometrical function for
+%  upward geometry. The refractive index is interpolated for these
+%  altitudes, and the product $gg'/g_{n=1}$ is integrated, as described
+%  in Section \ref{sec:los:gcorr}.  The obtained vector of distances
+%  along LOS resulting from this integration is then interpolated at
+%  $0, \Delta l, 2\Delta l,\dots$ to yield the final refracted vertical
+%  altitudes of LOS.
+%    
+%  If the viewing angle is very close to $90^\circ$ ($\geq
+%  89.999^\circ$), then the limb sounding function is called (with $z_t
+%  \gets z_p$).
+%
+%
+%
+% \levelc{Limb sounding}
+%    
+%  Most important for limb sounding is to get a correct tangent
+%  altitude, and the calculation of LOS should, if possible, start from
+%  the tangent point. Fortunately, Snell's law (Eq.  \ref{eq:los:snell})
+%  makes it possible to determine the tangent point without following the
+%  LOS downwards from the upper limit of the atmosphere. The angle
+%  $\theta$ is at the tangent point $90^\circ$ and thus
+%  \begin{equation}
+%     (R_e+z_t)n(z_t) = c
+%  \end{equation}
+%  where
+%  \begin{equation}
+%    c = (R_e+z_p) \sin(\view)
+%  \end{equation}
+%  as the refractive index in space is 1.
+%  
+%  The tangent altitude is calculated practically by calculating the
+%  product $\left(R_e+z\right)n\left(z_t\right)$ for the absorption
+%  vertical grid, looping downwards until $c$ is greater than this
+%  product, and making an interpolation between this and the previous
+%  altitude.  This scheme is taken from \citet{eriksson:97a}.
+%  
+%  If the tangent altitude is found to be below ground level, a
+%  geometrical continuation of the LOS is assumed inside the Earth. This
+%  tangent altitude can be determined by calling the function that
+%  calculates the tangent altitude geometrically, where the platform
+%  altitude and the viewing angle is set to
+%  \begin{eqnarray}
+%    z_p  & \gets & z_g \nonumber \\
+%     \view & \gets & \pi-\sin^{-1}\left(\frac{c}{(R_e+z_g)n(z_g)}\right) 
+%                                                 \nonumber
+%  \end{eqnarray}   
+%  The refracted vertical altitudes of the LOS are calculated in a
+%  similar manner as for the upward looking case, but, of course, using
+%  corresponding limb sounding functions. Howver, the integration of
+%  the corrected geometrical term starts at some distance from the
+%  tangent point, instead of at the platform.  This distance is
+%  determined by the compile time variable \verb|REFR_MIN_FROM_TAN|.
+%    
+%  If the tangent altitude is below ground level, LOS is determined by
+%  the corresponding upward function for refraction as
+%  \begin{eqnarray}
+%    z_p  & \gets & z_g \nonumber \\
+%    \view & \gets & \sin^{-1}\left(\frac{R_e+z_t}{R_e+z_g}\right) 
+%                                                 \nonumber
+%  \end{eqnarray}   
+%  Note that LOS is assumed to be straight below $z_g$ and a
+%  geometrical calculation for calculation of $\view$ works for this
+%  case.
+%
+%
+% \levelc{Downward looking}
+%  
+%  The tangent altitude can be calculated with corresponding limb
+%  sounding function if it is considered that the refractive index at
+%  the platform deviates from unity.
+%  
+%  The refracted LOS for downward looking observations is obtained by
+%  calling repeatedly the upward (if $z_t<z_g$) or the limb sounding
+%  (if $z_t\geq z_g$) function for refraction, adjusting the step
+%  length until one altitude of the LOS is sufficiently close to the
+%  platform altitude. The stop criterion is controlled by the
+%  compilation time variable \verb|REFR_DOWN_PREC|.
 
 
 

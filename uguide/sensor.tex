@@ -44,7 +44,7 @@
 A sensor model is needed because a practical instrument consistently
 gives spectra deviating from the hypothetical monochromatic pencil
 beam spectra provided by the atmsopheric part of the forward model
-(i.e. $\y\neq\iv$ always). For a radio (heterodyne) instrument, the
+(that is $\y\neq\iv$ always). For a radio (heterodyne) instrument, the
 most influential sensor parts are the antenna, the mixer, the sideband
 filter and the spectrometer. Limb sounding observations are also
 affected by Doppler shifts, but this effect is not considered here, it
@@ -61,11 +61,11 @@ is assumed to be treated seperately.
  function of frequency (spectrometer) or viewing direction (antenna)
  with the instrument response of concern. In all cases it is
  possible to describe the sensor influence by an analytical
- expression. See e.g. \citet{eriksson:97a} for more details.
+ expression. See for example \citet{eriksson:97a} for more details.
  These analytical expressions can be implemented and solved for each
  run of the sensor model, but this would be relatively computationally
  demanding for cases when the settings are kept constant, as the
- calculations are duplicated in unnecessary manner, and we want to
+ calculations are duplicated in an unnecessary manner, and we want to
  find a better implementation strategy.
  
  Summation and weighting of the spectral components are both linear
@@ -160,11 +160,13 @@ is assumed to be treated seperately.
     \label{eq:sensor:integr_weights}
  \end{eqnarray}
  For the practical calculations, the integral is solved from one grid
- point to next, of either $\mat{f}$ or $\mat{g}$.  For the case
+ point to next, of either $\mat{f}$ or $\mat{g}$. The functions are 
+ assumed to be zero outside their defined ranges (for example, $f=0$ 
+ for $x<x_2$).
+ For the case
  shown in Figure \ref{fig:sensor:vecintegr}, the integration order would be
  $(x_a,x_b)=(x_2,x_3)$, $(x_a,x_b)=(x_3,x_4)$, $(x_a,x_b)=(x_4,x_5)$
- \ldots\ The integration starts at $x_2$ as the functions are assumed
- to be zero outside their defined ranges (i.e. $f=0$ for $x<x_2$).
+ \ldots\
   
  Using Equation \ref{eq:sensor:integr_weights}, we can now determine how to
  calculate $\mat{h}$. For each integration step, $\mat{h}_i$ and
@@ -181,7 +183,7 @@ is assumed to be treated seperately.
  \end{eqnarray}
  where $i$ is the index for which $\mat{x}^i \leq x_a$ and $x_b \leq
  \mat{x}^{i+1}$. The vector $\mat{h}$ is initialised with
- zeros before the integration starts.
+ zeros before the calculation starts.
 
 
 
@@ -216,9 +218,9 @@ is assumed to be treated seperately.
  If the intensity is assumed to vary linearly between the points of the
  frequency grid, Equation \ref{eq:sensor:sband} can be written as
  \begin{eqnarray}
-   I_{IF}(\f^i) &=& \frac{1}{f_s(\f_i)+f_s(\f_i')}\Big[ f_s(\f_i)I(\f_i)+ \nonumber \\ 
-      & & + \frac{f_s(\f_i')}{\f_{j+1}-\f_j} ( I(\f_j)(\f_{j+1}-\f_i')
-           + I(\f_{j+1})(\f_i'-\f_j) )  \Big]
+   I_{IF}(\f^i) &=& \frac{1}{f_s(\f_i)+f_s(\f_i')} \bigg[ f_s(\f_i)I(\f_i)+ \nonumber \\ 
+      & & + \frac{f_s(\f_i')}{\f_{j+1}-\f_j} \Big( I(\f_j)(\f_{j+1}-\f_i')
+           + I(\f_{j+1})(\f_i'-\f_j) \Big)  \bigg]
   \label{eq:sensor:mixer}
  \end{eqnarray}
  where $f_s$ for the different frequencies is obtained by an analytical
@@ -242,11 +244,11 @@ is assumed to be treated seperately.
     \mat{h}^j &=& \frac{f_s(\f_i')}{f_s(\f_i)+f_s(\f_i')}    \nonumber
  \end{eqnarray}
  
- The frequency grid after the mixer has a point for each unique
- frequency before the mixer, i.e. frequencies of the image band are
- mirrored to thier corresponding frequencies in the primary band. This
- fact results in that the mixer-sideband transfer matrix is square if
- there are no perfect matches between primary and image frequencies.
+ Frequencies of the image band are mirrored to thier corresponding
+ frequencies in the primary band and the frequency grid after the
+ mixer has a point for each unique frequency before the mixer. This
+ results in that the mixer-sideband transfer matrix is square if there
+ are no perfect matches between primary and image frequencies.
  
 
 

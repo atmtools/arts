@@ -111,7 +111,8 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorNLinSpace"),
-	DESCRIPTION("Creates a linearly spaced vector with defined length.\n"
+	DESCRIPTION("Creates a vector with defined length, equally spaced\n"
+                    "between the given values.\n"
 		    "The length must be larger than 1."),
 	OUTPUT(),
 	INPUT(),
@@ -123,7 +124,8 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorNLogSpace"),
-	DESCRIPTION("Creates a logarithmically spaced vector with defined length.\n"
+	DESCRIPTION("Creates a vector with defined length, logarithmically\n"
+                    "spaced between the given values.\n"
 		    "The length must be larger than 1."),
 	OUTPUT(),
 	INPUT(),
@@ -371,15 +373,15 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("losBasic"),
+      ( NAME("los1d"),
   	DESCRIPTION(
           "A general function to determine LOS for a 1D atmosphere.\n"
-          "Refraction variables and ground altitude and emission\n"
-          "must be set when using this function."),
+          "Refraction is selected by a flag and the refraction variables\n"
+          "must be set when using this function. The ground altitude must\n"
+          "also be specified."),
 	OUTPUT(los_),
 	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_, 
-               refr_, l_step_refr_, refr_index_,
-               z_ground_, e_ground_ ),
+               refr_, l_step_refr_, refr_index_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -387,11 +389,41 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("sourceBasic"),
+      ( NAME("los1dNoRefraction"),
   	DESCRIPTION(
-          "Determines the mean source function between the points of a 1D LOS.\n" 
-          "This assumes no scattering and local thermodynamic equilibrium, i.e.\n"
-          "the source function equals the Planck function."),
+          "Determines the LOS for a 1D atmosphere without refraction.\n"
+          "The ground altitude must be specified."),
+	OUTPUT(los_),
+	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_, z_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("los1dUpward"),
+  	DESCRIPTION(
+          "Determines the LOS for a 1D atmosphere for upward observations,\n"
+          "neglecting refraction.\n"
+          "Refraction and ground altitude variables are NOT needed."),
+	OUTPUT(los_),
+	INPUT( z_plat_ ,view1_, l_step_, p_abs_, z_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("source1d"),
+  	DESCRIPTION(
+          "Calculates the source function between the points of a 1D LOS.\n" 
+          "No scattering and local thermodynamic equilibrium are assumed,\n"
+          "that is, the source function equals the Planck function.\n"
+          "The temparature is set to the mean value of the temperature at\n"
+          "the two LOS points limiting the step. The temperature at the LOS\n"
+          "points is obtained by linear interpolation"),
 	OUTPUT( source_ ),
 	INPUT( los_, p_abs_, t_abs_, f_abs_ ),
 	GOUTPUT(),
@@ -401,9 +433,12 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("transBasic"),
+      ( NAME("trans1d"),
   	DESCRIPTION(
-          "Calculates the transmission between the points of a 1D LOS."),
+          "Calculates the transmission between the points of a 1D LOS.\n"
+          "The absorption is assumed to vary linear between the LOS points."
+          "The absorption at the LOS points is obtained by linear\n"
+          "interpolation."),
 	OUTPUT( trans_ ),
 	INPUT( los_, p_abs_, abs_ ),
 	GOUTPUT(),
@@ -415,8 +450,8 @@ void define_md_data()
     ( MdRecord
       ( NAME("y_spaceStd"),
   	DESCRIPTION(
-          "Standard selection for the radiation entering the atmosphere at the\n"
-          "start of the LOS. The selections are:\n"
+          "Standard selection for the radiation entering the atmosphere at\n"
+          "the start of the LOS. The selections are:\n"
           "  0 no radiation\n"
           "  1 cosmic background radiation (planck for 2.7 K)\n"
           "  2 solar radiation (planck for 6000 K)"),
@@ -431,8 +466,8 @@ void define_md_data()
     ( MdRecord
       ( NAME("y_spacePlanck"),
   	DESCRIPTION(
-          "Sets the radiation entering the atmosphere at the start of the LOS\n"
-          "to the Planck function for the given temperature."),
+          "Sets the radiation entering the atmosphere at the start of the\n"
+          "LOS to the Planck function for the given temperature."),
 	OUTPUT( y_space_ ),
 	INPUT( f_abs_ ),
 	GOUTPUT(),
@@ -442,9 +477,11 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("yBasic"),
+      ( NAME("yRte"),
   	DESCRIPTION(
-          "Solves the radiative transfer equation (RTE) along the LOS."),
+          "Solves the general radiative transfer equation (RTE) along the\n"
+          "LOS. With other words, both absorption and emission are\n"
+          "considered."),
 	OUTPUT( y_ ),
 	INPUT( los_, f_abs_, y_space_, source_, trans_, e_ground_, t_ground_ ),
 	GOUTPUT(),
@@ -454,9 +491,53 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("klosBasic"),
+      ( NAME("yRteNoGround"),
   	DESCRIPTION(
-          "Calculates line of sight weighting functions (LOS WFs)."),
+          "This function can be used instead of yRte if there is no\n"
+          "intersection with the ground. The ground emission and \n"
+          "temperature are NOT needed when using this function."),
+	OUTPUT( y_ ),
+	INPUT( los_, f_abs_, y_space_, source_, trans_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("yBl"),
+  	DESCRIPTION(
+          "Calculates the total transmission throught the atmosphere,\n"
+          "using the Beer-Lambert (BL) law."),
+	OUTPUT( y_ ),
+	INPUT( los_, trans_, e_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("yBlNoGround"),
+  	DESCRIPTION(
+          "This function can be used instead of yBl if there is no\n"
+          "intersection with the ground. The ground emission is NOT needed \n"
+          "when using this function."),
+	OUTPUT( y_ ),
+	INPUT( los_, trans_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("klos1d"),
+  	DESCRIPTION(
+          "Calculates line of sight weighting functions (LOS WFs) for 1D.\n"
+          "These WFs are the derivative of the monochromatic pencil beam\n"
+          "intensity with respect to the absorption at the LOS points.\n"
+          "See further the ARTS user guide."),
 	OUTPUT( klos_ ),
 	INPUT( los_, source_, trans_, y_, f_abs_, e_ground_, t_ground_ ),
 	GOUTPUT(),

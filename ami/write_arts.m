@@ -20,7 +20,7 @@ function write_arts(basename,varname,x,xtype,prec)
 
 
 %=== Create full file name
-name = sprintf('%s.%s.a',basename,varname);
+name = sprintf('%s.%s.am',basename,varname);
 
 
 %=== Open file for writing
