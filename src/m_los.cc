@@ -140,7 +140,6 @@ void geom2refr(
   interpz( n, p_abs, z_abs, refr_index, zs );
 
   // Calculate the prolongation factor
-
   setto( a, r_geoid );
   add( zs, a );			//   a = (r_geoid+zs);
   ele_mult( a, a, a );		//   a = emult( a, a );
@@ -164,7 +163,7 @@ void geom2refr(
     r[0] = sqrt(n[0]/(n[0]+(r_geoid+zs[0])*(n[1]-n[0])/(zs[1]-zs[0])));
 
   // Safety check
-  if ( isnan(r[1]) != 0 )
+  if ( isnan(r[0]) != 0 )
     throw logic_error(
         "NaN obtained for the prolongation factor (check consistency for c!)");
 
@@ -172,14 +171,15 @@ void geom2refr(
   l[0] = 0.0;
   for ( size_t i=1; i<nz; i++ )
     l[i] = l[i-1] + l_step_refr * (r[i-1]+r[i])/2;
-  
-  // Interpolate to get LOS with steps of L_STEP
+
+  // Handle the rare case that llim < l_step
   if ( l[nz-1]<l_step )
     l_step = l[nz-1];
+
+  // Interpolate to get LOS with steps of L_STEP
   z2p( ps, z_abs, p_abs, zs );
   VECTOR dummy = linspace(0,l[nz-1],l_step);
   resize( p, dummy.size() );
-  //interp_lin( p, l, ps, dummy );
   interp_lin_vector( p, l, ps, dummy );
 }
 
@@ -272,16 +272,16 @@ void upward_geom(
   linspace( l, 0, llim, l_step );
 
   b = r_geoid + z_plat;  
+
   //  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - r_geoid;
   VECTOR d1(l.size()), d2(l.size());  // just two dummies 
   ele_mult(l,l,d1);
-
   copy( scaled( l, 2.0*b*cos(DEG2RAD*za) ), d2 );
-
   resize( z, l.size() );
   setto( z, b*b );
   add( d1, z );
   add( d2, z );
+  transf( z, sqrt, z );
   add( VECTOR( l.size(), -r_geoid ), z );
 }
 
@@ -322,12 +322,16 @@ void upward_refr(
               Numeric       l_step_refr )
 {
   VECTOR  zs;
+  Numeric z_tan = -99e3;
 
   if ( za > 90 )
     throw logic_error("Upward function used for zenith angle > 90 deg."); 
 
+  if ( za == 90 )
+    z_tan = z_plat;
+
   upward_geom( zs, l_step_refr, r_geoid, z_plat, za, atm_limit, 1 );
-  geom2refr( p, l_step, zs, c, -99e3, r_geoid, atm_limit, p_abs, z_abs, 
+  geom2refr( p, l_step, zs, c, z_tan, r_geoid, atm_limit, p_abs, z_abs, 
                                                    refr_index, l_step_refr );
 }
 
@@ -363,8 +367,6 @@ void space_geom(
   Numeric  llim;          // distance to atmospheric limit
   VECTOR   l;             // length from the tangent point
 
-  //  cout << "l_step = " << l_step << "\n";
-
   // If LOS outside the atmosphere, return empty vector
   if ( z_tan >= atm_limit )
     resize(z,0);
@@ -388,23 +390,13 @@ void space_geom(
     }
     linspace( l, 0, llim, l_step );
 
-    //    cout << "l, " << l.size() << ": " << l << "\n";
-
-    //    z = sqrt(b*b+emult(l,l)) - r_geoid;
+    //  z = sqrt(b*b+emult(l,l)) - r_geoid;
     ele_mult(l,l,l);
-    //    cout << "l^2, " << l.size() << ": " << l << "\n";
-
-    // Add to l a vector of same size with contents b*b:
     add( VECTOR( l.size(), b*b ), l ); 
-    //    cout << "l added, " << l.size() << ": " << l << "\n";
-
     transf( l, sqrt, l );
-    //    cout << "l sqrt, " << l.size() << ": " << l << "\n";
-
     resize(z,l.size());
     setto( z, -r_geoid );
     add( l, z ); 
-    //    cout << "z, " << z.size() << ": " << z << "\n";
   }   
 
   // Intersection with the ground
@@ -532,14 +524,16 @@ void los_space(
     {
       c = refr_constant( r_geoid, za[i], z_plat, p_abs, z_abs, refr_index );
       z_tan = ztan_refr( c, za[i], z_plat, z_ground, p_abs, z_abs, refr_index);
+      out3 << "    z_tan = " << z_tan/1e3 << " km\n";
       space_refr( los.p[i], los.l_step[i], c, z_tan, r_geoid, atm_limit, 
                              z_ground, p_abs, z_abs, refr_index, l_step_refr );
     }
     else          // Geometrical calculations
     {
       z_tan = ztan_geom( za[i], z_plat );
+      out3 << "    z_tan = " << z_tan/1e3 << " km\n";
       space_geom( los.p[i], los.l_step[i], z_tan, r_geoid, atm_limit, 0, 
-                                                                   z_ground );
+                                                                    z_ground );
       // The geometrical functions return altitudes, not pressures
       z2p( los.p[i], z_abs, p_abs, los.p[i] );
     }
@@ -592,7 +586,7 @@ void los_inside(
               const Numeric&    l_step_refr )
 {
   Numeric z_tan, za_ground; 
-  Numeric a, b, c, l1;         // see below (c can be the LOS constant)
+  Numeric a, b, c, l1;          // see below (c can be the LOS constant)
   size_t  n = za.size();        // the number of zenith angles
 
   // Set all step lengths to the user defined value as a first guess.
@@ -629,6 +623,8 @@ void los_inside(
       else
 	z_tan = ztan_geom( za[i], z_plat );
 
+      out3 << "    z_tan = " << z_tan/1e3 << " km\n";
+
       // Only through the atmosphere
       if ( z_tan >= z_ground )
       {
@@ -637,13 +633,14 @@ void los_inside(
         {
           // Calculate a first refractive LOS with short step length and 
           // interpolate to determine the distance
-	  VECTOR  zs, ps, ls;  
+	  VECTOR  zs, ps, ls, p_plat(1);  
 	  Numeric l_temp=l_step_refr;
 	  space_geom( zs, l_temp, z_tan, r_geoid, atm_limit, 1, z_ground );
 	  geom2refr( ps, l_temp, zs, c, z_tan, r_geoid, atm_limit, p_abs, 
                                                    z_abs, refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.size()-1), l_temp );
-	  l1 = interp_lin( ps, ls, z_plat );  
+          z2p( p_plat, z_abs, p_abs, VECTOR(1,z_plat) );
+	  l1 = interp_lin( ps, ls, p_plat[0] );
 	}
         else
 	{
@@ -656,6 +653,7 @@ void los_inside(
 	// Adjust l_step downwards to get an integer number of steps
 	los.stop[i]   = (size_t) ceil( l1 / l_step + 1.0 ) - 1;  
 	los.l_step[i] = l1 / ( (Numeric)los.stop[i] );
+
         if ( refr )
 	  space_refr( los.p[i], los.l_step[i], c, z_tan, r_geoid, atm_limit, 
                              z_ground, p_abs, z_abs, refr_index, l_step_refr );
@@ -739,9 +737,9 @@ void r_geoidWGS84(
   rew = rq*rq/sqrt(rq*rq*a*a+rp*rp*b*b);
 
   // Calculate the radius in the observation direction
-  a   = cos(obsdirection*DEG2RAD);
-  b   = sin(obsdirection*DEG2RAD);
-  r_geoid   = 1/(a*a/rns+b*b/rew);
+  a       = cos(obsdirection*DEG2RAD);
+  b       = sin(obsdirection*DEG2RAD);
+  r_geoid = 1/(a*a/rns+b*b/rew);
 }
 
 
@@ -759,8 +757,6 @@ void losCalc(       LOS&        los,
               const Numeric&    r_geoid )
 {     
   size_t n = za.size();  // number of zenith angles
-
-  //  cout << "losCalc/l_step = " << l_step << "\n";
 
   // Some checks                                                      
   if ( z_ground < z_abs[0] )
@@ -866,7 +862,7 @@ void sourceCalc(
   //  1. interpolate the temperature
   //  2. calculate the Planck function for the interpolated temperatures
   //  3. take the mean of neighbouring Planck values
-  out3 << "    Zenith angle nr:\n      ";
+  out3 << "    Zenith angle nr:      ";
   for (size_t i=0; i<nza; i++ ) 
   {
     if ( (i%20)==0 )
@@ -875,10 +871,10 @@ void sourceCalc(
 
     if ( los.p[i].size() > 0 )
     {
-      resize( tlos, los.p[i].size() );
+      nlos = los.p[i].size();
+      resize( tlos, nlos );
       interpp( tlos, p_abs, t_abs, los.p[i] );
-      nlos = tlos.size();
-      resize( b, f_mono.size(), tlos.size() );
+      resize( b, nf, nlos );
       planck( b, f_mono, tlos );
       resize(source[i],nf,nlos-1);
       for ( ilos=0; ilos<(nlos-1); ilos++ )
@@ -915,7 +911,7 @@ void transCalc(
   // Loop the zenith angles and:
   //  1. interpolate the absorption
   //  2. calculate the transmission using the mean absorption between points
-  out3 << "    Zenith angle nr:\n      ";
+  out3 << "    Zenith angle nr:     ";
   for (size_t i=0; i<n; i++ ) 
   {
     if ( (i%20)==0 )
@@ -925,8 +921,6 @@ void transCalc(
     np = los.p[i].size();
     if ( np > 0 )
     {
-      resize( abs2, abs.nrows(), los.p[i].size() );
-      //interp_lin_row( abs2, p_abs, abs, los.p[i] );
       resize( abs2, nf, np );
       interp_lin_matrix( abs2, p_abs, abs, los.p[i] );
       resize(trans[i], nf, np-1 );
@@ -963,7 +957,8 @@ void y_spaceStd(
   else if ( choice == "sun" )
   {
     planck( y_space, f, SUN_TEMP );
-    out2 << "  Setting y_space to blackbody radiation corresponding to the Sun temperature\n";
+    out2 << "  Setting y_space to blackbody radiation corresponding to "
+         << "the Sun temperature\n";
   }
   else
     throw runtime_error(
@@ -988,7 +983,6 @@ void yRte (
   const size_t   nf=f_mono.size();    // Number of frequencies 
         VECTOR   y_tmp(nf);           // Temporary storage for spectra
         size_t   iy0=0;               // Reference index for output vector
-        size_t   iy;                  // Frequency index
 
   out2 << "  Integrating the radiative transfer eq. WITHOUT scattering.\n";
 
@@ -1003,11 +997,12 @@ void yRte (
     out2 << "  There are intersections with the ground.\n";
     planck( y_ground, f_mono, t_ground );
     if ( e_ground.size() != nf )
-      throw runtime_error("The frequency and ground emission vectors have different lengths.");
+      throw runtime_error(
+          "The frequency and ground emission vectors have different lengths.");
   }
 
   // Loop zenith angles
-  out3 << "    Zenith angle nr:\n      ";
+  out3 << "    Zenith angle nr:      ";
   for ( size_t i=0; i<n; i++ )
   {
     if ( (i%20)==0 )
@@ -1019,9 +1014,10 @@ void yRte (
                  source[i], y_space, los.ground[i], e_ground, y_ground);
 
     // Move values to output vector
-    for ( iy=0; iy<nf; iy++ )    
-      y[iy0+iy] = y_tmp[iy];
-    iy0 += nf;                    // update iy0
+    copy( y_tmp, y(iy0,iy0+nf) );
+
+    // Update iy0
+    iy0 += nf;   
   }
   out3 << "\n";
 }
@@ -1037,7 +1033,8 @@ void yRteNoGround (
               const ARRAYofMATRIX&   trans )
 {
   if ( any_ground(los.ground) )  
-    throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
+    throw runtime_error("There is at least one intersection with the ground "
+                        "and this function cannot be used.");
 
   yRte( y, los, f_mono, y_space, source, trans, VECTOR(0), 0.0 );
 }
@@ -1054,7 +1051,6 @@ void yBl (
   const size_t   n=los.start.size();    // Number of zenith angles 
   const size_t   nf=trans[0].nrows();    // Number of frequencies 
         size_t   iy0=0;                 // Reference index for output vector
-        size_t   iy;                    // Frequency index
         VECTOR   y_tmp;                 // Temporary storage for spectra
 
   out2 << "  Calculating total transmission WITHOUT scattering.\n";
@@ -1068,11 +1064,12 @@ void yBl (
   {
     out2 << "  There are intersections with the ground.\n";
     if ( e_ground.size() != nf )
-      throw runtime_error("The frequency and ground emission vectors have different lengths.");
+      throw runtime_error("The frequency and ground emission vectors have "
+                          "different lengths.");
   }
         
   // Loop zenith angles
-  out3 << "    Zenith angle nr:\n      ";
+  out3 << "    Zenith angle nr:     ";
   for ( size_t i=0; i<n; i++ )
   {
     if ( (i%20)==0 )
@@ -1083,9 +1080,10 @@ void yBl (
     bl( y_tmp, los.start[i], los.stop[i], trans[i], los.ground[i], e_ground );
 
     // Move values to output vector
-    for ( iy=0; iy<nf; iy++ )    
-      y[iy0+iy] = y_tmp[iy];
-    iy0 += nf;                    // update iy0
+    copy( y_tmp, y(iy0,iy0+nf) );
+
+    // Update iy0
+    iy0 += nf;           
   }
   out3 << "\n";
 }
@@ -1119,10 +1117,12 @@ void yTB (
         Numeric  c,d;
 
   if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit (impossible value detected).");
+    throw runtime_error("The spectrum is not in expected intensity unit "
+                        "(impossible value detected).");
 
   if ( nf*nza != ny )  
-    throw runtime_error("The length of y does not match f_sensor and za_sensor.");
+    throw runtime_error(
+                 "The length of y does not match f_sensor and za_sensor.");
 
   out2 << "  Converts the spectrum to brightness (Planck) temperature.\n";
 
@@ -1153,10 +1153,12 @@ void yTRJ (
         Numeric  b;
 
   if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit (impossible value detected).");
+    throw runtime_error("The spectrum is not in expected intensity unit "
+                        "(impossible value detected).");
 
   if ( nf*nza != ny )  
-    throw runtime_error("The length of y does not match f_sensor and za_sensor.");
+    throw runtime_error(
+                     "The length of y does not match f_sensor and za_sensor.");
 
   out2 << "  Converts the spectrum to Rayleigh-Jean temperature.\n";
 
@@ -1188,12 +1190,15 @@ void yLoadCalibration (
         Numeric  a;
 
   if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit (impossible value detected).");
+    throw runtime_error("The spectrum is not in expected intensity unit "
+                        "(impossible value detected).");
 
   if ( (nf!=i_cal2.size()) || (nf!=y_cal1.size()) || (nf!=y_cal2.size()) )
-    throw runtime_error("All the calibration vectors must have the same length.");
+    throw runtime_error(
+                     "All the calibration vectors must have the same length.");
   if ( nf*nza != ny )  
-    throw runtime_error("The length of y does not match za_sensor and the calibration data.");
+    throw runtime_error(
+         "The length of y does not match za_sensor and the calibration data.");
 
   out2 << "  Performs a load switching calibration procedure.\n";
 

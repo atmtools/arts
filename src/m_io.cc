@@ -1076,7 +1076,49 @@ void VectorCalcLog10(
 {
   out2<<"  " << out_name << " = log10( " << in_name << " )\n";
 
+  resize( out, in.size() );
   out = transf( in, log10 );
+}
+
+
+
+void VectorAdd(
+                    VECTOR&   out,
+              const string&   out_name,
+              const VECTOR&   in,
+              const string&   in_name,
+              const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " + " << value << "\n";
+
+  const size_t  n = in.size();
+
+  // Note that in and out can be the same vector
+  VECTOR dummy(n);
+  copy( in, dummy );
+  resize( out, n );
+  add ( dummy, VECTOR(n,value), out );
+}
+
+
+
+void VectorScale(
+                    VECTOR&   out,
+              const string&   out_name,
+              const VECTOR&   in,
+              const string&   in_name,
+              const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  const size_t  n = in.size();
+
+  // Note that in and out can be the same vector
+  VECTOR dummy(n);
+  copy( in, dummy );
+  resize( out, n );
+  for ( INDEX i=0; i<n; i++ )
+    out[i] = dummy[i] * value;
 }
 
 
@@ -1135,6 +1177,32 @@ void MatrixFillWithVector(
   resize( m, nrows, n );
   for ( INDEX row=0; row<nrows; row++ ) 
     mtl::set(m[row],y[row]);
+}
+
+
+
+void MatrixScale(
+                    MATRIX&   out,
+              const string&   out_name,
+              const MATRIX&   in,
+              const string&   in_name,
+              const Numeric&  value )
+{
+  out2<<"  " << out_name << " = " << in_name << " * " << value << "\n";
+
+  const size_t  n1 = in.nrows();
+  const size_t  n2 = in.ncols();
+
+  // Note that in and out can be the same matrix
+  MATRIX dummy(n1,n2);
+  copy( in, dummy );
+  resize( out, n1, n2 );
+  size_t i,j;
+  for ( i=0; i<n1; i++ )
+  {
+    for ( j=0; j<n2; j++ )
+      out[i][j] = dummy[i][j] * value;
+  }  
 }
 
 

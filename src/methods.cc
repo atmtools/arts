@@ -396,6 +396,30 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorAdd"),
+  	DESCRIPTION(
+	  "Adds a scalar to all elements of a vector."),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "value" ),
+	TYPES( Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorScale"),
+  	DESCRIPTION(
+	  "Scales all elements of a vector with the same value."),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "value" ),
+	TYPES( Numeric_t )));
+
 
 
 //=== MATRIX ==========================================================
@@ -476,6 +500,18 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixScale"),
+	DESCRIPTION(
+          "Scales all elements of a matrix with the same value."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT( MATRIX_ ),
+	KEYWORDS( "value" ),
+	TYPES(    Numeric_t   )));
 
 
 
@@ -1212,6 +1248,20 @@ void define_md_data()
 		    "Janssen book."),
 	OUTPUT(	    refr_index_ ),
 	INPUT( 	    p_abs_, t_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("refr_indexBoudouris"),
+	DESCRIPTION("Calculates the refractive index at microwave\n"
+		    "frequncies following Boudouris 1963.\n"
+		    "The expression is also found in Chapter 5 of the\n"
+		    "Janssen book."),
+	OUTPUT(	    refr_index_ ),
+	INPUT( 	    p_abs_, t_abs_, h2o_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

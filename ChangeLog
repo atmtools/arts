@@ -1,3 +1,30 @@
+2001-01-18  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-107
+
+	* Added the function refr_indexBoudouris, i.e. this function takes into
+	account water and not only dry air.
+
+	* Added the functions VectorAdd, VectorScaled and MatrixScaled that can
+	be used for simpler tests. VectorAdd can be used to add 2 K to t_abs
+	at all altitudes to test the influence of the temperature for some
+	measurement (used e.g. for the WATS proposal).
+
+	* I have gone through the los, rte and bl functions for all geometries
+	with and without refraction. There was some bugs, both old ones and 
+	from the MTL switch. At least there are now no errors (in my test 
+	cases) and the results are reasonable.
+
+	* I have started to check the species WFs. The WFs for upward 
+	observations seem to be OK now. One smaller bug found for limb WFs, but
+	I have not yet made a final test. I will continue this work.
+
+	* An interesting thing. For the WATS proposal I created a line file
+	with the strongest H2O lines up to 560 GHz. I also added these lines
+	with a negative centre frequency, and it worked. So the solution
+	for van Vleck-Weiskopf should be OK.
+	
+
 2001-01-17  Wolfram Haas  <engeln@uni-bremen.de>
 
 	* arts-0-0-106

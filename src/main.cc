@@ -131,7 +131,13 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
 	}
       catch (runtime_error x)
 	{
-	  out0 << "Error in method: " << mdd.Name() << '\n'
+	  out0 << "Run-time error in method: " << mdd.Name() << '\n'
+	       << x.what() << '\n';
+	  exit(1);
+	}
+      catch (logic_error x)
+	{
+	  out0 << "Logic error in method: " << mdd.Name() << '\n'
 	       << x.what() << '\n';
 	  exit(1);
 	}

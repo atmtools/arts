@@ -111,6 +111,10 @@ void planck (
     Adapted to MTL. Gone from 1-based to 0-based. No resize!
     \date 2000-12-26
     \author Stefan Buehler
+
+    Changed from vector calculations to a simple loop
+    \date   2001-01-15 
+    \author Patrick Eriksson 
 */
 void planck (
              VECTOR&    B,
@@ -118,27 +122,12 @@ void planck (
        const Numeric&   t )
 {
   static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
-
-  //  B = ediv( a*emult(f,emult(f,f)), exp(f*(b/t))-1.0 ) ;
-
-  VECTOR f3( f.size() );
-  ele_mult( f, f, f3 );		// f3 = f^2
-  ele_mult( f, f3, f3 );	// f3 = f^3
-
-  VECTOR ef( f.size() );
-  transf( scaled(f,b/t), exp, ef );	// ef = exp(f*b/t)
-
-  VECTOR denom( f.size() );
-  setto( denom, -1.0 );
-  add( ef, denom );		// denom = ef-1.0
+  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST/t;
 
   assert( B.size()==f.size() );
-  ele_div( scaled(f3,a), denom, B );	// B = a*f3 / denom
 
-  // FIXME: Maybe it would be worth a try to replace this vectorized
-  // version by a simple for loop. It might even be faster. For sure,
-  // it will need less memory.
+  for ( size_t i=0; i<f.size(); i++ )
+    B[i] = a * f[i]*f[i]*f[i] / ( exp( f[i]*b ) - 1.0 ); 
 }
 
 
@@ -424,9 +413,9 @@ void bl (
   setto( y, 1.0 );
 
   // Loop steps passed twice
-  if ( stop_index > 1 )
+  if ( stop_index > 0 )
   {
-    bl_iterate( y, 1, stop_index-1, tr, nf );
+    bl_iterate( y, 0, stop_index-1, tr, nf );
     ele_mult( y, y, y );  
   }
 
@@ -646,7 +635,7 @@ Numeric interpz(
         const VECTOR&     x0,
         const Numeric&    z )
 {
-  VECTOR x;
+  VECTOR x(1);
   interpz( x, p0, z0, x0, VECTOR(1,z) );
   return x[0];
 }

@@ -274,8 +274,8 @@ perturbation calculations.
  the general expression where the terms connected to $q-1$ and $q$,
  are neglected, respectively.
  
- The iteration starts here at the end closest to the sensor the
- sensor, that is, at index 1. (reversed order to the RTE part).  The
+ The iteration starts here at the end closest to the
+ sensor, that is, at index 1 (reversed order to the RTE part).  The
  iteration is started by setting $I_1$ to the already calculated
  spectrum and $\Theta^1_1$ to 1.  These two variables are updated as
  \begin{eqnarray}
@@ -405,7 +405,7 @@ perturbation calculations.
  limb sounding can be determined to be
  \begin{eqnarray}
    \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[ \Big( 2I_2\zeta_1+\psi_1(1-
-       2\zeta_1)\Big) \Big(\Theta^1_1\Big)^2 +I_1-\psi_1 \Big]\Theta^n_1
+       2\zeta_1)\Big) \Big(\Theta^1_1\Big)^2 +I_1^1-\psi_1 \Big]\Theta^n_1
           \quad q=1 \nonumber \\
    \K_{\kappa}^q& = & -\frac{\Delta l}{2}\Big[\Big(4(I_{q+1}-\psi_q)
            \zeta_{q-1}\zeta_q+
@@ -424,7 +424,7 @@ perturbation calculations.
  downwards, starting with point $n$. For each iteration, the
  quantities are updated as
  \begin{eqnarray}
-   I_{q-1} = I_q\zeta_{q-1} + \psi_{q-1}(1-\zeta_{q-1}) \nonumber
+   I_q = I_{q+1}\zeta_q + \psi_q(1-\zeta_q) \nonumber
  \end{eqnarray}
  \begin{eqnarray}
    \Theta_{1}^{q-1} =  \frac{\Theta_{1}^{q}}{\zeta_{q-1}} \nonumber

@@ -35,6 +35,9 @@ main()
   cout << "Size of x: " << x.size() << "\n";
   cout << "x: " << x << "\n";
 
+  // Subrange:
+  cout << "x(2:5): " << x(2,5) << "\n";
+
   cout << "One-norm of x: ";
   cout << one_norm(x) << "\n";
 

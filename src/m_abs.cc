@@ -1193,8 +1193,71 @@ void refr_indexBoudourisDryAir (
   //  refr_index = 1.0 + 0.77593e-6*ediv(p_abs,t_abs);
   ele_div( scaled(p_abs,0.77593e-6), t_abs, refr_index );
 
-  VECTOR dummy(p_abs.size());
-  setto( dummy, 1.0 );
+  VECTOR dummy( p_abs.size(), 1.0 );
 
+  add(dummy, refr_index);
+}
+
+
+
+//// refr_indexBoudouris ///////////////////////////////////////////////
+/**
+   Calculates the refractive index at microwave frequncies 
+   following Boudouris 1963.
+
+   The expression is also found in Chapter 5 of the Janssen book.
+
+   \retval   refr        refractive index
+   \param    p_abs       absorption pressure grid
+   \param    t_abs       temperatures at p_abs
+   \param    h2o_abs     H2O vmr at p_abs
+
+   \author Patrick Eriksson
+   \date   2001-01-17
+*/
+void refr_indexBoudouris (
+                    VECTOR&          refr_index,
+              const VECTOR&          p_abs,
+              const VECTOR&          t_abs,
+              const VECTOR&          h2o_abs )
+{
+  const INDEX  n = p_abs.size();
+
+  if ( n != t_abs.size() )
+    throw(runtime_error("The variables p_abs and t_abs must have the same dimension."));
+
+  if ( n != h2o_abs.size() )
+    throw(runtime_error("The variables p_abs and h2o_abs must have the same dimension."));
+
+  resize( refr_index, n );
+
+  // Partial pressure of water in Pa
+  VECTOR e(n);
+  ele_mult( p_abs, h2o_abs, e );
+
+  // Remove e from the total pressure
+  VECTOR p(n);
+  copy( p_abs, p );
+  add( scaled(e,-1.0), p );
+
+  // Dry air term
+  //  77.593*(p/100)/t * 1e-6
+  ele_div( scaled( p, 77.593e-8 ), t_abs, refr_index );
+
+  VECTOR dummy(n);
+
+  // First water term
+  // 72*(e/100)/t * 1e-6
+  ele_div( scaled( e, 72e-8 ), t_abs, dummy );
+  add( dummy, refr_index );
+
+  // Second water term
+  // 3.754e5*(e/100)/t/t * 1e-6
+  ele_div( scaled( e, 3.754e-3 ), t_abs, dummy );
+  ele_div( dummy, t_abs, dummy );
+  add( dummy, refr_index );
+
+  // Add 1
+  setto( dummy, 1.0 );
   add(dummy, refr_index);
 }
