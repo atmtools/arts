@@ -9,3 +9,7 @@ SAB 17.06.2000 Change interpolation in absorption part to interpp.
 SAB 10.08.2000 Change define_wsv_data, etc. to be default
                constructors. That way, we don't have to call them
                explicitly.   
+SAB 16.08.2000 - Implement abs_tags and wf_tags, also
+                 abs_tagsDefine and wf_tagsDefine.
+               - Change absComp to return absorption matrices only for 
+                 wf_tags

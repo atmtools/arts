@@ -1,3 +1,21 @@
+2000-08-16  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-41
+
+	* Had a go at implementing sparse matrices with TNT. This is only
+	a quick fix, I don't think it works satisfactorily. In fact, I
+	think TNT is crap and we should switch to MTL as soon as
+	possible. There is an example method hTest that initializes a
+	sparse matrix. It works, but the TNT sparse matrices lack
+	basically all functionality. Also I had to fix a number of bugs
+	inside TNT to make it work at all!
+
+	* sparse.arts: Added this example in doc/examples. It calls just
+	the hTest method.
+
+	* vecmat.cc: Added this file. It contains some stuff that used to
+	be in vecmat.h.
+	
 2000-08-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-40

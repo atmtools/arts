@@ -572,3 +572,15 @@ void kSpecies1d (
     iv0 += nf;
   }  
 }
+
+void hTest(// WS Output:
+           SPARSEMATRIX& h)
+{
+  SPARSEMATRIX A(10000,10000,3,"1.0 1.0 1.0","1 2 3","1 2 3");
+  
+  h = A;
+
+  out1 << "  h = \n"
+       << h << '\n';
+
+}

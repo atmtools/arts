@@ -43,6 +43,7 @@ constants.cc \
 getopt.c \
 getopt1.c \
 main.cc \
+vecmat.cc \
 globals_2.cc \
 version.cc \
 messages.cc \
@@ -76,24 +77,24 @@ noinst_PROGRAMS = make_wsv_groups_h make_wsv_h make_wsv_pointers_cc make_md_h
 
 make_wsv_groups_h_SOURCES = \
 arts.h vecmat.h file.h \
-version.cc file.cc messages.cc groups.cc make_wsv_groups_h.cc
+vecmat.cc version.cc file.cc messages.cc groups.cc make_wsv_groups_h.cc
 
 make_wsv_h_SOURCES = \
 arts.h vecmat.h file.h absorption.h los.h \
 wsv_groups.h wsv_aux.h \
-version.cc groups.cc \
+vecmat.cc version.cc groups.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc
 
 make_wsv_pointers_cc_SOURCES = \
 arts.h vecmat.h file.h wsv_aux.h \
-version.cc groups.cc messages.cc file.cc workspace.cc make_wsv_pointers_cc.cc
+vecmat.cc version.cc groups.cc messages.cc file.cc workspace.cc make_wsv_pointers_cc.cc
 
 make_md_h_SOURCES = \
 arts.h vecmat.h wsv.h token.h messages.h file.h \
 absorption.h los.h \
 wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
-version.cc globals_2.cc \
+vecmat.cc version.cc globals_2.cc \
 token.cc messages.cc file.cc groups.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_md_h.cc
 

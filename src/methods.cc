@@ -692,5 +692,17 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("hTest"),
+  	DESCRIPTION(
+          "Play around with sparse matrix h."),
+	OUTPUT( h_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
 }
 

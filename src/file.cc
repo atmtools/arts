@@ -168,20 +168,20 @@ void write_array_of_matrix_to_stream(ostream& os,
   const size_t n = am.dim();
   os << n << '\n';
 
-  for (size_t i=0; i<n; ++i)
+  for (size_t i=1; i<=n; ++i)
     {
       // Number of elements:
-      os << am[i].dim(1) << ' ' << am[i].dim(2) << '\n';
+      os << am(i).dim(1) << ' ' << am(i).dim(2) << '\n';
 
       os << setprecision(precision);
       // Write the elements:
-      for (size_t r=0; r<am[i].dim(1); ++r)
+      for (size_t r=1; r<=am(i).dim(1); ++r)
         {
-          os << am[i][r][0];
+          os << am(i)(r,1);
       
-          for (size_t c=1; c<am[i].dim(2); ++c)
+          for (size_t c=2; c<=am(i).dim(2); ++c)
             {
-              os << " " << am[i][r][c];
+              os << " " << am(i)(r,c);
             }
 
           os << '\n';

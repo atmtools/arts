@@ -44,7 +44,7 @@ class Fortran_Sparse_Col_Matrix
    public:
 
 
-       Fortran_Sparse_Col_Matrix(void);
+       Fortran_Sparse_Col_Matrix() {}; // SAB 2000-08-16 Fixed this.
        Fortran_Sparse_Col_Matrix(const Fortran_Sparse_Col_Matrix<T> &S)
         : val_(S.val_), rowind_(S.rowind_), colptr_(S.colptr_), nz_(S.nz_),
             m_(S.m_), n_(S.n_) {};
@@ -127,16 +127,11 @@ ostream& operator<<(ostream &s, const Fortran_Sparse_Col_Matrix<T> &A)
     s << M << " " << N << " " << A.num_nonzeros() <<  endl;
 
 
-    for (Subscript k=1; k<=N; k++)
-    {
-        Subscript start = A.col_ptr(k);
-        Subscript end = A.col_ptr(k+1);
-
-        for (Subscript i= start; i<end; i++)
-        {
-            s << A.row_ind(i) << " " << k << " " << A.val(i) << endl;
-        }
-    }
+    // SAB 2000-08-16 Changed this because it did not work at all.
+    for (Subscript i= 1; i<=A.num_nonzeros(); i++)
+      {
+	s << A.row_ind(i) << " " << A.col_ptr(i) << " " << A.val(i) << endl;
+      }
 
     return s;
 }

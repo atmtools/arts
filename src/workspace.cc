@@ -304,5 +304,11 @@ void define_wsv_data()
       "A weighting function matrix.",
       MATRIX_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("h",
+      "The instrument matrix. Patrick, please put more information here.",
+      SPARSEMATRIX_));
+
   //  cout << "size = " << wsv_data.size() << '\n';
 }

@@ -650,10 +650,10 @@ void row(MATRIX& X,
   const size_t n = A.dim(2);
   const size_t m = k-i + 1;
   X.newsize(m,n);
-  for ( size_t j=0; j<n; ++j )
-    for ( size_t l=0; l<m; ++l )
+  for ( size_t j=1; j<=n; ++j )
+    for ( size_t l=1; l<=m; ++l )
       {
-	X[l][j] = A(i+l,j+1);
+	X(l,j) = A(i+l-1,j);
       }
 }
 
@@ -681,10 +681,10 @@ void col(MATRIX& X,
   const size_t n = A.dim(1);
   const size_t m = k-i + 1;
   X.newsize(n,m);
-  for ( size_t j=0; j<n; ++j )
-    for ( size_t l=0; l<m; ++l )
+  for ( size_t j=1; j<=n; ++j )
+    for ( size_t l=1; l<=m; ++l )
       {
-	X[j][l] = A(j+1,i+l);
+	X(j,l) = A(j,i+l-1);
       }
 }
 

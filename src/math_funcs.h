@@ -516,9 +516,9 @@ VECTOR col(size_t i,
 /** Extracts rows i to k of MATRIX A.
     Both return and parameter versions exist:
 
-    row(X,i,A)
+    row(X,i,k,A)
 
-    X = row(i,A)
+    X = row(i,k,A)
 
     @param X Output. The extracted data.
     @param i First row to extract.

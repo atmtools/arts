@@ -60,6 +60,7 @@ $(top_srcdir)/src/constants.cc \
 $(top_srcdir)/src/getopt.c \
 $(top_srcdir)/src/getopt1.c \
 $(top_srcdir)/src/main.cc \
+$(top_srcdir)/src/vecmat.cc \
 $(top_srcdir)/src/globals_2.cc \
 $(top_srcdir)/src/version.cc \
 $(top_srcdir)/src/messages.cc \

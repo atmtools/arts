@@ -34,7 +34,8 @@
 
 #include "tnt.h"
 #include "vec.h"
-#include "cmat.h"
+#include "fmat.h"
+#include "fcscmat.h"
 // TNT stopwatch: (seems not to work anymore)
 //#include "stpwatch.h"
 // TNT Vector addapter for Array:
@@ -66,7 +67,13 @@ using namespace TNT;
     indexing and bounds checking), but is just meant to store
     things. Use VECTOR for numerics, ARRAY for all other vectors.
     @see VECTOR ARRAY */
-typedef TNT::Matrix<Numeric> MATRIX;
+typedef TNT::Fortran_Matrix<Numeric> MATRIX;
+
+/** Sparse Matrix.
+    @author Stefan Buheler
+    @date   2000-08-16. */
+typedef Fortran_Sparse_Col_Matrix<Numeric> SPARSEMATRIX;
+
 
 /** Regions for matrices.
     @author Stefan Buehler 11.06.2000. */
@@ -88,6 +95,10 @@ typedef TNT::Region2D<VECTOR> REGION1D;
     @author Stefan Buehler 11.06.2000. */
 typedef TNT::const_Region2D<VECTOR> const_REGION1D;
 
+/** Subscript type for MATRIX, VECTOR, and ARRAY.
+    @author Stefan Buehler
+    @date 2000-08-16 */
+typedef TNT::Subscript SUBSCRIPT;
 
 /** For arrays. This can be used in the same way as VECTOR, but can
     store arbitrary elements. Furthermore, this has the
@@ -113,13 +124,13 @@ public:
   ARRAY(const ARRAY<EE> &A) :
     TNT::Vector_Adaptor<mybase>(A) {};
   
-  ARRAY(TNT::Subscript N, /*const*/ char *s) :
+  ARRAY(SUBSCRIPT N, /*const*/ char *s) :
     TNT::Vector_Adaptor<mybase>(N, s) {};
   
-  ARRAY(TNT::Subscript N, const EE& value = EE()) :
+  ARRAY(SUBSCRIPT N, const EE& value = EE()) :
     TNT::Vector_Adaptor<mybase>(N, value) {};
 
-  ARRAY(TNT::Subscript N, const EE* values) :
+  ARRAY(SUBSCRIPT N, const EE* values) :
     TNT::Vector_Adaptor<mybase>(N, values) {};
 
   ARRAY(const EE & A) :
@@ -298,312 +309,99 @@ public:
 // This part includes patches for TNT to fulfill the functionality
 // stated above. 
 //
-// 11.04.00 Patrick Eriksson. Adaption of earlier version.
+// 11.04.2000 Patrick Eriksson. Adaption of earlier version.
+// 16.08.2000 Stefan Buehler: 
+// * Converted template functions to direct functions of type MATRIX
+// and VECTOR.   
 
 // BASIC MATH
 //--------------------------------------------------------------------------
+
 
 // MATRIX - MATRIX ---------------------------------------------------------
 
 // emult
 //
-  template <class T>
-  Matrix<T> emult(const Matrix<T> &A, const Matrix<T> &B)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
-
-    assert(M==B.dim(1));
-    assert(N==B.dim(2));
-
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
-
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = A[i][j] * B[i][j];
-
-    return tmp;
-  }        
+MATRIX emult(const MATRIX &A, const MATRIX &B);
+        
 
 // ediv
 //
-  template <class T>
-  Matrix<T> ediv(const Matrix<T> &A, const Matrix<T> &B)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
-
-    assert(M==B.dim(1));
-    assert(N==B.dim(2));
-
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
-
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = A[i][j] / B[i][j];
-
-    return tmp;
-  }        
+MATRIX ediv(const MATRIX &A, const MATRIX &B);
 
 
 // VECTOR - VECTOR ---------------------------------------------------------
 
 // emult
 //
-  template <class T>
-  Vector<T> emult( const Vector<T> &A, const Vector<T> &B)
-  {
-    Subscript N = A.dim();
-
-    assert(N==B.dim());
-
-    Vector<T> tmp(N);
-    Subscript i;
-
-    for (i=0; i<N; i++)
-            tmp[i] = A[i] * B[i];
-
-    return tmp;
-  }       
+VECTOR emult( const VECTOR &A, const VECTOR &B);
 
 // ediv
 //
-  template <class T>
-  Vector<T> ediv( const Vector<T> &A, const Vector<T> &B)
-  {
-    Subscript N = A.dim();
-
-    assert(N==B.dim());
-
-    Vector<T> tmp(N);
-    Subscript i;
-
-    for (i=0; i<N; i++)
-            tmp[i] = A[i] / B[i];
-
-    return tmp;
-  }       
+VECTOR ediv( const VECTOR &A, const VECTOR &B);
 
 
 // MATRIX - SCALAR ---------------------------------------------------------
 
 // + 
 //
-  template <class T>
-  Matrix<T> operator+(const Matrix<T> &A, const T& scalar)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
+MATRIX operator+(const MATRIX &A, const Numeric scalar);
 
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
-
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = A[i][j] + scalar;
-
-    return tmp;
-  }
-  template <class T>
-  Matrix<T> operator+(const T& scalar, const Matrix<T> &A)
-  {
-    return ( A + scalar );
-  }                 
+MATRIX operator+(const Numeric scalar, const MATRIX &A);
 
 // - 
 //
-  template <class T>
-  Matrix<T> operator-(const Matrix<T> &A, const T& scalar)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
+MATRIX operator-(const MATRIX &A, const Numeric scalar);
 
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
 
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = A[i][j] - scalar;
+MATRIX operator-(const Numeric scalar, const MATRIX &A);
 
-    return tmp;
-  }
-  template <class T>
-  Matrix<T> operator-(const T& scalar, const Matrix<T> &A)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
-
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
-
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] =  scalar - A[i][j];
-
-    return tmp;
-  }
 
 
 // *
 //
-  template <class T>
-  Matrix<T> operator*(const Matrix<T> &A, const T& scalar)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
+MATRIX operator*(const MATRIX &A, const Numeric scalar);
 
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
 
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = A[i][j] * scalar;
-
-    return tmp;
-  }
-  template <class T>
-  Matrix<T> operator*(const T& scalar, const Matrix<T> &A)
-  {
-    return ( A * scalar );
-  }                 
+MATRIX operator*(const Numeric scalar, const MATRIX &A);
+                 
 
 //
 // /
-  template <class T>
-  Matrix<T> operator/(const Matrix<T> &A, const T& scalar)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
+MATRIX operator/(const MATRIX &A, const Numeric scalar);
+                       
 
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
-
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = A[i][j] / scalar;
-
-    return tmp;
-  }                       
-  template <class T>
-  Matrix<T> operator/(const T& scalar, const Matrix<T> &A)
-  {
-    Subscript M = A.dim(1);
-    Subscript N = A.dim(2);
-
-    Matrix<T> tmp(M,N);
-    Subscript i,j;
-
-    for (i=0; i<M; i++)
-        for (j=0; j<N; j++)
-            tmp[i][j] = scalar / A[i][j];
-
-    return tmp; 
-  }        
+MATRIX operator/(const Numeric scalar, const MATRIX &A);
+        
 
 
 // VECTOR - SCALAR ---------------------------------------------------------
 
 // + 
 //
-  template <class T>
-  Vector<T> operator+(const Vector<T> &A, const T& scalar)
-  {
-    Subscript N = A.dim();
+VECTOR operator+(const VECTOR &A, const Numeric scalar);
 
-    Vector<T> tmp(N);
-    Subscript i;
 
-    for (i=0; i<N; i++)
-      tmp[i] = A[i] + scalar;
-
-    return tmp;
-  }
-  template <class T>
-  Vector<T> operator+(const T& scalar, const Vector<T> &A)
-  {
-    return ( A + scalar );
-  }
+VECTOR operator+(const Numeric scalar, const VECTOR &A);
 
 // -
 //
-  template <class T>
-  Vector<T> operator-(const Vector<T> &A, const T& scalar)
-  {
-    Subscript N = A.dim();
+VECTOR operator-(const VECTOR &A, const Numeric scalar);
 
-    Vector<T> tmp(N);
-    Subscript i;
 
-    for (i=0; i<N; i++)
-      tmp[i] = A[i] - scalar;
-
-    return tmp;
-  }
-  template <class T>
-  Vector<T> operator-(const T& scalar, const Vector<T> &A)
-  {
-    Subscript N = A.dim();
-
-    Vector<T> tmp(N);
-    Subscript i;
-
-    for (i=0; i<N; i++)
-      tmp[i] = scalar - A[i];
-
-    return tmp;
-  }
+VECTOR operator-(const Numeric scalar, const VECTOR &A);
 
 // *
 //
-  template <class T>
-  Vector<T> operator*(const Vector<T> &A, const T& scalar)
-  {
-    Subscript N = A.dim();
+VECTOR operator*(const VECTOR &A, const Numeric scalar);
 
-    Vector<T> tmp(N);
-    Subscript i;
-
-    for (i=0; i<N; i++)
-      tmp[i] = A[i] * scalar;
-
-    return tmp;
-  }
-  template <class T>
-  Vector<T> operator*(const T& scalar, const Vector<T> &A)
-  {
-    return ( A * scalar );
-  }
+VECTOR operator*(const Numeric scalar, const VECTOR &A);
 
 // /
 //
-  template <class T>
-  Vector<T> operator/(const Vector<T> &A, const T& scalar)
-  {
-    Subscript N = A.dim();
+VECTOR operator/(const VECTOR &A, const Numeric scalar);
 
-    Vector<T> tmp(N);
-    Subscript i;
-
-    for (i=0; i<N; i++)
-      tmp[i] = A[i] / scalar;
-
-    return tmp;
-  }
-  template <class T>
-  Vector<T> operator/(const T& scalar, const Vector<T> &A)
-  {
-    Subscript N = A.dim();
-
-    Vector<T> tmp(N);
-    Subscript i;
-
-    for (i=0; i<N; i++)
-      tmp[i] = scalar / A[i];
-
-    return tmp;
-  }
+VECTOR operator/(const Numeric scalar, const VECTOR &A);
 
 
 

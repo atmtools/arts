@@ -790,9 +790,9 @@ void abs_species( MATRIX&                  abs,
     }
 
   // Loop all pressures:
-  for ( size_t i=0; i<p_abs.dim(); ++i )
+  for ( size_t i=1; i<=p_abs.dim(); ++i )
   {
-    out3 << "  p = " << p_abs[i] << " Pa\n";
+    out3 << "  p = " << p_abs(i) << " Pa\n";
     // Loop all lines:
     for ( size_t l=0; l<lines.dim(); ++l )
       {
@@ -826,7 +826,7 @@ void abs_species( MATRIX&                  abs,
 	    const Numeric n_0   = 2.686763E19;         /* Loschmidt constant [cm^-3] */
 	    const Numeric c     = 29.9792458;          /*  	     [ GHz / cm^-1 ] */
 
-	    intensity = intensity * n_0 * T_0_C / (p_0*t_abs[i]);
+	    intensity = intensity * n_0 * T_0_C / (p_0*t_abs(i));
 	    /* n = n0*T0/p0 * p/T, ideal gas law
 	       ==> [intensity] = [cm^2 / Pa] */
 
@@ -850,12 +850,12 @@ void abs_species( MATRIX&                  abs,
 	// FIXME: This is inefficient, the scaling to Hz could be
 	// stored in lines.
 
-	const Numeric theta = lines[l].Tgam() / t_abs[i];
+	const Numeric theta = lines[l].Tgam() / t_abs(i);
 
-	const Numeric p_partial = p_abs[i] * vmr[i];
+	const Numeric p_partial = p_abs(i) * vmr(i);
 
 	Numeric gamma
-	  = lines[l].Agam() * pow(theta, lines[l].Nair())  * (p_abs[i] - p_partial)
+	  = lines[l].Agam() * pow(theta, lines[l].Nair())  * (p_abs(i) - p_partial)
 	  + lines[l].Sgam() * pow(theta, lines[l].Nself()) * p_partial;
 
 	// Ignore Doppler broadening for now. FIXME: Add this.
@@ -867,10 +867,10 @@ void abs_species( MATRIX&                  abs,
 			   f_abs);
 
 	// Add line to abs:
-	for ( size_t j=0; j<f_abs.dim(); ++j )
+	for ( size_t j=1; j<=f_abs.dim(); ++j )
 	  {
-	    abs[j][i] = abs[j][i]
-	      + p_partial * intensity * ls[j];
+	    abs(j,i) = abs(j,i)
+	      + p_partial * intensity * ls(j);
 	  }
       }
   }
