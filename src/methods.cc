@@ -3209,7 +3209,34 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "hse",   "fast"  ),
 	TYPES(    Index_t, Index_t )));
-
+	
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kbSpectro"),
+  	DESCRIPTION(
+	  "Calculates the spectroscopic parameters weighting functions (WFs).\n"
+          "\n"
+          "The calculation can be performed for the intensitys  line position, pressure \n"
+           "broadening parameters  and pressure shift.\n"
+            "For each parameter a do flag has to be specified.\n"
+          "\n"
+          "Keywords \n"
+	  "do_intens: Flag for calculating the weighting function for the intensity do_intens=1. \n"
+	  "do_position. \n"
+	  "do_agam. \n"
+	  "do_sgam. \n" 
+	  "do_nair. \n"
+	  "do_nself. \n" 
+	  "do_pSift1. " ),
+	OUTPUT(kb_, kb_names_, kb_aux_ ),
+	INPUT( tgs_, f_mono_, p_abs_, t_abs_, z_abs_, h2o_abs_, vmrs_, 
+          lines_per_tg_, lineshape_, los_, absloswfs_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "do_intens",  "do_position",  "do_agam", 
+                  "do_sgam", "do_nair", "do_nself", "do_pSift"),
+	TYPES(  Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, Index_t )));
+	
   md_data.push_back
     ( MdRecord
       ( NAME("kFrequencyOffSet"),

@@ -2089,10 +2089,11 @@ void xsec_per_tgAddLines(// WS Output:
       {
 	for ( Index l=0; l<lines_per_tg[i].nelem(); ++l )
 	  {
-// 	    cout << "    " << lines_per_tg[i][l].Name() << " @ " 
-// 		 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-// 		 << lines_per_tg[i][l].I0() << ")\n"; 
-	    nlines++;
+ 	    //cout << "    " << lines_per_tg[i][l].Name() << " @ " 
+ 	    //	 << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+ 	    //	 << lines_per_tg[i][l].I0() << "  "
+            //   << lines_per_tg[i][l].Agam() << ")\n"; 
+	    // nlines++;
 	  }
       }
     out2 << "  Total number of transistions : " << nlines << "\n";

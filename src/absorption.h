@@ -262,6 +262,13 @@ public:
     return qcoeff_at_t_ref / qtemp;
   }
 
+  // calculate the partition function at the reference temperature
+  void CalculatePartitionFctAtRefTemp( Numeric temperature )
+  {
+    //    if (mqcoeff_at_t_ref <= -1.0 )     
+    mqcoeff_at_t_ref = CalculatePartitionFctAtTemp( temperature );
+  }
+
 private:
 
   // calculate the partition fct at a certain temperature
@@ -581,6 +588,9 @@ public:
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
   Numeric Psf() const   { return mpsf; }
 
+  /** Set the pressure shift parameter in <b> Hz/Pa</b>. */
+  void setPsf( Numeric new_mpsf ) { mpsf = new_mpsf; }
+
   /** The line intensity in <b> m^2*Hz</b> at the reference temperature \c Ti0. 
 
     The line intensity \f$I_0\f$ is defined by:
@@ -595,6 +605,9 @@ public:
     \f$F(\nu)\f$ is the lineshape function. */
   Numeric I0() const    { return mi0; }
 
+ /** Set Intensity */
+  void setI0( Numeric new_mi0 ) { mi0 = new_mi0; }
+
   /** Reference temperature for I0 in <b> K</b>: */
   Numeric Ti0() const   { return mti0; }
 
@@ -604,14 +617,26 @@ public:
   /** Air broadened width in <b> Hz/Pa</b>: */
   Numeric Agam() const  { return magam; }
 
+   /** Set Air broadened width in <b> Hz/Pa</b>: */
+  void setAgam( Numeric new_agam ) { magam = new_agam; }
+
   /** Self broadened width in <b> Hz/Pa</b>: */
   Numeric Sgam() const  { return msgam; }
+
+  /** Set Self  broadened width in <b> Hz/Pa</b>: */
+  void setSgam( Numeric new_sgam ) { msgam = new_sgam; }
 
   /** AGAM temperature exponent (dimensionless): */
   Numeric Nair() const  { return mnair; }
 
+  /** Set AGAM temperature exponent (dimensionless): */
+  void setNair( Numeric new_mnair ) { mnair = new_mnair; }
+
   /** SGAM temperature exponent (dimensionless): */
   Numeric Nself() const { return mnself; }
+
+ /** Set SGAM temperature exponent (dimensionless): */
+ void setNself( Numeric new_mnself ) { mnself = new_mnself; }
 
   /** Reference temperature for AGAM and SGAM in <b> K</b>: */
   Numeric Tgam() const  { return mtgam; }

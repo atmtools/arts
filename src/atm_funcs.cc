@@ -215,10 +215,17 @@ void invrayjean (
   //const double   a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
         double   b;
 
-  // Check input
-  if ( max(y) > 1e-4 )  
-    throw runtime_error("The spectrum is not in expected intensity unit "
-                        "(impossible value detected).");
+
+ // Commenting out the check of the input. This check is not any
+ // longer true when the weighting functions are converted to
+ // brightness temperature units. This occurs, e.g., when the line
+ // intensity weighting functions are converted to temperature
+ // units.
+
+   // Check input
+     //if ( max(y) > 1e-4 )  
+     // throw runtime_error("The spectrum is not in expected intensity unit "
+     //                    "(impossible value detected).");
   //
   if ( nf*nza != ny )  
   {

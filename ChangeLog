@@ -1,3 +1,21 @@
+2002-11-13  Carmen Verdes  <cverdes@uni-bremen.de>
+
+	* arts-1-0-52
+	
+	* src/absorption.h	
+	* src/atm_funcs.cc
+	* src/m_abs.cc
+	* src/m_wfs.cc
+	* src/methods.cc
+	* (kbSpectro): Added a new function to calculate the spectroscopic
+	parameters weighting function. This function should be able to
+	calculate the weighting function for the line intensity, line
+	position, pressure broadening parameters, and pressure shift. A
+	do field is specified for each parameters: 0 means that no
+	weighting function calculation is performed, 1 means that the
+	weighting function for the corresponding parameters is performed.
+	More documentation about this has to be added in the user guide.
+	
 2002-11-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-51

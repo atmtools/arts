@@ -373,7 +373,83 @@ void grid2grid_weights (
   }
 }
 
+//// grid2grid_weights_total /////////////////////////////////////////////////////
+/**
+   Gives weights for conversion between vertical grids.
+  
+   This function returns the derivative dkappa/dk (see the AUG section on 
+   "Atmospheric WFs"), here dennoted as the weight, for the grid specified by k_grid.
 
+   This uses GRID2GRID_WEIGHTS function which calculate the weights for a single
+   grid point
+  
+   \retval   W   weights for each point in x0
+   \param Los structure for the line of sight
+   \param  k_grid the grid to calculate the weights
+
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Carmen Verdes 
+   \date   2001-01-21
+**/
+
+void grid2grid_weights_total (
+		              ArrayOfMatrix&     W,
+		    const  Los&                     los, 
+		    const  Vector&                k_grid) 
+         
+{
+  // Main sizes
+  const Index  nza = los.start.nelem();     // number of zenith angles  
+  const Index  np  = k_grid.nelem();        // number of pressure grid
+  // -log(p) is used as altitude variable. The minus is included to get
+  // increasing values, a demand for the grid functions. 
+  //  const Vector  lgrid=-1.0*log(k_grid);
+  Vector  lgrid;
+  p2grid( lgrid, k_grid );
+  Vector  lplos;    
+  Vector w1;
+  W.resize(nza);
+  // Indices
+  // IP0 and IF0 are the index off-sets for the total K matrix
+  Index  iza;                       // zenith angle index
+  Index  ip;                        // pressure index
+  Matrix  is;                       // matrix for storing LOS index
+
+  for ( iza=0; iza<nza; iza++ ) 
+    {
+      W[iza].resize(los.p[iza].nelem(), np);
+      W[iza]=0.0;
+      if ( (iza%20)==0 )
+	{
+	  out3 << "\n      ";
+	  out3 << " " << iza; cout.flush();
+	}
+      w1=0.0;
+      // Do something only if LOS has any points
+      if ( los.p[iza].nelem() > 0 )
+	{
+	  // Get the LOS points affected by each retrieval point
+	  //      lplos = -1.0 * log(los.p[iza]);
+	  p2grid( lplos, los.p[iza] );
+	  grid2grid_index (is, lplos, lgrid);
+	  
+	  for ( ip=0; ip<np; ip++ ) 
+	    {
+	      // Check if there is anything to do
+	      
+	      if ( is(ip,0) >= 0 )
+		{
+		  // Get the weights for the LOS points
+		  grid2grid_weights( w1, lplos, (Index)is(ip,0),  (Index)is(ip,1),
+				     lgrid, ip );
+		  // fill the corresponding part of the Matrix W with the weights w1
+		  W[iza](Range(is(ip,0),is(ip,1)-is(ip,0)+1), ip)=w1;
+		}
+	    }
+	}
+    }
+}
 
 ////////////////////////////////////////////////////////////////////////////
 //   Help functions for absloswfsCalc to calculate absorption LOS WFs
@@ -1649,14 +1725,17 @@ void k_temp_nohydro (
   // -log(p) is used as altitude variable. The minus is included to get
   // increasing values, a demand for the grid functions. 
   //  const Vector  lgrid=-1.0*log(k_grid);
+
   Vector  lgrid;
   p2grid( lgrid, k_grid );
   Vector  lplos;                     // -log of the LOS pressures
-
+  ArrayOfMatrix W;
+  Index ip;
+  //
   // Indices
   // IP0 and IF0 are the index off-sets for the total K matrix
         Index  iza;                       // zenith angle index
-        Index  ip;                        // retrieval point index
+        //Index  ip;                        // retrieval point index
         Index  iv, iv0=0;                 // frequency indices
         Index  i1, iw;                    // weight indices
 
@@ -1749,10 +1828,11 @@ void k_temp_nohydro (
       {
         // Check if there is anything to do
         if ( is(ip,0) >= 0 )
-        {
+         {
           // Get the weights for the LOS points
 	  grid2grid_weights( w, lplos, (Index)is(ip,0), (Index) is(ip,1), 
                                                                  lgrid, ip );
+          //cout <<"numer elements  "<< w.nelem() << "\n";
 
           // Calculate the WFs.
           // A is di/dsigma*dsigma/dSp in a compact form.
@@ -1800,8 +1880,476 @@ void k_temp_nohydro (
 }
 
 
+/**
+   Spectroscopic parameters weighting function
 
+   Calculates temperature 1D weighting functions for the spectroscopic parameters 
+   The function uses precalculated absorption LOS WFs
 
+   The expression used are described in sub-section 7 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   kb                   weighting function matrix
+   \retval   kb_names       identity name(s)
+   \retval   kb_aux            additional data
+
+   \param    tag_groups        The list of tag groups
+   \param    los               line of sight structure
+   \param    absloswfs         absorption LOS Wfs
+   \param    f_mono            frequency absorption grid
+   \param    p_abs             pressure grid for abs. calculations
+   \param    t_abs             temperatures at p_abs
+   \param    vmrs              VMR profiles at p_abs
+   \param    lines_per_tg      lines tag sorted
+   \param    lineshape         lineshape specifications: function, norm, cutoff
+   \param    IndexPar         index for the spectroscopic parameter 
+   \param    StrPar            name of the spectroscopic parameter 
+   \author Patrick Eriksson
+   \date   2000-09-15
+*/
+void kb_spectro(
+		Matrix&                                       kb,
+		ArrayOfString&                           kb_names,
+		Matrix&                                       kb_aux,
+	     const TagGroups&                                tgs,
+	     const Vector&                                       f_mono,
+                     const Vector&                                       p_abs,
+                     const Vector&                                       t_abs,
+                     const Vector&                                       h2o_abs,
+                     const Matrix&                                        vmrs,
+                     const ArrayOfArrayOfLineRecord&       lines_per_tg,
+                     const ArrayOfLineshapeSpec&             lineshape,
+                     const Los&                                            los,           
+	     const ArrayOfMatrix&                           absweight,
+	     const Index&                                         IndexPar,
+	     const String&                                        StrPar)
+
+ { 
+ // Main sizes
+  const Index  nza = los.start.nelem();     // number of zenith angles  
+  const Index  nv  = f_mono.nelem();        // number of frequencies
+  const Index  np  = p_abs.nelem();        // number of retrieval altitudes
+  //----------------------------------------------------------------------
+  // Index:
+  Index itg, iv, nr_line_total, iza, ip, nr_line; 
+  //----------------------------------------------------------------------
+  // Get size for Kb
+  nr_line_total=0;
+  nr_line=0;
+  if (tgs.nelem()==0)
+    {
+      ostringstream os;
+      os << "No species has been set:   "<<"\n";	
+      throw runtime_error(os.str());
+    }
+  else
+    {  
+      for ( itg=0; itg<tgs.nelem(); ++itg )
+	{
+	  nr_line_total+=lines_per_tg[itg].nelem();
+	}  
+    }
+  kb.resize(nza*nv,nr_line_total);
+  kb_names .resize(nr_line_total);
+  kb=0;
+  // Other variables: 
+  Matrix        abs_line;
+  Matrix        abs_line_changed;
+  Matrix        dabs;
+  dabs.resize(np,nv);
+  Matrix        dabs1;
+  dabs1.resize(nv,np);
+  //dabs.resize(nv, np);
+  ArrayOfMatrix abs_dummy1;
+  ArrayOfMatrix abs_dummy2;
+  
+
+  out2 << "  Calculating the weighting function for "<< StrPar<<"\n";
+   // loop:
+   // 1: over the tags
+   // 2: over the lines
+   // 3: over the zenith angles
+   // 4: over the frequencies
+
+   for ( itg=0; itg<tgs.nelem(); ++itg )
+     {
+       if ( lines_per_tg[itg].nelem()>0)
+	{
+	  for ( Index li=0; li<lines_per_tg[itg].nelem(); ++li )
+	    { 
+	      ArrayOfArrayOfLineRecord dummy_lines_per_tg; 
+	      dummy_lines_per_tg.resize( lines_per_tg.nelem() ); 
+	      dummy_lines_per_tg[itg].resize(1);
+	      cout<<"=======Making line=========:" <<" \n"; 
+	      cout << lines_per_tg[itg][li]<< "\n"; 
+	      dummy_lines_per_tg[itg][0] = lines_per_tg[itg][li];
+                    // calculate the absorption for unperturbed line; 
+	      xsec_per_tgInit( abs_dummy1, tgs, f_mono, p_abs );
+	      xsec_per_tgAddLines( abs_dummy1, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, 
+				  dummy_lines_per_tg, lineshape );               
+	      absCalcFromXsec(abs_line, abs_dummy2, abs_dummy1 , vmrs );	    
+	      Numeric frac;
+	      Numeric parameter;
+	      Numeric dummy;
+	      // apply a perturbation the one  parameter
+	      switch ( IndexPar )
+		{
+	      case 1: 
+		{
+		 frac=0.01;
+		 parameter=dummy_lines_per_tg[itg][0].I0();
+		 dummy = parameter +frac*parameter;
+		 dummy_lines_per_tg[itg][0].setI0(dummy);
+		 break;
+	                }
+	      case 2: 
+	               {
+		 frac=0.01;
+		 parameter=dummy_lines_per_tg[itg][0].F();
+		 dummy = parameter +frac*parameter;	 
+		 dummy_lines_per_tg[itg][0].setF(dummy);
+		 break;
+	               }
+	      case 3: 
+	               {  
+		 frac=0.01;
+		 parameter = dummy_lines_per_tg[itg][0].Agam();
+		 dummy = parameter +frac*parameter;	 
+		 dummy_lines_per_tg[itg][0].setAgam(dummy);
+		 break;
+	                }
+	     case 4: 
+	               {
+		 frac=0.01;
+		 parameter=dummy_lines_per_tg[itg][0].Sgam();
+		 dummy = parameter +frac*parameter;	 
+		 dummy_lines_per_tg[itg][0].setSgam(dummy);
+		 break;
+	              }
+	     case 5: 
+	               {
+		 frac=0.01;
+		 parameter=dummy_lines_per_tg[itg][0].Nair();
+		 dummy = parameter +frac*parameter;	 
+		 dummy_lines_per_tg[itg][0].setNair(dummy);
+		 break; 
+	                }
+	       case 6: 
+               	               { 
+		 frac=0.01;
+		 parameter=dummy_lines_per_tg[itg][0].Nself();
+		 dummy = parameter + frac*parameter;	 
+		 dummy_lines_per_tg[itg][0].setNself(dummy);
+		 break;
+		}
+	      case 7: 
+	               {
+		 frac=0.01;
+		 parameter=dummy_lines_per_tg[itg][0].Psf();
+		 dummy = parameter + frac*parameter;	 
+		 dummy_lines_per_tg[itg][0].setPsf(dummy);
+		 break; 
+		}
+	      default: 
+		{
+		 ostringstream os;
+		 os << "The sectroscopic parameter:   "  << StrPar<<"\n"
+		    << "does not exists";	
+		 throw runtime_error(os.str());
+		}
+	      }
+	    //cout << dummy_lines_per_tg[itg][0]<< "\n"; 
+	    //calculate the absorption coefficient for the perturbed line
+	    xsec_per_tgInit( abs_dummy1, tgs, f_mono, p_abs );
+	    xsec_per_tgAddLines( abs_dummy1,
+				 tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, dummy_lines_per_tg, lineshape );  
+	    absCalcFromXsec(abs_line_changed, abs_dummy2, abs_dummy1, vmrs ); 
+	    abs_line_changed-=abs_line; 
+	    dabs1=abs_line_changed;
+	    dabs1/=dummy-parameter;
+	    dabs=transpose(dabs1);
+	    Index iv0=0;
+	    for ( iza=0; iza<nza; iza++ ) 
+	      { 
+	       if ( (iza%20)==0 )
+	          out3 << "\n      ";
+                        out3 << " " << iza; cout.flush();
+	      // Do something only if LOS has any points
+	           if ( los.p[iza].nelem() > 0 ) 
+		  {
+		    for ( iv=0; iv<nv; iv++ ) 
+		      {         
+		         for ( ip=0; ip<np; ip++ )
+			   { 
+			    kb(iv0+iv, nr_line)+= absweight[iza](iv,ip)* dabs(ip, iv);
+			   }
+			// The result for very small values can be NaN. So NaNs (and Infs)
+			// are set to 0.
+#ifdef HPUX
+            if ( !isfinite(kb(iv0+iv, nr_line)) )
+#else
+            if ( !finite(kb(iv0+iv, nr_line)) )
+#endif
+              kb(iv0+iv,nr_line) = 0.0;
+		      }
+		    iv0+=nv;
+		  }
+	      }	    
+	    Numeric nr = dummy_lines_per_tg[itg][0].F() *1e-9;
+	    ostringstream os;
+	    os <<StrPar<< "--"<<dummy_lines_per_tg[itg][0].Name()<<"@" <<nr;
+	    kb_names[nr_line]= os.str();
+	    ++nr_line;
+	    }  
+	}         
+     }
+ }
+
+/**
+   Spectroscopic parameters weighting function
+
+   Calculates temperature 1D weighting functions for the spectroscopic parameters 
+   The function uses precalculated absorption LOS WFs. 
+
+   The expression used are described in sub-section 7 of the AUG section
+   "Atmospheric WFs".
+
+   \retval   kb                   weighting function matrix
+   \retval   kb_names       identity name(s)
+   \retval   kb_aux            additional data
+
+   \param    tag_groups        The list of tag groups
+   \param    los               line of sight structure
+   \param    absloswfs         absorption LOS Wfs
+   \param    f_mono            frequency absorption grid
+   \param    p_abs             pressure grid for abs. calculations
+   \param    t_abs             temperatures at p_abs
+   \param    vmrs              VMR profiles at p_abs
+   \param    lines_per_tg      lines tag sorted
+   \param    lineshape         lineshape specifications: function, norm, cutoff
+   \param    IndexPar         index for the spectroscopic parameter 
+   \param    StrPar            name of the spectroscopic parameter 
+   \author Carmen Verdes
+   \date   2002-10-1
+*/
+
+void kbSpectro (
+		Matrix&                                  kb,
+		ArrayOfString&                       kb_names,
+		Matrix&                                   kb_aux,
+	     const TagGroups&                            tgs,
+	     const Vector&                                   f_mono,
+	     const Vector&                                   p_abs,
+	     const Vector&                                    t_abs,
+                     const Vector&                                    z_abs,
+	     const Vector&                                    h2o_abs,
+	     const Matrix&                                     vmrs,
+	     const ArrayOfArrayOfLineRecord&    lines_per_tg,
+	     const ArrayOfLineshapeSpec&          lineshape,
+	     const Los&                                          los,           
+	     const ArrayOfMatrix&                         absloswfs,
+	  // Keywords
+                     const  Index&                                          kw_intens,
+	     const  Index&                                          kw_position,
+                     const  Index&                                          kw_agam,
+                     const  Index&                                          kw_sgam,
+                     const  Index&                                          kw_nair,
+                     const  Index&                                          kw_nself,
+                     const  Index&                                          kw_pSift )
+{
+
+  check_if_bool( kw_intens, "do_intens keyword" );
+  check_if_bool( kw_position, "do_position keyword" );
+  check_if_bool( kw_agam, "do_agam keyword" );
+  check_if_bool( kw_sgam, "do_sgam keyword" );
+  check_if_bool( kw_nair, "do_nair keyword" );
+  check_if_bool( kw_nself, "do_nself keyword" );
+  check_if_bool( kw_pSift,  "do_pSift keyword" );
+  check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
+  check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
+  check_lengths( p_abs, "p_abs", h2o_abs, "h2o_abs" );  
+  check_length_ncol( p_abs, "p_abs", vmrs, "vmrs" );
+
+ // Main sizes
+  const Index  nza = los.start.nelem();     // number of zenith angles  
+  const Index  nv  = f_mono.nelem();        // number of frequencies
+  //
+  // Indices
+  // IP0 and IF0 are the index off-sets for the total K matrix
+  Index  iza;                       // zenith angle index         
+  Index itg;
+  
+  // Other variables
+  ArrayOfMatrix W; 
+  ArrayOfMatrix absweight;
+  absweight.resize(nza);
+  ArrayOfIndex  kb_lengths;
+  Matrix        k;
+  ArrayOfString k_names;
+  Matrix        k_aux;
+  Matrix        abs_line;
+  Matrix        abs_line_changed;
+  ArrayOfMatrix abs_dummy1;
+  Index         IndexPar; // spectro parameters to be investigated
+  String        StrPar;
+  Index         ipar = 0;              // index for the parameter
+
+  // Calculate weights for conversion between LOS grids and pressure grid: dkappa/dk;
+  grid2grid_weights_total(W, los, p_abs);
+  // Calculate the product di/dkappa * dkappa/dk; 
+  for ( iza=0; iza<nza; iza++ ) 
+    {
+      absweight[iza].resize(absloswfs[iza].nrows(), W[iza].ncols());  
+      // Do something only if LOS has any points
+      if ( los.p[iza].nelem() > 0 )
+	cout<< "los.p[iza]:" << los.p[iza]<<"\n";
+	{
+	  mult(absweight[iza], absloswfs[iza], W[iza]); 
+	}
+    }
+
+// get size of kb
+  if (kw_intens) 
+    {  ++ipar;}
+  if (kw_position) 
+    {  ++ipar;}
+  if (kw_agam) 
+    {  ++ipar;}
+  if (kw_sgam) 
+    {  ++ipar;}
+  if (kw_nair) 
+    {  ++ipar;}
+  if (kw_nself) 
+    {  ++ipar;}
+  if (kw_pSift) 
+    {  ++ipar;}
+  Index nr_line_total=0;
+  {  
+    for ( itg=0; itg<tgs.nelem(); ++itg )
+      {
+	nr_line_total+=lines_per_tg[itg].nelem();
+      }  
+  }
+  if (ipar == 0)
+    {
+      ostringstream os;
+      os << "No sectroscopic parameters have been set";	
+      throw runtime_error(os.str());
+    }
+  
+  kb.resize(nza*nv, nr_line_total*ipar);
+  kb=0.0;
+  kb_names.resize(nr_line_total*ipar);
+  
+  // calculate the weighting function for each parameter
+  Index nr_line=0;
+  if (kw_intens) 
+    {  
+      IndexPar = 1;
+      StrPar = "intensity";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();
+    }	
+  if (kw_position)
+    { 
+      IndexPar  = 2;
+      StrPar = "position";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker), Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();
+	}
+  if (kw_agam)
+    { 
+      IndexPar = 3;
+      StrPar = "agam";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();
+	}
+  if (kw_sgam)
+    { 
+      IndexPar = 4;
+      StrPar = "sgam";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
+ 		  lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();
+    }
+ 
+  if (kw_nair)
+    { 
+      IndexPar = 5;
+      StrPar = "nair";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs, lines_per_tg, 
+		  lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();      
+	}
+  if (kw_nself)
+    { 
+      IndexPar = 6;
+      StrPar = "nself";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs,
+		  lines_per_tg, lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();        
+	}
+  if (kw_pSift)
+    { 
+      IndexPar = 7;
+      StrPar = "pressure shift";
+      out1 <<" ******* Calculating Kb for "<< StrPar<<" ******\n"; 
+      kb_spectro( k, k_names, k_aux, tgs, f_mono, p_abs, t_abs, h2o_abs, vmrs,
+		  lines_per_tg, lineshape, los, absweight, IndexPar, StrPar);
+      kb(Range(joker),Range(nr_line,  k.ncols()))= k;
+      for ( Index iri=0; iri<k_names.nelem(); iri++)
+        {
+	  kb_names[nr_line+iri]= k_names[iri]; 
+	}  
+      nr_line+=k.ncols();
+	}
+  if (ipar == 0)
+     {
+       ostringstream os;
+       os << "No sectroscopic parameters have been set";	
+       throw runtime_error(os.str());
+     }
+} 
+ 
 ////////////////////////////////////////////////////////////////////////////
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
