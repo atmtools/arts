@@ -1,3 +1,15 @@
+2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-100 
+
+	* src/methods.cc: Introduced workspace variables for the scattering
+	calculations.
+
+	* doc/uguide/scattering.tex: Adjusted the text according to the 
+	decision that there will be no special grids inside the cloudbox.
+
+	* doc/uguide/symboldefs: Removed symbols for scattering grids.
+	
 2002-05-29  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-99
