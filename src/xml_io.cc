@@ -92,7 +92,7 @@ ArtsXMLTag::add_attribute (const String& aname, const Index& value)
 
 
 //! Checks whether attribute has the expected value
-/*! 
+/*!
 
   If the attribute has another value or is unknown an exception is
   thrown.
@@ -104,7 +104,7 @@ void
 ArtsXMLTag::check_attribute (const String& aname, const String& value)
 {
   String actual_value;
-  
+
   get_attribute_value (aname, actual_value);
 
   if (actual_value == "*not found*")
@@ -122,7 +122,7 @@ ArtsXMLTag::check_attribute (const String& aname, const String& value)
 
 
 //! Returns value of attribute as String
-/*! 
+/*!
   Searches for the matching attribute and returns it value. If no
   attribute with the given name exists, return value is set to
   *not found*.
@@ -152,7 +152,7 @@ ArtsXMLTag::get_attribute_value (const String& aname, String& value)
 
 
 //! Returns value of attribute as type Index
-/*! 
+/*!
   Searches for the matching attribute and returns it value. If no
   attribute with the given name exists, return value is set to
   *not found*.
@@ -181,7 +181,7 @@ ArtsXMLTag::get_attribute_value (const String& aname, Index& value)
 //! Reads next XML tag
 /*!
   Reads the name and attributes of the next XML tag from stream.
-  
+
   \param is Input stream
 */
 void
@@ -308,7 +308,7 @@ ArtsXMLTag::read_from_stream (istream& is)
 //! Write XML tag
 /*!
   Puts the tag together and writes it to stream.
-  
+
   \param os Output stream
 */
 void
@@ -318,7 +318,7 @@ ArtsXMLTag::write_to_stream (ostream& os)
   os << "<" << name;
 
   Array<XMLAttribute>::iterator it = attribs.begin ();
-  
+
   while (it != attribs.end ())
     {
       os << ' ' << it->name
@@ -334,11 +334,11 @@ ArtsXMLTag::write_to_stream (ostream& os)
 ////////////////////////////////////////////////////////////////////////////
 //   Default file name
 ////////////////////////////////////////////////////////////////////////////
-  
+
 //! Gives the default filename for the XML formats.
 /*!
   The default name is only used if the filename is empty.
-   
+
   \param filename filename
   \param varname variable name
 */
@@ -360,7 +360,7 @@ filename_xml (String&  filename,
 ////////////////////////////////////////////////////////////////////////////
 
 //! Open file for XML output
-/*! 
+/*!
   This function opens an XML file for writing.
 
   \param file Output filestream
@@ -376,7 +376,7 @@ xml_open_output_file (ofstream& file, const String& name)
   // FIXME: This does not yet work in  egcs-2.91.66, try again later.
   file.exceptions(ios::badbit |
                   ios::failbit);
-  
+
   // c_str explicitly converts to c String.
   file.open(name.c_str() );
 
@@ -397,7 +397,7 @@ xml_open_output_file (ofstream& file, const String& name)
 
 
 //! Open file for XML input
-/*! 
+/*!
   This function opens an XML file for reading.
 
   \param file Input filestream
@@ -437,7 +437,7 @@ xml_open_input_file (ifstream& ifs, const String& name)
 /*!
   This is used quite often inside the parsing routines so it's a
   function for itself.
-  
+
   \param str_error Error description
 */
 void
@@ -454,7 +454,7 @@ xml_parse_error (const String& str_error)
 /*!
   This is used quite often inside the data parsing routines so it's a
   function for itself.
-  
+
   \param tag        ArtsXMLTag
   \param str_error  Error description
 */
@@ -470,10 +470,10 @@ xml_data_parse_error (ArtsXMLTag &tag, String str_error)
 
 
 //! Reads XML header and root tag
-/*! 
+/*!
   Check whether XML file has correct version tag and reads arts root
   tag information.
-  
+
   \param is Input stream
 */
 void
@@ -567,9 +567,9 @@ xml_read_header_from_stream (istream& is, FileType &ftype, NumericType &ntype,
 
 
 //! Reads closing root tag
-/*! 
+/*!
   Checks whether XML file ends correctly with </arts>.
-  
+
   \param is Input stream
 */
 void
@@ -583,7 +583,7 @@ xml_read_footer_from_stream (istream& is)
 
 
 //! Writes XML header and root tag
-/*! 
+/*!
   \param os Output stream
 */
 void
@@ -615,14 +615,14 @@ xml_write_header_to_stream (ostream& os, FileType ftype)
 
 
 //! Write closing root tag
-/*! 
+/*!
   \param os Output stream
 */
 void
 xml_write_footer_to_stream (ostream& os)
 {
   ArtsXMLTag tag;
-  
+
   tag.set_name ("/arts");
   tag.write_to_stream (os);
 
@@ -633,7 +633,7 @@ void
 xml_set_stream_precision (ostream &os)
 {
   // Determine the precision, depending on whether Numeric is double
-  // or float:  
+  // or float:
   Index precision;
   switch (sizeof (Numeric))
     {
@@ -660,7 +660,7 @@ xml_set_stream_precision (ostream &os)
 /*!
   This is a generic functions that is used to read the XML header and
   footer info and calls the overloaded functions to read the data.
-  
+
   \param filename XML filename
   \param type Generic return value
 */
@@ -674,7 +674,7 @@ xml_read_from_file (const String& filename,
   EndianType etype;
 
   out2 << "  Reading " << filename << '\n';
-  
+
   // Open input stream:
   xml_open_input_file (ifs, filename);
 
@@ -682,7 +682,7 @@ xml_read_from_file (const String& filename,
   // runtime_error with an appropriate error message.
 
   // Read the matrix from the stream. Here we catch the exception,
-  // because then we can issue a nicer error message that includes the 
+  // because then we can issue a nicer error message that includes the
   // filename.
   try
     {
@@ -713,7 +713,7 @@ xml_read_from_file (const String& filename,
 /*!
   This is a generic functions that is used to write the XML header and
   footer info and calls the overloaded functions to write the data.
-  
+
   \param filename XML filename
   \param type Generic input value
 */
@@ -1953,7 +1953,7 @@ xml_read_from_stream (istream& is_xml,
 
   tag.read_from_stream (is_xml);
   tag.check_name ("Index");
-  
+
   if (pbifs)
     {
       *pbifs >> index;
@@ -2096,7 +2096,7 @@ xml_write_to_stream (ostream& os_xml,
         *pbofs << matrix (r, 0);
       else
         os_xml << matrix (r, 0);
-      
+
       for (Index c = 1; c < matrix.ncols (); ++c)
         {
           if (pbofs)
@@ -2104,7 +2104,7 @@ xml_write_to_stream (ostream& os_xml,
           else
             os_xml << " " << matrix (r, c);
         }
-      
+
       if (!pbofs)
         os_xml << '\n';
     }
@@ -3330,10 +3330,10 @@ xml_read_from_stream (istream& is_xml,
 
   tag.read_from_stream (is_xml);
   tag.check_name ("Vector");
-  
+
   tag.get_attribute_value ("nelem", nelem);
   vector.resize (nelem);
-  
+
   for (Index n = 0; n < nelem; n++)
     {
       if (pbifs)
@@ -3406,7 +3406,7 @@ xml_write_to_stream (ostream& os_xml,
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Dummy funtion for groups for which 
+//   Dummy funtion for groups for which
 //   IO function have not yet been implemented
 ////////////////////////////////////////////////////////////////////////////
 
