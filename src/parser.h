@@ -19,11 +19,17 @@
 class MRecord {
 public:
   MRecord(const int id,
-	  const ARRAY<TokVal>& values)
+	  const ARRAY<TokVal>& values,
+	  const ARRAY<size_t>& output,
+	  const ARRAY<size_t>& input)
     : mid(id),
-      mvalues(values) { /* Nothing to do here. */ }
+      mvalues(values),
+      moutput(output),
+      minput(input) { /* Nothing to do here. */ }
   int                  Id()     const { return mid;     }
   const ARRAY<TokVal>& Values() const { return mvalues; }
+  const ARRAY<size_t>& Output() const { return moutput; }
+  const ARRAY<size_t>& Input()  const { return minput; }
 
 private:
   /** Method id. */
@@ -31,6 +37,10 @@ private:
   /** List of parameter values (see methods.h for definition of
       TokVal). */
   ARRAY<TokVal> mvalues;
+  /** Output workspace variables (for generic methods). */
+  ARRAY<size_t> moutput;
+  /** Input workspace variables (for generic methods). */
+  ARRAY<size_t> minput;
 };
 
 
@@ -127,7 +137,6 @@ private:
 
     @author Stefan Buehler */
 void parse_main(ARRAY<MRecord>& tasklist, SourceText& text);
-
 
 
 #endif

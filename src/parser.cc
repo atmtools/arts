@@ -640,10 +640,12 @@ void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
 
 /** Parse the Contents of text as ARTS control input. 
   
-    @param id Output. Method id.
+    @param id     Output. Method id.
     @param values Output. Keyword parameter values for this method.
+    @param output Output. Output workspace variables (for generic methods).
+    @param input  Output. Input workspace variables (for generic methods).
   
-    @param text The input to parse .
+    @param text The input to parse.
    
     @see read_name
     @see eat_whitespace
@@ -663,6 +665,8 @@ void parse_numvector(ARRAY<Numeric>& res, SourceText& text)
    @author Stefan Buehler  */
 void parse_method(int& id, 
 		  ARRAY<TokVal>& values,
+		  ARRAY<size_t>& output,
+		  ARRAY<size_t>& input,
 		  SourceText& text,
 		  const std::map<string, int> MdMap,
 		  const std::map<string, int> WsvMap)
@@ -672,6 +676,12 @@ void parse_method(int& id,
   extern const WsvRecord wsv_data[];
   int wsvid;			// Workspace variable id, is used to
 				// access data in wsv_data.
+
+  // Clear all output variables:
+  id = 0;
+  values.clear();
+  output.clear();
+  input.clear();
 
   {
     string methodname;
@@ -698,6 +708,7 @@ void parse_method(int& id,
   // to be parsed (given in round brackets).
   if ( md_data[id].Generic() )
     {
+      cout << "Generic!" << id << md_data[id].Name() << '\n';
       string wsvname;
       bool first = true;	// To skip the first comma.
 
@@ -736,8 +747,8 @@ void parse_method(int& id,
 				 text.Line(),
 				 text.Column() );
 
-	  // [**Now we have to save the Wsv information
-	  // somehow. Missing!!! ]
+	  // Add this one to the list of output workspace variables:
+	  output.push_back(wsvid);
 	  
 	  eat_whitespace(text);
 	}
@@ -774,8 +785,8 @@ void parse_method(int& id,
 				 text.Line(),
 				 text.Column() );
 
-	  // [**Now we have to save the Wsv information
-	  // somehow. Missing!!! ]
+	  // Add this one to the list of input workspace variables:
+	  input.push_back(wsvid);
 	  
 	  eat_whitespace(text);
 	}
@@ -791,23 +802,36 @@ void parse_method(int& id,
   // Look for the keywords and read the parameters:
   for ( size_t i=0 ; i<md_data[id].Keywords().size() ; ++i )
     {
-      string keyname;
-      read_name(keyname,text);
-
-      // Is the keyname the expected keyname?
-      if ( keyname != md_data[id].Keywords()[i] )
+      try 
 	{
-	  throw UnexpectedKeyword( keyname,
-				   text.File(),
-				   text.Line(),
-				   text.Column());
+	  string keyname;
+	  read_name(keyname,text);
+
+	  // Is the keyname the expected keyname?
+	  if ( keyname != md_data[id].Keywords()[i] )
+	    {
+	      throw UnexpectedKeyword( keyname,
+				       text.File(),
+				       text.Line(),
+				       text.Column());
+	    }
+
+	  eat_whitespace(text);
+
+	  // Look for '='
+	  assertain_character('=',text);
+	  eat_whitespace(text);
 	}
-
-      eat_whitespace(text);
-
-      // Look for '='
-      assertain_character('=',text);
-      eat_whitespace(text);
+      catch (UnexpectedKeyword x)
+	{
+	  // Does this method take only a single parameter? In that that case
+	  // the keyword is optional, so we should simply proceed and
+	  // try to read the value.
+	  if (1!=md_data[id].Keywords().size())
+	    {
+	      throw;		// re-throw the exception
+	    }
+	}
 
       // Now parse the key value. This can be:
       // str_,    int_,    num_,
@@ -886,19 +910,36 @@ void parse(ARRAY<MRecord>& tasklist,
 	   const std::map<string, int> MdMap,
 	   const std::map<string, int> WsvMap)
 {
+  extern const MdRecord md_data[];	
+  bool go_on = true;
+  // For method ids:
+  int id;		
+ // For keyword parameter values:
+  ARRAY<TokVal> values;
+  // Output workspace variables (for generic methods):
+  ARRAY<size_t> output;		
+  // Input workspace variables (for generic methods):
+  ARRAY<size_t> input;
 
-  int id;			// For method ids.
-  ARRAY<TokVal> values;		// For keyword parameter values.
+  out3 << "Tasklist:\n";
 
-// [*This should be put in a loop to look for a list of methods. 
-//   How to check for end of file?]   
+  while (go_on)
+    {
+      eat_whitespace(text);
+      parse_method(id,values,output,input,text,MdMap,WsvMap);
+      // Append taks to task list:
+      tasklist.push_back(MRecord(id,values,output,input));
+      out3 << md_data[id].Name() << "\n";
 
-  eat_whitespace(text);
-  parse_method(id,values,text,MdMap,WsvMap);
-  // Append taks to task list:
-  tasklist.push_back(MRecord(id,values));
-  eat_whitespace(text);
-
+      try
+	{
+	  eat_whitespace(text);
+	}
+      catch (const Eot x)
+	{
+	  go_on = false;
+	}
+    }
 }
 
 void parse_main(ARRAY<MRecord>& tasklist, SourceText& text)

@@ -90,7 +90,7 @@ class WsvRecord {
 public:
   WsvRecord(const char name[],
 	    const char description[],
-	    const WsvGroup group,
+	    const size_t group,
 	    WsvP* const pointer)
     : mname(name),
       mdescription(description),

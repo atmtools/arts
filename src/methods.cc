@@ -2,9 +2,6 @@
    records. See methods.h for more documentation. */
 
 #include "arts.h"
-#include "vecmat.h"
-#include "token.h"
-#include "wsv.h"
 #include "make_vector.h"
 #include "methods.h"
 

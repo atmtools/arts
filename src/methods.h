@@ -10,6 +10,7 @@
 
 #include "vecmat.h"
 #include "token.h"
+#include "wsv.h"
 
 /** This class contains all information for one workspace method. */
 class MdRecord {

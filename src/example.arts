@@ -1,14 +1,16 @@
 
-SomeMethod{
-	sample = ["Test1",	"Test2"    ]
-	ints   = [1,   2   , 3, 4, 5, 6, 7 ]
-	numm   = [3.4, 1e-3, 5             ]
-}
+#SomeMethod{
+#	sample = ["Test1",	"Test2"    ]
+#	ints   = [1,   2   , 3, 4, 5, 6, 7 ]
+#	numm   = [3.4, 1e-3, 5             ]
+#}
 
-f_abs_ReadFromFile {
-	file = "example.abs"
-}
+#f_abs_ReadFromFile {
+#	file = "example.abs"
+#}
 
-WriteVectorToFile (f_abs) {}
+#WriteVectorToFile (f_abs) {}
 
-End{}
+#End{}
+
+AllAbsExample{}
