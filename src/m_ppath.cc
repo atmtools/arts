@@ -200,17 +200,14 @@ void DoGridcell2D(
         const Numeric&   rground2 )
 {
   const Numeric   ppc = geometrical_ppc( r_start, za_start );
-  const Numeric   c2 = ( r2 - r1 ) / ( lat3 - lat1 );
-  const Numeric   c4 = ( r3 - r4 ) / ( lat3 - lat1 );
-  const Numeric   cground = ( rground2 - rground1 ) / ( lat3 - lat1 );
 
   Vector    r, lat, za;
   Numeric   lstep;
   Index     endface;
 
   do_gridcell_2d( r, lat, za, lstep, endface, r_start, lat_start, za_start, 
-             ppc, lmax, r1, r2, r3, r4, lat1, lat3, c2, c4, at_lower_psurface,
-                              at_upper_psurface, rground1, rground2, cground );
+             ppc, lmax, r1, r2, r3, r4, lat1, lat3,  at_lower_psurface,
+                                       at_upper_psurface, rground1, rground2 );
 
   String filename;
 
@@ -230,6 +227,78 @@ void DoGridcell2D(
   filename_xml( filename, "endface" );
   xml_write_to_file ( filename, endface );
 }
+
+
+
+//! DoGridcell3D
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-12-25
+*/
+void DoGridcell3D(
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   lon_start,
+        const Numeric&   za_start,
+        const Numeric&   aa_start,
+        const Numeric&   lmax,
+        const Numeric&   r1a,
+        const Numeric&   r2a,
+        const Numeric&   r3a,
+        const Numeric&   r4a,
+        const Numeric&   r1b,
+        const Numeric&   r2b,
+        const Numeric&   r3b,
+        const Numeric&   r4b,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   lon5,
+        const Numeric&   lon6,
+        const Index&     at_lower_psurface,
+        const Index&     at_upper_psurface,
+        const Numeric&   rground1a,
+        const Numeric&   rground2a,
+        const Numeric&   rground1b,
+        const Numeric&   rground2b )
+{
+  const Numeric   ppc = geometrical_ppc( r_start, za_start );
+
+  Vector    r, lat, lon, za, aa;
+  Numeric   lstep;
+  Index     endface;
+
+  do_gridcell_3d( r, lat, lon, za, aa, lstep, endface, r_start, lat_start, 
+		  lon_start, za_start, aa_start, ppc, lmax, r1a, r2a, r3a, r4a,
+                r1b, r2b, r3b, r4b, lat1, lat3,  lon5, lon6, at_lower_psurface,
+               at_upper_psurface, rground1a, rground2a, rground1b, rground2b );
+
+  String filename;
+
+  filename = "";
+  filename_xml( filename, "r" );
+  xml_write_to_file ( filename, r );
+  filename = "";
+  filename_xml( filename, "lat" );
+  xml_write_to_file ( filename, lat );
+  filename = "";
+  filename_xml( filename, "lon" );
+  xml_write_to_file ( filename, lon );
+  filename = "";
+  filename_xml( filename, "za" );
+  xml_write_to_file ( filename, za );
+  filename = "";
+  filename_xml( filename, "aa" );
+  xml_write_to_file ( filename, aa );
+  filename = "";
+  filename_xml( filename, "lstep" );
+  xml_write_to_file ( filename, lstep );
+  filename = "";
+  filename_xml( filename, "endface" );
+  xml_write_to_file ( filename, endface );
+}
+
 
 
 //! ppathCalc

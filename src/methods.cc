@@ -956,8 +956,13 @@ void define_md_data_raw()
          "   lstep.xml   : Distance along the path bewteen points.\n"
          "   endface.xml : Number coding of path end face.\n"
          "\n"
-	 "The arguments *ppc*, *c2*, *c4* and *cground* are calculated from\n"
-	 "the input values.\n"
+         "Grid cell corner points are named as rx, where:\n"     
+         "   lower pressure surface : x=1 or x = 2 \n"
+         "   upper pressure surface : x=3 or x = 4 \n"
+         "   lower latitude (lat1)  : x=1 or x = 4 \n"
+         "   upper latitude (lat3)  : x=2 or x = 3 \n"
+	 "See also figure in AUG. Ground radii are named as the lower\n"
+	 "pressure surface.\n"
 	 "\n"
 	 "Keywords: \n"
          "   r_start   : Radius of start point.\n"
@@ -987,6 +992,81 @@ void define_md_data_raw()
         TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
                   Index_t,   Index_t,     Numeric_t,  Numeric_t  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("DoGridcell3D"),
+        DESCRIPTION
+        (
+         "A getaway function for *do_gridcell_3d*.\n"
+         "\n"
+         "The function calculates the geometrical propgation path through a\n"
+	 "3D grid cell. This function should only be used for bug checking \n"
+	 "of *do_gridcell_3d*, or to produce figures. The information given \n"
+	 "here can more easily be understood if also the header of \n"
+	 "*do_gridcell_3d* is read.\n"
+	 "\n"
+	 "The result is stored to the files: \n"
+	 "   r.xml       : Radius of path points as a vector.\n"
+         "   lat.xml     : Latitude of path points as a vector.\n"
+         "   lon.xml     : Longitude of path points as a vector.\n"
+         "   za.xml      : LOS zenith angles at path points as a vector.\n"
+         "   aa.xml      : LOS azimuth angles at path points as a vector.\n"
+         "   lstep.xml   : Distance along the path bewteen points.\n"
+         "   endface.xml : Number coding of path end face.\n"
+         "\n"
+         "Grid cell corner points are named as rxy, where:\n"     
+         "   lower pressure surface : x=1 or x = 2 \n"
+         "   upper pressure surface : x=3 or x = 4 \n"
+         "   lower latitude (lat1)  : x=1 or x = 4 \n"
+         "   upper latitude (lat3)  : x=2 or x = 3 \n"
+         "   lower longitude (lon5) : y=a \n"
+         "   upper longitude (lon6) : y=b \n"
+	 "See also figure in AUG. Ground radii are named as the lower\n"
+	 "pressure surface.\n"
+         "\n"
+	 "Keywords: \n"
+         "   r_start   : Radius of start point.\n"
+	 "   lat_start : Latitude of start point.\n"
+	 "   lon_start : Longitude of start point.\n"
+	 "   za_start  : LOS zenith angle at start point.\n"
+	 "   aa_start  : LOS azimuth angle at start point.\n"
+	 "   lmax      : Maximum allowed length along the path. -1=no limit.\n"
+	 "   r1a       : Radius of one corner point (see above).\n"
+	 "   r2a       : Radius of one corner point (see above).\n"
+	 "   r3a       : Radius of one corner point (see above).\n"
+	 "   r4a       : Radius of one corner point (see above).\n"
+	 "   r1b       : Radius of one corner point (see above).\n"
+	 "   r2b       : Radius of one corner point (see above).\n"
+	 "   r3b       : Radius of one corner point (see above).\n"
+	 "   r4b       : Radius of one corner point (see above).\n"
+	 "   lat1      : Lower latitude.\n"
+	 "   lat3      : Upper latitude.\n"
+	 "   lon5      : Lower longitude.\n"
+	 "   lon6      : Upper longitude.\n"
+	 "   at_lower  : Boolean that is true if start point is on top of \n"
+	 "               the lower pressure surface (face 2).\n"
+	 "   at_upper  : Boolean that is true if start point is on top of\n"
+	 "               the upper pressure surface (face 4).\n"
+	 "   rground1a : Radius for the ground at *lat1* and *lon5*.\n"
+	 "   rground2a : Radius for the ground at *lat3* and *lon5*.\n"
+	 "   rground1b : Radius for the ground at *lat1* and *lon6*.\n"
+	 "   rground2b : Radius for the ground at *lat3* and *lon6*.  "
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "r_start", "lat_start", "lon_start", "za_start", "aa_start",
+                  "lmax",    "r1a",       "r2a",       "r3a",      "r4a",
+                  "r1b",     "r2b",       "r3b",       "r4b",      "lat1",
+                  "lat3",    "lon5",      "lon6",      "at_lower", "at_upper",
+                  "rground1a", "rground2a", "rground1b", "rground2b" ),
+        TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
+                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
+                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
+                  Numeric_t, Numeric_t,   Numeric_t,  Index_t,   Index_t,  
+                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t  )));
 
   md_data_raw.push_back     
     ( MdRecord

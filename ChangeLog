@@ -1,3 +1,26 @@
+2002-12-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-353
+
+	* src/ppath.cc (do_gridcell_3d): Started on this functio. So far 
+	empty.
+	
+	(sph2cart): Created.
+
+	* src/methods.cc: Created WSM DoGridCell3D. 
+
+	* src/ppath.cc (psurface_slope_2d): Created a second version of this 
+	function, not taking vectors as input.
+
+	* src/rte.cc (ground_specular_los): Changed call of do_gridcell_2d.
+
+	* src/m_ppath.cc (DoGridcell2D): Changed call of do_gridcell_2d.
+
+	* src/ppath.cc (ppath_start_2d) - (do_gridcell_2d): Removed c2 and
+	c4 as output of ppath_start_2d, and the transfer of these variables
+	down to do_gridcell_2d, where the variables now are calculated 
+	internally.
+
 2002-12-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-352

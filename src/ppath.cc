@@ -82,6 +82,48 @@ const Numeric R_EPS = 1e-3;
 
 
 /*===========================================================================
+  === Basic (true) 3D function
+  ===========================================================================*/
+
+//! sph2cart
+/*! 
+   Conversion from spherical to cartesian coordinates.
+
+   The cartesian coordinate system is defined such as the x-axis goes along
+   lat=0 and lon=0, y-axis goes along lat=90, and the z-axis goes along lat=0
+   and lon=90. 
+
+   \param   x     Out: x position.
+   \param   y     Out: y position.
+   \param   z     Out: z position.
+   \param   r     Radius.
+   \param   lat   Latitude.
+   \param   lon   Longitude.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+void sph2cart(
+            Numeric&   x,
+            Numeric&   y,
+            Numeric&   z,
+      const Numeric&   r,
+      const Numeric&   lat,
+      const Numeric&   lon )
+{
+  const Numeric latrad = DEG2RAD * lat;
+  const Numeric lonrad = DEG2RAD * lon;
+
+  x = r * cos( latrad );   // Common term for x and z
+  z = x * sin( lonrad );
+  x = x * cos( lonrad );
+  y = r * sin( latrad );
+}
+
+
+
+
+/*===========================================================================
   === Functions related to geometrical propagation paths
   ===========================================================================*/
 
@@ -463,118 +505,6 @@ Numeric za_geom2other_point(
 
 
 /*===========================================================================
-  === Functions related to propagation paths with refraction
-  ===========================================================================*/
-
-//! refraction_ppc
-/*! 
-   Calculates the propagation path constant for cases with refraction.
-
-   Both positive and negative zenith angles are handled.
-
-   \return         Path constant.
-   \param   r      Radius of the sensor position.
-   \param   za     Zenith angle of the sensor line-of-sight.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-Numeric refraction_ppc( 
-        const Numeric& r, 
-        const Numeric& za, 
-        const Numeric& refr_index )
-{
-  assert( r > 0 );
-  assert( fabs(za) <= 180 );
-
-  return r * refr_index * sin( DEG2RAD * fabs(za) );
-}
-
-
-
-//! refraction_gradient_2d
-/*! 
-   Calculates the radial and latitudinal derivative of the refractive
-   index in a 2D grid cell.
-
-   The refractive index is assumed to be a bi-linear function (as a
-   function of radius and latitude).
-
-   \param   n        Out: Refractive index at the given point.
-   \param   dndr     Out: Radial derivative.
-   \param   dndlat   Out: Latitudinal derivative.
-   \param   r1       Radius of lower-left corner.
-   \param   r4       Radius of upper-left corner (r4 > r1).
-   \param   c2       Slope of lower pressure surface [m/deg].
-   \param   c4       Slope of upper pressure surface [m/deg].
-   \param   lat1     Latitude of left end face.
-   \param   lat3     Latitude of right end face (lat3 > lat1).
-   \param   n1       Refractive index at lower-left corner.
-   \param   n2       Refractive index at lower-right corner.
-   \param   n3       Refractive index at upper-right corner.
-   \param   n4       Refractive index at upper-left corner.
-   \param   r        Radius for point of concern.
-   \param   lat      Latitude for point of concern.
-
-   \author Patrick Eriksson
-   \date   2002-11-18
-*/
-void refraction_gradient_2d( 
-              Numeric&   n,                        
-              Numeric&   dndr,
-              Numeric&   dndlat,
-        const Numeric&   r1, 
-        const Numeric&   r4, 
-        const Numeric&   c2,
-        const Numeric&   c4,
-        const Numeric&   lat1,
-        const Numeric&   lat3,
-        const Numeric&   n1, 
-        const Numeric&   n2, 
-        const Numeric&   n3,
-        const Numeric&   n4,
-        const Numeric&   r,
-        const Numeric&   lat )
-{
-  // Help variables to avoid duplication of calculations
-  const Numeric   xlat  = lat - lat1;
-  const Numeric   rlow  = r1 + xlat * c2;
-  const Numeric   rhigh = r4 + xlat * c4;
-  const Numeric   dr    = rhigh - rlow;
-  const Numeric   dlat  = lat3 - lat1;
-        Numeric   na, nb;
-
-  assert( r1 < r4 );
-  assert( lat1 < lat3 );
-  assert( lat >= lat1 );
-  assert( lat <= lat3 );
-  assert( r >= rlow );
-  assert( r <= rhigh );
-
-  // Fractional distance for latitude
-  Numeric   fd = xlat / dlat;
-
-  na = fd*n2 + (1-fd)*n1;
-  nb = fd*n3 + (1-fd)*n4;
-
-  // Derivative in the radius direction
-  dndr = ( nb - na ) / dr; 
-
-  // Fractional distance for radius
-  fd   = ( r - rlow ) / dr; 
-
-  // Refractive index at the point
-  n = fd * nb + (1-fd) * na;
-
-  // Derivative in the latitude direction
-  dndlat = ( ( fd*n3 + (1-fd)*n2 ) - ( fd*n4 + (1-fd)*n1 ) ) / dlat; 
-}
-
-
-
-
-
-/*===========================================================================
   === Functions related to slope and tilt of the ground and pressure surfaces
   ===========================================================================*/
 
@@ -625,7 +555,35 @@ Numeric psurface_slope_2d(
 
 
 
-//! psurface_tilt_2d
+//! psurface_slope_2d
+/*!
+   Calculates the radial slope of the ground or a pressure surface for 2D.
+
+   This function returns the same quantity as the function above, but takes
+   the radius and latitude at two points of the pressure surface, instead
+   of vector input. 
+
+   \return         The radial slope [m/degree]
+   \param   lat1   A latitude.
+   \param   lat2   Another latitude.
+   \param   r1     Radius at *lat1*.
+   \param   r2     Radius at *lat2*.
+
+   \author Patrick Eriksson
+   \date   2002-12-21
+*/
+Numeric psurface_slope_2d(
+        const Numeric&   lat1,
+        const Numeric&   lat2,
+        const Numeric&   r1,
+        const Numeric&   r2 )
+{
+  return   ( r2 - r1 ) / ( lat2 -lat1 );
+}
+
+
+
+//! psurface_angletilt_2d
 /*!
    Calculates the angular tilt of the ground or a pressure surface for 2D.
 
@@ -639,7 +597,7 @@ Numeric psurface_slope_2d(
    \author Patrick Eriksson
    \date   2002-06-03
 */
-Numeric psurface_tilt_2d(
+Numeric psurface_angletilt_2d(
         const Numeric&   r,
         const Numeric&   c )
 {
@@ -665,7 +623,7 @@ Numeric psurface_tilt_2d(
    \return         Boolean that is true if LOS is downwards.
    \param   za     Zenith angle of line-of-sight.
    \param   tilt   Angular tilt of the ground or the pressure surface (as
-                   returned by psurface_tilt_2d)
+                   returned by psurface_angletilt_2d)
 
    \author Patrick Eriksson
    \date   2002-06-03
@@ -761,7 +719,8 @@ Numeric psurface_crossing_2d(
   // Check if the given LOS goes in the direction towards the pressure surface.
   // If not, return 999.
   //
-  const bool downwards = is_los_downwards_2d( za, psurface_tilt_2d( r0, c1 ) );
+  const bool downwards = is_los_downwards_2d( za, 
+                                             psurface_angletilt_2d( r0, c1 ) );
   //
   if( ( rp < r0  &&  downwards )  ||  ( rp >= r0  &&  !downwards ) )
     { return no_crossing; }
@@ -919,12 +878,12 @@ void do_gridrange_1d(
       else if( ppc >= rground )
         {
           r_end   = ppc;
-          endface = 6;
+          endface = 8;
         }
       else
         {
           r_end   = rground;
-          endface = 5;
+          endface = 7;
         }
     }
 
@@ -936,7 +895,7 @@ void do_gridrange_1d(
 
 
   // Force end zenith angle to be exact when we know the correct value
-  if( endface == 6 )
+  if( endface == 8 )
     { za_v[za_v.nelem()-1] = 90; }
 }
 
@@ -950,22 +909,24 @@ void do_gridrange_1d(
    point to the boundary of the grid cell. The face where the path
    exits the grid cell is denoted as the end face. The following
    number coding is used for the variable *endface*: <br>
-   1: The face at the lower latitude point.
-   2: The face at the lower (geometrically) pressure surface.
-   3: The face at the upper latitude point.
-   4: The face at the upper (geometrically) pressure surface.
-   5: The end point is an intersection with the ground.
-   6: The end point is a tangent point.
+   1: The face at the lower latitude point. <br>
+   2: The face at the lower (geometrically) pressure surface. <br>
+   3: The face at the upper latitude point. <br>
+   4: The face at the upper (geometrically) pressure surface. <br>
+   7: The end point is an intersection with the ground. <br>
+   8: The end point is a tangent point.
 
    The same coding is used when naming the input variables to define
-   the grid cell, where corner i is at the end of face i when going
-   around the grid cell in the anti-clockwise direction.
+   the grid cell, where corner i is at the start of face i when going
+   around the grid cell in the clockwise direction. For example, corner
+   1 is the crossing between the lower pressure surface and the lower
+   latitude. See further AUG.
 
    Path points are included if *lmax*>0 and the distance to the end
    point is > than *lmax*.
 
    The return vectors (*r_v* etc.) can have any length when handed to
-   the fuinction.
+   the function.
 
    \param   r_v         Out: Vector with radius of found path points.
    \param   lat_v       Out: Vector with latitude of found path points.
@@ -981,8 +942,6 @@ void do_gridrange_1d(
    \param   r2          Radius of lower-right corner of the grid cell.
    \param   r3          Radius of upper-right corner of the grid cell (r3>r2).
    \param   r4          Radius of upper-left corner of the grid cell (r4>r1).
-   \param   c2          Slope of lower pressure surface [m/deg].
-   \param   c4          Slope of upper pressure surface [m/deg].
    \param   lat1        Latitude of left end face (face 1) of the grid cell.
    \param   lat3        Latitude of right end face (face 3) of the grid cell.
    \param   at_lower_psurface   Boolean that is true if start point is on top
@@ -991,7 +950,6 @@ void do_gridrange_1d(
                                 of the upper pressure surface (face 4).
    \param   rground1    Radius for the ground at *lat1*.
    \param   rground2    Radius for the ground at *lat3*.
-   \param   cground     Slope of the ground [m/deg].
 
    \author Patrick Eriksson
    \date   2002-11-28
@@ -1013,15 +971,17 @@ void do_gridcell_2d(
         const Numeric&   r4,
         const Numeric&   lat1,
         const Numeric&   lat3,
-        const Numeric&   c2,
-        const Numeric&   c4,
         const bool&      at_lower_psurface,
         const bool&      at_upper_psurface,
         const Numeric&   rground1,
-        const Numeric&   rground2,
-        const Numeric&   cground )
+        const Numeric&   rground2 )
 {
   // Define some useful variables:
+
+  // Slopes of pressure surfaces
+  const Numeric  c2 = psurface_slope_2d( lat1, lat3, r1, r2 );
+  const Numeric  c4 = psurface_slope_2d( lat1, lat3, r4, r3 );
+  const Numeric  cground = psurface_slope_2d( lat1, lat3, rground1, rground2 );
 
   // Latitude distance between start point and left grid cell boundary
   const Numeric dlat_left  = lat_start - lat1;
@@ -1099,7 +1059,7 @@ void do_gridcell_2d(
       if( fabs(dlat2ground) <= fabs(dlat2end) )
         {
           dlat2end = dlat2ground;
-          endface  = 5;
+          endface  = 7;
         }
     }
 
@@ -1151,7 +1111,7 @@ void do_gridcell_2d(
 
   // Check if a tangent point is passed before dlat2end is reached.
   if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
-    { endface  = 6; }
+    { endface  = 8; }
 
 
   // Calculate radius for end point.
@@ -1168,9 +1128,9 @@ void do_gridcell_2d(
     { r_end = geompath_r_at_lat( ppc, lat_start, za_start, lat3 ); }
   else if( endface == 4 )
     { r_end = r4 + c4 * ( dlat_left + dlat2end ); }
-  else if( endface == 5 )
+  else if( endface == 7 )
     { r_end = rground1 + cground * ( dlat_left + dlat2end ); }
-  else if( endface == 6 )
+  else if( endface == 8 )
     { r_end = geompath_r_at_za( ppc, sign(za_start) * 90 ); }
 
 
@@ -1186,8 +1146,109 @@ void do_gridcell_2d(
     { lat_v[lat_v.nelem()-1] = lat1; }
   else if( endface == 3 )
     { lat_v[lat_v.nelem()-1] = lat3; }
-  else if( endface == 6 )
+  else if( endface == 8 )
     { za_v[za_v.nelem()-1] = 90; }
+}
+
+
+
+//! do_gridcell_3d
+/*!
+   Calculates the geometrical path through a 2D grid cell.
+
+   The function determines the geometrical path from the given start
+   point to the boundary of the grid cell. The face where the path
+   exits the grid cell is denoted as the end face. The same number
+   coding as in *do_gridcell_2d* is used, where the additional longitude
+   end faces are numbered as: <br>
+   5: The face at the lower longitude point. <br>
+   6: The face at the upper longitude point.
+
+   The corner points are numbered as in *do_gridcell_2d*, where a or b
+   is added to indicate lower and upper longitude, respectively. This means
+   that grid cell corner points are named as rxy, where: <br>
+      lower pressure surface : x=1 or x = 2  <br>
+      upper pressure surface : x=3 or x = 4  <br>
+      lower latitude (lat1)  : x=1 or x = 4  <br>
+      upper latitude (lat3)  : x=2 or x = 3  <br>
+      lower longitude (lon5) : y=a  <br>
+      upper longitude (lon6) : y=b 
+
+   See further *do_gridcell_2d*.
+
+   \param   r_v         Out: Vector with radius of found path points.
+   \param   lat_v       Out: Vector with latitude of found path points.
+   \param   za_v        Out: Vector with LOS zenith angle at found path points.
+   \param   lstep       Out: Vector with length along the path between points.
+   \param   endface     Out: Number coding for exit face. See above.
+   \param   r_start     Radius of start point.
+   \param   lat_start   Latitude of start point.
+   \param   za_start    LOS zenith angle at start point.
+   \param   ppc         Propagation path constant.
+   \param   lmax        Maximum allowed length along the path. -1 = no limit.
+   \param   r1          Radius of lower-left corner of the grid cell.
+   \param   r2          Radius of lower-right corner of the grid cell.
+   \param   r3          Radius of upper-right corner of the grid cell (r3>r2).
+   \param   r4          Radius of upper-left corner of the grid cell (r4>r1).
+   \param   lat1        Latitude of left end face (face 1) of the grid cell.
+   \param   lat3        Latitude of right end face (face 3) of the grid cell.
+   \param   at_lower_psurface   Boolean that is true if start point is on top
+                                of the lower pressure surface (face 2).
+   \param   at_upper_psurface   Boolean that is true if start point is on top
+                                of the upper pressure surface (face 4).
+   \param   rground1    Radius for the ground at *lat1*.
+   \param   rground2    Radius for the ground at *lat3*.
+
+   \author Patrick Eriksson
+   \date   2002-11-28
+*/
+void do_gridcell_3d(
+              Vector&    r_v,
+              Vector&    lat_v,
+              Vector&    lon_v,
+              Vector&    za_v,
+              Vector&    aa_v,
+              Numeric&   lstep,
+              Index&     endface,
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   lon_start,
+        const Numeric&   za_start,
+        const Numeric&   aa_start,
+        const Numeric&   ppc,
+        const Numeric&   lmax,
+        const Numeric&   r1a,
+        const Numeric&   r2a,
+        const Numeric&   r3a,
+        const Numeric&   r4a,
+        const Numeric&   r1b,
+        const Numeric&   r2b,
+        const Numeric&   r3b,
+        const Numeric&   r4b,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   lon5,
+        const Numeric&   lon6,
+        const bool&      at_lower_psurface,
+        const bool&      at_upper_psurface,
+        const Numeric&   rground1a,
+        const Numeric&   rground2a,
+        const Numeric&   rground1b,
+        const Numeric&   rground2b )
+{
+  // Define some useful variables:
+  r_v.resize(1);
+  lat_v.resize(1);
+  lon_v.resize(1);
+  za_v.resize(1);
+  aa_v.resize(1);
+  r_v[0] = r_start;
+  lat_v[0] = lat_start;
+  lon_v[0] = lon_start;
+  za_v[0] = za_start;
+  aa_v[0] = aa_start;
+  lstep = 0;
+  endface = 0;
 }
 
 
@@ -1930,7 +1991,7 @@ void ppath_start_stepping(
                                               gp_lat[0], ppath.los(0,0) >= 0 );
 
               // Calculate angular tilt of the ground
-              const Numeric atilt = psurface_tilt_2d( rv_ground, rslope);
+              const Numeric atilt = psurface_angletilt_2d( rv_ground, rslope);
 
               // Are we looking down into the ground?
               // If yes and the sensor is inside the cloudbox, the background 
@@ -2178,6 +2239,122 @@ void ppath_start_stepping(
 
 
 /*===========================================================================
+  === Functions related to propagation paths with refraction
+  ===========================================================================*/
+
+//! refraction_ppc
+/*! 
+   Calculates the propagation path constant for cases with refraction.
+
+   Both positive and negative zenith angles are handled.
+
+   \return         Path constant.
+   \param   r      Radius of the sensor position.
+   \param   za     Zenith angle of the sensor line-of-sight.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+Numeric refraction_ppc( 
+        const Numeric& r, 
+        const Numeric& za, 
+        const Numeric& refr_index )
+{
+  assert( r > 0 );
+  assert( fabs(za) <= 180 );
+
+  return r * refr_index * sin( DEG2RAD * fabs(za) );
+}
+
+
+
+//! refraction_gradient_2d
+/*! 
+   Calculates the radial and latitudinal derivative of the refractive
+   index in a 2D grid cell.
+
+   The refractive index is assumed to be a bi-linear function (as a
+   function of radius and latitude).
+
+   \param   n        Out: Refractive index at the given point.
+   \param   dndr     Out: Radial derivative.
+   \param   dndlat   Out: Latitudinal derivative.
+   \param   r1       Radius of lower-left corner.
+   \param   r2       Radius of lower-right corner of the grid cell.
+   \param   r3       Radius of upper-right corner of the grid cell (r3>r2).
+   \param   r4       Radius of upper-left corner (r4 > r1).
+   \param   lat1     Latitude of left end face.
+   \param   lat3     Latitude of right end face (lat3 > lat1).
+   \param   n1       Refractive index at r1.
+   \param   n2       Refractive index at r2.
+   \param   n3       Refractive index at r3.
+   \param   n4       Refractive index at r4.
+   \param   r        Radius for point of concern.
+   \param   lat      Latitude for point of concern.
+
+   \author Patrick Eriksson
+   \date   2002-11-18
+*/
+void refraction_gradient_2d( 
+              Numeric&   n,                        
+              Numeric&   dndr,
+              Numeric&   dndlat,
+        const Numeric&   r1, 
+        const Numeric&   r2, 
+        const Numeric&   r3, 
+        const Numeric&   r4, 
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   n1, 
+        const Numeric&   n2, 
+        const Numeric&   n3,
+        const Numeric&   n4,
+        const Numeric&   r,
+        const Numeric&   lat )
+{
+  // Slopes of pressure surfaces
+  const Numeric   c2 = psurface_slope_2d( lat1, lat3, r1, r2 );
+  const Numeric   c4 = psurface_slope_2d( lat1, lat3, r4, r3 );
+
+  // Help variables to avoid duplication of calculations
+  const Numeric   xlat  = lat - lat1;
+  const Numeric   rlow  = r1 + xlat * c2;
+  const Numeric   rhigh = r4 + xlat * c4;
+  const Numeric   dr    = rhigh - rlow;
+  const Numeric   dlat  = lat3 - lat1;
+        Numeric   na, nb;
+
+  assert( r1 < r4 );
+  assert( lat1 < lat3 );
+  assert( lat >= lat1 );
+  assert( lat <= lat3 );
+  assert( r >= rlow );
+  assert( r <= rhigh );
+
+  // Fractional distance for latitude
+  Numeric   fd = xlat / dlat;
+
+  na = fd*n2 + (1-fd)*n1;
+  nb = fd*n3 + (1-fd)*n4;
+
+  // Derivative in the radius direction
+  dndr = ( nb - na ) / dr; 
+
+  // Fractional distance for radius
+  fd   = ( r - rlow ) / dr; 
+
+  // Refractive index at the point
+  n = fd * nb + (1-fd) * na;
+
+  // Derivative in the latitude direction
+  dndlat = ( ( fd*n3 + (1-fd)*n2 ) - ( fd*n4 + (1-fd)*n1 ) ) / dlat; 
+}
+
+
+
+
+
+/*===========================================================================
   === Help functions for the *ppath_step* functions found below
   === These functions are mainly pieces of code that are common for at least
   === two functions (or two places in some function) and for this reason 
@@ -2412,11 +2589,11 @@ void ppath_end_1d(
   // Different options depending on position of end point of step:
 
   //--- End point is the ground
-  if( endface == 5 )
+  if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
 
   //--- End point is a tangent point
-  else if( endface == 6 )
+  else if( endface == 8 )
     {
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[np-1];
@@ -2434,7 +2611,7 @@ void ppath_end_1d(
 
 //! ppath_start_2d
 /*! 
-   Internal help function for 1D path calculations.
+   Internal help function for 2D path calculations.
 
    The function does the asserts and determined some variables that are common
    for geometrical and refraction calculations.
@@ -2456,8 +2633,6 @@ void ppath_start_2d(
               Numeric&    r4,
               Numeric&    lat1,
               Numeric&    lat3,
-              Numeric&    c2,
-              Numeric&    c4,
         const Ppath&      ppath,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
@@ -2538,10 +2713,11 @@ void ppath_start_2d(
   r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);    // lower-right
   r3 = r_geoid[ilat+1] + z_field(ip+1,ilat+1);  // upper-right
   r4 = r_geoid[ilat] + z_field(ip+1,ilat);      // upper-left
-  c2 = psurface_slope_2d( lat_grid, r_geoid, 
-         z_field(ip,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
-  c4 = psurface_slope_2d( lat_grid, r_geoid, 
-       z_field(ip+1,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
+  
+  // Slopes of pressure surfaces
+  Numeric   c2 = psurface_slope_2d( lat1, lat3, r1, r2 );
+  Numeric   c4 = psurface_slope_2d( lat1, lat3, r4, r3 );
+
 
   // Check if the LOS zenith angle happen to be between 90 and the zenith angle
   // of the pressure surface (that is, 90 + tilt of pressure surface), and in
@@ -2552,7 +2728,7 @@ void ppath_start_2d(
   if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
     {
       assert( fabs( r_start - ( r1 + c2 * dlat_left ) ) <= R_EPS );
-      Numeric tilt = psurface_tilt_2d( r_start, c2 );
+      Numeric tilt = psurface_angletilt_2d( r_start, c2 );
       if( is_los_downwards_2d( za_start, tilt ) )
         {
           ip--;
@@ -2566,7 +2742,7 @@ void ppath_start_2d(
   else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
     {
       assert( fabs( r_start - ( r4 + c4 * dlat_left ) ) <= R_EPS );
-      Numeric tilt = psurface_tilt_2d( r_start, c4 );
+      Numeric tilt = psurface_angletilt_2d( r_start, c4 );
       if( !is_los_downwards_2d( za_start, tilt ) )
         {
           ip++;
@@ -2637,9 +2813,9 @@ void ppath_end_2d(
                                                                     ip, ilat );
 
   // Do end-face specific tasks
-  if( endface == 5 )
+  if( endface == 7 )
     { ppath_set_background( ppath, 2 ); }
-  else if( endface == 6 )
+  else if( endface == 8 )
     {
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[np-1];
@@ -2898,7 +3074,7 @@ void ppath_step_geom_1d(
 
 
   // Make part from a tangent point and up to the starting pressure level.
-  if( endface == 6 )
+  if( endface == 8 )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
@@ -2959,11 +3135,11 @@ void ppath_step_geom_2d(
   // direction. The lower left corner is number 1. The left face is number 1.
   // For the coding of end point, the ground is given number 5 and a tangent
   // point 6.
-  Numeric   r1, r2, r3, r4, lat1, lat3, c2, c4;
+  Numeric   r1, r2, r3, r4, lat1, lat3;
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
-                  r1, r2, r3, r4, lat1, lat3, c2, c4, 
+                  r1, r2, r3, r4, lat1, lat3, 
                          ppath, p_grid, lat_grid, z_field, r_geoid, z_ground );
 
 
@@ -2982,8 +3158,6 @@ void ppath_step_geom_2d(
   // Ground radius at latitude end points, and ground slope
   const Numeric rground1 = r_geoid[ilat] + z_ground[ilat];
   const Numeric rground2 = r_geoid[ilat+1] + z_ground[ilat+1];
-  const Numeric cground = psurface_slope_2d( lat_grid, r_geoid, 
-                                 z_ground, ppath.gp_lat[np-1], za_start >= 0 );
   //
   // Is the start point on top of the lower or upper pressure surface?
   const bool  at_lower_psurf = is_gridpos_at_index_i( ppath.gp_p[np-1], ip );
@@ -2996,8 +3170,7 @@ void ppath_step_geom_2d(
   //
   do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
                   r_start, lat_start, za_start, ppc, lmax, r1, r2, r3, r4, 
-                  lat1, lat3, c2, c4, at_lower_psurf, at_upper_psurf, 
-                                                 rground1, rground2, cground );
+              lat1, lat3, at_lower_psurf, at_upper_psurf, rground1, rground2 );
 
 
   // Fill *ppath*
@@ -3014,7 +3187,7 @@ void ppath_step_geom_2d(
 
   // Make part after a tangent point.
   //
-  if( endface == 6 )
+  if( endface == 8 )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
@@ -3153,7 +3326,7 @@ void raytrace_1d_linear_euler(
 
       // Calculate LOS zenith angle at found point.
       //
-      if( ready  &&  endface == 6 )
+      if( ready  &&  endface == 8 )
         { za = 90; }
       else
         {
@@ -3175,7 +3348,7 @@ void raytrace_1d_linear_euler(
             {                 // If we end up here, then numerical inaccuracy
               za      = 90;   // has brought us below the true tangent point.  
               ready   = 1;    // We save this situation by setting this point
-              endface = 6;    // to tangent point.
+              endface = 8;    // to tangent point.
             }
         }
 
@@ -3228,8 +3401,6 @@ void raytrace_1d_linear_euler(
    \param   r4           Radius of upper-left corner of the grid cell (r4>r1).
    \param   lat1         Latitude of left end face (face 1) of the grid cell.
    \param   lat3         Latitude of right end face (face 3) of the grid cell.
-   \param   c2           Slope of lower pressure surface [m/deg].
-   \param   c4           Slope of upper pressure surface [m/deg].
    \param   n1           Refractive index at lower-left corner.
    \param   n2           Refractive index at lower-right corner.
    \param   n3           Refractive index at upper-right corner.
@@ -3240,7 +3411,6 @@ void raytrace_1d_linear_euler(
                                 of the upper pressure surface (face 4).
    \param   rground1     Radius for the ground at *lat1*.
    \param   rground2     Radius for the ground at *lat3*.
-   \param   cground      Slope of the ground [m/deg].
 
    \author Patrick Eriksson
    \date   2002-12-02
@@ -3261,8 +3431,6 @@ void raytrace_2d_linear_euler(
         const Numeric&          r4,
         const Numeric&          lat1,
         const Numeric&          lat3,
-        const Numeric&          c2,
-        const Numeric&          c4,
         const Numeric&          n1, 
         const Numeric&          n2, 
         const Numeric&          n3,
@@ -3270,8 +3438,7 @@ void raytrace_2d_linear_euler(
               bool              at_lower_psurf,
               bool              at_upper_psurf,
         const Numeric&          rground1,
-        const Numeric&          rground2,
-        const Numeric&          cground )
+        const Numeric&          rground2 )
 {
   // Loop boolean
   bool ready = false;
@@ -3287,9 +3454,8 @@ void raytrace_2d_linear_euler(
 
       // Where will this path exit the grid cell?
       do_gridcell_2d( r_v, lat_v, za_v, lstep, endface, 
-                     r, lat, za, ppc_step, -1, r1, r2, r3, r4, 
-                     lat1, lat3, c2, c4, at_lower_psurf, at_upper_psurf, 
-                                                 rground1, rground2, cground );
+                     r, lat, za, ppc_step, -1, r1, r2, r3, r4, lat1, lat3, 
+                          at_lower_psurf, at_upper_psurf, rground1, rground2 );
       assert( r_v.nelem() == 2 );
 
       // After the first step, we are not at any pressure surface
@@ -3326,10 +3492,10 @@ void raytrace_2d_linear_euler(
 
       // Calculate LOS zenith angle at found point.
       Numeric   n, dndr, dndlat;
-      refraction_gradient_2d( n, dndr, dndlat, r1, r4, c2, c4, lat1, lat3, 
+      refraction_gradient_2d( n, dndr, dndlat, r1, r2, r3, r4, lat1, lat3, 
                                                       n1, n2, n3, n4, r, lat );
 
-      if( ready  &&  endface == 6 )
+      if( ready  &&  endface == 8 )
         { za = 90; }
       else
         {
@@ -3485,14 +3651,14 @@ void ppath_step_refr_1d_special(
                 }
             }
           r_tan += accuracy;
-          endface = 6;
+          endface = 8;
         }
 
       // Ground must be the end point!
       else
         {
           r_end   = r_ground;
-          endface = 5;
+          endface = 7;
         }
     }
 
@@ -3515,7 +3681,7 @@ void ppath_step_refr_1d_special(
     {
       r     = r_end;
       rstop = r_start;
-      if( endface == 6 )    // Here we don't know ZA for the start point.
+      if( endface == 8 )    // Here we don't know ZA for the start point.
         { za = 90; }
       else
         { 
@@ -3580,7 +3746,7 @@ void ppath_step_refr_1d_special(
 
 
   //--- End point is a tangent point
-  if( endface == 6 )
+  if( endface == 8 )
     {
       // Make part from tangent point and up to the starting pressure level.
       //
@@ -3731,7 +3897,7 @@ void ppath_step_refr_1d(
 
 
   //--- End point is a tangent point
-  if( endface == 6 )
+  if( endface == 8 )
     {
       // Make part from tangent point and up to the starting pressure level.
       //
@@ -3806,11 +3972,11 @@ void ppath_step_refr_2d(
   // direction. The lower left corner is number 1. The left face is number 1.
   // For the coding of end point, the ground is given number 5 and a tangent
   // point 6.
-  Numeric   r1, r2, r3, r4, lat1, lat3, c2, c4;
+  Numeric   r1, r2, r3, r4, lat1, lat3;
 
   // Determine the variables defined above and make all possible asserts
   ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
-                  r1, r2, r3, r4, lat1, lat3, c2, c4, 
+                  r1, r2, r3, r4, lat1, lat3, 
                          ppath, p_grid, lat_grid, z_field, r_geoid, z_ground );
 
   // Assert not done for geometrical calculations
@@ -3845,8 +4011,6 @@ void ppath_step_refr_2d(
   // Ground radius at latitude end points, and ground slope
   const Numeric rground1 = r_geoid[ilat] + z_ground[ilat];
   const Numeric rground2 = r_geoid[ilat+1] + z_ground[ilat+1];
-  const Numeric cground = psurface_slope_2d( lat_grid, r_geoid, 
-                                 z_ground, ppath.gp_lat[np-1], za_start >= 0 );
   //
   // Is the start point on top of the lower or upper pressure surface?
   const bool  at_lower_psurf = is_gridpos_at_index_i( ppath.gp_p[np-1], ip );
@@ -3876,8 +4040,8 @@ void ppath_step_refr_2d(
 
       raytrace_2d_linear_euler( r_array, lat_array, za_array, l_array, endface,
                  r_start, lat_start, za_start, lraytrace, r1, r2, r3, r4, 
-                 lat1, lat3, c2, c4, n1, n2, n3, n4, 
-                 at_lower_psurf, at_upper_psurf, rground1, rground2, cground );
+                 lat1, lat3, n1, n2, n3, n4, 
+                          at_lower_psurf, at_upper_psurf, rground1, rground2 );
     }
   else
     {
@@ -3903,7 +4067,7 @@ void ppath_step_refr_2d(
 
   // Make part after a tangent point.
   //
-  if( endface == 6 )
+  if( endface == 8 )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );

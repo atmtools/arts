@@ -92,7 +92,7 @@ Numeric psurface_slope_2d(
         const GridPos&    gp,
         const Index&      upwards );
 
-Numeric psurface_tilt_2d(
+Numeric psurface_angletilt_2d(
         const Numeric&   r,
         const Numeric&   c );
 
@@ -113,13 +113,44 @@ void do_gridcell_2d(
         const Numeric&   r4,
         const Numeric&   lat1,
         const Numeric&   lat3,
-        const Numeric&   c2,
-        const Numeric&   c4,
         const bool&      at_lower_psurface,
         const bool&      at_upper_psurface,
         const Numeric&   rground1,
-        const Numeric&   rground2,
-	const Numeric&   cground );
+        const Numeric&   rground2 );
+
+void do_gridcell_3d(
+              Vector&    r_v,
+              Vector&    lat_v,
+              Vector&    lon_v,
+              Vector&    za_v,
+              Vector&    aa_v,
+              Numeric&   lstep,
+              Index&     endface,
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   lon_start,
+        const Numeric&   za_start,
+        const Numeric&   aa_start,
+        const Numeric&   ppc,
+        const Numeric&   lmax,
+        const Numeric&   r1a,
+        const Numeric&   r2a,
+        const Numeric&   r3a,
+        const Numeric&   r4a,
+        const Numeric&   r1b,
+        const Numeric&   r2b,
+        const Numeric&   r3b,
+        const Numeric&   r4b,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   lon5,
+        const Numeric&   lon6,
+        const bool&      at_lower_psurface,
+        const bool&      at_upper_psurface,
+        const Numeric&   rground1a,
+        const Numeric&   rground2a,
+        const Numeric&   rground1b,
+	const Numeric&   rground2b );
 
 void ppath_init_structure( 
               Ppath&      ppath,
