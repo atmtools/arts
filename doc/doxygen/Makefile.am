@@ -24,7 +24,7 @@ $(top_srcdir)/configure.in \
 $(top_srcdir)/src/*.h \
 $(top_srcdir)/src/*.cc
 
-if ARTS_GENDOCS
+if MAINTAINER_MODE
 
 doxyfied: $(toexamine)
 	doxygen Doxyfile > /dev/null

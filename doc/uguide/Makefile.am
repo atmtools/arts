@@ -70,7 +70,7 @@ EXTRA_DIST = \
 	uguide.ps \
 	uguide_pdf.pdf
 
-if ARTS_GENDOCS
+if MAINTAINER_MODE
 
 # The dependence of uguide.dvi on configure.in is there to make sure
 # that the documentation is rebuilt when the release number in
