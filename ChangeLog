@@ -1,5 +1,12 @@
 2002-03-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-0-14
+
+	* ami/plot/plot_atm_1d.m: Added this function. Should have been done
+	before but I must have missed it.
+
+2002-03-19  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-0-13
 
 	* ami/hmatrix/h_antenna.m: Fixed some smaller proplems for a

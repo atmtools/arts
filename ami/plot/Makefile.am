@@ -25,6 +25,7 @@ EXTRA_DIST = \
 	pline.m \
 	plineleg.m \
 	plot_1gridbox_2d.m \
+	plot_atm_1d.m \
 	plot_atm_2d.m \
 	plot_ppath.m \
 	plot_psurface.m \
