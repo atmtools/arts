@@ -842,6 +842,11 @@ int main (int argc, char **argv)
       // Kill everything starting from the `.'
       out_basename.erase(p);
     }
+  else
+    {
+      extern String out_basename;
+      out_basename = parameters.basename;
+    }
 
   // Set the reporting level, either from reporting command line
   // option or default.  
