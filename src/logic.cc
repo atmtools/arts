@@ -49,13 +49,28 @@ bool is_bool( const Index x )
   assert(is_size(x,l)) 
 
   \param  x The Vector to check.
-  \param  l The desired length.
+  \param  n The desired length.
   \return True if the size of x is l.
 */
 bool is_size( ConstVectorView   x,
 	      const Index       n ) 
 {
   return( n == x.nelem() );
+}
+
+//! Verifies that the size of x is r by c.
+/*! 
+  \param  x The Matrix to check.
+  \param  r The desired number of rows.
+  \param  c The desired number of columns.
+  \return True if the size of x is r x c.
+*/
+bool is_size( ConstMatrixView   x,
+	      const Index       r,
+	      const Index       c ) 
+{
+  return( r == x.nrows() &&
+	  c == x.ncols()     );
 }
 
 //! Checks if a vector is sorted in ascending order.

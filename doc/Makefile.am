@@ -7,7 +7,7 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS        = icons doxygen uguide examples emacs
+SUBDIRS        = icons doxygen uguide examples
 
 artsdocdir = $(pkgdatadir)/doc
 

@@ -34,6 +34,10 @@ bool is_bool( const Index x );
 bool is_size( ConstVectorView   x,
  	      const Index       l );
 
+bool is_size( ConstMatrixView   x,
+	      const Index       r,
+	      const Index       c );
+
 bool is_sorted( ConstVectorView& x );
 
 bool is_increasing( ConstVectorView& x );

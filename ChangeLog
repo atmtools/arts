@@ -1,5 +1,15 @@
 2002-05-03  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-58
+
+	* src/logic.cc: Added Matrix version of is_size.
+
+	* src/logic.h: Added header for Matrix version of is_size.
+
+	* doc/Makefile.am (SUBDIRS): Removed emacs directory.
+
+2002-05-03  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-57
 
 	* src/logic.cc: New file. Contains all logical functions, i.e.,
