@@ -393,8 +393,8 @@ void define_md_data_raw()
          "                         pre-defined models is used."
         ),
         OUTPUT( ext_mat_zee_, abs_vec_zee_),
-        INPUT(  geomag_los_, f_grid_, f_index_, 
-                zeeman_o2_onoff_, zeeman_o2_pressure_limit_, 
+        INPUT(  geomag_los_, f_grid_, 
+                zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_,
                 ppath_index_, rte_pressure_, 
 		rte_temperature_,rte_vmr_list_, species_index_,
                 abs_model_, abs_user_parameters_, stokes_dim_ ),
@@ -4881,15 +4881,16 @@ md_data_raw.push_back
          "splitting for the microwave range (1-1000 GHz)\n"
          "\n"
          "Keywords:\n"
-         "   ZeemanOnOff   : The start value. \n"
-         "   PressureLimit : The end value.   \n"  
+         "   ZeemanO2OnOff         : The start value. \n"
+         "   ZeemanO2PressureLimit : The end value.   \n"  
+         "   ZeemanO2Line          : Line to do with Zeeman. \n"
         ),
-        OUTPUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_ ),
+        OUTPUT( zeeman_o2_onoff_, zeeman_o2_pressure_limit_, zeeman_o2_line_),
         INPUT(),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "ZeemanO2OnOff", "ZeemanO2PressureLimit" ),
-        TYPES(    Index_t,       Numeric_t )));
+        KEYWORDS( "ZeemanO2OnOff", "ZeemanO2PressureLimit","ZeemanO2Line" ),
+        TYPES(    Index_t,       Numeric_t,               Index_t)));
 
 
 

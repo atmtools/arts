@@ -1,3 +1,23 @@
+2004-01-14  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-1-1-774
+
+	* src/workspace.cc: new workspace variable zeeman_o2_line that
+	selects the line to calculate with Zeeman splitting (only one line
+	currently possible)
+
+	* src/methods.cc: added Zeeman parameters zeeman_o2_line
+
+	* src/m_abs_o2_models.cc: heavily modified with Rosenkranz O2 absorption
+	plus Zeeman splitting, commit as a backup, not yet in working
+	condition. If you want to see some nice programming, look
+	somewhere else!
+
+	* src/test_zeemanproperties.cc, src/zeemanproperties.cc,
+	src/zeemanproperties.h: removed from repository
+
+	* src/Makefile.am: removed several old zeeman files
+
 2004-01-13  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-773

@@ -165,8 +165,6 @@ arts_SOURCES = \
 	scatproperties.cc \
 	scatproperties.h \
 	supergeneric.h \
-        zeemanproperties.cc \
-        zeemanproperties.h \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc
 
@@ -204,7 +202,6 @@ noinst_PROGRAMS = \
 	test_complex \
 	test_mpi \
 	test_sorting \
-	test_zeemanproperties \
 	test_integration
 
 test_binaryio_SOURCES = \
@@ -657,156 +654,6 @@ test_xml_SOURCES = \
 	messages.cc \
 	species_data.cc \
 	test_xml.cc
-
-test_zeemanproperties_SOURCES = \
-	absorption.cc \
-	absorption.h \
-	array.h \
-	arts.cc \
-	arts.h \
-	arts_mpi.cc \
-	arts_mpi.h \
-	auto_md.cc \
-	auto_md.h \
-	auto_wsv.h \
-	auto_wsv_groups.h \
-	auto_wsv_pointers.cc \
-	bifstream.h \
-	bifstream.cc \
-	bofstream.h \
-	bofstream.cc \
-	binio.h \
-	binio.cc \
-	check_input.cc \
-	check_input.h \
-	cloudbox.h \
-	complex.h \
-	complex.cc \
-	constants.cc \
-	exceptions.h \
-	file.cc \
-	file.h \
-	getopt.c \
-	getopt.h \
-	getopt1.c \
-	globals_2.cc \
-	gridded_fields.cc\
-	gridded_fields.h\
-	groups.cc \
-	interpolation.cc \
-	interpolation.h \
-	iotraits.h \
-	m_lineshapes.cc \
-	m_agenda.cc \
-	m_atmosphere.cc \
-	m_basic_types.cc \
-	m_cloudbox.cc \
-	m_general.cc \
-	m_general.h \
-	m_hdf.cc \
-	m_io.cc \
-	m_montecarlo.cc \
-	m_optproperties.cc \
-	m_physics.cc \
-	m_ppath.cc \
-	m_refraction.cc \
-	m_rte.cc \
-	m_scatrte.cc \
-	m_sensor.cc \
-	m_absorption.cc \
-	m_abs_o2_models.cc \
-	m_copy.h \
-	m_ignore.h \
-	m_xml.cc \
-	m_xml.h \
-	m_continua_ckd.cc \
-	make_array.h \
-	make_vector.cc \
-	make_vector.h \
-	math_funcs.cc \
-	math_funcs.h \
-	matpackI.cc \
-	matpackI.h \
-	matpackII.cc \
-	matpackII.h \
-	matpackIII.cc \
-	matpackIII.h \
-	matpackIV.cc \
-	matpackIV.h \
-	matpackV.cc \
-	matpackV.h \
-	matpackVI.cc \
-	matpackVI.h \
-	matpackVII.cc \
-	matpackVII.h \
-	messages.cc \
-	messages.h \
-	methods.cc \
-	methods.h \
-	methods_aux.cc \
-	montecarlo.cc \
-	montecarlo.h \
-	optproperties.cc \
-	optproperties.h \
-	parameters.cc \
-	parameters.h \
-	parser.cc \
-	parser.h \
-	partition_function_data.cc \
-	ppath.h \
-	ppath.cc \
-	poly_roots.h \
-	poly_roots.cc \
-	physics_funcs.cc \
-	physics_funcs.h \
-	refraction.h \
-	refraction.cc \
-	rng.cc \
-	rng.h \
-	rte.cc \
-	rte.h \
-	sensor.cc \
-	sensor.h \
-	scatrte.cc \
-	scatrte.h \
-	special_interp.cc \
-	special_interp.h \
-	species_data.cc \
-	sstream.h \
-	token.cc \
-	token.h \
-	version.cc \
-	workspace.cc \
-	workspace_aux.cc \
-	wsv_aux.h \
-	wsv_aux.cc \
-	xml_io.h \
-	xml_io_instantiation.h \
-	xml_io_private.h \
-	xml_io_basic_types.cc \
-	xml_io_basic_types.h \
-	xml_io_compound_types.cc \
-	xml_io_compound_types.h \
-	xml_io_array_types.cc \
-	xml_io_array_types.h \
-	xml_io.cc \
-	agenda_class.h \
-	agenda_class.cc \
-	agenda_record.h \
-	agenda_record.cc \
-	agendas.cc \
-	logic.h \
-	logic.cc \
-	lin_alg.h\
-	lin_alg.cc\
-	scatproperties.cc \
-	scatproperties.h \
-	supergeneric.h \
-	zeemanproperties.cc \
-        zeemanproperties.h \
-	gas_abs_lookup.h \
-	gas_abs_lookup.cc \
-	test_zeemanproperties.cc
 
 test_complex_SOURCES = \
 	arts.cc \

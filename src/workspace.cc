@@ -2953,4 +2953,17 @@ wsv_data.push_back
        ),
       GROUP( Numeric_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "zeeman_o2_line" ),
+      DESCRIPTION
+      (
+       "Calculate this line with Zeeman splitting, lines are\n"
+       "identified by their upper rotational angular momentum quantum\n"
+       "number N, postive values of zeeman_o2_line are N+ transitions,\n"
+       "negative are N-."
+       ),
+      GROUP( Index_ )));
+
+
 }
