@@ -1,5 +1,13 @@
 2002-08-29  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-223
+	
+	* configure.in: Removed ami/path from AC_OUTPUT.
+
+	* ami/Makefile.am (SUBDIRS): Removed path.
+	
+2002-08-29  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-222
 	
 	* ami/path: Started to remove old ami files. Tried this one to see
