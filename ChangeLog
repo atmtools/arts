@@ -1,3 +1,20 @@
+2003-07-30  Thomas Kuhn <tkuhn@uni-bremen.de>
+
+	* arts-1-0-116
+
+	* src/absorption.c: added the 'microwave approximation' line
+	intensity for the case when the line shape normalization is
+	'quadratic'. Now the line intensity and the quadratic
+	normalization together correspond to the so called 'microwave
+	approximation' as described by P. Rosenkranz in the Janssen book
+	in chapter 2, equation 2.16. Some comparisons are performed with
+	this new abs calculation against the newly implemented VVH
+	option. the difference is very small in the microwave range - as
+	expected. Hence the advice is to use generally the option VVH for
+	the line absorption at any frequency so you are sure that the
+	calculation is made in a theoretically correct way.
+	
+
 2003-07-30  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-0-115

@@ -142,7 +142,7 @@ endif else begin
     ppscale = 1.000
     ppunit = '[Pa]'
 endelse
-prePa[i] = dblarr(N_ELEMENTS(pre))
+prePa = dblarr(N_ELEMENTS(pre))
 for i = 0, N_ELEMENTS(pre)-1 do begin
     prePa[i] =  pre[i]           ;; pressure in [Pa]
     pre[i]   = pre[i] * ppscale  ;; pressure in user defined units
@@ -419,8 +419,8 @@ if ( h2otag GE 0) then begin
         if (ttunit EQ '[C]') then TT = temperature[0,z]+273.15
         esw = 0.000
         esi = 0.000
-        esw = ppscale * WaterVaporSatPressure(TT, prePa[i], phase='water', punit='Pa', corr='yes')
-        esi = ppscale * WaterVaporSatPressure(TT, prePa[i], phase='ice', punit='Pa', corr='yes')
+        esw = ppscale * WaterVaporSatPressure(TT, phase='water', punit='Pa', corr='yes')
+        esi = ppscale * WaterVaporSatPressure(TT, phase='ice',   punit='Pa', corr='yes')
         RHliquid[z] = 100.00 * ( pre[z] * vmr[z,h2otag] ) / esw ; [%] 
         RHice[z]    = 100.00 * ( pre[z] * vmr[z,h2otag] ) / esi ; [%]
     endfor
