@@ -237,7 +237,21 @@ int main(void)
        cout << y_test[i];
      }
     cout << "\n";
-   
+
+    /* Test the matrix exponential function */
+
+    Matrix F(4,4);
+    matrix_exp(F,K);
+
+    
+    cout << "\n Exponential of Matrix K";
+    for( Index i = 0; i<4; i++)
+      {
+	cout << "\n";
+      for (Index j = 0; j<4; j++)
+        cout << " " << F(i,j);
+      }
+    cout << "\n";
      
    return 0;
 }
