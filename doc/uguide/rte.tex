@@ -20,6 +20,7 @@
 \starthistory
   000307 & Started by Patrick Eriksson. \\
   000908 & First version finished by Patrick Eriksson. \\
+  031205 & Cooling rates added by Patrick Eriksson. \\
 \stophistory
 
 
@@ -310,12 +311,12 @@ incorporate sensor effects in the spectra is discussed separately
  the measurement gives then the total atmospheric transmission,
  $\zeta^{tot}$. When inverting such observations, the standard
  approach is to invert the optical thicknesses $(\tau)$ to obtain a
- more linear inversion problem. For this reason, the output from
- ARTS when neglecting emission was selected to be optical thicknesses
- instead of transmission values. However, as the transmission for
- each step along the LOS is stored for the emission calculations, 
- ARTS calculates internally transmission spectra that are converted
- to optical thicknesses.
+ more linear inversion problem. For this reason, the output from ARTS
+ when neglecting emission was selected to be optical thicknesses
+ instead of transmission values. However, as the transmission for each
+ step along the LOS is stored for the emission calculations, ARTS
+ calculates internally transmission spectra that are converted to
+ optical thicknesses.
 
  This transmission is
  \begin{equation}
@@ -345,6 +346,162 @@ incorporate sensor effects in the spectra is discussed separately
   \label{eq:rte:odepth}
  \end{equation} 
 
+
+
+\levelb{Cooling rates}
+ \label{sec:rte:coolrates}
+ 
+ Cooling rates is an important concept for climate models and studies.
+ The cooling rate gives the change in temperature due to exchange of
+ radiation, keeping all variables constant. The typical unit is K/day.
+ There are two balancing (more or less) effects. Absorption of
+ shortwave (UV -- near IR) results in a heating of the air mass. For
+ thermal IR, emission and absorption are coupled phenomena but
+ exchange of thermal and far IR radiation normally results in a
+ cooling effect. These two effects give together the heating rate, but
+ are normally calculated seperately and are then denoted as the
+ heating and cooling rate. In ARTS only the IR cooling rate is
+ handled, and that only for cloud free conditions. For more details on
+ heating / cooling rates, see any text book on atmospheric physics.
+ 
+ Cooling rates are calculated by the WSM \verb|CoolingRates|. The
+ method returns the spectral cooling rates for the frequencies of
+ \verb|f_mono| and the pressure levels of \verb|p_coolrates|. A
+ positive value here means a cooling effect (that is, the heating rate
+ is not returned). The unit of values in \verb|CoolingRates| is
+ K/day/Hz. Directly below follows a derivation of the expression used
+ in \verb|CoolingRates|.
+ 
+\newcommand{ \pressure}       {\ensuremath{P}}
+\newcommand{ \temperature}    {\ensuremath{T}}
+\newcommand{ \altitude}       {\ensuremath{z}}
+\newcommand{ \timesymbol}     {\ensuremath{t}}
+\newcommand{ \density}        {\ensuremath{\rho}}
+\newcommand{ \heatcapacity}   {\ensuremath{c_\pressure}}
+
+\newcommand{ \flux}           {\ensuremath{F}}
+\newcommand{ \monoflux}       {\ensuremath{F_\f}}
+\newcommand{ \odepth}         {\ensuremath{\tau}}
+\newcommand{ \planckfunc}     {\ensuremath{B_\f}}
+\newcommand{ \abscoeff}       {\ensuremath{\alpha}}
+
+ The heating rate can be expressed as
+ \begin{equation}
+  \label{eq:heatrate1}
+  \frac{\dd\temperature}{\dd\timesymbol} = 
+         \frac{-1}{\density\heatcapacity} \frac{\dd \flux}{\dd\altitude},
+ \end{equation}
+ where \temperature\ is the temperature, \timesymbol\ is the time,
+ \density\ is the air density, \heatcapacity\ is the heat capacitivity
+ (for pressure work) and \altitude\ is vertical altitude. This is the
+ expression normally used to determine cooling rates.
+
+ The idea here is to find an expression that gives the heating rate if
+ the spectral radiance as a function of zenith angle is known. 
+ As a first step, Equation~\ref{eq:heatrate1} is rewritten as
+ \begin{equation}
+  \label{eq:heatrate2}
+  \frac{\dd\temperature}{\dd\timesymbol} = 
+        \frac{-1}{\density\heatcapacity} \int_0^\infty \left[
+        \lim_{\Delta\altitude\gets 0}\frac{\monoflux(\altitude+\Delta\altitude)-
+                \monoflux(\altitude)}{\Delta\altitude} \right] \dd\f.
+ \end{equation}
+ The elationship between spectral radiance and monochromatic
+ flux is
+ \begin{equation}
+  \monoflux(\altitude) = 2\pi\int_0^\pi \mpbi(\altitude,\view)
+          \cos\view \sin\view \dd\theta,
+ \end{equation}
+ The assumption below is that the upwelling part of $\mpbi$ is
+ known at \altitude\, and the downwelling part $\mpbi$ is known at
+ $\altitude+\Delta\altitude$.
+
+ The upwelling spectral radiance at altitude $\altitude+\Delta\altitude$
+ can be expressed as
+ \begin{equation}
+   \mpbi(\altitude+\Delta\altitude,\view) = 
+       \mpbi(\altitude,\view) e^{-\odepth(\view)} +
+        \planckfunc(1-e^{-\odepth(\view)}),\qquad 0\leq\view\leq\pi/2,
+ \end{equation}
+ where \planckfunc\ is the Planck function for blackbody radiation.
+ The fact that $\Delta\altitude$ will approach zero has been
+ used, which mean that \planckfunc\ and \view\ can be assumed to
+ be constant between \altitude\ and $\altitude+\Delta\altitude$.
+ The downwelling spectral radiance at \altitude\ is in similar way
+ \begin{equation}
+   \mpbi(\altitude,\view) = 
+       \mpbi(\altitude+\Delta\altitude,\view) 
+        e^{-\odepth(\view)} +
+        \planckfunc(1-e^{-\odepth(\view)}),\qquad \pi/2<\view\leq\pi.
+ \end{equation}
+ Again using the fact that $\Delta\altitude\approx0$, the optical depth is
+ \begin{equation}
+   \odepth(\view) = \frac{\Delta\altitude}{|\cos\view|} \abscoeff
+ \end{equation}
+ and the transmission is
+ \begin{equation}
+   e^{-\odepth(\view)} = 
+      1 - \frac{\Delta\altitude}{|\cos\view|} \abscoeff.
+ \end{equation}
+ We have then that
+ \begin{eqnarray}
+   & \frac{\monoflux(\altitude+\Delta\altitude)- \monoflux(\altitude)}
+       {\Delta\altitude} = \frac{2\pi}{\Delta\altitude}\Big\{
+     \int_0^{\pi/2} \left[ \mpbi(\altitude,\view)
+          (1 - \odepth(\view)) + \planckfunc\odepth(\view)\right]
+          \cos\view \sin\view \dd\view + & \nonumber \\
+   & + \int_{\pi/2}^\pi \mpbi(\altitude+\Delta\altitude,\view)
+          \cos\view \sin\view \dd\view - 
+       \int_0^{\pi/2} \mpbi(\altitude,\view)
+          \cos\view \sin\view \dd\view - & \nonumber\\   
+   & -\int_{\pi/2}^\pi \left[ \mpbi(\altitude+\Delta\altitude,\view)
+          (1 - \odepth(\view)) + \planckfunc\odepth(\view)\right]
+          \cos\view \sin\view \dd\view  \Big\}. &
+ \end{eqnarray}
+ Many of the terms above cancel out and the expression above can be
+ shortened to
+ \begin{eqnarray}
+   \label{eq:diffF}
+   & \frac{\monoflux(\altitude+\Delta\altitude)- \monoflux(\altitude)}
+       {\Delta\altitude} = 2\pi\Big\{
+     \int_0^{\pi/2} \left[ \planckfunc -\mpbi(\altitude,\view)
+           \right] \abscoeff \sin\view \dd\view + & \nonumber \\
+   & +\int_{\pi/2}^\pi \left[ \planckfunc -
+                \mpbi(\altitude+\Delta\altitude,\view)
+          \right]\abscoeff \sin\view \dd\view  \Big\}. &
+ \end{eqnarray}
+ Putting Equation~\ref{eq:diffF} into Equation~\ref{eq:heatrate2}, and
+ noting that
+ $\mpbi(\altitude,\view)=\mpbi(\altitude+\Delta\altitude,\view)$
+ for $\Delta\altitude=0$,  gives finally
+ \begin{equation}
+   \label{eq:heatratefinal}
+    \frac{\dd\temperature}{\dd\timesymbol} = 
+        \frac{-2\pi}{\density\heatcapacity} \int_0^\infty 
+     \int_0^\pi \left[ \planckfunc -\mpbi(\altitude,\view)
+           \right] \abscoeff \sin\view \dd\view   \dd\f.
+ \end{equation}
+ We can already here note that the contribution to the heating rate
+ will be zero for frequencies where $\abscoeff=0$.
+ 
+ To obtrain correct results it is crucial that \mpbi\ converges to
+ \planckfunc\ when it is expected $\mpbi=\planckfunc$, which is the
+ case when the absorption is very high. Considering that radiative
+ transfer applies a mean value of the Planck function at the end
+ points of the integration step (Eq.~\ref{eq:rte:smean}), it is not a
+ good idea to compare \mpbi\ with the \planckfunc\ for the position of
+ interest. This would require an extremly short radiative transfer
+ step length (\verb|l_step|), a statement verified by practical
+ calculations. A better solution is to replace $(\planckfunc
+ -\mpbi(\altitude,\view))$ in Equation~\ref{eq:heatratefinal} by
+ $(\Psi-\mpbi(\altitude,\view))$, where $\Psi$ (defined in
+ Eq.~\ref{eq:rte:smean}) is the effective source function for
+ radiative transfer step closest to the point of interest. This
+ modification will balance the radiation budget perfectly for high
+ values of $\abscoeff$ and has a small impact on the accuracy.
+ However, as for all radiative transfer calculations in ARTS, reducing
+ the step length will improve the calculation accuracy.
+ 
  
 
  \levelb{Control file examples}

@@ -1642,7 +1642,8 @@ void CoolingRates(
       const Numeric&  z_ground,
       const Vector&   e_ground,
       const Numeric&  t_ground,
-      const Vector&   p_coolrate )
+      const Vector&   p_coolrate,
+      const Numeric&  lstep_limit )
 {
   // Some sizes
   const Index   nf = f_mono.nelem();
@@ -1666,6 +1667,7 @@ void CoolingRates(
   interpp( abs_coolrate, p_abs, absorption, p_coolrate );
 
   // Create matrix to store values to be integrated in (zenith angles)
+  // Fill with zeros to have OK values for zenith angles 0 and 180 
   Matrix   intgrmatrix( nf, nza, 0 );
 
   // Activate emssion and create vector with cosmic background radiation 
@@ -1673,26 +1675,25 @@ void CoolingRates(
   Vector   y_space( nf );
   y_spaceStd( y_space, f_mono, "cbgr" );  
 
-  // Vector for blackbody radiation and absorption
-  //Vector   bbody( nf );
-
   // Define local correspondance to some WSV
   Los             los;
   Vector          z_tan, y;
   ArrayOfMatrix   source, trans;
 
 
+  // Loop pressure levels and do calculations described in AUG
   for( Index ip=0; ip<np; ip++ )
     {
       // Determine blackbody radiation at present altitude
       //planck( bbody, f_mono, t_coolrate[ip] );
 
       // Loop zenith angles and calculate incoming radiation
+      // Skip 0 and 180 degrees as result anyhow will be zero (due to sin term)
       for( Index iza=1; iza<nza-1; iza++ )
         {
-          Numeric lstep = lstep0 / abs( cos( DEG2RAD*za_pencil[iza] ) ); 
-          if( lstep > 10e3  ||  abs( za_pencil[iza] -90 ) < 0.01 )
-            lstep = 10e3;
+          Numeric lstep = lstep0 / fabs( cos( DEG2RAD*za_pencil[iza] ) ); 
+          if( lstep > lstep_limit  ||  fabs( za_pencil[iza] - 90 ) < 0.01 )
+            lstep = lstep_limit;
 
           losCalc( los, z_tan, z_coolrate[ip], Vector(1,za_pencil[iza]), 
                    lstep, p_abs, z_abs, refr, refr_lfac, refr_index, 
@@ -1714,12 +1715,6 @@ void CoolingRates(
 
               intgrmatrix(iv,iza) = (bb_eff-y[iv])*abs_coolrate(iv,ip)*sinv;
             }
-        }
-      if( 0  &&  ip == 1 )
-        {
-          MatrixWriteBinary( intgrmatrix, "I", "" );
-          LosWriteBinary( los, "los", "" );
-          Exit();
         }
 
       // Loop zenith angles and make integration

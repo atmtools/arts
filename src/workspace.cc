@@ -697,7 +697,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("coolrate",
-      "Cooling rate matrix, in unit of K/s."
+      "Cooling rate matrix, in unit of K/s/Hz."
       "Dimensions: [f_mono.nelem(), z_crates.nelem()]",
       Matrix_));
 

@@ -3115,17 +3115,41 @@ void define_md_data()
     ( MdRecord
       ( NAME("CoolingRates"),
   	DESCRIPTION(
-          "Calculates cooling rates due to exchange of longwave radiation.\n"
-          "\n"
-          ""),
+     "Calculates cooling rates due to exchange of longwave radiation.\n"
+     "\n"
+     "This function applies a straightforward algorith to obtain cooling \n"
+     "rates. The algorithm is described in AUG. The basic idea is to \n"
+     "calculate incoming radiation from all directions (by using yCalc), \n"
+     "instead of follow the vertical flux through the atmosphere as usually \n"
+     "done. No assumptions on a flat Earth is made.\n"
+     "\n"
+     "The atmosphere is described in usual way and absorption shall be pre- \n"
+     "calculated. Emission is always activated (of course) and *y_space* is \n"
+     "set to cosmic background radiation by calling *y_spaceStd*. Refraction\n"
+     "follows corresponding WSV. \n" 
+     "\n"
+     "The zenith angle grid is set by *Za_pencil*, where the vector must \n"
+     "start with 0 and end with 180. \n"
+     "\n"
+     "The WSV *l_step* is here treated to give the radiative step length for\n"
+     "the zenith and nadir directions. The step length is scaled by \n"
+     "abs( 1/cos(za) ), where za is the zenith angle, for other directions. \n"
+     "The keyword argument *lstep_limit* sets an upper limit for *l_step*.  \n"
+     "For example, for za=90, the expression above gives infinity for  \n"
+     "*l_step*.\n"
+     "\n"
+     "The function returns the spectral cooling rate (by *coolrate*).\n"
+     "\n"
+     "Keywords \n"
+     "  lstep_limit : Upper limit on l_step for off-zenith/nadir angles."),
 	OUTPUT( coolrate_ ),
 	INPUT( l_step_, p_abs_, z_abs_, t_abs_, f_mono_, abs_, za_pencil_,
                refr_, refr_lfac_, refr_index_, 
                r_geoid_, z_ground_, e_ground_, t_ground_, p_coolrate_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+	KEYWORDS( "lstep_limit" ),
+	TYPES(    Numeric_t)));
 
   md_data.push_back
     ( MdRecord

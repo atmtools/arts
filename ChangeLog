@@ -1,3 +1,24 @@
+2003-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-143
+
+	* src/m_los.cc (CoolingRates): Fixed a bug put in last minute
+	before last commit. Integer abs was used instead of fabs, which
+	resulted in that step lenght always was set to 10 km (which was
+	the hard-coded upper limit. I think the abs problem appeared when
+	using an older compiler (but not sure).
+
+	The upper limit for l_step is now a keyword argument.
+
+	The results show now excellent agreement with Clough and Iacomo,
+	JGR, 1995. I would say that the cooling rate implementation is
+	verified and works.
+
+	* src/methods.cc: Wrote online documentation for CoolingRates. 
+
+	* doc/uguide/rte.tex: Wrote down description of cooling rate 
+	calculations. Mainly copied from ACECLIM MTR report.
+
 2003-12-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-142
