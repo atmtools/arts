@@ -1522,14 +1522,14 @@ ostream& operator << (ostream& os, const SpeciesTag& ot)
 /** 
    Returns the index among some tag groups for an array of tag Strings. 
    
-   \begin{verbatim}
+   <pre>
    For example, if tags1 correspond to the definition
      ["O3","H2O-161,H2O-162"]
    and the tag Strings are
      ["H2O-161,H2O-162","O3"]
    the tags1_index becomes
      [2,1]
-   \end{verbatim}
+   </pre>
 
    @exception runtime_error  Some String is not a valid tag item.
    @exception runtime_error  Not all Strings are not found among the tags.
