@@ -16,7 +16,6 @@
 EXTRA_DIST = \
         arts.m \
 	get_artstype.m \
-        out.m \
         qtool.m \
         rand_test.m \
         read_artsvar.m \
