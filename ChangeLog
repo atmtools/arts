@@ -1,3 +1,16 @@
+
+2002-06-04  Christian Melsheimer  <melsheimer@uni-bremen.de>
+
+	* arts-1-1-114
+
+	* doc/uguide/ppath.tex:  Fixed minor spelling/grammar errors.
+
+	* doc/uguide/formalism.tex: Fixed minor spelling/grammar errors.
+
+	* doc/uguide/fm_definitions.tex: Fixed minor spelling/grammar errors.
+
+	* doc/uguide/introduction.tex: Fixed minor spelling/grammar error.
+
 2002-06-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-113
@@ -40,6 +53,7 @@
 	* doc/uguide/scattering.tex: Started to write about 1D scattering 
 	calculations.
 
+>>>>>>> 1.479
 2002-06-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-111
