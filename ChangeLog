@@ -1,5 +1,11 @@
 2002-05-31  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-27
+	
+	* configure.in: Increased template depth to 40.
+	
+2002-05-31  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-26
 	
 	* Lots of fixes to compile arts with gcc-3.x.
