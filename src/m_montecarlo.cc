@@ -105,9 +105,9 @@ void Cloudbox_ppathCalc(
   chk_if_over_0( "sensor radius", rte_pos[0] );
   if( atmosphere_dim < 3 )
     {
-	ostringstream os;
-	os << "cloudbox_ppath_calc only works for a 3D atmosphere";
-	throw runtime_error( os.str() );
+        ostringstream os;
+        os << "cloudbox_ppath_calc only works for a 3D atmosphere";
+        throw runtime_error( os.str() );
     }
   else
     {
@@ -180,8 +180,8 @@ void Cloudbox_ppathCalc(
       np += n - 1;
       
       // Check if there is an intersection with the cloud box boundary,
-	//remembering that this function will only be called within the
-	//cloud box
+        //remembering that this function will only be called within the
+        //cloud box
       
       double ipos = double( ppath_step.gp_p[n-1].idx ) + 
                                                     ppath_step.gp_p[n-1].fd[0];
@@ -189,15 +189,15 @@ void Cloudbox_ppathCalc(
                                         ipos >= double( cloudbox_limits[1] ) )
         { ppath_set_background( ppath_step, 3 ); }
       else   
-	  {
+          {
           ipos = double( ppath_step.gp_lat[n-1].idx ) + 
                                               ppath_step.gp_lat[n-1].fd[0];
           if( ipos <= double( cloudbox_limits[2] )  || 
                                     ipos >= double( cloudbox_limits[3] ) )
              { ppath_set_background( ppath_step, 3 ); }
           else
-	 {
-	   ipos = double( ppath_step.gp_lon[n-1].idx ) + 
+         {
+           ipos = double( ppath_step.gp_lon[n-1].idx ) + 
                                               ppath_step.gp_lon[n-1].fd[0];
               if( ipos <= double( cloudbox_limits[4] )  || 
                                     ipos >= double( cloudbox_limits[5] ) )
@@ -316,11 +316,11 @@ Monte Carlo simulation.
 */
 
 void montecarlo_p_from_belowCscaAdapt(
-				      Tensor3& montecarlo_p_from_belowCsca,
-				      const Vector& f_grid,
-				      const Index& f_index,
-				      const ArrayOfSingleScatteringData& scat_data_raw
-				      )
+                                      Tensor3& montecarlo_p_from_belowCsca,
+                                      const Vector& f_grid,
+                                      const Index& f_index,
+                                      const ArrayOfSingleScatteringData& scat_data_raw
+                                      )
 {
   Index N_pt=montecarlo_p_from_belowCsca.npages();
   //  N_f = montecarlo_p_from_belowCsca.ncols();
@@ -333,12 +333,12 @@ void montecarlo_p_from_belowCscaAdapt(
   for(Index pt_index=0;pt_index<N_pt;pt_index++)
     {
       for (Index za_index=0;za_index<N_za;za_index++)
-	{
-	  gridpos(gp,old_grid,freq);
-	  interpweights(itw,gp);
-	  new_p_from_belowCsca(pt_index,0,za_index)=interp(itw,
-		 montecarlo_p_from_belowCsca(pt_index,Range(joker),za_index),gp);
-	}
+        {
+          gridpos(gp,old_grid,freq);
+          interpweights(itw,gp);
+          new_p_from_belowCsca(pt_index,0,za_index)=interp(itw,
+                 montecarlo_p_from_belowCsca(pt_index,Range(joker),za_index),gp);
+        }
     }
   montecarlo_p_from_belowCsca=new_p_from_belowCsca;
 }
@@ -364,16 +364,16 @@ of parameters.
 */
 
 void scat_iPutMonteCarlo(
-			 Tensor7& scat_i_p,
-			 Tensor7& scat_i_lat,
-			 Tensor7& scat_i_lon,
-			 const Matrix& i_rte,
-			 const Index& stokes_dim,
+                         Tensor7& scat_i_p,
+                         Tensor7& scat_i_lat,
+                         Tensor7& scat_i_lon,
+                         const Matrix& i_rte,
+                         const Index& stokes_dim,
                          const Vector& f_grid,
                          const ArrayOfIndex& cloudbox_limits,
                          const Vector& scat_za_grid,
                          const Vector& scat_aa_grid
-			 )
+                         )
 {
 
   Vector I = i_rte(0,joker);
@@ -424,77 +424,77 @@ void scat_iPutMonteCarlo(
 */
 
 void ScatteringMonteCarlo (
-			   // WS Output:
-			   Ppath&                ppath,
-			   Ppath&                ppath_step,
-			   Vector&               i_montecarlo_error,
-			   Vector&               rte_pos,
-			   Vector&               rte_los,
-			   //Stuff needed by RteCalc
-			   GridPos&              rte_gp_p,
-			   GridPos&              rte_gp_lat,
-			   GridPos&              rte_gp_lon,
-			   Matrix&               i_space,
-			   Matrix&               ground_emission,
-			   Matrix&               ground_los, 
-			   Tensor4&              ground_refl_coeffs,
-			   Matrix&               i_rte,
-			   Vector&               scat_za_grid,
-			   Vector&               scat_aa_grid,
-			   Numeric&              rte_pressure,
-			   Numeric&              rte_temperature,
-			   Vector&               rte_vmr_list,
-			   //Other Stuff
-			   Tensor3&              ext_mat,
-			   Matrix&               abs_vec,
-			   Index&                f_index,
-			   Index&                scat_za_index,
-			   Index&                scat_aa_index,
-			   Tensor3&              ext_mat_spt,
-			   Matrix&               abs_vec_spt,
-			  
-			   // WS Input:
-			   const Agenda&         ppath_step_agenda,
-			   const Index&          atmosphere_dim,
-			   const Vector&         p_grid,
-			   const Vector&         lat_grid,
-			   const Vector&         lon_grid,
-			   const Tensor3&        z_field,
-			   const Matrix&         r_geoid,
-			   const Matrix&         z_ground,
-			   const ArrayOfIndex&   cloudbox_limits,
-			   const Index&          stokes_dim,
-			   //Stuff needed by RteCalc
-			   const Agenda&         rte_agenda,
-			   const Agenda&         i_space_agenda,
-			   const Agenda&         ground_refl_agenda,
-			   const Tensor3&        t_field,
-			   const Vector&         f_grid,
-			   //Stuff needed by TArrayCalc
-			   const Agenda& opt_prop_gas_agenda,
-			   const Agenda& spt_calc_agenda,
-			   const Agenda& scalar_gas_absorption_agenda,
-			   const Tensor4&   vmr_field,
+                           // WS Output:
+                           Ppath&                ppath,
+                           Ppath&                ppath_step,
+                           Vector&               i_montecarlo_error,
+                           Vector&               rte_pos,
+                           Vector&               rte_los,
+                           //Stuff needed by RteCalc
+                           GridPos&              rte_gp_p,
+                           GridPos&              rte_gp_lat,
+                           GridPos&              rte_gp_lon,
+                           Matrix&               i_space,
+                           Matrix&               ground_emission,
+                           Matrix&               ground_los, 
+                           Tensor4&              ground_refl_coeffs,
+                           Matrix&               i_rte,
+                           Vector&               scat_za_grid,
+                           Vector&               scat_aa_grid,
+                           Numeric&              rte_pressure,
+                           Numeric&              rte_temperature,
+                           Vector&               rte_vmr_list,
                            //Other Stuff
-			   const ArrayOfSingleScatteringData& scat_data_raw,
-			   const Tensor4& pnd_field,
+                           Tensor3&              ext_mat,
+                           Matrix&               abs_vec,
+                           Index&                f_index,
+                           Index&                scat_za_index,
+                           Index&                scat_aa_index,
+                           Tensor3&              ext_mat_spt,
+                           Matrix&               abs_vec_spt,
+                          
+                           // WS Input:
+                           const Agenda&         ppath_step_agenda,
+                           const Index&          atmosphere_dim,
+                           const Vector&         p_grid,
+                           const Vector&         lat_grid,
+                           const Vector&         lon_grid,
+                           const Tensor3&        z_field,
+                           const Matrix&         r_geoid,
+                           const Matrix&         z_ground,
+                           const ArrayOfIndex&   cloudbox_limits,
+                           const Index&          stokes_dim,
+                           //Stuff needed by RteCalc
+                           const Agenda&         rte_agenda,
+                           const Agenda&         i_space_agenda,
+                           const Agenda&         ground_refl_agenda,
+                           const Tensor3&        t_field,
+                           const Vector&         f_grid,
+                           //Stuff needed by TArrayCalc
+                           const Agenda& opt_prop_gas_agenda,
+                           const Agenda& spt_calc_agenda,
+                           const Agenda& scalar_gas_absorption_agenda,
+                           const Tensor4&   vmr_field,
+                           //Other Stuff
+                           const ArrayOfSingleScatteringData& scat_data_raw,
+                           const Tensor4& pnd_field,
                            const Tensor4& scat_theta, // CE: Included 
                            const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
                            const Tensor5& scat_theta_itws,
-			   const Tensor3& montecarlo_p_from_belowCsca,
-			    // Control Parameters:
-			   const Index& maxiter,
-			   const Index& rng_seed,
-			   const Index& record_ppathcloud,
-			   const Index& record_ppath,
-			   const Index& silent,
-			   const Index& record_histdata,
-			   const String& histdata_filename,
-			   const Index& los_sampling_method,
-			   const Index& strat_sampling
+                           const Tensor3& montecarlo_p_from_belowCsca,
+                            // Control Parameters:
+                           const Index& maxiter,
+                           const Index& rng_seed,
+                           const Index& record_ppathcloud,
+                           const Index& record_ppath,
+                           const Index& silent,
+                           const Index& record_histdata,
+                           const String& histdata_filename,
+                           const Index& los_sampling_method,
+                           const Index& strat_sampling
                            )
 
-{		
+{               
   //Internal Declarations
    Matrix identity(stokes_dim,stokes_dim,0.0);
   //Identity matrix
@@ -509,7 +509,7 @@ void ScatteringMonteCarlo (
   Ppath ppathLOS,ppathcloud;
   Numeric g;
   Numeric pathlength;
-  Numeric temperature;		
+  Numeric temperature;          
   ArrayOfMatrix TArrayLOS(ppath.np);
   ArrayOfMatrix TArray(ppath.np);
   ArrayOfMatrix ext_matArray(ppath.np);
@@ -558,7 +558,8 @@ void ScatteringMonteCarlo (
   Index I_from_above_N=0;
   Vector I_emission_sum(stokes_dim,0.0);
   Vector I_emission_squaredsum(stokes_dim,0.0);
-  Index I_emission_N=0;
+  Vector pathI_e(stokes_dim);
+  //Index I_emission_N=0;
   Numeric za_scat;
   Vector za_grid=scat_data_raw[0].za_grid;
   /////////////////////////////////////////
@@ -575,20 +576,20 @@ void ScatteringMonteCarlo (
   if(rng_seed>=0){rng.seed(rng_seed);}
   
   Cloudbox_ppath_rteCalc(ppathLOS, ppath, ppath_step, rte_pos, rte_los, 
-			 cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
-			 abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
-			 scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
-			 rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
-			 rte_gp_lat, rte_gp_lon, i_space, ground_emission, 
-			 ground_los, ground_refl_coeffs, f_index, scat_za_index, 
-			 scat_aa_index, ext_mat_spt, abs_vec_spt, pnd_ppathLOS, 
-			 ppath_step_agenda, atmosphere_dim, 
-			 p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
-			 cloudbox_limits, record_ppathcloud, record_ppath, 
-			 opt_prop_gas_agenda, spt_calc_agenda, 
-			 scalar_gas_absorption_agenda, stokes_dim, t_field, 
-			 vmr_field, rte_agenda, i_space_agenda, 
-			 ground_refl_agenda, f_grid, 0, 0,pnd_field);
+                         cum_l_stepLOS, TArrayLOS, ext_matArrayLOS, 
+                         abs_vecArrayLOS,t_ppathLOS, scat_za_grid, 
+                         scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
+                         rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
+                         rte_gp_lat, rte_gp_lon, i_space, ground_emission, 
+                         ground_los, ground_refl_coeffs, f_index, scat_za_index, 
+                         scat_aa_index, ext_mat_spt, abs_vec_spt, pnd_ppathLOS, 
+                         ppath_step_agenda, atmosphere_dim, 
+                         p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
+                         cloudbox_limits, record_ppathcloud, record_ppath, 
+                         opt_prop_gas_agenda, spt_calc_agenda, 
+                         scalar_gas_absorption_agenda, stokes_dim, t_field, 
+                         vmr_field, rte_agenda, i_space_agenda, 
+                         ground_refl_agenda, f_grid, 0, 0,pnd_field);
   
 
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
@@ -598,11 +599,12 @@ void ScatteringMonteCarlo (
   for (photon_number=1; photon_number<=maxiter; photon_number++)
     {
       keepgoing=true; //flag indicating whether to continue tracing a photon path
-      scattering_order=0;	//scattering order
-      Q=identity;		//identity matrix
+      scattering_order=0;       //scattering order
+      Q=identity;               //identity matrix
       pathI=0.0;
       boundarycontri=0.0;
       pathinc=0.0;
+      pathI_e=0.0;
       //while the reversed traced photon path remains in the cloud box
       //
       TArray=TArrayLOS;
@@ -613,239 +615,248 @@ void ScatteringMonteCarlo (
       t_ppath=t_ppathLOS;
       pnd_ppath=pnd_ppathLOS;
       dist_to_boundary=cum_l_step[ppathcloud.np-1];
-	 
+         
       if (silent==0){cout<<"photon_number = "<<photon_number<<"\n";}
       while (keepgoing)
-	{
-	   if (scattering_order>0)
-	    {
-	      //We need to calculate a new propagation path. In the future, we may be 
-	      //able to take some shortcuts here
-	      Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-				 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_ground,
-				 cloudbox_limits, rte_pos,rte_los);
-	      if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
-						   photon_number,scattering_order);}
-			      
-	      cum_l_stepCalc(cum_l_step,ppathcloud);
+        {
+           if (scattering_order>0)
+            {
+              //We need to calculate a new propagation path. In the future, we may be 
+              //able to take some shortcuts here
+              Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+                                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_ground,
+                                 cloudbox_limits, rte_pos,rte_los);
+              if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
+                                                   photon_number,scattering_order);}
+                              
+              cum_l_stepCalc(cum_l_step,ppathcloud);
   
-	      //Calculate array of transmittance matrices
-	      TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, 
-			 scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
-			 rte_vmr_list, scat_za_index, scat_aa_index, ext_mat_spt, 
-			 abs_vec_spt, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
-			 spt_calc_agenda, scalar_gas_absorption_agenda, stokes_dim, 
-			 p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
-			 pnd_field);
+              //Calculate array of transmittance matrices
+              TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, 
+                         scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
+                         rte_vmr_list, scat_za_index, scat_aa_index, ext_mat_spt, 
+                         abs_vec_spt, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
+                         spt_calc_agenda, scalar_gas_absorption_agenda, stokes_dim, 
+                         p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
+                         pnd_field);
 
 
-	      /////////////////////////////////////////////////////////////////////
-	      dist_to_boundary=cum_l_step[ppathcloud.np-1];
-	 
-	      //	      Iboundary=i_rte(0,joker);
-	      Sample_ppathlength (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
-	    }
-	  else
-	    {
-	      Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
-	    }
-	  assert(cum_l_step.nelem()==ppathcloud.np);
-	  assert(TArray.nelem()==ppathcloud.np);
-	  if (pathlength>dist_to_boundary)
-	    //Then the path has left the cloud box
-	    {
-	      assert (scattering_order>0); //scattering/emission should be 
-				           //forced in original line of sight
-	      //Get incoming//////
-	      montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
-			rte_gp_lat,rte_gp_lon,ppath,ppath_step,i_space,
-			ground_emission,ground_los,ground_refl_coeffs,
-			scat_za_grid,scat_aa_grid,ppath_step_agenda,
-			rte_agenda,i_space_agenda,ground_refl_agenda,t_field,
-			p_grid,lat_grid,lon_grid,z_field,r_geoid,
-			z_ground,cloudbox_limits,ppathcloud,atmosphere_dim,
-			f_grid,stokes_dim);
-	      
-	      if (record_ppath)
-		{
-		  ppathRecordMC(ppath,"ppath",photon_number,scattering_order);
-		}
-	      
-	      f_index=0;//For some strange reason f_index is set to -1 in RteStandard
-	      Iboundary=i_rte(0,joker);
-	      ////////////////////
-	      T=TArray[ppathcloud.np-1];
-	      mult(boundarycontri,T,Iboundary);
-	      mult(pathinc,Q,boundarycontri);
-	      pathI = pathinc;
-	      pathI/=g;//*=exp(K11*dist_to_boundary);
-	      if(strat_sampling)
-		{
-		  p_from_below=p_from_belowCscaCalc(za_scat,
-						    montecarlo_p_from_belowCsca,
-						    pnd_vec,za_grid)/(K(0,0)-K_abs[0]);
-		  
-		  if(rte_los[0]>90)
-		    {
-		      pathI*=p_from_below;//Needs to be renormalised
-		      I_from_below_sum+=pathI;
-		      I_from_below_N+=1;
-		      for(Index j=0; j<stokes_dim; j++)
-			{
-			  assert(!isnan(pathI[j]));
-			  I_from_below_squaredsum[j] += pathI[j]*pathI[j];
-			}
-		    }
-		  else
-		    {
-		      pathI*=(1-p_from_below);//Needs to be renormalised
-		      I_from_above_sum+=pathI;
-		      I_from_above_N+=1;
-		      for(Index j=0; j<stokes_dim; j++)
-			{
-			  assert(!isnan(pathI[j]));
-			  I_from_above_squaredsum[j] += pathI[j]*pathI[j];
-			}
-		    }
-		      
-		}
-	      keepgoing=false; //stop here. New photon.
-	    }
-	  else
-	    {
-	       //we have another scattering/emission point
-	      //Interpolate T, s_0, etc from ppath and Tarray
-	      interpTArray(T, K_abs, temperature, K, rte_pos, rte_los, pnd_vec,
-			   pathlength_gp,TArray, 
-			   ext_matArray,abs_vecArray, t_ppath, pnd_ppath,
-			   cum_l_step,pathlength, 
-			   stokes_dim, ppathcloud);
-	      //Estimate single scattering albedo
-	      albedo=1-K_abs[0]/K(0,0);
-	      //cout<<"albedo = "<<albedo<<" K(0,0) = "<<K(0,0)<<" K_abs[0] = "<<K_abs[0]<<"\n";
-	      //determine whether photon is emitted or scattered
-	      if (rng.draw()>albedo)
-		{
-		  //Calculate emission
-		  Numeric planck_value = planck( f_grid[f_index], temperature );
-		  Vector emission=K_abs;
-		  emission*=planck_value;
-		  Vector emissioncontri(stokes_dim);
-		  mult(emissioncontri,T,emission);
-		  emissioncontri/=(g*(1-albedo));//yuck!
-		  mult(pathinc,Q,emissioncontri);
-		  pathI = pathinc;
-		  if(strat_sampling)
-		    {
-		      pathI*=1-albedo;
-		      I_emission_sum+=pathI;
-		      I_emission_N+=1;
-		      for(Index j=0; j<stokes_dim; j++)
-			{
-			  assert(!isnan(pathI[j]));
-			  I_emission_squaredsum[j] += pathI[j]*pathI[j];
-			}
-		    }
-		  keepgoing=false;
-		}
-	      else
-		{
-		  //Sample new line of sight.
-		  if (los_sampling_method==3)
-		    {
-		      Sample_los_Z (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
-				    scat_data_raw,stokes_dim,f_index,f_grid,
-				    scat_theta,scat_theta_gps,scat_theta_itws,
-				    pnd_vec,K(0,0)-K_abs[0]);
-		    }
-		  else
-		    {
-		      Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
-		      
-		      //Calculate Phase matrix////////////////////////////////
-		      Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
-		      Numeric aa_inc= (new_rte_los[1]>=0) ?
-			-180+new_rte_los[1]:180+new_rte_los[1];
-		      
-		      pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
-					 aa_inc,scat_data_raw,stokes_dim,f_index,
-					 f_grid,scat_theta,scat_theta_gps,
-					 scat_theta_itws,pnd_vec);
-		    }
-		  if(strat_sampling)
-		    {
-		      Z/=g*g_los_csc_theta;
-		    }
-		  else
-		    {
-		      Z/=g*g_los_csc_theta*albedo;
-		    }
-		  mult(q,T,Z);
-		  mult(newQ,Q,q);
-		  Q=newQ;
-		  scattering_order+=1;
-		  za_scat=180-rte_los[0];
-		  rte_los=new_rte_los;
-		  if (silent==0){cout <<"photon_number = "<<photon_number << 
-				   ", scattering_order = " <<scattering_order <<"\n";}
-		}
+              /////////////////////////////////////////////////////////////////////
+              dist_to_boundary=cum_l_step[ppathcloud.np-1];
+         
+              //              Iboundary=i_rte(0,joker);
+              Sample_ppathlength (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
+            }
+          else
+            {
+              Sample_ppathlengthLOS (pathlength,g,rng,ext_matArray,TArray,cum_l_step,2);
+            }
+          assert(cum_l_step.nelem()==ppathcloud.np);
+          assert(TArray.nelem()==ppathcloud.np);
+          if (pathlength>dist_to_boundary)
+            //Then the path has left the cloud box
+            {
+              assert (scattering_order>0); //scattering/emission should be 
+                                           //forced in original line of sight
+              //Get incoming//////
+              montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
+                        rte_gp_lat,rte_gp_lon,ppath,ppath_step,i_space,
+                        ground_emission,ground_los,ground_refl_coeffs,
+                        scat_za_grid,scat_aa_grid,ppath_step_agenda,
+                        rte_agenda,i_space_agenda,ground_refl_agenda,t_field,
+                        p_grid,lat_grid,lon_grid,z_field,r_geoid,
+                        z_ground,cloudbox_limits,ppathcloud,atmosphere_dim,
+                        f_grid,stokes_dim);
+              
+              if (record_ppath)
+                {
+                  ppathRecordMC(ppath,"ppath",photon_number,scattering_order);
+                }
+              
+              f_index=0;//For some strange reason f_index is set to -1 in RteStandard
+              Iboundary=i_rte(0,joker);
+              ////////////////////
+              T=TArray[ppathcloud.np-1];
+              mult(boundarycontri,T,Iboundary);
+              mult(pathinc,Q,boundarycontri);
+              pathI = pathinc;
+              pathI/=g;//*=exp(K11*dist_to_boundary);
+              if(strat_sampling)
+                {
+                  p_from_below=p_from_belowCscaCalc(za_scat,
+                                                    montecarlo_p_from_belowCsca,
+                                                    pnd_vec,za_grid)/(K(0,0)-K_abs[0]);
+                  
+                  if(rte_los[0]>90)
+                    {
+                      pathI*=p_from_below;//Needs to be renormalised
+                      I_from_below_sum+=pathI;
+                      I_from_below_N+=1;
+                      for(Index j=0; j<stokes_dim; j++)
+                        {
+                          assert(!isnan(pathI[j]));
+                          I_from_below_squaredsum[j] += pathI[j]*pathI[j];
+                        }
+                    }
+                  else
+                    {
+                      pathI*=(1-p_from_below);//Needs to be renormalised
+                      I_from_above_sum+=pathI;
+                      I_from_above_N+=1;
+                      for(Index j=0; j<stokes_dim; j++)
+                        {
+                          assert(!isnan(pathI[j]));
+                          I_from_above_squaredsum[j] += pathI[j]*pathI[j];
+                        }
+                    }
+                  I_emission_sum+=pathI_e;
+                  for(Index j=0; j<stokes_dim; j++)
+                        {
+                          assert(!isnan(pathI_e[j]));
+                          I_emission_squaredsum[j] += pathI_e[j]*pathI_e[j];
+                        }
+                  assert(photon_number==I_from_below_N+I_from_above_N);
+                      
+                }
+              keepgoing=false; //stop here. New photon.
+            }
+          else
+            {
+               //we have another scattering/emission point
+              //Interpolate T, s_0, etc from ppath and Tarray
+              interpTArray(T, K_abs, temperature, K, rte_pos, rte_los, pnd_vec,
+                           pathlength_gp,TArray, 
+                           ext_matArray,abs_vecArray, t_ppath, pnd_ppath,
+                           cum_l_step,pathlength, 
+                           stokes_dim, ppathcloud);
+              //Estimate single scattering albedo
+              albedo=1-K_abs[0]/K(0,0);
+              //cout<<"albedo = "<<albedo<<" K(0,0) = "<<K(0,0)<<" K_abs[0] = "<<K_abs[0]<<"\n";
+              //determine whether photon is emitted or scattered
+              if ((rng.draw()>albedo)||strat_sampling)
+                {
+                  //Calculate emission
+                  Numeric planck_value = planck( f_grid[f_index], temperature );
+                  Vector emission=K_abs;
+                  emission*=planck_value;
+                  Vector emissioncontri(stokes_dim);
+                  mult(emissioncontri,T,emission);
+                  emissioncontri/=(g*(1-albedo));//yuck!
+                  mult(pathinc,Q,emissioncontri);
+                  pathI = pathinc;
+                  if(strat_sampling)
+                    {
+                      if(albedo<1e-5)
+                        {
+                          throw runtime_error("albedo too low for stratified sampling");
+                        }
+                      pathI*=1-albedo;
+                      pathI_e+=pathI;
+                    }
+                  else
+                    {
+                      keepgoing=false;
+                    }
+                }
+              if ((rng.draw()<=albedo)||strat_sampling)
+                {
+                  //Sample new line of sight.
+                  if (los_sampling_method==3)
+                    {
+                      Sample_los_Z (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
+                                    scat_data_raw,stokes_dim,f_index,f_grid,
+                                    scat_theta,scat_theta_gps,scat_theta_itws,
+                                    pnd_vec,K(0,0)-K_abs[0]);
+                    }
+                  else
+                    {
+                      Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
+                      
+                      //Calculate Phase matrix////////////////////////////////
+                      Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
+                      Numeric aa_inc= (new_rte_los[1]>=0) ?
+                        -180+new_rte_los[1]:180+new_rte_los[1];
+                      
+                      pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
+                                         aa_inc,scat_data_raw,stokes_dim,f_index,
+                                         f_grid,scat_theta,scat_theta_gps,
+                                         scat_theta_itws,pnd_vec);
+                    }
+                  if(strat_sampling)
+                    {
+                      Z/=g*g_los_csc_theta;
+                    }
+                  else
+                    {
+                      Z/=g*g_los_csc_theta*albedo;
+                    }
+                  mult(q,T,Z);
+                  mult(newQ,Q,q);
+                  Q=newQ;
+                  scattering_order+=1;
+                  za_scat=180-rte_los[0];
+                  rte_los=new_rte_los;
+                  if (silent==0){cout <<"photon_number = "<<photon_number << 
+                                   ", scattering_order = " <<scattering_order <<"\n";}
+                }
 
-	    }
+            }
  
-	}
+        }
       if (!strat_sampling)
-      {
-	Isum += pathI;
-	if (record_histdata==1){histfile << pathI << "\n";}
-	for(Index j=0; j<stokes_dim; j++)
-	  {
-	    assert(!isnan(pathI[j]));
-	    Isquaredsum[j] += pathI[j]*pathI[j];
-	  }
-      }
+        {
+          Isum += pathI;
+          if (record_histdata==1){histfile << pathI << "\n";}
+          for(Index j=0; j<stokes_dim; j++)
+            {
+              assert(!isnan(pathI[j]));
+              Isquaredsum[j] += pathI[j]*pathI[j];
+            }
+        }
+      
       if (photon_number==500)
-	{
-	  cout <<"Estimated execution time for ScatteringMonteCarlo: " << 
-	    (Numeric)(time(NULL)-start_time)*maxiter/500 <<" seconds.\n";
-	}
+        {
+          cout <<"Estimated execution time for ScatteringMonteCarlo: " << 
+            (Numeric)(time(NULL)-start_time)*maxiter/500 <<" seconds.\n";
+        }
     }
   if (strat_sampling)
     {
       Vector I_emission=I_emission_sum;
-      I_emission/=I_emission_N;
-      //cout<<I_emission<<"\n";
+      I_emission/=maxiter;
+      cout<<I_emission<<"\n";
       Vector I_from_below=I_from_below_sum;
       I_from_below/=I_from_below_N;
-      //cout<<I_from_below<<"\n";
+      cout<<I_from_below<<"\n";
       Vector I_from_above=I_from_above_sum;
       I_from_above/=I_from_above_N;
-      //cout<<I_from_above<<"\n";
-      for(Index j=0; j<stokes_dim; j++)	
-	{
-	  I[j]=I_emission[j]+I_from_below[j]+I_from_above[j];
-	  i_montecarlo_error[j]=sqrt((I_from_below_squaredsum[j]/I_from_below_N-
-				      I_from_below[j]*I_from_below[j])
-				     /I_from_below_N+
-				     (I_from_above_squaredsum[j]/I_from_above_N-
-				      I_from_above[j]*I_from_above[j])
-				     /I_from_above_N+
-				     (I_emission_squaredsum[j]/I_emission_N-
-				      I_emission[j]*I_emission[j])
-				     /I_emission_N);
-	}
+      cout<<I_from_above<<"\n";
+      for(Index j=0; j<stokes_dim; j++) 
+        {
+          I[j]=I_emission[j]+I_from_below[j]+I_from_above[j];
+          i_montecarlo_error[j]=sqrt((I_from_below_squaredsum[j]/I_from_below_N-
+                                      I_from_below[j]*I_from_below[j])
+                                     /I_from_below_N+
+                                     (I_from_above_squaredsum[j]/I_from_above_N-
+                                      I_from_above[j]*I_from_above[j])
+                                     /I_from_above_N+
+                                     (I_emission_squaredsum[j]/maxiter-
+                                      I_emission[j]*I_emission[j])
+                                     /maxiter);
+        }
     }
   else
     {
       I=Isum;
       I/=maxiter;
-      for(Index j=0; j<stokes_dim; j++)	
-	{
-	  i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
-	}
+      for(Index j=0; j<stokes_dim; j++) 
+        {
+          i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
+        }
     }
   I+=IboundaryLOScontri;
   i_rte(0,joker)=I;
-}		
+}               
 
 
 
@@ -860,13 +871,13 @@ void ScatteringMonteCarlo (
 
 
 void rte_posShift(
-		  Vector&         rte_pos,
-		  Vector&         rte_los,
-		  GridPos&        rte_gp_p,
-		  GridPos&        rte_gp_lat,
-		  GridPos&        rte_gp_lon,
-		  const Ppath&    ppath,
-		  const Index&    atmosphere_dim)
+                  Vector&         rte_pos,
+                  Vector&         rte_los,
+                  GridPos&        rte_gp_p,
+                  GridPos&        rte_gp_lat,
+                  GridPos&        rte_gp_lon,
+                  const Ppath&    ppath,
+                  const Index&    atmosphere_dim)
 {
   const Index np      = ppath.np;
   
