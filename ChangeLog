@@ -1,3 +1,28 @@
+2002-09-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-242
+
+	* src/***: The WSV blackbody_ground is removed. It caused many and
+	problematic dependencies between WSVs. Ground reflections will also
+	be handled in a different way and there is no longer a big need for
+	blackbody_ground.
+	This means that there is no constrain now for placing the cloud box.
+	It is up to the user to decide if it is OK to have a gap between the
+	ground and the cloud box.
+
+	* src/m_ppath and ppath: The fields ground, i_ground, symmetry and 
+	i_symmetry are removed from the Ppath structure. 
+	The calculation of a propagation path now stops at all intersections
+	with the ground. 
+	
+	* src/workspace.cc: Removed the WSV t_ground and e_ground, and the
+	corresponding agendas.
+	Introduced new variables for handling ground reflections: 
+	ground_refl_agenda, ground_emission, ground_los and ground_refl_coeffs.
+
+	* src/m_rte and rte: Removed old ground variables and started to
+	incorporate the new ones. 
+
 2002-09-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-241

@@ -69,12 +69,8 @@ struct Ppath {
   ArrayOfGridPos    gp_lon;
   Matrix    	    los;
   String    	    background;
-  Index     	    ground;
-  Index     	    i_ground;
   Vector            tan_pos;
   Vector    	    geom_tan_pos;
-  Index     	    symmetry;
-  Index     	    i_symmetry;
 };
 
 
@@ -103,7 +99,6 @@ void ppath_start_stepping(
         ConstTensor3View      z_field,
         ConstMatrixView       r_geoid,
         ConstMatrixView       z_ground,
-        const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         ConstVectorView       sensor_pos,
@@ -116,7 +111,6 @@ void ppath_step_geom_1d(
         ConstVectorView   z_grid,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
-        const Index&      blackbody_ground,
 	const Numeric&    lmax );
 
 void ppath_step_geom_2d(
@@ -127,7 +121,6 @@ void ppath_step_geom_2d(
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
-        const Index&      blackbody_ground,
 	const Numeric&    lmax );
 
 #endif  // ppath_h

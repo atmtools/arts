@@ -131,27 +131,6 @@ void AtmosphereSet3D(
 
 
 
-//! GroundSetToBlackbody
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-08-12
-*/
-void GroundSetToBlackbody(
-        // WS Output:
-              Index&     blackbody_ground,
-              Agenda&    e_ground_agenda )
-{
-  out2 << "  blackbody_ground = 1\n";
-  out2 << "  sets *e_ground_agenda* to be empty\n";
-  blackbody_ground = 1;
-  e_ground_agenda.resize( 0 );
-
-}
-
-
-
 //! r_geoidWGS84
 /*!
    See the the online help (arts -d FUNCTION_NAME)

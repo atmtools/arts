@@ -128,7 +128,6 @@ void chk_cloudbox(
 	ConstVectorView       p_grid,
 	ConstVectorView       lat_grid,
 	ConstVectorView       lon_grid,
-        const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
 	const ArrayOfIndex&   cloudbox_limits );
 

@@ -539,9 +539,9 @@ void define_md_data_raw()
 	 "Sets *a_pos* to the given co-ordinates.\n"
          "\n"
 	 "The keyword argument *r_or_z* is put in as first element of\n"
-	 " *a_pos*, *lat* as the second element and *lon* as third element.\n"
+	 "*a_pos*, *lat* as the second element and *lon* as third element.\n"
 	 "However, the length of *a_pos* is set to *atmosphere_dim* and\n"
-	 " keyword arguments for dimensions not used are ignored.\n"
+	 "keyword arguments for dimensions not used are ignored.\n"
          "\n"
 	 "The first keyword argument can either be a radius, or an altitude\n"
 	 "above the geoid. In the latter case, a function such as\n"
@@ -562,13 +562,34 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "CloudboxGetOutgoing" ),
+	DESCRIPTION
+        (
+         "Scattered radiance on the cloudbox boundary.\n"
+         "\n"
+         "This method returns the radiances for a given direction and \n"
+         "position on the boundary of the cloudbox. The variable *y_scat* \n"
+         "is a matrix with the dimensions [f_grid, stokes_dim].\n"
+         "\n"
+         ),
+	OUTPUT(),
+	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, a_gp_p_, a_gp_lat_, 
+               a_gp_lon_, a_los_,  cloudbox_limits_, atmosphere_dim_,
+               stokes_dim_, scat_za_grid_, scat_aa_grid_, f_grid_),
+	GOUTPUT(Matrix_),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("CloudboxOff"),
 	DESCRIPTION
         (
          "Deactivates the cloud box. \n"
          "\n"
          "The function sets *cloudbox_on* to 0, and *cloudbox_limits* to be\n"
-         "a an empty vector."
+         "an empty vector."
         ),
 	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
 	INPUT(),
@@ -613,8 +634,7 @@ void define_md_data_raw()
          "   lon2 : Upper longitude point."
         ),
 	OUTPUT( cloudbox_on_, cloudbox_limits_ ),
-	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-               blackbody_ground_ ),
+	INPUT( atmosphere_dim_, p_grid_, lat_grid_, lon_grid_ ),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( "p1", "p2", "lat1", "lat2", "lon1", "lon2" ),
@@ -766,6 +786,7 @@ void define_md_data_raw()
 	GINPUT( ),
 	KEYWORDS( ),
 	TYPES( )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("ext_mat_gasExample"),
@@ -914,20 +935,6 @@ void define_md_data_raw()
 	GINPUT( ),
 	KEYWORDS( ),
 	TYPES( )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("GroundSetToBlackbody"),
-	DESCRIPTION
-        (
-         "Sets *blackbody_ground* to 1 and *e_ground_agenda* to be empty."
-        ),
-	OUTPUT( blackbody_ground_, e_ground_agenda_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -1279,7 +1286,8 @@ md_data_raw.push_back
 	 "The cosmic radiation is modelled as blackbody radiation for the \n"
 	 "temperature given by the global constant COSMIC_BG_TEMP, set in \n"
 	 "the file constants.cc. The frequencies are taken from the generic \n"
-	 "input vector. A standard way to use the function should be: \n"
+	 "input vector. A standard way to use the function should be (as \n"
+	 "part of *i_space_agenda*): \n"
 	 "   MatrixCBR(i_space,f_grid){} \n"
 	 "\n"
          "Generic output: \n"
@@ -1623,7 +1631,7 @@ md_data_raw.push_back
         ),
 	OUTPUT( ppath_, ppath_step_ ),
 	INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_ground_, blackbody_ground_, 
+               lon_grid_, z_field_, r_geoid_, z_ground_, 
 	       cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1666,7 +1674,7 @@ md_data_raw.push_back
         ),
 	OUTPUT( ppath_step_ ),
 	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-	       z_field_, r_geoid_, z_ground_, blackbody_ground_ ),
+	       z_field_, r_geoid_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1694,7 +1702,7 @@ md_data_raw.push_back
         ),
 	OUTPUT( ppath_step_ ),
 	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
-	       z_field_, r_geoid_, z_ground_, blackbody_ground_ ),
+	       z_field_, r_geoid_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "lmax"),
@@ -1744,7 +1752,7 @@ md_data_raw.push_back
 	OUTPUT( y_rte_, ppath_, ppath_step_, i_rte_, mblock_index_ ),
 	INPUT( ppath_step_agenda_, rte_agenda_, 
 	       atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_,
-               r_geoid_, z_ground_, blackbody_ground_, cloudbox_on_,  
+               r_geoid_, z_ground_, cloudbox_on_,  
 	       cloudbox_limits_, sensor_pos_, sensor_los_, f_grid_, 
 	       stokes_dim_,
                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
@@ -1762,9 +1770,10 @@ md_data_raw.push_back
          "\n"
          "More text will be written (PE)."
         ),
-	OUTPUT( i_rte_, a_pos_, a_los_, i_space_, t_ground_, e_ground_ ),
-	INPUT( i_space_agenda_, t_ground_agenda_, e_ground_agenda_, 
-	       blackbody_ground_, ppath_, f_grid_, stokes_dim_, 
+	OUTPUT( i_rte_, a_pos_, a_los_, i_space_, 
+		ground_emission_, ground_los_, ground_refl_coeffs_ ),
+	INPUT( i_space_agenda_, ground_refl_agenda_, 
+	       ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -2526,26 +2535,6 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "CloudboxGetOutgoing" ),
-	DESCRIPTION
-        (
-         "Scattered radiance on the cloudbox boundary.\n"
-         "\n"
-         "This method returns the radiances for a given direction and \n"
-         "position on the boundary of the cloudbox. The variable *y_scat* \n"
-         "is a matrix with the dimensions [f_grid, stokes_dim].\n"
-         "\n"
-         ),
-	OUTPUT(),
-	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, a_gp_p_, a_gp_lat_, 
-               a_gp_lon_, a_los_,  cloudbox_limits_, atmosphere_dim_,
-               stokes_dim_, scat_za_grid_, scat_aa_grid_, f_grid_),
-	GOUTPUT(Matrix_),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
 
 
 

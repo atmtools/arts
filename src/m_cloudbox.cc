@@ -91,7 +91,6 @@ void CloudboxSetManually(
         const Vector&   p_grid,
         const Vector&   lat_grid,
         const Vector&   lon_grid,
-        const Index&    blackbody_ground,
         // Control Parameters:
         const Numeric& p1,
         const Numeric& p2,
@@ -154,13 +153,6 @@ void CloudboxSetManually(
     {
       for( cloudbox_limits[0]=1; p_grid[cloudbox_limits[0]+1]>p1; 
                                                      cloudbox_limits[0]++ ) {}
-    }
-  if( !blackbody_ground && cloudbox_limits[0]!=0 )
-    {
-      ostringstream os;
-      os << "The lower vertical limit of the cloud box must be the lowest "
-         << "pressure\nsurface when the ground is not a blackbody.";
-      throw runtime_error( os.str() );
     }
   if( p2 < p_grid[p_grid.nelem()-2] )
     {

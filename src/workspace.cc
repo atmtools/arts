@@ -111,7 +111,7 @@ void define_wsv_data()
        "Total absorption vector.\n"
        "\n"
        "This variable contains the absorption coefficient vector which \n"
-       "is used in the scattering RT calculation. It is \n"
+       "is used in the scattering RTE calculation. It is \n"
        "the physical absorption which includes particle absorption \n"
        "for all chosen particle types as well as gaseous absorption for\n"
        "all chosen gaseous species.\n" 
@@ -302,7 +302,7 @@ void define_wsv_data()
        "\n"
        "Methods adapt automatically to this variable. That is, it should\n"
        "not be needed to change any methods if the dimensionality is\n"
-       "changed.\n"
+       "changed. However, not all methods are working for higher dimesnions.\n"
        "\n"
        "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
        "user guide (look for \"atmospheric dimensionality\" in the index).\n" 
@@ -316,13 +316,13 @@ void define_wsv_data()
     ( NAME( "a_gp_p" ),
       DESCRIPTION
       (
-       "A grid position on the pressure grid.\n"
+       "A grid position with respect to the pressure grid.\n"
        "\n"
-       "This variable, *a_gp_lat* and *a_gp_lon* are required fot the \n"
-       "communication between the clearsky calculations and the \n"
-       "calculations inside the cloudbox. The are input to the generic\n"
-       "method *CloudboxGetOutgoing*.\n"
+       "This variable is used to give the grid position for a single point\n"
+       "to some workspace method.\n"
        "\n"
+       "Usage:      Set by the calling function, or by the user when calling"
+       "            the method directly in the control file."
        ),
       GROUP( GridPos_ )));
 
@@ -331,13 +331,13 @@ void define_wsv_data()
     ( NAME( "a_gp_lat" ),
       DESCRIPTION
       (
-       "A grid position on the pressure grid.\n"
+       "A grid position with respect to the latitude grid.\n"
        "\n"
-       "This variable, *a_gp_p* and *a_gp_lon* are required fot the \n"
-       "communication between the clearsky calculations and the \n"
-       "calculations inside the cloudbox. The are input to the generic\n"
-       "method *CloudboxGetOutgoing*.\n"
+       "This variable is used to give the grid position for a single point\n"
+       "to some workspace method.\n"
        "\n"
+       "Usage:      Set by the calling function, or by the user when calling"
+       "            the method directly in the control file."
        ),
       GROUP( GridPos_ )));
 
@@ -346,13 +346,13 @@ void define_wsv_data()
     ( NAME( "a_gp_lon" ),
       DESCRIPTION
       (
-       "A grid position on the pressure grid.\n"
+       "A grid position with respect to the longitude grid.\n"
        "\n"
-       "This variable, *a_gp_p* and *a_gp_lat* are required fot the \n"
-       "communication between the clearsky calculations and the \n"
-       "calculations inside the cloudbox. The are input to the generic\n"
-       "method *CloudboxGetOutgoing*.\n"
+       "This variable is used to give the grid position for a single point\n"
+       "to some workspace method.\n"
        "\n"
+       "Usage:      Set by the calling function, or by the user when calling"
+       "            the method directly in the control file."
        ),
       GROUP( GridPos_ )));
 
@@ -426,31 +426,6 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "blackbody_ground" ),
-      DESCRIPTION
-      (
-       "Flag to force the ground to be treated as a blackbody.\n"
-       "\n"
-       "This variable must have the value 0 or 1, where 1 means that the\n"
-       "ground is treated as a blackbody (an emissivity of 1 at all \n"
-       "locations). This choice affects the practical starting point of \n"
-       "propagation paths (including an inter-section with the ground) and \n"
-       "the allowed choice for the cloud box.\n"
-       "\n"
-       "When this variable is set to 1, the content of *e_ground_agenda* is \n"
-       "neglected, and that agenda can be set to be empty. This can be  \n"
-       "achieved by using *GroundSetToBlackbody*. \n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by user."
-       ),
-      GROUP( Index_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "cloudbox_on" ),
       DESCRIPTION
       (
@@ -481,18 +456,12 @@ void define_wsv_data()
        "exactly at points of the involved grids. This means, for example, that\n"
        "the vertical limits of the cloud box are two pressure surfaces. For\n"
        "2D, the angular extension of the cloud box is between two points of\n"
-       "the latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D\n"
-       "but then also with a longitude extension between two grid points.  The\n"
-       "latitude and longitude limits for the cloud box cannot be placed at\n"
-       "the end points of the corresponding grid as it must be possible to\n"
-       "calculate the incoming intensity field.\n"
+       "the latitude grid, and likewise for 3D but then also with a longitude\n"
+       "extension between two grid points.  The latitude and longitude limits\n" 
+       "for the cloud box cannot be placed at the end points of the \n"
+       "corresponding grid as it must be possible to calculate the incoming\n"
+       "intensity field.\n"
        "\n"
-       "In general the lower vertical limit must be the lowest pressure\n"
-       "surface (that is, the first element of *cloudbox_limits is 0). This\n"
-       "means that the practical lower limit of the cloud box is the ground.\n"
-       "However, if the ground is treated to a blackbody (*blackbody_ground* =\n"
-       "1) the lower limit can be above the ground. \n"
-       " \n"
        "The variable *cloudbox_limits* is an array of index value with length\n"
        "twice *atmosphere_dim*. For each dimension there is a lower limit and\n"
        "an upper limit. The order of the dimensions is as usual pressure,\n"
@@ -542,36 +511,6 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "e_ground" ),
-      DESCRIPTION
-      (
-       "Ground emissivity.\n"
-       "\n"
-       "To be written (PE). \n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by *e_ground_agenda*..\n"
-       "\n"
-       "Unit:       - (0-1)\n"
-       "\n"
-       "Dimensions: [ f_grid, ? ]"
-       ),
-      GROUP( Matrix_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "e_ground_agenda" ),
-      DESCRIPTION
-      (
-	"See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "els" ),
       DESCRIPTION
       (
@@ -606,7 +545,7 @@ void define_wsv_data()
        "Total extinction matrix.\n"
        "\n"
        "This variable contains the extinction coefficient matrix which \n"
-       "is used in the scattering RT calculation. It is \n"
+       "is used in the scattering RTE calculation. It is \n"
        "the physical extinction matrix which includes particles extinction \n"
        "for all chosen particle types and gaseous extinction for all chosen \n"
        "gaseous species.\n" 
@@ -715,7 +654,7 @@ void define_wsv_data()
        (
 	"The frequency grid for monochromatic pencil beam calculations.\n"
 	"\n"
-	"Text will be written (PE).\n" 
+	"What to say here?\n" 
 	"\n" 
 	"Usage:      Set by the user.\n "
 	"\n"   
@@ -735,8 +674,44 @@ void define_wsv_data()
 	"coefficients.  See online documentation of method *gas_tgsDefine* for\n"
 	"more detailed information how tag groups work and some examples."
 	), 
-       GROUP( TagGroups_)));
+       GROUP( TagGroups_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ground_emission" ),
+       DESCRIPTION
+       (
+	"To be written (PE).\n"
+	), 
+       GROUP( Matrix_ )));
+ 
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ground_refl_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ground_refl_coeffs" ),
+       DESCRIPTION
+       (
+	"To be written (PE).\n"
+	), 
+       GROUP( Tensor4_ )));
+ 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ground_los" ),
+       DESCRIPTION
+       (
+	"To be written (PE).\n"
+	), 
+       GROUP( Matrix_ )));
+ 
   wsv_data.push_back
     (WsvRecord
      ( NAME( "i_field" ), 
@@ -869,7 +844,7 @@ void define_wsv_data()
       (
        "The pathlegth through one grid cell/ layer.\n"
        "\n"
-       "The pathlength is required in the methods for RT step calculations, \n"
+       "The pathlength is required in the methods for RT step calculations,\n"
        "which are *sto_vecGeneral* and *sto_vecScalar*.\n"
        "It can be calculated using the *ppath_step_agenda*.\n"
        "\n"
@@ -1090,8 +1065,6 @@ void define_wsv_data()
        "Usage:      Set by user."
        ),
       GROUP( Matrix_ )));
-
-
 
   wsv_data.push_back
    (WsvRecord
@@ -1333,9 +1306,7 @@ void define_wsv_data()
        "find where the data structure, Ppath, for propagation paths is \n"
        "discussed. It is listed as a subentry to \"data structures\".\n"
        "\n"
-       "Usage:      Output from the method *ppathCalc*.\n"
-       "\n"
-       "Members:    To be written."
+       "Usage:      Output from the method *ppathCalc*."
        ),
       GROUP( Ppath_ )));
 
@@ -1809,39 +1780,7 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "t_ground" ),
-      DESCRIPTION
-      (
-       "Effective emission temperature of the ground.\n"
-       "\n"
-       "This variable gives the temperature to use when calculating the \n"
-       "emission from the ground. This temperature can deviate from the \n"
-       "temperature of the air just above the ground. In short, the \n"
-       "emission of the ground is calculated as the product between \n"
-       "*e_ground* and the Planck function *t_ground*. \n"
-       "\n"
-       "See further the ARTS user guide (AUG). Use the index to find where\n"
-       "this variable is discussed. The variable is listed as a subentry to\n"
-       "\"workspace variables\".\n"
-       "\n"
-       "Usage:      Set by t_ground_agenda.\n"
-       "\n"
-       "Unit:       K "
-       ),
-      GROUP( Numeric_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "t_ground_agenda" ),
-      DESCRIPTION
-      (
-	"See agendas.cc."
-       ),
-      GROUP( Agenda_ )));
-
-  wsv_data.push_back
-   (WsvRecord
-    ( NAME( "vector1" ),
+    ( NAME( "vector_1" ),
       DESCRIPTION
       (
        "An arbitrary vector.\n"
@@ -1856,7 +1795,7 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "vector2" ),
+    ( NAME( "vector_2" ),
       DESCRIPTION
       (
        "An arbitrary vector.\n"
@@ -1905,7 +1844,7 @@ void define_wsv_data()
     ( NAME( "y_rte" ),
       DESCRIPTION
       (
-       "The measurement vector produced by *RteCalc*..\n"
+       "The measurement vector produced by *RteCalc*.\n"
        "\n"
        "More text will be written (PE).\n"
        "\n"
@@ -1914,27 +1853,6 @@ void define_wsv_data()
        "Unit:       W/(m^2 Hz sr) or optical thickness.\n"
        "\n"
        "Dimensions: [ ?, stokes_dim ]"
-       ),
-      GROUP( Matrix_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "y_scat" ),
-      DESCRIPTION
-      (
-       "Outgoing radiation on the cloudbox boundary.\n"
-       "\n"
-       "This variable is generated in the method y_scatCalc, which needs\n"
-       "as input a position on the cloudbox boundary specified by \n"
-       "*cloudbox_pos* and the direction specified by *cloudbox_los*. \n"
-       "It is stored as a matrix to store the intensity values for \n"
-       "each frequency and each Stokes component.\n"
-       "\n"
-       "Usage:      Output from *y_scatCalc*.\n"
-       "\n"
-       "Unit:       [Hz, W/(m^2 Hz sr)] \n"
-       "\n"
-       "Dimensions: [ f_grid, stokes_dim ] \n"
        ),
       GROUP( Matrix_ )));
 
@@ -2003,299 +1921,6 @@ void define_wsv_data()
        "Dimensions: [ lat_grid, lon_grid ]"
        ),
       GROUP( Matrix_ )));
-
-
-
-
-
-  // Below this line are the definitions from ARTS-1. Shall be removed or
-  // updated with better descriptions.
-  // =======================================================================
-  // 
-
-
-//   //--------------------< Spectroscopy Stuff >--------------------
-//   //                     --------------------
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "lines" ),
-// 	DESCRIPTION
-// 	(
-// 	 "A list of spectral line data."
-// 	 ), 
-// 	GROUP( ArrayOfLineRecord_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "lines_per_tg" ),
-// 	DESCRIPTION
-// 	(
-// 	 "A list of spectral line data for each tag.\n"
-// 	 "Dimensions: (tag_groups.nelem()) (# of lines for this tag)"
-// 	 ), 
-// 	GROUP( ArrayOfArrayOfLineRecord_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "wfs_tgs" ),
-// 	DESCRIPTION
-// 	(
-// 	 "This is an array of arrays of tag group definitions.\n"
-// 	 "It defines the tag groups for the calculation of weighting\n"
-// 	 "functions. The selected tag groups must be a subgroup of the\n"
-// 	 "tag groups defined for the absorption coefficient calculation."
-// 	 ), 
-// 	GROUP( TagGroups_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "lineshape" ),
-// 	DESCRIPTION
-// 	(
-// 	 "Lineshape specification: function, norm, cutoff. There is one entry for\n"
-// 	 "each abs_tag, not for each species. This means if you have several\n"
-// 	 "abs_tags for different isotopes or transitions of a species, you\n"
-// 	 "may use different lineshapes."
-// 	 ),
-// 	GROUP( ArrayOfLineshapeSpec_)));
-
-
-//    //--------------------< Continuum Stuff >--------------------
-//    //                     -----------------
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "cont_description_names" ),
-// 	DESCRIPTION
-// 	(
-// 	 "Continuum / full model absorption tag names. This variable should\n"
-// 	 "contain a list of tag names of continuum and full models, respectively.\n"
-// 	 "Associated with this WSV is the WSV\n"
-// 	 "`cont_description_models' which contains the specific model version of\n"
-// 	 "each continuum / full model absorption tag and the WSV\n"
-// 	 "`cont_description_parameters' which should contain the continuum / full model\n"
-// 	 "user defined parameters. The user defined parameters are only used when\n"
-// 	 "the specified model is 'user'. See also the online documentation in\n"
-// 	 "arts/doc/doxygen/html/continua_cc.html.\n"
-// 	 "\n"
-// 	 "The following full water vapor models are implemented:\n"
-// 	 "'H2O-MPM87': absorption model (line and continuum) according to \n"
-// 	 "   H. J. Liebe,\n" 
-// 	 "   A contribution to modeling atmospheric millimeter-wave properties,\n"
-// 	 "   Frequenz,  41, 1987, 31-36\n"
-// 	 "   and\n"
-// 	 "   H. J. Liebe and D. H. Layton,\n"
-// 	 "   Millimeter-wave properties of the atmosphere:\n"
-// 	 "   Laboratory studies and propagation modeling,\n"
-// 	 "   U.S. Dept. of Commerce, National Telecommunications and Information\n"
-// 	 "   Administration, Institute for Communication Sciences,\n"
-// 	 "   325 Broadway, Boulder, CO 80303-3328, report 87224.\n"
-// 	 "'H2O-MPM89': absorption model (line and continuum) according to \n"
-// 	 "   H. J. Liebe,\n Int. J. Infrared and Millimeter Waves, 10(6), 1989, 631\n"
-// 	 "'H2O-MPM93': absorption model (line and continuum) according to \n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21 \n" 
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-// 	 "'H2O-CP98': absorption model (line and continuum) according to \n"
-// 	 "   S. L. Cruz-Pol et al.,\n Radio Science, 33(5), 1319, 1998"
-// 	 "   (ece.uprm.edu/~pol/Atmosphere.html)\n"
-// 	 "'H2O-PWR98': absorption model (line and continuum) according to \n"
-// 	 "   P. W. Rosenkranz,\n "
-// 	 "   Radio Science, 33(4),  919, 1998, Radio Science, 34(4), 1025, 1999\n"
-// 	 "   (ftp: mesa.mit.edu/phil/lbl_rt).\n"
-// 	 "\n"
-// 	 "The following full oxygen models are implemented:\n"
-// 	 "'O2-MPM93': absorption model (line and continuum) according to\n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-// 	 "'O2-PWR93': absorption model (line and continuum) according to \n"
-// 	 "   P. W. Rosenkranz,\n Chapter 2, in M. A. Janssen, \n"
-// 	 "   Atmospheric Remote Sensing by Microwave Radiometry\n"
-// 	 "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "\n"
-// 	 "The following continuum parameterizations are implemented:\n"
-// 	 "H2O-H2O ('H2O-SelfContStandardType'):\n" 
-// 	 "   P. W. Rosenkranz, \n"
-// 	 "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
-// 	 "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "H2O-air ('H2O-ForeignContStandardType'): \n"
-// 	 "   P. W. Rosenkranz, \n"
-// 	 "   Radio Science, Vol. 33, No 4, Pages 919-928, 1998 and \n"
-// 	 "   Radio Science, Vol. 34, No 4, Page 1025, 1999 (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "H2O-air ('H2O-ContMPM93'): \n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"      
-// 	 "O2-air ('O2-SelfContStandardType'):\n"
-// 	 "   P. W. Rosenkranz,\n"
-// 	 "   Chapter 2, in M. A. Janssen,\n"
-// 	 "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-// 	 "   John Wiley & Sons, Inc., 1993\n"
-// 	 "   (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "   and also described in \n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-// 	 "N2-N2 ('N2-SelfContStandardType'):\n"
-// 	 "   The functional form of Rosenkranz but with more input parameters.\n"
-// 	 "   P. W. Rosenkranz,\n"
-// 	 "   Chapter 2, in M. A. Janssen,\n"
-// 	 "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-// 	 "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "N2-N2 ('N2-SelfContMPM93'):\n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel, Palma de Mallorca, Spain, 1993, May 17-21 \n"
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-// 	 "CO2-CO2 ('CO2-SelfContPWR93'):\n"
-// 	 "   P. W. Rosenkranz,\n"
-// 	 "   Chapter 2, in M. A. Janssen,\n"
-// 	 "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-// 	 "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "CO2-N2 ('CO2-ForeignContPWR93'):\n"
-// 	 "   P. W. Rosenkranz,\n"
-// 	 "   Chapter 2, in M. A. Janssen,\n"
-// 	 "   Atmospheric Remote Sensing by Microwave Radiometry,\n"
-// 	 "   John Wiley & Sons, Inc., 1993 (mesa.mit.edu/phil/lbl_rt)\n"
-// 	 "\n"
-// 	 "The following cloud absorption models are implemented:\n"
-// 	 "Suspended water droplet ('liquidcloud-MPM93') \n"
-// 	 "   absorption parameterization from the MPM93 model:\n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-// 	 "Ice water droplet absorption ('icecloud-MPM93') \n"
-// 	 "   parameterization from MPM93 model:\n"
-// 	 "   H. J. Liebe and G. A. Hufford and M. G. Cotton,\n"
-// 	 "   Propagation modeling of moist air and suspended water/ice\n"
-// 	 "   particles at frequencies below 1000 GHz,\n"
-// 	 "   AGARD 52nd Specialists Meeting of the Electromagnetic Wave\n"
-// 	 "   Propagation Panel,\n Palma de Mallorca, Spain, 1993, May 17-21\n"
-// 	 "   (ftp.its.bldrdoc.gov/pub/mpm93/)\n"
-// 	 "\n"
-// 	 ),
-// 	GROUP( ArrayOfString_)));
-
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "cont_description_models" ),
-// 	DESCRIPTION
-// 	(
-// 	 "Continuum / full model absorption model description parameter.\n"
-// 	 "See the WSV `cont_description_names' for a detailed description\n"
-// 	 "of the allowed continuum models. There should be one string here\n"
-// 	 "for each entry in `cont_description_names'.See also the online" 
-// 	 "documentation in arts/doc/doxygen/html/continua_cc.html.\n"
-// 	 ),
-// 	GROUP( ArrayOfString_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "cont_description_parameters" ),
-// 	DESCRIPTION
-// 	(
-// 	 "Continuum model parameters. See the WSV `cont_description_names'\n"
-// 	 "for a detailed description of the allowed continuum models. There\n"
-// 	 "should be one parameter vector here for each entry in\n"
-// 	 "`cont_description_names'. See also the online documentation in\n"
-// 	 "arts/doc/doxygen/html/continua_cc.html.\n"
-// 	 ),
-// 	GROUP( ArrayOfVector_)));
-
-
-//    //--------------------< 1D Input Atmosphere Stuff >--------------------
-//    //                     ---------------------------
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "raw_ptz" ),
-// 	DESCRIPTION
-// 	(
-// 	 "Matrix has rows:\n"
-// 	 "1. Pressure in Pa\n"
-// 	 "2. Temperature in K\n"
-// 	 "3. Altitude in m"
-// 	 ), 
-// 	GROUP( Matrix_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "raw_vmrs" ),
-// 	DESCRIPTION
-// 	(
-// 	 "The individual VMR profiles. Each species VMR profile comes with a\n"
-// 	 "pressure profile. The different species can hence be on different\n"
-// 	 "grids.\n"
-// 	 "The matrix has rows:\n"
-// 	 "1. Pressure in Pa\n"
-// 	 "2. VMR profile (absolute number)\n"
-// 	 "The array dimension is determined by the number of tag groups."
-// 	 ), 
-// 	GROUP( ArrayOfMatrix_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "vmrs" ),
-// 	DESCRIPTION
-// 	(
-// 	 "The VMRs (unit: absolute number) on the p_abs grid.\n"
-// 	 "Dimensions: [tag_groups.nelem(), p_abs.nelem()]"
-// 	 ),
-// 	GROUP( Matrix_)));
-
-
-//    wsv_data.push_back
-//      (WsvRecord
-//        ( NAME( "abs" ),
-// 	 DESCRIPTION
-// 	 (
-// 	  "\n"
-// 	  "FIXME: This is the old abs. What should it be now?\n"
-// 	  "\n"
-// 	  "The matrix of absorption coefficients (in units of [1/m]).\n"
-// 	  "Dimensions: [f_mono.nelem(), p_abs.nelem()]"
-// 	  ),
-// 	 GROUP( Matrix_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "abs_per_tg" ),
-// 	DESCRIPTION
-// 	(
-// 	 "These are the absorption coefficients individually for each\n"
-// 	 "tag group. The Array contains one matrix for each tag group,\n"
-// 	 "the matrix format is the same as that of abs"
-// 	 ),
-// 	GROUP( ArrayOfMatrix_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "xsec_per_tg" ),
-// 	DESCRIPTION
-// 	(
-// 	 "These are the cross sections individually for each tag\n"
-// 	 "group. The Array contains one matrix for each tag group,\n"
-// 	 "the matrix format is the same as that of abs"
-// 	 ),
-// 	GROUP( ArrayOfMatrix_)));
-
 
  
 }

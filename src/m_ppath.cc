@@ -194,7 +194,6 @@ void ppathCalc(
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
-        const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         a_pos,
@@ -255,7 +254,7 @@ void ppathCalc(
   // allowed path.
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_ground, blackbody_ground,
+                        lon_grid, z_field, r_geoid, z_ground,
                         cloudbox_on, cloudbox_limits, a_pos, a_los );
 
   out2 << "  -------------------------------------\n";
@@ -426,11 +425,6 @@ void ppathCalc(
 	    }
 
 	  // Fields just set once
-	  if( ppath_array[i].ground )
-	    {
-	      ppath.ground                = ppath_array[i].ground;
-	      ppath.i_ground              = np + ppath_array[i].i_ground - 1;
-	    }
 	  if( ppath_array[i].tan_pos.nelem() )
 	    {
 	      ppath.tan_pos.resize( ppath_array[i].tan_pos.nelem() );
@@ -440,11 +434,6 @@ void ppathCalc(
 	    {
 	      ppath.geom_tan_pos.resize( ppath_array[i].tan_pos.nelem() );
 	      ppath.geom_tan_pos          = ppath_array[i].geom_tan_pos; 
-	    }
-	  if( ppath_array[i].symmetry )
-	    {
-	      ppath.symmetry              = ppath_array[i].symmetry;
-	      ppath.i_symmetry            = np + ppath_array[i].i_symmetry - 1;
 	    }
 
 	  // Increase number of points done
@@ -476,8 +465,7 @@ void ppath_stepGeometric(
         const Vector&    lon_grid,
         const Tensor3&   z_field,
         const Matrix&    r_geoid,
-        const Matrix&    z_ground,
-        const Index&     blackbody_ground )
+        const Matrix&    z_ground )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
@@ -487,13 +475,12 @@ void ppath_stepGeometric(
 
   if( atmosphere_dim == 1 )
     { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
-               z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
-                                                        blackbody_ground, -1 );
+                  z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), -1 );
     }
   else if( atmosphere_dim == 2 )
     { ppath_step_geom_2d( ppath_step, atmosphere_dim, p_grid, lat_grid,
              z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
-                              z_ground(Range(joker),0), blackbody_ground, -1 );
+                                                z_ground(Range(joker),0), -1 );
     }
   else
     {
@@ -521,10 +508,8 @@ void ppath_stepGeometricWithLmax(
         const Tensor3&   z_field,
         const Matrix&    r_geoid,
         const Matrix&    z_ground,
-        const Index&     blackbody_ground,
         // Control Parameters:
-        const Numeric&   lmax)
-
+        const Numeric&   lmax )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
@@ -532,13 +517,12 @@ void ppath_stepGeometricWithLmax(
 
   if( atmosphere_dim == 1 )
     { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
-               z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0),
-                                                      blackbody_ground, lmax );
+                z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lmax );
     }
   else if( atmosphere_dim == 2 )
     { ppath_step_geom_2d( ppath_step, atmosphere_dim, p_grid, lat_grid,
              z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
-                            z_ground(Range(joker),0), blackbody_ground, lmax );
+                                              z_ground(Range(joker),0), lmax );
     }
   else
     {
@@ -577,16 +561,10 @@ void PpathPrint(
     ArrayOfGridPosPrint( ppath.gp_lon, "gp_lon" );
   MatrixPrint( ppath.los, "los" );
   StringPrint( ppath.background, "background" );
-  IndexPrint( ppath.ground, "ground" );
-  if( ppath.ground )
-    IndexPrint( ppath.i_ground, "i_ground" );
   if( ppath.tan_pos.nelem() )
     VectorPrint( ppath.tan_pos, "tan_pos" );
   if( ppath.geom_tan_pos.nelem() )
     VectorPrint( ppath.geom_tan_pos, "geom_tan_pos" );
-  IndexPrint( ppath.symmetry, "symmetry" );
-  if( ppath.symmetry )
-    IndexPrint( ppath.i_symmetry, "i_symmetry" );
 }
 
 

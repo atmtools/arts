@@ -808,11 +808,8 @@ void ppath_init_structure(
   else
     { ppath.l_step.resize( 0 ); }
   ppath_set_background( ppath, 0 );
-  ppath.ground     = 0;
-  ppath.i_ground   = 0;
   ppath.tan_pos.resize(0);
-  ppath.symmetry   = 0;
-  ppath.i_symmetry = 0;
+  ppath.geom_tan_pos.resize(0);
 }
 
 
@@ -827,7 +824,7 @@ void ppath_init_structure(
    The case numbers are:                    <br>
       0. Not yet set.                       <br>
       1. Space.                             <br>
-      2. Blackbody ground.                  <br>
+      2. The ground.                        <br>
       3. The surface of the cloud box.      <br>
       4. The interior of the cloud box.     
 
@@ -850,7 +847,7 @@ void ppath_set_background(
       ppath.background = "space";
       break;
     case 2:
-      ppath.background = "blackbody ground";
+      ppath.background = "ground";
       break;
     case 3:
       ppath.background = "cloud box surface";
@@ -885,7 +882,7 @@ Index ppath_what_background( const Ppath&   ppath )
     { return 0; }
   else if( ppath.background == "space" )
     { return 1; }
-  else if( ppath.background == "blackbody ground" )
+  else if( ppath.background == "ground" )
     { return 2; }
   else if( ppath.background == "cloud box surface" )
     { return 3; }
@@ -960,9 +957,6 @@ void ppath_copy(
 	{ ppath1.l_step[i-1] = ppath2.l_step[i-1]; }
      }
 
-  ppath1.ground = ppath2.ground;
-  if( ppath1.ground )
-    { ppath1.i_ground = ppath2.i_ground; }
   if( ppath2.tan_pos.nelem() )
     {
       ppath1.tan_pos.resize( ppath2.tan_pos.nelem() );
@@ -973,9 +967,6 @@ void ppath_copy(
       ppath1.geom_tan_pos.resize( ppath2.geom_tan_pos.nelem() );
       ppath1.geom_tan_pos = ppath2.geom_tan_pos; 
     }
-  ppath1.symmetry = ppath2.symmetry;
-  if( ppath1.symmetry )
-    { ppath1.i_symmetry = ppath2.i_symmetry; }
 }
 
 
@@ -1235,7 +1226,6 @@ void ppath_fill_2d(
    \param   z_field           The field of geometrical altitudes.
    \param   r_geoid           The geoid radius.
    \param   z_ground          Ground altitude.
-   \param   blackbody_ground  Flag for treating the ground as a blackbody.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
    \param   a_pos             The position of the sensor.
@@ -1253,7 +1243,6 @@ void ppath_start_stepping(
         ConstTensor3View      z_field,
         ConstMatrixView       r_geoid,
         ConstMatrixView       z_ground,
-        const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         ConstVectorView       a_pos,
@@ -1319,17 +1308,12 @@ void ppath_start_stepping(
 	  // they can be modified on the way.
      
 	  // Is the sensor on the ground looking down?
+	  // If yes and the sensor is inside the cloudbox, the background will
+	  // be changed below.
 	  if( ppath.pos(0,0) == r_ground  &&  ppath.los(0,0) > 90 )
-	    {
-	      angle_after_ground_1d( ppath.los(0,0) );
-	      ppath.ground = 1;
-	      ppath.i_ground = 0;
-	      if( blackbody_ground )
-		{ ppath_set_background( ppath, 2 ); }
-	    }
+	    { ppath_set_background( ppath, 2 ); }
 
-	  // Check sensor position with respect to cloud box, if activated
-          // and not background set to blackbody ground
+	  // Check sensor position with respect to cloud box.
 	  if( cloudbox_on )
 	    {
 	      // Is the sensor inside the cloud box?
@@ -1337,7 +1321,6 @@ void ppath_start_stepping(
 		                 ppath.z[0] < z_field(cloudbox_limits[1],0,0) )
 		{ ppath_set_background( ppath, 4 ); }
 
-	      // Is the sensor on the surface of cloud box and looks into box?
 	      else if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
                                                         ppath.los(0,0) <= 90 )
                      || 
@@ -1522,20 +1505,14 @@ void ppath_start_stepping(
 	      // Calculate angular tilt of the ground
 	      const Numeric atilt = psurface_tilt_2d( rv_ground, rslope);
 
-	      // Are we looking down into the ground? If yes, calculate angle 
-	      // after ground reflection and set some fields of ppath.
+	      // Are we looking down into the ground?
+	      // If yes and the sensor is inside the cloudbox, the background 
+	      // will be changed below.
 	      if( is_los_downwards_2d( ppath.los(0,0), atilt ) )
-		{
-		  angle_after_ground_2d( ppath.los(0,0), atilt );
-		  ppath.ground = 1;
-		  ppath.i_ground = 0;
-		  if( blackbody_ground )
-		    { ppath_set_background( ppath, 2 ); }
-		}
+		{ ppath_set_background( ppath, 2 ); }
 	    }
 
-	  // Check sensor position with respect to cloud box, if activated
-          // and not background set to blackbody ground
+	  // Check sensor position with respect to cloud box.
 	  if( cloudbox_on )
 	    {
 	      // To check all possible cases here when the sensor is at the
@@ -1800,7 +1777,6 @@ void ppath_start_stepping(
    \param   z_grid            Geometrical altitudes corresponding to p_grid.
    \param   r_geoid           Geoid radius.
    \param   z_ground          Ground altitude.
-   \param   blackbody_ground  Flag for treating the ground as a blackbody.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -1813,7 +1789,6 @@ void ppath_step_geom_1d(
         ConstVectorView   z_grid,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
-        const Index&      blackbody_ground,
 	const Numeric&    lmax )
 {
   // Number of points in the incoming ppath
@@ -1834,7 +1809,6 @@ void ppath_step_geom_1d(
   assert( is_size( z_grid, npl ) );
   assert( is_increasing( z_grid ) );
   assert( r_geoid > 0 );
-  assert( is_bool( blackbody_ground ) );
   //
   assert( ppath.dim == 1 );
   assert( ppath.np >= 1 );
@@ -1926,58 +1900,28 @@ void ppath_step_geom_1d(
   ppath_fill_1d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_grid, ip );
   //
   if( ground )
-    {
-      if( blackbody_ground )
-	{ ppath_set_background( ppath, 2 ); }
-      else
-	{
-	  ppath.ground     = 1;
-	  ppath.i_ground   = ilast;
-	  ppath.symmetry   = 1;
-	  ppath.i_symmetry = ilast;
-	}
-    }
+    { ppath_set_background( ppath, 2 ); }
   else if( tanpoint )
     {
       ppath.tan_pos.resize(2);
       ppath.tan_pos[0] = r_v[ilast];
       ppath.tan_pos[1] = lat_v[ilast];
-      ppath.symmetry   = 1;
-      ppath.i_symmetry = ilast;
     }
 
-
-  // Make second part if not ready with path step:
+  // If tangent point, make part from tangent point and up to the starting
+  // pressure level.
   //
-  if( tanpoint  ||  ( ground  &&  !blackbody_ground ) )
+  if( tanpoint )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      // Adjust zenith angle and path constant if ground reflection
-      if( ground )
-	{
-	  // Angle after ground reflection
-	  angle_after_ground_1d( ppath2.los(ilast,0) );
-
-	  // New propagation path constant. It must be put copied to ppath as
-	  // the path constant is taken from this structure when appending
-	  // ppath and ppath2.
-	  ppath2.constant = geometrical_ppc( ppath2.pos(ilast,0), 
-                                                         ppath2.los(ilast,0) );
-	  ppath.constant  = ppath2.constant; 
-
-	  out3 << "  --- Recursive step to handle ground reflection -----\n"; 
-	}
-      else
-	{
-	  out3 << "  --- Recursive step to include tangent point --------\n"; 
-	}
+      out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       // Call this function recursively
       ppath_step_geom_1d( ppath2, atmosphere_dim, p_grid, z_grid, r_geoid,
-			                    z_ground, blackbody_ground, lmax );
+			                                      z_ground, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -2003,7 +1947,6 @@ void ppath_step_geom_1d(
    \param   z_field           Geometrical altitudes
    \param   r_geoid           Geoid radii.
    \param   z_ground          Ground altitudes.
-   \param   blackbody_ground  Flag for treating the ground as a blackbody.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
@@ -2017,7 +1960,6 @@ void ppath_step_geom_2d(
         ConstMatrixView   z_field,
         ConstVectorView   r_geoid,
         ConstVectorView   z_ground,
-        const Index&      blackbody_ground,
 	const Numeric&    lmax )
 {
   // Number of points in the incoming ppath
@@ -2041,7 +1983,6 @@ void ppath_step_geom_2d(
   assert( is_size( z_field, npl, nlat ) );
   assert( is_size( r_geoid, nlat ) );
   assert( is_size( z_ground, nlat ) );
-  assert( is_bool( blackbody_ground ) );
   //
   assert( ppath.dim == 2 );
   assert( ppath.np >= 1 );
@@ -2226,10 +2167,9 @@ void ppath_step_geom_2d(
     assert( r_start >= r_ground - R_EPS );
 
     // Check shall be done only if the ground is, at least partly, inside 
-    //the grid cell, and we are not already at the ground
+    //the grid cell.
     //
-    if( ( rground1 >= r1  ||  rground2 >= r2 )  &&  
-                               !( ppath.ground  &&   ppath.i_ground == imax ) )
+    if( rground1 >= r1  ||  rground2 >= r2 )
       {
 	Numeric r_tmp = r_start;
 	if( r_tmp < r_ground )
@@ -2336,15 +2276,7 @@ void ppath_step_geom_2d(
 		                                                    ip, ilat );
   //
   if( endface == 5 )
-    {
-      if( blackbody_ground )
-	{ ppath_set_background( ppath, 2 ); }
-      else
-	{
-	  ppath.ground     = 1;
-	  ppath.i_ground   = ilast;
-	}
-    }
+    { ppath_set_background( ppath, 2 ); }
   else if( endface == 6 )
     {
       ppath.tan_pos.resize(2);
@@ -2372,41 +2304,19 @@ void ppath_step_geom_2d(
     { ppath.los(ilast,0) = sign(za_start)*90; }
 
 
-  // Make second part if not ready with path step:
+  // Make part after a tangent point.
   //
-  if( endface == 6  ||  ( endface == 5  &&  !blackbody_ground ) )
+  if( endface == 6 )
     {
       Ppath ppath2;
       ppath_init_structure( ppath2, ppath.dim, ppath.np );
       ppath_copy( ppath2, ppath );
 
-      // Adjust zenith angle and path constant if ground reflection
-      if( endface == 5 )
-	{
-	  // Calculate angular tilt of the ground
-	  const Numeric gtilt = psurface_tilt_2d( 
-                        rground1 + cground * ( last(lat_v) - lat1 ), cground );
-
-	  // Angle after ground reflection
-	  angle_after_ground_2d( ppath2.los(ilast,0), gtilt );
-
-	  // New propagation path constant. It must be put copied to ppath as
-	  // the path constant is taken from this structure when appending
-	  // ppath and ppath2.
-	  ppath2.constant = geometrical_ppc( ppath2.pos(ilast,0), 
-                                                         ppath2.los(ilast,0) );
-	  ppath.constant  = ppath2.constant; 
-
-	  out3 << "  --- Recursive step to handle ground reflection -----\n"; 
-	}
-      else
-	{
-	  out3 << "  --- Recursive step to include tangent point --------\n"; 
-	}
+      out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       // Call this function recursively
       ppath_step_geom_2d( ppath2, atmosphere_dim, p_grid, lat_grid, z_field,
-			           r_geoid, z_ground, blackbody_ground, lmax );
+			                             r_geoid, z_ground, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 

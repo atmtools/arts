@@ -176,23 +176,13 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "e_ground_agenda" ),
+     ( NAME( "ground_refl_agenda" ),
        DESCRIPTION
        (
-	"Sets the workspace variable *e_ground* to match the assumptions \n"
-	"regarding the effective emissivity of the ground. \n"
-	"\n"
-	"A function calling this agenda shall set *a_pos* and *a_los* to \n"
-	"the position and LOS, respectively, for the ground reflection. \n"
-	"These variables can then be used to extract the emissivity from \n"
-	"a database for the given position and direction. \n"
-	"\n"
-	"Note that the agenda is ignored if *blackbody_ground* is set to 1.\n"
-	"\n"
-	"Usage:   Called from functions part of *rte_agenda*."
+	"To be written (PE)."
 	),
-       OUTPUT(  e_ground_ ),
-       INPUT(  f_grid_, a_pos_, a_los_ )));
+       OUTPUT( ground_emission_, ground_los_, ground_refl_coeffs_  ),
+       INPUT(  f_grid_, stokes_dim_, a_pos_, a_los_, r_geoid_, z_ground_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -228,7 +218,6 @@ void define_agenda_data()
 	),
        OUTPUT(),
        INPUT()));
-
  
   agenda_data.push_back
     (AgRecord
@@ -308,8 +297,7 @@ void define_agenda_data()
         "   lon_grid      : Longitude grid. \n"
         "   z_field       : Geometrical altitudes.\n"
         "   r_geoid       : Geoid radius. \n"
-        "   z_ground      : Altitude of the ground. \n"
-        "   blackbody_ground: Flag (1 if earth is treated as blackbody). \n"
+        "   z_ground      : Altitude of the ground. "
 	),
        OUTPUT(ppath_step_),
        INPUT(ppath_step_,
@@ -319,8 +307,7 @@ void define_agenda_data()
              lon_grid_,
              z_field_,
              r_geoid_,
-             z_ground_,
-             blackbody_ground_)));
+             z_ground_ )));
 
   agenda_data.push_back
     (AgRecord
@@ -404,23 +391,5 @@ void define_agenda_data()
        INPUT(  pha_mat_spt_, abs_vec_spt_, ext_mat_spt_, amp_mat_,
                scat_za_index_, scat_aa_index_,
                scat_za_grid_, scat_aa_grid_ )));
-
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "t_ground_agenda" ),
-       DESCRIPTION
-       (
-	"Sets the workspace variable *t_ground* to match the assumptions \n"
-	"regarding the effective emission temperature of the ground. \n"
-	"\n"
-	"A function calling this agenda shall set *a_pos* to the position \n"
-	"for the ground reflection. The WSV *a_pos* can then be used to \n"
-	"extract *t_ground* from a database, or to interpolate *t_field*.\n"
-	"\n"
-	"Usage:   Called from functions part of *rte_agenda*."
-	),
-       OUTPUT(  t_ground_ ),
-       INPUT(  a_pos_ )));
 
 }

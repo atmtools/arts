@@ -538,7 +538,6 @@ void chk_atm_surface(
     \param    p_grid       	 The pressure grid.
     \param    lat_grid     	 The latitude grid.
     \param    lon_grid           The longitude grid.
-    \param    blackbody_ground   Flag for treating the ground as a blackbody.
     \param    cloudbox_on        Flag to activate the cloud box.
     \param    cloudbox_limits    Index limits of the cloud box.
 
@@ -550,7 +549,6 @@ void chk_cloudbox(
 	ConstVectorView       p_grid,
 	ConstVectorView       lat_grid,
 	ConstVectorView       lon_grid,
-        const Index&          blackbody_ground,
         const Index&          cloudbox_on,    
         const ArrayOfIndex&   cloudbox_limits )
 {
@@ -564,14 +562,6 @@ void chk_cloudbox(
 	  os << "The array *cloudbox_limits* has incorrect length.\n"
 	     << "For dim = " << dim << " the length shall be " << dim*2
 	     << " but it is " << cloudbox_limits.nelem() << ".";
-	  throw runtime_error( os.str() );
-	}
-      if( !blackbody_ground && cloudbox_limits[0]!=0 )
-	{
-	  ostringstream os;
-	  os << "The lower pressure limit for cloud box must be 0 when the"
-             << "ground\nis not treated to be a blackbody, but the limit is"
-	     << "set to be " << cloudbox_limits[0] << ".";
 	  throw runtime_error( os.str() );
 	}
        if( cloudbox_limits[1]<=cloudbox_limits[0] || cloudbox_limits[0]<0 ||

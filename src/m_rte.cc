@@ -83,7 +83,6 @@ void RteCalc(
         const Tensor3&        z_field,
         const Matrix&         r_geoid,
         const Matrix&         z_ground,
-        const Index&          blackbody_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
         const Matrix&         sensor_pos,
@@ -153,10 +152,9 @@ void RteCalc(
 	}
     }
 
-  // Blackbody ground and cloud box
-  //
-  chk_if_bool(  "blackbody_ground", blackbody_ground );
-  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid, blackbody_ground, 
+  // Cloud box
+  //  
+  chk_cloudbox( atmosphere_dim, p_grid, lat_grid, lon_grid,
 		                                cloudbox_on, cloudbox_limits );
 
   // Frequency grid
@@ -249,7 +247,7 @@ void RteCalc(
 	      // Determine propagation path
 	      ppathCalc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
 		        p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground,
-			    blackbody_ground, cloudbox_on, cloudbox_limits, 
+			      cloudbox_on, cloudbox_limits, 
 			          sensor_pos(mblock_index,Range(joker)), los );
 
 	      // Execute the *rte_agenda*
@@ -287,13 +285,12 @@ void RteEmissionStd(
 	      Vector&         a_pos,
 	      Vector&         a_los,
               Matrix&         i_space,
-              Numeric&        t_ground,
-	      Matrix&         e_ground,
+              Matrix&         ground_emission, 
+              Matrix&         ground_los, 
+	      Tensor4&        ground_refl_coeffs,
         // WS Input:
 	const Agenda&         i_space_agenda,
-	const Agenda&         t_ground_agenda,
-	const Agenda&         e_ground_agenda,
-	const Index&          blackbody_ground,
+	const Agenda&         ground_refl_agenda,
 	const Ppath&          ppath,
         const Vector&         f_grid,
 	const Index&          stokes_dim,
@@ -310,11 +307,10 @@ void RteEmissionStd(
   const Index nf      = f_grid.nelem();
   const Index np      = ppath.np;
 
-  // Init i_rte to the radiative background (space, blackbody ground, ...)
-  set_to_radiative_background(
-                    i_rte, i_space, a_pos, a_los, t_ground, 
-                    i_space_agenda, t_ground_agenda, blackbody_ground, 
-                                                   ppath, f_grid, stokes_dim );
+  // Init i_rte to the radiative background (space, ...)
+  set_to_radiative_background( i_rte, i_space, a_pos, a_los, 
+                              ground_emission, ground_los, ground_refl_coeffs,
+               i_space_agenda, ground_refl_agenda, ppath, f_grid, stokes_dim );
 
   // If the number of propagation path points is 1, we are already ready,
   // the observed spectrum equals then the radiative background.
@@ -342,16 +338,6 @@ void RteEmissionStd(
       //
       for( Index ip=np-1; ip>0; ip-- )
 	{
-	  // A ground reflection at point ip?
-	  if( ppath.ground  &&  ppath.i_ground == ip )
-	    {
-	      ground_reflection_with_emission( 
-                       i_rte, t_ground, e_ground, a_pos, a_los, 
-                       t_ground_agenda, e_ground_agenda, blackbody_ground, 
-                                                   ppath, f_grid, stokes_dim );
-	    }
-	  
-
 	  // Consider absorption and emission from point ip to ip-1 for
 	  // all frequencies
 	  for( iv=0; iv<nf; iv++ )
