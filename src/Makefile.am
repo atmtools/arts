@@ -180,6 +180,8 @@ noinst_PROGRAMS = \
 	test_zeemanproperties
 
 test_binaryio_SOURCES = \
+	arts.cc \
+	arts.h \
 	absorption.cc \
 	absorption.h \
 	bifstream.h \
@@ -347,6 +349,8 @@ test_matpack_SOURCES = \
 	test_matpack.cc
 
 test_xml_SOURCES = \
+	arts.cc \
+	arts.h \
 	absorption.cc \
 	absorption.h \
 	bifstream.h \
