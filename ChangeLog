@@ -1,3 +1,14 @@
+2001-04-25  Oliver Lemke  <oliver@uni-bremen.de>
+
+	* arts-0-0-160
+
+	* configure.in, arts.spec.in: Added a spec file for rpm creation.
+	This would make the installation process for the release version
+	much easier and guarantees a clean deinstallation of arts.
+
+	I will added some more information about building arts rpms.
+
+
 2001-04-24  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-159

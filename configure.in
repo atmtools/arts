@@ -98,6 +98,7 @@ dnl         doc/doc++/html/Makefile
 dnl         doc/doc++/tex/Makefile 
 
 AC_OUTPUT( 
+arts.spec
 Makefile 
    ami/Makefile 
       ami/arts/Makefile
