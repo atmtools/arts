@@ -27,6 +27,5 @@ nelem =  nv * ns * nb * np * nr * nc;
 result = fscanf (fid, '%f', nelem);
 xmlCheckSize (nelem, size (result));
 
-%result = permute (reshape (result, [nc nr np nb ns nv]), [1 2 3 4 5 6]);
-result = reshape (result, [nc nr np nb ns nv]);
+result = permute (reshape (result, [nc nr np nb ns nv]), [6 5 4 3 2 1]);
 
