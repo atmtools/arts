@@ -71,7 +71,8 @@ struct Ppath {
   String    	    background;
   Index     	    ground;
   Index     	    i_ground;
-  Vector    	    tan_pos;
+  Vector            tan_pos;
+  Vector    	    geom_tan_pos;
   Index     	    symmetry;
   Index     	    i_symmetry;
 };

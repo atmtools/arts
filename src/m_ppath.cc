@@ -611,6 +611,8 @@ void PpathPrint(
     IndexPrint( ppath.i_symmetry, "i_symmetry" );
   if( ppath.tan_pos.nelem() )
     VectorPrint( ppath.tan_pos, "tan_pos" );
+  if( ppath.geom_tan_pos.nelem() )
+    VectorPrint( ppath.geom_tan_pos, "geom_tan_pos" );
   MatrixPrint( ppath.pos, "pos" );
   VectorPrint( ppath.z, "z" );
   VectorPrint( ppath.l_step, "l_step" );

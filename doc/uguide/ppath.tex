@@ -42,16 +42,18 @@
 %  \Lat           & \artsstyle{alpha} & latitude                             \\
 %  \Lon           & \artsstyle{beta}  & longitude                            \\
 %  \ZntAng        & \artsstyle{psi}   & zenith angle                         \\
-%  \AzmAng        & \artsstyle{omega} & azimuthal angle                      \\
+%  \AzmAng        & \artsstyle{omega} & azimuth angle                      \\
 % \label{symtable:ppath_defs}     
 %\stopsymbols
 
 
 A propagation path is the way the radiation travels to reach the
-sensor for a specified line-of-sight. This section describes how
-propagation paths are described and calculated. In addition, at the
-end of the section some geodetic issues are discussed, such as the
-choice of reference ellipsoid for the geoid.
+sensor for a specified line-of-sight. A general description of
+propagation paths is given in Section~\ref{sec:fm_defs:ppaths} and it
+can be a good idea to read that section before continuing here. This
+section describes how propagation paths are described and calculated.
+In addition, at the end of the section some geodetic issues are
+discussed, such as the choice of reference ellipsoid for the geoid.
 
 
 \levelb{Implementation files}
@@ -84,7 +86,7 @@ A full propagation path is stored in the workspace variable
 \wsvindex{ppath}, that is of the type \artsstyle{Ppath} (see next
 section). The paths are determined by calculating a number of path
 steps. A path step is the path from a point to the next crossing
-either the pressure, latitude or longitude grid. There is one
+of either the pressure, latitude or longitude grid. There is one
 exception to this definition of a path step, and that is when there
 is an intersection with a blackbody ground, which ends the propagation
 path at that point. The starting point for the calculation of a path
@@ -114,15 +116,16 @@ point is included in the returned structure.
 The path is determined by starting at the end point and moving
 backwards to the starting point. The calculations are initiated by
 filling \artsstyle{ppath\_step} with the practical end point of the
-path.  This is either the position of the sensor (true or
+path. This is either the position of the sensor (true or
 hypothetical), or some point at the top of the atmosphere (determined
 by geometrical calculations starting at the sensor). This
-initialisation is not handled by \artsstyle{ppath\_step\_agenda}. All
-fields of \artsstyle{ppath\_step} are set by
-\artsstyle{ppath\_step\_agenda}. The field \artsstyle{constant} is set
-to be negative by \wsfindex{ppathCalc} before calling
-\artsstyle{ppath\_step\_agenda} for the first time. It is set to the
-correct value by \artsstyle{ppath\_step\_agenda} at the first call.
+initialisation is not handled by \artsstyle{ppath\_step\_agenda}. 
+The field \artsstyle{constant} is set by \artsstyle{ppathCalc}
+to the correct value if the sensor is above the model atmosphere.
+Otherwise, the field is set to be negative and is corrected by
+\artsstyle{ppath\_step\_agenda} at the first call. This procedure is
+needed as the propagation path constant changes if refraction is
+considered, or not, when the sensor is placed inside the atmosphere.
 
 The agenda performs only calculations to next crossing of a grid, all
 other tasks are performed by \wsfindex{ppathCalc}, with one exception.
@@ -149,13 +152,11 @@ does not exceed a specified limit.
 %===================
 \label{sec:ppath:Ppath}
 
-The ARTS definition of a propagation path is given in
-Section~\ref{sec:fm_defs:ppaths}.  A propagation path is represented
-by a structure of type \structindex{Ppath}. This structure holds also
-auxiliary variables to facilitate the radiative transfer calculations
-and to speed up the interpolation (if performed). The fields of
-\artsstyle{Ppath}, where the data type is given inside square
-brackets, are:
+A propagation path is represented by a structure of type
+\structindex{Ppath}. This structure holds also auxiliary variables to
+facilitate the radiative transfer calculations and to speed up the
+interpolation (if performed). The fields of \artsstyle{Ppath}, where
+the data type is given inside square brackets, are:
 \begin{description}
 
   \item[dim] [Index] The atmospheric dimensionality. This field shall always 
@@ -166,10 +167,10 @@ brackets, are:
      and the length of \artsstyle{z}, \artsstyle{gp\_p},
      \artsstyle{gp\_lat} and \artsstyle{gp\_lon}, shall be equal to
      \artsstyle{np}. The length of \artsstyle{l\_step} is
-     \artsstyle{np} - 1 as the number of radiative transfer steps along
-     the path is this number. If \artsstyle{np} $\leq$ 1, the observed
+     \artsstyle{np} - 1. If \artsstyle{np} $\leq$ 1, the observed
      spectrum is identical to the radiative background. For cases
      where the sensor is placed inside the model atmosphere and
+
      \artsstyle{np} = 1, the stored position is identical to the sensor
      position and that position can be used to determinate the radiative
      background (see below).
@@ -184,11 +185,11 @@ brackets, are:
    \item[constant] [Numeric] The propagation path constant. Such a
      constant can be assigned to all geometrical paths and for 1D
      cases (with or without refraction). See
-     Sections~\ref{sec:ppath:basicgeom} and [**]. This field shall be
+     Sections~\ref{sec:ppath:basicgeom} and [**]. This field can be
      initiated to a negative value to indicate that the constant is
      undefined or not yet set. For cases where the constant applies,
-     \wsvindex{ppath\_step\_agenda} sets this constant is set
-     at the first call of the agenda.
+     \wsvindex{ppath\_step\_agenda} sets this constant at the first
+     call of the agenda if the given value is negative.
 
    \item[pos] [Matrix] The position of the propagation path points.
      This matrix has \artsstyle{np} rows and up to 3 columns. Each row
@@ -230,8 +231,8 @@ brackets, are:
    \item[los] [Matrix] The line-of-sight of the propagation path at
      each point. The number of rows of the matrix is \artsstyle{np}.
      For 1D and 2D, the matrix has a single column holding the zenith
-     angle. For 3D there is an additional column giving the azimuthal
-     angle. The zenith and azimuthal angles are defined in
+     angle. For 3D there is an additional column giving the azimuth
+     angle. The zenith and azimuth angles are defined in
      Section~\ref{sec:fm_defs:los}. If the radiative background is the
      cloud box, the last position (in \artsstyle{pos}) and
      line-of-sight give the relevant information needed when
@@ -239,7 +240,7 @@ brackets, are:
      field.
      
    \item[background] [String] The radiative background for the
-     propagation path, that is, [**] in Equation~[**]. The possible
+     propagation path. The possible
      options for this field are 'space', 'blackbody ground', 'cloud
      box interior' and 'cloud box surface', where the source of
      radiation should be clear the content of the strings.
@@ -252,18 +253,24 @@ brackets, are:
      Undefined if \artsstyle{ground} = 0. Row \artsstyle{i\_ground} of
      \artsstyle{pos} gives the position of the ground reflection, which
      is needed for determining the ground emissivity for 2D and 3D cases.
-
-  \item[tan\_pos] [Vector] The position of the tangent point. This vector is
-      only set if there exists a tangent point, the length of the vector is
-      otherwise 0. 
      
-   \item[symmetry] [Index] A boolean to indicate that the atmospheric
-     conditions are symmetric around some point. This will the case
-     for 1D and downward observations. This boolean shows only that a
-     symmetry point exists, it will not affect the later calculations.
-     To make use of the symmetry on the radiative transfer
-     calculations (see Section~[**]), the workspace variable [**] must
-     be set to 1. 
+   \item[tan\_pos] [Vector] The position of the tangent point. This
+     vector is only set if there exists a tangent point (above the
+     ground level), the length of the vector is otherwise 0.
+     
+   \item[geom\_tan\_pos] [Vector] The position of the geometrical
+     tangent point. This vector is set for all downward observations.
+     Refraction and ground reflections are neglected when calculating
+     this tangent point position. This field is not covered by
+     \artsstyle{ppath\_step\_agenda}.
+     
+    \item[symmetry] [Index] A boolean to indicate that the atmospheric
+      conditions are symmetric around some point. This will the case
+      for 1D and downward observations. This boolean shows only that a
+      symmetry point exists, it will not affect the later
+      calculations.  To make use of the symmetry on the radiative
+      transfer calculations, the workspace variable [* to be defined
+      *] must be set to 1.
 
    \item[i\_symmetry] [Index] The index of the symmetry point if 
      \artsstyle{symmetry}=1. Otherwise undefined.
@@ -281,7 +288,7 @@ This section gives some expressions to determine positions along a
 propagation path when refraction is neglected. The expressions deal
 only with propagation path inside a plane, where the latitude angle is
 the angular distance from an arbitrary point. This means that the
-expressions given here can be directly applied for 1D and 2D, but for
+expressions given here can be directly applied for 1D and 2D, but not for
 3D. The ARTS function for making the calculation of concern is given
 inside parenthesis above each equation, if not stated explicitly. A
 part of a geometrical propagation path is shown in
@@ -304,7 +311,7 @@ Figure~\ref{fig:ppath:1d2dgeom}.
 \end{figure}   
 
 The law of sines gives that the product must $\Rds\sin(\ZntAng)$ be
-constant along the propagation path (cf. Equation~[**]):
+constant along the propagation path:
 \begin{equation}
   p_c = \Rds\sin(\ZntAng)
   \label{eq:ppath:geomconst}
@@ -334,10 +341,11 @@ expressions for the geometrical factor are
   \label{eq:ppath:g_geom}
 \end{equation}
 For the radiative transfer calculations, only the distance between the
-points, $\Delta \PpathLng$, is of interest. However, internally for
-the propagation path calculations the length from the tangent
-point (real or imaginary), \PpathLng, is used. By integrating
-Equation~\ref{eq:ppath:g_geom}, we get that (\funcindex{geomppath\_l\_at\_r})
+points, $\Delta \PpathLng$, is of interest, but for the internal
+propagation path calculations the length from the tangent point (real
+or imaginary), \PpathLng, is used. By integrating
+Equation~\ref{eq:ppath:g_geom}, we get that
+(\funcindex{geomppath\_l\_at\_r})
 \begin{equation}
   \PpathLng(\Rds) = \sqrt{\Rds^2-p_c^2} 
   \label{eq:ppath:r2l}
@@ -357,7 +365,7 @@ The radius for a given \PpathLng\ is simply (\funcindex{geomppath\_r\_at\_l})
 \end{equation}
 The zenith angle for a given radius is (\funcindex{geomppath\_za\_at\_r})
 \begin{equation}
-  \Lat(\ZntAng) = \left\{
+  \ZntAng(\Rds) = \left\{
    \begin{array}{ll}
     180 - \sin^{-1}(p_c/\Rds) & 
                    \textrm{for}\quad 90\degree < \aZntAng{a} \leq 180\degree\\
@@ -384,7 +392,7 @@ The latitude for a point is most easily determined by its zenith angle
 where \aZntAng{0} and \aLat{0} are the zenith angle and latitude of some 
 other point of the path. Equation~\ref{eq:ppath:za2lat} is based on the 
 fact that the quantities \aZntAng{1}, \aZntAng{2} and $\Delta\Lat$
-fulfill the relationship
+fulfil the relationship
 \begin{equation}
   \Delta\Lat = \aZntAng{1} - \aZntAng{2},
 \end{equation}
@@ -433,7 +441,7 @@ The limited numerical accuracy requires some care when setting the
 grid positions. First of all, rounding errors can give a fractional
 distance $< 0$ or $> 1$ and this must be avoided. The function
 \funcindex{gridpos\_check\_fd} was created for this purpose, and
-should be called for each grid position to set. This function just
+should be called for each grid position. This function just
 sets all values below 0 to 0 and all value above 1 to 1. In addition,
 the grid position for the end point of a path step (beside when there
 is an intersection with a blackbody ground) must have a fractional
@@ -451,7 +459,7 @@ a position is exactly on top of a grid point, the observation
 direction determines the interesting grid range. As an help to resolve
 these question there is the function \funcindex{gridpos2gridrange}.
 This function takes an argument describing the direction of the
-line-of-sight with respect to the grids, the argument shall be set to
+line-of-sight with respect to the grids. This argument shall be set to
 1 if the viewing direction is towards higher indexes. The direction
 argument can be set with the following logical expressions, for the
 different combinations of atmospheric dimensionality and grid of
@@ -470,7 +478,7 @@ interest:
 %===================
 \label{sec:ppath:1Dwithout}
 
-The calculations are outlined in Algorith~\ref{alg:ppath:1Dgeom}. The
+The calculations are outlined in Algorithm~\ref{alg:ppath:1Dgeom}. The
 basic problem is to determine the end and turning radii for the
 propagation path. When these radii are determined, it is
 straightforward to determine the quantities to be included in the
@@ -613,7 +621,7 @@ where \aRds{ns} and \aRds{ew} are the north-south and east-west curvature radius
  \label{eq:ppath:rew} 
 \end{eqnarray}
 The azimuth angle, \AzmAng, is defined in
-Section~\ref{sec:fm_defs:los}. The latitude and azimuthal angle to
+Section~\ref{sec:fm_defs:los}. The latitude and azimuth angle to
 apply in Equations \ref{eq:ppath:curvradius}~-~\ref{eq:ppath:rew}
 shall rather be valid for a middle point of the propagation paths
 (such as some tangent point), instead of the sensor position. 

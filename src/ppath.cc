@@ -209,6 +209,7 @@ Numeric geompath_r_at_l(
 
 
 
+
 /*===========================================================================
   === Functions related to slope and tilt of the ground and pressure surfaces
   ===========================================================================*/
@@ -619,6 +620,15 @@ void ppath_start_stepping(
 	  throw runtime_error(os.str());
 	}
 
+      // If downwards, calculate geometrical tangent position
+      Vector geom_tan_pos(0);
+      if( a_los[0] >= 90 )
+	{
+	  geom_tan_pos.resize(2);
+	  geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
+	  geompath_lat_at_za( geom_tan_pos[1], a_pos[1], 90 );
+	}
+
       // The sensor is inside the model atmosphere, 1D ------------------------
       if( a_pos[0] < r_top )
 	{
@@ -663,11 +673,17 @@ void ppath_start_stepping(
       // The sensor is outside the model atmosphere, 1D -----------------------
       else
 	{
-	  // Radius of tangent point
-	  const Numeric r_tan = geometrical_ppc( a_pos[0], a_los[0] );
+	  // Upward observations are not allowed here
+	  if( fabs(a_los[0]) <= 90 )
+	      throw runtime_error("When the sensor is placed outside the model"
+                         " atmosphere, upward observations are not allowed." );
+
+	  // We can here set the path constant, that equals the radius of the
+	  // geometrical tangent point.
+	  ppath.constant = geom_tan_pos[0];
  
 	  // Path is above the atmosphere
-	  if( a_los[0] <= 90  ||  r_tan  >= r_top )
+	  if( a_los[0] <= 90  ||  ppath.constant  >= r_top )
 	    {
 	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
@@ -678,7 +694,8 @@ void ppath_start_stepping(
 	    {
 	      ppath.z[0]     = z_field(np-1,0,0);
               ppath.pos(0,0) = r_top;
-	      ppath.los(0,0) = geompath_za_at_r( r_tan, a_los[0], r_top );
+	      ppath.los(0,0) = geompath_za_at_r( ppath.constant, a_los[0], 
+                                                                       r_top );
 	      ppath.pos(0,1) = geompath_lat_at_za( a_los[0], 0, 
                                                               ppath.los(0,0) );
 	    }
@@ -687,6 +704,13 @@ void ppath_start_stepping(
       // Get grid position for the end point, if there is one.
       if( ppath.np == 1 )
 	{ gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z ); }
+
+      // Set geometrical tangent point position
+      if( geom_tan_pos.nelem() == 2 )
+	{
+	  ppath.geom_tan_pos.resize(2);
+	  ppath.geom_tan_pos = geom_tan_pos;
+	}
 
     }  // End 1D
 
@@ -725,6 +749,17 @@ void ppath_start_stepping(
 	    { is_inside = 1; }
 	}
 
+      // If downwards, calculate geometrical tangent position
+      Vector geom_tan_pos(0);
+      if( a_los[0] >= 90 )
+	{
+	  geom_tan_pos.resize(2);
+	  geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
+	  if( a_los[0] > 0 )
+	    { geompath_lat_at_za( geom_tan_pos[1], a_pos[1], 90 ); }
+	  else
+	    { geompath_lat_at_za( geom_tan_pos[1], a_pos[1], -90 ); }
+	}
 
       // The sensor is inside the model atmosphere, 2D ------------------------
       if( is_inside )
@@ -836,31 +871,45 @@ void ppath_start_stepping(
 	{
 	  // Upward observations are not allowed here
 	  if( fabs(a_los[0]) <= 90 )
-	      throw runtime_error("For 2D with the sensor outside the model "
-                          "atmosphere, upward observations are not allowed." );
+	      throw runtime_error("When the sensor is placed outside the model"
+                         " atmosphere, upward observations are not allowed." );
 	  
-	  // Handle cases when the sensor appears to look the wrong way
-         if( ( a_pos[1] <= lat_grid[0]  &&  a_los[0] <= 0 )  || 
-	                    ( a_pos[1] >= last(lat_grid)  &&  a_los[0] >= 0 ) )
-	   {
-	     ostringstream os;
-	     os << "The sensor is outside (or at the limit) of the defined "
-		<< "atmosphere but looks in the wrong\ndirection (wrong sign "
-		<< "for the zenith angle?).\nThis case includes nadir "
-                << "looking exactly at the latitude end points.";
-	     throw runtime_error( os.str() );
-	   }
+	  // We can here set the path constant, that equals the radius of the
+	  // geometrical tangent point.
+	  ppath.constant = geom_tan_pos[0];
 
-	 // Determine position of the geometrical tangent point
- 	 Numeric r_tan = geometrical_ppc( a_pos[0], a_los[0] );
-	 Numeric lat_tan;
-	 if( a_los[0] > 0 )
-	   { geompath_lat_at_za( a_los[0], a_pos[1], 90 ); }
-	 else
-	   { geompath_lat_at_za( a_los[0], a_pos[1], -90 ); }
+	  // Handle cases when the sensor appears to look the wrong way
+	  if( ( a_pos[1] <= lat_grid[0]  &&  a_los[0] <= 0 )  || 
+	                    ( a_pos[1] >= last(lat_grid)  &&  a_los[0] >= 0 ) )
+	    {
+	      ostringstream os;
+	      os << "The sensor is outside (or at the limit) of the defined "
+		 << "atmosphere but looks in the wrong\ndirection (wrong sign "
+		 << "for the zenith angle?).\nThis case includes nadir "
+		 << "looking exactly at the latitude end points.";
+	      throw runtime_error( os.str() );
+	    }
+	  
+	 
+
+	 
 	 
 
 	}      
+
+      // Get grid position for the end point, if there is one.
+      if( ppath.np == 1 )
+	{ 
+	  gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z ); 
+	  gridpos( ppath.gp_lat, lat_grid, ppath.pos(Range(joker),1) ); 
+	}
+
+      // Set geometrical tangent point position
+      if( geom_tan_pos.nelem() == 2 )
+	{
+	  ppath.geom_tan_pos.resize(2);
+	  ppath.geom_tan_pos = geom_tan_pos;
+	}
 
     }  // End 2D
 

@@ -1,3 +1,16 @@
+2002-06-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-115
+
+	* src/ppath.cc: Just some small steps forward for 2D. Status basically
+	as for last commit from me.
+
+	* doc/uguide/fm_definitions.tex: Polished the text. I happen to do this
+	on the same time as Christian did his changes below and this caused
+	a number of conflicts when updating. I hope that I managed to keep yout
+	changes Christian. 
+
+	* doc/uguide/ppath.tex: Polished the text. Conflicts as above.
 
 2002-06-04  Christian Melsheimer  <melsheimer@uni-bremen.de>
 
@@ -53,7 +66,6 @@
 	* doc/uguide/scattering.tex: Started to write about 1D scattering 
 	calculations.
 
->>>>>>> 1.479
 2002-06-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-111
