@@ -1067,18 +1067,6 @@ algorithms.\footnote{The expressions mentioned can be extracted from
 %===================
 \label{sec:ppath:refreuler}
 
-Refraction affects the radiative transfer in several ways. The
-distance through a layer of a fixed vertical thickness will be
-changed, and for a limb sounding observation the tangent point is
-moved both vertically and horizontally. If the atmosphere is assumed
-to be horizontally stratified (1D), a horizontal displacement is of no
-importance but for 2D and 3D calculations this effect must be
-considered. For limb sounding and a fixed zenith angle, the tangent
-point is moved downwards compared to the pure geometrical case
-(Figure~\ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
-refraction in general gives higher intensities. However, the LOS is
-still symmetric around tangent and ground points.
-
 \begin{figure}[!t]
  \begin{center}
   \includegraphics*[width=0.80\hsize]{Figs/ppath/ppath_refr1}
@@ -1095,8 +1083,19 @@ still symmetric around tangent and ground points.
 \end{figure}
 % This figure was produced by the Matlab function mkfigs_refraction
 
+Refraction affects the radiative transfer in several ways. The
+distance through a layer of a fixed vertical thickness will be
+changed, and for a limb sounding observation the tangent point is
+moved both vertically and horizontally. If the atmosphere is assumed
+to be horizontally stratified (1D), a horizontal displacement is of no
+importance but for 2D and 3D calculations this effect must be
+considered. For limb sounding and a fixed zenith angle, the tangent
+point is moved downwards compared to the pure geometrical case
+(Figure~\ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
+refraction in general gives higher intensities. However, the LOS is
+still symmetric around tangent and ground points.
 
-The refraction gives a bending of the path, which gives a deviation
+The refraction causes a bending of the path, which gives a deviation
 from the geometrical approximation of propagation along a straight
 line. The bending of the path is 
 \begin{equation}
@@ -1108,26 +1107,51 @@ path, $n$ the refractive index, and $y$ is the coordinate
 perpendicular to the path. See further Section~9.4 in
 \citet{rodgers:00}.
 
-The workspace method \wsmindex{ppath\_stepRefractionEuler} solves the
-problem of considering refraction in probably the most simple way
-possible, from the viewpoint of implementation. This does not mean
+\begin{figure}[!t]
+ \begin{center}
+  \includegraphics*{Figs/ppath/euler}
+  \caption{Schematic of the Euler ray tracing scheme. The ray tracing step 
+    length is $l_r$. }
+  \label{fig:ppath:euler}  
+ \end{center}
+\end{figure}
+
+The workspace method \wsmindex{ppath\_stepRefractionEuler} takes
+refraction into consideration by probably the most simple (from the
+viewpoint of implementation) algorithm possible. This does not mean
 that it is the best way to consider refraction, it is rather
-inefficient regarding computational burden, and if the step length
-for ray tracing (see below) is made very small, the result can be
+inefficient regarding computational burden, and if the step length for
+the ray tracing (see below) is made very small, the result can be
 completely wrong due to numerical problems.
 
 The approach taken in \artsstyle{ppath\_stepRefractionEuler} is to
 take a geometrical step from the present point of the path (and in the
-direction of present line-of-sight) to determine the position of next
-point to describe the path. Refraction is considered only when the
-line-of-sight at the new point is determined (Figure~[**]). The found
-line-of-sight is used to calculate path step etc. This can be seen as
-an Euler solution to the differential problem given by
+direction of present line-of-sight) to determine the position of the
+next point to describe the path. Refraction is considered only when
+the line-of-sight at the new point is determined (Figure~[**]). The
+found line-of-sight is used to calculate path step etc. This can be
+seen as an Euler solution to the differential problem given by
 Equation~\ref{eq:ppath:refrbend}. The main difference between handling
 1D, 2D or 3D cases is how the line-of-sight for the new point is
-corrected to compensate for the bending due to refraction.
+corrected to compensate for the bending due to refraction. The
+calculation of propagation paths including the effect of refraction is
+often denoted as \textindex{ray tracing}.
 
-[* Comment ray tracing step length *]
+The length of the calculation steps is set by the keyword
+\artsstyle{lraytrace}. This length shall not be confused with the
+final distance between the points that define the path, which is
+controlled by the keyword \artsstyle{lmax}. The path is first
+determined in steps of \artsstyle{lraytrace}. The found ray tracing
+points are then used for an interpolation to create a path step
+defined exactly as for geometrical calculations. The normal situation
+is that the ray tracing step length is considerably shorter than the
+final spacing between the path points. Suitable values for
+\artsstyle{lraytrace} have not yet been investigated in detail, but
+for limb sounding values in around 1~-~10~km should be appropriate.
+Shorter ray tracing steps (down to a level where rounding errors will
+start to have an impact) will of course give a propagation path more
+accurately determined, but on the cost of more time consuming
+calculations.
 
 
 \levelc{1D}
@@ -1162,8 +1186,8 @@ atmosphere (that is, 1D cases) is derived
 \end{equation}
 where $c$ is a constant. With other words, the Snell's law for
 spherical atmospheres states that the product of $n$, \Rds\ and
-$\sin(\ZntAng)$ is constant along the LOS. It is noteworthy that with
-$n=1$, Equations~\ref{eq:ppath:geomconst} and
+$\sin(\ZntAng)$ is constant along the propagation path. It is
+noteworthy that with $n=1$, Equations~\ref{eq:ppath:geomconst} and
 \ref{eq:ppath:snellspherical} are identical.
 
 The Snell's law for a spherical atmosphere makes it very easy to
@@ -1175,16 +1199,15 @@ rearrangement of Equation~\ref{eq:ppath:snellspherical} gives
 \end{equation}
 This relationship makes it possible to handle refraction for 1D
 without calculating any gradients of the refractive index, which is
-the case for 2D and 3D. These calculations are implemented in
+needed for 2D and 3D. These calculations are implemented in
 the function \funcindex{raytrace\_1d\_linear\_euler}.
 
 
 \levelc{2D}
 \label{sec:ppath:refr2D}
 %-----------------------
-It can be shown that the vertical and horisontal gradients of the
-refractive index affects the sum of the zenith angle and the latitude
-\citet[Eq. 9.30]{rodgers:00}:
+Equation~\ref{eq:ppath:refrbend} expressed in polar coordinates
+is \citep[Eq. 9.30]{rodgers:00}
 \begin{equation}
   \frac{\DiffD(\Lat+\ZntAng)}{\DiffD l} = 
     -\frac{\sin\ZntAng}{n} \left( \frac{\PartD n}{\PartD \Rds} \right)_\Lat
@@ -1193,21 +1216,57 @@ refractive index affects the sum of the zenith angle and the latitude
 \end{equation}
 If the gradients are zero (corresponding to the geometrical case) we
 find that the sum of the zenith angle and the latitude is constant
-along a geometrical path, which is already noticed by
+along a 2D geometrical path, which is also made clear by
 Equation~\ref{eq:ppath:za2lat}.
 
 This fact is used when calculating the the zenith angle at the
-position found after a ray tracing step. The latitude of the found
+position after a ray tracing step. The latitude of the found
 point is kept, and the influence of refraction is considered to only
-influence the zenith angle. The zenith angle obtained by the
-geometrical calculations, \aZntAng{g}, is corrected as  
+influence the zenith angle:
+\begin{equation}
+  \aZntAng{i+1} = \aZntAng{i} - (\aLat{i+1}-\aLat{i}) + \frac{l_g}{n_i}
+   \left[
+    -\sin\aZntAng{i} \left( \frac{\PartD n}{\PartD \Rds} \right)_{\aLat{i}}
+    +\frac{\cos\aZntAng{i}}{\aRds{i}} 
+                \left( \frac{\PartD n}{\PartD \Lat} \right)_{\aRds{i}}
+  \right]  
+  \label{eq:ppath:za2d}
+\end{equation}
+This expression is found in \funcindex{raytrace\_2d\_linear\_euler}.
+The term including the gradients of the refractive index can be seen
+as a correction to the zenith angle that would have been obtained
+if refraction had been neglected.
 
-
-\funcindex{raytrace\_2d\_linear\_euler}
 
 \levelc{3D}
 \label{sec:ppath:refr3D}
-%-----------------------
+%----------------------
+For 3D, the expressions of Section~\ref{sec:ppath:3Dgeom} are used to
+calculate the geometrical zenith and azimuth angles at the end of the
+ray tracing step. To these angles, \aZntAng{g} and \aAzmAng{g},:
+
+\begin{eqnarray}
+  \aZntAng{i+1} &=& \aZntAng{g} - \frac{l_g\sin\aZntAng{i}}{n_i} 
+     \left( \frac{\PartD n}{\PartD \Rds} \right)_{(\aLat{i},\aLon{i})} + \\
+     & &  + \frac{l_g\cos\aZntAng{i}}{n_i}
+   \left[
+     \cos\aAzmAng{i} 
+          \left( \frac{\PartD n}{\PartD \Lat} \right)_{(\aRds{i},\aLon{i})}
+    +\sin\aAzmAng{i} 
+          \left( \frac{\PartD n}{\PartD \Lon} \right)_{(\aRds{i},\aLat{i})}
+  \right]  \nonumber
+  \label{eq:ppath:za3d} 
+\end{eqnarray}
+%  \aAzmAng{i+1} &=& \aAzmAng{g} + \frac{l_g}{n_i} \sin\aZntAng{i} 
+%   \left[
+%    -\sin\aAzmAng{i} 
+%          \left( \frac{\PartD n}{\PartD \Lat} \right)_{(\aRds{i},\aLon{i})}
+%    +\cos\aAzmAng{i} 
+%          \left( \frac{\PartD n}{\PartD \Lon} \right)_{(\aRds{i},\aLat{i})}
+%  \right]  
+%  \label{eq:ppath:aa3d} 
+%\end{eqnarray}
+
 
 \funcindex{raytrace\_3d\_linear\_euler}
 

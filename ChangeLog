@@ -1,3 +1,22 @@
+2003-03-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-489
+
+	* doc/uguide/ppath.tex: Continued writing on refrcation. 1D and 2D
+	finished. Must check expressions for 3D. I have missed some scaling
+	terms. Added a figure: euler.pdf
+
+	* src/ppath.cc (raytrace_3d_linear_euler): There was an inconsistency
+	regarding the values used to adjust LOS angles. Radius, lat and lon
+	were taken from the start of the ray tracing step, while za and aa
+	were taken from the end point.
+
+	There are similar mistakes as for 2D mentioned below, and for the
+	moment there will be an error if you attempt to use this function.
+
+	(raytrace_2d_linear_euler): The division with the radius was missing
+	for the term including the latitude gradient of the refractive index.
+
 2003-03-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-488	

@@ -4150,6 +4150,8 @@ void raytrace_2d_linear_euler(
   // Loop boolean
   bool ready = false;
 
+  throw runtime_error("3D with refraction is not yet working.");
+
   // Variables for output from do_gridcell_2d
   Vector   r_v, lat_v, za_v;
   double   lstep, dlat = 9999, r_new, lat_new;
@@ -4221,7 +4223,7 @@ void raytrace_2d_linear_euler(
           agenda_verb = 1;
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
-                                                        cos(za_rad) * dndlat );
+                                                    cos(za_rad) * dndlat / r );
 
           // Make sure that obtained *za* is inside valid range
           if( za < -180 )
@@ -4367,8 +4369,8 @@ void raytrace_3d_linear_euler(
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
-  double    r_new, lat_new, lon_new;
-  double   lstep;
+  double    r_new, lat_new, lon_new, za_new, aa_new;
+  double    lstep;
   Index     agenda_verb = 0;
 
   while( !ready )
@@ -4397,14 +4399,14 @@ void raytrace_3d_linear_euler(
           r_new   = r_v[1];
           lat_new = lat_v[1];
           lon_new = lon_v[1];
-          za      = za_v[1];
-          aa      = aa_v[1];
+          za_new  = za_v[1];
+          aa_new  = aa_v[1];
           ready   = true;
         }
       else
         {
           // Sensor pos and LOS in cartesian coordinates
-          double   x, y, z, dx, dy, dz, za_new, aa_new;
+          double   x, y, z, dx, dy, dz;
           poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
 
           lstep = lraytrace;
@@ -4433,9 +4435,6 @@ void raytrace_3d_linear_euler(
 
           // Shall lon values be shifted?
           resolve_lon( lon_new, lon5, lon6 );
-
-          za = za_new;
-          aa = aa_new;
         }
 
       // Calculate LOS zenith angle at found point.
@@ -4445,7 +4444,7 @@ void raytrace_3d_linear_euler(
           // then the curvature of this ray tracing step, but we don't care
           // about this for simplicity. This point has been flagged as the
           // the tangent point and we treat it then it that way.
-          za = 90; 
+          za_new = 90; 
         }
       else
         {
@@ -4468,33 +4467,35 @@ void raytrace_3d_linear_euler(
 
 
           if( za < ANGTOL  ||  za > 180-ANGTOL )
-            { aa = RAD2DEG * atan2( dndlon, dndlat); }
+            { 
+              za_new += aterm * ( cos(za_rad) * 
+                                       ( cosaa * dndlat + sinaa * dndlon ) );
+              aa_new = RAD2DEG * atan2( dndlon, dndlat); 
+            }
           else
-            { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
+            { 
+              za_new += aterm * ( -sinza * dndr + cos(za_rad) * 
+                                       ( cosaa * dndlat + sinaa * dndlon ) );
+              aa_new += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); 
+            }
           
-          // Make sure that obtained *aa* is inside valid range
-          if( aa > 180 )
-            { aa -= 360; }
-          else if( aa < -180 )
-            { aa += 360; }
-
-          if( za != 0  &&  abs( za ) != 180 )
-            { za += aterm * ( -sinza * dndr + cos(za_rad) * 
-                                       ( cosaa * dndlat + sinaa * dndlon ) ); }
-          else
-            { za += aterm * ( cos(za_rad) * 
-                                       ( cosaa * dndlat + sinaa * dndlon ) ); }
-          
-          // Make sure that obtained *za* is inside valid range
-          if( za > 180 )
-            { za = 180 - za; }
-          else if( za < 0 )
-            { za = -za; }
+          // Make sure that obtained angles are inside valid ranges
+          if( za_new > 180 )
+            { za_new = 180 - za_new; }
+          else if( za_new < 0 )
+            { za_new = -za_new; }
+          //
+          if( aa_new > 180 )
+            { aa_new -= 360; }
+          else if( aa_new < -180 )
+            { aa_new += 360; }
         }
 
       r   = r_new;
       lat = lat_new;
       lon = lon_new;
+      za  = za_new;
+      aa  = aa_new;
 
       // If the path is north-south along a longitude end face, we
       // must check that the path does not exit with new *aa*.
