@@ -1,3 +1,13 @@
+2002-02-24  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-14
+
+	* src/los.cc: Further work on the propagation path calculations. No
+	comments here, it will be described in AUG. 
+
+	* Started on 2D but that code exists only so far as matlab functions 
+	not included here.
+
 2002-02-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-13

@@ -2,7 +2,7 @@
 Outline of interpolation functions:
 
 There are two types of interpolations that we want to do:
-1. Interpolation of some field at a set of points, for example, along the LOS.
+1. Interpolation of some field at a set of points, for example, along the PPATH.
 2. To interpolate an input field to the calculation grids used, for example,
    to determine the temperatures at the pressure and latitude grid selected
    from a climatology. The interpolation is here done for all grid crossings.
@@ -33,12 +33,12 @@ functions can be made, and these are called interp_1D, interp_2D, interp_3D.
 The output of these functions are throughout a vector, where the length equals
 the number of positions for which interpolation is performed. For example,
 the function interp_3D can be used to interpolate the temperature field
-(stored as a Tensor3) to the LOS. 
+(stored as a Tensor3) to the PPATH. 
   On the other hand, there are cases when the interpolation is not performed 
 along all dimensions. A typical example is interpolation of the absorption
-tensor to get the absorption at the points along the LOS, where no 
+tensor to get the absorption at the points along the PPATH, where no 
 interpolation is made in the frequency dimension. For such interpolation cases
-special functions will be made (e.g. interp_abs2los). To make general 
+special functions will be made (e.g. interp_abs2ppath). To make general 
 functions would be too messy and inefficient.
   Both for the general and special cases, the interpolation functions adapt
 automatically to the present dimensionality of the simulations. For example, 
@@ -57,6 +57,18 @@ simulations (as above).
 */
 
 
+/*
+Names and symbols:
+
+pressure        : p
+altitude        : z
+latitude        : alpha
+longitude       : beta
+zenith angle    : psi
+azimuthal angle : omega
+
+*/
+
 #include <math.h>
 #include "arts.h"
 #include "matpackI.h"
@@ -68,24 +80,194 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric EARTH_RADIUS;
 
-struct LOS {
+
+struct Ppath {
   Index     dim;
   Index     np;
   Index     i_start;
   Index     i_stop;
-  Vector    p;
+  Matrix    pos;
+  Matrix    ip_pos;
   Vector    z;
-  Vector    ip_p;
-  Vector    lat;
-  Vector    ip_lat;
-  Vector    lon;
-  Vector    ip_lon;
   Vector    l_step;
+  Matrix    los;
   Index     background;
   Index     ground;
   Index     i_ground;
+  Vector    tan_pos;
 };
 
+
+
+Index is_bool( 
+        const Index&    x )
+{
+  return ( x==0 || x==1 );
+}
+
+
+
+void chk_if_bool( 
+        const String&   x_name,
+        const Index&    x )
+{
+  if ( !is_bool(x) )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must be a boolean (0 or 1).\n" 
+	 << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+void chk_if_in_range( 
+	const String&   x_name,
+        const Index&    x, 
+        const Index&   x_low, 
+        const Index&   x_high )
+{
+  if ( (x<x_low) || (x>x_high) )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must fulfill:\n"
+	 << "   " << x_low << " <= " << x_name << " <= " << x_high << "\n" 
+	 << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+void chk_if_over_0( 
+	const String&    x_name,
+        const Numeric&   x ) 
+{
+  if ( x <= 0 )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must exceed 0.\n"
+	 << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+void chk_if_in_range( 
+	const String&    x_name,
+        const Numeric&   x, 
+        const Numeric&   x_low, 
+        const Numeric&   x_high )
+{
+  if ( (x<x_low) || (x>x_high) )
+    {
+      ostringstream os;
+      os << "The variable *" << x_name <<  "* must fulfill:\n"
+	 << "   " << x_low << " <= " << x_name << " <= " << x_high << "\n" 
+	 << "The present value of *"<< x_name <<  "* is " << x << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+void chk_vector_length( 
+	const String&   x_name,
+        const Vector&   x, 
+        const Index&    l ) 
+{
+  if ( x.nelem() != l )
+    {
+      ostringstream os;
+      os << "The vector *" << x_name <<  "* must have the length " << l 
+         << ".\n" 
+         << "The present length of *"<< x_name <<  "* is " << x.nelem() << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+void chk_vector_length( 
+	const String&   x1_name,
+	const String&   x2_name,
+        const Vector&   x1, 
+        const Vector&   x2 ) 
+{
+  if ( x1.nelem() != x2.nelem() )
+    {
+      ostringstream os;
+      os << "The vectors *" << x1_name <<  "* and *" << x1_name 
+         <<  "* must have the same length.\n"
+         << "The length of *"<< x1_name <<  "* is " << x1.nelem() << ".\n"
+         << "The length of *"<< x2_name <<  "* is " << x2.nelem() << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+
+
+void chk_atm_grids( 
+	const Index&      dim,
+	ConstVectorView   p_grid,
+	ConstVectorView   alpha_grid,
+	ConstVectorView   beta_grid )
+{
+  if( p_grid.nelem() < 2 )
+    throw runtime_error( "The length of *p_grid* must be >= 2." );
+  if( dim>1 & alpha_grid.nelem() < 2 )
+    throw runtime_error("For dim>1, the length of *alpha_grid* must be >=2.");
+  if( dim==3 & beta_grid.nelem() < 2 )
+    throw runtime_error("For dim=3, the length of *beta_grid* must be >=2.");
+  if( dim == 1 )
+    if( alpha_grid.nelem() != 0 )
+      throw runtime_error("For dim=1, the length of *alpha_grid* must be 0." );
+  if( dim < 3 )
+    if( beta_grid.nelem() != 0 )
+      throw runtime_error("For dim<3, the length of *beta_grid* must be 0." );
+}
+
+void chk_atm_field( 
+	const String&     x_name,
+        const Tensor3&    x, 
+	const Index&      dim,
+	ConstVectorView   p_grid,
+	ConstVectorView   alpha_grid,
+	ConstVectorView   beta_grid )
+{
+  Index ncols=p_grid.nelem(), nrows=1, npages=1;
+  if( dim > 1 )
+    nrows = alpha_grid.nelem();
+  if( dim > 2 )
+    npages = beta_grid.nelem();
+  if( x.ncols()!=ncols || x.nrows()!=nrows || x.npages()!=npages ) 
+    {
+      ostringstream os;
+      os << "The atmospheric field *" << x_name <<  "* has wrong size.\n"
+         << "Expected size is " << npages << " x " << nrows << " x " 
+         << ncols << ",while actual size is " << x.npages() << " x " 
+         << x.nrows() << " x " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+}
+
+void chk_atm_surface( 
+	const String&     x_name,
+        const Matrix&     x, 
+	const Index&      dim,
+	ConstVectorView   alpha_grid,
+	ConstVectorView   beta_grid )
+{
+  Index ncols=1, nrows=1;
+  if( dim > 1 )
+    ncols = alpha_grid.nelem();
+  if( dim > 2 )
+    nrows = beta_grid.nelem();
+  if( x.ncols()!=ncols || x.nrows()!=nrows ) 
+    {
+      ostringstream os;
+      os << "The atmospheric surface *" << x_name <<  "* has wrong size.\n"
+         << "Expected size is " << nrows << " x " << ncols << ","
+         << "while actual size is " << x.nrows() << " x " << x.ncols() << ".";
+      throw runtime_error( os.str() );
+    }
+}
 
 
 /** Returns the first value of a vector.
@@ -114,6 +296,18 @@ Numeric first2( ConstVectorView x )
 Numeric last2( ConstVectorView x )
 {
   return x[x.nelem()-1]; 
+}
+
+
+
+void truncate_vector( 
+	      Vector&   x, 
+	const Index&    n )        
+{
+  Vector   dummy(n);	  
+  dummy = x[ Range(0,n) ];
+  x.resize(n); 
+  x = dummy;
 }
 
 
@@ -203,25 +397,25 @@ void get_interp_weights (
 
 
 
-Index get_dim_for_interp (
+Index get_position_dim (
 	ConstVectorView   ip_p,
-	ConstVectorView   ip_lat,
-	ConstVectorView   ip_lon )
+	ConstVectorView   ip_alpha,
+	ConstVectorView   ip_beta )
 {
-  if( ip_lat.nelem() == 0 )
+  if( ip_alpha.nelem() == 0 )
     {
-      assert( ip_lon.nelem() == 0 );
+      assert( ip_beta.nelem() == 0 );
       return 1;
     }
-  else if( ip_lon.nelem() == 0 )
+  else if( ip_beta.nelem() == 0 )
     {
-      assert( ip_p.nelem() == ip_lat.nelem() );
+      assert( ip_p.nelem() == ip_alpha.nelem() );
       return 2;
     }
   else
     {
-      assert( ip_p.nelem() == ip_lat.nelem() );
-      assert( ip_p.nelem() == ip_lon.nelem() );
+      assert( ip_p.nelem() == ip_alpha.nelem() );
+      assert( ip_p.nelem() == ip_beta.nelem() );
       return 3;
     }
 }
@@ -256,15 +450,15 @@ void interp_1D (
 
 
 
-void interp_abs2los (
+void interp_abs2ppath (
 	      Matrix&     abs_out,
 	const Tensor3&    abs_in,
 	ConstVectorView   ip_p,
-	ConstVectorView   ip_lat,
-	ConstVectorView   ip_lon )
+	ConstVectorView   ip_alpha,
+	ConstVectorView   ip_beta )
 {
   // Get dimension and check consistency of index vectors
-  Index   dim = get_dim_for_interp( ip_p, ip_lat, ip_lon );
+  Index   dim = get_position_dim( ip_p, ip_alpha, ip_beta );
 
   // Check that the input absorption tensor match the found dimension
   assert_maxdim_of_tensor( abs_in, dim+1 );
@@ -306,72 +500,75 @@ void interp_abs2los (
 
 
 
-void los_1d_geom (
-	      Numeric&    z_tan,
+void ppath_1d_geom (
               Index&      nz,
 	      Vector&     z,
 	      Vector&     ip_z,
-	      Vector&     lat,
+	      Vector&     alpha,
 	      Vector&     l_step,
+	      Vector&     psi,
  	      Index&      ground,
-	const Numeric&    z_ground,
-	ConstVectorView   z_abs,
+              Vector&     tan_pos,
+	ConstVectorView   z_field,
 	const Numeric&    r_geoid,
-	const Numeric&    l_max,
-	const Numeric&    z_plat,
-	const Numeric&    za )
+	const Numeric&    z_ground,
+	const Numeric&    path_lmax,
+	const Numeric&    z_s,
+	const Numeric&    psi_s )
 {
   // Asserts
-  assert( z_ground >= z_abs[0] );
-  assert( z_ground < last2(z_abs) );
-  assert( z_abs.nelem() > 1 );
-  assert( l_max > 0 );
-  assert( z_plat >= z_ground );
-  assert( za >= 0 );
-  assert( za <= 180 );
+  assert( z_ground >= z_field[0] );
+  assert( z_ground < last2(z_field) );
+  assert( z_field.nelem() > 1 );
+  assert( path_lmax > 0 );
+  assert( z_s >= z_ground );
+  assert( psi_s >= 0 );
+  assert( psi_s <= 180 );
 
-  // Guess a value for all index return arguments.
-  z_tan   = 9999e3;
+  // Guess a value for index return arguments.
   nz      = 0;
   ground  = 0;  
 
-  // Get highest absorption altitude and length of z_abs
-  const Index     n_zabs = z_abs.nelem();
-  const Numeric   z_max  = z_abs[n_zabs-1];
+  // Get highest altitude and length of z_field
+  const Index     n_zabs = z_field.nelem();
+  const Numeric   z_max  = z_field[n_zabs-1];
 
-  // Determine the lowest point of the LOS, z1, and the zenith angle of the LOS
-  // at this point, za1. The tangent altitude, ground flag and some other 
+  // Determine the lowest point of the PPATH, z1, and the zenith angle 
+  // at this point, psi1. The tangent altitude, ground flag and some other 
   // variables are set on the same time.
-  // The latitude distance from the sensor and z1 is denoted as lon0.
-  // The case with downward observation from inside the atmosphere nees special
-  // treatment, handled by the flag do_down.
+  // The latitude distance from the sensor and z1 is denoted as alpha0.
+  // The case with downward observation from inside the atmosphere needs 
+  // special treatment, handled by the flag do_down.
   //
-  Numeric z1, za1, lat0;
+  Numeric z1, psi1, alpha0;
   Index   do_down = 0;
   //
-  if( za <= 90 )   // Upward observation (no tangent point)
+  if( psi_s <= 90 )   // Upward observation (no tangent point)
     {
-      z1   = z_plat;
-      za1  = za;
-      lat0 = 0;
+      z1     = z_s;
+      psi1   = psi_s;
+      alpha0 = 0;
+      tan_pos.resize(0);
     }
   else              // Downward observation (limb sounding)
     {
-      z_tan = (r_geoid+z_plat) * sin(DEG2RAD*za) - r_geoid; 
-      if( z_tan >= z_ground )   // No intersection with the ground
+      tan_pos.resize(2);
+      tan_pos[0] = (r_geoid+z_s) * sin(DEG2RAD*psi_s) - r_geoid; 
+      tan_pos[1] = psi_s - 90.0;
+      if( tan_pos[0] >= z_ground )   // No intersection with the ground
 	{
-	  z1   = z_tan;
-	  za1  = -90;
-          lat0 = za - 90.0;
+	  z1     = tan_pos[0];
+	  psi1   = -90;
+          alpha0 = psi_s - 90.0;
 	}
       else                       // Intersection with ground
 	{
 	  ground = 1;
 	  z1     = z_ground;
-	  za1    = -RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );
-          lat0   = za - za1 - 180.0;
+	  psi1   = -RAD2DEG*asin( (r_geoid+tan_pos[0]) / (r_geoid+z_ground) );
+          alpha0 = psi_s - psi1 - 180.0;
 	}
-      if( z_plat < z_max )
+      if( z_s < z_max )
 	do_down = 1;
     }
 
@@ -381,28 +578,28 @@ void los_1d_geom (
       z.resize(0);
       ip_z.resize(0);
       l_step.resize(0);
-      lat.resize(0);
+      alpha.resize(0);
     }
 
   // Do anything only if z1 is inside the atmosphere
   else
     {
       // Create vectors for special points.
-      // Special points are z1 and z_plat (if do_down).
+      // Special points are z1 and z_s (if do_down).
       // This vector shall start with z1 and end with a dummy value > z_max.
       const Index    n_special = 1 + do_down;  // The dummy value is ignored
             Vector   z_special(n_special+1); 
       //
       z_special[0] = z1;
       if( do_down )
-	z_special[1] = z_plat;
+	z_special[1] = z_s;
       z_special[do_down+1] = z_max*2;
 
-      // Determine index of first z_abs above z1, i_above.
+      // Determine index of first z_field above z1, i_above.
       Index   i_above;
-      for( i_above=0; z_abs[i_above]<=z1; i_above++ ) {}
+      for( i_above=0; z_field[i_above]<=z1; i_above++ ) {}
 
-      // Create a vector containing z_special and z_abs levels above z1 (zs).
+      // Create a vector containing z_special and z_field levels above z1 (zs).
       // The altitudes shall be sorted and there shall be no duplicates.
       // It is assumed that the first shall be taken from z_special.
       Index    n_zs = n_zabs - i_above + n_special; 
@@ -414,7 +611,7 @@ void los_1d_geom (
       for( i1=i_above; i1<n_zabs; i1++  )
 	{
 	  // Check if values from z_special shall be copied
-	  for( ; z_special[i2] <= z_abs[i1]; i2++ )
+	  for( ; z_special[i2] <= z_field[i1]; i2++ )
 	    {
 	      if( zs[n_zs] != z_special[i2] )
 		{
@@ -422,16 +619,16 @@ void los_1d_geom (
 		  n_zs++;
 		}
 	    }
-	  // Copy next z_abs
-	  if( zs[n_zs] != z_abs[i1] )
+	  // Copy next z_field
+	  if( zs[n_zs] != z_field[i1] )
 	    {
-	      zs[n_zs] = z_abs[i1];
+	      zs[n_zs] = z_field[i1];
 	      n_zs++;
 	    }
 	}
 
-      // Calculate the length along the LOS from z1 (ls) and the number of
-      // LOS steps needed to reach next altitude in zs (ns).
+      // Calculate the length along the PPATH from z1 (ls) and the number of
+      // PPATH steps needed to reach next altitude in zs (ns).
       // The geometric calculations can go wrong if float is used, and to
       // avoid this, the variables a-e are hard-coded to be double.
       Vector         ls(n_zs);
@@ -444,8 +641,8 @@ void los_1d_geom (
       ls[0] = 0; 
       //
       // Loop zs
-      a  = cos( DEG2RAD * za1 );
-      b  = sin( DEG2RAD * za1 );
+      a  = cos( DEG2RAD * psi1 );
+      b  = sin( DEG2RAD * psi1 );
       c  = ( r_geoid + z1 ) * b;
       c *= c;
       d  = ( r_geoid + z1 ) * a;
@@ -453,21 +650,22 @@ void los_1d_geom (
 	{
 	  e        = r_geoid + zs[i1];
 	  ls[i1]   = sqrt( e*e - c ) - d;
-          ns[i1-1] = Index( ceil( (ls[i1]-ls[i1-1])/l_max ) );
+          ns[i1-1] = Index( ceil( (ls[i1]-ls[i1-1])/path_lmax ) );
           n_sum   += ns[i1-1];
 	}
-      n_sum += 1;   // To account for the point at the last z_abs level
+      n_sum += 1;   // To account for the point at the last z_field level
 
-      // The length of the z and lat vectors is n_sum
+      // The length of the z and alpha vectors is n_sum
       nz = n_sum;
       
       // Create the return vectors.
       z.resize(nz);
       ip_z.resize(nz);
       l_step.resize(nz-1);
-      lat.resize(nz);
+      alpha.resize(nz);
+      psi.resize(nz);
       //
-      Numeric   dl, l;              // Different lengts along the LOS
+      Numeric   dl, l;              // Different lengts along the PPATH
       Numeric   zv;                 // Next altitude
       c = r_geoid + z1;  
       d = c * c;
@@ -485,157 +683,251 @@ void los_1d_geom (
 		zv = sqrt( d + l*l + 2 * c * l * a ) - r_geoid;
 	      z[n_sum+i2]      = zv;
 	      l_step[n_sum+i2] = dl;
-	      ip_z[n_sum+i2]   = i_above - 1 + ( zv - z_abs[i_above-1]) /
-                                           (z_abs[i_above] - z_abs[i_above-1]);
-	      lat[n_sum+i2]    = lat0 + RAD2DEG*asin( l*b / (r_geoid+zv) ); 
+	      ip_z[n_sum+i2]   = i_above - 1 + ( zv - z_field[i_above-1]) /
+                                       (z_field[i_above] - z_field[i_above-1]);
+	      alpha[n_sum+i2]  = alpha0 + RAD2DEG*asin( l*b / (r_geoid+zv) );
+	      psi[n_sum+i2]    = psi_s - alpha[n_sum+i2];
 	    }
 
           // Increase n_sum with the points done
           n_sum += ns[i1];
 
           // Check if i_above shall be increased
-	  if( zs[i1] >= z_abs[i_above] )
+	  if( zs[i1] >= z_field[i_above] )
 	    i_above++;
 	}
       
-      // Put in uppermost z_abs level that is not covered above
-      z[n_sum]    = z_abs[n_zabs-1];
-      ip_z[n_sum] = n_zabs-1;
-      lat[n_sum]  = lat0 + RAD2DEG*asin( ls[n_zs-1]*b / (r_geoid+z[n_sum]) ); 
+      // Put in uppermost z_field level that is not covered above
+      z[n_sum]     = z_field[n_zabs-1];
+      ip_z[n_sum]  = n_zabs-1;
+      alpha[n_sum] = alpha0 + RAD2DEG*asin( ls[n_zs-1]*b / (r_geoid+z[n_sum]));
+      psi[n_sum]   = psi_s - alpha[n_sum];
     }
 }
 
 
 
-void los_1d (
-	      LOS&        los,
-              Numeric&    z_tan,
-	const Numeric&    z_ground,
-	ConstVectorView   z_abs,
-	ConstVectorView   p_abs,
+void ppath_1d (
+	      Ppath&      ppath,
+	ConstVectorView   p_grid,
+	ConstVectorView   z_field,
 	const Numeric&    r_geoid,
-	const Numeric&    l_max,
-	const Numeric&    z_plat,
-	const Numeric&    za,
+	const Numeric&    z_ground,
         const Index&      refr_on,
         const Index&      blackbody_ground,
-	const Index&      scattering_on )
+	const Index&      scatterbox_on,
+	const Numeric&    path_lmax,
+	const Numeric&    z_s,
+        const Numeric&    psi_s )
 {
-  // Check input 
-  // za is inside 0-180
+  // Asserts (remaining variables are asserted in the sub-functions).
+  assert( is_bool( refr_on ) );
+  assert( is_bool( blackbody_ground ) );
+  assert( is_bool( scatterbox_on ) );
 
-  // LOS variables that always are the same
-  los.dim = 1;
-  los.ip_lat.resize(0);
-  los.lon.resize(0);
-  los.ip_lon.resize(0);
-  los.i_ground   = 0;
+  // PPATH variables that always are the same
+  ppath.dim = 1;
+  ppath.i_ground = 0;
 
-  // Set background to CBGR
-  los.background = 0;
+  // Set background to CBGR as first guess
+  ppath.background = 0;
 
-  // Do stuff that differ between with and without refraction
+  // Do stuff that differ between with and without refraction.
+  // Stuff going to ppath.pos/ip_pos/los is stored in temporary vectors.
+  Vector ip_p, alpha, psi;
   if( refr_on )
     throw runtime_error(
-                  "1D LOS calculations with refraction not yet implemented" );
+                 "1D PPATH calculations with refraction not yet implemented" );
   else
-    los_1d_geom ( z_tan, los.np, los.z, los.ip_p, los.lat, los.l_step, 
-               los.ground, z_ground, z_abs, EARTH_RADIUS, l_max, z_plat, za );
+    ppath_1d_geom ( ppath.np, ppath.z, ip_p, alpha, ppath.l_step, psi, 
+                        ppath.ground, ppath.tan_pos, z_field, r_geoid,
+                                       z_ground, path_lmax, z_s, fabs(psi_s) );
 
-  // Set i_start and i_stop assuming blackbody_ground and scattering are 0, and
-  // not blackbody ground.
-  if( za <= 90 )
-    los.i_stop = 0;
+  // Set i_start and i_stop assuming blackbody_ground and scattering are 0, 
+  // and not blackbody ground.
+  if( fabs(psi_s) <= 90 )
+    ppath.i_stop = 0;
   else
-    los.i_stop = los.np - 1;
-  los.i_start = los.np - 1;
+    ppath.i_stop = ppath.np - 1;
+  ppath.i_start = ppath.np - 1;
 
   // Downward observation from inside the atmosphere needs special treatment.
-  if( za>90 && z_plat<last2(z_abs) )
-    for( los.i_stop=0; los.z[los.i_stop]!=z_plat; los.i_stop++ ) {}
+  // We must here set i_stop to the index corresponding to the sensor.
+  if( fabs(psi_s)>90 && z_s<last2(z_field) )
+    for( ppath.i_stop=0; ppath.z[ppath.i_stop]!=z_s; ppath.i_stop++ ) {}
 
-  // Ignore part of the LOS before ground reflection if blackbody ground.
-  // The start index is then always 0.
+  // Ignore part of the PPATH before ground reflection if blackbody ground.
+  // The start index is then always 0. As the PPATH has then the ground as
+  // background, there is no ground intersction along the PPATH (ground=0).
   // If i_stop deviates from np-1, the vectors shall be truncated (corresponds
   // to downward observation from within the atmosphere and blxackbody ground).
-  if( los.ground && blackbody_ground )
+  // If i_stop=0, we are standing on the ground looking down and np is 0.
+  if( ppath.ground && blackbody_ground )
     {
-      los.background = 1;
-      los.i_start    = 0;
+      ppath.background = 1;
+      ppath.i_start    = 0;
+      ppath.ground     = 0;
 
-      // Truncate vetors
-      if( los.i_stop < los.np-1 )
+      // Truncate vectors
+      if( ppath.i_stop < ppath.np-1 )
 	{
-          const Index    n = los.i_stop+1;
-	        Vector   dummy(n);
-	  los.np = n;
-	  dummy = los.z[ Range(0,n) ];
-	  los.z.resize(n);
-	  los.z = dummy;
-	  dummy = los.ip_p[ Range(0,n) ];
-	  los.ip_p.resize(n);
-	  los.ip_p = dummy;
-	  dummy = los.lat[ Range(0,n) ];
-	  los.lat.resize(n);
-	  los.lat = dummy;
-	  dummy.resize(n-1);
-	  dummy = los.l_step[ Range(0,n-1) ];
-	  los.l_step.resize(n-1);
-	  los.l_step = dummy;
+          if( ppath.i_stop > 0 )
+	    {
+	      const Index    n = ppath.i_stop+1;
+	      ppath.np = n;
+	      truncate_vector( ppath.z, n );
+	      truncate_vector( ip_p, n );
+	      truncate_vector( alpha, n );
+	      truncate_vector( psi, n );
+	      truncate_vector( ppath.l_step, n-1 );
+	    }
+	  else
+	    {
+	      ppath.np = 0; ppath.z.resize(0); ip_p.resize(0); alpha.resize(0);
+              psi.resize(0); ppath.l_step.resize(0);
+	    }
 	}
     }
 
-  // Without scattering
-  if( scattering_on )
+  // Scatter box
+  if( scatterbox_on )
     throw runtime_error(
-                   "1D LOS calculations with scattering not yet implemented" );
+                "1D PPATH calculations with scatter box not yet implemented" );
 
   // Convert altitudes to pressures
-  los.p.resize(los.np);
-  interp_1D ( los.p, p_abs, los.ip_p ); 
+  Vector p(ppath.np);
+  interp_1D ( p, p_grid, ip_p ); 
+
+  // Create ppath.pos, ppath.ip_pos and ppath.los
+  ppath.pos.resize( ppath.np, 2 );
+  ppath.pos(Range(joker),0) = p;
+  ppath.pos(Range(joker),1) = alpha;
+  ppath.ip_pos.resize( ppath.np, 1 );
+  ppath.pos(Range(joker),0) = ip_p; 
+  ppath.los.resize( ppath.np, 1 );
+  ppath.los(Range(joker),0) = psi; 
 }
 
+
+
+void CalcPpath(
+	      Ppath&      ppath,
+	const Index&      dim,
+	ConstVectorView   p_grid,
+	ConstVectorView   alpha_grid,
+	ConstVectorView   beta_grid,
+	const Tensor3&    z_field,
+ 	ConstMatrixView   r_geoid,
+ 	ConstMatrixView   z_ground,
+	const Tensor3&    e_ground,
+        const Index&      refr_on,
+	const Index&      scatterbox_on,
+	const Numeric&    path_lmax,
+	ConstVectorView   sensor_pos,
+	ConstVectorView   sensor_los )
+{
+  // Check input
+  chk_if_in_range( "dim", dim, 1, 3 );
+  chk_atm_grids( dim, p_grid, alpha_grid, beta_grid );
+  chk_atm_field( "z_field", z_field, dim, p_grid, alpha_grid, beta_grid );
+  chk_atm_surface( "r_geoid", r_geoid, dim, alpha_grid, beta_grid );
+  chk_atm_surface( "z_ground", z_ground, dim, alpha_grid, beta_grid );
+  chk_atm_surface( "e_ground (per frequency)", 
+           e_ground(Range(joker),Range(joker),0), dim, alpha_grid, beta_grid );
+  chk_if_bool(  "refr_on", refr_on );
+  chk_if_bool(  "scatterbox_on", scatterbox_on );
+  chk_if_over_0( "path_lmax", path_lmax );
+  chk_vector_length( "sensor_pos", sensor_pos, dim );
+  if( dim<3 )
+    chk_vector_length( "sensor_los", sensor_los, 1 );
+  else
+    chk_vector_length( "sensor_los", sensor_los, 2 );
+
+  // Check if the ground is perfect blackbody everywhere
+  Index blackbody_ground = 1;
+  for( Index i=0; i<e_ground.npages() && blackbody_ground; i++ )
+    if( min( e_ground(i,Range(joker),Range(joker)) ) < 0.99999 )
+      blackbody_ground = 0;
+
+  if( dim == 1 )
+    ppath_1d( ppath, p_grid, z_field(0,0,Range(joker)), r_geoid(0,0),
+                     z_ground(0,0), refr_on, blackbody_ground, scatterbox_on,
+                                    path_lmax, sensor_pos[0], sensor_los[0] );
+  else
+    throw runtime_error(
+                          "2D and 3D PPATH calculations not yet implemented" );
+}
 
 
 void test_new_los()
 {
-  LOS los;
+  Ppath ppath;
  
-  Numeric z_tan, z_ground, l_max, z_plat, za;
+  // Dimension
+  Index dim = 1;
 
-  z_ground = 200;
-  l_max    = 500;
-  z_plat   = 1e3;
-  za       = 45;
-  
-  Vector z_abs( 0, 11, 1e3 );
-  Vector p_abs( 0, 11, 1 );
+  // Grids
+  const Index n_p = 11;
+  Vector p_grid( 0, n_p, 1 );
+  Vector alpha_grid(0), beta_grid(0);
 
-  los_1d( los, z_tan, z_ground, z_abs, p_abs, EARTH_RADIUS, l_max, z_plat, za,
-                                                                     0, 1, 0 );
+  // z_field
+  Tensor3 z_field(1,1,n_p);
+  for( Index i=0; i<n_p; i++ )
+    z_field(0,0,i) = i*1e3;
 
-  cout << "z = \n" << los.z << "\n";
-  cout << "p = \n" << los.p << "\n";
-  //cout << "ip_p = \n" << los.ip_p << "\n";
-  cout << "lat = \n" << los.lat << "\n";
-  cout << "l_step = \n" << los.l_step << "\n";
-  cout << "nz      = " << los.np << "\n";
-  cout << "i_start = " << los.i_start << "\n";
-  cout << "i_stop  = " << los.i_stop << "\n";
-  cout << "bground = " << los.background << "\n";
-  cout << "ground  = " << los.ground << "\n";
-  cout << "i_ground= " << los.i_ground << "\n";
-  cout << "z_tan   = " << z_tan/1e3 << " km\n";
+  // Geoid and ground
+  Tensor3 e_ground(1,1,5);
+  Matrix r_geoid(1,1), z_ground(1,1);
+  r_geoid(0,0)  = EARTH_RADIUS;
+  z_ground(0,0) = 0;
+  e_ground      = 0.8;
 
+  // Booleans
+  Index refr_on = 0, scatterbox_on = 0;
 
-  Tensor3 abs_in(1,z_abs.nelem(),2,0.0);
+  // Path step length
+  Numeric path_lmax;
+  path_lmax = 50e3;
+
+  // Sensor  
+  Vector sensor_pos(1), sensor_los(1);
+  sensor_pos[0] = 0;
+  sensor_los[0] = 17;
+
+  CalcPpath( ppath, dim, p_grid, alpha_grid, beta_grid, z_field, 
+                  r_geoid, z_ground, e_ground, refr_on, scatterbox_on, 
+                                           path_lmax, sensor_pos, sensor_los );
+
+  cout << "z = \n" << ppath.z << "\n";
+  //cout << "p = \n" << ppath.p << "\n";
+  //cout << "ip_p = \n" << ppath.ip_p << "\n";
+  cout << "alpha = \n" << ppath.pos(Range(joker),1) << "\n";
+  cout << "psi = \n" << ppath.los(Range(joker),0) << "\n";
+  cout << "l_step = \n" << ppath.l_step << "\n";
+  cout << "nz      = " << ppath.np << "\n";
+  cout << "i_start = " << ppath.i_start << "\n";
+  cout << "i_stop  = " << ppath.i_stop << "\n";
+  cout << "bground = " << ppath.background << "\n";
+  cout << "ground  = " << ppath.ground << "\n";
+  if( ppath.ground )
+    cout << "i_ground= " << ppath.i_ground << "\n";
+  if( ppath.tan_pos.nelem() > 0 )
+  {
+    cout << "z_tan   = " << ppath.tan_pos[0]/1e3 << " km\n";
+    cout << "a_tan   = " << ppath.tan_pos[1] << " degs\n";
+  }  
+
+  /*
+  Tensor3 abs_in(1,z_field.nelem(),2,0.0);
   for ( Index j=0; j<abs_in.nrows(); ++j )
     for ( Index k=0; k<abs_in.ncols()-1; ++k )
       abs_in(0,j,k) = j;
-  cout << "abs_in = " << abs_in << "\n";
+  //  cout << "abs_in = " << abs_in << "\n";
 
-  Matrix abs_out(los.p.nelem(),2);
+  Matrix abs_out(ppath.p.nelem(),2);
   
-  interp_abs2los( abs_out, abs_in, los.ip_p, los.ip_lat, los.ip_lon );
-  cout << "abs_out = \n" << abs_out << "\n";  
+  interp_abs2ppath(abs_out,abs_in,ppath.ip_p,ppath.ip_alpha,ppath.ip_beta);
+  //  cout << "abs_out = \n" << abs_out << "\n";  
+  */
 }
