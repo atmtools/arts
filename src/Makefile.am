@@ -41,6 +41,7 @@ messages.cc \
 parameters.cc \
 file.cc \
 workspace.cc \
+workspace_aux.cc \
 methods.cc \
 token.cc \
 parser.cc \
@@ -59,11 +60,12 @@ noinst_PROGRAMS = make_wsv_h make_md_h
 
 make_wsv_h_SOURCES = \
 arts.h vecmat.h messages.h file.h workspace.h \
-messages.cc file.cc workspace.cc make_wsv_h.cc version.cc
+messages.cc file.cc workspace.cc workspace_aux.cc make_wsv_h.cc version.cc
 
 make_md_h_SOURCES = \
 arts.h vecmat.h wsv.h token.h messages.h file.h workspace.h methods.h make_array.h \
-token.cc messages.cc file.cc workspace.cc methods.cc make_md_h.cc version.cc
+token.cc messages.cc file.cc workspace.cc workspace_aux.cc methods.cc \
+make_md_h.cc version.cc
 
 wsv.h: make_wsv_h
 	./make_wsv_h

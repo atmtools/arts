@@ -85,6 +85,18 @@ private:
 
 };
 
+
+// Some #defines and typedefs to make the records better readable:
+#define NAME(x) x
+#define DESCRIPTION(x) x
+#define OUTPUT   make_array<size_t> 
+#define INPUT    make_array<size_t> 
+#define GOUTPUT  make_array<size_t> 
+#define GINPUT   make_array<size_t> 
+#define KEYWORDS make_array<string>
+#define TYPES    make_array<TokValType>
+
+
 /** Define the lookup data for the workspace methods. The array
     md_data contains all that we need to know about each method. The
     lookup table is a global variable. It can be made visible anywhere

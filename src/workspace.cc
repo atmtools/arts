@@ -1,34 +1,30 @@
+/*-----------------------------------------------------------------------
+FILE:      workspace.cc
+
+INCLUDES:  This file contains only the function define_wsv_data, which
+           sets the WSV group names and the lookup data for the WSVs.
+	   You have to edit this function whenever you add a new
+	   workspace variable. See workspace.h for more documentation.
+
+GLOBALS:   None defined
+
+FUNCTIONS: void define_wsv_data()
+
+HISTORY:   10.06.2000 Created by Stefan Buehler
+-----------------------------------------------------------------------*/
+
 #include "arts.h"
 #include "vecmat.h"
 #include "workspace.h"
 
-/** The workspace itself. */
-WorkSpace workspace;
 
-/** The names associated with Wsv groups as strings. 
-    
-    \begin{verbatim}
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    Must be consistent with the enum in workspace.h! Later on,
-    these enums could also be generated automatically, but that would
-    have to take place before the wsv_data is defined, since that
-    needs these enums.
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    \end{verbatim}
-
- */
-ARRAY<string> wsv_group_names;
-
-/** The lookup information for the workspace variables. */
-ARRAY<WsvRecord> wsv_data;
-
-/** The map assiciated with wsv_data. */
-std::map<string, size_t> WsvMap;
-
-
-/** Initializes the workspace lookup data. */
 void define_wsv_data()
 {
+  /* The variables workspace, wsv_group_names, and wsv_data are defined
+     in file workspace_aux.cc. */
+  extern WorkSpace workspace;
+  extern ARRAY<string> wsv_group_names;
+  extern ARRAY<WsvRecord> wsv_data;
 
   //--------------------< Build the group names array >--------------------
   // Initialize to empty, just in case.
@@ -352,26 +348,5 @@ void define_wsv_data()
   }
 
   //  cout << "size = " << wsv_data.size() << '\n';
-}
-
-void define_wsv_map()
-{
-  extern const ARRAY<WsvRecord> wsv_data;
-  extern std::map<string, size_t> WsvMap;
-
-  for ( size_t i=0 ; i<wsv_data.size() ; ++i)
-    {
-      WsvMap[wsv_data[i].Name()] = i;
-    }
-}
-
-
-ostream& operator<<(ostream& os, const WsvRecord& wr)
-{
-  os << "Name = "        << wr.Name() << '\n'
-     << "Description = " << wr.Description() << '\n'
-     <<	"Group = "       << wsv_group_names[wr.Group()];
-
-  return os;
 }
 
