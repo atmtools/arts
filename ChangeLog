@@ -1,5 +1,11 @@
 2002-05-09  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-70
+	
+	* doc/doxygen/html/.cvsignore: Added *.png.
+
+2002-05-09  Oliver Lemke  <olemke@uni-bremen.de>
+	
 	* arts-1-1-69
 
 	* Lots of fixes to compile arts with gcc-3.1.
