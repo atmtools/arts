@@ -575,10 +575,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfIsotopeRecord to XML output stream
 /*!
-  \param os_xml  XML Output stream
-  \param aindex  ArrayOfIsotopeRecord
-  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
-  \param name    Optional name attribute
+  \param os_xml    XML Output stream
+  \param airecord  ArrayOfIsotopeRecord
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
