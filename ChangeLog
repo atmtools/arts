@@ -1,3 +1,66 @@
+2001-09-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-225
+
+	* First cleanup of all Makefile.am files (all except src dir).
+	
+	NOTE: Please remember to add your new files also to the
+	Makefile.am files. It is a real mess when you have to go through
+	all directories and search for Makefile.am files which are not in
+	sync with the files in the corresponding directory.
+	
+	* doc/uguide/Figs/Makefile.am (EXTRA_DIST): Added a whole bunch of
+	missing graphic files: fig_bendingangle.eps, fig_bendingangle.pdf,
+	fig_bendingangle.m, fig_calerror.m, fig_calerror_tb_1.eps,
+	fig_calerror_tb_1.pdf, fig_calerror_tb_2.eps,
+	fig_calerror_tb_2.pdf, fig_calerror_trj_1.eps,
+	fig_calerror_trj_1.pdf, fig_calerror_trj_2.eps,
+	fig_calerror_trj_2.pdf.
+
+	* doc/uguide/Makefile.am (uguidedocdir): Renamed from thisdocdir.
+	
+	* doc/uguide/Makefile.am: Cosmetics. 
+	
+	* configure.in: Added AM_CONDITIONAL for ARTS_MAINTAINER_MODE and
+	ARTS_DATA_PATH.
+
+	* doc/examples/Makefile.am: Install examples depending on arts-data
+	packages only when arts-data was found during configure.
+	(examplesdoc_DATA): Renamed from thisdoc_DATA.
+	(examplesdocdir): Renamed from thisdocdir.
+
+	* aii/Makefile.am (aii_DATA): Renamed from this_DATA.
+	
+	* aii/Makefile.am (aiidir): Renamed from thisdir.
+
+	* aii/Makefile.am (aii_DATA): Added aii_color_table.pro,
+	aii_epilogue.pro, aii_klegend_d.pro, aii_plot_file.pro,
+	aii_plot_legend.pro, aii_plotsymbols.pro, aii_prologue_l.pro,
+	plot_abs_per_tg.pro, plot_vmr_per_tg.pro, read_tag_groups.pro,
+	showme.pro, sort_abs.pro.
+
+	* ami/Makefile.am (ami_DATA): Added README.
+
+	* ami/plot/Makefile.am (EXTRA_DIST): Added axes_1xn.m, axes_nx1.m,
+	text3.m, title2.m, xlabel2.m, ylabel2.m, zlabel2.m.
+
+	* ami/math/Makefile.am (EXTRA_DIST): Added sFromFile.m.
+
+	* ami/hmatrix/Makefile.am (EXTRA_DIST): Added hRedKx.m, hRedLimb.m.
+
+	* ami/general/Makefile.am (EXTRA_DIST): Added amenu.m, whoami.m.
+
+	* ami/file/Makefile.am (EXTRA_DIST): Added write_linefile.m.
+
+	* ami/arts/Makefile.am (EXTRA_DIST): Removed out.m.
+
+	* src/Makefile.am (make_auto_wsv_h_SOURCES): Removed hmatrix.
+	(make_auto_md_h_SOURCES): Removed hmatrix.
+	(make_auto_md_cc_SOURCES): Removed hmatrix.
+
+	* src/methods.cc (define_md_data): Fixed typo.
+	
+
 2001-09-24  Mashrab  <kmashrab@uni-bremen.de>
 
 	* arts-0-0-224
