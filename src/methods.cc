@@ -957,6 +957,30 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("MatrixMatrixAdd"),
+	DESCRIPTION
+        (
+	 "Adds two matrices. \n"
+	 "\n"
+	 "The function makes an element-wise addition. The size of the two \n"
+         "matrices to add must have the same size. \n"
+	 "\n"
+	 "Global output:\n"
+	 "   Matrix : The result of the addition (dimension m x n).\n"
+	 "\n"
+	 "Global input:\n"
+	 "   Matrix : A matrix (dimension m x n).\n"
+	 "   Matrix : A matrix (dimension m x n)."
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_, Matrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("MatrixWriteAscii"),
 	DESCRIPTION(
                     "Writes a matrix to an ASCII file.\n"

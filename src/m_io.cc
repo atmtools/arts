@@ -1163,6 +1163,60 @@ void MatrixMatrixMultiply(// WS Generic Output:
 
 
 
+/**
+   Compute Y = M+X.
+
+   Works also if Y and X are the same matrix.
+
+   For more information see the the online help (arts -d
+   FUNCTION_NAME).
+
+   \author Patrick Eriksson
+   \date   2002-01-19
+*/
+void MatrixMatrixAdd(// WS Generic Output:
+                          Matrix& Y,
+                          // WS Generic Output Names:
+                          const String& Y_name,
+                          // WS Generic Input:
+                          const Matrix& M,
+                          const Matrix& X,
+                          // WS Generic Input Names:
+                          const String& M_name,
+                          const String& X_name)
+{
+  Index m = M.nrows();
+  Index n = M.ncols();
+
+  // Check that dimensions are right
+  if ( n != X.ncols() || m != X.nrows() )
+  {
+    ostringstream os;
+    os << "The size of the two matrices must be identical. \n"
+       << "Size of " << M_name << " is " << M.nrows() << " x " << M.ncols() 
+       << "\n"
+       << "Size of " << X_name << " is " << X.nrows() << " x " << X.ncols();
+    throw runtime_error( os.str() );
+  }
+
+  // Temporary for the result:
+  Matrix dummy( m, n );
+  Index i,j;
+  
+  for ( i=0; i<m; i++ )
+  {
+    for ( j=0; j<n; j++ )
+      dummy(i,j) = M(i,j) + X(i,j);
+  }
+
+  // Copy result to Y:
+  Y.resize( m, n );
+
+  Y = dummy;
+}
+
+
+
 
 //=== STRING ===============================================================
 

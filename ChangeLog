@@ -1,3 +1,14 @@
+2002-01-22  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-4
+
+	* src/m_io.cc (MatrixMatrixAdd): Added the function MatrixMatrixAdd
+	to add two matrices. Mainly intended for adding absorption matrices
+	(abs and abs0).
+
+	* src/workspace.cc: Added the WSV abs0 to be able to add continuum
+	absorption to *abs*. Picked the name abs0 to mimic y0.
+
 2002-01-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-3

@@ -330,6 +330,13 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ("abs0",
+      "A second absoprtion matrix. This matrix can be used, for example,\n"
+      "to store absorption read from a file that shall be added to *abs*.",
+      Matrix_));
+
+  wsv_data.push_back
+    (WsvRecord
      ("abs_per_tg",
       "These are the absorption coefficients individually for each\n"
       "tag group. The Array contains one matrix for each tag group,\n"
