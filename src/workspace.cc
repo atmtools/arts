@@ -1542,7 +1542,7 @@ wsv_data.push_back
     ( NAME( "pha_mat_sptDOITOpt" ),
       DESCRIPTION
       (
-       "Interpolated phase matrix for a single particle type.\n"
+       "Interpolated phase matrix.\n"
        "\n"
        "This variable contains the data of the phase matrix in the \n"
        "scattering frame interpolated on the actual frequency (the variable\n"
@@ -1554,9 +1554,9 @@ wsv_data.push_back
        "\n"
        "Unit:        m^2\n"
        "\n"
-       "Dimensions: [scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid, 6]"
+       "Dimensions: [N_pt, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid, 6]"
        ),
-      GROUP( Tensor5_ )));
+      GROUP( Tensor6_ )));
 
 
 

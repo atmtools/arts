@@ -789,6 +789,7 @@ void pha_mat_labCalc(//Output:
        Numeric sigma1;
        Numeric sigma2;
 
+       Numeric s1, s2;
 
        // In these cases we have to take limiting values.
  
@@ -814,40 +815,42 @@ void pha_mat_labCalc(//Output:
          }
        else
          {
-           sigma1 =  acos((cos(za_sca_rad) - cos(za_inc_rad)
-                                    * cos(theta_rad))/
-                                    (sin(za_inc_rad)*sin(theta_rad)));
-           sigma2 =  acos((cos(za_inc_rad) - cos(za_sca_rad)
-                                    *cos(theta_rad))/
-                                    (sin(za_sca_rad)*sin(theta_rad)));
+           s1 = (cos(za_sca_rad) - cos(za_inc_rad) * cos(theta_rad))
+              /(sin(za_inc_rad)*sin(theta_rad));
+           s2 = (cos(za_inc_rad) - cos(za_sca_rad) * cos (theta_rad))/
+             (sin(za_sca_rad)*sin(theta_rad)); 
+       
+           sigma1 =  acos(s1);
+           sigma2 =  acos(s2);
+           
+           // Arccos is only defined in the range from -1 ... 1
+           // Numerical problems can appear for values close to 1 or -1      
+           if ( isnan(sigma1) || isnan(sigma2) )
+             {
+               if ( abs(s1 - 1) < ANGTOL)
+                 sigma1 = 0;
+               if ( abs(s1 + 1) < ANGTOL)
+                 sigma1 = PI;
+               if ( abs(s2 - 1) < ANGTOL)
+                 sigma2 = 0;
+               if ( abs(s2 + 1) < ANGTOL)
+                 sigma2 = PI;
+             }
          }
-               
+      
        const Numeric C1 = cos(2*sigma1);
        const Numeric C2 = cos(2*sigma2);
         
-       const Numeric S1 = sin(2*sigma1);
+       const Numeric S1 = sin(2*sigma1); 
        const Numeric S2 = sin(2*sigma2);
         
         pha_mat_lab(0,1) = C1 * F12;
         pha_mat_lab(1,0) = C2 * F12;
         pha_mat_lab(1,1) = C1 * C2 * F22 - S1 * S2 * F33;
-
-         if( isnan(pha_mat_lab(0,1)) || isnan(pha_mat_lab(1,0)) || isnan(pha_mat_lab(1,1)))
-        {
-          cout << "pha_mat_lab(0,1) = " << pha_mat_lab(0,1) << endl
-               << "pha_mat_lab(1,0) = " << pha_mat_lab(1,0) << endl
-               << "pha_mat_lab(1,1) = " << pha_mat_lab(1,1) << endl
-               << "za_sca = " << za_sca << endl
-               << "aa_sca = " << aa_sca << endl
-               << "za_inc = " << za_inc << endl
-               << "aa_inc = " << aa_inc << endl
-               << "theta_rad = " << theta << endl
-               << "sigma1 = " << sigma1 << endl
-               << "sigma2 = " << sigma2 << endl ;
-           }
-            //  assert(!isnan(pha_mat_lab(0,1)));        
-            //assert(!isnan(pha_mat_lab(1,0)));
-            //assert(!isnan(pha_mat_lab(1,1)));
+        
+        assert(!isnan(pha_mat_lab(0,1)));        
+        assert(!isnan(pha_mat_lab(1,0)));
+        assert(!isnan(pha_mat_lab(1,1)));
 
         if( stokes_dim > 2 ){
 	  /*CPD: For skokes_dim > 2 some of the transformation formula 

@@ -1,3 +1,18 @@
+2004-01-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-781
+
+	* /src/workspace.cc (pha_mat_sptDOITOpt): Included dimension for 
+	particle types.
+
+	* src/m_optproperties.cc (ScatteringDataPrepareDOITOpt) and 
+	(pha_mat_sptFromDataDOITOpt): Genearalized these functions. They can now
+	be used for several particle types. Before they couls only be used for 
+	particle type.
+	
+	* src/optproperties.cc (pha_mat_labCalc): Included special cases when
+	arguments of acos becomes 1 or -1 because of numerical problems.
+
 2004-01-23  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-780

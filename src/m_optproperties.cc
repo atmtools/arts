@@ -3,7 +3,7 @@
   \author Sreerekha T.R. <rekha@uni-bremen.de>, 
           Claudia Emde <claudia@sat.physik.uni-bremen.de
   \date   Mon Jun 10 11:19:11 2002 
-  \brief  This file contains workspace methods for calculating the optical 
+  \brief  This filecontains workspace methods for calculating the optical 
   properties for the radiative transfer. 
 
   Optical properties are the extinction matrix, absorption vector and
@@ -394,7 +394,7 @@ void pha_mat_sptFromData( // Output:
 void pha_mat_sptFromDataDOITOpt( // Output:
                          Tensor5& pha_mat_spt,
                          // Input:
-                         const Tensor5& pha_mat_sptDOITOpt,
+                         const Tensor6& pha_mat_sptDOITOpt,
                          const Tensor4& scat_theta,
                          const Index& za_grid_size,
                          const Vector& scat_aa_grid,
@@ -408,29 +408,34 @@ void pha_mat_sptFromDataDOITOpt( // Output:
   
   const Numeric za_sca = za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
-  
+  const Index N_pt = pha_mat_sptDOITOpt.nvitrines();
+
   Numeric za_inc;
   Numeric aa_inc;
   
   // Do the transformation into the laboratory coordinate system.
-  for (Index za_inc_idx = 0; za_inc_idx < za_grid_size; za_inc_idx ++)
-    {
-      for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
-           aa_inc_idx ++) 
+  for (Index i_pt = 0; i_pt < N_pt; i_pt ++)
+    { 
+      for (Index za_inc_idx = 0; za_inc_idx < za_grid_size; za_inc_idx ++)
         {
-          ConstVectorView pha_mat_int = pha_mat_sptDOITOpt
-            (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx, joker);
-          const Numeric theta_rad = scat_theta
-            (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx);
-          
-          za_inc = za_grid[za_inc_idx];
-          aa_inc = scat_aa_grid[aa_inc_idx];
-
-          pha_mat_labCalc(pha_mat_spt(0, za_inc_idx, aa_inc_idx, joker, joker),
-                          pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, 
-                          theta_rad);
+          for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+               aa_inc_idx ++) 
+            {
+              ConstVectorView pha_mat_int = pha_mat_sptDOITOpt
+                (i_pt, scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx, joker);
+              const Numeric theta_rad = scat_theta
+                (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx);
+              
+              za_inc = za_grid[za_inc_idx];
+              aa_inc = scat_aa_grid[aa_inc_idx];
+              
+              pha_mat_labCalc(pha_mat_spt(i_pt, za_inc_idx, aa_inc_idx, joker, joker),
+                              pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, 
+                              theta_rad);
+            }
         }
     }
+
 }
 
 
@@ -1976,7 +1981,7 @@ void ScatteringDataPrepareDOIT( //Output:
 */
 void ScatteringDataPrepareDOITOpt( //Output:
                                    Tensor4& scat_theta,
-                                   Tensor5& pha_mat_sptDOITOpt,
+                                   Tensor6& pha_mat_sptDOITOpt,
                                    //Input:
                                    const Index& za_grid_size,
                                    const Vector& scat_aa_grid,
@@ -1996,86 +2001,89 @@ void ScatteringDataPrepareDOITOpt( //Output:
   
   Vector za_grid;
   nlinspace(za_grid, 0, 180, za_grid_size);
-  
+
+  Index N_pt = scat_data_raw.nelem();  
+
   // Initialize variables:
   scat_theta.resize(za_grid.nelem(), N_aa_sca, 
                     za_grid.nelem(),scat_aa_grid.nelem());
   
-  pha_mat_sptDOITOpt.resize(za_grid_size, N_aa_sca, 
+  pha_mat_sptDOITOpt.resize(N_pt, za_grid_size, N_aa_sca, 
                     za_grid_size, scat_aa_grid.nelem(), 6);
   
   // Only one  particle type is taken.
-  Index i_pt = 0;
-  
-  // Frequency interpolation of the data:
-  Matrix pha_mat_data_int(pha_mat_data_raw.nshelves(), 6);
-  
-  // Gridpositions:
-  GridPos freq_gp;
-  gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
-  
-  // Interpolationweights:
-  Vector freq_itw(2);
-  interpweights(freq_itw, freq_gp);
-  
-  
-  for (Index i = 0; i < 6; i++)
+  for( Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
-      for (Index za_idx = 0; za_idx < za_datagrid.nelem(); za_idx ++)
+      // Frequency interpolation of the data:
+      Matrix pha_mat_data_int(pha_mat_data_raw.nshelves(), 6);
+      
+      // Gridpositions:
+      GridPos freq_gp;
+      gridpos(freq_gp, f_datagrid, f_grid[f_index]); 
+      
+      // Interpolationweights:
+      Vector freq_itw(2);
+      interpweights(freq_itw, freq_gp);
+  
+  
+      for (Index i = 0; i < 6; i++)
         {
-          pha_mat_data_int(za_idx, i) =
-            interp(freq_itw, pha_mat_data_raw(joker, za_idx, 0, 0, 0, i),
-                   freq_gp);
-        }
-    }
-  
-  // Calculate all scattering angles for all combinations of incoming 
-  // and scattered directions and interpolation.
-  
-  Numeric za_sca_rad, za_inc_rad, aa_sca_rad, aa_inc_rad;
-  Numeric theta_rad;
-  Numeric theta;
-  GridPos thet_gp;
-  Vector itw(2);
-  
-  for (Index za_sca = 0; za_sca < za_grid_size; za_sca ++)
-    {
-      for (Index aa_sca = 0; aa_sca < N_aa_sca; aa_sca ++)
-        {
-          for (Index za_inc = 0; za_inc < za_grid_size; za_inc ++)
+          for (Index za_idx = 0; za_idx < za_datagrid.nelem(); za_idx ++)
             {
-              for (Index aa_inc = 0; aa_inc < scat_aa_grid.nelem(); aa_inc ++)
+              pha_mat_data_int(za_idx, i) =
+                interp(freq_itw, pha_mat_data_raw(joker, za_idx, 0, 0, 0, i),
+                       freq_gp);
+            }
+        }
+      
+      // Calculate all scattering angles for all combinations of incoming 
+      // and scattered directions and interpolation.
+      
+      Numeric za_sca_rad, za_inc_rad, aa_sca_rad, aa_inc_rad;
+      Numeric theta_rad;
+      Numeric theta;
+      GridPos thet_gp;
+      Vector itw(2);
+      
+      for (Index za_sca = 0; za_sca < za_grid_size; za_sca ++)
+        {
+          for (Index aa_sca = 0; aa_sca < N_aa_sca; aa_sca ++)
+            {
+              for (Index za_inc = 0; za_inc < za_grid_size; za_inc ++)
                 {
-                  za_sca_rad = za_grid[za_sca] * DEG2RAD;
-                  za_inc_rad = za_grid[za_inc] * DEG2RAD;
-                  aa_sca_rad = scat_aa_grid[aa_sca] * DEG2RAD;
-                  aa_inc_rad = scat_aa_grid[aa_inc] * DEG2RAD;
-                  
-                  theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
-                                   sin(za_sca_rad) * sin(za_inc_rad) * 
-                                   cos(aa_sca_rad - aa_inc_rad));
-                  
-                  scat_theta(za_sca, aa_sca, za_inc, aa_inc)
-                    = theta_rad;
-                  
-                  theta = theta_rad * RAD2DEG;
-                  
-                  gridpos(thet_gp, za_datagrid, theta);
-                  interpweights(itw, thet_gp);
-
-                   for (Index i = 0; i < 6; i++)
-                     {
-                       pha_mat_sptDOITOpt(za_sca, aa_sca, za_inc, aa_inc, i)
-                         = interp(itw, pha_mat_data_int(joker, i), 
-                                  thet_gp);
-                     }
+                  for (Index aa_inc = 0; aa_inc < scat_aa_grid.nelem(); aa_inc ++)
+                    {
+                      za_sca_rad = za_grid[za_sca] * DEG2RAD;
+                      za_inc_rad = za_grid[za_inc] * DEG2RAD;
+                      aa_sca_rad = scat_aa_grid[aa_sca] * DEG2RAD;
+                      aa_inc_rad = scat_aa_grid[aa_inc] * DEG2RAD;
+                      
+                      theta_rad = acos(cos(za_sca_rad) * cos(za_inc_rad) + 
+                                       sin(za_sca_rad) * sin(za_inc_rad) * 
+                                       cos(aa_sca_rad - aa_inc_rad));
+                      
+                      scat_theta(za_sca, aa_sca, za_inc, aa_inc)
+                        = theta_rad;
+                      
+                      theta = theta_rad * RAD2DEG;
+                      
+                      gridpos(thet_gp, za_datagrid, theta);
+                      interpweights(itw, thet_gp);
+                      
+                      for (Index i = 0; i < 6; i++)
+                        {
+                          pha_mat_sptDOITOpt(i_pt, za_sca, aa_sca, za_inc, aa_inc, i)
+                            = interp(itw, pha_mat_data_int(joker, i), 
+                                     thet_gp);
+                        }
+                    }
                 }
             }
         }
-    }
-}
+    } 
+ }
 
-
+ 
 //! No preparation of single scattering data.
 /*! 
   The parameters below are set to be empty. If this function is used 
