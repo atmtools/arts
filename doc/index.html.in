@@ -78,14 +78,30 @@
       examples. Currently they are:
 
     <ul>
-      <li>
-	<a href="examples/auto_example1.arts"> auto_example1.arts</a> (calculates
-	absorption coefficients).
-      <li>
-	<a href="examples/cont.arts"> cont.arts</a> (shows how to use continua).
-      <li>
-	<a href="examples/auto_full.arts"> auto_full.arts</a> (an end-to-end
-	job).
+      <li><a href="examples/absorption_example.arts">
+        absorption_example.arts</a> (calculates absorption coefficients).
+
+      <li><a href="examples/batch_example.arts">
+        batch_example.arts</a> (shows how to run batch calculations).
+
+      <li><a href="examples/cont_example.arts">
+        cont_example.arts</a> (shows how to use continua).
+
+      <li><a href="examples/radiosonde_example.arts">
+        radiosonde_example.arts</a> (computes AMSU radiances for radiosonde profile).
+
+      <li><a href="examples/amsu_example.arts">
+        amsu_example.arts</a> (finds brightness temperatures and weighting functions for AMSU channels).
+
+      <li><a href="examples/clouds_example.arts">
+        clouds_example.arts</a>
+
+      <li><a href="examples/fullmodels_example.arts">
+        fullmodels_example.arts</a>
+
+      <li><a href="examples/rt_example.arts">
+        rt_example.arts</a> (exemplifies the RTE and WF functionality).
+
     </ul>
 
     <hr noshade  size="3" color="#990099">
