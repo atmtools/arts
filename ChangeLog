@@ -1,3 +1,23 @@
+2003-03-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-509
+
+	* src/Makefile.am: Added matpackII.cc everywhere that matpackII.h was
+	listed. I am not sure how to do this correctly (if both files should
+	be listed at more places, for example in test_linalg etc).
+
+	* src/matpackI.h: Changed SparseMatrixView to SparseView and added
+	SparseView and Sparse as friends for VectorView and Range.
+
+	* src/matpackII.{h,cc}: Divided matpackII.h into to files and add fixed
+	some bugs and added a function for multiplication with vectors.
+
+	* src/test_matpack.cc: Uncommented and altered test3 to fit the new sparse-
+	matrix representation and functions.
+
+	* src/binio.cc: Commented away the declarations of destructors. The
+	compiler would otherwise complain about "redefinition of ..."
+
 2003-03-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-508
