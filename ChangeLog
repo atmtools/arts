@@ -1,3 +1,16 @@
+2002-10-16  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-263
+	
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Modified. The function 
+	calculates the initial field at the whole cloudbox boundary. Before 
+	it only doing one boundary at a time.
+
+	* src/m_scatrte.cc (ScatteringMain): Moidfied according to the change
+	in (CloudboxGetIncoming).
+	
+	* src/methods.cc: Modified the inputs and outputs to the above
+	mentioned methods.
 2002-10-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-262
