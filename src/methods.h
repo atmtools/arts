@@ -95,7 +95,7 @@ public:
 
   /** To override the default assignment operator. MdRecords cannot be
       assigned! */
-  MdRecord operator=(const MdRecord& m){
+  MdRecord operator=(const MdRecord&){
     cout << "MdRecord cannot be assigned!\n";
     exit(1);
       }
