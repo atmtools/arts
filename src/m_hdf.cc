@@ -573,7 +573,7 @@ void binfile_read1(
               ArrayOfIndex&   x,
         const int&            vdata_id,
         const Index&         n,
-        const String&         filename,
+        const String&,
         const String&         dataname )
 {
   // Check that data types have expected length
@@ -643,7 +643,7 @@ void binfile_read2(
         const int&      vdata_id,
         const Index&   nrows,
         const Index&   ncols,
-        const String&   filename,
+        const String&,
         const String&   dataname )
 {
   // Check that data types have expected length
@@ -735,7 +735,7 @@ void binfile_read3(
               String&   x,
         const int&      vdata_id,
         const Index&   n,
-        const String&   filename,
+        const String&,
         const String&   dataname )
 {
   // Check that data types have expected length
