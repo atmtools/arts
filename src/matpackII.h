@@ -20,6 +20,7 @@
 
 #include <vector>
 #include "matpackI.h"
+#include "mystring.h"
 
 // Declare existance of some classes:
 class bifstream;
@@ -68,7 +69,7 @@ public:
   friend void transpose (SparseView A, const SparseView B );
   // IO functions must be friends:
   friend void xml_write_to_stream (ostream& os_xml, const Sparse& sparse, 
-                                   bofstream *pbofs);
+                                   bofstream *pbofs, const String &name);
 
 protected:
   // Constructors:
