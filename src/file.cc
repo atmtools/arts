@@ -350,7 +350,9 @@ void skip_comments(istream & is)
       is >> ws;
       is.get(c);
       if ('#'==c)
-          getline(is,linebuffer);
+        getline(is,linebuffer);
+      else if ('<'==c)
+        throw runtime_error ("Invalid character (<) in input stream.\nAre you probably trying to read an XML file?");
       else
         {
           is.unget();
