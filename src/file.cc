@@ -38,6 +38,7 @@
 #include <hdf.h>
 #include <stdexcept>
 #include <math.h>
+#include <cfloat>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
