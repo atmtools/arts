@@ -44,6 +44,7 @@
 #include "absorption.h"
 #include "wsv_aux.h"
 #include "agenda_record.h"
+#include "mystring.h"
 
 // This must be here rather than in arts.h, because arts.h does not
 // know about Array.
@@ -823,9 +824,16 @@ int main (int argc, char **argv)
     {
       extern const String out_basename;     // Basis for file name
       extern ofstream report_file;      // Report file pointer
+      ostringstream report_file_ext;
 
-      //      cout << "rep = " << out_basename+".rep" << "\n";
-      open_output_file(report_file, out_basename+".rep");
+#ifdef HAVE_MPI
+      int rank = mpi_manager.get_rank ();
+      if (rank)
+        report_file_ext << "." << rank;
+#endif // HAVE_MPI
+
+      report_file_ext << ".rep";
+      open_output_file(report_file, out_basename + report_file_ext.str ());
     }
   catch (runtime_error x)
     {
