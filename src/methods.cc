@@ -969,6 +969,17 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SymmetricCopy"),
+	DESCRIPTION("Copies a symmetric matrix."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( SYMMETRIC_ ),
+	GINPUT( SYMMETRIC_   ),
+	KEYWORDS(),
+	TYPES()));
+
 
 //=== MAYBESPARSE ====================================================
 

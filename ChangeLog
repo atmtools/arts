@@ -1,3 +1,15 @@
+2001-07-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-190
+
+	* commenting out a line printing out za angles in m_batch.cc
+	left after some debugging ... guessing
+
+	* adding workspace method SymmetricCopy in /src/m_io.cc
+
+	* adding /ami/hmatrix/hRedKx to do reduction based on 
+	weighting functions
+
 2001-07-26  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-189
@@ -50,7 +62,7 @@
 	* arts-0-0-186
 
 	* src/make_md_h.cc: Renamed md.h to auto_md.h and md.cc to auto_md.cc.
-	Moved auto_md.cc creation to src/make_md_cc.cc.
+ 	Moved auto_md.cc creation to src/make_md_cc.cc.
 	
 	* src/make_md_cc.cc: Moved creation of auto_md.cc to this file.
 	

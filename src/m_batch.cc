@@ -652,7 +652,7 @@ void ybatchAbsAndRte(
       {
         setto( za, za_oss[0][i] );
 	add( za_pencil, za );
-	cout << za << "\n";
+	//cout << za << "\n";
       }
     for ( itag=0; itag<ndo; itag++ )
       {

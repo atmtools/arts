@@ -1644,3 +1644,14 @@ void SymmetricDiagonal(
   out3 << "          nrows : " << nrows << "\n";
   out3 << "          value : " << value << "\n";
 }
+
+void SymmetricCopy(
+           SYMMETRIC&   y2,
+        const string&   name_y2,
+     const SYMMETRIC&   y1,
+        const string&   name_y1 )
+{
+  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
+  resize( y2, y1.nrows(), y1.ncols() );
+  copy( y1, y2 );
+}
