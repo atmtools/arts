@@ -1,3 +1,18 @@
+2003-05-27  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
+
+	* arts-1-1-556
+
+	* src/methods.cc: Added *grid_stepsizeSet*. It calculates the
+	stepsize of *scat_za_grid* and *scat_aa_grid* and
+	stores the result in *grid_stepsize*
+
+	* src/workspace.cc: Added Vector *grid_stepsize*.
+	Here the gridstepsize of *scat_za_grid* and *scat_aa_grid*
+	are stored. If the stepsize varies, -1 is stored.
+
+	* src/m_scatrte.cc: Added *grid_stepsizeSet*.
+	The implementation.
+
 2003-05-27  Sreerekha T.R.  <rekha@uni-bremen.de>
 			
 	* arts-1-1-555

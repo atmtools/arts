@@ -764,6 +764,22 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+    ( NAME( "grid_stepsize" ),
+      DESCRIPTION
+      (
+       "Vector of Numeric with two components:\n"
+       "\n"
+       "grid_stepsize[0] is the stepsize of the Workspacevariable scat_za_grid,\n"
+       "grid_stepsize[1] is the stepsize of the Workspacevariable scat_aa_grid\n"
+       "\n"
+       "If the value is equal to -1, there is no constant gridspace"
+       "\n"
+       "Unit: none"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "ground_emission" ),
        DESCRIPTION
        (

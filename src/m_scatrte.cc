@@ -270,6 +270,58 @@ void convergence_flagAbs_BT(//WS Output:
 
 
 
+//! Setting grid_stepsize.
+/*!
+  This method calculates the value of the constant gridstepsize of
+  the workspacevariables *scat_za_grid* and *scat_aa_grid* and stores it
+  in the workspace-Vector *grid_stepsize*
+
+  If one of the grid stepsizes isn't constant, -1 will be stored
+
+  grid_stepsize[0] <-> scat_za_grid
+  grid_stepsize[1] <-> scat_aa_grid
+
+  \param grid_stepsize
+  \param scat_za_grid
+  \param scat_aa_grid
+
+  \author Claas Teichmann
+  \date 2003-05-26
+*/
+
+void grid_stepsizeSet(Vector& grid_stepsize,
+                      const Vector& scat_za_grid,
+                      const Vector& scat_aa_grid)
+{
+  grid_stepsize.resize(2);
+  grid_stepsize[0] = 0;
+  grid_stepsize[1] = 0;
+
+  Index n_za = scat_za_grid.nelem();
+  Index n_aa = scat_aa_grid.nelem();
+
+  assert(n_za > 1);
+  assert(n_aa > 1);
+
+  Numeric diff_za = scat_za_grid[1] - scat_za_grid[0];
+  Numeric diff_aa = scat_aa_grid[1] - scat_aa_grid[0];
+
+  for (Index i = 0; i < n_za - 1; i++)
+    {
+      if (fabs(diff_za - fabs(scat_za_grid[i] - scat_za_grid[i+1])) > 1e-6) grid_stepsize[0] = -1;
+    }
+  if (grid_stepsize[0] == 0) grid_stepsize[0]=diff_za;
+
+  for (Index i = 0; i < n_aa - 1; i++)
+    {
+      if (fabs(diff_aa - fabs(scat_aa_grid[i] - scat_aa_grid[i+1])) > 1e-6) grid_stepsize[1] = -1;
+    }
+  if (grid_stepsize[1] == 0) grid_stepsize[1]=diff_aa;
+  return;
+}
+
+
+
 //! Iterative solution of the RTE.
 /*! 
   A solution for the RTE with scattering is found using an iterative scheme:

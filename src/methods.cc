@@ -1702,6 +1702,29 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("grid_stepsizeSet"),
+        DESCRIPTION
+        (
+         "Setting grid_stepsize."
+         "\n"
+         "This method calculates the value of the constant gridstepsize of\n"
+         "*scat_za_grid* and *scat_aa_grid* and stores it\n"
+         "in the Vector *grid_stepsize*\n"
+         "\n"
+         "If one of the grid stepsizes isn't constant, -1 will be stored\n"
+         "\n"
+         "grid_stepsize[0] <-> scat_za_grid\n"
+         "grid_stepsize[1] <-> scat_aa_grid\n"
+         ),
+        OUTPUT( grid_stepsize_ ),
+        INPUT( scat_za_grid_, scat_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("GroundNoScatteringSingleEmissivity"),
