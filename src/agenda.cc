@@ -53,10 +53,13 @@ void give_up(const String& message)
   workspace. It also checks for errors during the method execution and
   stops the program if an error has occured.
 
-  \param workspace The workspace to act on.
+  The workspace itself is made visible by an external declaration.
 */
-void Agenda::execute(WorkSpace& workspace)
+void Agenda::execute() const
 {
+  // The workspace:
+  extern WorkSpace workspace;
+
   // The method description lookup table:
   extern const Array<MdRecord> md_data;
 
@@ -105,9 +108,12 @@ void Agenda::execute(WorkSpace& workspace)
 			wsv_data[v[s]].Name());
 	  }
 
-	  // Call the getaway function:
-	  getaways[mrr.Id()]
-	    ( workspace, mrr );
+	  // The output is flagged as occupied before the actual
+	  // function call, so that output of a method can already be used by
+	  // an agenda executed by the method. This is important for
+	  // example in the case of absorption, where an agenda is
+	  // used to compute the lineshape, which needs some input
+	  // data pased by the calling method, such as line-width, etc.. 
 
 	  { // Flag the specific output variables as occupied:
 	    const ArrayOfIndex& v(mdd.Output());
@@ -118,6 +124,10 @@ void Agenda::execute(WorkSpace& workspace)
 	    const ArrayOfIndex& v(mrr.Output());
 	    for (Index s=0; s<v.nelem(); ++s) workspace.set(v[s]);
 	  }
+
+	  // Call the getaway function:
+	  getaways[mrr.Id()]
+	    ( workspace, mrr );
 
 	}
       catch (runtime_error x)

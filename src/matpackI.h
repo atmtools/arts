@@ -1055,7 +1055,7 @@ inline std::ostream& operator<<(std::ostream& os, const ConstVectorView& v)
     }
   for ( ; i!=end ; ++i )
     {
-      os << "\n" << setw(3) << *i;
+      os << " " << setw(3) << *i;
     }
 
   return os;

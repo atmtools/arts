@@ -32,5 +32,11 @@ void AgendaDefine(// WS Generic Output:
                   // Agenda from controlfile:
                   const Agenda& input_agenda)
 {
+  // FIXME: I guess there should be some content here...
+}
 
+void Main(// Agenda from controlfile:
+	  const Agenda& input_agenda)
+{
+  input_agenda.execute();
 }

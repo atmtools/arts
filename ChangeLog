@@ -1,5 +1,24 @@
 2002-03-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-1-1-29
+
+	* doc/examples/*.arts.in: The outermost method must now simply be
+	called Main. To use DefineAgenda was unlogical, since defining an
+	agenda and executing an agenda are quite different things.
+
+	* src/parser.cc: Adapted to new controlfile structure. Cleaned up
+	output to out3.
+
+	* src/array.h: Changed output operator for ConstVectorView to
+	put all elements in one row.
+
+	* src/matpackI.h: Changed output operator for ConstVectorView to
+	put all elements in one row.
+
+	* reconf: Added --enable-more-warnings switch to configure call. 
+
+2002-03-18  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-1-1-28
 
 	* doc/uguide/fm_definitions.tex: Fixed some typos. Added some

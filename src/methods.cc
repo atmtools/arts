@@ -3622,5 +3622,20 @@ md_data.push_back
 	KEYWORDS(),
 	TYPES(),
 	AGENDAMETHOD( true )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Main"),
+  	DESCRIPTION
+	( "Run the agenda that is specified inside the curly braces. ARTS\n"
+	  "controlfiles must define this method. It is executed automatically\n"
+	  "when ARTS is run on the controlfile." ),
+	OUTPUT(),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES(),
+	AGENDAMETHOD( true )));
 }
 

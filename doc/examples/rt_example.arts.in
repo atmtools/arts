@@ -27,7 +27,7 @@
 # and writing are quicker.
 
 
-AgendaDefine(main_agenda){
+Main {
 
 ### Spectroscopy: ############################################################
 tgsDefine { 

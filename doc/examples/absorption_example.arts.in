@@ -5,7 +5,7 @@
 # Also the first example file using Agendas
 # SAB 14.03.2002
 
-AgendaDefine(main_agenda){
+Main {
 
 # --------------------< A specific method >--------------------
 #                      -------------------

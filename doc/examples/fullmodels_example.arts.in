@@ -1,4 +1,4 @@
-AgendaDefine(main_agenda){
+Main {
 
 # ######## EXAMPLE FULL MODEL TAG CONTROL FILE #######
 # define the arts full model tags of arts

@@ -48,7 +48,7 @@ class MRecord;
 class Agenda {
 public:
   void push_back(MRecord n);
-  void execute(WorkSpace& workspace);
+  void execute() const;
   void resize(Index n);
   Agenda& operator=(const Agenda& x);
 private:

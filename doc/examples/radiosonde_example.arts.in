@@ -2,7 +2,7 @@
 # radiosonde profile.  
 # 2001-11-06 Stefan Buehler <sbuehler@uni-bremen.de>
 
-AgendaDefine(main_agenda){
+Main {
 
 tgsDefine           { [
          "H2O-PWR98",

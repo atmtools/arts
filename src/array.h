@@ -153,7 +153,7 @@ inline std::ostream& operator<<(std::ostream& os, const Array<base>& v)
 
   for ( ; i!=end; ++i )
     {
-      os << "\n" << setw(3) << *i;
+      os << " " << setw(3) << *i;
     }
 
   return os;

@@ -828,14 +828,14 @@ void parse_method(Index& id,
   assertain_character('{',text);
   eat_whitespace(text);
 
+  out3 << "- " << md_data[id].Name() << "\n";
+
   // There are two kind of methods, agenda methods, which have other
   // methods in the body, and normal methods, expecting keywords and
   // values. Let's take the agenda case first...
   if ( md_data[id].AgendaMethod() )
     {
-      out3 << "\nParsing agenda: "
-	   << wsv_data[output[0]].Name()
-	   << " {\n";
+      out3 << "{\n";
 
       parse_agenda(tasks,text,MdMap,WsvMap);
 
@@ -843,8 +843,6 @@ void parse_method(Index& id,
     }
   else
     {
-      out3 << "- " << md_data[id].Name() << "\n";
-
       // Now we have to deal with two different cases: Keywords with
       // parameters, or (optionally) only a parameter without a keyword
       // for methods that have only a single argument.
@@ -970,14 +968,14 @@ void parse_method(Index& id,
     @param tasklist Output. The ids and keyword parameter values for the
                     methods to run.
   
-   @param text   The input to parse.
-   @param MdMap  The method map.
-   @param WsvMap The workspace variable map.
+    @param text   The input to parse.
+    @param MdMap  The method map.
+    @param WsvMap The workspace variable map.
    
-   @see eat_whitespace
-   @see parse_method
-         
-   @author Stefan Buehler */
+    @see eat_whitespace
+    @see parse_method
+          
+    @author Stefan Buehler */
 void parse_agenda(Agenda& tasklist,
 		  SourceText& text,
 		  const std::map<String, Index> MdMap,
@@ -1071,20 +1069,16 @@ void parse_main(Agenda& tasklist, SourceText& text)
       // For Agenda, if ther is any:
       Agenda tasks;
 
+      out3 << "\nParsing control text:\n";
+
       text.Init();
       eat_whitespace(text);
 
       parse_method(id,values,output,input,tasklist,text,MdMap,WsvMap,true);
 	  
-      if ( "AgendaDefine" != md_data[id].Name() )
+      if ( "Main" != md_data[id].Name() )
 	{
-	  out0 << "The outermost method must be AgendaDefine!\n";
-	  exit(1);
-	}
-
-      if ( "main_agenda" != wsv_data[output[0]].Name() )
-	{
-	  out0 << "The outermost method must be AgendaDefine (main_agenda)!\n";
+	  out0 << "The outermost method must be Main!\n";
 	  exit(1);
 	}
     }

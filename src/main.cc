@@ -758,11 +758,6 @@ int main (int argc, char **argv)
   // which way is easier.
   try
     {
-      // Some global variables that we need:
-      extern WorkSpace workspace;
-      //      extern Array<WsvRecord> wsv_data;
-      //      extern Array<MdRecord> md_data;
-
       {
 	// Output program name and version number: 
 	// The name (PACKAGE) and the major and minor version number
@@ -794,7 +789,7 @@ int main (int argc, char **argv)
       parse_main(tasklist, text);
 
       // Execute main agenda:
-      tasklist.execute(workspace);
+      Main(tasklist);
 
     }
   catch (runtime_error x)

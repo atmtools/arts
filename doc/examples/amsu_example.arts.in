@@ -2,7 +2,7 @@
 # and weighting functions for AMSU-Channels.
 # Viju Oommen John<vojohn@uni-bremen.de> 01-10-2001
 
-AgendaDefine(main_agenda){
+Main {
 
 ### Spectroscopy: ############################################################
 # Choose the species that can contribute towards AMSU frequencies.
