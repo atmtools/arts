@@ -48,6 +48,9 @@
 #include "messages.h"
 #include "mystring.h"
 
+#include "math_funcs.h"
+#include "make_vector.h"
+#include "sensor.h"
 
 
 /*===========================================================================
@@ -244,7 +247,6 @@ void Test( )
 {
   // This function can be used to test stuff.
 
-  
 }
 
 

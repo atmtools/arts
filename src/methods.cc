@@ -445,29 +445,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("AntennaTransferMatrix"),
-        DESCRIPTION
-        (
-         "Constructs a antenna transfer matrix.\n"
-         "\n"
-         "Generic output: \n"
-         "   Matrix : The antenna transfer matrix.\n"
-         "\n"
-         "Generic input: \n"
-         "   Vector : The measurement block zenith angle grid.\n"
-         "   Matrix : The antenna diagram.\n"
-         "   Vector : The antenna diagram grid.\n"
-         "   Vector : The frequency grid."
-        ),
-        OUTPUT(),
-        INPUT(),
-        GOUTPUT( Matrix_ ),
-        GINPUT( Vector_, Matrix_, Vector_, Vector_ ),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
       ( NAME("ArrayOfIndexPrint"),
         DESCRIPTION
         (

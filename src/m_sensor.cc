@@ -48,6 +48,7 @@
 #include "special_interp.h"
 #include "xml_io.h"
 #include "sensor.h"
+#include "make_vector.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -55,7 +56,7 @@
 
 //! SensorIntegrationVector
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Mattias Ekström
    \date   2003-02-13
@@ -84,11 +85,12 @@ void SensorIntegrationVector(
 
 //! AntennaTransferMatrix
 /*!
-   See the the online help (arts -d FUNCTION_NAME)
+   See the online help (arts -d FUNCTION_NAME)
 
    \author Mattias Ekström
    \date   2003-03-06
 */
+/*
 void AntennaTransferMatrix(// WS Generic Output:
                                  Matrix&    Hb,
                            // WS Generic Output Names:
@@ -109,3 +111,35 @@ void AntennaTransferMatrix(// WS Generic Output:
   antenna_transfer_matrix( Hb, mblock_za_grid, a, a_grid, f_grid );
 
 }
+*/
+
+//! AntennaTest
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date  2003-03-10
+*/
+/*
+void AntennaTest(// WS Generic Output:
+                 Vector&          a,
+                 // WS Generic Output Names:
+                 const String&    a_name)
+{
+  //Set variables
+  Vector a_grid(181);
+  nlinspace(a_grid,-90,90,181);
+  Numeric theta = 3;
+
+  //Set size of a
+  a.resize( a_grid.nelem() );
+
+  //Call function
+  antenna_diagram_gaussian(a, a_grid, theta);
+
+  //Set up new vector and scale antenna diagram
+  Vector a_new = scale_antenna_diagram(a, 1, 100);
+
+  a = a_new;
+}
+*/

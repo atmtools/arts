@@ -61,5 +61,11 @@ void antenna_transfer_matrix(
       ConstMatrixView   a,
       ConstVectorView   x_a,
       ConstVectorView   x_f );
+      
+void antenna_diagram_gaussian(
+           VectorView   a,
+      ConstVectorView   theta_grid,
+       const Numeric&   theta );
+
 
 #endif  // sensor_h

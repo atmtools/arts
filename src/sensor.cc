@@ -15,12 +15,6 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-
-
-/*===========================================================================
-  === File description
-  ===========================================================================*/
-
 /*!
   \file   sensor.cc
   \author Mattias Ekström <ekstrom@rss.chalmers.se>
@@ -44,9 +38,11 @@
 #include "math_funcs.h"
 #include "messages.h"
 #include "mystring.h"
-#include "logic.h"
-#include "poly_roots.h"
-#include "special_interp.h"
+//#include "logic.h"
+//#include "poly_roots.h"
+//#include "special_interp.h"
+
+  extern const Numeric DEG2RAD;
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -157,7 +153,7 @@ void sensor_integration_vector(
    one or several line-of-sights models the antenna transfer matrix.
    The matrix it built up of spaced row vectors, to match the format
    of the spectral values.
-   
+
    The size of the antenna transfer matrix has to be set by the calling
    function, and it must be set as:
     nrows = x_f.nelem()
@@ -210,7 +206,7 @@ void antenna_transfer_matrix(
   //Assert that the transfer matrix has the right size, and set it to zero
   assert( Hb.nrows()==x_f.nelem() && Hb.ncols()==m_za.nelem()*x_f.nelem() );
   Hb = 0.0;
-  
+
   //Loop over frequencies to calculate the sensor intergration vector
   //and put values in the antenna matrix.
   Index i_a=0;
@@ -220,7 +216,108 @@ void antenna_transfer_matrix(
 
     i_a += di_a;
   }
-
-
 }
 
+//! antenna_diagram_gaussian
+/*!
+   Sets up an vector containing a standardized Gaussian antenna diagram,
+   described for a certain frequency. The function is called with the 
+   half-power beamwidth that determines the shape of the curve for the
+   reference frequency, and a grid that sets up the antenna diagram.
+
+   \param   a       The antenna diagram vector.
+   \param   a_grid  The antenna diagram grid of angles.
+   \param   theta   The antenna average width
+
+   \author Mattias Ekström
+   \date   2003-03-11
+*/
+void antenna_diagram_gaussian(
+           VectorView   a,
+      ConstVectorView   a_grid,
+       const Numeric&   theta )
+{
+  //Assert that a has the right size
+  assert( a.nelem()==a_grid.nelem() );
+
+  //Initialise variables
+  Numeric ln2 = log(2.0);
+
+  //Loop over grid points to calculate antenna diagram
+  for (Index i=0; i<a_grid.nelem(); i++) {
+    a[i]=exp(-4*ln2*pow(a_grid[i]*DEG2RAD/theta,2));
+  }
+}
+
+//! scale_antenna_diagram
+/*!
+   Scales a Gaussian antenna diagram for a reference frequency to match 
+   the new frequency.
+
+   \return          The scaled antenna diagram
+   \param   a       The antenna diagram vector
+   \param   f_ref   The reference frequency
+   \param   f_new   The new frequency
+   
+   \author Mattias Ekström
+   \date   2003-03-11
+*/
+Vector scale_antenna_diagram(
+        ConstVectorView   a,
+         const Numeric&   f_ref,
+         const Numeric&   f_new )
+{
+  //Initialize new vector
+  Vector a_new( a.nelem() );
+
+  //Get scale factor
+  Numeric s = f_new / f_ref;
+
+  //Scale
+  for (Index i=0; i<a.nelem(); i++) {
+    a_new[i]=pow(a[i], s);
+  }
+
+  return a_new;
+}
+
+//! antenna_diagram_gaussian
+/*!
+   Sets up an matrix containing a standardized Gaussian antenna diagram.
+   Each row describes the diagram for a certain frequency at the
+   measurement block grid points.
+
+   \param   a      The antenna diagram matrix.
+   \param   m_za   The measurement block grid of zenith angles.
+   \param   f      The frequencys.
+   \param   alpha  The antenna efficiency typically between 0.9 and 1.4
+   \param   D      The antenna dimension
+
+   \author Mattias Ekström
+   \date   2003-03-07
+*/
+/*
+void antenna_diagram_gaussian(
+           MatrixView   a,
+      ConstVectorView   m_za,
+      ConstVectorView   f,
+       const Numeric&   alpha,
+       const Numeric&   D )
+{
+  //Assert that a has the right size
+  assert( a.nrows()==f.nelem() && a.ncols()==m_za.nelem() );
+
+  //Initialise variables
+  Numeric ln2 = log(2.0);
+
+  //Loop over frequencies and grid points to calculate antenna diagram
+  for (Index i=0; i<f.nelem(); i++) {
+    for (Index j=0; i<m_za.nelem(); j++) {
+      NumericPrint(i, "i");
+      NumericPrint(j, "j");
+      a(i,j)=exp(-4*ln2*pow(m_za[j]*DEG2RAD*D*f[i]/(alpha*SPEED_OF_LIGHT),2));
+    }
+  }
+
+}
+*/

@@ -1,3 +1,12 @@
+2003-03-17  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-498
+
+	* src/sensor.cc: Added antenna_diagram_gaussian that sets up an
+	gaussian antenna diagram for a certain frequency. Also added
+	scale_antenna_diagram that scales the diagram to match another
+	frequency.
+
 2003-03-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-497
