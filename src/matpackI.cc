@@ -65,7 +65,7 @@ Range::Range(Index start, Joker, Index stride) :
 /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-Range::Range(Joker j, Index stride) :
+Range::Range(Joker, Index stride) :
   mstart(0), mextent(-1), mstride(stride)
 {
   // Nothing to do here.
