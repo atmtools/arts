@@ -52,15 +52,15 @@ void magfield_nk(  // Output
   
   
   // Loop over the degree number n of the Legendre polynommes.
-  for (Index l=1; l < 11; l++)
+  for (Index l=1; l <= 10; l++)
     {
       // Loop over the order number l of the Legendre polynommes.
-      for (Index m=0; m < l+1; m++)
+      for (Index m=0; m <= l; m++)
 	{
 	  
 	  // Relating the row index in M to the coresponding 
 	  // degree number n and order number l.
-	  Index	  j = l*(l+1)+m-1; 
+	  Index	  j = l*(l+1)/2+m-1; 
 
 	  // Calculating the associated Schmidt quasi-normalized Legendre 
 	  // polynomial for a degree number l and order number m.

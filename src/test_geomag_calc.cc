@@ -79,16 +79,16 @@ int main(void)
     }
 
   // Output of the radial component of the geomagnetic field in [nT].
-  cout << "B_r" << B_r << "nT" << endl;
+  cout << "B_r = " << B_r << " nT" << endl;
   
   // Output of the latitudinal component of the geomagnetic field in [nT].
-  cout << "B_th" << B_th << "nT" << endl;
+  cout << "B_th = " << B_th << " nT" << endl;
   
   // Output of the longitudinal component of the geomagnetic field in [nT].
-  cout << "B_ph" << B_ph << "nT" << endl;
+  cout << "B_ph = " << B_ph << " nT" << endl;
   
   // Output of the total geomagnetic field in [nT].
-  cout << "B_tot" <<  B_tot << "nT" << endl;
+  cout << "B_tot = " <<  B_tot << " nT" << endl;
   
   
   

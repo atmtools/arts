@@ -1,3 +1,10 @@
+2003-08-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-672
+	
+	* src/legendre.cc: Added the last [hopefully] special case for
+	(legendre_poly_deriv) and (legendre_poly_norm_schmidt_deriv).
+	
 2003-08-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-671

@@ -195,7 +195,7 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
           throw runtime_error (os.str ());
         }
     }
-  else
+  else if ( m < l )
     {
       try
         {
@@ -209,6 +209,23 @@ legendre_poly_deriv (Index l, Index m, Numeric x)
           os << e.what () << "legendre_poly_deriv: "
             << "Condition m < l failed" << endl
             << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
+        }
+    }
+  else 
+    {
+      try
+        {
+	  result = m * x * legendre_poly (l, m, x) / (1 - x * x)
+	    + (l + m) * (l - m + 1) * legendre_poly (l, m - 1, x) 
+	    / sqrt (1 - x * x);
+	}
+      catch (runtime_error e)
+        {
+          ostringstream os;
+          os << e.what () << "legendre_poly_norm_schmidt_deriv: "
+	     << "Condition m = l failed" << endl
+	     << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
@@ -264,23 +281,41 @@ legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
         }
 
     }
-  else
+  else if ( m < l )
     {
       try
         {
           result = ((l + 1) * (l + m) + legendre_poly_norm_schmidt (l-1, m, x)
                     - l * (l - m + 1) * legendre_poly_norm_schmidt (l+1, m, x))
             / ((2*l + 1) * (1 - x * x));
-      }
+	}
       catch (runtime_error e)
         {
           ostringstream os;
           os << e.what () << "legendre_poly_norm_schmidt_deriv: "
-            << "Condition m < l failed" << endl
-            << "l = " << l << "  m = " << m << endl;
+	     << "Condition m < l failed" << endl
+	     << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
     }
-
+  
+  else 
+    {
+      try
+        {
+	  result = m * x * legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
+	    + (l + m) * (l - m + 1) * legendre_poly_norm_schmidt (l, m - 1, x) 
+	    / sqrt (1 - x * x);
+	}
+      catch (runtime_error e)
+        {
+          ostringstream os;
+          os << e.what () << "legendre_poly_norm_schmidt_deriv: "
+	     << "Condition m = l failed" << endl
+	     << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
+        }
+    }
+  
   return (result);
 }
