@@ -1473,7 +1473,7 @@ inline void Vector::resize(Index n)
     allocate storage. */
 inline Vector::~Vector()
 {
-  delete mdata;
+  delete [] mdata;
 }
 
 
@@ -2253,7 +2253,7 @@ inline Matrix::~Matrix()
 {
 //   cout << "Destroying a Matrix:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete [] mdata;
 }
 
 

@@ -1253,7 +1253,7 @@ inline Tensor3::~Tensor3()
 {
 //   cout << "Destroying a Tensor3:\n"
 //        << *this << "\n........................................\n";
-  delete mdata;
+  delete [] mdata;
 }
 
 
