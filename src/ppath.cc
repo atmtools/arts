@@ -3263,9 +3263,7 @@ void ppath_start_3d(
 				     r15a, r35a, r36a, r16a, lat_start, lon_start );
     const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
 				     r15b, r35b, r36b, r16b, lat_start, lon_start );
-    const double epsilon = 1e-6;//CPD: 24-06-03
-    //if( r_start == rlow  || r_start == rupp )//CPD: replaced to avoid false falses
-    if (abs(r_start-rlow) < epsilon || abs(r_start-rupp) < epsilon)
+    if (abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL)
       { gridpos_force_end_fd( ppath.gp_p[imax] ); }
   }
 

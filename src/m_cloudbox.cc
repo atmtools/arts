@@ -1315,9 +1315,9 @@ void CloudboxGetOutgoing(// WS Generic Output:
 
       //Check, if grid_positions correspond to cloudbox boundary
      if ( (a_gp_p.idx != cloudbox_limits[0] &&
-           a_gp_p.idx != cloudbox_limits[1]) ||
+           a_gp_p.idx != cloudbox_limits[1]) &&
           (a_gp_lat.idx != cloudbox_limits[2] &&
-           a_gp_lat.idx != cloudbox_limits[3]) ||
+           a_gp_lat.idx != cloudbox_limits[3]) &&
           (a_gp_lon.idx != cloudbox_limits[4] &&
            a_gp_lon.idx != cloudbox_limits[5] ) )
        throw runtime_error(
@@ -1361,11 +1361,11 @@ void CloudboxGetOutgoing(// WS Generic Output:
                   a_gp_lon.idx <= cloudbox_limits[5]) )
                {
                  
-                 for(Index lat_index = cloudbox_limits[2]; 
-                     lat_index < cloudbox_limits[3]; lat_index++)
+                 for(Index lat_index = 0; 
+                     lat_index < cloudbox_limits[3]-cloudbox_limits[2]+1; lat_index++)
                    {
-                     for(Index lon_index = cloudbox_limits[4];
-                         lon_index < cloudbox_limits[5];
+                     for(Index lon_index = 0;
+                         lon_index < cloudbox_limits[5]-cloudbox_limits[4]+1;
                          lon_index ++)
                        {
                          if(a_gp_p.idx == cloudbox_limits[0])
@@ -1393,11 +1393,11 @@ void CloudboxGetOutgoing(// WS Generic Output:
                
                {
                  
-                 for(Index p_index = cloudbox_limits[0]; 
-                     p_index < cloudbox_limits[1]; p_index++)
+                 for(Index p_index = 0; 
+                     p_index < cloudbox_limits[1]-cloudbox_limits[0]+1; p_index++)
                    {
-                     for(Index lon_index = cloudbox_limits[4];
-                         lon_index < cloudbox_limits[5];
+                     for(Index lon_index = 0;
+                         lon_index < cloudbox_limits[5]-cloudbox_limits[4]+1;
                          lon_index ++)
                        {
                          if(a_gp_lat.idx == cloudbox_limits[2])
@@ -1425,11 +1425,11 @@ void CloudboxGetOutgoing(// WS Generic Output:
                
                {
                  
-                 for(Index p_index = cloudbox_limits[0]; 
-                     p_index < cloudbox_limits[1]; p_index++)
+                 for(Index p_index = 0; 
+                     p_index < cloudbox_limits[1]-cloudbox_limits[0]+1; p_index++)
                    {
-                     for(Index lat_index = cloudbox_limits[2];
-                         lat_index < cloudbox_limits[3];
+                     for(Index lat_index = 0;
+                         lat_index < cloudbox_limits[3]-cloudbox_limits[2]+1;
                          lat_index ++)
                        {
                          if(a_gp_lon.idx == cloudbox_limits[4])
@@ -1449,7 +1449,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
              else 
                {
                  throw runtime_error(
-                                     "Error in CloutboxGetOutgoing:\n"
+                                     "Error in CloudboxGetOutgoing:\n"
                                      "The point where you want to "
                                      "calculcate the radiation coming out \n"
                                      "of the cloud is not on the cloudbox \n"

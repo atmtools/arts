@@ -1,3 +1,24 @@
+2003-06-30  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-593
+
+	* src/ppath.cc (ppath_start_3D) small change suggested by Patrick - 
+	use existing RTOL instead of new constant.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming) Fixed bug that gave spurious 
+	assertion failure when checking that the current grid position is on
+	the cloudbox boundary.  Made function compatible with the small version
+	of scat_i_p, scat_i_lat, scat_i_lon. (This means some work will be needed
+	on Scat_iPut for the 3D case!)
+
+	* src/methods.cc added WSM scat_iPutMonteCarlo.
+
+	* src/m_montecarlo.cc added WSM scat_iPutMonteCarlo.  This is a fairly
+	ugly way of making the output of ScatteringMonteCarlo consistent with 
+	RteCalc	for the final stage of the calculation - cloudbox->sensor.
+	scat_i_p, scat_i_lat, and scat_i_lon are simply filled with many copies
+	of the single cloudbox exit stokes vector I. 
+
 2003-06-27  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-592

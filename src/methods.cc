@@ -3031,6 +3031,28 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "scat_iPutMonteCarlo" ),
+        DESCRIPTION
+        (
+         "Method for the communication between cloudbox and clearsky.\n"
+         "\n"
+         "This is the equivalent of scat_iPut for use with ScatteringMonteCarlo.\n"
+	 "To fit in with pre-existing code the Stokes vector I is simply copied \n"
+	 "several times to make the sizes of scat_i_p, scat_i_lat, and scat_i_lon\n"
+	 "the same as they would be of successive order of scattering calculations.\n"
+	 "This means that after *scat_iPutMonteCarlo* the radiative transfer \n"
+	 "calculation can be completed by simply calling *RteCalc*\n"
+	 "\n"
+         ),
+        OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
+        INPUT( I_, stokes_dim_, f_grid_, cloudbox_limits_, scat_za_grid_,
+	       scat_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
  md_data_raw.push_back
    ( MdRecord

@@ -72,7 +72,7 @@ extern const Numeric PI;
   online help (arts -d FUNCTION_NAME) for a description of parameters.
    
 \author Cory Davis
-\date 2003-07-19
+\date 2003-06-19
   
 */
 void Cloudbox_ppathCalc(
@@ -303,6 +303,59 @@ void Cloudbox_ppathCalc(
            << "is not below 60 km.\n";
     }
 }
+
+//! scat_iPutMonteCarlo
+/*! 
+calculates interface Tensors scat_i_p, scat_i_lat, and scat_i_lon.  This is
+the equivalent of scat_iPut for use after ScatteringMonteCarlo and before a final
+call to RteCalc.  See the online help (arts -d FUNCTION_NAME) for a description 
+of parameters.
+   
+\author Cory Davis
+\date 2003-06-30
+  
+*/
+
+void scat_iPutMonteCarlo(
+			 Tensor7& scat_i_p,
+			 Tensor7& scat_i_lat,
+			 Tensor7& scat_i_lon,
+			 const Vector& I,
+			 const Index& stokes_dim,
+                         const Vector& f_grid,
+                         const ArrayOfIndex& cloudbox_limits,
+                         const Vector& scat_za_grid,
+                         const Vector& scat_aa_grid
+			 )
+{
+
+   Index Nf = f_grid.nelem();
+   Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
+
+   Index Nza = scat_za_grid.nelem();
+   
+   Index Ni = stokes_dim;
+   Index Nlat_cloud = cloudbox_limits[3] - cloudbox_limits[2] + 1; 
+   Index Nlon_cloud = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+   Index Naa = scat_aa_grid.nelem();
+   
+   scat_i_p.resize(Nf, 2, Nlat_cloud, Nlon_cloud, Nza, Naa, Ni);
+   scat_i_lat.resize(Nf, Np_cloud, 2, Nlon_cloud, Nza, Naa, Ni);
+   scat_i_lon.resize(Nf, Np_cloud, Nlat_cloud, 2, Nza, Naa, Ni);
+
+
+  for(Index i = 0;i<stokes_dim;i++)
+    {
+      scat_i_p(joker,joker,joker,joker,joker,joker,i)=I[i];
+      scat_i_lat(joker,joker,joker,joker,joker,joker,i)=I[i];
+      scat_i_lon(joker,joker,joker,joker,joker,joker,i)=I[i];
+    }
+}
+
+
+
+
+
 
 
 
