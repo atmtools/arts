@@ -626,7 +626,7 @@ xml_set_stream_precision (ostream &os)
       break;
     default:
       out0 << "Numeric must be double or float\n";
-      exit (1);
+      arts_exit ();
   }
 
   os << setprecision (precision);
