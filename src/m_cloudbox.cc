@@ -1971,13 +1971,16 @@ void ybatchMetProfiles(//Output
 		       ArrayOfArrayOfTensor3& pnd_field_raw,
 		       Tensor4& pnd_field,
 		       Vector& y,
+		       Vector& p_grid,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
 		       const Vector& part_types,
+		       const String& met_profile_path,
 		       const ArrayOfString& met_profile_basenames,
 		       const Agenda& met_profile_calc_agenda,
-		       const Vector& p_grid,
-		       const Vector& f_grid )
+		       const Vector& f_grid,
+		       //Keyword
+		       const Index& nelem_p_grid)
 {
   Index no_profiles = met_profile_basenames.nelem();
   
@@ -2005,17 +2008,21 @@ void ybatchMetProfiles(//Output
   for (Index i = 0; i < no_profiles; ++ i)
     {
       //Reads the t_field_raw from file
-      xml_read_from_file(met_profile_basenames[i] + ".t.xml", t_field_raw);
+      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".t.xml",
+			 t_field_raw);
 
       //Reads the z_field_raw from file
-      xml_read_from_file(met_profile_basenames[i] + ".z.xml", z_field_raw);
+      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".z.xml",
+			 z_field_raw);
 
       //Reads the humidity from file - it is only an ArrayofTensor3
       // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
       // array is for species
-      xml_read_from_file(met_profile_basenames[i] + ".H2O.xml", vmr_field_h2o);
+      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".H2O.xml", 
+			 vmr_field_h2o);
       
-      xml_read_from_file(met_profile_basenames[i] + ".pnd_raw.xml", pnd_field_here);
+      xml_read_from_file(met_profile_path +met_profile_basenames[i] + ".pnd_raw.xml", 
+			 pnd_field_here);
 
       // the first element of the species is water vapour.  
       vmr_field_raw[0] = vmr_field_h2o;
@@ -2048,8 +2055,18 @@ void ybatchMetProfiles(//Output
       //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
 
       pnd_field_raw[0] = pnd_field_here;
-      //pnd_field(0, Range(joker),0,0) = pnd_field_raw[0][3](Range(joker), 0,0) ; 
+     
+      //Making a p_grid with the first and last element taken from the profile.
+      // this is because of the extrapolation problem.
+
+      Index N_p = t_field_raw[0].npages();
       
+      VectorNLogSpace(p_grid, 
+		      "p_grid", 
+		      t_field_raw[0](0,0,0), 
+		      t_field_raw[0](N_p -1,0,0), 
+		      100);
+
       // executing the met_profile_calc_agenda
       met_profile_calc_agenda.execute();
       

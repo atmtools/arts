@@ -1,3 +1,21 @@
+2003-04-23  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-527
+	
+	* src/m_cloudbox.cc (ybatchMetProfiles): The method
+	ybatchMetProfiles is modified in such a way that now the *p_grid*
+	is set inside the function.  This is done in such a way that the
+	first element of the p_grid is taken from the profile data
+	itself.  The number of elements in the p_grid is now given as a
+	keyword.  Another modification is to define a variable which can
+	store the path of the data.
+
+	* src/workspace.cc : The workspace variable *met_profile_path* of
+	type String is added. 
+
+	* src/methods.cc : Modified the interface of the method
+	*ybatchMetProfiles*. 
+
 2003-04-22  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-526

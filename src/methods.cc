@@ -3644,13 +3644,13 @@ md_data_raw.push_back
 	 "\n"
 	 ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-		pnd_field_raw_,	pnd_field_, y_),
-        INPUT(gas_species_, part_types_, met_profile_basenames_,
-	      met_profile_calc_agenda_, p_grid_, f_grid_),
+		pnd_field_raw_,	pnd_field_, y_, p_grid_),
+        INPUT(gas_species_, part_types_, met_profile_path_, met_profile_basenames_,
+	      met_profile_calc_agenda_, f_grid_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS(),
-        TYPES()));
+        KEYWORDS("nelem_p_grid"),
+        TYPES(Index_t)));
 
   md_data_raw.push_back
     ( MdRecord

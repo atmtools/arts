@@ -1245,6 +1245,20 @@ void define_wsv_data()
        ),
       GROUP( ArrayOfString_ )));
 
+wsv_data.push_back
+   (WsvRecord
+    ( NAME( "met_profile_path" ),
+      DESCRIPTION
+      (
+       "Path of the metoffice data.\n"
+       "\n"
+       "This is intended as input for the method ybatchMetProfiles. It holds \n"
+       "the path of the list of profiles. "
+       "\n"
+       "See documentation of WSM *ybatchMetProfiles* for more information."
+       ),
+      GROUP( String_ )));
+
  wsv_data.push_back
    (WsvRecord
     ( NAME( "opt_prop_gas_agenda" ),
