@@ -1,3 +1,23 @@
+2002-01-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* ami/file/filter_lines.m: Created and added this function that is an
+	enviroment for filter line arrays (a set of lines read from a file).
+	Two filters implemented so far, one that removes transitions for an
+	isoptope below an intensity threshold, and another one that removes all
+	transitions found in the water vapour absorption model by Rosenkrantz
+	1998. 
+
+	* ami/file/read_linefile.m: Created and added this file. It reads a 
+	line-file in ARTS format (ASCII). With this function and write_linefile
+	ARTS line files can now be read into Matlab, be modified and be written
+	back to a file.
+
+	* ami/math/isscalar.m: Created and added this functions that checks if
+	a Matlab variable is a scalar.
+
+	* ami/math/isinteger.m: Included more stringent check of the input.
+	Only numeric input is now allowed.
+
 2001-12-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-70

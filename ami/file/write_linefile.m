@@ -4,8 +4,9 @@
 %           Creates a line file in the ARTS format.
 %
 %           The line data shall be given by an array of structures. The
-%           structures shall have fields corresponding to the items
-%           of the line format. The field names are in lower case.
+%           field names of the structures shall equal the label name of
+%           the table in absorption.h defininmg the ARTS line format.
+%           The field names are throughout in lower case.
 %           No unit conversions are performed, thus the data shall have 
 %           the same unit as in the line file.
 %
@@ -24,9 +25,14 @@
 
 function write_linefile( filename, L, do_quanta, do_source )
 
-if ~exist('vers'),        vers = 3;        end
+
 if ~exist('do_quanta'),   do_quanta = 1;   end
 if ~exist('do_source'),   do_source = 1;   end
+
+
+%=== Present version number
+%
+vers = 3;
 
 
 %=== Open the file     
@@ -64,13 +70,41 @@ for i = 1:length(L)
   for j = 1:L{i}.n_aux
     fprintf(fid, ' %.6e',  eval(['L{i}.aux',int2str(j)]) );
   end
-  fprintf(fid, ' %.3e',  L{i}.df );
-  fprintf(fid, ' %.1f',  L{i}.di0 );
-  fprintf(fid, ' %.1f',  L{i}.dagam );
-  fprintf(fid, ' %.1f',  L{i}.dsgam );
-  fprintf(fid, ' %.1f',  L{i}.dnair );
-  fprintf(fid, ' %.1f',  L{i}.dnself );
-  fprintf(fid, ' %.1f',  L{i}.dpsf );
+  if L{i}.df < 0
+    fprintf(fid, ' %.0f',  L{i}.df );
+  else
+    fprintf(fid, ' %.3e',  L{i}.df );
+  end
+  if L{i}.di0 < 0
+    fprintf(fid, ' %.0f',  L{i}.di0 );
+  else
+    fprintf(fid, ' %.1f',  L{i}.di0 );
+  end
+  if L{i}.dagam < 0
+    fprintf(fid, ' %.0f',  L{i}.dagam );
+  else
+    fprintf(fid, ' %.1f',  L{i}.dagam );
+  end
+  if L{i}.dsgam < 0
+    fprintf(fid, ' %.0f',  L{i}.dsgam );
+  else
+    fprintf(fid, ' %.1f',  L{i}.dsgam );
+  end
+  if L{i}.dnair < 0
+    fprintf(fid, ' %.0f',  L{i}.dnair );
+  else
+    fprintf(fid, ' %.1f',  L{i}.dnair );
+  end
+  if L{i}.dnself < 0
+    fprintf(fid, ' %.0f',  L{i}.dnself );
+  else
+    fprintf(fid, ' %.1f',  L{i}.dnself );
+  end
+  if L{i}.dpsf < 0
+    fprintf(fid, ' %.0f',  L{i}.dpsf );
+  else
+    fprintf(fid, ' %.1f',  L{i}.dpsf );
+  end
 
   if do_quanta
     fprintf(fid, ' "%s"',  L{i}.qcode );
@@ -87,7 +121,6 @@ for i = 1:length(L)
   end
 
   fprintf(fid, '\n');
-
 
 end
 
