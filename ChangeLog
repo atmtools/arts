@@ -1,3 +1,35 @@
+2002-11-17  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-292
+
+	* src/test_scatproperties.cc: Include cmath. Required on some
+	systems (like marvin).
+
+	* src/special_interp.cc: Include iostream for cout (GCC3).
+
+	* doc/uguide/arts_methods_to_latex.sh: Workaround to get it working
+	on marvin.
+
+	* doc/doxygen/Makefile.am: File 'doxyfied' is now removed with make
+	clean in maintainer-mode.
+
+	----------
+
+	Fixes for upcoming release 1.3 of doxygen. We have to care more about
+	the format and tags we use in our comments because it contains now a
+	validating parser instead of a lexical scanner.
+
+	* src/parser.cc (eat_whitespace): @exceptions no longer exists, it is
+	now called @exception.
+
+	* src/old_absorption.cc (get_tagindex_for_Strings): Use <pre></pre>
+	instead of verbatim environment.
+
+	* src/partition_function_data.cc (spec): Use <pre>.
+	Inserted missing end tags.
+
+	* src/species_data.cc: Inserted missing end tags.
+
 2002-11-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-291
