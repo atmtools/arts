@@ -30,7 +30,7 @@ function write_linefile( filename, L, do_quanta, do_source, do_append )
 
 if ~exist('do_quanta','var'),   do_quanta = 1;   end
 if ~exist('do_source','var'),   do_source = 1;   end
-if ~exist('do_append','var'),   do_append = 1;   end
+if ~exist('do_append','var'),   do_append = 0;   end
 
 
 %=== Present version number

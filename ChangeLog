@@ -1,5 +1,12 @@
 2002-02-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-0-9
+
+	* ami/file/write_linefile.m: The falg to append or not was set to the
+	wrong the default value.
+
+2002-02-07  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-0-8
 
 	* ami: There was a lot of duplicates of functions. The duplicates
