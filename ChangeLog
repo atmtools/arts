@@ -1,3 +1,19 @@
+2003-03-03  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-466
+
+	* src/m_ppath.cc (DoGridcell2D/3D): Removed these WSM. 
+	(ppathCalcTest): Removed also this WSM.
+	
+	* doc/uguide/Figs: Created the folder concept and moved two
+	figures to that folder. Removed all remaining figures in the folder
+	/Figs (as decided some time ago). If you want to use some of the
+	removed figures, copy it from arts-1.
+
+	The decision is that all figures shall be placed in sub-folders,
+	one fore each chapter, where the folder name shall match the name of
+	the Latex file.
+
 2003-02-28  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-465

@@ -13,5 +13,6 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBDIRS=concept fm_definitions interpolation polarization ppath scattering 
-
+EXTRA_DIST = \
+	*.m \
+	*.pdf 

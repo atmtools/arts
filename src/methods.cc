@@ -970,112 +970,6 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
-      ( NAME("DoGridcell2D"),
-        DESCRIPTION
-        (
-         "A getaway function for *do_gridcell_2d*.\n"
-         "\n"
-         "The function calculates the geometrical propgation path through a\n"
-	 "2D grid cell. This function should only be used for bug checking \n"
-	 "of *do_gridcell_2d*, or to produce figures. The information given \n"
-	 "here can more easily be understood if also the header of \n"
-	 "*do_gridcell_2d* is read.\n"
-	 "\n"
-	 "The result is stored to the files: \n"
-	 "   r.xml       : Radius of path points as a vector.\n"
-         "   lat.xml     : Latitude of path points as a vector.\n"
-         "   za.xml      : LOS zenith angles at path points as a vector.\n"
-         "   lstep.xml   : Distance along the path bewteen points.\n"
-         "   endface.xml : Number coding of path end face.\n"
-         "\n"
-	 "Keywords: \n"
-         "   r_start   : Radius of start point.\n"
-	 "   lat_start : Latitude of start point.\n"
-	 "   za_start  : LOS zenith angle at start point.\n"
-	 "   lmax      : Maximum allowed length along the path. -1=no limit.\n"
-	 "   lat1      : Latitude of left end face of the grid cell.\n"
-	 "   lat3      : Latitude of right end face of the grid cell.\n"
-	 "   r1a       : Radius of lower-left corner of the grid cell.\n"
-	 "   r3a       : Radius of lower-right corner of the grid cell.\n"
-	 "   r3b       : Radius of upper-right corner of the grid cell.\n"
-	 "   r1b       : Radius of upper-left corner of the grid cell.\n"
-	 "   rground1  : Radius for the ground at *lat1*.\n"
-	 "   rground3  : Radius for the ground at *lat3*."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( "r_start", "lat_start", "za_start", "lmax",    "lat1",    
-                  "lat3",    "r1a",       "r3a",      "r3b",     "r1b",
-                  "rground1", "rground2" ),
-        TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t,  Numeric_t  )));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("DoGridcell3D"),
-        DESCRIPTION
-        (
-         "A getaway function for *do_gridcell_3d*.\n"
-         "\n"
-         "The function calculates the geometrical propgation path through a\n"
-	 "3D grid cell. This function should only be used for bug checking \n"
-	 "of *do_gridcell_3d*, or to produce figures. The information given \n"
-	 "here can more easily be understood if also the header of \n"
-	 "*do_gridcell_3d* is read.\n"
-	 "\n"
-	 "The result is stored to the files: \n"
-	 "   r.xml       : Radius of path points as a vector.\n"
-         "   lat.xml     : Latitude of path points as a vector.\n"
-         "   lon.xml     : Longitude of path points as a vector.\n"
-         "   za.xml      : LOS zenith angles at path points as a vector.\n"
-         "   aa.xml      : LOS azimuth angles at path points as a vector.\n"
-         "   lstep.xml   : Distance along the path bewteen points.\n"
-         "   endface.xml : Number coding of path end face.\n"
-         "\n"
-	 "Keywords: \n"
-         "   r_start   : Radius of start point.\n"
-	 "   lat_start : Latitude of start point.\n"
-	 "   lon_start : Longitude of start point.\n"
-	 "   za_start  : LOS zenith angle at start point.\n"
-	 "   aa_start  : LOS azimuth angle at start point.\n"
-	 "   lmax      : Maximum allowed length along the path. -1=no limit.\n"
-	 "   lat1      : Lower latitude.\n"
-	 "   lat3      : Upper latitude.\n"
-	 "   lon5      : Lower longitude.\n"
-	 "   lon6      : Upper longitude.\n"
-	 "   r15a      : Radius at *lat1*, *lon5* and lower p-surface.\n"
-	 "   r35a      : Radius at *lat3*, *lon5* and lower p-surface.\n"
-	 "   r36a      : Radius at *lat3*, *lon6* and lower p-surface.\n"
-	 "   r16a      : Radius at *lat1*, *lon6* and lower p-surface.\n"
-	 "   r15b      : Radius at *lat1*, *lon5* and upper p-surface.\n"
-	 "   r35b      : Radius at *lat3*, *lon5* and upper p-surface.\n"
-	 "   r36b      : Radius at *lat3*, *lon6* and upper p-surface.\n"
-	 "   r16b      : Radius at *lat1*, *lon6* and upper p-surface.\n"
-	 "   rground15 : Radius for the ground at *lat1* and *lon5*.\n"
-	 "   rground35 : Radius for the ground at *lat3* and *lon5*.\n"
-	 "   rground36 : Radius for the ground at *lat3* and *lon6*.\n"
-	 "   rground16 : Radius for the ground at *lat1* and *lon6*.  "
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( "r_start", "lat_start", "lon_start", "za_start", "aa_start",
-                  "lmax",    "lat1",      "lat3",      "lon5",      "lon6",  
-                  "r15a",    "r35a",      "r36a",      "r16a",
-                  "r15b",    "r35b",      "r36b",      "r16b",
-                  "rground15", "rground35", "rground36", "rground16" ),
-        TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t,
-                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t  )));
-
-  md_data_raw.push_back     
-    ( MdRecord
       ( NAME("Exit"),
         DESCRIPTION
         (
@@ -2412,22 +2306,6 @@ void define_md_data_raw()
         INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_, 
                cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "ppathCalcTest" ),
-        DESCRIPTION
-        (
-         "A temporary test function."
-        ),
-        OUTPUT( ppath_, ppath_step_ ),
-        INPUT( ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, t_field_, r_geoid_, z_ground_, 
-               cloudbox_on_, cloudbox_limits_, sensor_pos_, sensor_los_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
