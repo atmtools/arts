@@ -1,5 +1,18 @@
 2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
+	* arts-0-0-39
+
+	* absorption.cc: hitran/mytran tags were wrong
+
+	* absorption.h: several checks that tried to 
+			estimate the molecular weight 
+			from the isotope name did not
+			work properly, commented
+
+	* example1.arts: was empty in last check in
+
+2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
+
 	* arts-0-0-38
 
 	* absorption.cc: Included all molecules from JPL/HITRAN.

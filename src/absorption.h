@@ -84,14 +84,16 @@ public:
 	// the mass to an integer first.
 	Numeric rm  = floor(mmass+.5);
 	int    irm = static_cast<int>(rm); 
-	//	cout << "sum = " << sum << "  irm%10 = " << irm%10 << endl;
-	assert( sum == irm%10 );
+	//	assert( sum == irm%10 );
+	// SAB&AvE 08.08.2000 Disabled this check, since not
+	// always all atoms are explicitly listed in the isotope name.
 
 	// Same test for JPL tag numbers:
 	for ( size_t i=0; i<mjpltags.size(); ++i )
 	  {
-	    //	    cout << "sum = " << sum << "  (mjpltags[i] / 1000) % 10 = " << (mjpltags[i] / 1000) % 10 << endl;
-	    assert( sum == (mjpltags[i] / 1000) % 10 );
+	    //	    assert( sum == (mjpltags[i] / 1000) % 10 );
+	    // SAB&AvE 08.08.2000 Disabled this check, since not
+	    // always all atoms are explicitly listed in the isotope name.
 	  }
       }
 #endif // ifndef NDEBUG
@@ -141,7 +143,7 @@ public:
 	/* Check that the isotopes are correctly sorted. */
 	for ( size_t i=0; i<misotope.size()-1; ++i )
 	  {
-	    assert( misotope[i].Abundance() > misotope[i+1].Abundance() );
+	    assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
 	  }
 
 	/* Check that the Mytran tags are correctly sorted. */

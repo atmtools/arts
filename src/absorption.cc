@@ -15,8 +15,20 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-// Physical absorption routines. The absorption workspace methods are
-// in file m_abs.cc 
+/*!
+  \file   absorption.cc
+  \brief  Physical absorption routines. 
+
+  The absorption workspace methods are
+  in file m_abs.cc
+
+  \author Stefan Buehler
+
+  \author Axel von_Engeln
+  \date   2000-08-08
+  \note   Added all JPL/HITRAN species.
+*/
+
 
 #include "arts.h"
 #include "make_array.h"
@@ -285,7 +297,7 @@ void define_species_data()
 	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("4111"	,0.9958715	,17.	,111	,111	,TAGS(17002, 17004)),
-	 REC("5111"	,0.0036613	,18.	,111	,111	,TAGS(18002)),
+	 REC("5111"	,0.0036613	,18.	,112	,112	,TAGS(18002)),
 	 REC("4112"	,0.00044792294	,18.	,-1	,-1	,TAGS(18004))
 	 ) ) );
 
@@ -949,9 +961,13 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 				   warned_missing.end(),
 				   mo) )
 		{
-		  out0 << "Warning: HITRAN mo = " << mo << " is not "
+		  out0 << "Error: HITRAN mo = " << mo << " is not "
 		       << "known to ARTS.\n";
 		  warned_missing.push_back(mo);
+		  exit(1);
+		  // SAB 08.08.2000 If you want to make the program
+		  // continue anyway, just comment out the exit
+		  // line.
 		}
 	    }
 	}
