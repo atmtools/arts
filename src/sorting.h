@@ -34,6 +34,7 @@
 #define sorting_h
 
 #include <algorithm>
+#include <functional>
 using namespace std;
 
 #include "arts.h"
