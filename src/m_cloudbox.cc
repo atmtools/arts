@@ -1468,29 +1468,28 @@ void CloudboxGetOutgoing(// WS Generic Output:
       
       
       //Check, on which boundary(s) the intersection point lies
-      if(rte_gp_p.idx == cloudbox_limits[0] ||
-         rte_gp_p.idx == cloudbox_limits[1])
+      if(cloud_gp_p.idx == 0 ||
+         cloud_gp_p.idx == cloudbox_limits[1] - cloudbox_limits[0] - 1)
         {
           on_p_bd = true;
-          out3 << "(pressure surface) \n";
+          out3 << "(pressure surface, indx: "<< cloud_gp_p.idx << ")\n";
         }
 
-      if(rte_gp_lat.idx == cloudbox_limits[2] ||
-         rte_gp_lat.idx == cloudbox_limits[3]) 
+      if(cloud_gp_lat.idx == 0 ||
+         cloud_gp_lat.idx == cloudbox_limits[3] - cloudbox_limits[2] -1)
         {
           on_lat_bd = true;
-          out3 << "(latitude surface) \n";
-          cout << "Index" <<  rte_gp_lat.idx << endl;
+          out3 << "(latitude surface), indx: " << cloud_gp_lat.idx << ") \n";
         }
       
-      if(rte_gp_lon.idx == cloudbox_limits[4] ||
-         rte_gp_lon.idx == cloudbox_limits[5] )
+      if(cloud_gp_lon.idx == 0 ||
+         cloud_gp_lon.idx == cloudbox_limits[5] - cloudbox_limits[4] -1)
         {
           on_lon_bd = true;
-          out3 << "(longitude surface) \n";
+          out3 << "(longitude surface), indx: " << cloud_gp_lon.idx << ") \n";
         }
       
-      out3 << "    zenith_angle: " << rte_los[0] << "\n"
+      out3 << "    zenith_angle: " << rte_los[0] 
            << "    azimuth_angle: " << rte_los[1]+180 << "\n";
       
       //Arrays to store grid positions
