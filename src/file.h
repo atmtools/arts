@@ -101,13 +101,13 @@ void binfile_close(
 //   Functions to read and write binary data for ARTS data types
 ////////////////////////////////////////////////////////////////////////////
 
-void binfile_write_size_t(
+void binfile_write_index(
         const string&   filename,
         const hid_t&    fid,
         const size_t&   x,
         const string&   dataname );
 
-void binfile_read_size_t(
+void binfile_read_index(
               size_t&   x,
         const string&   filename,
         const hid_t&    fid,
@@ -148,6 +148,42 @@ void binfile_read_matrix(
         const string&   filename,
         const hid_t&    fid,
         const string&   dataname );
+
+void binfile_write_indexarray(
+        const string&         filename,
+        const hid_t&          fid,
+        const ARRAYofsizet&   x,
+        const string&         dataname );
+
+void binfile_read_indexarray(
+              ARRAYofsizet&   x,
+        const string&         filename,
+        const hid_t&          fid,
+        const string&         dataname );
+
+void binfile_write_vectorarray(
+        const string&          filename,
+        const hid_t&           fid,
+        const ARRAYofVECTOR&   x,
+        const string&          dataname );
+
+void binfile_read_vectorarray(
+              ARRAYofVECTOR&   x,
+        const string&          filename,
+        const hid_t&           fid,
+	const string&          dataname );
+
+void binfile_write_matrixarray(
+        const string&          filename,
+        const hid_t&           fid,
+        const ARRAYofMATRIX&   x,
+        const string&          dataname );
+
+void binfile_read_matrixarray(
+              ARRAYofMATRIX&   x,
+        const string&          filename,
+        const hid_t&           fid,
+        const string&          dataname );
 
 
 #endif

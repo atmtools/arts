@@ -431,6 +431,10 @@ void binfile_open_out(
        << "Maybe you don't have write access to the directory or the file?";
     throw runtime_error(os.str());
   }
+  out2 << "  Opened file " << filename << " for writing.\n";
+
+  // Turn off automatic error printing in HDF
+  H5Eset_auto( NULL, NULL );
 }
 
 
@@ -446,6 +450,10 @@ void binfile_open_in(
        << "Maybe you don't have read access to the directory or the file?";
     throw runtime_error(os.str());
   }
+  out2 << "  Opened file " << filename << " for reading.\n";
+
+  // Turn off automatic error printing in HDF
+  H5Eset_auto( NULL, NULL );
 }
 
 
@@ -462,6 +470,7 @@ void binfile_close(
     os << "Cannot close file: " << filename;
     throw runtime_error(os.str());
   }
+  out2 << "  Closed file " << filename << "\n";
 }
 
 
@@ -559,6 +568,8 @@ void binfile_read_init(
 {
   hid_t  space_id;
 
+  out3 << "    Reading: " << dataname << "\n";
+
   // Get identifier for data set and space 
   binfile_get_dataids( set_id, space_id, fid, filename, dataname );
 
@@ -610,6 +621,16 @@ void binfile_write(
         herr_t   status;
   const string   s = "\\" + dataname;
 
+  out3 << "    Writing: " << dataname << "\n";
+
+  // HDF cannot handle empty data (strange!!) so we must demand a length > 0
+  for ( size_t i=0; i<rank; i++ )
+  { 
+    if ( dims[i] == 0 )
+      throw runtime_error(
+        "Sorry, but data with zero length cannot be stored in binary format.");
+  }
+
   // Create the data space
   space_id = H5Screate_simple( rank, dims, NULL );
   if ( space_id < 0 )
@@ -621,7 +642,7 @@ void binfile_write(
   }
 
   // Create the data set and write data
-  if ( datatype == "size_t" ) 
+  if ( datatype == "INDEX" ) 
   {
     if ( sizeof(size_t) == sizeof(unsigned) )
     {
@@ -629,7 +650,6 @@ void binfile_write(
                                                                 H5P_DEFAULT );
       status = H5Dwrite( set_id, H5T_NATIVE_UINT, H5S_ALL, H5S_ALL, 
                                                       H5P_DEFAULT, dpointer );
-      cout << "a\n";
     }
     else if ( sizeof(size_t) == sizeof(unsigned long) )
     { 
@@ -637,13 +657,12 @@ void binfile_write(
                                                                 H5P_DEFAULT );
       status = H5Dwrite( set_id, H5T_NATIVE_ULONG, H5S_ALL, H5S_ALL, 
                                                       H5P_DEFAULT, dpointer );
-      cout << "b\n";
     }
     else
-      throw runtime_error("Unknown data size of size_t.");
+      throw runtime_error("Unknown data size of index.");
   }
 
-  else if ( datatype == "Numeric" ) 
+  else if ( datatype == "NUMERIC" ) 
   {
     // Determine if NUMERIC is float or double
     string numtype = get_numeric_type_string();
@@ -692,6 +711,7 @@ void binfile_write(
   // Close data set and space
   binfile_close_space( space_id, filename );
   binfile_close_set( set_id, filename );
+  out3 << "    Writing ready\n";
 }
 
 
@@ -704,11 +724,20 @@ void binfile_read(
 {
   // Read the data
   herr_t status;
-  if ( datatype == "size_t" ) 
-    status = H5Dread( set_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, 
-                                                      H5P_DEFAULT, dpointer );
 
-  else if ( datatype == "Numeric" ) 
+  if ( datatype == "INDEX" ) 
+  {
+    if ( sizeof(size_t) == sizeof(unsigned) )
+      status = H5Dread( set_id, H5T_NATIVE_UINT, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+    else if ( sizeof(size_t) == sizeof(unsigned long) )
+      status = H5Dread( set_id, H5T_NATIVE_ULONG, H5S_ALL, H5S_ALL, 
+                                                      H5P_DEFAULT, dpointer );
+    else
+      throw runtime_error("Unknown data size of index.");
+  }
+
+  else if ( datatype == "NUMERIC" ) 
   {
     // Determine if NUMERIC is float or double
     string numtype = get_numeric_type_string();
@@ -740,8 +769,11 @@ void binfile_read(
   }
 
   // Close data set?
-  if ( close_set )
+  if ( close_set ) 
+  {
     binfile_close_set( set_id, filename );
+    out3 << "    Reading ready\n";
+  }
 }
 
 
@@ -750,7 +782,7 @@ void binfile_read(
 //   Functions to read and write binary data for ARTS data types
 ////////////////////////////////////////////////////////////////////////////
 
-void binfile_write_size_t(
+void binfile_write_index(
         const string&   filename,
         const hid_t&    fid,
         const size_t&   x,
@@ -760,11 +792,11 @@ void binfile_write_size_t(
   a[0] = x;
   hsize_t  dims[1];
   dims[0] = 1;
-  binfile_write( fid,  filename, dataname, "size_t", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "INDEX", 1, dims, a );
 }
 
 
-void binfile_read_size_t(
+void binfile_read_index(
               size_t&   x,
         const string&   filename,
         const hid_t&    fid,
@@ -779,7 +811,7 @@ void binfile_read_size_t(
         size_t   rank, a[rank0];
 
   binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0,dims0);
-  binfile_read( a, set_id, filename, "size_t", 1 );
+  binfile_read( a, set_id, filename, "INDEX", 1 );
   x = a[0];  
 }
 
@@ -794,7 +826,7 @@ void binfile_write_numeric(
   a[0] = x;
   hsize_t  dims[1];
   dims[0] = 1;
-  binfile_write( fid,  filename, dataname, "Numeric", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "NUMERIC", 1, dims, a );
 }
 
 
@@ -814,7 +846,7 @@ void binfile_read_numeric(
         Numeric  a[rank0];
 
   binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0,dims0);
-  binfile_read( a, set_id, filename, "Numeric", 1 );
+  binfile_read( a, set_id, filename, "NUMERIC", 1 );
   x = a[0];  
 }
 
@@ -833,7 +865,7 @@ void binfile_write_vector(
   Numeric a[n];
   for ( i=0; i<n; i++ )
     a[i] = x(i+1);
-  binfile_write( fid,  filename, dataname, "Numeric", 1, dims, a );
+  binfile_write( fid,  filename, dataname, "NUMERIC", 1, dims, a );
 }
 
 
@@ -854,7 +886,7 @@ void binfile_read_vector(
   n = dims[0];
   x.newsize(n);
   Numeric a[n];
-  binfile_read( a, set_id, filename, "Numeric", 1 );
+  binfile_read( a, set_id, filename, "NUMERIC", 1 );
   for ( i=0; i<n; i++ )
     x(i+1) = a[i];
 }
@@ -877,7 +909,7 @@ void binfile_write_matrix(
   for ( i=0; i<nrows; i++ )
     for ( j=0; j<ncols; j++ )
       a[i][j] = x(i+1,j+1);
-  binfile_write( fid,  filename, dataname, "Numeric", 2, dims, a );
+  binfile_write( fid,  filename, dataname, "NUMERIC", 2, dims, a );
 }
 
 
@@ -899,9 +931,133 @@ void binfile_read_matrix(
   ncols = dims[1];
   x.newsize(nrows,ncols);
   Numeric a[nrows][ncols];
-  binfile_read( a, set_id, filename, "Numeric", 1 );
+  binfile_read( a, set_id, filename, "NUMERIC", 1 );
   for ( i=0; i<nrows; i++ )
     for ( j=0; j<ncols; j++ )
       x(i+1,j+1) = a[i][j];
 }
        
+
+void binfile_write_indexarray(
+        const string&         filename,
+        const hid_t&          fid,
+        const ARRAYofsizet&   x,
+        const string&         dataname )
+{
+  const size_t  n = x.dim();
+        size_t  i;
+       hsize_t  dims[1];
+  dims[0] = n;
+
+  size_t a[n];
+  for ( i=0; i<n; i++ )
+    a[i] = x(i+1);
+  binfile_write( fid,  filename, dataname, "INDEX", 1, dims, a );
+}
+
+
+void binfile_read_indexarray(
+              ARRAYofsizet&   x,
+        const string&         filename,
+        const hid_t&          fid,
+        const string&         dataname )
+{
+  // We expect rank 1 (any length)
+  const size_t   rank0 = 1;
+  //-------------------------------------------
+        hsize_t  dims[rank0];
+        size_t   rank, n, i;
+        hid_t    set_id;
+
+  binfile_read_init( set_id, rank, dims, filename, fid, dataname, rank0, NULL);
+  n = dims[0];
+  x.newsize(n);
+  size_t a[n];
+  binfile_read( a, set_id, filename, "INDEX", 1 );
+  for ( i=0; i<n; i++ )
+    x(i+1) = a[i];
+}
+
+
+void binfile_write_vectorarray(
+        const string&          filename,
+        const hid_t&           fid,
+        const ARRAYofVECTOR&   x,
+        const string&          dataname )
+{
+  const size_t  n = x.dim();
+
+  // Write number of vectors
+  binfile_write_index( filename, fid, n, "N_"+dataname );  
+
+  // Write each matrix seperately
+  for (size_t i=1; i<=n; i++ )
+  {
+    ostringstream os;
+    os << dataname << i;
+    binfile_write_vector( filename, fid, x(i), os.str() );    
+  }
+}
+
+
+void binfile_read_vectorarray(
+              ARRAYofVECTOR&   x,
+        const string&          filename,
+        const hid_t&           fid,
+        const string&          dataname )
+{
+  // Read the number of vectors
+  size_t  n;
+  binfile_read_index( n, filename, fid, "N_"+dataname );  
+
+  // Reallocate x and read vectors
+  x.newsize(n);
+  for (size_t i=1; i<=n; i++ )
+  {
+    ostringstream os;
+    os << dataname << i;
+    binfile_read_vector( x(i), filename, fid, os.str() );    
+  }
+}
+
+
+void binfile_write_matrixarray(
+        const string&          filename,
+        const hid_t&           fid,
+        const ARRAYofMATRIX&   x,
+        const string&          dataname )
+{
+  const size_t  n = x.dim();
+
+  // Write number of matrices
+  binfile_write_index( filename, fid, n, "N_"+dataname );  
+
+  // Write each matrix seperately
+  for (size_t i=1; i<=n; i++ )
+  {
+    ostringstream os;
+    os << dataname << i;
+    binfile_write_matrix( filename, fid, x(i), os.str() );    
+  }
+}
+
+
+void binfile_read_matrixarray(
+              ARRAYofMATRIX&   x,
+        const string&          filename,
+        const hid_t&           fid,
+        const string&          dataname )
+{
+  // Read the number of matrices
+  size_t  n;
+  binfile_read_index( n, filename, fid, "N_"+dataname );  
+
+  // Reallocate x and read matrices
+  x.newsize(n);
+  for (size_t i=1; i<=n; i++ )
+  {
+    ostringstream os;
+    os << dataname << i;
+    binfile_read_matrix( x(i), filename, fid, os.str() );    
+  }
+}

@@ -123,8 +123,8 @@ void NumericSet(// WS Generic Output:
 
 void NumericWriteBinary(
         const Numeric&  v,
-        const string&  var_name,
-	const string&  f )
+        const string&   var_name,
+	const string&   f )
 {
   hid_t  fid;
   string filename = f;
@@ -138,8 +138,8 @@ void NumericWriteBinary(
 
 void NumericReadBinary(
 	      Numeric&  v,
-        const string&  var_name,
-	const string&  f )
+        const string&   var_name,
+	const string&   f )
 {
   hid_t  fid;
   string filename = f;
@@ -155,7 +155,7 @@ void NumericReadBinary(
 
 void VectorSet(           VECTOR&  x, 
                     const string&  x_name,
-                    const int& n,
+                    const int&     n,
                     const Numeric& value )
 {
   x.newsize(n);
@@ -209,7 +209,7 @@ void VectorNLogSpace(     VECTOR&  x,
                     const string&  x_name,
                     const Numeric& start,
                     const Numeric& stop,
-                    const int& n )
+                    const int&     n )
 {
   x = nlogspace(start,stop,n);
   out3 << "  Creating " << x_name << " as logarithmically spaced vector\n";
@@ -409,6 +409,34 @@ void MatrixReadBinary(
 
 //=== ARRAYofINDEX =====================================================
 
+void ArrayOfIndexWriteBinary(
+        const ARRAYofsizet&  v,
+        const string&        var_name,
+	const string&        f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_out( fid, filename );
+  binfile_write_indexarray( filename, fid, v, "INDEXARRAY" );
+  binfile_close( fid, filename );
+}
+
+
+
+void ArrayOfIndexReadBinary(
+	      ARRAYofsizet&  v,
+        const string&        var_name,
+	const string&        f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_indexarray( v, filename, fid, "INDEXARRAY" );
+  binfile_close( fid, filename );
+}
+
 
 
 //=== ARRAYofVECTOR ====================================================
@@ -464,6 +492,36 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
 
 
 
+void ArrayOfVectorWriteBinary(
+        const ARRAYofVECTOR&  v,
+        const string&         var_name,
+	const string&         f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_out( fid, filename );
+  binfile_write_vectorarray( filename, fid, v, "VECTOR" );
+  binfile_close( fid, filename );
+}
+
+
+
+void ArrayOfVectorReadBinary(
+	      ARRAYofVECTOR&  v,
+        const string&         var_name,
+	const string&         f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_vectorarray( v, filename, fid, "VECTOR" );
+  binfile_close( fid, filename );
+}
+
+
+
 //=== ARRAYofMATRIX ====================================================
 
 void ArrayOfMatrixWriteAscii(// WS Generic Input:
@@ -502,6 +560,36 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
 
 
 
+void ArrayOfMatrixWriteBinary(
+        const ARRAYofMATRIX&  v,
+        const string&         var_name,
+	const string&         f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_out( fid, filename );
+  binfile_write_matrixarray( filename, fid, v, "MATRIX" );
+  binfile_close( fid, filename );
+}
+
+
+
+void ArrayOfMatrixReadBinary(
+	      ARRAYofMATRIX&  v,
+        const string&         var_name,
+	const string&         f )
+{
+  hid_t  fid;
+  string filename = f;
+  filename_bin( filename, var_name );
+  binfile_open_in( fid, filename );
+  binfile_read_matrixarray( v, filename, fid, "MATRIX" );
+  binfile_close( fid, filename );
+}
+
+
+
 //=== MAYBESPARSE ====================================================
 
 /** Generic function to read H matrices.
@@ -521,7 +609,7 @@ void HmatrixReadAscii(// WS Generic Output:
 			const string& f)
 {
   string filename = f;
-  
+ 
   // Create default filename if empty  
   filename_num_ascii( filename, h_name );
 
@@ -535,3 +623,27 @@ void HmatrixReadAscii(// WS Generic Output:
 }
 
 
+
+
+void Test()
+{
+  const string filename = "test.hdf"; 
+  const size_t n = 3;
+  ARRAYofMATRIX a(n), b;
+  hid_t  fid;
+  
+  for ( size_t i=1; i<=n; i++ )
+  {
+    a(i).newsize(i,i);
+    a(i) = ((Numeric) i)*1.1;
+  }
+  binfile_open_out( fid, filename );
+  binfile_write_matrixarray( filename, fid, a, "MATRIX" ); 
+  binfile_close( fid, filename );
+  binfile_open_in( fid, filename );
+  binfile_read_matrixarray( b, filename, fid, "MATRIX" ); 
+  binfile_close( fid, filename );
+  for (size_t i=1; i<=n; i++ )
+    cout << b(i);
+
+}

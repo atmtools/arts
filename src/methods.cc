@@ -318,6 +318,34 @@ void define_md_data()
 
 //=== ARRAYofINDEX =====================================================
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfIndexWriteBinary"),
+	DESCRIPTION("Writes an index array to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofsizet_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfIndexReadBinary"),
+	DESCRIPTION("Reads an index array from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofsizet_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
 
 
 //=== ARRAYofVECTOR ====================================================
@@ -343,6 +371,34 @@ void define_md_data()
 		    "The filename can be specified or an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofVECTOR_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfVectorWriteBinary"),
+	DESCRIPTION("Writes a vector array to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofVECTOR_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfVectorReadBinary"),
+	DESCRIPTION("Reads a vector array from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ARRAYofVECTOR_ ),
@@ -393,6 +449,34 @@ void define_md_data()
 		    "The filename can be specified or an empty string.\n"
 		    "If empty, it is set to <basename>.<variable_name>.am.\n"
 		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ARRAYofMATRIX_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfMatrixWriteBinary"),
+	DESCRIPTION("Writes a matrix array to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( ARRAYofMATRIX_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfMatrixReadBinary"),
+	DESCRIPTION("Reads a matrix array from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "See ??? for details about the file format."),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ARRAYofMATRIX_ ),
@@ -1068,6 +1152,18 @@ void define_md_data()
         INPUT(),
 	GOUTPUT( MATRIX_ ),
 	GINPUT( Hmatrix_, MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Test"),
+  	DESCRIPTION(
+          "xxx."),
+	OUTPUT(),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 

@@ -1,5 +1,15 @@
 2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-70
+
+	* Included some files to read and write binary files for arrays. 
+	Turned off HDF error messages. Improved ARTS error messages.
+	(I wanted mainly to commit before leaving for today as I will work at
+	home tomorrow. Can read e-mail, but not do cvs commits).
+	
+
+2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-69
 
 	* Sorry, but I think that I did the last commit in src. This is mainly
