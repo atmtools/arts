@@ -1,3 +1,9 @@
+2001-11-22  Nikolay Koulev  <nkoulev@uni-bremen.de>
+	
+        * arts-0-1-54
+
+	* doc/uguide/absorption.tex: Removed undefined labels.
+
 2001-11-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
 	
         * arts-0-1-53
