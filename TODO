@@ -1,7 +1,6 @@
 SAB 2000-01-30: Turn off all debugging options with ./configure flag.
                 (Do not give the -g flag to the compiler, set NDEBUG.)
 SAB 2000-03-27: Add an author field to MdRecord?
-SAB 2000-06-17: Change interpolation in absorption part to interpp.
 SAB 2000-08-21: Some ideas for absorption:
                 - Method lines_per_tgAddMirrorLines
                   Adds mirror lines for those transitions for which
@@ -125,10 +124,6 @@ SAB 2000-12-13: Find a solution how to remove WSVs (as if they had not
                 WSV type). Second best would be any other way to get
                 rid of WSVs. Add the moment this is not possible at
                 all. :-(
-
-PE 2000-12-14:  Interpolation in m_abs is not done using the standard 
-                function (interpp). (Oooops, it is also mentioned above, 
-                15/12 PE).
 
 PE 2000-12-14:  Do what is possible to make the absorption as fast as possible.
 
