@@ -214,7 +214,7 @@ void sensor_responseInit(// WS Output:
 
   //Set matrix to identity matrix
   for( Index i=0; i<n; i++) {
-    sensor_response(i,i) = 1.0;
+    sensor_response.rw(i,i) = 1.0;
   }
 
   out2 << "  Initialising *sensor_reponse* as a identity matrix.\n";
