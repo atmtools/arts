@@ -1,3 +1,13 @@
+2004-02-20  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-788
+
+	* autogen.sh: Added AC_PROG_CC_STDC.
+
+	* src/Makefile.am: Use CXXFLAGS_FIXED for compilation of
+        partition_function_data.cc. Fixes compilation problem with enabled
+        optimizations with certain g++ versions.
+
 2004-02-16  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-787

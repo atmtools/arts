@@ -176,6 +176,12 @@ species_data.o: arts.h arts_mpi.h make_array.h absorption.h species_data.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
+partition_function_data.o: arts.h make_array.h absorption.h partition_function_data.cc
+	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
+	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c partition_function_data.cc
+
+
+
 # OLE: Temporarely added to work around a bug in gcc 3.0
 xml_io.o: arts.h arts_mpi.h xml_io.h xml_io.cc xml_io_instantiation.h xml_io_private.h xml_io_basic_types.h xml_io_compound_types.h xml_io_array_types.h bofstream.h bifstream.h
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \

@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.787)
+AM_INIT_AUTOMAKE(arts,1.1.788)
 
 AM_MAINTAINER_MODE
 
@@ -32,18 +32,17 @@ fi
 
 # C Compiler:
 AC_PROG_CC
+AC_PROG_CC_STDC
+# C Preprocessor
 AC_PROG_CPP
 # C++ Compiler:
 AC_PROG_CXX
 # C++ Preprocessor:
 AC_PROG_CXXCPP
-
 # Determine the name of the ranlib program
 AC_PROG_RANLIB
-
 # What's used by make install:
 AC_PROG_INSTALL
-
 # Provide standard headers:
 AC_STDC_HEADERS
 
