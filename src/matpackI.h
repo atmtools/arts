@@ -733,6 +733,8 @@ public:
 
   // Destructor:
   ~Matrix();
+
+  Numeric *get_raw_data() { return mdata; };
 };
 
 // Function declarations:
