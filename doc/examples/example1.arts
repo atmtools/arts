@@ -40,7 +40,7 @@ lines_per_tgCreateFromLines{}
 #                      ------------------
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz_1d':
-MatrixReadFromFile (raw_ptz_1d) 
+MatrixReadAscii (raw_ptz_1d) 
         {"../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 # The same for the input VMR profiles:
@@ -58,7 +58,7 @@ VectorNLogSpace(p_abs){
         n     = 140
 }
 
-VectorWriteToFile(p_abs){""}
+VectorWriteAscii(p_abs){""}
 
 
 # Now interpolate all the raw atmospheric input onto the pressure 
@@ -79,12 +79,12 @@ VectorNLinSpace(f_mono){
 }
 
 # Write frequency grid to file:
-VectorWriteToFile (f_mono) {""}
+VectorWriteAscii (f_mono) {""}
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):
 absCalc{}
 
 # These we definitely want to write to files!
-MatrixWriteToFile (abs) {""}
-ArrayOfMatrixWriteToFile (abs_per_tg) {""}
+MatrixWriteAscii (abs) {""}
+ArrayOfMatrixWriteAscii (abs_per_tg) {""}

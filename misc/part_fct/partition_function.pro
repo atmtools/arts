@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.2 2000/10/09 16:11:43 axel Exp $
+; $Id: partition_function.pro,v 1.3 2000/11/09 14:10:36 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -124,7 +124,7 @@ gis, species_arr, 'CO',     37,   37,     56, 2
 gis, species_arr, 'CH4',   211,   211,    61, 3
 gis, species_arr, 'CH4',   311,   311,    62, 3
 gis, species_arr, 'CH4',   212,   212,    63, 3, long([17003])
-gis, species_arr, 'O2',     66,   66,     71, 2, long([32001, 32002, 32005])
+gis, species_arr, 'O2',     66,   66,     71, 2, long([32001, 32002])
 gis, species_arr, 'O2',     68,   68,     72, 2, long([34001])
 gis, species_arr, 'O2',     67,   67,     73, 2, long([33002])
 gis, species_arr, 'NO',     46,   46,     81, 2, long([30008])

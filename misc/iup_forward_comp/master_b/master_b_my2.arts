@@ -8,7 +8,7 @@
 # create the workspace variable `lines':
 # NOTE: MYTRAN IS LIMITED TO DEDICATED BANDS!!!!
 linesReadFromMytran2 {
-   filename = "../../../spectroscopy/mytran/mytran_catalogue.my2"
+   filename = "../../../data/spectroscopy/mytran/mytran98.my2"
    fmin     = 200e9
    fmax     = 400e9
 }
@@ -74,7 +74,7 @@ lines_per_tgCreateFromLines{}
 #                      ------------------
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz_1d':
-MatrixReadFromFile (raw_ptz_1d) 
+MatrixReadAscii (raw_ptz_1d) 
         {"../../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 # The same for the input VMR profiles:
@@ -82,7 +82,7 @@ raw_vmrs_1dReadFromScenario
         {"../../../data/atmosphere/fascod/midlatitude-summer"}
 
 # Optionally write this to a file:
-#ArrayOfMatrixWriteToFile (raw_vmrs_1d) {""}
+#ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
 
 
 # Create the pressure grid `p_abs':
@@ -93,10 +93,10 @@ raw_vmrs_1dReadFromScenario
 #}
 
 # read the pressure grid used in the iup forward program
-VectorReadFromFile(p_abs){"master_b.iup_old.p_abs"}
+VectorReadAscii(p_abs){"master_b.iup_old.p_abs"}
 
 
-VectorWriteToFile(p_abs){""}
+VectorWriteAscii(p_abs){""}
 
 
 # Now interpolate all the raw atmospheric input onto the pressure 
@@ -104,9 +104,9 @@ VectorWriteToFile(p_abs){""}
 AtmFromRaw1D{}
 
 # Optionally write these to files:
-#VectorWriteToFile (t_abs) {""}
-VectorWriteToFile (z_abs) {""}
-#ArrayOfVectorWriteToFile (vmrs)  {""}
+#VectorWriteAscii (t_abs) {""}
+VectorWriteAscii (z_abs) {""}
+#ArrayOfVectorWriteAscii (vmrs)  {""}
 
 
 # Create the frequency grid `f_mono':
@@ -117,12 +117,12 @@ VectorNLinSpace(f_mono){
 }
 
 # Write frequency grid to file:
-VectorWriteToFile (f_mono) {""}
+VectorWriteAscii (f_mono) {""}
 
 # Calculate absorption coefficients, both total (`abs') and 
 # separately for each tag group (`abs_per_tg'):
 absCalc{}
 
 # These we definitely want to write to files!
-MatrixWriteToFile (abs) {""}
-ArrayOfMatrixWriteToFile (abs_per_tg) {""}
+MatrixWriteAscii (abs) {""}
+ArrayOfMatrixWriteAscii (abs_per_tg) {""}

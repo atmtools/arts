@@ -1,5 +1,20 @@
 2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
 
+	* arts-0-0-75
+
+	* species_data corrected, a O2-snglt-delta tag number 32005 of the
+	JPL catalog was included with the main O2 isotope, even though
+	this tag is only present in very small abundance. This tag shows
+	very strong absorptions, and it should be checked whether a
+	detection from a satellite instrument in possible.
+
+	* example1.arts and other arts controlfiles modified, since
+	Patrick renamed some of the workspace methods.
+
+2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-74
+
 	* src/m_hmatrix.cc file had still hdf5 included, removed.
 
 2000-11-08  Patrick Eriksson  <patrick@rss.chalmers.se>
