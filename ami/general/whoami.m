@@ -20,7 +20,7 @@ function uid = whoami
 
 %=== Unix/Linux
 %
-if strcmp(computer,'LNX86') | strcmp(computer,'GLNX86')
+if strcmp(computer,'LNX86') | strcmp(computer,'GLNX86') | strcmp(computer,'SOL2')
   %
   [s,uid] = unix('whoami');
   %

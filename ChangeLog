@@ -1,3 +1,10 @@
+2002-07-01  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-1-0-36
+
+	* ami/general/whoami modified to allow identification of
+	Sun computers 'computer=SOL2'
+
 2002-06-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-0-35
