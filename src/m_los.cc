@@ -1131,6 +1131,19 @@ void yCalc (
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
+  // Check that dimensions of trans and f_mono are consistent.
+  for ( size_t i=0; i<trans.size(); ++i )
+    if ( trans[i].nrows() != f_mono.size() )
+    {
+      ostringstream os;
+      os << "Number of frequencies in trans and f_mono is inconsistent:\n"
+	 << "trans:  " << trans[i].nrows() << "\n"
+	 << "f_mono: " << f_mono.size();
+      throw runtime_error(os.str());
+    }
+  
+    // FIXME: There should be more safety checks here, for example for source.
+
   if ( emission == 0 )
     y_tau( y, los, trans, e_ground );
   else

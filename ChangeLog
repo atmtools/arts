@@ -1,3 +1,15 @@
+2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
+
+	* arts-0-0-149
+
+	* m_los.cc: Added safety check to yCalc to make sure that the
+	number of frequencies in trans and f_mono is the same. This,
+	because it took some time to track down a core dump resulting from
+	reading absorption from a file with the wrong number of
+	frequencies. There should probably be more consistency checks in
+	this method.
+
+
 2001-04-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-148
@@ -12,7 +24,7 @@
 	For the matrix version there were no problem before (or?). The bug
 	was in the vector version where the temperature was included in the
 	static variable b which of course is a stupid thing. 
-	The staic variables a and b should now only contains constants.
+	The static variables a and b should now only contains constants.
 	
 
 2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
