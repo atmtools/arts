@@ -1,3 +1,9 @@
+2003-05-28  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-0-81
+
+	* doc/uguide/references.bib: Debugged my bug in {bernath:95} entry.
+
 2003-05-23  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-0-80
