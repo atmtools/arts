@@ -18,7 +18,7 @@
 /*!
   \file   globals_2.cc
   \brief  Global variable definitions that 
-	  depend on the automatically generated header file wsv.h
+          depend on the automatically generated header file wsv.h
 
   This file contains all global variable definitions that DO depend on
   the automatically generated header file wsv.h. It is necessary to

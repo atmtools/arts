@@ -46,7 +46,7 @@ std::map<String, Index> SpeciesMap;
 // given temperature  from the partition fct coefficients (3rd order
 // polynomial in temperature)
 Numeric IsotopeRecord::CalculatePartitionFctAtTemp( Numeric
-						    temperature ) const
+                                                    temperature ) const
 {
   Numeric result = 0.;
   Numeric exponent = 1.;
@@ -125,8 +125,8 @@ ostream& operator << (ostream& os, const LineRecord& lr)
     \author Stefan Buehler */
 template<class T>
 void extract(T&      x,
-	     String& line,
-	     Index  n)
+             String& line,
+             Index  n)
 {
   // Initialize output to zero! This is important, because otherwise
   // the output variable could `remember' old values.
@@ -185,82 +185,82 @@ bool LineRecord::ReadFromHitranStream(istream& is)
       hspec = missing;  // Matpack can set all elements like this.
 
       for ( Index i=0; i<species_data.nelem(); ++i )
-	{
-	  const SpeciesRecord& sr = species_data[i];
+        {
+          const SpeciesRecord& sr = species_data[i];
 
-	  // We have to be careful and check for the case that all
-	  // HITRAN isotope tags are -1 (this species is missing in HITRAN).
+          // We have to be careful and check for the case that all
+          // HITRAN isotope tags are -1 (this species is missing in HITRAN).
 
-	  if ( 0 < sr.Isotope()[0].HitranTag() )
-	    {
-	      // The HITRAN tags are stored as species plus isotope tags
-	      // (MO and ISO)
-	      // in the Isotope() part of the species record.
-	      // We can extract the MO part from any of the isotope tags,
-	      // so we use the first one. We do this by taking an integer
-	      // division by 10.
-	  
-	      Index mo = sr.Isotope()[0].HitranTag() / 10;
-	      //	  cout << "mo = " << mo << endl;
-	      hspec[mo] = i; 
-	  
-	      // Get a nicer to handle array of HITRAN iso tags:
-	      Index n_iso = sr.Isotope().nelem();
-	      ArrayOfIndex iso_tags;
-	      iso_tags.resize(n_iso);
-	      for ( Index j=0; j<n_iso; ++j )
-		{
-		  iso_tags[j] = sr.Isotope()[j].HitranTag();
-		}
+          if ( 0 < sr.Isotope()[0].HitranTag() )
+            {
+              // The HITRAN tags are stored as species plus isotope tags
+              // (MO and ISO)
+              // in the Isotope() part of the species record.
+              // We can extract the MO part from any of the isotope tags,
+              // so we use the first one. We do this by taking an integer
+              // division by 10.
+          
+              Index mo = sr.Isotope()[0].HitranTag() / 10;
+              //          cout << "mo = " << mo << endl;
+              hspec[mo] = i; 
+          
+              // Get a nicer to handle array of HITRAN iso tags:
+              Index n_iso = sr.Isotope().nelem();
+              ArrayOfIndex iso_tags;
+              iso_tags.resize(n_iso);
+              for ( Index j=0; j<n_iso; ++j )
+                {
+                  iso_tags[j] = sr.Isotope()[j].HitranTag();
+                }
 
-	      // Reserve elements for the isotope tags. How much do we
-	      // need? This depends on the largest HITRAN tag that we know
-	      // about!
-	      // Also initialize the tags to missing.
-	      // 	  cout << "iso_tags = " << iso_tags << endl;
-	      // 	  cout << "static_cast<Index>(max(iso_tags))%10 + 1 = "
-	      // 	       << static_cast<Index>(max(iso_tags))%10 + 1 << endl;
-	      hiso[mo].resize( max(iso_tags)%10 + 1 );
-	      hiso[mo] = missing; // Matpack can set all elements like this.
+              // Reserve elements for the isotope tags. How much do we
+              // need? This depends on the largest HITRAN tag that we know
+              // about!
+              // Also initialize the tags to missing.
+              //          cout << "iso_tags = " << iso_tags << endl;
+              //          cout << "static_cast<Index>(max(iso_tags))%10 + 1 = "
+              //               << static_cast<Index>(max(iso_tags))%10 + 1 << endl;
+              hiso[mo].resize( max(iso_tags)%10 + 1 );
+              hiso[mo] = missing; // Matpack can set all elements like this.
 
 
-	      // Set the isotope tags:
-	      for ( Index j=0; j<n_iso; ++j )
-		{
-		  if ( 0 < iso_tags[j] )				  // ignore -1 elements
-		    {
-		      // To get the iso tags from HitranTag() we also have to take
-		      // modulo 10 to get rid of mo.
-		      hiso[mo][iso_tags[j] % 10] = j;
-		    }
-		}
-	    }
-	}
+              // Set the isotope tags:
+              for ( Index j=0; j<n_iso; ++j )
+                {
+                  if ( 0 < iso_tags[j] )                                  // ignore -1 elements
+                    {
+                      // To get the iso tags from HitranTag() we also have to take
+                      // modulo 10 to get rid of mo.
+                      hiso[mo][iso_tags[j] % 10] = j;
+                    }
+                }
+            }
+        }
 
 
       // Print the generated data structures (for debugging):
       out3 << "  HITRAN index table:\n";
       for ( Index i=0; i<hspec.nelem(); ++i )
-	{
-	  if ( missing != hspec[i] )
-	    {
-	      // The explicit conversion of Name to a c-String is
-	      // necessary, because setw does not work correctly for
-	      // stl Strings.
-	      out3 << "  mo = " << i << "   Species = "
-		   << setw(10) << setiosflags(ios::left)
-		   << species_data[hspec[i]].Name().c_str()
-		   << "iso = ";
-	      for ( Index j=1; j<hiso[i].nelem(); ++j )
-		{
-		  if ( missing==hiso[i][j] )
-		    out3 << " " << "m";
-		  else
-		    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
-		}
-	      out3 << "\n";
-	    }
-	}
+        {
+          if ( missing != hspec[i] )
+            {
+              // The explicit conversion of Name to a c-String is
+              // necessary, because setw does not work correctly for
+              // stl Strings.
+              out3 << "  mo = " << i << "   Species = "
+                   << setw(10) << setiosflags(ios::left)
+                   << species_data[hspec[i]].Name().c_str()
+                   << "iso = ";
+              for ( Index j=1; j<hiso[i].nelem(); ++j )
+                {
+                  if ( missing==hiso[i][j] )
+                    out3 << " " << "m";
+                  else
+                    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
+                }
+              out3 << "\n";
+            }
+        }
 
       hinit = true;
     }
@@ -300,27 +300,27 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   
       // If mo == 0 this is just a comment line:
       if ( 0 != mo )
-	{
-	  // See if we know this species. Exit with an error if the species is unknown. 
-	  if ( missing != hspec[mo] )	    comment = false ;
-	  else
-	    {
-	      // See if this is already in warned_missing, use
-	      // std::count for that:
-	      if ( 0 == std::count(warned_missing.begin(),
-				   warned_missing.end(),
-				   mo) )
-		{
-		  out0 << "Error: HITRAN mo = " << mo << " is not "
-		       << "known to ARTS.\n";
-		  warned_missing.push_back(mo);
-		  exit(1);
-		  // SAB 08.08.2000 If you want to make the program
-		  // continue anyway, just comment out the exit
-		  // line.
-		}
-	    }
-	}
+        {
+          // See if we know this species. Exit with an error if the species is unknown. 
+          if ( missing != hspec[mo] )       comment = false ;
+          else
+            {
+              // See if this is already in warned_missing, use
+              // std::count for that:
+              if ( 0 == std::count(warned_missing.begin(),
+                                   warned_missing.end(),
+                                   mo) )
+                {
+                  out0 << "Error: HITRAN mo = " << mo << " is not "
+                       << "known to ARTS.\n";
+                  warned_missing.push_back(mo);
+                  exit(1);
+                  // SAB 08.08.2000 If you want to make the program
+                  // continue anyway, just comment out the exit
+                  // line.
+                }
+            }
+        }
     }
 
   // Ok, we seem to have a valid species here.
@@ -329,7 +329,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   mspecies = hspec[mo];
 
   // Extract isotope:
-  Index iso;				  
+  Index iso;                              
   extract(iso,line,1);
   //  cout << "iso = " << iso << endl;
 
@@ -348,8 +348,8 @@ bool LineRecord::ReadFromHitranStream(istream& is)
     {
       ostringstream os;
       os << "Species: " << species_data[mspecies].Name()
-	 << ", isotope iso = " << iso
-	 << " is unknown.";
+         << ", isotope iso = " << iso
+         << " is unknown.";
       throw runtime_error(os.str());
     }
 
@@ -584,7 +584,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   // missing means that we don't have this species.
   //
   // Allow for up to 100 species in MYTRAN in the future.
-  static Array< Index >        hspec(100,missing);	
+  static Array< Index >        hspec(100,missing);      
 
   // This is  an array of arrays for each mytran tag. It contains the
   // ARTS indices of the MYTRAN isotopes. 
@@ -600,57 +600,57 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   if ( !hinit )
     {
       for ( Index i=0; i<species_data.nelem(); ++i )
-	{
-	  const SpeciesRecord& sr = species_data[i];
+        {
+          const SpeciesRecord& sr = species_data[i];
 
-	  // We have to be careful and check for the case that all
-	  // MYTRAN isotope tags are -1 (this species is missing in MYTRAN).
+          // We have to be careful and check for the case that all
+          // MYTRAN isotope tags are -1 (this species is missing in MYTRAN).
 
-	  if ( 0 < sr.Isotope()[0].MytranTag() )
-	    {
-	      // The MYTRAN tags are stored as species plus isotope tags
-	      // (MO and ISO)
-	      // in the Isotope() part of the species record.
-	      // We can extract the MO part from any of the isotope tags,
-	      // so we use the first one. We do this by taking an integer
-	      // division by 10.
-	  
-	      Index mo = sr.Isotope()[0].MytranTag() / 10;
-	      //	  cout << "mo = " << mo << endl;
-	      hspec[mo] = i; 
-	  
-	      // Get a nicer to handle array of MYTRAN iso tags:
-	      Index n_iso = sr.Isotope().nelem();
-	      ArrayOfIndex iso_tags;
-	      iso_tags.resize(n_iso);
-	      for ( Index j=0; j<n_iso; ++j )
-		{
-		  iso_tags[j] = sr.Isotope()[j].MytranTag();
-		}
+          if ( 0 < sr.Isotope()[0].MytranTag() )
+            {
+              // The MYTRAN tags are stored as species plus isotope tags
+              // (MO and ISO)
+              // in the Isotope() part of the species record.
+              // We can extract the MO part from any of the isotope tags,
+              // so we use the first one. We do this by taking an integer
+              // division by 10.
+          
+              Index mo = sr.Isotope()[0].MytranTag() / 10;
+              //          cout << "mo = " << mo << endl;
+              hspec[mo] = i; 
+          
+              // Get a nicer to handle array of MYTRAN iso tags:
+              Index n_iso = sr.Isotope().nelem();
+              ArrayOfIndex iso_tags;
+              iso_tags.resize(n_iso);
+              for ( Index j=0; j<n_iso; ++j )
+                {
+                  iso_tags[j] = sr.Isotope()[j].MytranTag();
+                }
 
-	      // Reserve elements for the isotope tags. How much do we
-	      // need? This depends on the largest MYTRAN tag that we know
-	      // about!
-	      // Also initialize the tags to missing.
-	      // 	  cout << "iso_tags = " << iso_tags << endl;
-	      // 	  cout << "static_cast<Index>(max(iso_tags))%10 + 1 = "
-	      // 	       << static_cast<Index>(max(iso_tags))%10 + 1 << endl;
-	      hiso[mo].resize( max(iso_tags)%10 + 1 );
-	      hiso[mo] = missing; // Matpack can set all elements like this.
+              // Reserve elements for the isotope tags. How much do we
+              // need? This depends on the largest MYTRAN tag that we know
+              // about!
+              // Also initialize the tags to missing.
+              //          cout << "iso_tags = " << iso_tags << endl;
+              //          cout << "static_cast<Index>(max(iso_tags))%10 + 1 = "
+              //               << static_cast<Index>(max(iso_tags))%10 + 1 << endl;
+              hiso[mo].resize( max(iso_tags)%10 + 1 );
+              hiso[mo] = missing; // Matpack can set all elements like this.
 
-	      // Set the isotope tags:
-	      for ( Index j=0; j<n_iso; ++j )
-		{
-		  if ( 0 < iso_tags[j] )				  // ignore -1 elements
-		    {
-		      // To get the iso tags from MytranTag() we also have to take
-		      // modulo 10 to get rid of mo.
-		      //		  cout << "iso_tags[j] % 10 = " << iso_tags[j] % 10 << endl;
-		      hiso[mo][iso_tags[j] % 10] = j;
-		    }
-		}
-	    }
-	}
+              // Set the isotope tags:
+              for ( Index j=0; j<n_iso; ++j )
+                {
+                  if ( 0 < iso_tags[j] )                                  // ignore -1 elements
+                    {
+                      // To get the iso tags from MytranTag() we also have to take
+                      // modulo 10 to get rid of mo.
+                      //                  cout << "iso_tags[j] % 10 = " << iso_tags[j] % 10 << endl;
+                      hiso[mo][iso_tags[j] % 10] = j;
+                    }
+                }
+            }
+        }
       
 //      cout << "hiso = " << hiso << endl << "***********" << endl;
 
@@ -658,26 +658,26 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
       // Print the generated data structures (for debugging):
       out3 << "  MYTRAN index table:\n";
       for ( Index i=0; i<hspec.nelem(); ++i )
-	{
-	  if ( missing != hspec[i] )
-	    {
-	      // The explicit conversion of Name to a c-String is
-	      // necessary, because setw does not work correctly for
-	      // stl Strings.
-	      out3 << "  mo = " << i << "   Species = "
-		   << setw(10) << setiosflags(ios::left)
-		   << species_data[hspec[i]].Name().c_str()
-		   << "iso = ";
-	      for ( Index j=1; j<hiso[i].nelem(); ++j )
-		{
-		  if ( missing==hiso[i][j] )
-		    out3 << " " << "m";
-		  else
-		    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
-		}
-	      out3 << "\n";
-	    }
-	}
+        {
+          if ( missing != hspec[i] )
+            {
+              // The explicit conversion of Name to a c-String is
+              // necessary, because setw does not work correctly for
+              // stl Strings.
+              out3 << "  mo = " << i << "   Species = "
+                   << setw(10) << setiosflags(ios::left)
+                   << species_data[hspec[i]].Name().c_str()
+                   << "iso = ";
+              for ( Index j=1; j<hiso[i].nelem(); ++j )
+                {
+                  if ( missing==hiso[i][j] )
+                    out3 << " " << "m";
+                  else
+                    out3 << " " << species_data[hspec[i]].Isotope()[hiso[i][j]].Name();
+                }
+              out3 << "\n";
+            }
+        }
 
       hinit = true;
     }
@@ -698,8 +698,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
     {
       // Return true if eof is reached:
       if (is.eof()) {
-	//	cout << "Eof" << endl;
-	return true;
+        //      cout << "Eof" << endl;
+        return true;
       }
 
       // Throw runtime_error if stream is bad:
@@ -721,28 +721,28 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   
       // If mo == 0 this is just a comment line:
       if ( 0 != mo )
-	{
-	  // See if we know this species. We will give an error if a
-	  // species is not known. 
-	  if ( missing != hspec[mo] )	    comment = false ;
-	  else
-	    {
-	      // See if this is already in warned_missing, use
-	      // std::count for that:
-	      if ( 0 == std::count(warned_missing.begin(),
-				   warned_missing.end(),
-				   mo) )
-		{
-		  out0 << "Error: MYTRAN mo = " << mo << " is not "
-		       << "known to ARTS.\n";
-		  warned_missing.push_back(mo);
-		  exit(1);
-		  // SAB 08.08.2000 If you want to make the program
-		  // continue anyway, just comment out the exit
-		  // line.
-		}
-	    }
-	}
+        {
+          // See if we know this species. We will give an error if a
+          // species is not known. 
+          if ( missing != hspec[mo] )       comment = false ;
+          else
+            {
+              // See if this is already in warned_missing, use
+              // std::count for that:
+              if ( 0 == std::count(warned_missing.begin(),
+                                   warned_missing.end(),
+                                   mo) )
+                {
+                  out0 << "Error: MYTRAN mo = " << mo << " is not "
+                       << "known to ARTS.\n";
+                  warned_missing.push_back(mo);
+                  exit(1);
+                  // SAB 08.08.2000 If you want to make the program
+                  // continue anyway, just comment out the exit
+                  // line.
+                }
+            }
+        }
     }
 
   // Ok, we seem to have a valid species here.
@@ -751,7 +751,7 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   mspecies = hspec[mo];
 
   // Extract isotope:
-  Index iso;				  
+  Index iso;                              
   extract(iso,line,1);
   //  cout << "iso = " << iso << endl;
 
@@ -770,8 +770,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
     {
       ostringstream os;
       os << "Species: " << species_data[mspecies].Name()
-	 << ", isotope iso = " << iso
-	 << " is unknown.";
+         << ", isotope iso = " << iso
+         << " is unknown.";
       throw runtime_error(os.str());
     }
 
@@ -985,37 +985,37 @@ bool LineRecord::ReadFromJplStream(istream& is)
       out3 << "  JPL index table:\n";
 
       for ( Index i=0; i<species_data.nelem(); ++i )
-	{
-	  const SpeciesRecord& sr = species_data[i];
+        {
+          const SpeciesRecord& sr = species_data[i];
 
 
-	  for ( Index j=0; j<sr.Isotope().nelem(); ++j)
-	    {
-	      
-	      for (Index k=0; k<sr.Isotope()[j].JplTags().nelem(); ++k)
-		{
+          for ( Index j=0; j<sr.Isotope().nelem(); ++j)
+            {
+              
+              for (Index k=0; k<sr.Isotope()[j].JplTags().nelem(); ++k)
+                {
 
-		  SpecIsoMap indicies(i,j);
+                  SpecIsoMap indicies(i,j);
 
-		  JplMap[sr.Isotope()[j].JplTags()[k]] = indicies;
+                  JplMap[sr.Isotope()[j].JplTags()[k]] = indicies;
 
-		  // Print the generated data structures (for debugging):
-		  // The explicit conversion of Name to a c-String is
-		  // necessary, because setw does not work correctly for
-		  // stl Strings.
-		  const Index& i1 = JplMap[sr.Isotope()[j].JplTags()[k]].Speciesindex();
-		  const Index& i2 = JplMap[sr.Isotope()[j].JplTags()[k]].Isotopeindex();
-					 
-		  out3 << "  JPL TAG = " << sr.Isotope()[j].JplTags()[k] << "   Species = "
-		       << setw(10) << setiosflags(ios::left)
-		       << species_data[i1].Name().c_str()
-		       << "iso = " 
-		       << species_data[i1].Isotope()[i2].Name().c_str()
-		       << "\n";
-		}
+                  // Print the generated data structures (for debugging):
+                  // The explicit conversion of Name to a c-String is
+                  // necessary, because setw does not work correctly for
+                  // stl Strings.
+                  const Index& i1 = JplMap[sr.Isotope()[j].JplTags()[k]].Speciesindex();
+                  const Index& i2 = JplMap[sr.Isotope()[j].JplTags()[k]].Isotopeindex();
+                                         
+                  out3 << "  JPL TAG = " << sr.Isotope()[j].JplTags()[k] << "   Species = "
+                       << setw(10) << setiosflags(ios::left)
+                       << species_data[i1].Name().c_str()
+                       << "iso = " 
+                       << species_data[i1].Isotope()[i2].Name().c_str()
+                       << "\n";
+                }
 
-	    }
-	}
+            }
+        }
       hinit = true;
     }
 
@@ -1033,8 +1033,8 @@ bool LineRecord::ReadFromJplStream(istream& is)
     {
       // Return true if eof is reached:
       if (is.eof()) {
-	//	cout << "Eof" << endl;
-	return true;
+        //      cout << "Eof" << endl;
+        return true;
       }
 
       // Throw runtime_error if stream is bad:
@@ -1054,15 +1054,15 @@ bool LineRecord::ReadFromJplStream(istream& is)
       
       // Extract JPL position:
       extract(v,line,13);
-	
+        
       // check for empty line
       if (v != 0.0)
-	{
-	  // ARTS position in Hz:
-	  mf = v * 1E6;
-	  
-	  comment = false;
-	}
+        {
+          // ARTS position in Hz:
+          mf = v * 1E6;
+          
+          comment = false;
+        }
     }
 
   // Accuracy for line position 
@@ -1225,34 +1225,34 @@ bool LineRecord::ReadFromArtsStream(istream& is)
       out3 << "  ARTS index table:\n";
 
       for ( Index i=0; i<species_data.nelem(); ++i )
-	{
-	  const SpeciesRecord& sr = species_data[i];
+        {
+          const SpeciesRecord& sr = species_data[i];
 
 
-	  for ( Index j=0; j<sr.Isotope().nelem(); ++j)
-	    {
-	      
-	      SpecIsoMap indicies(i,j);
-	      String buf = sr.Name()+"-"+sr.Isotope()[j].Name();
-	      
-	      ArtsMap[buf] = indicies;
-	      
-	      // Print the generated data structures (for debugging):
-	      // The explicit conversion of Name to a c-String is
-	      // necessary, because setw does not work correctly for
-	      // stl Strings.
-	      const Index& i1 = ArtsMap[buf].Speciesindex();
-	      const Index& i2 = ArtsMap[buf].Isotopeindex();
-					 
-	      out3 << "  Arts Identifier = " << buf << "   Species = "
-		   << setw(10) << setiosflags(ios::left)
-		   << species_data[i1].Name().c_str()
-		   << "iso = " 
-		   << species_data[i1].Isotope()[i2].Name().c_str()
-		   << "\n";
+          for ( Index j=0; j<sr.Isotope().nelem(); ++j)
+            {
+              
+              SpecIsoMap indicies(i,j);
+              String buf = sr.Name()+"-"+sr.Isotope()[j].Name();
+              
+              ArtsMap[buf] = indicies;
+              
+              // Print the generated data structures (for debugging):
+              // The explicit conversion of Name to a c-String is
+              // necessary, because setw does not work correctly for
+              // stl Strings.
+              const Index& i1 = ArtsMap[buf].Speciesindex();
+              const Index& i2 = ArtsMap[buf].Isotopeindex();
+                                         
+              out3 << "  Arts Identifier = " << buf << "   Species = "
+                   << setw(10) << setiosflags(ios::left)
+                   << species_data[i1].Name().c_str()
+                   << "iso = " 
+                   << species_data[i1].Isotope()[i2].Name().c_str()
+                   << "\n";
 
-	    }
-	}
+            }
+        }
       hinit = true;
     }
 
@@ -1269,8 +1269,8 @@ bool LineRecord::ReadFromArtsStream(istream& is)
     {
       // Return true if eof is reached:
       if (is.eof()) {
-	//	cout << "Eof" << endl;
-	return true;
+        //      cout << "Eof" << endl;
+        return true;
       }
 
       // Throw runtime_error if stream is bad:
@@ -1285,9 +1285,9 @@ bool LineRecord::ReadFromArtsStream(istream& is)
       
       // check for empty line
       if (c == '@')
-	{
-	  comment = false;
-	}
+        {
+          comment = false;
+        }
     }
 
 
@@ -1304,11 +1304,11 @@ bool LineRecord::ReadFromArtsStream(istream& is)
       // is this arts identifier valid?
       const map<String, SpecIsoMap>::const_iterator i = ArtsMap.find(artsid);
       if ( i == ArtsMap.end() )
-	{
-	  ostringstream os;
-	  os << "ARTS Tag: " << artsid << " is unknown.";
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "ARTS Tag: " << artsid << " is unknown.";
+          throw runtime_error(os.str());
+        }
 
       SpecIsoMap id = i->second;
 
@@ -1359,21 +1359,21 @@ bool LineRecord::ReadFromArtsStream(istream& is)
       maux.resize(naux);
 
       for (Index i = 0; i<naux; i++)
-	{
-	  icecream >> maux[i];
-	  //cout << "maux" << i << " = " << maux[i] << "\n";
-	}
+        {
+          icecream >> maux[i];
+          //cout << "maux" << i << " = " << maux[i] << "\n";
+        }
 
       // Extract accuracies:
       try
         {
           icecream >> mdf;
           icecream >> mdi0;
-	  icecream >> mdagam;
-	  icecream >> mdsgam;
-	  icecream >> mdnair;
-	  icecream >> mdnself;
-	  icecream >> mdpsf;
+          icecream >> mdagam;
+          icecream >> mdsgam;
+          icecream >> mdnair;
+          icecream >> mdnself;
+          icecream >> mdpsf;
         }
       catch (runtime_error x)
         {
@@ -1382,11 +1382,11 @@ bool LineRecord::ReadFromArtsStream(istream& is)
           // the catalogue
           mdf      = -1;
           mdi0     = -1;
-	  mdagam   = -1;
-	  mdsgam   = -1;
-	  mdnair   = -1;
-	  mdnself  = -1;
-	  mdpsf    = -1;            
+          mdagam   = -1;
+          mdsgam   = -1;
+          mdnair   = -1;
+          mdnself  = -1;
+          mdpsf    = -1;            
         }
     }
 
@@ -1422,7 +1422,7 @@ OneTag::OneTag(String def)
   if (n != def.npos )
     {
       name = def.substr(0,n);      // Extract before '-'
-      def.erase(0,n+1);		    // Remove from def
+      def.erase(0,n+1);             // Remove from def
     }
   else
     {
@@ -1469,7 +1469,7 @@ OneTag::OneTag(String def)
   if (n != def.npos )
     {
       isoname = def.substr(0,n);          // Extract before '-'
-      def.erase(0,n+1);		    // Remove from def
+      def.erase(0,n+1);             // Remove from def
     }
   else
     {
@@ -1491,26 +1491,26 @@ OneTag::OneTag(String def)
       // Make an array containing the isotope names:
       ArrayOfString ins;
       for ( Index i=0; i<spr.Isotope().nelem(); ++i )
-	ins.push_back( spr.Isotope()[i].Name() );
+        ins.push_back( spr.Isotope()[i].Name() );
 
       // Use the find algorithm from the STL to find the isotope ID. It
       // returns an iterator, so to get the index we take the
       // difference to the begin() iterator.
       misotope = find( ins.begin(),
-		       ins.end(),
-		       isoname ) - ins.begin();
+                       ins.end(),
+                       isoname ) - ins.begin();
 
       // Check if we found a matching isotope:
       if ( misotope >= ins.nelem() ) 
-	{
-	  ostringstream os;
-	  os << "Isotope " << isoname << " is not a valid isotope for "
-	     << "species " << name << ".\n"
-	     << "Valid isotopes are:";
-	  for ( Index i=0; i<ins.nelem(); ++i )
-	    os << " " << ins[i];
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "Isotope " << isoname << " is not a valid isotope for "
+             << "species " << name << ".\n"
+             << "Valid isotopes are:";
+          for ( Index i=0; i<ins.nelem(); ++i )
+            os << " " << ins[i];
+          throw runtime_error(os.str());
+        }
     }
 
   if ( 0 == def.nelem() )
@@ -1532,27 +1532,27 @@ OneTag::OneTag(String def)
       // Frequency as a String:
       String fname;
       fname = def.substr(0,n);              // Extract before '-'
-      def.erase(0,n+1);		      // Remove from def
+      def.erase(0,n+1);               // Remove from def
 
       // Check for joker:
       if ( "*" == fname )
-	{
-	  // The default for mlf is already -1, meaning `ALL'.
-	  // So there is nothing to do here.
-	}
+        {
+          // The default for mlf is already -1, meaning `ALL'.
+          // So there is nothing to do here.
+        }
       else
-	{
-	  // Convert to Numeric:
-	  istringstream is(fname);
-	  is >> mlf;
-	}
+        {
+          // Convert to Numeric:
+          istringstream is(fname);
+          is >> mlf;
+        }
     }
   else
     {
       // n==def.npos means that def does not contain a '-'. In this
       // case that is not allowed!
       throw runtime_error("You must either speciefy both frequency limits\n"
-			  "(at least with jokers), or none.");
+                          "(at least with jokers), or none.");
     }
 
 
@@ -1662,9 +1662,9 @@ ostream& operator << (ostream& os, const OneTag& ot)
    \date 2000-12-06
 */
 void get_tagindex_for_Strings( 
-			      ArrayOfIndex&   tags1_index, 
-			      const TagGroups&      tags1, 
-			      const ArrayOfString&  tags2_Strings )
+                              ArrayOfIndex&   tags1_index, 
+                              const TagGroups&      tags1, 
+                              const ArrayOfString&  tags2_Strings )
 {
   const Index   n1 = tags1.nelem();
   const Index   n2 = tags2_Strings.nelem();
@@ -1685,15 +1685,15 @@ void get_tagindex_for_Strings(
       {
         ok = 1;
         for ( j=0; j<nj; j++ )
-	{
+        {
           if ( tags2[i2][j].Name() != tags1[i1][j].Name() )
             ok = 0;
-	}
+        }
         if ( ok )
-	{
+        {
           found = 1;
           tags1_index[i2] = i1;
-	}
+        }
       }
     } 
     if ( !found )
@@ -1719,39 +1719,39 @@ void get_tagindex_for_Strings(
     \author Patrick Eriksson, Axel von Engeln, and Stefan Buehler
     \date 2001-01-31 */
 void get_tag_group_index_for_tag_group( Index&               tgs1_index, 
-				        const TagGroups&      tgs1, 
-				        const Array<OneTag>&  tg2 )
+                                        const TagGroups&      tgs1, 
+                                        const Array<OneTag>&  tg2 )
 {
   bool found = false;
 
   for ( Index i=0;
-	i<tgs1.nelem() && !found;
-	++i )
+        i<tgs1.nelem() && !found;
+        ++i )
     {
       // Is at least the size correct?
       if ( tg2.nelem() == tgs1[i].nelem() )
-	{
-	  bool ok = true;
+        {
+          bool ok = true;
 
-	  for ( Index j=0; j<tg2.nelem(); ++j )
-	    {
-	      if ( tg2[j].Name() != tgs1[i][j].Name() )
-		ok = false;
-	    }
+          for ( Index j=0; j<tg2.nelem(); ++j )
+            {
+              if ( tg2[j].Name() != tgs1[i][j].Name() )
+                ok = false;
+            }
 
-	  if ( ok )
-	    {
-	      found = true;
-	      tgs1_index = i;
-	    }
-	}
+          if ( ok )
+            {
+              found = true;
+              tgs1_index = i;
+            }
+        }
     }
 
   if ( !found )
     {
       ostringstream os;
       os << "The tag String \"" << tg2 << 
-	"\" does not match any of the given tags.\n";
+        "\" does not match any of the given tags.\n";
       throw runtime_error(os.str());
     }
 }
@@ -1795,7 +1795,7 @@ String get_tag_group_name( const Array<OneTag>& tg )
     \author Stefan Buehler 
 */
 void write_lines_to_stream(ostream& os,
-			   const ArrayOfLineRecord& lines)
+                           const ArrayOfLineRecord& lines)
 {
   // We need this dummy line record, so that we can get the catalogue
   // version tag from dummy.Version, even if the line list is empty.
@@ -1830,10 +1830,10 @@ bool is_sorted( ConstVectorView   x )
   if( x.nelem() > 1 )
     {
       for( Index i=1; i<x.nelem(); i++ )
-	{
-	  if( x[i] < x[i-1] )
-	    return false;
-	}
+        {
+          if( x[i] < x[i-1] )
+            return false;
+        }
     }
   return true;
 }
@@ -1864,15 +1864,15 @@ bool is_sorted( ConstVectorView   x )
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 */
 void xsec_species( MatrixView               xsec,
-		   ConstVectorView  	    f_mono,
-		   ConstVectorView  	    p_abs,
-		   ConstVectorView  	    t_abs,
-		   ConstVectorView  	    h2o_abs,
-		   ConstVectorView          vmr,
-		   const ArrayOfLineRecord& lines,
-		   const Index              ind_ls,
-		   const Index              ind_lsn,
-		   const Numeric            cutoff)
+                   ConstVectorView          f_mono,
+                   ConstVectorView          p_abs,
+                   ConstVectorView          t_abs,
+                   ConstVectorView          h2o_abs,
+                   ConstVectorView          vmr,
+                   const ArrayOfLineRecord& lines,
+                   const Index              ind_ls,
+                   const Index              ind_lsn,
+                   const Numeric            cutoff)
 {
   // Make lineshape and species lookup data visible:
   extern const Array<LineshapeRecord> lineshape_data;
@@ -1895,7 +1895,7 @@ void xsec_species( MatrixView               xsec,
 
   // Constant within the Doppler Broadening calculation:
   static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
-					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
+                                             AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
   // dimension of f_mono, lines
   Index nf = f_mono.nelem();
@@ -1915,13 +1915,13 @@ void xsec_species( MatrixView               xsec,
   if (cut)
     {
       if ( ! is_sorted( f_mono ) )
-	{
-	  ostringstream os;
-	  os << "If you use a lineshape function with cutoff, your\n"
-	     << "frequency grid *f_mono* must be sorted.\n"
-	     << "(Duplicate values are allowed.)";
-	  throw runtime_error(os.str());
-	}
+        {
+          ostringstream os;
+          os << "If you use a lineshape function with cutoff, your\n"
+             << "frequency grid *f_mono* must be sorted.\n"
+             << "(Duplicate values are allowed.)";
+          throw runtime_error(os.str());
+        }
     }
   
   // Check that all temperatures are non-negative
@@ -1967,8 +1967,8 @@ void xsec_species( MatrixView               xsec,
     {
       ostringstream os;
       os << "Variable t_abs must have the same dimension as p_abs.\n"
-	 << "t_abs.nelem() = " << t_abs.nelem() << '\n'
-	 << "p_abs.nelem() = " << p_abs.nelem();
+         << "t_abs.nelem() = " << t_abs.nelem() << '\n'
+         << "p_abs.nelem() = " << p_abs.nelem();
       throw runtime_error(os.str());
     }
 
@@ -1976,8 +1976,8 @@ void xsec_species( MatrixView               xsec,
     {
       ostringstream os;
       os << "Variable vmr must have the same dimension as p_abs.\n"
-	 << "vmr.nelem() = " << vmr.nelem() << '\n'
-	 << "p_abs.nelem() = " << p_abs.nelem();
+         << "vmr.nelem() = " << vmr.nelem() << '\n'
+         << "p_abs.nelem() = " << p_abs.nelem();
       throw runtime_error(os.str());
     }
 
@@ -1985,8 +1985,8 @@ void xsec_species( MatrixView               xsec,
     {
       ostringstream os;
       os << "Variable h2o_abs must have the same dimension as p_abs.\n"
-	 << "h2o_abs.nelem() = " << h2o_abs.nelem() << '\n'
-	 << "p_abs.nelem() = " << p_abs.nelem();
+         << "h2o_abs.nelem() = " << h2o_abs.nelem() << '\n'
+         << "p_abs.nelem() = " << p_abs.nelem();
       throw runtime_error(os.str());
     }
 
@@ -1997,10 +1997,10 @@ void xsec_species( MatrixView               xsec,
     {
       ostringstream os;
       os << "Variable xsec must have dimensions [f_mono.nelem(),p_abs.nelem()].\n"
-	 << "[xsec.nrows(),xsec.ncols()] = [" << xsec.nrows()
-	 << ", " << xsec.ncols() << "]\n"
-	 << "f_mono.nelem() = " << nf << '\n'
-	 << "p_abs.nelem() = " << p_abs.nelem();
+         << "[xsec.nrows(),xsec.ncols()] = [" << xsec.nrows()
+         << ", " << xsec.ncols() << "]\n"
+         << "f_mono.nelem() = " << nf << '\n'
+         << "p_abs.nelem() = " << p_abs.nelem();
       throw runtime_error(os.str());
     }
 
@@ -2027,231 +2027,231 @@ void xsec_species( MatrixView               xsec,
 
       // Loop all lines:
       for ( Index l=0; l< nl; ++l )
-	{
-	  // Copy f_mono to the beginning of f_local. There is one
-	  // element left at the end of f_local.  
-	  // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
-	  // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
-	  f_local[Range(0,nf)] = f_mono;
+        {
+          // Copy f_mono to the beginning of f_local. There is one
+          // element left at the end of f_local.  
+          // THIS HAS TO BE INSIDE THE LINE LOOP, BECAUSE THE CUTOFF
+          // FREQUENCY IS ALWAYS PUT IN A DIFFERENT PLACE!
+          f_local[Range(0,nf)] = f_mono;
 
-	  // This will hold the actual number of frequencies to add to
-	  // xsec later on:
-	  Index nfl = nf;
+          // This will hold the actual number of frequencies to add to
+          // xsec later on:
+          Index nfl = nf;
 
-	  // This will hold the actual number of frequencies for the
-	  // call to the lineshape functions later on:
-	  Index nfls = nf;	
+          // This will hold the actual number of frequencies for the
+          // call to the lineshape functions later on:
+          Index nfls = nf;      
 
-	  // The baseline to substract for cutoff frequency
-	  Numeric base=0.0;
+          // The baseline to substract for cutoff frequency
+          Numeric base=0.0;
 
-	  // lines[l] is used several times, this construct should be
-	  // faster (Oliver Lemke)
-	  LineRecord l_l = lines[l];  // which line are we dealing with
-	  // Center frequency in vacuum:
-	  Numeric F0 = l_l.F();
+          // lines[l] is used several times, this construct should be
+          // faster (Oliver Lemke)
+          LineRecord l_l = lines[l];  // which line are we dealing with
+          // Center frequency in vacuum:
+          Numeric F0 = l_l.F();
 
-	  // Intensity is already in the right units (Hz*m^2). It also
-	  // includes already the isotopic ratio. Needs only to be
-	  // coverted to the actual temperature and multiplied by total
-	  // number density and lineshape.
-	  Numeric intensity = l_l.I0();
+          // Intensity is already in the right units (Hz*m^2). It also
+          // includes already the isotopic ratio. Needs only to be
+          // coverted to the actual temperature and multiplied by total
+          // number density and lineshape.
+          Numeric intensity = l_l.I0();
 
-	  // Lower state energy is already in the right unit (Joule).
-	  Numeric e_lower = l_l.Elow();
+          // Lower state energy is already in the right unit (Joule).
+          Numeric e_lower = l_l.Elow();
 
-	  // Upper state energy:
-	  Numeric e_upper = e_lower + F0 * PLANCK_CONST;
+          // Upper state energy:
+          Numeric e_upper = e_lower + F0 * PLANCK_CONST;
 
-	  // Get the ratio of the partition function.
-	  // This will throw a runtime error if no data exists.
+          // Get the ratio of the partition function.
+          // This will throw a runtime error if no data exists.
           // Important: This function needs both the reference
           // temperature and the actual temperature, because the
           // reference temperature can be different for each line,
           // even of the same species.
-	  Numeric part_fct_ratio =
-	    l_l.IsotopeData().CalculatePartitionFctRatio( l_l.Ti0(),
+          Numeric part_fct_ratio =
+            l_l.IsotopeData().CalculatePartitionFctRatio( l_l.Ti0(),
                                                           t_i );
 
-	  // Boltzmann factors
-	  Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
-	    exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
+          // Boltzmann factors
+          Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
+            exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
 
-	  Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
-	    exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
-
-
-	  // intensity at temperature
-	  intensity *= part_fct_ratio * nom / denom;
+          Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
+            exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
 
 
-	  // 2. Get pressure broadened line width:
-	  // (Agam is in Hz/Pa, p_abs is in Pa, gamma is in Hz)
-	  const Numeric theta = l_l.Tgam() / t_i;
-	  const Numeric theta_Nair = pow(theta, l_l.Nair());
-
-	  Numeric gamma
-	    = l_l.Agam() * theta_Nair  * (p_i - p_partial)
-	    + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
-
-	  // 3. Doppler broadening without the sqrt(ln(2)) factor, which
-	  // seems to be redundant FIXME: verify .
-	  Numeric sigma = F0 * doppler_const * 
-	    sqrt( t_i / l_l.IsotopeData().Mass());
-
-	  // 3.a. Put in pressure shift.
-	  // The T dependence is connected to that of agam by:
-	  // n_shift = .25 + 1.5 * n_agam
-	  // Theta has been initialized above.
-	  F0 += l_l.Psf() * p_i * 
-	      std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
-
-	  // 4. the rosenkranz lineshape for oxygen calculates the
-	  // pressure broadening, overlap, ... differently. Therefore
-	  // all required parameters are passed in the aux array, the
-	  // given order must agree with how they are accessed in the
-	  // used lineshape (currently only the Rosenkranz routines are
-	  // using this method of passing parameters). Parameters are
-	  // always passed, because the Rosenkranz lineshape function
-	  // can be used without overlap correction, which is then just
-	  // set to 0. I know, this is not very nice, but I suggested to
-	  // put the oxygen absorption into a different workspace
-	  // method, but nobody listened to me, Schnief.
-	  aux[0] = theta;
-	  aux[1] = theta_Nair;
-	  aux[2] = p_i;
-	  aux[3] = vmr[i];
-	  aux[4] = h2o_abs[i];
-	  aux[5] = l_l.Agam();
-	  aux[6] = l_l.Nair();
-	  // is overlap available, otherwise pass zero
-	  if (l_l.Naux() > 1)
-	    {
-	      aux[7] = l_l.Aux()[0];
-	      aux[8] = l_l.Aux()[1];
-	      //	    cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
-	    }
-	  else
-	    {
-	      aux[7] = 0.0;
-	      aux[8] = 0.0;
-	    }
+          // intensity at temperature
+          intensity *= part_fct_ratio * nom / denom;
 
 
-	  // Indices pointing at begin/end frequencies of f_mono or at
-	  // the elements that have to be calculated in case of cutoff
-	  Index i_f_min = 0;		
-	  Index i_f_max = nf-1;		
+          // 2. Get pressure broadened line width:
+          // (Agam is in Hz/Pa, p_abs is in Pa, gamma is in Hz)
+          const Numeric theta = l_l.Tgam() / t_i;
+          const Numeric theta_Nair = pow(theta, l_l.Nair());
 
-	  // cutoff ?
-	  if ( cut )
-	    {
-	      // Check whether we have elements in ls that can be
-	      // ignored at lower frequencies of f_mono.
-	      //
-	      // Loop through all frequencies, finding min value and
-	      // set all values to zero on that way.
-	      while ( i_f_min < nf && (F0 - cutoff) > f_mono[i_f_min] )
-		{
-		  //		  ls[i_f_min] = 0;
-		  ++i_f_min;
-		}
-	      
+          Numeric gamma
+            = l_l.Agam() * theta_Nair  * (p_i - p_partial)
+            + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
 
-	      // Check whether we have elements in ls that can be
-	      // ignored at higher frequencies of f_mono.
-	      //
-	      // Loop through all frequencies, finding max value and
-	      // set all values to zero on that way.
-	      while ( i_f_max >= 0 && (F0 + cutoff) < f_mono[i_f_max] )
-		{
-		  //		  ls[i_f_max] = 0;
-		  --i_f_max;
-		}
-	      
-	      // Append the cutoff frequency to f_local:
-	      ++i_f_max;
-	      f_local[i_f_max] = F0 + cutoff;
+          // 3. Doppler broadening without the sqrt(ln(2)) factor, which
+          // seems to be redundant FIXME: verify .
+          Numeric sigma = F0 * doppler_const * 
+            sqrt( t_i / l_l.IsotopeData().Mass());
 
-	      // Number of frequencies to calculate:
-	      nfls = i_f_max - i_f_min + 1; // Add one because indices
-	      // are pointing to first and
-	      // last valid element. This
-	      // is for the lineshape
-	      // calls. 
-	      nfl = nfls -1;		  // This is for xsec.
-	    }
-	  else
-	    {
-	      // Nothing to do here. Note that nfl and nfls are both still set to nf.
-	    }
+          // 3.a. Put in pressure shift.
+          // The T dependence is connected to that of agam by:
+          // n_shift = .25 + 1.5 * n_agam
+          // Theta has been initialized above.
+          F0 += l_l.Psf() * p_i * 
+              std::pow( theta , (Numeric).25 + (Numeric)1.5*l_l.Nair() );
 
-	  //	  cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
-	
-	  // Maybe there are no frequencies left to compute?  Note that
-	  // the number that counts here is nfl, since only these are
-	  // the `real' frequencies, for which xsec is changed. nfls
-	  // will always be at least one, because it contains the cutoff.
-	  if ( nfl > 0 )
-	    {
-	      // Calculate the line shape:
-	      lineshape_data[ind_ls].Function()(ls,
-						aux,F0,gamma,sigma,
-						f_local[Range(i_f_min,nfls)],
-						nfls);
+          // 4. the rosenkranz lineshape for oxygen calculates the
+          // pressure broadening, overlap, ... differently. Therefore
+          // all required parameters are passed in the aux array, the
+          // given order must agree with how they are accessed in the
+          // used lineshape (currently only the Rosenkranz routines are
+          // using this method of passing parameters). Parameters are
+          // always passed, because the Rosenkranz lineshape function
+          // can be used without overlap correction, which is then just
+          // set to 0. I know, this is not very nice, but I suggested to
+          // put the oxygen absorption into a different workspace
+          // method, but nobody listened to me, Schnief.
+          aux[0] = theta;
+          aux[1] = theta_Nair;
+          aux[2] = p_i;
+          aux[3] = vmr[i];
+          aux[4] = h2o_abs[i];
+          aux[5] = l_l.Agam();
+          aux[6] = l_l.Nair();
+          // is overlap available, otherwise pass zero
+          if (l_l.Naux() > 1)
+            {
+              aux[7] = l_l.Aux()[0];
+              aux[8] = l_l.Aux()[1];
+              //            cout << "aux7, aux8: " << aux[7] << " " << aux[8] << "\n";
+            }
+          else
+            {
+              aux[7] = 0.0;
+              aux[8] = 0.0;
+            }
 
-	      // Calculate the chosen normalization factor:
-	      lineshape_norm_data[ind_lsn].Function()(fac,F0,
-						      f_local[Range(i_f_min,nfls)],
-						      nfls);
 
-	      // Get a handle on the range of xsec that we want to change.
-	      // We use nfl here, which could be one less than nfls.
-	      VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
+          // Indices pointing at begin/end frequencies of f_mono or at
+          // the elements that have to be calculated in case of cutoff
+          Index i_f_min = 0;            
+          Index i_f_max = nf-1;         
 
-	      // cutoff ?
-	      if ( cut )
-		{
-		  // The index nfls-1 should be exactly the index pointing
-		  // to the value at the cutoff frequency.
-		  base = ls[nfls-1] * fac[nfls-1];
+          // cutoff ?
+          if ( cut )
+            {
+              // Check whether we have elements in ls that can be
+              // ignored at lower frequencies of f_mono.
+              //
+              // Loop through all frequencies, finding min value and
+              // set all values to zero on that way.
+              while ( i_f_min < nf && (F0 - cutoff) > f_mono[i_f_min] )
+                {
+                  //              ls[i_f_min] = 0;
+                  ++i_f_min;
+                }
+              
 
-		  // Subtract baseline from xsec. 
-		  this_xsec -= base;
-		}
+              // Check whether we have elements in ls that can be
+              // ignored at higher frequencies of f_mono.
+              //
+              // Loop through all frequencies, finding max value and
+              // set all values to zero on that way.
+              while ( i_f_max >= 0 && (F0 + cutoff) < f_mono[i_f_max] )
+                {
+                  //              ls[i_f_max] = 0;
+                  --i_f_max;
+                }
+              
+              // Append the cutoff frequency to f_local:
+              ++i_f_max;
+              f_local[i_f_max] = F0 + cutoff;
 
-	      // Get handles on the range of ls and fac that we need.
-	      VectorView this_ls  = ls[Range(0,nfl)];
-	      VectorView this_fac = fac[Range(0,nfl)];
+              // Number of frequencies to calculate:
+              nfls = i_f_max - i_f_min + 1; // Add one because indices
+              // are pointing to first and
+              // last valid element. This
+              // is for the lineshape
+              // calls. 
+              nfl = nfls -1;              // This is for xsec.
+            }
+          else
+            {
+              // Nothing to do here. Note that nfl and nfls are both still set to nf.
+            }
 
-	      // Add line to xsec. 
-	      {
-		// To make the loop a bit faster, precompute all constant
-		// factors. These are:
-		// 1. Total number density of the air.
-		// 2. Line intensity.
-		// 3. Isotopic ratio.
-		//
-		// The isotopic ratio must be applied here, since we are
-		// summing up lines belonging to different isotopes.
+          //      cout << "nf, nfl, nfls = " << nf << ", " << nfl << ", " << nfls << ".\n";
+        
+          // Maybe there are no frequencies left to compute?  Note that
+          // the number that counts here is nfl, since only these are
+          // the `real' frequencies, for which xsec is changed. nfls
+          // will always be at least one, because it contains the cutoff.
+          if ( nfl > 0 )
+            {
+              // Calculate the line shape:
+              lineshape_data[ind_ls].Function()(ls,
+                                                aux,F0,gamma,sigma,
+                                                f_local[Range(i_f_min,nfls)],
+                                                nfls);
 
-		const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
+              // Calculate the chosen normalization factor:
+              lineshape_norm_data[ind_lsn].Function()(fac,F0,
+                                                      f_local[Range(i_f_min,nfls)],
+                                                      nfls);
 
-		// We have to do:
-		// xsec(j,i) += factors * ls[j1] * fac[j1];
-		//
-		// We use ls as a dummy to compute the product, then add it
-		// to this_xsec.
+              // Get a handle on the range of xsec that we want to change.
+              // We use nfl here, which could be one less than nfls.
+              VectorView this_xsec = xsec(Range(i_f_min,nfl),i);
 
-		// FIXME: Maybe try if this is faster with a good
-		// old-fashioned simple loop.
+              // cutoff ?
+              if ( cut )
+                {
+                  // The index nfls-1 should be exactly the index pointing
+                  // to the value at the cutoff frequency.
+                  base = ls[nfls-1] * fac[nfls-1];
 
-		this_ls *= this_fac;
-		this_ls *= factors;
-		this_xsec += this_ls;
-	      }
-	    }
-	}
+                  // Subtract baseline from xsec. 
+                  this_xsec -= base;
+                }
+
+              // Get handles on the range of ls and fac that we need.
+              VectorView this_ls  = ls[Range(0,nfl)];
+              VectorView this_fac = fac[Range(0,nfl)];
+
+              // Add line to xsec. 
+              {
+                // To make the loop a bit faster, precompute all constant
+                // factors. These are:
+                // 1. Total number density of the air.
+                // 2. Line intensity.
+                // 3. Isotopic ratio.
+                //
+                // The isotopic ratio must be applied here, since we are
+                // summing up lines belonging to different isotopes.
+
+                const Numeric factors = n * intensity * l_l.IsotopeData().Abundance();
+
+                // We have to do:
+                // xsec(j,i) += factors * ls[j1] * fac[j1];
+                //
+                // We use ls as a dummy to compute the product, then add it
+                // to this_xsec.
+
+                // FIXME: Maybe try if this is faster with a good
+                // old-fashioned simple loop.
+
+                this_ls *= this_fac;
+                this_ls *= factors;
+                this_xsec += this_ls;
+              }
+            }
+        }
     }
 }
 
@@ -2280,9 +2280,9 @@ void xsec_species( MatrixView               xsec,
    \date   2001-02-16
 */
 void refr_index_BoudourisDryAir (
-				Vector&   refr_index,
-				ConstVectorView   p_abs,
-				ConstVectorView   t_abs )
+                                Vector&   refr_index,
+                                ConstVectorView   p_abs,
+                                ConstVectorView   t_abs )
 {
   const Index   n = p_abs.nelem();
   refr_index.resize( n );
@@ -2312,10 +2312,10 @@ void refr_index_BoudourisDryAir (
    \date   2001-02-16
 */
 void refr_index_Boudouris (
-			  Vector&   refr_index,
-			  ConstVectorView   p_abs,
-			  ConstVectorView   t_abs,
-			  ConstVectorView   h2o_abs )
+                          Vector&   refr_index,
+                          ConstVectorView   p_abs,
+                          ConstVectorView   t_abs,
+                          ConstVectorView   h2o_abs )
 {
   const Index   n = p_abs.nelem();
   refr_index.resize( n );
@@ -2371,169 +2371,169 @@ Numeric wavenumber_to_joule(Numeric e)
 //units (Hz).
 
 void convHitranIERF(     
-		    Numeric&     mdf,
-	      const Index&       df 
-		    )
+                    Numeric&     mdf,
+              const Index&       df 
+                    )
 {
   switch ( df )
     {
     case 0:
       { 
-	mdf = -1;
-	break; 
+        mdf = -1;
+        break; 
       }
     case 1:
       {
-	mdf = 30*1E9;
-	break; 
+        mdf = 30*1E9;
+        break; 
       }
     case 2:
       {
-	mdf = 3*1E9;
-	break; 
+        mdf = 3*1E9;
+        break; 
       }
     case 3:
       {
-	mdf = 300*1E6;
-	break; 
+        mdf = 300*1E6;
+        break; 
       }
     case 4:
       {
-	mdf = 30*1E6;
-	break; 
+        mdf = 30*1E6;
+        break; 
       }
     case 5:
       {
-	mdf = 3*1E6;
-	break; 
+        mdf = 3*1E6;
+        break; 
       }
     case 6:
       {
-	mdf = 0.3*1E6;
-	break; 
+        mdf = 0.3*1E6;
+        break; 
       }
     }
 }
-		    
+                    
 //convert HITRAN index for intensity and halfwidth accuracy to ARTS
 //units (relative difference).
 void convHitranIERSH(     
-		    Numeric&     mdh,
-	      const Index&       dh 
-		    )
+                    Numeric&     mdh,
+              const Index&       dh 
+                    )
 {
   switch ( dh )
     {
     case 0:
       { 
-	mdh = -1;
-	break; 
+        mdh = -1;
+        break; 
       }
     case 1:
       {
-	mdh = -1;
-	break; 
+        mdh = -1;
+        break; 
       }
     case 2:
       {
-	mdh = -1;
-	break; 
+        mdh = -1;
+        break; 
       }
     case 3:
       {
-	mdh = 30;
-	break; 
+        mdh = 30;
+        break; 
       }
     case 4:
       {
-	mdh = 20;
-	break; 
+        mdh = 20;
+        break; 
       }
     case 5:
       {
-	mdh = 10;
-	break; 
+        mdh = 10;
+        break; 
       }
     case 6:
       {
-	mdh =5;
-	break; 
+        mdh =5;
+        break; 
       }
     case 7:
       {
-	mdh =2;
-	break; 
+        mdh =2;
+        break; 
       }
     case 8:
       {
-	mdh =1;
-	break; 
+        mdh =1;
+        break; 
       }
     }
-  mdh=mdh/100;		    
+  mdh=mdh/100;              
 }
 
 // ********* for MYTRAN database ************* 
 //convert MYTRAN index for intensity and halfwidth accuracy to ARTS
 //units (relative difference).
 void convMytranIER(     
-		    Numeric&     mdh,
-	      const Index  &      dh 
-		    )
+                    Numeric&     mdh,
+              const Index  &      dh 
+                    )
 {
   switch ( dh )
     {
     case 0:
       { 
-	mdh = 200;
-	break; 
+        mdh = 200;
+        break; 
       }
     case 1:
       {
-	mdh = 100;
-	break; 
+        mdh = 100;
+        break; 
       }
     case 2:
       {
-	mdh = 50;
-	break; 
+        mdh = 50;
+        break; 
       }
     case 3:
       {
-	mdh = 30;
-	break; 
+        mdh = 30;
+        break; 
       }
     case 4:
       {
-	mdh = 20;
-	break; 
+        mdh = 20;
+        break; 
       }
     case 5:
       {
-	mdh = 10;
-	break; 
+        mdh = 10;
+        break; 
       }
     case 6:
       {
-	mdh =5;
-	break; 
+        mdh =5;
+        break; 
       }
     case 7:
       {
-	mdh = 2;
-	break; 
+        mdh = 2;
+        break; 
       }
     case 8:
       {
-	mdh = 1;
-	break; 
+        mdh = 1;
+        break; 
       }
     case 9:
       {
-	mdh = 0.5;
-	break; 
+        mdh = 0.5;
+        break; 
       }
     }
-  mdh=mdh/100;		    
+  mdh=mdh/100;              
 }
 

@@ -81,15 +81,15 @@ bool get_parameters(int argc, char **argv)
   */
   struct option longopts[] =
   {
-    { "help",        	    no_argument,       NULL, 'h' },
-    { "version",     	    no_argument,       NULL, 'v' },
-    { "basename",    	    required_argument, NULL, 'b' },
-    { "reporting",    	    required_argument, NULL, 'r' },
-    { "methods",     	    required_argument, NULL, 'm' },
-    { "input",     	    required_argument, NULL, 'i' },
+    { "help",               no_argument,       NULL, 'h' },
+    { "version",            no_argument,       NULL, 'v' },
+    { "basename",           required_argument, NULL, 'b' },
+    { "reporting",          required_argument, NULL, 'r' },
+    { "methods",            required_argument, NULL, 'm' },
+    { "input",              required_argument, NULL, 'i' },
     { "workspacevariables", required_argument, NULL, 'w' },
-    { "describe",    	    required_argument, NULL, 'd' },
-    { "groups",     	    no_argument,       NULL, 'g' },
+    { "describe",           required_argument, NULL, 'd' },
+    { "groups",             no_argument,       NULL, 'g' },
     { NULL,                 no_argument,       NULL, 0   }
   };
 
@@ -145,25 +145,25 @@ bool get_parameters(int argc, char **argv)
     int i=0;
     while (NULL != longopts[i].name )
       {
-	// FIXME: Should there be a cast here? The real type of val is int.
-	char c = longopts[i].val;
-	shortopts += c;
-	//	cout << "name = " << longopts[i].name << "\n";
-	//	cout << "val  = " << longopts[i].val << "\n";
+        // FIXME: Should there be a cast here? The real type of val is int.
+        char c = longopts[i].val;
+        shortopts += c;
+        //      cout << "name = " << longopts[i].name << "\n";
+        //      cout << "val  = " << longopts[i].val << "\n";
 
-	// Check if we need to insert a colon
-	if ( required_argument == longopts[i].has_arg )
-	  {
-	    shortopts += ":";
-	  }
+        // Check if we need to insert a colon
+        if ( required_argument == longopts[i].has_arg )
+          {
+            shortopts += ":";
+          }
 
-	// Or a double colon maybe?
-	if ( optional_argument == longopts[i].has_arg )
-	  {
-	    shortopts += "::";
-	  }
+        // Or a double colon maybe?
+        if ( optional_argument == longopts[i].has_arg )
+          {
+            shortopts += "::";
+          }
 
-	++i;
+        ++i;
       }
     shortopts += '\0';
   }
@@ -172,57 +172,57 @@ bool get_parameters(int argc, char **argv)
   int optc;
 
   while ( EOF != (optc = getopt_long (argc, argv, shortopts.c_str(),
-				      longopts, (int *) 0) ) )
+                                      longopts, (int *) 0) ) )
     {
       //      cout << "optc = " << optc << '\n';
       switch (optc)
-	{
-	case 'h':
-	  parameters.help = true;
-	  break;
-	case 'v':
-	  parameters.version = true;
-	  break;
-	case 'b':
-	  parameters.basename = optarg;
-	  break;
-	case 'r':
-	  {
-	    //	    cout << "optarg = " << optarg << endl;
-	    istringstream is(optarg);
-	    is >> parameters.reporting;
-	    ws(is);
-	    // This if statement should cover all cases: If there is
-	    // no integer at all, is becomes bad (first condition). If 
-	    // there is something else behind the integer, ws does not 
-	    // reach the end of is (second condition).
-	    if ( !is || !is.eof() )
-	      {
-		cerr << "Argument to --reporting (-r) must be an integer!\n";
-		exit(1);
-	      }
-	    break;
-	  }
-	case 'm':
-	  parameters.methods = optarg;
-	  break;
-	case 'i':
-	  parameters.input = optarg;
-	  break;
-	case 'w':
-	  parameters.workspacevariables = optarg;
-	  break;
-	case 'd':
-	  parameters.describe = optarg;
-	  break;
-	case 'g':
-	  parameters.groups = true;
-	  break;
-	default:
-	  // There were strange options.
-	  return(1);
-	  break;
-	}
+        {
+        case 'h':
+          parameters.help = true;
+          break;
+        case 'v':
+          parameters.version = true;
+          break;
+        case 'b':
+          parameters.basename = optarg;
+          break;
+        case 'r':
+          {
+            //      cout << "optarg = " << optarg << endl;
+            istringstream is(optarg);
+            is >> parameters.reporting;
+            ws(is);
+            // This if statement should cover all cases: If there is
+            // no integer at all, is becomes bad (first condition). If 
+            // there is something else behind the integer, ws does not 
+            // reach the end of is (second condition).
+            if ( !is || !is.eof() )
+              {
+                cerr << "Argument to --reporting (-r) must be an integer!\n";
+                exit(1);
+              }
+            break;
+          }
+        case 'm':
+          parameters.methods = optarg;
+          break;
+        case 'i':
+          parameters.input = optarg;
+          break;
+        case 'w':
+          parameters.workspacevariables = optarg;
+          break;
+        case 'd':
+          parameters.describe = optarg;
+          break;
+        case 'g':
+          parameters.groups = true;
+          break;
+        default:
+          // There were strange options.
+          return(1);
+          break;
+        }
     }
 
   // Remaining things on the command line must be control file names. 

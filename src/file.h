@@ -199,7 +199,7 @@ void binfile_read_vectorarray(
               ArrayOfVector&   x,
         const String&          filename,
         const int&             fid,
-	const String&          dataname );
+        const String&          dataname );
 
 void binfile_write_matrixarray(
         const String&          filename,

@@ -25,7 +25,7 @@
 /** The different token value types. These are the types that keyword
     parameters in the controlfile can have. */
 enum TokValType { String_t,    Index_t,    Numeric_t,
-	          Array_String_t, Array_Index_t, Vector_t,
+                  Array_String_t, Array_Index_t, Vector_t,
                   undefined_t };
 
 /** This stores arbitrary token values and remembers the type. Only

@@ -138,9 +138,9 @@ bool any( const ArrayOfIndex& x )
 */
 void linspace(                      
               Vector&     x,           
-	      const Numeric     start,    
-	      const Numeric     stop,        
-	      const Numeric     step )
+              const Numeric     start,    
+              const Numeric     stop,        
+              const Numeric     step )
 {
   Index n = (Index) floor( (stop-start)/step ) + 1;
   if ( n<1 )
@@ -166,12 +166,12 @@ void linspace(
     \date   2000-06-27
 */
 void nlinspace(         
-	       Vector&     x, 
-	       const Numeric     start,     
-	       const Numeric     stop,        
-	       const Index       n )
+               Vector&     x, 
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index       n )
 {
-  assert( 1<n );		// Number of points must be greatere 1.
+  assert( 1<n );                // Number of points must be greatere 1.
   x.resize(n);
   Numeric step = (stop-start)/(n-1) ;
   for ( Index i=0; i<n; i++ )
@@ -196,13 +196,13 @@ void nlinspace(
     \date   2000-06-27
 */
 void nlogspace(         
-	       Vector&     x, 
-	       const Numeric     start,     
-	       const Numeric     stop,        
-	       const Index         n )
+               Vector&     x, 
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index         n )
 {
   // Number of points must be greatere 1:
-  assert( 1<n );	
+  assert( 1<n );        
   // Only positive numbers are allowed for start and stop:
   assert( 0<start );
   assert( 0<stop );
@@ -232,9 +232,9 @@ void nlogspace(
     \date   2000-06-27
 */
 Vector nlogspace(  
-		 const Numeric start, 
-		 const Numeric stop,  
-		 const Index     n )
+                 const Numeric start, 
+                 const Numeric stop,  
+                 const Index     n )
 {
   Vector x;
   nlogspace( x, start, stop, n );
@@ -254,8 +254,8 @@ Vector nlogspace(
     \author Patrick Eriksson 
 */
 Index interp_check( ConstVectorView  x,        
-		    ConstVectorView  xi,
-		    const Index   n_y )
+                    ConstVectorView  xi,
+                    const Index   n_y )
 {
   const Index  n  = x.nelem();
   const Index  ni = xi.nelem();
@@ -275,8 +275,8 @@ Index interp_check( ConstVectorView  x,
     {
       ostringstream os;
       os << "Interpolation points must be inside the original range.\n"
-	 << "Int.:  xi[0] = " << xi[0] << ", xi[ni-1] = " << xi[ni-1] << '\n'
-	 << "Orig.: x[0]  = " << x[0]  << ", x[n-1]   = " << x[n-1];
+         << "Int.:  xi[0] = " << xi[0] << ", xi[ni-1] = " << xi[ni-1] << '\n'
+         << "Orig.: x[0]  = " << x[0]  << ", x[n-1]   = " << x[n-1];
       throw runtime_error(os.str());
     }
 
@@ -314,9 +314,9 @@ Index interp_check( ConstVectorView  x,
     \author Stefan Buehler
 */
 void interp_lin_vector( VectorView       yi,
-			ConstVectorView  x, 
-			ConstVectorView  y, 
-			ConstVectorView  xi )
+                        ConstVectorView  x, 
+                        ConstVectorView  y, 
+                        ConstVectorView  xi )
 {
   // Check grids and get order of grids
   Index order = interp_check( x, xi, y.nelem() ); 
@@ -354,10 +354,10 @@ void interp_lin_vector( VectorView       yi,
     \author Stefan Buehler
 */
 void interp_lin_matrix(    
-		       MatrixView        Yi,
-		       ConstVectorView   x, 
-		       ConstMatrixView   Y, 
-		       ConstVectorView   xi )
+                       MatrixView        Yi,
+                       ConstVectorView   x, 
+                       ConstMatrixView   Y, 
+                       ConstVectorView   xi )
 {
   // Check grids and get order of grids
   Index order = interp_check( x, xi, Y.ncols() ); 
@@ -392,14 +392,14 @@ void interp_lin_matrix(
     \date   2000-06-29
 */
 Numeric interp_lin(
-		   ConstVectorView  x, 
-		   ConstVectorView  y, 
-		   const Numeric  xi )
+                   ConstVectorView  x, 
+                   ConstVectorView  y, 
+                   const Numeric  xi )
 {
   Vector Yi(1);
   MakeVector Xi(xi);   // MakeVector is a special kind of vector that
-		       // can be initialized explicitly with one or
-		       // more arguments of type Numeric. 
+                       // can be initialized explicitly with one or
+                       // more arguments of type Numeric. 
 
   interp_lin_vector( Yi, x, y, Xi );
   return Yi[0];
@@ -579,7 +579,7 @@ void check_length_ncol( const Vector& x, const String& x_name,
     \date   2001-10-02
 */
 void check_ncol_nrow( const Matrix& A, const String& A_name,
-		      const Matrix& B, const String& B_name ) 
+                      const Matrix& B, const String& B_name ) 
 {
   if ( A.ncols() != B.nrows() )
   {

@@ -121,13 +121,13 @@ bool any_ground( const ArrayOfIndex& ground )
    \date   2001-02-15
 */
 void los_geometric(
-		    Vector&     z,
+                    Vector&     z,
                     Vector&     psi,
                     Numeric&    l_step,
               const Numeric&    z_plat,
               const Numeric&    za,
               const Numeric&    atm_limit,
-	      const Numeric&    r_geoid )
+              const Numeric&    r_geoid )
 {
   // A safety check
   assert( za <= 90 );
@@ -200,15 +200,15 @@ void los_geometric(
    \date   2001-02-18
 */
 void los_refraction(
-		    Vector&     z,
+                    Vector&     z,
                     Vector&     psi,
                     Numeric&    l_step,
               const Numeric&    z_plat,
               const Numeric&    za,
               const Numeric&    atm_limit,
-	      const Numeric&    r_geoid,
-	      const Vector&     p_abs,
-	      const Vector&     z_abs,
+              const Numeric&    r_geoid,
+              const Vector&     p_abs,
+              const Vector&     z_abs,
               const Index&      refr,
               const Index&      refr_lfac,
               const Vector&     refr_index,
@@ -326,8 +326,8 @@ void los_refraction(
   // Move values from temporary vectors
   z.resize(   np );
   psi.resize( np );
-  z   = zv[Range(0,np)];	// Copy first np values of zv to z.
-  psi = pv[Range(0,np)];	// Copy first np values of pv to psi.
+  z   = zv[Range(0,np)];        // Copy first np values of zv to z.
+  psi = pv[Range(0,np)];        // Copy first np values of pv to psi.
 }
 
 
@@ -367,7 +367,7 @@ void los_refraction(
    \date   2001-02-18
 */
 void los_1za(
-		    Vector&     z,
+                    Vector&     z,
                     Vector&     psi,
                     Numeric&    l_step,
                     Index&      ground,
@@ -378,9 +378,9 @@ void los_1za(
               const Numeric&    za,
               const Numeric&    l_step_max,
               const Numeric&    z_ground,
-	      const Numeric&    r_geoid,
-	      const Vector&     p_abs,
-	      const Vector&     z_abs,
+              const Numeric&    r_geoid,
+              const Vector&     p_abs,
+              const Vector&     z_abs,
               const Index&        refr,
               const Index&        refr_lfac,
               const Vector&     refr_index )
@@ -482,7 +482,7 @@ void los_1za(
 
     // Add psi0 to all elements:
     if ( psi0 != 0 )
-      psi += psi0;		
+      psi += psi0;              
   
     start = stop = nz - 1;
   }
@@ -516,26 +516,26 @@ void los_1za(
     {
       if ( !refr )
       {
-	// Calculate the distance platform-tangent point
-	a  = r_geoid + z_plat;
-	b  = r_geoid + z_tan; 
-	l1 = sqrt(a*a-b*b);   
+        // Calculate the distance platform-tangent point
+        a  = r_geoid + z_plat;
+        b  = r_geoid + z_tan; 
+        l1 = sqrt(a*a-b*b);   
 
         // A sufficient large distance between platform and tangent point
         if ( l1 > l_step_max/10 )
-	{
-  	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	  l_step = l1 / Numeric(stop);
-	}
+        {
+          // Adjust l_step downwards to get an integer number of steps
+          stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+          l_step = l1 / Numeric(stop);
+        }
 
         // Ignore downwrd part if platform is very close to tangent point
         else
-	{
+        {
           l_step = l_step_max;
           stop   = 0;
-	}
-	  
+        }
+          
         los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
       }
       else
@@ -548,26 +548,26 @@ void los_1za(
 
         // Determine the distance along the LOS between the tangent point and
         // the sensor by an interpolation
-	{
-	  Vector ls;
-	  linspace( ls, 0, l*(z.nelem()-1) , l );
-	  l1 = interp_lin( z, ls, z_plat );
-	}
+        {
+          Vector ls;
+          linspace( ls, 0, l*(z.nelem()-1) , l );
+          l1 = interp_lin( z, ls, z_plat );
+        }
 
         // A sufficient large distance between platform and tangent point
         if ( l1 > l_step_max/10 )
-	{
-  	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	  l_step = l1 / Numeric(stop);
-	}
+        {
+          // Adjust l_step downwards to get an integer number of steps
+          stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+          l_step = l1 / Numeric(stop);
+        }
   
         // Ignore downwrd part if platform is very close to tangent point
         else
-	{
+        {
           l_step = l_step_max;
           stop   = 0;
-	}
+        }
 
         los_refraction( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
@@ -578,7 +578,7 @@ void los_1za(
 
       // The angular distance between the sensor and the tangent point 
       // is psi[stop]
-      psi += psi[stop];		// Matpack can add element-vise like this.
+      psi += psi[stop];         // Matpack can add element-vise like this.
     }
 
     // Intersection with the ground
@@ -588,32 +588,32 @@ void los_1za(
 
       if ( !refr )
       {
-	// Calculate the distance platform-ground
-	a  = r_geoid + z_plat;
-	b  = r_geoid + z_tan;
-	b  = b * b; 
-	l1 = sqrt(a*a-b);   
-	a  = r_geoid + z_ground;
-	l1 = l1 - sqrt(a*a-b);   
+        // Calculate the distance platform-ground
+        a  = r_geoid + z_plat;
+        b  = r_geoid + z_tan;
+        b  = b * b; 
+        l1 = sqrt(a*a-b);   
+        a  = r_geoid + z_ground;
+        l1 = l1 - sqrt(a*a-b);   
   
         // A sufficient large distance between platform and ground
         if ( l1 > l_step_max/10 )
-	{
-	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	  l_step = l1 / Numeric(stop);
-	}
+        {
+          // Adjust l_step downwards to get an integer number of steps
+          stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+          l_step = l1 / Numeric(stop);
+        }
   
         // Ignore downwrd part if platform is very close to ground
         else
-	{
+        {
           l_step = l_step_max;
           stop   = 0;
-	}
+        }
 
-	za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );
+        za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );
   
-	los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
+        los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
       }
 
       else
@@ -627,26 +627,26 @@ void los_1za(
 
         // Determine the distance along the LOS between the tangent point and
         // the sensor by an interpolation
-	{
-	  Vector ls;
-	  linspace( ls, 0, l*(z.nelem()-1) , l );
-	  l1 = interp_lin( z, ls, z_plat );
-	}
+        {
+          Vector ls;
+          linspace( ls, 0, l*(z.nelem()-1) , l );
+          l1 = interp_lin( z, ls, z_plat );
+        }
 
         // A sufficient large distance between platform and ground
         if ( l1 > l_step_max/10 )
-	{
-	  // Adjust l_step downwards to get an integer number of steps
-	  stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	  l_step = l1 / Numeric(stop);
-	}
+        {
+          // Adjust l_step downwards to get an integer number of steps
+          stop  = Index( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+          l_step = l1 / Numeric(stop);
+        }
 
         // Ignore downwrd part if platform is very close to ground
         else
-	{
+        {
           l_step = l_step_max;
           stop   = 0;
-	}
+        }
 
         los_refraction( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
@@ -657,7 +657,7 @@ void los_1za(
 
       // The angular distance between the sensor and the ground
       // is psi[stop]
-      psi += psi[stop];		// Matpack can add element-vise like this.
+      psi += psi[stop];         // Matpack can add element-vise like this.
     }
   }
 }
@@ -724,7 +724,7 @@ void y_rte (
                  source[i], y_space, los.ground[i], e_ground, y_ground);
 
     // Move values to output vector
-    y[Range(iy0,nf)] = y_tmp;	// Copy to nf elements to y, starting at iy0.
+    y[Range(iy0,nf)] = y_tmp;   // Copy to nf elements to y, starting at iy0.
 
     // Update iy0
     iy0 += nf;   
@@ -754,7 +754,7 @@ void y_tau (
 
   // Resize y and set to 1
   y.resize( nf*n );
-  y = 1.0;			// Matpack can set all elements like this.
+  y = 1.0;                      // Matpack can set all elements like this.
 
   // Check if the ground emission vector has the correct length
   if ( any_ground(los.ground) )  
@@ -853,14 +853,14 @@ void groundSet(
         const Vector&    t_abs,
         const Vector&    z_abs,
         const Vector&    f_mono,
-	const Numeric&   z,
-	const Numeric&   e )
+        const Numeric&   z,
+        const Numeric&   e )
 {
   check_if_in_range( 0, 1, e, "e" );
   z_ground = z;
   t_ground = interpz( p_abs, z_abs, t_abs, z );
   e_ground.resize( f_mono.nelem() );
-  e_ground = e;		
+  e_ground = e;         
 }
 
 
@@ -878,13 +878,13 @@ void groundAtBottom(
         const Vector&    t_abs,
         const Vector&    z_abs,
         const Vector&    f_mono,
-	const Numeric&   e )
+        const Numeric&   e )
 {
   check_if_in_range( 0, 1, e, "e" );
   z_ground = z_abs[0];
   t_ground = t_abs[0];
   e_ground.resize( f_mono.nelem() );
-  e_ground = e;			// Matpack can set all elements like this.
+  e_ground = e;                 // Matpack can set all elements like this.
 }
 
 
@@ -974,14 +974,14 @@ void losCalc(       Los&        los,
       "Are dummy vales used?");
     
   // Reallocate the los structure and z_tan
-  los.p.resize(      n	);
-  los.psi.resize(    n	);
-  los.z.resize(      n	);
-  los.l_step.resize( n	);
-  los.ground.resize( n	);
-  los.start.resize(  n	);
-  los.stop.resize(   n	);
-  z_tan.resize(      n	);
+  los.p.resize(      n  );
+  los.psi.resize(    n  );
+  los.z.resize(      n  );
+  los.l_step.resize( n  );
+  los.ground.resize( n  );
+  los.start.resize(  n  );
+  los.stop.resize(   n  );
+  z_tan.resize(      n  );
 
   // Print messages
   if ( refr == 0 )
@@ -1019,14 +1019,14 @@ void zaFromZtan(
         // WS Goutput
               Vector&       za,
         const String&       za_name,
-	 // WS input
-	const Vector&       z_tan,
+         // WS input
+        const Vector&       z_tan,
         const Numeric&      z_plat,
         const Vector&       p_abs,
         const Vector&       z_abs,
-	const Index&        refr,
-	const Vector&       refr_index,
-	const Numeric&      r_geoid,
+        const Index&        refr,
+        const Vector&       refr_index,
+        const Numeric&      r_geoid,
         const Numeric&      z_ground )
 {
   check_lengths( p_abs, "p_abs", z_abs, "z_abs" );  
@@ -1054,15 +1054,15 @@ void zaFromZtan(
       Numeric nz_plat =  n_for_z(z_plat,p_abs,z_abs,refr_index,atm_limit);  
       if (z_tan[i]>=0)
       { 
-	// Calculating constant
+        // Calculating constant
         Numeric nza =  n_for_z(z_tan[i],p_abs,z_abs,refr_index,atm_limit);
         Numeric c   = (r_geoid + z_tan[i]) * nza;
         za[i]       =  180 - RAD2DEG * asin( c / nz_plat / (r_geoid + z_plat));
       }
       else
       {
-	// inside the Earth, looking for hitting point
-	Numeric ze  = RAD2DEG * acos((r_geoid + z_tan[i]) / r_geoid);
+        // inside the Earth, looking for hitting point
+        Numeric ze  = RAD2DEG * acos((r_geoid + z_tan[i]) / r_geoid);
         // from hitting point to platform
         Numeric nze =  n_for_z(z_ground,p_abs,z_abs,refr_index,atm_limit);
         Numeric c   =  r_geoid * sin(DEG2RAD * (90-ze)) * nze;
@@ -1090,10 +1090,10 @@ void zaFromDeltat(
         const Vector&       p_abs,
         const Vector&       z_abs,
         const Numeric&      l_step,
-	const Index&        refr,
-	const Index&        refr_lfac,
-	const Vector&       refr_index,
-	const Numeric&      r_geoid,
+        const Index&        refr,
+        const Index&        refr_lfac,
+        const Vector&       refr_index,
+        const Numeric&      r_geoid,
         const Numeric&      z_ground,
         // Control Parameters:
         const Numeric&      delta_t,
@@ -1204,7 +1204,7 @@ void zaFromDeltat(
 */
 void sourceCalc(
                     ArrayOfMatrix&   source,
-	      const Index&           emission,
+              const Index&           emission,
               const Los&             los,   
               const Vector&          p_abs,
               const Vector&          t_abs,
@@ -1221,12 +1221,12 @@ void sourceCalc(
 
   else
   {     
-	  Vector   tlos;                   // temperatures along the LOS
+          Vector   tlos;                   // temperatures along the LOS
     const Index    nza=los.start.nelem();  // the number of zenith angles  
     const Index    nf=f_mono.nelem();      // the number of frequencies
-	  Index    nlos;                   // the number of pressure points
-	  Matrix   b;                      // the Planck function for TLOS  
-	  Index    iv, ilos;               // frequency and LOS point index
+          Index    nlos;                   // the number of pressure points
+          Matrix   b;                      // the Planck function for TLOS  
+          Index    iv, ilos;               // frequency and LOS point index
   
     out2 << "  Calculating the source function for LTE and no scattering.\n";
    
@@ -1241,22 +1241,22 @@ void sourceCalc(
     for (Index i=0; i<nza; i++ ) 
     {
       if ( (i%20)==0 )
-	out3 << "\n      ";
+        out3 << "\n      ";
       out3 << " " << i; cout.flush();
   
       if ( los.p[i].nelem() > 0 )
       {
-	nlos = los.p[i].nelem();
-	tlos.resize( nlos );
-	interpp( tlos, p_abs, t_abs, los.p[i] );
-	b.resize( nf, nlos );
-	planck( b, f_mono, tlos );
-	source[i].resize(nf,nlos-1);
-	for ( ilos=0; ilos<(nlos-1); ilos++ )
-	{
-	  for ( iv=0; iv<nf; iv++ )
-	    source[i](iv,ilos) = ( b(iv,ilos) + b(iv,ilos+1) ) / 2.0;
-	}
+        nlos = los.p[i].nelem();
+        tlos.resize( nlos );
+        interpp( tlos, p_abs, t_abs, los.p[i] );
+        b.resize( nf, nlos );
+        planck( b, f_mono, tlos );
+        source[i].resize(nf,nlos-1);
+        for ( ilos=0; ilos<(nlos-1); ilos++ )
+        {
+          for ( iv=0; iv<nf; iv++ )
+            source[i](iv,ilos) = ( b(iv,ilos) + b(iv,ilos+1) ) / 2.0;
+        }
       }
     }  
     out3 << "\n";
@@ -1336,7 +1336,7 @@ void y_spaceStd(
 
   if ( choice == "zero" )
   {
-    y_space = 0.0;		// Matpack can set all elements like this.
+    y_space = 0.0;              // Matpack can set all elements like this.
     out2 << "  Setting y_space to zero.\n";
   }
   else if ( choice == "cbgr" )
@@ -1366,7 +1366,7 @@ void y_spaceStd(
 */
 void yCalc (
                     Vector&          y,
-	      const Index&           emission,
+              const Index&           emission,
               const Los&             los,   
               const Vector&          f_mono,
               const Vector&          y_space,
@@ -1461,9 +1461,9 @@ void MatrixTRJ (// WS Generic Output:
   Vector y(kin.nrows());
   for ( Index i=0; i<kin.ncols(); i++ )
   {
-    y = kin(Range(joker),i);	    // Copy ith column of kin to y.
+    y = kin(Range(joker),i);        // Copy ith column of kin to y.
     invrayjean( y, f_mono, za_pencil );
-    kout(Range(joker),i) = y;	    // Copy to ith column of kout.
+    kout(Range(joker),i) = y;       // Copy to ith column of kout.
   }
 }
 
@@ -1499,9 +1499,9 @@ void MatrixTB (// WS Generic Output:
   Vector y(kin.nrows());
   for ( Index i=0; i<kin.ncols(); i++ )
   {
-    y = kin(Range(joker),i);	// Copy ith column of kin to y.
+    y = kin(Range(joker),i);    // Copy ith column of kin to y.
     invplanck( y, f_mono, za_pencil );
-    kout(Range(joker),i) = y;	// Copy to ith column of kout.
+    kout(Range(joker),i) = y;   // Copy to ith column of kout.
   }
 }
 

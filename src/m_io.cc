@@ -108,7 +108,7 @@ void Test( )
 void IndexWriteAscii(
         const Index&      v,
         const String&   v_name,
-	const String&   f )
+        const String&   f )
 {
   String filename = f;
 
@@ -125,9 +125,9 @@ void IndexWriteAscii(
 
 // This function shall be modified to handle Index
 void IndexReadAscii(
-	      Index&      v,
+              Index&      v,
         const String&   v_name,
-	const String&   f )
+        const String&   f )
 {
   String filename = f;
   
@@ -161,7 +161,7 @@ void IndexReadAscii(
 void NumericWriteAscii(
         const Numeric&  v,
         const String&   v_name,
-	const String&   f )
+        const String&   f )
 {
   String filename = f;
 
@@ -171,15 +171,15 @@ void NumericWriteAscii(
   // Store the value in an ArrayOfMatrix and write to file
   ArrayOfMatrix am(1);
   am[0].resize( 1, 1 );
-  am[0] = v;			// Matpack can set all elements like this.
+  am[0] = v;                    // Matpack can set all elements like this.
   write_array_of_matrix_to_file(filename,am);
 }
 
 
 void NumericReadAscii(
-	      Numeric&  v,
+              Numeric&  v,
         const String&   v_name,
-	const String&   f )
+        const String&   f )
 {
   String filename = f;
   
@@ -204,11 +204,11 @@ void NumericReadAscii(
 //=== Vector ==========================================================
 
 void VectorWriteAscii(// WS Output:
-		       const Vector& v,
-		       // WS Variable Names:
-		       const String& v_name,
-		       // Control Parameters:
-		       const String& f)
+                       const Vector& v,
+                       // WS Variable Names:
+                       const String& v_name,
+                       // Control Parameters:
+                       const String& f)
 {
   String filename = f;
 
@@ -234,11 +234,11 @@ void VectorWriteAscii(// WS Output:
 
 
 void VectorReadAscii(// WS Generic Output:
-			Vector& v,
-			// WS Generic Output Names:
-			const String& v_name,
-			// Control Parameters:
-			const String& f)
+                        Vector& v,
+                        // WS Generic Output Names:
+                        const String& v_name,
+                        // Control Parameters:
+                        const String& f)
 {
   String filename = f;
   
@@ -258,11 +258,11 @@ void VectorReadAscii(// WS Generic Output:
   // Check that this really is a 1-column matrix:
   if ( 1 != m.ncols() )
     throw runtime_error("You tried to convert a matrix to a vector,\n"
-			"but it has more than one column.");
+                        "but it has more than one column.");
 
   // Convert the 1-column matrix to a vector:
   v.resize(m.nrows());
-  v = m(Range(joker),0);	
+  v = m(Range(joker),0);        
   // (The m(Range(joker),0) picks out first column of m, = operator copies
   // to v.)
 }
@@ -272,11 +272,11 @@ void VectorReadAscii(// WS Generic Output:
 //=== Matrix ==========================================================
 
 void MatrixWriteAscii(// WS Generic Input:
-		       const Matrix& m,
-		       // WS Generic Input Names:
-		       const String& m_name,
-		       // Control Parameters:
-		       const String& f)
+                       const Matrix& m,
+                       // WS Generic Input Names:
+                       const String& m_name,
+                       // Control Parameters:
+                       const String& f)
 {
   String filename = f;
   
@@ -296,11 +296,11 @@ void MatrixWriteAscii(// WS Generic Input:
 
 
 void MatrixReadAscii(// WS Generic Output:
-		     Matrix& m,
-		     // WS Generic Output Names:
-		     const String& m_name,
-		     // Control Parameters:
-		     const String& f)
+                     Matrix& m,
+                     // WS Generic Output Names:
+                     const String& m_name,
+                     // Control Parameters:
+                     const String& f)
 {
   String filename = f;
   
@@ -330,7 +330,7 @@ void MatrixReadAscii(// WS Generic Output:
 void ArrayOfIndexWriteAscii(
         const ArrayOfIndex&   v,
         const String&         v_name,
-	const String&         f )
+        const String&         f )
 {
   String filename = f;
 
@@ -349,9 +349,9 @@ void ArrayOfIndexWriteAscii(
 
 // This function shall be modified to handle Index
 void ArrayOfIndexReadAscii(
-			   ArrayOfIndex&   v,
-			   const String&   v_name,
-			   const String&   f )
+                           ArrayOfIndex&   v,
+                           const String&   v_name,
+                           const String&   f )
 {
   // FIXME: This function is crap. Put the whole ASCII file stuff
   // should be changed in the future, so I leave it for now.
@@ -371,13 +371,13 @@ void ArrayOfIndexReadAscii(
     throw runtime_error(os.str());
   }
   
-  Matrix m(am[0]);		// Create Matrix and initialize from
-				// first element of am.
+  Matrix m(am[0]);              // Create Matrix and initialize from
+                                // first element of am.
 
   // Check that this really is a 1-column matrix:
   if ( 1 != m.ncols() )
     throw runtime_error("You tried to convert a matrix to a vector,\n"
-			"but it has more than one column.");
+                        "but it has more than one column.");
 
   // Convert the 1-column matrix to a vector:
   Vector x(m(Range(joker),0));
@@ -401,11 +401,11 @@ void ArrayOfIndexReadAscii(
 //=== ArrayOfVector ====================================================
 
 void ArrayOfVectorWriteAscii(// WS Output:
-			      const ArrayOfVector& av,
-			      // WS Variable Names:
-			      const String& av_name,
-			      // Control Parameters:
-			      const String& f)
+                              const ArrayOfVector& av,
+                              // WS Variable Names:
+                              const String& av_name,
+                              // Control Parameters:
+                              const String& f)
 {
   String filename = f;
   
@@ -418,8 +418,8 @@ void ArrayOfVectorWriteAscii(// WS Output:
     {
       //      to_matrix(am[i],av[i]);
       am[i].resize( av[i].nelem(), 1 );
-      am[i] = av[i];		// Matpack can copy the content of a
-				// Vector to a 1-column Matrix.
+      am[i] = av[i];            // Matpack can copy the content of a
+                                // Vector to a 1-column Matrix.
     }
 
   // Write the array of matrix to the file.
@@ -429,11 +429,11 @@ void ArrayOfVectorWriteAscii(// WS Output:
 
 
 void ArrayOfVectorReadAscii(// WS Generic Output:
-			       ArrayOfVector& av,
-			       // WS Generic Output Names:
-			       const String& av_name,
-			       // Control Parameters:
-			       const String& f)
+                               ArrayOfVector& av,
+                               // WS Generic Output Names:
+                               const String& av_name,
+                               // Control Parameters:
+                               const String& f)
 {
   String filename = f;
   
@@ -450,12 +450,12 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
     {
       // Check that this really is a 1-column matrix:
       if ( 1 != am[i].ncols() )
-	throw runtime_error("You tried to convert a matrix to a vector,\n"
-			    "but it has more than one column.");
+        throw runtime_error("You tried to convert a matrix to a vector,\n"
+                            "but it has more than one column.");
 
       // Convert the 1-column matrix to a vector:
       av[i].resize(am[i].nrows());
-      av[i] = am[i](Range(joker),0);	
+      av[i] = am[i](Range(joker),0);    
       // (The am[i](Range(joker),0) picks out first column of am[i], = operator copies
       // to v.)
     }
@@ -466,11 +466,11 @@ void ArrayOfVectorReadAscii(// WS Generic Output:
 //=== ArrayOfMatrix ====================================================
 
 void ArrayOfMatrixWriteAscii(// WS Generic Input:
-			      const ArrayOfMatrix& am,
-			      // WS Generic Input Names:
-			      const String& am_name,
-			      // Control Parameters:
-			      const String& f)
+                              const ArrayOfMatrix& am,
+                              // WS Generic Input Names:
+                              const String& am_name,
+                              // Control Parameters:
+                              const String& f)
 {
   String filename = f;
   
@@ -484,11 +484,11 @@ void ArrayOfMatrixWriteAscii(// WS Generic Input:
 
 
 void ArrayOfMatrixReadAscii(// WS Generic Output:
-			       ArrayOfMatrix& am,
-			       // WS Generic Output Names:
-			       const String& am_name,
-			       // Control Parameters:
-			       const String& f)
+                               ArrayOfMatrix& am,
+                               // WS Generic Output Names:
+                               const String& am_name,
+                               // Control Parameters:
+                               const String& f)
 {
   String filename = f;
   
@@ -504,11 +504,11 @@ void ArrayOfMatrixReadAscii(// WS Generic Output:
 //=== STRING ===============================================================
 
 void StringWriteAscii( // WS Generic Input:
-		       const String& s,
-		       // WS Generic Input Names:
-		       const String& s_name,
-		       // Control Parameters:
-		       const String& f)
+                       const String& s,
+                       // WS Generic Input Names:
+                       const String& s_name,
+                       // Control Parameters:
+                       const String& f)
 {
   String filename = f;
   
@@ -526,11 +526,11 @@ void StringWriteAscii( // WS Generic Input:
 
 
 void StringReadAscii(   // WS Generic Output:
-			String& s,
-			// WS Generic Output Names:
-			const String& s_name,
-			// Control Parameters:
-			const String& f)
+                        String& s,
+                        // WS Generic Output Names:
+                        const String& s_name,
+                        // Control Parameters:
+                        const String& f)
 {
   String filename = f;
   
@@ -554,11 +554,11 @@ void StringReadAscii(   // WS Generic Output:
 //=== ArrayOfString ====================================================
 
 void ArrayOfStringWriteAscii( // WS Generic Input:
-			      const ArrayOfString& as,
-			      // WS Generic Input Names:
-			      const String& as_name,
-			      // Control Parameters:
-			      const String& f)
+                              const ArrayOfString& as,
+                              // WS Generic Input Names:
+                              const String& as_name,
+                              // Control Parameters:
+                              const String& f)
 {
   String filename = f;
   
@@ -572,11 +572,11 @@ void ArrayOfStringWriteAscii( // WS Generic Input:
 
 
 void ArrayOfStringReadAscii(   // WS Generic Output:
-			       ArrayOfString& as,
-			       // WS Generic Output Names:
-			       const String& as_name,
-			       // Control Parameters:
-			       const String& f)
+                               ArrayOfString& as,
+                               // WS Generic Output Names:
+                               const String& as_name,
+                               // Control Parameters:
+                               const String& f)
 {
   String filename = f;
   
@@ -671,7 +671,7 @@ void VectorSet(           Vector&  x,
                     const Numeric& value )
 {
   x.resize(n);
-  x = value;			// Matpack can set all elements like this.
+  x = value;                    // Matpack can set all elements like this.
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
@@ -694,7 +694,7 @@ void VectorSetLengthFromVector(
 {
   const Index  n = z.nelem();
   x.resize(n);
-  x = value;			// Matpack can set all elements like this.
+  x = value;                    // Matpack can set all elements like this.
   out2 << "  Creating " << x_name << " as a constant vector\n"; 
   out3 << "         length : " << n << "\n";
   out3 << "          value : " << value << "\n";
@@ -789,10 +789,10 @@ void VectorPressuresForLinAltitudes(
    \date   2000-?-?
 */
 void VectorNLogSpace( Vector&  x, 
-		      const String&  x_name,
-		      const Numeric& start,
-		      const Numeric& stop,
-		      const Index&     n )
+                      const String&  x_name,
+                      const Numeric& start,
+                      const Numeric& stop,
+                      const Index&     n )
 {
   if ( n<2 )
     throw runtime_error("The number of points must be > 1."); 
@@ -818,9 +818,9 @@ void VectorCopy(
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
   y2.resize( y1.nelem() );
-  y2 = y1;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
+  y2 = y1;                      // Matpack can copy the contents of
+                                // vectors like this. The dimensions
+                                // must be the same! 
 }
 
 
@@ -846,9 +846,9 @@ void VectorFlip(
     dum[n-1-i] = y1[i];
 
   y2.resize( n );
-  y2 = dum;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
+  y2 = dum;                     // Matpack can copy the contents of
+                                // vectors like this. The dimensions
+                                // must be the same! 
 }
 
 
@@ -893,7 +893,7 @@ void VectorCalcLog10(
   out2<<"  " << out_name << " = log10( " << in_name << " )\n";
 
   out.resize( in.nelem() );
-  transform( out, log10, in );	// out = log10(in)
+  transform( out, log10, in );  // out = log10(in)
 }
 
 
@@ -917,9 +917,9 @@ void VectorAdd(
   if (&out==&in)
     {
       // Out and in are the same. Just add the scalar value.
-      out += value;		// With Matpack you can add a scalar
-				// to all elements of a vector like
-				// this. 
+      out += value;             // With Matpack you can add a scalar
+                                // to all elements of a vector like
+                                // this. 
     }
   else
     {
@@ -927,9 +927,9 @@ void VectorAdd(
       // then add the scalar value.
 
       out.resize( in.nelem() );
-      out = in;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
+      out = in;                 // Matpack can copy the contents of
+                                // vectors like this. The dimensions
+                                // must be the same! 
       out += value;
     }
 }
@@ -955,9 +955,9 @@ void VectorScale(
   if (&out==&in)
     {
       // Out and in are the same. Just multiply by the scalar value.
-      out *= value;		// With Matpack you can add a scalar
-				// to all elements of a vector like
-				// this. 
+      out *= value;             // With Matpack you can add a scalar
+                                // to all elements of a vector like
+                                // this. 
     }
   else
     {
@@ -965,9 +965,9 @@ void VectorScale(
       // then multiply by the scalar value.
 
       out.resize( in.nelem() );
-      out = in;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
+      out = in;                 // Matpack can copy the contents of
+                                // vectors like this. The dimensions
+                                // must be the same! 
       out *= value;
     }
 }
@@ -1025,7 +1025,7 @@ void MatrixSet(           Matrix&  x,
                     const Numeric& value )
 {
   x.resize( nrows, ncols );
-  x = value;			// Matpack can set all elements like this.
+  x = value;                    // Matpack can set all elements like this.
   out2 << "  Creating " << x_name << " as a constant matrix\n"; 
   out3 << "          nrows : " << nrows << "\n";
   out3 << "          ncols : " << ncols << "\n";
@@ -1042,9 +1042,9 @@ void MatrixCopy(
 {
   out2 << "  " << name_y2 << " = " << name_y1 << "\n";
   y2.resize( y1.nrows(), y1.ncols() );
-  y2 = y1;			// Matpack can copy the contents of
-				// matrices like this. The dimensions
-				// must be the same! 
+  y2 = y1;                      // Matpack can copy the contents of
+                                // matrices like this. The dimensions
+                                // must be the same! 
 }
 
 
@@ -1059,8 +1059,8 @@ void MatrixFillWithVector(
   out2 << "  Creates" << name_m << " by copying " << name_y << n << "times.\n";
   m.resize( y.nelem(), n );
   for ( Index i=0; i<n; ++i ) 
-    m(Range(joker),i) = y;	// Copy content of vector y to this
-				// column of Matrix m.
+    m(Range(joker),i) = y;      // Copy content of vector y to this
+                                // column of Matrix m.
 }
 
 
@@ -1084,9 +1084,9 @@ void MatrixScale(
   if (&out==&in)
     {
       // Out and in are the same. Just multiply by the scalar value.
-      out *= value;		// With Matpack you can multiply a scalar
-				// to all elements of a matrix like
-				// this. 
+      out *= value;             // With Matpack you can multiply a scalar
+                                // to all elements of a matrix like
+                                // this. 
     }
   else
     {
@@ -1094,9 +1094,9 @@ void MatrixScale(
       // then multiply by the scalar value.
 
       out.resize( in.nrows(), in.ncols() );
-      out = in;			// Matpack can copy the contents of
-				// matrices like this. The dimensions
-				// must be the same! 
+      out = in;                 // Matpack can copy the contents of
+                                // matrices like this. The dimensions
+                                // must be the same! 
       out *= value;
     }
 }
@@ -1110,7 +1110,7 @@ void MatrixScale(
    \date   2001-02-21
 */
 void MatrixDiagonal(
-		    Matrix&           x, 
+                    Matrix&           x, 
                     const String&     x_name,
                     const Index&      nrows,
                     const Numeric&    value )
@@ -1250,7 +1250,7 @@ void ArrayOfStringSet(
         const ArrayOfString&  sa2 )
 {
   sa.resize(sa2.nelem());
-  sa = sa2;			// Arrays can be copied like this.
+  sa = sa2;                     // Arrays can be copied like this.
   out3 << "  Setting " << sa_name << "\n"; 
 }
 

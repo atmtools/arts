@@ -444,8 +444,8 @@ protected:
   ConstMatrixView();
   ConstMatrixView(Numeric *data, const Range& r, const Range& c);
   ConstMatrixView(Numeric *data,
-		  const Range& pr, const Range& pc,
-		  const Range& nr, const Range& nc);
+                  const Range& pr, const Range& pc,
+                  const Range& nr, const Range& nc);
 
   // Data members:
   // -------------
@@ -522,8 +522,8 @@ protected:
   MatrixView();
   MatrixView(Numeric *data, const Range& r, const Range& c);
   MatrixView(Numeric *data,
-	     const Range& pr, const Range& pc,
-	     const Range& nr, const Range& nc);
+             const Range& pr, const Range& pc,
+             const Range& nr, const Range& nc);
 };
 
 /** The Matrix class. This is a MatrixView that also allocates storage
@@ -560,20 +560,20 @@ public:
 // ----------------------
 
 inline void copy(ConstIterator1D origin,
-		 const ConstIterator1D& end,
-		 Iterator1D target);
+                 const ConstIterator1D& end,
+                 Iterator1D target);
 
 inline void copy(Numeric x,
-		 Iterator1D target,
-		 const Iterator1D& end);
+                 Iterator1D target,
+                 const Iterator1D& end);
 
 inline void copy(ConstIterator2D origin,
-		 const ConstIterator2D& end,
-		 Iterator2D target);
+                 const ConstIterator2D& end,
+                 Iterator2D target);
 
 inline void copy(Numeric x,
-		 Iterator2D target,
-		 const Iterator2D& end);
+                 Iterator2D target,
+                 const Iterator2D& end);
 
 
 
@@ -655,9 +655,9 @@ inline Range::Range(Index max_size, const Range& r) :
   if ( mextent<0 )
     {
       if ( 0<mstride )
-	mextent = 1 + (max_size-1-mstart)/mstride;
+        mextent = 1 + (max_size-1-mstart)/mstride;
       else
-	mextent = 1 + (0-mstart)/mstride;
+        mextent = 1 + (0-mstart)/mstride;
     }
   else
     {
@@ -701,9 +701,9 @@ inline Range::Range(const Range& p, const Range& n) :
   if ( mextent<0 )
     {
       if ( 0<mstride )
-	mextent = 1 + (prev_fin-mstart)/mstride;
+        mextent = 1 + (prev_fin-mstart)/mstride;
       else
-	mextent = 1 + (p.mstart-mstart)/mstride;
+        mextent = 1 + (p.mstart-mstart)/mstride;
     }
   else
     {
@@ -952,8 +952,8 @@ inline Numeric ConstVectorView::operator[](Index n) const
   assert( 0<=n );
   assert( n<mrange.mextent );
   return *( mdata +
-	    mrange.mstart +
-	    n*mrange.mstride );
+            mrange.mstart +
+            n*mrange.mstride );
 }
 
 /** Const index operator for subrange. We have to also account for the
@@ -974,9 +974,9 @@ inline ConstIterator1D ConstVectorView::begin() const
 inline ConstIterator1D ConstVectorView::end() const
 {
   return ConstIterator1D( mdata +
-			  mrange.mstart +
-			  (mrange.mextent)*mrange.mstride,
-			  mrange.mstride );
+                          mrange.mstart +
+                          (mrange.mextent)*mrange.mstride,
+                          mrange.mstride );
 }
 
 /** Conversion to const 1 column matrix. */
@@ -996,7 +996,7 @@ inline ConstVectorView::ConstVectorView() :
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 inline ConstVectorView::ConstVectorView(Numeric *data,
-					const Range& range) :
+                                        const Range& range) :
   mrange(range),
   mdata(data)
 {
@@ -1014,8 +1014,8 @@ inline ConstVectorView::ConstVectorView(Numeric *data,
     \param p Previous range.
     \param n New Range.  */
 inline ConstVectorView::ConstVectorView(Numeric *data,
-					const Range& p,
-					const Range& n) :
+                                        const Range& p,
+                                        const Range& n) :
   mrange(p,n),
   mdata(data)
 {
@@ -1070,8 +1070,8 @@ inline Numeric& VectorView::operator[](Index n)
   assert( 0<=n );
   assert( n<mrange.mextent );
   return *( mdata +
-	    mrange.mstart +
-	    n*mrange.mstride );
+            mrange.mstart +
+            n*mrange.mstride );
 }
 
 /** Index operator for subrange. We have to also account for the case,
@@ -1108,9 +1108,9 @@ inline Iterator1D VectorView::begin()
 inline Iterator1D VectorView::end()
 {
   return Iterator1D( mdata +
-		     mrange.mstart +
-		     (mrange.mextent)*mrange.mstride,
-		     mrange.mstride );
+                     mrange.mstart +
+                     (mrange.mextent)*mrange.mstride,
+                     mrange.mstride );
 }
 
 /** Assignment operator. This copies the data from another VectorView
@@ -1281,7 +1281,7 @@ inline VectorView::VectorView() :
 /** Explicit constructor. This one is used by Vector to initialize its
     own VectorView part. */
 inline VectorView::VectorView(Numeric *data,
-			    const Range& range) :
+                            const Range& range) :
   ConstVectorView(data,range)
 {
   // Nothing to do here.
@@ -1298,8 +1298,8 @@ inline VectorView::VectorView(Numeric *data,
     \param p Previous range.
     \param n New Range.  */
 inline VectorView::VectorView(Numeric *data,
-			      const Range& p,
-			      const Range& n) :
+                              const Range& p,
+                              const Range& n) :
   ConstVectorView(data,p,n)
 {
   // Nothing to do here.
@@ -1310,8 +1310,8 @@ inline VectorView::VectorView(Numeric *data,
     different, so that we can for example copy data between different
     kinds of subvectors. */
 inline void copy(ConstIterator1D origin,
-		 const ConstIterator1D& end,
-		 Iterator1D target)
+                 const ConstIterator1D& end,
+                 Iterator1D target)
 {
   for ( ; origin!=end ; ++origin,++target )
     *target = *origin;
@@ -1319,8 +1319,8 @@ inline void copy(ConstIterator1D origin,
 
 /** Copy a scalar to all elements. */
 inline void copy(Numeric x,
-		 Iterator1D target,
-		 const Iterator1D& end)
+                 Iterator1D target,
+                 const Iterator1D& end)
 {
   for ( ; target!=end ; ++target )
     *target = x;
@@ -1339,7 +1339,7 @@ inline Vector::Vector()
 /** Constructor setting size. */
 inline Vector::Vector(Index n) :
   VectorView( new Numeric[n],
-	     Range(0,n))
+             Range(0,n))
 {
   // Nothing to do here.
 }
@@ -1347,7 +1347,7 @@ inline Vector::Vector(Index n) :
 /** Constructor setting size and filling with constant value. */
 inline Vector::Vector(Index n, Numeric fill) :
   VectorView( new Numeric[n],
-	     Range(0,n))
+             Range(0,n))
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
@@ -1365,7 +1365,7 @@ inline Vector::Vector(Index n, Numeric fill) :
 */
 inline Vector::Vector(Numeric start, Index extent, Numeric stride) :
   VectorView( new Numeric[extent],
-	     Range(0,extent))
+             Range(0,extent))
 {
   // Fill with values:
   Numeric x = start;
@@ -1385,7 +1385,7 @@ inline Vector::Vector(Numeric start, Index extent, Numeric stride) :
     of the selection. */
 inline Vector::Vector(const ConstVectorView& v) :
   VectorView( new Numeric[v.nelem()],
-	      Range(0,v.nelem()))
+              Range(0,v.nelem()))
 {
   copy(v.begin(),v.end(),begin());
 }
@@ -1394,7 +1394,7 @@ inline Vector::Vector(const ConstVectorView& v) :
     automatically generated shallow constructor. We want deep copies!  */
 inline Vector::Vector(const Vector& v) :
   VectorView( new Numeric[v.nelem()],
-	      Range(0,v.nelem()))
+              Range(0,v.nelem()))
 {
   copy(v.begin(),v.end(),begin());
 }
@@ -1502,17 +1502,17 @@ inline Numeric ConstMatrixView::operator()(Index r, Index c) const
   assert( c<mcr.mextent );
 
   return *( mdata +
-	    mrr.mstart +
-	    r*mrr.mstride +
-	    mcr.mstart +
-	    c*mcr.mstride );
+            mrr.mstart +
+            r*mrr.mstride +
+            mcr.mstart +
+            c*mcr.mstride );
 }
 
 /** Const index operator for subrange. We have to also account for the
     case, that *this is already a subrange of a Matrix. This allows
     correct recursive behavior.  */
 inline ConstMatrixView ConstMatrixView::operator()(const Range& r,
-						   const Range& c) const
+                                                   const Range& c) const
 {
   return ConstMatrixView(mdata, mrr, mcr, r, c);
 }
@@ -1529,7 +1529,7 @@ inline ConstVectorView ConstMatrixView::operator()(const Range& r, Index c) cons
   assert( c < mcr.mextent );
 
   return ConstVectorView(mdata + mcr.mstart + c*mcr.mstride,
-			 mrr, r);
+                         mrr, r);
 }
 
 /** Const index operator returning a row as an object of type
@@ -1544,23 +1544,23 @@ inline ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) cons
   assert( r < mrr.mextent );
 
   return ConstVectorView(mdata + mrr.mstart + r*mrr.mstride,
-			 mcr, c);
+                         mcr, c);
 }
 
 /** Return const iterator to first row. */
 inline ConstIterator2D ConstMatrixView::begin() const
 {
   return ConstIterator2D(ConstVectorView(mdata+mrr.mstart,
-					 mcr),
-			 mrr.mstride);
+                                         mcr),
+                         mrr.mstride);
 }
 
 /** Return const iterator behind last row. */
 inline ConstIterator2D ConstMatrixView::end() const
 {
   return ConstIterator2D( ConstVectorView(mdata + mrr.mstart + (mrr.mextent)*mrr.mstride,
-					  mcr),
-			  mrr.mstride );
+                                          mcr),
+                          mrr.mstride );
 }
 
 /** Default constructor. This is necessary, so that we can have a
@@ -1575,8 +1575,8 @@ inline ConstMatrixView::ConstMatrixView() :
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
 inline ConstMatrixView::ConstMatrixView(Numeric *data,
-					const Range& rr,
-					const Range& cr) :
+                                        const Range& rr,
+                                        const Range& cr) :
   mrr(rr),
   mcr(cr),
   mdata(data)
@@ -1596,8 +1596,8 @@ inline ConstMatrixView::ConstMatrixView(Numeric *data,
     \param p Previous range.
     \param n New Range.  */
 inline ConstMatrixView::ConstMatrixView(Numeric *data,
-					const Range& pr, const Range& pc,
-					const Range& nr, const Range& nc) :
+                                        const Range& pr, const Range& pc,
+                                        const Range& nr, const Range& nc) :
   mrr(pr,nr),
   mcr(pc,nc),
   mdata(data)
@@ -1624,14 +1624,14 @@ inline std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v)
       const ConstIterator1D end_col = ir->end();
 
       if ( ic!=end_col )
-	{
-	  os << setw(3) << *ic;
-	  ++ic;
-	}
+        {
+          os << setw(3) << *ic;
+          ++ic;
+        }
       for ( ; ic!=end_col ; ++ic )
-	{
-	  os << " " << setw(3) << *ic;
-	}
+        {
+          os << " " << setw(3) << *ic;
+        }
       ++ir;
     }
   for ( ; ir!=end_row ; ++ir )
@@ -1641,14 +1641,14 @@ inline std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v)
 
       os << "\n";
       if ( ic!=end_col )
-	{
-	  os << setw(3) << *ic;
-	  ++ic;
-	}
+        {
+          os << setw(3) << *ic;
+          ++ic;
+        }
       for ( ; ic!=end_col ; ++ic )
-	{
-	  os << " " << setw(3) << *ic;
-	}
+        {
+          os << " " << setw(3) << *ic;
+        }
     }
 
   return os;
@@ -1706,10 +1706,10 @@ inline Numeric& MatrixView::operator()(Index r, Index c)
   assert( c<mcr.mextent );
 
   return *( mdata +
-	    mrr.mstart +
-	    r*mrr.mstride +
-	    mcr.mstart +
-	    c*mcr.mstride );
+            mrr.mstart +
+            r*mrr.mstride +
+            mcr.mstart +
+            c*mcr.mstride );
 }
 
 /** Index operator for subrange. We have to also account for the case,
@@ -1731,7 +1731,7 @@ inline VectorView MatrixView::operator()(const Range& r, Index c)
   assert( c < mcr.mextent );
 
   return VectorView(mdata + mcr.mstart + c*mcr.mstride,
-		    mrr, r);
+                    mrr, r);
 }
 
 /** Index operator returning a row as an object of type VectorView.
@@ -1745,7 +1745,7 @@ inline VectorView MatrixView::operator()(Index r, const Range& c)
   assert( r <  mrr.mextent );
 
   return VectorView(mdata + mrr.mstart + r*mrr.mstride,
-		    mcr, c);
+                    mcr, c);
 }
 
 /** Return const iterator to first row. Has to be redefined here, since it is
@@ -1765,15 +1765,15 @@ inline ConstIterator2D MatrixView::end() const
 inline Iterator2D MatrixView::begin()
 {
   return Iterator2D(VectorView(mdata+mrr.mstart, mcr),
-		    mrr.mstride);
+                    mrr.mstride);
 }
 
 /** Return iterator behind last row. */
 inline Iterator2D MatrixView::end()
 {
   return Iterator2D( VectorView(mdata + mrr.mstart + (mrr.mextent)*mrr.mstride,
-				mcr),
-		     mrr.mstride );
+                                mcr),
+                     mrr.mstride );
 }
 
 /** Assignment operator. This copies the data from another MatrixView
@@ -1849,7 +1849,7 @@ inline MatrixView& MatrixView::operator*=(Numeric x)
     {
       const Iterator1D ec = r->end();
       for ( Iterator1D c = r->begin(); c!=ec ; ++c )
-	*c *= x;
+        *c *= x;
     }
   return *this;
 }
@@ -1862,7 +1862,7 @@ inline MatrixView& MatrixView::operator/=(Numeric x)
     {
       const Iterator1D ec = r->end();
       for ( Iterator1D c = r->begin(); c!=ec ; ++c )
-	*c /= x;
+        *c /= x;
     }
   return *this;
 }
@@ -1875,7 +1875,7 @@ inline MatrixView& MatrixView::operator+=(Numeric x)
     {
       const Iterator1D ec = r->end();
       for ( Iterator1D c = r->begin(); c!=ec ; ++c )
-	*c += x;
+        *c += x;
     }
   return *this;
 }
@@ -1888,7 +1888,7 @@ inline MatrixView& MatrixView::operator-=(Numeric x)
     {
       const Iterator1D ec = r->end();
       for ( Iterator1D c = r->begin(); c!=ec ; ++c )
-	*c -= x;
+        *c -= x;
     }
   return *this;
 }
@@ -1907,7 +1907,7 @@ inline MatrixView& MatrixView::operator*=(const ConstMatrixView& x)
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
-	*c *= *sc;
+        *c *= *sc;
     }
   return *this;
 }
@@ -1926,7 +1926,7 @@ inline MatrixView& MatrixView::operator/=(const ConstMatrixView& x)
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
-	*c /= *sc;
+        *c /= *sc;
     }
   return *this;
 }
@@ -1945,7 +1945,7 @@ inline MatrixView& MatrixView::operator+=(const ConstMatrixView& x)
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
-	*c += *sc;
+        *c += *sc;
     }
   return *this;
 }
@@ -1964,7 +1964,7 @@ inline MatrixView& MatrixView::operator-=(const ConstMatrixView& x)
       Iterator1D        c = r->begin();
       const Iterator1D ec = r->end();
       for ( ; c!=ec ; ++c,++sc )
-	*c -= *sc;
+        *c -= *sc;
     }
   return *this;
 }
@@ -2045,8 +2045,8 @@ inline MatrixView::MatrixView() :
     own MatrixView part. The row range rr must have a
     stride to account for the length of one row. */
 inline MatrixView::MatrixView(Numeric *data,
-			    const Range& rr,
-			    const Range& cr) :
+                            const Range& rr,
+                            const Range& cr) :
   ConstMatrixView(data, rr, cr)
 {
   // Nothing to do here.
@@ -2064,8 +2064,8 @@ inline MatrixView::MatrixView(Numeric *data,
     \param p Previous range.
     \param n New Range.  */
 inline MatrixView::MatrixView(Numeric *data,
-			    const Range& pr, const Range& pc,
-			    const Range& nr, const Range& nc) :
+                            const Range& pr, const Range& pc,
+                            const Range& nr, const Range& nc) :
   ConstMatrixView(data,pr,pc,nr,nc)
 {
   // Nothing to do here.
@@ -2081,8 +2081,8 @@ inline MatrixView::MatrixView(Numeric *data,
     the elements. 
 */
 inline void copy(ConstIterator2D origin,
-		 const ConstIterator2D& end,
-		 Iterator2D target)
+                 const ConstIterator2D& end,
+                 Iterator2D target)
 {
   for ( ; origin!=end ; ++origin,++target )
     {
@@ -2090,21 +2090,21 @@ inline void copy(ConstIterator2D origin,
       const ConstIterator1D e = origin->end();
       Iterator1D            t = target->begin();
       for ( ; o!=e ; ++o,++t )
-	*t = *o;
+        *t = *o;
     }
 }
 
 /** Copy a scalar to all elements. */
 inline void copy(Numeric x,
-		 Iterator2D target,
-		 const Iterator2D& end)
+                 Iterator2D target,
+                 const Iterator2D& end)
 {
   for ( ; target!=end ; ++target )
     {
       Iterator1D       t = target->begin();
       const Iterator1D e = target->end();
       for ( ; t!=e ; ++t )
-	*t = x;
+        *t = x;
     }
 }
 
@@ -2126,8 +2126,8 @@ inline Matrix::Matrix() :
     in the row range correctly! */
 inline Matrix::Matrix(Index r, Index c) :
   MatrixView( new Numeric[r*c],
-	     Range(0,r,c),
-	     Range(0,c))
+             Range(0,r,c),
+             Range(0,c))
 {
   // Nothing to do here.
 }
@@ -2135,8 +2135,8 @@ inline Matrix::Matrix(Index r, Index c) :
 /** Constructor setting size and filling with constant value. */
 inline Matrix::Matrix(Index r, Index c, Numeric fill) :
   MatrixView( new Numeric[r*c],
-	      Range(0,r,c),
-	      Range(0,c))
+              Range(0,r,c),
+              Range(0,c))
 {
   // Here we can access the raw memory directly, for slightly
   // increased efficiency:
@@ -2148,8 +2148,8 @@ inline Matrix::Matrix(Index r, Index c, Numeric fill) :
     and copies the data. */
 inline Matrix::Matrix(const ConstMatrixView& m) :
   MatrixView( new Numeric[m.nrows()*m.ncols()],
-	     Range( 0, m.nrows(), m.ncols() ),
-	     Range( 0, m.ncols() ) )
+             Range( 0, m.nrows(), m.ncols() ),
+             Range( 0, m.ncols() ) )
 {
   copy(m.begin(),m.end(),begin());
 }
@@ -2158,8 +2158,8 @@ inline Matrix::Matrix(const ConstMatrixView& m) :
     and copies the data. */
 inline Matrix::Matrix(const Matrix& m) :
   MatrixView( new Numeric[m.nrows()*m.ncols()],
-	     Range( 0, m.nrows(), m.ncols() ),
-	     Range( 0, m.ncols() ) )
+             Range( 0, m.nrows(), m.ncols() ),
+             Range( 0, m.ncols() ) )
 {
   // There is a catch here: If m is an empty matrix, then it will have
   // 0 colunns. But this is used to initialize the stride of the row
@@ -2282,8 +2282,8 @@ inline Numeric operator*(const ConstVectorView& a, const ConstVectorView& b)
     copied. Using this function on overlapping MatrixViews belonging
     to the same Matrix will lead to unpredictable results. */
 inline void mult( VectorView y,
-		  const ConstMatrixView& M,
-		  const ConstVectorView& x )
+                  const ConstMatrixView& M,
+                  const ConstVectorView& x )
 {
   // Check dimensions:
   assert( y.nelem() == M.nrows() );
@@ -2313,9 +2313,9 @@ inline void mult( VectorView y,
       ConstIterator1D       xi = xs;
 
       for ( ; xi!=xe ; ++xi, ++ri )
-	{
-	  dummy += (*ri) * (*xi);
-	}
+        {
+          dummy += (*ri) * (*xi);
+        }
 
       *yi = dummy;
     }
@@ -2327,8 +2327,8 @@ inline void mult( VectorView y,
     copied. Using this function on overlapping MatrixViews belonging
     to the same Matrix will lead to unpredictable results. */
 inline void mult( MatrixView A,
-		  const ConstMatrixView& B,
-		  const ConstMatrixView& C )
+                  const ConstMatrixView& B,
+                  const ConstMatrixView& C )
 {
   // Check dimensions:
   assert( A.nrows() == B.nrows() );
@@ -2354,11 +2354,11 @@ inline void mult( MatrixView A,
       // at the same time through the rows of CT, which are the columns of
       // C, with a 2D iterator:
       for ( ; aci!=ace ; ++aci, ++cti )
-	{
-	  // The operator * is used to compute the scalar product
-	  // between rows of B and rows of C.transpose().
-	  *aci = (*bi) * (*cti);
-	}
+        {
+          // The operator * is used to compute the scalar product
+          // between rows of B and rows of C.transpose().
+          *aci = (*bi) * (*cti);
+        }
     }
 }
 
@@ -2396,8 +2396,8 @@ inline MatrixView transpose(MatrixView m)
     \param    my_func a function (e.g., sqrt)
     \param    x   a vector */
 inline void transform( VectorView y,
-		       double (&my_func)(double),
-		       ConstVectorView x )
+                       double (&my_func)(double),
+                       ConstVectorView x )
 {
   // Check dimensions:
   assert( y.nelem()==x.nelem() );
@@ -2428,8 +2428,8 @@ inline void transform( VectorView y,
    \param    my_func a function (e.g., sqrt)
    \param    x   a matrix */
 inline void transform( MatrixView y,
-		       double (&my_func)(double),
-		       ConstMatrixView x )
+                       double (&my_func)(double),
+                       ConstMatrixView x )
 {
   // Check dimensions:
   assert( y.nrows()==x.nrows() );
@@ -2444,7 +2444,7 @@ inline void transform( MatrixView y,
       ConstIterator1D        cx = rx->begin();
       Iterator1D             cy = ry->begin();
       for ( ; cx!=cxe; ++cx, ++cy )
-	*cy = my_func(*cx);
+        *cy = my_func(*cx);
     }
 }
 
@@ -2460,7 +2460,7 @@ inline Numeric max(const ConstVectorView& x)
   for ( ; xi!=xe ; ++xi )
     {
       if ( *xi > max )
-	max = *xi;
+        max = *xi;
     }
 
   return max;
@@ -2481,8 +2481,8 @@ inline Numeric max(const ConstMatrixView& x)
       ConstIterator1D        cx = rx->begin();
 
       for ( ; cx!=cxe ; ++cx )
-	if ( *cx > max )
-	  max = *cx;
+        if ( *cx > max )
+          max = *cx;
     }
   
   return max;
@@ -2500,7 +2500,7 @@ inline Numeric min(const ConstVectorView& x)
   for ( ; xi!=xe ; ++xi )
     {
       if ( *xi < min )
-	min = *xi;
+        min = *xi;
     }
 
   return min;
@@ -2521,8 +2521,8 @@ inline Numeric min(const ConstMatrixView& x)
       ConstIterator1D        cx = rx->begin();
 
       for ( ; cx!=cxe ; ++cx )
-	if ( *cx < min )
-	  min = *cx;
+        if ( *cx < min )
+          min = *cx;
     }
   
   return min;

@@ -45,13 +45,13 @@ void MethodListDefine(// WS Generic Output:
       // Find method id:
       const map<String, Index>::const_iterator im = MdMap.find(methods[i]);
       if ( im == MdMap.end() )
-	{
-	  ostringstream os;
-	  os << "\"" << methods[i] << "\" is not a valid method. "
-	     << "Try \"arts -m all\" to\n"
-	     << "get a list of all ARTS methods.";
-	  throw runtime_error( os.str() );
-	}
+        {
+          ostringstream os;
+          os << "\"" << methods[i] << "\" is not a valid method. "
+             << "Try \"arts -m all\" to\n"
+             << "get a list of all ARTS methods.";
+          throw runtime_error( os.str() );
+        }
 
       // Assign to our method list:
       ml[i] = im->second;

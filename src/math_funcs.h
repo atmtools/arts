@@ -74,36 +74,36 @@ bool any( const ArrayOfIndex& x );
 
 void linspace(                      
               Vector&     x,           
-	      const Numeric  start,    
-	      const Numeric  stop,        
-	      const Numeric  step );
+              const Numeric  start,    
+              const Numeric  stop,        
+              const Numeric  step );
 
 Vector linspace(             
-		const Numeric  start, 
-		const Numeric  stop,  
-		const Numeric  step );
+                const Numeric  start, 
+                const Numeric  stop,  
+                const Numeric  step );
 
 void nlinspace(         
               Vector&     x, 
-	      const Numeric     start,     
-	      const Numeric     stop,        
-	      const Index       n );
+              const Numeric     start,     
+              const Numeric     stop,        
+              const Index       n );
 
 Vector nlinspace(         
-		 const Numeric     start, 
-		 const Numeric     stop,  
-		 const Index         n );
+                 const Numeric     start, 
+                 const Numeric     stop,  
+                 const Index         n );
 
 void nlogspace(         
-	       Vector&     x, 
-	       const Numeric     start,     
-	       const Numeric     stop,        
-	       const Index         n );
+               Vector&     x, 
+               const Numeric     start,     
+               const Numeric     stop,        
+               const Index         n );
 
 Vector nlogspace(  
-		 const Numeric     start, 
-		 const Numeric     stop,  
-		 const Index         n );
+                 const Numeric     start, 
+                 const Numeric     stop,  
+                 const Index         n );
 
 
 
@@ -112,20 +112,20 @@ Vector nlogspace(
 ////////////////////////////////////////////////////////////////////////////
 
 void interp_lin_vector( VectorView       yi,
-			ConstVectorView  x, 
-			ConstVectorView  y, 
-			ConstVectorView  xi );
+                        ConstVectorView  x, 
+                        ConstVectorView  y, 
+                        ConstVectorView  xi );
 
 void interp_lin_matrix(    
-		       MatrixView        Yi,
-		       ConstVectorView   x, 
-		       ConstMatrixView   Y, 
-		       ConstVectorView   xi );
+                       MatrixView        Yi,
+                       ConstVectorView   x, 
+                       ConstMatrixView   Y, 
+                       ConstVectorView   xi );
 
 Numeric interp_lin(         
-		   ConstVectorView  x, 
-		   ConstVectorView  y, 
-		   const Numeric  xi );
+                   ConstVectorView  x, 
+                   ConstVectorView  y, 
+                   const Numeric  xi );
 
 
 
@@ -151,6 +151,6 @@ void check_length_ncol( const Vector& x, const String& x_name,
                          const Matrix& A, const String& A_name );
 
 void check_ncol_nrow( const Matrix& A, const String& A_name,
-		      const Matrix& B, const String& B_name );
+                      const Matrix& B, const String& B_name );
 
 #endif  // math_funcs_h

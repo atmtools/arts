@@ -92,7 +92,7 @@ void MessagePrint(ostream& os, Index priority, const T& t)
     os << t;
 
   if (messages.file >= priority)
-    //    if (report_file)		// Check if report file is good
+    //    if (report_file)              // Check if report file is good
     report_file << t;
 }
 

@@ -172,7 +172,7 @@ inline base max(const Array<base>& x)
   for ( ; xi!=xe ; ++xi )
     {
       if ( *xi > max )
-	max = *xi;
+        max = *xi;
     }
 
   return max;
@@ -191,7 +191,7 @@ inline base min(const Array<base>& x)
   for ( ; xi!=xe ; ++xi )
     {
       if ( *xi < min )
-	min = *xi;
+        min = *xi;
     }
 
   return min;

@@ -24,7 +24,7 @@
     variables in the program, because it is used by make_md_h.cc to
     automatically generate declarations for method functions. */
 String TokValTypeName[7] = {"String", "Index", "Numeric",
-			    "ArrayOfString", "ArrayOfIndex", "Vector",
+                            "ArrayOfString", "ArrayOfIndex", "Vector",
                             "undefined"};
 
 
@@ -104,5 +104,5 @@ ostream& operator<<(ostream& os, const TokVal& a)
 //   tv = tvtv;
 //   Numeric d = tv;
 //   cout << d << '\n';
-//   b = tv;			// should cause an error because of wrong type
+//   b = tv;                    // should cause an error because of wrong type
 // }

@@ -36,12 +36,12 @@
 /** The type that is used to store pointers to lineshape
     functions.  */
 typedef void (*lsf_type)(Vector&,
-			 Vector&,
-			 Numeric,
-			 Numeric,
-			 Numeric,
-			 VectorView,
-			 const Index);
+                         Vector&,
+                         Numeric,
+                         Numeric,
+                         Numeric,
+                         VectorView,
+                         const Index);
 
 /** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
@@ -56,8 +56,8 @@ public:
 
   /** Initializing constructor, used to build the lookup table. */
   LineshapeRecord(const String& name,
-		  const String& description,
-		  lsf_type      function)
+                  const String& description,
+                  lsf_type      function)
     : mname(name),
       mdescription(description),
       mfunction(function)
@@ -68,7 +68,7 @@ public:
   const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape function. */
   lsf_type Function() const { return mfunction; }
-private:	
+private:        
   String  mname;        ///< Name of the function (e.g., Lorentz).
   String  mdescription; ///< Short description.
   lsf_type mfunction;   ///< Pointer to lineshape function.
@@ -78,9 +78,9 @@ private:
 /** The type that is used to store pointers to lineshape
     normalization functions.  */
 typedef void (*lsnf_type)(Vector&,
-			  Numeric,
-			  VectorView,
-			  const Index);
+                          Numeric,
+                          VectorView,
+                          const Index);
 
 /** Lineshape related normalization function information. There is one
     LineshapeNormRecord for each available lineshape normalization
@@ -96,8 +96,8 @@ public:
 
   /** Initializing constructor, used to build the lookup table. */
   LineshapeNormRecord(const String& name,
-		      const String& description,
-		      lsnf_type      function)
+                      const String& description,
+                      lsnf_type      function)
     : mname(name),
       mdescription(description),
       mfunction(function)
@@ -108,7 +108,7 @@ public:
   const String&  Description() const { return mdescription; }
   /** Return pointer to lineshape normalization function. */
   lsnf_type Function() const { return mfunction; }
-private:	
+private:        
   String  mname;        ///< Name of the function (e.g., linear).
   String  mdescription; ///< Short description.
   lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
@@ -127,8 +127,8 @@ public:
 
   /** Initializing constructor. */
   LineshapeSpec(const Index&    ind_ls,
-		const Index&    ind_lsn,
-		const Numeric&   cutoff)
+                const Index&    ind_lsn,
+                const Numeric&   cutoff)
     : mind_ls(ind_ls),
       mind_lsn(ind_lsn),
       mcutoff(cutoff)
@@ -150,7 +150,7 @@ public:
   const Numeric& Cutoff() const { return mcutoff; }
   /** Set it. */
   void SetCutoff( Numeric cutoff ) { mcutoff = cutoff; }
-private:	
+private:        
   Index  mind_ls;
   Index  mind_lsn;
   Numeric mcutoff;
@@ -182,12 +182,12 @@ public:
   { /* Nothing left to do here. */ }
 
   /** Constructor that sets the values. */
-  IsotopeRecord(const String&  	        name,
-		const Numeric& 	        abundance,
-		const Numeric& 	        mass,
-		const Index&     	mytrantag,
-		const Index&     	hitrantag,
-		const MakeArray<Index>& jpltags) :
+  IsotopeRecord(const String&           name,
+                const Numeric&          abundance,
+                const Numeric&          mass,
+                const Index&            mytrantag,
+                const Index&            hitrantag,
+                const MakeArray<Index>& jpltags) :
     mname(name),
     mabundance(abundance),
     mmass(mass),
@@ -200,11 +200,11 @@ public:
     // Some consistency checks whether the given data makes sense.
 #ifndef NDEBUG
       {
-	/* 1. All the tags must be positive or -1 */
-	assert( (0<mmytrantag) || (-1==mmytrantag) );
-	assert( (0<mhitrantag) || (-1==mhitrantag) );
-	for ( Index i=0; i<mjpltags.nelem(); ++i )
-	  assert( (0<mjpltags[i]) || (-1==mjpltags[i]) );
+        /* 1. All the tags must be positive or -1 */
+        assert( (0<mmytrantag) || (-1==mmytrantag) );
+        assert( (0<mhitrantag) || (-1==mhitrantag) );
+        for ( Index i=0; i<mjpltags.nelem(); ++i )
+          assert( (0<mjpltags[i]) || (-1==mjpltags[i]) );
       }
 #endif // ifndef NDEBUG
   }
@@ -253,11 +253,11 @@ public:
 
     if ( qtemp < 0. ) 
       {
-	ostringstream os;
-	os << "Partition function of "
-	   << "Isotope = " << mname
-	   << "is unknown.";
-	throw runtime_error(os.str());
+        ostringstream os;
+        os << "Partition function of "
+           << "Isotope = " << mname
+           << "is unknown.";
+        throw runtime_error(os.str());
       }
     return qcoeff_at_t_ref / qtemp;
   }
@@ -289,8 +289,8 @@ public:
   
   /** The constructor used in define_species_data. */
   SpeciesRecord(const char name[],
-		const Index degfr,
-		const MakeArray<IsotopeRecord>& isotope)
+                const Index degfr,
+                const MakeArray<IsotopeRecord>& isotope)
     : mname(name),
       mdegfr(degfr),
       misotope(isotope)
@@ -301,35 +301,35 @@ public:
 
 #ifndef NDEBUG
       {
-	/* Check that the isotopes are correctly sorted. */
-	for ( Index i=0; i<misotope.nelem()-1; ++i )
-	  {
-	    assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
-	  }
+        /* Check that the isotopes are correctly sorted. */
+        for ( Index i=0; i<misotope.nelem()-1; ++i )
+          {
+            assert( misotope[i].Abundance() >= misotope[i+1].Abundance() );
+          }
 
-	/* Check that the Mytran tags are correctly sorted. */
-	for ( Index i=0; i<misotope.nelem()-1; ++i )
-	  {
-	    if ( (0<misotope[i].MytranTag()) && (0<misotope[i+1].MytranTag()) )
-	      {
-		assert( misotope[i].MytranTag() < misotope[i+1].MytranTag() );
-	    
-		// Also check that the tags have the same base number:
-		assert( misotope[i].MytranTag()/10 == misotope[i].MytranTag()/10 );
-	      }
-	  }
+        /* Check that the Mytran tags are correctly sorted. */
+        for ( Index i=0; i<misotope.nelem()-1; ++i )
+          {
+            if ( (0<misotope[i].MytranTag()) && (0<misotope[i+1].MytranTag()) )
+              {
+                assert( misotope[i].MytranTag() < misotope[i+1].MytranTag() );
+            
+                // Also check that the tags have the same base number:
+                assert( misotope[i].MytranTag()/10 == misotope[i].MytranTag()/10 );
+              }
+          }
 
-	/* Check that the Hitran tags are correctly sorted. */
-	for ( Index i=0; i<misotope.nelem()-1; ++i )
-	  {
-	    if ( (0<misotope[i].HitranTag()) && (0<misotope[i+1].HitranTag()) )
-	      {
-		assert( misotope[i].HitranTag() < misotope[i+1].HitranTag() );
-	    
-		// Also check that the tags have the same base number:
-		assert( misotope[i].HitranTag()/10 == misotope[i+1].HitranTag()/10 );
-	      }
-	  }
+        /* Check that the Hitran tags are correctly sorted. */
+        for ( Index i=0; i<misotope.nelem()-1; ++i )
+          {
+            if ( (0<misotope[i].HitranTag()) && (0<misotope[i+1].HitranTag()) )
+              {
+                assert( misotope[i].HitranTag() < misotope[i+1].HitranTag() );
+            
+                // Also check that the tags have the same base number:
+                assert( misotope[i].HitranTag()/10 == misotope[i+1].HitranTag()/10 );
+              }
+          }
       }
 #endif // #ifndef NDEBUG
   }
@@ -386,7 +386,7 @@ private:
     ------------------------------------------------------------------      
      0   `@'                         ENTRY        -     marks start of entry
      1   name                         NAME        -     e.g. O3-666
-     2   center frequency         	 F       Hz     e.g. 501.12345e9 
+     2   center frequency                F       Hz     e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
      4   line intensity                 I0   m^2/Hz     per isotope, not per species
      5   reference temp. for I0       T_I0        K
@@ -394,18 +394,18 @@ private:
      7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
      8   self broadened width         SGAM    Hz/Pa
      9   AGAM temp. exponent          NAIR        -     values around .5
-    10   SGAM temp. exponent         NSELF    	  - 
-    11   ref. temp. for AGAM, SGAM   T_GAM    	  K
-    12   number of aux. parameters   N_AUX    	  -
-    13   auxiliary parameter          AUX1    	  -
+    10   SGAM temp. exponent         NSELF        - 
+    11   ref. temp. for AGAM, SGAM   T_GAM        K
+    12   number of aux. parameters   N_AUX        -
+    13   auxiliary parameter          AUX1        -
     14   ... 
-    15   error for F            	DF    	 Hz
+    15   error for F                    DF       Hz
     16   error for I0                  DI0        %
-    17   error for AGAM              DAGAM    	  %
-    18   error for SGAM              DSGAM    	  %
-    19   error for NAIR              DNAIR    	  %
-    20   error for NSELF            DNSELF    	  %
-    21   error for PSF                DPSF    	  %
+    17   error for AGAM              DAGAM        %
+    18   error for SGAM              DSGAM        %
+    19   error for NAIR              DNAIR        %
+    20   error for NSELF            DNSELF        %
+    21   error for PSF                DPSF        %
     22   quantum number code         QCODE            
     23   lower state quanta         QLOWER            
     24   upper state quanta         QUPPER            
@@ -483,38 +483,38 @@ public:
       assertions are not disabled (i.e., if NDEBUG is not #defined),
       assert statements check that the species and isotope data
       exists. */
-  LineRecord( Index  	     	    species,
-	      Index  	     	    isotope,
-	      Numeric 	     	    f,
-	      Numeric 	     	    psf,
-	      Numeric 	     	    i0,
-	      Numeric 	     	    ti0,
-	      Numeric 	     	    elow,
-	      Numeric 	     	    agam,
-	      Numeric 	     	    sgam,
-	      Numeric 	     	    nair,
-	      Numeric 	     	    nself,
-	      Numeric 	     	    tgam,
-	      const ArrayOfNumeric& aux,
-	      Numeric 	     	    df,
-	      Numeric 	     	    di0,
-	      Numeric 	     	    dagam,
-	      Numeric 	     	    dsgam,
-	      Numeric 	     	    dnair,
-	      Numeric 	     	    dnself,
-	      Numeric 	     	    dpsf)
-    : mspecies (species	   ),
-      misotope (isotope	   ),
-      mf       (f      	   ),
-      mpsf     (psf    	   ),
-      mi0      (i0     	   ),
-      mti0     (ti0    	   ),
-      melow    (elow   	   ),
-      magam    (agam   	   ),
-      msgam    (sgam   	   ),
-      mnair    (nair   	   ),
-      mnself   (nself  	   ),
-      mtgam    (tgam   	   ), 
+  LineRecord( Index                 species,
+              Index                 isotope,
+              Numeric               f,
+              Numeric               psf,
+              Numeric               i0,
+              Numeric               ti0,
+              Numeric               elow,
+              Numeric               agam,
+              Numeric               sgam,
+              Numeric               nair,
+              Numeric               nself,
+              Numeric               tgam,
+              const ArrayOfNumeric& aux,
+              Numeric               df,
+              Numeric               di0,
+              Numeric               dagam,
+              Numeric               dsgam,
+              Numeric               dnair,
+              Numeric               dnself,
+              Numeric               dpsf)
+    : mspecies (species    ),
+      misotope (isotope    ),
+      mf       (f          ),
+      mpsf     (psf        ),
+      mi0      (i0         ),
+      mti0     (ti0        ),
+      melow    (elow       ),
+      magam    (agam       ),
+      msgam    (sgam       ),
+      mnair    (nair       ),
+      mnself   (nself      ),
+      mtgam    (tgam       ), 
       maux     (aux        )
   {
     // Thanks to Matpack, initialization of misotope with isotope
@@ -762,15 +762,15 @@ public:
     *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
        E (F10.4)     = lower state energy in wavenumbers (cm-1)
        N (F4.2)      = coefficient of temperature dependence of 
-	 	       air-broadened halfwidth
+                       air-broadened halfwidth
     *  N_self (F4.2) = coefficient of temperature dependence of 
-		       self-broadened halfwidth
+                       self-broadened halfwidth
     *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
     *  d (F8.6)      = shift of transition due to pressure (MHz/Torr)
-       V1 (I3) 	     = upper state global quanta index
-       V2 (I3) 	     = lower state global quanta index
-       Q1 (A9) 	     = upper state local quanta
-       Q2 (A9) 	     = lower state local quanta
+       V1 (I3)       = upper state global quanta index
+       V2 (I3)       = lower state global quanta index
+       Q1 (A9)       = upper state local quanta
+       Q2 (A9)       = lower state local quanta
        IERS (I1)     = accuracy index for S
        IERH (I1)     = accuracy index for AGAM
     *  IERN (I1)     = accuracy index for N
@@ -947,7 +947,7 @@ class SpecIsoMap{
 public:
   SpecIsoMap():mspeciesindex(0), misotopeindex(0){}
   SpecIsoMap(const Index& speciesindex,
-		const Index& isotopeindex)
+                const Index& isotopeindex)
     : mspeciesindex(speciesindex),
       misotopeindex(isotopeindex) 
   {}
@@ -1077,19 +1077,19 @@ String get_tag_group_name( const Array<OneTag>& tg );
 
 // Doc header in absorption.cc
 void write_lines_to_stream(ostream& os,
-			   const ArrayOfLineRecord& lines);
+                           const ArrayOfLineRecord& lines);
 
 
 void xsec_species( MatrixView              xsec,
-		   ConstVectorView  	   f_mono,
-		   ConstVectorView  	   p_abs,
-		   ConstVectorView  	   t_abs,           
-		   ConstVectorView  	   h2o_abs,           
-		   ConstVectorView            vmr,
-		   const ArrayOfLineRecord& lines,
-		   const Index             ind_ls,
-		   const Index             ind_lsn,
-		   const Numeric            cutoff);
+                   ConstVectorView         f_mono,
+                   ConstVectorView         p_abs,
+                   ConstVectorView         t_abs,           
+                   ConstVectorView         h2o_abs,           
+                   ConstVectorView            vmr,
+                   const ArrayOfLineRecord& lines,
+                   const Index             ind_ls,
+                   const Index             ind_lsn,
+                   const Numeric            cutoff);
 
 
 // A helper function for energy conversion:
@@ -1103,13 +1103,13 @@ Numeric wavenumber_to_joule(Numeric e);
 void refr_index_BoudourisDryAir (
                     Vector&     refr_index,
               ConstVectorView   p_abs,
-	      ConstVectorView   t_abs );
+              ConstVectorView   t_abs );
 
 void refr_index_Boudouris (
                     Vector&     refr_index,
               ConstVectorView   p_abs,
               ConstVectorView   t_abs,
-	      ConstVectorView   h2o_abs );
+              ConstVectorView   h2o_abs );
 
 //======================================================================
 //             Functions to convert the accuracy index
@@ -1118,22 +1118,22 @@ void refr_index_Boudouris (
 // ********* for HITRAN database *************
 // convert index for the frequency accuracy.
 void convHitranIERF(     
-		    Numeric&     mdf,
-	      const Index&       df 
-		    );
+                    Numeric&     mdf,
+              const Index&       df 
+                    );
 
 // convert to percents index for intensity and halfwidth accuracy.
 
 void convHitranIERSH(     
-		    Numeric&     mdh,
-	      const Index&       dh 
-		    );
+                    Numeric&     mdh,
+              const Index&       dh 
+                    );
 
 // ********* for MYTRAN database *************
 // convert index for the halfwidth accuracy.
 void convMytranIER(     
-		    Numeric&     mdh,
-	      const Index  &      dh 
-		    );
+                    Numeric&     mdh,
+              const Index  &      dh 
+                    );
 
 #endif // absorption_h

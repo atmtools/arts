@@ -39,32 +39,32 @@ public:
   MdRecord():
       mname(      ""              ),
     mdescription( ""              ),
-    moutput(      0       	  ),  
-    minput(       0        	  ),   
-    mgoutput(     0      	  ),  
-    mginput(      0       	  ),   
-    mkeywords(    0     	  ),
-    mtypes(       0        	  )
+    moutput(      0               ),  
+    minput(       0               ),   
+    mgoutput(     0               ),  
+    mginput(      0               ),   
+    mkeywords(    0               ),
+    mtypes(       0               )
   {};
 
   /** The only non-trivial constructor, which sets all the
       fields. */
-  MdRecord(const char 		        name[],
-	   const char 		        description[],
-	   const MakeArray<Index>&      output,
-	   const MakeArray<Index>&      input,   
-	   const MakeArray<Index>&      goutput,
-	   const MakeArray<Index>&      ginput,   
-	   const MakeArray<String>&     keywords,
-	   const MakeArray<TokValType>& types) :
+  MdRecord(const char                   name[],
+           const char                   description[],
+           const MakeArray<Index>&      output,
+           const MakeArray<Index>&      input,   
+           const MakeArray<Index>&      goutput,
+           const MakeArray<Index>&      ginput,   
+           const MakeArray<String>&     keywords,
+           const MakeArray<TokValType>& types) :
     mname(        name            ),
     mdescription( description     ),
-    moutput(      output       	  ),  
-    minput(       input        	  ),   
-    mgoutput(     goutput      	  ),  
-    mginput(      ginput       	  ),   
-    mkeywords(    keywords     	  ),
-    mtypes(       types        	  )
+    moutput(      output          ),  
+    minput(       input           ),   
+    mgoutput(     goutput         ),  
+    mginput(      ginput          ),   
+    mkeywords(    keywords        ),
+    mtypes(       types           )
     { 
       // Initializing the various arrays with input data should now
       // work correctly.  

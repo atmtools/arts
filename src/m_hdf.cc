@@ -32,7 +32,7 @@
 
 #if HAVE_CONFIG_H
 #include "config.h"
-#endif	
+#endif  
 
 ////////////////////////////////////////////////////////////////////////////
 //   External declarations
@@ -602,7 +602,7 @@ void binfile_read1(
       Index  a[n];
       VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
       for ( Index i=0; i<n; i++ )
-	x[i] = a[i];
+        x[i] = a[i];
     }
       */
 
@@ -668,40 +668,40 @@ void binfile_read2(
 
       if ( sizeof(Numeric) == 4 )
         //
-	VSread( vdata_id, (uint8*)&x(0,0), nrows*ncols, FULL_INTERLACE );
+        VSread( vdata_id, (uint8*)&x(0,0), nrows*ncols, FULL_INTERLACE );
 
       else
       {
-	float *a = new float[nrows*ncols];
-	Index i,j,j0;
-	VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-	for ( i=0; i<nrows; i++ )
-	{
-		j0 = i*ncols;
-		for ( j=0; j<ncols; j++ )
-		  x(i,j) = a[j0+j];
-	}
-	delete[] a;
+        float *a = new float[nrows*ncols];
+        Index i,j,j0;
+        VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+        for ( i=0; i<nrows; i++ )
+        {
+                j0 = i*ncols;
+                for ( j=0; j<ncols; j++ )
+                  x(i,j) = a[j0+j];
+        }
+        delete[] a;
       }
   
     else if ( type_in_file == "DOUBLE" )
 
       if ( sizeof(Numeric) == 8 )
         //
-    	VSread( vdata_id, (uint8*)&x(0,0), nrows*ncols, FULL_INTERLACE );
+        VSread( vdata_id, (uint8*)&x(0,0), nrows*ncols, FULL_INTERLACE );
 
       else
       {
-	double *a = new double[nrows*ncols];
-	Index i,j,j0;
-	VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
-	for ( i=0; i<nrows; i++ )
-	{
-		j0 = i*ncols;
-		for ( j=0; j<ncols; j++ )
-		   x(i,j) = a[j0+j];
-	}
-	delete[] a;
+        double *a = new double[nrows*ncols];
+        Index i,j,j0;
+        VSread( vdata_id, (uint8*)a, nrows*ncols, FULL_INTERLACE );
+        for ( i=0; i<nrows; i++ )
+        {
+                j0 = i*ncols;
+                for ( j=0; j<ncols; j++ )
+                   x(i,j) = a[j0+j];
+        }
+        delete[] a;
       }
   
     else
@@ -765,7 +765,7 @@ void binfile_read3(
       char  a[n];
       VSread( vdata_id, (uint8*)a, n, FULL_INTERLACE );
       for ( Index i=0; i<n; i++ )
-	x[i] = a[i];
+        x[i] = a[i];
     }
     */
     else
@@ -997,7 +997,7 @@ void binfile_write_matrix(
       a[r*ncols+c] = x(r,c);
 
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
-		 (uint8*)a );
+                 (uint8*)a );
   delete a;
 }
 
@@ -1368,9 +1368,9 @@ void binfile_read_Stringarray(
 */
 // This function shall be modified to handle Index
 void IndexWriteBinary(
-	const Index&      v,
+        const Index&      v,
         const String&   var_name,
-	const String&   f )
+        const String&   f )
 {
   int    fid;
   String filename = f;
@@ -1390,9 +1390,9 @@ void IndexWriteBinary(
 */
 // This function shall be modified to handle Index
 void IndexReadBinary(
-	      Index&      v,
+              Index&      v,
         const String&   var_name,
-	const String&   f )
+        const String&   f )
 {
   Index vtemp;  //To be removed
   int    fid;
@@ -1417,7 +1417,7 @@ void IndexReadBinary(
 void NumericWriteBinary(
         const Numeric&  v,
         const String&   var_name,
-	const String&   f )
+        const String&   f )
 {
   int    fid;
   String filename = f;
@@ -1436,9 +1436,9 @@ void NumericWriteBinary(
    \date   2000-11-02
 */
 void NumericReadBinary(
-	      Numeric&  v,
+              Numeric&  v,
         const String&   var_name,
-	const String&   f )
+        const String&   f )
 {
   int    fid;
   String filename = f;
@@ -1461,7 +1461,7 @@ void NumericReadBinary(
 void VectorWriteBinary(
         const Vector&  v,
         const String&  var_name,
-	const String&  f )
+        const String&  f )
 {
   int    fid;
   String filename = f;
@@ -1480,9 +1480,9 @@ void VectorWriteBinary(
    \date   2000-11-02
 */
 void VectorReadBinary(
-	      Vector&  v,
+              Vector&  v,
         const String&  var_name,
-	const String&  f )
+        const String&  f )
 {
   int    fid;
   String filename = f;
@@ -1505,7 +1505,7 @@ void VectorReadBinary(
 void MatrixWriteBinary(
         const Matrix&  v,
         const String&  var_name,
-	const String&  f )
+        const String&  f )
 {
   int    fid;
   String filename = f;
@@ -1524,9 +1524,9 @@ void MatrixWriteBinary(
    \date   2000-11-02
 */
 void MatrixReadBinary(
-	      Matrix&  v,
+              Matrix&  v,
         const String&  var_name,
-	const String&  f )
+        const String&  f )
 {
   int    fid;
   String filename = f;
@@ -1549,7 +1549,7 @@ void MatrixReadBinary(
 void ArrayOfIndexWriteBinary(
         const ArrayOfIndex&  v,
         const String&        var_name,
-	const String&        f )
+        const String&        f )
 {
   int    fid;
   String filename = f;
@@ -1568,9 +1568,9 @@ void ArrayOfIndexWriteBinary(
    \date   2000-11-02
 */
 void ArrayOfIndexReadBinary(
-	      ArrayOfIndex&  v,
+              ArrayOfIndex&  v,
         const String&        var_name,
-	const String&        f )
+        const String&        f )
 {
   int    fid;
   String filename = f;
@@ -1593,7 +1593,7 @@ void ArrayOfIndexReadBinary(
 void ArrayOfVectorWriteBinary(
         const ArrayOfVector&  v,
         const String&         var_name,
-	const String&         f )
+        const String&         f )
 {
   int    fid;
   String filename = f;
@@ -1612,9 +1612,9 @@ void ArrayOfVectorWriteBinary(
    \date   2000-11-02
 */
 void ArrayOfVectorReadBinary(
-	      ArrayOfVector&  v,
+              ArrayOfVector&  v,
         const String&         var_name,
-	const String&         f )
+        const String&         f )
 {
   int    fid;
   String filename = f;
@@ -1637,7 +1637,7 @@ void ArrayOfVectorReadBinary(
 void ArrayOfMatrixWriteBinary(
         const ArrayOfMatrix&  v,
         const String&         var_name,
-	const String&         f )
+        const String&         f )
 {
   int    fid;
   String filename = f;
@@ -1656,9 +1656,9 @@ void ArrayOfMatrixWriteBinary(
    \date   2000-11-02
 */
 void ArrayOfMatrixReadBinary(
-	      ArrayOfMatrix&  v,
+              ArrayOfMatrix&  v,
         const String&         var_name,
-	const String&         f )
+        const String&         f )
 {
   int    fid;
   String filename = f;
@@ -1681,7 +1681,7 @@ void ArrayOfMatrixReadBinary(
 void StringWriteBinary(
         const String&  v,
         const String&  var_name,
-	const String&  f )
+        const String&  f )
 {
   int    fid;
   String filename = f;
@@ -1700,9 +1700,9 @@ void StringWriteBinary(
    \date   2000-11-02
 */
 void StringReadBinary(
-	      String&  v,
+              String&  v,
         const String&  var_name,
-	const String&  f )
+        const String&  f )
 {
   int    fid;
   String filename = f;
@@ -1725,7 +1725,7 @@ void StringReadBinary(
 void ArrayOfStringWriteBinary(
         const ArrayOfString&  v,
         const String&         var_name,
-	const String&         f )
+        const String&         f )
 {
   int    fid;
   String filename = f;
@@ -1744,9 +1744,9 @@ void ArrayOfStringWriteBinary(
    \date   2000-11-02
 */
 void ArrayOfStringReadBinary(
-	      ArrayOfString&  v,
+              ArrayOfString&  v,
         const String&         var_name,
-	const String&         f )
+        const String&         f )
 {
   int    fid;
   String filename = f;
@@ -1769,7 +1769,7 @@ void ArrayOfStringReadBinary(
 void LosWriteBinary(
         const Los&      los,
         const String&   var_name,
-	const String&   f )
+        const String&   f )
 {
   int    fid;
   String filename = f;
@@ -1795,9 +1795,9 @@ void LosWriteBinary(
    \date   2000-11-02
 */
 void LosReadBinary(
-	      Los&      los,
+              Los&      los,
         const String&   var_name,
-	const String&   f )
+        const String&   f )
 {
   int   fid;
   String filename = f;

@@ -73,9 +73,9 @@ extern const Numeric BOLTZMAN_CONST;
     \date   2000-04-08 
 */
 void planck (
-	     MatrixView      B, 
-	     ConstVectorView f,
-	     ConstVectorView t )
+             MatrixView      B, 
+             ConstVectorView f,
+             ConstVectorView t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
@@ -113,8 +113,8 @@ void planck (
 */
 void planck (
              VectorView    B,
-	     ConstVectorView    f,
-	     Numeric   t )
+             ConstVectorView    f,
+             Numeric   t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
   static const double  a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
@@ -268,8 +268,8 @@ void invrayjean (
     \date   2000-04-08 
 */
 Numeric number_density (
-			Numeric   p,
-			Numeric   t )
+                        Numeric   p,
+                        Numeric   t )
 {
   assert( 0!=t );
   return  p/t/BOLTZMAN_CONST;
@@ -289,18 +289,18 @@ Numeric number_density (
     \date   2000-04-08 
 */
 Vector number_density (
-		       ConstVectorView    p,
-		       ConstVectorView    t )
+                       ConstVectorView    p,
+                       ConstVectorView    t )
 {
   assert( p.nelem()==t.nelem() );
 
   // Calculate p / (t*BOLTZMAN_CONST):
 
-  Vector dummy(p);		// Matpack can initialize a
-				// new Vector from another
-				// Vector.
-  dummy /= t;			// Element-vise divide by t.
-  dummy /= BOLTZMAN_CONST;	// Divide all elements by BOLTZMAN_CONST.
+  Vector dummy(p);              // Matpack can initialize a
+                                // new Vector from another
+                                // Vector.
+  dummy /= t;                   // Element-vise divide by t.
+  dummy /= BOLTZMAN_CONST;      // Divide all elements by BOLTZMAN_CONST.
 
   return dummy; 
 }
@@ -320,9 +320,9 @@ Vector number_density (
     \date   2000-12-04
 */
 Numeric g_of_z (
-		Numeric   r_geoid,
-		Numeric   g0,
-		Numeric   z )
+                Numeric   r_geoid,
+                Numeric   g0,
+                Numeric   z )
 {
   return g0 * pow( r_geoid/(r_geoid+z), 2 );
 }
@@ -354,12 +354,12 @@ Numeric g_of_z (
     \date   2000-04-08 
 */
 void rte_iterate (
-		  VectorView        y, 
-		  const Index             start_index,
-		  const Index             stop_index,
-		  ConstMatrixView   tr,
-		  ConstMatrixView   s,
-		  const Index             n_f )
+                  VectorView        y, 
+                  const Index             start_index,
+                  const Index             stop_index,
+                  ConstMatrixView   tr,
+                  ConstMatrixView   s,
+                  const Index             n_f )
 {
   Index   i_f;        // frequency index
   Index   i_z;        // LOS index
@@ -401,25 +401,25 @@ void rte_iterate (
     \date   2000-04-08 
 */
 void rte (
-	  VectorView        y,
-	  const Index             start_index,
-	  const Index             stop_index,
-	  ConstMatrixView   tr,
-	  ConstMatrixView   s,
-	  ConstVectorView   y_space,
-	  const Index             ground,
-	  ConstVectorView   e_ground,
-	  ConstVectorView   y_ground )
+          VectorView        y,
+          const Index             start_index,
+          const Index             stop_index,
+          ConstMatrixView   tr,
+          ConstMatrixView   s,
+          ConstVectorView   y_space,
+          const Index             ground,
+          ConstVectorView   e_ground,
+          ConstVectorView   y_ground )
 {
   const Index   n_f = tr.nrows();              // number of frequencies
-  Index   	i_f;                           // frequency index
-  Index   	i_break;                       // break index for looping
-  Index   	i_start;                       // variable for second loop
+  Index         i_f;                           // frequency index
+  Index         i_break;                       // break index for looping
+  Index         i_start;                       // variable for second loop
 
   // Init Y with Y_SPACE
-  y = y_space;			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
+  y = y_space;                  // Matpack can copy the contents of
+                                // vectors like this. The dimensions
+                                // must be the same! 
 
   // Check if LOS inside the atmosphere (if START_Index=0 -> Y=Y_SPACE)
   if ( start_index > 0 )
@@ -450,7 +450,7 @@ void rte (
           y[i_f] = y[i_f]*(1.0-e_ground[i_f]) + y_ground[i_f]*e_ground[i_f];
         
         if ( ground > 1 )  // 2D case, loop downwards
-	{
+        {
          i_start = ground - 2;
          i_break = 0;
         }
@@ -537,7 +537,7 @@ void bl (
 {
   if ( start_index < stop_index )
     throw runtime_error("The start index cannot be "
-			"smaller than the stop index." );
+                        "smaller than the stop index." );
 
   const Index   nf = tr.nrows();      // number of frequencies
   Index         iy;                   // frequency index
@@ -550,7 +550,7 @@ void bl (
   if ( stop_index > 0 )
   {
     bl_iterate( y, 0, stop_index-1, tr, nf );
-    y *= y;			// Calculate the square of y element-vise.
+    y *= y;                     // Calculate the square of y element-vise.
   }
 
   // Loop remaining steps
@@ -589,20 +589,20 @@ void bl (
     \date   2000-04-08
 */
 void z2p(
-	 VectorView      p,
-	 ConstVectorView z0,
-	 ConstVectorView p0,
-	 ConstVectorView z )
+         VectorView      p,
+         ConstVectorView z0,
+         ConstVectorView p0,
+         ConstVectorView z )
 {
   assert( p.nelem()==z.nelem() );
   if ( z.nelem() > 0 )
   {
     // Local variable to store log pressure grid:
     Vector logp0(p0.nelem());
-    transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
+    transform( logp0, log, p0 );        // This calculates logp0 = log(p0).
 
     interp_lin_vector( p, z0, logp0, z );
-    transform( p, exp, p );	        // This calculates p = exp(p).
+    transform( p, exp, p );             // This calculates p = exp(p).
   }
 }
 
@@ -626,27 +626,27 @@ void z2p(
     \date   2000-04-08
 */
 void interpp(
-	     VectorView          x, 
-	     ConstVectorView     p0,
-	     ConstVectorView     x0,
-	     ConstVectorView     p )
+             VectorView          x, 
+             ConstVectorView     p0,
+             ConstVectorView     x0,
+             ConstVectorView     p )
 {
   assert( x.nelem()==p.nelem() );
 
   // Local variables to store log pressure grids:
   Vector logp0(p0.nelem());
   Vector logp(p.nelem());
-  transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
-  transform( logp,  log, p  );	// This calculates logp  = log(p).
+  transform( logp0, log, p0 );  // This calculates logp0 = log(p0).
+  transform( logp,  log, p  );  // This calculates logp  = log(p).
 
   interp_lin_vector( x, logp0, x0, logp );
 }
 
 void interpp_cloud(
-		   VectorView     x, 
-		   ConstVectorView     p0,
-		   ConstVectorView     x0,
-		   ConstVectorView     p )
+                   VectorView     x, 
+                   ConstVectorView     p0,
+                   ConstVectorView     x0,
+                   ConstVectorView     p )
 {
   assert( x.nelem()==p.nelem() );
 
@@ -673,10 +673,10 @@ void interpp_cloud(
     \date   2000-04-08 
 */
 void interpp(
-	     MatrixView  A,
-	     ConstVectorView  p0, 
-	     ConstMatrixView  A0, 
-	     ConstVectorView  p )
+             MatrixView  A,
+             ConstVectorView  p0, 
+             ConstMatrixView  A0, 
+             ConstVectorView  p )
 {
   assert( A.nrows()  == A0.nrows() );
   assert( A.ncols()  == p.nelem()  ); 
@@ -684,8 +684,8 @@ void interpp(
   // Local variables to store log pressure grids:
   Vector logp0(p0.nelem());
   Vector logp(p.nelem());
-  transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
-  transform( logp,  log, p );	// This calculates logp0 = log(p0).
+  transform( logp0, log, p0 );  // This calculates logp0 = log(p0).
+  transform( logp,  log, p );   // This calculates logp0 = log(p0).
 
   interp_lin_matrix( A, logp0, A0, logp );
 }
@@ -707,13 +707,13 @@ void interpp(
     \date   2000-12-04
 */
 Numeric interpp(
-		ConstVectorView     p0,
-		ConstVectorView     x0,
-		const Numeric       p )
+                ConstVectorView     p0,
+                ConstVectorView     x0,
+                const Numeric       p )
 {
   // Local variable to store log pressure grid:
   Vector logp0(p0.nelem());
-  transform( logp0, log, p0 );	// This calculates logp0 = log(p0).
+  transform( logp0, log, p0 );  // This calculates logp0 = log(p0).
 
   return interp_lin( logp0, x0, log(p) );
 }
@@ -742,11 +742,11 @@ Numeric interpp(
     \date   2000-10-02 
 */
 void interpz(
-	     VectorView     x, 
-	     ConstVectorView     p0,
-	     ConstVectorView     z0,
-	     ConstVectorView     x0,
-	     ConstVectorView     z )
+             VectorView     x, 
+             ConstVectorView     p0,
+             ConstVectorView     z0,
+             ConstVectorView     x0,
+             ConstVectorView     z )
 {
   assert( x.nelem()==z.nelem() ); 
   Vector p(z.nelem());

@@ -97,7 +97,7 @@ int test1()
     Numeric n=0;
     for (Index i=0; i<M.nrows(); ++i)
       for (Index j=0; j<M.ncols(); ++j)
-	M(i,j) = ++n;
+        M(i,j) = ++n;
   }
 
   cout << "\nM =\n" << M << "\n";
@@ -309,9 +309,9 @@ void test12()
 void test13()
 {
   // Mix vector and one-column matrix in += operator.
-  const Vector v(1,8,1);	// The const is necessary here to
-				// avoid compiler warnings about
-				// different conversion paths.
+  const Vector v(1,8,1);        // The const is necessary here to
+                                // avoid compiler warnings about
+                                // different conversion paths.
   Matrix M(v);
   M += v;
   cout << "M = \n" << M << "\n";
@@ -525,7 +525,7 @@ void test31()
   for ( Index i=0; i<a.npages(); ++i )
     for ( Index j=0; j<a.nrows(); ++j )
       for ( Index k=0; k<a.ncols(); ++k )
-	a(i,j,k) = ++fill;
+        a(i,j,k) = ++fill;
 
   cout << "a =\n" << a << "\n";
 
@@ -576,7 +576,7 @@ void test31()
   for ( Index i=0; i<a.npages(); ++i )
     for ( Index j=0; j<a.nrows(); ++j )
       for ( Index k=0; k<a.ncols(); ++k )
-	a(i,j,k) = ++fill;
+        a(i,j,k) = ++fill;
 
   cout << "Max(a) = ...\n";
 

@@ -40,9 +40,9 @@
 class ParseError : public runtime_error {
 public:
   ParseError( const String& s="",
-	      const String& f="",
-	      Index l = 0,
-	      Index c = 0 ) :
+              const String& f="",
+              Index l = 0,
+              Index c = 0 ) :
     runtime_error(s),
     mFile(f),
     mLine(l),
@@ -50,9 +50,9 @@ public:
 
   virtual ~ParseError() throw() {};
 
-  virtual String file()		   const { return mFile; }
-  virtual Index line()   		   const { return mLine; }
-  virtual Index column() 		   const { return mColumn; }
+  virtual String file()            const { return mFile; }
+  virtual Index line()                     const { return mLine; }
+  virtual Index column()                   const { return mColumn; }
 
 private:
   /** Filename associated with this part of the text */
@@ -76,54 +76,54 @@ public:
 class UnexpectedChar : public ParseError {
 public:
   UnexpectedChar( const String& s="",
-		  const String& f="",
-		  Index l = 0,
-		  Index c = 0 ) :
+                  const String& f="",
+                  Index l = 0,
+                  Index c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 
 class IllegalLinebreak : public ParseError {
 public:
   IllegalLinebreak( const String& s="",
-		    const String& f="",
-		    Index l = 0,
-		    Index c = 0 ) :
+                    const String& f="",
+                    Index l = 0,
+                    Index c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 
 class UnknownMethod : public ParseError {
 public:
   UnknownMethod( const String& s="",
-		 const String& f="",
-		 Index l = 0,
-		 Index c = 0 ) :
+                 const String& f="",
+                 Index l = 0,
+                 Index c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 
 class UnknownWsv : public ParseError {
 public:
   UnknownWsv( const String& s="",
-	      const String& f="",
-	      Index l = 0,
-	      Index c = 0 ) :
+              const String& f="",
+              Index l = 0,
+              Index c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 
 class WrongWsvGroup : public ParseError {
 public:
   WrongWsvGroup( const String& s="",
-		 const String& f="",
-		 Index l = 0,
-		 Index c = 0 ) :
+                 const String& f="",
+                 Index l = 0,
+                 Index c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 
 class UnexpectedKeyword : public ParseError {
 public:
   UnexpectedKeyword( const String& s="",
-		     const String& f="",
-		     Index l = 0,
-		     Index c = 0 ) :
+                     const String& f="",
+                     Index l = 0,
+                     Index c = 0 ) :
     ParseError(s,f,l,c) { /* Nothing to do here. */ }
 };
 

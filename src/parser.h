@@ -32,9 +32,9 @@
 class MRecord {
 public:
   MRecord(const Index id,
-	  const Array<TokVal>& values,
-	  const ArrayOfIndex& output,
-	  const ArrayOfIndex& input)
+          const Array<TokVal>& values,
+          const ArrayOfIndex& output,
+          const ArrayOfIndex& input)
     : mid(id),
       mvalues( values ),
       moutput( output ),

@@ -47,7 +47,7 @@ void define_md_map()
 
 
 ostream& MdRecord::PrintTemplate(ostream& os,
-				 bool show_description) const
+                                 bool show_description) const
 {
   extern const  ArrayOfString wsv_group_names;
 
@@ -67,20 +67,20 @@ ostream& MdRecord::PrintTemplate(ostream& os,
       os << '(';
 
       for (Index i=0; i<GOutput().nelem(); ++i)
-	{
-	  if (first) first=false;
-	  else os << ",\n";
+        {
+          if (first) first=false;
+          else os << ",\n";
 
-	  os << wsv_group_names[GOutput()[i]];
-	}
+          os << wsv_group_names[GOutput()[i]];
+        }
 
       for (Index i=0; i<GInput().nelem(); ++i)
-	{
-	  if (first) first=false;
-	  else os << ",\n";
+        {
+          if (first) first=false;
+          else os << ",\n";
 
-	  os << wsv_group_names[GInput()[i]];
-	}
+          os << wsv_group_names[GInput()[i]];
+        }
 
       os << ')';
     }
@@ -99,7 +99,7 @@ ostream& MdRecord::PrintTemplate(ostream& os,
   for (Index i=0; i<Keywords().nelem(); ++i)
     {
       os << "\t" << setw(maxsize)
-	 << Keywords()[i] << " = \n";
+         << Keywords()[i] << " = \n";
     }
 
   os << '}';

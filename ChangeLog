@@ -1,3 +1,9 @@
+2002-12-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-60
+
+	*.cc, *.c, *.h: Untabified everything.
+
 2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-59

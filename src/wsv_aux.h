@@ -68,8 +68,8 @@ public:
     This is used by define_wsv_data() to set the information for each
     workspace variable. */
   WsvRecord(const char name[],
-	    const char description[],
-	    const Index group)
+            const char description[],
+            const Index group)
     : mname(name),
       mdescription(description),
       mgroup(group)

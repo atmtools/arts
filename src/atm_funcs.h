@@ -57,7 +57,7 @@ void planck (
 void invplanck (
               VectorView   y,
          ConstVectorView   f,
-	 ConstVectorView   za );
+         ConstVectorView   za );
 
 void invrayjean (
               VectorView   y,

@@ -32,7 +32,7 @@
 
 #if HAVE_CONFIG_H
 #include "config.h"
-#endif	
+#endif  
 
 ////////////////////////////////////////////////////////////////////////////
 //   External declarations
@@ -119,17 +119,17 @@ void read_batchdata(
   if ( x.ncols() > n )
   {
     Matrix dummy(x(Range(joker),Range(0,n))); // Matpack can initialize a
-					      // new Matrix from another
-					      // Matrix. Used here in
-					      // connection with
-					      // Ranges to select a
-					      // submatrix of the
-					      // original Matrix.
+                                              // new Matrix from another
+                                              // Matrix. Used here in
+                                              // connection with
+                                              // Ranges to select a
+                                              // submatrix of the
+                                              // original Matrix.
     // Copy dummy back to x:
     x.resize( x.nrows(), n );
-    x = dummy;			// Matpack can copy the contents of
-				// matrices like this. The dimensions
-				// must be the same! 
+    x = dummy;                  // Matpack can copy the contents of
+                                // matrices like this. The dimensions
+                                // must be the same! 
   }
 }
 
@@ -152,8 +152,8 @@ void ybatchCalc(
         const Vector&                     f_mono,
         const Vector&                     p_abs, 
         const Vector&                     t_abs,
-	const Vector&                     n2_abs,
-	const Vector&                     h2o_abs,
+        const Vector&                     n2_abs,
+        const Vector&                     h2o_abs,
         const Matrix&                     vmrs,
         const ArrayOfArrayOfLineRecord&   lines_per_tag,
         const ArrayOfLineshapeSpec&       lineshape,
@@ -166,15 +166,15 @@ void ybatchCalc(
         const Vector&                     refr_index,
         const Numeric&                    z_ground,
         const Numeric&                    r_geoid,
-	const Index&                        emission,
+        const Index&                        emission,
         const Vector&                     y_space,
         const Vector&                     e_ground,
         const Numeric&                    t_ground,
         const String&                     batchname,
         const TagGroups&                  tgs,
-	const ArrayOfString&              cont_description_names,
-	const ArrayOfVector& 		  cont_description_parameters,
-	      const ArrayOfString&              cont_description_models,
+        const ArrayOfString&              cont_description_names,
+        const ArrayOfVector&              cont_description_parameters,
+              const ArrayOfString&              cont_description_models,
       // Control Parameters:
         const Index&                        ncalc,
         const Index&                        do_t,
@@ -210,43 +210,43 @@ void ybatchCalc(
   // Read data from file(s) or use the workspace varaible
   
   // Temperature
-  Vector t(t_abs);		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
+  Vector t(t_abs);              // Matpack can initialize a
+                                // new Vector from another
+                                // Vector  
   Matrix Ts;
   if ( do_t )
     read_batchdata( Ts, batchname, t_file, "t_abs", np, ncalc );
 
   // Altitudes
-  Vector z(z_abs);		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
+  Vector z(z_abs);              // Matpack can initialize a
+                                // new Vector from another
+                                // Vector  
 
   Matrix Zs;
   if ( do_z )
     read_batchdata( Zs, batchname, z_file, "z_abs", np, ncalc );
   
   // Frequencies
-  Vector f(f_mono);		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
+  Vector f(f_mono);             // Matpack can initialize a
+                                // new Vector from another
+                                // Vector  
 
   Matrix f_oss;
   if ( do_f )
     read_batchdata( f_oss, batchname, f_file, "f_mono", 1, ncalc );
   
   // Zenith angles
-  Vector za(za_pencil);		// Matpack can initialize a
-				// new Vector from another
-				// Vector  
+  Vector za(za_pencil);         // Matpack can initialize a
+                                // new Vector from another
+                                // Vector  
 
   Matrix za_oss;
   if ( do_za )
     read_batchdata( za_oss, batchname, za_file, "za_pencil", 1, ncalc );
   
   // Species profiles
-  Matrix vs(vmrs);		// Matpack can initalize a matrix from
-				// another matrix.
+  Matrix vs(vmrs);              // Matpack can initalize a matrix from
+                                // another matrix.
 
   Index itag;
   ArrayOfMatrix VMRs(ndo);
@@ -275,31 +275,31 @@ void ybatchCalc(
     // Copy from file data for the "do" quantities
     if ( do_t )
       {
-	assert( t.nelem()==Ts.nrows() );
-	t = Ts(Range(joker),i);	// Copy ith column of Matrix Ts to
-				// Vector t.
+        assert( t.nelem()==Ts.nrows() );
+        t = Ts(Range(joker),i); // Copy ith column of Matrix Ts to
+                                // Vector t.
       }
     if ( do_z )
       {
-	assert( z.nelem()==Zs.nrows() );
-	z = Zs(Range(joker),i);	// copy ith column of Matrix Zs to
-				// Vector z.
+        assert( z.nelem()==Zs.nrows() );
+        z = Zs(Range(joker),i); // copy ith column of Matrix Zs to
+                                // Vector z.
       }
     if ( do_f )
       {
-	f = f_mono;		// Copy contents of f_mono to f.
-	f += f_oss(0,i);	// Add f_oss(0,i) to all elements.
+        f = f_mono;             // Copy contents of f_mono to f.
+        f += f_oss(0,i);        // Add f_oss(0,i) to all elements.
       }
     if ( do_za )
       {
-	za = za_pencil;         // Copy contents of za_pencil to za.
-	za += za_oss(0,i);      // Add za_oss(0,i) to all elements.
+        za = za_pencil;         // Copy contents of za_pencil to za.
+        za += za_oss(0,i);      // Add za_oss(0,i) to all elements.
       }
     for ( itag=0; itag<ndo; itag++ )
       {
-	assert( vs.ncols()==VMRs[itag].nrows() );
+        assert( vs.ncols()==VMRs[itag].nrows() );
         vs(tagindex[itag],Range(joker)) = VMRs[itag](Range(joker),i);
-	// Set the row of vs for itag from ith column of VMRs[itag].
+        // Set the row of vs for itag from ith column of VMRs[itag].
       }
 
 
@@ -307,9 +307,9 @@ void ybatchCalc(
     //
     if ( (i==0) || do_t || ndo || do_f )
       absCalc( abs, abs_per_tag, tgs, f, p_abs, t, n2_abs, h2o_abs, vs, 
-	       lines_per_tag, lineshape, 
-	       cont_description_names, 
-	       cont_description_models,
+               lines_per_tag, lineshape, 
+               cont_description_names, 
+               cont_description_models,
                cont_description_parameters);
 
     if ( (i==0) || do_z || do_za )   
@@ -324,7 +324,7 @@ void ybatchCalc(
     if ( i == 0 )
       ybatch.resize( y.nelem(), ncalc );
 
-    ybatch(Range(joker),i) = y;	// Copy to ith column of ybatch.
+    ybatch(Range(joker),i) = y; // Copy to ith column of ybatch.
   }
   out2 << "  ------------------------------------\n";
 }
@@ -334,7 +334,7 @@ void ybatchCalc(
 void ybatchFromRadiosonde(// WS Output:
                           Matrix& ybatch,
                           // WS Input:
-			  const ArrayOfMatrix& radiosonde_data,
+                          const ArrayOfMatrix& radiosonde_data,
                           const Vector& f_mono,
                           const ArrayOfArrayOfLineRecord& lines_per_tg,
                           const ArrayOfLineshapeSpec& lineshape,
@@ -342,7 +342,7 @@ void ybatchFromRadiosonde(// WS Output:
                           const Vector& za_pencil,
                           const Numeric& l_step,
                           const Index& refr,
-			  const String& refr_model,
+                          const String& refr_model,
                           const Index& refr_lfac,
                           const Numeric& r_geoid,
                           const Index& emission,
@@ -350,7 +350,7 @@ void ybatchFromRadiosonde(// WS Output:
                           const Vector& e_ground,
                           const TagGroups& tgs,
                           const ArrayOfString& cont_description_names,
-			  const ArrayOfString& cont_description_models,
+                          const ArrayOfString& cont_description_models,
                           const ArrayOfVector& cont_description_parameters)
 {
   // Initialize ybatch:
@@ -386,19 +386,19 @@ void ybatchFromRadiosonde(// WS Output:
       absCalc(// Output:
              abs,
              abs_per_tg,
-             // Input:		  
-	     tgs,
+             // Input:            
+             tgs,
              f_mono,
              p_abs,
              t_abs,
-	     n2_abs,
-	     h2o_abs,
+             n2_abs,
+             h2o_abs,
              vmrs,
              lines_per_tg,
-	     lineshape,
-	     cont_description_names,
-	     cont_description_models,
-	     cont_description_parameters);
+             lineshape,
+             cont_description_names,
+             cont_description_models,
+             cont_description_parameters);
 
       // Set t_ground from lowest level of t_abs:
       Numeric t_ground = t_abs[0];
@@ -409,65 +409,65 @@ void ybatchFromRadiosonde(// WS Output:
       // Calculate refractive index:
       Vector refr_index;
       refrCalc(// Output:
-	       refr_index,
-	       // Input:
-	       p_abs,
-	       t_abs,
-	       h2o_abs,
-	       refr,
-	       refr_model);
+               refr_index,
+               // Input:
+               p_abs,
+               t_abs,
+               h2o_abs,
+               refr,
+               refr_model);
 
       // Calculate the line of sight:
       Los los;
       Vector z_tan;
       losCalc(// Output:
-	      los,
-	      z_tan,
-	      // Input:
-	      z_plat,
-	      za_pencil,
-	      l_step,
-	      p_abs,
-	      z_abs,
-	      refr,
-	      refr_lfac,
-	      refr_index,
-	      z_ground,
-	      r_geoid);
+              los,
+              z_tan,
+              // Input:
+              z_plat,
+              za_pencil,
+              l_step,
+              p_abs,
+              z_abs,
+              refr,
+              refr_lfac,
+              refr_index,
+              z_ground,
+              r_geoid);
 
       // Calculate source:
       ArrayOfMatrix source;
       sourceCalc(// Output:
-		 source,
-		 // Input:
-		 emission,
-		 los,
-		 p_abs,
-		 t_abs,
-		 f_mono);
+                 source,
+                 // Input:
+                 emission,
+                 los,
+                 p_abs,
+                 t_abs,
+                 f_mono);
 
       // Calculate transmittances:
       ArrayOfMatrix trans;
       transCalc(// Output:
-		trans,
-		//Input:
-		los,
-		p_abs,
-		abs);
+                trans,
+                //Input:
+                los,
+                p_abs,
+                abs);
 
       // Calculate Spectrum:
       Vector y;
       yCalc(// Output:
-	    y,
-	    // Input:
-	    emission,
-	    los,
-	    f_mono,
-	    y_space,
-	    source,
-	    trans,
-	    e_ground,
-	    t_ground);
+            y,
+            // Input:
+            emission,
+            los,
+            f_mono,
+            y_space,
+            source,
+            trans,
+            e_ground,
+            t_ground);
 
       // Assign y to this column of ybatch:
       ybatch(Range(joker),i) = y;
@@ -477,7 +477,7 @@ void ybatchFromRadiosonde(// WS Output:
 void ybatchFromRadiosondeGlobal(// WS Output:
                           Matrix& ybatch,
                           // WS Input:
-			  const ArrayOfMatrix& radiosonde_data,
+                          const ArrayOfMatrix& radiosonde_data,
                           const Vector& f_mono,
                           const ArrayOfArrayOfLineRecord& lines_per_tg,
                           const ArrayOfLineshapeSpec& lineshape,
@@ -485,7 +485,7 @@ void ybatchFromRadiosondeGlobal(// WS Output:
                           const Vector& za_pencil,
                           const Numeric& l_step,
                           const Index& refr,
-			  const String& refr_model,
+                          const String& refr_model,
                           const Index& refr_lfac,
                           const Numeric& r_geoid,
                           const Index& emission,
@@ -493,7 +493,7 @@ void ybatchFromRadiosondeGlobal(// WS Output:
                           const Vector& e_ground,
                           const TagGroups& tgs,
                           const ArrayOfString& cont_description_names,
-			  const ArrayOfString& cont_description_models,
+                          const ArrayOfString& cont_description_models,
                           const ArrayOfVector& cont_description_parameters)
 {
   // Initialize ybatch:
@@ -519,9 +519,9 @@ void ybatchFromRadiosondeGlobal(// WS Output:
       VectorNLogSpace (p_abs,"p_abs",p_raw[0],p_raw[p_raw.nelem()-1],100);
       Vector t_abs( p_abs.nelem() );
       Vector z_abs( p_abs.nelem() );
-		       
+                       
       interpp (t_abs,p_raw,t_raw,p_abs);
-      interpp (z_abs,p_raw,z_raw,p_abs);	
+      interpp (z_abs,p_raw,z_raw,p_abs);        
       
       // Create vmrs:
       
@@ -546,19 +546,19 @@ void ybatchFromRadiosondeGlobal(// WS Output:
       absCalc(// Output:
              abs,
              abs_per_tg,
-             // Input:		  
-	     tgs,
+             // Input:            
+             tgs,
              f_mono,
              p_abs,
              t_abs,
-	     n2_abs,
-	     h2o_abs,
+             n2_abs,
+             h2o_abs,
              vmrs,
              lines_per_tg,
-	     lineshape,
-	     cont_description_names,
-	     cont_description_models,
-	     cont_description_parameters);
+             lineshape,
+             cont_description_names,
+             cont_description_models,
+             cont_description_parameters);
 
       // Set t_ground from lowest level of t_abs:
       Numeric t_ground = t_raw[0];
@@ -570,66 +570,66 @@ void ybatchFromRadiosondeGlobal(// WS Output:
       // Calculate refractive index:
       Vector refr_index;
       refrCalc(// Output:
-	       refr_index,
-	       // Input:
-	       p_abs,
-	       t_abs,
-	       h2o_abs,
-	       refr,
-	       refr_model);
+               refr_index,
+               // Input:
+               p_abs,
+               t_abs,
+               h2o_abs,
+               refr,
+               refr_model);
 
 
       // Calculate the line of sight:
       Los los;
       Vector z_tan;
       losCalc(// Output:
-	      los,
-	      z_tan,
-	      // Input:
-	      z_plat,
-	      za_pencil,
-	      l_step,
-	      p_abs,
-	      z_abs,
-	      refr,
-	      refr_lfac,
-	      refr_index,
-	      z_ground,
-	      r_geoid);
+              los,
+              z_tan,
+              // Input:
+              z_plat,
+              za_pencil,
+              l_step,
+              p_abs,
+              z_abs,
+              refr,
+              refr_lfac,
+              refr_index,
+              z_ground,
+              r_geoid);
 
       // Calculate source:
       ArrayOfMatrix source;
       sourceCalc(// Output:
-		 source,
-		 // Input:
-		 emission,
-		 los,
-		 p_abs,
-		 t_abs,
-		 f_mono);
+                 source,
+                 // Input:
+                 emission,
+                 los,
+                 p_abs,
+                 t_abs,
+                 f_mono);
 
       // Calculate transmittances:
       ArrayOfMatrix trans;
       transCalc(// Output:
-		trans,
-		//Input:
-		los,
-		p_abs,
-		abs);
+                trans,
+                //Input:
+                los,
+                p_abs,
+                abs);
 
       // Calculate Spectrum:
       Vector y;
       yCalc(// Output:
-	    y,
-	    // Input:
-	    emission,
-	    los,
-	    f_mono,
-	    y_space,
-	    source,
-	    trans,
-	    e_ground,
-	    t_ground);
+            y,
+            // Input:
+            emission,
+            los,
+            f_mono,
+            y_space,
+            source,
+            trans,
+            e_ground,
+            t_ground);
 
       // Assign y to this column of ybatch:
       ybatch(Range(joker),i) = y;
