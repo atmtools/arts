@@ -1,3 +1,12 @@
+2004-09-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-874
+
+	* src/methods.cc: Removed batch_pre_agenda. I realised that it just
+	made things more difficult. Involved function fixed.
+
+	* doc/uguide/batch.tex: Finished the chapter. 
+
 2004-09-16  Mattias Ekström <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-873

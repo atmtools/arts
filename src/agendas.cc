@@ -88,18 +88,6 @@ void define_agenda_data()
 
  agenda_data.push_back
     (AgRecord
-     ( NAME( "batch_pre_agenda" ),
-       DESCRIPTION
-       (
-        "Pre-processing for batch calculations.\n"
-        "\n"
-        "Must set *ybatch_n*. See further *ybatchCalc*."
-        ),
-       OUTPUT( ybatch_n_ ),
-       INPUT()));
-
- agenda_data.push_back
-    (AgRecord
      ( NAME( "convergence_test_agenda" ),
        DESCRIPTION
        (

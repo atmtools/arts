@@ -4907,26 +4907,26 @@ md_data_raw.push_back
          "Performs batch calculations."
          "\n"
          "The method performs the following:"
-         "   1. Executes *batch_pre_agenda*.\n"
-         "   2. Performs a-d with *ybatch_index* = 0 : (*ybatch_n*-1).\n"
+         "   1. Performs a-d with *ybatch_index* = 0 : (*ybatch_n*-1).\n"
          "    a. Executes *batch_update_agenda*.\n"
          "    b. Executes *batch_calc_agenda*.\n"
          "    c. If *ybatch_index* = 0, allocates memory for *ybatch* based\n"
          "       on *ybatch_n* and length of *y*.\n"
-         "    d. Make copy of *y* in column *ybatch_index* of *ybatch*.\n"
-         "   3. Executes *batch_post_agenda*.\n"
+         "    d. Makes copy of *y* in column *ybatch_index* of *ybatch*.\n"
+         "   2. Executes *batch_post_agenda*.\n"
+         "This means that, beside involved agendas, the WSV *ybatch_n* must\n"
+         "be set before calling this method.\n"
          "\n"
          "See the user guide for practical examples.\n"
          "\n"
          "Note that *y* and other variables modified by the involved agendas\n"
          "(e.g. *vmr_field*) are not restored by the method. If original\n"
-         "values must be preserved, a copy must be made in "
-         "*batch_pre_agenda* and\n"
-         "a reversed copy method call must be made in *batch_post_agenda*."
+         "values must be preserved, a copy must be made before calling this"
+         "method, and a reversed copy must be made in *batch_post_agenda*\n"
+         "or after executing *ybatchCalc*."
          ),
         OUTPUT( ybatch_, ybatch_index_, ybatch_n_, y_  ),
-        INPUT( batch_pre_agenda_, batch_update_agenda_, batch_calc_agenda_, 
-               batch_post_agenda_ ), 
+        INPUT( batch_update_agenda_, batch_calc_agenda_, batch_post_agenda_ ), 
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

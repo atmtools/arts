@@ -242,13 +242,10 @@ void ybatchCalc(
               Index&          ybatch_n,
               Vector&         y,
         // WS Input:
-        const Agenda&         batch_pre_agenda,
         const Agenda&         batch_update_agenda,
         const Agenda&         batch_calc_agenda,
         const Agenda&         batch_post_agenda )
 {
-  batch_pre_agenda.execute( 0 );
-
   for( ybatch_index=0; ybatch_index<ybatch_n; ybatch_index++ )
     {
       batch_update_agenda.execute( 0 );
