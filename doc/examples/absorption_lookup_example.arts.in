@@ -5,6 +5,12 @@
 
 Main{
 
+gas_speciesSet{
+  [ "O3-666-500e9-501e9, O3-686",
+    "O3",
+    "H2O-nl" ] 
+}
+
 gas_abs_lookupInit{}
 
 WriteXML(gas_abs_lookup){""}
