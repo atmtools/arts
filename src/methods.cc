@@ -3416,5 +3416,37 @@ void define_md_data()
                  Index_t,  String_t, Index_t,   String_t  )));
 
 #endif // HDF_SUPPORT
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ybatchFromRadiosonde"),
+	DESCRIPTION
+	("Calculate spectra for a batch of radiosonde data."
+	 "\n"
+	 "   We set the oxygen and nitrogen VMR to constant values of 0.209 and\n"
+	 "0.782, respectively. Some other methods are called implicitly by this\n"
+	 "method. Specifically:\n"
+	 "- absCalc\n"
+	 "- refrCalc\n"
+	 "- losCalc\n"
+	 "- sourceCalc\n"
+	 "- transCalc\n"
+	 "- yCalc"),
+	OUTPUT( ybatch_ ),
+	INPUT( // Variables needed for absCalc
+               radiosonde_data_, f_mono_, lines_per_tg_, lineshape_, 
+               // Additional variables for losCalc
+	       z_plat_ ,za_pencil_, l_step_, refr_, refr_model_,
+               refr_lfac_, r_geoid_,
+               // Additional variables for yRte
+	       emission_, y_space_, e_ground_, 
+               // Additional variables needed for this function
+               tgs_, cont_description_names_, cont_description_parameters_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES(     )));
+
+
 }
 

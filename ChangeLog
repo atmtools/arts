@@ -1,3 +1,31 @@
+2001-11-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-35
+
+	* General: Added a new method, `ybatchFromRadiosonde', which can
+	be used to calculate radiances for a whole bunch of radiosonde
+	launches. ybatchCalc could not be used for this, because it needs
+	all input on the same pressure grid.
+
+	* src/workspace.cc (define_wsv_data): Added variable radiosonde_data.
+
+	* src/methods.cc (define_md_data): Added method ybatchFromRadiosonde.
+
+	* src/m_batch.cc (ybatchFromRadiosonde): Added this method.
+
+	* configure.in: Added radiosonde_example.arts.in.
+
+	* doc/examples/radiosonde_example.arts.in: Added this example,
+	explaining the use of the new method ybatchFromRadiosonde.
+
+	* doc/examples/radiosondes.aa: Added this file. It contains 3
+	radiosonde launches. See online documentation of the workspace
+	variable `radiosonde_data' for an explanation of the
+	format/contents. 
+
+	* doc/examples/.cvsignore: Added batch_example output. Added
+	radiosonde_example output.
+
 2001-11-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-34

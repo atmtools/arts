@@ -505,4 +505,15 @@ void define_wsv_data()
       "The spectra are stored as columns in a matrix",
       Matrix_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("radiosonde_data",
+      "An array of Matrix holding data for many radiosonde launches. The\n"
+      "dimension of the Array is the number of radiosonde launches. Each\n"
+      "Matrix within the Array has dimension nx4, where n is the number of\n"
+      "pressure levels. The columns of the Matrix are:\n"
+      "\n"
+      "pressure [Pa] temperature [K] altitude [m] VMR [1]",
+      ArrayOfMatrix_));
+
 }
