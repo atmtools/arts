@@ -1,3 +1,13 @@
+2003-12-09  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-752
+
+	* src/Makefile.am: Added check-code-cheaders.pl to TESTS.
+	To execute the tests use 'make check'.
+
+	* src/check-code-cheaders.pl: Added. Checks for inclusion of plain C
+	header files. First one, more to come.
+
 2003-12-08  Cory Davis   <cory@met.ed.ac.uk>
 
 	* arts-1-1-751
