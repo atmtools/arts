@@ -1,3 +1,10 @@
+2002-08-29  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-222
+	
+	* ami/path: Started to remove old ami files. Tried this one to see
+	if cvs handles removing of empty directory.
+
 2002-08-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-221
