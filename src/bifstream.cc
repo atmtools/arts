@@ -46,7 +46,7 @@ void bifstream::seek(long spos, Offset offs)
 long bifstream::pos()
 {
   if(!in) { err = NotOpen; return 0; }
-  return (long)this->tellg();
+  return streamoff (this->tellg());
 }
 
 bifstream::Byte bifstream::getByte()

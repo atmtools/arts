@@ -46,7 +46,7 @@ void bofstream::seek(long spos, Offset offs)
 long bofstream::pos()
 {
   if(!in) { err = NotOpen; return 0; }
-  return (long)this->tellp ();
+  return streamoff (this->tellp ());
 }
 
 void bofstream::putByte (bofstream::Byte b)
