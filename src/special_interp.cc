@@ -51,6 +51,11 @@
   interpolation of the pressure grid, or more exactly the log of the
   *p_grid*. Such functions are placed in this file for that reason.
   These functions have names ending with "2p", for example itw2p.
+
+
+  - Various functions connected to the atmospheric fields:
+  
+  See below to find what functions that exist.
 */
 
 #include <cmath>
@@ -525,6 +530,12 @@ Numeric interp_atmsurface_by_gp(
 
 
 
+
+
+/*===========================================================================
+  === Conversion of altitudes to pressure
+  ===========================================================================*/
+
 //! itw2p
 /*!
     Converts interpolation weights to pressures.
@@ -564,4 +575,53 @@ void itw2p(
   interp( p_values, itw, logpgrid, gp ); 
 
   transform( p_values, exp, p_values );
+}
+
+
+
+
+
+/*===========================================================================
+  === Various functions connected to the atmospheric fields
+  ===========================================================================*/
+
+//! z_at_lat_2d
+/*!
+    Returns the geomtrical altitudes of *p_grid* for one latitude.
+
+    The latitude is specified by its grid position, in an
+    ArrayOfGridPos of length 1. The altitude field (*z_field*) is then
+    interpolated to that latitude.
+
+    \param   z          Out: Found altitudes.
+    \param   p_grid     As the WSV with the same name.
+    \param   lat_grid   As the WSV with the same name.
+    \param   z_field    As the WSV with the same name.
+    \param   gp_lat     Altitude grid positions.
+
+    \author Patrick Eriksson 
+    \date   2002-11-18
+*/
+void z_at_lat_2d(
+	     VectorView   	 z,
+        ConstVectorView   	 p_grid,
+        ConstVectorView   	 lat_grid,
+        ConstTensor3View         z_field,
+        const ArrayOfGridPos&    gp_lat )
+{
+  const Index   np = p_grid.nelem();
+
+  assert( z.nelem() == np );
+  assert( z_field.nrows() == np );
+  assert( gp_lat.nelem() == 1 );
+
+  Matrix           z_matrix(np,1);
+  ArrayOfGridPos   gp_z(np);
+  Tensor3          itw(np,1,4);
+
+  gridpos( gp_z, p_grid, p_grid );
+  interpweights( itw, gp_z, gp_lat );
+  interp( z_matrix, itw, z_field(Range(joker),Range(joker),0), gp_z, gp_lat );
+
+  z = z_matrix(Range(joker),0);
 }

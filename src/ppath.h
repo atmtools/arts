@@ -122,7 +122,7 @@ void ppath_start_stepping(
 void ppath_step_geom_1d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
+        ConstVectorView   z_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
 	const Numeric&    lmax );
@@ -139,10 +139,21 @@ void ppath_step_geom_2d(
 void ppath_step_refr_std_1d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
-        ConstVectorView   t_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
+	const Numeric&    lraytrace,
+	const Numeric&    lmax );
+
+void ppath_step_refr_std_2d(
+	      Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstMatrixView   t_field,
+        ConstVectorView   r_geoid,
+        ConstVectorView   z_ground,
 	const Numeric&    lraytrace,
 	const Numeric&    lmax );
 

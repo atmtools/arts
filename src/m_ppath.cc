@@ -570,8 +570,10 @@ void ppath_stepRefractionStd(
        t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, -1 );
     }
   else if( atmosphere_dim == 2 )
-    { 
-      throw runtime_error( "2D propagation path steps are not yet handled." );
+    { ppath_step_refr_std_2d( ppath_step, p_grid, lat_grid,
+                                 z_field(Range(joker),Range(joker),0), 
+                                 t_field(Range(joker),Range(joker),0), 
+            r_geoid(Range(joker),0), z_ground(Range(joker),0), lraytrace, -1 );
     }
   else
     {
@@ -613,8 +615,10 @@ void ppath_stepRefractionStdWithLmax(
      t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, lmax );
     }
   else if( atmosphere_dim == 2 )
-    { 
-      throw runtime_error( "3D propagation path steps are not yet handled." );
+    { ppath_step_refr_std_2d( ppath_step, p_grid, lat_grid,
+                                 z_field(Range(joker),Range(joker),0), 
+                                 t_field(Range(joker),Range(joker),0), 
+          r_geoid(Range(joker),0), z_ground(Range(joker),0), lraytrace, lmax );
     }
   else
     {

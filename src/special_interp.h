@@ -131,6 +131,12 @@ void itw2p(
 	const ArrayOfGridPos   gp,
 	ConstMatrixView        itw );
 
+void z_at_lat_2d(
+	     VectorView   	 z,
+        ConstVectorView   	 p_grid,
+        ConstVectorView   	 lat_grid,
+        ConstTensor3View         z_field,
+	const ArrayOfGridPos&    gp_lat );
 
 
 #endif // special_interp_h

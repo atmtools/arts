@@ -1122,7 +1122,7 @@ void ppath_append(
    \param   za         Vector with zenith angle for the path points.
    \param   lstep      Length along the path between the points.
    \param   r_geoid    Geoid radii.
-   \param   z_grid     Geometrical altitudes.
+   \param   z_field    Geometrical altitudes.
    \param   ip         Pressure grid range.
 
    \author Patrick Eriksson
@@ -1133,14 +1133,14 @@ void ppath_fill_1d(
      ConstVectorView   r,
      ConstVectorView   lat,
      ConstVectorView   za,
-     ConstVectorView    lstep,
+     ConstVectorView   lstep,
      const Numeric&    r_geoid,
-     ConstVectorView   z_grid,
+     ConstVectorView   z_field,
      const Index&      ip )
 {
   // Help variables that are common for all points.
-  const Numeric   r1 = r_geoid + z_grid[ip];
-  const Numeric   dr = z_grid[ip+1] - z_grid[ip];
+  const Numeric   r1 = r_geoid + z_field[ip];
+  const Numeric   dr = z_field[ip+1] - z_field[ip];
 
   for( Index i=0; i<r.nelem(); i++ )
     {
@@ -1541,7 +1541,7 @@ void ppath_start_stepping(
                                             "point and the zenith angle > 0" );
 	  
 	  // Geometrical altitude
-	  ppath.z[0]     = ppath.pos(0,0) - rv_geoid;
+	  ppath.z[0] = ppath.pos(0,0) - rv_geoid;
 
 	  // Use below the values in ppath (instead of a_pos and a_los) as 
 	  // they can be modified on the way.
@@ -1552,14 +1552,9 @@ void ppath_start_stepping(
 	  ppath.gp_lat[0].fd[1] = gp_lat[0].fd[1];
 	  // Create a vector with the geometrical altitude of the pressure 
 	  // surfaces for the sensor latitude and use it to get ppath.gp_p.
-	  Matrix z_grid(np,1);
-	  ArrayOfGridPos gp_tmp(np);
-	  gridpos( gp_tmp, p_grid, p_grid );
-	  Tensor3 itw_tmp(np,1,4);
-	  interpweights( itw_tmp, gp_tmp, gp_lat );
-	  interp( z_grid, itw_tmp, z_field(Range(joker),Range(joker),0), 
-                                                              gp_tmp, gp_lat );
-	  gridpos( ppath.gp_p, z_grid(Range(joker),0), ppath.z );
+	  Vector z_grid(np);
+          z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
+	  gridpos( ppath.gp_p, z_grid, ppath.z );
 
 	  // Is the sensor on the ground looking down?
 	  if( ppath.pos(0,0) == rv_ground )
@@ -1859,7 +1854,7 @@ void refr_index_BoudourisDryAir (
 
 
 
-//! get_refr_index
+//! get_refr_index_1d
 /*! 
    A temporary function to get refractive index for 1D cases.
 
@@ -1870,12 +1865,12 @@ void refr_index_BoudourisDryAir (
 */
 Numeric get_refr_index_1d(
         ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
-        ConstVectorView   t_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
         const Numeric&    z )
 {      
   ArrayOfGridPos gp(1);
-  gridpos( gp, z_grid, Vector(1,z) );
+  gridpos( gp, z_field, Vector(1,z) );
 
   Matrix itw(1,2);
   interpweights( itw, gp );
@@ -1883,13 +1878,60 @@ Numeric get_refr_index_1d(
   Vector p_value(1), t_value(1);
 
   itw2p( p_value, p_grid, gp, itw );
-  interp( t_value, itw, t_grid, gp );
+  interp( t_value, itw, t_field, gp );
 
   Vector refr_index(1);
 
   refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
 
   return refr_index[0];
+}
+
+
+
+//! get_refr_index_2d
+/*! 
+   A temporary function to get refractive index for 2D cases.
+
+   See the code fo details.
+
+   \author Patrick Eriksson
+   \date   2002-11-18
+*/
+Numeric get_refr_index_2d(
+        ConstVectorView    p_grid,
+        ConstVectorView    lat_grid,
+        ConstVectorView    r_geoid,
+        ConstMatrixView    z_field,
+        ConstMatrixView    t_field,
+        const Numeric&     z,
+        const Numeric&     lat )
+{     
+  const Index      np = p_grid.nelem();
+  ArrayOfGridPos   gp_p(1), gp_lat(1);
+  Vector           z_grid(np), r_value(1), p_value(1), t_value(1);
+  Matrix           itw(1,2);
+
+  gridpos( gp_lat, lat_grid, Vector(1,lat) );
+  interpweights( itw, gp_lat );
+  interp( r_value, itw, r_geoid, gp_lat );
+
+  z_at_lat_2d( z_grid, p_grid, lat_grid, z_field, gp_lat );
+
+  gridpos( gp_p, z_grid, Vector(1,z-r_value[0]) );
+  interpweights( itw, gp_p );
+  itw2p( p_value, p_grid, gp_p, itw );
+
+  itw.resize(1,4);
+  interpweights( itw, gp_p, gp_lat );
+  interp( t_value, itw, t_field, gp_p, gp_lat );
+
+  Vector refr_index(1);
+
+  refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
+
+  return refr_index[0];
+
 }
 
 
@@ -1915,7 +1957,7 @@ void ppath_start_1d(
               Numeric&    za_start,
 	const Ppath&      ppath,
         ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
+        ConstVectorView   z_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground )
 {
@@ -1933,8 +1975,8 @@ void ppath_start_1d(
   // Asserts
   assert( npl >= 2 );
   assert( is_decreasing( p_grid ) );
-  assert( is_size( z_grid, npl ) );
-  assert( is_increasing( z_grid ) );
+  assert( is_size( z_field, npl ) );
+  assert( is_increasing( z_field ) );
   assert( r_geoid > 0 );
   //
   assert( ppath.dim == 1 );
@@ -2134,13 +2176,13 @@ void ppath_start_2d(
    be applied.
 
    Note that the input variables are here compressed to only hold data for
-   a 1D atmosphere. For example, z_grid is z_field(:,0,0).
+   a 1D atmosphere. For example, z_field is z_field(:,0,0).
 
    For more information read the chapter on propagation paths in AUG.
 
    \param   ppath             Output: A Ppath structure.
    \param   p_grid            Pressure grid.
-   \param   z_grid            Geometrical altitudes corresponding to p_grid.
+   \param   z_field            Geometrical altitudes corresponding to p_grid.
    \param   r_geoid           Geoid radius.
    \param   z_ground          Ground altitude.
    \param   lmax              Maximum allowed length between the path points.
@@ -2151,7 +2193,7 @@ void ppath_start_2d(
 void ppath_step_geom_1d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
+        ConstVectorView   z_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
 	const Numeric&    lmax )
@@ -2168,7 +2210,7 @@ void ppath_step_geom_1d(
 
   // Determine the variables defined above, and make asserts of input
   ppath_start_1d( imax, npl, ip, r_start, lat_start, za_start, 
-                                    ppath, p_grid, z_grid, r_geoid, z_ground );
+                                    ppath, p_grid, z_field, r_geoid, z_ground );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -2189,11 +2231,11 @@ void ppath_step_geom_1d(
   bool    tanpoint = false, ground = false;
   //
   if( za_start <= 90 )
-    { r_end = r_geoid + z_grid[ ip + 1 ]; }
+    { r_end = r_geoid + z_field[ ip + 1 ]; }
   else
     {
       // Lowest possible radius for the path step
-      Numeric r_lowest  = r_geoid + z_grid[ ip ];
+      Numeric r_lowest  = r_geoid + z_field[ ip ];
 
       // Ground radius
       Numeric r_ground = r_geoid + z_ground;
@@ -2239,7 +2281,7 @@ void ppath_step_geom_1d(
   ppath.constant   = ppc;
   //
   ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(ilast,lstep), r_geoid, 
-                                                                  z_grid, ip );
+                                                                 z_field, ip );
 
 
   // Different options depending on position of end point of step:
@@ -2263,7 +2305,7 @@ void ppath_step_geom_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_geom_1d( ppath2, p_grid, z_grid, r_geoid, z_ground, lmax );
+      ppath_step_geom_1d( ppath2, p_grid, z_field, r_geoid, z_ground, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -2590,8 +2632,8 @@ void ppath_step_geom_2d(
 
    \param   ppath             Output: A Ppath structure.
    \param   p_grid            Pressure grid.
-   \param   z_grid            Geometrical altitudes corresponding to p_grid.
-   \param   t_grid            Temperatures corresponding to p_grid.
+   \param   z_field           Geometrical altitudes corresponding to p_grid.
+   \param   t_field           Temperatures corresponding to p_grid.
    \param   r_geoid           Geoid radius.
    \param   z_ground          Ground altitude.
    \param   lraytrace         Maximum allowed length for ray tracing steps.
@@ -2603,8 +2645,8 @@ void ppath_step_geom_2d(
 void ppath_step_refr_std_1d(
 	      Ppath&      ppath,
         ConstVectorView   p_grid,
-        ConstVectorView   z_grid,
-        ConstVectorView   t_grid,
+        ConstVectorView   z_field,
+        ConstVectorView   t_field,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
 	const Numeric&    lraytrace,
@@ -2622,15 +2664,15 @@ void ppath_step_refr_std_1d(
 
   // Determine the variables defined above, and make asserts of input
   ppath_start_1d( imax, npl, ip, r_start, lat_start, za_start, 
-                                    ppath, p_grid, z_grid, r_geoid, z_ground );
+                                   ppath, p_grid, z_field, r_geoid, z_ground );
 
   // Assert not done for geometrical calculations
-  assert( t_grid.nelem() == npl );
+  assert( t_field.nelem() == npl );
   assert( lraytrace > 0 );
   assert( lmax < 0  ||  lmax >= lraytrace );
 
   // Refractive index at r_start
-  const Numeric n1 = get_refr_index_1d( p_grid, z_grid, t_grid, 
+  const Numeric n1 = get_refr_index_1d( p_grid, z_field, t_field, 
                                                            r_start - r_geoid );
 
 
@@ -2656,15 +2698,15 @@ void ppath_step_refr_std_1d(
   bool    tanpoint = false, ground = false;
   //
   if( za_start <= 90 )
-    { r_end = r_geoid + z_grid[ ip + 1 ]; }
+    { r_end = r_geoid + z_field[ ip + 1 ]; }
 
   else
     {
       // Lowest possible radius for the path step
-      const Numeric r_lowest  = r_geoid + z_grid[ ip ];
+      const Numeric r_lowest  = r_geoid + z_field[ ip ];
 
       // Refractive index at r_lowest
-      const Numeric n_lowest = get_refr_index_1d( p_grid, z_grid, t_grid, 
+      const Numeric n_lowest = get_refr_index_1d( p_grid, z_field, t_field, 
                                                           r_lowest - r_geoid );
       // Ground radius
       const Numeric r_ground = r_geoid + z_ground;
@@ -2676,7 +2718,7 @@ void ppath_step_refr_std_1d(
 	}
 
       // Tangent point is end point?
-      else if( ppc >= r_ground * get_refr_index_1d( p_grid, z_grid, t_grid, 
+      else if( ppc >= r_ground * get_refr_index_1d( p_grid, z_field, t_field, 
                                                          r_ground - r_geoid ) )
 	{
 	  	Numeric   r_tan = r_lowest;
@@ -2692,7 +2734,7 @@ void ppath_step_refr_std_1d(
 
 	      if( !first )
 		{
-		  n_end = get_refr_index_1d( p_grid, z_grid, t_grid, 
+		  n_end = get_refr_index_1d( p_grid, z_field, t_field, 
                                                              r_end - r_geoid );
 		}
 	      first = false;
@@ -2765,7 +2807,7 @@ void ppath_step_refr_std_1d(
   for( Index i=0; i<nrt-1; i++ )
     {
       // Refractive index at end point of ray tracing step
-      n_rt[i+1] = get_refr_index_1d( p_grid, z_grid, t_grid, 
+      n_rt[i+1] = get_refr_index_1d( p_grid, z_field, t_field, 
                                                          r_rt[i+1] - r_geoid );
       
       // The path constant divided with the max of refractive index.
@@ -2839,7 +2881,7 @@ void ppath_step_refr_std_1d(
   ppath.constant   = ppc;
   //
   ppath_fill_1d( ppath, r_v[Range(0,ilast+1)], lat_v[Range(0,ilast+1)], 
-            za_v[Range(0,ilast+1)], l_v[Range(0,ilast)], r_geoid, z_grid, ip );
+           za_v[Range(0,ilast+1)], l_v[Range(0,ilast)], r_geoid, z_field, ip );
 
 
   // Different options depending on position of end point of step:
@@ -2867,7 +2909,7 @@ void ppath_step_refr_std_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_refr_std_1d( ppath2, p_grid, z_grid, t_grid, r_geoid, 
+      ppath_step_refr_std_1d( ppath2, p_grid, z_field, t_field, r_geoid, 
                                                    z_ground, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
@@ -2880,5 +2922,96 @@ void ppath_step_refr_std_1d(
   else
     {
       gridpos_force_end_fd( ppath.gp_p[ilast] );
+    }
+}
+
+
+
+//! ppath_step_refr_std_2d
+/*! 
+   Calculates 1D propagation path steps, with refraction, using a simple
+   and fast ray tracing scheme.
+
+   Works as the same function for 1D despite that some input arguments are
+   of different type.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   p_grid            Pressure grid.
+   \param   lat_grid          Latitude grid.
+   \param   z_field           Geometrical altitudes.
+   \param   t_field           Atmospheric temperatures.
+   \param   r_geoid           Geoid radii.
+   \param   z_ground          Ground altitudes.
+   \param   lraytrace         Maximum allowed length for ray tracing steps.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-07-03
+*/
+void ppath_step_refr_std_2d(
+	      Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   lat_grid,
+        ConstMatrixView   z_field,
+        ConstMatrixView   t_field,
+        ConstVectorView   r_geoid,
+        ConstVectorView   z_ground,
+	const Numeric&    lraytrace,
+	const Numeric&    lmax )
+{
+  // Radius, zenith angle and latitude of start point.
+  Numeric   r_start, lat_start, za_start;
+
+  // Lower grid index for the grid cell of interest.
+  Index   ip, ilat;
+
+  // Radius for corner points, and latitude and slope of faces of the grid cell
+  //
+  // The corners and the faces of the grid cell are numbered in anti-clockwise
+  // direction. The lower left corner is number 1. The left face is number 1.
+  // For the coding of end point, the ground is given number 5 and a tangent
+  // point 6.
+  Numeric   r1, r2, r3, r4, lat1, lat3, c2, c4;
+
+  // Determine the variables defined above and make all possible asserts
+  ppath_start_2d( r_start, lat_start, za_start, ip, ilat, 
+                  r1, r2, r3, r4, lat1, lat3, c2, c4, 
+                         ppath, p_grid, lat_grid, z_field, r_geoid, z_ground );
+
+  // No constant for the path is valid here.
+
+
+  // Refractive index for the corner points of the grid cell
+  const Numeric   n1 = get_refr_index_2d( p_grid, lat_grid, r_geoid, 
+                                                  z_field, t_field, r1, lat1 );
+  const Numeric   n2 = get_refr_index_2d( p_grid, lat_grid, r_geoid,
+                                                  z_field, t_field, r2, lat3 );
+  const Numeric   n3 = get_refr_index_2d( p_grid, lat_grid, r_geoid,
+                                                  z_field, t_field, r3, lat3 );
+  const Numeric   n4 = get_refr_index_2d( p_grid, lat_grid, r_geoid,
+                                                  z_field, t_field, r4, lat1 );
+
+  Array<Numeric>   r_rt, lat_rt, za_rt, l_rt;
+  Numeric          r = r_start, lat = lat_start, za = za_start; 
+
+  r_rt.push_back( r );
+  lat_rt.push_back( lat );
+  za_rt.push_back( za );
+
+  bool   ready = false;
+
+  while( !ready )
+    {
+      // Refractive index at present ray tracing point
+      const Numeric   n = get_refr_index_2d( p_grid, lat_grid, r_geoid, 
+                                                    z_field, t_field, r, lat );
+      
+      Numeric   dndr, dndlat;
+      refraction_gradient_2d( dndr, dndlat, r1,  r4, c2, c4, lat1, lat3, 
+			                              n1, n2, n3, n4, r, lat );
+      
+      r_rt.push_back( r );
+      lat_rt.push_back( lat );
+      za_rt.push_back( za );
     }
 }
