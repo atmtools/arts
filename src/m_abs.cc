@@ -235,11 +235,11 @@ void linesReadFromArts(// WS Output:
 		 << "Current version: " << lr.Version();
 	      throw runtime_error(os.str());
 	    }
-	  }
+	   }
 
-	os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
-	   << "Probably it was created with an older version of ARTS that used different units.";
-	throw runtime_error(os.str());
+	    os << "The ARTS line file you are trying to read does not contain a valid version tag.\n"
+	    << "Probably it was created with an older version of ARTS that used different units.";
+	    throw runtime_error(os.str());
       }
   }
 

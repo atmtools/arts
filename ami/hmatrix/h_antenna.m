@@ -67,6 +67,9 @@ if move
   if ~any( length(dza) == [1,length(za2)] )
     error('The movement argument (DZA) must have length 1 or length(ZA2)');
   end
+
+  %=== Original antenna pattern must be stored to not be overwritten when MOVE
+  w_ant0 = w_ant;
 end
 
 
@@ -108,7 +111,7 @@ if fscale
     out(2,sprintf('Doing angle %d of %d',i,n2));
     if move
       if i == 1 | length(dza)>1  
-        w_ant = moving_ant(za_ant,w_ant,dza(i));
+        w_ant = moving_ant(za_ant,w_ant0,dza(i));
       end
     end
     za   = za1 - za2(i);
@@ -139,7 +142,7 @@ else
     out(2,sprintf('Doing angle %d of %d.',i,n2));
     if move
       if i == 1 | length(dza)>1  
-        w_ant = moving_ant(za_ant,w_ant,dza(i));
+        w_ant = moving_ant(za_ant,w_ant0,dza(i));
       end
     end
     za   = za1 - za2(i);
@@ -182,7 +185,7 @@ function w_ant = moving_ant(za,w_ant,dza)
 
   if dza > 0
 
-    zastep = min(diff(za))/10;
+    zastep = min(diff(za))/4;
   
     n      = max([ceil(dza/zastep),2]);
     dzap   = linspace(-dza*(.5-1/n/2),dza*(.5-1/n/2),n);
