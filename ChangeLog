@@ -1,5 +1,20 @@
 2005-02-16  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-920
+
+	* autogen.sh: Also test for automake 1.9.
+
+	* Update on my last commit: automake1.9 was not the
+	problem. SuSE picks up a dependency from make_auto_wsv_h.cc to class
+	binio through absorption.h which defines a friend function with
+	bifstream (derived from binio) as a parameter. So, I would tend to say
+	SuSE's gcc is right when complaining about
+	'undefined reference to `typeinfo for binio`' in
+	make_auto_wsv_h.o (and others), but why all other gcc's don't see this
+	is a mystery to me.
+
+2005-02-16  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-919
 
 	* src/Makefile.am:
