@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.255)
+AM_INIT_AUTOMAKE(arts,0.0.256)
 
 
 #
@@ -280,12 +280,11 @@ else
   WARNING_FLAGS=
 fi
 
-# Turn off optimization: (Leads to very long compilation times)
 if test $ac_maintainer_mode = yes; then
   # Turn on debugging
   CFLAGS="$WARNING_FLAGS"
   CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
-  CXXFLAGS_FIXED="$CXXFLAGS $WARNING_FLAGS"
+  CXXFLAGS_FIXED="$CXXFLAGS"
 else
   CFLAGS="$CFLAGS"
   CXXFLAGS="$CXXFLAGS -ftemplate-depth-20"
@@ -295,7 +294,7 @@ fi
 if test $ac_debug = yes; then
   CFLAGS="$CFLAGS -g"
   CXXFLAGS="$CXXFLAGS -g"
-  CXXFLAGS_FIXED="-ftemplate-depth-20"
+  CXXFLAGS_FIXED="-ftemplate-depth-20 -g"
 else
   CFLAGS="$CFLAGS -DNDEBUG"
   CXXFLAGS="$CXXFLAGS -DNDEBUG"
