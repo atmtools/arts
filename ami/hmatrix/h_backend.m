@@ -29,6 +29,9 @@
 function [H,f_new] = h_backend(f1,f2,za,f_back,w_back,o_ch,o_y)
 
 
+f_new  = vec2col(f2);
+
+
 %=== Main sizes
 nf1   = length(f1);
 nf2   = length(f2);
@@ -45,10 +48,10 @@ if ( nback <= o_ch )
 end
 
 
-%=== Convert to GHz to avoid numerical problems
-f1     = f1/1e9;
-f2     = f2/1e9;
-f_back = f_back/1e9;
+%=== Convert to MHz to avoid numerical problems
+f1     = f1/1e6;
+f2     = f2/1e6;
+f_back = f_back/1e6;
 
 
 
@@ -113,7 +116,6 @@ end
 
 %=== Allocate H and create F_NEW
 H      = sparse( rows(1:nrow), cols(1:nrow), wgts(1:nrow), nza*nf2, nza*nf1 );
-f_new  = vec2col(f2);
 
 
 out(1,-1);

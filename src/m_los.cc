@@ -51,7 +51,6 @@
 #include "math_funcs.h"          
 #include "messages.h"          
 #include "wsv.h"          
-extern const Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric COSMIC_BG_TEMP;
@@ -114,11 +113,6 @@ bool any_ground( const ARRAY<int>& ground )
 
    \author Patrick Eriksson
    \date   2000-10-02
-
-   Adapted to MTL. We have to set the size of p before calling
-   interp_lin at the end of the function.  
-   \date   2001-01-05
-   \author Stefan Buehler
 */
 void geom2refr( 
               VECTOR&       p,
@@ -133,34 +127,32 @@ void geom2refr(
         const VECTOR&       refr_index,
         const Numeric&      l_step_refr )
 {
-  const size_t nz = zs.size();
-  VECTOR n(nz), a(nz), b(nz), r(nz), l(nz), ps(nz);
+  const INDEX    nz = zs.size();
+        INDEX    i;
+        VECTOR   n(nz), r(nz), l(nz), ps(nz);
+        double   a;
+  const double   c2=c*c;
 
   // Get refractive index at the points of the geometrical LOS
   interpz( n, p_abs, z_abs, refr_index, zs );
 
   // Calculate the prolongation factor
-  setto( a, r_geoid );
-  add( zs, a );			//   a = (r_geoid+zs);
-  ele_mult( a, a, a );		//   a = emult( a, a );
-  // b is just a dummy I have introduced.
-  setto( b, -c*c/n[0]/n[0] );
-  add( a, b );
-  transf( b, sqrt, b );
-  ele_mult( n, b, r );		// r = emult( n, sqrt(a-(c*c/n(1)/n(1))) );
-
-  // now we can use b as a dummy for something else. Note also that we
-  // modify a here, since it is not used below.
-  ele_mult(n,a,a);
-  ele_mult(n,a,a);
-  setto(b,-c*c);
-  add(b,a);
-  transf(a,sqrt,a);
-  ele_div( r, a, r );	     // r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
+  const double b = c2 / (n[0]*n[0]);
+  for ( i=0; i<nz; i++ )
+  {
+    a    = r_geoid + zs[i];
+    a    = a*a;
+    r[i] = n[i] * sqrt( a - b ) / sqrt( a*n[i]*n[i] - c2 );
+  }
 
   // Handle tangent points
   if ( abs(zs[0]-z_tan) < 0.01 )
-    r[0] = sqrt(n[0]/(n[0]+(r_geoid+zs[0])*(n[1]-n[0])/(zs[1]-zs[0])));
+    r[0] = sqrt( n[0] / (n[0]+(r_geoid+zs[0])*(n[1]-n[0])/(zs[1]-zs[0])) );
+
+  //cout << "r0 = " << r[0] << "\n"; 
+  //cout << "r1 = " << r[1] << "\n"; 
+  //cout << "r2 = " << r[2] << "\n"; 
+  //cout << "r3 = " << r[3] << "\n"; 
 
   // Safety check
   if ( isnan(r[0]) != 0 )
@@ -169,7 +161,7 @@ void geom2refr(
 
   // Calculate distance from the lowest altitude along the LOS using r
   l[0] = 0.0;
-  for ( size_t i=1; i<nz; i++ )
+  for ( i=1; i<nz; i++ )
     l[i] = l[i-1] + l_step_refr * (r[i-1]+r[i])/2;
 
   // Handle the rare case that llim < l_step
@@ -248,7 +240,7 @@ void upward_geom(
         const Numeric&      atm_limit,
         const size_t&       fit_limit )
 {
-  Numeric  a, b;          // temporary values
+  double   a, b;          // temporary values
   Numeric  llim;          // distance to atmospheric limit
   VECTOR   l;             // distance from sensor
 
@@ -256,35 +248,30 @@ void upward_geom(
     throw logic_error("Upward function used for zenith angle > 90 deg."); 
 
   a     = r_geoid + atm_limit;
-  b     = (r_geoid + z_plat)*sin(DEG2RAD*za);
-  llim  = sqrt(a*a-b*b) - (r_geoid+z_plat)*cos(DEG2RAD*za) ;
+  b     = (r_geoid+z_plat) * sin(DEG2RAD*za);
+  llim  = sqrt( a*a - b*b ) - (r_geoid+z_plat)*cos(DEG2RAD*za) ;
 
   if ( !fit_limit ) 
   {
-    if ( llim < l_step )    // Handle the rare case that llim < l_step
-      l_step = llim*0.9999; // *0.9999 to avoid problem in interpolations
+    if ( llim < l_step )          // Handle the rare case that llim < l_step
+      l_step = llim*0.9999;       // *0.9999 to avoid problem in interpolations
   }
   else
   {
-    double n = ceil( llim / l_step + 1.0 );  
-    l_step = 0.9999*llim/(n-1); // *0.9999 to avoid problem in interpolations
+    Numeric  n = ceil( llim / l_step + 1.0 );  
+    l_step = 0.9999*llim/(n-1);   // *0.9999 to avoid problem in interpolations
   }
+
   linspace( l, 0, llim, l_step );
+
+  resize( z, l.size() );
 
   b = r_geoid + z_plat;  
 
-  //  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - r_geoid;
-  VECTOR d1(l.size()), d2(l.size());  // just two dummies 
-  ele_mult(l,l,d1);
-  copy( scaled( l, 2.0*b*cos(DEG2RAD*za) ), d2 );
-  resize( z, l.size() );
-  setto( z, b*b );
-  add( d1, z );
-  add( d2, z );
-  transf( z, sqrt, z );
-  add( VECTOR( l.size(), -r_geoid ), z );
+  for ( INDEX i=0; i<z.size(); i++ )
+    z[i] = sqrt( b*b + l[i]*l[i] + 2.0*b*l[i]*cos(DEG2RAD*za) ) - r_geoid;
 }
-
+ 
 
 
 //// upward_refr ///////////////////////////////////////////////////////////
@@ -363,8 +350,10 @@ void space_geom(
          const size_t&     fit_limit,
          const Numeric&    z_ground )
 {
-  Numeric  a, b;          // temporary values
-  Numeric  llim;          // distance to atmospheric limit
+  //  Numeric  a, b;          // temporary values
+  //Numeric  llim;          // distance to atmospheric limit
+  double   a, b;          // temporary values
+  double   llim;          // distance to atmospheric limit
   VECTOR   l;             // length from the tangent point
 
   // If LOS outside the atmosphere, return empty vector
@@ -376,27 +365,26 @@ void space_geom(
   {
     a    = r_geoid + atm_limit;
     b    = r_geoid + z_tan;
-    llim = sqrt( a*a - b*b );        
+    b    = b * b;
+    llim = sqrt( a*a - b );        
 
     if ( !fit_limit ) 
     {
-      if ( llim < l_step )   // Handle the rare case that llim < l_step
-        l_step = llim*0.9999; // *0.9999 to avoid problem in interpolations
+      if ( llim < l_step )        // Handle the rare case that llim < l_step
+        l_step = llim*0.9999;     // *0.9999 to avoid problem in interpolations
     }
     else
     {
-      double n = ceil( llim / l_step + 1.0 );  
+      Numeric  n = ceil( llim / l_step + 1.0 );  
       l_step = 0.9999*llim/(n-1); // *0.9999 to avoid problem in interpolations
     }
+
     linspace( l, 0, llim, l_step );
 
-    //  z = sqrt(b*b+emult(l,l)) - r_geoid;
-    ele_mult(l,l,l);
-    add( VECTOR( l.size(), b*b ), l ); 
-    transf( l, sqrt, l );
-    resize(z,l.size());
-    setto( z, -r_geoid );
-    add( l, z ); 
+    resize( z, l.size() );
+
+    for( INDEX i=0; i<z.size(); i++ )
+      z[i] = sqrt( b + l[i]*l[i] ) - r_geoid;
   }   
 
   // Intersection with the ground
@@ -523,14 +511,15 @@ void los_space(
     if ( refr )   // Refraction
     {
       c = refr_constant( r_geoid, za[i], z_plat, p_abs, z_abs, refr_index );
-      z_tan = ztan_refr( c, za[i], z_plat, z_ground, p_abs, z_abs, refr_index);
+      z_tan = ztan_refr( c, za[i], z_plat, z_ground, p_abs, z_abs, refr_index,
+                                                                     r_geoid );
       out3 << "    z_tan = " << z_tan/1e3 << " km\n";
       space_refr( los.p[i], los.l_step[i], c, z_tan, r_geoid, atm_limit, 
                              z_ground, p_abs, z_abs, refr_index, l_step_refr );
     }
     else          // Geometrical calculations
     {
-      z_tan = ztan_geom( za[i], z_plat );
+      z_tan = ztan_geom( za[i], z_plat, r_geoid );
       out3 << "    z_tan = " << z_tan/1e3 << " km\n";
       space_geom( los.p[i], los.l_step[i], z_tan, r_geoid, atm_limit, 0, 
                                                                     z_ground );
@@ -585,26 +574,26 @@ void los_inside(
               const VECTOR&     refr_index,
               const Numeric&    l_step_refr )
 {
-  Numeric z_tan, za_ground; 
-  Numeric a, b, c, l1;          // see below (c can be the LOS constant)
-  size_t  n = za.size();        // the number of zenith angles
+  Numeric z_tan, za_ground, gc;    // gc is the LOS constant
+  double  a, b, c, l1;               // see below 
+  INDEX   n = za.size();          // the number of zenith angles
 
   // Set all step lengths to the user defined value as a first guess.
   // Note that the step length can be changed in the sub-functions.
   setto( los.l_step, l_step);
 
   // Loop the zenith angles
-  for ( size_t i=0; i<n; i++ )
+  for ( INDEX i=0; i<n; i++ )
   { 
     // Calculate the LOS constant
     if ( refr )
-      c = refr_constant( r_geoid, za[i], z_plat, p_abs, z_abs, refr_index );
+      gc = refr_constant( r_geoid, za[i], z_plat, p_abs, z_abs, refr_index );
 
     // Upward
     if ( za[i] <= 90 )
     {
       if ( refr )
-        upward_refr( los.p[i], los.l_step[i], c, z_plat, za[i], r_geoid, 
+        upward_refr( los.p[i], los.l_step[i], gc, z_plat, za[i], r_geoid, 
                            atm_limit, p_abs, z_abs, refr_index, l_step_refr );
       else
         upward_geom( los.p[i], los.l_step[i], r_geoid, z_plat, za[i], 
@@ -619,9 +608,12 @@ void los_inside(
     {
       // Calculate the tangent altitude
       if ( refr )
-        z_tan = ztan_refr( c, za[i], z_plat, z_ground, p_abs,z_abs,refr_index);
+        z_tan = ztan_refr( gc, za[i], z_plat, z_ground, p_abs,z_abs,
+                                                         refr_index, r_geoid );
       else
-	z_tan = ztan_geom( za[i], z_plat );
+	z_tan = ztan_geom( za[i], z_plat, r_geoid );
+
+      //cout << "ztan: " << z_tan/1e3 << " km\n";
 
       out3 << "    z_tan = " << z_tan/1e3 << " km\n";
 
@@ -636,7 +628,7 @@ void los_inside(
 	  VECTOR  zs, ps, ls, p_plat(1);  
 	  Numeric l_temp=l_step_refr;
 	  space_geom( zs, l_temp, z_tan, r_geoid, atm_limit, 1, z_ground );
-	  geom2refr( ps, l_temp, zs, c, z_tan, r_geoid, atm_limit, p_abs, 
+	  geom2refr( ps, l_temp, zs, gc, z_tan, r_geoid, atm_limit, p_abs, 
                                                    z_abs, refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.size()-1), l_temp );
           z2p( p_plat, z_abs, p_abs, VECTOR(1,z_plat) );
@@ -645,8 +637,8 @@ void los_inside(
         else
 	{
           // Use geometry
-	  a      = r_geoid + z_plat;   // help variable
-	  b      = r_geoid + z_tan;    // help variable
+	  a      = r_geoid + z_plat;        // help variable
+	  b      = r_geoid + z_tan;         // help variable
 	  l1     = sqrt(a*a-b*b);           // distance platform-tangent point
         }
 
@@ -655,13 +647,13 @@ void los_inside(
 	los.l_step[i] = l1 / ( (Numeric)los.stop[i] );
 
         if ( refr )
-	  space_refr( los.p[i], los.l_step[i], c, z_tan, r_geoid, atm_limit, 
+	  space_refr( los.p[i], los.l_step[i], gc, z_tan, r_geoid, atm_limit, 
                              z_ground, p_abs, z_abs, refr_index, l_step_refr );
 	else
 	  space_geom( los.p[i], los.l_step[i], z_tan, r_geoid, atm_limit, 0, 
                                                                     z_ground );
         los.start[i]  = los.p[i].size() - 1;
-        los.ground[i] = -1;                // no gound intersection
+        los.ground[i] = -1;                    // no gound intersection
       }   
     
       // Intersection with the ground
@@ -675,9 +667,9 @@ void los_inside(
 	  Numeric l_temp=l_step_refr;
           // Determine the "zenith angle" at ground and call upward function 
           Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
-          za_ground = RAD2DEG*asin(c/n_ground/(r_geoid+z_ground));
+          za_ground = RAD2DEG*asin(gc/n_ground/(r_geoid+z_ground));
           upward_geom( zs, l_temp, r_geoid, z_ground, za_ground, atm_limit, 1);
-	  geom2refr( ps, l_temp, zs, c, z_tan, r_geoid, atm_limit, p_abs, 
+	  geom2refr( ps, l_temp, zs, gc, z_tan, r_geoid, atm_limit, p_abs, 
                                                   z_abs, refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.size()-1), l_temp );
 	  l1 = interp_lin( ps, ls, z_plat );  
@@ -693,7 +685,7 @@ void los_inside(
 	los.stop[i]   = (size_t) ceil( l1 / l_step );
 	los.l_step[i] = l1 / ( (double)los.stop[i] );
         if ( refr )
-	  upward_refr( los.p[i], los.l_step[i], c, z_ground, za_ground, 
+	  upward_refr( los.p[i], los.l_step[i], gc, z_ground, za_ground, 
                    r_geoid, atm_limit, p_abs, z_abs, refr_index, l_step_refr );
         else
           upward_geom( los.p[i], los.l_step[i], r_geoid, z_ground, 
@@ -723,7 +715,8 @@ void los_inside(
 */
 void r_geoidStd( Numeric&    r_geoid )
 {
-   r_geoid = EARTH_RADIUS;
+  extern const Numeric EARTH_RADIUS;
+  r_geoid = EARTH_RADIUS;
 }
 
 

@@ -40,7 +40,6 @@
 #include "vecmat.h"
 #include "messages.h"          
 #include "math_funcs.h"          
-extern const Numeric EARTH_RADIUS;
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PLANCK_CONST;
@@ -76,16 +75,18 @@ void planck (
         const VECTOR&     f,
         const VECTOR&     t )
 {
-  static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
-  const size_t  n_f  = f.size();
-  const size_t  n_t  = t.size();
-  size_t        i_f, i_t;
-  Numeric       c, d;
+  // Double must be used here (if not, a becomes 0 when using float)
+  static const double a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const double b = PLANCK_CONST/BOLTZMAN_CONST;
+
+  const size_t    n_f  = f.size();
+  const size_t    n_t  = t.size();
+        size_t    i_f, i_t;
+        Numeric   c, d;
 
   assert( n_f==B.nrows() );
   assert( n_t==B.ncols() );
-  
+
   for ( i_f=0; i_f<n_f; i_f++ )
   {
     c = a * f[i_f]*f[i_f]*f[i_f];
@@ -658,12 +659,13 @@ Numeric interpz(
     \date   2000-04-08 
 */
 Numeric ztan_geom(
-        const Numeric&     za,
-        const Numeric&     z_plat )
+        const Numeric&   za,
+        const Numeric&   z_plat,
+        const Numeric&   r_geoid )
 {
   Numeric  z_tan;
   if ( za >= 90 )   
-    z_tan = (EARTH_RADIUS+z_plat)*sin(DEG2RAD*za) - EARTH_RADIUS; 
+    z_tan = (r_geoid+z_plat)*sin(DEG2RAD*za) - r_geoid; 
   else
     z_tan = 9.9999e6;
   return z_tan;
@@ -688,39 +690,40 @@ Numeric ztan_geom(
     \date   2000-10-02
 */
 Numeric ztan_refr(
-        const Numeric&     c,
-        const Numeric&     za,
-        const Numeric&     z_plat,
-        const Numeric&     z_ground,
-        const VECTOR&      p_abs,
-        const VECTOR&      z_abs,
-        const VECTOR&      refr_index )
+        const Numeric&   c,
+        const Numeric&   za,
+        const Numeric&   z_plat,
+        const Numeric&   z_ground,
+        const VECTOR&    p_abs,
+        const VECTOR&    z_abs,
+        const VECTOR&    refr_index,
+        const Numeric&   r_geoid )
 {
   if ( za < 90 )   //=== Upward ==========================================
-    return ztan_geom( za, z_plat);
+    return ztan_geom( za, z_plat, r_geoid );
   else
   {
     const size_t  n = z_abs.size();
           size_t  i;
 
-    for ( i=(n-1); (i>=0) && (EARTH_RADIUS+z_abs[i])*refr_index[i]>c; i-- ) 
+    for ( i=(n-1); (i>=0) && (r_geoid+z_abs[i])*refr_index[i]>c; i-- ) 
     {
       if ( z_abs[i] <= z_ground ) //=== Ground intersection ==============
       {
         Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
-        Numeric theta = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
-        return ztan_geom( 180-theta, z_ground );
+        Numeric theta = RAD2DEG*asin(c/n_ground/(r_geoid+z_ground));
+        return ztan_geom( 180-theta, z_ground, r_geoid );
       }
     }
     if ( i == (n-1) )  //=== outside the atmosphere ======================
-      return ztan_geom( za, z_plat);
+      return ztan_geom( za, z_plat, r_geoid );
     else               //=== z_tan inside the atmosphere =================
     {
       VECTOR zs(2), cs(2);
       zs[0] = z_abs[i];
       zs[1] = z_abs[i+1];
-      cs[0] = (EARTH_RADIUS+z_abs[i])*refr_index[i];
-      cs[1] = (EARTH_RADIUS+z_abs[i+1])*refr_index[i+1];  
+      cs[0] = (r_geoid+z_abs[i])*refr_index[i];
+      cs[1] = (r_geoid+z_abs[i+1])*refr_index[i+1];  
       return interp_lin( cs, zs, c ); 
     }
   }

@@ -1125,6 +1125,7 @@ void z_absHydrostatic(
         Numeric  tv;                    // virtual temperature
         Numeric  dz;                    // step geometrical altitude
         VECTOR   ztmp(np);              // temporary storage for z_abs
+
   extern const Numeric EARTH_RADIUS;
 
   if ( (z_abs.size()!=np) || (t_abs.size()!=np) || (h2o_abs.size()!=np) )

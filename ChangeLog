@@ -1,3 +1,29 @@
+2001-02-12  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-120
+
+	* Hard-coded double in some places in m_los.cc where the earth
+	radius (maybe + something) is squared to improve the precision.
+
+	* With double and setting n=1, the same result is obtained with and 
+	without refraction (which should indicate that everything is OK).
+        The option float/refraction is still not working (see more below).
+
+	* Fixed a bug in planck when using float. This expression:
+	a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+	becomes 0 if a is set to be float. Now hardcoded to be double.
+
+	* I will not bother you about the details, but I recommend you
+	to NOT use refraction before we have validated my new scheme. Carlos
+	will implement some other scheme so we get an oppertunity to check
+	the results.
+
+	* ARTS seems to run now when using float (if not refraction is switched
+	on). So let's use float for some time to look for other bugs
+	connected with using float. OK?
+	
+	
+
 2001-02-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-119

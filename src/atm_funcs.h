@@ -158,16 +158,18 @@ Numeric interpz(
 ////////////////////////////////////////////////////////////////////////////
 
 Numeric ztan_geom(
-        const Numeric&     za,
-        const Numeric&     z_plat );
+        const Numeric&   za,
+        const Numeric&   z_plat,
+        const Numeric&   r_geoid );
 
 Numeric ztan_refr(
-        const Numeric&     c,
-        const Numeric&     za,
-        const Numeric&     z_plat,
-        const Numeric&     z_ground,
-        const VECTOR&      p_abs,
-        const VECTOR&      z_abs,
-        const VECTOR&      refr_index );
+        const Numeric&   c,
+        const Numeric&   za,
+        const Numeric&   z_plat,
+        const Numeric&   z_ground,
+        const VECTOR&    p_abs,
+        const VECTOR&    z_abs,
+        const VECTOR&    refr_index,
+        const Numeric&   r_geoid );
 
 #endif // atmfuncs_h
