@@ -1,3 +1,10 @@
+2003-09-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-128
+
+	* README: Added information on what to do if HDF is installed in a
+	non-default location.
+
 2003-09-08  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-0-127
@@ -182,6 +189,7 @@
 	included in species_data.cc. Now all the species, continua, and 
 	clouds, are consistently listed in tables. 
 
+>>>>>>> 1.364.4.129
 2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-119
