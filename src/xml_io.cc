@@ -1038,7 +1038,7 @@ xml_read_from_stream (istream&       is,
   Index n;
   try
     {
-      for (Index n = 0; n < nelem; n++)
+      for (n = 0; n < nelem; n++)
         {
           xml_read_from_stream (is, amatrix[n]);
         }
@@ -1115,7 +1115,7 @@ xml_read_from_stream (istream&           is,
   Index n;
   try
     {
-      for (Index n = 0; n < nelem; n++)
+      for (n = 0; n < nelem; n++)
         {
           xml_read_from_stream (is, astag[n]);
         }
@@ -1192,7 +1192,7 @@ xml_read_from_stream (istream&       is,
   Index n;
   try
     {
-      for (Index n = 0; n < nelem; n++)
+      for (n = 0; n < nelem; n++)
         {
           xml_read_from_stream (is, atensor3[n]);
         }
