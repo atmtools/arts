@@ -27,43 +27,12 @@
 #define agenda_h
 
 #include "token.h"
-#include "auto_wsv.h"
 
-/** Method runtime data. In contrast to MdRecord, an object of this
-    class contains the runtime information for one method: The method
-    id and the keyword parameter values. This is all that the engine
-    needs to execute the stack of methods.
+// Declare existance of class WorkSpace
+class WorkSpace;
 
-    @author Stefan Buehler */
-class MRecord {
-public:
-  MRecord(const Index id,
-	  const Array<TokVal>& values,
-	  const ArrayOfIndex& output,
-	  const ArrayOfIndex& input)
-    : mid(id),
-      mvalues( values ),
-      moutput( output ),
-      minput(  input  )
-  { 
-    // Initialization of arrays from other array now works correctly.
-  }
-  Index                Id()     const { return mid;     }
-  const Array<TokVal>& Values() const { return mvalues; }
-  const ArrayOfIndex&  Output() const { return moutput; }
-  const ArrayOfIndex&  Input()  const { return minput;  }
-
-private:
-  /** Method id. */
-  Index mid;
-  /** List of parameter values (see methods.h for definition of
-      TokVal). */
-  Array<TokVal> mvalues;
-  /** Output workspace variables (for generic methods). */
-  ArrayOfIndex moutput;
-  /** Input workspace variables (for generic methods). */
-  ArrayOfIndex minput;
-};
+// ... and Agenda, since we need it for MRecord
+class MRecord;
 
 //! The Agenda class.
 /*! 
@@ -80,8 +49,57 @@ class Agenda {
 public:
   void push_back(MRecord n);
   void execute(WorkSpace& workspace);
+  void resize(Index n);
+  Agenda& operator=(const Agenda& x);
 private:
   Array<MRecord> mml;	/*!< The actual list of methods to execute. */
 };
+
+/** Method runtime data. In contrast to MdRecord, an object of this
+    class contains the runtime information for one method: The method
+    id and the keyword parameter values. This is all that the engine
+    needs to execute the stack of methods.
+
+    An MRecord includes a member magenda, which can contain an entire
+    agenda, i.e., a list of other MRecords. 
+
+    @author Stefan Buehler */
+class MRecord {
+public:
+  MRecord(){ /* Nothing to do here. */ }
+  MRecord(const Index id,
+	  const Array<TokVal>& values,
+	  const ArrayOfIndex& output,
+	  const ArrayOfIndex& input,
+	  const Agenda&       tasks)
+    : mid(id),
+      mvalues( values ),
+      moutput( output ),
+      minput(  input  ),
+      mtasks( tasks )
+  { 
+    // Initialization of arrays from other array now works correctly.
+  }
+  Index                Id()       const { return mid;     }
+  const Array<TokVal>& Values()   const { return mvalues; }
+  const ArrayOfIndex&  Output()   const { return moutput; }
+  const ArrayOfIndex&  Input()    const { return minput;  }
+  const Agenda&        Tasks()    const { return mtasks;  }
+
+private:
+  /** Method id. */
+  Index mid;
+  /** List of parameter values (see methods.h for definition of
+      TokVal). */
+  Array<TokVal> mvalues;
+  /** Output workspace variables (for generic methods). */
+  ArrayOfIndex moutput;
+  /** Input workspace variables (for generic methods). */
+  ArrayOfIndex minput;
+  /** An agenda, which can be given in the controlfile instead of
+      keywords. */
+  Agenda mtasks;
+};
+
 
 #endif

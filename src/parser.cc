@@ -654,14 +654,17 @@ void parse_numvector(Vector& res, SourceText& text)
 
 /** Parse the Contents of text as ARTS control input. 
 
-    @return True: This was the last method.
+    Either values or tasks will be empty.
 
     @param id     Output. Method id.
     @param values Output. Keyword parameter values for this method.
     @param output Output. Output workspace variables (for generic methods).
     @param input  Output. Input workspace variables (for generic methods).
-  
+    @param tasks  Output. A list of other methods.
     @param text The input to parse.
+
+    @param no_eot Suppress throwing an error on EOT after the closing
+    curly brace.
    
     @see read_name
     @see eat_whitespace
@@ -679,13 +682,15 @@ void parse_numvector(Vector& res, SourceText& text)
    @exception UnexpectedKeyword
 
    @author Stefan Buehler  */
-bool parse_method(Index& id, 
+void parse_method(Index& id, 
 		  Array<TokVal>& values,
 		  ArrayOfIndex& output,
 		  ArrayOfIndex& input,
+		  Agenda&       tasks,
 		  SourceText& text,
 		  const std::map<String, Index> MdMap,
-		  const std::map<String, Index> WsvMap)
+		  const std::map<String, Index> WsvMap,
+		  bool no_eot=false)
 {
   extern const Array<WsvRecord> wsv_data;
   extern const Array<MdRecord> md_data;
@@ -699,7 +704,8 @@ bool parse_method(Index& id,
   values.resize( 0 );
   output.resize( 0 );
   input.resize(  0 );
-
+  tasks.resize(  0 );
+  
   {
     String methodname;
     read_name(methodname, text);
@@ -821,124 +827,146 @@ bool parse_method(Index& id,
   // Now look for the curly braces:
   assertain_character('{',text);
   eat_whitespace(text);
-  
-  // Now we have to deal with two different cases: Keywords with
-  // parameters, or (optionally) only a parameter without a keyword
-  // for methods that have only a single argument.
-  //
-  // We can distinguish the two cases if we check whether the current
-  // character is a letter. (If the parameter is specified directly it
-  // must be either a number, a +- sign or a quotation mark)
-  //
-  // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
-  //
-  for ( Index i=0 ; i<md_data[id].Keywords().nelem() ; ++i )
+
+  // There are two kind of methods, agenda methods, which have other
+  // methods in the body, and normal methods, expecting keywords and
+  // values. Let's take the agenda case first...
+  if ( md_data[id].AgendaMethod() )
     {
-      if (!isalpha(text.Current()) && 1==md_data[id].Keywords().nelem())
+      out3 << "\nParsing agenda: "
+	   << wsv_data[output[0]].Name()
+	   << " {\n";
+
+      parse_agenda(tasks,text,MdMap,WsvMap);
+
+      out3 << "}\n";
+    }
+  else
+    {
+      out3 << "- " << md_data[id].Name() << "\n";
+
+      // Now we have to deal with two different cases: Keywords with
+      // parameters, or (optionally) only a parameter without a keyword
+      // for methods that have only a single argument.
+      //
+      // We can distinguish the two cases if we check whether the current
+      // character is a letter. (If the parameter is specified directly it
+      // must be either a number, a +- sign or a quotation mark)
+      //
+      // KEYWORDS THAT START WITH A NUMBER WILL BREAK THIS CODE!!
+      //
+      for ( Index i=0 ; i<md_data[id].Keywords().nelem() ; ++i )
 	{
-	  // Parameter specified directly, without a keyword. This is only
-	  // allowed for single parameter methods!
-
-	  // We don't have to do anything here.
-	}
-      else  
-	{      // Look for the keywords and read the parameters:
-	  
-	  String keyname;
-	  read_name(keyname,text);
-
-	  // Is the keyname the expected keyname?
-	  if ( keyname != md_data[id].Keywords()[i] )
+	  if (!isalpha(text.Current()) && 1==md_data[id].Keywords().nelem())
 	    {
-	      throw UnexpectedKeyword( keyname,
-				       text.File(),
-				       text.Line(),
-				       text.Column());
+	      // Parameter specified directly, without a keyword. This is only
+	      // allowed for single parameter methods!
+
+	      // We don't have to do anything here.
+	    }
+	  else  
+	    {      // Look for the keywords and read the parameters:
+	  
+	      String keyname;
+	      read_name(keyname,text);
+
+	      // Is the keyname the expected keyname?
+	      if ( keyname != md_data[id].Keywords()[i] )
+		{
+		  throw UnexpectedKeyword( keyname,
+					   text.File(),
+					   text.Line(),
+					   text.Column());
+		}
+
+	      eat_whitespace(text);
+
+	      // Look for '='
+	      assertain_character('=',text);
+	      eat_whitespace(text);
+	    }
+
+	  // Now parse the key value. This can be:
+	  // String_t,    Index_t,    Numeric_t,
+	  // Array_String_t, Array_Index_t, Vector_t,
+	  switch (md_data[id].Types()[i]) 
+	    {
+	    case String_t:
+	      {
+		String dummy;
+		parse_String(dummy, text);
+		values.push_back(dummy);
+		break;
+	      }
+	    case Index_t:
+	      {
+		Index n;
+		parse_integer(n, text);
+		values.push_back(n);
+		break;
+	      }
+	    case Numeric_t:
+	      {
+		Numeric n;
+		parse_numeric(n, text);
+		values.push_back(n);
+		break;
+	      }
+	    case Array_String_t:
+	      {
+		ArrayOfString dummy;
+		parse_Stringvector(dummy, text);
+		values.push_back(dummy);
+		break;
+	      }
+	    case Array_Index_t:
+	      {
+		ArrayOfIndex dummy;
+		parse_intvector(dummy, text);
+		values.push_back(dummy);
+		break;
+	      }
+	    case Vector_t:
+	      {
+		Vector dummy;
+		parse_numvector(dummy, text);
+		values.push_back(dummy);
+		break;
+	      }
+	    default:
+	      throw logic_error("Impossible parameter type.");
+	      break;
 	    }
 
 	  eat_whitespace(text);
 
-	  // Look for '='
-	  assertain_character('=',text);
-	  eat_whitespace(text);
+	  // Check:
+	  //      cout << "Value: " << md_data[id].Values()[i] << '\n';
 	}
-
-      // Now parse the key value. This can be:
-      // String_t,    Index_t,    Numeric_t,
-      // Array_String_t, Array_Index_t, Vector_t,
-      switch (md_data[id].Types()[i]) 
-	{
-	case String_t:
-	  {
-	    String dummy;
-	    parse_String(dummy, text);
-	    values.push_back(dummy);
-	    break;
-	  }
-	case Index_t:
-	  {
-	    Index n;
-	    parse_integer(n, text);
-	    values.push_back(n);
-	    break;
-	  }
-	case Numeric_t:
-	  {
-	    Numeric n;
-	    parse_numeric(n, text);
-	    values.push_back(n);
-	    break;
-	  }
-	case Array_String_t:
-	  {
-	    ArrayOfString dummy;
-	    parse_Stringvector(dummy, text);
-	    values.push_back(dummy);
-	    break;
-	  }
-	case Array_Index_t:
-	  {
-	    ArrayOfIndex dummy;
-	    parse_intvector(dummy, text);
-	    values.push_back(dummy);
-	    break;
-	  }
-	case Vector_t:
-	  {
-	    Vector dummy;
-	    parse_numvector(dummy, text);
-	    values.push_back(dummy);
-	    break;
-	  }
-	default:
-	  throw logic_error("Impossible parameter type.");
-	  break;
-	}
-
-      eat_whitespace(text);
-
-      // Check:
-      //      cout << "Value: " << md_data[id].Values()[i] << '\n';
     }
 
+  // Now look for the closing curly braces.  We have to catch Eot,
+  // because after a method description may be a good place to end
+  // the control file.
 
-  // Now look for the closing curly braces.
-  // We have to catch Eot, because after a method description is a
-  // good place to end the control file. 
   try
     {
-     assertain_character('}',text);
+      assertain_character('}',text);
     }
   catch (const Eot x)
     {
       //      cout << "EOT!!!!" << endl;
-      return true;
+      // Re-trow the error if the no_eot flag is not set:
+      if (!no_eot) throw Eot(x);
     }
-  return false;
 }
 
 /** Parse the Contents of text as ARTS control input. 
   
+    This method is used to parse the list of methods given in the
+    curly braces of an agenda method. So the end is marked by a
+    closing curly brace ahead.
+
     @param tasklist Output. The ids and keyword parameter values for the
                     methods to run.
   
@@ -950,34 +978,32 @@ bool parse_method(Index& id,
    @see parse_method
          
    @author Stefan Buehler */
-void parse(Agenda& tasklist,
-	   SourceText& text,
-	   const std::map<String, Index> MdMap,
-	   const std::map<String, Index> WsvMap)
+void parse_agenda(Agenda& tasklist,
+		  SourceText& text,
+		  const std::map<String, Index> MdMap,
+		  const std::map<String, Index> WsvMap)
 {
   extern const Array<MdRecord> md_data;
-  bool last = false;
+
   // For method ids:
   Index id;		
- // For keyword parameter values:
+  // For keyword parameter values:
   Array<TokVal> values;
   // Output workspace variables (for generic methods):
   ArrayOfIndex output;		
   // Input workspace variables (for generic methods):
   ArrayOfIndex input;
-
-  out3 << "\nParsing:\n";
-
-  //  cout << text ;
+  // For Agenda, if ther is any:
+  Agenda tasks;
 
   eat_whitespace(text);
 
-  while (!last)
+  while ( '}' != text.Current() )
     {
-      last = parse_method(id,values,output,input,text,MdMap,WsvMap);
+      parse_method(id,values,output,input,tasks,text,MdMap,WsvMap);
 
-      // Append taks to task list:
-      tasklist.push_back(MRecord(id,values,output,input));
+      // Append taks to task list:      
+      tasklist.push_back(MRecord(id,values,output,input,tasks));
 
       {
 	// Everything in this block is just to generate some
@@ -1011,32 +1037,56 @@ void parse(Agenda& tasklist,
 	    out3 << "\n";
 	  }
       }
-
-      // If last is set, then we have anyway reached the end of the
-      // text, so we don't have to eat whitespace.
-      if (!last)
-	try
-	  {
-	    eat_whitespace(text);
-	  }
-	catch (const Eot x)
-	  {
-	    last = true;
-	  }
+      
+      eat_whitespace(text);
     }
 }
 
+/** The main function of the parser. This will parse the entire
+    text. FIXME: Add more documentation here.
+
+    @param tasklist Output. The method runtime data that can be used to
+                    execute the methods.
+    @param text The control text
+
+    @author Stefan Buehler */
 void parse_main(Agenda& tasklist, SourceText& text)
 {
-  //  extern const Array<MdRecord> md_data;
-  //  extern const Array<WsvRecord> wsv_data;
   extern const std::map<String, Index> MdMap;
   extern const std::map<String, Index> WsvMap;
 
   try 
     {
+      extern const Array<MdRecord> md_data;
+      extern const Array<WsvRecord> wsv_data;
+
+      // For method ids:
+      Index id;		
+      // For keyword parameter values:
+      Array<TokVal> values;
+      // Output workspace variables (for generic methods):
+      ArrayOfIndex output;		
+      // Input workspace variables (for generic methods):
+      ArrayOfIndex input;
+      // For Agenda, if ther is any:
+      Agenda tasks;
+
       text.Init();
-      parse(tasklist,text,MdMap,WsvMap);
+      eat_whitespace(text);
+
+      parse_method(id,values,output,input,tasklist,text,MdMap,WsvMap,true);
+	  
+      if ( "AgendaDefine" != md_data[id].Name() )
+	{
+	  out0 << "The outermost method must be AgendaDefine!\n";
+	  exit(1);
+	}
+
+      if ( "main_agenda" != wsv_data[output[0]].Name() )
+	{
+	  out0 << "The outermost method must be AgendaDefine (main_agenda)!\n";
+	  exit(1);
+	}
     }
   catch (const Eot x)
     {

@@ -79,7 +79,8 @@ arts_SOURCES = \
 	wsv_aux.cc \
 	m_method_list.cc \
 	agenda.h \
-	agenda.cc
+	agenda.cc \
+	m_agenda.cc
 
 
 arts_DEPENDENCIES= \

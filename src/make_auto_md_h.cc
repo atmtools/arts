@@ -362,6 +362,15 @@ int main()
 	      }
 	  }
 
+	  // Write agenda, if there is one:
+	  if ( md_data[i].AgendaMethod() )
+	    {
+	      align(ofs,is_first_parameter,indent);
+	      ofs << "// Agenda from controlfile:\n";
+	      ofs << indent;		  
+	      ofs << "const Agenda& input_agenda";
+	    }
+
 	  ofs << ");\n\n";
 	}
 

@@ -3600,9 +3600,9 @@ md_data.push_back
 
   md_data.push_back
     ( MdRecord
-      ( NAME("MethodListDefine"),
+      ( NAME("AgendaDefine"),
   	DESCRIPTION
-	( "Set up a method list.\n"
+	( "Set up an agenda.\n"
 	  "\n"
 	  "A method list just contains indices (in md_data) of methods\n"
 	  "intended for sequential execution. Only methods without keyword\n"
@@ -3617,10 +3617,10 @@ md_data.push_back
 	  "   methods      : An array of names of methods." ),
 	OUTPUT(  ),
         INPUT(  ),
-	GOUTPUT( ArrayOfIndex_ ),
+	GOUTPUT( Agenda_ ),
 	GINPUT(),
-	KEYWORDS( "methods" ),
-	TYPES(    Array_String_t )));
-
+	KEYWORDS(),
+	TYPES(),
+	AGENDAMETHOD( true )));
 }
 

@@ -1,3 +1,5 @@
+AgendaDefine(main_agenda){
+
 # ######## EXAMPLE CONTINUUM TAG CONTROL FILE #######
 #----------------------------------------------------
 # define the arts continuum tags of arts
@@ -187,3 +189,5 @@ ArrayOfStringWriteAscii (cont_description_models) {""}
 # 8. cont_descriptionAppend user given input parameters
 ArrayOfVectorWriteAscii (cont_description_parameters) {""}
 #####################################################
+
+}

@@ -647,9 +647,9 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("method_list",
-      "A list of methods. See \"arts -d MethodListDefine\"\n"
-      "for an explanation what a method list is.",
-      ArrayOfIndex_));
+     ("main_agenda",
+      "The agenda corresponding to the entire controlfile. This is executed\n"
+      "when ARTS is run.\n",
+      Agenda_));
 
 }

@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.25)
+AM_INIT_AUTOMAKE(arts,1.1.26)
 
 
 #
@@ -270,7 +270,7 @@ if test x$ac_docgen = xyes; then
 fi
 
 if test x$ac_more_warnings = xyes; then
-  WARNING_FLAGS="-W -Wall"
+  WARNING_FLAGS="-W -Wall -Wno-unused"
 else
   WARNING_FLAGS=
 fi

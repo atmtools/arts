@@ -21,6 +21,7 @@
 #ifndef parser_h
 #define parser_h
 
+#include <map>
 #include "agenda.h"
 
 /** A smart class to hold the text for parsing. A variable of this
@@ -107,15 +108,12 @@ private:
   bool mLineBreak;
 };
 
-/** The main function of the parser. This will parse the entire
-    text. FIXME: Add more documentation here.
-
-    @param tasklist Output. The method runtime data that can be used to
-                    execute the methods.
-    @param text The control text
-
-    @author Stefan Buehler */
 void parse_main(Agenda& tasklist, SourceText& text);
+
+void parse_agenda(Agenda& tasklist,
+		  SourceText& text,
+		  const std::map<String, Index> MdMap,
+		  const std::map<String, Index> WsvMap);
 
 
 #endif

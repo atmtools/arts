@@ -74,7 +74,8 @@ int main()
       ofs << "#define auto_wsv_h\n\n";
 
       ofs << "#include \"absorption.h\"\n"
-	  << "#include \"los.h\"\n\n";
+	  << "#include \"los.h\"\n"
+	  << "#include \"agenda.h\"\n\n";
       
       ofs << "//! Total number of workspace variables.\n"
 	  << "/*! \n"

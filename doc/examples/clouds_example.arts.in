@@ -1,3 +1,5 @@
+AgendaDefine(main_agenda){
+
 # ########## EXAMPLE CLOUD TAG CONTROL FILE #########
 #----------------------------------------------------
 # define the arts cloud and additional tags of arts
@@ -180,3 +182,5 @@ ArrayOfStringWriteAscii (cont_description_models) {""}
 # 8. cont_descriptionAppend user given input parameters
 ArrayOfVectorWriteAscii (cont_description_parameters) {""}
 #####################################################
+
+}

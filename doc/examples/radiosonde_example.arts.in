@@ -2,6 +2,8 @@
 # radiosonde profile.  
 # 2001-11-06 Stefan Buehler <sbuehler@uni-bremen.de>
 
+AgendaDefine(main_agenda){
+
 tgsDefine           { [
          "H2O-PWR98",
 	 "O2-PWR93",
@@ -79,3 +81,4 @@ ybatchFromRadiosonde {}
 ### Output ybatch #############################################################
 MatrixWriteAscii(ybatch){""}
 
+}

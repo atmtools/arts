@@ -57,6 +57,10 @@ int main()
       ofs << "#include \"los.h\"\n"
 	  << "#include \"absorption.h\"\n\n";
       
+      ofs << "// Declare existence of class Agenda. We cannot include agenda.h here,\n"
+	  << "// because that would generate a dependency loop.\n"
+	  << "class Agenda;\n";
+
       ofs << "/*! This is only used for a consistency check. You can get the\n"
 	  << "    number of groups from wsv_group_names.nelem(). */\n"
 	  << "#define N_WSV_GROUPS " << n_wsv_groups << "\n\n";

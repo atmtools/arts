@@ -2,6 +2,8 @@
 # and weighting functions for AMSU-Channels.
 # Viju Oommen John<vojohn@uni-bremen.de> 01-10-2001
 
+AgendaDefine(main_agenda){
+
 ### Spectroscopy: ############################################################
 # Choose the species that can contribute towards AMSU frequencies.
 # We take the complete absorption models for H2O, O2 and N2.
@@ -209,8 +211,4 @@ VectorWriteAscii( y ) {""}
 MatrixWriteAscii( kx ){""}
 MatrixWriteAscii(k){""}
 
-
-
-
-
-
+}

@@ -1328,7 +1328,7 @@ inline std::ostream& operator<<(std::ostream& os, const ConstTensor5View& v)
 }
 
 
-// Functions for Tensor4View:
+// Functions for Tensor5View:
 // -------------------------
 
 /** Const index operator for subrange. We have to also account for the
@@ -1341,7 +1341,7 @@ inline ConstTensor5View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1354,7 +1354,7 @@ inline ConstTensor4View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1367,7 +1367,7 @@ inline ConstTensor4View Tensor5View::operator()(const Range& s,
                                                 Index r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1380,7 +1380,7 @@ inline ConstTensor4View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1393,7 +1393,7 @@ inline ConstTensor4View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1406,7 +1406,7 @@ inline ConstTensor4View Tensor5View::operator()(Index s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1419,7 +1419,7 @@ inline ConstTensor3View Tensor5View::operator()(const Range& s,
                                                 Index r,
                                                 Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1432,7 +1432,7 @@ inline ConstTensor3View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1445,7 +1445,7 @@ inline ConstTensor3View Tensor5View::operator()(const Range& s,
                                                 Index r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1458,7 +1458,7 @@ inline ConstTensor3View Tensor5View::operator()(const Range& s,
                                                 Index r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1471,7 +1471,7 @@ inline ConstTensor3View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1484,7 +1484,7 @@ inline ConstTensor3View Tensor5View::operator()(const Range& s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1497,7 +1497,7 @@ inline ConstTensor3View Tensor5View::operator()(Index s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1510,7 +1510,7 @@ inline ConstTensor3View Tensor5View::operator()(Index s,
                                                 Index r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1523,7 +1523,7 @@ inline ConstTensor3View Tensor5View::operator()(Index s,
                                                 const Range& r,
                                                 Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1536,7 +1536,7 @@ inline ConstTensor3View Tensor5View::operator()(Index s,
                                                 const Range& r,
                                                 const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1549,7 +1549,7 @@ inline ConstMatrixView Tensor5View::operator()(const Range& s,
                                                Index r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1562,7 +1562,7 @@ inline ConstMatrixView Tensor5View::operator()(const Range& s,
                                                Index r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1575,7 +1575,7 @@ inline ConstMatrixView Tensor5View::operator()(const Range& s,
                                                const Range& r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1588,7 +1588,7 @@ inline ConstMatrixView Tensor5View::operator()(const Range& s,
                                                Index r,
                                                const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1601,7 +1601,7 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
                                                Index r,
                                                const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1614,7 +1614,7 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
                                                const Range& r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1627,7 +1627,7 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
                                                Index r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1640,7 +1640,7 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
                                                const Range& r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1653,7 +1653,7 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
                                                Index r,
                                                const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1666,7 +1666,7 @@ inline ConstMatrixView Tensor5View::operator()(Index s,
                                                const Range& r,
                                                const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1679,7 +1679,7 @@ inline ConstVectorView Tensor5View::operator()(const Range& s,
                                                Index r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1692,7 +1692,7 @@ inline ConstVectorView Tensor5View::operator()(Index s,
                                                Index r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1705,7 +1705,7 @@ inline ConstVectorView Tensor5View::operator()(Index s,
                                                Index r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1718,7 +1718,7 @@ inline ConstVectorView Tensor5View::operator()(Index s,
                                                const Range& r,
                                                Index c       ) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Const index operator returning an object of type
@@ -1731,7 +1731,7 @@ inline ConstVectorView Tensor5View::operator()(Index s,
                                                Index r,
                                                const Range& c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Plain const index operator. Has to be redefined here, since it is
@@ -1742,7 +1742,7 @@ inline Numeric Tensor5View::operator()(Index s,
                                        Index r,
                                        Index c) const
 {
-  ConstTensor5View::operator()(s,b,p,r,c);
+  return ConstTensor5View::operator()(s,b,p,r,c);
 }
 
 /** Index operator for subrange. We have to also account for the

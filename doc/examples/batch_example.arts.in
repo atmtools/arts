@@ -23,6 +23,8 @@
 #
 ############################################################################
 
+AgendaDefine(main_agenda){
+
 ### 
 ###                       Previous calculations                           ###
 ###                                                                       ###
@@ -211,4 +213,4 @@ MatrixWriteBinary( ybatch ) {""}
 
 Exit{}
 
-
+}

@@ -37,14 +37,15 @@ public:
 
   /** Default constructor. */
   MdRecord():
-      mname(      ""              ),
+    mname(      ""              ),
     mdescription( ""              ),
     moutput(      0       	  ),  
     minput(       0        	  ),   
     mgoutput(     0      	  ),  
     mginput(      0       	  ),   
     mkeywords(    0     	  ),
-    mtypes(       0        	  )
+    mtypes(       0        	  ),
+    magenda_method(false)
   {};
 
   /** The only non-trivial constructor, which sets all the
@@ -56,15 +57,17 @@ public:
 	   const MakeArray<Index>&      goutput,
 	   const MakeArray<Index>&      ginput,   
 	   const MakeArray<String>&     keywords,
-	   const MakeArray<TokValType>& types) :
-    mname(        name            ),
-    mdescription( description     ),
-    moutput(      output       	  ),  
-    minput(       input        	  ),   
-    mgoutput(     goutput      	  ),  
-    mginput(      ginput       	  ),   
-    mkeywords(    keywords     	  ),
-    mtypes(       types        	  )
+	   const MakeArray<TokValType>& types,
+	   bool                         agenda_method = false) :
+    mname(          name            	  ),
+    mdescription(   description     	  ),    
+    moutput(        output       	  ),  
+    minput(         input        	  ),   
+    mgoutput(       goutput      	  ),  
+    mginput(        ginput       	  ),   
+    mkeywords(      keywords     	  ),
+    mtypes(         types        	  ),
+    magenda_method( agenda_method         )
     { 
       // Initializing the various arrays with input data should now
       // work correctly.  
@@ -75,14 +78,15 @@ public:
       assert( mkeywords.nelem() == mtypes.nelem() );
     }
   
-  const String&            Name()         const { return mname;        }   
-  const String&            Description()  const { return mdescription; }
-  const ArrayOfIndex&      Output()       const { return moutput;      }
-  const ArrayOfIndex&      Input()        const { return minput;       }
-  const ArrayOfIndex&      GOutput()      const { return mgoutput;      }
-  const ArrayOfIndex&      GInput()       const { return mginput;       }
-  const Array<String>&     Keywords()     const { return mkeywords;    }
-  const Array<TokValType>& Types()        const { return mtypes;       }
+  const String&            Name()         const { return mname;        	 }   
+  const String&            Description()  const { return mdescription; 	 }
+  const ArrayOfIndex&      Output()       const { return moutput;      	 }
+  const ArrayOfIndex&      Input()        const { return minput;       	 }
+  const ArrayOfIndex&      GOutput()      const { return mgoutput;     	 }
+  const ArrayOfIndex&      GInput()       const { return mginput;      	 }
+  const Array<String>&     Keywords()     const { return mkeywords;    	 }
+  const Array<TokValType>& Types()        const { return mtypes;       	 }
+  bool                     AgendaMethod() const { return magenda_method; }
 
   /** Print method template for the control file. This prints the
       method data exactly in the same way how it can be included in
@@ -125,6 +129,10 @@ private:
   /** Types associated with keywords. */
   Array<TokValType> mtypes;
 
+  /** Flag, whether this is an agenda method. Agenda methods do not
+      expect keywords, but other method definitions inside their body
+      in the controlfile. */
+  bool magenda_method;
 };
 
 
@@ -137,6 +145,7 @@ private:
 #define GINPUT   MakeArray<Index>
 #define KEYWORDS MakeArray<String>
 #define TYPES    MakeArray<TokValType>
+#define AGENDAMETHOD(x) x   
 
 /** Define the lookup data for the workspace methods. The array
     md_data contains all that we need to know about each method. The

@@ -27,6 +27,8 @@
 # and writing are quicker.
 
 
+AgendaDefine(main_agenda){
+
 ### Spectroscopy: ############################################################
 tgsDefine { 
      [ "O3",
@@ -240,4 +242,4 @@ VectorWriteAscii ( y ) {
    ""
 }
 
-
+}

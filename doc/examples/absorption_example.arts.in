@@ -1,6 +1,11 @@
 # An example ARTS controlfile that calculates absorption
 # coefficients. 
 # SAB 16.06.2000
+#
+# Also the first example file using Agendas
+# SAB 14.03.2002
+
+AgendaDefine(main_agenda){
 
 # --------------------< A specific method >--------------------
 #                      -------------------
@@ -140,3 +145,5 @@ absCalc{}
 # These we definitely want to write to files!
 MatrixWriteAscii (abs) {""}
 ArrayOfMatrixWriteAscii (abs_per_tg) {""}
+
+}

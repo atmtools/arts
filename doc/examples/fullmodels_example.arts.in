@@ -1,3 +1,5 @@
+AgendaDefine(main_agenda){
+
 # ######## EXAMPLE FULL MODEL TAG CONTROL FILE #######
 # define the arts full model tags of arts
 tgsDefine{
@@ -191,3 +193,5 @@ ArrayOfStringWriteAscii (cont_description_models) {""}
 # 8. cont_descriptionAppend user given input parameters
 ArrayOfVectorWriteAscii (cont_description_parameters) {""}
 ###########################################################
+
+}

@@ -27,6 +27,7 @@
 #include "methods.h"
 #include "wsv_aux.h"
 #include "messages.h"
+#include "auto_wsv.h"
 
 //! Append a new method to end of list.
 /*! 
@@ -132,4 +133,22 @@ void Agenda::execute(WorkSpace& workspace)
 	  exit(1);
 	}
     }
+}
+
+//! Remove contents and set size to 0.
+void Agenda::resize(Index n)
+{
+  mml.resize(n);
+}
+
+//! Assignment operator.
+/*! 
+  Size of target must have been adjusted before, otherwise an
+  assertion fails. 
+*/
+Agenda& Agenda::operator=(const Agenda& x)
+{
+  assert( mml.nelem() == x.mml.nelem() );
+  mml = x.mml;
+  return *this;
 }

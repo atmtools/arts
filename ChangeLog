@@ -1,3 +1,28 @@
+2002-03-15  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-26
+
+	* configure.in: Added a switch to enable-more-warnings that turns
+	off the checking of unused parameters. This, because dummy
+	parameters are used as a trick to select functions, for example
+	the joker in the matpack functions. Also the getaway functions for
+	the engine have sometimes unused parameters. We don't want to
+	issue a warning for that.
+
+	* src/matpackV.h: Bug fix: Added missing return statements for
+	const index functions. I discoverd this bug because of the enabled
+	warnings, so warnings are clearly useful!
+
+	* src/m_agenda.cc: Added this file, containing workspace methods
+	for Agenda.
+
+	* src/: Modified the parser and the overall control structure to
+	accept agendas.
+
+	* doc/examples: Removed old example files starting with auto_.
+	Adapted all examples to work with the new controlfile
+	syntax. (Added a surrounding AgendaDefine(main_agenda).)
+
 2002-03-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-25
