@@ -1,3 +1,11 @@
+2003-11-25  Sho Tsujimaru <tsujimaru@crl.go.jp>
+               
+        * arts-1-0-137
+
+        * ami/physics/za2geomtan.m: Changed the function name from 
+	'za2geomztan' to 'za2geomtan' so that it is consistent 
+	to the file name.
+
 2003-11-21  Thomas Kuhn <tkuhn@uni-bremen.de>
                
         * arts-1-0-136
@@ -136,7 +144,7 @@
 
 	* aii/.cvsignore: added aii_help.html
 
-2003-09-08  Sho  <sho@sat.physik.uni-bremen.de>
+2003-09-08  Sho Tsujimaru <sho@sat.physik.uni-bremen.de>
 
 	* arts-1-0-124
 

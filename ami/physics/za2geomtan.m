@@ -1,5 +1,5 @@
 %------------------------------------------------------------------------
-% NAME:    za2geomztan
+% NAME:    za2geomtan
 %
 %          Converts a vector of zenith angles to geometrical tangent altitudes.
 % RETURN:  z_tan     tangent altitudes corresponding to za.
@@ -7,7 +7,7 @@
 %          z_plat    Platform altitude (above geoid).
 %          za        zenith angles. 
 %------------------------------------------------------------------------
-function z_tan =  za2geomztan(r_geoid,z_plat,za);
+function z_tan =  za2geomtan(r_geoid,z_plat,za);
 %------------------------------------------------------------------------
 
 DEG2RAD        = 0.01745329251994;
