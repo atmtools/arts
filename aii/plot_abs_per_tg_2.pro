@@ -202,7 +202,6 @@ if keyword_set(um) then begin
     pow=-1.0
     unitstr='[!9m!3m]'
 endif 
-
 f = (f / unit)^pow
 
 
@@ -266,9 +265,12 @@ if keyword_set(pressure) then begin
                  punit = 'Pa'
                  end
     endcase
-    p = p * pscale
-    string_title_p = string(p[ialtitude],format='(F7.2)')+punit
-endif
+endif else begin
+    pscale = 1.000/100.000
+    punit = 'hPa'
+endelse
+p = p * pscale
+string_title_p = string(p[ialtitude],format='(F7.2)')+punit
 
 
 ;; temperature unit selection
@@ -288,9 +290,12 @@ if keyword_set(temperature) then begin
               Tunit = 'K'
               end
     endcase
-    T = T - Tsub
-    string_title_T = string(T[ialtitude],format='(F5.1)')+Tunit
-endif
+endif else begin
+    Tsub = 0.000
+    Tunit = 'K'
+endelse
+T = T - Tsub
+string_title_T = string(T[ialtitude],format='(F5.1)')+Tunit
 
 
 ;; are certain tag groups selected or should all be plotted?
@@ -334,13 +339,16 @@ for i = 0,tag_index_max-1 do print, ' ',i,': ',tg[tag_index[i]]
 ; =================== plot the absorption vs. frequency ===================
 ;                       ---------------------------------
 
+;; save settings
+P_ini = !P
+
 ;; make 1 plot per page
 !P.multi    = [0,1,1]
 
-
 ;; settings for the plot
-plotpos = [0.1, 0.1, 0.75, 0.9]
-thick = 5
+plotpos = [0.1, 0.1, 0.7, 0.9]
+!P.THICK = 8
+thick = !P.THICK
  
 ;; get datum to write it on the top of the plot:
 spawn,'date +"%y"',year
@@ -350,14 +358,11 @@ spawn,'date +"%H"',hour
 spawn,'date +"%M"',minute
 spawn,'whoami',who
 datum = who+':20'+string(year, FORMAT='(A2)')+'-'+$
-string(month, FORMAT='(A2)')+'-'+string(day, FORMAT='(A2)')
-
+string(month, FORMAT='(A2)')+'-'+string(day, FORMAT='(A2)')+'/'+$
+string(hour, FORMAT='(A2)')+':'+string(minute, FORMAT='(A2)')
 
 ;; check for color output? -> always use colors
 if not keyword_set(color) then color=1
-
-;; save settings
-P_ini = !P
 
 ;; use aii_plot_file for writing into plot output file
 if not keyword_set(plotfilename)   then plotfilename=jobname+'_plot'
@@ -414,44 +419,28 @@ endelse
 
 ;; apropriate y range of plot
 if not keyword_set(yrange) then begin
-    abs_min = fltarr(tag_index_max)
-    abs_max = fltarr(tag_index_max)
-    for j = 0,tag_index_max-1 do begin
-        i = tag_index[j]
-        abs_min[j] = min(abs[i,*,ialtitude])
-        abs_max[j] = max(abs[i,*,ialtitude])
+;;  determin the ymin/ymax automatically
+    print,'plot_abs_per_tg_2: y-axis range automatically selected'
+    ymina = 1.000e10
+    ymaxa = 0.000e0
+    for i = 0,nmats-1 do begin  ; loop over tags
+        indexlist = WHERE(abs[i,*,ialtitude] GT 0.00e0)
+        yminb = MIN(abs[i,indexlist[*],ialtitude], MAX=ymaxb)
+        print,i,':  yminb=',yminb,'  ymaxb=',ymaxb
+        if (yminb lt ymina) then ymina = yminb
+        if (ymaxb gt ymaxa) then ymaxa = ymaxb
     endfor
-    if (plotsum EQ 1) then begin
-        ymin = min([abstotal[*], abs_min[*]])
-        ymax = max([abstotal[*], abs_max[*]])
-    endif else begin 
-        ymin = min(abs_min[*])
-        ymax = max(abs_max[*])
-    endelse
-    if (ymin GT ymax) then begin
-        ya   = ymin
-        ymin = ymax
-        ymax = ya
-    endif
-    if (ymin LT 0.0) then begin
-        ymin = ymin * 1.05
-    endif else begin
-        ymin = ymin / 1.05
-    endelse
-    if (ymax LT 0.0) then begin
-        ymax = ymax / 1.05
-    endif else begin
-        ymax = ymax * 1.05
-    endelse
+    ymin = 0.95*ymina
+    ymax = 1.05*ymaxa
 endif else begin
     ymin = yrange[0]
     ymax = yrange[1]
 endelse
-
-print,'x/y-axis range:',xmin,',',xmax,'/',ymin,',',ymax
+print,'plot_abs_per_tg_2: x/y-axis range=',xmin,',',xmax,'/',ymin,',',ymax
 
 ;; set plot style 'log' or 'lin' for y-axis
 if NOT keyword_set(plotyaxis) then plotyaxis='lin'
+
 if ((plotyaxis NE 'lin') AND (plotyaxis NE 'log')) then plotyaxis='lin'
 
 ;; set frame of the plot
@@ -491,7 +480,7 @@ ENDFOR
 
 
 ; print datum and user name:
-xyouts, plotpos[0], plotpos[1]-0.10, datum, CHARSIZE=0.75, CHARTHICK=1.0, /NORMAL
+xyouts, 0.85, plotpos[1]-0.05, datum, CHARSIZE=0.75, CHARTHICK=1.0, /NORMAL
 
 
 ;; legend of the plot

@@ -250,8 +250,10 @@ void define_partition_species_data()
   iso(it_isotope,       "262",  Qcoeff( -3.6689E+01     ,1.7119E+00     ,7.2123E-03     ,-3.0200E-06) );
   iso(it_isotope,       "SelfContStandardType",      Qcoeff( 0  ,0              ,0              ,0          ) );
   iso(it_isotope,       "ForeignContStandardType",   Qcoeff( 0  ,0              ,0              ,0          ) );
-  iso(it_isotope,       "ForeignContMaTippingType",   Qcoeff( 0 ,0              ,0              ,0          ) ); 
-  iso(it_isotope,       "ContMPM93",             Qcoeff( 0      ,0              ,0              ,0          ) );
+  iso(it_isotope,       "ForeignContMaTippingType",  Qcoeff( 0  ,0              ,0              ,0          ) ); 
+  iso(it_isotope,       "ContMPM93",               Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "SelfContCKDMT100",        Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "ForeignContCKDMT100",     Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "SelfContCKD24",           Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "ForeignContCKD24",        Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "ForeignContATM01",        Qcoeff( 0    ,0              ,0              ,0          ) );
@@ -276,8 +278,9 @@ void define_partition_species_data()
   iso(it_isotope,       "637",  Qcoeff( -2.6263E+01     ,2.3350E+01     ,-1.7032E-02    ,6.7532E-05) );
   iso(it_isotope,       "828",  Qcoeff( -1.4811E+00     ,1.0667E+00     ,-7.8758E-04    ,3.0133E-06) );
   iso(it_isotope,       "728",  Qcoeff( -1.7600E+01     ,1.2445E+01     ,-9.1837E-03    ,3.4915E-05) );
-  iso(it_isotope,       "SelfContPWR93",       Qcoeff( 0        ,0              ,0              ,0          ) );
-  iso(it_isotope,       "ForeignContPWR93",    Qcoeff( 0        ,0              ,0              ,0          ) );
+  iso(it_isotope,       "CKDMT100",         Qcoeff( 0        ,0              ,0              ,0          ) );
+  iso(it_isotope,       "SelfContPWR93",    Qcoeff( 0        ,0              ,0              ,0          ) );
+  iso(it_isotope,       "ForeignContPWR93", Qcoeff( 0        ,0              ,0              ,0          ) );
 
 
 
@@ -345,9 +348,12 @@ void define_partition_species_data()
   iso(it_isotope,       "66",   Qcoeff( 3.5923E-01      ,7.3534E-01     ,-6.4870E-05    ,1.3073E-07) );
   iso(it_isotope,       "68",   Qcoeff( -4.0039E+00     ,1.5595E+00     ,-1.5357E-04    ,3.0969E-07) );
   iso(it_isotope,       "67",   Qcoeff( -2.3325E+01     ,9.0981E+00     ,-8.4435E-04    ,1.7062E-06) );
+  iso(it_isotope,       "CIAfunCKDMT100", Qcoeff( 0     ,0              ,0              ,0          ) );
+  iso(it_isotope,       "v0v0CKDMT100",   Qcoeff( 0     ,0              ,0              ,0          ) );
+  iso(it_isotope,       "v1v0CKDMT100",   Qcoeff( 0     ,0              ,0              ,0          ) );
   iso(it_isotope,       "SelfContStandardType",   Qcoeff( 0     ,0              ,0              ,0          ) );
-  iso(it_isotope,       "SelfContMPM93",   Qcoeff( 0    ,0              ,0              ,0          ) );
-  iso(it_isotope,       "SelfContPWR93",   Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "SelfContMPM93",  Qcoeff( 0    ,0              ,0              ,0          ) );
+  iso(it_isotope,       "SelfContPWR93",  Qcoeff( 0    ,0              ,0              ,0          ) );
   iso(it_isotope,       "PWR98",          Qcoeff( 0     ,0              ,0              ,0          ) );
   iso(it_isotope,       "PWR93",          Qcoeff( 0     ,0              ,0              ,0          ) );
   iso(it_isotope,       "PWR88",          Qcoeff( 0     ,0              ,0              ,0          ) );
@@ -532,6 +538,8 @@ void define_partition_species_data()
   iso(it_isotope,       "SelfContPWR93",        Qcoeff( 0       ,0              ,0              ,0   ) );
   iso(it_isotope,       "SelfContStandardType", Qcoeff( 0       ,0              ,0              ,0   ) );
   iso(it_isotope,       "SelfContBorysow",      Qcoeff( 0       ,0              ,0              ,0   ) );
+  iso(it_isotope,       "CIArotCKDMT100",       Qcoeff( 0       ,0              ,0              ,0   ) );
+  iso(it_isotope,       "CIAfunCKDMT100",       Qcoeff( 0       ,0              ,0              ,0   ) );
   iso(it_isotope,       "DryContATM01",         Qcoeff( 0       ,0              ,0              ,0   ) );
 
 

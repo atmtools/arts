@@ -1,3 +1,67 @@
+2003-08-29  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-0-121
+
+	* src/continua.cc: added some continua from the newest CKD version
+	(CKD_MT version 1.00, see http://www.rtweb.aer.com/continuum_frame.html).
+	 - H2O foreign continuum (0-20000 cm^-1, tag="H2O-ForeignContCKDMT100")
+	 - H2O self continuum (0-20000 cm^-1, tag="H2O-SelfContCKDMT100")
+	 - CO2 far wing continuum (0-10000 cm^-1, tag="CO2-CKDMT100")
+	   This continuum is just the far wing contribution of the CO2
+	   lines in the many bands. Normally the line shape used for CO2
+	   has a cutoff of 25cm^-1. Thus this continuum adjusts the CO2 
+	   absorption in the far wing to the measured level. One has to
+	   keep in mind that this procedure is strongly empirical!
+	 - N2 collision induced absorption rotational band (0-350 cm^-1,  
+	   tag="N2-CIArotCKDMT100")
+	   CKD takes it from the Borysow & Frommhold model and brings it
+	   into the usual CKD format. The reference is
+	   Borysow, A, and L. Frommhold, 
+           Collision-induced rototranslational absorption spectra of N2-N2
+           pairs for temperatures from 50 to 300K, The Astrophysical
+	   Journal, 311, 1043-1057, 1986.
+	 - N2 collision induced absorption fundamental band
+	   (2085-2670 cm^-1, tag="N2-CIAfunCKDMT100")
+           CKD takes it from Lafferty et al. model and brings it
+	   into the usual CKD format. The reference is
+	   Lafferty, W.J., A.M. Solodov,A. Weber, W.B. Olson and 
+           J._M. Hartmann, Infrared collision-induced absorption by 
+           N2 near 4.3 microns for atmospheric applications: 
+           Measurements and emprirical modeling, Appl. Optics, vol.35, 
+           pp.5911-5917, 1996
+	 - O2 collision induced absorption fundamental band (1340-1850
+	   cm^-1, , tag="O2-CIAfunCKDMT100")
+	   CKD takes it from  Thibault et al. model and brings it
+	   into the usual CKD format. The reference is
+           F. Thibault, V. Menoux, R. Le Doucen, L. Rosenman, 
+           J.-M. Hartmann, Ch. Boulet, Infrared collision-induced
+	   absorption by O2 near 6.4 microns for atmospheric applications:
+           measurements and emprirical modeling, Appl. Optics, vol.35,
+	   pp.5911-5917, 1996.
+	 - O2 v0 <-- v0 absorption band (7536-8500 cm^-1, tag="O2-v0v0CKDMT100")
+	   CKD takes it from  Mate et al. and Mlawer et al. model and 
+	   brings it into the usual CKD format. The reference is
+           B. Mate, C. Lugez, G.T. Fraser, W.J. Lafferty,
+           Absolute Intensities for the O2 1.27 micron continuum absorption,  
+           J. Geophys. Res., 104, 30,585-30,590, 1999
+	   and
+	   Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,
+           Observed  Atmospheric Collision Induced Absorption in Near 
+	   Infrared Oxygen Bands, J. Geophys. Res., vol.103, no.D4, 
+	   pp.3859-3863, 1998.
+	 - O2 v1 <-- v0 absorption band (9100-11000 cm^-1, tag="O2-v1v0CKDMT100")
+           CKD takes it from  Mlawer et al. model and brings it 
+	   into the usual CKD format. The reference is
+	   Mlawer, Clough, Brown, Stephen, Landry, Goldman, Murcray,
+           Observed  Atmospheric Collision Induced Absorption in Near 
+	   Infrared Oxygen Bands, J. Geophys. Res., vol.103, no.D4, 
+	   pp.3859-3863, 1998.
+        For the arts tag names see doc/examples/cont_example.arts. A
+        detailed documentation in the uguide will follow.
+
+	* aii/plot_abs_per_tg_2.pro: modification in the way thew y-axis
+	range is determined and about the plot title.
+	
 2003-08-28  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-120
