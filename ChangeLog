@@ -1,5 +1,12 @@
 2003-10-22  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-708
+
+	* src/matpackI.cc (mult): Small loop optimization to gain another 10%
+	performance.
+
+2003-10-22  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-707
 
 	* src/matpackI.cc (mult): Reimplemented Matrix-Vector multiplication.
