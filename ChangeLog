@@ -1,10 +1,27 @@
 2002-06-10  Sreerekha T.R.  <rekha@uni-bremen.de>
 
+	* arts-1-1-128
+
+	* src/m_scatproperties.cc: Added this file.  This has so far the
+	workspace methods ext_mat_sptCalc,pha_mat_sptCalc and 
+	abs_vec_sptCalc.  Some changes are for sure expected in these
+	methods.  
+
+	* src/methods.cc: Added the methods ext_mat_sptCalc,
+	pha_mat_sptCalc and abs_vec_sptCalc. 
+
+	* src/Makefile.am : included in the source file list
+	m_scatproperties.cc,scatproperties.cc and scatproperties.h
+	
+
+2002-06-10  Sreerekha T.R.  <rekha@uni-bremen.de>
+
 	* arts-1-1-127
 
 	* src/workspace.cc : Added the workspace variables scat_za_index
 	and scat_aa_index necessary for the methods used for calculating
 	scattering properties of particles.
+
 
 2002-06-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 

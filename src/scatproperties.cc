@@ -73,7 +73,7 @@ void amp2ext(MatrixView ext,
   \param phasemat Output: phase matrix for the single particle type
   \param amp_coeffs  Input : amplitude matrix
 */
-void amp2phamat(Tensor4View phasemat,ConstVectorView amp_coeffs)
+void amp2pha(Tensor4View phasemat,ConstTensor3View amp_coeffs)
 {
   Index nza = phasemat.nbooks();
   Index naa = phasemat.npages();

@@ -146,7 +146,36 @@ void define_md_data()
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
-   
+ 
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("abs_vec_sptCalc"),
+  	DESCRIPTION
+	(
+	 "This method calculates the absorption vector for a single particle \n"
+	 "type.\n"
+	 "\n"
+	 "All the elements of absorption vector for a particle can be expressed\n"
+	 "in terms of extinction matrix and phase matrix. So it is necessary \n"
+	 "that the methods ext_mat_sptCalc and pha_mat_sptCalc are done \n"
+	 "before calling this method. \n"
+	 "\n"
+	 "The output of the method abs_vec_sptCalc is abs_vec_spt(Matrix,\n"
+	 "size: [Npt,stokes_dim]). The input to the method abs_vec_sptCalc\n"
+	 "are abs_vec_spt, *pha_mat_spt*(Tensor 5,\n"
+	 "size: [Npt,Nza,Naa,stokes_dim,stokes_dim]),and ext_mat_spt(Tensor 3,\n"
+	 "size = [Npt,stokes_dim,stokes_dim]).This method calls the  \n"
+	 "function amp2abs which does the actual physics, that of computing\n"
+	 "the elements of absorption vector from the elements of extinction \n"
+	 "matrix and phase matrix."
+	 ),
+	OUTPUT(abs_vec_spt_),
+	INPUT(abs_vec_spt_,ext_mat_spt_,pha_mat_spt_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
   md_data.push_back
     ( MdRecord
@@ -710,7 +739,42 @@ void define_md_data()
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t )));
 
-  
+   md_data.push_back
+    ( MdRecord
+      ( NAME("ext_mat_sptCalc"),
+  	DESCRIPTION
+	( 
+	 "This method calculates the extinction matrix for a single particle\n"
+	 "type.\n"
+	 "\n"
+	 "Extinction matrix describes the total attenuation of the incident \n"
+	 "radiation resulting from the combined effect of scattering and\n"
+	 "absorption by the particle.  It is a 4X4 matrix and all the\n"
+	 "elements of extinction matrix for a particle can be expressed in\n"
+	 "terms of the elements of the forward scattering amplitude matrix.\n"
+	 "\n"
+	 "The output of this method is \n"
+	 "*ext_mat_spt*(Tensor 3, size = [Npt,stokes_dim,stokes_dim])and the \n"
+	 "inputs are *ext_mat_spt*,*amp_mat*(Tensor 6, Size=[Npt,Nza,Naa,Nza,Naa,8]), \n"
+	 "*scat_za_index*,*scat_aa_index*,*scat_f_index* and *scat_f_grid*. \n"
+	 "\n"
+	 "The variables *scat_za_index* and *scat_aa_index picks the right \n"
+	 "element of the Tensor *amp_mat*. *scat_f_grid* and *scat_f_index* picks \n"
+	 "the right frequeny for calculation. Frequeny is needed because the\n"
+	 "computation of extinction matrix from amplitude matrix involves \n"
+	 "multiplication by wavelength.  Then this method calls the \n"
+	 "function amp2ext which does the actual physics, that of computing\n"
+	 "the elements of extinction matrix from the elements of amplitude \n"
+	 "matrix.\n"
+	 ),
+	OUTPUT( ext_mat_spt_  ),
+        INPUT( ext_mat_spt_,amp_mat_, scat_za_index_, scat_aa_index_,
+	       scat_f_index_, f_grid_  ),
+	GOUTPUT( ),
+	GINPUT( ),
+	KEYWORDS( ),
+	TYPES( )));
+
 
   md_data.push_back     
     ( MdRecord
@@ -1290,7 +1354,36 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
-   
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "pha_mat_sptCalc" ),
+	DESCRIPTION
+        (
+	 "This method calculates the phase matrix for a single particle type.\n"
+	 "\n"
+	 "Phase matrix explains the tranformation of Stokes parameters of \n"
+	 "incident plane wave into those of the scattered spherical wave \n"
+	 "due to scattering of radiation by the particle. All the elements \n"
+	 "of phase matrix can be expressed in terms of the elements of the\n"
+	 "amplitude matrix.\n"
+	 "\n"
+	 "The output of the method pha_mat_sptCalc is pha_mat_spt(Tensor 5,\n"
+	 "size: [Npt,Nza,Naa,stokes_dim,stokes_dim]). The input to the method\n"
+	 "pha_mat_sptCalc are *pha_mat_spt*,*amp_mat*(Tensor 6,\n"
+	 "Size=[Npt,Nza,Naa,Nza,Naa,8]), *scat_za_index* and scat_aa_index.\n"
+	 "\n"
+	 "The variables *scat_za_index* and *scat_aa_index picks the right \n"
+	 "element of the Tensor *amp_mat*.Then this method calls the \n"
+	 "function amp2pha which does the actual physics, that of computing\n"
+	 "the elements of phase matrix from the elements of amplitude \n"
+	 "matrix."
+	 ),
+	OUTPUT(pha_mat_spt_),
+	INPUT(pha_mat_spt_, amp_mat_, scat_za_index_, scat_aa_index_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES())); 
 
   md_data.push_back
     ( MdRecord

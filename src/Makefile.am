@@ -50,6 +50,7 @@ arts_SOURCES = \
 	m_io.cc \
 	m_ppath.cc \
 	m_rte.cc \
+	m_scatproperties.cc \
 	m_xml.cc \
 	main.cc \
 	make_array.h \
@@ -96,7 +97,9 @@ arts_SOURCES = \
 	lin_alg.h\
 	lin_alg.cc\
 	cloudbox.h\
-	cloudbox.cc
+	cloudbox.cc \
+	scatproperties.cc \
+	scatproperties.h
 
 
 arts_DEPENDENCIES= \
