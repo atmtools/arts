@@ -766,7 +766,7 @@ public:
     *  N_self (F4.2) = coefficient of temperature dependence of 
                        self-broadened halfwidth
     *  Tref (F7.2)   = reference temperature for AGAM and SGAM 
-    *  d (F8.6)      = shift of transition due to pressure (MHz/Torr)
+    *  d (F9.7)      = shift of transition due to pressure (MHz/Torr)
        V1 (I3)       = upper state global quanta index
        V2 (I3)       = lower state global quanta index
        Q1 (A9)       = upper state local quanta
@@ -774,9 +774,7 @@ public:
        IERS (I1)     = accuracy index for S
        IERH (I1)     = accuracy index for AGAM
     *  IERN (I1)     = accuracy index for N
-       IREFF (I2)    = lookup index for F
-       IREFS (I2)    = lookup index for S
-       IREFH (I2)    = lookup index for AGAM
+
    
     The asterisks mark entries that are different from HITRAN.
 

@@ -2,6 +2,9 @@
 
 	* arts-1-0-67
 
+	* src/absorption.h: added the corrections also in file format
+	description. (forgot..) 
+
 	* src/absorption.cc: Corrections in
 	LineRecord::ReadFromMytran2Stream in order to read the right
 	MYTRAN format (pressure shift field has 9 digits allocated instead
