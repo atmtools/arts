@@ -54,16 +54,21 @@
 //! Cloudbox_ppath_rteCalc
 
 /*!
-   This function was written to eliminate some repeated code in ScatteringMonteCarlo.
-   Basically this function performs internal and external ppath calculations, calculates
-   incoming radiances, and provides scattering properties and other derived data that is 
-  required in the monte carlo simulation for a given propagation direction.
+   This function was written to eliminate some repeated code in 
+   ScatteringMonteCarlo. Basically this function performs internal and external 
+   ppath calculations, calculates incoming radiances, and provides scattering 
+   properties and other derived data that is required in the monte carlo 
+   simulation for a given propagation direction.
 
 
    Parameters not already described elsewhere:
    
-   \param    record_ppathcloud   A flag that determines whether ppaths within the cloud box are recorded                               for later plotting in MATLAB.
-   \param    record_ppath        Similar, but for ppaths determining incoming radiances at the cloudbo                                 x boundaries.  For normal use both of these parameterss should be 
+   \param    record_ppathcloud   A flag that determines whether ppaths within the 
+                                 cloud box are recorded for later plotting in 
+				 MATLAB.
+   \param    record_ppath        Similar, but for ppaths determining incoming 
+                                 radiances at the cloudbox boundaries.  For 
+				 normal use both of these parameterss should be 
                                  set to 0.
    \param    photon_number       used to label ppath files
    \param    scattering_order    used to label ppath files
@@ -103,6 +108,9 @@ void Cloudbox_ppath_rteCalc(
 			     Index&                f_index,
 			     Index&                scat_za_index,
 			     Index&                scat_aa_index,
+			     Tensor3&              ext_mat_spt,
+			     Matrix&               abs_vec_spt,
+			     Matrix&               pnd_ppath,
 			     const Agenda&         ppath_step_agenda,
 			     const Index&          atmosphere_dim,
 			     const Vector&         p_grid,
@@ -115,7 +123,7 @@ void Cloudbox_ppath_rteCalc(
 			     const Index&          record_ppathcloud,
 			     const Index&          record_ppath,
 			     const Agenda&         opt_prop_gas_agenda,
-			     const Agenda&         opt_prop_part_agenda,
+			     const Agenda&         spt_calc_agenda,
 			     const Agenda&         scalar_gas_absorption_agenda,
 			     const Index&          stokes_dim,
 			     const Tensor3&        t_field,
@@ -125,7 +133,8 @@ void Cloudbox_ppath_rteCalc(
 			     const Agenda&         ground_refl_agenda,
 			     const Vector&         f_grid,
 			     const Index&          photon_number,
-			     const Index&          scattering_order)
+			     const Index&          scattering_order,
+			     const Tensor4&        pnd_field)
 
 {
   // Assign dummies for variables associated with sensor.
@@ -166,11 +175,13 @@ void Cloudbox_ppath_rteCalc(
   
   
   //Calculate array of transmittance matrices
-  TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, scat_aa_grid, ext_mat, abs_vec,
-	     rte_pressure, rte_temperature, rte_vmr_list, scat_za_index, scat_aa_index, 
-	     ppathcloud, opt_prop_gas_agenda, 
-	     opt_prop_part_agenda, scalar_gas_absorption_agenda, stokes_dim, 
-	     p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim);
+  TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, 
+	     scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
+	     rte_vmr_list, scat_za_index, scat_aa_index, ext_mat_spt, 
+	     abs_vec_spt, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
+	     spt_calc_agenda, scalar_gas_absorption_agenda, stokes_dim, 
+	     p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
+	     pnd_field);
   //Calculate contribution from the boundary of the cloud box
   //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
   //it appears that this was not the case
@@ -181,15 +192,17 @@ void Cloudbox_ppath_rteCalc(
   sensor_pos(0,joker)=dummy_rte_pos;
   sensor_los(0,joker)=dummy_rte_los;
   //call rte_calc without input checking, sensor stuff, or verbosity
-  rte_calc( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, rte_gp_lat,
+  rte_calc( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
+	    rte_gp_lat,
 	    rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
-	    ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, atmosphere_dim,
-	    p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid, z_ground, cloudbox_on_dummy,
-	    cloudbox_limits, scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
+	    ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
+	    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+	    r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
+	    scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
 	    scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
             sensor_pol_dummy, sensor_rot_dummy,
-            f_grid,stokes_dim,
-	    antenna_dim_dummy, mblock_za_grid_dummy,mblock_aa_grid_dummy,false, false, true);
+            f_grid,stokes_dim, antenna_dim_dummy, mblock_za_grid_dummy,
+	    mblock_aa_grid_dummy, false, false, true);
   
   
   if (record_ppath)
@@ -486,11 +499,13 @@ void interpTArray(Matrix& T,
 		  MatrixView& K,
 		  Vector& rte_pos,
 		  Vector& rte_los,
+		  VectorView& pnd_vec,
 		  ArrayOfGridPos& gp,
 		  const ArrayOfMatrix& TArray,
 		  const ArrayOfMatrix& ext_matArray,
 		  const ArrayOfVector& abs_vecArray,
 		  const Vector& t_ppath,
+		  const Matrix& pnd_ppath,
 		  const Vector& cum_l_step,
 		  const Numeric& pathlength,
 		  const Index& stokes_dim,
@@ -502,6 +517,7 @@ void interpTArray(Matrix& T,
   Matrix opt_depth_mat(stokes_dim,stokes_dim);
   Vector itw(2);
   Numeric delta_s;
+  Index N_pt=pnd_vec.nelem();
   
   //interpolate transmittance matrix
   gridpos(gp, cum_l_step, pathlength);
@@ -516,6 +532,11 @@ void interpTArray(Matrix& T,
   K_abs = interp(itw, abs_vecArray,gp[0]);
  
   temperature=interp(itw,t_ppath,gp[0]);
+
+  for (Index i=0;i<N_pt;i++)
+    {
+      pnd_vec[i]=interp(itw,pnd_ppath(i,Range(joker)),gp[0]);
+    }
 
   for (Index i=0; i<2; i++)
     {
@@ -676,10 +697,13 @@ void TArrayCalc(
 		Vector&    rte_vmr_list,
 		Index&    scat_za_index,
 		Index&    scat_aa_index,
+		Tensor3& ext_mat_spt,
+		Matrix& abs_vec_spt,
+		Matrix&  pnd_ppath,
 		//input
 		const Ppath& ppath,
 		const Agenda& opt_prop_gas_agenda,
-		const Agenda& opt_prop_part_agenda,
+		const Agenda& spt_calc_agenda,
 		const Agenda& scalar_gas_absorption_agenda,
 		const Index& stokes_dim,
 		const Vector&    p_grid,
@@ -687,23 +711,32 @@ void TArrayCalc(
 		const Vector&    lon_grid,
 		const Tensor3&   t_field,
 		const Tensor4&   vmr_field,
-		const Index&     atmosphere_dim
+		const Index&     atmosphere_dim,
+		const Tensor4&   pnd_field
  		)
 { 
   const Index np=ppath.np;  
   const Index   ns = vmr_field.nbooks();
+  const Index N_pt = pnd_field.nbooks();
+
   TArray.resize(np);
   ext_matArray.resize(np); 
   abs_vecArray.resize(np);
+  pnd_ppath.resize(N_pt,np);
   t_ppath.resize(np);
-Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
+  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
   Matrix zeroMatrix(stokes_dim,stokes_dim,0.0);
   Matrix identity(stokes_dim,stokes_dim,0.0);
   //Identity matrix
   for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
- //use propagation angles from ppath to form scat_za_grid, scat_aa_grid
+ 
+  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
+  Vector abs_vec_part(stokes_dim, 0.0);
+
+//use propagation angles from ppath to form scat_za_grid, scat_aa_grid
   scat_za_grid.resize(ppath.np);
-  scat_aa_grid.resize(ppath.np);//I don't think aa can change along a propagation path
+  scat_aa_grid.resize(ppath.np);//I don't think aa can change along a 
+				//propagation path		
 
   scat_za_grid=ppath.los(Range(joker),0);
   scat_za_grid*=-1.0;
@@ -720,7 +753,7 @@ Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
   
   // Determine the atmospheric temperature and species VMR at 
   // each propagation path point
-   Matrix   vmr_ppath(ns,np), itw_field;
+  Matrix   vmr_ppath(ns,np), itw_field;
   //
   interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
 			  lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
@@ -734,9 +767,26 @@ Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
       interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
 			      p_grid, lat_grid, lon_grid, 
 			      vmr_field(is, joker, joker,  joker), 
-			      "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+			      "vmr_field", ppath.gp_p, ppath.gp_lat, 
+			      ppath.gp_lon, itw_field );
     }
-  //Create array of extinction matrices corresponding to each point in ppath
+  
+  //Determine the particle number density for every particle type at 
+  // each propagation path point
+  
+
+  for( Index ip=0; ip<N_pt; ip++ )
+    {
+      interp_atmfield_by_itw( pnd_ppath(ip, joker), atmosphere_dim,
+			      p_grid, lat_grid, lon_grid, 
+			      pnd_field(ip, joker, joker,  joker), 
+			      "pnd_field", ppath.gp_p, ppath.gp_lat, 
+			      ppath.gp_lon, itw_field );
+    }
+
+
+
+//Create array of extinction matrices corresponding to each point in ppath
   for (scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
     { 
       scat_aa_index=scat_za_index;
@@ -745,10 +795,32 @@ Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
       rte_vmr_list    = vmr_ppath(joker,scat_za_index);
       scalar_gas_absorption_agenda.execute( true );
       opt_prop_gas_agenda.execute( true );
-
+      ext_mat_part=0.0;
+      abs_vec_part=0.0;
       //Make sure scat_aa is between -180 and 180
       if (scat_aa_grid[scat_aa_index]>180){scat_aa_grid[scat_aa_index]-=360;}
-      opt_prop_part_agenda.execute( true );
+      //
+      //opt_prop_part_agenda.execute( true );
+      //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
+      spt_calc_agenda.execute( true );
+      // this is a loop over the different particle types
+      for (Index l = 0; l < N_pt; l++)
+        { 
+          // now the last two loops over the stokes dimension.
+          for (Index m = 0; m < stokes_dim; m++)
+            {
+	      abs_vec_part[m] += (abs_vec_spt(l, m) * pnd_ppath(l, scat_za_index));
+              for (Index n = 0; n < stokes_dim; n++)
+		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
+                                        pnd_ppath(l, scat_za_index));
+              
+            } 
+        }
+
+      //Add particle extinction matrix to *ext_mat*.
+      ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
+      abs_vec(0,Range(joker)) += abs_vec_part;
+
       ext_matArray[scat_za_index]=ext_mat(0,joker,joker);
       abs_vecArray[scat_za_index]=abs_vec(0,joker);
     }

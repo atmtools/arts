@@ -1,3 +1,13 @@
+2003-10-07  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-697
+
+	* src/methods.cc,m_montecarlo.cc,montecarlo.{cc,h}: Overhauled the
+	way optical properties were looked up in ScatteringMonteCarlo.
+	This was needed because it wasn't working for cases with
+	non-uniform pnd_fields. Untested.
+	
+
 2003-10-05  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-696

@@ -53,6 +53,9 @@ void Cloudbox_ppath_rteCalc(
 			     Index&                f_index,
 			     Index&                scat_za_index,
 			     Index&                scat_aa_index,
+			     Tensor3&              ext_mat_spt,
+			     Matrix&               abs_vec_spt,
+			     Matrix&               pnd_ppath,
 			     const Agenda&         ppath_step_agenda,
 			     const Index&          atmosphere_dim,
 			     const Vector&         p_grid,
@@ -75,7 +78,8 @@ void Cloudbox_ppath_rteCalc(
 			     const Agenda&         ground_refl_agenda,
 			     const Vector&         f_grid,
 			     const Index&          photon_number,
-			     const Index&          scattering_order);
+			     const Index&          scattering_order,
+			     const Tensor4&        pnd_field);
 
 
 void cloudbox_ppath_start_stepping(
@@ -111,11 +115,13 @@ void interpTArray(Matrix& T,
 		  MatrixView&  K,
 		  Vector& rte_pos,//maybe these should be VectorViews?
 		  Vector& rte_los,
+		  VectorView& pnd_vec,
 		  ArrayOfGridPos& gp,
 		  const ArrayOfMatrix& TArray,
 		  const ArrayOfMatrix& ext_matArray,
 		  const ArrayOfVector& abs_vecArray,
 		  const Vector& t_ppath,
+		  const Matrix& pnd_ppath,
 		  const Vector& cum_l_step,
 		  const Numeric& pathlength,
 		  const Index& stokes_dim,
@@ -161,10 +167,13 @@ void TArrayCalc(
 		Vector&    rte_vmr_list,
 		Index&    scat_za_index,
 		Index&    scat_aa_index,
+		Tensor3& ext_mat_spt,
+		Matrix& abs_vec_spt,
+		Matrix&  pnd_ppath,
 		//input
 		const Ppath& ppath,
 		const Agenda& opt_prop_gas_agenda,
-		const Agenda& opt_prop_part_agenda,
+		const Agenda& spt_calc_agenda,
 		const Agenda& scalar_gas_absorption_agenda,
 		const Index& stokes_dim,
 		const Vector&    p_grid,
@@ -172,7 +181,8 @@ void TArrayCalc(
 		const Vector&    lon_grid,
 		const Tensor3&   t_field,
 		const Tensor4&   vmr_field,
-		const Index&     atmosphere_dim
+		const Index&     atmosphere_dim,
+		const Tensor4&   pnd_field
  		);
 
 #endif  // montecarlo_h
