@@ -4196,6 +4196,13 @@ void raytrace_2d_linear_euler(
 
           lat_new = lat + dlat;
           lstep   = abs( lstep );
+
+          // For paths along the latitude end faces we can end up outside the
+          // grid cell. We simply look for points outisde the grid cell.
+          if( lat_new < lat1 )
+            { lat_new = lat1; }
+          else if( lat_new > lat3 )
+            { lat_new = lat3; }
         }
 
       // Calculate LOS zenith angle at found point.
@@ -4412,6 +4419,17 @@ void raytrace_3d_linear_euler(
           cart2poslos( r_new, lat_new, lon_new, za_new, aa_new, 
                               x+dx*lstep, y+dy*lstep, z+dz*lstep, dx, dy, dz );
 
+          // For paths along some end face we can end up outside the
+          // grid cell. We simply look for points outisde the grid cell.
+          if( lat_new < lat1 )
+            { lat_new = lat1; }
+          else if( lat_new > lat3 )
+            { lat_new = lat3; }
+          if( lon_new < lon5 )
+            { lon_new = lon5; }
+          else if( lon_new > lon6 )
+            { lon_new = lon6; }
+
           // Checks to improve the accuracy for speciel cases.
           // The checks are only needed for values cacluated locally as
           // the same checks are made inside *do_gridcell_3d*.
@@ -4495,12 +4513,20 @@ void raytrace_3d_linear_euler(
       za  = za_new;
       aa  = aa_new;
 
-      // If the path is north-south along a longitude end face, we
-      // must check that the path does not exit with new *aa*.
+      // For some cases where the path goes along an end face, 
+      // it could be the case that the refraction bends the path out 
+      // of the grid cell.
       if( lon == lon5  &&  aa < 0 )
         { endface = 5;   ready = 1; }
       else if( lon == lon6  &&  aa > 0 )
         { endface = 6;   ready = 1; }
+      else if( za > 0  &&  za < 180 )
+        {
+          if( lat == lat1  &&  lat != -90  &&  abs( aa ) > 90 ) 
+            { endface = 1;   ready = 1; }
+          else if( lat == lat3  &&  lat != 90  &&  abs( aa ) < 90 ) 
+            { endface = 3;   ready = 1; }
+        }
 
       // Store found point
       r_array.push_back( r );

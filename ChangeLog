@@ -1,3 +1,13 @@
+2003-03-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* src/ppath.cc (raytrace_3d_linear_euler): For zenith and nadir paths
+	along the end faces, the refraction can turn the path out of the grid
+	in a way not captured by do_gridcell_3d. Additional checks to handle
+	this included.
+
+	* src/ppath.cc (raytrace_2d_linear_euler): Same change as above (but 
+	only for latitude).
+
 2003-03-28  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-512

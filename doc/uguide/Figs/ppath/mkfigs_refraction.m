@@ -1,6 +1,5 @@
 function mkfigs_refraction
 
-if 0
 
 %- Geometrical vs. refraction path
 %
@@ -51,7 +50,6 @@ hl = legend(h,'Geometric calculations','With refraction');
 scale_axes( hl, 1.2 );
 
 
-end
 
 
 %- Gradients of refraction
