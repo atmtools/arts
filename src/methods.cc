@@ -2592,9 +2592,10 @@ md_data_raw.push_back
         ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
         INPUT(  ext_mat_spt_, abs_vec_spt_, scat_data_raw_,
-               scat_za_grid_, 
-               scat_aa_grid_, scat_za_index_, scat_aa_index_, 
-                f_index_, f_grid_, rte_temperature_),
+                scat_za_grid_, 
+                scat_aa_grid_, scat_za_index_, scat_aa_index_, 
+                f_index_, f_grid_, rte_temperature_,
+                pnd_field_, scat_p_index_, scat_lat_index_, scat_lon_index_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -2620,8 +2621,9 @@ md_data_raw.push_back
         ),
         OUTPUT( ext_mat_spt_, abs_vec_spt_ ),
         INPUT(  ext_mat_spt_, abs_vec_spt_, scat_data_mono_,
-               scat_za_grid_, 
-               scat_aa_grid_, scat_za_index_, scat_aa_index_, rte_temperature_),
+                scat_za_grid_, 
+                scat_aa_grid_, scat_za_index_, scat_aa_index_, rte_temperature_,
+                pnd_field_, scat_p_index_, scat_lat_index_, scat_lon_index_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -2752,7 +2754,8 @@ md_data_raw.push_back
          ),
         OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, scat_data_raw_, scat_za_grid_, scat_aa_grid_, 
-              scat_za_index_, scat_aa_index_, f_index_, f_grid_, rte_temperature_),
+              scat_za_index_, scat_aa_index_, f_index_, f_grid_, rte_temperature_,
+              pnd_field_, scat_p_index_, scat_lat_index_, scat_lon_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2773,8 +2776,9 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT(pha_mat_spt_),
-        INPUT(pha_mat_spt_, scat_data_raw_, za_grid_size_, scat_aa_grid_, 
-              scat_za_index_, scat_aa_index_, rte_temperature_),
+        INPUT(pha_mat_spt_, scat_data_mono_, za_grid_size_, scat_aa_grid_, 
+              scat_za_index_, scat_aa_index_, rte_temperature_,
+              pnd_field_, scat_p_index_, scat_lat_index_, scat_lon_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2808,10 +2812,11 @@ md_data_raw.push_back
          "\n"
          ),
 	OUTPUT(pha_mat_spt_),
-        INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_data_raw_, 
-              scat_theta_, za_grid_size_,
+        INPUT(pha_mat_spt_, pha_mat_sptDOITOpt_, scat_data_mono_, 
+              za_grid_size_,
               scat_aa_grid_, 
-              scat_za_index_, scat_aa_index_, rte_temperature_),
+              scat_za_index_, scat_aa_index_, rte_temperature_,
+              pnd_field_, scat_p_index_, scat_lat_index_, scat_lon_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -3300,7 +3305,8 @@ md_data_raw.push_back
          "the method *pha_matCalc*.  \n"
          ),
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
-                scat_aa_index_, rte_temperature_),
+                scat_aa_index_, rte_temperature_, scat_p_index_, 
+                scat_lat_index_, scat_lon_index_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_, 
                scat_aa_grid_,  
                atmosphere_dim_, cloudbox_limits_, za_grid_size_, t_field_),
@@ -3371,7 +3377,8 @@ md_data_raw.push_back
          "the method *pha_matCalc*.  \n"
          ),
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
-                scat_aa_index_, rte_temperature_),
+                scat_aa_index_, rte_temperature_, scat_p_index_, 
+                scat_lat_index_, scat_lon_index_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_,
                scat_aa_grid_,  
                atmosphere_dim_, cloudbox_limits_, za_grid_size_, 
@@ -3862,21 +3869,23 @@ md_data_raw.push_back
       ( NAME("ScatteringDataPrepareDOITOpt"),
         DESCRIPTION
         (
-          "Prepare single scattering data for a DOIT scattering calculation.\n"
+         "Prepare single scattering data for a DOIT scattering calculation.\n"
          "\n"
          "This function has can be used for scatttering calcualtions using the\n" 
          " DOIT method. It is a method optimized for randomly oriented \n"
          "scattering media and it can only be used for such cases. \n"
          "\n"
-         "It has to be used in *scat_mono_agenda*. The phase matrix data is \n"
-         "interpolated on the actual frequency and on all scattering angles \n"
-         "following from all possible combinations in *scat_za_grid* and \n"
-         "*scat_aa_grid*. \n"
+         "First the scattering data is interpolated in frequency using\n"
+         "*scat:data_monoCalc.Then phase matrix data is \n"
+         " interpolated  on all scattering angles \n"
+         "following from all possible combinations in *scat_za_grid* and \n" 
+         "*scat_aa_grid*. The temperature interpolation in done \n"
+         "*pha_mat_sptFromDataDOITOpt*.\n"
          "\n" 
           ),
-        OUTPUT( scat_theta_, pha_mat_sptDOITOpt_),
+        OUTPUT( pha_mat_sptDOITOpt_, scat_data_mono_),
         INPUT( za_grid_size_, scat_aa_grid_, scat_data_raw_, f_grid_, 
-               f_index_, atmosphere_dim_),
+               f_index_, atmosphere_dim_, stokes_dim_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

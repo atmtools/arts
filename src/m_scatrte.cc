@@ -2595,7 +2595,10 @@ scat_fieldCalc(//WS Output:
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
                Index& scat_aa_index,
-                Numeric& rte_temperature,
+               Numeric& rte_temperature,
+               Index& scat_p_index,
+               Index& scat_lat_index, 
+               Index& scat_lon_index,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
                const Tensor6& i_field,
@@ -2661,17 +2664,21 @@ scat_fieldCalc(//WS Output:
         //There is only loop over zenith angle grid ; no azimuth angle grid.
         for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
           {
+            scat_p_index =  p_index + cloudbox_limits[0];
+            scat_lat_index = 0;
+            scat_lon_index = 0;
+ 
             // Calculate the phase matric of a single particle type
             pha_mat_spt_agenda.execute(scat_za_index || p_index );
 	    
             // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			atmosphere_dim, p_index + cloudbox_limits[0], 0, 
-			0);
-	    
-	    product_field = 0;
-	     
-	     // za_in and aa_in are for incoming zenith and azimutha 
+                        atmosphere_dim, scat_p_index, 0, 
+                         0);
+
+             product_field = 0;
+             
+	     // za_in and aa_in are for incoming zenith and azimuth 
             //angle direction for which pha_mat is calculated
 	     for (Index za_in = 0; za_in < Nza; ++ za_in)
               { 
@@ -2761,13 +2768,17 @@ scat_fieldCalc(//WS Output:
                     for (scat_za_index = 0; scat_za_index < Nza; 
                          scat_za_index ++)
                       {
+                        scat_p_index =  p_index + cloudbox_limits[0];
+                        scat_lat_index = lat_index + cloudbox_limits[2];
+                        scat_lon_index = lon_index + cloudbox_limits[4];
+            
                         pha_mat_spt_agenda.execute( true );
 
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
-                                    p_index + cloudbox_limits[0], 
-                                    lat_index + cloudbox_limits[2], 
-                                    lon_index + cloudbox_limits[4]);
+                                    scat_p_index, 
+                                    scat_lat_index, 
+                                    scat_lon_index);
                    
                         product_field = 0;
 
@@ -3018,6 +3029,9 @@ scat_fieldCalcLimb(//WS Output:
                Index& scat_za_index, 
                Index& scat_aa_index,
                Numeric& rte_temperature,
+               Index& scat_p_index,
+               Index& scat_lat_index, 
+               Index& scat_lon_index,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
                const Tensor6& i_field,
@@ -3125,14 +3139,18 @@ scat_fieldCalcLimb(//WS Output:
           for( scat_za_index = 0; scat_za_index < za_grid_size;
                scat_za_index ++)
             {
-            // Calculate the phase matrix of a single particle type
-            out3 << "Calculate the phase matrix \n"; 
-            pha_mat_spt_agenda.execute(true);
-
-            // Sum over all particle types
-            pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                        atmosphere_dim, p_index + cloudbox_limits[0], 0, 
-                        0);
+              scat_p_index =  p_index + cloudbox_limits[0];
+              scat_lat_index = 0;
+              scat_lon_index = 0; 
+              
+              // Calculate the phase matrix of a single particle type
+              out3 << "Calculate the phase matrix \n"; 
+              pha_mat_spt_agenda.execute(true);
+              
+              // Sum over all particle types
+              pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                          atmosphere_dim, scat_p_index, 0, 
+                          0);
 
             out3 << "Multiplication of phase matrix with incoming" << 
               " intensities \n";
@@ -3261,14 +3279,18 @@ scat_fieldCalcLimb(//WS Output:
                     for (scat_za_index = 0; scat_za_index < 
                            za_grid_size; scat_za_index ++)
                       {
+                        scat_p_index =  p_index + cloudbox_limits[0];
+                        scat_lat_index = lat_index + cloudbox_limits[2];
+                        scat_lon_index = lon_index + cloudbox_limits[4];
+                        
                         out3 << "Calculate phase matrix \n";
                         pha_mat_spt_agenda.execute(true);
                         
                         pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
                                     atmosphere_dim, 
-                                    p_index + cloudbox_limits[0], 
-                                    lat_index + cloudbox_limits[2], 
-                                    lon_index + cloudbox_limits[4]);
+                                    scat_p_index, 
+                                    scat_lat_index, 
+                                    scat_lon_index);
                         
                         product_field = 0;
                         

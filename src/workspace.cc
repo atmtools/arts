@@ -1464,9 +1464,10 @@ wsv_data.push_back
        "\n"
        "Dimensions: \n"
        "[particle types]\n"
-       "[T, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid, 6]"
+       "[T, scat_za_grid,scat_aa_grid, scat_za_grid, scat_aa_grid,\n"
+       "stokes_dim, stokes_dim]"
        ),
-      GROUP( ArrayOfTensor6_ )));
+      GROUP( ArrayOfTensor7_ )));
 
 
 

@@ -658,15 +658,15 @@ void interpolate_scat_angle(//Output:
       
   // Interpolation of the data on the scattering angle:
  
-  GridPos thet_gp;
-  gridpos(thet_gp, za_datagrid, theta);
-  
-  Vector itw(2);
-  interpweights(itw, thet_gp);
-
-  for (Index i = 0; i < 6; i++)
-    {
-      pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
+      GridPos thet_gp;
+      gridpos(thet_gp, za_datagrid, theta);
+      
+      Vector itw(2);
+      interpweights(itw, thet_gp);
+      
+      for (Index i = 0; i < 6; i++)
+        {
+          pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
                               thet_gp);
     }
 } 

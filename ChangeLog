@@ -1,3 +1,35 @@
+2004-08-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-855
+	
+	* src/m_optproperties.cc: 
+	(ScatteringDataPrepareDOITOpt): Cleaned up this function. Now it 
+	uses (pha_mat_transform) like (pha_mat_sptFromMonoData).
+	The output *pha_mat_sptDOITOpt* includes now the transformed 
+	phase matrix, therefore *scat_theta* is no longer needed. 
+
+	(pha_mat_sptFromDataDOITOpt): Adjusted to modifications above.
+			
+	Included consistent temperature interpolation. In both cases 
+	(optimized and non-optimized) the phase matrix is first transformed 
+	in the laboratory frame and then interpolated on the temperature.
+	
+	* src/methods.cc: (ScatteringDataPrepareDOITOpt) 
+	(pha_mat_sptFromDataDOITOpt) - removed 
+	*scat_theta* from Output/Input.
+	(pha_mat_sptFromMonoData): Fixed big in input variable list.
+	
+	* src/workspace.cc: *pha_mat_sptDOITOpt* - modified. Now it holds
+	the phase matrices for all incoming and scattering angle combinations.
+	*scat_theta* - removed.
+	
+	* src/groups.cc: Included ArrayOfTensor7 needed for 
+	*pha_mat_sptDOITOpt*.
+
+	* src/xml_io_array_types.{cc,h}: Included ArrayOfTensor7.
+
+	* src/xml_io_instantiation.h: Included ArrayOfTensor7.
+
 2004-08-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-854

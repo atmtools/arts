@@ -247,6 +247,9 @@ template void
 xml_read_from_file<ArrayOfTensor6> (const String&, ArrayOfTensor6&);
 
 template void
+xml_read_from_file<ArrayOfTensor7> (const String&, ArrayOfTensor7&);
+
+template void
 xml_read_from_file<ArrayOfString> (const String&, ArrayOfString&);
 
 template void
@@ -294,6 +297,10 @@ xml_write_to_file<ArrayOfArrayOfTensor3> (const String&,
 
 template void
 xml_write_to_file<ArrayOfTensor6> (const String&, const ArrayOfTensor6&,
+                                   FileType);
+
+template void
+xml_write_to_file<ArrayOfTensor7> (const String&, const ArrayOfTensor7&,
                                    FileType);
 
 template void
