@@ -41,47 +41,9 @@ void gas_speciesSet(// WS Output:
   // group. Let's work through them one by one.
   for ( Index i=0; i<names.nelem(); ++i )
     {
-      // There can be a comma separated list of tag definitions, so we
-      // need to break the String apart at the commas.
-      ArrayOfString tag_def;
-
-      bool go_on = true;
-      String these_names = names[i];
-      while (go_on)
-        {
-          //          Index n = find_first( these_names, ',' );
-          Index n = these_names.find(',');
-          if ( n == these_names.npos ) // Value npos indicates not found.
-            {
-              // There are no more commas.
-              //              cout << "these_names: (" << these_names << ")\n";
-              tag_def.push_back(these_names);
-              go_on = false;
-            }
-          else
-            {
-              tag_def.push_back(these_names.substr(0,n));
-              these_names.erase(0,n+1);
-            }
-        }
-
-      // tag_def now holds the different tag Strings for this group.
-      //      cout << "tag_def =\n" << tag_def << endl;
-
-      // Set size to zero, in case the method has been called before.
-      gas_species[i].resize(0);
-
-      for ( Index s=0; s<tag_def.nelem(); ++s )
-        {
-          SpeciesTag this_tag(tag_def[s]);
-
-          // Safety check: For s>0 check that the tags belong to the same species.
-          if (s>0)
-            if ( gas_species[i][0].Species() != this_tag.Species() )
-              throw runtime_error("Tags in a tag group must belong to the same species.");
-
-          gas_species[i].push_back(this_tag);
-        }
+      // This part has now been moved to array_species_tag_from_string
+      // in absorbtion.cc. Call this function
+      array_species_tag_from_string( gas_species[i], names[i] );  
     }
 
   // Print list of tag groups to the most verbose output stream:

@@ -428,7 +428,63 @@ Index species_index_from_species_name( String name )
   return mspecies;
 }
 
+//! Converts a String to ArrayOfSpeciesTag
+/*!
+   This function is used when preparing strings read from e.g. control
+   files to be stored as SpeciesTag in gas_species.
+   
+   Note: This is originally a part of gas_speciesSet.
+   
+   \param tags  Array of SpeciesTag.
+   \param names String with species.
+   
+   \author Mattias Ekström
+   \date   2004-09-30
+*/   
+void array_species_tag_from_string( ArrayOfSpeciesTag& tags, 
+                                    const String& names )
+{
+  // There can be a comma separated list of tag definitions, so we
+  // need to break the String apart at the commas.
+  ArrayOfString tag_def;
 
+  bool go_on = true;
+  String these_names = names;
+  while (go_on)
+  {
+    //          Index n = find_first( these_names, ',' );
+    Index n = these_names.find(',');
+    if ( n == these_names.npos ) // Value npos indicates not found.
+    {
+      // There are no more commas.
+      //              cout << "these_names: (" << these_names << ")\n";
+      tag_def.push_back(these_names);
+      go_on = false;
+    }
+    else
+    {
+      tag_def.push_back(these_names.substr(0,n));
+      these_names.erase(0,n+1);
+    }
+  }
+  // tag_def now holds the different tag Strings for this group.
+  
+  // Set size to zero, in case the method has been called before.
+  tags.resize(0);
+    
+  for ( Index s=0; s<tag_def.nelem(); ++s )
+  {
+    SpeciesTag this_tag(tag_def[s]);
+
+    // Safety check: For s>0 check that the tags belong to the same species.
+    if (s>0)
+    if ( tags[0].Species() != this_tag.Species() )
+      throw runtime_error("Tags in a tag group must belong to the same species.");
+
+    tags.push_back(this_tag);
+  }
+}
+   
 
 //! The map associated with species_data.
 /*! 

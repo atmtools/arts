@@ -234,6 +234,18 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "jacobian_agenda" ),
+       DESCRIPTION
+       (
+        "The agenda controlling the calculation of the Jacobian matrix.\n"
+        "This agenda is not supposed to be set by the user, it should be\n"
+        "automatically be constructed when defining the jacobian quantities.\n"
+       ),
+       OUTPUT( jacobian_ ),
+       INPUT( jacobian_quantities_ ))),
+       
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "main_agenda" ),
        DESCRIPTION
        (

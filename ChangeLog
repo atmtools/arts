@@ -1,3 +1,43 @@
+2004-10-26  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-905
+
+	* src/absorption.[cc,h]: Moved part functionality of gas_speciesSet
+	here to method array_species_tag_from_string.
+
+	* src/m_absorption.cc: Moved the conversion from String to 
+	ArrayOfSpeciesTag to absorption.cc. This function is also needed 
+	by the jacobian functions for gases.
+
+	* src/agendas.cc: Added *jacobian_agenda* used to perform the final
+	calculations of the Jacobian matrix.
+
+	* src/methods.cc: Added methods for setting up the Jacobian for
+	gas species (*jacobianAddGas* and *jacobianCalcGas*) and  temperature
+	(*jacobianAddTemperature* and *jacobianCalcTemperature*). Also 
+	implemented function for calculating the zenith angle pointing
+	jacobian (*jacobianCalcPointing*) and the function *jacobianCalc* 
+	that calls the *jacobian_agenda*.
+
+	* src/workspace.cc: Added *jacobian_agenda* and a vector 
+	*sensor_time* used to add a time dimension to the measurement
+	blocks. Currently only used while calculating polynomial pointing
+	offsets by *jacobianCalcPointing*.
+
+	* src/xml_io_compound_types.cc: Changed type of jacobianindices
+	from Vector to ArrayOfIndex.
+
+	* src/jacobian.[cc,h]: Changed JacobianIndices to ArrayOfIndex.
+	Added helper functions for the jacobian WSM.
+	check_retrieval_grids, get_perturbation_grid,
+	get_perturbation_range, perturbation_field_1d, perturbation_field_2d
+	and perturbation_field_3d.
+
+	* src/m_jacobian.cc: Implemented *jacobianAddGas*, 
+	*jacobianAddTemperature*, *jacobianCalc*, *jacobianCalcGas*,
+	*jacobianCalcPointing* and *jacobianCalcTemperature*. Some minor
+	changes to already existing functions. 
+	
 2004-10-26  Oliver Lemke  <olemke@core-dump.info>
 
         * arts-1-1-904

@@ -1,4 +1,4 @@
-/* Copyright (C) 2004 Mattias Ekström <ekstrom@rss.chalmers.se>
+/* Copyright (C) 2004 Mattias Ekstrï¿½ <ekstrom@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -18,21 +18,24 @@
 /** \file
     Declarations required for the calculation of jacobians.
 
-    \author Mattias Ekström
+    \author Mattias Ekstrï¿½
 */
 
 #ifndef jacobian_h
 #define jacobian_h
 
+#include <iostream>
 #include <stdexcept>
 #include "matpackI.h"
 #include "array.h"
 #include "mystring.h"
 #include "make_array.h"
 #include "bifstream.h"
+#include "interpolation.h"
+#include "logic.h"
 
 /** Contains the data for one retrieval quantity.
-    \author Mattias Ekström */
+    \author Mattias Ekstrï¿½ */
 class RetrievalQuantity {
 public:
 
@@ -60,7 +63,7 @@ public:
                     const Numeric&            perturbation,
                     const MakeArray<Vector>&  grids,
                     const Index&              speciesindex,
-                    const Vector&             jacobianindices) :
+                    const ArrayOfIndex&       jacobianindices) :
     mmaintag(maintag),
     msubtag(subtag),
     munit(unit),
@@ -98,8 +101,8 @@ public:
   const Index& SpeciesIndex() const { return mspeciesindex; }
   void SpeciesIndex( const Index& si ) { mspeciesindex = si; }
   /** Jacobian indices (= start and stop columns in jacobian). */
-  const Vector& JacobianIndices() const { return mjacobianindices; }
-  void JacobianIndices( const Vector& ji ) { mjacobianindices = ji; }
+  const ArrayOfIndex& JacobianIndices() const { return mjacobianindices; }
+  void JacobianIndices( const ArrayOfIndex& ji ) { mjacobianindices = ji; }
 
 private:
 
@@ -110,14 +113,68 @@ private:
   Numeric mperturbation;
   ArrayOfVector mgrids;
   Index mspeciesindex;
-  Vector mjacobianindices;
+  ArrayOfIndex mjacobianindices;
 };
 
 /** Output operator for RetrievalQuantity.
 
-    \author Mattias Ekström */
+    \author Mattias Ekstrï¿½ */
 ostream& operator << (ostream& os, const RetrievalQuantity& ot);
 
 typedef Array<RetrievalQuantity> ArrayOfRetrievalQuantity;
 
+//======================================================================
+//             Functions related to calculation of Jacobian
+//======================================================================
+
+bool check_retrieval_grids(       ArrayOfVector& grids,
+                                  ostringstream& os,
+                            const Vector&        p_grid,
+                            const Vector&        lat_grid,
+                            const Vector&        lon_grid,
+                            const String&        p_grid_name,
+                            const String&        lat_grid_name,
+                            const String&        lon_grid_name,
+                            const Index&         dim);
+
+bool get_perturbation_grid(      Vector&         pert,
+                                 ArrayOfGridPos& gp,
+                           const Vector&         atm_grid,
+                           const Vector&         jac_grid);
+
+void get_perturbation_range(       Range& range,
+                             const Index& index,
+                             const Index& length);
+
+void perturbation_field_1d(       VectorView      field,
+                            const ArrayOfGridPos& p_gp,
+                            const Vector&         p_pert,
+                            const Range&          p_range,
+                            const Numeric&        size,
+                            const Index&          method);
+                                
+void perturbation_field_2d(       MatrixView      field,
+                            const ArrayOfGridPos& p_gp,
+                            const ArrayOfGridPos& lat_gp,
+                            const Vector&         p_pert,
+                            const Vector&         lat_pert,
+                            const Range&          p_range,
+                            const Range&          lat_range,
+                            const Numeric&        size,
+                            const Index&          method);
+                                
+void perturbation_field_3d(       Tensor3View     field,
+                            const ArrayOfGridPos& p_gp,
+                            const ArrayOfGridPos& lat_gp,
+                            const ArrayOfGridPos& lon_gp,
+                            const Vector&         p_pert,
+                            const Vector&         lat_pert,
+                            const Vector&         lon_pert,
+                            const Range&          p_range,
+                            const Range&          lat_range,
+                            const Range&          lon_range,
+                            const Numeric&        size,
+                            const Index&          method);
+                                
+                           
 #endif // jacobian_h

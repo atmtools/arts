@@ -2060,6 +2060,48 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME( "jacobianAddGas" ),
+        DESCRIPTION
+        (
+         "Add a gas species as a retrieval quantity to the Jacobian.\n"
+         "\n"
+         "This functions also adds the SpeciesTag of the given species to\n"
+         "*gas_species*. This way the treated gas species only need to be\n"
+         "given at one place in the control file.\n"
+         "\n"
+         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+         "the retrieval field should be set to zero length.\n"
+         "\n" 
+         "NOTE: Only \"perturbation\" method implemented.\n"
+         "\n"
+         "Output:\n"
+         "  jacobian_quantities : The array of retrieval quantities.\n"
+         "  gas_species         : Tag groups for scalar gas absorption.\n"
+         "\n"
+         "Input:\n"
+         "  jacobian       : The Jacobian Matrix.\n"
+         "  atmosphere_dim : The atmosphere dimensionality.\n"
+         "\n"
+         "Generic input:\n"
+         "  Vector : The pressure grid of the retrieval field.\n"
+         "  Vector : The latitude grid of the retrieval field.\n"
+         "  Vector : The longitude grid of the retrieval field.\n"
+         "\n"
+         "Keywords:\n"
+         "  species : The SpeciesTag of the retrieval quantity.\n"
+         "  method  : \"analytic\" or \"perturbation\".\n"
+         "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
+         "  dx      : Size of perturbation."
+        ),
+        OUTPUT( jacobian_quantities_, gas_species_ ),
+        INPUT( jacobian_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( "species", "method", "unit", "dx" ),
+        TYPES( String_t, String_t, String_t, Numeric_t )));
+         
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("jacobianAddPointing"),
         DESCRIPTION
         (
@@ -2068,6 +2110,8 @@ void define_md_data_raw()
          "This function adds a pointing offset described over time by a\n"
          "polynomial.\n"
          "NOTE: So far this function only treats zenith angle offsets.\n"
+         "NOTE 2: Only constant offsets, i.e. zero order polynomials are\n"
+         "implemented.\n"
          "\n"
          "Output:\n"
          "  jacobian_quantities : The array of retrieval quantities.\n"
@@ -2077,14 +2121,165 @@ void define_md_data_raw()
          "\n"
          "Keywords:\n"
          "  dza                 : The size of the perturbation.\n"
+         "  unit                : Unit of perturbation \"abs\"/\"rel\"\n"
          "  poly_order          : Order of the polynomial."
         ),
         OUTPUT( jacobian_quantities_ ),
         INPUT( jacobian_ ),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS( "dza", "poly_order" ),
-        TYPES( Numeric_t, Index_t )));
+        KEYWORDS( "dza", "unit", "poly_order" ),
+        TYPES( Numeric_t, String_t, Index_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianAddTemperature" ),
+        DESCRIPTION
+        (
+         "Add the temperature as a retrieval quantity to the Jacobian.\n"
+         "\n"
+         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
+         "the retrieval field should be set to zero length.\n"
+         "\n" 
+         "NOTE: So far hydrostatic equilibrium is not considered and only\n"
+         "\"perturbation\" method implemented.\n"
+         "\n"
+         "Output:\n"
+         "  jacobian_quantities : The array of retrieval quantities.\n"
+         "\n"
+         "Input:\n"
+         "  jacobian       : The Jacobian Matrix.\n"
+         "  atmosphere_dim : The atmosphere dimensionality.\n"
+         "\n"
+         "Generic input:\n"
+         "  Vector : The pressure grid of the retrieval field.\n"
+         "  Vector : The latitude grid of the retrieval field.\n"
+         "  Vector : The longitude grid of the retrieval field.\n"
+         "\n"
+         "Keywords:\n"
+         "  method  : \"analytic\" or \"perturbation\".\n"
+         "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
+         "  dx      : Size of perturbation."
+        ),
+        OUTPUT( jacobian_quantities_ ),
+        INPUT( jacobian_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT( Vector_, Vector_, Vector_ ),
+        KEYWORDS( "method", "unit", "dx" ),
+        TYPES( String_t, String_t, Numeric_t )));
+  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "jacobianCalc" ),
+        DESCRIPTION
+        (
+         "Executes *jacobian_agenda* to calculate *jacobian*.\n"
+        ),
+        OUTPUT( jacobian_ ),
+        INPUT( jacobian_agenda_, jacobian_quantities_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+        
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcGas"),
+        DESCRIPTION
+        (
+        "Calculates the contribution of a gas species to the Jacobian.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddGas\n"
+        "and should normally not be called by the user.\n"
+        "\n"
+        "Output:\n"
+        "  jacobian            : The Jacobian matrix.\n"
+        "  vmr_field           : The VMR field.\n"
+        "Input:\n"
+        "  jacobian_quantities : The array of retrieval quantities.\n"
+        "  gas_species         : Tag groups for scalar gas absorption.\n"
+        "Keywords:\n"
+        "  species             : The species to be retrieved.\n"
+        "\n"
+        "See also input/output for RteCalc."
+        ),
+        OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
+                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( jacobian_quantities_, gas_species_, ppath_step_agenda_, 
+               rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
+               iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
+               f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
+               mblock_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "species" ),
+        TYPES( String_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcPointing"),
+        DESCRIPTION
+        (
+        "Calculates the contribution of a pointing deviation to the Jacobian.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
+        "and should normally not be called by the user.\n"
+        "\n"
+        "Output:\n"
+        "  jacobian            : The Jacobian matrix.\n"
+        "Input:\n"
+        "  jacobian_quantities : The array of retrieval quantities.\n"
+        "  sensor_time         : The times for measurement blocks.\n"
+        "\n"
+        "See also input/output for RteCalc."
+        ),
+        OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_,
+                rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( jacobian_quantities_, sensor_time_, ppath_step_agenda_, 
+               rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
+               iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_on_, 
+               cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
+               f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
+               mblock_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianCalcTemperature"),
+        DESCRIPTION
+        (
+        "Calculates the contribution the temperature to the Jacobian.\n"
+        "\n"
+        "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
+        "and should normally not be called by the user.\n"
+        "\n"
+        "Output:\n"
+        "  jacobian            : The Jacobian matrix.\n"
+        "  t_field             : The temperature field.\n"
+        "Input:\n"
+        "  jacobian_quantities : The array of retrieval quantities.\n"
+        "Keywords:\n"
+        "\n"
+        "See also input/output for RteCalc."
+        ),
+        OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_, rte_pos_, 
+                rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
+        INPUT( jacobian_quantities_, ppath_step_agenda_, rte_agenda_, 
+               iy_space_agenda_, iy_surface_agenda_, iy_cloudbox_agenda_, 
+               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_surface_, cloudbox_on_, cloudbox_limits_, 
+               sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
+               stokes_dim_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3168,7 +3363,7 @@ void define_md_data_raw()
          "Only refractivity of dry air is considered. All other gases has\n"
                  "a negligible contribution.  \n"
          "\n"
-         "The formula used is contributed by Michael Höpfner,\n"
+         "The formula used is contributed by Michael Hï¿½fner,\n"
                  "Forschungszentrum Karlsruhe."
         ),
         OUTPUT( refr_index_ ),
@@ -4179,7 +4374,7 @@ md_data_raw.push_back
          " \"water-liebe93\"\n"
          "   Treats liquid water without salt. Not valid below 10 GHz.\n"
          "   Upper frequency limit not known. Model parameters taken from\n"
-         "   Atmlab function epswater93 (by C. Mätzler), which refer to\n"
+         "   Atmlab function epswater93 (by C. Mï¿½zler), which refer to\n"
          "   Liebe 93 without closer specifications.\n"
          "\n"
          "Keyword: \n"

@@ -1001,6 +1001,15 @@ wsv_data.push_back
 
  wsv_data.push_back
    (WsvRecord
+    ( NAME( "jacobian_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "jacobian_lat_grid" ),
       DESCRIPTION
       (
@@ -1403,7 +1412,7 @@ wsv_data.push_back
        "\n"
        "Usage: Set by the user.\n"
        "\n"
-       "Unit:  degrees"
+       "Unit: degrees"
        ),
       GROUP( Numeric_ )));
 
@@ -2628,7 +2637,27 @@ wsv_data.push_back
        ),
       GROUP( Vector_ )));
 
-wsv_data.push_back
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_time" ),
+      DESCRIPTION
+      (
+       "The time for each measurement block.\n"
+       "\n"
+       "This WSV is used when calculating pointing offset Jacobians.\n"
+       "It can either be used to store actual times, in any desired unit,\n"
+       "for real measurements or it can store a relative time series\n"
+       "for the measurement blocks.\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "Unit:  [ arbitrary ]\n"
+       "\n"
+       "Size:  [ number of measurement blocks ]"
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "single_scattering_data" ),
       DESCRIPTION
@@ -3159,7 +3188,7 @@ wsv_data.push_back
        "This vector contains the discretisation of the zenith angle grid \n"
        "for the scattering integral caluclation. \n"
        "\n"
-       "The zenith angle grid is defined from 0 to 180°.\n"
+       "The zenith angle grid is defined from 0 to 180.\n"
        "za_grid_size is the number of points of the zenith angle grid and \n"
        "\n"
        "Usage: Output of *grid_sizeSet*.\n"

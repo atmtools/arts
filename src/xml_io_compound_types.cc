@@ -459,7 +459,7 @@ xml_read_from_stream (istream& is_xml,
   Numeric        perturbation;
   ArrayOfVector  grids;
   Index          speciesindex;
-  Vector         jacobianindices;
+  ArrayOfIndex   jacobianindices;
 
   tag.read_from_stream (is_xml);
   tag.check_name ("RetrievalQuantity");
