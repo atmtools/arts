@@ -1,3 +1,28 @@
+2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-217
+	
+	* src/methods.cc, src/m_abs.cc, src/workspace.cc:
+	Renamed the following methods and variables:
+	
+	  - raw_ptz_1d to raw_ptz
+	  - raw_vmrs_1d to raw_vmrs
+	  - raw_vmrs_1dReadFromFiles to raw_vmrsReadFromFiles
+	  - raw_vmrs_1dReadFromScenario to raw_vmrsReadFromScenario
+	  - AtmFromRaw1D to AtmFromRaw
+
+	* src/methods.cc (define_md_data): Removed Atm2dFromRaw1D
+
+	* src/m_abs.cc: Removed Atm2dFromRaw1D
+
+	* src/workspace.cc (define_wsv_data): Removed t_abs_2d, z_abs_2d,
+	vmrs_2d and abs_2d
+
+	* doc/uguide/.cvsignore: Changed version.tex to auto_version.tex
+
+	* TODO: Added thoughts about making HDF support optional.
+	
+	
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-216
