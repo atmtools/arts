@@ -1,3 +1,11 @@
+2003-08-19  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-656
+	
+	* src/test_legendre.cc: Added function
+	(legendre_poly_norm_schmidt_deriv) to test the derivative of the
+	Schmidt quasi-normalized Legendre polynomials.
+	
 2003-08-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-655
