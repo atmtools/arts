@@ -675,7 +675,6 @@ void ScatteringMonteCarlo (
               
               f_index=0;//For some strange reason f_index is set to -1 in RteStandard
               Iboundary=i_rte(0,joker);
-	      assert(Iboundary[1]==0);
               ////////////////////
               T=TArray[ppathcloud.np-1];
               mult(boundarycontri,T,Iboundary);
@@ -743,7 +742,6 @@ void ScatteringMonteCarlo (
                   Vector emissioncontri(stokes_dim);
                   mult(emissioncontri,T,emission);
                   emissioncontri/=(g*(1-albedo));//yuck!
-		  assert(emissioncontri[2]==0);
                   mult(pathinc,Q,emissioncontri);
                   pathI = pathinc;
                   if(strat_sampling)

@@ -1,3 +1,12 @@
+2004-01-22  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-778
+
+	* src/montecarlo.cc (Sample_ppathlength,Sample_ppathlengthLOS):
+	Minor changes are were required in path length sampling to
+	properly accomodate non-diagonal extinction matrices
+	(i.e. ptype=30). 
+
 2004-01-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-777

@@ -1001,11 +1001,15 @@ void Sample_ppathlength (
 	{
 	  gridpos(gp,T11vector,r);
 	  interpweights(itw,gp);
-	  Numeric T11;
+	  Numeric T11,T11A,T11B,sA,sB,K;
 	  T11=interp(itw,T11vector,gp);
-	  K11=0.5*(ext_matArray[gp.idx](0,0)+ext_matArray[gp.idx+1](0,0));
-	  pathlength=cum_l_step[gp.idx]+log(T11vector[gp.idx]/T11)/K11;
-	  g=K11*T11;
+	  T11A=T11vector[gp.idx];
+	  T11B=T11vector[gp.idx+1];
+	  sA=cum_l_step[gp.idx];
+	  sB=cum_l_step[gp.idx+1];
+	  K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
+	  pathlength=sA+log(T11A/T11)/K;
+	  g=K*T11;
 	}
     }	
 }		
@@ -1073,11 +1077,15 @@ void Sample_ppathlengthLOS (
       Vector itw(2);
       gridpos(gp,T11vector,1-r*(1-T11vector[npoints-1]));
       interpweights(itw,gp);
-      Numeric T11;
+      Numeric T11,T11A,T11B,sA,sB,K;
       T11=interp(itw,T11vector,gp);
-      K11=0.5*(ext_matArray[gp.idx](0,0)+ext_matArray[gp.idx+1](0,0));
-      pathlength=cum_l_step[gp.idx]+log(T11vector[gp.idx]/T11)/K11;
-      g=K11*T11/(1-T11vector[npoints-1]);
+      T11A=T11vector[gp.idx];
+      T11B=T11vector[gp.idx+1];
+      sA=cum_l_step[gp.idx];
+      sB=cum_l_step[gp.idx+1];
+      K=log(T11A/T11B)/(sB-sA);//K=K11 only for diagonal ext_mat
+      pathlength=sA+log(T11A/T11)/K;
+      g=K*T11/(1-T11vector[npoints-1]);
     }
   assert(pathlength<=dist_to_boundary);
 }		
