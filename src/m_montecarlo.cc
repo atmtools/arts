@@ -210,7 +210,7 @@ void ScatteringMonteCarlo (
   const String& histdata_filename="";
                            
   //Check keyword input
-  if (max_time<0 && max_iter<0 && rng_seed<0){
+  if (max_time<0 && max_iter<0 && std_err<0){
     throw runtime_error( "At least one of std_err, max_time, and max_iter must be positive" );
   }
               

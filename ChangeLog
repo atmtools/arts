@@ -1,3 +1,10 @@
+2004-11-15  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-909
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Fixed bug in input
+	keyword check.
+
 2004-11-12  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-908
