@@ -37,7 +37,7 @@
   
 */
 
-#include <math.h>
+#include <cmath>
 #include "array.h"
 #include "check_input.h"
 #include "interpolation.h"

@@ -30,7 +30,7 @@
   === External declarations
   ===========================================================================*/
 #include <stdexcept>
-#include <math.h>
+#include <cmath>
 #include "lin_alg.h"
 #include "arts.h"
 #include "auto_md.h"

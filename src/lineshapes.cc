@@ -33,7 +33,7 @@
   \date   2000-08-21
 */
 
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"

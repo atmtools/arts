@@ -41,7 +41,7 @@
 #ifdef HDF_SUPPORT
 
 #include <hdf.h>
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "math_funcs.h"
 #include "messages.h"

@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "array.h"
 #include "check_input.h"

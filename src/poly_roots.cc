@@ -35,7 +35,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include "poly_roots.h"
 

@@ -17,7 +17,7 @@
    USA. */
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
 #include "array.h"
 #include "matpackVII.h"

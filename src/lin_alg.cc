@@ -34,7 +34,7 @@
   ===========================================================================*/
 
 #include <stdexcept>
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "make_vector.h"
 #include "array.h"

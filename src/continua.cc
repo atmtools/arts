@@ -210,7 +210,7 @@
    \date   2001-11-01
 */
 
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"

@@ -35,7 +35,7 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include <stdexcept>
-#include <math.h>
+#include <cmath>
 #include <cfloat>
 #include "arts.h"
 #include "matpackI.h"

@@ -38,7 +38,7 @@
   === External declarations
   ===========================================================================*/
 
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include "physics_funcs.h"
 #include "messages.h"          

@@ -40,7 +40,7 @@
   === External declarations
   ===========================================================================*/
 
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include "array.h"
 #include "auto_md.h"

@@ -36,7 +36,7 @@
  *** External declarations
  *****************************************************************************/
 
-#include <math.h>
+#include <cmath>
 #include "array.h"
 #include "math_funcs.h"
 #include "logic.h"

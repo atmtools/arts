@@ -42,7 +42,7 @@
   ===========================================================================*/
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"

@@ -39,7 +39,7 @@
   === External declarations
   ===========================================================================*/
 
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 #include "arts.h"
 #include "check_input.h"
