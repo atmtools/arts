@@ -262,7 +262,7 @@ if test x$ac_docgen = xyes; then
 fi
 
 WARNING_FLAGS=
-if test x$ac_cv_cxx_compiler_gnu = xyes; then
+if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   if test x$ac_more_warnings = xyes; then
     WARNING_FLAGS="-pedantic -ansi -W -Wall -Wno-unused"
   else
@@ -301,7 +301,7 @@ else
 fi
 
 CFLAGS="$CFLAGS $DEBUG_FLAGS $WARNING_FLAGS"
-if test x$ac_cv_cxx_compiler_gnu = xyes; then
+if test x$ac_cv_cxx_compiler_gnu = xyes -o x$ac_cv_prog_gxx = xyes; then
   CXXFLAGS_FIXED="$DEBUG_FLAGS -ftemplate-depth-40 $WARNING_FLAGS"
   CXXFLAGS="$CXXFLAGS $CXXFLAGS_FIXED"
 else
