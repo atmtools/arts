@@ -472,5 +472,167 @@ void ybatchFromRadiosonde(// WS Output:
     }
 }
 
+void ybatchFromRadiosondeGlobal(// WS Output:
+                          Matrix& ybatch,
+                          // WS Input:
+			  const ArrayOfMatrix& radiosonde_data,
+                          const Vector& f_mono,
+                          const ArrayOfArrayOfLineRecord& lines_per_tg,
+                          const ArrayOfLineshapeSpec& lineshape,
+                          const Numeric& z_plat,
+                          const Vector& za_pencil,
+                          const Numeric& l_step,
+                          const Index& refr,
+			  const String& refr_model,
+                          const Index& refr_lfac,
+                          const Numeric& r_geoid,
+                          const Index& emission,
+                          const Vector& y_space,
+                          const Vector& e_ground,
+                          const TagGroups& tgs,
+                          const ArrayOfString& cont_description_names,
+			  const ArrayOfString& cont_description_models,
+                          const ArrayOfVector& cont_description_parameters)
+{
+  // Initialize ybatch:
+  ybatch.resize( f_mono.nelem()*za_pencil.nelem(), radiosonde_data.nelem() );
+  ybatch = 0;
+
+  // Loop over all radiosonde profiles:
+  for ( Index i=0; i<radiosonde_data.nelem(); ++i )
+    {
+      const Matrix& rd = radiosonde_data[i];
+
+      // Create t_abs, z_abs:
+
+      // For the interpolated profiles:
+      
+            
+      ConstVectorView p_raw = rd(Range(joker),0);
+      ConstVectorView z_raw = rd(Range(joker),1);
+      ConstVectorView t_raw = rd(Range(joker),2);
+      
+      Vector p_abs;
+
+      VectorNLogSpace (p_abs,"p_abs",p_raw[0],p_raw[p_raw.nelem()-1],100);
+      Vector t_abs( p_abs.nelem() );
+      Vector z_abs( p_abs.nelem() );
+		       
+      interpp (t_abs,p_raw,t_raw,p_abs);
+      interpp (z_abs,p_raw,z_raw,p_abs);	
+      
+      // Create vmrs:
+      
+      ConstVectorView h20_raw = rd(Range(joker),4);
+      
+      Matrix vmrs(3,p_abs.nelem());
+      interpp (vmrs(0,Range(joker)),p_raw,h20_raw,p_abs);
+      //vmrs(0,Range(joker)) = rd(Range(joker),4);     // H2O
+      vmrs(1,Range(joker)) = 0.209;                  // O2 
+      vmrs(2,Range(joker)) = 0.782;                  // N2
+
+      // Set the physical H2O profile from the H2O profile in vmrs:
+      Vector h2o_abs = vmrs(0,Range(joker));
+      
+      // Set the physical N2 profile from the N2 profile in vmrs:
+      Vector n2_abs = vmrs(2,Range(joker));
+
+      // Calculate absorption:
+      Matrix        abs;
+      ArrayOfMatrix abs_per_tg;
+      // ... call the workspace method absCalc:
+      absCalc(// Output:
+             abs,
+             abs_per_tg,
+             // Input:		  
+	     tgs,
+             f_mono,
+             p_abs,
+             t_abs,
+	     n2_abs,
+	     h2o_abs,
+             vmrs,
+             lines_per_tg,
+	     lineshape,
+	     cont_description_names,
+	     cont_description_models,
+	     cont_description_parameters);
+
+      // Set t_ground from lowest level of t_abs:
+      Numeric t_ground = t_raw[0];
+
+      // Set z_ground from lowest level of z_abs:
+      Numeric z_ground = z_raw[0];
+      cout << z_raw[0] << endl;
+
+      // Calculate refractive index:
+      Vector refr_index;
+      refrCalc(// Output:
+	       refr_index,
+	       // Input:
+	       p_abs,
+	       t_abs,
+	       h2o_abs,
+	       refr,
+	       refr_model);
+
+
+      // Calculate the line of sight:
+      Los los;
+      Vector z_tan;
+      losCalc(// Output:
+	      los,
+	      z_tan,
+	      // Input:
+	      z_plat,
+	      za_pencil,
+	      l_step,
+	      p_abs,
+	      z_abs,
+	      refr,
+	      refr_lfac,
+	      refr_index,
+	      z_ground,
+	      r_geoid);
+
+      // Calculate source:
+      ArrayOfMatrix source;
+      sourceCalc(// Output:
+		 source,
+		 // Input:
+		 emission,
+		 los,
+		 p_abs,
+		 t_abs,
+		 f_mono);
+
+      // Calculate transmittances:
+      ArrayOfMatrix trans;
+      transCalc(// Output:
+		trans,
+		//Input:
+		los,
+		p_abs,
+		abs);
+
+      // Calculate Spectrum:
+      Vector y;
+      yCalc(// Output:
+	    y,
+	    // Input:
+	    emission,
+	    los,
+	    f_mono,
+	    y_space,
+	    source,
+	    trans,
+	    e_ground,
+	    t_ground);
+
+      // Assign y to this column of ybatch:
+      ybatch(Range(joker),i) = y;
+    }
+}
+
 
 #endif // HDF_SUPPORT
