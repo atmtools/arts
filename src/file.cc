@@ -130,16 +130,9 @@ void open_output_file(ofstream& file, const String& name)
 void open_input_file(ifstream& file, const String& name)
 {
   // Tell the stream that it should throw exceptions.
-  // Badbit means that the entire stream is corrupted, failbit means
-  // that the last operation has failed, but the stream is still
-  // valid. We don't want either to happen!
+  // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  //  file.exceptions(ios::badbit |
-  //	  ios::failbit);
-
-  // Only set badbit otherwise eof throws exception as well and that
-  // is not what we want
   file.exceptions(ios::badbit);
 
   // c_str explicitly converts to c String.
