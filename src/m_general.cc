@@ -24,7 +24,7 @@
 
 /*!
   \file   m_general.cc
-  \author Patrick Eriksson
+  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
   \date   2002-05-08 
 
   \brief  Workspace functions of a general and overall character.
