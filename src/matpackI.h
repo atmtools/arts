@@ -366,11 +366,11 @@ public:
 
   // Iterators:
   /** Return iterator to first element. */
-  Iterator1D VectorView::begin ()
+  Iterator1D begin ()
     { return Iterator1D (mdata+mrange.mstart, mrange.mstride); }
 
   /** Return iterator behind last element. */
-  Iterator1D VectorView::end ()
+  Iterator1D end ()
     { return Iterator1D( mdata +
                          mrange.mstart +
                          (mrange.mextent)*mrange.mstride,
