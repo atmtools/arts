@@ -7,17 +7,17 @@
 ;
 ;           See also read_datafile.
 ;
-; Format:   write_datafile(filename, x, heading [, prec])
+;Usage:   write_datafile, filename, x, heading [, prec]
 ;
-; Inputs:   filename    full file name
+;Inputs:   filename    full file name
 ;           x           the data to store
 ;           heading     heading text
 ;                       The function puts in '# ' at the start of each line. 
 ;                       Heading can be empty ('')
-; Optional: prec        number of decimals to use, default 6
+;Optional: prec        number of decimals to use, default 6
 ;                       If prec = 0, integer values are assumed.
 ;                             
-; Output:   -
+;Output:   -
 ;
 ; History:  28.02.01  Wolfram Haas
 ;- 
