@@ -74,6 +74,17 @@ const double   RTOL = 1;
 #endif
 
 
+
+// As RTOL but for latitudes and longitudes.
+//
+#ifdef USE_DOUBLE
+const double   LATLONTOL = 1e-11;
+#else
+const double   LATLONTOL = 1e-6;
+#endif
+
+
+
 // This variable defines how much zenith and azimuth angles can
 // deviate from 0, 90 and 180 degrees, but still be treated to be 0,
 // 90 or 180.  For example, an azimuth angle of 180-ANGTOL/2 will
@@ -1786,8 +1797,8 @@ void do_gridcell_3d(
               Index&    endface,
               Index&    tanpoint,
         const double&   r_start0, 
-        const double&   lat_start,
-        const double&   lon_start,
+        const double&   lat_start0,
+        const double&   lon_start0,
         const double&   za_start,
         const double&   aa_start,
         const double&   ppc,
@@ -1809,13 +1820,25 @@ void do_gridcell_3d(
         const double&   rground36,
         const double&   rground16 )
 {
-  double   r_start = r_start0;
+  double   r_start   = r_start0;
+  double   lat_start = lat_start0;
+  double   lon_start = lon_start0;
 
   // Assert latitude and longitude
-  assert( lat_start >= lat1 );
-  assert( lat_start <= lat3 );
-  assert( !( abs( lat_start) < 90  &&  lon_start < lon5 ) );
-  assert( !( abs( lat_start) < 90  &&  lon_start > lon6 ) );
+  assert( lat_start >= lat1 - LATLONTOL );
+  assert( lat_start <= lat3 + LATLONTOL );
+  assert( !( abs( lat_start) < 90  &&  lon_start < lon5 - LATLONTOL ) );
+  assert( !( abs( lat_start) < 90  &&  lon_start > lon6 + LATLONTOL ) );
+
+  // Shift latitude and longitude if outside
+  if( lat_start < lat1 )
+    { lat_start = lat1; }
+  else if( lat_start > lat3 )
+    { lat_start = lat3; }
+  if( lon_start < lon5 )
+    { lon_start = lon5; }
+  else if( lon_start > lon6 )
+    { lon_start = lon6; }
 
   // Radius of lower and upper pressure surface at the start position
   double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
@@ -1935,7 +1958,7 @@ void do_gridcell_3d(
                l_end = 1;
 
       double   l_acc = 1e-3;
-      double   l_in  = 0, l_out;
+      double   l_in  = 0, l_out = l_end;
       bool     ready = false, startup = true;
 
       double   l_tan = 99e6;
@@ -6096,10 +6119,10 @@ void ppath_calc(
       // Before everything is tested carefully, we consider more than 1000
       // path points to be an indication on that the calcululations have
       // got stuck in an infinite loop.
-      if( istep > 1000 )
+      if( istep > 10000 )
         {
           throw logic_error(
-             "1000 path points have been reached. Is this an infinite loop?" );
+             "10000 path points have been reached. Is this an infinite loop?" );
         }
       
       // Number of points in returned path step

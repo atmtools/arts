@@ -1,3 +1,13 @@
+2003-02-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-449
+
+	* src/ppath.cc (do_gridcell_3d): Introduced an allowed tolerance
+	for latitudes and longitudes (LATLONTOL). This turned out to be
+	necessary when using very fine pressure grids (the test was
+	performed with a vertical step size of about 15 m). This problem
+	was reported by Claudia.
+
 2003-02-04  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-448
