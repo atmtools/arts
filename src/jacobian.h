@@ -60,7 +60,7 @@ public:
                     const Numeric&            perturbation,
                     const MakeArray<Vector>&  grids,
                     const Index&              speciesindex,
-                    const Matrix&             jacobianindices) :
+                    const Vector&             jacobianindices) :
     mmaintag(maintag),
     msubtag(subtag),
     munit(unit),
@@ -76,22 +76,30 @@ public:
   }
 
   /** Main tag. */
-  const String&        MainTag()         const { return mmaintag; }
+  const String& MainTag() const { return mmaintag; }
+  void MainTag( const String& mt ) { mmaintag = mt; }
   /** Subtag. Eg. for gas species: O3, ClO. */
-  const String&        Subtag()          const { return msubtag; }
+  const String& Subtag() const { return msubtag; }
+  void Subtag( const String& st ) { msubtag = st; }
   /** Unit of retrieval quantity. Eg. "rel", "vmr" and "nd". */
-  const String&        Unit()            const { return munit; }
+  const String& Unit() const { return munit; }
+  void Unit( const String& u ) { munit = u; }
   /** Method of calculation. Perturbation (=0) or analytical (=1). */
-  const Index&         Method()          const { return mmethod; }
+  const Index& Method() const { return mmethod; }
+  void Method( const Index& m ) { mmethod = m; }
   /** Size of perturbation used for perturbation calculations. */
-  const Numeric&       Perturbation()    const { return mperturbation; }
+  const Numeric& Perturbation() const { return mperturbation; }
+  void Perturbation( const Numeric& p ) { mperturbation = p; }
   /** Grids. Definition grids for the jacobian, eg. p, lat and lon. */
-  const ArrayOfVector& Grids()           const { return mgrids; }
+  const ArrayOfVector& Grids() const { return mgrids; }
+  void Grids( const ArrayOfVector& g ) { mgrids = g; }
   /** Species index (= index of species in *gas_species*).
       Should be = -1 for other quantities, eg. Temp, Pointing. */
-  const Index&         SpeciesIndex()    const { return mspeciesindex; }
+  const Index& SpeciesIndex() const { return mspeciesindex; }
+  void SpeciesIndex( const Index& si ) { mspeciesindex = si; }
   /** Jacobian indices (= start and stop columns in jacobian). */
-  const Matrix&        JacobianIndices() const { return mjacobianindices; }
+  const Vector& JacobianIndices() const { return mjacobianindices; }
+  void JacobianIndices( const Vector& ji ) { mjacobianindices = ji; }
 
 private:
 
@@ -102,7 +110,7 @@ private:
   Numeric mperturbation;
   ArrayOfVector mgrids;
   Index mspeciesindex;
-  Matrix mjacobianindices;
+  Vector mjacobianindices;
 };
 
 /** Output operator for RetrievalQuantity.

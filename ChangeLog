@@ -1,3 +1,26 @@
+2004-09-16  Mattias Ekström <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-873
+
+	* src/Makefile.am: Added m_jacobian in test_geomag_calc sources.
+
+	* src/jacobian.h: Added functions for setting fields in class
+	RetrievalQuantity.
+
+	* src/m_jacobian.cc: Added WSM jacobianAddPointing used to add a 
+	pointing offset (polynomial) to the jacobian.
+	Also added function jacobianClose that finalises the WSV jacobian
+	and jacobian_quantities. It also sets some of the fields in the
+	RetrievalQuantity that are not set by the user.
+	And finally WSM jacobianInit that starts up the process of defining
+	what the user wants to retrieve, has been implemented.
+
+	* src/methods.cc: Added WSMs jacobianInit, jacobianAddPointing and
+	jacobianClose.
+
+	* src/xml_io_compund_types.cc: Changes to xml routine for
+	RetrievalQuantity.
+
 2004-09-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-872

@@ -572,7 +572,7 @@ void define_md_data_raw()
          "   Agenda : The new agenda.\n"
          "\n"
          "Keywords:\n"
-         "   No keywords, but other methods can appear in the method body."      
+         "   No keywords, but other methods can appear in the method body."
         ),
         OUTPUT(  ),
         INPUT(  ),
@@ -2046,6 +2046,90 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianAddPointing"),
+        DESCRIPTION
+        (
+         "Add a pointing as a retrieval quantity to the Jacobian.\n"
+         "\n"
+         "This function adds a pointing offset described over time by a\n"
+         "polynomial.\n"
+         "NOTE: So far this function only treats zenith angle offsets.\n"
+         "\n"
+         "Output:\n"
+         "  jacobian_quantities : The array of retrieval quantities.\n"
+         "\n"
+         "Input:\n"
+         "  jacobian            : The Jacobian matrix.\n"
+         "\n"
+         "Keywords:\n"
+         "  dza                 : The size of the perturbation.\n"
+         "  poly_order          : Order of the polynomial."
+        ),
+        OUTPUT( jacobian_quantities_ ),
+        INPUT( jacobian_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS( "dza", "poly_order" ),
+        TYPES( Numeric_t, Index_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianClose"),
+        DESCRIPTION
+        (
+         "Close the array of retrieval quantities and prepare for calculation\n"
+         "of the Jacobian matrix.\n"
+         "\n"
+         "This function closes the *jacobian_quantities* array and sets the\n"
+         "correct size of *jacobian*. Retrieval quantities should not be\n"
+         "added after a call to this WSM.\n"
+         "\n"
+         "To define the final *jacobian* the number of spectra is needed.\n"
+         "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
+         "and the size of *sensor_response* has to be defined.\n"
+         "\n"
+         "Output:\n"
+         "  jacobian             : The Jacobian matrix.\n"
+         "  jacobian_quantities  : The array of retrieval quantities.\n"
+         "\n"
+         "Input:\n"
+         "  sensor_pos           : Sensor positions for each measurement block.\n"
+         "  sensor_response      : The sensor response matrix."
+        ),
+         OUTPUT( jacobian_, jacobian_quantities_ ),
+         INPUT( sensor_pos_, sensor_response_ ),
+         GOUTPUT(),
+         GINPUT(),
+         KEYWORDS(),
+         TYPES()));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("jacobianInit"),
+        DESCRIPTION
+        (
+         "Initialise the variables connected to the Jacobian matrix.\n"
+         "\n"
+         "This function initialises the *jacobian_quantities* array so\n"
+         "that retrieval quantities can be added to it, therefor it has\n"
+         "to be called before any subsequent calls to jacobianAddGas\n"
+         "jacobianAddTemperature or jacobianAddPointing.\n"
+         "\n"
+         "The Jacobian matrix is initialised as an empty matrix.\n"
+         "\n"
+         "Output:\n"
+         "  jacobian             : The Jacobian matrix.\n"
+         "  jacobian_quantities  : The array of retrieval quantities."
+        ),
+         OUTPUT( jacobian_, jacobian_quantities_ ),
+         INPUT(),
+         GOUTPUT(),
+         GINPUT(),
+         KEYWORDS(),
+         TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

@@ -302,6 +302,7 @@ test_geomag_calc_SOURCES = \
 	m_cloudbox.cc \
 	m_general.cc \
 	m_general.h \
+	m_jacobian.cc \
 	m_montecarlo.cc \
 	m_optproperties.cc \
 	m_physics.cc \
