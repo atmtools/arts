@@ -1,5 +1,17 @@
 2003-01-23  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-424
+
+	* src/math_funcs.{cc,h}: Added functions pow(float, double) and
+	pow(double, float).
+
+	* src/continua.cc: Include math_funcs.h for additional pow functions.
+
+	* src/ppath.cc: Changed constant from int to double as second argument
+	to pow in some places.
+
+2003-01-23  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-423
 
 	* src/complex.{h,cc}: Added operator+ and operator* with params
