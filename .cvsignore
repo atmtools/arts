@@ -1,6 +1,10 @@
+INSTALL
+Makefile
+Makefile.in
 aclocal.m4
 arts.spec
 autom4te-2.5x.cache
+autom4te.cache
 config.cache
 config.h
 config.h.in
@@ -8,12 +12,9 @@ config.log
 config.status
 configure
 depcomp
-INSTALL
 install-sh
-Makefile
-Makefile.in
 missing
 mkinstalldirs
 stamp-h
-stamp-h1
 stamp-h.in
+stamp-h1
