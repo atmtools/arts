@@ -122,7 +122,8 @@ void interpTArray(Matrix& T,
 		 );
 
 void Sample_los (
-		 Vector& rte_los,
+		 VectorView& rte_los,
+		 Numeric& g_los_csc_theta,
 		 Rng& rng
 		 );
 

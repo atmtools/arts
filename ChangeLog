@@ -1,3 +1,14 @@
+2003-07-30  Cory Davis <cory@met.ed.ac.uk>
+
+	* arts-1-1-625
+
+	* src/methods.cc, src/m_montecarlo.cc (ScatteringMonteCarlo): Added control 
+	parameters record_histdata and histdata_filename. These enable the output
+	of each 'photon' contribution, which can then be analysed in MATLAB to 
+	investigate error reduction.  Fixed bug in line of sight sampling.
+
+	* src/montecarlo.cc, src/montecarlo.cc (Sample_los): Tidied Sample_los function.
+
 2003-07-29  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-624

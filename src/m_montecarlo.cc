@@ -54,6 +54,7 @@ by Monte Carlo methods.  All of these functions refer to 3D calculations
 #include "montecarlo.h"
 #include "rng.h"
 #include <ctime>
+#include <fstream>
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -433,7 +434,9 @@ void ScatteringMonteCarlo (
 			   const Index& rng_seed,
 			   const Index& record_ppathcloud,
 			   const Index& record_ppath,
-			   const Index& silent)
+			   const Index& silent,
+			   const Index& record_histdata,
+			   const String& histdata_filename)
 
 {		
   //Internal Declarations
@@ -444,6 +447,7 @@ void ScatteringMonteCarlo (
   Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
   bool keepgoing;
   Index scattering_order;
+  Index photon_number;
   Vector new_rte_los(2);
   Ppath ppathLOS,ppathcloud;
   Numeric g;
@@ -483,9 +487,16 @@ void ScatteringMonteCarlo (
   Vector pathI(stokes_dim);
   Vector boundarycontri(stokes_dim);
   Vector pathinc(stokes_dim);
-
+  Numeric g_los_csc_theta;
   time_t start_time=time(NULL);
 
+  //If necessary, open file for histogram data output
+  ofstream histfile;
+  if (record_histdata==1)
+    {
+      const char* p = histdata_filename.c_str();
+      histfile.open(p,ios_base::out);
+    }
 
   //if rng_seed is < 0, keep time based seed, otherwise...
   if(rng_seed>=0){rng.seed(rng_seed);}
@@ -507,7 +518,7 @@ void ScatteringMonteCarlo (
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
   
   //Begin Main Loop
-  for (Index photon_number=1; photon_number<=maxiter; photon_number++)
+  for (photon_number=1; photon_number<=maxiter; photon_number++)
     {
       keepgoing=true;      //flag indicating whether to continue tracing a photon path
       scattering_order=0;              //scattering order
@@ -587,7 +598,7 @@ void ScatteringMonteCarlo (
 		}
 	      mult(pathinc,Q,emissioncontri);
 	      pathI += pathinc;
-	      Sample_los(new_rte_los,rng);
+	      Sample_los(new_rte_los,g_los_csc_theta,rng);
 	      //Calculate Phase matrix////////////////////////////////
 	      pha_mat_za_grid[0]=180-rte_los[0];
 	      pha_mat_za_grid[1]=180-new_rte_los[0];
@@ -609,7 +620,7 @@ void ScatteringMonteCarlo (
 			  atmosphere_dim, p_index, lat_index, 
 			  lon_index);
 	      Z=pha_mat(1,1,joker,joker);
-	      Z*=4*PI/g/(1-cos(DEG2RAD*rte_los[0]));
+	      Z*=2*PI/g/g_los_csc_theta;
 	      mult(q,T,Z);
 	      mult(newQ,Q,q);
 	      Q=newQ;
@@ -624,6 +635,7 @@ void ScatteringMonteCarlo (
  
 	}
       Isum += pathI;
+      if (record_histdata==1){histfile << pathI << "\n";}
       for(Index j=0; j<stokes_dim; j++)
 	{
 	  Isquaredsum[j] += pathI[j]*pathI[j];

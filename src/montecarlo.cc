@@ -540,12 +540,14 @@ void interpTArray(Matrix& T,
 
 		
 void Sample_los (
-		 Vector& rte_los,
+		 VectorView& rte_los,
+		 Numeric& g_los_csc_theta,
 		 Rng& rng
 		 )
 {
-  rte_los[0] = 180-RAD2DEG*acos(2*sqrt(rng.draw())-1);
+  rte_los[0] = RAD2DEG*acos(1-2*sqrt(rng.draw()));
   rte_los[1] = rng.draw()*360-180;
+  g_los_csc_theta = 0.5*(1-cos(DEG2RAD*rte_los[0]));
 }
 
 
