@@ -562,9 +562,9 @@ this part. A short summary of important differences:
 \item An Array can contain elements of any type, whereas a Vector
   always contains elements of type Numeric.
 \item No mathematical functionality for Array (no sub-ranges (nothing
-  like VectorView); no +=, -=, *=, /=; no \verb|max|/\verb|min|; no
-  scalar product; no \verb|transform| function; no \verb|mult|
-  function; no \verb|transpose| function).
+  like VectorView); no +=, -=, *=, /=; no scalar product; no
+  \verb|transform| function; no \verb|mult| function; no
+  \verb|transpose| function).
 \item On the other hand, resizing (for example adding to the end) of
   an Array is ok. (See the \verb|push_back| method below.) It is still
   rather expensive, though, at least for large Arrays. 
@@ -601,7 +601,7 @@ MakeArray<String> a("ARTS",
                               // with these 3 elements.
 \end{verbatim}
 
-\levelc{What you can do with a Vector (or VectorView)}
+\levelc{What you can do with an Array}
 %-------------------------------------------------------------------------
 
 All examples below assume that \verb|a| is an ArrayOfString.
@@ -636,7 +636,7 @@ In other words, this works just like for Vector.
 
 This works also the same as for Vector. The size of the target must
 match! In this respect, I have modified the behavior with respect to
-the underlying std::vector, which has different copy semantics
+the underlying std::vector, which has different copy semantics.
 
 \leveld{Assigning a scalar of the base type:}
 \begin{verbatim}

@@ -1,3 +1,12 @@
+2001-11-01  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-1-33
+
+	* doc/uguide/matrix_vector.tex: Fixed some typos.
+
+	* Changelog: Removed all the extra blank lines between log
+	entries. From now on, let's have only one blank line.
+
 2001-10-31  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-32
@@ -10,7 +19,6 @@
 
 	* README: Removed one outdated sentence about arts-data.
 	
-
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-31
@@ -36,13 +44,11 @@
 	definition of size_t required to compile on marvin with HP's
 	broken gcc.
 	
-	
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-30
 	
 	* reconf: Added option --copy to automake
-	
 	
 2001-10-31  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -56,7 +62,6 @@
 	Removed option --enable-docs. Now the docs are only generated in
 	maintainer-mode.
 	
-
 2001-10-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-28
@@ -75,14 +80,12 @@
 	* src/m_batch.cc (ybatchCalc): Removed the bug workaround, since
 	it is no longer necessary.
 
-	
 2001-10-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-27
 
 	* something wrong when tagging previous version, let's see now.
 
-	
 2001-10-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-26
@@ -93,14 +96,12 @@
 	of ybatchCalc, input files needed are listed there and 
 	have also been added in the same directory.
 
-	
 2001-10-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-25
 
 	* doc/uguide/matrix_vector.tex: Started Matrix part.
 	
-
 2001-10-23  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-0-1-24
@@ -108,7 +109,6 @@
 	* ami/physics/za2geomtan.m: added. This function converts the
 	zenith angles to tangent altitudes
 
-	
 2001-10-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-1-23
@@ -116,7 +116,6 @@
 	* doc/uguide/absrption.tex: editing and resolving warnings in the Tex
 	code.
 
-	
 2001-10-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-22
@@ -128,7 +127,6 @@
 
 	* doc/uguide/Makefile.am (texfiles): Added the new file.
 
-
 2001-10-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-21
@@ -138,14 +136,12 @@
 	a number of seperate variables. The k_names are changed for ground 
 	emission to reflect this.
 	
-
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-20
 
 	* Committing to test.
 
-	
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-19
@@ -153,14 +149,12 @@
 	* /ami/physiscs/za2geomtan.m added again, this time
 	for real.
 
-	
 2001-10-15  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-18
 
 	* /ami/physiscs/za2geomtan.m added
 
-	
 2001-10-15  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-17
@@ -168,14 +162,12 @@
 	* /ami/hmatrix/hRedKx.m and hRedLimb.m removed, they
 	are now part of Qpack.
 
-	
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-6
 
 	* forgot to add hseCalc.m, added now!
 
-	
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-5
@@ -189,7 +181,6 @@
 	function of arts, to be used for instance in Qpack/Main/qp_
 	rnd_atm.
 
-	
 2001-10-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-4
@@ -197,14 +188,12 @@
 	* Absorption was not interpolated using log(p) as altitude coordinate.
 	Fixed.
 	
-
 2001-10-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-3
 
 	* src/absorption.cc (ReadFromJplStream): Here also set sgam to
 	agam (was zero).
-
 
 2001-10-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -218,7 +207,6 @@
 	* src/absorption.h: Moved doxygen header for xsec_species to
 	absorption.cc. 
 
-	
 2001-10-08  Nikolay Koulev  <nkoulev@uni-bremen.de>
         
 	* arts-0-1-1
@@ -228,7 +216,6 @@
 
 	* src/absorption.h: changed in ARTS documentation cm-1 to J
 
-
 2001-10-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-0
@@ -237,7 +224,6 @@
 	
 	* doc/uguide/Figs/Makefile.am (EXTRA_DIST): Removed *calerror*.
 	
-
 2001-10-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-267
@@ -251,7 +237,6 @@
 
 	* src/arts.h: Changed #include "config.h" to #include <config.h>.
 
-	
 2001-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-266
@@ -259,7 +244,6 @@
 	* doc/uguide/Makefile.am: Remove app_math.txt.
 
 	* doc/examples/Makefile.am: Changed example1.arts to auto_example1.arts.
-
 
 2001-10-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -285,7 +269,6 @@
 	operations. Commented out app_units. What was this appendix? Who
 	removed it? There is no ChangeLog entry.
 	
-
 2001-10-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-264
@@ -297,7 +280,6 @@
 	* Made sure that the analytical version of kTemp is not used with
 	emission=0.
 	
-
 2001-10-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-263
@@ -314,7 +296,6 @@
 	and instead of finding the N2 tag group, N2O could be found. The
 	functions now search for N2- and H2O-.
 
-	
 2001-10-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-262
@@ -328,7 +309,6 @@
 	with Rayleigh-Jean temperatures if the calibration is performed
 	correctly. 
 	
-
 2001-10-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-261
@@ -345,7 +325,6 @@
 	* src/species_data.cc (define_basic_species_data): Set degfr=0 for
 	cloud species. This has no effect since it is not used.
 
-
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-260
@@ -353,7 +332,6 @@
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the whole Line Section.
  
-	
 2001-10-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-259
@@ -363,14 +341,12 @@
 	
 	* doc/doxygen/Doxyfile.in: Added default stylesheet.
 
-	
 2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-0-0-258
 	
 	* doc/examples/amsu.arts: Minor changes in amsu.arts
 
-	
 2001-10-04  Viju O.-J.  <vojohn@uni-bremen.de>	
 
 	* arts-0-0-257
@@ -380,7 +356,6 @@
 
 	* doc/examples/amsu.arts: Included a control file for AMSU
 
-	
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-256
@@ -404,7 +379,6 @@
 	Corrected CXXFLAGS_FIXED in maintainer mode (warning flags where
 	added twice).
 
-	
 2001-10-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-255
@@ -420,7 +394,6 @@
 	* src/m_io.cc (VectorMatrixMultiply): Added this method.
 	(MatrixMatrixMultiply): Added this method.
 
-	
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-254
@@ -429,7 +402,6 @@
 	AC_CHECK_SIZEOF calls to avoid the autoconf warnings (AC_TRY_RUN
 	called without ....).
 
-	
 2001-10-02  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-253
@@ -440,7 +412,6 @@
 	* doc/examples/.cvsignore: Added all auto_full.* files except
 	auto_full.arts.in.
 
-	
 2001-10-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-252
@@ -449,7 +420,6 @@
 
 	* src/m_abs.cc (lines_per_tgSetEmpty): Added this method.
 
-	
 2001-10-01  Oliver Lemke  <olemke@uni-bremen.de>
 
         * arts-0-0-251
@@ -463,14 +433,12 @@
 	arts-data is not installed. Because the optional generation
 	does not work on older autoconf versions :-(
 	
-
 2001-09-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
         * arts-0-0-250
  
         * corrections since the version arts-0-0-249 didn't worked!
 
-	
 2001-09-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
  
         * arts-0-0-249
@@ -478,7 +446,6 @@
         * doc/uguide/absoption.tex: Continued to work on this.
         Edited the continuum and full model description.
 
-	
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-248
@@ -486,7 +453,6 @@
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the Line Shape Section.
 
-	
 2001-10-01  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-247
@@ -504,7 +470,6 @@
 	* Removed tex-ing warnings in "my" part of the ps-version of AUG 
 	(just 2, out of a large number warnings).
 	
-
 2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-246
@@ -521,7 +486,6 @@
 	* Updated read_datafile to handle ArrayOfIndex (instead of 
 	ArrayOfSizet).
 	
-
 2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-245
@@ -536,14 +500,12 @@
 	and invrayjean (placed in atm_funcs). This mainly to avoid repeated
 	output when converting a WF-matrix.
 
-
 2001-09-28  Claudia Emde  <emde@uni-bremen.de>
 
 	* arts-0-0-244	
 	
 	* src/methods.cc : changed absorption methods again
 
-	
 2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-243
@@ -557,7 +519,6 @@
 	Added option --enable-warnings which appends -W -Wall to CFLAGS and
 	CXXFLAGS. Disabled by default.
 
-	
 2001-09-27  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-0-0-242
@@ -578,7 +539,6 @@
 	- lines_per_tgAddMirrorLines
 	- lines_per_tgCompact
 	
-
 2001-09-27  Viju O.-J.  <vojohn@uni-bremen.de>
 
 	* arts-0-0-241
@@ -592,7 +552,6 @@
 	- n2_absSet
 	- vmrsScale
 	
-
 2001-09-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-240
@@ -616,7 +575,6 @@
 	
 	* No bigger bug checks. Will be done.
 	
-
 2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-239
@@ -624,7 +582,6 @@
 	* src/Makefile.am (species_data.o): Added dependencies.
 	(methods.o): Added dependencies.
 
-	
 2001-09-27  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-238
@@ -647,7 +604,6 @@
 	Added a new configure flag called --enable-debug /
 	--disable-debug. By default debugging is enabled.
 	
-
 2001-09-27  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-237
@@ -665,7 +621,6 @@
 	I did this as there is no cost to call sourceCalc when emission=0
 	(source is set to be empty).
 	
-
 2001-09-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
 	
 	* arts-0-0-236
@@ -673,14 +628,12 @@
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the Partition Function subsection
 	
-	
 2001-09-26  Claudia Emde  <emde@uni-bremen.de>
 	
 	* arts-0-0-235
 
 	* src/methods.cc: format of absorption methods changed
 
-	
 2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-234
@@ -695,7 +648,6 @@
 	
 	* src/m_hdf.cc: Added include config.h.
 
-	
 2001-09-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-233
@@ -717,7 +669,6 @@
 	is not needed. It is possible to make the load switching smarter than
 	I realised. The corresponding part in AUG will be removed.)
 
-	
 2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-232
@@ -740,7 +691,6 @@
 	* src/methods.cc (define_md_data): Added #ifdef / #endif block
 	around all HDF requiring functions incl. ybatchCalc.
 
-	
 2001-09-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-231
@@ -750,7 +700,6 @@
 
 	* Moved everything connected to the binary HDF files to m_hdf.cc.
 	
-
 2001-09-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-230
@@ -762,7 +711,6 @@
 
 	* ami/Makefile.am (SUBDIRS): Added general directory.
 
-	
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-229
@@ -770,14 +718,12 @@
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the Partition Function subsection
 	
-	
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-228
 
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Included the Partition Function subsection
-
 
 2001-09-25  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -794,7 +740,6 @@
 
 	* doc/uguide/formats.tex: Continued to work on this.
 
-
 2001-09-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-226
@@ -804,7 +749,6 @@
 	* doc/uguide/formats.tex: Worked a bit on this section of AUG. 
 
 	* TODO: Cleaned up a bit.
-
 
 2001-09-24  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -868,14 +812,12 @@
 
 	* src/methods.cc (define_md_data): Fixed typo.
 	
-
 2001-09-24  Mashrab  <kmashrab@uni-bremen.de>
 
 	* arts-0-0-224
 	
 	* src/methods.cc: Updated online docs for binary
 	read-write methods.
-
 
 2001-09-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -884,7 +826,6 @@
 	* src/methods.cc (define_md_data): Updated online doc for Exit,
 	Test, cont_descriptionInit, and cont_descriptionAppend.
 	
-
 2001-09-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-222
@@ -892,7 +833,6 @@
 	* src/methods.cc (define_md_data): Updated online docs for ASCII
 	read-write methods.
 
-	
 2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-221
@@ -923,7 +863,6 @@
 	* doc/examples/auto_full.arts.in: Example control file with
 	automatic data path expansion.
 
-	
 2001-09-21  Mashrab  <kmashrab@uni-bremen.de>
 
 	* arts-0-0-220
@@ -931,13 +870,11 @@
 	* src/methods.cc (define_md_data): Updated online docs for binary
 	read-write methods.
 	
-
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-219
 	
 	* src/m_abs.cc (tgsDefine): Fixed bug: Use resize function!
-
 
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -957,7 +894,6 @@
 
 	* src/m_wfs.cc (k_append): Initialize temp. copies of Kx data
 	directly, instead of copying. Makes the code a bit shorter.
-
 
 2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -983,7 +919,6 @@
 
 	* TODO: Added thoughts about making HDF support optional.
 	
-	
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-216
@@ -992,7 +927,6 @@
 	mode. Beware, with optimization not all files compile. But I want
 	to test how much faster the program has got...
 	
-
 2001-09-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-215
@@ -1011,7 +945,6 @@
 	before. Assignment operators have proven so far the biggest bug
 	source in Matpack! There could be more...
 
-	
 2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-214
@@ -1025,7 +958,6 @@
 
 	* doc/uguide/auto_version.tex.in: Renamed version.tex.in
 	
-
 2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-213
@@ -1039,7 +971,6 @@
 	Rearranged the order also here. Order in both files must be the
 	same! 
 
-	
 2001-09-20  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-212
@@ -1056,7 +987,6 @@
 	the end of math_funcs. (I have not got time to more of these 
 	functions).
 	
-
 2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-211
@@ -1083,7 +1013,6 @@
 	* doc/uguide/version.tex: Removed this file from CVS, it is
 	automatically generated by configure.
 
-	
 2001-09-20  Axel von Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-210
@@ -1094,13 +1023,11 @@
 		
 	* species_data.cc: added species CH3CN, HNC
 
-	
 2001-09-20  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-209
 	
 	* configure.in: Changed AC_VERBOSE to AC_MSG_RESULT.
-	
 	
 2001-09-20  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -1141,7 +1068,6 @@
 	* src/arts.h: Changed typedefs for Numeric and Index to be set to
 	the types specified in config.h.
 
-	
 2001-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-207
@@ -1174,7 +1100,6 @@
 	* *.cc, *.h: Added GPL to files where it was missing. Updated JPL
 	(year and authors).
 
-	
 2001-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-206
@@ -1213,7 +1138,6 @@
 
 	* reconf: Now also runs configure automatically.
 
-
 2001-09-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-205
@@ -1242,8 +1166,6 @@
 	will check if the ground emission vector has the correct length and
 	issue an informative error message if this is not the case.
 	
-	
-
 2001-09-17  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-204
@@ -1257,7 +1179,6 @@
 
 	* Minor changes in out.m and sFromFile.m
 	
-
 2001-09-13  Nikolay Koulev <nkoulev@uni-bremen.de>
 
 	* arts-0-0-203
@@ -1265,7 +1186,6 @@
 	* doc/uguide/absorption.tex: Started to update 
 	
 	* doc/uguide/main.tex, doc/uguide/uguide.tex: Corrected some bugs.
-	
 	
 2001-09-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -1278,7 +1198,6 @@
 
 	* globally: Replaced string by String, so that all atomic types
 	have consistent notation.
-
 
 2001-09-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -1304,7 +1223,6 @@
 
 	* src/test_matpack.cc: Added
 
-	
 2001-09-03  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-200
@@ -1312,7 +1230,6 @@
 	* Added function sFromFile.m in /ami/math, equivalent
 	to the obsolete -one day- sFromFile arts method, see
 	the mscript help.
-
 
 2001-09-03  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
@@ -1326,14 +1243,12 @@
 	of neural nests. Just implemented, ergo no bugs free,
 	use with caution.
 
-	
 2001-08-24  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-198
 
 	* Added functions axes_1xn/nx1 to ami/plot
 
-	
 2001-08-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-197
@@ -1346,7 +1261,6 @@
 	* I did not spend any time on it, but it seems that there are teching
 	errors in AUG. Fix please.
 	
-
 2001-08-22  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-196
@@ -1363,7 +1277,6 @@
 	low altitudes, that seems to correspond to an attenuation
 	in the signal independent of frequency.
 
-	
 2001-08-22  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-195
@@ -1371,7 +1284,6 @@
 	* fixing bug in method zaFromDeltat after
 	validation of refaction calculations by Patrick
 	
-
 2001-08-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-194
@@ -1379,7 +1291,6 @@
 	* Added some functions to ami/plot to easily set font size and
 	weights in figures. These functions have the same name as the
 	standard Matlab functions with 2 appended, e.g. xlabel2.
-
 
 2001-08-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -1389,7 +1300,6 @@
 
 	* write_linefile.m updated to ARTSCAT-3. 
 	
-
 2001-08-08  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-192
@@ -1397,7 +1307,6 @@
 	* Commenting out a line printing out O2ABS, kind of 
 	bothering
 
-	
 2001-08-07  Thomas Kuhn  <tkuhn@uni-bremen.de>
 	
         * arts-0-0-191
@@ -1412,7 +1321,6 @@
 	    the option of AtmFromRaw1D{CloudSatWV = "yes"} to do this
 	    VMP profile modification.
 
-	
 2001-07-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-190
@@ -1425,14 +1333,12 @@
 	* adding /ami/hmatrix/hRedKx to do reduction based on 
 	weighting functions
 
-	
 2001-07-26  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-189
 
 	* doc/doxygen/Makefile.am: Renamed make_* source files to make_auto_*.
 	
-
 2001-07-24  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-188
@@ -1451,7 +1357,6 @@
 
 	* src/make_wsv_pointers_cc.cc: Renamed to make_auto_wsv_pointers_cc.cc.
 	
-
 2001-07-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-187
@@ -1472,7 +1377,6 @@
 
 	* src/.cvsignore: Updated and cleaned up a bit.
 
-	
 2001-07-23  Oliver Lemke  <olemke@core-dump.net>
 
 	* arts-0-0-186
@@ -1492,7 +1396,6 @@
 
 	* src/make_wsv_groups_h.cc: Renamed wsv_groups.h to auto_wsv_groups.h.
 
-
 2001-07-11  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-185
@@ -1504,14 +1407,12 @@
 	
 	* Makefile.am: Removed data from subdirectories.
 	
-
 2001-07-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-184
 
 	* doc/uguide/absorption.tex: Added this file, which should contain
 	documentation for the absorption part of ARTS.
-
 
 2001-06-26  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
@@ -1545,7 +1446,6 @@
 	absorption model of MPM93. They are called  "O2-SelfContMPM93" and
 	"N2-SelfContMPM93". The broadening is calculated with dry air 
 	(= all species minus water vapor).
-
 
 2001-06-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -1592,7 +1492,6 @@
 
 	* data/spectroscopy/arts/o2_spin_rot_pwr_3.aa: Converted lower state energy to Joule.
 
-	
 2001-06-25  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-181
@@ -1652,7 +1551,6 @@
 	The absorption part is getting more and more messy. But at least,
 	now it should be a bit safer than before.
 
-
 2001-06-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-180
@@ -1662,7 +1560,6 @@
 	structure is only very preliminary and contains up to now only a
 	print statement and no real control - this has to be implemented!
 
-	
 2001-06-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-179
@@ -1685,14 +1582,12 @@
 
 	* Updated the full.arts control file in examples.
 
-	
 2001-06-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-178
 
 	* changes/corrections in the continuum abs calculation.
 	
-
 2001-06-21  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-177
@@ -1708,7 +1603,6 @@
 	holds the pointers to the getaway functions, because this lead to
 	a Doxygen error message.
 	
-
 2001-06-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-176
@@ -1754,14 +1648,12 @@
 	automatically after the format tag).
 	(linesReadFromArts): Added check for correct version tag.
 
-
 2001-06-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-175
 
 	* Made a function to flip vectors (VectorFlip).
 	
-
 2001-06-05  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-174
@@ -1772,7 +1664,6 @@
 	cloud ice particles (icecloud). For these tags also profiles can
 	be read in now.
 	
-
 2001-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-173
@@ -1780,7 +1671,6 @@
 	* data/atmosphere/fascod/midlatidude-summer.HO2.am: Added this
 	file by hand from the 45n file in the RAL scenario used for the
 	ESTEC studies (/pool/esa/maso/in/atm_scen). 
-
 
 2001-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -1798,14 +1688,12 @@
 	* partition_function_data.cc: Added isotope 172 (HITRAN 2000 tag 16)
         The Q coefficients for this are just copied from the main isotope!!
 
-	
 2001-05-25  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-171
 
 	* Fixed wrong parameters in continua.cc
 
-	
 2001-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-170
@@ -1816,7 +1704,6 @@
 	I have not changed the equations, instead absloswfs is checked for
 	NaNs and Inf and those values are set to zero. This should be perfectly
 	alright as those values shall be very, very small anyhow.
-
 
 2001-05-16  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -1829,7 +1716,6 @@
 	Before the full new grid (e.g. za_pencil) with the off-set applied was
 	stored.
 	
-
 2001-05-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-168
@@ -1838,7 +1724,6 @@
 
 	* Some crap code had got into qtool.
 	
-
 2001-05-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-167
@@ -1853,7 +1738,6 @@
 	showed some strange wiggles. The change did reduce the wiggles
 	considerably, but they are still visible.
 
-	
 2001-05-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-166
@@ -1863,7 +1747,6 @@
 	which lead to memory exhaustion. On the Smiles maschines this
 	problem did not occur...
 	
-
 2001-05-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-165
@@ -1871,7 +1754,6 @@
 	* data/atmosphere/tstrad: Added this directory. It contains a test
 	case for comparison with RTTOV-6.
 	
-
 2001-05-02  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-164
@@ -1884,7 +1766,6 @@
 
 	* m_batch.cc: Removed ybatchTRJ and ybatchTB.
 
-	
 2001-04-30  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-163
@@ -1892,7 +1773,6 @@
 	* add additional O2 absorption model of Rosenkranz in
 	  continua.cc and continua.h
 
-	
 2001-04-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-162
@@ -1910,7 +1790,6 @@
 	* methods.cc, md.h, m_loc.cc: zaFromDeltat updated
 	with EARTH_GRAV_CONST
 
-	
 2001-04-27  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-161
@@ -1920,7 +1799,6 @@
 	added. Preliminary stored in continua.cc, but this will be
 	changed in future.
 
-	
 2001-04-25  Oliver Lemke  <oliver@uni-bremen.de>
 
 	* arts-0-0-160
@@ -1930,7 +1808,6 @@
 	much easier and guarantees a clean deinstallation of arts.
 
 	I will added some more information about building arts rpms.
-
 
 2001-04-24  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -1947,13 +1824,11 @@
         * Temperature WFs with hydrostatic eq. now implemented. Two versions
         exist, kTemp and kTempFast. Use the fast one!
 
-	
 2001-04-20  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-158
 	
 	* add cloud/fog and ice absorption continua 
-
 
 2001-04-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -1967,7 +1842,6 @@
 	there should be similar checks in h_diff, but I did not touch
 	this.  
 
-	
 2001-04-11  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-156
@@ -1975,7 +1849,6 @@
 	* Fixed a bug in qtool. The line feed was included when calling
 	inline functions.
 	
-
 2001-04-11  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-155
@@ -1987,7 +1860,6 @@
 	opposite directions in nearly identical orbits (but not \n"
         "colliding!).
 
-	
 2001-04-09  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-154
@@ -1995,7 +1867,6 @@
 	* add continua 
 	* add some IDL functions and update of plot_abs_per_tg.pro 
 
-	
 2001-04-04  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-0-0-153
@@ -2017,7 +1888,6 @@
 	Boltzman constants, I would recomment to hard-code double to avoid 
 	these disturbing problems.
 	
-
 2001-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-151
@@ -2031,7 +1901,6 @@
 	this kind of problems when the optional input variables are ready and
 	we know the consequencies of this. I put this in TODO.)
 
-
 2001-04-03  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-150
@@ -2042,7 +1911,6 @@
 
 	* TODO list updated
 
-	
 2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
 
 	* arts-0-0-149
@@ -2053,7 +1921,6 @@
 	reading absorption from a file with the wrong number of
 	frequencies. There should probably be more consistency checks in
 	this method.
-
 
 2001-04-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -2071,7 +1938,6 @@
 	static variable b which of course is a stupid thing. 
 	The static variables a and b should now only contains constants.
 	
-
 2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
 
 	* arts-0-0-147
@@ -2082,7 +1948,6 @@
 	call. Because of this, we got identical results for subsequent
 	calls of the function with different temperature.
 	
-
 2001-04-02  Stefan Buehler  <sbuehler@uni-bremen.de>  
 
 	* arts-0-0-146
@@ -2094,7 +1959,6 @@
 
 	* There seems to be a problem in the setup of los for uplooking cases.
 	 	
-	
 2001-04-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-145
@@ -2125,8 +1989,6 @@
 
 	* A warning, I haven't got time for any larger bug controls for these
 	changes, so take care.
-
-	
 
 2001-03-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
@@ -2171,7 +2033,6 @@
 	data in Matlab. Will be used to convert Verdandi to the ARTS
 	line catalog.
 
-	
 2001-03-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-141
@@ -2189,7 +2050,6 @@
 	* Added Makefile and Makefile.in files in the ami tree to the
 	.cvsignore files. (I had forgotten to do this for version 139.) 
 	
-
 2001-03-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-139
@@ -2205,7 +2065,6 @@
 
 	This is necessary for the reconf script to work.
 	
-
 2001-03-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-138
@@ -2253,7 +2112,6 @@
 	* doc/examples/cont.arts: This is an example file for calculating
 	continua. 
 	
-	
 2001-03-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-137
@@ -2261,7 +2119,6 @@
 	* The function to create control files from templates is now
 	called qtool and is found in ami/arts. There is now some better
 	instructions and an example on how this tool can be used.
-
 
 2001-03-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -2271,7 +2128,6 @@
 	are of rather general character and can be of use in many cases. The
 	functions are sorted into a number of sub-folders.
 	
-
 2001-03-07  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-135
@@ -2285,14 +2141,12 @@
 
 	* m_batch.cc: BatchdataGaussianSpeciesProfiles updated for tgs
 
-
 2001-03-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-134
 
 	* Fixed a small bug in the H-matrix part of AMI.
 	
-
 2001-03-01  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-0-0-133
@@ -2305,7 +2159,6 @@
 
 	* utilities.tex: Upgrading of the description.
 	
-
 2001-02-26  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-132
@@ -2316,21 +2169,17 @@
 	* m_batch.cc, m_covmatrix.cc: functions with covariance matrices
 	updated so covariance matrices are now SYMMETRIC
 
-
 2001-02-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-131
 
 	* The text for continuum absorption changed.
 
-
 2001-02-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-130
 
 	* A new try to commit my latest changes.
-
-	
 
 2001-02-22  Axel von Engeln  <engeln@uni-bremen.de>
 
@@ -2345,7 +2194,6 @@
 
 	* aii_klegend_d.pro: klegend_d file, needed in plot_abs_per_tg.pro
 
-
 2001-02-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-128
@@ -2353,7 +2201,6 @@
 	* There were some problems around the last commit, so this another
 	one just in case.
 	
-
 2001-02-21  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-127
@@ -2368,7 +2215,6 @@
 	on the final computational time.
 	The function is now about 50 times faster then before
 	
-
 2001-02-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-126
@@ -2414,7 +2260,6 @@
 	as I finished my ray tracing scheme. I saw that you have written quite
 	a lot about refraction. You should have done this work!
 	
-
 2001-02-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-125
@@ -2427,7 +2272,6 @@
 	SYMMETRIC(i,j), which should generate a ixi symmetric matrix with
 	j offdiagonal bands.
 	
-
 2001-02-15  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-124
@@ -2441,7 +2285,6 @@
 
 	* lineshape cutoff seems to work
 	
-
 2001-02-14  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-123
@@ -2451,7 +2294,6 @@
 
 	* demonstrate_vecmat.cc: Included a test case running *chol* 
 
-	
 2001-02-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-122
@@ -2473,7 +2315,6 @@
 
 	* demonstrate_vecmat.cc: Included test cases for the SYMMETRIC type.
 
-	
 2001-02-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-121
@@ -2487,7 +2328,6 @@
 	* Changed names on the workspace variables tgs and wfs_tgs to match
 	the names used in function names.
 	
-
 2001-02-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-120
@@ -2512,8 +2352,6 @@
 	on). So let's use float for some time to look for other bugs
 	connected with using float. OK?
 	
-	
-
 2001-02-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-119
@@ -2591,7 +2429,6 @@
 	does not work here, since mathematical functions for float do not
 	exist.
 
-	
 2001-01-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-113
@@ -2600,7 +2437,6 @@
 	really bad bugs that now should be fixed. The reading and writing
 	of matrices shall now be somewhat faster.
 	
-
 2001-01-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-112
@@ -2609,7 +2445,6 @@
 
 	* make_md_h.cc: Adapted to ARRAY implementation change.
 	
-
 2001-01-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-111
@@ -2628,7 +2463,6 @@
 	range. This can be used to make seperate fits in primary and image
 	frequency band.
 	
-
 2001-01-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-110
@@ -2647,7 +2481,6 @@
 	* doc/examples/example1.arts: Adapted to demonstrate the new
 	catalogue reading features.
 
-	
 2001-01-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-109
@@ -2661,7 +2494,6 @@
 	the internal calculation to get absloswfs. This does not guarentee
 	that the WFs are OK, but so far everything seems correct.
 	
-
 2001-01-18  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-108
@@ -2670,7 +2502,6 @@
 	xsec_per_tgCalc(). Also renamed xsec_per_tgCalc() from previous
 	name xsec_per_tgCal().
 	
-
 2001-01-18  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-107
@@ -2697,7 +2528,6 @@
 	with a negative centre frequency, and it worked. So the solution
 	for van Vleck-Weiskopf should be OK.
 	
-
 2001-01-17  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-0-0-106
@@ -2715,7 +2545,6 @@
 	* write_datafile.pro: The real implementation of the writing
 	routine. 
 	
-
 2001-01-17  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-105
@@ -2736,7 +2565,6 @@
 
 	* continua.cc: Implementation of continuum functions.
 	
-
 2001-01-15  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-104
@@ -2923,7 +2751,6 @@
 	unclear here, look also in the demonstrate_vecmat.cc file, there
 	probably is an example there for the feature you need. 
 
-	
 2001-01-06  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-98
@@ -2958,7 +2785,6 @@
 
 	* hope that's it. More in the mailing list.
                  
-
 2001-01-03  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-97
@@ -2969,7 +2795,6 @@
 	(VectorCalcLog10). This function is handy when setting up Sx when
 	using pressure as altitude coordinate.
 	
-
 2001-01-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-96
@@ -2978,7 +2803,6 @@
 
 	* An out-function added to AMI. 
 	
-
 2000-12-20  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-95
@@ -2988,7 +2812,6 @@
 
 	* Some functions added to AMI/general.
 	
-
 2000-12-19  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-94
@@ -3021,7 +2844,6 @@
 	listed for level 3 (but not pressures) and the main sizes for the 
 	calculations are showed for level 2.
 	
-
 2000-12-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-90
@@ -3042,14 +2864,12 @@
 	* src/docu.txt: Added description of this bug and how to avoid it
 	to the documentation.
 	
-	
 2000-12-13  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-89
 
 	* lineshapes include now: 3 Voigt Kuntz algorithms, Voigt Drayson,
 	Doppler.
-
 
 2000-12-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -3080,14 +2900,13 @@
 	aviliable. I have done rather carefully function descriptions so have a
 	look in methods.cc.
 	
-
 2000-Dec-12  Oliver Lemke  <oliver@uni-bremen.de>
 
 	* arts-0-0-87
 
 	* src/vecmat.h: Changed type of MATRIX from Fortran_Matrix to Matrix.
 
-2000-12-09    <sbuehler@uni-bremen.de>
+2000-12-09  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-86
 
@@ -3114,7 +2933,6 @@
 	everything back in vecmat.h again, so this file will vanish. At
 	the moment vecmat.h includes linalg.h.
 
-	
 2000-12-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-85
@@ -3124,7 +2942,6 @@
 
 	* Don't update to this version!
 	
-
 2000-12-07  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-84
@@ -3157,7 +2974,6 @@
 	* The function z_absHydrostatic gives a vertical grid fulfilling
 	hydrostatic eq. The workspace variable h2o_abs must be set.
 	
-
 2000-12-01  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-82
@@ -3206,7 +3022,6 @@
 	design of the sensor functions, I will do some comparisons with Skuld
 	(but I trust ARTS more) and set up some examples for you.
 	
-
 2000-11-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-78
@@ -3219,7 +3034,6 @@
 	* Put in parts in AUG (just parts pages, no move of chapters was 
 	needed). AUG is divided into 3 parts.
 
-	
 2000-11-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-77
@@ -3229,7 +3043,6 @@
 	* Sample control file in AUG still needs to be adapted to new
 	method and WSV names.
 	
-
 2000-11-10  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-76
@@ -3258,7 +3071,6 @@
 	* Two appendices introduced in AUG, consisting basically of wsv.txt
 	and math_test.cc respectively.
 	
-
 2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-75
@@ -3272,14 +3084,12 @@
 	* example1.arts and other arts controlfiles modified, since
 	Patrick renamed some of the workspace methods.
 
-	
 2000-11-09  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-74
 
 	* src/m_hmatrix.cc file had still hdf5 included, removed.
 
-	
 2000-11-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-73
@@ -3295,7 +3105,6 @@
 	* The binary files are now displayed using hdp or vshow. See further
 	AUG.
 
-	
 2000-11-07  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-72
@@ -3326,7 +3135,6 @@
 	* abundance: Information on the source and calculation of the
 	abundance used in arts is located at: aux/abundances/
 
-	
 2000-11-06  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-71
@@ -3350,7 +3158,6 @@
 	So I am afraid that I have to take one step backward and change the
 	core functions to use HDF4.
 	
-
 2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-70
@@ -3360,7 +3167,6 @@
 	(I wanted mainly to commit before leaving for today as I will work at
 	home tomorrow. Can read e-mail, but not do cvs commits).
 	
-
 2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-69
@@ -3371,7 +3177,6 @@
 
 	* The LOS structure uses now ARRAYofsizet instead of ARRAY<int>
 
-	
 2000-11-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-68
@@ -3409,7 +3214,6 @@
 	after data type). Did the same in m_io.cc. Corrected some function 
 	descriptions in methods.cc.
 
-	
 2000-11-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-67
@@ -3428,7 +3232,6 @@
 	* uguide/Makefile.am: Updated this (added formats.tex and
 	utilities.tex). 
 	
-
 2000-10-30  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-66
@@ -3443,7 +3246,6 @@
 	* Some first test functions for HDF are found in file.cc and 
 	m_hmatrix.cc.
 
-	
 2000-10-27  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-65
@@ -3554,7 +3356,6 @@
 	case of generic arguments, the two vectors can be different! Fixed
 	this.
 
-
 2000-10-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-59
@@ -3591,7 +3392,6 @@
 
 	* Extended TODO list to have a base for discussion.
 	
-
 2000-10-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-56
@@ -3614,7 +3414,6 @@
 	* A function to get the refractive index for totally dry air is 
 	implemented.
 	
-
 2000-09-27  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-55
@@ -3646,7 +3445,6 @@
 	* Fixed bug in uguide/Makefile.am: dvips' output on some systems
 	is send to lpr by default. Added -f option.
 	
-
 2000-09-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-53
@@ -3655,12 +3453,10 @@
 	the source list because this file does not exist.) The bug caused
 	an error message in make dist.
 	
-
 2000-09-22  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* more TODO stuff, some comments in partion_function_data.cc
 
-	
 2000-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-52
@@ -3670,7 +3466,6 @@
 	have one global workspace. Now multiple workspaces can coexist,
 	each with their own pointers arrays.)
 	
-
 2000-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-51
@@ -3702,7 +3497,6 @@
 	* Following this decision, I moved doxy headers from atm_funcs.h and
 	math_funcs.h to corresponding .cc files.
 	
-
 2000-09-18  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-49
@@ -3724,7 +3518,6 @@
 	WFs are so far only used by kTEmpNoHydro and are not a workspace 
 	variable.
 	
-
 2000-09-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-47
@@ -3745,13 +3538,11 @@
 	the new standard, but of course this should be done. First I want
 	your ok to this standard. 
 
-	
 2000-09-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-46
 
 	* Cosmetic changes to doxygen comments all over the place.
-
 
 2000-09-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -3760,7 +3551,6 @@
 	* doc/emacs: Added makros for inserting documentation
 	headers. There is some html documentation, check out
 	doc/index.html. 
-
 
 2000-09-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 
@@ -3802,7 +3592,6 @@
 
 	* New workspace variable type: ARRAYofstring
 
-	
 2000-08-31  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-43
@@ -3884,7 +3673,6 @@
 	* Missing: A WS method to set lineshapes; use lineshapes in
 	absorption calculation.
 
-	
 2000-08-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-41
@@ -3903,7 +3691,6 @@
 	* vecmat.cc: Added this file. It contains some stuff that used to
 	be in vecmat.h.
 	
-
 2000-08-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-40
@@ -3943,7 +3730,6 @@
 
 	* make_wsv_groups_h.cc: Renamed from make_wsv_group_h.cc
 
-
 2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-39
@@ -3957,13 +3743,11 @@
 
 	* example1.arts: was empty in last check in
 
-
 2000-08-08  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-38
 
 	* absorption.cc: Included all molecules from JPL/HITRAN.
-
 
 2000-08-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -3977,7 +3761,6 @@
 	* Achieved so far: Wsv group handles (file wsv_group.h) are now
 	generated automatically from information in function
 	define_wsv_group_names in file groups.cc.
-
 
 2000-07-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4004,13 +3787,11 @@
 	fix the \verbatim parts in documentation headers, which seem to
 	not come out right.
 
-
 2000-07-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-35
 
 	* Moved user guide to doc/uguide.
-
 
 2000-06-17  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4025,7 +3806,6 @@
 	Patrick's p_grid and k_grid are inside the pressure range. Also,
 	k_grid had to be slightly changed. The spectrum y looks
 	reasonable, but the k matrix looks strange (ragged).
-
 
 2000-06-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4042,7 +3822,6 @@
 	such. 
 
 	* Added GNU license everywhere in arts and arts/src.
-
 
 2000-06-15  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4064,7 +3843,6 @@
 	section of the Hitran catalogue up to about 900 GHz. Also contains
 	a smaller file with just H2O lines.
 	
-
 2000-06-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-31
@@ -4089,7 +3867,6 @@
 
 	* INTERPP now also in matrix-row version.
 
-
 2000-06-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-30
@@ -4101,7 +3878,6 @@
 	* lines_per_tg (type ARRAYofARRAYofLineRecord ): This stores the
 	line lists for the individual tag groups. This will be input the
 	absortion coefficient calculation. 
-
 
 2000-06-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4126,7 +3902,6 @@
 	* Atm2dFromRaw1D: This method interpolates the raw atmospheric
 	inputs onto the absorption grid.
 
-	
 2000-06-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-28
@@ -4156,7 +3931,6 @@
 	* I do not get any warning messages. Patrick, do you still get
 	them? 
 	
-
 2000-06-09  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-27
@@ -4186,7 +3960,6 @@
 
 	* The function startup added to AMI.
 
-
 2000-06-01  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-26
@@ -4210,7 +3983,6 @@
 	the name, then the default name is chosen. It was simply too
 	nerve-wracking to have to duplicate each and every IO function for
 	these two cases.
-
 
 2000-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4252,7 +4024,6 @@
 	also seems to work not so well, so I always use either
 	ostringstream or istringstream.
 	
-
 2000-05-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-23
@@ -4268,7 +4039,6 @@
 
 	* Please note that the user guide is not up to data and does
 	not match the present version of ARTS
-
 
 2000-05-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4300,7 +4070,6 @@
 	tried to document all formats and units as best as I can in the
 	code directly.
 
-
 2000-05-20  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-21
@@ -4315,12 +4084,10 @@
 	there. Should anybody feel like adding the true numbers, just go
 	ahead.
 
-
 2000-05-15  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* math_funcs.cc: Bug fix in
 	void to_vector(VECTOR& x, const MATRIX& W)
-
 
 2000-05-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4337,14 +4104,12 @@
 
 	* This means the command line options are complete for now.
 
-
 2000-05-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-19
 
 	* Added the implementation of the --methods (-m) dommand line
 	option. Seems to work beautifully!
-
 
 2000-05-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4353,7 +4118,6 @@
 	* Added the implementation of the --describe (-d) command line
 	option. 
 
-	
 2000-04-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-17
@@ -4385,7 +4149,6 @@
   	Print the description string of the given workspace variable or
  	method.
 
-	
 2000-04-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-16
@@ -4425,7 +4188,6 @@
 	same, just to me the real IO seemed more difficult than the
 	conversions, hence I did it the way I did it.
 		
-	
 2000-04-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-15
@@ -4469,7 +4231,6 @@
             transBasic{}
             yGeneral{}
 
-
 2000-04-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-14
@@ -4502,7 +4263,6 @@
 	* Compiling without optimization is really much much faster. I
 	wish I had realized this before!
 	
-
 2000-04-06  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-12
@@ -4547,7 +4307,6 @@
 	    atm_funcs.cc
 	    atm_funcs.h
 	  
-
 2000-04-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-11
@@ -4568,7 +4327,6 @@
 	The last method was executed twice in some cases, due to incorrect
 	flagging of Eof in function SourceText::AdvanceChar.
 
-
 2000-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0.0.10
@@ -4577,7 +4335,6 @@
 	  Introduced the workspace variables plat_z and view1 for test
 	  purposes. There will be more variables connected to los.
 	  Some bugs mailed to Stefan.
-
 
 2000-04-04  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4654,7 +4411,6 @@
 	* m_io.cc:
 	- Added the implementation of NumericSet
 
-
 2000-03-30  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.5
@@ -4675,7 +4431,6 @@
 
 	* Added some more HowTos in file src/notes.txt
 	
-
 2000-03-29  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0.0.4
@@ -4684,7 +4439,6 @@
 	(add explicit fields for generic I/O, so that a method can have
 	both generic and specific I/O). So this commit is mainly to save
 	the state of the work before I start with this complicated task.
-
 
 2000-03-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
@@ -4699,7 +4453,6 @@
 	* math_funcs.h: Added.
 	* math_funcs.cc: Added. 
 	* absorption.cc: Added. 
-
 
 2000-03-14  Stefan Buehler  <sbuehler@uni-bremen.de>
 
