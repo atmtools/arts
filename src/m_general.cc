@@ -42,8 +42,11 @@
   ===========================================================================*/
 
 #include <stdexcept>
-#include "array.h"
+
 #include "arts.h"
+
+#include "m_general.h"
+#include "array.h"
 #include "check_input.h"
 #include "messages.h"
 #include "mystring.h"
@@ -57,45 +60,70 @@
   === The functions (in alphabetical order)
   ===========================================================================*/
 
-//! ArrayOfIndexPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void ArrayOfIndexPrint(
+void Print(
         // WS Generic Input:
         const ArrayOfIndex&   x,
         // WS Generic Input Names:
-        const String&         x_name )
+        const String&         x_name,
+        // Keywords:
+        const Index&    level )
 {
+  ostringstream os;
   cout << "  *" << x_name <<"* =";
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
-    cout << " " << x[i];
-  cout << "\n";
+    os << x[i];
+  SWITCH_OUTPUT (level, os.str () << '\n')
 }
 
 
-
-//! ArrayOfStringPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void ArrayOfStringPrint(
+void Print(
         // WS Generic Input:
         const ArrayOfString&   x,
         // WS Generic Input Names:
-        const String&          x_name )
+        const String&          x_name,
+        // Keywords:
+        const Index&    level )
 {
-  cout << "  *" << x_name <<"*:\n";
+  ostringstream os;
+  cout << "  *" << x_name <<"* =";
+  SWITCH_OUTPUT (level, "  *" << x_name << "*:\n")
   for( Index i=0; i<x.nelem(); i++ )
-    cout << "     " << x[i] << "\n";
+    os << x[i] << '\n';
+  SWITCH_OUTPUT (level, os.str ())
 }
 
+
+void
+Print(
+      // WS Generic Input:
+      const Ppath&    x,
+      // WS Generic Input Names:
+      const String&   x_name,
+      // Keywords:
+      const Index&    level )
+{
+  SWITCH_OUTPUT (level, "  The fields of *" << x_name << "*:\n")
+  Print( x.dim, "dim", level );
+  Print( x.np, "np", level );
+  Print( x.refraction, "refraction", level );
+  Print( x.method, "method", level );
+  Print( x.constant, "constant", level );
+  Print( x.pos, "pos", level );
+  Print( x.z, "z", level );
+  Print( x.l_step, "l_step", level );
+  ArrayOfGridPosPrint( x.gp_p, "gp_p" );
+  if( x.dim >= 2 )
+    ArrayOfGridPosPrint( x.gp_lat, "gp_lat" );
+  if( x.dim == 3 )
+    ArrayOfGridPosPrint( x.gp_lon, "gp_lon" );
+  Print( x.los, "los", level );
+  Print( x.background, "background", level );
+  if( x.tan_pos.nelem() )
+    Print( x.tan_pos, "tan_pos", level );
+  if( x.geom_tan_pos.nelem() )
+    Print( x.geom_tan_pos, "geom_tan_pos", level );
+}
 
 
 //! Exit
@@ -112,102 +140,6 @@ void Exit()
 }
 
 
-
-//! IndexPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void IndexPrint(
-        // WS Generic Input:
-        const Index&   x,
-        // WS Generic Input Names:
-        const String&  x_name )
-{
-  cout << "  *" << x_name <<"* = " << x << "\n";;
-}
-
-
-
-//! MatrixPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-16
-*/
-void MatrixPrint(
-        // WS Generic Input:
-        const Matrix&   x,
-        // WS Generic Input Names:
-        const String&   x_name )
-{
-  cout << "  *" << x_name <<"*:\n";
-  for( Index i=0; i<x.nrows(); i++ )
-    {
-      cout << "     ";
-      for( Index j=0; j<x.ncols(); j++ )
-        cout << x(i,j) << " ";
-      cout << "\n";
-    }
-}
-
-
-
-//! NumericPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void NumericPrint(
-        // WS Generic Input:
-        const Numeric&   x,
-        // WS Generic Input Names:
-        const String&    x_name )
-{
-  cout << "  *" << x_name <<"* = " << x << "\n";;
-}
-
-
-//! SparsePrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Mattias Ekström
-   \date   2003-06-12
-*/
-void SparsePrint(
-        // WS Generic Input:
-        const Sparse&  x,
-        // WS Generic Input Names:
-        const String&  x_name )
-{
-  cout << "  *" << x_name << "*:\n" << x << "\n";
-}
-
-
-//! StringPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-18
-*/
-void StringPrint(
-        // WS Generic Input:
-        const String&  x,
-        // WS Generic Input Names:
-        const String&  x_name )
-{
-  cout << "  *" << x_name <<"* = " << x << "\n";;
-}
-
-
-
 //! Test
 /*!
    See the the online help (arts -d FUNCTION_NAME)
@@ -219,26 +151,6 @@ void Test( )
 {
   // This function can be used to test stuff.
 
-}
-
-
-
-//! VectorPrint
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-05-16
-*/
-void VectorPrint(
-        // WS Generic Input:
-        const Vector&   x,
-        // WS Generic Input Names:
-        const String&   x_name )
-{
-  cout << "  *" << x_name <<"*:\n";
-  for( Index i=0; i<x.nelem(); i++ )
-    cout << "     " << x[i] << "\n";
 }
 
 
