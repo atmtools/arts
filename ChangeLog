@@ -1,3 +1,18 @@
+2003-08-15  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-648
+
+	* src/math_funcs.{cc,h}: Added function fac to calculate factorials.
+
+	* src/legendre.{cc,h}: Rename legendre_polynomial to legendre_poly.
+	Added function legendre_poly_norm to calculate normalized associated
+	legendre polynomials.
+
+	* src/test_legendre.cc: Updated.
+
+	* src/Makefile.am: Added math_funcs.{cc,h} and dependencies to
+	test_legendre target.
+
 2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-647
