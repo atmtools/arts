@@ -1,5 +1,17 @@
 2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-58
+
+	* ami/init.m: The copying of auto_wsv is now only performed when 
+	needed. That is, when there is no file at the destination, or
+	if it is older.
+
+	The reason to the frequent commits is that we are trying to build a
+	more "version secury" system for the Odin-SMR inversions. These
+	changes should not affect the ordinary use of AMI.
+
+2002-12-05  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-57
 
 	* ami/init.m: I missed to transfer some of the changes from another

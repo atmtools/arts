@@ -34,8 +34,14 @@ addpath([pwd,'/plot']);
 addpath([pwd,'/retrieval']);
 
 
-%=== Copy the file src/wsv.txt to ami
-eval('!cp ../src/auto_wsv.txt arts');
+%=== Copy the file src/wsv.txt to ami/arts
+%
+filein  = fullfile( fileparts( pwd ), fullfile( 'src', 'auto_wsv.txt' ) );
+fileout = fullfile( pwd, fullfile( 'arts', 'auto_wsv.txt' ) );
+%
+if ~exist(fileout,'file')  |  ( filedate(fileout,1) < filedate(filein,1) )
+  copyfile( filein, fileout );
+end
 
 
 %=== Define global physical constants
