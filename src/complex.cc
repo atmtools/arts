@@ -32,7 +32,7 @@
   \return Output stream.
 */
 std::ostream& operator<<( std::ostream& os,
-			  const Complex& x )
+                          const Complex& x )
 {
   os << "(" << x.Re() << "+" << x.Im() << "i)";
   return os;

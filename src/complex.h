@@ -291,6 +291,6 @@ private:
 
 
 std::ostream& operator<<( std::ostream& os,
-			  const Complex& x );
+                          const Complex& x );
 
 #endif // complex_h
