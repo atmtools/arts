@@ -1,3 +1,20 @@
+2003-06-19  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-579
+
+	* ChangeLog: Reformatted oversized lines.
+	@mattias: Please limit your lines to 78 chars :-)
+
+	* doc/doxygen/Doxyfile.in: Exclude getopt*.{c,h}.
+
+	* src/gridded_fields.h: Added type GriddedField3.
+
+	* src/xml_io_instantiation.h, src/xml_io_compound_types.{h,cc}: Added
+	routines for GriddedField3.
+
+	* src/matpackII.cc: Temporarely added include iostream. Should be
+	removed along with the couts after testing.
+
 2003-06-18  Claas Teichmann  <claas@sat.physik.uni-bremen.de>
 
 	* arts-1-1-578
@@ -14,21 +31,23 @@
 	NB: This means that the WSM sensor_responseInit has to be added to the
 	controlfiles, before running RteCalc.
 
-	* src/rte.{cc,h}: Implemented the sensor_response and apply_sensor variables in
-	method rte_calc and changed call for RteCalc to rte_calc in method
-    get_radiative_background.
+	* src/rte.{cc,h}: Implemented the sensor_response and apply_sensor
+	variables in method rte_calc and changed call for RteCalc to rte_calc
+	in method get_radiative_background.
 
-	* src/m_cloudbox.cc: Added sensor_reponse as dummy variable and set apply_sensor
-	to false for the rte_calc calls.
+	* src/m_cloudbox.cc: Added sensor_reponse as dummy variable and set
+	apply_sensor to false for the rte_calc calls.
 
-	* src/xml_io_basic_types.cc: Fixed bug in Sparse xml_write_to_stream function.
+	* src/xml_io_basic_types.cc: Fixed bug in Sparse xml_write_to_stream
+	function.
 
 	* src/m_sensor.cc: Minor changes to runtime error output.
 
-	* src/sensor.{cc,h}: Removed antenna_diagram_gaussian, which has been replaced by
-	WSM GaussianResponse.
+	* src/sensor.{cc,h}: Removed antenna_diagram_gaussian, which has been
+	replaced by WSM GaussianResponse.
 
-	* src/test_sensor.cc: Moved antenna_diagram_gaussian from sensor.cc here.
+	* src/test_sensor.cc: Moved antenna_diagram_gaussian from sensor.cc
+	here.
 
 2003-06-18  Oliver Lemke  <olemke@uni-bremen.de>
 
@@ -79,15 +98,15 @@
 	* src/sensor.{cc,h}: Added calculating methods for the mixer and backend
 	response WSM.
 
-	* src/workspace.cc: Added f_mixer and f_backend as WSV groups and removed
-	previously added f_sensor.
+	* src/workspace.cc: Added f_mixer and f_backend as WSV groups and
+	removed previously added f_sensor.
     
 	* src/matpackII.cc: Added resize function for sparse matrices.
     
 	* src/test_sensor.cc: Added various test functions.
     
 	* src/Makefile.am: Added constants, matpacks and interpolation to the
-    test_sensor compilation group(?).
+	test_sensor compilation group(?).
     
 	* src/zeemanproperties.cc: Fixed compilation error (missing ;)
 
