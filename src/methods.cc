@@ -309,12 +309,45 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("lines_per_tgCreateFromLines"),
+  	DESCRIPTION(
+          "Split lines up into the different tag groups.\n"
+	  "The tag groups are tested in the order in which they are\n" 
+          "specified in the controlfile. The line is assigned to the\n" 
+	  "first tag group that fits."),
+	OUTPUT(   lines_per_tg_      ),
+	INPUT(    lines_, tag_groups_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("linesWriteToFile"),
   	DESCRIPTION(
           "Write the content of the workspace variable lines to the\n"
 	  "given file in ARTS line format."),
 	OUTPUT(),
 	INPUT( lines_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("lines_per_tgWriteToFile"),
+  	DESCRIPTION(
+          "Write the content of the workspace variable lines_per_tg to the\n"
+	  "given file in ARTS line format.\n"
+	  "The array dimension is handled in a similar way as by the\n"
+	  "array of vector and matrix output function:\n"
+	  "First an integer stating the number of tag groups.\n"
+	  "Then an integer specifying the number of lines for the\n"
+	  "first group. Then the other groups in similar fashion."),
+	OUTPUT(),
+	INPUT( lines_per_tg_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "filename" ),
@@ -364,6 +397,10 @@ void define_md_data()
     ( MdRecord
       ( NAME("Atm2dFromRaw1D"),
   	DESCRIPTION(
+	  "This method is not currently useful for anything, since\n"
+	  "there is no method to calculate absorption from the 2D\n"
+	  "parameters.\n"
+	  "\n"
 	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
 	  "given by p_abs. The altitude is not used by the absorption routines,\n"
 	  "But later on by the RT routines."
@@ -376,6 +413,28 @@ void define_md_data()
 	  "Uses interp_lin(...)."
 	  ),
 	OUTPUT(   t_abs_2d_ , z_abs_2d_   , vmrs_2d_     ),
+	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
+	GOUTPUT(                       			 ),         
+	GINPUT(                        			 ),
+	KEYWORDS(                      			 ),
+	TYPES(                         			 )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("AtmFromRaw1D"),
+  	DESCRIPTION(
+	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
+	  "given by p_abs. The altitude is not used by the absorption routines,\n"
+	  "But later on by the RT routines."
+	  "\n"
+	  "Interpolations used: FIXME: Add these.f\n"
+	  "Temperature [K]: \n"
+	  "Altitude    [m]: \n"
+	  "VMRs        [1]: \n"
+	  "\n"
+	  "Uses interp_lin(...)."
+	  ),
+	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
 	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
 	GOUTPUT(                       			 ),         
 	GINPUT(                        			 ),

@@ -4,6 +4,7 @@
 #ifndef absorption_h
 #define absorption_h
 
+#include <iostream>
 #include "vecmat.h"
 
 /** Contains the lookup data for one isotope.
@@ -483,6 +484,11 @@ private:
     @author Stefan Buehler */
 typedef ARRAY<LineRecord> ARRAYofLineRecord;
 
+/** Holds a lists of spectral line data for each tag group.
+    Dimensions: (tag_groups.dim()) (number of lines for this tag)
+    @author Stefan Buehler */
+typedef ARRAY< ARRAY<LineRecord> > ARRAYofARRAYofLineRecord;
+
 
 
 /** Output operator for LineRecord. The result should look like a
@@ -582,6 +588,15 @@ ostream& operator << (ostream& os, const OneTag& ot);
     @author Stefan Buehler */
 typedef  ARRAY< ARRAY<OneTag> > TagGroups;
 
+
+/** A helper function that writes lines in a line list to a stream. 
+
+    @param os       Output. The stream to write to.
+    @param lines    The line list to write.
+
+    @author Stefan Buehler 12.06.2000 */
+void write_lines_to_stream(ostream& os,
+			   const ARRAYofLineRecord& lines);
 
 
 

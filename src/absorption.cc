@@ -764,3 +764,13 @@ ostream& operator << (ostream& os, const OneTag& ot)
 {
   return os << ot.Name();
 }
+
+
+void write_lines_to_stream(ostream& os,
+			   const ARRAYofLineRecord& lines)
+{
+  for ( size_t i=0; i<lines.size(); ++i )
+    {
+      os << lines[i] << '\n';
+    }
+}

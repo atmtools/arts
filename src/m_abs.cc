@@ -47,6 +47,128 @@ void linesReadFromHitran(// WS Output:
 }
 
 
+void lines_per_tgCreateFromLines(// WS Output:
+                                  ARRAYofARRAYofLineRecord& lines_per_tg,
+                                  // WS Input:
+                                  const ARRAYofLineRecord&   lines,
+                                  const TagGroups&           tag_groups)
+{
+  // The species lookup data:
+  extern const ARRAY<SpeciesRecord> species_data;
+
+  // As a safety feature, we will watch out for the case that a
+  // species is included in the calculation, but not all lines are
+  // used. For this we need an array to flag the used species:
+  
+  // For some weird reason, ARRAYs of bool do not work, although all
+  // other types seem to work fine. So in this single case, I'll use
+  // the stl vector directly. The other place where this is done is in
+  // the function executor in main.cc.
+  // FIXME: Fix this when ARRAY<bool> works.
+  std::vector<bool> species_used (species_data.size(),false);
+      
+  // Make lines_per_tg the right size:
+  lines_per_tg.newsize(tag_groups.size());
+
+  // Loop all lines in the input line list:
+  for ( size_t i=0; i<lines.size(); ++i )
+    {
+      // Get a convenient reference to the current line:
+      const LineRecord& this_line = lines[i];
+
+      // We have to test each tag group in turn (in the order in which
+      // they appear in the controlfile). The line is assigned to the
+      // first tag group that fits.
+
+      // The flag found is used to break the for loops when the right
+      bool found = false;
+
+      // We need to define j here, since we need the value outside the
+      // for loop:
+      size_t j;
+
+      // Loop the tag groups:
+      for ( j=0; j<tag_groups.size() && !found ; ++j ) 
+	{
+	  // A tag group can contain several tags:
+	  for ( size_t k=0; k<tag_groups[j].size() && !found; ++k )
+	    {
+	      // Get a reference to the current tag (not really
+	      // necessary, but makes for nicer notation below):
+	      const OneTag& this_tag = tag_groups[j][k];
+
+	      // Now we will test different attributes of the line
+	      // against matching attributes of the tag. If any
+	      // attribute does not match, we continue with the next tag
+	      // in the tag group. (Exception: Species, see just below.)
+
+	      // Test species. If this attribute does not match we don`t
+	      // have to test the other tags in this group, since all
+	      // tags must belong to the same species.
+	      if ( this_tag.Species() != this_line.Species() ) break;
+
+	      // Test isotope. The isotope can either match directly, or
+	      // the Isotope of the tag can be one larger than the
+	      // number of isotopes, which means `all'. Test the second
+	      // condition first, since this will probably be more often
+	      // used.
+	      if ( this_tag.Isotope() != this_line.SpeciesData().Isotope().size() )
+		if ( this_tag.Isotope() != this_line.Isotope() )
+		  continue;
+
+	    // Test frequncy range we take both the lower (Lf) and the
+	    // upper (Uf) border frequency to include the `equal' case.
+	    // Both Lf and Uf can also be negative, which means `no limit'
+
+	    // Take the lower limit first:
+	      if ( this_tag.Lf() >= 0 )
+		if ( this_tag.Lf() > this_line.F() )
+		  continue;
+
+	    // Then the upper limit:
+	      if ( this_tag.Uf() >= 0 )
+		if ( this_tag.Uf() < this_line.F() )
+		  continue;
+
+	    // When we get here, this_tag has survived all tests. That
+	    // means it matches the line perfectly!
+	      found = true;
+	    }
+	}
+
+      // If a matching tag was found, this line can be used in the
+      // calculation. Add it to the line list for this tag group.
+      if (found)
+	{
+	  // We have to use j-1 here, since j was still increased by
+	  // one after the matching tag has been found.
+	  lines_per_tg[j-1].push_back(this_line);
+
+	  // Flag this species as used, if not already done:
+	  if ( !species_used[this_line.Species()] )
+	    species_used[this_line.Species()] = true;
+	}
+      else
+	{
+	  // Safety feature: Issue a warning messages if the lines for a
+	  // species are only partly covered by tags.
+	  if ( species_used[this_line.Species()] )
+	    {
+	      out0 << "Your tags include other lines of species "
+		   << this_line.SpeciesData().Name()
+		   << ",\n"
+		   << "why do you not include line "
+		   << i
+		   << " (at "
+		   << this_line.F()
+		   << " Hz)?\n";
+	    }
+	}
+   }
+
+ }
+
+
 void linesWriteToFile(// WS Input:
 		      const ARRAYofLineRecord& lines,
 		      // Control Parameters:
@@ -66,9 +188,36 @@ void linesWriteToFile(// WS Input:
   out2 << "  Writing file: " << filename << '\n';
   open_output_file(os, filename);
 
-  for ( size_t i=0; i<lines.size(); ++i )
+  write_lines_to_stream(os,lines);
+}
+
+
+void lines_per_tgWriteToFile(// WS Input:
+			      const ARRAYofARRAYofLineRecord& lines_per_tg,
+			      // Control Parameters:
+			      const string& f)
+{
+  string filename = f;
+  
+  // If filename is empty then set the default filename:
+  if ( "" == filename )
     {
-      os << lines[i] << '\n';
+      extern const string basename;                       
+      filename = basename+".lines_per_tg.al";
+    }
+
+  ofstream os;
+
+  out2 << "  Writing file: " << filename << '\n';
+  open_output_file(os, filename);
+
+  os << lines_per_tg.size() << '\n';
+
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+    {
+      const ARRAYofLineRecord& lines = lines_per_tg[i];
+      os << lines.size() << '\n';
+      write_lines_to_stream( os, lines );
     }
 }
 
@@ -286,6 +435,95 @@ void Atm2dFromRaw1D(// WS Output:
 	  {
 	    intp(j,i) = target(i);
 	  }
+      }
+  }
+}
+
+void AtmFromRaw1D(// WS Output:
+		  VECTOR& 	 t_abs,
+		  VECTOR& 	 z_abs,
+		  ARRAYofVECTOR& vmrs,
+		  // WS Input:      
+		  const VECTOR&  	 p_abs,
+		  const MATRIX&  	 raw_ptz_1d,
+		  const ARRAYofMATRIX& raw_vmrs_1d)
+{
+  
+  //---------------< 1. Interpolation of temperature and altitude >---------------
+  {  
+    // Safety check: Make sure that raw_ptz_1d really is a [x,3] matrix:
+    if ( 3 != raw_ptz_1d.dim(2) )
+      {
+	ostringstream os;
+	os << "The variable raw_ptz_1d does not have the right dimensions,\n"
+	   << "dim(2) should be 3, but is actually "<< raw_ptz_1d.dim(2);
+	throw runtime_error(os.str());
+      }
+
+    // Break up raw_ptz_1d in p_raw, tz_raw.
+    // The reason why we take tz_raw as a matrix is that the
+    // interpolation can then be done simultaneously, hence slightly
+    // more efficient.
+
+    // p_raw is column 1:
+    VECTOR p_raw;
+    col( p_raw, 1, raw_ptz_1d );
+
+    // tz_raw is column 2-3:
+    MATRIX tz_raw;
+    col( tz_raw, 2, 3, raw_ptz_1d );
+
+    // Now interpolate tz_raw to p_abs grid:
+    MATRIX tz_intp;
+    interp_lin_col( tz_intp,
+		    p_raw, tz_raw, p_abs );
+
+    // Extract t_abs:
+    col( t_abs, 1, tz_intp );
+
+    // Extract z_abs:
+    col( z_abs, 2, tz_intp );
+  }
+
+  //---------------< 2. Interpolation of VMR profiles >---------------
+  {
+    // Make vmrs the right size:
+    vmrs.newsize(raw_vmrs_1d.dim());
+    
+    // For sure, we need to loop through all VMR profiles:
+    for ( size_t j=1; j<=raw_vmrs_1d.dim(); ++j )
+      {
+	// Get a reference to the profile we are concerned with:
+	const MATRIX& raw = raw_vmrs_1d(j);
+
+	// Get a reference to the place where we want to put the
+	// interpolated profile:
+	VECTOR& this_vmr = vmrs(j);
+
+	// Raw should be a matrix with dimension [x,2], the first column
+	// is the raw pressure grid, the second column the VMR values.
+      
+	// Safety check to ensure this:
+	if ( 2 != raw.dim(2) )
+	  {
+	    ostringstream os;
+	    os << "The variable raw_vmrs_1d("
+	       << j
+	       << ") does not have the right dimensions,\n"
+	       << "dim(2) should be 2, but is actually "<< raw.dim(2);
+	    throw runtime_error(os.str());
+	  }
+
+	// Extract p_raw and vmr_raw:
+	VECTOR p_raw;
+	col( p_raw, 1, raw );
+
+	VECTOR vmr_raw;
+	col( vmr_raw, 2, raw );
+
+	// Interpolate:
+	interp_lin( this_vmr,
+		    p_raw, vmr_raw, p_abs );
       }
   }
 }

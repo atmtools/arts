@@ -38,11 +38,12 @@ enum WsvGroup{
   ARRAYofVECTOR_,
   Los_,
   ARRAYofLineRecord_,
+  ARRAYofARRAYofLineRecord_,
   TagGroups_
 };
 
 // For consistency check:
-#define N_WSV_GROUPS 10
+#define N_WSV_GROUPS 11
 
 
 
@@ -53,16 +54,17 @@ enum WsvGroup{
     @author Stefan Buehler */ 
 class WsvP {
 public:
-  virtual operator string*()        	{ safety(); return NULL; };
-  virtual operator int*()           	{ safety(); return NULL; };
-  virtual operator Numeric*()       	{ safety(); return NULL; };
-  virtual operator VECTOR*()        	{ safety(); return NULL; };
-  virtual operator MATRIX*()        	{ safety(); return NULL; };
-  virtual operator ARRAYofMATRIX*() 	{ safety(); return NULL; };
-  virtual operator ARRAYofVECTOR*() 	{ safety(); return NULL; };
-  virtual operator Los*()           	{ safety(); return NULL; };
-  virtual operator ARRAYofLineRecord*() { safety(); return NULL; };
-  virtual operator TagGroups*()        	{ safety(); return NULL; };
+  virtual operator string*()        	    { safety(); return NULL; };
+  virtual operator int*()           	    { safety(); return NULL; };
+  virtual operator Numeric*()       	    { safety(); return NULL; };
+  virtual operator VECTOR*()        	    { safety(); return NULL; };
+  virtual operator MATRIX*()        	    { safety(); return NULL; };
+  virtual operator ARRAYofMATRIX*() 	    { safety(); return NULL; };
+  virtual operator ARRAYofVECTOR*() 	    { safety(); return NULL; };
+  virtual operator Los*()           	    { safety(); return NULL; };
+  virtual operator ARRAYofLineRecord*()        { safety(); return NULL; };
+  virtual operator ARRAYofARRAYofLineRecord*() { safety(); return NULL; };
+  virtual operator TagGroups*()        	    { safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

@@ -3,9 +3,4 @@ SAB 29.01.2000 do not compile documentation as default (maybe put it
                on target doc)
 SAB 30.01.2000 Turn off all debugging options with ./configure flag.
                (Do not give the -g flag to the compiler, set NDEBUG.)
-SAB 27.03.2000 Add an author field to MdRecord.
-SAB 21.05.2000 There is still a bug in the parser: If the control file
-               contains no line braek after the last method an error
-               message is issued. Fix this some day.
-SAB 09.06.2000 Clean up methods.cc and workspace.cc (move
-               non-essential stuff elsewhere). 
+SAB 27.03.2000 Add an author field to MdRecord?

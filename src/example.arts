@@ -24,13 +24,18 @@ linesReadFromHitran(lines){
 	fmax     = 1000e12
 }
 
-#linesWriteToFile{""} 
+linesWriteToFile{""} 
  
 tag_groupsDefine{
-      [ "O3-666-500e9-501.0001e9, O3-686",
-	"H2O",
-	"CO2-*-*-*" ] 
+      [ "H2O-161",
+	"H2O-181",
+        "H2O-171",
+	"H2O" ] 
 }
+
+lines_per_tgCreateFromLines{}
+
+lines_per_tgWriteToFile{""} 
 
 MatrixReadFromFile (raw_ptz_1d) 
 {"../data/atmosphere/fascod/midlatitude-summer.tz.am"}
@@ -47,11 +52,11 @@ VectorLinSpace(p_abs){
 
 VectorWriteToFile(p_abs){""}
 
-Atm2dFromRaw1D{}
+AtmFromRaw1D{}
 
-ArrayOfVectorWriteToFile (t_abs_2d) {""}
+VectorWriteToFile (t_abs) {""}
 
-ArrayOfVectorWriteToFile (z_abs_2d) {""}
+VectorWriteToFile (z_abs) {""}
 
-ArrayOfMatrixWriteToFile (vmrs_2d)  {""}
+ArrayOfVectorWriteToFile (vmrs)  {""}
 

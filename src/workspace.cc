@@ -45,6 +45,7 @@ void define_wsv_data()
   wsv_group_names.push_back("ARRAYofVECTOR");
   wsv_group_names.push_back("Los");
   wsv_group_names.push_back("ARRAYofLineRecord");
+  wsv_group_names.push_back("ARRAYofARRAYofLineRecord");
   wsv_group_names.push_back("TagGroups");
 
   // As a primitive consistency check, compare the size of
@@ -65,6 +66,17 @@ void define_wsv_data()
        ("lines",
 	"A list of spectral line data.", 
 	ARRAYofLineRecord_,
+	&p));
+  }
+
+  {
+    static WsvPointer<ARRAYofARRAYofLineRecord> p(&workspace.lines_per_tg);
+    wsv_data.push_back
+      (WsvRecord
+       ("lines_per_tg",
+	"A list of spectral line data for each tag.\n"
+	"Dimensions: (tag_groups.dim()) (# of lines for this tag)", 
+	ARRAYofARRAYofLineRecord_,
 	&p));
   }
 
@@ -222,12 +234,36 @@ void define_wsv_data()
   }
 
   {
+    static WsvPointer<ARRAYofVECTOR> p(&workspace.vmrs);
+    wsv_data.push_back
+      (WsvRecord
+       ("vmrs",
+	"The VMRs (unit: absolute number) on the p_abs grid.\n"
+	"Dimensions: [tag_groups.dim(), p_abs.dim()]",
+	ARRAYofVECTOR_,
+	&p));
+  }
+
+  {
     static WsvPointer<MATRIX> p(&workspace.abs);
     wsv_data.push_back
       (WsvRecord
        ("abs",
-	"The matrix of absorption coefficients.",
+	"The matrix of absorption coefficients.\n"
+	"Dimensions: [f_abs.dim(), p_abs.dim()]",
 	MATRIX_,
+	&p));
+  }
+
+  {
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.abs_per_tag);
+    wsv_data.push_back
+      (WsvRecord
+       ("abs_per_tag",
+	"These are the absorption coefficients individually for each\n"
+	"tag group. The ARRAY contains one matrix for each tag group,\n"
+	"the matrix format is the same as that of abs",
+	ARRAYofMATRIX_,
 	&p));
   }
 

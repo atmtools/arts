@@ -1,3 +1,15 @@
+2000-06-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-30
+	
+	* lines_per_tgCreateFromLines: This method splits up the line list
+	into sub-lists for each tag group. This is the place where the tag
+	groups are applied to divide the line list!
+
+	* lines_per_tg (type ARRAYofARRAYofLineRecord ): This stores the
+	line lists for the individual tag groups. This will be input the
+	absortion coefficient calculation. 
+
 2000-06-11  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-29

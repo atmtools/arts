@@ -44,8 +44,10 @@ void executor(WorkSpace& workspace, const ARRAY<MRecord>& tasklist)
   // occupied and which aren't.
   // 
   // For some weird reason, ARRAYs of bool do not work, although all
-  // other types seem to work fine. So in this single case, I'll use
-  // the stl vector directly.
+  // other types seem to work fine. So in this case, I'll use
+  // the stl vector directly. The other place where this is done is in
+  // the function lines_per_tgCreateFromLines in m_abs.cc.
+  // FIXME: Fix this when ARRAY<bool> works.
   std::vector<bool> occupied(wsv_data.size(),false);
 
   out3 << "\nExecuting methods:\n";
