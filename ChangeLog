@@ -1,3 +1,15 @@
+2002-02-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-5
+	
+	* src/Makefile.am (test_tensor_SOURCES): Added target for
+	test_tensor.
+
+	* src/test_tensor.cc: Test program for matpackIV. Copied from
+	test_matpack.cc.
+
+	* src/matpackIV.h: Added empty file for tensor 4.
+
 2002-02-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-4
