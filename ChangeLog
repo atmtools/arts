@@ -1,3 +1,66 @@
+2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-747
+
+	* Fix warnings when compiling with --disable-debug
+
+	* There are a lot of variables and parameters which are only used in
+	assertions. Please have a look at your functions whether they are
+	really necessary. I put a FIXME in all questionable places.
+
+	* src/methods_aux.cc (subst_any_with_group): Only declare
+	wsv_group_names in debug mode (only needed for assertion).
+
+	* src/m_cloudbox.cc (i_fieldSetConst): Omit name for parameter f_index
+	in non-debug mode. It is only used in assertion. FIXME.
+
+	* src/m_optproperties.cc (ext_mat_sptScat), (abs_vec_sptCalc):
+	Only define nza and naa in debug mode (only needed in assertion).
+
+	* src/m_ppath.cc (VectorZtanToZaRefr): Omit name for parameter
+	atmosphere_dim in non-debug mode because it is only used in assertion.
+	FIXME.
+
+	* src/m_scatrte.cc (i_fieldIterate), (scat_fieldCalc),
+	(scat_fieldCalcLimb), (scat_fieldCalcFromAmpMat): Put all
+	variable/parameters in ifndef block to be only defined in debug mode.
+	FIXME.
+
+	* src/m_sensor.cc (sensor_responseAntenna1D): Put parameter in ifndef
+	block to be only used in debug mode (only needed for assertion).
+	FIXME.
+
+	* src/main.cc (check_built_headers): Variables wsv_group_names,
+	wsv_data only needed in debug mode.
+
+	* src/montecarlo.cc (interp): Put definition of sum_check_epsilon in
+	ifndef block because it is only used in assertion.
+
+	* src/partition_function_data.cc (spec), (iso): Parameter name only
+	used in debug mode. FIXME.
+	Removed unneeded ifndef block around assertions.
+
+	* src/ppath.cc (do_gridcell_3d), (ppath_start_1d), (ppath_start_2d),
+	(ppath_start_3d), (ppath_step_refr_1d), (ppath_step_refr_2d),
+	(ppath_step_refr_3d): Put all debug mode only variables/parameters
+	inside ifndef blocks. FIXME.
+
+	* src/scatrte.cc (cloud_fieldsCalc): Put stokes_dim in ifndef block.
+	FIXME.
+
+	* src/special_interp.cc (z_at_lat_2d), (z_at_latlon): Put parameters
+	in ifndef block which are only used in debug mode. FIXME.
+
+	* src/agenda_record.cc (AgRecord::AgRecord): Put variables only used
+	in assertion in ifndef block.
+
+	* src/gas_abs_lookup.cc (GasAbsLookup::Extract): n_p_grid only needed
+	in assertion. FIXME.
+
+	* src/geomag_calc.h: Removed const Numeric a;
+
+	* src/test_geomag_calc.cc: Use EARTH_RADIUS instead of a.
+
 2003-12-08  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-1-746
