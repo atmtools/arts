@@ -1,5 +1,32 @@
 2002-02-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-1-4
+
+	* SOME INFORMATION: I will not give any deatils here about my work
+	to save time. The plan is to finish LOS/RTE calculations for 1D
+	and 2D without refraction (i.e. including interpolation of
+	absorption etc. and evaluation of the radiative transfer equation
+	along the LOS) and then describe the approach taken in AUG.
+
+	However, I should mention that I want to replace existing math
+	functions and to remove the ones not used. For this reason, I put
+	new math functions (or copies of existing ones, renamed by adding
+	the number 2) in los.cc. This includes a new set of interpolation
+	routines taking index positions as input. For example, the index
+	position 6.5 means that a position is exactly between the points
+	with index 6 and 7, index position 5 is exactly at the point with
+	index 5 etc. As these index positions easily can be calculated
+	when determining the LOS, this should save a lot of time for the
+	interpolation. In addition, as the LOS points now mainly are placed
+	at grid boundaries, for most points an interpolation is not needed and
+	the index positions can be used to avoid unnecessary interpolation.
+	
+	* src/los.cc: Finished the LOS calculations for 1D and no refraction.
+	As usual it is downwards observations from inside the atmosphere that
+	makes everything complicated. 
+
+2002-02-05  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-1-3
 
 	* src/los.cc: Added this file for starting on the new implementation
