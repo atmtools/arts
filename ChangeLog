@@ -1,3 +1,11 @@
+2002-01-17  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-0-0-pre7
+
+	* doc/uguide/main.tex: Increased caption size for long tables.
+
+	* doc/uguide/references.bib: Added two entries.
+
 2002-01-17  Nikolay Koulev <nkoulev@uni-bremen.de>
 
 	* arts-1-0-0-pre6
