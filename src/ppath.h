@@ -143,6 +143,7 @@ void ppath_step_refr_std_1d(
         ConstVectorView   t_grid,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
+	const Numeric&    lraytrace,
 	const Numeric&    lmax );
 
 #endif  // ppath_h

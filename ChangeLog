@@ -1,3 +1,29 @@
+2002-11-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-291
+
+	* src/special_interp.cc/h: Created these files and moved atmospheric
+	interpolation functions to these files from interpolation.cc/h.
+
+	* src/ppath.cc (ppath_step_refr_std_1d): It seems that this function
+	now works. So 1D with refaction should be finished. 
+	This function is better than the corresponding function in arts-1.
+	The tangent altitude is found with a better accuracy. The accuracy
+	can be controled by a variable inside the function, which is now set
+	to 0.1 m. The determination of the tangent altitude is not determined
+	by the ray tracing step. 
+	The maximum length of the ray tracing steps is now set by giving a 
+	length. Small lengths can be used. I have tested steps down to 100m
+	and it is very fast (as long as the calculation of refractive index is
+	fast). However, some simple tests showed that step lengths below 1 km
+	should not be needed (changing the ray tracing steps from 1 km to
+	100m moved the tangent point about 250 m horisontally (for a tangent
+	altitude close to ground), which should be compared to a total path
+	length of many hundreds of km).
+
+	(get_refr_index_1d): A temporary solution to get refractive index.
+	The core function is taken from arts-1.
+
 2002-11-15  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-290

@@ -49,9 +49,9 @@
 #include "messages.h"
 #include "mystring.h"
 #include "logic.h"
-#include "interpolation.h"
 #include "poly_roots.h"
 #include "ppath.h"
+#include "special_interp.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
@@ -277,6 +277,13 @@ Numeric geompath_l_at_r(
        const Numeric&   ppc,
        const Numeric&   r )
 {
+  if( r < ppc )
+    {
+      NumericPrint( r, "r" );
+      NumericPrint( ppc, "ppc" );
+      NumericPrint( ppc-r, "ppc-r" );
+    }
+
   assert( ppc >= 0 );
   assert( r >= ppc );
   
@@ -1055,7 +1062,7 @@ void ppath_fill_1d(
      ConstVectorView   r,
      ConstVectorView   lat,
      ConstVectorView   za,
-     const Numeric&    lstep,
+     ConstVectorView    lstep,
      const Numeric&    r_geoid,
      ConstVectorView   z_grid,
      const Index&      ip )
@@ -1078,7 +1085,7 @@ void ppath_fill_1d(
       ppath.z[i] = r[i] - r_geoid;
 
       if( i > 0 )
-	{ ppath.l_step[i-1] = lstep; }
+	{ ppath.l_step[i-1] = lstep[i-1]; }
     }
 }
 
@@ -1262,7 +1269,7 @@ void ppath_start_stepping(
 	  throw runtime_error(os.str());
 	}
 
-      out2 << "  sensor altitude      : " << (a_pos[0]-r_geoid(0,0))/1e3 
+      out2 << "  sensor altitude        : " << (a_pos[0]-r_geoid(0,0))/1e3 
 	   << " km\n";
 
       // If downwards, calculate geometrical tangent position
@@ -1272,9 +1279,10 @@ void ppath_start_stepping(
 	  geom_tan_pos.resize(2);
 	  geom_tan_pos[0] = geometrical_ppc( a_pos[0], a_los[0] );
           geom_tan_pos[1] = geompath_lat_at_za( a_los[0], 0, 90 );
-	  out2 << "  tangent radius       : " << geom_tan_pos[0]/1e3 <<" km\n";
-	  out2 << "  tangent latitude     : " << geom_tan_pos[1] << "\n";
-	  out2 << "  tangent altitude     : " 
+	  out2 << "  geom. tangent radius   : " << geom_tan_pos[0]/1e3 
+	       <<" km\n";
+	  out2 << "  geom. tangent latitude : " << geom_tan_pos[1] << "\n";
+	  out2 << "  geom. tangent altitude : " 
 	       << (geom_tan_pos[0]-r_geoid(0,0))/1e3 << " km\n";
 	}
 
@@ -1392,7 +1400,7 @@ void ppath_start_stepping(
 	  rv_geoid  = v_rgeoid[0];
 	  rv_ground = rv_geoid + v_zground[0];
 
-	  out2 << "  sensor altitude      : " << (a_pos[0]-rv_geoid)/1e3 
+	  out2 << "  sensor altitude        : " << (a_pos[0]-rv_geoid)/1e3 
 	       << " km\n";
 
 	  if( a_pos[0] < ( v_rgeoid[0] + v_ztop[0] ) )
@@ -1412,8 +1420,10 @@ void ppath_start_stepping(
 	    { geom_tan_pos[1] = geompath_lat_at_za( a_los[0], a_pos[1], 90 ); }
 	  else
 	    { geom_tan_pos[1] = geompath_lat_at_za( a_los[0], a_pos[1], -90 );}
-	  out2 << "  tangent radius       : " << geom_tan_pos[0]/1e3<<" km\n";
-	  out2 << "  tangent latitude     : " << geom_tan_pos[1] << "\n";
+	  out2 << "  geom. tangent radius         : " << geom_tan_pos[0] / 1e3
+	       <<" km\n";
+	  out2 << "  geom. tangent latitude       : " << geom_tan_pos[1] 
+	       << "\n";
 	  //
 	  if( geom_tan_pos[1] >= lat_grid[0]  &&  
 	                                  geom_tan_pos[1] <= lat_grid[nlat-1] )
@@ -1427,7 +1437,8 @@ void ppath_start_stepping(
 	      geom_tan_z = geom_tan_pos[0] - v1_tmp[0];
 	      interp( v2_tmp, itw_tmp, z_field(np-1,Range(joker),0), gp_tmp );
 	      geom_tan_atmtop = v2_tmp[0];
-	      out2 << "  tangent altitude     : " << geom_tan_z/1e3 << " km\n";
+	      out2 << "  geom. tangent altitude       : " << geom_tan_z/1e3 
+		   << " km\n";
 	    }
 	}
 
@@ -1990,13 +2001,14 @@ void ppath_step_geom_1d(
   ppath_init_structure(  ppath, 1, r_v.nelem() );
   //
   if( lmax < 0 )
-    { ppath.method     = "1D basic geometrical"; }
+    { ppath.method     = "1D geometrical"; }
   else
     { ppath.method     = "1D geometrical with length criterion"; }
   ppath.refraction = 0;
   ppath.constant   = ppc;
   //
-  ppath_fill_1d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_grid, ip );
+  ppath_fill_1d( ppath, r_v, lat_v, za_v, Vector(ilast,lstep), r_geoid, 
+                                                                  z_grid, ip );
 
 
   // Different options depending on position of end point of step:
@@ -2434,30 +2446,29 @@ void ppath_step_geom_2d(
 
 //! ppath_step_refr_std_1d
 /*! 
-   Calculates 1D geometrical propagation path steps.
+   Calculates 1D propagation path steps, with refraction, using a simple
+   and fast ray tracing scheme.
 
-   This is the core function to determine 1D propagation path steps by pure
-   geometrical calculations. Path points are included for crossings with the 
-   grids, tangent points and points of ground intersections. In addition,
-   points are included in the propgation path to ensure that the distance
-   along the path between the points does not exceed the selected maximum 
-   length (lmax). If lmax is <= 0, this means that no length criterion shall
-   be applied.
-
-   Note that the input variables are here compressed to only hold data for
-   a 1D atmosphere. For example, z_grid is z_field(:,0,0).
+   This function works as the function *ppath_step_geom_1d* but considers
+   also refraction. The upper length of the ray tracing steps is set by
+   the argument *lraytrace*. This argument controls only the internal
+   calculations. The maximum distance between the path points is still
+   determined by *lmax*.
 
    For more information read the chapter on propagation paths in AUG.
+   The algorithm used is described in that part of AUG.
 
    \param   ppath             Output: A Ppath structure.
    \param   p_grid            Pressure grid.
    \param   z_grid            Geometrical altitudes corresponding to p_grid.
+   \param   t_grid            Temperatures corresponding to p_grid.
    \param   r_geoid           Geoid radius.
    \param   z_ground          Ground altitude.
+   \param   lraytrace         Maximum allowed length for ray tracing steps.
    \param   lmax              Maximum allowed length between the path points.
 
    \author Patrick Eriksson
-   \date   2002-05-20
+   \date   2002-11-15
 */
 void ppath_step_refr_std_1d(
 	      Ppath&      ppath,
@@ -2466,6 +2477,7 @@ void ppath_step_refr_std_1d(
         ConstVectorView   t_grid,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
+	const Numeric&    lraytrace,
 	const Numeric&    lmax )
 {
   // Number of pressure levels and points in the incoming ppath
@@ -2484,8 +2496,10 @@ void ppath_step_refr_std_1d(
 
   // Assert not done for geometrical calculations
   assert( t_grid.nelem() == npl );
+  assert( lraytrace > 0 );
+  assert( lmax < 0  ||  lmax >= lraytrace );
 
-  // Determine refractive index at r_start
+  // Refractive index at r_start
   const Numeric n1 = get_refr_index_1d( p_grid, z_grid, t_grid, 
                                                            r_start - r_geoid );
 
@@ -2497,13 +2511,10 @@ void ppath_step_refr_std_1d(
     { 
       // If the sensor is placed outside the atmosphere, the constant is
       // already set.
-      
       ppc = refraction_ppc( r_start, za_start, n1 ); 
     }
   else
     { ppc = ppath.constant; }
-
-
 
 
   // Get end radius of the path step (r_end). If looking downwards, it must 
@@ -2516,41 +2527,67 @@ void ppath_step_refr_std_1d(
   //
   if( za_start <= 90 )
     { r_end = r_geoid + z_grid[ ip + 1 ]; }
+
   else
     {
       // Lowest possible radius for the path step
-      Numeric r_lowest  = r_geoid + z_grid[ ip ];
+      const Numeric r_lowest  = r_geoid + z_grid[ ip ];
 
-      // Determine refractive index at r_lowest
+      // Refractive index at r_lowest
       const Numeric n_lowest = get_refr_index_1d( p_grid, z_grid, t_grid, 
                                                           r_lowest - r_geoid );
       // Ground radius
-      Numeric r_ground = r_geoid + z_ground;
+      const Numeric r_ground = r_geoid + z_ground;
 
-      // Determine refractive index at r_ground
-      const Numeric n_ground = get_refr_index_1d( p_grid, z_grid, t_grid, 
-                                                          r_ground - r_geoid );
-
+      // Pressure surface below end point?
       if( ( r_lowest > r_ground )  &&  ( r_lowest*n_lowest > ppc ) )
 	{
 	  r_end    = r_lowest;
 	}
-      else if( ppc >= r_ground*n_ground )
+
+      // Tangent point is end point?
+      else if( ppc >= r_ground * get_refr_index_1d( p_grid, z_grid, t_grid, 
+                                                         r_ground - r_geoid ) )
 	{
-	  const Numeric dn = ( n1 - n_lowest ) / ( r_start - r_lowest );
-	  
-	  if( fabs(dn) < 1e-15 )   // An arbitrary threshold! 
-	    {                      // dn at ground level is about 2e-8
-	      r_end = ppc / n_lowest;
-	    }
-	  else
+	  	Numeric   r_tan = r_lowest;
+	  	          r_end = r_tan + 999e3;   
+	  	Numeric   n_end = n_lowest;
+	        bool      first = true;
+	  const Numeric   accuracy = 0.1;       // 0.1m 
+
+	  // We loop until it is sure that accuracy is better then specified
+	  while( fabs( r_end - r_tan ) > accuracy )
 	    {
-	      const Numeric c = ( r_geoid*dn + n_lowest ) / ( 2*dn );
-	      r_end = -c + sign(dn) * sqrt( c*c - (r_geoid*n_lowest-ppc)/dn );
+	      r_end = r_tan;
+
+	      if( !first )
+		{
+		  n_end = get_refr_index_1d( p_grid, z_grid, t_grid, 
+                                                             r_end - r_geoid );
+		}
+	      first = false;
+
+	      const Numeric dn = ( n1 - n_end ) / ( r_start - r_end );
+	  
+	      if( fabs(dn) < 1e-12 )        // An arbitrary threshold! 
+		{                           // dn at ground level is about 2e-8
+		  r_tan = ppc / n_end;
+		}
+	      else
+		{
+		  const Numeric x = ( n_end - dn * r_end ) / ( 2 * dn );
+		  r_tan = -x + sign(dn) * sqrt( x*x + ppc/dn );
+		}
 	    }
-	  NumericPrint(r_end-r_geoid,"tangent altitude");
+
+	  // We add *accuracy*. If the tangent radius becomes to low, we
+	  // get NaNs when calculating *l_rt* below.
+	  r_end = r_tan + accuracy;
+
 	  tanpoint = true;
 	}
+
+      // Ground is end point!
       else
 	{
 	  r_end    = r_ground;
@@ -2559,28 +2596,120 @@ void ppath_step_refr_std_1d(
     }
 
 
-  // Calculate basic variables from r_start to r_end.
+  // Determine a set of radii between r_start and r_end not seperated with more
+  // than lraytrace along the path. We use a geometrical function, but with a 
+  // length criterion of 0.95*lraytrace to have some margin to the extra length
+  // caused by the refraction.
   //
-  Vector    r_v, lat_v, za_v;
+  Vector    r_rt, lat_rt, za_rt;     // rt as in ray tracing
   Numeric   lstep;
   //
-  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
-                                                       za_start, r_end, lmax );
+  {
+    // As the refractive index is part of *ppc* with refraction, the radius is
+    // smaller than ppc close to the tangent point, but this is not allowed
+    // for geometrical calculations. We must then adjust *ppc* to avoid this.
+    // We are calling *geompath_from_r1_to_r2* only to get some radii between
+    // *r_start* and *r_end*, and an adjusted *ppc* will not affect the
+    // final accuracy.
+    //
+    Numeric ppc_local = ppc;
+    //
+    if( r_start < ppc_local )
+      { ppc_local = r_start; }
+    if( r_end < ppc_local )
+      { ppc_local = r_end; }
+
+    geompath_from_r1_to_r2( r_rt, lat_rt, za_rt, lstep, ppc_local, 
+		      r_start, lat_start,  za_start, r_end, 0.95*lraytrace );
+  }
+
+
+  // The values in lat_rt above are for a geometrical path. 
+  // Calculate new values considering refraction. The distance between the
+  // points (lstep) is now different for each step.
   //
-  const Index ilast = r_v.nelem() - 1;
+  const Index nrt = r_rt.nelem();
+  Vector l_rt(nrt-1), n_rt(nrt);
+  n_rt[0] = n1;
+  //
+  for( Index i=0; i<nrt-1; i++ )
+    {
+      // Refractive index at end point of ray tracing step
+      n_rt[i+1] = get_refr_index_1d( p_grid, z_grid, t_grid, 
+                                                         r_rt[i+1] - r_geoid );
+      
+      // The path constant divided with the max of refractive index.
+      // Using, for example, the mean of the refractive index gives NaN for
+      // *l_rt* for the step around the tangent point, as *cdn* then becomes
+      // bigger than thye smallest radius.
+      //
+      Numeric cdn;
+      //
+      if( n_rt[i] > n_rt[i+1] )
+	{ cdn = ppc / n_rt[i]; }
+      else
+	{ cdn = ppc / n_rt[i+1]; }
+      //
+      const Numeric cdn2 = cdn * cdn;
+      
+      l_rt[i] = fabs( sqrt( r_rt[i+1]*r_rt[i+1] - cdn2 ) - 
+                                              sqrt( r_rt[i]*r_rt[i] - cdn2 ) );
+
+      lat_rt[i+1] = lat_rt[i] + RAD2DEG * acos( 
+                 ( r_rt[i]*r_rt[i] + r_rt[i+1]*r_rt[i+1] - l_rt[i]*l_rt[i] ) / 
+                                                       (2*r_rt[i]*r_rt[i+1]) );
+    } 
+
+  // Calculate basic variables from r_start to r_end.
+  //
+  Vector    r_v(nrt), lat_v(nrt), za_v(nrt), l_v(nrt);
+  Index     ilast = 0;
+  Numeric   lsum = 0;
+  //
+  for( Index i=0; i<nrt; i++ )
+    {
+      if( i == 0  ||  i == (nrt-1)  ||  
+	                            ( lmax > 0  &&  (lsum+l_rt[i-1]) > lmax ) )
+	{
+	  r_v[ilast]   = r_rt[i];
+	  lat_v[ilast] = lat_rt[i];
+
+	  Numeric za = RAD2DEG* asin( ppc / (r_rt[i]*n_rt[i]) );
+
+	  // Numerical inaccuracy can giva NaN at the tangent point.
+	  if( isnan( za ) )
+	    { za = 90; }
+
+	  // *asin* gives values below 90 degrees.
+	  if( za_start > 90 )
+	    { za_v[ilast]  = 180 - za; }
+	  else
+	    { za_v[ilast]  = za; }
+
+	  if( i > 0 )
+	    { l_v[ilast-1] = lsum; }
+	  lsum = 0;
+	  ilast++;
+	}
+      if( i < (nrt-1) )
+	{ lsum += l_rt[i]; }
+    }
+  ilast--;
+
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, 1, r_v.nelem() );
+  ppath_init_structure(  ppath, 1, ilast+1 );
   //
   if( lmax < 0 )
-    { ppath.method     = "1D basic geometrical"; }
+    { ppath.method     = "1D with refraction (std)"; }
   else
-    { ppath.method     = "1D geometrical with length criterion"; }
+    { ppath.method     = "1D with refraction and length criterion (std)"; }
   ppath.refraction = 0;
   ppath.constant   = ppc;
   //
-  ppath_fill_1d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_grid, ip );
+  ppath_fill_1d( ppath, r_v[Range(0,ilast+1)], lat_v[Range(0,ilast+1)], 
+            za_v[Range(0,ilast+1)], l_v[Range(0,ilast)], r_geoid, z_grid, ip );
 
 
   // Different options depending on position of end point of step:
@@ -2596,6 +2725,10 @@ void ppath_step_refr_std_1d(
       ppath.tan_pos[0] = r_v[ilast];
       ppath.tan_pos[1] = lat_v[ilast];
 
+      // Make sure that last zenith angle is exactly 90 degrees.
+      // Otherwise "another" tangent point can be found in the recursive call.
+      ppath.los(ilast,0) = 90;
+
       // Make part from tangent point and up to the starting pressure level.
       //
       Ppath ppath2;
@@ -2604,7 +2737,8 @@ void ppath_step_refr_std_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_geom_1d( ppath2, p_grid, z_grid, r_geoid, z_ground, lmax );
+      ppath_step_refr_std_1d( ppath2, p_grid, z_grid, t_grid, r_geoid, 
+                                                   z_ground, lraytrace, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 

@@ -86,6 +86,8 @@ arts_SOURCES = \
 	physics_funcs.h \
 	rte.cc \
 	rte.h \
+	special_interp.cc \
+	special_interp.h \
 	species_data.cc \
 	sstream.h \
 	token.cc \
@@ -217,6 +219,8 @@ test_interpolation_SOURCES = \
 	physics_funcs.h \
 	rte.cc \
 	rte.h \
+	special_interp.cc \
+	special_interp.h \
 	species_data.cc \
 	sstream.h \
 	token.cc \

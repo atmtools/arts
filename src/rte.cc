@@ -43,6 +43,7 @@
 #include "logic.h"
 #include "physics_funcs.h"
 #include "rte.h"
+#include "special_interp.h"
 
 
 //! get_radiative_background

@@ -44,11 +44,11 @@
 #include "agenda_class.h"
 #include "arts.h"
 #include "check_input.h"
-#include "interpolation.h"
 #include "physics_funcs.h"
 #include "matpackI.h"
 #include "messages.h"
 #include "rte.h"
+#include "special_interp.h"
 
 extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;

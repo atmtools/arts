@@ -49,6 +49,7 @@
 #include "math_funcs.h"
 #include "messages.h"
 #include "ppath.h"
+#include "special_interp.h"
 
 
 
@@ -234,14 +235,14 @@ void ppathCalc(
 
   // Some messages
   out2 << "  -------------------------------------\n";
-  out2 << "  sensor radius        : " << a_pos[0]/1e3 << " km\n";
+  out2 << "  sensor radius          : " << a_pos[0]/1e3 << " km\n";
   if( atmosphere_dim >= 2 )    
-    out2 << "  sensor latitude      : " << a_pos[1] << "\n";
+    out2 << "  sensor latitude        : " << a_pos[1] << "\n";
   if( atmosphere_dim == 3 )
-    out2 << "  sensor longitude     : " << a_pos[2] << "\n";
-  out2 << "  sensor zenith angle  : " << a_los[0] << "\n";
+    out2 << "  sensor longitude       : " << a_pos[2] << "\n";
+  out2 << "  sensor zenith angle    : " << a_los[0] << "\n";
   if( atmosphere_dim == 3 )
-    out2 << "  sensor azimuth angle : " << a_los[1] << "\n";
+    out2 << "  sensor azimuth angle   : " << a_los[1] << "\n";
 
 
   // Initiate the partial Ppath structure. 
@@ -554,7 +555,9 @@ void ppath_stepRefractionStd(
         const Tensor3&   z_field,
         const Tensor3&   t_field,
         const Matrix&    r_geoid,
-        const Matrix&    z_ground )
+        const Matrix&    z_ground,
+        // Control Parameters:
+	const Numeric&   lraytrace )
 {
   // Input checks here would be rather costly as this function is called
   // many times. So we perform asserts in the sub-functions, but no checks 
@@ -564,7 +567,7 @@ void ppath_stepRefractionStd(
 
   if( atmosphere_dim == 1 )
     { ppath_step_refr_std_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-                  t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), -1 );
+       t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, -1 );
     }
   else if( atmosphere_dim == 2 )
     { 
@@ -598,6 +601,7 @@ void ppath_stepRefractionStdWithLmax(
         const Matrix&    r_geoid,
         const Matrix&    z_ground,
         // Control Parameters:
+	const Numeric&   lraytrace,
         const Numeric&   lmax )
 {
   // Input checks here would be rather costly as this function is called
@@ -606,7 +610,7 @@ void ppath_stepRefractionStdWithLmax(
 
   if( atmosphere_dim == 1 )
     { ppath_step_refr_std_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
-                t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lmax );
+     t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lraytrace, lmax );
     }
   else if( atmosphere_dim == 2 )
     { 

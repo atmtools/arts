@@ -1871,8 +1871,61 @@ md_data_raw.push_back
 	       z_field_, r_geoid_, z_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "lmax"),
+	KEYWORDS( "lmax" ),
 	TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_stepRefractionStd" ),
+	DESCRIPTION
+        (
+	 "Calculates a propagation path step, taking refraction into\n"
+	 "account.\n"
+	 "\n"
+	 "This function considers refraction by making ray tracing steps \n"
+	 "through the atmosphere. where the conditions are assumed to be\n"
+	 "constant along the ray tracing steps. The upper length of the ray\n"
+	 "tracing steps is set bu the keyword argument. The algorithm for\n"
+	 "the different dimensionalities is described in the user guide.\n"
+	 "\n"
+	 "See further general comments for *ppath_stepGeometric*.\n"
+	 "\n"
+         "Keywords: \n"
+         "   lraytrace : Maximum length of ray tracing steps.\n"
+        ),
+	OUTPUT( ppath_step_ ),
+	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+	       z_field_, t_field_, r_geoid_, z_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "lraytrace" ),
+	TYPES(    Numeric_t )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ppath_stepRefractionStdWithLmax" ),
+	DESCRIPTION
+        (
+	 "As *ppath_stepRefractionStd* but with a length criterion for the\n"
+         "distance between the path points.\n"
+	 "\n"
+	 "This function works as *ppath_stepRefractionStd* but additional\n"
+	 "points are included in the propagation path to ensure that the\n"
+	 "distance along the path between the points does not exceed the\n"
+	 "selected maximum length. The length criterion is set by the\n"
+	 "keyword argument *lmax*. The length of the ray tracing steps are\n"
+	 "determined by *lraytrace* as for *ppath_stepRefractionStd*.\n"
+	 "\n"
+         "Keywords: \n"
+         "   lmax : Maximum allowed length between path points.\n"
+        ),
+	OUTPUT( ppath_step_ ),
+	INPUT( ppath_step_, atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, 
+	       z_field_, t_field_, r_geoid_, z_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "lraytrace", "lmax" ),
+	TYPES(    Numeric_t,   Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

@@ -44,13 +44,13 @@
 #include "arts.h"
 #include "auto_md.h"
 #include "check_input.h"
-#include "interpolation.h"
 #include "logic.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "physics_funcs.h"
 #include "ppath.h"
 #include "rte.h"
+#include "special_interp.h"
 
 
 
