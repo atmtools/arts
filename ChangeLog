@@ -1,3 +1,35 @@
+2001-11-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+        * arts-0-1-52
+	
+	* doc/uguide/absorption.tex: Removed .ps endings from figures.
+
+	* doc/uguide/Figs:
+	- Removed files:
+		doc/uguide/Figs/cloud_description_page1.ps
+		doc/uguide/Figs/cloud_description_page2.ps
+		doc/uguide/Figs/cloud_description_page3.ps
+		doc/uguide/Figs/cont_description_page1.ps
+		doc/uguide/Figs/cont_description_page2.ps
+		doc/uguide/Figs/cont_description_page3.ps
+		doc/uguide/Figs/fullmodel_description_page1.ps
+		doc/uguide/Figs/fullmodel_description_page2.ps
+		doc/uguide/Figs/fullmodel_description_page3.ps
+	- Added files:
+		doc/uguide/Figs/cloud_description_page1.pdf
+		doc/uguide/Figs/cloud_description_page2.pdf
+		doc/uguide/Figs/cloud_description_page3.pdf
+		doc/uguide/Figs/cont_description_page1.pdf
+		doc/uguide/Figs/cont_description_page2.pdf
+		doc/uguide/Figs/cont_description_page3.pdf
+		doc/uguide/Figs/cont_example.arts_page1.pdf
+		doc/uguide/Figs/cont_example.arts_page2.pdf
+		doc/uguide/Figs/cont_example.arts_page3.pdf
+		doc/uguide/Figs/fullmodel_description_page1.pdf
+		doc/uguide/Figs/fullmodel_description_page2.pdf
+		doc/uguide/Figs/fullmodel_description_page3.pdf
+	
+
 2001-11-21  Thomas Kuhn  <tkuhn@uni-bremen.de>
 	
         * arts-0-1-51
