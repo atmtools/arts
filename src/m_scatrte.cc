@@ -637,26 +637,31 @@ i_fieldUpdate1D(// WS Output:
               ArrayOfGridPos cloud_gp_p = ppath_step.gp_p;
               ArrayOfGridPos dummy_gp;
               Vector dummy_grid(0);
-               cout << "cloud_gp_p.nelem in i_fieldUpdate" <<cloud_gp_p.nelem()<<"\n";
+              
+              
 
-	       for(Index kk = 0; kk<2; kk++ )//FIXME STR changed i to k
-		 cloud_gp_p[kk].idx -= cloudbox_limits[0];
-	       
-	       Matrix itw_field;
-	       cout << "cloud_gp_p.nelem in i_fieldUpdate" <<cloud_gp_p.nelem()<<"\n";
-	       interp_atmfield_gp2itw(
+              for(Index i = 0; i < ppath_step.np; i++ )
+                cloud_gp_p[i].idx -= cloudbox_limits[0];
+              
+              Matrix itw_field;
+
+              interp_atmfield_gp2itw(
                                      itw_field, atmosphere_dim,
                                      p_grid[ Range(p_range)], dummy_grid,
                                      dummy_grid,
                                      cloud_gp_p, dummy_gp, dummy_gp);
               
-              // Ppath_step always has 2 points, the starting
+              // Ppath_step has 2 points, the starting
               // point and the intersection point.
-              Tensor3 ext_mat_int(stokes_dim, stokes_dim, 2);
-              Matrix abs_vec_int(stokes_dim,2);
-              Matrix sca_vec_int(stokes_dim,2);
-              Matrix sto_vec_int(stokes_dim,2);
-              Vector t_int(2);
+              // But there can be points in between, when a maximum 
+              // l_step is given. We have to interpolate on all the 
+              // points in the ppath_step.
+
+              Tensor3 ext_mat_int(stokes_dim, stokes_dim, ppath_step.np);
+              Matrix abs_vec_int(stokes_dim, ppath_step.np);
+              Matrix sca_vec_int(stokes_dim, ppath_step.np);
+              Matrix sto_vec_int(stokes_dim, ppath_step.np);
+              Vector t_int(ppath_step.np);
 
 
               // Calculate the average of the coefficients for the layers
@@ -669,11 +674,10 @@ i_fieldUpdate1D(// WS Output:
                             
                   // Extinction matrix requires a second loop 
                   // over stokes_dim
-		  cout << "It comes here" <<"\n";
-		 
                   out3 << "Interpolate ext_mat:\n";
                   for (Index j = 0; j < stokes_dim; j++)
                     {
+                      //
                       // Interpolation of ext_mat
                       //
                       interp_atmfield_by_itw
@@ -684,12 +688,6 @@ i_fieldUpdate1D(// WS Output:
                          "ext_mat_array",
                          cloud_gp_p, dummy_gp, dummy_gp,
                          itw_field);
-                      //
-                      // Averaging of ext_mat
-                      //
-                      ext_mat_av(i,j) = 0.5 *
-                        (ext_mat_int(i,j,0) + ext_mat_int(i,j,1));
-		      cout << "It comes here" <<"\n";
                     }
                   // Absorption vector:
                   //
@@ -704,11 +702,6 @@ i_fieldUpdate1D(// WS Output:
                      "abs_vec_array",
                      cloud_gp_p, dummy_gp, dummy_gp,
                      itw_field);
-                  //
-                  // Averaging of abs vec
-                  //
-                  abs_vec_av[i] = 0.5 * 
-                    (abs_vec_int(i,0) + abs_vec_int(i,1));
                   //
                   // Scattered field:
                   //
@@ -725,11 +718,6 @@ i_fieldUpdate1D(// WS Output:
                      cloud_gp_p,
                      dummy_gp, dummy_gp,
                      itw_field);
-                  //
-                  // Averaging of sca_vec:
-                  //
-                  sca_vec_av[i] =  0.5*
-                    (sca_vec_int(i,0) + sca_vec_int(i,1));
                   //
                   // Stokes vector:
                   //
@@ -748,9 +736,9 @@ i_fieldUpdate1D(// WS Output:
                   // 
                   // For the radiative transfer equation we 
                   // need the Stokes vector at the intersection
-                  // point.
+                  // point with the next layer.
                   //
-                  stokes_vec[i] = sto_vec_int(i,1);
+                  stokes_vec[i] = sto_vec_int(i,ppath_step.np-1);
                 }
               //
               // Planck function
@@ -767,56 +755,87 @@ i_fieldUpdate1D(// WS Output:
                  ppath_step.gp_p,
                  dummy_gp, dummy_gp,
                  itw_field);
-              // 
-              // Average temperature
-              Numeric T =   0.5 * (t_int[0] + t_int[1]);
-              //
-              // Frequency
-              Numeric f = f_grid[f_index];
-              //
-              // Calculate Planck function
-              //
-              Numeric a_planck_value = planck(f, T);
+              
 
-              // Some messages:
-              out3 << "-----------------------------------------\n";
-              out3 << "Input for radiative transfer step \n"
-                   << "calculation inside"
-                   << " the cloudbox:" << "\n";
-              out3 << "Stokes vector at intersection point: \n" 
-                   << stokes_vec 
-                   << "\n"; 
-              out3 << "l_step: ..." << l_step << "\n";
-              out3 << "------------------------------------------\n";
-              out3 << "Averaged coefficients: \n";
-              out3 << "Planck function: " << a_planck_value << "\n";
-              out3 << "Scattering vector: " << sca_vec_av << "\n"; 
-              out3 << "Absorption vector: " << abs_vec_av << "\n"; 
-              out3 << "Extinction matrix: " << ext_mat_av << "\n"; 
-
-
-              assert (!is_singular( ext_mat_av ));
-                        
-              // Radiative transfer step calculation.
-              rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
-                       sca_vec_av, l_step, a_planck_value);
-                        
+              // Radiative transfer from one layer to the next, starting
+              // at the intersection with the next layer and propagating
+              // to the considered point.
+              
+              for( Index k= ppath_step.np-1; k > 0; k--)
+                {
+                  //
+                  // Averaging of ext_mat
+                  //
+                  for (Index i = 0; i < stokes_dim; i++)
+                    {
+                      for (Index j = 0; j < stokes_dim; j++)
+                        {
+                          ext_mat_av(i,j) = 0.5 *
+                            (ext_mat_int(i,j,k) + ext_mat_int(i,j,k-1));
+                        }
+                      //
+                      // Averaging of abs vec
+                      //
+                      abs_vec_av[i] = 0.5 * 
+                        (abs_vec_int(i,k) + abs_vec_int(i,k-1));
+                      //
+                      // Averaging of sca_vec:
+                      //
+                      sca_vec_av[i] =  0.5*
+                        (sca_vec_int(i,k) + sca_vec_int(i,k-1));
+                      // 
+                    }
+                  // Average temperature
+                  Numeric T =   0.5 * (t_int[k] + t_int[k-1]);
+                  //
+                  // Frequency
+                  Numeric f = f_grid[f_index];
+                  //
+                  // Calculate Planck function
+                      //
+                  Numeric a_planck_value = planck(f, T);
+                  
+                  // Some messages:
+                  out3 << "-----------------------------------------\n";
+                  out3 << "Input for radiative transfer step \n"
+                       << "calculation inside"
+                       << " the cloudbox:" << "\n";
+                  out3 << "Stokes vector at intersection point: \n" 
+                       << stokes_vec 
+                       << "\n"; 
+                  out3 << "l_step: ..." << l_step << "\n";
+                  out3 << "------------------------------------------\n";
+                  out3 << "Averaged coefficients: \n";
+                  out3 << "Planck function: " << a_planck_value << "\n";
+                  out3 << "Scattering vector: " << sca_vec_av << "\n"; 
+                  out3 << "Absorption vector: " << abs_vec_av << "\n"; 
+                  out3 << "Extinction matrix: " << ext_mat_av << "\n"; 
+                      
+                  
+                  assert (!is_singular( ext_mat_av ));
+                      
+                  // Radiative transfer step calculation. The Stokes vector
+                  // is updated until the considered point is reached.
+                  rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
+                           sca_vec_av, l_step, a_planck_value);
+                  
+                }
               // Assign calculated Stokes Vector to i_field. 
               i_field(p_index - cloudbox_limits[0],
                       0, 0,
                       scat_za_index, 0,
                       joker) = stokes_vec;
-              //
+                  //
             } //end if
-          // 
-          // If the intersection point is outside the cloudbox
-          // no radiative transfer step is performed.
-          // The value on the cloudbox boundary remains unchanged.
-          //
-                    
+              // 
+              // If the intersection point is outside the cloudbox
+              // no radiative transfer step is performed.
+              // The value on the cloudbox boundary remains unchanged.
+              //
+              
         }// Close loop over p_grid (inside cloudbox).
     }// Closes loop over scat_za_grid.
-
+  
 } // End of the function.
 
 

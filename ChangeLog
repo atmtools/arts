@@ -1,3 +1,15 @@
+2003-03-07  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-487
+
+	* src/m_scatrte.cc (i_fieldUpdate1D): Fixed a bug. The function did 
+	not work when *ppath_step_agenda* putted extra points inside one 
+	layer (this can happen when you specify *lmax* or when you cross the
+	tangent point). Now the radiative transfer calculation is done by
+	going from one point to the next inside one layer. 
+
+	* src/workspace.cc: Included variable *single_scattering_data*.
+	
 2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-486

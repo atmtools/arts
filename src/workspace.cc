@@ -1848,6 +1848,24 @@ void define_wsv_data()
        ),
       GROUP( Matrix_ )));
 
+wsv_data.push_back
+   (WsvRecord
+    ( NAME( "single_scattering_data" ),
+      DESCRIPTION
+      (
+       "Structure for the  single scattering data.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       "\n"
+       "More will be written (Claudia)\n"
+       "\n"
+       ),
+      GROUP( SingleScatteringData_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "stokes_dim" ),
