@@ -164,21 +164,7 @@ void h_diff (
 ////////////////////////////////////////////////////////////////////////////
 
 
-//// VectorApplyH //////////////////////////////////////////////////////////
-//
-/** Applies a H matrix on a vector (spectra).
-
-    \retval y2        new vector, y2 = h*y1
-    \param  name_y2   variable name of y2
-    \param  h         H matrix
-    \param  y1        original vector
-    \param  name_y1   variable name of y1
-    \param  name_h    variable name of h
-
-    \author Patrick Eriksson 
-    \date   2000-10-22 
-*/
-void VectorApplyH(// WS Generic Output:
+void VectorApplyH(
               VECTOR&     y2, 
         const string&     name_y2,
         const Hmatrix&    h,
@@ -200,21 +186,7 @@ void VectorApplyH(// WS Generic Output:
 
 
 
-//// MatrixApplyH //////////////////////////////////////////////////////////
-//
-/** Applies a H matrix on a matrix (WFs).
-
-    \retval k2        new matrix, k2 = h*k1
-    \param  name_k2   variable name of k2
-    \param  h         H matrix
-    \param  k1        original matrix
-    \param  name_k1   variable name of k1
-    \param  name_h    variable name of h
-
-    \author Patrick Eriksson 
-    \date   2000-10-22 
-*/
-void MatrixApplyH(// WS Generic Output:
+void MatrixApplyH(
               MATRIX&     k2, 
         const string&     name_k2,
         const Hmatrix&    h,

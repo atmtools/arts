@@ -25,6 +25,10 @@
 
    This file contains IO workspace methods. 
 
+   The functions are of two types:
+     1. Reading and writing to/from files.
+     2. Creation by workspace method keywords and generic input
+
    \author Patrick Eriksson
    \date 2000-11-01 
 */
@@ -40,12 +44,163 @@
 #include "file.h"
 #include "md.h"
 #include "math_funcs.h"
+#include "atm_funcs.h"          
 #include <hdf.h>
 
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Help  functions
+//   General help functions
+////////////////////////////////////////////////////////////////////////////
+
+// setup_covmatrix ////////////////////////////////////////////////////////
+/** 
+   Core function to set-up covariance matrices from definition data.
+
+   The function creates a covariance matrix from standard deviations and
+   correlation lengths defined at some points (kp). Values at intermediate
+   points are obtained by linear interpolation. The definition data must 
+   cover all points of the retrieval/error grid.
+
+   The correlation between different points is controled by the variables
+   corrfun, cutoff and clength. The following correlation functions are
+   defined:
+
+     0: no correlation 
+     1: linearly decreasing down to zero (tenth function)  
+     2: exponential
+     3: gaussian 
+
+   The values of cutoff and clength are ignored when corrfun = 0.
+ 
+   The clength is the distance to the point where the correlation has declined
+   to exp(-1), the correlation length. The mean value of the correlation length
+   at the two points of interest is used.
+
+   The covariance is set to 0 for correlations below the cut-off value.
+
+   \retval  s         covaraince matrix
+   \param   kg        grid for the retrieval/error quantity
+   \param   corrfun   correlation function (see above)
+   \param   cutoff    cut-off for correlation coefficients (see above)
+   \param   kp        abscissa for sdev and clength
+   \param   sdev      standard deviation at the values of kp
+   \param   clength   correlation length at the values of kp
+
+   \author Patrick Eriksson
+   \date   2000-12-01
+*/
+void setup_covmatrix(
+                   MATRIX&    s,
+             const VECTOR&    kg,
+             const size_t&    corrfun,
+             const Numeric&   cutoff,
+             const VECTOR&    kp,
+             const VECTOR&    sdev,
+             const VECTOR&    clength )
+{
+  const size_t   n = kg.dim();
+        size_t   row, col;
+        VECTOR   sd, cl;
+        Numeric  c;          // correlation
+
+  if ( sdev.dim() != clength.dim() )
+    throw runtime_error("The standard deviation and correlation length vectors must have the same length.");
+
+  if ( (min(kg)<min(kp)) || (max(kg)>max(kp)) )
+    throw runtime_error("The data defining the covariance do not cover all retrieval/error points.");
+
+  if ( cutoff >= 1 )
+    throw runtime_error("The correlation cut-off must be < 1.");
+
+  // Interpolate to get standard deviation and correlation length at
+  // each point of k_grid
+  interp_lin( sd, kp, sdev, kg );
+  interp_lin( cl, kp, clength, kg );
+
+  // Resize s and fill with 0
+  s.newsize(n,n);
+  s = 0;  
+
+  // Diagonal matrix
+  if ( corrfun == 0 )
+  {
+    for ( row=1; row<=n; row++ )
+      s(row,row) = sd(row)*sd(row); 
+  }
+
+  // Linearly decreasing (tenth function)
+  else if ( corrfun == 1 )
+  {
+    for ( row=1; row<=n; row++ )
+    {
+      for ( col=row; col<=n; col++ )
+      {
+        c = 1 - 2*(1-exp(-1))*abs(kg(row)-kg(col))/(cl(row)+cl(col));
+        if ( (c>0) && (c>cutoff) )
+	{
+          s(row,col) = c*sd(row)*sd(col); 
+          s(col,row) = s(row,col);
+        } 
+      }
+    }
+  }
+
+  // Exponential
+  else if ( corrfun == 2 )
+  {
+    for ( row=1; row<=n; row++ )
+    {
+      for ( col=row; col<=n; col++ )
+      {
+        c = exp(-abs(kg(row)-kg(col))/((cl(row)+cl(col))/2));
+        if ( c > cutoff )
+	{
+          s(row,col) = c*sd(row)*sd(col); 
+          s(col,row) = s(row,col);
+        } 
+      }
+    }
+  }
+
+  // Gaussian
+  else if ( corrfun == 3 )
+  {
+    for ( row=1; row<=n; row++ )
+    {
+      for ( col=row; col<=n; col++ )
+      {
+        c = exp( -1.0 * pow( (kg(row)-kg(col))/((cl(row)+cl(col))/2), 2 ) );
+        if ( c > cutoff )
+	{
+          s(row,col) = c*sd(row)*sd(col); 
+          s(col,row) = s(row,col);
+        } 
+      }
+    }
+  }
+
+  // Unknown correlation function
+  else
+  {
+    ostringstream os;
+    os << "Unknown correlation function flag (" << corrfun << ").";
+    throw runtime_error(os.str());
+  }
+}
+
+
+
+
+
+//**************************************************************************
+//
+//  1. File functions
+//
+//**************************************************************************
+
+////////////////////////////////////////////////////////////////////////////
+//   File help functions
 ////////////////////////////////////////////////////////////////////////////
 
 // These functions gives, if filename is empty, the default file name for
@@ -103,25 +258,15 @@ void filename_bin(
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Workspace methods
+//   File workspace methods (sorted after workspace variable)
 ////////////////////////////////////////////////////////////////////////////
+
+// The ASCII functions are created by Stefan Buehler around 00????
+// The binary functions are created by Patrick Eriksson around 001102
 
 //=== INDEX ============================================================
 
-void IntSet(// WS Generic Output:
-            int& x,
-            // WS Generic Output Names:
-            const string& x_name,
-            // Control Parameters:
-            const int& value)
-{
-  x = value;
-  out3 << "  Setting " << x_name << " to " << value << ".\n";
-}
-
-
 // This function shall be modified to handle INDEX
-// PE 001102
 void IndexWriteAscii(
         const int&      v,
         const string&   v_name,
@@ -141,7 +286,6 @@ void IndexWriteAscii(
 
 
 // This function shall be modified to handle INDEX
-// PE 001102
 void IndexReadAscii(
 	      int&      v,
         const string&   v_name,
@@ -208,19 +352,6 @@ void IndexReadBinary(
 
 //=== NUMERIC ==========================================================
 
-void NumericSet(// WS Generic Output:
-                Numeric& x,
-                // WS Generic Output Names:
-                const string& x_name,
-                // Control Parameters:
-                const Numeric& value)
-{
-  x = value;
-  out3 << "  Setting " << x_name << " to " << value << ".\n";
-}
-
-
-// PE 001102
 void NumericWriteAscii(
         const Numeric&  v,
         const string&   v_name,
@@ -239,7 +370,6 @@ void NumericWriteAscii(
 }
 
 
-// PE 001102
 void NumericReadAscii(
 	      Numeric&  v,
         const string&   v_name,
@@ -296,86 +426,6 @@ void NumericReadBinary(
 
 
 //=== VECTOR ==========================================================
-
-void VectorSet(           VECTOR&  x, 
-                    const string&  x_name,
-                    const int&     n,
-                    const Numeric& value )
-{
-  x.newsize(n);
-  x = value;
-  out3 << "  Creating " << x_name << " as a constant vector\n"; 
-  out3 << "         length: " << n << "\n";
-  out3 << "          value: " << value << "\n";
-}
-
-
-
-void VectorLinSpace(      VECTOR&  x, 
-                    const string&  x_name,
-                    const Numeric& start,
-                    const Numeric& stop,
-                    const Numeric& step )
-{
-  x = linspace(start,stop,step);
-  out3 << "  Creating " << x_name << " as linearly spaced vector\n";
-  out3 << "         length: " << x.size() << "\n";
-  out3 << "    first value: " << x(1) << "\n";
-  if ( x.size() > 1 )
-  {
-    out3 << "      step size: " << x(2)-x(1) << "\n";
-    out3 << "     last value: " << x(x.size()) << "\n";
-  }
-}
-
-
-
-void VectorNLinSpace(     VECTOR&  x, 
-                    const string&  x_name,
-                    const Numeric& start,
-                    const Numeric& stop,
-                    const int& n )
-{
-  x = nlinspace(start,stop,n);
-  out3 << "  Creating " << x_name << " as linearly spaced vector\n";
-  out3 << "         length: " << n << "\n";
-  out3 << "    first value: " << x(1) << "\n";
-  if ( x.size() > 1 )
-  {
-    out3 << "      step size: " << x(2)-x(1) << "\n";
-    out3 << "     last value: " << x(x.size()) << "\n";
-  }
-}
-
-
-
-void VectorNLogSpace(     VECTOR&  x, 
-                    const string&  x_name,
-                    const Numeric& start,
-                    const Numeric& stop,
-                    const int&     n )
-{
-  x = nlogspace(start,stop,n);
-  out3 << "  Creating " << x_name << " as logarithmically spaced vector\n";
-  out3 << "         length: " << n << "\n";
-  out3 << "    first value: " << x(1) << "\n";
-  if ( x.size() > 1 )
-    out3 << "     last value: " << x(x.size()) << "\n";
-}
-
-
-
-void VectorCopy(
-                      VECTOR&   y2,
-                const string&   name_y2,
-                const VECTOR&   y1,
-                const string&   name_y1 )
-{
-  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  y2 = y1;
-}
-
-
 
 void VectorWriteAscii(// WS Output:
 		       const VECTOR& v,
@@ -462,18 +512,6 @@ void VectorReadBinary(
 
 //=== MATRIX ==========================================================
 
-void MatrixCopy(
-                      MATRIX&   y2,
-                const string&   name_y2,
-                const MATRIX&   y1,
-                const string&   name_y1 )
-{
-  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
-  y2 = y1;
-}
-
-
-
 void MatrixWriteAscii(// WS Generic Input:
 		       const MATRIX& m,
 		       // WS Generic Input Names:
@@ -554,7 +592,6 @@ void MatrixReadBinary(
 //=== ARRAYofINDEX =====================================================
 
 // This function shall be modified to handle ARRAYofINDEX
-// PE 001102
 void ArrayOfIndexWriteAscii(
         const ARRAYofsizet&   v,
         const string&         v_name,
@@ -576,7 +613,6 @@ void ArrayOfIndexWriteAscii(
 
 
 // This function shall be modified to handle INDEX
-// PE 001102
 void ArrayOfIndexReadAscii(
 	      ARRAYofsizet&   v,
         const string&         v_name,
@@ -945,15 +981,6 @@ void ArrayOfStringReadBinary(
 
 //=== MAYBESPARSE ====================================================
 
-/** Generic function to read H matrices.
-
-    \retval h        H matrix
-    \param  h_name   which H matrix (h_total or h_data)
-    \param  f        filename (if empty, the default name is used)
-
-    \author Patrick Eriksson 
-    \date   2000-10-06 
-*/
 void HmatrixReadAscii(// WS Generic Output:
 			Hmatrix& h,
 			// WS Generic Output Names:
@@ -1013,4 +1040,373 @@ void LosReadBinary(
   binfile_read_indexarray( los.start, filename, fid, "LOS.START" );
   binfile_read_indexarray( los.stop, filename, fid, "LOS.STOP" );
   binfile_close( fid, filename );
+}
+
+
+
+
+
+//**************************************************************************
+//
+//   2. Creation by workspace method keywords
+//
+//**************************************************************************
+
+//=== INDEX ============================================================
+
+void IntSet(// WS Generic Output:
+            int& x,
+            // WS Generic Output Names:
+            const string& x_name,
+            // Control Parameters:
+            const int& value)
+{
+  x = value;
+  out3 << "  Setting " << x_name << " to " << value << ".\n";
+}
+
+
+
+//=== NUMERIC ==========================================================
+
+void NumericSet(// WS Generic Output:
+                Numeric& x,
+                // WS Generic Output Names:
+                const string& x_name,
+                // Control Parameters:
+                const Numeric& value)
+{
+  x = value;
+  out3 << "  Setting " << x_name << " to " << value << ".\n";
+}
+
+
+
+//=== VECTOR ==========================================================
+
+void VectorSet(           VECTOR&  x, 
+                    const string&  x_name,
+                    const int&     n,
+                    const Numeric& value )
+{
+  x.newsize(n);
+  x = value;
+  out2 << "  Creating " << x_name << " as a constant vector\n"; 
+  out3 << "         length: " << n << "\n";
+  out3 << "          value: " << value << "\n";
+}
+
+
+
+void VectorSet2(          VECTOR&  x, 
+                    const string&  x_name,
+                    const VECTOR&  z,
+                    const string&  z_name,
+                    const Numeric& value )
+{
+  const size_t  n = z.dim();
+  x.newsize(n);
+  x = value;
+  out2 << "  Creating " << x_name << " as a constant vector\n"; 
+  out3 << "         length: " << n << "\n";
+  out3 << "          value: " << value << "\n";
+}
+
+
+
+void VectorLinSpace(      VECTOR&  x, 
+                    const string&  x_name,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const Numeric& step )
+{
+  x = linspace(start,stop,step);
+  out2 << "  Creating " << x_name << " as linearly spaced vector\n";
+  out3 << "         length: " << x.size() << "\n";
+  out3 << "    first value: " << x(1) << "\n";
+  if ( x.size() > 1 )
+  {
+    out3 << "      step size: " << x(2)-x(1) << "\n";
+    out3 << "     last value: " << x(x.size()) << "\n";
+  }
+}
+
+
+
+void VectorNLinSpace(     VECTOR&  x, 
+                    const string&  x_name,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const int& n )
+{
+  x = nlinspace(start,stop,n);
+  out2 << "  Creating " << x_name << " as linearly spaced vector\n";
+  out3 << "         length: " << n << "\n";
+  out3 << "    first value: " << x(1) << "\n";
+  if ( x.size() > 1 )
+  {
+    out3 << "      step size: " << x(2)-x(1) << "\n";
+    out3 << "     last value: " << x(x.size()) << "\n";
+  }
+}
+
+
+
+void VectorNLogSpace(     VECTOR&  x, 
+                    const string&  x_name,
+                    const Numeric& start,
+                    const Numeric& stop,
+                    const int&     n )
+{
+  x = nlogspace(start,stop,n);
+  out2 << "  Creating " << x_name << " as logarithmically spaced vector\n";
+  out3 << "         length: " << n << "\n";
+  out3 << "    first value: " << x(1) << "\n";
+  if ( x.size() > 1 )
+    out3 << "     last value: " << x(x.size()) << "\n";
+}
+
+
+
+void VectorCopy(
+                      VECTOR&   y2,
+                const string&   name_y2,
+                const VECTOR&   y1,
+                const string&   name_y1 )
+{
+  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
+  y2 = y1;
+}
+
+
+
+void VectorCopyFromArrayOfVector(
+                      VECTOR&          v,
+                const string&          v_name,
+                const ARRAYofVECTOR&   va,
+                const string&          va_name,
+                const int&             i )
+{
+  if ( i < 1 )
+    throw runtime_error("The index must be > 0.");
+  if ( size_t(i) > va.dim() )
+  {
+    ostringstream os;
+    os << "The vector array has only " << va.dim() << "elements.";
+    throw runtime_error(os.str());
+  }
+
+  out2 << "  Copies " << v_name << " from vector " << i << " in " << va_name
+                                                                   << "\n";
+  v = va(i);
+}
+
+
+
+void VectorPlanck(
+                    VECTOR&   y,
+              const string&   y_name,
+              const VECTOR&   f,
+              const string&   f_name,
+              const Numeric&  t )
+{
+  if ( t > 0 )
+  {
+    planck( y, f, t );
+    out2<<"  Setting " << y_name << " to blackbody radiation for "<<t<<" K.\n";
+  }
+  else
+    throw runtime_error("The temperature must be > 0.");
+}
+
+
+
+void VectorRandUniform(
+                    VECTOR&   y,
+              const string&   y_name,
+              const Numeric&  x_low,
+              const Numeric&  x_high,
+              const int&      n )
+{
+  out2<<"  Filling " << y_name << " with uniform random data.\n";
+  rand_uniform( y, n, x_low, x_high );
+}
+
+
+
+void VectorRandNormal(
+                    VECTOR&   y,
+              const string&   y_name,
+              const Numeric&  stddev,
+              const int&      n )
+{
+  out2<<"  Filling " << y_name << " with Gaussian random data.\n";
+  rand_normal( y, n, stddev );
+}
+
+
+
+//=== MATRIX ==========================================================
+
+void MatrixCopy(
+                      MATRIX&   y2,
+                const string&   name_y2,
+                const MATRIX&   y1,
+                const string&   name_y1 )
+{
+  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
+  y2 = y1;
+}
+
+
+
+//=== STRING ===============================================================
+
+void StringSet(           string&  s, 
+                    const string&  s_name,
+                    const string&  s2 )
+{
+  s = s2;
+  out3 << "  Setting " << s_name << " to " << s2 << "\n"; 
+}
+
+
+
+//=== COVARIANCE MATRIX =====================================================
+
+void sDiagonal(
+                   MATRIX&    s,
+             const VECTOR&    k_grid,
+             const Numeric&   stddev)
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,0.0);
+        VECTOR   kp(2);
+
+  kp(1) = k_grid(1);
+  kp(2) = k_grid(k_grid.dim());
+  setup_covmatrix( s, k_grid, 0, 0, kp, sdev, clength );
+}
+
+
+
+void sSimple(
+                   MATRIX&    s,
+             const VECTOR&    k_grid,
+             const int&       corrfun,
+             const Numeric&   cutoff,
+             const Numeric&   stddev,
+             const Numeric&   corrlength )
+{
+  const VECTOR   sdev(2,stddev);
+  const VECTOR   clength(2,corrlength);
+        VECTOR   kp(2);
+
+  kp(1) = k_grid(1);
+  kp(2) = k_grid(k_grid.dim());
+  setup_covmatrix( s, k_grid, corrfun, cutoff, kp, sdev, clength );
+}
+
+
+
+void sFromFile(
+                   MATRIX&    s,
+             const VECTOR&    k_grid,
+             const string&    filename )
+{
+  ARRAYofMATRIX   am;
+         VECTOR   kp, sdev, clength;
+         size_t   i, j, np;
+ 
+  // Read the array of matrix from the file:
+  read_array_of_matrix_from_file(am,filename);
+
+  const size_t n = am.dim()-1;
+
+  // Some checks of sizes
+  if ( n < 1 )
+    throw runtime_error("The file must contain > 1 matrix.");
+  if ( am(1).dim(1) != 2 )
+    throw runtime_error("The first matrix in the file must have 2 rows.");
+  if ( am(1).dim(2) != n )
+    throw runtime_error("The number of columns of the first matrix must equal the number of matrices - 1.");
+  
+  // Loop the different covariance matrices
+  for ( i=1; i<=n; i++ )
+  {
+    // Check if the corrfun flag is an integer
+    if ( (am(1)(1,i)-floor(am(1)(1,i))) != 0 )
+      throw runtime_error("The first row of matrix 1 shall only contain integers..");
+
+    // Move definition values to vectors
+    np = am(i+1).dim(1);
+    kp.newsize(np);
+    sdev.newsize(np);
+    clength.newsize(np);
+    for ( j=1; j<=np; j++ )
+    {
+      kp(j)      = am(i+1)(j,1);
+      sdev(j)    = am(i+1)(j,2);
+      clength(j) = am(i+1)(j,3);
+    }
+
+    if ( i == 1 )
+      setup_covmatrix( s, k_grid, size_t(am(1)(1,i)), am(1)(2,i), kp, 
+                                                              sdev, clength );
+      
+    else
+    {
+      MATRIX stmp;
+      setup_covmatrix( stmp, k_grid, size_t(am(1)(1,i)), am(1)(2,i), kp, 
+                                                              sdev, clength );
+      s = s + stmp;
+    }
+  }
+}
+
+
+
+void CovmatrixInit(
+              MATRIX&   s,
+        const string&   s_name)
+{
+  s.newsize(0,0);
+}
+
+
+
+void sxAppend(
+              MATRIX&   sx,
+        const MATRIX&   s )
+{
+  const size_t   ns  = s.dim(1); 
+  const size_t   nsx = sx.dim(1); 
+        MATRIX   stmp;
+        size_t   row, col;
+
+  if ( (ns!=s.dim(2)) || (nsx!=sx.dim(2)) )
+    throw runtime_error("A covariance matrix must be square.");
+    
+  stmp = sx;
+  sx.newsize(nsx+ns,nsx+ns);
+  sx = 0;
+  for ( row=1; row<=nsx; row++ )
+  {
+    for ( col=1; col<=nsx; col++ )
+      sx(row,col) = stmp(row,col);
+  }
+  for ( row=1; row<=ns; row++ )
+  {
+    for ( col=1; col<=ns; col++ )
+      sx(nsx+row,nsx+col) = s(row,col);
+  }
+}
+
+
+
+void sbAppend(
+              MATRIX&   sb,
+        const MATRIX&   s )
+{
+  sxAppend( sb, s );
 }

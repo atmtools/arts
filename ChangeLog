@@ -1,3 +1,23 @@
+2000-12-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-83
+
+	* r_geoid is now made to a workspace variable. Type r_geoidStd{}
+        to set it to EARTH_RADIUS.
+
+	* Functions now exist to generate random data with uniform and gaussian
+	PDFs. No correlation. VectorRandNormal is an example on workspace
+	method. The generation of random data can be checked by rand_test in
+	AMI.
+
+	* Made up a format to simply define covariance matrices and made 
+	functions to create cov. matrices based on such definition data.
+        See sSimple and sFromFile.
+	
+	* The function z_absHydrostatic gives a vertical grid fulfilling
+	hydrostatic eq. The workspace variable h2o_abs must be set.
+	
+
 2000-12-01  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-82

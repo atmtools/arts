@@ -87,8 +87,8 @@ void define_wsv_data()
      ("lineshape_norm",
       "Indices of normalizations to the lineshape functions. There is one\n"
       "entry for each abs_tag, not for each species. This means if you have\n"
-      "several abs_tags for different isotopes or transitions of a species, you\n"
-      "may use different lineshapes and normalizations.",
+      "several abs_tags for different isotopes or transitions of a species,\n"
+      "you may use different lineshapes and normalizations.",
       ARRAYofsizet_));
 
 
@@ -193,6 +193,12 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ("h2o_abs",
+      "The total water profile associated with the pressures in p_abs [-]",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
      ("vmrs",
       "The VMRs (unit: absolute number) on the p_abs grid.\n"
       "Dimensions: [tag_groups.dim(), p_abs.dim()]",
@@ -264,6 +270,12 @@ void define_wsv_data()
      ("refr_index",
       "The refractive index associated with the pressures in p_abs [-].\n",
       VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("r_geoid",
+      "The local curvature radius of the geoid along the LOS [m].",
+      Numeric_));
 
   wsv_data.push_back
     (WsvRecord
@@ -342,7 +354,7 @@ void define_wsv_data()
   wsv_data.push_back
     (WsvRecord
      ("k",
-      "The weighting functions (WFs) for a single retrieval identity.",
+      "The weighting functions (WFs) for a single retrieval/error identity.",
       MATRIX_));
 
   wsv_data.push_back
@@ -418,15 +430,60 @@ void define_wsv_data()
       MATRIX_));
 
 
-  //--------------------< H matrices >--------------------
-  //                     ------------
+  //-----------------< Sensor and data reduction stuff >------------------
+  //                   -------------------------------
+  wsv_data.push_back
+    (WsvRecord
+     ("f_sensor",
+      "The centre frequency of the sensor's backend channels [Hz].\n"
+      "That is, the frequency vector before any data reduction.\n"
+      "It is assumed that the same backend is used for all za_sensor.",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("za_sensor",
+      "The centre zenith angle for the spectra recorded by the sensor [deg].\n"
+      "That is, the zenith angle vector before any data reduction.",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("noise_width",
+      "The noise width of the sensor's backend channels [Hz].",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("f_y",
+      "The frequency for every element of y [Hz]. This vector has the same\n"
+      "length as y and is mainly for display purposes.\n"
+      "If no data reduction is performed f_y = [f_sensor;f_sensor...] where\n"
+      "the number of repetitions of f_sensor equals the number of zenith\n"
+      "angles. With data reduction there is no general relationship between\n"
+      "f_y and f_sensor. If the data reduction is performed using some\n"
+      "eigenvectors, f_y can be set to [1;2;3;...;n]",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("za_y",
+      "The zenith_angle for every element of y [deg]. This vector has the\n"
+      "same length as y and is mainly for display purposes.\n"
+      "If no data reduction is performed za_y=[za_sensor(1);za_sensor(1)...]\n"
+      "where the number of repetitions of the elements of za_sensor equals\n"
+      "the number of frequencies. With data reduction there is no general\n"
+      "relationship between za_y and za_sensor. If the data reduction is\n"
+      "performed using some eigenvectors, za_y can be set to [1;1;1;...;1]",
+      VECTOR_));
+
   wsv_data.push_back
     (WsvRecord
      ("h1",
       "A transfer matrix for sensor effects and data reduction.\n"
       "This is typically the total transfer matrix and includedes effects\n"
       "of both the sensor and data reduction.\n"
-      "This matrix and h1 can also be used to split the sensor calculations\n"
+      "This matrix and h2 can also be used to split the sensor calculations\n"
       "in two parts.",
       Hmatrix_));
 
@@ -438,6 +495,56 @@ void define_wsv_data()
       "See further h1.",
       Hmatrix_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("y_cal1",
+      "A first calibration spectrum. This spectrum is assumed to be used for\n"
+      "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
+      "See for example yLoadCalibration for usage of this spectrum.",
+      VECTOR_));
 
-  //  cout << "size = " << wsv_data.size() << '\n';
+  wsv_data.push_back
+    (WsvRecord
+     ("y_cal2",
+      "A first calibration spectrum. This spectrum is assumed to be used for\n"
+      "all zenith angles. This vector corresponds accordingly to f_sensor.\n"
+      "See for example yLoadCalibration for usage of this spectrum.",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("i_cal1",
+      "The intensity or brightness temperature corresponding to y_cal1.\n"
+      "See for example yLoadCalibration for usage.",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("i_cal2",
+      "The intensity or brightness temperature corresponding to y_cal2.\n"
+      "See for example yLoadCalibration for usage.",
+      VECTOR_));
+
+
+
+  //---------------------< Covariance matrices >-------------------------
+  //                      ---------------------
+  wsv_data.push_back
+    (WsvRecord
+     ("s",
+      "The covariance matrix for a single retrieval/error identity.",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("sx",
+      "The covariance matrix associated with kx.",
+      MATRIX_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("sb",
+      "The covariance matrix associated with kb.",
+      MATRIX_));
+
 }

@@ -330,4 +330,20 @@ MATRIX col(size_t i,
 
 
 
+/////////////////////////////////////////////////////////////////////////////
+//   Random data
+/////////////////////////////////////////////////////////////////////////////
+
+void rand_uniform(
+              VECTOR&    r,
+        const size_t     n,
+        const Numeric&   x_low,
+        const Numeric&   x_high );
+
+void rand_normal(
+              VECTOR&    r,
+        const size_t     n,
+        const Numeric&   s );
+
+
 #endif  // math_funcs_h

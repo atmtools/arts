@@ -25,6 +25,7 @@
 #include "wsv.h"
 #include "md.h"
 #include "math_funcs.h"
+#include "atm_funcs.h"
 
 void linesReadFromHitran(// WS Output:
                          ARRAYofLineRecord& lines,
@@ -403,7 +404,7 @@ void lineshapeDefine(// WS Output:
       const string& str = lineshape_data[i].Name();
       if (str == shape) 
 	{
-	  out2 << "  Selected lineshape: " << str << endl;
+	  out2 << "  Selected lineshape: " << str << "\n";
 	  found0=i;
 	}
     }
@@ -415,7 +416,7 @@ void lineshapeDefine(// WS Output:
       const string& str = lineshape_norm_data[i].Name();
       if (str == normalizationfactor) 
 	{
-	  out2 << "  Selected normalization factor: " << normalizationfactor << endl;
+	  out2 << "  Selected normalization factor: " << normalizationfactor << "\n";
 	  found1=i;
 	}
     }
@@ -477,7 +478,7 @@ void lineshape_per_abs_tagDefine(// WS Output:
 	      for (size_t s=0; s<tag_groups[k].size()-1; ++s)
 		out2 << tag_groups[k][s].Name() << ", "; 
 	      out2 << tag_groups[k][tag_groups[k].size()-1].Name() << "]\n";
-	      out2 << "  Selected lineshape: " << str << endl;
+	      out2 << "  Selected lineshape: " << str << "\n";
 	      found0=i;
 	    }
 	}
@@ -489,7 +490,7 @@ void lineshape_per_abs_tagDefine(// WS Output:
 	  const string& str = lineshape_norm_data[i].Name();
 	  if (str == normalizationfactor[k]) 
 	    {
-	      out2 << "  Selected normalization factor: " << normalizationfactor[k] << endl;
+	      out2 << "  Selected normalization factor: " << normalizationfactor[k] << "\n";
 	      found1=i;
 	    }
 	}
@@ -754,6 +755,65 @@ void AtmFromRaw1D(// WS Output:
 	interp_lin( this_vmr,
 		    p_raw, vmr_raw, p_abs );
       }
+  }
+}
+
+
+
+// Algorithm based on equation from my (PE) thesis (page 274) and the book
+// Meteorology today for scientists and engineers by R.B. Stull (pages 9-10). 
+//
+void z_absHydrostatic(
+          VECTOR&    z_abs,
+    const VECTOR&    p_abs,
+    const VECTOR&    t_abs,
+    const VECTOR&    h2o_abs,
+    const Numeric&   r_geoid,  
+    const Numeric&   g0,
+    const Numeric&   pref,
+    const Numeric&   zref,
+    const int&       niter )
+{
+  const size_t   np = p_abs.dim();
+        size_t   i;                     // altitude index
+        Numeric  g;                     // gravitational acceleration
+        Numeric  r;                     // water mixing ratio in gram/gram
+        Numeric  tv;                    // virtual temperature
+        Numeric  dz;                    // step geometrical altitude
+        VECTOR   ztmp(np);              // temporary storage for z_abs
+
+  if ( (z_abs.dim()!=np) || (t_abs.dim()!=np) || (h2o_abs.dim()!=np) )
+    throw runtime_error("The vectors p_abs, t_abs, z_abs and h2o_abs do not all have the same length.");
+
+  if ( niter < 1 )
+    throw runtime_error("The number of iterations must be > 0.");
+
+  for ( int iter=1; iter<=niter; iter++ )
+  {
+    // Init ztmp
+    ztmp(1) = z_abs(1);
+
+    // Calculate new altitudes (relative z_abs(1)) and store in ztmp
+    for ( i=1; i<np; i++ )
+    {
+      // Calculate g 
+      g  = (g_of_z(r_geoid,g0,z_abs(i))+g_of_z(r_geoid,g0,z_abs(i+1))) / 2.0;
+
+      // Calculate weight mixing ratio for water assuming constant average
+      // molecular weight of the air
+      r  = 18/28.96 * (h2o_abs(i)+h2o_abs(i+1))/2;
+
+      // The virtual temperature (no liquid water)
+      tv = (1+0.61*r) * (t_abs(i)+t_abs(i+1))/2;
+
+      // The change in vertical altitude from i to i+1 
+      dz = 287.053*tv/g * log( p_abs(i)/p_abs(i+1) );
+      ztmp(i+1) = ztmp(i) + dz;
+    }
+
+    // Match the altitude of the reference point
+    dz = interpp( p_abs, ztmp, pref ) - zref;
+    z_abs = ztmp - dz;
   }
 }
 

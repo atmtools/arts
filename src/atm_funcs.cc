@@ -155,6 +155,28 @@ VECTOR number_density (
 
 
 
+//// g_of_z ////////////////////////////////////////
+//
+/** Calculates the gravitational accelaration for a geometrical altitude.
+
+    \return           the gravitational constant
+    \param  r_geoid   radius of the geoid
+    \param  g0        the gravitational constant at the geoid surface
+    \param  z         geometrical altitude
+
+    \author Patrick Eriksson 
+    \date   2000-12-04
+*/
+Numeric g_of_z (
+       const Numeric&   r_geoid,
+       const Numeric&   g0,
+       const Numeric&   z )
+{
+  return g0 * pow( r_geoid/(r_geoid+z), 2 );
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Core functions for RTE and BL 
 ////////////////////////////////////////////////////////////////////////////
@@ -472,6 +494,32 @@ void interpp(
         const VECTOR&  p )
 {
   interp_lin_row( A, log(p0), A0, log(p) );
+}
+
+
+
+//// interpp (scalar return version) ////////////////////////////////////////
+//
+/** Interpolates a vertical profile at one pressure level.
+
+    See the vector version.
+
+    \retval x       output: the interpolated values at p
+    \param  p0      original pressure grid
+    \param  x0      the profile to be interpolated
+    \param  p       a pressure level
+
+    \author Patrick Eriksson 
+    \date   2000-12-04
+*/
+Numeric interpp(
+        const VECTOR&     p0,
+        const VECTOR&     x0,
+        const Numeric&    p )
+{
+  VECTOR  x, pv(1,p);
+  interp_lin( x, log(p0), x0, log(pv) );
+  return x(1);
 }
 
 

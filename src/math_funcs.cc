@@ -1181,3 +1181,81 @@ MATRIX col(size_t i,
   return X;
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////
+//   Random data
+/////////////////////////////////////////////////////////////////////////////
+
+//// rand_uniform ///////////////////////////////////////////////////////////
+/**
+   Creates a vector with random data uniformerly distributed between
+   the lower and higher limit given.
+
+   The random data is uncorrelated.
+
+   \retval   y          random vector
+   \param    n          length of the random vector to generate
+   \param    x_low      lower limit for the random values
+   \param    x_high     upper limit for the random data
+
+   \author Patrick Eriksson
+   \date   2000-11-26
+*/
+void rand_uniform(
+              VECTOR&    r,
+        const size_t     n,
+        const Numeric&   x_low,
+        const Numeric&   x_high )
+{
+  const Numeric dx = x_high-x_low;
+
+  r.newsize(n);
+  for ( size_t i=1; i<=n; i ++)
+    r(i) = x_low + dx* (double(rand())/double(RAND_MAX));
+}
+
+
+
+//// rand_normal ///////////////////////////////////////////////////////////
+/**
+   Creates a vector with random data normally distributed with zero mean
+   and the standard deviation given.
+
+   The random data is uncorrelated.
+
+   The algorith is taken from Numerical Recipies, Section 7.2. 
+   See www.nr.com.
+
+   \retval   y          random vector
+   \param    n          length of the random vector to generate
+   \param    s          standard deviation
+
+   \author Patrick Eriksson
+   \date   2000-11-27
+*/
+void rand_normal(
+              VECTOR&    r,
+        const size_t     n,
+        const Numeric&   s )
+{
+  VECTOR  z;    // A vector of length 2 with uniform PDF between -1 and 1
+  Numeric rad;  // The radiues cooresponding to z
+  Numeric fac;  // Normalisation factor
+ 
+  r.newsize(n);
+  for ( size_t i=0; i<n; )
+  {
+    rand_uniform( z, 2, -1, 1 );
+    rad = z(1)*z(1) + z(2)*z(2);
+    if ( (rad<1) && (rad>0) )
+    {
+      fac = sqrt( -2*log(rad)/rad );
+      i++;
+      r(i) = fac*z(1);
+      i++;
+      if ( i <=n )
+        r(i) = fac*z(2);        
+    }
+  }
+}

@@ -54,6 +54,10 @@ VECTOR number_density (
        const VECTOR&    p,
        const VECTOR&    t );
 
+Numeric g_of_z (
+       const Numeric&   r_geoid,
+       const Numeric&   g0,
+       const Numeric&   z );
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -117,6 +121,11 @@ void interpp(
         const VECTOR&  p0, 
         const MATRIX&  A0, 
         const VECTOR&  p );
+
+Numeric interpp(
+        const VECTOR&     p0,
+        const VECTOR&     x0,
+        const Numeric&    p );
 
 void interpz(
               VECTOR&     x, 

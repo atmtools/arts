@@ -9,7 +9,7 @@
 % IN:      n           a number
 %------------------------------------------------------------------------
 
-% HISTORY: 16.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.16  Created by Patrick Eriksson. 
 
 
 function bool = isodd(n)

@@ -1510,31 +1510,6 @@ void k_temp_nohydro (
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
 
-//// absloswfsCalc /////////////////////////////////////////////////////////
-/**
-   Main function for calculation of absorption LOS WFs.
-
-   Calculates absorption line of sight weighting functions (LOS WFs) for 1D.
-   These WFs are the derivative of the monochromatic pencil beam
-   intensity with respect to the absorption at the LOS points.
-
-   See further the ARTS user guide.
-
-   This function requires that e_ground and t_ground are set.
-
-   \retval   absloswfs   absorption LOS Wfs
-   \param    los         line of sight structure
-   \param    trans       transmissions
-   \param    source      source function values
-   \param    y           spectrum
-   \param    y_space     cosmic radiation
-   \param    f_mono      absorption frequency grid    
-   \param    e_ground    ground emissivity
-   \param    t_ground    ground temperature
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void absloswfsCalc (
                     ARRAYofMATRIX&   absloswfs,
               const LOS&             los,   
@@ -1600,25 +1575,6 @@ void absloswfsCalc (
 
 
 
-//// absloswfsNoGround //////////////////////////////////////////////////////
-/**
-   Calculates abs. LOS Wfs for cases without ground reflections.
-
-   This function can be used instead of yBl if there is no
-   intersection with the ground. No ground variables are needed 
-   when using this function.
-
-   \retval   absloswfs   absorption LOS Wfs
-   \param    los         line of sight structure
-   \param    trans       transmissions
-   \param    source      source function values
-   \param    y           spectrum
-   \param    y_space     cosmic radiation
-   \param    f_mono      absorption frequency grid    
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void absloswfsNoGround (
                     ARRAYofMATRIX&   absloswfs,
               const LOS&             los,   
@@ -1637,35 +1593,6 @@ void absloswfsNoGround (
 
 
 
-//// kSpecies //////////////////////////////////////////////////////////////
-/**
-   Calculates species 1D weighting functions for a single tag.
-
-   The tag is selected by the parameter nr, which is the position
-   for the tag in abs_per_tg.
-
-   The avaliable units are:
-     1 fractions of linearisation state
-     2 volume mixing ratio
-     3 number density
-
-   \retval   k           total WF matrix
-   \retval   k_names     identity name(s)
-   \retval   k_aux       additional data
-   \param    los         line of sight structure
-   \param    absloswfs   absorption LOS Wfs
-   \param    p_abs       pressure grid for abs. calculations
-   \param    t_abs       temperatures at p_abs
-   \param    tags        all tags
-   \param    abs_per_tg  absorption for each tag
-   \param    vmrs        VMR profiles at p_abs
-   \param    k_grid      retrieval grid
-   \param    nr          tag index
-   \param    unit        unit for the WFs (see above)   
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kSpecies (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1689,29 +1616,6 @@ void kSpecies (
 
 
 
-//// kSpeciesAll ///////////////////////////////////////////////////////////
-/**
-   Calculates species 1D weighting functions for all tags.
-
-   Calculates species 1D weighting functions for all tags that
-   are included in abs_per_tg. Units as for kSpecies.
-
-   \retval   k           total WF matrix
-   \retval   k_names     identity name(s)
-   \retval   k_aux       additional data
-   \param    los         line of sight structure
-   \param    absloswfs   absorption LOS Wfs
-   \param    p_abs       pressure grid for abs. calculations
-   \param    t_abs       temperatures at p_abs
-   \param    tags        all tags
-   \param    abs_per_tg  absorption for each tag
-   \param    vmrs        VMR profiles at p_abs
-   \param    k_grid      retrieval grid
-   \param    unit        unit for the WFs (see above)   
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kSpeciesAll (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1739,29 +1643,6 @@ void kSpeciesAll (
 
 
 
-//// kContAbs ///////////////////////////////////////////////////////////////
-/**
-   Calculates continuum abs. 1D weighting functions.
-
-   Calculates 1D weighting functions for fit of continuum absorption
-   by polynomials with selectable order.
-
-   The continuum is fitted be determining an off-set at a number of
-   points (order+1) that are evenly spread between the lowest and
-   highest frequency of f_mono.
-
-   \retval   k           total WF matrix
-   \retval   k_names     identity name(s)
-   \retval   k_aux       additional data
-   \param    los         line of sight structure
-   \param    absloswfs   absorption LOS Wfs
-   \param    f_mono      absorption frequency grid
-   \param    k_grid      retrieval grid
-   \param    order       polynomial order
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kContAbs (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1777,34 +1658,6 @@ void kContAbs (
 
 
 
-//// kTempNoHydro ///////////////////////////////////////////////////////////
-/**
-   Calculates temperature 1D weighting functions without hydrostatic eq.
-
-   Calculates temperature 1D weighting functions WITHOUT including
-   hydrostatic equilibrium.
-
-   \retval   k        	       total WF matrix
-   \retval   k_names  	       identity name(s)
-   \retval   k_aux    	       additional data
-   \param    los      	       line of sight structure
-   \param    absloswfs	       absorption LOS Wfs
-   \param    f_mono   	       absorption frequency grid
-   \param    p_abs     	       pressure grid for abs. calculations
-   \param    t_abs             temperatures at p_abs
-   \param    vmrs              VMR profiles at p_abs
-   \param    lines_per_tg      lines tag sorted
-   \param    lineshape         index to lineshape function per tag
-   \param    lineshape_norm    index to lineshape normalization function per tag
-   \param    abs               total absorption
-   \param    trans             transmissions         
-   \param    e_ground          ground emissivity
-   \param    t_ground          ground temperature
-   \param    k_grid            retrieval grid
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1831,32 +1684,6 @@ void kTempNoHydro (
 
 
 
-//// kTempNoHydroNoGround ///////////////////////////////////////////////////
-/**
-   As kTempNoHydro but does not need any ground variables .
-
-   Calculates temperature 1D weighting functions without hydrostatic eq.
-   and ground reflections.
-
-   \retval   k         	       total WF matrix
-   \retval   k_names  	       identity name(s)
-   \retval   k_aux    	       additional data
-   \param    los      	       line of sight structure
-   \param    absloswfs	       absorption LOS Wfs
-   \param    f_mono   	       absorption frequency grid
-   \param    p_abs    	       pressure grid for abs. calculations
-   \param    t_abs             temperatures at p_abs
-   \param    vmrs              VMR profiles at p_abs
-   \param    lines_per_tg      lines tag sorted
-   \param    lineshape         index to lineshape function per tag
-   \param    lineshape_norm    index to lineshape normalization function per tag
-   \param    abs               total absorption
-   \param    trans             transmissions         
-   \param    k_grid            retrieval grid
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kTempNoHydroNoGround (
 			   MATRIX&          k,
 			   ARRAYofstring&   k_names,
@@ -1879,33 +1706,6 @@ void kTempNoHydroNoGround (
 		  VECTOR(0), 0, k_grid );
 }
 
-//// kManual ////////////////////////////////////////////////////////////////
-/** 
-    Calculates a weighting function using y and y0.
-
-    The weighting function is calculated as: k = (y-y0)/delta.
-
-    That is, delta is the magnitude of the perturbation done.
-    The other variables are:
-    \verbatim
-      name     name on retrieval identity
-      grid     grid point value
-      apriori  a priori value
-    \endverbatim 
-
-   \retval   k        	    total WF matrix
-   \retval   k_names  	    identity name(s)
-   \retval   k_aux    	    additional data
-   \param    y0             original spectrum
-   \param    y              spectrum after perturbation
-   \param    name           name (to put in k_names)
-   \param    delta          perturbation magnitude
-   \param    grid           grid point value (to put in k_aux)
-   \param    apriori        a priori value (to put in k_aux)
-
-   \author Patrick Eriksson
-   \date   2000-10-22
-*/
 void kManual(
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1928,40 +1728,6 @@ void kManual(
 
 
 
-//// kDiffHSmall ////////////////////////////////////////////////////////////
-/** 
-    Calculates a weighting function using y, h1 and h2.
-
-    This function minimizes memory usage. For faster calculations,
-    use kDiffHFast.
-
-    The weighting function is calculated as: k = (h2*y-h1*y)/delta
-
-    That is, delta is the magnitude of the perturbation done.
-
-    The other variables are:
-    \verbatim
-      name     name on retrieval identity
-      grid     grid point value
-      apriori  a priori value
-    \endverbatim 
-
-    Note that the obtained k matrix includes effects of h1.
-
-   \retval   k        	    total WF matrix
-   \retval   k_names  	    identity name(s)
-   \retval   k_aux    	    additional data
-   \param    h1             original H matrix
-   \param    h2             H matrix after perturbation
-   \param    y              spectrum 
-   \param    name           name (to put in k_names)
-   \param    delta          perturbation magnitude
-   \param    grid           grid point value (to put in k_aux)
-   \param    apriori        a priori value (to put in k_aux)
-
-   \author Patrick Eriksson
-   \date   2000-10-22
-*/
 void kDiffHSmall(
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -1988,40 +1754,6 @@ void kDiffHSmall(
 
 
 
-//// kDiffHFast ////////////////////////////////////////////////////////////
-/** 
-    Calculates a weighting function using y, h1 and h2.
-
-    This function tries to be as fast as possible. To save memory,
-    use kDiffHSmall.
-
-    The weighting function is calculated as: k = (h2-h1)*y/delta
-
-    That is, delta is the magnitude of the perturbation done.
-
-    The other variables are:
-    \verbatim
-      name     name on retrieval identity
-      grid     grid point value
-      apriori  a priori value
-    \endverbatim 
-
-    Note that the obtained k matrix includes effects of h1.
-
-   \retval   k        	    total WF matrix
-   \retval   k_names  	    identity name(s)
-   \retval   k_aux    	    additional data
-   \param    h1             original H matrix
-   \param    h2             H matrix after perturbation
-   \param    y              spectrum 
-   \param    name           name (to put in k_names)
-   \param    delta          perturbation magnitude
-   \param    grid           grid point value (to put in k_aux)
-   \param    apriori        a priori value (to put in k_aux)
-
-   \author Patrick Eriksson
-   \date   2000-10-22
-*/
 void kDiffHFast(
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
@@ -2049,23 +1781,6 @@ void kDiffHFast(
 
 
 
-//// kxInit //////////////////////////////////////////////////////////////////
-/**
-   Initializes the Kx weighting function matrix and help variables.
-
-   This function initializes kx, kx_names, kx_index and kx_aux.
-
-   Use this function before the WF calculations are started or
-   restarted.
-
-   \retval   kx         total WF matrix
-   \retval   kx_names   identity names
-   \retval   kx_index   identity indecies
-   \retval   kx_aux     additional data
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kxInit (
                     MATRIX&          kx,
                     ARRAYofstring&   kx_names,
@@ -2080,23 +1795,6 @@ void kxInit (
 
 
 
-//// kbInit //////////////////////////////////////////////////////////////////
-/**
-   Initializes the Kb weighting function matrix and help variables.
-
-   This function initializes kb, kb_names, kb_index and kb_aux.
-
-   Use this function before the WF calculations are started or
-   restarted.
-
-   \retval   kb         total WF matrix
-   \retval   kb_names   identity names
-   \retval   kb_index   identity indecies
-   \retval   kb_aux     additional data
-
-   \author Patrick Eriksson
-   \date   2000-09-18
-*/
 void kbInit (
                     MATRIX&          kb,
                     ARRAYofstring&   kb_names,
@@ -2108,21 +1806,6 @@ void kbInit (
 
 
 
-//// kxAppend ////////////////////////////////////////////////////////////////
-/**
-   Appends the K matrix to Kx and handles additional data correspondingly.
-
-   \retval   kx           the Kx matrix
-   \retval   kx_names     identity names for Kx
-   \retval   kx_index     identity indecies Kx
-   \retval   kx_aux       additional data Kx
-   \param    k            the K matrix
-   \param    k_names      identity names for K
-   \param    k_aux        additional data K
-
-   \author Patrick Eriksson
-   \date   2000-10-20
-*/
 void kxAppend (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
@@ -2137,21 +1820,6 @@ void kxAppend (
 
 
 
-//// kbAppend ////////////////////////////////////////////////////////////////
-/**
-   Appends the K matrix to Kb and handles additional data correspondingly.
-
-   \retval   kb           the Kb matrix
-   \retval   kb_names     identity names for Kb
-   \retval   kb_index     identity indecies Kb
-   \retval   kb_aux       additional data Kb
-   \param    k            the K matrix
-   \param    k_names      identity names for K
-   \param    k_aux        additional data K
-
-   \author Patrick Eriksson
-   \date   2000-10-20
-*/
 void kbAppend (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,
@@ -2166,24 +1834,6 @@ void kbAppend (
 
 
 
-//// kxAppendUsingH //////////////////////////////////////////////////////////
-/**
-   Applies a H matrix on the K matrix and appends the result to Kx.
-
-   Additional data are treated correspondingly.
-
-   \retval   kx           the Kx matrix
-   \retval   kx_names     identity names for Kx
-   \retval   kx_index     identity indecies Kx
-   \retval   kx_aux       additional data Kx
-   \param    k            the K matrix
-   \param    k_names      identity names for K
-   \param    k_aux        additional data K
-   \param    h            a H matrix
-
-   \author Patrick Eriksson
-   \date   2000-10-22
-*/
 void kxAppendUsingH (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
@@ -2203,24 +1853,6 @@ void kxAppendUsingH (
 
 
 
-//// kbAppendUsingH //////////////////////////////////////////////////////////
-/**
-   Applies a H matrix on the K matrix and appends the result to Kb.
-
-   Additional data are treated correspondingly.
-
-   \retval   kb           the Kb matrix
-   \retval   kb_names     identity names for Kb
-   \retval   kb_index     identity indecies Kb
-   \retval   kb_aux       additional data Kb
-   \param    k            the K matrix
-   \param    k_names      identity names for K
-   \param    k_aux        additional data K
-   \param    h            a H matrix
-
-   \author Patrick Eriksson
-   \date   2000-10-22
-*/
 void kbAppendUsingH (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,

@@ -32,8 +32,8 @@ DATA TYPE: ARRAYofsizet
 DESCRIPTION:
 Indices of normalizations to the lineshape functions. There is one
 entry for each abs_tag, not for each species. This means if you have
-several abs_tags for different isotopes or transitions of a species, you
-may use different lineshapes and normalizations.
+several abs_tags for different isotopes or transitions of a species,
+you may use different lineshapes and normalizations.
 
 VARIABLE : raw_ptz_1d
 DATA TYPE: MATRIX
@@ -108,6 +108,11 @@ DATA TYPE: VECTOR
 DESCRIPTION:
 Vertical altitudes associated with the pressures in p_abs [m]
 
+VARIABLE : h2o_abs
+DATA TYPE: VECTOR
+DESCRIPTION:
+The total water profile associated with the pressures in p_abs [-]
+
 VARIABLE : vmrs
 DATA TYPE: ARRAYofVECTOR
 DESCRIPTION:
@@ -170,6 +175,11 @@ DATA TYPE: VECTOR
 DESCRIPTION:
 The refractive index associated with the pressures in p_abs [-].
 
+
+VARIABLE : r_geoid
+DATA TYPE: Numeric
+DESCRIPTION:
+The local curvature radius of the geoid along the LOS [m].
 
 VARIABLE : z_ground
 DATA TYPE: Numeric
@@ -234,7 +244,7 @@ WFs.
 VARIABLE : k
 DATA TYPE: MATRIX
 DESCRIPTION:
-The weighting functions (WFs) for a single retrieval identity.
+The weighting functions (WFs) for a single retrieval/error identity.
 
 VARIABLE : k_names
 DATA TYPE: ARRAYofstring
@@ -298,13 +308,53 @@ DESCRIPTION:
 Auxiliary data for kb. As k_aux but with the data of the different
 forward model identies appended vertically.
 
+VARIABLE : f_sensor
+DATA TYPE: VECTOR
+DESCRIPTION:
+The centre frequency of the sensor's backend channels [Hz].
+That is, the frequency vector before any data reduction.
+It is assumed that the same backend is used for all za_sensor.
+
+VARIABLE : za_sensor
+DATA TYPE: VECTOR
+DESCRIPTION:
+The centre zenith angle for the spectra recorded by the sensor [deg].
+That is, the zenith angle vector before any data reduction.
+
+VARIABLE : noise_width
+DATA TYPE: VECTOR
+DESCRIPTION:
+The noise width of the sensor's backend channels [Hz].
+
+VARIABLE : f_y
+DATA TYPE: VECTOR
+DESCRIPTION:
+The frequency for every element of y [Hz]. This vector has the same
+length as y and is mainly for display purposes.
+If no data reduction is performed f_y = [f_sensor;f_sensor...] where
+the number of repetitions of f_sensor equals the number of zenith
+angles. With data reduction there is no general relationship between
+f_y and f_sensor. If the data reduction is performed using some
+eigenvectors, f_y can be set to [1;2;3;...;n]
+
+VARIABLE : za_y
+DATA TYPE: VECTOR
+DESCRIPTION:
+The zenith_angle for every element of y [deg]. This vector has the
+same length as y and is mainly for display purposes.
+If no data reduction is performed za_y=[za_sensor(1);za_sensor(1)...]
+where the number of repetitions of the elements of za_sensor equals
+the number of frequencies. With data reduction there is no general
+relationship between za_y and za_sensor. If the data reduction is
+performed using some eigenvectors, za_y can be set to [1;1;1;...;1]
+
 VARIABLE : h1
 DATA TYPE: Hmatrix
 DESCRIPTION:
 A transfer matrix for sensor effects and data reduction.
 This is typically the total transfer matrix and includedes effects
 of both the sensor and data reduction.
-This matrix and h1 can also be used to split the sensor calculations
+This matrix and h2 can also be used to split the sensor calculations
 in two parts.
 
 VARIABLE : h2
@@ -313,4 +363,45 @@ DESCRIPTION:
 A second transfer matrix for sensor effects and data reduction.
 This matrix includes typically only effects of the data reduction.
 See further h1.
+
+VARIABLE : y_cal1
+DATA TYPE: VECTOR
+DESCRIPTION:
+A first calibration spectrum. This spectrum is assumed to be used for
+all zenith angles. This vector corresponds accordingly to f_sensor.
+See for example yLoadCalibration for usage of this spectrum.
+
+VARIABLE : y_cal2
+DATA TYPE: VECTOR
+DESCRIPTION:
+A first calibration spectrum. This spectrum is assumed to be used for
+all zenith angles. This vector corresponds accordingly to f_sensor.
+See for example yLoadCalibration for usage of this spectrum.
+
+VARIABLE : i_cal1
+DATA TYPE: VECTOR
+DESCRIPTION:
+The intensity or brightness temperature corresponding to y_cal1.
+See for example yLoadCalibration for usage.
+
+VARIABLE : i_cal2
+DATA TYPE: VECTOR
+DESCRIPTION:
+The intensity or brightness temperature corresponding to y_cal2.
+See for example yLoadCalibration for usage.
+
+VARIABLE : s
+DATA TYPE: MATRIX
+DESCRIPTION:
+The covariance matrix for a single retrieval/error identity.
+
+VARIABLE : sx
+DATA TYPE: MATRIX
+DESCRIPTION:
+The covariance matrix associated with kx.
+
+VARIABLE : sb
+DATA TYPE: MATRIX
+DESCRIPTION:
+The covariance matrix associated with kb.
 

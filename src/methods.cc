@@ -221,6 +221,20 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("VectorSet2"),
+	DESCRIPTION("Creates a workspace vector with the same length as the\n"
+                    "given vector and initializes the new vector with the\n"
+                    "given value. For example\n"
+                    "   VectorSet2(i_cal1,y_cal1){78}"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(VECTOR_),
+	GINPUT(VECTOR_),
+	KEYWORDS("value"),
+	TYPES(Numeric_t)));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("VectorLinSpace"),
 	DESCRIPTION("Creates a linearly spaced vector with defined spacing.\n"
                     "Format: VectorLinSpace(x){start,stop,step}\n"
@@ -271,6 +285,20 @@ void define_md_data()
 	GINPUT( VECTOR_ ),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorCopyFromArrayOfVector"),
+	DESCRIPTION("Copies a vector from a vector array.\n"
+          "\n"
+          "Keywords \n"
+          "  index : The index of the vector in the array to copy. " ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( ARRAYofVECTOR_),
+	KEYWORDS( "index" ),
+	TYPES( int_t )));
 
   md_data.push_back
     ( MdRecord
@@ -327,6 +355,49 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorPlanck"),
+  	DESCRIPTION(
+          "Sets a vector to the Planck function for the given frequency\n"
+          "vector and temperature. An example:\n"
+          "   VectorPlanck(y_space,f_mono){temp=2.7}"),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS( "temp" ),
+	TYPES( Numeric_t) ));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorRandUniform"),
+  	DESCRIPTION(
+          "Fills the vector with random data uniformerly distributed between\n"
+          "the lower and higher limit given. The length of the vector shall\n"
+          "also be given. The random data is uncorrelated."),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( ),
+	KEYWORDS( "low", "high", "n" ),
+	TYPES( Numeric_t, Numeric_t, int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorRandNormal"),
+  	DESCRIPTION(
+          "Fills the vector with random data having a normal PDF, zero mean\n"
+          "and the standard deviation given. The length of the vector shall\n"
+          "also be given. The random data is uncorrelated."),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( ),
+	KEYWORDS( "stddev", "n" ),
+	TYPES( Numeric_t, int_t )));
+
 
 
 
@@ -599,6 +670,17 @@ void define_md_data()
 
 
 //=== STRING ============================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("StringSet"),
+	DESCRIPTION("Sets a string to the given text string."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( string_),
+	GINPUT(),
+	KEYWORDS( "text" ),
+	TYPES( string_t )));
 
   md_data.push_back
     ( MdRecord
@@ -944,7 +1026,6 @@ void define_md_data()
 	TYPES(   ARRAY_string_t,         ARRAY_string_t )));
 
 
-
 //=== Input Atmosphere methods ===========================================
 
   md_data.push_back
@@ -1016,6 +1097,34 @@ void define_md_data()
 	KEYWORDS(                      			 ),
 	TYPES(                         			 )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("z_absHydrostatic"),
+	DESCRIPTION(
+          "Calculates a vertical grid fulfilling hydrostatic equilibrium\n"
+          "taking effects from water vapour into account.\n"
+          "The given altitudes are used as a first guess when starting the\n"
+          "calculations (to estimate g etc.).\n"
+          "The altitude of one pressure level must be given (the reference \n"
+          "point).\n"
+          "The altitude variation of the gravitational acceleration is\n"
+          "considered.\n"
+          "The average molecular weight is assumed to be 28.96 at all\n"
+          "altitudes \n"
+          "\n"
+          "Keywords \n"
+          "  g0    : Gravitational acceleration at the geoid surface.\n"
+          "  pref  : Pressure reference point.\n"
+          "  zref  : The geometrical altitude at pref.\n"
+          "  niter : Number of iterations (1-2 should suffice normally)."),
+	OUTPUT( z_abs_ ),
+	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_, r_geoid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "g0", "pref", "zref", "niter" ),
+	TYPES( Numeric_t, Numeric_t, Numeric_t, int_t )));
+
+
 
 
 //=== 1D absorption methods ===============================================
@@ -1025,8 +1134,7 @@ void define_md_data()
       ( NAME("absCalc"),
 	DESCRIPTION("Calculate absorption coefficients. This\n"
 		    "calculates both the total absorption and the\n"
-		    "absorption per tag group"
-		    "\n"),
+		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
 	INPUT( 	    f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, 
 		    lineshape_, lineshape_norm_ ),
@@ -1040,6 +1148,7 @@ void define_md_data()
       ( NAME("refr_indexBoudourisDryAir"),
 	DESCRIPTION("Calculates the refractive index for dry air at micro-\n"
 		    "wave frequncies following Boudouris 1963.\n"
+                    "The effect of water vapor is neglected (dry air).\n"
 		    "The expression is also found in Chapter 5 of the\n"
 		    "Janssen book."),
 	OUTPUT(	    refr_index_ ),
@@ -1057,6 +1166,33 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("r_geoidStd"),
+  	DESCRIPTION(
+          "Sets the geoid radius to the Earth radius defined in\n"
+          "constants.cc."),
+	OUTPUT( r_geoid_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("r_geoidWGS84"),
+  	DESCRIPTION(
+          "Sets the geoid radius according to WGS-84. See the Rodgers book \n"
+          "Sec. 9.4.1. The observation direction is given as the angle to\n"
+          "the meridian plane (i.e. S=N=0, W=E=90)"),
+	OUTPUT( r_geoid_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "latitude", "obsdirection" ),
+	TYPES( Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("losCalc"),
   	DESCRIPTION(
           "A general function to determine LOS for a 1D atmosphere.\n"
@@ -1065,7 +1201,7 @@ void define_md_data()
           "also be specified."),
 	OUTPUT( los_ ),
 	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, 
-               refr_, l_step_refr_, refr_index_, z_ground_ ),
+               refr_, l_step_refr_, refr_index_, z_ground_, r_geoid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1078,7 +1214,8 @@ void define_md_data()
           "Determines the LOS for a 1D atmosphere without refraction.\n"
           "The ground altitude must be specified."),
 	OUTPUT( los_ ),
-	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, z_ground_ ),
+	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, z_ground_, 
+                                                             r_geoid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1094,7 +1231,7 @@ void define_md_data()
           "sounding observations strictly above about 20 km.\n"
           "Refraction and ground altitude variables are NOT needed."),
 	OUTPUT( los_ ),
-	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_ ),
+	INPUT( z_plat_ ,za_pencil_, l_step_, p_abs_, z_abs_, r_geoid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1153,19 +1290,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("y_spacePlanck"),
-  	DESCRIPTION(
-          "Sets the radiation entering the atmosphere at the start of the\n"
-          "LOS to the Planck function for the given temperature."),
-	OUTPUT( y_space_ ),
-	INPUT( f_mono_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS("temp"),
-	TYPES(Numeric_t)));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("yRte"),
   	DESCRIPTION(
           "Solves the general radiative transfer equation (RTE) along the\n"
@@ -1218,6 +1342,53 @@ void define_md_data()
           "when using this function."),
 	OUTPUT( y_ ),
 	INPUT( los_, trans_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("yTB"),
+  	DESCRIPTION(
+          "Converts a spectrum from intensity to brightness temperature.\n"
+          "The used frequency vector is f_sensor."),
+	OUTPUT( y_ ),
+	INPUT( y_, f_sensor_, za_sensor_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("yTRJ"),
+  	DESCRIPTION(
+          "Converts a spectrum from intensity to Rayleigh-Jean temperature.\n"
+          "The used frequency vetor is f_sensor."),
+	OUTPUT( y_ ),
+	INPUT( y_, f_sensor_, za_sensor_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("yLoadCalibration"),
+  	DESCRIPTION(
+          "Simulates a load switch calibration as\n"
+          "  y = i_cal1 + (i_cal2-i_cal1)*(y-y_cal1)/(y_cal2-y_cal1)\n"
+          "The unit for i_cal1,2 can either be intensity or brightness\n"
+          "temperature. An example:\n"
+          "...\n"
+          "VectorPlanck(y_cal1,f_sensor){temp=78}\n"
+          "VectorPlanck(y_cal2,f_sensor){temp=300}\n"
+          "VectorSet2(i_cal1,y_cal1){value=78}\n"
+          "VectorSet2(i_cal2,y_cal2){value=300}\n"
+          "yLoadCalibration{}"),
+	OUTPUT( y_ ),
+	INPUT( y_, i_cal1_, i_cal2_, y_cal1_, y_cal2_, za_sensor_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1501,6 +1672,140 @@ void define_md_data()
         INPUT(),
 	GOUTPUT( MATRIX_ ),
 	GINPUT( Hmatrix_, MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
+
+
+
+//======================================================================
+//=== Covariance Matrix Methods
+//======================================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sDiagonal"),
+  	DESCRIPTION(
+          "Creates a diagonal covariance matrix. The size of s is determined\n"
+          "of the length of k_grid.\n"
+          "\n"
+          "Keywords \n"
+          "  stddev : Standard deviation."),
+	OUTPUT( s_ ),
+        INPUT( k_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "stddev" ),
+	TYPES( Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sSimple"),
+  	DESCRIPTION(
+          "Creates a covariance matrix where the standard deviation and\n"
+          "correlation length are constant. The size of s is determined of\n"
+          "the length of k_grid.\n"
+          "\n"
+          "Keywords \n"
+          "  corrfun    : The correlation function: \n"
+          "                0 no correlation, diagonal matrix. The corrlength\n"
+          "                  and cutoff are of no importance here.\n"
+          "                1 linearly decreasing to 0 (tenth)\n"
+          "                2 exponential\n"
+          "                3 gaussian\n"
+          "  cutoff     : Correlations below this value are set to 0.\n"
+          "               This variable can be used to make s more sparse.\n"
+          "  stddev     : Standard deviation.\n"
+          "  corrlength : Correlation length. The length where the corre-\n"
+          "               lation has decreased to exp(-1)."),
+	OUTPUT( s_ ),
+        INPUT( k_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "corrfun", "cutoff", "stddev", "corrlength" ),
+	TYPES( int_t, Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sFromFile"),
+  	DESCRIPTION(
+          "Creates a covariance matrix based on definition data in a file.\n"
+          "Only the ASCII files are allowed.\n"
+          "The covaraince matrix can be constructed as a sum of an arbitrary\n"
+          "number of covariance matrices.\n"
+          "The definition data shall be stored as a ARRAYofMATRIX.\n"
+          "The first row of the first matrix gives the correlation function\n"
+          "flag for each covariance matrix. See sSimple.\n"
+          "The second row of the first matrix gives the correlation cut-off\n"
+          "for each covariance matrix. See sSimple.\n"
+          "The number of columns of the first matrix must equal the length\n"
+          "of the matrix array - 1.\n"
+          "Each covariance matrix is defined by a three column matrix, where\n"
+          "column 1 is the abscissa (matching k_grid), column 2 standard \n"
+          "deviations and column 3 correlation lengths.\n"
+          "Linear interpolation is used to get values at intermediate\n"
+          "points.\n"
+          "An example, where a diagonal matrix and a gaussian matrix, both\n"
+          "having a standard deviation of 1, are summed, the gaussian\n"
+          "correlation length is 2 and k_grid has values between 0 and 10:\n"
+          "3           \n"
+          "2 2         \n"
+          "0 2         \n"
+          "0 0         \n"
+          "2 3         \n"
+          "0   1  0    \n"
+          "10  1  0    \n"
+          "2 3         \n"
+          "0   1  2    \n"
+          "10  1  2    \n"
+          "\n"
+          "Keywords \n"
+          "  filename : Name on file. The file name must be specified, no\n"
+          "             default name exists."),
+	OUTPUT( s_ ),
+        INPUT( k_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES( string_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("CovmatrixInit"),
+  	DESCRIPTION(
+          "Initializes a covariance matrix.\n"
+          "The matrix is set to be empty (0 x 0)."),
+	OUTPUT(),
+        INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sxAppend"),
+  	DESCRIPTION(
+          "Appends s to sx assuming no correlation.\n"
+          "CovmatrixInit(sx){} must be called before using this function for\n"
+          "the first time."),
+	OUTPUT( sx_ ),
+        INPUT( sx_, s_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("sbAppend"),
+  	DESCRIPTION(
+          "Appends s to sb assuming no correlation.\n"
+          "CovmatrixInit(sb){} must be called before using this function for\n"
+          "the first time."),
+	OUTPUT( sb_ ),
+        INPUT( sb_, s_ ),
+	GOUTPUT(),
+	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
 

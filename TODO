@@ -135,4 +135,3 @@ AvE 2000-11-30: Check that assert does not have a negative impact on
                 calls, this can be done in the lineshape.cc file,
                 where assert is called for each lineshape function and
                 lineshape normalization factor.
-

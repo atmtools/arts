@@ -56,6 +56,9 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric COSMIC_BG_TEMP;
 extern const Numeric SUN_TEMP;
+extern const Numeric PLANCK_CONST;
+extern const Numeric BOLTZMAN_CONST;
+extern const Numeric SPEED_OF_LIGHT;
 
 
 
@@ -79,6 +82,7 @@ extern const Numeric SUN_TEMP;
    \param    zs          vertical altitudes of the geometrical LOS
    \param    c           constant for the refractive LOS
    \param    z_tan       tangent altitude
+   \param    r_geoid     local geoid curvature
    \param    atm_limit   upper atmospheric limit
    \param    p_abs       absorption pressure grid
    \param    z_abs       absorption altitude grid
@@ -94,6 +98,7 @@ void geom2refr(
         const VECTOR&       zs,
         const Numeric&      c,
         const Numeric&      z_tan,
+        const Numeric&      r_geoid,
         const Numeric&      atm_limit,
         const VECTOR&       p_abs,
         const VECTOR&       z_abs,
@@ -107,13 +112,13 @@ void geom2refr(
   interpz( n, p_abs, z_abs, refr_index, zs );
 
   // Calculate the prolongation factor
-  a = (EARTH_RADIUS+zs);
+  a = (r_geoid+zs);
   a = emult( a, a );
   r = emult( n, sqrt(a-(c*c/n(1)/n(1))) );
   r = ediv( r, sqrt( emult(a,emult(n,n))-c*c ) );
   // Handle tangent points
   if ( abs(zs(1)-z_tan) < 0.01 )
-    r(1) = sqrt(n(1)/(n(1)+(EARTH_RADIUS+zs(1))*(n(2)-n(1))/(zs(2)-zs(1))));
+    r(1) = sqrt(n(1)/(n(1)+(r_geoid+zs(1))*(n(2)-n(1))/(zs(2)-zs(1))));
 
   // Safety check
   if ( isnan(r(2)) != 0 )
@@ -141,6 +146,7 @@ void geom2refr(
    Calculates (Re+z)*n(z)*sin(theta) at the platform.
 
    \return               LOS constant
+   \param    r_geoid     local geoid curvature
    \param    za          zenith angle
    \param    z_plat      platform altitude
    \param    p_abs       absorption pressure grid
@@ -151,6 +157,7 @@ void geom2refr(
    \date   2000-10-02
 */
 Numeric refr_constant( 
+        const Numeric&      r_geoid,
         const Numeric&      za,
         const Numeric&      z_plat,
         const VECTOR&       p_abs,
@@ -164,7 +171,7 @@ Numeric refr_constant(
   else
     n_plat = interpz( p_abs, z_abs, refr_index, z_plat );
 
-  return (EARTH_RADIUS + z_plat) * sin(DEG2RAD*za) * n_plat;
+  return (r_geoid + z_plat) * sin(DEG2RAD*za) * n_plat;
 }
 
 
@@ -177,6 +184,7 @@ Numeric refr_constant(
 
    \retval   z           vertical altitudes for the LOS
    \retval   l_step      step length along the LOS
+   \param    r_geoid     local geoid curvature
    \param    z_plat      platform altitude
    \param    za          zenith angle
    \param    atm_limit   maximum altitude of the absorption grid
@@ -188,6 +196,7 @@ Numeric refr_constant(
 void upward_geom(
               VECTOR&       z,
               Numeric&      l_step,
+        const Numeric&      r_geoid,
         const Numeric&      z_plat,
         const Numeric&      za,
         const Numeric&      atm_limit,
@@ -200,9 +209,9 @@ void upward_geom(
   if ( za > 90 )
     throw logic_error("Upward function used for zenith angle > 90 deg."); 
 
-  a     = EARTH_RADIUS + atm_limit;
-  b     = (EARTH_RADIUS + z_plat)*sin(DEG2RAD*za);
-  llim  = sqrt(a*a-b*b) - (EARTH_RADIUS+z_plat)*cos(DEG2RAD*za) ;
+  a     = r_geoid + atm_limit;
+  b     = (r_geoid + z_plat)*sin(DEG2RAD*za);
+  llim  = sqrt(a*a-b*b) - (r_geoid+z_plat)*cos(DEG2RAD*za) ;
 
   if ( !fit_limit ) 
   {
@@ -216,8 +225,8 @@ void upward_geom(
   }
   linspace( l, 0, llim, l_step );
 
-  b = EARTH_RADIUS + z_plat;  
-  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - EARTH_RADIUS;
+  b = r_geoid + z_plat;  
+  z = sqrt(b*b+emult(l,l)+(2.0*b*cos(DEG2RAD*za))*l) - r_geoid;
 }
 
 
@@ -233,6 +242,7 @@ void upward_geom(
    \param    c           LOS constant
    \param    z_plat      platform altitude
    \param    za          zenith angle
+   \param    r_geoid     local geoid curvature
    \param    atm_limit   maximum altitude of the absorption grid
    \param    p_abs       absorption pressure grid
    \param    z_abs       absorption altitude grid
@@ -248,6 +258,7 @@ void upward_refr(
         const Numeric&      c,
         const Numeric&      z_plat,
         const Numeric&      za,
+        const Numeric&      r_geoid,
         const Numeric&      atm_limit,
         const VECTOR&       p_abs,
         const VECTOR&       z_abs,
@@ -259,9 +270,9 @@ void upward_refr(
   if ( za > 90 )
     throw logic_error("Upward function used for zenith angle > 90 deg."); 
 
-  upward_geom( zs, l_step_refr, z_plat, za, atm_limit, 1 );
-  geom2refr( p, l_step, zs, c, -99e3, atm_limit, p_abs, z_abs, refr_index, 
-                                                                l_step_refr );
+  upward_geom( zs, l_step_refr, r_geoid, z_plat, za, atm_limit, 1 );
+  geom2refr( p, l_step, zs, c, -99e3, r_geoid, atm_limit, p_abs, z_abs, 
+                                                   refr_index, l_step_refr );
 }
 
 
@@ -275,6 +286,7 @@ void upward_refr(
    \retval   z           vertical altitudes for the LOS
    \retval   l_step      step length along the LOS
    \param    z_tan       tangent altitude
+   \param    r_geoid     local geoid curvature
    \param    atm_limit   maximum altitude of the absorption grid
    \param    fit_limit   flag to match perfectly atmospheric limit
    \param    z_ground    altitude of the ground
@@ -286,6 +298,7 @@ void space_geom(
                VECTOR&     z,
                Numeric&    l_step,
          const Numeric&    z_tan,
+         const Numeric&    r_geoid,
          const Numeric&    atm_limit,
          const size_t&     fit_limit,
          const Numeric&    z_ground )
@@ -301,8 +314,8 @@ void space_geom(
   // Only through the atmosphere
   else if ( z_tan >= z_ground )
   {
-    a    = EARTH_RADIUS + atm_limit;
-    b    = EARTH_RADIUS + z_tan;
+    a    = r_geoid + atm_limit;
+    b    = r_geoid + z_tan;
     llim = sqrt( a*a - b*b );        
 
     if ( !fit_limit ) 
@@ -317,15 +330,15 @@ void space_geom(
     }
     linspace( l, 0, llim, l_step );
 
-    z = sqrt(b*b+emult(l,l)) - EARTH_RADIUS; 
+    z = sqrt(b*b+emult(l,l)) - r_geoid; 
   }   
 
   // Intersection with the ground
   else
   {
     // Determine the "zenith angle" at ground level and call upward function 
-    Numeric za = RAD2DEG*asin((EARTH_RADIUS+z_tan)/(EARTH_RADIUS+z_ground));
-    upward_geom( z, l_step, z_ground, za, atm_limit, 0 );    
+    Numeric za = RAD2DEG*asin((r_geoid+z_tan)/(r_geoid+z_ground));
+    upward_geom( z, l_step, r_geoid, z_ground, za, atm_limit, 0 );    
   }
 }
 
@@ -341,6 +354,7 @@ void space_geom(
    \retval   l_step      step length along the LOS
    \param    c           LOS constant
    \param    z_tan       tangent altitude
+   \param    r_geoid     local geoid curvature
    \param    atm_limit   maximum altitude of the absorption grid
    \param    z_ground    altitude of the ground
    \param    p_abs       absorption pressure grid
@@ -356,6 +370,7 @@ void space_refr(
                Numeric&    l_step,
          const Numeric&    c,
          const Numeric&    z_tan,
+         const Numeric&    r_geoid,
          const Numeric&    atm_limit,
          const Numeric&    z_ground,
          const VECTOR&     p_abs,
@@ -371,9 +386,9 @@ void space_refr(
   else if ( z_tan >= z_ground )
   {
     VECTOR zs;
-    space_geom( zs, l_step_refr, z_tan, atm_limit, 1, z_ground );
-    geom2refr( p, l_step, zs, c, z_tan, atm_limit, p_abs, z_abs, refr_index, 
-                                                                 l_step_refr );
+    space_geom( zs, l_step_refr, z_tan, r_geoid, atm_limit, 1, z_ground );
+    geom2refr( p, l_step, zs, c, z_tan, r_geoid, atm_limit, p_abs, z_abs, 
+                                                    refr_index, l_step_refr );
   }   
 
   // Intersection with the ground
@@ -381,9 +396,9 @@ void space_refr(
   {
     // Determine the "zenith angle" at ground level and call upward function 
     Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
-    Numeric za_ground = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
-    upward_refr( p, l_step, c, z_ground, za_ground, atm_limit, p_abs, z_abs, 
-                                           refr_index, l_step_refr );
+    Numeric za_ground = RAD2DEG*asin(c/n_ground/(r_geoid+z_ground));
+    upward_refr( p, l_step, c, z_ground, za_ground, r_geoid, atm_limit, p_abs,
+                                              z_abs, refr_index, l_step_refr );
   }
 }
 
@@ -405,6 +420,7 @@ void space_refr(
    \param    l_step      maximum step length along the LOS
    \param    atm_limit   maximum altitude of the absorption grid
    \param    z_ground    altitude of the ground
+   \param    r_geoid     the local geoid radius
    \param    refr        flag for refraction (0=no refraction)
    \param    z_abs       absorption altitude grid
    \param    p_abs       absorption pressure grid
@@ -421,6 +437,7 @@ void los_space(
               const Numeric&    l_step,
               const Numeric&    atm_limit,
               const Numeric&    z_ground,
+              const Numeric&    r_geoid,
               const size_t&     refr,
               const VECTOR&     z_abs,
               const VECTOR&     p_abs,
@@ -439,15 +456,16 @@ void los_space(
   { 
     if ( refr )   // Refraction
     {
-      c = refr_constant( za(i), z_plat, p_abs, z_abs, refr_index );
+      c = refr_constant( r_geoid, za(i), z_plat, p_abs, z_abs, refr_index );
       z_tan = ztan_refr( c, za(i), z_plat, z_ground, p_abs, z_abs, refr_index);
-      space_refr( los.p(i), los.l_step(i), c, z_tan, atm_limit, z_ground, 
-                                     p_abs, z_abs, refr_index, l_step_refr );
+      space_refr( los.p(i), los.l_step(i), c, z_tan, r_geoid, atm_limit, 
+                             z_ground, p_abs, z_abs, refr_index, l_step_refr );
     }
     else          // Geometrical calculations
     {
       z_tan = ztan_geom( za(i), z_plat );
-      space_geom( los.p(i), los.l_step(i), z_tan, atm_limit, 0, z_ground );
+      space_geom( los.p(i), los.l_step(i), z_tan, r_geoid, atm_limit, 0, 
+                                                                   z_ground );
       // The geometrical functions return altitudes, not pressures
       z2p( los.p(i), z_abs, p_abs, los.p(i) );
     }
@@ -475,6 +493,7 @@ void los_space(
    \param    l_step      maximum step length along the LOS
    \param    atm_limit   maximum altitude of the absorption grid
    \param    z_ground    altitude of the ground
+   \param    r_geoid     the local geoid radius
    \param    refr        flag for refraction (0=no refraction)
    \param    z_abs       absorption altitude grid
    \param    p_abs       absorption pressure grid
@@ -491,6 +510,7 @@ void los_inside(
               const Numeric&    l_step,
               const Numeric&    atm_limit,
               const Numeric&    z_ground,
+              const Numeric&    r_geoid,
               const bool&       refr,
               const VECTOR&     z_abs,
               const VECTOR&     p_abs,
@@ -510,16 +530,17 @@ void los_inside(
   { 
     // Calculate the LOS constant
     if ( refr )
-      c = refr_constant( za(i), z_plat, p_abs, z_abs, refr_index );
+      c = refr_constant( r_geoid, za(i), z_plat, p_abs, z_abs, refr_index );
 
     // Upward
     if ( za(i) <= 90 )
     {
       if ( refr )
-        upward_refr( los.p(i), los.l_step(i), c, z_plat, za(i), atm_limit, 
-                                    p_abs, z_abs, refr_index, l_step_refr );
+        upward_refr( los.p(i), los.l_step(i), c, z_plat, za(i), r_geoid, 
+                           atm_limit, p_abs, z_abs, refr_index, l_step_refr );
       else
-        upward_geom( los.p(i), los.l_step(i), z_plat, za(i), atm_limit, 0 );
+        upward_geom( los.p(i), los.l_step(i), r_geoid, z_plat, za(i), 
+                                                               atm_limit, 0 );
       los.start(i)  = los.p(i).dim();   // length of LOS
       los.stop(i)   = 1;                // stop index here always 1
       los.ground(i) = 0;                // no ground intersection
@@ -544,17 +565,17 @@ void los_inside(
           // interpolate to determine the distance
 	  VECTOR  zs, ps, ls;  
 	  Numeric l_temp=l_step_refr;
-	  space_geom( zs, l_temp, z_tan, atm_limit, 1, z_ground );
-	  geom2refr( ps, l_temp, zs, c, z_tan, atm_limit, p_abs, z_abs, 
-		                                        refr_index, l_temp );
+	  space_geom( zs, l_temp, z_tan, r_geoid, atm_limit, 1, z_ground );
+	  geom2refr( ps, l_temp, zs, c, z_tan, r_geoid, atm_limit, p_abs, 
+                                                   z_abs, refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.dim()-1), l_temp );
 	  l1 = interp_lin( ps, ls, z_plat );  
 	}
         else
 	{
           // Use geometry
-	  a      = EARTH_RADIUS + z_plat;   // help variable
-	  b      = EARTH_RADIUS + z_tan;    // help variable
+	  a      = r_geoid + z_plat;   // help variable
+	  b      = r_geoid + z_tan;    // help variable
 	  l1     = sqrt(a*a-b*b);           // distance platform-tangent point
         }
 
@@ -562,10 +583,11 @@ void los_inside(
 	los.stop(i)   = (size_t) ceil( l1 / l_step + 1.0 );  
 	los.l_step(i) = l1 / ( (Numeric)los.stop(i) - 1.0 );
         if ( refr )
-	  space_refr( los.p(i), los.l_step(i), c, z_tan, atm_limit, z_ground, 
-                                       p_abs, z_abs, refr_index, l_step_refr );
+	  space_refr( los.p(i), los.l_step(i), c, z_tan, r_geoid, atm_limit, 
+                             z_ground, p_abs, z_abs, refr_index, l_step_refr );
 	else
-	  space_geom( los.p(i), los.l_step(i), z_tan, atm_limit, 0, z_ground );
+	  space_geom( los.p(i), los.l_step(i), z_tan, r_geoid, atm_limit, 0, 
+                                                                    z_ground );
         los.start(i)  = los.p(i).dim();
         los.ground(i) = 0;                // no gound intersection
       }   
@@ -581,18 +603,18 @@ void los_inside(
 	  Numeric l_temp=l_step_refr;
           // Determine the "zenith angle" at ground and call upward function 
           Numeric n_ground = interpz( p_abs, z_abs, refr_index, z_ground );
-          za_ground = RAD2DEG*asin(c/n_ground/(EARTH_RADIUS+z_ground));
-          upward_geom( zs, l_temp, z_ground, za_ground, atm_limit, 1 );
-	  geom2refr( ps, l_temp, zs, c, z_tan, atm_limit, p_abs, z_abs, 
-		                                        refr_index, l_temp );
+          za_ground = RAD2DEG*asin(c/n_ground/(r_geoid+z_ground));
+          upward_geom( zs, l_temp, r_geoid, z_ground, za_ground, atm_limit, 1);
+	  geom2refr( ps, l_temp, zs, c, z_tan, r_geoid, atm_limit, p_abs, 
+                                                  z_abs, refr_index, l_temp );
 	  linspace( ls, 0, l_temp*(ps.dim()-1), l_temp );
 	  l1 = interp_lin( ps, ls, z_plat );  
 	}
         else
 	{
-          a      = EARTH_RADIUS + z_ground;
-	  b      = EARTH_RADIUS + z_plat;
-	  c      = EARTH_RADIUS + z_tan;
+          a      = r_geoid + z_ground;
+	  b      = r_geoid + z_plat;
+	  c      = r_geoid + z_tan;
 	  l1     = sqrt(b*b-c*c) - sqrt(a*a-c*c); // distance platform-ground
         }
         // Adjust l_step downwards to get an integer number of steps
@@ -600,10 +622,10 @@ void los_inside(
 	los.l_step(i) = l1 / ( (double)los.stop(i) - 1.0 );
         if ( refr )
 	  upward_refr( los.p(i), los.l_step(i), c, z_ground, za_ground, 
-                            atm_limit, p_abs, z_abs, refr_index, l_step_refr );
+                   r_geoid, atm_limit, p_abs, z_abs, refr_index, l_step_refr );
         else
-          upward_geom( los.p(i), los.l_step(i), z_ground, RAD2DEG*asin(c/a),
-                                                                atm_limit, 0 );
+          upward_geom( los.p(i), los.l_step(i), r_geoid, z_ground, 
+                                             RAD2DEG*asin(c/a), atm_limit, 0 );
         los.start(i)  = los.p(i).dim();
         los.ground(i) = 1;                // ground at index 1
       }
@@ -620,6 +642,58 @@ void los_inside(
 ////////////////////////////////////////////////////////////////////////////
 //   Workspace methods
 ////////////////////////////////////////////////////////////////////////////
+
+//// r_geoidStd ////////////////////////////////////////////////////////////
+/**
+   Sets the geoid radius to the Earth radius defined in constants.cc.
+
+   \retval   r_geoid   the local geoid radius
+
+   \author Patrick Eriksson
+   \date   2000-11-24
+*/
+void r_geoidStd( Numeric&    r_geoid )
+{
+   r_geoid = EARTH_RADIUS;
+}
+
+
+
+//// r_geoidWGS84 //////////////////////////////////////////////////////////
+/**
+   Sets the geoid radius according to WGS-84. 
+
+   The equations are taken from the Rodgers book Sec. 9.4.1. 
+   
+   The observation direction is given as the angle to the meridian plane,
+   that is, S=N=0 and W=E=90.
+
+   \retval   r_geoid   the local geoid radius
+
+   \author Patrick Eriksson
+   \date   2000-11-26
+*/
+void r_geoidWGS84( 
+              Numeric&   r_geoid,
+        const Numeric&   latitude,
+        const Numeric&   obsdirection )
+{
+  const Numeric rq = 6378.138e3, rp = 6356.752e3;
+        Numeric a, b, rns, rew;
+
+  // Calculate NS and EW radius
+  a   = cos(latitude*DEG2RAD);
+  b   = sin(latitude*DEG2RAD);
+  rns = rq*rq*rp*rp/pow(rq*rq*a*a+rp*rp*b*b,1.5);
+  rew = rq*rq/sqrt(rq*rq*a*a+rp*rp*b*b);
+
+  // Calculate the radius in the observation direction
+  a   = cos(obsdirection*DEG2RAD);
+  b   = sin(obsdirection*DEG2RAD);
+  r_geoid   = 1/(a*a/rns+b*b/rew);
+}
+
+
 
 //// losCalc ///////////////////////////////////////////////////////////////
 /**
@@ -640,6 +714,7 @@ void los_inside(
    \param    l_step_refr   step length for refraction calculations
    \param    refr_index    refractive index at p_abs
    \param    z_ground      altitude of the ground
+   \param    r_geoid       the local geoid radius
 
    \author Patrick Eriksson
    \date   2000-09-14
@@ -653,7 +728,8 @@ void losCalc(       LOS&        los,
               const int&        refr,
               const Numeric&    l_step_refr,
               const VECTOR&     refr_index,
-              const Numeric&    z_ground )
+              const Numeric&    z_ground,
+              const Numeric&    r_geoid )
 {     
   size_t n = za.dim();  // number of zenith angles
 
@@ -695,10 +771,10 @@ void losCalc(       LOS&        los,
 
   // Two cases, from space or from within the atmosphere
   if ( z_plat >= atm_limit )
-    los_space( los, z_plat, za, l_step, atm_limit, z_ground, refr, 
+    los_space( los, z_plat, za, l_step, atm_limit, z_ground, r_geoid, refr, 
                                      z_abs, p_abs, refr_index, l_step_refr );
   else
-    los_inside( los, z_plat, za, l_step, atm_limit, z_ground, refr, 
+    los_inside( los, z_plat, za, l_step, atm_limit, z_ground, r_geoid, refr, 
                                      z_abs, p_abs, refr_index, l_step_refr );
 }
 
@@ -717,6 +793,7 @@ void losCalc(       LOS&        los,
    \param    p_abs       pressure absorption grid
    \param    z_abs       vertical altitudes corresponding to p_abs
    \param    z_ground    altitude of the ground
+   \param    r_geoid     the local geoid radius
 
    \author Patrick Eriksson
    \date   2000-09-14
@@ -728,9 +805,11 @@ void losNoRefraction(
               const Numeric&    l_step,
               const VECTOR&     p_abs,
               const VECTOR&     z_abs,
-              const Numeric&    z_ground )
+              const Numeric&    z_ground,
+              const Numeric&    r_geoid )
 {
-  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_ground); 
+  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) , z_ground,
+                                                                    r_geoid ); 
 }
 
 
@@ -751,6 +830,7 @@ void losNoRefraction(
    \param    l_step   maximum step length along the LOS
    \param    p_abs    pressure absorption grid
    \param    z_abs    vertical altitudes corresponding to p_abs
+   \param    r_geoid  the local geoid radius
 
    \author Patrick Eriksson
    \date   2000-09-14
@@ -761,12 +841,14 @@ void losUpward(
               const VECTOR&     za,
               const Numeric&    l_step,
               const VECTOR&     p_abs,
-              const VECTOR&     z_abs )
+              const VECTOR&     z_abs,
+              const Numeric&    r_geoid )
 {
   if ( max(za) > 90 )
     throw runtime_error("At least one zenith angle > 90 degrees, that is, not upwards. Use losCalc or losNoRefraction.");
 
-  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) ,z_plat); 
+  losCalc( los, z_plat, za, l_step, p_abs, z_abs, 0, 0, VECTOR(0) , z_plat,
+                                                                    r_geoid ); 
 }
 
 
@@ -947,36 +1029,6 @@ void y_spaceStd(
   else
     throw runtime_error("Possible choices for Y_SPACE are 0 - 2.");
 
-}
-
-
-
-//// y_spacePlanck ////////////////////////////////////////////////////////
-/**
-   Sets y_space to the Planck function for the selected temperature.
-
-   Sets the radiation entering the atmosphere at the start of the
-   LOS to the Planck function for the given temperature.
-
-   \retval   y_space    radiation at the far end of the LOS
-   \param    f          monochromatic frequency grid
-   \param    t          physical temperature
-
-   \author Patrick Eriksson
-   \date   2000-09-14
-*/
-void y_spacePlanck(
-                    VECTOR&   y_space,
-              const VECTOR&   f,
-              const Numeric&  t )
-{
-  if ( t > 0 )
-  {
-    planck( y_space, f, t );
-    out2<<"  Setting y_space to blackbody radiation for "<<t<<" K.\n";
-  }
-  else
-    throw runtime_error("The temperature must be > 0.");
 }
 
 
@@ -1182,6 +1234,153 @@ void yBlNoGround (
     throw runtime_error("There is at least one intersection with the ground and this function cannot be used.");
 
   yBl( y, los, trans, VECTOR(0) );
+}
+
+
+
+//// yTB ///////////////////////////////////////////////////////////////////
+/**
+   Converts a spectrum to brightness temperature.
+
+   \retval   y_out      converted spectrum
+   \param    y_in       original spectrum 
+   \param    f_sensor   the sensor frequencies
+   \param    za_sensor  the sensor zenith angles
+
+   \author Patrick Eriksson
+   \date   2000-11-24
+*/
+void yTB (
+                    VECTOR&          y,
+              const VECTOR&          f_sensor,
+              const VECTOR&          za_sensor )
+{
+  const size_t   nf  = f_sensor.dim();
+  const size_t   nza = za_sensor.dim();
+  const size_t   ny  = y.dim();
+        size_t   i0;
+  const Numeric  a = PLANCK_CONST/BOLTZMAN_CONST;
+  const Numeric  b = 2*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+        Numeric  c,d;
+
+  if ( max(y) > 1e-4 )  
+    throw runtime_error("The spectrum is not in expected intensity unit (impossible value detected).");
+
+  if ( nf*nza != ny )  
+    throw runtime_error("The length of y does not match f_sensor and za_sensor.");
+
+  out2 << "  Converts the spectrum to brightness (Planck) temperature.\n";
+
+  for ( size_t i=1; i<=nf; i++ )
+  {
+    c = a*f_sensor(i);
+    d = b*f_sensor(i)*f_sensor(i)*f_sensor(i);
+    for ( size_t j=1; j<=nza; j++ )    
+    {
+      i0 = (j-1)*nf + i;
+      y(i0) = c / ( log(d/y(i0)+1) );
+    }
+  }
+}
+
+
+
+//// yTRJ ///////////////////////////////////////////////////////////////////
+/**
+   Converts a spectrum to Rayleigh-Jean temperature.
+
+   \retval   y_out      converted spectrum
+   \param    y_in       original spectrum 
+   \param    f_sensor   the sensor frequencies
+   \param    za_sensor  the sensor zenith angles
+
+   \author Patrick Eriksson
+   \date   2000-11-24
+*/
+void yTRJ (
+                    VECTOR&          y,
+              const VECTOR&          f_sensor,
+              const VECTOR&          za_sensor )
+{
+  const size_t   nf  = f_sensor.dim();
+  const size_t   nza = za_sensor.dim();
+  const size_t   ny  = y.dim();
+        size_t   i0;
+  const Numeric  a = SPEED_OF_LIGHT*SPEED_OF_LIGHT/(2*BOLTZMAN_CONST);
+        Numeric  b;
+
+  if ( max(y) > 1e-4 )  
+    throw runtime_error("The spectrum is not in expected intensity unit (impossible value detected).");
+
+  if ( nf*nza != ny )  
+    throw runtime_error("The length of y does not match f_sensor and za_sensor.");
+
+  out2 << "  Converts the spectrum to Rayleigh-Jean temperature.\n";
+
+  for ( size_t i=1; i<=nf; i++ )
+  {
+    b = a/(f_sensor(i)*f_sensor(i));
+    for ( size_t j=1; j<=nza; j++ )    
+    {
+      i0 = (j-1)*nf + i;
+      y(i0) = b * y(i0);
+    }
+  }
+}
+
+
+
+//// yLoadCalibration ///////////////////////////////////////////////////////
+/**
+   Simulates a load switch calibration.
+
+   The calibration expression is
+
+      y = i_cal1 + (i_cal2-i_cal1)*(y-y_cal1)/(y_cal2-y_cal1)
+
+   The unit for i_cal1,2 can either be intensity or brightness temperature.
+
+   \retval   y_out      converted spectrum
+   \param    y_in       original spectrum 
+   \param    f_sensor   the sensor frequencies
+   \param    za_sensor  the sensor zenith angles
+
+   \author Patrick Eriksson
+   \date   2000-11-24
+*/
+void yLoadCalibration (
+                    VECTOR&          y,
+              const VECTOR&          i_cal1,
+              const VECTOR&          i_cal2,
+              const VECTOR&          y_cal1,
+              const VECTOR&          y_cal2,
+              const VECTOR&          za_sensor )
+{
+  const size_t   nf  = i_cal1.dim();
+  const size_t   nza = za_sensor.dim();
+  const size_t   ny  = y.dim();
+        size_t   i0;
+        Numeric  a;
+
+  if ( max(y) > 1e-4 )  
+    throw runtime_error("The spectrum is not in expected intensity unit (impossible value detected).");
+
+  if ( (nf!=i_cal2.dim()) || (nf!=y_cal1.dim()) || (nf!=y_cal2.dim()) )
+    throw runtime_error("All the calibration vectors must have the same length.");
+  if ( nf*nza != ny )  
+    throw runtime_error("The length of y does not match za_sensor and the calibration data.");
+
+  out2 << "  Performs a load switching calibration procedure.\n";
+
+  for ( size_t i=1; i<=nf; i++ )
+  {
+    a = (i_cal2(i)-i_cal1(i))/(y_cal2(i)-y_cal1(i));
+    for ( size_t j=1; j<=nza; j++ )    
+    {
+      i0 = (j-1)*nf + i;
+      y(i0) = i_cal1(i) + a * ( y(i0) - y_cal1(i) );
+    }
+  }
 }
 
 
