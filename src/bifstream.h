@@ -59,7 +59,7 @@ public:
 
 
   virtual ~bifstream () {}
-  void seek(long pos, Offset offs);
+  void seek(long spos, Offset offs);
   long pos();
 
   bifstream::Byte getByte();

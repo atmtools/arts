@@ -58,7 +58,7 @@ public:
     }
 
   virtual ~bofstream () {}
-  void seek(long pos, Offset offs);
+  void seek(long spos, Offset offs);
   long pos();
 
   void putByte (bofstream::Byte b);

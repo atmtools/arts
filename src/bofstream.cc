@@ -32,14 +32,14 @@
 #include "bofstream.h"
 using namespace std;
 
-void bofstream::seek(long pos, Offset offs)
+void bofstream::seek(long spos, Offset offs)
 {
   if(!in) { err = NotOpen; return; }
 
   switch(offs) {
-  case Set: this->seekp(pos, ios::beg); break;
-  case Add: this->seekp(pos, ios::cur); break;
-  case End: this->seekp(pos, ios::end); break;
+  case Set: this->seekp(spos, ios::beg); break;
+  case Add: this->seekp(spos, ios::cur); break;
+  case End: this->seekp(spos, ios::end); break;
   }
 }
 
