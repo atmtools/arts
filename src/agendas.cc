@@ -49,6 +49,42 @@ void define_agenda_data()
     The sign "_" comes after all letters.
     ----------------------------------------------------------------------*/
 
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "abs_vec_agenda" ),
+       DESCRIPTION
+       (
+	"Calculate the absorption vector at each grid point\n"
+	"required for solving the raditive transfer equation.\n"
+	"\n"
+	"This agenda is a set of the following methods:\n"
+	"\n"
+	"*abs_vec_partCalc* : this method calculates the absorption \n"
+	"		     vector for particles\n"
+	"*abs_vec_gasCalc*  : this method calculates the absorption\n"
+	"		     vector for gaseous species\n"
+	"*abs_vecCalc*      : this method sums up the absorption vector\n"
+	"                     for particle and gas to give the total \n"
+	"		     absorption vector\n"
+	" \n"
+	"At present the method *abs_vec_gasCalc* is not implemented. For\n"
+	"testing the code, we just set the dimensions of *abs_vec_gas*\n"
+	"to be same that of *abs_vec_part* with all elements equal to\n"
+	"zero.\n"
+	"\n"
+	"Output :\n"
+	"   abs_vec      : The total absorption vector.\n"
+	"\n"
+	"Input:\n"
+	"   abs_vec_spt : Absorption vector for single particle type\n"
+	"   pnd_field   : particle number density field\n"
+	),
+       OUTPUT( abs_vec_ ),
+       INPUT(  abs_vec_spt_,
+               pnd_field_ )));
+
+
  agenda_data.push_back
     (AgRecord
      ( NAME( "convergence_test_agenda" ),
@@ -104,6 +140,40 @@ void define_agenda_data()
        INPUT(  ls_gamma_,
 	       ls_sigma_,
 	       els_f_grid_ )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "ext_mat_agenda" ),
+       DESCRIPTION
+       (
+	"Calculate the extinction coefficient matrix at each grid point\n"
+	"required for solving the raditive transfer equation.\n"
+	"\n"
+	"This agenda is a set of the following methods\n"
+	"\n"
+	"*ext_mat_partCalc* : this method calculates the extinction matrix\n"
+	"		      for particles\n"
+	"*ext_mat_gasCalc*  : this method calculates the extinction matrix\n"
+	"		      for gaseous species\n"
+	"*ext_matCalc*      : this method sums up the extinction matrix for\n"
+	"		      particle and gas to give the total extinction\n"
+	"		      matrix.\n"
+	"\n"
+	"At present the method *ext_mat_gasCalc* is not implemented. For \n"
+	"testing the code, we just set the dimensions of *abs_vec_gas*\n"
+	"to be same that of *abs_vec_part* with all elements equal to zero\n"
+	"\n"
+	"Output :\n"
+	"   ext_mat	: The total extinction coefficient matrix.\n"
+	"\n"
+	"Input:\n"
+	"   ext_mat_spt : Extinction coefficient for single particle type\n"
+	"   pnd_field   : particle number density field\n"
+	),
+       OUTPUT(  ext_mat_ ),
+       INPUT(  ext_mat_spt_,
+	       pnd_field_  )));
+
 
   agenda_data.push_back
     (AgRecord

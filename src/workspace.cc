@@ -131,6 +131,15 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "abs_vec_agenda" ),
+       DESCRIPTION
+       (
+	"See agendas.cc."
+	),
+       GROUP(  Agenda_ )));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "abs_vec_gas" ),
        DESCRIPTION
        (
@@ -577,7 +586,15 @@ void define_wsv_data()
        "Dimensions: [stokes_dim, stokes_dim]"
        ),
       GROUP( Matrix_ )));
-
+  
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ext_mat_agenda" ),
+       DESCRIPTION
+       (
+	"See agendas.cc."
+	),
+       GROUP(  Agenda_ )));
 
   wsv_data.push_back
     (WsvRecord

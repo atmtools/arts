@@ -217,12 +217,13 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
     }
   if (atmosphere_dim == 1)
     {
-      // the loop are over the p_grid
-      for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
-	{
-	  // this is a loop over the different particle types
-	  for (Index l = 0; l < N_pt; l++)
-	    { 
+      // this is a loop over the different particle types
+      for (Index l = 0; l < N_pt; l++)
+	{ 
+	  
+	  // the loop are over the p_grid
+	  for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
+	    {
 	      
 	      // now the last two loops over the stokes dimension.
 	      for (Index m = 0; m < N_i; m++)
@@ -230,7 +231,7 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 		  for (Index n = 0; n < N_i; n++)
 		    
 		    ext_mat_part(m, n) += 
-		      (ext_mat_spt(l, m, n) * pnd_field(i, 0, 0, l));
+		      (ext_mat_spt(l, m, n) * pnd_field(l, i, 0, 0));
 		}
 	    }
 	}
@@ -238,7 +239,12 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 	  
   if (atmosphere_dim == 3)
     {
-      // the first three loops are over the p_grid, lat_grid, lon_grid
+
+       // this is a loop over the different particle types
+		  for (Index l = 0; l < N_pt; l++)
+		    { 
+		      
+      // the next three loops are over the p_grid, lat_grid, lon_grid
       for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
 	{
 	  for (Index j = cloudbox_limits[2]; j < cloudbox_limits[3] ; ++j)
@@ -246,17 +252,14 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 	      for (Index k = cloudbox_limits[4]; k < cloudbox_limits[5] ; ++k)
 		{
 		  
-		  // this is a loop over the different particle types
-		  for (Index l = 0; l < N_pt; l++)
-		    { 
-		      
+		 
 		      // now the last two loops over the stokes dimension.
 		      for (Index m = 0; m < N_i; m++)
 			{
 			  for (Index n = 0; n < N_i; n++)
 			    
 			    ext_mat_part(m, n) += 
-			      (ext_mat_spt(l, m, n) * pnd_field(i, j, k, l));
+			      (ext_mat_spt(l, m, n) * pnd_field(l, i, j, k));
 			  
 			} 
 		    }
@@ -297,19 +300,20 @@ void abs_vec_partCalc(Vector& abs_vec_part,
     }
   if (atmosphere_dim == 1)
     {
+      // this is a loop over the different particle types
+	  for (Index l = 0; l < N_pt ; ++l)
+	    {
       // the first loop over the p_grid
       for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
 	{
 	  
-	  // this is a loop over the different particle types
-	  for (Index l = 0; l < N_pt ; ++l)
-	    {
+	  
 	      
 	      // now the loop over the stokes dimension.
 	      for (Index m = 0; l < N_i; ++m)
 		
 		abs_vec_part[m] += 
-		  (abs_vec_spt(l, m) * pnd_field(i, 0, 0, l));
+		  (abs_vec_spt(l, m) * pnd_field(l, i, 0, 0));
 	      
 	    }
 	}
@@ -317,7 +321,11 @@ void abs_vec_partCalc(Vector& abs_vec_part,
   
   if (atmosphere_dim == 3)
     {
-      // the first three loops are over the p_grid, lat_grid, lon_grid
+       // this is a loop over the different particle types
+		  for (Index l = 0; l < N_pt ; ++l)
+		    {
+		      
+      // the next three loops are over the p_grid, lat_grid, lon_grid
       for (Index i = cloudbox_limits[0]; i < cloudbox_limits[1] ; ++i)
 	{
 	  for (Index j = cloudbox_limits[2]; j < cloudbox_limits[3] ; ++j)
@@ -325,15 +333,12 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 	      for (Index k = cloudbox_limits[4]; k < cloudbox_limits[5] ; ++k)
 		{
 		  
-		  // this is a loop over the different particle types
-		  for (Index l = 0; l < N_pt ; ++l)
-		    {
-		      
+		 
 		      // now the loop over the stokes dimension.
 		      for (Index m = 0; l < N_i; ++m)
 			
 			abs_vec_part[m] += 
-			  (abs_vec_spt(l, m) * pnd_field(i, j, k, l));
+			  (abs_vec_spt(l, m) * pnd_field(l, i, j, k));
 		      
 		    }
 		}
@@ -386,13 +391,14 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
     }
   if (atmosphere_dim == 1)
     {
+      // this is a loop over the different particle types
+	  for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
+	    {
       // the loop are over the p_grid
       for (Index p_index = cloudbox_limits[0];  p_index < cloudbox_limits[1];
 	   ++  p_index)
 	{
-	  // this is a loop over the different particle types
-	  for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
-	    {
+	 
 	      // these are loops over zenith angle and azimuth angle
 	      for (Index za_index = 0; za_index < Nza; ++ za_index)
 		{
@@ -411,7 +417,7 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 			      
 			      (pha_mat_spt(pt_index, za_index, aa_index,  
 					   stokes_index, stokes_index) * 
-			       pnd_field(p_index, 0, 0, pt_index));
+			       pnd_field(pt_index, p_index, 0, 0));
 			}
 		    }
 		}
@@ -421,26 +427,29 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 	  
   if (atmosphere_dim == 3)
     {
-      // the first three loops are over the p_grid, lat_grid, lon_grid
-      for (Index p_index = cloudbox_limits[0];  p_index < cloudbox_limits[1];
-	   ++  p_index)
+      // this is a loop over the different particle types
+      for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
 	{
-	  for (Index lat_index = cloudbox_limits[2];  
-	       lat_index < cloudbox_limits[3]; ++  lat_index)
+	  // the first three loops are over the p_grid, lat_grid, lon_grid
+	  for (Index p_index = cloudbox_limits[0];  
+	       p_index < cloudbox_limits[1];
+	       ++  p_index)
 	    {
-	      for (Index lon_index = cloudbox_limits[4];  
-		   lon_index < cloudbox_limits[5]; ++  lon_index)
+	      for (Index lat_index = cloudbox_limits[2];  
+		   lat_index < cloudbox_limits[3]; ++  lat_index)
 		{
-		  // this is a loop over the different particle types
-		  for (Index pt_index = 0; pt_index < N_pt; ++ pt_index)
+		  for (Index lon_index = cloudbox_limits[4];  
+		       lon_index < cloudbox_limits[5]; ++  lon_index)
 		    {
+		      
 		      // these are loops over zenith angle and azimuth angle
 		      for (Index za_index = 0; za_index < Nza; ++ za_index)
 			{
 			  for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
 			    {
 			      
-			      // now the last two loops over the stokes dimension.
+			      // now the last two loops over the stokes 
+			      //dimension.
 			      for (Index i = 0;  i < N_i; ++  i)
 				{
 				  for (Index j = 0; j < N_i; ++ j)
@@ -450,8 +459,8 @@ void pha_mat_partCalc(Tensor4& pha_mat_part,
 						   i,j ) += 
 					(pha_mat_spt(pt_index, za_index, 
 						     aa_index, i, j) * 
-					 pnd_field(p_index, lat_index, 
-						   lon_index, pt_index));
+					 pnd_field(pt_index, p_index,  
+						   lat_index, lon_index));
 				      
 				    } 
 				}

@@ -326,6 +326,8 @@ void amp2pha(Tensor4View phasemat,
   \param abs Output : absorption coefficient vector 
   \param ext  Input : Extinction Matrix
   \param pha  Input : Phase matrix
+  \param za_grid  Input : Zenith angle grid
+  \param aa_grid  Input : Azimuth angle grid
 */
 
 void amp2abs(VectorView abs,

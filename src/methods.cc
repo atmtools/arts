@@ -160,9 +160,9 @@ void define_md_data_raw()
 	 "The inputs are the absorption vector for the single particle type \n"
 	 "*abs_vec_spt* (part_types, stokes_dim) and the local particle\n"
 	 " number densities for all particle types namely the \n"
-	 "*pnd_field* (p_grid, lat_grid, lon_grid, part_types) for given \n"
-	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required are\n"
-	 "specified in the control file.  \n"
+	 "*pnd_field* (part_types, p_grid, lat_grid, lon_grid, ) for given \n"
+	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+	 "are specified in the control file.  \n"
 	 ),
 	OUTPUT(abs_vec_part_),
 	INPUT(abs_vec_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
@@ -723,9 +723,9 @@ void define_md_data_raw()
 	 "The inputs are the extinction matrix for the single particle type \n"
 	 "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local \n"
 	 "particle number densities for all particle types namely the \n"
-	 "*pnd_field* (p_grid, lat_grid, lon_grid, part_types) for given \n"
-	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required are\n"
-	 "specified in the control file.  \n"
+	 "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
+	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+	 "are specified in the control file.  \n"
 	 ),
 	OUTPUT( ext_mat_part_  ),
         INPUT( ext_mat_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
@@ -1187,10 +1187,10 @@ void define_md_data_raw()
 	 "The output of this method is *pha_mat_part* (Nza, Naa, stokes_dim,\n"
 	 "stokes_dim). The inputs are the phase matrix for the single particle\n"
 	 "type *pha_mat_spt* (part_types, Nza, Naa, stokes_dim, stokes_dim)\n"
-	 "and the local particle  number densities for all particle types namely the\n"
-	 "*pnd_field* (p_grid, lat_grid, lon_grid, part_types) for given\n"
-	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required are\n"
-	 "specified in the control file.\n"
+	 "and the local particle  number densities for all particle types namely \n"
+	 "the *pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given\n"
+	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+	 "are specified in the control file.\n"
 	 ),
 	OUTPUT(pha_mat_part_),
 	INPUT(pha_mat_spt_, pnd_field_, cloudbox_limits_, atmosphere_dim_ ),
