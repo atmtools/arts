@@ -3273,7 +3273,7 @@ md_data_raw.push_back
          "See futher the user guide."
         ),
         OUTPUT( i_rte_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
-                rte_vmr_list_, f_index_ ),
+                rte_vmr_list_, f_index_, ppath_index_ ),
         INPUT( i_rte_, ppath_, f_grid_, stokes_dim_, 
                atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_,
                vmr_field_, scalar_gas_absorption_agenda_, 

@@ -153,6 +153,7 @@ void RteEmissionStd(
              Numeric&   rte_temperature,
              Vector&    rte_vmr_list,
              Index&     f_index,
+             Index&     ppath_index,
        // WS Input:
        const Ppath&     ppath,
        const Vector&    f_grid,
@@ -243,7 +244,11 @@ void RteEmissionStd(
             {
               rte_vmr_list[is] = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));
             }
-
+          
+          // The absO2ZeemanModel needs the position in the propagation
+          // path. 
+          ppath_index = ip;
+          
           scalar_gas_absorption_agenda.execute( ip );
 
           opt_prop_gas_agenda.execute( ip ); 
