@@ -1,3 +1,12 @@
+2004-01-08  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-770
+
+	* src/m_abs_o2_models.cc: Added documentation on functions and
+	variables in (Zeeman_o2_line_splitting). Got rid of redundant
+	lines and made small change of the use of the
+	(HUMLIK_Faddeeva_Wells), also there.
+
 2003-12-30  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-769

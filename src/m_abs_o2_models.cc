@@ -46,6 +46,7 @@
 
 
 
+
 // =================================================================================
 
 
@@ -117,7 +118,7 @@ const Numeric Pa_to_hPa = 1.000000e-2;                      // [Pa/hPa]
   
   \retval K      real part of the complex Faddeeva function (equal to the Voigt function)
   \retval L      imaginary part of the complex Faddeeva function (used for line mixing)
-
+ 
   \param N       number of elements of vectors X, K, and L
   \param X       X[i] =  SQRT(ln(2)) * ( (f_grid[i] - F_o)) / gamma_Doppler )
                  where F_o is the line center frequency of the specific line in question
@@ -972,37 +973,69 @@ void Zeeman_o2_splitting_factors( //Output
 
 // ########################################################################################
 
+//! Zeeman_o2_line_splitting calculates the extinction matrix and absortion vector
+
+/*! 
+The function calculates the extinction matrix and the absorption vector  
+at a given frequency for a specified Zeeman transtition of O2. Both quantities 
+are needed for the solution of the vector RTE if the Zeeman effect is significant.
+
+The general structure of the output quantities is as follows:
+
+              |A  B  0  C|
+ext_mat_tmp = |B  A -D  0|
+              |0  D  A  E|
+              |C  0 -E  A|
+
+and
+
+                  |A |
+abs_vec_tmp = 2 x |B |
+                  |0 |
+                  |C |
+
+where the components A, B, C, D, and E are individually calculated in
+Zeeman_o2_line_splitting.
 
 
-// Propagation tensor G_s at a given frequency is in the form of an array 
-// because complex matrices or tensors cannot be handled by ARTS. 
+   \retval ext_mat_tmp     Temporary 4x4 extinction matrix, [1/m]
+   \retval abs_vec_tmp     Temporary 1x4 absorption vector, [1/m]
+
+   \param B_field         Magnitude of Earth's magnetic field along LOS, [T]
+   \param phi             Angle between the mag. field and LOS, [rad]  
+   \param f_c             Spectral line (unsplit) center frequencies, [GHz] 
+   \param S               Spectral line (unsplit) intensities, [cm² Hz]
+   \param gamma_L         Spectral line (unsplit) pressure broadening, [GHz]  
+   \param gamma_D         Spectral line (unsplit) Doppler broadening, [GHz]
+   \param N_r             Rotational quantum number notation of the Zeeman transition
+   \param f_grid_point    Frequency at which the calculation is done, [GHz]
+
+   \author Nikolay Koulev, Thomas Kuhn
+   \date 2003-11-30
+
+*/
 void Zeeman_o2_line_splitting(// Output:
-			      Matrix& ext_mat_tmp,           // temporary 4x4 extinction matrix
-			      Vector& abs_vec_tmp,           // temporary 1x4 absorption vector
+			      MatrixView ext_mat_tmp,           
+			      VectorView abs_vec_tmp,          
 			      // Input:
-			      const Numeric B_field,         // magnitude of Earth's magnetic field along LOS in [T].
-			      const Numeric phi,             // angle between the mag. field and LOS [radians]  
-			      const Numeric f_c,             // spectral line center frequencies
-			      const Numeric S,               // spectral line intensities 
-			      const Numeric gamma_L,         // spectral line pressure broadening
-			      const Numeric gamma_D,         // spectral line  Doppler broadening 
-			                                     // with missing central frequency
-			      const Index   N_r,             // Rotational quantum number of O2 line.
-			      const Numeric f_grid_point)    // frequency grid point.
+			      const Numeric B_field,         
+			      const Numeric phi,             
+			      const Numeric f_c,             
+			      const Numeric S,               
+			      const Numeric gamma_L,         
+			      const Numeric gamma_D,         
+			      const Index   N_r,            
+			      const Numeric f_grid_point)   
   
 {
   
   
-  // check if qunatum number is correct
-  // the models of Liebe and Rosenkranz have parameters up to +/-39 and +/-33, respectively.
-  if ( (abs(Numeric(N_r)) < 1) || (abs(Numeric(N_r)) > 39) )
-    {
-      ostringstream os;
-      os << "Zeeman_o2_line_splitting: wrong quantum number N_r given in input. \n"
-	 << "valid range is +/- 1 <= " << N_r << " <= 39 \n";
-      throw runtime_error(os.str());
-    };
 
+  // Check of the rotational quantum number notation of a given Zeeman transition. 
+  // This parameter has integer values in the range [-39,-1]&[1,39]  and  
+  // [-33,-1]&[1,33] in the models of Liebe and Rosenkranz, respectively. 
+  assert((abs(N_r)) >= 1);
+  assert((abs(N_r)) <= 39);
 
 
   // wavenumber claculation.
@@ -1019,9 +1052,8 @@ void Zeeman_o2_line_splitting(// Output:
   // |G_s_21 G_s_22|  ->  |Re(G_s_12)  Im(G_s_12)|
   //                      |Re(G_s_21)  Im(G_s_21)|
   //                      |Re(G_s_22)  Im(G_s_22)|
-  Matrix G_s;
-  G_s.resize(4,2); 
-  G_s = 0.000e0;
+  Matrix G_s(4,2,0.);
+  
 
   // Magnetic susceptibility tensor at a given frequency. 
   // The 2x2 complex tensor is stored in ARTS in the form
@@ -1033,55 +1065,68 @@ void Zeeman_o2_line_splitting(// Output:
   // |Chi_21 Chi_22|  ->  |Re(Chi_12)  Im(Chi_12)|
   //                      |Re(Chi_21)  Im(Chi_21)|
   //                      |Re(Chi_22)  Im(Chi_22)|
-  Matrix Chi;
-  Chi.resize(4,2); 
-  Chi = 0.0000;
+  Matrix Chi(4,2,0.);
+    
   
   
-  // Polarization  matrix accounting for the contributions of 
+  // The polarization  matrix accounts for the contributions of 
   // the 3 different polarizations of the components of the Zeeman 
-  // split due to 3 different values of DeltaM.
-  Tensor3 P;
-  P.resize(3,2,2);
+  // split due to 3 different values of DeltaM. 
+  //
+  // The polarization matrix is 2x2 and is differently defined for the 3 
+  // different values of DeltaM. For the sake of programming convenience a 
+  // Tensor3 P(i,j,k) is constructed through which elements
+  // the polarization matrix is expressed and dealt with. 
+  // The first index points to the value of DeltaM, the other
+  // 2 indexes are simply those of the matrix elements of the
+  // polarisation matrix for this value of DeltaM. 
+  //
+  //                                       |P(0,0,0)  P(0,0,1)|
+  // DeltaM = -1 --> Polarization matrix = |                  |
+  //                                       |P(0,1,0)  P(0,1,1)|
+  //
+  //                                       |P(1,0,0)  P(1,0,1)|
+  // DeltaM =  0 --> Polarization matrix = |                  |
+  //                                       |P(1,1,0)  P(1,1,1)|                              
+  //
+  //                                       |P(2,0,0)  P(2,0,1)|
+  // DeltaM =  1 --> Polarization matrix = |                  |
+  //                                       |P(2,1,0)  P(2,1,1)|
+  // 
+  Tensor3 P(3,2,2);
+  
 
-
-  // Polarization  matrix accounting for the contributions of 
-  // the 3 different polarizations of the components of the Zeeman 
-  // split due to 3 different values of DeltaM, which is first index.
-  // The other 2 indexes are simply those of the matrix itself.     
+  // Definitions of the elements of the Tensor3 P.     
   // DeltaM==-1  
-  P(0,0,0) =  0.5 * (1.000e0-(Numeric)cos((Numeric)phi)) * (1.000e0-(Numeric)cos((Numeric)phi));
-  P(0,0,1) =  0.5 *          (Numeric)sin((Numeric)phi)  *          (Numeric)sin((Numeric)phi);
-  P(0,1,0) =  0.5 *          (Numeric)sin((Numeric)phi)  *          (Numeric)sin((Numeric)phi);
-  P(0,1,1) =  0.5 * (1.000e0+(Numeric)cos((Numeric)phi)) * (1.000e0+(Numeric)cos((Numeric)phi));
+  P(0,0,0) =  0.5 * (1.000e0-cos(phi)) * (1.000e0-cos(phi));
+  P(0,0,1) =  0.5 *          sin(phi)  *          sin(phi);
+  P(0,1,0) =  0.5 *          sin(phi)  *          sin(phi);
+  P(0,1,1) =  0.5 * (1.000e0+cos(phi)) * (1.000e0+cos(phi));
   // DeltaM==0
-  P(1,0,0) =  0.5 *          (Numeric)sin((Numeric)phi)  *          (Numeric)sin((Numeric)phi);
-  P(1,0,1) = -0.5 *          (Numeric)sin((Numeric)phi)  *          (Numeric)sin((Numeric)phi);
-  P(1,1,0) = -0.5 *          (Numeric)sin((Numeric)phi)  *          (Numeric)sin((Numeric)phi);
-  P(1,1,1) =  0.5 *          (Numeric)sin((Numeric)phi)  *          (Numeric)sin((Numeric)phi);
+  P(1,0,0) =  0.5 *          sin(phi)  *          sin(phi);
+  P(1,0,1) = -0.5 *          sin(phi)  *          sin(phi);
+  P(1,1,0) = -0.5 *          sin(phi)  *          sin(phi);
+  P(1,1,1) =  0.5 *          sin(phi)  *          sin(phi);
   // DeltaM==1
-  P(2,0,0) =  0.5 * (1.000e0+cos((Numeric)phi)) * (1.000e0+cos((Numeric)phi));
-  P(2,0,1) =  0.5 *          sin((Numeric)phi)  *          sin((Numeric)phi);
-  P(2,1,0) =  0.5 *          sin((Numeric)phi)  *          sin((Numeric)phi);
-  P(2,1,1) =  0.5 * (1.000e0-cos((Numeric)phi)) * (1.000e0-cos((Numeric)phi));
+  P(2,0,0) =  0.5 * (1.000e0+cos(phi)) * (1.000e0+cos(phi));
+  P(2,0,1) =  0.5 *          sin(phi)  *          sin(phi);
+  P(2,1,0) =  0.5 *          sin(phi)  *          sin(phi);
+  P(2,1,1) =  0.5 * (1.000e0-cos(phi)) * (1.000e0-cos(phi));
 
 
-  // variables for complex error function / Faddeeva function
-  Vector  FX;
-  FX.resize(1);
-  FX=0.00e0;
+  // Variables for complex error function / Faddeeva function
+  // Input
+  Vector  FX(1,0.);
   Numeric FY=0.00e0;
-  Vector  FK;
-  FK.resize(1);
-  FK=0.00e0;
-  Vector  FL; 
-  FL.resize(1);
-  FL=0.00e0;
-  
+  // Otput
+  Vector  FK(1,0.);
+  Vector  FL(1,0.); 
+    
 
-  // related quantities to quantum number N_r
-  Numeric AN_r = 0.00e0;
-  Numeric BN_r = 0.00e0;
+  // related quantities to rotational quantum number notation N_r
+  Numeric AN_r;
+  Numeric BN_r;
+
   if (N_r>0)
     { 
       // Assigning a value of the total angular momentum N of the lower  
@@ -1092,7 +1137,7 @@ void Zeeman_o2_line_splitting(// Output:
       // of the three possible polarizations of a N+ Zeeman transition.
       BN_r = 2*abs(Numeric(N_r))+1;
     }
-  else if (N_r<0)
+  else
     {
       // Assigning a value of the total angular momentum N of the lower 
       // level for a N- Zeeman transition (N -> N-1).
@@ -1119,16 +1164,14 @@ void Zeeman_o2_line_splitting(// Output:
      for (Index j=0; j<BN_r; j++)
        { 
 	  Numeric M = (Numeric)j - AN_r;
-	  //cout << "M =" << M << endl;	  
-
-
+	  
 	  // calculate the splitting factors for the splitted line intensity 
 	  // and frequency shift.
-	  // (1) intensity factor, or relative intensity, of the 
+	  // (1) Intensity factor, or relative intensity, of the 
 	  //     individual components of the Zeeman split relative 
 	  //     to the the intensity of the unsplit line.
 	  Numeric xi = 0.00e0;  
-  	  // (2) this the Zeeman frequency shift of the individual 
+  	  // (2) This is the Zeeman frequency shift of the individual 
 	  //     components of the Zeeman split.
 	  Numeric eta = 0.00e0;
 	  Zeeman_o2_splitting_factors( xi, eta, N_r, DeltaM, M);
@@ -1138,15 +1181,21 @@ void Zeeman_o2_line_splitting(// Output:
 	  f_z = f_c + 28.03e0 * eta * B_field;  // [GHz]
 
 	  // used in the case of Zeeman splitting.
-	  Numeric Gamma_D = gamma_D * f_z;  // [GHz]
+	  // Numeric Gamma_D = gamma_D * f_z;  // [GHz]
 	  
 	  // complex error function / Faddeeva function
 	  // (SQRT(ln(2)) = 0.8325546e0)
-	  FX[0] = 0.8325546e0 * (f_grid_point - f_z) / Gamma_D;
-	  FY    = 0.8325546e0 * gamma_L / Gamma_D;
+	  FX[0] = 0.8325546e0 * (f_grid_point - f_z) / gamma_D;
+	  FY    = 0.8325546e0 * gamma_L / gamma_D;
 	  HUMLIK_Faddeeva_Wells( FX, FY, FK, FL );
-	  Re_N_s +=  S * xi * FL[0];                     // real      part of complex refractive index
-	  Im_N_s += -S * xi * (lnpi / Gamma_D * FK[0]); // imaginary part of complex refractive index
+
+	  // real part of complex refractive index
+	  Re_N_s +=  S * xi * FL[0];
+	  // imaginary part of complex refractive index
+	  Im_N_s += -S * xi * (lnpi / gamma_D * FK[0]); 
+	  
+
+
        };
      
      // Calculating the halved value of magnetic susceptibility tensor 
@@ -1195,16 +1244,19 @@ void Zeeman_o2_line_splitting(// Output:
   abs_vec_tmp[3]   +=  2.000e0 * CC;
 
   // First row of the non-zero extinction matrix components at a given frequency.
+  // The zero components are already as 0 initialized.
   ext_mat_tmp(0,0) += AA;
   ext_mat_tmp(0,1) += BB;
   ext_mat_tmp(0,3) += CC;
   
   // Second row of the non-zero extinction matrix components at a given frequency.
+  // The zero components are already as 0 initialized.
   ext_mat_tmp(1,0) += BB;
   ext_mat_tmp(1,1) += AA;
   ext_mat_tmp(1,2) += -DD;
   
   // Third row of the non-zero extinction matrix components at a given frequency.
+  // The zero components are already as 0 initialized.
   ext_mat_tmp(2,1) += DD;
   ext_mat_tmp(2,2) += AA;
   ext_mat_tmp(2,3) += EE;
@@ -1892,10 +1944,12 @@ Index absPWRO2Model(// WS Output:
 	  // versions 1993 and 1988 have a simpler temperature dependence
 	  DF = CW * W300[l] * DEN; // [GHz]
 	};
-      
+
+
+
       // --- Doppler line broadening part [1] ----------------------------
       Numeric gamma_D = 1.09600e-6 / sqrt(TH);
-      
+
       // --- line mixing parameter [1] -----------------------------------
       Numeric Y       = CO * 0.001e0 * 0.010e0 * p * B * ( Y300[l] + V[l]*TH1 );
       
@@ -2119,12 +2173,12 @@ void absO2ZeemanModel(// WS Output:
 		      Tensor3&         ext_mat_zee,          // Tensor3 of the Extinction Matrix [1/m]. 
 		      Matrix&          abs_vec_zee,          // Matrix of the Absorption Vector  [1/m].
 		      // WS Input:
-		      const Matrix&    geomag_los,           // [Magnetic field B, angle between B and los]
+		      const Matrix&  /*  geomag_los*/,           // [Magnetic field B, angle between B and los]
 		      const Vector&    f_grid,               // frequency vector                 [Hz]
 		      const Index&     f_index,              // frequency grid point index
 		      const Index&     zeeman_o2_onoff, 
 		      const Numeric&   zeeman_o2_pressure_limit,
-		      const Index&     ppath_index,          // index of propagation path index
+		      const Index&    /* ppath_index */,          // index of propagation path index
 		      const Numeric&   rte_pressure,         // total atmospheric pressure       [Pa]
 		      const Numeric&   rte_temperature,      // temperature                      [K]
 		      const Vector&    rte_vmr_list,         // list of species vmr              [1]
@@ -2182,10 +2236,11 @@ void absO2ZeemanModel(// WS Output:
   for ( Index i=0; i<n_f; ++i )
     {
 
-      // Numeric geomag_strength = 3.50000e-5;
-      // Numeric geomag_angle    = (90.0000000e0/57.29579e0);
-      Numeric geomag_strength = geomag_los(ppath_index,0);
-      Numeric geomag_angle    = geomag_los(ppath_index,1);
+      //Numeric geomag_strength = 4.5e-5;
+      Numeric geomag_strength = 0.0;
+      Numeric geomag_angle    = (90.0000000e0/57.29579e0);
+      //Numeric geomag_strength = geomag_los(ppath_index,0);
+      //Numeric geomag_angle    = geomag_los(ppath_index,1);
 
 
       // set the frequency where the calculation is performed
