@@ -151,7 +151,7 @@ di = ceil( o_y/2 );
 for i = 1 : n_new
 
 
-  out(2,sprintf('Doing frequency %d of %d',i,n_new));
+  %out(3,sprintf('Doing frequency %d of %d',i,n_new));
 
 
   %= Primary and image frequency
@@ -267,103 +267,3 @@ H = sparse( rows(1:nrow), cols(1:nrow), wgts(1:nrow), n_new*nza, nf*nza );
 out(1,-1);
 
 
-return
-
-%===
-%=== Old code 
-%===
-
-
-%=== Some help variables
-if upper
-  iprim  = ilo;
-  iimage = ilo-1;
-  istop  = nf;
-else
-  iprim  = 1;
-  iimage = nf;
-  istop  = ilo-1;
-end
-%
-di = ceil( o_y/2 );
-%
-nout = istop - iprim + 1;
-
-
-%=== Allocate vectors for row and col index and vector for weights
-lrow = (o_y+2) * nout * nza;% This variable is used as length for these vectors
-nrow = 0;                   % Number of values in the vectors
-rows = zeros( 1, lrow );
-cols = zeros( 1, lrow );
-wgts = zeros( 1, lrow );
-
-
-
-%=== Fill H
-%
-for i = iprim:istop
-
-  out(2,sprintf('Doing frequency %d of %d',i-iprim+1,nout));
-
-  %=== Some variables
-  fimage = 2*lo - f(i);
-  iout   = i - iprim + 1;
-
-  %=== Get sideband filter values
-  if ( o_filter == 1 )
-    w = interp1(f_filter,w_filter,[f(i),fimage],'linear');
-  else
-    w = interp1(f_filter,w_filter,[f(i),fimage],'cubic');
-  end
-
-  %=== Determine index of frequency point just above image frequency
-  while f(iimage-1) > fimage
-    iimage = iimage - 1;
-  end
-
-  if upper
-    indb = [ max([1,iimage-di]) : min([iimage+di-1,ilo-1]) ];
-  else
-    indb = [ max([ilo,iimage-di]) : min([iimage+di-1,nf]) ];
-  end
-  nb = length(indb);
-  if nb == 2
-    wimage = pbasis( f(indb) ) * [fimage;1];
-  elseif nb == 3
-    wimage = pbasis( f(indb) ) * [fimage^2;fimage;1];
-  else
-    wimage = pbasis( f(indb) ) * [fimage^3;fimage^2;fimage;1];
-  end
-  wimage = wimage';
-
-  for j = 1:nza
-
-    %=== Primary frequency
-    irow       = nrow + 1;
-    rows(irow) = iout+(j-1)*nout;
-    cols(irow) = i+(j-1)*nf;
-    wgts(irow) = w(1)/(w(1)+w(2));
-    nrow       = nrow + 1;
-
-    %=== Image frequency
-    irow       = nrow + (1:nb);
-    rows(irow) = iout+(j-1)*nout;
-    cols(irow) = indb+(j-1)*nf;
-    wgts(irow) = wimage * w(2)/(w(1)+w(2));
-    nrow       = nrow + nb;
-
-  end
-end
-
-
-%=== Allocate H and create F_NEW
-if upper
-  H = sparse( rows(1:nrow), cols(1:nrow), wgts(1:nrow), (nf-ilo+1)*nza,nf*nza);
-  f_new = f(ilo:nf);
-else
-  H = sparse( rows(1:nrow), cols(1:nrow), wgts(1:nrow), (ilo-1)*nza, nf*nza );
-  f_new = f(1:(ilo-1));
-end
-
-
-out(1,-1);

@@ -117,7 +117,7 @@ wgts = zeros( 1, lrow );
 %= With  frequency scaling
 if fscale
   for i = 1:n2
-    out(2,sprintf('Doing angle %d of %d',i,n2));
+    %out(3,sprintf('Doing angle %d of %d',i,n2));
     if move
       if i == 1 | length(dza)>1  
         w_ant = moving_ant(za_ant,w_ant0,dza(i));
@@ -148,7 +148,7 @@ if fscale
 %= Without  frequency scaling
 else
   for i = 1:n2
-    out(2,sprintf('Doing angle %d of %d.',i,n2));
+    %out(3,sprintf('Doing angle %d of %d.',i,n2));
     if move
       if i == 1 | length(dza)>1  
         w_ant = moving_ant(za_ant,w_ant0,dza(i));

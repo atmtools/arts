@@ -91,7 +91,7 @@ ind1      = 1:nf1;
 %
 for i = 1:nf2
  
-  out(2,sprintf('Doing frequency %d of %d',i,nf2));
+  %out(3,sprintf('Doing frequency %d of %d',i,nf2));
 
   f   = f1 - f2(i);
   w    = h_weights_integr(f,o_y,f_back,o_ch,w_back);
@@ -102,7 +102,6 @@ for i = 1:nf2
   for j = 1:nza
     ind2 = ind1 + (j-1)*nf1;
     if (nrow+nw) > lrow
-      out(2,'Reallocates the vectors to set-up H (can take some time).');
       %=== Estimate the extra space needed. Overestimate with 25% to be safe.
       nextra = round( lrow * (nf2/i-0.5) * 1.25 );
       zvec   = zeros( 1, nextra );
@@ -116,7 +115,6 @@ for i = 1:nf2
     cols(irow) = ind2(ind3);
     wgts(irow) = w(ind3);
     nrow       = nrow + nw;
-    %H(i+(j-1)*nf2,ind2(ind3)) = w(ind3);
   end
 
 end

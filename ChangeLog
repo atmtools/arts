@@ -1,3 +1,16 @@
+2002-09-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-45
+
+	* ami/file/modify_lines.m: Created this function to manipulate the
+	main spectroscopic parameters in a relative flexible manner.
+
+	* ami/file/write_linefile.m: The function did not work before when
+	quantum data had not been read.
+
+	* ami/hmatrix/h_antenna.m: Removed printing of zenith angle number.
+	The same has been done (for frequency) in h_mixer.m and h_backend.m.
+
 2002-09-02  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-44

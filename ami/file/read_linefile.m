@@ -13,7 +13,7 @@
 %	    reading is stoped as soon as a transition is above the upper
 %           frequency limit.
 %
-% FORMAT:   L = read_linefile( filename )
+% FORMAT:   L = read_linefile( filename [, flims ] )
 %
 % OUT:      L          Structure array with line data.
 % IN:       filename   Name on file to create.

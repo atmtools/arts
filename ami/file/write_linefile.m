@@ -115,12 +115,12 @@ for i = 1:length(L)
     fprintf(fid, ' %.1f',  L{i}.dpsf );
   end
 
-  if do_quanta
+  if do_quanta  &  isfield( L{i}, 'qcode' )
     fprintf(fid, ' "%s"',  L{i}.qcode );
     fprintf(fid, ' "%s"',  L{i}.qlower );
     fprintf(fid, ' "%s"',  L{i}.qupper );
 
-    if do_source
+    if do_source  &  isfield( L{i}, 'if' )
       fprintf(fid, ' "%s"',  L{i}.if );
       fprintf(fid, ' "%s"',  L{i}.ii0 );
       fprintf(fid, ' "%s"',  L{i}.ilw );
