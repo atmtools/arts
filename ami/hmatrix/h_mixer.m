@@ -96,12 +96,10 @@ out(1,'Setting up mixer and sidenband filter transfer matrix (H).');
 if upper
   iprim  = ilo;
   iimage = ilo-1;
-  istep  = -1;
   istop  = nf;
 else
   iprim  = 1;
-  iimage = ilo;
-  istep  = 1;
+  iimage = nf;
   istop  = ilo-1;
 end
 %
@@ -136,15 +134,15 @@ for i = iprim:istop
     w = interp1(f_filter,w_filter,[f(i),fimage],'cubic');
   end
 
-  %=== Determine index of image frequency
-  while istep*f(iimage+istep) < istep*fimage
-    iimage = iimage + istep;
+  %=== Determine index of frequency point just above image frequency
+  while f(iimage-1) > fimage
+    iimage = iimage - 1;
   end
-  
+
   if upper
     indb = [ max([1,iimage-di]) : min([iimage+di-1,ilo-1]) ];
   else
-    indb = [ max([ilo,iimage-di+1]) : min([iimage+di,nf]) ];
+    indb = [ max([ilo,iimage-di]) : min([iimage+di-1,nf]) ];
   end
   nb = length(indb);
   if nb == 2
@@ -164,7 +162,6 @@ for i = iprim:istop
     cols(irow) = i+(j-1)*nf;
     wgts(irow) = w(1)/(w(1)+w(2));
     nrow       = nrow + 1;
-    %H(iout+(j-1)*nout,i+(j-1)*nf) = w(1)/(w(1)+w(2));
 
     %=== Image frequency
     irow       = nrow + (1:nb);
@@ -172,10 +169,7 @@ for i = iprim:istop
     cols(irow) = indb+(j-1)*nf;
     wgts(irow) = wimage * w(2)/(w(1)+w(2));
     nrow       = nrow + nb;
-    %H(iout+(j-1)*nout,iimage+(j-1)*nf) = w(2)/(w(1)+w(2)) * ...
-    %              abs((fimage-f(iimage+istep))/(f(iimage)-f(iimage+istep)));
-    %H(iout+(j-1)*nout,iimage+istep+(j-1)*nf) = w(2)/(w(1)+w(2)) * ...
-    %              abs((fimage-f(iimage))/(f(iimage)-f(iimage+istep)));
+
   end
 end
 
