@@ -49,42 +49,6 @@ void define_agenda_data()
     The sign "_" comes after all letters.
     ----------------------------------------------------------------------*/
 
-
- agenda_data.push_back
-    (AgRecord
-     ( NAME( "abs_vec_agenda" ),
-       DESCRIPTION
-       (
-	"Calculate the absorption vector at each grid point\n"
-	"required for solving the raditive transfer equation.\n"
-	"\n"
-	"This agenda, for example, can a set of the following methods:\n"
-	"\n"
-	"*abs_vec_partCalc* : this method calculates the absorption \n"
-	"		     vector for particles\n"
-	"*abs_vec_gasCalc*  : this method calculates the absorption\n"
-	"		     vector for gaseous species\n"
-	"*abs_vecCalc*      : this method sums up the absorption vector\n"
-	"                     for particle and gas to give the total \n"
-	"		     absorption vector\n"
-	" \n"
-	"At present the method *abs_vec_gasCalc* is not implemented. For\n"
-	"testing the code, we just set the dimensions of *abs_vec_gas*\n"
-	"to be same that of *abs_vec_part* with all elements equal to\n"
-	"zero.\n"
-	"\n"
-	"Output :\n"
-	"   abs_vec      : The total absorption vector.\n"
-	"\n"
-	"Input:\n"
-	"   abs_vec_spt : Absorption vector for single particle type\n"
-	"   pnd_field   : particle number density field\n"
-	),
-       OUTPUT( abs_vec_ ),
-       INPUT(  abs_vec_spt_,
-               pnd_field_ )));
-
-
  agenda_data.push_back
     (AgRecord
      ( NAME( "convergence_test_agenda" ),
@@ -140,39 +104,6 @@ void define_agenda_data()
        INPUT(  ls_gamma_,
 	       ls_sigma_,
 	       els_f_grid_ )));
-
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "ext_mat_agenda" ),
-       DESCRIPTION
-       (
-	"Calculate the extinction coefficient matrix at each grid point\n"
-	"required for solving the raditive transfer equation.\n"
-	"\n"
-	"This agenda, for example, can be a set of the following methods\n"
-	"\n"
-	"*ext_mat_partCalc* : this method calculates the extinction matrix\n"
-	"		      for particles\n"
-	"*ext_mat_gasCalc*  : this method calculates the extinction matrix\n"
-	"		      for gaseous species\n"
-	"*ext_matCalc*      : this method sums up the extinction matrix for\n"
-	"		      particle and gas to give the total extinction\n"
-	"		      matrix.\n"
-	"\n"
-	"At present the method *ext_mat_gasCalc* is not implemented. For \n"
-	"testing the code, we just set the dimensions of *abs_vec_gas*\n"
-	"to be same that of *abs_vec_part* with all elements equal to zero\n"
-	"\n"
-	"Output :\n"
-	"   ext_mat	: The total extinction coefficient matrix.\n"
-	"\n"
-	"Input:\n"
-	"   ext_mat_spt : Extinction coefficient for single particle type\n"
-	"   pnd_field   : particle number density field\n"
-	),
-       OUTPUT(  ext_mat_ ),
-       INPUT(  ext_mat_spt_,
-	       pnd_field_  )));
 
   agenda_data.push_back
     (AgRecord
@@ -238,6 +169,81 @@ void define_agenda_data()
        OUTPUT(),
        INPUT()));
  
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "opt_prop_gas_agenda" ),
+       DESCRIPTION
+       (
+	"Calculate the optical properties (absorption vector and extinction.\n"
+        "matrix) of gaseous species at a given grid point.\n"
+	"\n"
+	"This agenda, for example, can be defined in the following manner:\n"
+	"\n"
+	"*ext_matAddGas* : This method calculates the extinction \n"
+	"		   matrix for the gaseous species and adds it to \n"
+        "                  the workspace variable *ext_mat*.\n"
+	"*abs_vecAddGas* : This method calculates the absorption\n"
+	"		   vector for the gaseous species and adds it to\n"
+        "                  the workspace variables abs_vec.\n"     
+        "If the Zeeman effect should be included the following methods have \n"
+        "to be added: \n"
+        "*ext_matAddZeeman* \n"
+        "*abs_vecAddZeeman* \n"
+	" \n"
+	"Note that the initialization of *abs_vec* is not done inside the\n"
+        "agenda, so *abs_vec* has to be initialize before executing the \n"
+        "agenda.\n"
+	"\n"
+	"Output :\n"
+	"   abs_vec     : Absorption vector.\n"
+	"\n"
+	"Input:\n"
+        "   abs_vec     : Absorption vector. \n"
+        "   abs_vec_spt : Absorption vector for single particle type. \n"
+        "   pnd_field   : Particle number density field. \n"
+	),
+       OUTPUT( ext_mat_ ),
+       INPUT( ext_mat_, 
+              ext_mat_spt_,
+              pnd_field_ )));
+
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "opt_prop_part_agenda" ),
+       DESCRIPTION
+       (
+	"Calculate the optical properties (absorption vector and extinction.\n"
+        "matrix) for particles at a given atmospheric grid point.\n"
+	"\n"
+	"This agenda, for example, can be defined in the following manner:\n"
+	"\n"
+	"*ext_matAddPart* : This method calculates the extinction \n"
+	"		    matrix for particles and adds it to the \n"
+        "                   workspace variable *ext_mat*.\n"
+	"*abs_vecAddPart* : This method calculates the absorption\n"
+	"		    vector for particles and adds it to the\n"
+        "                   workspace variables abs_vec.\n"     
+	" \n"
+	"Note that the initialization of *ext_mat* is not done inside the\n"
+        "agenda, so *ext_mat* has to be initialize before executing the \n"
+        "agenda.\n"
+	"\n"
+	"Output :\n"
+	"   ext_mat     : Extinction matrix.\n"
+	"\n"
+	"Input:\n"
+        "   ext_mat     : Extinction matrix. \n"
+        "   ext_mat_spt : Extinction matrix for single particle type. \n"
+        "   pnd_field   : Particle number density field. \n"
+	),
+       OUTPUT( ext_mat_ ),
+       INPUT( ext_mat_, 
+              ext_mat_spt_,
+              pnd_field_ )));
+
+
   agenda_data.push_back
     (AgRecord
      ( NAME( "ppath_step_agenda" ),
@@ -328,7 +334,18 @@ void define_agenda_data()
        OUTPUT( i_rte_ ),
        INPUT(  ppath_ )));
 
-agenda_data.push_back
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "scalar_gas_absorption_agenda" ),
+       DESCRIPTION
+       (
+       "Documentation by Sreerekha\n"
+       ""
+	),
+       OUTPUT(abs_scalar_gas_),
+       INPUT(f_index_)));
+
+  agenda_data.push_back
     (AgRecord
      ( NAME( "scat_mono_agenda" ),
        DESCRIPTION
@@ -358,7 +375,7 @@ agenda_data.push_back
              scat_i_lat_,
              scat_i_lon_,
              f_grid_,
-             scat_f_index_)));
+             f_index_)));
 
  agenda_data.push_back
     (AgRecord

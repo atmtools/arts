@@ -43,7 +43,7 @@ void ext_mat_sptCalc(
 		     const Tensor6& amp_mat,
 		     const Index& scat_za_index,
 		     const Index& scat_aa_index,
-		     const Index& scat_f_index,
+		     const Index& f_index,
 		     const Vector& f_grid,
 		     const Index& stokes_dim)
 		     
@@ -69,7 +69,7 @@ void ext_mat_sptCalc(
  
  
   //find out frequency
-  Numeric freq = f_grid[scat_f_index];
+  Numeric freq = f_grid[f_index];
 
   for (Index i = 0; i < npt; ++i)
     {
@@ -292,7 +292,7 @@ void abs_vec_sptCalc(
   
   This function sums up the extinction matrices for all particle 
   types weighted with particle number density
-  \param ext_mat_part Output : physical extinction coefficient 
+  \param ext_mat Output and input : physical extinction coefficient 
   for the particles for given angles. 
   \param ext_mat_spt Input : extinction matrix for the single particle type
   \param pnd_field Input : particle number density givs the local 
@@ -304,9 +304,9 @@ void abs_vec_sptCalc(
   \param stokes_dim  Input : stokes dimension
   
 */
-void ext_mat_partCalc(
-		      Matrix& ext_mat_part,
-		      const Tensor3& ext_mat_spt,
+void ext_matAddPart(
+		      Tensor3& ext_mat,
+                      const Tensor3& ext_mat_spt,
 		      const Tensor4& pnd_field,
 		      const Index& atmosphere_dim,
 		      const Index& scat_p_index,
@@ -318,6 +318,8 @@ void ext_mat_partCalc(
 {
   Index N_pt = ext_mat_spt.npages();
  
+  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
+
   
   if (stokes_dim > 4 || stokes_dim < 1){
     throw runtime_error(
@@ -325,15 +327,6 @@ void ext_mat_partCalc(
 			"only 1,2,3, or 4");
   }
 
-  // Resize ext_mat_part
-  ext_mat_part.resize(stokes_dim, stokes_dim);
-  
-  for (Index m = 0; m < stokes_dim; m++)
-    {
-      for (Index n = 0; n < stokes_dim; n++)
-	ext_mat_part(m, n) = 0.0;// Initialisation
-    }
- 
   if (atmosphere_dim == 1)
     {
       // this is a loop over the different particle types
@@ -350,6 +343,9 @@ void ext_mat_partCalc(
 		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
 	    }
 	}
+
+      //Add particle extinction matrix to *ext_mat*.
+      ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
     }
  
   if (atmosphere_dim == 3)
@@ -372,7 +368,12 @@ void ext_mat_partCalc(
 	      
 	    } 
 	}
+
+      //Add particle extinction matrix to *ext_mat*.
+      ext_mat += ext_mat_part;
+
     }
+
 } 
 
 //! Aabsorption Vector for the particle 
@@ -391,31 +392,27 @@ void ext_mat_partCalc(
   \param scat_lon_index Input : Longitude index for scattering calculations.
   \param stokes_dim  Input : stokes dimension
 */
-void abs_vec_partCalc(
-		      Vector& abs_vec_part,
-		      const Matrix& abs_vec_spt,
+void abs_vecAddPart(
+		      Matrix& abs_vec,
+                      const Matrix& abs_vec_spt,
 		      const Tensor4& pnd_field,
 		      const Index& atmosphere_dim,
 		      const Index& scat_p_index,
 		      const Index& scat_lat_index,
 		      const Index& scat_lon_index,
-		      const Index& stokes_dim) 
+                      const Index& stokes_dim
+                      ) 
 		    
 {
   Index N_pt = abs_vec_spt.nrows();
+  
+  Vector abs_vec_part(stokes_dim, 0.0);
 
   if ((stokes_dim > 4) || (stokes_dim <1)){
     throw runtime_error("The dimension of stokes vector "
                         "can be only 1,2,3, or 4");
   } 
-  //Resize abs_vec_part
-  abs_vec_part.resize(stokes_dim);
-  
-  for (Index m = 0; m < stokes_dim; ++m)
-    {
-      
-      abs_vec_part[m] = 0.0;// Initialisation
-    }
+ 
   if (atmosphere_dim == 1)
     {
       // this is a loop over the different particle types
@@ -430,6 +427,8 @@ void abs_vec_partCalc(
 	      (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
 	  
 	}
+      //Add the particle absorption
+      abs_vec += abs_vec_part;
     }
   
   if (atmosphere_dim == 3)
@@ -448,115 +447,118 @@ void abs_vec_partCalc(
 					  scat_lon_index));
 	  
 	}
-      
+      //Add the particle absorption
+      abs_vec(0,Range(joker)) += abs_vec_part;
     }
 } 
 
-//! Method for creating an absorption vector for gases for test purposes
-/*! 
+// //! Method for creating an absorption vector for gases for test purposes
+// /*! 
   
-The aim of this method is just to give a reasonable value for absorption 
-coefficients that can be used to test the radiative transfer calculation.
-This method takes pressure grids and absorption values corresponding to them
-from ARTS.1.0 and interpolates it onto the pressure grid under consideration 
-for radiative transfer calculation.
+// The aim of this method is just to give a reasonable value for absorption 
+// coefficients that can be used to test the radiative transfer calculation.
+// This method takes pressure grids and absorption values corresponding to them
+// from ARTS.1.0 and interpolates it onto the pressure grid under consideration 
+// for radiative transfer calculation.
 
-\param abs_vec_gas Output : The gaseous absorption vector
-\param p_grid Input : pressure grid on whiich the radiative transfer 
-calculations are done
-\param atmosphere_dim Input : atmospheric dimension(here  considered only 1D)
-\param stokes_dim Input : stokes dimension
-\param scat_p_index Input : The index corresponding to the pressure grid
-*/
-void abs_vec_gasExample(Vector& abs_vec_gas,
-			const Vector& p_grid,
-			const Index& atmosphere_dim,
-			const Index& stokes_dim,
-			const Index& scat_p_index) 
-{
-  abs_vec_gas.resize( stokes_dim );
-  Vector abs_gas( p_grid.nelem() );
-  if (atmosphere_dim == 1){
+// \param abs_vec_gas Output : The gaseous absorption vector
+// \param p_grid Input : pressure grid on whiich the radiative transfer 
+// calculations are done
+// \param atmosphere_dim Input : atmospheric dimension(here  considered only 1D)
+// \param stokes_dim Input : stokes dimension
+// \param scat_p_index Input : The index corresponding to the pressure grid
+// */
+// void abs_vec_gasExample(Vector& abs_vec,
+// 			const Vector& p_grid,
+// 			const Index& atmosphere_dim,
+// 			const Index& stokes_dim,
+// 			const Index& scat_p_index) 
+// {
+//   abs_vec.resize( stokes_dim );
+//   Vector abs_gas( p_grid.nelem() );
+//   if (atmosphere_dim == 1){
 
-    //         MakeVector typical_abs(0,0,0,0,0,0,0,0,0,0);
+//     //         MakeVector typical_abs(0,0,0,0,0,0,0,0,0,0);
 
-  //This is a typical absorption calculated from arts.1.0 (tropical)
+//   //This is a typical absorption calculated from arts.1.0 (tropical)
   
-     // MakeVector typical_abs(0.0218978044006849,
-//                             0.0114605893154005,
-//                             0.00355854032448724,
-//                             0.00161793243125695,
-//                             0.000612486464168897,
-//                             0.000168382126027889,
-//                             3.35522552862195e-05,
-//                             8.52950996338938e-06,
-//                             4.32022347140681e-06,
-//                             3.12994113724593e-06);
+//      // MakeVector typical_abs(0.0218978044006849,
+// //                             0.0114605893154005,
+// //                             0.00355854032448724,
+// //                             0.00161793243125695,
+// //                             0.000612486464168897,
+// //                             0.000168382126027889,
+// //                             3.35522552862195e-05,
+// //                             8.52950996338938e-06,
+// //                             4.32022347140681e-06,
+// //                             3.12994113724593e-06);
 
 
- //This is a typical absorption calculated from arts.1.0 (mls)
+//  //This is a typical absorption calculated from arts.1.0 (mls)
   
-    MakeVector typical_abs(0.0164163638663716,
-			   0.00768271579907592,
-			   0.00294668635075111,
-			   0.00125411825404778,
-			   0.000570445848162073,
-			   0.000236462958473072,
-			   4.40975932116215e-05,
-			   7.31218846316807e-06,
-			   3.643089167928e-06,
-			   3.12497184475723e-06);
+//     MakeVector typical_abs(0.0164163638663716,
+// 			   0.00768271579907592,
+// 			   0.00294668635075111,
+// 			   0.00125411825404778,
+// 			   0.000570445848162073,
+// 			   0.000236462958473072,
+// 			   4.40975932116215e-05,
+// 			   7.31218846316807e-06,
+// 			   3.643089167928e-06,
+// 			   3.12497184475723e-06);
     
-//This is a typical absorption calculated from arts.1.0 (mlw)
+// //This is a typical absorption calculated from arts.1.0 (mlw)
   
-    /*MakeVector typical_abs(0.00433659795310861,
-			   0.00267195350007522,
-			   0.00122676231151285,
-			   0.000524902357458338,
-			   0.000142742001685155,
-			   4.65799636740885e-05,
-			   1.07249251986862e-05,
-			   5.85896298848906e-06,
-			   4.94996692358466e-06,
-			   4.35302994835574e-06);*/
+//     /*MakeVector typical_abs(0.00433659795310861,
+// 			   0.00267195350007522,
+// 			   0.00122676231151285,
+// 			   0.000524902357458338,
+// 			   0.000142742001685155,
+// 			   4.65799636740885e-05,
+// 			   1.07249251986862e-05,
+// 			   5.85896298848906e-06,
+// 			   4.94996692358466e-06,
+// 			   4.35302994835574e-06);*/
 
 
-    //The pressure grid for the above calculation (mlw)
-    MakeVector typical_abs_pgrid(100000,
-				 77426.3682681127,
-				 59948.4250318941,
-				 46415.8883361278,
-				 35938.1366380463,
-				 27825.5940220712,
-				 21544.3469003188,
-				 16681.0053720006,
-				 12915.4966501488,
-				 10000);
-    //p_grid is the new pressure grid
-    ArrayOfGridPos p_gp(p_grid.nelem());
+//     //The pressure grid for the above calculation (mlw)
+//     MakeVector typical_abs_pgrid(100000,
+// 				 77426.3682681127,
+// 				 59948.4250318941,
+// 				 46415.8883361278,
+// 				 35938.1366380463,
+// 				 27825.5940220712,
+// 				 21544.3469003188,
+// 				 16681.0053720006,
+// 				 12915.4966501488,
+// 				 10000);
+//     //p_grid is the new pressure grid
+//     ArrayOfGridPos p_gp(p_grid.nelem());
 
-    gridpos(p_gp, typical_abs_pgrid, p_grid);
+//     gridpos(p_gp, typical_abs_pgrid, p_grid);
 
-    Matrix itw(p_grid.nelem(),2);
+//     Matrix itw(p_grid.nelem(),2);
 
-    interpweights(itw, p_gp);
-    //interpolating absorption coefficients from typical_abs_pgrid to p_grid
-    interp(abs_gas, itw, typical_abs, p_gp);
+//     interpweights(itw, p_gp);
+//     //interpolating absorption coefficients from typical_abs_pgrid to p_grid
+//     interp(abs_gas, itw, typical_abs, p_gp);
       
-    for (Index i = 0; i<stokes_dim; ++i)
-      {
-	if (i == 0){
-	  abs_vec_gas[i] = abs_gas[scat_p_index];
-	}
-	else{
-	  abs_vec_gas[i] = 0.0;
-	}
-      }
-  }
+//     for (Index i = 0; i<stokes_dim; ++i)
+//       {
+// 	if (i == 0){
+// 	  abs_vec[i] = abs_gas[scat_p_index];
+// 	}
+// 	else{
+// 	  abs_vec[i] = 0.0;
+// 	}
+//       }
+//   }
   
-}
+// }
+
+
   
-//! Method for creating an extinction matrix for gases for test purposes
+//! Method for creating the extinction matrix.
 /*! 
 
  This method is also for test purposes and is very simple.  It takes 
@@ -564,21 +566,62 @@ absorption coefficients from the method abs_vec_gasExample and put them
 along the diagonal of a 4 X 4 matrix (if stokes_dim = 4) and the 
 off-diagonal elements are set to zero.
 
-\param ext_mat_gas Output : The extinction matrix corresponding to gaseous 
+\param ext_mat Output : The extinction matrix corresponding to gaseous 
 species
-\param abs_vec_gas Input : absorption from gaseous species
-\param atmosphere_dim Input : atmospheric dimension
-\param stokes_dim Input : stokes dimension
-\param scat_p_index Input : the pressure index corresponding to the radiative 
-transfer calculation
+\param abs_scalar_gas Input : absorption from gaseous species
+\param f_index : Input: Frequency index. If all frequencies shall be calculated this variable has to be set to 0. 
 */
-void ext_mat_gasExample(Matrix& ext_mat_gas,
-			const Vector& abs_vec_gas,
-			const Index& atmosphere_dim,
-			const Index& stokes_dim,
-			const Index& scat_p_index)
+
+void ext_matAddGas(Tensor3& ext_mat,
+                   const Vector& abs_scalar_gas,
+                   const Index& f_index,
+                   const Index& atmosphere_dim)
 {
-  ext_mat_gas.resize(stokes_dim, stokes_dim);
+  Index stokes_dim = ext_mat.ncols();
+  Matrix ext_mat_gas(stokes_dim, stokes_dim,0.0);
+
+  //FIXME: After the scalar ags function is ready.
+  if (atmosphere_dim == 1){
+  
+    for (Index i =0; i < stokes_dim; ++i)
+      {
+	for (Index j =0; j < stokes_dim; ++j)
+	  {
+	    
+	    if ( i == j){
+	      // Dies ist noch Quatsch!!!
+	      ext_mat_gas(i,j) = abs_scalar_gas[i];
+	    }
+	    else{
+	      ext_mat_gas(i,j) = 0.0;
+	    }
+	  }
+      }
+  
+  ext_mat(0, Range(joker), Range(joker)) += ext_mat_gas;
+  }
+ }
+
+//! Method for creating the absorption vector.
+/*! 
+
+to be written ... 
+
+\param abs_vec Output : The extinction matrix corresponding to gaseous 
+species
+\param abs_scalar_gas Input : absorption from gaseous species
+\param f_index : Input: Frequency index. If all frequencies shall be calculated this variable has to be set to 0. 
+*/
+
+void abs_vecAddGas(Matrix& abs_vec,
+                   const Vector& abs_scalar_gas,
+                   const Index& f_index,
+                   const Index& atmosphere_dim)
+{
+  Index stokes_dim = abs_vec.ncols();
+  Vector abs_vec_gas(stokes_dim);
+  
+  //FIXME: After the scalar ags function is ready.
   if (atmosphere_dim == 1){
   
     for (Index i =0; i < stokes_dim; ++i)
@@ -588,16 +631,18 @@ void ext_mat_gasExample(Matrix& ext_mat_gas,
 	    
 	    if ( i == j){
 	      
-	      ext_mat_gas(i,j) = abs_vec_gas[i];
+	      abs_vec_gas[i] = abs_scalar_gas[f_index];
 	    }
 	    else{
-	      ext_mat_gas(i,j) = 0.0;
+	      abs_vec_gas[i] = 0.0;
 	    }
 	  }
       }
+    abs_vec(0, Range(joker)) += abs_vec_gas;
   }
- 
-}
+
+ }
+
 
 //! Phase Matrix for the particle 
 /*! 
@@ -714,135 +759,87 @@ void pha_matCalc(
 }
 
 
-//! Total extinction matrix
-/*! 
-  
-  This method sums up the extinction  matrices for  particle 
-  and gas
-  \param ext_mat Output : Total extinction matrix  
-  \param ext_mat_part Input : extinction matrix for particle
-  \param ext_mat_gas Input : extinction matrix for gas
-*/
-
-void ext_matCalc(
-		 Matrix& ext_mat,
-		 const Matrix& ext_mat_part,
-		 const Matrix& ext_mat_gas)
-		 
-{
-  Index stokes_dim = ext_mat_part.nrows(); 
-  
- 
-  ext_mat.resize(stokes_dim, stokes_dim);
-  //Addition of the two matrices, ext_mat_part and ext_mat_gas.
-  ext_mat = ext_mat_part;
-  ext_mat += ext_mat_gas;
- 
-}
-
-//! Total Absorption Vector
-/*! 
-  
-  This method sums up the absorption vectors for  particle 
-  and gas
-  \param abs_vec Output : Total absorption vector  
-  \param abs_vec_part Input : absorption vector for particle
-  \param abs_vec_gas Input : absorption vector for gas
-*/
-
-void abs_vecCalc(
-		 Vector& abs_vec,
-		 const Vector& abs_vec_part,
-		 const Vector& abs_vec_gas)
-  
-{
-  Index stokes_dim = abs_vec_part.nelem(); 
-   // Resize abs_vec
-  abs_vec.resize(stokes_dim);
-  // addition of abs_vec_part and abs_vec_gas
-  abs_vec = abs_vec_part;
-  abs_vec += abs_vec_gas;
-}
 
 
-//! Extinction coefficient matrix  for convergence test.
-/*! 
-  This function sums up the convergence extinction matrices for all particle 
-  types weighted with particle number density. This is exactly the same 
-  function as *ext_mat_partCalc*, only with different input, *ext_mat_conv_spt*
-  instead of ext_mat_spt.
 
-  \param ext_mat_part Output : physical extinction coefficient 
-  for the particles for given angles. 
-  \param ext_mat_conv_spt Input : extinction matrix for the single 
-  particle type
-  \param pnd_field Input : particle number density givs the local 
-  concentration for all particles.
-  \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
-  \param scat_p_index Input : Pressure index for scattering calculations.
-  \param scat_lat_index Input : Latitude index for scattering calculations.
-  \param scat_lon_index Input : Longitude index for scattering calculations.
-*/
-void ext_mat_partScat(
-		      Matrix& ext_mat_part,
-		      const Tensor3& ext_mat_spt,
-		      const Tensor4& pnd_field,
-		      const Index& atmosphere_dim,
-		      const Index& scat_p_index,
-		      const Index& scat_lat_index,
-		      const Index& scat_lon_index) 
+// //! Extinction coefficient matrix  for convergence test.
+// /*! 
+//   This function sums up the convergence extinction matrices for all particle 
+//   types weighted with particle number density. This is exactly the same 
+//   function as *ext_mat_partCalc*, only with different input, *ext_mat_conv_spt*
+//   instead of ext_mat_spt.
+
+//   \param ext_mat_part Output : physical extinction coefficient 
+//   for the particles for given angles. 
+//   \param ext_mat_conv_spt Input : extinction matrix for the single 
+//   particle type
+//   \param pnd_field Input : particle number density givs the local 
+//   concentration for all particles.
+//   \param atmosphere_dim Input : he atmospheric dimensionality (now 1 or 3)
+//   \param scat_p_index Input : Pressure index for scattering calculations.
+//   \param scat_lat_index Input : Latitude index for scattering calculations.
+//   \param scat_lon_index Input : Longitude index for scattering calculations.
+// */
+// void ext_mat_partScat(
+// 		      Matrix& ext_mat_part,
+// 		      const Tensor3& ext_mat_spt,
+// 		      const Tensor4& pnd_field,
+// 		      const Index& atmosphere_dim,
+// 		      const Index& scat_p_index,
+// 		      const Index& scat_lat_index,
+// 		      const Index& scat_lon_index) 
 		     
-{
-  Index N_pt = ext_mat_spt.npages();
-  Index stokes_dim = ext_mat_spt.nrows();
+// {
+//   Index N_pt = ext_mat_spt.npages();
+//   Index stokes_dim = ext_mat_spt.nrows();
   
-  ext_mat_part.resize(stokes_dim, stokes_dim);
+//   ext_mat_part.resize(stokes_dim, stokes_dim);
   
-  for (Index m = 0; m < stokes_dim; m++)
-    {
-      for (Index n = 0; n < stokes_dim; n++)
-	ext_mat_part(m, n) = 0.0;// Initialisation
-    }
+//   for (Index m = 0; m < stokes_dim; m++)
+//     {
+//       for (Index n = 0; n < stokes_dim; n++)
+// 	ext_mat_part(m, n) = 0.0;// Initialisation
+//     }
  
-  if (atmosphere_dim == 1)
-    {
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt; l++)
-	{ 
+//   if (atmosphere_dim == 1)
+//     {
+//       // this is a loop over the different particle types
+//       for (Index l = 0; l < N_pt; l++)
+// 	{ 
 	  
-	  // now the last two loops over the stokes dimension.
-	  for (Index m = 0; m < stokes_dim; m++)
-	    {
-	      for (Index n = 0; n < stokes_dim; n++)
-	       //summation of the product of pnd_field and 
-		//ext_mat_conv_spt.
-	      ext_mat_part(m, n) += 
-		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
-	    }
-	}
-    }
-  if (atmosphere_dim == 3)
-    {
+// 	  // now the last two loops over the stokes dimension.
+// 	  for (Index m = 0; m < stokes_dim; m++)
+// 	    {
+// 	      for (Index n = 0; n < stokes_dim; n++)
+// 	       //summation of the product of pnd_field and 
+// 		//ext_mat_conv_spt.
+// 	      ext_mat_part(m, n) += 
+// 		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
+// 	    }
+// 	}
+//     }
+//   if (atmosphere_dim == 3)
+//     {
       
-      // this is a loop over the different particle types
-      for (Index l = 0; l < N_pt; l++)
-	{ 
+//       // this is a loop over the different particle types
+//       for (Index l = 0; l < N_pt; l++)
+// 	{ 
 	  
-	  // now the last two loops over the stokes dimension.
-	  for (Index m = 0; m < stokes_dim; m++)
-	    {
-	      for (Index n = 0; n < stokes_dim; n++)
-		 //summation of the product of pnd_field and 
-		//ext_mat_conv_spt.
-		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
-					pnd_field(l, scat_p_index, 
-						  scat_lat_index, 
-						  scat_lon_index));
+// 	  // now the last two loops over the stokes dimension.
+// 	  for (Index m = 0; m < stokes_dim; m++)
+// 	    {
+// 	      for (Index n = 0; n < stokes_dim; n++)
+// 		 //summation of the product of pnd_field and 
+// 		//ext_mat_conv_spt.
+// 		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
+// 					pnd_field(l, scat_p_index, 
+// 						  scat_lat_index, 
+// 						  scat_lon_index));
 	      
-	    } 
-	}
-    }
-} 
+// 	    } 
+// 	}
+//     }
+// } 
 
 
 //! Method for getting amp_mat from amp_mat_raw.
@@ -874,7 +871,7 @@ void ext_mat_partScat(
   specific angular and frequency grid onto a grid which is set by the user. 
   Since we decide that frequency should be the outermost loop for our 
   radiative transfer calculation the frequency grid contains just one 
-  value specified by the index scat_f_index.  The angles for which the 
+  value specified by the index f_index.  The angles for which the 
   calculations are to be done are specified by scat_za_grid and scat_aa_grid.
   
   The output of this method is amp_mat has to be a 
@@ -886,7 +883,7 @@ void ext_mat_partScat(
   \param amp_mat Output : Amplitude matrix which is interpolated on the 
   required grids set by the user.
   \param amp_mat_raw Input : The original data as read from the database.
-  \param scat_f_index Input : The frequency index.
+  \param f_index Input : The frequency index.
   \param f_grid Input : The frequency grid as required for RT calculation
   \param scat_za_grid Input : The zenith angle grid for which scattering 
   properties are to be calculated 
@@ -895,7 +892,7 @@ void ext_mat_partScat(
 */
 void amp_matCalc(Tensor6& amp_mat,
 		 const ArrayOfArrayOfTensor6& amp_mat_raw,
-		 const Index& scat_f_index,
+		 const Index& f_index,
 		 const Vector& f_grid,
 		 const Vector& scat_za_grid,
 		 const Vector& scat_aa_grid)
@@ -959,12 +956,12 @@ void amp_matCalc(Tensor6& amp_mat,
        ArrayOfTensor6 amp_mat_raw.  
        amp_mat_raw[ipt][0] ( Range(joker), 0, 0, 0, 0, 0).  
        
-       f_grid(Range(scat_f_index),1) is the new grid which is also a vector
-       formally but with one element given by the scat_f_index*/
-       //cout<<scat_f_index<<"\n";
+       f_grid(Range(f_index),1) is the new grid which is also a vector
+       formally but with one element given by the f_index*/
+       //cout<<f_index<<"\n";
        gridpos (f_gp,
 		amp_mat_raw [ ipt ]  [ 0 ] ( Range(joker), 0, 0, 0, 0, 0),
-		f_grid[Range(scat_f_index, 1)]);
+		f_grid[Range(f_index, 1)]);
        
        //like for frquency we can get the gridpostions for the angular grids.
 

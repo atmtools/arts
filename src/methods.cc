@@ -150,20 +150,20 @@ void define_md_data_raw()
   /////////////////////////////////////////////////////////////////////////////
 
 
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("abs_vec_gasExample"),
-	DESCRIPTION
-	(
-	 "This is only an example method created to perform test \n"
-	 "calculations.\n"
-	 ),
-	OUTPUT(abs_vec_gas_),
-	INPUT(p_grid_,  atmosphere_dim_, stokes_dim_, scat_p_index_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
+ //  md_data_raw.push_back
+//     ( MdRecord
+//       ( NAME("abs_vec_gasExample"),
+// 	DESCRIPTION
+// 	(
+// 	 "This is only an example method created to perform test \n"
+// 	 "calculations.\n"
+// 	 ),
+// 	OUTPUT(abs_vec_),
+// 	INPUT(p_grid_,  atmosphere_dim_, stokes_dim_, scat_p_index_ ),
+// 	GOUTPUT(),
+// 	GINPUT(),
+// 	KEYWORDS(),
+// 	TYPES()));
   
   md_data_raw.push_back
     ( MdRecord
@@ -215,22 +215,50 @@ void define_md_data_raw()
 	 "is taken out.\n"
 	 ),
 	OUTPUT(amp_mat_),
-	INPUT(amp_mat_raw_, scat_f_index_, f_grid_, scat_za_grid_, 
+	INPUT(amp_mat_raw_, f_index_, f_grid_, scat_za_grid_, 
 	      scat_aa_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES())); 
 
-  md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
-      ( NAME("abs_vec_partCalc"),
+      ( NAME("abs_vecAddGas"),
 	DESCRIPTION
 	(
+         "The gas absorption is added to *abs_vec* \n"
+         "\n"
 	 "This function sums up the absorption vectors for all particle \n"
 	 "types weighted with particle number density.\n"
-	 "\n"
-	 "The output of this method is *abs_vec_part* (stokes_dim).\n"
+         "The resluling absorption vector is added to the workspace \n"
+         "variable *abs_vec* \n"
+	 "Input and Output of this method is *abs_vec*\n"
+         "(stokes_dim, stokes_dim).\n"
+	 "Input is furthermore the scalar absorption coefficient  \n"
+         "*abs_scalar_gas*\n"
+         "for given *p_grid*, *lat_grid*, and *lon_grid*. \n"
+	 ),
+	OUTPUT(abs_vec_),
+	INPUT(abs_vec_,  abs_scalar_gas_, f_index_, atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("abs_vecAddPart"),
+	DESCRIPTION
+	(
+         "The particle absorption is added to *abs_vec* \n"
+         "\n"
+	 "This function sums up the absorption vectors for all particle \n"
+	 "types weighted with particle number density.\n"
+         "The resluling absorption vector is added to the workspace \n"
+         "variable *abs_vec* \n"
+	 "Output and input of this method is *abs_vec* (stokes_dim).\n"
 	 "The inputs are the absorption vector for the single particle type \n"
 	 "*abs_vec_spt* (part_types, stokes_dim) and the local particle\n"
 	 " number densities for all particle types namely the \n"
@@ -238,8 +266,9 @@ void define_md_data_raw()
 	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
 	 "are specified in the control file.  \n"
 	 ),
-	OUTPUT(abs_vec_part_),
-	INPUT(abs_vec_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
+	OUTPUT(abs_vec_),
+	INPUT(abs_vec_, abs_vec_spt_, pnd_field_, atmosphere_dim_,
+              scat_p_index_, 
 	      scat_lat_index_, scat_lon_index_, stokes_dim_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -276,31 +305,6 @@ void define_md_data_raw()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("abs_vecCalc"),
-  	DESCRIPTION
-	(
-	 "This function sums up the absorption vectors of particle and gas\n"
-	 "and gives the total absorption vector.\n"
-	 "\n"
-	 "The method *abs_vec_partCalc* calculates the particle absorption\n"
-	 "vector *abs_vec_part*.  In the case of gases it can either be \n"
-	 "calculated using a similar method *abs_vec_gasCalc* or can be \n"
-	 "be read in from a file.  The second option can really save some\n"
-	 "computation time.\n"
-	 "\n"
-	 "The output of this method is *abs_vec* (stokes_dim). The inputs\n"
-	 "the particle absorption vector *abs_vec_part*( stokes_dim )\n"
-	 "and the gaseous absorption vector *abs_vec_gas* ( stokes_dim )\n"
-	 ),
-	OUTPUT( abs_vec_  ),
-        INPUT( abs_vec_part_, abs_vec_gas_  ),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -797,29 +801,27 @@ void define_md_data_raw()
 	KEYWORDS( ),
 	TYPES( )));
 
+ 
+
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ext_matCalc"),
+      ( NAME("ext_matAddGas"),
   	DESCRIPTION
 	(
-	 "This function sums up the extinction matrices of particle and gas\n"
-	 "and gives the total extinction matrix.\n"
-	 "\n"
-	 "The extinction due to particle is the sum of scattering and \n"
-	 "absorption whereas the extinction due to gas is due only to \n"
-	 "absorption. The method *ext_mat_partCalc* calculates the particle\n" 
-	 "extinction matrix *ext_mat_part*. In the case of gases it can\n"
-	 "either be calculated in a similar method *ext_mat_gasCalc* or\n"
-	 "can be read in from a file.  The second option can really save\n"
-	 "some computation time.\n"
-	 "\n"
-	 "The output of this method is *ext_mat* (stokes_dim, stokes_dim).\n"
-	 "The inputs are the particle extinction matrix *ext_mat_part*\n"
-	 "(stokes_dim,  stokes_dim) and the gaseous extinction matrix \n"
-	 "*ext_mat_gas* (stokes_dim,  stokes_dim).\n"
+         "The gaseous extinction is added to *ext_mat* \n"
+         "\n"
+	 "This function creates the gaseous extinction matrix from the \n"
+         "scalar gas absorption coefficient. \n"
+         "The resluling extinction matrix is added to the workspace \n"
+         "variable *ext_mat* \n"
+       	 "Input and Output of this method is *ext_mat*\n"
+         "(stokes_dim, stokes_dim).\n"
+	 "Input is  furthermore the scalar absorption coefficient\n"
+         "*abs_scalar_gas*\n"
+         "for given *p_grid*, *lat_grid*, and *lon_grid*. \n"
 	 ),
 	OUTPUT( ext_mat_  ),
-        INPUT( ext_mat_part_, ext_mat_gas_  ),
+        INPUT( ext_mat_, abs_scalar_gas_, f_index_, atmosphere_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -827,27 +829,16 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME("ext_mat_gasExample"),
-	DESCRIPTION
-	(
-	 "This is only an example method created to perform test \n"
-	 "calculations.\n"
-	 ),
-	OUTPUT(ext_mat_gas_),
-	INPUT(abs_vec_gas_, atmosphere_dim_, stokes_dim_, scat_p_index_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ext_mat_partCalc"),
+      ( NAME("ext_matAddPart"),
   	DESCRIPTION
 	(
+         "The particle extinction is added to *ext_mat* \n"
+         "\n"
 	 "This function sums up the extinction matrices for all particle \n"
 	 "types weighted with particle number density.\n"
-	 "\n"
-	 "The output of this method is *ext_mat_part* (stokes_dim, stokes_dim).\n"
+         "The resluling extinction matrix is added to the workspace \n"
+         "variable *ext_mat* \n"
+       	 "The output of this method is *ext_mat* (stokes_dim, stokes_dim).\n"
 	 "The inputs are the extinction matrix for the single particle type \n"
 	 "*ext_mat_spt* (part_types, stokes_dim, stokes_dim) and the local \n"
 	 "particle number densities for all particle types namely the \n"
@@ -855,40 +846,41 @@ void define_md_data_raw()
 	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
 	 "are specified in the control file.  \n"
 	 ),
-	OUTPUT( ext_mat_part_  ),
-        INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
+	OUTPUT( ext_mat_  ),
+        INPUT( ext_mat_, ext_mat_spt_, pnd_field_, atmosphere_dim_, 
+               scat_p_index_, 
 	       scat_lat_index_, scat_lon_index_, stokes_dim_ ),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
 	TYPES( )));
  
-   md_data_raw.push_back
-    ( MdRecord
-      ( NAME("ext_mat_partScat"),
-  	DESCRIPTION
-	(
-	 "This function sums up the convergence extinction matrices \n"
-         "for all particle types weighted with particle number density.\n"
-	 "\n"
-         "This method is only used for the convergence test, where particle\n"
-         "absorption is set to be 0. \n"
-	 "The output of this method is *ext_mat_part* (stokes_dim, stokes_dim).\n"
-	 "The inputs are the convergence extinction matrix for the single\n"
-         "particle type *ext_mat_conv_spt* \n"
-         "(part_types, stokes_dim, stokes_dim) and the local \n"
-	 "particle number densities for all particle types namely the \n"
-	 "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
-	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
-	 "are specified in the control file.  \n"
-	 ),
-	OUTPUT( ext_mat_part_  ),
-        INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
-	       scat_lat_index_, scat_lon_index_),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
+ //   md_data_raw.push_back
+//     ( MdRecord
+//       ( NAME("ext_mat_partScat"),
+//   	DESCRIPTION
+// 	(
+// 	 "This function sums up the convergence extinction matrices \n"
+//          "for all particle types weighted with particle number density.\n"
+// 	 "\n"
+//          "This method is only used for the convergence test, where particle\n"
+//          "absorption is set to be 0. \n"
+// 	 "The output of this method is *ext_mat_part* (stokes_dim, stokes_dim).\n"
+// 	 "The inputs are the convergence extinction matrix for the single\n"
+//          "particle type *ext_mat_conv_spt* \n"
+//          "(part_types, stokes_dim, stokes_dim) and the local \n"
+// 	 "particle number densities for all particle types namely the \n"
+// 	 "*pnd_field* (part_types, p_grid, lat_grid, lon_grid ) for given \n"
+// 	 "*p_grid*, *lat_grid*, and *lon_grid*. The particle types required \n"
+// 	 "are specified in the control file.  \n"
+// 	 ),
+// 	OUTPUT( ext_mat_  ),
+//         INPUT( ext_mat_spt_, pnd_field_, atmosphere_dim_, scat_p_index_, 
+// 	       scat_lat_index_, scat_lon_index_),
+// 	GOUTPUT( ),
+// 	GINPUT( ),
+// 	KEYWORDS( ),
+// 	TYPES( )));
 
  md_data_raw.push_back
     ( MdRecord
@@ -926,10 +918,10 @@ void define_md_data_raw()
 	 "The output of this method is \n"
 	 "*ext_mat_spt*(Tensor 3, size = [Npt,stokes_dim,stokes_dim])and the\n"
 	 "inputs are *ext_mat_spt*,*amp_mat*(Tensor 6, Size=[Npt,Nza,Naa,Nza,Naa,8]), \n"
-	 "*scat_za_index*,*scat_aa_index*,*scat_f_index* and *scat_f_grid*. \n"
+	 "*scat_za_index*,*scat_aa_index*,*f_index* and *scat_f_grid*. \n"
 	 "\n"
 	 "The variables *scat_za_index* and *scat_aa_index picks the right \n"
-	 "element of the Tensor *amp_mat*. *scat_f_grid* and *scat_f_index* picks \n"
+	 "element of the Tensor *amp_mat*. *f_grid* and *f_index* picks \n"
 	 "the right frequeny for calculation. Frequeny is needed because the\n"
 	 "computation of extinction matrix from amplitude matrix involves \n"
 	 "multiplication by wavelength.  Then this method calls the \n"
@@ -939,7 +931,7 @@ void define_md_data_raw()
 	 ),
 	OUTPUT( ext_mat_spt_  ),
         INPUT( ext_mat_spt_,amp_mat_, scat_za_index_, scat_aa_index_,
-	       scat_f_index_, f_grid_, stokes_dim_  ),
+	       f_index_, f_grid_, stokes_dim_  ),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -1065,13 +1057,13 @@ void define_md_data_raw()
                ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
                scat_lat_index_, scat_lon_index_, scat_za_index_,
                scat_aa_index_),
-	INPUT(spt_calc_agenda_, ext_mat_agenda_, abs_vec_agenda_, 
-              convergence_test_agenda_,
+	INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_, 
+              scalar_gas_absorption_agenda_, convergence_test_agenda_,
               ppath_step_agenda_, scat_rte_agenda_, 
               amp_mat_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, 
 	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_,
-	      r_geoid_, f_grid_, scat_f_index_, 
+	      r_geoid_, f_grid_, f_index_, 
 	      stokes_dim_, atmosphere_dim_, pnd_field_, part_types_),
 	GOUTPUT(),
 	GINPUT(),
@@ -1100,7 +1092,7 @@ void define_md_data_raw()
 	 ),
 	OUTPUT(i_field_),
 	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
-	       scat_f_index_, p_grid_, lat_grid_, lon_grid_, 
+	       f_index_, p_grid_, lat_grid_, lon_grid_, 
 	       cloudbox_limits_, atmosphere_dim_),
 	GOUTPUT(),
 	GINPUT(),
@@ -1127,7 +1119,7 @@ md_data_raw.push_back
 	 ),
 	OUTPUT(i_field_),
 	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, f_grid_, 
-	       scat_f_index_, p_grid_, lat_grid_, lon_grid_, 
+	       f_index_, p_grid_, lat_grid_, lon_grid_, 
 	       cloudbox_limits_, atmosphere_dim_, stokes_dim_),
 	GOUTPUT(),
 	GINPUT(),
@@ -1148,11 +1140,11 @@ md_data_raw.push_back
                sca_vec_, a_planck_value_, l_step_,
                abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
                scat_p_index_, scat_za_index_, scat_aa_index_),
-	INPUT(spt_calc_agenda_, 
-              ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
+	INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_,
+              scalar_gas_absorption_agenda_, ppath_step_agenda_,
               scat_rte_agenda_, amp_mat_, scat_field_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
-              r_geoid_, f_grid_, scat_f_index_, 
+              r_geoid_, f_grid_, f_index_, 
 	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
 	GOUTPUT(),
 	GINPUT(),
@@ -2086,7 +2078,7 @@ md_data_raw.push_back
          "This method puts the scattered radiation field into the interface\n"
          "variables between the cloudbox and the clearsky, which are \n"
          "*scat_i_p*, *scat_i_lat* and *scat_i_lon*. As i_field is only\n"
-         "stored for one frequency given by *scat_f_index* this method has\n" 
+         "stored for one frequency given by *f_index* this method has\n" 
          "to be\n"
          "executed after each scattering calculation to store the scattered\n"
          "field on the boundary of the cloudbox.\n"
@@ -2097,7 +2089,7 @@ md_data_raw.push_back
          "\n"
          ),
 	OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
-	INPUT( i_field_, f_grid_, scat_f_index_,   p_grid_, lat_grid_, 
+	INPUT( i_field_, f_grid_, f_index_,   p_grid_, lat_grid_, 
                lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
 	       atmosphere_dim_, cloudbox_limits_ ),
 	GOUTPUT(),
@@ -2117,12 +2109,12 @@ md_data_raw.push_back
 	 "This method calls the method *CloudboxGetIncoming* and gets \n"
 	 "the field at the interface of the upper and lower surface of \n"
 	 "boundary. This also gives the frequency index inside the \n"
-	 "cloudbox, namely the variable *scat_f_index* \n"
+	 "cloudbox, namely the variable *f_index* \n"
 	 "\n"
 	 "More to be written.\n"
          "\n"
          ),
-	OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, scat_f_index_, ppath_, 
+	OUTPUT(scat_i_p_, scat_i_lat_, scat_i_lon_, f_index_, ppath_, 
                ppath_step_, i_rte_,y_rte_, i_space_,
 	       ground_emission_, ground_los_, ground_refl_coeffs_,
                mblock_index_, a_los_, a_pos_, a_gp_p_, a_gp_lat_, a_gp_lon_),
@@ -2186,48 +2178,6 @@ md_data_raw.push_back
 	KEYWORDS(),
 	TYPES()));
 
- md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("stokes_vecGeneral"),
-	DESCRIPTION
-	(
-	 "Calculate vector radiative transfer with fixed scattering integral."
-         "\n"
-         "This function computes the radiative transfer for a thin layer.\n"
-         "It is a general function which works for both, the vector and the \n"
-         "scalar RTE. But for the scalar equation it is more efficient to \n"
-         "the method  *stokes_vecScalar*.\n"
-         "All coefficients and the scattered field vector are assumed to be\n"
-         "constant inside the grid cell/layer.\n"
-         "Then an analytic solution can be found (see AUG for details).\n"
-	),
-	OUTPUT(stokes_vec_),
-	INPUT(stokes_vec_, ext_mat_, abs_vec_, sca_vec_, l_step_, 
-              a_planck_value_, stokes_dim_),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
-
- md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("stokes_vecScalar"),
-	DESCRIPTION
-	(
-	 "Calculate scalar radiative transfer with fixed scattering integral."
-         "\n"
-         "This function computes the radiative transfer for a thin layer. All\n"
-         "coefficients and the scattered field vector  are assumed to be \n"
-         "constant inside the grid cell/layer.\n"
-         "Then an analytic solution can be found (see AUG for details).\n"
-	),
-	OUTPUT(stokes_vec_),
-	INPUT(stokes_vec_, ext_mat_, abs_vec_, sca_vec_, l_step_, 
-              a_planck_value_, stokes_dim_),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -2408,7 +2358,7 @@ md_data_raw.push_back
          "   Tenosr6 : A Tensor6 with radiance values. \n"
 	 ),
 	OUTPUT(),
-	INPUT(scat_f_index_, f_grid_),
+	INPUT(f_index_, f_grid_),
 	GOUTPUT( Tensor6_ ),
 	GINPUT( Tensor6_ ),
 	KEYWORDS(),

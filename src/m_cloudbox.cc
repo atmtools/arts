@@ -210,7 +210,7 @@ void CloudboxSetManually(
   \param scat_i_lon Input : Intensity field on cloudbox boundary
   (equal longitude surfaces)
   \param f_grid Input : frequency grid
-  \param scat_f_index Input : the frequency index for scattering calculation
+  \param f_index Input : the frequency index for scattering calculation
   \param p_grid Input : the pressure grid
   \param lat_grid Input : the latitude grid
   \param lon_grid Input : the longitude grid
@@ -225,7 +225,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 		const Tensor7& scat_i_lat,
 		const Tensor7& scat_i_lon,
 		const Vector& f_grid,
-		const Index& scat_f_index,
+		const Index& f_index,
 		const Vector& p_grid,
 		const Vector& lat_grid,
 		const Vector& lon_grid,
@@ -297,7 +297,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 						    aa_index,
 						    i);
 		  
-		  ConstVectorView source_field = scat_i_p(scat_f_index,
+		  ConstVectorView source_field = scat_i_p(f_index,
 							  Range(joker),    
 							  0,
 							  0,
@@ -458,7 +458,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 							    aa_index,
 							    i);
 			  
-			  ConstVectorView source_field = scat_i_p(scat_f_index,
+			  ConstVectorView source_field = scat_i_p(f_index,
 								  Range(joker),    
 								  lat_index,
 								  lon_index,
@@ -496,7 +496,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 							    aa_index,
 							    i);
 			  
-			  ConstVectorView source_field = scat_i_p(scat_f_index,
+			  ConstVectorView source_field = scat_i_p(f_index,
 								  p_index,
 								  Range(joker),    
 								  lon_index,
@@ -534,7 +534,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
 							    aa_index,
 							    i);
 			  
-			  ConstVectorView source_field = scat_i_p(scat_f_index,
+			  ConstVectorView source_field = scat_i_p(f_index,
 								  p_index,    
 								  lat_index,
 								  Range(joker),
@@ -574,7 +574,7 @@ void i_fieldSetClearsky(Tensor6& i_field,
   \param scat_i_lon Input : Intensity field on cloudbox boundary
   (equal longitude surfaces)
   \param f_grid Input : frequency grid
-  \param scat_f_index Input : the frequency index for scattering calculation
+  \param f_index Input : the frequency index for scattering calculation
   \param p_grid Input : the pressure grid
   \param lat_grid Input : the latitude grid
   \param lon_grid Input : the longitude grid
@@ -593,7 +593,7 @@ void i_fieldSetConst(//WS Output:
                         const Tensor7& scat_i_lat,
                         const Tensor7& scat_i_lon,
                         const Vector& f_grid,
-                        const Index& scat_f_index,
+                        const Index& f_index,
                         const Vector& p_grid,
                         const Vector& lat_grid,
                         const Vector& lon_grid,
@@ -706,7 +706,7 @@ void ParticleTypeAdd( //WS Output:
   This method puts the scattered radiation field into the interface variables 
   between the cloudbox and the clearsky, which are *scat_i_p*, *scat_i_lat*,
   *scat_i_lon*. As i_field is only stored for one frequency given by
-  *scat_f_index* this method has to be executed after each scattering 
+  *f_index* this method has to be executed after each scattering 
   calculation to store the scattered field on the boundary of the cloudbox.
   
   The best way to calculate spectra including the influence of 
@@ -719,7 +719,7 @@ void ParticleTypeAdd( //WS Output:
  \param scat_i_lon i_field on longitude boundaries
  \param i_field radiation field inside cloudbox
  \param f_grid frequency grid
- \param scat_f_index index for scattering calculation
+ \param f_index index for scattering calculation
  \param p_grid pressure grid
  \param lat_grid latitude grid
  \param lon_grid longitude grid
@@ -740,7 +740,7 @@ void scat_iPut(//WS Output:
                //WS Input:
                const Tensor6& i_field,
                const Vector& f_grid,
-               const Index& scat_f_index,
+               const Index& f_index,
                const Vector& p_grid,
                const Vector& lat_grid,
                const Vector& lon_grid,
@@ -788,17 +788,17 @@ void scat_iPut(//WS Output:
               for (Index i = 0; i < stokes_dim; i++)
                 {  
                   //i_field at lower boundary
-                  scat_i_p(scat_f_index, 0, 0, 0, za, 0, i) = 
+                  scat_i_p(f_index, 0, 0, 0, za, 0, i) = 
                     i_field(0, 0, 0, za, 0, i);
                   //i_field at upper boundary
-                  scat_i_p(scat_f_index, 1, 0, 0, za, 0, i) = 
+                  scat_i_p(f_index, 1, 0, 0, za, 0, i) = 
                     i_field(cloudbox_limits[1] - cloudbox_limits[0],
                             0, 0, za, 0, i); 
                   // For 1D scat_i_lat and scat_i_lon are 0.
                   for(Index j = 0; j<2; j++)
                     {
-                      scat_i_lat(scat_f_index, j, 0, 0, za, 0, i) = 0.;
-                      scat_i_lon(scat_f_index, j, 0, 0, za, 0, i) = 0.;
+                      scat_i_lat(f_index, j, 0, 0, za, 0, i) = 0.;
+                      scat_i_lon(f_index, j, 0, 0, za, 0, i) = 0.;
                     }
                 }//end stokes_dim
             }//end za loop

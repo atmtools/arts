@@ -44,7 +44,7 @@
 #include "physics_funcs.h"
 #include "rte.h"
 #include "special_interp.h"
-
+#include "scat_rte.h"
 
 //! get_radiative_background
 /*!

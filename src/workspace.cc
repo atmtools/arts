@@ -115,69 +115,23 @@ void define_wsv_data()
        "the physical absorption which includes particle absorption \n"
        "for all chosen particle types as well as gaseous absorption for\n"
        "all chosen gaseous species.\n" 
-       "The vector is calculated by the agenda *abs_vec_agenda* \n"
+       "The vector is calculated by the agendas *opt_prop_gas_agenda* \n"
+       "and, if scattering calculations are performed, \n"
+       "*opt_prop_part_agenda* \n"
        "The dimensision of the variable adapts to *stokes_dim*.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Output of the agenda *ext_mat_agenda*. \n"
+       "Usage:      Output of the agendas *opt_prop_gas_agenda* \n"
+       "                             and *opt_prop_part_agenda* \n"
        "\n"
-       "Unit:        m^2 \n"
+       "Unit:        [Hz, m^2]\n"
        "\n"
-       "Dimensions: [stokes_dim]"
-       ),
-      GROUP( Vector_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "abs_vec_agenda" ),
-       DESCRIPTION
-       (
-	"See agendas.cc."
-	),
-       GROUP(  Agenda_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "abs_vec_gas" ),
-       DESCRIPTION
-       (
-	"Absorption Vector for gaseous species.\n"
-	"\n"
-	"This workspace variable represents the absorption vector of the\n"
-	"gaseous species specified for the study.  It can either be\n"
-	"calculated in the method *abs_vec_gasCalc* or can be read in from\n"
-	"from a file.  The method *abs_vec_gasCalc* is not yet implemented.\n"
-	"\n"
-	"There will be for sure more documentation on this.\n"
-	"\n"
-	"Usage:      Input to the method abs_vecCalc\n"
-	"\n"
-	"Unit:        m^2\n"
-	"\n"
-	"Dimensions: [ stokes_dim ]\n"
-	),
-      GROUP( Vector_ )));
-  
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "abs_vec_part" ),
-       DESCRIPTION
-       (
-	"Physical absorption vector for particle.\n"
-	"\n"
-	"This workspace variable represents the actual physical absorption\n"
-	"vector of the particles chosen for the study for given propagation \n"
-	"directions.  This vector is calculated by the method *abs_vec_partCalc*\n"
-	"\n"
-	"ARTS user guide (AUG) gives the formula used for computing this \n"
-	"variable. Use the index to find where this variable is discussed.\n"
-	"The variable is listed as a subentry to \"workspace variables\".\n"
+       "Dimensions: [f_grid, stokes_dim]"
         ),
-      GROUP( Vector_ )));
+       GROUP( Matrix_ )));
 
   wsv_data.push_back
     (WsvRecord
@@ -205,7 +159,7 @@ void define_wsv_data()
 	),
        GROUP( Matrix_ ) ));
 
-  wsv_data.push_back
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "amp_mat" ),
       DESCRIPTION
@@ -272,6 +226,16 @@ void define_wsv_data()
        "\n"
        ),
       GROUP(ArrayOfArrayOfTensor6_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "abs_scalar_gas" ),
+      DESCRIPTION
+      (
+       "by Stefan?\n"
+       "\n"
+       ),
+      GROUP(Vector_ )));
 
   
   wsv_data.push_back
@@ -344,7 +308,7 @@ void define_wsv_data()
        ),
       GROUP( GridPos_ )));
 
- wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "a_gp_lon" ),
       DESCRIPTION
@@ -542,8 +506,8 @@ void define_wsv_data()
   
   wsv_data.push_back
     (WsvRecord
-    ( NAME( "ext_mat" ),
-      DESCRIPTION
+     ( NAME( "ext_mat" ),
+       DESCRIPTION
       (
        "Total extinction matrix.\n"
        "\n"
@@ -552,77 +516,26 @@ void define_wsv_data()
        "the physical extinction matrix which includes particles extinction \n"
        "for all chosen particle types and gaseous extinction for all chosen \n"
        "gaseous species.\n" 
-       "The matrix is calculated by the agenda *ext_mat_agenda* \n"
+       "The matrix is calculated by the agendas *opt_prop_gas_agenda* \n"
+       "and, if scattering calculations are performed, \n"
+       "*opt_prop_part_agenda* \n"
        "The dimensision of the variable adapts to *stokes_dim*.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
        "this variable is discussed. The variable is listed as a subentry to\n"
        "\"workspace variables\".\n"
        "\n"
-       "Usage:      Output of the agenda *ext_mat_agenda*. \n"
+       "Usage:      Output of the agendas *opt_prop_gas_agenda* \n"
+       "                             and *opt_prop_part_agenda* \n" 
        "\n"
-       "Unit:        m^2 \n"
+       "Unit:       [Hz, m^2, m^2] "
        "\n"
        "Dimensions: [stokes_dim, stokes_dim]"
        ),
-      GROUP( Matrix_ )));
+       GROUP( Tensor3_ )));
   
   wsv_data.push_back
-    (WsvRecord
-     ( NAME( "ext_mat_agenda" ),
-       DESCRIPTION
-       (
-	"See agendas.cc."
-	),
-       GROUP(  Agenda_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "ext_mat_gas" ),
-       DESCRIPTION
-       (
-	"Extinction matrix for gaseous species.\n"
-	"\n"
-	"This workspace variable represents the extinction matrix of the\n"
-	"gaseous species specified for the study.  It can either be\n"
-	"calculated in the method *ext_mat_gasCalc* or can be read in from\n"
-	"a file.  The method *ext_mat_gasCalc* is not yet implemented. \n"
-	"\n"
-	"There will be for sure more documentation on this.\n"
-	"\n"
-	"Usage:      Input to the method ext_matCalc\n"
-	"\n"
-	"Unit:        m^2\n"
-	"\n"
-	"Dimensions: [ stokes_dim, stokes_dim ]\n"
-	),
-      GROUP( Matrix_ )));
-	
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "ext_mat_part" ),
-       DESCRIPTION
-       (
-	"Physical extinction matrix for particle.\n"
-	"\n"
-	"This workspace variable represents the actual physical extinction\n"
-	"matrix of the particles chosen for the study for given propagation \n"
-	"directions.  This is calculated by the method *ext_mat_partCalc*\n"
-	"\n"
-	"ARTS user guide (AUG) gives the formula used for computing this \n"
-	"variable. Use the index to find where this variable is discussed.\n"
-	"The variable is listed as a subentry to \"workspace variables\".\n"
-	"\n"
-	"Usage:      Output of the method ext_mat_partCalc\n"
-	"\n"
-	"Unit:        m^2\n"
-	"\n"
-	"Dimensions: [ stokes_dim, stokes_dim ]\n"
-        ),
-       GROUP( Matrix_ )));
-
-  wsv_data.push_back
-    (WsvRecord
+     (WsvRecord
     ( NAME( "ext_mat_spt" ),
       DESCRIPTION
       (
@@ -663,7 +576,35 @@ void define_wsv_data()
 	"\n"   
 	"Unit:        Hz"
 	), 
-       GROUP( Vector_ )));
+        GROUP( Vector_ )));
+
+
+
+  wsv_data.push_back
+    (WsvRecord
+     (NAME( "f_index" ),
+      DESCRIPTION
+      (
+       "Frequency index. \n"
+       "\n"
+       "The calculations inside the cloudbox are only done for one frequency\n"
+       "at a time. Some methods used for scattering calculation require the \n"
+       "frequency. *f_index* holds the information, for which frequency the \n"
+       "scattering calcultations are performed.\n"
+       "\n"
+       "*f_index* is an input to *opt_prop_gas_agenda* and \n"
+       "*opt_prop_part_agenda*. In the clearsky case *opt_prop_gas_agenda* \n"
+       "has to calculate optical properties for all frequencies defined\n"
+       "in *f_grid*, in this case *f_index* has to be set to -1.\n "
+       "\n"
+       "Usage:      Input and output to *scat_mono_agenda*,\n"
+       "                     *opt_prop_gas_agenda\n"
+       "                     *opt_prop_part_agenda*.\n"
+       "\n"
+       ), 
+      GROUP( Index_ ))); 
+
+
  
   wsv_data.push_back
     (WsvRecord
@@ -1204,7 +1145,26 @@ void define_wsv_data()
        ),
       GROUP( Numeric_ )));
 
-  wsv_data.push_back
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "opt_prop_gas_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "opt_prop_part_agenda" ),
+      DESCRIPTION
+      (
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "p_grid" ),
       DESCRIPTION
@@ -1443,16 +1403,25 @@ void define_wsv_data()
        ),
       GROUP( Matrix_ )));
 
-   wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
-    ( NAME( "scat_aa_grid" ),
+    ( NAME( "scalar_gas_absorption_agenda" ),
       DESCRIPTION
       (
-       "Azimuthal angle grid.\n"
-       "\n"
-       "The azimutal angle grid, on which the intensity field and the \n"
+	"See agendas.cc."
+       ),
+      GROUP( Agenda_)));
+  
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "scat_aa_grid" ),
+       DESCRIPTION
+       (
+        "Azimuthal angle grid.\n"
+        "\n"
+        "The azimutal angle grid, on which the intensity field and the \n"
        "optical scattering properties are stored. The grid has to be defined\n"
-       "if the cloudbox is activated by the flag *cloudbox_on*.\n"
+        "if the cloudbox is activated by the flag *cloudbox_on*.\n"
        "The grid must be sorted in decreasing order, with no repetitions.\n"
        "\n"
        "See further the ARTS user guide (AUG). Use the index to find where\n"
@@ -1532,23 +1501,7 @@ void define_wsv_data()
        ),
       GROUP( Tensor6_ )));   
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "scat_f_index" ),
-      DESCRIPTION
-      (
-       "Frequency index for scattering calculations. \n"
-       "\n"
-       "The calculations inside the cloudbox are only done for one frequency\n"
-       "at a time. Some methods used for scattering calculation require the \n"
-       "frequency. *f_index* holds the information, for which frequency the \n"
-       "scattering calcultations are performed.\n"
-       "\n"
-       "Usage:      Output of *scat_mono_agenda*.\n"
-       ),
-      GROUP( Index_ )));
-
-
+ 
  wsv_data.push_back
    (WsvRecord
     ( NAME( "scat_i_lat" ),

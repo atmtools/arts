@@ -42,6 +42,8 @@ arts_SOURCES = \
 	interpolation.cc \
 	interpolation.h \
 	iotraits.h \
+	scat_rte.cc \
+	scat_rte.h \
 	m_lineshapes.cc \
 	m_agenda.cc \
         m_atmosphere.cc \
