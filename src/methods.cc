@@ -1130,11 +1130,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("lineshapeDefine"),
   	DESCRIPTION(
-          "Sets the lineshape for all calculated lines.\n"
-	  "Specify an available lineshape, together with a normalization factor.\n"
+          "Sets the lineshape for all calculated lines. Specify an available\n"
+	  "lineshape, together with a normalization factor and a cutoff frequency.\n\n"
+	  "Shape: no_shape Doppler Lorentz Drayson Voigt_Kuntz Voigt_Drayson3\n"
+	  "       Voigt_Drayson4 Voigt_Drayson6 Rosenkranz_Voigt_Drayson\n"
+	  "       Rosenkranz_Voigt_Kuntz6.\n"
 	  "Normalization Factors:  no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
-	  "Example:\n"
-	  "shape=\"Lorentz\" normalizationfactor=\"linear\""),
+	  "Cutoff: -1: no cutoff Number: positive cutoff frequency in Hz.\n"
+	  "Example:\n\n"
+	  "shape=\"Lorentz\" normalizationfactor=\"linear\" cutoff=650e9"),
 	OUTPUT( lineshape_ ),
 	INPUT( tag_groups_ ),
 	GOUTPUT(),
@@ -1146,13 +1150,18 @@ void define_md_data()
     ( MdRecord
       ( NAME("lineshape_per_tgDefine"),
   	DESCRIPTION(
-          "Sets the lineshape per defined tag group.\n"
-	  "Specify for each selected tag group an individual lineshape,\n"
-	  "together with a normalization factor.\n"
-	  "Normalization Factors: no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
+          "Sets the lineshape per tag group for all calculated lines. Specify\n"
+	  "an available lineshape, together with a normalization factor and a\n"
+	  "cutoff frequency.\n\n"
+	  "Shape: no_shape Doppler Lorentz Drayson Voigt_Kuntz Voigt_Drayson3\n"
+	  "       Voigt_Drayson4 Voigt_Drayson6 Rosenkranz_Voigt_Drayson\n"
+	  "       Rosenkranz_Voigt_Kuntz6.\n"
+	  "Normalization Factors:  no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
+	  "Cutoff: -1: no cutoff Number: positive cutoff frequency in Hz.\n\n"
 	  "Example:\n"
 	  "shape=[\"Lorentz\",\"Voigt_Kuntz6\"] \n"
-	  "normalizationfactor=[\"linear\", \"quadratic\"]"),
+	  "normalizationfactor=[\"linear\", \"quadratic\"] \n"
+	  "cutoff=[ 650e9, -1 ]"),
 	OUTPUT( lineshape_ ),
 	INPUT( tag_groups_ ),
 	GOUTPUT(),
