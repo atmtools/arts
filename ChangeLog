@@ -1,6 +1,23 @@
+2000-12-01  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-82
+
+	* lineshape selection in controlfile implemented
+
+	* lineshape and lineshape_norm are 2 new workspace variables, they
+	  contain the index of the selected lineshape and normalization
+	  function of the lineshape_data and lineshape_norm_data records.
+
+	* lineshapeDefine and lineshape_per_abs_tagDefine are 2 new
+	  workspace methods, they allow the selection of the lineshape and
+      	  the lineshape normalization in the controlfile. Currently
+	  implemented: shape: Lorentz, Voigt_Kuntz1
+	               norm:  no_norm (1), linear (f/f0), quadratic (f/f0)^2
+	  Consequently, they both need tag_groups (tags) as input
+
 2000-11-30  Axel von_Engeln  <engeln@uni-bremen.de>
 
-	* arts-0-0-80
+	* arts-0-0-81
 
 	* Test version
 

@@ -75,11 +75,20 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("lineshapes",
+     ("lineshape",
       "Indices of lineshape functions. There is one entry for\n"
       "each abs_tag, not for each species. This means if you have several\n"
       "abs_tags for different isotopes or transitions of a species, you\n"
       "may use different lineshapes.",
+      ARRAYofsizet_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("lineshape_norm",
+      "Indices of normalizations to the lineshape functions. There is one\n"
+      "entry for each abs_tag, not for each species. This means if you have\n"
+      "several abs_tags for different isotopes or transitions of a species, you\n"
+      "may use different lineshapes and normalizations.",
       ARRAYofsizet_));
 
 

@@ -1332,41 +1332,45 @@ void k_contabs (
 
    The temperature WF matrix is appended to the total WF matrix (using k_join).
 
-   \retval   k            weighting function matrix
-   \retval   k_names      identity name(s)
-   \retval   k_aux        additional data
-   \param    los          line of sight structure
-   \param    absloswfs    absorption LOS Wfs
-   \param    f_mono       frequency absorption grid
-   \param    p_abs        pressure grid for abs. calculations
-   \param    t_abs        temperatures at p_abs
-   \param    vmrs         VMR profiles at p_abs
-   \param    lines_per_tg lines tag sorted
-   \param    abs          total absorption
-   \param    trans        transmissions         
-   \param    e_ground     ground emissivity
-   \param    t_ground     ground temperature
-   \param    k_grid       retrieval grid
+   \retval   k                 weighting function matrix
+   \retval   k_names           identity name(s)
+   \retval   k_aux             additional data
+   \param    los               line of sight structure
+   \param    absloswfs         absorption LOS Wfs
+   \param    f_mono            frequency absorption grid
+   \param    p_abs             pressure grid for abs. calculations
+   \param    t_abs             temperatures at p_abs
+   \param    vmrs              VMR profiles at p_abs
+   \param    lines_per_tg      lines tag sorted
+   \param    lineshape         index to lineshape function per tag
+   \param    lineshape_norm    index to lineshape normalization function per tag
+   \param    abs               total absorption
+   \param    trans             transmissions         
+   \param    e_ground          ground emissivity
+   \param    t_ground          ground temperature
+   \param    k_grid            retrieval grid
 
    \author Patrick Eriksson
    \date   2000-09-15
 */
 void k_temp_nohydro (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-              const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          f_mono,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,            
-              const ARRAYofVECTOR&   vmrs,
-              const ARRAYofARRAYofLineRecord& lines_per_tg,
-              const MATRIX&          abs,            
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground,
-              const Numeric&         t_ground,
-              const VECTOR&          k_grid )
+		     MATRIX&          k,
+		     ARRAYofstring&   k_names,
+		     MATRIX&          k_aux,
+		     const LOS&             los,           
+		     const ARRAYofMATRIX&   absloswfs,
+		     const VECTOR&          f_mono,
+		     const VECTOR&          p_abs,
+		     const VECTOR&          t_abs,            
+		     const ARRAYofVECTOR&   vmrs,
+		     const ARRAYofARRAYofLineRecord& lines_per_tg,
+		     const ARRAYofsizet&    lineshape,
+		     const ARRAYofsizet&    lineshape_norm,
+		     const MATRIX&          abs,            
+		     const ARRAYofMATRIX&   trans,
+		     const VECTOR&          e_ground,
+		     const Numeric&         t_ground,
+		     const VECTOR&          k_grid )
 {
   // Main sizes
   const size_t  nza = los.start.dim();     // number of zenith angles  
@@ -1416,7 +1420,8 @@ void k_temp_nohydro (
   out2 << "  Calculating absorption for t_abs + 1K\n";
   out2 << "  ----- Messages from absCalc: -----\n";
   //
-  absCalc( abs1k, abs_dummy, f_mono, p_abs, t_abs+1.0, vmrs, lines_per_tg );
+  absCalc( abs1k, abs_dummy, f_mono, p_abs, t_abs+1.0, vmrs, lines_per_tg, 
+	   lineshape, lineshape_norm );
   abs_dummy.clear();
   //
   out2 << "  ----- Back from absCalc ----------\n";
@@ -1779,21 +1784,23 @@ void kContAbs (
    Calculates temperature 1D weighting functions WITHOUT including
    hydrostatic equilibrium.
 
-   \retval   k        	    total WF matrix
-   \retval   k_names  	    identity name(s)
-   \retval   k_aux    	    additional data
-   \param    los      	    line of sight structure
-   \param    absloswfs	    absorption LOS Wfs
-   \param    f_mono   	    absorption frequency grid
-   \param    p_abs    	    pressure grid for abs. calculations
-   \param    t_abs          temperatures at p_abs
-   \param    vmrs           VMR profiles at p_abs
-   \param    lines_per_tg   lines tag sorted
-   \param    abs            total absorption
-   \param    trans          transmissions         
-   \param    e_ground       ground emissivity
-   \param    t_ground       ground temperature
-   \param    k_grid         retrieval grid
+   \retval   k        	       total WF matrix
+   \retval   k_names  	       identity name(s)
+   \retval   k_aux    	       additional data
+   \param    los      	       line of sight structure
+   \param    absloswfs	       absorption LOS Wfs
+   \param    f_mono   	       absorption frequency grid
+   \param    p_abs     	       pressure grid for abs. calculations
+   \param    t_abs             temperatures at p_abs
+   \param    vmrs              VMR profiles at p_abs
+   \param    lines_per_tg      lines tag sorted
+   \param    lineshape         index to lineshape function per tag
+   \param    lineshape_norm    index to lineshape normalization function per tag
+   \param    abs               total absorption
+   \param    trans             transmissions         
+   \param    e_ground          ground emissivity
+   \param    t_ground          ground temperature
+   \param    k_grid            retrieval grid
 
    \author Patrick Eriksson
    \date   2000-09-18
@@ -1802,21 +1809,24 @@ void kTempNoHydro (
                     MATRIX&          k,
                     ARRAYofstring&   k_names,
                     MATRIX&          k_aux,
-              const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          f_mono,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,
-              const ARRAYofVECTOR&   vmrs,
-              const ARRAYofARRAYofLineRecord& lines_per_tg,
-              const MATRIX&          abs,            
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          e_ground,
-              const Numeric&         t_ground,
-              const VECTOR&          k_grid )
+		    const LOS&             los,           
+		    const ARRAYofMATRIX&   absloswfs,
+		    const VECTOR&          f_mono,
+		    const VECTOR&          p_abs,
+		    const VECTOR&          t_abs,
+		    const ARRAYofVECTOR&   vmrs,
+		    const ARRAYofARRAYofLineRecord& lines_per_tg,
+		    const ARRAYofsizet&    lineshape,
+		    const ARRAYofsizet&    lineshape_norm,
+		    const MATRIX&          abs,            
+		    const ARRAYofMATRIX&   trans,
+		    const VECTOR&          e_ground,
+		    const Numeric&         t_ground,
+		    const VECTOR&          k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
-                 vmrs, lines_per_tg, abs, trans, e_ground, t_ground, k_grid );
+		  vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
+		  e_ground, t_ground, k_grid );
 }
 
 
@@ -1828,40 +1838,45 @@ void kTempNoHydro (
    Calculates temperature 1D weighting functions without hydrostatic eq.
    and ground reflections.
 
-   \retval   k        	    total WF matrix
-   \retval   k_names  	    identity name(s)
-   \retval   k_aux    	    additional data
-   \param    los      	    line of sight structure
-   \param    absloswfs	    absorption LOS Wfs
-   \param    f_mono   	    absorption frequency grid
-   \param    p_abs    	    pressure grid for abs. calculations
-   \param    t_abs          temperatures at p_abs
-   \param    vmrs           VMR profiles at p_abs
-   \param    lines_per_tg   lines tag sorted
-   \param    abs            total absorption
-   \param    trans          transmissions         
-   \param    k_grid         retrieval grid
+   \retval   k         	       total WF matrix
+   \retval   k_names  	       identity name(s)
+   \retval   k_aux    	       additional data
+   \param    los      	       line of sight structure
+   \param    absloswfs	       absorption LOS Wfs
+   \param    f_mono   	       absorption frequency grid
+   \param    p_abs    	       pressure grid for abs. calculations
+   \param    t_abs             temperatures at p_abs
+   \param    vmrs              VMR profiles at p_abs
+   \param    lines_per_tg      lines tag sorted
+   \param    lineshape         index to lineshape function per tag
+   \param    lineshape_norm    index to lineshape normalization function per tag
+   \param    abs               total absorption
+   \param    trans             transmissions         
+   \param    k_grid            retrieval grid
 
    \author Patrick Eriksson
    \date   2000-09-18
 */
 void kTempNoHydroNoGround (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-              const LOS&             los,           
-              const ARRAYofMATRIX&   absloswfs,
-              const VECTOR&          f_mono,
-              const VECTOR&          p_abs,
-              const VECTOR&          t_abs,
-              const ARRAYofVECTOR&   vmrs,
-              const ARRAYofARRAYofLineRecord& lines_per_tg,
-              const MATRIX&          abs,            
-              const ARRAYofMATRIX&   trans,
-              const VECTOR&          k_grid )
+			   MATRIX&          k,
+			   ARRAYofstring&   k_names,
+			   MATRIX&          k_aux,
+			   const LOS&             los,           
+			   const ARRAYofMATRIX&   absloswfs,
+			   const VECTOR&          f_mono,
+			   const VECTOR&          p_abs,
+			   const VECTOR&          t_abs,
+			   const ARRAYofVECTOR&   vmrs,
+			   const ARRAYofARRAYofLineRecord& lines_per_tg,
+			   const ARRAYofsizet&    lineshape,
+			   const ARRAYofsizet&    lineshape_norm,
+			   const MATRIX&          abs,            
+			   const ARRAYofMATRIX&   trans,
+			   const VECTOR&          k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, los, absloswfs, f_mono, p_abs, t_abs, 
-                       vmrs, lines_per_tg, abs, trans, VECTOR(0), 0, k_grid );
+		  vmrs, lines_per_tg, lineshape, lineshape_norm, abs, trans, 
+		  VECTOR(0), 0, k_grid );
 }
 
 //// kManual ////////////////////////////////////////////////////////////////

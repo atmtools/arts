@@ -74,6 +74,40 @@ private:
 
 };
 
+/** The type that is used to store pointers to lineshape
+    normalization functions.  */
+typedef void (*lsnf_type)(VECTOR&,
+			  Numeric,
+			  const VECTOR&);
+
+/** Lineshape related normalization function information. There is one
+    LineshapeNormRecord for each available lineshape normalization
+    function.
+
+    \author Axel von Engeln
+    \date   2000-11-30  */
+class LineshapeNormRecord{
+public:
+  LineshapeNormRecord(const string& name,
+		      const string& description,
+		      lsnf_type      function)
+    : mname(name),
+      mdescription(description),
+      mfunction(function)
+  { /* Nothing to do here. */ }
+  /** Return the name of this lineshape. */
+  const string&  Name()        const { return mname;        }   
+  /** Return the description text. */
+  const string&  Description() const { return mdescription; }
+  /** Return pointer to lineshape normalization function. */
+  lsnf_type Function() const { return mfunction; }
+private:	
+  string  mname;        ///< Name of the function (e.g., linear).
+  string  mdescription; ///< Short description.
+  lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
+};
+
+
 /** Contains the lookup data for one isotope.
     \author Stefan Buehler */
 class IsotopeRecord{
@@ -822,6 +856,8 @@ void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   p_abs,
 		  const VECTOR&  	   t_abs,           
 		  const VECTOR&            vmr,
-		  const ARRAYofLineRecord& lines );
+		  const ARRAYofLineRecord& lines,
+		  const size_t             ind_ls,
+		  const size_t             ind_lsn);
 
 #endif // absorption_h

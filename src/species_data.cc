@@ -72,25 +72,25 @@ ARRAY<SpeciesRecord> species_data;
        and DDCO. For these cases, a different scheme is taken as
        indicated.
 
-  <dt> Abundance: 
+  <dt> Isotopic Ratio: 
   <dd> Generally Hitran convention, unless otherwise indicated.
-       A number code in the header gives the source of the abundancies 
+       A number code in the header gives the source of the isotopic ratios 
        for each isotope of each species:
        
        <table>
        <tr>
-       <td> 1: <td> hitran 96 abundance, taken from cd: file
+       <td> 1: <td> hitran 96 isotopic ratio, taken from cd: file
           	    software/generic/tables_96.txt (default, even if jpl and
-          	    hitran abundancies are available).
+          	    hitran isotopic ratios are available).
        <tr>
-       <td >2: <td> jpl abundance, taken from the documentation coming
+       <td >2: <td> jpl isotopic ratio, taken from the documentation coming
           	    along with the catalogue. latest catalogue version
           	    extracted 27.07.00, can be found at
           	    /pool/lookup/jpl/cat7_00/doc/d<tag_nr>.cat 
        <tr>
-       <td> 3: <td> jpl abundance is multiplied with the maximum abundance
+       <td> 3: <td> jpl isotopic ratio is multiplied with the maximum isotopic ratio
           	    of this species found in hitran. is only performed when
-          	    abundancies of 1 were found in the jpl catalogue.
+          	    isotopic ratios of 1 were found in the jpl catalogue.
        </table>
 
   <dt> Mass: 
@@ -109,12 +109,12 @@ ARRAY<SpeciesRecord> species_data;
 
   <dt> JPL-tags:
   <dd> Collected in file 
-       /pool/lookup/jpl/cat7_00/abundancies/tag_species.jpl, taken from
+       arts/aux/abundancies/tag_species.jpl, taken from
        last issue of jpl catalogue (7/00).
   </dl>
 
   Some more information can be found at /pool/lookup/jpl/cat7_00/abundancies,
-  where the idl script that reads/converts the abundances is located.
+  where the idl script that reads/converts the isotopic ratios is located.
 
   \author Axel von Engeln  
   \date   2000-08-08 
@@ -146,7 +146,7 @@ void define_basic_species_data()
       ( NAME("H2O"),
 	DEGFR(3),
 	ISOTOPES
-	(//   Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//   Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC( ""	,		,	,	,	,TAGS() ),
 	 REC( ""	,		,	,	,	,TAGS() )
@@ -158,13 +158,13 @@ void define_basic_species_data()
 
 
   // H2O
-  // Abundancies: 1 1 1 1 3 3
+  // Isotopic Ratio: 1 1 1 1 3 3
   species_data.push_back
     ( SpeciesRecord
       ( NAME("H2O"),
 	DEGFR(3),
 	ISOTOPES
-	(//   Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//   Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC( "161"	,0.99731702	,18.	,11	,11	,TAGS(18003, 18005) ),
 	 REC( "181"	,0.00199983	,20.	,12	,12	,TAGS(20003) ),
@@ -177,13 +177,13 @@ void define_basic_species_data()
   // CO2 
   // (missing mainly in JPL, latest version (7/00) includes some isotopes)
   // Degrees of freedom from Schanda:`Physical Fundamentals of Remote Sensing'
-  // Abundancies: 1 1 1 1 1 1 1 1
+  // Isotopic Ratios: 1 1 1 1 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("CO2"),
 	DEGFR(2),
 	ISOTOPES
-	(//   Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//   Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC( "626"	,0.98420	,44.	,21	,21	,TAGS() ),
 	 REC( "636"	,0.01106	,45.	,22	,22	,TAGS() ),
@@ -197,13 +197,13 @@ void define_basic_species_data()
   
 
   // O3
-  // Abundancies: 1 1 1 1 1
+  // Isotopic Ratios: 1 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("O3"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("666"	,0.992901	,48.	,31	,31	,TAGS(48004, 48005, 48006, 48007, 48008)),
 	 REC("668"	,0.00398194	,50.	,32	,32	,TAGS(50004, 50006)),
@@ -214,13 +214,13 @@ void define_basic_species_data()
 
 
   // N2O
-  // Abundancies: 1 1 1 1 1
+  // Isotopic Ratios: 1 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("N2O"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("446"	,0.990333	,44.	,41	,41	,TAGS(44004, 44009, 44012)),
 	 REC("456"	,0.0036409	,45.	,42	,42	,TAGS(45007)),
@@ -230,13 +230,13 @@ void define_basic_species_data()
 	 ) ) );
 
   // CO
-  // Abundancies: 1 1 1 1 1 1
+  // Isotopic Ratios: 1 1 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("CO"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("26"	,0.98654	,28.	,51	,51	,TAGS(28001)),
 	 REC("36"	,0.01108	,29.	,52	,52	,TAGS(29001)),
@@ -248,8 +248,8 @@ void define_basic_species_data()
 
   // CH4
   // Degrees of freedom: jpl catalogue
-  // Abundancies: 1 1 1
-  // Note: - jpl abundancies for tag 17003: 0.00014996848
+  // Isotopic Ratios: 1 1 1
+  // Note: - jpl isotopic ratio for tag 17003: 0.00014996848
   //       - CH4 is in official mytran list (6), but does not 
   //         seem to be included for calculation, as given
   //         by table tag_table in file glob_def.c
@@ -258,7 +258,7 @@ void define_basic_species_data()
       ( NAME("CH4"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("211"	,0.98827	,16.	,-1	,61	,TAGS()),
 	 REC("311"	,0.01110	,17.	,-1	,62	,TAGS()),
@@ -266,13 +266,13 @@ void define_basic_species_data()
 	 ) ) );
 
   // O2
-  // Abundancies: 1 1 1
+  // Isotopic Ratios: 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("O2"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("66"	,0.995262	,32.	,71	,71	,TAGS(32001, 32002)),
 	 REC("68"	,0.00399141	,34.	,72	,72	,TAGS(34001)),
@@ -280,13 +280,13 @@ void define_basic_species_data()
 	 ) ) );
 
   // NO
-  // Abundancies: 1 1 1
+  // Isotopic Ratios: 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("NO"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("46"	,0.993974	,30.	,81	,81	,TAGS(30008)),
 	 REC("56"	,0.0036543	,31.	,-1	,82	,TAGS() ),
@@ -294,13 +294,13 @@ void define_basic_species_data()
 	 ) ) );
 
   // SO2
-  // Abundancies: 1 1 2 2
+  // Isotopic Ratios: 1 1 2 2
   species_data.push_back
     ( SpeciesRecord
       ( NAME("SO2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("626"	,0.94568	,64.	,91	,91	,TAGS(64002, 64005)),
 	 REC("646"	,0.04195	,66.	,-1	,92	,TAGS(66002)),
@@ -309,25 +309,25 @@ void define_basic_species_data()
 	 ) ) );
 
   // NO2
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("NO2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("646"	,0.991616	,46.	,101	,101	,TAGS(46006))
 	 ) ) );
 
   // NH3
-  // Abundancies: 1 1 3
+  // Isotopic Ratios: 1 1 3
   species_data.push_back
     ( SpeciesRecord
       ( NAME("NH3"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("4111"	,0.9958715	,17.	,111	,111	,TAGS(17002, 17004)),
 	 REC("5111"	,0.0036613	,18.	,112	,112	,TAGS(18002)),
@@ -335,25 +335,25 @@ void define_basic_species_data()
 	 ) ) );
 
   // HNO3
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HNO3"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("146"	,0.989110	,63.	,121	,121	,TAGS(63001, 63002, 63003, 63004, 63005, 63006))
 	 ) ) );
 
   // OH
-  // Abundancies: 1 1 1
+  // Isotopic Ratios: 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("OH"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("61"	,0.997473	,17.	,131	,131	,TAGS(17001)),
 	 REC("81"	,0.00200014	,19.	,132	,132	,TAGS(19001)),
@@ -361,26 +361,26 @@ void define_basic_species_data()
 	 ) ) );
 
   // HF
-  // Abundancies: 1 3
+  // Isotopic Ratios: 1 3
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HF"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("19"	,0.99984425	,20.	,141	,141	,TAGS(20002)),
 	 REC("29"	,0.00014994513	,21.	,-1	,-1	,TAGS(21002))
 	 ) ) );
 
   // HCl
-  // Abundancies: 1 1 2 2
+  // Isotopic Ratios: 1 1 2 2
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HCl"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("15"	,0.757587	,36.	,151	,151	,TAGS(36001)),
 	 REC("17"	,0.242257	,38.	,152	,152	,TAGS(38001)),
@@ -389,13 +389,13 @@ void define_basic_species_data()
 	 ) ) );
 
   // HBr
-  // Abundancies: 1 1
+  // Isotopic Ratios: 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HBr"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("19"	,0.50678	,80.	,161	,161	,TAGS(80001)),
 	 REC("11"	,0.49306	,82.	,162	,162	,TAGS(82001))
@@ -403,7 +403,7 @@ void define_basic_species_data()
 
   // HI
   // Degrees of freedom: guessed, since it seems to be linear
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   // Note: HI is in official mytran list (17), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -413,32 +413,32 @@ void define_basic_species_data()
       ( NAME("HI"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("17"	,0.99984425	,128.	,-1	,171	,TAGS( ))
 	 ) ) );
 
   // ClO
-  // Abundancies: 1 1
+  // Isotopic Ratios: 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("ClO"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("56"	,0.75591	,51.	,181	,181	,TAGS(51002, 51003)),
 	 REC("76"	,0.24172	,53.	,182	,182	,TAGS(53002, 53006))
 	 ) ) );
 
   // OCS
-  // Abundancies: 1 1 1 1
+  // Isotopic Ratios: 1 1 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("OCS"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("622"	,0.93739	,60.	,191	,191	,TAGS(60001)),
 	 REC("624"	,0.04158	,62.	,192	,192	,TAGS(62001)),
@@ -447,7 +447,7 @@ void define_basic_species_data()
 	 ) ) );
 
   // H2CO
-  // Abundancies: 1 1 1 3 3
+  // Isotopic Ratios: 1 1 1 3 3
   // Note: the isotope names differ from hitran convention, since the jpl catalogue has 
   //       isotopes HHCO, HDCO, DDCO.
   //       hitran convention  --  new convention  -- jpl species
@@ -461,7 +461,7 @@ void define_basic_species_data()
       ( NAME("H2CO"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("1126"	,0.98624	,30.	,201	,201	,TAGS(30004)),
 	 REC("1136"	,0.01108	,31.	,202	,202	,TAGS(31002)),
@@ -471,13 +471,13 @@ void define_basic_species_data()
 	 ) ) );
 
   // HOCl
-  // Abundancies: 1 1
+  // Isotopic Ratios: 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HOCl"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("165"	,0.75579	,52.	,211	,211	,TAGS(52006)),
 	 REC("167"	,0.24168	,54.	,212	,212	,TAGS(54005))
@@ -485,7 +485,7 @@ void define_basic_species_data()
 
   // N2
   // Degrees of freedom: guessed, since it seems to be linear
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   // Note: N2 is in official mytran list (22), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -494,19 +494,19 @@ void define_basic_species_data()
       ( NAME("N2"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("44"	,0.9926874	,28.	,-1	,221	,TAGS( ))
 	 ) ) );
 
   // HCN
-  // Abundancies: 1 1 1 3
+  // Isotopic Ratios: 1 1 1 3
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HCN"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("124"	,0.98511	,27.	,231	,231	,TAGS(27001, 27003)),
 	 REC("134"	,0.01107	,28.	,232	,232	,TAGS(28002)),
@@ -515,33 +515,33 @@ void define_basic_species_data()
 	 ) ) );
 
   // CH3Cl
-  // Abundancies: 1 1
+  // Isotopic Ratios: 1 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("CH3Cl"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("215"	,0.74894	,50.	,241	,241	,TAGS(50007)),
 	 REC("217"	,0.23949	,52.	,242	,242	,TAGS(52009))
 	 ) ) );
 
   // H2O2
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("H2O2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("1661"	,0.994952	,34.	,251	,251	,TAGS(34004))
 	 ) ) );
 
   // C2H2
   // Degrees of freedom: guessed, since it seems to be non linear
-  // Abundancies: 1 1
+  // Isotopic Ratios: 1 1
   // Note: C2H2 is in official mytran list (26), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -550,7 +550,7 @@ void define_basic_species_data()
       ( NAME("C2H2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("1221"	,0.97760	,26.	,-1	,261	,TAGS( )),
 	 REC("1231"	,0.02197	,27.	,-1	,262	,TAGS( ))
@@ -558,7 +558,7 @@ void define_basic_species_data()
 
   // C2H6
   // Degrees of freedom: guessed, since it seems to be non linear
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   // Note: C2H6 is in official mytran list (27), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -567,38 +567,38 @@ void define_basic_species_data()
       ( NAME("C2H6"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("1221"	,0.97699	,30.	,-1	,271	,TAGS( ))
 	 ) ) );
 
   // PH3
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("PH3"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("1111"	,0.99953283	,34.	,281	,281	,TAGS(34003))
 	 ) ) );
 
   // COF2
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("COF2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("269"	,0.98654	,66.	,291	,291	,TAGS(66001))
 	 ) ) );
 
   // SF6
   // Degrees of freedom: guessed, since it seems to be non linear
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   // Note: SF6 is in official mytran list (30), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -607,19 +607,19 @@ void define_basic_species_data()
       ( NAME("SF6"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("29"	,0.95018	,146.	,-1	,301	,TAGS( ))
 	 ) ) );
 
   // H2S
-  // Abundancies: 1 1 1 2
+  // Isotopic Ratios: 1 1 1 2
   species_data.push_back
     ( SpeciesRecord
       ( NAME("H2S"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("121"	,0.94988	,34.	,311	,311	,TAGS(34002)),
 	 REC("141"	,0.04214	,36.	,-1	,312	,TAGS( )),
@@ -628,7 +628,7 @@ void define_basic_species_data()
 	 ) ) );
 
   // HCOOH
-  // Abundancies: 1 3 3 3
+  // Isotopic Ratios: 1 3 3 3
   // Note: the isotope names differ from hitran convention, since the jpl catalogue has 
   //       isotopes HCOOH, HC-13-OOH, DCOOH, HCOOD
   //       hitran convention  --  new convention  -- jpl species
@@ -641,7 +641,7 @@ void define_basic_species_data()
       ( NAME("HCOOH"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("1261"	,0.983898	,46.	,321	,321	,TAGS(46005)),
 	 REC("1361"	,0.010913149	,47.	,-1	,-1	,TAGS(47002)),
@@ -650,38 +650,38 @@ void define_basic_species_data()
 	 ) ) );
 
   // HO2
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("HO2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("166"	,0.995107	,33.	,331	,331	,TAGS(33001))
 	 ) ) );
 
   // O
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   species_data.push_back
     ( SpeciesRecord
       ( NAME("O"),
 	DEGFR(0),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("6"	,0.997628	,16.	,341	,341	,TAGS(16001))
 	 ) ) );
 
   // ClONO2
-  // Abundancies: 1 1
+  // Isotopic Ratios: 1 1
   // Note: ClONO2 in hitran is identical to ClNO3 in jpl (according to Johannes Orphal)
   species_data.push_back
     ( SpeciesRecord
       ( NAME("ClONO2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("5646"	,0.74957	,97.	,351	,351	,TAGS(97002)),
 	 REC("7646"	,0.23970	,99.	,352	,352	,TAGS(99001))
@@ -689,7 +689,7 @@ void define_basic_species_data()
 
   // NO+
   // Degrees of freedom: guessed, since it seems to be linear
-  // Abundancies: 1
+  // Isotopic Ratios: 1
   // Note: NO+ is in official mytran list (36), but does not 
   //       seem to be included for calculation, as given
   //       by table tag_table in file glob_def.c
@@ -698,58 +698,58 @@ void define_basic_species_data()
       ( NAME("NO+"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("46"	,0.993974	,30.	,-1	,361	,TAGS(30011))
 	 ) ) );
 
   // OClO
-  // Abundancies: 2 2
+  // Isotopic Ratios: 2 2
   species_data.push_back
     ( SpeciesRecord
       ( NAME("OClO"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("656"	,0.75509223	,67.	,431	,-1	,TAGS(67001)),
 	 REC("676"	,0.24490632	,69.	,432	,-1	,TAGS(69001))
 	 ) ) );
 
   // BrO
-  // Abundancies: 2 2
+  // Isotopic Ratios: 2 2
   species_data.push_back
     ( SpeciesRecord
       ( NAME("BrO"),
 	DEGFR(2),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("96"	,0.50582466	,95.	,461	,-1	,TAGS(95001)),
 	 REC("16"	,0.49431069	,97.	,462	,-1	,TAGS(97001))
 	 ) ) );
 
   // H2SO4
-  // Abundancies: 2
+  // Isotopic Ratios: 2
   species_data.push_back
     ( SpeciesRecord
       ( NAME("H2SO4"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("126"	,0.95060479	,98.	,481	,-1	,TAGS(98001))
 	 ) ) );
 
   // Cl2O2
-  // Abundancies: 2 2
+  // Isotopic Ratios: 2 2
   // Note: refered to as Cl2O2 in mytran catalogue, in jpl cat: ClOOCl
   species_data.push_back
     ( SpeciesRecord
       ( NAME("Cl2O2"),
 	DEGFR(3),
 	ISOTOPES
-	(//  Name,	Abundance,	Mass,	MY-tag, HI-tag, JPL-tag
+	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
 	 REC("565"	,0.57016427	,102.	,491	,-1	,TAGS(102001)),
 	 REC("765"	,0.36982818	,104.	,492	,-1	,TAGS(104001))

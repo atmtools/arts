@@ -8,7 +8,7 @@
 # create the workspace variable `lines':
 # NOTE: MYTRAN IS LIMITED TO DEDICATED BANDS!!!!
 #linesReadFromMytran2 {
-#   filename = "../../../spectroscopy/mytran/mytran_catalogue.my2"
+#   filename = "../../../spectroscopy/mytran/mytran98.my2"
 #   fmin     = 200e9
 #   fmax     = 400e9
 #}

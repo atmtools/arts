@@ -54,13 +54,8 @@ void define_wsv_group_names()
   // Initialize to empty, just in case.
   wsv_group_names.clear();
 
-  /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     Must be consistent with the enum in wsv_group.h! Later on,
-     these enums could also be generated automatically, but that would
-     have to take place before the wsv_data is defined, since that
-     needs these enums.
-     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
   wsv_group_names.push_back("string");
+  wsv_group_names.push_back("size_t");
   wsv_group_names.push_back("int");
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("VECTOR");

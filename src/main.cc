@@ -543,6 +543,7 @@ int main (int argc, char **argv)
 
   // And the lineshape lookup data:
   define_lineshape_data();
+  define_lineshape_norm_data();
 
   // Make all these data visible:
   //  extern const ARRAY<MdRecord>  md_data;

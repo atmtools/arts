@@ -1,5 +1,5 @@
 ;
-; $Id: partition_function.pro,v 1.3 2000/11/09 14:10:36 axel Exp $
+; $Id: partition_function.pro,v 1.4 2000/12/01 16:24:59 axel Exp $
 ;
 pro HAK, dummy, mesg=mesg
 ; NAME:
@@ -31,6 +31,71 @@ empty
 return
 end
 
+FUNCTION calculate_partition_functions,jpl_part,vib
+;; little helper function for the correction of the jpl partition
+;; functions  
+cm2t	= 1.43875 ; Conversion factor for energy levels from cm-1 to K
+
+;; go through all partition function values and vib states
+for i=0, n_elements(jpl_part[0,*])-1 do begin
+    for j=0,n_elements(vib)-1 do begin
+        a=-vib[j]*cm2t/jpl_part[0,i]
+        if a lt -80 then jpl_part[1,i]=jpl_part[1,i] else $
+          jpl_part[1,i]=jpl_part[1,i]/(1-exp(a))
+    endfor
+endfor
+return, jpl_part
+end
+
+
+PRO correct_jpl_partition_functions,jpl_part,species
+;; corrects for vibrational partition fuctions not included in the
+;; jpl catalogue. Data from Patrick Eriksson & Miriam von König.
+
+case species of 
+    50004 : begin ; O3-asym18
+        vib=[693.0] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    50003 : begin ; O3-sym18
+        vib=[678.0] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    44004 : begin ; N2O
+        vib=[588.8,588.8,1284.9,2223.8] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    32001 : begin ; O2
+        vib=[1556.5] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    17002 : begin ; NH3
+        vib=[948.6] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    63001 : begin ; HNO3
+        vib=[458.2,579.0,646.8,763.2,878.6,912,1035,1103,1158,1218,$
+	      1226,1294,1303,1326,1335,1341,1368,1409,1710,3550] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    17003 : begin ; CH4
+        vib=[1306,1534,2917] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    64002 : begin ; SO2
+        vib=[518,1151,1362] ; [cm^-1]
+        jpl_part=calculate_partition_functions(jpl_part,vib)
+    end
+    else : begin
+        print,'No partition function correction defined.'
+        stop
+    end
+endcase
+
+end
+
+
+
 PRO make_plot,part_fct,data_def,t_arr,ind,title,leg_str
 ;; plot routine
 
@@ -51,7 +116,7 @@ end
 
 
 
-PRO gis, species_arr, str, i, j, k, l, array
+PRO gis, species_arr, str, i, j, k, l, m, array
 ;; find the first free location in species_arr and store input there
 ind=where(species_arr[*].name eq '')
 ind=ind[0]
@@ -62,13 +127,16 @@ species_arr[ind].arts_tag    = i
 species_arr[ind].hit_mol     = j
 species_arr[ind].hit_tag     = k
 species_arr[ind].dgf         = l
-if n_elements(array) ne 0 then species_arr[ind].jpl_tag[0:n_elements(array)-1]  = array
+species_arr[ind].par_corr    = m
+
+if n_elements(array) ne 0 then $
+  species_arr[ind].jpl_tag[0:n_elements(array)-1]  = array
 end
 
 
 PRO initialize_array,species_arr
-;; some general data, refering jpl and hitran tags with each other,
-;; extracted from the arts program
+;; some general data, refering jpl and hitran tags with 
+;; each other, extracted from the arts program
 
 ;; structure of the data
 species_data = { species, $
@@ -82,6 +150,7 @@ species_data = { species, $
                                         ;      e.g. major isotope of H2O:11
                                         ;           -1: not present 
                  dgf     : 0,         $ ;  degrees of freedom
+                 par_corr: 0,         $ ;  correction available to jpl partition fct
                  jpl_tag : lonarr(10) } ;  jpl tag numbers of this hitran isotope
 
 ;; replicate the structure, currently there are not more than 200
@@ -89,115 +158,115 @@ species_data = { species, $
 species_arr  = replicate({species},200)
 
 
-;; put the data into structure us gis procedure, not too elegant, I
+;; put the data into structure use gis procedure, not too elegant, I
 ;; must admitt. data is extracted from arts program
-gis, species_arr, 'H2O',   161,   161,    11, 3, long([18003, 18005])
-gis, species_arr, 'H2O',   181,   181,    12, 3, long([20003])
-gis, species_arr, 'H2O',   171,   171,    13, 3, long([19003])
-gis, species_arr, 'H2O',   162,   162,    14, 3, long([19002])
-gis, species_arr, 'H2O',   182,    -1,    -1, 3, long([21001])
-gis, species_arr, 'H2O',   262,    -1,    -1, 3, long([20001])
-gis, species_arr, 'CO2',   626,   626,    21, 2
-gis, species_arr, 'CO2',   636,   636,    22, 2
-gis, species_arr, 'CO2',   628,   628,    23, 2, long([46013])
-gis, species_arr, 'CO2',   627,   627,    24, 2, long([45012])
-gis, species_arr, 'CO2',   638,   638,    25, 2
-gis, species_arr, 'CO2',   637,   637,    26, 2
-gis, species_arr, 'CO2',   828,   828,    27, 2
-gis, species_arr, 'CO2',   728,   728,    28, 2
-gis, species_arr, 'O3',    666,   666,    31, 3, long([48004, 48005, 48006, 48007, 48008])
-gis, species_arr, 'O3',    668,   668,    32, 3, long([50004, 50006])
-gis, species_arr, 'O3',    686,   686,    33, 3, long([50003, 50005])
-gis, species_arr, 'O3',    667,   667,    34, 3, long([49002])
-gis, species_arr, 'O3',    676,   676,    35, 3, long([49001])
-gis, species_arr, 'N2O',   446,   446,    41, 2, long([44004, 44009, 44012])
-gis, species_arr, 'N2O',   456,   456,    42, 2, long([45007])
-gis, species_arr, 'N2O',   546,   546,    43, 2, long([45008])
-gis, species_arr, 'N2O',   448,   448,    44, 2, long([46007])
-gis, species_arr, 'N2O',   447,   447,    45, 2
-gis, species_arr, 'CO',     26,   26,     51, 2, long([28001])
-gis, species_arr, 'CO',     36,   36,     52, 2, long([29001])
-gis, species_arr, 'CO',     28,   28,     53, 2, long([30001])
-gis, species_arr, 'CO',     27,   27,     54, 2, long([29006])
-gis, species_arr, 'CO',     38,   38,     55, 2
-gis, species_arr, 'CO',     37,   37,     56, 2
-gis, species_arr, 'CH4',   211,   211,    61, 3
-gis, species_arr, 'CH4',   311,   311,    62, 3
-gis, species_arr, 'CH4',   212,   212,    63, 3, long([17003])
-gis, species_arr, 'O2',     66,   66,     71, 2, long([32001, 32002])
-gis, species_arr, 'O2',     68,   68,     72, 2, long([34001])
-gis, species_arr, 'O2',     67,   67,     73, 2, long([33002])
-gis, species_arr, 'NO',     46,   46,     81, 2, long([30008])
-gis, species_arr, 'NO',     56,   56,     82, 2
-gis, species_arr, 'NO',     48,   48,     83, 2
-gis, species_arr, 'SO2',   626,   626,    91, 3, long([64002, 64005])
-gis, species_arr, 'SO2',   646,   646,    92, 3, long([66002])
-gis, species_arr, 'SO2',   636,    -1,    -1, 3, long([65001])
-gis, species_arr, 'SO2',   628,    -1,    -1, 3, long([66004])
-gis, species_arr, 'NO2',   646,   646,   101, 3, long([46006])
-gis, species_arr, 'NH3',  4111,   4111,  111, 3, long([17002, 17004])
-gis, species_arr, 'NH3',  5111,   5111,  112, 3, long([18002])
-gis, species_arr, 'NH3',  4112,     -1,   -1, 3, long([18004])
-gis, species_arr, 'HNO3',  146,   146,   121, 3, long([63001, 63002, 63003, 63004, 63005, 63006])
-gis, species_arr, 'OH',     61,   61,    131, 2, long([17001])
-gis, species_arr, 'OH',     81,   81,    132, 2, long([19001])
-gis, species_arr, 'OH',     62,   62,    133, 2, long([18001])
-gis, species_arr, 'HF',     19,   19,    141, 2, long([20002])
-gis, species_arr, 'HF',     29,   -1,     -1, 2, long([21002])
-gis, species_arr, 'HCl',    15,   15,    151, 2, long([36001])
-gis, species_arr, 'HCl',    17,   17,    152, 2, long([38001])
-gis, species_arr, 'HCl',    25,   -1,     -1, 2, long([37001])
-gis, species_arr, 'HCl',    27,   -1,     -1, 2, long([39004])
-gis, species_arr, 'HBr',    19,   19,    161, 2, long([80001])
-gis, species_arr, 'HBr',    11,   11,    162, 2, long([82001])
-gis, species_arr, 'HI',     17,   17,    171, 2
-gis, species_arr, 'ClO',    56,   56,    181, 2, long([51002, 51003])
-gis, species_arr, 'ClO',    76,   76,    182, 2, long([53002, 53006])
-gis, species_arr, 'OCS',   622,   622,   191, 2, long([60001])
-gis, species_arr, 'OCS',   624,   624,   192, 2, long([62001])
-gis, species_arr, 'OCS',   632,   632,   193, 2, long([61001])
-gis, species_arr, 'OCS',   822,   822,   194, 2, long([62002])
-gis, species_arr, 'H2CO', 1126,   126,   201, 3, long([30004])
-gis, species_arr, 'H2CO', 1136,   136,   202, 3, long([31002])
-gis, species_arr, 'H2CO', 1128,   128,   203, 3, long([32004])
-gis, species_arr, 'H2CO', 1226,    -1,    -1, 3, long([31003])
-gis, species_arr, 'H2CO', 2226,    -1,    -1, 3, long([32006])
-gis, species_arr, 'HOCl',  165,   165,   211, 3, long([52006])
-gis, species_arr, 'HOCl',  167,   167,   212, 3, long([54005])
-gis, species_arr, 'N2',     44,   44,    221, 2
-gis, species_arr, 'HCN',   124,   124,   231, 3, long([27001, 27003])
-gis, species_arr, 'HCN',   134,   134,   232, 3, long([28002])
-gis, species_arr, 'HCN',   125,   125,   233, 3, long([28003])
-gis, species_arr, 'HCN',   224,    -1,    -1, 3, long([28004])
-gis, species_arr, 'CH3Cl', 215,   215,   241, 3, long([50007])
-gis, species_arr, 'CH3Cl', 217,   217,   242, 3, long([52009])
-gis, species_arr, 'H2O2', 1661,   1661,  251, 3, long([34004])
-gis, species_arr, 'C2H2', 1221,   1221,  261, 3
-gis, species_arr, 'C2H2', 1231,   1231,  262, 3
-gis, species_arr, 'C2H6', 1221,   1221,  271, 3
-gis, species_arr, 'PH3',  1111,   1111,  281, 3, long([34003])
-gis, species_arr, 'COF2',  269,   269,   291, 3, long([66001])
-gis, species_arr, 'SF6',    29,   29,    301, 3
-gis, species_arr, 'H2S',   121,   121,   311, 3, long([34002])
-gis, species_arr, 'H2S',   141,   141,   312, 3
-gis, species_arr, 'H2S',   131,   131,   313, 3
-gis, species_arr, 'H2S',   122,    -1,    -1, 3, long([35001])
-gis, species_arr, 'HCOOH', 1261,  126,   321, 3, long([46005])
-gis, species_arr, 'HCOOH', 1361,   -1,    -1, 3, long([47002])
-gis, species_arr, 'HCOOH', 2261,   -1,    -1, 3, long([47003])
-gis, species_arr, 'HCOOH', 1262,   -1,    -1, 3, long([47004])
-gis, species_arr, 'HO2',   166,   166,   331, 3, long([33001])
-gis, species_arr, 'O',        6,   6,     341, 0, long([16001])
-gis, species_arr, 'ClONO2',5646, 5646,    351, 3, long([97002])
-gis, species_arr, 'ClONO2',7646, 7646,    352, 3, long([99001])
-gis, species_arr, 'NO+',     46,   46,    361, 2, long([30011])
-gis, species_arr, 'OClO'   ,656,    -1,    -1, 3, long([67001])
-gis, species_arr, 'OClO',   676,    -1,    -1, 3, long([69001])
-gis, species_arr, 'BrO',     96,    -1,    -1, 2, long([95001])
-gis, species_arr, 'BrO',     16,    -1,    -1, 2, long([97001])
-gis, species_arr, 'H2SO4',  126,    -1,    -1, 3, long([98001])
-gis, species_arr, 'Cl2O2',  565,    -1,    -1, 3, long([102001])
-gis, species_arr, 'Cl2O2',  765,    -1,    -1, 3, long([104001])
+gis, species_arr, 'H2O',   161,   161,    11, 3, 0, long([18003, 18005])
+gis, species_arr, 'H2O',   181,   181,    12, 3, 0, long([20003])
+gis, species_arr, 'H2O',   171,   171,    13, 3, 0, long([19003])
+gis, species_arr, 'H2O',   162,   162,    14, 3, 0, long([19002])
+gis, species_arr, 'H2O',   182,    -1,    -1, 3, 0, long([21001])
+gis, species_arr, 'H2O',   262,    -1,    -1, 3, 0, long([20001])
+gis, species_arr, 'CO2',   626,   626,    21, 2, 0
+gis, species_arr, 'CO2',   636,   636,    22, 2, 0
+gis, species_arr, 'CO2',   628,   628,    23, 2, 0, long([46013])
+gis, species_arr, 'CO2',   627,   627,    24, 2, 0, long([45012])
+gis, species_arr, 'CO2',   638,   638,    25, 2, 0
+gis, species_arr, 'CO2',   637,   637,    26, 2, 0
+gis, species_arr, 'CO2',   828,   828,    27, 2, 0
+gis, species_arr, 'CO2',   728,   728,    28, 2, 0
+gis, species_arr, 'O3',    666,   666,    31, 3, 0, long([48004, 48005, 48006, 48007, 48008])
+gis, species_arr, 'O3',    668,   668,    32, 3, 1, long([50004, 50006])
+gis, species_arr, 'O3',    686,   686,    33, 3, 1, long([50003, 50005])
+gis, species_arr, 'O3',    667,   667,    34, 3, 0, long([49002])
+gis, species_arr, 'O3',    676,   676,    35, 3, 0, long([49001])
+gis, species_arr, 'N2O',   446,   446,    41, 2, 1, long([44004, 44009, 44012])
+gis, species_arr, 'N2O',   456,   456,    42, 2, 0, long([45007])
+gis, species_arr, 'N2O',   546,   546,    43, 2, 0, long([45008])
+gis, species_arr, 'N2O',   448,   448,    44, 2, 0, long([46007])
+gis, species_arr, 'N2O',   447,   447,    45, 2, 0
+gis, species_arr, 'CO',     26,   26,     51, 2, 0, long([28001])
+gis, species_arr, 'CO',     36,   36,     52, 2, 0, long([29001])
+gis, species_arr, 'CO',     28,   28,     53, 2, 0, long([30001])
+gis, species_arr, 'CO',     27,   27,     54, 2, 0, long([29006])
+gis, species_arr, 'CO',     38,   38,     55, 2, 0
+gis, species_arr, 'CO',     37,   37,     56, 2, 0
+gis, species_arr, 'CH4',   211,   211,    61, 3, 0
+gis, species_arr, 'CH4',   311,   311,    62, 3, 0
+gis, species_arr, 'CH4',   212,   212,    63, 3, 1, long([17003])
+gis, species_arr, 'O2',     66,   66,     71, 2, 1, long([32001, 32002])
+gis, species_arr, 'O2',     68,   68,     72, 2, 0, long([34001])
+gis, species_arr, 'O2',     67,   67,     73, 2, 0, long([33002])
+gis, species_arr, 'NO',     46,   46,     81, 2, 0, long([30008])
+gis, species_arr, 'NO',     56,   56,     82, 2, 0
+gis, species_arr, 'NO',     48,   48,     83, 2, 0
+gis, species_arr, 'SO2',   626,   626,    91, 3, 1, long([64002, 64005])
+gis, species_arr, 'SO2',   646,   646,    92, 3, 0, long([66002])
+gis, species_arr, 'SO2',   636,    -1,    -1, 3, 0, long([65001])
+gis, species_arr, 'SO2',   628,    -1,    -1, 3, 0, long([66004])
+gis, species_arr, 'NO2',   646,   646,   101, 3, 0, long([46006])
+gis, species_arr, 'NH3',  4111,   4111,  111, 3, 1, long([17002, 17004])
+gis, species_arr, 'NH3',  5111,   5111,  112, 3, 0, long([18002])
+gis, species_arr, 'NH3',  4112,     -1,   -1, 3, 0, long([18004])
+gis, species_arr, 'HNO3',  146,   146,   121, 3, 1, long([63001, 63002, 63003, 63004, 63005, 63006])
+gis, species_arr, 'OH',     61,   61,    131, 2, 0, long([17001])
+gis, species_arr, 'OH',     81,   81,    132, 2, 0, long([19001])
+gis, species_arr, 'OH',     62,   62,    133, 2, 0, long([18001])
+gis, species_arr, 'HF',     19,   19,    141, 2, 0, long([20002])
+gis, species_arr, 'HF',     29,   -1,     -1, 2, 0, long([21002])
+gis, species_arr, 'HCl',    15,   15,    151, 2, 0, long([36001])
+gis, species_arr, 'HCl',    17,   17,    152, 2, 0, long([38001])
+gis, species_arr, 'HCl',    25,   -1,     -1, 2, 0, long([37001])
+gis, species_arr, 'HCl',    27,   -1,     -1, 2, 0, long([39004])
+gis, species_arr, 'HBr',    19,   19,    161, 2, 0, long([80001])
+gis, species_arr, 'HBr',    11,   11,    162, 2, 0, long([82001])
+gis, species_arr, 'HI',     17,   17,    171, 2, 0
+gis, species_arr, 'ClO',    56,   56,    181, 2, 0, long([51002, 51003])
+gis, species_arr, 'ClO',    76,   76,    182, 2, 0, long([53002, 53006])
+gis, species_arr, 'OCS',   622,   622,   191, 2, 0, long([60001])
+gis, species_arr, 'OCS',   624,   624,   192, 2, 0, long([62001])
+gis, species_arr, 'OCS',   632,   632,   193, 2, 0, long([61001])
+gis, species_arr, 'OCS',   822,   822,   194, 2, 0, long([62002])
+gis, species_arr, 'H2CO', 1126,   126,   201, 3, 0, long([30004])
+gis, species_arr, 'H2CO', 1136,   136,   202, 3, 0, long([31002])
+gis, species_arr, 'H2CO', 1128,   128,   203, 3, 0, long([32004])
+gis, species_arr, 'H2CO', 1226,    -1,    -1, 3, 0, long([31003])
+gis, species_arr, 'H2CO', 2226,    -1,    -1, 3, 0, long([32006])
+gis, species_arr, 'HOCl',  165,   165,   211, 3, 0, long([52006])
+gis, species_arr, 'HOCl',  167,   167,   212, 3, 0, long([54005])
+gis, species_arr, 'N2',     44,   44,    221, 2, 0
+gis, species_arr, 'HCN',   124,   124,   231, 3, 1, long([27001, 27003])
+gis, species_arr, 'HCN',   134,   134,   232, 3, 0, long([28002])
+gis, species_arr, 'HCN',   125,   125,   233, 3, 0, long([28003])
+gis, species_arr, 'HCN',   224,    -1,    -1, 3, 0, long([28004])
+gis, species_arr, 'CH3Cl', 215,   215,   241, 3, 0, long([50007])
+gis, species_arr, 'CH3Cl', 217,   217,   242, 3, 0, long([52009])
+gis, species_arr, 'H2O2', 1661,   1661,  251, 3, 0, long([34004])
+gis, species_arr, 'C2H2', 1221,   1221,  261, 3, 0
+gis, species_arr, 'C2H2', 1231,   1231,  262, 3, 0
+gis, species_arr, 'C2H6', 1221,   1221,  271, 3, 0
+gis, species_arr, 'PH3',  1111,   1111,  281, 3, 0, long([34003])
+gis, species_arr, 'COF2',  269,   269,   291, 3, 0, long([66001])
+gis, species_arr, 'SF6',    29,   29,    301, 3, 0
+gis, species_arr, 'H2S',   121,   121,   311, 3, 0, long([34002])
+gis, species_arr, 'H2S',   141,   141,   312, 3, 0
+gis, species_arr, 'H2S',   131,   131,   313, 3, 0
+gis, species_arr, 'H2S',   122,    -1,    -1, 3, 0, long([35001])
+gis, species_arr, 'HCOOH', 1261,  126,   321, 3, 0, long([46005])
+gis, species_arr, 'HCOOH', 1361,   -1,    -1, 3, 0, long([47002])
+gis, species_arr, 'HCOOH', 2261,   -1,    -1, 3, 0, long([47003])
+gis, species_arr, 'HCOOH', 1262,   -1,    -1, 3, 0, long([47004])
+gis, species_arr, 'HO2',   166,   166,   331, 3, 0, long([33001])
+gis, species_arr, 'O',        6,   6,    341, 0, 0, long([16001])
+gis, species_arr, 'ClONO2',5646, 5646,   351, 3, 0, long([97002])
+gis, species_arr, 'ClONO2',7646, 7646,   352, 3, 0, long([99001])
+gis, species_arr, 'NO+',     46,   46,   361, 2, 0, long([30011])
+gis, species_arr, 'OClO'   ,656,    -1,   -1, 3, 0, long([67001])
+gis, species_arr, 'OClO',   676,    -1,   -1, 3, 0, long([69001])
+gis, species_arr, 'BrO',     96,    -1,   -1, 2, 0, long([95001])
+gis, species_arr, 'BrO',     16,    -1,   -1, 2, 0, long([97001])
+gis, species_arr, 'H2SO4',  126,    -1,   -1, 3, 0, long([98001])
+gis, species_arr, 'Cl2O2',  565,    -1,   -1, 3, 0, long([102001])
+gis, species_arr, 'Cl2O2',  765,    -1,   -1, 3, 0, long([104001])
 
 ;; resize array
 ind=where(species_arr[*].name ne '',count)
@@ -219,7 +288,8 @@ end
 ;----------------------------------------------------------------------------------------
 
 PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
-                       make_arts_entry=make_arts_entry
+                       make_arts_entry=make_arts_entry,$
+                       correct_jpl=correct_jpl
 
 ;; this procedure compares jpl and hitran partition functions (Q). 
 ;;
@@ -245,7 +315,14 @@ PRO partition_function,jpl_tag=jpl_tag,hit_tag=hit_tag,jpl_all=jpl_all,$
 ;;    - jpl_all          : does the calculation for all jpl molecules
 ;;    - make_arts_entry  : creates a file with the partition
 ;;                         coefficients, ... which can be copied and
-;;                         has to be maybe slightly modified for arts
+;;                         might has to be slightly modified for arts
+;;    - correct_jpl      : flag, use correction of the partition
+;;                         functions, yes (1: default) or no
+;;                         (0). Corrects for not considered
+;;                         vibrational energies in the JPL partition
+;;                         funcitons. Only some of the species are
+;;                         corrected, the vibrational energies are
+;;                         provided by Patrick Eriksson.
 ;;
 ;; OUTPUT:
 ;;    - plots with Qs of both catalogues, for hitran the State
@@ -277,6 +354,9 @@ if n_elements(jpl_tag) eq 0 and n_elements(hit_tag) eq 0 $
     print,"        partition_function,hit_tag='O2-71'"
     print,'   For all JPL molecules defined in ARTS:'
     print,'        partition_function,/jpl_all'
+    print,'   No vibraional correction of JPL partition functions,'
+    print,'        only available for certain species.'
+    print,'        partition_function,.....,correct_jpl=0'
     print,'   For arts entry file:'
     print,'        partition_function,/make_arts_entry'
     print,''
@@ -437,19 +517,27 @@ for ii=0,n_elements(loop_index)-1 do begin
         tagnr=0 & jplname='' & nline=0 & qlog300=0.0 & qlog225=0.0 & qlog150=0.0 & qlog75=0.0
         qlog37=0.0 & qlog18=0.0 & qlog9=0.0 & version=0
         ;; then read them
-        reads,str,tagnr,jplname,nline,qlog300,qlog225,qlog150,qlog75,qlog37,qlog18,qlog9,version,$
-          format='(I6,A15,I5,7(F7.4),I2)'
+        reads,str,tagnr,jplname,nline,qlog300,qlog225,qlog150,qlog75,qlog37,qlog18,$
+          qlog9,version,format='(I6,A15,I5,7(F7.4),I2)'
             
         ;; store the partition functions in array, first one is temp, second
         ;; the partition function
-        par_arr_jpl=[ [300.0    , 10.0^qlog300],$
-                      [225.0    , 10.0^qlog225],$
-                      [150.0    , 10.0^qlog150],$
+        par_arr_jpl=[ [  9.375  , 10.0^qlog9  ],$
+                      [  18.75  , 10.0^qlog18 ],$
+                      [  37.5   , 10.0^qlog37 ],$
                       [ 75.0    , 10.0^qlog75 ],$
-                      [ 37.5    , 10.0^qlog37 ],$
-                      [ 18.75   , 10.0^qlog18 ],$
-                      [  9.375  , 10.0^qlog9  ] ]
-            
+                      [150.0    , 10.0^qlog150],$
+                      [225.0    , 10.0^qlog225],$
+                      [300.0    , 10.0^qlog300  ] ]
+
+        ;; do we have to correct the jpl part fct?
+        if n_elements(correct_jpl) eq 0 then correct_jpl = 1
+        if species_arr[loop_index[ii]].par_corr and $
+          correct_jpl then begin
+            print,'Correcting JPL partition functions.'
+            correct_jpl_partition_functions,par_arr_jpl,$
+              species_arr[loop_index[ii]].jpl_tag[0]
+        endif
     endif
     
     
@@ -540,13 +628,12 @@ for ii=0,n_elements(loop_index)-1 do begin
               jpl_coeff_full[1] * t_arr + $
               jpl_coeff_full[2] * t_arr2 + $
               jpl_coeff_full[3] * t_arr3
-
         endelse
         
     endif
     
     if hitran then begin
-        ;; calculate the hitran partition functiona at all temp up
+        ;; calculate the hitran partition function at all temp up
         ;; to 500 K, with and without the state independant
         ;; degeneracy factor considered
         Q_temp_hit=(hit_coeff[0] + $
@@ -566,7 +653,6 @@ for ii=0,n_elements(loop_index)-1 do begin
     endif
     
 
-
     if not keyword_set(make_arts_entry) then begin
     
         ;; store all partition functions in this array, we generally
@@ -585,15 +671,18 @@ for ii=0,n_elements(loop_index)-1 do begin
 
             title='HITRAN/JPL Partition Functions'
 
-            leg_str=['JPL Name: '+strip(jplname)+',    JPL Tag: '+strip(jpl_tag),$
+            leg_str=['JPL Name: '+strip(jplname)+$
+                     ',    JPL Tag: '+strip(jpl_tag),$
                      'HITRAN Name: '+species_arr[loop_index[ii]].name+$
-                     ',    HITRAN Tag: '+strip(string(species_arr[loop_index[ii]].hit_tag))+$
+                     ',    HITRAN Tag: '+$
+                     strip(string(species_arr[loop_index[ii]].hit_tag))+$
                      ', SIDF : '+string(sidf,format='(I3)'),$
                      'HITRAN Name: '+species_arr[loop_index[ii]].name+$
-                 ',    HITRAN Tag: '+strip(string(species_arr[loop_index[ii]].hit_tag))+', SIDF in' ]
+                 ',    HITRAN Tag: '+$
+                     strip(string(species_arr[loop_index[ii]].hit_tag))+', SIDF in' ]
         endif 
         
-        if jpl and jpl_ok and not hitran then begin
+        if jpl and jpl_ok and not (hitran and hit_ok) then begin
             ;; jpl is OK, not hitran
             part_fct[0,*] = Q_temp_jpl
             
@@ -610,11 +699,10 @@ for ii=0,n_elements(loop_index)-1 do begin
             data_def=1
 
             title='HITRAN Partition Function'
-            leg_str=['HITRAN Species: '+strip(string(species_arr[loop_index[ii]].name)) +'-'+$
-                                              strip(string(species_arr[loop_index[ii]].hit_tag))]
+            leg_str=['HITRAN Species: '+$
+                     strip(string(species_arr[loop_index[ii]].name)) +'-'+$
+                     strip(string(species_arr[loop_index[ii]].hit_tag))]
         endif 
-
-
 
         ;; call plot routine
         make_plot,part_fct,data_def,t_arr,ind,title,leg_str
@@ -626,17 +714,20 @@ for ii=0,n_elements(loop_index)-1 do begin
             ;; make a plot of the differences
             window,2
             plot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_hit[ind])/Q_temp_jpl[ind] * 100.0,$
-              title='Difference of Partition Functions, '+'HITRAN Tag: '+species_arr[loop_index[ii]].name+$
-              '-'+strip(string(species_arr[loop_index[ii]].hit_tag))+', JPL Tag: '+strip(jpl_tag),$
-              xtitle='Temperature [K]', ytitle='Difference [%]',yrange=[-10,10],xstyle=1
-            oplot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_jpl_poly[ind])/Q_temp_jpl[ind] * 100.0,$
-              linestyle=1
-            oplot,t_arr[ind],(Q_temp_jpl_poly[ind] - Q_temp_hit[ind])/Q_temp_jpl_poly[ind] * 100.0,$
-              linestyle=2
-            oplot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_hit_in_sidf[ind])/Q_temp_jpl[ind] * 100.0,$
-              linestyle=3
-            oplot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_jpl_poly_full[ind])/Q_temp_jpl[ind] * 100.0,$
-              linestyle=4
+              title='Difference of Partition Functions, '+'HITRAN Tag: '+$
+              species_arr[loop_index[ii]].name+$
+              '-'+strip(string(species_arr[loop_index[ii]].hit_tag))+$
+              ', JPL Tag: '+strip(jpl_tag),$
+              xtitle='Temperature [K]', ytitle='Difference [%]',$
+              yrange=[-10,10],xstyle=1
+            oplot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_jpl_poly[ind])/$
+              Q_temp_jpl[ind] * 100.0,linestyle=1
+            oplot,t_arr[ind],(Q_temp_jpl_poly[ind] - Q_temp_hit[ind])/$
+              Q_temp_jpl_poly[ind] * 100.0,linestyle=2
+            oplot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_hit_in_sidf[ind])/$
+              Q_temp_jpl[ind] * 100.0,linestyle=3
+            oplot,t_arr[ind],(Q_temp_jpl[ind] - Q_temp_jpl_poly_full[ind])/$
+              Q_temp_jpl[ind] * 100.0,linestyle=4
             
             ;; make a simple legend
             legend,['(JPL - HITRAN)/JPL','(JPL - JPL!dpoly!n)/JPL',$
@@ -646,9 +737,9 @@ for ii=0,n_elements(loop_index)-1 do begin
               !x.crange(1)-(!x.crange(1)-!x.crange(0))/1.2, $
               !y.crange(1)-!y.crange(1)/7, (abs(!y.crange(1)) + abs(!y.crange(0)))/15
             
-            
             ;; compare ratio of Q at 300 K to Q at other values
-            plot,t_arr,( (Q_temp_jpl[ind300[0]]/Q_temp_jpl) - (Q_temp_hit[ind300[0]]/Q_temp_hit)) /$
+            plot,t_arr,( (Q_temp_jpl[ind300[0]]/Q_temp_jpl) - $
+                         (Q_temp_hit[ind300[0]]/Q_temp_hit)) /$
               (Q_temp_jpl[ind300[0]]/Q_temp_jpl) * 100.0 ,$
               title='Difference in Ratios: (Q!d1!n(300 K)/Q!d1!n(T)'+$
               '-Q!d2!n(300 K)/Q!d2!n(T))/Q!d1!n(300 K)/Q!d1!n(T)',$
@@ -672,7 +763,8 @@ for ii=0,n_elements(loop_index)-1 do begin
         endif else begin
             if not hitran and jpl and jpl_ok then begin
                 
-                ;; make a plot of the differences
+                ;; make a plot of the differences between the poly fit
+                ;; to jpl and the jpl recommended part fct calculation
                 window,2
                 ;; compare ratio of Q at 300 K to Q at other values
                 plot,t_arr,( (Q_temp_jpl[ind300[0]]/Q_temp_jpl) - $
@@ -735,7 +827,7 @@ for ii=0,n_elements(loop_index)-1 do begin
                 d=Q_temp_hit[ind300[0]]/Q_temp_hit[ind_150_300]
                 diff3 =  max( abs( (a-d)/a * 100.0 ) )
                 print,'Maximum difference in ratio of Q(300K)/Q(T) between original JPL '
-                print,'and JPL and HITRAN for temperature range 150 to 300 K:'
+                print,'and HITRAN for temperature range 150 to 300 K:'
                 print,'            '+string(diff3,format='(F5.2)') +' %'
             endif
             print,''

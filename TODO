@@ -130,3 +130,9 @@ SAB 2000-11-08: Send information about ARTS to Gerald Nedolua for
 SAB 2000-11-10: Adapt sample control file in user guide to new method
                 and WSV names.  
 
+AvE 2000-11-30: Check that assert does not have a negative impact on
+                the calculation time if compilation flags avoid assert
+                calls, this can be done in the lineshape.cc file,
+                where assert is called for each lineshape function and
+                lineshape normalization factor.
+

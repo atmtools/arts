@@ -312,7 +312,7 @@ void lines_per_tgWriteToFile(// WS Input:
 void tag_groupsDefine(// WS Output:
                       TagGroups& tag_groups,
                       // Control Parameters:
-                      const ARRAY<string>& tags)
+                      const ARRAYofstring& tags)
 {
   tag_groups.resize(tags.size());
 
@@ -375,6 +375,148 @@ void tag_groupsDefine(// WS Output:
 
 //  cout << endl << endl << tag_groups << endl;
 }
+
+
+
+void lineshapeDefine(// WS Output:
+		     ARRAYofsizet&    lineshape,
+		     ARRAYofsizet&    lineshape_norm,
+		     // WS Input:
+		     const TagGroups& tag_groups,
+		     const string&    shape,
+		     const string&    normalizationfactor)
+{
+  // Make lineshape and normalization factor data visible:
+  extern const ARRAY<LineshapeRecord> lineshape_data;
+  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
+
+
+  // generate the right number of elements
+  size_t tag_sz = tag_groups.size();
+  lineshape.resize(tag_sz);
+  lineshape_norm.resize(tag_sz);
+
+  // Is this lineshape available?
+  int found0=-1;
+  for ( size_t i=0; i<lineshape_data.size() && (found0 == -1) ; ++i )
+    {
+      const string& str = lineshape_data[i].Name();
+      if (str == shape) 
+	{
+	  out2 << "  Selected lineshape: " << str << endl;
+	  found0=i;
+	}
+    }
+
+  // Is this normalization to the lineshape available?
+  int found1=-1;
+  for ( size_t i=0; i<lineshape_norm_data.size() && (found1 == -1); ++i )
+    {
+      const string& str = lineshape_norm_data[i].Name();
+      if (str == normalizationfactor) 
+	{
+	  out2 << "  Selected normalization factor: " << normalizationfactor << endl;
+	  found1=i;
+	}
+    }
+
+
+  // did we find the lineshape and normalization factor?
+  if (found0 == -1)
+    throw runtime_error("Selected lineshape not available.");
+  if (found1 == -1)
+    throw runtime_error("Selected normalization to lineshape not available.");
+
+
+  // now set the lineshape and lineshape_norm workspace variables 
+  for (size_t i=0; i<tag_sz; i++)
+    {
+      lineshape[i]=(size_t) found0;
+      lineshape_norm[i]=(size_t) found1;
+    }	  
+}
+
+void lineshape_per_abs_tagDefine(// WS Output:
+				 ARRAYofsizet&         lineshape,
+				 ARRAYofsizet&         lineshape_norm,
+				 // WS Input:
+				 const TagGroups&      tag_groups,
+				 const ARRAYofstring&  shape,
+				 const ARRAYofstring&  normalizationfactor)
+{
+  // Make lineshape and normalization factor data visible:
+  extern const ARRAY<LineshapeRecord> lineshape_data;
+  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
+
+  // check that the number of elements are equal
+  size_t tag_sz = tag_groups.size();
+  if ( (tag_sz != shape.size()) ||
+       (tag_sz != normalizationfactor.size()) )
+    {
+      ostringstream os;
+      os << "lineshape_per_abs_tagDefine: number of elements does\n"
+	 << "not match the number of tags defined.";
+      throw runtime_error(os.str());
+    }
+      
+
+  // generate the right number of elements
+  lineshape.resize(tag_sz);
+  lineshape_norm.resize(tag_sz);
+
+  // Is this lineshape available?
+  for (size_t k=0; k<tag_sz; ++k)
+    {
+      int found0=-1;
+      for ( size_t i=0; i<lineshape_data.size() && (found0 == -1); ++i )
+	{
+	  const string& str = lineshape_data[i].Name();
+	  if (str == shape[k]) 
+	    {
+	      out2 << "  Tags: [";
+	      for (size_t s=0; s<tag_groups[k].size()-1; ++s)
+		out2 << tag_groups[k][s].Name() << ", "; 
+	      out2 << tag_groups[k][tag_groups[k].size()-1].Name() << "]\n";
+	      out2 << "  Selected lineshape: " << str << endl;
+	      found0=i;
+	    }
+	}
+
+      // Is this normalization to the lineshape available?
+      int found1=-1;
+      for ( size_t i=0; i<lineshape_norm_data.size() && (found1 == -1); ++i )
+	{
+	  const string& str = lineshape_norm_data[i].Name();
+	  if (str == normalizationfactor[k]) 
+	    {
+	      out2 << "  Selected normalization factor: " << normalizationfactor[k] << endl;
+	      found1=i;
+	    }
+	}
+
+
+      // did we find the lineshape and normalization factor?
+      if (found0 == -1)
+	{
+	  ostringstream os;
+	  os << "Selected lineshape not available: "<< shape[k] <<"\n";
+	  throw runtime_error(os.str());
+	}
+      if (found1 == -1)
+	{
+	  ostringstream os;
+	  os << "Selected normalization to lineshape not available: "<< 
+	    normalizationfactor[k] <<"\n";
+	  throw runtime_error(os.str());
+	}
+
+      // now set the lineshape and lineshape_norm workspace variables 
+      lineshape[k]=(size_t) found0;
+	  lineshape_norm[k]=(size_t) found1;
+    }
+}
+
+
 
 void raw_vmrs_1dReadFromScenario(// WS Output:
                                  ARRAYofMATRIX&   raw_vmrs_1d,
@@ -625,7 +767,9 @@ void absCalc(// WS Output:
              const VECTOR&  		     p_abs,
              const VECTOR&  		     t_abs,           
              const ARRAYofVECTOR&            vmrs,
-             const ARRAYofARRAYofLineRecord& lines_per_tg)
+             const ARRAYofARRAYofLineRecord& lines_per_tg,
+	     const ARRAYofsizet&             lineshape,
+	     const ARRAYofsizet&             lineshape_norm)
 {
   // Check that vmrs and lines_per_tg really have the
   // same array dimension:
@@ -659,7 +803,9 @@ void absCalc(// WS Output:
 		   p_abs,
 		   t_abs,
 		   vmrs[i],
-		   lines_per_tg[i] );
+		   lines_per_tg[i],
+		   lineshape[i],
+		   lineshape_norm[i]);
       
       // Add up to the total absorption:
       abs = abs + abs_per_tg[i];

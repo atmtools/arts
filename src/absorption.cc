@@ -1358,12 +1358,14 @@ void write_lines_to_stream(ostream& os,
 
     This is still in the developing state.
 
-    \retval abs   Absorption coefficients.
-    \param f_mono Frequency grid.
-    \param p_abs  Pressure grid.
-    \param t_abs  Temperatures associated with p_abs.
-    \param vmrs   Volume mixing ratios of the species.
-    \param lines  The spectroscopic line list.
+    \retval abs    Absorption coefficients.
+    \param f_mono  Frequency grid.
+    \param p_abs   Pressure grid.
+    \param t_abs   Temperatures associated with p_abs.
+    \param vmrs    Volume mixing ratios of the species.
+    \param lines   The spectroscopic line list.
+    \param ind_ls  Index to used lineshape function.
+    \param ind_lsn Index to used lineshape normalization function.
 
     \author Stefan Buehler 16.06.2000. */
 void abs_species( MATRIX&                  abs,
@@ -1371,10 +1373,13 @@ void abs_species( MATRIX&                  abs,
 		  const VECTOR&  	   p_abs,
 		  const VECTOR&  	   t_abs,           
 		  const VECTOR&            vmr,
-		  const ARRAYofLineRecord& lines )
+		  const ARRAYofLineRecord& lines,
+		  const size_t             ind_ls,
+		  const size_t             ind_lsn)
 {
   // Make lineshape and species lookup data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
+  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
 
   // speed of light constant
   extern const Numeric SPEED_OF_LIGHT;
@@ -1393,11 +1398,13 @@ void abs_species( MATRIX&                  abs,
 
   // Constant within the Doppler Broadening calculation:
   const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
-					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
+				      AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
-  // Define the vector for the line shape function here, so that we
-  // don't need so many free store allocations.
+  // Define the vector for the line shape function and the
+  // normalization factor of the lineshape here, so that we don't need
+  // so many free store allocations.
   VECTOR ls(f_mono.dim());
+  VECTOR fac(f_mono.dim());
 
   // Check that p_abs, t_abs, and vmr all have the same
   // dimension. This could be a user error, so we throw a
@@ -1449,7 +1456,8 @@ void abs_species( MATRIX&                  abs,
       const Numeric T_0_C = 273.15;  	       /* temp. of 0 Celsius in [K]  */
       const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
       const Numeric n_0   = 2.686763E25;         /* Loschmidt constant [m^-3] */
-      n = n_0 * T_0_C / p_0 * p_abs(i) / t_abs(i);
+      const Numeric fac   = n_0 * T_0_C / p_0;
+      n = fac * p_abs(i) / t_abs(i);
     }
 
     // For the pressure broadening, we also need the partial pressure:
@@ -1529,30 +1537,28 @@ void abs_species( MATRIX&                  abs,
 	// 0 : Lorentz
 	// 1 : Voigt, Kuntz approximation, accuracy better than 2*10-6.
 
-	lineshape_data[1].Function()(ls,
-				     l_l.F(),
-				     gamma,
-				     sigma,
-				     f_mono);
+	lineshape_data[ind_ls].Function()(ls,
+					  l_l.F(),
+					  gamma,
+					  sigma,
+					  f_mono);
+
+ 	lineshape_norm_data[1].Function()(fac,
+					  l_l.F(),
+					  f_mono);
 
 
 
 	// Add line to abs:
-	// the lineshape function do not include the (F/F0)^2 factor,
-	// as far as I can see, which is done over here FIXME: can we
-	// do that by passing a factor to the lineshape function? This
-	// factor varies with the lineshape fucntion, the current
-	// factor is only for the kuntz voigt routines. AvE
 
 	// constant sqrt(1/pi)
 	const Numeric sqrt_1_pi =  0.564189584;
 
-	Numeric factor = 1.0 / ( l_l.F() * l_l.F() ) / sigma * sqrt_1_pi;
+	Numeric factor = 1.0 / sigma * sqrt_1_pi;
 	for ( size_t j=1; j<=f_mono.dim(); ++j )
 	  {
 	    abs(j,i) = abs(j,i)
-	      + n * vmr(i) * intensity * ls(j) * factor * f_mono(j) *
-	      f_mono(j);
+	      + n * vmr(i) * intensity * ls(j) * factor * fac(j);
 
 	    // if (i == 20)
 	    //  {

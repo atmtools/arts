@@ -1,10 +1,10 @@
 PRO jpl_scaling,tag_arr,abun,index,count,for_species,hit_arr1,hit_arr2,hit_arr3,$
                 scaled_abun
-; checks whether the jpl abundancies must be scaled (maximum abundancy
+; checks whether the jpl isotopic ratios must be scaled (maximum isotopic ratio
 ; given in jpl catalogue eq 1). Performs the scaling with the maximum
-; hitran abundancy found for that species. gives back the original jpl
-; abundancy if the species in not present in hitran or no max
-; abundancy with 1 was found in jpl cat
+; hitran isotopic ratio found for that species. gives back the original jpl
+; isotopic ratio if the species in not present in hitran or no max
+; isotopic ratio with 1 was found in jpl cat
 
 i = where(abun[index] eq 1,counter)
 
@@ -25,16 +25,16 @@ end
         
 
 
-PRO cat_abundancies,output=output
+PRO cat_isotopic_ratio,output=output
 
 ; reads a file which connects the jpl tag numbers with the species 
 ; name we use, this file is extracted from the jpl catalogue,
 ; currently placed at:
 ;
-; /pool/lookup/jpl/cat7_00/abundancies/tag_species.jpl 
+; arts/aux/abundancies/tag_species.jpl 
 ;
 ; opens then the corresponding jpl catalogue tag info
-; file to read the abundancies, these files are extracted from the jpl
+; file to read the isotopic ratios, these files are extracted from the jpl
 ; web server
 ;
 ; keywords:
@@ -54,7 +54,7 @@ tag_arr=strarr(3,1000)
 
 ; everything with a # at the beginning is a comment, skip all of them
 str='#'
-openr,1,'/pool/lookup/jpl/cat7_00/abundancies/tag_species.jpl'
+openr,1,'tag_species.jpl'
 while strpos(str,'#') ge 0 do begin
     readf,1,str
 end
@@ -78,11 +78,11 @@ close,1
 ; resize the tag_arr
 tag_arr=tag_arr[*,0:i]
 
-; generate the abundancy array
+; generate the isotopic ratio array
 abun=dblarr(i)
 for j=0,i-1 do abun[j]=100
 
-; start reading the abundancies from d tag .cat files
+; start reading the isotopic ratios from d tag .cat files
 
 for j=0,i-1 do begin
     str=''
@@ -95,7 +95,7 @@ for j=0,i-1 do begin
     ; some of the isotope corrections are empty, check that first
     str=strtrim(strcompress(str[1]),2)
 
-    ; calculate the abundancy and write into abun array
+    ; calculate the isotopic ratio and write into abun array
     if strlen(str) eq 0 then abun[j]=100 $
     else begin
         m=double(str)
@@ -187,11 +187,11 @@ for j=0,n_elements(for_species)-1 do begin
         shit:printf,unit,''
 
         ; read the hitran database, this file is just a copy of the hitran
-        ; abundancies given in cdrom: hitran92/tables.3 file. 
+        ; isotopic ratios given in cdrom: hitran92/tables.3 file. 
 
         ; Comments at the beginning of the file are identified with a # sign
         str='#'
-        openr,1,'hitran_abundancies.txt'
+        openr,1,'hitran_isotopic_ratio.txt'
         while strpos(str,'#') ge 0 do begin
             readf,1,str
         end
@@ -224,15 +224,15 @@ for j=0,n_elements(for_species)-1 do begin
             ; species name in hitran
             hit_species=str[0]
 
-            ; species exists in hitran, now read all the abundancies, 
+            ; species exists in hitran, now read all the isotopic ratios, 
             ; and the hitran molecule identifier of this species
             str=''
             readf,1,str
             str=strtrim(strcompress(str),2)
 
-            printf,unit,'Hitran species/tag/Abundancy for species: '
+            printf,unit,'Hitran species/tag/Isotopic Ratio for species: '
         
-            ; assure that we are not yet in the next species abundancies
+            ; assure that we are not yet in the next species isotopic ratio
             while (strlen(str) gt 0) and (strpos(str,'(')) lt 0 do begin
                 str=str_sep(strtrim(strcompress(str),2),' ')
                 hit_arr1[k]=hit_species & hit_arr2[k]=str[0] & hit_arr3[k]=str[1]
@@ -260,17 +260,19 @@ for j=0,n_elements(for_species)-1 do begin
             printf,unit,''
             printf,unit,'------------------------------------------------------------'
         endif else begin
-            ; species exists in jpl cat, output all tag numbers, the original jpl
-            ; name, the abundancy according to  jpl, and the scaled abundancy, if an
-            ; abundancy of 1 is assumed in jpl cat. the scaling factor is the
-            ; maximum abundancy of the hitran abundancies found for this species
-            printf,unit,'JPL Tag numbers/name/Abundancy/scaled Abundancy for species'
+            ; species exists in jpl cat, output all tag numbers, the
+            ; original jpl name, the isotopic ratio according to jpl,
+            ; and the scaled isotopic ratio, if an isotopic ratio of 1
+            ; is assumed in jpl cat. the scaling factor is the maximum
+            ; isotopic ratio of the hitran isotopic ratio found for this
+            ; species
+            printf,unit,'JPL Tag numbers/name/Isotopic Ratio/scaled Isotopic Ratio for species'
 
-            ; check whether scaling of jpl abundancies is necessary
+            ; check whether scaling of jpl isotopic ratios is necessary
             scaled_abun=dblarr(count)
             jpl_scaling,tag_arr,abun,index,count,for_species[j],hit_arr1,hit_arr2,hit_arr3,scaled_abun
 
-            ; output the species, found and calculated abundancies
+            ; output the species, found and calculated isotopic ratios
             for k=0,count-1 do begin
                 printf,unit,tag_arr[0,index[k]],tag_arr[1,index[k]],$
                   abun[index[k]],scaled_abun[k],format='(A8,A15,G15.8,G15.8)'

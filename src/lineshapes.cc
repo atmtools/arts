@@ -31,6 +31,7 @@
 #include "vecmat.h"
 #include "absorption.h"
 
+
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
     \retval ls     The shape function.
@@ -419,15 +420,83 @@ l7:   if ( (lauf[1][2] >= lauf[1][1]) || (lauf[1][4] >= lauf[1][3]) )
 
 //---------------------------------------------------------------------------------
 
+/*!  No normalization of the lineshape function.
+
+    \retval fac    Normalization factor to the lineshape function.
+    \param  f0     Line center frequency.
+    \param  f_mono The frequency grid.
+
+    \author Axel von Engeln 30.11.2000 */
+void lineshape_norm_no_norm(VECTOR&       fac,
+			    Numeric	 f0,
+			    const VECTOR& f_mono)
+{
+
+  assert( fac.dim() == f_mono.dim() );
+
+  for ( size_t i=0; i<f_mono.dim(); ++i )
+    {
+      fac[i] = 1.0;
+    }
+}
 
 
+
+/*!  Linear normalization factor of the lineshape function with f/f0.
+
+    \retval fac    Normalization factor to the lineshape function.
+    \param  f0     Line center frequency.
+    \param  f_mono The frequency grid.
+
+    \author Axel von Engeln 30.11.2000 */
+void lineshape_norm_linear(VECTOR&       fac,
+			   Numeric	 f0,
+			   const VECTOR& f_mono)
+{
+  // FIXME: Maybe try if call by reference is faster for f0?
+
+  assert( fac.dim() == f_mono.dim() );
+
+  for ( size_t i=0; i<f_mono.dim(); ++i )
+    {
+      fac[i] = f_mono[i] / f0;
+    }
+}
+
+/*!  Quadratic normalization factor of the lineshape function with (f/f0)^2.
+
+    \retval fac    Normalization factor to the lineshape function.
+    \param  f0     Line center frequency.
+    \param  f_mono The frequency grid.
+
+    \author Axel von Engeln 30.11.2000 */
+void lineshape_norm_quadratic(VECTOR&       fac,
+			      Numeric	 f0,
+			      const VECTOR& f_mono)
+{
+  // FIXME: Maybe try if call by reference is faster for f0?
+
+  assert( fac.dim() == f_mono.dim() );
+
+  // don't do this for the whole loop
+  Numeric f0_2 = f0 * f0;
+
+  for ( size_t i=0; i<f_mono.dim(); ++i )
+    {
+      fac[i] = f_mono[i] * f_mono[i] / f0_2;
+    }
+}
+
+
+
+
+//---------------------------------------------------------------------------------
 
 
 
 
 /*! The lookup data for the different lineshapes. */
 ARRAY<LineshapeRecord> lineshape_data;
-
 
 void define_lineshape_data()
 {
@@ -443,9 +512,36 @@ void define_lineshape_data()
 
   lineshape_data.push_back
     (LineshapeRecord
-     ("Voigt_Kuntz",
+     ("Voigt_Kuntz1",
       "The Voigt line shape. Approximation by Kuntz.",
       -1,
       lineshape_voigt_kuntz1));
+}
 
+/*! The lookup data for the different normalization factors to the
+  lineshapes. */
+ARRAY<LineshapeNormRecord> lineshape_norm_data;
+
+void define_lineshape_norm_data()
+{
+  // Initialize to empty, just in case.
+  lineshape_norm_data.clear();
+
+  lineshape_norm_data.push_back
+    (LineshapeNormRecord
+     ("no_norm",
+      "No normalization of the lineshape.",
+      lineshape_norm_no_norm));
+
+  lineshape_norm_data.push_back
+    (LineshapeNormRecord
+     ("linear",
+      "Linear normalization of the lineshape with f/f0.",
+      lineshape_norm_linear));
+
+  lineshape_norm_data.push_back
+    (LineshapeNormRecord
+     ("quadratic",
+      "Quadratic normalization of the lineshape with (f/f0)^2.",
+      lineshape_norm_quadratic));
 }

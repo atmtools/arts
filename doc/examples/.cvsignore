@@ -1,12 +1,16 @@
 .nfs*
 Makefile
 Makefile.in
-example1.abs.am       
+example1.f_mono.aa
+example1.abs.am
+example1.abs.aa
 example1.abs_per_tg.am
+example1.abs_per_tg.aa
 example1.f_abs.am
 example1.lines.al
 example1.lines_per_tg.al
 example1.p_abs.am
+example1.p_abs.aa
 example1.raw_vmrs_1d.am
 example1.rep
 example1.t_abs.am

@@ -909,6 +909,40 @@ void define_md_data()
 	KEYWORDS( "tags" ),
 	TYPES(    ARRAY_string_t   )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("lineshapeDefine"),
+  	DESCRIPTION(
+          "Sets the lineshape for all calculated lines.\n"
+	  "Specify an available lineshape, together with a normalization factor.\n"
+	  "Normalization Factors:  no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
+	  "Example:\n"
+	  "shapename=\"Lorentz\" normalizationname=\"linear\""),
+	OUTPUT( lineshape_, lineshape_norm_ ),
+	INPUT( tag_groups_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(  "shape",    "normalizationfactor" ),
+	TYPES(     string_t,        string_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("lineshape_per_abs_tagDefine"),
+  	DESCRIPTION(
+          "Sets the lineshape per defined abs_tag.\n"
+	  "Specify for each selected tag an individual lineshape, together with a \n"
+	  "normalization factor.\n"
+	  "Normalization Factors: no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
+	  "Example:\n"
+	  "shapename=[\"Lorentz\",\"Voigt_Kuntz1\"] \n"
+	  "normalizationname=[\"linear\", \"quadratic\"]"),
+	OUTPUT( lineshape_ , lineshape_norm_ ),
+	INPUT( tag_groups_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(  "shape",           "normalizationfactor" ),
+	TYPES(   ARRAY_string_t,         ARRAY_string_t )));
+
 
 
 //=== Input Atmosphere methods ===========================================
@@ -992,12 +1026,10 @@ void define_md_data()
 	DESCRIPTION("Calculate absorption coefficients. This\n"
 		    "calculates both the total absorption and the\n"
 		    "absorption per tag group"
-		    "\n"
-		    "Line shape function is hardwired, and temperature\n"
-		    "dependence is not calculated. This method is\n"
-		    "really only for demonstration."),
+		    "\n"),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_ ),
+	INPUT( 	    f_mono_, p_abs_, t_abs_, vmrs_, lines_per_tg_, 
+		    lineshape_, lineshape_norm_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1284,7 +1316,8 @@ void define_md_data()
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
-                  lines_per_tg_, abs_, trans_, e_ground_, t_ground_, k_grid_ ),
+	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
+	       trans_, e_ground_, t_ground_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1297,7 +1330,8 @@ void define_md_data()
           "As kTempNoHydro but does not need any ground variables"),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
-                   lines_per_tg_, abs_, trans_, k_grid_ ),
+	       lines_per_tg_, lineshape_, lineshape_norm_, abs_, 
+	       trans_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

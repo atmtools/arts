@@ -19,13 +19,21 @@ Contrary to the original Bredbeck definition, tags within a
 group must belong to the same species, because one VMR profile
 is associated with each tag group.
 
-VARIABLE : lineshapes
+VARIABLE : lineshape
 DATA TYPE: ARRAYofsizet
 DESCRIPTION:
 Indices of lineshape functions. There is one entry for
 each abs_tag, not for each species. This means if you have several
 abs_tags for different isotopes or transitions of a species, you
 may use different lineshapes.
+
+VARIABLE : lineshape_norm
+DATA TYPE: ARRAYofsizet
+DESCRIPTION:
+Indices of normalizations to the lineshape functions. There is one
+entry for each abs_tag, not for each species. This means if you have
+several abs_tags for different isotopes or transitions of a species, you
+may use different lineshapes and normalizations.
 
 VARIABLE : raw_ptz_1d
 DATA TYPE: MATRIX
