@@ -1,3 +1,14 @@
+2003-12-09  Cory Davis   <cory@met.ed.ac.uk>
+
+	* arts-1-1-757
+
+	* src/optproperties.cc
+	(abs_vecTransform,ext_matTransform,pha_matTransform): Implemented
+	ptype=30 (i.e horizontally aligned) single scattering data.  Have
+	tested this once in a Monte Carlo simulation and it seems to give
+	sensible answers, but there is a dramatic increase in CPU time,
+	which I will look into tomorrow.
+
 2003-12-09  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-756
