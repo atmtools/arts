@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.224)
+AM_INIT_AUTOMAKE(arts,0.0.225)
 
 
 #
@@ -183,6 +183,7 @@ if test ! $ac_arts_data = no; then
   fi
 
   if test ! $ac_arts_data = no; then
+    AM_CONDITIONAL(ARTS_DATA_PATH, test ! x$ac_arts_data = xno)
     AC_DEFINE_UNQUOTED(ARTS_DATA_PATH, "$ac_arts_data", ARTS data path)
     AC_SUBST(ac_arts_data)
   fi
@@ -199,6 +200,7 @@ AC_ARG_ENABLE(maintainer-mode,
    no) ac_maintainer_mode=no ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --enable-maintainer-mode) ;;
 esac],[ ac_maintainer_mode=no ])
+AM_CONDITIONAL(ARTS_MAINTAINER_MODE, test x$ac_maintainer_mode = xyes)
 AC_MSG_RESULT([$ac_maintainer_mode])
 
 
