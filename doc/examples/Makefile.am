@@ -22,7 +22,7 @@ arts_examples = \
 
 examplesdoc_DATA = $(arts_examples)
 
-EXTRA_DIST   = 
+EXTRA_DIST   = *.arts
 
 CLEANFILES = *.xml *_example*.aa *_example*.ab *.rep *.out
 

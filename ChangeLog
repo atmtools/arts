@@ -1,5 +1,14 @@
 2005-03-07  Oliver Lemke  <olemke@core-dump.info>
 
+	* arts-1-1-927
+	
+	* doc/index.html.in: Revert my previous change. OF COURSE we HAVE
+	examples. There were just missing in the dist-tarball. :-(
+
+	* doc/examples/Makefile.am: Add examples to EXTRA_DIST.
+
+2005-03-07  Oliver Lemke  <olemke@core-dump.info>
+
 	* arts-1-1-926
 	
 	* doc/index.html.in: Removed examples section.
