@@ -2,7 +2,7 @@
 
 	* arts-1-1-240
 
-	* src/m_scatrte.cc (CloudboxGetOutgoing): Changed the name of the 
+	* src/m_cloudbox.cc (CloudboxGetOutgoing): Changed the name of the 
 	method. Earlier it was (y_scatCalc). Changed the interface of the
 	function. *cloudbox_los* and *cloudbox_los* are removed, instead of
 	these variables there are the gridpositions *a_gp_p*, *a_gp_lat*,
