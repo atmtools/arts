@@ -32,14 +32,14 @@
 #include "bifstream.h"
 using namespace std;
 
-void bifstream::seek(long pos, Offset offs)
+void bifstream::seek(long spos, Offset offs)
 {
   if(!in) { err = NotOpen; return; }
 
   switch(offs) {
-  case Set: this->seekg(pos, ios::beg); break;
-  case Add: this->seekg(pos, ios::cur); break;
-  case End: this->seekg(pos, ios::end); break;
+  case Set: this->seekg(spos, ios::beg); break;
+  case Add: this->seekg(spos, ios::cur); break;
+  case End: this->seekg(spos, ios::end); break;
   }
 }
 
@@ -51,12 +51,12 @@ long bifstream::pos()
 
 bifstream::Byte bifstream::getByte()
 {
-  int read;
+  int iread;
 
   if(this->good ()) {
-        read = this->get ();
-        if(read == EOF) err |= Eof;
-        return (Byte)read;
+        iread = this->get ();
+        if(iread == EOF) err |= Eof;
+        return (Byte)iread;
   } else {
         err |= NotOpen;
         return 0;
