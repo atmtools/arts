@@ -1,9 +1,11 @@
-2003-09-22  Oliver Lemke  <olemke@uni-bremen.de>
+2003-09-22  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
-	* arts-1-1-689
+	* arts-1-1-670
 
-	* src/legendre.cc: Added missing 'include cmath' to fix compilation
-	problem with gcc2.96 as reported by Cory.
+	* src/legendre.{cc,h}: Added new (g_legendre_poly_norm_deriv...)
+	functions.
+
+	* src/geomag_calc.cc: Small changes. 	
 
 2003-09-22  Oliver Lemke  <olemke@uni-bremen.de>
 

@@ -61,7 +61,7 @@ void magfield_nk(  // Output
 	{
 	  
 	  // Relating the row index in M to the coresponding 
-	  // degree number n and order number l.
+	  // degree number l and order number m.
  	  Index	  j = l * (l + 1) / 2 + m - 1; 
 
 	  // Calculating the associated Schmidt quasi-normalized Legendre 
@@ -72,7 +72,7 @@ void magfield_nk(  // Output
 	  // Calculating the derivative of the associated Schmidt quasi-normalized 
 	  // Legendre polynomial for a degree number l and order number m.
 	  Numeric dP_lm = 
-	    g_legendre_poly_norm_schmidt_deriv (l, m, cos(Theta));
+	    g_legendre_poly_norm_schmidt_deriv3 (l, m, cos(Theta));
 
 	  
 	  // Calculating the radial (upward) component of the magnetic field.
@@ -85,7 +85,8 @@ void magfield_nk(  // Output
 	  B_th += pow(l + 2, a / r) * 
 	    ((M(j,0) + Ny * M(j,2)) * cos(m * Phi) 
 	     + (M(j,1) + Ny * M(j,3)) * sin(m * Phi)) *
-	      dP_lm * sin(Theta);
+	    dP_lm * sin(Theta);
+	  
       
       
           // Calculating the longitudinal (eastward) component of the magnetic field.

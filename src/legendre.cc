@@ -490,10 +490,9 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ((l + m) * g_legendre_poly (l-1, m, x) - 
-	     l * x * g_legendre_poly (l, m, x)) /
-	    (1 - x * x);
+	  result = ((l + m) * g_legendre_poly (l-1, m, x) - 
+		    l * x * g_legendre_poly (l, m, x)) /
+	             (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -508,10 +507,9 @@ g_legendre_poly_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-	    ( m * x * g_legendre_poly (l, m, x) / (1 - x * x)
-	      + (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x)
-	      / sqrt (1 - x * x));
+          result = - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
+	          (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
+	          sqrt (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -563,7 +561,7 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
         }
       else if (m == 1)
         {
-          result = x / sqrt(1 - x*x);
+          result = x / sqrt(1 - x * x);
         }
       else
         {
@@ -580,9 +578,8 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
       try
         {
 	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-			 ((l + m) * g_legendre_poly(l-1, m, x) - 
-			  l * x * g_legendre_poly (l, m, x)) /
-			 (1 - x * x);
+	    ((l + m) * g_legendre_poly(l-1, m, x) - 
+	     l * x * g_legendre_poly (l, m, x)) / (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -597,10 +594,10 @@ g_legendre_poly_norm_schmidt_deriv (Index l, Index m, Numeric x)
     {
       try
         {
-          result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
-			   (m * x * g_legendre_poly (l, m, x) / (1 - x * x)
-			   + (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x)
-			   / sqrt (1 - x * x));
+          result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+	    ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x) + 
+	      (l + m) * (l - m + 1) * g_legendre_poly (l, m - 1, x) / 
+	      sqrt (1 - x * x));
         }
       catch (runtime_error e)
         {
@@ -653,7 +650,7 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
         }
       else if (m == 1)
         {
-          result = x / sqrt(1 - x*x);
+          result = x / sqrt(1 - x * x);
         }
       else
         {
@@ -665,7 +662,7 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
         }
 
     }
-  else if ( m < l )
+  else if ( m <= l - 1 )
     {
       try
         {
@@ -673,15 +670,16 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
           //  +  sqrt((double)(l + m + 1 / l - m - 1)) * g_legendre_poly_norm_schmidt (l, m + 1, x)
           //  / sqrt (1 - x * x);
 
-	  result = - m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)  + 
-	    sqrt (2.0 * fac (l - m) / fac (l + m)) * g_legendre_poly (l, m + 1, x)
-            / sqrt (1 - x * x);
+	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+	    ( - m * x * g_legendre_poly (l, m, x) / (1 - x * x)  + 
+	     g_legendre_poly (l, m + 1, x)
+	     / sqrt (1 - x * x));
 	}
       catch (runtime_error e)
         {
           ostringstream os;
           os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
-            << "Condition m < l failed" << endl
+            << "Condition m <= l - 1 failed" << endl
             << "l = " << l << "  m = " << m << endl;
           throw runtime_error (os.str ());
         }
@@ -690,7 +688,8 @@ g_legendre_poly_norm_schmidt_deriv1 (Index l, Index m, Numeric x)
     {
       try
         {
-          result = - m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x);
+          result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+	     m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -743,7 +742,7 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
         }
       else if (m == 1)
         {
-          result = x / sqrt(1 - x*x);
+          result = x / sqrt(1 - x * x);
         }
       else
         {
@@ -759,8 +758,9 @@ g_legendre_poly_norm_schmidt_deriv2 (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = ((l + m) * g_legendre_poly_norm_schmidt (l-1, m, x) - 
-		    l * x * g_legendre_poly_norm_schmidt (l, m, x)) /
+	  result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+	    ((l + m) * g_legendre_poly (l-1, m, x) - 
+		    l * x * g_legendre_poly (l, m, x)) /
 	             (1 - x * x);
         }
       catch (runtime_error e)
@@ -830,7 +830,7 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
         }
       else if (m == 1)
         {
-          result = x / sqrt(1 - x*x);
+          result = x / sqrt(1 - x * x);
         }
       else
         {
@@ -846,9 +846,10 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
     {
       try
         {
-	  result = ((l +1) * (l + m) * g_legendre_poly (l-1, m, x) - 
-		    l * x * g_legendre_poly (l, m, x)) /
-	             (1 - x * x);
+	  result = sqrt(2.0 * fac (l - m) / fac (l + m)) * 
+	           (l * g_legendre_poly (l - 1, m, x) + 
+	             (m - l) * x * g_legendre_poly (l, m, x)) /
+	               (1 - x * x);
         }
       catch (runtime_error e)
         {
@@ -863,8 +864,96 @@ g_legendre_poly_norm_schmidt_deriv3 (Index l, Index m, Numeric x)
     {
       try
         {
-          result = - m * x * g_legendre_poly_norm_schmidt (l, m, x) / (1 - x * x)
-            ;
+          result = - sqrt(2.0 * fac (l - m) / fac (l + m)) * 
+	    m * x * g_legendre_poly (l, m, x) / (1 - x * x);
+        }
+      catch (runtime_error e)
+        {
+          ostringstream os;
+          os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
+	     << "Condition m = l failed" << endl
+	     << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
+        }
+    }
+
+  return (result);
+}
+
+//! g_legendre_poly_norm_schmidt_deriv4
+/*!
+  Returns the derivative of the Schmidt quasi-normalized associated Legendre polynomial Plm(x)) without 
+  the factor (-1)^m.
+
+  The input parameters must fulfill the following conditions:
+  0 <= m <= l and |x| < 1
+
+  \return      dPlm
+  \param   l   Index
+  \param   m   Index
+  \param   x   Value
+
+  \author Nikolay Koulev
+  \date   2003-09-02
+*/
+Numeric
+g_legendre_poly_norm_schmidt_deriv4 (Index l, Index m, Numeric x)
+{
+  assert (x != 1.);
+  if (x == 1.)
+    {
+      ostringstream os;
+      os << "g_legendre_poly_norm_schmidt_deriv: Condition x != 1 failed"
+        << endl << "  x = " << x << endl;
+      throw runtime_error (os.str ());
+    }
+
+  Numeric result;
+
+  if (l == 1)
+    {
+      if (m == 0)
+        {
+          result = 1;
+        }
+      else if (m == 1)
+        {
+          result = x / sqrt(1 - x * x);
+        }
+      else
+        {
+          ostringstream os;
+          os << "g_legendre_poly_norm_schmidt_deriv: "
+            << "Condition l == 1 && (m == 0 || m == 1) failed" << endl
+            << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
+        }
+
+    }
+  else if ( m < l )
+    {
+      try
+        {
+	  result = sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+	    ((l + m) * (l + 1) * g_legendre_poly (l - 1, m, x)  - 
+	     (l + 2 * m) * (l - m + 1) * g_legendre_poly (l + 1, m, x)
+	     / ((2 * l + 1 ) * (1 - x * x)));
+        }
+      catch (runtime_error e)
+        {
+          ostringstream os;
+          os << e.what () << "g_legendre_poly_norm_schmidt_deriv: "
+            << "Condition m < l failed" << endl
+            << "l = " << l << "  m = " << m << endl;
+          throw runtime_error (os.str ());
+        }
+    }
+  else
+    {
+      try
+        {
+          result = - sqrt (2.0 * fac (l - m) / fac (l + m)) * 
+	    m * x * g_legendre_poly (l, m, x) / (1 - x * x);
         }
       catch (runtime_error e)
         {
