@@ -58,14 +58,6 @@ void bofstream::putByte (bofstream::Byte b)
     err |= Fatal;
 }
 
-template<typename T>
-bofstream &operator<< (bofstream &bof, T n)
-{
-  bof.write ((char *)&n, sizeof (n));
-
-  return (bof);
-}
-
 
 /* Overloaded output operators */
 bofstream &operator<< (bofstream &bof, double n)
@@ -79,5 +71,4 @@ bofstream &operator<< (bofstream &bof, long n)
 
 bofstream &operator<< (bofstream &bof, int n)
 { bof.writeInt (n, 8); return (bof); }
-
 
