@@ -1,3 +1,49 @@
+2001-06-26  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+        * arts-0-0-182
+
+	* Major change: Changed unit of lower state energy in LineRecord
+	and ARTS catalogue file from cm^-1 to Joule (ARTSCAT-3). Verified
+	that the absorption coefficients are still the same for:
+	1. H2O calculation from HITRAN catalogue.
+	2. O2 calculation, using one of Axel's line files with overlap.
+
+	* src/absorption.cc (xsec_species): Lower state energy does not
+	have to be converted to Joule anymore.
+	(wavenumber_to_joule): Added this little helper function, which
+	converts energy from wavenumber to Joule.
+	(ReadFromHitranStream): Convert lower state energy to Joule, using
+	the helper function wavenumber_to_joule().
+	(ReadFromJplStream): Convert lower state energy to Joule, using
+	the helper function wavenumber_to_joule().
+	(ReadFromMytran2Stream): Convert lower state energy to Joule, using
+	the helper function wavenumber_to_joule().
+
+	* src/absorption.h: Made linesElowToJoule a friend of LineRecord.
+	(class LineRecord): Changed mversion from 2 to 3.
+	
+	* src/methods.cc (define_md_data): Added method linesElowToJoule.
+
+	* src/m_abs.cc (linesElowToJoule): This is just a helper method
+	for the catalogue conversion. Can be removed, as soon as we are
+	sure there are no more old files around. It uses the conversion
+	function wavenumber_to_joule().
+
+	* data/spectroscopy/arts/o2_spin_rot.aa: Converted lower state energy to Joule.
+
+	* data/spectroscopy/arts/o2_spin_rot_hit.aa: Converted lower state energy to Joule.
+
+	* data/spectroscopy/arts/o2_spin_rot_jpl.aa: Converted lower state energy to Joule.
+
+	* data/spectroscopy/arts/o2_spin_rot_pwr.aa: Converted lower state energy to Joule.
+
+	* data/spectroscopy/arts/o2_spin_rot_pwr_1.aa: Converted lower state energy to Joule.
+
+	* data/spectroscopy/arts/o2_spin_rot_pwr_2.aa: Converted lower state energy to Joule.
+
+	* data/spectroscopy/arts/o2_spin_rot_pwr_3.aa: Converted lower state energy to Joule.
+
+	
 2001-06-25  Stefan Buehler  <sbuehler@uni-bremen.de>
 
         * arts-0-0-181

@@ -327,7 +327,6 @@ private:
   ARRAY<IsotopeRecord> misotope;
 };
 
-
 /** Spectral line catalog data. Here is a description of the ARTS
     catalogue format:
 
@@ -427,6 +426,11 @@ private:
 */
 class LineRecord {
 public:
+
+  /** Make the helper function linesElowToJoule a friend, so that it
+      can change the lower state energy. FIXME: Remove this when we
+      don't need the helper function anymore. */
+  friend void linesElowToJoule(ARRAY<LineRecord>& lines);
 
   /** Default constructor. Initialize to default values. The indices
       are initialized to large numbers, so that we at least get range
@@ -821,7 +825,7 @@ public:
 
 private:
   // Versin number:
-  const static size_t mversion = 2;
+  const static size_t mversion = 3;
   // Molecular species index: 
   size_t mspecies;
   // Isotopic species index:
@@ -1024,6 +1028,9 @@ void xsec_species( MATRIX&                 xsec,
 		   const size_t             ind_lsn,
 		   const Numeric            cutoff);
 
+
+// A helper function for energy conversion:
+Numeric wavenumber_to_joule(Numeric e);
 
 
 //======================================================================

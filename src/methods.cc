@@ -1166,6 +1166,20 @@ void define_md_data()
 	KEYWORDS( "filename",  "fmin",    "fmax"),
 	TYPES(    string_t,    Numeric_t, Numeric_t)));
 
+  // FIXME: Remove this one.
+  md_data.push_back
+    ( MdRecord
+      ( NAME("linesElowToJoule"),
+  	DESCRIPTION(
+          "Just a little helper to convert the lower state energy from\n"
+	  " cm^-1 (ARTSCAT-2) to Joule (ARTSCAT-3). This should be removed soon."),
+	OUTPUT(   lines_   ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( ),
+	TYPES(    )));
+
   md_data.push_back
     ( MdRecord
       ( NAME("lines_per_tgCreateFromLines"),

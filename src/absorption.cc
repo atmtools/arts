@@ -431,9 +431,13 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // Lower state energy.
   {
     // HITRAN parameter is in wavenumbers (cm^-1).
-    // The same unit as in ARTS, we can extract directly!
+    // We have to convert this to the ARTS unit Joule.
+
+    // Extract from Catalogue line
     extract(melow,line,10);
-//    cout << "mf, melow = " << mf << ", " << setprecision(20) << melow << endl;
+
+    // Convert to Joule:
+    melow = wavenumber_to_joule(melow);
   }
 
   
@@ -776,10 +780,14 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
 
   // Lower state energy.
   {
-    // HITRAN parameter is in wavenumbers (cm^-1).
-    // The same unit as in ARTS, we can extract directly!
+    // MYTRAN parameter is in wavenumbers (cm^-1).
+    // We have to convert this to the ARTS unit Joule.
+
+    // Extract from Catalogue line
     extract(melow,line,10);
-//    cout << "mf, melow = " << mf << ", " << setprecision(20) << melow << endl;
+
+    // Convert to Joule:
+    melow = wavenumber_to_joule(melow);
   }
 
   
@@ -982,8 +990,13 @@ bool LineRecord::ReadFromJplStream(istream& is)
   // Lower state energy.
   {
     // JPL parameter is in wavenumbers (cm^-1).
-    // The same unit as in ARTS, we can extract directly!
+    // We have to convert this to the ARTS unit Joule.
+
+    // Extract from Catalogue line
     extract(melow,line,10);
+
+    // Convert to Joule:
+    melow = wavenumber_to_joule(melow);
   }
 
   // Upper state degeneracy
@@ -1707,9 +1720,6 @@ void xsec_species( MATRIX&                  xsec,
   static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
 					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
-  // Constant to convert lower state energy
-  static const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
-
   // dimension of f_mono, lines
   INDEX nf = f_mono.size();
   INDEX nl = lines.size();
@@ -1824,10 +1834,10 @@ void xsec_species( MATRIX&                  xsec,
 	// number density and lineshape.
 	Numeric intensity = l_l.I0();
 
-	// Lower state energy is in wavenumbers
-	Numeric e_lower = l_l.Elow() * lower_energy_const;
+	// Lower state energy is already in the right unit (Joule).
+	Numeric e_lower = l_l.Elow();
 
-	// Upper state energy
+	// Upper state energy:
 	Numeric e_upper = e_lower + F0 * PLANCK_CONST;
 
 	// Get the ratio of the partition function.
@@ -2066,4 +2076,29 @@ void refr_indexBoudouris (
                           72e-8 * e / t_abs[i] +
                           3.754e-3 * e / (t_abs[i]*t_abs[i]);
   }
+}
+
+/** A little helper function to convert energy from units of
+    wavenumber (cm^-1) to Joule (J). 
+
+    This is used when reading HITRAN or JPL catalogue files, which
+    have the lower state energy in cm^-1.
+
+    \return Energy in J.
+    \param  e Energy in cm^-1.
+
+    \author Stefan Buehler
+    \date   2001-06-26 */
+Numeric wavenumber_to_joule(Numeric e)
+{
+  // Planck constant [Js]
+  extern const Numeric PLANCK_CONST;
+
+  // Speed of light [m/s]
+  extern const Numeric SPEED_OF_LIGHT;
+
+  // Constant to convert lower state energy from cm^-1 to J
+  static const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
+
+  return e*lower_energy_const; 
 }

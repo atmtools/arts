@@ -220,6 +220,12 @@ void linesReadFromArts(// WS Output:
   out2 << "  Read " << lines.size() << " lines.\n";
 }
 
+void linesElowToJoule(// WS Output:
+		      ARRAYofLineRecord& lines )
+{
+  for ( size_t i=0; i<lines.size(); ++i )
+    lines[i].melow = wavenumber_to_joule(lines[i].melow); 
+}
 
 /**
   This method can read lines from different line catalogues. For each
