@@ -20,7 +20,7 @@ for i = 1:nalpha
 end
  
 cloudbox_on      = 1;
-cloudbox_limits  = [5 4 10];
+cloudbox_limits  = [0 5];
 
 
 figure(1)
@@ -42,6 +42,9 @@ axis tight
 
 
 figure(2)
+%
+cloudbox_limits  = [3 5 4 10];
+%
 [h,ltext]=plot_atm_2d(alpha_grid,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits,1);
 for i = 1:size(z_field,3)
   for j = 1:nalpha
@@ -64,8 +67,8 @@ axis tight
 
 if answer_is_yes('Print figures')
   print atm_dim_2d.eps -depsc
-  ! ps2pdf atm_dim_2d.eps atm_dim_2d.pdf
+  ! epstopdf atm_dim_2d.eps
   figure(1)
   print atm_dim_1d.eps -depsc
-  ! ps2pdf atm_dim_1d.eps atm_dim_1d.pdf
+  ! epstopdf atm_dim_1d.eps
 end

@@ -242,6 +242,13 @@
 
 
 
+% --- Special functions ------------------------------------------------------
+%
+% The Planck function
+\newcommand{\Planck}     {\ensuremath{B}}  
+
+
+
 % --- General scalar quantities ----------------------------------------------
 %
 % All quantities shall have a subscript version named as aXxx.
