@@ -82,16 +82,6 @@ typedef INDEX Index;
     notation for all the atomic ARTS types. */ 
 //typedef string String;
 
-// Declare the existance of class Array:
-template<class base>
-class Array;
-
-/** An array of Index. */
-typedef Array<Index> ArrayOfIndex;
-
-/** An array of Numeric. */
-typedef Array<Numeric> ArrayOfNumeric;
-
 
 //-----------< define a quick output for std::vector<> >----------
 /* A quick hack output for std::vector<>. This is only for
