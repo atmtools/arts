@@ -190,9 +190,17 @@ void define_md_data()
     ( MdRecord
       ( NAME("IndexWriteBinary"),
 	DESCRIPTION("Writes an index to a binary file.\n"
+		    "\n"
 		    "The filename can be specified or an empty String.\n"
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format."),
+		    "See ??? for details about the file format.\n"
+                    "\n"
+		    "Global input: \n"
+		    "   Index : \n"
+		    "\n"
+                    "Keywords:\n"
+                    "   filename:   \n"),
+   
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -204,8 +212,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("IndexReadBinary"),
 	DESCRIPTION("Reads an index from a binary file.\n"
+		    "\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "\n"
+		    "Global output: \n"
+		    "   Index : \n"
+		    "\n"
+		    "Keywords:\n"
+		    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Index_ ),
@@ -272,8 +287,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("NumericWriteBinary"),
 	DESCRIPTION("Writes a numeric value to a binary file.\n"
+		    "\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "\n"
+		    "Global input: \n"
+		    "   Numeric : \n"
+		    "\n"
+		    "Keywords:\n"
+		    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -285,8 +307,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("NumericReadBinary"),
 	DESCRIPTION("Reads a numeric from a binary file.\n"
+		    "\n"
 		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "\n"
+		    "Global output: \n"
+		    "   Numeric : \n"
+		    "\n"
+		    "Keywords:\n"
+		    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Numeric_ ),
@@ -314,7 +343,7 @@ void define_md_data()
     ( MdRecord
       ( NAME("VectorSetLengthFromVector"),
 	DESCRIPTION("Creates a workspace vector with the same length as the\n"
-                    "given vector and initializes the new vector with the\n"
+		    "given vector and initializes the new vector with the\n"
                     "given value. For example\n"
                     " VectorSetLengthFromVector(e_ground,f_mono){value=0.75}"),
 	OUTPUT(),
@@ -434,9 +463,16 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteBinary"),
-	DESCRIPTION("Writes a vector to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+        DESCRIPTION("Writes a vector to a binary file.\n"
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   Vector : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -448,8 +484,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("VectorReadBinary"),
 	DESCRIPTION("Reads a vector from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n" 
+                    "Global output: \n"
+                    "   Vector : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
@@ -578,8 +621,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("MatrixWriteBinary"),
 	DESCRIPTION("Writes a matrix to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   Matrix : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -591,8 +641,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("MatrixReadBinary"),
 	DESCRIPTION("Reads a matrix from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output: \n"
+                    "   Matrix : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Matrix_ ),
@@ -648,8 +705,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfIndexWriteBinary"),
 	DESCRIPTION("Writes an index array to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   ArrayOfIndex : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -661,8 +725,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfIndexReadBinary"),
 	DESCRIPTION("Reads an index array from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output: \n"
+                    "   ArrayOfIndex : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfIndex_ ),
@@ -706,8 +777,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfVectorWriteBinary"),
 	DESCRIPTION("Writes a vector array to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   ArrayOfVector : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -719,8 +797,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfVectorReadBinary"),
 	DESCRIPTION("Reads a vector array from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output:  \n"
+                    "   ArrayOfVector : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfVector_ ),
@@ -782,8 +867,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteBinary"),
 	DESCRIPTION("Writes a matrix array to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   ArrayOfMatrix : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -795,8 +887,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfMatrixReadBinary"),
 	DESCRIPTION("Reads a matrix array from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output: \n"
+                    "   ArrayOfMatrix : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfMatrix_ ),
@@ -850,8 +949,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("StringWriteBinary"),
 	DESCRIPTION("Writes a String to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   String : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -863,8 +969,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("StringReadBinary"),
 	DESCRIPTION("Reads a String from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output: \n"
+                    "   String : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( String_ ),
@@ -929,8 +1042,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfStringWriteBinary"),
 	DESCRIPTION("Writes a String array to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   ArrayOfString : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -942,8 +1062,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("ArrayOfStringReadBinary"),
 	DESCRIPTION("Reads a String array from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output: \n"
+                    "   ArrayOfString : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfString_ ),
@@ -971,8 +1098,15 @@ void define_md_data()
     ( MdRecord
       ( NAME("LosWriteBinary"),
 	DESCRIPTION("Writes a LOS structure to a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global input: \n"
+                    "   LOS : \n"
+                    "\n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -984,8 +1118,14 @@ void define_md_data()
     ( MdRecord
       ( NAME("LosReadBinary"),
 	DESCRIPTION("Reads a LOS structure from a binary file.\n"
-		    "The filename can be specified or an empty String.\n"
-		    "If empty, it is set to <basename>.<variable_name>.ab."),
+                    "\n"
+                    "The filename can be specified or an empty String.\n"
+                    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+                    "\n"
+                    "Global output: \n"
+                    "   LOS : \n"
+                    "Keywords:\n"
+                    "   filename : \n"),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( LOS_ ),
