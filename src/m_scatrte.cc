@@ -413,6 +413,7 @@ i_fieldIterate(
 			    scat_f_index,
 			    f_grid);
 	    
+	    
 	    pha_mat_sptCalc(pha_mat_spt,
 			    amp_mat,
 			    scat_za_index,
@@ -592,7 +593,6 @@ i_fieldUpdate1D(// WS Output:
 		      scat_f_index, 
                       f_grid);   
    
-          
       // For a 1D atmosphere the azimuthal angle grid is not defined. 
       // Only 1 value, which is arbitrary set to 0, is passed into the function
       // abs_vec_sptCalc. 
@@ -1111,15 +1111,19 @@ scat_fieldCalc(//WS Output:
 	       )
   
 {
+  // Some useful indices :
   Index N_pt = pha_mat_spt.nshelves();
   Index Nza = scat_za_grid.nelem();
+  Index Nza_prop = i_field.npages();
   Index Naa = scat_aa_grid.nelem();
-  Index Np  = i_field.nvitrines();//STR
+  Index Naa_prop = i_field.ncols();
+  Index Np  = i_field.nvitrines();
+
   cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
   //Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
   // now tensor5 after za_index_in index
-  Tensor5 product_field(Np,Nza,Nza, Naa, stokes_dim);
-  Vector product_field_vec(stokes_dim);
+  Tensor3 product_field(Nza, Naa, stokes_dim);
+ 
   // scat_field is of the same size as *i_field*
   scat_field.resize( i_field.nvitrines(),
 		     i_field.nshelves(),
@@ -1166,8 +1170,6 @@ scat_fieldCalc(//WS Output:
   }
   //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
-    Tensor5 product_field(Np, Nza, Nza, Naa, stokes_dim);
-    
     /*there is a loop only over the pressure index when we calculate
       the pha_mat from pha_mat_spt and pnd_field using the method
       pha_matCalc.  Note that the
@@ -1183,90 +1185,86 @@ scat_fieldCalc(//WS Output:
     
     
     // Get pha_mat at the grid positions
+    // Since atmosphere_dim = 1, there is no loop over lat and lon grids
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
-	
-	for (Index za_index_in = 0; za_index_in < Nza; ++ za_index_in)
+	//There is only loop over zenith angle grid ; no azimuth angle grid.
+	for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
 	  {
-	    
-	    for (Index za_index = 0; za_index < Nza; ++ za_index)
-	     { 
-		for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
+	    // za_in and aa_in are for incoming zenith and azimutha 
+	    //angle direction for which pha_mat is calculated
+	    for (Index za_in = 0; za_in < Nza; ++ za_in)
+	      { 
+		for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
 		  {
-				
-		    ConstMatrixView pha = pha_mat(za_index,
-						  aa_index,
+		    //This is a matrix with last two dimensions 
+		    //being that of stokes_dim
+		    ConstMatrixView pha = pha_mat(za_in,
+						  aa_in,
 						  Range(joker),
 						  Range(joker));
 
+		    //the incoming field expressed as a vector for all
+		    //pressure points, and looking angles
 		    ConstVectorView i_field_in = 
 		      i_field((p_index - cloudbox_limits[0]),
 			      0,
 			      0,
-			      za_index_in,
+			      za_prop,
 			      0,
 			      Range(joker));
 
-		    mult(product_field( (p_index - cloudbox_limits[0]),
-					za_index_in,
-					za_index,
-					aa_index,
+		    // multiplication of intensity field vector and 
+		    //pha_mat matrix
+		    mult(product_field( za_in,
+					aa_in,
 					Range(joker)),
 			 pha, 
 			 i_field_in);
-		    
-		  }//end aa_index loop
-	      }//end za_index_in loop
-	  }//end za_index loop
-      }//end pindex loop
-    
-    /*integration of the product of ifield_in and pha
-      over zenith angle and azimuth angle grid. It calls
-      here the integration routine AngIntegrate_trapezoid*/
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
-      {
-	// Now only za_index_in index; removed za_index
-	for (Index za_index_in = 0; za_index_in < Nza; ++ za_index_in)
-	{
-	    
+			    
+		  }//end aa_in loop
+	      }//end za_in loop
+	    /*integration of the product of ifield_in and pha
+	      over zenith angle and azimuth angle grid. It calls
+	      here the integration routine AngIntegrate_trapezoid*/
+	  	    
 	    for (Index i = 0; i < stokes_dim; i++)
 	      {
+		
 		MatrixView product_field_mat =
-		  product_field( (p_index - cloudbox_limits[0]),
-				 za_index_in,
-				 Range(joker),
+		  product_field( Range(joker),
 				 Range(joker),
 				 i);
-		
-		
+		// scat_field is also defined for all points inside the cloud
+		//box for each propagion angle
 		scat_field( (p_index - cloudbox_limits[0]),
-			   0,
-			   0,
-			   za_index_in, 
-			   0,
-			   i)  =   AngIntegrate_trapezoid(product_field_mat,
-							  scat_za_grid,
-							  scat_aa_grid);
+			    0,
+			    0,
+			    za_prop, 
+			    0,
+			    i)  =   AngIntegrate_trapezoid(product_field_mat,
+							   scat_za_grid,
+							   scat_aa_grid);
 		
 	      }//end i loop
-	  }//end za_index_in loop
+	  }//end za_prop loop
       }//end p_index loop
     
   }//end atmosphere_dim = 1
+
   //cout<<"scat_field"<<scat_field<<"\n";	
   //exit(1);
   
   
   //When atmospheric dimension , atmosphere_dim = 3
-  //  if( atmosphere_dim == 3 ){
+  if( atmosphere_dim == 3 ){
     
-    /*there is a loop only over the pressure index when we calculate
-      the pha_mat from pha_mat_spt and pnd_field using the method
-      pha_matCalc.  */
+    /*there is a loop over pressure, latitude and longitudeindex
+      when we calculate the pha_mat from pha_mat_spt and pnd_field
+      using the method pha_matCalc.  */
     
-    /*for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
 	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
@@ -1293,78 +1291,65 @@ scat_fieldCalc(//WS Output:
 	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
 		   cloudbox_limits[5]; lon_index++)
 	      {
-		for (Index za_index_in = 0; za_index_in < Nza; ++ za_index_in)
+		//za_prop and aa_prop are the propagation directions
+		for (Index za_prop = 0; za_prop < Nza_prop; ++ za_prop)
 		  {
-		    for (Index za_index = 0; za_index < Nza; ++ za_index)
+		    for (Index aa_prop = 0; aa_prop < Naa_prop; ++ aa_prop)
 		      {
-			for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-			  {			
-			    product_field((p_index-cloudbox_limits[0]),
-					  za_index,za_index_in,
-					  aa_index, 
-					  i) = pha_mat(za_index,
-						       aa_index,
-						       i,
-						       i) * 
-			      i_field((p_index-cloudbox_limits[0]),
-				      (lat_index-cloudbox_limits[2]),
-				      (lon_index-cloudbox_limits[4]),
-				      za_index_in,
-				      aa_index,
-				      Range(joker));
-			    
-			  }
-		      }
-		  }
-	      }
-	  }
-      }
- 
-    
-    //integration of the product of ifield_in and pha
-    //  over zenith angle and azimuth angle grid. It 
-     //7 calls here the integration routine 
-      //AngIntegrate_trapezoid
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-	 p_index++)
-      {
-	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-	       cloudbox_limits[3]; lat_index++)
-	  {
-	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-		   cloudbox_limits[5]; lon_index++)
-	      {
-		for (Index i = 0; i < stokes_dim; i++)
-		  {
-		    MatrixView product_field_mat = 
-		      product_field((p_index-cloudbox_limits[0]),//changed p_index
-				    Range(joker),
-				    Range(joker),
-				    i);
-		    
-		    scat_field((p_index-cloudbox_limits[0]),//changed p_index
-			       lat_index,
-			       lon_index,
-			       Range(joker),
-			       Range(joker),i)
-		      = AngIntegrate_trapezoid(product_field_mat,
-					       scat_za_grid,
-					       scat_aa_grid);
-		    
-		  }
-		
-	      }
-	  }
-      }
-      }
-  static Index counter = 0;
-  counter = counter+1;
-  cout << "Number of iterations:   "<< counter << endl;
-  
-  ostringstream os;
-  
-  os << counter;
-  xml_write_to_file("scat_field_" + os.str() + ".xml", scat_field); */
+			//za_in and aa_in are the incoming directions
+			//for which pha_mat_spt is calculated
+			for (Index za_in = 0; za_in < Nza; ++ za_in)
+			  {
+			    for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+			      {	
+				
+				ConstMatrixView pha = pha_mat(za_in,
+						  aa_in,
+						  Range(joker),
+						  Range(joker));
+
+				ConstVectorView i_field_in = 
+				  i_field((p_index - cloudbox_limits[0]),
+					  (lat_index - cloudbox_limits[1]),
+					  (lon_index - cloudbox_limits[2]),
+					  za_prop,
+					  aa_prop,
+					  Range(joker));
+				
+				mult(product_field( za_in,
+						    aa_in,
+						    Range(joker)),
+				     pha, 
+				     i_field_in);
+				
+			      }//end aa_in loop
+			  }//end za_in loop
+			//integration of the product of ifield_in and pha
+			//over zenith angle and azimuth angle grid. It 
+			//calls here the integration routine 
+			//AngIntegrate_trapezoid
+			for (Index i = 0; i < stokes_dim; i++)
+			  {
+			    MatrixView product_field_mat =
+			      product_field( Range(joker),
+					     Range(joker),
+					     i);
+			    scat_field( (p_index - cloudbox_limits[0]),
+					(lat_index - cloudbox_limits[1]),
+					(lon_index - cloudbox_limits[2]),
+					za_prop, 
+					aa_prop,
+					i)  =  
+			      AngIntegrate_trapezoid(product_field_mat,
+						     scat_za_grid,
+						     scat_aa_grid);
+			  }//end i loop
+		      }//end aa_prop loop
+		  }//end za_prop loop
+	      }//end lon loop
+	  }// end lat loop
+      }// end p loop
+  }// end atmosphere_dim = 3
  
 }
   
@@ -1400,7 +1385,7 @@ scat_fieldCalc(//WS Output:
 */ 
 void Tensor6WriteIteration(//WS input and output
                            Index& iteration_counter,
-                           //Global input:
+                           //Global  Input :
                            const Tensor6& field,
                            const String& field_name,
                            //Keyword:
@@ -1419,7 +1404,7 @@ void Tensor6WriteIteration(//WS input and output
  // All iterations are written to files
  if( iterations[0] == 0 )
    {
-     xml_write_to_file("iteration_field_" + os.str() + ".xml", field);  
+     xml_write_to_file(field_name+ os.str() + ".xml", field);  
    }
  // Only the iterations given by the keyword are written to a file
  else
@@ -1427,7 +1412,7 @@ void Tensor6WriteIteration(//WS input and output
      for (Index i = 0; i<iterations.nelem(); i++)
        {
          if (iteration_counter == iterations[i])
-           xml_write_to_file("iteration_field_"+ os.str() + ".xml", field);  
+           xml_write_to_file(field_name+ os.str() + ".xml", field);  
        }
    }
 }
