@@ -154,6 +154,11 @@ species_data.o: arts.h make_array.h absorption.h species_data.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
+# OLE: Temporarely added to work around a bug in gcc 3.0
+xml_io.o: arts.h xml_io.h xml_io_private.h bofstream.h bifstream.h
+	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
+	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c xml_io.cc
+
 noinst_PROGRAMS = \
 	make_auto_md_cc \
 	make_auto_md_h \

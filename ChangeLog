@@ -1,3 +1,16 @@
+2003-03-31  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+        * arts-1-1-514
+	
+	* src/m_scatrte.cc (convergence_flagAbs): The convergence 
+	criteria keyword epsilon can be now set in brightness 
+	temperature units. I used the function invplanck to convert
+	radiance to brightness temperature. I had to add *f_grid* and 
+	*f_index* as input to this method. 
+
+	* src/methods.cc: Added f_grid and f_index as inputs to 
+	convergence_flagAbs.
+
 2003-03-31  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* src/ppath.cc (raytrace_3d_linear_euler): For zenith and nadir paths

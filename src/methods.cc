@@ -962,7 +962,7 @@ void define_md_data_raw()
          "Then *convergence_flag* is set to 1.\n" 
         ),
         OUTPUT(convergence_flag_),
-        INPUT(i_field_, i_field_old_),
+        INPUT(i_field_, i_field_old_, f_grid_, f_index_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS("epsilon"),

@@ -95,6 +95,8 @@ void convergence_flagAbs(//WS Output:
                       // WS Input:
                       const Tensor6& i_field,
                       const Tensor6& i_field_old,
+                      const Vector& f_grid,
+                      const Index& f_index, 
                       // Keyword:
                       const Vector& epsilon)
 {
@@ -138,13 +140,13 @@ void convergence_flagAbs(//WS Output:
                              stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            fabs( i_field(p_index, lat_index, lon_index, 
+                            fabs( invplanck(i_field(p_index, lat_index, lon_index, 
                                           scat_za_index, scat_aa_index, 
-                                          stokes_index) -
-                                  i_field_old(p_index, lat_index, 
+                                          stokes_index),f_grid[f_index]) -
+                                  invplanck(i_field_old(p_index, lat_index, 
                                               lon_index, scat_za_index,
                                               scat_aa_index, 
-                                              stokes_index ));
+                                              stokes_index ),f_grid[f_index]));
                           
                           // If the absolute difference of the components
                           // is larger than the pre-defined values, return
@@ -518,7 +520,7 @@ i_fieldUpdate1D(// WS Output:
           // Store coefficients in arrays for the whole cloudbox.
           abs_vec_field(p_index-cloudbox_limits[0], 0, 0, joker) = 
             abs_vec(0, joker);
-
+          
           ext_mat_field(p_index-cloudbox_limits[0], 0, 0, joker, joker) = 
             ext_mat(0, joker, joker);
                     
@@ -2374,7 +2376,7 @@ void ScatteringMain(
 {
 
   Index Nf = f_grid.nelem();
- 
+  
   for ( f_index = 0; f_index < Nf; ++ f_index)
     {
       out2 << "---------------------------------------------\n";
