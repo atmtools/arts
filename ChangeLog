@@ -1,3 +1,13 @@
+2003-07-01  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-595
+
+	* src/arts.h: Updated doxygen main page.
+
+	* doc/doxygen/Makefile.am: Copy arts splash to html dir.
+
+	* doc/arts-splash.gif: Added. Changed version in splash to pre2.0.
+
 2003-06-30  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-594
@@ -81,7 +91,9 @@
 	Rng in functions Sample_los and Sample_pathlength, added rng_seed
 	control parameter to ScatteringMonteCarlo.  This means that you
 	can choose a seed for random number generation, or have the seed 
-	derived from system time.  The latter is acheived by setting rng_seed
+	derived from system time.  The latter is acheivedt
+    the first two components are required, in some cases, depending on the
+ by setting rng_seed
 	to a negative integer.
 
 	* src/montecarlo.{cc-h}: used new random number generator class
