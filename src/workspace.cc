@@ -701,6 +701,20 @@ void define_wsv_data()
  
   wsv_data.push_back
     (WsvRecord
+     ( NAME( "gas_tgs" ),
+       DESCRIPTION
+       (
+	"Tag groups for scalar gas absorption.\n"
+	"\n"
+	"This is an array of arrays of OneTag tag definitions.  It defines the\n"
+	"available tag groups for the calculation of scalar gas absorption\n"
+	"coefficients.  See online documentation of method *gas_tgsDefine* for\n"
+	"more detailed information how tag groups work and some examples."
+	), 
+       GROUP( TagGroups_)));
+
+  wsv_data.push_back
+    (WsvRecord
      ( NAME( "i_field" ), 
        DESCRIPTION
       (
@@ -1995,20 +2009,6 @@ void define_wsv_data()
 // 	 "Dimensions: (tag_groups.nelem()) (# of lines for this tag)"
 // 	 ), 
 // 	GROUP( ArrayOfArrayOfLineRecord_)));
-
-//    wsv_data.push_back
-//      (WsvRecord
-//       ( NAME( "tgs" ),
-// 	DESCRIPTION
-// 	(
-// 	 "This is an array of arrays of OneTag tag definitions.\n"
-// 	 "It defines the available tag groups for the calculation\n"
-// 	 "of absorption coefficients and weighting functions.\n"
-// 	 "Contrary to the original Bredbeck definition, tags within a\n"
-// 	 "group must belong to the same species, because one VMR profile\n"
-// 	 "is associated with each tag group."
-// 	 ), 
-// 	GROUP( TagGroups_)));
 
 //    wsv_data.push_back
 //      (WsvRecord

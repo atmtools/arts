@@ -42,6 +42,7 @@
 #include "messages.h"
 #include "ppath.h"
 #include "agenda_class.h"
+#include "absorption.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -149,6 +150,11 @@ xml_read_from_stream (istream& is, Vector& vector);
 void
 xml_write_to_stream (ostream& os, const Vector& vector);
 
+void
+xml_read_from_stream (istream& is, TagGroups& ataggroup);
+
+void
+xml_write_to_stream (ostream& os, const TagGroups& ataggroup);
 
 ////////////////////////////////////////////////////////////////////////////
 //   XML parser classes
@@ -2351,6 +2357,9 @@ xml_read_from_file<Tensor7> (const String&, Tensor7&);
 template void
 xml_read_from_file<Vector> (const String&, Vector&);
 
+template void
+xml_read_from_file<TagGroups> (const String&, TagGroups&);
+
 
 template void
 xml_write_to_file<Agenda> (const String&, const Agenda&);
@@ -2414,6 +2423,9 @@ xml_write_to_file<Tensor7> (const String&, const Tensor7&);
 template void
 xml_write_to_file<Vector> (const String&, const Vector&);
 
+template void
+xml_write_to_file<TagGroups> (const String&, const TagGroups&);
+
 
 ////////////////////////////////////////////////////////////////////////////
 //   Dummy funtion for groups for which 
@@ -2446,6 +2458,20 @@ xml_read_from_stream (istream& is,
 void
 xml_write_to_stream (ostream&     os,
                      const Agenda& agenda)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_read_from_stream (istream& is,
+                      TagGroups& ataggroup)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_write_to_stream (ostream&     os,
+                     const TagGroups& ataggroup)
 {
   throw runtime_error("Method not implemented!");
 }
