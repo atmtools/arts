@@ -1127,7 +1127,7 @@ bool LineRecord::ReadFromJplStream(istream& is)
     extract(tag,line,7);
 
     // make sure tag is not negative (damned jpl cat):
-    tag = abs(tag);
+    tag = abs(INDEX(tag));
   }
 
   // ok, now for the cool index map:
