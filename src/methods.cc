@@ -3189,22 +3189,36 @@ md_data_raw.push_back
         DESCRIPTION
         (
          "Returns the response block matrix after it has been modified by\n"
-	 "a 1D antenna response.\n"
+         "a 1D antenna response.\n"
          "\n"
-         "The generic input matrix is a two-column matrix where the first\n"
-	 "column describes a relative grid of angles and the second column\n"
-	 "desrcibes the antenna diagram. Such a matrix can be set up by\n"
-	 "*GaussianResponse*.\n"
-	 "\n"
-	 "Generic Input: \n"
-	 "   Matrix : The antenna response matrix."
+         "The antenna diagram patterns is given as the generic input matrix,\n"
+         "where the first column describes a relative grid of angles and the\n"
+         "following column(s) describe the antenna diagram.\n"
+         "Combined with the keyword \"diagram_type\", 3 cases are possible:\n"
+         "   \"single\" - The same antenna gain is used for all frequencies. In\n"
+         "               this case the matrix must be a two column matrix.\n"
+         "               Keyword f_ref can be set to an arbitrary value.\n"
+         "   \"scale\"  - The antenna gain is scaled with frequency, the keyword\n"
+         "               f_ref denotes the reference frequency for which the\n"
+         "               antenna diagram is given.\n"
+         "   \"full\"   - The antenna diagram are given for each frequency. In\n"
+         "               this case the number of columns in the input matrix\n"
+         "               must equal the number of frequencies in\n"
+         "               *sensor_response_f* plus one (for the relative grid).\n"
+         "               Keyword f_ref can be set to an arbitrary value.\n"
+         "\n"
+         "Generic Input: \n"
+         "      Matrix : The antenna response matrix.\n"
+         "Keywords: \n"
+         "diagram_type : \"single\", \"scale\" and \"full\".\n"
+         "       f_ref : The reference frequency used when scaling."
         ),
         OUTPUT( sensor_response_ ),
-        INPUT( f_grid_, mblock_za_grid_, antenna_dim_ ),
+        INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
-        KEYWORDS( ),
-        TYPES( )));
+        KEYWORDS( "diagram_type", "f_ref" ),
+        TYPES( String_t, Numeric_t )));
 
   md_data_raw.push_back
     ( MdRecord

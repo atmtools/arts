@@ -160,8 +160,8 @@ void linspace(
     \author Patrick Eriksson
     \date   2000-06-27
 */
-void nlinspace(         
-               Vector&     x, 
+void nlinspace(
+               Vector&     x,
                const Numeric     start,     
                const Numeric     stop,        
                const Index       n )

@@ -66,11 +66,12 @@
     ncols = x_f.nelem() * m_za.nelem()
 
    The number of line-of-sights is determined by the length of the
-   measurement block grid. The number of sensor response matrix rows
-   don't need to match the number of frequency grid points.
+   measurement block zenith angle grid. The number of sensor response 
+   matrix rows don't need to match the number of frequency grid points.
 
-   FIXME: The antenna diagram values could be set up and scaled using the
-   antenna_diagram_gaussian and scale_antenna_diagram functions.
+   The antenna diagram must either have two columns or x_f.nelem()+1
+   columns. The function will use the size of the matrix to determine
+   how to handle it.
 
    \param   H      The antenna transfer matrix.
    \param   m_za   The measurement block grid of zenith angles.
@@ -85,28 +86,32 @@ void antenna_transfer_matrix( Sparse&   H,
                               ConstMatrixView   srm,
                               ConstVectorView   x_f )
 {
-  //Assert that the transfer matrix and the sensor response matrix has the 
-  //right size
-  assert( H.nrows()==x_f.nelem() && H.ncols()==m_za.nelem()*x_f.nelem() );
-  assert( srm.ncols()==2 );
+  // Check that the output matrix the right size
+  assert(H.nrows()==x_f.nelem());
+  assert(H.ncols()==m_za.nelem()*x_f.nelem());
 
-  //FIXME: Allocate a temporary vector to keep values before sorting them into the
-  //final sparse matrix, could (should) be fixed with a SparseView(range, range) operator
-  Vector temp(m_za.nelem()*x_f.nelem(), 0.0);
+  // Check the size of the antenna diagram matrix.
+  assert(srm.ncols()==2 || srm.ncols()==x_f.nelem()+1);
+  Index srm_step;
+  if (srm.ncols()==2)
+    srm_step = 0;
+  else
+    srm_step = 1;
 
-  //Calculate the sensor integration vector and put values in the temp vector
-  //FIXME: Scale the antenna diagram?? If so, do it here.
-  for (Index i=0; i<x_f.nelem(); i++) {
-    sensor_integration_vector( temp[Range(i, m_za.nelem(), x_f.nelem())],
-      srm(Range(joker),1), srm(Range(joker),0), m_za);
-  }
+  // Allocate a temporary vector to keep values before storing them in the
+  // final sparse matrix. The size of this vector equals the number of
+  // columns in the output matrix.
+  Vector temp(H.ncols(), 0.0);
 
-  //Copy values to the antenna matrix
-  for (Index j=0; j<m_za.nelem(); j++) {
-    for (Index i=0; i<x_f.nelem(); i++) {
-      if (temp[i+j*x_f.nelem()]!=0)
-        H.rw(i, i+j*x_f.nelem()) = temp[i+j*x_f.nelem()];
-    }
+  // Loop through x_f and calculate the sensor integration vector for each
+  // frequency and put values in the temp vector. For this we use 
+  // vectorviews where the elements are separated by number of frequencies
+  // in x_f. Store the vector as rows in the output matrix.
+  for (Index i=0;i<x_f.nelem();i++) {
+    sensor_integration_vector(temp[Range(i,m_za.nelem(),x_f.nelem())],
+      srm(joker,1+i*srm_step),srm(joker,0),m_za);
+    H.insert_row(i,temp);
+    temp = 0.0;
   }
 }
 
@@ -233,31 +238,30 @@ void mixer_transfer_matrix(
    Scales a Gaussian antenna diagram for a reference frequency to match
    the new frequency.
 
-   \return          The scaled antenna diagram
+   \param   s       The scaled antenna diagram
    \param   srm     The antenna diagram matrix
    \param   f_ref   The reference frequency
    \param   f_new   The new frequency
 
    \author Mattias Ekström
-   \date   2003-03-11
+   \date   2003-08-14
 */
-Matrix scale_antenna_diagram(
+void scale_antenna_diagram(
+             VectorView   sc,
         ConstMatrixView   srm,
          const Numeric&   f_ref,
          const Numeric&   f_new )
 {
-  //Initialise new vector
-  Matrix srm_new = srm;
+  // Check output vector size
+  assert( sc.nelem()==srm.ncols() );
 
-  //Get scale factor
+  // Calculate the scale factor
   Numeric s = f_new / f_ref;
 
-  //Scale
+  // Perform the scaling, by scaling the gain values
   for (Index i=0; i<srm.nrows(); i++) {
-    srm_new(i,1)=pow(srm(i,1), s);
+    sc[i]=pow(srm(i,1), s);
   }
-
-  return srm_new;
 }
 
 //! sensor_integration_vector

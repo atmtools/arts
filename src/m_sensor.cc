@@ -126,7 +126,8 @@ void GaussianResponse(// WS Generic Output:
   out2 << "  Setting up a sensor response matrix in *"
        << r_matrix_name << "*\n  with gaussian distribution.\n";
 
-  //Set up grid column
+  //Set up grid column, using temporary vector since nlinspace resizes the
+  //input vector.
   Vector tmp(nrows);
   nlinspace(tmp, -TotWidth/2, TotWidth/2, nrows);
   r_matrix(joker,0) = tmp;
@@ -173,7 +174,7 @@ void sensorOff(
     {
       ostringstream os;
       os << "The number of rows of sensor_pos and sensor_los must be "
-         << "identical,but sensor_pos has " << sensor_pos.nrows() 
+         << "identical,but sensor_pos has " << sensor_pos.nrows()
          << " rows, while sensor_los has " << sensor_los.nrows() << " rows.";
       throw runtime_error( os.str() );
     }
@@ -204,65 +205,128 @@ void sensorOff(
 }
 
 
+//! sensor_responseAntenna1D
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
 
+   \author Mattias Ekström
+   \date   2003-08-14
+*/
 void sensor_responseAntenna1D(// WS Output:
                               Sparse&           sensor_response,
                               // WS Input:
                               const Vector&     f_grid,
                               const Vector&     mblock_za_grid,
                               const Index&      antenna_dim,
+                              const Matrix&     sensor_pol,
                               // WS Generic Input:
                               const Matrix&     srm,
                               // WS Generic Input Names:
-                              const String&     srm_name )
+                              const String&     srm_name,
+                              // Control Parameters:
+                              const String&     diagram_type,
+                              const Numeric&    f_ref )
 {
-  //Check that the antenna has the right dimension
+  // Check that the antenna has the right dimension, this implies that the
+  // mblock_aa_grid is empty (as set by AntennaSet1D).
   assert(antenna_dim==1);
 
-  //Check that sensor_response has the right size, i.e. has been initialised
-  Index n = f_grid.nelem() * mblock_za_grid.nelem();
+  // Check that sensor_response has the right size for multiplication,
+  // i.e. at least has been initialised by sensor_responseInit.
+  Index n = f_grid.nelem() * mblock_za_grid.nelem() * sensor_pol.nrows();
   if( sensor_response.nrows() != n ) {
     ostringstream os;
     os << "The sensor block response matrix *sensor_response* does not have the\n"
-       << "right size. The number of rows has to equal the product of the number\n"
-       << "of elements of the frequency grid and the measurement block zenith angle\n"
-       << "grid. Check that at least *sensor_responseInit* has been run prior to\n"
-       << "this method.";
-    throw runtime_error( os.str() );
+       << "right size. Check that at least *sensor_responseInit* has been run\n"
+       << "prior to this method.";
+    throw runtime_error(os.str());
   }
 
-
-  //Check that the antenna response matrix has been initialised
-  if( srm.ncols()!=2 ) {
+  // Check that the 'type' keyword is correct and that the antenna response
+  // matrix has the right size in combination with the keyword.
+  if (diagram_type=="single" || diagram_type=="scale") {
+    if (srm.ncols()!=2) {
+      ostringstream os;
+      os << "When diagram_type is \"single\" or \"scale\", the antenna diagram\n"
+         << "matrix, " << srm_name << ", must have two columns.\n";
+      throw runtime_error(os.str());
+    }
+  } else if (diagram_type=="full") {
+    if (srm.ncols()!=f_grid.nelem()+1) {
+      ostringstream os;
+      os << "When diagram_type is \"full\" the antenna diagram matrix must be\n"
+         << "defined for every frequency, i.e. " << srm_name << " must have\n"
+         << f_grid.nelem()+1 << " columns.";
+      throw runtime_error(os.str());
+    }
+  } else {
     ostringstream os;
-    os << "The antenna response matrix *" << srm_name << "* has not"
-       << " been\n correctly initialised. A two column matrix is expected.\n";
+    os << "The keyword diagram_type = " << diagram_type << " is not a valid option.\n"
+       << "Only \"single\", \"scale\" and \"full\" are valid.";
+    throw runtime_error(os.str());
+  }
+
+  // FIXME: If a antenna zenith angle offset from the center angle should be
+  // applied, this should be done here before we check if the antenna grid
+  // extends outside the mblock_za_grid.
+
+  // Check that the antenna diagram angles does not extend beyond
+  // mblock_za_grid min and max. First calculate the difference between
+  // the lower and upper bounds.
+  // NOTE: this assumes that mblock_za_grid and srm(joker,0) are increasing
+  Numeric diff_min = srm(0,0)-mblock_za_grid[0];
+  Numeric diff_max = last(mblock_za_grid)-srm(srm.nrows()-1,0);
+  if (diff_min<0) {
+    ostringstream os;
+    os << "The antenna diagram is too wide, it has to be shortened in the\n"
+       << "lower end by " << -diff_min << " degrees.";
+    throw runtime_error( os.str() );
+  } else if (diff_max<0) {
+    ostringstream os;
+    os << "The antenna diagram is too wide, it has to be shortened in the\n"
+       << "upper end by " << -diff_max << " degrees.";
     throw runtime_error( os.str() );
   }
 
+  // Now we need to set up the antenna diagram matrix that will be sent to
+  // antenna_transfer_matrix. In the cases of 'single' or 'full' we only
+  // need to copy the matrix, but for 'scale' we will create a full matrix
+  // by scaling the diagram using the reference frequency.
+  Matrix srm_tmp;
+  if (diagram_type=="scale") {
+    // Resize the matrix to the size of 'full', copy the grid column and
+    // then loop through the frequencies and scale the gain.
+    srm_tmp.resize(srm.nrows(), f_grid.nelem()+1);
+    srm_tmp(joker,0) = srm(joker,0);
+    for (Index i=0; i<f_grid.nelem(); i++) {
+      scale_antenna_diagram(srm_tmp(joker,i+1),srm,f_ref,f_grid[i]);
+    }
+  } else {
+    // In this case diagram_type is either 'single' or 'full', just copy the
+    // matrix.
+    srm_tmp = srm;
+  }
+
+  // Tell the user what is happening
   out2 << "  Calculating the antenna response using values and grid from *"
        << srm_name << "*.\n";
 
-  Sparse antenna_response( f_grid.nelem(), n);
-  antenna_transfer_matrix( antenna_response, mblock_za_grid, srm, f_grid);
+  // Create the response matrix for the antenna, this matrix will later be
+  // multiplied with the original sensor_response matrix.
+  Sparse antenna_response(f_grid.nelem(),n);
+  antenna_transfer_matrix(antenna_response,mblock_za_grid,srm_tmp,f_grid);
 
-  //cout << "sensor_response (pre):\n" << sensor_response << "\n";
-  //xml_write_to_file ("sensor_response.xml", sensor_response);
-  //Sparse sr_t( sensor_response.ncols(), sensor_response.nrows() );
-  //transpose( sr_t, sensor_response );
-
+  // It's forbidden to have same matrix as input twice to mult and we
+  // want to multiply antenna_response with sensor_response and store the
+  // result in sensor_response. So we need to create a temporary copy
+  // of sensor_response matrix.
   Sparse sensor_response_tmp(sensor_response);
   sensor_response.resize( f_grid.nelem(), n);
   mult( sensor_response, antenna_response, sensor_response_tmp);
 
-  //cout << "sensor_response_tmp:\n" << sensor_response_tmp << "\n";
-
+  // Some extra information to the user
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
-
-  //cout << "antenna_response:\n" << antenna_response << "\n";
-  //xml_write_to_file ("antenna_response.xml", antenna_response);
-  //xml_write_to_file ("sensor_response_tmp.xml", sensor_response_tmp);
 }
 
 void sensor_responseBackend(// WS Output:

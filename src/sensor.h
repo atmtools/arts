@@ -57,14 +57,15 @@ void antenna_transfer_matrix(
       ConstVectorView   x_f );
 
 void mixer_transfer_matrix(
-               Sparse&   H,
-               Vector&   f_mixer,
+              Sparse&   H,
+              Vector&   f_mixer,
       ConstVectorView   f_grid,
-		   const bool   is_upper,
-	    const Numeric   lo,
+           const bool   is_upper,
+        const Numeric   lo,
       ConstMatrixView   sfrm );
-	  
-Matrix scale_antenna_diagram(
+
+void scale_antenna_diagram(
+           VectorView   sc,
       ConstMatrixView   srm,
        const Numeric&   f_ref,
        const Numeric&   f_new );

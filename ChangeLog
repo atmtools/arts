@@ -1,3 +1,17 @@
+2003-08-13  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-647
+
+	* src/sensor.{cc,h}: Altered the scale_antenna_diagram function, 
+	now it does not return any object. Also made changes to
+	antenna_transfer_matrix so that it make use of the new insert_row
+	for Sparse and to fit the new handle of antenna diagrams.
+
+	* src/m_sensor.cc: Added a way to handle different antenna diagram
+	input methods and an extra test that the antenna diagram does not
+	expand outside the zenith angle measurement block.
+	This function has not yet been tested.
+
 2003-08-14  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-646
