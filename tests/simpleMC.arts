@@ -147,12 +147,17 @@ AgendaSet(rte_agenda){
 }
 
 
+#ReadXML(mc_incoming){
+#filename="/home/cory/sandpit/mc_incoming.xml"
+#}
+
 AgendaSet( iy_cloudbox_agenda ){
   ScatteringMonteCarlo{
-    std_err=-1
+    std_err=0.5
     max_time=20
     max_iter=-1
     rng_seed=-1
+    incoming_lookup=0
   }
 }
 

@@ -167,7 +167,7 @@ void ScatteringMonteCarlo (
                            Tensor3&              ext_mat,
                            Matrix&               abs_vec,
                            Index&                f_index,
-                          
+                           ArrayOfMatrix& mc_incoming,
                            // WS Input:
                            const Agenda&         ppath_step_agenda,
                            const Index&          atmosphere_dim,
@@ -196,7 +196,8 @@ void ScatteringMonteCarlo (
                            const Numeric& std_err,
                            const Index& max_time,
                            const Index& max_iter,
-                           const Index& rng_seed
+                           const Index& rng_seed,
+                           const Index& incoming_lookup
                            )
 
 { 
@@ -219,7 +220,7 @@ void ScatteringMonteCarlo (
   for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
 
   Matrix Q(stokes_dim,stokes_dim);//defined in eq 12 of ref1
-  Matrix T(stokes_dim,stokes_dim);//evolution operator (symbol O in ref1)
+  Matrix evol_op(stokes_dim,stokes_dim);//evolution operator (symbol O in ref1)
   Matrix K(stokes_dim,stokes_dim);//extinction matrix
   bool keepgoing; // flag indicating whether to stop tracing a photons path
   Index scattering_order;       //k in ref1
@@ -270,6 +271,7 @@ void ScatteringMonteCarlo (
   Numeric za_scat;//zenith angle of scattering direction
   Vector Z11maxvector;//Vector holding the maximum phase function for each 
   //particle type. Used in Rejection method for sampling incident direction
+  bool left_cloudbox;
   //////////////////////////////////////////////////////////////////////////////
   //Calculate the clea-sky transmittance between cloud box and sensor using the
   //existing ppath.
@@ -325,6 +327,7 @@ void ScatteringMonteCarlo (
   while (true)
     {
       mc_iteration_count+=1;
+      left_cloudbox=false;
       keepgoing=true; //flag indicating whether to continue tracing a photon path
       scattering_order=0;       //scattering order
       Q=identity;               //identity matrix
@@ -346,79 +349,58 @@ void ScatteringMonteCarlo (
         {
            if (scattering_order>0)
             {
-              //We need to calculate a new propagation path. In the future, we may be 
-              //able to take some shortcuts here
-              //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-              //               p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-              //              cloudbox_limits, rte_pos,rte_los);
-              ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,
-                      atmosphere_dim,p_grid,lat_grid,lon_grid,z_field,
-                       r_geoid,z_surface,1,cloudbox_limits, rte_pos,rte_los,0);
-          
-              if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
-                                                   mc_iteration_count,scattering_order);}
-                              
-              cum_l_stepCalc(cum_l_step,ppathcloud);
-  
-              //Calculate array of transmittance matrices
-              TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, ext_mat, abs_vec, 
-                         rte_pressure, rte_temperature, 
-                         rte_vmr_list, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
-                         scalar_gas_absorption_agenda, stokes_dim, 
-                         p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
-                         pnd_field, scat_data_mono);
-
-
-              /////////////////////////////////////////////////////////////////////
-              dist_to_boundary=cum_l_step[ppathcloud.np-1];
-         
-              //              Iboundary=iy(0,joker);
-              Sample_ppathlength (pathlength,g,rng,TArray,cum_l_step);
+              mcPathTrace(evol_op, K_abs, rte_temperature, K, rng, rte_pos, 
+                          rte_los, pnd_vec, g,left_cloudbox, ext_mat, abs_vec,
+                          rte_pressure, rte_vmr_list, opt_prop_gas_agenda,
+                          scalar_gas_absorption_agenda, stokes_dim, p_grid, 
+                          lat_grid, lon_grid, z_field, r_geoid, z_surface,
+                          t_field, vmr_field, cloudbox_limits, pnd_field,
+                          scat_data_mono);
             }
           else
             {
               Sample_ppathlengthLOS (pathlength,g,rng,TArray,cum_l_step);
+              //Interpolate T, s_0, etc from ppath and Tarray
+              interpTArray(evol_op, K_abs, rte_temperature, K, rte_pos, rte_los, 
+                           pnd_vec, TArray, ext_matArray,
+                           abs_vecArray, t_ppath, pnd_ppath, cum_l_step,
+                           pathlength, stokes_dim, ppathcloud);
             }
           assert(cum_l_step.nelem()==ppathcloud.np);
           assert(TArray.nelem()==ppathcloud.np);
-          if (pathlength>dist_to_boundary)
+          if ( left_cloudbox )
             //Then the path has left the cloud box
             {
-              assert (scattering_order>0); //scattering/emission should be 
-                                           //forced in original line of sight
               //Get incoming//////
-              montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
-                        rte_gp_lat,rte_gp_lon,ppath,ppath_step,
-                                    ppath_step_agenda,
-                        rte_agenda,iy_space_agenda,iy_surface_agenda,
-                                    iy_cloudbox_agenda,
-                        p_grid,lat_grid,lon_grid,z_field,r_geoid,
-                        z_surface,cloudbox_limits,ppathcloud,atmosphere_dim,
-                        f_grid,stokes_dim);
-              
-              if (record_ppath)
+              if ( incoming_lookup )
                 {
-                  ppathRecordMC(ppath,"ppath",mc_iteration_count,scattering_order);
+                  Iboundary=0;
+                  Iboundary[0]=mcGetIncomingFromData(rte_pos,rte_los,mc_incoming);
                 }
-              
-              f_index=0;//For some strange reason f_index is set to -1 in RteStandard
-              Iboundary=iy(0,joker);
+              else
+                {
+                  montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
+                                        rte_gp_lat,rte_gp_lon,ppath,ppath_step,
+                                        ppath_step_agenda,
+                                        rte_agenda,iy_space_agenda,iy_surface_agenda,
+                                        iy_cloudbox_agenda,
+                                        p_grid,lat_grid,lon_grid,z_field,r_geoid,
+                                        z_surface,cloudbox_limits, atmosphere_dim,
+                                        f_grid,stokes_dim);
+                  
+                  f_index=0;//For some strange reason f_index is set to -1 in RteStandard
+                  Iboundary=iy(0,joker);
+                }
               ////////////////////
-              T=TArray[ppathcloud.np-1];
-              mult(boundarycontri,T,Iboundary);
+              mult(boundarycontri,evol_op,Iboundary);
               mult(I_i,Q,boundarycontri);
               I_i/=g;
+              //cout << "boundary contri" <<  I_i[0] << "\n";
               keepgoing=false; //stop here. New photon.
             }
           else
             {
-               //we have another scattering/emission point
-              //Interpolate T, s_0, etc from ppath and Tarray
-              interpTArray(T, K_abs, rte_temperature, K, rte_pos, rte_los, pnd_vec,
-                           pathlength_gp,TArray, 
-                           ext_matArray,abs_vecArray, t_ppath, pnd_ppath,
-                           cum_l_step,pathlength, 
-                           stokes_dim, ppathcloud);
+              //we have another scattering/emission point 
               //Estimate single scattering albedo
               albedo=1-K_abs[0]/K(0,0);
               //cout<<"albedo = "<<albedo<<" K(0,0) = "<<K(0,0)<<" K_abs[0] = "<<K_abs[0]<<"\n";
@@ -430,11 +412,11 @@ void ScatteringMonteCarlo (
                   Vector emission=K_abs;
                   emission*=planck_value;
                   Vector emissioncontri(stokes_dim);
-                  mult(emissioncontri,T,emission);
+                  mult(emissioncontri,evol_op,emission);
                   emissioncontri/=(g*(1-albedo));//yuck!
                   mult(I_i,Q,emissioncontri);
                   keepgoing=false;
-                   
+                  //cout << "emission contri" <<  I_i[0] << "\n";
                 }
               else
                 {
@@ -446,7 +428,7 @@ void ScatteringMonteCarlo (
                                            
                   Z/=g*g_los_csc_theta*albedo;
                   
-                  mult(q,T,Z);
+                  mult(q,evol_op,Z);
                   mult(newQ,Q,q);
                   Q=newQ;
                   scattering_order+=1;

@@ -849,7 +849,6 @@ void interpTArray(Matrix& T,
                   Vector& rte_pos,
                   Vector& rte_los,
                   VectorView& pnd_vec,
-                  ArrayOfGridPos& gp,
                   const ArrayOfMatrix& TArray,
                   const ArrayOfMatrix& ext_matArray,
                   const ArrayOfVector& abs_vecArray,
@@ -867,7 +866,8 @@ void interpTArray(Matrix& T,
   Vector itw(2);
   Numeric delta_s;
   Index N_pt=pnd_vec.nelem();
-  
+  ArrayOfGridPos gp(1);
+                  
   //interpolate transmittance matrix
   gridpos(gp, cum_l_step, pathlength);
   interpweights(itw,gp[0]);
@@ -937,6 +937,238 @@ bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono)
   return anyptype30;
 }
 
+//! mcGetIncomingFromData
+/*!
+For a given rte_pos, rte_los, this function returns the incoming 1D clear sky
+radiance by interpolating mc_incoming.  All of these arguments are workspace 
+variables
+
+\author Cory Davis
+\date 2005-2-21
+
+*/
+
+Numeric mcGetIncomingFromData(const Vector& rte_pos,
+                              const Vector& rte_los,
+                              const ArrayOfMatrix& mc_incoming)
+{
+  Vector r=mc_incoming[0](joker,0);
+  Vector za=mc_incoming[1](joker,0);
+  Matrix y=mc_incoming[2];
+  GridPos gpr,gpza;
+  Vector itw(4);
+  gridpos(gpr,r,rte_pos[0]);
+  gridpos(gpza,za,rte_los[0]);
+  interpweights(itw,gpr,gpza);
+  return interp(itw,y,gpr,gpza);
+}
+
+//! mcPathTrace
+/*!
+Performs the tasks of pathlength sampling,
+ray tracing (but now only as far as determined by pathlength
+sampling) and calculation of the evolution operator and several 
+atmospheric variables at the new point.
+
+\author Cory Davis
+\date 2005-2-21
+
+*/
+
+void mcPathTrace(MatrixView&           evol_op,
+                   Vector& K_abs,
+                   Numeric& rte_temperature,
+                   MatrixView& K,
+                   Rng&                  rng,
+                   Vector&               rte_pos,
+                   Vector&               rte_los,
+                   Vector& pnd_vec,
+                   Numeric&              g,
+                   bool&                 left_cloudbox,
+                   Tensor3& ext_mat,
+                   Matrix& abs_vec,
+                   Numeric&   rte_pressure,
+                   Vector&    rte_vmr_list,
+                   const Agenda& opt_prop_gas_agenda,
+                   const Agenda& scalar_gas_absorption_agenda,
+                   const Index& stokes_dim,
+                   const Vector&         p_grid,
+                   const Vector&         lat_grid,
+                   const Vector&         lon_grid,
+                   const Tensor3&        z_field,
+                   const Matrix&         r_geoid,
+                   const Matrix&         z_surface,
+                   const Tensor3&   t_field,
+                   const Tensor4&   vmr_field,
+                   const ArrayOfIndex&   cloudbox_limits,
+                   const Tensor4&   pnd_field,
+                   const ArrayOfSingleScatteringData& scat_data_mono)
+
+{
+  ArrayOfMatrix evol_opArray(2);
+  ArrayOfMatrix ext_matArray(2);
+  ArrayOfVector abs_vecArray(2),pnd_vecArray(2);
+  Vector tArray(2);
+  Vector cum_l_step;
+  Matrix T(stokes_dim,stokes_dim);
+  Ppath ppath_step;
+  Numeric k;
+  Numeric ds;
+  Index np=0;
+  Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim,0.0);
+  Matrix old_evol_op(stokes_dim,stokes_dim);
+  left_cloudbox=false;
+  //at the start of the path the evolution operator is the identity matrix
+  id_mat(evol_op);
+  evol_opArray[1]=evol_op;
+  //initialise Ppath with ppath_start_stepping
+  ppath_start_stepping( ppath_step, 3, p_grid, lat_grid, 
+                        lon_grid, z_field, r_geoid, z_surface,
+                        1, cloudbox_limits, false, 
+                        rte_pos, rte_los );
+  atm_vars_at_ppath_end(ext_mat,abs_vec,pnd_vec,rte_temperature,rte_pressure,
+                        rte_vmr_list, opt_prop_gas_agenda,
+                        scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                        p_grid, lat_grid, lon_grid, t_field, vmr_field,
+                        pnd_field,scat_data_mono);
+  ext_matArray[1]=ext_mat(0, Range(joker), Range(joker));
+  abs_vecArray[1]=abs_vec(0, Range(joker));
+  tArray[1]=rte_temperature;
+  pnd_vecArray[1]=pnd_vec;
+  //draw random number to determine end point
+  Numeric r = rng.draw();
+  while ((evol_op(0,0)>r)&(!left_cloudbox))
+    {
+      evol_opArray[0]=evol_opArray[1];
+      ext_matArray[0]=ext_matArray[1];
+      abs_vecArray[0]=abs_vecArray[1];
+      tArray[0]=tArray[1];
+      pnd_vecArray[0]=pnd_vecArray[1];
+      //perform single path step using ppath_step_geom_3d
+      ppath_step_geom_3d(ppath_step, p_grid, lat_grid, lon_grid, z_field,
+                         r_geoid, z_surface, -1);
+      np=ppath_step.np;//I think this should always be 2.
+      cum_l_stepCalc(cum_l_step, ppath_step);
+      //path_step should now have two elements.
+      //calculate evol_op
+      atm_vars_at_ppath_end(ext_mat,abs_vec,pnd_vec,rte_temperature,rte_pressure,
+                            rte_vmr_list, opt_prop_gas_agenda,
+                            scalar_gas_absorption_agenda, stokes_dim, ppath_step,
+                            p_grid, lat_grid, lon_grid, t_field, vmr_field,
+                            pnd_field,scat_data_mono);
+      ext_matArray[1]=ext_mat(0, Range(joker), Range(joker));
+      abs_vecArray[1]=abs_vec(0, Range(joker));
+      tArray[1]=rte_temperature;
+      pnd_vecArray[1]=pnd_vec;
+      opt_depth_mat=ext_matArray[1];
+      opt_depth_mat+=ext_matArray[0];
+      opt_depth_mat*=-cum_l_step[np-1]/2;
+      incT=0;
+      if ( stokes_dim == 1 )
+        {
+          incT(0,0)=exp(opt_depth_mat(0,0));
+        }
+      else if ( is_diagonal( opt_depth_mat))
+        {
+          for ( Index j=0;j<stokes_dim;j++)
+            {
+              incT(j,j)=exp(opt_depth_mat(j,j));
+            }
+        }
+      else
+        {
+          matrix_exp(incT,opt_depth_mat,10);
+        }
+      mult(evol_op,evol_opArray[0],incT);
+      evol_opArray[1]=evol_op;
+      // Here we need only check if we have gone outside the cloud box.
+      // Note that here it sufficient to detect that point is outside in
+      // any dimension.
+      
+      // Pressure dimension
+      double ipos = fractional_gp( ppath_step.gp_p[np-1] );
+      if( ipos <= double( cloudbox_limits[0] )  ||
+          ipos >= double( cloudbox_limits[1] ) )
+        { left_cloudbox=true; }
+      
+      else {
+        // Latitude dimension
+        ipos = fractional_gp( ppath_step.gp_lat[np-1] );
+        if( ipos <= double( cloudbox_limits[2] )  || 
+            ipos >= double( cloudbox_limits[3] ) )
+          { left_cloudbox=true; }
+        
+        else
+          {
+            // Longitude dimension
+            ipos = fractional_gp( ppath_step.gp_lon[np-1] );
+            if( ipos <= double( cloudbox_limits[4] )  || 
+                ipos >= double( cloudbox_limits[5] ) )
+              { left_cloudbox=true; } 
+          }
+      }
+    }
+  if (left_cloudbox)
+    {//we must have reached the cloudbox boundary
+      //
+      rte_pos = ppath_step.pos(np-1,Range(0,3));
+      rte_los = ppath_step.los(np-1,joker);
+      g=evol_op(0,0);
+    }
+  else
+    {
+      //find position...and evol_op..and everything else required at the new
+      //scattering/emission point
+      k=-log(incT(0,0))/cum_l_step[np-1];//K=K11 only for diagonal ext_mat
+      ds=log(evol_opArray[0](0,0)/r)/k;
+      g=k*r;
+      Vector x(2,0.0);
+      //interpolate atmospheric variables required later
+      //length 2
+      ArrayOfGridPos gp(1);
+      x[1]=cum_l_step[np-1];
+      Vector itw(2);
+  
+      gridpos(gp, x, ds);
+      assert(gp[0].idx==0);
+      interpweights(itw,gp[0]);
+      K = interp(itw,ext_matArray,gp[0]);
+      opt_depth_mat = K;
+      opt_depth_mat+=ext_matArray[gp[0].idx];
+      opt_depth_mat*=-ds/2;
+      if ( stokes_dim == 1 )
+        {
+          incT(0,0)=exp(opt_depth_mat(0,0));
+        }
+      else if ( is_diagonal( opt_depth_mat))
+        {
+          for ( Index i=0;i<stokes_dim;i++)
+            {
+              incT(i,i)=exp(opt_depth_mat(i,i));
+            }
+        }
+      else
+        {
+          matrix_exp(incT,opt_depth_mat,10);
+        }
+      mult(evol_op,evol_opArray[gp[0].idx],incT);
+      K_abs = interp(itw, abs_vecArray,gp[0]);
+      rte_temperature=interp(itw,tArray,gp[0]);
+      pnd_vec=interp(itw,pnd_vecArray,gp[0]);
+      if (np > 2)
+        {
+          gridpos(gp,cum_l_step,ds);
+          interpweights(itw,gp[0]);
+        }
+      for (Index i=0; i<2; i++)
+        {
+          rte_pos[i] = interp(itw,ppath_step.pos(Range(joker),i),gp[0]);
+          rte_los[i] = interp(itw,ppath_step.los(Range(joker),i),gp[0]);
+        }
+      rte_pos[2] = interp(itw,ppath_step.pos(Range(joker),2),gp[0]);
+    }
+}
+
 
 //!  montecarloGetIncoming 
 
@@ -958,12 +1190,6 @@ void montecarloGetIncoming(
                            GridPos&              rte_gp_lon,
                            Ppath&                ppath,
                            Ppath&                ppath_step,
-                           //Matrix&               i_space,
-                           //Matrix&               ground_emission,
-                           //Matrix&               ground_los, 
-                           //Tensor4&              ground_refl_coeffs,
-                           //Vector&               scat_za_grid,
-                           //Vector&               scat_aa_grid,
                            const Agenda&         ppath_step_agenda,
                            const Agenda&         rte_agenda,
                            const Agenda&         iy_space_agenda,
@@ -977,7 +1203,6 @@ void montecarloGetIncoming(
                            const Matrix&         r_geoid,
                            const Matrix&         z_surface,
                            const ArrayOfIndex&   cloudbox_limits,
-                           const Ppath&          ppathcloud,
                            const Index&          atmosphere_dim,
                            const Vector&         f_grid,
                            const Index&          stokes_dim
@@ -996,29 +1221,12 @@ void montecarloGetIncoming(
   Vector   y_dummy(0);
   
   const Index cloudbox_on_dummy=0;
-  Matrix sensor_pos(1,3);
-  Matrix sensor_los(1,2);
   Tensor7 scat_i_p_dummy;
   Tensor7 scat_i_lat_dummy;
   Tensor7 scat_i_lon_dummy;
   
   Vector pos = rte_pos;
   Vector los = rte_los;
-  rte_posShift(pos,los,rte_gp_p, rte_gp_lat,
-               rte_gp_lon,ppathcloud, atmosphere_dim);
-  sensor_pos(0,joker)=pos;
-  sensor_los(0,joker)=los;
-  //call rte_calc without input checking, sensor stuff, or verbosity
-  //rte_calc_old( y_dummy, ppath, ppath_step, iy, rte_pos, rte_los, rte_gp_p, 
-  //          rte_gp_lat,
-  //          rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
-  //          ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
-  //          atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
-  //          r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
-  //          scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
-  //          scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
-  //          f_grid,stokes_dim, antenna_dim_dummy,
-  //        mblock_za_grid_dummy, mblock_aa_grid_dummy, false, false, true, 0);
   iy_calc(iy, ppath, ppath_step, rte_pos, rte_gp_p, rte_gp_lat,
           rte_gp_lon,rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
           iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid, lat_grid, 
@@ -1998,3 +2206,86 @@ void TArrayCalc(
 
 }
 
+void atm_vars_at_ppath_end(
+                           Tensor3& ext_mat,
+                           Matrix& abs_vec,
+                           Vector& pnd_vec,
+                           Numeric& rte_temperature,
+                           Numeric&   rte_pressure,
+                           Vector&    rte_vmr_list,
+                           const Agenda& opt_prop_gas_agenda,
+                           const Agenda& scalar_gas_absorption_agenda,
+                           const Index& stokes_dim,
+                           const Ppath& ppath,
+                           const Vector&         p_grid,
+                           const Vector&         lat_grid,
+                           const Vector&         lon_grid,
+                           const Tensor3&   t_field,
+                           const Tensor4&   vmr_field,
+                           const Tensor4&   pnd_field,
+                           const ArrayOfSingleScatteringData& scat_data_mono
+                           )
+{
+  const Index   ns = vmr_field.nbooks();
+  const Index N_pt = pnd_field.nbooks();
+  const Index np=ppath.np;
+    
+  Matrix  pnd_ppath(N_pt,1);
+  Vector t_ppath(1);
+  Vector   p_ppath(1);//may not be efficient with unecessary vectors
+  Matrix itw_p(1,2);
+  ArrayOfGridPos gp_p(1),gp_lat(1),gp_lon(1);
+  Matrix   vmr_ppath(ns,1), itw_field;
+  Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
+  Vector abs_vec_part(stokes_dim, 0.0);
+  Numeric scat_za,scat_aa;
+
+  gp_p[0]=ppath.gp_p[np-1];
+  gp_lat[0]=ppath.gp_lat[np-1];
+  gp_lon[0]=ppath.gp_lon[np-1];
+  
+
+  interpweights( itw_p, gp_p );
+  itw2p( p_ppath, p_grid, gp_p, itw_p );
+
+  interp_atmfield_gp2itw( itw_field, 3, p_grid, lat_grid, 
+                          lon_grid, gp_p, gp_lat,gp_lon );
+  interp_atmfield_by_itw( t_ppath, 3, p_grid, lat_grid, 
+                          lon_grid, t_field, "t_field", 
+                          gp_p,gp_lat,gp_lon, itw_field );
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( vmr_ppath(is, joker), 3,
+                              p_grid, lat_grid, lon_grid, 
+                              vmr_field(is, joker, joker,  joker), 
+                              "vmr_field", gp_p,gp_lat,gp_lon, itw_field );
+    }
+  for( Index ip=0; ip<N_pt; ip++ )
+    {
+      interp_atmfield_by_itw( pnd_ppath(ip, joker), 3,
+                              p_grid, lat_grid, lon_grid, 
+                              pnd_field(ip, joker, joker,  joker), 
+                              "pnd_field", gp_p,gp_lat,gp_lon, itw_field );
+    }
+  rte_pressure    = p_ppath[0];
+  rte_temperature = t_ppath[0];
+  rte_vmr_list    = vmr_ppath(joker,0);
+  scalar_gas_absorption_agenda.execute( true );
+  opt_prop_gas_agenda.execute( true );
+  ext_mat_part=0.0;
+  abs_vec_part=0.0;
+  scat_za=180-ppath.los(np-1,0);
+  scat_aa=ppath.los(np-1,1)+180;
+  //Make sure scat_aa is between -180 and 180
+  if (scat_aa>180){scat_aa-=360;}
+  //
+  //opt_prop_part_agenda.execute( true );
+  //use pnd_ppath and ext_mat_spt to get extmat (and similar for abs_vec
+  pnd_vec=pnd_ppath(joker, 0);
+  opt_propCalc(ext_mat_part,abs_vec_part,scat_za,scat_aa,scat_data_mono,
+               stokes_dim, pnd_vec, rte_temperature);
+  
+  ext_mat(0, Range(joker), Range(joker)) += ext_mat_part;
+  abs_vec(0,Range(joker)) += abs_vec_part;
+
+}

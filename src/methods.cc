@@ -3833,11 +3833,13 @@ void define_md_data_raw()
          "met.  If negative values are given for these parameters then it is ignored.\n"
          " Negative values of rng_seed seed the random number generator \n "
          "according to system time, positive rng_seed values are taken literally.\n"
+         "The incoming_lookup keyword determines if incoming radiance is obtained from"
+         "a precalculated grid (mc_incoming) or calculated on the fly"
           ),
         OUTPUT(ppath_, ppath_step_, mc_error_, mc_iteration_count_, 
                rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, iy_, 
                rte_pressure_, rte_temperature_, 
-               rte_vmr_list_, ext_mat_, abs_vec_, f_index_),
+               rte_vmr_list_, ext_mat_, abs_vec_, f_index_,mc_incoming_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_limits_,
               stokes_dim_, rte_agenda_, iy_space_agenda_, iy_surface_agenda_,
@@ -3846,8 +3848,8 @@ void define_md_data_raw()
               scat_data_mono_, pnd_field_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("std_err","max_time","max_iter","rng_seed"),
-        TYPES( Numeric_t, Index_t, Index_t, Index_t)));
+        KEYWORDS("std_err","max_time","max_iter","rng_seed","incoming_lookup"),
+        TYPES( Numeric_t, Index_t, Index_t, Index_t, Index_t)));
 
   md_data_raw.push_back
     ( MdRecord

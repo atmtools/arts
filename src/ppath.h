@@ -135,6 +135,22 @@ void ppath_copy(
            Ppath&      ppath1,
      const Ppath&      ppath2 );
 
+void ppath_start_stepping(Ppath&          ppath,
+                          const Index&    atmosphere_dim,
+                          ConstVectorView         p_grid,
+                          ConstVectorView         lat_grid,
+                          ConstVectorView         lon_grid,
+                          ConstTensor3View        z_field,
+                          ConstMatrixView         r_geoid,
+                          ConstMatrixView         z_surface,
+                          const Index &           cloudbox_on,
+                          const ArrayOfIndex &    cloudbox_limits,
+                          const bool &            outside_cloudbox,
+                          ConstVectorView         rte_pos,
+                          ConstVectorView         rte_los
+                          );
+
+
 void ppath_step_geom_1d(
               Ppath&      ppath,
         ConstVectorView   p_grid,

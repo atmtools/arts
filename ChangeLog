@@ -1,3 +1,37 @@
+2005-02-21  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-921
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Incoroporated new
+	arguments (see below), switch for incoming radiance calculation,
+	and the use of mcPathTrace.  Changed variable name T to evol_op
+	(evolution operator).
+
+	* src/montecarlo.cc (mcGetIncomingFromData): Added.  For a given
+	rte_pos, rte_los, this function returns the incoming 1D clear sky
+	radiance by interpolating mc_incoming.
+	(mcPathTrace): Added.  Performs the tasks of pathlength sampling,
+	ray tracing (but now only as far as determined by pathlength
+	sampling) and calculation of the evolution operator and several 
+	atmospheric variables at the new point.
+
+	* src/ppath.h: Added entry for ppath_start_stepping.
+
+	* src/workspace.cc (mc_incoming): Added.  This is an ArrayOfMAtrix
+	that holds precalculated incoming radiances on an [r, za] grid.
+
+	* tests/simpleMC.arts: Updated for changes in
+	ScatteringMonteCarlo. Still does `on the fly' incoming radiance
+	calculations (incoming_lookup=0).  Will provide example using
+	incoming_lookup=1 soon.
+
+	* src/methods.cc (ScatteringMonteCarlo): Added mc_incoming as an
+	output variable.  This is really an input variable, but is listed
+	as an output so you dont have to define it if you are not using
+	the "incoming_lookup" option.  If anyone has a better idea ...
+	Added incoming_lookup keyword argument (boolean/Index). Updated
+	doxygen string.
+
 2005-02-16  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-920

@@ -24,6 +24,25 @@ extern const Numeric DEG2RAD;
 extern const Numeric RAD2DEG;
 extern const Numeric PI;
 
+void atm_vars_at_ppath_end(
+                           Tensor3& ext_mat,
+                           Matrix& abs_vec,
+                           Vector& pnd_vec,
+                           Numeric& rte_temperature,
+                           Numeric&   rte_pressure,
+                           Vector&    rte_vmr_list,
+                           const Agenda& opt_prop_gas_agenda,
+                           const Agenda& scalar_gas_absorption_agenda,
+                           const Index& stokes_dim,
+                           const Ppath& ppath,
+                           const Vector&         p_grid,
+                           const Vector&         lat_grid,
+                           const Vector&         lon_grid,
+                           const Tensor3&   t_field,
+                           const Tensor4&   vmr_field,
+                           const Tensor4&   pnd_field,
+                           const ArrayOfSingleScatteringData& scat_data_mono
+                           );
 
 void Cloudbox_ppathCalc(
         //  Output:
@@ -148,7 +167,6 @@ void interpTArray(Matrix& T,
                   Vector& rte_pos,//maybe these should be VectorViews?
                   Vector& rte_los,
                   VectorView& pnd_vec,
-                  ArrayOfGridPos& gp,
                   const ArrayOfMatrix& TArray,
                   const ArrayOfMatrix& ext_matArray,
                   const ArrayOfVector& abs_vecArray,
@@ -161,6 +179,39 @@ void interpTArray(Matrix& T,
                  );
 
 bool is_anyptype30(const ArrayOfSingleScatteringData& scat_data_mono);
+
+Numeric mcGetIncomingFromData(const Vector& rte_pos,
+                              const Vector& rte_los,
+                              const ArrayOfMatrix& mc_incoming);
+
+void mcPathTrace(MatrixView&           evol_op,
+                 Vector& K_abs,
+                 Numeric& temperature,
+                 MatrixView& K,
+                 Rng&                  rng,
+                 Vector&               rte_pos,
+                 Vector&               rte_los,
+                 Vector& pnd_vec,
+                 Numeric&    g,
+                 bool&                 left_cloudbox,
+                 Tensor3& ext_mat,
+                 Matrix& abs_vec,
+                 Numeric&   rte_pressure,
+                 Vector&    rte_vmr_list,
+                 const Agenda& opt_prop_gas_agenda,
+                 const Agenda& scalar_gas_absorption_agenda,
+                 const Index& stokes_dim,
+                 const Vector&         p_grid,
+                 const Vector&         lat_grid,
+                 const Vector&         lon_grid,
+                 const Tensor3&        z_field,
+                 const Matrix&         r_geoid,
+                 const Matrix&         z_surface,
+                 const Tensor3&   t_field,
+                 const Tensor4&   vmr_field,
+                 const ArrayOfIndex&   cloudbox_limits,
+                 const Tensor4&   pnd_field,
+                 const ArrayOfSingleScatteringData& scat_data_mono);
 
 void montecarloGetIncoming(
                            Matrix&               iy,
@@ -190,7 +241,6 @@ void montecarloGetIncoming(
                            const Matrix&         r_geoid,
                            const Matrix&         z_surface,
                            const ArrayOfIndex&   cloudbox_limits,
-                           const Ppath&          ppathcloud,
                            const Index&          atmosphere_dim,
                            const Vector&         f_grid,
                            const Index&          stokes_dim

@@ -1383,6 +1383,22 @@ wsv_data.push_back
         ), 
        GROUP( Vector_ )));
 
+  wsv_data.push_back
+    (WsvRecord
+     ( NAME( "mc_incoming" ),
+       DESCRIPTION
+       (
+        "Incoming radiance lookup table for Monte Carlo calculations\n"
+        "\n"
+        "\n"
+        "Usage: Input for ScatteringMonteCarlo.. \n"
+        "\n"
+        "Units: [m,degrees,W / (m^2 Hz sr)]\n"
+        "\n"
+        "Size:  [nr,1],[nza,1],[ nr,nza ]"
+        ), 
+       GROUP( ArrayOfMatrix_ )));
+
 
   wsv_data.push_back
     (WsvRecord
