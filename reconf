@@ -27,5 +27,5 @@ echo "- autoheader."
 autoheader
 echo "- automake."
 automake -a --copy
-./configure --enable-maintainer-mode --enable-more-warnings $@
+./configure --enable-maintainer-mode $@
 exit
