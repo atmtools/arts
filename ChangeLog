@@ -1,3 +1,11 @@
+2001-09-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-222
+	
+	* src/methods.cc (define_md_data): Updated online docs for ASCII
+	read-write methods.
+
+	
 2001-09-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-221
