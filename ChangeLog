@@ -1,3 +1,13 @@
+2001-10-08  Nikolay Koulev  <nkoulev@uni-bremen.de>
+        
+	* arts-0-1-1
+	
+	* doc/uguide/absorption.tex: completed my section of line by line
+	absorption coefficients calculation
+
+	* src/absorption.h: changed in ARTS documentation cm-1 to J
+
+
 2001-10-07  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-1-0
@@ -121,8 +131,12 @@
 
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the whole Line Section.
+<<<<<<< ChangeLog
+ 
+=======
 
 	
+>>>>>>> 1.275
 2001-10-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-259

@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.1.0)
+AM_INIT_AUTOMAKE(arts,0.1.1)
 
 
 #

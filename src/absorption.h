@@ -382,7 +382,7 @@ private:
      3   pressure shift of F           PSF    Hz/Pa    
      4   line intensity                 I0   m^2/Hz     per isotope, not per species
      5   reference temp. for I0       T_I0        K
-     6   lower state energy           ELOW     cm-1
+     6   lower state energy           ELOW        J    
      7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
      8   self broadened width         SGAM    Hz/Pa
      9   AGAM temp. exponent          NAIR        -     values around .5

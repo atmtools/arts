@@ -20,6 +20,7 @@
 \starthistory
   2001-07-05 & Template created by Stefan Buehler.\\
   2001-07-19 & Continuum absorption part written, Thomas Kuhn.\\
+  2001-10-05 & Line absorption part written, Nikolay Koulev\\
 \stophistory
 %
 % Symbol table, format:
@@ -186,6 +187,9 @@ of spectra regarded by ARTS:
 The second one extends beyond the scope of mere treatment of the
 continua and thus gives an integrated view of continua and spectral lines.
 
+% ================================================================================
+% The following section is written by Nikolay Koulev, iup Bremen, nkoulev@uni-bremen.de
+% ================================================================================
 
 \levelb{Line Absorption}
 %-----------------------
@@ -451,16 +455,15 @@ individual contribution explicitly
  Q=Q_e~Q_v~Q_r~Q_n
 \label{}
 \end{equation}
-and thus the interaction between these various states is neglected. For
-practically all polyatomic molecules the excited electronic states
-are entirely negligible to those of the ground states,
-i.e. $Q_e=1$ . Only for the very few polyatomic molecules with a
-multiplet ground state ($NO_2$ , $ClO_2$ , and free radicals) has the
+and thus the interaction between these various states is neglected.
+For practically all polyatomic molecules the excited electronic states
+are entirely negligible to those of the ground states, i.e. $Q_e=1$ .
+Only for the very few polyatomic molecules with a multiplet ground
+state ($NO_2$ , $ClO_2$ , and free radicals) has the
 electronic contribution to be considered.\\
-If we neglect the anharmonicities, the vibrational partition
-function, with vibrational levels measured with respect to the ground
-state, the term $h\omega_n/2$ is omitted in the energy expression for
-the {\it{harmonic oscillator}\nocorr}, is 
+If we neglect the anharmonicities, the vibrational partition function,
+with vibrational energy levels measured with respect to the ground
+state for the {\it harmonic oscillator}, is
 \begin{equation}
  Q_v=\left(\sum_{\nu_1}e^{-\nu_1 h\omega_1/kT}\right)\left(\sum_{\nu_2}e^{-\nu_2 h\omega_2/kT}\right)...
 \label{}
@@ -523,40 +526,345 @@ Q_r = \frac{5.34\times 10^6}{\sigma}\left(\frac{T^3}{A^3}\right)^{1/2}
 
 
 
+\levelc{Line Catalogs} 
+There are several spectroscopic catalogs implemented in ARTS: HITRAN,
+JPL, MYTRAN, and the ARTS inherent catalog format.\\
+special attention will be paid here only to inherent format in ARTS. 
+To keep track with the changes in the catalog format, every catalog
+must start with $ARTSCAT-x$ , where for current version $x=2$.
+Files with different or missing version will be rejected. The current version is stored in the private member variable mversion. It can be read with member function Version, which returns a String `ARTSCAT-x'. 
+
+After the version tag (ARTSCAT-x), ARTS outputs the number of lines when catalog files are written. This number is not used by reading routines, though.\\
+The line catalog should not have any fixed column widths because the precision of the parameters should not be limited by the format. The catalog can then be stored as binary or ASCII. In the ASCII version the columns are separated by one or more blanks. The line format is then specified by only the order and the units of the columns. As the catalog entry for each transition can be quite long, it can be broken across lines in the ASCII file. Each new transition is marked with a `@' character.\\
+The first column will contain the species and isotope, following the naming scheme described below. Scientific notation is allowed, e.g. 501.12345e9.\\
+Note that starting with ARTSCAT-2, the intensity is per molecule, i.e., it does not contain the isotope ratio. This is similar to JPL, but different to HITRAN.\\ 
+The line format is:
+
+\begin{verbatim}
+
+Col  Variable                     Label    Unit     
+-----------------------------------------------      
+ 0   `@'                         ENTRY        -     
+ 1   name                         NAME        -     
+ 2   center frequency                F       Hz     
+ 3   pressure shift of F           PSF    Hz/Pa    
+ 4   line intensity                 I0   m^2/Hz     
+ 5   reference temp. for I0       T_I0        K
+ 6   lower state energy           ELOW        J    
+ 7   air broadened width          AGAM    Hz/Pa     
+ 8   self broadened width         SGAM    Hz/Pa
+ 9   AGAM temp. exponent          NAIR        -     
+10   SGAM temp. exponent         NSELF        - 
+11   ref. temp. for AGAM, SGAM   T_GAM        K
+12   number of aux. parameters   N_AUX        -
+13   auxiliary parameter          AUX1        -
+14   ... 
+15   error for F                    DF       Hz
+16   error for I0                  DI0        %
+17   error for AGAM              DAGAM        %
+18   error for SGAM              DSGAM        %
+19   error for NAIR              DNAIR        %
+20   error for NSELF            DNSELF        %
+21   error for PSF                DPSF        %
+22   quantum number code         QCODE           
+23   lower state quanta         QLOWER            
+24   upper state quanta         QUPPER            
+25   information source of F                      IF
+26   information source of I0                     II0
+27   information source of line width variables   ILW
+28   information source of pressure shift         IPSF
+29   information source of auxiliary parameters   IAUX
+\end{verbatim}
+The parameters 0-12 must be present, the others can be missing, since
+they are not needed for the calculation. For the error fields (15-21),
+a~$-1$ means that no value exist. Fields 22-29 are String inside quotes
+\verb ""  for maximum flexibility.\\
+Thus a valid ARTS line file would be:
+\begin{verbatim}
+    ARTSCAT-2 2
+    @ CH4-211 1011349857.063 0 2.96070344144819e-27 296 \
+2183.6851 13314.2468393782 21302.7949430052 0.75 0.75 296 0
+    @ O3-666 1088246622.54 0 2.82913939200384e-22 296   \
+522.5576 21361.9693734024 27723.2206411054 0.76 0.76 296 0
+\end{verbatim}
+where the back slash is here used only for technical reasons.
+Some species need special parameters that are not needed by other
+species (for example overlap coefficients for O2). In the case of
+oxygen two parameters are sufficient to describe the overlap, but
+other species, e.g., methane, may need more coefficients. The default
+for \texttt{N\_AUX} is zero. In that case, no further \texttt{AUX}
+fields are present.  The names of the private members and public
+access functions of this data structure follow the above table. The
+only difference is that underscores are omitted and only the first
+letter of each name is capitalized. This is for consistency with the
+notation elsewhere in the program.
 
 
 
 
-
-
-
-
-
-
-
-
-\levelc{Line Catalogues} 
-
-Mostly describe the ARTS internal format, but also briefly list the
-other catalogues that can be read by ARTS
 
 \levelc{Species specific data} 
-
-Molecular mass, etc. 
-
-\levelc{Partition Functions}
-These are strictly also species specific data, but they seem to deserve
-their own section.
-
-\levelc{Line Shape Functions}
+The isotopic ratio of the species implemented in ARTS was in general
+taken from HITRAN96, even for such ones given by JPL00 and
+HITRAN96. For species not present in  HITRAN96 the values were
+extracted from JPL00. The isotopic ratios are normalized for some
+species in JPL00 to 1, for these cases, the HITRAN96  values of the
+major isotope is used to scale the JPL00 isotopic ratio to relative number.
 
 
 \levelc{ARTS Workspace Variables and Methods}
 
+Both expressions (3.1) and (3.3) are used for the line by line
+calculations of the absorption. In order to calculate it certain {\it
+  workspace variables} and {\it methods} are used. It has to be
+remembered that the certain values given in the following examples are
+arbitrarily chosen and given only for a better illustration.\\
+There are two alternative ways to calculate the absorption
+coefficients in ARTS.\\
+The first one is one is through the workspace method 
+\begin{verbatim}
+absCalc{}
+\end{verbatim}
+This method actually works through calling internally in ARTS two other workspace
+methods:
+\begin{verbatim}
+xsec_per_tgCalc{}
+absCalcFromXsec{}
+\end{verbatim}
+The first one calculates the the cross section {\it x} per tag group,
+the second one - the absorption coefficients $\alpha$ from the cross
+sections and the volume mixing ratios {\it VMR} at altitude $i$ through
+the expression $\alpha_i~=~x_i\times {\it VMR_i}$.\\
+The second alternative way of computing the absorption coefficients is
+by using the afore mentioned methods explicitly in the control file in
+combination with one another
+\begin{verbatim}
+xsec_per_tgCalc{}
+absCalcFromXsec{}
+\end{verbatim}
+That's why we'll pay special attention to the functioning, the input
+and output workspace variables of {\verb absCalc }. This method
+calculates the total absorption coefficient as well as the ones per
+defined tag group. Thus the two output workspace variables are 
+{\verb abs } and {\verb abs_per_tag }. The input workspace variables are~: 
 
-
-
-
+\begin{description}
+\item{{\verb tgs }~:} defining the available tag groups for the 
+  calculation of the absorption coefficients;
+\item{{\verb f_mono }~:} the monochromatic frequency grid [Hz];
+\item{{\verb p_abs }~:} the pressure grid for the absorption coefficients [Pa]; 
+\item{{\verb t_abs }~:} temperature associated with the pressures
+  in {\verb p_abs } [K]; 
+\item{{\verb n2_abs }~:} the total nitrogen profile associated with
+  the pressures in {\verb p_abs } [-];
+\item{{\verb h2o_abs }~:} the total water profile associated with the
+  pressures in {\verb p_abs } [-];
+\item{{\verb vmrs }~:} the VMRs (unit: absolute number) on the 
+{\verb p_abs } grid; 
+\item{{\verb lines_per_tg }~:} a list of spectral line data for each tag;
+\item{{\verb lineshape  }~:} lineshape specification: function, norm, cutoff;
+\item{{\verb cont_description_names }~:} a list of
+names of continuum models;  
+\item{{\verb cont_description_parameters }~:} continuum model parameters. 
+\end{description}
+All these input workspace variables have to be defined and set by the
+respective workspace methods for the proper functioning of 
+{\verb absCalc }. Any exception of this will lead to an error message.\\
+First, the species of interest should be determined. This is done by the
+workspace method:
+\begin{verbatim}
+tgsDefine { 
+     [ "O3",
+       "ClO",
+       "N2",
+       "H2O" ]
+}
+\end{verbatim}
+which produces as output {\verb tgs }. In our case case this will
+create  a list of four tag groups. For each of them the absorption
+coefficients will be calculated later on.\\
+The monochromatic grid is created through the method
+\begin{verbatim}
+VectorNLinSpace(f_mono){
+        start = 1e9
+        stop  = 200e9
+        n     = 200    
+}
+\end{verbatim}
+thus producing {\verb f_mono } . The grid can be optionally saved into
+a file through {\verb VectorWriteAscii } {\verb (f_mono) }
+ {\verb {""} } .\\
+The  pressure grid  is created through the method 
+\begin{verbatim}
+VectorNLogSpace(p_abs){
+        start = 100000
+        stop  = 10
+        n     = 140
+}
+\end{verbatim}
+with output {\verb p_abs } . Again, it can be optionally written into
+a file - {\verb VectorWriteAscii } {\verb (p_abs) } {\verb {""} } .\\
+The corresponding temperatures to the pressure as well as the VMRs is
+realized through loading the respective input profiles, defined by the
+workspace variables {\verb raw_ptz } and {\verb raw_vmrs }. The
+corresponding methods are
+\begin{verbatim}
+MatrixReadAscii (raw_ptz) 
+        {"../../arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
+\end{verbatim}
+and
+\begin{verbatim}
+raw_vmrsReadFromScenario
+        {"../../arts-data/atmosphere/fascod/midlatitude-summer"}
+\end{verbatim}
+where the profiles are read from the available in ARTS atmospheric
+scenarios, in this case the one { \verb midlatitude-summer }.\\
+Both physical profiles of ${\it H_2O}$  and ${\it N_2}$ are
+loaded through similar workspace methods
+\begin{verbatim}
+h2o_absSet{}
+n2_absSet{}
+\end{verbatim}
+needed for the input variables {\verb h2o_abs } and {\verb n2_abs }.\\
+Though they are at the bottom of the above given list of input
+workspace variables, it's better to treat them at this place. In our
+case of line by line calculations we are not interested in the
+continuum description, that's why we should just call a workspace
+method to assign empty arrays to the variables:
+\begin{verbatim}
+cont_descriptionInit{}
+\end{verbatim}
+The next variable to be set is {\verb lines_per_tg } , done by the
+method
+\begin{verbatim}
+lines_per_tgReadFromCatalogues{
+   filenames = ["../../arts-data/spectroscopy/jpl00/jpl00.cat",
+     "../../arts-dat/spectroscopy/hitran96/hitran96_lowfreq.par"]
+   formats = [ "JPL", "HITRAN96" ]
+   fmin    = [ 0,         0      ]       
+   fmax    = [ 200e9,     200e9  ]   
+ }
+\end{verbatim}
+where lines from individual catalogs (here JPL and HITRAN96) are
+assigned to the different defined tag groups. Another possibility of
+doing this is to call two other methods one after another:
+\begin{verbatim}
+linesReadFromHitran {
+ filename = "../../arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
+ fmin     = 1e9
+ fmax     = 200e9
+}
+\end{verbatim}
+and thus creating the variable {\verb lines } , used afterward as
+input in 
+\begin{verbatim}
+lines_per_tgCreateFromLines{}
+\end{verbatim}
+in order to get finally {\verb lines_per_tg } defined. Here is the
+proper place to give the individual methods for reading the available
+spectroscopic catalogs in ARTS, i.e. creating the variable
+{\verb lines } from them. The ARTS own catalog format is read by
+\begin{verbatim}
+linesReadfromArts {
+   filename = "ozone.al"
+   fmin     = 0
+   fmax     = 1e12
+}
+\end{verbatim}     
+A similar procedure is done for the other catalogs:
+\begin{verbatim}
+linesReadfromHitran {
+   filename = "hitran96_lowfreq.par"
+   fmin     = 0
+   fmax     = 1e12
+}
+for HITRAN96,
+\begin{verbatim}
+linesReadfromJpl {
+   filename = "jpl100.cat"
+   fmin     = 0
+   fmax     = 1e12
+}
+\end{verbatim}     
+for JPL, and 
+\begin{verbatim}
+linesReadfromMytran {
+   filename = "mytran98.my"
+   fmin     = 0
+   fmax     = 1e12
+}
+\end{verbatim} 
+for MYTRAN.\\
+The last input variable for {\verb absCalc } to be discussed is 
+{\verb lineshape } . It is created either generally for all tag groups
+through 
+\begin{verbatim}
+lineshapeDefine{
+              shape = "Voigt_Kuntz6" 
+              normalizationfactor = "linear"
+              cutoff = -1
+}
+\end{verbatim}
+or to set it individually for each tag group
+\begin{verbatim}
+lineshape_per_tgDefine{
+  shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6","Voigt_Kuntz6"]
+  normalizationfactor = ["quadratic","no_norm","linear","linear"]
+  cutoff = [-1,-1,-1,-1]
+}
+\end{verbatim}
+More elucidation on the three parameters {\verb shape } ,
+{\verb normalizationfactor } and {\verb cutoff }  is needed. The first
+one accounts for the different lineshape models now in ARTS
+available. It's done by setting {\verb shape } to a given model name
+:
+\begin{description} 
+\item{{\verb Lorenz }~:} Lorenz line shape;
+\item{{\verb Doppler }~:} Doppler line shape
+\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
+  shape with relative accuracy better than $ 2 \times 10^{-6} $;
+\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
+  shape with relative accuracy better than $ 2 \times 10^{-4} $;
+\item{{\verb Voigt_Kuntz6 }~:} Kuntz approximation to the Voigt line
+  shape with relative accuracy better than $ 2 \times 10^{-2} $;
+\item{{\verb Voigt_Drayson }~:} Drayson approximation to the Voigt
+  profile;
+\item{{\verb Rosenkranz_Voigt_Kuntz6 }~:} Rosenkranz oxygen
+  absorption including overlap correction, at high altitudes Kuntz
+  routine, requires the ARTS catalog with auxiliary overlap
+  parameters;
+  profile;
+\item{{\verb Rosenkranz_Voigt_Drayson }~:} Rosenkranz oxygen
+  absorption including overlap correction, at high altitudes Drayson
+  routine, requires the ARTS catalog with auxiliary overlap
+  parameters
+\end{description}
+The {\verb normalizationfactor } sets the different normalization
+factors of the line shape:
+\begin{description} 
+\item{{\verb no_norm }~:} 1 (unity);
+\item{{\verb linear }~:} $(\nu / \nu_0)$;
+\item{{\verb quadratic }~:} $(\nu / \nu_0)^2$
+\end{description}
+The {\verb cutoff } can  be set to -1 for no cutoff or to a positive
+number for a cutoff at a given frequency in~ [Hz], e.g. 650e9.\\
+Thus we have all input workspace variables for {\verb absCalc }
+generated. Therefore this part of the subsection is a little bit short
+of being able to serve as a control file in ARTS for absorption,
+provided that just one method is used where more alternatives are
+available and superfluous methods are skipped. The only addition to make
+it complete is to use after all input variable generating methods the 
+\begin{verbatim}
+absCalc{}
+\end{verbatim}
+method, the result of which can be saved into files through
+\begin{verbatim}
+MatrixWriteAscii (abs) {""}
+\end{verbatim}
+or
+\begin{verbatim}
+ArrayOfMatrixWriteAscii (abs_per_tg) {""}
+\end{verbatim}
 
 
 
