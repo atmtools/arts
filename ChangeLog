@@ -1,5 +1,11 @@
 2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-609
+
+	* src/version.cc: Replaced reconf with autogen.sh.
+
+2003-07-21  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-608
 
 	* doc/uguide/development.tex: Replaced reconf with autogen.sh.
