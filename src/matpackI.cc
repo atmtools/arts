@@ -55,7 +55,7 @@ Range::Range(Index start, Index extent, Index stride) :
 
 /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
-Range::Range(Index start, Joker j, Index stride) :
+Range::Range(Index start, Joker, Index stride) :
   mstart(start), mextent(-1), mstride(stride)
 {
   // Start must be >= 0:
