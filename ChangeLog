@@ -1,3 +1,14 @@
+2003-12-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-738
+
+	* src/matpackII.{cc,h}: Created function make_I which makes a Sparse
+	to be the Identity matrix for given number of rows and columns.
+	This method should be faster than assigning ones to the diagonal 
+	elements.
+
+	* src/test_sparse.cc: Created test for the make_I function, test47.
+
 2003-12-04  Cory Davis  <cory@met.ed.ac.uk>
 
 	* arts-1-1-737

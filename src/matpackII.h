@@ -68,6 +68,9 @@ public:
   // Insert functions
   void insert_row(Index r, Vector v);
 
+  // Make identity function:
+  void make_I( Index r, Index c);
+
   // Resize function:
   void resize(Index r, Index c);
 

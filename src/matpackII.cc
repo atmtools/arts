@@ -451,6 +451,44 @@ void Sparse::insert_row(Index r, Vector v)
   //delete mdata_ref;
 }
 
+//! Make Identity matrix
+/*!
+  This functions sets the Sparse matrix to be an identity matrix.
+
+  The matrix will be remade to fit the given number of rows and columns.
+
+  \param r New row dimension.
+  \param c New column dimension.
+
+  \author Mattias Ekström
+  \date   2003-12-05
+*/
+void Sparse::make_I( Index r, Index c)
+{
+  assert( 0<=r );
+  assert( 0<=c );
+
+  // First get number of ones in the identity matrix
+  Index n = min(r,c);
+
+  // Remake and assign values to vectors
+  delete mcolptr;
+  mcolptr = new std::vector<Index>( c+1, n);
+  delete mrowind;
+  mrowind = new std::vector<Index>(n);
+  delete mdata;
+  mdata = new std::vector<Numeric>(n,1.0);
+
+  // Loop over number of ones and assign values [0:n-1] to mcolptr and
+  // mrowind
+  vector<Index>::iterator rit = mrowind->begin();
+  vector<Index>::iterator cit = mcolptr->begin();
+  for( Index i=0; i<n; i++ ) {
+    *rit++ = i;
+    *cit++ = i;
+  }
+}
+
 //! Resize function.
 /*!
   If the size is already correct this function does nothing.

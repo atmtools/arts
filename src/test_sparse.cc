@@ -366,6 +366,17 @@ void test46()
   //cout << "transpose(A):\n" << B << endl;
 }
 
+void test47()
+{
+  cout << "Test make Identity matrix:\n";
+
+  Sparse A;
+
+  A.make_I(6,5);
+
+  cout << "A:\n" << A << endl;
+}
+
 int main()
 {
   //  test3();
@@ -376,8 +387,9 @@ int main()
   //  test42();
   //  test43();
   //  test44();
-    test45();
-    test46();
+  //  test45();
+  //  test46();
+  test47();
 
   return 0;
 }
