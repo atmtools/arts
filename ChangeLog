@@ -1,3 +1,10 @@
+2002-06-05  Sreerekha T.R.  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-117
+	
+	* src/workspace.cc: Added workspace variables, ext_mat_spt,
+	pha_mat_spt, and abs_vec_spt.  
+
 2002-06-05  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-116

@@ -130,6 +130,7 @@ noinst_PROGRAMS = \
 	test_tensor \
 	test_linalg \
 	test_interpolation \
+	test_opt_properties\
 	test_xml
 
 test_interpolation_SOURCES = \
@@ -163,6 +164,19 @@ test_linalg_SOURCES = \
 	lin_alg.cc \
 	lin_alg.h \
 	test_linalg.cc\
+	logic.h\
+	logic.cc
+
+test_opt_properties_SOURCES = \
+	arts.h \
+	matpackI.h \
+	matpackI.cc \
+	make_vector.h\
+	make_vector.cc\
+	test_opt_properties.cc\
+	scat_properties.h\
+	scat_properties.cc\
+	constants.cc\
 	logic.h\
 	logic.cc
 

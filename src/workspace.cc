@@ -123,6 +123,28 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("abs_vec_spt",
+     "Absorption Vector for a single particle type.\n"
+     "\n"
+     "This variable contains the elements of absorption vector of a \n"
+     "single particle, given *ext_mat_spt* and *pha_mat_spt*. It is the\n"
+     "input as well as the output of the method *abs_vec_sptCalc*. This \n"
+     "variable is a matrix where the first dimension *part_types* indicate \n"
+     "the particle type under consideration and the second dimension is the\n"
+     "*stokes_dim*. *stokes_dim* can be 1,2,3 or 4 as as set by the user.\n"
+     "\n"
+     "ARTS user guide (AUG) gives the formulas used for computing all \n"
+     "the elements of absorption vector.\n"
+     "\n"
+     "Usage:      Input and Output of the method abs_vec_sptCalc\n"
+     "\n"
+     "Unit:        m^2\n"
+     "\n"
+     "Dimensions: [part_types,stokes_dim]",
+     Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("antenna_dim",
      "The dimensionality of the antenna pattern (1-2).\n"
      "\n"
@@ -348,39 +370,66 @@ void define_wsv_data()
      Vector_ ));
 
   wsv_data.push_back
-   (WsvRecord
-    ("els_agenda",
-     "Compute an elementary lineshape.\n"
-     "\n"
-     "The elementary lineshape is a simple and symmetric lineshape, for\n"
-     "example a Lorentz or Voigt shape. It does not include a cutoff. It\n"
-     "also does not include a fore-factor.\n"
-     "\n"
-     "The method lsWithCutoffAdd uses this agenda to produce a lineshape\n"
-     "with cutoff.\n"
-     "\n"
-     "Not all lineshapes use ls_sigma. (The Lorentz lineshape uses only\n"
-     "ls_gamma). \n"
-     "\n"
-     "Output:    \n"
-     "   els        : The lineshape function [1/Hz]  \n"
-     "\n"
-     "Input:    \n"
-     "   ls_gamma   : Pressure broadened line width [Hz].    \n"
-     "   ls_sigma   : Doppler broadened line width [Hz]. (Optional)    \n"
-     "   els_f_grid : Frequency grid [Hz].",
-     Agenda_ ));
-
+    (WsvRecord
+     ("els_agenda",
+      "Compute an elementary lineshape.\n"
+      "\n"
+      "The elementary lineshape is a simple and symmetric lineshape, for\n"
+      "example a Lorentz or Voigt shape. It does not include a cutoff. It\n"
+      "also does not include a fore-factor.\n"
+      "\n"
+      "The method lsWithCutoffAdd uses this agenda to produce a lineshape\n"
+      "with cutoff.\n"
+      "\n"
+      "Not all lineshapes use ls_sigma. (The Lorentz lineshape uses only\n"
+      "ls_gamma). \n"
+      "\n"
+      "Output:    \n"
+      "   els        : The lineshape function [1/Hz]  \n"
+      "\n"
+      "Input:    \n"
+      "   ls_gamma   : Pressure broadened line width [Hz].    \n"
+      "   ls_sigma   : Doppler broadened line width [Hz]. (Optional)    \n"
+      "   els_f_grid : Frequency grid [Hz].",
+      Agenda_ ));
+  
   wsv_data.push_back
-   (WsvRecord
-    ("f_grid",
-     "The frequency grid for monochromatic pencil beam calculations.\n"
-     "\n"
-     "Text will be written (PE).\n"
-     "\n"
-     "Usage:      Set by the user.\n"
-     "\n"
-     "Unit:       Hz",
+    (WsvRecord
+    ("ext_mat_spt",
+      "Extinction matrix for a single particle type.\n"
+      "\n"
+      "This variable contains the elements for extinction matrix of a  \n"
+      "single particle for propagation direction given by *za_index* \n"
+      "and *aa_index*. It is the input as well as the output of the \n"
+      "method *ext_mat_sptCalc*.  The elements of extinction matrix \n"
+      "are calculated from the elements of *amp_mat*. This variable \n"
+      "comes under Tensor3 where the first dimension *part_types* \n"
+      "indicate the particle type under consideration and the  \n"
+      "second and third dimension indicates the *stokes_dim*.  \n"
+      "*stokes_dim* can be 1,2,3 or 4 as set by the user. \n"
+      "\n"
+      "ARTS user guide (AUG) gives the formulae used for computing all \n"
+      "the elements of the extinction matrix for a given particle  \n"
+      "type. \n"
+      "\n"
+      "Usage:      Input and Output of the method ext_mat_sptCalc \n"
+      "\n"
+      "Unit:        m^2 \n"
+      "\n"
+      "Dimensions: [part_types,stokes_dim, stokes_dim]",
+      Tensor3_ ));
+  
+  
+  wsv_data.push_back
+    (WsvRecord
+     ("f_grid",
+      "The frequency grid for monochromatic pencil beam calculations.\n"
+      "\n"
+      "Text will be written (PE).\n"
+      "\n"
+      "Usage:      Set by the user.\n"
+      "\n"
+      "Unit:       Hz",
      Vector_ ));
 
  wsv_data.push_back
@@ -646,6 +695,32 @@ void define_wsv_data()
      "\n"
      "Unit:       Pa",
      Vector_ ));
+   
+   wsv_data.push_back
+   (WsvRecord
+    ("pha_mat_spt",
+     "Phase matrix for a single particle type.\n"
+     "\n"
+     "This variable contains the elements of phase matrix for a single \n"
+     "particle for given propagation direction *za_index* and *aa_index*. \n"
+     "It is the input as well as the output of the method *pha_mat_sptCalc*.\n"
+     "The elements of the phase matrix are calculated from the elements of \n"
+     "*amp_mat*. This variable is a Tensor5 where the first dimension \n"
+     "*part_types* indicate the particle type under consideration.The \n"
+     "second and third dimension gives the incident zenith and azimuth \n"
+     "angles respectively, and the fourth and the fifth dimension gives\n" 
+     "the *stokes_dim*. *stokes_dim* can be 1,2,3 or 4 as set by the user.\n"
+     "\n"
+     "ARTS user guide (AUG) gives the formulas used for computing all \n"
+     "elements of the phase matrix for a given particle type.\n"
+     "\n"
+     "Usage:      Input and Output of the method pha_mat_sptCalc\n"
+     "\n"
+     "Unit:        m^2\n"
+     "\n"
+     "Dimensions: [part_types,za_in_index,aa_in_index,stokes_dim, stokes_dim]",
+     Tensor5_ ));
+
 
   wsv_data.push_back
    (WsvRecord
