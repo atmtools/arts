@@ -96,6 +96,7 @@ arts_SOURCES = \
 	wsv_aux.h \
 	wsv_aux.cc \
 	xml_io.h \
+	xml_io_private.h \
 	xml_io.cc \
 	agenda_class.h \
 	agenda_class.cc \
@@ -226,6 +227,7 @@ test_interpolation_SOURCES = \
 	wsv_aux.h \
 	wsv_aux.cc \
 	xml_io.h \
+	xml_io_private.h \
 	xml_io.cc \
 	agenda_class.h \
 	agenda_class.cc \
@@ -309,6 +311,7 @@ test_matpack_SOURCES = \
 
 test_xml_SOURCES = \
 	xml_io.h \
+	xml_io_private.h \
 	xml_io.cc \
 	messages.cc \
 	test_xml.cc
