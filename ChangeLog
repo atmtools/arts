@@ -1,5 +1,19 @@
 2003-01-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-394
+
+	* src/ppath.cc: I don't think that I have made any real changes, but
+	a commit just in case if there is something I have missed.
+
+	Still problems with a non-spherical geoid. A test to calculate the
+	ingoing field to the cloud box for 3D and a spherical geoid was
+	succesful.
+
+	Claudia, you better make an update to make sure we use exactly the
+	same version.
+
+2003-01-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-393
 
 	* src/ppath.cc (gridcell_crossing_3d): I discovered that there is

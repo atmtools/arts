@@ -735,7 +735,7 @@ void resolve_lon(
 
    The function considers only crossings in the forward direction,
    with a distance > 0. If no crossing is found, *r* is set to -1. The
-   length criterion is in practice set to 1e-6, to avoid problems with
+   length criterion is in practice set to 1e-1, to avoid problems with
    numerical inaccuracy.
 
    \param   r           Out: Radius of observation position.
@@ -799,7 +799,7 @@ void gridcell_crossing_3d(
       else
         { l = l2; }
 
-      if( l > 1e-6 )
+      if( l > 1e-1 )
         {
           r   = rlatlon;
           lat = RAD2DEG * asin( ( y+dy*l ) / r );
@@ -836,7 +836,7 @@ void gridcell_crossing_3d(
             { l = l2; }
         }
 
-      if( l > 1e-6 )
+      if( l > 1e-1 )
         {
           lat = rlatlon;
           r   = sqrt( pow(x+dx*l,2) + pow(y+dy*l,2) + pow(z+dz*l,2) );
@@ -852,7 +852,7 @@ void gridcell_crossing_3d(
 
       l = ( z - tanlon*x ) / ( tanlon*dx - dz );
 
-      if( l > 1e-6 )
+      if( l > 1e-1 )
         {
           lon = rlatlon;
           lat = RAD2DEG * atan( coslon * ( y+dy*l ) / (x+dx*l) );
@@ -1416,7 +1416,7 @@ Numeric psurface_crossing_2d(
    \author Patrick Eriksson
    \date   2002-12-30
 */
-void psurface_crossing_3d(
+void psurface_crossing_3d_old(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -1477,7 +1477,7 @@ void psurface_crossing_3d(
     }
 }
 
-void psurface_crossing_3d_old(
+void psurface_crossing_3d(
              Numeric&   r,
              Numeric&   lat,
              Numeric&   lon,
@@ -1519,7 +1519,7 @@ void psurface_crossing_3d_old(
       else if( za_start > 90  &&  r_start < rupp )    
         { rupp = r_start - 1e-3; }
 
-      ntest  = 5;
+      ntest  = 50;
       rtest.resize( ntest );
 
       nlinspace( rtest, rlow, rupp, ntest );
@@ -2315,7 +2315,8 @@ void do_gridcell_3d(
       if( za_start > 90 )
         {
           l_try = sqrt( r_start*r_start - ppc*ppc ); 
-
+          NumericPrint(l_try,"l_try");
+          NumericPrint(l_best,"l_best");
           if( l_try < l_best )
             {
               geompath_tanpos_3d( r_try, lat_try, lon_try, l_try, r_start, 
@@ -5813,6 +5814,12 @@ void ppath_calc(
       //
       ppath_step_agenda.execute( agenda_verb + ( istep - 1 ) );
 
+
+      if( istep > 500 )
+        {
+          bool infloop = true;
+          assert( !infloop );
+        }
       
       // Number of points in returned path step
       const Index n = ppath_step.np;
