@@ -2986,6 +2986,9 @@ angles.
 
 \author Sreerekha Ravi
 \date 2002-06-20
+
+\date 2003-10-24 Modefications to gain efficiency (CE).  
+
 */
 
 void
@@ -3019,7 +3022,7 @@ scat_fieldCalc(//WS Output:
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
 
-  Tensor3 product_field(Nza, Naa, stokes_dim,0);
+  Tensor3 product_field(Nza, Naa, stokes_dim, 0);
  
   out2 << "Calculate the scattered field\n";
 
@@ -3077,46 +3080,23 @@ scat_fieldCalc(//WS Output:
                       1, 
                       1));
   }
+
   
-   //When atmospheric dimension , atmosphere_dim = 1
-  if( atmosphere_dim == 1 ){
-    for (Index p_index = 0; p_index <= cloudbox_limits[0] ;
-	 p_index++)
-      {
-	for (Index p_type = 0; p_type < N_pt; ++ p_type)
-	  {
-	    if( pnd_field(p_type,p_index,0,0) != 0 )
-	      {
-		throw runtime_error("The cloud exists below the  "
-				    "lower cloudbox limit");
-	      }
-	  }
-      }
-    for (Index p_index = cloudbox_limits[1]; p_index < p_grid.nelem() ;
-	 p_index++)
-      {
-	for (Index p_type = 0; p_type < N_pt; ++ p_type)
-	  {
-	    if( pnd_field(p_type,p_index,0,0) != 0 )
-	      {
-		throw runtime_error("The cloud exists above the  "
-				    "upper cloudbox limit");
-	      }
-	  }
-      }
+  if  ( atmosphere_dim == 1 )
+    {
+      
     scat_aa_index = 0;
     
     // Get pha_mat at the grid positions
     // Since atmosphere_dim = 1, there is no loop over lat and lon grids
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+    for (Index p_index = 0; p_index <= cloudbox_limits[1]- cloudbox_limits[0] ;
          p_index++)
       {
 	//There is only loop over zenith angle grid ; no azimuth angle grid.
         for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
           {
             // Calculate the phase matric of a single particle type
-            pha_mat_spt_agenda.execute(scat_za_index || p_index - cloudbox_limits[0]);
-	    
+            pha_mat_spt_agenda.execute(scat_za_index || p_index );
 
             // Sum over all particle types
             pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
@@ -3130,30 +3110,18 @@ scat_fieldCalc(//WS Output:
               { 
                 for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
                   {
-                    //This is a matrix with last two dimensions 
-                    //being that of stokes_dim
-                    ConstMatrixView pha = pha_mat(za_in,
-                                                  aa_in,
-                                                  Range(joker),
-                                                  Range(joker));
-                    //the incoming field expressed as a vector for all
-                    //pressure points, and looking angles
-                    ConstVectorView i_field_in = 
-                      i_field((p_index - cloudbox_limits[0]),
-                              0,
-                              0,
-                              za_in,
-                              0,
-                              Range(joker));
+                    // Multiplication of phase matrix with incoming 
+                    // intensity field.
                     
-
-                    // multiplication of intensity field vector and 
-                    //pha_mat matrix
-                    mult(product_field( za_in,
-                                        aa_in,
-                                        Range(joker)),
-                         pha, 
-                         i_field_in);
+                    for ( Index i = 0; i < stokes_dim; i++)
+                      {
+                        for (Index j = 0; j< stokes_dim; j++)
+                          {
+                            product_field(za_in, aa_in, i) +=
+                              pha_mat(za_in, aa_in, i, j) * 
+                              i_field(p_index, 0, 0, za_in, 0, j);
+                          }
+                      }
                     
                   }//end aa_in loop
               }//end za_in loop
@@ -3170,7 +3138,7 @@ scat_fieldCalc(//WS Output:
                                  i);
                 // scat_field is also defined for all points inside the cloud
                 //box for each propagion angle
-                scat_field( (p_index - cloudbox_limits[0]),
+                scat_field( p_index,
                             0,
                             0,
                             scat_za_index, 
@@ -3201,92 +3169,80 @@ scat_fieldCalc(//WS Output:
       when we calculate the pha_mat from pha_mat_spt and pnd_field
       using the method pha_matCalc.  */
     
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+    for (Index p_index = 0; p_index <= cloudbox_limits[1] - cloudbox_limits[0];
          p_index++)
       {
-        for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-               cloudbox_limits[3]; lat_index++)
+        for (Index lat_index = 0; lat_index <= 
+               cloudbox_limits[3] - cloudbox_limits[2]; lat_index++)
           {
-            for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-                   cloudbox_limits[5]; lon_index++)
-              for (scat_za_index = 0; scat_za_index < Nza; 
-                   scat_za_index++)
-                {
-                  for (scat_aa_index = 0; scat_aa_index < Naa; 
-                       scat_aa_index ++)
-                    {
-                      pha_mat_spt_agenda.execute(scat_za_index || p_index - cloudbox_limits[0] 
-                                                 || scat_aa_index || 
-                                                 lat_index - cloudbox_limits[2] ||
-                                                 lat_index - cloudbox_limits[4] );
+            for (Index lon_index = 0; lon_index <= 
+                   cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
+              {
+                for (scat_za_index = 0; scat_za_index < Nza; 
+                     scat_za_index++)
+                  {
+                    for (scat_aa_index = 0; scat_aa_index < Naa; 
+                         scat_aa_index ++)
+                      {
+                        pha_mat_spt_agenda.execute(scat_za_index || p_index 
+                                                   || scat_aa_index || 
+                                                   lat_index  ||
+                                                   lon_index  );
 
-                      pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-                                  atmosphere_dim, p_index, lat_index, 
-                                  lon_index);
+                        pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+                                    atmosphere_dim, p_index, lat_index, 
+                                    lon_index);
                    
                                           
-                      //za_in and aa_in are the incoming directions
-                      //for which pha_mat_spt is calculated
-                      for (Index za_in = 0; za_in < Nza; ++ za_in)
-                        {
-                          for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
-                            { 
-                              
-                              ConstMatrixView pha = pha_mat(za_in,
-                                                            aa_in,
-                                                            Range(joker),
-                                                            Range(joker));
-                              
-                              ConstVectorView i_field_in = 
-                                i_field(p_index-cloudbox_limits[0],
-                                        lat_index-cloudbox_limits[2],
-                                        lon_index-cloudbox_limits[4],
-                                        za_in,
-                                        aa_in,
-                                        Range(joker));
-                              
-                              mult(product_field( za_in,
-                                                  aa_in,
-                                                  Range(joker)),
-                                   pha, 
-                                   i_field_in);
-                           
-
-                            }//end aa_in loop
-                        }//end za_in loop
-                      //integration of the product of ifield_in and pha
+                        //za_in and aa_in are the incoming directions
+                        //for which pha_mat_spt is calculated
+                        for (Index za_in = 0; za_in < Nza; ++ za_in)
+                          {
+                            for (Index aa_in = 0; aa_in < Naa; ++ aa_in)
+                              { 
+                                // Multiplication of phase matrix
+                                // with incloming intensity field.
+                                for ( Index i = 0; i < stokes_dim; i++)
+                                  {
+                                    for (Index j = 0; j< stokes_dim; j++)
+                                      {
+                                        product_field(za_in, aa_in, i) +=
+                                          pha_mat(za_in, aa_in, i, j) * 
+                                          i_field(p_index, lat_index, 
+                                                  lon_index, za_in, aa_in, j);
+                                      }
+                                  }
+                              }//end aa_in loop
+                          }//end za_in loop
+                        //integration of the product of ifield_in and pha
                         //over zenith angle and azimuth angle grid. It 
                         //calls here the integration routine 
                         //AngIntegrate_trapezoid_opti
-                      for (Index i = 0; i < stokes_dim; i++)
-                        {
-                          MatrixView product_field_mat =
-                            product_field( Range(joker),
-                                             Range(joker),
-                                             i);
-                            
-                    
-                            scat_field( p_index-cloudbox_limits[0],
-                                        lat_index-cloudbox_limits[2],
-                                        lon_index-cloudbox_limits[4],
+                        for (Index i = 0; i < stokes_dim; i++)
+                          {
+                            scat_field( p_index,
+                                        lat_index,
+                                        lon_index,
                                         scat_za_index, 
                                         scat_aa_index,
                                         i)  =  
-                              AngIntegrate_trapezoid_opti(product_field_mat,
+                              AngIntegrate_trapezoid_opti(product_field
+                                                          ( joker,
+                                                            joker, i),
                                                           scat_za_grid,
                                                           scat_aa_grid,
                                                           grid_stepsize);
-                            
-                        }//end i loop
-                    }//end aa_prop loop
-                }//end za_prop loop
+                          }//end i loop
+                      }//end aa_prop loop
+                  }
+              }//end za_prop loop
           }//end lon loop
       }// end lat loop
   }// end p loop
   // end atmosphere_dim = 3
   
   //xml_write_to_file("i_field.xml", i_field);
-  xml_write_to_file("scat_field.xml", scat_field);
+  //xml_write_to_file("scat_field.xml", scat_field);
   out2 <<"Finished scattered field.\n"; 
  
 }

@@ -68,14 +68,14 @@ void nlogspace(
 
 double pow (float f, double d);
 
-Numeric AngIntegrate_trapezoid(MatrixView Integrand,
+Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid);
 
 Numeric AngIntegrate_trapezoid(ConstVectorView Integrand,
                                ConstVectorView za_grid);
 
-Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
+Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView za_grid,
                                     ConstVectorView aa_grid,
                                     ConstVectorView grid_stepsize);

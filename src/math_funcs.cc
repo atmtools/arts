@@ -271,7 +271,7 @@ double pow (float f, double d)
     
     \return The resulting integral
 */
-Numeric AngIntegrate_trapezoid(MatrixView Integrand,
+Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
                                ConstVectorView za_grid,
                                ConstVectorView aa_grid)
 {
@@ -321,7 +321,7 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
     \author Claas Teichmann <claas@sat.physik.uni-bremen.de>
     \date 2003/05/28
 */
-Numeric AngIntegrate_trapezoid_opti(MatrixView Integrand,
+Numeric AngIntegrate_trapezoid_opti(ConstMatrixView Integrand,
                                     ConstVectorView za_grid,
                                     ConstVectorView aa_grid,
                                     ConstVectorView grid_stepsize)

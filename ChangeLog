@@ -1,3 +1,29 @@
+2003-10-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-710
+		
+	* src/m_scatrte.cc (scat_fieldCalc): Modifications to gain 
+	efficiency. Removed mult function, as it is not efficient for 
+	small matrices. 
+	Removed cloudbox_limits check. Should be put in cloudboxSetManually.
+	
+	* src/scatrte.cc (cloud_ppath_update3D): Replaced 2 Vectors 
+	(los_grid_za and los_grid_aa) by VectorViews. 
+	
+	* src/math_funcs.{cc/h} (AngIntegrate_trapezoid) and 
+	(AngIntegrate_trapezoid_opti): Changed type
+	of variable Itegrand from MatrixView to ConstMatrixView.
+
+	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt):
+	Changed type of pha_mat_int from 
+	Vector to VectorView to avoid copying of the variable.
+
+	* src/optproperties.{cc/h}: Replaced  const VectorView by 
+	ConstVectorView.
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming1DAtm): Fixed a bug. Now 
+	I have tested the method and it works correctly.
+
 2003-10-23  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-709	

@@ -901,8 +901,8 @@ void cloud_ppath_update3D(
       //needed as we have to 
       // interpolate the intensity field and the scattered field on the 
       // right angles.
-      Vector los_grid_za = ppath_step.los(joker,0);
-      Vector los_grid_aa = ppath_step.los(joker,1);
+      VectorView los_grid_za = ppath_step.los(joker,0);
+      VectorView los_grid_aa = ppath_step.los(joker,1);
 
       for(Index i = 0; i<los_grid_aa.nelem(); i++)
         los_grid_aa[i] = los_grid_aa[i] + 180;

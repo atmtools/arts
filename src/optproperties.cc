@@ -85,9 +85,9 @@ extern const Numeric PI;
 void abs_vecTransform(//Output and Input
                       VectorView abs_vec_lab,
                       //Input
-                      const Tensor3View abs_vec_data,
-                      const VectorView za_datagrid,
-                      const VectorView aa_datagrid,
+                      ConstTensor3View abs_vec_data,
+                      ConstVectorView za_datagrid,
+                      ConstVectorView aa_datagrid,
                       const PType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca)
@@ -156,9 +156,9 @@ void abs_vecTransform(//Output and Input
 void ext_matTransform(//Output and Input
                       MatrixView ext_mat_lab,
                       //Input
-                      const Tensor3View ext_mat_data,
-                      const VectorView za_datagrid,
-                      const VectorView aa_datagrid,
+                      ConstTensor3View ext_mat_data,
+                      ConstVectorView za_datagrid,
+                      ConstVectorView aa_datagrid,
                       const PType& ptype,
                       const Numeric& za_sca,
                       const Numeric& aa_sca)
@@ -254,20 +254,20 @@ void ext_matTransform(//Output and Input
 void pha_matTransform(//Output
                       MatrixView pha_mat_lab,
                       //Input
-                      const Tensor5View pha_mat_data,
-                      const VectorView za_datagrid,
-                      const VectorView aa_datagrid,
+                      ConstTensor5View pha_mat_data,
+                      ConstVectorView za_datagrid,
+                      ConstVectorView aa_datagrid,
                       const PType& ptype,
                       const Index& za_sca_idx,
                       const Index& aa_sca_idx,
                       const Index& za_inc_idx,
                       const Index& aa_inc_idx,
-                      const VectorView scat_za_grid,
-                      const VectorView scat_aa_grid, 
-                      const Tensor4View scat_theta,
+                      ConstVectorView scat_za_grid,
+                      ConstVectorView scat_aa_grid, 
+                      ConstTensor4View scat_theta,
                       const ArrayOfArrayOfArrayOfArrayOfGridPos&
                          scat_theta_gps,
-                      const Tensor5View scat_theta_itws)
+                      ConstTensor5View scat_theta_itws)
 {
 
   
@@ -371,19 +371,19 @@ void interpolate_scat_angleDOIT(//Output:
                             VectorView pha_mat_int,
                             Numeric& theta_rad,
                             //Input:
-                            const Tensor5View pha_mat_data,
+                            ConstTensor5View pha_mat_data,
                             const Index& za_sca_idx,
                             const Index& aa_sca_idx,
                             const Index& za_inc_idx,
                             const Index& aa_inc_idx,
-                            const Tensor4View scat_theta,
+                            ConstTensor4View scat_theta,
                             const ArrayOfArrayOfArrayOfArrayOfGridPos&
                                 scat_theta_gps,
-                            const Tensor5View scat_theta_itws
+                            ConstTensor5View scat_theta_itws
                             )
 {
-  GridPos theta_gp;
-  Vector itw(2);
+  // GridPos theta_gp;
+  // VectorView itw(2);
    
   // cout << "za_sca: " << za_sca << endl
 //        << "za_inc: " << za_inc << endl
@@ -393,13 +393,13 @@ void interpolate_scat_angleDOIT(//Output:
   // Extract pre-calculated scattering angle, grid positions and
   // interpolations weights.
   //theta_rad = scat_theta(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx);
-  theta_gp = scat_theta_gps[za_sca_idx][aa_sca_idx][za_inc_idx][aa_inc_idx];
-  itw = scat_theta_itws(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx, joker);
+  // theta_gp = scat_theta_gps[za_sca_idx][aa_sca_idx][za_inc_idx][aa_inc_idx];
+  ConstVectorView itw = scat_theta_itws(za_sca_idx, aa_sca_idx, za_inc_idx, aa_inc_idx, joker);
   
   for (Index i = 0; i < 6; i++)
     {
       pha_mat_int[i] = interp(itw, pha_mat_data(joker, 0, 0, 0, i), 
-                              theta_gp);
+                             scat_theta_gps[za_sca_idx][aa_sca_idx][za_inc_idx][aa_inc_idx]);
     }
   //  cout << "scat_theta " << theta_rad * RAD2DEG << endl;
   // cout << "pha_mat_int " << pha_mat_int << endl;
@@ -438,8 +438,8 @@ void interpolate_scat_angle(//Output:
                             VectorView pha_mat_int,
                             Numeric& theta_rad,
                             //Input:
-                            const Tensor5View pha_mat_data,
-                            const VectorView za_datagrid,
+                            ConstTensor5View pha_mat_data,
+                            ConstVectorView za_datagrid,
                             const Numeric& za_sca,
                             const Numeric& aa_sca,
                             const Numeric& za_inc,
@@ -523,7 +523,7 @@ void interpolate_scat_angle(//Output:
 void pha_mat_labCalc(//Output:
                       MatrixView pha_mat_lab,
                       //Input:
-                      const VectorView pha_mat_int,
+                      ConstVectorView pha_mat_int,
                       const Numeric& za_sca,
                       const Numeric& aa_sca,
                       const Numeric& za_inc,

@@ -1138,14 +1138,20 @@ void scat_iPut(//WS Output:
                         N_aa,
                         stokes_dim));
 
-      assert ( is_size( scat_i_p,
-                        N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim ));
-      
-      assert ( is_size( scat_i_lat,
-                        N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim ));
+      // Resize interface variables:
+      scat_i_p.resize(N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim);
+      scat_i_lat.resize(N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim);
+      scat_i_lon.resize(N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim);
 
-      assert ( is_size( scat_i_lon,
-                        N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));
+
+      //  assert ( is_size( scat_i_p,
+//                         N_f, 2, N_lat, N_lon, N_za, N_aa, stokes_dim ));
+      
+//       assert ( is_size( scat_i_lat,
+//                         N_f, N_p, 2, N_lon, N_za, N_aa, stokes_dim ));
+
+//       assert ( is_size( scat_i_lon,
+//                         N_f, N_p, N_lat, 2, N_za, N_aa, stokes_dim ));
       
  
       for (Index za = 0; za < N_za; za++)
@@ -2279,7 +2285,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
             {
               for (Index aa = 0; aa < Naa; aa ++)
                 {
-                  scat_i_p( Range(joker), 0, lat, lon, 
+                  scat_i_p( Range(joker), 1, lat, lon, 
                             scat_za_index, aa,
                             Range(joker)) 
                     = i_rte;
@@ -2330,7 +2336,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
             {
               for (Index aa = 0; aa < Naa; aa ++)
                 {
-                  scat_i_p( Range(joker), p_index, 0, lon, 
+                  scat_i_lat( Range(joker), p_index, 0, lon, 
                                 scat_za_index, aa,
                                 Range(joker)) 
                         = i_rte;
@@ -2380,7 +2386,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
             {
               for (Index aa = 0; aa < Naa; aa ++)
                 {
-                  scat_i_p( Range(joker), p_index, 1, lon, 
+                  scat_i_lat( Range(joker), p_index, 1, lon, 
                             scat_za_index, aa,
                             Range(joker)) 
                     = i_rte;
@@ -2428,7 +2434,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
             {
               for (Index aa = 0; aa < Naa; aa ++)
                 {
-                  scat_i_p( Range(joker), p_index, lat, 0, 
+                  scat_i_lon( Range(joker), p_index, lat, 0, 
                             scat_za_index, aa,
                             Range(joker)) 
                     = i_rte;
@@ -2476,7 +2482,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
             {
               for (Index aa = 0; aa < Naa; aa ++)
                 {
-                  scat_i_p( Range(joker), p_index, lat, 1, 
+                  scat_i_lon( Range(joker), p_index, lat, 1, 
                             scat_za_index, aa,
                             Range(joker)) 
                     = i_rte;

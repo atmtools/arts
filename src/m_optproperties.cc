@@ -400,12 +400,7 @@ void pha_mat_sptFromDataDOITOpt( // Output:
                          const Index& scat_aa_index
                          )
 {
-
-  const Index stokes_dim = pha_mat_spt.ncols();
-  
-  Matrix pha_mat_lab(stokes_dim, stokes_dim, 0.);
-  Vector pha_mat_int(6);
-   
+     
   const Numeric za_sca = scat_za_grid[scat_za_index];
   const Numeric aa_sca = scat_aa_grid[scat_aa_index];
   
@@ -415,17 +410,18 @@ void pha_mat_sptFromDataDOITOpt( // Output:
   // Do the transformation into the laboratory coordinate system.
   for (Index za_inc_idx = 0; za_inc_idx < scat_za_grid.nelem(); za_inc_idx ++)
     {
-      for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem(); aa_inc_idx ++) 
+      for (Index aa_inc_idx = 0; aa_inc_idx < scat_aa_grid.nelem();
+           aa_inc_idx ++) 
         {
-          pha_mat_int = pha_mat_sptDOITOpt(scat_za_index, scat_aa_index, za_inc_idx,
-                                         aa_inc_idx, joker);
-          Numeric theta_rad = scat_theta(scat_za_index, scat_aa_index, za_inc_idx,
-                                 aa_inc_idx);
+          ConstVectorView pha_mat_int = pha_mat_sptDOITOpt
+            (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx, joker);
+          const Numeric theta_rad = scat_theta
+            (scat_za_index, scat_aa_index, za_inc_idx, aa_inc_idx);
           
           za_inc = scat_za_grid[za_inc_idx];
           aa_inc = scat_aa_grid[aa_inc_idx];
 
-          pha_mat_labCalc( pha_mat_spt(0, za_inc_idx, aa_inc_idx, joker, joker),
+          pha_mat_labCalc(pha_mat_spt(0, za_inc_idx, aa_inc_idx, joker, joker),
                           pha_mat_int, za_sca, aa_sca, za_inc, aa_inc, 
                           theta_rad);
         }
@@ -694,7 +690,7 @@ void ext_matAddPart(
                      
 {
   Index N_pt = ext_mat_spt.npages();
-  Index stokes_dim = ext_mat_spt.nrows();;
+  Index stokes_dim = ext_mat_spt.nrows();
   
   Matrix ext_mat_part(stokes_dim, stokes_dim, 0.0);
 
