@@ -130,6 +130,9 @@ template void
 xml_read_from_file<GridPos> (const String&, GridPos&);
 
 template void
+xml_read_from_file<IsotopeRecord> (const String&, IsotopeRecord&);
+
+template void
 xml_read_from_file<Ppath> (const String&, Ppath&);
 
 template void
@@ -155,6 +158,10 @@ template void
 xml_write_to_file<GridPos> (const String&, const GridPos&, FileType);
 
 template void
+xml_write_to_file<IsotopeRecord> (const String&, const IsotopeRecord&,
+                                  FileType);
+
+template void
 xml_write_to_file<Ppath> (const String&, const Ppath&, FileType);
 
 template void
@@ -170,6 +177,10 @@ xml_write_to_file<SpeciesTag> (const String&, const SpeciesTag&, FileType);
 
 
 //=== Array Types ==========================================================
+
+template void
+xml_read_from_file< Array<IsotopeRecord> > (const String&,
+                                            Array<IsotopeRecord>&);
 
 template void
 xml_read_from_file< Array<SpeciesRecord> > (const String&,
@@ -216,6 +227,16 @@ template void
 xml_read_from_file<ArrayOfVector> (const String&, ArrayOfVector&);
 
 template void
+xml_write_to_file<Array<IsotopeRecord> > (const String&,
+                                          const Array<IsotopeRecord>&,
+                                          FileType);
+
+template void
+xml_write_to_file<Array<SpeciesRecord> > (const String&,
+                                          const Array<SpeciesRecord>&,
+                                          FileType);
+
+template void
 xml_write_to_file<ArrayOfSingleScatteringData> (const String&,
                                             const ArrayOfSingleScatteringData&,
                                                 FileType);
@@ -251,11 +272,6 @@ xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&,
 template void
 xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&,
                                   FileType);
-
-template void
-xml_write_to_file<Array<SpeciesRecord> > (const String&,
-                                          const Array<SpeciesRecord>&,
-                                          FileType);
 
 template void
 xml_write_to_file<ArrayOfArrayOfSpeciesTag> (const String&,
