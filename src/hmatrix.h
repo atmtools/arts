@@ -75,11 +75,6 @@
     ISSPARSE=0 means that the matrix is full, and ISSPARSE=1 means that the
     matrix is sparse.
 
-    The size of the H matrix must match the size of the pencil beam 
-    monochromtaic data. However, H=1 (size 1x1) is a valid option and
-    corresponds to the case when there is no sensor or data reduction.
-    When H has the size 1x1, the only valid value is 1. 
-
     \author Patrick Eriksson 
     \date 2000-10-06
 */
@@ -90,12 +85,12 @@ struct Hmatrix {
 };
 
 
+
 ////////////////////////////////////////////////////////////////////////////
-//   Apply H on data
+//   Math with H matrices
 ////////////////////////////////////////////////////////////////////////////
 
-
-void hApply (
+void h_apply (
               VECTOR&     y2, 
         const Hmatrix&    h,
         const VECTOR&     y1 );
@@ -105,5 +100,9 @@ void h_apply (
         const Hmatrix&    h,
         const MATRIX&     k1 );
 
+void h_diff (
+              Hmatrix&    hd, 
+        const Hmatrix&    h2,
+        const Hmatrix&    h1 );
 
 #endif  // hmatrix_h

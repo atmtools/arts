@@ -1,3 +1,64 @@
+2000-10-23  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-62
+
+	* ARTS can now produce spectra and WFs including sensor effects and
+	data reduction. Some new WF functions and copy functions implemented.
+
+	* H matrices are read as: 
+   	    HmatrixReadFromFile(h1){""}
+	There are two H matrices to use, h1 and h2.
+
+	* The functions to calculate WFs now only return the matrix for the 
+	retrieval identity of interest. A WF function can return the common
+ 	matrix for several identities if they all have a retrieval grid of the
+	same length (the variable k_index is removed).
+	The variables kx and kb are introduced (following Rodgers). WF data are
+	appended to these variables as
+	   kSomeFunction...
+	   kxInit{}
+	   kxAppend{}
+	   kxAppendUsingH(h1){}
+	     or
+	   kbInit{}
+	   kbAppend{}
+	   kbAppendUsingH(h1){}
+	If kxAppend and kbAppend are used, when the WFs calculations ar ready,
+	a H matrix can be applied as
+	   MatrixApplyH(kx,h1,kx){}
+	This latter approach should be the fastest, while applying H when 
+	appending (kxAppendUsingH) saves memory.
+
+	* A second spectrum vector, y0, has been introduced.
+	H matrices are applied on spectra as
+	   VectorApplyH(y,h1,y){}
+	   VectorApplyH(y0,h1,y){}
+	Note that it is best to do this last in the control file as some 
+	functions need the pencil beam monochromatic spectrum (e.g. absloswfs).
+	Y can be copied to y0 as
+	   VectorCopy(y0,y){}
+	There is also a function to copy matrices (MatrixCopy).
+
+	* The WF for a sensor variable can be obtained as follows. Calcualte
+ 	h1 for the nominal state, change the variable of interest and calculate
+	h2. The WF is then calculated using the kDiffH functions:
+	   kDiffHFast{ name    = "Proportional"
+                       delta   = 0.01
+                       grid    = 0
+                       apriori = 0}
+	There are two functions, Fast and Small, trying to optimize calculation
+	spped and memory usage, respectively. Note that these functions give 
+	the WF including the effects of h1 (i.e. kxAppendUsingH should not be
+	used).
+	There is a function kManual that uses y and y0 to calculate a WF:
+	   kManual{ name    = "CBGR"
+                    delta   = 2.73
+                    grid    = 0
+                    apriori = 2.73}
+        The WF is calculated as: k = (y-y0)/delta
+	As a test, I calculated the WF for cosmic background radiation, but
+	there should be better applications for this function.
+
 2000-10-22  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-61

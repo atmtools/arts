@@ -347,6 +347,31 @@ void VectorReadFromFile(// WS Generic Output:
 
 
 //
+//--------------------< Copy Methods >--------------------
+//
+void VectorCopy(
+                      VECTOR&   y2,
+                const string&   name_y2,
+                const VECTOR&   y1,
+                const string&   name_y1 )
+{
+  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
+  y2 = y1;
+}
+
+void MatrixCopy(
+                      MATRIX&   y2,
+                const string&   name_y2,
+                const MATRIX&   y1,
+                const string&   name_y1 )
+{
+  out2 << "  " << name_y2 << " = " << name_y1 << "\n";
+  y2 = y1;
+}
+
+
+
+//
 //--------------------< H matrix Methods >--------------------
 //
 

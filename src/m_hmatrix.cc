@@ -43,34 +43,29 @@
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////
-//   Workspace methods
-////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////////////////////////////////////////
-//   Apply H on data
+//   Math with H matrices
 ////////////////////////////////////////////////////////////////////////////
 
 // The same code is found in both fuctions (vector and matrix). This to
 // be more efficient. Accordingly, a change should be done for both
 // functions.
 
-//// h_apply (on vector) ///////////////////////////////////////////////
+//// h_apply (on vector) ///////////////////////////////////////////////////
 //
-/** Applies a H matrix on a vector (spectra).
+/** Core function to apply a H matrix on a vector (spectra).
 
     \retval y2      new vector, y2 = h*y1
     \param  h       H matrix
     \param  y1      original vector
 
-    @exception logic_error The issparse flag is not 0 or 1.
+    @exception logic_error    The issparse flag is not 0 or 1.
+    @exception runtime_error  Size of h and length of y do not match.
 
     \author Patrick Eriksson 
     \date   2000-10-22 
 */
-void hApply (
+void h_apply (
               VECTOR&     y2, 
         const Hmatrix&    h,
         const VECTOR&     y1 )
@@ -78,7 +73,7 @@ void hApply (
   if ( h.issparse == 0 )
   {
     if ( h.full.dim(2) != y1.dim() )
-      throw runtime_error("Size of h and length of y do not match.");
+      throw  runtime_error("Size of h and length of y do not match.");
     y2 = h.full * y1;
   }
 
@@ -91,15 +86,16 @@ void hApply (
 
 
 
-//// h_apply (on matrix) ///////////////////////////////////////////////
+//// h_apply (on matrix) ///////////////////////////////////////////////////
 //
-/** Applies a H matrix on a matrix (weighting functions).
+/** Core function to apply a H matrix on a matrix (weighting functions).
 
     \retval k2      new matrix, k2 = h*k1
     \param  h       H matrix
     \param  k1      original matrix
 
     @exception logic_error The issparse flag is not 0 or 1.
+    @exception runtime_error  Sizes of h and k do not match.
 
     \author Patrick Eriksson 
     \date   2000-10-06 
@@ -121,4 +117,119 @@ void h_apply (
 
   else
     throw logic_error("The isspare flag can only be 0 or 1.");
+}
+
+
+
+//// h_diff /////////////////////////////////////////////////////////////////
+//
+/** Calculates the difference between two H matrices.
+
+    Both matrices must either be full or sparse.
+
+    \retval hd      hd = h2 -h1
+    \param  h2      a H matrix
+    \param  k1      another H matrix
+
+    @exception logic_error    The issparse flag is not 0 or 1.
+    @exception runtime_error  The sizes of the H matrices do not match.
+    @exception logic_error    Both matrices must either be sparse or full.
+    \author Patrick Eriksson 
+    \date   2000-10-22
+*/
+void h_diff (
+              Hmatrix&    hd, 
+        const Hmatrix&    h2,
+        const Hmatrix&    h1 )
+{
+  if ( (h1.issparse==0) && (h2.issparse==0) )
+  {
+    if ( (h1.full.dim(1)!=h2.full.dim(1)) || (h1.full.dim(2)!=h2.full.dim(2)) )
+      throw runtime_error("Sizes of h and k do not match.");
+    hd.issparse = 0;
+    hd.full = h2.full - h1.full;
+  }
+
+  else if ( (h1.issparse==1) && (h2.issparse==1) )
+    throw runtime_error("H set to be SPARSE.");
+
+  else
+    throw logic_error("Both matrices must either be sparse or full.");
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//   Workspace methods
+////////////////////////////////////////////////////////////////////////////
+
+
+//// VectorApplyH //////////////////////////////////////////////////////////
+//
+/** Applies a H matrix on a vector (spectra).
+
+    \retval y2        new vector, y2 = h*y1
+    \param  name_y2   variable name of y2
+    \param  h         H matrix
+    \param  y1        original vector
+    \param  name_y1   variable name of y1
+    \param  name_h    variable name of h
+
+    \author Patrick Eriksson 
+    \date   2000-10-22 
+*/
+void VectorApplyH(// WS Generic Output:
+              VECTOR&     y2, 
+        const string&     name_y2,
+        const Hmatrix&    h,
+        const VECTOR&     y1,
+        const string&     name_h,
+        const string&     name_y1 )
+{
+  out2<<"  "<<name_y2<<"="<<name_h<<"*"<<name_y1<<"\n";
+
+  if ( name_y1 == name_y2 )
+  {
+    VECTOR y;
+    h_apply( y, h, y1 );
+    y2 = y;
+  }
+  else
+    h_apply( y2, h, y1 ); 
+}
+
+
+
+//// MatrixApplyH //////////////////////////////////////////////////////////
+//
+/** Applies a H matrix on a matrix (WFs).
+
+    \retval k2        new matrix, k2 = h*k1
+    \param  name_k2   variable name of k2
+    \param  h         H matrix
+    \param  k1        original matrix
+    \param  name_k1   variable name of k1
+    \param  name_h    variable name of h
+
+    \author Patrick Eriksson 
+    \date   2000-10-22 
+*/
+void MatrixApplyH(// WS Generic Output:
+              MATRIX&     k2, 
+        const string&     name_k2,
+        const Hmatrix&    h,
+        const MATRIX&     k1,
+        const string&     name_h,
+        const string&     name_k1 )
+{
+  out2<<"  "<<name_k2<<"="<<name_h<<"*"<<name_k1<<"\n";
+
+  if ( name_k1 == name_k2 )
+  {
+    MATRIX k;
+    h_apply( k, h, k1 );
+    k2 = k;
+  }
+  else
+    h_apply( k2, h, k1 ); 
 }

@@ -45,7 +45,7 @@
 #include "wsv.h"          
 #include "math_funcs.h"          
 #include "atm_funcs.h"          
-#include "absorption.h"          
+#include "hmatrix.h"
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
 
@@ -63,9 +63,9 @@ extern const Numeric BOLTZMAN_CONST;
    \retval   kx_names     identity names for KX
    \retval   kx_index     identity indecies KX
    \retval   kx_aux       additional data KX
-   \input    k            the K matrix
-   \input    k_names      identity names for K
-   \input    k_aux        additional data K
+   \param    k            the K matrix
+   \param    k_names      identity names for K
+   \param    k_aux        additional data K
 
    \author Patrick Eriksson
    \date   2000-10-20
@@ -1860,6 +1860,174 @@ void kTempNoHydroNoGround (
                        vmrs, lines_per_tg, abs, trans, VECTOR(0), 0, k_grid );
 }
 
+//// kManual ////////////////////////////////////////////////////////////////
+/** 
+    Calculates a weighting function using y and y0.
+
+    The weighting function is calculated as: k = (y-y0)/delta.
+
+    That is, delta is the magnitude of the perturbation done.
+    The other variables are:
+    \verbatim
+      name     name on retrieval identity
+      grid     grid point value
+      apriori  a priori value
+    \endverbatim 
+
+   \retval   k        	    total WF matrix
+   \retval   k_names  	    identity name(s)
+   \retval   k_aux    	    additional data
+   \param    y0             original spectrum
+   \param    y              spectrum after perturbation
+   \param    name           name (to put in k_names)
+   \param    delta          perturbation magnitude
+   \param    grid           grid point value (to put in k_aux)
+   \param    apriori        a priori value (to put in k_aux)
+
+   \author Patrick Eriksson
+   \date   2000-10-22
+*/
+void kManual(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const VECTOR&          y0,      
+              const VECTOR&          y,
+              const string&          name,
+              const Numeric&         delta,
+              const Numeric&         grid,
+              const Numeric&         apriori )
+{
+  k = to_matrix( (y-y0)/delta );
+  k_names.newsize(1);
+  k_names(1) = name;
+  k_aux.newsize(1,3);
+  k_aux(1,1) = grid;
+  k_aux(1,1) = apriori;
+  k_aux(1,1) = 0.0;  
+}
+
+
+
+//// kDiffHSmall ////////////////////////////////////////////////////////////
+/** 
+    Calculates a weighting function using y, h1 and h2.
+
+    This function minimizes memory usage. For faster calculations,
+    use kDiffHFast.
+
+    The weighting function is calculated as: k = (h2*y-h1*y)/delta
+
+    That is, delta is the magnitude of the perturbation done.
+
+    The other variables are:
+    \verbatim
+      name     name on retrieval identity
+      grid     grid point value
+      apriori  a priori value
+    \endverbatim 
+
+    Note that the obtained k matrix includes effects of h1.
+
+   \retval   k        	    total WF matrix
+   \retval   k_names  	    identity name(s)
+   \retval   k_aux    	    additional data
+   \param    h1             original H matrix
+   \param    h2             H matrix after perturbation
+   \param    y              spectrum 
+   \param    name           name (to put in k_names)
+   \param    delta          perturbation magnitude
+   \param    grid           grid point value (to put in k_aux)
+   \param    apriori        a priori value (to put in k_aux)
+
+   \author Patrick Eriksson
+   \date   2000-10-22
+*/
+void kDiffHSmall(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const Hmatrix&         h1,      
+              const Hmatrix&         h2,      
+              const VECTOR&          y,
+              const string&          name,
+              const Numeric&         delta,
+              const Numeric&         grid,
+              const Numeric&         apriori )
+{
+  VECTOR y1, y2;
+  h_apply( y1, h1, y );
+  h_apply( y2, h2, y );
+  k = to_matrix( (y2-y1)/delta );
+  k_names.newsize(1);
+  k_names(1) = name;
+  k_aux.newsize(1,3);
+  k_aux(1,1) = grid;
+  k_aux(1,1) = apriori;
+  k_aux(1,1) = 0.0;  
+}
+
+
+
+//// kDiffHFast ////////////////////////////////////////////////////////////
+/** 
+    Calculates a weighting function using y, h1 and h2.
+
+    This function tries to be as fast as possible. To save memory,
+    use kDiffHSmall.
+
+    The weighting function is calculated as: k = (h2-h1)*y/delta
+
+    That is, delta is the magnitude of the perturbation done.
+
+    The other variables are:
+    \verbatim
+      name     name on retrieval identity
+      grid     grid point value
+      apriori  a priori value
+    \endverbatim 
+
+    Note that the obtained k matrix includes effects of h1.
+
+   \retval   k        	    total WF matrix
+   \retval   k_names  	    identity name(s)
+   \retval   k_aux    	    additional data
+   \param    h1             original H matrix
+   \param    h2             H matrix after perturbation
+   \param    y              spectrum 
+   \param    name           name (to put in k_names)
+   \param    delta          perturbation magnitude
+   \param    grid           grid point value (to put in k_aux)
+   \param    apriori        a priori value (to put in k_aux)
+
+   \author Patrick Eriksson
+   \date   2000-10-22
+*/
+void kDiffHFast(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const Hmatrix&         h1,      
+              const Hmatrix&         h2,      
+              const VECTOR&          y,
+              const string&          name,
+              const Numeric&         delta,
+              const Numeric&         grid,
+              const Numeric&         apriori )
+{
+  VECTOR yd;
+  Hmatrix hd;
+  h_diff( hd, h2, h1 );
+  h_apply( yd, hd, y );
+  k = to_matrix( yd/delta );
+  k_names.newsize(1);
+  k_names(1) = name;
+  k_aux.newsize(1,3);
+  k_aux(1,1) = grid;
+  k_aux(1,1) = apriori;
+  k_aux(1,1) = 0.0;  
+}
+
 
 
 //// kxInit //////////////////////////////////////////////////////////////////
@@ -1929,9 +2097,9 @@ void kbInit (
    \retval   kx_names     identity names for Kx
    \retval   kx_index     identity indecies Kx
    \retval   kx_aux       additional data Kx
-   \input    k            the K matrix
-   \input    k_names      identity names for K
-   \input    k_aux        additional data K
+   \param    k            the K matrix
+   \param    k_names      identity names for K
+   \param    k_aux        additional data K
 
    \author Patrick Eriksson
    \date   2000-10-20
@@ -1958,9 +2126,9 @@ void kxAppend (
    \retval   kb_names     identity names for Kb
    \retval   kb_index     identity indecies Kb
    \retval   kb_aux       additional data Kb
-   \input    k            the K matrix
-   \input    k_names      identity names for K
-   \input    k_aux        additional data K
+   \param    k            the K matrix
+   \param    k_names      identity names for K
+   \param    k_aux        additional data K
 
    \author Patrick Eriksson
    \date   2000-10-20
@@ -1989,10 +2157,10 @@ void kbAppend (
    \retval   kx_names     identity names for Kx
    \retval   kx_index     identity indecies Kx
    \retval   kx_aux       additional data Kx
-   \input    k            the K matrix
-   \input    k_names      identity names for K
-   \input    k_aux        additional data K
-   \input    h            a H matrix
+   \param    k            the K matrix
+   \param    k_names      identity names for K
+   \param    k_aux        additional data K
+   \param    h            a H matrix
 
    \author Patrick Eriksson
    \date   2000-10-22
@@ -2026,10 +2194,10 @@ void kxAppendUsingH (
    \retval   kb_names     identity names for Kb
    \retval   kb_index     identity indecies Kb
    \retval   kb_aux       additional data Kb
-   \input    k            the K matrix
-   \input    k_names      identity names for K
-   \input    k_aux        additional data K
-   \input    h            a H matrix
+   \param    k            the K matrix
+   \param    k_names      identity names for K
+   \param    k_aux        additional data K
+   \param    h            a H matrix
 
    \author Patrick Eriksson
    \date   2000-10-22

@@ -288,6 +288,48 @@ void define_md_data()
 	TYPES(    string_t   )));
 
 
+//
+//=== Copy Methods
+//
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorCopy"),
+	DESCRIPTION("Copies a vector."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixCopy"),
+	DESCRIPTION("Copies a matrix."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT( MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
+
+
+//
+//=== H Matrices
+//
+  md_data.push_back
+    ( MdRecord
+      ( NAME("HmatrixReadFromFile"),
+	DESCRIPTION("Reads a H matrix from a file.\n"
+		    "The filename can be specified or be an empty string"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Hmatrix_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
 
 //======================================================================
 //=== Absorption methods
@@ -772,7 +814,7 @@ void define_md_data()
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
-                   lines_per_tg_, abs_, trans_, e_ground_, t_ground_, k_grid_),
+                  lines_per_tg_, abs_, trans_, e_ground_, t_ground_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -785,11 +827,66 @@ void define_md_data()
           "As kTempNoHydro but does not need any ground variables"),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( los_, absloswfs_, f_mono_, p_abs_, t_abs_, vmrs_, 
-                   lines_per_tg_, abs_, trans_, k_grid_),
+                   lines_per_tg_, abs_, trans_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kManual"),
+  	DESCRIPTION(
+          "Calculates a weighting function using y and y0.\n"
+          "The weighting function is calculated as: k = (y-y0)/delta\n"
+          "That is, delta is the magnitude of the perturbation done.\n"
+          "The other variables are:\n"
+          "  name     name on retrieval identity\n"
+          "  grid     grid point value\n"
+          "  apriori  a priori value"),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( y0_, y_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "name", "delta", "grid", "apriori" ),
+	TYPES( string_t, Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kDiffHSmall"),
+  	DESCRIPTION(
+          "Calculates a weighting function using y, h1 and h2.\n"
+          "This function minimizes memory usage. For faster calculations,\n"
+          "use kDiffHFast.\n"
+          "The weighting function is calculated as: k = (h2*y-h1*y)/delta\n"
+          "That is, delta is the magnitude of the perturbation done.\n"
+          "The other variables are:\n"
+          "  name     name on retrieval identity\n"
+          "  grid     grid point value\n"
+          "  apriori  a priori value\n"
+          "Note that the obtained k matrix includes effects of h1."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( h1_, h2_, y_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "name", "delta", "grid", "apriori" ),
+	TYPES( string_t, Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kDiffHFast"),
+  	DESCRIPTION(
+          "Calculates a weighting function using y, h1 and h2.\n"
+          "This function tries to be as fast as possible. To save memory,\n"
+          "use kDiffHSmall.\n"
+          "The weighting function is calculated as: k = (h2-h1)*y/delta\n"
+          "See further kDiffHSmall."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( h1_, h2_, y_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "name", "delta", "grid", "apriori" ),
+	TYPES( string_t, Numeric_t, Numeric_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -876,19 +973,31 @@ void define_md_data()
 
 
 //======================================================================
-//=== Methods associated with the H matrices
+//=== H Matrix Methods
 //======================================================================
 
   md_data.push_back
     ( MdRecord
-      ( NAME("HmatrixReadFromFile"),
-	DESCRIPTION("Reads a H matrix from a file.\n"
-		    "The filename can be specified or be an empty string"),
+      ( NAME("VectorApplyH"),
+  	DESCRIPTION(
+          "Applies a H matrix on a vector."),
 	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Hmatrix_ ),
-	GINPUT(),
-	KEYWORDS( "filename" ),
-	TYPES(    string_t   )));
+        INPUT(),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( Hmatrix_, VECTOR_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixApplyH"),
+  	DESCRIPTION(
+          "Applies a H matrix on a matrix."),
+	OUTPUT(),
+        INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT( Hmatrix_, MATRIX_ ),
+	KEYWORDS(),
+	TYPES()));
 
 }
