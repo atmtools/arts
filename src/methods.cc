@@ -917,17 +917,13 @@ void define_md_data_raw()
         (
          "Calculates incoming radiation field of cloud box by repeated\n"
          "radiative transfer calculations.\n"
-         "cloudbox.\n"
          "\n"
-         "The method uses *PpathCalc* and *rte_agenda*.  The input to\n"
-         "this method is the position of the cloudbox given by the \n"
-         "variable *cloudbox_limits*. Then for each propagation direction\n"
-         "it calls the function *PpathCalc* and executes the agenda \n"
-         "*rte_agenda*.  This gives *i_rte* which holds the Stokes vector\n"
-         "for all frequencies btained by the monochromatic pencil beam \n"
-         "calculations performed by *rte_agenda*. Then this is copied to\n"
-         "the interface variable. \n"
-         "\n"
+         "The method performs monochromatic pencil beam calculations for\n"
+         "all grid positions on the cloudbox boundary, and all directions\n"
+         "given by scattering angle grids (*scat_za/aa_grid*). Found radiances"
+         "are stored in *scat_i_p/lat/lon* which can be used as boundary\n"
+         "conditions when scattering inside the cloud box is solved by the\n"
+         "DOIT method."
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, iy_, ppath_, ppath_step_, 
                 rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),

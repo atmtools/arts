@@ -565,7 +565,7 @@ bool is_gridpos_at_index_i(
        const Index&     i )
 {
   if( ( fabs(gp.fd[0]) < FD_TOL  ||  fabs(gp.fd[0]-1.0) < FD_TOL )  &&  
-      ( ( fractional_gp(gp) - Numeric(i) ) < FD_TOL ) )
+      ( fabs( fractional_gp(gp) - Numeric(i) ) < FD_TOL ) )
     { return true; }
   else
     { return false; }

@@ -263,8 +263,6 @@ void iy_calc(
               lat_grid, lon_grid, z_field, r_geoid, z_surface,
               cloudbox_on, cloudbox_limits, pos, los, outside_cloudbox );
 
-  Print( ppath, "ppath", 1 );
-
   // Determine the radiative background
   get_radiative_background( iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
           rte_los, ppath, 
@@ -330,7 +328,6 @@ void rte_step_std(//Output and Input:
               const Numeric& l_step,
               const Numeric& rte_planck_value )
 {
-
   //Stokes dimension:
   Index stokes_dim = stokes_vec.nelem();
 
@@ -340,6 +337,8 @@ void rte_step_std(//Output and Input:
   assert(is_size(sca_vec_av, stokes_dim));
   assert( rte_planck_value >= 0 );
   assert( l_step >= 0 );
+  assert (!is_singular( ext_mat_av ));   
+
 
   // Check, if only the first component of abs_vec is non-zero:
   bool unpol_abs_vec = true;
@@ -534,8 +533,8 @@ void surface_specular_R_and_b(
   const Numeric   rmean = ( rv + rh ) / 2;
   const Numeric   B     = planck( f, surface_skin_t );
 
-  surface_rmatrix   = 0;
-  surface_emission  = 0;
+  surface_rmatrix   = 0.0;
+  surface_emission  = 0.0;
 
   surface_rmatrix(0,0) = rmean;
   surface_emission[0]  = B * ( 1 - rmean );

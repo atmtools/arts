@@ -576,7 +576,30 @@ void cloudbox_boundary_check(// Output:
 }
 
 
-// Copy old header with Claudia and Rekha as authors
+//! Interpolation of cloud box intensity field
+/* 
+   See WSM *iyInterpCloudboxField*.
+
+   \param iy                Out: As the WSV with same name.
+   \param scat_i_p          In: As the WSV with same name.
+   \param scat_i_lat        In: As the WSV with same name.
+   \param scat_i_lon        In: As the WSV with same name.
+   \param rte_gp_p          In: As the WSV with same name.
+   \param rte_gp_lat        In: As the WSV with same name.
+   \param rte_gp_lon        In: As the WSV with same name.
+   \param rte_los           In: As the WSV with same name.
+   \param cloudbox_on       In: As the WSV with same name.
+   \param cloudbox_limits   In: As the WSV with same name.
+   \param atmosphere_dim    In: As the WSV with same name.
+   \param stokes_dim        In: As the WSV with same name.
+   \param scat_za_grid      In: As the WSV with same name. 
+   \param scat_aa_grid      In: As the WSV with same name. 
+   \param f_grid            In: As the WSV with same name.
+   \param interpmeth        Interpolation method. Can be "linear" or "cubic".
+ 
+   \author Claudia Emde and Patrick Eriksson
+   \date 2004-09-29
+*/
 void iy_interp_cloudbox_field(
             Matrix&         iy,
       const Tensor7&        scat_i_p,
@@ -609,8 +632,8 @@ void iy_interp_cloudbox_field(
   if( scat_za_grid.nelem() == 0 )
     throw runtime_error( "The variable *scat_za_grid* is empty. Are dummy "
                          "values from *cloudboxOff used?" );
-  if( interpmeth == "linear"  ||  interpmeth == "cubic" )
-    throw runtime_error( "Unknown interpolation method. Possible choices are"
+  if( !( interpmeth == "linear"  ||  interpmeth == "cubic" ) )
+    throw runtime_error( "Unknown interpolation method. Possible choices are "
                                                  "\"linear\" and \"cubic\"." );
   if( interpmeth == "cubic"  &&  atmosphere_dim != 1  )
     throw runtime_error( "Cubic interpolation method is only available for"
@@ -702,6 +725,13 @@ void iy_interp_cloudbox_field(
       // Use assert to check *scat_i_p* as this variable should to 99% be
       // calculated internally, and thus make it possible to avoid this check.
       assert( is_size( scat_i_p, nf,2,1,1,scat_za_grid.nelem(),1,stokes_dim ));
+
+      out3 << "    Interpolating outgoing field:\n";
+      out3 << "       zenith_angle: " << rte_los[0] << "\n";
+      if( border )
+        out3 << "       top side\n";
+      else
+        out3 << "       bottom side\n";
       
       // Grid position in *scat_za_grid*
       GridPos gp;
@@ -741,8 +771,23 @@ void iy_interp_cloudbox_field(
   // --- 3D ------------------------------------------------------------------
   else
     {
-      cout << scat_i_lat;
-      cout << scat_i_lon;
+      // Use asserts to check *scat_i_XXX* as these variables should to 99% be
+      // calculated internally, and thus make it possible to avoid this check.
+      assert ( is_size( scat_i_p, nf, 2, scat_i_p.nshelves(), 
+                        scat_i_p.nbooks(), scat_za_grid.nelem(), 
+                        scat_aa_grid.nelem(), stokes_dim ));
+
+      assert ( is_size( scat_i_lat, nf, scat_i_lat.nvitrines(), 2, 
+                        scat_i_p.nbooks(), scat_za_grid.nelem(), 
+                        scat_aa_grid.nelem(), stokes_dim ));
+      assert ( is_size( scat_i_lon, nf, scat_i_lat.nvitrines(), 
+                        scat_i_p.nshelves(), 2, scat_za_grid.nelem(), 
+                        scat_aa_grid.nelem(), stokes_dim ));
+
+      out3 << "    Interpolating outgoing field:\n";
+      out3 << "       zenith angle : " << rte_los[0] << "\n";
+      out3 << "       azimuth angle: " << rte_los[1]+180 << "\n";
+
       cout << scat_aa_grid;
     }
 }

@@ -1,5 +1,27 @@
 2004-09-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-885
+
+	* Bug fixed. And succesful test with a 1D DOIT case. Same result
+	obtained with this version and 1-1-873.
+
+	* src/rte.cc (rte_step_std): Included assert moved from RteEmissionStd:
+	   assert (!is_singular( ext_mat_av ));   
+
+	* src/m_rte.cc (RteEmissionStd): Removed unnecessary variables
+	ext_mat_av and abs_vec_av. Moved an assert to rte_step_std.
+
+	* src/m_atmosphere.cc (surfaceCalc): Some cheks of input do not
+	make sense when surface is treated to be a blackbody. Fixed.
+
+	(surfaceBlackbody): Values of surface_emission for stokes_dim > 1
+	were not set to zero.
+
+	* src/interpolation.cc (is_gridpos_at_index_i): Added a missing
+	fabs. This was the reason to the general bug in the ppath part.
+
+2004-09-29  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-884
 
 	* WARNING: There seems to be some problem in the ppath part.

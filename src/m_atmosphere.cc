@@ -711,6 +711,7 @@ void surfaceBlackbody(
 
   const Index   nf = f_grid.nelem();
   surface_emission.resize( nf, stokes_dim );
+  surface_emission = 0.0;
   for( Index iv=0; iv<nf; iv++ )
     { 
       surface_emission(iv,0) = planck( f_grid[iv], surface_skin_t );
@@ -761,18 +762,21 @@ void surfaceCalc(
 
 
   //--- Check input -----------------------------------------------------------
-  if( surface_los.ncols() != rte_los.nelem() )
-    throw runtime_error( 
+  if( nlos )   // nlos = 0 if blackbody ground and some checks are not needed
+    {
+      if( surface_los.ncols() != rte_los.nelem() )
+        throw runtime_error( 
                         "Number of columns in *surface_los* is not correct." );
-  if( nlos != surface_rmatrix.nbooks() )
-    throw runtime_error( 
+      if( nlos != surface_rmatrix.nbooks() )
+        throw runtime_error( 
                   "Mismatch in size of *surface_los* and *surface_rmatrix*." );
-  if( surface_rmatrix.npages() != nf )
-    throw runtime_error( 
+      if( surface_rmatrix.npages() != nf )
+        throw runtime_error( 
                        "Mismatch in size of *surface_rmatrix* and *f_grid*." );
-  if( surface_rmatrix.ncols() != stokes_dim  ||  
-      surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
+      if( surface_rmatrix.ncols() != stokes_dim  ||  
+          surface_rmatrix.ncols() != stokes_dim ) throw runtime_error( 
               "Mismatch between size of *surface_rmatrix* and *stokes_dim*." );
+    }
   if( surface_emission.ncols() != stokes_dim )
     throw runtime_error( 
              "Mismatch between size of *surface_emission* and *stokes_dim*." );

@@ -387,11 +387,6 @@ void RteEmissionStd(
       // The number of path steps is np-1.
       // The path points are stored in such way that index 0 corresponds to
       // the point closest to the sensor.
-      //
-          
-      // Define variables which hold averaged coefficients:
-      Matrix   ext_mat_av(stokes_dim, stokes_dim,0.);
-      Vector   abs_vec_av(stokes_dim,0.);
 
       // Dummy vector for scattering integral. It has to be 
       // set to 0 for clear sky calculations.
@@ -417,22 +412,15 @@ void RteEmissionStd(
 
           for( Index iv=0; iv<nf; iv++ )
             {
-              // Calculate averaged values for extinction matrix and 
-              // absorption vector.
-              ext_mat_av = ext_mat(iv, joker, joker);
-              abs_vec_av = abs_vec(iv, joker);
-              
               // Calculate an effective blackbody radiation for the step
               // The mean of the temperature at the end points is used.
               Numeric planck_value = 
                            planck( f_grid[iv], rte_temperature);
                   
-              assert (!is_singular( ext_mat_av ));   
-
               // Perform the RTE step.
-              rte_step_std( iy(iv, joker), ext_mat_av, abs_vec_av,
-                             sca_vec_dummy, ppath.l_step[ip-1], planck_value );
-	      
+              rte_step_std( iy(iv,joker), ext_mat(iv,joker,joker), 
+                            abs_vec(iv,joker), sca_vec_dummy, 
+                            ppath.l_step[ip-1], planck_value );
             }
         }
     }

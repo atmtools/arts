@@ -1636,9 +1636,6 @@ void CloudboxGetOutgoingCubic(// WS Generic Output:
 
 
 
-
-
-
 //! CloudboxGetIncoming
 /*! 
    See the the online help (arts -d FUNCTION_NAME)
@@ -1730,7 +1727,6 @@ void CloudboxGetIncoming(
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
           scat_i_p( joker, 0, 0, 0, scat_za_index, 0, joker ) = iy;
-          cout <<  invrayjean(iy(0,0),f_grid[0]) << "\n";
         }
 
       //--- Get scat_i_p at upper boundary
@@ -1748,7 +1744,6 @@ void CloudboxGetIncoming(
                    pos, los, f_grid, stokes_dim, agenda_verb );
 
           scat_i_p( joker, 1, 0, 0, scat_za_index, 0, joker ) = iy;
-          cout <<  invrayjean(iy(0,0),f_grid[0]) << "\n";
         }
     }
 
