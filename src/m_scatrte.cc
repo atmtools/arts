@@ -15,7 +15,7 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. 
 */
-
+  
 /*!
   \file   m_scatrte.cc
   \author Claudia Emde <claudia@sat.physik.uni-bremen.de>
@@ -406,7 +406,7 @@ i_fieldUpdate1D(// WS Output:
                 const Vector& scat_za_grid,
                 // Optical properties for gases and particles:
                 const Agenda& opt_prop_part_agenda,
-                const Tensor4& pnd_field,
+                const Tensor4& pnd_field, // FIXME: not needed in this function
                 const Agenda& opt_prop_gas_agenda,
                 // Propagation path calculation:
                 const Agenda& ppath_step_agenda,

@@ -78,6 +78,7 @@ int main()
           << "#include \"ppath.h\"\n"
           << "#include \"matpackIII.h\"\n"
           << "#include \"gas_abs_lookup.h\"\n"
+          << "#include \"optproperties.h\"\n"
           << "\n";
       
       ofs << "//! Total number of workspace variables.\n"

@@ -84,5 +84,6 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Agenda");
   wsv_group_names.push_back("GridPos");
   wsv_group_names.push_back("GasAbsLookup");
+  wsv_group_names.push_back("SingleScatteringData");
 }
 

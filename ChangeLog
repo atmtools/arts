@@ -1,3 +1,21 @@
+2003-03-06  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-478
+	
+	* src/optproperties.{cc,h}: Created these files. Defined the new
+	structure *SingleScatteringData* in optproperties.h. The functions
+	concerning the transformation from the data to the relevant 
+	workspace variables will be put in optproperties.cc.
+
+	* src/groups.cc: Added *SingleScatteringData*.
+
+	* src/make_auto_wsv_h.cc: Included *SingleScatteringData*.
+
+	* src/make_auto_wsv_groups_h.cc: Included *SingleScatteringData*.
+
+	* src/Makefile.am (arts_SOURCES): Included optproperties.h, 
+	optproperties.cc.
+
 2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-477

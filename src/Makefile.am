@@ -94,6 +94,8 @@ arts_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	optproperties.cc \
+	optproperties.h \
 	parameters.cc \
 	parameters.h \
 	parser.cc \
