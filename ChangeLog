@@ -1,3 +1,10 @@
+2002-08-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-208
+
+	* src/scat_rte.cc (i_fieldUpdate1D): Fixed some bugs related to the
+	boundary conditions. 
+
 2002-08-19  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-207
