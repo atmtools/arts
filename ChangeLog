@@ -1,3 +1,11 @@
+2002-05-31  Sreerekha T.R.  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-108
+	
+	* doc/uguide/interpolation.tex: introduced the index commands which
+	make reference at the indexpage of the AUG. Changed  all \verb
+	commands to \artsstyle.
+
 2002-05-31 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-107

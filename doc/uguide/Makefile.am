@@ -30,6 +30,7 @@ texfiles = \
 	formalism.tex \
 	development.tex \
 	introduction.tex \
+	interpolation.tex \
 	matrix_vector.tex \
 	formats.tex \
 	los1d.tex \

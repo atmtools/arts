@@ -5,7 +5,7 @@
 %  \levelb{...}
 %  \levelc{...}
 %
-\levela{Interpolation}
+\levela{\textindex{Interpolation}}
 %-------------------------------------------------------------------------
 \label{sec:interpolation}
 
@@ -37,9 +37,9 @@ interpolation weight tensors, and functions applying the
 interpolation. Doing an interpolation thus requires a chain of
 function calls:
 \begin{enumerate}
-\item \verb|gridpos| (one for each interpolation dimension)
-\item \verb|interpweights|
-\item \verb|interp|
+\item \funcindex{gridpos} (one for each interpolation dimension)
+\item \funcindex{interpweights}
+\item \funcindex{interp}
 \end{enumerate}
 Currently implemented in ARTS is mulitlinear interpolation in up to 6
 dimensions. (Is the 6D case called hexa-linear interpolation?)  The
@@ -51,9 +51,9 @@ chapter.
 
 Variables and functions related to interpolation are defined in the files:
 \begin{itemize}
-\item \verb|interpolation.h|
-\item \verb|interpolation.cc|
-\item \verb|test_interpolation.cc|
+\item \fileindex{interpolation.h}
+\item \fileindex{interpolation.cc}
+\item \fileindex{test\_interpolation.cc}
 \end{itemize}
 The first two files contain the declarations and implementation, the
 last file some usage examples.
@@ -73,9 +73,9 @@ last file some usage examples.
 
 There are two different types of interpolation in ARTS:
 \begin{description}
-\item[Green Interpolation:] Interpolation of a gridded field to a new
+\item[\textindex{Green Interpolation}:] Interpolation of a gridded field to a new
   grid.
-\item[Blue Interpolation:] Interpolation of a gridded field to a
+\item[\textindex{Blue Interpolation}:] Interpolation of a gridded field to a
   sequence of positions.
 \end{description}
 Figure \ref{fig:interpolation:types} illustrates the different types
@@ -92,17 +92,17 @@ somehow, which is described in the next section.
 %-------------------------------------------------------------------------
 
 A grid position specifies where an interpolation point is, relative
-to the original grid. It consists of three parts, an \verb|Index| giving the
-original grid index below the interpolation point, a \verb|Numeric|
+to the original grid. It consists of three parts, an \artsstyle{Index} giving the
+original grid index below the interpolation point, a \artsstyle{Numeric}
 giving the fractional distance to the next original grid point, and a
-\verb|Numeric| giving 1 minus this number. Of course, the last element is
+\artsstyle{Numeric} giving 1 minus this number. Of course, the last element is
 redundant. However, it is efficient to store this, since it is used
 many times over. We store the two numerics in a plain C array of
 dimension 2. (No need to use a fancy Array or Vector for this, since
-the dimension is fixed.) So the structure is:
+the dimension is fixed.) So the structure \structindex{GridPos} looks like:
 
 \begin{verbatim}
-struct GridPos {
+struct GridPos  {
    Index   idx;      /*!< Original grid index below
                           interpolation point. */
    Numeric fd[2];    /*!< Fractional distance to next point
@@ -110,7 +110,7 @@ struct GridPos {
 };
 \end{verbatim}
 
-For example, \verb|idx|=3 and \verb|fd|=0.5 means that this interpolation point is
+For example, \artsstyle{idx}=3 and \artsstyle{fd}=0.5 means that this interpolation point is
 half-way between index 3 and 4 of the original grid.  Note, that
 `below' in the first paragraph means `with a lower index'. If the
 original grid is sorted in descending order, the value at the grid
@@ -133,17 +133,18 @@ fd[0]    = 0.75
 \end{verbatim}
 }
 
-Note that \verb|fd[0]| is different in the second case, because the old grid
-is sorted in descending order. Note also that \verb|idx| is the same in
+Note that \artsstyle{fd[0]} is different in the second case, because the old grid
+is sorted in descending order. Note also that \artsstyle{idx} is the same in
 both cases.
 
-Grid positions for a whole new grid are stored in an \verb|Array<GridPos>|
-(called \verb|ArrayOfGridPos|). 
+Grid positions for a whole new grid are stored in an \artsstyle{Array<GridPos>}
+(called \artsstyle{ArrayOfGridPos}). 
 
 \levelb{Setting up grid position arrays}
 %----------------------------------------------------------------------
 
-There is only one function to set up grid position arrays:
+There is only one function to set up grid position arrays, namely 
+\funcindex{gridpos}:
 
 {\small
 \begin{verbatim}
@@ -155,7 +156,7 @@ void gridpos( ArrayOfGridPos& gp,
 
 \hspace{-\parindent}Some points to remember:
 \begin{itemize}
-\item As usual, the output \verb|gp| has to have the right dimension. 
+\item As usual, the output \artsstyle{gp} has to have the right dimension. 
   
 \item The old grid has to be strictly sorted. It can be in ascending
   or descending order. But there must not be any duplicate values.
@@ -173,7 +174,7 @@ void gridpos( ArrayOfGridPos& gp,
   all!
 \end{itemize}
 
-\levelb{Interpolation weights}
+\levelb{\textindex{Interpolation weights}}
 %----------------------------------------------------------------------
 
 As explained in the `Numerical Recipes'
@@ -235,7 +236,7 @@ vector).
 %----------------------------------------------------------------------
 
 Interpolation weight tensors can be computed by a family of functions,
-which are all called \verb|interpweights|. Which function is actually
+which are all called \funcindex{interpweights}. Which function is actually
 used depends on the dimension of the input and output quantities. For
 this step we still do not need the actual fields, just the grid
 positions.
@@ -265,7 +266,7 @@ void interpweights( MatrixView itw,
 \end{verbatim}
 }
 
-In all cases, the dimension of \verb|itw| must be consistent with the
+In all cases, the dimension of \artsstyle{itw} must be consistent with the
 given grid position arrays and the dimension of the interpolation
 (last dimension $2^n$). Because the grid position arrays are
 interpreted as defining a sequence of positions they must all have
@@ -307,7 +308,7 @@ void interpweights( Tensor7View itw,
 
 In this case the grid position arrays are interpreted as defining the
 grids for the interpolated field, therefore they can have different
-lengths. Of course, \verb|itw| must be consistent with the length of
+lengths. Of course, \artsstyle{itw} must be consistent with the length of
 all the grid position arrays, and with the dimension of the
 interpolation (last dimension $2^n$).
 
@@ -318,7 +319,7 @@ For this final step we need the grid positions, the
 interpolation weights, and the actual fields. For each interpolated
 value, the weights are applied to the appropriate original field values
 and the sum is taken (see Equation
-\ref{eq:interpolation:weights}). The \verb|interp| family of functions
+\ref{eq:interpolation:weights}). The \funcindex{interp} family of functions
 performs this step.
 
 \levelc{Blue interpolation}
@@ -414,7 +415,7 @@ void interp( Tensor6View           ia,
 
 \levelc{A simple example}
 
-This example is contained in file \verb|test_interpolation.cc|.
+This example is contained in file \fileindex{test\_interpolation.cc}.
 
 {\small
 \begin{verbatim}
@@ -493,7 +494,7 @@ while retaining others? --- You have to make a loop yourself, but it
 is very easy. Below is an explicit example for a more complicated
 interpolation case. (Green type interpolation of all pages of a
 Tensor3.) This example is also contained in file
-\verb|test_interpolation.cc|.
+\artsstyle{test\_interpolation.cc}.
 
 {\small
 \begin{verbatim}
@@ -613,12 +614,12 @@ Now you probably understand better what was written at the very
 beginning of this chapter, namely that doing an interpolation always
 requires the chain of function calls:
 \begin{enumerate}
-\item \verb|gridpos| (one for each interpolation dimension)
-\item \verb|interpweights|
-\item \verb|interp|
+\item \artsstyle{gridpos} (one for each interpolation dimension)
+\item \artsstyle{interpweights}
+\item \artsstyle{interp}
 \end{enumerate}
 If you are interested in how the functions really work, look in file
-\verb|interpolation.cc|. The documentation there is quite detailed.
+\artsstyle{interpolation.cc}. The documentation there is quite detailed.
 When you are using interpolation, you should always give some thought
 to whether you can re-use grid positions or even interpolation
 weights. This can really save you a lot of computation time. For
