@@ -95,6 +95,8 @@ void Cloudbox_ppath_rteCalc(
 			     Matrix&               ground_los, 
 			     Tensor4&              ground_refl_coeffs,
 			     Index&                f_index,
+			     Index&                scat_za_index,
+			     Index&                scat_aa_index,
 			     const Agenda&         ppath_step_agenda,
 			     const Index&          atmosphere_dim,
 			     const Vector&         p_grid,
@@ -159,7 +161,8 @@ void Cloudbox_ppath_rteCalc(
   
   //Calculate array of transmittance matrices
   TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, scat_aa_grid, ext_mat, abs_vec,
-	     a_pressure, a_temperature, a_vmr_list, ppathcloud, opt_prop_gas_agenda, 
+	     a_pressure, a_temperature, a_vmr_list, scat_za_index, scat_aa_index, 
+	     ppathcloud, opt_prop_gas_agenda, 
 	     opt_prop_part_agenda, scalar_gas_absorption_agenda, stokes_dim, 
 	     p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim);
   //Calculate contribution from the boundary of the cloud box
@@ -577,4 +580,127 @@ void Sample_ppathlength (
         g=K11*exp(-pathlength*K11);	
 }		
 
+
+//!  TArrayCalc
+/*! 
+ 
+   This function calculates arrays of useful variables along a propagation
+   path within the cloudbox. 
+
+
+   \author Cory Davis
+   \date   2003-07-19
+*/
+
+
+		
+void TArrayCalc(
+		//output
+		ArrayOfMatrix& TArray,
+		ArrayOfMatrix& ext_matArray,
+		ArrayOfVector& abs_vecArray,
+		Vector& t_ppath,
+		Vector& scat_za_grid,
+		Vector& scat_aa_grid,
+		Tensor3& ext_mat,
+		Matrix& abs_vec,
+		Numeric&   a_pressure,
+		Numeric&   a_temperature,
+		Vector&    a_vmr_list,
+		Index&    scat_za_index,
+		Index&    scat_aa_index,
+		//input
+		const Ppath& ppath,
+		const Agenda& opt_prop_gas_agenda,
+		const Agenda& opt_prop_part_agenda,
+		const Agenda& scalar_gas_absorption_agenda,
+		const Index& stokes_dim,
+		const Vector&    p_grid,
+		const Vector&    lat_grid,
+		const Vector&    lon_grid,
+		const Tensor3&   t_field,
+		const Tensor4&   vmr_field,
+		const Index&     atmosphere_dim
+ 		)
+{ 
+  const Index np=ppath.np;  
+  const Index   ns = vmr_field.nbooks();
+  TArray.resize(np);
+  ext_matArray.resize(np); 
+  abs_vecArray.resize(np);
+  t_ppath.resize(np);
+Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
+  Matrix zeroMatrix(stokes_dim,stokes_dim,0.0);
+  Matrix identity(stokes_dim,stokes_dim,0.0);
+  //Identity matrix
+  for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
+ //use propagation angles from ppath to form scat_za_grid, scat_aa_grid
+  scat_za_grid.resize(ppath.np);
+  scat_aa_grid.resize(ppath.np);//I don't think aa can change along a propagation path
+
+  scat_za_grid=ppath.los(Range(joker),0);
+  scat_za_grid*=-1.0;
+  scat_za_grid+=180;
+  scat_aa_grid=ppath.los(Range(joker),1);
+  scat_aa_grid+=180;
+
+  // Determine the pressure at each propagation path point
+  Vector   p_ppath(np);
+  Matrix   itw_p(np,2);
+  //
+  interpweights( itw_p, ppath.gp_p );      
+  itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
+  
+  // Determine the atmospheric temperature and species VMR at 
+  // each propagation path point
+   Matrix   vmr_ppath(ns,np), itw_field;
+  //
+  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
+			  lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+  //
+  interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
+			  lon_grid, t_field, "t_field", 
+			  ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+  // 
+  for( Index is=0; is<ns; is++ )
+    {
+      interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
+			      p_grid, lat_grid, lon_grid, 
+			      vmr_field(is, joker, joker,  joker), 
+			      "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+    }
+  //Create array of extinction matrices corresponding to each point in ppath
+  for (scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
+    { 
+      scat_aa_index=scat_za_index;
+      a_pressure    = p_ppath[scat_za_index];
+      a_temperature = t_ppath[scat_za_index];
+      a_vmr_list    = vmr_ppath(joker,scat_za_index);
+      scalar_gas_absorption_agenda.execute( true );
+      opt_prop_gas_agenda.execute( true );
+
+      //Make sure scat_aa is between -180 and 180
+      if (scat_aa_grid[scat_aa_index]>180){scat_aa_grid[scat_aa_index]-=360;}
+      opt_prop_part_agenda.execute( true );
+      ext_matArray[scat_za_index]=ext_mat(0,joker,joker);
+      abs_vecArray[scat_za_index]=abs_vec(0,joker);
+    }
+  //create an array of T matrices corresponding to each position in the
+  //the first ppath through the cloudbox each grid cell spanned by ppath points
+  opt_depth_mat=ext_matArray[0];
+  opt_depth_mat+=ext_matArray[1];
+  opt_depth_mat*=-ppath.l_step[0]/2;
+  TArray[0]=identity;
+  for (Index i=1; i<ppath.np;i++)
+    {
+      //Get the appropriate extinction matrix for the cell in question
+      opt_depth_mat=ext_matArray[i];
+      opt_depth_mat+=ext_matArray[i-1];
+      opt_depth_mat*=-ppath.l_step[i-1]/2;
+      matrix_exp(incT,opt_depth_mat,6);
+      TArray[i]=zeroMatrix;
+      mult(TArray[i],TArray[i-1],incT);
+    }
+
+}
 

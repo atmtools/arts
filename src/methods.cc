@@ -3030,7 +3030,7 @@ md_data_raw.push_back
 	 "\n"
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
-        INPUT( I_, stokes_dim_, f_grid_, cloudbox_limits_, scat_za_grid_,
+        INPUT( i_rte_, stokes_dim_, f_grid_, cloudbox_limits_, scat_za_grid_,
 	       scat_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
@@ -3124,11 +3124,11 @@ md_data_raw.push_back
 	 " max_iter.\n Negative values of rng_seed seed the random number generator \n "
 	 "according to system time, positive rng_seed values are taken literally.\n"
           ),
-        OUTPUT(ppath_, ppath_step_, I_, Ierror_, a_pos_, a_los_,
+        OUTPUT(ppath_, ppath_step_, i_montecarlo_error_, a_pos_, a_los_,
 	       a_gp_p_, a_gp_lat_, a_gp_lon_, i_space_, ground_emission_,
 	       ground_los_, ground_refl_coeffs_, i_rte_, 
 	       scat_za_grid_,scat_aa_grid_, a_pressure_, a_temperature_, 
-	       a_vmr_list_, ext_mat_, abs_vec_, f_index_),
+	       a_vmr_list_, ext_mat_, abs_vec_, f_index_, scat_za_index_, scat_aa_index_),
         INPUT(ppath_step_agenda_, atmosphere_dim_, p_grid_, lat_grid_,
 	      lon_grid_, z_field_, r_geoid_, z_ground_, cloudbox_limits_,
 	      stokes_dim_, rte_agenda_, i_space_agenda_, ground_refl_agenda_,
@@ -3364,26 +3364,6 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "text"   ),
         TYPES(    String_t )));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "TArrayCalc" ),
-        DESCRIPTION
-        (
-         "Calculates an array of transmittance matrices, extinction matrices, and other.\n"
-         "properties at or between points on a propagation path.\n"
- 	 "This function is called by Scattering Monte Carlo and shouldn't be needed directly\n"
-	 "other than for diagnostic purposes.  One day it may be required for an Agenda\n"
-        ),
-        OUTPUT( TArray_, ext_matArray_, abs_vecArray_,t_ppath_, scat_za_grid_, scat_aa_grid_, ext_mat_,
-		abs_vec_, a_pressure_, a_temperature_, a_vmr_list_),
-        INPUT( ppath_,  opt_prop_gas_agenda_, opt_prop_part_agenda_, 
-	       scalar_gas_absorption_agenda_, stokes_dim_, p_grid_, lat_grid_,
-	       lon_grid_ , t_field_, vmr_field_, atmosphere_dim_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord

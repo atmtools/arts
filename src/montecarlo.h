@@ -52,6 +52,8 @@ void Cloudbox_ppath_rteCalc(
 			     Matrix&               ground_los, 
 			     Tensor4&              ground_refl_coeffs,
 			     Index&                f_index,
+			     Index&                scat_za_index,
+			     Index&                scat_aa_index,
 			     const Agenda&         ppath_step_agenda,
 			     const Index&          atmosphere_dim,
 			     const Vector&         p_grid,
@@ -132,5 +134,33 @@ void Sample_ppathlength (
 			 const ArrayOfMatrix& ext_matArray
 			 );
 
+void TArrayCalc(
+		//output
+		ArrayOfMatrix& TArray,
+		ArrayOfMatrix& ext_matArray,
+		ArrayOfVector& abs_vecArray,
+		Vector& t_ppath,
+		Vector& scat_za_grid,
+		Vector& scat_aa_grid,
+		Tensor3& ext_mat,
+		Matrix& abs_vec,
+		Numeric&   a_pressure,
+		Numeric&   a_temperature,
+		Vector&    a_vmr_list,
+		Index&    scat_za_index,
+		Index&    scat_aa_index,
+		//input
+		const Ppath& ppath,
+		const Agenda& opt_prop_gas_agenda,
+		const Agenda& opt_prop_part_agenda,
+		const Agenda& scalar_gas_absorption_agenda,
+		const Index& stokes_dim,
+		const Vector&    p_grid,
+		const Vector&    lat_grid,
+		const Vector&    lon_grid,
+		const Tensor3&   t_field,
+		const Tensor4&   vmr_field,
+		const Index&     atmosphere_dim
+ 		);
 
 #endif  // montecarlo_h

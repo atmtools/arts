@@ -176,21 +176,6 @@ void define_wsv_data()
         ),
        GROUP( Matrix_ )));
 
-wsv_data.push_back
-    (WsvRecord
-    ( NAME( "abs_vecArray" ),
-      DESCRIPTION
-      (
-       "An array of absorption coefficient vectors along a propagation path.\n"
-       "\n"
-       "Usage:      Input and Output of the method TArrayCalc\n"
-        "\n"
-       "Unit:        [m^2]\n"
-       "\n"
-       "Dimensions: [ppath.np,stokes_dim]"
-        ),
-       GROUP( ArrayOfVector_ )));
-
   wsv_data.push_back
     (WsvRecord
      ( NAME("abs_vec_spt"),
@@ -682,24 +667,6 @@ wsv_data.push_back
        ),
       GROUP( Tensor3_ )));
 
- wsv_data.push_back
-     (WsvRecord
-    ( NAME( "ext_matArray" ),
-      DESCRIPTION
-      (
-       "An array of extinction matrices for a propagation path.\n"
-       "\n"
-       "The length of this array is ppath.np\n"
-       "\n"
-       "\n"
-       "Usage:      Input and Output of the method TArrayCalc \n"
-       "\n"
-       "Unit:        m^2 \n"
-       "\n"
-       "Dimensions: [ppath.np]"
-       ),
-      GROUP( ArrayOfMatrix_ )));
-
   wsv_data.push_back
     (WsvRecord
      ( NAME( "f_backend" ),
@@ -891,24 +858,7 @@ wsv_data.push_back
 
   wsv_data.push_back
     (WsvRecord
-     ( NAME( "I" ),
-       DESCRIPTION
-       (
-        "This the Stoke's vector for radiation emerging from the cloudbox in\n" 
-	"the direction of the sensor as calculated by ScatteringMonteCarlo.\n"
-        "\n"
-        "\n"
-        "Usage: Output from ScatteringMonteCArlo.. \n"
-        "\n"
-        "Units: W / (m^2 Hz sr)\n"
-        "\n"
-        "Size:  [ stokes_dim ]"
-        ), 
-       GROUP( Vector_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "Ierror" ),
+     ( NAME( "i_montecarlo_error" ),
        DESCRIPTION
        (
         "Error in *I* from ScatteringMonteCarlo.\n"
@@ -2255,18 +2205,6 @@ wsv_data.push_back
        ),
       GROUP( Vector_ )));
 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "TArray" ),
-      DESCRIPTION
-      (
-       "An array of transmittance matrices along a propagation path.\n"
-       "\n"
-       "The length of this array is equal to ppath.np"
-       "Usage:      Input and output of method TArrayCalc."
-       ),
-      GROUP( ArrayOfMatrix_ )));
-
   wsv_data.push_back
    (WsvRecord
     ( NAME( "tensor3_1" ),
@@ -2363,20 +2301,6 @@ wsv_data.push_back
        "\n"
        ),
       GROUP( ArrayOfTensor3_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "t_ppath" ),
-      DESCRIPTION
-      (
-       "A vector of temperatures along a propagation path.\n"
-       "\n"
-       "Unit:       K\n"
-       "\n"
-       "Usage:      Input and output of method TArrayCalc."
-       "\n"
-       ),
-      GROUP( Vector_ )));
 
   wsv_data.push_back
    (WsvRecord

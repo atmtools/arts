@@ -320,7 +320,7 @@ void scat_iPutMonteCarlo(
 			 Tensor7& scat_i_p,
 			 Tensor7& scat_i_lat,
 			 Tensor7& scat_i_lon,
-			 const Vector& I,
+			 const Matrix& i_rte,
 			 const Index& stokes_dim,
                          const Vector& f_grid,
                          const ArrayOfIndex& cloudbox_limits,
@@ -329,6 +329,7 @@ void scat_iPutMonteCarlo(
 			 )
 {
 
+  Vector I = i_rte(0,joker);
    Index Nf = f_grid.nelem();
    Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
@@ -377,30 +378,31 @@ void scat_iPutMonteCarlo(
 
 void ScatteringMonteCarlo (
 			   // WS Output:
-			   Ppath&          ppath,
-			   Ppath&          ppath_step,
-			   Vector&               I,
-			   Vector&               Ierror,
-			   Vector&         a_pos,
-			   Vector&         a_los,
+			   Ppath&                ppath,
+			   Ppath&                ppath_step,
+			   Vector&               i_montecarlo_error,
+			   Vector&               a_pos,
+			   Vector&               a_los,
 			   //Stuff needed by RteCalc
-			   GridPos&        a_gp_p,
-			   GridPos&        a_gp_lat,
-			   GridPos&        a_gp_lon,
-			   Matrix&         i_space,
-			   Matrix&         ground_emission,
-			   Matrix&         ground_los, 
-			   Tensor4&        ground_refl_coeffs,
-			   Matrix&         i_rte,
-			   Vector&         scat_za_grid,
-			   Vector&         scat_aa_grid,
-			   Numeric&   a_pressure,
-			   Numeric&   a_temperature,
-			   Vector&    a_vmr_list,
+			   GridPos&              a_gp_p,
+			   GridPos&              a_gp_lat,
+			   GridPos&              a_gp_lon,
+			   Matrix&               i_space,
+			   Matrix&               ground_emission,
+			   Matrix&               ground_los, 
+			   Tensor4&              ground_refl_coeffs,
+			   Matrix&               i_rte,
+			   Vector&               scat_za_grid,
+			   Vector&               scat_aa_grid,
+			   Numeric&              a_pressure,
+			   Numeric&              a_temperature,
+			   Vector&               a_vmr_list,
 			   //Other Stuff
-			   Tensor3& ext_mat,
-			   Matrix& abs_vec,
-			   Index& f_index,
+			   Tensor3&              ext_mat,
+			   Matrix&               abs_vec,
+			   Index&                f_index,
+			   Index&                scat_za_index,
+			   Index&                scat_aa_index,
 			  
 			   // WS Input:
 			   const Agenda&         ppath_step_agenda,
@@ -475,8 +477,8 @@ void ScatteringMonteCarlo (
   Index lon_index;
    ArrayOfGridPos pathlength_gp(1);
   Vector K_abs(stokes_dim);
-   I.resize(stokes_dim);
-  Ierror.resize(stokes_dim);
+  Vector I(stokes_dim);
+  i_montecarlo_error.resize(stokes_dim);
   Rng rng;
 
   //if rng_seed is < 0, keep time based seed, otherwise...
@@ -487,7 +489,8 @@ void ScatteringMonteCarlo (
 			 scat_aa_grid, ext_mat, abs_vec, a_pressure, a_temperature, 
 			 a_vmr_list, i_rte, a_gp_p, a_gp_lat, a_gp_lon, 
 			 i_space, ground_emission, ground_los, ground_refl_coeffs, 
-			 f_index, ppath_step_agenda, atmosphere_dim, p_grid, 
+			 f_index, scat_za_index, scat_aa_index,
+			 ppath_step_agenda, atmosphere_dim, p_grid, 
 			 lat_grid, lon_grid, z_field, r_geoid, z_ground, 
 			 cloudbox_limits, record_ppathcloud, record_ppath, 
 			 opt_prop_gas_agenda, opt_prop_part_agenda, 
@@ -526,7 +529,8 @@ void ScatteringMonteCarlo (
 				     scat_aa_grid, ext_mat, abs_vec, a_pressure, 
 				     a_temperature, a_vmr_list, i_rte, a_gp_p, 
 				     a_gp_lat, a_gp_lon, i_space, ground_emission, 
-				     ground_los, ground_refl_coeffs, f_index, 
+				     ground_los, ground_refl_coeffs, f_index, scat_za_index, 
+				     scat_aa_index, 
 				     ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
 				     lon_grid, z_field, r_geoid, z_ground, cloudbox_limits, 
 				     record_ppathcloud, record_ppath, opt_prop_gas_agenda, 
@@ -623,8 +627,9 @@ void ScatteringMonteCarlo (
   I+=IboundaryLOScontri;
   for(Index j=0; j<stokes_dim; j++)	
     {
-      Ierror[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
+      i_montecarlo_error[j]=sqrt((Isquaredsum[j]/maxiter-I[j]*I[j])/maxiter);
     }
+  i_rte(0,joker)=I;
 }		
 
 
@@ -649,126 +654,4 @@ a_los = ppath.los(ppath.np-1,joker);
 }  
 
 
-
-//!  TArrayCalc
-/*! 
- 
-   This function calculates arrays of useful variables along a propagation
-   path within the cloudbox. It maybe that this doesn't need to be a WSM.  But
-   during development it is handy to be able to look at it's output.  Also it is 
-   possible that in the future it may be input for an Agenda. 
-
-
-   See the online help (arts -d FUNCTION_NAME) for a description of parameters.
- 
-
-   \author Cory Davis
-   \date   2003-07-19
-*/
-
-
-		
-void TArrayCalc(
-		//WS output
-		ArrayOfMatrix& TArray,
-		ArrayOfMatrix& ext_matArray,
-		ArrayOfVector& abs_vecArray,
-		Vector& t_ppath,
-		Vector& scat_za_grid,
-		Vector& scat_aa_grid,
-		Tensor3& ext_mat,
-		Matrix& abs_vec,
-		Numeric&   a_pressure,
-		Numeric&   a_temperature,
-		Vector&    a_vmr_list,
-
-		//WS input
-		const Ppath& ppath,
-		const Agenda& opt_prop_gas_agenda,
-		const Agenda& opt_prop_part_agenda,
-		const Agenda& scalar_gas_absorption_agenda,
-		const Index& stokes_dim,
-		const Vector&    p_grid,
-		const Vector&    lat_grid,
-		const Vector&    lon_grid,
-		const Tensor3&   t_field,
-		const Tensor4&   vmr_field,
-		const Index&     atmosphere_dim
- 		)
-{ 
-  const Index np=ppath.np;  
-  const Index   ns = vmr_field.nbooks();
-  TArray.resize(np);
-  ext_matArray.resize(np); 
-  abs_vecArray.resize(np);
-  t_ppath.resize(np);
-Matrix opt_depth_mat(stokes_dim,stokes_dim),incT(stokes_dim,stokes_dim);
-  Matrix zeroMatrix(stokes_dim,stokes_dim,0.0);
-  Matrix identity(stokes_dim,stokes_dim,0.0);
-  //Identity matrix
-  for (Index i=0; i<stokes_dim; i++){identity(i,i)=1.0;}
- //use propagation angles from ppath to form scat_za_grid, scat_aa_grid
-  scat_za_grid.resize(ppath.np);
-  scat_aa_grid.resize(1);//I don't think aa can change along a propagation path
-
-  scat_za_grid=ppath.los(Range(joker),0);
-  scat_za_grid*=-1.0;
-  scat_za_grid+=180;
-  scat_aa_grid[0]=ppath.los(0,1);
-  //  Index scat_aa_index=0;
-  // Determine the pressure at each propagation path point
-  Vector   p_ppath(np);
-  Matrix   itw_p(np,2);
-  //
-  interpweights( itw_p, ppath.gp_p );      
-  itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
-  
-  // Determine the atmospheric temperature and species VMR at 
-  // each propagation path point
-   Matrix   vmr_ppath(ns,np), itw_field;
-  //
-  interp_atmfield_gp2itw( itw_field, atmosphere_dim, p_grid, lat_grid, 
-			  lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
-  //
-  interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
-			  lon_grid, t_field, "t_field", 
-			  ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-  // 
-  for( Index is=0; is<ns; is++ )
-    {
-      interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
-			      p_grid, lat_grid, lon_grid, 
-			      vmr_field(is, joker, joker,  joker), 
-			      "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
-    }
-  //Create array of extinction matrices corresponding to each point in ppath
-  for (Index scat_za_index=0; scat_za_index<ppath.np; scat_za_index++)
-    { 
-      a_pressure    = p_ppath[scat_za_index];
-      a_temperature = t_ppath[scat_za_index];
-      a_vmr_list    = vmr_ppath(joker,scat_za_index);
-      scalar_gas_absorption_agenda.execute( true );
-      opt_prop_gas_agenda.execute( true );
-      opt_prop_part_agenda.execute( true );
-      ext_matArray[scat_za_index]=ext_mat(0,joker,joker);
-      abs_vecArray[scat_za_index]=abs_vec(0,joker);
-    }
-  //create an array of T matrices corresponding to each position in the
-  //the first ppath through the cloudbox each grid cell spanned by ppath points
-  opt_depth_mat=ext_matArray[0];
-  opt_depth_mat+=ext_matArray[1];
-  opt_depth_mat*=-ppath.l_step[0]/2;
-  TArray[0]=identity;
-  for (Index i=1; i<ppath.np;i++)
-    {
-      //Get the appropriate extinction matrix for the cell in question
-      opt_depth_mat=ext_matArray[i];
-      opt_depth_mat+=ext_matArray[i-1];
-      opt_depth_mat*=-ppath.l_step[i-1]/2;
-      matrix_exp(incT,opt_depth_mat,6);
-      TArray[i]=zeroMatrix;
-      mult(TArray[i],TArray[i-1],incT);
-    }
-
-}
 
