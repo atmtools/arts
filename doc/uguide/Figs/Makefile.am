@@ -24,41 +24,53 @@ EXTRA_DIST = \
 	fig_absbasis_z.pdf \
 	fig_baselinefit.eps \
 	fig_baselinefit.pdf \
+	fig_bendingangle.eps \
+	fig_bendingangle.pdf \
+	fig_bendingangle.m \
+	fig_calerror.m \
+	fig_calerror_tb_1.eps \
+	fig_calerror_tb_1.pdf \
+	fig_calerror_tb_2.eps \
+	fig_calerror_tb_2.pdf \
+	fig_calerror_trj_1.eps \
+	fig_calerror_trj_1.pdf \
+	fig_calerror_trj_2.eps \
+	fig_calerror_trj_2.pdf \
 	fig_corrfuns.eps \
 	fig_corrfuns.pdf \
 	fig_corrfuns.m \
 	fig_geomfac.eps \
 	fig_geomfac.pdf \
 	fig_pfac.m \
-	fig_pfac_z.eps \
 	fig_pfac_l.eps \
-	fig_pfac_z.pdf \
 	fig_pfac_l.pdf \
+	fig_pfac_z.eps \
+	fig_pfac_z.pdf \
 	generic_method.eps \
 	generic_method.pdf \
 	geoms.eps \
-	geoms.pdf \
 	geoms.fig \
+	geoms.pdf \
 	ground.eps \
-	ground.pdf \
 	ground.fig \
+	ground.pdf \
 	kpol.eps \
-	kpol.pdf \
 	kpol.fig \
+	kpol.pdf \
 	los.eps \
-	los.pdf \
 	los.fig \
+	los.pdf \
 	method.eps \
 	method.pdf \
 	sideband.eps \
-	sideband.pdf \
 	sideband.fig \
+	sideband.pdf \
 	snell.eps \
-	snell.pdf \
 	snell.fig \
+	snell.pdf \
 	vecintegr.eps \
-	vecintegr.pdf \
 	vecintegr.fig \
+	vecintegr.pdf \
 	wf1.eps \
 	wf1.pdf \
 	wf1.fig \
