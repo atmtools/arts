@@ -151,6 +151,6 @@ void refr_index_thayer_1974(
 void refr_index_ir(
               Numeric&   refr_index,
         const Numeric&   p,
-		const Numeric&   t );
+        const Numeric&   t );
 
 #endif  // refraction_h

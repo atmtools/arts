@@ -593,12 +593,13 @@ void refr_index_thayer_1974(
    \date   2003-05-15
 */
 void refr_index_ir(
-			  Numeric&   refr_index,
+              Numeric&   refr_index,
         const Numeric&   p,
-		const Numeric&   t )
+        const Numeric&   t )
 {
   const Numeric bn0 = 1.000272620045304;
-  const Numeric bk = 288.16*(pow(bn0,2.0)-1.0)/(1013.25*(pow(bn0,2.0)+2.0));
+  const Numeric bk = 288.16 * (pow(bn0,Numeric(2.0))-1.0)/
+                                        (1013.25*(pow(bn0,Numeric(2.0))+2.0));
 
   // Pa -> HPa
   refr_index = sqrt((2.0*bk*p/100.0+t)/(t-bk*p/100.0));

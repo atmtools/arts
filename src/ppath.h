@@ -160,7 +160,7 @@ void ppath_step_geom_3d(
         ConstTensor3View   z_field,
         ConstMatrixView    r_geoid,
         ConstMatrixView    z_surface,
-	const double&      lmax );
+    const double&      lmax );
 
 void ppath_step_refr_1d(
               Ppath&      ppath,

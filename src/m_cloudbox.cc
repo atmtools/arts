@@ -836,10 +836,10 @@ void i_fieldSetConst(//WS Output:
             //set the value for the upper boundary
             i_field(cloudbox_limits[1]-cloudbox_limits[0], 0, 0, za_index,
                     0, i) = 
-	      scat_i_p(0, 1, 0, 0, za_index, 0, i);
+          scat_i_p(0, 1, 0, 0, za_index, 0, i);
             //set the value for the lower boundary 
             i_field(0, 0, 0, za_index, 0, i) =  
-	      scat_i_p(0, 0, 0, 0, za_index, 0, i);
+          scat_i_p(0, 0, 0, 0, za_index, 0, i);
             for (Index scat_p_index = 1; scat_p_index < cloudbox_limits[1] - 
                    cloudbox_limits[0]; scat_p_index++ )
               // The field inside the cloudbox is set to some arbitrary value.
@@ -1119,12 +1119,12 @@ void ParticleTypeAdd( //WS Output:
 */
 
 void pnd_fieldCalc(//WS Output:
-		   Tensor4& pnd_field,
+           Tensor4& pnd_field,
                    //WS Input
                    const Vector& p_grid,
                    const Vector& lat_grid,
                    const Vector& lon_grid,
-		   const ArrayOfGriddedField3& pnd_field_raw,
+           const ArrayOfGriddedField3& pnd_field_raw,
                    const Index& atmosphere_dim
                    )
 {
@@ -1153,8 +1153,8 @@ void pnd_fieldCalc(//WS Output:
           p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
       
           // Interpolation weights:
-	   Matrix itw(p_grid.nelem(), 2);
-	   // (2 interpolation weights are required for 1D interpolation)
+       Matrix itw(p_grid.nelem(), 2);
+       // (2 interpolation weights are required for 1D interpolation)
           interpweights( itw, gp_p);
                // Interpolate:
           interp( pnd_field(i, joker, 0, 0),
@@ -1183,10 +1183,10 @@ void pnd_fieldCalc(//WS Output:
           p2gridpos(gp_p, pnd_field_raw[i].p_grid, p_grid);
           gridpos(gp_lat, pnd_field_raw[i].data(0, joker, 0), 
                   lat_grid);
-	  
+      
           // Interpolation weights:
-	  Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
-	  // (8 interpolation weights are required for 3D interpolation)
+      Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
+      // (8 interpolation weights are required for 3D interpolation)
           interpweights( itw, gp_p, gp_lat);
           
           // Interpolate:

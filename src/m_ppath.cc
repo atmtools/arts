@@ -465,39 +465,39 @@ void sensor_posAddRgeoid(
 }
 
 void VectorZtanToZaRefr(// WS Output:
-                        Numeric&			refr_index,
-                        Numeric&			rte_pressure,
-                        Numeric&			rte_temperature,
-                        Vector&				rte_vmr_list,
+                        Numeric&            refr_index,
+                        Numeric&            rte_pressure,
+                        Numeric&            rte_temperature,
+                        Vector&             rte_vmr_list,
                         // WS Generic Output:
-                        Vector&				za_vector,
+                        Vector&             za_vector,
                         // WS Generic Output Names:
-                        const String&		za_vector_name,
+                        const String&       za_vector_name,
                         // WS Input:
-                        const Agenda&		refr_index_agenda,
-                        const Matrix&		sensor_pos,
-                        const Vector&		p_grid,
-                        const Tensor3&		t_field,
-                        const Tensor3&		z_field,
-                        const Tensor4&		vmr_field,
-                        const Matrix&		r_geoid,
+                        const Agenda&       refr_index_agenda,
+                        const Matrix&       sensor_pos,
+                        const Vector&       p_grid,
+                        const Tensor3&      t_field,
+                        const Tensor3&      z_field,
+                        const Tensor4&      vmr_field,
+                        const Matrix&       r_geoid,
 // FIXME atmosphere_dim only used for assertion
 #ifndef NDEBUG
-                        const Index&		atmosphere_dim,
+                        const Index&        atmosphere_dim,
 #else
-                        const Index&		/* atmosphere_dim */,
+                        const Index&        /* atmosphere_dim */,
 #endif
                         // WS Generic Input:
-                        const Vector&		ztan_vector,
+                        const Vector&       ztan_vector,
                         // WS Generic Input Names:
-                        const String&		ztan_vector_name )
+                        const String&       ztan_vector_name )
 {
   assert( atmosphere_dim == 1);
 
   if( ztan_vector.nelem() != sensor_pos.nrows() ) {
     ostringstream os;
     os << "The number of altitudes in *" << ztan_vector_name << "* must\n"
-	   << "match the number of positions in *sensor_pos*.";
+       << "match the number of positions in *sensor_pos*.";
     throw runtime_error( os.str() );
   }
 
@@ -513,14 +513,14 @@ void VectorZtanToZaRefr(// WS Output:
 
   //Calculate refractive index for the tangential altitudes
   for( Index i=0; i<ztan_vector.nelem(); i++ ) {
-	get_refr_index_1d( rte_pressure, rte_temperature, rte_vmr_list, 
-	  refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
-	  z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
-	  ztan_vector[i]+r_geoid(0,0) );
+    get_refr_index_1d( rte_pressure, rte_temperature, rte_vmr_list, 
+      refr_index_agenda, agenda_verb, p_grid, r_geoid(0,0), 
+      z_field(joker,0,0), t_field(joker,0,0), vmr_field(joker,joker,0,0),
+      ztan_vector[i]+r_geoid(0,0) );
 
-	//Calculate zenith angle
-	za_vector[i] = 180-asin(refr_index*(ztan_vector[i]+r_geoid(0,0)) /
-	               			sensor_pos(i,0))*RAD2DEG;
+    //Calculate zenith angle
+    za_vector[i] = 180-asin(refr_index*(ztan_vector[i]+r_geoid(0,0)) /
+                            sensor_pos(i,0))*RAD2DEG;
   }
 
 }
@@ -537,7 +537,7 @@ void VectorZtanToZaRefr(// WS Output:
 void VectorZtanToZa(
         // WS Output:
               Vector&    za_vector,
-	const String&    za_v_name,
+    const String&    za_v_name,
         // WS Input:
         const Matrix&    sensor_pos,
         const Vector&    ztan_vector,
@@ -707,23 +707,23 @@ void ZaSatOccultation(
   \date   2003-09-18
 */
 void rte_pos_and_losFromTangentPressure(
-					// WS Output:
-					Vector&          rte_pos,
-					Vector&          rte_los,
-					Ppath&           ppath,
-					Ppath&           ppath_step,
-					// WS Input:
-					const Index&     atmosphere_dim,
-					const Vector&    p_grid,
-					const Tensor3&   z_field,
-					const Vector &     lat_grid,      
-					const Vector &     lon_grid,
-					const Agenda &     ppath_step_agenda,
-					const Matrix &     r_geoid,
-					const Matrix &     z_surface,
-					// Control Parameters:
-					const Numeric&   tan_p
-					)
+                    // WS Output:
+                    Vector&          rte_pos,
+                    Vector&          rte_los,
+                    Ppath&           ppath,
+                    Ppath&           ppath_step,
+                    // WS Input:
+                    const Index&     atmosphere_dim,
+                    const Vector&    p_grid,
+                    const Tensor3&   z_field,
+                    const Vector &     lat_grid,      
+                    const Vector &     lon_grid,
+                    const Agenda &     ppath_step_agenda,
+                    const Matrix &     r_geoid,
+                    const Matrix &     z_surface,
+                    // Control Parameters:
+                    const Numeric&   tan_p
+                    )
 {
   //This function is only ready for 1D calculations
   if (atmosphere_dim > 1)
@@ -757,8 +757,8 @@ void rte_pos_and_losFromTangentPressure(
   ArrayOfIndex cloudbox_limits(2);
   bool outside_cloudbox=true;
   ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
-	     lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
-	     rte_pos, rte_los, outside_cloudbox);
+         lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
+         rte_pos, rte_los, outside_cloudbox);
   rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los = ppath.los(ppath.np-1,joker);
   rte_los[0]=180.0-rte_los[0];

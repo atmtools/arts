@@ -3545,7 +3545,7 @@ void define_md_data_raw()
          "calculation using a Monte Carlo algorithm \n"
          "\n"
          "\n"
-         "The main output variables *i_rte* and *i_montecarlo_error* represent the \n"
+         "The main output variables *iy* and *i_montecarlo_error* represent the \n"
          "Stokes vector, and the estimated error in the Stokes vector respectively.\n"
          "The keyword parameter `maxiter\' describes the number of `photons\'\n"
          "used in the simulation (more photons means smaller *Ierror*).\n"
@@ -3767,7 +3767,7 @@ md_data_raw.push_back
          "\n"
          ),
         OUTPUT( scat_i_p_, scat_i_lat_, scat_i_lon_ ),
-        INPUT( i_rte_, stokes_dim_, f_grid_, cloudbox_limits_, scat_za_grid_,
+        INPUT( iy_, stokes_dim_, f_grid_, cloudbox_limits_, scat_za_grid_,
                scat_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
@@ -4215,21 +4215,6 @@ md_data_raw.push_back
         GINPUT( Numeric_t ),
         KEYWORDS(),
         TYPES()));
-
-  md_data_raw.push_back     
-    ( MdRecord
-      ( NAME("surfaceTreatAsBlackbody"),
-        DESCRIPTION
-        (
-         "Will be removed"
-        ),
-        OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_ ),
-        INPUT( f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_,
-               atmosphere_dim_, p_grid_, lat_grid_, lon_grid_, t_field_ ),
-        GOUTPUT( ),
-        GINPUT( ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

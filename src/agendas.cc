@@ -623,17 +623,6 @@ void define_agenda_data()
                scat_za_index_, scat_aa_index_,
                scat_za_grid_, scat_aa_grid_ )));
 
-  agenda_data.push_back
-    (AgRecord
-     ( NAME( "surface_agenda" ),
-       DESCRIPTION
-       (
-        "Will be removed."
-        ),
-       OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_  ),
-       INPUT(  f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-               rte_los_, r_geoid_, z_surface_, t_field_ )));
-
 //  agenda_data.push_back
 //     (AgRecord
 //      ( NAME( "zeeman_prop_agenda" ),

@@ -335,8 +335,7 @@ void RteEmissionStd(
   // Some sizes
   const Index   nf = f_grid.nelem();
   const Index   np = ppath.np;
-  // Number of species:
-  const Index   ns = vmr_field.nbooks();
+  const Index   ns = vmr_field.nbooks();    // Number of species
   
   // If the number of propagation path points is 0 or 1, we are already ready,
   // the observed spectrum equals then the radiative background.
@@ -349,6 +348,10 @@ void RteEmissionStd(
       interpweights( itw_p, ppath.gp_p );      
       itw2p( p_ppath, p_grid, ppath.gp_p, itw_p );
 
+      // Log of pressure
+      Vector   logp_ppath(np);
+      transform( logp_ppath, log, p_ppath  );
+
       // Determine the atmospheric temperature and species VMR at 
       // each propagation path point
       Vector   t_ppath(np);
@@ -359,19 +362,15 @@ void RteEmissionStd(
                             lon_grid, ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
       //
       interp_atmfield_by_itw( t_ppath,  atmosphere_dim, p_grid, lat_grid, 
-                               lon_grid, t_field, "t_field", 
-                           ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+                              lon_grid, t_field, "t_field", ppath.gp_p, 
+                              ppath.gp_lat, ppath.gp_lon, itw_field );
       // 
       for( Index is=0; is<ns; is++ )
         {
           interp_atmfield_by_itw( vmr_ppath(is, joker), atmosphere_dim,
-                    p_grid, lat_grid, lon_grid, 
-                    vmr_field(is, joker, joker,  joker), 
-              "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
+            p_grid, lat_grid, lon_grid, vmr_field( is, joker, joker,  joker ), 
+            "vmr_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon, itw_field );
         }
-
-      // Calculate absorption vector and extinction matrix for all points 
-      // along the propagation path.
 
       // Variables for extinction matrix and absorption vector at each 
       // propagation path point.
@@ -394,13 +393,11 @@ void RteEmissionStd(
               
       for( Index ip=np-1; ip>0; ip-- )
         {
-          rte_pressure    = 0.5*(p_ppath[ip] + p_ppath[ip-1]);
+          // Calculate mean of atmospheric parameters
+          rte_pressure    = exp( 0.5 * ( logp_ppath[ip] + logp_ppath[ip-1] ) );
           rte_temperature = 0.5*(t_ppath[ip] + t_ppath[ip-1]);
-
           for( Index is = 0; is < ns; is ++)
-            {
-              rte_vmr_list[is] = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));
-            }
+            { rte_vmr_list[is] = 0.5*(vmr_ppath(is,ip) + vmr_ppath(is, ip-1));}
           
           // The absO2ZeemanModel needs the position in the propagation
           // path. 
@@ -414,8 +411,7 @@ void RteEmissionStd(
             {
               // Calculate an effective blackbody radiation for the step
               // The mean of the temperature at the end points is used.
-              Numeric planck_value = 
-                           planck( f_grid[iv], rte_temperature);
+              Numeric planck_value = planck( f_grid[iv], rte_temperature);
                   
               // Perform the RTE step.
               rte_step_std( iy(iv,joker), ext_mat(iv,joker,joker), 

@@ -976,29 +976,6 @@ wsv_data.push_back
  
   wsv_data.push_back
    (WsvRecord
-    ( NAME( "i_rte" ),
-      DESCRIPTION
-      (
-       "Monochromatic pencil beam radiance spectrum.\n"
-       "\n"
-       "This variable holds a single spectrum, with values corresponding\n"
-       "to infinite frequency and spatial resolution (compare to *y*).\n"
-       "\n"
-       "The variable is used to represent spectra at all positions of the\n"
-       "propagation path and can e.g. temporarily hold radiation entering\n"
-       "the atmpophere from space. The unit depends on if emission is \n"
-       "considered or not.\n"
-       "\n"
-       "Usage:      Used by radiative transfer methods.\n"
-       "\n"
-       "Unit:       W / (m^2 Hz sr) or optical thickness \n"
-       "\n"
-       "Dimensions: [ f_grid, stokes_dim ]"
-       ),
-      GROUP( Matrix_ )));
-
-  wsv_data.push_back
-   (WsvRecord
     ( NAME( "i_space" ),
       DESCRIPTION
       (
@@ -2733,15 +2710,6 @@ wsv_data.push_back
  
    wsv_data.push_back
      (WsvRecord
-      ( NAME( "surface_agenda" ),
-	DESCRIPTION
-	(
-	 "Will be removed."
-	 ),
-	GROUP( Agenda_ )));
-   
-   wsv_data.push_back
-     (WsvRecord
       ( NAME( "surface_emission" ),
 	DESCRIPTION
 	( "The emission from the surface at a specified position.\n"
@@ -2776,15 +2744,6 @@ wsv_data.push_back
         "Size:  [ any number, 1 or 2 ]"
         ), 
        GROUP( Matrix_ )));
-
-  wsv_data.push_back
-    (WsvRecord
-     ( NAME( "surface_refl_coeffs" ),
-       DESCRIPTION
-       (
-	 "Will be removed."
-        ), 
-       GROUP( Tensor4_ )));
 
   wsv_data.push_back
     (WsvRecord

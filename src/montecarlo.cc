@@ -59,7 +59,6 @@
 \date 2003-06-19
   
 */
-
 void Cloudbox_ppathCalc(
         //  Output:
               Ppath&          ppath,
@@ -294,7 +293,6 @@ void Cloudbox_ppathCalc(
 
 
 
-
 //! Cloudbox_ppath_rteCalc
 
 /*!
@@ -397,13 +395,14 @@ void Cloudbox_ppath_rteCalc(
   Tensor7 scat_i_lon_dummy;
  
   //  cout << "Cloudbox_ppathCalc\n";
-  Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-                     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-                   cloudbox_limits, rte_pos,rte_los);
+  //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+  //                   p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
+  //                   cloudbox_limits, rte_pos,rte_los);
   
-  //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-  //                     p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
-  //             cloudbox_limits, rte_pos,rte_los,0);
+  ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+             p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
+             cloudbox_limits, rte_pos,rte_los,0);
+
   if (record_ppathcloud)
     {
       //Record ppathcloud.  This is useful for debugging and educational 

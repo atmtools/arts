@@ -82,7 +82,7 @@ void scat_iPutMonteCarlo(
                          Tensor7& scat_i_p,
                          Tensor7& scat_i_lat,
                          Tensor7& scat_i_lon,
-                         const Matrix& i_rte,
+                         const Matrix& iy,
                          const Index& stokes_dim,
                          const Vector& f_grid,
                          const ArrayOfIndex& cloudbox_limits,
@@ -91,7 +91,7 @@ void scat_iPutMonteCarlo(
                          )
 {
 
-  Vector I = i_rte(0,joker);
+  Vector I = iy(0,joker);
    Index Nf = f_grid.nelem();
    Index Np_cloud = cloudbox_limits[1] - cloudbox_limits[0] + 1;
 
@@ -322,13 +322,13 @@ void ScatteringMonteCarlo (
             {
               //We need to calculate a new propagation path. In the future, we may be 
               //able to take some shortcuts here
-              Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-                                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
-                                  cloudbox_limits, rte_pos,rte_los);
-              //ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
-              //                 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,1,
-              //         cloudbox_limits, rte_pos,rte_los,0);
-              
+              //Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+              //               p_grid,lat_grid,lon_grid,z_field,r_geoid,z_surface,
+              //              cloudbox_limits, rte_pos,rte_los);
+              ppath_calc(ppathcloud,ppath_step,ppath_step_agenda,
+                      atmosphere_dim,p_grid,lat_grid,lon_grid,z_field,
+                       r_geoid,z_surface,1,cloudbox_limits, rte_pos,rte_los,0);
+          
               if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
                                                    photon_number,scattering_order);}
                               
@@ -346,7 +346,7 @@ void ScatteringMonteCarlo (
               /////////////////////////////////////////////////////////////////////
               dist_to_boundary=cum_l_step[ppathcloud.np-1];
          
-              //              Iboundary=i_rte(0,joker);
+              //              Iboundary=iy(0,joker);
               Sample_ppathlength (pathlength,g,rng,TArray,cum_l_step);
             }
           else
@@ -363,7 +363,7 @@ void ScatteringMonteCarlo (
               //Get incoming//////
               montecarloGetIncoming(iy,rte_pos,rte_los,rte_gp_p,
                         rte_gp_lat,rte_gp_lon,ppath,ppath_step,
-                        ppath_step_agenda,
+                                    ppath_step_agenda,
                         rte_agenda,iy_space_agenda,iy_surface_agenda,
                                     iy_cloudbox_agenda,
                         p_grid,lat_grid,lon_grid,z_field,r_geoid,

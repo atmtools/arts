@@ -518,14 +518,14 @@ void AtmRawRead(//WS Output:
 void InterpAtmFieldToRteGps(
                  Numeric&   outvalue,
            const String&    outname,
- 		   const Index&     atmosphere_dim,
- 		   const Vector&    p_grid,
- 		   const Vector&    lat_grid,
- 		   const Vector&    lon_grid,
+           const Index&     atmosphere_dim,
+           const Vector&    p_grid,
+           const Vector&    lat_grid,
+           const Vector&    lon_grid,
            const GridPos&   rte_gp_p,
            const GridPos&   rte_gp_lat,
            const GridPos&   rte_gp_lon,
- 		   const Tensor3&   field,
+           const Tensor3&   field,
            const String&    fieldname )
 {
   out2 << "  Interpolates " << fieldname << " to obtain " << outname << ".\n";
@@ -886,7 +886,8 @@ void surfaceFlat(
           const Numeric   e2    = 3.52;  
           const Numeric   f2    = 39.8 * f1;
           const Complex  ifGHz( 0.0, f_grid[iv]/1e9 );
-          eps = e2 + (e1-e2) / (1.0-ifGHz/f2) + (e0-e1) / (1.0-ifGHz/f1);
+          eps = e2 + (e1-e2) / (Numeric(1.0)-ifGHz/f2) + 
+                     (e0-e1) / (Numeric(1.0)-ifGHz/f1);
         }
       else
         {
@@ -957,64 +958,6 @@ void surfaceSingleEmissivity(
 }
 
 
-
-//! surfaceTreatAsBlackbody
-/*!
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2002-09-17
-*/
-void surfaceTreatAsBlackbody(
-              Matrix&    surface_emission, 
-              Matrix&    surface_los, 
-              Tensor4&   surface_refl_coeffs,
-        const Vector&    f_grid,
-        const Index&     stokes_dim,
-        const GridPos&   rte_gp_p,
-        const GridPos&   rte_gp_lat,
-        const GridPos&   rte_gp_lon,
-        const Index&     atmosphere_dim,
-        const Vector&    p_grid,
-        const Vector&    lat_grid,
-        const Vector&    lon_grid,
-        const Tensor3&   t_field )
-{
-  //--- Check input -----------------------------------------------------------
-  chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
-                                                                    lon_grid );
-  //---------------------------------------------------------------------------
-
-  out2 << "  Sets the surface to be a blackbody.\n";
-  out3 << 
-        "     Surface temperature is obtained by interpolation of *t_field*.\n";
-
-  // Set surface_los and surface_refl_coeffs to be empty as no downwelling
-  // spectra shall be calculated
-  surface_los.resize(0,0);
-  surface_refl_coeffs.resize(0,0,0,0);
-  
-  // Some sizes
-  const Index   nf = f_grid.nelem();
-
-  // Resize surface_emission.
-  surface_emission.resize(nf,stokes_dim);
-
-  // Determine the temperature at the point of the surface reflection
-  const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
-              lon_grid, t_field, "t_field", rte_gp_p, rte_gp_lat, rte_gp_lon );
-
-  // Fill surface_emission with unpolarised blackbody radiation
-  for( Index i=0; i<nf; i++ )
-    { 
-      surface_emission(i,0) = planck( f_grid[i], t ); 
-      for( Index is=1; is<stokes_dim; is++ )
-        { surface_emission(i,is) = 0; }
-    }
-}
 
 
 
@@ -1174,34 +1117,34 @@ void surfaceTreatAsBlackbody(
 //    wsv_data.push_back
 //      (WsvRecord
 //       ( NAME( "surface_agenda" ),
-// 	DESCRIPTION
-// 	(
-// 	 "See agendas.cc."
-// 	 ),
-// 	GROUP( Agenda_ )));
+//  DESCRIPTION
+//  (
+//   "See agendas.cc."
+//   ),
+//  GROUP( Agenda_ )));
    
    
 //    wsv_data.push_back
 //      (WsvRecord
 //       ( NAME( "surface_emission_field" ),
-// 	DESCRIPTION
-// 	(
-// 	 "The emission from the surface which is stored in latitude and \n"
-// 	 " longitude grids.\n"
-// 	 "\n"
-// 	 "An emissivity calculation using the method *surfaceFastem* \n"
-// 	 "calculates surface_emission_field at the same grid points as \n"
-// 	 "lat_grid and lon_grid. The surface_emission_field is then \n"
-// 	 "interpolated on to the grid crossing position using the \n"
-// 	 "method *surfaceInterpolate* to get value of *surface_emission*\n"
-// 	 "at a specified position. \n"
-// 	 "\n"
-// 	 "Usage:      Output from *surfaceFastem*. \n"
-// 	 "\n"
-// 	 "Unit:       W / (m^2 Hz sr)\n"
-// 	 "\n"
-// 	 "Dimensions: [lat_grid, lon_grid, f_grid, stokes_dim ]"
-// 	 ), 
+//  DESCRIPTION
+//  (
+//   "The emission from the surface which is stored in latitude and \n"
+//   " longitude grids.\n"
+//   "\n"
+//   "An emissivity calculation using the method *surfaceFastem* \n"
+//   "calculates surface_emission_field at the same grid points as \n"
+//   "lat_grid and lon_grid. The surface_emission_field is then \n"
+//   "interpolated on to the grid crossing position using the \n"
+//   "method *surfaceInterpolate* to get value of *surface_emission*\n"
+//   "at a specified position. \n"
+//   "\n"
+//   "Usage:      Output from *surfaceFastem*. \n"
+//   "\n"
+//   "Unit:       W / (m^2 Hz sr)\n"
+//   "\n"
+//   "Dimensions: [lat_grid, lon_grid, f_grid, stokes_dim ]"
+//   ), 
 //        GROUP( Tensor4_ )));
 
 //   wsv_data.push_back
@@ -1210,7 +1153,7 @@ void surfaceTreatAsBlackbody(
 //        DESCRIPTION
 //        (
 //         "This variable holds the value of surface emissivity.\n"
-// 	"\n"
+//  "\n"
 //         "This field is stored in a Tensor3 where the first two dimensions\n"
 //         "holds the latitude and longitude grid and the third dimension holds\n"
 //         "the value for each *stokes_dim*.  The surface_emissivity_field takes \n"
@@ -1219,9 +1162,9 @@ void surfaceTreatAsBlackbody(
 //         "*surfaceNoScatteringSingleEmissivity* in the *surface_agenda*. The value\n"
 //         "of the field is set to -1 if one wants to calculate the surface emissivity \n"
 //         "using FASTEM.  Accordingly, the method surfaceFastem has to be used in\n"
-// 	"*surface_agenda*\n"
+//  "*surface_agenda*\n"
 //         "\n"
-// 	"Usage:    Set from the control file as a workspace variable. \n"
+//  "Usage:    Set from the control file as a workspace variable. \n"
 //         "\n"
 //         "Units:      -\n"
 //         "\n"
@@ -1235,11 +1178,11 @@ void surfaceTreatAsBlackbody(
 //        DESCRIPTION
 //        (
 //         "This variable holds some constant parameters used in fastem model.\n"
-// 	"\n"
+//  "\n"
 //         "There are 59  ocean surface emissivity model constants that are \n"
-// 	"used in the fastem calculations.\n"
+//  "used in the fastem calculations.\n"
 //         "\n"
-// 	"Usage:    Read in from file to be used as input for fastem calculations. \n"
+//  "Usage:    Read in from file to be used as input for fastem calculations. \n"
 //         "\n"
 //         "Units:      -\n"
 //         "\n"
@@ -1255,17 +1198,17 @@ void surfaceTreatAsBlackbody(
 //        (
 //         "The reflection coefficients from the directions given by\n"
 //         "*surface_los* to the direction of interest at the lat_grid\n"
-// 	"and lon_grid. \n"
+//  "and lon_grid. \n"
 //         "\n"
 //         "The difference with *surface_refl_coeffs* is that, here the \n"
 //         "coefficient matrix is held in latitude and longitude grid \n"
 //         "positions whereas *surface_refl_coeffs* corresponds to only\n"
 //         "a specific position. Like *surface_emission_field*, \n"
-// 	"*surface_refl_coeffs_field* can also be calculated using the \n"
-// 	"method *surfaceFastem*. The variable *surface_refl_coeffs_field*\n"
+//  "*surface_refl_coeffs_field* can also be calculated using the \n"
+//  "method *surfaceFastem*. The variable *surface_refl_coeffs_field*\n"
 //         "is interpolated onto the specific grid crossing points using the\n"
 //         "method *surfaceInterpolate*. \n"
-// 	"\n"
+//  "\n"
 //         "See further *surface_refl_coeffs* and *surfaceInterpolate*.\n"
 //         "\n"
 //         "Usage:      Output from *surfaceFastem*. \n"
@@ -1282,10 +1225,10 @@ void surfaceTreatAsBlackbody(
 //        DESCRIPTION
 //        (
 //         "This variable holds the surface temperature values for all \n"
-// 	"latitude - longitude grid points. \n"
-// 	"\n"
-// 	"Usage:    Input to FASTEM calculations. Can be set from the control file \n"
-// 	"as a workspace variable. \n"
+//  "latitude - longitude grid points. \n"
+//  "\n"
+//  "Usage:    Input to FASTEM calculations. Can be set from the control file \n"
+//  "as a workspace variable. \n"
 //         "\n"
 //         "Units:      K"
 //         "\n"
@@ -1299,15 +1242,15 @@ void surfaceTreatAsBlackbody(
 //        DESCRIPTION
 //        (
 //         "This variable gives the u- and v- components of surface wind.\n"
-// 	"\n"
+//  "\n"
 //         "This field is stored in a Tensor3 where the first two dimensions\n"
 //         "holds the latitude and longitude grid and the third dimension holds\n"
 //         "the value for u- and v- components respectively.  The  \n"
 //         "surface_wind_field(lat_grid, lon_grid, 0) gives the u- component and  \n"
 //         "surface_wind_field(lat_grid, lon_grid, 1) gives the v- component in m/s.\n"
-// 	"\n"
-// 	"Usage:    Input to FASTEM calculations. Can be set from the control file \n"
-// 	"as a workspace variable. \n"
+//  "\n"
+//  "Usage:    Input to FASTEM calculations. Can be set from the control file \n"
+//  "as a workspace variable. \n"
 //         "\n"
 //         "Units:      m/s"
 //         "\n"
@@ -1336,7 +1279,7 @@ void surfaceTreatAsBlackbody(
 //         const GridPos&   rte_gp_lon,
 //         const Vector&    rte_los,
 //         const Index&     atmosphere_dim,
-// 	const Vector&    p_grid,
+//  const Vector&    p_grid,
 //         const Vector&    lat_grid,
 //         const Vector&    lon_grid,
 //         const Matrix&    r_geoid,
@@ -1429,21 +1372,21 @@ void surfaceTreatAsBlackbody(
 // */
 
 // void surfaceFastem(
-// 		     Tensor3&   surface_emissivity_field,
-// 		   Tensor4&    surface_emission_field, 
-// 		   Tensor6&   surface_refl_coeffs_field,
-// 		   const Vector&    f_grid,
-// 		   const Index&     stokes_dim,
-// 		   const Index&     atmosphere_dim,
-// 		   const Vector&    p_grid,
-// 		   const Vector&    lat_grid,
-// 		   const Vector&    lon_grid,
-// 		   const Matrix&    r_geoid,
-// 		   const Matrix&    z_surface,
-// 		   const Tensor3&   t_field,
-// 		   const Vector& surface_fastem_constants,		   
-// 		   const Tensor3&   surface_wind_field,
-// 		   const Tensor3&   surface_temperature)
+//           Tensor3&   surface_emissivity_field,
+//         Tensor4&    surface_emission_field, 
+//         Tensor6&   surface_refl_coeffs_field,
+//         const Vector&    f_grid,
+//         const Index&     stokes_dim,
+//         const Index&     atmosphere_dim,
+//         const Vector&    p_grid,
+//         const Vector&    lat_grid,
+//         const Vector&    lon_grid,
+//         const Matrix&    r_geoid,
+//         const Matrix&    z_surface,
+//         const Tensor3&   t_field,
+//         const Vector& surface_fastem_constants,         
+//         const Tensor3&   surface_wind_field,
+//         const Tensor3&   surface_temperature)
 // {
 //   //--- Check input -----------------------------------------------------------
 //   chk_if_in_range( "stokes_dim", stokes_dim, 1, 4 );
@@ -1457,9 +1400,9 @@ void surfaceTreatAsBlackbody(
 //    const Index   nf = f_grid.nelem();
    
 //    surface_emission_field.resize(lat_grid.nelem(), lon_grid.nelem(), 
-// 				 f_grid.nelem(), stokes_dim);
+//               f_grid.nelem(), stokes_dim);
 //    surface_refl_coeffs_field.resize(lat_grid.nelem(), lon_grid.nelem(), 
-// 				    1, f_grid.nelem(),  stokes_dim, stokes_dim);
+//                  1, f_grid.nelem(),  stokes_dim, stokes_dim);
    
 //    if (surface_emissivity_field(0, 0, 0) >= 0||
 //        surface_emissivity_field(0, 0, 0) <= 1.0)
@@ -1469,35 +1412,35 @@ void surfaceTreatAsBlackbody(
 //    else
 //      if (surface_emissivity_field(0, 0, 0) == -1)
 //        {
-// 	 //call FASTEM functions for each latitude and longitude grid
-// 	 //points 
-// 	 for (Index lat_ind = 0; lat_ind < lat_grid.nelem(); ++ lat_ind)
-// 	   {
-// 	     for (Index lon_ind = 0; lon_ind < lon_grid.nelem(); ++ lon_ind)
-// 	       {
-		 		 
-// 		 for( Index i=0; i<nf; i++ )
-// 		   { 
-// 		     //Calculate surf_emis_field using fastem
-// 		     fastem(surface_emissivity_field(lat_ind, lon_ind, joker),
-// 			    surface_temperature(lat_ind, lon_ind, 0),
-// 			    surface_wind_field(lat_ind, lon_ind, joker) , 
-// 			    surface_fastem_constants, f_grid[i]);
-		     
-// 		     //Calculate emission by multiplying surface
-// 		     //emissivity with surface temperature.
-// 		     surface_emission_field(lat_ind, lon_ind, i, joker) = 
-// 		       surface_emissivity_field(lat_ind, lon_ind, joker) *
-// 		       planck( f_grid[i], surface_temperature (lat_ind, lon_ind, 0) ); 
-		     
-// 		     for( Index is=0; is<stokes_dim; is++ )
-// 		       { 
-// 			 surface_refl_coeffs_field(lat_ind, lon_ind, 0,i,is,is) = 
-// 			   1 - surface_emission_field(lat_ind, lon_ind, i, is);
-// 		       } //stokes_dim
-// 		   }//frequency grid
-// 	       }//lon grid
-// 	   }//lat_grid
+//   //call FASTEM functions for each latitude and longitude grid
+//   //points 
+//   for (Index lat_ind = 0; lat_ind < lat_grid.nelem(); ++ lat_ind)
+//     {
+//       for (Index lon_ind = 0; lon_ind < lon_grid.nelem(); ++ lon_ind)
+//         {
+                 
+//       for( Index i=0; i<nf; i++ )
+//         { 
+//           //Calculate surf_emis_field using fastem
+//           fastem(surface_emissivity_field(lat_ind, lon_ind, joker),
+//              surface_temperature(lat_ind, lon_ind, 0),
+//              surface_wind_field(lat_ind, lon_ind, joker) , 
+//              surface_fastem_constants, f_grid[i]);
+             
+//           //Calculate emission by multiplying surface
+//           //emissivity with surface temperature.
+//           surface_emission_field(lat_ind, lon_ind, i, joker) = 
+//             surface_emissivity_field(lat_ind, lon_ind, joker) *
+//             planck( f_grid[i], surface_temperature (lat_ind, lon_ind, 0) ); 
+             
+//           for( Index is=0; is<stokes_dim; is++ )
+//             { 
+//           surface_refl_coeffs_field(lat_ind, lon_ind, 0,i,is,is) = 
+//             1 - surface_emission_field(lat_ind, lon_ind, i, is);
+//             } //stokes_dim
+//         }//frequency grid
+//         }//lon grid
+//     }//lat_grid
 //        }// if fastem
 // }// end of function
 
@@ -1521,22 +1464,22 @@ void surfaceTreatAsBlackbody(
 //         (
 //          "The method decides whether to use *surfaceNoScatteringSingleEmissivity* or \n"
 //          "*surfaceFastem*. If *surfaceFastem*, then calculates surface emissivity using\n"
-// 	 "fastem model implementation.\n"
+//   "fastem model implementation.\n"
 //          "\n"
 //          "The decision whether to use *surfaceNoScatteringSingleEmissivity* or\n"
-// 	 "*surfaceFastem* is made based on the value of the first element of \n"
+//   "*surfaceFastem* is made based on the value of the first element of \n"
 //          "surface_emissivity_field. If this value is set to be between 0 and 1\n"
-// 	 "*surface_emissivity_field* will be returned with the same value.  If this \n"
+//   "*surface_emissivity_field* will be returned with the same value.  If this \n"
 //          "value is -1 *surfaceFastem* will calculate the emissivity based on the \n"
-// 	 "fastem model implementation in ARTS. The output of this function is \n"
-// 	 "*surface_emission_field* and *surface_refl_coeffs_field* stored in the\n"
+//   "fastem model implementation in ARTS. The output of this function is \n"
+//   "*surface_emission_field* and *surface_refl_coeffs_field* stored in the\n"
 //          "latitude and longitude grid points. \n"
-// 	 ),
+//   ),
 //         OUTPUT( surface_emissivity_field_, surface_emission_field_,
-// 		surface_refl_coeffs_field_),
+//      surface_refl_coeffs_field_),
 //         INPUT( surface_emissivity_field_, f_grid_, stokes_dim_, atmosphere_dim_, p_grid_,
-// 	       lat_grid_, lon_grid_, r_geoid_,z_surface_, t_field_, surface_fastem_constants_,
-// 	       surface_wind_field_, surface_temperature_),
+//         lat_grid_, lon_grid_, r_geoid_,z_surface_, t_field_, surface_fastem_constants_,
+//         surface_wind_field_, surface_temperature_),
 //         GOUTPUT( ),
 //         GINPUT( ),
 //         KEYWORDS( ),

@@ -320,14 +320,21 @@ void CEF( // Input
   Complex retval;
 
   retval = (1.000e0 / sqrt(PI) /  Gamma_D) *
-             (  122.60793178 * pow(zeta,0.) 
-	      + 214.38238869 * pow(zeta,1.) + 181.92853309 * pow(zeta,2.) 
-	      +  93.15558046 * pow(zeta,3.) +  30.18014220 * pow(zeta,4.)
-	      +   5.91262621 * pow(zeta,5.) +   0.56418958 * pow(zeta,6.)) /
-             (  122.60793178 * pow(zeta,0.) + 352.73062511 * pow(zeta,1.)
-              + 457.33447878 * pow(zeta,2.) + 348.70391772 * pow(zeta,3.) 
-              + 170.35400182 * pow(zeta,4.) +  53.99290691 * pow(zeta,5.)
-              +  10.47985711 * pow(zeta,6.) +   1.00000000 * pow(zeta,7.));
+    (  122.60793178 * pow(zeta,Numeric(0.)) 
+       + 214.38238869 * pow(zeta,Numeric(1.)) 
+       + 181.92853309 * pow(zeta,Numeric(2.)) 
+       +  93.15558046 * pow(zeta,Numeric(3.)) 
+       +  30.18014220 * pow(zeta,Numeric(4.))
+       +   5.91262621 * pow(zeta,Numeric(5.)) 
+       +   0.56418958 * pow(zeta,Numeric(6.))) /
+    (  122.60793178 * pow(zeta,Numeric(0.)) 
+       + 352.73062511 * pow(zeta,Numeric(1.))
+       + 457.33447878 * pow(zeta,Numeric(2.)) 
+       + 348.70391772 * pow(zeta,Numeric(3.)) 
+       + 170.35400182 * pow(zeta,Numeric(4.)) 
+       +  53.99290691 * pow(zeta,Numeric(5.))
+       +  10.47985711 * pow(zeta,Numeric(6.)) 
+       +   1.00000000 * pow(zeta,Numeric(7.)));
     
   Re_CEF = real( retval );
   Im_CEF = imag( retval );

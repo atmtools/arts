@@ -229,12 +229,12 @@ void refr_indexFieldAndGradients(
    \date   2003-05-15
 */
 void refr_indexIR(
-		// WS Output
+        // WS Output
               Numeric&                  refr_index,
-		// WS Input
-		const Numeric&                  a_pressure,
-		const Numeric&                  a_temperature,
-		const Vector&					a_vmr_list )
+        // WS Input
+        const Numeric&                  a_pressure,
+        const Numeric&                  a_temperature,
+        const Vector&                   a_vmr_list )
 {
   //To suppress warning about unused parameter
   a_vmr_list.nelem();
@@ -251,7 +251,7 @@ void refr_indexIR(
    \date   2003-01-09
 */
 void refr_indexThayer(
-	     Numeric&                    refr_index,
+         Numeric&                    refr_index,
        const Numeric&                    a_pressure,
        const Numeric&                    a_temperature,
        const Vector&                     a_vmr_list,
@@ -282,7 +282,7 @@ void refr_indexThayer(
    \date   2003-01-18
 */
 void refr_indexUnit(
-	     Numeric&                    refr_index )
+         Numeric&                    refr_index )
 {
   refr_index = 1;
 }

@@ -84,10 +84,6 @@ void iy_interp_cloudbox_field(
       const Vector&         f_grid,
       const String&         interpmeth )
 {
-
-  Index who_cares=scat_i_lon.nrows();//scat_i_lon is only used in asserts
-  who_cares=999;//stupid code added by Cory.
-
   //--- Check input -----------------------------------------------------------
   if( !(atmosphere_dim == 1  ||  atmosphere_dim == 3) )
     throw runtime_error( "The atmospheric dimensionality must be 1 or 3.");
@@ -329,7 +325,7 @@ void iy_interp_cloudbox_field(
               for(Index iv = 0; iv < nf; iv++ )
                 {
                   iy(iv,is) = interp( itw, 
-                      scat_i_p( iv, joker, joker, border-4, joker, joker, is ),
+                    scat_i_lon( iv, joker, joker, border-4, joker, joker, is ),
                                       cb_gp_p, cb_gp_lat, gp_za, gp_aa );
                 }
             }

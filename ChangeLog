@@ -1,3 +1,61 @@
+2004-10-12  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-900
+
+	* Main things:
+	Some cleaning and fixed so ppath_calc can be used from MC part.
+	Some code and functions in MC are now obselete but left until changes
+	are tested more carefully (testall.py runs fine!).
+
+	Some old code removed in clear sky part.
+	
+	Code now compiles with Numeric=float. Clear sky part seems to
+	work. Error when reading a scattering properties file. See email to
+	arts-dev.
+
+	Obvoius error in iy_interp_cloudbox_field fixed.
+	
+	* src/cloudbox.cc (iy_interp_cloudbox_field): Fixed problem pointed
+	out by Cory. Typo made that scat_i_p was used instead of scat_i_lon.
+
+	* src/rte.cc: Removed rte_calc_old and get_radiative_background_old.
+
+	* src/m_rte.cc (RteEmissionStd): Mean of log(p) is now used (instead
+	of mean of p).
+	
+ 	* src/m_abs_o2_models.cc (CEF): 
+	src/m_atmosphere.cc (surfaceFlat):	
+	src/refraction.cc (refr_index_ir): 
+
+	Included type casting of fixed numeric values to avoid compilation
+	warning with Numeric = float.
+
+	* src/interpolation.cc: Changed FD_TOL from 1e-4 to 1e-3 to get
+	Numeric=float to run. 
+
+	* src/ppath.cc (ppath_calc): Made necessary changes to allow
+	that the function is also used for MC inside the cloud box.
+
+	* src/m_montecarlo.cc 
+	(scat_iPutMonteCarlo): Replaced i_rte with
+	iy, which is new variable with same purpose. This method is obselete
+	but is left until things have been checked more carefully. 
+
+	(ScatteringMonteCarlo): Replaced call of Cloudbox_ppathCalc with
+	call of ppath_calc.
+	
+	* src/montecarlo.cc (Cloudbox_ppath_rteCalc): Replaced call of
+	Cloudbox_ppathCalc with call of ppath_calc.
+
+	* src/workspace.cc: Removed surface_refl_coeffs and i_rte.
+
+	* src/m_atmosphere.cc: Removed surfaceTreatAsBlackbody.
+
+	* src/agendas.cc: Removed surface_agenda. 
+
+	* Untabified some files, but stop to avoid possibel merge problems
+	if someone else does the same until I have a chance to commit.
+
 2004-10-12  Cory Davis  <cory@fog>
 
 	* arts-1-1-899
@@ -19,6 +77,7 @@
 
 	* src/montecarlo.h: untabified.
 
+>>>>>>> 1.1292
 2004-10-06  Oliver Lemke  <olemke@core-dump.info>
 
 	* arts-1-1-897
@@ -62,6 +121,7 @@
 	time the test takes (40s), we can reduce the photon numbers and
 	increase the accuracy tolerance. 
 
+>>>>>>> 1.1290
 2004-10-07  Cory Davis  <cory@localhost.localdomain>
 
 	* arts-1-1-895

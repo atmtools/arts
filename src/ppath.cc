@@ -3302,9 +3302,9 @@ void ppath_start_3d(
   {
     // Radius of lower and upper pressure level at the start position
     const double   rlow = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-				r15a, r35a, r36a, r16a, lat_start, lon_start );
+                r15a, r35a, r36a, r16a, lat_start, lon_start );
     const double   rupp = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-			        r15b, r35b, r36b, r16b, lat_start, lon_start );
+                    r15b, r35b, r36b, r16b, lat_start, lon_start );
     if (abs(r_start-rlow) < RTOL || abs(r_start-rupp) < RTOL)
       { gridpos_force_end_fd( ppath.gp_p[imax] ); }
   }
@@ -3707,7 +3707,7 @@ void ppath_step_geom_1d(
   //
   do_gridrange_1d( r_v, lat_v, za_v, lstep, endface, tanpoint,
                    r_start, lat_start, za_start, ppc, lmax, 
-                r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_surface );
+               r_geoid+z_field[ip], r_geoid+z_field[ip+1], r_geoid+z_surface );
 
 
   // Fill *ppath*
@@ -6148,6 +6148,7 @@ void ppath_calc(
       chk_if_in_range( "sensor zenith angle", rte_los[0], 0, 180 );
       chk_if_in_range( "sensor azimuth angle", rte_los[1], -180, 180 );
     }
+  assert( outside_cloudbox  ||  cloudbox_on );
   
   //--- End: Check input ------------------------------------------------------
 
@@ -6206,6 +6207,8 @@ void ppath_calc(
       //
       ppath_step_agenda.execute(true);
 
+      //Print( ppath_step, "ppath", 1 );
+
       // Before everything is tested carefully, we consider more than 5000
       // path points to be an indication on that the calcululations have
       // got stuck in an infinite loop.
@@ -6221,126 +6224,174 @@ void ppath_calc(
       // Increase the total number
       np += n - 1;
 
-      // Check if the top of the atmosphere is reached
-      if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
-        { ppath_set_background( ppath_step, 1 ); }
+      //----------------------------------------------------------------------
+      //---  Check if some boundary is reached
+      //----------------------------------------------------------------------
 
-      // Check that path does not exit at a latitude or longitude end face
-      if( atmosphere_dim == 2 )
+      //--- Outside cloud box ------------------------------------------------
+      if( outside_cloudbox )
         {
-          // Latitude 
-          if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
-            {
-              ostringstream os;
-              os << "The path exits the atmosphere through the lower latitude"
-                 << " end face.\nThe exit point is at an altitude of " 
-                 << ppath_step.z[n-1]/1e3 << " km.";
-              throw runtime_error( os.str() );
-            }
-          if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
-            {
-              ostringstream os;
-              os << "The path exits the atmosphere through the upper latitude"
-                 << " end face.\nThe exit point is at an altitude of " 
-                 << ppath_step.z[n-1]/1e3 << " km.";
-              throw runtime_error( os.str() );
-            }
-        }
-      if( atmosphere_dim == 3 )
-        {
-          // Latitude 
-          if( lat_grid[0] > -90  && 
-                           is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
-            {
-              ostringstream os;
-              os << "The path exits the atmosphere through the lower latitude"
-                 << " end face.\nThe exit point is at an altitude of " 
-                 << ppath_step.z[n-1]/1e3 << " km.";
-              throw runtime_error( os.str() );
-            }
-          if( lat_grid[imax_lat] < 90  && 
-                    is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
-            {
-              ostringstream os;
-              os << "The path exits the atmosphere through the upper latitude"
-                 << " end face.\nThe exit point is at an altitude of " 
-                 << ppath_step.z[n-1]/1e3 << " km.";
-              throw runtime_error( os.str() );
-            }
 
-          // Longitude 
-          // Note that it must be if and else if here. Otherwise e.g. -180 
-          // will be shifted to 180 and then later back to -180.
-          if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 )  &&
-             ppath_step.los(n-1,1) < 0  &&  abs( ppath_step.pos(n-1,1) ) < 90 )
+          // Check if the top of the atmosphere is reached
+          if( is_gridpos_at_index_i( ppath_step.gp_p[n-1], imax_p ) )
+            { ppath_set_background( ppath_step, 1 ); }
+
+          // Check that path does not exit at a latitude or longitude end face
+          if( atmosphere_dim == 2 )
             {
-              // Check if the longitude point can be shifted +360 degrees
-              if( lon_grid[imax_lon] - lon_grid[0] >= 360 )
-                {
-                  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) + 360;
-                  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
-                                                       ppath_step.pos(n-1,2) );
-                }
-              else
+              // Latitude 
+              if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
                 {
                   ostringstream os;
-                  os << "The path exits the atmosphere through the lower " 
-                     << "longitude end face.\nThe exit point is at an "
-                     << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+                  os << "The path exits the atmosphere through the lower "
+                     << "latitude end face.\nThe exit point is at an altitude" 
+                     << "of " << ppath_step.z[n-1]/1e3 << " km.";
                   throw runtime_error( os.str() );
                 }
-            }
-          else if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ) &&
-             ppath_step.los(n-1,1) > 0  &&  abs( ppath_step.pos(n-1,1) ) < 90 )
-            {
-              // Check if the longitude point can be shifted -360 degrees
-              if( lon_grid[imax_lon] - lon_grid[0] >= 360 )
-                {
-                  ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) - 360;
-                  gridpos( ppath_step.gp_lon[n-1], lon_grid, 
-                                                       ppath_step.pos(n-1,2) );
-                }
-              else
+              if( is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
                 {
                   ostringstream os;
                   os << "The path exits the atmosphere through the upper "
-                     << "longitude end face.\nThe exit point is at an "
-                     << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+                     << "latitude end face.\nThe exit point is at an altitude" 
+                     << " of " << ppath_step.z[n-1]/1e3 << " km.";
                   throw runtime_error( os.str() );
                 }
             }
-        }
-      
-    
-      // Check if there is an intersection with an active cloud box
-      if( cloudbox_on )
-        {
-          double ipos = fractional_gp( ppath_step.gp_p[n-1] );
-          //double ipos = double( ppath_step.gp_p[n-1].idx ) + 
-          //                                        ppath_step.gp_p[n-1].fd[0];
-          if( ipos >= double( cloudbox_limits[0] )  && 
-                                        ipos <= double( cloudbox_limits[1] ) )
+          if( atmosphere_dim == 3 )
             {
-              if( atmosphere_dim == 1 )
-                { ppath_set_background( ppath_step, 3 ); }
-              else
+              // Latitude 
+              if( lat_grid[0] > -90  && 
+                           is_gridpos_at_index_i( ppath_step.gp_lat[n-1], 0 ) )
                 {
-                  ipos = fractional_gp( ppath_step.gp_lat[n-1] );
-                  //double( ppath_step.gp_lat[n-1].idx ) + 
-                  //                              ppath_step.gp_lat[n-1].fd[0];
-                  if( ipos >= double( cloudbox_limits[2] )  && 
-                                        ipos <= double( cloudbox_limits[3] ) )
+                  ostringstream os;
+                  os << "The path exits the atmosphere through the lower "
+                     << "latitude end face.\nThe exit point is at an altitude" 
+                     << " of " << ppath_step.z[n-1]/1e3 << " km.";
+                  throw runtime_error( os.str() );
+                }
+              if( lat_grid[imax_lat] < 90  && 
+                    is_gridpos_at_index_i( ppath_step.gp_lat[n-1], imax_lat ) )
+                {
+                  ostringstream os;
+                  os << "The path exits the atmosphere through the upper"
+                     << "latitude end face.\nThe exit point is at an altitude" 
+                     << " of " << ppath_step.z[n-1]/1e3 << " km.";
+                  throw runtime_error( os.str() );
+                }
+
+              // Longitude 
+              // Note that it must be if and else if here. Otherwise e.g. -180 
+              // will be shifted to 180 and then later back to -180.
+              if( is_gridpos_at_index_i( ppath_step.gp_lon[n-1], 0 )  &&
+                  ppath_step.los(n-1,1) < 0  &&  
+                  abs( ppath_step.pos(n-1,1) ) < 90 )
+                {
+                  // Check if the longitude point can be shifted +360 degrees
+                  if( lon_grid[imax_lon] - lon_grid[0] >= 360 )
                     {
-                      ipos = fractional_gp( ppath_step.gp_lon[n-1] );
-                      //ipos = double( ppath_step.gp_lon[n-1].idx ) + 
-                      //                          ppath_step.gp_lon[n-1].fd[0];
-                      if( ipos >= double( cloudbox_limits[4] )  && 
-                                        ipos <= double( cloudbox_limits[5] ) )
-                        { ppath_set_background( ppath_step, 3 ); } 
+                      ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) + 360;
+                      gridpos( ppath_step.gp_lon[n-1], lon_grid, 
+                                                       ppath_step.pos(n-1,2) );
+                    }
+                  else
+                    {
+                      ostringstream os;
+                      os << "The path exits the atmosphere through the lower " 
+                         << "longitude end face.\nThe exit point is at an "
+                         << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+                      throw runtime_error( os.str() );
+                    }
+                }
+              else if( 
+                   is_gridpos_at_index_i( ppath_step.gp_lon[n-1], imax_lon ) &&
+                   ppath_step.los(n-1,1) > 0  &&  
+                   abs( ppath_step.pos(n-1,1) ) < 90 )
+                {
+                  // Check if the longitude point can be shifted -360 degrees
+                  if( lon_grid[imax_lon] - lon_grid[0] >= 360 )
+                    {
+                      ppath_step.pos(n-1,2) = ppath_step.pos(n-1,2) - 360;
+                      gridpos( ppath_step.gp_lon[n-1], lon_grid, 
+                                                       ppath_step.pos(n-1,2) );
+                    }
+                  else
+                    {
+                      ostringstream os;
+                      os << "The path exits the atmosphere through the upper "
+                         << "longitude end face.\nThe exit point is at an "
+                         << "altitude of " << ppath_step.z[n-1]/1e3 << " km.";
+                      throw runtime_error( os.str() );
+                    }
+                }
+            }
+          
+        
+          // Check if there is an intersection with an active cloud box
+          if( cloudbox_on )
+            {
+              double ipos = fractional_gp( ppath_step.gp_p[n-1] );
+              //double ipos = double( ppath_step.gp_p[n-1].idx ) + 
+              //                                    ppath_step.gp_p[n-1].fd[0];
+              if( ipos >= double( cloudbox_limits[0] )  && 
+                  ipos <= double( cloudbox_limits[1] ) )
+                {
+                  if( atmosphere_dim == 1 )
+                    { ppath_set_background( ppath_step, 3 ); }
+                  else
+                    {
+                      ipos = fractional_gp( ppath_step.gp_lat[n-1] );
+                      //double( ppath_step.gp_lat[n-1].idx ) + 
+                      //                          ppath_step.gp_lat[n-1].fd[0];
+                      if( ipos >= double( cloudbox_limits[2] )  && 
+                          ipos <= double( cloudbox_limits[3] ) )
+                        {
+                          ipos = fractional_gp( ppath_step.gp_lon[n-1] );
+                          //ipos = double( ppath_step.gp_lon[n-1].idx ) + 
+                          //                      ppath_step.gp_lon[n-1].fd[0];
+                          if( ipos >= double( cloudbox_limits[4] )  && 
+                              ipos <= double( cloudbox_limits[5] ) )
+                            { ppath_set_background( ppath_step, 3 ); } 
+                        }
                     }
                 }
             }
         }
+
+      //--- Inside cloud box -------------------------------------------------
+      else
+        {
+          // Here we need only check if we have gone outside the cloud box.
+          // Note that here it sufficient to detect that point is outside in
+          // any dimension.
+
+          // Pressure dimension
+          double ipos = fractional_gp( ppath_step.gp_p[n-1] );
+          if( ipos <= double( cloudbox_limits[0] )  ||
+              ipos >= double( cloudbox_limits[1] ) )
+            { ppath_set_background( ppath_step, 3 ); }
+
+          else if( atmosphere_dim > 1 )
+            {
+              // Latitude dimension
+              ipos = fractional_gp( ppath_step.gp_lat[n-1] );
+              if( ipos <= double( cloudbox_limits[2] )  || 
+                  ipos >= double( cloudbox_limits[3] ) )
+                { ppath_set_background( ppath_step, 3 ); }
+
+              else
+                {
+                  // Longitude dimension
+                  ipos = fractional_gp( ppath_step.gp_lon[n-1] );
+                  if( ipos <= double( cloudbox_limits[4] )  || 
+                      ipos >= double( cloudbox_limits[5] ) )
+                    { ppath_set_background( ppath_step, 3 ); } 
+                }
+            }
+        }
+      //----------------------------------------------------------------------
+      //---  End of boundary check
+      //----------------------------------------------------------------------
+
 
       // Put new ppath_step in ppath_array
       ppath_array.push_back( ppath_step );

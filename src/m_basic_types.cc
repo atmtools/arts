@@ -224,8 +224,8 @@ void Matrix2ColFromVectors(
         const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-	const Vector&   v2,
-	// WS Generic Input Names:
+    const Vector&   v2,
+    // WS Generic Input Names:
         const String&   v1_name,
         const String&   v2_name )
 {
@@ -257,9 +257,9 @@ void Matrix3ColFromVectors(
         const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-	const Vector&   v2,
+    const Vector&   v2,
         const Vector&   v3,
-	// WS Generic Input Names:
+    // WS Generic Input Names:
         const String&   v1_name,
         const String&   v2_name,
         const String&   v3_name )
@@ -319,8 +319,8 @@ void Matrix2RowFromVectors(
         const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-	const Vector&   v2,
-	// WS Generic Input Names:
+    const Vector&   v2,
+    // WS Generic Input Names:
         const String&   v1_name,
         const String&   v2_name )
 {
@@ -352,9 +352,9 @@ void Matrix3RowFromVectors(
         const String&   m_name,
         // WS Generic Input:
         const Vector&   v1,
-	const Vector&   v2,
+    const Vector&   v2,
         const Vector&   v3,
-	// WS Generic Input Names:
+    // WS Generic Input Names:
         const String&   v1_name,
         const String&   v2_name,
         const String&   v3_name )
