@@ -1,3 +1,10 @@
+2003-07-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-612
+	
+	* src/methods.cc: GINPUT/GOUTPUT is called generic, not global.
+	Corrected descriptions.
+
 2003-07-22  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-611
