@@ -1,0 +1,56 @@
+
+These files were originally created by Björn-Martin Sinnhuber from the
+fascod files. Converted to standard ARTS matrix format by Stefan
+Buehler, 01. 06. 2000.
+
+--------------------------------------------------
+
+Björn-Martin's Readme:
+
+In diesem Verzeichnis befinden sich Standardprofile fuer eine
+Vielzahl von atmosphaerischen Spurenstoffen fuer 
+ -  tropical
+ -  midlatitude summer
+ -  midlatitude winter
+ -  subarctic summer
+ -  subarctic winter
+
+Bedingungen. Diese Profile stammen aus dem FASCOD Programmpaket
+und wurden mir von den FTIR Leuten vom AWI Potsdam zur Verfuegung
+gestellt. Als Zitat ist mir nur
+
+  Clough, S.A., Kneizys, F.X., Shettle, E.P. and Anderson G.P., 1986, 
+  Atmoaspheric radiance and transmittance: FASCOD2, paper presented
+   at Sixth Conference on Atmospheric Radiation, Am. Meteorol. Soc.,
+  Williamsburg, Va. (Available for personal computers, 1992, from
+  ONTAR Corp., 129 University road, Brookline, Mass., USA).
+
+bekannt. Naeheres ist mir nicht bekannt. Auch weiss ich nicht, ob es
+irgendwelche Copyright-Probleme gibt.
+
+Die Profile lagen urspruenglich als Teilchenzahldichten
+vor und wurden von mir in VMR umgerechnet unter Verwendung der
+ebenfalls vorhandenen Temperatur und Druckprofile. Dadurch kommt
+es teilweise zu Rundungsfehlern. Insbesondere sind die angegebenen
+Stellen natuerlich auf keinen Fall signifikant. Von mir wurde keine
+weitere Interpolation der Profile vorgenommen.
+
+Teilweise (z.B. fuer ClO) sind die Profile fuer die fuenf Bedingungen
+identisch.
+
+Die Dateien enthalten jeweils zwei Spalten mit der Hoehe (in km) in der
+ersten Spalte und dem VMR in der zweiten Spalte. Namensbeispiel:
+  midlatitude-summer.H2O.dat
+Temperatur und Druckprofile sind in einer Datei mit drei Spalten: erste
+Spalte Hoehe (in km), zweite Spalte Temperatur (in K), dritte Spalte
+Druck (in hPa). Namensbeispiel:
+  midlatitude-summer.tp.dat
+
+Viel Spass damit!
+
+11. Oktober 1995
+
+Bjoern-Martin Sinnhuber
+Institut fuer Umweltphysik
+Universitaet Bremen
+
