@@ -1,3 +1,9 @@
+2000-Dec-12  Oliver Lemke  <oliver@uni-bremen.de>
+
+	* arts-0-0-87
+
+	* src/vecmat.h: Changed type of MATRIX from Fortran_Matrix to Matrix.
+
 2000-12-09    <sbuehler@uni-bremen.de>
 
 	* arts-0-0-86

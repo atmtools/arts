@@ -51,6 +51,7 @@
 #include "tnt.h"
 #include "vec.h"
 #include "fmat.h"
+#include "cmat.h"
 #include "fcscmat.h"
 // TNT stopwatch: (seems not to work anymore)
 //#include "stpwatch.h"
@@ -92,7 +93,7 @@ using namespace TNT;
     indexing and bounds checking), but is just meant to store
     things. Use VECTOR for numerics, ARRAY for all other vectors.
     @see VECTOR ARRAY */
-typedef TNT::Fortran_Matrix<Numeric> MATRIX;
+typedef TNT::Matrix<Numeric> MATRIX;
 
 
 /** Regions for matrices.
