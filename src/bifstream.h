@@ -47,7 +47,7 @@ public:
 
   explicit
   bifstream (const char* name,
-             ios::openmode mode = ios::in | ios::trunc | ios::binary)
+             ios::openmode mode = ios::in | ios::binary)
   : ifstream (name, mode) { }
 
 };
