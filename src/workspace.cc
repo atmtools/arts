@@ -64,7 +64,7 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("tag_groups",
+     ("tgs",
       "This is an array of arrays of OneTag tag definitions.\n"
       "It defines the available tag groups for the calculation\n"
       "of absorption coefficients and weighting functions.\n"
@@ -75,7 +75,7 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("wfs_tag_groups",
+     ("wfs_tgs",
       "This is an array of arrays of tag group definitions.\n"
       "It defines the tag groups for the calculation of weighting\n"
       "functions. The selected tag groups must be a subgroup of the\n"
@@ -353,9 +353,8 @@ void define_wsv_data()
     (WsvRecord
      ("k_grid",
       "Grid for the retrieval identity for which weighting functions (WFS)\n"
-      "shall be calculated (when applicable). For example, pressure altitude\n"
-      "grid for species\n"
-      "WFs.",
+      "shall be calculated (when applicable).\n"
+      "For example, pressure altitude grid for species WFs.",
       VECTOR_));
 
   wsv_data.push_back
@@ -378,8 +377,7 @@ void define_wsv_data()
       "columns of k).\n"
       "The columns hold different quantities:\n"
       "  Col 1: retrieval grid (or correspondingly)\n"
-      "  Col 2: a priori values\n"
-      "  Col 3: volume mixing ratios",
+      "  Col 2: a priori values",
       MATRIX_));
 
   wsv_data.push_back
@@ -396,11 +394,9 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("kx_index",
-      "This is a two-column matrix holding first and last index of the state\n"
-      "vector for each retrieval identity. That is, each row corresponds to\n"
-      "a retrieval identity as [i_first,i_last].",
-      MATRIX_));
+     ("kx_lengths",
+      "The length of the state vector for each retrieval identity in kx.",
+      ARRAYofsizet_));
 
   wsv_data.push_back
     (WsvRecord
@@ -423,11 +419,9 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("kb_index",
-      "This is a two-column matrix holding first and last index of the model\n"
-      "parameter vector (b) for each  identity. That is, each row \n"
-      "corresponds to a forward model identity as [i_first,i_last].",
-      MATRIX_));
+     ("kb_lengths",
+      "The length of the model vector for each retrieval identity in kb.",
+      ARRAYofsizet_));
 
   wsv_data.push_back
     (WsvRecord

@@ -952,7 +952,7 @@ void define_md_data()
 	"(linesReadFromHitran, etc.), as well as\n"
 	"lines_per_tgCreateFromLines."),
 	OUTPUT(   lines_per_tg_      ),
-	INPUT(    tag_groups_        ),
+	INPUT(    tgs_        ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "filenames",    "formats",      "fmin",   "fmax" ),
@@ -1059,7 +1059,7 @@ void define_md_data()
           "specified in the controlfile. The line is assigned to the\n" 
 	  "first tag group that fits."),
 	OUTPUT(   lines_per_tg_      ),
-	INPUT(    lines_, tag_groups_ ),
+	INPUT(    lines_, tgs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1119,7 +1119,7 @@ void define_md_data()
 	  "Inside the string, separate the tags by comma (plus optional blanks).\n"
 	  "Example:\n"
 	  "tag = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
-	OUTPUT( tag_groups_ ),
+	OUTPUT( tgs_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1140,7 +1140,7 @@ void define_md_data()
 	  "Example:\n\n"
 	  "shape=\"Lorentz\" normalizationfactor=\"linear\" cutoff=650e9"),
 	OUTPUT( lineshape_ ),
-	INPUT( tag_groups_ ),
+	INPUT( tgs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(  "shape",    "normalizationfactor",  "cutoff" ),
@@ -1163,7 +1163,7 @@ void define_md_data()
 	  "normalizationfactor=[\"linear\", \"quadratic\"] \n"
 	  "cutoff=[ 650e9, -1 ]"),
 	OUTPUT( lineshape_ ),
-	INPUT( tag_groups_ ),
+	INPUT( tgs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(  "shape",           "normalizationfactor",    "cutoff" ),
@@ -1187,7 +1187,7 @@ void define_md_data()
 	  "tag group for the same species, the same profile will be used."
 	  ),
 	OUTPUT(   raw_vmrs_1d_    ),
-	INPUT(    tag_groups_          ),
+	INPUT(    tgs_          ),
 	GOUTPUT(                       ),
 	GINPUT(                        ),
 	KEYWORDS( "basename"           ),
@@ -1275,7 +1275,7 @@ void define_md_data()
           "Sets h2o_abs to the profile of the first tag group containing\n"
 	  "water."),
 	OUTPUT(	    h2o_abs_ ),
-	INPUT( 	tag_groups_, vmrs_  ),
+	INPUT( 	tgs_, vmrs_  ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1293,7 +1293,7 @@ void define_md_data()
 		    "calculates both the total absorption and the\n"
 		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
+	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
 		    lineshape_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1318,7 +1318,7 @@ void define_md_data()
       ( NAME("xsec_per_tgCalc"),
 	DESCRIPTION("Calculate cross sections per tag group."),
 	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
+	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
 		    lines_per_tg_, lineshape_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1363,7 +1363,7 @@ void define_md_data()
 		    "coefficients for which weighting functions are\n"
 		    "calculated are kept in memory."),
 	OUTPUT(	    abs_per_tg_ ),
-	INPUT( 	    abs_per_tg_, tag_groups_, wfs_tag_groups_ ),
+	INPUT( 	    abs_per_tg_, tgs_, wfs_tgs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1598,12 +1598,12 @@ void define_md_data()
     ( MdRecord
       ( NAME("wfs_tgsDefine"),
   	DESCRIPTION(
-          "Set up the list of tag groups for which weighting functions will be.\n"
-	  "calculated. The specified strings must be a subgroup of the tgsDefine\n"
-	  "tag groups.\n"
+          "Set up the list of tag groups for which weighting functions will \n"
+	  "be calculated. The specified strings must be a subgroup of the\n"
+          "absorption tag groups (tgs).\n"
 	  "Example:\n"
 	  "wfs_tgs = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
-	OUTPUT( wfs_tag_groups_ ),
+	OUTPUT( wfs_tgs_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1634,7 +1634,8 @@ void define_md_data()
   	DESCRIPTION(
           "Calculates species 1D weighting functions for a single tag.\n"
           "The tag is selected by the giving the tag name. This string must \n"
-          "exactly the string in ????.\n"
+          "match exactly the string in wfs_tgs. The original absorption\n"
+          "array (abs_per_tg) must been reduced to match wfs_tags. \n"
           "The avaliable units are\n"
           "  frac : fractions of linearisation profile \n"
           "  vmr  : volume mixing ratio \n"
@@ -1644,8 +1645,8 @@ void define_md_data()
           "  tag  : Tag string.\n"
           "  unit : Retrieval unit string (see above)."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
-                                                              vmrs_, k_grid_),
+	INPUT( los_, absloswfs_, p_abs_, t_abs_, wfs_tgs_, abs_per_tg_, 
+                                                               vmrs_, k_grid_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "tag",     "unit"  ),
@@ -1656,13 +1657,15 @@ void define_md_data()
       ( NAME("kSpeciesAll"),
   	DESCRIPTION(
           "Calculates species 1D weighting functions for all tags that\n"
-          "are included in ???. Units as for kSpecies.\n"
+          "are included in wfs_tags. Units as for kSpecies.\n"
+          "The original absorption array (abs_per_tg) must been reduced to \n"
+          "match wfs_tags. \n"
           "\n"
           "Keywords \n"
           "  unit : Retrieval unit string."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, p_abs_, t_abs_, tag_groups_, abs_per_tg_, 
-                                                              vmrs_, k_grid_),
+	INPUT( los_, absloswfs_, p_abs_, t_abs_, wfs_tgs_, abs_per_tg_, 
+                                                              vmrs_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "unit"   ),
@@ -1715,7 +1718,7 @@ void define_md_data()
           "Calculates temperature 1D weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
+	INPUT( tgs_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
                h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
                abs_, trans_, e_ground_, k_grid_ ),
 	GOUTPUT(),
@@ -1820,10 +1823,10 @@ void define_md_data()
       ( NAME("kxInit"),
   	DESCRIPTION(
           "Initializes Kx weighting function matrix and help variables\n"
-          "(kx_names, kx_index and kx_aux).\n"
+          "(kx_names, kx_lengths and kx_aux).\n"
           "Use this function before the WF calculations are started and\n"
           "together with kxAppend."),
-	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
+	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1835,10 +1838,10 @@ void define_md_data()
       ( NAME("kbInit"),
   	DESCRIPTION(
           "Initializes Kb weighting function matrix and help variables\n"
-          "(kb_names, kb_index and kb_aux).\n"
+          "(kb_names, kb_lengths and kb_aux).\n"
           "Use this function before the WF calculations are started and\n"
           "together with kbAppend."),
-	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
+	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1853,8 +1856,8 @@ void define_md_data()
           "correspondingly. All the data are reallocated to make space for\n"
           "the new data. This function is accordingly slow for large data\n"
           "sizes, and it can be better to use kxAllocate and kxPutInK."),
-	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
-        INPUT( kx_, kx_names_, kx_index_, kx_aux_, k_, k_names_, k_aux_ ),
+	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
+        INPUT( kx_, kx_names_, kx_lengths_, kx_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1868,8 +1871,8 @@ void define_md_data()
           "correspondingly. All the data are reallocated to make space for\n"
           "the new data. This function is accordingly slow for large data\n"
           "sizes, and it can be better to use kbAllocate and kbPutInK."),
-	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
-        INPUT( kb_, kb_names_, kb_index_, kb_aux_, k_, k_names_, k_aux_ ),
+	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
+        INPUT( kb_, kb_names_, kb_lengths_, kb_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1879,9 +1882,9 @@ void define_md_data()
     ( MdRecord
       ( NAME("kxAllocate"),
   	DESCRIPTION(
-          "Allocates memory for Kx  and help variables (kx_names, kx_index \n"
+          "Allocates memory for kx and help variables (kx_names, kx_lengths \n"
           "and kx_aux). The number of frequencies is taken from the length \n"
-          "of the given vecyor (typically y)\n"
+          "of the given vector (typically y)\n"
           "Use this function before the WF calculations are started and\n"
           "together with kxPutInK.\n"
           "\n"
@@ -1889,7 +1892,7 @@ void define_md_data()
           "  ni : Number of retrieval identities (species profiles,\n"
           "              pointing off-set etc.).\n"
           "  nx : Final length of x."),
-	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
+	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT( VECTOR_ ),
@@ -1900,16 +1903,16 @@ void define_md_data()
     ( MdRecord
       ( NAME("kbAllocate"),
   	DESCRIPTION(
-          "Allocates memory for Kb  and help variables (kb_names, kb_index \n"
+          "Allocates memory for kb and help variables (kb_names, kb_lengths\n"
           "and kb_aux). The number of frequencies is taken from the length \n"
-          "of the given vecyor (typically y)\n"
+          "of the given vector (typically y)\n"
           "Use this function before the WF calculations are started and\n"
           "together with kbPutInK.\n"
           "\n"
           "Keywords \n"
           "  ni : Number of error identities (temperature profile etc.).\n"
           "  nx : Final length of x."),
-	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
+	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT( VECTOR_ ),
@@ -1925,8 +1928,8 @@ void define_md_data()
           "No reallocation is performed (in contrast to kxAppend) and an\n"
           "error message is given if k does not fit into kx. The kx-data are\n"
           "allocated by the function kxAllocate."),
-	OUTPUT( kx_, kx_names_, kx_index_, kx_aux_ ),
-        INPUT( kx_, kx_names_, kx_index_, kx_aux_, k_, k_names_, k_aux_ ),
+	OUTPUT( kx_, kx_names_, kx_lengths_, kx_aux_ ),
+        INPUT( kx_, kx_names_, kx_lengths_, kx_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1941,8 +1944,8 @@ void define_md_data()
           "No reallocation is performed (in contrast to kbAppend) and an\n"
           "error message is given if k does not fit into kb. The kb-data are\n"
           "allocated by the function kbAllocate."),
-	OUTPUT( kb_, kb_names_, kb_index_, kb_aux_ ),
-        INPUT( kb_, kb_names_, kb_index_, kb_aux_, k_, k_names_, k_aux_ ),
+	OUTPUT( kb_, kb_names_, kb_lengths_, kb_aux_ ),
+        INPUT( kb_, kb_names_, kb_lengths_, kb_aux_, k_, k_names_, k_aux_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2353,7 +2356,7 @@ void define_md_data()
           "  unit    : Unit string for the given standard deviation. Unit\n"
           "            coding as for kSpecies."),
 	OUTPUT(),
-	INPUT( tag_groups_, vmrs_, p_abs_, t_abs_, s_, batchname_ ),
+	INPUT( tgs_, vmrs_, p_abs_, t_abs_, s_, batchname_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS( "n",   "do_tags",      "unit"   ),
@@ -2502,7 +2505,7 @@ void define_md_data()
                // Additional variables for yRte
 	       y_space_, e_ground_, t_ground_,
                // Additional variables needed for this function
-               batchname_, tag_groups_ ),
+               batchname_, tgs_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS("ncalc", "do_t", "t_file", "do_z", "z_file",

@@ -74,7 +74,7 @@ extern const Numeric BOLTZMAN_CONST;
 void k_append (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
-		    MATRIX&          kx_index,
+		    ARRAYofsizet&    kx_lengths,
 		    MATRIX&          kx_aux,
               const MATRIX&          k,
               const ARRAYofstring&   k_names,
@@ -89,8 +89,10 @@ void k_append (
   const size_t  nri2 = k_names.size();
         size_t  iri;
 
-  MATRIX ktemp(ny1,nx1), ktemp_index(nri1,2), ktemp_aux(nx1,3);
-  ARRAYofstring ktemp_names(nri1);
+         MATRIX   ktemp(ny1,nx1), ktemp_aux(nx1,2);
+  ARRAYofstring   ktemp_names(nri1);
+   ARRAYofsizet   ktemp_lengths(nri1);
+  
   if ( nx1 > 0 )
   {
     if ( ny1 != ny2 )
@@ -98,26 +100,28 @@ void k_append (
             "The two WF matrices have different number of rows." ); 
 
     // Make copy of Kx data
-    copy( kx,       ktemp );
-    copy( kx_index, ktemp_index );
-    copy( kx_aux,   ktemp_aux );
-    copy( kx_names, ktemp_names );
+    copy( kx,         ktemp );
+    copy( kx_lengths, ktemp_lengths );
+    copy( kx_aux,     ktemp_aux );
+    copy( kx_names,   ktemp_names );
   }
 
   // Reallocate the Kx data
-  resize( kx,       ny2,       nx1+nx2 );
-  resize( kx_names, nri1+nri2          );
-  resize( kx_index, nri1+nri2, 2       );
-  resize( kx_aux,   nx1+nx2,   3       );
+  resize( kx,         ny2,       nx1+nx2 );
+  resize( kx_names,   nri1+nri2          );
+  resize( kx_lengths, nri1+nri2          );
+  resize( kx_aux,     nx1+nx2,   2       );
 
   // Move Ktemp to Kx
   if ( nx1 > 0 )
   {
     copy( ktemp,       kx.sub_matrix( 0, ny2, 0, nx1 ) );
-    copy( ktemp_aux,   kx_aux.sub_matrix( 0, nx1, 0, 3 ) );
-    copy( ktemp_index, kx_index.sub_matrix( 0, nri1, 0, 2 ) );
+    copy( ktemp_aux,   kx_aux.sub_matrix( 0, nx1, 0, 2 ) );
     for ( iri=0; iri<nri1; iri++ )
+    {
+      kx_lengths[iri]  = ktemp_lengths[iri];
       kx_names[iri]    = ktemp_names[iri];
+    }
   }
 
   // Calculate the vector length for each identity in K
@@ -125,12 +129,11 @@ void k_append (
 
   // Move K to Kx
   copy( k,       kx.sub_matrix( 0, ny2, nx1, nx1+nx2 ) );
-  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 3 ) );
+  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 2 ) );
   for ( iri=0; iri<nri2; iri++ )
   {
-    kx_names[nri1+iri]    = k_names[iri];
-    kx_index[nri1+iri][0] = nx1 + iri*l;
-    kx_index[nri1+iri][1] = nx1 + (iri+1)*l - 1;
+    kx_names[nri1+iri]   = k_names[iri];
+    kx_lengths[nri1+iri] = l;
   } 
 }
 
@@ -908,7 +911,7 @@ void sourceloswfs (
   resize(sourceloswfs,nza);
 
   // Loop zenith angles
-  out3 << "    Zenith angle nr:\n      ";
+  out3 << "    Zenith angle nr:      ";
   for (size_t i=0; i<nza; i++ ) 
   {
     if ( (i%20)==0 )
@@ -1033,7 +1036,7 @@ void k_species (
   resize(k,nza*nv,ntg*np);
   setto( k, 0.0);
   resize(k_names,ntg);
-  resize(k_aux,ntg*np,3);
+  resize(k_aux,ntg*np,2);
 
   // The calculations
   // Loop order:
@@ -1048,16 +1051,26 @@ void k_species (
 
     out2 << "  Doing " << tags[tg][0].Name() << "\n";
 
-    // Fill K_NAMES and K_INDEX
-    k_names[itg]   = tags[tg][0].Name();
+    // Get the absorption of the species at the retrieval points
+    resize( abs, nv, np );
+    interpp( abs, p_abs, abs_per_tg[tg], k_grid );
 
-    // Interpolate to get the total absorption and the VMR values at the 
-    // retrieval points and scale the absorption to the selected unit:
+    // Fill K_NAMES
+    {
+      ostringstream os;
+      os << "Species: " << tags[tg][0].Name();
+      k_names[itg] = os.str();
+    }
+
+    // Fill column 0 of K_AUX
+    for ( ip=0; ip<np; ip++ )
+       k_aux[ip0+ip][0] = k_grid[ip];
+
+    // Fill column 1 of K_AUX
     //   frac : fractions of the linearisation profile
     //   vmr  : VMR
     //   nd   : number density
-    resize( abs, nv, np );
-    interpp( abs, p_abs, abs_per_tg[tg], k_grid );
+    //
     resize( vmr, np );
     interpp( vmr, p_abs, vmrs[tg], k_grid ); 
     //
@@ -1090,13 +1103,6 @@ void k_species (
     else
       throw runtime_error(
         "Allowed retrieval units are \"frac\", \"vmr\" and \"nd\"."); 
-
-    // Fill column 0 and 2 of K_AUX
-    for ( ip=0; ip<np; ip++ )
-    {
-       k_aux[ip0+ip][0] = k_grid[ip];
-       k_aux[ip0+ip][2] = vmr[ip];
-    }
 
     // Set frequency zenith angle index off-set to 0
     iv0 = 0;                 
@@ -1248,7 +1254,7 @@ void k_contabs (
   resize(k,nza*nv,npoints*np);
   setto( k, 0.0 );
   resize(k_names,npoints);
-  resize(k_aux,npoints*np,3);
+  resize(k_aux,npoints*np,2);
 
   // Calculate the frequencies of the off-set points
   nlinspace( fpoints, f_mono[ilow], f_mono[iupp], npoints );
@@ -1271,14 +1277,13 @@ void k_contabs (
     // Fill K_NAMES and K_AUX
     {
       ostringstream os;
-      os << "Continuum absorption, point " << ipoint;
+      os << "Continuum absorption: Point " << ipoint;
       k_names[ipoint] = os.str();
     }
     for ( ip=0; ip<np; ip++ )
     {
        k_aux[ip0+ip][0] = k_grid[ip];
        k_aux[ip0+ip][1] = 0.0;
-       k_aux[ip0+ip][2] = 0.0;
     }
 
     // Set-up base vector for the present fit point 
@@ -1438,14 +1443,13 @@ void k_temp_nohydro (
   resize(k,nza*nv,np);
   setto(k, 0.0);
   resize(k_names,1);
-  k_names[0] = "Temperature";
-  resize(k_aux,np,3);
+  k_names[0] = "Temperature: No hydro. eq.";
+  resize(k_aux,np,2);
   interpp( t, p_abs, t_abs, k_grid ); 
   for ( ip=0; ip<np; ip++ )
   {
      k_aux[ip][0] = k_grid[ip];
      k_aux[ip][1] = t[ip];
-     k_aux[ip][2] = 0.0;
   }
 
   // Calculate absorption for t_abs + 1K to estimate the temperature derivative
@@ -1486,7 +1490,7 @@ void k_temp_nohydro (
   out3 << "    Zenith angle nr:      ";
   for ( iza=0; iza<nza; iza++ ) 
   {
-    if ( ((iza+1)%20)==0 )
+    if ( (iza%20)==0 )
       out3 << "\n      ";
     out3 << " " << iza; cout.flush();
     
@@ -1603,10 +1607,12 @@ void wfs_tgsDefine(// WS Output:
 
 	  OneTag this_tag(tag_def[s]);
 
-	  // Safety check: For s>0 check that the tags belong to the same species.
+	  // Safety check: For s>0 check that the tags belong 
+          // to the same species.
 	  if (s>0)
 	    if ( wfs_tag_groups[i][0].Species() != this_tag.Species() )
-	      throw runtime_error("Tags in a tag group must belong to the same species.");
+	      throw runtime_error(
+                       "Tags in a tag group must belong to the same species.");
 
 	  wfs_tag_groups[i].push_back(this_tag);
 	}
@@ -1714,21 +1720,24 @@ void kSpecies (
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,             
-              const TagGroups&       tags,
+              const TagGroups&       wfs_tgs,
               const ARRAYofMATRIX&   abs_per_tg,
               const ARRAYofVECTOR&   vmrs,
               const VECTOR&          k_grid,
               const string&          tag,
               const string&          unit )
 {
+  if ( wfs_tgs.size() != abs_per_tg.size() )
+    throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
+
   ARRAYofstring  tag_name(1);
   tag_name[0] = tag;
 
   ARRAYofsizet   tg_nr; 
-  get_tagindex_for_strings( tg_nr, tags, tag_name );
+  get_tagindex_for_strings( tg_nr, wfs_tgs, tag_name );
   
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-                                 tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
+                              wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -1747,20 +1756,23 @@ void kSpeciesAll (
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          p_abs,
               const VECTOR&          t_abs,             
-              const TagGroups&       tags,
+              const TagGroups&       wfs_tgs,
               const ARRAYofMATRIX&   abs_per_tg,
               const ARRAYofVECTOR&   vmrs,
               const VECTOR&          k_grid,
               const string&          unit )
 {
-  const size_t  ntg = abs_per_tg.size();     // number of retrieval tags
+  const size_t  ntg = wfs_tgs.size();     // number of retrieval tags
   ARRAYofsizet  tg_nr(ntg);
+
+  if ( ntg != abs_per_tg.size() )
+    throw runtime_error( "Lengths of wfs_tgs and abs_per_tg do not match." ); 
   
   for ( size_t i=0; i<ntg; i++ )
     tg_nr[i] = i;
 
   k_species( k, k_names, k_aux, los, absloswfs, p_abs, t_abs, 
-                                 tags, abs_per_tg, vmrs, k_grid, tg_nr, unit );
+                              wfs_tgs, abs_per_tg, vmrs, k_grid, tg_nr, unit );
 }
 
 
@@ -1899,10 +1911,9 @@ void kManual(
   
   resize(k_names,1);
   k_names[0] = name;
-  resize(k_aux,1,3);
+  resize(k_aux,1,2);
   k_aux[0][0] = grid;
   k_aux[0][1] = apriori;
-  k_aux[0][2] = 0.0;  
 }
 
 
@@ -1946,10 +1957,9 @@ void kDiffHSmall(
 
   resize(k_names,1);
   k_names[0] = name;
-  resize(k_aux,1,3);
+  resize(k_aux,1,2);
   k_aux[0][0] = grid;
   k_aux[0][1] = apriori;
-  k_aux[0][2] = 0.0;  
 }
 
 
@@ -1989,10 +1999,9 @@ void kDiffHFast(
 
   resize(k_names,1);
   k_names[0] = name;
-  resize(k_aux,1,3);
+  resize(k_aux,1,2);
   k_aux[0][0] = grid;
   k_aux[0][1] = apriori;
-  k_aux[0][2] = 0.0;  
 }
 
 
@@ -2061,7 +2070,7 @@ void kPointingOffSet(
 
   resize( k_names, 1 );
   k_names[0] = "Pointing off-set";
-  resize( k_aux, 1, 3 );
+  resize( k_aux, 1, 2 );
   setto( k_aux, 0.0 );
 }
 
@@ -2102,7 +2111,7 @@ void kCalibration(
 
   resize( k_names, 1 );
   k_names[0] = "Calibration";
-  resize( k_aux, 1, 3 );
+  resize( k_aux, 1, 2 );
   setto( k_aux, 0.0 );
 }
 
@@ -2117,13 +2126,13 @@ void kCalibration(
 void kxInit (
                     MATRIX&          kx,
                     ARRAYofstring&   kx_names,
-                    MATRIX&          kx_index,
+                    ARRAYofsizet&    kx_lengths,
                     MATRIX&          kx_aux )
 {
-  resize( kx,       0, 0 );
-  resize( kx_names, 0    );
-  resize( kx_index, 0, 0 );
-  resize( kx_aux,   0, 0 );
+  resize( kx,         0, 0 );
+  resize( kx_names,   0    );
+  resize( kx_lengths, 0    );
+  resize( kx_aux,     0, 0 );
 }
 
 
@@ -2137,10 +2146,10 @@ void kxInit (
 void kbInit (
                     MATRIX&          kb,
                     ARRAYofstring&   kb_names,
-                    MATRIX&          kb_index,
+                    ARRAYofsizet&    kb_lengths,
                     MATRIX&          kb_aux )
 {
-  kxInit( kb, kb_names, kb_index, kb_aux );
+  kxInit( kb, kb_names, kb_lengths, kb_aux );
 }
 
 
@@ -2154,13 +2163,13 @@ void kbInit (
 void kxAppend (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
-		    MATRIX&          kx_index,
+		    ARRAYofsizet&    kx_lengths,
 		    MATRIX&          kx_aux,
               const MATRIX&          k,
               const ARRAYofstring&   k_names,
               const MATRIX&          k_aux )
 {
-  k_append( kx, kx_names, kx_index, kx_aux, k, k_names, k_aux );
+  k_append( kx, kx_names, kx_lengths, kx_aux, k, k_names, k_aux );
 }
 
 
@@ -2174,13 +2183,13 @@ void kxAppend (
 void kbAppend (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,
-		    MATRIX&          kb_index,
+		    ARRAYofsizet&    kb_lengths,
 		    MATRIX&          kb_aux,
               const MATRIX&          k,
               const ARRAYofstring&   k_names,
               const MATRIX&          k_aux )
 {
-  k_append( kb, kb_names, kb_index, kb_aux, k, k_names, k_aux );
+  k_append( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
 }
 
 
@@ -2194,7 +2203,7 @@ void kbAppend (
 void kxAllocate (
                     MATRIX&          kx,
                     ARRAYofstring&   kx_names,
-                    MATRIX&          kx_index,
+                    ARRAYofsizet&    kx_lengths,
                     MATRIX&          kx_aux,
               const VECTOR&          y,
               const string&          y_name,
@@ -2208,11 +2217,13 @@ void kxAllocate (
        << "    " << nx << " state variables\n"
        << "    " << ni << " retrieval identities\n";
 
-  resize( kx,       ny, nx );
-  resize( kx_names, ni     );
-  resize( kx_index, ni, 2  );
-  setto(  kx_index, -1.0 );
-  resize( kx_aux,   nx, 3  );
+  resize( kx,         ny, nx );
+  resize( kx_names,   ni     );
+  resize( kx_lengths, ni     );
+  resize( kx_aux,     nx, 3  );
+
+  for ( int i=0; i<ni; i++ )
+    kx_lengths[i] = 0;
 }
 
 
@@ -2226,14 +2237,14 @@ void kxAllocate (
 void kbAllocate (
                     MATRIX&          kb,
                     ARRAYofstring&   kb_names,
-                    MATRIX&          kb_index,
+                    ARRAYofsizet&    kb_lengths,
                     MATRIX&          kb_aux,
               const VECTOR&          y,
               const string&          y_name,
               const int&             ni,
               const int&             nx )
 {
-  kxAllocate( kb, kb_names, kb_index, kb_aux, y, y_name, ni, nx );
+  kxAllocate( kb, kb_names, kb_lengths, kb_aux, y, y_name, ni, nx );
 }
 
 
@@ -2247,7 +2258,7 @@ void kbAllocate (
 void kxPutInK (
 		    MATRIX&          kx,
 		    ARRAYofstring&   kx_names,
-		    MATRIX&          kx_index,
+		    ARRAYofsizet&    kx_lengths,
 		    MATRIX&          kx_aux,
               const MATRIX&          k,
               const ARRAYofstring&   k_names,
@@ -2263,15 +2274,11 @@ void kxPutInK (
     throw runtime_error("The two WF matrices have different number of rows.");
 
   // Determine old length of x and number of identities
-  INDEX  ni1, nx1;
-  for( ni1=0; ni1<ni && kx_index[ni1][1]>=0; ni1++ )
-    {}
+  INDEX  ni1, nx1=0;
+  for( ni1=0; ni1<ni && kx_lengths[ni1]>0; ni1++ )
+    nx1 += kx_lengths[ni1];
   if ( ni1 == ni )
     throw runtime_error("All retrieval/error identity positions used.");
-  if ( ni1 == 0 )
-    nx1 = 0;
-  else
-    nx1 = INDEX( kx_index[ni1-1][1] + 1);
 
   // Check if new data fit
   if ( (ni1+ni2) > ni )
@@ -2298,12 +2305,11 @@ void kxPutInK (
 
   // Move K to Kx
   copy( k,       kx.sub_matrix( 0, ny, nx1, nx1+nx2 ) );
-  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 3 ) );
+  copy( k_aux,   kx_aux.sub_matrix( nx1, nx1+nx2, 0, 2 ) );
   for ( INDEX iri=0; iri<ni2; iri++ )
   {
-    kx_names[ni1+iri]    = k_names[iri];
-    kx_index[ni1+iri][0] = nx1 + iri*l;
-    kx_index[ni1+iri][1] = nx1 + (iri+1)*l - 1;
+    kx_names[ni1+iri]   = k_names[iri];
+    kx_lengths[ni1+iri] = l;
   }   
 }
 
@@ -2318,11 +2324,11 @@ void kxPutInK (
 void kbPutInK (
 		    MATRIX&          kb,
 		    ARRAYofstring&   kb_names,
-		    MATRIX&          kb_index,
+		    ARRAYofsizet&    kb_lengths,
 		    MATRIX&          kb_aux,
               const MATRIX&          k,
               const ARRAYofstring&   k_names,
               const MATRIX&          k_aux )
 {
-  kxPutInK( kb, kb_names, kb_index, kb_aux, k, k_names, k_aux );
+  kxPutInK( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
 }

@@ -1,3 +1,17 @@
+2001-02-13  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-121
+
+	* Simplified the WF information somewhat. Now the length of each
+	identity is stored instead of start and stop index. This to avoid
+	storing INDEX in a matrix. Column 3 of the aux variables removed.
+
+	* The species WF functions now use wfs_tgs.
+
+	* Changed names on the workspace variables tgs and wfs_tgs to match
+	the names used in function names.
+	
+
 2001-02-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-120

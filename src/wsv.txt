@@ -9,7 +9,7 @@ DESCRIPTION:
 A list of spectral line data for each tag.
 Dimensions: (tag_groups.size()) (# of lines for this tag)
 
-VARIABLE : tag_groups
+VARIABLE : tgs
 DATA TYPE: TagGroups
 DESCRIPTION:
 This is an array of arrays of OneTag tag definitions.
@@ -19,7 +19,7 @@ Contrary to the original Bredbeck definition, tags within a
 group must belong to the same species, because one VMR profile
 is associated with each tag group.
 
-VARIABLE : wfs_tag_groups
+VARIABLE : wfs_tgs
 DATA TYPE: TagGroups
 DESCRIPTION:
 This is an array of arrays of tag group definitions.
@@ -244,9 +244,8 @@ VARIABLE : k_grid
 DATA TYPE: VECTOR
 DESCRIPTION:
 Grid for the retrieval identity for which weighting functions (WFS)
-shall be calculated (when applicable). For example, pressure altitude
-grid for species
-WFs.
+shall be calculated (when applicable).
+For example, pressure altitude grid for species WFs.
 
 VARIABLE : k
 DATA TYPE: MATRIX
@@ -267,7 +266,6 @@ columns of k).
 The columns hold different quantities:
   Col 1: retrieval grid (or correspondingly)
   Col 2: a priori values
-  Col 3: volume mixing ratios
 
 VARIABLE : kx
 DATA TYPE: MATRIX
@@ -279,12 +277,10 @@ DATA TYPE: ARRAYofstring
 DESCRIPTION:
 Names on the retrieval identities associated with kx.
 
-VARIABLE : kx_index
-DATA TYPE: MATRIX
+VARIABLE : kx_lengths
+DATA TYPE: ARRAYofsizet
 DESCRIPTION:
-This is a two-column matrix holding first and last index of the state
-vector for each retrieval identity. That is, each row corresponds to
-a retrieval identity as [i_first,i_last].
+The length of the state vector for each retrieval identity in kx.
 
 VARIABLE : kx_aux
 DATA TYPE: MATRIX
@@ -302,12 +298,10 @@ DATA TYPE: ARRAYofstring
 DESCRIPTION:
 Names on the model parameter identities associated with kb.
 
-VARIABLE : kb_index
-DATA TYPE: MATRIX
+VARIABLE : kb_lengths
+DATA TYPE: ARRAYofsizet
 DESCRIPTION:
-This is a two-column matrix holding first and last index of the model
-parameter vector (b) for each  identity. That is, each row 
-corresponds to a forward model identity as [i_first,i_last].
+The length of the model vector for each retrieval identity in kb.
 
 VARIABLE : kb_aux
 DATA TYPE: MATRIX
