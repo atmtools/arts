@@ -1576,19 +1576,6 @@ void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
 			     sigma,
 			     f_mono,
 			     nf);
-
-      // the controlfile uses generally a (f/f0)^2 factor for the
-      // lineshape function, but we have to remove this normalization
-      // factor (f/f0)^2 over here, because Rosenkranz does not use it
-      // for the Voigt part, but for the Lorentz part. don't ask me
-      // why...
-      // FIXME: Clarify whether this is correct and if yes use the
-      // normalization used in controlfile
-      Numeric f0_2 = f0 * f0;
-      for (INDEX J=0; J<(INDEX) nf; J++)
-  	{
-  	  ls[J] *= f0_2 / (f_mono[J] * f_mono[J]);
-  	}
     }
   else
     {

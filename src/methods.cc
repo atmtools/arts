@@ -1043,14 +1043,14 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("lineshape_per_abs_tagDefine"),
+      ( NAME("lineshape_per_tgDefine"),
   	DESCRIPTION(
-          "Sets the lineshape per defined abs_tag.\n"
-	  "Specify for each selected tag an individual lineshape, together with a \n"
-	  "normalization factor.\n"
+          "Sets the lineshape per defined tag group.\n"
+	  "Specify for each selected tag group an individual lineshape,\n"
+	  "together with a normalization factor.\n"
 	  "Normalization Factors: no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
 	  "Example:\n"
-	  "shape=[\"Lorentz\",\"Voigt_Kuntz1\"] \n"
+	  "lineshape=[\"Lorentz\",\"Voigt_Kuntz6\"] \n"
 	  "normalizationfactor=[\"linear\", \"quadratic\"]"),
 	OUTPUT( lineshape_ , lineshape_norm_ ),
 	INPUT( tag_groups_ ),
@@ -1192,7 +1192,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("xsec_per_tagCal"),
+      ( NAME("xsec_per_tgCal"),
 	DESCRIPTION("Calculate cross sections per tag group."),
 	OUTPUT(	    xsec_per_tg_                             ),
 	INPUT( 	    f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 

@@ -109,10 +109,10 @@ VectorWriteAscii (f_mono) {""}
 # lineshapeDefine {shape="Voigt_Kuntz6"
 #                  normalizationfactor="quadratic"
 #                 }
-lineshape_per_abs_tagDefine{
-                            shape = ["Rosenkranz_Voigt_Kuntz6","Rosenkranz_Voigt_Kuntz6"]
-                            normalizationfactor = ["quadratic","quadratic"]
-                           }
+lineshape_per_tgDefine{
+                       shape = ["Rosenkranz_Voigt_Kuntz6","Rosenkranz_Voigt_Kuntz6"]
+                       normalizationfactor = ["quadratic","quadratic"]
+                       }
 
 
 # Calculate absorption coefficients, both total (`abs') and 
@@ -120,7 +120,7 @@ lineshape_per_abs_tagDefine{
 # absCalc{}
 
 # Calculate absorption coefficients, via cross sections
-xsec_per_tagCal{}
+xsec_per_tgCal{}
 absCalcFromXsec{}
 
 # These we definitely want to write to files!

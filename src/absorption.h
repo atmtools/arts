@@ -907,18 +907,29 @@ void write_lines_to_stream(ostream& os,
 			   const ARRAYofLineRecord& lines);
 
 
-// Doc header in absorption.cc
-void abs_species( MATRIX&                  abs,
-		  const VECTOR&  	   f_mono,
-		  const VECTOR&  	   p_abs,
-		  const VECTOR&  	   t_abs,           
-		  const VECTOR&  	   h2o_abs,           
-		  const VECTOR&            vmr,
-		  const ARRAYofLineRecord& lines,
-		  const size_t             ind_ls,
-		  const size_t             ind_lsn);
+/** Calculate cross sections for one tag group. All lines in the line
+    list must belong to the same species. This must be ensured by
+    lines_per_tgCreateFromLines, so it is only verified with
+    assert. Also, the input vectors p_abs, and t_abs must all
+    have the same dimension.
 
-// Doc header in absorption.cc
+    This is mainly a copy of abs_species which is removed now, with
+    the difference that the vmrs are removed from the absorption
+    coefficient calculation. (the vmr is still used for the self
+    broadening)
+
+    \retval xsec   Cross section of one tag group.
+    \param f_mono  Frequency grid.
+    \param p_abs   Pressure grid.
+    \param t_abs   Temperatures associated with p_abs.
+    \param h2o_abs Total volume mixing ratio of water vapor.
+    \param vmr     Volume mixing ratio of the calculated species.
+    \param lines   The spectroscopic line list.
+    \param ind_ls  Index to used lineshape function.
+    \param ind_lsn Index to used lineshape normalization function.
+
+    \author Stefan Buehler and Axel von Engeln
+    \dat 2001-01-11 */
 void xsec_species( MATRIX&                 xsec,
 		  const VECTOR&  	   f_mono,
 		  const VECTOR&  	   p_abs,

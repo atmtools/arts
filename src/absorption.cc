@@ -1586,310 +1586,6 @@ void write_lines_to_stream(ostream& os,
 }
 
 
-/** Calculate absorption coefficients for one tag group. All lines in
-    the line list must belong to the same species. This must be
-    ensured by lines_per_tgCreateFromLines, so it is only verified
-    with assert. Also, the input vectors p_abs, t_abs, and vmr must
-    all have the same dimension.
-
-    \retval abs    Absorption coefficients.
-    \param f_mono  Frequency grid.
-    \param p_abs   Pressure grid.
-    \param t_abs   Temperatures associated with p_abs.
-    \param vmrs    Volume mixing ratios of the species.
-    \param lines   The spectroscopic line list.
-    \param ind_ls  Index to used lineshape function.
-    \param ind_lsn Index to used lineshape normalization function.
-
-    \author Stefan Buehler 16.06.2000. 
-
-    Adapted indices to 0-based (MTL)
-    \date   2001-01-06
-    \author Stefan Buehler
-
-*/
-void abs_species( MATRIX&                  abs,
-		  const VECTOR&  	   f_mono,
-		  const VECTOR&  	   p_abs,
-		  const VECTOR&  	   t_abs,
-		  const VECTOR&  	   h2o_abs,
-		  const VECTOR&            vmr,
-		  const ARRAYofLineRecord& lines,
-		  const size_t             ind_ls,
-		  const size_t             ind_lsn)
-{
-  // Make lineshape and species lookup data visible:
-  extern const ARRAY<LineshapeRecord> lineshape_data;
-  extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
-
-  // speed of light constant
-  extern const Numeric SPEED_OF_LIGHT;
-
-  // Boltzmann constant
-  extern const Numeric BOLTZMAN_CONST;
-
-  // Avogadros constant
-  extern const Numeric AVOGADROS_NUMB;
-
-  // Planck constant
-  extern const Numeric PLANCK_CONST;
-
-  // sqrt(ln(2))
-  // extern const Numeric SQRT_NAT_LOG_2;
-
-  // Constant within the Doppler Broadening calculation:
-  static const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
-					     AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
-
-  // Constant to convert lower state energy
-  static const Numeric lower_energy_const = PLANCK_CONST * SPEED_OF_LIGHT * 1E2;
-
-  // dimension of f_mono, lines
-  INDEX nf = f_mono.size();
-  INDEX nl = lines.size();
-
-  // Define the vector for the line shape function and the
-  // normalization factor of the lineshape here, so that we don't need
-  // so many free store allocations.
-  VECTOR ls(nf);
-  VECTOR fac(nf);
-
-  // Voigt generally needs a different frequency grid. If we allocate
-  // that in the outer loop, insted of in voigt, we don't have the
-  // free store allocation at each lineshape call. Calculation is
-  // still done in the voigt routine itself, this is just an auxillary
-  // parameter, passed to lineshape. For selected lineshapes (e.g.,
-  // Rosenkranz) it is used additionally to pass parameters needed in
-  // the lineshape (e.g., overlap, 2. intensity parameter,
-  // ...). Consequently we have to assure that aux has a dimension not
-  // less then the number of parameters passed.
-  INDEX ii = (nf < 10) ? 10 : nf;
-  VECTOR aux(ii);
-
-  // Check that p_abs, t_abs, h2o_abs, and vmr all have the same
-  // dimension. This could be a user error, so we throw a
-  // runtime_error.  FIXME: why do we do this for each tag? wouldn't a
-  // check in abscalc be sufficient?
-
-  if ( t_abs.size() != p_abs.size() )
-    {
-      ostringstream os;
-      os << "Variable t_abs must have the same dimension as p_abs.\n"
-	 << "t_abs.size() = " << t_abs.size() << '\n'
-	 << "p_abs.size() = " << p_abs.size();
-      throw runtime_error(os.str());
-    }
-
-  if ( vmr.size() != p_abs.size() )
-    {
-      ostringstream os;
-      os << "Variable vmr must have the same dimension as p_abs.\n"
-	 << "vmr.size() = " << vmr.size() << '\n'
-	 << "p_abs.size() = " << p_abs.size();
-      throw runtime_error(os.str());
-    }
-
-  if ( h2o_abs.size() != p_abs.size() )
-    {
-      ostringstream os;
-      os << "Variable h2o_abs must have the same dimension as p_abs.\n"
-	 << "h2o_abs.size() = " << h2o_abs.size() << '\n'
-	 << "p_abs.size() = " << p_abs.size();
-      throw runtime_error(os.str());
-    }
-
-  // Check that the dimension of abs is indeed [f_mono.size(),
-  // p_abs.size()]:
-  if ( abs.nrows() != nf || abs.ncols() != p_abs.size() )
-    {
-      ostringstream os;
-      os << "Variable abs must have dimensions [f_mono.size(),p_abs.size()].\n"
-	 << "[abs.nrows(),abs.ncols()] = [" << abs.nrows()
-	 << ", " << abs.ncols() << "]\n"
-	 << "f_mono.size() = " << nf << '\n'
-	 << "p_abs.size() = " << p_abs.size();
-      throw runtime_error(os.str());
-    }
-
-
-  // Loop all pressures:
-  for ( size_t i=0; i<p_abs.size(); ++i )
-  {
-
-    // store variables p_abs[i] and t_abs[i],
-    // this is slightly faster
-    Numeric p_i = p_abs[i];
-    Numeric t_i = t_abs[i];
-
-    
-    //out3 << "  p = " << p_i << " Pa\n";
-
-    // Calculate total number density from pressure and temperature.
-    // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
-    Numeric n = p_i / BOLTZMAN_CONST / t_i;
-//     cout << "p_i, BOLTZMAN_CONST, t_i, n: "
-// 	 << p_i << ", "
-// 	 << BOLTZMAN_CONST << ", "
-// 	 << t_i << ", "
-// 	 << n << "\n";
-
-    // For the pressure broadening, we also need the partial pressure:
-    const Numeric p_partial = p_i * vmr[i];
-
-
-    // Loop all lines:
-    for ( size_t l=0; l< nl; ++l )
-      {
-
-	// lines[l] is used several times, this construct should be
-	// faster (Oliver Lemke)
-	LineRecord l_l = lines[l];  // which line are we dealing with
-	Numeric F0 = l_l.F();       // center frequency
-
-	// Intensity is already in the right units (Hz*m^2). It also
-	// includes already the isotopic ratio. Needs only to be
-	// coverted to the actual temperature and multiplied by total
-	// number density, VMR, and lineshape.
-	Numeric intensity = l_l.I0();
-
-	// Lower state energy is in wavenumbers
-	Numeric e_lower = l_l.Elow() * lower_energy_const;
-
-	// Upper state energy
-	Numeric e_upper = e_lower + F0 * PLANCK_CONST;
-
-	// get the ratio of the partition function
-	// FIXME: a try catch block is slow, maybe use an if instead.
-	Numeric part_fct_ratio = 0.0;
-	try 
-	  {
-	    part_fct_ratio =
-	      l_l.IsotopeData().CalculatePartitionFctRatio( t_i );
-	  }
-
-	catch (runtime_error e)
-	  {
-	    ostringstream os;
-	    os << "Partition function of "
-	       << "Species-Isotope = " << l_l.Name()
-	       << "is unknown." << endl;
-	  }
-
-	// Boltzmann factors
-	Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
-       	              exp(- e_upper / ( BOLTZMAN_CONST * t_i ) );
-
-	Numeric denom = exp(- e_lower / ( BOLTZMAN_CONST * l_l.Ti0() ) ) - 
-       	                exp(- e_upper / ( BOLTZMAN_CONST * l_l.Ti0() ) );
-
-
-	// intensity at temperature
-	intensity *= part_fct_ratio * nom / denom;
-
-
-	// 2. Get pressure broadened line width:
-	// (Agam is in Hz/Pa, p_abs is in Pa, gamma is in Hz)
-	const Numeric theta = l_l.Tgam() / t_i;
-	const Numeric theta_Nair = pow(theta, l_l.Nair());
-
-	Numeric gamma
-	  = l_l.Agam() * theta_Nair  * (p_i - p_partial)
-	  + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
-
-	// 3. Doppler broadening without the sqrt(ln(2)) factor, which
-	// seems to be redundant FIXME: verify .
-	Numeric sigma = F0 * doppler_const * 
-	  sqrt( t_i / l_l.IsotopeData().Mass());
-
-
-	// 4. the rosenkranz lineshape for oxygen calculates the
-	// pressure broadening, overlap, ... differently. Therefore
-	// all required parameters are passed in the aux array, the
-	// given order must agree with how they are accessed in the
-	// used lineshape (currently only the Rosenkranz routines are
-	// using this method of passing parameters). I know, this is
-	// not very nice, but I suggested to put the oxygen absorption
-	// into a different workspace method, but nobody listened to
-	// me, Schnief.
-	aux[0] = theta;
-	aux[1] = theta_Nair;
-	aux[2] = p_i;
-	aux[3] = vmr[i];
-	aux[4] = h2o_abs[i];
-	aux[5] = l_l.Agam();
-	aux[6] = l_l.Nair();
-	// is overlap available, otherwise pass zero
-	if (l_l.Naux() > 1)
-	  {
-	    aux[7] = l_l.Aux()[0];
-	    aux[8] = l_l.Aux()[1];
-	  }
-	else
-	  {
-	    aux[7] = 0.0;
-	    aux[8] = 0.0;
-	  }
-
-
-
-	// Calculate the line shape:
-	lineshape_data[ind_ls].Function()(ls,
-					  aux,
-					  F0,
-					  gamma,
-					  sigma,
-					  f_mono,
-					  nf);
-
-
-	// Calculate the chosen normalization factor:
- 	lineshape_norm_data[ind_lsn].Function()(fac,
-						F0,
-						f_mono,
-						nf);
-
-
-
-	// Add line to abs:
-	for ( size_t j=0; j<nf; ++j )
-	  {
-	    abs[j][i] += 
-	      n * vmr[i] * intensity * ls[j] * fac[j];
-
-// 	    if (i == 19)
-// 	      {
-// 	        out3 << f_mono[j] << ' ' << n << ' ' << intensity << ' ' <<
-// 	          abs[j][i] << ' ' <<  ls[j] * sfac * fac[j] * f_mono[j] *
-// 	          f_mono[j]  << "\n";
-// 	      }
-	    
-
-	  }
-      }
-  }
-}
-
-
-/** Calculate cross sectionsfor one tag group. All lines in the line
-    list must belong to the same species. This must be ensured by
-    lines_per_tgCreateFromLines, so it is only verified with
-    assert. Also, the input vectors p_abs, and t_abs must all
-    have the same dimension.
-
-    This is mainly a copy of abs_species, with the difference that the
-    vmrs are removed from the absorption coefficient calculation.
-
-    \retval xsec   Cross section of one tag group.
-    \param f_mono  Frequency grid.
-    \param p_abs   Pressure grid.
-    \param t_abs   Temperatures associated with p_abs.
-    \param lines   The spectroscopic line list.
-    \param ind_ls  Index to used lineshape function.
-    \param ind_lsn Index to used lineshape normalization function.
-
-    \author Axel von Engeln
-    \dat 2001-01-11
-*/
 void xsec_species( MATRIX&                  xsec,
 		   const VECTOR&  	    f_mono,
 		   const VECTOR&  	    p_abs,
@@ -1942,9 +1638,9 @@ void xsec_species( MATRIX&                  xsec,
   // still done in the voigt routine itself, this is just an auxillary
   // parameter, passed to lineshape. For selected lineshapes (e.g.,
   // Rosenkranz) it is used additionally to pass parameters needed in
-  // the lineshape (e.g., overlap, 2. intensity parameter,
-  // ...). Consequently we have to assure that aux has a dimension not
-  // less then the number of parameters passed.
+  // the lineshape (e.g., overlap, ...). Consequently we have to
+  // assure that aux has a dimension not less then the number of
+  // parameters passed.
   INDEX ii = (nf < 10) ? 10 : nf;
   VECTOR aux(ii);
 
@@ -2009,11 +1705,6 @@ void xsec_species( MATRIX&                  xsec,
     // Calculate total number density from pressure and temperature.
     // n = n0*T0/p0 * p/T or n = p/kB/t, ideal gas law
     Numeric n = p_i / BOLTZMAN_CONST / t_i;
-//     cout << "p_i, BOLTZMAN_CONST, t_i, n: "
-// 	 << p_i << ", "
-// 	 << BOLTZMAN_CONST << ", "
-// 	 << t_i << ", "
-// 	 << n << "\n";
 
     // For the pressure broadening, we also need the partial pressure:
     const Numeric p_partial = p_i * vmr[i];
@@ -2089,10 +1780,12 @@ void xsec_species( MATRIX&                  xsec,
 	// all required parameters are passed in the aux array, the
 	// given order must agree with how they are accessed in the
 	// used lineshape (currently only the Rosenkranz routines are
-	// using this method of passing parameters). I know, this is
-	// not very nice, but I suggested to put the oxygen absorption
-	// into a different workspace method, but nobody listened to
-	// me, Schnief.
+	// using this method of passing parameters). Parameters are
+	// always passed, because the Rosenkranz lineshape function
+	// can be used without overlap correction, which is then just
+	// set to 0. I know, this is not very nice, but I suggested to
+	// put the oxygen absorption into a different workspace
+	// method, but nobody listened to me, Schnief.
 	aux[0] = theta;
 	aux[1] = theta_Nair;
 	aux[2] = p_i;

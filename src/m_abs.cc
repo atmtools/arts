@@ -502,36 +502,36 @@ void lineshapeDefine(// WS Output:
     }	  
 }
 
-void lineshape_per_abs_tagDefine(// WS Output:
-				 ARRAYofsizet&         lineshape,
-				 ARRAYofsizet&         lineshape_norm,
-				 // WS Input:
-				 const TagGroups&      tag_groups,
-				 const ARRAYofstring&  shape,
-				 const ARRAYofstring&  normalizationfactor)
+void lineshape_per_tgDefine(// WS Output:
+			    ARRAYofsizet&         lineshape,
+			    ARRAYofsizet&         lineshape_norm,
+			    // WS Input:
+			    const TagGroups&      tag_groups,
+			    const ARRAYofstring&  shape,
+			    const ARRAYofstring&  normalizationfactor)
 {
   // Make lineshape and normalization factor data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
   extern const ARRAY<LineshapeNormRecord> lineshape_norm_data;
 
   // check that the number of elements are equal
-  size_t tag_sz = tag_groups.size();
-  if ( (tag_sz != shape.size()) ||
-       (tag_sz != normalizationfactor.size()) )
+  size_t tg_sz = tag_groups.size();
+  if ( (tg_sz != shape.size()) ||
+       (tg_sz != normalizationfactor.size()) )
     {
       ostringstream os;
-      os << "lineshape_per_abs_tagDefine: number of elements does\n"
-	 << "not match the number of tags defined.";
+      os << "lineshape_per_tgDefine: number of elements does\n"
+	 << "not match the number of tag groups defined.";
       throw runtime_error(os.str());
     }
       
 
   // generate the right number of elements
-  resize(lineshape,tag_sz);
-  resize(lineshape_norm,tag_sz);
+  resize(lineshape,tg_sz);
+  resize(lineshape_norm,tg_sz);
 
   // Is this lineshape available?
-  for (size_t k=0; k<tag_sz; ++k)
+  for (size_t k=0; k<tg_sz; ++k)
     {
       int found0=-1;
       for ( size_t i=0; i<lineshape_data.size() && (found0 == -1); ++i )
@@ -539,7 +539,7 @@ void lineshape_per_abs_tagDefine(// WS Output:
 	  const string& str = lineshape_data[i].Name();
 	  if (str == shape[k]) 
 	    {
-	      out2 << "  Tags: [";
+	      out2 << "  Tag Group: [";
 	      for (size_t s=0; s<tag_groups[k].size()-1; ++s)
 		out2 << tag_groups[k][s].Name() << ", "; 
 	      out2 << tag_groups[k][tag_groups[k].size()-1].Name() << "]\n";
@@ -875,6 +875,24 @@ void z_absHydrostatic(
 
 
 
+/** Calculates the absorption coefficients by first calculating the
+   cross sections per tag group and then the absorption from the cross
+   sections.
+
+   \retval   abs            absorption coefficients
+   \retval   abs_per_tg     absorption coefficients per tag group
+   \param    f_mono         monochromatic frequency grid
+   \param    p_abs          pressure levels 
+   \param    t_abs          temperature at pressure level
+   \param    h2o_abs        total volume mixing ratio of water vapor
+   \param    vmrs           volume mixing ratios per tag group
+   \param    lines_per_tg   transition lines per tag group
+   \param    lineshape      lineshape to use per tag group
+   \param    lineshape_norm normalization of lineshape per tag group
+
+
+   \author Axel von Engeln
+   \date 2001-01-11 */
 void absCalc(// WS Output:
              MATRIX&        		     abs,
              ARRAYofMATRIX& 		     abs_per_tg,
@@ -888,73 +906,27 @@ void absCalc(// WS Output:
 	     const ARRAYofsizet&             lineshape,
 	     const ARRAYofsizet&             lineshape_norm)
 {
-  // Check that vmrs and lines_per_tg really have compatible
-  // dimensions. In vmrs there should be one VECTOR for each tg:
-  if ( vmrs.size() != lines_per_tg.size() )
-    {
-      ostringstream os;
-      os << "Variable vmrs must have compatible dimension to lines_per_tg.\n"
-	 << "vmrs.size() = " << vmrs.size() << '\n'
-	 << "lines_per_tg.size() = " << lines_per_tg.size();
-      throw runtime_error(os.str());
-    }
-  
-  // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
-  // is the same as that of lines_per_tg.
-  resize( abs, f_mono.size(), p_abs.size() );
-  setto( abs, 0);
-  resize( abs_per_tg, lines_per_tg.size() );
+  // Dimension checks are performed in the executed functions
 
-  // Print information
-  out3 << "  Transitions to do: \n";
-  size_t nlines = 0;
-  string funit;
-  Numeric ffac;
-  if ( f_mono[0] < 3e12 )
-  {
-    funit = "GHz"; ffac = 1e9;
-  }
-  else
-  {
-    extern const Numeric SPEED_OF_LIGHT;
-    funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
-  }
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
-  {
-    for ( size_t l=0; l<lines_per_tg[i].size(); ++l )
-    {
-      out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
-           << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
-           << lines_per_tg[i][l].I0() << ")\n"; 
-      nlines++;
-    }
-  }
-  out2 << "  Number of frequencies     : " << f_mono.size() << "\n";
-  out2 << "  Number of pressure levels : " << p_abs.size() << "\n";
-  out2 << "  Number of transistions    : " << nlines << "\n";
+  // allocate local variable to hold the cross sections per tag group
+  ARRAYofMATRIX xsec_per_tg;
 
-  // Call abs_species for each tag group.
-  for ( size_t i=0; i<lines_per_tg.size(); ++i )
-    {
-      out2 << "  Tag group " << i << '\n';
-      
-      // Make this element of abs_per_tg the right size:
-      resize( abs_per_tg[i], f_mono.size(), p_abs.size() );
-      setto( abs_per_tg[i], 0 );
+  xsec_per_tgCal(xsec_per_tg,
+		 f_mono,
+		 p_abs,
+		 t_abs,
+		 h2o_abs,
+		 vmrs,
+		 lines_per_tg,
+		 lineshape,
+		 lineshape_norm);
 
-      abs_species( abs_per_tg[i],
-		   f_mono,
-		   p_abs,
-		   t_abs,
-		   h2o_abs,
-		   vmrs[i],
-		   lines_per_tg[i],
-		   lineshape[i],
-		   lineshape_norm[i]);
-      
-      // Add up to the total absorption:
-      add( abs_per_tg[i], abs );
-    }
+
+  absCalcFromXsec(abs,
+		  abs_per_tg,
+		  xsec_per_tg,
+		  vmrs);
+
 }
 
 
@@ -966,11 +938,11 @@ void absCalc(// WS Output:
    dimension is checked.
 
    \retval   abs            absorption coefficients
-   \retval   abs_per_tg     absorption coefficients per tag
-   \param    xsec_per_tg   cross sections per tag
-   \param    vmrs           volume mixing ratios per tag
+   \retval   abs_per_tg     absorption coefficients per tag group
+   \param    xsec_per_tg    cross sections per tag group
+   \param    vmrs           volume mixing ratios per tag group
 
-   \author Axel von Engeln
+   \author Stefan Bühler and Axel von Engeln
    \date   2001-01-11
 */
 void absCalcFromXsec(// WS Output:
@@ -1010,7 +982,7 @@ void absCalcFromXsec(// WS Output:
   setto( abs, 0);
   resize( abs_per_tg, xsec_per_tg.size() );
 
-  // Loop through all tags.
+  // Loop through all tag groups
   for ( INDEX i=0; i<xsec_per_tg.size(); ++i )
     {
       out2 << "  Tag group " << i << '\n';
@@ -1038,32 +1010,32 @@ void absCalcFromXsec(// WS Output:
 
 
 /**
-   Calculates the cross section for each tag.
+   Calculates the cross section for each tag group.
 
-   \retval   xsec_per_tg    cross section per tag
+   \retval   xsec_per_tg    cross section per tag group
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
    \param    h2o_abs        total volume mixing ratio of water vapor
-   \param    vmrs           volume mixing ratios per tag
-   \param    lines_per_tg   transition lines per tag
-   \param    lineshape      lineshape to use per tag
-   \param    lineshape_norm normalization of lineshape per tag
+   \param    vmrs           volume mixing ratios per tag group
+   \param    lines_per_tg   transition lines per tag group
+   \param    lineshape      lineshape to use per tag group
+   \param    lineshape_norm normalization of lineshape per tag group
 
-   \author Axel von Engeln
+   \author Stefan Bühler and Axel von Engeln
    \date   2001-01-11
 */
-void xsec_per_tagCal(// WS Output:
-		     ARRAYofMATRIX& 		     xsec_per_tg,
-		     // WS Input:		  
-		     const VECTOR&  		     f_mono,
-		     const VECTOR&  		     p_abs,
-		     const VECTOR&  		     t_abs,
-		     const VECTOR&  		     h2o_abs,
-		     const ARRAYofVECTOR&            vmrs,
-		     const ARRAYofARRAYofLineRecord& lines_per_tg,
-		     const ARRAYofsizet&             lineshape,
-		     const ARRAYofsizet&             lineshape_norm)
+void xsec_per_tgCal(// WS Output:
+		    ARRAYofMATRIX& 		     xsec_per_tg,
+		    // WS Input:		  
+		    const VECTOR&  		     f_mono,
+		    const VECTOR&  		     p_abs,
+		    const VECTOR&  		     t_abs,
+		    const VECTOR&  		     h2o_abs,
+		    const ARRAYofVECTOR&            vmrs,
+		    const ARRAYofARRAYofLineRecord& lines_per_tg,
+		    const ARRAYofsizet&             lineshape,
+		    const ARRAYofsizet&             lineshape_norm)
 {
   // Check that vmrs and lines_per_tg really have compatible
   // dimensions. In vmrs there should be one VECTOR for each tg:
