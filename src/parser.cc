@@ -358,10 +358,10 @@ void read_integer(String& res, SourceText& text)
 
   while (!stop) 
     {
-      char dummy = text.Current();
-      if ( isdigit(dummy) )
+      char chtmp = text.Current();
+      if ( isdigit(chtmp) )
 	{
-	  res += dummy;
+	  res += chtmp;
 	  text.AdvanceChar();
 	  if ( text.LineBreak() ) stop = true;
 	}
@@ -412,11 +412,11 @@ void read_numeric(String& res, SourceText& text)
   stop = false;
   while (!stop) 
     {
-      char dummy = text.Current();
-      if ( isdigit(dummy) )
+      char chtmp = text.Current();
+      if ( isdigit(chtmp) )
 	{
 	  found_digit = true;
-	  res += dummy;
+	  res += chtmp;
 	  text.AdvanceChar();
 	  if ( text.LineBreak() ) return; // Line break ends scanning immediately.
 	}
@@ -450,11 +450,11 @@ void read_numeric(String& res, SourceText& text)
       stop = false;
       while (!stop) 
 	{
-	  char dummy = text.Current();
-	  if ( isdigit(dummy) )
+	  char chtmp = text.Current();
+	  if ( isdigit(chtmp) )
 	    {
 	      found_digit = true;
-	      res += dummy;
+	      res += chtmp;
 	      text.AdvanceChar();
 	      if ( text.LineBreak() ) return; // Line break ends scanning immediately.
 	    }
@@ -748,9 +748,9 @@ void parse_method(Index& id,
       if ( !mdd->Supergeneric() )
 	{
 	  // Find explicit method id in MdMap:
-	  const map<String, Index>::const_iterator i = MdMap.find(methodname);
-	  assert ( i != MdMap.end() );
-	  id = i->second;	      
+	  const map<String, Index>::const_iterator i2 = MdMap.find(methodname);
+	  assert ( i2 != MdMap.end() );
+	  id = i2->second;	      
 	  
 	  mdd = &md_data[id];
 
