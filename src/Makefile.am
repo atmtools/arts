@@ -271,9 +271,26 @@ test_legendre_SOURCES = \
 	arts.h \
 	arts_mpi.cc \
 	arts_mpi.h \
+	constants.cc \
+	logic.cc \
+	logic.h \
 	make_array.h \
+	math_funcs.cc \
+	math_funcs.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	legendre.h \
 	legendre.cc \
 	test_legendre.cc
