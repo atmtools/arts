@@ -16,7 +16,7 @@
 % IN:      basename    ARTS basename 
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
 
 function [H,f_y,za_y,Hd,f_sensor,za_sensor,basename] = hLoad(basename)
 

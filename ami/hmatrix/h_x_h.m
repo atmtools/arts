@@ -11,7 +11,7 @@
 %          H        old H matrix
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
 
 
 function H = h_x_h(Hpart,H)

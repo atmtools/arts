@@ -22,7 +22,7 @@
 %          ratio       relative sideband response
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson 
+% HISTORY: 00.08.25  Created by Patrick Eriksson 
 
 
 function [H,f_y,za_y,f_sensor] = ...
@@ -33,10 +33,10 @@ function [H,f_y,za_y,f_sensor] = ...
 nf = length(f);
 if fprimary > lo
   [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,...
-             [f(1) lo lo+0.1 f(nf)],[ratio ratio 1-ratio 1-ratio]);
+             [f(1) lo lo+0.1 f(nf)],[ratio ratio 1-ratio 1-ratio],1);
 else
   [Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,...
-             [f(1) lo-0.1 lo f(nf)],[1-ratio 1-ratio ratio ratio]);
+             [f(1) lo-0.1 lo f(nf)],[1-ratio 1-ratio ratio ratio],1);
 end
 
 

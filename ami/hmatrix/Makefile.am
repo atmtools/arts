@@ -37,5 +37,7 @@ EXTRA_DIST = \
 	h_fix_ys.m \
 	h_mixer.m \
 	h_weights_integr.m \
-	h_x_h.m                
-
+	h_x_h.m \
+        pbasis.m  \
+        pbasis_integrate.m \
+        pbasis_x_pol.m

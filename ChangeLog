@@ -1,3 +1,22 @@
+2000-11-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-79
+
+	* Some very small changes in AUG.
+
+	* Allowed cubic treatment between abscissa points of spectra and 
+	sensor characteristics when setting up the H matrix (image sideband 
+	spectra still only linear treatment). Before all quantities were 
+	assumed to be piecewise linear functions, but now piecewise cubic
+ 	functions can be assumed which could improve the accuracy in some
+	cases (needs to be tested).
+
+	* Please note that the sensor part is not yet validated and testet
+ 	in detail (however, the values look OK). When I am happy with the
+	design of the sensor functions, I will do some comparisons with Skuld
+	(but I trust ARTS more) and set up some examples for you.
+	
+
 2000-11-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-78

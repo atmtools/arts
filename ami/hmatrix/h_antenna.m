@@ -7,6 +7,9 @@
 %          The response of the antenna pattern is normalised and the
 %          antenna values (W_ANT) do not need to be normalised.
 %
+% FORMAT:  [H,za_new] = h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,...
+%                                                         fscale,f0,move,dza)
+%
 % RETURN:  H           antenna H matrix
 %          za_new      new zenith angle grid (=ZA2)
 % IN:      f           frequencies
@@ -14,6 +17,9 @@
 %          za2         zenith angles observed by the sensor
 %          za_ant      grid points for the antenna pattern
 %          w_ant       antenna pattern
+%          o_ant       linear (=1) or cubic (=3) treatment of the antenna 
+%                      pattern
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %          fscale      flag to scale the pattern with frequency
 %          f0          reference frequency for frequency scaling, i.e. for 
 %                      which frequency FWHM is valid
@@ -22,11 +28,13 @@
 %          dza         total movement during the integration [deg]
 %------------------------------------------------------------------------
 
-% HISTORY: 12.11.99  Created for Skuld by Patrick Eriksson. 
-%          25.08.00  Adapted to AMI by Patrick Eriksson
+% HISTORY: 99.11.12  Created for Skuld by Patrick Eriksson. 
+%          00.08.25  Adapted to AMI by Patrick Eriksson
+%          00.11.16  Included linear/cubic flags (PE) 
 
 
-function [H,za_new] = h_antenna(f,za1,za2,za_ant,w_ant,fscale,f0,move,dza)
+function [H,za_new] = ...
+               h_antenna(f,za1,za2,za_ant,w_ant,o_ant,o_y,fscale,f0,move,dza)
 
 
 za1    = vec2col(za1);
@@ -39,6 +47,15 @@ n1    = length(za1);
 n2    = length(za2);
 nf    = length(f);
 nant  = length(za_ant);
+
+
+%=== Check some lenghts
+if ( n1 <= o_y )
+  error('The number of pencil beam spectra must be > the selected order.')
+end
+if ( nant <= o_ant )
+  error('The number of antenna points must be > the selected order.')
+end
 
 
 %=== Allocate H and create ZA_NEW
@@ -70,7 +87,7 @@ if fscale
     ind1 = (i-1)*nf;
     ind2 = 0:nf:(nf*(n1-1));
     for j = 1:nf
-      w    = h_weights_integr(za,za_ant*f0/f(j),w_ant);
+      w    = h_weights_integr(za,o_y,za_ant*f0/f(j),o_ant,w_ant);
       s    = sum(w);
       if s > 0
         w    = w/s;
@@ -86,7 +103,7 @@ else
     za   = za1 - za2(i);
     ind1 = (i-1)*nf;
     ind2 = 0:nf:(nf*(n1-1));
-    w    = h_weights_integr(za,za_ant,w_ant);
+    w    = h_weights_integr(za,o_y,za_ant,o_ant,w_ant);
     s    = sum(w);
     if s > 0
       w    = w/s;

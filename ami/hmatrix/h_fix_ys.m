@@ -14,7 +14,7 @@
 %          za_sensor    sensor zenith angles
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
 
 
 function [f_y,za_y] = h_fix_ys(f_sensor,za_sensor)

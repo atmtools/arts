@@ -11,7 +11,7 @@
 %          antenna values do not need to be normalised.
 %
 % FORMAT:  [H,f_y,za_y,za_sensor] = hAntennaFromFileAdv(H,f_sensor,za_sensor,
-%                                         za_obs,filename,fscale,f0,move,dza)
+%                                za_obs,filename,o_ant,o_y,fscale,f0,move,dza)
 %
 % RETURN:  H           H matrix after antenna
 %          f_y         new frequency vector
@@ -22,6 +22,9 @@
 %          za_sensor   input zenith angles
 %          za_obs      zenith angles observed by the sensor
 %          filename    name on file with antenna specification
+%          o_ant       linear (=1) or cubic (=3) treatment of the antenna 
+%                      pattern
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %          fscale      flag to scale the pattern with frequency
 %          f0          reference frequency for frequency scaling, i.e. for 
 %                      which frequency FWHM is valid
@@ -30,11 +33,12 @@
 %          dza         total movement during the integration [deg]
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
+%          00.11.16  Included linear/cubic flags (PE) 
 
 
-function [H,f_y,za_y,za_sensor] = ...
-   hAntennaFromFileAdv(H,f_sensor,za_sensor,za_obs,filename,fscale,f0,move,dza)
+function [H,f_y,za_y,za_sensor] = hAntennaFromFileAdv(H,f_sensor,za_sensor,...
+                                 za_obs,filename,o_ant,o_y,fscale,f0,move,dza)
 
 
 %=== Read the antenna file
@@ -42,8 +46,8 @@ A = read_datafile(filename);
  
 
 %=== Get H for the antenna pattern
-[Hant,za_sensor] = ...
-         h_antenna(f_sensor,za_sensor,za_obs,A(:,1),A(:,2),fscale,f0,move,dza);
+[Hant,za_sensor] = h_antenna(f_sensor,za_sensor,za_obs,A(:,1),A(:,2),...
+                                               o_ant,o_y,fscale,f0,move,dza);
 
 
 %=== Include Hant in H

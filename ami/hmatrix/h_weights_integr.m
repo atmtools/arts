@@ -5,32 +5,51 @@
 %          multiplication. With other words:
 %          We want to calculate the integral of the product of G and H 
 %          by a vector multiplication as W*G
-%          The function H is known, but G is unknown.
-%          Both G and H are assumed to be linear between the grid points
 %
-% FORMAT:  w = h_weights_integr(fg,fh,h)
+%          The function H is known, but only the abscissa of G is known.
+%
+%          The two functions (G and H) can be treated to be piecewise 
+%          linear or cubic (ORDERG/H = 1 or 3).
+%
+% FORMAT:  w = h_weights_integr(fg,orderg,fh,orderh,h)
 %
 % RETURN:  w          matrix weights
 % IN:      fg         position (e.g. frequency) of values of G
+%          orderg     assumed polynomial order for G (1 or 3)
 %          fh         position of values of H
+%          orderh     assumed polynomial order for H (1 or 3)
 %          h          values of the H function (at fh)
 %------------------------------------------------------------------------
 
-% HISTORY: 12.11.99  Created for Skuld by Patrick Eriksson. 
-%          25.08.00  Adapted to AMI by Patrick Eriksson
+% HISTORY: 99.11.12  Created for Skuld by Patrick Eriksson. 
+%          00.08.25  Adapted to AMI by Patrick Eriksson
+%          00.11.16  Adapted to handle linear/cubic (PE) 
 
 
-function w = h_weights_integr(fg,fh,h)
+function w = h_weights_integr(fg,orderg,fh,orderh,h)
+
+
+%=== Check if orders are 1 or 3
+if ~( (orderg==1) | (orderg==3) ) | ~( (orderh==1) | (orderh==3) ) 
+  error('The polynomial order must be 1 or 3.');
+end
+
 
 %=== Main sizes
 ng   = length(fg);
-nh  = length(fh);
-w      = zeros(1,ng);
+nh   = length(fh);
+w    = zeros(1,ng);
+
+
+%=== Check lengths
+if ( (ng<=orderg) | (nh<=orderh) )
+  error('The vector lengths must be larger then the corresponding order.');
+end
 
 
 %=== Check input
 if ( length(h) ~= nh )
-  error('Lengths integration grid and function do not match');
+  error('Lengths of integration grid and function do not match');
 end
 
 
@@ -63,21 +82,54 @@ f2    = min([fg(ig+1),fh(ih+1)]);   % max freq.
 %=== Loop until end of G or H frequencies
 while ( 1 )
 
-  % Express G between fg(ig) and fg(ig+1) as g = g(i)(a+bf) + g(i+1)(c-bf) 
-  b  = -1 / ( fg(ig+1) - fg(ig) ) ;
-  a  = -fg(ig+1) * b ;
-  c  = fg(ig) * b ;
-  
-  % Express H between fh(ih) and fh(ih+1) as h = d + ef 
-  e  = ( h(ih+1)-h(ih) ) / ( fh(ih+1)-fh(ih) ) ; 
-  d  = h(ih) - e*fh(ih) ;
+  % Determine the lowest and highest index for the present fit 
+  % range of G. If ORDERG==3, the outermost ranges are fitted by
+  % second order polynomials.
+  if ( orderg == 1 )
+    ig1 = ig;
+    ig2 = ig + 1;
+  elseif ( ig == 1 )
+    ig1 = ig;
+    ig2 = ig + 2;
+  elseif ( ig == (ng-1) )
+    ig1 = ig - 1;
+    ig2 = ig + 1;
+  else
+    ig1 = ig - 1;
+    ig2 = ig + 2;
+  end
 
-  % Add to the weights at fg(ig) and fg(ig+1)
-  w(ig)   = w(ig)   + f2 * ( a*d + f2*(b*d+a*e)/2 + f2*f2*b*e/3 ) ...
-                    - f1 * ( a*d + f1*(b*d+a*e)/2 + f1*f1*b*e/3 ) ;
-  w(ig+1) = w(ig+1) + f2 * ( c*d + f2*(c*e-b*d)/2 - f2*f2*b*e/3) ...
-                    - f1 * ( c*d + f1*(c*e-b*d)/2 - f1*f1*b*e/3) ;
+  % Do the same for H.
+  if ( orderh == 1 )
+    ih1 = ih;
+    ih2 = ih + 1;
+  elseif ( ih == 1 )
+    ih1 = ih;
+    ih2 = ih + 2;
+  elseif ( ih == (nh-1) )
+    ih1 = ih - 1;
+    ih2 = ih + 1;
+  else
+    ih1 = ih - 1;
+    ih2 = ih + 2;
+  end
 
+  % Get coefficients of the polynomial basis for G
+  pg = pbasis(fg(ig1:ig2));
+
+  % Get the polynomial coefficients for H
+  ph = polyfit(fh(ih1:ih2),h(ih1:ih2),ih2-ih1);
+
+  % Multiplicate G and H
+  pgh = pbasis_x_pol(pg,ph);
+
+  % Integrate the product between F1 and F2 and add to WG
+  ws   = pbasis_integrate(pgh,f1,f2);
+  for j = ig1:ig2
+    w(j) = w(j) + ws(j-ig1+1);
+  end
+
+  % Determine indeces for next step
   if ( fg(ig+1) == fh(ih+1) )
     ig = ig + 1;
     ih = ih + 1;

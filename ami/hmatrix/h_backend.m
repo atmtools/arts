@@ -7,6 +7,8 @@
 %          The response of the channels is normalised and the
 %          response values (W_BACK) do not need to be normalised.
 %
+% FORMAT:  [H,f_new] = h_backend(f1,f2,za,f_back,w_back,o_ch,o_y)
+%
 % RETURN:  H           H for the backend
 %          f_new       new frequency grid (=F2)
 % IN:      f1          monochromatic frequencies
@@ -14,13 +16,17 @@
 %          za          viewing angles
 %          f_back      grid points for the channel response
 %          w_back      the channel response
+%          o_ch        linear (=1) or cubic (=3) treatment of the channel
+%                      response
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %------------------------------------------------------------------------
 
-% HISTORY: 14.11.00  Created for Skuld by Patrick Eriksson. 
-%          25.08.00  Adapted to AMI by Patrick Eriksson
+% HISTORY: 00.11.14  Created for Skuld by Patrick Eriksson. 
+%          00.08.25  Adapted to AMI by Patrick Eriksson
+%          00.11.16  Included linear/cubic flags (PE) 
 
 
-function [H,f_new] = h_backend(f1,f2,za,f_back,w_back)
+function [H,f_new] = h_backend(f1,f2,za,f_back,w_back,o_ch,o_y)
 
 
 %=== Main sizes
@@ -28,6 +34,15 @@ nf1   = length(f1);
 nf2   = length(f2);
 nza   = length(za);
 nback = length(f_back);
+
+
+%=== Check some lenghts
+if ( nf1 <= o_y )
+ error('The number of monochromatic frequencies must be > the selected order.')
+end
+if ( nback <= o_ch )
+  error('The number of channel points must be > the selected order.')
+end
 
 
 %=== Allocate H and create F_NEW
@@ -52,7 +67,7 @@ for i = 1:nf2
      
   f   = f1 - f2(i);
 
-  w    = h_weights_integr(f,f_back,w_back);
+  w    = h_weights_integr(f,o_y,f_back,o_ch,w_back);
   w    = w/sum(w);
   ind3 = find(w~=0);
 

@@ -4,7 +4,7 @@
 %          Includes a Gaussian antenna pattern into H.
 %          
 % FORMAT:  [H,f_y,za_y,za_sensor] = hAntennaGauss(H,f_sensor,za_sensor,
-%                                                  za_obs,fwhm,width,npoints)
+%                                         za_obs,fwhm,width,spacing,o_ant,o_y)
 %
 % RETURN:  H           H matrix after antenna
 %          f_y         new frequency vector
@@ -15,20 +15,24 @@
 %          za_sensor   input zenith angles
 %          za_obs      zenith angles observed by the sensor
 %          fwhm        full width at half mean of the antenna pattern [degs]
-%          width       width of the antenna pattern to consider [degs] 
-%          npoints     number of values to use for definition of the pattern
-%                      NPOINTS must be an odd number
+%          width       total width of the antenna pattern to consider [degs] 
+%          spacing     maximum spacing of the abscissa to use for the 
+%                      antenna pattern [deg]
+%          o_ant       linear (=1) or cubic (=3) treatment of the antenna 
+%                      pattern
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
+%          00.11.16  Included linear/cubic flags (PE) 
 
 
 function [H,f_y,za_y,za_sensor] = ...
-               hAntennaGauss(H,f_sensor,za_sensor,za_obs,fwhm,width,npoints)
+       hAntennaGauss(H,f_sensor,za_sensor,za_obs,fwhm,width,spacing,o_ant,o_y)
 
 
-[H,f_y,za_y,za_sensor] = ...
-     hAntennaGaussAdv(H,f_sensor,za_sensor,za_obs,fwhm,width,npoints,0,0,0,0);
+[H,f_y,za_y,za_sensor] = hAntennaGaussAdv(H,f_sensor,za_sensor,za_obs,...
+                                         fwhm,width,spacing,o_ant,o_y,0,0,0,0);
 
 
 

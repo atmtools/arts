@@ -7,7 +7,7 @@
 %          response values do not need to be normalised.
 %
 % FORMAT:  [H,f_y,za_y,f_sensor] = hBackendGauss(H,f_sensor,za_sensor,
-%                                                f_centre,fwhm,width,npoints)
+%                                        f_centre,fwhm,width,spacing,o_ch,o_y)
 %
 % RETURN:  H           H matrix after backend
 %          f_y         new frequency vector
@@ -18,25 +18,20 @@
 %          za_sensor   zenith angles
 %          f_centre    centre frequencies of the channels
 %          fwhm        full width at half mean of the channel response [Hz]
-%          width       the width of the response to consider [Hz] 
-%          npoints     number of values to use for definition of the response.
-%                      NPOINTS must be an odd number > 2
+%          width       the (total) width of the response to consider [Hz] 
+%          spacing     maximum spacing of the abscissa to use for the 
+%                      channel response [Hz]
+%          o_ch        linear (=1) or cubic (=3) treatment of the channel
+%                      response
+%          o_y         linear (=1) or cubic (=3) treatment of spectra
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
+%          00.11.16  Included linear/cubic flags (PE) 
 
 
 function [H,f_y,za_y,f_sensor] = ...
-              hBackendGauss(H,f_sensor,za_sensor,f_centre,fwhm,width,npoints)
-
-
-%=== Check input
-if npoints < 3
-  error('The number of points must be >= 3');
-end
-if ~isodd(npoints)
-  error('The number of points must be an odd number');
-end
+      hBackendGauss(H,f_sensor,za_sensor,f_centre,fwhm,width,spacing,o_ch,o_y)
 
 
 %=== Convert FWHM and WIDTH to a standard deviation values
@@ -45,7 +40,8 @@ nsi    = width/sqrt(2*log(2))/2;
 
 
 %=== Set up grid for channel response
-f_back = linspace(-nsi,nsi,npoints);
+npoints = 2*ceil(width/spacing) + 1;
+f_back  = linspace(-nsi,nsi,npoints);
 
 
 %=== Calculate channel response at F_BACK
@@ -53,7 +49,7 @@ back   = exp(-1*f_back.^2/(2*si*si))/si/sqrt(2*pi);
 
 
 %=== Get H for the backend
-[Hback,f_sensor] = h_backend(f_sensor,f_centre,za_sensor,f_back,back);
+[Hback,f_sensor] = h_backend(f_sensor,f_centre,za_sensor,f_back,back,o_ch,o_y);
 
 
 %=== Include Hback in H

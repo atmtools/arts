@@ -9,6 +9,8 @@
 %          The response of the sideband filter is normalised and the
 %          filter values (W_FILTER) do not need to be normalised.
 %
+% FORMAT:  [H,f_new] = h_mixer(f,za,lo,fprimary,f_filter,w_filter,o_filter)
+%
 % RETURN:  H           H matrix for the mixer
 %          f_new       new frequency grid
 % IN:      f           frequencies
@@ -17,19 +19,28 @@
 %          fprimary    a frequency inside the primary band (!=LO)
 %          f_filter    frequencies for W_FILTER
 %          w_filter    sideband filter values
+%          o_filter    linear (=1) or cubic (=3) treatment of the
+%                      sideband filter
 %------------------------------------------------------------------------
 
-% HISTORY: 18.11.99  Created for Skuld by Patrick Eriksson. 
-%          25.08.00  Adapted to AMI by Patrick Eriksson
+% HISTORY: 99.11.18  Created for Skuld by Patrick Eriksson. 
+%          00.08.25  Adapted to AMI by Patrick Eriksson
+%          00.11.16  Included linear/cubic flag (PE) 
 
 
-function [H,f_new] = h_mixer(f,za,lo,fprimary,f_filter,w_filter)
+function [H,f_new] = h_mixer(f,za,lo,fprimary,f_filter,w_filter,o_filter)
 
 
 %=== Main sizes
 nf    = length(f);
 nza   = length(za);
 nfilt = size(f_filter,1);
+
+
+%=== Check if orders are 1 or 3
+if ~( (o_filter==1) | (o_filter==3) ) 
+  error('The polynomial order must be 1 or 3.');
+end
 
 
 %=== Determine if upper or lower side is primary band
@@ -105,7 +116,11 @@ for i = iprim:istop
   iout   = i - iprim + 1;
 
   %=== Get sideband filter values
-  w = interp1(f_filter,w_filter,[f(i),fimage]);
+  if ( o_filter == 1
+    w = interp1(f_filter,w_filter,[f(i),fimage],'linear');
+  else
+    w = interp1(f_filter,w_filter,[f(i),fimage],'cubic');
+  end
 
   %=== Determine index/indeces of image frequency
   while istep*f(iimage+istep) < istep*fimage

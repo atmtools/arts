@@ -18,7 +18,7 @@
 %          basename    basename for H file 
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.25  Created by Patrick Eriksson. 
 
 
 function [H,f_y,za_y,Hd] = hHdFromFile(H,Hd,basename)

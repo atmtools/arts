@@ -51,7 +51,7 @@
 %          filename    name on file specifying the binning pattern
 %------------------------------------------------------------------------
 
-% HISTORY: 22.08.00  Created by Patrick Eriksson. 
+% HISTORY: 00.08.22  Created by Patrick Eriksson. 
 
 
 function [H,f_y,za_y,Hd] = hBinFile(H,f_y,za_y,Hd,filename)

@@ -11,7 +11,7 @@
 %          za_sensor   zenith angles
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson 
+% HISTORY: 00.08.25  Created by Patrick Eriksson 
 
 
 function H = hTb(H,f_sensor,za_sensor)

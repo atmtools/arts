@@ -9,7 +9,7 @@
 %          response values do not need to be normalised.
 %
 % FORMAT:  [H,f_y,za_y,f_sensor] = hMixerFromFileAdv(H,f_sensor,za_sensor,
-%                                                      lo,fprimary,filename)
+%                                               lo,fprimary,filename,o_filter)
 %
 % RETURN:  H           H matrix after antenna
 %          f_y         new frequency vector
@@ -21,13 +21,16 @@
 %          lo          LO frequency
 %          fprimary    a frequency inside the primary band (!=LO)
 %          filename    name on file with sideband filtering specification
+%          o_filter    linear (=1) or cubic (=3) treatment of the
+%                      sideband filter
 %------------------------------------------------------------------------
 
-% HISTORY: 25.08.00  Created by Patrick Eriksson 
+% HISTORY: 00.08.25  Created by Patrick Eriksson 
+%          00.11.16  Included linear/cubic flag (PE) 
 
 
 function [H,f_y,za_y,f_sensor] = ...
-                hMixerFromFileAdv(H,f_sensor,za_sensor,lo,fprimary,filename)
+         hMixerFromFileAdv(H,f_sensor,za_sensor,lo,fprimary,filename,o_filter)
 
 
 %=== Read the sideband-mixer file
@@ -35,7 +38,8 @@ A = read_datafile(filename);
  
 
 %=== Get H
-[Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,A(:,1),A(:,2));
+[Hmix,f_sensor] = h_mixer(f_sensor,za_sensor,lo,fprimary,A(:,1),A(:,2),...
+                                                                     o_filter);
 
 
 %=== Include Hant in H

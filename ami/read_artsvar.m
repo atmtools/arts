@@ -10,12 +10,12 @@
 %          The function picks the latest file for the variable of interest.
 %          To force reading of a specific file format use FORCE.            
 %
-% FORMAT:  x = read_artsvar(basename,varname,force)
+% FORMAT:  x = read_artsvar(basename,varname [,force])
 %
 % RETURN:  x           Read data.
 % IN:      basename    ARTS basename 
 %          varname     Variable name.
-%          force       'a' or 'b' to force reading of ASCII or binary,
+% OPTIONAL force       'a' or 'b' to force reading of ASCII or binary,
 %                      respectively.
 %------------------------------------------------------------------------
 
