@@ -167,6 +167,20 @@ These are the cross sections individually for each tag
 group. The ARRAY contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
+VARIABLE : hse
+DATA TYPE: VECTOR
+DESCRIPTION:
+This vector holds the parameters for calculating hydrostatic 
+equilibrium (HSE). The length of the vector is either 1 or 5, where
+the values are: 
+   1: On/off flag. 0 = ignore HSE, 1 = consider HSE.
+   2: The pressure of the reference point [Pa]. 
+   3: The altitude of the reference point [m]. 
+   4: Gravitational acceleration at the geoid surface [m/s2]. 
+   5: Number of iterations of the calculations.
+If the on/off flag is set to 1, the length of the vector must be 5,
+while if the flag is 0 a length of 1 is OK.
+
 VARIABLE : emission
 DATA TYPE: int
 DESCRIPTION:
@@ -223,6 +237,12 @@ performed when considering refraction.
 The step length applied is l_step divided by refr_lfac. 
 Accordingly, this factor gives how many ray tracing steps that are 
 performed for each step of the LOS.
+
+VARIABLE : refr_model
+DATA TYPE: string
+DESCRIPTION:
+A string giving what refraction model (or parameterization) to use
+for the calculation of refractive index.
 
 VARIABLE : refr_index
 DATA TYPE: VECTOR

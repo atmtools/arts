@@ -1,63 +1,92 @@
 #
+# A sample control file to demonstrate some of the RTE, WF and batch
+# functions. You will need to edit some paths to get things working.
+#
 # Run this control file and type in AMI:
 #    f=read_artsvar('full','f_mono');   
 #    za=read_artsvar('full','za_pencil'); 
 #    y=read_artsvar('full','y');   
-#    plot(f/1e9,reshape(y2,length(f),length(za))) 
+#    plot(f/1e9,reshape(invrayjean(501e9,y),length(f),length(za))) 
 #
 # You should then get something similar to Figure 4 in Paper A of my thesis.
+#
 # By typing 
 #    Y=read_artsvar('full','ybatch');  
 # you get the result of the batch calculations.
 #
 
+# PE 2001-04-23
+# The RTE and WF parts are updated while the batch part is not up to date.
+
+
 ### Spectroscopy: ############################################################
-tag_groupsDefine    { ["O3-666","ClO","H2O-161","N2O-446"] }
-#tag_groupsDefine    { ["ClO"] }
+tgsDefine           { [
+       "O3",
+       "ClO",
+       "H2O,H2O-ContRosenkranzForeign,H2O-ContRosenkranzSelf",
+       "N2O",
+       "N2-ContRosenkranzSelf" ] }
+wfs_tgsDefine       { ["O3","ClO"] }
 lineshapeDefine     { shape               = "Voigt_Kuntz6"
-                      normalizationfactor = "quadratic" } 
+                      normalizationfactor = "quadratic"
+                      cutoff              = -1 } 
 #
-linesReadFromHitran { filename = "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
+linesReadFromHitran { filename = "/smiles_local/Qpack/Qpack/Samples/Spectroscopy/lines501.4"
 		      fmin     = 498e9
                       fmax     = 505e9 }
 lines_per_tgCreateFromLines {}  
+#
+cont_descriptionInit{
+}
+cont_descriptionAppend{
+    name       = "H2O-ContRosenkranzSelf"
+    parameters = [ 17.96e-34, 4.5 ]
+}
+cont_descriptionAppend{
+    name       = "H2O-ContRosenkranzForeign"
+    parameters = [ 5.43e-35, 0.0 ]
+}
+cont_descriptionAppend{
+    name       = "N2-ContRosenkranzSelf"
+    parameters = [ 1.05e-38, 3.55 ]
+}
+
 
 
 ### Load an atmosphere ########################################################
-MatrixReadAscii (raw_ptz_1d) { "../../data/atmosphere/fascod/midlatitude-winter.tz.am" }
-raw_vmrs_1dReadFromScenario  { "../../data/atmosphere/fascod/midlatitude-winter" }
+MatrixReadAscii (raw_ptz_1d) { "/smiles_local/arts/data/atmosphere/fascod/midlatitude-winter.tz.am" }
+raw_vmrs_1dReadFromScenario  { "/smiles_local/arts/data/atmosphere/fascod/midlatitude-winter" }
 
 
 ### Monochromatic frequency grid ##############################################
 VectorLinSpace (f_mono)    { start = 501.18e+9
                              stop  = 501.58e+9
-		             step  = 0.5e6       }
+		             step  = 1e6       }
 VectorWriteAscii (f_mono) {""}
 
 
-### The ground ################################################################
+### The geoid #################################################################
 # Set r_geoid to EARTH_RADIUS
 r_geoidStd{}
-# Set r_geoid to the WGS84 geoid 
-#r_geoidWGS84{ latitude     = 0
-#              obsdirection = 0 }
-NumericSet (z_ground) { 0.0 }
-NumericSet (t_ground) { 290.0 }
-VectorSetLengthFromVector(e_ground,f_mono){value=0.75}
-
 
 
 ### Vertical profiles #########################################################
 VectorNLogSpace (p_abs)    { start = 1.013300e+05
                              stop  = 0.0914023919463313
-                             n     = 201 }
+                             n     = 101 }
 AtmFromRaw1D               {}
-VectorSetLengthFromVector ( h2o_abs, p_abs ) { 0 } 
-z_absHydrostatic{
+h2o_absSet{}
+n2_absSet{}
+#hseSet{
+#   pref  = 101330
+#   zref  = 0
+#   g0    = 9.81
+#   niter = 2 }
+hseFromBottom{
    g0    = 9.81
-   pref  = 101330
-   zref  = 0
    niter = 2 }
+#hseOff{}
+hseCalc{}
 VectorWriteAscii (p_abs)  {""}
 VectorWriteAscii (t_abs)  {""}
 VectorWriteAscii (z_abs)  {""}
@@ -65,9 +94,20 @@ VectorWriteAscii (z_abs)  {""}
 
 
 ### Calculate absorption ######################################################
-absCalc                    {}
-#MatrixWriteBinary (abs) {""}
-#ArrayOfMatrixWriteBinary (abs_per_tg) {""}
+absCalc           {}
+abs_per_tgReduce  {}
+#
+
+
+### The ground ################################################################
+#NumericSet (z_ground) { 0.0 }
+#NumericSet (t_ground) { 290.0 }
+#VectorSetLengthFromVector(e_ground,f_mono){value=0.75}
+#groundOff{}
+groundSet{
+   z = 1e3
+   e = 0.9
+}
 
 
 ### Observation geometry ######################################################
@@ -78,7 +118,7 @@ VectorNLinSpace (za_pencil) { start = 113
 #VectorSet  (za_pencil) { length = 1
 #                         value  = 0 }
 VectorWriteAscii( za_pencil ){""}
-NumericSet (l_step) { 10e3 }
+NumericSet (l_step) { 20e3 }
 
 
 ### Cosmic radiation ##########################################################
@@ -87,75 +127,73 @@ y_spaceStd{ "cbgr" }
 
 
 ### Refraction ################################################################
-IntSet(refr) {0}
-NumericSet (l_step_refr) { 1e3 }
-refr_indexBoudourisDryAir{}
+#refrOff{}
+refrSet{
+  on    = 1
+  model = "Boudouris"
+  lfac  = 4
+}
+refrCalc{}
+
+
+### Emission ##################################################################
+emissionOn {}
 
 
 ### Line of sight (LOS) #######################################################
 losCalc{}
-# A function assuming no refraction
-#losNoRefraction{}
-# A function assuming no refraction and no ground intersection
-#losUpward{}
-#LosWriteBinary(los){""}
-#LosReadBinary(los){""}
+VectorWriteBinary( z_tan ) {""}
 sourceCalc{}
 transCalc{}
 
 
 ### Calculate spectra #########################################################
-yRte{}
-#yRteNoGround{}
-#yBl{}
-#yBlNoGround{}
+yCalc{}
+VectorWriteBinary( y ) {""}
+#yTau{}
 
 
 
-### Calculate species weighting function matrix and save ######################
-absloswfsCalc{}
-kxInit{}
+
+### Calculate Kx ##############################################################
+
+### Init ###
+#kxInit{}
 #kbInit{}
+kxAllocate( y ){
+   ni = 4 
+   nx = 224 }
+
+### Species ###
+absloswfsCalc{}
 VectorCopy( k_grid, p_abs ){}
-VectorWriteAscii (k_grid)  {""}
-kSpecies{    tag   = "O3-666"
-             unit  = "frac" }
-#kSpeciesAll{ unit = "frac" }
-kxAppend{}
-#kxAppendUsingH(h1){}
-kContAbs{ order = 1 }
-kxAppend{}
-#kxAppendUsingH(h1){}
-kTempNoHydro{}
-kxAppend{}
-#MatrixApplyH(kx,h1,kx){}
-#
-# To test kDiffH
-#kDiffHFast{ name    = "Proportional"
-#             delta   = 0.01
-#             grid    = 0
-#             apriori = 0}
+#kSpecies{    tag   = "O3"
+#             unit  = "frac" }
+kSpeciesAll{ unit = "frac" }
 #kxAppend{}
-#
-# To test kManual
-#VectorCopy(y0,y){}
-#y_spaceStd{1}
-#yRte{}
-#kManual{ name    = "CBGR"
-#         delta   = 2.73
-#         grid    = 0
-#         apriori = 2.73}
-#kxAppendUsingH(h1){}
-#
+kxPutInK{}
+
+### Pointing off-set ###
+kPointingOffSet{ delta = 0.001 }
+#kxAppend{}
+kxPutInK{}
+
+### Temperature ###
+VectorNLogSpace (k_grid)   { start = 1.013300e+05
+                             stop  = 0.0914023919463313
+                             n     = 21 }
+#kTemp{}
+kTempFast{}
+#kxAppend{}
+kxPutInK{}
+
+### Save ###
 MatrixWriteBinary(kx){""}  
-MatrixWriteAscii(kx){""}  
-MatrixWriteBinary(kx_index){""}  
+ArrayOfIndexWriteBinary(kx_lengths){""}  
 MatrixWriteBinary(kx_aux){""}  
 ArrayOfStringWriteBinary(kx_names){""}
-#MatrixWriteAscii(kb){""}  
-#MatrixWriteAscii(kb_index){""}  
-#MatrixWriteAscii(kb_aux){""}  
-#ArrayOfStringWriteBinary(kb_names){""}
+
+Exit{}
 
 
 ### Conversion to different temperature scales ################################
@@ -186,10 +224,6 @@ sDiagonalLengthFromVector ( p_abs )
 
 BatchdataGaussianTemperatureProfiles{
    n     = 20
-   g0    = 9.81
-   pref  = 101330
-   zref  = 0
-   niter = 2 
 }
 
 sDiagonalLengthFromVector ( p_abs )

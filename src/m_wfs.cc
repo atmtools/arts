@@ -1637,8 +1637,9 @@ void k_temp_nohydro (
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
 
-    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, h2o_abs, vmrs, 
-             lines_per_tg, lineshape, cont_description_names, cont_description_parameters );
+    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, 
+             h2o_abs, vmrs, lines_per_tg, lineshape, cont_description_names, 
+                                                 cont_description_parameters );
   }
   resize(abs_dummy,0);
   //
@@ -1828,6 +1829,9 @@ void absloswfsCalc (
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
+  if ( !isbool( emission ) )  
+    throw runtime_error("The emission flag must either be 0 or 1.");
+
   if ( emission == 0 )
     absloswfs_tau ( absloswfs, los, f_mono );
   else
@@ -1849,9 +1853,12 @@ void absloswfsTau (
 	      const LOS&             los,
               const VECTOR&          f_mono )
 {
+  if ( !isbool( emission ) )  
+    throw runtime_error("The emission flag must either be 0 or 1.");
+
   if ( emission != 0 )
     throw runtime_error(
-      "The function yTau can only be used when emission is neglected.");
+     "The function absloswfsTau can only be used when emission is neglected.");
 
   absloswfs_tau ( absloswfs, los, f_mono );
 
@@ -1966,7 +1973,7 @@ void kContAbsSpecifiedLimits (
               const ARRAYofMATRIX&   absloswfs,
               const VECTOR&          f_mono,
               const VECTOR&          k_grid,
-		    const int&             order,
+	      const int&             order,
               const Numeric&         f_low,
               const Numeric&         f_high )
 {
@@ -1999,34 +2006,458 @@ void kContAbsSpecifiedLimits (
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2000-04-18
+*/
+void kTemp (
+                MATRIX&                   k,
+                ARRAYofstring&            k_names,
+                MATRIX&                   k_aux,
+          const TagGroups&                tgs,
+          const VECTOR&                   f_mono,
+          const VECTOR&                   p_abs,
+          const VECTOR&                   t_abs,
+          const VECTOR&                   n2_abs,
+          const VECTOR&                   h2o_abs,
+          const ARRAYofVECTOR&            vmrs,
+	  const MATRIX&                   abs0,
+          const ARRAYofARRAYofLineRecord& lines_per_tg,
+          const ARRAYofLineshapeSpec&     lineshape,
+          const VECTOR&                   e_ground,
+          const int&                      emission,
+          const VECTOR&                   k_grid,
+          const ARRAYofstring&            cont_description_names,
+          const ARRAYofVECTOR& 	          cont_description_parameters,
+    	  const Numeric&    		  z_plat,
+    	  const VECTOR&     		  za,
+    	  const Numeric&    		  l_step,
+    	  const VECTOR&     		  z_abs,
+    	  const int&        		  refr,
+    	  const int&        		  refr_lfac,
+    	  const VECTOR&     		  refr_index,
+    	  const Numeric&    		  z_ground,
+          const Numeric&                  t_ground,
+    	  const VECTOR&     		  y_space,
+    	  const Numeric&    		  r_geoid,
+          const VECTOR&     		  hse0 )
+{
+  // Check input
+  if ( hse0[0] == 0 )
+    throw runtime_error("Hydrostatic equilibrium must be turned on.");
+
+  // Main sizes
+  const size_t  nza  = za.size();          // number of zenith angles  
+  const size_t  nv   = f_mono.size();      // number of frequencies
+  const size_t  np   = k_grid.size();      // number of retrieval altitudes
+  const size_t  nabs = p_abs.size();       // number of absorption altitudes
+
+  // Vectors for the reference state
+  VECTOR z0(nabs), y0, t0(np);
+
+  // Local copy of hse
+  VECTOR hse( hse0.size() );
+  copy( hse0, hse );
+
+  // Calculate reference z_abs with a high number of iterations
+  hse[4] = 5;
+  copy( z_abs, z0 ); 
+  hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse );
+  hse[4] = hse0[4];
+
+  // Calculate reference spectrum
+  out1 << "  Calculating reference spectrum\n";
+  out2 << "  ----- Messages from losCalc: --------\n";
+  LOS    los;
+  VECTOR z_tan;
+  losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+                                              refr_index, z_ground, r_geoid );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from sourceCalc: -----\n";
+  ARRAYofMATRIX source, trans;
+  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from transCalc: ------\n";
+  transCalc( trans, los, p_abs, abs0 );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from yRte: -----------\n";
+  yCalc( y0, emission, los, f_mono, y_space, source, trans, 
+                                                         e_ground, t_ground );
+  out2 << "  -------------------------------------\n";
+
+  // Allocate K and fill aux. variables
+  resize(k,nza*nv,np);
+  resize(k_names,1);
+  k_names[0] = "Temperature: with hydrostatic eq.";
+  resize(k_aux,np,2);
+  interpp( t0, p_abs, t_abs, k_grid ); 
+  for ( INDEX ip=0; ip<np; ip++ )
+  {
+     k_aux[ip][0] = k_grid[ip];
+     k_aux[ip][1] = t0[ip];
+  }
+
+  // Determine conversion between grids        
+  MATRIX is;
+  VECTOR lpabs, lgrid;
+  p2grid( lpabs, p_abs );
+  p2grid( lgrid, k_grid );
+  grid2grid_index( is, lpabs, lgrid );
+
+  // Loop retrieval altitudes and calculate new spectra
+  //
+  MATRIX         abs;
+  ARRAYofMATRIX  abs_dummy;
+  VECTOR y, t(nabs), w;
+  INDEX  i1, iw, iv;
+  //
+  for ( INDEX ip=0; ip<np; ip++ )
+  {
+    out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
+
+    // Create disturbed temperature profile
+    grid2grid_weights( w, lpabs, INDEX(is[ip][0]), INDEX(is[ip][1]), 
+		                                                  lgrid, ip );
+    i1 = INDEX( is[ip][0] );       // first p_abs point to consider
+    copy( t_abs, t );
+    for ( iw=i1; iw<=INDEX(is[ip][1]); iw++ )
+      t[iw] += w[iw-i1];
+
+    out2 << "  ----- Messages from absCalc: --------\n";
+    absCalc( abs, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
+                          lines_per_tg, lineshape, 
+                          cont_description_names, cont_description_parameters);
+    out2 << "  ----- Messages from losCalc: --------\n";
+    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+                                              refr_index, z_ground, r_geoid );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from sourceCalc: -----\n";
+    ARRAYofMATRIX source, trans;
+    sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from transCalc: ------\n";
+    transCalc( trans, los, p_abs, abs );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from yRte: -----------\n";
+    yCalc( y, emission, los, f_mono, y_space, source, trans, 
+							  e_ground, t_ground );
+    out2 << "  -------------------------------------\n";
+
+    // Fill K
+    for ( iv=0; iv<nza*nv; iv++ )
+      k[iv][ip] = y[iv] - y0[iv];
+  }
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2000-04-21
+*/
+void kTempFast (
+                MATRIX&                   k,
+                ARRAYofstring&            k_names,
+                MATRIX&                   k_aux,
+          const TagGroups&                tgs,
+          const VECTOR&                   f_mono,
+          const VECTOR&                   p_abs,
+          const VECTOR&                   t_abs,
+          const VECTOR&                   n2_abs,
+          const VECTOR&                   h2o_abs,
+          const ARRAYofVECTOR&            vmrs,
+	  const MATRIX&                   abs0,
+          const ARRAYofARRAYofLineRecord& lines_per_tg,
+          const ARRAYofLineshapeSpec&     lineshape,
+          const VECTOR&                   e_ground,
+          const int&                      emission,
+          const VECTOR&                   k_grid,
+          const ARRAYofstring&            cont_description_names,
+          const ARRAYofVECTOR& 	          cont_description_parameters,
+    	  const Numeric&    		  z_plat,
+    	  const VECTOR&     		  za,
+    	  const Numeric&    		  l_step,
+    	  const VECTOR&     		  z_abs,
+    	  const int&        		  refr,
+    	  const int&        		  refr_lfac,
+    	  const VECTOR&     		  refr_index,
+    	  const Numeric&    		  z_ground,
+          const Numeric&                  t_ground,
+    	  const VECTOR&     		  y_space,
+    	  const Numeric&    		  r_geoid,
+          const VECTOR&     		  hse0 )
+{
+  // Check input
+  if ( hse0[0] == 0 )
+    throw runtime_error("Hydrostatic equilibrium must be turned on.");
+
+  // Main sizes
+  const size_t  nza  = za.size();          // number of zenith angles  
+  const size_t  nv   = f_mono.size();      // number of frequencies
+  const size_t  np   = k_grid.size();      // number of retrieval altitudes
+  const size_t  nabs = p_abs.size();       // number of absorption altitudes
+
+  // Vectors for the reference state
+  VECTOR z0(nabs), y0, t0(np);
+
+  // Local copy of hse
+  VECTOR hse( hse0.size() );
+  copy( hse0, hse );
+
+  // Calculate reference z_abs with a high number of iterations
+  hse[4] = 5;
+  copy( z_abs, z0 ); 
+  hseCalc( z0, p_abs, t_abs, h2o_abs, r_geoid,  hse );
+  hse[4] = hse0[4];
+
+  // Calculate absorption for + 1K
+  MATRIX         abs1k, abs(nv,nabs);
+  ARRAYofMATRIX  abs_dummy;
+  //
+  {
+    VECTOR  t(nabs);
+    copy( t_abs, t );
+    //VECTOR dummy(nabs,1.0);
+    add( VECTOR(nabs,1.0), t );
+    //
+    out1 << "  Calculating absorption for t_abs + 1K \n";
+    out2 << "  ----- Messages from absCalc: --------\n";
+    absCalc( abs1k, abs_dummy, tgs, f_mono, p_abs, t, n2_abs, h2o_abs, vmrs, 
+                        lines_per_tg, lineshape, 
+                        cont_description_names, cont_description_parameters);
+  }
+  // Calculate reference spectrum
+  out1 << "  Calculating reference spectrum\n";
+  out2 << "  ----- Messages from losCalc: --------\n";
+  LOS    los;
+  VECTOR z_tan;
+  losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+                                              refr_index, z_ground, r_geoid );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from sourceCalc: -----\n";
+  ARRAYofMATRIX source, trans;
+  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from transCalc: ------\n";
+  transCalc( trans, los, p_abs, abs0 );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from yRte: -----------\n";
+  yCalc( y0, emission, los, f_mono, y_space, source, trans, 
+                                                         e_ground, t_ground );
+  out2 << "  -------------------------------------\n";
+
+  // Allocate K and fill aux. variables
+  resize(k,nza*nv,np);
+  resize(k_names,1);
+  k_names[0] = "Temperature: with hydrostatic eq.";
+  resize(k_aux,np,2);
+  interpp( t0, p_abs, t_abs, k_grid ); 
+  for ( INDEX ip=0; ip<np; ip++ )
+  {
+     k_aux[ip][0] = k_grid[ip];
+     k_aux[ip][1] = t0[ip];
+  }
+
+  // Determine conversion between grids        
+  MATRIX is;
+  VECTOR lpabs, lgrid;
+  p2grid( lpabs, p_abs );
+  p2grid( lgrid, k_grid );
+  grid2grid_index( is, lpabs, lgrid );
+
+  // Loop retrieval altitudes and calculate new spectra
+  //
+  VECTOR y, w;
+  INDEX  i1, iw, iv;
+  //
+  for ( INDEX ip=0; ip<np; ip++ )
+  {
+    out1 << "  Doing altitude " << ip+1 << "/" << np << "\n";   
+
+    // Create absorption matrix corresponding to temperature disturbance
+    grid2grid_weights( w, lpabs, INDEX(is[ip][0]), INDEX(is[ip][1]), 
+		                                                  lgrid, ip );
+    i1 = INDEX( is[ip][0] );       // first p_abs point to consider
+    copy( abs0, abs );
+    for ( iw=i1; iw<=INDEX(is[ip][1]); iw++ )
+    {
+      for ( iv=0; iv<nv; iv++ )
+        abs[iv][iw] = (1-w[iw-i1])*abs0[iv][iw] + w[iw-i1]*abs1k[iv][iw];
+    }
+
+    out2 << "  ----- Messages from losCalc: --------\n";
+    losCalc( los, z_tan, z_plat, za, l_step, p_abs, z_abs, refr, refr_lfac, 
+                                              refr_index, z_ground, r_geoid );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from sourceCalc: -----\n";
+    ARRAYofMATRIX source, trans;
+    sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from transCalc: ------\n";
+    transCalc( trans, los, p_abs, abs );
+    out2 << "  -------------------------------------\n";
+    out2 << "  ----- Messages from yRte: -----------\n";
+    yCalc( y, emission, los, f_mono, y_space, source, trans, 
+							  e_ground, t_ground );
+    out2 << "  -------------------------------------\n";
+
+    // Fill K
+    for ( iv=0; iv<nza*nv; iv++ )
+      k[iv][ip] = y[iv] - y0[iv];
+  }
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2000-?-?
 */
 void kTempNoHydro (
-                    MATRIX&                         k,
-                    ARRAYofstring&                  k_names,
-                    MATRIX&                         k_aux,
-                    const TagGroups&                tag_groups,
-		    const LOS&                      los,           
-		    const ARRAYofMATRIX&            absloswfs,
-		    const VECTOR&                   f_mono,
-		    const VECTOR&                   p_abs,
-		    const VECTOR&                   t_abs,
-		    const VECTOR&                   n2_abs,
-		    const VECTOR&                   h2o_abs,
-		    const ARRAYofVECTOR&            vmrs,
-		    const ARRAYofARRAYofLineRecord& lines_per_tg,
-		    const ARRAYofLineshapeSpec&     lineshape,
-		    const MATRIX&                   abs,            
-		    const ARRAYofMATRIX&            trans,
-		    const VECTOR&                   e_ground,
-		    const VECTOR&                   k_grid,
-		    const ARRAYofstring&            cont_description_names,
-		    const ARRAYofVECTOR& 	    cont_description_parameters )
+                  MATRIX&                   k,
+                  ARRAYofstring&            k_names,
+                  MATRIX&                   k_aux,
+            const TagGroups&                tag_groups,
+	    const LOS&                      los,           
+	    const ARRAYofMATRIX&            absloswfs,
+	    const VECTOR&                   f_mono,
+	    const VECTOR&                   p_abs,
+	    const VECTOR&                   t_abs,
+	    const VECTOR&                   n2_abs,
+	    const VECTOR&                   h2o_abs,
+	    const ARRAYofVECTOR&            vmrs,
+	    const ARRAYofARRAYofLineRecord& lines_per_tg,
+	    const ARRAYofLineshapeSpec&     lineshape,
+	    const MATRIX&                   abs,            
+	    const ARRAYofMATRIX&            trans,
+	    const VECTOR&                   e_ground,
+	    const VECTOR&                   k_grid,
+	    const ARRAYofstring&            cont_description_names,
+            const ARRAYofVECTOR& 	    cont_description_parameters )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
                   t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
                   abs, trans, e_ground, k_grid,
 		  cont_description_names, cont_description_parameters );  
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-21
+ */
+void kPointingOffSet(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const Numeric&         z_plat,
+              const VECTOR&          za_pencil,
+              const Numeric&         l_step,
+              const VECTOR&          p_abs,
+              const VECTOR&          z_abs,
+              const VECTOR&          t_abs,
+              const VECTOR&          f_mono,
+              const int&             refr,
+              const int&             refr_lfac,
+              const VECTOR&          refr_index,
+              const Numeric&         z_ground,
+              const Numeric&         r_geoid,
+              const MATRIX&          abs,
+  	      const int&             emission,
+              const VECTOR&          y_space,
+              const VECTOR&          e_ground,
+              const Numeric&         t_ground,
+              const VECTOR&          y,
+              const Numeric&         delta )
+{
+  if ( !isbool( emission ) )  
+    throw runtime_error("The emission flag must either be 0 or 1.");
+
+  // Create new zenith angle grid
+  const INDEX  nza = za_pencil.size();
+  VECTOR za_new( nza );
+  copy( za_pencil, za_new );
+  add( za_new, VECTOR(nza,delta), za_new );
+
+  out2 << "  ----- Messages from losCalc: --------\n";
+  LOS    los;
+  VECTOR z_tan;
+  losCalc( los, z_tan, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
+                                              refr_index, z_ground, r_geoid );
+  out2 << "  -------------------------------------\n";
+
+  ARRAYofMATRIX source, trans;
+  out2 << "  ----- Messages from sourceCalc: -----\n";
+  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from transCalc: ------\n";
+  transCalc( trans, los, p_abs, abs );
+  out2 << "  -------------------------------------\n";
+  VECTOR y_new;
+  out2 << "  ----- Messages from yRte: -----------\n";
+  yCalc( y_new, emission, los, f_mono, y_space, source, trans, 
+                                                         e_ground, t_ground );
+  out2 << "  -------------------------------------\n";
+
+  // Make k one-column matrix of the right size:
+  const INDEX   nv = y.size();
+  resize( k, nv, 1 );
+
+  // k = (y_new - y) / delta
+  VECTOR dummy( nv );
+  add( y_new, scaled(y,-1), dummy );
+  copy( scaled(dummy,1/delta), columns(k)[0] );
+
+  resize( k_names, 1 );
+  k_names[0] = "Pointing: off-set";
+  resize( k_aux, 1, 2 );
+  setto( k_aux, 0.0 );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-01-21
+ */
+void kCalibration(
+                    MATRIX&          k,
+                    ARRAYofstring&   k_names,
+                    MATRIX&          k_aux,
+              const VECTOR&          y,
+              const VECTOR&          y_ref,
+       	      const string&          name )
+{
+  const INDEX   ny = y.size();
+  const INDEX   nf = y_ref.size();
+  const INDEX   nza = INDEX( floor(ny/nf) );
+
+  if ( nza*nf != ny )
+    throw runtime_error("The length of y_ref does not match the length of y");
+  
+  // Make k one-column matrix of the right size:
+  resize( k, ny, 1 );
+
+  // k = y - y_ref
+  INDEX j,i,i0;
+  for ( j=0; j<nza; j++ )    
+  {
+    i0 = j*nf;
+    for ( i=0; i<nf; i++ )
+      k[i0+i][0] = y[i0+i] - y_ref[i];
+  }
+
+  resize( k_names, 1 );
+  k_names[0] = "Calibration: scaling";
+  resize( k_aux, 1, 2 );
+  setto( k_aux, 0.0 );
 }
 
 
@@ -2157,120 +2588,6 @@ void kDiffHFast(
   resize(k_aux,1,2);
   k_aux[0][0] = grid;
   k_aux[0][1] = apriori;
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-01-21
- */
-void kPointingOffSet(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-              const Numeric&         z_plat,
-              const VECTOR&          za_pencil,
-              const Numeric&         l_step,
-              const VECTOR&          p_abs,
-              const VECTOR&          z_abs,
-              const VECTOR&          t_abs,
-              const VECTOR&          f_mono,
-              const int&             refr,
-              const int&             refr_lfac,
-              const VECTOR&          refr_index,
-              const Numeric&         z_ground,
-              const Numeric&         r_geoid,
-              const MATRIX&          abs,
-  	      const int&             emission,
-              const VECTOR&          y_space,
-              const VECTOR&          e_ground,
-              const Numeric&         t_ground,
-              const VECTOR&          y,
-              const Numeric&         delta )
-{
-  // Create new zenith angle grid
-  const INDEX  nza = za_pencil.size();
-  VECTOR za_new( nza );
-  copy( za_pencil, za_new );
-  add( za_new, VECTOR(nza,delta), za_new );
-
-  out2 << "  ----- Messages from losCalc: --------\n";
-  LOS    los;
-  VECTOR z_tan;
-  losCalc( los, z_tan, z_plat, za_new, l_step, p_abs, z_abs, refr, refr_lfac, 
-                                              refr_index, z_ground, r_geoid );
-  out2 << "  -------------------------------------\n";
-
-  ARRAYofMATRIX source, trans;
-  out2 << "  ----- Messages from sourceCalc: -----\n";
-  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
-  out2 << "  -------------------------------------\n";
-  out2 << "  ----- Messages from transCalc: ------\n";
-  transCalc( trans, los, p_abs, abs );
-  out2 << "  -------------------------------------\n";
-  VECTOR y_new;
-  out2 << "  ----- Messages from yRte: -----------\n";
-  yCalc( y_new, emission, los, f_mono, y_space, source, trans, 
-                                                         e_ground, t_ground );
-  out2 << "  -------------------------------------\n";
-
-  // Make k one-column matrix of the right size:
-  const INDEX   nv = y.size();
-  resize( k, nv, 1 );
-
-  // k = (y_new - y) / delta
-  VECTOR dummy( nv );
-  add( y_new, scaled(y,-1), dummy );
-  copy( scaled(dummy,1/delta), columns(k)[0] );
-
-  resize( k_names, 1 );
-  k_names[0] = "Pointing: off-set";
-  resize( k_aux, 1, 2 );
-  setto( k_aux, 0.0 );
-}
-
-
-
-/**
-   See the the online help (arts -d FUNCTION_NAME)
-
-   \author Patrick Eriksson
-   \date   2001-01-21
- */
-void kCalibration(
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-              const VECTOR&          y,
-              const VECTOR&          y_ref,
-       	      const string&          name )
-{
-  const INDEX   ny = y.size();
-  const INDEX   nf = y_ref.size();
-  const INDEX   nza = INDEX( floor(ny/nf) );
-
-  if ( nza*nf != ny )
-    throw runtime_error("The length of y_ref does not match the length of y");
-  
-  // Make k one-column matrix of the right size:
-  resize( k, ny, 1 );
-
-  // k = y - y_ref
-  INDEX j,i,i0;
-  for ( j=0; j<nza; j++ )    
-  {
-    i0 = j*nf;
-    for ( i=0; i<nf; i++ )
-      k[i0+i][0] = y[i0+i] - y_ref[i];
-  }
-
-  resize( k_names, 1 );
-  k_names[0] = "Calibration: scaling";
-  resize( k_aux, 1, 2 );
-  setto( k_aux, 0.0 );
 }
 
 

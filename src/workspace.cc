@@ -261,6 +261,24 @@ void define_wsv_data()
       ARRAYofMATRIX_));
 
 
+  //--------------------< Hydrostatic equilibrium >--------------------
+  //                     -------------------------
+  wsv_data.push_back
+    (WsvRecord
+     ("hse",
+      "This vector holds the parameters for calculating hydrostatic \n"
+      "equilibrium (HSE). The length of the vector is either 1 or 5, where\n"
+      "the values are: \n "
+      "  1: On/off flag. 0 = ignore HSE, 1 = consider HSE.\n " 
+      "  2: The pressure of the reference point [Pa]. \n " 
+      "  3: The altitude of the reference point [m]. \n " 
+      "  4: Gravitational acceleration at the geoid surface [m/s2]. \n " 
+      "  5: Number of iterations of the calculations.\n"
+      "If the on/off flag is set to 1, the length of the vector must be 5,\n"
+      "while if the flag is 0 a length of 1 is OK.", 
+      VECTOR_));
+
+
   //--------------------< RT Stuff >--------------------
   //                     ----------
 
@@ -327,6 +345,13 @@ void define_wsv_data()
       "Accordingly, this factor gives how many ray tracing steps that are \n"
       "performed for each step of the LOS.",
       int_));
+
+  wsv_data.push_back
+    (WsvRecord
+     ("refr_model",
+      "A string giving what refraction model (or parameterization) to use\n"
+      "for the calculation of refractive index.",
+      string_));
 
   wsv_data.push_back
     (WsvRecord

@@ -174,6 +174,26 @@ bool any( const ARRAYofsizet& x )
 
 
 
+//// isbool ///////////////////////////////////////////////////////////////////
+//
+/** Checks if an integer is either 0 or 1.
+
+    \return       a boolean, true if x is either 0 or 1
+    \param    x   an integer
+
+    \author Patrick Eriksson
+    \date   2001-04-19
+*/
+bool isbool( const int& x ) 
+{
+  if ( x==0 || x==1 )
+    return true;
+  else
+    return false;
+}
+
+
+
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to generate vectors
 ////////////////////////////////////////////////////////////////////////////

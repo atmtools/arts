@@ -1991,3 +1991,85 @@ void xsec_species( MATRIX&                  xsec,
       }
   }
 }
+
+
+
+
+//======================================================================
+//             Functions related to refraction
+//======================================================================
+
+
+//// refr_indexBoudourisDryAir ///////////////////////////////////////////////
+/**
+   Calculates the refractive index for dry air at microwave frequncies 
+   following Boudouris 1963.
+
+   The expression is also found in Chapter 5 of the Janssen book.
+
+   The atmosphere is assumed to have no water vapour.
+
+   \retval   refr_index  refractive index
+   \param    p_abs       absorption pressure grid
+   \param    t_abs       temperatures at p_abs
+
+   \author Patrick Eriksson
+   \date   2001-02-16
+*/
+void refr_indexBoudourisDryAir (
+                    VECTOR&   refr_index,
+              const VECTOR&   p_abs,
+              const VECTOR&   t_abs )
+{
+  const INDEX   n = p_abs.size();
+  resize( refr_index, n );
+
+  assert ( n == t_abs.size() );
+
+  // N = 77.593e-2 * p / t ppm
+  for ( INDEX i=0; i<n; i++ )
+    refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
+}
+
+
+
+//// refr_indexBoudouris ///////////////////////////////////////////////
+/**
+   Calculates the refractive index at microwave frequncies 
+   following Boudouris 1963.
+
+   The expression is also found in Chapter 5 of the Janssen book.
+
+   \retval   refr_index  refractive index
+   \param    p_abs       absorption pressure grid
+   \param    t_abs       temperatures at p_abs
+   \param    h2o_abs     H2O vmr at p_abs
+
+   \author Patrick Eriksson
+   \date   2001-02-16
+*/
+void refr_indexBoudouris (
+                    VECTOR&   refr_index,
+              const VECTOR&   p_abs,
+              const VECTOR&   t_abs,
+              const VECTOR&   h2o_abs )
+{
+  const INDEX   n = p_abs.size();
+  resize( refr_index, n );
+
+  assert ( n == t_abs.size() );
+  assert ( n == h2o_abs.size() );
+
+  Numeric   e;     // Partial pressure of water in Pa
+  Numeric   p;     // Partial pressure of the dry air: p = p_tot - e 
+
+  for ( INDEX i=0; i<n; i++ )
+  {
+    e = p_abs[i] * h2o_abs[i];
+    p = p_abs[i] - e;
+
+    refr_index[i] = 1.0 + 77.593e-8 * p / t_abs[i] + 
+                          72e-8 * e / t_abs[i] +
+                          3.754e-3 * e / (t_abs[i]*t_abs[i]);
+  }
+}

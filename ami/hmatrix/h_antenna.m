@@ -65,6 +65,7 @@ end
 
 
 %=== Check if antenna pattern totally inside pencil beam grid
+
 if za1(1) > za2(1)+za_ant(1)
   error(sprintf('You must increase your pencil beam grid downwards with %.2f degs.',za1(1)-(za2(1)+za_ant(1))));
 end

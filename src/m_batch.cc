@@ -214,14 +214,11 @@ void BatchdataGaussianTemperatureProfiles(
         const VECTOR&    t_abs,
         const VECTOR&    z_abs,
         const VECTOR&    h2o_abs,
-        const SYMMETRIC&    s,
+        const SYMMETRIC& s,
         const string&    batchname,
-      // Control Parameters:
-        const int&       n,
-        const Numeric&   g0,
-        const Numeric&   pref,
-        const Numeric&   zref,
-        const int&       niter)
+        const Numeric&   r_geoid,
+        const VECTOR&    hse,
+        const int&       n )
 {
   string fname;
   MATRIX ts;
@@ -241,7 +238,7 @@ void BatchdataGaussianTemperatureProfiles(
 
     copy( z_abs, z );
 
-    z_absHydrostatic( z, p_abs, t, h2o_abs, g0, pref, zref, niter );
+    hseCalc( z, p_abs, t, h2o_abs, r_geoid, hse );
 
     copy( z, columns(zs)[i] );
   }
@@ -258,10 +255,10 @@ void BatchdataGaussianTemperatureProfiles(
    \date   2000-12-06
 */
 void BatchdataGaussianTemperatureProfilesNoHydro(
-        const VECTOR&   t_abs,
-        const SYMMETRIC&   s,
-        const string&   batchname,
-        const int&      n )
+        const VECTOR&     t_abs,
+        const SYMMETRIC&  s,
+        const string&     batchname,
+        const int&        n )
 {
   string fname;
   MATRIX t;

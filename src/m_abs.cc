@@ -1170,66 +1170,139 @@ void AtmFromRaw1D(// WS Output:
 
 
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-18
+*/
+void hseSet(
+          VECTOR&    hse,
+    const Numeric&   pref,
+    const Numeric&   zref,
+    const Numeric&   g0,
+    const int&       niter )
+{
+  resize( hse, 5 );
+  
+  hse[0] = 1;
+  hse[1] = pref;
+  hse[2] = zref;
+  hse[3] = g0;
+  hse[4] = Numeric( niter );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-18
+*/
+void hseFromBottom(
+          VECTOR&    hse,
+    const VECTOR&    p_abs,
+    const VECTOR&    z_abs,
+    const Numeric&   g0,
+    const int&       niter )
+{
+  hseSet( hse, p_abs[0], z_abs[0], g0, niter );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-18
+*/
+void hseOff(
+	  VECTOR&    hse )
+{
+  resize( hse, 1 );
+  hse[0] = 0;
+}
+
+
+
 // Algorithm based on equation from my (PE) thesis (page 274) and the book
 // Meteorology today for scientists and engineers by R.B. Stull (pages 9-10). 
 //
-// Adapted to MTL. Gone from 1-based to 0-based. No resize!
-// 2000-12-26
-// Stefan Buehler
-void z_absHydrostatic(
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void hseCalc(
           VECTOR&    z_abs,
     const VECTOR&    p_abs,
     const VECTOR&    t_abs,
     const VECTOR&    h2o_abs,
-    const Numeric&   g0,
-    const Numeric&   pref,
-    const Numeric&   zref,
-    const int&       niter )
+    const Numeric&   r_geoid,   
+    const VECTOR&    hse )
 {
-  const size_t   np = p_abs.size();
-        size_t   i;                     // altitude index
-        Numeric  g;                     // gravitational acceleration
-        Numeric  r;                     // water mixing ratio in gram/gram
-        Numeric  tv;                    // virtual temperature
-        Numeric  dz;                    // step geometrical altitude
-        VECTOR   ztmp(np);              // temporary storage for z_abs
-
-  extern const Numeric EARTH_RADIUS;
-
-  if ( (z_abs.size()!=np) || (t_abs.size()!=np) || (h2o_abs.size()!=np) )
-    throw runtime_error("The vectors p_abs, t_abs, z_abs and h2o_abs do not all have the same length.");
-
-  if ( niter < 1 )
-    throw runtime_error("The number of iterations must be > 0.");
-
-  for ( int iter=0; iter<niter; iter++ )
+  if ( !isbool( int(hse[0]) ) )  
+    throw runtime_error(
+        "The HSE flag (first element of hse) must either be 0 or 1.");
+  
+  if ( hse[0] )
   {
-    // Init ztmp
-    ztmp[0] = z_abs[0];
+    if ( hse.size() != 5 )
+    throw runtime_error(
+        "The length of the hse vector must be 5.");
 
-    // Calculate new altitudes (relative z_abs(1)) and store in ztmp
-    for ( i=0; i<np-1; i++ )
+    const size_t   np = p_abs.size();
+	  size_t   i;                     // altitude index
+	  Numeric  g;                     // gravitational acceleration
+	  Numeric  r;                     // water mixing ratio in gram/gram
+	  Numeric  tv;                    // virtual temperature
+	  Numeric  dz;                    // step geometrical altitude
+	  VECTOR   ztmp(np);              // temporary storage for z_abs
+  
+    // Pick out values from hse
+    const Numeric   pref  = hse[1];
+    const Numeric   zref  = hse[2];
+    const Numeric   g0    = hse[3];
+    const INDEX     niter = INDEX( hse[4] );
+  
+    if ( (z_abs.size()!=np) || (t_abs.size()!=np) || (h2o_abs.size()!=np) )
+      throw runtime_error(
+                         "The input vectors do not all have the same length.");
+    if ( niter < 1 )
+      throw runtime_error("The number of iterations must be > 0.");
+  
+    for ( int iter=0; iter<niter; iter++ )
     {
-      // Calculate g 
-      g  = ( g_of_z(EARTH_RADIUS,g0,z_abs[i]) + 
-             g_of_z(EARTH_RADIUS,g0,z_abs[i+1]) ) / 2.0;
-
-      // Calculate weight mixing ratio for water assuming constant average
-      // molecular weight of the air
-      r  = 18/28.96 * (h2o_abs[i]+h2o_abs[i+1])/2;
-
-      // The virtual temperature (no liquid water)
-      tv = (1+0.61*r) * (t_abs[i]+t_abs[i+1])/2;
-
-      // The change in vertical altitude from i to i+1 
-      dz = 287.053*tv/g * log( p_abs[i]/p_abs[i+1] );
-      ztmp[i+1] = ztmp[i] + dz;
+      // Init ztmp
+      ztmp[0] = z_abs[0];
+  
+      // Calculate new altitudes (relative z_abs(1)) and store in ztmp
+      for ( i=0; i<np-1; i++ )
+      {
+	// Calculate g 
+	g  = ( g_of_z(r_geoid,g0,z_abs[i]) + 
+	       g_of_z(r_geoid,g0,z_abs[i+1]) ) / 2.0;
+  
+	// Calculate weight mixing ratio for water assuming constant average
+	// molecular weight of the air
+	r  = 18/28.96 * (h2o_abs[i]+h2o_abs[i+1])/2;
+  
+	// The virtual temperature (no liquid water)
+	tv = (1+0.61*r) * (t_abs[i]+t_abs[i+1])/2;
+  
+	// The change in vertical altitude from i to i+1 
+	dz = 287.053*tv/g * log( p_abs[i]/p_abs[i+1] );
+	ztmp[i+1] = ztmp[i] + dz;
+      }
+  
+      // Match the altitude of the reference point
+      dz = interpp( p_abs, ztmp, pref ) - zref;
+      setto(z_abs,-dz);
+      add(ztmp,z_abs);		//  z_abs = ztmp - dz;
     }
-
-    // Match the altitude of the reference point
-    dz = interpp( p_abs, ztmp, pref ) - zref;
-    setto(z_abs,-dz);
-    add(ztmp,z_abs);		//  z_abs = ztmp - dz;
   }
 }
 
@@ -1249,7 +1322,6 @@ void h2o_absSet(
   const INDEX   n = tgs.size();
   int   found = -1;
   string  s;
-
 
   for( INDEX i=0; i<n && found<0; i++ ) 
   {
@@ -1839,114 +1911,99 @@ void abs_per_tgReduce(// WS Output:
 
 
 
+//======================================================================
+//             Methods related to refraction
+//======================================================================
 
-//// refr_indexBoudourisDryAir ///////////////////////////////////////////////
 /**
-   Calculates the refractive index for dry air at microwave frequncies 
-   following Boudouris 1963.
-
-   The expression is also found in Chapter 5 of the Janssen book.
-
-   The atmosphere is assumed to have no water vapour.
-
-   \retval   refr_index  refractive index
-   \param    p_abs       absorption pressure grid
-   \param    t_abs       temperatures at p_abs
+   See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2001-02-16
+   \date   2001-04-19
 */
-void refr_indexBoudourisDryAir (
-                    VECTOR&   refr_index,
-              const VECTOR&   p_abs,
-              const VECTOR&   t_abs )
+void refrSet( 
+              int&      refr,
+              int&      refr_lfac,
+              string&   refr_model,
+        const int&      on,
+        const string&   model,
+        const int&      lfac )
 {
-  const INDEX   n = p_abs.size();
-  resize( refr_index, n );
+  if ( !isbool( on ) )  
+    throw runtime_error("The on/off flag must either be 0 or 1.");
+  if ( lfac < 1 )
+    throw runtime_error("The length factor cannot be smaller than 1.");      
 
-  assert ( n == t_abs.size() );
-
-  // N = 77.593e-2 * p / t ppm
-  for ( INDEX i=0; i<n; i++ )
-    refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
+  refr       = on;
+  refr_lfac  = lfac;
+  refr_model = model;
 }
 
 
 
-//// refr_indexBoudouris ///////////////////////////////////////////////
 /**
-   Calculates the refractive index at microwave frequncies 
-   following Boudouris 1963.
-
-   The expression is also found in Chapter 5 of the Janssen book.
-
-   \retval   refr_index  refractive index
-   \param    p_abs       absorption pressure grid
-   \param    t_abs       temperatures at p_abs
-   \param    h2o_abs     H2O vmr at p_abs
+   See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2001-02-16
+   \date   2001-01-22
 */
-void refr_indexBoudouris (
+void refrOff( 
+              int&      refr,
+              int&      refr_lfac,
+              string&   refr_model )
+{
+  refrSet( refr, refr_lfac, refr_model, 0, "", 1 );
+  refr_lfac = 0;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void refrCalc (
                     VECTOR&   refr_index,
               const VECTOR&   p_abs,
               const VECTOR&   t_abs,
-              const VECTOR&   h2o_abs )
+              const VECTOR&   h2o_abs,
+              const int&      refr,
+              const string&   refr_model )
 {
-  const INDEX   n = p_abs.size();
-  resize( refr_index, n );
+  if ( !isbool( refr ) )  
+    throw runtime_error("The refraction flag must either be 0 or 1.");
 
-  assert ( n == t_abs.size() );
-  assert ( n == h2o_abs.size() );
+  if ( refr == 0 )
+    resize( refr_index, 0 );
 
-  Numeric   e;     // Partial pressure of water in Pa
-  Numeric   p;     // Partial pressure of the dry air: p = p_tot - e 
-
-  for ( INDEX i=0; i<n; i++ )
+  else
   {
-    e = p_abs[i] * h2o_abs[i];
-    p = p_abs[i] - e;
+    if ( refr_model == "Unity" )
+    {
+      cout << "DOING Unity \n";
+      const INDEX n = p_abs.size();
+      resize( refr_index, n );
+      setto( refr_index, 1.0 );
+    }
+    
+    else if ( refr_model == "Boudouris" )
+      refr_indexBoudouris( refr_index, p_abs, t_abs, h2o_abs );
 
-    refr_index[i] = 1.0 + 77.593e-8 * p / t_abs[i] + 
-                          72e-8 * e / t_abs[i] +
-                          3.754e-3 * e / (t_abs[i]*t_abs[i]);
+    else if ( refr_model == "BoudourisDryAir" )
+      refr_indexBoudourisDryAir( refr_index, p_abs, t_abs );
+
+    else
+    {
+      ostringstream os;
+      os << "Unknown refraction model: " << refr_model;
+      throw runtime_error(os.str());
+    }
   }
-
-  /*
-  resize( refr_index, n );
-
-  // Partial pressure of water in Pa
-  VECTOR e(n);
-  ele_mult( p_abs, h2o_abs, e );
-
-  // Remove e from the total pressure
-  VECTOR p(n);
-  copy( p_abs, p );
-  add( scaled(e,-1.0), p );
-
-  // Dry air term
-  //  77.593*(p/100)/t * 1e-6
-  ele_div( scaled( p, 77.593e-8 ), t_abs, refr_index );
-
-  VECTOR dummy(n);
-
-  // First water term
-  // 72*(e/100)/t * 1e-6
-  ele_div( scaled( e, 72e-8 ), t_abs, dummy );
-  add( dummy, refr_index );
-
-  // Second water term
-  // 3.754e5*(e/100)/t/t * 1e-6
-  ele_div( scaled( e, 3.754e-3 ), t_abs, dummy );
-  ele_div( dummy, t_abs, dummy );
-  add( dummy, refr_index );
-
-  // Add 1
-  setto( dummy, 1.0 );
-  add(dummy, refr_index);
-  */
 }
+
+
 
 
 //======================================================================

@@ -784,17 +784,44 @@ void r_geoidWGS84(
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
-   \date   2001-01-22
+   \date   2001-04-19
 */
-void NoGround( 
+void groundSet( 
               Numeric&   z_ground,
               Numeric&   t_ground,
               VECTOR&    e_ground,
-        const Numeric&   z_keyword )
+        const VECTOR&    p_abs,
+        const VECTOR&    t_abs,
+        const VECTOR&    z_abs,
+	const Numeric&   z,
+	const Numeric&   e )
 {
-  z_ground = z_keyword;
-  t_ground = 0;
-  resize( e_ground, 0 );
+  z_ground = z;
+  t_ground = interpz( p_abs, z_abs, t_abs, z );
+  resize( e_ground, p_abs.size() );
+  setto( e_ground, e );
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void groundAtBottom( 
+              Numeric&   z_ground,
+              Numeric&   t_ground,
+              VECTOR&    e_ground,
+        const VECTOR&    t_abs,
+        const VECTOR&    z_abs,
+	const Numeric&   e )
+{
+  z_ground = z_abs[0];
+  t_ground = t_abs[0];
+  resize( e_ground, z_abs.size() );
+  setto( e_ground, e );
 }
 
 
@@ -805,17 +832,42 @@ void NoGround(
    \author Patrick Eriksson
    \date   2001-01-22
 */
-void NoRefraction( 
-              int&      refr,
-              VECTOR&   refr_index,
-              int&      refr_lfac )
+void groundOff( 
+              Numeric&   z_ground,
+              Numeric&   t_ground,
+              VECTOR&    e_ground,
+        const VECTOR&    z_abs )
 {
-  refr = 0;
-  resize( refr_index, 0 );
-  refr_lfac = 0;
+  z_ground = z_abs[0];
+  t_ground = 0;
+  resize( e_ground, 0 );
 }
 
 
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void emissionOn( int&   emission )
+{
+  emission = 1;
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-04-19
+*/
+void emissionOff( int&   emission )
+{
+  emission = 0;
+}
 
 
 
@@ -909,6 +961,8 @@ void losCalc(       LOS&        los,
   INDEX   n = za.size();  // number of zenith angles
 
   // Some checks                                                      
+  if ( !isbool( refr ) )  
+    throw runtime_error("The refraction flag must either be 0 or 1.");
   if ( z_ground < z_abs[0] )
     throw runtime_error(
       "There is a gap between the ground and the lowest absorption altitude.");
@@ -920,7 +974,11 @@ void losCalc(       LOS&        los,
   if ( refr && ( p_abs.size() != refr_index.size() ) )
     throw runtime_error(
       "Refraction is turned on, but the length of refr_index does not match\n"
-      "the length of p_abs (are dummy vales used?).");
+      "the length of p_abs. Are dummy vales used?.");
+  if ( refr && ( refr_lfac < 1 ) )
+    throw runtime_error(
+      "Refraction is turned on, but the refraction length factor is < 1. \n"
+      "Are dummy vales used?");
     
   // Reallocate the los structure and z_tan
   resize( los.p,      n	);
@@ -974,6 +1032,9 @@ void sourceCalc(
               const VECTOR&          t_abs,
               const VECTOR&          f_mono )
 {
+  if ( !isbool( emission ) )  
+    throw runtime_error("The emission flag must either be 0 or 1.");
+
   if ( emission == 0 )
   {
     out2 << "  Setting the source array to be empty.\n";
@@ -1134,6 +1195,9 @@ void yCalc (
               const VECTOR&          e_ground,
               const Numeric&         t_ground )
 {
+  if ( !isbool( emission ) )  
+    throw runtime_error("The emission flag must either be 0 or 1.");
+
   // Check that dimensions of trans and f_mono are consistent.
   for ( size_t i=0; i<trans.size(); ++i )
     if ( trans[i].nrows() != f_mono.size() )

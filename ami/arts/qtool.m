@@ -141,9 +141,11 @@ while 1
 
       %= Check first if any "inline" function shall be called
       if s(1) == '§'
-
-        s = deblank( s(2:(length(s)-1)) );
-        eval([ s, '(Q,fid_out);' ])
+        length(s)
+        s = deblank( s )
+        s='qpi_Kx'
+        [ s(1:length(s)), '(Q,fid_out);' ]
+        eval([ s(1:length(s)), '(Q,fid_out);' ])
 
       %= Replace variables (marked by $$) and move text to cfile
       else

@@ -995,4 +995,21 @@ void xsec_species( MATRIX&                 xsec,
 		   const size_t             ind_lsn,
 		   const Numeric            cutoff);
 
+
+
+//======================================================================
+//             Functions related to refraction
+//======================================================================
+
+void refr_indexBoudourisDryAir (
+                    VECTOR&   refr_index,
+              const VECTOR&   p_abs,
+	      const VECTOR&   t_abs );
+
+void refr_indexBoudouris (
+                    VECTOR&   refr_index,
+              const VECTOR&   p_abs,
+              const VECTOR&   t_abs,
+	      const VECTOR&   h2o_abs );
+
 #endif // absorption_h

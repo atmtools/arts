@@ -1,3 +1,18 @@
+2001-04-24  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-159
+
+        * New function to set the emission flah: emissionOn and emissinOff.
+
+        * Some new functions to set the ground variables (groundSet,
+        groundOff and groundAtBottom).
+
+        * The hydrostatic equilibrium is revised. Check out the functions
+        hseSet, hseOff, hseFromBottom and hseCalc).
+
+        * Temperature WFs with hydrostatic eq. now implemented. Two versions
+        exist, kTemp and kTempFast. Use the fast one!
+
 2001-04-20  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-158

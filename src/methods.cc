@@ -1389,38 +1389,11 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("z_absHydrostatic"),
-	DESCRIPTION(
-          "Calculates a vertical grid fulfilling hydrostatic equilibrium\n"
-          "taking effects from water vapour into account.\n"
-          "The given altitudes are used as a first guess when starting the\n"
-          "calculations (to estimate g etc.).\n"
-          "The altitude of one pressure level must be given (the reference \n"
-          "point).\n"
-          "The altitude variation of the gravitational acceleration is\n"
-          "considered.\n"
-          "The average molecular weight is assumed to be 28.96 at all\n"
-          "altitudes \n"
-          "\n"
-          "Keywords \n"
-          "  g0    : Gravitational acceleration at the geoid surface.\n"
-          "  pref  : Pressure reference point.\n"
-          "  zref  : The geometrical altitude at pref.\n"
-          "  niter : Number of iterations (1-2 should suffice normally)."),
-	OUTPUT( z_abs_ ),
-	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "g0",      "pref",    "zref",    "niter" ),
-	TYPES(    Numeric_t, Numeric_t, Numeric_t, int_t   )));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("h2o_absSet"),
 	DESCRIPTION(
           "Sets h2o_abs to the profile of the first tag group containing\n"
 	  "water."),
-	OUTPUT(	    h2o_abs_ ),
+	OUTPUT(	h2o_abs_ ),
 	INPUT( 	tgs_, vmrs_  ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1435,6 +1408,83 @@ void define_md_data()
 	  "molecular nitrogen."),
 	OUTPUT(	    n2_abs_ ),
 	INPUT( 	tgs_, vmrs_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("hseSet"),
+	DESCRIPTION(
+          "Sets the vector of parameters for calculation of hydrostatic \n"
+          "equilibrium (HSE). The on/off flag is set to 1. \n"
+          "Type 'arts -d hse' for more information. \n"
+          "\n"
+          "Keywords \n"
+          "  pref  : Pressure of the reference point. \n"
+          "  zref  : The geometrical altitude at pref. \n"
+          "  g0    : Gravitational acceleration at the geoid surface.\n"
+          "  niter : Number of iterations (1-2 should suffice normally)."),
+	OUTPUT( hse_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "pref",    "zref",    "g0",      "niter" ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t, int_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("hseFromBottom"),
+	DESCRIPTION(
+          "As hseSet but uses the first values of p_abs and z_abs for pref\n"
+          "and zref, respectively.\n"
+          "\n"
+          "Keywords \n"
+          "  g0    : Gravitational acceleration at the geoid surface.\n"
+          "  niter : Number of iterations (1-2 should suffice normally)."),
+	OUTPUT( hse_ ),
+	INPUT( p_abs_, z_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "g0",      "niter" ),
+	TYPES(    Numeric_t, int_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("hseOff"),
+	DESCRIPTION(
+          "Turns off hydrostatic equilibrium. \n"
+          "The on/off flag off hse is set to 0 and hse is set to be a vector\n"
+          "of length 1."),
+	OUTPUT( hse_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("hseCalc"),
+	DESCRIPTION(
+          "Ensures that 'z_abs' fulfills hydrostatic equilibrium.\n"
+          "Nothing is done if the on/off flag of 'hse' is set to 0.\n"
+          "Calculates a vertical grid fulfilling hydrostatic equilibrium\n"
+          "The given altitudes (i.e. z_abs) are used as a first guess when \n"
+          "starting the calculations (to estimate g etc.).\n"
+          "The altitude variation of the gravitational acceleration is\n"
+          "considered.\n"
+          "The average molecular weight is assumed to be 28.96 at all\n"
+          "altitudes.\n"
+          "The amount of water vapour is taken into account.\n"
+          "The reference point, g at the ground and the number of iterations\n"
+          "are taken from 'hse'. A higher number of iterations \n" 
+          "improves the accuracy, but one iteration should be normally \n"
+          "enough if z_abs already has reasonable values. Two iterations \n"
+          "should suffice for basically all applications."),
+	OUTPUT( z_abs_ ),
+	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_, r_geoid_, hse_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1510,34 +1560,6 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("refr_indexBoudourisDryAir"),
-	DESCRIPTION(
-           "Calculates the refractive index for dry air at micro-wave\n"
-	   "frequencies following Boudouris 1963.\n"
-           "The effect of water vapor is neglected (dry air).\n"
-	   "The expression is also found in Chapter 5 of the Janssen book."),
-	OUTPUT( refr_index_ ),
-	INPUT( 	p_abs_, t_abs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("refr_indexBoudouris"),
-	DESCRIPTION(
-           "Calculates the refractive index at microwave frequencies\n"
-           "following Boudouris 1963.\n"
-	   "The expression is also found in Chapter 5 of the Janssen book."),
-	OUTPUT(	refr_index_ ),
-	INPUT( 	p_abs_, t_abs_, h2o_abs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
   
 //=== methods operating on absorption ========================================
 
@@ -1555,11 +1577,76 @@ void define_md_data()
 	TYPES()));
 
 
+//=== 1D refraction ==========================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("refrSet"),
+	DESCRIPTION(
+           "Sets the refraction input arguments (refr, refr_model and \n"
+           "refr_lfac) to the specified values. Type e.g. 'arts -d refr'\n"
+           "for more information on the input arguments.\n"
+           "See refrCalc for avaliable refraction models.\n"
+           "\n"
+           "Keywords:\n"
+           "     on    : On/off flagg.\n"
+           "     model : Model/parametization for the refractive index.\n"
+           "     lfac  : Length factor for ray tracing."  ),
+	OUTPUT( refr_, refr_lfac_, refr_model_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "on",  "model",  "lfac"    ),
+	TYPES(    int_t, string_t, int_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("refrOff"),
+  	DESCRIPTION(
+          "Sets the refraction flag (refr) to zero and gives other \n"
+          "refraction input arguments (refr_lfac and refr_model) dummy \n"
+          "values (that will give error messages if used)."),
+	OUTPUT( refr_, refr_lfac_, refr_model_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("refrCalc"),
+	DESCRIPTION(
+           "Calculates the refractive index using the model/parameterization\n"
+           "specified by 'refr_model'. \n"
+           "If 'refr' is set to zero, the refractive index is set to be an \n"
+           "empty vector. \n"
+           "\n"
+           "Available models are: \n"
+           "\n"
+           "   'Unity': \n"
+           "      Sets the refractive to be 1 at all altitudes. \n"
+           "\n"
+           "   'Boudouris': \n"
+           "      Refractive index at microwave frequencies following \n"
+           "      Boudouris 1963. The parameter values were taken from \n"
+           "      Section 5.1.1 of the Janssen book. The Z parameters are \n"
+           "      set to 1. \n"
+           "\n"
+           "  'BoudourisDryAir': \n"
+           "      As Boudouris but setting the water content to zero. "),
+	OUTPUT(	refr_index_ ),
+	INPUT( 	p_abs_, t_abs_, h2o_abs_, refr_, refr_model_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+
 
 //======================================================================
 //=== LOS/RTE methods
 //======================================================================
-
 
   md_data.push_back
     ( MdRecord
@@ -1593,13 +1680,12 @@ void define_md_data()
            "     delta_t   : time difference\n"
            "     z_tan_lim : vector with start and stop tangent altitudes"  ),
 	OUTPUT(),
-	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, refr_index_, r_geoid_,
-               z_ground_ ),
+	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, 
+                                           refr_index_, r_geoid_, z_ground_ ),
 	GOUTPUT(VECTOR_ ),
 	GINPUT(),
 	KEYWORDS("delta_t","z_tan_lim"),
 	TYPES(   Numeric_t, VECTOR_t )));
-
 
   md_data.push_back
     ( MdRecord
@@ -1634,33 +1720,76 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("NoGround"),
+      ( NAME("groundSet"),
+  	DESCRIPTION(
+          "Sets the ground altitude and emission to the specified values,\n"
+          "and selects a ground temperature.\n"
+          "The emission is set to be identical for all frequencies. \n"
+          "The ground temperature is obtained by interpolating 't_abs'.\n"
+          "\n"
+          "Keywords \n"
+          "  z : Altitude above the geoid of the ground.\n"
+          "  e : Emission factor."),
+	OUTPUT( z_ground_, t_ground_, e_ground_ ),
+	INPUT( p_abs_, t_abs_, z_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "z",       "e"       ),
+	TYPES(    Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("groundAtBottom"),
+  	DESCRIPTION(
+          "Sets the ground emission to the specified value, and sets the \n"
+          "altitude and temperature to the first values of z_abs and t_abs.\n"
+          "The emission is set to be identical for all frequencies. \n"
+          "\n"
+          "Keywords \n"
+          "  e : Emission factor."),
+	OUTPUT( z_ground_, t_ground_, e_ground_ ),
+	INPUT( t_abs_, z_abs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "e"       ),
+	TYPES(    Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("groundOff"),
   	DESCRIPTION(
           "Sets the ground altitude and gives the other ground variables\n"
           "(t_ground and e_ground) dummy values. \n"
-          "The ground altitude is set to the specified value. Note that\n"
-          "z_abs must cover the ground altitude.\n"
+          "The ground altitude is set to the first element of 'z_abs'.\n"
           "The ground temperature (t_ground) is set to 0. \n"
           "The ground emission vector (e_ground) is set to be empty.\n"
           "If there is a ground intersection and only this function is\n"
           "used to set the ground variables, there will be error messages."),
 	OUTPUT( z_ground_, t_ground_, e_ground_ ),
-	INPUT(),
+	INPUT( z_abs_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "z_ground" ),
-	TYPES(    Numeric_t  )));
+	KEYWORDS(),
+	TYPES()));
 
   md_data.push_back
     ( MdRecord
-      ( NAME("NoRefraction"),
+      ( NAME("emissionOn"),
   	DESCRIPTION(
-          "Sets the refraction flag (refr) to zero and gives other \n"
-          "refraction variables (refr_index and refr_lfac) dummy values. \n"
-          "If the refraction later is turned on, the variables refr_index \n"
-          "and refr_lfac must be given propoer values, or there will be\n"
-          "error messages."),
-	OUTPUT( refr_, refr_index_, refr_lfac_ ),
+	  "Turns on emission by setting the emission flag to 1."),
+	OUTPUT( emission_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("emissionOff"),
+  	DESCRIPTION(
+	  "Turns off emission by setting the emission flag to 0."),
+	OUTPUT( emission_ ),
 	INPUT(),
 	GOUTPUT(),
 	GINPUT(),
@@ -1954,15 +2083,53 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("kTemp"),
+  	DESCRIPTION(
+          "Calculates temperature weighting functions with hydrostatic \n"
+          "equilibrium. \n"
+          "This function includes all effects of a temperature change in a \n"
+          "a detailed manner, most notably absorption is recalculated for \n"
+          "each point."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, abs_, 
+          lines_per_tg_, lineshape_, e_ground_, emission_, k_grid_, 
+          cont_description_names_, cont_description_parameters_,
+          z_plat_ ,za_pencil_, l_step_, z_abs_, refr_, refr_lfac_, refr_index_,
+	  z_ground_, t_ground_, y_space_, r_geoid_, hse_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("kTempFast"),
+  	DESCRIPTION(
+          "As kTemp but faster as the absorption is assumed to be perfectly\n"
+          "linear between t_abs and t_abs+1K.\n"
+          "The difference between this function and kTemp should in general\n"
+          "be negliable."),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, abs_, 
+          lines_per_tg_, lineshape_, e_ground_, emission_, k_grid_, 
+          cont_description_names_, cont_description_parameters_,
+          z_plat_ ,za_pencil_, l_step_, z_abs_, refr_, refr_lfac_, refr_index_,
+	  z_ground_, t_ground_, y_space_, r_geoid_, hse_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("kTempNoHydro"),
   	DESCRIPTION(
-          "Calculates temperature 1D weighting functions WITHOUT including\n"
+          "Calculates temperature weighting functions WITHOUT including\n"
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( tgs_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
-               n2_abs_, h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
-               abs_, trans_, e_ground_, k_grid_,
-	       cont_description_names_, cont_description_parameters_ ),
+	INPUT( tgs_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, n2_abs_, 
+          h2o_abs_, vmrs_, lines_per_tg_, lineshape_, abs_, trans_, e_ground_, 
+          k_grid_, cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -2569,17 +2736,14 @@ void define_md_data()
           "   batchname.z_abs.ab  \n"
           "\n"
           "Keywords \n"
-          "  n        : Number of random vectors to produce.\n"
-          "  g0       : Gravitational acceleration at the geoid surface.\n"
-          "  pref     : Pressure reference point.\n"
-          "  zref     : The geometrical altitude at pref.\n"
-          "  niter    : Number of iterations (1-2 should suffice normally)."),
+          "  n        : Number of random vectors to produce. "),
 	OUTPUT(),
-	INPUT( p_abs_, t_abs_, z_abs_, h2o_abs_, s_, batchname_ ),
+	INPUT( p_abs_, t_abs_, z_abs_, h2o_abs_, s_, batchname_, r_geoid_, 
+                                                                       hse_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS( "n",   "g0",      "pref",    "zref",    "niter" ),
-	TYPES(    int_t, Numeric_t, Numeric_t, Numeric_t, int_t   )));
+	KEYWORDS( "n"   ),
+	TYPES(    int_t )));
 
   md_data.push_back
     ( MdRecord

@@ -79,6 +79,7 @@ Numeric last( const VECTOR& x );
 
 bool any( const ARRAYofsizet& x ); 
 
+bool isbool( const int& x );
 
 
 ////////////////////////////////////////////////////////////////////////////
