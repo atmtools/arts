@@ -1,3 +1,23 @@
+2002-02-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-10
+
+	* src/absorption.h: Fixed the wrong line intensity units
+	from m^2/Hz to m^2*Hz.
+	
+2002-02-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-9
+
+	* doc/uguide/absorption.tex: One more fix.
+	
+2002-02-18  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-8
+
+	* doc/uguide/absorption.tex: Fixed the wrong line intensity units
+	from m^2/Hz to m^2*Hz.	
+	
 2002-02-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-7

@@ -380,7 +380,7 @@ private:
      1   name                         NAME        -     e.g. O3-666
      2   center frequency         	 F       Hz     e.g. 501.12345e9 
      3   pressure shift of F           PSF    Hz/Pa    
-     4   line intensity                 I0   m^2/Hz     per isotope, not per species
+     4   line intensity                 I0   m^2*Hz     per isotope, not per species
      5   reference temp. for I0       T_I0        K
      6   lower state energy           ELOW        J    
      7   air broadened width          AGAM    Hz/Pa     values around 20 GHz/Pa
@@ -640,7 +640,7 @@ public:
       MO  (I2)  = molecule number
       ISO (I1)  = isotope number (1 = most abundant, 2 = second, etc)
       V (F12.6) = frequency of transition in wavenumbers (cm-1)
-      S (E10.3) = intensity in cm-1/(molec * cm-2) at 296 Kelvin
+    * S (E10.3) = intensity in cm-1/(molec / cm-2) at 296 Kelvin
       R (E10.3) = transition probability squared in Debyes**2
       AGAM (F5.4) = air-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
       SGAM (F5.4) = self-broadened halfwidth (HWHM) in cm-1/atm at 296 Kelvin
@@ -658,6 +658,10 @@ public:
       IREFS (I2) = lookup index for intensity
       IREFH (I2) = lookup index for halfwidth
 
+    * The unit of the line intensity given in HITRAN is [cm-1/(molec * cm-2)] but 
+      we use instead [cm-1/(molec / cm-2)] in compliance with our model as well as
+      with JPL.
+      
     The molecule numbers are encoded as shown in the table below:
 
       0= Null    1=  H2O    2=  CO2    3=   O3    4=  N2O    5=   CO
@@ -697,7 +701,7 @@ public:
        ISO (I1)      = isotope number (1 = most abundant, 2 = second, etc)
     *  F (F13.4)     = frequency of transition in MHz
     *  errf (F8.4)   = error in f in MHz
-       S (E10.3)     = intensity in cm-1/(molec * cm-2) at 296 K
+    ** S (E10.3)     = intensity in cm-1/(molec / cm-2) at 296 K
     *  AGAM (F5.4)   = air-broadened halfwidth (HWHM) in MHz/Torr at Tref
     *  SGAM (F5.4)   = self-broadened halfwidth (HWHM) in MHz/Torr at Tref
        E (F10.4)     = lower state energy in wavenumbers (cm-1)
@@ -718,8 +722,10 @@ public:
        IREFS (I2)    = lookup index for S
        IREFH (I2)    = lookup index for AGAM
    
-    The asterisks mark entries that are different from HITRAN.
-
+    The single asterisks mark entries that are different from HITRAN.
+    The double asterisks mark the differnt line intensity unit we use
+    [cm-1/(molec / cm-2)] instead of [cm-1/(molec * cm-2)] as in HITRAN.
+ 
     Note that AGAM and SGAM are for the temperature Tref, while S is
     still for 296 K!
    
