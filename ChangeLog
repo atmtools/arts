@@ -1,3 +1,13 @@
+2001-10-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-21
+
+	* Small change for ground emission WFs. The ground emission (as a 
+	function of freqeuncy) should be treated as a "profile" and not as 
+	a number of seperate variables. The k_names are changed for ground 
+	emission to reflect this.
+	
+
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-1-20

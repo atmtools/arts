@@ -2576,10 +2576,12 @@ void kEground(
   // A single value for the ground emission, k is a column vector
   if ( single_e )
   {
-    k.resize( nza*nv, 1 );
-    k(Range(joker),0) = ksingle;
     k_names.resize( 1 );
-    k_names[0] = "Ground emission: single";
+    k_names[0] = "Ground emission (single)";
+    //
+    k.resize( nza*nv, 1 );
+    k = ksingle;
+    //
     k_aux.resize( 1, 2 );
     k_aux(0,0) = 0;
     k_aux(0,1) = e_ground[0];    
@@ -2588,19 +2590,17 @@ void kEground(
   // An e for each monochromatic frequency, k has nv columns
   else
   {
+    k_names.resize( 1 );
+    k_names[0] = "Ground emission";
+    //
     k.resize( nza*nv, nv );
     k = 0.0;
-    k_names.resize( nv );
     k_aux.resize( nv, 2 );
+    //
     for ( iv=0; iv<nv; iv++ )
     {
       for ( iza=0; iza<nza; iza++ )
         k(iza*nv+iv,iv) = ksingle[iza*nv+iv];
-      {
-        ostringstream os;
-        os << "Ground emission: " << f_mono[iv] << " Hz";
-        k_names[iv] = os.str();
-      }
       k_aux(iv,0) = 0;
       k_aux(iv,1) = e_ground[iv];    
     }
