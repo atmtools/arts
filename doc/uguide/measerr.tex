@@ -57,6 +57,7 @@ imperfections causing a distortion of the spectra, for example,
 reflections inside the receiver, adding theoretically a sinusoidal term
 to the spectrum.
 
+{\it The content of this chapter is so far only handled by Qpack.}
 
 
 \levelb{General}
@@ -98,9 +99,8 @@ to the spectrum.
  measurement, we are instead interested in the statistical
  characteristics of the thermal noise.  The special nature of the
  thermal noise has the consequence that this term is treated
- differently than the other variables. Instead of providing weighting
- functions, the forward model gives the covariance matrix for the
- thermal noise.
+ differently than the other variables, no weighting
+ functions are calculated, only the covariance matrix is produced.
  
  Thermal noise is introduced in two ways, by the observation of the
  atmosphere, and by the calibration process. The first part is here
@@ -118,28 +118,6 @@ to the spectrum.
  \levelc{Measurement thermal noise}
  \label{sec:measerr:mtn}
  
- As mentioned above, measurement thermal noise is here defined to be
- totally uncorrelated between the different viewing angles.  The
- magnitude of the thermal noise, expressed in brightness temperatures,
- is described by the radiometer noise formula
- \begin{equation}
-   \sigma_{tn}^i = \frac{q\left(T_{rec}+T_a^i\right)}{\sqrt{\Delta \f^i \tau}}
-  \label{eq:measerr:tn}
- \end{equation}
- where $\sigma_{tn}^i$ is the standard deviation of the thermal noise
- for channel $i$, $q$ a compensation factor $T_{rec}$ the receiver
- noise temperature, $T_a$ the antenna temperature, $\Delta \f$ the
- channel bandwidth and $\tau$ the integration time.
- 
- The factor $q$ is used to compensate for extra noise introduced by
- the calibration, losses in the spectrometer etc. It is important to
- define $q$ and $\tau$ consistently. Let us take an ordinary load
- switching instrument as example, where one half of the time is used
- to measure the atmosphere and the other half is used to observe a
- reference load. If then $\tau$ gives the total integration time, $q$
- should be (about) a factor $\sqrt{2}$ higher than when $\tau$ gives
- only the integration time for the atmospheric observations.
-
  The thermal noise is often assumed to be uncorrelated between the
  measurement channels, and the corresponding covariance matrix,
  $\mat{S}$ is then diagonal, where the diagonal elements are
@@ -152,8 +130,8 @@ to the spectrum.
  However, for most spectrometer types there exist in fact some
  correlation of the noise between the channels as there is an overlap
  of the channel frequency responses.  The inter-channel correlation of
- the thermal noise can be treated in the forward model by three
- different correlation functions: (1) gaussian
+ the thermal noise can be modeled by three
+ different correlation functions: \\ \noindent (1) gaussian
  \begin{equation}
   c^{ij} = exp\left(-\left(\frac{\f_i-\f_j}{f_c}\right)^2\right)
  \end{equation}
@@ -170,8 +148,11 @@ to the spectrum.
  where $\f_c$ is the frequency distance where the correlation has
  declined to $e^{-1}$, the frequency correlation length, and $\f_i$
  the middle frequency of channel $i$ (Fig. \ref{fig:measerr:cfuns}).
- It is also possible to apply a threshold for the correlation, where
- all $c^{ij}$ below the threshold value are set to 0.
+ The numbers given above are used to select the correlation function
+ when specifying the the covariance matrix for thermal noise. A
+ diagonal matrix is flagged as correlation function 0. It is also
+ possible to apply a threshold for the correlation, where all $c^{ij}$
+ below the threshold value are set to 0.
 
  \begin{figure}
   \begin{center}
@@ -212,74 +193,66 @@ to the spectrum.
  In contrast to the measurement thermal noise, the calibration thermal
  noise is assumed to be totally correlated between the different
  viewing angles. This latter noise as assumed to be identical between the
- channels and a simplified expression is used:
- \begin{equation}
-   \sigma_{tn}^i = \frac{T_{cal}}{\sqrt{\Delta \f^i \tau_{cal}}}
-  \label{eq:measerr:tn2}
- \end{equation}
- where $T_{cal}$ is an effective noise temperature covering all relevant
- effects and $\tau_{cal}$ the calibration integration time.
-
+ channels.
  The correlation functions used for the measurement thermal noise can
  also be applied for the calibration thermal noise.  
- 
  Data reduction is considered by Equation \ref{eq:measerr:HSH}.
  
 
 
-\levelb{Sinusoidal baseline ripple}
- \label{sec:measerr:sin}
- 
- Reflections inside the receiver give theoretically rise to a
- sinusoidal baseline ripple. The relationship between the period
- length in the spectrum, $\Delta \f_{2\pi}$, and the physical distance
- between the reflecting objects, $l$, is \citep{rohlfs:86} 
- \begin{equation}
-   \Delta \f_{2\pi} = \frac{c}{2l}
- \end{equation}
- where $c$ is the speed of light.
- 
- This type of baseline ripple is retrieved by expressing the sine
- functions, with unknown amplitude and phase, as a sum of sine and
- cosine functions \citep{kuntz:97}
- \begin{equation}
-   \merr_{sin} = \sum_{i=1}^n \left( 
-          x_i sin\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) +
-          x_{i+n} cos\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) \right)
-  \label{eq:measerr:sines}
- \end{equation}
- where $n$ is the number of ripple terms, $\bar{\f}$ the mean
- frequency, $\f_{2\pi}^i$ the period length of ripple $i$ and $x_i$
- are the amplitude of the sine and cosine functions to be determined.
- The length of the part of \xt\ used to fit sinusoidal baseline
- ripples is accordingly $2n$. The mean frequency is defined below by
- Equation \ref{eq:measerr:fmean}.
- 
- Using Equation \ref{eq:measerr:kx}, the
- WFs for the sine and cosine terms can be determined to be
- \begin{equation}
-   \K_{\xt}^p = \Hd \mat{a}_p
- \end{equation}
- and
- \begin{equation}
-   \K_{\xt}^p = \Hd \mat{b}_p
- \end{equation}
- respectively, where the elements of the vectors $\mat{a}_p$ and
- $\mat{b}_p$ are
- \begin{equation}
-   \mat{a}_p^i = sin\left(2\pi\frac{\f^i-\bar{\f}}{\Delta \f_{2\pi}^p}\right) 
- \end{equation}
- and
- \begin{equation}
-   \mat{b}_p^i = cos\left(2\pi\frac{\f^i-\bar{\f}}{\Delta \f_{2\pi}^p}\right),
- \end{equation}
- where $\f^i$ is the frequency for channel $i$.
- 
- It should be noted that the treatment of baseline ripple neglects the
- effect of the spectrometer and Equation \ref{eq:measerr:sines} assumes
- that the widths of the spectrometer channels are much smaller than
- the period length of the ripple. However, this should be the
- situation found for most practical situations.
+%\levelb{Sinusoidal baseline ripple}
+% \label{sec:measerr:sin}
+% 
+% Reflections inside the receiver give theoretically rise to a
+% sinusoidal baseline ripple. The relationship between the period
+% length in the spectrum, $\Delta \f_{2\pi}$, and the physical distance
+% between the reflecting objects, $l$, is \citep{rohlfs:86} 
+% \begin{equation}
+%   \Delta \f_{2\pi} = \frac{c}{2l}
+% \end{equation}
+% where $c$ is the speed of light.
+% 
+% This type of baseline ripple is retrieved by expressing the sine
+% functions, with unknown amplitude and phase, as a sum of sine and
+% cosine functions \citep{kuntz:97}
+% \begin{equation}
+%   \merr_{sin} = \sum_{i=1}^n \left( 
+%          x_i sin\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) +
+%          x_{i+n} cos\left(2\pi\frac{\f-\bar{\f}}{\Delta \f_{2\pi}^i}\right) \right)
+%  \label{eq:measerr:sines}
+% \end{equation}
+% where $n$ is the number of ripple terms, $\bar{\f}$ the mean
+% frequency, $\f_{2\pi}^i$ the period length of ripple $i$ and $x_i$
+% are the amplitude of the sine and cosine functions to be determined.
+% The length of the part of \xt\ used to fit sinusoidal baseline
+% ripples is accordingly $2n$. The mean frequency is defined below by
+% Equation \ref{eq:measerr:fmean}.
+% 
+% Using Equation \ref{eq:measerr:kx}, the
+% WFs for the sine and cosine terms can be determined to be
+% \begin{equation}
+%   \K_{\xt}^p = \Hd \mat{a}_p
+% \end{equation}
+% and
+% \begin{equation}
+%   \K_{\xt}^p = \Hd \mat{b}_p
+% \end{equation}
+% respectively, where the elements of the vectors $\mat{a}_p$ and
+% $\mat{b}_p$ are
+% \begin{equation}
+%   \mat{a}_p^i = sin\left(2\pi\frac{\f^i-\bar{\f}}{\Delta \f_{2\pi}^p}\right) 
+% \end{equation}
+% and
+% \begin{equation}
+%   \mat{b}_p^i = cos\left(2\pi\frac{\f^i-\bar{\f}}{\Delta \f_{2\pi}^p}\right),
+% \end{equation}
+% where $\f^i$ is the frequency for channel $i$.
+% 
+% It should be noted that the treatment of baseline ripple neglects the
+% effect of the spectrometer and Equation \ref{eq:measerr:sines} assumes
+% that the widths of the spectrometer channels are much smaller than
+% the period length of the ripple. However, this should be the
+% situation found for most practical situations.
 
 
 
@@ -388,7 +361,6 @@ to the spectrum.
 
 
 %%% Local Variables: 
-%%% mode: latex 
-%%% TeX-master: "main" 
-%%% End:
-
+%%% mode: latex
+%%% TeX-master: "uguide"
+%%% End: 

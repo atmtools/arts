@@ -497,7 +497,7 @@ geometrical calculations and when considering refraction.
   where $\theta_{z_{max}}$ and $\psi_{z_{max}}$ are the angles for the
   highest point of the LOS ($\theta$ defined in Figure \ref{fig:los:snell}).
   
-  Figure \ref{fig:los:bendingangle}) gives a good confirmation of the
+  Figure \ref{fig:los:bendingangle} gives a good confirmation of the
   implemented refraction ray tracing scheme.
 
   
@@ -529,7 +529,42 @@ geometrical calculations and when considering refraction.
     \label{fig:los1d:ground}  
    \end{center}
   \end{figure}
+
  
+\levelb{Inclusion of hydrostatic equilibrium}
+ \label{sec:los:hse}
+
+ The pressure in the atmosphere changes as
+ \begin{equation}
+   \Delta P = -\rho g \Delta z
+ \end{equation}
+ where $\Delta P$ is the change in pressure for an altitude change of
+ $\Delta z$, $\rho$ is the air density and $g$ the gravitational 
+ acceleration. If this expression is combined by the ideal gas law, the
+ hypsometric equation is obtained:
+ \begin{equation}
+   z_2 - z_1 = \frac{R_d\bar{T}_v}{g}ln\Big( \frac{P_1}{P_2} \Big)
+ \end{equation}
+ where the indeces 1 and 2 indicate two close altitudes, $R_d$ is the
+ gas constant for dry air (287.053 JK$^{-1}$kg$^{-1}$) and $\bar{T}_v$
+ the average virtual temperature between the altitudes $z_1$ and
+ $z_2$.  The virtual temperature is introduced to include effects of
+ the variable amount of water vapor. If no liquid water is present, the
+ virtual temperature can be calculated as
+ \begin{equation}
+   T_v = T \Big( 1+0.379\frac{x_{H2O}}{1-x_{H2O}}  \Big)
+ \end{equation}
+ where $x_{H2O}$ is the volume mixing ratio of water vapor. 
+ 
+ The practical calculations take into account that the gravitational
+ acceleration and the average molecular weight changes with altitude.
+ As the exalt altitudes not are known when starting the calculations,
+ and thus there exists some uncertainty for the gravitational
+ acceleration and the average molecular weight, the calculations can
+ be iterated to improve the accuracy. Type \verb|arts -d hseCalc| for
+ some more information.
+
+
 
 
 \levelb{Control file examples}

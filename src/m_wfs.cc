@@ -2110,12 +2110,20 @@ void kTemp (
   // 3. hydrostatic eq., accurate version
   //
 
+
   // No hydrostatic eq., use analytical expressions
   //---------------------------------------------------------------------------
   if ( !kw_hse )
+  {
+    if ( !emission )
+      throw runtime_error(
+          "Analytical expressions for temperature and no emission have not\n"
+          "yet been implemented. Sorry!");
+
     k_temp_nohydro( k, k_names, k_aux, tgs, los, absloswfs, f_mono, 
      p_abs, t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, abs0, trans,
      e_ground, k_grid, cont_description_names, cont_description_parameters );
+  }
 
 
   // Hydrostatic eq., fast version

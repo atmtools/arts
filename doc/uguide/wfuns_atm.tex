@@ -83,6 +83,7 @@ perturbation calculations.
  
 
   \levelc{Analytical expressions} 
+  \label{sec:wfuns:approaches:anal}
   For some atmospheric variables, such as species abundance, it is
   possible to derive a semi-analytical expression for the WFs. This is
   advantageous because it results in faster and more accurate
@@ -92,7 +93,6 @@ perturbation calculations.
   \end{eqnarray*}
   it can be seen that the core problem of finding these analytical
   expressions is to determine $\partial\iv / \partial \xt$. 
-  
   If $\xt^p$ influences only the conditions at one altitude, the
   problem can be simplified as \citep[][Eq. 43]{eriksson:00a}
   \begin{equation}
@@ -106,6 +106,36 @@ perturbation calculations.
   where $\mat{S}^p$ and $\mat{k}^p$ are the source function and the
   absorption at the (vertical) altitude $p$, respectively.
   
+  It is very important to note that the analytical expressions are
+  derived with the assumption that $\xt^p$ influences only the local
+  conditions. For species it is further assumed that the absorption
+  can be expressed as (see Section \ref{sec:wfuns:species} for
+  definitions and details)
+  \begin{equation}
+   \mat{k}^p = \mat{\bar{k}}^p_s \xt^p + \sum_{i\ne s} \mat{k}^p_i
+  \end{equation}
+  These assumption should be of general validity
+  for species above the tropopause. Two examples on when the
+  analytical expressions will be approximative are
+  \begin{itemize}
+  \item The variable of interest can change the line-of-sight (by the
+    refractive index). This is an example of a non-local effect. This
+    is always valid for temperature.
+  \item The amount of different species must be considered when
+    calculating the pressure broadening, and not only the total
+    absorption.
+  \end{itemize}
+  If the analytical expressions can be used for such cases must be
+  tested numerically. When it is found that the analytical approach
+  cannot be used, the WFs must be calculated by perturbations to
+  include the neglected effects (such a function for species is not
+  yet implemented in ARTS). An important example when these questions
+  must be considered is limb sounding of water vapor in the
+  troposphere where both points above are true. The abundance of water
+  in the troposphere is sufficient high to have a significant
+  influence on both the refractive index and the pressure broadening.
+  These questions are discussed somewhat further in \citet{eriksson:01d}.
+
   The absorption and source function in Equation \ref{eq:wfuns:taylor}
   are defined in vertical coordinates (as we retrieve atmospheric
   variables as functions of altitude). For different reasons it is
@@ -130,7 +160,7 @@ perturbation calculations.
   in Section \ref{sec:wfuns:sourceloswfs}. The term $\partial\iv/
   \partial \kappa$ is denoted as absorption LOS WFs and is discussed
   in Sections \ref{sec:wfuns:absloswfs} and
-  \ref{sec:wfuns:absloswfs2}. These terms are treated seperately as
+  \ref{sec:wfuns:absloswfs2}. These terms are treated separately as
   they are common for all variables influencing the source function or
   the absorption.
 
@@ -146,7 +176,7 @@ perturbation calculations.
   \sigma/ \partial \mat{S}^p$ and $\partial \kappa/ \partial
   \mat{k}^p$ are not constant, they change according to the selected
   retrieval grid. Accordingly, it is not suitable to include these terms
-  in the corresponding LOS WFs, they must be treated seperately.
+  in the corresponding LOS WFs, they must be treated separately.
   
   
 
@@ -195,7 +225,8 @@ perturbation calculations.
 
  By rewriting Equation \ref{eq:rte:rteprod}, the monochromatic pencil beam
  intensity can be expressed in the following ways (see Fig. 
- \ref{fig:wfuns:single})
+ \ref{fig:wfuns:single})\footnote{The indexing used here is 1-based 
+  (starts at 1), while inside ARTS 0-based indexing is used.}
  \begin{eqnarray}
    I &=& I_2\zeta_1+\psi_1(1-\zeta_1) \quad (q=1) 
      \nonumber \\
@@ -225,7 +256,7 @@ perturbation calculations.
  equations above. These quantities are instead updated when going from
  one step of the LOS to the next, as described below. It should also be
  noted that ground reflections are here neglected and are discussed 
- seperately below.
+ separately below.
 
  The transmissions $\zeta_{q-1}$ and $\zeta_q$ are separated in Equation
  \ref{eq:wfuns:mpbi} as they are the only terms including the absorption
@@ -289,7 +320,7 @@ perturbation calculations.
  \end{eqnarray}
  For 2D calculations possible ground reflections inside the LOS must
  be handled. The ground cannot be found at any of the end points of
- the LOS, and the correspondance to Equation \ref{eq:wfuns:mpbi} for a
+ the LOS, and the correspondence to Equation \ref{eq:wfuns:mpbi} for a
  ground point is (c.f. Equations \ref{eq:rte:ground} and
  \ref{eq:rte:tground})
  \begin{eqnarray}
@@ -368,7 +399,7 @@ perturbation calculations.
  to cover also such cases. However, $I_1^1$ and $\Theta_1^1$ are
  included for $q=1$ to make Equation \ref{eq:wfuns:limb1} valid for
  cases with ground reflections. The treatment of ground reflections
- are discussed seperately last in the section.
+ are discussed separately last in the section.
 
  \begin{figure}[tb]
   \begin{center}
@@ -484,8 +515,8 @@ perturbation calculations.
  \label{sec:wfuns:absloswfs2}
 
  This section treats the absorption LOS WFs for cases when emission
- can neglected. For these pure absorption calculations the output
- of ARTS is optical thicknesses (instead of e.g. transmisions) and
+ can neglected. For such pure absorption calculations the output
+ of ARTS is optical thicknesses (instead of e.g. transmissions) and
  for these conditions the absorption LOS WFs get very simple.
 
  \levelc{Single pass}
@@ -574,7 +605,7 @@ perturbation calculations.
     \K_{\sigma}^q &=& \frac{1-\zeta_{n-1}}{2}\Theta^{n-1}_{1}, \quad q=n
      \nonumber
   \end{eqnarray}
-  For ground points in 2D calculations, the Wfs are (cf. Eq. 
+  For ground points in 2D calculations, the WFs are (cf. Eq. 
   \ref{eq:wfuns:mpbi_ground})
   \begin{equation}
     \K_{\sigma}^q = \frac{(1-\zeta_q)(1-e)\zeta_{q-1}+1-\zeta_{q-1}}{2} 
@@ -628,7 +659,7 @@ perturbation calculations.
  as a function of vertical altitude $(\mat{k})$ and along the LOS
  $(\kappa)$, are assumed to vary linear between the points of the grid
  of concern. The functions to express the quantities between grid
- points are denoted as basis functions. For picewise linear functions,
+ points are denoted as basis functions. For piecewise linear functions,
  the basis functions decline, from the point of interest, linearly
  down to zero at neighboring points. Such functions are here denoted
  as tenth functions (Fig. \ref{fig:wfuns:zbasis}).
@@ -642,7 +673,7 @@ perturbation calculations.
  performed. This transformation is achieved by the terms,
  $\partial\kappa/ \partial \mat{k}^p$ and $\partial \sigma / \partial
  S^\mat{p}$. As the source function and the absorption are assumed to
- have the same funcional behavoiur (piece wise linear), these two
+ have the same functional behaviour (piecewise linear), these two
  terms are identical if the retrieval grid is the same for both quantities:
  \begin{equation}
    \frac{\partial \kappa}{\partial \mat{k}^p} =
@@ -706,7 +737,7 @@ perturbation calculations.
    \frac{z_{\kappa^q}-z_{\mat{k}^{p-1}}}{z_{\mat{k}^{p}}-z_{\mat{k}^{p-1}}}
   \label{eq:wfuns:zz}
  \end{equation}
- If $z_{\kappa^q}$ is further away from $z_{\mat{k}^p}$ than the neighbouring
+ If $z_{\kappa^q}$ is further away from $z_{\mat{k}^p}$ than the neighboring
  retrieval points, the derivative is zero. The derivative is also treated to 
  be zero if $z_{\kappa^q}$ is outside the retrieval grid (that is, below
  or above all retrieval altitudes).
@@ -735,9 +766,7 @@ perturbation calculations.
  \mat{k}^p$ is treated in Section \ref{sec:wfuns:bases}, and it
  remains to determine $\partial \mat{k}^p / \partial \xt^p$. It is
  assumed below in this section that \xt\ only represents a single 
- species.
-
- The species absorption can be written as
+ species and that the species absorption can be written as
  \begin{equation}
    \mat{k}^p = \mat{\bar{k}}^p_s \xt^p + \sum_{i\ne s} \mat{k}^p_i
   \label{eq:wfuns:kspecies}
@@ -745,8 +774,17 @@ perturbation calculations.
  where $p$ is the altitude of concern, $\mat{\bar{k}}_s$ is the
  absorption of the species of interest, normalized to the units of the
  corresponding values of \xt\ (or \bt) and $\mat{k}_i$ the total
- absorption for other species.
- We have then that
+ absorption for other species. Equation \ref{eq:wfuns:kspecies}
+ assumes that a change for one species does not influence the
+ absorption of other species, and that the shape of the absorption for
+ one species does not change with the abundance of that species.  This
+ assumption is not valid, for example, when the amount of different
+ species must be considered when calculating the pressure broadening,
+ and not only the total absorption. The validity of the analytical
+ expressions for the WFs is discussed in Section
+ \ref{sec:wfuns:approaches:anal}.
+
+ If Equation \ref{eq:wfuns:kspecies} is valid, we have then that
  \begin{equation}
    \frac{\partial \mat{k}^p}{\partial \xt^p} = \mat{\bar{k}}^p_s
   \label{eq:wfuns:dkspecies}
@@ -868,16 +906,15 @@ perturbation calculations.
  hydrostatic equilibrium is assumed or not. If hydrostatic equilibrium
  is neglected, the WFs can be calculated by semi-analytical
  expressions, while if hydrostatic equilibrium is assumed, the WFs are
- obtained by perturbations. 
+ obtained by perturbations. The analytical version is so far only
+ implemented for emission measurements (and not for transmission
+ measurements).
 
- A change of the temperature inside an atmospheric layer will change
- the line of sights for beams passing this altitude. This effect should
- however normally be small, and it is here neglected.
 
  \levelc{Without hydrostatic equilibrium}
  
  For some measurement situations it can be questionable to assume that
- the pressure, temparature and geometrical altitude, valid for the
+ the pressure, temperature and geometrical altitude, valid for the
  measurement, fulfill the law of hydrostatic equilibrium. One example
  is 1D limb sounding when there is a large horizontal distance between
  the nadir point of the tangent point for the start and end points of
@@ -905,6 +942,11 @@ perturbation calculations.
  Equation \ref{eq:wfuns:sandk} is valid, that is, $\partial\kappa/
  \partial \mat{k}^p$ equals $\partial \sigma / \partial S^\mat{p}$.
  These two terms are discussed in Section \ref{sec:wfuns:bases}.
+ 
+ It is noteworthy that a change of the temperature inside an
+ atmospheric layer will change the line-of-sights for beams passing
+ this altitude, but this is here neglected. See further Section
+ \ref{sec:wfuns:approaches:anal}.
 
  Here it is assumed that $S$ equals the Planck function, $B$
  (Equation \ref{eq:rte:planck}), and the derivative of the source
@@ -932,53 +974,24 @@ perturbation calculations.
  where $\Upsilon$ is the interpolating function from the vertical
  absorption grid to the retrieval grid, $k$ the total absorption, and
  $T_0$ the assumed temperature profile.
-
  
 
  \levelc{With hydrostatic equilibrium}
  
- The gases in the atmosphere behave like an ideal gas, and the pressure
+ The gases in the atmosphere behave like an ideal gas, and the pressure,
  the temperature and the vertical altitudes above one point are
- linked by the fact that hydrostatic equilibrium must be fulfilled. The
- pressure in the atmosphere changes as
- \begin{equation}
-   \Delta P = -\rho g \Delta z
- \end{equation}
- where $\Delta P$ is the change in pressure for an altitude change of
- $\Delta z$, $\rho$ is the air density and $g$ the gravitational 
- acceleration. If this expression is combined by the ideal gas law, the
- hypsometric equation is obtained:
- \begin{equation}
-   z_2 - z_1 = \frac{R_d\bar{T}_v}{g}ln\Big( \frac{P_1}{P_2} \Big)
- \end{equation}
- where the indeces 1 and 2 indicate two close altitudes, $R_d$ is the
- gas constant for dry air (287.053 JK$^{-1}$kg$^{-1}$) and $\bar{T}_v$
- the average virtual temperature between the altitudes $z_1$ and
- $z_2$.  The virtual temperature is introduced to include effects of
- the variable amount of water vapor. If no liquid water is present, the
- virtual temperature can be calculated as
- \begin{equation}
-   T_v = T \Big( 1+0.379\frac{x_{H2O}}{1-x_{H2O}}  \Big)
- \end{equation}
- where $x_{H2O}$ is the volume mixing ratio of water vapor. 
+ linked by the fact that hydrostatic equilibrium must be fulfilled
+ (see Section \ref{sec:los:hse}). 
 
- The calculations take into account that the gravitational acceleration
- and the average molecular weight changes with altitude. ...(To be written!!)
- 
- The temperature WFs with hydrostatic equilibrium are basically
- calculated by perturbations (Eq. \ref{eq:wfuns:perturb}). The
- temperature at each pressure level is changed 1 K.  When considering
- hydrostatic equilibrium, the ground pressure is kept constant, i.e.
- the vertical altitudes of the pressure levels below the point of
- concern are not changed. (Finish after implementation!! Smart tricks 
- as to calculate the absorption for +1K (effect of vertical changes?)?)
+ The temperature WFs with hydrostatic equilibrium are calculated by
+ perturbations (Eq. \ref{eq:wfuns:perturb}). See further the on-line
+ information (type \verb|arts -d kTemp|).
 
 
-
-\levelb{WF for ground emission factor}
- \label{sec:wfuns:eground}
- 
- This WF is not yet implemented but this can easily be done.
+%\levelb{WF for ground emission factor}
+% \label{sec:wfuns:eground}
+% 
+% This WF is not yet implemented but this can easily be done.
 
 %%% Local Variables: 
 %%% mode: latex 

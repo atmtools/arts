@@ -88,8 +88,6 @@ PE 2001-09-26:  Change batchname to be a keyword input to ybatchCalc when
 
 PE 2001-09-26:  Go through workspace.cc (I have done this for "my" variables).
 
-PE 2001-09-26:  Shall the few remaining rand functions be removed?
-
 STR 2001-09-26: Some points pointed out by Stefan.
 		1. Description of Scheme for tag groups as given in Bredbeck 
 		   proceedings-I to be included in the user guide
@@ -100,3 +98,5 @@ PE 2001-09-26:  The WSV h20_abs, n2_abs ... shall be removed.
 
 PE 2001-09-26:  The variable *vmrs* shall also be reduced along with
                 *abs_per_tgs*.
+
+PE 2001-10-05:  Check file functions for negative Index.

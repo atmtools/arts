@@ -4,7 +4,7 @@
  
 \starthistory
   001027 & Started by Patrick Eriksson. \\
-  010904 & Started new text about handmade matrix/vector package.\\
+  010904 & Started new text about handmade matrix/vector package. Stefan B\"uhler.\\
 \stophistory
 
 This section defines the data types, basic mathematical operations
@@ -39,7 +39,6 @@ The most basic, the atomic, groups of ARTS are:
 \item \verb|Numeric|
 \item \verb|String|
 \end{itemize}
-
 A variable of group \verb|Index| is a positive or negative integer.
 \verb|Index| is the general purpose integer type of ARTS.  Internally
 this type is set to the C data type \verb|long int|. \verb|Index| is
@@ -74,12 +73,11 @@ possible. ARTS uses the following types:
 \item \verb|Vector|
 \item \verb|Matrix|
 \end{itemize}
-
 Both of these use 0-based indexing, i.e., \verb|a[0]| is the first
 element of the \verb|Vector| \verb|a|.  Because these types are quite
 powerfull, they are described in more detail in a separate section,
-which you should read if you want to do ARTS development. [FIXME: Put
-reference here.]
+which you should read if you want to do ARTS development (to be written). 
+%[FIXME: Put reference here.]
 
 \levelc{Arrays based on atomic and numeric groups}
  \label{sec:formats:atomic_arrays}
@@ -99,24 +97,25 @@ are:
 
 \levelc{Structures based on atomic and numeric groups}
 
-The \verb|LOS| is a structure to describe the line of sight (LOS).
+The \verb|Los| is a structure to describe the line of sight (LOS).
 The structure holds for example the pressures along the LOS. To make the
 calculations more efficient for 1D calulations, only one half of the
 LOS is stored.  For this reason, the LOS structure includes indecies
 to describe the iteration order. The structure also contains the
 index for ground reflections and the geometrical step length along
-the LOS. The LOS is further described in Section \ref{sec:los}.
+the LOS. The structure is defined in \verb|los.h|.
+The LOS calculations are further described in Section \ref{sec:los}.
 
 
 
 \levelb{File formats}
  \label{sec:formats:files}
  
- All ARTS data can be stored to, or loaded from, binary files using
- HDF.  For some data types an ASCII file format also exists (Table
- \ref{table:format:aa}). The default extension for ASCCI files is
- \verb|.aa| (ARTS ASCII) and for binary files it is \verb|.ab| (ARTS
- binary).
+ All ARTS data, beside the spectroscopic variables, can be stored to,
+ or loaded from, binary files using HDF.  For some data types an ASCII
+ file format also exists (Table \ref{table:format:aa}). The default
+ extension for ASCCI files is \verb|.aa| (ARTS ASCII) and for binary
+ files it is \verb|.ab| (ARTS binary).
  
  \levelc{ASCII}
   \label{sec:formats:file:ascii}
@@ -147,8 +146,7 @@ the LOS. The LOS is further described in Section \ref{sec:los}.
      
  The sizes given in the file must be compatible with the data type
  of the variable that is read. Vectors can be given both as
- columns or row matrices. When reading varaibles of Index type,
- the data is checked to only contain non-negative integers.
+ columns or row matrices.
  
  The types \verb|STRING| and \verb|ArrayOfSTRING| are stored using a
  similar file format. String ASCII files have the following structure:
@@ -181,9 +179,12 @@ String 3
  \label{sec:formats:file:binary}
   
  Binary files are created and read by using HDF 4 (Sec.
- \ref{sec:formats:hdf}). The Vdata format is applied. Most data types
- are stored using a common approach but for some data types a special 
- format is used.
+ \ref{sec:formats:hdf}). Hence, HDF must be installed to use binary
+ files. The Vdata format is applied. Most data types are stored using
+ a common approach but for some data types a special format is used.
+ The existing solution is temporary and the file format file will be
+ changed.
+
 
 \leveld{General binary file format}
  \label{sec:formats:file:binary:general}
@@ -203,9 +204,7 @@ String 3
  The matrix dimensions are stored as an attribute to each Vdata. The
  name of the attribute is \verb|SIZE|. The order of \verb|SIZE| is 2
  where the first value is the number of rows and the second value is
- the number of columns.\footnote{The order of the size attribute can
-   be increased to accomodate information needed for e.g. sparse
-   matrices.}. The data type of \verb|SIZE| is unsigned 4 byte
+ the number of columns. The data type of \verb|SIZE| is unsigned 4 byte
  integers (= HDF type \verb|DFNT_UINT32|). Vectors and strings are
  treated as column objects (i.e. 1 column).
  
@@ -256,13 +255,6 @@ String 3
  have one column.
  
 
-\leveld{Other binary file formats}
- \label{sec:formats:file:binary:others}
-
- Spectroscopic data and tag information are better stored using
- structure data fields (constructs). !! Or? !!
-
-
 \leveld{Display tools}
  \label{sec:formats:file:binary:display}
 
@@ -270,7 +262,7 @@ String 3
  line HDF utilities. A first utility is
  \verb|vshow|. The syntax is \\
 
- \verb|vshow |{\it filename}\verb| +|
+ \verb|vshow |{\it filename}\verb| +| \\
 
  \noindent
  where {\it filename} is the binary file of interest. The final \verb|+|
@@ -282,18 +274,6 @@ String 3
  
  \verb|hdp dumpvd |{\it filename}
 
-
-
-\levelb{MTL}
- \label{sec:formats:mtl}
-
- The MTL home page is found at \\
-
- \verb|http://www.lsc.nd.edu/research/mtl/| \\
-
- \noindent
- The MTL version used presently is 2.1.2. !! Stefan or Oliver, please check
- the version number and write something about installing MTL. !!
 
 
 \levelb{HDF}

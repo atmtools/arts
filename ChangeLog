@@ -1,5 +1,17 @@
 2001-10-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-264
+
+	* Further work on AUG. I have now quickly gone through "my" parts and
+	removed the worst problems. The text should now be more or less correct
+	but not everything is described (far from).
+
+	* Made sure that the analytical version of kTemp is not used with
+	emission=0.
+	
+
+2001-10-05  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-263
 
 	* The example auto_full is now up to date and runs. Good work Oliver

@@ -2384,11 +2384,11 @@ void define_md_data()
     ( MdRecord
       ( NAME("hseCalc"),
 	DESCRIPTION(
-          "Ensures that 'z_abs' fulfills hydrostatic equilibrium.\n"
+          "Ensures that 'z_abs' fulfills hydrostatic equilibrium. \n"
           "\n"
-          "Nothing is done if the on/off flag of *hse* is set to 0.\n The \n"
-          "reference point, g at the ground and number of iterations\n"
-          "are taken from *hse*."
+          "Nothing is done if the on/off flag of *hse* is set to 0. The \n"
+          "reference point, g at the ground and number of iterations \n"
+          "are taken from *hse*. \n"
           "   The given altitudes (*z_abs*) are used as a first guess when \n"
           "starting the calculations (to estimate g etc.). The altitude \n"
           "variation of the gravitational acceleration is considered. The \n"
