@@ -1,4 +1,11 @@
-<<<<<<< ChangeLog
+2003-06-24  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-588
+
+	* ChangeLog: Removed conflict markers.
+
+	* src/xml_io_array_types.cc: Corrected docs.
+
 2003-06-24  Cory Davis    <cory@met.ed.ac.uk>
 
 	* arts-1-1-587
@@ -38,7 +45,6 @@
 	* src/ppath.cc: fixed bug in ppath_start_3d() - removed double == double 
 	lines 03267-03268
 
-=======
 2003-06-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-586
@@ -55,7 +61,6 @@
 
 	* src/test_xml.cc: Updated to test writing of species_data.
 
->>>>>>> 1.966
 2003-06-24  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-585
