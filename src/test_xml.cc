@@ -1,25 +1,26 @@
 using namespace std;
 
 #include <iostream>
-#include <string>
+#include "matpackII.h"
 #include "xml_io.h"
 #include "exceptions.h"
 
 int
 main (int /* argc */, char * /* argv */ [])
 {
-  String str;
+  Sparse a (5, 3);
+  Sparse b;
 
   try
     {
-      cout << "Testing StringWriteXML" << endl;
-      str = "Hello World";
-      xml_write_to_file ("string.xml", str);
-      cout << "Wrote: " << str << endl;
-      
-      cout << endl << "Testing StringReadXML" << endl;
-      xml_read_from_file ("string.xml", str);
-      cout << "Read: " << str << endl;
+      a (1, 1) = 6.;
+      a (2, 2) = 5.;
+
+      xml_write_to_file ("sparse.xml", a);
+      cout << "Wrote: " << a << endl;
+
+      xml_read_from_file ("sparse.xml", b);
+      cout << "Read: " << b << endl;
     }
   catch (runtime_error e)
     {
