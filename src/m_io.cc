@@ -1198,7 +1198,7 @@ void VectorLinSpace(      Vector&  x,
                     const Numeric& stop,
                     const Numeric& step )
 {
-  x = linspace(start,stop,step);
+  linspace(x,start,stop,step);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";
   out3 << "         length: " << x.nelem() << "\n";
   out3 << "    first value: " << x[0] << "\n";
@@ -1225,8 +1225,7 @@ void VectorNLinSpace(     Vector&  x,
 {
   if ( n<2 )
     throw runtime_error("The number of points must be > 1."); 
-  x.resize(n);
-  x = nlinspace(start,stop,n);
+  nlinspace(x,start,stop,n);
   out2 << "  Creating " << x_name << " as linearly spaced vector\n";
   out3 << "         length: " << n << "\n";
   out3 << "    first value: " << x[0] << "\n";

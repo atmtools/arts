@@ -232,32 +232,6 @@ void linspace(
     x[i] = start + i*step;
 }
 
-/** Linearly spaced vector with specified spacing (return version). 
-
-    The first element of the returned vector is always start. 
-    The next value is start+step etc.
-    Note that the last value can deviate from stop.
-    The step can be both positive and negative. 
-    (in Matlab notation: start:step:stop)
-
-    \return           linearly spaced vector
-    \param    start   first value in x
-    \param    stop    last value of x <= stop
-    \param    step    distance between values in x
-
-    \author Patrick Eriksson
-    \date   2000-06-27
-*/
-Vector linspace(  
-		const Numeric start, 
-		const Numeric stop,  
-		const Numeric step )
-{
-  Vector x;
-  linspace( x, start, stop, step );
-  return x; 
-}
-      
 /** Linearly spaced vector with specified length. 
 
     Returns a vector equally and linearly spaced between start and stop 
@@ -285,32 +259,6 @@ void nlinspace(
   for ( Index i=0; i<n; i++ )
     x[i] = start + i*step;
 }
-
-/** Linearly spaced vector with specified length (return version). 
-
-    Returns a vector equally and linearly spaced between start and stop 
-    of length n. (equals the Matlab function linspace)
-
-    The length must be > 1.
-
-    \return   x       linearly spaced vector
-    \param    start   first value in x
-    \param    stop    last value of x <= stop
-    \param    n       length of x
-
-    \author Patrick Eriksson
-    \date   2000-06-27
-*/
-Vector nlinspace(                 // As above but return version
-		 const Numeric start, 
-		 const Numeric stop,  
-		 const Index     n )
-{
-  Vector x;
-  nlinspace( x, start, stop, n );
-  return x; 
-}                     
-
 
 //// nlogspace /////////////////////////////////////////////////////////////
 //

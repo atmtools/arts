@@ -315,7 +315,10 @@ void sSimple(
   const MakeVector   clength( corrlength, corrlength );
   const MakeVector   kp(      1,          n          );
 
-  setup_covmatrix( s, linspace(1.0,n,1.0), corrfun, cutoff, kp, sdev, clength);
+  Vector ls;
+  linspace(ls,1.0,n,1.0);
+
+  setup_covmatrix( s, ls, corrfun, cutoff, kp, sdev, clength);
 }
 
 

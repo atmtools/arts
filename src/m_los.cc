@@ -547,7 +547,11 @@ void los_1za(
 
         // Determine the distance along the LOS between the tangent point and
         // the sensor by an interpolation
-        l1 = interp_lin( z, linspace( 0, l*(z.nelem()-1) , l ), z_plat );
+	{
+	  Vector ls;
+	  linspace( ls, 0, l*(z.nelem()-1) , l );
+	  l1 = interp_lin( z, ls, z_plat );
+	}
 
         // A sufficient large distance between platform and tangent point
         if ( l1 > l_step_max/10 )
@@ -622,7 +626,11 @@ void los_1za(
 
         // Determine the distance along the LOS between the tangent point and
         // the sensor by an interpolation
-        l1 = interp_lin( z, linspace( 0, l*(z.nelem()-1) , l ), z_plat );
+	{
+	  Vector ls;
+	  linspace( ls, 0, l*(z.nelem()-1) , l );
+	  l1 = interp_lin( z, ls, z_plat );
+	}
 
         // A sufficient large distance between platform and ground
         if ( l1 > l_step_max/10 )

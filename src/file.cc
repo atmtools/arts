@@ -1478,10 +1478,13 @@ void binfile_write_vector(
   
   Numeric *a = new Numeric[n];
   for ( Index i=0; i<n; i++ )
-    a[i] = x[i];
+    {
+      a[i] = x[i];
+      cout << "a[i] = " << a[i] << "\n";
+    }
   
   binfile_write( fid,  filename, dataname, "VECTOR", "NUMERIC", n, 1, 
-                                                               (uint8*)&a[0] );
+                                                               (uint8*)a );
 
   delete a;
 }
@@ -1552,7 +1555,7 @@ void binfile_write_matrix(
       a[r*ncols+c] = x(r,c);
 
   binfile_write( fid,  filename, dataname, "MATRIX", "NUMERIC", nrows, ncols, 
-		 (uint8*)&a[0] );
+		 (uint8*)a );
   delete a;
 }
 

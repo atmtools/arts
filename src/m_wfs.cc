@@ -3012,7 +3012,8 @@ void LinAltsFromPres(// WS Generic Output:
   
   interpp(z_lim,p_abs,z_abs,p_lim);
 
-  Vector z = linspace(z_lim[0],z_lim[1],delta_z);
+  Vector z;
+  linspace(z,z_lim[0],z_lim[1],delta_z);
   p.resize( z.nelem());
   z2p(p, z_abs, p_abs, z);
   
