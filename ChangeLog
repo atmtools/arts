@@ -1,3 +1,14 @@
+2002-05-30  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-105
+
+	* src/workspace.cc (define_wsv_data): Added workspace variable
+	xml_output_type. Type is Index: 0 means Ascii, 1 binary output.
+
+	* src/m_ppath.cc: Include iostream.
+
+	* src/test_xml.cc (main): Added exception handler.
+
 2002-05-30  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-104
