@@ -629,7 +629,7 @@ int main (int argc, char **argv)
       // Just print a help message and then exit.
       cout << "\n" << parameters.usage << "\n\n";
       cout << parameters.helptext << "\n\n";
-      return(0);
+      arts_exit (0);
     }
 
   if (parameters.version)
@@ -653,7 +653,7 @@ int main (int argc, char **argv)
         << "no "
 #endif
         << "MPI support" << endl;
-      return(0);
+      arts_exit (0);
     }
 
 
@@ -729,7 +729,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.methods )
     {
       option_methods(parameters.methods);
-      return(0);
+      arts_exit (0);
     }
 
   // React to option `input'. Given the name of a variable (or group)
@@ -738,7 +738,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.input )
     {
       option_input(parameters.input);
-      return(0);
+      arts_exit (0);
     }
   
   // React to option `workspacevariables'. If given the argument `all',
@@ -748,7 +748,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.workspacevariables )
     {
       option_workspacevariables(parameters.workspacevariables);
-      return(0);
+      arts_exit (0);
     }
 
   // React to option `describe'. This should print the description
@@ -756,7 +756,7 @@ int main (int argc, char **argv)
   if ( "" != parameters.describe )
     {
       option_describe(parameters.describe);
-      return(0);
+      arts_exit (0);
     }
 
   
@@ -774,7 +774,7 @@ int main (int argc, char **argv)
         }
       cout
         << "*-------------------------------------------------------------------*\n\n";
-      return(0);
+      arts_exit (0);
     }
 
 
