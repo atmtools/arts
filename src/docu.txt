@@ -253,7 +253,7 @@ SPARSE_MAT S(n,m);        // n,m are the dimensions, the number of
 
 2. Set elements by:
 
-S(3,4) = 1;
+S[3][4] = 1;
 
 3. Number of nonzero elements:
 

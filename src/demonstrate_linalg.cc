@@ -118,8 +118,8 @@ main()
   // How many nonzero elements?
   cout << "S.nnz(): " << S.nnz() << "\n";
 
-  S(1,2)  = 1;
-  S(3,5)  = 2;
+  S[1][2]  = 1;
+  S[3][5]  = 2;
   
   cout << "S.nnz(): " << S.nnz() << "\n";
   cout << "S: ";
