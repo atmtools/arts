@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.295)
+AM_INIT_AUTOMAKE(arts,1.1.296)
 
 AM_MAINTAINER_MODE
 
@@ -261,10 +261,11 @@ if test x$ac_docgen = xyes; then
 
 fi
 
+WARNING_FLAGS=
 if test x$ac_more_warnings = xyes; then
-  WARNING_FLAGS="-W -Wall -Wno-unused"
-else
-  WARNING_FLAGS=
+  if test x$CC = xgcc; then
+    WARNING_FLAGS="-W -Wall -Wno-unused"
+  fi
 fi
 
 
@@ -292,12 +293,18 @@ esac
 #
 if test x$USE_MAINTAINER_MODE = xyes; then
   CFLAGS="$WARNING_FLAGS"
-  CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
-  CXXFLAGS_FIXED="$CXXFLAGS"
+  if test x$CXX = xg++; then
+    CXXFLAGS="-ftemplate-depth-20 $WARNING_FLAGS"
+    CXXFLAGS_FIXED="$CXXFLAGS"
+  fi
 else
   CFLAGS="$CFLAGS $WARNING_FLAGS"
-  CXXFLAGS="$CXXFLAGS -ftemplate-depth-20 $WARNING_FLAGS"
-  CXXFLAGS_FIXED="-ftemplate-depth-20 $WARNING_FLAGS"
+  if test x$CXX = xg++; then
+    CXXFLAGS="$CXXFLAGS -ftemplate-depth-20 $WARNING_FLAGS"
+    CXXFLAGS_FIXED="-ftemplate-depth-20 $WARNING_FLAGS"
+  else
+    CXXFLAGS_FIXED="$CXXFLAGS"
+  fi
 fi
 	
 if test x$ac_debug = xyes; then
@@ -330,6 +337,9 @@ Makefile
          doc/uguide/Figs/Makefile 
             doc/uguide/Figs/fm_definitions/Makefile 
             doc/uguide/Figs/ppath/Makefile 
+            doc/uguide/Figs/polarization/Makefile 
+            doc/uguide/Figs/interpolation/Makefile 
+            doc/uguide/Figs/scattering/Makefile 
       doc/examples/Makefile 
          doc/examples/absorption_lookup_example.arts
          doc/examples/absorption_example.arts
