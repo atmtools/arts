@@ -43,7 +43,6 @@
 #include <hdf.h>
 #include <math.h>
 #include "arts.h"
-#include "atm_funcs.h"          
 #include "math_funcs.h"
 #include "messages.h"
 #include "auto_md.h"

@@ -41,7 +41,7 @@
 #include "auto_md.h"
 #include "math_funcs.h"
 #include "make_array.h"
-#include "atm_funcs.h"
+#include "physics_funcs.h"
 #include "continua.h"
 #include "make_vector.h"
 
@@ -1444,10 +1444,11 @@ void AtmFromRaw(// WS Output:
     // For the interpolated profiles:
     Matrix tz_intp( 2, p_abs.nelem() );
 
-    interpp( tz_intp,
+    // The interpolation function must be replaced
+    /* interpp( tz_intp,
 	     raw_ptz(Range(joker),0),
 	     transpose(raw_ptz(Range(joker),Range(1,joker))),
-	     p_abs );
+	     p_abs ); */
     // The first Matpack expression selects the first column of
     // raw_ptz as a vector. The second Matpack expression gives the
     // transpose of the last two columns of raw_ptz. The function
@@ -1512,10 +1513,11 @@ void AtmFromRaw(// WS Output:
 	// else
 	//   {
 	    // Interpolate VMRs:
-	    interpp( vmrs(j,Range(joker)),
+            // The interpolation function must be replaced
+	    /* interpp( vmrs(j,Range(joker)),
 		     raw(Range(joker),0),
 		     raw(Range(joker),1),
-		     p_abs );
+		     p_abs ); */
 	    // out3 << "This VMR: " << vmrs(j,Range(joker)) << "\n";
 	//   }
 	// The calls to interpp_cloud and inerpp contain some nice

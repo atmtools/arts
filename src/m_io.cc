@@ -42,7 +42,6 @@
 
 #include <math.h>
 #include "arts.h"
-#include "atm_funcs.h"          
 #include "file.h"
 #include "math_funcs.h"
 #include "messages.h"

@@ -19,8 +19,6 @@ arts_SOURCES = \
 	absorption.h \
 	array.h \
 	arts.h \
-	atm_funcs.cc \
-	atm_funcs.h \
 	auto_md.cc \
 	auto_md.h \
 	auto_wsv.h \
@@ -73,6 +71,8 @@ arts_SOURCES = \
 	ppath.cc \
 	poly_roots.h \
 	poly_roots.cc \
+	physics_funcs.cc \
+	physics_funcs.h \
 	species_data.cc \
 	sstream.h \
 	token.cc \

@@ -35,7 +35,6 @@
 #ifndef math_funcs_h
 #define math_funcs_h
 
-
 #include <time.h>
 #include <math.h>
 #include <stdexcept>
@@ -44,30 +43,11 @@
 #include "matpackI.h"
 #include "mystring.h"
 
+
+
 Numeric last( ConstVectorView x );
 
 Index last( const ArrayOfIndex& x );
-
-
-
-
-//
-// Old functions:
-//
-
-
-
-////////////////////////////////////////////////////////////////////////////
-//// Logical functions
-////////////////////////////////////////////////////////////////////////////
-
-bool any( const ArrayOfIndex& x ); 
-
-
-
-////////////////////////////////////////////////////////////////////////////
-// Functions to generate vectors
-////////////////////////////////////////////////////////////////////////////
 
 void linspace(                      
               Vector&     x,           
@@ -102,52 +82,5 @@ Vector nlogspace(
 		 const Numeric     stop,  
 		 const Index         n );
 
-
-
-////////////////////////////////////////////////////////////////////////////
-//   Interpolation routines
-////////////////////////////////////////////////////////////////////////////
-
-void interp_lin_vector( VectorView       yi,
-			ConstVectorView  x, 
-			ConstVectorView  y, 
-			ConstVectorView  xi );
-
-void interp_lin_matrix(    
-		       MatrixView        Yi,
-		       ConstVectorView   x, 
-		       ConstMatrixView   Y, 
-		       ConstVectorView   xi );
-
-Numeric interp_lin(         
-		   ConstVectorView  x, 
-		   ConstVectorView  y, 
-		   const Numeric  xi );
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-//   Check of function input
-/////////////////////////////////////////////////////////////////////////////
-
-void check_if_bool( const Index& x, const String& x_name );
-
-void check_if_in_range( 
-   const Numeric& x_low, 
-   const Numeric& x_high, 
-   const Numeric& x, 
-   const String&  x_name );
-
-void check_lengths( const Vector& x1, const String& x1_name,
-                     const Vector& x2, const String& x2_name );
-
-void check_length_nrow( const Vector& x, const String& x_name,
-                         const Matrix& A, const String& A_name );
-
-void check_length_ncol( const Vector& x, const String& x_name,
-                         const Matrix& A, const String& A_name );
-
-void check_ncol_nrow( const Matrix& A, const String& A_name,
-		      const Matrix& B, const String& B_name );
 
 #endif  // math_funcs_h

@@ -164,6 +164,18 @@ void define_md_data()
 	TYPES(),
 	AGENDAMETHOD( true )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("ArrayOfStringSet"),
+	DESCRIPTION("Sets a String array according the given text.\n"
+                    "The format is text = [\"String1\",\"String2\",...]"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( ArrayOfString_ ),
+	GINPUT(),
+	KEYWORDS( "text"         ),
+	TYPES(    Array_String_t )));
+
   md_data.push_back     
     ( MdRecord
       ( NAME("Exit"),
@@ -182,6 +194,26 @@ void define_md_data()
 	KEYWORDS( ),
 	TYPES( )));
 
+  md_data.push_back     
+    ( MdRecord
+      ( NAME("IndexSet"),
+	DESCRIPTION
+        (
+         "Sets an index workspace variable to the given value. \n"
+         "\n"
+         "Global output: \n"
+         "   Index : The index variable to be set. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : A positive integer." 
+        ),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( Index_ ),
+	GINPUT( ),
+	KEYWORDS( "value" ),
+	TYPES(     Index_t   )));
+
   md_data.push_back
     ( MdRecord
       ( NAME("Main"),
@@ -198,6 +230,94 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES(),
 	AGENDAMETHOD( true )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixCopy"),
+	DESCRIPTION
+        (
+         "Creates a copy of a matrix. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Matrix : The matrix to be copied. "
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixScale"),
+	DESCRIPTION
+        (
+         "Scales all elements of a matrix with the same value. \n"
+         "\n"
+         "The result can either be stored in the same or another matrix. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : Return matrix. \n"
+         "\n"
+         "Global input: \n"
+         "   Matrix : Original matrix. \n"
+         "\n"
+         "Keywords: \n"
+         "   value : The value to be multiplicated with the matrix."  
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT( Matrix_ ),
+	KEYWORDS( "value" ),
+	TYPES(    Numeric_t   )));
+
+   md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixSet"),
+	DESCRIPTION
+        (
+         "Creates a workspace matrix with the specified size and sets \n"
+         "all values of the matrix to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   nrows : The number of rows of the matrix to create. \n"
+         "   ncols : The number of columns of the matrix to create. \n"
+         "   value : The value of the matrix elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT(),
+	KEYWORDS( "nrows", "ncols", "value"   ),
+	TYPES(    Index_t, Index_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("NumericSet"),
+	DESCRIPTION
+        (
+         "Sets a numeric workspace variable to the given value. \n"
+         "\n"
+         "Global output: \n"
+         "   Numeric : The numeric variable to be set. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : The value." 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Numeric_ ),
+	GINPUT(),
+	KEYWORDS( "value"   ),
+	TYPES(    Numeric_t )));
 
   /* Just started to design the function, not yet implemented
   md_data.push_back
@@ -226,6 +346,17 @@ void define_md_data()
 	TYPES()));
   */
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("StringSet"),
+	DESCRIPTION("Sets a String to the given text String."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( String_ ),
+	GINPUT(),
+	KEYWORDS( "text"   ),
+	TYPES(    String_t )));
+
   md_data.push_back     
     ( MdRecord
       ( NAME("Test"),
@@ -244,6 +375,203 @@ void define_md_data()
 	GINPUT( ),
 	KEYWORDS( ),
 	TYPES( )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorAddScalar"),
+  	DESCRIPTION
+        (
+         "Adds a scalar to all elements of a vector. \n"
+         "\n"
+         "The result can either be stored in the same or another vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Original vector. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : The value to be added to the vector."  
+        ),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( "value" ),
+	TYPES( Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorCopy"),
+	DESCRIPTION
+        (
+         "Creates a copy of a vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector to be copied. "
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorLinSpace"),
+	DESCRIPTION
+        (
+         "Creates a vector with linear spacing.\n"
+         "\n"
+         "The first element equals always the start value, and the spacing\n"
+         "equlas always the step value, but note that the last value can  \n"
+         "deviate from the stop value. The keyword step can be both positive\n"
+         "and negative. \n"
+         "   The vector is [start, start+step, start+2*step, ...]\n "  
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. \n"
+         "    stop : The maximum value of the end value. \n"  
+         "    step : The spacing of the vector. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT(),
+	KEYWORDS( "start",   "stop",    "step"    ),
+	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorNLinSpace"),
+	DESCRIPTION
+        (
+         "Creates a vector with defined length, equally spaced between the \n"
+         "given end values. \n"
+         "\n"
+	 "The length must be larger than 1. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. \n"
+         "    stop : The end value. \n"  
+         "       n : Number of elements of the vector. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(Vector_),
+	GINPUT(),
+	KEYWORDS( "start",   "stop",    "n"   ),
+	TYPES(    Numeric_t, Numeric_t, Index_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorNLogSpace"),
+	DESCRIPTION
+        (
+         "Creates a vector with defined length, equally logarithmically \n"
+         "spaced between the given end values. \n"
+         "\n"
+	 "The length must be larger than 1. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. \n"
+         "    stop : The end value. \n"  
+         "       n : Number of elements of the vector. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(Vector_),
+	GINPUT(),
+	KEYWORDS( "start",   "stop",    "n"   ),
+	TYPES(    Numeric_t, Numeric_t, Index_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorScale"),
+  	DESCRIPTION
+        (
+         "Scales all elements of a vector with the same value. \n"
+         "\n"
+         "The result can either be stored in the same or another vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Original vector. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : The value to be multiplicated with the vector."  
+        ),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( "value" ),
+	TYPES( Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorSet"),
+	DESCRIPTION
+        (
+         "Creates a workspace vector with the specified length and sets \n"
+         "all values of the vector to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   length : The length of the new vector. \n"
+         "   value  : The value of the vector elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT(),
+	KEYWORDS( "length", "value"   ),
+	TYPES(    Index_t,    Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorSetTakingLengthFromVector"),
+	DESCRIPTION
+        (
+         "Creates a workspace vector with the same length as another vector,\n"
+         "and sets all values of the new vector to the specified value. \n"
+         "\n"
+         "A common usage of the function should be: \n"
+         "  VectorSetLengthFromVector(e_ground,f_mono){value=0.75} \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector specifying the length.. \n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The value of the vector elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Vector_ ),
+	GINPUT( Vector_ ),
+	KEYWORDS( "value"   ),
+	TYPES(    Numeric_t )));
 
 
 
@@ -269,26 +597,6 @@ void define_md_data()
 //======================================================================
 
 //=== Index ============================================================
-
-  md_data.push_back     
-    ( MdRecord
-      ( NAME("IndexSet"),
-	DESCRIPTION
-        (
-         "Sets an index workspace variable to the given value. \n"
-         "\n"
-         "Global output: \n"
-         "   Index : The index variable to be set. \n"
-         "\n"
-         "Keywords:\n"
-         "   value : A positive integer." 
-        ),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( Index_ ),
-	GINPUT( ),
-	KEYWORDS( "value" ),
-	TYPES(     Index_t   )));
 
   md_data.push_back
     ( MdRecord
@@ -396,26 +704,6 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("NumericSet"),
-	DESCRIPTION
-        (
-         "Sets a numeric workspace variable to the given value. \n"
-         "\n"
-         "Global output: \n"
-         "   Numeric : The numeric variable to be set. \n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value." 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Numeric_ ),
-	GINPUT(),
-	KEYWORDS( "value"   ),
-	TYPES(    Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
       ( NAME("NumericWriteAscii"),
 	DESCRIPTION(
                     "Writes a numeric value to an ASCII file.\n"
@@ -518,178 +806,7 @@ void define_md_data()
 
 //=== Vector ==========================================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorSet"),
-	DESCRIPTION
-        (
-         "Creates a workspace vector with the specified length and sets \n"
-         "all values of the vector to the specified value. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Keywords:\n"
-         "   length : The length of the new vector. \n"
-         "   value  : The value of the vector elements. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT(),
-	KEYWORDS( "length", "value"   ),
-	TYPES(    Index_t,    Numeric_t )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorSetTakingLengthFromVector"),
-	DESCRIPTION
-        (
-         "Creates a workspace vector with the same length as another vector,\n"
-         "and sets all values of the new vector to the specified value. \n"
-         "\n"
-         "A common usage of the function should be: \n"
-         "  VectorSetLengthFromVector(e_ground,f_mono){value=0.75} \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : The vector specifying the length.. \n"
-         "\n"
-         "Keywords:\n"
-         "   value  : The value of the vector elements. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS( "value"   ),
-	TYPES(    Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorLinSpace"),
-	DESCRIPTION
-        (
-         "Creates a vector with linear spacing.\n"
-         "\n"
-         "The first element equals always the start value, and the spacing\n"
-         "equlas always the step value, but note that the last value can  \n"
-         "deviate from the stop value. The keyword step can be both positive\n"
-         "and negative. \n"
-         "   The vector is [start, start+step, start+2*step, ...]\n "  
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value. \n"
-         "    stop : The maximum value of the end value. \n"  
-         "    step : The spacing of the vector. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT(),
-	KEYWORDS( "start",   "stop",    "step"    ),
-	TYPES(    Numeric_t, Numeric_t, Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorNLinSpace"),
-	DESCRIPTION
-        (
-         "Creates a vector with defined length, equally spaced between the \n"
-         "given end values. \n"
-         "\n"
-	 "The length must be larger than 1. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value. \n"
-         "    stop : The end value. \n"  
-         "       n : Number of elements of the vector. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(Vector_),
-	GINPUT(),
-	KEYWORDS( "start",   "stop",    "n"   ),
-	TYPES(    Numeric_t, Numeric_t, Index_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorNLogSpace"),
-	DESCRIPTION
-        (
-         "Creates a vector with defined length, equally logarithmically \n"
-         "spaced between the given end values. \n"
-         "\n"
-	 "The length must be larger than 1. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Keywords:\n"
-         "   start : The start value. \n"
-         "    stop : The end value. \n"  
-         "       n : Number of elements of the vector. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT(Vector_),
-	GINPUT(),
-	KEYWORDS( "start",   "stop",    "n"   ),
-	TYPES(    Numeric_t, Numeric_t, Index_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorCopy"),
-	DESCRIPTION
-        (
-         "Creates a copy of a vector. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : The vector to be created. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : The vector to be copied. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorMatrixMultiply"),
-	DESCRIPTION
-        (
-	 "Multiply a Vector with a Matrix and store the result in another\n"
-	 "Vector.\n"
-	 "\n"
-	 "This just computes the normal Matrix-Vector product, y=M*x. It is ok\n"
-	 "if input and output Vector are the same. This function is handy for\n"
-	 "multiplying the H Matrix to spectra.\n"
-	 "\n"
-	 "Global output:\n"
-	 "   Vector : The result of the multiplication (dimension m).\n"
-	 "\n"
-	 "Global input:\n"
-	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
-	 "   Vector : The original Vector (dimension n).\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( Matrix_, Vector_ ),
-	KEYWORDS(),
-	TYPES()));
 
   md_data.push_back
     ( MdRecord
@@ -793,150 +910,10 @@ void define_md_data()
 #endif // HDF_SUPPORT
 
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorAdd"),
-  	DESCRIPTION
-        (
-         "Adds a scalar to all elements of a vector. \n"
-         "\n"
-         "The result can either be stored in the same or another vector. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : Return vector. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : Original vector. \n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value to be added to the vector."  
-        ),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS( "value" ),
-	TYPES( Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorScale"),
-  	DESCRIPTION
-        (
-         "Scales all elements of a vector with the same value. \n"
-         "\n"
-         "The result can either be stored in the same or another vector. \n"
-         "\n"
-         "Global output: \n"
-         "   Vector : Return vector. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : Original vector. \n"
-         "\n"
-         "Keywords:\n"
-         "   value : The value to be multiplicated with the vector."  
-        ),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( Vector_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS( "value" ),
-	TYPES( Numeric_t )));
 
 
 //=== Matrix ==========================================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixSet"),
-	DESCRIPTION
-        (
-         "Creates a workspace matrix with the specified size and sets \n"
-         "all values of the matrix to the specified value. \n"
-         "\n"
-         "Global output: \n"
-         "   Matrix : The matrix to be created. \n"
-         "\n"
-         "Keywords:\n"
-         "   nrows : The number of rows of the matrix to create. \n"
-         "   ncols : The number of columns of the matrix to create. \n"
-         "   value : The value of the matrix elements. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT(),
-	KEYWORDS( "nrows", "ncols", "value"   ),
-	TYPES(    Index_t, Index_t, Numeric_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixCopy"),
-	DESCRIPTION
-        (
-         "Creates a copy of a matrix. \n"
-         "\n"
-         "Global output: \n"
-         "   Matrix : The matrix to be created. \n"
-         "\n"
-         "Global input: \n"
-         "   Matrix : The matrix to be copied. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT( Matrix_ ),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixFillWithVector"),
-	DESCRIPTION
-        (
-         "Forms a matrix with n columns, and put the given vector in \n"
-         "each column. \n"
-         "\n"
-         "Global output: \n"
-         "   Matrix : The matrix to be created. \n"
-         "\n"
-         "Global input: \n"
-         "   Vector : The vector to be copied. \n"
-         "Keyword: \n"
-         "   n : Number of columns in the matrix. "
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT( Vector_ ),
-	KEYWORDS( "n"   ),
-	TYPES(    Index_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixMatrixMultiply"),
-	DESCRIPTION
-        (
-	 "Multiply a Matrix with another Matrix and store the result in the result\n"
-	 "Matrix.\n"
-	 "\n"
-	 "This just computes the normal Matrix-Matrix product, Y=M*X. It is ok\n"
-	 "if Y and X are the same Matrix. This function is handy for\n"
-	 "multiplying the H Matrix to weighting functions.\n"
-	 "\n"
-	 "Global output:\n"
-	 "   Matrix : The result of the multiplication (dimension mxc).\n"
-	 "\n"
-	 "Global input:\n"
-	 "   Matrix : The Matrix to multiply (dimension mxn).\n"
-	 "   Matrix : The original Matrix (dimension nxc).\n"
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT( Matrix_, Matrix_ ),
-	KEYWORDS(),
-	TYPES()));
 
   md_data.push_back
     ( MdRecord
@@ -1039,54 +1016,7 @@ void define_md_data()
 	TYPES(    String_t   )));
 #endif // HDF_SUPPORT
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixScale"),
-	DESCRIPTION
-        (
-         "Scales all elements of a matrix with the same value. \n"
-         "\n"
-         "The result can either be stored in the same or another matrix. \n"
-         "\n"
-         "Global output: \n"
-         "   Matrix : Return matrix. \n"
-         "\n"
-         "Global input: \n"
-         "   Matrix : Original matrix. \n"
-         "\n"
-         "Keywords: \n"
-         "   value : The value to be multiplicated with the matrix."  
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT( Matrix_ ),
-	KEYWORDS( "value" ),
-	TYPES(    Numeric_t   )));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixDiagonal"),
-	DESCRIPTION
-        (
-         "Creates a diagonal matrix. \n"
-         "\n"
-         "All diagonal elements are set to the same value.\n"
-         "\n"
-         "Global output: \n"
-         "   Matrix : The matrix to be created. \n"
-         "\n"
-         "Keywords: \n"
-         "   nrows : The number of rows (and columns) of the matrix to \n"
-         "           create. \n"
-         "   value : The value of the diagonal matrix elements. " 
-        ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT(),
-	KEYWORDS( "nrows", "value"   ),
-	TYPES(    Index_t,   Numeric_t )));
 
 
 
@@ -1423,16 +1353,6 @@ void define_md_data()
 
 //=== STRING ============================================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("StringSet"),
-	DESCRIPTION("Sets a String to the given text String."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( String_ ),
-	GINPUT(),
-	KEYWORDS( "text"   ),
-	TYPES(    String_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1538,17 +1458,6 @@ void define_md_data()
 
 //=== ArrayOfSTRING =========================================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("ArrayOfStringSet"),
-	DESCRIPTION("Sets a String array according the given text.\n"
-                    "The format is text = [\"String1\",\"String2\",...]"),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( ArrayOfString_ ),
-	GINPUT(),
-	KEYWORDS( "text"         ),
-	TYPES(    Array_String_t )));
 
   md_data.push_back
     ( MdRecord

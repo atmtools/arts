@@ -1,3 +1,16 @@
+2002-05-12  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-72
+
+	* I could not compile this version, but this could be due to local 
+	settings.
+
+	* src/atm_funcs.cc/h: These files do not exist any more. Moved some 
+	functions to physics_func and deleted others.
+
+	* src/physics_funcs.cc/h: Added these files.
+	
+
 2002-05-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-71
