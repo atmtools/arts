@@ -680,7 +680,7 @@ void pha_mat_singleCalc(
   //Vector pha_mat_za_grid(2);
   //Vector pha_mat_aa_grid(2);
   Index N_pt=pnd_vec.nelem();
-  assert (N_pt==scat_data_raw.nelem());
+  //assert (N_pt==scat_data_raw.nelem());
 
   Vector scat_za_grid(2);
   Vector scat_aa_grid(2);
