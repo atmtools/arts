@@ -156,7 +156,7 @@ bool get_parameters(int argc, char **argv)
 	case 'r':
 	  {
 	    //	    cout << "optarg = " << optarg << endl;
-	    istrstream is(optarg);
+	    istringstream is(optarg);
 	    is >> parameters.reporting;
 	    ws(is);
 	    // This if statement should cover all cases: If there is

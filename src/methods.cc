@@ -473,6 +473,22 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    string_t   )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("tag_groupsDefine"),
+  	DESCRIPTION(
+          "Set up the list of tag groups.\n"
+	  "Specify one string for each tag group that you want to create.\n"
+	  "Inside the string, separate the tags by comma (plus optional blanks).\n"
+	  "Example:\n"
+	  "tag = [\"O3-666-500e9-501e9, O3-686\",\"H2O\",\"O2-*-*-*\"]"),
+	OUTPUT( tag_groups_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "tags" ),
+	TYPES(    ARRAY_string_t   )));
+
 }
 
 void define_md_map()

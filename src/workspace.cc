@@ -49,6 +49,7 @@ void define_wsv_data()
   wsv_group_names.push_back("ARRAYofVECTOR");
   wsv_group_names.push_back("Los");
   wsv_group_names.push_back("ARRAYofLineRecord");
+  wsv_group_names.push_back("TagGroups");
 
   // As a primitive consistency check, compare the size of
   // wsv_group_names with N_WSV_GROUPS:  
@@ -265,6 +266,21 @@ void define_wsv_data()
        ("lines",
 	"A list of spectral line data.", 
 	ARRAYofLineRecord_,
+	&p));
+  }
+
+  {
+    static WsvPointer<TagGroups> p(&workspace.tag_groups);
+    wsv_data.push_back
+      (WsvRecord
+       ("tag_groups",
+	"This is an array of arrays of OneTag tag definitions.\n"
+	"It defines the available tag groups for the calculation\n"
+	"of absorption coefficients and weighting functions.\n"
+	"Contrary to the original Bredbeck definition, tags within a\n"
+	"group must belong to the same species, because one VMR profile\n"
+	"is associated with each tag group.", 
+	TagGroups_,
 	&p));
   }
 

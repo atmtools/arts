@@ -32,4 +32,10 @@ linesReadFromHitran(lines){
 	fmax     = 1000e12
 }
 
-linesWriteToNamedFile{"lines.dat"}
+linesWriteToNamedFile{"lines.dat"} 
+ 
+tag_groupsDefine{
+      [ "O3-666-500e9-501.0001e9, O3-686",
+	"H2O",
+	"CO2-*-*-*" ] 
+}

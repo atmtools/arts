@@ -25,11 +25,12 @@ enum WsvGroup{
   ARRAYofMATRIX_,
   ARRAYofVECTOR_,
   Los_,
-  ARRAYofLineRecord_
+  ARRAYofLineRecord_,
+  TagGroups_
 };
 
 // For consistency check:
-#define N_WSV_GROUPS 9
+#define N_WSV_GROUPS 10
 
 
 
@@ -58,7 +59,7 @@ enum WsvGroup{
 
     Explain start and stop further !PE!
    */
-struct Los {
+ struct Los {
   ARRAYofVECTOR  p;
   VECTOR         l_step;
   ARRAY<int>     ground;
@@ -66,13 +67,6 @@ struct Los {
   ARRAY<int>     stop;
 };
 
-
-/** Holds the definition of the available tag groups. 
- */
-//struct Tags {
-//
-//
-//};
 
 
 // ======================================================================
@@ -102,6 +96,7 @@ public:
   VECTOR              y;
   ARRAYofMATRIX       klos;
   ARRAYofLineRecord   lines;
+  TagGroups           tag_groups;
 };
 
 
@@ -124,6 +119,7 @@ public:
   virtual operator ARRAYofVECTOR*() 	{ safety(); return NULL; };
   virtual operator Los*()           	{ safety(); return NULL; };
   virtual operator ARRAYofLineRecord*() { safety(); return NULL; };
+  virtual operator TagGroups*()        	{ safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

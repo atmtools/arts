@@ -25,7 +25,7 @@ void SourceText::AdvanceChar()
       mLineBreak = true;
       do
 	{
-	  if (mLine>=mText.size()-2)
+	  if (mLine>=mText.size()-1)
 	    {
 	      throw Eot( "",
 			 this->File(),
@@ -35,10 +35,10 @@ void SourceText::AdvanceChar()
 	  else
 	    {
 	      ++mLine;
+	      mColumn = 0;
 	    }
 	}
       while ( 1 > mText[mLine].size() ); // Skip empty lines.
-      mColumn = 0;
     }
 }
 
@@ -193,7 +193,7 @@ void eat_whitespace(SourceText& text)
 	  break;
 	default:
 	  {
-	    std::ostrstream os;
+	    ostringstream os;
 	    os << "Expected whitespace, but got `" << dummy << "'.";
 	    throw UnexpectedChar( os.str(),
 				  text.File(),
@@ -248,7 +248,7 @@ void assertain_character(char c, SourceText& text)
 {
   if ( c != text.Current() )
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Expected `" << c << "', but got `" << text.Current() << "'.";
       throw UnexpectedChar( os.str(),
 			    text.File(),
@@ -333,7 +333,7 @@ void read_integer(string& res, SourceText& text)
 
   if (!isdigit(text.Current()))
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Expected digit, but got `" << text.Current() << "'.";
       throw UnexpectedChar(os.str(),
 			   text.File(),
@@ -483,8 +483,7 @@ void parse_integer(int& n, SourceText& text)
 {
   string res;
   read_integer(res, text);
-  std::strstream is;
-  is << res;
+  istringstream is(res);
   is >> n;
 }
 
@@ -493,8 +492,7 @@ void parse_numeric(Numeric& n, SourceText& text)
 {
   string res;
   read_numeric(res, text);
-  std::strstream is;
-  is << res;
+  istringstream is(res);
   is >> n;
 }
 
@@ -908,7 +906,7 @@ bool parse_method(size_t& id,
   // good place to end the control file. 
   try
     {
-      assertain_character('}',text);
+     assertain_character('}',text);
     }
   catch (const Eot x)
     {

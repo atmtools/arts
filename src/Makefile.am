@@ -15,7 +15,9 @@ SUBDIRS        = tnt
 arts_SOURCES   = \
 arts.h \
 getopt.h \
-messages.h\
+sstream.h \
+iotraits.h \
+messages.h \
 parameters.h \
 vecmat.h \
 exceptions.h \
@@ -51,6 +53,7 @@ m_io.cc \
 m_los.cc \
 m_wfs.cc \
 absorption.cc
+
 
 noinst_PROGRAMS = make_wsv_h make_md_h
 

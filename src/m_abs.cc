@@ -26,7 +26,7 @@ void AllAbsExample(// WS Output:
   // Safety check:
   if ( p_abs.size() != t_abs.size() )
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Dimensions of p_abs and t_abs must be the same!\n"
 	 << "p_abs.size() = " << p_abs.size() << '\n'
 	 << "t_abs.size() = " << t_abs.size() << '\n';
@@ -92,4 +92,64 @@ void linesWriteToNamedFile(// WS Input:
     {
       os << lines[i] << '\n';
     }
+}
+
+
+void tag_groupsDefine(// WS Output:
+                      TagGroups& tag_groups,
+                      // Control Parameters:
+                      const ARRAY<string>& tags)
+{
+  tag_groups.resize(tags.size());
+
+  // Each element of the array of strings tags defines one tag
+  // group. Let's work through them one by one.
+  for ( size_t i=0; i<tags.size(); ++i )
+    {
+      // There can be a comma separated list of tag definitions, so we
+      // need to break the string apart at the commas.
+      ARRAY<string> tag_def;
+      bool go_on = true;
+      string these_tags = tags[i];
+      while (go_on)
+	{
+	  size_t n = these_tags.find(',');
+	  if ( n >= these_tags.size() )
+	    {
+	      // There are no more commas.
+	      tag_def.push_back(these_tags);
+	      go_on = false;
+	    }
+	  else
+	    {
+	      tag_def.push_back(these_tags.substr(0,n));
+	      these_tags.erase(0,n+1);
+	    }
+	}
+
+      // tag_def now holds the different tag strings for this group.
+//    cout << "tag_def =\n" << tag_def << endl;
+
+      for ( size_t s=0; s<tag_def.size(); ++s )
+	{
+	  // Remove leading whitespace, if there is any:
+	  while ( ' '  == tag_def[s][0] ||
+		  '\t' == tag_def[s][0]    )	tag_def[s].erase(0,1);
+
+	  tag_groups[i].push_back(OneTag(tag_def[s]));
+	}
+    }
+
+  // Print list of tag groups to the most verbose output stream:
+  out3 << "  Defined tag groups:";
+  for ( size_t i=0; i<tag_groups.size(); ++i )
+    {
+      out3 << "\n  " << i+1 << ":";
+      for ( size_t s=0; s<tag_groups[i].size(); ++s )
+	{
+	  out3 << " " << tag_groups[i][s].Name();
+	}
+    }
+
+  cout << endl << endl << tag_groups << endl;
 }

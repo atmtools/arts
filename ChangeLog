@@ -1,3 +1,43 @@
+2000-05-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-25
+
+	* What was version 24?
+
+	* parser.cc: Fixed bug in SourceText::AdvanceChar(), which lead to
+	the last line of the controlfile not being correctly
+	parsed. Correctly treating the end of the file seems to be the
+	biggest problem for the parser! Hope this works correctly now.
+
+	* tag_groupsDefine: Added this workspace method. It sets the
+	contents of the workspace variable tag_groups, which contains the
+	available tag groups. A tag group can consist of several tag
+	definitions, but contrary to the Bredbeck definition, they must
+	all relate to the same species. The reason for this is that there
+	will be one VMR profile associated with each tag group. 
+
+	The drawback is that there must be a tag group for each molecule
+	you want to calculate absorption for. But I don't see another
+	solution, somewhere it has to be defined which input data to
+	use. I think one tag group = one input profile is the cleanest
+	solution. 
+	
+	* Discovered a nasty problem with strstream. Essentially, it does
+	not work as I thought it did. Replaced by the future standard
+	stringstream. Since stringstream is not yet part of EGCS, I have
+	added the necessary files to the ARTS source code. The files are:
+
+	sstream.h (contains also the contents of the original file sstream.cc)
+	iotraits.h
+
+	I got these files off the web:
+	ftp://ftp.fmi.uni-konstanz.de/pub/algo/personal/kuehl/sstream-egcs.tgz. 
+	They are written by Dietmar Kuehl.
+
+	* Replaced strstream by stringstream everywhere. Pure stringstream
+	also seems to work not so well, so I always use either
+	ostringstream or istringstream.
+	
 2000-05-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-23

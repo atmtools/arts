@@ -124,9 +124,20 @@ void define_species_map()
 
 ostream& operator << (ostream& os, const LineRecord& lr)
 {
+  // Determine the precision, depending on whether Numeric is double
+  // or float:  
+  int precision;
+  switch (sizeof(Numeric)) {
+  case sizeof(float)  : precision = FLT_DIG; break;
+  case sizeof(double) : precision = DBL_DIG; break;
+  default: out0 << "Numeric must be double or float\n"; exit(1);
+  }
+
   os << "@"
      << " " << lr.Name  ()
-     << " " << lr.F     ()
+     << " "
+     << setprecision(precision)
+     <<        lr.F     ()
      << " " << lr.Psf   ()
      << " " << lr.I0    ()
      << " " << lr.Ti0   ()
@@ -159,11 +170,9 @@ void extract(T&      x,
 	     size_t  n)
 {
   // This will contain the short substring with the item to extract.
-  // Make it a string stream, for easy parsing.
-  strstream item;
-
-  // Extract substring of width n from line:
-  item << line.substr(0,n);
+  // Make it a string stream, for easy parsing,
+  // extracting substring of width n from line:
+  istringstream item( line.substr(0,n) );
 
 //  cout << "line = '" << line << "'\n";
 //   cout << "line.substr(0,n) = " << line.substr(0,n) << endl;
@@ -367,7 +376,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // Issue error message if misotope is still missing:
   if (missing == misotope)
     {
-      ostrstream os;
+      ostringstream os;
       os << "Species: " << species_data[mspecies].Name()
 	 << ", isotope iso = " << iso
 	 << " is unknown.";
@@ -517,4 +526,245 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 
   // That's it!
   return false;
+}
+
+OneTag::OneTag(string def) 
+{
+  // Species lookup data:
+  extern const ARRAY<SpeciesRecord> species_data;
+  // The species map. This is used to find the species id.
+  extern std::map<string, size_t> SpeciesMap;
+  // Name of species and isotope (aux variables):
+  string name, isoname;
+  // Aux index:
+  size_t n;
+
+
+  // Set frequency limits to default values (no limits):
+  mlf = -1;
+  muf = -1;
+
+  // We cannot set a default value for the isotope, because the
+  // default should be `ALL' and the value for `ALL' depends on the
+  // species. 
+    
+
+  // Extract the species name:
+  n    = def.find('-');    // find the '-'
+  if (n < def.size() )
+    {
+      name = def.substr(0,n);      // Extract before '-'
+      def.erase(0,n+1);		    // Remove from def
+    }
+  else
+    {
+      // n==def.size means that def does not contain a '-'. In that
+      // case we assume that it contains just a species name and
+      // nothing else
+      name = def;
+      def  = "";
+    }
+
+
+//  cout << "name / def = " << name << " / " << def << endl;
+
+  // Look for species name in species map:
+  map<string, size_t>::const_iterator mi = SpeciesMap.find(name);
+  if ( mi != SpeciesMap.end() )
+    {
+      // Ok, we've found the species. Set mspecies.
+      mspecies = mi->second;
+    }
+  else
+    {
+      ostringstream os;
+      os << "Species " << name << " is not a valid species.";
+      throw runtime_error(os.str());
+    }
+
+  // Get a reference to the relevant Species Record:
+  const SpeciesRecord& spr = species_data[mspecies];
+
+  if ( 0 == def.size() )
+    {
+      // This means that there is nothing else to parse. Apparently
+      // the user wants all isotopes and no frequency limits.
+      // Frequency defaults are already set. Set isotope defaults:
+      misotope = spr.Isotope().size();
+      // This means all isotopes.
+
+      return;
+    }
+    
+  // Extract the isotope name:
+  n    = def.find('-');    // find the '-'
+  if (n < def.size() )
+    {
+      isoname = def.substr(0,n);          // Extract before '-'
+      def.erase(0,n+1);		    // Remove from def
+    }
+  else
+    {
+      // n==def.size means that def does not contain a '-'. In that
+      // case we assume that it contains just the isotope name and
+      // nothing else.
+      isoname = def;
+      def  = "";
+    }
+    
+  // Check for joker:
+  if ( "*" == isoname )
+    {
+      // The user wants all isotopes. Set this accordingly:
+      misotope = spr.Isotope().size();
+    }
+  else
+    {
+      // Make an array containing the isotope names:
+      ARRAY<string> ins;
+      for ( size_t i=0; i<spr.Isotope().size(); ++i )
+	ins.push_back( spr.Isotope()[i].Name() );
+
+      // Use the find algorithm from the STL to find the isotope ID. It
+      // returns an iterator, so to get the index we take the
+      // difference to the begin() iterator.
+      misotope = find( ins.begin(),
+		       ins.end(),
+		       isoname ) - ins.begin();
+
+      // Check if we found a matching isotope:
+      if ( misotope >= ins.size() ) 
+	{
+	  ostringstream os;
+	  os << "Isotope " << isoname << " is not a valid isotope for "
+	     << "species " << name << ".\n"
+	     << "Valid isotopes are:";
+	  for ( size_t i=0; i<ins.size(); ++i )
+	    os << " " << ins[i];
+	  throw runtime_error(os.str());
+	}
+    }
+
+  if ( 0 == def.size() )
+    {
+      // This means that there is nothing else to parse. Apparently
+      // the user wants no frequency limits.  Frequency defaults are
+      // already set, so we can return directly.
+
+      return;
+    }
+
+
+  // Look for the two frequency limits:
+  
+  // Extract first frequency
+  n    = def.find('-');    // find the '-'
+  if (n < def.size() )
+    {
+      // Frequency as a string:
+      string fname;
+      fname = def.substr(0,n);              // Extract before '-'
+      def.erase(0,n+1);		      // Remove from def
+
+      // Check for joker:
+      if ( "*" == fname )
+	{
+	  // The default for mlf is already -1, meaning `ALL'.
+	  // So there is nothing to do here.
+	}
+      else
+	{
+	  // Convert to Numeric:
+	  istringstream is(fname);
+	  is >> mlf;
+	}
+    }
+  else
+    {
+      // n==def.size means that def does not contain a '-'. In this
+      // case that is not allowed!
+      throw runtime_error("You must either speciefy both frequency limits\n"
+			  "(at least with jokers), or none.");
+    }
+
+
+  // Now there should only be the upper frequency left in def.
+  // Check for joker:
+  if ( "*" == def )
+    {
+      // The default for muf is already -1, meaning `ALL'.
+      // So there is nothing to do here.
+    }
+  else
+    {
+      // Convert to Numeric:
+      istringstream is(def);
+      is >> muf;
+    }
+}
+
+
+string OneTag::Name() const 
+{
+  // Species lookup data:
+  extern const ARRAY<SpeciesRecord> species_data;
+  // A reference to the relevant record of the species data:
+  const  SpeciesRecord& spr = species_data[mspecies];
+  // For return value:
+  ostringstream os;
+
+  // First the species name:
+  os << spr.Name() << "-";
+
+  // Now the isotope. Can be a single isotope or ALL.
+  if ( misotope == spr.Isotope().size() )
+    {
+      // One larger than allowed means all isotopes!
+      os << "*-";
+    }
+  else
+    {
+      os << spr.Isotope()[misotope].Name() << "-";
+    }
+
+  // Now the frequency limits, if there are any. For this we first
+  // need to determine the floating point precision.
+
+  // Determine the precision, depending on whether Numeric is double
+  // or float:  
+  int precision;
+  switch (sizeof(Numeric)) {
+  case sizeof(float)  : precision = FLT_DIG; break;
+  case sizeof(double) : precision = DBL_DIG; break;
+  default: out0 << "Numeric must be double or float\n"; exit(1);
+  }
+
+  if ( 0 > mlf )
+    {
+      // mlf < 0 means no lower limit.
+      os << "*-";
+    }
+  else
+    {
+      os << setprecision(precision);
+      os << mlf << "-";
+    }
+
+  if ( 0 > muf )
+    {
+      // muf < 0 means no upper limit.
+      os << "*";
+    }
+  else
+    {
+      os << setprecision(precision);
+      os << muf;
+    }
+
+  return os.str();
+}
+
+ostream& operator << (ostream& os, const OneTag& ot)
+{
+  return os << ot.Name();
 }

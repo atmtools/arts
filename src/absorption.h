@@ -6,13 +6,12 @@
 
 #include "vecmat.h"
 
-
 /** Contains the lookup data for one isotope.
     @author Stefan Buehler */
 class IsotopeRecord{
 public:
   /** Default constructor. Needed by make_array. */
-  IsotopeRecord() { /* Nothing to do here */ };
+  IsotopeRecord() { /* Nothing to do here */ }
   /** Constructor that sets the values. */
   IsotopeRecord(const string&  	  name,
 		const Numeric& 	  abundance,
@@ -42,8 +41,7 @@ public:
 
 	/* Convert string to number: */
 	int name_as_number;
-	strstream is;
-	is << mname;
+	istringstream is(mname);
 	is >> name_as_number;
 	//	cout << "name_as_number = " << name_as_number << endl;
 
@@ -511,6 +509,78 @@ void define_species_data();
     @author Stefan Buehler  */
 void define_species_map();
 
+
+//------------------------------< Tag Group Stuff >------------------------------
+
+/** A tag group can consist of the sum of several of these.
+
+    @author Stefan Buehler */
+class OneTag {
+public:
+  /** Default constructor. */
+  OneTag() { /* Nothing to be done here. */ }
+
+  /** Constructor from a tag definition string (Bredbeck
+      notation). For examples see member function Name(). 
+
+      @exception runtime_error The given string could not be mapped to
+      a sensible tag description. */
+  OneTag(string def); 
+
+  /** Return the full name of this tag according to Bredbeck
+      convention. Examples:
+      \begin{verbatim}
+      O3-*-*-*         : All O3 lines
+      O3-666-*-*       : All O3-666 lines
+      O3-*-500e9-501e9 : All O3 lines between 500 and 501 GHz.
+      \end{verbatim} */
+  string Name() const;
+    
+  /** Molecular species index. */
+  size_t Species() const { return mspecies; }
+
+  /** Isotopic species index.
+      If this is equal to the number of isotopes (one more than
+      allowed) it means all isotopes of this species. */ 
+  size_t Isotope() const { return misotope; }
+
+  /** The lower line center frequency in Hz.
+      If this is <0 it means no lower limit. */
+  Numeric Lf() const { return mlf; }
+
+  /** The upper line center frequency in Hz:
+      If this is <0 it means no upper limit. */
+  Numeric Uf() const { return muf; }
+
+private:
+  // Molecular species index: 
+  size_t mspecies;
+  // Isotopic species index.
+  // If this is equal to the number of isotopes (one more than
+  // allowed) it means all isotopes of this species.
+  size_t misotope;
+  // The lower line center frequency in Hz.
+  // If this is <0 it means no lower limit. 
+  Numeric mlf;
+  // The upper line center frequency in Hz:
+  // If this is <0 it means no upper limit. 
+  Numeric muf;
+};
+
+
+/** Output operator for OneTag. 
+
+    @author Stefan Buehler */
+ostream& operator << (ostream& os, const OneTag& ot);
+
+
+/** Contains the available tag groups. Contrary to the Bredbeck
+    definition, tag groups may only consist of tags belonging to the
+    same species. The reason for this is that there is one VMR profile
+    associated with each tag group.
+
+    @author Stefan Buehler */
+typedef  ARRAY< ARRAY<OneTag> > TagGroups;
 
 
 

@@ -160,7 +160,7 @@ void read_array_of_matrix_from_file(ARRAYofMATRIX& am,
     }
   catch (runtime_error x)
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Error reading file: " << filename << '\n'
          << x.what();
       throw runtime_error(os.str());

@@ -28,7 +28,6 @@
 #include <iostream>		// Standard stream library
 #include <iomanip>
 #include <fstream>
-#include <strstream>
 #include <string>		// Standard string library
 #include <map>
 #include <stdarg.h>
@@ -38,6 +37,13 @@
 #include <stdexcept>
 #include <algorithm>
 #include <ctype.h>
+
+// String stream library. This is included with the ARTS source code
+// for now, since it is still missing in the current version of EGCS
+// (egcs-2.91.66). Should be removed when stringstreams work as they
+// should in the standard EGCS distribution.
+#include "sstream.h"
+
 // #include <valarray>		// Valarray class from the STL
                                 // This should not be needed explicitly
 

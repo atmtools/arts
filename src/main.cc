@@ -474,6 +474,8 @@ int main (int argc, char **argv)
   // that we need for the absorption part: 
   define_species_data();
 
+  // And also the species map:
+  define_species_map();
 
   // Make all these data visible:
   //  extern const ARRAY<MdRecord>  md_data;

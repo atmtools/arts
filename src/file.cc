@@ -22,7 +22,7 @@ void open_output_file(ofstream& file, const string& name)
   // thrown by open().)
   if (!file)
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Cannot open output file: " << name << '\n'
 	 << "Maybe you don't have write access "
 	 << "to the directory or the file?";
@@ -50,7 +50,7 @@ void open_input_file(ifstream& file, const string& name)
   // g++ stream exceptions work properly.
   if (!file)
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Cannot open input file: " << name << '\n'
 	 << "Maybe the file does not exist?";
       throw runtime_error(os.str());
@@ -81,7 +81,7 @@ void read_text_from_stream(ARRAY<string>& text, istream& is)
   // FIXME: This should not be necessary anymore when stream
   // exceptions work properly.
   if ( !is.eof() ) {
-    std::ostrstream os;
+    ostringstream os;
     os << "Read Error. Last line read:\n" << linebuffer;
     throw runtime_error(os.str());
   }
@@ -107,7 +107,7 @@ void read_text_from_file(ARRAY<string>& text, const string& name)
     }
   catch (runtime_error x)
     {
-      std::ostrstream os;
+      ostringstream os;
       os << "Error reading file: " << name << '\n'
 	 << x.what();
       throw runtime_error(os.str());
