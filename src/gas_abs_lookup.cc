@@ -727,6 +727,22 @@ void GasAbsLookup::Extract( Matrix&         sga,
     }
 }
 
+
+void GasAbsLookup::GetFgrid( Vector& f ) const
+{
+  f.resize( f_grid.nelem() );
+  f = f_grid;
+}
+
+
+void GasAbsLookup::GetPgrid( Vector& p ) const
+{
+  p.resize( p_grid.nelem() );
+  p = p_grid;
+}
+
+
+
 // Below is the version of extract for the whole atmospheric field
 // that I started, but never finished. 
 

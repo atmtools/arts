@@ -50,6 +50,10 @@ public:
                             const Numeric&  T,
                 ConstVectorView vmrs ) const;
 
+  void GetFgrid( Vector& f ) const;
+
+  void GetPgrid( Vector& p ) const;
+
     // Obsolete try for a function to extract for the entire field:
     //   void Extract( Tensor5View      sga,
     //                 const Index&     f_index,

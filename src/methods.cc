@@ -1606,6 +1606,23 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("f_gridFromGasAbsLookup"),
+        DESCRIPTION
+        (
+         "Sets *f_grid* to the frequency grid of *gas_abs_lookup*.\n"
+         "\n"
+         "Must be called between importing/creating raw absorption table and\n"
+         "call of *gas_abs_lookupAdapt*."
+        ),
+        OUTPUT( f_grid_  ),
+        INPUT(  gas_abs_lookup_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("gas_abs_lookupAdapt"),
         DESCRIPTION
         (
@@ -2841,6 +2858,20 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS( "lraytrace", "lmax"    ),
         TYPES(    Numeric_t,   Numeric_t )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("p_gridFromGasAbsLookup"),
+        DESCRIPTION
+        (
+         "Sets *p_grid* to the frequency grid of *gas_abs_lookup*."
+        ),
+        OUTPUT( p_grid_  ),
+        INPUT(  gas_abs_lookup_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4809,9 +4840,9 @@ md_data_raw.push_back
          "*batch_pre_agenda* and\n"
          "a reversed copy method call must be made in *batch_post_agenda*."
          ),
-        OUTPUT( ybatch_, ybatch_index_, y_  ),
+        OUTPUT( ybatch_, ybatch_index_, ybatch_n_, y_  ),
         INPUT( batch_pre_agenda_, batch_update_agenda_, batch_calc_agenda_, 
-               batch_post_agenda_, ybatch_n_ ), 
+               batch_post_agenda_ ), 
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

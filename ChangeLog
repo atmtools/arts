@@ -1,3 +1,18 @@
+2004-09-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-869
+
+	* Batch calculations tested with success. It works. 
+
+	* src/gas_abs_lookup.h/cc: Made member functions GetFgrid and
+	GetPgrid.
+
+	* src/methods.cc: Some smaller changes for batch variables. Added
+	f_gridFromGasAbsLookup and p_gridFromGasAbsLookup. 
+
+	* doc/uguide/batch.tex: Just created this file and included it in
+	main. No writing yet.
+
 2004-09-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-868

@@ -320,3 +320,34 @@ void abs_scalar_gas_fieldCalc(// WS Output:
           }
     }
 }
+
+
+//! f_gridFromGasAbsLookup
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2004-09-15
+*/
+void f_gridFromGasAbsLookup(
+             Vector&         f_grid,
+       const GasAbsLookup&   gas_abs_lookup )
+{
+  gas_abs_lookup.GetFgrid( f_grid );
+}
+
+
+
+//! p_gridFromGasAbsLookup
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2004-09-15
+*/
+void p_gridFromGasAbsLookup(
+             Vector&         p_grid,
+       const GasAbsLookup&   gas_abs_lookup )
+{
+  gas_abs_lookup.GetPgrid( p_grid );
+}
