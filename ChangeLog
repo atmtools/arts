@@ -1,12 +1,18 @@
 2003-06-10  Carmen Verdes  <cverdes@uni-bremen.de>
 
+	* arts-1-0-85
+
+	* src/species_dat.cc: corrected a small bug (Mytag number for OCS-623)
+
+2003-06-10  Carmen Verdes  <cverdes@uni-bremen.de>
+
 	* arts-1-0-84
 	
 	* src/species_dat.cc: Included the tag number for a few species
 	which did not exist in the old MYTRAN database but they exist in
 	the new MYTRAN database received from A. Perrin, on 10.06.2003.
 	 - HOBr-169 (MYtag: 371) and HOBr-161 (MYtag: 372)
-	 - OCS-623  (MYtag 194) 
+	 - OCS-623  (MYtag: 194) 
 	 - SO2-646 (MYtag: 92) ,SO2-636 (MYtag: 93),  SO2-628 (MYtag: 94)
 
 2003-05-30  Oliver Lemke  <olemke@uni-bremen.de>
