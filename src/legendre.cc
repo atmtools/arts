@@ -135,8 +135,23 @@ legendre_poly (Index l, Index m, Numeric x)
 Numeric
 legendre_poly_norm_schmidt (Index l, Index m, Numeric x)
 {
-  return (sqrt (2.0 * fac (1 - m) / fac (1 + m))
-          * legendre_poly (l, m, x));
+  Numeric result;
+
+  if (m != 0)
+
+    {
+      result = ((sqrt (2.0 * fac (l - m) / fac (l + m))
+		 * legendre_poly (l, m, x)));
+    }
+
+  else
+
+    {
+      result = (legendre_poly (l, m, x));
+    }
+
+  return(result);
+
 }
 
 

@@ -1,5 +1,13 @@
 2003-08-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-673
+	
+	* src/legendre.cc: Fixed a bug in the normalizazion factor of
+	(legendre_poly_norm_schmidt) and added another special case for
+	this normalization.
+	
+2003-08-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-672
 	
 	* src/legendre.cc: Added the last [hopefully] special case for

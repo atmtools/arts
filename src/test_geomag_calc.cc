@@ -34,7 +34,7 @@ int main(void)
   
   Index Ny; // number of elapsed years after an epoch year, J - [0,4]
   
-  Numeric a = 6371.17; // mean radius of the Earth in [m].
+  Numeric a = 6371.17; // mean radius of the Earth in [km].
   
   extern Messages messages;
 
@@ -63,7 +63,7 @@ int main(void)
   cin >>  Ny;
 
   // Definition of the total field.
-  B_tot = sqrt(B_r*B_r + B_th*B_th + B_ph*B_ph);
+  B_tot = sqrt(B_r * B_r + B_th * B_th + B_ph * B_ph);
 
   // Defining the geocetric radius to the point.
   const Numeric r = a + z;
