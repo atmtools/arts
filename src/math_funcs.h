@@ -148,7 +148,7 @@ void rand_matrix_gaussian(
 void rand_data_gaussian(
               MATRIX&    z,
         const VECTOR&    z0,
-        const MATRIX&    s );
+        const SYMMETRIC&    s );
 
 
 /**

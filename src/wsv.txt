@@ -390,17 +390,17 @@ The intensity or brightness temperature corresponding to y_cal2.
 See for example yLoadCalibration for usage.
 
 VARIABLE : s
-DATA TYPE: MATRIX
+DATA TYPE: SYMMETRIC
 DESCRIPTION:
 The covariance matrix for a single retrieval/error identity.
 
 VARIABLE : sx
-DATA TYPE: MATRIX
+DATA TYPE: SYMMETRIC
 DESCRIPTION:
 The covariance matrix associated with kx.
 
 VARIABLE : sb
-DATA TYPE: MATRIX
+DATA TYPE: SYMMETRIC
 DESCRIPTION:
 The covariance matrix associated with kb.
 

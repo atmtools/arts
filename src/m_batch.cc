@@ -112,15 +112,12 @@ void read_batchdata(
   }    
   // Remove a possible excess of data
   if ( x.ncols() > n )
-    {
-      // Original code:
-      //    x = col( 1, n, x );
-
-      // Replaced by:
-      MATRIX dummy( x.nrows(), n );
-      copy( x.sub_matrix( 0, x.nrows(), 0, n ), dummy );
-      x = dummy;
-    }
+  {
+    MATRIX dummy( x.nrows(), n );
+    copy( x.sub_matrix( 0, x.nrows(), 0, n ), dummy );
+    resize( x, x.nrows(), n );
+    copy( dummy, x );
+  }
 }
 
 
@@ -129,7 +126,7 @@ void temperature_profiles(
               MATRIX&   t,
               string&   fname,
         const VECTOR&   t_abs,
-        const MATRIX&   s,
+        const SYMMETRIC&   s,
         const string&   batchname,
         const int&      n )
 {
@@ -156,7 +153,7 @@ void temperature_profiles(
 void BatchdataGaussianZeroMean(
       // WS Input:
         const string&   batchname,
-        const MATRIX&   s,
+        const SYMMETRIC&   s,
       // Control Parameters:
         const int&      n,
         const string&   varname )
@@ -187,7 +184,7 @@ void BatchdataGaussianTemperatureProfiles(
         const VECTOR&    t_abs,
         const VECTOR&    z_abs,
         const VECTOR&    h2o_abs,
-        const MATRIX&    s,
+        const SYMMETRIC&    s,
         const string&    batchname,
       // Control Parameters:
         const int&       n,
@@ -206,18 +203,18 @@ void BatchdataGaussianTemperatureProfiles(
   out2 << "  Filling the file " << fname << "\n"
        << "  with vertical grids fulfilling hydrostatic eq.\n";
 
+  resize( t, ts.nrows() );
+  resize( z, z_abs.size() );
   for ( size_t i=0; i<size_t(n); i++ )
-    {
-      resize( t, ts.nrows() );
-      copy( columns(ts)[i], t );
+  {
+    copy( columns(ts)[i], t );
 
-      resize( z, z_abs.size() );
-      copy( z_abs, z );
+    copy( z_abs, z );
 
-      z_absHydrostatic( z, p_abs, t, h2o_abs, g0, pref, zref, niter );
+    z_absHydrostatic( z, p_abs, t, h2o_abs, g0, pref, zref, niter );
 
-      copy( z, columns(zs)[i] );
-    }
+    copy( z, columns(zs)[i] );
+  }
 
   MatrixWriteBinary( zs, "", fname );
 }
@@ -232,7 +229,7 @@ void BatchdataGaussianTemperatureProfiles(
 */
 void BatchdataGaussianTemperatureProfilesNoHydro(
         const VECTOR&   t_abs,
-        const MATRIX&   s,
+        const SYMMETRIC&   s,
         const string&   batchname,
         const int&      n )
 {
@@ -255,7 +252,7 @@ void BatchdataGaussianSpeciesProfiles(
         const ARRAYofVECTOR&   vmrs,
         const VECTOR&          p_abs,
         const VECTOR&          t_abs,
-        const MATRIX&          s,
+        const SYMMETRIC&          s,
         const string&          batchname,
       // Control Parameters:
         const int&             n,
@@ -363,11 +360,11 @@ void BatchdataGaussianOffSets(
   resize( r, n );
   rand_gaussian( r, stddev );
   for ( size_t i=0; i<size_t(n); i++ )
-    {
-      //      put_in_col( zs, i+1, z0+r[i] );
-      mtl::set( columns(zs)[i], r[i] );
-      add( z0, columns(zs)[i] );
-    }
+  {
+    //      put_in_col( zs, i+1, z0+r[i] );
+    copy( z0, columns(zs)[i] );
+    add( VECTOR(l,r[i]), columns(zs)[i] );
+  }
   MatrixWriteBinary( zs, "", fname );
 }
 
@@ -401,11 +398,11 @@ void BatchdataUniformOffSets(
   resize( r, n );
   rand_uniform( r, low, high );
   for ( size_t i=0; i<size_t(n); i++ )
-    {
-      //      put_in_col( zs, i+1, z0+r[i] );
-      mtl::set( columns(zs)[i], r[i] );
-      add( z0, columns(zs)[i] );
-    }
+  {
+    //      put_in_col( zs, i+1, z0+r[i] );
+    copy( z0, columns(zs)[i] );
+    add( VECTOR(l,r[i]), columns(zs)[i] );
+  }
   MatrixWriteBinary( zs, "", fname );
 }
 
@@ -519,7 +516,7 @@ void ybatchAbsAndRte(
         const VECTOR&                     e_ground,
         const Numeric&                    t_ground,
         const string&                     batchname,
-        const TagGroups&                  tag_groups,
+        const TagGroups&                  tgs,
       // Control Parameters:
         const int&                        ncalc,
         const int&                        do_t,
@@ -534,12 +531,13 @@ void ybatchAbsAndRte(
         const string&                     za_file )
 {
   const size_t   np = p_abs.size();         // Number of pressure levels
-  const size_t   ntags = do_tags.size();    // Number of tags to do here 
-  ARRAYofsizet   tagindex;                  // Index in tag_groups for do_tags 
+  const size_t   ntgs = tgs.size();         // Number of absorption tags
+  const size_t   ndo = do_tags.size();      // Number of tags to do here 
+  ARRAYofsizet   tagindex;                  // Index in tgs for do_tags 
    
-  // Check if do_tags can be found in tag_groups and store indeces
-  if ( ntags > 0 )
-    get_tagindex_for_strings( tagindex, tag_groups, do_tags );
+  // Check if do_tags can be found in tgs and store indeces
+  if ( ndo > 0 )
+    get_tagindex_for_strings( tagindex, tgs, do_tags );
 
   out2 << "  Reading data from files.\n";
 
@@ -572,19 +570,20 @@ void ybatchAbsAndRte(
   //
   // Species profiles
          size_t itag;
-  ARRAYofVECTOR vs(vmrs.size());
-  ARRAYofMATRIX VMRs(ntags);
-  extern const ARRAY<SpeciesRecord> species_data; // The species lookup data:
-  for ( itag=0; itag<ntags; itag++ )
+  ARRAYofVECTOR vs(ntgs);
+  for ( itag=0; itag<ntgs; itag++ )
   {
     // Copy original vmr profile.
-    resize( vs[itag], vmrs[itag].size() );
+    resize( vs[itag], np );
     copy( vmrs[itag], vs[itag] );
-
+  }
+  ARRAYofMATRIX VMRs(ndo);
+  extern const ARRAY<SpeciesRecord> species_data; // The species lookup data:
+  for ( itag=0; itag<ndo; itag++ )
+  {
     // Determine the name of the molecule for itag
-    string molname = species_data[tag_groups[tagindex[itag]][0].Species()].Name();
-    read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, 
-                                                                      ncalc );
+    string molname = species_data[tgs[tagindex[itag]][0].Species()].Name();
+    read_batchdata( VMRs[itag], batchname, tag_files[itag], molname, np, ncalc );
   }
 
 
@@ -626,16 +625,17 @@ void ybatchAbsAndRte(
 	assert( za.size()==ZAs.nrows() );
 	copy( columns(ZAs)[i], za );
       }
-    for ( itag=0; itag<ntags; itag++ )
+    for ( itag=0; itag<ndo; itag++ )
       {
 	//      col( vs[tagindex[itag]], i+1, VMRs[itag] );
 	assert( vs[tagindex[itag]].size()==VMRs[itag].nrows() );
 	copy( columns(VMRs[itag])[i], vs[tagindex[itag]] );	
       }
     // Do the calculations
-    if ( (i==0) || do_t || ntags || do_f )
-      absCalc( abs, abs_per_tag, tag_groups, f, p_abs, t, h2o_abs, vs, 
-                                                     lines_per_tag, lineshape);
+
+    if ( (i==0) || do_t || ndo || do_f )
+      absCalc( abs, abs_per_tag, tgs, f, p_abs, t, h2o_abs, vs, lines_per_tag, lineshape);
+
     if ( (i==0) || do_z || do_za )   
       losCalc( los, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 
                                                refr_index, z_ground, r_geoid );
@@ -691,7 +691,7 @@ void ybatchTRJ (
               const VECTOR&          f_sensor,
               const VECTOR&          za_sensor )
 {
-  VECTOR y;
+  VECTOR y(ybatch.nrows());
   for ( size_t i=0; i<ybatch.ncols(); i++ )
   {
     //    col ( y, i+1, ybatch );
@@ -718,7 +718,7 @@ void ybatchLoadCalibration (
               const VECTOR&   y_cal2,
               const VECTOR&   za_sensor )
 {
-  VECTOR y;
+  VECTOR y(ybatch.nrows());
   for ( size_t i=0; i<ybatch.ncols(); i++ )
   {
     //    col ( y, i+1, ybatch );

@@ -101,9 +101,9 @@ if isascii
       error('You wanted a scalar, but the file contains a vector or matrix.')
     end
 
-  %=== VECTOR, MATRIX and AOSIZET
+  %=== VECTOR, MATRIX and AOSIZET and SYMMETRIC
   elseif strcmp(artstype,'VECTOR') | strcmp(artstype,'MATRIX') | ...
-         strcmp(artstype,'AOSIZET')
+         strcmp(artstype,'AOSIZET') | strcmp(artstype,'SYMMETRIC')  
     if nmat > 1
       if ~strcmp(artstype,'AOSIZET')
         error('You wanted a vector/matrix, but the file contains an array.')
@@ -208,7 +208,7 @@ else
     x = binfile_read_numeric(filename,fid,'VECTOR','VECTOR',0,1);
 
   %=== MATRIX
-  elseif strcmp(artstype,'MATRIX') 
+  elseif strcmp(artstype,'MATRIX') | strcmp(artstype,'SYMMETRIC') 
     x = binfile_read_numeric(filename,fid,'MATRIX','MATRIX',0,0);
 
   %=== AOVECTOR

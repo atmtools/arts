@@ -866,6 +866,63 @@ void define_md_data()
 
 
 
+//=== SYMMETRIC ==========================================================
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SymmetricWriteAscii"),
+	DESCRIPTION("Writes a covariance matrix to an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( SYMMETRIC_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SymmetricReadAscii"),
+	DESCRIPTION("Reads a covariance matrix from an ASCII file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.am.\n"
+		    "See `ArrayOfMatrixWriteAscii' for file format."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( SYMMETRIC_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SymmetricWriteBinary"),
+	DESCRIPTION("Writes a covariance matrix to a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT( SYMMETRIC_ ),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("SymmetricReadBinary"),
+	DESCRIPTION("Reads a covariance matrix from a binary file.\n"
+		    "The filename can be specified or an empty string.\n"
+		    "If empty, it is set to <basename>.<variable_name>.ab.\n"),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( SYMMETRIC_ ),
+	GINPUT(),
+	KEYWORDS( "filename" ),
+	TYPES(    string_t   )));
+
+
 //=== MAYBESPARSE ====================================================
 
   md_data.push_back
@@ -2207,7 +2264,7 @@ void define_md_data()
           "The matrix is set to be empty (0 x 0)."),
 	OUTPUT(),
         INPUT(),
-	GOUTPUT( MATRIX_ ),
+	GOUTPUT( SYMMETRIC_ ),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));

@@ -319,6 +319,19 @@ setto(MATRIX& A, Numeric x)
   mtl::set(A,x);
 }
 
+inline void 
+setto(SYMMETRIC& A, Numeric x)
+{
+  mtl::set(A,x);
+}
+
+
+inline void 
+setto(SPARSE& A, Numeric x)
+{
+  mtl::set(A,x);
+}
+
 // Not general, therefor not so useful.
 //
 // inline void 
@@ -355,7 +368,7 @@ min(const ARRAY<T>& a)
 }
 
 
-// Resize functions for ARRAY, VECTOR, and MATRIX
+// Resize functions for ARRAY, VECTOR, MATRIX, SPARSE and SYMMETRIC
 
 template <class T>
 void resize(ARRAY<T>& x, INDEX n)

@@ -531,19 +531,19 @@ void define_wsv_data()
     (WsvRecord
      ("s",
       "The covariance matrix for a single retrieval/error identity.",
-      MATRIX_));
+      SYMMETRIC_));
 
   wsv_data.push_back
     (WsvRecord
      ("sx",
       "The covariance matrix associated with kx.",
-      MATRIX_));
+      SYMMETRIC_));
 
   wsv_data.push_back
     (WsvRecord
      ("sb",
       "The covariance matrix associated with kb.",
-      MATRIX_));
+      SYMMETRIC_));
 
 
 

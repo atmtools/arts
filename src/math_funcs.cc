@@ -456,7 +456,7 @@ void rand_matrix_gaussian(
 void rand_data_gaussian(
 			MATRIX&    z,
 			const VECTOR&    z0,
-			const MATRIX&    s )
+			const SYMMETRIC&    s )
 {
   INDEX n = z.ncols();
 
@@ -467,11 +467,13 @@ void rand_data_gaussian(
     throw runtime_error("The length of the mean vector and the size of the covariance matrix do not match."); 
 
   // Make Cholesky decomposition of s, l'*l=s
-  // Until we have MTL, only the diagonal elements are considered.
   MATRIX   l(nrows,nrows);
+  //chol(l,s);
+  
+  
   setto(l,0.0);
   for ( row=0; row<nrows; row++ )
-    l[row][row] = sqrt( s[row][row] );
+  l[row][row] = sqrt( s[row][row] );
 
   // Create matrix with gaussian data having zero mean and standard deviation 1
   MATRIX   r(nrows,n);

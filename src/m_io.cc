@@ -928,6 +928,84 @@ void ArrayOfStringReadBinary(
 
 
 
+//=== SYMMETRIC ==========================================================
+
+void SymmetricWriteAscii(// WS Generic Input:
+		       const SYMMETRIC& m,
+		       // WS Generic Input Names:
+		       const string& m_name,
+		       // Control Parameters:
+		       const string& f)
+{
+  const INDEX   n = m.nrows();
+  
+  MATRIX   x(n,n);
+
+  copy( m, x );
+
+  MatrixWriteAscii( x, m_name, f );
+}
+
+
+
+void SymmetricReadAscii(// WS Generic Output:
+			SYMMETRIC& m,
+			// WS Generic Output Names:
+			const string& m_name,
+			// Control Parameters:
+			const string& f)
+{
+  MATRIX   x;
+
+  MatrixReadAscii( x, m_name, f );
+
+  const INDEX   n = x.nrows();
+  
+  assert( n == x.ncols() );
+
+  copy( x, m );
+}
+
+
+
+void SymmetricWriteBinary(// WS Generic Input:
+		       const SYMMETRIC& m,
+		       // WS Generic Input Names:
+		       const string& m_name,
+		       // Control Parameters:
+		       const string& f)
+{
+  const INDEX   n = m.nrows();
+  
+  MATRIX   x(n,n);
+
+  copy( m, x );
+
+  MatrixWriteBinary( x, m_name, f );
+}
+
+
+
+void SymmetricReadBinary(// WS Generic Output:
+			SYMMETRIC& m,
+			// WS Generic Output Names:
+			const string& m_name,
+			// Control Parameters:
+			const string& f)
+{
+  MATRIX   x;
+
+  MatrixReadBinary( x, m_name, f );
+
+  const INDEX   n = x.nrows();
+  
+  assert( n == x.ncols() );
+
+  copy( x, m );
+}
+
+
+
 //=== MAYBESPARSE ====================================================
 
 /**

@@ -1,3 +1,14 @@
+2001-02-26  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-132
+
+	* /ami/read_datafile.m: matlab read and write functions modified to
+	include SYMMETRIC type
+
+	* m_batch.cc, m_covmatrix.cc: functions with covariance matrices
+	updated so covariance matrices are now SYMMETRIC
+
+
 2001-02-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-131

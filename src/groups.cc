@@ -60,6 +60,7 @@ void define_wsv_group_names()
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
+  wsv_group_names.push_back("SYMMETRIC");
   wsv_group_names.push_back("ARRAYofstring");
   wsv_group_names.push_back("ARRAYofsizet");
   wsv_group_names.push_back("ARRAYofVECTOR");

@@ -87,7 +87,7 @@
    \date   2000-12-01
 */
 void setup_covmatrix(
-                   MATRIX&    s,
+                SYMMETRIC&    s,
              const VECTOR&    kg,
              const size_t&    corrfun,
              const Numeric&   cutoff,
@@ -132,8 +132,8 @@ void setup_covmatrix(
   interp_lin_vector( cl, kp, clength, kg );
 
   // Resize s and fill with 0
-  resize( s, n, n );
-  setto( s, 0 ) ;  
+  resize( s, n, n);
+  setto(s, 0) ;  
 
   // Diagonal matrix
   if ( corrfun == 0 )
@@ -153,7 +153,6 @@ void setup_covmatrix(
         if ( (c>0) && (c>cutoff) )
 	{
           s[row][col] = c*sd[row]*sd[col]; 
-          s[col][row] = s[row][col];
         } 
       }
     }
@@ -170,7 +169,6 @@ void setup_covmatrix(
         if ( c > cutoff )
 	{
           s[row][col] = c*sd[row]*sd[col]; 
-          s[col][row] = s[row][col];
         } 
       }
     }
@@ -187,7 +185,6 @@ void setup_covmatrix(
         if ( c > cutoff )
 	{
           s[row][col] = c*sd[row]*sd[col]; 
-          s[col][row] = s[row][col];
         } 
       }
     }
@@ -217,7 +214,7 @@ void setup_covmatrix(
    \date   2000-12-01
 */
 void sDiagonal(
-        MATRIX&          s,
+        SYMMETRIC&          s,
         const int&       n,
         const Numeric&   stddev)
 {
@@ -239,7 +236,7 @@ void sDiagonal(
    \date   2000-12-01
 */
 void sDiagonalLengthFromVector(
-        MATRIX&          s,
+        SYMMETRIC&          s,
         const VECTOR&    grid,
         const string&    grid_name,
         const Numeric&   stddev)
@@ -266,7 +263,7 @@ void sDiagonalLengthFromVector(
    \date   2000-12-01
 */
 void sDiagonalLengthFromVectors(
-        MATRIX&          s,
+        SYMMETRIC&          s,
         const VECTOR&    grid1,
         const VECTOR&    grid2,
         const string&    grid1_name,
@@ -292,7 +289,7 @@ void sDiagonalLengthFromVectors(
    \date   2000-12-01
 */
 void sSimple(
-              MATRIX&    s,
+        SYMMETRIC&       s,
         const int&       n,
         const Numeric&   stddev,
         const int&       corrfun,
@@ -317,7 +314,7 @@ void sSimple(
    \date   2000-12-01
 */
 void sSimpleLengthFromVector(
-              MATRIX&    s,
+           SYMMETRIC&    s,
         const VECTOR&    grid,
         const string&    grid_name,
         const Numeric&   stddev,
@@ -343,7 +340,7 @@ void sSimpleLengthFromVector(
    \date   2000-12-01
 */
 void sSimpleLengthFromVectors(
-              MATRIX&    s,
+           SYMMETRIC&    s,
         const VECTOR&    grid1,
         const VECTOR&    grid2,
         const string&    grid1_name,
@@ -354,7 +351,7 @@ void sSimpleLengthFromVectors(
         const Numeric&   corrlength )
 {
   // Get matrix for one repitition of the vector
-  MATRIX   s0;
+  SYMMETRIC   s0;
   sSimpleLengthFromVector( s0, grid1, grid1_name, stddev, corrfun, cutoff, 
                                                                  corrlength );
   // Create the total matrix
@@ -363,7 +360,7 @@ void sSimpleLengthFromVectors(
   size_t   row, col, i, i0;
   
   resize( s, n1*n2, n1*n2 );
-  setto( s, 0.0 );
+  setto( s, 0 );
   for ( i=0; i<n2; i++ )
   {
     i0 = (i-1)*n1;
@@ -372,7 +369,6 @@ void sSimpleLengthFromVectors(
       for ( col=row; col<n1; col++ )
       {
         s(i0+row,i0+col) = s0[row][col];
-        s(i0+col,i0+row) = s0[row][col];
       }
     }
   } 
@@ -387,7 +383,7 @@ void sSimpleLengthFromVectors(
    \date   2000-12-01
 */
 void sFromFile(
-              MATRIX&    s,
+           SYMMETRIC&    s,
         const VECTOR&    grid,
         const string&    grid_name,
         const string&    filename )
@@ -436,7 +432,7 @@ void sFromFile(
       
     else
     {
-      MATRIX stmp;
+      SYMMETRIC stmp;
       setup_covmatrix( stmp, grid, size_t(am[0][0][i-1]), am[0][1][i-1], kp, 
                                                               sdev, clength );
       add( stmp, s );
@@ -453,7 +449,7 @@ void sFromFile(
    \date   2000-12-01
 */
 void CovmatrixInit(
-              MATRIX&   s,
+           SYMMETRIC&   s,
         const string&   s_name)
 {
   out2 << " Initializes " << s_name;
@@ -469,12 +465,12 @@ void CovmatrixInit(
    \date   2000-12-01
 */
 void sxAppend(
-              MATRIX&   sx,
-        const MATRIX&   s )
+              SYMMETRIC&   sx,
+        const SYMMETRIC&   s )
 {
   const size_t   ns  = s.nrows(); 
   const size_t   nsx = sx.nrows(); 
-        MATRIX   stmp;
+        SYMMETRIC   stmp;
         size_t   row, col;
 
   if ( (ns!=s.ncols()) || (nsx!=sx.ncols()) )
@@ -504,8 +500,8 @@ void sxAppend(
    \date   2000-12-01
 */
 void sbAppend(
-              MATRIX&   sb,
-        const MATRIX&   s )
+              SYMMETRIC&   sb,
+        const SYMMETRIC&   s )
 {
   sxAppend( sb, s );
 }

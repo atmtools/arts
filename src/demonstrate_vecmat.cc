@@ -248,6 +248,12 @@ main()
   cout << "As:\n"       << As              << "\n";
 
 
+  resize(As,4,4);
+  mtl::set(As,1);
+  cout << "As:\n"       << As              << "\n";
+
+
+
 
   // Demonstrate Choleski factorization
   cout << "\nCholesky Factorization:\n";
@@ -274,9 +280,7 @@ main()
   MATRIX R(4,4);
   chol(R,C);
   cout << "R:\n"       << R              << "\n";
-
   
-
   // Demonstrate BANDEDSYM
   cout << "\nBanded Symmetric Matrices:\n";
   SYMMETRIC Abs(4,1);
