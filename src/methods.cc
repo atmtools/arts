@@ -2060,6 +2060,30 @@ void define_md_data()
   
   md_data.push_back
     ( MdRecord
+      ( NAME("tgsDefineAllInScenario"),
+  	DESCRIPTION
+	(
+	 "Define one tag group for each species known to ARTS and included in an\n"
+	 "atmospheric scenario.\n"
+	 "\n"
+	 "You can use this as an alternative to tgsDefine if you want to make an\n"
+	 "absorption calculation that is as complete as possible. The method\n"
+	 "goes through all defined species and tries to open the VMR file. If\n"
+	 "this works the tag is included, otherwise it is skipped.\n"
+	 "\n"
+	 "Keywords:\n"
+	 "   basename : The name and path of a particular atmospheric scenario.\n"
+	 "              For example: /pool/lookup2/arts-data/atmosphere/fascod/tropical"
+           ),
+	OUTPUT( tgs_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "basename" ),
+	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("lineshapeDefine"),
   	DESCRIPTION(
           "Sets the lineshape for all calculated lines. Specify an available\n"

@@ -876,7 +876,7 @@ void define_basic_species_data()
   species_data.push_back
     ( SpeciesRecord
       ( NAME("liquidcloud"),
-	DEGFR(3),
+	DEGFR(0),
 	ISOTOPES
 	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //			|		|	|	|	|
@@ -888,7 +888,7 @@ void define_basic_species_data()
   species_data.push_back
     ( SpeciesRecord
       ( NAME("icecloud"),
-	DEGFR(3),
+	DEGFR(0),
 	ISOTOPES
 	(//   Name,		Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //			|		|	|	|	|

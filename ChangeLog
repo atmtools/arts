@@ -1,3 +1,20 @@
+2001-10-04  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-261
+
+	* src/methods.cc (define_md_data): Added tgsDefineAllInScenario.
+
+	* src/m_abs.cc (tgsDefineAllInScenario): Added this method.
+
+	* doc/examples/example1.arts: Quick fix so that this file runs
+	now, using the new method to select all species. Now there is a
+	runtime error in absCalc, because the partiton function for one
+	OCS isotope is not set.
+
+	* src/species_data.cc (define_basic_species_data): Set degfr=0 for
+	cloud species. This has no effect since it is not used.
+
+
 2001-09-25  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-0-0-260
@@ -5,6 +22,7 @@
 	* doc/uguide/absoption.tex: Continued to work on this.
 	Edited the whole Line Section.
 
+	
 2001-10-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-259

@@ -7,13 +7,13 @@
 # Read the spectroscopic line data from the HITRAN catalogue and
 # create the workspace variable `lines':
 linesReadFromHitran {
-   filename = "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
+   filename = "/pool/lookup2/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"
    fmin     = 1e9
    fmax     = 200e9
 }
 
 # Optionally write the line list to a file:
-linesWriteToFile{""} 
+# linesWriteAscii{""} 
 
  
 # This defines the list of tag groups (`tag_groups'). Absorption
@@ -26,12 +26,14 @@ linesWriteToFile{""}
 #
 # The continuum tags are special, since continua are not added by
 # default. Thus, just selecting "H2O" will give you no continuum. 
-tgsDefine{
-      [ "H2O",
-        "O3",
-        "N2" ] 
-}
+#tgsDefine{
+#      [ "H2O",
+#        "O3",
+#        "N2" ] 
+#}
 
+# Select all species that we can find in the scenario:
+tgsDefineAllInScenario{"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer"}
 
 # define the tag groups for which weighting functions will be calculated
 # must be a subgroup of tgsDefine tag groups
@@ -47,29 +49,29 @@ lines_per_tgCreateFromLines{}
 # read the different defined tag groups from individual catalogues
 # these are the tgsDefine tag groups
 # lines_per_tgReadFromCatalogues{
-#   filenames = ["../../data/spectroscopy/jpl00/jpl00.cat",
-#                "../../data/spectroscopy/hitran96/hitran96_lowfreq.par"]
+#   filenames = ["/pool/lookup2/arts-data/spectroscopy/jpl00/jpl00.cat",
+#                "/pool/lookup2/arts-data/spectroscopy/hitran96/hitran96_lowfreq.par"]
 #   formats = [ "JPL", "HITRAN96" ]
 #   fmin    = [ 0,         0      ]       
 #   fmax    = [ 200e9,     200e9  ]   
 # }
 
-lines_per_tgWriteToFile{""} 
+lines_per_tgWriteAscii{""} 
 
 
 # --------------------< A generic method >--------------------
 #                      ------------------
 # Read the pressure, temperature, and altitude profiles and create 
-# the workspace variable `raw_ptz_1d':
-MatrixReadAscii (raw_ptz_1d) 
-        {"../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
+# the workspace variable `raw_ptz':
+MatrixReadAscii (raw_ptz) 
+        {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer.tz.aa"}
 
 # The same for the input VMR profiles:
-raw_vmrs_1dReadFromScenario
-        {"../../data/atmosphere/fascod/midlatitude-summer"}
+raw_vmrsReadFromScenario
+        {"/pool/lookup2/arts-data/atmosphere/fascod/midlatitude-summer"}
 
 # Optionally write this to a file:
-#ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
+#ArrayOfMatrixWriteAscii (raw_vmrs) {""}
 
 
 # Create the pressure grid `p_abs':
@@ -84,7 +86,9 @@ VectorWriteAscii(p_abs){""}
 
 # Now interpolate all the raw atmospheric input onto the pressure 
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
-AtmFromRaw1D{}
+AtmFromRaw{
+	CloudSatWV = "no"
+}
 
 # Set the physical H2O profile from the H2O profile in vmrs:
 h2o_absSet{}
@@ -95,7 +99,7 @@ n2_absSet{}
 # Optionally write these to files:
 VectorWriteAscii (t_abs) {""}
 VectorWriteAscii (z_abs) {""}
-ArrayOfVectorWriteAscii (vmrs)  {""}
+MatrixWriteAscii (vmrs)  {""}
 
 
 # Create the frequency grid `f_mono':
@@ -133,7 +137,7 @@ absCalc{}
 # reduce the abs_per_tg variable (dimension number of tag groups) to the 
 # tag groups for which we want to calculate weighting functions (new
 # dimension number of wfs tag groups)
-abs_per_tgReduce{}
+# abs_per_tgReduce{}
 
 # These we definitely want to write to files!
 MatrixWriteAscii (abs) {""}

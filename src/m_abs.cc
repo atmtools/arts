@@ -887,7 +887,61 @@ void tgsDefine(// WS Output:
 //  cout << endl << endl << tgs << endl;
 }
 
+void tgsDefineAllInScenario(// WS Output:
+			    TagGroups& tgs,
+                            // Control Parameters:
+                            const String& basename)
+{
+  // Species lookup data:
+  extern const Array<SpeciesRecord> species_data;
 
+  // We want to make lists of included and excluded species:
+  ArrayOfString included(0), excluded(0);
+
+  tgs.resize(0);
+
+  for ( Index i=0; i<species_data.nelem(); ++i )
+    {
+      const String specname = species_data[i].Name();
+      const String filename = basename + "." + specname + ".aa";
+
+      // Try to open VMR file:
+      try
+	{
+	  ifstream file;
+	  open_input_file(file, filename);
+
+	  // Ok, if we get here the file was found.
+
+	  // Add to included list:
+	  included.push_back(specname);
+
+	  // Convert name of species to a OneTag object:
+	  OneTag this_tag(specname);
+
+	  // Create Array of OneTags with length 1 (our tag group has only one tag):
+	  Array<OneTag> this_group(1);
+	  this_group[0] = this_tag;
+
+	  // Add this tag group to tgs:
+	  tgs.push_back(this_group);
+	}
+      catch (runtime_error x)
+	{
+	  // Ok, the file for the species could not be found.
+	  excluded.push_back(specname);
+	}
+    }
+  
+  // Some nice output:
+  out2 << "  Included Species (" << included.nelem() << "):\n";
+  for ( Index i=0; i<included.nelem(); ++i )
+    out2 << "     " << included[i] << "\n";
+
+  out2 << "  Excluded Species (" << excluded.nelem() << "):\n";
+  for ( Index i=0; i<excluded.nelem(); ++i )
+    out2 << "     " << excluded[i] << "\n";
+}
 
 void lineshapeDefine(// WS Output:
 		     ArrayOfLineshapeSpec&    lineshape,
