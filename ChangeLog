@@ -1,3 +1,22 @@
+2000-11-01  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-67
+
+	* aii: Added this directory for the ARTS-IDL interface and set up
+	Makefile.am. 
+
+	* configure.in: Added aii/Makefile.am here.
+
+	* uguide: Added a new section `Utilities'. This should contain a
+	description of the Matlab and IDL interface.
+
+	* uguide/utilities.tex: Started this file as a template for
+	Wolfram to use. No contents yet.
+
+	* uguide/Makefile.am: Updated this (added formats.tex and
+	utilities.tex). 
+	
+
 2000-10-30  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-66
@@ -12,6 +31,7 @@
 	* Some first test functions for HDF are found in file.cc and 
 	m_hmatrix.cc.
 
+	
 2000-10-27  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-65

@@ -24,20 +24,22 @@ thisdoc_DATA = uguide.ps uguide_pdf.pdf
 texfiles = \
 agu.bst \
 references.bib \
-uguide.tex \
-uguide_pdf.tex \
 chapter_template.tex \
 concept.tex \
 development.tex \
 formalism.tex \
+formats.tex \
 los1d.tex \
 main.tex \
 measerr.tex \
 reduction.tex \
 rte.tex \
 sensor.tex \
+uguide.tex \
+uguide_pdf.tex \
+utilities.tex \
 wfuns_atm.tex \
-wfuns_sensor.tex 
+wfuns_sensor.tex
 
 EXTRA_DIST = \
 $(texfiles) \

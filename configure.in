@@ -102,6 +102,7 @@ Makefile
    ami/Makefile 
       ami/general/Makefile
       ami/hmatrix/Makefile 
+   aii/Makefile 
    doc/Makefile 
    doc/index.html
       doc/icons/Makefile 
