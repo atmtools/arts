@@ -162,6 +162,7 @@ noinst_PROGRAMS = \
 
 test_interpolation_SOURCES = \
 	array.h \
+	constants.cc \
 	matpackI.cc \
 	matpackI.h \
 	matpackIII.cc \
