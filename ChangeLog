@@ -1,3 +1,10 @@
+2003-08-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-632
+
+	* doc/doxygen/latex/Makefile.am: Unset thisdoc_DATA to avoid automatic
+	build of postscript file.
+
 2003-08-06  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-631
@@ -29,7 +36,7 @@
 	* src/m_montecarlo.cc (ScatteringMonteCarlo): Use ios::out. ios_base is
 	undefined in gcc 2.x.
 
-	* src/montecarlo.cc: l.562 Multiline string laterals are not allowed
+	* src/montecarlo.cc: l.562 Multiline string literals are not allowed
 	in ANSI-C++. Leads to compiler error in gcc >= 3.3.
 
 2003-07-31  Oliver Lemke  <olemke@uni-bremen.de>
