@@ -419,10 +419,11 @@ void sensor_responseBackend(// WS Output:
   bool error_found = false;
   Numeric f_dlow = 0.0;
   Numeric f_dhigh = 0.0;
+  Index n_za_pol = sensor_response_za.nelem()*sensor_pol.nrows();
 
   // Check that sensor_response has the right size for the multiplication with
   // the spectrometer response.
-  if( sensor_response.nrows() != sensor_response_f.nelem()) {
+  if( sensor_response.nrows() != sensor_response_f.nelem()*n_za_pol) {
     os << "The sensor block response matrix *sensor_response* does not have\n"
        << "right size. Either it has not been initialised or some sensor in\n"
        << "front of the backend has not been considered.\n";
@@ -459,15 +460,15 @@ void sensor_responseBackend(// WS Output:
   if (f_dlow<0) {
     os << "The *sensor_response_f* grid is too narrow. It should be\n"
        << "expanded with "<<-f_dlow<<" Hz in the lower end. This change\n"
-       << "should be applied to either *sensor_responseInit* or the\n"
-       << "sensor part in front of *sensor_responseBackend*\n";
+       << "should be applied to either *f_grid* or the sensor part in\n"
+       << "front of *sensor_responseBackend*\n";
     error_found = true;
   }
   if (f_dhigh<0) {
     os << "The *sensor_response_f* grid is too narrow. It should be\n"
        << "expanded with "<<-f_dhigh<<" Hz in the higher end. This change\n"
-       << "should be applied to either *sensor_responseInit* or the\n"
-       << "sensor part in front of *sensor_responseBackend*\n";
+       << "should be applied to either *f_grid* or the sensor part in\n"
+       << "front of *sensor_responseBackend*\n";
     error_found = true;
   }
 
@@ -476,24 +477,30 @@ void sensor_responseBackend(// WS Output:
        << ch_response_name << "*.\n";
 
   // Call the function that calculates the sensor transfer matrix.
-  Index n_za_pol = sensor_response_za.nelem()*sensor_pol.nrows();
   Sparse backend_response(f_backend.nelem()*n_za_pol,
     sensor_response_f.nelem()*n_za_pol);
   spectrometer_transfer_matrix(backend_response,ch_response,
     f_backend,sensor_response_f,sensor_response_za.nelem(),
     sensor_pol.nrows());
+  
+  //FIXME: debugging
+  cout << "sensor_response["<<sensor_response.nrows()<<":"
+       << sensor_response.ncols()<<"]:\n"<<sensor_response
+       << "backend_response["<<backend_response.nrows()<<":"
+       << backend_response.ncols()<<"]\n"<<backend_response;
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
   // take the same object as both input and output.
   Sparse sensor_response_tmp = sensor_response;
-  sensor_response.resize(f_backend.nelem(),sensor_response_f.nelem());
+  sensor_response.resize(f_backend.nelem()*n_za_pol,
+    sensor_response_tmp.nrows());
   mult(sensor_response,backend_response,sensor_response_tmp);
 
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
-       
+
   // Update the sensor_response_f variable
   sensor_response_f = f_backend;
   out3 << "  *sensor_response_f* set to *f_backend*\n";

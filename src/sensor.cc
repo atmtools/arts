@@ -611,7 +611,7 @@ void spectrometer_transfer_matrix( Sparse&                H,
         // Here we loop if pol_single == 1, that is if the same response
         // apply to all polarisations. If pol_single == 0 the outermost
         // loop over polarisations take care of this.
-        for (Index p_tmp=0;p_tmp<=n_pol*pol_single;p_tmp++) {
+        for (Index p_tmp=0;p_tmp<=(n_pol-1)*pol_single;p_tmp++) {
           // Get the current polarisation index, this works since
           // either we are looping over p_tmp or pol_single is zero
           // and we are looping over p.

@@ -1,3 +1,15 @@
+2003-08-27  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-677
+
+	* src/sensor.cc: Corrected loop in spectrometer_transfer_matrix
+
+	* src/methods.cc: Added WSM for ArrayOfMatrixSet, which should take
+	the place of the previous ArrayOfMatrixAppend method.
+
+	* src/m_basic_types.cc: Implemented ArrayOfMatrixSet, which can set a
+	specific element or append a Matrix.
+
 2003-08-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-676

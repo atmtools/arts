@@ -76,8 +76,45 @@ void ArrayOfMatrixAppend(// WS Generic Output:
                          const String&    m_name)
 {
   a.push_back(m);
-  out2 << "  Appending Matrix " << m_name << " to ArrayOfMatrix " 
+  out2 << "  Appending Matrix " << m_name << " to ArrayOfMatrix "
        << a_name << ".\n";
+}
+
+
+//! ArrayOfMatrixSet
+/*!
+   See the online help (arts -d FUNCTION_NAME)
+
+   \author Mattias Ekström
+   \date   2003-08-27
+*/
+void ArrayOfMatrixSet(// WS Generic Output:
+                      ArrayOfMatrix&  aom,
+                      // WS Generic Output Names:
+                      const String&   aom_name,
+                      // WS Generic Input:
+                      const Matrix&   m,
+                      // WS Generic Input Names:
+                      const String&   m_name,
+                      // Control Parameters:
+                      const Index&    element )
+{
+  // Check input index, if larger than number of elements in
+  // the array, return error message
+  if (element>aom.nelem()-1) {
+    ostringstream os;
+    os << "The element index "<<element<<" is too large, there are only "
+       << aom.nelem() <<" elements in "<<aom_name<<".\n";
+    throw runtime_error(os.str());
+  } else if (element<0) {
+    aom.push_back(m);
+    out2 << "  Appending Matrix " << m_name << " to ArrayOfMatrix "
+       << aom_name << ".\n";
+  } else {
+    aom[element] = m;
+    out2 << "  Setting element "<<element<<" in ArrayOfMatrix "
+         << aom_name<<" to Matrix "<<m_name<<".\n";
+  }
 }
 
 
