@@ -1971,7 +1971,7 @@ void define_wsv_data()
 		"\n"
 		"Dimension: See the individual *sensor_response...* method documentation."
        ),
-      GROUP( Matrix_ )));
+      GROUP( Sparse_ )));
 
 wsv_data.push_back
    (WsvRecord
