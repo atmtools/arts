@@ -552,6 +552,24 @@ void define_md_data_raw()
 
   md_data_raw.push_back
     ( MdRecord
+      ( NAME("AgendaExecute"),
+        DESCRIPTION
+        ( 
+         "Execute an agenda.\n"
+         "\n"
+         "Generic input:\n"
+         "   Agenda : The agenda.\n"
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT(),
+        GINPUT( Agenda_ ),
+        KEYWORDS(),
+        TYPES(),
+        AGENDAMETHOD( false )));
+      
+  md_data_raw.push_back
+    ( MdRecord
       ( NAME("AgendaSet"),
         DESCRIPTION
         ( 
@@ -2075,15 +2093,6 @@ void define_md_data_raw()
          "\n" 
          "NOTE: Only \"perturbation\" method implemented.\n"
          "\n"
-         "Output:\n"
-         "  jacobian_quantities : The array of retrieval quantities.\n"
-         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
-         "  gas_species         : Tag groups for scalar gas absorption.\n"
-         "\n"
-         "Input:\n"
-         "  jacobian       : The Jacobian Matrix.\n"
-         "  atmosphere_dim : The atmosphere dimensionality.\n"
-         "\n"
          "Generic input:\n"
          "  Vector : The pressure grid of the retrieval field.\n"
          "  Vector : The latitude grid of the retrieval field.\n"
@@ -2109,38 +2118,21 @@ void define_md_data_raw()
         (
          "Add particle number density as retrieval quantity to the Jacobian.\n"
          "\n"
-         "The Jacobian is calculated with a common perturbation for all\n"
-         "particle types.\n"
-         "\n"
-         "For 1D or 2D calculations the latitude and/or longitude grid of\n"
-         "the retrieval field should be set to zero length.\n"
-         "\n" 
-         "NOTE: Only \"perturbation\" method implemented.\n"
-         "\n"
-         "Output:\n"
-         "  jacobian_quantities : The array of retrieval quantities.\n"
-         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
-         "\n"
-         "Input:\n"
-         "  jacobian       : The Jacobian Matrix.\n"
-         "  atmosphere_dim : The atmosphere dimensionality.\n"
+         "The Jacobian is done by perturbation calculation by adding elements\n"
+         "of *pnd_field_perturb* to *pnd_field*. Only 3D atmosphere can be\n"
+         "handled by this method.\n"
          "\n"
          "Generic input:\n"
          "  Vector : The pressure grid of the retrieval field.\n"
          "  Vector : The latitude grid of the retrieval field.\n"
          "  Vector : The longitude grid of the retrieval field.\n"
-         "\n"
-         "Keywords:\n"
-         "  method  : \"analytic\" or \"perturbation\".\n"
-         "  unit    : Unit of the perturbation, \"rel\" or \"abs\".\n"
-         "  dx      : Size of perturbation."
         ),
         OUTPUT( jacobian_quantities_, jacobian_agenda_ ),
-        INPUT( jacobian_, atmosphere_dim_ ),
+        INPUT( jacobian_, atmosphere_dim_, pnd_field_, pnd_field_perturb_ ),
         GOUTPUT(),
         GINPUT( Vector_, Vector_, Vector_ ),
-        KEYWORDS( "method", "unit", "dx" ),
-        TYPES( String_t, String_t, Numeric_t )));
+        KEYWORDS(),
+        TYPES()));
          
   md_data_raw.push_back
     ( MdRecord
@@ -2156,14 +2148,6 @@ void define_md_data_raw()
          "NOTE: So far this function only treats zenith angle offsets.\n"
          "NOTE 2: Only constant offsets, i.e. zero order polynomials are\n"
          "implemented.\n"
-         "\n"
-         "Output:\n"
-         "  jacobian_quantities : The array of retrieval quantities.\n"
-         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
-         "\n"
-         "Input:\n"
-         "  jacobian            : The Jacobian matrix.\n"
-         "  sensor_pos          : Define number of measurement blocks.\n"
          "\n"
          "Keywords:\n"
          "  dza                 : The size of the perturbation.\n"
@@ -2191,14 +2175,6 @@ void define_md_data_raw()
          "\n" 
          "NOTE: So far hydrostatic equilibrium is not considered and only\n"
          "\"perturbation\" method implemented.\n"
-         "\n"
-         "Output:\n"
-         "  jacobian_quantities : The array of retrieval quantities.\n"
-         "  jacobian_agenda     : The agenda for calculating the jacobian.\n"
-         "\n"
-         "Input:\n"
-         "  jacobian       : The Jacobian Matrix.\n"
-         "  atmosphere_dim : The atmosphere dimensionality.\n"
          "\n"
          "Generic input:\n"
          "  Vector : The pressure grid of the retrieval field.\n"
@@ -2240,17 +2216,6 @@ void define_md_data_raw()
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddGas\n"
         "and should normally not be called by the user.\n"
-        "\n"
-        "Output:\n"
-        "  jacobian            : The Jacobian matrix.\n"
-        "  vmr_field           : The VMR field.\n"
-        "Input:\n"
-        "  jacobian_quantities : The array of retrieval quantities.\n"
-        "  gas_species         : Tag groups for scalar gas absorption.\n"
-        "Keywords:\n"
-        "  species             : The species to be retrieved.\n"
-        "\n"
-        "See also input/output for RteCalc."
         ),
         OUTPUT( jacobian_, vmr_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
                 rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
@@ -2276,24 +2241,16 @@ void define_md_data_raw()
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddParticle\n"
         "and should normally not be called by the user.\n"
-        "\n"
-        "Output:\n"
-        "  jacobian            : The Jacobian matrix.\n"
-        "  pnd_field           : The particle number density field.\n"
-        "Input:\n"
-        "  jacobian_quantities : The array of retrieval quantities.\n"
-        "\n"
-        "See also input/output for RteCalc."
         ),
         OUTPUT( jacobian_, pnd_field_, y_, ppath_, ppath_step_, iy_, rte_pos_,
                 rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
-        INPUT( jacobian_quantities_, ppath_step_agenda_, 
-               rte_agenda_, iy_space_agenda_, iy_surface_agenda_, 
-               iy_cloudbox_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
-               lon_grid_, z_field_, r_geoid_, z_surface_, cloudbox_on_, 
-               cloudbox_limits_, sensor_response_, sensor_pos_, sensor_los_, 
-               f_grid_, stokes_dim_, antenna_dim_, mblock_za_grid_, 
-               mblock_aa_grid_ ),
+        INPUT( jacobian_quantities_, pnd_field_perturb_,
+               ppath_step_agenda_, rte_agenda_, iy_space_agenda_, 
+               iy_surface_agenda_, iy_cloudbox_agenda_, atmosphere_dim_, 
+               p_grid_, lat_grid_, lon_grid_, z_field_, r_geoid_, 
+               z_surface_, cloudbox_on_, cloudbox_limits_, 
+               sensor_response_, sensor_pos_, sensor_los_, f_grid_, 
+               stokes_dim_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -2308,14 +2265,6 @@ void define_md_data_raw()
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddPointing\n"
         "and should normally not be called by the user.\n"
-        "\n"
-        "Output:\n"
-        "  jacobian            : The Jacobian matrix.\n"
-        "Input:\n"
-        "  jacobian_quantities : The array of retrieval quantities.\n"
-        "  sensor_time         : The times for measurement blocks.\n"
-        "\n"
-        "See also input/output for RteCalc."
         ),
         OUTPUT( jacobian_, y_, ppath_, ppath_step_, iy_, rte_pos_, rte_gp_p_,
                 rte_gp_lat_, rte_gp_lon_, rte_los_ ),
@@ -2340,15 +2289,6 @@ void define_md_data_raw()
         "\n"
         "This function is added to *jacobian_agenda* by jacobianAddTemperature\n"
         "and should normally not be called by the user.\n"
-        "\n"
-        "Output:\n"
-        "  jacobian            : The Jacobian matrix.\n"
-        "  t_field             : The temperature field.\n"
-        "Input:\n"
-        "  jacobian_quantities : The array of retrieval quantities.\n"
-        "Keywords:\n"
-        "\n"
-        "See also input/output for RteCalc."
         ),
         OUTPUT( jacobian_, t_field_, y_, ppath_, ppath_step_, iy_, rte_pos_, 
                 rte_gp_p_, rte_gp_lat_, rte_gp_lon_, rte_los_ ),
@@ -2378,14 +2318,6 @@ void define_md_data_raw()
          "To define the final *jacobian* the number of spectra is needed.\n"
          "Therefor the number of measurement blocks, taken from *sensor_pos*\n"
          "and the size of *sensor_response* has to be defined.\n"
-         "\n"
-         "Output:\n"
-         "  jacobian             : The Jacobian matrix.\n"
-         "  jacobian_quantities  : The array of retrieval quantities.\n"
-         "\n"
-         "Input:\n"
-         "  sensor_pos           : Sensor positions for each measurement block.\n"
-         "  sensor_response      : The sensor response matrix."
         ),
          OUTPUT( jacobian_, jacobian_quantities_ ),
          INPUT( sensor_pos_, sensor_response_ ),
@@ -2407,10 +2339,6 @@ void define_md_data_raw()
          "jacobianAddTemperature or jacobianAddPointing.\n"
          "\n"
          "The Jacobian matrix is initialised as an empty matrix.\n"
-         "\n"
-         "Output:\n"
-         "  jacobian             : The Jacobian matrix.\n"
-         "  jacobian_quantities  : The array of retrieval quantities."
         ),
          OUTPUT( jacobian_, jacobian_quantities_ ),
          INPUT(),

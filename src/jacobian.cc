@@ -220,6 +220,65 @@ bool get_perturbation_grid(       Vector&         pert,
 }
 
 
+//! Get limits for perturbation of a box
+/*!
+   This is a helper function that calculates the limits where the 
+   perturbation should be added to the perturbation grid. 
+   This is needed for example by the particle perturbation that only
+   should be applied for the cloudbox. The limits are defined as the 
+   outermost points lying within or just outside the box limits.
+   
+   The atmospheric limits should be given in the same unit as the
+   perturbation grid. And only the first and last element will be 
+   considered as limits. 
+   
+   Assertions are used to perform checks. The input grids are 
+   checked so that the atmospheric limits are containg within 
+   the perturbation grid. The limit indices are checked so 
+   that they are ordered in increasing order before return.
+   
+   \param limits    The limit indices in the perturbation grid
+   \param pert_grid The perturbation grid
+   \param atm_limit The atmospheric limits of the box.
+   \return          Boolean for check failure. 
+                  
+   \author Mattias Ekstrom
+   \date   2005-02-25
+*/   
+void get_perturbation_limit(       ArrayOfIndex& limit,
+                             const Vector&       pert_grid,
+                             const Vector&       atm_limit)
+{
+  limit.resize(2);
+  Index np = pert_grid.nelem()-1;
+  Index na = atm_limit.nelem()-1;
+  
+  // If the field is ordered in decreasing order set the
+  // increment factor to -1
+  Index inc = 1;
+  if (is_decreasing(pert_grid))
+    inc = -1;
+
+  // Check that the pert_grid is encompassing atm_limit
+  assert( inc*pert_grid[0] < inc*atm_limit[0] &&
+          inc*pert_grid[np] > inc*atm_limit[na]);
+      
+  // Find first limit, check if following value is within box
+  limit[0]=0;
+  while (inc*pert_grid[limit[0]+1] < inc*atm_limit[0])
+    limit[0]++;
+  
+  // Find last limit, check if previous value is within box
+  limit[1]=pert_grid.nelem();
+  while (inc*pert_grid[limit[1]-1] > inc*atm_limit[na]) 
+    limit[1]--;
+  
+  // Check that the limits are ok
+  assert(inc*limit[1]>inc*limit[0]);
+  
+}
+                             
+
 //! Get range for perturbation 
 /*!
    This is a helper function that calculates the range in which the 

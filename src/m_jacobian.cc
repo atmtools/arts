@@ -206,6 +206,8 @@ void jacobianAddParticle(// WS Output:
                          // WS Input:
                          const Sparse&             jac,
                          const Index&              atmosphere_dim,
+                         const Tensor4&            pnd_field,
+                         const Tensor5&            pnd_perturb,
                          // WS Generic Input:
                          const Vector&             rq_p_grid,
                          const Vector&             rq_lat_grid,
@@ -213,11 +215,7 @@ void jacobianAddParticle(// WS Output:
                          // WS Generic Input Names:
                          const String&             rq_p_grid_name,
                          const String&             rq_lat_grid_name,
-                         const String&             rq_lon_grid_name,
-                         // Control Parameters:
-                         const String&             method,
-                         const String&             unit,
-                         const Numeric&            dx)
+                         const String&             rq_lon_grid_name)
 {
   // Check that the jacobian matrix is empty. Otherwise it is either
   // not initialised or it is closed.
@@ -229,51 +227,24 @@ void jacobianAddParticle(// WS Output:
     throw runtime_error(os.str());
   }
   
-  // Check retrieval grids, here we just check the length of the grids
-  // vs. the atmosphere dimension
-  ArrayOfVector grids(atmosphere_dim);
+  // Check that pnd_perturb is consistent with pnd_field, here we want to
+  // compare the 2nd dimension of the perturbed field with the 1st in the 
+  // particle field, the 3rd with the 2nd and so on.
+  if ( pnd_perturb.nrows()!=pnd_field.ncols() ||
+       pnd_perturb.npages()!=pnd_field.nrows() ||
+       pnd_perturb.nbooks()!=pnd_field.npages() ||
+       pnd_perturb.nshelves()!=pnd_field.nbooks() )
   {
-  ostringstream os;
-  if (!check_retrieval_grids( grids, os, rq_p_grid, rq_lat_grid, rq_lon_grid,
-        rq_p_grid_name, rq_lat_grid_name, rq_lon_grid_name, atmosphere_dim))
+    ostringstream os;
+    os << "The perturbation field *pnd_field_perturb* is not consistent with\n"
+       << "*pnd_field*, some dimensions do not match.";
     throw runtime_error(os.str());
   }
   
-  // Check that method is either "analytic" or "perturbation"
-  Index method_index;
-  if (method=="perturbation")
-  {
-    method_index = 0;
-  }
-  else if (method=="analytic")
-  {
-    //FIXME: Only "perturbation" implemented so far
-    throw runtime_error(
-      "Only perturbation method implemented for gas retrieval quantities");
-    
-    method_index = 1;
-  }
-  else
-  {
-    ostringstream os;
-    os << "The method for gas species retrieval can only be \"analytic\"\n"
-       << "or \"perturbation\".";
-    throw runtime_error(os.str());
-  }
-  
-  // Check that unit is either 'abs' or 'rel'
-  if (unit!="abs" && unit!="rel")
-  {
-    ostringstream os;
-    os << "The unit of perturbation for pointing offset can only be either\n"
-       << "absolute (\"abs\") or relative (\"rel\")."; 
-    throw runtime_error(os.str());
-  }
-
   // Check that particles are not already included in the jacobian.
   for (Index it=0; it<jq.nelem(); it++)
   {
-    if (jq[it].MainTag()=="Particles" && jq[it].Subtag()=="all")
+    if (jq[it].MainTag()=="Particles" && jq[it].Subtag()=="user defined")
     {
       ostringstream os;
       os << "The particles number densities are already included in "
@@ -281,14 +252,34 @@ void jacobianAddParticle(// WS Output:
       throw runtime_error(os.str());
     }
   }
-
+  
+  // Particle Jacobian only defined for 1D and 3D atmosphere. check the 
+  // retrieval grids, here we just check the length of the grids vs. the 
+  // atmosphere dimension
+  if (atmosphere_dim==2) 
+  {
+    ostringstream os;
+    os << "Atmosphere dimension not equal 1 or 3. Jacobians for particle number\n"
+       << "density only available for 1D and 3D atmosphere.";
+    throw runtime_error(os.str());
+  }
+  ArrayOfVector grids(atmosphere_dim);
+  {
+  ostringstream os;
+  if (!check_retrieval_grids( grids, os, rq_p_grid, rq_lat_grid, 
+        rq_lon_grid, rq_p_grid_name, rq_lat_grid_name, 
+        rq_lon_grid_name, atmosphere_dim))
+    throw runtime_error(os.str());
+  }
+  // First retrieval grid is the first dimension of pnd_field_perturb, 
+  // i.e. the number of user defined retrieval scenarios
+  Vector tmp_grid(1,pnd_perturb.ncols(),1);
+  grids.push_back(tmp_grid);
+  
   // Create the new retrieval quantity
   RetrievalQuantity rq = RetrievalQuantity();
   rq.MainTag("Particles");
-  rq.Subtag("all");
-  rq.Unit(unit);
-  rq.Method(method_index);
-  rq.Perturbation(dx);
+  rq.Subtag("user defined");
   rq.Grids(grids);
 
   // Add it to the *jacobian_quantities*
@@ -301,15 +292,6 @@ void jacobianAddParticle(// WS Output:
 
   out2 << "  Adding particles number densities to *jacobian_quantities*\n"
        << "  and *jacobian_agenda*,";
-  if (method_index==0) 
-  { 
-    out3 << " calculations done by perturbation, size " << dx 
-         << " " << unit << ".\n"; 
-  }
-  else if (method_index==1) 
-  {
-    out3 << " calculations done by analytical expression.\n"; 
-  }
   
 }                    
 
@@ -468,7 +450,7 @@ void jacobianAddTemperature(// WS Output:
   else
   {
     ostringstream os;
-    os << "The method for gas species retrieval can only be \"analytic\"\n"
+    os << "The method for temperature retrieval can only be \"analytic\"\n"
        << "or \"perturbation\".";
     throw runtime_error(os.str());
   }
@@ -477,7 +459,7 @@ void jacobianAddTemperature(// WS Output:
   if (unit!="abs" && unit!="rel")
   {
     ostringstream os;
-    os << "The unit of perturbation for pointing offset can only be either\n"
+    os << "The unit of perturbation for temperature can only be either\n"
        << "absolute (\"abs\") or relative (\"rel\")."; 
     throw runtime_error(os.str());
   }
@@ -835,6 +817,7 @@ void jacobianCalcParticle(
            Vector&                   rte_los,
      // WS Input:
      const ArrayOfRetrievalQuantity& jq,
+     const Tensor5&                  pnd_field_perturb,
      const Agenda&                   ppath_step_agenda,
      const Agenda&                   rte_agenda,
      const Agenda&                   iy_space_agenda,
@@ -861,14 +844,15 @@ void jacobianCalcParticle(
   // Set some useful (and needed) variables. 
   Index n_jq = jq.nelem();
   RetrievalQuantity rq;
-  Index it, method;
+  Index it;
+  Numeric pert_size;
   
   // Find the retrieval quantity related to this method, i.e. Particles - all.
   // This works since the combined MainTag and Subtag is individual.
   bool check_rq = false;
   for (Index n=0; n<n_jq; n++)
   {
-    if (jq[n].MainTag()=="Particles" && jq[n].Subtag()=="all")
+    if (jq[n].MainTag()=="Particles" && jq[n].Subtag()=="user defined")
     {
       check_rq = true;
       rq = jq[n];
@@ -877,7 +861,7 @@ void jacobianCalcParticle(
   if (!check_rq)
   {
     ostringstream os;
-    os << "There is no particles density number retrieval quantity defined.\n";
+    os << "There is no particle density number retrieval quantity defined.\n";
     throw runtime_error(os.str());
   }
   
@@ -885,21 +869,14 @@ void jacobianCalcParticle(
   ArrayOfIndex ji = rq.JacobianIndices();
   it = ji[0];
   ArrayOfVector jg = rq.Grids();
-  if (rq.Unit()=="rel")
-    method = 0;
-  else
-    method = 1;
   
-  /* For each atmospheric dimension option
-     1. Check that the retrieval grids are contained within the atmospheric
-        grids.
-     2. Create perturbation grids by adding points outside the atmospheric
-        grids to the retrieval grids.
-     3. Finally calculate a ArrayOfGridPos for each grid, these will be
-        used to interpolate a perturbation into the atmospheric grids.
-     Vector sizes initiated to 1 for correct sizing of perturbation field.*/
+  // For the particle perturbation the last position in the retrieval grids
+  // is the user defined retrieval scenarios. The first are the ordinary
+  // atmospheric retrieval grids, pressure, latitude and longitude.
+  // As for gas species, we set up the perturbation grid
   Vector p_pert(1),lat_pert(1),lon_pert(1);
   ArrayOfGridPos p_gp,lat_gp,lon_gp;
+  ArrayOfIndex p_lim(2,0), lat_lim(2,0), lon_lim(2,0);
   Index j_p = jg[0].nelem();
   Index j_lat = 1;
   Index j_lon = 1;
@@ -911,8 +888,9 @@ void jacobianCalcParticle(
        << "quantity " << rq;
     throw runtime_error(os.str());
   }
-  
-  if (atmosphere_dim>=2) 
+  get_perturbation_limit( p_lim, p_pert, p_grid[Range(cloudbox_limits[0],
+    cloudbox_limits[1]-cloudbox_limits[0]+1)]);
+  if (atmosphere_dim==3) 
   {
     j_lat = jg[1].nelem();
     if (!get_perturbation_grid( lat_pert, lat_gp, lat_grid, jg[1]))
@@ -923,134 +901,124 @@ void jacobianCalcParticle(
          << "quantity " << rq;
       throw runtime_error(os.str());
     }
+    get_perturbation_limit( lat_lim, lat_pert, lat_grid[
+      Range(cloudbox_limits[2], cloudbox_limits[3]-cloudbox_limits[2]+1)]);
     
-    if (atmosphere_dim==3) 
+    j_lon = jg[2].nelem();
+    if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2]))
     {
-      j_lon = jg[2].nelem();
-      if (!get_perturbation_grid( lon_pert, lon_gp, lon_grid, jg[2]))
-      {
-        ostringstream os;
-        os << "The atmospheric latitude grid *lon_grid* is not defined "
-           << "for all gridpoints \nin the retrieval latitude grid for "
-           << "quantity " << rq;
-        throw runtime_error(os.str());
-      }
+      ostringstream os;
+      os << "The atmospheric latitude grid *lon_grid* is not defined "
+         << "for all gridpoints \nin the retrieval latitude grid for "
+         << "quantity " << rq;
+      throw runtime_error(os.str());
+    get_perturbation_limit( lon_lim, lon_pert, lon_grid[
+      Range(cloudbox_limits[4], cloudbox_limits[5]-cloudbox_limits[4]+1)]);
     }
   }
-  
+
   // Give verbose output
   out2 << "  Calculating retrieval quantity " << rq << "\n";
   
-  // FIXME: Here cloudbox is turned off, this also applies to call to RteCalc
-  // in the for loop below.
-  // Use of cloudbox_on only to avoid compilation warning
-  Index cloudbox_dummy = cloudbox_on*0;
-  
-  // Calculate the reference spectrum, y. FIXME: Is this unnecessary if *y*
-  out2 << "  Calculating the reference spectra.\n";  
-  RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat, rte_gp_lon,
-           rte_los, ppath_step_agenda, rte_agenda, iy_space_agenda,
-           iy_surface_agenda, iy_cloudbox_agenda, atmosphere_dim, p_grid,
-           lat_grid, lon_grid, z_field, r_geoid, z_surface, cloudbox_dummy, 
-           cloudbox_limits, sensor_response, sensor_pos, sensor_los, f_grid,
-           stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+  // Store the reference spectrum and particle field
+  Vector y_ref = y, y_pert;
+  Tensor4 pnd_pert, pnd_ref = pnd_field;
 
-  // Declare variables for reference and difference spectrum
-  Vector y_ref = y;
-  
-  // Variables for pnd field perturbation
-  Tensor4 pnd_ref = pnd_field;
-  //Tensor3 pert_field(p_pert.nelem(),lat_pert.nelem(),lon_pert.nelem());
- 
   // Loop through the retrieval grid and calculate perturbation effect
-  for (Index p_it=0; p_it<j_p; p_it++)
+  for (Index scen_it=0; scen_it<jg[atmosphere_dim+1].nelem(); scen_it++)
   {
-    for (Index lat_it=0; lat_it<j_lat; lat_it++)
-    {
-      for (Index lon_it=0; lon_it<j_lon; lon_it++)
-      {
-        // FIXME: Only relative perturbation implemented
-        // That is; pert_field is initiated to 1.0
-        
-        // Here we calculate the ranges of the perturbation. We want the
-        // perturbation to continue outside the atmospheric grids for the
-        // edge values.
-        Range p_range = Range(0,0);
-        Range lat_range = Range(0,0);
-        Range lon_range = Range(0,0);
-        get_perturbation_range( p_range, p_it, j_p);
-        if (atmosphere_dim>=2)
-        {
-          get_perturbation_range( lat_range, lat_it, j_lat);
-          if (atmosphere_dim==3)
-          {
-            get_perturbation_range( lon_range, lon_it, j_lon);
-          }
-        }
-                              
-        // Calculate the perturbed field according to atmosphere_dim
-        switch (atmosphere_dim)
-        {
-          case 1:
-          {
-            for (Index typ_it=0; typ_it<pnd_field.nrows(); typ_it++)
-            {
-              // Here we perturb a vector, for each particle type
-              perturbation_field_1d( pnd_field(typ_it,joker,lat_it,lon_it), 
-                p_gp, p_pert, p_range, rq.Perturbation(), method);
-            }
-            break;
-          }
-          case 2:
-          {
-            for (Index typ_it=0; typ_it<pnd_field.nrows(); typ_it++)
-            {
-              // Here we perturb a matrix
-              perturbation_field_2d( pnd_field(typ_it,joker,joker,lon_it),
-                p_gp, lat_gp, p_pert, lat_pert, p_range, lat_range, 
-                rq.Perturbation(), method);
-            }
-            break;
-          }    
-          case 3:
-          {  
-            for (Index typ_it=0; typ_it<pnd_field.nrows(); typ_it++)
-            {
-              // Here we need to perturb a tensor3
-              perturbation_field_3d( pnd_field(typ_it,joker,joker,joker), 
-                p_gp, lat_gp, lon_gp, p_pert, lat_pert, lon_pert, p_range, 
-                lat_range, lon_range, rq.Perturbation(), method);
-            }
-            break;
-          }
-        }
-        
-        // Calculate the perturbed spectrum  
-        out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
-             << j_p*j_lat*j_lon+ji[0] << "\n";
-        RteCalc( y, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
-                 rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
-                 iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
-                 atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
-                 r_geoid, z_surface, cloudbox_dummy, cloudbox_limits, 
-                 sensor_response, sensor_pos, sensor_los, f_grid, 
-                 stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+    // Update the perturbation field
+    pnd_pert = pnd_field_perturb(scen_it, joker, joker, joker, joker);
     
-        // Restore the vmr_field
-        pnd_field = pnd_ref;               
-         
-        // Add dy/dx as column in jacobian
-        // FIXME: Save cpu time by implementing a sparse::insert_column()
-        for (Index y_it=0; y_it<y.nelem(); y_it++)
+    for (Index p_it=0; p_it<j_p; p_it++)
+    {
+      for (Index lat_it=0; lat_it<j_lat; lat_it++)
+      {
+        for (Index lon_it=0; lon_it<j_lon; lon_it++)
         {
-          jacobian.rw(y_it,it) = (y[y_it]-y_ref[y_it])/rq.Perturbation();
+          // Check if retrieval point is inside the box
+          if ( p_it>=p_lim[0] && p_it<=p_lim[1] &&
+               lat_it>=lat_lim[0] && lat_it<=lat_lim[1] &&
+               lon_it>=lon_lim[0] && lon_it<=lon_lim[1] )
+          {
+            // Here we calculate the ranges of the perturbation. We want the
+            // perturbation to continue outside the atmospheric grids for the
+            // edge values.
+            Range p_range = Range(0,0);
+            Range lat_range = Range(0,0);
+            Range lon_range = Range(0,0);
+            get_perturbation_range( p_range, p_it, j_p);
+            if (atmosphere_dim==3)
+            {
+              get_perturbation_range( lat_range, lat_it, j_lat);
+              get_perturbation_range( lon_range, lon_it, j_lon);
+            }
+                              
+            // Calculate the perturbed field according to atmosphere_dim
+            switch (atmosphere_dim)
+            {
+              case 1:
+              {
+                for (Index typ_it=0; typ_it<pnd_field.nrows(); typ_it++)
+                {
+                  // Here we perturb the pnd_pert vector, for each particle type
+                  // with relative perturbation of size 1
+                  perturbation_field_1d( pnd_pert(typ_it,joker,lat_it,lon_it), 
+                    p_gp, p_pert, p_range, 1.0, 0);
+                }
+                break;
+              }
+              case 3:
+              {  
+                for (Index typ_it=0; typ_it<pnd_field.nrows(); typ_it++)
+                {
+                  // Here we need to perturb a tensor3
+                  perturbation_field_3d( pnd_pert(typ_it,joker,joker,joker), 
+                    p_gp, lat_gp, lon_gp, p_pert, lat_pert, lon_pert, p_range, 
+                    lat_range, lon_range, 1.0, 0);
+                }
+                break;
+              }
+            }
+          
+            // Now add the weighted perturbation field to the reference field
+            // FIXME: The call to the scattering agenda goes here, it should 
+            // use pnd_ref as pnd_field. Agenda: scat_precalc_agenda
+            pnd_ref += pnd_pert;
+            
+            // Calculate the size of the perturbation
+            // FIXME: How? Sum all the elements of pnd_pert? Needs loop over all 
+            // dimensions.
+            pert_size = 1.0;
+            //pert_size = pnd_pert.sum();
+            
+            // Calculate the perturbed spectrum  
+            out2 << "  Calculating perturbed spectra no. " << it+1 << " of "
+                 << j_p*j_lat*j_lon+ji[0] << "\n";
+            RteCalc( y_pert, ppath, ppath_step, iy, rte_pos, rte_gp_p, rte_gp_lat,
+                     rte_gp_lon, rte_los, ppath_step_agenda, rte_agenda,
+                     iy_space_agenda, iy_surface_agenda, iy_cloudbox_agenda, 
+                     atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, 
+                     r_geoid, z_surface, cloudbox_on, cloudbox_limits, 
+                     sensor_response, sensor_pos, sensor_los, f_grid, 
+                     stokes_dim, antenna_dim, mblock_za_grid, mblock_aa_grid);
+    
+            // Add dy/dx as column in jacobian
+            for (Index y_it=0; y_it<y_ref.nelem(); y_it++)
+            {
+              jacobian.rw(y_it,it) = (y_pert[y_it]-y_ref[y_it])/pert_size;
+            }
+            
+            // Restore the reference pnd_field
+            pnd_ref = pnd_field;
+          }
+          it++;
         }
-        it++;
       }
     }
   }
   
-  // Restore y before returning
+  // Restore spectrum before returning
   y = y_ref;
 
 }

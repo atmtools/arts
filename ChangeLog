@@ -1,3 +1,25 @@
+2005-02-25  Mattias Ekstrom  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-923
+
+	* src/jacobian.[cc,h]: Made helper function for finding perturbation
+	limits for particle fields, considering that perturbations only take
+	place in the cloudbox.
+
+	* src/methods.cc: Added WSM AgendaExecute, and made changes to the
+	jacobian WSM online help.
+
+	* src/workspace.cc: Added WSV pnd_field_perturb, a Tensor5 that is
+	used to input the perturbation field for particle jacobians to the
+	WSM.
+
+	* src/m_agenda.cc: Implemented AgendaExecute which takes an agenda
+	as a generic input and executes it.
+
+	* src/m_jacobian: New version of jacobianAddParticle and
+	jacobianCalcParticle, not finished yet. Needs method to calculate
+	the scattering properties.
+
 2005-02-23  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-922

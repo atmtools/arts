@@ -28,6 +28,16 @@
 #include "wsv_aux.h"
 #include "agenda_record.h"
 
+
+void AgendaExecute(// WS Generic Input:
+                   const Agenda& this_agenda,
+                   // WS Generic Input Names:
+                   const String& this_agenda_name)
+{
+  out3 << "  Manual execution of " << this_agenda_name << "\n";
+  this_agenda.execute();
+}
+
 void AgendaSet(// WS Generic Output:
                Agenda& output_agenda,
                // WS Generic Output Names:

@@ -1698,6 +1698,34 @@ wsv_data.push_back
         ),
       GROUP( Tensor4_ )));
 
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "pnd_field_perturb" ),
+      DESCRIPTION
+      (
+       "The field representing particle number density perturbations.\n"
+       "\n"
+       "This variable gives the perturbation of particle number density\n"
+       "of the chosen particle types as a function of p_grid, lat_grid,\n"
+       "lon_grid for each retrieval quantity. The variable has to be\n"
+       "prepared outside ARTS and it has to be setup prior to calling\n"
+       "*jacobianAddParticle*. Since it is added to *pnd_field* during\n"
+       "the calculation of the Jacobian, the perturbations are absolute\n"
+       "and as such should have the same unit as *pnd_field*\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "\n"
+       "Usage:      Set by the user.\n"
+       "\n"
+       "Unit:       m^-3\n"
+       "\n"
+       "Dimensions: [N_retrieval_quantities, as *pnd_field* ]\n"
+        ),
+      GROUP( Tensor5_ )));
+
   wsv_data.push_back
    (WsvRecord
     ( NAME( "pnd_field_raw" ),

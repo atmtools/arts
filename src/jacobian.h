@@ -149,6 +149,10 @@ bool get_perturbation_grid(      Vector&         pert,
                            const Vector&         atm_grid,
                            const Vector&         jac_grid);
 
+void get_perturbation_limit(       ArrayOfIndex& limit,
+                             const Vector&       pert_grid,
+                             const Vector&       atm_limit);
+
 void get_perturbation_range(       Range& range,
                              const Index& index,
                              const Index& length);
