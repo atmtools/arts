@@ -175,8 +175,9 @@ void Cloudbox_ppath_rteCalc(
   //changed to dummy_rte_pos to see if rte_pos was causing assertion failure at ppath.cc:1880
   //it appears that this was not the case
   Vector dummy_rte_pos = rte_pos;
-  Vector dummy_rte_los = rte_los;  
-  shift_rte_pos(dummy_rte_pos,dummy_rte_los,ppathcloud);
+  Vector dummy_rte_los = rte_los;
+  rte_posShift(dummy_rte_pos,dummy_rte_los,rte_gp_p, rte_gp_lat,
+	    rte_gp_lon,ppathcloud, atmosphere_dim);
   sensor_pos(0,joker)=dummy_rte_pos;
   sensor_los(0,joker)=dummy_rte_los;
   //call rte_calc without input checking, sensor stuff, or verbosity

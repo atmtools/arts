@@ -1,3 +1,21 @@
+
+2003-08-19  Cory Davis    <cory@met.ed.ac.uk>>
+
+	* arts-1-1-658
+
+	* src/m_montecarlo.cc, methods.cc: changed (shift_rte_pos) to
+	(rte_posShift), modified the method to also change rte_gp_XXX
+	to the corresponding values at the end of ppath.  It should
+	 work for all values of atmosphere_dim now.  This is a 
+	workaround to get cloud box exit radiances as well as the
+	measurement Stokes vector in DOSO scattering runs for
+	comparison with Monte Carlo scattering results.
+
+	* src/montecarlo.cc (Cloudbox_ppath_rteCalc): changed call to 
+	shift_rte_pos
+
+
+
 2003-08-19  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-657
@@ -14,6 +32,7 @@
 	
 	* src/m_optproperties.cc: Included defines.
 
+
 2003-08-19  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-656
@@ -22,6 +41,7 @@
 	(legendre_poly_norm_schmidt_deriv) to test the derivative of the
 	Schmidt quasi-normalized Legendre polynomials.
 	
+
 2003-08-19  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-655

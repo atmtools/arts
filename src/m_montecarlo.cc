@@ -666,22 +666,35 @@ void ScatteringMonteCarlo (
 
 
 
-//! shift_rte_pos
+//! rte_posShift
 /*! 
-   shifts rte_pos and rte_los to the end of ppath.  3D only!
+   shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath.
 
    \author Cory Davis
    \date   2003-07-19
 */
 
 
-void shift_rte_pos(
-	Vector&         rte_pos,
-      Vector&         rte_los,
-	const Ppath&    ppath)
+void rte_posShift(
+		  Vector&         rte_pos,
+		  Vector&         rte_los,
+		  GridPos&        rte_gp_p,
+		  GridPos&        rte_gp_lat,
+		  GridPos&        rte_gp_lon,
+		  const Ppath&    ppath,
+		  const Index&    atmosphere_dim)
 {
-rte_pos = ppath.pos(ppath.np-1,Range(0,3));
-rte_los = ppath.los(ppath.np-1,joker);
+  const Index np      = ppath.np;
+  
+  rte_pos.resize( atmosphere_dim );
+  rte_pos = ppath.pos(np-1,Range(0,atmosphere_dim));
+  rte_los.resize( ppath.los.ncols() );
+  rte_los = ppath.los(np-1,joker);
+  gridpos_copy( rte_gp_p, ppath.gp_p[np-1] );
+  if( atmosphere_dim > 1 )
+    { gridpos_copy( rte_gp_lat, ppath.gp_lat[np-1] ); }
+  if( atmosphere_dim > 2 )
+    { gridpos_copy( rte_gp_lon, ppath.gp_lon[np-1] ); }
 }  
 
 

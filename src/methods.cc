@@ -2842,6 +2842,21 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "rte_posShift" ),
+        DESCRIPTION
+        (
+         "shifts rte_pos and rte_los, and rte_gp_XXX to the end of ppath."
+        ),
+        OUTPUT( rte_pos_, rte_los_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_ ),
+        INPUT( ppath_, atmosphere_dim_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "scat_data_rawCheck" ),
@@ -3169,20 +3184,6 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
  
- md_data_raw.push_back
-    ( MdRecord
-      ( NAME( "shift_rte_pos" ),
-        DESCRIPTION
-        (
-         "Changes *rte_pos* and *rte_los* to the last positions in *ppath*"
-        ),
-        OUTPUT( rte_pos_, rte_los_ ),
-        INPUT( ppath_, rte_pos_, rte_los_ ),
-        GOUTPUT(),
-        GINPUT(),
-        KEYWORDS(),
-        TYPES()));
-
   md_data_raw.push_back
     ( MdRecord
       ( NAME("sensor_responseAntenna1D"),
