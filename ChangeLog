@@ -1,3 +1,13 @@
+2004-05-31  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-824
+
+	* doc/uguide/montecarlo.tex: Began a chapter on the Monte Carlo
+	code
+
+	* doc/uguide/main.tex: Put montecarlo chapter after scattering
+	chapter and included myself as an author
+
 2004-05-24  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
         * arts-1-1-823
