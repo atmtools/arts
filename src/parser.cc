@@ -649,7 +649,10 @@ void parse_numvector(Vector& res, SourceText& text)
 
   // Copy tres to res:
   res.resize(tres.nelem());
-  res = tres;
+  for (int i = 0; i < tres.nelem (); i++)
+    {
+      res[i] = tres[i];
+    }
 
   text.AdvanceChar();
 }
