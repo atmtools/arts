@@ -1,0 +1,289 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Theoretical formalism}
+ \label{sec:formalism}
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000306 & Created by Patrick Eriksson. This section is based on 
+           \citet{eriksson:99} and \citet{eriksson:00a}. \\
+\stophistory
+
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+\startsymbols
+  \mpbi   & \verb|y|      & monochromatic pencil beam intensity      \\
+  \f      & \verb|f|      & frequency                                \\
+  \view   & \verb|phi|    & viewing angle from zenith                \\
+  \iv     & \verb|y|      & vector of monochromatic pencil beam intensities \\
+  \y      & \verb|y|      & spectrum recorded by a sensor            \\
+  \fm     & \verb|-|      & forward model                            \\
+  \fma    & \verb|-|      & atmospheric part of \fm                  \\
+  \fms    & \verb|-|      & sensor part of \fm                       \\
+  \xt     & \verb|-|      & state vector (variables to be retrieved) \\
+  $\xt_r$ & \verb|-|      & atmospheric part of \xt                  \\
+  $\xt_s$ & \verb|-|      & sensor part of \xt                       \\
+  \bt     & \verb|-|      & forward model parameter vector           \\
+  $\bt_r$ & \verb|-|      & atmospheric part of \bt                  \\
+  $\bt_s$ & \verb|-|      & sensor part of \bt                       \\
+  \Kx     & \verb|K|      & state weighting function matrix          \\
+  \Kb     & \verb|K|      & model parameter weighting function matrix\\  
+ \label{symtable:formalism}     
+\stopsymbols
+
+
+
+%
+% Introduction
+%
+In this section a theoretical framework for the forward model is
+presented. The presentation follows \citet{rodgers:90}, but the
+distinction between the atmospheric and sensor parts of the forward
+model is also discussed here.   
+
+
+
+\levelb{The forward model}
+ \label{sec:formalism:fm}
+ 
+ The radiative intensity, \mpbi, at a point in the atmosphere, $r$, for
+ frequency \f\ and traversing in the direction, \view, is dependent
+ on a variety of physical processes and continuous variables such as
+ the temperature profile, $T$:
+
+ \begin{equation}
+   \mpbi = F(r,\f,\view,T,\dots)
+ \end{equation} 
+ To detect the spectral radiation some kind of sensor, having a finite
+ spatial and frequency resolution, is needed, and the observed
+ spectrum becomes a vector, \y, instead of a continuous function.
+ The atmospheric radiative transfer is simulated by a computer model
+ using a limited number of parameters as input, and the forward model,
+ \fm, used in practice can be expressed as
+ 
+ \begin{equation}
+   \y = \fm(\xt_\fm,\bt_\fm) + \merr(\xt_\merr,\bt_\merr)
+  \label{eq:formalism:fm}
+ \end{equation}
+ where $(\xt_\fm,\bt_\fm)$ and $(\xt_\merr,\bt_\merr)$ together give a
+ total description of both the atmospheric and sensor states, and
+ \merr\ is the measurement errors. The parameters are divided in such
+ way that \xt, the state vector, contains the parameters to be
+ retrieved, and the remainder is given by \bt, the model parameter
+ vector. The total state vector is
+ \begin{equation}
+   \xt = \left[ \begin{array}{c} \xt_\fm \\ \xt_\merr \end{array} \right]
+ \end{equation}
+ and the total model parameter vector is
+ \begin{equation}
+   \bt = \left[ \begin{array}{c} \bt_\fm \\ \bt_\merr \end{array} \right]
+ \end{equation}
+ The actual forward model consists of either empirically determined
+ relationships, or numerical counterparts of the physical
+ relationships needed to describe the radiative transfer and sensor
+ effects. The forward model described here is mainly of the latter
+ type, but some parts are more based on empirical investigations, such
+ as the parameterisations of continuum absorption. It should be noted
+ that a possible data reduction is also part of the forward model.
+  
+ Both for the theoretical formalism and the practical implementation,
+ it is suitable to make a separation of the forward model into two
+ main sections, a first part describing the atmospheric radiative
+ transfer for pencil beam (infinite spatial resolution) monochromatic
+ (infinite frequency resolution) signals \citep{eriksson:99},
+
+ \begin{equation}
+   \iv = \fma(\xt_r,\bt_r)
+  \label{eq:formalism:fma}
+ \end{equation}
+ and a second part modelling sensor characteristics,
+ \begin{equation}
+   \y = \fms(\iv,\xt_s,\bt_s) + \merr(\xt_\merr,\bt_\merr)
+  \label{eq:formalism:fms}
+ \end{equation}
+ where \iv\ is the vector holding the spectral values for the
+ considered set of frequencies and viewing angles (i.e.
+ $\iv^i=I(\f^i,\view^i)$, where $i$ is the vector index), and
+ $\xt_\fm$ and $\bt_\fm$ are separated correspondingly, i.e.
+ $\xt_\fm^T= [\xt_r^T,\xt_s^T]$ and $\bt_\fm^T= [\bt_r^T,\bt_s^T]$. The
+ vectors \xt\ and \bt\ can now be expressed as
+ \begin{equation}
+   \xt = \left[ \begin{array}{c} \xt_r\\ \xt_s \\ \xt_\merr \end{array} \right]
+ \end{equation}
+ and
+ \begin{equation}
+   \bt = \left[ \begin{array}{c} \bt_r\\ \bt_s \\ \bt_\merr \end{array}\right],
+ \end{equation}
+ respectively.
+
+ The subscripts of \xt\ and \bt\ are below omitted if the part of the
+ vectors used is made clear by the context. 
+
+
+
+\levelb{The sensor transfer matrix} 
+ \label{sec:formalism:sensor}
+  
+ The modelling of the different sensor parts can be described by a
+ number of of analytical expressions (see \citet{eriksson:97a}) that
+ together makes the basis for the sensor model. These expressions are
+ throughout linear operations and it possible, as suggested in
+ \citet{eriksson:00a}, to implement the sensor model as a
+ straightforward matrix multiplication:
+ \begin{equation}
+   \y = \Hm \iv + \merr
+  \label{eq:formalism:H}
+ \end{equation}
+ where \Hm\ is here denoted as the sensor transfer matrix.  The matrix
+ \Hm\ can  be set up to incorporate effects of a data reduction and
+ the total transfer matrix is then
+ \begin{equation}
+   \Hm = \Hd \Hs
+  \label{eq:formalism:Hs}
+ \end{equation}
+ as
+ \begin{equation}
+   \y = \Hd \y' = \Hd (\Hs \iv + \merr') = \Hm \iv + \merr
+  \label{eq:formalism:datared}
+ \end{equation}
+ where \Hd\ is the reduction matrix, \Hs\ the sensor matrix, and $\y'$
+ and $\merr'$ are the measurement vector and the measurement errors,
+ respectively, before data reduction. The matrices \Hd\ and \Hs\ are
+ described in Section !! and !!, respectively.
+
+
+
+\levelb{Weighting functions} 
+ \label{sec:formalism:wfuns}
+
+ \levelc{Basics} 
+ A weighting function is the partial derivative of the spectrum vector
+ \y\ with respect to some variable used by the forward model.  As the
+ input of the forward model is divided between \xt\ or \bt, the
+ weighting functions are divided correspondingly between two matrices,
+ the state weighting function matrix
+
+ \begin{equation}
+   \Kx = \frac{\partial \y}{\partial \xt}
+  \label{eq:formalism:kx}
+ \end{equation}
+ and the model parameter weighting function matrix
+ \begin{equation}
+   \Kb = \frac{\partial \y}{\partial \bt}
+  \label{eq:formalism:kb}
+ \end{equation}
+ For the practical calculations of the weighting functions, it is
+ important to note that the atmospheric and sensor parts can be
+ seperated. For example, if \xt\ only hold atmospheric and
+ spectroscopic variables, \Kx\ can be expressed as
+
+ \begin{equation}
+   \Kx = \frac{\partial \y}{\partial \iv}\frac{\partial\iv}{\partial \xt} =
+    \Hm\frac{\partial\iv}{\partial \xt}
+  \label{eq:formalism:kx2}
+ \end{equation}
+ This equation shows that the new parts needed to calculate
+ atmospheric weighting functions, are functions giving $\partial\iv /
+ \partial \xt$ where \xt\ can represent the vertical profile of a
+ species, atmospheric temperature, spectroscopic data etc.
+ 
+ The practical calculation of weighting functions is discussed in
+ detail in Sections \ref{sec:wfuns} -- \ref{sec:wfuns_sens}.
+
+
+ \levelc{Transformation between vector spaces}
+ 
+  It could be of interest to transform a weighting function matrix from
+  one vector space to another. The new vector, $\xt'$, is here
+  assumed to be of length $p$ $(\xt' \in \msize{p}{1})$, while the original
+  vector, \xt\ is of length $n$ $(\xt \in \msize{n}{1})$.  The
+  relationship between the two vector spaces is described by a
+  transformation matrix $\B$:
+  \begin{equation}
+    \xt = \B\xt'
+  \end{equation}
+  where $\B \in \msize{p}{n}$. For example, if $\xt'$ is assumed to be
+  piecewise linear, then the columns of $\B$ contain tenth functions,
+  i.e. a function that are 1 at the point of interest and decreases
+  linearly down to zero at the neighbouring points.  The matrix can
+  also hold a reduced set of eigenvectors.
+    
+  The weighting function matrix corresponding to $\xt'$ is
+  \begin{equation}
+    \K_{\xt'} = \frac{\partial \y}{\partial \xt'}
+  \end{equation}
+  
+  This matrix is related to the weighting function matrix of \xt\ (Eq.
+  \ref{eq:formalism:kx}) as
+  \begin{equation}
+    \K_{\xt'}
+      = \frac{\partial \y}{\partial \xt} \frac{\partial \xt}{\partial \xt'}
+      = \frac{\partial \y}{\partial \xt} \B 
+      = \Kx \B
+  \end{equation}
+  Note that
+  \begin{equation}
+    \K_{\xt'}\xt' = \Kx\B\xt' =  \Kx\xt
+  \end{equation}
+  However, it should be noted that this relationship only holds for
+  those \xt\ that can be represented perfectly by some $\xt'$ (or vice
+  versa), i.e.  $\xt=\B\xt'$, and not for all combinations of \xt\ and $\xt'$.
+
+  If $\xt'$ is the vector to be retrieved, we have that \citep{rodgers:90}
+  \begin{equation}
+    \xret' = \im(\y,\ct) = \tm(\xt,\bt,\ct)
+  \end{equation}
+  where \im\ and \tm\ are the inverse and transfer model, respectively.
+
+  The contribution function matrix is accordingly
+  \begin{equation}
+    \Dy =  \frac{\partial \xret'}{\partial \y}
+  \end{equation}
+  i.e. \Dy\ corresponds to $\K_{\xt'}$, not \Kx.
+  
+  We have now also two possible averaging kernel matrices
+  \begin{equation}
+    \A_{\xt} 
+      = \frac{\partial \xret'}{\partial \xt} 
+      = \frac{\partial \xret'}{\partial \y} \frac{\partial \y}{\partial \xt}
+      = \Dy \Kx
+  \end{equation}
+  \begin{equation}
+    \A_{\xt'} 
+      = \frac{\partial \xret'}{\partial \xt'} 
+      = \frac{\partial\xret'}{\partial\y}\frac{\partial\y}{\partial\xt}
+      \frac{\partial\xt}{\partial\xt'}
+      = \Dy \K_{\xt'}
+      = \A_{\xt} \B
+  \end{equation}
+  where $\A_{\xt} \in \msize{p}{n}$ and $\A_{\xt'} \in
+  \msize{p}{p}$, i.e. only $\A_{\xt'}$ is square. 
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

@@ -1,0 +1,146 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Sensor variables weighting functions}
+ \label{sec:wfuns_sens}
+
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000320 & Created and written by Patrick Eriksson.\\
+\stophistory
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+\startsymbols
+  -- & -- & -- \\
+ \label{symtable:wfuns_sens}     
+\stopsymbols
+
+
+
+%
+% Introduction
+%
+This section presents weighting functions for sensor variables, beside the
+ones treated as measurement errors. The covered features are calibration,
+pointing and frequency instability.
+
+
+
+
+\levelb{Calibration weighting functions}
+ \label{sec:wfuns_sens:cal}
+ 
+ \levelc{Proportional calibration errors} 
+ This section gives the WF for situations where a calibration
+ uncertainty gives an error that is directly proportinal to the noise
+ free spectrum.  Such a calibration uncertainty can be encountered for
+ e.g. ground-based observations of altitudes above the tropoapuse,
+ where a compensation of the tropospheric attenuation must be made, as an
+ error of the assumed tropospheric opacity gives rise to a proportional 
+ calibration error.
+
+ A measurement with a proportional calibration uncertainty
+ can be expressed as
+ \begin{equation}
+   \y = \Hd\left( (1+x_{cal})\Hs\iv+\merr' \right)
+ \end{equation}
+ See Equation \ref{eq:formalism:datared} for definition of the variables.
+ The WF for this case is easily obtained
+ \begin{equation}
+   \K_{\xt} = \Hd\Hs\iv = \Hm\iv = \y - \merr
+ \end{equation}
+ i.e. the WF is identical to the (noise free) spectrum given by the forward
+ model. 
+
+ 
+ \levelc{Calibration load temperatures} 
+ The calibration of a Dicke switched radiometer is often performed by
+ observing two loads with known intensity. The calibration formula is
+ then (neglecting data reduction)
+ \begin{equation}
+   \y^i =  I_1^i + (I_2^i-I_1^i)\frac{V_{atm}^i-V_1^i}{V_2^i-V_1^i} 
+  \label{sec:wfuns_sens:loadcal}
+ \end{equation}
+ where $\y^i$ is the calibrated value for channel $i$, $I_1$ and $I_2$
+ are the assumed intensities of the two loads, $V_{atm}$, $V_1$ and
+ $V_2$ are the voltage recorded when observing the atmosphere, load 1
+ and load 2, respectively.
+ 
+ The load temperature WFs are obatined by differenting Equation
+ \ref{sec:wfuns_sens:loadcal}. For example, we have that \citep{eriksson:97a}
+ \begin{equation}
+   \frac{\partial \y^i}{\partial I_1^i} = 1 - 
+     \frac{V_{atm}^i-V_1^i}{V_2^i-V_1^i} = \frac{I_2^i-\y^i}{I_2^i-I_1^i} 
+ \end{equation}
+ The WF for load temperature 1 is then
+ \begin{equation}
+   \K_{\xt} = \Hd \mat{a}
+ \end{equation}
+ where the elements of the vector $\mat{a}$ are
+ \begin{equation}
+   \mat{a}^i = \frac{I_2^i-\y^i}{I_2^i-I_1^i}
+ \end{equation}
+ The corresponding expression for load 2 is
+ \begin{equation}
+   \mat{a}^i = \frac{\y^i-I_1^i}{I_2^i-I_1^i}
+ \end{equation}
+ Hence, these WFs are easily calculated if the spectrum (before data
+ reduction) is at hand.
+
+
+
+\levelb{Pointing weighting functions}
+ \label{sec:wfuns_sens:point}
+ 
+ No suitable analytical expression for the pointing WFs has been
+ found.  The pointing is a sensor variable and the first choice for a
+ perturbatation calculation would be to recalculate the sensor
+ transfer matrix for a slightly changed pointing pattern. However, to
+ set-up the sensor matrix can be a time consuming task, and Equation
+ \ref{eq:wfuns:Hpert} was instead selected for the calculation of the
+ pointing WFs.
+
+ Think and check with practical calculations deciding calculation approach!!
+ 
+ \begin{eqnarray}
+   \int_{0}^{2\pi} r_a(\view) I(\view) \dd \view \nonumber
+ \end{eqnarray}
+
+ \begin{eqnarray}
+   \int_{0}^{2\pi} r_a(\view+\Delta \view) I(\view) \dd \view \approx
+   \int_{0}^{2\pi} r_a(\view) I(\view-\Delta \view) \dd \view \nonumber
+ \end{eqnarray}
+
+
+\levelb{Frequency weighting functions}
+ \label{sec:wfuns_sens:freq}
+
+
+
+
+%%% Local Variables: 
+%%% mode: latex 
+%%% TeX-master: "main" 
+%%% End:
+

@@ -1,3 +1,19 @@
+2000-05-23  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-23
+
+	* Included present versions of the ARTS Matlab interface (AMI) and
+	the user guide to the CVS distribution.
+
+	* Updated AMI to handle new data format
+	Present functionality of AMI
+	Read and write files basic data files
+	Call ARTS from Matlab
+	Setting the MAtlab search path
+
+	* Please note that the user guide is not up to data and does
+	not match the present version of ARTS
+
 2000-05-22  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-22

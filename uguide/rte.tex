@@ -1,0 +1,326 @@
+%
+% To start the document, use
+%  \levela{...}
+% For lover level, sections use
+%  \levelb{...}
+%  \levelc{...}
+%
+\levela{Basic radiative transfer}
+ \label{sec:rte}
+
+
+%
+% Document history, format:
+%  \starthistory
+%    date1 & text .... \\
+%    date2 & text .... \\
+%    ....
+%  \stophistory
+%
+\starthistory
+  000307 & Created and written by Patrick Eriksson. \\
+\stophistory
+
+
+
+%
+% Symbol table, format:
+%  \startsymbols
+%    ... & \verb|...| & text ... \\
+%    ... & \verb|...| & text ... \\
+%    ....
+%  \stopsymbols
+%
+%
+\startsymbols
+  \mpbi     & \verb|y|       & monochromatic pencil beam intensity      \\
+  $\mpbi_1$ & \verb|y_cbgr|          & cosmic background radiation      \\
+  $\mpbi_1$ & \verb|y_ground|        & ground blackbody radiation       \\
+  $S$       & \verb|S|               & source function                  \\
+  $k$       & \verb|Abs|             & total absorption                 \\
+  $T$       & \verb|t|               & temperature                      \\
+  \f        & \verb|f|               & frequency                        \\
+  $h$       & \verb|PLANCK_CONST|    & the Planck constant              \\ 
+  $c$       & \verb|SPEED_OF_LIGHT|  & speed of light                   \\
+  $k_B$     & \verb|BOLTZMAN_CONST|  & the Boltzmann constant           \\
+  $\tau$    & -                      & optical thickness                \\
+  $\zeta$   & \verb|Tr|              & transmission between LOS points  \\
+  $\zeta^{atm} $& \verb|y|           & total atmospheric transmission   \\
+  $l$       & \verb|l|               & distance along LOS               \\
+  $\Delta l$  &\verb|step|           & step length along LOS            \\
+  $e$       & \verb|gr_emiss|        & ground emissivity                \\
+  $T_{ground} $&\verb|gr_temp|       & physical temperature of the ground\\
+  $T_{cbgr}$  &\verb|COSMIC_BG_TEMP| & temperature representing cosmic  \\ 
+         &                &        background radiation                 \\
+ \label{symtable:rte}     
+\stopsymbols
+
+
+
+%
+% Introduction
+%
+This section presents the atmospheric radiative transfer equation
+(RTE) for a non-scattering atmosphere in thermodynamic dynamic
+equilibrium.  However, the calculation scheme described here can
+easily be extended to include effects of e.g. scattering. The
+radiative transfer equation gives the monochromatic (infinite
+frequency resolution) pencil beam (infinite spatial resolution)
+spectrum. The main problem, in this context, is how to practically and
+accurately estimate the (continuous) integral in the discrete forward
+model.
+ 
+The discussion treats mainly measurements of atmospheric emission. The 
+forward model can also handle pure absorption measurements and such 
+observations are discussed briefly last in the section.
+
+The equations of this section are valid for monochromatic pencil beam
+spectra, i.e. no effects of the sensor are considered. How to
+incorporate sensor effects in the spectra and weighting functions is
+discussed separately (Sec. !!).
+
+
+
+\levelb{Introduction}
+ \label{sec:rte:intro}
+ 
+ Atmospheric radiative transfer can be expressed generally as
+ \begin{equation}
+   I = I_1e^{-\int_{l_1}^{l_2}{\kappa(l)dl}} +
+        \int_{l_1}^{l_2}{\kappa(l)S(l)e^{-\int_{l}^{l_2}{\kappa(l')dl'}}dl}
+    \label{eq:rte:rte}
+ \end{equation}
+ where $I$ is the monochromatic pencil beam intensity, $l$ distance
+ along the line of sight (LOS), $l_1$ the point of the considered part
+ of the LOS furthest away from the sensor, $l_2$ the closest point of
+ the LOS, $I_1$ the intensity at $l_1$, $k$ the total absorption along
+ the LOS and $S$ the source function.
+  
+ Equation \ref{eq:rte:rte} is of general validity if $S$ and $\kappa$
+ consider the relevant effects, e.g. scattering. However, below in
+ this section it is assumed that there is no scattering and the
+ atmosphere is in local thermodynamic equilibrium.
+  
+ Note that Eq. \ref{eq:rte:rte} is valid both for the case when the LOS is
+ determined by geometrical calculations and when refraction is
+ considered (the refraction changes however the LOS).
+  
+ With the assumptions of no scattering and local thermodynamic
+ equilibrium, $\kappa$ is the summed gaseous absorption, and the source
+ function equals the Planck function, $B$:
+ \begin{equation}
+    S = B(\f,T) = \frac{2h\f^3}{c^2} \frac{1}{1-e^{h\f/k_B T}}
+    \label{eq:rte:planck}
+ \end{equation}
+ giving the blackbody radiation for a temperature $T$ and frequency
+ $\f$.
+  
+ If $S$ is constant along the considered part of the LOS, i.e. the
+ temperature is constant for the case $S=B$, the RTE can be solved
+ analytically to give
+ \begin{equation}
+   I = I_1e^{-\tau} + S\left(1-e^{-\tau}\right)
+  \label{eq:rte:step}
+ \end{equation}
+ where $\tau$ is the optical thickness
+ \begin{equation}
+   \tau = \int_{l_1}^{l_2}{\kappa(l)dl}
+ \end{equation}
+ The transmission corresponding to $\tau$ is
+ \begin{equation}
+   \zeta = e^{-\tau}
+ \end{equation}  
+
+
+
+\levelb{Practical considerations}
+ \label{sec:rte:practical}
+ 
+ The LOS can be divided into parts in several ways. As absorption and
+ temperature most likely are avaliable at some vertical grid, the most
+ natural choice would be to define the LOS using this vertical grid.
+ This solution is problematic for limb sounding as the ratio between
+ the distance along LOS and the corresponding vertical distance
+ becomes infinite at the tangent point (see Eq. \ref{eq:los:gterm2}).
+ Another solution would be to base the division on $\tau$, but such a
+ division does not guarantee that $T$ is close to constant inside the
+ slabs as the vertical extension in some cases could be very large,
+ and each combination of frequency and viewing angle should require a
+ specific division.
+  
+ As a practical compromise, it was here decided to divide LOS into
+ equal long geometrical steps. With this scheme the division is
+ identical for all frequency components, but changes between the
+ viewing angles, and should give relatively fast and straightforward
+ calculations, maintaining a good accuracy. This approach has
+ successfully been applied in the Odin sub-mm forward model 
+ \citep{eriksson:97a,eriksson:00a}.
+  
+ The next question is when and how to calculate LOS and the associated
+ variables. As the determination of weighting functions (WFs)
+ associated with the absorption, e.g. species WFs, needs basically the
+ same quantities as RTE, it is most efficient to do this procedure
+ only once and in such way that the values are suitable for both RTE
+ and the WFs. Hence, the LOS calculations shall be a separate part,
+ not included in the RTE functions. The standard use of the forward
+ model should then be:
+  \begin{enumerate}
+    \item Calculation of absorption coefficients.
+    \item Determination of LOS.
+    \item Calculation of the source function and transmission along LOS.
+    \item Iteration to solve RTE.
+    \item Calculation of weighting functions.
+    \item Saving etc.
+  \end{enumerate}
+ The determination of LOS is described separately in Section \ref {sec:los}. 
+  
+
+  
+\levelb{Practical solution}
+ \label{sec:rte:iter}
+ 
+ !! Check this section when WFs ready
+ The LOS is here assumed to be defined with $n$ points, and the
+ transmission and a mean value for the source function for each
+ intermediate layers are assumed to be known (see Fig
+ \ref{fig:rte:los}).  The transmission between the points is stored
+ instead of optical thicknesses as evaluation of the exponential
+ function is relatively computationally demanding and this calculation
+ should not be duplicated unnecessary. The relationship between
+ the optical thicknesses and the transmissions is
+ \begin{equation}
+   \zeta_i = e^{-\tau_i}
+ \end{equation}
+ Note that
+ \begin{equation}
+   e^{-\left(\tau_1+\tau_2\dots\tau_n\right)}=\zeta_1\zeta_2\dots\zeta_n
+ \end{equation}
+ The intensity at point $n$ can be expressed as
+
+  \begin{figure}[t]
+    \includegraphics*[width=0.98\hsize]{Figs/los.eps}
+    \caption{Schematic description of the variables along 
+             the line of sight. All the points are separated by the distance
+             $\Delta l$ (along the LOS). The transmission along the LOS
+             between the points is $\zeta_i$ and the mean value of the source
+             function is $S_i$.}  
+    \label{fig:rte:los}  
+  \end{figure}
+
+ \begin{equation}
+   I = I_1 \prod_{j=1}^{n-1}\zeta_j + 
+       \sum_{i=1}^{n-1}S_i(1-\zeta_i)\prod_{j=i+1}^{n-1}\zeta_j
+  \label{eq:rte:rteprod}
+ \end{equation}
+ However, an alternative approach, requiring less computer memory, is
+ to follow the radiation from one slab of the atmosphere to next, and
+ is the method of choice here. Following Equation \ref{eq:rte:step},
+ the following iterative expression can be determined
+ \citep{eriksson:97a}
+ \begin{equation}
+   I_{i+1} = I_i\zeta_i + S_i\left(1-\zeta_i\right)\qquad i=1,2,...,n\!\!-\!\!1
+  \label{eq:rte:iteration}
+ \end{equation}
+ where $I_i$ is the intensity at point $i$.
+ 
+ The iteration is started by setting $I_1$ to the intensity at the end
+ of the atmosphere, e.g. cosmic background radiation
+ or blackbody radiation from the ground (see further below).
+
+ 
+ \levelc{Starting the iteration} 
+ For the initialization of the iteration there are three possibilities:
+    
+ \begin{enumerate}
+      \item LOS starts in space and cosmic background radiation is not
+            considered: $I_1=0$
+      \item LOS starts in space and cosmic background radiation is 
+            considered: $I_1(\f)=B(\f,T_{cbgr})$
+      \item LOS intersects with the ground and the ground is assumed to 
+            be a perfect blackbody: $I_1(\f)=B(\f,T_{ground})$
+ \end{enumerate}
+ where $T_{cbgr}$ is the temperature corresponding to the cosmic
+ background radiation, and $T_{ground}$ is the physical temperature of
+ the ground.
+ 
+ Note that case 3 is the only time when the LOS not starts in space.  The
+ iteration can be started at the ground for case 3 as what happens
+ before the ground reflection is of no concern (consider Eq.
+ \ref{eq:rte:ground} with $e$=1).
+
+
+ \levelc{Considering ground reflection}  
+  \label{sec:rte:ground}
+
+ The effect of a ground reflection can be expressed as
+ \begin{equation}
+   I^{after} = I^{before}(1-e) + eB(\f,T_ground)
+  \label{eq:rte:ground}
+ \end{equation} 
+ where $e$ is the ground emission factor and $I^{before}$ and
+ $I^{after}$ is the intensity before and after the reflection,
+ respectively. 
+
+ By comparing Equations \ref{eq:rte:iteration} and \ref{eq:rte:ground}
+ it can be seen that the ground can be treated as atmospheric
+ layer $i$ if $\zeta_i$ is set to $(1-e)$ and $S_i$ to $B(\f,T_{ground})$.
+ 
+ This approach results in that no special case is needed to treat
+ ground reflections. In fact, there is a total correspondence between
+ limb sounding observations and cases with ground reflections, this
+ including nadir observations, where the ground replaces the tangent
+ point.
+
+
+
+\levelb{Total atmospheric transmission}
+ \label{sec:rte:trans}
+  
+ The atmospheric emission can be neglected if the observation is
+ performed towards a sufficiently strong source (such as the Sun), and
+ the measurement gives basically the total atmospheric transmission,
+ $\zeta^{tot}$. This transmission is (cf.
+ Eq. \ref{eq:rte:rte})
+ \begin{equation}
+   \zeta^{tot} = e^{-\int_{l_1}^{l_2}{\kappa(l)dl}}
+  \label{eq:rte:tottrans}
+ \end{equation}
+ The corresponding iterative formula used in the forward model is
+ simply (cf. Eq. \ref{eq:rte:iteration})
+ \begin{equation}
+   \zeta_{i+1}^{tot} \gets \zeta_{i}\zeta_{i}^{tot}\qquad i=1,2,...,n\!\!-\!\!1
+ \end{equation} 
+ where $\zeta_1$ is 1. This equation treats also the case with ground 
+ reflection. If the ground is treated to be a perfect blackbody, and
+ the LOS intersects with the ground, $\zeta^{tot}=\infty$.
+ 
+
+\levelb{Calculation of transmission and source function values}
+ \label{sec:rte:calc}
+   
+ The source function is simply obtained by interpolating linearly the
+ temperature profile (or the 2D temperature field) at the points of
+ LOS, and calculating the Planck function (Eq. \ref{eq:rte:planck}) for
+ the mean temperatures of neighboring points, i.e.
+ \begin{equation}
+   S_i(\f) = B(\f,(T_i+T_{i+1})/2)
+  \label{eq:rte:planck2}
+ \end{equation}
+ where $T_i$ is the temperature at point $i$.
+  
+ The transmission is calculated assuming the absorption to vary
+ linear between the points of LOS:
+ \begin{equation}
+   \zeta_i = e^{-\Delta l \left(\kappa_i+\kappa_{i+1}\right)/2 }
+  \label{eq:rte:transm}
+ \end{equation}
+ where $\kappa_i$ is the interpolated absorption value for point $i$, and
+ $\Delta l$ is the distance along the LOS between the points. 
+
+ The absorption is determined by either linear or cubic interpolation.
+
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "main"
+%%% End: 

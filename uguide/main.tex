@@ -1,0 +1,179 @@
+%
+% === General definitions and packages to use
+%
+\documentclass[11pt,twoside,a4paper,fleqn]{book} 
+%
+\usepackage[dvips]{graphicx}    % includegraphics
+\usepackage[]{fancyhdr}   
+\usepackage[]{natbib}
+%
+\sloppy
+
+
+%
+% === Margins
+%
+\voffset-2.0cm
+\headheight16pt
+\headsep1.1cm
+\textheight22cm
+\hoffset-1.3cm
+\oddsidemargin2.2cm
+\textwidth14.0cm
+
+
+%
+% === Headings
+%
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
+\fancyhf{}
+\fancyhead[LE,RO]{\small{\sc\thepage}}
+\fancyhead[LO]{\small{\scshape\rightmark}}
+\fancyhead[RE]{\small{\scshape\leftmark}}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhead{}
+  \renewcommand{\headrulewidth}{0pt}
+}  
+
+
+%
+% === Page layout definitions
+%
+% Chapters and sections.
+\newcommand{\levela}[1]    {\chapter{#1}}
+\newcommand{\levelb}[1]    {\section{#1}}
+\newcommand{\levelc}[1]    {\subsection{#1}}
+%
+% Document history
+\newcommand{\starthistory} {\begin{table}[b]  \begin{tabular}{l p{11cm}} 
+                             \hline {\bf History} & \\ }
+\newcommand{\stophistory}  {\end{tabular} \end{table} }
+%
+% Symbol table
+\newcommand{\startsymbols} {\begin{table}[t]  \begin{tabular}{l l l}
+                            {\bf Here} & {\bf In ARTS} & {\bf Description} 
+                            \\ \hline \\ } 
+\newcommand{\stopsymbols}  {\\ \hline \end{tabular} 
+                            \caption{Symbols used in this chapter and the
+                            corresponding notation applied in ARTS. !! Check 
+                            these tables.}
+                            \end{table} }      
+
+
+
+%
+% === Symbol definitions
+%   Only the most general symbols are defined here. Other variables
+%   are local for each part.
+%
+% == Scalars
+% Monochromatic pencil beam intensity
+\newcommand{\mpbi}       {\ensuremath{I}}  
+% Frequency  
+\newcommand{\f}          {\ensuremath{\nu}}  
+% Viewing angle from zenith
+\newcommand{\view}       {\ensuremath{\phi}}  
+%
+% == Forward, inverse and transfer models
+% Total forward model
+\newcommand{\fm}         {\ensuremath{\mathcal{F}}}  
+% Atmospgeric forward model  
+\newcommand{\fma}        {\ensuremath{\mathcal{F}_a}}  
+% Sensor forward model  
+\newcommand{\fms}        {\ensuremath{\mathcal{F}_s}}  
+% Inverse model  
+\newcommand{\im}         {\ensuremath{\mathcal{I}}}  
+% Transfer model  
+\newcommand{\tm}         {\ensuremath{\mathcal{T}}}  
+%
+% == Vectors and matrices of Rodgers formalism
+% Measurement vector
+\newcommand{\y}          {\ensuremath{\mathbf{y}}}  
+% Vector of monochromatic pencil beam intensities
+\newcommand{\iv}         {\ensuremath{\mathbf{i}}}  
+% Vector of monochromatic pencil beam intensities
+\newcommand{\merr}       {\ensuremath{\varepsilon}}  
+% Total state vector
+\newcommand{\xt}         {\ensuremath{\mathbf{x}}}  
+% Retrieved state vector
+\newcommand{\xret}       {\ensuremath{\hat{\mathbf{x}}}}
+% Total forward model parameter vector
+\newcommand{\bt}         {\ensuremath{\mathbf{b}}}  
+% Inverse model parameters
+\newcommand{\ct}         {\ensuremath{\mathbf{c}}}  
+% Weighting function matrix
+\newcommand{\K}          {\ensuremath{\mathbf{K}}}  
+% State vector weighting function matrix
+\newcommand{\Kx}         {\ensuremath{\mathbf{K_x}}}  
+% Model parameter weighting function matrix
+\newcommand{\Kb}         {\ensuremath{\mathbf{K_b}}}  
+% Contribution function matrix
+\newcommand{\Dy}         {\ensuremath{\mathbf{D_y}}}  
+% Averaging kernel matrix
+\newcommand{\A}          {\ensuremath{\mathbf{A}}}  
+% Total sensor and data reduction matrix
+\newcommand{\Hm}         {\ensuremath{\mathbf{H}}}  
+% Sensor matrix
+\newcommand{\Hs}         {\ensuremath{\mathbf{H}_s}}  
+% Data reduction matrix
+\newcommand{\Hd}         {\ensuremath{\mathbf{H}_d}}  
+% Transformation between vector spaces
+\newcommand{\B}          {\ensuremath{\mathbf{B}}}  
+%
+% == Gemeral math
+% Make matrix
+\newcommand{\mat}[1]     {\ensuremath{\mathbf{#1}}}
+% Identity matrix
+\newcommand{\Id}         {\ensuremath{\mathbf{I}}}  
+% Matrix sizes
+\newcommand{\msize}[2]   {{\bf R}^{#1 {\mathrm x} #2}}
+% Differential d
+\newcommand{\dd}         {\ensuremath{\mathrm{d}}}  
+%
+% == Plotting curves
+\def \lsolid     {\mbox{------}}
+\def \ldashed    {\mbox{--~--~--}}
+\def \ldashdot   {\mbox{--~$\cdot$~--}}
+\def \ldotted    {\mbox{$\cdot~\cdot~\cdot$}}
+
+  
+
+
+
+%===   Start of report   ===================================================
+\begin{document}
+%
+\bibliographystyle{agu}
+
+
+%
+% === The chapters
+%
+\include{formalism}
+\include{rte}
+\include{los1d}
+\include{sensor}
+\include{reduction}
+\include{wfuns_atm}
+\include{measerr}
+\include{wfuns_sensor}
+
+
+%
+% ===   Bibliography
+%
+\bibliography{references}
+
+%
+% ===   Appendices
+%
+%\begin{appendix}
+%  \include{????}
+%\end{appendix}
+
+%===   End of report   =====================================================
+\end{document}
