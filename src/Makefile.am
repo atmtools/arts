@@ -48,6 +48,7 @@ arts_SOURCES = \
 	m_io.cc \
 	m_method_list.cc \
 	m_ppath.cc \
+	m_xml.cc \
 	main.cc \
 	make_array.h \
 	make_vector.cc \
@@ -82,6 +83,8 @@ arts_SOURCES = \
 	workspace_aux.cc \
 	wsv_aux.h \
 	wsv_aux.cc \
+	xml_io.h \
+	xml_io.cc \
 	agenda.h \
 	agenda.cc \
 	logic.h \
