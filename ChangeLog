@@ -1,3 +1,10 @@
+2005-03-16  Cory Davis  <cdavis@staffmail.ed.ac.uk>
+
+	* arts-1-1-931
+
+	* src/rng.cc: Changed output of rng seed from stream out2 to 
+	stream out1.
+
 2005-03-15  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-930

@@ -64,7 +64,7 @@ void Rng::seed(unsigned long int n)
 {
 seed_no=n;
 gsl_rng_set(r,seed_no);
- out2 << "RNG seed: " << seed_no << "\n";
+ out1 << "RNG seed: " << seed_no << "\n";
 };
 
 
