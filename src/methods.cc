@@ -1337,13 +1337,13 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("raw_vmrs_1dReadFromFiles"),
+      ( NAME("raw_vmrsReadFromFiles"),
         DESCRIPTION(
           "Read the individual VMR profile for each TAGS from the list of\n"
           "files given as keyword parameters. One file name must be specified for\n"
           "each TAGS. The name may include a path."
           ),
-        OUTPUT(   raw_vmrs_1d_         ),
+        OUTPUT(   raw_vmrs_         ),
         INPUT(    tgs_                 ),
         GOUTPUT(                       ),
         GINPUT(                        ),
@@ -1352,7 +1352,7 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("raw_vmrs_1dReadFromScenario"),
+      ( NAME("raw_vmrsReadFromScenario"),
   	DESCRIPTION(
 	  "Read the individual VMR profile for each tag group from a standard\n"
 	  "atmospheric scenario. Files must look like this example:\n"
@@ -1364,42 +1364,16 @@ void define_md_data()
 	  "The profile is chosen by the species name. If you have more than one\n"
 	  "tag group for the same species, the same profile will be used."
 	  ),
-	OUTPUT(   raw_vmrs_1d_    ),
+	OUTPUT(   raw_vmrs_    ),
 	INPUT(    tgs_                 ),
 	GOUTPUT(                       ),
 	GINPUT(                        ),
 	KEYWORDS( "basename"           ),
 	TYPES(    String_t             )));
 
-//   md_data.push_back
-//     ( MdRecord
-//       ( NAME("Atm2dFromRaw1D"),
-//   	DESCRIPTION(
-// 	  "This method is not currently useful for anything, since\n"
-// 	  "there is no method to calculate absorption from the 2D\n"
-// 	  "parameters.\n"
-// 	  "\n"
-// 	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
-// 	  "given by p_abs. The altitude is not used by the absorption routines,\n"
-// 	  "But later on by the RT routines."
-// 	  "\n"
-// 	  "Interpolations used: FIXME: Add these.f\n"
-// 	  "Temperature [K]: \n"
-// 	  "Altitude    [m]: \n"
-// 	  "VMRs        [1]: \n"
-// 	  "\n"
-// 	  "Uses interp_lin(...)."
-// 	  ),
-// 	OUTPUT(   t_abs_2d_ , z_abs_2d_   , vmrs_2d_     ),
-// 	INPUT(    p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
-// 	GOUTPUT(                       			 ),         
-// 	GINPUT(                        			 ),
-// 	KEYWORDS(                      			 ),
-// 	TYPES(                         			 )));
-
   md_data.push_back
     ( MdRecord
-      ( NAME("AtmFromRaw1D"),
+      ( NAME("AtmFromRaw"),
   	DESCRIPTION(
 	  "Interpolates temperature, altitude, and VMRs to the pressure grid\n"
 	  "given by p_abs. The altitude is not used by the absorption routines,\n"
@@ -1413,7 +1387,7 @@ void define_md_data()
 	  "Uses interp_lin(...)."
 	  ),
 	OUTPUT(   t_abs_    , z_abs_   , vmrs_           ),
-	INPUT(    tgs_, p_abs_    , raw_ptz_1d_ , raw_vmrs_1d_ ),
+	INPUT(    tgs_, p_abs_    , raw_ptz_ , raw_vmrs_ ),
 	GOUTPUT(                       			 ),         
 	GINPUT(                        			 ),
 	KEYWORDS(  "CloudSatWV"             		 ),

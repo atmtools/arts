@@ -1008,12 +1008,12 @@ void lineshape_per_tgDefine(// WS Output:
 
 
 
-void raw_vmrs_1dReadFromScenario(// WS Output:
-                                 ArrayOfMatrix&   raw_vmrs_1d,
-                                 // WS Input:
-                                 const TagGroups&     tgs,
-                                 // Control Parameters:
-                                 const String&    basename)
+void raw_vmrsReadFromScenario(// WS Output:
+                              ArrayOfMatrix&   raw_vmrs,
+                              // WS Input:
+                              const TagGroups&     tgs,
+                              // Control Parameters:
+                               const String&    basename)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1027,11 +1027,11 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
 	species_data[tgs[i][0].Species()].Name() + ".aa";
       
       // Add an element for this tag group to the vmr profiles:
-      raw_vmrs_1d.push_back(Matrix());
+      raw_vmrs.push_back(Matrix());
       
       // Read the VMR:
       // (We use the workspace method MatrixReadAscii for this.)
-      MatrixReadAscii(raw_vmrs_1d[i],"",name);
+      MatrixReadAscii(raw_vmrs[i],"",name);
       
       // state the source of profile.
       out3 << "  " << species_data[tgs[i][0].Species()].Name()
@@ -1043,7 +1043,7 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
     and for all the other tags the atmospheric profile from the general scenario stated in 
     basename.
 
-   \param    raw_vmrs_1d    volume mixing ratios per tag group    (output)
+   \param    raw_vmrs       volume mixing ratios per tag group    (output)
    \param    tgs            the list of tag groups                (input)
    \param    seltags        selected tags for special input files (input)
    \param    filenames      specific files for list of seltags    (input)
@@ -1052,14 +1052,14 @@ void raw_vmrs_1dReadFromScenario(// WS Output:
    \author Thomas Kuhn / Stefan Buehler
    \date 2001-08-02 / 2001-09-19
  */ 
-void raw_vmrs_1dReadFromFiles(// WS Output:
-			      ArrayOfMatrix&   raw_vmrs_1d,
-			      // WS Input:
-			      const TagGroups& tgs,
-			      // Control Parameters:
-			      const ArrayOfString&  seltags,
-			      const ArrayOfString&  filenames,
-			      const String&         basename)
+void raw_vmrsReadFromFiles(// WS Output:
+		           ArrayOfMatrix&   raw_vmrs,
+			   // WS Input:
+			   const TagGroups& tgs,
+			   // Control Parameters:
+			   const ArrayOfString&  seltags,
+			   const ArrayOfString&  filenames,
+			   const String&         basename)
 {
   // The species lookup data:
   extern const Array<SpeciesRecord> species_data;
@@ -1076,13 +1076,13 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
   true_filenames = basename + '.';
 
   // Initialize to the standard scenario (see function
-  // raw_vmrs_1dReadFromScenario): 
+  // raw_vmrsReadFromScenario): 
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
      true_filenames[i] +=
 	species_data[tgs[i][0].Species()].Name() + ".aa";
      // Should be identical to how the filenames are constructed in
-     // raw_vmrs_1dReadFromScenario! 
+     // raw_vmrsReadFromScenario! 
     }
 
   // Replace the names of the tgs given in seltags with the names in
@@ -1096,11 +1096,11 @@ void raw_vmrs_1dReadFromFiles(// WS Output:
   for ( Index i=0; i<tgs.nelem(); ++i )
     {
       // Add an element for this tag group to the vmr profiles:
-      raw_vmrs_1d.push_back(Matrix());
+      raw_vmrs.push_back(Matrix());
       
       // Read the VMR:
       // (We use the workspace method MatrixReadAscii for this.)
-      MatrixReadAscii(raw_vmrs_1d[i],"",true_filenames[i]);
+      MatrixReadAscii(raw_vmrs[i],"",true_filenames[i]);
       
       // state the source of profile.
       out3 << "  " << species_data[tgs[i][0].Species()].Name()
@@ -1215,118 +1215,6 @@ Index WVsatinClouds( Matrix&    vmrs,  // manipulates this array
   return 0;
 } // end of WVsatinClouds --------------------------------------------------------------------
 
-// void Atm2dFromRaw1D(// WS Output:
-//                     ArrayOfVector& 	 t_abs_2d,
-//                     ArrayOfVector& 	 z_abs_2d,
-//                     ArrayOfMatrix& 	 vmrs_2d,
-//                     // WS Input:      
-//                     const Vector&  	 p_abs,
-//                     const Matrix&  	 raw_ptz_1d,
-//                     const ArrayOfMatrix& raw_vmrs_1d)
-// {
-//   // FIXME: This function is terrible! Make this better using MTL functionality.
-//   // Does this function work at all? Has it ever been used? I think this is garbage. 
-
-//   // This function uses a lot of copying. Rather inefficient. The
-//   // problem is that the raw matrices do not directly fit the
-//   // interpolation routines. If this turns out to be too slow, it
-//   // should be replace by a routine using element-wise
-//   // interpolation. This can be also efficient, if the search for the
-//   // right interpolation point is done efficiently (see function
-//   // `hunt' in numerical recipies).
-
-//   // Also, I'm sure the copying could be done more elegantly, but I
-//   // just wasted a lot of time trying to do this with matrix / vector
-//   // notation. 
-
-
-//   //---------------< 1. Interpolation of temperature and altitude >---------------
-//   {  
-//     // Safety check: Make sure that raw_ptz_1d really is a [x,3] matrix:
-//     if ( 3 != raw_ptz_1d.ncols() )
-//       {
-// 	ostringstream os;
-// 	os << "The variable raw_ptz_1d does not have the right dimensions,\n"
-// 	   << "ncols() should be 3, but is actually "<< raw_ptz_1d.ncols();
-// 	throw runtime_error(os.str());
-//       }
-
-//     // Break up raw_ptz_1d in p_raw, tz_raw.
-//     // The reason why we take tz_raw as a matrix is that the
-//     // interpolation can then be done simultaneously, hence slightly
-//     // more efficient.
-
-//     // p_raw is column 1:
-//     Vector p_raw;
-//     col( p_raw, 1, raw_ptz_1d );
-
-//     // tz_raw is column 2-3:
-//     Matrix tz_raw;
-//     col( tz_raw, 2, 3, raw_ptz_1d );
-
-//     // Now interpolate tz_raw to p_abs grid:
-//     Matrix tz_intp( p_abs.nelem(), tz_raw.ncols() );
-//     interp_lin_col( tz_intp,
-// 		    p_raw, tz_raw, p_abs );
-
-//     // Extract t_abs_2d:
-//     t_abs_2d.resize(0);
-//     t_abs_2d.push_back(Vector());
-//     col( t_abs_2d[0], 1, tz_intp );
-
-//     // Extract z_abs_2d:
-//     z_abs_2d.resize(0);
-//     z_abs_2d.push_back(Vector());
-//     col( z_abs_2d[0], 2, tz_intp );
-//   }
-
-//   //---------------< 2. Interpolation of VMR profiles >---------------
-//   {
-//     // We will write everything to the first array element of vmrs_2d
-//     // (more array elements would only be used in a 2D calculation).
-
-//     // Get room for our results:
-//     vmrs_2d.resize(0);
-//     vmrs_2d.push_back(Matrix());
-  
-//     // Get a convenient reference:
-//     Matrix& intp = vmrs_2d[0];
-
-//     // Set dimensions.
-//     // The first dimension is the number of profiles (= the number of
-//     // tag groups). The second dimension is the dimension of the new
-//     // pressure grid.
-//      intp.resize( raw_vmrs_1d.nelem() , p_abs.nelem() );
-  
-//     // For sure, we need to loop through all VMR profiles:
-//     for ( Index j=0; j<raw_vmrs_1d.nelem(); ++j )
-//       {
-// 	// Get a reference to the profile we are concerned with
-// 	const Matrix& raw = raw_vmrs_1d[j];
-
-// 	// Raw should be a matrix with dimension [x,2], the first column
-// 	// is the raw pressure grid, the second column the VMR values.
-      
-// 	// Safety check to ensure this:
-// 	if ( 2 != raw.ncols() )
-// 	  {
-// 	    ostringstream os;
-// 	    os << "The variable raw_vmrs_1d("
-// 	       << j
-// 	       << ") does not have the right dimensions,\n"
-// 	       << "ncols() should be 2, but is actually "<< raw.ncols();
-// 	    throw runtime_error(os.str());
-// 	  }
-
-// 	// Interpolate:
-// 	interp_lin( intp[j],
-// 		    raw( 0, raw.nrows(), 0, 1 ),
-// 		    raw( 0, raw.nrows(), 1, 2 ),
-// 		    p_abs );
-//       }
-//   }
-// }
-
 /** Interpolate atmospheric quantities from their individual grids to
     the common p_abs grid. 
 
@@ -1339,32 +1227,32 @@ Index WVsatinClouds( Matrix&    vmrs,  // manipulates this array
 
     Step 3 is only carried out if keyword CloudSatWV is set to "yes".
  */
-void AtmFromRaw1D(// WS Output:
+void AtmFromRaw(// WS Output:
 		  Vector& 	 t_abs,
 		  Vector& 	 z_abs,
 		  Matrix&        vmrs,
 		  // WS Input:      
 		  const TagGroups&       tgs,
 		  const Vector&  	 p_abs,
-		  const Matrix&  	 raw_ptz_1d,
-		  const ArrayOfMatrix&   raw_vmrs_1d,
+		  const Matrix&  	 raw_ptz,
+		  const ArrayOfMatrix&   raw_vmrs,
 		  // Control Parameters:
 		  const String&          CloudSatWV)
 {
   
   //---------------< 1. Interpolation of temperature and altitude >---------------
   {  
-    // Safety check: Make sure that raw_ptz_1d really is a [x,3] matrix:
-    if ( 3 != raw_ptz_1d.ncols() )
+    // Safety check: Make sure that raw_ptz really is a [x,3] matrix:
+    if ( 3 != raw_ptz.ncols() )
       {
 	ostringstream os;
-	os << "The variable raw_ptz_1d does not have the right dimensions,\n"
-	   << "ncols() should be 3, but is actually "<< raw_ptz_1d.ncols();
+	os << "The variable raw_ptz does not have the right dimensions,\n"
+	   << "ncols() should be 3, but is actually "<< raw_ptz.ncols();
 	throw runtime_error(os.str());
       }
 
 
-    // Contents of raw_ptz_1d: p_raw is column 1,  tz_raw is column 2-3.
+    // Contents of raw_ptz: p_raw is column 1,  tz_raw is column 2-3.
 
     // Interpolate tz_raw to p_abs grid.
     // The reason why we take tz_raw as a matrix is that the
@@ -1375,12 +1263,12 @@ void AtmFromRaw1D(// WS Output:
     Matrix tz_intp( 2, p_abs.nelem() );
 
     interpp( tz_intp,
-	     raw_ptz_1d(Range(joker),0),
-	     transpose(raw_ptz_1d(Range(joker),Range(1,joker))),
+	     raw_ptz(Range(joker),0),
+	     transpose(raw_ptz(Range(joker),Range(1,joker))),
 	     p_abs );
     // The first Matpack expression selects the first column of
-    // raw_ptz_1d as a vector. The second Matpack expression gives the
-    // transpose of the last two columns of raw_ptz_1d. The function
+    // raw_ptz as a vector. The second Matpack expression gives the
+    // transpose of the last two columns of raw_ptz. The function
     // interpp can be called with these selections directly.
 
     // Extract t_abs:
@@ -1402,17 +1290,17 @@ void AtmFromRaw1D(// WS Output:
     extern const Array<SpeciesRecord> species_data;
 
     // check size of input String vectors.
-    assert ( tgs.nelem() == raw_vmrs_1d.nelem() ); 
+    assert ( tgs.nelem() == raw_vmrs.nelem() ); 
 
     // Make vmrs the right size:
-    vmrs.resize( raw_vmrs_1d.nelem(), p_abs.nelem() );
+    vmrs.resize( raw_vmrs.nelem(), p_abs.nelem() );
     
     // For sure, we need to loop through all VMR profiles:
-    for ( Index j=0; j<raw_vmrs_1d.nelem(); ++j )
+    for ( Index j=0; j<raw_vmrs.nelem(); ++j )
       {
 
 	// Get a reference to the profile we are concerned with:
-	const Matrix& raw = raw_vmrs_1d[j];
+	const Matrix& raw = raw_vmrs[j];
 
 	// Raw should be a matrix with dimension [x,2], the first column
 	// is the raw pressure grid, the second column the VMR values.
@@ -1421,7 +1309,7 @@ void AtmFromRaw1D(// WS Output:
 	if ( 2 != raw.ncols() )
 	  {
 	    ostringstream os;
-	    os << "The variable raw_vmrs_1d("
+	    os << "The variable raw_vmrs("
 	       << j
 	       << ") does not have the right dimensions,\n"
 	       << "ncols() should be 2, but is actually "<< raw.ncols();
