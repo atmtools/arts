@@ -264,6 +264,7 @@ void RteEmissionStd(
               // Perform the RTE step.
               rte_step( i_rte(iv, joker), ext_mat_av, abs_vec_av,
                              sca_vec_dummy, ppath.l_step[ip-1], planck_value );
+	      
             }
         }
     }

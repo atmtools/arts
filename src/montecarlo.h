@@ -128,12 +128,45 @@ void interpTArray(Matrix& T,
 		  const Ppath& ppath
 		 );
 
+void pha_mat_singleCalc(
+			MatrixView& Z,			
+			Numeric za_scat, 
+			Numeric aa_scat, 
+			Numeric za_inc, 
+			Numeric aa_inc,
+			const ArrayOfSingleScatteringData& scat_data_raw,
+			const Index&          stokes_dim,
+			const Index&                f_index,
+			const Vector&         f_grid,
+			const Tensor4& scat_theta, // CE: Included 
+			const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+			const Tensor5& scat_theta_itws,
+			const VectorView& pnd_vec     
+			);
+
 void Sample_los (
 		 VectorView& rte_los,
 		 Numeric& g_los_csc_theta,
 		 Rng& rng,
 		 const Index& sampling_method
 		 );
+
+void Sample_los_Z (
+		   VectorView& new_rte_los,
+		   Numeric& g_los_csc_theta,
+		   MatrixView& Z,
+		   Rng& rng,
+		   const VectorView& rte_los,
+		   const ArrayOfSingleScatteringData& scat_data_raw,
+		   const Index&          stokes_dim,
+		   const Index&                f_index,
+		   const Vector&         f_grid,
+		   const Tensor4& scat_theta, // CE: Included 
+		   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+		   const Tensor5& scat_theta_itws,
+		   const VectorView& pnd_vec,
+		   Numeric Csca
+		   );
 
 void Sample_ppathlength (
 			 Numeric& pathlength, 

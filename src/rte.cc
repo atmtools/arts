@@ -792,6 +792,7 @@ void rte_calc(
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
                       stokes_dim, ag_verb );
 
+	      
               // Execute the *rte_agenda*
               rte_agenda.execute( ag_verb );
               

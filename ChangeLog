@@ -1,3 +1,24 @@
+2003-11-27  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-718
+
+	* src/montecarlo{cc,h} (Sample_los_Z): Added.  This is a new
+	method for sampling the line of sight in monte carlo scattering
+	calculations, and can be enabled by setting the
+	ScatteringMonteCarlo keyword parameter 'los_sampling_method' to 3.
+	Incident propagation directions are sampled according to a
+	probability density function proportional to Z11*sin(za_inc),
+	where Z11 is the 1st element of the extinction matrix. This is
+	achieved using the rejection method.  This function should provide
+	better performance in optically thick cases.
+	
+	(pha_mat_singleCalc): Added. This is required by the function
+	above - it simply returns the phase matrix for given incident and
+	scattered directions, summed over all particle types.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Implemented new
+	functions described above. Now testing...
+
 2003-11-27  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-1-1-717
@@ -11,6 +32,7 @@
 	* src/methods.cc: added new methods abs_CKDMT_H2O_H2O and 
 	abs_CKDMT_H2O_AIR for the CKD_MTv1.00 H2O cont. abs.
 
+>>>>>>> 1.1103
 2003-11-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-716

@@ -482,8 +482,6 @@ void ScatteringMonteCarlo (
   Vector t_ppathLOS;
   Matrix pnd_ppath;
   Matrix pnd_ppathLOS;
-  Index za_prop;
-  Index aa_prop;
   Tensor5 pha_mat_spt(scat_data_raw.nelem(),2,2,stokes_dim,stokes_dim);
   Tensor4 pha_mat(2,2,stokes_dim,stokes_dim);
   ArrayOfGridPos pathlength_gp(1);
@@ -531,6 +529,7 @@ void ScatteringMonteCarlo (
   
 
   mult(IboundaryLOScontri,TArrayLOS[TArrayLOS.nelem()-1],i_rte(0,joker));
+  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(IboundaryLOScontri[i]));}
   
   //Begin Main Loop
   for (photon_number=1; photon_number<=maxiter; photon_number++)
@@ -628,42 +627,28 @@ void ScatteringMonteCarlo (
 	      else
 		{
 		  //Sample new line of sight.
-		  Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
-		  
-		  //Calculate Phase matrix////////////////////////////////
-		  pha_mat_za_grid[0]=180-rte_los[0];
-		  pha_mat_za_grid[1]=180-new_rte_los[0];
-		  pha_mat_aa_grid[0]= (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
-		  pha_mat_aa_grid[1]= (new_rte_los[1]>=0) ?-180+new_rte_los[1]:
-		    pha_mat_aa_grid[1]=180+new_rte_los[1];
-		  
-		  za_prop=0;
-		  aa_prop=0;
-		  pha_mat_sptFromData(pha_mat_spt,
-				      scat_data_raw, pha_mat_za_grid, pha_mat_aa_grid, 
-				      za_prop, aa_prop, f_index, f_grid, 
-				      scat_theta, scat_theta_gps, scat_theta_itws);
-		  
-		  Z=0.0;
-		  // this is a loop over the different particle types
-		  for (Index pt_index = 0; pt_index < N_pt; pt_index++)
+		  if (los_sampling_method==3)
 		    {
-		      // now the last two loops over the stokes dimension.
-		      for (Index i = 0;  i < stokes_dim; i++)
-			{
-			  for (Index j = 0; j < stokes_dim; j++)
-			    {
-			      //summation of the product of pnd_field and 
-			      //pha_mat_spt.
-			      Z(i,j) += (pha_mat_spt(pt_index, 1, 1, i, j) * 
-				 pnd_vec[pt_index]);
-			      
-			      
-			    } 
-			}	
+		      Sample_los_Z (new_rte_los,g_los_csc_theta,Z,rng,rte_los,
+				    scat_data_raw,stokes_dim,f_index,f_grid,
+				    scat_theta,scat_theta_gps,scat_theta_itws,
+				    pnd_vec,K(0,0)-K_abs[0]);
 		    }
-		  //////////////////////////////////////////////////////////
-		  Z*=2*PI/g/g_los_csc_theta/albedo;
+		  else
+		    {
+		      Sample_los(new_rte_los,g_los_csc_theta,rng, los_sampling_method);
+		      
+		      //Calculate Phase matrix////////////////////////////////
+		      Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
+		      Numeric aa_inc= (new_rte_los[1]>=0) ?
+			-180+new_rte_los[1]:180+new_rte_los[1];
+		      
+		      pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
+					 aa_inc,scat_data_raw,stokes_dim,f_index,
+					 f_grid,scat_theta,scat_theta_gps,
+					 scat_theta_itws,pnd_vec);
+		    }
+		  Z/=g*g_los_csc_theta*albedo;
 		  mult(q,T,Z);
 		  mult(newQ,Q,q);
 		  Q=newQ;

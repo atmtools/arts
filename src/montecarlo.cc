@@ -204,6 +204,7 @@ void Cloudbox_ppath_rteCalc(
             f_grid,stokes_dim, antenna_dim_dummy, mblock_za_grid_dummy,
 	    mblock_aa_grid_dummy, false, false, true);
   
+  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
   
   if (record_ppath)
     {
@@ -546,17 +547,109 @@ void interpTArray(Matrix& T,
   rte_pos[2] = interp(itw,ppath.pos(Range(joker),2),gp[0]);
 }
 
+//! pha_mat_singleCalc
+/*!
+ Returns the total phase matrix for given incident and scattered directions
+. It requires a vector of particle number densities to be precalculated
+
+ \param Z               Output: phase matrix
+ \param za_scat         scattered 
+ \param aa_scat         and
+ \param za_inc          incident
+ \param aa_inc          directions
+ \param scat_data_raw   workspace variable
+ \param stokes_dim      workspace variable
+ \param f_index         workspace variable
+ \param f_grid          workspace variable
+ \param scat_theta      workspace variable 
+ \param scat_theta_gps  workspace variable
+ \param scat_theta_itws workspace variable
+ \param pnd_vec         vector of particle number densities at the point 
+                          in question
+ \author Cory Davis
+ \date   2003-11-27
+*/
+
+void pha_mat_singleCalc(
+			MatrixView& Z,			
+			Numeric za_scat, 
+			Numeric aa_scat, 
+			Numeric za_inc, 
+			Numeric aa_inc,
+			const ArrayOfSingleScatteringData& scat_data_raw,
+			const Index&          stokes_dim,
+			const Index&                f_index,
+			const Vector&         f_grid,
+			const Tensor4& scat_theta, // CE: Included 
+			const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+			const Tensor5& scat_theta_itws,
+			const VectorView& pnd_vec      
+			)
+{
+  Vector pha_mat_za_grid(2);
+  Vector pha_mat_aa_grid(2);
+  Tensor5 pha_mat_spt(scat_data_raw.nelem(),2,2,stokes_dim,stokes_dim);
+  
+  Index N_pt=pnd_vec.nelem();
+
+  pha_mat_za_grid[0]=za_scat;
+  pha_mat_za_grid[1]=za_inc;
+  pha_mat_aa_grid[0]= aa_scat;
+  pha_mat_aa_grid[1]=aa_inc;
+
+  Index za_prop=0;
+  Index aa_prop=0;
+  pha_mat_sptFromData(pha_mat_spt, scat_data_raw, pha_mat_za_grid, pha_mat_aa_grid, 
+		      za_prop, aa_prop, f_index, f_grid, 
+		      scat_theta, scat_theta_gps, scat_theta_itws);
+  
+  Z=0.0;
+  // this is a loop over the different particle types
+  for (Index pt_index = 0; pt_index < N_pt; pt_index++)
+    {
+      // now the last two loops over the stokes dimension.
+      for (Index i = 0;  i < stokes_dim; i++)
+	{
+	  for (Index j = 0; j < stokes_dim; j++)
+	    {
+	      //summation of the product of pnd_field and 
+	      //pha_mat_spt.
+	      Z(i,j) += (pha_mat_spt(pt_index, 1, 1, i, j) * 
+			 pnd_vec[pt_index]);
+	      
+	      
+	    } 
+	}	
+    }
+}
+		  
 
 //! Sample_los
 
 /*!
-   Randomly samples incident direction using a probability density function 
+  Implementation one of two line of sight sampling methods determined by the 
+  input Index 'sampling_method'
+  
+  sampling_method==1:
+     Randomly samples incident direction using a probability density function 
    proportional to sin(za)(cos(za)+1). sin(za) because dsolid_angle=sin(za)dzadaa
    , and (cos(za)+1) because upward radiances tend to be greater than downward
-   radiances.
+   radiances.  NOTE: THIS IS TERRIBLE IN OPTICALLY THICK CASES AND WILL BE 
+   REMOVED
 
-   \param   rte_los       Output: incident line of sight for subsequent ray-tracing.
-   \param   rng         Rng random number generator instance
+  sampling_method==2:
+     Randomly samples incident direction using a probability density function 
+   proportional to sin(za).  Better, but again, not very good.
+
+  THIS WHOLE FUNCTION MAY BE SOON REDUNDANT TO SAMPLE_LOS_Z WHICH USES A PDF 
+  PROPORTIONAL TO Z11SINZA
+
+   \param   rte_los          Output: incident line of sight for subsequent 
+                                     ray-tracing.		      
+   \param   g_los_csc_theta  Output: probability density for the chosen
+                                     direction multiplied by sin(za)
+   \param   rng              Rng random number generator instance
+   \param   sampling_method  choice of sampling method: 1 or 2.
    \author Cory Davis
    \date   2003-06-19
 */
@@ -573,19 +666,93 @@ void Sample_los (
  if (sampling_method == 1)
    {
      rte_los[0] = acos(1-2*sqrt(rng.draw()));
-     g_los_csc_theta = 0.5*(1-cos(rte_los[0]));
+     g_los_csc_theta = 0.25*(1-cos(rte_los[0]))/PI;
    }
  else if (sampling_method == 2)
    {
      rte_los[0] = acos(1-2*rng.draw());
-     g_los_csc_theta = 0.5;
+     g_los_csc_theta = 0.25/PI;
    }
  else
    {
      throw runtime_error( "Invalid value for sampling_method. "
-                          "sampling_method\n must be 1 or 2" );
+                          "sampling_method\n must be 1,2, or 3." );
    }
  rte_los[0]*=RAD2DEG;
+}
+
+//! Sample_los_Z
+/*!
+ Uses the rejection method to sampled za_inc and aa_inc according to a 
+ probability density function proportional to 
+ Z11(za_scat,aa_scat,za_inc, aa_inc)sin(za_inc)
+
+ \param  new_rte_los      Output: new line of sight 
+ \param  g_los_csc_theta  Output: prob dens. for chosen los
+ \param	 Z                Output: phase matrix for given incident
+                                           and scattered directions
+ \param	 rng              Rng (random number generator) object
+ \param  rte_los          last line of sight
+ \param  scat_data_raw    workspace variable
+ \param  stokes_dim       workspace variable
+ \param  f_index          workspace variable
+ \param  f_grid           workspace variable
+ \param  scat_theta       workspace variable
+ \param  scat_theta_gps   workspace variable
+ \param  scat_theta_itws  workspace variable
+ \param  pnd_vec          vector of particle number densities at the point 
+                          in question
+ \param  Numeric Csca     K11-Kabs1
+ \author Cory Davis
+ \date   2003-11-27
+*/
+void Sample_los_Z (
+		   VectorView& new_rte_los,
+		   Numeric& g_los_csc_theta,
+		   MatrixView& Z,
+		   Rng& rng,
+		   const VectorView& rte_los,
+		   const ArrayOfSingleScatteringData& scat_data_raw,
+		   const Index&          stokes_dim,
+		   const Index&                f_index,
+		   const Vector&         f_grid,
+		   const Tensor4& scat_theta, // CE: Included 
+		   const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
+		   const Tensor5& scat_theta_itws,
+		   const VectorView& pnd_vec,
+		   Numeric Csca
+		   )
+{
+  bool tryagain=true;
+  Matrix dummyZ(stokes_dim,stokes_dim);
+  //The following is based on the assumption that the maximum value of the 
+  //phase matrix for a given scattered direction is for forward scattering
+  Numeric aa_scat = (rte_los[1]>=0) ?-180+rte_los[1]:180+rte_los[1];
+  pha_mat_singleCalc(dummyZ,180-rte_los[0],aa_scat,180-rte_los[0],
+			 aa_scat,scat_data_raw,stokes_dim,f_index,
+			 f_grid,scat_theta,scat_theta_gps,
+			 scat_theta_itws,pnd_vec);
+  Numeric Z11max=dummyZ(0,0);  
+  ///////////////////////////////////////////////////////////////////////  
+  while(tryagain)
+    {
+      new_rte_los[1] = rng.draw()*360-180;
+      new_rte_los[0] = acos(1-2*rng.draw())*RAD2DEG;
+      //Calculate Phase matrix////////////////////////////////
+      Numeric aa_inc= (new_rte_los[1]>=0) ?
+	-180+new_rte_los[1]:180+new_rte_los[1];
+      
+      pha_mat_singleCalc(Z,180-rte_los[0],aa_scat,180-new_rte_los[0],
+			 aa_inc,scat_data_raw,stokes_dim,f_index,
+			 f_grid,scat_theta,scat_theta_gps,
+			 scat_theta_itws,pnd_vec);
+      
+      if (rng.draw()<=Z(0,0)/Z11max)//then new los is accepted
+	{
+	  tryagain=false;
+	}
+    }
+  g_los_csc_theta =Z(0,0)/Csca;
 }
 
 
