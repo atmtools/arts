@@ -227,10 +227,7 @@ void VectorWriteAscii(// WS Output:
   filename_ascii( filename, v_name );
 
   // Convert the vector to a 1-column matrix:
-  Matrix m(static_cast<const Vector>(v));
-  // The static_cast to const Vector here is necessary to suppress a
-  // warning message from the compiler about different possible
-  // conversion paths. 
+  Matrix m(v);
 
   // Convert the matrix to an array of matrix:
   MakeArray<Matrix> am(m);
