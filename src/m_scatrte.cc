@@ -54,6 +54,7 @@
 #include "lin_alg.h"
 #include "math_funcs.h"
 #include "messages.h"
+#include "xml_io.h"
 
 extern const Numeric PI;
 
@@ -109,7 +110,7 @@ void convergence_flagAbs(//WS Output:
                       // Keyword:
                       const Vector& epsilon)
 {
-  cout<< "i_field    " << i_field << endl;
+ 
   //Check the input:
   assert( convergence_flag == 0 );
   assert( atmosphere_dim == 1 || atmosphere_dim == 3 );
@@ -125,6 +126,17 @@ void convergence_flagAbs(//WS Output:
                         "have *stokes_dim* elements!"
                         );
   
+  static Index counter = 0;
+  counter = counter+1;
+  cout << "Number of iterations:   "<< counter << endl;
+  
+  char buffer[5];
+  sprintf(buffer, "%d", int(counter));
+
+  xml_write_to_file("i_field_" + string(buffer) + ".xml", i_field);
+
+  cout<< "i_field    " << i_field << endl;
+
   Index N_scat_za = scat_za_grid.nelem();
   Index N_scat_aa = scat_aa_grid.nelem();
 
@@ -140,9 +152,9 @@ void convergence_flagAbs(//WS Output:
                scat_za_index++)
             {
               Numeric diff = 
-		fabs( i_field(( p_index-cloudbox_limits[0]), //STR
+		fabs( i_field(( p_index-cloudbox_limits[0]), 
 			      0, 0, scat_za_index, 0, stokes_index) -
-		      i_field_old(( p_index-cloudbox_limits[0]),//STR
+		      i_field_old(( p_index-cloudbox_limits[0]),
 				  0, 0, scat_za_index, 0, stokes_index ));
              
 	      
