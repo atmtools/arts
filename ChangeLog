@@ -1,3 +1,16 @@
+2002-10-09  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-254
+	
+	* src/m_cloudbox.cc: The method CloudboxGetIncoming is
+	implemented. Only the 1D case is implemented
+	
+	* src/m_scatrte.cc: Added the method scat_mainCalc which
+	gives the interface variables and the frequency inded.
+	Both these methods are to be tested to fix bugs.
+
+	* src/methods.cc : Added these two methods.
+	
 2002-10-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-253
