@@ -1,3 +1,14 @@
+2002-11-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-293
+
+	* src/ppath.cc (refraction_gradient_2d): Created this function.
+
+	(ppath_step_refr_std_1d): Some improved comments.
+
+	(ppath_start_2d): Moved some code from ppath_geom_2d and created this 
+	function as this code will be common with functions for refraction.
+
 2002-11-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-292
