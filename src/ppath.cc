@@ -1817,7 +1817,7 @@ void do_gridcell_2d(
       tanpoint = 1;
 
       // Check if the tangent point is closer than the end point
-      if( ( abs(za_start) - 90 ) < dlat2end )
+      if( ( abs(za_start) - 90 ) < abs( dlat2end ) )
         { endface = 0; }
     }
   else
@@ -1853,7 +1853,12 @@ void do_gridcell_2d(
   // Force end latitude and zenith angle to be exact when we know the 
   // correct value
   if( tanpoint )
-    { za_v[za_v.nelem()-1] = 90; }
+    {
+      if( za_start >= 0 )
+        { za_v[za_v.nelem()-1] = 90; }
+      else
+        { za_v[za_v.nelem()-1] = -90; }
+    }
   //
   if( endface == 1 )
     { lat_v[lat_v.nelem()-1] = lat1; }
@@ -4347,7 +4352,7 @@ void raytrace_2d_linear_euler(
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, za_v;
-  Numeric   lstep, dlat = 9999;
+  Numeric   lstep, dlat = 9999, r_new, lat_new;
 
   // Latitude slope of the geoid
   const Numeric   cgeoid = psurface_slope_2d( lat1, lat3, r_geoid1, r_geoid3 );
@@ -4369,10 +4374,10 @@ void raytrace_2d_linear_euler(
 
       if( lstep <= lraytrace )
         {
-          r     = r_v[1];
-          dlat  = lat_v[1] - lat;
-          lat   = lat_v[1];
-          ready = true;
+          r_new   = r_v[1];
+          dlat    = lat_v[1] - lat;
+          lat_new = lat_v[1];
+          ready   = true;
         }
       else
         {
@@ -4381,21 +4386,20 @@ void raytrace_2d_linear_euler(
           else
             { lstep = -lraytrace; }
 
-          const Numeric   r_new = geompath_r_at_l( ppc_step, 
+          r_new = geompath_r_at_l( ppc_step, 
                                          geompath_l_at_r(ppc_step,r) + lstep );
           dlat = RAD2DEG * acos( ( r_new*r_new + r*r - 
                                              lstep*lstep ) / ( 2 * r_new*r ) );
           if( za < 0 )
             { dlat = -dlat; }
 
-          r     = r_new;
-          lat   = lat + dlat;
-          lstep = abs( lstep );
+          lat_new = lat + dlat;
+          lstep   = abs( lstep );
         }
 
       // Calculate LOS zenith angle at found point.
       if( ready  &&  tanpoint )
-        { za = 90; }
+        { za = sign(za) * 90; }
       else
         {
                 Numeric   dndr, dndlat;
@@ -4406,9 +4410,12 @@ void raytrace_2d_linear_euler(
                              p_grid, lat_grid, z_field, t_field, vmr_field, 
                              r - ( r_geoid1 + cgeoid*( lat - lat1 ) ), lat );
 
-          za += -dlat + RAD2DEG * lstep / refr_index * 
-                            ( -sin(za_rad) * dndr + cos(za_rad) * dndlat / r );
+          za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
+                                                    cos(za_rad) * dndlat / r );
         }
+
+      r   = r_new;
+      lat = lat_new;
 
       // Store found point
       r_array.push_back( r );
@@ -4516,7 +4523,7 @@ void raytrace_3d_linear_euler(
 
   // Variables for output from do_gridcell_2d
   Vector    r_v, lat_v, lon_v, za_v, aa_v;
-  Numeric   lstep;
+  Numeric   lstep, r_new, lat_new, lon_new;
 
   while( !ready )
     {
@@ -4537,13 +4544,23 @@ void raytrace_3d_linear_euler(
 
       if( lstep <= lraytrace )
         {
-          r     = r_v[1];
-          lat   = lat_v[1];
-          lat   = lon_v[1];
-          ready = true;
+          r_new   = r_v[1];
+          lat_new = lat_v[1];
+          lon_new = lon_v[1];
+          za      = za_v[1];
+          aa      = aa_v[1];
+          ready   = true;
         }
       else
         {
+          // Sensor pos and LOS in cartesian coordinates
+          Numeric   x, y, z, dx, dy, dz;
+          poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
+
+          lstep = lraytrace;
+
+          cart2poslos( r_new, lat_new, lon_new, za, aa, 
+                              x+dx*lstep, y+dy*lstep, z+dz*lstep, dx, dy, dz );
         }
 
       // Calculate LOS zenith angle at found point.
@@ -4551,7 +4568,7 @@ void raytrace_3d_linear_euler(
         { za = 90; }
       else
         {
-          Numeric   dndr, dndlat, dndlon, r_geoid;
+                Numeric   dndr, dndlat, dndlon, r_geoid;
 
           r_geoid = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                         r_geoid15, r_geoid35, r_geoid36, r_geoid16, lat, lon );
@@ -4560,7 +4577,30 @@ void raytrace_3d_linear_euler(
                              a_temperature, a_vmr_list, refr_index_agenda, 
                              p_grid, lat_grid, lon_grid, z_field, t_field, 
                              vmr_field, r - r_geoid, lat, lon );
+
+          const Numeric   aterm = RAD2DEG * lstep / refr_index;
+          const Numeric   za_rad = DEG2RAD * za;
+          const Numeric   aa_rad = DEG2RAD * aa;
+          const Numeric   sinza = sin( za_rad );
+          const Numeric   sinaa = sin( aa_rad );
+          const Numeric   cosaa = cos( aa_rad );
+
+          if( abs( lat ) < 90 )
+            {
+              if( za == 0  ||  za == 180 )
+                { aa = RAD2DEG * atan2( dndlon, dndlat); }
+              else
+                { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ) / 
+                                                ( r * cos( DEG2RAD * lat ) ); }
+            }
+
+          za += aterm * ( -sinza * dndr +
+                       cos(za_rad) * ( cosaa * dndlat + sinaa * dndlon ) / r );
         }
+
+      r   = r_new;
+      lat = lat_new;
+      lon = lon_new;
 
       // Store found point
       r_array.push_back( r );
@@ -4948,10 +4988,12 @@ void ppath_step_refr_3d(
                ppath, p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground );
 
   // Assert not done for geometrical calculations
-  assert( t_field.nrows() == p_grid.nelem() );
-  assert( t_field.ncols() == lat_grid.nelem() );
-  assert( vmr_field.nrows() == p_grid.nelem() );
-  assert( vmr_field.ncols() == lat_grid.nelem() );
+  assert( t_field.npages() == p_grid.nelem() );
+  assert( t_field.nrows() == lat_grid.nelem() );
+  assert( t_field.ncols() == lon_grid.nelem() );
+  assert( vmr_field.npages() == p_grid.nelem() );
+  assert( vmr_field.nrows() == lat_grid.nelem() );
+  assert( vmr_field.ncols() == lon_grid.nelem() );
 
   // No constant for the path is valid here.
 

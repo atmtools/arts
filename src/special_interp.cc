@@ -674,6 +674,7 @@ void z_at_latlon(
   gridpos_copy( agp_lon[0], gp_lon );
   gridpos( agp_z, p_grid, p_grid );
   interpweights( itw, agp_z, agp_lat, agp_lon );
+
   interp( z_tensor, itw, z_field, agp_z, agp_lat, agp_lon );
 
   z = z_tensor(Range(joker),0,0);

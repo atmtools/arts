@@ -1,3 +1,19 @@
+2003-01-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-403
+
+	* src/ppath.cc (raytrace_3d_linear_euler): Put in code for 3D with
+	refraction. The stuff runs, but I have to check the used expressions
+	and results more carefully.
+
+	* src/m_refraction.cc (refr_indexUnit): Created this WSM.
+
+	* src/refraction.cc (get_refr_index_3d): Found a bug. Latitude grid
+	position was set twice, and longitude grid position not at all.
+
+	* src/ppath.cc (do_gridcell_2d): Fixed two bugs connected to the 
+	tangent point for limb sounding with negative zenith angles.
+
 2003-01-18  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-402

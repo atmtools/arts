@@ -2436,6 +2436,23 @@ md_data_raw.push_back
         KEYWORDS( ),
         TYPES( )));
 
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("refr_indexUnit"),
+        DESCRIPTION
+        (
+         "Sets the refractive index to 1.\n"
+         "\n"
+         "If this method is used, the obtained path should be identical to\n"
+         "the geomtrical path."
+        ),
+        OUTPUT( refr_index_ ),
+        INPUT( a_pressure_, a_temperature_, a_vmr_list_, gas_species_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME( "RteCalc" ),

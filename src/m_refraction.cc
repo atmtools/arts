@@ -75,3 +75,22 @@ void refr_indexThayer(
   refr_index_thayer_1974( refr_index, a_pressure, a_temperature, 
                                                         a_vmr_list[firstH2O] );
 }
+
+
+
+//! refr_indexUnit
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-01-18
+*/
+void refr_indexUnit(
+	     Numeric&                    refr_index,
+       const Numeric&                    a_pressure,
+       const Numeric&                    a_temperature,
+       const Vector&                     a_vmr_list,
+       const ArrayOfArrayOfSpeciesTag&   gas_species )
+{
+  refr_index = 1;
+}

@@ -205,7 +205,8 @@ void get_refr_index_2d(
 
 
 
-/*! 
+/*! get_refr_index_3d
+
    Extracts the refractive index for 3D cases.
 
    The function interpolates the atmospheric pressure and fields, and
@@ -253,7 +254,7 @@ void get_refr_index_3d(
   ArrayOfGridPos   gp_lat(1), gp_lon(1);
   //
   gridpos( gp_lat, lat_grid, lat );
-  gridpos( gp_lat, lat_grid, lon );
+  gridpos( gp_lon, lon_grid, lon );
   z_at_latlon( z_grid, p_grid, lat_grid, lon_grid, z_field, 
                                                         gp_lat[0], gp_lon[0] );
   
@@ -277,7 +278,7 @@ void get_refr_index_3d(
   a_temperature = dummy[0];
 
   // VMR
-  const Index   ns = vmr_field.npages();
+  const Index   ns = vmr_field.nbooks();
   //
   a_vmr_list.resize(ns);
   //
