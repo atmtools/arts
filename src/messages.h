@@ -39,6 +39,7 @@
 #ifndef messages_h
 #define messages_h
 
+#include <iostream>
 #include <fstream>
 #include "arts.h"
 

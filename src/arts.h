@@ -58,6 +58,9 @@
 // FIXME: Put an else clause here that stops the compilation with an
 // error message.
 
+// We need those to support ansi-compliant compilers (gcc-3x)
+using namespace std;
+
 //----------< Standard library header files: >----------
 
 // Decided that not all standard headers should be included
@@ -84,7 +87,8 @@
 // for now, since it is still missing in the current version of EGCS
 // (egcs-2.91.66). Should be removed when stringstreams work as they
 // should in the standard EGCS distribution.
-#include "sstream.h"
+//#include "sstream.h"
+#include <sstream>
 
 
 //--------------------< Set floating point type >--------------------

@@ -1,3 +1,4 @@
+#include <iostream>
 #include "poly_roots.h"
 
 int

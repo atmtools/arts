@@ -48,6 +48,8 @@ public:
     mLine(l),
     mColumn(c) { /* Nothing to do here. */ }
 
+  virtual ~ParseError() throw() {};
+
   virtual String file()		   const { return mFile; }
   virtual Index line()   		   const { return mLine; }
   virtual Index column() 		   const { return mColumn; }

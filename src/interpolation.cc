@@ -51,7 +51,7 @@
 
   for ( const Numeric* p=&tp.fd[1]; p>=&tp.fd[0]; --p )
 */
-#define LOOPIT(x) for ( const Numeric* x=&t##x##.fd[1]; x>=&t##x##.fd[0]; --x )
+#define LOOPIT(x) for ( const Numeric* x=&t##x.fd[1]; x>=&t##x.fd[0]; --x )
 
 
 //! Output operator for GridPos.

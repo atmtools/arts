@@ -27,6 +27,7 @@
   \author Stefan Buehler
 */
 
+#include <algorithm>
 #include "arts.h"
 #include <map>
 #include <cfloat>

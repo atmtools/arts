@@ -640,7 +640,7 @@ typedef Array<Matrix> ArrayOfMatrix;
 
   \param Stride can be anything. It can be omitted, in which case the
   default value is 1. */
-inline Range::Range(Index start, Index extent, Index stride=1) :
+inline Range::Range(Index start, Index extent, Index stride) :
   mstart(start), mextent(extent), mstride(stride)
 {
   // Start must be >= 0:
@@ -656,7 +656,7 @@ inline Range::Range(Index start, Index extent, Index stride=1) :
 
 /** Constructor with joker extent. Depending on the sign of stride,
     this means "to the end", or "to the beginning". */
-inline Range::Range(Index start, Joker joker, Index stride=1) :
+inline Range::Range(Index start, Joker joker, Index stride) :
   mstart(start), mextent(-1), mstride(stride)
 {
   // Start must be >= 0:
@@ -666,7 +666,7 @@ inline Range::Range(Index start, Joker joker, Index stride=1) :
 /** Constructor with just a joker. This means, take everything. You
     can still optionally give a stride, though. This constructor is
     just shorter notation for Range(0,joker) */
-inline Range::Range(Joker joker, Index stride=1) :
+inline Range::Range(Joker joker, Index stride) :
   mstart(0), mextent(-1), mstride(stride)
 {
   // Nothing to do here.

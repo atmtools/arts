@@ -25,6 +25,7 @@
    \date   2001-07-24
 */
 
+#include <iostream>
 #include "arts.h"
 #include <getopt.h>
 #include "parameters.h"

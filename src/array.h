@@ -142,8 +142,8 @@ inline base& Array<base>::operator[](Index n)
 template<class base>
 inline std::ostream& operator<<(std::ostream& os, const Array<base>& v)
 {
-  Array<base>::const_iterator         i = v.begin();
-  const Array<base>::const_iterator end = v.end();
+  typename Array<base>::const_iterator         i = v.begin();
+  const typename Array<base>::const_iterator end = v.end();
 
   if ( i!=end )
     {
@@ -166,8 +166,8 @@ inline base max(const Array<base>& x)
   // Initial value for max:
   base max = x[0];
 
-  Array<base>::const_iterator       xi = x.begin();
-  const Array<base>::const_iterator xe = x.end();
+  typename Array<base>::const_iterator       xi = x.begin();
+  const typename Array<base>::const_iterator xe = x.end();
 
   for ( ; xi!=xe ; ++xi )
     {
@@ -185,8 +185,8 @@ inline base min(const Array<base>& x)
   // Initial value for min:
   base min = x[0];
 
-  Array<base>::const_iterator       xi = x.begin();
-  const Array<base>::const_iterator xe = x.end();
+  typename Array<base>::const_iterator       xi = x.begin();
+  const typename Array<base>::const_iterator xe = x.end();
 
   for ( ; xi!=xe ; ++xi )
     {

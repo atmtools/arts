@@ -16,6 +16,7 @@
    USA. */
 
 #include <stdexcept>
+#include <iostream>
 #include "arts.h"
 #include "matpackI.h"
 #include "file.h"

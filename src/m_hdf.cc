@@ -73,8 +73,8 @@ void filename_bin(
 {
   if ( "" == filename )
   {
-    extern const String basename;                       
-    filename = basename+"."+varname+".ab";
+    extern const String out_basename;                       
+    filename = out_basename+"."+varname+".ab";
   }
 }
 

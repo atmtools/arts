@@ -34,6 +34,7 @@
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include <iostream>
 #include <math.h>
 #include <stdexcept>
 #include "poly_roots.h"

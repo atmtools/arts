@@ -27,6 +27,7 @@
   
 */
 
+#include <iostream>
 #include "lin_alg.h"
 
 int main(void)

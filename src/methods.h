@@ -28,6 +28,7 @@
 #ifndef methods_h
 #define methods_h
 
+#include <iostream>
 #include "token.h"
 #include "make_array.h"
 

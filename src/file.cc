@@ -67,8 +67,8 @@ void filename_ascii(
 {
   if ( "" == filename )
   {
-    extern const String basename;                       
-    filename = basename+"."+varname+".aa";
+    extern const String out_basename;                       
+    filename = out_basename+"."+varname+".aa";
   }
 }
 
