@@ -450,6 +450,25 @@ xml_parse_error (const String& str_error)
 }
 
 
+//! Throws XML parser runtime error
+/*!
+  This is used quite often inside the data parsing routines so it's a
+  function for itself.
+  
+  \param tag        ArtsXMLTag
+  \param str_error  Error description
+*/
+void
+xml_data_parse_error (ArtsXMLTag &tag, String str_error)
+{
+  ostringstream os;
+  os << "XML data parse error: Error reading ";
+  tag.write_to_stream (os);
+  os << str_error << "\nCheck syntax of XML file\n";
+  throw runtime_error (os.str ());
+}
+
+
 //! Reads XML header and root tag
 /*! 
   Check whether XML file has correct version tag and reads arts root
@@ -1858,7 +1877,7 @@ xml_read_from_stream (istream& is_xml,
       *pbifs >> index;
       if (pbifs->fail ())
         {
-          xml_parse_error ("Error while reading data");
+          xml_data_parse_error (tag, "");
         }
     }
   else
@@ -1866,7 +1885,7 @@ xml_read_from_stream (istream& is_xml,
       is_xml >> index;
       if (is_xml.fail ())
         {
-          xml_parse_error ("Error while reading data");
+          xml_data_parse_error (tag, "");
         }
     }
 
@@ -1939,10 +1958,10 @@ xml_read_from_stream (istream& is_xml,
               if (pbifs->fail ())
                 {
                   ostringstream os;
-                  os << "Error reading Matrix:"
+                  os << " near "
                     << "\n  Row   : " << r
                     << "\n  Column: " << c;
-                  xml_parse_error (os.str());
+                  xml_data_parse_error (tag, os.str());
                 }
             }
           else
@@ -1951,10 +1970,10 @@ xml_read_from_stream (istream& is_xml,
               if (is_xml.fail ())
                 {
                   ostringstream os;
-                  os << "Error reading Matrix:"
+                  os << " near "
                     << "\n  Row   : " << r
                     << "\n  Column: " << c;
-                  xml_parse_error (os.str());
+                  xml_data_parse_error (tag, os.str());
                 }
             }
         }
@@ -2040,7 +2059,7 @@ xml_read_from_stream (istream& is_xml,
       *pbifs >> numeric;
       if (pbifs->fail ())
         {
-          xml_parse_error ("Error while reading data");
+          xml_data_parse_error (tag, "");
         }
     }
   else
@@ -2048,7 +2067,7 @@ xml_read_from_stream (istream& is_xml,
       is_xml >> numeric;
       if (is_xml.fail ())
         {
-          xml_parse_error ("Error while reading data");
+          xml_data_parse_error (tag, "");
         }
     }
 
@@ -2462,11 +2481,11 @@ xml_read_from_stream (istream& is_xml,
                   if (pbifs->fail ())
                     {
                       ostringstream os;
-                      os << "Error reading Tensor3:"
+                      os << " near "
                         << "\n  Page  : " << p
                         << "\n  Row   : " << r
                         << "\n  Column: " << c;
-                      xml_parse_error (os.str());
+                      xml_data_parse_error (tag, os.str());
                     }
                 }
               else
@@ -2475,11 +2494,11 @@ xml_read_from_stream (istream& is_xml,
                   if (is_xml.fail ())
                     {
                       ostringstream os;
-                      os << "Error reading Tensor3:"
+                      os << " near "
                         << "\n  Page  : " << p
                         << "\n  Row   : " << r
                         << "\n  Column: " << c;
-                      xml_parse_error (os.str());
+                      xml_data_parse_error (tag, os.str());
                     }
                 }
             }
@@ -2584,12 +2603,12 @@ xml_read_from_stream (istream& is_xml,
                       if (pbifs->fail ())
                         {
                           ostringstream os;
-                          os << "Error reading Tensor4:"
+                          os << " near "
                             << "\n  Book  : " << b
                             << "\n  Page  : " << p
                             << "\n  Row   : " << r
                             << "\n  Column: " << c;
-                          xml_parse_error (os.str());
+                          xml_data_parse_error (tag, os.str());
                         }
                     }
                   else
@@ -2598,12 +2617,12 @@ xml_read_from_stream (istream& is_xml,
                       if (is_xml.fail ())
                         {
                           ostringstream os;
-                          os << "Error reading Tensor4:"
+                          os << " near "
                             << "\n  Book  : " << b
                             << "\n  Page  : " << p
                             << "\n  Row   : " << r
                             << "\n  Column: " << c;
-                          xml_parse_error (os.str());
+                          xml_data_parse_error (tag, os.str());
                         }
                     }
                 }
@@ -2716,13 +2735,13 @@ xml_read_from_stream (istream& is_xml,
                           if (pbifs->fail ())
                             {
                               ostringstream os;
-                              os << "Error reading Tensor5:"
+                              os << " near "
                                 << "\n  Shelf : " << s
                                 << "\n  Book  : " << b
                                 << "\n  Page  : " << p
                                 << "\n  Row   : " << r
                                 << "\n  Column: " << c;
-                              xml_parse_error (os.str());
+                              xml_data_parse_error (tag, os.str());
                             }
                         }
                       else
@@ -2731,13 +2750,13 @@ xml_read_from_stream (istream& is_xml,
                           if (is_xml.fail ())
                             {
                               ostringstream os;
-                              os << "Error reading Tensor5:"
+                              os << " near "
                                 << "\n  Shelf : " << s
                                 << "\n  Book  : " << b
                                 << "\n  Page  : " << p
                                 << "\n  Row   : " << r
                                 << "\n  Column: " << c;
-                              xml_parse_error (os.str());
+                              xml_data_parse_error (tag, os.str());
                             }
                         }
                     }
@@ -2858,14 +2877,14 @@ xml_read_from_stream (istream& is_xml,
                               if (pbifs->fail ())
                                 {
                                   ostringstream os;
-                                  os << "Error reading Tensor6:"
+                                  os << " near "
                                     << "\n  Vitrine: " << v
                                     << "\n  Shelf  : " << s
                                     << "\n  Book   : " << b
                                     << "\n  Page   : " << p
                                     << "\n  Row    : " << r
                                     << "\n  Column : " << c;
-                                  xml_parse_error (os.str());
+                                  xml_data_parse_error (tag, os.str());
                                 }
                             }
                           else
@@ -2874,14 +2893,14 @@ xml_read_from_stream (istream& is_xml,
                               if (is_xml.fail ())
                                 {
                                   ostringstream os;
-                                  os << "Error reading Tensor6:"
+                                  os << " near "
                                     << "\n  Vitrine: " << v
                                     << "\n  Shelf  : " << s
                                     << "\n  Book   : " << b
                                     << "\n  Page   : " << p
                                     << "\n  Row    : " << r
                                     << "\n  Column : " << c;
-                                  xml_parse_error (os.str());
+                                  xml_data_parse_error (tag, os.str());
                                 }
                             }
                         }
@@ -3009,7 +3028,16 @@ xml_read_from_stream (istream& is_xml,
                                   *pbifs >> tensor (l, v, s, b, p, r, c);
                                   if (pbifs->fail ())
                                     {
-                                      xml_parse_error ("Error while reading data");
+                                      ostringstream os;
+                                      os << " near "
+                                        << "\n  Library: " << l
+                                        << "\n  Vitrine: " << v
+                                        << "\n  Shelf  : " << s
+                                        << "\n  Book   : " << b
+                                        << "\n  Page   : " << p
+                                        << "\n  Row    : " << r
+                                        << "\n  Column : " << c;
+                                      xml_data_parse_error (tag, os.str());
                                     }
                                 }
                               else
@@ -3017,7 +3045,16 @@ xml_read_from_stream (istream& is_xml,
                                   is_xml >> tensor (l, v, s, b, p, r, c);
                                   if (is_xml.fail ())
                                     {
-                                      xml_parse_error ("Error while reading data");
+                                      ostringstream os;
+                                      os << " near "
+                                        << "\n  Library: " << l
+                                        << "\n  Vitrine: " << v
+                                        << "\n  Shelf  : " << s
+                                        << "\n  Book   : " << b
+                                        << "\n  Page   : " << p
+                                        << "\n  Row    : " << r
+                                        << "\n  Column : " << c;
+                                      xml_data_parse_error (tag, os.str());
                                     }
                                 }
                             }
@@ -3133,9 +3170,9 @@ xml_read_from_stream (istream& is_xml,
           if (pbifs->fail ())
             {
               ostringstream os;
-              os << "Error reading Vector:"
+              os << " near "
                 << "\n  Element: " << n;
-              xml_parse_error (os.str());
+              xml_data_parse_error (tag, os.str());
             }
         }
       else
@@ -3144,9 +3181,9 @@ xml_read_from_stream (istream& is_xml,
           if (is_xml.fail ())
             {
               ostringstream os;
-              os << "Error reading Vector:"
+              os << " near "
                 << "\n  Element: " << n;
-              xml_parse_error (os.str());
+              xml_data_parse_error (tag, os.str());
             }
         }
     }
