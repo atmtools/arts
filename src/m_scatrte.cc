@@ -1000,12 +1000,9 @@ stokes_vecGeneral(//WS Output and Input:
                const Numeric& a_planck_value,
                const Index& stokes_dim)
 { 
-  // Stokes dimension
-  assert(stokes_dim <= 4 && stokes_dim > 0);
-  
-  
-  stokes_vec.resize(stokes_dim);
- 
+
+  // Check if stokes_vec has stokes_dim components
+  assert(is_size(stokes_vec, stokes_dim));
   // check, if ext_mat is quadratic
   assert(is_size(ext_mat, stokes_dim, stokes_dim)); 
   // check if the dimensions agree
@@ -1099,6 +1096,8 @@ stokes_vecScalar(//WS Input and Output:
     throw runtime_error("You can use the method *stokes_vecScalar* only if"
                         "*stokes_dim* equals 1"); 
 
+  // Check stokes_vec, one component vector:
+  assert(is_size(stokes_vec, stokes_dim));
   // Check, if ext_mat is a scalar, i.e. 1x1 matrix
   assert(is_size(ext_mat, stokes_dim, stokes_dim)); 
   // Check, if  absorption coefficient and scattering coefficients   

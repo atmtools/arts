@@ -1923,8 +1923,8 @@ md_data_raw.push_back
          "Then an analytic solution can be found (see AUG for details).\n"
 	),
 	OUTPUT(stokes_vec_),
-	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, a_planck_value_,
-              stokes_dim_),
+	INPUT(stokes_vec_, ext_mat_, abs_vec_, sca_vec_, l_step_, 
+              a_planck_value_, stokes_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),
@@ -1943,8 +1943,8 @@ md_data_raw.push_back
          "Then an analytic solution can be found (see AUG for details).\n"
 	),
 	OUTPUT(stokes_vec_),
-	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, a_planck_value_,
-              stokes_dim_),
+	INPUT(stokes_vec_, ext_mat_, abs_vec_, sca_vec_, l_step_, 
+              a_planck_value_, stokes_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
 	KEYWORDS( ),

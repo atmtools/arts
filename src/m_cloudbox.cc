@@ -875,7 +875,7 @@ void CloudboxGetOutgoing(// WS Generic Output:
        {
          for(Index f_index = 0; f_index < f_grid.nelem(); f_index ++)
            {
-             //This vvariable holds the radiation for a specified frequency.
+             //This variable holds the radiation for a specified frequency.
              //It is neccessairy because the interpolation is done for 
              //each frequency separately.
              Vector i_out_f(scat_za_grid.nelem());
