@@ -1,3 +1,18 @@
+2003-04-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-520
+
+	* src/m_rte.cc (RteEmissionTest): Made a quick hack to test an 
+	integration assuming B to be linear in optiocal thickness, following
+	Equation 9.16 in Rodgers' book (though I think the expression is 
+	wrong).
+
+	A first test showed no improvement at all!? I have to check the 
+	details.
+
+	* src/rte.cc (rte_step): For scalar case, introduced a variable for
+	transmission to save some time and make the code clearer.
+
 2003-04-02  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-519
@@ -71,6 +86,7 @@
 	radiance fields to brightness temperature. This is because 
 	Planck is non-linear for small radiances
      
+>>>>>>> 1.897
 2003-03-31  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
         * arts-1-1-514

@@ -827,9 +827,10 @@ void rte_step(//Output and Input:
   // Scalar case: 
   if( stokes_dim == 1 )
     { 
-      stokes_vec[0] = stokes_vec[0] * exp(-ext_mat_av(0,0) * l_step) + 
+      Numeric   trans = exp(-ext_mat_av(0,0) * l_step);
+      stokes_vec[0] = stokes_vec[0] * trans + 
         (abs_vec_av[0] * a_planck_value + sca_vec_av[0]) / ext_mat_av(0,0) 
-        * (1 - exp(-ext_mat_av(0,0) * l_step));
+        * (1 - trans);
     }
   // Vector case: 
     
