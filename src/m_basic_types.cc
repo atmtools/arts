@@ -363,6 +363,135 @@ void Tensor3FillWithVector(
              "The size argument for either pages, rows or columns must be 0.");
 }
 
+//! Tensor3Set
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-05-31
+*/
+void Tensor3Set(          Tensor3&   x, 
+                    const String&    x_name,
+		    const Index&     npages,
+                    const Index&     nrows,
+                    const Index&     ncols,
+                    const Numeric&   value )
+{
+  x.resize( npages, nrows, ncols );
+  x = value;
+  out2 << "  " << x_name << " = " << value  << "\n";
+  out3 << "            npages : " << npages << "\n";
+  out3 << "             nrows : " << nrows  << "\n";
+  out3 << "             ncols : " << ncols  << "\n";
+}
+
+//! Tensor4Set
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-05-31
+*/
+void Tensor4Set(          Tensor4&   x, 
+                    const String&    x_name,
+		    const Index&     nbooks,	  
+		    const Index&     npages,
+                    const Index&     nrows,
+                    const Index&     ncols,
+                    const Numeric&   value )
+{
+  x.resize( nbooks, npages, nrows, ncols );
+  x = value;
+  out2 << "  " << x_name << " = " << value  << "\n";
+  out3 << "            nbooks : " << nbooks << "\n";
+  out3 << "            npages : " << npages << "\n";
+  out3 << "             nrows : " << nrows  << "\n";
+  out3 << "             ncols : " << ncols  << "\n";
+}
+
+//! Tensor5Set
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-05-31
+*/
+void Tensor5Set(          Tensor5&   x, 
+                    const String&    x_name,
+		    const Index&     nshelfs,	  
+		    const Index&     nbooks,	  
+		    const Index&     npages,
+                    const Index&     nrows,
+                    const Index&     ncols,
+                    const Numeric&   value )
+{
+  x.resize( nshelfs, nbooks, npages, nrows, ncols );
+  x = value;
+  out2 << "  " << x_name << " = " << value   << "\n";
+  out3 << "           nshelfs : " << nshelfs << "\n";
+  out3 << "            nbooks : " << nbooks  << "\n";
+  out3 << "            npages : " << npages  << "\n";
+  out3 << "             nrows : " << nrows   << "\n";
+  out3 << "             ncols : " << ncols   << "\n";
+}
+
+//! Tensor6Set
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-05-31
+*/
+void Tensor6Set(          Tensor6&   x, 
+                    const String&    x_name,
+		    const Index&     nvitrines,	  
+		    const Index&     nshelfs,	  
+		    const Index&     nbooks,	  
+		    const Index&     npages,
+                    const Index&     nrows,
+                    const Index&     ncols,
+                    const Numeric&   value )
+{
+  x.resize( nvitrines, nshelfs, nbooks, npages, nrows, ncols );
+  x = value;
+  out2 << "  " << x_name << " = " << value     << "\n";
+  out3 << "         nvitrines : " << nvitrines << "\n";    
+  out3 << "           nshelfs : " << nshelfs   << "\n";
+  out3 << "            nbooks : " << nbooks    << "\n";
+  out3 << "            npages : " << npages    << "\n";
+  out3 << "             nrows : " << nrows     << "\n";
+  out3 << "             ncols : " << ncols     << "\n";
+}
+
+//! Tensor7Set
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Claudia Emde
+   \date   2002-05-31
+*/
+void Tensor7Set(          Tensor7&   x, 
+                    const String&    x_name,
+		    const Index&     nlibraries,	  
+		    const Index&     nvitrines,	  
+		    const Index&     nshelfs,	  
+		    const Index&     nbooks,	  
+		    const Index&     npages,
+                    const Index&     nrows,
+                    const Index&     ncols,
+                    const Numeric&   value )
+{
+  x.resize( nlibraries, nvitrines, nshelfs, nbooks, npages, nrows, ncols );
+  x = value;
+  out2 << "  " << x_name << " = " << value      << "\n";
+  out3 << "        nlibraries : " << nlibraries << "\n";
+  out3 << "         nvitrines : " << nvitrines  << "\n";    
+  out3 << "           nshelfs : " << nshelfs    << "\n";
+  out3 << "            nbooks : " << nbooks     << "\n";
+  out3 << "            npages : " << npages     << "\n";
+  out3 << "             nrows : " << nrows      << "\n";
+  out3 << "             ncols : " << ncols      << "\n";
+}
 
 
 //! VectorAddScalar

@@ -45,8 +45,9 @@
 #include "array.h"
 #include "check_input.h"
 #include "matpackI.h"
-
-
+#include "matpackVI.h"
+#include "matpackVII.h"
+#include "cloudbox.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -189,6 +190,76 @@ void CloudboxSetManually(
 }
 
 
+//! Iterative solution of the RTE.
+/*! 
+  A solution for the RTE with scattering is found using an iterative scheme:
+  1. Calculate scattering integral.
+  2. Calculate RT with fixed scattered field.
+  3. Convergence test.
 
+  
+  \param i_field       Output: Intensity field. 
+  \param amp_mat       Amplitude matrix. 
+  \param cloudbox_limits Limits of the cloudbox.
+  \param scat_za_grid  Zenith angle grid inside the cloud box.
+  \param scat_aa_grid  Azimuthal angle grid inside the cloud box.
+  \param p_grid        Pressure grid.
+  \param lat_grid      Latitude grid.
+  \param lon_grid      Longitude grid.
+  \param t_field       Temperature field for alls grid points.
+  \param z_field       Geometrical altitude field.
+  \param z_ground      Ground altitude.
+  \param r_geoid       Matrix containing geoids.
+  \param f_grid        Frequency grid.
+  \param f_index       Frequency index.
+  \param blackbody_ground Flag to treat ground as blackbody.
+  \param stokes_dim    The number of Stokes components to be calculated.
+*/
+void i_field_itCalc(
+		    // WS Output:
+		    Tensor6& i_field,
+		    // WS Input:
+		    const Tensor7& amp_mat,
+		    const ArrayOfIndex& cloudbox_limits,
+		    const Vector& scat_za_grid,
+		    const Vector& scat_aa_grid,
+		    const Vector& p_grid,
+		    const Vector& lat_grid,
+		    const Vector& lon_grid,
+		    const Tensor3& t_field,
+		    const Tensor3& z_field,
+		    const Matrix& z_ground,
+		    const Matrix& r_geoid,
+		    const Vector& f_grid,
+		    const Index& f_index,
+		    const Index& blackbody_ground,
+		    const Index& stokes_dim,
+		    const Index& atmosphere_dim
+		    )
+{
+
+  // Copy i_field to i_field_old.
+  Tensor6 i_field_old;
+  i_field_old = i_field;
+
+  //Calculate scattered field vector for all points in the cloudbox.
+  Tensor6 sca_field;
+  // ---- here will be the function to calculate the scattering integral
+
+  //Update i_field.
+   if( atmosphere_dim == 1 )
+     {
+       i_field_update1D(i_field, i_field_old, amp_mat, sca_field,
+			cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
+			lat_grid, lon_grid, t_field, z_field, z_ground,
+			r_geoid, f_grid, f_index, blackbody_ground, 
+			stokes_dim);
+	 }
+
+   //Convergence test has to be here.
+}
+	
+
+		
 
 

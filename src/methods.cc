@@ -668,6 +668,25 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "i_field_itCalc" ),
+	DESCRIPTION
+        (
+	 "Performs iterative solution method of the RT with scattering. It\n"
+         "calculates *i_field* inside the cloudbox.\n"
+         "   " 
+        ),
+	OUTPUT(i_field_),
+	INPUT(amp_mat_, cloudbox_limits_, scat_za_grid_, scat_aa_grid_, 
+	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, z_ground_,
+	      r_geoid_, f_grid_, f_index_, blackbody_ground_, stokes_dim_,
+	      atmosphere_dim_),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
  md_data.push_back     
     ( MdRecord
       ( NAME("IndexPrint"),
@@ -1392,6 +1411,30 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 
+ md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor3Set"),
+	DESCRIPTION
+        (
+         "Creates a workspace tensor3 with the specified size and sets \n"
+         "all values of the tensor3 to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Tensor3 : The tensor3 to be created. \n"
+         "\n"
+         "Keywords:\n"
+	 "   npages : The number of pages of the tensor3 to create. \n" 
+         "   nrows  : The number of rows of the tensor3 to create. \n"
+         "   ncols  : The number of columns of the tensor3 to create. \n"
+         "   value  : The value of the tensor3 elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor3_ ),
+	GINPUT(),
+	KEYWORDS( "npages", "nrows", "ncols", "value"   ),
+	TYPES( Index_t, Index_t, Index_t, Numeric_t )));
+
   md_data.push_back
     ( MdRecord
       ( NAME("Tensor3WriteXML"),
@@ -1442,6 +1485,31 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+ md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor4Set"),
+	DESCRIPTION
+        (
+         "Creates a workspace tensor4 with the specified size and sets \n"
+         "all values of the tensor4 to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Tensor4 : The tensor4 to be created. \n"
+         "\n"
+         "Keywords:\n"
+	 "   nbooks : The number of books of the tensor4 to create. \n"
+	 "   npages : The number of pages of the tensor4 to create. \n" 
+         "   nrows  : The number of rows of the tensor4 to create. \n"
+         "   ncols  : The number of columns of the tensor4 to create. \n"
+         "   value  : The value of the tensor4 elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor4_ ),
+	GINPUT(),
+	KEYWORDS( "nbooks", "npages", "nrows", "ncols", "value"   ),
+	TYPES( Index_t, Index_t, Index_t, Index_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1496,6 +1564,32 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("Tensor5Set"),
+	DESCRIPTION
+        (
+         "Creates a workspace tensor5 with the specified size and sets \n"
+         "all values of the tensor5 to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Tensor5 : The tensor5 to be created. \n"
+         "\n"
+         "Keywords:\n"
+	 "   nshelfs : The number of shelfs of the tensor5 to create. \n"
+	 "   nbooks  : The number of books of the tensor5 to create. \n"
+	 "   npages  : The number of pages of the tensor5 to create. \n" 
+         "   nrows   : The number of rows of the tensor5 to create. \n"
+         "   ncols   : The number of columns of the tensor5 to create. \n"
+         "   value   : The value of the tensor5 elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor5_ ),
+	GINPUT(),
+	KEYWORDS( "nshelfs", "nbooks", "npages", "nrows", "ncols", "value" ),
+	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("Tensor5WriteXML"),
 	DESCRIPTION
         (
@@ -1544,6 +1638,35 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+ md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor6Set"),
+	DESCRIPTION
+        (
+         "Creates a workspace tensor6 with the specified size and sets \n"
+         "all values of the tensor6 to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Tensor6 : The tensor6 to be created. \n"
+         "\n"
+         "Keywords:\n"
+	 "   nvitrines : The number of vitrines of the tensor6 to create. \n"
+	 "   nshelfs   : The number of shelfs of the tensor6 to create. \n"
+	 "   nbooks    : The number of books of the tensor6 to create. \n"
+	 "   npages    : The number of pages of the tensor6 to create. \n" 
+         "   nrows     : The number of rows of the tensor6 to create. \n"
+         "   ncols     : The number of columns of the tensor6 to create. \n"
+         "   value     : The value of the tensor6 elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor6_ ),
+	GINPUT(),
+	KEYWORDS( "nvitrines", "nshelfs", "nbooks", "npages", "nrows",
+		  "ncols", "value" ),
+	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
+	       Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1595,6 +1718,36 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Tensor7Set"),
+	DESCRIPTION
+        (
+         "Creates a workspace tensor7 with the specified size and sets \n"
+         "all values of the tensor7 to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Tensor7 : The tensor7 to be created. \n"
+         "\n"
+         "Keywords:\n"
+	 "   nlibraries : The number of libraries of the tensor7 to create. \n"
+	 "   nvitrines  : The number of vitrines of the tensor7 to create. \n"
+	 "   nshelfs    : The number of shelfs of the tensor7 to create. \n"
+	 "   nbooks     : The number of books of the tensor7 to create. \n"
+	 "   npages     : The number of pages of the tensor7 to create. \n" 
+         "   nrows      : The number of rows of the tensor7 to create. \n"
+         "   ncols      : The number of columns of the tensor7 to create. \n"
+         "   value      : The value of the tensor7 elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Tensor7_ ),
+	GINPUT(),
+	KEYWORDS( "nlibraries", "nvitrines", "nshelfs", "nbooks", "npages", 
+		  "nrows", "ncols", "value" ),
+	TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, 
+	       Index_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord

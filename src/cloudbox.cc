@@ -63,7 +63,7 @@
 void i_field_update1D(
 		     Tensor6View i_field,
 		     ConstTensor6View i_field_old,
-		     ConstTensor6View amp_mat,
+		     ConstTensor7View amp_mat,
 		     ConstTensor6View sca_field,
 		     const ArrayOfIndex cloudbox_limits,
 		     ConstVectorView scat_za_grid,

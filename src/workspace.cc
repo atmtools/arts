@@ -111,8 +111,8 @@ void define_wsv_data()
      "Usage: Input to *ext_mat_agenda*, *abs_vec_agenda*, *sca_mat_agenda*.\n"
      "Output of *get_amp*. \n"    
      "\n"
-     "Dimensions: [ f_grid, part_types, lon_grid, scat_za_grid, \n"
-     "              scat_aa_grid, scat_za_grid, 8]", 
+     "Dimensions: [ f_grid, part_types, scat_za_grid, scat_aa_grid \n"
+     "              scat_za_grid, scat_aa_grid, 8]", 
       Tensor7_ ));
 
   wsv_data.push_back

@@ -1,10 +1,25 @@
+2002-05-31 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-107
+
+	* src/methods.cc: Added TensorXSet methods for all dimensions (Tensor3
+	to Tensor7). Added workspace function (i_field_itCalc).
+		
+	* src/m_basic_types.cc: Added TensorXSet functions for all dimensions.
+
+	* src/m_cloudbox.cc (i_field_itCalc): Added this function which 
+	will calculate the radiative transfer in the cloudbox with scattering
+	using the iterative method.
+	
+	* src/workspace.cc: Modified description for *amp_mat*.
+
 2002-05-30 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-106
 
 	* src/workspace.cc: Added more workspace variables for scattering.
 
-	* src/linalg.cc (ludcp) Modified documentation of the function. 
+	* src/linalg.cc (ludcp): Modified documentation of the function. 
 
 2002-05-30  Oliver Lemke  <olemke@uni-bremen.de>
 
