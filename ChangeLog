@@ -1,3 +1,19 @@
+2003-01-23  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-423
+
+	* src/complex.{h,cc}: Added operator+ and operator* with params
+	complex<float>, double and complex<double>, float.
+
+	* src/Makefile.am (arts_SOURCES) (test_zeemanproperties):
+	Added complex.{h,cc}.
+
+	* src/xml_io.h: Removed prototypes for xml_open_output_file and
+	xml_open_input_file.
+
+	* src/xml_io_private.h: Added prototypes for xml_open_output_file
+	and xml_open_input_file.
+
 2003-01-23  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-422
