@@ -76,8 +76,16 @@ int main()
       ofs << "#include \"absorption.h\"\n"
 	  << "#include \"los.h\"\n\n";
       
-      ofs << "/*! This is only used for a consistency check. You can get the\n"
-	  << "    number of workspace variables from wsv_data.nelem(). */\n"
+      ofs << "//! Total number of workspace variables.\n"
+	  << "/*! \n"
+	  << "  This is mainly used for a consistency check. You can get the\n"
+	  << "  number of workspace variables from wsv_data.nelem(). \n"
+	  << "  \n"
+	  << "  However, this is used by member functions of Workspace. For\n"
+	  << "  example by the default constructor to initialize the occupied\n"
+	  << "  array. Also for range checking in is_occupied, set, and free\n"
+	  << "  member functions. \n"
+	  << "*/\n"
 	  << "#define N_WSV " << n_wsv << "\n\n";
 
       ofs << "enum WsvHandle{\n";
@@ -90,9 +98,20 @@ int main()
 
       // Now the workspace itself:
 
-      ofs << "/** The declaration of the (great) workspace. */\n";
-      ofs << "class WorkSpace {\n"
+      ofs << "/** The declaration of the (great) workspace. */\n"
+	  << "class WorkSpace {\n"
+	  << "public:\n"
+	  << "  WorkSpace();\n"
+	  << "  bool is_occupied(Index i) const;\n"
+	  << "  void set(Index i);\n"
+	  << "  void free(Index i);\n"
+	  << "private:\n"
+	  << "  /** Keeps track which elements are occupied.\n"
+	  << "      For some strange reason, Array<bool> does not work, hence\n"
+	  << "      this is implemented internally as an Array of Index.*/\n"	  
+	  << "  Array<Index> moccupied;\n"
 	  << "public:\n";
+      
       for (Index i=0; i<n_wsv; ++i)
 	{
 	  // First of all write the comment as a doxygen header.

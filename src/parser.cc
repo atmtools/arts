@@ -950,7 +950,7 @@ bool parse_method(Index& id,
    @see parse_method
          
    @author Stefan Buehler */
-void parse(Array<MRecord>& tasklist,
+void parse(Agenda& tasklist,
 	   SourceText& text,
 	   const std::map<String, Index> MdMap,
 	   const std::map<String, Index> WsvMap)
@@ -1026,7 +1026,7 @@ void parse(Array<MRecord>& tasklist,
     }
 }
 
-void parse_main(Array<MRecord>& tasklist, SourceText& text)
+void parse_main(Agenda& tasklist, SourceText& text)
 {
   //  extern const Array<MdRecord> md_data;
   //  extern const Array<WsvRecord> wsv_data;

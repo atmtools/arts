@@ -28,6 +28,7 @@ if ARTS_GENDOCS
 
 doxyfied: $(toexamine)
 	doxygen Doxyfile > /dev/null
+	doxytag -t arts.tag html
 	touch doxyfied
 
 else

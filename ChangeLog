@@ -1,3 +1,41 @@
+2002-03-14  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-24
+
+	* General: Started to work on agendas (what we used to call method
+	lists).
+
+	* src/agenda.h: Added.
+	An agenda is a list of workspace methods (including keyword data) to
+  	be executed. There are workspace variables of class agenda that can
+  	contain a list of methods to execute for a particular purpose, for
+  	example to compute the lineshape in an absorption calculation. The
+  	controlfile contains a list of agenda definitions, including the
+  	agenda `main', which is then executed. Overall, this concept is in
+  	analogy to a C program that consists of various functions and one
+  	function main.
+
+	* src/agenda.cc: Added. Contains functions for Agenda.
+
+	* src/main.cc: Removed executor and give_up. Instead, there is now
+	a member function execute of Agenda.
+
+	* src/make_auto_wsv_h.cc: Made the occupation list (which WSVs are
+	occupied) a part of the WorkSpace. Added member functions to check
+	and modify occupation.
+
+	* src/wsv_aux.cc: Added. Contains implementation of member
+	functions of WorkSpace.
+
+	* src/parser.h: Adapted to use of Agenda. 
+
+	* src/parser.cc: Adapted to use of Agenda. 
+	
+	* src/Makefile.am: Added the new files.
+
+	* doc/doxygen/Makefile.am: Added generation of tags for
+	doxymacs. The tags are stored in file arts.tag.
+
 2002-03-12  Wolfram Haas  <wolhaas@hermes.fho-emden.de>
 
 	* arts-1-1-23

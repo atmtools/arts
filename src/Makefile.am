@@ -76,7 +76,10 @@ arts_SOURCES = \
 	workspace.cc \
 	workspace_aux.cc \
 	wsv_aux.h \
-	m_method_list.cc
+	wsv_aux.cc \
+	m_method_list.cc \
+	agenda.h \
+	agenda.cc
 
 
 arts_DEPENDENCIES= \
@@ -201,7 +204,8 @@ make_auto_md_h_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
-	wsv_aux.h
+	wsv_aux.h \
+	wsv_aux.cc
 
 make_auto_md_cc_SOURCES = \
 	absorption.h \
@@ -225,7 +229,9 @@ make_auto_md_cc_SOURCES = \
 	version.cc \
 	workspace.cc \
 	workspace_aux.cc \
-	wsv_aux.h
+	wsv_aux.h \
+	wsv_aux.cc
+
 
 make_auto_wsv_h_DEPENDENCIES = auto_wsv_groups.h
 

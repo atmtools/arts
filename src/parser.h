@@ -21,44 +21,7 @@
 #ifndef parser_h
 #define parser_h
 
-#include "token.h"
-
-/** Method runtime data. In contrast to MdRecord, an object of this
-    class contains the runtime information for one method: The method
-    id and the keyword parameter values. This is all that the engine
-    needs to execute the stack of methods.
-
-    @author Stefan Buehler */
-class MRecord {
-public:
-  MRecord(const Index id,
-	  const Array<TokVal>& values,
-	  const ArrayOfIndex& output,
-	  const ArrayOfIndex& input)
-    : mid(id),
-      mvalues( values ),
-      moutput( output ),
-      minput(  input  )
-  { 
-    // Initialization of arrays from other array now works correctly.
-  }
-  Index                  Id()     const { return mid;     }
-  const Array<TokVal>& Values() const { return mvalues; }
-  const ArrayOfIndex& Output() const { return moutput; }
-  const ArrayOfIndex& Input()  const { return minput;  }
-
-private:
-  /** Method id. */
-  Index mid;
-  /** List of parameter values (see methods.h for definition of
-      TokVal). */
-  Array<TokVal> mvalues;
-  /** Output workspace variables (for generic methods). */
-  ArrayOfIndex moutput;
-  /** Input workspace variables (for generic methods). */
-  ArrayOfIndex minput;
-};
-
+#include "agenda.h"
 
 /** A smart class to hold the text for parsing. A variable of this
     class can hold not only the text of the ARTS Control file, but
@@ -152,7 +115,7 @@ private:
     @param text The control text
 
     @author Stefan Buehler */
-void parse_main(Array<MRecord>& tasklist, SourceText& text);
+void parse_main(Agenda& tasklist, SourceText& text);
 
 
 #endif

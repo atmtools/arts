@@ -51,117 +51,6 @@
 void define_wsv_pointers(Array<WsvP*>&    wsv_pointers,
                          WorkSpace&       workspace);
 
-
-/** Print the error message and exit. */
-void give_up(const String& message)
-{
-  out0 << message << '\n';
-  exit(1);
-}
-
-
-/** The arts executor. This executes the methods specified in tasklist
-    on the given workspace. It also checks for errors during the
-    method execution and stops the program if an error has
-    occured. 
-
-    \param workspace Output. The workspace to act on.
-    \param tasklist The list of methods to execute (including keyword data).
-
-    \author Stefan Buehler  */
-void executor(WorkSpace& workspace, const Array<MRecord>& tasklist)
-{
-  // The method description lookup table:
-  extern const Array<MdRecord> md_data;
-
-  // The workspace variable lookup table:
-  extern const Array<WsvRecord> wsv_data;
-  
-  // The array holding the pointers to the getaway functions:
-  extern const void (*getaways[])(WorkSpace&, const MRecord&);
-
-  // We need a place to remember which workspace variables are
-  // occupied and which aren't.
-  // 
-  // For some weird reason, Arrays of bool do not work, although all
-  // other types seem to work fine. So in this case, I'll use
-  // the stl vector directly. The other place where this is done is in
-  // the function lines_per_tgCreateFromLines in m_abs.cc.
-  // FIXME: Fix this when Array<bool> works.
-  std::vector<bool> occupied(wsv_data.nelem(),false);
-
-  out3 << "\nExecuting methods:\n";
-
-//   for (Index i=0; i<tasklist.nelem(); ++i)
-//     {
-//       const MRecord&  mrr = tasklist[i];
-//       cout << "id, input: " << mrr.Id() << ", ";
-//       print_vector(mrr.Input());
-//       cout << "id, output: " << mrr.Id() << ", ";
-//       print_vector(mrr.Output());
-//     }
-
-
-  for (Index i=0; i<tasklist.nelem(); ++i)
-    {
-      // Runtime method data for this method:
-      const MRecord&  mrr = tasklist[i];
-      // Method data for this method:
-      const MdRecord& mdd = md_data[mrr.Id()];
-      
-      try
-	{
-	  out1 << "- " << mdd.Name() << '\n';
-
-	
-	  { // Check if all specific input variables are occupied:
-	    const ArrayOfIndex& v(mdd.Input());
-	    for (Index s=0; s<v.nelem(); ++s)
-	      if (!occupied[v[s]])
-		give_up("Method "+mdd.Name()+" needs input variable: "+
-			wsv_data[v[s]].Name());
-	  }
-
-	  { // Check if all generic input variables are occupied:
-	    const ArrayOfIndex& v(mrr.Input());
-	    //	    cout << "v.nelem(): " << v.nelem() << endl;
-	    for (Index s=0; s<v.nelem(); ++s)
-	      if (!occupied[v[s]])
-		give_up("Generic Method "+mdd.Name()+" needs input variable: "+
-			wsv_data[v[s]].Name());
-	  }
-
-	  // Call the getaway function:
-	  getaways[mrr.Id()]
-	    ( workspace, mrr );
-
-	  { // Flag the specific output variables as occupied:
-	    const ArrayOfIndex& v(mdd.Output());
-	    for (Index s=0; s<v.nelem(); ++s) occupied[v[s]] = true;
-	  }
-
-	  { // Flag the generic output variables as occupied:
-	    const ArrayOfIndex& v(mrr.Output());
-	    for (Index s=0; s<v.nelem(); ++s) occupied[v[s]] = true;
-	  }
-
-	}
-      catch (runtime_error x)
-	{
-	  out0 << "Run-time error in method: " << mdd.Name() << '\n'
-	       << x.what() << '\n';
-	  exit(1);
-	}
-      catch (logic_error x)
-	{
-	  out0 << "Logic error in method: " << mdd.Name() << '\n'
-	       << x.what() << '\n';
-	  exit(1);
-	}
-    }
-}
-
-
 /** Remind the user of --help and exit return value 1. */
 void polite_goodby()
 {
@@ -888,7 +777,7 @@ int main (int argc, char **argv)
 
       // The list of methods to execute and their keyword data from
       // the control file. 
-      Array<MRecord> tasklist;
+      Agenda tasklist;
 
       // The text of the controlfile.
       SourceText text;
@@ -904,8 +793,8 @@ int main (int argc, char **argv)
       // Call the parser to parse the control text:
       parse_main(tasklist, text);
 
-      // Call the executor:
-      executor(workspace, tasklist);
+      // Execute main agenda:
+      tasklist.execute(workspace);
 
     }
   catch (runtime_error x)
