@@ -100,8 +100,15 @@ dnl         doc/doc++/tex/Makefile
 AC_OUTPUT( 
 Makefile 
    ami/Makefile 
+      ami/arts/Makefile
+      ami/file/Makefile
       ami/general/Makefile
       ami/hmatrix/Makefile 
+      ami/math/Makefile
+      ami/path/Makefile
+      ami/physics/Makefile
+      ami/plot/Makefile
+      ami/retrieval/Makefile
    aii/Makefile 
    doc/Makefile 
    doc/index.html

@@ -1,5 +1,21 @@
 2001-03-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
+	* arts-0-0-139
+
+	* configure.in: Added missing Makefiles:
+      	ami/arts/Makefile
+      	ami/file/Makefile
+      	ami/math/Makefile
+      	ami/path/Makefile
+      	ami/physics/Makefile
+      	ami/plot/Makefile
+      	ami/retrieval/Makefile
+
+	This is necessary for the reconf script to work.
+	
+
+2001-03-13  Stefan Buehler  <sbuehler@uni-bremen.de>
+
 	* arts-0-0-138
 
 	* Implemented the new continuum concept, as decided in the meeting
