@@ -448,11 +448,13 @@ xml_write_to_stream (ostream& os_xml,
   for( Index i=0; i<sparse.nnz(); i++) {
         if (pbofs)
           //FIXME: It should be the longer lines
-          //*pbofs << ((*sparse.mrowind)[i]-sparse.mrr.mstart)/sparse.mrr.mstride;
-          *pbofs << (*sparse.mrowind)[i];
+          *pbofs << ((*sparse.mrowind)[i] - sparse.mrr.get_start ())
+            / sparse.mrr.get_stride ();
+          //*pbofs << (*sparse.mrowind)[i];
         else
-          //os_xml << ((*sparse.mrowind)[i]-sparse.mrr.mstart)/sparse.mrr.mstride
-          os_xml << (*sparse.mrowind)[i]
+          os_xml << ((*sparse.mrowind)[i]-sparse.mrr.get_start ())
+            / sparse.mrr.get_stride ()
+          //os_xml << (*sparse.mrowind)[i]
                    << '\n';
   }
   close_tag.set_name("/RowIndex");
