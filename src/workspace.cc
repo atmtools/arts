@@ -219,6 +219,14 @@ void define_wsv_data()
       "the matrix format is the same as that of abs",
       ARRAYofMATRIX_));
 
+  wsv_data.push_back
+    (WsvRecord
+     ("xsec_per_tg",
+      "These are the cross sections individually for each tag\n"
+      "group. The ARRAY contains one matrix for each tag group,\n"
+      "the matrix format is the same as that of abs",
+      ARRAYofMATRIX_));
+
 
   //--------------------< RT Stuff >--------------------
   //                     ----------

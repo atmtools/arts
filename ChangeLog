@@ -1,3 +1,18 @@
+2001-01-11  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-102
+
+	* xsec_per_tagCal WSM implememted, calculates the cross section
+	per defined absorption tag
+
+	* absCalcFromXsec WSM implemented, calculates the absorption and
+	the absorption per tag from the cross sections calculated by
+	xsec_per_tagCal.
+
+	* Agreement with the 2. Bredbeck book arts description should now be
+	archieved in principle. Still we have to rename the tg to tag, and
+	somebody should put all the stuff into the AUG.
+
 2001-01-10  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-0-0-101

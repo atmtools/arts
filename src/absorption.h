@@ -918,4 +918,15 @@ void abs_species( MATRIX&                  abs,
 		  const size_t             ind_ls,
 		  const size_t             ind_lsn);
 
+// Doc header in absorption.cc
+void xsec_species( MATRIX&                 xsec,
+		  const VECTOR&  	   f_mono,
+		  const VECTOR&  	   p_abs,
+		  const VECTOR&  	   t_abs,           
+		  const VECTOR&  	   h2o_abs,           
+		  const VECTOR&            vmr,
+		  const ARRAYofLineRecord& lines,
+		  const size_t             ind_ls,
+		  const size_t             ind_lsn);
+
 #endif // absorption_h

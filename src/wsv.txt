@@ -132,6 +132,13 @@ These are the absorption coefficients individually for each
 tag group. The ARRAY contains one matrix for each tag group,
 the matrix format is the same as that of abs
 
+VARIABLE : xsec_per_tg
+DATA TYPE: ARRAYofMATRIX
+DESCRIPTION:
+These are the cross sections individually for each tag
+group. The ARRAY contains one matrix for each tag group,
+the matrix format is the same as that of abs
+
 VARIABLE : za_pencil
 DATA TYPE: VECTOR
 DESCRIPTION:

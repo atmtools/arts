@@ -958,6 +958,179 @@ void absCalc(// WS Output:
 }
 
 
+/**
+   Calculates the absorption from a given cross section.
+
+   Only the cross section and the vmrs are required, it is assumed
+   that the vmrs are in the order of the cross sections, only the
+   dimension is checked.
+
+   \retval   abs            absorption coefficients
+   \retval   abs_per_tg     absorption coefficients per tag
+   \param    xsec_per_tg   cross sections per tag
+   \param    vmrs           volume mixing ratios per tag
+
+   \author Axel von Engeln
+   \date   2001-01-11
+*/
+void absCalcFromXsec(// WS Output:
+		     MATRIX&        		     abs,
+		     ARRAYofMATRIX& 		     abs_per_tg,
+		     // WS Input:		  
+		     const ARRAYofMATRIX&            xsec_per_tg,
+		     const ARRAYofVECTOR&            vmrs)
+{
+  // Check that vmrs and xsec_per_tg really have compatible
+  // dimensions. In vmrs there should be one VECTOR for each tg:
+  if ( vmrs.size() != xsec_per_tg.size() )
+    {
+      ostringstream os;
+      os << "Variable vmrs must have compatible dimension to xsec_per_tg.\n"
+	 << "vmrs.size() = " << vmrs.size() << '\n'
+	 << "xsec_per_tg.size() = " << xsec_per_tg.size();
+      throw runtime_error(os.str());
+    }
+
+  // Check that number of altitudes are compatible. We only check the
+  // first element, this is possilble because within arts all elements
+  // are on the same altitude grid.
+  if ( vmrs[0].size() != xsec_per_tg[0].ncols() )
+    {
+      ostringstream os;
+      os << "Variable vmrs must have same numbers of altitudes as xsec_per_tg.\n"
+	 << "vmrs[0].size() = " << vmrs[0].size() << '\n'
+	 << "xsec_per_tg[0].ncols() = " << xsec_per_tg[0].ncols();
+      throw runtime_error(os.str());
+    }  
+  
+  // Initialize abs and abs_per_tg. The array dimension of abs_per_tg
+  // is the same as that of xsec_per_tg. The dimension of abs should
+  // be equal to one of the xsec_per_tg enries.
+  resize( abs, xsec_per_tg[0].nrows(), xsec_per_tg[0].ncols() );
+  setto( abs, 0);
+  resize( abs_per_tg, xsec_per_tg.size() );
+
+  // Loop through all tags.
+  for ( INDEX i=0; i<xsec_per_tg.size(); ++i )
+    {
+      out2 << "  Tag group " << i << '\n';
+
+      // Make this element of xsec_per_tg the right size:
+      resize( abs_per_tg[i], xsec_per_tg[i].nrows(), xsec_per_tg[i].ncols() );
+      setto( abs_per_tg[i], 0 );
+
+      // Loop through all altitudes
+      for ( INDEX j=0; j<xsec_per_tg[i].ncols(); j++)
+	{
+
+	  // Loop through all frequencies
+	  for ( INDEX k=0; k<xsec_per_tg[i].nrows(); k++)
+	    {
+	      abs_per_tg[i][k][j] = xsec_per_tg[i][k][j] * vmrs[i][j];
+	    }
+	}
+
+	  // Add up to the total absorption:
+	  add( abs_per_tg[i], abs );
+    }
+}
+
+
+
+/**
+   Calculates the cross section for each tag.
+
+   \retval   xsec_per_tg    cross section per tag
+   \param    f_mono         monochromatic frequency grid
+   \param    p_abs          pressure levels 
+   \param    t_abs          temperature at pressure level
+   \param    h2o_abs        total volume mixing ratio of water vapor
+   \param    vmrs           volume mixing ratios per tag
+   \param    lines_per_tg   transition lines per tag
+   \param    lineshape      lineshape to use per tag
+   \param    lineshape_norm normalization of lineshape per tag
+
+   \author Axel von Engeln
+   \date   2001-01-11
+*/
+void xsec_per_tagCal(// WS Output:
+		     ARRAYofMATRIX& 		     xsec_per_tg,
+		     // WS Input:		  
+		     const VECTOR&  		     f_mono,
+		     const VECTOR&  		     p_abs,
+		     const VECTOR&  		     t_abs,
+		     const VECTOR&  		     h2o_abs,
+		     const ARRAYofVECTOR&            vmrs,
+		     const ARRAYofARRAYofLineRecord& lines_per_tg,
+		     const ARRAYofsizet&             lineshape,
+		     const ARRAYofsizet&             lineshape_norm)
+{
+  // Check that vmrs and lines_per_tg really have compatible
+  // dimensions. In vmrs there should be one VECTOR for each tg:
+  if ( vmrs.size() != lines_per_tg.size() )
+    {
+      ostringstream os;
+      os << "Variable vmrs must have compatible dimension to lines_per_tg.\n"
+	 << "vmrs.size() = " << vmrs.size() << '\n'
+	 << "lines_per_tg.size() = " << lines_per_tg.size();
+      throw runtime_error(os.str());
+    }
+  
+  // Initialize xsec_per_tg. The array dimension of xsec_per_tg
+  // is the same as that of lines_per_tg.
+  resize( xsec_per_tg, lines_per_tg.size() );
+
+  // Print information
+  out3 << "  Transitions to do: \n";
+  size_t nlines = 0;
+  string funit;
+  Numeric ffac;
+  if ( f_mono[0] < 3e12 )
+  {
+    funit = "GHz"; ffac = 1e9;
+  }
+  else
+  {
+    extern const Numeric SPEED_OF_LIGHT;
+    funit = "cm-1"; ffac = SPEED_OF_LIGHT*100;
+  }
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+  {
+    for ( size_t l=0; l<lines_per_tg[i].size(); ++l )
+    {
+      out3 << "    " << lines_per_tg[i][l].Name() << " @ " 
+           << lines_per_tg[i][l].F()/ffac  << " " << funit << " ("
+           << lines_per_tg[i][l].I0() << ")\n"; 
+      nlines++;
+    }
+  }
+  out2 << "  Number of frequencies     : " << f_mono.size() << "\n";
+  out2 << "  Number of pressure levels : " << p_abs.size() << "\n";
+  out2 << "  Number of transistions    : " << nlines << "\n";
+
+  // Call xsec_species for each tag group.
+  for ( size_t i=0; i<lines_per_tg.size(); ++i )
+    {
+      out2 << "  Tag group " << i << '\n';
+      
+      // Make this element of abs_per_tg the right size:
+      resize( xsec_per_tg[i], f_mono.size(), p_abs.size() );
+      setto( xsec_per_tg[i], 0 );
+
+      xsec_species( xsec_per_tg[i],
+		    f_mono,
+		    p_abs,
+		    t_abs,
+		    h2o_abs,
+		    vmrs[i],
+		    lines_per_tg[i],
+		    lineshape[i],
+		    lineshape_norm[i]);
+    }
+}
+
+
+
 
 //// refr_indexBoudourisDryAir ///////////////////////////////////////////////
 /**

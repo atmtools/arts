@@ -1179,6 +1179,31 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("absCalcFromXsec"),
+	DESCRIPTION("Calculate absorption coefficients from cross sections.\n"
+		    "This calculates both the total absorption and the\n"
+		    "absorption per tag group."),
+	OUTPUT(	    abs_  , abs_per_tg_                         ),
+	INPUT( 	    xsec_per_tg_, vmrs_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("xsec_per_tagCal"),
+	DESCRIPTION("Calculate cross sections per tag group."),
+	OUTPUT(	    xsec_per_tg_                             ),
+	INPUT( 	    f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
+		    lineshape_, lineshape_norm_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("refr_indexBoudourisDryAir"),
 	DESCRIPTION("Calculates the refractive index for dry air at micro-\n"
 		    "wave frequncies following Boudouris 1963.\n"
