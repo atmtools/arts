@@ -136,6 +136,11 @@ DATA TYPE: VECTOR
 DESCRIPTION:
 The total water profile associated with the pressures in p_abs [-]
 
+VARIABLE : n2_abs
+DATA TYPE: VECTOR
+DESCRIPTION:
+The total nitrogen profile associated with the pressures in p_abs [-]
+
 VARIABLE : vmrs
 DATA TYPE: ARRAYofVECTOR
 DESCRIPTION:

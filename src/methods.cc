@@ -1427,6 +1427,18 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("n2_absSet"),
+	DESCRIPTION(
+          "Sets n2_abs to the profile of the first tag group containing\n"
+	  "molecular nitrogen."),
+	OUTPUT(	    n2_abs_ ),
+	INPUT( 	tgs_, vmrs_  ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
 
 
 
@@ -1439,8 +1451,8 @@ void define_md_data()
 		    "calculates both the total absorption and the\n"
 		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
-	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
-		    lineshape_,
+	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
+                    lines_per_tg_, lineshape_,
 		    cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1491,7 +1503,7 @@ void define_md_data()
       ( NAME("xsec_per_tgAddConts"),
 	DESCRIPTION("Calculate cross sections per tag group for continua."),
 	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_,
+	INPUT( 	    tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_,
 		    cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -1922,7 +1934,7 @@ void define_md_data()
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( tgs_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
-               h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
+               n2_abs_, h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
                abs_, trans_, e_ground_, k_grid_,
 	       cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
@@ -2725,8 +2737,8 @@ void define_md_data()
           "  tag_files : Filenames for species data."),
 	OUTPUT( ybatch_ ),
 	INPUT( // Variables needed for absCalc
-               f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
-               lineshape_, 
+               f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
+	       lines_per_tg_, lineshape_, 
                // Additional variables for losCalc
 	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, 
                refr_lfac_, refr_index_, z_ground_, r_geoid_,

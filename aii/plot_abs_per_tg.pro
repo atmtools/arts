@@ -95,12 +95,23 @@ return, x
 end
 
 
-PRO plot_abs_per_tg, jobname, f, abs, alt, altitude=altitude,read=read,$
-                     epsfile=epsfile,psfile=psfile,$
+PRO plot_abs_per_tg, jobname, f, abs, alt, $
+                     altitude=altitude, $
+                     read=read,$
                      add_to_title=add_to_title,$
-                     avoid_tg=avoid_tg,color=color,cm=cm,$
-                     xrange=xrange,yrange=yrange,$
-                     nostamp=nostamp
+                     avoid_tg=avoid_tg, $
+                     color=color, $
+                     cm=cm,$
+                     xrange=xrange, $
+                     yrange=yrange,$
+                     nostamp=nostamp, $
+                     jobdir=jobdir, $
+                     pressure=pressure, $
+                     temperature=temperature, $
+                     absunit=absunit, $
+                     plotfilename=plotfilename,$
+                     plotfileformat=plotfileformat, $
+                     plotsum=plotsum
 
 ;; reads an arts abs_per_tg file, frequency file, and altitude file ,
 ;; and plots the different tag group absorption, the tag groups are
@@ -118,10 +129,8 @@ PRO plot_abs_per_tg, jobname, f, abs, alt, altitude=altitude,read=read,$
 ;;
 ;; KEYWORDS:
 ;;     altitude        : double-make abs plot near that altitude, 
-;;                       default: 25 km
+;;                       default: lowest altitude
 ;;     read            : int-do not read the f, abs, alt again
-;;     epsfile         : string-name of eps file to generate
-;;     psfile          : string-name of ps file to generate
 ;;     add_to_title    : string-is added to default title
 ;;     avoid_tg        : array of strings-which tag groups to plot
 ;;     color           : int-make color plot (actually always color)
@@ -129,25 +138,60 @@ PRO plot_abs_per_tg, jobname, f, abs, alt, altitude=altitude,read=read,$
 ;;     xrange          : array of double-plot range, considers cm^-1 setting
 ;;     yrange          : array of double-plot range
 ;;     nostamp         : int-produce no stamp info on output
-;;
+;;     jobdir          : sting containing the directory where the
+;;                       jobfiles are located 
+;;     pressure        : selects pressure information
+;;                       Possible values are: hPa, mbar, bar, Pa
+;;     temperature     : selects temperature information
+;;                       Possible values are: K, C
+;;     absunit         : selection of the absorption units
+;;                       Possible units are:
+;;                       1/m, 1/cm, 1/km, dB/km, Np/km
+;;     plotfilename    : string containing output file name
+;;     plotfileformat  : integer variable for the output file format.
+;;                       Possible output files formats are
+;;                          1: Postscript portrait mode, 
+;;                          2: Postscript landscape mode, 
+;;                          3: encapsulated Postscript portrait mode,
+;;                          4: encapsulated Postscript landscape mode,
+;;                          5: window
+;;     plotsum         : flag for plotting in addition the total
+;;                       absorption:
+;;                       Possible values are:
+;,                          1: plot additionally the total absorption
+;;                          2: plot only tag absorption
 ;; HISTORY:
-;;     2001-01-25 : Created Ave
+;;     2001-01-25 : Created AVE
+;;     2001-04-05 : additional functionalities TKS
 ;;
-
+;;
+;; additional plotting of total absorption? 
+if keyword_set(plotsum) then begin
+    if ((plotsum NE 1) AND (plotsum NE 2)) then plotsum = 2
+endif else begin
+    plotsum = 2
+endelse
 
 ;; read the tag groups from controlfile
-read_tag_groups,jobname+'.arts','tgsDefine',tg
+read_tag_groups,jobdir+jobname+'.arts','tgsDefine',tg
 
 ;; total number of tag groups
 tot_tg= (size(tg,/DIMENSIONS))[0]
+
+;; set directory name apropriate
+if keyword_set(jobdir) then begin 
+    jobdirname = jobdir+jobname
+endif else begin
+    jobdirname = jobname
+endelse
 
 ;; now reads the absorption per tag, and the altitudes and
 ;; frequencies, only ascii arrays are allowed currently
 if not keyword_set(read) then begin
     print,'Reading data...'
-    aii_readfile,jobname+'.f_mono.aa',f
-    aii_readfile,jobname+'.abs_per_tg.aa',abs
-    aii_readfile,jobname+'.z_abs.aa',alt
+    aii_readfile,jobdirname+'.f_mono.aa',f
+    aii_readfile,jobdirname+'.abs_per_tg.aa',abs
+    aii_readfile,jobdirname+'.z_abs.aa',alt
 endif
 
 ;; check that the tag groups and the absoprtion per tag group have the
@@ -158,23 +202,18 @@ if n_tags(abs) ne tot_tg then begin
     stop
 endif
 
-;; altitude if not given about 25 km
+;; altitude, if not given lowest altitude is taken
+string_title_alt = ' '
 if not keyword_set(altitude) then begin
-    altitude = (where(alt gt 25000))[0]
+    ialtitude = 0
 endif else begin
-    altitude = (where(alt gt altitude))[0]
+    ialtitude = (where(alt gt (altitude*1000.0)))[0]
 endelse
-if altitude eq -1 then begin
-    print, 'Error: Please chose an altitude within the calculated grid.'
-    print, '       Either altitude setting is wrong, of default (25 km) does not exist'
-    stop
-endif
-
-
+string_title_alt = string(alt[ialtitude]/1000.0,format='(F6.2)')+' km'
 
 ;; rearrange the absorption and tag groups according to their
 ;; absorption magnitude, and get max and min values for plot range
-sort_abs,abs,tg,altitude,abs1,tg1,max_arr,min_arr
+sort_abs,abs,tg,ialtitude,abs1,tg1,max_arr,min_arr
 
 ;; are certain tag groups selected or should all be plotted?
 ;; we use min_arr values of zero for avoiding
@@ -187,7 +226,7 @@ if keyword_set(avoid_tg) then begin
     endelse
 endif
 
-;; plot range
+;; frequency unit selection
 if keyword_set(cm) then begin
     unit=30.0
     unitstr='[cm!u-1!n]'
@@ -195,61 +234,184 @@ endif else begin
     unit=1.0
     unitstr='[GHz]'
 endelse
-if not keyword_set(yrange) then $
-  yrange=[min( min_arr(where(min_arr ne 0)))/10.0,max(max_arr)*10.0]
-if not keyword_set(xrange) then $
-  xrange=[min(f/1E9/unit),max(f/1E9/unit)]
 
-;; make 2 plots, one with the legend, the other one with the data
-
-;; check for eps output
-if keyword_set(epsfile) then begin
-    if (strlen( strcompress(strtrim(epsfile,2)) ) ne 1) then filename = epsfile $ 
-    else filename=jobname
-    ps=2
+;; absorption unit selection
+if keyword_set(absunit) then begin
+    case absunit of
+        '1/km' :  begin
+                  absscale = 1000.000000
+                  absunit = 'km!U-1!N'
+                  end
+        '1/cm' :  begin
+                  absscale =    0.010000
+                  absunit = 'cm!U-1!N'
+                  end
+        'dB/km' : begin
+                  absscale = 4342.944819
+                  absunit = 'dB/km'
+                  end
+        'Np/km' : begin
+                  absscale = 1000.000000
+                  absunit = 'dB/km'
+                  end
+        else:     begin
+                  absscale =    1.000000
+                  absunit = 'm!U-1!N'
+                  end
+    endcase
 endif else begin
-    if keyword_set(psfile) then begin
-        if (strlen( strcompress(strtrim(psfile,2)) ) ne 1) then filename = psfile $ 
-          else filename=jobname
-        ps=1
-    endif else begin
-        filename=jobname
-        ps=0
-    endelse
-endelse 
+    absscale = 1.000000
+    absunit = 'm!U-1!N'
+endelse
+
+;; reading pressure information
+string_title_p = ' '
+if keyword_set(pressure) then begin
+    print,'Reading pressure grid data...'
+    aii_readfile,jobdirname+'.p_abs.aa',p
+    case pressure of
+        'bar'  : begin
+                 pscale = 1.000/100000.000
+                 punit = 'bar'
+                 end
+        'mbar' : begin
+                 pscale = 1.000/100.000
+                 punit = 'mbar'
+                 end
+        'Pa'   : begin
+                 pscale = 1.000
+                 punit = 'Pa'
+                 end
+        'hPa'  : begin
+                 pscale = 1.000/100.000
+                 punit = 'hPa'
+                 end
+        'kPa'  : begin
+                 pscale = 1.000/1000.000
+                 punit = 'kPa'
+                 end
+        else:    begin
+                 pscale = 1.000
+                 punit = 'Pa'
+                 end
+   endcase
+    for i = 0,N_ELEMENTS(p)-1 do p[i] = p[i] * pscale
+    string_title_p = string(p[ialtitude],format='(F8.3)')+punit
+endif
+
+;; reading temperature information
+string_title_T = ' '
+if keyword_set(temperature) then begin
+    print,'Reading temperature grid data...'
+    aii_readfile,jobdirname+'.t_abs.aa',T
+    case temperature of
+        'K' : begin
+              Tsub = 0.000
+              Tunit = 'K'
+              end
+        'C' : begin
+              Tsub = 273.15
+              Tunit = 'C'
+              end
+        else: begin
+              Tsub = 0.000
+              Tunit = 'K'
+              end
+    endcase
+    for i = 0,N_ELEMENTS(T)-1 do T[i] = T[i]-Tsub
+    string_title_T = string(T[ialtitude],format='(F7.3)')+Tunit
+endif
+
+;; apropriate x and y range of plot
+if not keyword_set(yrange) then begin
+    ymin = min( min_arr(where(min_arr ne 0)) ) / 10.0
+    ymax = max(max_arr)*10.0
+endif
+if not keyword_set(xrange) then begin
+  xmin = min(f/1E9/unit)
+  xmax = max(f/1E9/unit)
+endif
 
 ;; check for color output? -> always use colors
 if not keyword_set(color) then color=1
 
-;; use prologue and epilogue to produce output
 ;; save settings
 P_ini = !P
-aii_prologue_l, color=color, ps=ps, filename, ls, thick
+
+;; use aii_plot_file for writing into plot output file
+if not keyword_set(plotfilename)   then plotfilename=jobname+'_plot'
+if not keyword_set(plotfileformat) then plotfileformat=2
+aii_plot_file, action='begin', fname=plotfilename, fformat=plotfileformat
+
+;; set line thickness
+thick      = 2.5                ; standard value of thick
+slidethick = 5.                 ; value of thick to use for slides
 
 ;; create color and lineshape arrays
-colors=intarr(tot_tg)
-ls=intarr(tot_tg)
-for i=0,tot_tg-1 do begin
+
+if (plotsum EQ 1) then nn=1 else nn=0
+colors=intarr(tot_tg+nn)
+ls=intarr(tot_tg+nn)
+for i=0,tot_tg+nn-1 do begin
     colors[i] = i mod 29    ;; we have 29 different colors in mycolor
-    ls[i]     = i mod  5    ;; we have  5 different lineshapes 
+    ls[i]     = i mod  5    ;; we have  5 different line styles
 endfor
 
+;; make 2 plots, one with the legend, the other one with the data
 ;; data plot
-!P.multi=[0,2,1]
-!X.margin = [2,-10]
+!P.multi  = [0,2,1]
+!X.margin = [10,-10]
 !Y.margin = [4,4]
 
 ;; add to title string
 if not keyword_set(add_to_title) then add_to_title=''
 
-;; plot in units of GHz or cm^-1
-plot,f/1E9/unit,abs1.mat0[altitude,*],yrange=yrange,ytype=1,$
-  title='Absorption: '$
-  +string(alt[altitude]/1000.0,format='(F6.2)')+' km'+add_to_title,$
-  xrange=xrange,xtitle='Frequency '+unitstr,$
-  ytitle='Absorption [1/m]',$
-  color=colors[0],linestyle=ls[0],thick=thick,$
-  xstyle=1,ystyle=1,/nodata;;,charsize=0.7*!P.charsize
+;; construct title of the plot:
+total_title= 'z='+string_title_alt+'/'+ $
+             'p='+string_title_p+'/'+$
+             'T='+string_title_T+'  '+$
+             add_to_title
+
+;; scale absorption with apropriate unit factor and summ up all
+;; tag absorption to total absorption if plotsum=0
+if (plotsum EQ 1) then begin
+    abstotal = dblarr(N_ELEMENTS(abs1.mat0[ialtitude,*]))
+    for i = 0,N_ELEMENTS(abs1.mat0[ialtitude,*])-1 do begin
+        abstotal[i] = 0.0
+    endfor
+endif
+nameoftags = TAG_NAMES(abs1)
+for k = 0,N_TAGS(abs1)-1 do begin ; loop over all tags
+    ;; loop over all frequencies
+    for i = 0,N_ELEMENTS(abs1.mat0[ialtitude,*])-1 do begin
+        ;; single tag group manipulation
+        s1 = 'abs1.'+nameoftags[k]+'[ialtitude,'+string(i,format='(I)')+'] = '+$
+             'abs1.'+nameoftags[k]+'[ialtitude,'+string(i,format='(I)')+'] * '+$
+             string(absscale,format='(F12.6)')
+        r1 = execute(s1)
+        if (plotsum EQ 1) then begin
+             s2 = 'abstotal['+string(i,format='(I)')+'] = '+$
+                  'abstotal['+string(i,format='(I)')+'] + '+$
+                  'abs1.'+nameoftags[k]+'[ialtitude,'+string(i,format='(I)')+']'
+             r2 = execute(s2)
+        endif
+    endfor
+endfor
+;; plot absorption vs. frequency
+plot, f/1E9/unit, $
+      abs1.mat0[ialtitude,*], $
+      title=total_title, $
+      yrange=[ymin*absscale, ymax*absscale], $
+      ytype=1,$
+      xrange=[xmin, xmax], $
+      xtitle='Frequency '+unitstr,$
+      ytitle='Absorption ['+absunit+']',$
+      color=colors[0], $
+      linestyle=ls[0], $
+      thick=thick,$
+      xstyle=1, $
+      ystyle=1, $
+      /nodata;;,charsize=0.7*!P.charsize
 
 index=0 ;; count only the ones we plot
 nozeros=where(min_arr ne 0)
@@ -258,29 +420,62 @@ for j=0,tot_tg-1 do begin
     dum=where(nozeros eq j,count)
     if count eq 1 then begin
         s1='oplot, f/1E9/unit, abs1.mat'+string(j,format='(I0)')+$
-          '[altitude,*],linestyle='+string(ls[index],format='(I0)')+$
+          '[ialtitude,*],linestyle='+string(ls[index],format='(I0)')+$
           ', color='+string(colors[index],format='(I0)')+', thick=2*thick'
         index=index+1
         r1 = execute(s1)
     endif else begin
-        print,'Avoided or found absorption is zero, no plotting: ',tg1[j]
+        print,'plot_abs_per_tg> Avoided or found absorption is zero, no plotting: ',tg1[j]
     endelse
 endfor
 
+;; plot total absorption if necessary
+if (plotsum EQ 1) then begin
+    oplot, f/1E9/unit, $
+           abstotal[*], $
+           linestyle=ls[index], $
+           color=colors[index], $
+           thick=2*thick
+    index = index + 1
+    abstotchar = 'total absorption'
+endif
+
 ;; legend plot
-!X.margin = [-20,0]
+!X.margin = [-130,5]
 !Y.margin = [4,4]
 plot,[0,0],xstyle=4,ystyle=4,/nodata,/noerase,/noclip
-aii_klegend_d,tg1[where(min_arr ne 0)],/fill,box=0,$
-  usersym=usersym,charsize=1.1*!P.charsize,spacing=3.2,$
-  psym=intarr(index),colors=colors[0:index-1],$
-  line=ls[0:index-1],position=[0.6,0.5+index*0.03], $
-  thick=2*thick                 ;,textcolors=colors
+if (plotsum EQ 1) then begin
+    charlegendarray = strarr(index)
+    charlegendarray[0:index-2] = tg1[where(min_arr ne 0)]
+    charlegendarray[index-1]   = abstotchar
+endif else begin
+    charlegendarray = strarr(index)
+    charlegendarray[0:index-1] = tg1[where(min_arr ne 0)]
+endelse
+;;  aii_klegend_d,tg1[where(min_arr ne 0)],/fill,box=0,$
+aii_klegend_d, charlegendarray[0:index-1], $
+               /fill, $
+               box=0,$
+               usersym=usersym, $
+               charsize=1.1*!P.charsize, $
+               spacing=3.2,$
+               psym=intarr(index), $
+               colors=colors[0:index-1],$
+               line=ls[0:index-1], $
+               position=[0.6,0.5+index*0.03], $
+               thick=2*thick
 
 !P.multi=0
 
-;; close file/plot
-aii_epilogue, filename, ps, nostamp=keyword_set(nostamp)
+;; close plot output file
+aii_plot_file, action='end', show='yes', print='no'
+
+;; cp plot output file to job directory
+FINDFILENAMEVEC = FINDFILE(plotfilename+'.*', count=numfilefound)
+if (numfilefound EQ 1) then begin
+    spawn, 'cp '+FINDFILENAMEVEC[0]+' '+jobdir+'/'+FINDFILENAMEVEC[0]
+endif
+
 ;; restore settings
 P_ini = !P    
 

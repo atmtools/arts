@@ -1569,6 +1569,7 @@ void k_temp_nohydro (
 		     const VECTOR&                        f_mono,
 		     const VECTOR&                        p_abs,
 		     const VECTOR&                        t_abs,
+		     const VECTOR&                        n2_abs,	   
 		     const VECTOR&                        h2o_abs,	   
 		     const ARRAYofVECTOR&                 vmrs,
 		     const ARRAYofARRAYofLineRecord&      lines_per_tg,
@@ -1635,9 +1636,9 @@ void k_temp_nohydro (
   {
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
-    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, h2o_abs, 
-             vmrs, lines_per_tg, lineshape, cont_description_names, 
-                                                 cont_description_parameters );
+
+    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, n2_abs, h2o_abs, vmrs, 
+             lines_per_tg, lineshape, cont_description_names, cont_description_parameters );
   }
   resize(abs_dummy,0);
   //
@@ -2010,6 +2011,7 @@ void kTempNoHydro (
 		    const VECTOR&                   f_mono,
 		    const VECTOR&                   p_abs,
 		    const VECTOR&                   t_abs,
+		    const VECTOR&                   n2_abs,
 		    const VECTOR&                   h2o_abs,
 		    const ARRAYofVECTOR&            vmrs,
 		    const ARRAYofARRAYofLineRecord& lines_per_tg,
@@ -2022,7 +2024,7 @@ void kTempNoHydro (
 		    const ARRAYofVECTOR& 	    cont_description_parameters )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
-                  t_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
+                  t_abs, n2_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
                   abs, trans, e_ground, k_grid,
 		  cont_description_names, cont_description_parameters );  
 }

@@ -17,8 +17,7 @@ print,'Reading ARTS controlfile: ',controlfile
 ;; get the # of lines in the controlfile
 spawn ,'wc -l '+controlfile, result
 nlines = 1                              ; make nlines integer
-reads,result,nlines
-
+reads, result, nlines
 cf = strarr(nlines)
 
 ;; read the whole controlfile into array cf

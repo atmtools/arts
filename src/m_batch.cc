@@ -529,6 +529,7 @@ void ybatchAbsAndRte(
         const VECTOR&                     f_mono,
         const VECTOR&                     p_abs, 
         const VECTOR&                     t_abs,
+	const VECTOR&                     n2_abs,
 	const VECTOR&                     h2o_abs,
         const ARRAYofVECTOR&              vmrs,
         const ARRAYofARRAYofLineRecord&   lines_per_tag,
@@ -681,6 +682,7 @@ void ybatchAbsAndRte(
     //cout << "f: " << f.size() << "\n";
     //cout << "p_abs: " << p_abs.size() << "\n";
     //cout << "t: " << t.size() << "\n";
+    //cout << "n2_abs : " << n2_abs.size() << "\n";
     //cout << "h2o_abs: " << h2o_abs.size() << "\n";
     //cout << "vs: " << vs.size() << "\n";
     //cout << "vs0: " << vs[0].size() << "\n";
@@ -691,9 +693,9 @@ void ybatchAbsAndRte(
 
 
     if ( (i==0) || do_t || ndo || do_f )
-      absCalc( abs, abs_per_tag, tgs, f, p_abs, t, h2o_abs, vs,
-	       lines_per_tag, lineshape, cont_description_names,
-	       cont_description_parameters);
+      absCalc( abs, abs_per_tag, tgs, f, p_abs, t, n2_abs, h2o_abs, vs, 
+	       lines_per_tag, lineshape, 
+	       cont_description_names, cont_description_parameters);
 
     if ( (i==0) || do_z || do_za )   
       losCalc( los, z_tan, z_plat, za, l_step, p_abs, z, refr, refr_lfac, 

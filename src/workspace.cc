@@ -226,6 +226,12 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
+     ("n2_abs",
+      "The total nitrogen profile associated with the pressures in p_abs [-]",
+      VECTOR_));
+
+  wsv_data.push_back
+    (WsvRecord
      ("vmrs",
       "The VMRs (unit: absolute number) on the p_abs grid.\n"
       "Dimensions: [tag_groups.size(), p_abs.size()]",

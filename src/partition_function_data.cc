@@ -238,7 +238,9 @@ void define_partition_species_data()
   iso(it_isotope,	"262",	Qcoeff(	-3.6689E+01	,1.7119E+00	,7.2123E-03	,-3.0200E-06) );
   iso(it_isotope,	"ContRosenkranzSelf",    Qcoeff( 0	,0		,0		,0          ) );
   iso(it_isotope,	"ContRosenkranzForeign", Qcoeff( 0	,0		,0		,0          ) );
-
+  iso(it_isotope,	"ContMPM93",             Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ContCKDSelf",           Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ContCKDForeign",        Qcoeff( 0	,0		,0		,0          ) );
 
 
   // CO2
@@ -255,6 +257,8 @@ void define_partition_species_data()
   iso(it_isotope,	"637",	Qcoeff(	-2.6263E+01	,2.3350E+01	,-1.7032E-02	,6.7532E-05) );
   iso(it_isotope,	"828",	Qcoeff(	-1.4811E+00	,1.0667E+00	,-7.8758E-04	,3.0133E-06) );
   iso(it_isotope,	"728",	Qcoeff(	-1.7600E+01	,1.2445E+01	,-9.1837E-03	,3.4915E-05) );
+  iso(it_isotope,	"ContRosenkranzSelf",       Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ContRosenkranzForeign",    Qcoeff( 0	,0		,0		,0          ) );
 
 
 
@@ -322,6 +326,7 @@ void define_partition_species_data()
   iso(it_isotope,	"66",	Qcoeff(	3.5923E-01	,7.3534E-01	,-6.4870E-05	,1.3073E-07) );
   iso(it_isotope,	"68",	Qcoeff(	-4.0039E+00	,1.5595E+00	,-1.5357E-04	,3.0969E-07) );
   iso(it_isotope,	"67",	Qcoeff(	-2.3325E+01	,9.0981E+00	,-8.4435E-04	,1.7062E-06) );
+  iso(it_isotope,	"ContRosenkranz",   Qcoeff( 0	,0		,0		,0          ) );
 
 
 
@@ -496,7 +501,8 @@ void define_partition_species_data()
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"44",	Qcoeff(	1.3684E+00	,1.5756E+00	,-1.8511E-05	,3.8960E-08) );
-
+  iso(it_isotope,	"ContRosenkranzSelf",    Qcoeff( 0	,0		,0		,0          ) );
+  iso(it_isotope,	"ContBorysowSelf",       Qcoeff( 0	,0		,0		,0          ) );
 
 
   // HCN

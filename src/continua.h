@@ -17,6 +17,7 @@ void xsec_continuum_tag( MATRIX&                    xsec,
 			 const VECTOR&  	    f_mono,
 			 const VECTOR&  	    p_abs,
 			 const VECTOR&  	    t_abs,
+			 const VECTOR&  	    n2_abs,
 			 const VECTOR&  	    h2o_abs,
 			 const VECTOR&              vmr );
 

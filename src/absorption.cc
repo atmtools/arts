@@ -1748,7 +1748,7 @@ void xsec_species( MATRIX&                  xsec,
   INDEX ii = (nf < 10) ? 10 : nf;
   VECTOR aux(ii);
 
-  // Check that p_abs, t_abs and h2o_abs all have the same
+  // Check that p_abs, t_abs, and h2o_abs all have the same
   // dimension. This could be a user error, so we throw a
   // runtime_error.  FIXME: why do we do this for each tag? wouldn't a
   // check in abscalc be sufficient?
@@ -1779,6 +1779,7 @@ void xsec_species( MATRIX&                  xsec,
 	 << "p_abs.size() = " << p_abs.size();
       throw runtime_error(os.str());
     }
+
 
   // Check that the dimension of xsec is indeed [f_mono.size(),
   // p_abs.size()]:

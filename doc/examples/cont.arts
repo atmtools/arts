@@ -13,11 +13,16 @@
 # can add the H2O continua to a H2O line tag group, or keep them
 # separate as in this example.
 tgsDefine{
-      [ "H2O", 
-	"H2O-ContRosenkranzSelf",
-	"H2O-ContRosenkranzForeign"] 
+      [ "H2O-ContRosenkranzSelf",
+	"H2O-ContRosenkranzForeign",
+	"H2O-ContMPM93",
+	"CO2-ContRosenkranzSelf",
+	"CO2-ContRosenkranzForeign",
+	"N2-ContRosenkranzSelf",
+	"O2-ContRosenkranz"] 
 }
-
+#
+# ********************************************************************
 # The next few methods set the WSVs `cont_description_names' and
 # `cont_description_parameters'. The first one contains names of allowed
 # continua, the second the required parameters (in the case of
@@ -30,31 +35,77 @@ tgsDefine{
 # continuum tag mentioned in tgsDefine there MUST be a cont_description,
 # but not for every cont_description there must be a continuum tag in
 # tgsDefine.
-
+#
 cont_descriptionInit{}
-
-# FIXME: Thomas, the values for C and x are just my guess from the
-# Rosenkranz paper. You have to put in the right ones. Note
-# that xsec is in [1/m], f_mono is in [Hz], p_abs is in [Pa], and t_abs is in
-# [K]. Therefor, the exponent in C is very different from
-# Rosenkranz's paper. I probably have not got it right, I did
-# this very quickly. You have to find out the right numbers yourself.
+#
+# ---------- H2O -------------------------------
+# Rosenkranz original parameters:
+# Cs = 17.96e-34 1/m / (Hz^2*Pa^2)
+# xs = 4.5
 cont_descriptionAppend{
     name       = "H2O-ContRosenkranzSelf"
-    parameters = [ 7.8e-27, 4.5 ]
+    parameters = [ 17.96e-34, 4.5 ]
 }
-
+#
+# Rosenkranz original parameters:
+# Cs = 5.43e-35 1/m / (Hz^2*Pa^2)
+# xs = 0.0
 cont_descriptionAppend{
     name       = "H2O-ContRosenkranzForeign"
-    parameters = [ 2.5e-3, 7e15 ]
+    parameters = [ 5.43e-35, 0.0 ]
 }
-
+#
+# MPM93 original parameters:
+# f0 =  1780.0e9 Hz
+# b1 = 22300.0 Hz/Pa
+# b2 =     0.952
+# b3 =    17.6e4 Hz/Pa
+# b4 =    30.5
+# b5 =     2
+# b6 =     5
+cont_descriptionAppend{
+    name       = "H2O-ContMPM93"
+    parameters = [ 1780.0e9, 22300.0, 0.952, 17.6e4, 30.5, 2, 5 ]
+}
+# ---------- CO2 -------------------------------
+# Rosenkranz CO2-self continuum:
+# C = 7.43e-37 1/(Pa^2*Hz^2*m)
+# x = 5.08
+cont_descriptionAppend{
+    name       = "CO2-ContRosenkranzSelf"
+    parameters = [ 7.43e-37, 5.08 ]
+}
+#
+# Rosenkranz CO2-foreign continuum:
+# C = 2.71e-37 1/(Pa^2*Hz^2*m)
+# x = 4.7
+cont_descriptionAppend{
+    name       = "CO2-ContRosenkranzForeign"
+    parameters = [ 2.71e-37, 4.7 ]
+}
+# ---------- nitrogen --------------------------
+# Rosenkranz N2-self continuum:
+# C = 1.05e-38 1/(Pa^2*Hz^2*m)
+# x = 3.55
+cont_descriptionAppend{
+    name       = "N2-ContRosenkranzSelf"
+    parameters = [ 1.05e-38, 3.55 ]
+}
+# ---------- oxygen ----------------------------
+# Rosenkranz O2 continuum:
+# C = 1.108e-14 K^2/(Hz*Pa*m)
+# x = 0.8
+cont_descriptionAppend{
+    name       = "O2-ContRosenkranz"
+    parameters = [ 1.108e-14, 0.8 ]
+}
+# ********************************************************************
 # Read spectral line data from HITRAN catalogue for 0-200 GHz:
 lines_per_tgReadFromCatalogues{
-  filenames = ["../../data/spectroscopy/hitran96/hitran96_lowfreq.par"]
+  filenames = ["arts/data/spectroscopy/hitran96/hitran96_lowfreq.par"]
   formats = [ "HITRAN96" ]
-  fmin    = [     0      ]       
-  fmax    = [     200e9  ]   
+  fmin    = [     0.0e9  ]       
+  fmax    = [     1.5e12  ]   
 }
 
 lines_per_tgWriteToFile{""} 
@@ -63,11 +114,11 @@ lines_per_tgWriteToFile{""}
 # Read the pressure, temperature, and altitude profiles and create 
 # the workspace variable `raw_ptz_1d':
 MatrixReadAscii (raw_ptz_1d) 
-        {"../../data/atmosphere/fascod/midlatitude-summer.tz.am"}
+        {"arts/data/atmosphere/fascod/midlatitude-summer.tz.am"}
 
 # The same for the input VMR profiles:
 raw_vmrs_1dReadFromScenario
-        {"../../data/atmosphere/fascod/midlatitude-summer"}
+        {"arts/data/atmosphere/fascod/midlatitude-summer"}
 
 # Optionally write this to a file:
 #ArrayOfMatrixWriteAscii (raw_vmrs_1d) {""}
@@ -76,8 +127,8 @@ raw_vmrs_1dReadFromScenario
 # Create the pressure grid `p_abs':
 VectorNLogSpace(p_abs){
         start = 100000
-        stop  = 10
-        n     = 140
+        stop  = 100000
+        n     =      2
 }
 
 VectorWriteAscii(p_abs){""}
@@ -87,8 +138,11 @@ VectorWriteAscii(p_abs){""}
 # grid and create the atmospheric variables `t_abs', `z_abs', `vmrs'
 AtmFromRaw1D{}
 
+# Set the physical N2 profile from the N2 profile in vmrs:
+VectorCopyFromArrayOfVector(n2_abs,vmrs){5}
+
 # Set the physical H2O profile from the H2O profile in vmrs:
-VectorCopyFromArrayOfVector(h2o_abs,vmrs){0}
+VectorCopyFromArrayOfVector(h2o_abs,vmrs){1}
 
 # Optionally write these to files:
 VectorWriteAscii (t_abs) {""}
@@ -98,9 +152,9 @@ ArrayOfVectorWriteAscii (vmrs)  {""}
 
 # Create the frequency grid `f_mono':
 VectorNLinSpace(f_mono){
-        start = 1e9
-        stop  = 200e9
-        n     = 200    
+        start = 100.0e9
+        stop  = 100.0e9
+        n     = 2    
 }
 
 # Write frequency grid to file:

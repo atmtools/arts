@@ -186,7 +186,10 @@ void define_basic_species_data()
 	 REC( "182"		,6.1070746E-07	,21.	,-1	,-1	,TAGS(21001) ),
 	 REC( "262"		,2.2430204E-08	,20.	,-1	,-1	,TAGS(20001) ),
 	 REC( "ContRosenkranzSelf"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
-	 REC( "ContRosenkranzForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      )
+	 REC( "ContRosenkranzForeign"	,-1.	,-1.	,-1	,-1	,TAGS()      ),
+  	 REC( "ContMPM93"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+  	 REC( "ContCKDSelf"	        ,-1.	,-1.	,-1	,-1	,TAGS()      ),
+  	 REC( "ContCKDForeign"	        ,-1.	,-1.	,-1	,-1	,TAGS()      )
 	 ) ) );
 
   // CO2 
@@ -207,7 +210,9 @@ void define_basic_species_data()
 	 REC( "638"	,0.00004434	,47.	,25	,25	,TAGS() ),
 	 REC( "637"	,0.00000825	,46.	,26	,26	,TAGS() ),
 	 REC( "828"	,0.0000039573	,48.	,27	,27	,TAGS() ),
-	 REC( "728"	,0.00000147	,47.	,28	,28	,TAGS() )
+	 REC( "728"	,0.00000147	,47.	,28	,28	,TAGS() ),
+	 REC( "ContRosenkranzSelf"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "ContRosenkranzForeign"	,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
   
 
@@ -291,7 +296,8 @@ void define_basic_species_data()
 	 //		|		|	|	|	|
 	 REC("66"	,0.995262	,32.	,71	,71	,TAGS(32001, 32002)),
 	 REC("68"	,0.00399141	,34.	,72	,72	,TAGS(34001)),
-	 REC("67"	,0.000742	,33.	,73	,73	,TAGS(33002))
+	 REC("67"	,0.000742	,33.	,73	,73	,TAGS(33002)),
+	 REC( "ContRosenkranz"	,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // NO
@@ -520,7 +526,9 @@ void define_basic_species_data()
 	ISOTOPES
 	(//  Name,	Isotopic Ratio,	Mass,	MY-tag, HI-tag, JPL-tag
 	 //		|		|	|	|	|
-	 REC("44"	,0.9926874	,28.	,-1	,221	,TAGS( ))
+	 REC("44"	,0.9926874	,28.	,-1	,221	,TAGS( )),
+	 REC( "ContRosenkranzSelf"	,-1.	,-1.	,-1	,-1	,TAGS()),
+	 REC( "ContBorysowSelf"	        ,-1.	,-1.	,-1	,-1	,TAGS())
 	 ) ) );
 
   // HCN

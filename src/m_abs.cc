@@ -1247,8 +1247,9 @@ void h2o_absSet(
         const ARRAYofVECTOR&   vmrs )
 {
   const INDEX   n = tgs.size();
-        int     found = -1;
-        string  s;
+  int   found = -1;
+  string  s;
+
 
   for( INDEX i=0; i<n && found<0; i++ ) 
   {
@@ -1266,6 +1267,39 @@ void h2o_absSet(
 }
 
 
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+   Just a copy of the function 'h2o_absSet' 
+   but now for nitrogen.
+
+   \author Patrick Eriksson
+   \date   2001-01-18
+*/
+void n2_absSet(
+	       VECTOR&          n2_abs,
+         const TagGroups&       tgs,
+         const ARRAYofVECTOR&   vmrs )
+{
+  const INDEX   n = tgs.size();
+  int     found = -1;
+  string  s;
+
+  for( INDEX i=0; i<n && found<0; i++ ) 
+  {
+    s = tgs[i][0].Name();
+    
+    if ( s.substr(0,2) == "N2" )
+      found = int(i);
+  }
+
+  if ( found < 0 )
+    throw runtime_error("No tag group contains nitrogen");
+  
+  resize( n2_abs, vmrs[found].size() );
+  copy( vmrs[found], n2_abs );
+}
 
 
 
@@ -1305,6 +1339,7 @@ void absCalc(// WS Output:
              const VECTOR&  		     f_mono,
              const VECTOR&  		     p_abs,
              const VECTOR&  		     t_abs,
+	     const VECTOR&  		     n2_abs,
 	     const VECTOR&  		     h2o_abs,
              const ARRAYofVECTOR&            vmrs,
              const ARRAYofARRAYofLineRecord& lines_per_tg,
@@ -1334,6 +1369,7 @@ void absCalc(// WS Output:
 		       f_mono,
 		       p_abs,
 		       t_abs,
+		       n2_abs,
 		       h2o_abs,
 		       vmrs,
 		       cont_description_names,
@@ -1589,6 +1625,7 @@ void xsec_per_tgAddLines(// WS Output:
    \param    f_mono         monochromatic frequency grid
    \param    p_abs          pressure levels 
    \param    t_abs          temperature at pressure level
+   \param    n2_abs         total volume mixing ratio of nitrogen
    \param    h2o_abs        total volume mixing ratio of water vapor
    \param    vmrs           volume mixing ratios per tag group
    \param    cont_description_names names of different continuum
@@ -1609,6 +1646,7 @@ void xsec_per_tgAddConts(// WS Output:
 			 const VECTOR&  		  f_mono,
 			 const VECTOR&  		  p_abs,
 			 const VECTOR&  		  t_abs,
+			 const VECTOR&  		  n2_abs,
 			 const VECTOR&  		  h2o_abs,
 			 const ARRAYofVECTOR&             vmrs,
                          const ARRAYofstring&             cont_description_names,
@@ -1741,6 +1779,7 @@ void xsec_per_tgAddConts(// WS Output:
 				      f_mono,
 				      p_abs,
 				      t_abs,
+				      n2_abs,
 				      h2o_abs,
 				      vmrs[i] );
 		}
