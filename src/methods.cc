@@ -1033,7 +1033,7 @@ void define_md_data()
 	  "Specify an available lineshape, together with a normalization factor.\n"
 	  "Normalization Factors:  no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
 	  "Example:\n"
-	  "shapename=\"Lorentz\" normalizationname=\"linear\""),
+	  "shape=\"Lorentz\" normalizationfactor=\"linear\""),
 	OUTPUT( lineshape_, lineshape_norm_ ),
 	INPUT( tag_groups_ ),
 	GOUTPUT(),
@@ -1050,8 +1050,8 @@ void define_md_data()
 	  "normalization factor.\n"
 	  "Normalization Factors: no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
 	  "Example:\n"
-	  "shapename=[\"Lorentz\",\"Voigt_Kuntz1\"] \n"
-	  "normalizationname=[\"linear\", \"quadratic\"]"),
+	  "shape=[\"Lorentz\",\"Voigt_Kuntz1\"] \n"
+	  "normalizationfactor=[\"linear\", \"quadratic\"]"),
 	OUTPUT( lineshape_ , lineshape_norm_ ),
 	INPUT( tag_groups_ ),
 	GOUTPUT(),

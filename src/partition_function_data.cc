@@ -74,43 +74,36 @@
   with an idl program that comes along with the arts distribution
   (partition_function.pro). This calculates the partition function for
   all temperatures between 70 and 500 K from the given JPL values, by
-  using the recommended JPL interpolation scheme. The program then
-  fits a polynomial to the data, and outputs the coefficients. The
-  polynomial is fitted between temperatures of 70 to 500 K. No big
-  difference is found in the ratio of the partition functions
-  Q(300K)/Q(T) (the relevant quantity for the calculation of
+  using the recommended JPL interpolation scheme. JPL does not
+  consider vibrational energy levels in the partition functions and a
+  correction based on a literature research is performed within the
+  idl program (for energy levels refer to that idl file). The
+  literature research yielded only main isotope vibrational levels,
+  since nothing better is available they were used for the isotopes as
+  well. The idl program fits a polynomial to the data, and outputs the
+  coefficients. The polynomial is fitted between temperatures of 70 to
+  500 K. No big difference is found in the ratio of the partition
+  functions Q(300K)/Q(T) (the relevant quantity for the calculation of
   the JPL intensities to other temperatures) for other fit ranges,
   e.g., 9 - 300 K (range where the JPL partition functions are given),
-  except for HCOOH, where the  0 to 300 K fit is better and was
+  except for HCOOH, where the 0 to 300 K fit is better and was
   therefore use for this species (see below).
 
   This idl program allows additionally the comparison of partition
   functions of the 2 catalogues, when the species is defined in both
-  catalogues. Partition function differ often by more than 10 %,
+  catalogues. Partition function differ sometimes by more than 10 %,
   important nevertheless is the ratio of the partition function at the
   temperature where the catalogue line intensity is given, and the
-  desired temperature, e.g., JPL: Q(300K)/Q/T. This ratio was found
-  to vary as well by more than 10 % for specific species, as given in
-  the table below, which list the difference found for the partition
-  function and the one found in the ratio (Q(300K)/Q/T)):
+  desired temperature, e.g., JPL: Q(300K)/Q/T. This ratio was found to
+  vary as well sometimes by more than 10 % for specific species, as
+  given in the table below, which list the difference found for the
+  partition function and the one found in the ratio (Q(300K)/Q/T)):
 
 \verbatim
   NAME     JPL TAG    HITRAN    Difference: Q / Ratio [%]   
-  CO2      46013       23     > 10.0 /  10.0         
-  CO2      45012       24     > 10.0 /  10.0         
-  N2O      44004       41     > 10.0 /  > 10.0       
-  N2O      45007       42     > 10.0 /  > 10.0       
-  N2O      45008       43     > 10.0 /  > 10.0       
-  N2O      46007       44     > 10.0 /  > 10.0       
   CH4      17003       63     > 10.0 /  > 10.0       
-  SO2      64002       91     > 10.0 / 10.0          
-  SO2      66002       92     > 10.0 / 10.0          
   NH3      18002      112     > 10.0 /  > 10.0       
   HNO3     63001      121     no coeff defined in tips
-  OCS      60001      191     > 10.0 /  > 10.0       
-  OCS      62001      192     > 10.0 /  > 10.0       
-  OCS      61001      193     > 10.0 /  > 10.0       
-  OCS      62002      194     > 10.0 /  > 10.0       
   H2O2     34004      251     > 10.0 /  > 10.0       
   COF2     66001      291     > 10.0 /  > 10.0       
   HCOOH    46005      321     > 10.0 /  > 10.0       
@@ -127,12 +120,8 @@
 
   HNO3 and ClONO2 are covered in the JPL database, and a polynomial
   fit to the partition function calculated with the recommended scheme
-  was found to be accurate within 2 percents, therefore the JPL
-  partition function was used for these 2 molecules. JPL values allow
-  a polynomial fit because certain vibrational levels are missing in
-  the partition function (Holger Müller, Uni Cologne). No information
-  is availabe about the introduced error of this missing vibration
-  states.
+  was found to be accurate within 4 percents, therefore the JPL
+  partition function was used for these 2 molecules. 
 
   The other molecules (SF6, C2H6) and atom (O) were marked as not
   appropriate for a polynomial fit following the tips convention, e.g.,
@@ -206,8 +195,7 @@
   </dl>
 
   \author Axel von Engeln  
-  \date   2000-08-21 
-*/
+  \date 2000-08-21 */
 
 void spec(ARRAY<SpeciesRecord>::iterator& is,
 	  ARRAY<IsotopeRecord>::iterator& ii,
@@ -228,7 +216,7 @@ void define_partition_species_data()
 
   // H2O
   // Coeff:       1      1      1      1      2      2
-  // Quality:    0.33   0.33   0.39   0.50   0.33   0.35
+  // Quality:    0.28   0.28   0.35   0.46   0.32   0.34
   spec(it_species, it_isotope, "H2O");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -236,14 +224,14 @@ void define_partition_species_data()
   iso(it_isotope,	"181",	Qcoeff(	-4.3624E+00	,2.7647E-01	,1.2802E-03	,-5.2046E-07) );
   iso(it_isotope,	"171",	Qcoeff(	-2.5767E+01	,1.6458E+00	,7.6905E-03	,-3.1668E-06) );
   iso(it_isotope,	"162",	Qcoeff(	-2.3916E+01	,1.3793E+00	,6.1246E-03	,-2.1530E-06) );
-  iso(it_isotope,	"182",	Qcoeff(	-5.1419E+00	,2.4479E-01	,1.0199E-03	,-4.2468E-07) );
-  iso(it_isotope,	"262",	Qcoeff(	-3.7362E+01	,1.7225E+00	,7.1688E-03	,-2.9865E-06) );
+  iso(it_isotope,	"182",	Qcoeff(	-5.1056E+00	,2.4408E-01	,1.0230E-03	,-4.2596E-07) );
+  iso(it_isotope,	"262",	Qcoeff(	-3.6689E+01	,1.7119E+00	,7.2123E-03	,-3.0200E-06) );
 
 
 
   // CO2
   // Coeff:       1      1      1      1      1      1      1      1
-  // Quality:    ----   ----   8.76   8.67   ----   ----   ----   ----
+  // Quality:    ----   ----   4.40   4.32   ----   ----   ----   ----
   spec(it_species, it_isotope, "CO2");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -260,7 +248,7 @@ void define_partition_species_data()
 
   // O3
   // Coeff:       1      1      1      1      1
-  // Quality:    1.30   5.82   5.88   5.25   5.29
+  // Quality:    3.86   2.64   2.49   1.25   1.28
   spec(it_species, it_isotope, "O3");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -274,7 +262,7 @@ void define_partition_species_data()
 
   // N2O
   // Coeff:       1      1      1      1      1
-  // Quality:   12.71  13.33  12.83  12.11   ----
+  // Quality:    0.89   1.26   0.95   0.82   ----
   spec(it_species, it_isotope, "N2O");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -303,7 +291,7 @@ void define_partition_species_data()
 
   // CH4
   // Coeff:       1      1      1
-  // Quality:    ----   ----  22.18
+  // Quality:    ----   ----  21.43
   spec(it_species, it_isotope, "CH4");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -315,7 +303,7 @@ void define_partition_species_data()
 
   // O2
   // Coeff:       1      1      1
-  // Quality:    0.06   0.68   0.71
+  // Quality:    0.11   0.62   0.65
   spec(it_species, it_isotope, "O2");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -339,20 +327,20 @@ void define_partition_species_data()
 
   // SO2
   // Coeff:       1      1      2      2
-  // Quality:    9.28   9.25   0.35   0.35
+  // Quality:    1.26   1.23   1.32   1.32
   spec(it_species, it_isotope, "SO2");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"626",	Qcoeff(	-2.4056E+02	,1.1101E+01	,2.2164E-02	,5.2334E-05) );
   iso(it_isotope,	"646",	Qcoeff(	-2.4167E+02	,1.1151E+01	,2.2270E-02	,5.2550E-05) );
-  iso(it_isotope,	"636",	Qcoeff(	-8.9492E+02	,3.8997E+01	,1.6619E-01	,-7.0199E-05) );
-  iso(it_isotope,	"628",	Qcoeff(	-4.8125E+02	,2.0825E+01	,8.8091E-02	,-3.6976E-05) );
+  iso(it_isotope,	"636",	Qcoeff(	5.8740E+02	,1.2472E+01	,2.9113E-01	,-1.6236E-04) );
+  iso(it_isotope,	"628",	Qcoeff(	3.1299E+02	,6.6372E+00	,1.5485E-01	,-8.6343E-05) );
 
 
 
   // NO2
   // Coeff:       1
-  // Quality:    3.46
+  // Quality:    0.98
   spec(it_species, it_isotope, "NO2");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -362,23 +350,23 @@ void define_partition_species_data()
 
   // NH3
   // Coeff:       1      1      2
-  // Quality:    2.07  22.22   0.52
+  // Quality:    1.36  21.42   0.71
   spec(it_species, it_isotope, "NH3");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"4111",	Qcoeff(	-6.2293E+01	,3.0915E+00	,9.4575E-03	,1.8416E-06) );
   iso(it_isotope,	"5111",	Qcoeff(	-4.2130E+01	,2.0569E+00	,6.3387E-03	,1.2127E-06) );
-  iso(it_isotope,	"4112",	Qcoeff(	-1.0529E+02	,4.9832E+00	,3.0955E-02	,-1.4409E-05) );
+  iso(it_isotope,	"4112",	Qcoeff(	-7.4642E+01	,4.4740E+00	,3.3126E-02	,-1.6003E-05) );
 
 
 
   // HNO3
   // Coeff:       2
-  // Quality:    0.38
+  // Quality:    4.00
   spec(it_species, it_isotope, "HNO3");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
-  iso(it_isotope,	"146",	Qcoeff(	-1.0936E+03	,4.6423E+01	,1.9143E-01	,-7.9439E-05) );
+  iso(it_isotope,	"146",	Qcoeff(	4.7202E+03	,-5.5810E+01	,6.6216E-01	,-4.2602E-04) );
 
 
 
@@ -414,7 +402,7 @@ void define_partition_species_data()
   iso(it_isotope,	"15",	Qcoeff(	2.8627E+00	,5.3122E-01	,6.7464E-06	,-1.6730E-09) );
   iso(it_isotope,	"17",	Qcoeff(	2.8617E+00	,5.3203E-01	,6.6553E-06	,-1.5168E-09) );
   iso(it_isotope,	"25",	Qcoeff(	1.2492E+00	,5.1693E-01	,-1.0216E-06	,2.4388E-09) );
-  iso(it_isotope,	"27",	Qcoeff(	1.2017E+00	,5.1911E-01	,-3.3197E-06	,4.9817E-09) );
+  iso(it_isotope,	"27",	Qcoeff(	1.2054E+00	,5.1906E-01	,-3.1578E-06	,4.8085E-09) );
 
 
 
@@ -452,7 +440,7 @@ void define_partition_species_data()
 
   // OCS
   // Coeff:       1      1      1      1
-  // Quality:   19.14  19.14  20.48  20.07
+  // Quality:    1.49   1.66   2.43   2.15
   spec(it_species, it_isotope, "OCS");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -465,21 +453,21 @@ void define_partition_species_data()
 
   // H2CO
   // Coeff:       1      1      1      2      2
-  // Quality:    3.55   3.94   1.39   0.34   0.34
+  // Quality:    2.80   3.18   0.74   0.18   0.21
   spec(it_species, it_isotope, "H2CO");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"1126",	Qcoeff(	-1.1760E+02	,4.6885E+00	,1.5088E-02	,3.5367E-06) );
   iso(it_isotope,	"1136",	Qcoeff(	-2.4126E+02	,9.6134E+00	,3.0938E-02	,7.2579E-06) );
   iso(it_isotope,	"1128",	Qcoeff(	-1.1999E+02	,5.2912E+00	,1.4686E-02	,4.3505E-06) );
-  iso(it_isotope,	"1226",	Qcoeff(	-7.8182E+01	,3.2960E+00	,1.2870E-02	,-5.2158E-06) );
-  iso(it_isotope,	"2226",	Qcoeff(	-4.2971E+02	,1.8783E+01	,7.9045E-02	,-3.3104E-05) );
+  iso(it_isotope,	"1226",	Qcoeff(	-6.3717E+01	,3.0566E+00	,1.3879E-02	,-5.9420E-06) );
+  iso(it_isotope,	"2226",	Qcoeff(	-3.4485E+02	,1.7375E+01	,8.4988E-02	,-3.7365E-05) );
 
 
 
   // HOCl
   // Coeff:       1      1
-  // Quality:    3.89   3.89
+  // Quality:    0.95   0.95
   spec(it_species, it_isotope, "HOCl");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -500,20 +488,20 @@ void define_partition_species_data()
 
   // HCN
   // Coeff:       1      1      1      2
-  // Quality:    6.84   7.05   7.13   1.42
+  // Quality:    0.51   0.38   0.45   1.72
   spec(it_species, it_isotope, "HCN");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"124",	Qcoeff(	-1.3992E+00	,2.9619E+00	,-1.7464E-03	,6.5937E-06) );
   iso(it_isotope,	"134",	Qcoeff(	-2.5869E+00	,6.0744E+00	,-3.5719E-03	,1.3654E-05) );
   iso(it_isotope,	"125",	Qcoeff(	-1.1408E+00	,2.0353E+00	,-1.2159E-03	,4.6375E-06) );
-  iso(it_isotope,	"224",	Qcoeff(	-1.0261E+01	,1.9009E+00	,-1.1334E-03	,2.3164E-06) );
+  iso(it_isotope,	"224",	Qcoeff(	1.4949E+01	,1.4567E+00	,9.0970E-04	,8.0655E-07) );
 
 
 
   // CH3Cl
   // Coeff:       1      1
-  // Quality:    5.86   5.92
+  // Quality:    1.65   1.71
   spec(it_species, it_isotope, "CH3Cl");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -555,7 +543,7 @@ void define_partition_species_data()
 
   // PH3
   // Coeff:       1
-  // Quality:    3.70
+  // Quality:    2.06
   spec(it_species, it_isotope, "PH3");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -565,7 +553,7 @@ void define_partition_species_data()
 
   // COF2
   // Coeff:       1
-  // Quality:   16.72
+  // Quality:   13.92
   spec(it_species, it_isotope, "COF2");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
@@ -585,25 +573,25 @@ void define_partition_species_data()
 
   // H2S
   // Coeff:       1      1      1      2
-  // Quality:    0.60   ----   ----   0.40
+  // Quality:    0.29   ----   ----   0.32
   spec(it_species, it_isotope, "H2S");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"121",	Qcoeff(	-1.5521E+01	,8.3130E-01	,3.3656E-03	,-8.5691E-07) );
   iso(it_isotope,	"141",	Qcoeff(	-1.5561E+01	,8.3337E-01	,3.3744E-03	,-8.5937E-07) );
   iso(it_isotope,	"131",	Qcoeff(	-6.2170E+01	,3.3295E+00	,1.3480E-02	,-3.4323E-06) );
-  iso(it_isotope,	"122",	Qcoeff(	-1.7216E+01	,7.3676E-01	,2.8697E-03	,-1.1650E-06) );
+  iso(it_isotope,	"122",	Qcoeff(	-1.5731E+01	,7.1204E-01	,2.9745E-03	,-1.2403E-06) );
 
 
 
   // HCOOH
   // Coeff:       1      2      2      2
-  // Quality:   12.54   6.53   0.55   0.57
+  // Quality:   12.54   6.54   0.55   0.57
   spec(it_species, it_isotope, "HCOOH");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"1261",	Qcoeff(	-2.9550E+03	,1.0349E+02	,-1.3146E-01	,8.7787E-04) );
-  iso(it_isotope,	"1361",	Qcoeff(	2.0081E+02	,-4.9619E+00	,2.3524E-01	,-4.0531E-04) );
+  iso(it_isotope,	"1361",	Qcoeff(	2.0082E+02	,-4.9620E+00	,2.3524E-01	,-4.0531E-04) );
   iso(it_isotope,	"2261",	Qcoeff(	-2.5614E+01	,8.4704E+00	,1.2417E-01	,-1.1758E-04) );
   iso(it_isotope,	"1262",	Qcoeff(	-5.7615E+01	,9.5919E+00	,1.0930E-01	,-1.0134E-04) );
 
@@ -636,7 +624,7 @@ void define_partition_species_data()
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"5646",	Qcoeff(	-4.9350E+03	,2.7375E+02	,7.2257E+00	,-4.2583E-03) );
-  iso(it_isotope,	"7646",	Qcoeff(	-4.9554E+03	,2.7955E+02	,7.4136E+00	,-4.3714E-03) );
+  iso(it_isotope,	"7646",	Qcoeff(	-4.9721E+03	,2.7978E+02	,7.4127E+00	,-4.3703E-03) );
 
 
 
@@ -652,12 +640,12 @@ void define_partition_species_data()
 
   // OClO
   // Coeff:       2      2
-  // Quality:    1.55   0.75
+  // Quality:    1.09   1.13
   spec(it_species, it_isotope, "OClO");
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
-  iso(it_isotope,	"656",	Qcoeff(	-4.4583E+03	,1.2893E+02	,2.1655E-01	,-4.4496E-05) );
-  iso(it_isotope,	"676",	Qcoeff(	-3.6048E+03	,1.1569E+02	,2.5805E-01	,-7.0900E-05) );
+  iso(it_isotope,	"656",	Qcoeff(	1.0809E+02	,4.5813E+01	,6.1875E-01	,-3.4280E-04) );
+  iso(it_isotope,	"676",	Qcoeff(	1.0495E+03	,3.1385E+01	,6.6403E-01	,-3.7240E-04) );
 
 
 
@@ -689,7 +677,7 @@ void define_partition_species_data()
   //			Name		c0		c1		c2		c3
   //			|		|		|		|		|
   iso(it_isotope,	"565",	Qcoeff(	-1.6546E+04	,7.0845E+02	,2.9249E+00	,-1.2097E-03) );
-  iso(it_isotope,	"765",	Qcoeff(	-1.6863E+04	,7.2610E+02	,3.0201E+00	,-1.2538E-03) );
+  iso(it_isotope,	"765",	Qcoeff(	-1.6893E+04	,7.2651E+02	,3.0185E+00	,-1.2520E-03) );
 
 }
 
