@@ -17,6 +17,7 @@
 %  \stophistory
 %
 \starthistory
+  000728 & Stefan Buehler: Added stuff about build system and howto cut a release. \\
   000615 & Created by Stefan Buehler. For now, this is basically the
   former content of the file \verb|notes.txt|. \\
 \stophistory
@@ -40,29 +41,31 @@ detailed instructions how to make extensions.
 
 \levelb{Organization}
 %====================
- \label{sec:development:org}
-
+\label{sec:development:org}
+ 
 ARTS is written in C++ with the help of the GNU development tools
 (Autoconf, Automake, etc.). It is organized in a similar manner as
-most GNU packages. The top-level ARTS directory (simply called \verb|arts|)
+most GNU packages. The top-level ARTS directory is either called
+\verb|arts| or \verb|arts-x.y|, where x.y is the release number. It
 contains various sub-directories, notably \verb|doc| for
-documentation, \verb|src| for the C++ source code, and \verb|data| for
-auxiliary data, such as model atmospheres. This document, the ARTS
-User Guide, is at the moment located in \verb|arts/uguide|, but will
-be moved to \verb|arts/doc/uguide|. FIXME: Update this after \verb|uguide|
-has been moved.
+documentation, \verb|src| for the C++ source code, \verb|ami| for the
+MATLAB interface, and \verb|data| for auxiliary data (such as model
+atmospheres). The document that you are reading right now, the ARTS
+User Guide, is located in \verb|doc/uguide|.
 
-In the future, there will be two different versions of the ARTS
-package: The developers version and the end-user version. Both will
-contain the complete source code, the only difference is that the
-developers version also includes the CVS housekeeping data. If you
-want to join in the ARTS development (which we of course encourage you
-to do), you should write an email to the authors to obtain access to
-the developers version, which makes it easier to merge your changes
-with the `official' ARTS program. Furthermore, for serious development
-work you need a computer running Unix, the GNU development tools,
-LaTeX, and the DOC++ program. All this is freely and easily available
-on the Internet.
+There are two different versions of the ARTS package: The developers
+version and the end-user version. Both contain the complete source
+code, the only difference is that the developers version also includes
+the CVS housekeeping data. If you want to join in the ARTS development
+(which we of course encourage you to do), you should write an email to
+the authors to obtain access to the developers version, which makes it
+easier to merge your changes with the `official' ARTS program.
+Furthermore, for serious development work you need a computer running
+Unix, the GNU development tools, LaTeX, and the Doxygen program.  All
+this is freely and easily available on the Internet, and, what is
+more, all these tools are included in the Suse linux
+distribution. (Most likely they are also included in the Redhat
+distribution, but I did not check.)
 
 The end-user version contains everything that you need in order to
 compile and install ARTS in a fairly automatic manner. The only
@@ -72,9 +75,47 @@ thing you should need is an ANSI-C++ compiler and the standard Unix
 with the GNU C++ compiler, no other compilers have been tried so
 far. FIXME: Update this also.
 
+\levelb{The ARTS build system}
+%============================
+
+As mentionend above, GNU tools are used to construct the ARTS
+build system. A good introduction to the GNU build system can be found in:
+\begin{quote}
+  \verb|http://www.amath.washington.edu/~lf/tutorials/autoconf/|
+\end{quote}
+Using these tools makes a lot of things very easy, but also some
+things slightly more complicated.
+
+The most important thing to keep in mind is that an ARTS release
+is not just a copy of the ARTS development tree. Instead there is a
+special make target `dist' that you can use to cut a release. How this
+is done in detail is described in Section \ref{sec:release}. Mostly,
+the GNU tools are smart enough to figure out automatically what should
+go into the release. However, this can be controlled by editing the
+Makefile.am files which can be found in almost all directories.
+
+The support for documentation other than info and man pages is not
+very good in the GNU system, so I had to use some tricks to make sure
+that the Doxygen automatic documentation and the User Guide work as they
+should. I've set it up so that these documents need not to be built by
+the installer of the program, since he or she might not have the
+necessary programs (Doxygen and LaTeX). However, this could (and
+hopefully will) be done much more nicely in the future. For example,
+there should be an automatik check for Doxygen and LaTeX, with
+apropriate actions taken depending on if the programs are found or
+not. 
+
+\textbf{If you add directories or just files, you have to make sure
+  that they also go into the distribution.} For program source code
+files, this is done automatically. \textbf{But if you add any other
+  kind of file, for example a data or a documentation file, you have
+  to edit the} \verb|Makefile.am| \textbf{file in that directory to make sure
+  that your stuff goes into the distribution.} It is a good idea to
+always check the release if the things you added are really there.
+
 \levelb{Conventions}
 %===================
- \label{sec:development:conv}
+\label{sec:development:conv}
 
 Here are some general rules for ARTS programming:
 
@@ -147,10 +188,13 @@ file, for example because it turns on or off assertions (see also
 Section \ref{sec:development:assert}).
 
 \levelc{Documentation} 
-DOC++ is used to generate automatic documentation. See\\
-\verb|https://zeus.imaginator.com/doc++|\\
+Doxygen is used to generate automatic documentation. See\\
+\verb|http://www.stack.nl/~dimitri/doxygen/|\\
 for information. There is a complete 
-DOC++ user manual there. Generated are HTML and TeX documentation.
+User manual there. At the moment we only generate the output as HTML,
+although latex, man-page, and rtf format is also possible. The HTML
+version is particularly useful for source code browsing, since it
+includes the complete source code!
 
 
 \levelb{Extending ARTS}
@@ -225,7 +269,10 @@ DOC++ user manual there. Generated are HTML and TeX documentation.
   This file states which source files are needed for arts. Should be
   self-explanatory where you have to add your file. The above goes for
   source (\verb|.cc|) and header (\verb|.h|) files likewise.
-\item Go to the top level arts directory and run: \verb|reconf|.
+\item Unfortunately, at the moment you also have to register your file
+  in a similar way in the file \verb|doc/doxygen/Makefile.am|, if the
+  Doxygen documentation should work. 
+\item Then go to the top level arts directory and run: \verb|reconf|.
 \item In the same directory, run: \verb|configure|.  This will create
   new makefiles which take your new file into account.
 \item Go to \verb|src| and run: \verb|cvs add <my_file>| to make your
@@ -313,6 +360,30 @@ documentation.
   (\verb|.|) will not work.
 \item Tell the other developers about it. (Guess we should set up a
   mailing list. FIXME: Update this.)
+\end{enumerate}
+
+
+\levelc{How to cut a release}
+%----------------------------
+\label{sec:release}
+\begin{enumerate}
+\item Change the release number in the file \verb|configure.in| in the
+  top-level ARTS directory. (The line that you have to change is the
+  one with \verb|AM_INIT_AUTOMAKE|.)
+\item Commit your changes (see other howto). However, the
+  following is different now:
+  \begin{itemize}
+  \item Set the subversion number in file \verb|src/version.cc| to 0.
+  \end{itemize}
+\item In the top-level ARTS directory, run \verb|make distcheck|. This
+  will not only cut the release, but also immediately try to build
+  it, to see if it works. Unless you are on a very fast machine, this
+  may take a while. Maybe you should go and have a cup of coffee.
+\item If all goes well, you can find the release inside the top-level
+  ARTS directory as a file \verb|arts-x.y.tar.gz|, where x.y is the
+  release number.
+\item Check the release carefully by trying to build and install the
+  program. 
 \end{enumerate}
 
 

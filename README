@@ -3,3 +3,21 @@ Welcome to ARTS.
 ARTS is free software. Please see the file COPYING for details.
 For documentation, please see the files in the doc subdirectory.
 For building and installation instructions please see the INSTALL file.
+
+It is likely that you want to install ARTS under your home directory
+as a normal user. In this case, if your homedirectory is /home/myself,
+you should run the configure script like this:
+
+./configure --prefix=/home/myself/local
+
+This will install the executable to /home/myself/local/bin and the
+documentation to /home/myself/local/artsdoc. Furthermore, it will
+install auxilary data, such as model atmosphere files to
+/home/myself/local/artsdata. Of course, you should make sure that
+/home/myself/local/bin is in your $PATH.
+
+If you do not specify a prefix in this manner, ARTS will be installed
+to /usr/local. See INSTALL file for more details. For some reason,
+using the `~' to specify the home directory seems not to work in the
+configure option.
+

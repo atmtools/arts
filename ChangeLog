@@ -1,3 +1,28 @@
+2000-07-30  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-36
+
+	* Come a long way to making a first release. The physics of the
+	release will be the same as in the Bredbeck version. In other
+	words, still no realistic absorption coefficients. Took a lot of
+	fiddling to make the right things go into the release. Now I'm
+	almost there, but there is still an overall check lacking.
+
+	* Switched from DOC++ to Doxygen, which is really much much
+	better. In particular, the generated HTML document can optionally
+	include the source code, in which case it is really good for
+	source code browsing.
+
+	* Put all the documentation neatly under `doc'. Also, made a HTML
+	page in doc that references all the documentation. IMPORTANT:
+	NEVER EDIT THE FILE index.html DIRECTLY. Instead, edit
+	index.html.in. 
+	
+	* Todo: Doxygen is more or less compatible with DOC++, but a lot
+	of minor changes still need to be made. In particular, next I will
+	fix the \verbatim parts in documentation headers, which seem to
+	not come out right.
+
 2000-07-26  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-35

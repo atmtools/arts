@@ -1,4 +1,17 @@
-noinst DATA = \
+#  
+# This file is free software; as a special exception the author gives
+# unlimited permission to copy and/or distribute it, with or without 
+# modifications, as long as this notice is preserved.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
+# implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+artsdatadir = $(pkgdatadir)/data
+
+thisdatadir = $(artsdatadir)/atmosphere/fascod
+
+thisdata_DATA =  \
 README.FASCOD \
 midlatitude-summer.C2H2.am \
 midlatitude-summer.C2H6.am \
@@ -143,3 +156,5 @@ tropical.PH3.am \
 tropical.SF6.am \
 tropical.SO2.am \
 tropical.tz.am
+
+EXTRA_DIST = $(thisdata_DATA)

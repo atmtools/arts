@@ -7,4 +7,10 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS        = doc++ uguide
+SUBDIRS        = icons doxygen uguide examples
+
+artsdocdir = $(pkgdatadir)/doc
+
+EXTRA_DIST = index.html.in arts.css
+
+artsdoc_DATA = index.html arts.css

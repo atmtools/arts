@@ -7,5 +7,14 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-EXTRA_DIST = reconf configure
-SUBDIRS    = src m4 doc data 
+EXTRA_DIST = reconf configure make_parallel
+SUBDIRS    = src ami m4 data doc
+
+# This stuff does not work:
+#
+#documentation:
+#	cd $(top_srcdir)/doc && $(MAKE)
+#
+#release:
+#	$(MAKE) documentation
+#	$(MAKE) dist

@@ -1,9 +1,5 @@
-config.h.in
-stamp-h.in
 Makefile.in
 Makefile
-config.h
-stamp-h
 .deps
 make_wsv_h
 wsv.h
@@ -12,3 +8,7 @@ make_md_h
 md.h
 md.cc
 example.rep
+config.h
+config.h.in
+stamp-h
+stamp-h.in

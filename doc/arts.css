@@ -1,0 +1,20 @@
+/* Style sheet for the ARTS documentation page.
+   History:
+   Stefan Buehler 26.07.2000: Taken from satpage.css.
+ */
+
+BODY { background-color: #FFFFFF; color: #000000 }
+
+/*
+Non-standard link colors are supposed to be confusing, and hence bad. 
+A:link    { color: #3333FF }
+A:visited { color: #006699 }
+A:active  { color: #000000 }
+*/
+
+/* H1,H2 { text-align: left }
+   Nicht noetig, ist sowieso Default. */
+
+H1,H2,H3,H4,H5,H6 { color: #3333bf }
+
+UL { list-style-image: url(icons/bluemark.gif); }

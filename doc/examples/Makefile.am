@@ -7,13 +7,11 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# Install m4 macros in this directory
-m4datadir = $(datadir)/aclocal
+artsdocdir = $(pkgdatadir)/doc
 
-# List your m4 macros here
-m4macros = lf_warnings.m4
+thisdocdir = $(artsdocdir)/examples
 
-# The following is boilerplate
-m4data_DATA = $(m4macros) 
-EXTRA_DIST = $(m4data_DATA) 
+thisdoc_DATA = example1.arts full.arts h2o.arts h2o.abs.am h2o.f_abs.am h2o.t_abs.am
+
+EXTRA_DIST   = $(thisdoc_DATA)
 

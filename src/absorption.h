@@ -15,8 +15,13 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-// This file contains declarations required for the calculation of
-// absorption ciefficients.  
+/** @file
+    Declarations required for the calculation of absorption ciefficients.
+
+    @author Stefan Buehler
+*/
+
+// This file contains 
 
 #ifndef absorption_h
 #define absorption_h

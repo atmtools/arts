@@ -10,41 +10,46 @@
 
 SUBDIRS = Figs
 
-artsdocdir = $(prefix)/artsdoc
+artsdocdir = $(pkgdatadir)/doc
 
 thisdocdir = $(artsdocdir)/uguide
 
+thisdoc_DATA = main.ps
+
+
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# 	Don't forget to add new tex files to $(texfiles)
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+texfiles = \
+agu.bst \
+references.bib \
+chapter_template.tex \
+concept.tex \
+development.tex \
+formalism.tex \
+los1d.tex \
+main.tex \
+measerr.tex \
+reduction.tex \
+rte.tex \
+sensor.tex \
+wfuns_atm.tex \
+wfuns_sensor.tex 
+
 EXTRA_DIST = \
-	agu.bst \
-	chapter_template.tex \
-	formalism.tex \
-	los1d.tex \
-	main.tex \
-	measerr.tex \
-	reduction.tex \
-	references.bib \
-	rte.tex \
-	sensor.tex \
-	wfuns_atm.tex \
-	wfuns_sensor.tex
+$(texfiles) \
+main.dvi \
+main.ps
 
-thisdoc_DATA = \
-	main.dvi \
-	main.ps
+# The dependence of main.dvi on configure.in is there to make sure
+# that the documentation is rebuilt when the release number in
+# configure.in is changed. Dependence on version.tex is intentionally
+# omitted, since this would lead to the documentation being rebuilt
+# after each run of the `configure' script. version.tex.in does not
+# show up explicitly in EXTRA_DIST, since this is distributed automatically.
 
-main.dvi: agu.bst \
-	  chapter_template.tex \
-	  formalism.tex \
-	  los1d.tex \
-	  main.tex \
-	  measerr.tex \
-	  reduction.tex \
-	  references.bib \
-	  rte.tex \
-	  sensor.tex \
-	  wfuns_atm.tex \
-	  wfuns_sensor.tex \
-	  version.tex
+main.dvi: $(top_srcdir)/configure.in $(texfiles)
 	latex  main 
 	bibtex main
 	latex  main 
@@ -52,5 +57,13 @@ main.dvi: agu.bst \
 
 main.ps: main.dvi
 	dvips main
+
+#html: main.ps
+#	latex2html -dir html -split 0 -no_math -local_icons main
+#
+# This does not work and I don't know why. Somehow neither figures nor
+# equations show up in the output, also the redifined sectioning
+# command (levela, etc.) confuse the translator.
+
 
 CLEANFILES = *.aux *.log

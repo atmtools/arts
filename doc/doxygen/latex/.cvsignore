@@ -1,0 +1,13 @@
+*.aux
+*.eps
+*.tex
+Makefile
+Makefile.in
+doxygen.sty
+refman.dvi
+refman.idx
+refman.ilg
+refman.ind
+refman.log
+refman.ps
+refman.toc

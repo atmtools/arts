@@ -16,18 +16,28 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/*
-  ---------------------------------------
-  This is the global header file for ARTS
-  ---------------------------------------
+/** @file
+  The global header file for ARTS.
+
   This file is included by each and every ARTS source file. It must
   therefor not contain stuff that should not always be present.
 
-  For Documentation on ARTS see: FIXME: Complete this!
-
-  History:
-  SAB 16.05.99 Started with version 1.0.
+  @date   16.05.1999
+  @author Stefan Buehler
 */
+
+/** @mainpage
+    
+    This automatic documentation is still @em very experimental. We
+    have just switched from doc++ to doxygen. You can use the HTML
+    version to browse the source text. Just point and click, and
+    eventually you will see the real implementation of functions and
+    classes. 
+
+    If you are looking for a more comprehensive text, check out the
+    Arts User Guide that is also distributed along with the program.
+
+ */
 
 #ifndef arts_h
 #define arts_h

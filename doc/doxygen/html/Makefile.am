@@ -7,13 +7,12 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# Install m4 macros in this directory
-m4datadir = $(datadir)/aclocal
+artsdocdir = $(pkgdatadir)/doc
 
-# List your m4 macros here
-m4macros = lf_warnings.m4
+thisdocdir = $(artsdocdir)/doxygen/html
 
-# The following is boilerplate
-m4data_DATA = $(m4macros) 
-EXTRA_DIST = $(m4data_DATA) 
+thisdoc_DATA         = $(wildcard *.html *.gif *.css)
 
+EXTRA_DIST           = $(wildcard *.html *.gif *.css)
+
+MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.css)

@@ -12,7 +12,13 @@ INCLUDES       = -I$(top_srcdir)/src/tnt
 bin_PROGRAMS   = arts
 SUBDIRS        = tnt
 
+#$(top_srcdir)/config.h \
+# Does not work (source file in separate dir)
+
 arts_SOURCES   = \
+wsv.h \
+md.h \
+md.cc \
 arts.h \
 getopt.h \
 sstream.h \
@@ -28,7 +34,6 @@ wsv_aux.h \
 methods.h \
 token.h \
 parser.h \
-md.h \
 make_vector.h \
 make_array.h \
 math_funcs.h \
@@ -51,7 +56,6 @@ methods.cc \
 methods_aux.cc \
 token.cc \
 parser.cc \
-md.cc \
 make_vector.cc \
 math_funcs.cc \
 atm_funcs.cc \
@@ -60,6 +64,11 @@ m_io.cc \
 m_los.cc \
 m_wfs.cc \
 absorption.cc
+
+# When making changes to the list of sources above, please remember to
+# also change the lists in the files:
+# 	doc/doc++/html/Makefile.am and 
+# 	doc/doc++/tex/Makefile.am
 
 
 noinst_PROGRAMS = make_wsv_h make_md_h
@@ -78,6 +87,8 @@ methods.h make_array.h \
 globals_1.cc globals_2.cc \
 token.cc messages.cc file.cc workspace.cc workspace_aux.cc \
 methods.cc methods_aux.cc make_md_h.cc version.cc
+
+make_md_h_DEPENDENCIES = wsv.h
 
 wsv.h: make_wsv_h
 	./make_wsv_h

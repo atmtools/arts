@@ -7,14 +7,13 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-artsdocdir = $(pkgdatadir)/doc
+SUBDIRS        = . html # latex
 
-thisdocdir = $(artsdocdir)/doc++/html
+# The latex docuement is huge, and seems not to be too useful.
 
-thisdoc_DATA = $(wildcard *.html *.gif *.class)
+EXTRA_DIST  = doxyfied
 
-EXTRA_DIST  = $(wildcard *.html *.gif *.class)
-
+noinst_DATA = doxyfied
 
 # Unfortunately there has to be an explicit list here. 
 # toexamine = $(top_srcdir)/src/*.h $(top_srcdir)/src/*.cc
@@ -22,9 +21,13 @@ EXTRA_DIST  = $(wildcard *.html *.gif *.class)
 # enduser installs the package, due to the automatically generated
 # sources wsv.h, md.h, and md.cc
 #
-# Take toexamine from arts_SOURCES in file src/Makefile.am
+# Take toexamine from arts_SOURCES in file src/Makefile.am, but withou
+# wsv.h, md.h, and md.cc. The dependece on configure.in is there to
+# make sure that the documentation is recompiled if the release number
+# in that file is changed.
 
 toexamine = \
+$(top_srcdir)/configure.in \
 $(top_srcdir)/src/arts.h \
 $(top_srcdir)/src/getopt.h \
 $(top_srcdir)/src/sstream.h \
@@ -71,13 +74,6 @@ $(top_srcdir)/src/m_los.cc \
 $(top_srcdir)/src/m_wfs.cc \
 $(top_srcdir)/src/absorption.cc
 
-touse = \
-$(toexamine) \
-$(top_srcdir)/src/wsv.h \
-$(top_srcdir)/src/md.h \
-$(top_srcdir)/src/md.cc
-
-index.html: $(toexamine)
-	doc++ -v --filenames $(touse)
-
-MAINTAINERCLEANFILES = *.html *.gif *.class
+doxyfied: $(toexamine)
+	doxygen Doxyfile
+	touch doxyfied

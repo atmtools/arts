@@ -1,4 +1,6 @@
 .nfs*
+Makefile
+Makefile.in
 example1.abs.am       
 example1.abs_per_tg.am
 example1.f_abs.am

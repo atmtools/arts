@@ -10,10 +10,18 @@
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 AC_INIT(reconf)
-AM_CONFIG_HEADER(src/config.h)
+AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
 AM_INIT_AUTOMAKE(arts,0.0)
+
+# Maintainer mode switch. DOC++, as well as all LaTeX documents (DOC++
+# and AUG) are only processed in maintainer mode. This is necessary so
+# that users who don't have LaTeX or DOC++ can install the package.
+#
+# Does not work this way, don't use.
+#
+# AM_MAINTAINER_MODE
 
 # Turn off optimization: (Leads to very long compilation times)
 CXXFLAGS="-g"
@@ -47,20 +55,41 @@ AC_STDC_HEADERS
 # Special headers that we need:
 # AC_HAVE_HEADERS(getopt.h) (now included in the source)
 
-AC_OUTPUT( \
-Makefile \
-   doc/Makefile \
-      doc/doc++/Makefile \
-         doc/doc++/html/Makefile \
-         doc/doc++/tex/Makefile \
-      doc/uguide/Makefile \
-      doc/uguide/version.tex \
-         doc/uguide/Figs/Makefile \
-   m4/Makefile \
-   src/Makefile \
-      src/tnt/Makefile \
-   data/Makefile \
-      data/atmosphere/Makefile \
+
+# This is needed to put the corrects data paths into the example files
+# in doc/examples:
+#
+# DOES NOT WORK!
+#
+#AC_SUBST (explicit_datadir) 
+#explicit_datadir = 'hallo'  # $datadir
+
+
+AC_OUTPUT( 
+Makefile 
+   ami/Makefile 
+   doc/Makefile 
+   doc/index.html
+      doc/icons/Makefile 
+      doc/doxygen/Makefile
+      doc/doxygen/Doxyfile
+      doc/doxygen/html/Makefile
+      doc/doxygen/latex/Makefile
+      doc/doc++/Makefile 
+         doc/doc++/html/Makefile 
+         doc/doc++/tex/Makefile 
+      doc/uguide/Makefile 
+      doc/uguide/version.tex 
+         doc/uguide/Figs/Makefile 
+      doc/examples/Makefile 
+#      doc/examples/example1.arts
+   m4/Makefile 
+   src/Makefile 
+      src/tnt/Makefile 
+   data/Makefile 
+      data/atmosphere/Makefile 
          data/atmosphere/fascod/Makefile
+      data/spectroscopy/Makefile 
+         data/spectroscopy/hitran96/Makefile 
 )
 

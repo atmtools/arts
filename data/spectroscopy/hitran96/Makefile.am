@@ -7,13 +7,10 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# Install m4 macros in this directory
-m4datadir = $(datadir)/aclocal
+artsdatadir = $(pkgdatadir)/data
 
-# List your m4 macros here
-m4macros = lf_warnings.m4
+thisdatadir = $(artsdatadir)/spectroscopy/hitran96
 
-# The following is boilerplate
-m4data_DATA = $(m4macros) 
-EXTRA_DIST = $(m4data_DATA) 
+thisdata_DATA = hitran96_h2o.par hitran96_lowfreq.par
 
+EXTRA_DIST = $(thisdata_DATA)
