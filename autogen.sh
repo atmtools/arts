@@ -12,20 +12,25 @@
 # Remove the links:
 rm INSTALL install-sh missing mkinstalldirs 2> /dev/null
 
-
 rm -f config.cache
 rm -f acconfig.h
+
 echo "- aclocal."
 aclocal -I m4
+
 echo "- autoconf."
 autoconf
+
 # SAB 27.01.2000: This is part of the autotools package, so it 
 #                 won´t work everywhere
 #echo "- acconfig."
 #acconfig
+
 echo "- autoheader."
 autoheader
+
 echo "- automake."
-automake -a --copy
+automake --add-missing --copy --gnu
+
 ./configure --enable-maintainer-mode $@
 exit
