@@ -86,6 +86,7 @@ Makefile
       doc/uguide/version.tex 
          doc/uguide/Figs/Makefile 
       doc/examples/Makefile 
+      doc/emacs/Makefile
    m4/Makefile 
    src/Makefile 
       src/tnt/Makefile 

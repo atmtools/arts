@@ -7,10 +7,11 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-SUBDIRS        = icons doxygen uguide examples emacs
-
 artsdocdir = $(pkgdatadir)/doc
 
-EXTRA_DIST = index.html.in arts.css
+thisdocdir = $(artsdocdir)/emacs
 
-artsdoc_DATA = index.html arts.css
+thisdoc_DATA = doxygen.el doxygen.html doxygen_toc.html
+
+EXTRA_DIST = $(thisdoc_DATA)
+
