@@ -204,14 +204,14 @@ doxygen headers to the following:
 \end{enumerate}
 
 The documentation headers are comment blocks that look like the
-examples below. They should be put above the \emph{declaration} of the
-function or variable, i.e., in the \verb|.h| file, where applicable.
-Some functions are not separately declared. In that case the comment
-can be put above the \emph{definition}, i.e., in the \verb|.cc| file.
-\textbf{The first sentence will be used as a short description for the
-  entity, so it should be explanatory.}  If you make changes to a
-function or file, add some descriptive text and another \verb|\author|
-\verb|\date| block (see example below).
+examples below. They should be put above the \emph{definition} of a
+function, i.e., in the \verb|.cc| file.  Some functions are defined in
+the \verb|.h| file (e.g., inline member functions). In that case the
+comment can be put in the \verb|.h| file.  \textbf{The first sentence
+  will be used as a short description for the entity, so it should be
+  explanatory.}  If you make changes to a function or file, add some
+descriptive text and another \verb|\author| \verb|\date| block (see
+example below).
 
 There are some emacs macros that insert these comment blocks
 automatically. You can find them in the ARTS distribution in
