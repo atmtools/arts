@@ -193,6 +193,8 @@ test_binaryio_SOURCES = \
 	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -215,6 +217,8 @@ test_interpolation_SOURCES = \
 	constants.cc \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -239,6 +243,8 @@ test_linalg_SOURCES = \
 	arts_mpi.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -264,6 +270,8 @@ test_scatproperties_SOURCES = \
 	arts_mpi.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -309,6 +317,8 @@ test_tensor_SOURCES = \
 	make_vector.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -333,6 +343,8 @@ test_matpack_SOURCES = \
 	make_vector.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -362,6 +374,8 @@ test_xml_SOURCES = \
 	partition_function_data.cc \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -594,6 +608,8 @@ make_auto_md_h_SOURCES = \
 	make_auto_md_h.cc \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
@@ -632,6 +648,8 @@ make_auto_md_cc_SOURCES = \
 	make_array.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackII.cc \
+	matpackII.h \
 	matpackIII.cc \
 	matpackIII.h \
 	matpackIV.cc \
