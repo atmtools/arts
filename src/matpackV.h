@@ -192,48 +192,11 @@ protected:
     which also allocates storage. */
 class Tensor5View : public ConstTensor5View {
 public:
-
-  // Const index operators:
-  ConstTensor5View operator()( const Range& s, const Range& b, const Range& p, const Range& r, const Range& c ) const;
-
-  ConstTensor4View operator()( const Range& s, const Range& b, const Range& p, const Range& r, Index c        ) const;
-  ConstTensor4View operator()( const Range& s, const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor4View operator()( const Range& s, const Range& b, Index p,        const Range& r, const Range& c ) const;
-  ConstTensor4View operator()( const Range& s, Index b,        const Range& p, const Range& r, const Range& c ) const;
-  ConstTensor4View operator()( Index s,        const Range& b, const Range& p, const Range& r, const Range& c ) const;
-
-  ConstTensor3View operator()( const Range& s, const Range& b, const Range& p, Index r,        Index c        ) const;
-  ConstTensor3View operator()( const Range& s, const Range& b, Index p,        const Range& r, Index c        ) const;
-  ConstTensor3View operator()( const Range& s, const Range& b, Index p,        Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& s, Index b,        const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& s, Index b,        const Range& p, const Range& r, Index c        ) const;
-  ConstTensor3View operator()( const Range& s, Index b,        Index p,        const Range& r, const Range& c ) const;
-  ConstTensor3View operator()( Index s,        const Range& b, Index p,        const Range& r, const Range& c ) const;
-  ConstTensor3View operator()( Index s,        const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( Index s,        const Range& b, const Range& p, const Range& r, Index c        ) const;
-  ConstTensor3View operator()( Index s,        Index b,        const Range& p, const Range& r, const Range& c ) const;
-
-  ConstMatrixView  operator()( const Range& s, const Range& b, Index p,        Index r,        Index c        ) const;
-  ConstMatrixView  operator()( const Range& s, Index b,        const Range& p, Index r,        Index c        ) const;
-  ConstMatrixView  operator()( const Range& s, Index b,        Index p,        const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& s, Index b,        Index p,        Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index s,        const Range& b, Index p,        Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index s,        const Range& b, Index p,        const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( Index s,        const Range& b, const Range& p, Index r,        Index c        ) const;
-  ConstMatrixView  operator()( Index s,        Index b,        const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( Index s,        Index b,        const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index s,        Index b,        Index p,        const Range& r, const Range& c ) const;
-
-  ConstVectorView  operator()( const Range& s, Index b,        Index p,        Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index s,        const Range& b, Index p,        Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index s,        Index b,        const Range& p, Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index s,        Index b,        Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( Index s,        Index b,        Index p,        Index r,        const Range& c ) const;
-
-  Numeric          operator()( Index s,        Index b,        Index p,        Index r,        Index c        ) const;
+  /* The following statement avoids the need of reimplementing all const
+   * operators again in this class */
+  using ConstTensor5View::operator();
 
   // Non-const index operators:
-
   Tensor5View operator()( const Range& s, const Range& b, const Range& p, const Range& r, const Range& c );
 
   Tensor4View operator()( const Range& s, const Range& b, const Range& p, const Range& r, Index c        );

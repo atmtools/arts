@@ -156,159 +156,6 @@ Range::Range(const Range& p, const Range& n) :
 }
 
 
-// Functions for Iterator1D
-// ------------------------
-
-/** Default constructor. */
-Iterator1D::Iterator1D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-Iterator1D::Iterator1D(const Iterator1D& o) :
-  mx(o.mx), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-Iterator1D::Iterator1D(Numeric *x, Index stride) :
-  mx(x), mstride(stride)
-{
-  // Nothing to do here. 
-}
-
-// Functions for ConstIterator1D
-// -----------------------------
-
-/** Default constructor. */
-ConstIterator1D::ConstIterator1D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-ConstIterator1D::ConstIterator1D(const ConstIterator1D& o) :
-  mx(o.mx), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-ConstIterator1D::ConstIterator1D(Numeric *x, Index stride) :
-  mx(x), mstride(stride)
-{
-  // Nothing to do here. 
-}
-
-// Functions for Iterator2D
-// ------------------------
-
-/** Default constructor. */
-Iterator2D::Iterator2D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-Iterator2D::Iterator2D(const Iterator2D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-Iterator2D::Iterator2D(const VectorView& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here. 
-}
-
-/** Prefix increment operator. */
-Iterator2D& Iterator2D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool Iterator2D::operator!=(const Iterator2D& other) const
-{
-  if ( msv.mdata + msv.mrange.mstart !=
-       other.msv.mdata + other.msv.mrange.mstart )
-    return true;
-  else
-    return false;
-}
-
-/** The -> operator is needed, so that we can write i->begin() to get
-    the 1D iterators. */
-VectorView* const Iterator2D::operator->()
-{
-  return &msv;
-}
-
-/** Dereferencing. */
-VectorView& Iterator2D::operator*()
-{
-  return msv;
-}
-
-// Functions for ConstIterator2D
-// -----------------------------
-
-/** Default constructor. */
-ConstIterator2D::ConstIterator2D()
-{
-  // Nothing to do here.
-}
-
-/** Copy constructor. */
-ConstIterator2D::ConstIterator2D(const ConstIterator2D& o) :
-  msv(o.msv), mstride(o.mstride)
-{
-  // Nothing to do here.
-}
-
-/** Explicit constructor. */
-ConstIterator2D::ConstIterator2D(const ConstVectorView& x, Index stride) :
-  msv(x), mstride(stride)
-{
-  // Nothing to do here. 
-}
-
-/** Prefix increment operator. */
-ConstIterator2D& ConstIterator2D::operator++()
-{
-  msv.mdata += mstride;
-  return *this;
-}
-
-/** Not equal operator, needed for algorithms like copy. */
-bool ConstIterator2D::operator!=(const ConstIterator2D& other) const
-{
-  if ( msv.mdata + msv.mrange.mstart !=
-       other.msv.mdata + other.msv.mrange.mstart )
-    return true;
-  else
-    return false;
-}
-
-/** The -> operator is needed, so that we can write i->begin() to get
-    the 1D iterators. */
-const ConstVectorView* ConstIterator2D::operator->() const
-{
-  return &msv;
-}
-
-/** Dereferencing. */
-const ConstVectorView& ConstIterator2D::operator*() const
-{
-  return msv;
-}
-
-
 // Functions for ConstVectorView:
 // ------------------------------
 
@@ -356,21 +203,6 @@ Numeric ConstVectorView::operator[](Index n) const
 ConstVectorView ConstVectorView::operator[](const Range& r) const
 {
   return ConstVectorView(mdata, mrange, r);
-}
-
-/** Return const iterator to first element. */
-ConstIterator1D ConstVectorView::begin() const
-{
-  return ConstIterator1D(mdata+mrange.mstart, mrange.mstride);
-}
-
-/** Return const iterator behind last element. */
-ConstIterator1D ConstVectorView::end() const
-{
-  return ConstIterator1D( mdata +
-			  mrange.mstart +
-			  (mrange.mextent)*mrange.mstride,
-			  mrange.mstride );
 }
 
 /** Conversion to const 1 column matrix. */
@@ -454,22 +286,6 @@ std::ostream& operator<<(std::ostream& os, const ConstVectorView& v)
 // Functions for VectorView:
 // ------------------------
 
-/** Plain const index operator. Has to be redifined here, because the
-    one from ConstVectorView is hidden. */
-Numeric VectorView::operator[](Index n) const
-{
-  return ConstVectorView::operator[](n);
-}
-
-/** Const index operator for subrange. We have to also account for the case,
-    that *this is already a subrange of a Vector. This allows correct
-    recursive behavior.  Has to be redifined here, because the
-    one from ConstVectorView is hidden. */
-ConstVectorView VectorView::operator[](const Range& r) const
-{
-  return ConstVectorView::operator[](r);
-}
-
 /** Plain Index operator. */
 Numeric& VectorView::operator[](Index n)
 {
@@ -489,36 +305,7 @@ VectorView VectorView::operator[](const Range& r)
   return VectorView(mdata, mrange, r);
 }
 
-/** Return const iterator to first element. Has to be redefined here,
-    since it is hiden by the non-const operator of the derived
-    class.*/
-ConstIterator1D VectorView::begin() const
-{
-  return ConstVectorView::begin();
-}
 
-/** Return const iterator behind last element. Has to be redefined
-    here, since it is hiden by the non-const operator of the derived
-    class.*/
-ConstIterator1D VectorView::end() const
-{
-  return ConstVectorView::end();
-}
-
-/** Return iterator to first element. */
-Iterator1D VectorView::begin()
-{
-  return Iterator1D(mdata+mrange.mstart, mrange.mstride);
-}
-
-/** Return iterator behind last element. */
-Iterator1D VectorView::end()
-{
-  return Iterator1D( mdata +
-		     mrange.mstart +
-		     (mrange.mextent)*mrange.mstride,
-		     mrange.mstride );
-}
 
 /** Assignment operator. This copies the data from another VectorView
     to this VectorView. Dimensions must agree! Resizing would destroy
@@ -915,18 +702,6 @@ Vector::~Vector()
 // Functions for ConstMatrixView:
 // ------------------------------
 
-/** Returns the number of rows. */
-Index ConstMatrixView::nrows() const
-{
-  return mrr.mextent;
-}
-
-/** Returns the number of columns. */
-Index ConstMatrixView::ncols() const
-{
-  return mcr.mextent;
-}
-
 /** Plain const index operator. */
 Numeric ConstMatrixView::operator()(Index r, Index c) const
 {
@@ -980,22 +755,6 @@ ConstVectorView ConstMatrixView::operator()(Index r, const Range& c) const
 
   return ConstVectorView(mdata + mrr.mstart + r*mrr.mstride,
 			 mcr, c);
-}
-
-/** Return const iterator to first row. */
-ConstIterator2D ConstMatrixView::begin() const
-{
-  return ConstIterator2D(ConstVectorView(mdata+mrr.mstart,
-					 mcr),
-			 mrr.mstride);
-}
-
-/** Return const iterator behind last row. */
-ConstIterator2D ConstMatrixView::end() const
-{
-  return ConstIterator2D( ConstVectorView(mdata + mrr.mstart + (mrr.mextent)*mrr.mstride,
-					  mcr),
-			  mrr.mstride );
 }
 
 /** Default constructor. This is necessary, so that we can have a
@@ -1093,44 +852,6 @@ std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v)
 // Functions for MatrixView:
 // -------------------------
 
-/** Plain const index operator. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-Numeric MatrixView::operator()(Index r, Index c) const
-{
-  return ConstMatrixView::operator()(r,c);
-}
-
-/** Const index operator for subrange. We have to also account for the
-    case, that *this is already a subrange of a Matrix. This allows
-    correct recursive behavior. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class. */
-ConstMatrixView MatrixView::operator()(const Range& r, const Range& c) const
-{
-  return ConstMatrixView::operator()(r,c);  
-}
-
-/** Const index operator returning a column as an object of type
-    ConstVectorView. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.
-
-    \param r A range of rows.
-    \param c Index of selected column */
-ConstVectorView MatrixView::operator()(const Range& r, Index c) const
-{
-  return ConstMatrixView::operator()(r,c);
-}
-
-/** Const index operator returning a row as an object of type
-    ConstVectorView. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.
-
-    \param r Index of selected row.
-    \param c Range of columns */
-ConstVectorView MatrixView::operator()(Index r, const Range& c) const
-{
-  return ConstMatrixView::operator()(r,c);
-}
-
 /** Plain index operator. */
 Numeric& MatrixView::operator()(Index r, Index c)
 {
@@ -1181,34 +902,6 @@ VectorView MatrixView::operator()(Index r, const Range& c)
 
   return VectorView(mdata + mrr.mstart + r*mrr.mstride,
 		    mcr, c);
-}
-
-/** Return const iterator to first row. Has to be redefined here, since it is
-    hiden by the non-const operator of the derived class.*/
-ConstIterator2D MatrixView::begin() const
-{
-  return ConstMatrixView::begin();
-}
-
-/** Return const iterator behind last row. */
-ConstIterator2D MatrixView::end() const
-{
-  return ConstMatrixView::end();
-}
-
-/** Return iterator to first row. */
-Iterator2D MatrixView::begin()
-{
-  return Iterator2D(VectorView(mdata+mrr.mstart, mcr),
-		    mrr.mstride);
-}
-
-/** Return iterator behind last row. */
-Iterator2D MatrixView::end()
-{
-  return Iterator2D( VectorView(mdata + mrr.mstart + (mrr.mextent)*mrr.mstride,
-				mcr),
-		     mrr.mstride );
 }
 
 /** Assignment operator. This copies the data from another MatrixView

@@ -173,22 +173,11 @@ protected:
     which also allocates storage. */
 class Tensor3View : public ConstTensor3View {
 public:
-
-  // Const index operators:
-  ConstTensor3View operator()( const Range& p, const Range& r, const Range& c ) const;
-
-  ConstMatrixView  operator()( const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index p,        const Range& r, const Range& c ) const;
-
-  ConstVectorView  operator()( Index p,        Index r,        const Range& c ) const;
-  ConstVectorView  operator()( Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( const Range& p, Index r,        Index c        ) const;
-
-  Numeric          operator()( Index p,        Index r,        Index c        ) const;
+  /* The following statement avoids the need of reimplementing all const
+   * operators again in this class */
+  using ConstTensor3View::operator();
 
   // Non-const index operators:
-
   Tensor3View operator()( const Range& p, const Range& r, const Range& c );
 
   MatrixView  operator()( const Range& p, const Range& r, Index c        );

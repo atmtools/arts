@@ -172,31 +172,11 @@ protected:
     which also allocates storage. */
 class Tensor4View : public ConstTensor4View {
 public:
-
-  // Const index operators:
-  ConstTensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c ) const;
-
-  ConstTensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        ) const;
-  ConstTensor3View operator()( const Range& b, const Range& p, Index r,        const Range& c ) const;
-  ConstTensor3View operator()( const Range& b, Index p,        const Range &r, const Range& c ) const;
-  ConstTensor3View operator()( Index b,        const Range& p, const Range& r, const Range& c ) const;
-
-  ConstMatrixView  operator()( const Range& b, const Range& p, Index r,        Index c        ) const;
-  ConstMatrixView  operator()( const Range& b, Index p,        const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( const Range& b, Index p,        Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index b,        const Range& p, Index r,        const Range& c ) const;
-  ConstMatrixView  operator()( Index b,        const Range& p, const Range& r, Index c        ) const;
-  ConstMatrixView  operator()( Index b,        Index p,        const Range& r, const Range& c ) const;
-
-  ConstVectorView  operator()( const Range& b, Index p,        Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index b,        const Range& p, Index r,        Index c        ) const;
-  ConstVectorView  operator()( Index b,        Index p,        const Range& r, Index c        ) const;
-  ConstVectorView  operator()( Index b,        Index p,        Index r,        const Range& c ) const;
-
-  Numeric          operator()( Index b,        Index p,        Index r,        Index c        ) const;
+  /* The following statement avoids the need of reimplementing all const
+   * operators again in this class */
+  using ConstTensor4View::operator();
 
   // Non-const index operators:
-
   Tensor4View operator()( const Range& b, const Range& p, const Range& r, const Range& c );
 
   Tensor3View operator()( const Range& b, const Range& p, const Range& r, Index c        );
