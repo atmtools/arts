@@ -304,6 +304,53 @@ void Cloudbox_ppathCalc(
     }
 }
 
+
+//! montecarlo_p_from_belowCscaAdapt
+/*! 
+Reduces the montecarlo_p_from_belowCsca Tensor to the frequency of the 
+Monte Carlo simulation.
+   
+\author Cory Davis
+\date 2003-12-4
+  
+*/
+
+void montecarlo_p_from_belowCscaAdapt(
+				      Tensor3& montecarlo_p_from_belowCsca,
+				      const Vector& f_grid,
+				      const Index& f_index,
+				      const ArrayOfSingleScatteringData& scat_data_raw
+				      )
+{
+  Index N_pt=montecarlo_p_from_belowCsca.npages();
+  //  N_f = montecarlo_p_from_belowCsca.ncols();
+  Index N_za=montecarlo_p_from_belowCsca.ncols();
+  Tensor3 new_p_from_belowCsca=Tensor3(N_pt,1,N_za);
+  Numeric freq=f_grid[f_index];
+  GridPos gp;
+  Vector itw(2);
+  Vector old_grid=scat_data_raw[0].f_grid;
+  for(Index pt_index=0;pt_index<N_pt;pt_index++)
+    {
+      for (Index za_index=0;za_index<N_za;za_index++)
+	{
+	  gridpos(gp,f_grid,freq);
+	  interpweights(itw,gp);
+	  new_p_from_belowCsca(pt_index,0,za_index)=interp(itw,
+		 montecarlo_p_from_belowCsca(pt_index,joker,za_index),gp);
+	}
+    }
+  montecarlo_p_from_belowCsca=new_p_from_belowCsca;
+}
+
+
+
+
+
+
+
+
+
 //! scat_iPutMonteCarlo
 /*! 
 calculates interface Tensors scat_i_p, scat_i_lat, and scat_i_lon.  This is
@@ -434,6 +481,7 @@ void ScatteringMonteCarlo (
                            const Tensor4& scat_theta, // CE: Included 
                            const ArrayOfArrayOfArrayOfArrayOfGridPos& scat_theta_gps,
                            const Tensor5& scat_theta_itws,
+			   const Tensor3& montecarlo_p_from_belowCsca,
 			    // Control Parameters:
 			   const Index& maxiter,
 			   const Index& rng_seed,
@@ -442,7 +490,8 @@ void ScatteringMonteCarlo (
 			   const Index& silent,
 			   const Index& record_histdata,
 			   const String& histdata_filename,
-			   const Index& los_sampling_method
+			   const Index& los_sampling_method,
+			   const Index& strat_sampling
                            )
 
 {		
@@ -499,21 +548,20 @@ void ScatteringMonteCarlo (
   Index N_pt=pnd_field.nbooks();
   Vector pnd_vec(N_pt);
   time_t start_time=time(NULL);
-
-  Index strat_sampling=0;//Turns on stratified sampling
-  Numeric W_from_below;
+  //Stratified sampling variables//////////
+  Numeric p_from_below;
   Vector I_from_below_sum(stokes_dim);
   Vector I_from_below_squaredsum(stokes_dim);
   Index I_from_below_N=0;
-
   Vector I_from_above_sum(stokes_dim);
   Vector I_from_above_squaredsum(stokes_dim);
   Index I_from_above_N=0;
-
   Vector I_emission_sum(stokes_dim);
   Vector I_emission_squaredsum(stokes_dim);
   Index I_emission_N=0;
-
+  Numeric za_scat;
+  Vector za_grid=scat_data_raw[0].za_grid;
+  /////////////////////////////////////////
 
   //If necessary, open file for histogram data output
   ofstream histfile;
@@ -633,9 +681,12 @@ void ScatteringMonteCarlo (
 	      pathI/=g;//*=exp(K11*dist_to_boundary);
 	      if(strat_sampling)
 		{
+		  p_from_below=p_from_belowCscaCalc(za_scat,
+						    montecarlo_p_from_belowCsca,
+						    pnd_vec,za_grid)/(K(0,0)-K_abs[0]);
 		  if(rte_los[0]<90)
 		    {
-		      pathI*=W_from_below;//Needs to be renormalised
+		      pathI*=p_from_below;//Needs to be renormalised
 		      I_from_below_sum+=pathI;
 		      I_from_below_N+=1;
 		      for(Index j=0; j<stokes_dim; j++)
@@ -646,7 +697,7 @@ void ScatteringMonteCarlo (
 		    }
 		  else
 		    {
-		      pathI*=(1-W_from_below);//Needs to be renormalised
+		      pathI*=(1-p_from_below);//Needs to be renormalised
 		      I_from_above_sum+=pathI;
 		      I_from_above_N+=1;
 		      for(Index j=0; j<stokes_dim; j++)
@@ -725,6 +776,7 @@ void ScatteringMonteCarlo (
 		  mult(newQ,Q,q);
 		  Q=newQ;
 		  scattering_order+=1;
+		  za_scat=rte_los[0];
 		  rte_los=new_rte_los;
 		  if (silent==0){cout <<"photon_number = "<<photon_number << 
 				   ", scattering_order = " <<scattering_order <<"\n";}

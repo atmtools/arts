@@ -161,7 +161,12 @@ void montecarloGetIncoming(
 			   const Index&          stokes_dim
 			   );
 
-
+Numeric p_from_belowCscaCalc(
+			  const Numeric& za_scat,
+			  const Tensor3& montecarlo_p_from_belowCsca,
+			  const VectorView& pnd_vec,
+			  const VectorView& za_grid
+			  );
 void pha_mat_singleCalc(
 			MatrixView& Z,			
 			Numeric za_scat, 

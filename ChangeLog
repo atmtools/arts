@@ -1,3 +1,31 @@
+2003-12-04  Cory Davis  <cory@met.ed.ac.uk>
+
+	* arts-1-1-737
+
+	* src/workspace.cc: Added WSV *montecarlo_p_from_belowCsca*, which
+	has a horrible name.  It holds externally calculated data that
+	describes the probability of a scattered photon having an upward
+	direction before the scattering event.  This is multiplied by the
+	scattering cross-section.  The above should illustrate why I had a
+	hard time choosing a variable name.  This is used in stratified 
+	sampling.
+
+	* src/methods.cc (montecarlo_p_from_belowCscaAdapt): Reduces the
+	raw montecarlo_p_from_belowCsca in the frequency dimension to
+	accomodate only the frequency used in the current calculation.
+	  Added *montecarlo_p_from_belowCsca* as input to
+	  *SingleScatteringMonteCarlo*, also added keyword argument
+	  strat_sampling, which enables stratified sampling.
+
+	* src/m_montecarlo.cc (ScatteringMonteCarlo): Made input/output
+	changes mentioned above, and (hopefully) finished implementing
+	stratitified sampling. Yet to be tested.  Also added WSM
+	*montecarlo_p_from_belowCscaAdapt* described above
+
+	* src/montecarlo.{cc,h} (p_from_belowCscaCalc): Added.  Interpolates
+	*montecarlo_p_from_belowCsca* by the propagation zenith angle, and
+	sums over particle types.
+	
 2003-12-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-736

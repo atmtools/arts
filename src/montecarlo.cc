@@ -713,6 +713,47 @@ void pha_mat_singleCalc(
     }
 }
 
+//! ppathRecordMC
+/*!
+  interpolates montecarlo_p_from_belowCsca by za_scat, and adds over particle
+types
+
+\param p_from_belowCsca  Output: p_from_belowCsca summed over particle types
+                                 for a given scatterd zenith angle
+\param za_scat           scattered zenith angle
+\param montecarlo_p_from_belowCsca workspace variable
+\param pnd_vec           Vector of particle number densities at the point in 
+                         question
+\param za_grid           The zenith angle grid used in scattering data files
+
+ \author Cory Davis
+ \date   2003-12-04
+
+*/
+
+Numeric p_from_belowCscaCalc(
+			  const Numeric& za_scat,
+			  const Tensor3& montecarlo_p_from_belowCsca,
+			  const VectorView& pnd_vec,
+			  const VectorView& za_grid
+			  )
+
+{
+  Index N_pt=pnd_vec.nelem();
+  Numeric p_from_belowCsca=0;
+  GridPos gp;
+  Vector itw(2);
+  gridpos(gp,za_grid,za_scat);
+  interpweights(itw,gp);
+  for (Index pt_index=0;pt_index<N_pt;pt_index++)
+    {
+      p_from_belowCsca+=pnd_vec[pt_index]*
+	interp(itw,montecarlo_p_from_belowCsca(pt_index,0,joker),gp);
+    }
+  return p_from_belowCsca;
+}
+
+
 
 //! ppathRecordMC
 /*!

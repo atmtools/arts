@@ -2598,6 +2598,19 @@ md_data_raw.push_back
         KEYWORDS(),
         TYPES()));
 
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "montecarlo_p_from_belowCscaAdapt" ),
+        DESCRIPTION
+        (
+         "Reduces montecarlo_p_from_belowCscaAdapt to one frequency" 
+        ),
+        OUTPUT(montecarlo_p_from_belowCsca_),
+        INPUT(f_grid_,f_index_,scat_data_raw_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS(),
+        TYPES()));
 
   md_data_raw.push_back
     ( MdRecord
@@ -3589,12 +3602,14 @@ md_data_raw.push_back
               scat_aa_grid_, f_grid_, opt_prop_gas_agenda_,
               spt_calc_agenda_,scalar_gas_absorption_agenda_, vmr_field_,
               scat_data_raw_, pnd_field_, scat_theta_, scat_theta_gps_,
-              scat_theta_itws_),
+              scat_theta_itws_,montecarlo_p_from_belowCsca_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS("maxiter","rng_seed","record_ppathcloud","record_ppath","silent", 
-                 "record_histdata", "histdata_filename", "los_sampling_method" ),
-        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t, Index_t )));
+                 "record_histdata", "histdata_filename", "los_sampling_method",
+		 "strat_sampling"),
+        TYPES( Index_t, Index_t, Index_t, Index_t, Index_t, Index_t, String_t, 
+	       Index_t, Index_t)));
 
  md_data_raw.push_back
     ( MdRecord
