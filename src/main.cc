@@ -113,6 +113,7 @@ void option_methods(const String& methods)
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
+  extern const Parameters parameters;
   //  extern const map<String, Index> MdMap;
   extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
@@ -125,16 +126,22 @@ void option_methods(const String& methods)
 
   if ( "all" == methods )
     {
-      cout
-        << "\n*-------------------------------------------------------------------*\n"
-        << "Complete list of ARTS workspace methods:\n"
-        << "---------------------------------------------------------------------\n";
+      if (!parameters.plain)
+        {
+          cout
+            << "\n*-------------------------------------------------------------------*\n"
+            << "Complete list of ARTS workspace methods:\n"
+            << "---------------------------------------------------------------------\n";
+        }
       for ( Index i=0; i<md_data_raw.nelem(); ++i )
         {
-          cout << "- " << md_data_raw[i].Name() << "\n";
+          if (!parameters.plain) cout << "- ";
+          cout << md_data_raw[i].Name() << "\n";
         }
-      cout
-        << "*-------------------------------------------------------------------*\n\n";
+
+      if (!parameters.plain)
+        cout << "*-------------------------------------------------------------------*\n\n";
+
       return;
     }
 
@@ -447,6 +454,7 @@ void option_workspacevariables(const String& workspacevariables)
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
   extern const map<String, Index> MdMap;
+  extern const Parameters parameters;
   //  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
@@ -458,16 +466,22 @@ void option_workspacevariables(const String& workspacevariables)
 
   if ( "all" == workspacevariables )
     {
-      cout
-        << "\n*-------------------------------------------------------------------*\n"
-        << "Complete list of ARTS workspace variables:\n"
-        << "---------------------------------------------------------------------\n";
+      if (!parameters.plain)
+        {
+          cout
+            << "\n*-------------------------------------------------------------------*\n"
+            << "Complete list of ARTS workspace variables:\n"
+            << "---------------------------------------------------------------------\n";
+        }
+
       for ( Index i=0; i<wsv_data.nelem(); ++i )
         {
-          cout << "- " << wsv_data[i].Name() << "\n";
+          if (!parameters.plain) cout << "- ";
+          cout << wsv_data[i].Name() << "\n";
         }
-      cout
-        << "*-------------------------------------------------------------------*\n\n";
+
+      if (!parameters.plain)
+        cout << "*-------------------------------------------------------------------*\n\n";
       return;
     }
 
@@ -763,16 +777,22 @@ int main (int argc, char **argv)
   // workspace variable groups.
   if ( parameters.groups )
     {
-      cout
-        << "\n*-------------------------------------------------------------------*\n"
-        << "Complete list of ARTS workspace variable groups:\n"
-        << "---------------------------------------------------------------------\n";
+      if (!parameters.plain)
+        {
+          cout
+            << "\n*-------------------------------------------------------------------*\n"
+            << "Complete list of ARTS workspace variable groups:\n"
+            << "---------------------------------------------------------------------\n";
+        }
+
       for ( Index i=0; i<wsv_group_names.nelem(); ++i )
         {
-          cout << "- " << wsv_group_names[i] << "\n";
+          if (!parameters.plain) cout << "- ";
+          cout << wsv_group_names[i] << "\n";
         }
-      cout
-        << "*-------------------------------------------------------------------*\n\n";
+
+      if (!parameters.plain)
+        cout << "*-------------------------------------------------------------------*\n\n";
       arts_exit (0);
     }
 

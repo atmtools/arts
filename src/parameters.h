@@ -52,7 +52,8 @@ struct Parameters {
     input(""),
     workspacevariables(""),
     describe(""),
-    groups(false)
+    groups(false),
+    plain(false)
   { /* Nothing to be done here */ }
   /** Short message how to call the program. */
   String usage;
@@ -94,6 +95,8 @@ struct Parameters {
   String describe;
   /** Print a list of all workspace variable groups. */
   bool groups;
+  /** Generate plain help out suitable for script processing. */
+  bool plain;
 };
 
 

@@ -91,6 +91,7 @@ bool get_parameters(int argc, char **argv)
     { "workspacevariables", required_argument, NULL, 'w' },
     { "describe",           required_argument, NULL, 'd' },
     { "groups",             no_argument,       NULL, 'g' },
+    { "plain",              no_argument,       NULL, 'p' },
     { NULL,                 no_argument,       NULL, 0   }
   };
 
@@ -102,6 +103,7 @@ bool get_parameters(int argc, char **argv)
     "       [--workspacevariables all|<method>]\n"
     "       [--describe <method or variable>]\n"
     "       [--groups]\n"
+    "       [--plain]\n"
     "       file1.arts file2.arts ...";
 
   parameters.helptext =
@@ -130,7 +132,9 @@ bool get_parameters(int argc, char **argv)
     "                    prints all variables needed by this method.\n"
     "-d, --describe      Print the description String of the given\n"
     "                    workspace variable or method.\n"
-    "-g  --groups        List all workspace variable groups.";
+    "-g  --groups        List all workspace variable groups.\n"
+    "-p  --plain         Generate plain help output suitable for\n"
+    "                    script processing.";
 
   // Set the short options automatically from the last columns of
   // longopts.
@@ -218,6 +222,9 @@ bool get_parameters(int argc, char **argv)
           break;
         case 'g':
           parameters.groups = true;
+          break;
+        case 'p':
+          parameters.plain = true;
           break;
         default:
           // There were strange options.

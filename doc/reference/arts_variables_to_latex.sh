@@ -8,7 +8,7 @@ then
     exit 1
 fi
 
-VARS_LIST=`$ARTS -w all | grep '^- ' | sed 's/^-//' | sed 's/^.-*.$//' | sort -f`
+VARS_LIST=`$ARTS -p -w all | sort -f`
 
 echo "%------------------------------------------------------------"
 echo "% This file has been generated automatically by the script"
