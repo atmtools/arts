@@ -1,3 +1,35 @@
+2004-03-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-801
+	
+	* src/interpolation.{cc,h} 
+	(polint): Added. Polynomial interpolation routine, mostly taken from 
+	the "Numerical Recipes".
+	(interp_cubic): Added. Performs a cubic interpolation. Input and output
+	adjusted to ARTS WSVs. The function uses (polint).
+	
+	* src/m_cloudbox.cc (CloudboxGetOutgoingCubic): Added. This 
+	method uses cubic interpolation in zenith angle dimension for 
+	outgoing radiances (so far only for 1D calculations). 
+	It seems that this interpolation is much more accurate, especially for 
+	directions between nadir and limb, where the zenith angle resolution 
+	is rather coarse.
+	(CloudboxGetOutgoing): Splitted the method in sub-functions (shifted to 
+	cloudbox.cc.
+		
+	* src/cloudbox.{cc,h}: Added the following functions:
+	cloudbox_getOutgoing1D
+	cloudbox_getOutgoingCubic1D
+	cloudbox_getOutgoing3D
+	cloudbox_boundary_check
+	Created these functions to split up (CloudboxGetOutgoing), to make
+	the code more readable. 
+
+	* src/test_interpolation.cc: Added (test07). Tests cubic interpolation
+	for different functions.
+
+	* src/methods.cc (CloudboxGetOutgoingCubic): Added.  
+
 2004-03-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-800

@@ -37,6 +37,7 @@ arts_SOURCES = \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
+	cloudbox.cc \
 	complex.h \
 	complex.cc \
 	constants.cc \
@@ -269,6 +270,7 @@ test_geomag_calc_SOURCES = \
 	check_input.cc \
 	check_input.h \
 	cloudbox.h \
+	cloudbox.cc \
 	complex.h \
 	complex.cc \
 	constants.cc \
@@ -398,6 +400,8 @@ test_geomag_calc_SOURCES = \
 	test_geomag_calc.cc
 
 test_interpolation_SOURCES = \
+	absorption.cc \
+	absorption.h \
 	array.h \
 	constants.cc \
 	matpackI.cc \
@@ -419,7 +423,26 @@ test_interpolation_SOURCES = \
 	logic.cc \
 	test_interpolation.cc \
 	make_vector.cc \
-	make_vector.h
+	make_vector.h \
+	bifstream.h \
+	bifstream.cc \
+	bofstream.h \
+	bofstream.cc \
+	binio.h \
+	binio.cc \
+	xml_io.h \
+	xml_io_instantiation.h \
+	xml_io_private.h \
+	xml_io_basic_types.cc \
+	xml_io_basic_types.h \
+	xml_io.cc \
+	messages.cc \
+	xml_io_compound_types.cc \
+	xml_io_compound_types.h \
+	xml_io_array_types.cc \
+	xml_io_array_types.h \
+	species_data.cc \
+	partition_function_data.cc
 
 test_legendre_SOURCES = \
 	array.h \
@@ -719,7 +742,7 @@ test_integration_SOURCES = \
 	logic.cc \
 	logic.h \
 	constants.cc \
-	test_integration.cc
+	test_integration.cc 
 
 make_auto_wsv_groups_h_SOURCES = \
 	arts.cc \

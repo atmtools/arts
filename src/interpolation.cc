@@ -2749,3 +2749,148 @@ void interp( Tensor6View           ia,
 }
 
 
+//! Cubic interpolation.
+/*! 
+  This function performs a cubic interpolation. Given two vectors x, y 
+  the value of y corresponding to x_i is returned. The function uses the
+  common gridpositions (which are also used for linear interpolation).
+   
+  \param x  original grid
+  \param y  values corresponding to x-values
+  \param x_i a value x, for which the corresponding y value is requested
+  \param gp grid position of x_i in relation to x
+
+  \return interpolated value
+
+  \author Claudia Emde
+  \date 2003-04-12
+*/
+Numeric interp_cubic(ConstVectorView x,
+                     ConstVectorView y,
+                     const Numeric& x_i, 
+                     const GridPos& gp)
+{
+  Index N_x = x.nelem();
+
+  assert(N_x == y.nelem());
+  Vector xa(3), ya(3);
+  Numeric y_int;
+  Numeric dy_int;
+  y_int = 0.;
+  
+  // Pick out three points for interpolation
+  if((gp.fd[0] <= 0.5 && gp.idx > 0) || gp.idx == N_x-2 )
+    {
+      xa[0] = x[gp.idx - 1];
+      xa[1] = x[gp.idx];
+      xa[2] = x[gp.idx + 1];
+      
+      ya[0] = y[gp.idx - 1];
+      ya[1] = y[gp.idx];
+      ya[2] = y[gp.idx + 1];
+    }
+
+  else if((gp.fd[0] > 0.5 && gp.idx < N_x-2) || gp.idx == 0 )
+    {
+      xa[0] = x[gp.idx];
+      xa[1] = x[gp.idx + 1];
+      xa[2] = x[gp.idx + 2];
+      
+      ya[0] = y[gp.idx];
+      ya[1] = y[gp.idx + 1];
+      ya[2] = y[gp.idx + 2];
+    } 
+  
+  else if(gp.idx == N_x-1)
+    {
+     xa[0] = x[N_x - 2];
+      xa[1] = x[N_x - 1];
+      xa[2] = x[N_x];
+      
+      ya[0] = y[N_x - 2];
+      ya[1] = y[N_x - 1];
+      ya[2] = y[N_x];
+    }  
+  else
+    {
+      assert(false);
+    }
+  // Polinominal interpolation, n = 3
+  polint(y_int, dy_int, xa, ya, 3, x_i); 
+  return y_int;
+}
+
+
+//! Polynomial interpolation.
+/*! 
+  This function performs a polinomial interpolation. Given arrays xa(n) and
+  ya(n), and a given value x, this function returns a value y and an error 
+  estimate dy.
+  This function is (almost) copied from: 
+  Numerical Recipies in C, pages 108-110.
+   
+  \param y_int interpolated value
+  \param dy_int error estimate
+  \param xa original grid (n elements)
+  \param ya corresponding values (n elements)
+  \param n order of polynom
+  \param x requested grid point
+
+  \return interpolated value
+
+  \author Claudia Emde
+  \date 2004-03-12
+*/
+void polint(Numeric& y_int,
+            Numeric& dy_int,
+            ConstVectorView xa,
+            ConstVectorView ya,
+            const Index& n,
+            const Numeric& x)
+{
+  Index ns = 1;
+  Numeric den, dif, dift, ho, hp, w;
+  
+  //cout << " xa " << xa << endl << " ya " << ya << endl << " x " << x << endl; 
+
+  dif = abs(x-xa[0]);
+
+  Vector c(n);
+  Vector d(n); 
+  
+  // Find the index of the closest table entry
+  for(Index i=0; i<n; i++)
+    {
+      if( (dift = abs(x-xa[i])) < dif)
+        {
+          ns = i;
+          dif = dift;
+        }
+      // Initialize c and d
+      c[i] = ya[i];
+      d[i] = ya[i];
+    }
+  // Initial approximation to y
+  y_int = ya[ns--];
+  
+  for(Index m=1; m<n; m++)
+    {
+      for(Index i=0; i < n-m; i++)
+        {
+          ho = xa[i] - x;
+          hp = xa[i+m] - x;
+          w = c[i+1] - d[i];
+          den = ho-hp;
+          // This error occurs when two input xa's are identical. 
+          assert(den != 0.);
+          den = w/den;
+          d[i] = hp * den;
+          c[i] = ho * den;
+        }
+      y_int += (dy_int = (2*(ns+1) < (n-m) ? c[ns+1] : d[ns--] ));
+    }
+}
+          
+  
+  
+

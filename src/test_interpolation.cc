@@ -20,6 +20,7 @@
 #include "matpackVII.h"
 #include "interpolation.h"
 #include "make_vector.h"
+#include "xml_io.h"
 
 void test01()
 {
@@ -422,7 +423,65 @@ void test06()
   }
 }
 
+// Test cubic interpolation
+void test07()
+{
+  // FileType ftype = FILE_TYPE_ASCII;
+  Vector new_x(1.5, 20, +0.4);
+  Vector x(1, 10, +1);
+
+  ArrayOfGridPos gp(new_x.nelem());
+  gridpos(gp, x, new_x);
+  
+  Vector y1(x.nelem());
+  Vector y2(x.nelem());
+  Vector y3(x.nelem());
+  
+  for(Index i = 0; i < x.nelem(); i++)
+    { 
+      // linear function
+      y1[i] = 3*x[i];
+      // cubic function
+      y2[i] = pow(x[i],3) + 2;
+      // trigonometric function
+      y3[i] = pow(x[i]-1,0.3333);
+    }
+  
+  // Linear interpolation:
+   Matrix itw(gp.nelem(),2);
+   interpweights(itw, gp);
+
+   Vector y1_lin(new_x.nelem());
+   Vector y2_lin(new_x.nelem());
+   Vector y3_lin(new_x.nelem());
+
+   interp(y1_lin, itw, y1, gp);
+   interp(y2_lin, itw, y2, gp);
+   interp(y3_lin, itw, y3, gp);
+
+   xml_write_to_file( "./test/y1_lin.xml", y1_lin);
+   xml_write_to_file( "./test/y2_lin.xml", y2_lin);
+   xml_write_to_file( "./test/y3_lin.xml", y3_lin);
+
+   // Cubic interpolation:
+   Vector y1_cub(new_x.nelem());
+   Vector y2_cub(new_x.nelem());
+   Vector y3_cub(new_x.nelem());
+
+   for(Index i = 0; i < new_x.nelem(); i++)
+     {
+       y1_cub[i] = interp_cubic(x, y1, new_x[i], gp[i]);
+       y2_cub[i] = interp_cubic(x, y2, new_x[i], gp[i]);
+       y3_cub[i] = interp_cubic(x, y3, new_x[i], gp[i]);
+     }
+   
+   xml_write_to_file( "./test/y1_cub.xml", y1_cub);
+   xml_write_to_file( "./test/y2_cub.xml", y2_cub);
+   xml_write_to_file( "./test/y3_cub.xml", y3_cub);
+}
+   
+
 int main()
 {
-  test06();
+  test07();
 }
