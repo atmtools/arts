@@ -82,14 +82,3 @@ void interpp(
         const VECTOR&     x0,
         const VECTOR&     p );
 
-
-void rte_iterate (
-             VECTOR&   y,
-       const int&      start_index,
-       const int&      stop_index,
-       const MATRIX&   Tr,
-       const MATRIX&   S,
-       const VECTOR&   y_space,
-       const int&      ground,
-       const VECTOR&   e_ground,
-       const VECTOR&   y_ground );

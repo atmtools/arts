@@ -49,6 +49,7 @@ atm_funcs.cc \
 m_abs.cc \
 m_io.cc \
 m_los.cc \
+m_wfs.cc \
 absorption.cc
 
 noinst_PROGRAMS = make_wsv_h make_md_h

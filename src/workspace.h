@@ -81,26 +81,27 @@ struct Los {
 
 class WorkSpace {
 public:
-  VECTOR     p_abs;
-  VECTOR     t_abs;
-  VECTOR     z_abs;
-  VECTOR     f_abs;
-  MATRIX     abs;
-  VECTOR     view1;
-  Numeric    z_plat;
-  Numeric    l_step;
-  int        refr;
-  Numeric    l_step_refr;
-  VECTOR     refr_index;
-  Numeric    z_ground;
-  Numeric    t_ground;
-  VECTOR     e_ground;
-  Los        los; 
-  ARRAYofMATRIX   source;
-  ARRAYofMATRIX   trans;
-  VECTOR     y_space;
-  VECTOR     y;
-  ARRAYofLineRecord lines;
+  VECTOR              p_abs;
+  VECTOR              t_abs;
+  VECTOR              z_abs;
+  VECTOR              f_abs;
+  MATRIX              abs;
+  VECTOR              view1;
+  Numeric             z_plat;
+  Numeric             l_step;
+  int                 refr;
+  Numeric             l_step_refr;
+  VECTOR              refr_index;
+  Numeric             z_ground;
+  Numeric             t_ground;
+  VECTOR              e_ground;
+  Los                 los; 
+  ARRAYofMATRIX       source;
+  ARRAYofMATRIX       trans;
+  VECTOR              y_space;
+  VECTOR              y;
+  ARRAYofMATRIX       klos;
+  ARRAYofLineRecord   lines;
 };
 
 

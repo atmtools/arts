@@ -210,7 +210,7 @@ void los_no_refr_inside(
       z_tan = ztan_geom(view(i),z_plat);
 
       // Only through the atmosphere
-      if ( z_tan >= z_ground)
+      if ( z_tan >= z_ground )
       {
 	a      = EARTH_RADIUS + z_plat;
 	b      = EARTH_RADIUS + z_tan;
@@ -239,6 +239,109 @@ void los_no_refr_inside(
       }
     }
   }
+}
+
+
+
+//==========================================================================
+//=== RTE_ITERATE
+//==========================================================================
+void rte_iterate (
+             VECTOR&   y,
+       const int&      start_index,
+       const int&      stop_index,
+       const MATRIX&   Tr,
+       const MATRIX&   S,
+       const VECTOR&   y_space,
+       const int&      ground,
+       const VECTOR&   e_ground,
+       const VECTOR&   y_ground )
+{
+  const int   n_f = Tr.dim(1);               // number of frequencies
+        int   i_f, i_z;                      // indicies
+        int   i_start, i_step, i_break;      // loop variables
+
+  // If LOS starts at ground, init. with Y_GROUND  
+  if ( start_index == 1 )
+    y = y_ground;
+
+  // If LOS starts in space, init with Y_SPACE
+  else
+    y = y_space;
+
+  // Check if LOS inside the atmosphere (if START_INDEX=0, Y=Y_SPACE)
+  if ( start_index > 0 )
+  {
+    // Set up index:
+    // Starting at the ground, looping upwards to the atmospheric limit
+    // (only one loop needed)
+    if ( start_index == 1 )
+    {
+      i_start = 1;
+      i_step  = 1;
+      i_break = stop_index;
+    }
+    // Starting at the atmospheric limit, looping downwards to either
+    // the ground or the tangent point
+    else 
+    {       
+      i_start = start_index - 1;         
+      i_step  = -1;
+      if ( ground > 0 )
+        i_break = ground - 1;
+      else
+        i_break = 0;       
+    }
+
+    // Make first loop
+    for ( i_z=i_start; i_z!=i_break; i_z+=i_step ) 
+    {
+      for ( i_f=1; i_f<=n_f; i_f++ )    
+        y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
+    }
+ 
+    // If I_STEP=-1 we could not be ready. 
+    // We are at the sensor, the ground or the tangent point
+    // If at sensor: STOP_INDEX=1 and not GROUND
+    if ( i_step == -1 && !(stop_index==1 && !ground) )
+    {
+      // If at the ground, include ground reflection. 
+      // The loop can continue both downwards or upwards
+      if ( ground )
+      {            
+        for ( i_f=1; i_f<=n_f; i_f++ )    
+          y(i_f) = y(i_f)*(1.0-e_ground(i_f)) + y_ground(i_f) * e_ground(i_f);
+        
+        if ( ground == 1 )  // 1D case, loop upwards
+        {
+          i_start = 1;
+          i_step  = 1;
+          i_break = stop_index;
+	} 
+        else                // 2D case, loop downwards
+	{
+         i_start = ground - 1;
+         i_step  = -1;
+         i_break = 0;
+        }
+      }
+
+      // We are at a tangent point, loop upwards
+      else
+      {
+          i_start = 1;
+          i_step  = 1;
+          i_break = stop_index;        
+      }
+
+      // Make second loop
+      for ( i_z=i_start; i_z!=i_break; i_z+=i_step ) 
+      {
+        for ( i_f=1; i_f<=n_f; i_f++ )    
+          y(i_f) = y(i_f)*Tr(i_f,i_z) + S(i_f,i_z) * ( 1.0-Tr(i_f,i_z) );
+      }
+    } // second part
+  } // if any values
 }
 
 
@@ -325,21 +428,16 @@ void losBasic(
       }  
     }
   }
-  /*  out3 << los.p(1);
-  out3 << los.start(1) << "\n";
-  out3 << los.stop(1) << "\n";
-  out3 << los.ground(1) << "\n";
-  out3 << los.l_step(1) << "\n"; */
 }
 
 
 
 void sourceBasic(
                     ARRAYofMATRIX&   source,
-              const Los&        los,   
-              const VECTOR&     p_abs,
-              const VECTOR&     t_abs,
-              const VECTOR&     f_abs )
+              const Los&             los,   
+              const VECTOR&          p_abs,
+              const VECTOR&          t_abs,
+              const VECTOR&          f_abs )
 {     
   // Some variables
         VECTOR   t1, t2;             // temperatures along the LOS
@@ -371,9 +469,9 @@ void sourceBasic(
 
 void transBasic(
                     ARRAYofMATRIX&   trans,
-              const Los&        los,   
-              const VECTOR&     p_abs,
-              const MATRIX&     abs )
+              const Los&             los,   
+              const VECTOR&          p_abs,
+              const MATRIX&          abs )
 {    
   // Some variables
   const size_t   n=los.start.dim();  // the number of viewing angles
@@ -438,15 +536,15 @@ void y_spacePlanck(
 
 
 
-void yGeneral (
-                    VECTOR&     y,
-              const Los&        los,   
-              const VECTOR&     f_abs,
-              const VECTOR&     y_space,
+void yBasic (
+                    VECTOR&          y,
+              const Los&             los,   
+              const VECTOR&          f_abs,
+              const VECTOR&          y_space,
               const ARRAYofMATRIX&   source,
               const ARRAYofMATRIX&   trans,
-              const VECTOR&     e_ground,
-              const Numeric&    t_ground )
+              const VECTOR&          e_ground,
+              const Numeric&         t_ground )
 {
   // Some variables
   const size_t   n=los.start.dim();  // Number of viewing angles 

@@ -193,8 +193,18 @@ void define_wsv_data()
     wsv_data.push_back
       (WsvRecord
        ("e_ground",
-	"The emission factor for the ground at the frequencies in f_abs [0-1].",
+	"The ground emission factor for the frequencies in f_abs [0-1].",
 	VECTOR_,
+	&p));
+  }
+
+  {
+    static WsvPointer<Los> p(&workspace.los);
+    wsv_data.push_back
+      (WsvRecord
+       ("los",
+	"Structure to define the line of sight (LOS) for 1d cases.", 
+	Los_,
 	&p));
   }
 
@@ -239,12 +249,12 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<Los> p(&workspace.los);
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.klos);
     wsv_data.push_back
       (WsvRecord
-       ("los",
-	"Structure to define the line of sight (LOS) for 1d cases.", 
-	Los_,
+       ("klos",
+	"Line of sight weighting functions.",
+	ARRAYofMATRIX_,
 	&p));
   }
 

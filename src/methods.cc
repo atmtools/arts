@@ -415,11 +415,23 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
-      ( NAME("yGeneral"),
+      ( NAME("yBasic"),
   	DESCRIPTION(
           "Solves the radiative transfer equation (RTE) along the LOS."),
 	OUTPUT( y_ ),
 	INPUT( los_, f_abs_, y_space_, source_, trans_, e_ground_, t_ground_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("klosBasic"),
+  	DESCRIPTION(
+          "Calculates line of sight weighting functions (LOS WFs)."),
+	OUTPUT( klos_ ),
+	INPUT( los_, source_, trans_, y_, f_abs_, e_ground_, t_ground_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
