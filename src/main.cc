@@ -696,9 +696,9 @@ int main (int argc, char **argv)
       extern const String full_name;
       // Just print version information and then exit.
       cerr << "This is " << full_name << 
-        //#ifdef HDF_SUPPORT
+#ifdef HDF_SUPPORT
         " with HDF support." <<
-        //#endif // HDF_SUPPORT
+#endif // HDF_SUPPORT
         '\n';
       return(0);
     }
