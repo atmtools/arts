@@ -434,6 +434,24 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME("abs_vecAddGasZeeman"),
+        DESCRIPTION
+        (
+         "Add gas absorption to first element of absorption vector.\n"
+         "\n"
+         "The task of this method is to sum up the gas absorption of the\n"
+         "different gas species and add the result to the first element of the\n"
+         "absorption vector."
+         ),
+        OUTPUT(abs_vec_),
+        INPUT(abs_vec_, abs_vec_zee_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
   md_data_raw.push_back
     ( MdRecord
       ( NAME("abs_vecAddPart"),
@@ -1311,6 +1329,23 @@ md_data_raw.push_back
          ),
         OUTPUT(ext_mat_),
         INPUT(ext_mat_, abs_scalar_gas_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("ext_matAddGasZeeman"),
+        DESCRIPTION
+        (
+         "Add gas absorption to all diagonal elements of extinction matrix.\n"
+         " \n"
+         "The task of this method is to sum up the gas absorption of the\n"
+         "different gas species and add the result to the extinction matrix."
+         ),
+        OUTPUT(ext_mat_),
+        INPUT(ext_mat_, ext_mat_zee_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),

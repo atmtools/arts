@@ -1113,6 +1113,73 @@ void abs_vecAddGas( Matrix&       abs_vec,
   // since scalar gas absorption only influences the first element.
 }
 
+//! Add Zeeman extinction  to the elements of extinction matrix.
+/*! 
+  
+\param ext_mat Input and Output: Extinction matrix.
+Dimension: [#frequencies, stokes_dim, stokes_dim]
+
+\param ext_mat_zee Input : Zeeman extinction coefficient matrix.
+Dimension: [#frequencies, stokes_dim, stokes_dim]
+
+\author Sreerekha Ravu
+          (based on ext_matAddGas by Stefan Buehler)
+
+  \date   2003-12-01
+*/
+void ext_matAddGasZeeman( Tensor3&      ext_mat,
+			  const Tensor3&  ext_mat_zee )
+{
+  // Number of Stokes parameters:
+  const Index stokes_dim = ext_mat.ncols();
+
+  // The second dimension of ext_mat must also match the number of
+  // Stokes parameters:
+  if ( stokes_dim != ext_mat.nrows() )
+    throw runtime_error("Row dimension of ext_mat inconsistent with "
+                        "column dimension."); 
+
+  for ( Index i=0; i<stokes_dim; ++i )
+    {
+      for ( Index j=0; j<stokes_dim; ++j )
+	{
+	  // Add the zeeman extinction to extinction matrix.
+	  ext_mat(joker,i,j) += ext_mat_zee(joker, i, j);
+	}
+      
+    }
+}
+
+//! Add zeeman absorption to the elements of absorption vector.
+/*! 
+  The task of this method is to sum up the gas absorption of the
+  different gas species and add the result to the first element of the
+  absorption vector.
+
+  \param abs_vec Input and Output: Absorption vector
+                 Dimension: [#frequencies, stokes_dim]
+  
+  \param abs_vec_zee Input : Zeeman absorption vector.
+                        Dimension: [#frequencies, #gas_species]
+
+  \author Sreerekha Ravi
+          (based on abs_vecAddGas written by Stefan Buehler)
+
+  \date   2003-12-01
+*/
+void abs_vecAddGasZeeman( Matrix&      abs_vec,
+			  const Matrix& abs_vec_zee )
+{
+  // Number of Stokes parameters:
+  const Index stokes_dim = abs_vec_zee.ncols();
+  // that there is only one frequency.
+  for ( Index j=0; j<stokes_dim; ++j )
+    {
+      abs_vec(joker,j) += abs_vec_zee(joker,j);
+    }
+}
+
+
 //! Phase Matrix for the particle 
 /*! 
   

@@ -1,5 +1,14 @@
 2003-12-01  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-728	
+
+	* src/m_optproperties.cc : Implemented *ext_matAddGasZeeman* and
+	*abs_vecAddGasZeeman*. 
+
+	* src/methods.cc : Added the above two methods.
 	
+2003-12-01  Sreerekha T.R.  <rekha@uni-bremen.de>
+
 	* arts-1-1-727
 	
 	* src/m_scatrte.cc (i_fieldUpdateSeq1D_PlaneParallel): Renamed and
