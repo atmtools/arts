@@ -35,10 +35,71 @@
 
 //! 
 /*! The function tests the LU-decompusition method for solving a 
+  1D linear equation 
+  system. It uses the functions 'ludcmp' and  'lubacksub'.
+*/
+void test_lusolve1D(void)
+{
+  Matrix a(1,1);
+  ArrayOfIndex indx(1);
+  Numeric d;
+  Matrix orig(1,1);
+  Matrix b(1,1);
+
+ /* Assign test-matrix element. */
+  a(0,0) = 3;
+
+ /* ------------------------------------------------------------------------
+     Test the function ludcmp.
+     ----------------------------------------------------------------------- */
+  cout << "\n LU decomposition test \n";
+  cout << "initial matrix: \n";
+    
+  cout << " " << a(0,0) << endl; 
+
+   /* input: Test-matrix a, 
+      output: Decomposed matrix b (includes upper and lower triangle, cp. 
+      Numerical Recipies)
+      and index which gives information about pivoting. */
+  ludcmp(b, indx, a);
+
+  cout << "\n after decomposition";
+  cout << " " << b(0,0) << endl;
+  
+  /* Seperate b into the two triangular matrices. */
+  Matrix l(1,1,0.0);
+  Matrix u(1,1,0.0);
+  Matrix lu(1,1,0.0);
+
+  l(0,0) = 1.0;
+  u(0,0) = b(0,0);
+  
+  /*-------------------------------------------------------------------
+    end of ludcmp test
+     ------------------------------------------------------------------*/
+  /*--------------------------------------------------------------------
+    test backsubstitution routine lubacksub
+    -------------------------------------------------------------------*/
+
+   Vector c(1);
+   c[0] = 6;
+   cout << indx[0] << "  " << c[0] << endl;
+   
+   Vector x(1);
+   lubacksub(x, b, c, indx);
+   
+   cout << "\n solution vector x";
+   cout << x[0] << endl;
+
+}
+
+
+//! 
+/*! The function tests the LU-decompusition method for solving a 
   linear equation 
   system. It uses the functions 'ludcmp' and  'lubacksub'.
 */
-void test_lusolve(void)
+void test_lusolve4D(void)
 {
   Matrix a(4,4);
   ArrayOfIndex indx(4);
@@ -70,6 +131,7 @@ void test_lusolve(void)
      Test the function ludcmp.
      ----------------------------------------------------------------------- */
 
+
   cout << "\n LU decomposition test \n";
   cout << "initial matrix: \n";
   for( Index i = 0; i<4; i++)
@@ -81,7 +143,7 @@ void test_lusolve(void)
    cout << "\n";
 
    /* input: Test-matrix a, 
-      output: Decomposed matrix b (includes uppper and lower triangle, cp. 
+      output: Decomposed matrix b (includes upper and lower triangle, cp. 
       Numerical Recipies)
       and index which gives information about pivoting. */
    ludcmp(b, indx, a);
@@ -168,7 +230,7 @@ void test_lusolve(void)
    Vector x(4);
    lubacksub(x, b, c, indx);
 
-   cout << "\n solution vector x";
+   cout << "\n solution vector x" << endl;
    for (Index i=0; i<4; i++)
      {
        cout << "\n";
@@ -290,7 +352,7 @@ void test_matrix_exp3D(void)
 
 int main(void)
 {
-  // test_lusolve();
-  test_matrix_exp1D();
+  test_lusolve1D();
+  // test_matrix_exp1D();
   return(0);
 }
