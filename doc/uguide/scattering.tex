@@ -493,11 +493,57 @@ information about the particles, for example the particle shape, the
 particle shape and the aspect ratio for non-spherical particles.
 
 
-\levelb{Get local atmospheric properties from atmospheric fields}
-%==================================================================
-\label{sec:scattering:gen_atmprop}
+\levelc{Method which generates \wsvindex{amp\_mat} from
+  \artsstyle{amp\_mat\_raw}}
 
-\levelb{Generate extinction matrix}
+%==================================================================
+\label{sec:scattering:gen_ampmat}
+
+As we know from the previous section \ref{sec:scattering:read_data} 
+the workspace variable containing the amplitude matrix data is 
+\artsstyle{amp\_mat\_raw} which is an array of gridded
+fields. Amplitude matrix data given by the seventh element of the
+workspace variable \artsstyle{amp\_mat\_raw} is calculated for
+frequencies given by the first element  and angles given by the
+second, third,  fourth and fifth elements.  The method
+\wsmindex{amp\_matCalc} takes \artsstyle{amp\_mat\_raw} as input and
+interpolate the amplitude matrix data onto the respective frequency
+and angular grids necessary for the calculation.  The output of this
+method is \artsstyle{amp\_mat}.  The size of \artsstyle{amp\_mat} is  
+[$N_{pt}, N_{za}, N_{aa}, N_{za}, N_{aa}, 8$]. Here $N_{pt}$ gives
+the number of particle types considered for the study which is
+specified from the input \artsstyle{amp\_mat\_raw}. $N_{za}$ gives
+the number of zenith angles considered for scattering calculation 
+which is specified by the input \wsvindex{scat\_za\_grid}, and $N_{aa}$
+gives the number of azimuth angle considered for scattering
+calculation which is specified by the input \wsvindex{scat\_aa\_grid}.
+The workspace variable \artsstyle{amp\_mat} is calculated for one
+frequency specified by the input variables \artsstyle{f\_grid} and
+\artsstyle{scat\_za\_grid}. This is in compliance with our radiative
+transfer scheme which has frequency as its outermost loop. 
+
+Chapter \ref{sec:interpolation} has a more
+detailed documentation of the different interpolation schemes
+implemented in ARTS. A couple of examples are also discussed there.
+In this case we interpolate the seventh element of
+\artsstyle{amp\_mat\_raw} which is a Tensor6 having size
+[$N_{f}, N_{za}, N_{aa}, N_{za}, N_{aa}, 8$] from one gridded field to
+another.  This is a green type interpolation of all columns of this
+Tensor6.  The interpolation is done simultaneously for the 5 dimensions.
+The first step is to set up the grid position arrays by calling the
+function \artsstyle{gridpos}.  The output of this function is the grid
+positions for the new grid stored in ArrayOfGridPos and the inputs are
+the original grid and the new grid where we want to have the
+interpolated values. Interpolation weight tensors can be computed by
+the function called \artsstyle{interpweights}.  This computes the
+interpolation weights simultaneously for all the five dimensions
+simultaneously. For this step also we do not need the actual fields,
+just the grid positions. Now, the last step is to do a green
+interpolation for all columns of the Tensor6.  This is by calling the
+function \artsstyle{interps} which takes in as input the
+gridpositions, interpolation weights and the source field and output
+is the new field.  
+
 %==================================================================
 \label{sec:scattering:gen_ext}
 
