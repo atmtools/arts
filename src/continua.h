@@ -161,6 +161,34 @@ void MPM93_H2O_continuum( MatrixView        xsec,                // calculated x
 			  ConstVectorView   t_abs,               // temperature vector
 			  ConstVectorView   vmr	 );              // H2O vmr profile
 
+
+void CKD_222_self_h2o( MatrixView          xsec,
+		       const Numeric       Cin,
+		       const String&       model,
+		       ConstVectorView     f_mono,
+		       ConstVectorView     p_abs,
+		       ConstVectorView     t_abs,
+		       ConstVectorView     vmr,
+		       ConstVectorView     n2_abs );
+
+void CKD_222_foreign_h2o( MatrixView          xsec,
+			  const Numeric       Cin,
+			  const String&       model,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr,
+			  ConstVectorView     n2_abs );
+
+void CKD_242_self_h2o( MatrixView          xsec,
+		       const Numeric       Cin,
+		       const String&       model,
+		       ConstVectorView     f_mono,
+		       ConstVectorView     p_abs,
+		       ConstVectorView     t_abs,
+		       ConstVectorView     vmr,
+		       ConstVectorView     n2_abs );
+
 void CKD24_H20( MatrixView          xsec,      // calculated x-section
 		int                 isf,       // flag if self or foreign cont.
 		const Numeric       Cin,       // model scaling factor
@@ -171,23 +199,32 @@ void CKD24_H20( MatrixView          xsec,      // calculated x-section
 		ConstVectorView     vmr,       // H2O vmr profile
                 ConstVectorView     n2_abs );  // N2 vmr profile
 
-void CKD_mt_self_h2o( MatrixView          xsec,      // calculated x-section
-		      const Numeric       Cin,       // model scaling factor
-		      const String&       model,     // model option
-		      ConstVectorView     f_mono,    // frequency vector
-		      ConstVectorView     p_abs,     // pressure vector
-		      ConstVectorView     t_abs,     // temperature vector
-		      ConstVectorView     vmr,       // H2O vmr profile
-		      ConstVectorView     n2_abs );  // N2 vmr profile
+void CKD_242_foreign_h2o( MatrixView          xsec,
+			  const Numeric       Cin,
+			  const String&       model,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr,
+			  ConstVectorView     n2_abs );
 
-void CKD_mt_foreign_h2o( MatrixView          xsec,      // calculated x-section
-			 const Numeric       Cin,       // model scaling factor
-			 const String&       model,     // model option
-			 ConstVectorView     f_mono,    // frequency vector
-			 ConstVectorView     p_abs,     // pressure vector
-			 ConstVectorView     t_abs,     // temperature vector
-			 ConstVectorView     vmr,       // H2O vmr profile
-			 ConstVectorView     n2_abs );  // N2 vmr profile
+void CKD_mt_100_self_h2o( MatrixView          xsec,
+			  const Numeric       Cin,
+			  const String&       model,
+			  ConstVectorView     f_mono,
+			  ConstVectorView     p_abs,
+			  ConstVectorView     t_abs,
+			  ConstVectorView     vmr,
+			  ConstVectorView     n2_abs );
+
+void CKD_mt_100_foreign_h2o( MatrixView          xsec,
+			     const Numeric       Cin,
+			     const String&       model,
+			     ConstVectorView     f_mono,
+			     ConstVectorView     p_abs,
+			     ConstVectorView     t_abs,
+			     ConstVectorView     vmr,
+			     ConstVectorView     n2_abs );
 
 //////////////////////////////////////////////////////////////////////////// 
 // oxygen line+continuum absorption models
@@ -304,8 +341,7 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,        // calculated x-section
 		      ConstVectorView     f_mono,      // frequency vector
 		      ConstVectorView     p_abs,       // pressure vector
 		      ConstVectorView     t_abs,       // temperature vector
-		      ConstVectorView     vmr,         // O2 vmr profile
-		      ConstVectorView     h2o_abs );   // H2O vmr profile
+		      ConstVectorView     vmr );       // O2 vmr profile
 
 void CKD_mt_v0v0_o2( MatrixView          xsec,        // calculated x-section
 		     const Numeric       Cin,         // scaling factor
@@ -314,8 +350,7 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,        // calculated x-section
 		     ConstVectorView     p_abs,       // pressure vector
 		     ConstVectorView     t_abs,       // temperature vector
 		     ConstVectorView     vmr,         // O2 vmr profile
-		     ConstVectorView     n2_abs,      // N2 vmr profile
-		     ConstVectorView     h2o_abs );   // H2O vmr profile
+		     ConstVectorView     n2_abs );    // N2 vmr profile
 
 void CKD_mt_v1v0_o2( MatrixView          xsec,        // calculated x-section
 		     const Numeric       Cin,         // scaling factor
@@ -323,9 +358,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,        // calculated x-section
 		     ConstVectorView     f_mono,      // frequency vector
 		     ConstVectorView     p_abs,       // pressure vector
 		     ConstVectorView     t_abs,       // temperature vector
-		     ConstVectorView     vmr,         // O2 vmr profile
-		     ConstVectorView     n2_abs,      // N2 vmr profile
-		     ConstVectorView     h2o_abs );   // H2O vmr profile
+		     ConstVectorView     vmr );       // O2 vmr profile
 
 //////////////////////////////////////////////////////////////////////////// 
 // nitrogen continuum absorption models
@@ -337,8 +370,7 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,        // calculated x-section
 		       ConstVectorView    f_mono,      // frequency vector
 		       ConstVectorView    p_abs,       // pressure vector
 		       ConstVectorView    t_abs,       // temperature vector
-		       ConstVectorView    vmr,         // N2 vmr profile
-		       ConstVectorView    h2o_abs );   // H2O vmr profile
+		       ConstVectorView    vmr );       // N2 vmr profile
 
 void CKD_mt_CIAfun_n2( MatrixView         xsec,        // calculated x-section
 		      const Numeric       Cin,         // scaling factor
@@ -346,8 +378,7 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,        // calculated x-section
 		      ConstVectorView     f_mono,      // frequency vector
 		      ConstVectorView     p_abs,       // pressure vector
 		      ConstVectorView     t_abs,       // temperature vector
-		      ConstVectorView     vmr,         // N2 vmr profile
-		      ConstVectorView     h2o_abs );   // H2O vmr profile
+		      ConstVectorView     vmr );       // N2 vmr profile
 
 void BF86_CIA_N2( MatrixView              xsec,        // calculated x-section
 		  const Numeric           Cin,         // model parameter
@@ -389,7 +420,7 @@ void Standard_N2_self_continuum(   MatrixView        xsec,        // calculated 
 				   ConstVectorView   t_abs,       // temperature vector
 				   ConstVectorView   vmr );       // N2 vmr profile
 
-void Pardo_ATM_N2_dry_continuum( MatrixView        xsec,          // calculated x-section
+void Pardo_ATM_N2_dry_continuum( MatrixView         xsec,         // calculated x-section
 				  const Numeric     Cin,          // model parameter
 				  const String&     model,        // model option
 				  ConstVectorView   f_mono,       // frequency vector
@@ -402,14 +433,21 @@ void Pardo_ATM_N2_dry_continuum( MatrixView        xsec,          // calculated 
 // carbon dioxide continuum absorption models
 //////////////////////////////////////////////////////////////////////////// 
 
+void CKD_241_co2( MatrixView          xsec,        // calculated x-section
+		  const Numeric       Cin,         // scaling factor
+		  const String&       model,       // model option
+		  ConstVectorView     f_mono,      // frequency vector
+		  ConstVectorView     p_abs,       // pressure vector
+		  ConstVectorView     t_abs,       // temperature vector
+		  ConstVectorView     vmr );	   // CO2 vmr profile
+
 void CKD_mt_co2( MatrixView          xsec,         // calculated x-section
 		 const Numeric       Cin,          // scaling factor
 		 const String&       model,        // model option
 		 ConstVectorView     f_mono,       // frequency vector
 		 ConstVectorView     p_abs,        // pressure vector
 		 ConstVectorView     t_abs,        // temperature vector
-		 ConstVectorView     vmr,	   // CO2 vmr profile
-                 ConstVectorView     h2o_abs);     // H2O vmr profile
+		 ConstVectorView     vmr );        // CO2 vmr profile
 
 void Rosenkranz_CO2_self_continuum( MatrixView        xsec,       // calculated x-section
 				    const Numeric     C,          // model parameter

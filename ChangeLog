@@ -1,5 +1,10 @@
 2003-11-21  Thomas Kuhn <tkuhn@uni-bremen.de>
-                                                                                             
+               
+        * arts-1-0-136
+
+        * src/continua.h: updates to adjust for the CKD abs. models.
+
+2003-11-21  Thomas Kuhn <tkuhn@uni-bremen.de>                          
                
         * arts-1-0-135
                                                                                              
