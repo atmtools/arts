@@ -18,6 +18,7 @@ EXTRA_DIST = \
 	axes_1xn.m \
 	axes_nx1.m \
 	fig_size.m \
+	hide_axes.m \
 	lpr.m \
 	mkfig_1gridbox_2d.m \
 	mkfig_ppath_2d.m \

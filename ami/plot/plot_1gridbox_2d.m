@@ -27,7 +27,7 @@ function plot_1gridbox_2d( r1, r2, r3, r4, alpha1, alpha2, rground1, rground2 )
 
 
 % Number of points for plotting of a pressure surface
-nps = 10;
+nps = max([ 3, ceil(alpha2-alpha1)*2 ]);
 
 
 % Length unit is set to km
@@ -45,19 +45,20 @@ clf;
 [x3,y3] = cyl2cart( r3, alpha2 );
 [x4,y4] = cyl2cart( r4, alpha1 );
 %
-plot( [x1,x4]/lscale, [y1,y4]/lscale, 'k--' );
+plot( [x1,x4]/lscale, [y1,y4]/lscale, 'k:' );
 hold on
-plot( [x2,x3]/lscale, [y2,y3]/lscale, 'k--' );
+plot( [x2,x3]/lscale, [y2,y3]/lscale, 'k:' );
 
 
 % Plot pressure surfaces
-plot_psurface( alpha1, alpha2, r1/lscale, r2/lscale, nps, 'k--' )
-plot_psurface( alpha1, alpha2, r4/lscale, r3/lscale, nps, 'k--' )
+plot_psurface( alpha1, alpha2, r1/lscale, r2/lscale, nps, 'k:' )
+plot_psurface( alpha1, alpha2, r4/lscale, r3/lscale, nps, 'k:' )
 
 
 % Plot the ground
 if( exist('rground1','var') ) 
-  plot_psurface( alpha1, alpha2q, rground1/lscale, rground2/lscale, nps, 'b-' )
+  plot_psurface( alpha1, alpha2, rground1/lscale, rground2/lscale, nps, ...
+                                                                    'b-', 1.5 )
 end
 
 

@@ -1,6 +1,13 @@
+2002-03-10  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-11
+
+ 	* AMI: Smaller changes in the last plotting functions. New functions
+	added: hide_axes, legend2, answer_is_yes.
+	
 2002-03-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
-	* arts-1-0-9
+	* arts-1-0-10
 
         * Added these functions to AMI: mkfig_1gridbox_2d, mkfig_ppath_2d,
         plot_1gridbox_2d, plot_atm_2d, plot_ppath, plot_psurface, 
@@ -43,7 +50,7 @@
 
 	* doc/arts-splash.gif: Added.
 
-q	* doc/Makefile.am (EXTRA_DIST), doc/index.html.in: Added
+	* doc/Makefile.am (EXTRA_DIST), doc/index.html.in: Added
 	arts-splash.gif.
 
 2002-01-22  Patrick Eriksson  <patrick@rss.chalmers.se>

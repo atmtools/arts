@@ -48,7 +48,7 @@ ppath = ppath_2d_3d(dim,p_grid,alpha_grid,beta_grid,z_field,r_geoid,z_ground,ref
 
 close all
 
-plot_atm_2d(alpha_grid,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits);
+[h,ltext]=plot_atm_2d(alpha_grid,z_field,r_geoid,z_ground,cloudbox_on,cloudbox_limits,1);
 
 plot_ppath(r_s,alpha_s,ppath,alpha_grid, r_geoid);
 
