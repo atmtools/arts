@@ -43,9 +43,9 @@ names of continuum models. Associated with this WSV is the WSV
 `cont_description_parameters' which should contain continuum
 parameters for each model. Allowed models currently are:
 
-H2O-ContRosenkranzSelf: Self component of a simple empirical
+H2O-ContStandardSelf: Self component of a simple empirical
    continuum model a la Liebe/Rosenkranz. Needs two parameters.
-H2O-ContRosenkranzForeign: Foreign component of a simple empirical
+H2O-ContStandardForeign: Foreign component of a simple empirical
    continuum model a la Liebe/Rosenkranz. Needs two parameters.
 
 VARIABLE : cont_description_parameters

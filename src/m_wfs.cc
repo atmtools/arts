@@ -2807,3 +2807,29 @@ void kbPutInK (
 {
   kxPutInK( kb, kb_names, kb_lengths, kb_aux, k, k_names, k_aux );
 }
+
+void LinAltsFromPres(// WS Generic Output:
+                     VECTOR&         p,
+                     // WS Generic Output Names:
+                     const string&   p_name,
+                     // WS Input:
+                     const VECTOR&   p_abs,
+                     const VECTOR&   z_abs,
+                     // Control Parameters:
+                     const Numeric&  delta_z,
+                     const Numeric&  p_start,
+                     const Numeric&  p_stop)
+
+{
+      
+  VECTOR p_lim(2), z_lim(2);
+  p_lim[0] = p_start; 
+  p_lim[1] = p_stop; 
+  
+  interpp(z_lim,p_abs,z_abs,p_lim);
+
+  VECTOR z = linspace(z_lim[0],z_lim[1],delta_z);
+  resize(p, z.size());
+  z2p(p, z_abs, p_abs, z);
+  
+}

@@ -58,6 +58,7 @@ extern const Numeric SUN_TEMP;
 extern const Numeric PLANCK_CONST;
 extern const Numeric BOLTZMAN_CONST;
 extern const Numeric SPEED_OF_LIGHT;
+extern const Numeric EARTH_GRAV_CONST;
 
 
 
@@ -857,7 +858,6 @@ void emissionOn( int&   emission )
 }
 
 
-
 /**
    See the the online help (arts -d FUNCTION_NAME)
 
@@ -1394,7 +1394,6 @@ void zaFromDeltat(
         // WS Generic Output Names:
         const string&       za_name,
         // WS Input:
-	const VECTOR&       z_tan,
         const Numeric&      z_plat,
         const VECTOR&       p_abs,
         const VECTOR&       z_abs,
@@ -1410,8 +1409,6 @@ void zaFromDeltat(
 
 {
  
-  // Earth gravitational constant
-  const   Numeric mu   = 3.98601e14;   
   
   // Checking stuff
 
@@ -1434,7 +1431,7 @@ void zaFromDeltat(
     phi[0] = za_lim[0] - 90;
     phi[1] = za_lim[1] - 90;
 
-    const Numeric ang_step  = RAD2DEG * delta_t * sqrt (mu / pow(r_geoid + z_plat,3));
+    const Numeric ang_step  = RAD2DEG * delta_t * sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
 
     if (((phi[0]-phi[1])/ang_step) <=0)
       throw runtime_error("The time given is too large to have any cross-link in the given altitude range");     
@@ -1466,13 +1463,6 @@ void zaFromDeltat(
     
     // corresponding psi
     LOS los;
-    resize( los.p,      n	);
-    resize( los.psi,    n	);
-    resize( los.z,      n	);
-    resize( los.l_step, n	);
-    resize( los.ground, n	);
-    resize( los.start,  n	);
-    resize( los.stop,   n	);
     losCalc(los,z_tan_2,z_plat,za,l_step,p_abs,z_abs,refr,refr_lfac,refr_index,z_ground,r_geoid);   
     // psi corresponding to the ztan defined for interpolation
     VECTOR psizb(n);
@@ -1483,7 +1473,7 @@ void zaFromDeltat(
     const Numeric psibot = psizb[0];       
 
     // 2 * vel * deltat as the receiver is assumed without motion
-    const Numeric ang_step = RAD2DEG *2 * delta_t * sqrt (mu / pow(r_geoid + z_plat,3));
+    const Numeric ang_step = RAD2DEG *2 * delta_t * sqrt (EARTH_GRAV_CONST / pow(r_geoid + z_plat,3));
 
     // number of cross links in the ztan range specified for the given deltat
     if (((psibot-psitop)/ang_step)<=0)

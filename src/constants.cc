@@ -172,5 +172,12 @@ extern const Numeric PRES_STAND = 101300.25;
 */
 extern const Numeric LOSCHMIDT_CONST = 2.686763E25;
 
+/** Global constant,   Earth gravitational constant [m^3/s^2].
+
+    \author Carlos Jimenez
+    \date   2001-04-20
+*/
+extern const Numeric EARTH_GRAV_CONST = 3.98601E14;
+
 
 

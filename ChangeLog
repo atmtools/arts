@@ -1,3 +1,21 @@
+2001-04-27  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-0-162
+
+	* methods.cc, md.h,M_wfs.cc: added a worspace method called
+	linAltsFromPres to calculate a set of pressures 
+	corresponding to a set of altitudes equally spaced. A
+	possible application is to define a k_grid with equally
+	spaced altitudes.
+
+	* constants.cc: the Earth's gravitational constant
+	(mu=3.98601E14 m3/s2) added to allow calculation of
+	orbital parameters, named as EARTH_GRAV_CONST.
+	
+	* methods.cc, md.h, m_loc.cc: zaFromDeltat updated
+	with EARTH_GRAV_CONST
+
+	
 2001-04-27  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-161

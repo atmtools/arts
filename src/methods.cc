@@ -434,7 +434,6 @@ void define_md_data()
 	TYPES( Numeric_t )));
 
 
-
 //=== MATRIX ==========================================================
 
   md_data.push_back
@@ -1680,8 +1679,8 @@ void define_md_data()
            "     delta_t   : time difference\n"
            "     z_tan_lim : vector with start and stop tangent altitudes"  ),
 	OUTPUT(),
-	INPUT( z_tan_, z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, 
-                                           refr_index_, r_geoid_, z_ground_ ),
+	INPUT( z_plat_ , p_abs_, z_abs_, l_step_, refr_, refr_lfac_, refr_index_, r_geoid_,
+               z_ground_ ),
 	GOUTPUT(VECTOR_ ),
 	GINPUT(),
 	KEYWORDS("delta_t","z_tan_lim"),
@@ -2359,6 +2358,28 @@ void define_md_data()
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("LinAltsFromPres"),
+	DESCRIPTION(
+           "Calculates a set of pressures corresponding to a linear set\n"
+           "of altitudes, for instance, to set a k_grid with the altitudes\n"
+           "equally spaced. The method uses p_abs and z_abs to go an\n"
+           "forward and backwards from pressure to altitude. The linear \n"
+           "set of altitudes is given with an altitude step and a starting\n"
+           "and stopping pressure.\n"
+           "Keywords:\n"
+           "     delta_z   : altitude step\n"
+           "     p_start   : starting pressure\n"
+           "     p_stop    : stopping pressure."  ),
+	OUTPUT(),
+	INPUT( p_abs_, z_abs_ ),
+	GOUTPUT(VECTOR_ ),
+	GINPUT(),
+	KEYWORDS("delta_z","p_start","p_stop"),
+	TYPES(   Numeric_t, Numeric_t, Numeric_t )));
+
 
 
 
