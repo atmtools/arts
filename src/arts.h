@@ -115,6 +115,8 @@ void define_species_data();
 void define_lineshape_data();
 void define_lineshape_norm_data();
 
+void arts_exit (int status = 1);
+
 //
 // Physical constants are now in constants.cc
 //

@@ -200,7 +200,7 @@ bool get_parameters(int argc, char **argv)
             if ( !is || !is.eof() )
               {
                 cerr << "Argument to --reporting (-r) must be an integer!\n";
-                exit(1);
+                arts_exit ();
               }
             break;
           }

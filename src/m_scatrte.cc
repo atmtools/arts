@@ -3285,7 +3285,7 @@ scat_fieldCalc(//WS Output:
   }//end atmosphere_dim = 1
 
   //cout<<"scat_field"<<scat_field<<"\n";       
-  //exit(1);
+  //arts_exit ();
   
   
   //When atmospheric dimension , atmosphere_dim = 3
@@ -3576,7 +3576,7 @@ scat_fieldCalcFromAmpMat(//WS Output:
   }//end atmosphere_dim = 1
 
   //cout<<"scat_field"<<scat_field<<"\n";	
-  //exit(1);
+  //arts_exit ();
   
   
   //When atmospheric dimension , atmosphere_dim = 3

@@ -69,7 +69,7 @@ public:
       assigned! */
   AgRecord operator=(const AgRecord& m){
     cout << "AgRecord cannot be assigned!\n";
-    exit(1);
+    arts_exit ();
       }
 private:
 

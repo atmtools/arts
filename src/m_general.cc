@@ -152,7 +152,7 @@ void ArrayOfStringPrint(
 void Exit()
 {
   out1 << "  Forced exit.\n";
-  exit(0);
+  arts_exit (0);
 }
 
 

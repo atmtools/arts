@@ -273,7 +273,7 @@ String SpeciesTag::Name() const
   switch (sizeof(Numeric)) {
   case sizeof(float)  : precision = FLT_DIG; break;
   case sizeof(double) : precision = DBL_DIG; break;
-  default: assert(false); exit(1); // It must be either float or double.
+  default: assert(false); arts_exit (); // It must be either float or double.
   }
 
   if ( 0 > mlf )

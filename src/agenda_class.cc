@@ -44,7 +44,7 @@ void Agenda::push_back(MRecord n)
 void give_up(const String& message)
 {
   out0 << message << '\n';
-  exit(1);
+  arts_exit ();
 }
 
 //! Execute an agenda.
@@ -153,13 +153,13 @@ void Agenda::execute(bool silent) const
         {
           out0 << "Run-time error in method: " << mdd.Name() << '\n'
                << x.what() << '\n';
-          exit(1);
+          arts_exit ();
         }
       catch (logic_error x)
         {
           out0 << "Logic error in method: " << mdd.Name() << '\n'
                << x.what() << '\n';
-          exit(1);
+          arts_exit ();
         }
     }
 

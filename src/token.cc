@@ -112,7 +112,7 @@ ostream& operator<<(ostream& os, const TokVal& a)
       break;
     default:
       out0 << "Undefined token type.\n";
-      exit(1);
+      arts_exit ();
     }
   return os;
 }

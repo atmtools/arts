@@ -99,7 +99,7 @@ public:
   MdRecord operator=(const MdRecord& m){
     out0 << "MdRecord cannot be assigned!\n"
          << "You tried to assign: " << m << "\n";
-    exit(1);
+    arts_exit ();
   }
 
   // Needed by make_auto_md_h.cc. See documentation there.

@@ -1168,7 +1168,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
         {
           out0 << "The outermost method must be Main!\n"
                << "(But it seems to be " << md_data[id].Name() << ".)\n";
-          exit(1);
+          arts_exit ();
         }
     }
   catch (const Eot x)
@@ -1177,7 +1177,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "Unexpected end of control script.\n";
       out0 << "File: " << x.file() << '\n';
       out0 << "Line: " << x.line() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const UnexpectedChar x)
     {
@@ -1187,7 +1187,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const IllegalLinebreak x)
     {
@@ -1196,7 +1196,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << x.what()   << '\n';
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const UnknownMethod x)
     {
@@ -1208,7 +1208,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
       out3 << "Column: " << x.column() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const UnknownWsv x)
     {
@@ -1220,7 +1220,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
       out3 << "Column: " << x.column() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const WrongWsvGroup x)
     {
@@ -1232,7 +1232,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
       out3 << "Column: " << x.column() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const UnexpectedKeyword x)
     {
@@ -1244,7 +1244,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
       out3 << "Column: " << x.column() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const ParseError x)
     {
@@ -1254,7 +1254,7 @@ void parse_main(Agenda& tasklist, SourceText& text)
       out0 << "File: "   << x.file() << '\n';
       out0 << "Line: "   << x.line() << '\n';
       out0 << "Column: " << x.column() << '\n';
-      exit(true);
+      arts_exit ();
     }
   catch (const runtime_error x)
     {
