@@ -227,12 +227,12 @@ Vector nlogspace(
  * 
  * @return The resulting integral
  */
-Numeric AngIntegrate_trapezoid(ConstMatrixView Integrand,
+Numeric AngIntegrate_trapezoid(MatrixView Integrand,
 			       ConstVectorView za_grid,
 			       ConstVectorView aa_grid)
 {
   //is_size(za_grid.nelem(),aa_grid.nelem());
-  
+ 
   Index n = za_grid.nelem();
   Index m = aa_grid.nelem();
   Vector res1(n);

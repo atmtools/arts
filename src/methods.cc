@@ -135,6 +135,7 @@ void define_md_data_raw()
   // The variable md_data is defined in file methods_aux.cc.
   extern Array<MdRecord> md_data_raw;
 
+
   // Initialize to zero, just in case:
   md_data_raw.resize(0);
 
@@ -147,6 +148,63 @@ void define_md_data_raw()
   // "_" comes after all letters.
   // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("amp_matCalc"),
+	DESCRIPTION
+	(
+	 "This method converts the raw amplitude matrix data namely \n"
+	 "amp_mat_raw to workspace variable amp_mat which can be directly\n"
+	 "used for calculating scattering properties of particles.  \n"
+	 "\n"
+	 "The data type of amp_mat_raw is an ArrayOfArrayOfTensor6 which \n"
+	 "contains one gridded field for each particle type the user wants.\n"
+	 "One data file contains amp_mat_raw for one particle type.  One \n"
+	 "data file has amp_mat_raw for one particle for a set of \n"
+	 "frequencies, incoming and outgoing zenith angles and azimuth \n"
+	 "angles. The frequencies, angles, and the amplitude matrix are \n"
+	 "each a Tensor 6. The size of amp_mat_raw is amp_mat_raw[Npt][7],\n"
+	 "where Npt is the number of particle types. amp_mat_raw[Npt] [0]\n"
+	 "gives the frequency tensor [N_f, 1, 1, 1, 1, 1] where N_f gives\n"
+	 "the number of frequencies considered in that particular database \n"
+	 "file. Similarly, amp_mat_raw[ Npt ][ 1 ] gives the outgoing zenith\n"
+	 "angle tensor [1, Nza, 1, 1, 1, 1], amp_mat_raw[ Npt ][ 2 ] gives \n"
+	 "the outgoing azimuth angle tensor [1, 1, Naa, 1, 1, 1], \n"
+	 "amp_mat_raw[ Npt ][ 3 ] gives the incoming zentih angle tensor\n"
+	 "[1, 1, 1, Nza, 1, 1], amp_mat_raw[ Npt ][ 4 ] gives the incoming\n"
+	 "azimuth angle tensor [1, 1, 1, 1, Naa, 1], amp_mat_raw[ Npt ][ 5 ]\n"
+	 "is a dummy tensor6 and amp_mat_raw[ Npt ][ 6 ] gives amplitude\n"
+	 "matrix which is also a tensor6 of size \n"
+	 "[N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number of \n"
+	 "zenith angles, Naa is the number of azimuth angles and 8 denotes \n"
+	 "the amplitude matrix elements.  \n"
+	 "\n"
+	 "In this method, we have to interpolate the raw data calculated on \n"
+	 "specific angular and frequency grids onto a grid which is set by \n"
+	 "the user. Since we decide that frequency should be the outermost \n"
+	 "loop for our radiative transfer calculation, the frequency grid \n"
+	 "contains just one value specified by the index scat_f_index. The\n"
+	 "angles for which the calculations are to be done are specified by\n"
+	 "scat_za_grid and scat_aa_grid. The interpolation has to be done \n"
+	 "for the frequency grid, zenith angle grid and azimuth angle grid. \n"
+	 "Since this interpolation is from a gridded field to a new field, \n"
+	 "we have to perform a green interpolation. For more insight into \n"
+	 "the interpolation schemes refer to Chapter 8-Interpolation of AUG.\n"
+	 "\n"
+	 "The output of this method is amp_mat has to be a Tensor6 with the \n"
+	 "first dimension being that of the particle type, then the angles \n"
+	 "and finally the amplitude matrix element 8. The size of amp_mat is\n"
+	 "(Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency \n"
+	 "is taken out.\n"
+	 ),
+	OUTPUT(amp_mat_),
+	INPUT(amp_mat_raw_, scat_f_index_, f_grid_, scat_za_grid_, 
+	      scat_aa_grid_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES())); 
 
   md_data_raw.push_back
     ( MdRecord

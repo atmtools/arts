@@ -921,35 +921,37 @@ angles.
 */
 void
 scat_fieldCalc(//WS Output:
-              Tensor6& scat_field,
-	      Tensor4& pha_mat,
-              //WS Input: 
-	      const Tensor6& i_field,
-	      const Tensor5& pha_mat_spt,
-	      const Tensor4& pnd_field,
-	      const Vector& scat_za_grid,
-	      const Vector& scat_aa_grid,
-	      const Vector& p_grid,
-	      const Vector& lat_grid,
-	      const Vector& lon_grid,
-	      const Index& stokes_dim,
-	      const Index& atmosphere_dim,
-	      const ArrayOfIndex& cloudbox_limits
-	      )
+	       Tensor6& scat_field,
+	       Tensor4& pha_mat,
+	       //WS Input: 
+	       const Tensor6& i_field,
+	       const Tensor5& pha_mat_spt,
+	       const Tensor4& pnd_field,
+	       const Vector& scat_za_grid,
+	       const Vector& scat_aa_grid,
+	       const Vector& p_grid,
+	       const Vector& lat_grid,
+	       const Vector& lon_grid,
+	       const Index& stokes_dim,
+	       const Index& atmosphere_dim,
+	       const ArrayOfIndex& cloudbox_limits
+	       )
   
 {
   Index N_pt = pha_mat_spt.nshelves();
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
-
+  Tensor3 product_field(Nza, Naa, stokes_dim);
+ 
+  Vector product_field_vec(stokes_dim);
   // scat_field is of the same size as *i_field*
   scat_field.resize( i_field.nvitrines(),
-	      i_field.nshelves(),
-	      i_field.nbooks(),
-	      i_field.npages(),
-	      i_field.nrows(),
-	      i_field.ncols() );
-
+		     i_field.nshelves(),
+		     i_field.nbooks(),
+		     i_field.npages(),
+		     i_field.nrows(),
+		     i_field.ncols() );
+  
   //Note that the size of i_field and scat_field are the same 
   if (atmosphere_dim ==3){
     
@@ -973,17 +975,17 @@ scat_fieldCalc(//WS Output:
   if( atmosphere_dim == 1 ){
     
     /*there is a loop only over the pressure index when we calculate
-     the pha_mat from pha_mat_spt and pnd_field using the method
-     pha_matCalc.  Note that the
-     lat_index and lon_index are set to zero*/
-
+      the pha_mat from pha_mat_spt and pnd_field using the method
+      pha_matCalc.  Note that the
+      lat_index and lon_index are set to zero*/
+    
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++) 
       {
 	pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			 atmosphere_dim, p_index, 0, 
-			                  0);
-			 
+		    atmosphere_dim, p_index, 0, 
+		    0);
+	
       }
     
     // Get pha_mat at the grid positions
@@ -994,50 +996,60 @@ scat_fieldCalc(//WS Output:
 	  {
 	    for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
 	      {
+		
+		ConstMatrixView pha = pha_mat(za_index,
+					      aa_index,
+					      Range(joker),
+					      Range(joker));
+		
+		// ifield_in is a vector of size 4 if stokes_dim =1
+		ConstVectorView ifield_in = i_field(p_index,
+						    0,0,
+						    za_index,
+						    aa_index,
+						    Range(joker));
+		
+		// just a multiplication of ifield_in and pha
+		//product_field_vec (i)
+		//= 
+		mult (product_field_vec, pha, ifield_in);
+		// cout << "before"<<endl;
+		
+		//cout << "after"<<endl;
 		for (Index i = 0; i < stokes_dim; i++)
 		  {
 		    
-		    // This matrix pha is a 4x4 matrix if stokes_dim = 1
-		    ConstMatrixView pha = pha_mat(za_index,
-						       aa_index,
-						       Range(joker),
-						       Range(joker));
-		    
-		    // ifield_in is a vector of size 4 if stokes_dim =1
-		    ConstVectorView ifield_in = i_field(p_index,
-							0,0,
-							za_index,
-							aa_index,
-							Range(joker));
-
-		    // just a multiplication of ifield_in and pha
-		    Vector product_field(stokes_dim);
-                    cout << "before"<<endl;
-		    mult (product_field, pha, ifield_in);
-                    cout << "after"<<endl;
-                     
-		    /*integration of the product of ifield_in and pha
-		      over zenith angle and azimuth angle grid. It calls
-		    here the integration routine AngIntegrate_trapezoid*/
-
-                    //	    scat_field
-                    // = AngIntegrate_trapezoid(product_field,
-                    //		       scat_za_grid,
-                    //			       scat_aa_grid);
-		    
+		    product_field(za_index, aa_index,i) = product_field_vec[i];
 		  }
 	      }
 	  }
+	
+	/*integration of the product of ifield_in and pha
+	  over zenith angle and azimuth angle grid. It calls
+	  here the integration routine AngIntegrate_trapezoid*/
+	for (Index i = 0; i < stokes_dim; i++)
+	  {
+	    MatrixView product_field_mat = product_field(Range(joker),
+							 Range(joker),
+							 i);
+	    scat_field(p_index, 0,0, Range(joker), Range(joker), i)  =
+	      AngIntegrate_trapezoid(product_field_mat,
+				     scat_za_grid,
+				     scat_aa_grid);
+	    
+	  }
+	
+	
       }
   }
-
-//When atmospheric dimension , atmosphere_dim = 3
+  
+  //When atmospheric dimension , atmosphere_dim = 3
   if( atmosphere_dim == 3 ){
     
     /*there is a loop only over the pressure index when we calculate
-     the pha_mat from pha_mat_spt and pnd_field using the method
-     pha_matCalc.  */
-
+      the pha_mat from pha_mat_spt and pnd_field using the method
+      pha_matCalc.  */
+    
     for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
 	 p_index++)
       {
@@ -1047,12 +1059,12 @@ scat_fieldCalc(//WS Output:
 	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
 		   cloudbox_limits[5]; lon_index++)
 	      {
-	pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-			 atmosphere_dim, p_index, lat_index, 
-			                  lon_index);
+		pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
+			    atmosphere_dim, p_index, lat_index, 
+			    lon_index);
 	      }
 	  }
-			 
+	
       }
     
     // Get pha_mat at the grid positions
@@ -1068,43 +1080,53 @@ scat_fieldCalc(//WS Output:
 		for (Index za_index = 0; za_index < Nza; ++ za_index)
 		  {
 		    for (Index aa_index = 0; aa_index < Naa; ++ aa_index)
-		      {
-			//for (Index i = 0; i < stokes_dim; i++)
-			//{
+		      {			
+			ConstMatrixView pha = pha_mat(za_index,
+						      aa_index,
+						      Range(joker),
+						      Range(joker));
+			
+			//ifield_in is a vector of size 4 if stokes_dim =1
+			ConstVectorView ifield_in = i_field(p_index,
+							    lat_index,
+							    lon_index,
+							    za_index,
+							    aa_index,
+							    Range(joker));
+			
+			// just a multiplication of ifield_in and pha
+			//Vector product_field_vec (za_index, aa_index, Range(joker))
+			//= mult (product_field_vec, pha, ifield_in);
+			mult (product_field_vec, pha, ifield_in);
+			for (Index i = 0; i < stokes_dim; i++)
+			  {
 			    
-			    //This matrix pha is a 4x4 matrix if stokes_dim = 1
-			    ConstMatrixView pha = pha_mat(za_index,
-							       aa_index,
-							       Range(joker),
-							       Range(joker));
-			    
-			    //ifield_in is a vector of size 4 if stokes_dim =1
-			    ConstVectorView ifield_in = i_field(p_index,
-								lat_index,
-								lon_index,
-								za_index,
-								aa_index,
-								Range(joker));
-			    
-			    // just a multiplication of ifield_in and pha
-			    Matrix product_field(stokes_dim, stokes_dim);
-			    mult (product_field, pha, ifield_in);
-			    
-			    /*integration of the product of ifield_in and pha
-			      over zenith angle and azimuth angle grid. It 
-			      calls here the integration routine 
-			      AngIntegrate_trapezoid*/
-			    
-			    scat_field
-			      = AngIntegrate_trapezoid(product_field,
-						       scat_za_grid,
-						       scat_aa_grid);
-			    
-			    //}
+			    product_field(za_index, aa_index,i) = product_field_vec[i];
+			  }
 		      }
 		  }
+		
+		/*integration of the product of ifield_in and pha
+		  over zenith angle and azimuth angle grid. It 
+		  calls here the integration routine 
+		  AngIntegrate_trapezoid*/
+		for (Index i = 0; i < stokes_dim; i++)
+		  {
+		    MatrixView product_field_mat = product_field(Range(joker),
+								 Range(joker),
+								 i);
+		    
+		    scat_field(p_index, lat_index, lon_index, Range(joker), Range(joker),i)
+		      = AngIntegrate_trapezoid(product_field_mat,
+					       scat_za_grid,
+					       scat_aa_grid);
+		    
+		  
+		  }
+		
 	      }
 	  }
       }
   }
 }
+  

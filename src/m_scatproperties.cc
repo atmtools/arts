@@ -22,6 +22,7 @@
 #include "logic.h"
 #include "auto_md.h"
 #include "cloudbox.h"
+#include "interpolation.h"
 
 //! This method computes the extinction matrix for a single particle type
 //  from teh amplitude matrix.
@@ -34,13 +35,14 @@
 \param scat_aa_index  Input : local azimuth angle
 */
 
-void ext_mat_sptCalc(Tensor3& ext_mat_spt,
+void ext_mat_sptCalc(
+		     Tensor3& ext_mat_spt,
 		     const Tensor6& amp_mat,
 		     const Index& scat_za_index,
 		     const Index& scat_aa_index,
 		     const Index& scat_f_index,
-		     const Vector& f_grid
-		     )
+		     const Vector& f_grid)
+		     
 {
   Index npt = ext_mat_spt.npages();
   Index stokes_dim = ext_mat_spt.nrows();
@@ -101,11 +103,12 @@ void ext_mat_sptCalc(Tensor3& ext_mat_spt,
   
 */
 
-void pha_mat_sptCalc(Tensor5& pha_mat_spt,
+void pha_mat_sptCalc(
+		     Tensor5& pha_mat_spt,
 		     const Tensor6& amp_mat,
 		     const Index& scat_za_index,
-		     const Index& scat_aa_index
-		     )
+		     const Index& scat_aa_index)
+		     
 {
   Index npt = pha_mat_spt.nshelves();
   Index stokes_dim = pha_mat_spt.nrows();
@@ -145,14 +148,17 @@ void pha_mat_sptCalc(Tensor5& pha_mat_spt,
   \param abs_vec_spt  Output : absorption vector for a single particle type
   \param ext_mat_spt  Input : extinction matrix for a single particle type
   \param pha_mat_spt  Input : phase matrix for  a single particle type
+  \param scat_za_grid Input : zenith angle grid.
+  \param scat_aa_grid Input : azimuth angle grid.
  
 */
-void abs_vec_sptCalc(Matrix& abs_vec_spt,
+void abs_vec_sptCalc(
+		     Matrix& abs_vec_spt,
 		     const Tensor3& ext_mat_spt,
 		     const Tensor5& pha_mat_spt,
 		     const Vector& scat_za_grid,
-		     const Vector& scat_aa_grid
-		     )
+		     const Vector& scat_aa_grid)
+		     
 {
   Index npt = abs_vec_spt.nrows();
   Index stokes_dim = abs_vec_spt.ncols();
@@ -202,7 +208,7 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
       
       amp2abs(abs_vec_spt(i, Range(joker)),
 	      ext,
-	     pha,
+	      pha,
 	      scat_za_grid,
 	      scat_aa_grid);
     }	   
@@ -225,14 +231,15 @@ void abs_vec_sptCalc(Matrix& abs_vec_spt,
   \param scat_lon_index Input : Longitude index for scattering calculations.
   
 */
-void ext_mat_partCalc(Matrix& ext_mat_part,
+void ext_mat_partCalc(
+		      Matrix& ext_mat_part,
 		      const Tensor3& ext_mat_spt,
 		      const Tensor4& pnd_field,
 		      const Index& atmosphere_dim,
 		      const Index& scat_p_index,
 		      const Index& scat_lat_index,
-		      const Index& scat_lon_index 
-		     )
+		      const Index& scat_lon_index) 
+		     
 {
   Index N_pt = ext_mat_spt.npages();
   Index stokes_dim = ext_mat_spt.nrows();
@@ -256,7 +263,8 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 	  for (Index m = 0; m < stokes_dim; m++)
 	    {
 	      for (Index n = 0; n < stokes_dim; n++)
-	      
+	       //summation of the product of pnd_field and 
+		//ext_mat_spt.
 	      ext_mat_part(m, n) += 
 		(ext_mat_spt(l, m, n) * pnd_field(l, scat_p_index, 0, 0));
 	    }
@@ -275,7 +283,8 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
 	  for (Index m = 0; m < stokes_dim; m++)
 	    {
 	      for (Index n = 0; n < stokes_dim; n++)
-		
+		 //summation of the product of pnd_field and 
+		//ext_mat_spt.
 		ext_mat_part(m, n) +=  (ext_mat_spt(l, m, n) * 
 					pnd_field(l, scat_p_index, 
 						  scat_lat_index, 
@@ -302,15 +311,15 @@ void ext_mat_partCalc(Matrix& ext_mat_part,
   \param scat_lon_index Input : Longitude index for scattering calculations.
   
 */
-void abs_vec_partCalc(Vector& abs_vec_part,
+void abs_vec_partCalc(
+		      Vector& abs_vec_part,
 		      const Matrix& abs_vec_spt,
 		      const Tensor4& pnd_field,
 		      const Index& atmosphere_dim,
 		      const Index& scat_p_index,
 		      const Index& scat_lat_index,
-		      const Index& scat_lon_index 
-		      
-		      )
+		      const Index& scat_lon_index) 
+		    
 {
   Index N_pt = abs_vec_spt.nrows();
   Index stokes_dim = abs_vec_spt.ncols();
@@ -331,7 +340,8 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 	  // now the loop over the stokes dimension.
           //(CE:) in the middle was l instead of m
 	  for (Index m = 0; m < stokes_dim; ++m)
-	    
+	     //summation of the product of pnd_field and 
+	    //abs_vec_spt.
 	    abs_vec_part[m] += 
 	      (abs_vec_spt(l, m) * pnd_field(l, scat_p_index, 0, 0));
 	  
@@ -347,7 +357,8 @@ void abs_vec_partCalc(Vector& abs_vec_part,
 	  
 	  // now the loop over the stokes dimension.
 	  for (Index m = 0; m < stokes_dim; ++m)
-	    
+	     //summation of the product of pnd_field and 
+	    //abs_vec_spt.
 	    abs_vec_part[m] += (abs_vec_spt(l, m) *
 				pnd_field(l, scat_p_index,
 					  scat_lat_index, 
@@ -375,15 +386,15 @@ void abs_vec_partCalc(Vector& abs_vec_part,
   \param scat_lon_index Input : Longitude index for scattering calculations.
 */
 
-void pha_matCalc(Tensor4& pha_mat,
-		      const Tensor5& pha_mat_spt,
-		      const Tensor4& pnd_field,
-		      const Index& atmosphere_dim,
-		      const Index& scat_p_index,
-		      const Index& scat_lat_index,
-		      const Index& scat_lon_index 
+void pha_matCalc(
+		 Tensor4& pha_mat,
+		 const Tensor5& pha_mat_spt,
+		 const Tensor4& pnd_field,
+		 const Index& atmosphere_dim,
+		 const Index& scat_p_index,
+		 const Index& scat_lat_index,
+		 const Index& scat_lon_index) 
 		      
-		     )
 {
 
   Index N_pt = pha_mat_spt.nshelves();
@@ -428,7 +439,8 @@ void pha_matCalc(Tensor4& pha_mat,
 		    {
 		      for (Index stokes_index = 0; stokes_index < stokes_dim;
 			   ++ stokes_index)
-			
+			 //summation of the product of pnd_field and 
+			  //pha_mat_spt.
 			pha_mat(za_index, aa_index,  
 				     stokes_index, stokes_index) += 
 			  
@@ -458,7 +470,8 @@ void pha_matCalc(Tensor4& pha_mat,
 		    {
 		      for (Index j = 0; j < stokes_dim; ++ j)
 			{
-			  
+			  //summation of the product of pnd_field and 
+			  //pha_mat_spt.
 			  pha_mat(za_index, aa_index, i,j ) += 
 			    (pha_mat_spt(pt_index, za_index, aa_index, i, j) * 
 			     pnd_field(pt_index, scat_p_index,  
@@ -483,20 +496,21 @@ void pha_matCalc(Tensor4& pha_mat,
   \param ext_mat_gas Input : extinction matrix for gas
 */
 
-void ext_matCalc(Matrix& ext_mat,
-		  const Matrix& ext_mat_part,
-		  const Matrix& ext_mat_gas
-		  )
+void ext_matCalc(
+		 Matrix& ext_mat,
+		 const Matrix& ext_mat_part,
+		 const Matrix& ext_mat_gas)
+		 
 {
   Index stokes_dim = ext_mat_part.nrows(); 
   
   
   //(CE:) Define size of ext_mat:
   ext_mat.resize(stokes_dim, stokes_dim);
-
+  //Addition of the two matrices, ext_mat_part and ext_mat_gas.
   ext_mat = ext_mat_part;
   ext_mat += ext_mat_gas;
-  cout<<"Totaal extinction matrix"<<"\n"<< ext_mat<<"\n";
+  // cout<<"Totaal extinction matrix"<<"\n"<< ext_mat<<"\n";
 }
 
 //! Total Absorption Vector
@@ -509,17 +523,209 @@ void ext_matCalc(Matrix& ext_mat,
   \param abs_vec_gas Input : absorption vector for gas
 */
 
-void abs_vecCalc(Vector& abs_vec,
-		  const Vector& abs_vec_part,
-		  const Vector& abs_vec_gas
-		  )
+void abs_vecCalc(
+		 Vector& abs_vec,
+		 const Vector& abs_vec_part,
+		 const Vector& abs_vec_gas)
+  
 {
   Index stokes_dim = abs_vec_part.nelem(); 
    
   //(CE:) Resize abs_vec
   abs_vec.resize(stokes_dim);
-  
+  // addition of abs_vec_part and abs_vec_gas
   abs_vec = abs_vec_part;
   abs_vec += abs_vec_gas;
 
 }
+
+//! Method for getting amp_mat from amp_mat_raw.
+/*! 
+This method converts the raw amplitude matrix data namely amp_mat_raw 
+to workspace variable amp_mat which can be directly used for calculating  
+scattering properties of particles.  The data type of amp_mat_raw is 
+an ArrayOfArrayOfTensor6 which contains one gridded field for each 
+particle type the user wants.  One data file
+contains amp_mat_raw for one particle type.  One data file has
+amp_mat_raw for one particle for a set of frequencies, incoming and 
+outgoing zenith angles and azimuth angles. The frequencies, angles, 
+and the amplitude matrix are each a Tensor 6.  The size of amp_mat_raw 
+is amp_mat_raw[Npt][7].  where Npt is the number of particle types.
+amp_mat_raw[Npt][0] gives the frequency tensor [N_f, 1, 1, 1, 1, 1] 
+where N_f gives the number of frequencies considered in that particular
+database file. Similarly,
+amp_mat_raw[Npt][1] gives the outgoing zenith angle tensor [1,Nza,1,1,1,1],
+amp_mat_raw[Npt][2] gives the outgoing azimuth angle tensor [1,1,Naa,1,1,1], 
+amp_mat_raw[Npt][3] gives the incoming zentih angle tensor [1,1,1,Nza,1,1], 
+amp_mat_raw[Npt][4] gives the incoming azimuth angle tensor [1,1,1,1,Naa,1],
+amp_mat_raw[Npt][5] is a dummy tensor6 and 
+amp_mat_raw[Npt][6] gives amplitude matrix which is also a tensor 6 of
+size [N_f, N_za, N_aa, N_za, N_aa, 8]. Here, Nza is the number 
+of zenith angles, Naa is the number of azimuth angles and 8 denotes the 
+amplitude matrix elements.  
+
+In this method, we have to interpolate the raw data calculated on a 
+specific angular and frequency grid onto a grid which is set by the user. 
+Since we decide that frequency should be the outermost loop for our 
+radiative transfer calculation the frequency grid contains just one 
+value specified by the index scat_f_index.  The angles for which the 
+calculations are to be done are specified by scat_za_grid and scat_aa_grid.
+
+The output of this method is amp_mat has to be a 
+Tensor6 with the first dimension being that of the particle type, then the
+angles and finally the amplitude matrix element 8. The size of amp_mat is 
+(Npt, Nza, Naa, Nza, Naa, 8).  Note that the dimension frequency is taken
+out.
+  
+\param amp_mat Output : Amplitude matrix which is interpolated on the 
+required grids set by the user.
+\param amp_mat_raw Input : The original data as read from the database.
+\param scat_f_index Input : The frequency index.
+\param f_grid Input : The frequency grid as required for RT calculation
+\param scat_za_grid Input : The zenith angle grid for which scattering 
+properties are to be calculated 
+\param scat_aa_grid Input : The azimuth angle grid for which scattering 
+properties are to be calculated 
+*/
+void amp_matCalc(Tensor6& amp_mat,
+		 const ArrayOfArrayOfTensor6& amp_mat_raw,
+		 const Index& scat_f_index,
+		 const Vector& f_grid,
+		 const Vector& scat_za_grid,
+		 const Vector& scat_aa_grid)
+{
+  Index N_pt = amp_mat_raw.nelem();
+ 
+  Index N_za = scat_za_grid.nelem();
+  Index N_aa = scat_aa_grid.nelem();
+  Index N_i = amp_mat_raw [ 0 ] [ 6 ].ncols();
+  amp_mat.resize(N_pt, N_za, N_aa, N_za, N_aa, N_i);  
+  /*amp_mat_raw is an ArrayOfArrayOfTensor6 from which we can get the 
+    amplitude matrix which is a tensor 6 with size(Nf, Nza, Naa, Nza,Naa,8). 
+    This is what is directly read from the database.  As mentioned in 
+    the beginning in this method we have to interpolate amplitude matrix 
+    from the grid on which it is calculated in the database to the grid set
+    by the user. The interpolation has to be done for the frequency grid,
+    zenith angle grid and azimuth angle grid. Since this interpolation is
+    from a gridded field to a new field, it is called a green interpolation.
+    For more insight into the interpolation schemes refer to Chapter 8-
+    Interpolation  of AUG.
+    The new grids are f_grid(only one element in this vector), scat_za_grid, 
+    scat_aa_grid and the old grids are deroved from the ArrayOfArrayOfTensor6 
+    amp_amt_raw.*/
+
+  //Loop over the particle types. We can get information about the number of
+  //particle types from the input ArrayOfArrayOfTensor6 amp_mat_raw
+   for (Index ipt = 0; ipt < N_pt; ++ ipt )
+     {
+       Index N_i = amp_mat_raw [ ipt ] [ 6 ].ncols();
+       //calling the interpolation routines.  
+       
+       //Get the grid position arrays. 
+
+       // for  frequency : 
+       ArrayOfGridPos f_gp(f_grid.nelem()); 
+
+       // for outgoing zenith angle grids : 
+       ArrayOfGridPos za_gp(scat_za_grid.nelem());
+       
+       // for outgoing azimuth angle grids : 
+       ArrayOfGridPos aa_gp(scat_aa_grid.nelem());
+
+       // for incoming zenith angle grids : 
+       ArrayOfGridPos za_in_gp(scat_za_grid.nelem());
+
+       // for incoming azimuth angle grids : rows
+       ArrayOfGridPos aa_in_gp(scat_aa_grid.nelem());
+       
+       // Grid positions is got by calling the function gridpos.
+       
+       /*for frequency :
+
+       f_gp is the ArrayOfGridpos.
+       
+       original frequency grid as in the data base can be got from the 
+       ArrayOfTensor6 amp_mat_raw.  
+       amp_mat_raw[ipt][0] ( Range(joker), 0, 0, 0, 0, 0).  
+       
+       f_grid(Range(scat_f_index),1) is the new grid which is also a vector
+       formally but with one element given by the scat_f_index*/
+      
+       gridpos (f_gp,
+		amp_mat_raw [ ipt ]  [ 0 ] ( Range(joker), 0, 0, 0, 0, 0),
+		f_grid[Range(scat_f_index, 1)]);
+       
+       //like for frquency we can get the gridpostions for the angular grids.
+
+       gridpos (za_gp, 
+		amp_mat_raw [ ipt ] [  1 ] ( 0, Range(joker), 0, 0, 0, 0),
+		scat_za_grid);
+
+       gridpos (aa_gp,
+		amp_mat_raw [ ipt ] [ 2 ] ( 0, 0, Range(joker), 0, 0, 0),
+	       scat_aa_grid);
+
+       gridpos (za_in_gp, 
+		amp_mat_raw [ ipt ] [ 3 ] ( 0, 0, 0, Range(joker), 0, 0),
+	       scat_za_grid);
+
+       gridpos (aa_in_gp,
+		amp_mat_raw [ ipt ] [ 4] ( 0, 0, 0, 0, Range(joker), 0),
+		scat_aa_grid);
+       
+       /*The interpolation weights. Since here we interpolate 
+	 simultaneously in 5 dimensions we require exactly 32 
+	 interpolation weights. (There are 2^n interpolation 
+	 weights for an n-dimensional interpolation. ).  Since
+	 in ARTS we want to save a lot by re-using the weights
+	 the interpolation weights are stored in a tensor whcih
+	 has one more dimension than the output field. The last 
+	 dimension is for weight, this explains the last dimension
+	 of interpolation weight to be 32 in this case.
+	 */
+       
+       Tensor6 itw(f_grid.nelem(), scat_za_grid.nelem(), scat_aa_grid.nelem(),
+		   scat_za_grid.nelem(), scat_aa_grid.nelem(), 32);
+
+       //function for computing interpolation weight tensor. For this
+       //step also we need only gridpositions, not the field yet.
+       interpweights ( itw, f_gp, za_gp, aa_gp, za_in_gp, aa_in_gp );
+      
+       // This is a green interpolation for all columns of source_amp.
+       // Loop over the column
+       for (Index i = 0 ; i < N_i ; ++ i)
+	 {
+	   /*Select the current column of target.  The first element 
+	     of target is the running variable ipt, whcih gives the
+	     particle type.*/
+	   Tensor5View target_amp = amp_mat(Range(ipt, 1),
+					    Range(joker),
+					    Range(joker),
+					    Range(joker),
+					    Range(joker),
+					    i);
+	   
+	   //Select the current column of source.  Here the first
+	   //element is frequency
+	   ConstTensor5View source_amp = 
+	     amp_mat_raw [ ipt ][6 + 7* ipt](Range(joker),
+				      Range(joker),
+				      Range(joker),
+				      Range(joker),
+				      Range(joker),
+				      i);
+
+	   //Interpolation is done :
+	   interp (target_amp, 
+		   itw, 
+		   source_amp, 
+		   f_gp, 
+		   za_gp,
+		   aa_gp,
+		   za_in_gp,
+		   aa_in_gp);
+	   
+	 }//close column index
+     }//close particle index loop
+}
+
