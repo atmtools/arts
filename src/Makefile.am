@@ -26,6 +26,7 @@ arts_SOURCES = \
 	auto_wsv_pointers.cc \
 	check_input.cc \
 	check_input.h \
+	cloudbox.h \
 	constants.cc \
 	continua.cc \
 	continua.h \
@@ -71,6 +72,16 @@ arts_SOURCES = \
 	matpackI.cc \
 	matpackI.h \
 	matpackII.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -153,6 +164,17 @@ noinst_PROGRAMS = \
 
 test_interpolation_SOURCES = \
 	array.h \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
 	matpackVII.h \
 	interpolation.h \
 	interpolation.cc \
@@ -161,8 +183,18 @@ test_interpolation_SOURCES = \
 
 test_linalg_SOURCES = \
 	arts.h \
-	matpackI.h \
 	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	make_vector.h\
 	make_vector.cc\
 	lin_alg.cc \
@@ -173,8 +205,18 @@ test_linalg_SOURCES = \
 
 test_scatproperties_SOURCES = \
 	arts.h \
-	matpackI.h \
 	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	make_vector.h\
 	make_vector.cc\
 	test_scatproperties.cc\
@@ -204,10 +246,15 @@ test_tensor_SOURCES = \
 	make_vector.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackIII.cc \
 	matpackIII.h \
+	matpackIV.cc \
 	matpackIV.h \
+	matpackV.cc \
 	matpackV.h \
+	matpackVI.cc \
 	matpackVI.h \
+	matpackVII.cc \
 	matpackVII.h \
 	mystring.h \
 	test_tensor.cc
@@ -220,11 +267,32 @@ test_matpack_SOURCES = \
 	make_vector.h \
 	matpackI.cc \
 	matpackI.h \
+	matpackIII.cc \
 	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	mystring.h \
 	test_matpack.cc
 
 test_xml_SOURCES = \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	xml_io.h \
 	xml_io_private.h \
 	xml_io.cc \
@@ -237,6 +305,8 @@ make_auto_wsv_groups_h_SOURCES = \
 	file.h \
 	groups.cc \
 	make_auto_wsv_groups_h.cc \
+	matpackI.cc \
+	matpackI.h \
 	messages.cc \
 	version.cc
 
@@ -248,6 +318,8 @@ make_auto_wsv_h_SOURCES = \
 	file.h \
 	groups.cc \
 	make_auto_wsv_h.cc \
+	matpackI.cc \
+	matpackI.h \
 	messages.cc \
 	version.cc \
 	workspace.cc \
@@ -261,6 +333,8 @@ make_auto_wsv_pointers_cc_SOURCES = \
 	file.h \
 	groups.cc \
 	make_auto_wsv_pointers_cc.cc \
+	matpackI.cc \
+	matpackI.h \
 	messages.cc \
 	version.cc \
 	workspace.cc \
@@ -277,6 +351,18 @@ make_auto_md_h_SOURCES = \
 	groups.cc \
 	make_array.h \
 	make_auto_md_h.cc \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
@@ -301,6 +387,19 @@ make_auto_md_cc_SOURCES = \
 	groups.cc \
 	make_array.h \
 	make_auto_md_cc.cc \
+	make_array.h \
+	matpackI.cc \
+	matpackI.h \
+	matpackIII.cc \
+	matpackIII.h \
+	matpackIV.cc \
+	matpackIV.h \
+	matpackV.cc \
+	matpackV.h \
+	matpackVI.cc \
+	matpackVI.h \
+	matpackVII.cc \
+	matpackVII.h \
 	messages.cc \
 	messages.h \
 	methods.cc \
