@@ -15,7 +15,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.113)
+AM_INIT_AUTOMAKE(arts,1.0.114)
 #
 # First of all set the default PREFIX if not given
 # (needed for arts data path later)
