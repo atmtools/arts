@@ -229,12 +229,12 @@ void CloudboxSetManually(
 void convergence_flagAbs(//WS Output:
                       Index& convergence_flag,
                       //WS Input:
-                      Tensor6& i_field,
-                      Tensor6& i_field_old,
-                      ArrayOfIndex& cloudbox_limits, 
-                      Vector& scat_za_grid,
-                      Vector& scat_aa_grid,
-                      Index stokes_dim)
+                      const Tensor6& i_field,
+                      const Tensor6& i_field_old,
+                      const ArrayOfIndex& cloudbox_limits, 
+                      const Vector& scat_za_grid,
+                      const Vector& scat_aa_grid,
+                      const Index& stokes_dim)
 {
   assert( convergence_flag == 0 );
   
