@@ -1,0 +1,214 @@
+############################################################################
+#
+#            An example of how to run batch calculations
+#
+#            - the *Previous calculations* are usual stuff
+#            - the *Batch calculations* only need to set the
+#              batch name, have the proper input files  and
+#              to run ybatchCalc.
+#
+#            Depending in the dp_ fields of tbatchCalc, different
+#            input files with the random realizations are needed. 
+#            The following are needed here:
+#
+#            -  batch_test.O3.ab
+#            -  batch_test.HNO3.ab
+#            -  batch_test.z_abs.ab
+#            -  batch_test.t_abs.ab
+#            -  batch_test.za_pencil.ab
+#
+#            and are provided in arts/doc/examples
+#
+#            See the help for ybtachCalc for more details.
+#
+############################################################################
+
+### 
+###                       Previous calculations                           ###
+###                                                                       ###
+
+
+### Spectroscopy: ############################################################
+tgsDefine { 
+   ["O3","HNO3","H2O-MPM93","N2"] 
+}
+wfs_tgsDefine { 
+   [] 
+}
+lineshapeDefine { 
+   shape               = "Voigt_Kuntz3"
+   normalizationfactor = "quadratic" 
+   cutoff              =  -1
+} 
+linesReadFromHitran { 
+   filename = "@ac_arts_data@/spectroscopy/hitran96/hitran96_lowfreq.par"
+   fmin     = 540e9
+   fmax     = 560e9 
+}
+lines_per_tgCreateFromLines {
+}  
+
+cont_descriptionInit{
+}
+cont_descriptionAppend{
+    name       = "H2O-MPM93"
+    parameters = [ ]
+}
+
+
+
+### p_abs ####################################################################
+VectorNLogSpace(p_abs){
+        start = 100000
+        stop  = 10
+        n     = 46
+}
+
+
+### Monochromatic frequency grid #############################################
+VectorNLinSpace(f_mono){
+        start = 544.2e9
+        stop  = 545.0e9
+        n     = 800    
+}
+
+
+### The atmosphere ###########################################################
+MatrixReadAscii (raw_ptz) 
+        {"@ac_arts_data@/atmosphere/fascod/tropical.tz.aa"}
+
+raw_vmrsReadFromScenario
+        {"@ac_arts_data@/atmosphere/fascod/tropical"}
+
+AtmFromRaw {
+    CloudSatWV = "no" }
+h2o_absSet {
+}
+n2_absSet {
+}
+
+
+### The geoid ###############################################################
+r_geoidStd {
+}
+
+
+### Hydrostatic eq. ###########################################################
+hseSet{
+   pref  = 100000
+   zref  = 0
+   g0    = 9.81
+   niter = 2 }
+hseCalc{}
+
+
+### The ground ###############################################################
+groundSet{
+   z = 200
+   e = 1
+}
+
+
+### Absorption ################################################################
+absCalc {
+}
+abs_per_tgReduce {
+}
+
+
+### Refraction ################################################################
+refrSet{
+  on    = 1
+  model = "Boudouris"
+  lfac  = 10
+}
+refrCalc{}
+
+
+### Emission #################################################################
+IndexSet( emission ) {
+   value = 1
+}
+
+
+### Observation geometry ######################################################
+NumericSet ( z_plat ) { 
+   value = 625000
+}
+VectorNLinSpace(za_pencil){
+        start = 1.1310e2
+        stop  = 1.1421e2
+        n     = 34    
+}
+
+NumericSet ( l_step ) { 
+   value = 20000 
+}
+
+
+### LOS and RTE ##############################################################
+y_spaceStd { "cbgr" }
+losCalc    {}
+sourceCalc {}
+transCalc  {}
+yCalc      {}
+yTRJ       {}
+
+
+### Save #####################################################################
+VectorWriteBinary( y ) { 
+   ""
+}
+VectorWriteBinary( p_abs ) { 
+   ""
+}
+VectorWriteBinary( t_abs ) { 
+   ""
+}
+VectorWriteBinary( z_abs ) { 
+   ""
+}
+VectorWriteBinary( f_mono ) { 
+   ""
+}
+MatrixWriteBinary( vmrs ) { 
+   ""
+}
+
+###                                                                    ###
+###                            Batch calculations                      ###
+###                                                                    ###
+
+
+### Name ##################################################################
+StringSet( batchname ) { "batch_test" }
+
+
+### Calculate spectra for the batch data ##################################
+
+ybatchCalc{
+   ncalc     = 5
+   do_t      = 1
+   t_file    = ""
+   do_z      = 1
+   z_file    = ""
+   do_tags   = ["O3","HNO3"]
+   tag_files = ["",""]
+   do_f      = 0
+   f_file    = ""
+   do_za     = 1
+   za_file   = ""
+}
+
+
+### Convert to RJ temperatures #############################################
+MatrixTRJ( ybatch, ybatch ){}
+
+
+### Save ########################################################
+
+MatrixWriteBinary( ybatch ) {""}
+
+Exit{}
+
+

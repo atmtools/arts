@@ -1,3 +1,13 @@
+2001-10-30  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
+	* arts-0-1-26
+
+	* cleaning and moving of some mscripts in /ami
+
+	* adding /doc/examples/batch_example.arts.in as an example
+	of ybatchCalc, input files needed are listed there and 
+	have also been added in the same directory.
+
 2001-10-24  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-25
