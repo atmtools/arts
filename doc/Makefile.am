@@ -11,6 +11,6 @@ SUBDIRS        = icons doxygen uguide examples emacs
 
 artsdocdir = $(pkgdatadir)/doc
 
-EXTRA_DIST = index.html.in arts.css
+EXTRA_DIST = index.html.in arts.css arts-splash.gif
 
 artsdoc_DATA = index.html arts.css

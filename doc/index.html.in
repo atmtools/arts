@@ -15,6 +15,8 @@
   </head>
 
   <body>
+    <center><img src="arts-splash.gif"></center>
+
     <h1> Documentation
      for ARTS version @VERSION@</h1>
 
