@@ -2345,8 +2345,34 @@ void define_md_data_raw()
          "the elements of phase matrix from the elements of amplitude \n"
          "matrix."
          ),
-        OUTPUT(pha_mat_spt_),
+	OUTPUT(pha_mat_spt_),
         INPUT(pha_mat_spt_, amp_mat_, scat_za_index_, scat_aa_index_),
+	GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES())); 
+  
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "pnd_fieldCalc" ),
+        DESCRIPTION
+        ("Interpolate the particle number density fields.\n"
+	 "\n"
+	 "This methods interpolates the particle number density field\n"
+	 "from the raw data *pnd_field_raw* to pnd_field* onto the grids for the\n"
+	 "calculation namely, *p_grid*, *lat_grid*, *lon_grid*.  The method is\n"
+	 "similar to *AtmFieldsCalc* where temperature, altitude and vmr are\n"
+	 "interpolated onto *p_grid*, *lat_grid*, *lon_grid*. \n"
+	 "\n"
+	 "The method takes in as input *pnd_field_raw* which is an\n"
+	 "ArrayOfArrayOfTensor3 which contains one gridded field for each\n"
+	 "particle type. See the online documentation of *pnd_field_raw* for\n"
+	 "more information about this variable.  The output *pnd_field* is a\n"
+	 "Tensor4 with dimension pnd_field(part_types, p_grid, lat_grid,\n"
+	 "lon_grid). \n"
+	 ),
+	OUTPUT(pnd_field_),
+        INPUT(p_grid_, lat_grid_, lon_grid_, pnd_field_raw_, atmosphere_dim_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

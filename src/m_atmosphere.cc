@@ -381,6 +381,7 @@ void AtmFieldsCalc(//WS Output:
 
 
 
+
 //! AtmosphereSet1D
 /*!
 
@@ -832,5 +833,134 @@ void r_geoidWGS84(
   out3 << "            ncols  : " << r_geoid.ncols() << "\n";
 }
 
+//! Calculate atmospheric fields.
+/*!
+  This method interpolates the data for atmospheric fields on the atmospheric
+  grids used for the calculation.
+
+   See also the the online help (arts -d FUNCTION_NAME)
+
+   \author Sreerekha T.R.
+   \date   2003-04-17
+*/
+void pnd_fieldCalc(//WS Output:
+		   Tensor4& pnd_field,
+                   //WS Input
+                   const Vector& p_grid,
+                   const Vector& lat_grid,
+                   const Vector& lon_grid,
+		   const ArrayOfArrayOfTensor3& pnd_field_raw,
+                   const Index& atmosphere_dim
+                   )
+{
+
+  // Basic checks of input variables
+  //
+  // Atmosphere
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  
+  //==========================================================================
+  if ( atmosphere_dim == 1)
+    {
+      
+      //Resize variables
+      
+      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), 1, 1);
+
+ 
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+         
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos(gp_p, pnd_field_raw[i][0](Range(joker), 0, 0), p_grid);
+      
+          // Interpolation weights:
+	   Matrix itw(p_grid.nelem(), 2);
+	   // (2 interpolation weights are required for 1D interpolation)
+          interpweights( itw, gp_p);
+          
+          // Interpolate:
+          interp( pnd_field(i, Range(joker), 0, 0),
+                  itw, pnd_field_raw[i][3](Range(joker), 0, 0), gp_p);
+        }
+      
+    }
+
+  //=========================================================================
+  else if(atmosphere_dim == 2)
+    {
+      //Resize variables
+      
+      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+                       1);
+      
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(lat_grid.nelem());
+                  
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos(gp_p, pnd_field_raw[i][0](Range(joker), 0, 0), p_grid);
+          gridpos(gp_lat, pnd_field_raw[i][1](0, Range(joker), 0), 
+                  lat_grid);
+	  
+          // Interpolation weights:
+	  Tensor3 itw(p_grid.nelem(), lat_grid.nelem(), 4);
+	  // (8 interpolation weights are required for 3D interpolation)
+          interpweights( itw, gp_p, gp_lat);
+          
+          // Interpolate:
+          interp( pnd_field(i, Range(joker), Range(joker), 0),
+                  itw, pnd_field_raw[i][3](Range(joker), Range(joker), 0),
+                  gp_p, gp_lat);
+        }
+    }
+
+  //================================================================
+  // atmosphere_dim = 3    
+  else
+    {
+      //Resize variables
+      pnd_field.resize(pnd_field_raw.nelem(), p_grid.nelem(), lat_grid.nelem(),
+                       lon_grid.nelem());
+      
+      
+      // Gridpositions:
+      ArrayOfGridPos gp_p(p_grid.nelem());
+      ArrayOfGridPos gp_lat(lat_grid.nelem());
+      ArrayOfGridPos gp_lon(lon_grid.nelem());
+      
+      
+      // Interpolate pnd_field. 
+      // Loop over the particle types:
+      for (Index i = 0; i < pnd_field_raw.nelem(); ++ i)
+        {
+          // Calculate grid positions:
+          p2gridpos(gp_p, pnd_field_raw[i][0](Range(joker), 0, 0), p_grid);
+          gridpos(gp_lat, pnd_field_raw[i][1](0, Range(joker), 0), 
+                  lat_grid);
+          gridpos(gp_lon, pnd_field_raw[i][2](0, 0, Range(joker)), 
+                  lon_grid);
+          
+          // Interpolation weights:
+	   Tensor4 itw(p_grid.nelem(), lat_grid.nelem(), lon_grid.nelem(), 8);
+      // (8 interpolation weights are required for 3D interpolation)
+          interpweights( itw, gp_p, gp_lat, gp_lon );
+          
+          // Interpolate:
+          interp( pnd_field(i, Range(joker), Range(joker), Range(joker)),
+                  itw, pnd_field_raw[i][3], gp_p, gp_lat, gp_lon);
+        }
+    }
+}
 
 

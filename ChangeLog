@@ -1,3 +1,15 @@
+2003-04-22  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-526
+	
+	* src/m_atmosphere.cc (pnd_fieldCalc): Implemented this method
+	which intepolates the *pnd_field_raw* on to the grids, *p_grid*,
+	*lat_grid*, and *lon_grid* for calculation.  This method is similar to
+	the method *AtmFieldsCalc* which does the interpolation for
+	temperature, altitude and vmr. 
+
+	* src/methods.cc : Added the method pnd_fieldCalc.
+
 2003-04-17  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-525

@@ -2048,7 +2048,7 @@ void ybatchMetProfiles(//Output
       //xml_write_to_file(met_profile_basenames[i]+ ".O2.xml", vmr_field_raw[2]);
 
       pnd_field_raw[0] = pnd_field_here;
-      pnd_field(0, Range(joker),0,0) = pnd_field_raw[0][3](Range(joker), 0,0) ; 
+      //pnd_field(0, Range(joker),0,0) = pnd_field_raw[0][3](Range(joker), 0,0) ; 
       
       // executing the met_profile_calc_agenda
       met_profile_calc_agenda.execute();
