@@ -1,3 +1,12 @@
+2002-12-20  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-63
+
+	* src/Makefile.am: Merged changes from ARTS-1-1 branch.
+	Removed explicit definition of arts_DEPENDENCIES
+	and redefinition of target arts. Seems to work exactly the
+	same way if the definitions are omitted.
+
 2002-12-17  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-62
