@@ -1,5 +1,11 @@
 2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
+	* arts-0-1-6
+
+	* forgot to add hseCalc.m, added now!
+
+2001-10-16  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
 	* arts-0-1-5
 
 	* BUG in m_batch line 301 temporarily fixed, Stefan please
