@@ -1,3 +1,12 @@
+2003-01-21  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-411
+
+	* src/bofstream.{h,cc}: Added. Contains class for writing binary data
+	by using output operators <<.
+
+	* src/Makefile.am (arts_SOURCES): Added bofstream.{h,cc}.
+
 2003-01-21  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-410
