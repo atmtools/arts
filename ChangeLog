@@ -1,3 +1,29 @@
+2002-11-11  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-282
+
+	* doc/uguide/uguide.tex: Use ifthen package to determine whether
+	we are using pdflatex or vanilla latex. So, we don't need any
+	longer the separate uguide_pdf.tex file.
+
+	* doc/uguide/uguide_pdf.tex: Removed after merging into uguide.tex.
+
+	* doc/uguide/Makefile.am: Adapted to create both ps and pdf file 
+	from uguide.tex.
+
+	Moved several files from MAINTAINERCLEANFILES to CLEANFILES.
+	Everything except uguide.{ps,pdf,dvi} and automatically
+	generated tex files can be removed.
+
+	Remove uguide.toc after creation of ps/pdf file because latex and
+	pdflatex use different formats for this file.
+
+	Use -o option for dvips instead of output redirection.
+
+	* doc/uguide/.cvsignore: Cleanup.
+
+	* src/Makefile.am: $(EXEEXT) was still missing in some places.
+
 2002-11-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-281
