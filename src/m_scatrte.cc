@@ -698,7 +698,7 @@ i_fieldUpdate1D(// WS Output:
                                     "FIXTHIS!!!!"
                                     );
             }
-	  cout<<"abs_vec"<<"  "<<abs_vec<<"\n";
+	
 	 //1.Extinction Matrix.
 	  
           // Calculate ext_mat for the given point:
@@ -737,10 +737,7 @@ i_fieldUpdate1D(// WS Output:
               }
             }
 	
-	  cout<<"ext_mat"<<"  "<<ext_mat<<"\n";
-	  exit(1);
-         
-          // Get sca_vec and stokes_vec from the fields and calculate
+	  // Get sca_vec and stokes_vec from the fields and calculate
           // the average values for the layer. 
           sca_vec.resize(stokes_dim);
           stokes_vec.resize(stokes_dim);
