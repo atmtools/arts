@@ -264,7 +264,25 @@ void define_wsv_data()
         ),
        GROUP( Matrix_ )));
 
-  wsv_data.push_back
+
+ wsv_data.push_back
+    (WsvRecord
+    ( NAME( "abs_vec_zee" ),
+      DESCRIPTION
+      (
+       "Zeeman absorption vector.\n"
+       "\n"
+       "more text by Nikolay\n"
+       "\n"
+       "Usage:      Output of the agendas *zeeman_prop_agenda* \n"
+       "\n"
+       "Unit:        [Hz, m^2]\n"
+       "\n"
+       "Dimensions: [f_grid, stokes_dim]"
+        ),
+       GROUP( Matrix_ )));
+
+ wsv_data.push_back
     (WsvRecord
      ( NAME("abs_vec_spt"),
        DESCRIPTION
@@ -406,13 +424,14 @@ void define_wsv_data()
       DESCRIPTION
       (
        "The dimensionality of the antenna pattern (1-2).\n"
-       "\n"
+       "\n"       
        "A dimensionality of 1 means that only the respons variation in the\n"
        "zenith direction is considered. The respons is then integrated in \n"
        "the azimuth direction. For 2D, the respons of the antenna has both a\n"
        "zenith and azimuth variation.\n"
        "\n"
-       "Usage:      Set by the user."
+       "Usage:      Set by the user.\n"
+       "\n"
        ),
       GROUP( Index_ )));
 
@@ -616,6 +635,24 @@ void define_wsv_data()
        ),
        GROUP( Tensor3_ )));
 
+wsv_data.push_back
+    (WsvRecord
+     ( NAME( "ext_mat_zee" ),
+       DESCRIPTION
+      (
+       "Zeeman extinction matrix.\n"
+       "\n"
+       "More text by Nikolay"
+       "\n"
+       "Usage:      Output of the agendas *zeeman_prop_agenda* \n"
+       "\n"
+       "Unit:       [Hz, m^2, m^2] "
+       "\n"
+       "Dimensions: [f_grid, stokes_dim, stokes_dim]"
+       ),
+       GROUP( Tensor3_ )));
+
+
   wsv_data.push_back
      (WsvRecord
     ( NAME( "ext_mat_spt" ),
@@ -750,6 +787,35 @@ void define_wsv_data()
         "more detailed information how tag groups work and some examples."
         ), 
        GROUP( ArrayOfArrayOfSpeciesTag_ )));
+
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "geomag_los_calc_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
+
+  wsv_data.push_back
+    (WsvRecord
+    ( NAME( "geomag_los" ),
+      DESCRIPTION
+      (
+       "Magnetic field along the line of sight\n"
+       "\n"
+       "more text by Nikolay \n"
+       "\n"
+       "Unit: ..."
+       "\n"
+       "Dimensions: [Magnetic field B, angle between B and los] \n"
+       "\n"
+       ),
+      GROUP( Matrix_ )));
+
+
 
   wsv_data.push_back
     (WsvRecord
@@ -1515,6 +1581,19 @@ wsv_data.push_back
        "Usage: Output from the method *ppathCalc*."
        ),
       GROUP( Ppath_ )));
+
+   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "ppath_index" ),
+      DESCRIPTION
+      (
+       "Index for point in propagation path.\n"
+       "\n"
+       "Usage: This variable is needed only for communication with \n"
+       "zeeman_prop_agenda. \n"
+       "\n"
+       ),
+      GROUP( Index_ )));
 
 wsv_data.push_back
    (WsvRecord
@@ -2663,6 +2742,16 @@ wsv_data.push_back
        "       optical thickness."
        ),
       GROUP( Matrix_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "zeeman_prop_agenda" ),
+      DESCRIPTION
+      (
+        "See agendas.cc."
+       ),
+      GROUP( Agenda_ )));
+
 
   wsv_data.push_back
    (WsvRecord

@@ -1,3 +1,36 @@
+2003-11-28  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-721	
+	
+	* src/workspace.cc (workspace.cc): Included workspace variables 
+	for Zeeman implementation. Proper documentation should be added 
+	by Nikolay.
+	Added WSVs:
+	geomag_los: Magnetic field along los (absolute value + angle between 
+		los and magnetic field. 
+	ext_mat_zeeman: Zeeman extinction matrix.
+	abs_vec_zeeman: Zeeman absorption vector.
+	ppath_index: Index needed for communication with zeeman prop_agenda.
+
+	Included agenda definitions for agendas added to agenda.cc.
+
+	* src/agendas.cc: Included agendas for  Zeeman implementation.
+	zeeman_prop_agenda: Calculation of extinction matrix and absorption
+		vector for Zeeman effect.
+	geomag_calc_los_agenda: Agenda to calculate the magnetic field along
+		the propagation path.
+
+	* src/m_scatrte.cc (scat_fieldCalcLimb): Included this method. It 
+	calculates the scattering integral, if different zenith angle grids
+	are used for the calculation of *scat_field* and the radiative
+	transfer. Interpolations on the different grids are necessary.
+	(scat_fieldCalc): If one uses the same grids in both parts (e.g.) for
+	nadir geometry, the interpolations are not needed, so it makes 
+	sense to have two separate functions. *scat_fieldCalcLimb* is slower, 
+	if one has equal grids in both parts.
+
+	* src/methods.cc: Included *scat_fieldCalcLimb*.
+
 2003-11-28  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-720

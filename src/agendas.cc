@@ -103,6 +103,25 @@ void define_agenda_data()
 
   agenda_data.push_back
     (AgRecord
+     ( NAME( "geomag_los_calc_agenda" ),
+       DESCRIPTION
+       (
+        "Calculates the magnetic field along a given propagation path.\n"
+        "\n"
+        "more text by Nikolay"
+        "\n"
+        "Output:    \n"
+        "   geomag_los : Magnetic field along LOS plus angle  \n"
+        "\n"
+        "Input:    \n"
+        "\n"
+          ),
+       OUTPUT( geomag_los_ ),
+       INPUT(  )));
+
+
+  agenda_data.push_back
+    (AgRecord
      ( NAME( "ground_refl_agenda" ),
        DESCRIPTION
        (
@@ -537,5 +556,29 @@ void define_agenda_data()
        INPUT(  abs_vec_spt_, ext_mat_spt_,
                scat_za_index_, scat_aa_index_,
                scat_za_grid_, scat_aa_grid_ )));
+
+
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "zeeman_prop_agenda" ),
+       DESCRIPTION
+       (
+        "Calculates extinction matrix and absorption vector due to the \n"
+        "Zeeman effect. \n"
+        "\n"
+        "more text by Nikolay"
+        "\n"
+        "Output:    \n"
+        "   ext_mat_zeeman: Zeeman extinction matrix  \n"
+        "   abs_vec_zeeman: Zeeman absorption vector  \n"
+        "\n"
+        "Input:    \n"
+        "  geomag_los: Magnetic field along LOS plus angle  \n"
+        "\n"
+          ),
+       OUTPUT( geomag_los_ ),
+       INPUT(  )));
+
 
 }
