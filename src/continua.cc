@@ -2027,9 +2027,10 @@ void CKD_mt_self_h2o( MatrixView          xsec,
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 H2O self continuum:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "  CKD_MT 1.00 H2O self continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << SL296_ckd_mt_100_v1 << "<->" << SL296_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -2085,6 +2086,17 @@ void CKD_mt_self_h2o( MatrixView          xsec,
 
   V2C = V1C + SL296_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
+  if (NPTC < 1)
+    {
+      ostringstream os;
+      out3 << "WARNING:\n"  
+	   << "  CKD_MT 1.00 H2O self continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
   Numeric SH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
   Numeric SH2OT1[NPTC+addF77fields]; // [cm^3/molecules]
 
@@ -2255,9 +2267,10 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 H2O foreign continuum:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "  CKD_MT 1.00 H2O foreign continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << FH2O_ckd_mt_100_v1 << "<->" << FH2O_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -2280,6 +2293,16 @@ void CKD_mt_foreign_h2o( MatrixView          xsec,
 
   V2C = V1C + FH2O_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n" 
+	   << "  CKD_MT 1.00 H2O foreign continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
   Numeric FH2OT0[NPTC+addF77fields]; // [cm^3/molecules]
 
   for (Index J = 1 ; J <= NPTC ; ++J)
@@ -2437,9 +2460,10 @@ void CKD_mt_co2( MatrixView          xsec,
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 CO2 continuum:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "  CKD_MT 1.00 CO2 continuum:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << FCO2_ckd_mt_100_v1 << "<->" << FCO2_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -2462,6 +2486,16 @@ void CKD_mt_co2( MatrixView          xsec,
 
   V2C = V1C + FCO2_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n"  
+	   << "  CKD_MT 1.00 CO2 continuum:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.";
+      return;
+    }
+
   Numeric FCO2T0[NPTC+addF77fields]; // [cm^3/molecules]
 
   for (Index J = 1 ; J <= NPTC ; ++J)
@@ -2632,9 +2666,10 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
   if ( (V1ABS < VABS_min) || (V1ABS > VABS_max) ||
        (V2ABS < VABS_min) || (V2ABS > VABS_max) )
     {
-      out3  << "WARNING\n"
-            << "CKD_MT 1.00 N2-N2 CIA rotational band:\n"
-	    << "input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "  CKD_MT 1.00 N2-N2 CIA rotational band:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << N2N2_CT296_ckd_mt_100_v1 << "<->" << N2N2_CT220_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -2690,6 +2725,16 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
 
   V2C    = V1C + N2N2_CT296_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n" 
+	   << "  CKD_MT 1.00 N2-N2 CIA rotational band:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.\n";
+      return;
+    }
+
   Numeric C0[NPTC+addF77fields]; // [cm^3/molecules]
   Numeric C1[NPTC+addF77fields]; // [cm^3/molecules]
 
@@ -2865,7 +2910,8 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
     {
       out3  << "WARNING:\n"
             << "   CKD_MT 1.00 N2-N2 CIA fundamental band:\n"
-	    << "   input frequency vector exceeds range of model validity" << '\n';
+	    << "   input frequency vector exceeds range of model validity\n"
+	    << "  " << N2N2_N2F_ckd_mt_100_v1 << "<->" << N2N2_N2F_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -2888,6 +2934,15 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 
   V2C    = V1C + N2N2_N2F_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n"  
+	   << "  CKD_MT 1.00 N2-N2 CIA fundamental band:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n";
+      return;
+    }
+
   Numeric xn2[NPTC+addF77fields];
   Numeric xn2t[NPTC+addF77fields];
 
@@ -3058,8 +3113,9 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
        (V2ABS < O2O2_O2F_ckd_mt_100_v1) || (V2ABS > O2O2_O2F_ckd_mt_100_v2) )
     {
       out3  << "WARNING:\n"
-            << "   CKD_MT 1.00 O2-O2 CIA fundamental band:\n"
-	    << "   input frequency vector exceeds range of model validity" << '\n';
+            << "  CKD_MT 1.00 O2-O2 CIA fundamental band:\n"
+	    << "  input frequency vector exceeds range of model validity\n"
+	    << "  " << O2O2_O2F_ckd_mt_100_v1 << "<->" << O2O2_O2F_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -3081,6 +3137,16 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
 
   V2C    = V1C + O2O2_O2F_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n"
+	   << "  CKD_MT 1.00 O2 CIA fundamental band:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.\n";
+      return;
+    }
+
   Numeric xo2[NPTC+addF77fields];
   Numeric xo2t[NPTC+addF77fields];
 
@@ -3258,7 +3324,8 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
     {
       out3  << "WARNING:\n"
             << "   CKD_MT 1.00 O2 v0<-v0 band:\n"
-	    << "   input frequency vector exceeds range of model validity" << '\n';
+	    << "   input frequency vector exceeds range of model validity\n"
+	    << "  " << O2_00_ckd_mt_100_v1 << "<->" << O2_00_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -3269,8 +3336,6 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   Numeric V1C = V1ABS - DVC;
   Numeric V2C = V2ABS + DVC;
   
-  cout << " v0v0  0 \n";
-
   int I1 = (int) ((V1C-O2_00_ckd_mt_100_v1) / O2_00_ckd_mt_100_dv);
   if (V1C < O2_00_ckd_mt_100_v1) I1 = I1-1;
   V1C    = O2_00_ckd_mt_100_v1 + (O2_00_ckd_mt_100_dv * (Numeric)I1);
@@ -3278,12 +3343,18 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
   int I2 = (int) ((V2C-O2_00_ckd_mt_100_v1) / O2_00_ckd_mt_100_dv);
 
   int NPTC = I2-I1+3;
-  //if (NPTC > O2_00_ckd_mt_100_npt) NPTC = O2_00_ckd_mt_100_npt+1;
 
   V2C    = V1C + O2_00_ckd_mt_100_dv * (Numeric)(NPTC-1);  
   
-  cout << " v0v0  1:   NPTC=" << NPTC << " " << I1 << " " << I2 
-       << " addF77fields=" << addF77fields << "\n";
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n"  
+	   << "  CKD_MT 1.00 O2 v0<-v0 band:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.\n";
+      return;
+    }
 
   Numeric CO[(int)(NPTC+addF77fields)];
 
@@ -3465,9 +3536,10 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   if ( (V1ABS < O2_00_ckd_mt_100_v1) || (V1ABS > O2_00_ckd_mt_100_v2) ||
        (V2ABS < O2_00_ckd_mt_100_v1) || (V2ABS > O2_00_ckd_mt_100_v2) )
     {
-      out3  << "WARNING\n"
-            << "   CKD_MT 1.00 O2 v0<-v0 band:\n"
-	    << "   input frequency vector exceeds range of model validity" << '\n';
+      out3  << "WARNING:\n"
+            << "   CKD_MT 1.00 O2 v1<-v0 band:\n"
+	    << "   input frequency vector exceeds range of model validity\n"
+	    << "  " << O2_00_ckd_mt_100_v1 << "<->" << O2_00_ckd_mt_100_v2 << "cm^-1\n";
     }
 
 
@@ -3482,6 +3554,16 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
 
   V2C = V1C + ( DVC * (Numeric)(NPTC-1) );
   
+  if (NPTC < 1)
+    {
+      out3 << "WARNING:\n" 
+	   << "  CKD_MT 1.00 O2 v1<-v0 band:\n"
+	   << "  no elements of internal continuum coefficients could be found for the\n"
+	   << "  input frequency range.\n"
+	   << "  Leave the function without calculating the absorption.\n";
+      return;
+    }
+
   Numeric C[NPTC+addF77fields];
   C[0] = 0.000e0; // not used field of array
 
@@ -14433,8 +14515,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.12 $ */
-/*     created:	        $Date: 2003/09/08 15:07:18 $ */
+/*     revision:	        $Revision: 1.26.2.13 $ */
+/*     created:	        $Date: 2003/09/09 14:55:48 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

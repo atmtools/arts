@@ -1,5 +1,11 @@
 2003-09-08  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
+	* arts-1-0-127
+
+	* src/continua.cc: bug fix and additional checks implemented
+
+2003-09-08  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
 	* arts-1-0-126
 
 	* src/continua.cc: bug fix in O2 continuum band v0<-v0.
