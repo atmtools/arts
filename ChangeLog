@@ -1,3 +1,11 @@
+2002-06-03  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-28
+	
+	* doc/index.html.in: Updated list of examples.
+
+	* .cvsignore, doc/doxygen/html: Updated.
+
 2002-05-31  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-0-27
