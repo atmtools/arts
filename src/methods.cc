@@ -3561,9 +3561,9 @@ md_data_raw.push_back
          "   mblock_aa_grid  : Empty."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_, sensor_pol_, sensor_rot_,
-                antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
-        INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_, 
+                sensor_response_aa_, sensor_response_pol_, sensor_pol_,
+                sensor_rot_, antenna_dim_, mblock_za_grid_, mblock_aa_grid_ ),
+        INPUT( atmosphere_dim_, stokes_dim_, sensor_pos_, sensor_los_,
                f_grid_ ),
         GOUTPUT(),
         GINPUT(),
@@ -3651,8 +3651,8 @@ md_data_raw.push_back
          "   Vector : The antenna/beam zenith angle grid."
         ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
-        INPUT( sensor_response_f_, mblock_za_grid_, antenna_dim_, sensor_pol_,
-               antenna_diagram_, sensor_los_ ),
+        INPUT( sensor_response_f_, sensor_response_pol_, mblock_za_grid_,
+               antenna_dim_, antenna_diagram_, sensor_los_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( Vector_ ),
         KEYWORDS( ),
@@ -3685,7 +3685,8 @@ md_data_raw.push_back
          "  ArrayOfMatrix : The backend channel response."
         ),
         OUTPUT( sensor_response_, sensor_response_f_ ),
-        INPUT( f_backend_, sensor_pol_, sensor_response_za_ ),
+        INPUT( f_backend_, sensor_response_pol_, sensor_response_za_,
+               sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ArrayOfMatrix_ ),
         KEYWORDS( ),
@@ -3703,9 +3704,10 @@ md_data_raw.push_back
          "*mblock_aa_grid* and the columns of *sensor_pol*."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
-                sensor_response_aa_  ),
+                sensor_response_aa_, sensor_response_pol_  ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
-               sensor_pol_, atmosphere_dim_, stokes_dim_, sensor_los_ ),
+               sensor_pol_, atmosphere_dim_, stokes_dim_, sensor_los_,
+               sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -3730,7 +3732,7 @@ md_data_raw.push_back
          "       Matrix : The sideband filter response matrix."
         ),
         OUTPUT( sensor_response_, sensor_response_f_, f_mixer_ ),
-        INPUT( sensor_pol_, sensor_response_za_, lo_ ),
+        INPUT( sensor_response_pol_, sensor_response_za_, lo_, sensor_norm_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
         KEYWORDS( ),
@@ -3745,7 +3747,7 @@ md_data_raw.push_back
          "\n"
          "The output polarisations are given by matrix *sensor_pol*."
         ),
-        OUTPUT( sensor_response_ ),
+        OUTPUT( sensor_response_, sensor_response_pol_ ),
         INPUT( sensor_pol_, sensor_response_za_, sensor_response_f_,
                stokes_dim_),
         GOUTPUT( ),

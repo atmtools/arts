@@ -2213,6 +2213,26 @@ wsv_data.push_back
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "sensor_norm" ),
+      DESCRIPTION
+      (
+       "Flag if sensor response should be normalised (0 or 1).\n"
+       "\n"
+       "If the flag is set to 1 each sensor response block will be\n"
+       "normalised. For a flag equal 0 the sensor response is left as is.\n"
+       "The polarisation response is the exception, it is not affected by\n"
+       "this flag.\n"
+       "\n"
+       "See further the ARTS user guide (AUG). Use the index to find where\n"
+       "this variable is discussed. The variable is listed as a subentry to\n"
+       "\"workspace variables\".\n"
+       "\n"
+       "Usage: Set by the user.\n"
+       ),
+      GROUP( Index_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "sensor_pol" ),
       DESCRIPTION
       (
@@ -2266,18 +2286,18 @@ wsv_data.push_back
       DESCRIPTION
       (
         "The response block matrix modelling the total sensor response.\n"
-	"\n"
-	"The matrix is the product of all the individual sensor response\n"
-	"matrices. Therefore its dimension are depending on the sensor\n"
-	"configuration and where in the calculations we are.\n"
-	"The *sensor_response* has to initialised by the \n"
+        "\n"
+        "The matrix is the product of all the individual sensor response\n"
+        "matrices. Therefore its dimension are depending on the sensor\n"
+        "configuration and where in the calculations we are.\n"
+        "The *sensor_response* has to initialised by the \n"
         "*sensor_responseInit* method.\n"
-	"\n"
-	"Usage:		Output/input to the *sensor_response...* methods.\n"
-	"\n"
-	"Units:		-\n"
-	"\n"
-	"Dimension:     See the individual *sensor_response...* method \n"
+        "\n"
+        "Usage:   Output/input to the *sensor_response...* methods.\n"
+        "\n"
+        "Units:   -\n"
+        "\n"
+        "Dimension:     See the individual *sensor_response...* method \n"
         "documentation."
        ),
       GROUP( Sparse_ )));
@@ -2345,6 +2365,25 @@ wsv_data.push_back
        "Unit:  [ degrees ]"
        ),
       GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "sensor_response_pol" ),
+      DESCRIPTION
+      (
+       "The number of polarisations measured by the sensor.\n"
+       "\n"
+       "This variable is set to be equal to *stokes_dim* when the sensor\n"
+       "is initialised. If a polarisation response is calculated the\n"
+       "variable is updated to match the output polarisations from\n"
+       "the sensor response.\n"
+       "\n"
+       "The variable shall not be set manually, it will be set together with\n"
+       "*sensor_response* by sensor response WSMs.\n"
+       "\n"
+       "Usage: Set by sensor response methods.\n"
+       ),
+      GROUP( Index_ )));
 
   wsv_data.push_back
    (WsvRecord

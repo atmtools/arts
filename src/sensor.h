@@ -56,7 +56,8 @@ void antenna_transfer_matrix(
   const ArrayOfArrayOfMatrix&   diag,
               ConstVectorView   x_f,
               ConstVectorView   ant_za,
-                 const Index&   n_pol );
+                 const Index&   n_pol,
+                 const Index&   do_norm );
 
 void merge_grids(
               Vector&   tot,
@@ -70,7 +71,8 @@ void mixer_transfer_matrix(
         const Numeric   lo,
       ConstMatrixView   filter,
           const Index   n_pol,
-          const Index   n_za );
+          const Index   n_za,
+          const Index   do_norm );
 
 void polarisation_transfer_matrix(
               Sparse&   H,
@@ -104,6 +106,7 @@ void spectrometer_transfer_matrix(
       ConstVectorView   ch_f,
       ConstVectorView   sensor_f,
          const Index&   n_za,
-         const Index&   n_pol );
+         const Index&   n_pol,
+         const Index&   do_norm );
 
 #endif  // sensor_h

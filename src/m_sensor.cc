@@ -299,6 +299,7 @@ void sensorOff(
               Vector&   sensor_response_f,
               Vector&   sensor_response_za,
               Vector&   sensor_response_aa,
+              Index&    sensor_response_pol,
               Matrix&   sensor_pol,
               Vector&   sensor_rot,
               Index&    antenna_dim,
@@ -342,8 +343,9 @@ void sensorOff(
   mblock_aa_grid.resize(0);
 
   sensor_responseInit( sensor_response, sensor_response_f, sensor_response_za,
-                   sensor_response_aa, f_grid, mblock_za_grid, mblock_aa_grid,
-            antenna_dim, sensor_pol, atmosphere_dim, stokes_dim, sensor_los );
+    sensor_response_aa, sensor_response_pol, f_grid, mblock_za_grid,
+    mblock_aa_grid, antenna_dim, sensor_pol, atmosphere_dim, stokes_dim,
+    sensor_los, 0 );
 }
 
 
@@ -360,11 +362,12 @@ void sensor_responseAntenna1D(
        Vector&                      sensor_response_za,
        // WS Input:
        const Vector&                sensor_response_f,
+       const Index&                 sensor_response_pol,
        const Vector&                mblock_za_grid,
        const Index&                 antenna_dim,
-       const Matrix&                sensor_pol,
        const ArrayOfArrayOfMatrix&  diag,
        const Matrix&                sensor_los,
+       const Index&                 sensor_norm,
        // WS Generic Input:
        const Vector&                antenna_za,
        // WS Generic Input Names:
@@ -387,7 +390,7 @@ void sensor_responseAntenna1D(
   // Check that sensor_response has the right size for multiplication,
   // i.e. at least has been initialised by sensor_responseInit.
   Index n = sensor_response_za.nelem()*sensor_response_f.nelem()*
-            sensor_pol.nrows();
+            sensor_response_pol;
   if (sensor_response.nrows() != n ) {
     os << "The sensor block response matrix *sensor_response* does not have the\n"
        << "right size. Check that at least *sensor_responseInit* has been run\n"
@@ -422,7 +425,7 @@ void sensor_responseAntenna1D(
   // Check each ArrayOfMatrix in diag, it should contain either one Matrix
   // or one per polarisation
   for (Index i=0; i<diag.nelem(); i++) {
-    if (diag[i].nelem()!=1 && diag[i].nelem()!=sensor_pol.nrows()) {
+    if (diag[i].nelem()!=1 && diag[i].nelem()!=sensor_response_pol) {
       ostringstream os2;
       os2 << "The number of Matrix in element " << i << " in *antenna_diagram*"
          << "\nmust be equal one or the number of polarisations.\n";
@@ -484,17 +487,17 @@ void sensor_responseAntenna1D(
   // antenna_za to sensor_los.
   Vector za_grid;
   merge_grids( za_grid, sensor_los(joker,0), antenna_za );
-  Index nout = sensor_response_f.nelem()*sensor_pol.nrows()*za_grid.nelem();
+  Index nout = sensor_response_f.nelem()*sensor_response_pol*za_grid.nelem();
   Sparse antenna_response( nout, n);
   antenna_transfer_matrix(antenna_response, sensor_response_za, diag,
-    sensor_response_f, za_grid, sensor_pol.nrows());
+    sensor_response_f, za_grid, sensor_response_pol, sensor_norm);
 
   // It's forbidden to have same matrix as input twice to mult and we
   // want to multiply antenna_response with sensor_response and store the
   // result in sensor_response. So we need to create a temporary copy
   // of sensor_response matrix.
   Sparse sensor_response_tmp(sensor_response);
-  sensor_response.resize( nout, n);
+  sensor_response.resize( nout, sensor_response_tmp.ncols());
   mult( sensor_response, antenna_response, sensor_response_tmp);
 
   // Some extra information to the user
@@ -519,8 +522,9 @@ void sensor_responseBackend(// WS Output:
                             Vector&               sensor_response_f,
                             // WS Input:
                             const Vector&         f_backend,
-                            const Matrix&         sensor_pol,
+                            const Index&          sensor_response_pol,
                             const Vector&         sensor_response_za,
+                            const Index&          sensor_norm,
                             // WS Generic Input:
                             const ArrayOfMatrix&  ch_response,
                             // WS Generic Input Names:
@@ -533,7 +537,7 @@ void sensor_responseBackend(// WS Output:
   bool error_found = false;
   Numeric f_dlow = 0.0;
   Numeric f_dhigh = 0.0;
-  Index n_za_pol = sensor_response_za.nelem()*sensor_pol.nrows();
+  Index n_za_pol = sensor_response_za.nelem()*sensor_response_pol;
 
   // Check that sensor_response has the right size for the multiplication with
   // the spectrometer response.
@@ -546,9 +550,9 @@ void sensor_responseBackend(// WS Output:
 
   // Check that the number of elements in ch_response is equal one or
   // the number of polarisations
-  if (ch_response.nelem()!=1 && ch_response.nelem()==sensor_pol.nrows()) {
+  if (ch_response.nelem()!=1 && ch_response.nelem()==sensor_response_pol) {
     os << "The ArrayOfMatrix "<<ch_response_name<<" can only contain 1 or "
-       << sensor_pol.nrows()<<" elements.\n";
+       << sensor_response_pol <<" elements.\n";
     error_found = true;
   }
 
@@ -600,7 +604,7 @@ void sensor_responseBackend(// WS Output:
     sensor_response_f.nelem()*n_za_pol);
   spectrometer_transfer_matrix(backend_response,ch_response,
     f_backend,sensor_response_f,sensor_response_za.nelem(),
-    sensor_pol.nrows());
+    sensor_response_pol, sensor_norm);
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
@@ -631,6 +635,7 @@ void sensor_responseInit(// WS Output:
                                Vector&      sensor_response_f,
                                Vector&      sensor_response_za,
                                Vector&      sensor_response_aa,
+                               Index&       sensor_response_pol,
                          // WS Input:
                          const Vector&      f_grid,
                          const Vector&      mblock_za_grid,
@@ -639,7 +644,8 @@ void sensor_responseInit(// WS Output:
                          const Matrix&      sensor_pol,
                          const Index&       atmosphere_dim,
                          const Index&       stokes_dim,
-                         const Matrix&      sensor_los )
+                         const Matrix&      sensor_los,
+                         const Index&       sensor_norm )
 {
   // Check input
   chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
@@ -666,13 +672,17 @@ void sensor_responseInit(// WS Output:
   if( sensor_pol.ncols() != stokes_dim )
     throw runtime_error( 
          "The number of columns in *sensor_pol* must be equal *stokes_dim*." );
+  if (sensor_norm!=1 && sensor_norm!=0)
+    throw runtime_error(
+      "The normalisation flag, *sensor_norm*, has to be either 0 or 1." );
 
   // Set description variables
   sensor_response_f.resize( f_grid.nelem() );
   sensor_response_f = f_grid;
   merge_grids( sensor_response_za, sensor_los(joker,0), mblock_za_grid );
-
-  Index n = sensor_response_f.nelem()*sensor_response_za.nelem()*stokes_dim;
+  sensor_response_pol = stokes_dim;
+  Index n = sensor_response_f.nelem()*sensor_response_za.nelem()
+            *sensor_response_pol;
   if ( antenna_dim == 2) {
     merge_grids( sensor_response_aa, sensor_los(joker,1), mblock_aa_grid );
     n *= sensor_response_aa.nelem();
@@ -702,9 +712,10 @@ void sensor_responseMixer(// WS Output:
                           Vector&           sensor_response_f,
                           Vector&           f_mixer,
                           // WS Input:
-                          const Matrix&     sensor_pol,
+                          const Index&      sensor_response_pol,
                           const Vector&     sensor_response_za,
                           const Numeric&    lo,
+                          const Index&      sensor_norm,
                           // WS Generic Input:
                           const Matrix&     filter,
                           // WS Generic Input Names:
@@ -715,7 +726,7 @@ void sensor_responseMixer(// WS Output:
   // relative frequency grid.
   ostringstream os;
   bool error_found = false;
-  Index n_za_pol = sensor_response_za.nelem()*sensor_pol.nrows();
+  Index n_za_pol = sensor_response_za.nelem()*sensor_response_pol;
 
   // Check that sensor_response has the right size, i.e. has been initialised
   if( sensor_response.nrows() != sensor_response_f.nelem()*n_za_pol)
@@ -780,7 +791,7 @@ void sensor_responseMixer(// WS Output:
   //Call to calculating function
   Sparse mixer_response;
   mixer_transfer_matrix( mixer_response, f_mixer, sensor_response_f, lo,
-    filter, sensor_pol.nrows(), sensor_response_za.nelem() );
+    filter, sensor_response_pol, sensor_response_za.nelem(), sensor_norm );
 
   // Here we need a temporary sparse that is copy of the sensor_response
   // sparse matrix. We need it since the multiplication function can not
@@ -808,6 +819,7 @@ void sensor_responseMixer(// WS Output:
 */
 void sensor_responsePolarisation(// WS Output:
                                  Sparse&          sensor_response,
+                                 Index&           sensor_response_pol,
                                  // WS Input:
                                  const Matrix&    sensor_pol,
                                  const Vector&    sensor_response_za,
@@ -817,7 +829,7 @@ void sensor_responsePolarisation(// WS Output:
   Index n_f_za = sensor_response_f.nelem()*sensor_response_za.nelem();
 
   // Check that the initial sensor_response has the right size.
-  if( sensor_response.nrows() != stokes_dim*n_f_za ) {
+  if( sensor_response.nrows() != sensor_response_pol*n_f_za ) {
     ostringstream os;
     os << "The sensor block response matrix *sensor_response* does not have\n"
        << "the right size. Check that at least *sensor_responseInit* has been\n"
@@ -832,6 +844,9 @@ void sensor_responsePolarisation(// WS Output:
     throw runtime_error(os.str());
   }
 
+  // Output to the user.
+  out2 << "  Calculating the polarisation response using *sensor_pol*.\n";
+
   // Call to calculating function
   Sparse pol_response( sensor_pol.nrows()*n_f_za, stokes_dim*n_f_za );
   polarisation_transfer_matrix( pol_response, sensor_pol,
@@ -842,11 +857,10 @@ void sensor_responsePolarisation(// WS Output:
   sensor_response.resize( sensor_pol.nrows()*n_f_za, tmp.ncols());
   mult( sensor_response, pol_response, tmp);
 
-  // Output to the user.
-  out2 << "  Calculating the polarisation response using *sensor_pol*.\n";
-
   // Some extra output.
   out3 << "  Size of *sensor_response*: " << sensor_response.nrows()
        << "x" << sensor_response.ncols() << "\n";
 
+  // Update sensor_response variable
+  sensor_response_pol = sensor_pol.nrows();
 }

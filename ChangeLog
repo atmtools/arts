@@ -1,3 +1,27 @@
+2004-06-04  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-828
+
+	* src/workspace.cc: Added WSV sensor_norm which sets whether sensor
+	responses should be normalised or not.
+	Also added WSV sensor_response_pol to keep track of the number of
+	polarisations measured by the sensor. It is initially set to be
+	equal to *stokes_dim*, and is updated by the polarisation function,
+	sensor_responsePolarisation.
+
+	* src/[m_sensor,methods].cc: Added sensor_norm as input variable in
+	sensor_responseAntenna1D, ...Mixer, ...Backend and ...Init methods.
+	In sensor_responseInit sensor_norm is checked to be set correctly.
+	If no sensor is used it is unnecessary to set sensor_norm, so in
+	sensorOff when sensor_responseInit is called sensor_norm is hard
+	coded to 0.
+	Implemented sensor_response_pol.
+
+	* src/sensor.[cc,h]: Moved the normalisation from the methods
+	sensor_integration_vector and sensor_summation_vector to
+	the calling, block specific, methods (antenna_transfer_matrix,
+	backend_transfer_matrix and mixer_transfer_matrix).
+
 2004-06-03  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-827

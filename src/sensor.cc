@@ -73,12 +73,13 @@
    columns. The function will use the size of the matrix to determine
    how to handle it.
 
-   \param   H      The antenna transfer matrix.
-   \param   m_za   The measurement block grid of zenith angles.
-   \param   diag   The sensor response matrix, i.e. the antenna diagram
-   \param   x_f    The frequency grid points.
-   \param   ant_za The antenna zenith angle grid.
-   \param   n_pol  The number of polarisations to consider.
+   \param   H        The antenna transfer matrix.
+   \param   m_za     The measurement block grid of zenith angles.
+   \param   diag     The sensor response matrix, i.e. the antenna diagram
+   \param   x_f      The frequency grid points.
+   \param   ant_za   The antenna zenith angle grid.
+   \param   n_pol    The number of polarisations to consider.
+   \param   do_norm  Flag is rows should be normalised.
 
    \author Mattias Ekström
    \date   2003-04-09
@@ -88,7 +89,8 @@ void antenna_transfer_matrix( Sparse&   H,
           const ArrayOfArrayOfMatrix&   diag,
                       ConstVectorView   x_f,
                       ConstVectorView   ant_za,
-                         const Index&   n_pol )
+                         const Index&   n_pol,
+                         const Index&   do_norm )
 {
   // Calculate number of antennas/beams
   const Index n_ant = ant_za.nelem();
@@ -155,10 +157,14 @@ void antenna_transfer_matrix( Sparse&   H,
         // Add the angle offset of this antenna/beam.
         Vector za_rel = (diag[a_this])[p_this](joker, 0);
         za_rel += ant_za[a];
-        if (a_this!=a_old || p_this!=p_old || f_this!=f_old)
+        if (a_this!=a_old || p_this!=p_old || f_this!=f_old) {
           sensor_integration_vector(temp_za,
             (diag[a_this])[p_this](joker, 1+f_this),
             za_rel, m_za);
+          // Normalise if flag is set
+          if (do_norm)
+            temp_za /= temp_za.sum();
+        }
 
         // Now distribute the temp_za elements into temp, where they will
         // be spread with the number of frequencies. Then insert the
@@ -252,6 +258,7 @@ void merge_grids(
    \param   filter    The sideband filter matrix
    \param   n_pol     The number of polarisations to consider
    \param   n_za      The number of zenith angles/antennas
+   \param   do_norm   Flag whether rows should be normalised
 
    \author Mattias Ekström
    \date   2003-05-27
@@ -263,7 +270,8 @@ void mixer_transfer_matrix(
         const Numeric   lo,
       ConstMatrixView   filter,
           const Index   n_pol,
-          const Index   n_za )
+          const Index   n_za,
+          const Index   do_norm )
 {
   // Check that the sideband filter matrix at least has two columns and
   // that its frequency grid expands outside f_grid.
@@ -325,6 +333,10 @@ void mixer_transfer_matrix(
   Vector row_final(f_grid.nelem()*n_pol*n_za);
   for (Index i=0; i<f_mixer.nelem(); i++) {
     sensor_summation_vector(row_temp, f_mixer[i], f_grid, lo, filter );
+    // Normalise if flag is set
+    if (do_norm)
+      row_temp /= row_temp.sum();
+
     // Loop over number of polarisations
     for (Index p=0; p<n_pol; p++)
     {
@@ -535,9 +547,6 @@ void sensor_integration_vector(
     }
     //i++;
   }
-
-  //Normalize h.
-  h /= h.sum();
 }
 
 //! sensor_summation_vector
@@ -616,8 +625,6 @@ void sensor_summation_vector(
   h[gp_low[0].idx] += filt_low/filt_sum * gp_low[0].fd[1];
   h[gp_low[0].idx+1] += filt_low/filt_sum * gp_low[0].fd[0];
 
-  // FIXME: Normalise h?
-  // h /= h.sum();
 }
 
 //! spectrometer_transfer_matrix
@@ -646,6 +653,7 @@ void sensor_summation_vector(
    \param   sensor_f      The frequency grid points.
    \param   n_za          The number of viewing angles
    \param   n_pol         The number of polarisations
+   \param   do_norm       Flag whether rows should be normalised.
 
    \author Mattias Ekström
    \date   2003-08-26
@@ -655,7 +663,8 @@ void spectrometer_transfer_matrix( Sparse&                H,
                                    ConstVectorView        ch_f,
                                    ConstVectorView        sensor_f,
                                    const Index&           n_za,
-                                   const Index&           n_pol)
+                                   const Index&           n_pol,
+                                   const Index&           do_norm )
 {
   // Check that the transfer matrix has the right size
   assert (H.nrows()==ch_f.nelem()*n_za*n_pol);
@@ -701,6 +710,10 @@ void spectrometer_transfer_matrix( Sparse&                H,
       // Call sensor_integration_vector and store it in the temp vector
       sensor_integration_vector(temp,ch_response[p](joker,1+i*freq_full),
         ch_response_f,sensor_f);
+
+      // Normalise if flag is set
+      if (do_norm)
+        temp /= temp.sum();
 
       // Loop over the viewing angles, here we only need on computation
       // which is then copied to all angles.
