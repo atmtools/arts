@@ -952,9 +952,8 @@ void define_md_data_raw()
          "and for all directions.\n"  
          "Then *convergence_flag* is set to 1.\n" 
         ),
-        OUTPUT(convergence_flag_, iteration_counter_),
-        INPUT(i_field_, i_field_old_, cloudbox_limits_, scat_za_grid_, 
-              scat_aa_grid_, stokes_dim_, atmosphere_dim_),
+        OUTPUT(convergence_flag_),
+        INPUT(i_field_, i_field_old_),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS("epsilon"),
@@ -1425,20 +1424,17 @@ void define_md_data_raw()
          "      If *atmosphere_dim* equals 2, it returns an error message,\n"
          "      as 2D scattering calculations can not be performed.\n"
          ),
-        OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, sca_vec_, 
-               stokes_vec_, a_planck_value_, l_step_,
-               convergence_flag_, pha_mat_, pha_mat_spt_, abs_vec_spt_,
-               ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
-               scat_lat_index_, scat_lon_index_, scat_za_index_,
-               scat_aa_index_, abs_scalar_gas_, a_pressure_, a_temperature_,
-               a_vmr_list_),
-        INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_, 
-              scalar_gas_absorption_agenda_, convergence_test_agenda_,
-              ppath_step_agenda_, amp_mat_, cloudbox_limits_,
-              scat_za_grid_, scat_aa_grid_, 
-              p_grid_, lat_grid_, lon_grid_, t_field_, z_field_,
-              vmr_field_, r_geoid_, f_grid_, f_index_, 
-              stokes_dim_, atmosphere_dim_, pnd_field_, part_types_),
+        OUTPUT(i_field_, i_field_old_, convergence_flag_, scat_field_, 
+               pha_mat_, pha_mat_spt_, abs_scalar_gas_, a_pressure_,
+               a_temperature_, a_vmr_list_, scat_za_index_, scat_aa_index_,
+               ext_mat_, abs_vec_, scat_p_index_, scat_lat_index_, 
+               scat_lon_index_, ppath_step_),
+        INPUT(cloudbox_limits_, atmosphere_dim_, part_types_, amp_mat_, 
+              p_grid_, lat_grid_, lon_grid_, convergence_test_agenda_, 
+              scalar_gas_absorption_agenda_, vmr_field_, spt_calc_agenda_,
+              scat_za_grid_, scat_aa_grid_, opt_prop_part_agenda_, 
+              pnd_field_, opt_prop_gas_agenda_, ppath_step_agenda_, z_field_,
+              r_geoid_, t_field_, f_grid_, f_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1473,7 +1469,7 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-md_data_raw.push_back
+ md_data_raw.push_back
     ( MdRecord
       ( NAME( "i_fieldSetConst" ),
         DESCRIPTION
@@ -1508,19 +1504,17 @@ md_data_raw.push_back
          "Updates the i_field during the iteration. It performs the RT \n"
          "calculation using a fixed value for the scattering integral stored \n"
          "in *scat_field*.\n"
-         "   " 
+         "\n" 
         ),
-        OUTPUT(i_field_, ppath_step_, stokes_vec_, 
-               sca_vec_, a_planck_value_, l_step_,
-               abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
-               scat_p_index_, scat_za_index_, scat_aa_index_, abs_scalar_gas_,
-               a_pressure_, a_temperature_, a_vmr_list_),
-        INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_,
-              scalar_gas_absorption_agenda_, ppath_step_agenda_,
-              amp_mat_, scat_field_, cloudbox_limits_,
-              scat_za_grid_, scat_aa_grid_, p_grid_, t_field_, z_field_, 
-              vmr_field_, r_geoid_, f_grid_, f_index_, 
-              pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
+        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
+               a_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+               scat_p_index_, ppath_step_),
+        INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
+              scalar_gas_absorption_agenda_,
+              vmr_field_, spt_calc_agenda_, scat_za_grid_, 
+              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
+              f_grid_, f_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1534,21 +1528,18 @@ md_data_raw.push_back
          "Updates the i_field during the iteration. It performs the RT \n"
          "calculation using a fixed value for the scattering integral stored \n"
          "in *scat_field*.\n"
-         "   " 
+         "\n " 
         ),
-        OUTPUT(i_field_, ppath_step_, stokes_vec_, 
-               sca_vec_, a_planck_value_, l_step_,
-               abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
-               scat_p_index_, scat_lat_index_, scat_lon_index_, 
-               scat_za_index_, scat_aa_index_, abs_scalar_gas_,
-               a_pressure_, a_temperature_, a_vmr_list_),
-        INPUT(spt_calc_agenda_, opt_prop_part_agenda_, opt_prop_gas_agenda_,
-              scalar_gas_absorption_agenda_, ppath_step_agenda_,
-              amp_mat_, scat_field_, cloudbox_limits_,
-              scat_za_grid_, scat_aa_grid_, p_grid_, lat_grid_,
-              lon_grid_, t_field_, z_field_, 
-              vmr_field_, r_geoid_, f_grid_, f_index_, 
-              pnd_field_, stokes_dim_, atmosphere_dim_, part_types_),
+        OUTPUT(i_field_, abs_scalar_gas_, a_pressure_, a_temperature_,
+               a_vmr_list_, scat_za_index_, scat_aa_index_, ext_mat_, abs_vec_,
+               scat_p_index_, scat_lat_index_, scat_lon_index_,  ppath_step_),
+        INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
+              scalar_gas_absorption_agenda_,
+              vmr_field_, spt_calc_agenda_, scat_za_grid_, scat_aa_grid_,
+              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              ppath_step_agenda_, p_grid_, lat_grid_, lon_grid_, z_field_,
+              r_geoid_, t_field_,
+              f_grid_, f_index_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
@@ -1578,6 +1569,9 @@ md_data_raw.push_back
         GINPUT(),
         KEYWORDS(),
         TYPES()));
+
+
+
 
  md_data_raw.push_back     
     ( MdRecord
@@ -1612,8 +1606,25 @@ md_data_raw.push_back
         GINPUT( ),
         KEYWORDS( "value" ),
         TYPES(     Index_t   )));
-
-  md_data_raw.push_back
+  
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("iteration_counterIncrease"),
+        DESCRIPTION
+        (
+         "Increase iteration counter. \n"
+         "\n"
+         "This function can be used for writing the separate iteration \n"
+         "fields into differtent files using *Tensor6WriteIteration*.\n"
+         ),
+        OUTPUT(iteration_counter_),
+        INPUT(iteration_counter_),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+  
+   md_data_raw.push_back
     ( MdRecord
       ( NAME("elsDoppler"),
         DESCRIPTION
@@ -2733,7 +2744,7 @@ md_data_raw.push_back
          ),
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_ ),
         INPUT( amp_mat_, i_field_, pnd_field_, scat_za_grid_, 
-               scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, stokes_dim_,
+               scat_aa_grid_, p_grid_, lat_grid_, lon_grid_, 
                atmosphere_dim_, cloudbox_limits_ ),
         GOUTPUT(),
         GINPUT(),
@@ -2764,6 +2775,29 @@ md_data_raw.push_back
         INPUT( i_field_, f_grid_, f_index_,   p_grid_, lat_grid_, 
                lon_grid_, scat_za_grid_, scat_aa_grid_, stokes_dim_,
                atmosphere_dim_, cloudbox_limits_ ),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+ md_data_raw.push_back
+   ( MdRecord
+      ( NAME( "ScatteringInit" ),
+        DESCRIPTION
+        (
+         "Initialize variables for a scattering calculation. \n"
+         "\n"
+         "Variables needed in the scattering calculations are initialzed\n"
+         "here. This method has to be executed before using \n"
+         "*ScatteringMain*.\n"
+         "\n"
+         ),
+        OUTPUT(scat_p_index_, scat_lat_index_, scat_lon_index_, 
+               scat_za_index_, scat_aa_index_, iteration_counter_, pha_mat_,
+               pha_mat_spt_, ext_mat_spt_, abs_vec_spt_, scat_field_,
+               i_field_),
+        INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
+              cloudbox_limits_, part_types_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

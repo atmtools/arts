@@ -1,3 +1,41 @@
+2003-02-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-461
+	
+	* src/m_scatrte.cc (convergence_flagAbs): Modified the function. It
+	has been a very special function for the radiation field. Now it is a 
+	general method which can be used for any Tensor6's.
+	
+	* src/m_scatrte.cc (i_fieldUpdate1D), (i_fieldUpdate3D): Structured
+	the interface variables such that it is easier to see why they 
+	are needed in the function. 
+	Also removed some variables:
+	There was a diskussion about *stokes_dim* and *atmosphere_dim* 
+	some time ago. I removed this variables now and extracted the 
+	dimensions from other variables.
+	Furthermore I could remove some variables which had been used for
+	executing *scat_rte_agenda* which is not there anymore. We decided
+	to "hardwire" the RT method to be used.
+
+	* src/m_scatrte (i_fieldIterate): Structured interface variables.
+
+	* src/m_scatrte (ScatteringInit): Created this function to initialize 
+	the variables used in agendas for scattering calculations. Previously
+	the initialization was done in *i_fieldIterate*. The structure becomes
+	clearer when we have this additional function.
+
+	* src/m_scatrte.cc (iteration_counterIncrease): Icluded this small
+	function to be able to separate the iteration counter from the other
+	methods (for modularity reasons).
+	
+	* src/methods.cc: Adjusted entries according to changes above.
+
+	* src/agendas.cc: Modified input/output for *opt_prop_part_agenda* and
+	*convergence_test_agenda*.
+
+	* doc/examples/cloud_rad_field1D_example.arts.in: Added more desciption
+	into the controfile to make clear, where which agenda is used.
+	
 2003-02-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-460

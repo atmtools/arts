@@ -67,11 +67,7 @@ void define_agenda_data()
         ),
        OUTPUT( convergence_flag_ ),
        INPUT(  i_field_,
-               i_field_old_,
-               cloudbox_limits_,
-               scat_za_grid_,
-               scat_aa_grid_,
-               stokes_dim_)));
+               i_field_old_)));
 
 
  
@@ -240,11 +236,16 @@ void define_agenda_data()
         "   abs_vec     : Absorption vector. \n"
         "   abs_vec_spt : Absorption vector for single particle type. \n"
         "   pnd_field   : Particle number density field. \n"
+        "   atmosphere_dim: Atmospheric dimension. \n"
+        "   scat_p_index : Position. \n:"
+        "   scat_lat_index : Position. \n"
+        "   scat_lon_index : Position. \n"
         ),
        OUTPUT( ext_mat_, abs_vec_ ),
        INPUT( ext_mat_, abs_vec_, 
               ext_mat_spt_, abs_vec_spt_,
-              pnd_field_ )));
+              pnd_field_, atmosphere_dim_, scat_p_index_, scat_lat_index_,
+              scat_lon_index_)));
 
 
   agenda_data.push_back

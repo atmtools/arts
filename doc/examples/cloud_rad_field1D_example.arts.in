@@ -1,5 +1,5 @@
 #
-#  cloud_rad_field1D_example.arts
+#  cloud_rad_field.arts
 #
 # This file demonstrates how a 1D scattering calculation for one specified 
 # frequency can be performed. The radiation field inside the cloudbox is
@@ -23,16 +23,16 @@ Main
       n     = 2	
   }
 
-# You can do the scalar calculation ( stokes_dim = 1 ) or the vector 
-# calculation for an arbitrary number of components ( stokes_dim = 2, 3 or 4).
+# You do the scalar calculation ( stokes_dim = 1 ) or teh vector 
+# calculation for a arbitrary number of components ( stokes_dim = 2, 3 or 4).
 
   IndexSet( stokes_dim ) {
-      value = 4
+      value = 2
   }
 
 AntennaSet1D{}
 
- 
+output_file_formatSetAscii{}
 
 ##############################
 #    Atmosphere              #
@@ -48,8 +48,11 @@ AntennaSet1D{}
   VectorNLogSpace( p_grid ) {
      start = 1000e2
      stop  = 100e2
-     n     = 20
-  }	
+     n     = 100
+  }
+
+WriteXML(p_grid){""}
+	
 
 # Latitude for a 1D observation.
 	
@@ -75,9 +78,9 @@ AntennaSet1D{}
 # Read atmospheric profiles (temperature, pressure, altitude, vmrs).
 # You have to specify the path for the scenario you want to have. The 
 # data has to be in XML-format.
- 
- AtmRawRead{
-	basename = "/smiles_local/arts-data/atmosphere/fascod/xml/tropical"
+
+  AtmRawRead{
+	basename = "/smiles_local/arts-xml-data/atmosphere/fascod/tropical"
 	}
 
 # Create workspace variables, which are used in the program. 
@@ -127,7 +130,7 @@ AntennaSet1D{}
 ReadXML(gas_abs_lookup){"/home/home02/sbuehler/arts_calc/abs_lookup/lookup_01_table.xml"}
 
 
-# Adapt the lookup table. The varible *gas_abs_lookup* holds only the 
+# Adapt the lookup table. In the varible *gas_abs_lookup* holds only the 
 # specified frequencies and species.
 
 gas_abs_lookupAdapt{}
@@ -171,7 +174,7 @@ AgendaSet( scalar_gas_absorption_agenda ){
   n     = 30
 }
  
-# Define the scattering region (cloudbox).
+# Define the scattering region (cloudbox)
  
   CloudboxSetManually {
       p1   = 335e2
@@ -191,30 +194,37 @@ ParticleTypeInit{}
 
 # Read amplitude matrix from database
 
-ParticleTypeAdd{
-   filename_amp_mat = "@ac_arts_data@/scattering/cyl_s200_f318-324_ar0.5_o0.0_ampmat.xml"
-  filename_pnd_field = "  "
-}
+#ParticleTypeAdd{
+#  filename_amp_mat = "/smiles_local/arts-xml-data/scattering/cyl_s200_f318-324_ar0.5_o0.0_ampmat.xml"
+##filename_amp_mat = "/smiles_local/arts-data/scattering/sph_s200_f318-324_ampmat.xml" 
+#filename_pnd_field = "  "
+#}
 
-# Preliminary pnd_field (instead of data_file).
-# Constant particles number density of 1297 particles/m^3.
+#WriteXML( amp_mat_raw ){""}
+#WriteXML( pnd_field_raw ){""}
+    
+ReadXML( amp_mat_raw ){""}
+#ReadXML( pnd_field_raw ){""}   
+ 
+
+# Preliminary pnd_field (instead of data_file)
 
   Tensor4Set (pnd_field){
 	nbooks = 1
-	npages = 20
+	npages = 100
 	nrows = 1
 	ncols = 1
 	value = 1297
   }
 
-# Only one particle type.
+# So far we always calculate only for 1 particle type. 
 
   VectorSet (part_types){
 	length = 1
 	value = 1
   }
 
-# Calculate single particle optical properties.
+# Calculate single particle optical properties
  
  AgendaSet(spt_calc_agenda){
       pha_mat_sptCalc{}
@@ -238,7 +248,7 @@ ParticleTypeAdd{
 #####################################
 
 
-#  Cosmic background radiation.
+#  Cosmic background 
 
   AgendaSet( i_space_agenda ) {
     Ignore( a_pos ) {
@@ -247,11 +257,13 @@ ParticleTypeAdd{
     }
     MatrixCBR( i_space, f_grid ) {
     }
+ #   MatrixPrint( sensor_pos ) {
+ #   }
   }
 
 
 #  Standard radiative transfer function.
-  AgendaSet( rte_agenda ){
+AgendaSet( rte_agenda ){
 	RteEmissionStd{}
 }
  	
@@ -264,46 +276,78 @@ ParticleTypeAdd{
 #	PpathPrint(ppath_step){}
 	 } 
 
-# The vector RTE is solved using an iterative metho. To look at each 
-# iteration seperately, the *iteration_couter* can be used and has to 
-# be initialized to 0.
 
- IndexSet( iteration_counter ){
-	value = 0
-  }	
-
-# Agenda for a monochromatic scattering calculation: 
-#   1. Calculatate amplitude matrix from raw data.
-#   2. Set the boundary condition (Clearsky field)
-#   3. Iterate the radiation field and the scattering integral.
-#   4. Put the obtained solution in boundary variables (for further 
-#           use in the clearsky part)
-
- AgendaSet(scat_mono_agenda){
-  amp_matCalc{}
-  i_fieldSetClearsky{}
-  WriteXML(i_field){"initial_field.xml"}	
-  i_fieldIterate{}
-#  scat_iPut{} 
- }		
-
-# Define the convergence test method.
-
+# Define the convergence test method. This agenda is executed in 
+# *i_fieldIterate* which is part of scat_mono_agenda.
   AgendaSet( convergence_test_agenda) {
+	iteration_counterIncrease{}
 	Tensor6WriteIteration( i_field ) {
 	     iterations = [0]
   	}
 	convergence_flagAbs{
-	epsilon = [1e-17, 1e-19, 1e-21, 1e-21] 
-#	epsilon = [1e-17, 1e-20 ]
+#	epsilon = [1e-17, 1e-19, 1e-21, 1e-21] 
+	epsilon = [1e-17, 1e-19 ]
 #	epsilon = [1e-17]
 	}
   }
-  
 
-# This function actually starts the calculations and requires all the 
-# definitions above.
-				
+
+#-----------------------------------------------------------------------------
+#  scat_mono_agenda 
+#----------------------------------------------------------------------------- 
+#
+# This agenda is executed in the method *ScatteringMain*. It does the whole 
+# scattering calculation for 1 frequency.
+#
+# In this example it includes the following methods:
+#   1. amp_matCalc:
+#      Here the amplitude matrix data is extracted for one frequency 
+# 	(specified in ScatteringMain) and interpolated on the 
+#	scattering angle grids. 
+#   2. i_fieldSetClearsky: 	
+#      Set the boundary condition. The clearsky field is interpolated on all 
+#      points inside the cloudbox.
+#   3. i_fieldIterate:
+#      This is the main function which performs the iterative solution method.
+#      It uses the following methods and agendas:
+#	  1. scat_fieldCalc: Calculate the scattered field unsing 
+#	     	trapzoidal integration method
+#	  2. i_fieldUpdate1D: Performs a radiative transfer step and 
+# 		updates the radiation field.
+#		The following agendas are required:
+# 			scalar_gas_absorption_agenda
+#				(Calculate scalar gas absorption)
+#			spt_calc_agenda
+#				(Calculate single particle properties)
+#			opt_prop_part_agenda
+#				(Calculate particle optical properties)
+#			opt_prop_gas_agenda
+#				(Calculate gaseous optical properties)
+# 			ppath_agenda 
+#				(Calculate geometrical propagation path)
+#	  3. Execute convergence_test_agenda.
+#   4. scat_i_put:
+# 	Put the obtained solution in boundary variables (for further 
+#       use in the clearsky part)
+
+AgendaSet(scat_mono_agenda){
+  amp_matCalc{}
+  i_fieldSetClearsky{}
+  output_file_formatSetAscii{}
+  WriteXML(i_field){"initial_field.xml"}	
+  i_fieldIterate{}
+  scat_iPut{} 
+ }		
+
+# Initialize variables for the scattering calculation.
+ScatteringInit{}
+
+# Calculate radiation field on the cloudbox boundary.
+CloudboxGetIncoming{}
+
+# Start scattering calculation.
+# The ScatteringMain function executes *scat_mono_agenda* for each frequency
+# defined in f_grid.
 ScatteringMain{}
 	
 }	

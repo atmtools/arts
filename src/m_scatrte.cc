@@ -83,10 +83,6 @@ extern const Numeric PI;
   WS Input:
   \param i_field Radiation field.
   \param i_field_old Old radiation field.
-  \param cloudbox_limits Limits of the cloudbox.
-  \param scat_za_grid   Zenith angle grid.
-  \param scat_aa_grid Azimuth angle grid.
-  \param atmosphere_dim Atmospheric dimension.
   Keyword : 
   \param epsilon   Limiting values for the convergence test
 
@@ -96,74 +92,25 @@ extern const Numeric PI;
 */
 void convergence_flagAbs(//WS Output:
                       Index& convergence_flag,
-                      Index& iteration_counter,
                       // WS Input:
                       const Tensor6& i_field,
                       const Tensor6& i_field_old,
-                      const ArrayOfIndex& cloudbox_limits, 
-                      const Vector& scat_za_grid,
-                      const Vector& scat_aa_grid,
-                      const Index& stokes_dim,
-                      const Index& atmosphere_dim,
                       // Keyword:
                       const Vector& epsilon)
 {
-  // FIXME: There should be a check, whether iteration_counter = 0 when the
-  // function is called for the first time.
- 
-  //Increase the counter 
-  iteration_counter = iteration_counter+1;
-
-  out1 << "Number of iterations:   " << iteration_counter << "\n";
-  
   //Check the input:
   assert( convergence_flag == 0 );
-  if( atmosphere_dim != 1 && atmosphere_dim != 3 )
-    throw runtime_error(
-                        "Scattering calculations are not possible for a 2D"
-                        "atmosphere. If you want to do scattering calculations"
-                        "*atmosphere_dim* has to be either 1 or 3"
-                        ); 
 
-  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
-    throw runtime_error(
-                        "*cloudbox_limits* is a vector which contains the"
-                        "upper and lower limit of the cloud for all "
-                        "atmospheric dimensions. So its dimension must"
-                        "be 2 x *atmosphere_dim*");
-  
-  if (stokes_dim < 0 || stokes_dim > 4)
-    throw runtime_error(
-                        "The dimension of stokes vector must be"
-                        "1,2,3, or 4");
-  
-  // Does i_field have the right dimension? 
-  if (atmosphere_dim == 3){
-    assert ( is_size( i_field, 
-                     (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                     (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                     (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                     scat_za_grid.nelem(), 
-                     scat_aa_grid.nelem(),
-                     stokes_dim));
-  }
-  else if (atmosphere_dim == 1 ){
-    assert ( is_size( i_field, 
-                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                      stokes_dim));
-  }
-  else if (atmosphere_dim == 2){
-    throw runtime_error(
-                        "Scattering calculations are not possible for a 2D"
-                        "atmosphere. If you want to do scattering"
-                        "calculations."
-                        "*atmosphere_dim* has to be either 1 or 3"
-                        );
-  }
+  const Index N_p = i_field.nvitrines();
+  const Index N_lat = i_field.nshelves();
+  const Index N_lon = i_field.nbooks();
+  const Index N_za = i_field.npages();
+  const Index N_aa = i_field.nrows();
+  const Index stokes_dim = i_field.ncols();
+   
+  // Check if i_field and i_field_old have the same dimensions:
+  assert(is_size( i_field_old, 
+                  N_p, N_lat, N_lon, N_za, N_aa, stokes_dim));
   
   // Check keyword "epsilon":
   if ( epsilon.nelem() != stokes_dim )
@@ -174,87 +121,47 @@ void convergence_flagAbs(//WS Output:
                         "have *stokes_dim* elements!"
                         );
   
-  Index N_scat_za = scat_za_grid.nelem();
-  Index N_scat_aa = scat_aa_grid.nelem();
-
-  //Loop over all components of the intensity field. 
-  for (Index stokes_index = 0; stokes_index < stokes_dim; stokes_index++ )
-    {
-  
-  if ( atmosphere_dim == 1 ) {
-    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-            p_index++)
-        { 
-          for (Index scat_za_index = 0; scat_za_index < N_scat_za;
-               scat_za_index++)
-            {
-              Numeric diff = 
-                fabs( i_field(( p_index-cloudbox_limits[0]), 
-                              0, 0, scat_za_index, 0, stokes_index) -
-                      i_field_old(( p_index-cloudbox_limits[0]),
-                                  0, 0, scat_za_index, 0, stokes_index ));
-             
-              
-              // If the absolute difference of the components is 
-              // larger than the pre-defined values, return to
-              // *i_fieldIterarte and do another iteration
-              if( diff > epsilon[stokes_index])
-                return;
-            } // End loop scat_za_grid.
-        }// End loop p_grid.
-     } // End 1D atmosphere.
-              
-  
   //3D atmosphere:
-  else if( atmosphere_dim == 3 ){
-    
-      for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
-            p_index++)
-        { 
-          for (Index lat_index = cloudbox_limits[2]; lat_index <= 
-                  cloudbox_limits[3]; lat_index++)
+  for (Index p_index = 0; p_index < N_p; p_index++)
+    { 
+      for (Index lat_index = 0; lat_index < N_lat; lat_index++)
+        {
+          for (Index lon_index = 0; lon_index <N_lon; lon_index++)
             {
-              for (Index lon_index = cloudbox_limits[4]; lon_index <= 
-                  cloudbox_limits[5]; lon_index++)
+              for (Index scat_za_index = 0; scat_za_index < N_za;
+                   scat_za_index++)
                 {
-                  for (Index scat_za_index = 0; scat_za_index < N_scat_za;
-                       scat_za_index++)
-                    {
-                      for (Index scat_aa_index = 0; scat_aa_index < N_scat_aa;
+                  for (Index scat_aa_index = 0; scat_aa_index < N_aa;
                        scat_aa_index++)
+                    {
+                      for (Index stokes_index = 0; stokes_index <
+                             stokes_dim; stokes_index ++) 
                         {
                           Numeric diff =
-                            fabs( i_field((p_index-cloudbox_limits[0]),
-                                          (lat_index-cloudbox_limits[2]),
-                                          (lon_index-cloudbox_limits[4]), 
-                                          scat_za_index,
-                                          scat_aa_index, 
+                            fabs( i_field(p_index, lat_index, lon_index, 
+                                          scat_za_index, scat_aa_index, 
                                           stokes_index) -
-                                  i_field_old((p_index-cloudbox_limits[0]),
-                                              (lat_index-cloudbox_limits[2]),
-                                              (lon_index-cloudbox_limits[4]), 
-                                              scat_za_index,
+                                  i_field_old(p_index, lat_index, 
+                                              lon_index, scat_za_index,
                                               scat_aa_index, 
                                               stokes_index ));
                           
-                          // If the absolute difference of the components is 
-                          // larger than the pre-defined values, return to
-                          // *i_fieldIterarte* and do another iteration
+                          // If the absolute difference of the components
+                          // is larger than the pre-defined values, return
+                          // to *i_fieldIterarte* and do next iteration
                           
                           if( diff > epsilon[stokes_index])
                             return;
-
-                        }// End loop scat_aa_grid.
-                    }// End loop scat_za_grid. 
-                }// End loop lon_grid.
-            }// End loop lat_grid. 
-        }// End loop p_grid.
-    
-    } //end 3D atmosphere.
-    
-  } // end loop over Stokes dimensions. 
-
- // Convergence test has been successful, convergence_flag can be set to 1.
+                          
+                          
+                        }// End loop stokes_dom.
+                    }// End loop scat_aa_grid. 
+                }// End loop scat_za_grid.
+            }// End loop lon_grid. 
+        }// End loop lat_grid.
+    } // End p_grid.
+  
+  // Convergence test has been successful, convergence_flag can be set to 1.
   convergence_flag = 1;
 }
 
@@ -281,132 +188,78 @@ void convergence_flagAbs(//WS Output:
         If *atmosphere_dim* equals 2, it returns an error message, as 2D
         scattering calculations can not be performed.
 
-  WS Output:
-  \param i_field       Intensity field.
-  \param ppath_step    Propagation path step for RT calculation.
-  \param i_field_old   Old intensity field.
-  \param scat_field    Scattering integral at all grid points
-                              inside the cloud box.
-  \param sca_vec       Scattered field vector.
-  \param stokes_vec    Stokes vector.    
-  \param a_planck_value Planck function.
-  \param l_step        Pathlength step. 
-  \param convergence_flag 1 if convergence is reached after an 
-                       iteration. 0 else.
-  \param pha_mat  Scattering matrix.
-  \param pha_mat_spt   Scattering matrix for a single particle type.
-  \param abs_vec_spt   Absorption vector for a single particle type.
-  \param ext_mat_spt   Extinction matrix for a single particle type.
-  \param ext_mat       Extinction matrix for given point and direction.
-  \param abs_vec       Absorption vector for given point and direction.
-  \param scat_p_index  Pressure index.
-  \param scat_lat_index Latitude index.
-  \param scat_lon_index Longitude index.
-  \param abs_scalar_gas Scalar gas absorption.                                    
-  WS Input:
-  \param spt_calc_agenda Agenda for single particle scattering properties.
-  \param opt_prop_part_agenda Agenda to compute optical properties 
-                            for particles.
-  \param opt_prop_gas_agenda Agenda to compute total optical properties 
-                            for gases.
-  \param scalar_gas_absorption_agenda Scalar gas absorption. 
-  \param convergence_test_agenda Agenda to perform the convergence test.
-  \param ppath_step_agenda Agenda to compute a propagation path step.
-  \param amp_mat       Amplitude matrix. 
-  \param cloudbox_limits Limits of the cloudbox.
-  \param scat_za_grid  Zenith angle grid inside the cloud box.
-  \param scat_aa_grid  Azimuthal angle grid inside the cloud box.
-  \param p_grid        Pressure grid.
-  \param lat_grid      Latitude grid.
-  \param lon_grid      Longitude grid.
-  \param t_field       Temperature field for all grid points.
-  \param z_field       Geometrical altitude field.
-  \param r_geoid       Matrix containing geoids.
-  \param f_grid        Frequency grid.
-  \param f_index  Frequency index.
-  \param stokes_dim    The number of Stokes components to be calculated.
-  \param atmosphere_dim Atmospheric dimension.
-  \param pnd_field     Particle number density field.
-  \param part_types    Particle types.
+        See the variable desciptions in the functions which are called in this
+        function.
 
-  \author Claudia Emde
-  \date 2002-05-29
+        \author Claudia Emde
+        \date 2002-05-29
 */
 void
 i_fieldIterate(
-                    // WS Output:
-                    Tensor6& i_field,
-                    Ppath& ppath_step,
-                    Tensor6& i_field_old,
-                    Tensor6& scat_field,
-                    Vector& sca_vec,
-                    Vector& stokes_vec,
-                    Numeric& a_planck_value,
-                    Numeric& l_step,
-                    Index& convergence_flag,
-                    Tensor4& pha_mat,
-                    Tensor5& pha_mat_spt,
-                    Matrix& abs_vec_spt,
-                    Tensor3& ext_mat_spt,
-                    Tensor3& ext_mat,
-                    Matrix& abs_vec,
-                    Index& scat_p_index,
-                    Index& scat_lat_index,
-                    Index& scat_lon_index,
-                    Index& scat_za_index,
-                    Index& scat_aa_index,
-                    Matrix& abs_scalar_gas,
-                    Numeric& a_pressure,
-		    Numeric& a_temperature,
-		    Vector& a_vmr_list,	
-                    // WS Input:
-                    const Agenda& spt_calc_agenda,
-                    const Agenda& opt_prop_part_agenda,
-                    const Agenda& opt_prop_gas_agenda,
-                    const Agenda& scalar_gas_absorption_agenda,
-                    const Agenda& convergence_test_agenda,
-                    const Agenda& ppath_step_agenda,
-                    const Tensor6& amp_mat,
-                    const ArrayOfIndex& cloudbox_limits,
-                    const Vector& scat_za_grid,
-                    const Vector& scat_aa_grid,
-                    const Vector& p_grid,
-                    const Vector& lat_grid,
-                    const Vector& lon_grid,
-                    const Tensor3& t_field,
-                    const Tensor3& z_field,
-		    const Tensor4& vmr_field,	
-                    const Matrix& r_geoid,
-                    const Vector& f_grid,
-                    const Index& f_index,
-                    const Index& stokes_dim,
-                    const Index& atmosphere_dim,
-                    const Tensor4& pnd_field,
-                    const Vector& part_types
-                    )
+               // WS Input and Output:
+               Tensor6& i_field,
+               // WS Output
+               Tensor6& i_field_old,
+               Index& convergence_flag,
+               // Calculate scat_field:
+               Tensor6& scat_field,
+               Tensor4& pha_mat,
+               Tensor5& pha_mat_spt,
+               // Variables used in i_fieldUpdateXD
+               // scalar_gas_abs_agenda:
+               Matrix& abs_scalar_gas,
+               Numeric& a_pressure,
+               Numeric& a_temperature,
+               Vector& a_vmr_list,
+               // spt_calc_agenda:
+               Index& scat_za_index,
+               Index& scat_aa_index,
+               // opt_prop_xxx_agenda:
+               Tensor3& ext_mat,
+               Matrix& abs_vec,  
+               Index& scat_p_index,
+               Index& scat_lat_index,
+               Index& scat_lon_index,
+               // ppath_step_agenda:
+               Ppath& ppath_step, 
+               // WS Input:
+               const ArrayOfIndex& cloudbox_limits,
+               const Index& atmosphere_dim,
+               const Vector& part_types,
+               // Used for calculating scat_field
+               const Tensor6& amp_mat,
+               const Vector& p_grid,
+               const Vector& lat_grid,
+               const Vector& lon_grid,
+               // Convergence test
+               const Agenda& convergence_test_agenda,
+               // Variables used i_fieldUpdateXD
+               // Calculate scalar gas absorption:
+               const Agenda& scalar_gas_absorption_agenda,
+               const Tensor4& vmr_field,
+               // Optical properties for single particle type:
+               const Agenda& spt_calc_agenda,
+               const Vector& scat_za_grid,
+               const Vector& scat_aa_grid,
+               // Optical properties for gases and particles:
+               const Agenda& opt_prop_part_agenda,
+               const Tensor4& pnd_field,
+               const Agenda& opt_prop_gas_agenda,
+               // Propagation path calculation:
+               const Agenda& ppath_step_agenda,
+               const Tensor3& z_field,
+               const Matrix& r_geoid,
+               // Calculate thermal emission:
+               const Tensor3& t_field,
+               const Vector& f_grid,
+               const Index& f_index
+               )
 {
-  // Check the input:
-  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-  
-  // Grids have to be adapted to atmosphere_dim.
-  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-  
+ 
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
 
-  if (stokes_dim < 0 || stokes_dim > 4)
-    throw runtime_error(
-                        "The dimension of stokes vector must be"
-                        "1,2,3, or 4");
-
-  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
-    throw runtime_error(
-                        "*cloudbox_limits* is a vector which contains the"
-                        "upper and lower limit of the cloud for all "
-                        "atmospheric dimensions. So its dimension must"
-                        "be 2 x *atmosphere_dim*"); 
-
-
+  
   if ( !is_size( amp_mat, 
                    part_types.nelem(), scat_za_grid.nelem(), 
                    scat_aa_grid.nelem(), scat_za_grid.nelem(),
@@ -416,113 +269,6 @@ i_fieldIterate(
                         "used a pre-calculated amplituded matrix for "
                         "another scattering angle grid.");
 
-
-  if (atmosphere_dim == 3){
-    
-    // Does i_field have the right dimension? 
-    assert ( is_size( i_field, 
-                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                      scat_za_grid.nelem(), 
-                      scat_aa_grid.nelem(),
-                      stokes_dim));
-    
-    i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                       scat_za_grid.nelem(), 
-                       scat_aa_grid.nelem(),
-                       stokes_dim);
-
-    scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                       (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
-                       (cloudbox_limits[5] - cloudbox_limits[4]) +1,
-                       scat_za_grid.nelem(), 
-                       scat_aa_grid.nelem(),
-                       stokes_dim);
-
-   
-  }
- 
-  else if (atmosphere_dim == 1 ){
-    assert ( is_size( i_field, 
-                      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                      stokes_dim));
-
-    i_field_old.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                     stokes_dim);
-    
-    
-    scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
-                      1, 
-                      1,
-                      scat_za_grid.nelem(), 
-                      1,
-                      stokes_dim);  
-  }
-  
-  else if (atmosphere_dim == 2){
-    throw runtime_error(
-                        "Scattering calculations are not possible for a 2D"
-                        "atmosphere. If you want to do scattering calculations"
-                        "*atmosphere_dim* has to be either 1 or 3"
-                        );
-  }
-  
- 
-  // Initialize variables:
-
-  i_field_old = 0.;
-  scat_field = 0.;
-
-  sca_vec.resize(stokes_dim);
-  sca_vec = 0.;
-
-  stokes_vec.resize(stokes_dim);
-  stokes_vec = 0.;
-
-  a_planck_value = 0.;
-  l_step = 0.;
-  
-  pha_mat.resize(scat_za_grid.nelem(), scat_aa_grid.nelem(), stokes_dim,
-                 stokes_dim);
-  pha_mat = 0.;
-  
-  pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 
-                     scat_aa_grid.nelem(), stokes_dim, stokes_dim);
-  pha_mat_spt = 0.;
-
-  abs_vec_spt.resize(part_types.nelem(), stokes_dim);
-  abs_vec_spt = 0.;
-
-  ext_mat_spt.resize(part_types.nelem(), stokes_dim, stokes_dim);
-  ext_mat_spt = 0.;
-
-  ext_mat.resize(1, stokes_dim, stokes_dim);
-  ext_mat = 0.;
-
-  abs_vec.resize(1, stokes_dim);
-  abs_vec = 0.;
-
-  scat_p_index = 0;
-  scat_lat_index = 0;
-  scat_lon_index = 0;
-  scat_za_index = 0;
-  scat_aa_index = 0;
-
-  // End of initializations.
-
-
- 
   //The following steps are repeated until convergence is reached.
   convergence_flag = 0;
   while(convergence_flag == 0) {
@@ -537,46 +283,39 @@ i_fieldIterate(
     scat_fieldCalc(scat_field, pha_mat, pha_mat_spt, amp_mat, i_field,
                    pnd_field, 
                    scat_za_grid, scat_aa_grid, p_grid, lat_grid, lon_grid,
-                   stokes_dim, atmosphere_dim, cloudbox_limits);
+                   atmosphere_dim, cloudbox_limits);
     
     // Update i_field.
     if( atmosphere_dim == 1 )
       {
         i_fieldUpdate1D(//Output:
-                        i_field, ppath_step, stokes_vec, 
-                        sca_vec, a_planck_value, l_step,  
-                        abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
-                        abs_vec,  scat_p_index, scat_za_index, scat_aa_index,
-                        abs_scalar_gas, a_pressure, a_temperature, a_vmr_list,
+                        i_field, abs_scalar_gas, a_pressure, a_temperature,
+                        a_vmr_list, scat_za_index, ext_mat, abs_vec, 
+                        scat_p_index, ppath_step,
                         //Input:
-                        spt_calc_agenda,
-                        opt_prop_part_agenda, opt_prop_gas_agenda,
-                        scalar_gas_absorption_agenda, ppath_step_agenda,
-                        amp_mat, scat_field,
-                        cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
-                        t_field, z_field, vmr_field, r_geoid, f_grid, f_index, 
-                        pnd_field, stokes_dim, atmosphere_dim, part_types);
+                        i_field_old, scat_field, cloudbox_limits, 
+                        scalar_gas_absorption_agenda, vmr_field, 
+                        spt_calc_agenda, scat_za_grid, opt_prop_part_agenda,
+                        pnd_field, opt_prop_gas_agenda, ppath_step_agenda,
+                        p_grid, z_field, r_geoid, t_field, f_grid, f_index);
       }
     else
       //
       // Only 1D or 3D are allowed.
       //   
       i_fieldUpdate3D(//Output:
-                        i_field, ppath_step, stokes_vec, 
-                        sca_vec, a_planck_value, l_step,  
-                        abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
-                        abs_vec,  scat_p_index, scat_lat_index, 
-                        scat_lon_index, scat_za_index, scat_aa_index,
-                        abs_scalar_gas, a_pressure, a_temperature, a_vmr_list,
-                        //Input:
-                        spt_calc_agenda,
-                        opt_prop_part_agenda, opt_prop_gas_agenda,
-                        scalar_gas_absorption_agenda, ppath_step_agenda,
-                        amp_mat, scat_field,
-                        cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid,
-                        lat_grid, lon_grid,
-                        t_field, z_field, vmr_field, r_geoid, f_grid, f_index, 
-                        pnd_field, stokes_dim, atmosphere_dim, part_types);
+                      i_field, abs_scalar_gas, a_pressure, a_temperature,
+                      a_vmr_list, scat_za_index, scat_aa_index, ext_mat,
+                      abs_vec, scat_p_index, scat_lat_index, scat_lon_index,
+                      ppath_step,
+                      //Input:
+                      i_field_old, scat_field, cloudbox_limits, 
+                      scalar_gas_absorption_agenda, vmr_field, 
+                      spt_calc_agenda, scat_za_grid, scat_aa_grid,
+                      opt_prop_part_agenda,
+                      pnd_field, opt_prop_gas_agenda, ppath_step_agenda,
+                      p_grid, lat_grid, lon_grid, z_field, r_geoid, t_field,
+                      f_grid, f_index);
     
     //Convergence test.
     convergence_test_agenda.execute();
@@ -598,58 +337,43 @@ i_fieldIterate(
   species are calculated. Then the radiative transfer equation can be computed.
 
   WS Output:
-  \param i_field       Updated intensity field. 
-  \param ppath_step    Propagation path step for RT calculation.
-  \param stokes_vec    Stokes vector.
-  \param sca_vec       Scattered field vector.
-  \param a_planck_value Planck function.
-  \param l_step        Pathlength step.
-  \param abs_vec_spt   Absorption vector for a single particle type.
-  \param ext_mat_spt   Extinction matrix for a single particle type.
-  \param pha_mat_spt   Scattering Matrix for a single particle type.
-  \param ext_mat       Extinction matrix (4x4 matrix).
-  \param abs_vec       Absorprion vector (4 elements).
-  \param scat_p_index  Pressure index.
-  \param scat_za_index Zenith angle index inside cloudbox.
-  \param scat_aa_index Azimuth angle index inside cloudbox.
-  \param abs_scalar_gas Scalar gas absorption.
-  \param a_pressure    A pressure value.
-  \param a_temperature A temperature value.
-  \param a_vmr_list    A VMR list.
+  \param i_field Updated radiation field inside the cloudbox. 
+  Variables used in scalar_gas_abs_agenda:
+  \param abs_scalar_gas
+  \param a_pressure
+  \param a_temperature
+  \param a_vmr_list
+  Variables used in spt_calc_agenda:
+  \param scat_za_index
+  Variables used in opt_prop_xxx_agenda:
+  \param ext_mat
+  \param abs_vec  
+  \param scat_p_index
+  Variables used in ppath_step_agenda:
+  \param ppath_step
   WS Input:
-  \param spt_calc_agenda Agenda for single particle scattering properties.
-  \param opt_prop_part_agenda Agenda to compute optical properties 
-                            for particles.
-  \param opt_prop_gas_agenda Agenda to compute total optical properties 
-                            for gases.
-  \param scalar_gas_absorption_agenda Scalar gas absorption.
-  \param ppath_step_agenda Agenda to compute a propagation path step.
-  \param amp_mat       Amplitude matrix. 
-  \param scat_field     Scattering integral at all grid points
-                              inside the cloud box.
-  \param cloudbox_limits Limits of the cloudbox.
-  \param scat_za_grid  Zenith angle grid inside the cloud box.
-  \param scat_aa_grid  Azimuth angle grid inside the cloud box.//STR
-  \param p_grid        Pressure grid (is required only for checking the 
-                       input).
-  \param t_field       Temperature field for all grid points.
-  \param z_field       Geometrical altitude field.
-  \param vmr_field     VMR field.
-  \param r_geoid       Matrix containing geoids.
-  \param f_grid        Frequency grid.
-  \param f_index  Frequency index.
-  \param pnd_field     Particle number density field.
-  \param stokes_dim    The number of Stokes components to be calculated.
-  \param atmosphere_dim Dimension of the atmosphere.
-  \param part_types    Particle types.
-
-Some workspace variables have to be defined in the workspace to execute the 
-agendas. These are:
-        
-         ext_mat_part  Extinction matrix only for particles 
-                       (no gaseous extinction).
-         abs_vec_part  Absorprion vector only for particles.             
-         blackbody_ground Needed for the ppath_step calculation.  
+  \param i_field_old Old radiation field.
+  \param scat_field Scattered field.
+  \param cloudbox_limits 
+  Calculate scalar gas absorption:
+  \param scalar_gas_absorption_agenda
+  \param vmr_field
+  Optical properties for single particle type:
+  \param spt_calc_agenda
+  \param scat_za_grid
+  Optical properties for gases and particles:
+  \param opt_prop_part_agenda
+  \param pnd_field
+  \param opt_prop_gas_agenda
+  Propagation path calculation:
+  \param ppath_step_agenda
+  \param p_grid
+  \param z_field
+  \param r_geoid
+  Calculate thermal emission:
+  \param t_field
+  \param f_grid
+  \param f_index
 
   \author Claudia Emde
   \date 2002-05-30
@@ -657,51 +381,52 @@ agendas. These are:
 void
 i_fieldUpdate1D(// WS Output:
                 Tensor6& i_field,
-                Ppath& ppath_step,
-                Vector& stokes_vec,
-                Vector& sca_vec,
-                Numeric& a_planck_value,
-                Numeric& l_step,
-                Matrix& abs_vec_spt,
-                Tensor3& ext_mat_spt,
-                Tensor5& pha_mat_spt,
-                Tensor3& ext_mat,
-                Matrix& abs_vec,
-                Index& scat_p_index,
-                Index& scat_za_index,
-                Index& scat_aa_index,
+                // scalar_gas_abs_agenda:
                 Matrix& abs_scalar_gas,
                 Numeric& a_pressure,
 	        Numeric& a_temperature,
 		Vector& a_vmr_list,
+                // spt_calc_agenda:
+                Index& scat_za_index ,
+                // opt_prop_xxx_agenda:
+                Tensor3& ext_mat,
+                Matrix& abs_vec,  
+                Index& scat_p_index,
+                // ppath_step_agenda:
+                Ppath& ppath_step, 
                 // WS Input:
-                const Agenda& spt_calc_agenda,
-                const Agenda& opt_prop_part_agenda,
-                const Agenda& opt_prop_gas_agenda,
-                const Agenda& scalar_gas_absorption_agenda,
-                const Agenda& ppath_step_agenda,
-                const Tensor6& amp_mat,
+                const Tensor6& i_field_old,
                 const Tensor6& scat_field,
                 const ArrayOfIndex& cloudbox_limits,
+                // Calculate scalar gas absorption:
+                const Agenda& scalar_gas_absorption_agenda,
+                const Tensor4& vmr_field,
+                // Optical properties for single particle type:
+                const Agenda& spt_calc_agenda,
                 const Vector& scat_za_grid,
-                const Vector& scat_aa_grid,
-                const Vector& p_grid,
-                const Tensor3& t_field,
-                const Tensor3& z_field,
-		const Tensor4& vmr_field,
-                const Matrix& r_geoid,
-                const Vector& f_grid,
-                const Index& f_index,
+                // Optical properties for gases and particles:
+                const Agenda& opt_prop_part_agenda,
                 const Tensor4& pnd_field,
-                const Index& stokes_dim,
-                const Index& atmosphere_dim,
-                const Vector& part_types
+                const Agenda& opt_prop_gas_agenda,
+                // Propagation path calculation:
+                const Agenda& ppath_step_agenda,
+                const Vector& p_grid,
+                const Tensor3& z_field,
+                const Matrix& r_geoid,
+                 // Calculate thermal emission:
+                const Tensor3& t_field,
+                const Vector& f_grid,
+                const Index& f_index
                 )
 {
 
-  //Check the input
+  out2 << "i_fieldUpdate1D: Radiative transfer calculatiuon in cloudbox. \n";
+  out2 << "------------------------------------------------------------- \n";
   
-  assert( atmosphere_dim == 1);
+  const Index stokes_dim = scat_field.ncols();
+  const Index atmosphere_dim = 1;
+
+  //Check the input
   
   if (stokes_dim < 0 || stokes_dim > 4)
     throw runtime_error(
@@ -723,22 +448,6 @@ i_fieldUpdate1D(// WS Output:
                       scat_za_grid.nelem(), 
                       1,
                       stokes_dim));  
-  
-  assert( is_size( stokes_vec, stokes_dim));
-  
-  assert( is_size( sca_vec, stokes_dim));
-
-  assert( is_size( abs_vec_spt, part_types.nelem(), stokes_dim)); 
-
-  assert( is_size( ext_mat_spt,  part_types.nelem(), stokes_dim, stokes_dim));
-  
-  assert( is_size( pha_mat_spt,  part_types.nelem(), 
-                   scat_za_grid.nelem(), scat_aa_grid.nelem(),
-                   stokes_dim, stokes_dim));
-
-  assert( is_size( ext_mat, 1, stokes_dim, stokes_dim));
-  
-  assert( is_size( abs_vec, 1, stokes_dim));
   
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
@@ -792,9 +501,6 @@ i_fieldUpdate1D(// WS Output:
   //Loop over all directions, defined by scat_za_grid 
   for(scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
-      //For 1D we need onoly one angle as viewing direction.
-      scat_aa_index = 0;
-
       //Calculate optical properties for single particle types:
       spt_calc_agenda.execute(scat_za_index);
     
@@ -805,13 +511,13 @@ i_fieldUpdate1D(// WS Output:
       // the coefficients once and store them in an array instead of 
       // calculating at each point the coefficient of the point above and 
       // the point below. 
-     
-      Tensor3 ext_mat_array(cloudbox_limits[1]-cloudbox_limits[0]+1, 
-                           stokes_dim, stokes_dim, 0.);
+      // To use special interpolation functions for atmospheric fields we 
+      // use ext_mat_field and abs_vec_field:
+      Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+                            stokes_dim, stokes_dim, 0.);
+      Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
+                            stokes_dim, 0.);
 
-      Matrix abs_vec_array(cloudbox_limits[1]-cloudbox_limits[0]+1,
-                           stokes_dim, 0.);
-      
       // Loop over all positions inside the cloudbox defined by the 
       // cloudbox_limits.
       for(Index p_index = cloudbox_limits[0]; p_index
@@ -845,10 +551,10 @@ i_fieldUpdate1D(// WS Output:
                                        (p_index - cloudbox_limits[0])) );
           
           // Store coefficients in arrays for the whole cloudbox.
-          abs_vec_array(p_index-cloudbox_limits[0], joker) = 
+          abs_vec_field(p_index-cloudbox_limits[0], 0, 0, joker) = 
             abs_vec(0, joker);
 
-          ext_mat_array(p_index-cloudbox_limits[0], joker, joker) = 
+          ext_mat_field(p_index-cloudbox_limits[0], 0, 0, joker, joker) = 
             ext_mat(0, joker, joker);
                     
         }//End of p_grid loop over the cloudbox
@@ -860,23 +566,12 @@ i_fieldUpdate1D(// WS Output:
 
       // Define variables which hold averaged coefficients:
           
-      Vector stokes_vec_av(stokes_dim,0.);
+      Vector stokes_vec(stokes_dim,0.);
       Matrix ext_mat_av(stokes_dim, stokes_dim,0.);
       Vector abs_vec_av(stokes_dim,0.);
       Vector sca_vec_av(stokes_dim,0.);
 
-      // To use special interpolation functions for atmospheric fields we 
-      // blow up ext_mat_array and abs_vec_array:
-      Tensor5 ext_mat_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
-                            stokes_dim, stokes_dim, 0.);
-      Tensor4 abs_vec_field(cloudbox_limits[1] - cloudbox_limits[0] + 1, 1, 1,
-                            stokes_dim, 0.);
-
-       ext_mat_field(joker, 0, 0, joker, joker) = 
-                ext_mat_array(joker, joker, joker);
-       abs_vec_field(joker, 0, 0, joker) = abs_vec_array(joker, joker);
-
-       // Loop over all positions inside the cloud box defined by the 
+      // Loop over all positions inside the cloud box defined by the 
       // cloudbox_limits exculding the upper boundary.
       for(Index p_index = cloudbox_limits[0]; p_index
             <= cloudbox_limits[1]; p_index ++)
@@ -929,7 +624,7 @@ i_fieldUpdate1D(// WS Output:
                 }
 
               // Length of the path between the two layers.
-              l_step = ppath_step.l_step[0];
+              Numeric l_step = ppath_step.l_step[0];
               
               // Check if the agenda has returned ppath.step with reasonable 
               // values. 
@@ -1036,15 +731,15 @@ i_fieldUpdate1D(// WS Output:
                   //
                   // Stokes vector:
                   //
-                  // Interpolation of i_field.
-                  out3 << "Interpolate i_field:\n";
+                  // Interpolation of i_field_old.
+                  out3 << "Interpolate i_field_old:\n";
                   interp_atmfield_by_itw
                     (sto_vec_int(i, joker),
                      atmosphere_dim,
                      p_grid[p_range], dummy_grid, dummy_grid,
-                     i_field(joker, joker, joker, scat_za_index,
-                             scat_aa_index, i),
-                     "i_field",
+                     i_field_old(joker, joker, joker, scat_za_index,
+                             0, i),
+                     "i_field_old",
                      cloud_gp_p,
                      dummy_gp, dummy_gp,
                      itw_field);
@@ -1079,7 +774,7 @@ i_fieldUpdate1D(// WS Output:
               //
               // Calculate Planck function
               //
-              a_planck_value = planck(f, T);
+              Numeric a_planck_value = planck(f, T);
 
               // Some messages:
               out3 << "-----------------------------------------\n";
@@ -1118,11 +813,9 @@ i_fieldUpdate1D(// WS Output:
           //
                     
         }// Close loop over p_grid (inside cloudbox).
-        }// Closes 'if' for upward propagation direction.
+    }// Closes loop over scat_za_grid.
 
-    
-
-    } // End of the function.
+} // End of the function.
 
 
 //! 3D RT calculation inside the cloud box.
@@ -1139,115 +832,105 @@ i_fieldUpdate1D(// WS Output:
   species are calculated. Then the radiative transfer equation can be computed.
 
   WS Output:
-  \param i_field       Updated intensity field. 
-  \param ppath_step    Propagation path step for RT calculation.
-  \param stokes_vec    Stokes vector.
-  \param sca_vec       Scattered field vector.
-  \param a_planck_value Planck function.
-  \param l_step        Pathlength step.
-  \param abs_vec_spt   Absorption vector for a single particle type.
-  \param ext_mat_spt   Extinction matrix for a single particle type.
-  \param pha_mat_spt   Scattering Matrix for a single particle type.
-  \param ext_mat       Extinction matrix (4x4 matrix).
-  \param abs_vec       Absorprion vector (4 elements).
-  \param scat_p_index  Pressure index.
-  \param scat_za_index Zenith angle index inside cloudbox.
-  \param scat_aa_index Azimuth angle index inside cloudbox.
-  \param abs_scalar_gas Scalar gas absorption.
-  \param a_pressure    A pressure value.
-  \param a_temperature A temperature value.
-  \param a_vmr_list    A VMR list.
+  \param i_field Updated radiation field inside the cloudbox. 
+  Variables used in scalar_gas_abs_agenda:
+  \param abs_scalar_gas
+  \param a_pressure
+  \param a_temperature
+  \param a_vmr_list
+  Variables used in spt_calc_agenda:
+  \param scat_za_index
+  \param scat_aa_index
+  Variables used in opt_prop_xxx_agenda:
+  \param ext_mat
+  \param abs_vec  
+  \param scat_p_index
+  \param scat_lat_index
+  \param scat_lon_index
+  Variables used in ppath_step_agenda:
+  \param ppath_step
   WS Input:
-  \param spt_calc_agenda Agenda for single particle scattering properties.
-  \param opt_prop_part_agenda Agenda to compute optical properties 
-                            for particles.
-  \param opt_prop_gas_agenda Agenda to compute total optical properties 
-                            for gases.
-  \param scalar_gas_absorption_agenda Scalar gas absorption.
-  \param ppath_step_agenda Agenda to compute a propagation path step.
-  \param amp_mat       Amplitude matrix. 
-  \param scat_field     Scattering integral at all grid points
-                              inside the cloud box.
-  \param cloudbox_limits Limits of the cloudbox.
-  \param scat_za_grid  Zenith angle grid inside the cloud box.
-  \param scat_aa_grid  Azimuth angle grid inside the cloud box.//STR
-  \param p_grid        Pressure grid (is required only for checking the 
-                       input).
-  \param lat_grid      Latitude grid.
-  \param lon_grid      Longitude grid.
-  \param t_field       Temperature field for all grid points.
-  \param z_field       Geometrical altitude field.
-  \param vmr_field     VMR field.
-  \param r_geoid       Matrix containing geoids.
-  \param f_grid        Frequency grid.
-  \param f_index  Frequency index.
-  \param pnd_field     Particle number density field.
-  \param stokes_dim    The number of Stokes components to be calculated.
-  \param atmosphere_dim Dimension of the atmosphere.
-  \param part_types    Particle types.
-
-Some workspace variables have to be defined in the workspace to execute the 
-agendas. These are:
-        
-         ext_mat_part  Extinction matrix only for particles 
-                       (no gaseous extinction).
-         abs_vec_part  Absorprion vector only for particles.             
-         blackbody_ground Needed for the ppath_step calculation.  
+  \param i_field_old Old radiation field.
+  \param scat_field Scattered field.
+  \param cloudbox_limits 
+  Calculate scalar gas absorption:
+  \param scalar_gas_absorption_agenda
+  \param vmr_field
+  Optical properties for single particle type:
+  \param spt_calc_agenda
+  \param scat_za_grid
+  \param scat_aa_grid
+  Optical properties for gases and particles:
+  \param opt_prop_part_agenda
+  \param pnd_field
+  \param opt_prop_gas_agenda
+  Propagation path calculation:
+  \param ppath_step_agenda
+  \param p_grid
+  \param lat_grid
+  \param lon_grid
+  \param z_field
+  \param r_geoid
+  Calculate thermal emission:
+  \param t_field
+  \param f_grid
+  \param f_index
 
   \author Claudia Emde
   \date 2003-01-07
 */
-void
-i_fieldUpdate3D(// WS Output:
-                Tensor6& i_field,
-                Ppath& ppath_step,
-                Vector& stokes_vec,
-                Vector& sca_vec,
-                Numeric& a_planck_value,
-                Numeric& l_step,
-                Matrix& abs_vec_spt,
-                Tensor3& ext_mat_spt,
-                Tensor5& pha_mat_spt,
-                Tensor3& ext_mat,
-                Matrix& abs_vec,
-                Index& scat_p_index,
-                Index& scat_lat_index,
-                Index& scat_lon_index,
-                Index& scat_za_index,
-                Index& scat_aa_index,
-                Matrix& abs_scalar_gas,
-                Numeric& a_pressure,
-	        Numeric& a_temperature,
-		Vector& a_vmr_list,
-                // WS Input:
-                const Agenda& spt_calc_agenda,
-                const Agenda& opt_prop_part_agenda,
-                const Agenda& opt_prop_gas_agenda,
-                const Agenda& scalar_gas_absorption_agenda,
-                const Agenda& ppath_step_agenda,
-                const Tensor6& amp_mat,
-                const Tensor6& scat_field,
-                const ArrayOfIndex& cloudbox_limits,
-                const Vector& scat_za_grid,
-                const Vector& scat_aa_grid,
-                const Vector& p_grid,
-                const Vector& lat_grid,
-                const Vector& lon_grid,
-                const Tensor3& t_field,
-                const Tensor3& z_field,
-		const Tensor4& vmr_field,
-                const Matrix& r_geoid,
-                const Vector& f_grid,
-                const Index& f_index,
-                const Tensor4& pnd_field,
-                const Index& stokes_dim,
-                const Index& atmosphere_dim,
-                const Vector& part_types
-                )
+void i_fieldUpdate3D(// WS Output:
+                     Tensor6& i_field,
+                     // scalar_gas_abs_agenda:
+                     Matrix& abs_scalar_gas,
+                     Numeric& a_pressure,
+                     Numeric& a_temperature,
+                     Vector& a_vmr_list,
+                     // spt_calc_agenda:
+                     Index& scat_za_index,
+                     Index& scat_aa_index,
+                     // opt_prop_xxx_agenda:
+                     Tensor3& ext_mat,
+                     Matrix& abs_vec,  
+                     Index& scat_p_index,
+                     Index& scat_lat_index,
+                     Index& scat_lon_index,
+                     // ppath_step_agenda:
+                     Ppath& ppath_step, 
+                     // WS Input:
+                     const Tensor6& i_field_old,
+                     const Tensor6& scat_field,
+                     const ArrayOfIndex& cloudbox_limits,
+                     // Calculate scalar gas absorption:
+                     const Agenda& scalar_gas_absorption_agenda,
+                     const Tensor4& vmr_field,
+                     // Optical properties for single particle type:
+                     const Agenda& spt_calc_agenda,
+                     const Vector& scat_za_grid,
+                     const Vector& scat_aa_grid,
+                     // Optical properties for gases and particles:
+                     const Agenda& opt_prop_part_agenda,
+                     const Tensor4& pnd_field,
+                     const Agenda& opt_prop_gas_agenda,
+                     // Propagation path calculation:
+                     const Agenda& ppath_step_agenda,
+                     const Vector& p_grid,
+                     const Vector& lat_grid,
+                     const Vector& lon_grid,
+                     const Tensor3& z_field,
+                     const Matrix& r_geoid,
+                     // Calculate thermal emission:
+                     const Tensor3& t_field,
+                     const Vector& f_grid,
+                     const Index& f_index
+                     )
 {
+  
+  out2 << "i_fieldUpdate3D: Radiative transfer calculatiuon in cloudbox. \n";
+  out2 << "------------------------------------------------------------- \n";
 
-  out2 << "i_fieldUpdate3D: RAdiative transfer calculatiuon in cloudbox. \n";
-  out3 << "------------------------------------------------------------- \n"; 
+  const Index stokes_dim = scat_field.ncols();
+  const Index atmosphere_dim = 3;
 
   //Check the input
   
@@ -1274,25 +957,8 @@ i_fieldUpdate3D(// WS Output:
 		      scat_aa_grid.nelem(),
 		      stokes_dim));
    
-  assert( is_size( stokes_vec, stokes_dim));
-  
-  assert( is_size( sca_vec, stokes_dim));
-
-  assert( is_size( abs_vec_spt, part_types.nelem(), stokes_dim)); 
-
-  assert( is_size( ext_mat_spt,  part_types.nelem(), stokes_dim, stokes_dim));
-  
-  assert( is_size( pha_mat_spt,  part_types.nelem(), 
-                   scat_za_grid.nelem(), scat_aa_grid.nelem(),
-                   stokes_dim, stokes_dim));
-
-  assert( is_size( ext_mat, 1, stokes_dim, stokes_dim));
-  
-  assert( is_size( abs_vec, 1, stokes_dim));
-  
   // Is the frequency index valid?
   assert( f_index <= f_grid.nelem() );
-
 
   // End of checks
 
@@ -1300,6 +966,7 @@ i_fieldUpdate3D(// WS Output:
 
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
+  // Number of azimuth angles
   const Index N_scat_aa = scat_aa_grid.nelem();
 
   // Grid ranges inside cloudbox:
@@ -1479,8 +1146,8 @@ i_fieldUpdate3D(// WS Output:
       //=====================================================================
 
           // Define variables which hold averaged coefficients:
-          
-          Vector stokes_vec_av(stokes_dim,0.);
+
+          Vector stokes_vec(stokes_dim,0.);
           Matrix ext_mat_av(stokes_dim, stokes_dim,0.);
           Vector abs_vec_av(stokes_dim,0.);
           Vector sca_vec_av(stokes_dim,0.);
@@ -1542,7 +1209,7 @@ i_fieldUpdate3D(// WS Output:
                                               lon_index - cloudbox_limits[4]);
               
                     // Length of the path between the two layers.
-                    l_step = ppath_step.l_step[0];
+                    Numeric l_step = ppath_step.l_step[0];
               
                     // Check if the agenda has returned ppath.step with 
                     // reasonable values. 
@@ -1727,17 +1394,17 @@ i_fieldUpdate3D(// WS Output:
                             //
                             // Stokes vector:
                             //
-                            // Interpolation of i_field.
-                            out3 << "Interpolate i_field:\n";
+                            // Interpolation of i_field_old.
+                            out3 << "Interpolate i_field_old:\n";
                             interp_atmfield_by_itw
                               (sto_vec_int(i, joker),
                                atmosphere_dim,
                                p_grid[p_range],
                                lat_grid[lat_range],
                                lon_grid[lon_range],
-                               i_field(joker, joker, joker, scat_za_index,
+                               i_field_old(joker, joker, joker, scat_za_index,
                                        scat_aa_index, i),
-                               "i_field",
+                               "i_field_old",
                                cloud_gp_p,
                                cloud_gp_lat,
                                cloud_gp_lon,
@@ -1775,7 +1442,7 @@ i_fieldUpdate3D(// WS Output:
                         //
                         // Calculate Planck function
                         //
-                        a_planck_value = planck(f, T);
+                        Numeric a_planck_value = planck(f, T);
 
                         // Some messages:
                         out3 << "-----------------------------------------\n";
@@ -2271,12 +1938,13 @@ scat_fieldCalc(//WS Output:
                const Vector& p_grid,
                const Vector& lat_grid,
                const Vector& lon_grid,
-               const Index& stokes_dim,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits
                )
   
 {
+  Index stokes_dim = scat_field.ncols();
+
   // Some useful indices :
   Index N_pt = pha_mat_spt.nshelves();
   Index Nza = scat_za_grid.nelem();
@@ -2519,6 +2187,133 @@ scat_fieldCalc(//WS Output:
  
 }
 
+//! Initialize variables for a scattering calculation
+/*! 
+  Variables needed in the scattering calculations are initialzed here. This 
+  method has to be executed before using *ScatteringMain*.
+
+  \param scat_p_index: Index for a position inside the cloudbox
+  \param scat_lat_index: Index for a position inside the cloudbox
+  \param scat_lon_index: Index for a position inside the cloudbox
+  \param scat_za_index: Index for a zenith direction.
+  \param scat_aa_index: Index for an azimuth direction.
+  \param iteration_counter: Index for counting iterations.
+  \param pha_mat : Phase matrix.
+  \param pha_mat_spt: Phase matrix for a single particle type.
+  \param ext_mat_spt: Extinction matrix for a single particle type.
+  \param abs_vec_spt: Absorption vector for a single particle type.
+  \param i_field : Radiation field
+  \param scat_field: Scattered field.
+  \param stokes_dim: Stokes dimension.
+  \param atmosphere_dim: Atmospheric dimension.
+  \param scat_za_grid: Zenith angle grid for scattering calculation.
+  \param scat_za_grid: Azimuth angle grid for scattering calculation.
+  \param cloudbox_limits: Limits of cloudbox.
+*/
+void ScatteringInit(
+                    Index& scat_p_index,
+                    Index& scat_lat_index,
+                    Index& scat_lon_index,
+                    Index& scat_za_index,
+                    Index& scat_aa_index,
+                    Index& iteration_counter,
+                    Tensor4& pha_mat,
+                    Tensor5& pha_mat_spt,
+                    Tensor3& ext_mat_spt,
+                    Matrix& abs_vec_spt,
+                    Tensor6& scat_field,
+                    Tensor6& i_field,
+                    const Index& stokes_dim,
+                    const Index& atmosphere_dim,
+                    const Vector& scat_za_grid,
+                    const Vector& scat_aa_grid,
+                    const ArrayOfIndex& cloudbox_limits,
+                    const Vector& part_types
+                    )
+{
+  // Check the input:
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  
+  if (stokes_dim < 0 || stokes_dim > 4)
+    throw runtime_error(
+                        "The dimension of stokes vector must be"
+                        "1,2,3, or 4");
+
+  if ( cloudbox_limits.nelem()!= 2*atmosphere_dim)
+    throw runtime_error(
+                        "*cloudbox_limits* is a vector which contains the"
+                        "upper and lower limit of the cloud for all "
+                        "atmospheric dimensions. So its dimension must"
+                        "be 2 x *atmosphere_dim*"); 
+  scat_p_index = 0;
+  scat_lat_index = 0;
+  scat_lon_index = 0;
+  scat_za_index = 0;
+  scat_aa_index = 0;
+  iteration_counter = 0;
+  
+  pha_mat.resize(scat_za_grid.nelem(), scat_aa_grid.nelem(), stokes_dim,
+                 stokes_dim);
+  pha_mat = 0.;
+  
+  pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 
+                     scat_aa_grid.nelem(), stokes_dim, stokes_dim);
+  pha_mat_spt = 0.;
+
+  abs_vec_spt.resize(part_types.nelem(), stokes_dim);
+  abs_vec_spt = 0.;
+
+  ext_mat_spt.resize(part_types.nelem(), stokes_dim, stokes_dim);
+  ext_mat_spt = 0.;  
+
+             
+  if (atmosphere_dim == 1)
+    {
+      i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                     1, 
+                     1,
+                     scat_za_grid.nelem(), 
+                     1,
+                     stokes_dim);
+      
+      scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        1, 
+                        1,
+                        scat_za_grid.nelem(), 
+                        1,
+                        stokes_dim);  
+    }
+  else if (atmosphere_dim == 3)
+    {
+      i_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                     (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                     (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                     scat_za_grid.nelem(), 
+                     scat_aa_grid.nelem(),
+                     stokes_dim);
+      
+      scat_field.resize((cloudbox_limits[1] - cloudbox_limits[0]) +1,
+                        (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+                        (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+                        scat_za_grid.nelem(), 
+                        scat_aa_grid.nelem(),
+                        stokes_dim);
+    }
+  else 
+    {
+      throw runtime_error(
+                        "Scattering calculations are not possible for a 2D"
+                        "atmosphere. If you want to do scattering calculations"
+                        "*atmosphere_dim* has to be either 1 or 3"
+                          );
+    }
+  
+  i_field = 0.;
+  scat_field = 0.;
+
+}
+
+
 //! Main function for the radiative transfer in cloudbox.  
 /*!
   This function executes *scat_mono_agenda* for each frequency in *f_grid*.   
@@ -2546,6 +2341,19 @@ void ScatteringMain(
       scat_mono_agenda.execute(); 
     }
 }
+
+
+
+//! Increase iteration counter.  
+/*!
+  This function has to be used if you want to write the separate iteration 
+  fields into differtent files using *Tensor6WriteIteration*.
+*/
+void iteration_counterIncrease(Index& iteration_counter)
+{
+  iteration_counter += 1;
+}   
+
  
  
 //! Write iterated fields.
