@@ -260,7 +260,7 @@ void cloud_ppath_update1D(
                   ConstTensor4View abs_vec_field
                   )
 {
-  const Index stokes_dim = i_field.nrows();
+  const Index stokes_dim = i_field.ncols();
     
   Vector sca_vec_av(stokes_dim,0); 
 

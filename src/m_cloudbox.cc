@@ -1235,8 +1235,6 @@ void CloudboxGetOutgoing(// WS Generic Output:
 			   "Gridpositions have to be on the boundary of the "
 			   "cloudbox defined by *cloudbox_limits*."
 			   );
-     cout << "a_gp_p.idx" << a_gp_p.idx << "\n";
-     
      
      //Define a vector to interpolate the outgoing radiance which is 
      //defined on scat_za_grid on the requested zenith angle in 
