@@ -955,6 +955,18 @@ equivalent to the \artsstyle{MakeVector} class.
 %-------------------------------------------------------------------------
 All examples below assume that \artsstyle{a} is a Sparse.
 
+\leveld{Identity matrix:}
+\begin{verbatim}
+a.make_I(10,10);
+\end{verbatim}
+This sets \artsstyle{a} to be the identity matrix of size 10x10 (10 rows 
+and 10 columns). Using this function is much faster than setting the 
+diagonal elements to one by yourself. The number of rows and columns 
+doesn't have to match each other. In the case that they don't, the rule 
+that each row and column only will have only one position occupied by a one
+is applied. That is, in the case there are more rows than columns, the last
+rows will be empty.
+
 \leveld{Resize:}
 \begin{verbatim}
 a.resize(5,10);

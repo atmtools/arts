@@ -361,12 +361,7 @@ void sensor_responseAntenna1D(
        // WS Input:
        const Vector&                f_grid,
        const Vector&                mblock_za_grid,
-// FIXME parameter only used in assertion
-#ifndef NDEBUG
        const Index&                 antenna_dim,
-#else
-       const Index&,
-#endif
        const Matrix&                sensor_pol,
        const ArrayOfArrayOfMatrix&  diag,
        // WS Generic Input:
@@ -376,9 +371,7 @@ void sensor_responseAntenna1D(
 {
   // Check that the antenna has the right dimension, this implies that the
   // mblock_aa_grid is empty (as set by AntennaSet1D).
-  // FIXME: Mattias, I think this should be a runtime error check, not an assertion:
-  //  if( antenna_dim!=1 ) throw runtime_error( "Antenna dimension must be 1." );
-  assert(antenna_dim==1);
+  if( antenna_dim!=1 ) throw runtime_error( "Antenna dimension must be 1." );
 
   // Initialise ostringstream and error flag to collect error messages.
   // This way, if several errors occur, they can all be displayed at the
@@ -478,8 +471,8 @@ void sensor_responseAntenna1D(
     throw runtime_error(os.str());
 
   // Tell the user what is happening
-  out2 << "  Calculating the antenna response using values and grids from "
-       << "*antenna_diagram*.\n";
+  out2 << "  Calculating the antenna response using *antenna_diagram* and "
+       << "  zenith angles from *" << antenna_za_name << "*.";
 
   // Create the response matrix for the antenna, this matrix will later be
   // multiplied with the original sensor_response matrix.

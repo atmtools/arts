@@ -1,3 +1,10 @@
+2003-12-08  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-748
+
+	* src/m_sensor.cc: Fixed FIXME, assertion should have already been a
+	runtime_error check.
+
 2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-747
