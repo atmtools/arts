@@ -24,7 +24,6 @@ EXTRA_DIST = \
         last.m \
         out.m \
         planck.m \
-        rand_test.m \
         vec2col.m \
         vec2row.m \
 	whoami.m

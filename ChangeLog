@@ -1,3 +1,11 @@
+2002-01-16  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-0-pre3
+
+	* ami: Improved the README file slightly (I had forgotten that there 
+	was one). Updated the Makefile.am files. Removed rand_test, that 
+	existed in two folders.
+
 2002-01-15  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-0-pre2

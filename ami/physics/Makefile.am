@@ -15,6 +15,10 @@
 
 EXTRA_DIST = \
 	geomtan2za.m \
+	hseCalc.m \
 	invplanck.m \
 	invrayjean.m \
-	planck.m
+	nd2vmr.m \
+	planck.m \
+	vmr2nd.m \
+	za2geomtan.m 

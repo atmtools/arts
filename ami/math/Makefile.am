@@ -16,6 +16,7 @@
 EXTRA_DIST = \
 	isinteger.m \
 	isodd.m \
+	isscalar.m \
 	last.m \
 	sFromFile.m \
 	vec2col.m \

@@ -16,4 +16,5 @@
 EXTRA_DIST = \
 	delete_tmp_dir.m \
 	dir_in_dir.m \
+	subfolders.m \
 	temporary_directory.m 

@@ -15,6 +15,7 @@
 
 EXTRA_DIST = \
         create_binfile.m \
+	gaussian_response.m \
 	hAntennaFromFile.m \
 	hAntennaFromFileAdv.m \
 	hAntennaGauss.m \
@@ -24,14 +25,13 @@ EXTRA_DIST = \
 	hBinView.m \
 	hBinfile.m \
 	hEigs.m \
+	hFreqSwitch.m \
 	hHdFromFile.m \
 	hHsFromFile.m \
 	hInit.m \
 	hLoad.m \
 	hMixerConst.m \
 	hMixerFromFile.m \
-	hRedKx.m \
-	hRedLimb.m \
 	hSave.m \
 	hTb.m \
 	h_antenna.m \
