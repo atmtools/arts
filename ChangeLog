@@ -1,3 +1,10 @@
+2003-01-08  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-365
+
+	* src/xml_io.cc, src/xml_io_private.h: Added reading/writing routines
+	for Ppath, GridPos and ArrayOfGridPos.
+
 2003-01-07  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-364
