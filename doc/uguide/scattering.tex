@@ -130,8 +130,8 @@ particle type and $\aSExMat{p}_i\DirFre$ the particle extinction cross
 section matrix of the {\sl i}th particle type.
 
 
-The gaseous ectinction matrix is derived from the scalar gas
-absorption. As extiction by gas absorption does not cause any
+The gaseous extinction matrix is derived from the scalar gas
+absorption. As extinction by gas absorption does not cause any
 polarization effects, the off-diagonal elements of the gaseous
 extinction matrix have to be zero. Gaseous extinction is determined
 only by absorption, so the coefficients on the diagonal correspond to
@@ -145,7 +145,7 @@ the gaseous absorption coeffient ({\bf FIXME: Why are the coefficients
 \]
 
 Here \Prs and \Tmp are pressure and temperature. $\alpha$ is the
-scalar gaseous absroption coefficient.
+scalar gaseous absorption coefficient.
 
 The second term in Equation (\ref{eq:scattering:RTE}) describes the
 thermal emission. \Planck\ is the Planck function and \AbsVec\ is the
@@ -358,7 +358,7 @@ for the specified direction.
    \end{center}
   \end{minipage}%
   \begin{minipage}[c]{0.35\textwidth}
-   \caption{Path from one grid point (black) to the intersection point with the next grid cell boundary. Multilinear intepolation is done from the grid points on the intersection point. The coefficients are averaged between the black grid point and the intersection point.}
+   \caption{Path from one grid point (black) to the intersection point with the next grid cell boundary. Multilinear interpolation is done from the grid points on the intersection point. The coefficients are averaged between the black grid point and the intersection point.}
    \label{fig:scattering:averaging}
   \end{minipage}
  \end{center}
@@ -429,7 +429,7 @@ into Equation (\ref{eq:scattering:ansatz}) leads to the solution:
   \StoVec^{(1)} =  e^{-\bar{\ExtMat}s}\cdot\left(\StoVec^{(0)} -\bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)\right) + 
  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
 \end{eqnarray}
-The can be resorted to the following form:
+This can be resorted to the following form:
 \begin{eqnarray}
 \label{eq:scattering:vrte_sol}
  \StoVec^{(1)} =  e^{-\bar{\ExtMat}s} \StoVec^{(0)} + \left( {\bf E} -  e^{-\bar{\ExtMat}s}\right)  \bar{\ExtMat}\Inv\left(\bar{\AbsVec} \bar{\Planck} +\bar{\ScaInt}^{(0)}\right)
@@ -460,7 +460,7 @@ The first iteration field is used to evaluate the scattered field
   \SEfMat \StoVec^{(1)} 
 \end{eqnarray}
 Now $\ScaInt^{(1)}$ is used as fixed scattering term in the radiative
-transfer equation for the second iteration Stkes vectors
+transfer equation for the second iteration to get the Stokes vectors
 $\StoVec^{(2)}$
 \begin{eqnarray}
      \frac{\DiffD \StoVec^{(2)}}{\DiffD s} =
