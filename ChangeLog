@@ -1,3 +1,55 @@
+2002-06-11  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-131
+
+	* General: Implemented automatic Input/Output checking for
+	agendas. That means, you no longer have to check in the calling
+	function that the agenda does what it is supposed to do. There is
+	now a special lookup table for agendas in file agendas.cc. Data
+	records for new agendas have to be added in both workspace.cc and
+	agendas.cc, however, the DESCRIPTION in workspace.cc should just
+	be a reference to agendas.cc. Only the DESCRIPTION in agendas.cc
+	is used by arts -d etc..
+	
+	* src/agendas.cc: Added. This contains the lookup data for
+	agendas. You have to edit this everytime you add an agenda. But
+	nevertheless, you also have to add an entry in
+	workspace.cc. Documentation for the agenda must be in agendas.cc,
+	not in workspace.cc.
+
+	* src/agenda_record.h: Added.
+
+	* src/agenda_record.cc: Added.
+
+	* src/agenda_class.h: Added.
+
+	* src/agenda_class.cc: Added.
+
+	* src/agenda.h: Moved to agenda_class.h.
+
+	* src/agenda.cc: Moved to agenda_class.cc.
+
+	* src/Makefile.am: Added the new source files.
+
+	* src/workspace_aux.cc: Moved output operator of WsvRecord to
+	agenda_record.cc for technical reasons.
+
+	* src/workspace.cc: Moved agenda DESCRIPTIONS to agendas.cc for
+	all agendas that have been defined so far.
+
+	* src/parser.h: Changed name of agenda header file to agenda_class.h.
+
+	* src/methods.cc: Updated copyright notice, updated documentation
+	for AgendaSet.
+
+	* src/make_auto_wsv_h.cc: Changed name of agenda header file to agenda_class.h.
+
+	* src/main.cc: Made command line switches work for agendas.
+
+	* src/m_agenda.cc: Made AgendaSet check the input and output parameters.
+
+	* src/globals_2.cc: Added AgendaMap.
+
 2002-06-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-130
@@ -37,7 +89,6 @@
 	* src/Makefile.am : included in the source file list
 	m_scatproperties.cc,scatproperties.cc and scatproperties.h
 	
-
 2002-06-10  Sreerekha T.R.  <rekha@uni-bremen.de>
 
 	* arts-1-1-127
@@ -45,7 +96,6 @@
 	* src/workspace.cc : Added the workspace variables scat_za_index
 	and scat_aa_index necessary for the methods used for calculating
 	scattering properties of particles.
-
 
 2002-06-08  Stefan Buehler  <sbuehler@uni-bremen.de>
 

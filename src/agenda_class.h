@@ -16,15 +16,15 @@
    USA. */
 
 /*!
-  \file   agenda.h
+  \file   agenda_class.h
   \author Stefan Buehler <sbuehler@uni-bremen.de>
   \date   Thu Mar 14 08:49:33 2002
   
   \brief  Declarations for agendas.
 */
 
-#ifndef agenda_h
-#define agenda_h
+#ifndef agenda_class_h
+#define agenda_class_h
 
 #include "token.h"
 
@@ -102,6 +102,5 @@ private:
       keywords. */
   Agenda mtasks;
 };
-
 
 #endif

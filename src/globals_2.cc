@@ -55,4 +55,6 @@ Array<MdRecord> md_data;
 /** The map associated with md_data. */
 std::map<String, Index> MdMap;
 
+/*! The map assiciated with agenda_data. */
+std::map<String, Index> AgendaMap;
 

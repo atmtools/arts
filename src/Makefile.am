@@ -90,8 +90,11 @@ arts_SOURCES = \
 	wsv_aux.cc \
 	xml_io.h \
 	xml_io.cc \
-	agenda.h \
-	agenda.cc \
+	agenda_class.h \
+	agenda_class.cc \
+	agenda_record.h \
+	agenda_record.cc \
+	agendas.cc \
 	logic.h \
 	logic.cc \
 	lin_alg.h\

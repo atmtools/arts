@@ -33,6 +33,7 @@
 #include "array.h"
 #include "auto_wsv_groups.h"
 #include "wsv_aux.h"
+#include "agenda_record.h"
 
 /*! The map assiciated with wsv_data. */
 std::map<String, Index> WsvMap;
@@ -42,24 +43,10 @@ void define_wsv_map()
   extern const Array<WsvRecord> wsv_data;
   extern std::map<String, Index> WsvMap;
 
-  for ( Index i=0 ; i<wsv_data.nelem() ; ++i)
+  for ( Index i=0 ; i<wsv_data.nelem() ; ++i )
     {
       WsvMap[wsv_data[i].Name()] = i;
     }
 }
 
 
-ostream& operator<<(ostream& os, const WsvRecord& wr)
-{
-  extern const ArrayOfString wsv_group_names;
-
-  os << "\n*-------------------------------------------------------------------*\n"
-     << "Workspace variable = " << wr.Name() 
-     << "\n---------------------------------------------------------------------\n"
-     << "\n" << wr.Description() << "\n" 
-     << "\n---------------------------------------------------------------------\n"
-     <<	"Group = " << wsv_group_names[wr.Group()]
-     << "\n*-------------------------------------------------------------------*\n";
-
-  return os;
-}

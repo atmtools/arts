@@ -22,7 +22,7 @@
 #define parser_h
 
 #include <map>
-#include "agenda.h"
+#include "agenda_class.h"
 
 /** A smart class to hold the text for parsing. A variable of this
     class can hold not only the text of the ARTS Control file, but

@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
+/* Copyright (C) 2002 Stefan Buehler <sbuehler@uni-bremen.de>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -16,14 +16,14 @@
    USA. */
 
 /*!
-  \file   agenda.cc
+  \file   agenda_class.cc
   \author Stefan Buehler <sbuehler@uni-bremen.de>
   \date   Thu Mar 14 08:49:33 2002
   
   \brief  Implementation of agendas.
 */
 
-#include "agenda.h"
+#include "agenda_class.h"
 #include "methods.h"
 #include "wsv_aux.h"
 #include "messages.h"

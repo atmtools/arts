@@ -46,6 +46,7 @@
 #include "auto_md.h"
 #include "absorption.h"
 #include "wsv_aux.h"
+#include "agenda_record.h"
 
 // This must be here rather than in arts.h, because arts.h does not
 // know about Array.
@@ -86,7 +87,7 @@ void set_reporting_level(Index r)
 	// Separate the two digits by taking modulo 10:
       Index s = r / 10;
       Index f = r % 10;
-      //	cout << "s=" << s << " f=" << f << '\n';
+      //	cout << "s=" << s << " f=" << f << "\n";
 
       if ( s<0 || s>3 || f<0 || f>3 )
 	{
@@ -132,7 +133,7 @@ void option_methods(const String& methods)
 	<< "---------------------------------------------------------------------\n";
       for ( Index i=0; i<md_data.nelem(); ++i )
 	{
-	  cout << "- " << md_data[i].Name() << '\n';
+	  cout << "- " << md_data[i].Name() << "\n";
 	}
       cout
 	<< "*-------------------------------------------------------------------*\n\n";
@@ -166,7 +167,7 @@ void option_methods(const String& methods)
 		      md_data[i].GOutput().end(),
 		      wsv_data[wsv_key].Group() ) )
 	    {
-	      cout << "- " << md_data[i].Name() << '\n';
+	      cout << "- " << md_data[i].Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -189,7 +190,7 @@ void option_methods(const String& methods)
 		      md_data[i].Output().end(),
 		      wsv_key ) ) 
 	    {
-	      cout << "- " << md_data[i].Name() << '\n';
+	      cout << "- " << md_data[i].Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -232,7 +233,7 @@ void option_methods(const String& methods)
 		      md_data[i].GOutput().end(),
 		      group_key ) )
 	    {
-	      cout << "- " << md_data[i].Name() << '\n';
+	      cout << "- " << md_data[i].Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -299,7 +300,7 @@ void option_input(const String& input)
 		      md_data[i].GInput().end(),
 		      wsv_data[wsv_key].Group() ) )
 	    {
-	      cout << "- " << md_data[i].Name() << '\n';
+	      cout << "- " << md_data[i].Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -322,7 +323,7 @@ void option_input(const String& input)
 		      md_data[i].Input().end(),
 		      wsv_key ) ) 
 	    {
-	      cout << "- " << md_data[i].Name() << '\n';
+	      cout << "- " << md_data[i].Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -365,7 +366,7 @@ void option_input(const String& input)
 		      md_data[i].GInput().end(),
 		      group_key ) )
 	    {
-	      cout << "- " << md_data[i].Name() << '\n';
+	      cout << "- " << md_data[i].Name() << "\n";
 	      ++hitcount;
 	    }
 	}
@@ -416,7 +417,7 @@ void option_workspacevariables(const String& workspacevariables)
 	<< "---------------------------------------------------------------------\n";
       for ( Index i=0; i<wsv_data.nelem(); ++i )
 	{
-	  cout << "- " << wsv_data[i].Name() << '\n';
+	  cout << "- " << wsv_data[i].Name() << "\n";
 	}
       cout
 	<< "*-------------------------------------------------------------------*\n\n";
@@ -457,7 +458,7 @@ void option_workspacevariables(const String& workspacevariables)
       << "---------------------------------------------------------------------\n";
       for ( Index i=0; i<mdr.Input().nelem(); ++i )
 	{
-	  cout << "- " << wsv_data[mdr.Input()[i]].Name() << '\n';
+	  cout << "- " << wsv_data[mdr.Input()[i]].Name() << "\n";
 	  ++hitcount;
 	}
       if ( 0==hitcount )
@@ -499,7 +500,7 @@ void option_describe(const String& describe)
   if ( i != MdMap.end() )
     {
       // If we are here, then the given name matches a method.
-      cout << md_data[i->second] << '\n';
+      cout << md_data[i->second] << "\n";
       return;
     }
 
@@ -511,9 +512,9 @@ void option_describe(const String& describe)
   if ( i != WsvMap.end() )
     {
       // If we are here, then the given name matches a workspace
-      // variable. 
-      cout << wsv_data[i->second] << '\n';
-      return;
+      // variable.
+      cout << wsv_data[i->second] << "\n";
+      return;	  
     }
 
   // If we are here, then the given name does not match anything.
@@ -577,7 +578,7 @@ int main (int argc, char **argv)
   if (parameters.help)
     {
       // Just print a help message and then exit.
-      cout << '\n' << parameters.usage << "\n\n";
+      cout << "\n" << parameters.usage << "\n\n";
       cout << parameters.helptext << "\n\n";
       return(0);
     }
@@ -590,7 +591,7 @@ int main (int argc, char **argv)
 #ifdef HDF_SUPPORT
         " with HDF support." <<
 #endif // HDF_SUPPORT
-        '\n';
+        "\n";
       return(0);
     }
 
@@ -598,7 +599,6 @@ int main (int argc, char **argv)
 
   // For the next couple of options we need to have the workspce and
   // method lookup data.
-
 
   // Initialize the md data:
   define_md_data();
@@ -621,12 +621,20 @@ int main (int argc, char **argv)
     define_wsv_pointers(wsv_pointers,workspace);
   }
 
-  // Initialize MdMap
+  // Initialize MdMap:
   define_md_map();
 
-  // Initialize WsvMap
+  // Initialize WsvMap:
   define_wsv_map();
 
+  // Initialize the agenda lookup data:
+  define_agenda_data();
+
+  // Initialize AgendaMap:
+  define_agenda_map();
+
+  // Check that agenda information in wsv_data and agenda_data is consistent: 
+  assert( check_agenda_data() );
 
   // While we are at it, we can also initialize the molecular data and
   // the coefficients of the partition function that we need for the
@@ -695,7 +703,7 @@ int main (int argc, char **argv)
 	<< "---------------------------------------------------------------------\n";
       for ( Index i=0; i<wsv_group_names.nelem(); ++i )
 	{
-	  cout << "- " << wsv_group_names[i] << '\n';
+	  cout << "- " << wsv_group_names[i] << "\n";
 	}
       cout
 	<< "*-------------------------------------------------------------------*\n\n";
@@ -749,12 +757,12 @@ int main (int argc, char **argv)
       extern const String out_basename;     // Basis for file name
       extern ofstream report_file;	// Report file pointer
 
-      //      cout << "rep = " << out_basename+".rep" << '\n';
+      //      cout << "rep = " << out_basename+".rep" << "\n";
       open_output_file(report_file, out_basename+".rep");
     }
   catch (runtime_error x)
     {
-      cerr << x.what() << '\n'
+      cerr << x.what() << "\n"
 	   << "I have to be able to write to my report file.";
       exit(1);
     }
@@ -774,7 +782,7 @@ int main (int argc, char **argv)
   
 	extern const String full_name;
 
-	out1 << full_name << '\n';
+	out1 << full_name << "\n";
       }
 
 
@@ -789,7 +797,7 @@ int main (int argc, char **argv)
       out3 << "\nReading control files:\n";
       for ( Index i=0; i<parameters.controlfiles.nelem(); ++i )
 	{
-	  out3 << "- " << parameters.controlfiles[i] << '\n';
+	  out3 << "- " << parameters.controlfiles[i] << "\n";
 	  text.AppendFile(parameters.controlfiles[i]);
 	}
 
@@ -804,7 +812,7 @@ int main (int argc, char **argv)
     }
   catch (runtime_error x)
     {
-      out0 << x.what() << '\n';
+      out0 << x.what() << "\n";
       exit(1);
     }
 

@@ -74,7 +74,7 @@ int main()
       ofs << "#define auto_wsv_h\n\n";
 
       ofs << "#include \"absorption.h\"\n"
-	  << "#include \"agenda.h\"\n"
+	  << "#include \"agenda_class.h\"\n"
 	  << "#include \"ppath.h\"\n"
           << "#include \"matpackIII.h\"\n\n";
       

@@ -451,30 +451,9 @@ void define_wsv_data()
      ( NAME( "els_agenda" ),
        DESCRIPTION
        (
-	"Compute an elementary lineshape.\n"
-	"\n"
-	"The elementary lineshape is a simple and symmetric lineshape, for\n"
-	"example a Lorentz or Voigt shape. It does not include a cutoff. It\n"
-	"also does not include a fore-factor.\n"
-	"\n"
-	"The method lsWithCutoffAdd uses this agenda to produce a lineshape\n"
-	"with cutoff.\n"
-	"\n"
-	"Not all lineshapes use ls_sigma. (The Lorentz lineshape uses only\n"
-	"ls_gamma). \n"
-	"\n"
-	"Output:    \n"
-	"   els        : The lineshape function [1/Hz]  \n"
-	"\n"
-	"Input:    \n"
-	"   ls_gamma   : Pressure broadened line width [Hz].    \n"
-	"   ls_sigma   : Doppler broadened line width [Hz]. (Optional)    \n"
-	"   els_f_grid : Frequency grid [Hz]."
+	"See agendas.cc."
 	),
-       GROUP(  Agenda_ )
-//        OUTPUT( V(els) ),
-//        INPUT(  V(ls_gamma), V(ls_sigma), V(els_f_grid) )
-       ));
+       GROUP(  Agenda_ )));
   
   wsv_data.push_back
     (WsvRecord
@@ -779,8 +758,7 @@ void define_wsv_data()
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (
-       "The agenda corresponding to the entire controlfile. This is executed\n"
-       "when ARTS is run."
+	"See agendas.cc."
        ),
       GROUP( Agenda_)));
 
@@ -933,64 +911,7 @@ void define_wsv_data()
     ( NAME( "ppath_step_agenda" ),
       DESCRIPTION
       (
-       "Calculation of a propagation path step.\n"
-       "\n"
-       "A propagation path step is defined as the path between some point to\n"
-       "a crossing with either the pressure, latitude or longitude grid, and\n"
-       "this agenda performs the calculations to determine such a partial\n"
-       "propagation path. The starting point is normally a grid crossing\n"
-       "point, but can also be an arbitrary point inside the atmosphere, such\n"
-       "as the sensor position. Only points inside the model atmosphere are\n"
-       "handled.\n"
-       "\n"
-       "The communication between this agenda and the calling method is\n"
-       "handled by *ppath_step*. That variable is used both as input and\n"
-       "output to *ppath_step_agenda*. The agenda gets back *ppath_step*\n" 
-       "as returned to the calling method and the last path point hold by\n"
-       "the structure is accordingly the starting point for the new \n"
-       "calculations. If a total propagation path shall be determined, this\n"
-       "agenda is called repeatedly until the starting point of the\n"
-       "propagation path is found and *ppath_step* will hold all path\n"
-       "steps that together make up *ppath*. The starting point is included\n"
-       "in the returned structure.\n"
-       "\n"
-       "The path is determined by starting at the end point and moving\n"
-       "backwards to the starting point. The calculations are initiated by\n"
-       "filling *ppath_step* with the practical end point of the path.\n"
-       "This is either the position of the sensor (true or hypothetical), or\n"
-       "some point at the top of the atmosphere (determined by geometrical\n"
-       "calculations starting at the sensor). This initialisation is not\n"
-       "handled by *ppath_step_agenda*. All fields of *ppath_step* are set\n"
-       "by *ppath_step_agenda*. If the sensor is above the model atmosphere\n"
-       "the field *constant* can be initiated by the calling method.\n"
-       "Otherwise the field shall be set to negative and it is set to the\n"
-       "correct value by *ppath_step* at the first call. This procedure is\n"
-       "needed as the path constant changes if refraction is considered, or\n"
-       "not, when the sensor is placed inside the atmosphere .\n"
-       "\n"
-       "The agenda performs only calculations to next crossing of a grid, all\n"
-       "other tasks must be performed by the calling method, with one\n"
-       "exception. If there is an intersection of a blackbody ground, the\n"
-       "calculations stop at this point. This is flagged by setting the\n"
-       "background field of *ppath_step*. Beside this, the calling method\n"
-       "must check if the starting point of the calculations is inside the \n"
-       "scattering box or below the ground level, and check if the last point\n"
-       "of the path has been reached. The starting point (the end furthest\n"
-       "away from the sensor) of a full propagation path can be the top of the\n"
-       "atmosphere, a blackbody ground (if *blackbody_ground* = 1) and the\n"
-       "cloud box.\n"
-       "\n"
-       "The *ppath_step_agenda* put in points along the propagation path\n"
-       "at all crossings with the grids, tangent points and points of ground\n"
-       "reflection. It is also allowed to make agendas that put in additional\n"
-       "points to fulfil some criterion, such as a maximum distance along\n"
-       "the path between the points. Accordingly, the number of new points of\n"
-       "each step can exceed one.\n"
-       "\n"
-       "For more information read the chapter on propagation paths in the\n"
-       "ARTS user guide.\n"
-       "\n"
-       "Usage:      Called from *ppathCalc*."
+	"See agendas.cc."
        ),
       GROUP( Agenda_ )));
 
@@ -999,10 +920,7 @@ void define_wsv_data()
     ( NAME( "rte_agenda" ),
       DESCRIPTION
       (
-       "Calculation of monochromatic pencil beam spectra and absorption WFs."
-       "\n"
-       "Text will be written (PE).\n"
-       ""
+	"See agendas.cc."
        ),
       GROUP( Agenda_ )));
 

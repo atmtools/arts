@@ -1,5 +1,6 @@
-/* Copyright (C) 2000, 2001 Stefan Buehler <sbuehler@uni-bremen.de>
-                            Patrick Eriksson <patrick@rss.chalmers.se>
+/* Copyright (C) 2000, 2001, 2002
+   Stefan Buehler <sbuehler@uni-bremen.de>
+   Patrick Eriksson <patrick@rss.chalmers.se>
 
    This program is free software; you can redistribute it and/or modify it
    under the terms of the GNU General Public License as published by the
@@ -191,6 +192,10 @@ void define_md_data()
 	 "and puts them in the agenda given by the output argument (in the round\n"
 	 "braces).\n"
 	 "\n"
+	 "It also uses the agenda lookup data (defined in file agendas.cc) to\n"
+	 "check, whether the given methods use the right input WSVs and produce\n"
+	 "the right output WSVs.\n"
+	 " \n"
 	 "Generic output:\n"
 	 "   Agenda : The new agenda.\n"
 	 "\n"
