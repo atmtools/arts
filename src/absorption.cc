@@ -1804,6 +1804,23 @@ void xsec_species( MatrixView               xsec,
 	}
     }
   
+  // Check that all temperatures are non-negative
+  bool negative = false;
+  
+  for (Index i = 0; !negative && i < t_abs.nelem (); i++)
+    {
+      if (t_abs[i] < 0.)
+        negative = true;
+    }
+  
+  if (negative)
+    {
+      ostringstream os;
+      os << "t_abs contains at least one negative temperature value.\n"
+         << "This is not allowed.";
+      throw runtime_error(os.str());
+    }
+  
   // We need a local copy of f_mono which is 1 element longer, because
   // we append a possible cutoff to it.
   // The initialization of this has to be inside the line loop!
