@@ -1,5 +1,11 @@
 2003-03-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-468
+
+	* doc/uguide/Figs/fm_definitions/mkfigs_atm_dims.m: Added 3D figure. 
+
+2003-03-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-467
 
 	* doc/uguide/Figs/fm_definitions/mkfigs_atm_dims.m: Modified
