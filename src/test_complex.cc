@@ -23,12 +23,13 @@
   \brief  Test the complex numbers.
 */
 
+#include <iostream>
 #include "complex.h"
 
 void test01()
 {
   Complex a;
-  Complex b(3,0);
+  Complex b (3., 0.);
 
   //cout << "a = " << a << "\n";
   cout << "b = " << b << "\n";
@@ -37,28 +38,25 @@ void test01()
   cout << "a = " << a << "\n";
 
   
-  a.Re() = 1;
-  a.Im() = 1;
+  a = Complex (1., 1.);
   cout << "a = " << a << "\n";
-  cout << "a.Abs() = " << a.Abs() << "\n";
-  cout << "a.Pha()= "<< a.Pha() <<"°"<< "\n";
+  cout << "a.abs() = " << abs (a) << "\n";
+  cout << "a.arg()= "<< arg (a) <<"°"<< "\n";
   
 
   Complex c;
   c = a + b;
   cout << "c = " << c << "\n";
 
-  cout << "a+=b: " << (a+=b) << "\n";
+  cout << "a += b: " << (a += b) << "\n";
 
-  cout << "c+3 = " << (c+3) << "\n";
+  cout << "c + 3 = " << (c + 3.) << "\n";
 
-  cout << "c+3i = c+Complex(0,3) = " << (c+Complex(0,3)) << "\n";
+  cout << "c + 3i = c + Complex (0,3) = " << (c + Complex (0., 3.)) << "\n";
 
    Complex d;
-   a.Re() = 1;
-   a.Im() = 1;
-   b.Re() = -1;
-   b.Im() = -1;
+   a = Complex (1., 1.);
+   b = Complex (-1., -1.);
    d = a * b;
    cout << "d = " << d << "\n";
    Complex e;
