@@ -216,6 +216,92 @@ void define_md_data_raw()
         KEYWORDS( ),
         TYPES( )));
 
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_CKDMT_H2O_H2O"),
+        DESCRIPTION
+        (
+         "Calculate water vapor absorption\n"
+         "\n"
+         "CKD version MT 1.00 self continuum absorption coefficient.\n"
+         "The original  code is taken from the FORTRAN77 code of\n"
+	 "Atmospheric and Environmental Research Inc. (AER),\n"
+         "    Radiation and Climate Group\n"
+         "    131 Hartwell Avenue\n"
+         "    Lexington, MA 02421, USA\n"
+         "    http://www.rtweb.aer.com/continuum_frame.html\n"
+         "\n"
+         "Output:\n"
+         "   abs    : absorption coefficients [1/m], \n"
+         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
+         "\n"
+         "Input:\n"
+         "   f_grid : Frequency grid [Hz].\n"
+         "   abs_p  : List of pressures [Pa].\n"
+         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
+         "   abs_vmr   : List of H2O volume mixing ratios [absolute number].\n"
+         "               Must have same length as abs_p!\n"
+         "   abs_model : String specifying the model to use. Allowed options:\n"
+         "               \"CKDMT100\"       - Calculate absorption according to CKD_MT version 1.00.\n"
+         "               \"user\"           - Use parameter given by abs_user_parameters,\n"
+         "                                    instead of the predefined settings.\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
+         "                         abs_user_parameters must have 1 element:\n"
+         "                         1. Continuum scaling factor\n"
+         "                         Must be empty if one of the predefined models is used."
+        ),
+        OUTPUT( abs_ ),
+        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+                abs_model_, abs_user_parameters_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back     
+    ( MdRecord
+      ( NAME("abs_CKDMT_H2O_AIR"),
+        DESCRIPTION
+        (
+         "Calculate water vapor absorption\n"
+         "\n"
+         "CKD version MT 1.00 foreign continuum absorption coefficient.\n"
+         "The original  code is taken from the FORTRAN77 code of\n"
+	 "Atmospheric and Environmental Research Inc. (AER),\n"
+         "    Radiation and Climate Group\n"
+         "    131 Hartwell Avenue\n"
+         "    Lexington, MA 02421, USA\n"
+         "    http://www.rtweb.aer.com/continuum_frame.html\n"
+         "\n"
+         "Output:\n"
+         "   abs    : absorption coefficients [1/m], \n"
+         "            dimension: [ f_grid, abs_p (=abs_t) ]\n"
+         "\n"
+         "Input:\n"
+         "   f_grid : Frequency grid [Hz].\n"
+         "   abs_p  : List of pressures [Pa].\n"
+         "   abs_t  : List of temperatures [K]. Must have same length as abs_p!\n"
+         "   abs_vmr   : List of H2O volume mixing ratios [absolute number].\n"
+         "               Must have same length as abs_p!\n"
+         "   abs_model : String specifying the model to use. Allowed options:\n"
+         "               \"CKDMT100\"       - Calculate absorption according to CKD_MT version 1.00.\n"
+         "               \"user\"           - Use parameter given by abs_user_parameters,\n"
+         "                                    instead of the predefined settings.\n"
+         "   abs_user_parameters : Only used if abs_model==\"user\". In that case,\n"
+         "                         abs_user_parameters must have 1 element:\n"
+         "                         1. Continuum scaling factor\n"
+         "                         Must be empty if one of the predefined models is used."
+        ),
+        OUTPUT( abs_ ),
+        INPUT(  f_grid_, abs_p_, abs_t_, abs_vmr_,
+                abs_model_, abs_user_parameters_ ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( ),
+        TYPES( )));
+
+
   md_data_raw.push_back     
     ( MdRecord
       ( NAME("abs_scalar_gasExtractFromLookup"),

@@ -1,3 +1,16 @@
+2003-11-27  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
+	* arts-1-1-717
+
+	* src/m_continua.cc: added CKD_MTv1.00 self and foreign continua
+	as a prototype for the other continua/abs. models. The way one can
+	call these two continua is by calling their methodes as defined in
+	methods.cc (i.e. abs_CKDMT_H2O_H2O{} and
+	abs_CKDMT_H2O_AIR{}). More description will follow after a first
+	round of discussions.
+	* src/methods.cc: added new methods abs_CKDMT_H2O_H2O and 
+	abs_CKDMT_H2O_AIR for the CKD_MTv1.00 H2O cont. abs.
+
 2003-11-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-716
