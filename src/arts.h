@@ -16,27 +16,29 @@
    Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
    USA. */
 
-/** @file
-  The global header file for ARTS.
+/**
+  \file  arts.h
 
-  This file is included by each and every ARTS source file. It must
-  therefor not contain stuff that should not always be present.
+  The global header file for ARTS. This file is included by each and
+  every ARTS source file. It must therefor not contain stuff that
+  should not always be present.
 
-  @date   16.05.1999
-  @author Stefan Buehler
-*/
+  \author Stefan Buehler
+  \date 16.05.1999 */
 
-/** @mainpage
+/** \mainpage
     
-    This automatic documentation is still @e very experimental. We
+    This automatic documentation is still \e very experimental. We
     have just switched from doc++ to doxygen. You can use the HTML
     version to browse the source text. Just point and click, and
     eventually you will see the real implementation of functions and
     classes. 
 
     If you are looking for a more comprehensive text, check out the
-    Arts User Guide that is also distributed along with the program.
-
+    Arts User Guide that is also distributed along with the
+    program. Section `Documentation' in Chapter `The art of developing
+    ARTS' there also tells you how you should add documentation
+    headers to your code if you are an ARTS developer.
  */
 
 #ifndef arts_h
@@ -104,12 +106,11 @@ typedef double Numeric;
 //-----------< define a quick output for std::vector<> >----------
 /* A quick hack output for std::vector<>. This is only for
     debugging purposes.
-    @return As for all output operator functions, the output stream is 
+    \return As for all output operator functions, the output stream is 
             returned.
-    @param  os Output stream
-    @param  v  Vector to print                      
-    @author SAB  
-    @version 1 */  
+    \param  os Output stream
+    \param  v  Vector to print                      
+    \author SAB  */  
 // template<class T>
 // ostream& operator<<(ostream& os, const std::vector<T>& v)
 // {

@@ -48,13 +48,13 @@ ARRAY<QRecord> q_data;
 //@} 
 
 
-/*!
-  \brief Define partition function coefficients lookup data.
+/**
+  Define partition function coefficients lookup data.
 
   <h1>General Remarks</h1>
   <!------------------------>
 
-  This file contains the polynomial coefficients of the partition
+  This function contains the polynomial coefficients of the partition
   function for each isotope of each species. The sorting of the array
   has to match the species_data entries, a safety check routine
   assures this order.

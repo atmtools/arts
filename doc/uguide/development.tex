@@ -189,12 +189,84 @@ Section \ref{sec:development:assert}).
 
 \levelc{Documentation} 
 Doxygen is used to generate automatic documentation. See\\
-\verb|http://www.stack.nl/~dimitri/doxygen/|\\
-for information. There is a complete 
-User manual there. At the moment we only generate the output as HTML,
-although latex, man-page, and rtf format is also possible. The HTML
-version is particularly useful for source code browsing, since it
-includes the complete source code!
+\verb|http://www.stack.nl/~dimitri/doxygen/|\\ for information. There
+is a complete User manual there. At the moment we only generate the
+output as HTML, although latex, man-page, and rtf format is also
+possible. The HTML version is particularly useful for source code
+browsing, since it includes the complete source code! You should add
+doxygen headers to the following:
+
+\begin{enumerate}
+\item Files
+\item Classes (Including all private and public members)
+\item Functions
+\item Global Variables
+\end{enumerate}
+
+The documentation headers are comment blocks that look like the
+examples below. They should be put above the \emph{declaration} of the
+function or variable, i.e., in the \verb|.h| file, where applicable.
+Some functions are not separately declared. In that case the comment
+can be put above the \emph{definition}, i.e., in the \verb|.cc| file.
+\textbf{The first sentence will be used as a short description for the
+  entity, so it should be explanatory.}  If you make changes to a
+function or file, add some descriptive text and another \verb|\author|
+\verb|\date| block (see example below).
+
+There are some emacs macros that insert these comment blocks
+automatically. You can find them in the ARTS distribution in
+\verb|doc/emacs|. Documentation on the macros can be found in
+\verb|doc/index.html|. 
+
+\leveld{File comment:}
+\begin{verbatim}
+/**
+   \file   dummy.cc
+
+   A dummy file.
+   This file has no purpose at all, it just servers as an example... 
+  
+   \author Stefan Buehler
+   \date   2000-09-13
+*/    
+\end{verbatim}
+
+\leveld{Function comment:}
+
+The emacs macro here inserts only \verb|\param| for all
+arguments. If arguments are modified by the function you should
+change this to \verb|\retval|.
+
+\begin{verbatim}
+/** 
+   A dummy function.
+   This function has no purpose at all, it just serves as an example...
+
+   \retval a This parameter is modified by the function.
+   \param  b This is the other input parameter.
+   \return A dummy value computed from a and b.
+
+   \author Stefan Buehler
+   \date   2000-09-13
+
+   Made some modifications to illustrate how histories should be handled.
+   \author Stefan Buehler
+   \date   2000-09-14
+*/
+int dummy(int& a, int b);
+\end{verbatim}
+
+
+
+
+\leveld{Generic comment:}
+\begin{verbatim}
+/**
+   This is a dummy comment. You can write as much as you want here... 
+*/
+\end{verbatim}
+
+
 
 
 \levelb{Extending ARTS}

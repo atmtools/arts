@@ -47,15 +47,24 @@
 
     <p>
       We use the doxygen program to extract documentation from comments
-      inside the source code. Here is the result as:
+      inside the source code. See the development section in the user
+      guide for information on how this is done. Here is the result as:
 
     <ul>
       <li>
-	<a href="doxygen/html/index.html"> HTML document.</a>
+	<a href="doxygen/html/index.html"> HTML document</a>.
 <!--  <li> -->
 <!-- 	<a href="doxygen/latex/refman.ps"> Postscript file</a> (generated -->
 <!-- 	from a LaTeX source). -->
     </ul>
+
+    <p>
+      For convenience, we have also added emacs macros that can be
+      used to automatically insert documentation headers. A
+      description can be found 	
+      <a href="emacs/doxygen_toc.html"> here</a>. These macros were
+      originally written by <a href="mailto:tree@basistech.com"> Tom
+      Emerson</a>, and slightly adapted for ARTS.
 
     
     <h2> Example ARTS control files</h2>
@@ -81,7 +90,7 @@
     <address><a href="mailto:sbuehler@uni-bremen.de">Stefan Buehler</a></address>
 <!-- Created: Thu Jul 27 15:28:01 MEST 2000 -->
 <!-- hhmts start -->
-Last modified: Sun Jul 30 19:13:24 MEST 2000
+Last modified: Thu Sep 14 13:02:48 MEST 2000
 <!-- hhmts end -->
   </body>
 </html>

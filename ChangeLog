@@ -1,3 +1,24 @@
+2000-09-14  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-47
+
+	* Adapted the doxygen emacs macros for ARTS. Most notably, we want
+	to use the /** style to mark comments rather than the /*!
+	style. With the /** style the first sentence is taken
+	automatically as the short description. I find this
+	convenient. Also, this way the comments are less comlicated and
+	verbose. 
+
+	* Added documentation about the header format in the Development /
+	Conventions section of the user guide. Patrick, can you check this
+	please? The emacs macros now should generate exactly the same
+	thing as defined there.
+
+	* I have not yet gone through the code making things consistent with
+	the new standard, but of course this should be done. First I want
+	your ok to this standard. 
+
+	
 2000-09-13  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-46

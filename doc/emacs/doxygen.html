@@ -18,13 +18,12 @@
 <DL>
 <DT><U>Command:</U> <B>doxygen-insert-comment</B>
 <DD><A NAME="IDX1"></A>
-<CODE>doxygen-insert-comment</CODE> inserts a full (Qt-style) comment block at point, placing the cursor after the brief comment line.
+<CODE>doxygen-insert-comment</CODE> inserts a comment block at point, placing the cursor inside.
 
 </P>
 
 <PRE>
-//!
-/*!
+/**
 
 */
 </PRE>
@@ -35,7 +34,12 @@
 <DL>
 <DT><U>Command:</U> <B>doxygen-insert-function-comment</B>
 <DD><A NAME="IDX2"></A>
-<CODE>doxygen-insert-function-comment</CODE> inserts a full (Qt-style) comment block for the function whose declaration is on the line with point. The comment block includes <CODE>\param</CODE> lines for each function argument, and if the function has a return value, a <CODE>\return</CODE> line is also included. The cursor is placed after the brief comment line.
+<CODE>doxygen-insert-function-comment</CODE> inserts a comment block
+for the function whose declaration is on the line with point. The
+comment block includes <CODE>\param</CODE> lines for each function
+argument, and if the function has a return value, a
+<CODE>\return</CODE> line is also included. The cursor is placed
+inside the comment.
 
 </P>
 <P>
@@ -56,13 +60,12 @@ generates the comment block
 </P>
 
 <PRE>
-//! 
-/*!
-  &#60;long-description&#62;
+/**
 
-  \param a
-  \param b
-  \return &#60;ReturnValue&#62;
+
+   \param a
+   \param b
+   \return 
 */
 </PRE>
 
@@ -143,9 +146,8 @@ with the point immediately after the comment.
 <PRE>
 /*!
   \file   foo.c
-  \brief  
-
-  &#60;long description&#62;
+  
+  
 
   \author Tom Emerson
   \date   2000-07-10

@@ -17,7 +17,9 @@
 ;;   style and the fact that I'm doing all of my work in C++.
 
 ;; Stefan Buehler 2000-09-13
-;; added history for file and function comments
+;; - Replace *! by **. This means that always the first sentence is
+;;   used as the short description.  
+;; - Removed dummy text, takes only time to remove this.
 
 ;;; Code:
 
@@ -28,11 +30,10 @@
   "Insert a generic Doxygen comment block at point, including brief
 and long sections."
   (interactive "*")
-  (insert (concat "//! \n"
-                  "/*!\n"
-                  "  \n"
+  (insert (concat "/**\n"
+                  "   \n"
                   "*/\n"))
-  (re-search-backward "//!")
+  (re-search-backward " ")
   (end-of-line))
 
 (defun doxygen-insert-file-comment ()
@@ -43,33 +44,44 @@ and long sections."
                      "untitled"))
         (date-string (format-time-string doxygen-date-format))
         (who (user-full-name)))
-    (insert (format (concat "/*!\n"
-                            "  \\file   %s\n"
-                            "  \\brief  \n"
+    (insert (format (concat "/**\n"
+                            "   \\file   %s\n"
                             "\n"
-                            "  <long description>\n"
-                            "\n"  
-                            "  \\author %s\n"
-                            "  \\date   %s\n"
+                            "   \n"
+                            "\n"
+                            "   \\author %s\n"
+                            "   \\date   %s\n"
                             "*/\n")
-                    file-name who date-string))))
+                    file-name who date-string)))
+  (re-search-backward "   ")
+  (re-search-backward "   ")
+  (re-search-backward "   ")
+  (re-search-backward "   ")
+  (end-of-line))
 
 
 (defun doxygen-insert-function-comment ()
   "Insert a Doxygen comment for the function at point."
   (interactive "*")
   (beginning-of-line)
-  (let ((args (find-arg-list)))
-    (insert (concat "//! \n"
-                    "/*!\n"
-                    "  <long-description>\n"
+  (let ((args (find-arg-list))
+	(date-string (format-time-string doxygen-date-format))
+        (who (user-full-name)))
+    (insert (concat "/**\n"
+                    "   \n"
                     "\n"))
     (when (cdr (assoc 'args args))
          (dump-arguments (cdr (assoc 'args args))))
     (unless (string= "void" (cdr (assoc 'return args)))
-      (insert "  \\return <ReturnValue>\n"))
-    (insert "*/\n"))
-  (re-search-backward "//!")
+      (insert "   \\return \n"))
+    (insert (format (concat "\n"
+                            "   \\author %s\n"
+                            "   \\date   %s\n"
+                            "*/\n")
+                    who date-string)))
+  (re-search-backward "/")
+  (re-search-backward "/")
+  (re-search-forward " ")
   (end-of-line))
 
 (defun doxygen-insert-member-group-region (start end)
@@ -97,7 +109,7 @@ and long sections."
 (defun dump-arguments (arglist)
   "Insert a comment with the Doxygen comments for a function."
   (mapcar (function (lambda (x)
-                      (insert (format "  \\param %s\n"
+                      (insert (format "   \\param %s\n"
                                       (extract-argument-name x)))))
           arglist))
 
