@@ -3099,6 +3099,8 @@ xml_write_to_stream (ostream& os_xml,
   open_tag.write_to_stream (os_xml);
   os_xml << '\n';
 
+  xml_set_stream_precision (os_xml);
+
   for (Index i=0; i<n; ++i)
     if (pbofs)
       *pbofs << vector[i];
