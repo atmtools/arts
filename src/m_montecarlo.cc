@@ -496,7 +496,7 @@ void ScatteringMonteCarlo (
   if (record_histdata==1)
     {
       const char* p = histdata_filename.c_str();
-      histfile.open(p,ios_base::out);
+      histfile.open(p,ios::out);
     }
 
   //if rng_seed is < 0, keep time based seed, otherwise...
