@@ -1,5 +1,33 @@
 2002-05-15  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-83
+	
+	*** ASCII XML reading/writing ready for bug hunting :-) ***
+	
+	* src/groups.cc (define_wsv_group_names): Added Tensor4-7.
+
+	* src/methods.cc (define_md_data): Added reading/writing methods
+	for Tensor3-7.
+
+	* src/xml_io.{h,cc}: Moved all xml_read_from_stream function
+	prototypes to cc file because there are not needed externally.
+
+	Send debug output to out2 instead of cout.
+
+	ArrayOfIndex, ArrayOfMatrix, ArrayOfString, ArrayOfVector, Index,
+	Numeric, Matrix, String, Tensor3-7, Vector reading and writing
+	works now.
+
+	* src/m_xml.cc: Removed dummy output from remaining functions.
+
+	Added read/write functions for Tensor3 - Tensor7.
+
+	* src/Makefile.am: Added target test_xml.
+
+	* src/test_xml.cc: Added.
+
+2002-05-15  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-82
 	
 	* doc/examples/xml.arts: Small conversion example.
