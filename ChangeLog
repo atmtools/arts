@@ -1,3 +1,14 @@
+2001-11-09  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-0-1-37
+
+	* src/methods.cc (lineshapeDefine): erased the non-functioning
+	lineshapes from the documentation with the Drayson approximation
+	and added the only one functioning - Voigt_Drayson;
+
+	* src/methods.cc (lineshape_per_tgDefine):the same as above
+	
+	
 2001-11-09  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-1-36
