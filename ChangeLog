@@ -1,3 +1,11 @@
+2002-06-29  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-176
+
+	* src/m_abs.cc (xsec_per_tgAddLines): Suppressed output of all
+	transitions to do to out3. This takes longer than the calculation
+	itself, if you calculate with the entire HITRAN database!
+
 2002-06-28  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-175
