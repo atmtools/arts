@@ -1,5 +1,12 @@
 2003-03-25  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-507
+
+	* src/binio.{cc,h}: Moved destructors for bin[io]stream from cc to
+	header file to fix problem with gcc 3.0.
+
+2003-03-25  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-506
 
 	* doc/uguide/Makefile.am: Bugfix :-)

@@ -122,7 +122,7 @@ class binistream: virtual public binio
 {
 public:
   binistream();
-  virtual ~binistream();
+  virtual ~binistream() {}
 
   Int readInt(unsigned int size);
   Float readFloat(FType ft);
@@ -151,7 +151,7 @@ class binostream: virtual public binio
 {
 public:
   binostream();
-  virtual ~binostream();
+  virtual ~binostream() {}
 
   void writeInt(Int val, unsigned int size);
   void writeFloat(Float f, FType ft);

@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.506)
+AM_INIT_AUTOMAKE(arts,1.1.507)
 
 AM_MAINTAINER_MODE
 
@@ -259,7 +259,7 @@ AC_MSG_RESULT([$ac_docgen])
 if test x$ac_docgen = xyes; then
     AC_CHECK_PROG(ac_doxygen, doxygen, yes, no)
     if test x$ac_doxygen = xno; then
-        AC_MSG_ERROR(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
+        AC_MSG_WARN(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
     fi
 
     AC_CHECK_PROG(ac_dot, dot, yes, no)

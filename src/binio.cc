@@ -116,10 +116,6 @@ binistream::binistream()
 {
 }
 
-binistream::~binistream()
-{
-}
-
 binistream::Int binistream::readInt(unsigned int size)
 {
   unsigned int	i;
@@ -387,10 +383,6 @@ void binistream::ignore(unsigned long amount)
 /***** binostream *****/
 
 binostream::binostream()
-{
-}
-
-binostream::~binostream()
 {
 }
 
