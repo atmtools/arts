@@ -98,7 +98,7 @@ arts.h file.h \
 version.cc file.cc messages.cc groups.cc make_auto_wsv_groups_h.cc
 
 make_auto_wsv_h_SOURCES = \
-arts.h file.h absorption.h los.h hmatrix.h \
+arts.h file.h absorption.h los.h \
 auto_wsv_groups.h wsv_aux.h \
 version.cc groups.cc \
 messages.cc file.cc workspace.cc workspace_aux.cc make_auto_wsv_h.cc
@@ -109,7 +109,7 @@ version.cc groups.cc messages.cc file.cc workspace.cc make_auto_wsv_pointers_cc.
 
 make_auto_md_h_SOURCES = \
 arts.h auto_wsv.h token.h messages.h file.h \
-absorption.h los.h hmatrix.h \
+absorption.h los.h \
 auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
 version.cc globals_2.cc \
@@ -118,7 +118,7 @@ methods.cc methods_aux.cc make_auto_md_h.cc
 
 make_auto_md_cc_SOURCES = \
 arts.h auto_wsv.h token.h messages.h file.h \
-absorption.h los.h hmatrix.h \
+absorption.h los.h \
 auto_wsv_groups.h wsv_aux.h \
 methods.h make_array.h \
 version.cc globals_2.cc \
