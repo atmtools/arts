@@ -1,3 +1,19 @@
+2003-11-28  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-720
+
+	* src/m_abs_o2_models.cc: Added.
+	Copied Zeeman function to this place and renamed it ZeemanO2.
+
+	* src/abs_o2_models.h: Added. Includes class ZeemanSettings.
+
+	* src/Makefile.am: Added m_abs_o2_models.cc and abs_o2_models.h.
+
+	* src/matpackI.cc (mult): Removed mult_old.
+	Added assertion for matrix of size 0x0.
+
+	* src/matpackI.h: Removed mult_old.
+
 2003-11-27  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-719
@@ -40,7 +56,6 @@
 	* src/methods.cc: added new methods abs_CKDMT_H2O_H2O and 
 	abs_CKDMT_H2O_AIR for the CKD_MTv1.00 H2O cont. abs.
 
->>>>>>> 1.1103
 2003-11-18  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-716
