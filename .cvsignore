@@ -10,3 +10,7 @@ configure
 stamp-h
 stamp-h.in
 arts.spec
+INSTALL
+install.sh
+mkinstalldirs
+missing

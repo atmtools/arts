@@ -77,3 +77,14 @@ batch_example.t_abs.ab
 radiosonde_example.rep
 radiosonde_example.ybatch.aa
 radiosonde_example.arts
+absorption_example.arts
+absorption_example.f_mono.aa
+absorption_example.lines_per_tg.aa
+absorption_example.p_abs.aa
+absorption_example.rep
+absorption_example.t_abs.aa
+absorption_example.vmrs.aa
+absorption_example.z_abs.aa
+amsu_example.arts
+amsu_y_mono.aa
+rt_example.arts
