@@ -1,3 +1,12 @@
+2002-12-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-352
+
+	* src/m_ppath.cc (DoGridcell2D): Added this WSM. This WSM should 
+	normally not be used. It is intended for test of the function 
+	do_gridcell_2d, and to make figures for AUG. This function can be
+	called from Atmlab. 
+
 2002-12-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-351

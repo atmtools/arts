@@ -50,6 +50,7 @@
 #include "messages.h"
 #include "ppath.h"
 #include "special_interp.h"
+#include "xml_io.h"
 
 
 
@@ -173,6 +174,62 @@ void a_posSet(
     { a_pos[2] = lon; }
 }
 
+
+
+//! DoGridcell2D
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-12-21
+*/
+void DoGridcell2D(
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   za_start,
+        const Numeric&   lmax,
+        const Numeric&   r1,
+        const Numeric&   r2,
+        const Numeric&   r3,
+        const Numeric&   r4,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Index&     at_lower_psurface,
+        const Index&     at_upper_psurface,
+        const Numeric&   rground1,
+        const Numeric&   rground2 )
+{
+  const Numeric   ppc = geometrical_ppc( r_start, za_start );
+  const Numeric   c2 = ( r2 - r1 ) / ( lat3 - lat1 );
+  const Numeric   c4 = ( r3 - r4 ) / ( lat3 - lat1 );
+  const Numeric   cground = ( rground2 - rground1 ) / ( lat3 - lat1 );
+
+  Vector    r, lat, za;
+  Numeric   lstep;
+  Index     endface;
+
+  do_gridcell_2d( r, lat, za, lstep, endface, r_start, lat_start, za_start, 
+             ppc, lmax, r1, r2, r3, r4, lat1, lat3, c2, c4, at_lower_psurface,
+                              at_upper_psurface, rground1, rground2, cground );
+
+  String filename;
+
+  filename = "";
+  filename_xml( filename, "r" );
+  xml_write_to_file ( filename, r );
+  filename = "";
+  filename_xml( filename, "lat" );
+  xml_write_to_file ( filename, lat );
+  filename = "";
+  filename_xml( filename, "za" );
+  xml_write_to_file ( filename, za );
+  filename = "";
+  filename_xml( filename, "lstep" );
+  xml_write_to_file ( filename, lstep );
+  filename = "";
+  filename_xml( filename, "endface" );
+  xml_write_to_file ( filename, endface );
+}
 
 
 //! ppathCalc

@@ -938,6 +938,58 @@ void define_md_data_raw()
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("DoGridcell2D"),
+        DESCRIPTION
+        (
+         "A getaway function for *do_gridcell_2d*.\n"
+         "\n"
+         "The function calculates the geometrical propgation path through a\n"
+	 "2D grid cell. This function should only be used for bug checking \n"
+	 "of *do_gridcell_2d*, or to produce figures. The information given \n"
+	 "here can more easily be understood if also the header of \n"
+	 "*do_gridcell_2d* is read.\n"
+	 "\n"
+	 "The result is stored to the files: \n"
+	 "   r.xml       : Radius of path points as a vector.\n"
+         "   lat.xml     : Latitude of path points as a vector.\n"
+         "   za.xml      : LOS zenith angles at path points as a vector.\n"
+         "   lstep.xml   : Distance along the path bewteen points.\n"
+         "   endface.xml : Number coding of path end face.\n"
+         "\n"
+	 "The arguments *ppc*, *c2*, *c4* and *cground* are calculated from\n"
+	 "the input values.\n"
+	 "\n"
+	 "Keywords: \n"
+         "   r_start   : Radius of start point.\n"
+	 "   lat_start : Latitude of start point.\n"
+	 "   za_start  : LOS zenith angle at start point.\n"
+	 "   lmax      : Maximum allowed length along the path. -1=no limit.\n"
+	 "   r1        : Radius of lower-left corner of the grid cell.\n"
+	 "   r2        : Radius of lower-right corner of the grid cell.\n"
+	 "   r3        : Radius of upper-right corner of the grid cell.\n"
+	 "   r4        : Radius of upper-left corner of the grid cell.\n"
+	 "   lat1      : Latitude of left end face of the grid cell.\n"
+	 "   lat3      : Latitude of right end face of the grid cell.\n"
+	 "   at_lower  : Boolean that is true if start point is on top of \n"
+	 "               the lower pressure surface (face 2).\n"
+	 "   at_upper  : Boolean that is true if start point is on top of\n"
+	 "               the upper pressure surface (face 4).\n"
+	 "   rground1  : Radius for the ground at *lat1*.\n"
+	 "   rground2  : Radius for the ground at *lat3*."
+        ),
+        OUTPUT( ),
+        INPUT( ),
+        GOUTPUT( ),
+        GINPUT( ),
+        KEYWORDS( "r_start", "lat_start", "za_start", "lmax",    "r1",
+                  "r2",      "r3",        "r4",       "lat1",    "lat3",
+                  "at_lower", "at_upper", "rground1", "rground2" ),
+        TYPES(    Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
+                  Numeric_t, Numeric_t,   Numeric_t,  Numeric_t, Numeric_t,
+                  Index_t,   Index_t,     Numeric_t,  Numeric_t  )));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("Exit"),
         DESCRIPTION
         (

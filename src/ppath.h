@@ -79,6 +79,8 @@ struct Ppath {
   === Functions from ppath.cc
   ===========================================================================*/
 
+Numeric geometrical_ppc( const Numeric& r, const Numeric& za );
+
 bool is_los_downwards_2d( 
         const Numeric&   za,
         const Numeric&   tilt );
@@ -93,6 +95,31 @@ Numeric psurface_slope_2d(
 Numeric psurface_tilt_2d(
         const Numeric&   r,
         const Numeric&   c );
+
+void do_gridcell_2d(
+              Vector&    r_v,
+              Vector&    lat_v,
+              Vector&    za_v,
+              Numeric&   lstep,
+              Index&     endface,
+        const Numeric&   r_start,
+        const Numeric&   lat_start,
+        const Numeric&   za_start,
+        const Numeric&   ppc,
+        const Numeric&   lmax,
+        const Numeric&   r1,
+        const Numeric&   r2,
+        const Numeric&   r3,
+        const Numeric&   r4,
+        const Numeric&   lat1,
+        const Numeric&   lat3,
+        const Numeric&   c2,
+        const Numeric&   c4,
+        const bool&      at_lower_psurface,
+        const bool&      at_upper_psurface,
+        const Numeric&   rground1,
+        const Numeric&   rground2,
+	const Numeric&   cground );
 
 void ppath_init_structure( 
               Ppath&      ppath,
