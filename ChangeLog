@@ -1,3 +1,11 @@
+2003-07-29  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-109
+	
+	* doc/uguide/Makefile.am: Don't redirect latex output to /dev/null.
+
+	* doc/uguide/absorption.tex: Corrected Axels broken commit. :-)
+
 2003-07-29  Axel von_Engeln  <engeln@uni-bremen.de>
 
 	* arts-1-0-108
