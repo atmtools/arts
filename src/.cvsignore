@@ -1,3 +1,4 @@
+*.swp
 .deps
 Makefile
 Makefile.in
