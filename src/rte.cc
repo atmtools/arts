@@ -587,14 +587,10 @@ void rte_calc(
         {
           for( Index col=0; col<z_field.ncols(); col++ )
             {
-              // I could not get the compliler to accept a solution without 
-              // dummy!!
-              Vector dummy(z_field.npages());
-              dummy = z_field(joker,row,col);
               ostringstream os;
               os << "z_field (for latitude nr " << row << " and longitude nr " 
                  << col << ")";
-              chk_if_increasing( os.str(), dummy ); 
+              chk_if_increasing( os.str(), z_field(joker,row,col) ); 
             }
         }
 
