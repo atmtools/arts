@@ -1,3 +1,10 @@
+2002-09-25  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-248
+	
+	* src/workspace.cc : Removed the variable name i_field_Tb and
+	introduced tensor6_1. 
+	
 2002-09-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-247
