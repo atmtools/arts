@@ -1,3 +1,28 @@
+2003-01-22  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-416
+
+	* src/methods.h: Include iosfwd instead of iostream.
+	(MdRecord::operator=): Replaced cout by out0.
+
+	* src/xml_io.h: Include iosfwd instead of iostream.
+
+	* src/gridded_fields.cc: Removed duplicate iostream include.
+
+	* src/lin_alg.cc src/math_funcs.cc src/m_cloudbox.cc
+	src/m_refraction.cc src/scatproperties.cc: Removed unnecessary
+	iostream include.
+
+	Note about iostream: Wherever possible, including iostream should be
+	avoided because it has quite alot of overhead. If you use cout
+	temporarely for debugging, don't forget to remove the iostream include
+	together with the debug code afterwards.
+
+	For header files containing function/class declarations which need
+	only references to iostream classes, it is highly recommended to
+	include iosfwd instead of iostream. iosfwd contains only forwarded
+	class declarations which significantly affects compilation speed.
+
 2003-01-22  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-415
