@@ -6,6 +6,8 @@
 
 	* doc/uguide/references.bib: Added two entries.
 
+	* doc/uguide/wfuns_sensor.tex: Replaced main by uguide for xemacs.
+
 2002-01-17  Nikolay Koulev <nkoulev@uni-bremen.de>
 
 	* arts-1-0-0-pre6
