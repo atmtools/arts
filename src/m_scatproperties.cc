@@ -58,6 +58,8 @@ void ext_mat_sptCalc(
   cout << "The scat_za_index : " << scat_za_index  << " \n " ;
   cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
   cout << "Number of particle type : " << npt  << " \n " ;
+  
+  
   if (amp_mat.ncols() != 8)
     throw runtime_error(
 			"Amplitude matrix must have 8 columns.");
@@ -214,6 +216,8 @@ void abs_vec_sptCalc(
 	      scat_za_grid,
 	      scat_aa_grid);
     }	   
+ cout <<  "The Absorption Vector for single particle type: " << " \n " 
+       <<abs_vec_spt << " \n " ;
 }
 
 
@@ -667,7 +671,7 @@ void amp_matCalc(Tensor6& amp_mat,
        gridpos (za_gp, 
 		amp_mat_raw [ ipt ] [  1 ] ( 0, Range(joker), 0, 0, 0, 0),
 		scat_za_grid);
-
+      
        gridpos (aa_gp,
 		amp_mat_raw [ ipt ] [ 2 ] ( 0, 0, Range(joker), 0, 0, 0),
 	       scat_aa_grid);
@@ -734,7 +738,7 @@ void amp_matCalc(Tensor6& amp_mat,
 	   
 	 }//close column index
      }//close particle index loop
-
+   //cout<< amp_mat<<"\n";
 }
 
 //! This method interpolates clear sky field on the cloudbox boundary 

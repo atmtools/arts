@@ -87,9 +87,9 @@ void amp2ext(MatrixView ext,
   const Numeric wavelength = SPEED_OF_LIGHT / freq;
 
   cout<<"Wavelength corresponding to this frequency"<<wavelength<<"\n";
-
-
-  ext(0, 0) = wavelength * (Im_S11 + Im_S22) ; 
+  cout<<"Imaginariy part of S11"<<Im_S11<<"\n";
+  cout << "Amplitude matrix " << amp_coeffs  << " \n " ;
+  ext(0, 0) = wavelength * (Im_S11 + Im_S22) * 1e-6; 
   
   if( 1 == stokes_dim ){
     return;
@@ -97,7 +97,7 @@ void amp2ext(MatrixView ext,
 
   //only the first element is required if stokes_dim =1
 
-  ext(0, 1) = wavelength * (Im_S11 - Im_S22);
+  ext(0, 1) = wavelength * (Im_S11 - Im_S22) * 1e-6 ;
   ext(1, 0) = ext(0, 1);
   ext(1, 1) = ext(0, 0);
   
@@ -107,8 +107,8 @@ void amp2ext(MatrixView ext,
   
   // if stokes_dim =2 only these 4 elements need be evaluated.
 
-  ext(0, 2) = - wavelength * (Im_S12 + Im_S21);
-  ext(1, 2) = wavelength * (Im_S21 - Im_S12);
+  ext(0, 2) = - wavelength * (Im_S12 + Im_S21) * 1e-6 ;
+  ext(1, 2) = wavelength * (Im_S21 - Im_S12) * 1e-6 ;
   ext(2, 0) = ext(0, 2);
   ext(2, 1) = - ext(1, 2);
   ext(2, 2) = ext(0, 0);
@@ -120,9 +120,9 @@ void amp2ext(MatrixView ext,
   // if stokes_dim =3 only these 9 elements need be evaluated.
 
 
-  ext(0, 3) = wavelength * (Re_S21 - Re_S12);
-  ext(1, 3) = - wavelength*(Re_S12 + Re_S21);
-  ext(2, 3) = wavelength * (Re_S22 - Re_S11);
+  ext(0, 3) = wavelength * (Re_S21 - Re_S12) * 1e-6 ;
+  ext(1, 3) = - wavelength*(Re_S12 + Re_S21) * 1e-6  ;
+  ext(2, 3) = wavelength * (Re_S22 - Re_S11) * 1e-6 ;
   ext(3, 0) = ext(0, 3);
   ext(3, 1) = - ext(1, 3);
   ext(3, 2) = - ext(2, 3);
@@ -166,8 +166,7 @@ void amp2pha(Tensor4View phasemat,
   }
   Index nza = phasemat.nbooks();
   Index naa = phasemat.npages();
-  cout<< "nza and naa"<<"";
-  cout <<nza<< "   "<<naa<<"\n";
+  
   assert (is_size(amp_coeffs, nza, naa, 8));
   assert (is_size(phasemat, nza, naa, stokes_dim, stokes_dim));
   
@@ -175,14 +174,15 @@ void amp2pha(Tensor4View phasemat,
     {
       for (Index j = 0; j < naa; ++j)
 	{
-	  phasemat(i, j, 0, 0) = 0.5 * (Re_S11ij * Re_S11ij + 
-					Im_S11ij * Im_S11ij + 
-					Re_S12ij * Re_S12ij + 
-					Im_S12ij * Im_S12ij +
-					Re_S21ij * Re_S21ij + 
-					Im_S21ij * Im_S21ij +
-					Re_S22ij * Re_S22ij + 
-					Im_S22ij * Im_S22ij);
+	  phasemat(i, j, 0, 0) = 0.5 * 1e-12 * (Re_S11ij * Re_S11ij + 
+						Im_S11ij * Im_S11ij + 
+						Re_S12ij * Re_S12ij + 
+						Im_S12ij * Im_S12ij +
+						Re_S21ij * Re_S21ij + 
+						Im_S21ij * Im_S21ij +
+						Re_S22ij * Re_S22ij + 
+						Im_S22ij * Im_S22ij);
+	  
 	}
     }
   
@@ -196,123 +196,123 @@ void amp2pha(Tensor4View phasemat,
     {
       for (Index j = 0; j < naa; ++j)
 	{
-	  phasemat(i, j, 0, 1) = 0.5 * (Re_S11ij * Re_S11ij + 
-					Im_S11ij * Im_S11ij - 
-					Re_S12ij * Re_S12ij - 
-					Im_S12ij * Im_S12ij +
-					Re_S21ij * Re_S21ij +
-					Im_S21ij * Im_S21ij -
-					Re_S22ij * Re_S22ij -
-					Im_S22ij * Im_S22ij);
-
-	  phasemat(i, j, 1, 0) = 0.5 * (Re_S11ij * Re_S11ij + 
-					Im_S11ij * Im_S11ij +
-					Re_S12ij * Re_S12ij + 
-					Im_S12ij * Im_S12ij - 
-					Re_S21ij * Re_S21ij - 
-					Im_S21ij * Im_S21ij - 
-					Re_S22ij * Re_S22ij - 
-					Im_S22ij * Im_S22ij);
-
-	  phasemat(i, j, 1, 1) = 0.5 * (Re_S11ij * Re_S11ij + 
-					Im_S11ij * Im_S11ij - 
-					Re_S12ij * Re_S12ij - 
-					Im_S12ij * Im_S12ij -
-					Re_S21ij * Re_S21ij - 
-					Im_S21ij * Im_S21ij + 
-					Re_S22ij + Re_S22ij + 
-					Im_S22ij * Im_S22ij);
+	  phasemat(i, j, 0, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
+						 Im_S11ij * Im_S11ij - 
+						 Re_S12ij * Re_S12ij - 
+						 Im_S12ij * Im_S12ij +
+						 Re_S21ij * Re_S21ij +
+						 Im_S21ij * Im_S21ij -
+						 Re_S22ij * Re_S22ij -
+						 Im_S22ij * Im_S22ij);
+	  
+	  phasemat(i, j, 1, 0) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
+						 Im_S11ij * Im_S11ij +
+						 Re_S12ij * Re_S12ij + 
+						 Im_S12ij * Im_S12ij - 
+						 Re_S21ij * Re_S21ij - 
+						 Im_S21ij * Im_S21ij - 
+						 Re_S22ij * Re_S22ij - 
+						 Im_S22ij * Im_S22ij);
+	  
+	  phasemat(i, j, 1, 1) = 0.5 * 1e-12  * (Re_S11ij * Re_S11ij + 
+						 Im_S11ij * Im_S11ij - 
+						 Re_S12ij * Re_S12ij - 
+						 Im_S12ij * Im_S12ij -
+						 Re_S21ij * Re_S21ij - 
+						 Im_S21ij * Im_S21ij + 
+						 Re_S22ij + Re_S22ij + 
+						 Im_S22ij * Im_S22ij);
 	}
     }
-	  
+  
   if(2 == stokes_dim){
     return;
   }
-
+  
   // if stokes_dim =2 only these 4 elements need be evaluated.
-
+  
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
 	{
-	  phasemat(i, j, 0, 2) = - (Re_S11ij * Re_S12ij +
-				    Im_S11ij * Im_S12ij + 
-				    Re_S22ij * Re_S21ij + 
-				    Im_S22ij * Im_S21ij);
+	  phasemat(i, j, 0, 2) = -  1e-12 * (Re_S11ij * Re_S12ij +
+					     Im_S11ij * Im_S12ij + 
+					     Re_S22ij * Re_S21ij + 
+					     Im_S22ij * Im_S21ij);
 	  
-	  phasemat(i, j, 1, 2) = - (Re_S11ij * Re_S12ij +
-				    Im_S11ij * Im_S12ij -
-				    Re_S22ij * Re_S21ij -
-				    Im_S22ij * Im_S21ij);
+	  phasemat(i, j, 1, 2) = - 1e-12 *  (Re_S11ij * Re_S12ij +
+					     Im_S11ij * Im_S12ij -
+					     Re_S22ij * Re_S21ij -
+					     Im_S22ij * Im_S21ij);
 	  
-	  phasemat(i, j, 2, 0) = - (Re_S11ij * Re_S21ij + 
-				    Im_S11ij * Im_S21ij + 
-				    Re_S22ij * Re_S12ij + 
-				    Im_S22ij * Im_S12ij);
+	  phasemat(i, j, 2, 0) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
+					     Im_S11ij * Im_S21ij + 
+					     Re_S22ij * Re_S12ij + 
+					     Im_S22ij * Im_S12ij);
 	  
-	  phasemat(i, j, 2, 1) = - (Re_S11ij * Re_S21ij + 
-				    Im_S11ij * Im_S21ij -
-				    Re_S22ij * Re_S12ij - 
-				    Im_S22ij * Im_S12ij);
+	  phasemat(i, j, 2, 1) = - 1e-12 *  (Re_S11ij * Re_S21ij + 
+					     Im_S11ij * Im_S21ij -
+					     Re_S22ij * Re_S12ij - 
+					     Im_S22ij * Im_S12ij);
 	  
-	  phasemat(i, j, 2, 2) =  (Re_S11ij * Re_S22ij + 
-				   Im_S11ij * Im_S22ij +
-				   Re_S12ij * Re_S21ij + 
-				   Im_S12ij * Im_S21ij);
+	  phasemat(i, j, 2, 2) = 1e-12 *  (Re_S11ij * Re_S22ij + 
+					   Im_S11ij * Im_S22ij +
+					   Re_S12ij * Re_S21ij + 
+					   Im_S12ij * Im_S21ij);
 	}
     }
   
   if(3 == stokes_dim){
     return;
   }
-
-   // if stokes_dim =3 only these 9 elements need be evaluated.
-
+  
+  // if stokes_dim =3 only these 9 elements need be evaluated.
+  
   for (Index i = 0; i < nza; ++i)
     {
       for (Index j = 0; j < naa; ++j)
 	{
-	  phasemat(i, j, 0, 3) = - (Im_S11ij * Re_S12ij -
-				    Re_S11ij * Im_S12ij -
-				    Im_S22ij * Re_S21ij + 
-				    Re_S22ij * Im_S21ij);
+	  phasemat(i, j, 0, 3) = - 1e-12 * (Im_S11ij * Re_S12ij -
+					    Re_S11ij * Im_S12ij -
+					    Im_S22ij * Re_S21ij + 
+					    Re_S22ij * Im_S21ij);
 	  
-	  phasemat(i, j, 1, 3) = - (Im_S11ij * Re_S12ij - 
-				    Re_S11ij * Im_S12ij + 
-				    Im_S22ij * Re_S21ij - 
-				    Re_S22ij * Im_S21ij);
+	  phasemat(i, j, 1, 3) = - 1e-12 * (Im_S11ij * Re_S12ij - 
+					    Re_S11ij * Im_S12ij + 
+					    Im_S22ij * Re_S21ij - 
+					    Re_S22ij * Im_S21ij);
 	  
-	  phasemat(i, j, 2, 3) = (Im_S11ij * Re_S22ij - 
-				  Re_S11ij * Im_S22ij +
-				  Im_S21ij * Re_S12ij - 
-				  Re_S21ij * Im_S12ij);
+	  phasemat(i, j, 2, 3) = 1e-12 * (Im_S11ij * Re_S22ij - 
+					  Re_S11ij * Im_S22ij +
+					  Im_S21ij * Re_S12ij - 
+					  Re_S21ij * Im_S12ij);
 	  
-	  phasemat(i, j, 3, 0) = - (Im_S21ij * Re_S11ij - 
-				    Re_S21ij * Im_S11ij +
-				    Im_S22ij * Re_S12ij - 
-				    Re_S22ij * Im_S12ij);
+	  phasemat(i, j, 3, 0) = - 1e-12 * (Im_S21ij * Re_S11ij - 
+					    Re_S21ij * Im_S11ij +
+					    Im_S22ij * Re_S12ij - 
+					    Re_S22ij * Im_S12ij);
 	  
-	  phasemat(i, j, 3, 1) = - (Im_S21ij * Re_S11ij - 
-				    Re_S21ij * Im_S11ij - 
-				    Im_S22ij * Re_S12ij + 
-				    Re_S22ij * Im_S12ij);
+	  phasemat(i, j, 3, 1) = - 1e-12 * (Im_S21ij * Re_S11ij - 
+					    Re_S21ij * Im_S11ij - 
+					    Im_S22ij * Re_S12ij + 
+					    Re_S22ij * Im_S12ij);
 	  
-	  phasemat(i, j, 3, 2) = (Im_S22ij * Re_S11ij - 
-				  Re_S22ij * Im_S11ij - 
-				  Im_S12ij * Re_S21ij + 
-				  Re_S12ij * Im_S21ij); 
+	  phasemat(i, j, 3, 2) = 1e-12 * (Im_S22ij * Re_S11ij - 
+					  Re_S22ij * Im_S11ij - 
+					  Im_S12ij * Re_S21ij + 
+					  Re_S12ij * Im_S21ij); 
 	  
-	  phasemat(i, j, 3, 3) = (Re_S22ij * Re_S11ij + 
-				  Im_S22ij * Im_S11ij - 
-				  Re_S12ij * Re_S21ij - 
-				  Im_S12ij * Im_S21ij); 
+	  phasemat(i, j, 3, 3) = 1e-12 * (Re_S22ij * Re_S11ij + 
+					  Im_S22ij * Im_S11ij - 
+					  Re_S12ij * Re_S21ij - 
+					  Im_S12ij * Im_S21ij); 
 	}
     }
   
   if(4 == stokes_dim){
     return;
   }
-
+  
   // if stokes_dim =4 all 16 elements need be evaluated.
 }
 
@@ -371,7 +371,7 @@ void amp2abs(VectorView abs,
     }
 
   abs[0] = ext(0, 0) - Z11_integrated;
-  
+    
   if(1 == stokes_dim){
     return;
   }

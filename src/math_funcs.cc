@@ -37,6 +37,8 @@
  *****************************************************************************/
 
 #include <cmath>
+#include <stdexcept>
+#include <iostream>
 #include "array.h"
 #include "math_funcs.h"
 #include "logic.h"
@@ -237,22 +239,23 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
   Index m = aa_grid.nelem();
   Vector res1(n);
   assert (is_size(Integrand, n, m));
+ 
   for (Index i = 0; i < n ; ++i)
     {
       res1[i] = 0.0;
-      Numeric sintheta = sin(za_grid[i] * DEG2RAD);
+      //Numeric sintheta = sin(za_grid[i] * DEG2RAD);
       
       for (Index j = 0; j < m - 1; ++j)
 	{
-	  res1[i] +=  0.5 * (Integrand(i, j) + Integrand(i, j + 1)) *
-	    (aa_grid[j + 1] - aa_grid[j]) * sintheta;
+	  res1[i] +=  0.5 * DEG2RAD * (Integrand(i, j) + Integrand(i, j + 1)) *
+	    (aa_grid[j + 1] - aa_grid[j]) * sin(za_grid[i] * DEG2RAD);
 	}
     }
   
   Numeric res = 0.0;
   for (Index i = 0; i < n - 1; ++i)
     {
-      res += 0.5 *  (res1[i] + res1[i + 1]) * 
+      res += 0.5 * DEG2RAD * (res1[i] + res1[i + 1]) * 
 	(za_grid[i + 1] - za_grid[i]);
     }
   
