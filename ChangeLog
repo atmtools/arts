@@ -1,5 +1,19 @@
 2003-01-24  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-426
+
+	* Sorry for the exceeding commit rate, but I have to test the changes
+	on different computers...
+
+	* src/continua.cc: More pow fixes. Overloading of pow for both
+	pow(float,double) and pow(double,float) breaks float compilation with
+	gcc2. Added f to the numeric literals.
+
+	* src/math_funcs.{cc,h}: Removed pow (float,double). Confuses gcc2 in
+	many cases and we don't need it currently.
+
+2003-01-24  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-425
 
 	* src/continua.cc: Fixed pow(Numeric n, int i) calls. For simple cases
