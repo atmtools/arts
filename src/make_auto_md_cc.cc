@@ -89,6 +89,7 @@ int main()
           << "#include \"auto_wsv_groups.h\"\n"
           << "#include \"wsv_aux.h\"\n"
           << "#include \"m_copy.h\"\n"
+          << "#include \"m_general.h\"\n"
           << "#include \"m_ignore.h\"\n"
           << "#include \"m_xml.h\"\n"
           << "\n";
