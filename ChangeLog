@@ -1,3 +1,39 @@
+2002-05-08  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-65
+
+	* src/workspace.cc: Started to sort the variables in alphebetical 
+	order. See note in the file. Placed all old functions below a line 
+	with the idea to revise the functions before they are moved back.
+
+	Introduced and wrote about: 
+	  - atmosphere_dim
+	  - a_los
+	  - a_pos
+	  - blackbody_ground
+	  - cloudbox_on
+	  - cloudbox_limits
+	  - e_ground
+	  - lat_grid
+	  - lon_grid
+	  - p_grid
+	  - ppath
+	  - ppath_partial
+	  - ppath_step
+	  - r_geoid
+	  - t_field
+	  - t_ground
+	  - z_field
+	  - z_ground
+
+	Removed a lot of old WSV.
+	
+	* src/methods.cc: Started to sort the methods in alphebetical order.
+	See note in the file. Placed all old functions below a line with the
+	idea to revise the functions before they are moved back.
+
+	Removed WSF hseXxxx, refrXxx
+
 2002-05-07  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-64

@@ -68,6 +68,8 @@ void define_wsv_data()
      dimensions if necessary. Also some detailed discussion of the
      members if your variable is a structure.
 
+     Usage:      Set by user (or "Function output.")
+
      Units:      E.g., kg/m
 
      Dimensions: [ first dimension, second dimension, ... ]
@@ -85,116 +87,510 @@ void define_wsv_data()
 
 
   /////////////////////////////////////////////////////////////////////////////
-  // Definition of the atmosphere (dimensionality, grids, fields etc.)
+  // Let's put in the variables in alphabetical order. This gives a clear rule
+  // for where to place a new variable and this gives a nicer results when
+  // the functions are listed by "arts -w all".
+  // No distinction is made between uppercase and lowercase letters. The sign
+  // "_" comes after all letters.
+  // Patrick Eriksson 2002-05-08
   /////////////////////////////////////////////////////////////////////////////
 
-  wsv_data.push_back
-    (WsvRecord
-     ("atmosphere_dim",
-      "The atmospheric dimensionality (1-3).\n"
-      "\n"
-      "This variable defines the complexity of the atmospheric structure.\n"
-      "The dimensionality is given by an integer between 1 and 3, where 1\n"
-      "means 1D etc. This is the master variable for the atmospheric\n"
-      "dimensionality, variables which size changes with the dimensionality\n"
-      "are checked to match this variable. \n"
-      "\n"
-      "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
-      "user guide (look for \"atmospheric dimensionality\" in the index).", 
-      Index_));
 
   wsv_data.push_back
-    (WsvRecord
-     ("p_grid",
-      "The pressure grid.\n"
-      "\n"
-      "The pressure surfaces on which the atmospheric fields are defined.\n"
-      "This variable must always be defined.\n"
-      "\n"
-      "See further the ARTS user guide (AUG). Use the index to find where\n"
-      "this variable is discussed. The function is listed as a subentry to\n"
-      "\"workspace variables\".\n"
-      "\n"
-      "Units: Pa",
-      Vector_));
+   (WsvRecord
+    ("atmosphere_dim",
+     "The atmospheric dimensionality (1-3).\n"
+     "\n"
+     "This variable defines the complexity of the atmospheric structure.\n"
+     "The dimensionality is given by an integer between 1 and 3, where 1\n"
+     "means 1D etc. This is the master variable for the atmospheric\n"
+     "dimensionality, variables which size changes with the dimensionality\n"
+     "are checked to match this variable. \n"
+     "\n"
+     "Functions adapt automatically to this variable. That is, it should\n"
+     "not be needed to change any functions if the dimensionality is\n"
+     "changed.\n"
+     "\n"
+     "The atmospheric dimensionalities (1D, 2D and 3D) are defined in the\n"
+     "user guide (look for \"atmospheric dimensionality\" in the index).\n" 
+     "\n"
+     "Usage:      Set by the user.",
+     Index_ ));
 
   wsv_data.push_back
-    (WsvRecord
-     ("lat_grid",
-      "The latitude grid.\n"
-      "\n"
-      "The latitudes for which the atmospheric fields are defined.\n"
-      "Geocentric latitudes shall be used.\n"
-      "\n"
-      "For 1D calculations this vector must have the length 0.\n"
-      "In the case of 2D, the latitudes shall be interpreted as the angular\n"
-      "distance inside the orbit plane from an arbitrary zero point.\n"
-      "\n"
-      "See further the ARTS user guide (AUG). Use the index to find where\n"
-      "this variable is discussed. The function is listed as a subentry to\n"
-      "\"workspace variables\".\n"
-      "\n"
-      "Units: degrees",
-      Vector_));
+   (WsvRecord
+    ("a_los",
+     "A line-of-sight (for test purposes).\n"
+     "\n"
+     "The purpose of this variable and *a_pos* are to enable calling of\n"
+     "*ppathCalc* and maybe other functions from the workspace. This can be\n"
+     "of interest both for testing of the functions and to display\n"
+     "intermediate results as the propagation path. \n"
+     "\n"
+     "For 1D and 2D cases, *a_los* is a vector of length 1 holding the \n"
+     "zenith angle. For 3D, the length of the vector is 2, where the\n"
+     "additional element is the azimuthal angle. These angles are defined\n"
+     "in the ARTS user guide (AUG). Look in the index for \"zenith angle\"\n"
+     "and \"azimuthal angle\".\n"
+     "\n"
+     "Usage:      To call *ppathCalc* as an individual function. Other\n"
+     "            purposes can be possible.\n"
+     "\n"
+     "Units:      [ degree, degree ]\n"
+     "\n"
+     "Dimensions: [ 1 for 1D and 2D, 2 for 3D ]",
+     Vector_ ));
 
   wsv_data.push_back
-    (WsvRecord
-     ("lon_grid",
-      "The longitude grid.\n"
-      "\n"
-      "The longitudes for which the atmospheric fields are defined.\n"
-      "\n"
-      "For 1D and 2D calculations this vector must have the length 0.\n"
-      "\n"
-      "See further the ARTS user guide (AUG). Use the index to find where\n"
-      "this variable is discussed. The function is listed as a subentry to\n"
-      "\"workspace variables\".\n"
-      "\n"
-      "Units: degrees",
-      Vector_));
+   (WsvRecord
+    ("a_pos",
+     "A geographical position (for test purposes).\n"
+     "\n"
+     "The purpose of this variable and *a_los* are to enable calling of\n"
+     "*ppathCalc* and maybe other functions from the workspace. This can be\n"
+     "of interest both for testing of the functions and to display\n"
+     "intermediate results as the propagation path. \n"
+     "\n"
+     "This variable is a vector with a length equalling the atmospheric\n"
+     "dimensionality. The first element is the radius (from the coordinate\n"
+     "system centre) of the position. Element 2 is the latitude and element\n"
+     "3 is the longitude. Please note that the vertical position is given\n"
+     "as the radius, not the altitude above the geoid.\n"
+     "\n"
+     "Usage:      To call *ppathCalc* as an individual function. Other\n"
+     "            purposes can be possible.\n"
+     "\n"
+     "Units:      [ m, degree, degree ]\n"
+     "\n"
+     "Dimensions: [ atmosphere_dim ]",
+     Vector_ ));
 
   wsv_data.push_back
-    (WsvRecord
-     ("z_field",
-      "The field of geometrical altitudes.\n"
-      "\n"
-      "This variable gives the geometrical altitude, above the geoid, of\n"
-      "each crossing of the pressure, latitude and longitude grids. For 1D\n"
-      "cases the altitudes give the geometrical position of the pressure\n"
-      "surfaces.\n"
-      "\n"
-      "See further the ARTS user guide (AUG). Use the index to find where\n"
-      "this variable is discussed. The function is listed as a subentry to\n"
-      "\"workspace variables\".\n"
-      "\n"
-      "Units:      m\n"
-      "\n"
-      "Dimensions: [ p_grid, lat_grid, lon_grid ]",
-      Tensor3_));
+   (WsvRecord
+    ("blackbody_ground",
+     "Flag to force the ground to be treated as a blackbody.\n"
+     "\n"
+     "This variable must have the value 0 or 1, where 1 means that the\n"
+     "ground is treated as a blackbody (an emissivity of 1). This choice\n"
+     "affects the starting point of propagation paths (including an inter-\n"
+     "section with the ground) and the allowed choice for the scattering\n"
+     "box.\n"
+     "\n"
+     "When *blackbody_ground* is set to 1, all values of *e_ground* must\n"
+     "equal 1.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by user.\n"
+     "\n"
+     "Units:      boolean",
+     Index_ ));
 
   wsv_data.push_back
-    (WsvRecord
-     ("t_field",
-      "The field of atmospheric temperatures.\n"
-      "\n"
-      "This variable gives the atmospheric temperature at each crossing of\n"
-      "the pressure, latitude and longitude grids.\n"
-      "\n"
-      "See further the ARTS user guide (AUG). Use the index to find where\n"
-      "this variable is discussed. The function is listed as a subentry to\n"
-      "\"workspace variables\".\n"
-      "\n"
-      "Units:      K\n"
-      "\n"
-      "Dimensions: [ p_grid, lat_grid, lon_grid ]",
-      Tensor3_));
+   (WsvRecord
+    ("cloudbox_on",
+     "Flag to activate the cloud box.\n"
+     "\n"
+     "Scattering calculations are confined to a part of the atmosphere\n"
+     "denoted as the cloud box. The extension of the cloud box is given by\n"
+     "*cloudbox_limits*. This variable tells functions if a cloud box is\n"
+     "activated or not. \n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      boolean",
+     Index_ ));
 
+  wsv_data.push_back
+   (WsvRecord
+    ("cloudbox_limits",
+     "The limits of the cloud box.\n"
+     "\n"
+     "This variable defines the extension of the cloud box. The cloud box is\n"
+     "defined to be rectangular in the used coordinate system, with limits\n"
+     "exactly at points of the involved grids. This means, for example, that\n"
+     "the vertical limits of the cloud box are two pressure surfaces. For\n"
+     "2D, the angular extension of the cloud box is between two points of\n"
+     "the latitude grid (Figure~\ref{fig:fm_defs:2d}), and likewise for 3D\n"
+     "but then also with a longitude extension between two grid points.  The\n"
+     "latitude and longitude limits for the cloud box cannot be placed at\n"
+     "the end points of the corresponding grid as it must be possible to\n"
+     "calculate the incoming intensity field.\n"
+     "\n"
+     "In general the lower vertical limit must be the lowest pressure\n"
+     "surface (that is, the first element of *cloudbox_limits is 0). This\n"
+     "means that the practical lower limit of the cloud box is the ground.\n"
+     "However, if the ground is treated to a blackbody (*blackbody_ground* =\n"
+     "1) the lower limit can be above the ground. \n"
+     " \n"
+     "The variable *cloudbox_limits* is an array of index value with length\n"
+     "twice *atmosphere_dim*. For each dimension there is a lower limit and\n"
+     "an upper limit. The order of the dimensions is as usual pressure,\n"
+     "latitude and longitude. The upper limit index must be greater then the\n"
+     "lower limit index. For example, *cloudbox_limits* = [0 5 4 11] means\n"
+     "that cloud box extends between pressure levels 0 and 5, and latitude\n"
+     "points 4 and 11.\n"
+     "\n"
+     "If *cloudbox_on* = 0, the content of this variable is neglected, but\n"
+     "it must be initiated to some dummy values.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user, either directly or using a function\n"
+     "            checking the extension of scattering particles.\n"
+     "\n"
+     "Units:      Index values.\n"
+     "\n"
+     "Dimensions: [ 2 * atmosphere_dim ]",
+     ArrayOfIndex_ ));
 
+  wsv_data.push_back
+   (WsvRecord
+    ("e_ground",
+     "Ground emissivity.\n"
+     "\n"
+     "The emission of the ground is calculated as the product between\n"
+     "*e_ground* and the Planck function for the temperature given by\n"
+     "*t_ground*. The ground emissivity and temperature are interpolated to\n"
+     "the point of interest before the product is calculated.\n"
+     "\n"
+     "The ground emissivity is a value in the range [0,1].\n"
+     "\n"
+     "The emissivity for a point between the grid crossings is obtained by\n"
+     "linear (1D) or bi-linear (2D) interpolation of the *e_ground*.\n"
+     "No interpolation in frequency is performed.\n"
+     "\n"
+     "If the ground is assumed to be a blackbody (*blackbody_ground* = 1),\n"
+     "all values of *e_ground* must equal 1. For such cases, *e_ground*\n"
+     "can be set to have the size 1x1x1.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by user.\n"
+     "\n"
+     "Units:      - (0-1)\n"
+     "\n"
+     "Dimensions: [ f_grid, lat_grid, lon_grid ]",
+     Tensor3_ ));
 
-  /////////////////////////////////////////////////////////////////////////////
-  // Ground variables
-  /////////////////////////////////////////////////////////////////////////////
+  wsv_data.push_back
+   (WsvRecord
+    ("lat_grid",
+     "The latitude grid.\n"
+     "\n"
+     "The latitudes for which the atmospheric fields are defined. The\n"
+     "atmosphere is undefined outside the range covered by the grid.\n"
+     "The grid must be sorted in increasing order, with no repetitions.\n"
+     "\n"
+     "Geocentric latitudes shall be used.\n"
+     "\n"
+     "For 1D calculations this vector shall be set to be empty, but the\n"
+     "number of latitudes shall be considered to be 1 when examining the\n"
+     "size of variables.\n"
+     "\n" 
+     "In the case of 2D, the latitudes shall be interpreted as the angular\n"
+     "distance inside the orbit plane from an arbitrary zero point.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      degrees",
+     Vector_ ));
 
+  wsv_data.push_back
+   (WsvRecord
+    ("lon_grid",
+     "The longitude grid.\n"
+     "\n"
+     "The longitudes for which the atmospheric fields are defined. The\n"
+     "atmosphere is undefined outside the range covered by the grid.\n"
+     "The grid must be sorted in increasing order, with no repetitions.\n"
+     "\n"
+     "For 1D and 2D calculations this vector shall be set to be empty, but\n"
+     "the number of longitudes shall be considered to be 1 when examining\n"
+     "the size of variables.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units: degrees",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("main_agenda",
+     "The agenda corresponding to the entire controlfile. This is executed\n"
+     "when ARTS is run.",
+     Agenda_));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("p_grid",
+     "The pressure grid.\n"
+     "\n"
+     "The pressure surfaces on which the atmospheric fields are defined.\n"
+     "This variable must always be defined. The grid must be sorted in\n"
+     "decreasing order, with no repetitions.\n"
+     "\n"
+     "No gap between the lowermost pressure level and the ground is \n"
+     "allowed. The uppermost pressure level defines the practical upper\n"
+     "limit of the atmosphere as vacuum is assumed above.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Units:      Pa",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("ppath",
+     "The propagation path for one line-of-sight.\n"
+     "\n"
+     "This variable described the total (pencil beam) propagation path for\n"
+     "a given combination of starting point and line-of-sight. The path is\n"
+     "described by a data structure of type Ppath. This structure contains\n"
+     "also additional fields to faciliate the calculation of spectra and\n"
+     "interpolation of the atmospheric fields.\n"
+     "\n"
+     "The data struture is to extensive to be described here, but it is\n"
+     "described carefully in the ARTS user guide (AUG). Use the index to\n"
+     "find where the data structure, Ppath, for propagation paths is \n"
+     "discussed. It is listed as a subentry to \"data structures\".\n"
+     "\n"
+     "Usage:      Output from functions of the type *ppathCalc*.\n"
+     "\n"
+     "Members:    To be written.",
+     Ppath_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("ppath_partial",
+     "A part of a propagation path.\n"
+     "\n"
+     "The main intention of this variable is communication with the agenda\n"
+     "*ppath_step*.\n"
+     "\n"
+     "Type \"arts -d ppath_step\" and \"arts -d ppathCalc\" for more\n"
+     "information on this variable and the calculation of propagation\n"
+     "paths. Or read the chapter on propgation paths in the ARTS user\n"
+     "guide.\n"
+     "\n"
+     "Usage:      In/output to/from the agenda *ppath_step*.\n"
+     "\n"
+     "Members:    To be written.",
+     Ppath_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("ppath_step",
+     "Calculation of a propagation path step.\n"
+     "\n"
+     "A propagation path step is defined as the path between some point to\n"
+     "a crossing with either the pressure, latitude or longitude grid,\n"
+     "and this agenda performs the calculations to determine such\n"
+     "partial propagation path. The starting point is normally a grid\n"
+     "crossing point, but can also be an arbitrary point inside the\n"
+     "atmosphere, such as the sensor position. Only points inside the model\n"
+     "atmosphere are handled.\n"
+     "\n"
+     "The communication between this agenda and the calling function is\n"
+     "handled by *ppath_partial*. That variable is used both as input and\n"
+     "output to the *ppath_step* agenda. The agenda gets back\n"
+     "*ppath_partial* as returned to the calling function and the last path\n"
+     "point hold by the structure is accordingly the starting point for the\n"
+     "new calculations. If a total propagation path shall be determined,\n"
+     "this agenda is called repeatedly until the starting point of the\n"
+     "propagation path is found and *ppath_partial* will hold all path\n"
+     "steps that together make up *ppath*.\n"
+     "\n"
+     "The path is determined by starting at the end point and moving\n"
+     "backwards to the starting point (the forward direction is defined as\n"
+     "the way the photons are moving). The calculations are initiated by\n"
+     "filling *ppath_partial* with the practical end point of the path.\n"
+     "This is either the position of the sensor (true or hypothetical), or\n"
+     "some point at the top of the atmosphere (determined by geometrical\n"
+     "calculations starting at the sensor). This initialisation is not\n"
+     "handled by *ppath_step*. \n"
+     "\n"
+     "The agenda performs only calculations to next crossing of a grid, all\n"
+     "other tasks must be performed by the calling function. For example,\n"
+     "the calling function must check if the starting point of the\n"
+     "calculations is inside the scattering box or below the ground level,\n"
+     "and check if the starting point of the path has been reached. The\n"
+     "starting point of a full propagation path can be the top of the\n"
+     "atmosphere, a blackbody ground (if *blackbody_ground* = 1) and the\n"
+     "cloud box.\n"
+     "\n"
+     "A *ppath_step* agenda shall put in points along the propagation path\n"
+     "at all crossings with the grids, tangent points and points of ground\n"
+     "reflection. It is also allowed to make agendas that put in additional\n"
+     "points to fulfil some criterion, such as a maximum distance along\n"
+     "the path between the points. Accordingly, the number of points of\n"
+     "each step can exceed one.\n"
+     "\n"
+     "For more information read the chapter on propagation paths in the\n"
+     "ARTS user guide.\n"
+     "\n"
+     "Usage:      Called from *ppathCalc* and scattering functions.",
+     Agenda_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("r_geoid",
+     "Geoid radius.\n"
+     "\n"
+     "Geometrical altitudes are defined as the vertical distance above the\n"
+     "geoid, and the geoid is the reference surface used when giving, for\n"
+     "example, *z_ground* and *z_field*. \n"
+     "\n"
+     "The geoid is defined by giving the radius from the coordinate centre\n"
+     "to the geoid surface for each crossing of the latitude and longitude\n"
+     "grids. The geoid should normally be selected to be an ellipsoid but\n"
+     "any shape is allowed. For 1D calculations, the geoid is be definition\n"
+     "a sphere.\n"
+     "\n"
+     "The radius for a point between the grid crossings is obtained by\n"
+     "linear (2D) or bi-linear (3D) interpolation of the *r_geoid*. For 1D\n"
+     "cases the geoid radius is constant.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by using a function for a geodetic datum.\n"
+     "\n"
+     "Units:      m\n"
+     "\n"
+     "Dimensions: [ lat_grid, lon_grid ]",
+     Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("t_field",
+     "The field of atmospheric temperatures.\n"
+     "\n"
+     "This variable gives the atmospheric temperature at each crossing of\n"
+     "the pressure, latitude and longitude grids.\n"
+     "\n"
+     "The temperature for a point between the grid crossings is obtained by\n"
+     "(multi-)linear interpolation of the *t_field*.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user by interpolation of a climatology.\n"
+     "\n"
+     "Units:      K\n"
+     "\n"
+     "Dimensions: [ p_grid, lat_grid, lon_grid ]",
+     Tensor3_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("t_ground",
+     "Effective emission temperature of the ground.\n"
+     "\n"
+     "The emission of the ground is calculated as the product between\n"
+     "*e_ground* and the Planck function for the temperature given by\n"
+     "*t_ground*. The ground emissivity and temperature are interpolated to\n"
+     "the point of interest before the product is calculated.\n"
+     "\n"
+     "The temperatures can be set to any values >= 0 K. \n"
+     "\n"
+     "The temperature for a point between the grid crossings is obtained by\n"
+     "linear (1D) or bi-linear (2D) interpolation of the *t_ground*.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by user.\n"
+     "\n"
+     "Units:      K\n"
+     "\n"
+     "Dimensions: [ lat_grid, lon_grid ]",
+     Matrix_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("z_field",
+     "The field of geometrical altitudes.\n"
+     "\n"
+     "This variable gives the geometrical altitude, above the geoid, of\n"
+     "each crossing of the pressure, latitude and longitude grids. For 1D\n"
+     "cases the altitudes give the geometrical position of the pressure\n"
+     "surfaces.\n"
+     "\n"
+     "For each geographical position (lat,lon), the values must be sorted\n"
+     "in increasing order, with no repetitions. Otherwise the altitudes can\n"
+     "be set to arbitrary values. Hydrostatic equilibrium is not applied \n"
+     "automatically. If hydrostatic equilibrium applies, *z_field* must be\n"
+     "set by a function ensuring that this criterium is fulfilled.\n"
+     "\n"
+     "The radius (from the coordinate centre) for a point between the grid\n"
+     "crossings is obtained by a (multi-)linear interpolation of the sum of\n"
+     "*r_geoid* and *z_field*.\n" 
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by the user by interpolation of a climatology, or set\n"
+     "            by a function for applying hydrostatic equilibrium.\n"
+     "\n"
+     "Units:      m\n"
+     "\n"
+     "Dimensions: [ p_grid, lat_grid, lon_grid ]",
+     Tensor3_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("z_ground",
+     "The ground altitude.\n"
+     "\n"
+     "This variable defines the shape of the ground, by giving the\n"
+     "geometrical altitude above the geiod for each crossing of the \n"
+     "latitude and longitude grids. Any shape of the ground is accepted.\n"
+     "No gap between the ground and the lowermost pressure level is \n"
+     "allowed.\n"
+     "\n"
+     "The radius (from the coordinate centre) for a point between the grid\n"
+     "crossings is obtained by a linear (1D or bi-linear (2D) interpolation\n"
+     "of the sum of *r_geoid* and *r_ground*. With other words, the radius\n"
+     "for the ground is assumed to vary linear along the latitudes and \n"
+     "longitudes in *lat_grid* and *lon_grid*.\n"
+     "\n"
+     "See further the ARTS user guide (AUG). Use the index to find where\n"
+     "this variable is discussed. The function is listed as a subentry to\n"
+     "\"workspace variables\".\n"
+     "\n"
+     "Usage:      Set by user.\n"
+     "\n"
+     "Units:      m\n"
+     "\n"
+     "Dimensions: [ lat_grid, lon_grid ]",
+     Matrix_ ));
 
 
 
@@ -509,305 +905,5 @@ void define_wsv_data()
       "the matrix format is the same as that of abs",
       ArrayOfMatrix_));
 
-
-  //--------------------< Hydrostatic equilibrium >--------------------
-  //                     -------------------------
-  wsv_data.push_back
-    (WsvRecord
-     ("hse",
-      "This vector holds the parameters for calculating hydrostatic \n"
-      "equilibrium (HSE). The length of the vector is either 1 or 5, where\n"
-      "the values are: \n "
-      "  1: On/off flag. 0 = ignore HSE, 1 = consider HSE.\n " 
-      "  2: The pressure of the reference point [Pa]. \n " 
-      "  3: The altitude of the reference point [m]. \n " 
-      "  4: Gravitational acceleration at the geoid surface [m/s2]. \n " 
-      "  5: Number of iterations of the calculations.\n"
-      "If the on/off flag is set to 1, the length of the vector must be 5,\n"
-      "while if the flag is 0 a length of 1 is OK.\n"
-      "See the function hseCalc for some more details.", 
-      Vector_));
-
-
-  //--------------------< RT Stuff >--------------------
-  //                     ----------
-
-  wsv_data.push_back
-    (WsvRecord
-     ("emission",
-      "Boolean to include emssion in the calculation of spectra.\n"
-      "If this variable is set to 0 (zero) pure transmission calculations \n"
-      "will be simulated and, for example, yCalc will give optical \n"
-      "thicknesses instead of radiation intensities.",
-      Index_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("za_pencil",
-      "Pencil beam zenith angle grid [deg]. \n"
-      "The observation direction is specified by the angle between zenith \n"
-      "and the LOS.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("z_tan",
-      "Tangent altitude for each spectrum [m].\n"
-      "These tangent altitudes include the effect of refraction (if set). \n"
-      "In the case of a ground intersection, a geometrical prolongation \n"
-      "below the ground is applied to determine the tangent altitude. \n"
-      "For upward observations where there are no tangent altitudes, \n" 
-      "*z_tan* is set to 999 km. \n"
-      "It should be noted that the LOS calculations take *za_pencil* as \n" 
-      "input, not *z_tan*. However, *za_pencil* can be calculated from \n"
-      "*z_tan* by the function *zaFromZtan*. ",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("z_plat",
-      "Vertical altitude, above the geiod, of the observation platform [m].",
-      Numeric_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("l_step",
-      "The maximum length, along the LOS, between the points of LOS [m].\n"
-      "The final step length will in most cases equal the selected length.\n"
-      "There are two rare exceptions:\n"
-      "  1. Downward observations from within the atmosphere, where the step\n"
-      "     length is adjusted downwards to get an integer number of steps\n"
-      "     between the sensor and the tangent or ground point.\n"
-      "  2. Limb sounding and the distance from the tangent point to the\n"
-      "     atmospheric limit (the highest absorption altitude) is smaller\n"
-      "     the selected length. The length is then adjusted to this\n"
-      "     distance",
-      Numeric_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("refr",
-      "Boolean for inclusion of refraction (0=no refraction, 1=refraction).",
-      Index_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("refr_lfac",
-      "This factor determines the step length used during the ray tracing \n"
-      "performed when considering refraction. \n"
-      "The step length applied is *l_step* divided by *refr_lfac*. \n" 
-      "Accordingly, this factor gives how many ray tracing steps that are \n"
-      "performed for each step of the LOS.",
-      Index_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("refr_model",
-      "A string giving what parameterization to use for the calculation of \n"
-      "refractive index. See *refrCalc* for existing choices.",
-      String_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("refr_index",
-      "The refractive index at the pressure levels in p_abs [-].\n",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("r_geoid",
-      "The local curvature radius of the geoid along the LOS [m].",
-      Numeric_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("z_ground",
-      "The vertical altitude above the geiod of the ground [m].",
-      Numeric_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("t_ground",
-      "The physical temperature of the ground [K].",
-      Numeric_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("e_ground",
-      "The ground emission factor for the frequencies in f_mono [0-1].",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("source",
-      "Mean source function between the points of the LOS.",
-      ArrayOfMatrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("trans",
-      "The transmissions between the points of the LOS [-].",
-      ArrayOfMatrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("y_space",
-      "Radiation entering the atmosphere at the top of the atmosphere, \n"
-      "typically cosmic background radiation. This variable is most easily \n"
-      "set by the function *y_spaceStd*.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("y",
-      "The working set of spectra. \n"
-      "The spectra from the different zenith angles are appended to form *y*.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("y0",
-      "A reference spectrum. This variable can be used e.g. to save a copy\n"
-      "of *y* or to compare the spectra before and after some operation(s).",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("h",
-      "The H matrix.\n"
-      "\n"
-      "Can be used to apply the sensor model to monochromatic pencil beam\n"
-      "spectra and weighting functions. \n",
-      Matrix_));
-
-
-  //--------------------< WF Stuff >--------------------
-  //                     ----------
-  wsv_data.push_back
-    (WsvRecord
-     ("absloswfs",
-      "Line of sight weighting functions. \n"
-      "See AUG for definition of this quantity. ",
-      ArrayOfMatrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("k_grid",
-      "Retrieval grid to be used in calculation of weighting functions (WFs)\n"
-      "For example, *k_grid* is the pressure altitude grid for species WFs. \n"
-      "Not all WFs need 'k_grid* as input.",
-      Vector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("k",
-      "The weighting functions (WFs) for a single retrieval/error group.",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("k_names",
-      "Names of the retrieval identies in *k*.",
-      ArrayOfString_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("k_aux",
-      "Auxiliary data for *k*. The number of rows of this matrix equals the\n"
-      "length of the state vector for the retrieval group (the number of\n"
-      "columns of k).\n"
-      "The columns hold different quantities:\n"
-      "  Col 1: retrieval grid (or correspondingly)\n"
-      "  Col 2: a priori values",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kx",
-      "The state weighting function matrix.",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kx_names",
-      "Names of the retrieval identities in *kx*.",
-      ArrayOfString_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kx_lengths",
-      "The length of the state vector for each retrieval identity in *kx*.",
-      ArrayOfIndex_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kx_aux",
-      "Auxiliary data for *kx*. As *k_aux* but with the data of the \n"
-      "different retrieval groups appended vertically.",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kb",
-      "The model parameters weighting function matrix.",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kb_names",
-      "Names of the model parameter identities in *kb*.",
-      ArrayOfString_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kb_lengths",
-      "The length of the model vector for each retrieval identity in *kb*.",
-      ArrayOfIndex_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("kb_aux",
-      "Auxiliary data for *kb*. As *k_aux* but with the data of the \n"
-      "different forward model groups appended vertically.",
-      Matrix_));
-
-
-
-  //-------------------< Batch calculation stuff >-----------------------
-  //                     -----------------------
-
-  wsv_data.push_back
-    (WsvRecord
-     ("batchname",
-      "Default basename for batch data.",
-      String_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("ybatch",
-      "A batch of spectra.\n"
-      "The spectra are stored as columns in a matrix",
-      Matrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("radiosonde_data",
-      "An array of Matrix holding data for many radiosonde launches. The\n"
-      "dimension of the Array is the number of radiosonde launches. Each\n"
-      "Matrix within the Array has dimension nx4, where n is the number of\n"
-      "pressure levels. The columns of the Matrix are:\n"
-      "\n"
-      "pressure [Pa] temperature [K] altitude [m] VMR [1]",
-      ArrayOfMatrix_));
-
-  //-------------------< Methods as variables >-----------------------
-  //                     --------------------
-
-  wsv_data.push_back
-    (WsvRecord
-     ("main_agenda",
-      "The agenda corresponding to the entire controlfile. This is executed\n"
-      "when ARTS is run.",
-      Agenda_));
 
 }

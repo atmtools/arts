@@ -39,13 +39,7 @@
 #include "methods.h"
 #include "auto_wsv_groups.h"
 
-void define_md_data()
-{
-  // The variable md_data is defined in file methods_aux.cc.
-  extern Array<MdRecord> md_data;
 
-  // Initialize to zero, just in case:
-  md_data.resize(0);
 
   /* Here's a template record entry:  (PE 2001-09-18)
 
@@ -119,24 +113,53 @@ void define_md_data()
   */
 
 
-//======================================================================
-//=== Overall ARTS functions
-//======================================================================
 
-  md_data.push_back     
+
+void define_md_data()
+{
+  // The variable md_data is defined in file methods_aux.cc.
+  extern Array<MdRecord> md_data;
+
+  // Initialize to zero, just in case:
+  md_data.resize(0);
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // Let's put in the functions in alphabetical order. This gives a clear rule
+  // for where to place a new function and this gives a nicer results when
+  // the functions are listed by "arts -m all".
+  // No distinction is made between uppercase and lowercase letters. The sign
+  // "_" comes after all letters.
+  // Patrick Eriksson 2002-05-08
+  /////////////////////////////////////////////////////////////////////////////
+
+
+  md_data.push_back
     ( MdRecord
-      ( NAME("test_new_ppath"),
-	DESCRIPTION
-	(
-	 "Just a function to test the new PPATH implementation.\n"
-	 "The functions are placed in the file ppath.cc."
+      ( NAME("AgendaDefine"),
+  	DESCRIPTION
+	( 
+         "Set up an agenda.\n"
+	 "\n"
+	 "A method list just contains indices (in md_data) of methods\n"
+	 "intended for sequential execution. Only methods without keyword\n"
+	 "arguments are allowed. It is the task of this method to set this\n"
+	 "up. For example, it must be checked, whether the given names\n"
+	 "really correspond to methods.\n"
+	 "\n"
+	 "Global output:\n"
+	 "   ArrayOfIndex : The newly generated method list.\n"
+	 "\n"
+	 "Keywords:\n"
+	 "   methods      : An array of names of methods." 
 	),
-	OUTPUT( ),
-	INPUT( ),
-	GOUTPUT( ),
-	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
+	OUTPUT(  ),
+        INPUT(  ),
+	GOUTPUT( Agenda_ ),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES(),
+	AGENDAMETHOD( true )));
 
   md_data.push_back     
     ( MdRecord
@@ -145,8 +168,8 @@ void define_md_data()
 	(
 	 "Stops the execution and exits ARTS.\n"
 	 "\n"
-	 "This method is handy if you want to debug one of your\n"
-	 "controlfiles. You can insert it anywhere in the controlfile. When\n"
+	 "This method is handy if you want to debug one of your control\n"
+	 "files. You can insert it anywhere in the control file. When\n"
 	 "it is reached, it will terminate the program."
 	),
 	OUTPUT( ),
@@ -155,6 +178,50 @@ void define_md_data()
 	GINPUT( ),
 	KEYWORDS( ),
 	TYPES( )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("Main"),
+  	DESCRIPTION
+	( 
+         "Run the agenda that is specified inside the curly braces. ARTS\n"
+	 "controlfiles must define this method. It is executed automatically\n"
+         "when ARTS is run on the controlfile." 
+        ),
+	OUTPUT(),
+        INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES(),
+	AGENDAMETHOD( true )));
+
+  /* Just started to design the function, not yet implemented
+  md_data.push_back
+    ( MdRecord
+      ( NAME( "ppathCalc" ),
+	DESCRIPTION
+        (
+	 "\n"
+         "\n"
+         "Global input: \n"
+         "   \n"
+         "\n"
+         "Global output: \n"
+         "   \n"
+         "\n"
+         "Keywords:\n"
+         "   " 
+        ),
+	OUTPUT( ppath_ ),
+	INPUT( atmospheric_dim_, p_grid_, lat_grid_, lon_grid_, z_field_, 
+               r_geoid_, z_ground_, blackbody_ground_, 
+               cloudbox_on_, cloudbox_limits_, a_pos_, a_los_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+  */
 
   md_data.push_back     
     ( MdRecord
@@ -177,6 +244,23 @@ void define_md_data()
 
 
 
+
+
+
+
+
+
+
+
+
+
+  //
+  // Below this line you find methods not touched for ARTS 2. 
+  // Please revise the documentation etc. before a methods is moved up.
+  // Place functions following some logic order. Put in new groups if
+  // necessary.
+  // Finally, all methods below the line will be removed.
+  //--------------------------------------------------------------------
 
 //======================================================================
 //=== IO methods
@@ -2375,84 +2459,6 @@ void define_md_data()
 	KEYWORDS(),
 	TYPES()));
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("hseSet"),
-	DESCRIPTION(
-          "Sets the vector of parameters for calculation of hydrostatic \n"
-          "equilibrium (*hse*). The on/off flag is set to 1. \n"
-          "\n"
-          "Type \"arts -d hse\" for more information. \n"
-          "\n"
-          "Keywords \n"
-          "  pref  : Pressure of the reference point. \n"
-          "  zref  : The geometrical altitude at pref. \n"
-          "  g0    : Gravitational acceleration at the geoid surface.\n"
-          "  niter : Number of iterations (1-2 should suffice normally)."),
-	OUTPUT( hse_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "pref",    "zref",    "g0",      "niter" ),
-	TYPES(    Numeric_t, Numeric_t, Numeric_t, Index_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("hseFromBottom"),
-	DESCRIPTION(
-          "As hseSet but uses the first values of p_abs and z_abs for pref\n"
-          "and zref, respectively.\n"
-          "\n"
-          "Keywords \n"
-          "  g0    : Gravitational acceleration at the geoid surface.\n"
-          "  niter : Number of iterations (1-2 should suffice normally)."),
-	OUTPUT( hse_ ),
-	INPUT( p_abs_, z_abs_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "g0",      "niter" ),
-	TYPES(    Numeric_t, Index_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("hseOff"),
-	DESCRIPTION(
-          "Turns off hydrostatic equilibrium. \n"
-          "\n"
-          "The on/off flag off *hse* is set to 0 and *hse* is set to be a \n"
-          "vector of length 1."),
-	OUTPUT( hse_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("hseCalc"),
-	DESCRIPTION(
-          "Ensures that 'z_abs' fulfills hydrostatic equilibrium. \n"
-          "\n"
-          "Nothing is done if the on/off flag of *hse* is set to 0. The \n"
-          "reference point, g at the ground and number of iterations \n"
-          "are taken from *hse*. \n"
-          "   The given altitudes (*z_abs*) are used as a first guess when \n"
-          "starting the calculations (to estimate g etc.). The altitude \n"
-          "variation of the gravitational acceleration is considered. The \n"
-          "average molecular weight is assumed to be 28.96 at all altitudes.\n"
-          "The amount of water vapour is taken into account. \n"
-          "    The calculations are repeated according to the number of \n"
-          "iterations specified. A higher number of iterations \n" 
-          "improves the accuracy, but one iteration should be normally \n"
-          "enough if *z_abs* already has reasonable values. Two iterations \n"
-          "should suffice for basically all applications."),
-	OUTPUT( z_abs_ ),
-	INPUT( z_abs_, p_abs_, t_abs_, h2o_abs_, r_geoid_, hse_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
 
 
 
@@ -2570,116 +2576,6 @@ void define_md_data()
 	TYPES()));
 
 
-//=== Refraction ==========================================================
 
-  md_data.push_back
-    ( MdRecord
-      ( NAME("refrSet"),
-	DESCRIPTION(
-           "Sets the refraction input arguments (refr, refr_model and \n"
-           "refr_lfac) to the specified values. \n"
-           "\n"
-           "Type \"arts -d refr\" etc. for more information on the input \n"
-           "arguments. See *refrCalc* for avaliable refraction models.\n"
-           "\n"
-           "Keywords:\n"
-           "     on    : On/off boolean.\n"
-           "     model : Name on parametization for the refractive index.\n"
-           "     lfac  : Length factor for ray tracing."  ),
-	OUTPUT( refr_, refr_lfac_, refr_model_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "on",  "model",  "lfac"    ),
-	TYPES(    Index_t, String_t, Index_t )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("refrOff"),
-  	DESCRIPTION(
-          "Sets the refraction boolean (*refr*) to zero and gives the other \n"
-          "refraction input arguments (*refr_lfac* and *refr_model*) dummy \n"
-          "values (that will give error messages if used)."),
-	OUTPUT( refr_, refr_lfac_, refr_model_ ),
-	INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("refrCalc"),
-	DESCRIPTION(
-           "Calculates the refractive index using the parameterization\n"
-           "specified by *refr_model*. \n"
-           "\n"
-           "If *refr* is set to zero, the refractive index is set to be an \n"
-           "empty vector. \n"
-           "\n"
-           "Existing parameterizations are: \n"
-           "\n"
-           "   'Unity': \n"
-           "      Sets the refractive index to 1 at all altitudes. \n"
-           "\n"
-           "   'Boudouris': \n"
-           "      Refractive index at microwave frequencies following \n"
-           "      Boudouris 1963. The k-parameter values were taken from \n"
-           "      Section 5.1.1 of the Janssen book. The Z parameters are \n"
-           "      set to 1. \n"
-           "\n"
-           "  'BoudourisDryAir': \n"
-           "      As Boudouris but setting the water content to zero. "),
-	OUTPUT(	refr_index_ ),
-	INPUT( 	p_abs_, t_abs_, h2o_abs_, refr_, refr_model_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES()));
-
-
-//======================================================================
-//=== Methods as Workspace Variables
-//======================================================================
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("AgendaDefine"),
-  	DESCRIPTION
-	( "Set up an agenda.\n"
-	  "\n"
-	  "A method list just contains indices (in md_data) of methods\n"
-	  "intended for sequential execution. Only methods without keyword\n"
-	  "arguments are allowed. It is the task of this method to\n"
-	  "set this up. For example, it must be checked, whether the given\n"
-	  "names really correspond to methods.\n"
-	  "\n"
-	  "Global Output:\n"
-	  "   ArrayOfIndex : The newly generated method list.\n"
-	  "\n"
-	  "Keywords:\n"
-	  "   methods      : An array of names of methods." ),
-	OUTPUT(  ),
-        INPUT(  ),
-	GOUTPUT( Agenda_ ),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES(),
-	AGENDAMETHOD( true )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("Main"),
-  	DESCRIPTION
-	( "Run the agenda that is specified inside the curly braces. ARTS\n"
-	  "controlfiles must define this method. It is executed automatically\n"
-	  "when ARTS is run on the controlfile." ),
-	OUTPUT(),
-        INPUT(),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS(),
-	TYPES(),
-	AGENDAMETHOD( true )));
 }
 
