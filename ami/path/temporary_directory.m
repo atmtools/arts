@@ -15,25 +15,28 @@
 
 function tmpdir = temporary_directory(tmparea)
 
-status = 0;
 
+startdir = pwd;
 
-while status ~= 1
+if ~exist(tmparea,'dir')
+  error(sprintf('The directory "%s" does not exist.',tmparea));  
+end
 
-  startdir = pwd;
+cd( tmparea );
 
-  if ~exist(tmparea,'dir')
-    error(sprintf('The directory "%s" does not exist.',tmparea)); 
-  end
+ready = 0;
 
-  cd( tmparea );
-
+while ~ready
+  
   tmpdir = sprintf('Tmp%d',floor(1e6*rand(1)));
 
-  status = mkdir(tmpdir);
-
-  cd( startdir );
+  if ~exist( tmpdir, 'dir' )
+    mkdir(tmpdir);
+    ready = 1;
+  end
 
 end
+
+cd( startdir );
 
 tmpdir = sprintf('%s/%s',tmparea,tmpdir);

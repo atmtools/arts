@@ -1,5 +1,13 @@
 2002-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-0-48
+
+	* ami/path/temporary_directory.m: Same functionality, but the function 
+	suddenly didn't work. The reason is most likely a change in how mkdir
+	works in Matlab 6.5 compared to earlier versions.
+
+2002-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-0-47
 
 	(From another computer than the last commit.)
