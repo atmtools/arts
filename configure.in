@@ -124,10 +124,5 @@ Makefile
       doc/emacs/Makefile
    m4/Makefile 
    src/Makefile 
-   data/Makefile 
-      data/atmosphere/Makefile 
-         data/atmosphere/fascod/Makefile
-      data/spectroscopy/Makefile 
-         data/spectroscopy/hitran96/Makefile 
 )
 

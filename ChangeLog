@@ -5,6 +5,8 @@
 	* data: Data directory and all subdirectories removed.
 	Use package arts-data!!!!
 
+	* configure.in: Removed Makefile entries for data dir and subdirs.
+	
 	* Makefile.am: Removed data from subdirectories.
 	
 
