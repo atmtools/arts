@@ -21,12 +21,13 @@ enum WsvGroup{
   Numeric_,
   VECTOR_,
   MATRIX_,
-  MATARRAY_,
+  ARRAYofMATRIX_,
+  ARRAYofVECTOR_,
   Los_,
 };
 
 // For consistency check:
-#define N_WSV_GROUPS 7
+#define N_WSV_GROUPS 8
 
 
 
@@ -34,12 +35,11 @@ enum WsvGroup{
 // === Definition of workspace variables of not basic types
 // ======================================================================
 
-#define MATARRAY ARRAY<MATRIX>
 
 /** Holds the data defining the line of sight (LOS) for 1D cases. 
     The structure has the following fields:
 
-      ARRAY<VECTOR>  p;
+      ARRAYofVECTOR  p;
       VECTOR         l_step;
       ARRAY<int>     ground;
       ARRAY<int>     start;
@@ -57,7 +57,7 @@ enum WsvGroup{
     Explain start and stop further !PE!
    */
 struct Los {
-  ARRAY<VECTOR>  p;
+  ARRAYofVECTOR  p;
   VECTOR         l_step;
   ARRAY<int>     ground;
   ARRAY<int>     start;
@@ -87,8 +87,8 @@ public:
   Numeric    t_ground;
   VECTOR     e_ground;
   Los        los; 
-  MATARRAY   source;
-  MATARRAY   trans;
+  ARRAYofMATRIX   source;
+  ARRAYofMATRIX   trans;
   VECTOR     y_space;
   VECTOR     y;
 };
@@ -104,13 +104,14 @@ public:
     defined. */ 
 class WsvP {
 public:
-  virtual operator string*()    { safety(); return NULL; };
-  virtual operator int*()       { safety(); return NULL; };
-  virtual operator Numeric*()   { safety(); return NULL; };
-  virtual operator VECTOR*()    { safety(); return NULL; };
-  virtual operator MATRIX*()    { safety(); return NULL; };
-  virtual operator MATARRAY*()  { safety(); return NULL; };
-  virtual operator Los*()       { safety(); return NULL; };
+  virtual operator string*()        { safety(); return NULL; };
+  virtual operator int*()           { safety(); return NULL; };
+  virtual operator Numeric*()       { safety(); return NULL; };
+  virtual operator VECTOR*()        { safety(); return NULL; };
+  virtual operator MATRIX*()        { safety(); return NULL; };
+  virtual operator ARRAYofMATRIX*() { safety(); return NULL; };
+  virtual operator ARRAYofVECTOR*() { safety(); return NULL; };
+  virtual operator Los*()           { safety(); return NULL; };
       
 private:
   /** Safety check. This is called by all the virtual conversion

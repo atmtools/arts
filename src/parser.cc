@@ -10,6 +10,7 @@ void SourceText::AppendFile(const string& name)
 {
   mSfLine.push_back(mText.size());
   mSfName.push_back(name);
+
   read_text_from_file(mText, name);    
 }
 
@@ -953,6 +954,8 @@ void parse(ARRAY<MRecord>& tasklist,
   ARRAY<size_t> input;
 
   out3 << "\nParsing:\n";
+
+  //  cout << text ;
 
   eat_whitespace(text);
 

@@ -41,7 +41,8 @@ void define_wsv_data()
   wsv_group_names.push_back("Numeric");
   wsv_group_names.push_back("VECTOR");
   wsv_group_names.push_back("MATRIX");
-  wsv_group_names.push_back("MATARRAY");
+  wsv_group_names.push_back("ARRAYofMATRIX");
+  wsv_group_names.push_back("ARRAYofVECTOR");
   wsv_group_names.push_back("Los");
 
   // As a primitive consistency check, compare the size of
@@ -193,22 +194,22 @@ void define_wsv_data()
   }
 
   {
-    static WsvPointer<MATARRAY> p(&workspace.source);
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.source);
     wsv_data.push_back
       (WsvRecord
        ("source",
 	"Mean source functions between the points of the LOS [W/(m3Hzsr)].",
-	MATARRAY_,
+	ARRAYofMATRIX_,
 	&p));
   }
 
   {
-    static WsvPointer<MATARRAY> p(&workspace.trans);
+    static WsvPointer<ARRAYofMATRIX> p(&workspace.trans);
     wsv_data.push_back
       (WsvRecord
        ("trans",
 	"The transmissions between the points of the LOS [-].",
-	MATARRAY_,
+	ARRAYofMATRIX_,
 	&p));
   }
 

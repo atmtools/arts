@@ -62,12 +62,17 @@ void read_text_from_stream(ARRAY<string>& text, istream& is)
 {
   string linebuffer;
 
-  // Read as long as `is' is good:
-  while (is)
+  // Read as long as `is' is good.
+  // Contary to what I understood from the book, the explicit check
+  // for eof is necessary here, otherwise the last line is read twice
+  // if it is not terminated by a newline character!
+  while (is && !is.eof())
     {
       // Read line from file into linebuffer:
       getline(is,linebuffer);
 
+      //      cout << "lb:" << linebuffer << '\n';
+      
       // Append to end of text:
       text.push_back(linebuffer);
     }

@@ -335,7 +335,7 @@ void losBasic(
 
 
 void sourceBasic(
-                    MATARRAY&   source,
+                    ARRAYofMATRIX&   source,
               const Los&        los,   
               const VECTOR&     p_abs,
               const VECTOR&     t_abs,
@@ -370,7 +370,7 @@ void sourceBasic(
 
 
 void transBasic(
-                    MATARRAY&   trans,
+                    ARRAYofMATRIX&   trans,
               const Los&        los,   
               const VECTOR&     p_abs,
               const MATRIX&     abs )
@@ -443,8 +443,8 @@ void yGeneral (
               const Los&        los,   
               const VECTOR&     f_abs,
               const VECTOR&     y_space,
-              const MATARRAY&   source,
-              const MATARRAY&   trans,
+              const ARRAYofMATRIX&   source,
+              const ARRAYofMATRIX&   trans,
               const VECTOR&     e_ground,
               const Numeric&    t_ground )
 {

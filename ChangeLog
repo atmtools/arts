@@ -1,3 +1,43 @@
+2000-04-29  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-16
+
+	* vecmat.h: Small changes to the text defining the allowed
+	matrix/vector operations. (In one instance it said `MATRIX' where
+	it probably should say `VECTOR'.)
+
+	* file.h: Fixed a strange bug: When the last line of a textfile
+	was not terminated by a newline character, it was read twice by
+	read_text_from_stream. Learned the following: If the end of stream 
+	s is reached, first s.eof() becomes true, but s is still
+	false. Only if one tries to read past the end does s become true. 
+
+	* Implemented ARRAYofMATRIX and ARRAYofVECTOR as standard
+	types. In particular, these are also now types of workspace
+	variables. Implemented IO functions for these:
+
+	Output:
+	ArrayOfMatrixWriteToFile,
+  	ArrayOfMatrixWriteToNamedFile,
+  	ArrayOfVectorWriteToFile,
+  	ArrayOfVectorWriteToNamedFile,
+
+	Input:
+	ArrayOfMatrixReadFromFile,
+  	ArrayOfVectorReadFromFile,
+
+	The file format is now always that of ArrayOfMatrix. All other
+	variables are treated as special cases with apropriate dimensions
+	set to 1. Only a single real output and only a single real input
+	function are used (that for ArrayOfMatrix). This means that other
+	types have to be converted to this type before writing or after
+	reading. This is not terribly efficient. Should there be
+	performance or memory problems later on, then we have to write
+	dedicated IO functions. The amount of code is probably about the
+	same, just to me the real IO seemed more difficult than the
+	conversions, hence I did it the way I did it.
+		
+	
 2000-04-12  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-15

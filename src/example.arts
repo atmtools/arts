@@ -1,14 +1,18 @@
-AllAbsExample{}
+#AllAbsExample{}
 
-VectorWriteToFile(p_abs){}
-	     
-MatrixWriteToFile(abs){}
+#VectorWriteToFile(p_abs){}
+            
+#MatrixWriteToFile(abs){}
 
-MatrixReadFromFile(abs){}
+#MatrixReadFromFile(abs){}
 
-MatrixWriteToNamedFile(abs){"dummy.abs.a"}
+#MatrixWriteToNamedFile(abs){"dummy.abs.a"}
 
-VectorReadFromFile(p_abs){}
+#VectorReadFromFile(p_abs){}
 
-VectorWriteToNamedFile(p_abs){"dummy.p_abs.a"}
+#VectorWriteToNamedFile(p_abs){"dummy.p_abs.a"}
+
+ArrayOfMatrixReadFromFile(source){}
+
+ArrayOfMatrixWriteToNamedFile(source){"dummy.source.a"}
 

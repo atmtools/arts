@@ -97,7 +97,7 @@ public:
 
   This part defines the MATRIX and VECTOR functionality that will be 
   maintained in ARTS. Other features can work, but avoid these as they
-  can be removed to future versions.
+  can be removed in future versions.
 
   The following definitions are used below
     MATRIX   A, B, C;
@@ -139,7 +139,7 @@ public:
              Creates a matrix of length i, and sets all the elements of 
              x to s.
 
-    MATRIX x(4, " 1  2  0  4 " );
+    VECTOR x(4, " 1  2  0  4 " );
              This example shows how to create a vector of length 4 with
              specified element values.
 
@@ -190,7 +190,7 @@ public:
              equal to the length of x. The reversed order, x*A, is not allowed.
 
     z = x+y, x-y  
-             Summation or difference of vectors. The both vectors must
+             Summation or difference of vectors. The two vectors must
              have the same length.
 
     z = emult(x,y)
@@ -574,6 +574,19 @@ public:
 
 
 /*------------------< End MATRIX and VECTOR operations >----------------*/
+
+
+/*---------------< Define Arrays of Matrices and Vectors >---------------*/
+
+/** An array of matrices. */
+typedef ARRAY<MATRIX> ARRAYofMATRIX;
+
+/** An array of vectors. */
+typedef ARRAY<VECTOR> ARRAYofVECTOR;
+
+// You can write variables of these types to stdout, simply by 
+// cout << x;
+
 
 
 #endif // vecmat_h
