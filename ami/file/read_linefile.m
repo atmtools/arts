@@ -215,15 +215,36 @@ function S = next_line( fid )
 
   while 1
 
-    %= Find field seperations
-    iblank = find( s == ' ' );
-
-    %= Pick out text until first blank
-    l = iblank(1) - 1;    
     i = i + 1;
-    S{i} = s(1:l);
 
-    %= Remove read text
+    %= Text field inside " "
+    %
+    if s(1) == '"'
+      %
+      iprims = find( s == '"' );
+      %
+      if length(iprims) < 2
+        error('Unmatched " found.');
+      end
+      %
+      S{i} = s(2:(iprims(2)-1));
+      %
+      l = iprims(2);
+
+    %= Other field
+    %
+    else
+
+      %= Find field seperations
+      iblank = find( s == ' ' );
+
+      %= Pick out text until first blank
+      l    = iblank(1) - 1;    
+      S{i} = s(1:l);
+
+    end
+
+    %= Remove used text
     s = s( (l+1):length(s) );
 
     %= Remove blanks at the start of s (if no-blanks, we are ready)

@@ -2,12 +2,21 @@
 % NAME:    h_mixer
 %
 %          Returns the H matrix for sideband filtering and mixer.
-%          The frequency grid valid for the mixer is also returned, but
-%          the original frequency values are returned, and not IF.
-%          The new frequency grid consists of all frequncies in F
-%          inside the primary band.
-%          The response of the sideband filter is normalised and the
-%          filter values (W_FILTER) do not need to be normalised.
+%
+%          The frequency grid valid after the mixer is also returned.
+%          The output frequencies are observed frequencies (not IF).
+%
+%          The new frequency grid includes:
+%             1. all frequencies of the primary band
+%             2. the frequencies of the image band which projection
+%                is inside the limits of the primary band
+%
+%          The image frequencies must cover the projection of all 
+%          frequencies of the primary band. 
+%
+%          The response of the sideband filter is normalised inside the
+%          function and the input filter values (W_FILTER) do not need 
+%          to be normalised.
 %
 % FORMAT:  [H,f_new] = h_mixer(f,za,lo,fprimary,f_filter,w_filter,o_filter)
 %
@@ -27,6 +36,7 @@
 % HISTORY: 99.11.18  Created for Skuld by Patrick Eriksson. 
 %          00.08.25  Adapted to AMI by Patrick Eriksson
 %          00.11.16  Included linear/cubic flag (PE) 
+%          02.01.05  Major revision to include image frequencies in f_new
 
 
 function [H,f_new] = h_mixer(f,za,lo,fprimary,f_filter,w_filter,o_filter,o_y)
@@ -90,6 +100,169 @@ end
 
 out(1,1);
 out(1,'Setting up mixer and sidenband filter transfer matrix (H).');
+
+
+%=== Create new frequency grid
+%
+if upper
+  fprim = f(ilo:nf);
+else
+  fprim = f(1:(ilo-1));
+end
+%
+fimband = 2*lo - [ last(fprim) fprim(1) ];
+%
+fimage  = f( find( f>=fimband(1) & f<=fimband(2) ) );
+%
+f_new = unique( [ fprim; 2*lo-fimage ] );
+%
+clear fprim fimage fimband
+%
+n_new = length( f_new );
+
+
+%=== Allocate vectors for row and col index and vector for weights
+%
+lrow = 2 * (o_y+1) * n_new * nza;
+%                   
+rows = zeros( 1, lrow );
+cols = zeros( 1, lrow );
+wgts = zeros( 1, lrow );
+%
+nrow = 0;
+
+
+%=== Half of the polynomial order
+%
+di = ceil( o_y/2 );
+
+
+%=== Loop frequencies in F_NEW
+%
+for i = 1 : n_new
+
+
+  out(2,sprintf('Doing frequency %d of %d',i,n_new));
+
+
+  %= Primary and image frequency
+  %
+  fprim  = f_new(i);
+  fimage = 2*lo - fprim;
+
+
+  %= Determine index in F of frequency just below F_NEW(I) and its image
+  % 
+  iprim  = max( find( f <= fprim ) ); 
+  iimage = max( find( f <= fimage ) ); 
+
+
+  %= Index for involved frequency points
+  %
+  if fprim == f(iprim)
+    ind_prim = iprim;
+  else
+    if upper
+      ind_prim  = [ max([iprim-di+1,ilo]) : min([iprim+di,nf]) ];
+    else
+      ind_prim  = [ max([iprim-di+1,1]) : min([iprim+di,ilo-1]) ];
+    end
+  end
+  %
+  if fimage == f(iimage)
+    ind_image = iimage;
+  else
+    if upper
+      ind_image = [ max([iimage-di+1,1]) : min([iimage+di,ilo-1]) ];
+    else
+      ind_image = [ max([iimage-di+1,ilo]) : min([iimage+di,nf]) ];
+    end
+  end
+
+
+  %=== Get sideband filter values
+  %
+  if ( o_filter == 1 )
+    w = interp1(f_filter,w_filter,[fprim,fimage],'linear');
+  else
+    w = interp1(f_filter,w_filter,[fprim,fimage],'cubic');
+  end
+
+
+  %=== Weights for primary band
+  %
+  np = length( ind_prim );
+  %
+  switch np
+    case 1 
+      wprim = 1;
+    case 2
+      wprim = pbasis( f(ind_prim) ) * [fprim;1];
+    case 3
+      wprim = pbasis( f(ind_prim) ) * [fprim^2;fprim;1];
+    case 4
+      wprim = pbasis( f(ind_prim) ) * [fprim^3;fprim^2;fprim;1];
+    otherwise
+      error('Index error for primary band (problem for PE!).');
+  end
+  wprim = wprim';
+
+
+  %=== Weights for image band
+  %
+  ni = length( ind_image );
+  %
+  switch ni
+    case 1 
+      wimage = 1;
+    case 2
+      wimage = pbasis( f(ind_image) ) * [fimage;1];
+    case 3
+      wimage = pbasis( f(ind_image) ) * [fimage^2;fimage;1];
+    case 4
+      wimage = pbasis( f(ind_image) ) * [fimage^3;fimage^2;fimage;1];
+    otherwise
+      error('Index error for image band (problem for PE!).');
+  end
+  wimage = wimage';
+
+
+  %= Fill rows, cols, wghts ...
+  %
+  for j = 1:nza
+
+    %=== Primary frequency
+    irow       = nrow + (1:np);
+    rows(irow) = i + (j-1)*n_new;
+    cols(irow) = ind_prim + (j-1)*nf;
+    wgts(irow) = wprim * w(1)/(w(1)+w(2));
+    nrow       = nrow + np;
+
+    %=== Image frequency
+    irow       = nrow + (1:ni);
+    rows(irow) = i + (j-1)*n_new;
+    cols(irow) = ind_image + (j-1)*nf;
+    wgts(irow) = wimage * w(2)/(w(1)+w(2));
+    nrow       = nrow + ni;
+
+  end
+
+end
+
+
+%=== Allocate H
+%
+H = sparse( rows(1:nrow), cols(1:nrow), wgts(1:nrow), n_new*nza, nf*nza );
+
+
+out(1,-1);
+
+
+return
+
+%===
+%=== Old code 
+%===
 
 
 %=== Some help variables

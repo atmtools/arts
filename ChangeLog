@@ -1,3 +1,24 @@
+2002-01-07  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-72
+
+	* ami/file/read_linefile.m: String inside " " were not read properly.
+	This is now fixed. 
+
+	* ami/hmatrix/h_mixer.m: Major revision of the function and approach
+	for the mixer. The output frequencies now include image frequencies
+	projected to the primary band. See the function for further 
+	specifications.
+
+	* ami/hmatrix/gaussian_response.m: Created and added this function that
+	can be used to simply create a gaussian response for any sensor part.
+
+	* ami/hmatrix/hBackendGauss.m: The function now uses 
+	gaussian_response to set up the antenna pattern.
+
+	* ami/hmatrix/hAntennaGaussAdv.m: The function now uses 
+	gaussian_response to set up the antenna pattern.
+
 2002-01-04  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-71

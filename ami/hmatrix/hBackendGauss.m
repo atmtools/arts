@@ -28,23 +28,23 @@
 
 % HISTORY: 00.08.25  Created by Patrick Eriksson. 
 %          00.11.16  Included linear/cubic flags (PE) 
+%          02.01.04  Moved calculation of response to dedicated function (PE)
 
 
 function [H,f_y,za_y,f_sensor] = ...
       hBackendGauss(H,f_sensor,za_sensor,f_centre,fwhm,width,spacing,o_ch,o_y)
 
 
-%=== Calculate the "standard deviation" corresponding to FWHM 
-si     = fwhm/sqrt(2*log(2))/2;
-
-
-%=== Set up zenith angle grid for antenna pattern
-npoints = ceil(width/spacing) + 1;
-f_back  = linspace( -width/2, width/2, npoints );
-
-
-%=== Calculate channel response at F_BACK
-back   = exp(-1*f_back.^2/(2*si*si))/si/sqrt(2*pi);
+%=== Create a gaussian response 
+%
+% width and spacing must be converted to "standard deviations"
+%
+si      = fwhm/sqrt(2*log(2))/2;
+%
+width   = width / si;
+spacing = si / spacing;
+% 
+[f_back,back] = gaussian_response( fwhm, width, spacing );
 
 
 %=== Get H for the backend

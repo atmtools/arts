@@ -32,23 +32,23 @@
 
 % HISTORY: 00.08.25  Created by Patrick Eriksson. 
 %          00.11.16  Included linear/cubic flags (PE) 
+%          02.01.04  Moved calculation of response to dedicated function (PE)
 
 
 function [H,f_y,za_y,za_sensor] = hAntennaGaussAdv(...
  H,f_sensor,za_sensor,za_obs,fwhm,width,spacing,o_ant,o_y,fscale,f0,move,dza)
 
 
-%=== Calculate the "standard deviation" corresponding to FWHM 
-si     = fwhm/sqrt(2*log(2))/2;
-
-
-%=== Set up zenith angle grid for antenna pattern
-npoints = ceil(width/spacing) + 1;
-za_ant  = linspace( -width/2, width/2, npoints );
-
-
-%=== Calculate antenna pattern at ZA_ANT
-ant    = exp(-1*za_ant.^2/(2*si*si))/si/sqrt(2*pi);
+%=== Create a gaussian response 
+%
+% width and spacing must be converted to "standard deviations"
+%
+si      = fwhm/sqrt(2*log(2))/2;
+%
+width   = width / si;
+spacing = si / spacing;
+% 
+[za_ant,ant] = gaussian_response( fwhm, width, spacing );
 
 
 %=== Get H for the antenna pattern
