@@ -21,3 +21,4 @@ auto_wsv.txt
 auto_wsv_groups.h
 auto_wsv_pointers.cc
 test_matpack
+test_tensor
