@@ -26,13 +26,15 @@ int main(void)
   Matrix xi_mat;
   Matrix f_z_mat;
   Numeric N_r;
+  Numeric BN_r;
+  Numeric AN_r;
   Numeric f_c;
   Numeric a1;
   Numeric a2;
 
 
   xml_read_from_file ("zeeman_intensity_coeff.xml", N);
-  for (int i=N.nrows()-18;i<N.nrows()-0;i++)
+  for (int i=N.nrows()-9;i<N.nrows()-8;i++)
     {
       N_r = N(i,0); 
       a1 = N(i,2);
@@ -48,7 +50,7 @@ int main(void)
 	  //f_grid[j]= f_c - 0.002 + 0.0000004*Numeric(j); //Numeric(j) - converts j in Numeric 
 	}
       
-      Zeeman(f_grid, ext_mat_zee, abs_vec_zee, xi_mat, f_z_mat, N_r, f_c, a1, a2);
+      Zeeman(f_grid, ext_mat_zee, abs_vec_zee, xi_mat, f_z_mat, N_r, AN_r, BN_r, f_c, a1, a2);
       
       ostringstream os1;
       ostringstream os2;
@@ -79,7 +81,7 @@ int main(void)
 	  string namestring5 = os5.str();
 	  xml_write_to_file(namestring5,xi_mat);
 	}
-      else
+      else if (N_r>0)
 	{
 	  os1 << "f_grid" << "_" << abs(N_r) << "+" << "_" << f_grid.nelem() << ".xml";
 	  string namestring1 = os1.str();

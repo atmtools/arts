@@ -1,3 +1,14 @@
+2003-04-23  Nikolay Koulev  <nkoulev@uni-bremen.de>
+	
+	* arts-1-1-528
+
+	* src/zeemanproperties.{cc,h}: Added the N- case of a Zeeman
+	transition. Added more comments for lucidity reasons.
+
+	* src/test_zeemanproperties.{cc}: Changed accordingly.
+
+
+	
 2003-04-23  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-527

@@ -21,6 +21,8 @@ void Zeeman (Vector& f_grid,
 	     Matrix& xi_mat,
 	     Matrix& f_z_mat,
 	     Numeric& N_r,
+	     Numeric& AN_r,
+	     Numeric& BN_r,
 	     Numeric& f_c,
 	     Numeric& a1,
 	     Numeric& a2);
