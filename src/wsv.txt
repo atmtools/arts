@@ -28,20 +28,12 @@ functions. The selected tag groups must be a subgroup of the
 tag groups defined for the absorption coefficient calculation.
 
 VARIABLE : lineshape
-DATA TYPE: ARRAYofsizet
+DATA TYPE: ARRAYofLineshapeSpec
 DESCRIPTION:
-Indices of lineshape functions. There is one entry for
+Lineshape specification: function, norm, cutoff. There is one entry for
 each abs_tag, not for each species. This means if you have several
 abs_tags for different isotopes or transitions of a species, you
 may use different lineshapes.
-
-VARIABLE : lineshape_norm
-DATA TYPE: ARRAYofsizet
-DESCRIPTION:
-Indices of normalizations to the lineshape functions. There is one
-entry for each abs_tag, not for each species. This means if you have
-several abs_tags for different isotopes or transitions of a species,
-you may use different lineshapes and normalizations.
 
 VARIABLE : raw_ptz_1d
 DATA TYPE: MATRIX

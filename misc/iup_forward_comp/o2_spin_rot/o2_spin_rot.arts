@@ -108,10 +108,12 @@ VectorWriteAscii (f_mono) {""}
 # define the lineshape to use
 # lineshapeDefine {shape="Voigt_Kuntz6"
 #                  normalizationfactor="quadratic"
+#                  cutoff=-1
 #                 }
 lineshape_per_tgDefine{
                        shape = ["Rosenkranz_Voigt_Kuntz6","Rosenkranz_Voigt_Kuntz6"]
                        normalizationfactor = ["quadratic","quadratic"]
+		       cutoff =[-1,-1]
                        }
 
 

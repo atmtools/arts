@@ -122,6 +122,7 @@ VectorWriteAscii (f_mono) {""}
 # define the lineshape to use
 lineshapeDefine {shape="Voigt_Kuntz6"
                  normalizationfactor="quadratic"
+		 cutoff=-1
                 }
 
 # define the water vapor vmr

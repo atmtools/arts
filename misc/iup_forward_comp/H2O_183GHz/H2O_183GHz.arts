@@ -8,12 +8,12 @@
 # create the workspace variable `lines':
 linesReadFromHitran {
    filename = "../../../data/spectroscopy/hitran96/hitran96_lowfreq.par"
-   fmin     = 183.3101e9
-   fmax     = 183.3102e9
+   fmin     = 183.30e9
+   fmax     = 183.32e9
 }
 
 # Optionally write the line list to a file:
-#linesWriteToFile{""} 
+linesWriteToFile{""} 
 
  
 # This defines the list of tag groups (`tag_groups'). Absorption
@@ -87,6 +87,7 @@ VectorWriteAscii (f_mono) {""}
 # define the lineshape to use
 lineshapeDefine {shape="Voigt_Kuntz3"
                  normalizationfactor="quadratic"
+		 cutoff=-1
                 }
 
 # Calculate absorption coefficients, both total (`abs') and 

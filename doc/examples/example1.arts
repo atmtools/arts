@@ -110,12 +110,14 @@ VectorWriteAscii (f_mono) {""}
 # lineshapeDefine{
 #               shape = "Voigt_Kuntz6" 
 #               normalizationfactor = "linear"
+#               cutoff = -1
 #               }
 
 # or set it separately for each tag
 lineshape_per_tgDefine{
 	shape = ["Voigt_Kuntz6","no_shape","Voigt_Kuntz6","Voigt_Kuntz6"]
 	normalizationfactor = ["quadratic","no_norm","linear","linear"]
+	cutoff = [-1,-1,-1,-1]
 }
 
 # Calculate absorption coefficients, both total (`abs') and 

@@ -1,5 +1,20 @@
 2001-02-07  Axel von_Engeln  <engeln@uni-bremen.de>
 
+	* arts-0-0-118
+
+	* lineshapeDefine additional keyword cutoff added, which defines
+	the cutoff frequency [Hz], -1 no cutoff
+
+	* lineshape_per_tgDefine additional keyword cutoff added, which
+	defines the cutoff frequency [Hz], -1 no cutoff
+
+	* lineshape is a workspace variable now that contains the index
+	to the lineshape, normalization function, and cutoff.
+
+	* Validation has only been performed with the no cutoff option.
+
+2001-02-07  Axel von_Engeln  <engeln@uni-bremen.de>
+
 	* arts-0-0-117
 
 	* abs_per_tgReduce workspace method nano little bug removed.

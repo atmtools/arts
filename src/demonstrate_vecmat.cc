@@ -45,8 +45,13 @@ main()
   cout << "New size of x: " << x.size() << "\n";
   cout << "x: " << x << "\n";
 
+  for (INDEX i = 0; i < x.size(); ++i)
+    x[i] = i;
+  
+  cout << "Re-initialize, x: " << x << "\n";
+
   erase_vector_element(x,3);
-  cout << "After erasing element 3: " << x.size() << "\n";
+  cout << "Size after erasing element 3: " << x.size() << "\n";
   cout << "x: " << x << "\n";
 
   cout << "a: " << a << "\n";
@@ -74,6 +79,9 @@ main()
   VECTOR::subrange_type xs(x(2,5));
   cout << "Same: " << xs << "\n";
 
+  x(2,5)[1] = 9999;
+
+  cout << "After changing middle element of sub range, x: " << x << "\n";
 
   // Demonstrate matrix features:
   cout << "\n"

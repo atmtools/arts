@@ -239,7 +239,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
        n_cat != fmax.size() )
     {
       ostringstream os;
-      os << "lineshape_per_tgReadFromCatalogues: All keyword\n"
+      os << "lines_per_tgReadFromCatalogues: All keyword\n"
 	 << "parameters must get the same number of arguments.\n"
 	 << "You specified:\n"
 	 << "filenames: " << n_cat         << "\n"
@@ -255,7 +255,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
   if ( n_cat > n_tg )
     {
       ostringstream os;
-      os << "lineshape_per_tgReadFromCatalogues: You specified more\n"
+      os << "lines_per_tgReadFromCatalogues: You specified more\n"
 	 << "catalugues than you have tag groups.\n"
 	 << "You specified:\n"
 	 << "Catalogues: " << n_cat << "\n"
@@ -269,7 +269,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
        n_tg   < 1 )
     {
       ostringstream os;
-      os << "lineshape_per_tgReadFromCatalogues: You must have at\n"
+      os << "lines_per_tgReadFromCatalogues: You must have at\n"
 	 << "least one catalogue and at least one tag group.\n"
 	 << "You specified:\n"
 	 << "Catalogues: " << n_cat << "\n"
@@ -320,7 +320,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
 		   fmax[i]    != real_fmax[that_cat] 	   )
 		{
 		  ostringstream os;
-		  os << "lineshape_per_tgReadFromCatalogues: If you specify the\n"
+		  os << "lines_per_tgReadFromCatalogues: If you specify the\n"
 		     << "same catalogue repeatedly, format, fmin, and fmax must be\n"
 		     << "consistent. There is an inconsistency between\n"
 		     << "catalogue " << that_cat << " and " << i << ".";
@@ -391,7 +391,7 @@ void lines_per_tgReadFromCatalogues(// WS Output:
       else
 	{
 	  ostringstream os;
-	  os << "lineshape_per_tgReadFromCatalogues: You specified the\n"
+	  os << "lines_per_tgReadFromCatalogues: You specified the\n"
              << "format `" << real_formats[i] << "', which is unknown.\n"
 	     << "Allowd formats are: HITRAN96, MYTRAN2, JPL, ARTS.";
 	  throw runtime_error(os.str());
@@ -556,6 +556,44 @@ void lines_per_tgCreateFromLines(// WS Output:
 
 }
 
+void lines_per_tgAddMirrorLines(// WS Output:
+                                ARRAYofARRAYofLineRecord& lines_per_tg)
+{
+  // output array
+  ARRAYofARRAYofLineRecord lpt_mirror( lines_per_tg.size() );
+
+  for (size_t i=0; i<lpt_mirror.size(); i++)
+    {
+      // make mirror lines the right size
+      resize( lpt_mirror[i], lines_per_tg[i].size() );
+      
+      copy( lines_per_tg[i], 
+	    lpt_mirror[i] );
+    }
+
+  for (size_t i=0; i<lpt_mirror.size(); i++)
+    {
+      // make lines_per_tg the right size
+      resize( lines_per_tg[i], lpt_mirror[i].size() * 2);
+
+      copy( strided(lpt_mirror[i],-1), 
+	    lines_per_tg[i](0,
+			  lpt_mirror[i].size() ) );
+      copy( lpt_mirror[i], 
+	    lines_per_tg[i](lpt_mirror[i].size(),
+			  2*lpt_mirror[i].size() ) );
+
+      // now loop through all lines of this tag group
+      for (size_t j=0; j<lpt_mirror[i].size(); j++)
+	{
+	  // and now set the frequency negativ
+	  lines_per_tg[i][j].setF( -lines_per_tg[i][j].F() );
+	}
+
+    }
+
+}
+
 
 void linesWriteToFile(// WS Input:
 		      const ARRAYofLineRecord& lines,
@@ -690,12 +728,12 @@ void tgsDefine(// WS Output:
 
 
 void lineshapeDefine(// WS Output:
-		     ARRAYofsizet&    lineshape,
-		     ARRAYofsizet&    lineshape_norm,
+		     ARRAYofLineshapeSpec&    lineshape,
 		     // WS Input:
-		     const TagGroups& tag_groups,
-		     const string&    shape,
-		     const string&    normalizationfactor)
+		     const TagGroups&         tag_groups,
+		     const string&            shape,
+		     const string&            normalizationfactor,
+		     const Numeric&           cutoff)
 {
   // Make lineshape and normalization factor data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
@@ -705,7 +743,6 @@ void lineshapeDefine(// WS Output:
   // generate the right number of elements
   size_t tag_sz = tag_groups.size();
   resize(lineshape,tag_sz);
-  resize(lineshape_norm,tag_sz);
 
   // Is this lineshape available?
   int found0=-1;
@@ -726,7 +763,11 @@ void lineshapeDefine(// WS Output:
       const string& str = lineshape_norm_data[i].Name();
       if (str == normalizationfactor) 
 	{
-	  out2 << "  Selected normalization factor: " << normalizationfactor << "\n";
+	  out2 << "  Selected normalization factor  : " << normalizationfactor << "\n";
+
+	  if ( (cutoff != -1) && (cutoff < 0.0) )
+	    throw runtime_error("  Cutoff must be -1 or positive.");
+	  out2 << "  Selected cutoff frequency [Hz] : " << cutoff << "\n";
 	  found1=i;
 	}
     }
@@ -739,21 +780,22 @@ void lineshapeDefine(// WS Output:
     throw runtime_error("Selected normalization to lineshape not available.");
 
 
-  // now set the lineshape and lineshape_norm workspace variables 
+  // now set the lineshape  
   for (size_t i=0; i<tag_sz; i++)
     {
-      lineshape[i]=(size_t) found0;
-      lineshape_norm[i]=(size_t) found1;
-    }	  
+      lineshape[i].SetInd_ls( found0 );
+      lineshape[i].SetInd_lsn( found1 );
+      lineshape[i].SetCutoff( cutoff );
+    }
 }
 
 void lineshape_per_tgDefine(// WS Output:
-			    ARRAYofsizet&         lineshape,
-			    ARRAYofsizet&         lineshape_norm,
+			    ARRAYofLineshapeSpec& lineshape,
 			    // WS Input:
 			    const TagGroups&      tag_groups,
 			    const ARRAYofstring&  shape,
-			    const ARRAYofstring&  normalizationfactor)
+			    const ARRAYofstring&  normalizationfactor,
+			    const VECTOR&         cutoff )
 {
   // Make lineshape and normalization factor data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
@@ -762,7 +804,8 @@ void lineshape_per_tgDefine(// WS Output:
   // check that the number of elements are equal
   size_t tg_sz = tag_groups.size();
   if ( (tg_sz != shape.size()) ||
-       (tg_sz != normalizationfactor.size()) )
+       (tg_sz != normalizationfactor.size()) || 
+       (tg_sz != cutoff.size()) )
     {
       ostringstream os;
       os << "lineshape_per_tgDefine: number of elements does\n"
@@ -773,7 +816,6 @@ void lineshape_per_tgDefine(// WS Output:
 
   // generate the right number of elements
   resize(lineshape,tg_sz);
-  resize(lineshape_norm,tg_sz);
 
   // Is this lineshape available?
   for (size_t k=0; k<tg_sz; ++k)
@@ -801,6 +843,9 @@ void lineshape_per_tgDefine(// WS Output:
 	  if (str == normalizationfactor[k]) 
 	    {
 	      out2 << "  Selected normalization factor: " << normalizationfactor[k] << "\n";
+	      if ( (cutoff[k] != -1) && (cutoff[k] < 0.0) )
+		throw runtime_error("  Cutoff must be -1 or positive.");
+	      out2 << "  Selected cutoff frequency    : " << cutoff[k] << "\n";
 	      found1=i;
 	    }
 	}
@@ -821,9 +866,10 @@ void lineshape_per_tgDefine(// WS Output:
 	  throw runtime_error(os.str());
 	}
 
-      // now set the lineshape and lineshape_norm workspace variables 
-      lineshape[k]=(size_t) found0;
-	  lineshape_norm[k]=(size_t) found1;
+      // now set the lineshape variables 
+      lineshape[k].SetInd_ls( found0 );
+      lineshape[k].SetInd_lsn( found1 );
+      lineshape[k].SetCutoff( cutoff[k] );
     }
 }
 
@@ -1169,8 +1215,7 @@ void h2o_absSet(
    \param    h2o_abs        total volume mixing ratio of water vapor
    \param    vmrs           volume mixing ratios per tag group
    \param    lines_per_tg   transition lines per tag group
-   \param    lineshape      lineshape to use per tag group
-   \param    lineshape_norm normalization of lineshape per tag group
+   \param    lineshape      lineshape specifications to use per tag group
 
 
    \author Axel von Engeln
@@ -1186,8 +1231,7 @@ void absCalc(// WS Output:
 	     const VECTOR&  		     h2o_abs,
              const ARRAYofVECTOR&            vmrs,
              const ARRAYofARRAYofLineRecord& lines_per_tg,
-	     const ARRAYofsizet&             lineshape,
-	     const ARRAYofsizet&             lineshape_norm)
+	     const ARRAYofLineshapeSpec&     lineshape)
 {
   // Dimension checks are performed in the executed functions
 
@@ -1202,8 +1246,7 @@ void absCalc(// WS Output:
 		  h2o_abs,
 		  vmrs,
 		  lines_per_tg,
-		  lineshape,
-		  lineshape_norm );
+		  lineshape );
 
 
   absCalcFromXsec(abs,
@@ -1304,8 +1347,7 @@ void absCalcFromXsec(// WS Output:
    \param    h2o_abs        total volume mixing ratio of water vapor
    \param    vmrs           volume mixing ratios per tag group
    \param    lines_per_tg   transition lines per tag group
-   \param    lineshape      lineshape to use per tag group
-   \param    lineshape_norm normalization of lineshape per tag group
+   \param    lineshape      lineshape specifications to use per tag group
 
    \author Stefan Bühler and Axel von Engeln
    \date   2001-01-11
@@ -1318,10 +1360,9 @@ void xsec_per_tgCalc(// WS Output:
 		    const VECTOR&  		     p_abs,
 		    const VECTOR&  		     t_abs,
 		    const VECTOR&  		     h2o_abs,
-		    const ARRAYofVECTOR&            vmrs,
-		    const ARRAYofARRAYofLineRecord& lines_per_tg,
-		    const ARRAYofsizet&             lineshape,
-		    const ARRAYofsizet&             lineshape_norm)
+		    const ARRAYofVECTOR&             vmrs,
+		    const ARRAYofARRAYofLineRecord&  lines_per_tg,
+		    const ARRAYofLineshapeSpec&      lineshape)
 {
   // Check that vmrs and lines_per_tg really have compatible
   // dimensions. In vmrs there should be one VECTOR for each tg:
@@ -1387,8 +1428,9 @@ void xsec_per_tgCalc(// WS Output:
 		    h2o_abs,
 		    vmrs[i],
 		    lines_per_tg[i],
-		    lineshape[i],
-		    lineshape_norm[i]);
+		    lineshape[i].Ind_ls(),
+		    lineshape[i].Ind_lsn(),
+		    lineshape[i].Cutoff());
 
       // 2. Handle continuum absorption
       // ------------------------------

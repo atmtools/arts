@@ -36,8 +36,8 @@ typedef void (*lsf_type)(VECTOR&,
 			 Numeric,
 			 Numeric,
 			 Numeric,
-			 const VECTOR&,
-			 const size_t);
+			 VECTOR::subrange_type,
+			 const INDEX);
 
 /** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
@@ -53,30 +53,20 @@ public:
   /** Initializing constructor, used to build the lookup table. */
   LineshapeRecord(const string& name,
 		  const string& description,
-		  Numeric       cutoff,
 		  lsf_type      function)
     : mname(name),
       mdescription(description),
-      mcutoff(cutoff),
       mfunction(function)
   { /* Nothing to do here. */ }
   /** Return the name of this lineshape. */
   const string&  Name()        const { return mname;        }   
   /** Return the description text. */
   const string&  Description() const { return mdescription; }
-  /** Return the cutoff frequency (in Hz). This is the distance from
-    the line center outside of which the lineshape is defined to be
-    zero. Negative means no cutoff.*/
-  Numeric Cutoff() const { return mcutoff; }
   /** Return pointer to lineshape function. */
   lsf_type Function() const { return mfunction; }
 private:	
   string  mname;        ///< Name of the function (e.g., Lorentz).
   string  mdescription; ///< Short description.
-  Numeric mcutoff;      /**< Cutoff frequency (in Hz). This is the
-  			     distance from the line center outside of
-			     which the lineshape is defined to be
-			     zero. Negative means no cutoff. */ 
   lsf_type mfunction;   ///< Pointer to lineshape function.
 
 };
@@ -85,8 +75,8 @@ private:
     normalization functions.  */
 typedef void (*lsnf_type)(VECTOR&,
 			  Numeric,
-			  const VECTOR&,
-			  const size_t);
+			  VECTOR::subrange_type,
+			  const INDEX);
 
 /** Lineshape related normalization function information. There is one
     LineshapeNormRecord for each available lineshape normalization
@@ -119,6 +109,53 @@ private:
   string  mdescription; ///< Short description.
   lsnf_type mfunction;  ///< Pointer to lineshape normalization function.
 };
+
+/** Lineshape related specification like which lineshape to use, the
+normalizationfactor, and the cutoff.
+
+    \author Axel von Engeln
+    \date   2001-01-05  */
+class LineshapeSpec{
+public:
+
+  /** Default constructor. */
+  LineshapeSpec(){};
+
+  /** Initializing constructor. */
+  LineshapeSpec(const size_t&    ind_ls,
+		const size_t&    ind_lsn,
+		const Numeric&   cutoff)
+    : mind_ls(ind_ls),
+      mind_lsn(ind_lsn),
+      mcutoff(cutoff)
+  { /* Nothing to do here. */ }
+
+  /** Return the index of this lineshape. */
+  const size_t&  Ind_ls()        const { return mind_ls; }   
+  /** Set it. */
+  void SetInd_ls( size_t ind_ls ) { mind_ls = ind_ls; }
+
+  /** Return the index of the normalization factor. */
+  const size_t&  Ind_lsn()       const { return mind_lsn; }
+  /** Set it. */
+  void SetInd_lsn( size_t ind_lsn ) { mind_lsn = ind_lsn; }
+
+  /** Return the cutoff frequency (in Hz). This is the distance from
+      the line center outside of which the lineshape is defined to be
+      zero. Negative means no cutoff.*/
+  const Numeric& Cutoff() const { return mcutoff; }
+  /** Set it. */
+  void SetCutoff( Numeric cutoff ) { mcutoff = cutoff; }
+private:	
+  size_t  mind_ls;
+  size_t  mind_lsn;
+  Numeric mcutoff;
+};
+
+/** Holds a list of lineshape specifications: function, normalization, cutoff.
+    \author Axel von Engeln */
+typedef ARRAY<LineshapeSpec> ARRAYofLineshapeSpec;
+
 
 
 /** Contains the lookup data for one isotope.
@@ -489,6 +526,9 @@ public:
 
   /** The line center frequency in <b> Hz</b>. */
   Numeric F() const     { return mf; }
+
+  /** Set the line center frequency in <b> Hz</b>. */
+  void setF( Numeric new_mf ) { mf = new_mf; }
 
   /** The pressure shift parameter in <b> Hz/Pa</b>. */
   Numeric Psf() const   { return mpsf; }
@@ -932,19 +972,19 @@ void write_lines_to_stream(ostream& os,
     \param h2o_abs Total volume mixing ratio of water vapor.
     \param vmr     Volume mixing ratio of the calculated species.
     \param lines   The spectroscopic line list.
-    \param ind_ls  Index to used lineshape function.
-    \param ind_lsn Index to used lineshape normalization function.
+    \param ind_ls  Lineshape specifications.
 
     \author Stefan Buehler and Axel von Engeln
     \date   2001-01-11 */
 void xsec_species( MATRIX&                 xsec,
-		  const VECTOR&  	   f_mono,
-		  const VECTOR&  	   p_abs,
-		  const VECTOR&  	   t_abs,           
-		  const VECTOR&  	   h2o_abs,           
-		  const VECTOR&            vmr,
-		  const ARRAYofLineRecord& lines,
-		  const size_t             ind_ls,
-		  const size_t             ind_lsn);
+		   const VECTOR&  	   f_mono,
+		   const VECTOR&  	   p_abs,
+		   const VECTOR&  	   t_abs,           
+		   const VECTOR&  	   h2o_abs,           
+		   const VECTOR&            vmr,
+		   const ARRAYofLineRecord& lines,
+		   const size_t             ind_ls,
+		   const size_t             ind_lsn,
+		   const Numeric            cutoff);
 
 #endif // absorption_h

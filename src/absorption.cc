@@ -1654,7 +1654,8 @@ void xsec_species( MATRIX&                  xsec,
 		   const VECTOR&            vmr,
 		   const ARRAYofLineRecord& lines,
 		   const size_t             ind_ls,
-		   const size_t             ind_lsn)
+		   const size_t             ind_lsn,
+		   const Numeric            cutoff)
 {
   // Make lineshape and species lookup data visible:
   extern const ARRAY<LineshapeRecord> lineshape_data;
@@ -1688,9 +1689,19 @@ void xsec_species( MATRIX&                  xsec,
 
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
-  // so many free store allocations.
-  VECTOR ls(nf);
-  VECTOR fac(nf);
+  // so many free store allocations.  the last element is used to
+  // calculate the value at the cutoff frequency
+  VECTOR ls(nf+1);
+  VECTOR fac(nf+1);
+
+  // we need a local copy of f_mono, because we append a possible
+  // cutoff to it, dimension nf or nf+1
+  long cut = (cutoff != -1) ? 1 : 0;
+  long nfl = nf+cut;
+  VECTOR f_local( nfl );
+  copy(f_mono(0,nf),f_local(0,nf));
+  // the baseline to substract for cutoff frequency
+  Numeric base=0.0;
 
   // Voigt generally needs a different frequency grid. If we allocate
   // that in the outer loop, insted of in voigt, we don't have the
@@ -1866,30 +1877,81 @@ void xsec_species( MATRIX&                  xsec,
 	  }
 
 
+	// iterators pointing at begin/end frequencies of f_mono or at
+	// the elements that have to be calculated in case of cutoff
+	VECTOR::const_iterator it_min = f_mono.begin();
+	VECTOR::const_iterator it_max = f_mono.end();
+	long it_min_ind = it_min.index();
+	long it_max_ind = it_max.index();
+
+	// cutoff ?
+	if ( cut )
+	  {
+	    // check whether we have elements in ls that have to be
+	    // set to zero at lower frequencies of f_mono
+	    if ( (F0 - cutoff) >= f_mono[0] )
+	      {
+		// loop through all frequencies, finding min value and
+		// set all values to zero on that way
+		while ( it_min != f_mono.end() && (F0 - cutoff) >= *it_min )
+		  {
+		    ls[it_min.index()] = 0;
+		    it_min++;
+		  }
+	      }
+	    // check whether we have elements in ls that have to be
+	    // set to zero at higher frequencies of f_mono
+	    if ( (F0 + cutoff) <= f_mono[nf-1] )
+	      {
+		it_max--;
+		// loop through all frequencies, finding max value and
+		// set all values to zero on that way
+		do 
+		  {
+		    ls[it_max.index()] = 0;
+		    it_max--;
+		  }
+		while ( it_max != f_mono.begin()-1 && (F0 + cutoff) <= *it_max );
+		it_max++;
+	      }
+	    // index to these iterators
+	    it_max_ind = it_max.index();
+	    it_min_ind = it_min.index();
+	    // number of frequencies to calculate
+	    nfl = it_max_ind - it_min_ind;
+	    // append the cutoff frequency
+	    f_local[it_max_ind-1] = F0 - cutoff;
+	  }
+
 
 	// Calculate the line shape:
-	lineshape_data[ind_ls].Function()(ls,
-					  aux,
-					  F0,
-					  gamma,
-					  sigma,
-					  f_mono,
-					  nf);
-
+	lineshape_data[ind_ls].Function()(ls,aux,F0,gamma,sigma,
+					  f_local(it_min_ind,it_max_ind),
+					  nfl);
 
 	// Calculate the chosen normalization factor:
- 	lineshape_norm_data[ind_lsn].Function()(fac,
-						F0,
-						f_mono,
-						nf);
+ 	lineshape_norm_data[ind_lsn].Function()(fac,F0,
+						f_local(it_min_ind,it_max_ind),
+						nfl);
 
+	// cutoff ?
+	if ( cut )
+	  {
+	    base = ls[nfl-1] * fac[nfl-1];
+	    // Add baseline to xsec:
+	    for ( long j=it_min_ind; j<it_max_ind; ++j )
+	      {
+		xsec[j][i] -= base;
+	      }
+	  }
+	
 
 
 	// Add line to xsec:
-	for ( size_t j=0; j<nf; ++j )
+	for ( long j=it_min_ind, j1=0; j<it_max_ind; ++j,++j1 )
 	  {
 	    xsec[j][i] += 
-	      n * intensity * ls[j] * fac[j];
+	      n * intensity * ls[j1] * fac[j1];
 	  }
       }
   }

@@ -53,10 +53,10 @@
 */
 void lineshape_no_shape(  VECTOR&       ls,
 			  VECTOR&       X,
-			  Numeric	     f0,
+			  Numeric	f0,
 			  Numeric       gamma,
 			  Numeric       sigma,
-			  const VECTOR& f_mono,
+			  VECTOR::subrange_type f_mono,
 			  const INDEX  nf)
 {
   // This function should never be called so throw an error here: 
@@ -82,13 +82,13 @@ void lineshape_lorentz(VECTOR&       ls,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       const VECTOR& f_mono,
+		       VECTOR::subrange_type f_mono,
 		       const INDEX  nf)
 {
   // PI:
   extern const Numeric PI;
 
-  assert( ls.size() == nf );
+  //  assert( ls.size() == nf );
 
   Numeric gamma2 = gamma * gamma;
   Numeric fac = gamma/PI;
@@ -116,14 +116,14 @@ void lineshape_doppler(VECTOR&       ls,
 		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       const VECTOR& f_mono,
+		       VECTOR::subrange_type f_mono,
 		       const INDEX  nf)
 {
   // SQRT(PI):
   extern const Numeric PI;
   static const Numeric sqrtPI = sqrt(PI);
 
-  assert( ls.size() == nf );
+  //  assert( ls.size() == nf );
 
   Numeric sigma2 = sigma * sigma;
   Numeric fac = 1.0 / (sqrtPI * sigma);
@@ -228,7 +228,7 @@ void lineshape_voigt_kuntz6(VECTOR&       ls,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    const VECTOR& f_mono,
+			    VECTOR::subrange_type f_mono,
 			    const INDEX  nf)
 
 {
@@ -639,7 +639,7 @@ void lineshape_voigt_kuntz3(VECTOR&       ls,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    const VECTOR& f_mono,
+			    VECTOR::subrange_type f_mono,
 			    const INDEX  nf)
 
 {
@@ -1009,7 +1009,7 @@ void lineshape_voigt_kuntz4(VECTOR&       ls,
 			    Numeric	  f0,
 			    Numeric       gamma,
 			    Numeric       sigma,
-			    const VECTOR& f_mono,
+			    VECTOR::subrange_type f_mono,
 			    const INDEX   nf)
 {
 
@@ -1390,7 +1390,7 @@ void lineshape_voigt_drayson(VECTOR&       ls,
 			     Numeric	     f0,
 			     Numeric       gamma,
 			     Numeric       sigma,
-			     const VECTOR& f_mono,
+			     VECTOR::subrange_type f_mono,
 			     const INDEX   nf)
 
 {
@@ -1551,7 +1551,7 @@ void lineshape_rosenkranz_voigt_kuntz6(VECTOR&       ls,
 				       Numeric	     f0,
 				       Numeric       gamma,
 				       Numeric       sigma,
-				       const VECTOR& f_mono,
+				       VECTOR::subrange_type f_mono,
 				       const INDEX   nf)
 {
 
@@ -1654,7 +1654,7 @@ void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
 					Numeric	     f0,
 					Numeric       gamma,
 					Numeric       sigma,
-					const VECTOR& f_mono,
+					VECTOR::subrange_type f_mono,
 					const INDEX   nf)
 {
 
@@ -1760,11 +1760,13 @@ void lineshape_rosenkranz_voigt_drayson(VECTOR&       ls,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(VECTOR&       fac,
 			    Numeric	  f0,
-			    const VECTOR& f_mono,
+			    VECTOR::subrange_type f_mono,
 			    const INDEX   nf)
 {
 
-  assert( fac.size() == nf );
+  // we can not use this assert anymore, because we pass subranges of
+  // f_mono here 
+  // assert( fac.size() == nf );
 
   for ( INDEX i=0; i<nf; ++i )
     {
@@ -1784,11 +1786,13 @@ void lineshape_norm_no_norm(VECTOR&       fac,
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(VECTOR&       fac,
 			   Numeric	 f0,
-			   const VECTOR& f_mono,
+			   VECTOR::subrange_type f_mono,
 			   const INDEX   nf)
 {
 
-  assert( fac.size() == nf );
+  // we can not use this assert anymore, because we pass subranges of
+  // f_mono here 
+  // assert( fac.size() == nf );
 
   for ( INDEX i=0; i<nf; ++i )
     {
@@ -1806,12 +1810,14 @@ void lineshape_norm_linear(VECTOR&       fac,
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_quadratic(VECTOR&       fac,
-			      Numeric	 f0,
-			      const VECTOR& f_mono,
-			      const INDEX  nf)
+			      Numeric	    f0,
+			      VECTOR::subrange_type f_mono,
+			      const INDEX   nf)
 {
 
-  assert( fac.size() == nf );
+  // we can not use this assert anymore, because we pass subranges of
+  // f_mono here 
+  // assert( fac.size() == nf );
 
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
@@ -1842,49 +1848,42 @@ void define_lineshape_data()
      ("no_shape",
       "This lineshape does nothing. It only exists, because formally\n"
       "you have to specify a lineshape also for continuum tags.", 
-      0,
       lineshape_no_shape));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Lorentz",
       "The Lorentz line shape.",
-      -1,
       lineshape_lorentz));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Doppler",
       "The Doppler line shape.",
-      -1,
       lineshape_doppler));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz6",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-6",
-      -1,
       lineshape_voigt_kuntz6));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz3",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-3",
-      -1,
       lineshape_voigt_kuntz3));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Kuntz4",
       "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-4",
-      -1,
       lineshape_voigt_kuntz4));
 
   lineshape_data.push_back
     (LineshapeRecord
      ("Voigt_Drayson",
       "The Voigt line shape. Approximation by Drayson.",
-      -1,
       lineshape_voigt_drayson));
 
   lineshape_data.push_back
@@ -1892,7 +1891,6 @@ void define_lineshape_data()
      ("Rosenkranz_Voigt_Kuntz6",
       "Rosenkranz lineshape for oxygen with overlap correction, "
       "at high altitudes Voigt_Kuntz6.",
-      -1,
       lineshape_rosenkranz_voigt_kuntz6));
 
   lineshape_data.push_back
@@ -1900,7 +1898,6 @@ void define_lineshape_data()
      ("Rosenkranz_Voigt_Drayson",
       "Rosenkranz lineshape for oxygen with overlap correction, "
       "at high altitudes Drayson.",
-      -1,
       lineshape_rosenkranz_voigt_drayson));
 
 }

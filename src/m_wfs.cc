@@ -1375,8 +1375,7 @@ void k_contabs (
    \param    t_abs             temperatures at p_abs
    \param    vmrs              VMR profiles at p_abs
    \param    lines_per_tg      lines tag sorted
-   \param    lineshape         index to lineshape function per tag
-   \param    lineshape_norm    index to lineshape normalization function
+   \param    lineshape         lineshape specifications: function, norm, cutoff
    \param    abs               total absorption
    \param    trans             transmissions         
    \param    e_ground          ground emissivity
@@ -1386,24 +1385,23 @@ void k_contabs (
    \date   2000-09-15
 */
 void k_temp_nohydro (
-		           MATRIX&          k,
-		           ARRAYofstring&   k_names,
-		           MATRIX&          k_aux,
-		     const TagGroups&       tag_groups,
-		     const LOS&             los,           
-		     const ARRAYofMATRIX&   absloswfs,
-		     const VECTOR&          f_mono,
-		     const VECTOR&          p_abs,
-		     const VECTOR&          t_abs,
-		     const VECTOR&          h2o_abs,	   
-		     const ARRAYofVECTOR&   vmrs,
-		     const ARRAYofARRAYofLineRecord& lines_per_tg,
-		     const ARRAYofsizet&    lineshape,
-		     const ARRAYofsizet&    lineshape_norm,
-		     const MATRIX&          abs,            
-		     const ARRAYofMATRIX&   trans,
-		     const VECTOR&          e_ground,
-		     const VECTOR&          k_grid )
+		           MATRIX&                        k,
+		           ARRAYofstring&                 k_names,
+		           MATRIX&                        k_aux,
+		     const TagGroups&                     tag_groups,
+		     const LOS&                           los,           
+		     const ARRAYofMATRIX&                 absloswfs,
+		     const VECTOR&                        f_mono,
+		     const VECTOR&                        p_abs,
+		     const VECTOR&                        t_abs,
+		     const VECTOR&                        h2o_abs,	   
+		     const ARRAYofVECTOR&                 vmrs,
+		     const ARRAYofARRAYofLineRecord&      lines_per_tg,
+		     const ARRAYofLineshapeSpec&          lineshape,
+		     const MATRIX&                        abs,            
+		     const ARRAYofMATRIX&                 trans,
+		     const VECTOR&                        e_ground,
+		     const VECTOR&                        k_grid )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
@@ -1459,7 +1457,7 @@ void k_temp_nohydro (
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
     absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, h2o_abs, vmrs, 
-             lines_per_tg, lineshape, lineshape_norm );
+             lines_per_tg, lineshape );
   }
   resize(abs_dummy,0);
   //
@@ -1841,28 +1839,27 @@ void kContAbsSpecifiedLimits (
    \date   2000-?-?
 */
 void kTempNoHydro (
-                    MATRIX&          k,
-                    ARRAYofstring&   k_names,
-                    MATRIX&          k_aux,
-                    const TagGroups&       tag_groups,
-		    const LOS&             los,           
-		    const ARRAYofMATRIX&   absloswfs,
-		    const VECTOR&          f_mono,
-		    const VECTOR&          p_abs,
-		    const VECTOR&          t_abs,
-		    const VECTOR&          h2o_abs,
-		    const ARRAYofVECTOR&   vmrs,
+                    MATRIX&                         k,
+                    ARRAYofstring&                  k_names,
+                    MATRIX&                         k_aux,
+                    const TagGroups&                tag_groups,
+		    const LOS&                      los,           
+		    const ARRAYofMATRIX&            absloswfs,
+		    const VECTOR&                   f_mono,
+		    const VECTOR&                   p_abs,
+		    const VECTOR&                   t_abs,
+		    const VECTOR&                   h2o_abs,
+		    const ARRAYofVECTOR&            vmrs,
 		    const ARRAYofARRAYofLineRecord& lines_per_tg,
-		    const ARRAYofsizet&    lineshape,
-		    const ARRAYofsizet&    lineshape_norm,
-		    const MATRIX&          abs,            
-		    const ARRAYofMATRIX&   trans,
-		    const VECTOR&          e_ground,
-		    const VECTOR&          k_grid )
+		    const ARRAYofLineshapeSpec&     lineshape,
+		    const MATRIX&                   abs,            
+		    const ARRAYofMATRIX&            trans,
+		    const VECTOR&                   e_ground,
+		    const VECTOR&                   k_grid )
 {
   k_temp_nohydro( k, k_names, k_aux, tag_groups, los, absloswfs, f_mono, p_abs,
                   t_abs, h2o_abs, vmrs, lines_per_tg, lineshape, 
-                  lineshape_norm, abs, trans, e_ground, k_grid );
+                  abs, trans, e_ground, k_grid );
 }
 
 

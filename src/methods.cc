@@ -1067,6 +1067,20 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("lines_per_tgAddMirrorLines"),
+  	DESCRIPTION(
+          "Adds mirror lines at negative frequencies to the lines_per_tg.\n"
+	  "For each line at frequency +f in lines_per_tg a corresponding\n"
+	  "entry at frequency -f is added to lines_per_tg."),
+	OUTPUT(   lines_per_tg_      ),
+	INPUT(    lines_per_tg_      ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("linesWriteToFile"),
   	DESCRIPTION(
           "Write the content of the workspace variable lines to the\n"
@@ -1121,12 +1135,12 @@ void define_md_data()
 	  "Normalization Factors:  no_norm: 1 linear: f/f0  quadratic: (f/f0)^2.\n"
 	  "Example:\n"
 	  "shape=\"Lorentz\" normalizationfactor=\"linear\""),
-	OUTPUT( lineshape_, lineshape_norm_ ),
+	OUTPUT( lineshape_ ),
 	INPUT( tag_groups_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(  "shape",    "normalizationfactor" ),
-	TYPES(     string_t,        string_t )));
+	KEYWORDS(  "shape",    "normalizationfactor",  "cutoff" ),
+	TYPES(     string_t,        string_t,         Numeric_t )));
 
   md_data.push_back
     ( MdRecord
@@ -1139,12 +1153,12 @@ void define_md_data()
 	  "Example:\n"
 	  "shape=[\"Lorentz\",\"Voigt_Kuntz6\"] \n"
 	  "normalizationfactor=[\"linear\", \"quadratic\"]"),
-	OUTPUT( lineshape_ , lineshape_norm_ ),
+	OUTPUT( lineshape_ ),
 	INPUT( tag_groups_ ),
 	GOUTPUT(),
 	GINPUT(),
-	KEYWORDS(  "shape",           "normalizationfactor" ),
-	TYPES(   ARRAY_string_t,         ARRAY_string_t )));
+	KEYWORDS(  "shape",           "normalizationfactor",    "cutoff" ),
+	TYPES(   ARRAY_string_t,         ARRAY_string_t,        VECTOR_t )));
 
 
 //=== Input Atmosphere methods ===========================================
@@ -1271,7 +1285,7 @@ void define_md_data()
 		    "absorption per tag group."),
 	OUTPUT(	    abs_  , abs_per_tg_                         ),
 	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
-		    lineshape_, lineshape_norm_ ),
+		    lineshape_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1295,8 +1309,8 @@ void define_md_data()
       ( NAME("xsec_per_tgCalc"),
 	DESCRIPTION("Calculate cross sections per tag group."),
 	OUTPUT(	    xsec_per_tg_                             ),
-	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, 
-		    lineshape_, lineshape_norm_ ),
+	INPUT( 	    tag_groups_, f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, 
+		    lines_per_tg_, lineshape_ ),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -1693,7 +1707,7 @@ void define_md_data()
           "hydrostatic equilibrium."),
 	OUTPUT( k_, k_names_, k_aux_ ),
 	INPUT( tag_groups_, los_, absloswfs_, f_mono_, p_abs_, t_abs_, 
-               h2o_abs_, vmrs_, lines_per_tg_, lineshape_, lineshape_norm_, 
+               h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
                abs_, trans_, e_ground_, k_grid_ ),
 	GOUTPUT(),
 	GINPUT(),
@@ -2473,7 +2487,6 @@ void define_md_data()
 	OUTPUT( ybatch_ ),
 	INPUT( // Variables needed for absCalc
                f_mono_, p_abs_, t_abs_, h2o_abs_, vmrs_, lines_per_tg_, lineshape_, 
-               lineshape_norm_,
                // Additional variables for losCalc
 	       z_abs_, z_plat_ ,za_pencil_, l_step_, refr_, l_step_refr_, 
                refr_index_, z_ground_, r_geoid_,

@@ -353,7 +353,12 @@ min(const ARRAY<T>& a)
 template <class T>
 void resize(ARRAY<T>& x, INDEX n)
 {
-  x.resize(n);
+  //  x.resize(n);   DANGEROUS!
+
+  // We have to do it like that here, otherwise we get problems with
+  // the initialization of ARRAYs of ARRAYs. This would be inefficient
+  // for STL based ARRAYs!
+  x = ARRAY<T>(n);
 }
 
 void resize(VECTOR& x, INDEX n);
