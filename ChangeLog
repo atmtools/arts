@@ -1,4 +1,11 @@
 2003-12-08  Mashrab Kuvatov  <kmashrab@sat.physik.uni-bremen.de>
+	
+	* arts-1-0-147
+	
+	* src/atm_funcs.h: Forgot to add e_eq_water and e_eq_ice into this
+	file.
+
+2003-12-08  Mashrab Kuvatov  <kmashrab@sat.physik.uni-bremen.de>
 
 	* arts-1-0-146
 	

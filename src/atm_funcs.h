@@ -203,4 +203,8 @@ Numeric ztan_refr(
         ConstVectorView    refr_index,
         const Numeric   r_geoid );
 
+Vector e_eq_water( Vector      t);
+
+Vector e_eq_ice( Vector      t);
+
 #endif // atmfuncs_h
