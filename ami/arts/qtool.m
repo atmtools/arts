@@ -28,13 +28,17 @@
 %             All logical expressions of Matlab can be used.
 %
 %           3. Inline functions
-%             If a §-sign is found in the first column, the rest of the
+%             If a @-sign is found in the first column, the rest of the
 %             line is treated to be the name of a function writing text
 %             to the control file.
 %             This function will then be called with Q and the control 
-%             file identifier as input. For example "§some_fun" will 
+%             file identifier as input. For example "@some_fun" will 
 %             result in a function call as "some_fun(Q,fid)". 
 %
+%           A field with name FILESEP will be added to Q. This field is 
+%           set to the file seperator for the platform (a string). A 
+%           folder and a file name of Q are thus combined in the template
+%	    as: $Q.CALCGRIDS_DIR$$Q.FILESEP$$Q.F_MONO$
 %
 % FORMAT:   [cfile,basename] = qtool(Q,tmpdir,template [,QE])
 %
@@ -60,6 +64,11 @@ end
 %
 basename = [tmpdir,'/out'];
 cfile    = [basename,'.arts']; 
+
+
+%=== Set file sperator for the computer platfom ===============================
+%
+Q.FILESEP = filesep;
 
 
 %=== Open template reading and cfile for writing
@@ -140,7 +149,7 @@ while 1
     if do_this & do
 
       %= Check first if any "inline" function shall be called
-      if s(1) == '§'
+      if s(1) == '@'
         %
         eval([ s(2:(length(s)-1)), '(Q,fid_out);' ])
 

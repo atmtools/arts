@@ -92,9 +92,8 @@ ind1      = 1:nf1;
 for i = 1:nf2
  
   out(2,sprintf('Doing frequency %d of %d',i,nf2));
-    
-  f   = f1 - f2(i);
 
+  f   = f1 - f2(i);
   w    = h_weights_integr(f,o_y,f_back,o_ch,w_back);
   w    = w/sum(w);
   ind3 = find(w~=0);
@@ -119,6 +118,7 @@ for i = 1:nf2
     nrow       = nrow + nw;
     %H(i+(j-1)*nf2,ind2(ind3)) = w(ind3);
   end
+
 end
 
 

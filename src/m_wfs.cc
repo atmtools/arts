@@ -2407,6 +2407,122 @@ void kTemp (
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
+   \date   2002-07-17
+*/
+void kFrequencyOffSet (
+                Matrix&                      k,
+                ArrayOfString&               k_names,
+                Matrix&                      k_aux,
+          const TagGroups&                   tgs,
+          const Vector&                      f_mono,
+          const Vector&                      p_abs,
+          const Vector&                      t_abs,
+          const Vector&                      n2_abs,
+          const Vector&                      h2o_abs,
+          const Matrix&                      vmrs,
+          const ArrayOfArrayOfLineRecord&    lines_per_tg,
+          const ArrayOfLineshapeSpec&        lineshape,
+          const Vector&                      e_ground,
+          const Index&                       emission,
+          const ArrayOfString&               cont_description_names,
+          const ArrayOfVector& 	             cont_description_parameters,
+          const ArrayOfString&               cont_description_models,
+          const Los&                         los,           
+          const Numeric&                     t_ground,
+    	  const Vector&     		     y_space,
+    	  const Vector&     		     y,
+	  // Keywords
+          const Numeric&                     delta,
+          const String&                      f_unit )
+{
+  check_if_bool( emission, "emission" );
+  check_lengths( p_abs, "p_abs", t_abs, "t_abs" );  
+  check_lengths( p_abs, "p_abs", h2o_abs, "h2o_abs" );  
+  check_lengths( p_abs, "p_abs", n2_abs, "n2_abs" );  
+  check_length_ncol( p_abs, "p_abs", vmrs, "vmrs" );
+  //
+  if ( any_ground(los.ground) )  
+  {
+    if ( t_ground <= 0 )
+      throw runtime_error(
+          "There are intersections with the ground, but the ground\n"
+          "temperature is set to be <=0 (are dummy values used?).");
+    if ( e_ground.nelem() != f_mono.nelem() )
+      throw runtime_error(
+          "There are intersections with the ground, but the frequency and\n"
+          "ground emission vectors have different lengths (are dummy values\n"
+          "used?).");
+  }
+  if ( emission ) 
+    check_lengths( f_mono, "f_mono", y_space, "y_space" );
+
+
+  // Check frequency unit
+  //
+  Numeric scfac;
+  //
+  if ( f_unit == "Hz" )
+    scfac = 1.0;
+  else if ( f_unit == "kHz" )
+    scfac = 1000;
+  else if ( f_unit == "MHz" )
+    scfac = 1e6;
+  else
+    throw runtime_error("Allowed frequency units are \"Hz\", \"kHz\" and "
+                                                                   "\"MHz\".");
+
+
+  // Create the disturbed f_mono
+  //
+  Index    nv     = f_mono.nelem();      // number of frequencies
+  Numeric  fdelta = scfac * delta;
+  //
+  Vector f_dist(nv);
+  //
+  for( Index ii=0; ii<nv; ii++ )
+    { f_dist[ii] = f_mono[ii] + fdelta; }
+
+
+  // Calculate new spectra 
+  Matrix         abs;
+  ArrayOfMatrix  abs_dummy;
+  out2 << "  ----- Messages from absCalc: --------\n";
+  absCalc( abs, abs_dummy, tgs, f_dist, p_abs, t_abs, n2_abs, h2o_abs, vmrs, 
+	            lines_per_tg, lineshape, cont_description_names, 
+       	                 cont_description_models, cont_description_parameters);
+  ArrayOfMatrix source, trans;
+  out2 << "  ----- Messages from sourceCalc: -----\n";
+  sourceCalc( source, emission, los, p_abs, t_abs, f_mono );
+  out2 << "  -------------------------------------\n";
+  out2 << "  ----- Messages from transCalc: ------\n";
+  transCalc( trans, los, p_abs, abs );
+  out2 << "  -------------------------------------\n";
+  Vector y_new;
+  out2 << "  ----- Messages from yRte: -----------\n";
+  yCalc( y_new, emission, los, f_mono, y_space, source, trans, 
+                                                         e_ground, t_ground );
+  out2 << "  -------------------------------------\n";
+
+  // Make k one-column matrix of the right size:
+  nv = y.nelem();
+  k.resize( nv, 1 );
+
+  // k = (y_new - y) / delta
+  for( Index ii=0; ii<nv; ii++ )
+    { k(ii,0) = ( y_new[ii] - y[ii] ) / delta; }
+
+  k_names.resize( 1 );
+  k_names[0] = "Frequency: off-set";
+  k_aux.resize( 1, 2 );
+  k_aux = 0.0;			// Matpack can set all elements like this.
+}
+
+
+
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
    \date   2001-01-21
  */
 void kPointingOffSet(
@@ -2478,24 +2594,17 @@ void kPointingOffSet(
   k.resize( nv, 1 );
 
   // k = (y_new - y) / delta
-  k = y_new;			
-  k -= y;
-  k /= delta;
-
-  /* With Matpack, you can use scalar, vector, or matrix +=,-=,*=, and
-     /= operators. They all act element-vise. 
-     Vectors behave like 1-column matrices, therefore copying y_new to
-     k works. 
-
-     This is the old code. Isn't it much nicer now?
-     Vector dummy( nv );
-     add( y_new, scaled(y,-1), dummy );
-     copy( scaled(dummy,1/delta), columns(k)[0] ); */
+  // k = (y_new - y) / delta
+  for( Index ii=0; ii<nv; ii++ )
+    { k(ii,0) = ( y_new[ii] - y[ii] ) / delta; }
+  //k = y_new;			
+  //k -= y;
+  //k /= delta;
 
   k_names.resize( 1 );
   k_names[0] = "Pointing: off-set";
   k_aux.resize( 1, 2 );
-  k_aux = 0.0;			// Matpack can set all elements like this.
+  k_aux = 0.0;
 }
 
 

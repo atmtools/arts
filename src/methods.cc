@@ -3212,11 +3212,38 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("kFrequencyOffSet"),
+  	DESCRIPTION(
+          "Calculates the weighting function (WF) for a frequency off-set.\n"
+          "\n"
+          "The Wf is simply the difference between *y* and the spectrum \n"
+          "obtained when adding *delta* to *f_mono*, diveded by *delta*.\n"
+          "That is, a pure perturbation calculation is performed. \n"
+          "\n"
+          "   The WF can be calculated for different frequency units,\n"
+	  "selected by the keyword *f_unit*.\n"
+          "\n"
+          "Keywords \n"
+          "  delta  : Size of frequency perturbation (in units of *l_unit*).\n"
+          "  l_unit : Frequency unit. Avaliable units are \"Hz\", \"kHz\"\n"
+          "           \"MHz\"." ),
+	OUTPUT( k_, k_names_, k_aux_ ),
+	INPUT( tgs_, f_mono_, p_abs_, t_abs_, n2_abs_, h2o_abs_, vmrs_, 
+          lines_per_tg_, lineshape_, e_ground_, emission_, 
+	  cont_description_names_, cont_description_parameters_,
+          cont_description_models_, los_, t_ground_, y_space_, y_ ),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS( "delta",   "f_unit"  ),
+	TYPES(    Numeric_t, String_t  )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("kPointingOffSet"),
   	DESCRIPTION(
           "Calculates the WF for a pointing off-set.\n"
           "\n"
-          "The Wf is siimply the difference between *y* and the spectrum \n"
+          "The Wf is simply the difference between *y* and the spectrum \n"
           "obtained when adding *delta* to *za_pencil*, diveded by *delta*.\n"
           "That is, a pure perturbation calculation is performed. \n"
           "\n"

@@ -1,3 +1,16 @@
+2002-07-17  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-0-37
+
+	* src/m_wfs.cc (kFrequencyOffSet): Added calculation of WF for 
+	frequency off-sets (a constant shift of all frequencies in f_mono).
+	The WSM is kFrequencyOffSet.
+
+	* ami/arts/arts.m: This function now uses more elaborated ways to call
+	arts from Matlab for Unix and DOS/Windows. The return argument from
+	arts is now catched for those platforms and a Matlab error is given
+	if there is an arts error.
+
 2002-07-01  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-1-0-36
