@@ -20,9 +20,9 @@ int main()
       ofstream ofs;
       open_output_file(ofs,"wsv_pointers.cc");
 
-      ofs << "/*! \\file  wsv_pointers.cc\n"
-	  << "    \\brief Defines the smart pointers that are used by\n"
-	  << "            the engine to access workspace variables.\n\n"
+      ofs << "/** \\file  wsv_pointers.cc\n"
+	  << "    Defines the smart pointers that are used by\n"
+	  << "    the engine to access workspace variables.\n\n"
 
 	  << "    This file was generated automatically by make_wsv_pointers_cc.cc.\n"
 
@@ -38,12 +38,13 @@ int main()
 	  << "#include \"wsv_aux.h\"\n"
 	  << "#include \"wsv.h\"\n\n";
 
-      ofs << "ARRAY<WsvP*> wsv_pointers;\n\n";
+      ofs << "/** The array of WSV pointers.\n"
+	  << "    This can be used to access a WSV by its index. */\n"
+	  << "ARRAY<WsvP*> wsv_pointers;\n\n";
       
-      ofs << "void define_wsv_pointers()\n"
-	  << "{\n"
-	  << "  /* Make global data visible. */\n"
-	  << "  extern WorkSpace workspace;\n\n";
+      ofs << "void define_wsv_pointers(ARRAY<WsvP*>&    wsv_pointers,\n"
+	  << "                         WorkSpace&       workspace)\n"
+	  << "{\n\n";
 
       // Now write the pointers one by one:
       for (size_t i=0; i<n_wsv; ++i)

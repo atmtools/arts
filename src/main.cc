@@ -20,12 +20,17 @@
 #include "messages.h"
 #include "exceptions.h"
 #include "file.h"
-#include "wsv.h"		// Automatically generated!
 #include "wsv.h"
 #include "methods.h"
 #include "parser.h"
 #include "md.h"
 #include "absorption.h"
+
+
+// This must be here rather than in arts.h, because arts.h does not
+// know about ARRAY.
+void define_wsv_pointers(ARRAY<WsvP*>&    wsv_pointers,
+                         WorkSpace&       workspace);
 
 
 /** Print the error message and exit. */
@@ -510,7 +515,16 @@ int main (int argc, char **argv)
   define_wsv_data();
 
   // Initialize wsv pointers:
-  define_wsv_pointers();
+  {
+    // We need to make the workspace and the wsv_pointers visible for
+    // a moment. This is because the pointers will be inititalized for
+    // this particular workspace. There can be other (local)
+    // workspaces, which have their own pointers associated with
+    // them. 
+    extern WorkSpace workspace;
+    extern ARRAY<WsvP*> wsv_pointers;
+    define_wsv_pointers(wsv_pointers,workspace);
+  }
 
   // Initialize MdMap
   define_md_map();

@@ -1,3 +1,13 @@
+2000-09-20  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-52
+
+	* main.cc, make_wsv_pointers_cc.cc: Changed the define_wsv_pointer
+	to make local workspaces possible. (So far it was only possible to
+	have one global workspace. Now multiple workspaces can coexist,
+	each with their own pointers arrays.)
+	
+
 2000-09-19  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-0-0-51
