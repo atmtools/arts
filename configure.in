@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.711)
+AM_INIT_AUTOMAKE(arts,1.1.712)
 
 AM_MAINTAINER_MODE
 
@@ -401,6 +401,8 @@ fi
 
 AC_SUBST(CXXFLAGS_FIXED)
 
+AM_CONDITIONAL(COMPILE_FLAGS, test "$CXXFLAGS")
+AC_DEFINE_UNQUOTED(COMPILE_FLAGS, "$CXXFLAGS", Compile Flags)
 
 AC_OUTPUT([
 arts.spec
