@@ -39,5 +39,5 @@
 Numeric
 legendre_polynomial (Index l, Index m, Numeric x);
 
-#endif  /* poly_roots_h */
+#endif  /* legendre_h */
 
