@@ -1,3 +1,9 @@
+2003-04-30  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-533
+
+	* configure.in: Added option --with-mpi to support MPI.
+
 2003-04-25  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-532
