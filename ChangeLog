@@ -1,3 +1,14 @@
+2003-10-20  Mattias Ekström  <ekstrom@rss.chalmers.se> 
+
+	* arts-1-1-703
+
+	* src/m_cloudbox.cc: Changed CloudboxSetIncomingForTauCalc1D, so that it
+	calls rte_calc. This is acctually unnecessary, but set sets some
+	underlying parameters correctly.
+
+	* src/methods.cc: Changed CloudboxSetIncomingForTauCalc1D to accomodate
+	for the rte_calc call.
+
 2003-10-17  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-702
