@@ -2735,32 +2735,18 @@ void define_md_data()
     ( MdRecord
       ( NAME("kContAbs"),
   	DESCRIPTION(
-          "Calculates 1D weighting functions for fit of continuum absorption\n"
-          "by polynomials with selectable order.\n"  
-          "The continuum is fitted be determining an off-set at a number of\n"
-          "points (order+1) that are evenly spread between the lowest and\n"
-          "highest frequency of f_mono.\n"
-          "\n"
-          "Keywords \n"
-          "  order : Polynomial order (>=0)."),
-	OUTPUT( k_, k_names_, k_aux_ ),
-	INPUT( los_, absloswfs_, f_mono_, k_grid_ ),
-	GOUTPUT(),
-	GINPUT(),
-	KEYWORDS( "order" ),
-	TYPES(    Index_t   )));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("kContAbsSpecifiedLimits"),
-  	DESCRIPTION(
-          "Calculates 1D weighting functions for fit of continuum absorption\n"
-          "by polynomials with selectable order.\n"
-          "The continuum is fitted be determining an off-set at a number of\n"
-          "points (order+1) that are evenly spread between the given\n"
-          "frequency limits.\n"
-          "This functions can be used to make seperate fits in the primary\n"
-          "and image bands.\n"
+          "Calculates weighting functions (WFs) for polynomial fit of \n"
+          "continuum  absorption. \n"
+          "\n"  
+          "The continuum is fitted by determining an off-set at a number of \n"
+          "points (order+1) that are evenly spread between the lowest and \n"
+          "upper frequency limit. See AUG for more details.\n"
+          "   If the limits are set to be negative, *f_low* is set to the \n"
+          "first value of *f_mono*, and *f_high* to the last value of \n"
+          "*f_mono*. The frequency limits cannot be outside the range of \n"
+          "*f_mono*. \n"
+          "   The WFs for each frequency point are kept together, and the \n"
+          "WF matrix for the different frequency points are appended. \n"
           "\n"
           "Keywords \n"
           "  order : Polynomial order (>=0). \n"
