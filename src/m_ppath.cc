@@ -17,22 +17,29 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
 /*!
   \file   m_ppath.cc
-  \brief  Workspace functions releated to calculation of propagation paths.
+  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \date   2002-05-08 
 
-  \author Patrick Eriksson
-  \date 2002-05-08 
+  \brief  Workspace functions releated to propagation paths variables.
+
+  The file includes special functions to set the sensor position and LOS,
+  and functions for calculation of propagation paths.
+
+  These functions are listed in the doxygen documentation as entries of the
+  file auto_md.h.
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include "arts.h"
 #include "auto_md.h"
@@ -42,11 +49,12 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   The functions
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** The functions (in alphabetical order)
+ *****************************************************************************/
 
-/**
+//! a_posAddGeoidWGS84
+/*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -73,7 +81,8 @@ void a_posAddGeoidWGS84(
 
 
 
-/**
+//! ppathCalc
+/*! 
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -382,7 +391,8 @@ void ppathCalc(
 
 
 
-/**
+//! sensor_posAddGeoidWGS84
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson

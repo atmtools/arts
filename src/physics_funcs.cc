@@ -19,25 +19,23 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
-/**
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
+/*!
    \file   physics_funcs.cc
+   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \date   2002-05-08 
 
    This file contains the code of functions of physical character.
-
-   The functions are sorted in alphabetical order.
-
-   \author Patrick Eriksson
-   \date 2002-05-08 
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include <math.h>
 #include <stdexcept>
@@ -52,13 +50,13 @@ extern const Numeric BOLTZMAN_CONST;
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   The functions
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** The functions (in alphabetical order)
+ *****************************************************************************/
 
-//// invplanck ////////////////////////////////////////////////////////////////
-//
-/** Converts a vector with radiances to Plack brightness temperatures.
+//! invplanck
+/*!
+   Converts a vector with radiances to Plack brightness temperatures.
 
     \param y Output:       spectrum vector       
     \param  f       frequencies
@@ -113,9 +111,9 @@ void invplanck (
 
 
 
-//// invrayjean ///////////////////////////////////////////////////////////////
-//
-/** Converts a vector with radiances to Rayleigh-Jean brightness temperatures.
+//! invrayjean
+/*! 
+   Converts a vector with radiances to Rayleigh-Jean brightness temperatures.
 
     \param y Output:       spectrum vector       
     \param  f       frequencies
@@ -168,9 +166,9 @@ void invrayjean (
 
 
 
-//// number_density (scalar version) ////////////////////////////////////////
-//
-/** Calculates the number density (scalar version).
+//! number_density
+/*! 
+   Calculates the number density (scalar version).
 
     \return         number density
     \param  p       pressure
@@ -189,9 +187,9 @@ Numeric number_density (
 
 
 
-//// number_density (vector version) ////////////////////////////////////////
-//
-/** Calculates the number density (vector version).
+//! number_density
+/*! 
+   Calculates the number density (vector version).
 
     \return number density
     \param  p       pressure
@@ -219,9 +217,9 @@ Vector number_density (
 
 
 
-//// planck (matrix version) ///////////////////////////////////////////////
-//
-/** Calculates a blackbody radiation (the Planck function) matrix.
+//! planck 
+/*! 
+    Calculates a blackbody radiation (the Planck function) matrix.
 
     Each row of the returned matrix corresponds to a frequency, while each
     column corresponds to a temperature.
@@ -261,9 +259,9 @@ void planck (
 
 
 
-//// planck (vector version) ////////////////////////////////////////////////
-//
-/** Calculates the Planck function for a single temperature.
+//! planck
+/*! 
+    Calculates the Planck function for a single temperature.
 
     \param B Output: the blackbody radiation
     \param  f       a frequency grid

@@ -18,16 +18,16 @@
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   File description
-///////////////////////////////////////////////////////////////////////////////
-/**
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
+/*!
    \file   math_funcs.h
+   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \date 2000-09-18 
 
    Contains the decleration of the functions in math_funcs.cc.
-
-   \author Patrick Eriksson
-   \date 2000-09-18 
 */
 
 

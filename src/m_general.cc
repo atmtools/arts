@@ -18,26 +18,28 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
 /*!
   \file   m_general.cc
+  \author Patrick Eriksson
+  \date   2002-05-08 
+
   \brief  Workspace functions of a general and overall character.
 
   This file is for general functions that do not fit in any other "m_"-file.
 
-  The functions are sorted in alphabetical order.
-
-  \author Patrick Eriksson
-  \date 2002-05-08 
+  These functions are listed in the doxygen documentation as entries of the
+  file auto_md.h.
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include "array.h"
 #include "arts.h"
@@ -47,11 +49,12 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   The functions
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** The functions (in alphabetical order)
+ *****************************************************************************/
 
-/**
+//! Exit
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -65,7 +68,8 @@ void Exit()
 
 
 
-/**
+//! PrintArrayOfIndex
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -85,7 +89,8 @@ void PrintArrayOfIndex(
 
 
 
-/**
+//! PrintArrayOfString
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -104,7 +109,8 @@ void PrintArrayOfString(
 
 
 
-/**
+//! PrintIndex
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -121,7 +127,8 @@ void PrintIndex(
 
 
 
-/**
+//! PrintMatrix
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -144,7 +151,9 @@ void PrintMatrix(
 }
 
 
-/**
+
+//! PrintNumeric
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -161,7 +170,8 @@ void PrintNumeric(
 
 
 
-/**
+//! PrintString
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -178,7 +188,8 @@ void PrintString(
 
 
 
-/**
+//! PrintVector
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -196,7 +207,8 @@ void PrintVector(
 }
 
 
-/**
+//! SetAtmosphere1D
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -215,7 +227,8 @@ void SetAtmosphere1D(
 
 
 
-/**
+//! SetAtmosphere2D
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -236,7 +249,8 @@ void SetAtmosphere2D(
 
 
 
-/**
+//! SetAtmosphere3D
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -255,7 +269,8 @@ void SetAtmosphere3D(
 
 
 
-/**
+//! Test
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson

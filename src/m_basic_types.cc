@@ -18,30 +18,32 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
 /*!
   \file   m_basic_types.cc
+  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \date   2002-05-08 
+
   \brief  Workspace functions for straightforward operations on variables 
           of basic types.
 
   This file includes workspace functions for variables of basic types, 
-  such as Matrix and ArrayOfIndex. The functions are mainly of two types:
-  1. Initiation of variables by keyword arguments, such as *StringSet*.
+  such as Matrix and ArrayOfIndex. The functions are mainly of two types: <br>
+  1. Initiation of variables by keyword arguments, such as *StringSet*. <br>
   2. Basic math, such as *MatrixVectorMultiply*.
 
-  The functions are sorted in alphabetical order.
-
-  \author Patrick Eriksson
-  \date 2002-05-08 
+  These functions are listed in the doxygen documentation as entries of the
+  file auto_md.h.
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include "arts.h"
 #include "array.h"
@@ -53,11 +55,12 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   The functions
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** The functions (in alphabetical order)
+ *****************************************************************************/
 
-/**
+//! ArrayOfStringSet
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -75,7 +78,8 @@ void ArrayOfStringSet(
 
 
 
-/**
+//! IndexSet
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -91,7 +95,8 @@ void IndexSet(    Index&    x,
 
 
 
-/**
+//! MatrixCopy
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author ???
@@ -110,7 +115,8 @@ void MatrixCopy(
 
 
 
-/**
+//! MatrixFillWithVector
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -160,7 +166,8 @@ void MatrixFillWithVector(
 }
 
 
-/**
+//! MatrixScale
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -193,7 +200,8 @@ void MatrixScale(
 
 
 
-/**
+//! MatrixSet
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -215,7 +223,8 @@ void MatrixSet(           Matrix&    x,
 
 
 
-/**
+//! NumericSet
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -231,7 +240,8 @@ void NumericSet(      Numeric&   x,
 
 
 
-/**
+//! StringSet
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -247,6 +257,13 @@ void StringSet(           String&  s,
 
 
 
+//! Tensor3FillWithVector
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author ???
+   \date   ?-?-?
+*/
 void Tensor3FillWithVector(
         // WS Generic Output:
               Tensor3&   t,
@@ -315,7 +332,8 @@ void Tensor3FillWithVector(
 
 
 
-/**
+//! VectorAddScalar
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -348,7 +366,8 @@ void VectorAddScalar(
 
 
 
-/**
+//! VectorCopy
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author ???
@@ -366,7 +385,8 @@ void VectorCopy(      Vector&   y2,
 
 
 
-/**
+//! VectorLinSpace
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -391,7 +411,8 @@ void VectorLinSpace(      Vector&    x,
 
 
 
-/**
+//! VectorNLinSpace
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -418,7 +439,8 @@ void VectorNLinSpace(     Vector&    x,
 
 
 
-/**
+//! VectorNLogSpace
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -446,7 +468,8 @@ void VectorNLogSpace(       Vector&    x,
 
 
 
-/**
+//! VectorScale
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -479,7 +502,8 @@ void VectorScale(
 
 
 
-/**
+//! VectorSet
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -499,7 +523,8 @@ void VectorSet(           Vector&    x,
 
 
 
-/**
+//! VectorSetTakingLengthFromVector
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson

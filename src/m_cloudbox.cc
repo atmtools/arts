@@ -19,22 +19,26 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
 /*!
   \file   m_cloudbox.cc
+  \author Patrick Eriksson
+  \date   2002-05-08 
+
   \brief  Workspace functions releated to the cloud box.
 
-  \author Patrick Eriksson
-  \date 2002-05-08 
+  These functions are listed in the doxygen documentation as entries of the
+  file auto_md.h.
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include <stdexcept>
 #include "arts.h"
@@ -44,11 +48,12 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   The functions
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** The functions (in alphabetical order)
+ *****************************************************************************/
 
-/**
+//! cloudboxSetManually
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson
@@ -165,7 +170,8 @@ void cloudboxSetManually(
 
 
 
-/**
+//! NoCloudbox
+/*!
    See the the online help (arts -d FUNCTION_NAME)
 
    \author Patrick Eriksson

@@ -18,16 +18,16 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
-/**
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
+/*!
    \file   physics_funcs.h
+   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \date   2002-05-08
 
    This file contains declerations of functions of physical character.
-
-   \author Patrick Eriksson
-   \date 2002-05-08
 */
 
 

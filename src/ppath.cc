@@ -17,14 +17,14 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
 
 /*!
   \file   ppath.cc
   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
-  \date   Sun May  5  2002
+  \date   2002-05-02
   
   \brief  Functions releated to calculation of propagation paths.
   
@@ -36,9 +36,9 @@
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   External declarations
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include <math.h>
 #include <stdexcept>
@@ -54,13 +54,13 @@ extern const Numeric RAD2DEG;
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   Functions related to geometrical propagation paths.
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions related to geometrical propagation paths
+ *****************************************************************************/
 
-//// geometrical_tangent_radius ///////////////////////////////////////////////
-/**
-   Calculates the radius of the geometrical tangent point.
+//! geometrical_tangent_radius
+/*! 
+   Calculates the radius of the geometrical tangent point. 
 
    If the zenith angle is smaller than 90 degrees, the tangent point is 
    an imaginary point behind the sensor.
@@ -83,8 +83,8 @@ Numeric geometrical_tangent_radius( const Numeric& r, const Numeric& za )
 
 
 
-//// geompath_za_at_r /////////////////////////////////////////////////////////
-/**
+//! geompath_za_at_r
+/*! 
    Calculates the zenith angle for a given radius along a geometrical 
    propagation path.
 
@@ -120,8 +120,8 @@ Numeric geompath_za_at_r(
 
 
 
-//// geompath_lat_at_za ///////////////////////////////////////////////////////
-/**
+//! geompath_lat_at_za
+/*!
    Calculates the latitude for a given zenith angle along a geometrical 
    propagation path.
 
@@ -152,8 +152,8 @@ Numeric geompath_lat_at_za(
 
 
 
-//// geompath_l_at_r //////////////////////////////////////////////////////////
-/**
+//! geompath_l_at_r
+/*!
    Calculates the length from the tangent point for the given radius.
 
    The tangent point is either real or imaginary depending on the zenith
@@ -181,8 +181,8 @@ Numeric geompath_l_at_r(
 
 
 
-//// geompath_r_at_l //////////////////////////////////////////////////////////
-/**
+//! geompath_r_at_l
+/*!
    Calculates the radius for a distance from the tangent point.
 
    The tangent point is either rwal or imaginary depending on the zenith
@@ -212,12 +212,12 @@ Numeric geompath_r_at_l(
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   Angle(s) after a ground reflection.
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Angle(s) after a ground reflection
+ *****************************************************************************/
 
-//// angle_after_ground_1D ////////////////////////////////////////////////////
-/**
+//! angle_after_ground_1D 
+/*!
    Calculates the LOS after a ground reflection for 1D.
 
    The zenith angle before the reflection msut be > 90 degrees.
@@ -237,12 +237,12 @@ void angle_after_ground_1D( Numeric& za )
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   Functions operating on the Ppath structure
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions operating on the Ppath structure
+ *****************************************************************************/
 
-//// ppath_init_structure /////////////////////////////////////////////////////
-/**
+//! ppath_init_structure
+/*!
    Initiates a Ppath structure to hold the given number of points.
 
    All fields releated with the ground, symmetry and tangent point are set
@@ -294,8 +294,8 @@ void ppath_init_structure(
 
 
 
-//// ppath_set_background /////////////////////////////////////////////////////
-/**
+//! ppath_set_background 
+/*!
    Sets the background field of a Ppath structure.
 
    The different background cases have a number coding to simplify a possible
@@ -346,8 +346,8 @@ void ppath_set_background(
 
 
 
-//// ppath_what_background ////////////////////////////////////////////////////
-/**
+//! ppath_what_background
+/*!
    Returns the case number for the radiative background.
 
    See further the function *ppath_set_background*.
@@ -384,12 +384,12 @@ Index ppath_what_background(
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   Help functions to ppathCalc
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Help functions to ppathCalc
+ *****************************************************************************/
 
-//// ppath_start_stepping /////////////////////////////////////////////////////
-/**
+//! ppath_start_stepping
+/*!
    Initiates a Ppath structure for calculation of a path with *ppath_step*.
 
    The function performs two main tasks. As mentiuoned above, it initiates
@@ -404,19 +404,17 @@ Index ppath_what_background(
    as when the sensor is inside the cloud box, the background field is set.
 
    (b): If it is found that the end point of the path is at an illegal position
-   a detailed error message is given. Not allowed cases are:
-   \begin{verbatim}
-      1. The sensor is placed below ground level.
+   a detailed error message is given. Not allowed cases are: <br>  
+      1. The sensor is placed below ground level. <br> 
       2. For 2D and 3D, the path leaves the model atmosphere at a latitude or
-         longitude end face.
+         longitude end face. <br> 
       3. For 2D and 3D, the path is totally outside the atmosphere and the 
          latitude and longitude of the tangent point is outside the range of
-         the corresponding grids.
-   \end{verbatim}
+         the corresponding grids. 
 
    All input variables are identical with the WSV with the same name.
-   The output variable is here called ppath for simplicity, but is in fact
-   *ppath_partial*.
+   The output variable is here called ppath for simplicity, but is in
+   fact *ppath_partial*.
 
    \param   ppath             Output: A Ppath structure.
    \param   atmosphere_dim    The atmospheric dimensionality.
@@ -425,7 +423,7 @@ Index ppath_what_background(
    \param   lon_grid          The longitude grid.
    \param   z_field           The field of geometrical altitudes.
    \param   r_geoid           The geoid radius.
-   \parm    z_ground          Ground altitude.
+   \param   z_ground          Ground altitude.
    \param   blackbody_ground  Flag for treating the ground as a blackbody.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
@@ -586,12 +584,30 @@ void ppath_start_stepping(
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-//   Core functions for *ppath_step* functions
-///////////////////////////////////////////////////////////////////////////////
 
-//// ppath_step_1d_geom ///////////////////////////////////////////////////////
 
+/*****************************************************************************
+ *** Core functions for *ppath_step* functions
+ *****************************************************************************/
+
+//! ppath_step_1d_geom
+/*! 
+ This is just a test text.
+
+ Some more text.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   atmosphere_dim    The atmospheric dimensionality.
+   \param   p_grid            The pressure grid.
+   \param   z_grid            The geometrical altitude corresponding to p_grid.
+   \param   r_geoid           The geoid radius.
+   \param   z_ground          Ground altitude.
+   \param   blackbody_ground  Flag for treating the ground as a blackbody.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
 void ppath_step_1d_geom(
 	      Ppath&      ppath,
         const Index&      atmosphere_dim,

@@ -18,24 +18,23 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
 
-/**
+/*!
   \file   check_input.cc
+  \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+  \date 2002-04-15 
 
   General functions to check the size and logic of input to functions.
-
-  \author Patrick Eriksson
-  \date 2002-04-15 
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include <stdexcept>
 #include "check_input.h"
@@ -44,12 +43,12 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   Functions for Index
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions for Index
+ *****************************************************************************/
 
-//// chk_if_bool //////////////////////////////////////////////////////////////
-/** 
+//! chk_if_bool 
+/*! 
     Checks that a variable of type Index has the value 0 or 1.
 
     The function gives an error message if this is not the case.
@@ -75,8 +74,8 @@ void chk_if_bool(
 
 
 
-//// chk_if_in_range //////////////////////////////////////////////////////////
-/** 
+/*! chk_if_in_range
+/*! 
     Checks that a variable of type Index has a value inside the specified
     range.
 
@@ -108,12 +107,12 @@ void chk_if_in_range(
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   Functions for Numeric
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions for Numeric
+ *****************************************************************************/
 
-//// chk_if_over_0 ////////////////////////////////////////////////////////////
-/** 
+/*! chk_if_over_0 
+/*! 
     Checks that a variable of type Numeric is 0 or is positive.
     range.
 
@@ -140,8 +139,8 @@ void chk_if_over_0(
 
 
 
-//// chk_if_in_range //////////////////////////////////////////////////////////
-/** 
+/*! chk_if_in_range
+/*! 
     Checks that a variable of type Numeric has a value inside the specified
     range.
 
@@ -173,12 +172,12 @@ void chk_if_in_range(
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   Functions for Vector
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions for Vector
+ *****************************************************************************/
 
-//// chk_vector_length ////////////////////////////////////////////////////////
-/** 
+/*! chk_vector_length
+/*! 
     Checks that a vector has the specified length.
 
     The function gives an error message if this is not the case.
@@ -207,8 +206,8 @@ void chk_vector_length(
 
 
 
-//// chk_vector_length ////////////////////////////////////////////////////////
-/** 
+/*! chk_vector_length
+/*! 
     Checks if two vectors have the same length.
 
     The function gives an error message if this is not the case.
@@ -240,8 +239,8 @@ void chk_vector_length(
 
 
 
-//// chk_if_increasing ////////////////////////////////////////////////////////
-/** 
+/*! chk_if_increasing
+/*! 
     Checks if a vector is strictly increasing.
 
     Duplicated values are not allowed.
@@ -269,8 +268,8 @@ void chk_if_increasing(
 
 
 
-//// chk_if_decreasing ////////////////////////////////////////////////////////
-/** 
+/*! chk_if_decreasing
+/*! 
     Checks if a vector is strictly decreasing.
 
     Duplicated values are not allowed.
@@ -298,12 +297,12 @@ void chk_if_decreasing(
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   Functions for Matrix
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions for Matrix
+ *****************************************************************************/
 
-//// chk_matrix_ncols //////////////////////////////////////////////////////
-/** 
+/*! chk_matrix_ncols
+/*! 
     Checks that a matrix has the specified number of columns.
 
     The function gives an error message if this is not the case.
@@ -331,8 +330,8 @@ void chk_matrix_ncols(
 
 
 
-//// chk_matrix_nrows //////////////////////////////////////////////////////
-/** 
+/*! chk_matrix_nrows
+/*! 
     Checks that a matrix has the specified number of rows.
 
     The function gives an error message if this is not the case.
@@ -360,12 +359,12 @@ void chk_matrix_nrows(
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   Functions related to atmospheric grids, fields and surfaces.
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Functions related to atmospheric grids, fields and surfaces.
+ *****************************************************************************/
 
-//// chk_atm_grids ////////////////////////////////////////////////////////////
-/** 
+/*! chk_atm_grids 
+/*! 
     Checks if the atmospheric grids and the specified atmospheric 
     dimensionality match, and if the grids are ordered correctly.
 
@@ -423,8 +422,8 @@ void chk_atm_grids(
 
 
 
-//// chk_atm_field ////////////////////////////////////////////////////////////
-/** 
+/*! chk_atm_field 
+/*! 
     Checks if an atmospheric field matches the dimensionality and the grids.
 
     The function gives an error message if this is not the case.
@@ -465,8 +464,8 @@ void chk_atm_field(
 
 
 
-//// chk_atm_surface ////////////////////////////////////////////////////////
-/** 
+/*! chk_atm_surface
+/*! 
     Checks if an atmospheric surface matches the dimensionality and the grids.
 
     An example on an atmospheric surface is *z_ground*.
@@ -506,12 +505,12 @@ void chk_atm_surface(
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// Function(s) releated with the cloud box.
-///////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** Function(s) releated with the cloud box.
+ *****************************************************************************/
 
-//// chk_cloudbox /////////////////////////////////////////////////////////////
-/** 
+/*! chk_cloudbox
+/*! 
     Checks the consistency of the cloud box workspace variables. 
 
     The consistency is checked both internally and with respect to the grids.

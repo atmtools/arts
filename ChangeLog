@@ -1,3 +1,23 @@
+2002-05-21  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-91
+	
+	* Worked on doxygen headers and comments in the following files:
+	   check_input.cc
+	   check_input.h
+	   m_atmosphere.cc
+	   m_basic_types.cc
+	   m_cloudbox.cc
+	   m_general.cc
+	   m_ppath.cc
+	   m_rte.cc
+	   math_funcs.cc
+	   math_funcs.h
+	   physics_funcs.cc
+	   physics_funcs.h
+	   ppath.cc
+	   ppath.h 
+
 2002-05-21  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-90

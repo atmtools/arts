@@ -18,25 +18,23 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
-/**
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
+/*!
    \file   math_funcs.cc
+   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \date   2000-09-18 
 
    Contains basic mathematical functions.
-
-   The functions are sorted in alphabetical order.
-
-   \author Patrick Eriksson
-   \date 2000-09-18 
 */
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   External declarations
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** External declarations
+ *****************************************************************************/
 
 #include <math.h>
 #include "array.h"
@@ -45,12 +43,12 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   The functions
-////////////////////////////////////////////////////////////////////////////
+/*****************************************************************************
+ *** The functions (in alphabetical order)
+ *****************************************************************************/
 
-//// last /////////////////////////////////////////////////////////////////////
-/** 
+//! last
+/*! 
     Returns the last value of a vector.
 
     \return      The last value of x.
@@ -67,8 +65,8 @@ Numeric last( ConstVectorView x )
 
 
 
-//// last /////////////////////////////////////////////////////////////////////
-/** 
+//! last
+/*! 
     Returns the last value of an index array.
 
     \return      The last value of x.
@@ -85,9 +83,9 @@ Index last( const ArrayOfIndex& x )
 
 
 
-//// linspace //////////////////////////////////////////////////////////////
-//
-/** Linearly spaced vector with specified spacing. 
+//! linspace
+/*! 
+    Linearly spaced vector with specified spacing. 
 
     The first element of x is always start. The next value is start+step etc.
     Note that the last value can deviate from stop.
@@ -120,7 +118,9 @@ void linspace(
 
 
 
-/** Linearly spaced vector with specified length. 
+//! nlinspace
+/*! 
+    Linearly spaced vector with specified length. 
 
     Returns a vector equally and linearly spaced between start and stop 
     of length n. (equals the Matlab function linspace)
@@ -150,9 +150,9 @@ void nlinspace(
 
 
 
-//// nlogspace /////////////////////////////////////////////////////////////
-//
-/** Logarithmically spaced vector with specified length. 
+//! nlogspace
+/*! 
+    Logarithmically spaced vector with specified length. 
 
     Returns a vector logarithmically spaced vector between start and 
     stop of length n (equals the Matlab function logspace)
@@ -190,7 +190,9 @@ void nlogspace(
 
 
 
-/** Logarithmically spaced vector with specified length (return version). 
+//! nlogspace
+/*! 
+    Logarithmically spaced vector with specified length (return version). 
 
     Returns a vector logarithmically spaced vector between start and 
     stop of length n (equals the Matlab function logspace)

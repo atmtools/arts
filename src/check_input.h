@@ -18,16 +18,16 @@
 
 
 
-////////////////////////////////////////////////////////////////////////////
-//   File description
-////////////////////////////////////////////////////////////////////////////
-/**
+/*****************************************************************************
+ ***  File description 
+ *****************************************************************************/
+
+/*!
    \file   check_input.h
+   \author Patrick Eriksson <Patrick.Eriksson@rss.chalmers.se>
+   \date   2002-04-15 
 
    This file contains the declaration of functions in check_input.cc.
-
-   \author Patrick Eriksson
-   \date 2002-04-15 
 */
 
 
