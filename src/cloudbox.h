@@ -43,13 +43,21 @@
 
 
 
-void rte_scat_vecCalc(VectorView sto_vec,
-		      ConstMatrixView ext_mat,
-		      ConstVectorView abs_vec,
-		      ConstVectorView sca_vec,
-		      const Numeric& ds,
-		      const Numeric& B);
+void sto_vecCalc(VectorView sto_vec,
+		 ConstMatrixView ext_mat,
+		 ConstVectorView abs_vec,
+		 ConstVectorView sca_vec,
+		 const Numeric& ds,
+		 const Numeric& B,
+		 const Index& stokes_dim);
 
+void sto_vec1DCalc(VectorView sto_vec,
+		   ConstMatrixView ext_mat,
+		   ConstVectorView abs_vec,
+		   ConstVectorView sca_vec,
+		   const Numeric& ds,
+		   const Numeric& B,
+		   const Index& stokes_dim);
 
 
 #endif    // cloudbox_h

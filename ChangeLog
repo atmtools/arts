@@ -1,3 +1,17 @@
+2002-06-11  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-130
+
+	* src/m_cloudboc.cc (i_fieldUpdate1D): Extended the function such
+	that it adapts automatically to the scalar case if *stokes_dim* is
+	set to 1.
+
+	* src/cloudbox.cc (sto_vec1DCalc): Added this function to do the
+	scalar radiative transfer calculation.
+
+	* doc/uguide/scattering.tex: Included the scalar RTE as a special
+	case. 
+	
 2002-06-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-129

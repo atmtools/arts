@@ -83,8 +83,10 @@ box\\
 The radiative transfer equation is \citep{mishchenko00:_light_scatt_nonsp_partic}: 
 \begin{eqnarray}
      \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq, \Tmp) =
-     -\ExtMat\DirFre\StoVec+\AbsVec\DirFre \Planck(\Tmp, \Frq)
-     +\int_{4\pi} \DiffD \PDir^\prime \SEfMat\DirFrePr \StoVec\DirFrePr 
+     -\ExtMat\DirFre\StoVec(\PDir, \Frq, \Tmp)+\AbsVec\DirFre
+     \Planck(\Tmp, \Frq) \\ \nonumber
+     +\int_{4\pi} \DiffD \PDir^\prime \SEfMat\DirFrePr
+     \StoVec(\PDir^\prime, \Frq, \Tmp) 
 \label{eq:scattering:RTE} 
 \end{eqnarray} 
 Formally it is a four dimensional vector equation where \StoVec
@@ -155,6 +157,26 @@ of the particle densities \PDen\  and the phase matrices \PhaMat
 Molecular scattering is neglected as it is not important in the 
 considered frequency range from 10 to 1000 GHz. 
 
+\levelb{Scalar radiative transfer equation}
+%======================================================
+\label{sec:scattering:scalar_rte}
+
+If we are not interested in polarization effects we may use the scalar
+radiative transfer equation, which is easier to handle than the vector
+equation. It follows directly from the general equation. The scalar
+extinction coefficient is the first element of the extinction matrix
+$K_{11}$, the scalar absorption coefficient is given by the first
+element of the absorption vector $a_1$ and the scalar scattering
+coefficient is the first element of the scattering efficiency matrix
+$Y_{11}$.\\
+Substituting these definitions the scalar radiative transfer eqaution
+into (\ref{eq:scattering:RTE}) is obtained:
+\begin{eqnarray}
+  \label{eq:scattering:scalar_rte}
+\frac{\DiffD I}{\DiffD s} (\PDir, \Frq, \Tmp) = -K_{11}(\PDir, \Frq)I
+(\PDir, \Frq, \Tmp) + a_1(\PDir, \Frq)\Planck(\Tmp,\Frq) + \\ \nonumber
+ +\int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFrePr I(\PDir^\prime, \Frq, \Tmp)
+\end{eqnarray}
 
 \levelb{Iteration scheme for solving the RTE}
 %===============================
@@ -170,12 +192,21 @@ numerical solution.
 
 The first step is solving the scattering integral
 \begin{eqnarray}
-  \ScaInt_0 \DirFrePr  = \int_{4\pi} \DiffD \PDir^\prime \SEfMat\DirFre \StoVec_0\DirFrePr 
+  \ScaInt_0 \DirFrePr  = \int_{4\pi} \DiffD \PDir^\prime
+  \SEfMat\DirFre \StoVec_0(\PDir^\prime, \Frq, T) 
 \end{eqnarray}
 using a first guess initial field for \StoVec$_0$\DirFrePr . The integration
 has to be performed over all incident directions $\PDir^\prime$ for each
 propagation direction \PDir{}. The result is the first guess scattered field $\ScaInt_0\DirFre$
 which has the same dimension as the intensity field \StoVec$_0$\DirFrePr. 
+
+In analogy the scalar scattering integral is obtained:
+\begin{eqnarray}
+  S_0^{int} \DirFrePr  = \int_{4\pi} \DiffD \PDir^\prime Y_{11}\DirFre I_0(\PDir^\prime, \Frq, T) 
+\end{eqnarray}
+As first guess field only the first Stokes component of the clear sky
+field is needed.
+
 
 \levelc{Radiative transfer with fixed scattered field}
 %======================================
@@ -185,7 +216,7 @@ Equation (\ref{eq:scattering:RTE}) can be written as
 \begin{eqnarray}
      \frac{\DiffD \StoVec}{\DiffD s}(\PDir, \Frq, \Tmp) =
      -\ExtMat\DirFre\StoVec + \AbsVec\DirFre \Planck(\Tmp, \Frq)
-     +\ScaInt_0\DirFre
+     +\ScaInt_0(\PDir^\prime, \Frq, \Tmp)
 \label{eq:rad_fs_sol}
 \end{eqnarray} 
 
@@ -205,7 +236,32 @@ where \StoVec$_0$ is given by the initial condition
   \StoVec_0 =  \StoVec(s = 0).
 \end{eqnarray}
 Here we take for \StoVec$_0$ the initial field and we find the first
-iteration field \StoVec$_1$.
+iteration radiation field \StoVec$_1$.
+\\
+
+The scalar radiative transfer equation
+(\ref{eq:scattering:scalar_rte})  with fixed scattering integral
+is accordingly
+\begin{eqnarray}
+  \label{eq:scattering:scalar_rte_scatint}
+\frac{\DiffD I}{\DiffD s} (\PDir, \Frq, \Tmp) = -K_{11}(\PDir, \Frq)I
+(\PDir, \Frq, \Tmp) + a_1(\PDir, \Frq)\Planck(\Tmp,\Frq) + S_0^{int}
+(\PDir, \Frq, \Tmp).
+\end{eqnarray} 
+Assuming constant coefficients the analytical solution is
+\begin{eqnarray}
+   \label{eq:scattering:scalar_rte_sol}
+I_1 = I_0 e^{-K_{11}s} + \frac{a_1
+  B + S_0^{int}}{K_11}\left(1-e^{-K_{11}s}\right)
+\end{eqnarray}
+where $I_0$ again is specified by the initial condition:
+\begin{eqnarray}
+  I_0 = I(s=0)
+\end{eqnarray}
+Applying this equation leads to first iteration scalar intensity
+field.  
+
+
 
 \levelc{Iteration and Convergence}
 %===============================
@@ -222,7 +278,7 @@ After each iteration the convergence is checked. If
 \end{eqnarray}
 a solution to the vector radiative transfer Equation (\ref{eq:scattering:RTE})
 has been
-found.
+found. An analogeous convergence test is done for the scalar case.
 
 \levelb{Database for the single scattering properties}
 %============================================================
@@ -771,7 +827,7 @@ performed:
 \item Solve Equation (\ref{eq:scattering:RTE_sol}) using either the
   method \artsstyle{sto\_vecCalc} if the Stokes dimension
   \wsvindex{stokes\_dim} is greater
-  than one or \artsstyle{sto\_vec1dCalc} if  \wsvindex{stokes\_dim}
+  than one or \artsstyle{sto\_vec1DCalc} if  \wsvindex{stokes\_dim}
   equals one, i.e. if the scalar case is considered. The two methods
   are described below. The workspace
   method adjusts automatically to the Stokes dimension which has to be
@@ -803,6 +859,16 @@ computed using again \artsstyle{matrix\_exp}.
 
 Finally the method sums up the two terms to get the updated Stokes Vector. 
  
+\leveld{Method \artsstyle{sto\_vec1DCalc}}
+%================================================================
+For the scalar case it is straight forward to compute a radiative
+transfer step through one grid cell. Only equation
+(\label{eq:scattering:scalar_rte_sol}) has to be computed. We only
+have to compute the scalar exponential function and do not need the
+matrix inverse, such that the standard C math library is sufficient.
+
+
+
 
 \levelc{Convergence test method}
 %====================================

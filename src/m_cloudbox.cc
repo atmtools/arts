@@ -497,13 +497,23 @@ void i_fieldUpdate1D(// WS Output:
 	  // Check if the agenda has returned ppath.step with reasonable values 
 	  cout << "\n ";
 	  PpathPrint( ppath_step, "ppath");
-  
-
-          Vector sto_vec(4);
-	  // Perform RT calculation.
-	  rte_scat_vecCalc(sto_vec, ext_mat, abs_vec, sca_vec, 
-			   ppath_step.l_step[0], B); 
 	  
+	   Vector sto_vec(4);
+	  //Calculate vector radiative transfer if *stokes_dim* is greater than 1
+	  if (stokes_dim != 1 && stokes_dim <= 4){
+	    sto_vecCalc(sto_vec, ext_mat, abs_vec, sca_vec, 
+			   ppath_step.l_step[0], B, stokes_dim); 
+	  
+	  }
+	  //Calculate scalar radiative transfer if *stokes_dim* equals 1
+	  else if (stokes_dim == 1) {
+	    sto_vec1DCalc(sto_vec, ext_mat, abs_vec, sca_vec, 
+			   ppath_step.l_step[0], B, stokes_dim); 
+	  }
+	  else if (stokes_dim > 4) {
+	    throw runtime_error("The variable *stokes_dim* can not be greater than 4.");
+	  }
+
 	  // Assign claculated Stokes Vector to i_field. 
 	  i_field(p_index, 0, 0, scat_za_index, 0, Range(joker)) = sto_vec;
   
