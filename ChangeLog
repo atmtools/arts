@@ -1,3 +1,21 @@
+2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* src/wsv.txt: Renamed to auto_wsv.txt and removed from
+	repository.
+
+	* src/make_auto_wsv_h.cc (main): Renamed output file wsv.txt to
+	auto_wsv.txt.
+
+	* src/m_batch.cc: Put an #ifdef / #endif block around the whole file.
+
+	* src/m_hdf.cc: Put an #ifdef / #endif block around the whole file.
+
+	* configure.in: Added AM_CONDITIONAL for HDF_SUPPORT.
+
+	* src/methods.cc (define_md_data): Added #ifdef / #endif block
+	around all HDF requiring functions incl. ybatchCalc.
+
+	
 2001-09-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-231
