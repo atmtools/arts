@@ -1,5 +1,12 @@
 2002-08-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-219
+
+	* doc/example/i_field_arts.in: Included the new methods into the 
+	example.
+
+2002-08-26  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
 	* arts-1-1-218
 
 	* src/m_scatproperties.cc (i_fieldSetConst): Created this function
@@ -14,6 +21,7 @@
 	* src/workspace.cc: Added the variable *iteration_counter* which holds 
 	the actual number of iterations. 
 
+	
 2002-08-26  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-217
