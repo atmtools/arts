@@ -122,7 +122,8 @@ Numeric geompath_za_at_r(
    Calculates the latitude for a given zenith angle along a geometrical 
    propagation path.
 
-   Positive and negative zenith angles are handled.
+   Positive and negative zenith angles are handled. A positive zenith angle
+   means a movement towards higher latitudes.
 
    \return         The latitude difference for the second point.
    \param   za0    The zenith angle of the starting point.
@@ -138,9 +139,9 @@ Numeric geompath_lat_at_za(
        const Numeric&   za )
 {
   assert( fabs(za0) <= 180 );
-  assert( fabs(za0) >= fabs(za) );
+  assert( fabs(za) <= 180 );
   assert( (za0>=0&&za>=0) || (za0<0&&za<0) );
-  const Numeric dlat = za0 - za;
+  const Numeric dlat = fabs( za0 - za );
   if( za0 > 0 )
     { return lat0 + dlat; }
   else
@@ -238,7 +239,7 @@ void angle_after_ground_1D( Numeric& za )
  *** Functions operating on the Ppath structure
  *****************************************************************************/
 
-//! ppath_init_core
+//! ppath_init_structure
 /*!
    Initiates a Ppath structure to hold the given number of points.
 
@@ -246,23 +247,19 @@ void angle_after_ground_1D( Numeric& za )
    to 0 or empty. The background field is set to background case 0. The
    constant field is set to -1. The refraction field is set to 0.
 
-   The length of the l_step field can be adjusted with the lstep_offset
-   argument.
+   The length of the l_step field is set to np-1.
 
    \param   ppath            Output: A Ppath structure.
    \param   atmosphere_dim   The atmospheric dimensionality.
    \param   np               Number of points of the path.
-   \param   lstep_offset     The length of the field l_step is set to 
-                             np + lstep_offset.
 
    \author Patrick Eriksson
    \date   2002-05-17
 */
-void ppath_init_core( 
+void ppath_init_structure( 
 	      Ppath&      ppath,
 	const Index&      atmosphere_dim,
-        const Index&      np,
-        const Index&      lstep_offset )
+        const Index&      np )
 {
   assert( atmosphere_dim >= 1 );
   assert( atmosphere_dim <= 3 );
@@ -286,10 +283,9 @@ void ppath_init_core(
   ppath.gp_p.resize( np );
   if( atmosphere_dim >= 2 )
     { ppath.gp_lat.resize( np ); }
-  ppath.p.resize( np );
   ppath.z.resize( np );
-  if( (np + lstep_offset) > 0 )
-    { ppath.l_step.resize( np + lstep_offset ); }
+  if( np > 0 )
+    { ppath.l_step.resize( np-1 ); }
   else
     { ppath.l_step.resize( 0 ); }
   ppath_set_background( ppath, 0 );
@@ -302,60 +298,6 @@ void ppath_init_core(
 
 
 
-//! ppath_init_structure
-/*!
-   Initiates a Ppath structure to hold the given number of points.
-
-   All fields releated with the ground, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0. The
-   constant field is set to -1. The refraction field is set to 0.
-
-   The length of the l_step field is here set to np-1.
-
-   \param   ppath            Output: A Ppath structure.
-   \param   atmosphere_dim   The atmospheric dimensionality.
-   \param   np               Number of points of the path.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-void ppath_init_structure( 
-	      Ppath&      ppath,
-	const Index&      atmosphere_dim,
-        const Index&      np )
-{
-  ppath_init_core( ppath, atmosphere_dim, np, -1 );
-}
-
-
-
-//! ppath_partial_init_structure
-/*!
-   Initiates a Ppath structure to hold the given number of points.
-
-   All fields releated with the ground, symmetry and tangent point are set
-   to 0 or empty. The background field is set to background case 0. The
-   constant field is set to -1. The refraction field is set to 0.
-
-   The length of the l_step field is here set to np.
-
-   \param   ppath            Output: A Ppath structure.
-   \param   atmosphere_dim   The atmospheric dimensionality.
-   \param   np               Number of points of the path.
-
-   \author Patrick Eriksson
-   \date   2002-05-17
-*/
-void ppath_partial_init_structure( 
-	      Ppath&      ppath,
-	const Index&      atmosphere_dim,
-        const Index&      np )
-{
-  ppath_init_core( ppath, atmosphere_dim, np, 0 );
-}
-
-
-
 //! ppath_set_background 
 /*!
    Sets the background field of a Ppath structure.
@@ -363,14 +305,12 @@ void ppath_partial_init_structure(
    The different background cases have a number coding to simplify a possible
    change of the strings and checking of the what case that is valid.
 
-   The case numbers are:
-   \begin{verbatim}
-      0. Not yet set.
-      1. Space.
-      2. Blackbody ground.
-      3. The surface of the cloud box.
-      4. The interior of the cloud box.
-   \end{verbatim}
+   The case numbers are:                    <br>
+      0. Not yet set.                       <br>
+      1. Space.                             <br>
+      2. Blackbody ground.                  <br>
+      3. The surface of the cloud box.      <br>
+      4. The interior of the cloud box.     
 
    \param   ppath            Output: A Ppath structure.
    \param   case_nr          Case number (see above)
@@ -415,7 +355,7 @@ void ppath_set_background(
    See further the function *ppath_set_background*.
 
    \return                   The case number.
-   \param   ppath            Output: A Ppath structure.
+   \param   ppath            A Ppath structure.
 
    \author Patrick Eriksson
    \date   2002-05-17
@@ -454,12 +394,12 @@ Index ppath_what_background(
 /*!
    Initiates a Ppath structure for calculation of a path with *ppath_step*.
 
-   The function performs two main tasks. As mentiuoned above, it initiates
+   The function performs two main tasks. As mentioned above, it initiates
    a Ppath structure (a), but it also checks that the end point of the path is
    at an allowed location (b).
 
    (a): The Ppath structure is set to hold the position and LOS of the last
-   point of the path inside the atmsophere. This is point is either the
+   point of the path inside the atmosphere. This point is either the
    sensor position, or the point where the path leaves the model atmosphere.
    If the path is totally outside the atmosphere, no point is put into the
    structure. If the (practical) end and start points are identical, such
@@ -516,7 +456,7 @@ void ppath_start_stepping(
   // Assume that there is a point to put into ppath.
   // If the path is totally outside the atmosphere, the function shall be
   // called again with 0 as last argument.
-  ppath_partial_init_structure(  ppath, atmosphere_dim, 1 );
+  ppath_init_structure(  ppath, atmosphere_dim, 1 );
 
   // Number of pressure levels
   const Index np = p_grid.nelem();
@@ -564,7 +504,7 @@ void ppath_start_stepping(
 
 	  // Check sensor position with respect to cloud box, if activated
           // and not background set to blackbody ground
-	  if( cloudbox_on && !ppath_what_background(ppath) )
+	  if( cloudbox_on )
 	    {
 	      // Is the sensor inside the cloud box?
 	      if( ppath.z[0] > z_field(cloudbox_limits[0],0,0)  && 
@@ -592,7 +532,7 @@ void ppath_start_stepping(
 	  // Path is above the atmosphere
 	  if( a_los[0] <= 90  ||  r_tan  >= r_top )
 	    {
-	      ppath_partial_init_structure(  ppath, atmosphere_dim, 0 );
+	      ppath_init_structure(  ppath, atmosphere_dim, 0 );
 	      ppath_set_background( ppath, 1 );
 	    }
 
@@ -607,15 +547,9 @@ void ppath_start_stepping(
 	    }
 	}
 
-      // Get grid positions and pressure for the end point, if there is one.
+      // Get grid position for the end point, if there is one.
       if( ppath.np == 1 )
-	{
-	  gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z );
-	  Matrix itw( 1, 2 );
-	  interpweights( itw, ppath.gp_p );
-      // !!!!! Interpolation must be changed
-	  interp( ppath.p[Range(joker)], itw, p_grid, ppath.gp_p );
-	}
+	{ gridpos( ppath.gp_p, z_field(Range(joker),0,0), ppath.z ); }
     }  // End 1D
 
 
@@ -641,7 +575,7 @@ void ppath_start_stepping(
  *** Core functions for *ppath_step* functions
  *****************************************************************************/
 
-//! ppath_step_1d_geom
+//! ppath_step_geom_1d
 /*! 
  This is just a test text.
 
@@ -659,7 +593,7 @@ void ppath_start_stepping(
    \author Patrick Eriksson
    \date   2002-05-20
 */
-void ppath_step_1d_geom(
+void ppath_step_geom_1d(
 	      Ppath&      ppath,
         const Index&      atmosphere_dim,
         ConstVectorView   p_grid,
@@ -692,7 +626,7 @@ void ppath_step_1d_geom(
   assert( r_start >= r_geoid + z_ground );
   assert( r_start <= r_geoid + last( z_grid ) );
   assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 ) &&  za_start > 90 ));
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], p_grid.nelem() - 1 )  && 
+  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], p_grid.nelem()-1 )  && 
                                                             za_start <= 90 ) );
 
   // If the field "constant" is negative, this is the first call of the
@@ -702,6 +636,7 @@ void ppath_step_1d_geom(
     { ppc = geometrical_ppc( r_start, za_start ); }
   else
     { ppc = ppath.constant; }
+
 
   // Determine index of the pressure surface being the lower limit for the
   // pressure grid step of interest.
@@ -772,14 +707,17 @@ void ppath_step_1d_geom(
     }
   rs[0] = r_start;
 
-  // Create a vector with the lengths along the path between the points in rs
-  // and the number of sub-steps needed to go from one radius in rs to next.
+  // Create a vector (ls) with the length between the points in rs and the 
+  // tangent point, and another vector (ns) with the number of sub-steps needed
+  // to go from one radius in rs to next. The last value in ns is one, which
+  // corresponds to the last point.
   //
-  Vector         ls( rs.nelem() );
-  ArrayOfIndex   ns( rs.nelem()-1 );
-  Index          np = 0;                // The sum of ns;
-  // 
-  for( Index i=0; i<rs.nelem(); i++ )
+  const Index    nr = rs.nelem();
+  Vector         ls( nr );
+  ArrayOfIndex   ns( nr ); 
+  Index          np = 0;           // The sum of ns. The number one corresponds
+  //                                  to the starting point.
+  for( Index i=0; i<nr; i++ )
     {
       ls[i] = geompath_l_at_r( ppc, rs[i] );
       if( i > 0 )
@@ -789,19 +727,19 @@ void ppath_step_1d_geom(
 	  np   += ns[i-1];
 	}
     }
+  // Last point
+  ns[nr-1] = 1;
+  np++;
 
-  // If np is 0, something has gone wrong
-  assert( np > 0 ); 
+  // If np is <= 1, something has gone wrong
+  assert( np > 1 ); 
 
   // Re-allocate ppath for return results and put in some variables
-  ppath_partial_init_structure(  ppath, atmosphere_dim, np );
+  ppath_init_structure(  ppath, atmosphere_dim, np );
   //
   ppath.method     = "1D basic geometrical";
   ppath.refraction = 0;
   ppath.constant   = ppc;
-
-  // Go from one radius to next and calculate radii, zenith angles etc. and
-  // fill the return structure.
   //
   np = 0;   // Now used as counter for points done
   //
@@ -814,17 +752,29 @@ void ppath_step_1d_geom(
   Numeric za_lat0 = za_start;
   Numeric lat0    = lat_start;
   //
-  for( Index i=0; i<ns.nelem(); i++ )
+  // Go from one radius to next and calculate radii, zenith angles etc. and
+  // fill the return structure.
+  //
+  for( Index i=0; i<nr; i++ )
     {
       // Note that dl is allowed to be negative
-      Numeric dl   = ( ls[i+1] - ls[i] ) / ns[i]; 
+      Numeric dl;
+      if( i < ( nr-1 ) )
+	{ dl = ( ls[i+1] - ls[i] ) / ns[i]; }
+      else
+	{ dl = 0; }
+
       Numeric dz   = z_grid[ilow+1] - z_grid[ilow];
 
-      for( Index j=1; j<=ns[i]; j++ )
+      for( Index j=0; j<ns[i]; j++ )
 	{
-	  ppath.pos(np,0)  = geompath_r_at_l( ppc, ls[i]+dl*j );
+	  if( j == 0 )
+	    { ppath.pos(np,0)  = rs[i]; }
+	  else
+	    { ppath.pos(np,0)  = geompath_r_at_l( ppc, ls[i]+dl*j ); }
 	  ppath.z[np]      = ppath.pos(np,0) - r_geoid;
-          ppath.l_step[np] = fabs( dl );
+	  if( i < ( nr-1 ) )
+	    { ppath.l_step[np] = fabs( dl ); }
           ppath.los(np,0)  = geompath_za_at_r( ppc, a_za, ppath.pos(np,0) );
 	  a_za             = ppath.los(np,0);
           ppath.pos(np,1)  = geompath_lat_at_za( za_lat0, lat0, a_za );
@@ -837,18 +787,15 @@ void ppath_step_1d_geom(
 	  ppath.gp_p[np].fd[0] = ( ppath.z[np] - z_grid[ilow] ) / dz;
 	  ppath.gp_p[np].fd[1] = 1 - ppath.gp_p[np].fd[0];
           gridpos_check_fd( ppath.gp_p[np] );
-	  if( i == (ns.nelem()-1)  &&  j == ns[i]  && 
+	  if( i == (nr-1)  &&  j == (ns[i]-1)  && 
                                               !( ground && blackbody_ground ) )
 	    { gridpos_force_end_fd( ppath.gp_p[np] ); }
 
 	  np ++;
 	}
 
-      // Put in pressure
-      /* To be fixed */      
-
-      // Handle tangent points
-      if( i==0 )
+      // Handle tangent points and ground reflections
+      if( i == 0 )
 	{
 	  if( tanpoint )
 	    {
@@ -881,4 +828,30 @@ void ppath_step_1d_geom(
 	    }
 	}
     }
+}
+
+
+
+
+
+/*****************************************************************************
+ *** Lo
+ *****************************************************************************/
+
+//! ppath_step_geom
+/*! 
+
+   \author Patrick Eriksson
+   \date   2002-05-27
+*/
+void ppath_step_geom(
+	      Ppath&      ppath,
+        const Index&      atmosphere_dim,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+        const Index&      blackbody_ground,
+	const Numeric&    lmax )
+{
 }

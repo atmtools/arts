@@ -75,28 +75,25 @@ construct a control file for your simulation problem.
 \label{sec:fm_defs:math}
 
 [* A short introduction to the vectors, matrices and tensors should be
-found here. It should be described what the terms means, the order in
-which dimensions are given, how sizes are specified here in the guide,
-how different dimensionalities are handled etc. 
+found here. It should be described what the terms means, the standard
+order in which dimensions are given, how sizes are specified here in
+the guide, how different dimensionalities are handled etc.
 
-Vectors, matrices and tensors are indexed by round braces, e.g.
+Vectors, matrices and tensors are indexed using round braces.
+It should normally not be needed to specify the size. If you want to
+show in what order the dimensions are put into the variable, use the
+notation:
 \begin{equation}
-  \Alt(\aInd{\Prs},\aInd{\Lat},\aInd{\Lon})
+  \Alt = \Alt(\Prs,\Lat,\Lon)
 \end{equation}
-This is not consistent with how vectors are indexed in ARTS, but it
-would be confusing to use square braces, this as square braces are
-used for sizes. A size is given as $
-[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$, or the size:
-\begin{equation}
-  \Alt \SzeSmb [\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]
-\end{equation}
+If the a special size shall be given, give the size inside square
+brackets and spell out that you refer to the size. An example, 
+``the matrix describing the geoid has for 1D the size $[1,1]$''.
+
 The concept of rows, columns, pages etc. should be described so a
 particular dimension can be identified in a consistent manner.
 
-The indexing is 0-based as in ARTS. 
-
-Vectors are bold lowercase (e.g. \MsrVct), matrices bold uppercase
-(e.g. \SnsMtr), or? What about tensors? *]
+The indexing is 0-based as in ARTS. *]
 
 
 
@@ -109,17 +106,19 @@ Vectors are bold lowercase (e.g. \MsrVct), matrices bold uppercase
 %===================
 \label{sec:fm_defs:atmdim}
 
-The structure of the modelled atmosphere can be selected to have different
-degree of complexity, the \textindex{atmospheric dimensionality}. There
-exist three levels for the complexity of the atmosphere, 1D, 2D and
-3D, where 1D and 2D can be treated as special cases of 3D. The
-significance of these different atmospheric dimensionalities and the
-coordinate systems used are described below in this section. The
-atmospheric dimensionality is selected by setting the workspace
-variable \wsvindex{atmosphere\_dim} to a value between 1 and 3. Variables
-for which the size depends on the atmospheric dimensionality are
-checked, when used, to have a size consistent with
-\artsstyle{atmosphere\_dim}.
+The structure of the modelled atmosphere can be selected to have
+different degree of complexity, the \textindex{atmospheric
+  dimensionality}. There exist three levels for the complexity of the
+atmosphere, 1D, 2D and 3D, where 1D and 2D can be treated as special
+cases of 3D. The significance of these different atmospheric
+dimensionalities and the coordinate systems used are described below
+in this section. The atmospheric dimensionality is selected by setting
+the workspace variable \wsvindex{atmosphere\_dim} to a value between 1
+and 3. Variables for which the size depends on the atmospheric
+dimensionality are checked, when used, to have a size consistent with
+\artsstyle{atmosphere\_dim}. The atmospheric dimensionality is most
+easily set by the functions \wsfindex{SetAtmosphere1D},
+\wsfindex{SetAtmosphere2D} and \wsfindex{SetAtmosphere3D}.
 
 \begin{description}
   
@@ -261,10 +260,10 @@ checked, when used, to have a size consistent with
   (Equation~\ref{eq:fm_defs:zground}). Hence, the geometrical altitude
   is not measured along the local zenith direction (the normal to the
   reference geoid). Geometrical altitudes are mainly used to
-  facilitate the input of the ground altitude, the sensor position and
-  the altitude of the pressure surfaces. This is the case as these
-  quantities are known rather with respect to the geoid than with
-  respect to the Earth's centre.
+  facilitate the input of the ground altitude, the altitude of the
+  pressure surfaces etc. This is the case as these quantities are known
+  rather with respect to the geoid than with respect to the Earth's
+  centre.
 
 \end{description}
 
@@ -274,18 +273,19 @@ checked, when used, to have a size consistent with
 \label{sec:fm_defs:grids}
 
 As mentioned above, the vertical grid of the atmosphere consists of a
-set of layers with equal pressure, the pressure grid (\wsvindex{p\_grid}).
-This grid must of course always be specified. It is not allowed that
-there is an altitude gap between the ground and the lowermost pressure
-surface.  That is, the ground pressure must be smaller than the
-pressure of the lowermost vertical grid surface. On the hand, it is
-not necessary to match the ground and the first pressure surface, the
-pressure grid can extend below the ground level. The upper end of the
-pressure grid gives the practical upper limit of the atmosphere as
-vacuum is assumed above. With other words, no absorption and
-refraction take place above the uppermost pressure surface.
+set of layers with equal pressure, the pressure grid
+(\wsvindex{p\_grid}).  This grid must of course always be specified.
+It is not allowed that there is an altitude gap between the ground and
+the lowermost pressure surface.  That is, the ground pressure must be
+smaller than the pressure of the lowermost vertical grid surface. On
+the other hand, it is not necessary to match the ground and the first
+pressure surface, the pressure grid can extend below the ground level.
+The upper end of the pressure grid gives the practical upper limit of
+the atmosphere as vacuum is assumed above. With other words, no
+absorption and refraction take place above the uppermost pressure
+surface.
 
-A \textindex{latitude} grid (\wsvindex{alpha\_grid}) must be specified
+A \textindex{latitude} grid (\wsvindex{lat\_grid}) must be specified
 for 2D and 3D.  For 2D, the latitudes shall be treated as the angular
 distance along the orbit track, as described above in
 Section~\ref{sec:fm_defs:atmdim}.  The latitude angle is throughout
@@ -294,7 +294,7 @@ system to the point of concern. Hence, the latitudes here correspond
 to the definition of the geocentric latitude, and not geodetic
 latitudes (see Section~\ref{sec:ppath:geoid}). This is an accordance
 to the definition of geometric altitudes found above.  For 3D, a
-\textindex{longitude} grid (\wsvindex{beta\_grid}) must also be specified.
+\textindex{longitude} grid (\wsvindex{lon\_grid}) must also be specified.
 Valid ranges for latitude and longitude values are given in
 Section~\ref{sec:fm_defs:atmdim}.
 
@@ -309,11 +309,10 @@ by the grids is denoted as the \textindex{model atmosphere}.
 
 If the longitude and latitude grids are not used for the selected
 atmospheric dimensionality, then the longitude grid (for 1D and 2D)
-and the latitude grid (for 1D) are set to be empty, but the when
+and the latitude grid (for 1D) must be set to be empty, but when
 dealing with the size of variables the grid length shall be treated to
-be one ($\aVctLng{\Lat}=1$ and/or $\aVctLng{\Lon}=1$). For example,
-the matrix describing the geoid (see Section~\ref{sec:fm_defs:geoid})
-has for 1D the size $[1,1]$.
+be one. For example, the matrix describing the geoid (see
+Section~\ref{sec:fm_defs:geoid}) has for 1D the size $[1,1]$.
 
 The basic atmospheric quantities are represented by their values at
 each crossing of the involved grids (indicated by thick dots in
@@ -321,24 +320,21 @@ Figure~\ref{fig:fm_defs:2d}), or for 1D at each pressure surface
 (thick dots in Figure~\ref{fig:fm_defs:1d}). This representation is
 denoted as the field\index{atmospheric field} of the quantity. The
 field must, at least, be specified for the geometric altitude of the
-pressure surfaces (\wsvindex{z\_field}), the temperature (\wsvindex{t\_field})
-and considered atmospheric species (\artsstyle{????}). The atmospheric
-fields are tensors of order 3 with size
-$[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$.
-
-The fields are assumed to be piece-wise linear functions vertically
-(with pressure altitude as the vertical coordinate,
-Section~\ref{sec:fm_defs:altitudes}), and along the latitude and
-longitude edges of 2D and 3D grid boxes. For points inside 2D and 3D
-grid boxes, multidimensional linear interpolation is applied (that is,
-bilinear interpolation for 2D etc.). Note especially that this is also
-valid for the field of geometrical altitudes (\artsstyle{z\_field}).
-Fields are rank-3 tensors with dimension
-$[\aVctLng{\Prs},\aVctLng{\Lat},\aVctLng{\Lon}]$.  That means each
-field is like a book, with one page for each pressure grid point, one
-row for each latitude grid point, and one column for each longitude
-grid point. In the 1-D case there is just one row and one column on
-each page.
+pressure surfaces (\wsvindex{z\_field}), the temperature
+(\wsvindex{t\_field}) and considered atmospheric species
+(\artsstyle{vmr\_field}).  The fields are assumed to be piece-wise
+linear functions vertically (with pressure altitude as the vertical
+coordinate, Section~\ref{sec:fm_defs:altitudes}), and along the
+latitude and longitude edges of 2D and 3D grid boxes. For points
+inside 2D and 3D grid boxes, multidimensional linear interpolation is
+applied (that is, bilinear interpolation for 2D etc.). Note especially
+that this is also valid for the field of geometrical altitudes
+(\artsstyle{z\_field}). Fields are rank-3 tensors. For example, the
+temperature field is $T=T(\Prs,\Lat,\Lon)$. That means each field is
+like a book, with one page for each pressure grid point, one row for
+each latitude grid point, and one column for each longitude grid
+point. In the 1-D case there is just one row and one column on each
+page.
 
 
 
@@ -355,14 +351,12 @@ the reference ellipsoid for some global geodetic datum, such as
 WGS-84. For further reading on geoid ellipsoids and WGS-84, see
 Section~\ref{sec:ppath:geoid}.
 
-Inside ARTS, the geoid is represented as a matrix (\wsvindex{r\_geoid}),
-holding the geoid radius, \aRds{\odot}, for each crossing of the latitude and
-longitude grids. The size of the matrix is accordingly $\aRds{\odot}
-\SzeSmb [\aVctLng{\Lat},\aVctLng{\Lon}]$ and the geoid radius for a
-specific position is $\aRds{\odot}(\aInd{\Lat},\aInd{\Lon})$. The
-geoid is not defined outside the ranges covered by the latitude and
-longitude grids, with the exception for 1D where the geoid by
-definition is a full sphere. 
+Inside ARTS, the geoid is represented as a matrix
+(\wsvindex{r\_geoid}), holding the geoid radius, \aRds{\odot}, for
+each crossing of the latitude and longitude grids,
+$\aRds{\odot}=\aRds{\odot}(\Lat,\Lon)$. The geoid is not defined
+outside the ranges covered by the latitude and longitude grids, with
+the exception for 1D where the geoid by definition is a full sphere.
 The ground altitude, \aAlt{g}, is given as the geometrical altitude
 above the geoid. The radius for the ground is accordingly
 \begin{equation}
@@ -386,24 +380,34 @@ some conditions are fulfilled (see
 Section~\ref{sec:fm_defs:groundrefl}).
 
 The temperature of the ground\index{ground temperature} (\aTmp{g}) is
-treated to be the same as for the temperature field for the altitude
-of the ground. The \textindex{ground emission} is described by the
-variable \wsvindex{e\_ground}, holding the ground emission factor
-$(e_g)$ of the ground, as a function of frequency for each
-latitude/longitude position. This workspace variable is a tensor of
-order 3, with size $e_g \SzeSmb
-[\aVctLng{\Frq},\aVctLng{\Lat},\aVctLng{\Lon}]$.  The emission from
-the ground is $e_g(\Frq)\Planck(\Frq,\aTmp{g})$, where \Planck\ is the
-Planck blackbody function. That is, the emissivity is a value between
-0 and 1, where 0 means that the ground has no emissivity, and for
-$e_g=1$ the ground acts as a blackbody for that particular frequency.
+described by the matrix \wsvindex{t\_ground} that has the same size as
+\artsstyle{r\_geoid} and \artsstyle{z\_ground}. The \textindex{ground
+  emission} is described by the variable \wsvindex{e\_ground}, holding
+the ground emission factor $(e_g)$ of the ground, as a function of
+frequency for each latitude/longitude position. This workspace
+variable is a tensor of order 3, $e_g = e_g(\Frq,\Lat,\Lon)$. The
+emission from the ground is $e_g(\Frq)\Planck(\Frq,\aTmp{g})$, where
+\Planck\ is the Planck blackbody function. That is, the emissivity is
+a value between 0 and 1, where 0 means that the ground has no
+emissivity, and for $e_g=1$ the ground acts as a blackbody for that
+particular frequency.
 
 \begin{description}
-\item[Blackbody ground\index{blackbody ground}] If the ground as a
-  whole shall be treated as blackbody, which is of importance for the
-  cloud box and determination of propagation paths
+\item[Blackbody ground\index{blackbody ground}] The ground can be
+  treated to act as a blackbody, which is of importance for the cloud
+  box and determination of propagation paths
   (Section~\ref{sec:fm_defs:cloudbox} and \ref{sec:fm_defs:ppaths},
-  respectively), all values of \artsstyle{e\_ground} must be 1.
+  respectively). This feature is selected by the variable
+  \wsvindex{blackbody\_ground}. For consistency reasons,
+  \artsstyle{e\_ground} is demanded to only contain ones when
+  \artsstyle{blackbody\_ground} is set to 1, but the size $[1,1,1]$ is
+  then allowed also for 2D and 3D to save memory. The ground is only
+  treated to be a blackbody when \artsstyle{blackbody\_ground} is set
+  to 1. If \artsstyle{e\_ground} only contains 1, but
+  \artsstyle{blackbody\_ground} is set to 0, the calculations will be
+  performed such as the radiation is reflected by the ground. A
+  blackbody ground is most easily selected by the function
+  \wsfindex{SetBlackbodyGround}.
 \end{description}
 
 
@@ -968,7 +972,7 @@ the distance along the path between the points. These quantities, and
 a number of auxiliary variables, are stored together in a structure
 described in Section~[**]. The path points are primarily placed at the
 crossings of the path with the atmospheric grids (\artsstyle{p\_grid},
-\artsstyle{alpha\_grid} and \artsstyle{beta\_grid}). A path point is
+\artsstyle{lat\_grid} and \artsstyle{lon\_grid}). A path point is
 also placed at the sensor if it is placed inside the atmosphere.
 Ground reflections and tangent points are also included if such exist.
 There exists also the possibility to set an upper limit for the

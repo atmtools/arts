@@ -239,15 +239,15 @@ void ppathCalc(
       // Call ppath_step agenda
 
       // For the moment, a hard-coded version:
-      ppath_step_1d_geom( ppath_partial, atmosphere_dim, p_grid, 
+      ppath_step_geom_1d( ppath_partial, atmosphere_dim, p_grid, 
                     z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), 
-                                                     blackbody_ground, 999e3 );
+                                                     blackbody_ground, 50e3 );
 
       // Number of points in returned path step
       const Index n = ppath_partial.np;
 
       // Increase the total number
-      np += n;
+      np += n - 1;
 
       // Put new ppath_partial in ppath_array
       ppath_array.push_back( ppath_partial );
@@ -300,28 +300,31 @@ void ppathCalc(
       // Check if there is an intersection with an active cloud box
       if( cloudbox_on )
 	{
-	  if( is_gridpos_at_index_i( ppath_partial.gp_p[n-1], 
-                                                         cloudbox_limits[0] )
-                                      &&
-              is_gridpos_at_index_i( ppath_partial.gp_p[n-1], 
-                                                         cloudbox_limits[1] ) )
+	  Numeric ipos = Numeric( ppath_partial.gp_p[n-1].idx ) + 
+                                                 ppath_partial.gp_p[n-1].fd[0];
+	  if( ipos >= Numeric( cloudbox_limits[0] )  && 
+	                                ipos <= Numeric( cloudbox_limits[1] ) )
 	    {
 	      if( atmosphere_dim == 1 )
 		{ ppath_set_background( ppath_partial, 3 ); }
-	      else if( is_gridpos_at_index_i( ppath_partial.gp_lat[n-1],
-                                                         cloudbox_limits[2] )
-                                      &&
-                       is_gridpos_at_index_i( ppath_partial.gp_lat[n-1],
-                                                         cloudbox_limits[3] ) )
+	      else
 		{
-		  if( atmosphere_dim == 2 )
-		    { ppath_set_background( ppath_partial, 3 ); }
-		  else if( is_gridpos_at_index_i( ppath_partial.gp_lon[n-1],
-                                                         cloudbox_limits[4] )
-                                      &&
-                           is_gridpos_at_index_i( ppath_partial.gp_lon[n-1],
-                                                         cloudbox_limits[5] ) )
-		    { ppath_set_background( ppath_partial, 3 ); }
+		  ipos = Numeric( ppath_partial.gp_lat[n-1].idx ) + 
+                                               ppath_partial.gp_lat[n-1].fd[0];
+		  if( ipos >= Numeric( cloudbox_limits[2] )  && 
+	                                ipos <= Numeric( cloudbox_limits[3] ) )
+		    {
+		      if( atmosphere_dim == 2 )
+			{ ppath_set_background( ppath_partial, 3 ); }
+		      else
+			{
+			  ipos = Numeric( ppath_partial.gp_lon[n-1].idx ) + 
+                                               ppath_partial.gp_lon[n-1].fd[0];
+			  if( ipos >= Numeric( cloudbox_limits[4] )  && 
+	                                ipos <= Numeric( cloudbox_limits[5] ) )
+			    { ppath_set_background( ppath_partial, 3 ); } 
+			}
+		    }
 		}
 	    }
 	}
@@ -336,28 +339,48 @@ void ppathCalc(
   //
   for( Index i=0; i<ppath_array.nelem(); i++ )
     {
+      // For the first structure, the first point shall be included, but the
+      // first structure can also be empty. 
+      // For later structures, the first point shall not be included, but
+      // there will always be at least two points.
+      // Note that only the first structure can be empty.
+
       Index n = ppath_array[i].np;
+
       if( n )
 	{
-	  ppath.pos( Range(np,n), Range(joker) ) = ppath_array[i].pos;
-	  ppath.p[ Range(np,n) ]                 = ppath_array[i].p;
-	  ppath.z[ Range(np,n) ]                 = ppath_array[i].z;
+	  // First index to include
+	  Index i1 = 1;
+	  if( i == 0 )
+	    { i1 = 0; }
+
+	  // Vectors and matrices that can be handled by ranges.
+	  ppath.z[ Range(np,n-i1) ] = ppath_array[i].z[ Range(i1,n-i1) ];
+	  ppath.pos( Range(np,n-i1), Range(joker) ) = 
+                            ppath_array[i].pos( Range(i1,n-i1), Range(joker) );
+	  ppath.los( Range(np,n-i1), Range(joker) ) = 
+	                    ppath_array[i].los( Range(i1,n-i1), Range(joker) );
+
+	  // For i==1, there is no defined l_step. For higher i, all 
+	  // values in l_step shall be copied.
 	  if( i > 0 )
-	    { ppath.l_step[ Range(np-1,n) ]      = ppath_array[i].l_step; }
-	  for( Index j=0; j<n; j++ )
+	    { ppath.l_step[ Range(np-1,n-1) ] = ppath_array[i].l_step; }
+
+	  // Grid positions must be handled by a loop
+	  for( Index j=i1; j<n; j++ )
+	    { ppath.gp_p[np+j-i1] = ppath_array[i].gp_p[j]; }
+	  if( atmosphere_dim >= 2 )
 	    {
-	      ppath.gp_p[np+j]                = ppath_array[i].gp_p[j];
-  	      ppath.los(np+j,0)               = 180 - ppath_array[i].los(j,0);
-	      if( atmosphere_dim >= 2 )
-		{
-		  ppath.gp_lat[np+j]          = ppath_array[i].gp_lat[j];
-		  if( atmosphere_dim == 3 )
-		    {
-		      ppath.gp_lon[np+j]      = ppath_array[i].gp_lon[j];
-		      ppath.los(np+j,1)       = 180 - ppath_array[i].los(j,1);
-		    }
-		}
+	      for( Index j=i1; j<n; j++ )
+		{ ppath.gp_lat[np+j-i1] = ppath_array[i].gp_lat[j]; }
 	    }
+	  if( atmosphere_dim == 3 )
+	    {
+	      for( Index j=i1; j<n; j++ )
+		{ ppath.gp_lon[np+j-i1] = ppath_array[i].gp_lon[j]; }
+	    }
+
+	  // Fields just set once
 	  if( ppath_array[i].ground )
 	    {
 	      ppath.ground                    = ppath_array[i].ground;
@@ -373,7 +396,9 @@ void ppathCalc(
 	      ppath.symmetry                  = ppath_array[i].symmetry;
 	      ppath.i_symmetry                = np + ppath_array[i].i_symmetry;
 	    }
-	  np += n;
+
+	  // Increase number of points done
+	  np += n - i1;
 	}
     }  
   ppath.method     = ppath_partial.method;
@@ -400,7 +425,6 @@ void ppathCalc(
       if( ppath.tan_pos.nelem() )
 	PrintVector( ppath.tan_pos, "tan_pos" );
       PrintMatrix( ppath.pos, "pos" );
-      //PrintVector( ppath.p, "p" );
       PrintVector( ppath.z, "z" );
       PrintVector( ppath.l_step, "l_step" );
       PrintMatrix( ppath.los, "los" );

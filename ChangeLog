@@ -1,3 +1,17 @@
+2002-05-27  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-95
+
+	* src/m_ppath.cc and src/ppath.cc: One 1D geometrical propagation paths
+	now work. 
+
+	* src/workspace.cc: Polished the text for some variables. 
+
+	* src/m_atmosphere.cc (SetBlackbodyGround): Added this function.
+
+	* doc/uguide/fm_definitions.tex: Started top revise this chapter
+	after some changes of definitions.
+
 2002-05-23  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-94

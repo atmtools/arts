@@ -29,7 +29,7 @@
   \brief  Propagation path structure and functions.
   
    This file contains the definition of the Ppath structure and the
-   functions in ppath.c that are of interest elsewhere.
+   functions in ppath.cc that are of interest elsewhere.
 */
 
 
@@ -61,7 +61,6 @@ struct Ppath {
   String            method;
   Numeric           constant;
   Matrix    	    pos;
-  Vector    	    p;
   Vector    	    z;
   Vector            l_step;
   ArrayOfGridPos    gp_p;
@@ -109,7 +108,7 @@ void ppath_start_stepping(
         const Vector&         sensor_pos,
 	const Vector&         sensor_los );
 
-void ppath_step_1d_geom(
+void ppath_step_geom_1d(
 	      Ppath&      ppath,
         const Index&      atmosphere_dim,
         ConstVectorView   p_grid,
@@ -118,6 +117,5 @@ void ppath_step_1d_geom(
         const Numeric&    z_ground,
         const Index&      blackbody_ground,
 	const Numeric&    lmax );
-
 
 #endif  // ppath_h

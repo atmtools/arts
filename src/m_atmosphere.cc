@@ -145,3 +145,22 @@ void r_geoidWGS84(
         }
     }
 }
+
+
+
+//! SetBlackbodyGround
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-27
+*/
+void SetBlackbodyGround(
+        // WS Output:
+              Index&     blackbody_ground,
+              Tensor3&   e_ground )
+{
+  blackbody_ground = 1;
+  e_ground.resize(1,1,1);
+  e_ground(0,0,0) = 1;
+}

@@ -1069,6 +1069,21 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("SetBlackbodyGround"),
+	DESCRIPTION
+        (
+         "Sets *blackbody_ground* to 1 and creates *e_ground* as a tensor\n"
+	 "with size [1,1,1] having the value 1."
+        ),
+	OUTPUT( blackbody_ground_, e_ground_ ),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS(),
+	TYPES()));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("StringReadXML"),
 	DESCRIPTION
         (
