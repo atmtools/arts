@@ -1,5 +1,16 @@
 2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-0-145
+
+	* src/continua.cc (MPM93RainExt), src/m_wfs.cc (absloswfs_rte_limb):
+	Initialize variable with 0 which might be used uninitialized.
+
+	NOTE: The warning about variables that are probably used uninitialized
+	is only displayed with enabled optimizations because the information
+	about the used variables is determined by the compiler's optimizer.
+
+2003-12-08  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-0-144
 
 	* autogen.sh: Sync with arts 1.1.
