@@ -28,7 +28,6 @@
 */
 
 #include "describe.h"
-#include <sstream>
 
 //! Describe Tensor7.
 /*! 
