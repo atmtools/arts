@@ -220,6 +220,7 @@ bool LineRecord::ReadFromHitranStream(istream& is)
 	    }
 	}
 
+
       // Print the generated data structures (for debugging):
       out3 << "  HITRAN index table:\n";
       for ( size_t i=0; i<hspec.size(); ++i )
@@ -1463,15 +1464,24 @@ void abs_species( MATRIX&                  abs,
   // sqrt(ln(2))
   // extern const Numeric SQRT_NAT_LOG_2;
 
+  // PI
+  extern const Numeric PI;
+
+  // constant sqrt(1/pi)
+  const Numeric sqrt_invPI =  sqrt(1/PI);
+
   // Constant within the Doppler Broadening calculation:
   const Numeric doppler_const = sqrt( 2.0 * BOLTZMAN_CONST *
 				      AVOGADROS_NUMB) / SPEED_OF_LIGHT; 
 
+  // dimension of f_mono
+  size_t nf = f_mono.dim();
+
   // Define the vector for the line shape function and the
   // normalization factor of the lineshape here, so that we don't need
   // so many free store allocations.
-  VECTOR ls(f_mono.size());
-  VECTOR fac(f_mono.size());
+  VECTOR ls(nf);
+  VECTOR fac(nf);
 
   // Check that p_abs, t_abs, and vmr all have the same
   // dimension. This could be a user error, so we throw a
@@ -1495,16 +1505,16 @@ void abs_species( MATRIX&                  abs,
       throw runtime_error(os.str());
     }
 
-  // Check that the dimension of abs is indeed [f_mono.size(),
-  // p_abs.size()]:
-  if ( abs.dim(1) != f_mono.size() || abs.dim(2) != p_abs.size() )
+  // Check that the dimension of abs is indeed [f_mono.dim(),
+  // p_abs.dim()]:
+  if ( abs.dim(1) != nf || abs.dim(2) != p_abs.dim() )
     {
       ostringstream os;
       os << "Variable abs must have dimensions [f_mono.size(),p_abs.size()].\n"
 	 << "[abs.dim(1),abs.dim(2)] = [" << abs.dim(1)
 	 << ", " << abs.dim(2) << "]\n"
-	 << "f_mono.size() = " << f_mono.size() << '\n'
-	 << "p_abs.size() = " << p_abs.size();
+	 << "f_mono.dim() = " << nf << '\n'
+	 << "p_abs.dim() = " << p_abs.dim();
       throw runtime_error(os.str());
     }
 
@@ -1512,11 +1522,16 @@ void abs_species( MATRIX&                  abs,
   for ( size_t i=1; i<=p_abs.size(); ++i )
   {
 
-    out3 << "  p = " << p_abs(i) << " Pa\n";
+    // store variables p_abs(i) and t_abs(i),
+    // this is slightly faster
+    Numeric p_i = p_abs(i);
+    Numeric t_i = t_abs(i);
 
-    // Calculate total number density from pressure and
-    // temperature. 
-    // n = n0*T0/p0 * p/T, ideal gas law
+    
+    out3 << "  p = " << p_i << " Pa\n";
+
+    // Calculate total number density from pressure and temperature. n
+    // = n0*T0/p0 * p/T, ideal gas law
     Numeric n;
     {
       // FIXME: Should these be moved to constants.cc?
@@ -1524,11 +1539,11 @@ void abs_species( MATRIX&                  abs,
       const Numeric p_0   = 101300.25; 	       /* standard p in [Pa]        */
       const Numeric n_0   = 2.686763E25;         /* Loschmidt constant [m^-3] */
       const Numeric fac   = n_0 * T_0_C / p_0;
-      n = fac * p_abs(i) / t_abs(i);
+      n = fac * p_i / t_i;
     }
 
     // For the pressure broadening, we also need the partial pressure:
-    const Numeric p_partial = p_abs(i) * vmr(i);
+    const Numeric p_partial = p_i * vmr(i);
 
 
     // Loop all lines:
@@ -1556,7 +1571,7 @@ void abs_species( MATRIX&                  abs,
 	try 
 	  {
 	    part_fct_ratio =
-	      l_l.IsotopeData().CalculatePartitionFctRatio( t_abs(i) );
+	      l_l.IsotopeData().CalculatePartitionFctRatio( t_i );
 	  }
 
 	catch (runtime_error e)
@@ -1568,8 +1583,8 @@ void abs_species( MATRIX&                  abs,
 	  }
 
 	// Boltzmann factors
-	Numeric nom = exp(- e_lower / (BOLTZMAN_CONST * t_abs(i) ) ) - 
-       	              exp(- e_upper /( BOLTZMAN_CONST * t_abs(i) ) );
+	Numeric nom = exp(- e_lower / (BOLTZMAN_CONST * t_i ) ) - 
+       	              exp(- e_upper /( BOLTZMAN_CONST * t_i ) );
 
 	Numeric denom = exp(- e_lower / (BOLTZMAN_CONST * l_l.Ti0() ) ) - 
        	                exp(- e_upper /( BOLTZMAN_CONST * l_l.Ti0() ) );
@@ -1579,53 +1594,46 @@ void abs_species( MATRIX&                  abs,
 	intensity *= part_fct_ratio * nom / denom;
 
 
-
 	// 2. Get pressure broadened line width:
-	// (Agam is in Hz/Pa, p_abs is in Pa, f_mono is in Hz,
-	// gamma is in Hz/Pa)
-	// FIXME: This is inefficient, the scaling to Hz could be
-	// stored in lines.
-
-	const Numeric theta = l_l.Tgam() / t_abs(i);
+	// (Agam is in Hz/Pa, p_abs is in Pa, gamma is in Hz)
+	const Numeric theta = l_l.Tgam() / t_i;
+	const Numeric theta_Nair = pow(theta, l_l.Nair());
 
 	Numeric gamma
-	  = l_l.Agam() * pow(theta, l_l.Nair())  * (p_abs(i) - p_partial)
+	  = l_l.Agam() * theta_Nair  * (p_i - p_partial)
 	  + l_l.Sgam() * pow(theta, l_l.Nself()) * p_partial;
 
-	// Doppler broadening without the sqrt(ln(2)) factor, which
+	// 3. Doppler broadening without the sqrt(ln(2)) factor, which
 	// seems to be redundant FIXME: verify .
 	Numeric sigma = l_l.F() * doppler_const * 
-	  sqrt( t_abs(i) / l_l.IsotopeData().Mass());
+	  sqrt( t_i / l_l.IsotopeData().Mass());
 
-	// Get line shape:
-	// FIXME: we need an index to this, extracted from the
-	// controlfile. 
-	// Current lineshapes:
-	// 0 : Lorentz
-	// 1 : Voigt, Kuntz approximation, accuracy better than 2*10-6.
 
+	// Calculate the line shape:
 	lineshape_data[ind_ls].Function()(ls,
 					  l_l.F(),
 					  gamma,
 					  sigma,
-					  f_mono);
+					  f_mono,
+					  nf);
 
- 	lineshape_norm_data[1].Function()(fac,
-					  l_l.F(),
-					  f_mono);
+
+	// Calculate the chosen normalization factor:
+ 	lineshape_norm_data[ind_lsn].Function()(fac,
+						l_l.F(),
+						f_mono,
+						nf);
 
 
 
 	// Add line to abs:
 
-	// constant sqrt(1/pi)
-	const Numeric sqrt_1_pi =  0.564189584;
-
-	Numeric factor = 1.0 / sigma * sqrt_1_pi;
-	for ( size_t j=1; j<=f_mono.size(); ++j )
+	// little speeding up factor
+	Numeric sfac = 1.0 / sigma * sqrt_invPI;
+	for ( size_t j=1; j<=nf; ++j )
 	  {
 	    abs(j,i) = abs(j,i)
-	      + n * vmr(i) * intensity * ls(j) * factor * fac(j);
+	      + n * vmr(i) * intensity * ls(j) * sfac * fac(j);
 
 	    // if (i == 20)
 	    //  {

@@ -35,7 +35,8 @@ typedef void (*lsf_type)(VECTOR&,
 			 Numeric,
 			 Numeric,
 			 Numeric,
-			 const VECTOR&);
+			 const VECTOR&,
+			 const size_t);
 
 /** Lineshape related information. There is one LineshapeRecord for
     each available lineshape function.
@@ -83,7 +84,8 @@ private:
     normalization functions.  */
 typedef void (*lsnf_type)(VECTOR&,
 			  Numeric,
-			  const VECTOR&);
+			  const VECTOR&,
+			  const size_t);
 
 /** Lineshape related normalization function information. There is one
     LineshapeNormRecord for each available lineshape normalization

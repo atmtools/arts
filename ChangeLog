@@ -1,3 +1,10 @@
+2000-12-13  Axel von_Engeln  <engeln@uni-bremen.de>
+
+	* arts-0-0-89
+
+	* lineshapes include now: 3 Voigt Kuntz algorithms, Voigt Drayson,
+	Doppler.
+
 2000-12-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-88

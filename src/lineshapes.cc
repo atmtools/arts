@@ -34,30 +34,66 @@
 
 /*! The Lorentz line shape. This is a quick and dirty implementation.
 
-    \retval ls     The shape function.
-    \param  f0     Line center frequency.
-    \param  gamma  The pressure broadening parameter.
-    \param  sigma  The Doppler broadening parameter. (Not used.)
-    \param  f_mono The frequency grid.
+    \retval ls            The shape function.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
 
-    \author Stefan Buehler 16.06.2000 */
+    \author Stefan Buehler 
+    \date 2000-06-16 */
 void lineshape_lorentz(VECTOR&       ls,
-		       Numeric	      f0,
+		       Numeric	     f0,
 		       Numeric       gamma,
 		       Numeric       sigma,
-		       const VECTOR& f_mono)
+		       const VECTOR& f_mono,
+		       const size_t  nf)
 {
-  // FIXME: Maybe try if call by reference is faster for f0 and gamma?
-
-  // 1/PI:
+  // PI:
   extern const Numeric PI;
-  static const Numeric invPI = 1. / PI;
 
-  assert( ls.size() == f_mono.size() );
+  assert( ls.dim() == nf );
 
-  for ( size_t i=0; i<f_mono.size(); ++i )
+  Numeric gamma2 = gamma * gamma;
+  Numeric fac = gamma/PI;
+
+  for ( size_t i=0; i<nf; ++i )
     {
-      ls[i] = invPI * gamma / ( pow( f_mono[i]-f0, 2) + pow(gamma,2) );
+      ls[i] =  fac / ( (f_mono[i]-f0) * (f_mono[i]-f0) + gamma2 );
+    }
+}
+
+/*! The Doppler line shape.
+
+    \retval ls            The shape function.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter. (Not used.)
+    \param  sigma         The Doppler broadening parameter.
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    \author Axel von Engeln
+    \date 2000-12-06 */
+void lineshape_doppler(VECTOR&       ls,
+		       Numeric	     f0,
+		       Numeric       gamma,
+		       Numeric       sigma,
+		       const VECTOR& f_mono,
+		       const size_t  nf)
+{
+  // SQRT(PI):
+  extern const Numeric PI;
+  static const Numeric sqrtPI = sqrt(PI);
+
+  assert( ls.dim() == nf );
+
+  Numeric sigma2 = sigma * sigma;
+  Numeric fac = 1.0 / (sqrtPI * sigma);
+  
+  for ( size_t i=0; i<nf ; ++i )
+    {
+      ls[i] = fac * exp( - pow( f_mono[i]-f0, 2) / sigma2 );
     }
 }
 
@@ -66,39 +102,50 @@ void lineshape_lorentz(VECTOR&       ls,
 //------------------------------------------------------------------------
 
 // help function for lineshape_voigt_kuntz1
-int bfun(Numeric y,Numeric x)
+long bfun_(Numeric y, Numeric x)
 {
-      Numeric s;
+  /* System generated locals */
+  long int ret_val;
 
-      s = fabs(x)+y;
-      if (s >= 15)
-        return(1);
-      else if (s >= 5.5)
-        return(2); 
-      else if (y >= (0.195*fabs(x))-0.176)
-        return(3);
-      else
-        return(4);
-}
+  /* Local variables */
+  static Numeric s;
 
-void lineshape_voigt_kuntz1(VECTOR&       prb,
-			    Numeric	  f0,
-			    Numeric       gamma,
-			    Numeric       sigma,
-			    const VECTOR& f_mono)
+  /* -------------------------------------------------------------------- */
+  s = fabs(x) + y;
+  if (s >= 15.f) {
+    ret_val = 1;
+  } else if (s >= 5.5f) {
+    ret_val = 2;
+  } else if (y >= fabs(x) * .195f - .176f) {
+    ret_val = 3;
+  } else {
+    ret_val = 4;
+  }
+  return ret_val;
+} /* bfun_ */
+
+
 
 /*! The Voigt line shape. Kuntz approximation of the Voigt line
-  shape, extracted from the Skuld forward model.
+  shape. 
 
-    \retval ls     The shape function.
-    \param  f0     Line center frequency.
-    \param  gamma  The pressure broadening parameter.
-    \param  sigma  The Doppler broadening parameter. (Not used.)
-    \param  f_mono The frequency grid.
+    \retval ls            The shape function.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter.
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
 
-    Original skuld function call and documention:
+    Original c function call and documention:
 
-    void voigt1(int nx, double *x,double y,double *prb,double fak)
+    int voigt
+    (
+    long nx,
+    float *x,
+    float y,
+    float *prb,
+    float fak
+    )
     
     Calculates the Voigt-Function times the user-definied value 
     fac with a relative accuracy better than 2*10-6.
@@ -128,295 +175,1266 @@ void lineshape_voigt_kuntz1(VECTOR&       prb,
     \endverbatim
 
 
-    About 'voigt1' : The program was originally written by M. Kuntz
-    in Fortran77 but has been translated into C by Frank Merino and 
-    into C++ by Oliver Lemke and Axel von Engeln. fak is set to 1.0.
+    About 'voigt' : The program was originally written by M. Kuntz in
+    Fortran77 but has been translated into C by Dietrich Feist (f2c)
+    and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
+    from program code. Replaced nx by nf. Replaced prb by ls.
     
 
     \author Oliver Lemke and Axel von Engeln
     \date 2000-09-27 */ 
+
+void lineshape_voigt_kuntz1(VECTOR&       ls,
+			    Numeric	  f0,
+			    Numeric       gamma,
+			    Numeric       sigma,
+			    const VECTOR& f_mono,
+			    const size_t  nf)
+
 {
 
   // seems not necessary for Doppler correction
   //    extern const Numeric SQRT_NAT_LOG_2;
 
-      int lauf[5][5], stack[20][4], stackp, bmin, bmax;
-      Numeric static a8,b8,c8,d8,e8,f8,g8,h8,o8,p8,q8,r8,s8,t8,a7,b7,c7,d7,e7,f7, 
-	g7,h7,o7,p7,q7,r7,s7,t7,a6,b6,c6,d6,e6,a5,b5,c5,d5,e5,a4,b4, 
-	c4,d4,a3,b3,c3,d3,a2,a1,b1;
 
-      Numeric yps0,yps1,yps2,yps3,yps4,y2,ym2,x2;
-      Numeric c1,b2; // a0,b0;
-      int i1,i2,imin,imax,imitte;
+  /* Initialized data */
 
-      // variables for C++ code FIXME: currently the x array is
-      // calculated with each call to this function, it seems better
-      // to do this in an intelligent way somewhere before the
-      // function call. Note: x needs the Doppler broadening
-      // parameter. As well, nx should be defined somewhere else.
-      size_t nx;
-      Numeric y;
-      VECTOR x(f_mono.size());
-      Numeric fak;
+  static Numeric yps1 = -1.0;
+  static Numeric yps2 = -1.0;
+  static Numeric yps3 = -1.0;
+  static Numeric yps4 = -1.0;
 
-      // dimension of arrays
-      nx = f_mono.size();
+  /* System generated locals */
+  long int i__1, i__2;
+  Numeric r__1;
+
+  /* Local variables */
+  static long int bmin, lauf[16]	/* was [4][4] */, bmax;
+  static long int imin, imax, stack[80]	/* was [20][4] */;
+  static Numeric a1, a2, a3, a4, a5, a6, a8, b8, c8, d8, e8, f8, g8, h8, a7, 
+    b7, c7, d7, e7, f7, o8, p8, q8, r8, s8, t8, g7, h7, o7, p7, q7, 
+    r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, c3, 
+    d3, b1, y2;
+  static long int i2, i1;
+  static Numeric x2, b2;
+  static long int stackp, imitte;
+  static Numeric ym2;
+
+
+  // variables needed in original c routine:
+
+  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+  Numeric y = gamma / sigma;
+
+  // frequency in units of Doppler 
+  VECTOR x( nf ); 
+  for (i1=0; i1< (int) nf; i1++)
+    {
+      x[i1] = (f_mono[i1] - f0) / sigma;
+    }
+
+  /* Parameter adjustments */
+  // this does not work for variables type VECTOR, corrected by
+  // adjusting the index to array ls and x
+  //--ls;
+  //--x;
+
+  /* Function Body */
+  y2 = y * y;
+  if (y >= 15.0 || x[0] >= 15.0 || x[nf-1] <= -15.0) {
+    lauf[0] = 1;
+    lauf[4] = nf;
+    lauf[8] = nf;
+    lauf[12] = 0;
+    goto L7;
+  }
+  for (i2 = 1; i2 <= 4; ++i2) {
+    for (i1 = 1; i1 <= 4; ++i1) {
+      lauf[i1 + (i2 << 2) - 5] = i2 % 2 * (nf + 1);
+      /* L1: */
+    }
+  }
+  stackp = 1;
+  stack[stackp - 1] = 1;
+  stack[stackp + 19] = nf;
+  stack[stackp + 39] = bfun_(y, x[0]);
+  stack[stackp + 59] = bfun_(y, x[nf-1]);
+ L2:
+  imin = stack[stackp - 1];
+  imax = stack[stackp + 19];
+  bmin = stack[stackp + 39];
+  bmax = stack[stackp + 59];
+  if (bmin == bmax) {
+    if (x[imax-1] < 0.f) {
+      /* Computing MIN */
+      i__1 = imin, i__2 = lauf[bmin - 1];
+      lauf[bmin - 1] = min(i__1,i__2);
+      /* Computing MAX */
+      i__1 = imax, i__2 = lauf[bmax + 3];
+      lauf[bmax + 3] = max(i__1,i__2);
+      --stackp;
+      goto L3;
+    } else if (x[imin-1] >= 0.f) {
+      /* Computing MIN */
+      i__1 = imin, i__2 = lauf[bmin + 7];
+      lauf[bmin + 7] = min(i__1,i__2);
+      /* Computing MAX */
+      i__1 = imax, i__2 = lauf[bmax + 11];
+      lauf[bmax + 11] = max(i__1,i__2);
+      --stackp;
+      goto L3;
+    }
+  }
+  imitte = (imax + imin) / 2;
+  stack[stackp - 1] = imitte + 1;
+  stack[stackp + 19] = imax;
+  stack[stackp + 39] = bfun_(y, x[imitte]);
+  stack[stackp + 59] = bmax;
+  ++stackp;
+  stack[stackp - 1] = imin;
+  stack[stackp + 19] = imitte;
+  stack[stackp + 39] = bmin;
+  stack[stackp + 59] = bfun_(y, x[imitte-1]);
+ L3:
+  if (stackp > 0) {
+    goto L2;
+  }
+  /* ---- Region 4 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[7] >= lauf[3] || lauf[15] >= lauf[11]) {
+    if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
+      yps4 = y;
+      a7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (y2 * (2.35944f - y2 * .56419f) - 72.9359f) + 
+		    571.687f) - 5860.68f) + 40649.2f) - 320772.f) + 1684100.f)
+		     - 9694630.f) + 40816800.f) - 1.53575e8f) + 4.56662e8f) - 
+		    9.86604e8f) + 1.16028e9f);
+      b7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (23.0312f - y2 * 7.33447f) - 234.143f) - 
+		    2269.19f) + 45251.3f) - 234417.f) + 3599150.f) - 
+		    7723590.f) + 86482900.f) - 2.91876e8f) + 8.06985e8f) - 
+		    9.85386e8f) - 5.60505e8f);
+      c7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (97.6203f - y2 * 44.0068f) + 1097.77f) - 25338.3f) + 
+		    98079.1f) + 576054.f) - 2.3818e7f) + 22930200.f) - 
+		    2.04467e8f) + 2.94262e8f) + 2.47157e8f) - 6.51523e8f);
+      d7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    228.563f - y2 * 161.358f) + 8381.97f) - 66431.2f) - 
+		    303569.f) + 2240400.f) + 38311200.f) - 41501300.f) - 
+		    99622400.f) + 2.70167e8f) - 2.63894e8f);
+      e7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    296.38f - y2 * 403.396f) + 23507.6f) - 66212.1f) - 
+		    1.003e6f) + 468142.f) + 24620100.f) + 5569650.f) + 
+		    1.40677e8f) - 63177100.f);
+      f7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (125.591f - 
+		    y2 * 726.113f) + 37544.8f) + 8820.94f) - 934717.f) - 
+		    1931140.f) - 33289600.f) + 4073820.f) - 16984600.f);
+      g7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (-260.198f - y2 * 
+		    968.15f) + 37371.9f) + 79902.5f) - 186682.f) - 900010.f) 
+		    + 7528830.f) - 1231650.f);
+      h7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (-571.645f - y2 * 968.15f)
+		     + 23137.1f) + 72520.9f) + 153468.f) + 86407.6f) - 
+		    610622.f);
+      o7 = y * (y2 * (y2 * (y2 * (y2 * (-575.164f - y2 * 726.113f) + 
+		    8073.15f) + 26538.5f) + 49883.8f) - 23586.5f);
+      p7 = y * (y2 * (y2 * (y2 * (-352.467f - y2 * 403.396f) + 
+		    953.655f) + 2198.86f) - 8009.1f);
+      q7 = y * (y2 * (y2 * (-134.792f - y2 * 161.358f) - 271.202f) - 
+		    622.056f);
+      r7 = y * (y2 * (-29.7896f - y2 * 44.0068f) - 77.0535f);
+      s7 = y * (-2.92264f - y2 * 7.33447f);
+      t7 = y * -.56419f;
+      a8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (y2 * (y2 - 3.68288f) + 126.532f) - 955.194f) 
+		    + 9504.65f) - 70946.1f) + 483737.f) - 2857210.f) + 
+		    14464700.f) - 61114800.f) + 2.11107e8f) - 5.79099e8f) + 
+		    1.17022e9f) - 1.5599e9f) + 1.02827e9f;
+      b8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (y2 * 14.f - 40.5117f) + 533.254f) + 3058.26f) 
+		    - 55600.f) + 498334.f) - 2849540.f) + 13946500.f) - 
+		    70135800.f) + 2.89676e8f) - 7.53828e8f) + 1.66421e9f) - 
+		    2.28855e9f) + 1.5599e9f;
+      c8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * 91 - 198.876f) - 1500.17f) + 48153.3f) - 
+		    217801.f) - 1063520.f) + 1.4841e7f) - 46039600.f) + 
+		    63349600.f) - 6.60078e8f) + 1.06002e9f) - 1.66421e9f) + 
+		    1.17022e9f;
+      d8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * 364 - 567.164f) - 16493.7f) + 161461.f) + 280428.f) 
+		    - 6890020.f) - 6876560.f) + 1.99846e8f) + 54036700.f) + 
+		    6.60078e8f) - 7.53828e8f) + 5.79099e8f;
+      e8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 
+		    1001 - 1012.79f) - 55582.f) + 240373.f) + 1954700.f) - 
+		    5257220.f) - 50101700.f) - 1.99846e8f) + 63349600.f) - 
+		    2.89676e8f) + 2.11107e8f;
+      f8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 2002 - 
+		    1093.82f) - 106663.f) + 123052.f) + 3043160.f) + 
+		    5257220.f) - 6876560.f) + 46039600.f) - 70135800.f) + 
+		    61114800.f;
+      g8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3003 - 
+		    486.14f) - 131337.f) - 123052.f) + 1954700.f) + 6890020.f)
+		     + 1.4841e7f) - 13946500.f) + 14464700.f;
+      h8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3432 + 486.14f) - 
+		    106663.f) - 240373.f) + 280428.f) + 1063520.f) - 
+		    2849540.f) + 2857210.f;
+      o8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3003 + 1093.82f) - 
+		    55582.f) - 161461.f) - 217801.f) - 498334.f) + 483737.f;
+      p8 = y2 * (y2 * (y2 * (y2 * (y2 * 2002 + 1012.79f) - 16493.7f) - 
+		    48153.3f) - 55600.f) + 70946.1f;
+      q8 = y2 * (y2 * (y2 * (y2 * 1001.f + 567.164f) - 1500.17f) - 
+		    3058.26f) + 9504.65f;
+      r8 = y2 * (y2 * (y2 * 364 + 198.876f) + 533.254f) + 955.194f;
+      s8 = y2 * (y2 * 91.f + 40.5117f) + 126.532f;
+      t8 = y2 * 14.f + 3.68288f;
+    }
+    ym2 = y * 2;
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1 << 2) - 1];
+      for (i1 = lauf[(i2 << 2) - 1]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+			 (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
+			* (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
+			x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
+			* (b8 + x2 * (c8 + x2 * (d8 + x2 * (e8 + x2 * (f8 + 
+			x2 * (g8 + x2 * (h8 + x2 * (o8 + x2 * (p8 + x2 * (q8 
+			+ x2 * (r8 + x2 * (s8 + x2 * (t8 + x2)))))))))))))));
+	/* L4: */
+      }
+    }
+  }
+  /* ---- Region 3 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[6] >= lauf[2] || lauf[14] >= lauf[10]) {
+    if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
+      yps3 = y;
+      a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
+		    .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
+		    + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
+      b5 = y * (y * (y * (y * (y * (y * (y * 2.25689f + 22.6778f)
+		     + 100.705f) + 247.198f) + 336.364f) + 220.843f) - 
+		    2.34403f) - 60.5644f;
+      c5 = y * (y * (y * (y * (y * 3.38534f + 22.6798f) + 52.8454f)
+		     + 42.5683f) + 18.546f) + 4.58029f;
+      d5 = y * (y * (y * 2.25689f + 7.56186f) + 1.66203f) - .128922f;
+      e5 = y * .564224f + 9.71457e-4f;
+      a6 = y * (y * (y * (y * (y * (y * (y * (y * (y * (y + 
+		    13.3988f) + 88.2674f) + 369.199f) + 1074.41f) + 2256.98f) 
+		    + 3447.63f) + 3764.97f) + 2802.87f) + 1280.83f) + 
+		    272.102f;
+      b6 = y * (y * (y * (y * (y * (y * (y * (y * 5.f + 
+		    53.5952f) + 266.299f) + 793.427f) + 1549.68f) + 2037.31f) 
+		    + 1758.34f) + 902.306f) + 211.678f;
+      c6 = y * (y * (y * (y * (y * (y * 10.f + 80.3928f) + 
+		    269.292f) + 479.258f) + 497.302f) + 308.186f) + 78.866f;
+      d6 = y * (y * (y * (y * 10.f + 53.5952f) + 92.7568f) + 
+		    55.0293f) + 22.0353f;
+      e6 = y * (y * 5.f + 13.3988f) + 1.49645f;
+    }
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1 << 2) - 2];
+      for (i1 = lauf[(i2 << 2) - 2]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+			e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
+			e6 + x2)))));
+	/* L5: */
+      }
+    }
+  }
+  /* ---- Region 2 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[5] >= lauf[1] || lauf[13] >= lauf[9]) {
+    if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
+      yps2 = y;
+      a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
+		    1.05786f);
+      b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
+      c3 = y * (y2 * 1.69257f - 2.53885f);
+      d3 = y * .56419f;
+      a4 = y2 * (y2 * (y2 * (y2 + 6.f) + 10.5f) + 4.5f) + .5625f;
+      b4 = y2 * (y2 * (y2 * 4.f + 6.f) + 9.f) - 4.5f;
+      c4 = y2 * (y2 * 6.f - 6.f) + 10.5f;
+      d4 = y2 * 4.f - 6.f;
+    }
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1 << 2) - 3];
+      for (i1 = lauf[(i2 << 2) - 3]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+			+ x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
+	/* L6: */
+      }
+    }
+  }
+  /* ---- Region 1 */
+  /* -------------------------------------------------------------------- */
+ L7:
+  if (lauf[4] >= lauf[0] || lauf[12] >= lauf[8]) {
+    if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
+      yps1 = y;
+      a1 = y * .5641896f;
+      b1 = y2 + .5f;
+      a2 = y2 * 4;
+    }
+
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1 << 2) - 4];
+      for (i1 = lauf[(i2 << 2) - 4]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	b2 = b1 - x2;
+	ls[i1-1] = a1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+	/* L8: */
+      }
+    }
+  }
+}
+
+
+//---------------------------------------------------------------
+// help function for lineshape_voigt_kuntz3
+
+long int bfun3_(Numeric y, Numeric x)
+{
+    /* System generated locals */
+    long int ret_val;
+
+    /* Local variables */
+    static Numeric x2, y2;
+
+/* -------------------------------------------------------------------- */
+    x2 = x * x;
+    y2 = y * y;
+    if (x2 * .4081676f + y2 > 21.159543f) {
+	if (x2 * .7019639f + y2 > 1123.14221f) {
+	    ret_val = 0;
+	} else {
+	    ret_val = 1;
+	}
+    } else {
+	if (x2 * .20753051f + y2 > 4.20249292f) {
+	    ret_val = 2;
+	} else if (y >= fabs(x) * .08f - .12f) {
+	    ret_val = 3;
+	} else {
+	    ret_val = 4;
+	}
+    }
+    return ret_val;
+} /* bfun3_ */
+
+
+
+/*! The Voigt line shape. Kuntz approximation of the Voigt line
+  shape. 
+
+    \retval ls            The shape function.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter.
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+
+    Original c function call and documention:
+
+    int voigt3
+    (
+    long nx,
+    float *x,
+    float y,
+    float *prb,
+    float fak
+    )
+    
+    Calculates the Voigt-Function times the user-definied value 
+    fac with a relative accuracy better than 2*10-3.
+    
+    If this subroutine is called several times with the same 
+    parameter y the numerically expensive coefficents a1..t8 
+    are only calculated once thus further accelerating the 
+    algorithm
+
+    \verbatim
+    --------------------------------------------------------------------
+    x(nx)   (in)    :Distance from line center in units of Doppler
+                    :halfwidths
+    y       (in)    :Ratio of the Doppler halfwidth to the Lorentz
+                    :halfwidth	
+    prb     (out)   :voigt-function times fak
+    fak     (in)    :factor to be specified by the user
+    --------------------------------------------------------------------
+
+    author: M. Kuntz, 
+            Institut fuer Meteorologie und Klimaforschung, 
+            Forschungszentrum Karlsruhe, 
+            Postfach 3640, 
+            76021 Karlsruhe, Germany. 
+            email: kuntz@imk.fzk.de 
+
+    \endverbatim
+
+
+    About 'voigt3' : The program was originally written by M. Kuntz in
+    Fortran77 but has been translated into C by Dietrich Feist (f2c)
+    and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
+    from program code. Replaced nx by nf. Replaced prb by ls.
+    
+
+    \author Oliver Lemke and Axel von Engeln
+    \date 2000-12-07 */ 
+void lineshape_voigt_kuntz3(VECTOR&       ls,
+			    Numeric	  f0,
+			    Numeric       gamma,
+			    Numeric       sigma,
+			    const VECTOR& f_mono,
+			    const size_t  nf)
+
+{
+
+  // seems not necessary for Doppler correction
+  //    extern const Numeric SQRT_NAT_LOG_2;
+
+  /* Initialized data */
+
+  static Numeric yps0 = -1.0;
+  static Numeric yps1 = -1.0;
+  static Numeric yps2 = -1.0;
+  static Numeric yps3 = -1.0;
+  static Numeric yps4 = -1.0;
+
+  /* System generated locals */
+  long i__1, i__2;
+  Numeric r__1;
+
+  /* Local variables */
+  static long bmin, lauf[20]	/* was [5][4] */, bmax, imin, imax;
+  static long stack[80]	/* was [20][4] */;
+  static Numeric a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
+    h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
+    q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
+    c3, d3, b1, y2;
+  static long i2, i1;
+  static Numeric x2, b2;
+  static long stackp, imitte;
+  static Numeric ym2;
+
+  // variables needed in original c routine:
+
+  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+  Numeric y = gamma / sigma;
+
+  // frequency in units of Doppler 
+  VECTOR x( nf ); 
+  for (i1=0; i1< (int) nf; i1++)
+    {
+      x[i1] = (f_mono[i1] - f0) / sigma;
+    }
+
+
+  /* Parameter adjustments */
+  // this does not work for variables type VECTOR, corrected by
+  // adjusting the index to array ls and x
+  //--ls;
+  //--x;
+
+  /* Function Body */
+  y2 = y * y;
+  if (y >= 23.0 || x[0] >= 39.0 || x[nf-1] <= -39.0) {
+    lauf[0] = 1;
+    lauf[5] = nf;
+    lauf[10] = nf;
+    lauf[15] = 0;
+    goto L8;
+  }
+  for (i2 = 1; i2 <= 4; ++i2) {
+    for (i1 = 0; i1 <= 4; ++i1) {
+      lauf[i1 + i2 * 5 - 5] = i2 % 2 * (nf + 1);
+      /* L1: */
+    }
+  }
+  stackp = 1;
+  stack[stackp - 1] = 1;
+  stack[stackp + 19] = nf;
+  stack[stackp + 39] = bfun3_(y, x[0]);
+  stack[stackp + 59] = bfun3_(y, x[nf-1]);
+ L2:
+  imin = stack[stackp - 1];
+  imax = stack[stackp + 19];
+  bmin = stack[stackp + 39];
+  bmax = stack[stackp + 59];
+  if (bmin == bmax) {
+    if (x[imax-1] < 0.f) {
+      /* Computing MIN */
+      i__1 = imin, i__2 = lauf[bmin];
+      lauf[bmin] = min(i__1,i__2);
+      /* Computing MAX */
+      i__1 = imax, i__2 = lauf[bmax + 5];
+      lauf[bmax + 5] = max(i__1,i__2);
+      --stackp;
+      goto L3;
+    } else if (x[imin-1] >= 0.f) {
+      /* Computing MIN */
+      i__1 = imin, i__2 = lauf[bmin + 10];
+      lauf[bmin + 10] = min(i__1,i__2);
+      /* Computing MAX */
+      i__1 = imax, i__2 = lauf[bmax + 15];
+      lauf[bmax + 15] = max(i__1,i__2);
+      --stackp;
+      goto L3;
+    }
+  }
+  imitte = (imax + imin) / 2;
+  stack[stackp - 1] = imitte + 1;
+  stack[stackp + 19] = imax;
+  stack[stackp + 39] = bfun3_(y, x[imitte]);
+  stack[stackp + 59] = bmax;
+  ++stackp;
+  stack[stackp - 1] = imin;
+  stack[stackp + 19] = imitte;
+  stack[stackp + 39] = bmin;
+  stack[stackp + 59] = bfun3_(y, x[imitte-1]);
+ L3:
+  if (stackp > 0) {
+    goto L2;
+  }
+  /* ---- Region 4 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
+    if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
+      yps4 = y;
+      a7 = y * (y2 * (y2 * 4.56662e8f - 9.86604e8f) + 1.16028e9f);
+      b7 = y * (y2 * (y2 * 8.06985e8f - 9.85386e8f) - 5.60505e8f);
+      c7 = y * (y2 * (y2 * 2.94262e8f + 2.47157e8f) - 6.51523e8f);
+      d7 = y * (y2 * (2.70167e8f - y2 * 99622400.f) - 2.63894e8f);
+      e7 = y * (y2 * (y2 * 5569650.f + 1.40677e8f) - 63177100.f);
+      f7 = y * (y2 * (4073820.f - y2 * 33289600.f) - 16984600.f);
+      g7 = y * (y2 * (7528830.f - y2 * 900010) - 1231650.f);
+      h7 = y * (y2 * (y2 * 153468 + 86407.6f) - 610622.f);
+      o7 = y * (y2 * (y2 * 26538.5f + 49883.8f) - 23586.5f);
+      p7 = y * (y2 * (y2 * 953.655f + 2198.86f) - 8009.1f);
+      q7 = y * (y2 * (-271.202f - y2 * 134.792f) - 622.056f);
+      r7 = y * (y2 * (-29.7896f - y2 * 44.0068f) - 77.0535f);
+      s7 = y * (-2.92264f - y2 * 7.33447f);
+      t7 = y * -.56419f;
+      a8 = y2 * (y2 * 1.17022e9f - 1.5599e9f) + 1.02827e9f;
+      b8 = y2 * (y2 * 1.66421e9f - 2.28855e9f) + 1.5599e9f;
+      c8 = y2 * (y2 * 1.06002e9f - 1.66421e9f) + 1.17022e9f;
+      d8 = y2 * (y2 * 6.60078e8f - 7.53828e8f) + 5.79099e8f;
+      e8 = y2 * (y2 * 63349600.f - 2.89676e8f) + 2.11107e8f;
+      f8 = y2 * (y2 * 46039600.f - 70135800.f) + 61114800.f;
+      g8 = y2 * (y2 * 1.4841e7f - 13946500.f) + 14464700.f;
+      h8 = y2 * (y2 * 1063520.f - 2849540.f) + 2857210.f;
+      o8 = y2 * (-498334.f - y2 * 217801.f) + 483737.f;
+      p8 = y2 * (-55600.f - y2 * 48153.3f) + 70946.1f;
+      q8 = y2 * (-3058.26f - y2 * 1500.17f) + 9504.65f;
+      r8 = y2 * (y2 * 198.876f + 533.254f) + 955.194f;
+      s8 = y2 * (y2 * 91.f + 40.5117f) + 126.532f;
+      t8 = y2 * 14.f + 3.68288f;
+    }
+    ym2 = y * 2;
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 1];
+      for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+			 (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
+			* (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
+			x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
+			* (b8 + x2 * (c8 + x2 * (d8 + x2 * (e8 + x2 * (f8 + 
+			x2 * (g8 + x2 * (h8 + x2 * (o8 + x2 * (p8 + x2 * (q8 
+			+ x2 * (r8 + x2 * (s8 + x2 * (t8 + x2)))))))))))))));
+	/* L4: */
+      }
+    }
+  }
+  /* ---- Region 3 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
+    if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
+      yps3 = y;
+      a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
+		    .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
+		    + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
+      b5 = y * (y * (y * (y * (y * (y * (y * 2.25689f + 22.6778f)
+		     + 100.705f) + 247.198f) + 336.364f) + 220.843f) - 
+		    2.34403f) - 60.5644f;
+      c5 = y * (y * (y * (y * (y * 3.38534f + 22.6798f) + 52.8454f)
+		     + 42.5683f) + 18.546f) + 4.58029f;
+      d5 = y * (y * (y * 2.25689f + 7.56186f) + 1.66203f) - .128922f;
+      e5 = y * .564224f + 9.71457e-4f;
+      a6 = y * (y * (y * (y * (y * (y * (y * (y * (y * (y + 
+		    13.3988f) + 88.2674f) + 369.199f) + 1074.41f) + 2256.98f) 
+		    + 3447.63f) + 3764.97f) + 2802.87f) + 1280.83f) + 
+		    272.102f;
+      b6 = y * (y * (y * (y * (y * (y * (y * (y * 5.f + 
+		    53.5952f) + 266.299f) + 793.427f) + 1549.68f) + 2037.31f) 
+		    + 1758.34f) + 902.306f) + 211.678f;
+      c6 = y * (y * (y * (y * (y * (y * 10.f + 80.3928f) + 
+		    269.292f) + 479.258f) + 497.302f) + 308.186f) + 78.866f;
+      d6 = y * (y * (y * (y * 10.f + 53.5952f) + 92.7568f) + 
+		    55.0293f) + 22.0353f;
+      e6 = y * (y * 5.f + 13.3988f) + 1.49645f;
+    }
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 2];
+      for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+			e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
+			e6 + x2)))));
+	/* L5: */
+      }
+    }
+  }
+  /* ---- Region 2 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
+    if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
+      yps2 = y;
+      a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
+		1.05786f);
+      b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
+      c3 = y * (y2 * 1.69257f - 2.53885f);
+      d3 = y * .56419f;
+      a4 = y2 * (y2 * (y2 * (y2 + 6.f) + 10.5f) + 4.5f) + .5625f;
+      b4 = y2 * (y2 * (y2 * 4.f + 6.f) + 9.f) - 4.5f;
+      c4 = y2 * (y2 * 6.f - 6.f) + 10.5f;
+      d4 = y2 * 4.f - 6.f;
+    }
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 3];
+      for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+			+ x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
+	/* L6: */
+      }
+    }
+  }
+  /* ---- Region 1 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
+    if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
+      yps1 = y;
+      a1 = y * .5641896f;
+      b1 = y2 + .5f;
+      a2 = y2 * 4;
+    }
+
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 4];
+      for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	b2 = b1 - x2;
+	ls[i1-1] = a1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+	/* L7: */
+      }
+    }
+  }
+  /* ---- Region 0 (Lorentz) */
+  /* -------------------------------------------------------------------- */
+L8:
+  if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
+    if ((r__1 = y - yps0, fabs(r__1)) > 1e-8f) {
+      yps0 = y;
+      a0 = y * .5641896f;
+    }
+
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 5];
+      for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
+	ls[i1-1] = a0 / (x[i1-1] * x[i1-1] + y2);
+	/* L9: */
+      }
+    }
+  }
+}
+
+
+//------------------------------------------------------------------
+// help function for lineshape_voigt_kuntz4
+
+long bfun4_(Numeric y, Numeric x)
+{
+    /* System generated locals */
+    long ret_val;
+
+    /* Local variables */
+    static Numeric x2, y2;
+
+    x2 = x * x;
+    y2 = y * y;
+    if (x2 * .0062f + y2 * .01417f > 1.f) {
+	if (x2 * 6.2e-5f + y2 * 1.98373e-4f > 1.f) {
+	    ret_val = 0;
+	} else {
+	    ret_val = 1;
+	}
+    } else {
+	if (x2 * .041649f + y2 * .111111111f > 1.f) {
+	    ret_val = 2;
+	} else if (y >= fabs(x) * .19487f - .1753846f) {
+	    ret_val = 3;
+	} else {
+	    ret_val = 4;
+	}
+    }
+    return ret_val;
+}
+
+/*! The Voigt line shape. Kuntz approximation of the Voigt line
+  shape. 
+
+    \retval ls            The shape function.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter. (Not used.)
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+    Original c function call and documention:
+
+    int voigt4
+    (
+    long nx,
+    float *x,
+    float y,
+    float *prb,
+    float fak
+    )
+    
+    Calculates the Voigt-Function times the user-definied value 
+    fac with a relative accuracy better than 2*10-4.
+    
+    If this subroutine is called several times with the same 
+    parameter y the numerically expensive coefficents a1..t8 
+    are only calculated once thus further accelerating the 
+    algorithm
+
+    \verbatim
+    --------------------------------------------------------------------
+    x(nx)   (in)    :Distance from line center in units of Doppler
+                    :halfwidths
+    y       (in)    :Ratio of the Doppler halfwidth to the Lorentz
+                    :halfwidth	
+    prb     (out)   :voigt-function times fak
+    fak     (in)    :factor to be specified by the user
+    --------------------------------------------------------------------
+
+    author: M. Kuntz, 
+            Institut fuer Meteorologie und Klimaforschung, 
+            Forschungszentrum Karlsruhe, 
+            Postfach 3640, 
+            76021 Karlsruhe, Germany. 
+            email: kuntz@imk.fzk.de 
+
+    \endverbatim
+
+
+    About 'voigt4' : The program was originally written by M. Kuntz in
+    Fortran77 but has been translated into C by Dietrich Feist (f2c)
+    and into C++ by Oliver Lemke and Axel von Engeln. fak is removed
+    from program code. Replaced nx by nf. Replaced prb by ls.
+    
+
+    \author Oliver Lemke and Axel von Engeln
+    \date 2000-12-07 */ 
+void lineshape_voigt_kuntz4(VECTOR&       ls,
+			    Numeric	  f0,
+			    Numeric       gamma,
+			    Numeric       sigma,
+			    const VECTOR& f_mono,
+			    const size_t  nf)
+{
+
+  // seems not necessary for Doppler correction
+  //    extern const Numeric SQRT_NAT_LOG_2;
+
+    /* Initialized data */
+
+    static float yps0 = -1.f;
+    static float yps1 = -1.f;
+    static float yps2 = -1.f;
+    static float yps3 = -1.f;
+    static float yps4 = -1.f;
+
+    /* System generated locals */
+    long i__1, i__2;
+    float r__1;
+
+    /* Local variables */
+    static long bmin, lauf[20]	/* was [5][4] */, bmax, imin, imax;
+    static long stack[80]	/* was [20][4] */;
+    static float a0, a1, a2, a3, a4, a5, a6, a7, a8, b8, c8, d8, e8, f8, g8, 
+	    h8, b7, c7, d7, e7, f7, g7, o8, p8, q8, r8, s8, t8, h7, o7, p7, 
+	    q7, r7, s7, t7, b6, c6, d6, e6, b5, c5, d5, e5, b4, c4, d4, b3, 
+	    c3, d3, b1, y2;
+    static long i2, i1;
+    static float x2, b2;
+    static long stackp, imitte;
+    static float ym2;
+
+  // variables needed in original c routine:
+
+  // Ratio of the Lorentz halfwidth to the Doppler halfwidth
+  Numeric y = gamma / sigma;
+
+  // frequency in units of Doppler 
+  VECTOR x( nf ); 
+  for (i1=0; i1< (int) nf; i1++)
+    {
+      x[i1] = (f_mono[i1] - f0) / sigma;
+    }
+
+
+  /* Parameter adjustments */
+  // this does not work for variables type VECTOR, corrected by
+  // adjusting the index to array ls and x
+  //--ls;
+  //--x;
+
+  /* Function Body */
+  y2 = y * y;
+  if (y >= 71.f || x[0] >= 123.f || x[nf-1] <= -123.f) {
+    lauf[0] = 1;
+    lauf[5] = nf;
+    lauf[10] = nf;
+    lauf[15] = 0;
+    goto L8;
+  }
+  for (i2 = 1; i2 <= 4; ++i2) {
+    for (i1 = 0; i1 <= 4; ++i1) {
+      lauf[i1 + i2 * 5 - 5] = i2 % 2 * (nf + 1);
+      /* L1: */
+    }
+  }
+  stackp = 1;
+  stack[stackp - 1] = 1;
+  stack[stackp + 19] = nf;
+  stack[stackp + 39] = bfun4_(y, x[0]);
+  stack[stackp + 59] = bfun4_(y, x[nf-1]);
+ L2:
+  imin = stack[stackp - 1];
+  imax = stack[stackp + 19];
+  bmin = stack[stackp + 39];
+  bmax = stack[stackp + 59];
+  if (bmin == bmax) {
+    if (x[imax-1] < 0.f) {
+      /* Computing MIN */
+      i__1 = imin, i__2 = lauf[bmin];
+      lauf[bmin] = min(i__1,i__2);
+      /* Computing MAX */
+      i__1 = imax, i__2 = lauf[bmax + 5];
+      lauf[bmax + 5] = max(i__1,i__2);
+      --stackp;
+      goto L3;
+    } else if (x[imin-1] >= 0.f) {
+      /* Computing MIN */
+      i__1 = imin, i__2 = lauf[bmin + 10];
+      lauf[bmin + 10] = min(i__1,i__2);
+      /* Computing MAX */
+      i__1 = imax, i__2 = lauf[bmax + 15];
+      lauf[bmax + 15] = max(i__1,i__2);
+      --stackp;
+      goto L3;
+    }
+  }
+  imitte = (imax + imin) / 2;
+  stack[stackp - 1] = imitte + 1;
+  stack[stackp + 19] = imax;
+  stack[stackp + 39] = bfun4_(y, x[imitte]);
+  stack[stackp + 59] = bmax;
+  ++stackp;
+  stack[stackp - 1] = imin;
+  stack[stackp + 19] = imitte;
+  stack[stackp + 39] = bmin;
+  stack[stackp + 59] = bfun4_(y, x[imitte-1]);
+ L3:
+  if (stackp > 0) {
+    goto L2;
+  }
+  /* ---- Region 4 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[9] >= lauf[4] || lauf[19] >= lauf[14]) {
+    if ((r__1 = y - yps4, fabs(r__1)) > 1e-8f) {
+      yps4 = y;
+      a7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (y2 * (2.35944f - y2 * .56419f) - 72.9359f) + 
+		    571.687f) - 5860.68f) + 40649.2f) - 320772.f) + 1684100.f)
+		     - 9694630.f) + 40816800.f) - 1.53575e8f) + 4.56662e8f) - 
+		    9.86604e8f) + 1.16028e9f);
+      b7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (23.0312f - y2 * 7.33447f) - 234.143f) - 
+		    2269.19f) + 45251.3f) - 234417.f) + 3599150.f) - 
+		    7723590.f) + 86482900.f) - 2.91876e8f) + 8.06985e8f) - 
+		    9.85386e8f) - 5.60505e8f);
+      c7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (97.6203f - y2 * 44.0068f) + 1097.77f) - 25338.3f) + 
+		    98079.1f) + 576054.f) - 2.3818e7f) + 22930200.f) - 
+		    2.04467e8f) + 2.94262e8f) + 2.47157e8f) - 6.51523e8f);
+      d7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    228.563f - y2 * 161.358f) + 8381.97f) - 66431.2f) - 
+		    303569.f) + 2240400.f) + 38311200.f) - 41501300.f) - 
+		    99622400.f) + 2.70167e8f) - 2.63894e8f);
+      e7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    296.38f - y2 * 403.396f) + 23507.6f) - 66212.1f) - 
+		    1.003e6f) + 468142.f) + 24620100.f) + 5569650.f) + 
+		    1.40677e8f) - 63177100.f);
+      f7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (125.591f - 
+		    y2 * 726.113f) + 37544.8f) + 8820.94f) - 934717.f) - 
+		    1931140.f) - 33289600.f) + 4073820.f) - 16984600.f);
+      g7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (-260.198f - y2 * 
+		    968.15f) + 37371.9f) + 79902.5f) - 186682.f) - 900010.f) 
+		    + 7528830.f) - 1231650.f);
+      h7 = y * (y2 * (y2 * (y2 * (y2 * (y2 * (-571.645f - y2 * 968.15f)
+		     + 23137.1f) + 72520.9f) + 153468.f) + 86407.6f) - 
+		    610622.f);
+      o7 = y * (y2 * (y2 * (y2 * (y2 * (-575.164f - y2 * 726.113f) + 
+		    8073.15f) + 26538.5f) + 49883.8f) - 23586.5f);
+      p7 = y * (y2 * (y2 * (y2 * (-352.467f - y2 * 403.396f) + 
+		    953.655f) + 2198.86f) - 8009.1f);
+      q7 = y * (y2 * (y2 * (-134.792f - y2 * 161.358f) - 271.202f) - 
+		    622.056f);
+      r7 = y * (y2 * (-29.7896f - y2 * 44.0068f) - 77.0535f);
+      s7 = y * (-2.92264f - y2 * 7.33447f);
+      t7 = y * -.56419f;
+      a8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (y2 * (y2 - 3.68288f) + 126.532f) - 955.194f) 
+		    + 9504.65f) - 70946.1f) + 483737.f) - 2857210.f) + 
+		    14464700.f) - 61114800.f) + 2.11107e8f) - 5.79099e8f) + 
+		    1.17022e9f) - 1.5599e9f) + 1.02827e9f;
+      b8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * (y2 * 14.f - 40.5117f) + 533.254f) + 3058.26f) 
+		    - 55600.f) + 498334.f) - 2849540.f) + 13946500.f) - 
+		    70135800.f) + 2.89676e8f) - 7.53828e8f) + 1.66421e9f) - 
+		    2.28855e9f) + 1.5599e9f;
+      c8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * (y2 * 91 - 198.876f) - 1500.17f) + 48153.3f) - 
+		    217801.f) - 1063520.f) + 1.4841e7f) - 46039600.f) + 
+		    63349600.f) - 6.60078e8f) + 1.06002e9f) - 1.66421e9f) + 
+		    1.17022e9f;
+      d8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (
+		    y2 * 364 - 567.164f) - 16493.7f) + 161461.f) + 280428.f) 
+		    - 6890020.f) - 6876560.f) + 1.99846e8f) + 54036700.f) + 
+		    6.60078e8f) - 7.53828e8f) + 5.79099e8f;
+      e8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 
+		    1001 - 1012.79f) - 55582.f) + 240373.f) + 1954700.f) - 
+		    5257220.f) - 50101700.f) - 1.99846e8f) + 63349600.f) - 
+		    2.89676e8f) + 2.11107e8f;
+      f8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 2002 - 
+		    1093.82f) - 106663.f) + 123052.f) + 3043160.f) + 
+		    5257220.f) - 6876560.f) + 46039600.f) - 70135800.f) + 
+		    61114800.f;
+      g8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3003 - 
+		    486.14f) - 131337.f) - 123052.f) + 1954700.f) + 6890020.f)
+		     + 1.4841e7f) - 13946500.f) + 14464700.f;
+      h8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3432 + 486.14f) - 
+		    106663.f) - 240373.f) + 280428.f) + 1063520.f) - 
+		    2849540.f) + 2857210.f;
+      o8 = y2 * (y2 * (y2 * (y2 * (y2 * (y2 * 3003 + 1093.82f) - 
+		    55582.f) - 161461.f) - 217801.f) - 498334.f) + 483737.f;
+      p8 = y2 * (y2 * (y2 * (y2 * (y2 * 2002 + 1012.79f) - 16493.7f) - 
+		    48153.3f) - 55600.f) + 70946.1f;
+      q8 = y2 * (y2 * (y2 * (y2 * 1001.f + 567.164f) - 1500.17f) - 
+		    3058.26f) + 9504.65f;
+      r8 = y2 * (y2 * (y2 * 364 + 198.876f) + 533.254f) + 955.194f;
+      s8 = y2 * (y2 * 91.f + 40.5117f) + 126.532f;
+      t8 = y2 * 14.f + 3.68288f;
+    }
+    ym2 = y * 2;
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 1];
+      for (i1 = lauf[i2 * 5 - 1]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (exp(y2 - x2) * cos(x[i1-1] * ym2) - (a7 + x2 *
+			 (b7 + x2 * (c7 + x2 * (d7 + x2 * (e7 + x2 * (f7 + x2 
+			* (g7 + x2 * (h7 + x2 * (o7 + x2 * (p7 + x2 * (q7 + 
+			x2 * (r7 + x2 * (s7 + x2 * t7))))))))))))) / (a8 + x2 
+			* (b8 + x2 * (c8 + x2 * (d8 + x2 * (e8 + x2 * (f8 + 
+			x2 * (g8 + x2 * (h8 + x2 * (o8 + x2 * (p8 + x2 * (q8 
+			+ x2 * (r8 + x2 * (s8 + x2 * (t8 + x2)))))))))))))));
+	/* L4: */
+      }
+    }
+  }
+  /* ---- Region 3 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[8] >= lauf[3] || lauf[18] >= lauf[13]) {
+    if ((r__1 = y - yps3, fabs(r__1)) > 1e-8f) {
+      yps3 = y;
+      a5 = y * (y * (y * (y * (y * (y * (y * (y * (y * 
+		    .564224f + 7.55895f) + 49.5213f) + 204.501f) + 581.746f) 
+		    + 1174.8f) + 1678.33f) + 1629.76f) + 973.778f) + 272.102f;
+      b5 = y * (y * (y * (y * (y * (y * (y * 2.25689f + 22.6778f)
+		     + 100.705f) + 247.198f) + 336.364f) + 220.843f) - 
+		    2.34403f) - 60.5644f;
+      c5 = y * (y * (y * (y * (y * 3.38534f + 22.6798f) + 52.8454f)
+		     + 42.5683f) + 18.546f) + 4.58029f;
+      d5 = y * (y * (y * 2.25689f + 7.56186f) + 1.66203f) - .128922f;
+      e5 = y * .564224f + 9.71457e-4f;
+      a6 = y * (y * (y * (y * (y * (y * (y * (y * (y * (y + 
+		    13.3988f) + 88.2674f) + 369.199f) + 1074.41f) + 2256.98f) 
+		    + 3447.63f) + 3764.97f) + 2802.87f) + 1280.83f) + 
+		    272.102f;
+      b6 = y * (y * (y * (y * (y * (y * (y * (y * 5.f + 
+		    53.5952f) + 266.299f) + 793.427f) + 1549.68f) + 2037.31f) 
+		    + 1758.34f) + 902.306f) + 211.678f;
+      c6 = y * (y * (y * (y * (y * (y * 10.f + 80.3928f) + 
+		    269.292f) + 479.258f) + 497.302f) + 308.186f) + 78.866f;
+      d6 = y * (y * (y * (y * 10.f + 53.5952f) + 92.7568f) + 
+		    55.0293f) + 22.0353f;
+      e6 = y * (y * 5.f + 13.3988f) + 1.49645f;
+    }
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 2];
+      for (i1 = lauf[i2 * 5 - 2]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (a5 + x2 * (b5 + x2 * (c5 + x2 * (d5 + x2 * 
+			e5)))) / (a6 + x2 * (b6 + x2 * (c6 + x2 * (d6 + x2 * (
+			e6 + x2)))));
+	/* L5: */
+      }
+    }
+  }
+  /* ---- Region 2 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[7] >= lauf[2] || lauf[17] >= lauf[12]) {
+    if ((r__1 = y - yps2, fabs(r__1)) > 1e-8f) {
+      yps2 = y;
+      a3 = y * (y2 * (y2 * (y2 * .56419f + 3.10304f) + 4.65456f) + 
+		    1.05786f);
+      b3 = y * (y2 * (y2 * 1.69257f + .56419f) + 2.962f);
+      c3 = y * (y2 * 1.69257f - 2.53885f);
+      d3 = y * .56419f;
+      a4 = y2 * (y2 * (y2 * (y2 + 6.f) + 10.5f) + 4.5f) + .5625f;
+      b4 = y2 * (y2 * (y2 * 4.f + 6.f) + 9.f) - 4.5f;
+      c4 = y2 * (y2 * 6.f - 6.f) + 10.5f;
+      d4 = y2 * 4.f - 6.f;
+    }
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 3];
+      for (i1 = lauf[i2 * 5 - 3]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	ls[i1-1] = (a3 + x2 * (b3 + x2 * (c3 + x2 * d3))) / (a4 
+			+ x2 * (b4 + x2 * (c4 + x2 * (d4 + x2))));
+	/* L6: */
+      }
+    }
+  }
+  /* ---- Region 1 */
+  /* -------------------------------------------------------------------- */
+  if (lauf[6] >= lauf[1] || lauf[16] >= lauf[11]) {
+    if ((r__1 = y - yps1, fabs(r__1)) > 1e-8f) {
+      yps1 = y;
+      a1 = y * .5641896f;
+      b1 = y2 + .5f;
+      a2 = y2 * 4;
+    }
+
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 4];
+      for (i1 = lauf[i2 * 5 - 4]; i1 <= i__1; ++i1) {
+	x2 = x[i1-1] * x[i1-1];
+	b2 = b1 - x2;
+	ls[i1-1] = a1 * (b1 + x2) / (b2 * b2 + a2 * x2);
+	/* L7: */
+      }
+    }
+  }
+  /* ---- Region 0 (Lorentz) */
+  /* -------------------------------------------------------------------- */
+ L8:
+  if (lauf[5] >= lauf[0] || lauf[15] >= lauf[10]) {
+    if ((r__1 = y - yps0, fabs(r__1)) > 1e-8f) {
+      yps0 = y;
+      a0 = y * .5641896f;
+    }
+
+    for (i2 = 1; i2 <= 3; i2 += 2) {
+      i__1 = lauf[(i2 + 1) * 5 - 5];
+      for (i1 = lauf[i2 * 5 - 5]; i1 <= i__1; ++i1) {
+	ls[i1-1] = a0 / (x[i1-1] * x[i1-1] + y2);
+	/* L9: */
+      }
+    }
+  }
+}
+
+
+
+/*! The Voigt line shape. Drayson approximation of the Voigt line
+  shape.
+
+    \retval ls            The shape function.
+    \param  f0            Line center frequency.
+    \param  gamma         The pressure broadening parameter.
+    \param  sigma         The Doppler broadening parameter.
+    \param  f_mono        The frequency grid.
+    \param  nf            Dimension of f_mono.
+
+
+    Original ife function call and documention:
+
+    int voigt_vector(int nx, Numeric *X, Numeric Y, Numeric *Z, Numeric fac)
+    
+    direct translation of the FORTRAN algorithm given in
+    Drayson, S. R., Rapid Computation of the Voigt Profile,
+    J. Quant. Spectrosc. Radiat. Transfer, Vol. 16, pp. 611-614, 1976
+    by Bjoern-Martin Sinnhuber, 13.Mar.96 in Ny-Aalesund, Spitsbergen.
+
+    Modified for vector calculation of a frequency array:
+
+    \verbatim
+    --------------------------------------------------------------------
+            int    nx        (in)           number of frequencies
+	    double *X        (in)           distance from line center in 
+	                                    units of (Doppler halfwidths 
+					    times sqrt(ln 2) )
+            double  Y        (in)           Ratio of the collision halfwidth 
+	                                    to the ( Doppler halfwidth times sqrt(ln2) )
+	    double *Z        (out)          return array of voigt 
+	    double fac       (in)           no function, included to be
+	                                    consistent with the other voigt
+					    profile calculations
+    --------------------------------------------------------------------
+    \endverbatim
+
+    23.02.98 AvE
+
+    Replaced nx by nf, Z by ls.
+    \author Axel von Engeln
+    \date 2000-12-06 */ 
+
+/***  ROUTINE COMPUTES THE VOIGT FUNCTION Y/PI*INTEGRAL FROM ***/
+/***   - TO + INFINITY OF EXP(-T*T)/(Y*Y+(X-T)*(X-T)) DT     ***/
+void lineshape_drayson(VECTOR&       ls,
+		       Numeric	     f0,
+		       Numeric       gamma,
+		       Numeric       sigma,
+		       const VECTOR& f_mono,
+		       const size_t  nf)
+
+{
+  // seems not necessary for Doppler correction
+  //    extern const Numeric SQRT_NAT_LOG_2;
+
+      static Numeric B[22+1] = {0.,0.,.7093602e-7};
+      static Numeric RI[15+1];
+      const  Numeric XN[15+1] = {0.,10.,9.,8.,8.,7.,6.,5.,4.,3.,3.,3.,3.,3.,3.,3.};
+      const  Numeric YN[15+1] = {0.,.6,.6,.6,.5,.4,.4,.3,.3,.3,.3,1.,.9,.8,.7,.7};
+      static Numeric D0[25+1], D1[25+1], D2[25+1], D3[25+1], D4[25+1];
+      static Numeric HN[25+1];
+      static Numeric H = .201;
+      const  Numeric XX[3+1] = {0.,.5246476,1.65068,.7071068};
+      const  Numeric HH[3+1] = {0.,.2562121,.2588268e-1,.2820948};
+      const  Numeric NBY2[19+1] = {0.,9.5,9.,8.5,8.,7.5,7.,6.5
+          ,6.,5.5,5.,4.5,4.,3.5,3.,2.5,2.,1.5,1.,.5};
+      const  Numeric C[21+1] = {0.,.7093602e-7,-.2518434e-6,.856687e-6,
+          -.2787638e-5,.866074e-5,-.2565551e-4,.7228775e-4,
+          -.1933631e-3,.4899520e-3,-.1173267e-2,.2648762e-2,
+          -.5623190e-2,.1119601e-1,-.2084976e-1,.3621573e-1,
+          -.5851412e-1,.8770816e-1,-.121664,.15584,-.184,.2};
+      static Numeric CO;
+      Numeric U, V, UU, VV, Y2, DX;
+      int I, J, K, MAX, MIN, N, i1;
+      static int TRU = 0;
+
+
+      // variables needed in original c routine:
 
       // Ratio of the Lorentz halfwidth to the Doppler halfwidth
-      y = gamma / sigma;
+      Numeric Y = gamma / sigma;
 
-      // frequency in units of Doppler 
-      // FIXME: see above
+      // frequency in units of Doppler, Note: Drayson accepts only
+      // positive values
+      VECTOR X( nf ); 
+      for (i1=0; i1< (int) nf; i1++)
+	{
+	  X[i1] = fabs( (f_mono[i1] - f0) )/ sigma;
+	}
+
+
+      if (TRU) goto L104;
+/***  REGION I. COMPUTE DAWSON'S FUNCTION AT MESH POINTS ***/
+      TRU = 1;
+      for (I=1; I<=15; I++)
+        RI[I] = -I/2.;
+      for (I=1; I<=25; I++)
       {
-	for (i1=0; i1< (int) nx; i1++)
-	  {
-	    x[i1] = (f_mono[i1] - f0) / sigma;
-	  }
+        HN[I] = H*(I-.5);
+        CO = 4.*HN[I]*HN[I]/25.-2.;
+        for (J=2; J<=21; J++)
+          B[J+1] = CO*B[J]-B[J-1]+C[J];
+        D0[I] = HN[I]*(B[22]-B[21])/5.;
+        D1[I] = 1.-2.*HN[I]*D0[I];
+        D2[I] = (HN[I]*D1[I]+D0[I])/RI[2];
+        D3[I] = (HN[I]*D2[I]+D1[I])/RI[3];
+        D4[I] = (HN[I]*D3[I]+D2[I])/RI[4];
       }
-
-      // dummy factor
-      fak = 1.0;
-
-      yps0 = -1.0;
-      yps1 = -1.0;
-      yps2 = -1.0;
-      yps3 = -1.0;
-      yps4 = -1.0;
-
-      y2 = y*y;
-
-      if ( (y >= 15.0) || (x[0] >= 15.0) || (x[nx-1] <= -15.0) )
-      {
-        lauf[1][1] = 1;
-        lauf[1][2] = nx;
-        lauf[1][3] = nx;
-        lauf[1][4] = 0;
-        goto l7;
-      }
-
-      for(i2=1;i2<=4;i2++)
-        for(i1=1;i1<=4;i1++)
-          lauf[i1][i2] = (i2 % 2)*(nx+1);
-
-      stackp = 1;
-      stack[stackp][1] = 1;
-      stack[stackp][2] = nx;
-      stack[stackp][3] = bfun(y,x[0]);
-      stack[stackp][4] = bfun(y,x[nx-1]);
-
-l2:   imin = stack[stackp][1];
-      imax = stack[stackp][2];
-      bmin = stack[stackp][3];
-      bmax = stack[stackp][4];
-      if (bmin == bmax)
-      {
-        if (x[imax-1] < 0.0)
+L104: for (K=0; K<(int) nf; K++)
+  {
+    if ((X[K]-5.) < 0.) goto L105; else goto L112;
+  L105: if ((Y-1.) <= 0.) goto L110; else goto L106;
+  L106: if (X[K] > 1.85*(3.6-Y)) goto L112;
+      /***  REGION II: CONTINUED FRACTION. COMPUTE NUMBER OF TERMS NEEDED. ***/
+      if (Y < 1.45) goto L107;
+      I = (int) (Y+Y);
+      goto L108;
+  L107: I = (int) (11.*Y);
+  L108: J = (int) (X[K]+X[K]+1.85);
+      MAX = (int) (XN[J]*YN[I]+.46);
+      MIN = (int) ( (16 < 21-2*MAX) ? 16 : 21-2*MAX );
+      /***  EVALUATE CONTINUED FRACTION ***/
+      UU = Y;
+      VV = X[K];
+      for (J=MIN; J <= 19; J++)
 	{
-          lauf[bmin][1] = min(imin,lauf[bmin][1]);
-          lauf[bmax][2] = max(imax,lauf[bmax][2]);
-          stackp = stackp-1;
-          goto l3;
+	  U = NBY2[J]/(UU*UU+VV*VV);
+	  UU = Y+U*UU;
+	  VV = X[K]-U*VV;
 	}
-        else if (x[imin-1] >= 0.0)
+      ls[K] = UU/(UU*UU+VV*VV)/1.772454;
+      continue;
+  L110: Y2 = Y*Y;
+      if (X[K]+Y >= 5.) goto L113;
+      /***  REGION I. COMPUTE DAWSON'S FUNCTION AT X FROM TAYLOR SERIES. ***/
+      N = (int) (X[K]/H);
+      DX = X[K]-HN[N+1];
+      U = (((D4[N+1]*DX+D3[N+1])*DX+D2[N+1])*DX+D1[N+1])*DX+D0[N+1];
+      V = 1.-2.*X[K]*U;
+      /***  TAYLOR SERIES EXPANSION ABOUT Y=0.0 ***/
+      VV = exp(Y2-X[K]*X[K])*cos(2.*X[K]*Y)/1.128379-Y*V;
+      UU = -Y;
+      MAX = (int) (5.+(12.5-X[K])*.8*Y);
+      for (I=2; I<=MAX; I+=2)
 	{
-          lauf[bmin][3] = min(imin,lauf[bmin][3]);
-          lauf[bmax][4] = max(imax,lauf[bmax][4]);
-          stackp = stackp-1;
-          goto l3;
+	  U = (X[K]*V+U)/RI[I];
+	  V = (X[K]*U+V)/RI[I+1];
+	  UU = -UU*Y2;
+	  VV = VV+V*UU;
 	}
-      }
-      imitte = (imax+imin)/2;
-      stack[stackp][1] = imitte+1;
-      stack[stackp][2] = imax;
-      stack[stackp][3] = bfun(y,x[imitte]);
-      stack[stackp][4] = bmax;
-      stackp = stackp+1;
-      stack[stackp][1] = imin;
-      stack[stackp][2] = imitte;
-      stack[stackp][3] = bmin;
-      stack[stackp][4] = bfun(y,x[imitte-1]);
-l3:   if (stackp > 0) goto l2;
-
-/*---- Region 4
---------------------------------------------------------------------*/
-      if ( (lauf[4][2] >= lauf[4][1]) || (lauf[4][4] >= lauf[4][3]) )
-      {
-        if (fabs(y-yps4) > 1e-8)
-	{
-          yps4 = y;
-          a7 = y*(1.16028e9+y2*(-9.86604e8+y2*(4.56662e8+y2* \
-          (-1.53575e8+y2*(4.08168e7+y2*(- 9.69463e6+y2*(1.6841e6+y2* \
-          (-320772.+y2*(40649.2+y2*(-5860.68+y2*(571.687+y2*(-72.9359 \
-          +y2*(2.35944-y2*0.56419)))))))))))));
-          b7 = y*(-5.60505e8+y2*(-9.85386e8+y2*(8.06985e8+y2* \
-          (-2.91876e8+y2*(8.64829e7+y2*(-7.72359e6+y2*(3.59915e6+y2* \
-          (-234417.+y2*(45251.3+y2*(-2269.19+y2*(-234.143+y2* \
-          (23.0312-y2*7.33447))))))))))));
-          c7 = y*(-6.51523e8+y2*(2.47157e8+y2*(2.94262e8+y2* \
-          (-2.04467e8+y2*(2.29302e7+y2*(-2.3818e7+y2*(576054.+y2* \
-          (98079.1+y2*(-25338.3+y2*(1097.77+y2* \
-          (97.6203-y2*44.0068)))))))))));
-          d7 = y*(-2.63894e8+y2*(2.70167e8+y2*(-9.96224e7+y2* \
-          (-4.15013e7+y2*(3.83112e7+y2*(2.2404e6+y2*(-303569.+y2* \
-          (-66431.2+y2*(8381.97+y2*(228.563-y2*161.358))))))))));
-          e7 = y*(-6.31771e7+y2*(1.40677e8+y2*(5.56965e6+y2* \
-          (2.46201e7+y2*(468142.+y2*(-1.003e6+y2*(-66212.1+y2* \
-          (23507.6+y2*(296.38-y2*403.396)))))))));
-          f7 = y*(-1.69846e7+y2*(4.07382e6+y2*(-3.32896e7+y2* \
-          (-1.93114e6+y2*(-934717.+y2*(8820.94+y2*(37544.8+y2* \
-          (125.591-y2*726.113))))))));
-          g7 = y*(-1.23165e6+y2*(7.52883e6+y2*(-900010.+y2*(-186682.+ \
-          y2*(79902.5+y2*(37371.9+y2*(-260.198-y2*968.15)))))));
-          h7 = y*(-610622.+y2*(86407.6+y2*(153468.+y2*(72520.9+y2* \
-          (23137.1+y2*(-571.645-y2*968.15))))));
-          o7 = y*(-23586.5+y2*(49883.8+y2*(26538.5+y2*(8073.15+y2* \
-          (-575.164-y2*726.113)))));
-          p7 = y*(-8009.1+y2*(2198.86+y2*(953.655+y2* \
-          (-352.467-y2*403.396))));
-          q7 = y*(-622.056+y2*(-271.202+y2*(-134.792-y2*161.358)));
-          r7 = y*(-77.0535+y2*(-29.7896-y2*44.0068));
-          s7 = y*(-2.92264-y2*7.33447);
-          t7 = y*(-0.56419);
-          a8 = 1.02827e9+y2*(-1.5599e9+y2*(1.17022e9+y2*(-5.79099e8+y2* \
-          (2.11107e8+y2*(-6.11148e7+y2*(1.44647e7+y2*(-2.85721e6+y2* \
-          (483737.+y2*(-70946.1+y2*(9504.65+y2*(-955.194+y2*(126.532 \
-          +y2*(-3.68288+y2)))))))))))));
-          b8 = 1.5599e9+y2*(-2.28855e9+y2*(1.66421e9+y2*(-7.53828e8+y2* \
-          (2.89676e8+y2*(-7.01358e7+y2*(1.39465e7+y2*(-2.84954e6+y2* \
-          (498334.+y2*(-55600.+y2*(3058.26+y2*(533.254+y2* \
-          (-40.5117+y2*14.))))))))))));
-          c8 = 1.17022e9+y2*(-1.66421e9+y2*(1.06002e9+y2*(-6.60078e8+y2* \
-          (6.33496e7+y2*(-4.60396e7+y2*(1.4841e7+y2*(-1.06352e6+y2* \
-          (-217801.+y2*(48153.3+y2*(-1500.17+y2* \
-          (-198.876+y2*91)))))))))));
-          d8 = 5.79099e8+y2*(-7.53828e8+y2*(6.60078e8+y2*(5.40367e7+y2* \
-          (1.99846e8+y2*(-6.87656e6+y2*(-6.89002e6+y2*(280428.+y2* \
-          (161461.+y2*(-16493.7+y2*(-567.164+y2*364))))))))));
-          e8 = 2.11107e8+y2*(-2.89676e8+y2*(6.33496e7+y2*(-1.99846e8+y2* \
-          (-5.01017e7+y2*(-5.25722e6+y2*(1.9547e6+y2*(240373.+y2* \
-          (-55582.+y2*(-1012.79+y2*1001)))))))));
-          f8 = 6.11148e7+y2*(-7.01358e7+y2*(4.60396e7+y2*(-6.87656e6+y2* \
-          (5.25722e6+y2*(3.04316e6+y2*(123052.+y2*(-106663.+y2* \
-          (-1093.82+y2*2002))))))));
-          g8 = 1.44647e7+y2*(-1.39465e7+y2*(1.4841e7+y2* \
-          (6.89002e6+y2*(1.9547e6+y2*(-123052.+y2*(-131337.+y2* \
-          (-486.14+y2*3003)))))));
-          h8 = 2.85721e6+y2*(-2.84954e6+y2*(1.06352e6+y2*(280428.+y2* \
-          (-240373.+y2*(-106663.+y2*(486.14+y2*3432))))));
-          o8 = 483737.+y2*(-498334.+y2*(-217801.+y2*(-161461.+y2* \
-          (-55582.+y2*(1093.82+y2*3003)))));
-          p8 = 70946.1+y2*(-55600.+y2*(-48153.3+y2*(-16493.7+y2* \
-          (1012.79+y2*2002))));
-          q8 = 9504.65+y2*(-3058.26+y2*(-1500.17+y2*(567.164+y2*1001.)));
-          r8 = 955.194+y2*(533.254+y2*(198.876+y2*364));
-          s8 = 126.532+y2*(40.5117+y2*91.);
-          t8 = 3.68288+y2*14.0;
-	}
-        ym2 = y*2;
-        for(i2=1;i2<=3;i2+=2)
-        {
-	  for(i1=lauf[4][i2];i1<=lauf[4][i2+1];i1++)
-	  {
-            x2 = x[i1-1]*x[i1-1];
-            prb[i1-1] = fak*(exp(y2-x2)*cos(x[i1-1]*ym2) - \
-              (a7+x2*(b7+x2*(c7+x2*(d7+x2*(e7+x2*(f7+x2*(g7+x2*(h7+x2* \
-              (o7+x2*(p7+x2*(q7+x2*(r7+x2*(s7+x2*t7))))))))))))) / \
-              (a8+x2*(b8+x2*(c8+x2*(d8+x2*(e8+x2*(f8+x2*(g8+x2*(h8+x2* \
-              (o8+x2*(p8+x2*(q8+x2*(r8+x2*(s8+x2*(t8+x2)))))))))))))));
-          }
-        }
-      }
-
-
-/*---- Region 3
---------------------------------------------------------------------*/
-      if ( (lauf[3][2] >= lauf[3][1]) || (lauf[3][4] >= lauf[3][3]) )
-      { 
-        if (fabs(y-yps3) > 1e-8)
-	{
-          yps3 = y;
-          a5 = (272.102+y*(973.778+y*(1629.76+y*(1678.33+y*(1174.8+y* \
-          (581.746+y*(204.501+y*(49.5213+y*(7.55895+y*0.564224)))))))));
-          b5 = (-60.5644+y*(-2.34403+y*(220.843+y*(336.364+y*(247.198 \
-          +y*(100.705+y*(22.6778+y*2.25689)))))));
-          c5 = (4.58029+y*(18.546+y*(42.5683+y*(52.8454+y*(22.6798+y* \
-          3.38534)))));
-          d5 = (-0.128922+y*(1.66203+y*(7.56186+y*2.25689)));
-          e5 = (0.000971457+y*0.564224);
-          a6 = 272.102+y*(1280.83+y*(2802.87+y*(3764.97+y*(3447.63+y* \
-          (2256.98+y*(1074.41+y*(369.199+y*(88.2674+ \
-          y*(13.3988+y)))))))));
-          b6 = 211.678+y*(902.306+y*(1758.34+y*(2037.31+y*(1549.68+y* \
-          (793.427+y*(266.299+y*(53.5952+y*5.)))))));
-          c6 = 78.866+y*(308.186+y*(497.302+y*(479.258+y*(269.292+y* \
-          (80.3928+y*10.)))));
-          d6 = 22.0353+y*(55.0293+y*(92.7568+y*(53.5952+y*10.)));
-          e6 = 1.49645+y*(13.3988+y*5.);
-	}
-	for(i2=1;i2<=3;i2+=2)
-	{
-	  for(i1=lauf[3][i2];i1<=lauf[3][i2+1];i1++)
-	  {
-            x2 = x[i1-1]*x[i1-1];
-            prb[i1-1] = fak*(a5+x2*(b5+x2*(c5+x2*(d5+x2*e5))))/ \
-                     (a6+x2*(b6+x2*(c6+x2*(d6+x2*(e6+x2)))));
-	  }
-	}
-      }
-
-
-/*---- Region 2
---------------------------------------------------------------------*/
-      if ( (lauf[2][2] >= lauf[2][1]) || (lauf[2][4] >= lauf[2][3]) )
-      {
-        if (fabs(y-yps2) > 1e-8)
-	{
-          yps2 = y;
-          a3 = y*(1.05786+y2*(4.65456+y2*(3.10304+y2*0.56419)));
-          b3 = y*(2.962+y2*(0.56419+y2*1.69257));
-          c3 = y*(1.69257*y2-2.53885);
-          d3 = y*(0.56419);
-          a4 = 0.5625+y2*(4.5+y2*(10.5+y2*(6.+y2)));
-          b4 = -4.5+y2*(9.+y2*(6.+y2*4.));
-          c4 = 10.5+y2*(-6.+y2*6.);
-          d4 = -6.+y2*4.0;
-	}
-	for(i2=1;i2<=3;i2+=2)
-	{
-	  for(i1=lauf[2][i2];i1<=lauf[2][i2+1];i1++)
-	  {
-            x2 = x[i1-1]*x[i1-1];
-            prb[i1-1] = fak*(a3+x2*(b3+x2*(c3+x2*d3)))/ 
-                     (a4+x2*(b4+x2*(c4+x2*(d4+x2))));
-	  }
-	}
-      }
-
-
-/*---- Region 1
---------------------------------------------------------------------*/
-l7:   if ( (lauf[1][2] >= lauf[1][1]) || (lauf[1][4] >= lauf[1][3]) )
-      {
-
-        if (fabs(y-yps1) > 1e-8)
-	{
-          yps1 = y;
-          a1 = 0.5641896*y;
-          b1 = 0.5+y2;
-          a2 = 4*y2;
-	}
-        c1 = fak*a1;
-	for(i2=1;i2<=3;i2+=2)
-	{
-	  for(i1=lauf[1][i2];i1<=lauf[1][i2+1];i1++)
-	  {
-            x2 = x[i1-1]*x[i1-1];
-            b2 = b1-x2;
-            prb[i1-1] = c1*(b1+x2)/(b2*b2+a2*x2);
-	  }
-	}
-      }
+      ls[K] = 1.128379*VV;
+      continue;
+  L112: Y2 = Y*Y;
+      if (Y < 11.-.6875*X[K]) goto L113;
+      /***  REGION IIIB: 2-POINT GAUSS-HERMITE QUADRATURE. ***/
+      U = X[K]-XX[3];
+      V = X[K]+XX[3];
+      ls[K] = Y*(HH[3]/(Y2+U*U)+HH[3]/(Y2+V*V));
+      continue;
+      /***  REGION IIIA: 4-POINT GAUSS-HERMITE QUADRATURE. ***/
+  L113: U = X[K]-XX[1];
+      V = X[K]+XX[1];
+      UU = X[K]-XX[2];
+      VV = X[K]+XX[2];
+      ls[K] = Y*(HH[1]/(Y2+U*U)+HH[1]/(Y2+V*V)+HH[2]/(Y2+UU*UU)+HH[2]/(Y2+
+								      VV*VV));
+      continue;
+  }
 }
+
+
 
 //---------------------------------------------------------------------------------
 
@@ -425,16 +1443,18 @@ l7:   if ( (lauf[1][2] >= lauf[1][1]) || (lauf[1][4] >= lauf[1][3]) )
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_no_norm(VECTOR&       fac,
-			    Numeric	 f0,
-			    const VECTOR& f_mono)
+			    Numeric	  f0,
+			    const VECTOR& f_mono,
+			    const size_t  nf)
 {
 
-  assert( fac.size() == f_mono.size() );
+  assert( fac.dim() == nf );
 
-  for ( size_t i=0; i<f_mono.size(); ++i )
+  for ( size_t i=0; i<nf; ++i )
     {
       fac[i] = 1.0;
     }
@@ -447,17 +1467,18 @@ void lineshape_norm_no_norm(VECTOR&       fac,
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  nf     Dimension of f_mono.
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_linear(VECTOR&       fac,
 			   Numeric	 f0,
-			   const VECTOR& f_mono)
+			   const VECTOR& f_mono,
+			   const size_t  nf)
 {
-  // FIXME: Maybe try if call by reference is faster for f0?
 
-  assert( fac.size() == f_mono.size() );
+  assert( fac.dim() == nf );
 
-  for ( size_t i=0; i<f_mono.size(); ++i )
+  for ( size_t i=0; i<nf; ++i )
     {
       fac[i] = f_mono[i] / f0;
     }
@@ -468,20 +1489,22 @@ void lineshape_norm_linear(VECTOR&       fac,
     \retval fac    Normalization factor to the lineshape function.
     \param  f0     Line center frequency.
     \param  f_mono The frequency grid.
+    \param  nf     Dimension of f_mono.
+
 
     \author Axel von Engeln 30.11.2000 */
 void lineshape_norm_quadratic(VECTOR&       fac,
 			      Numeric	 f0,
-			      const VECTOR& f_mono)
+			      const VECTOR& f_mono,
+			      const size_t nf)
 {
-  // FIXME: Maybe try if call by reference is faster for f0?
 
-  assert( fac.size() == f_mono.size() );
+  assert( fac.dim() == nf );
 
   // don't do this for the whole loop
   Numeric f0_2 = f0 * f0;
 
-  for ( size_t i=0; i<f_mono.size(); ++i )
+  for ( size_t i=0; i<nf; ++i )
     {
       fac[i] = f_mono[i] * f_mono[i] / f0_2;
     }
@@ -506,16 +1529,45 @@ void define_lineshape_data()
   lineshape_data.push_back
     (LineshapeRecord
      ("Lorentz",
-      "The Lorentz line shape. This is a quick and dirty implementation.",
+      "The Lorentz line shape.",
       -1,
       lineshape_lorentz));
 
   lineshape_data.push_back
     (LineshapeRecord
+     ("Doppler",
+      "The Doppler line shape.",
+      -1,
+      lineshape_doppler));
+
+  lineshape_data.push_back
+    (LineshapeRecord
      ("Voigt_Kuntz1",
-      "The Voigt line shape. Approximation by Kuntz.",
+      "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-6",
       -1,
       lineshape_voigt_kuntz1));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("Voigt_Kuntz3",
+      "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-3",
+      -1,
+      lineshape_voigt_kuntz3));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("Voigt_Kuntz4",
+      "The Voigt line shape. Approximation by Kuntz: Accuracy 2*10-4",
+      -1,
+      lineshape_voigt_kuntz4));
+
+  lineshape_data.push_back
+    (LineshapeRecord
+     ("Voigt_Drayson",
+      "The Voigt line shape. Approximation by Drayson.",
+      -1,
+      lineshape_drayson));
+
 }
 
 /*! The lookup data for the different normalization factors to the
