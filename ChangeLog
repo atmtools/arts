@@ -1,3 +1,18 @@
+2001-09-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-0-0-234
+	
+	* configure.in: Added debugging switch.
+	
+	* src/Makefile.am: Corrected LD_ADD. Quick fix, needs further work.
+
+	* src/methods.cc:  Added include config.h.
+	
+	* src/m_batch.cc: Added include config.h.
+	
+	* src/m_hdf.cc: Added include config.h.
+
+	
 2001-09-26  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-233
