@@ -1,3 +1,30 @@
+2003-05-26  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-552
+	
+	* src/groups.cc: Added new WSV group Sparse. The group has not yet
+	been fully implemented, the code compiles as long as no WSV beolngs
+	to the group. This has to be fixed.
+	
+	* src/make_auto_wsv_h.cc: Include matpackII.h in auto_wsv.h
+	
+	* src/methods.cc: Added three new WSM; sensor_responseAntenna1D,
+	sensor_responseBackend and sensor_responseInit.
+	
+	* src/m_sensor.cc: Implementation of the sensor_responseAntenna1D,
+	sensor_responseBackend and sensor_responseInit which sets up the
+	sensor_response matrix or modifies it with the antenna/backend
+	response.
+
+	* src/workspace.cc: Added two new WSV; sensor_response and f_sensor
+	that are used in sensor modelling. The sensor_response is a matrix 
+	that describes the whole sensor block response and f_sensor is a
+	vector that describes the sensor channel frequencies.
+
+	* src/xml_io.cc: Dummy functions for xml I/O for Sparse.
+
+	* src/xml_io_private.h: Declarations for the above I/O functions.
+
 2003-05-22  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-551	
