@@ -1,5 +1,15 @@
 2004-05-17  Oliver Lemke  <olemke@linux.net>
 
+        * arts-1-1-821
+
+	* src/test_readpp.cc: Parsing header and reading the data into vector
+	basically works. Still have to find out why there are 3 more fields
+	in the data block than specified in the header.
+
+	* src/Makefile.am: Updated dependencies for test_readpp.
+
+2004-05-17  Oliver Lemke  <olemke@linux.net>
+
         * arts-1-1-820
 
 	* src/.cvsignore, src/Makefile.am: Added test_readpp.

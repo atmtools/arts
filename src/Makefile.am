@@ -746,10 +746,12 @@ test_integration_SOURCES = \
 	test_integration.cc 
 
 test_readpp_SOURCES = \
-	bifstream.h \
 	bifstream.cc \
-	binio.h \
+	bifstream.h \
 	binio.cc \
+	binio.h \
+	matpackI.cc \
+	matpackI.h \
 	test_readpp.cc
 
 make_auto_wsv_groups_h_SOURCES = \
