@@ -1,3 +1,12 @@
+2003-03-26  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-68
+
+	* reconf: Don't redirect output of rm command. Prevents
+	reconf from running properly with plain bourne shell.
+
+	* configure.in: Only warn if doxygen is not found.
+
 2003-03-13  Carmen Verdes  <cverdes@uni-bremen.de>
 
 	* arts-1-0-67

@@ -8,9 +8,8 @@
 # WITHOUT ANY WARRANTY, to the extent permitted by law; without even the
 # implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-
 # Remove the links:
-rm INSTALL install-sh missing mkinstalldirs 2> /dev/null
+rm -f INSTALL install-sh missing mkinstalldirs
 
 
 rm -f config.cache

@@ -14,7 +14,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.66)
+AM_INIT_AUTOMAKE(arts,1.0.68)
 #
 # First of all set the default PREFIX if not given
 # (needed for arts data path later)
@@ -265,7 +265,7 @@ AC_MSG_RESULT([$ac_docgen])
 if test x$ac_docgen = xyes; then
     AC_CHECK_PROG(ac_doxygen, doxygen, yes, no)
     if test x$ac_doxygen = xno; then
-        AC_MSG_ERROR(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
+        AC_MSG_WARN(Doxygen is required to build the documentation - Get it from http://www.doxygen.org/)
     fi
 
     AC_CHECK_PROG(ac_latex, latex, yes, no)
