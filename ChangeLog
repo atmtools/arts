@@ -1,5 +1,18 @@
 2003-02-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
+	* arts-1-1-450
+
+	* src/ppath.cc (geompath_from_r1_to_r2): Using r2 instead of r[n]
+	when calculating za[n], as r2 is always double. The conversion from
+	double top float can result in a shift of 0.1 m, which can end up
+	below ppc.
+
+	Successful tests with refraction and Numeric=float for 1D and 2D.
+	So, refraction for 1D and 2D is now hopefully working (3D with
+	refrcation is NOT worling yet).
+
+2003-02-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
 	* arts-1-1-449
 
 	* src/ppath.cc (do_gridcell_3d): Introduced an allowed tolerance

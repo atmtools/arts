@@ -381,7 +381,7 @@ void geompath_from_r1_to_r2(
 
   // For maximum accuracy, set last radius to be exactly r2.
   r[n]   = r2;
-  za[n]  = geompath_za_at_r( ppc, za1, r[n] );
+  za[n]  = geompath_za_at_r( ppc, za1, r2 );  // Don't use r[n] here
 
   // Ensure that zenith and nadir observations keep their zenith angle
   if( abs(za1) < ANGTOL  ||  abs(za1) > 180-ANGTOL )
@@ -1468,6 +1468,8 @@ void do_gridrange_1d(
         {
           r_end    = ppc;
           tanpoint = 1;
+          if( ppc != ra )
+            { endface = 0; }
         }
       else
         {
@@ -1978,11 +1980,6 @@ void do_gridcell_3d(
           r_end   -= r_corr;
           lat_end -= lat_corr;
           lon_end -= lon_corr;
-
-          //NumericPrint( l_end, "l_end");
-          //NumericPrint( r_end, "r_end");
-          //NumericPrint( lat_end-20, "lat_end");
-          //NumericPrint( lon_end-20, "lon_end");
 
           // Special fixes for north-south observations
           if( abs( lat_start ) < 90  &&  ( abs(aa_start) < ANGTOL  ||  
@@ -4054,15 +4051,16 @@ void raytrace_1d_linear_euler(
       else if( r >= ppc_local )
         { za = geompath_za_at_r( ppc_local, za, r ); }
       else
-        {           
+        {  
+          r = ppc_local;
           if( za > 90 )
             { 
               ready    = true;  
               tanpoint = 1;  
-              endface  = 0;
+              if( r > r1 )
+                { endface  = 0; }
             }
-          r        = ppc_local;
-          za       = 90;
+          za = 90;
         }
   
       // Store found point

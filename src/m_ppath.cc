@@ -349,10 +349,12 @@ void ppathCalcTest(
         const Matrix&         sensor_los )
 {
   for( Index i=0; i<sensor_pos.nrows(); i++ )
-    ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-                p_grid, lat_grid, lon_grid, z_field, t_field, 
-                r_geoid, z_ground, cloudbox_on, cloudbox_limits, 
-                sensor_pos(i,joker), sensor_los(i,joker), 0 );
+    {
+      ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
+                  p_grid, lat_grid, lon_grid, z_field, t_field, 
+                  r_geoid, z_ground, cloudbox_on, cloudbox_limits, 
+                  sensor_pos(i,joker), sensor_los(i,joker), 0 );
+    }
 }
 
 
