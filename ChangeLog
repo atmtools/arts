@@ -1,5 +1,11 @@
 2002-03-20  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-34
+
+	* src/matpackI.h: Changed order of parameters for poly_root_solve.
+
+2002-03-20  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-33
 
 	* src/poly_roots.{h,cc}: Changed order of parameter.
