@@ -1,3 +1,25 @@
+2003-05-07  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-535
+
+	* src/methods.h, src/agenda_record.h, src/absorption.cc,
+	src/agenda_class.cc, src/file.cc, src/main.cc, src/m_general.cc,
+	src/m_scatrte.cc, src/old_absorption.cc, src/parameters.cc,
+	src/parser.cc, src/token.cc:
+	Replaced all calls to libc exit function with our own arts_exit
+	function.
+	Whenever you want to quit arts at some point, please use from now on
+	arts_exit instead of exit. Currently there is nothing done in
+	arts_exit, but in the near future we have to do some cleanup on
+	exit (e.g. for MPI).
+
+	* src/main.cc: Added MPI to output of arts -v.
+
+	* src/arts.cc: Added.
+	Added function arts_exit.
+
+	* src/Makefile.am: Added arts.cc.
+
 2003-05-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-534
