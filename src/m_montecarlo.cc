@@ -558,24 +558,28 @@ void ScatteringMonteCarlo (
 	    {
 	      //We need to calculate a new propagation path. In the future, we may be 
 	      //able to take some shortcuts here
-	      Cloudbox_ppath_rteCalc(ppathcloud, ppath, ppath_step, rte_pos, 
-				     rte_los, cum_l_step,TArray, ext_matArray, 
-				     abs_vecArray,t_ppath, scat_za_grid, 
-				     scat_aa_grid, ext_mat, abs_vec, rte_pressure, 
-				     rte_temperature, rte_vmr_list, i_rte, rte_gp_p, 
-				     rte_gp_lat, rte_gp_lon, i_space, ground_emission, 
-				     ground_los, ground_refl_coeffs, f_index, scat_za_index, 
-				     scat_aa_index, ext_mat_spt, abs_vec_spt, pnd_ppath,
-				     ppath_step_agenda, atmosphere_dim, p_grid, lat_grid, 
-				     lon_grid, z_field, r_geoid, z_ground, cloudbox_limits, 
-				     record_ppathcloud, record_ppath, opt_prop_gas_agenda, 
-				     spt_calc_agenda, scalar_gas_absorption_agenda, 
-				     stokes_dim, t_field, vmr_field, rte_agenda, 
-				     i_space_agenda, ground_refl_agenda, f_grid, photon_number
-				     , scattering_order, pnd_field);
+	      Cloudbox_ppathCalc(ppathcloud,ppath_step,ppath_step_agenda,atmosphere_dim,
+				 p_grid,lat_grid,lon_grid,z_field,r_geoid,z_ground,
+				 cloudbox_limits, rte_pos,rte_los);
+	      if (record_ppathcloud){ppathRecordMC(ppathcloud,"ppathcloud",
+						   photon_number,scattering_order);}
+			      
+	      cum_l_stepCalc(cum_l_step,ppathcloud);
+  
+	      //Calculate array of transmittance matrices
+	      TArrayCalc(TArray, ext_matArray, abs_vecArray, t_ppath, scat_za_grid, 
+			 scat_aa_grid, ext_mat, abs_vec, rte_pressure, rte_temperature, 
+			 rte_vmr_list, scat_za_index, scat_aa_index, ext_mat_spt, 
+			 abs_vec_spt, pnd_ppath, ppathcloud, opt_prop_gas_agenda, 
+			 spt_calc_agenda, scalar_gas_absorption_agenda, stokes_dim, 
+			 p_grid, lat_grid, lon_grid, t_field, vmr_field, atmosphere_dim,
+			 pnd_field);
+
+
+	      /////////////////////////////////////////////////////////////////////
 	      dist_to_boundary=cum_l_step[ppathcloud.np-1];
 	 
-	      Iboundary=i_rte(0,joker);
+	      //	      Iboundary=i_rte(0,joker);
 	      Sample_ppathlength (pathlength,g,K11,rng,ext_matArray);
 	    }
 	  else
@@ -589,6 +593,24 @@ void ScatteringMonteCarlo (
 	    {
 	      if (scattering_order>0)
 		{
+		  //Get incoming//////
+		  montecarloGetIncoming(i_rte,rte_pos,rte_los,rte_gp_p,
+			rte_gp_lat,rte_gp_lon,ppath,ppath_step,i_space,
+			ground_emission,ground_los,ground_refl_coeffs,
+			scat_za_grid,scat_aa_grid,ppath_step_agenda,
+			rte_agenda,i_space_agenda,ground_refl_agenda,t_field,
+			p_grid,lat_grid,lon_grid,z_field,r_geoid,
+			z_ground,cloudbox_limits,ppathcloud,atmosphere_dim,
+					f_grid,stokes_dim);
+		  
+		  if (record_ppath)
+		    {
+		      ppathRecordMC(ppath,"ppath",photon_number,scattering_order);
+		    }
+		  		  
+		  f_index=0;//For some strange reason f_index is set to -1 in RteStandard
+		  Iboundary=i_rte(0,joker);
+		  ////////////////////
 		  T=TArray[ppathcloud.np-1];
 		  mult(boundarycontri,T,Iboundary);
 		  mult(pathinc,Q,boundarycontri);

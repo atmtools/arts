@@ -128,6 +128,40 @@ void interpTArray(Matrix& T,
 		  const Ppath& ppath
 		 );
 
+void montecarloGetIncoming(
+			   Matrix&               i_rte,
+			   Vector&               rte_pos,
+			   Vector&               rte_los,
+			   GridPos&              rte_gp_p,
+			   GridPos&              rte_gp_lat,
+			   GridPos&              rte_gp_lon,
+			   Ppath&                ppath,
+			   Ppath&                ppath_step,
+			   Matrix&               i_space,
+			   Matrix&               ground_emission,
+			   Matrix&               ground_los, 
+			   Tensor4&              ground_refl_coeffs,
+			   Vector&               scat_za_grid,
+			   Vector&               scat_aa_grid,
+			   const Agenda&         ppath_step_agenda,
+			   const Agenda&         rte_agenda,
+			   const Agenda&         i_space_agenda,
+			   const Agenda&         ground_refl_agenda,
+			   const Tensor3&        t_field,
+			   const Vector&         p_grid,
+			   const Vector&         lat_grid,
+			   const Vector&         lon_grid,
+			   const Tensor3&        z_field,
+			   const Matrix&         r_geoid,
+			   const Matrix&         z_ground,
+			   const ArrayOfIndex&   cloudbox_limits,
+			   const Ppath&          ppathcloud,
+			   const Index&          atmosphere_dim,
+			   const Vector&         f_grid,
+			   const Index&          stokes_dim
+			   );
+
+
 void pha_mat_singleCalc(
 			MatrixView& Z,			
 			Numeric za_scat, 
@@ -143,6 +177,14 @@ void pha_mat_singleCalc(
 			const Tensor5& scat_theta_itws,
 			const VectorView& pnd_vec     
 			);
+
+void ppathRecordMC(
+		   const Ppath& ppath,
+		   const String name,
+		   const Index& photon_number,
+		   const Index& scattering_order
+		   );
+
 
 void Sample_los (
 		 VectorView& rte_los,

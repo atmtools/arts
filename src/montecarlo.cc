@@ -547,6 +547,96 @@ void interpTArray(Matrix& T,
   rte_pos[2] = interp(itw,ppath.pos(Range(joker),2),gp[0]);
 }
 
+
+
+//!  montecarloGetIncoming 
+
+/*!
+   Gets incoming radiance at the cloud box boundary in a single propagation 
+direction, determined by the cloudboz Ppath 'pptahcloud'. 
+Used in ScatteringMonteCarlo.  
+
+   \author Cory Davis
+   \date   2003-11-28
+*/
+
+void montecarloGetIncoming(
+			   Matrix&               i_rte,
+			   Vector&               rte_pos,
+			   Vector&               rte_los,
+			   GridPos&              rte_gp_p,
+			   GridPos&              rte_gp_lat,
+			   GridPos&              rte_gp_lon,
+			   Ppath&                ppath,
+			   Ppath&                ppath_step,
+			   Matrix&               i_space,
+			   Matrix&               ground_emission,
+			   Matrix&               ground_los, 
+			   Tensor4&              ground_refl_coeffs,
+			   Vector&               scat_za_grid,
+			   Vector&               scat_aa_grid,
+			   const Agenda&         ppath_step_agenda,
+			   const Agenda&         rte_agenda,
+			   const Agenda&         i_space_agenda,
+			   const Agenda&         ground_refl_agenda,
+			   const Tensor3&        t_field,
+			   const Vector&         p_grid,
+			   const Vector&         lat_grid,
+			   const Vector&         lon_grid,
+			   const Tensor3&        z_field,
+			   const Matrix&         r_geoid,
+			   const Matrix&         z_ground,
+			   const ArrayOfIndex&   cloudbox_limits,
+			   const Ppath&          ppathcloud,
+			   const Index&          atmosphere_dim,
+			   const Vector&         f_grid,
+			   const Index&          stokes_dim
+			   )
+
+{
+  //call rte_calc without input checking, sensor stuff, or verbosity
+  // Assign dummies for variables associated with sensor.
+  Vector   mblock_za_grid_dummy(1);
+  mblock_za_grid_dummy[0] = 0;
+  Vector   mblock_aa_grid_dummy(0), sensor_rot_dummy(0);
+  Matrix   sensor_pol_dummy;
+  Index    antenna_dim_dummy = 1; 
+  Sparse   sensor_response_dummy;
+  
+  // Dummy for measurement vector
+  Vector   y_dummy(0);
+  
+  const Index cloudbox_on_dummy=0;
+  Matrix sensor_pos(1,3);
+  Matrix sensor_los(1,2);
+  Tensor7 scat_i_p_dummy;
+  Tensor7 scat_i_lat_dummy;
+  Tensor7 scat_i_lon_dummy;
+  
+  Vector dummy_rte_pos = rte_pos;
+  Vector dummy_rte_los = rte_los;
+  rte_posShift(dummy_rte_pos,dummy_rte_los,rte_gp_p, rte_gp_lat,
+	       rte_gp_lon,ppathcloud, atmosphere_dim);
+  sensor_pos(0,joker)=dummy_rte_pos;
+  sensor_los(0,joker)=dummy_rte_los;
+  //call rte_calc without input checking, sensor stuff, or verbosity
+  rte_calc( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
+	    rte_gp_lat,
+	    rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
+	    ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
+	    atmosphere_dim, p_grid, lat_grid, lon_grid, z_field, t_field, 
+	    r_geoid, z_ground, cloudbox_on_dummy, cloudbox_limits, 
+	    scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
+	    scat_aa_grid, sensor_response_dummy, sensor_pos,sensor_los,
+	    sensor_pol_dummy, sensor_rot_dummy,
+	    f_grid,stokes_dim, antenna_dim_dummy, mblock_za_grid_dummy,
+	    mblock_aa_grid_dummy, false, false, true);
+  
+  for (Index i = 0;i<stokes_dim;i++){assert(!isnan(i_rte(0,i)));}
+}
+
+
+
 //! pha_mat_singleCalc
 /*!
  Returns the total phase matrix for given incident and scattered directions
@@ -622,7 +712,34 @@ void pha_mat_singleCalc(
 	}	
     }
 }
-		  
+
+
+//! ppathRecordMC
+/*!
+  Stores ppath data in XML format during Monte Carlo simulations.  
+This can be useful for educational/diagnostic purposes.
+\param ppath             Ppath object to be sotred
+\param name              prefix for filename
+\param photon_number     both these parameters are used 
+\param scattering_order  in the file name
+*/
+void ppathRecordMC(
+		   const Ppath& ppath,
+		   const String name,
+		   const Index& photon_number,
+		   const Index& scattering_order
+		   )
+
+{
+  //Record ppathcloud.  This is useful for debugging and educational purposes.  It would
+  //be completely daft to leave this on in a real calculation
+  ostringstream filename;
+  filename << name << photon_number <<"_"<<scattering_order;
+  String longfilename;
+  filename_xml(longfilename,filename.str());
+  xml_write_to_file(longfilename, ppath, FILE_TYPE_ASCII);
+}
+
 
 //! Sample_los
 
@@ -785,9 +902,10 @@ void Sample_ppathlength (
 	//extinction matrix along the line of sight.
 	Matrix K = ext_matArray[0];
 	for (Index i=1;i<ext_matArray.nelem();i++){
-	  K+=ext_matArray[i];
+	  if(ext_matArray[i](0,0)<K(0,0)){K=ext_matArray[i];}
+	  //K+=ext_matArray[i];
 	}
-	K/=ext_matArray.nelem();
+	//K/=ext_matArray.nelem();//Temporary measure28/11/03
         K11 = K(0,0);
 	//	cout << "K11 = "<< K11 <<"\n";
 	pathlength = -log(rng.draw())/K11;
