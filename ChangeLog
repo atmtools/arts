@@ -1,3 +1,13 @@
+2002-03-18  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-31
+
+	* reconf: Removed --enable-more-warnings. This is now part of
+	configure.in.
+
+	* configure.in: Enable warnings in maintainer mode by default. Could
+	still be turned off with ./reconf --disable-more-warnings.
+
 2002-03-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-30
