@@ -1,3 +1,11 @@
+2002-07-17  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-189
+
+	* src/ppath.cc (ppath_step_geom_2d): 2D geometrical propagation path
+	steps seem now to work, but no heavy bug checks (mainly a backup
+	commit).
+
 2002-07-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-188

@@ -621,20 +621,22 @@ Numeric psurface_crossing_2d(
 {
   assert( fabs(za) <= 180 );
 
+  const Numeric no_crossing = 999;
+
   // Handle the cases of za=0 and za=180. 
   if( za == 0 )
     {
       if( r < r1 )
 	{ return 0; }
       else
-	{ return 999; }
+	{ return no_crossing; }
     }
   if( fabs(za) == 180 )
     {
       if( r > r1 )
 	{ return 0; }
       else
-	{ return 999; }
+	{ return no_crossing; }
     }
 
   // Check if the given LOS goes in the direction towards the pressure surface.
@@ -643,7 +645,7 @@ Numeric psurface_crossing_2d(
   const bool downwards = is_los_downwards_2d( za, psurface_tilt_2d( r1, c ) );
   //
   if( ( r < r1  &&  downwards )  ||  ( r >= r1  &&  !downwards ) )
-    { return 999; }
+    { return no_crossing; }
 
 
   // The nadir angle in radians, and cosine and sine of that angle
@@ -678,25 +680,24 @@ Numeric psurface_crossing_2d(
   poly_root_solve( roots, p );
 
   // Find first root with imaginary part = 0, and real part > 0 or >= 0.
-  // The solution r < 1e-6 is not of interest if r = r1.
-  Numeric dlat = 999;
+  // The solution dlat = 0 is not of interest if r = r1.
+  Numeric dlat = no_crossing;
   for( Index i=0; i<n-1; i++ )
     {
       if( roots(i,1) == 0  &&   roots(i,0) >= 0 )
 	{
-	  if( ( r != r1  ||  roots(i,0) > 1e-6 )  &&  
+	  if( ( r != r1  ||  roots(i,0) > 0 )  &&  
                                                   RAD2DEG * roots(i,0) < dlat )
 	    { dlat = RAD2DEG * roots(i,0); }
 	}
     }  
 
   // Change sign if zenith angle is negative
-  if( dlat < 999  &&  za < 0 )
+  if( dlat < no_crossing  &&  za < 0 )
     { dlat = -dlat; }
 
   return dlat;
 }
-
 
 
 
@@ -2081,14 +2082,6 @@ void ppath_step_geom_2d(
   else
     { ppc = ppath.constant; }
 
-  // Determine index of the pressure surface and latitude being the lower 
-  // limits for the grid cell of interest.
-  const Index ip = gridpos2gridrange( ppath.gp_p[imax], fabs(za_start) <= 90);
-  const Index ilat = gridpos2gridrange( ppath.gp_lat[imax], za_start >= 0 );
-  //
-  out3 << "  pressure grid range  : " << ip << "\n";
-  out3 << "  latitude grid range  : " << ilat << "\n";
-
 
   // The corners and the faces of the grid cell are numbered in anti-clockwise
   // direction. The lower left corner is number 1. The left face is number 1.
@@ -2096,13 +2089,15 @@ void ppath_step_geom_2d(
   // point 6.
 
 
-  // Get radius for the corners of the grid cell
-  const Numeric r1 = r_geoid[ilat] + z_field(ip,ilat);        // lower-left
-  const Numeric r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);    // lower-right
-  const Numeric r3 = r_geoid[ilat+1] + z_field(ip+1,ilat+1);  // upper-right
-  const Numeric r4 = r_geoid[ilat] + z_field(ip+1,ilat);      // upper-left
+  // The part below to determine ilat and ip should be moved to a function
+  // if there will be another ppath_step function where the same checks will
+  // be performed.
 
-  // Latitudes of left and right end face
+  // Determine interesting latitude grid range and latitude end points of 
+  // the range.
+  //
+  const Index ilat = gridpos2gridrange( ppath.gp_lat[imax], za_start >= 0 );
+  //
   const Numeric lat1 = lat_grid[ilat];
   const Numeric lat3 = lat_grid[ilat+1];
 
@@ -2116,16 +2111,66 @@ void ppath_step_geom_2d(
   else
     { dlat_endface = -dlat_left; }
 
-  // Radial slope of pressure surface limits of the grid cell
-  const Numeric c2 = psurface_slope_2d( lat_grid, r_geoid, 
-		z_field(ip,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
-  const Numeric c4 = psurface_slope_2d( lat_grid, r_geoid, 
-	      z_field(ip+1,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
 
-  // Assert that grid cell is OK and that start position is inside the cell.
+  // Determine interesting pressure grid range. Do this first assuming that
+  // the pressure surfaces are not tilted (that is, fabs(za_start<=90) always
+  // mean upward observation). 
+  // Set radius for the corners of the grid cell and the radial slope of 
+  // pressure surface limits of the grid cell to match the found ip.
+  //
+  Index ip = gridpos2gridrange( ppath.gp_p[imax], fabs(za_start) <= 90);
+  //
+  Numeric r1 = r_geoid[ilat] + z_field(ip,ilat);        // lower-left
+  Numeric r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);    // lower-right
+  Numeric r3 = r_geoid[ilat+1] + z_field(ip+1,ilat+1);  // upper-right
+  Numeric r4 = r_geoid[ilat] + z_field(ip+1,ilat);      // upper-left
+  Numeric c2 = psurface_slope_2d( lat_grid, r_geoid, 
+                 z_field(ip,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
+  Numeric c4 = psurface_slope_2d( lat_grid, r_geoid, 
+               z_field(ip+1,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
+
+  // Check if the LOS zenith angle happen to be between 90 and the zenith angle
+  // of the pressure surface (that is, 90 + tilt of pressure surface), and in
+  // that case if ip must be changed. This check is only needed when the
+  // start point is on a pressure surface. We can then take the oppertunity
+  // to assert that the start radius is then consistent with gp_p.
+  //
+  if( is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
+    {
+      assert( fabs( r_start - ( r1 + c2 * dlat_left ) ) <= R_EPS );
+      Numeric tilt = psurface_tilt_2d( r_start, c2 );
+      if( is_los_downwards_2d( za_start, tilt ) )
+	{
+	  ip--;
+	  r4 = r1;   r3 = r2;   c4 = c2;
+	  r1 = r_geoid[ilat] + z_field(ip,ilat);
+          r2 = r_geoid[ilat+1] + z_field(ip,ilat+1);
+          c2 = psurface_slope_2d( lat_grid, r_geoid, 
+                 z_field(ip,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
+	}
+    }
+  else if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 )  )
+    {
+      assert( fabs( r_start - ( r4 + c4 * dlat_left ) ) <= R_EPS );
+      Numeric tilt = psurface_tilt_2d( r_start, c4 );
+      if( !is_los_downwards_2d( za_start, tilt ) )
+	{
+	  ip++;
+	  r1 = r4;   r2 = r3;   c2 = c4;
+	  r3 = r_geoid[ilat+1] + z_field(ip+1,ilat+1);
+	  r4 = r_geoid[ilat] + z_field(ip+1,ilat);    
+	  c4 = psurface_slope_2d( lat_grid, r_geoid, 
+               z_field(ip+1,Range(joker)), ppath.gp_lat[imax], za_start >= 0 );
+	}
+    }
+
+  out3 << "  pressure grid range  : " << ip << "\n";
+  out3 << "  latitude grid range  : " << ilat << "\n";
+
+  // Assert that start position is inside the found grid cell.
+  assert( lat_start >= lat1  &&  lat_start <= lat3 );
   assert( r1 < r4 );
   assert( r2 < r3 );
-  assert( lat_start >= lat1  &&  lat_start <= lat3 );
   assert( r_start >= r1 + c2 * dlat_left - R_EPS );
   assert( r_start <= r4 + c4 * dlat_left + R_EPS );
 
@@ -2136,11 +2181,11 @@ void ppath_step_geom_2d(
 
   // The end point is most easily determined by the latitude difference to 
   // the start point. For some cases there exist several crossings and we want 
-  // the one clsoest in latitude to the start point. The latitude distance 
+  // the one closest in latitude to the start point. The latitude distance 
   // for the crossing shall not exceed dlat2end.
   // The variable endface is a number coding of at what cell face (including 
   // the ground and tangent points) the end point is found. This is needed to
-  // set values for the end point is most accurate way.
+  // set values for the end point in most accurate way.
   //
   Numeric dlat2end = 999;
   Index   endface  = 999;   
@@ -2157,12 +2202,18 @@ void ppath_step_geom_2d(
   // We don't need to consider the face if we are standing on the pressure 
   // surface.
   //
-  Numeric a_r = r1+c2*dlat_left;   // A variable used for varoius radii
-  //
-  if( r_start > a_r )
-    { 
-      dlat2end = psurface_crossing_2d( r_start, za_start, a_r, c2 );
-      endface = 2;
+  if( !is_gridpos_at_index_i( ppath.gp_p[imax], ip )  )
+    {
+      Numeric r_surface = r1+c2*dlat_left;
+
+      // We must assure that rounding errors not has caused that 
+      // r_start <= r_surface + R_EPS. 
+      Numeric r_tmp = r_start;
+      if( r_tmp < r_surface + R_EPS )
+	{ r_tmp = r_surface + R_EPS; }
+
+      dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c2 );
+      endface = 2;  // This variable will be re-set if there was no crossing
     }
 
   // --- The ground.
@@ -2173,48 +2224,58 @@ void ppath_step_geom_2d(
   const Numeric cground = psurface_slope_2d( lat_grid, r_geoid, 
 		                 z_ground, ppath.gp_lat[imax], za_start >= 0 );
   //
-  a_r = rground1+cground*dlat_left;
-  //
-  assert( r_start >= a_r );
-  //
-  // Is the ground at least partly inside the grid cell, and we are not 
-  // standing on the ground?
-  if( ( rground1 >= r1  ||  rground2 >= r2 )  &&  r_start > a_r )
-    {
-      Numeric dlat2ground = psurface_crossing_2d( r_start, za_start, a_r,
-                                                                     cground );
-      if( fabs(dlat2ground) <= fabs(dlat2end) )
-	{
-	  dlat2end = dlat2ground;
-	  endface  = 5;
-	}
-    }
+  {
+    Numeric r_ground = rground1 + cground * dlat_left;
+
+    assert( r_start >= r_ground - R_EPS );
+
+    // Check shall be done only if the ground is, at least partly, inside 
+    //the grid cell, and we are not already at the ground
+    //
+    if( ( rground1 >= r1  ||  rground2 >= r2 )  &&  
+                               !( ppath.ground  &&   ppath.i_ground == imax ) )
+      {
+	Numeric r_tmp = r_start;
+	if( r_tmp < r_ground + R_EPS )
+	  { r_tmp = r_ground + R_EPS; }
+
+	Numeric dlat2ground = psurface_crossing_2d( r_tmp, za_start, r_ground,
+						                     cground );
+	if( fabs(dlat2ground) <= fabs(dlat2end) )
+	  {
+	    dlat2end = dlat2ground;
+	    endface  = 5;
+	  }
+      }
+  }
 
   // If dlat2end <= dlat_endface we are ready. Otherwise we have to check
   // remaining cell faces. The same applies after testing upper face.
 
   // --- Upper face  (pressure surface ip+1).
+  //
   if( fabs(dlat2end) > fabs(dlat_endface) )
     {
       // We can here determine by zenith angles if there is a crossing with
       // the pressure surface. This should save some time compared to call
       // psurface_crossing_2d blindly.
       // Note that the path step can both start and end at the face.
-      // We must ensure that numerical inaccuracy does make that r_start is
-      // above the pressure surface.
 
-      a_r = r4+c4*dlat_left;
+      Numeric r_surface = r4 + c4 * dlat_left;
 
       Numeric r_tmp = r_start;
-      if( r_tmp > a_r )
-	{ r_tmp = a_r; }
+      if( is_gridpos_at_index_i( ppath.gp_p[imax], ip+1 ) )
+	{ r_tmp = r_surface; }
+      else if( r_tmp > r_surface - R_EPS )
+	{ r_tmp = r_surface - R_EPS; }
 
       if( ( za_start >= 0  &&  
             za_start <= za_geom2other_point( r_tmp, lat_start, r3, lat3 ) )  
                  ||
 	  ( za_start >= za_geom2other_point( r_tmp, lat_start, r4, lat1 ) ) )
 	{
-	  dlat2end = psurface_crossing_2d( r_tmp, za_start, a_r, c4 );
+	  dlat2end = psurface_crossing_2d( r_tmp, za_start, r_surface, c4 );
+	  assert( dlat2end < 999 );
 	  endface  = 4;
 	}
     }
@@ -2233,7 +2294,9 @@ void ppath_step_geom_2d(
   if( fabs(za_start) > 90  &&  ( fabs(za_start) - fabs(dlat2end) ) < 90 ) 
     { endface  = 6; }
 
-  // Calculate radius for end point
+  // Calculate radius for end point.
+  // To obtain bestpossible accuracy it is calculated folowing found end face,
+  // and not based on dlat2end.
   //
   Numeric r_end = -1;
   //
@@ -2302,19 +2365,15 @@ void ppath_step_geom_2d(
       gridpos_force_end_fd( ppath.gp_lat[ilast] );
     }
   else if( endface == 2  ||  endface == 4 )
-    {
-      ppath.pos(ilast,0) = r_end;
-      gridpos_force_end_fd( ppath.gp_p[ilast] );
-    }
+    { gridpos_force_end_fd( ppath.gp_p[ilast] ); }
   else if( endface == 3 )
     {
       ppath.pos(ilast,1) = lat3;
       gridpos_force_end_fd( ppath.gp_lat[ilast] );
     }
-  else if( endface == 5 )
-    { ppath.pos(ilast,0) = r_end; }
   else if( endface == 6 )
     { ppath.los(ilast,0) = sign(za_start)*90; }
+
 
   // Make second part if not ready with path step:
   if( endface == 6  ||  ( endface == 5  &&  !blackbody_ground ) )
