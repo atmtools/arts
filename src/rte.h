@@ -150,7 +150,8 @@ void rte_calc(
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
         const bool&           check_input,
-        const bool&           apply_sensor );
+              const bool&           apply_sensor,
+        const bool&           agenda_verb );
 
 void
 rte_step(//Output and Input:

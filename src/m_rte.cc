@@ -122,7 +122,7 @@ void RteCalc(
             scat_i_p, scat_i_lat, scat_i_lon, scat_za_grid, scat_aa_grid, 
             sensor_response, sensor_pos, sensor_los, f_grid, stokes_dim,
             antenna_dim, mblock_za_grid, mblock_aa_grid, 
-            check_input, apply_sensor );
+            check_input, apply_sensor, 0 );
 }
 
 

@@ -174,7 +174,7 @@ shift_a_pos(dummy_a_pos,dummy_a_los,ppathcloud);
 	    p_grid, lat_grid, lon_grid, z_field, t_field, r_geoid, z_ground, cloudbox_on_dummy,
 	    cloudbox_limits, scat_i_p_dummy,scat_i_lat_dummy, scat_i_lon_dummy, scat_za_grid,
 	    scat_aa_grid, dummy_sensor_response, sensor_pos,sensor_los,f_grid,stokes_dim,
-	    antenna_dim_dummy, mblock_za_grid_dummy,mblock_aa_grid_dummy,true, false);
+	    antenna_dim_dummy, mblock_za_grid_dummy,mblock_aa_grid_dummy,true, false, 1);
   
   
   if (record_ppath)

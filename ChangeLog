@@ -1,3 +1,17 @@
+2003-07-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-601
+
+	* Commit of changes made during the Bredbeck workshop.
+
+	* src/ppath.cc (ppath_calc): Included flag to seperate standard path 
+	calculations from path calculations inside the cloudbox (for e.g.
+	Montye Carlo calculations).
+
+	* src/rte.cc (rte_calc): Included inpuit argument to control agenda
+	verbosity. Agendas are set to be quiet when called from scattering
+	calculations.
+
 2003-07-08  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-600

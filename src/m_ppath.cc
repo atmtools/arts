@@ -205,7 +205,7 @@ void ppathCalc(
 {
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
              p_grid, lat_grid, lon_grid, z_field, r_geoid, z_ground, 
-                               cloudbox_on, cloudbox_limits, a_pos, a_los, 0 );
+                            cloudbox_on, cloudbox_limits, a_pos, a_los, 1, 0 );
 }
 
 
@@ -672,7 +672,7 @@ void ZaSatOccultation(
     ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim,
                 p_grid, lat_grid, lon_grid, z_field, r_geoid,
                 z_ground, 0, ArrayOfIndex(0), Vector(1,r_recieve),
-                Vector(1,za_ref[i]), 0 );
+                Vector(1,za_ref[i]), 1, 0 );
     if ( ppath.tan_pos.nelem() != 0 ) {
       //Calculate the latitude from the recieving sensor, concisting of
       //the latitude of the atmospheric exist point and the geometric

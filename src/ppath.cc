@@ -5067,6 +5067,12 @@ void ppath_step_refr_3d(
    \param   z_ground          Ground altitude.
    \param   cloudbox_on       Flag to activate the cloud box.
    \param   cloudbox_limits   Index limits of the cloud box.
+   \param   outside_cloudbox  Boolean to flag if the propagation path is 
+                              (expected to be) outside the cloudbox. Ordinary
+                              clerar sky calculations are selected by the value
+                              1. The value 0 means tracking of a propagation 
+                              path inside the cloudbox. The path is then
+                              tracked to the cloudbox boundary.
    \param   a_pos             The position of the sensor.
    \param   a_los             The line-of-sight of the sensor.
 
@@ -5084,6 +5090,7 @@ void ppath_start_stepping(
         ConstMatrixView       z_ground,
         const Index&          cloudbox_on, 
         const ArrayOfIndex&   cloudbox_limits,
+        const bool&           outside_cloudbox,
         ConstVectorView       a_pos,
         ConstVectorView       a_los )
 {
@@ -5156,18 +5163,27 @@ void ppath_start_stepping(
           // Check sensor position with respect to cloud box.
           if( cloudbox_on )
             {
-              // Is the sensor inside the cloud box?
-              if( ppath.z[0] > z_field(cloudbox_limits[0],0,0)  && 
-                                 ppath.z[0] < z_field(cloudbox_limits[1],0,0) )
-                { ppath_set_background( ppath, 4 ); }
-
-              else if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
-                                                        ppath.los(0,0) <= 90 )
-                     || 
-                  ( ppath.z[0] == z_field(cloudbox_limits[1],0,0)  && 
-                                                        ppath.los(0,0) > 90 ) )
+              if( outside_cloudbox )
                 {
-                  ppath_set_background( ppath, 3 );
+                  // Is the sensor inside the cloud box?
+                  if( ppath.z[0] > z_field(cloudbox_limits[0],0,0)  && 
+                                 ppath.z[0] < z_field(cloudbox_limits[1],0,0) )
+                    { ppath_set_background( ppath, 4 ); }
+
+                  else if( ( ppath.z[0] == z_field(cloudbox_limits[0],0,0)  && 
+                                                        ppath.los(0,0) <= 90 )
+                           || 
+                           ( ppath.z[0] == z_field(cloudbox_limits[1],0,0)  && 
+                                                        ppath.los(0,0) > 90 ) )
+                    {
+                      ppath_set_background( ppath, 3 );
+                    }
+                }
+              else
+                {
+                  assert( ppath.z[0] >= z_field(cloudbox_limits[0],0,0)  && 
+                          ppath.z[0] <= z_field(cloudbox_limits[1],0,0) );
+                  
                 }
             }
         }
@@ -5349,33 +5365,6 @@ void ppath_start_stepping(
               // will be changed below.
               if( is_los_downwards( ppath.los(0,0), atilt ) )
                 { ppath_set_background( ppath, 2 ); }
-            }
-
-          // Check sensor position with respect to cloud box.
-          if( cloudbox_on )
-            {
-              // To check all possible cases here when the sensor is at the
-              // surface and can either look into or out from the box needs
-              // a lot of coding.
-              // So we are instead sloppy and set all cases when the sensor
-              // is inside or at the surface to be inside the box.
-              // The neglected cases should be very unlikely in for real
-              // situations.
-
-              if( ppath.pos(0,1) >= lat_grid[cloudbox_limits[2]]  &&
-                               ppath.pos(0,1) <= lat_grid[cloudbox_limits[3]] )
-                {
-                  // Calculate the lower and upper altitude radius limit for
-                  // the cloud box at the latitude of the sensor
-
-                  const double   rv_low = rv_geoid + interp( itw, 
-                                 z_field(cloudbox_limits[0],joker,0), gp_lat );
-                  const double   rv_upp = rv_geoid + interp( itw, 
-                                 z_field(cloudbox_limits[1],joker,0), gp_lat );
-
-                  if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
-                    { ppath_set_background( ppath, 4 ); }       
-                }
             }
         }
 
@@ -5762,8 +5751,15 @@ void ppath_start_stepping(
                      z_field(cloudbox_limits[1],joker,joker), gp_lat, gp_lon );
 
                   if( ppath.pos(0,0) >= rv_low  &&  ppath.pos(0,0) <= rv_upp )
-                    { ppath_set_background( ppath, 4 ); }       
+                    {
+                      if( outside_cloudbox )
+                        { ppath_set_background( ppath, 4 ); }       
+                    }
+                  else
+                    { assert( outside_cloudbox ); }
                 }
+              else
+                { assert( outside_cloudbox ); }
             }
         }
 
@@ -6024,7 +6020,7 @@ void ppath_start_stepping(
    This is the core for the WSM ppathCalc.
 
    This function takes the same input as ppathCalc (that is, those
-   input arguments are the WSV with the same name, but there are) some
+   input arguments are the WSV with the same name), but there are some
    additional argument(s):
 
    \param ppath              Output: A Ppath structure
@@ -6041,6 +6037,12 @@ void ppath_start_stepping(
    \param cloudbox_limits    Index limits of the cloud box.
    \param a_pos              The position of the sensor.
    \param a_los              The line-of-sight of the sensor.
+   \param outside_cloudbox   Boolean to flag if the propagation path is 
+                             (expected to be) outside the cloudbox. Ordinary
+                             clerar sky calculations are selected by the value
+                             1. The value 0 means tracking of a propagation 
+                             path inside the cloudbox. The path is then
+                             tracked to the cloudbox boundary.
    \param agenda_verb        This argument is given as input to agendas
                              to control the verbosity.
 
@@ -6064,6 +6066,7 @@ void ppath_calc(
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         a_pos,
         const Vector&         a_los,
+        const bool&           outside_cloudbox,
         const Index&          agenda_verb )
 {
   // This function is a WSM but it is normally only called from RteCalc. 
@@ -6123,8 +6126,8 @@ void ppath_calc(
   // allowed path.
   //
   ppath_start_stepping( ppath_step, atmosphere_dim, p_grid, lat_grid, 
-                        lon_grid, z_field, r_geoid, z_ground,
-                        cloudbox_on, cloudbox_limits, a_pos, a_los );
+                lon_grid, z_field, r_geoid, z_ground,
+                cloudbox_on, cloudbox_limits, outside_cloudbox, a_pos, a_los );
 
   out2 << "  -------------------------------------\n";
 
@@ -6155,7 +6158,7 @@ void ppath_calc(
       //
       ppath_step_agenda.execute( agenda_verb + ( istep - 1 ) );
 
-      // Before everything is tested carefully, we consider more than 1000
+      // Before everything is tested carefully, we consider more than 5000
       // path points to be an indication on that the calcululations have
       // got stuck in an infinite loop.
       if( istep > 5000 )

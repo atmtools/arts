@@ -250,7 +250,7 @@ void get_radiative_background(
                  scat_i_lon, scat_za_grid, scat_aa_grid, 
                  sensor_response_dummy, sensor_pos,
                  sensor_los, f_grid, stokes_dim, antenna_dim,
-                 mblock_za_grid, mblock_aa_grid, false, false );
+                 mblock_za_grid, mblock_aa_grid, false, false, agenda_verb );
 
 
             // Add the the calculated spectra (y_rte_local) to *i_rte*, 
@@ -495,7 +495,7 @@ void ground_specular_los(
     the first of the many repeated calls of this function.
 
     The LOS angles are always checked. Those checks are performed in
-    ppathCalc.
+    ppath_calc.
 
     All variables, beside *check_input*, corresponde to the WSV with the
     same name.
@@ -546,7 +546,8 @@ void rte_calc(
         const Vector&         mblock_za_grid,
         const Vector&         mblock_aa_grid,
         const bool&           check_input,
-        const bool&           apply_sensor )
+        const bool&           apply_sensor,
+        const bool&           agenda_verb )
 {
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -563,7 +564,6 @@ void rte_calc(
 
   if( check_input )
     {
-
       // Agendas (agendas not always used are checked when actually used)
       chk_not_empty( "ppath_step_agenda", ppath_step_agenda );
       chk_not_empty( "rte_agenda", rte_agenda );
@@ -719,8 +719,8 @@ void rte_calc(
           for( iaa=0; iaa<naa; iaa++ )
             {
               // Argument for verbosity of agendas
-              const Index  agenda_verb = iaa + iza + mblock_index;
-
+              bool  ag_verb = !( agenda_verb == 0  && 
+                                             (iaa + iza + mblock_index) == 0 );
               // LOS of interest
               los     = sensor_los( mblock_index, joker );
               los[0] += mblock_za_grid[iza];
@@ -732,7 +732,7 @@ void rte_calc(
                           atmosphere_dim, p_grid, lat_grid, lon_grid, 
                           z_field, r_geoid, z_ground,
                           cloudbox_on, cloudbox_limits, 
-                          sensor_pos(mblock_index,joker), los, agenda_verb );
+                          sensor_pos(mblock_index,joker), los, 1, ag_verb );
 
               // Determine the radiative background
               get_radiative_background( i_rte, ppath_step, 
@@ -744,10 +744,10 @@ void rte_calc(
                       r_geoid, z_ground, 
                       cloudbox_on, cloudbox_limits, scat_i_p, scat_i_lat, 
                       scat_i_lon, scat_za_grid, scat_aa_grid, f_grid, 
-                      stokes_dim, antenna_dim, agenda_verb );
+                      stokes_dim, antenna_dim, ag_verb );
 
               // Execute the *rte_agenda*
-              rte_agenda.execute( agenda_verb );
+              rte_agenda.execute( ag_verb );
               
               // Copy i_rte to ib
               ib(Range(nbdone,nf),joker) = i_rte;

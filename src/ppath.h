@@ -227,6 +227,7 @@ void ppath_calc(
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         a_pos,
         const Vector&         a_los,
+        const bool&           outside_cloudbox,
         const Index&          agenda_verb );
 
 #endif  // ppath_h
