@@ -789,14 +789,16 @@ void define_partition_species_data()
 
 void spec(Array<SpeciesRecord>::iterator& is,
           Array<IsotopeRecord>::iterator& ii,
-          String name)
+// FIXME name only used in debug mode
+#ifndef NDEBUG
+          String name
+#else
+          String
+#endif
+          )
 {
   
-#ifndef NDEBUG
-  {
-    assert( name == is->Name() );
-  }
-#endif
+  assert( name == is->Name() );
 
   ii = is->Isotope().begin();
 
@@ -806,14 +808,15 @@ void spec(Array<SpeciesRecord>::iterator& is,
 
 
 void iso(Array<IsotopeRecord>::iterator& ii,
+// FIXME name only used in debug mode
+#ifndef NDEBUG
          String name,
+#else
+         String,
+#endif
          const ArrayOfNumeric& coeff)
 {
-#ifndef NDEBUG
-  {
-    assert( name == ii->Name() );
-  }
-#endif
+  assert( name == ii->Name() );
 
   ii->SetPartitionFctCoeff(coeff);
 
