@@ -1,3 +1,39 @@
+2004-06-03  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-827
+
+	* src/methods.cc: Added sensor_los to sensor_responseInit and
+	sensor_responseAntenna1D.
+
+	* src/m_sensor.cc: Changed sensor_responseAntenna1D to incorporate
+	multiple antennas, these are given as the generic input vector and
+	should be relative to sensor_los. The method checks that the
+	mblock_za_grid and the antenna grid plus diagram is consistent, but
+	performs calculations on the merged sensor_los-mblock_za_grid and
+	sensor_los-antenna grid.
+	Also added sensor_responsePolarisation that sets up the polarisation
+	response matrix.
+	Implemented sensor_los in sensor_responseInit and
+	sensor_responseAntenna1D.
+	Updated sensorOff, as it calls sensor_responseInit.
+
+	* src/sensor.cc: Added polarisation_transfer_matrix that is called by
+	sensor_responsePolarisation, it uses the
+	rw() operator instead of insert_row to speed up the computation.
+	Added new method merge_grids to compute the total
+	sensor_response_za from sensor_los and mblock_za_grid, since the size
+	of the output is unknown on beforehand the output is resized.
+	Fixed minor bug in sensor_summation_vector. Now vector is initialised
+	to zero and values are added to it. Before elements were set to the
+	value, which doesn't work in the case where the same element is
+	calculated twice.
+	Also fixed bug in sensor_integration_vector, now x_f is only used to
+	produce the reference vector x_ref, actual calculations are made on
+	x_ftot which contains all the grid points of f.
+	Fixed sorting bug in mixer_transfer_matrix. Finally some cosmetics.
+
+	* src/sensor.h: Added header for polarisation_transfer_matrix.
+
 2004-06-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-826

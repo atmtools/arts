@@ -75,7 +75,7 @@
 
    \param   H      The antenna transfer matrix.
    \param   m_za   The measurement block grid of zenith angles.
-   \param   srm	   The sensor response matrix, i.e. the antenna diagram
+   \param   diag   The sensor response matrix, i.e. the antenna diagram
    \param   x_f    The frequency grid points.
    \param   ant_za The antenna zenith angle grid.
    \param   n_pol  The number of polarisations to consider.
@@ -188,12 +188,56 @@ void antenna_transfer_matrix( Sparse&   H,
   }
 }
 
+//! merge_grids
+/*!
+   Sets up the total grid defined by a reference grid and a relative grid.
+
+   Any redundant grid points due to overlap will be removed.
+
+   The returned frequencies are given in IF, so both primary and mirror band
+   is converted down.
+
+   \param   tot       The resulting total grid
+   \param   ref       The reference grid
+   \param   rel       The relative grid
+
+   \author Mattias Ekström
+   \date   2004-05-28
+*/
+void merge_grids(
+              Vector&   tot,
+      ConstVectorView   ref,
+      ConstVectorView   rel )
+{
+  // FIXME: Warn about overlap?
+
+  // Loop trough all combinations and store added values in a list.
+  list<Numeric> l_tot;
+  for (Index ref_it=0; ref_it<ref.nelem(); ref_it++) {
+    for (Index rel_it=0; rel_it<rel.nelem(); rel_it++) {
+      l_tot.push_back(ref[ref_it]+rel[rel_it]);
+    }
+  }
+
+  // Sort and remove doubles.
+  l_tot.sort();
+  l_tot.unique();
+
+  // Resize output vector and store remaining values in it.
+  tot.resize( l_tot.size() );
+  Index e=0;
+  for (list<Numeric>::iterator li=l_tot.begin(); li != l_tot.end(); li++) {
+    tot[e] = *li;
+    e++;
+  }
+}
+
 //! mixer_transfer_matrix
 /*!
    Sets up the sparse matrix that models the response from sideband filtering
    and the mixer.
 
-   The size of the transfer matrix has to be set up before calling the function
+   The size of the transfer matrix is changed in the function
    as follows:
      nrows = f_mixer.nelem()
      ncols = f_grid.nelem()
@@ -261,8 +305,8 @@ void mixer_transfer_matrix(
     if (fabs(f_grid[i]-lo)>=lim_low && fabs(f_grid[i]-lo)<=lim_high)
       l_mixer.push_back(fabs(f_grid[i]-lo));
   }
-  l_mixer.unique();
   l_mixer.sort();
+  l_mixer.unique();
   f_mixer.resize((Index) l_mixer.size());
   Index e=0;
   for (list<Numeric>::iterator li=l_mixer.begin(); li != l_mixer.end(); li++)
@@ -296,6 +340,65 @@ void mixer_transfer_matrix(
     }
   }
 }
+
+//! polarisation_transfer_matrix
+/*!
+   Sets up the polarisation transfer matrix from stokes vectors describing
+   the sensor polarisation.
+
+   The sensor polarisation matrix is here multiplied 0.5 to get intensities.
+
+   The size of the transfer matrix has to be set up before calling the function
+   as follows:
+     nrows = number of polarisations times frequencies and angles
+     ncols = stokes dimension times frequencies and angles.
+
+   \param   H         The polarisation transfer matrix
+   \param   pol       The polarisation matrix
+   \param   n_f       The number of frequencies
+   \param   n_za      The number of zenith angles/antennas
+   \param   dim       The stokes dimension
+
+   \author Mattias Ekström
+   \date   2004-06-02
+*/
+void polarisation_transfer_matrix(
+              Sparse&   H,
+      ConstMatrixView   pol,
+          const Index   n_f,
+          const Index   n_za,
+          const Index   dim )
+{
+  // Assert size of H and pol
+  assert( H.nrows()==pol.nrows()*n_f*n_za );
+  assert( H.ncols()==dim*n_f*n_za );
+  assert( pol.ncols()==dim );
+
+  Index n_pol = pol.nrows();
+  Matrix pol_half = pol;
+  pol_half *= 0.5;
+
+  // Loop over angles
+  for (Index za=0; za<n_za; za++) {
+    //FIXME: Add rotation here?
+
+    // Loop over frequencies
+    for (Index f=0; f<n_f; f++) {
+
+      // Loop over stokes dimensions
+      for (Index d=0; d<dim; d++) {
+
+        // Loop over polarisations
+        for (Index p=0; p<n_pol; p++) {
+
+          if ( pol(p,d)!=0.0 )
+            H.rw(za*n_f*n_pol+f*n_pol+p,za*n_f*dim+f*dim+d)=pol_half(p,d);
+        }
+      }
+    }
+  }
+}
+
 
 //! scale_antenna_diagram
 /*!
@@ -400,25 +503,26 @@ void sensor_integration_vector(
     while( x_g[i_g+1] <= x_ref[i] ) {
       i_g++;
     }
-    while( x_f[i_f+1] <= x_ref[i] ) {
+    while( x_ftot[i_f+1] <= x_ref[i] ) {
      i_f++;
-	 //cout << "i_f: " << i_f << "\n";
+     //cout << "i_f: " << i_f << "\n";
     }
 
-    //If x_ref[i] is out of x_f's range then that part of the integral
+    //If x_ref[i] is out of x_ftot's range then that part of the integral
     //is set to 0, so no calculations will be done
-    if( x_ref[i] >= x_f[0] && x_ref[i] < x_f[x_f.nelem()-1] ) {
-      //Product of steps in x_f and x_g
-      dx = (x_f[i_f+1] - x_f[i_f]) * (x_g[i_g+1] - x_g[i_g]);
+    if( x_ref[i] >= x_ftot[0] && x_ref[i] < x_ftot[x_ftot.nelem()-1] ) {
+      //Product of steps in x_ftot and x_g
+      dx = (x_ftot[i_f+1] - x_ftot[i_f]) * (x_g[i_g+1] - x_g[i_g]);
 
       //Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
       a0 = (f[i_f] - f[i_f+1]) / 3;
-      b0 = (-f[i_f]*(x_g[i_g+1]+x_f[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_f[i_f]))/2;
-      c0 = f[i_f]*x_f[i_f+1]*x_g[i_g+1]-f[i_f+1]*x_f[i_f]*x_g[i_g+1];
+      b0 = (-f[i_f]*(x_g[i_g+1]+x_ftot[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_ftot[i_f]))
+           /2;
+      c0 = f[i_f]*x_ftot[i_f+1]*x_g[i_g+1]-f[i_f+1]*x_ftot[i_f]*x_g[i_g+1];
 
       a1 = -a0;
-      b1 = (f[i_f]*(x_g[i_g]+x_f[i_f+1])-f[i_f+1]*(x_g[i_g]+x_f[i_f]))/2;
-      c1 = -f[i_f]*x_f[i_f+1]*x_g[i_g]+f[i_f+1]*x_f[i_f]*x_g[i_g];
+      b1 = (f[i_f]*(x_g[i_g]+x_ftot[i_f+1])-f[i_f+1]*(x_g[i_g]+x_ftot[i_f]))/2;
+      c1 = -f[i_f]*x_ftot[i_f+1]*x_g[i_g]+f[i_f+1]*x_ftot[i_f]*x_g[i_g];
 
       x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
       x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
@@ -507,10 +611,10 @@ void sensor_summation_vector(
   //Initialise h at zero and store calculated weighting components
   h = 0.0;
   Numeric filt_sum = filt_upp + filt_low;
-  h[gp_upp[0].idx] = filt_upp/filt_sum * gp_upp[0].fd[1];
-  h[gp_upp[0].idx+1] = filt_upp/filt_sum * gp_upp[0].fd[0];
-  h[gp_low[0].idx] = filt_low/filt_sum * gp_low[0].fd[1];
-  h[gp_low[0].idx+1] = filt_low/filt_sum * gp_low[0].fd[0];
+  h[gp_upp[0].idx] += filt_upp/filt_sum * gp_upp[0].fd[1];
+  h[gp_upp[0].idx+1] += filt_upp/filt_sum * gp_upp[0].fd[0];
+  h[gp_low[0].idx] += filt_low/filt_sum * gp_low[0].fd[1];
+  h[gp_low[0].idx+1] += filt_low/filt_sum * gp_low[0].fd[0];
 
   // FIXME: Normalise h?
   // h /= h.sum();

@@ -58,6 +58,11 @@ void antenna_transfer_matrix(
               ConstVectorView   ant_za,
                  const Index&   n_pol );
 
+void merge_grids(
+              Vector&   tot,
+      ConstVectorView   ref,
+      ConstVectorView   rel );
+
 void mixer_transfer_matrix(
               Sparse&   H,
               Vector&   f_mixer,
@@ -66,6 +71,13 @@ void mixer_transfer_matrix(
       ConstMatrixView   filter,
           const Index   n_pol,
           const Index   n_za );
+
+void polarisation_transfer_matrix(
+              Sparse&   H,
+      ConstMatrixView   pol,
+          const Index   n_f,
+          const Index   n_za,
+          const Index   dim );
 
 void scale_antenna_diagram(
            VectorView   sc,

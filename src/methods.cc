@@ -3651,8 +3651,8 @@ md_data_raw.push_back
          "   Vector : The antenna/beam zenith angle grid."
         ),
         OUTPUT( sensor_response_, sensor_response_za_ ),
-        INPUT( f_grid_, mblock_za_grid_, antenna_dim_, sensor_pol_,
-               antenna_diagram_ ),
+        INPUT( sensor_response_f_, mblock_za_grid_, antenna_dim_, sensor_pol_,
+               antenna_diagram_, sensor_los_ ),
         GOUTPUT( ),
         GINPUT( Vector_ ),
         KEYWORDS( ),
@@ -3705,7 +3705,7 @@ md_data_raw.push_back
         OUTPUT( sensor_response_, sensor_response_f_, sensor_response_za_,
                 sensor_response_aa_  ),
         INPUT( f_grid_, mblock_za_grid_, mblock_aa_grid_, antenna_dim_,
-               sensor_pol_, atmosphere_dim_, stokes_dim_ ),
+               sensor_pol_, atmosphere_dim_, stokes_dim_, sensor_los_ ),
         GOUTPUT( ),
         GINPUT( ),
         KEYWORDS( ),
@@ -3733,6 +3733,23 @@ md_data_raw.push_back
         INPUT( sensor_pol_, sensor_response_za_, lo_ ),
         GOUTPUT( ),
         GINPUT( Matrix_ ),
+        KEYWORDS( ),
+        TYPES( )));
+
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("sensor_responsePolarisation"),
+        DESCRIPTION
+        (
+         "Adds polarisation to the response matrix.\n"
+         "\n"
+         "The output polarisations are given by matrix *sensor_pol*."
+        ),
+        OUTPUT( sensor_response_ ),
+        INPUT( sensor_pol_, sensor_response_za_, sensor_response_f_,
+               stokes_dim_),
+        GOUTPUT( ),
+        GINPUT( ),
         KEYWORDS( ),
         TYPES( )));
 
