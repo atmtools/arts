@@ -35,7 +35,6 @@
 
 #include <algorithm>
 #include <functional>
-using namespace std;
 
 #include "arts.h"
 #include "array.h"

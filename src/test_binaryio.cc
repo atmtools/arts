@@ -1,6 +1,5 @@
 #include <cstdlib>
 #include <iostream>
-using namespace std;
 
 #include "arts.h"
 #include "matpackIV.h"

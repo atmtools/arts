@@ -1,5 +1,3 @@
-using namespace std;
-
 #include <iostream>
 #include "matpackII.h"
 #include "xml_io.h"

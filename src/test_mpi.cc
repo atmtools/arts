@@ -25,7 +25,6 @@
 
 #include <cstdlib>
 #include <iostream>
-using namespace std;
 
 #include "arts.h"
 #include "arts_mpi.h"

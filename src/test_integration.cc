@@ -37,8 +37,6 @@
 #include "matpackI.h"
 #include "logic.h"
 
-using namespace std;
-
 extern const Numeric DEG2RAD;
 extern const Numeric PI;
 

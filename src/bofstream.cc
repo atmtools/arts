@@ -30,7 +30,6 @@
 
 #include <fstream>
 #include "bofstream.h"
-using namespace std;
 
 void bofstream::seek(long spos, Offset offs)
 {

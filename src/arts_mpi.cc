@@ -30,7 +30,6 @@
 
 #include "arts_mpi.h"
 #include <iostream>
-using namespace std;
 
 /** Global MPI Manager */
 MpiManager mpi_manager;

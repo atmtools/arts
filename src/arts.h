@@ -113,8 +113,10 @@
 #include <cassert>
 
 
-// We need those to support ansi-compliant compilers (gcc-3x)
-using namespace std;
+#ifdef HAVE_NAMESPACES
+  // We need those to support ansi-compliant compilers (gcc-3x)
+  using namespace std;
+#endif
 
 //--------------------< Set floating point type >--------------------
 /** The type to use for all floating point numbers. You should never

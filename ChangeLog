@@ -1,3 +1,14 @@
+2004-03-03  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-793
+
+	* src/arts.h: Only use namespaces if the compiler supports it.
+
+	* src/sorting.h, src/test_xml.cc, src/test_sorting.cc,
+	src/test_mpi.cc, src/test_integration.cc, src/test_binaryio.cc,
+	src/arts_mpi.cc, src/b[io]fstream.{cc,h}:
+	Removed 'using namespace std' which is already done in includes.
+
 2004-03-02  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-792

@@ -1,7 +1,6 @@
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
-using namespace std;
 
 #include "matpackI.h"
 #include "sorting.h"

@@ -32,7 +32,6 @@
 #define BIFSTREAM_H_INCLUDED
 
 #include <fstream>
-using namespace std;
 
 #include "binio.h"
 
