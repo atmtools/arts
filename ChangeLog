@@ -1,3 +1,10 @@
+2003-01-17  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-398
+
+	* src/xml_io.cc: Detailed output goes now to out3. Only filenames of
+	input/output files are reported to out2.
+
 2003-01-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-397
