@@ -1473,7 +1473,6 @@ void CloudboxGetIncoming(// WS Output:
  
   Index Nza = scat_za_grid.nelem();
  
-  cout << "error 1" << endl;
   Index Ni = stokes_dim;
  
   // Assign dummies for variables assoziated with sensor.
@@ -1603,7 +1602,6 @@ void CloudboxGetIncoming(// WS Output:
 
       for (Index lat_index = 0; lat_index < Nlat_cloud; lat_index++ )
         {
-          IndexPrint( lat_index, "ilat" );
           for (Index lon_index = 0; lon_index < Nlon_cloud; lon_index++ )
             {
               sensor_pos(0,0) = r_geoid(lat_index + cloudbox_limits[2],

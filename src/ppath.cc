@@ -75,13 +75,13 @@ const double   RTOL = 1;
 
 
 // This variable defines how much zenith and azimuth angles can
-// deviate from 0 and 180 degrees, but still be treated to be 0 or 180.
-// For example, an azimuth angle of 180-DEV0AND180/2 will be treated as
-// a strictly southward obstervation.
-// However, the angles are not allowed to go outside their defined range.
-// This means, for example, that values above 180 are never allowed.
+// deviate from 0, 90 and 180 degrees, but still be treated to be 0,
+// 90 or 180.  For example, an azimuth angle of 180-ANGTOL/2 will
+// be treated as a strictly southward observation.  However, the
+// angles are not allowed to go outside their defined range.  This
+// means, for example, that values above 180 are never allowed.
 //
-const double   DEV0AND180 = 1e-4; 
+const double   ANGTOL = 1e-4; 
 
 
 // Latitudes with an absolute value > POLELAT are considered to be on
@@ -373,7 +373,7 @@ void geompath_from_r1_to_r2(
   za[n]  = geompath_za_at_r( ppc, za1, r[n] );
 
   // Ensure that zenith and nadir observations keep their zenith angle
-  if( abs(za1) < DEV0AND180  ||  abs(za1) > 180-DEV0AND180 )
+  if( abs(za1) < ANGTOL  ||  abs(za1) > 180-ANGTOL )
     { za = za1; }
 
   // Calculate latitudes
@@ -653,7 +653,7 @@ void cart2poslos(
   // LOS angles
   za = RAD2DEG * acos( dr );
   //
-  if( za < DEV0AND180  ||  za > 180-DEV0AND180  )
+  if( za < ANGTOL  ||  za > 180-ANGTOL  )
     { aa = 0; }
 
   else if( abs( lat ) <= POLELAT )
@@ -1174,14 +1174,14 @@ double psurface_crossing_2d(
   const double no_crossing = 999;
 
   // Handle the cases of za=0 and za=180. 
-  if( abs(za) < DEV0AND180 )
+  if( abs(za) < ANGTOL )
     {
       if( rp < r0 )
         { return 0; }
       else
         { return no_crossing; }
     }
-  if( abs(za) > 180-DEV0AND180 )
+  if( abs(za) > 180-ANGTOL )
     {
       if( rp > r0 )
         { return 0; }
@@ -1330,8 +1330,8 @@ void psurface_crossing_3d(
   l   = -1;
 
   // Handle the cases of za=0 and za=180. 
-  if( ( za_start < DEV0AND180  &&  r_start < r_surf )  || 
-                         ( za_start > 180-DEV0AND180  &&  r_start > r_surf ) )
+  if( ( za_start < ANGTOL  &&  r_start < r_surf )  || 
+                              ( za_start > 180-ANGTOL  &&  r_start > r_surf ) )
     {
       r   = r_surf;
       lat = lat_start;
@@ -1604,7 +1604,7 @@ void do_gridcell_2d(
   // crossing. We don't need to consider the face if we are standing
   // on the pressure surface.
   //
-  if( r_start > rlow  &&  abs(za_start) > DEV0AND180 )
+  if( r_start > rlow  &&  abs(za_start) > ANGTOL )
     {
       dlat2end = psurface_crossing_2d( r_start, za_start, rlow, c2 );
       endface = 2;  // This variable will be re-set if there was no crossing
@@ -1638,7 +1638,7 @@ void do_gridcell_2d(
 
   // --- Upper face  (pressure surface ip+1).
   //
-  if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180-DEV0AND180 )
+  if( abs(dlat2end) > abs(dlat_endface)  &&  abs_za_start < 180-ANGTOL )
     {
       // For cases when the tangent point is in-between *r_start* and
       // the pressure surface, 999 is returned. This case will anyhow
@@ -1827,6 +1827,7 @@ void do_gridcell_3d(
   assert( r_start >= rlow - RTOL );
   assert( r_start <= rupp + RTOL );
 
+
   // Shift radius if outside
   if( r_start < rlow )
     { r_start = rlow; }
@@ -1877,7 +1878,7 @@ void do_gridcell_3d(
   // Zenith and nadir looking are handled as special cases
 
   // Zenith looking
-  if( za_start < DEV0AND180 )
+  if( za_start < ANGTOL )
     {
       r_end   = rupp;
       lat_end = lat_start;
@@ -1887,7 +1888,7 @@ void do_gridcell_3d(
     }
 
   // Nadir looking
-  else if( za_start > 180-DEV0AND180 )
+  else if( za_start > 180-ANGTOL )
     {
       const double   rground = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
                                    rground15, rground35, rground36, rground16, 
@@ -1922,7 +1923,6 @@ void do_gridcell_3d(
       lat_corr -= lat_start;
       lon_corr -= lon_start;
 
-
       // The end point is found by testing different step lengths until the
       // step length has been determined by a precision of *l_acc*.
       //
@@ -1956,12 +1956,29 @@ void do_gridcell_3d(
           lat_end -= lat_corr;
           lon_end -= lon_corr;
 
-          if( abs( lat_start ) < 90  &&  ( abs(aa_start) < DEV0AND180  ||  
-                                           abs(aa_start) > 180-DEV0AND180 ) )
+          //NumericPrint( l_end, "l_end");
+          //NumericPrint( r_end, "r_end");
+          //NumericPrint( lat_end-20, "lat_end");
+          //NumericPrint( lon_end-20, "lon_end");
+
+          // Special fixes for north-south observations
+          if( abs( lat_start ) < 90  &&  ( abs(aa_start) < ANGTOL  ||  
+                                           abs(aa_start) > 180-ANGTOL ) )
             { lon_end = lon_start; }
           else
             { resolve_lon( lon_end, lon5, lon6 ); }
           
+          // Special fixes for west-east observations
+          if( abs(aa_start) - 90 < ANGTOL )
+            {
+              if( lat_start == 0 )
+                { lat_end = 0; }
+              else if( lat_start > 0  &&  lat_end > lat_start )
+                { lat_end = lat_start; }
+              else if( lat_start < 0  &&  lat_end < lat_start )
+                { lat_end = lat_start; }
+            }
+
           bool   inside = true;
 
           if( lat_end < lat1 )
@@ -2025,6 +2042,8 @@ void do_gridcell_3d(
               if( ( l_out - l_in ) < l_acc )
                 { ready = true; }
             }
+          //IndexPrint( inside, "inside");
+          //IndexPrint( endface, "endface");
         }
 
       // Now when we are ready, we remove the correction terms. Otherwise
@@ -2042,7 +2061,7 @@ void do_gridcell_3d(
         { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15a, r35a, r36a, 
                                                     r16a, lat_end, lon_end ); }
       else if( endface == 3 )
-        { lat_end = lat3; }
+        { lat_end = lat3; Exit(); }
       else if( endface == 4 )
         { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, r15b, r35b, r36b, 
                                                     r16b, lat_end, lon_end ); }
@@ -2127,7 +2146,7 @@ void do_gridcell_3d(
   lon_v[n] = lon_end;
 
   //--- Set last zenith angle to be as accurate as possible
-  if( za_start < DEV0AND180  ||  za_start > 180-DEV0AND180 )
+  if( za_start < ANGTOL  ||  za_start > 180-ANGTOL )
     { za_v[n] = za_start; }
   else if( tanpoint )
     { za_v[n] = 90; }
@@ -2137,7 +2156,7 @@ void do_gridcell_3d(
   //--- Set last azimuth angle to be as accurate as possible for
   //    zenith and nadir observations
   if( abs( lat_start ) < 90  &&  
-          ( abs(aa_start) < DEV0AND180  ||  abs( aa_start) > 180-DEV0AND180 ) )
+          ( abs(aa_start) < ANGTOL  ||  abs( aa_start) > 180-ANGTOL ) )
     {  
       aa_v[n]  = aa_start; 
       lon_v[n] = lon_start;
@@ -3189,7 +3208,10 @@ void ppath_start_3d(
     }
   else
     { 
-      ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 ); 
+      if( lat_start > 0 )
+        ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) < 90 );
+      else
+        ilat = gridpos2gridrange( ppath.gp_lat[imax], abs( aa_start ) <= 90 );
       if( lon_start < lon_grid[nlon-1] )
         { ilon = gridpos2gridrange( ppath.gp_lon[imax], aa_start >= 0 ); }
       else
@@ -4378,7 +4400,7 @@ void raytrace_3d_linear_euler(
           // the same checks are made inside *do_gridcell_3d*.
 
           //--- Set zenith angle to be as accurate as possible
-          if( za < DEV0AND180  ||  za > 180-DEV0AND180 )
+          if( za < ANGTOL  ||  za > 180-ANGTOL )
             { za_new = za; }
           else
             { za_new = geompath_za_at_r( ppc_step, za, r_new ); }
@@ -4386,7 +4408,7 @@ void raytrace_3d_linear_euler(
           //--- Set azimuth angle and lon. to be as accurate as possible for
           //    north-south observations
           if( abs( lat ) < 90  &&  
-                     ( abs(aa) < DEV0AND180  ||  abs( aa ) > 180-DEV0AND180 ) )
+                     ( abs(aa) < ANGTOL  ||  abs( aa ) > 180-ANGTOL ) )
             { 
               aa_new  = aa; 
               lon_new = lon;
@@ -4432,7 +4454,7 @@ void raytrace_3d_linear_euler(
           if( abs( lat ) < 90  &&  
                          ( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) )
             {
-              if( za < DEV0AND180  ||  za > 180-DEV0AND180 )
+              if( za < ANGTOL  ||  za > 180-ANGTOL )
                 { aa = RAD2DEG * atan2( dndlon, dndlat); }
               else
                 { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
@@ -5887,8 +5909,8 @@ void ppath_start_stepping(
                   lat_top = a_pos[1];
                   lon_top = a_pos[2];
                 }
-              else if( abs( a_pos[1] ) < 90  && ( abs(a_los[1]) < DEV0AND180  
-                                       ||  abs( a_los[1] ) > 180-DEV0AND180 ) )
+              else if( abs( a_pos[1] ) < 90  && ( abs(a_los[1]) < ANGTOL  
+                                       ||  abs( a_los[1] ) > 180-ANGTOL ) )
                 { lon_top = a_pos[2]; } 
 
               // Move found values to *ppath*
@@ -5921,8 +5943,8 @@ void ppath_start_stepping(
               // Correct found LOS for some special cases
               if( a_los[0] == 180 )
                 { ppath.los(0,0) = 180; }
-              if( abs( a_pos[1] ) < 90  &&  ( abs( a_los[1] ) < DEV0AND180  
-                                       ||  abs( a_los[1] ) > 180-DEV0AND180 ) )
+              if( abs( a_pos[1] ) < 90  &&  ( abs( a_los[1] ) < ANGTOL  
+                                           ||  abs( a_los[1] ) > 180-ANGTOL ) )
                 { ppath.los(0,1) = a_los[1]; } 
             }
 

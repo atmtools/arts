@@ -1,3 +1,16 @@
+2003-02-04  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-447
+
+	* src/ppath.cc (do_gridcell_3d): I discovered that calculations from
+	CloudboxGetIncoming with azimuth angles of exactly 90 degrees caused
+	problems (at least for Numeric=float). Some special checks are now
+	introduced for this case to avoid that the positions are shifted
+	incorrectly to south or north for short step lengths (<1m).
+
+	* src/m_cloudbox.cc (CloudboxGetIncoming): Removed some crap output
+	to the screen.
+
 2003-02-04  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
 	* arts-1-1-446
