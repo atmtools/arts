@@ -1,3 +1,21 @@
+2002-09-25  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-249
+	
+	* ami/xml/xmlGetAttrValue.m, ami/xml/xmlReadArray.m,
+	ami/xml/xmlReadMatrix.m, ami/xml/xmlLoad.m,
+	ami/xml/xmlReadAttributes.m, ami/xml/xmlReadTensor6.m:
+	Added. Intermediate commit. Parsing of tags and attributes
+	basically working. Parsing of data TBD.
+
+	* configure.in: Added ami/xml/Makefile.
+
+	* ami/xml/.cvsignore: Added.
+	
+	* ami/xml/Makefile.am: Added.
+
+	* ami/xml: Created.
+
 2002-09-25  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-248
