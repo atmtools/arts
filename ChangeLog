@@ -1,5 +1,14 @@
 2001-03-13  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-0-0-137
+
+	* The function to create control files from templates is now
+	called qtool and is found in ami/arts. There is now some better
+	instructions and an example on how this tool can be used.
+
+
+2001-03-13  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-0-0-136
 
 	* I have added a number of handy Matlab scripts to AMI. All functions

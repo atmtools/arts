@@ -3,7 +3,38 @@
 %
 %           Creates an ARTS control file from a template.
 %
-%           [!! To be written ... !!]
+%           The control file is created in the (temporary) directory
+%           specified.
+%
+%           The data for the control file are given by the structure Q. 
+%           Additional data can be given by a second structure called QE.
+%          
+%           The Qtool has three mechanisms to create control files from
+%           templates. See the file sample.tmplt for practical examples.
+%
+%           1. Variable substition.
+%             The Qtool tries to replace everything specified between
+%             $-signs by the value of the corresponding variable in the 
+%             workspace. If the variable does not exist, there will be an
+%             error.
+%             As the data structures given to the function will have
+%             locally the names Q and QE, these names must also be used
+%             in the control file template, e.g. $Q.PLAT_ALT$.
+%
+%           2. If statements
+%             The keywords IF, ELSE and END are valid. These keywords
+%             must be in uppercase and be placed in column 1.
+%             Nested if-statements are not valid.
+%             All logical expressions of Matlab can be used.
+%
+%           3. Inline functions
+%             If a §-sign is found in the first column, the rest of the
+%             line is treated to be the name of a function writing text
+%             to the control file.
+%             This function will then be called with Q and the control 
+%             file identifier as input. For example "§some_fun" will 
+%             result in a function call as "some_fun(Q,fid)". 
+%
 %
 % FORMAT:   [cfile,basename,artscall] = qtool(Q,tmpdir,template [,QE])
 %
@@ -112,7 +143,7 @@ while 1
       if s(1) == '§'
 
         s = deblank( s );
-        eval([ 'qinline_',s(2:length(s)), '(Q,fid_out);' ])
+        eval([ s(2:length(s)), '(Q,fid_out);' ])
 
       %= Replace variables (marked by $$) and move text to cfile
       else
