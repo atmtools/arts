@@ -38,7 +38,7 @@
   \return       True if the variable is 0 or 1. Otherwise false.
   \param    x   A variable of type Index.
 */
-bool is_bool( const Index x )
+bool is_bool( const Index& x )
 {
   return ( x==0 || x==1 );
 }
@@ -53,7 +53,7 @@ bool is_bool( const Index x )
   \return True if the size of x is l.
 */
 bool is_size( ConstVectorView   x,
-	      const Index       n ) 
+	      const Index&      n ) 
 {
   return( n == x.nelem() );
 }
@@ -66,8 +66,8 @@ bool is_size( ConstVectorView   x,
   \return True if the size of x is r x c.
 */
 bool is_size( ConstMatrixView   x,
-	      const Index       r,
-	      const Index       c ) 
+	      const Index&      r,
+	      const Index&      c ) 
 {
   return( r == x.nrows() &&
 	  c == x.ncols()     );

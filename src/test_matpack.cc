@@ -583,8 +583,33 @@ void test31()
 
 }
 
+void test32()
+{
+  cout << "Test von X = A*X:\n";
+  Matrix X(3,3),A(3,3),B(3,3);
+  
+  for ( Index j=0; j<A.nrows(); ++j )
+    for ( Index k=0; k<A.ncols(); ++k )
+      {
+	X(j,k) = 1;
+	A(j,k) = j+k;
+      }
+  cout << "A:\n" << A << "\n";
+  cout << "X:\n" << X << "\n";
+
+  mult(B,A,X);
+  cout << "B = A*X:\n" << B << "\n";
+  mult(X,A,X);
+  cout << "X = A*X:\n" << X << "\n";
+
+  cout << "This is not the same, and should not be, because you\n"
+       << "are not allowed to use the same matrix as input and output\n"
+       << "for mult!\n";
+}
+
+
 int main()
 {
-  test31();
+  test32();
   return 0;
 }

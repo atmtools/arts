@@ -1,3 +1,19 @@
+2002-05-06  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-63
+
+	* src/interpolation.cc: Finished gridpos. Implemented 1D
+	interpweights and 2D blue interpweights. If fd and 1-fd are stored
+	in an array, one can use nested for loops to compute the
+	weights. Great! 
+
+	* src/test_matpack.cc (test32): Test case for mult.
+
+	* src/matpackI.h: Made documentation of mult functions more clear:
+	The input and output matrix must not be the same!
+
+	* src/logic.cc: Made Index input arguments const Index&.
+
 2002-05-06  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-62
@@ -8,11 +24,10 @@
 
 	* arts-1-1-61
 		
-	* src/lin_alg.cc/h: modified interfaces for LU- functions and
-		 added routine for the matrix exponential function
+	* src/lin_alg.cc/h: Modified interfaces for LU- functions and
+        added routine for the matrix exponential function.
 
-	* src/test_linalg.cc: test adapted to the new functions
-
+	* src/test_linalg.cc: Test adapted to the new functions.
 
 2002-05-06  Oliver Lemke  <olemke@uni-bremen.de>
 

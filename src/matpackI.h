@@ -2321,7 +2321,8 @@ inline Numeric operator*(const ConstVectorView& a, const ConstVectorView& b)
     from MTL, output comes first! Dimensions of y, M, and x must
     match. No memory reallocation takes place, only the data is
     copied. Using this function on overlapping MatrixViews belonging
-    to the same Matrix will lead to unpredictable results. */
+    to the same Matrix will lead to unpredictable results. In
+    particular, this means that A and B must not be the same matrix! */
 inline void mult( VectorView y,
 		  const ConstMatrixView& M,
 		  const ConstVectorView& x )
@@ -2366,7 +2367,8 @@ inline void mult( VectorView y,
     from MTL, output comes first! Dimensions of A, B, and C must
     match. No memory reallocation takes place, only the data is
     copied. Using this function on overlapping MatrixViews belonging
-    to the same Matrix will lead to unpredictable results. */
+    to the same Matrix will lead to unpredictable results. In
+    particular, this means that A and B must not be the same matrix! */
 inline void mult( MatrixView A,
 		  const ConstMatrixView& B,
 		  const ConstMatrixView& C )

@@ -29,14 +29,14 @@
 #include "arts.h"
 #include "matpackVII.h"
 
-bool is_bool( const Index x );
+bool is_bool( const Index& x );
 
 bool is_size( ConstVectorView   x,
- 	      const Index       l );
+ 	      const Index&      l );
 
 bool is_size( ConstMatrixView   x,
-	      const Index       r,
-	      const Index       c );
+	      const Index&      r,
+	      const Index&      c );
 
 bool is_sorted( ConstVectorView& x );
 
@@ -60,7 +60,7 @@ bool is_decreasing( ConstVectorView& x );
 */
 template< class T >
 bool is_size( const Array<T>& x,
-	      const Index     n ) 
+	      const Index&    n ) 
 {
   return( n == x.nelem() );
 }

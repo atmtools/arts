@@ -37,18 +37,42 @@
   giving the fractional distance to the next original grid point, and a
   Numeric giving 1 minus this number. Of course, the last element is
   redundant. However, it is efficient to store this, since it is used
-  many times over.    
+  many times over. We store the two Numerics in a plain C array of
+  dimension 2. (No need to use fancy Array or Vector for this, since
+  the dimension is fixed.)
 
   For example, idx=3 and fd=.5 means that this interpolation point is
   half-way between index 3 and 4 of the original grid.
+
+  Note, that below in the first paragraph means "with a lower
+  index". If the original grid is sorted in descending order, the
+  value at the grid point below the interpolation point will be
+  numerically higher than the interpolation point.
+
+  In other words, grid positions and fractional distances are defined
+  relative to the order of the original grid. Examples:
+
+  old grid = 2 3
+  new grid = 2.25
+  idx      = 0
+  fd[0]    = 0.25
+
+  old grid = 3 2
+  new grid = 2.25
+  idx      = 0
+  fd[0]    = 0.75
+
+  Note that fd[0] is different in the second case, because the old grid
+  is sorted in descending order. Note also that idx is the same in
+  both cases.
 
   Grid positions for a whole new grid are stored in an Array<GridPos>
   (called ArrayOfGridPos). 
 */
 struct GridPos {
    Index   idx;			/*!< Original grid index below interpolation point. */
-   Numeric fd;			/*!< Fractional distance to next point (0<=fd<=1). */
-   Numeric fdr; 		/*!< 1-fd. */
+   Numeric fd[2];		/*!< Fractional distance to next point
+				  (0<=fd[0]<=1), fd[1] = 1-fd[0]. */ 
 };
 
 //! An Array of grid positions.
@@ -58,9 +82,20 @@ struct GridPos {
 
 typedef Array<GridPos> ArrayOfGridPos;
 
-// Function documentation is in .cc file.
+// Function headers (documentation is in .cc file):
+
+std::ostream& operator<<(std::ostream& os, const GridPos& gp);
+
 void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,
               ConstVectorView new_grid );
+
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& cgp );
+
+void interpweights( MatrixView itw,
+               	    const ArrayOfGridPos& rgp,
+               	    const ArrayOfGridPos& cgp );
+
 
 #endif // interpolation_h
