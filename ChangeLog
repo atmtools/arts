@@ -1,3 +1,19 @@
+2002-09-10  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-238
+
+	* src/m_cloudbox.cc (y_scatCalc): Created this function (for 1D). It 
+	returns the spectrum after a scattering calculation on the cloudbox
+	boundary for given position and direction.
+	(i_fieldSetConst): Generalized this method. Now you can specify 
+	differnt values for each Stokes component of i_field inside 
+	the cloudbox.
+
+	* src/workspace.cc: Included the variables *y_scat*, *cloudbox_pos*
+	and *cloudbox_los* for the method *y_scatCalc*.
+
+	* src/methods.cc: Added *y_scatCalc*.
+
 2002-09-10  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-237
