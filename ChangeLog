@@ -1,3 +1,10 @@
+2003-08-13  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-641
+
+	* src/main.cc: Fixed bug reported by Christian. Option -b was not
+	working (implementation was missing!?).
+
 2003-08-12  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-640
