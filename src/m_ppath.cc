@@ -474,14 +474,19 @@ void VectorZtanToZaRefr(// WS Output:
                         // WS Generic Output Names:
                         const String&		za_vector_name,
                         // WS Input:
-			const Agenda&		refr_index_agenda,
+                        const Agenda&		refr_index_agenda,
                         const Matrix&		sensor_pos,
                         const Vector&		p_grid,
                         const Tensor3&		t_field,
                         const Tensor3&		z_field,
                         const Tensor4&		vmr_field,
                         const Matrix&		r_geoid,
+// FIXME atmosphere_dim only used for assertion
+#ifndef NDEBUG
                         const Index&		atmosphere_dim,
+#else
+                        const Index&		/* atmosphere_dim */,
+#endif
                         // WS Generic Input:
                         const Vector&		ztan_vector,
                         // WS Generic Input Names:
