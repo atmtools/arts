@@ -1,3 +1,11 @@
+2003-04-02  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-516
+
+	* src/xml_io.cc: Fixed bug reported by Nikolay. Precision was not set
+	on output which caused Vector to be written with unsufficient
+	decimals.
+
 2003-04-01  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
         * arts-1-1-515
