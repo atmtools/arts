@@ -1,3 +1,16 @@
+2002-11-25  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-307	
+	
+	* src/m_scatrte.cc (i_fieldUpdate1D): Included arguments to agendas
+	to suppress output.
+
+	* src/agendas.cc (opt_prop_gas_agenda) and  (opt_prop_part_agenda):
+	Corrected input and output of these agendas again.
+
+	* src/linalg.cc (ludcmp):  Bug fix to avoid possible use of
+	uninitialized index.
+	
 2002-11-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-306
