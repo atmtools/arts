@@ -29,6 +29,7 @@ if MAINTAINER_MODE
 doxyfied: Doxyfile $(toexamine)
 	doxygen Doxyfile > /dev/null
 	doxytag -t arts.tag html
+	cp ../arts-splash.gif html/
 	touch doxyfied
 
 clean:
