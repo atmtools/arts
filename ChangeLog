@@ -1,3 +1,23 @@
+2002-11-12  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-0-50
+
+	* src/absorption.h: 
+	* src/absorption.cc: 
+	Removed a bad bug. So far the partition function value at the
+	intensity reference temperature was pre-calculated, and stored
+	amongst the species data. This was a logical error, because the
+	reference temperature can be different for each line. In this case
+	the program so far gave wrong results (only the reference
+	temperature of the last line read was used). Nobody has noticed
+	this, because in the catalogue files we used, the intensity
+	reference temperature was always the same for all lines of the
+	same species.
+
+	Also added a lot of FIXMEs together with Carmen, concerning the
+	implementation of accuracy fields in the ARTS internal line
+	catalogue. 
+
 2002-10-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-49

@@ -228,12 +228,28 @@ public:
   void SetPartitionFctCoeff( const ArrayOfNumeric& qcoeff )
   {
     mqcoeff = qcoeff;
-    mqcoeff_at_t_ref = -1.;
   }
 
-  Numeric CalculatePartitionFctRatio( Numeric temperature ) const
+  //! Calculate partition function ratio.
+  /*!
+    This computes the partition function ratio Q(Tref)/Q(T). 
+
+    Unfortunately, we have to recalculate also Q(Tref) for each
+    spectral line, because the reference temperatures can be
+    different!
+    
+    \param reference_temperature The reference temperature.
+    \param actual_temperature The actual temperature.
+  
+    \return The ratio.
+  */
+  Numeric CalculatePartitionFctRatio( Numeric reference_temperature,
+                                      Numeric actual_temperature ) const
   {
-    Numeric qtemp = CalculatePartitionFctAtTemp( temperature );
+    Numeric qcoeff_at_t_ref =
+      CalculatePartitionFctAtTemp( reference_temperature );
+    Numeric qtemp =
+      CalculatePartitionFctAtTemp( actual_temperature    );
 
     if ( qtemp < 0. ) 
       {
@@ -243,14 +259,7 @@ public:
 	   << "is unknown.";
 	throw runtime_error(os.str());
       }
-    return mqcoeff_at_t_ref / qtemp;
-  }
-
-  // calculate the partition function at the reference temperature
-  void CalculatePartitionFctAtRefTemp( Numeric temperature )
-  {
-    //    if (mqcoeff_at_t_ref <= -1.0 )     
-    mqcoeff_at_t_ref = CalculatePartitionFctAtTemp( temperature );
+    return qcoeff_at_t_ref / qtemp;
   }
 
 private:
@@ -266,7 +275,6 @@ private:
   Index mhitrantag;
   ArrayOfIndex mjpltags;
   ArrayOfNumeric mqcoeff;
-  Numeric mqcoeff_at_t_ref;
 };
 
 
@@ -503,9 +511,6 @@ public:
     extern Array<SpeciesRecord> species_data;
     assert( mspecies < species_data.nelem() );
     assert( misotope < species_data[mspecies].Isotope().nelem() );
-    // if ever this constructor is used, here is the calculation of
-    // the partition fct at the reference temperature
-    species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 ) ;
   }
 
   /** Return the version String. */
@@ -620,6 +625,8 @@ public:
 
   /** Auxiliary parameters. */
   const ArrayOfNumeric& Aux() const { return maux; }
+
+  // FIXME: Carmen, add functions returning accuracies here.
 
   /** Read one line from a stream associated with a HITRAN file. The HITRAN
     format is as follows (directly from the HITRAN documentation):
@@ -863,6 +870,8 @@ private:
   Numeric mtgam;
   // Array to hold auxiliary parameters:
   ArrayOfNumeric maux;
+
+  // FIXME: Carmen, add fields for accuracies here.
 };
 
 // is needed to map jpl tags/arts identifier to the species/isotope data within arts

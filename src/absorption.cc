@@ -99,6 +99,7 @@ ostream& operator << (ostream& os, const LineRecord& lr)
      << " " << lr.Nself ()
      << " " << lr.Tgam  ()
      << " " << lr.Naux  ();
+  // FIXME: Carmen, add more lines for accuracies here.
 
   for ( Index i=0; i<lr.Naux(); ++i )
     os << " " << lr.Aux()[i];
@@ -493,15 +494,21 @@ bool LineRecord::ReadFromHitranStream(istream& is)
   // (This is fix for HITRAN)
   mti0 = 296.0;
 
-  // calculate the partition fct at the reference temperature. This is
-  // done for all lines read from the catalogue, even the ones never
-  // used in calculation. FIXME: are there better ways to implement this?
-  species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
-
   // Reference temperature for AGAM and SGAM in K.
   // (This is also fix for HITRAN)
   mtgam = 296.0;
 
+  // FIXME: Carmen, set those accuracies that you can, using the
+  // definition of HITRAN accuracy indices. If some are missing, set
+  // to -1.
+  //
+  // Note: You have to first read in the accuracies! (This might mean
+  // that you have to skip some other fields, such as quantum
+  // numbers.)
+  //
+  // You can do the skipping using the trick that I used to skip the
+  // frequency accuracy in the JPL routine. (Extracting quantum
+  // numbers to a local variable.)
 
   // That's it!
   return false;
@@ -840,12 +847,15 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
   // (This is fix for MYTRAN2)
   mti0 = 296.0;
 
-  // calculate the partition fct at the reference temperature. This is
-  // done for all lines read from the catalogue, even the ones never
-  // used in calculation. FIXME: are there better ways to implement this?
-  species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
-
-
+  // FIXME: Carmen, implement reading of accuracy parameters, in
+  // similar style as for HITRAN. (But note that the meaning of the
+  // accuracy index is not exactly the same, if I remember correctly.
+  //
+  // It is important that you intialize here all the new parameters that
+  // you added to the line record. (This applies to all the reading
+  // functions, also for ARTS, JPL, and HITRAN format.) Parameters
+  // should be either set from the catalogue, or set to -1.
+  )
 
   // That's it!
   return false;
@@ -913,11 +923,6 @@ bool LineRecord::ReadFromJplStream(istream& is)
   String line;
 
 
-
-
-
-
-
   // Look for more comments?
   bool comment = true;
 
@@ -960,6 +965,8 @@ bool LineRecord::ReadFromJplStream(istream& is)
 
   // skip transition frequency error
   {
+    // FIXME: Carmen, put the frequency error in mdf, instead of
+    // throwing it away.
     Numeric r;
     extract(r,line,8);
   } 
@@ -1092,12 +1099,10 @@ bool LineRecord::ReadFromJplStream(istream& is)
   // (This is fix for JPL)
   mti0 = 300.0;
 
-  // calculate the partition fct at the reference temperature. This is
-  // done for all lines read from the catalogue, even the ones never
-  // used in calculation. FIXME: are there better ways to implement this?
-  species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
-
-
+  // FIXME: Carmen, set those accuracies that you can, using the
+  // definition of JPL accuracies. For example, I think JPL contains
+  // the accuracy of the line center frequency in frequency units. If
+  // some are missing, set to -1.
 
   // That's it!
   return false;
@@ -1262,11 +1267,23 @@ bool LineRecord::ReadFromArtsStream(istream& is)
 	  //cout << "maux" << i << " = " << maux[i] << "\n";
 	}
 
-
-      // calculate the partition fct at the reference temperature. This is
-      // done for all lines read from the catalogue, even the ones never
-      // used in calculation. FIXME: are there better ways to implement this?
-      species_data[mspecies].Isotope()[misotope].CalculatePartitionFctAtRefTemp( mti0 );
+//       // Extract accuracies:
+//       try
+//         {
+//           icecream >> mdf;
+//           icecream >> mdi0;
+//           // FIXME: Carmen, add more lines here for the other paramters.
+//         }
+//       catch (runtime_error x)
+//         {
+//           // Nothing to do here, the accuracies are optional, so we
+//           // just set them to -1 and continue reading the next line of
+//           // the catalogue
+//           mdf  = -1;
+//           mdi0 = -1;
+//           // FIXME: Carmen, add more lines here for the other paramters.
+            
+//         }
 
     }
 
@@ -1945,8 +1962,13 @@ void xsec_species( MatrixView               xsec,
 
 	  // Get the ratio of the partition function.
 	  // This will throw a runtime error if no data exists.
+          // Important: This function needs both the reference
+          // temperature and the actual temperature, because the
+          // reference temperature can be different for each line,
+          // even of the same species.
 	  Numeric part_fct_ratio =
-	    l_l.IsotopeData().CalculatePartitionFctRatio( t_i );
+	    l_l.IsotopeData().CalculatePartitionFctRatio( l_l.Ti0(),
+                                                          t_i );
 
 	  // Boltzmann factors
 	  Numeric nom = exp(- e_lower / ( BOLTZMAN_CONST * t_i ) ) - 
