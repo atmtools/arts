@@ -1,3 +1,25 @@
+2003-11-17  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-714
+	
+	* src/m_cloudbox.cc: Modified *ybatchMetProfiles* according to the
+	suggestions at Structured Programming seminar. There are some
+	small modifications. The main things are documentation, especially
+	for variables relating to agendas, avoiding copying, setting the
+	cloudbox so that the upper cloudbox limit has 0 pnd, and including 
+	the pathnames for atmopheric fields are keywords.
+
+	* src/methods.cc: Modified keyword list to include the profile
+	path names.
+		
+	* src/workspace.cc: Removed the variable *met_profile_path* which
+	sets the path of temperature, altitude and humidity fields. Now,
+	keywords are used for this information.  Also removed
+	*met_profile_basenames* as it is not used.
+		
+	* src/agendas.cc:  Modified the input output list of the agenda
+	*met_profile_calc_agenda*. 
+	
 2003-11-16  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-713

@@ -58,7 +58,7 @@
 
 extern const Numeric PI;
 extern const Numeric DEG2RAD;
-
+extern const Numeric RAD2DEG;
 /*===========================================================================
   === The functions (in alphabetical order)
   ===========================================================================*/
@@ -2499,55 +2499,60 @@ void CloudboxGetIncoming1DAtm(// WS Output:
 //! The function does a batch calculation for metoffice fields.
 /*!
   This method is used for simulating ARTS for metoffice model field
-  This method loops over *met_profile_basenames* which contains the
-  basenames of the metoffice profile files as an ArrayOfString.
-  Corresponding to each basename we have temperature field, altitude
-  field, humidity field and particle number density field.  The
-  temperature field and altitude field are stored in the same dimensions
-  as *t_field_raw* and *z_field_raw*.  The oxygen and nitrogen VMRs are
-  set to constant values of 0.209 and 0.782, respectively and are used
-  along with humidity field to generate *vmr_field_raw*.  
+  The method reads the amsu data file stored in the variable 
+  *met_amsu_data*.  This variable holds the latitude, longitude, 
+  satellite zenith angle, and amsu-b corrected and uncorrected BTs.  
+  The metoffice profiles are extracted for each of these lat and lon.
+  The profiles are for pressure, temperature, altitude, humidity  and
+  ice water content. In ARTS, the temperature data is stored in t_field_raw,
+  which is an AraayOfTensor3, vmrs in vmr_field_raw which is an 
+  ArrayOfArrayOfTensor3 and IWC is converted to corresponding particle 
+  number density and stored in pnd_field_raw which is an ArrayOfArrayOfTensor3.
+  Corresponding to each lat-lon pixel in the AMSU data, you have files
+  storing t_field_raw, vmr_field_raw, pnd_field_raw.  The batch method loops
+  over the number of lat-lon points, reads the data, sets the cloudbox and 
+  perform the radiative transfer calculation.  The output *ybatch* holds the 
+  spectra corresponding to all lat-lon points.
   
-  The three fields *t_field_raw*, *z_field_raw*, and *vmr_field_raw* are
-  given as input to *met_profile_calc_agenda* which is called in this
-  method.  See documentation of WSM *met_profile_calc_agenda* for more
-  information on this agenda
-
-\param ybatch spectra for a batch of metoffice profiles
-\param t_field_raw temperature field
-\param z_field_raw altitude field
-\param vmr_field_raw VMR field
-\param pnd_field_raw particle number density field
-\param pnd_field particle number density field
-\param y spectra
-\param p_grid pressure grid
-\param sensor_los sensor line of sight
-\param cloudbox_on flag to activate cloudbox
-\param cloudbox_limits limits of the cloudbox
-\param z_ground ground height
-\param gas_species tag group absorption
-\param met_profile_path path of metoffice data
-\param met_profile_calc_agenda agenda for absorption calculation and RT methods
-\param f_grid frequency grid
-\param met_amsu_data amsu data set
-\param sensor_pos sensor position 
-\param r_geoid geoid radius
-\param lat_grid latitude grid
-\param lon_grid longitude grid
-\param atmosphere_dim atmospheric dimensionality
-\param nelem_p_grid number of elements in pressure grid
-
+  \param ybatch Spectra for a batch of metoffice profiles
+  \param y Agenda output: Spectra
+  \param t_field_raw Agenda input: Temperature field
+  \param z_field_raw Agenda input: Altitude field
+  \param vmr_field_raw Agenda input: VMR field
+  \param pnd_field_raw Agenda input: Raw particle number density field
+  \param pnd_field Agenda input: Particle number density field
+  \param p_grid Agenda input: Pressure grid
+  \param sensor_los Agenda input: Sensor line of sight
+  \param cloudbox_on Agenda input: Flag to activate cloudbox
+  \param cloudbox_limits Agenda input: Limits of the cloudbox
+  \param z_ground Agenda input: Ground height
+  \param gas_species Tag group absorption
+  \param met_profile_path Path of metoffice data
+  \param met_profile_calc_agenda Agenda for absorption calculation and RT methods
+  \param f_grid Frequency grid
+  \param met_amsu_data Amsu data set
+  \param sensor_pos Sensor position 
+  \param r_geoid Geoid radius
+  \param lat_grid Latitude grid
+  \param lon_grid Longitude grid
+  \param atmosphere_dim Atmospheric dimensionality
+  \param scat_data_raw Single scattering data
+  \param nelem_p_grid Keyword: Number of elements in pressure grid
+  \param met_profile_path Keyword: Path of temperature, altitude, humidity fields
+  \param met_profile_pnd_path Keyword: Path of pnd_field
   \author Sreerekha T.R.
   \date 2003-04-17
 */
 void ybatchMetProfiles(//Output
 		       Matrix& ybatch,
+		       //Agenda communication variables
+		       //Output of met_profile_calc_agenda
+		       Vector& y,
+		       //Input to met_profile_calc_agenda
 		       ArrayOfTensor3& t_field_raw,
 		       ArrayOfTensor3& z_field_raw,
 		       ArrayOfArrayOfTensor3& vmr_field_raw,
 		       ArrayOfArrayOfTensor3& pnd_field_raw,
-		       Tensor4& pnd_field,
-		       Vector& y,
 		       Vector& p_grid,
 		       Matrix& sensor_los,
 		       Index& cloudbox_on,
@@ -2555,7 +2560,6 @@ void ybatchMetProfiles(//Output
 		       Matrix& z_ground,
 		       //Input
 		       const ArrayOfArrayOfSpeciesTag& gas_species,
-		       const String& met_profile_path,
 		       const Agenda& met_profile_calc_agenda,
 		       const Vector& f_grid,
 		       const Matrix& met_amsu_data,
@@ -2564,52 +2568,57 @@ void ybatchMetProfiles(//Output
 		       const Vector& lat_grid,
 		       const Vector& lon_grid,
 		       const Index& atmosphere_dim,
+		       const ArrayOfSingleScatteringData& scat_data_raw,
 		       //Keyword
-		       const Index& nelem_p_grid)
+		       const Index& nelem_p_grid,
+		       const String& met_profile_path,
+		       const String& met_profile_pnd_path)
 {
   Index no_profiles = met_amsu_data.nrows();
-  //Index no_profiles = met_profile_basenames.nelem();
-  // The humidity data is stored as  an ArrayOfTensor3 whereas
-  // vmr_field_raw is an ArrayOfArrayOfTensor3
-  ArrayOfTensor3 vmr_field_h2o;
   
-  //We are reading pnd_field which is an ArrayOfArrayOfTensor3. 
-  // But the data is just an ArrayOfTensor3
-  ArrayOfTensor3 pnd_field_here;
+  //*vmr_field_raw* is an ArrayOfArrayOfTensor3 where the first array
+      //holds the gaseous species. 
+      //Resize *vmr_field_raw* according to the number of gaseous species
+      //elements
+      vmr_field_raw.resize(gas_species.nelem());
   
-  vmr_field_raw.resize(gas_species.nelem());
-  
+  //The second array holds the gridded fields, one array for 
+  //pressure, latitude, longitude and the data each.
   for (Index i = 0; i < gas_species.nelem(); ++ i)
     {
       vmr_field_raw[i].resize(4);
     }
- 
-  //BEWARE !!!! Only one particle type considered!!!!!!!!!
-  pnd_field_raw.resize(1);
-  pnd_field.resize(1,p_grid.nelem(), 1,1);
 
-  y.resize(f_grid.nelem());
-  ybatch.resize(no_profiles, f_grid.nelem());
-
-  Vector sat_za_from_profile;
-  sat_za_from_profile = met_amsu_data(Range(joker),3);
-  Numeric sat_za;
+  //pnd_field_raw is an ArrayOfArrayOfTensor3 where the first array
+  //holds particle species.
+  // Number of particle types:
+  const Index N_pt = scat_data_raw.nelem();
+  pnd_field_raw.resize(N_pt);
+  
+  // The satellite zenith angle is read in from the amsu data
+  // and converted to arts sensor_los
+  ConstVectorView sat_za_from_data = met_amsu_data(Range(joker),3);
   
   sensor_los.resize(1,1);
-
   
-  Vector lat, lon;
-  lat = met_amsu_data(Range(joker),0);
-  lon = met_amsu_data(Range(joker),1);
-
-  Vector oro_height;
-  oro_height = met_amsu_data(Range(joker),5);
+  // The lat and lon are extracted to get the proper file names of 
+  // profiles
+  ConstVectorView lat = met_amsu_data(Range(joker),0);
+  ConstVectorView lon = met_amsu_data(Range(joker),1);
   
   z_ground.resize(1,1);
+  
+  // The spectra .
+  y.resize(f_grid.nelem());
+  
+  // The batch spectra.
+  ybatch.resize(no_profiles, f_grid.nelem());
+  
+  // Loop over the number of profiles.
   for (Index i = 0; i < no_profiles; ++ i)
     {
       ostringstream lat_os, lon_os;
-
+      
       Index lat_prec = 3;
       if(lat[i] < 0) lat_prec--;
       if(abs(lat[i])>=10 )
@@ -2617,7 +2626,7 @@ void ybatchMetProfiles(//Output
 	  lat_prec--;
 	  if(abs(lat[i])>=100 ) lat_prec--;
 	}
-
+      
       lat_os.setf (ios::showpoint | ios::fixed);
       lat_os << setprecision(lat_prec) << lat[i];
       
@@ -2630,166 +2639,138 @@ void ybatchMetProfiles(//Output
 	}
       lon_os.setf (ios::showpoint | ios::fixed);
       lon_os << setprecision(lon_prec) << lon[i];
-      cout<<lat_os.str()<<endl;
-      cout<<lon_os.str()<<endl;
-
-       sat_za = sat_za_from_profile[i];
       
-      //sensor_los(Range(joker),0) = 
-      //	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
-      sensor_los(Range(joker),0) = 
-      	180.0 - (asin(r_geoid(0,0) * sin(sat_za * PI/180.) /sensor_pos(0,0)))*180./PI;
-      cout<<"sensor_los"<<sat_za_from_profile[i]<<endl;
-      cout<<"sensor_los"<<sat_za<<endl;
-      cout<<"sensor_los"<<sensor_los<<endl;
+      sensor_los(0,0) = 
+      	180.0 - (asin(r_geoid(0,0) * sin(sat_za_from_data[i] * DEG2RAD) /sensor_pos(0,0)))* RAD2DEG;
+      
       //Reads the t_field_raw from file
-      
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".t.xml",
 			 t_field_raw);
+      
       //Reads the z_field_raw from file
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()  + ".z.xml",
 			 z_field_raw);
       
       //Reads the humidity from file - it is only an ArrayofTensor3
-      // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
-      // array is for species
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
-       			 vmr_field_h2o);
-     
-      xml_read_from_file("/freax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml", 
-       		 pnd_field_here);
-      cout << "--------------------------------------------------------------------------"<<endl;
-      cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
-      cout << "--------------------------------------------------------------------------"<<endl; 
-      xml_write_to_file("profile_number.xml",  i);
-      // the first element of the species is water vapour. 
- 
-      // N_p is the number of elements in the pressure grid
+       			 vmr_field_raw[0]);
       
+      //Reads the pnd_field_raw for one particle
+      //xml_read_from_file("/rinax/storage/users/rekha/uk_data/profiles/new_obs/newest_forecastfields/reff100/profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
+      
+      xml_read_from_file(met_profile_pnd_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".pnd100.xml",  pnd_field_raw[0]);
+      
+      //Write the profile number into a file.
+      out2<<"profile_number.xml"<< i;
+      
+      // Set z_ground from lowest level of z_field 
       z_ground(0,0) = z_field_raw[3](0,0,0);
-      cout<<"z_ground"<<z_ground<<endl;
-      Index N_p = t_field_raw[0].npages();
-       
-      vmr_field_raw[0] = vmr_field_h2o;
       
-      // the second element of the species.  the first 3 Tensors in the
-      //array are the same .  They are pressure grid, latitude grid and
-      // longitude grid.  The third tensor which is the vmr is set to a 
-      // constant value of 0.782.
+      /* The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
+	 array is for species.
+	 
+	 The oxygen and nitrogen VMRs are set to constant values of 0.209
+	 and 0.782, respectively and are used along with humidity field 
+	 to generate *vmr_field_raw*.*/
+            
+      /*The second element of the species.  The first 3 Tensors in the
+	array are the same .  They are pressure grid, latitude grid and
+	longitude grid.  The third tensor which is the vmr is set to a 
+	constant value of 0.782, corresponding to N2.*/
       vmr_field_raw[1][3].resize(vmr_field_raw[0][0].npages(),
 				 vmr_field_raw[0][1].nrows(),
 				 vmr_field_raw[0][2].ncols());
-      vmr_field_raw[1][0] = vmr_field_raw[0][0];
-      vmr_field_raw[1][1] = vmr_field_raw[0][1];
-      vmr_field_raw[1][2] = vmr_field_raw[0][2];
-      vmr_field_raw[1][3](joker, joker, joker) = 0.782;
-
-      // the second element of the species.  the first 3 Tensors in the
-      //array are the same .  They are pressure grid, latitude grid and
-      // longitude grid.  The third tensor which is the vmr is set to a 
-      // constant value of 0.209.
+      vmr_field_raw[1][0] = vmr_field_raw[0][0]; //pressure grid for 1st element
+      vmr_field_raw[1][1] = vmr_field_raw[0][1]; //latitude grid for 1st element
+      vmr_field_raw[1][2] = vmr_field_raw[0][2]; //longitude grid for 1st element
+      vmr_field_raw[1][3] = 0.782;//vmr of N2
+      
+      /*the third element of the species.  the first 3 Tensors in the
+	array are the same .  They are pressure grid, latitude grid and
+	longitude grid.  The third tensor which is the vmr is set to a 
+	constant value of 0.209, corresponding to O2.*/
       vmr_field_raw[2][3].resize(vmr_field_raw[0][0].npages(),
 				 vmr_field_raw[0][1].nrows(),
 				 vmr_field_raw[0][2].ncols());
-      vmr_field_raw[2][0] = vmr_field_raw[0][0];
-      vmr_field_raw[2][1] = vmr_field_raw[0][1];
-      vmr_field_raw[2][2] = vmr_field_raw[0][2];
-      vmr_field_raw[2][3] (joker, joker, joker) =  0.209;
+      vmr_field_raw[2][0] = vmr_field_raw[0][0];//pressure grid for 2nd element
+      vmr_field_raw[2][1] = vmr_field_raw[0][1];//latitude grid for 2nd element
+      vmr_field_raw[2][2] = vmr_field_raw[0][2];//longitude grid for 2nd element
+      vmr_field_raw[2][3] =  0.209;//vmr of O2
       
-      Index level_counter = 0;
-      Numeric cl_grid_min, cl_grid_max;
-     //  for (Index ip = 0; ip< N_p; ++ip)
-//  	{
-// 	  if(pnd_field_here[3](ip, 0, 0) != 0.0) 
-// 	    {
-// 	      ++level_counter;
-// 	      if(level_counter == 1)
-// 		{
-// 		  cl_grid_min = t_field_raw[0](ip, 0, 0);
-// 		}
-// 	      cl_grid_max = t_field_raw[0](ip, 0, 0);
-// 	    }
-// 	}
-      cout<<"level_counter-before"<< level_counter<<endl;
-      cl_grid_min = t_field_raw[0](0, 0, 0);
-       for (Index ip = 0; ip< N_p; ++ip)
- 	{
-	  if(pnd_field_here[3](ip, 0, 0) != 0.0) 
-	    {
-	      ++level_counter;
-	      cl_grid_max = t_field_raw[0](ip, 0, 0);
-	    }
-	}
-       cout<<"level_counter"<< level_counter<<endl;
-       cout<<"maximum"<< cl_grid_max<<endl;
-       cout<<"minimum"<< cl_grid_min<<endl;
-
-      pnd_field_raw[0] = pnd_field_here;
-     
+      // N_p is the number of elements in the pressure grid
+      Index N_p = t_field_raw[0].npages();
+      
       //Making a p_grid with the first and last element taken from the profile.
-      // this is because of the extrapolation problem.
-      
       VectorNLogSpace(p_grid, 
 		      "p_grid", 
 		      t_field_raw[0](0,0,0), 
 		      t_field_raw[0](N_p -1,0,0), 
 		      nelem_p_grid);
-      cout<<"t_field_raw[0](0,0,0)"<<t_field_raw[0](0,0,0)<<endl;
-      cout<<"t_field_raw[0](N_p -1,0,0)"<<t_field_raw[0](N_p -1,0,0)<<endl;
-      xml_write_to_file("p_grid.xml", p_grid);
+      
+      /*To set the cloudbox limits, the lower and upper cloudbox limits
+	are to be set.  The lower cloudbox limit is set to the lowest
+	pressure level.  The upper level is the highest level where the 
+	ice water content is non-zero.*/
+      Numeric cl_grid_min, cl_grid_max;
+      
+      //Lower limit = lowest pressure level of the original grid.
+      //Could it be the interpolated p_grid? FIXME STR
+      cl_grid_min = t_field_raw[0](0, 0, 0);
+      
+      // A counter for non-zero ice content
+      Index level_counter = 0;
+      
+      // Loop over all pressure levels
+      for (Index ip = 0; ip< N_p; ++ip)
+ 	{
+	  //Checking for non-zero ice content. 0.001 is a threshold for
+	  //ice water content.	  
+	  if(pnd_field_raw[0][3](ip, 0, 0) > 0.001) 
+	    {
+	      ++level_counter;
+	      //if non-zero ice content is found, it is set to upper 
+	      //cloudbox limit. Moreover, we take one level higher 
+	      // than the upper limit because we want the upper limit
+	      //to have 0 pnd.
+	      cl_grid_max = t_field_raw[0](ip +1, 0, 0);
+	    }
+	}
+      
+      //cloudbox limits have dimensions 2*atmosphere_dim
       cloudbox_limits.resize( atmosphere_dim*2 );
+      
+      //if there is no cloud in the considered profile, still we
+      //need to set the upper limit. I here set the first level 
+      //for the upper cloudbox limit.
       if(level_counter == 0)
 	{
-	  //cl_grid_min = p_grid[0];
 	  cl_grid_max = p_grid[1];
-	  cloudboxSetManually(cloudbox_on, 
-			      cloudbox_limits,
-			      atmosphere_dim,
-			      p_grid,
-			      lat_grid,
-			      lon_grid,
-			      cl_grid_min,
-			      cl_grid_max,
-			      0,0,0,0);
 	}
-      else
-	{
-	  
-	  // if(cl_grid_min >= p_grid[1])
-// 	    {
-// 	       cout<<"Did it reache here"<<endl;
-// 	       cl_grid_min = p_grid[1];
-// 	      if(cl_grid_max >= p_grid[1])
-// 		{
-// 		  cl_grid_max = p_grid[2];
-// 		}
-// 	    }
-	  if(cl_grid_min == cl_grid_max)
-	    {
-	      --cl_grid_max;
-	    }
-	  
-	  cloudboxSetManually(cloudbox_on, 
-			      cloudbox_limits,
-			      atmosphere_dim,
-			      p_grid,
-			      lat_grid,
-			      lon_grid,
-			      cl_grid_min,
-			      cl_grid_max,
-			      0,0,0,0);
-	  
-	}
-      cout<<"maximum"<< cl_grid_max<<endl;
-      cout<<"minimum"<< cl_grid_min<<endl;
-      cout<<"cloudbox limit[0]"<<" "<<cloudbox_limits[0]<<endl;
-      cout<<"cloudbox limit[1]"<<" "<<cloudbox_limits[1]<<endl;
-      // executing the met_profile_calc_agenda
+      
+      //Cloudbox is set.
+      cloudboxSetManually(cloudbox_on, 
+			  cloudbox_limits,
+			  atmosphere_dim,
+			  p_grid,
+			  lat_grid,
+			  lon_grid,
+			  cl_grid_min,
+			  cl_grid_max,
+			  0,0,0,0);
+      
+      /*executing the met_profile_calc_agenda
+	Agenda communication variables are
+	Output of met_profile_calc_agenda : y
+	Input to met_profile_calc_agenda  : t_field_raw,
+	z_field_raw, vmr_field_raw, pnd_field_raw, p_grid,
+	sensor_los, cloudbox_on, cloudbox_limits, z_ground, */
+		       
       met_profile_calc_agenda.execute();
       
-      //putting in the spectra *y* for each profile
+      //putting in the spectra *y* for each profile, thus assigning y
+      //to the ith row of ybatch
       ybatch(i, Range(joker)) = y;
-
+      
     }// closing the loop over profile basenames
 }
 
@@ -2809,52 +2790,52 @@ void ybatchMetProfiles(//Output
   given as input to *met_profile_calc_agenda* which is called in this
   method.  See documentation of WSM *met_profile_calc_agenda* for more
   information on this agenda
-
-\param ybatch spectra for a batch of metoffice profiles
-\param t_field_raw temperature field
-\param z_field_raw altitude field
-\param vmr_field_raw VMR field
-\param y spectra
-\param p_grid pressure grid
-\param sensor_los sensor line of sight
-\param z_ground ground height
-\param gas_species species under consideration
-\param met_profile_path Path to the MO profiles
-\param met_profile_calc_agenda agenda for absorption calculation and RT methods
-\param f_grid frequency grid
-\param met_amsu_data the latlon information in amsu obs
-\param sensor_pos sensor position
-\param r_geoid geoid radius
-\param nelem_p_grid number of levels in the pressure grid.
-
+  
+  \param ybatch spectra for a batch of metoffice profiles
+  \param t_field_raw temperature field
+  \param z_field_raw altitude field
+  \param vmr_field_raw VMR field
+  \param y spectra
+  \param p_grid pressure grid
+  \param sensor_los sensor line of sight
+  \param z_ground ground height
+  \param gas_species species under consideration
+  \param met_profile_path Path to the MO profiles
+  \param met_profile_calc_agenda agenda for absorption calculation and RT methods
+  \param f_grid frequency grid
+  \param met_amsu_data the latlon information in amsu obs
+  \param sensor_pos sensor position
+  \param r_geoid geoid radius
+  \param nelem_p_grid number of levels in the pressure grid.
+  
   \author Sreerekha T.R.
   \date 2003-04-17
 */
 void ybatchMetProfilesClear(//Output
-			     Matrix& ybatch,
-			     ArrayOfTensor3& t_field_raw,
-			     ArrayOfTensor3& z_field_raw,
-			     ArrayOfArrayOfTensor3& vmr_field_raw,
-			     Vector& y,
-			     Vector& p_grid,
-			     Matrix& sensor_los,
-			     Matrix& z_ground,
-			     //Input
-			     const ArrayOfArrayOfSpeciesTag& gas_species,
-			     const String& met_profile_path,
-			     const Agenda& met_profile_calc_agenda,
-			     const Vector& f_grid,
-			     const Matrix& met_amsu_data,
-			     const Matrix& sensor_pos,
-			     const Matrix& r_geoid,
-			     //Keyword
-			     const Index& nelem_p_grid)
+			    Matrix& ybatch,
+			    ArrayOfTensor3& t_field_raw,
+			    ArrayOfTensor3& z_field_raw,
+			    ArrayOfArrayOfTensor3& vmr_field_raw,
+			    Vector& y,
+			    Vector& p_grid,
+			    Matrix& sensor_los,
+			    Matrix& z_ground,
+			    //Input
+			    const ArrayOfArrayOfSpeciesTag& gas_species,
+			    const Agenda& met_profile_calc_agenda,
+			    const Vector& f_grid,
+			    const Matrix& met_amsu_data,
+			    const Matrix& sensor_pos,
+			    const Matrix& r_geoid,
+			    //Keyword
+			    const Index& nelem_p_grid,
+			    const String& met_profile_path)
 {
   Index no_profiles = met_amsu_data.nrows();
   //Index no_profiles = met_profile_basenames.nelem();
   // The humidity data is stored as  an ArrayOfTensor3 whereas
   // vmr_field_raw is an ArrayOfArrayOfTensor3
-  ArrayOfTensor3 vmr_field_h2o;
+  ArrayOfTensor3 vmr_field_raw_h2o;
   
   vmr_field_raw.resize(gas_species.nelem());
   
@@ -2929,8 +2910,8 @@ void ybatchMetProfilesClear(//Output
       // The vmr_field_raw is an ArrayofArrayofTensor3 where the outer 
       // array is for species
       xml_read_from_file(met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str() + ".H2O.xml", 
-      		 vmr_field_h2o);
-      //xml_read_from_file("/home/home01/rekha/uk/profiles/sat_vmr/profile.lat_"+lat_os.str()//+".lon_"+lon_os.str() + ".H2O_es.xml", vmr_field_h2o);
+      		 vmr_field_raw_h2o);
+      //xml_read_from_file("/home/home01/rekha/uk/profiles/sat_vmr/profile.lat_"+lat_os.str()//+".lon_"+lon_os.str() + ".H2O_es.xml", vmr_field_raw_h2o);
       
       cout << "--------------------------------------------------------------------------"<<endl;
       cout << "The file" << met_profile_path +"profile.lat_"+lat_os.str()+".lon_"+lon_os.str()<< "is executed now"<<endl;
@@ -2944,7 +2925,7 @@ void ybatchMetProfilesClear(//Output
       cout<<"z_ground"<<z_ground<<endl;
       Index N_p = t_field_raw[0].npages();
       
-      vmr_field_raw[0] = vmr_field_h2o;
+      vmr_field_raw[0] = vmr_field_raw_h2o;
       
       // the second element of the species.  the first 3 Tensors in the
       //array are the same .  They are pressure grid, latitude grid and

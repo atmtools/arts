@@ -196,7 +196,9 @@ void define_agenda_data()
 	"\n"
         ),
        OUTPUT( y_ ),
-       INPUT(t_field_raw_, vmr_field_raw_, z_field_raw_)));
+       INPUT(t_field_raw_, vmr_field_raw_, z_field_raw_, pnd_field_raw_,
+	     p_grid_, sensor_los_, cloudbox_on_, cloudbox_limits_,
+	     z_ground_)));
 
   agenda_data.push_back
     (AgRecord

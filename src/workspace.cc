@@ -1264,37 +1264,7 @@ void define_wsv_data()
        "See documentation of WSM *ybatchMetProfiles* for more information."
        ),
       GROUP( Matrix_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "met_profile_basenames" ),
-      DESCRIPTION
-      (
-       "A list of met office profile basenames.\n"
-       "\n"
-       "This is intended as input for the method ybatchMetProfiles. It holds a\n"
-       "list of profiles basenames. For each basename, there should exist\n"
-       "files with different extensions for the different profile parameters,\n"
-       "such as humidity, temperature, etc.\n"
-       "\n"
-       "See documentation of WSM *ybatchMetProfiles* for more information."
-       ),
-      GROUP( ArrayOfString_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "met_profile_path" ),
-      DESCRIPTION
-      (
-       "Path of the metoffice data.\n"
-       "\n"
-       "This is intended as input for the method ybatchMetProfiles. It holds \n"
-       "the path of the list of profiles. "
-       "\n"
-       "See documentation of WSM *ybatchMetProfiles* for more information."
-       ),
-      GROUP( String_ )));
-
+ 
  wsv_data.push_back
    (WsvRecord
     ( NAME( "opt_prop_gas_agenda" ),

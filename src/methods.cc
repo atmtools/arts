@@ -4439,16 +4439,16 @@ md_data_raw.push_back
          "*sensor_los*.  It also sets the *p_grid* and *cloudbox_limits* \n"
          "from the profiles inside the function\n"
          ),
-        OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
-                pnd_field_raw_, pnd_field_, y_, p_grid_, sensor_los_,
-                cloudbox_on_, cloudbox_limits_, z_ground_),
-        INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
-              f_grid_, met_amsu_data_, sensor_pos_, r_geoid_, lat_grid_, 
-              lon_grid_, atmosphere_dim_),
+        OUTPUT( ybatch_, y_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
+		pnd_field_raw_,	 p_grid_, sensor_los_,cloudbox_on_, 
+		cloudbox_limits_, z_ground_),
+        INPUT(gas_species_, met_profile_calc_agenda_, f_grid_, met_amsu_data_,
+	      sensor_pos_, r_geoid_, lat_grid_, lon_grid_, atmosphere_dim_,
+	      scat_data_raw_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("nelem_p_grid"),
-        TYPES(Index_t)));
+        KEYWORDS("nelem_p_grid", "met_profile_path", "met_profile_pnd_path"),
+        TYPES(Index_t, String_t, String_t)));
 
   md_data_raw.push_back
     ( MdRecord
@@ -4480,12 +4480,12 @@ md_data_raw.push_back
          ),
         OUTPUT( ybatch_, t_field_raw_, z_field_raw_, vmr_field_raw_, 
                  y_, p_grid_, sensor_los_, z_ground_),
-        INPUT(gas_species_, met_profile_path_, met_profile_calc_agenda_, 
+        INPUT(gas_species_, met_profile_calc_agenda_, 
               f_grid_, met_amsu_data_, sensor_pos_, r_geoid_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("nelem_p_grid"),
-        TYPES(Index_t)));
+        KEYWORDS("nelem_p_grid","met_profile_path" ),
+        TYPES(Index_t, String_t)));
 
   md_data_raw.push_back
     ( MdRecord
