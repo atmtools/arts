@@ -1,5 +1,11 @@
 2003-01-20  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-407
+
+	* src/xml_io.cc: Updated doxygen comments.
+
+2003-01-20  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-406
 
 	* src/xml_io.cc, src/xml_io_private.h: Changed signatures of
