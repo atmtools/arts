@@ -1426,7 +1426,7 @@ void PWR98H2OAbsModel( MatrixView        xsec,
       // rho       =   (M_H2O / R)   *  (P_H2O / T)
       // rho       =      2.1667     *  p_abs * vmr / t_abs
       // den       = 3.335e16 * rho
-      Numeric den        = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
+      // FIXME Numeric den        = 3.335e16 * (2.1667 * p_abs[i] * vmr[i] / t_abs[i]);
       Numeric den_dummy  = 3.335e16 * (2.1667 * p_abs[i] / t_abs[i]);
       // inverse relative temperature [1]
       Numeric ti         = (300.0 / t_abs[i]);
@@ -1960,9 +1960,9 @@ void MaTipping_H2O_foreign_continuum( MatrixView        xsec,
 
 
 Numeric XINT_FUN( const Numeric V1A,
-                  const Numeric V2A,
+                  const Numeric /* V2A */,
                   const Numeric DVA,
-		  const Numeric A[],
+                  const Numeric A[],
                   const Numeric VI)
 {
 
@@ -1972,7 +1972,7 @@ Numeric XINT_FUN( const Numeric V1A,
 // ----------------------------------------------------------------------
 
   const Numeric ONEPL  = 1.001;     // original value given in F77 code
-  const Numeric ONEMI  = 0.999;     // original value given in F77 code
+  // FIXME const Numeric ONEMI  = 0.999;     // original value given in F77 code
 
   //const Numeric ONEPL  = 0.001;  // modified value for C/C++ code
 
@@ -2097,7 +2097,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
 		       ConstVectorView     p_abs,
 		       ConstVectorView     t_abs,
 		       ConstVectorView     vmr,
-		       ConstVectorView     n2_abs )
+		       ConstVectorView     /* n2_abs */ )
 {
 
 
@@ -2138,7 +2138,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
   // ************************** CKD stuff ************************************
 
   const Numeric xLosmt   = 2.686763e19; // [molecules/cm^3]
-  const Numeric T1       =  273.0e0;
+  // FIXME const Numeric T1       =  273.0e0;
   const Numeric TO       =  296.0e0;
   const Numeric PO       = 1013.0e0;
 
@@ -2266,7 +2266,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
   
   Numeric SFAC = 1.00e0;
   Numeric VS2  = 0.00e0;
-  Numeric VS4  = 0.00e0;
+  // FIXME Numeric VS4  = 0.00e0;
   
   // Loop pressure/temperature:
   for ( Index i = 0 ; i < n_p ; ++i )
@@ -2277,7 +2277,7 @@ void CKD_222_self_h2o( MatrixView          xsec,
       Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
       Numeric Patm   = Pave/PO;                                      // [1]
       Numeric vmrh2o = vmr[i];                                       // [1]
-      Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+      // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
       // second vmr in absCalc multiplied
       Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
       Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
@@ -2385,7 +2385,7 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
 			  ConstVectorView     p_abs,
 			  ConstVectorView     t_abs,
 			  ConstVectorView     vmr,
-			  ConstVectorView     n2_abs )
+			  ConstVectorView     /* n2_abs */ )
 {
 
   // check the model name about consistency
@@ -2519,11 +2519,11 @@ void CKD_222_foreign_h2o( MatrixView          xsec,
       Numeric Tave   = t_abs[i];                               // [K]
       Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
-      Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
+      // FIXME Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
       Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
       Numeric RFRGN  = PFRGN  * (TO/Tave);                     // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
-      Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
+      // FIXME Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
       Numeric XKT    = Tave   / 1.4387752;                     // = (T*k_B) / (h*c)
       
       // Molecular cross section calculated by CKD.
@@ -2610,7 +2610,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
 		       ConstVectorView     p_abs,
 		       ConstVectorView     t_abs,
 		       ConstVectorView     vmr,
-		       ConstVectorView     n2_abs )
+		       ConstVectorView     /* n2_abs */ )
 {
 
 
@@ -2651,7 +2651,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
   // ************************** CKD stuff ************************************
 
   const Numeric xLosmt   = 2.686763e19; // [molecules/cm^3]
-  const Numeric T1       =  273.0e0;
+  // FIXME const Numeric T1       =  273.0e0;
   const Numeric TO       =  296.0e0;
   const Numeric PO       = 1013.0e0;
 
@@ -2797,7 +2797,7 @@ void CKD_242_self_h2o( MatrixView          xsec,
       Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
       Numeric Patm   = Pave/PO;                                      // [1]
       Numeric vmrh2o = vmr[i];                                       // [1]
-      Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+      // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
       // second vmr in absCalc multiplied
       Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
       Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
@@ -2911,7 +2911,7 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
 			  ConstVectorView     p_abs,
 			  ConstVectorView     t_abs,
 			  ConstVectorView     vmr,
-			  ConstVectorView     n2_abs )
+			  ConstVectorView     /* n2_abs */ )
 {
 
 
@@ -3056,11 +3056,11 @@ void CKD_242_foreign_h2o( MatrixView          xsec,
       Numeric Tave   = t_abs[i];                               // [K]
       Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
-      Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
+      // FIXME Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
       Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
       Numeric RFRGN  = PFRGN  * (TO/Tave);                     // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
-      Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
+      // FIXME Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
       Numeric XKT    = Tave   / 1.4387752;                     // = (T*k_B) / (h*c)    
       
       // Molecular cross section calculated by CKD.
@@ -3156,7 +3156,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
 			  ConstVectorView     p_abs,
 			  ConstVectorView     t_abs,
 			  ConstVectorView     vmr,
-			  ConstVectorView     n2_abs )
+			  ConstVectorView     /* n2_abs */ )
 {
 
   // check the model name about consistency
@@ -3196,7 +3196,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
   // ************************** CKD stuff ************************************
 
   const Numeric xLosmt =    2.68675e19; // [molecules/cm^3]
-  const Numeric T1     =  273.000e0;    // [K]
+  // FIXME const Numeric T1     =  273.000e0;    // [K]
   const Numeric TO     =  296.000e0;    // [K]
   const Numeric PO     = 1013.000e0;    // [hPa]
 
@@ -3319,7 +3319,7 @@ void CKD_mt_100_self_h2o( MatrixView          xsec,
       Numeric Pave   = (p_abs[i]*1.000e-2);                          // [hPa]
       Numeric Patm   = Pave/PO;                                      // [1]
       Numeric vmrh2o = vmr[i];                                       // [1]
-      Numeric Ph2o   = Patm * vmrh2o;                                // [1]
+      // FIXME Numeric Ph2o   = Patm * vmrh2o;                                // [1]
       // second vmr in absCalc multiplied
       Numeric Rh2o   = Patm * (TO/Tave);                             // [1]
       Numeric Tfac   = (Tave-TO)/(260.0-TO);                         // [1]
@@ -3414,7 +3414,7 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
 			     ConstVectorView     p_abs,
 			     ConstVectorView     t_abs,
 			     ConstVectorView     vmr,
-			     ConstVectorView     n2_abs )
+			     ConstVectorView     /* n2_abs */ )
 {
 
 
@@ -3535,11 +3535,11 @@ void CKD_mt_100_foreign_h2o( MatrixView          xsec,
       Numeric Tave   = t_abs[i];                               // [K]
       Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
       Numeric vmrh2o = vmr[i];                                 // [1]
-      Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
+      // FIXME Numeric ph2o   = vmrh2o * Pave;                          // [hPa]
       Numeric PFRGN  = (Pave/PO) * (1.00000e0 - vmrh2o);       // dry air pressure [hPa]
       Numeric RFRGN  = PFRGN  * (TO/Tave);                     // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
-      Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
+      // FIXME Numeric W1     = vmrh2o * WTOT;                          // [molecules/cm^2]
       Numeric XKT    = Tave   / 1.4387752;                     // = (T*k_B) / (h*c)    
       
       // Molecular cross section calculated by CKD.
@@ -3735,7 +3735,7 @@ void CKD_241_co2( MatrixView         xsec,
     {
       Numeric Tave   = t_abs[i];                               // [K]
       Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
-      Numeric vmrco2 = vmr[i];                                 // [1]
+      // FIXME Numeric vmrco2 = vmr[i];                                 // [1]
       Numeric Rhoave = (Pave/PO) * (TO/Tave);                  // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
@@ -3933,7 +3933,7 @@ void CKD_mt_co2( MatrixView          xsec,
     {
       Numeric Tave   = t_abs[i];                               // [K]
       Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
-      Numeric vmrco2 = vmr[i];                                 // [1]
+      // FIXME Numeric vmrco2 = vmr[i];                                 // [1]
       Numeric Rhoave = (Pave/PO) * (TO/Tave);                  // [hPa]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric XKT    = Tave / 1.4387752;                       // = (T*k_B) / (h*c)    
@@ -4065,7 +4065,7 @@ void CKD_mt_CIArot_n2( MatrixView         xsec,
 
   // ************************** CKD stuff ************************************
 
-  const Numeric xLosmt = 2.686763e19; // Loschmidt Number [molecules/cm^3]
+  // FIXME const Numeric xLosmt = 2.686763e19; // Loschmidt Number [molecules/cm^3]
   const Numeric T1     =  273.0e0;
   const Numeric TO     =  296.0e0;
   const Numeric PO     = 1013.0e0;
@@ -4395,7 +4395,7 @@ void CKD_mt_CIAfun_n2( MatrixView         xsec,
 
       Numeric XKT    = Tave / 1.4387752e0;                     // = (T*k_B) / (h*c)    
 
-      Numeric Tfac   = (Tave - TO) / (220.0e0 - TO);           // [1]
+      // FIXME Numeric Tfac   = (Tave - TO) / (220.0e0 - TO);           // [1]
       Numeric xktfac = (1.000e0/TO) - (1.000e0/Tave);          // [1/K]
       Numeric factor = 0.000e0;
       if (vmrn2 > VMRCalcLimit)
@@ -4600,7 +4600,7 @@ void CKD_mt_CIAfun_o2( MatrixView         xsec,
     {
       Numeric Tave   = t_abs[i];                               // [K]
       Numeric Pave   = (p_abs[i]*1.000e-2);                    // [hPa]
-      Numeric vmro2  = vmr[i];                                 // [1]
+      // FIXME Numeric vmro2  = vmr[i];                                 // [1]
       Numeric WTOT   = xLosmt * (Pave/PO) * (T1/Tave);         // [molecules/cm^2]
       Numeric tau_fac= WTOT * (Pave/PO) * (T1/Tave);
 
@@ -4748,9 +4748,9 @@ void CKD_mt_v0v0_o2( MatrixView          xsec,
 
   // ************************** CKD stuff ************************************
 
-  const Numeric xLosmt    = 2.686763e19; // Loschmidt Number [molecules/cm^3]
+  // FIXME const Numeric xLosmt    = 2.686763e19; // Loschmidt Number [molecules/cm^3]
   const Numeric T1        =  273.0e0;
-  const Numeric TO        =  296.0e0;
+  // FIXME const Numeric TO        =  296.0e0;
   const Numeric PO        = 1013.0e0;
 
   // It is assumed here that f_mono is monotonically increasing with index!
@@ -4955,7 +4955,7 @@ void CKD_mt_v1v0_o2( MatrixView          xsec,
   const Numeric T1        =  273.0e0;
   const Numeric TO        =  296.0e0;
   const Numeric PO        = 1013.0e0;
-  const Numeric vmr_argon = 9.000e-3;    // VMR of argon is assumed to be const.
+  // FIXME const Numeric vmr_argon = 9.000e-3;    // VMR of argon is assumed to be const.
 
 
   // CKD_MT 1.00 implementation of oxygen v1<-v0 band model of
@@ -7098,7 +7098,7 @@ void PWR93O2AbsModel( MatrixView        xsec,
 
   // select the parameter set (!!model dominates values!!):
   Numeric CC, CL, CW, CO, Y300[n_lines], S300[n_lines], F[n_lines];
-  int oldnewflag = 0;
+  // FIXME int oldnewflag = 0;
 
   if ( model == "Rosenkranz" )
     {
@@ -7697,7 +7697,7 @@ void Standard_O2_continuum( MatrixView        xsec,         // cross section
   // this constant is already incorporated into the line strength, so we 
   // have top devide the line strength by this value since arts multiplies xsec
   // by these variables later in absCalc.
-  const Numeric	VMRISO = 0.2085;
+  // FIXME const Numeric	VMRISO = 0.2085;
 
   // loop over all pressure levels:
   for ( Index i=0; i<n_p; ++i )
@@ -7975,7 +7975,7 @@ void MPM93_N2_continuum( MatrixView          xsec,
       // Loop frequency:
       for ( Index s=0; s<n_f; ++s )
 	{
-	  Numeric f = f_mono[s] * Hz_to_GHz; // frequency in GHz
+	  // FIXME Numeric f = f_mono[s] * Hz_to_GHz; // frequency in GHz
 	  // the vmr of N2 will be multiplied at the stage of absorption calculation:
 	  // abs / vmr * xsec.
 	  xsec(s,i) += fac * strength *                              // strength
@@ -8949,9 +8949,9 @@ void MPM93RainExt( MatrixView         xsec,
       Numeric Ea;
       Numeric Gb;
       Numeric Eb;
-      Numeric a_rain;
-      Numeric b_rain;
-      Numeric ext_rain;
+      // FIXME Numeric a_rain;
+      // FIXME Numeric b_rain;
+      // FIXME Numeric ext_rain;
 
       // Check limits of rain rate ("vmr") [mm/h]
       if ( (vmr[i] >= low_lim_rr) && (vmr[i] < high_lim_rr) ) 
@@ -13151,7 +13151,7 @@ union {
 struct {
     double e_1[246];
     int e_2[6];
-    } energ_ = { -54.99996, -54.86228, -54.58697, -54.17413, -53.62391, 
+    } energ_ = { {-54.99996, -54.86228, -54.58697, -54.17413, -53.62391, 
 	    -52.93648, -52.11211, -51.15108, -50.05374, -48.82049, -47.45179, 
 	    -45.94815, -44.31014, -42.53841, -40.63365, -38.59665, -36.42824, 
 	    -34.12937, -31.70105, -29.14439, -26.46061, -23.65103, -20.71709, 
@@ -13178,14 +13178,14 @@ struct {
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
 	    -.17133, -.14341, 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
-	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 41, 32, 24, 17, 9, 2 }
+	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.}, {41, 32, 24, 17, 9, 2} }
 	    ;
 
 struct {
     double fill_1[1];
     double e_2[4];
     int fill_3[1];
-    } n2part_ = { {0}, 2., 1., 1.98957, 5.8e-6 };
+    } n2part_ = { {0}, {2., 1., 1.98957, 5.8e-6}, {0} };
 
 struct {
     int fill_1[1];
@@ -13195,9 +13195,9 @@ struct {
 
 /* Table of constant values */
 
-static integer c__9 = 9;
-static integer c__1 = 1;
-static integer c__5 = 5;
+// FIXME static integer c__9 = 9;
+// FIXME static integer c__1 = 1;
+// FIXME static integer c__5 = 5;
 static int cs__1 = 1;
 static int cs__0 = 0;
 static double c_b24 = 2.9723;
@@ -13230,7 +13230,7 @@ static double c_b59 = -25.38969;
 static double c_b60 = 2.46542;
 static int cs__4 = 4;
 static int cs__5 = 5;
-static integer c__2 = 2;
+// FIXME static integer c__2 = 2;
 static double c_b78 = .0825299;
 static double c_b79 = -1.25562;
 static double c_b80 = .12981;
@@ -13694,8 +13694,8 @@ L999:
 /* Subroutine */ int addspec_(double *g0, double *ep, double *
 	tau1, double *tau2, double *tau5, double *tau6, 
 	double *temp, int *nf, double *freq, double *abscoef,
-	 int *mp, int *like, int *lambda1, int *lambda2, 
-	int *lambda, int *lvalue)
+	 int * /* mp */, int *like, int *lambda1, int *lambda2, 
+	int *lambda, int * /* lvalue */)
 {
     /* Initialized data */
 
@@ -15163,7 +15163,7 @@ struct consts_1_ {
 
 struct {
     double e_1[2003];
-    } fh2oa_ = { .012859, .011715, .011038, .011715, .012859, .015326, 
+    } fh2oa_ = { {.012859, .011715, .011038, .011715, .012859, .015326, 
 	    .016999, .018321, .019402, .01957, .019432, .017572, .01676, 
 	    .01548, .013984, .012266, .010467, .0094526, .0080485, .0069484, 
 	    .0061416, .0050941, .0044836, .0038133, .0034608, .0031487, 
@@ -15510,16 +15510,16 @@ struct {
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
 	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
-	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0. };
+	    0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.} };
 
 struct {
     double e_1[3];
     int e_2;
-    } fh2ob_ = { -20., 2e4, 10., 2003 };
+    } fh2ob_ = { {-20., 2e4, 10.}, 2003 };
 
 struct {
     double e_1[2003];
-    } sh2oa_ = { .11109, .10573, .10162, .10573, .11109, .12574, .13499, 
+    } sh2oa_ = { {.11109, .10573, .10162, .10573, .11109, .12574, .13499, 
 	    .14327, .15065, .15164, .15022, .13677, .13115, .12253, .11271, 
 	    .1007, .087495, .080118, .06994, .062034, .056051, .047663, 
 	    .04245, .03669, .033441, .030711, .025205, .022113, .01888, 
@@ -15880,16 +15880,16 @@ struct {
 	    2.2451e-16, 2.1705e-16, 2.0984e-16, 2.0286e-16, 1.9611e-16, 
 	    1.8958e-16, 1.8327e-16, 1.7716e-16, 1.7126e-16, 1.6555e-16, 
 	    1.6003e-16, 1.5469e-16, 1.4952e-16, 1.4453e-16, 1.397e-16, 
-	    1.3503e-16 };
+	    1.3503e-16 } };
 
 struct {
     double e_1[3];
     int e_2;
-    } sh2ob_ = { -20., 2e4, 10., 2003 };
+    } sh2ob_ = { {-20., 2e4, 10.}, 2003 };
 
 struct {
     double e_1[2003];
-    } s260a_ = { .1775, .17045, .16457, .17045, .1775, .20036, .21347, .22454,
+    } s260a_ = { {.1775, .17045, .16457, .17045, .1775, .20036, .21347, .22454,
 	     .23428, .23399, .23022, .20724, .19712, .18317, .16724, .1478, 
 	    .12757, .11626, .10098, .089033, .07977, .067416, .059588, 
 	    .051117, .046218, .042179, .034372, .029863, .025252, .022075, 
@@ -16248,18 +16248,18 @@ struct {
 	    7.974e-16, 7.7414e-16, 7.5154e-16, 7.2961e-16, 7.083e-16, 
 	    6.8761e-16, 6.6752e-16, 6.4801e-16, 6.2906e-16, 6.1066e-16, 
 	    5.928e-16, 5.7545e-16, 5.586e-16, 5.4224e-16, 5.2636e-16, 
-	    5.1094e-16, 4.9596e-16 };
+	    5.1094e-16, 4.9596e-16} };
 
 struct {
     double e_1[3];
     int e_2;
-    } s260b_ = { -20., 2e4, 10., 2003 };
+    } s260b_ = { {-20., 2e4, 10.}, 2003 };
 
 struct {
     double e_1[9];
-    } consts_ = { 3.1415927410125732, 6.62606876e-27, 1.3806503e-16, 
+    } consts_ = { {3.1415927410125732, 6.62606876e-27, 1.3806503e-16, 
 	    29979245800., 6.02214199e23, 2.6867775e19, 83144720., 
-	    1.191042722e-12, 1.4387752 };
+	    1.191042722e-12, 1.4387752} };
 
 
 /* Table of constant values */
@@ -16271,13 +16271,13 @@ static integer c__2 = 2;
 static integer c__5 = 5;
 static int cs__0 = 0;
 */
-static double c_b125 = 0.;
+// FIXME static double c_b125 = 0.;
 
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.17 $ */
-/*     created:	        $Date: 2003/11/21 11:28:04 $ */
+/*     revision:	        $Revision: 1.26.2.18 $ */
+/*     created:	        $Date: 2003/12/08 08:45:39 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */
@@ -16312,10 +16312,10 @@ double artsckd_(double p, double t, double vmrh2o,
 
     /* System generated locals */
     double ret_val=0.0e0;
-    double d__1, d__2, d__3, d__4;
+    // FIXME double d__1, d__2, d__3, d__4;
 
     /* Local variables */
-    int iosa;
+    // FIXME int iosa;
     double w_wv__, oc_n2, radct;
     double w_other__, w_n2__, w_o2__;
     double of_wv, os_wv, p0, xn_wv__, t0, rhofac, wn, xn, xn0, tksvpt, rft;
@@ -16499,7 +16499,7 @@ double artsckd_(double p, double t, double vmrh2o,
     //    cout << "CKD2.4 H2O s+f cont         [in Np/m]         =" << ((os_wv+of_wv) * 1.0000e2) << "\n";
     //ret_val = ((os_wv + of_wv + oc_n2) * 1.0000e2);
 
-L999:
+// FIXME L999:
 
     return ret_val;  // [Np/m] 
 } /* artsckd_ */
@@ -16673,7 +16673,7 @@ double swv_(int ivc, double wn, double t, double *t0,
 
 
 double swv24_(double wn, double t, double *t0, double *
-	      w_wv__, double *rft, double *xn, double *xn_wv__, 
+	      w_wv__, double *rft, double * /* xn */, double *xn_wv__, 
 	      double *xn0, double *xslf)
 {
     /* Initialized data */
@@ -16742,7 +16742,7 @@ double swv24_(double wn, double t, double *t0, double *
 } /* swv24_ */
 
 double swv_mpmf87s93__(double wn, double t, double *t0, 
-	double *w_wv__, double *rft, double *xn, double *
+	double *w_wv__, double *rft, double * /* xn */, double *
 	xn_wv__, double *xn0, double *xslf)
 {
     /* System generated locals */
