@@ -1,3 +1,15 @@
+2004-09-09  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-863
+
+	* src/m_cloudbox.cc (ParticleYypeAddAll): Modified. Now it takes
+	as input for the scattering data one filename. This file should
+	contain all the filenames which  belong to the pnd_field_raw,
+	which is also added in this function. 
+	The file containing the filenames can be generated with PyARTS. 
+
+	* methods.cc: Modified entry for (ParticleTypeAddAll).
+	
 2004-09-08  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-862
@@ -21,7 +33,7 @@
 	Fixed problem. I ignored pnd smaller than 0.001. Now the value is 
 	set to 1e-12.
 
-	* src/m_cloudbox.cc (particle_typeAddAll): Minor modification.
+	* src/m_cloudbox.cc (ParticleTypeAddAll): Minor modification.
 
 	* src/m_scatrte.cc (za_interpSet): Cubic interpolation is only 
 	implemented for 1D. Included check to assure that it is not used for 

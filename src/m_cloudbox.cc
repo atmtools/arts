@@ -1087,7 +1087,8 @@ void ParticleTypeInit( //WS Output:
   
   \param scat_data_raw Single scattering data.
   \param pnd_field_raw Particle number density field data.
-  \param scat_data_files Filename for scattering data.
+  \param filename_scat_data Filename for a file containing the filenames of the 
+                       single scattering data files.
   \param pnd_field_file Filename for pnd field data.
 
   \author Claudia Emde
@@ -1098,17 +1099,21 @@ void ParticleTypeAddAll( //WS Output:
                  ArrayOfSingleScatteringData& scat_data_raw,
                  ArrayOfGriddedField3&  pnd_field_raw,
                  // Keyword:
-                 const ArrayOfString& scat_data_files,
+                 const String& filename_scat_data,
                  const String& pnd_field_file)
 {
  
-  scat_data_raw.resize(scat_data_files.nelem());
   
-  for (Index i = 0; i<scat_data_files.nelem(); i++)
+  ArrayOfString data_files;
+  xml_read_from_file(filename_scat_data, data_files);
+
+  scat_data_raw.resize(data_files.nelem());
+  
+  for (Index i = 0; i<data_files.nelem(); i++)
     {
       
       out2 << "Read single scattering data\n";
-      xml_read_from_file( scat_data_files[i], 
+      xml_read_from_file( data_files[i], 
                           scat_data_raw[i]);
     }
   

@@ -2590,8 +2590,8 @@ md_data_raw.push_back
         INPUT(),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("filenames_scat_data", "filename_pnd_field"),
-        TYPES(Array_String_t, String_t)));
+        KEYWORDS("filename_scat_data", "filename_pnd_field"),
+        TYPES(String_t, String_t)));
  
  md_data_raw.push_back
     ( MdRecord
