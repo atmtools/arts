@@ -228,17 +228,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("IndexWriteBinary"),
-	DESCRIPTION("Writes an index to a binary file.\n"
+	DESCRIPTION(
+		    "Writes an index to a binary file.\n"
 		    "\n"
 		    "The filename can be specified or an empty String.\n"
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
-		    "See ??? for details about the file format.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
 		    "Global input: \n"
-		    "   Index : \n"
+		    "   Index : Name of the workspace variable to write.\n"
 		    "\n"
                     "Keywords:\n"
-                    "   filename:   \n"),
+                    "   filename: Name of the output file.\n"
+		    ),
    
 	OUTPUT(),
 	INPUT(),
@@ -250,16 +252,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("IndexReadBinary"),
-	DESCRIPTION("Reads an index from a binary file.\n"
+	DESCRIPTION(
+		    "Reads an index from a binary file.\n"
 		    "\n"
 		    "The filename can be specified or an empty String.\n"
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
 		    "\n"
 		    "Global output: \n"
-		    "   Index : \n"
+		    "   Index : Name of the workspace variable to read.\n"
 		    "\n"
 		    "Keywords:\n"
-		    "   filename : \n"),
+		    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Index_ ),
@@ -350,16 +355,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("NumericWriteBinary"),
-	DESCRIPTION("Writes a numeric value to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a numeric value to a binary file.\n"
 		    "\n"
 		    "The filename can be specified or an empty String.\n"
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
 		    "\n"
 		    "Global input: \n"
-		    "   Numeric : \n"
+		    "   Numeric : Name of the workspace variable to write.\n"
 		    "\n"
 		    "Keywords:\n"
-		    "   filename : \n"),
+		    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -370,16 +378,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("NumericReadBinary"),
-	DESCRIPTION("Reads a numeric from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a numeric from a binary file.\n"
 		    "\n"
 		    "The filename can be specified or an empty String.\n"
 		    "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
 		    "\n"
 		    "Global output: \n"
-		    "   Numeric : \n"
+		    "   Numeric : Name of the workspace variable to read.\n"
 		    "\n"
 		    "Keywords:\n"
-		    "   filename : \n"),
+		    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Numeric_ ),
@@ -552,16 +563,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorWriteBinary"),
-        DESCRIPTION("Writes a vector to a binary file.\n"
+        DESCRIPTION(
+		    "Writes a vector to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   Vector : \n"
+                    "   Vector : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -572,16 +586,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorReadBinary"),
-	DESCRIPTION("Reads a vector from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a vector from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n" 
                     "Global output: \n"
-                    "   Vector : \n"
+                    "   Vector : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
@@ -734,16 +751,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixWriteBinary"),
-	DESCRIPTION("Writes a matrix to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a matrix to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   Matrix : \n"
+                    "   Matrix : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -754,16 +774,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixReadBinary"),
-	DESCRIPTION("Reads a matrix from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a matrix from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output: \n"
-                    "   Matrix : \n"
+                    "   Matrix : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Matrix_ ),
@@ -843,16 +866,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexWriteBinary"),
-	DESCRIPTION("Writes an index array to a binary file.\n"
+	DESCRIPTION(
+		    "Writes an index array to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   ArrayOfIndex : \n"
+                    "   ArrayOfIndex : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -863,16 +889,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexReadBinary"),
-	DESCRIPTION("Reads an index array from a binary file.\n"
+	DESCRIPTION(
+		    "Reads an index array from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output: \n"
-                    "   ArrayOfIndex : \n"
+                    "   ArrayOfIndex : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfIndex_ ),
@@ -940,16 +969,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorWriteBinary"),
-	DESCRIPTION("Writes a vector array to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a vector array to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   ArrayOfVector : \n"
+                    "   ArrayOfVector : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -960,16 +992,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfVectorReadBinary"),
-	DESCRIPTION("Reads a vector array from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a vector array from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output:  \n"
-                    "   ArrayOfVector : \n"
+                    "   ArrayOfVector : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfVector_ ),
@@ -1057,16 +1092,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixWriteBinary"),
-	DESCRIPTION("Writes a matrix array to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a matrix array to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   ArrayOfMatrix : \n"
+                    "   ArrayOfMatrix : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -1077,16 +1115,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfMatrixReadBinary"),
-	DESCRIPTION("Reads a matrix array from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a matrix array from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output: \n"
-                    "   ArrayOfMatrix : \n"
+                    "   ArrayOfMatrix : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfMatrix_ ),
@@ -1164,16 +1205,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("StringWriteBinary"),
-	DESCRIPTION("Writes a String to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a String to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   String : \n"
+                    "   String : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -1184,16 +1228,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("StringReadBinary"),
-	DESCRIPTION("Reads a String from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a String from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output: \n"
-                    "   String : \n"
+                    "   String : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( String_ ),
@@ -1284,16 +1331,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfStringWriteBinary"),
-	DESCRIPTION("Writes a String array to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a String array to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   ArrayOfString : \n"
+                    "   ArrayOfString : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -1304,16 +1354,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("ArrayOfStringReadBinary"),
-	DESCRIPTION("Reads a String array from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a String array from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output: \n"
-                    "   ArrayOfString : \n"
+                    "   ArrayOfString : Name of the workspace variable to read.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( ArrayOfString_ ),
@@ -1340,16 +1393,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("LosWriteBinary"),
-	DESCRIPTION("Writes a LOS structure to a binary file.\n"
+	DESCRIPTION(
+		    "Writes a LOS structure to a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global input: \n"
-                    "   LOS : \n"
+                    "   LOS : Name of the workspace variable to write.\n"
                     "\n"
                     "Keywords:\n"
-                    "   filename : \n"),
+                    "   filename : Name of the output file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -1360,15 +1416,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("LosReadBinary"),
-	DESCRIPTION("Reads a LOS structure from a binary file.\n"
+	DESCRIPTION(
+		    "Reads a LOS structure from a binary file.\n"
                     "\n"
                     "The filename can be specified or an empty String.\n"
                     "If empty, it is set to <basename>.<variable_name>.ab.\n"
+		    "File is in HDF4 format.\n"
                     "\n"
                     "Global output: \n"
-                    "   LOS : \n"
-                    "Keywords:\n"
-                    "   filename : \n"),
+                    "   LOS : Name of the workspace variable to read.\n"
+                    "\n"
+		    "Keywords:\n"
+		    "   filename : Name of the input file.\n"
+		    ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( LOS_ ),
