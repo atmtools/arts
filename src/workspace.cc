@@ -250,7 +250,8 @@ void define_wsv_data()
        "also the grids on which the data is stored.\n"
        "For the calculation the data is \n"
        "interpolated on *f_grid*, *scat_za_grid*, *scat_aa_grid*,\n"
-       "*scat_za_grid* and *scat_aa_grid*. \n"
+       "*scat_za_grid* and *scat_aa_grid*. The interpolated data is stored \n"
+       "in *amp_mat*. \n"
        "The amplitude matrix is a 2x2 complex matrix. The workspace variable\n"
        "*amp_mat_raw* stores the real and imaginary elements\n"
        "(i.e. 8 elements) separately. \n" 
@@ -265,6 +266,8 @@ void define_wsv_data()
        "      [1, N_za, 1, 1, 1, 1] \n"
        "      [1, 1, N_aa, 1, 1, 1] \n"
        "      [1, 1, 1, N_za, 1, 1] \n"
+       "      [1, 1, 1, 1, N_aa, 1] \n"
+       "      [1, 1, 1, 1, 1, 8] \n"
        "      [N_f, N_za, N_aa, N_za, N_aa, 8] \n"
        "\n"
        ),

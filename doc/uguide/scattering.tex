@@ -276,17 +276,26 @@ a solution to the vector radiative transfer Equation (\ref{eq:scattering:RTE})
 has been
 found. An analogous convergence test is done for the scalar case.
 
-\levelb{Database for the single scattering properties}
+\levelb{Scattering databases}
 %============================================================
 \label{sec:scattering:database}
+
+There are two databases which are reqired for scattering calculations
+inside the cloudbox. One contains the optical properties of different
+partical types and the other contains the corresponding particle
+number density fields.
+
+\levelc{Database for opticle properties}
+%============================================================
+\label{sec:scattering:amp_mat_data}
 
 The required quantities for the radiative transfer calculations are
 the  extinction cross section matrix, the
 absorption coefficient vector and the phase
 matrix. All these quantities can be calculated for spherical,
 cylindrical and spheroidal particles using the T-matrix
-method. Applying Mishchenko's FORTRAN code% [\cite{Mishchenko:98}]
-%[\cite{Mishchenko:00}] //check in references!!!!  
+method. Applying Mishchenko's FORTRAN code, which is explained in
+[\cite{Mishchenko:98}] and [\cite{Mishchenko:00}],   
 the amplitude matrix can be calculated. The
 amplitude matrix ${\bf S}$ is a 2x2 complex matrix, which linearly transforms 
 the electric field vector components of the incident wave into the
@@ -303,8 +312,8 @@ The amplitude matrix depends on the directions of incidence  $(\theta,
 scattering $(\theta', \phi')$ as  well as on size, morphology and composition of the
 scattering material, also on the orientation of the particles which
 is specified by the Euler angles of rotation $\epsilon _i$. 
-The equation above is valid for a monochromatic wave. In general, the
-amplitude matrix is also frequency dependent.
+The equation above is valid for a monochromatic wave.  Furthermore the
+amplitude matrix is frequency dependent.
 
 The amplitude matrix contains all information about the optical
 properties of the scattering medium. Extinction cross section
@@ -316,32 +325,172 @@ For this reason, it is sufficient to store only the amplitude matrices
 in the scattering data base. 
 
 For each particle type there is one file in the database.
-The particle type depends on the particle size, the particle shape and the
-orientation. We consider only ice crystals, which means the material of the
-particles is always the same. If there is a cloud consisting of
+The particle type is determined by the particle size, the particle
+shape and the
+orientation. We consider only ice crystals, which means that the
+material of the
+particles is always identical. If there is a cloud consisting of
 different particles, the scattering properties for that particles
 distribution can be derived from the single scattering properties.
 
-Each file in the database contains for each frequency, for each propagation
+Each file in the scattering database contains the amplitude matrix for
+one particular particle type. The files are stored in xml-format. The
+datatype of each file is a 6D gridded field (cp. Section
+%\ref{sec:gridded_fields}). 
+The following example shows the datafile
+for spherical particles having 200 $\mu$m equal volume sphere radius:
+
+\begin{verbatim}
+<?xml version="1.0"?>
+<arts format="ascii" version="1">
+<Array type="Tensor6" nelem="7">
+<Tensor6 nvitrines="1" nshelves="1" nbooks="1" npages="1"
+                                nrows="1" ncols="1">
+  3.25E+11    // frequency grid, this file contains only one
+</Tensor6>
+<Tensor6 nvitrines="1" nshelves="18" nbooks="1" npages="1" 
+                                 nrows="1" ncols="1">
+  0.          
+  10.
+  20.         // incoming zenith angle grid
+   .
+   .
+   .
+ </Tensor6>
+ <Tensor6 nvitrines="1" nshelves="1" nbooks="36" npages="1"
+                                 nrows="1" ncols="1">
+   0.
+  10.
+   .          // incoming azimuth angle grid   
+   .
+   .
+ </Tensor6>
+ <Tensor6 nvitrines="1" nshelves="1" nbooks="1" npages="18"
+                                 nrows="1" ncols="1">
+  0.
+  10.
+   .          // scattered zenith angle grid
+   .
+   .
+ </Tensor6>
+ <Tensor6 nvitrines="1" nshelves="1" nbooks="1" npages="18"
+                                 nrows="1" ncols="1">
+  0.
+  10.
+   .           // scattered azimuth angle grid
+   .
+   .
+  </Tensor6>
+ <Tensor6 nvitrines="1" nshelves="1" nbooks="1" npages="1"
+                                 nrows="1" ncols="8"> 
+  1.
+  1.           // dummy grid for the amplitue matrix 
+  .            // components
+  .
+  .
+  </Tensor6>
+ <Tensor6 nvitrines="1" nshelves="18" nbooks="36" 
+                        npages="18" nrows="36" ncols="8">
+   0.204E+03   0.102E+03  -0.382E-37   0.186E-37   0.000E+00  
+                    0.000E+00   0.204E+03   0.102E+03
+   0.201E+03   0.100E+03  -0.354E+02  -0.177E+02   0.354E+02 
+                    0.177E+02   0.201E+03   0.100E+03
+   .
+   .          // the amplitude matrix data 
+   .    
+   .          // the order of the elements is:
+   .          // S11_real, S11_imag, S12_real, S12_imag, 
+   .          // S21_real, S21_imag, S22_real, S22_imag    
+   .
+   0.201E+03   0.100E+03  -0.348E+02  -0.174E+02   0.348E+02  
+                    0.174E+02   0.201E+03   0.100E+03
+   0.204E+03   0.102E+03  -0.234E-22  -0.446E-22   0.234E-22   
+                    0.446E-22   0.204E+03   0.102E+03
+</Tensor6>
+</Array>
+</arts>
+\end{verbatim}
+
+This example file shows that each file in the database contains
+for each frequency, for each propagation
 direction (\ScaZa, \ScaAa) and each scattered direction
  (\ScaZa$^\prime$, \ScaAa$^\prime$) the real
 components of the amplitude matrix ($S^{real}_{11}$, $S^{real}_{12}$,
 $S^{real}_{21}$, $S^{real}_{22}$) and the imaginary components
 ($S^{imag}_{11}$, $S^{imag}_{12}$,$S^{imag}_{21}$, $S^{imag}_{22}$).
 
-You can read the database using the function
-\wsmindex{read\_amp\_fromDb}.\\
-Output of the function is a tensor containing amplitude matrices for
-a fixed angle combination stored in the variable
-\wsvindex{amp\_mat}. Its dimension is [$N_{sp}, N_{I}, N_{I}$]
-where $N_{pt}$ is the number of particle
-types  and $N_{I}$ denotes the Stokes dimension.\\
-Input to this method is a fixed angle
-combination  (\artsstyle{za},\artsstyle{aa},\artsstyle{za}' and
-\artsstyle{aa}') for propagation and scattered direction and the vector
-\artsstyle{scat\_pt} which contains indices for the  particle types
-which are considered in the calculation. This vector has to be defined
-in the control file.
+\levelc{Database for particle number density fields}
+%==========================================================
+\label{sec:scattering:pnd_data}
+
+A second database contains the particle number density fields. The
+data is stored in xml-format. The datatype contained in each file is a
+3D gridded field. It contains three elements corresponding to 
+pressure, latitude and longitude grid. The forth element contains the
+data for the particle number density. As for the amplitude matrix data
+base, the particle number density database contains one file foreach
+particle type which can be considered.
+
+\levelc{Reading the databases}
+%===========================================================
+\label{sec:scattering:read_data}
+
+Two workspace methods are implemented for reading the database. They
+are called \wsmindex{ParticleTypeInit} and \wsmindex{ParticleTypeAdd}. 
+
+The workspace variable containing the amplitude matrix data is
+\wsvindex{amp\_mat\_raw} which is an array of gridded fields. The
+array contains for each particle type one gridded field having the
+same dimensions as the files in the database. Therefore the first six
+elements of a gridded field contain the
+frequency grid, the angular grids and a dummy grid corresponding
+to the number of
+elements of the amplitude matrix (i.e. 8) and the seventh element 
+contains the data itself.
+
+The analogeous workspace variable for the particle number density
+field is called \wsvindex{pnd\_field\_raw} which as well is an array of
+gridded fields containing one element for each particle type. The
+first three elements of each gridded field contain the pressure, the
+latitude and the longitude grids and the fourth element the particle
+number density data. 
+
+The workspace method \wsmindex{ParticleTypeInit} is used for initializing
+\wsvindex{amp\_mat\_raw} and \wsvindex{pnd\_field\_raw}. 
+The method \wsmindex{ParticleTypeAdd} puts the data for one particle
+type into \wsvindex{amp\_mat\_raw} and \wsvindex{pnd\_field\_raw}. The
+filenames are passed into the methods by keywords which are specified
+in the controlfile.
+
+The following example shows a part of a control file where
+\wsvindex{amp\_mat\_raw} and \wsvindex{pnd\_field\_raw}  are created
+for two particle types:
+
+\begin{verbatim}
+
+# Initialize variables
+# --------------------------------------------
+ParticleTypeInit{}
+
+# Add spherical particles, size 200 mirons
+# --------------------------------------------
+ParticleTypeAdd{
+        filename_amp_mat = "sph_200_ampmat.xml" 
+        filename_pnd_field = "sph_200_pnd.xml"
+        }       
+
+# Add cylindrical particles, size 100 mirons
+#---------------------------------------------
+ParticleTypeAdd{
+        filename_amp_mat = "cyl_100_ampmat.xml" 
+        filename_pnd_field = "cyl_100_pnd.xml"
+        }   
+
+\end{verbatim}
+ 
+There is no convention for the filenames. The datafiles contain more 
+information about the particles, for example the particle shape, the
+particle shape and the aspect ratio for non-spherical particles.
 
 
 \levelb{Get local atmospheric properties from atmospheric fields}
@@ -924,12 +1073,38 @@ matrix inverse, such that the standard C math library is sufficient.
 \end{itemize}
 
 
-
 \levelc{Convergence test method}
 %====================================
 \label{sec:scattering:conv_method}
 
+Different methods to do the convergence test are implemented. The user
+has to chose one by setting the
+\wsvindex{convergence\_test\_agenda}. The following methods can be
+used:
 
+\begin{itemize}
+\item {\bf Method \artsstyle{convergence\_flagAbs}:}\\
+The function calculates the absolute differences for two successive
+iteration fields. It picks out the maximum values for each Stokes 
+component separately. The convergence test is fullfilled under the
+following conditions:
+\begin{eqnarray}
+|I_{m+1} - I_m| < \epsilon_1    \\
+|Q_{m+1} - Q_m| < \epsilon_2    \\
+|U_{m+1} - U_m| < \epsilon_3    \\
+|V_{m+1} - V_m| < \epsilon_4     
+\end{eqnarray}
+
+The limits for convergence have to be set in the controlfile by 
+setting the vector \artsstyle{epsilon} as a keyword 
+to appropriate values.
+The conditions have to be valid for all positions in the cloudbox 
+and for all directions.
+Then the workspace variable \wsvindex{convergence\_flag} is set to 1.
+
+\item {\bf Method \artsstyle{convergence\_flagLsq}:}\\
+This method performs a least square test.
+\end{itemize}
 
 
 

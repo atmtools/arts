@@ -1,3 +1,15 @@
+2002-07-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-180
+
+	* doc/uguide/scattering.tex: Added description for the scattering 
+	database and the reading routines. Furthermore the documentation
+	for the convergence test.
+
+	* doc/uguide/references.bib: Added references for Mishchenko code.
+
+	* src/workspace.cc: Fixed documentation for *amp_mat_raw*.
+
 2002-07-02  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
 	* arts-1-1-179
