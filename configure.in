@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.1.380)
+AM_INIT_AUTOMAKE(arts,1.1.381)
 
 AM_MAINTAINER_MODE
 
@@ -81,23 +81,36 @@ AM_CONDITIONAL(HAVE_SSTREAM, test x$ac_sstream = xyes)
 #
 # HDF support
 #
-AC_ARG_WITH(hdf,
-[  --with-hdf              HDF binary file support (default=autodetect)],
-[case "${withval}" in
-  autodetect) ac_hdf_support=autodetect ;;
-  yes) ac_hdf_support=yes ;;
-   no) ac_hdf_support=no ;;
-    *) AC_MSG_ERROR(bad value ${withval} for --with-hdf) ;;
-esac],[ ac_hdf_support=autodetect ])
+AC_ARG_WITH([hdf],
+  AC_HELP_STRING([--with-hdf=DIR],
+                 [HDF binary file support DIR (default is autodetect)]),
+  [case "${withval}" in
+    autodetect) ac_hdf_support=autodetect ;;
+    yes) ac_hdf_support=yes ;;
+     no) ac_hdf_support=no ;;
+      *) ac_hdf_support=unknown ;;
+   esac],
+  [ac_hdf_support=autodetect])
+
+if test x$ac_hdf_support = xunknown; then
+  if test -d "${withval}/lib" -a -d "${withval}/include"; then
+    LDFLAGS="$LDFLAGS -L${withval}/lib"
+    CPPFLAGS="$CPPFLAGS -I${withval}/include"
+    ac_hdf=yes
+  else
+    AC_MSG_ERROR(${withval}/lib and/or ${withval}/include not found)
+    ac_hdf=no
+  fi
+fi
 
 if test x$ac_hdf_support = xno; then
   ac_hdf=no
 else
-  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lmfhdf -ldf -lz )
+  AC_CHECK_LIB(z, gzopen,, ac_hdf=no, )
+  AC_CHECK_LIB(jpeg, jpeg_start_compress,, ac_hdf=no, -lz )
   AC_CHECK_HEADER(hdf.h, ac_hdf=yes, ac_hdf=no)
   AC_CHECK_LIB(mfhdf, Hopen,, ac_hdf=no, -ldf -ljpeg -lz )
   AC_CHECK_LIB(df, DFopen,, ac_hdf=no, -lmfhdf -ljpeg -lz )
-  AC_CHECK_LIB(z, gzopen,, ac_hdf=no, -lmfhdf -ldf -ljpeg )
 fi
 
 if test x$ac_hdf = xyes; then
@@ -371,6 +384,7 @@ AC_MSG_RESULT()
 AC_MSG_RESULT([  CPPFLAGS : $CPPFLAGS])
 AC_MSG_RESULT([  CFLAGS   : $CFLAGS])
 AC_MSG_RESULT([  CXXFLAGS : $CXXFLAGS])
+AC_MSG_RESULT([  LDFLAGS  : $LDFLAGS])
 AC_MSG_RESULT()
 if test $ac_arts_data = no; then
   AC_MSG_RESULT([  ARTS data path : not installed])
