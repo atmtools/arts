@@ -450,16 +450,21 @@ void los_1za(
     else
     {
       // The "zenith angle" at ground level
-      Numeric za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );   
+      Numeric za_g;
 
       if ( !refr )
       {
+        za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );   
+
         los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
 
         psi0 = za + za_g - 180.0;
       }
       else
       {
+        za_g = RAD2DEG * asin( c / ( (r_geoid+z_ground) * 
+                  n_for_z( z_ground, p_abs, z_abs, refr_index, atm_limit ) ) );
+
         los_refraction( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
 
@@ -514,12 +519,23 @@ void los_1za(
 	a  = r_geoid + z_plat;
 	b  = r_geoid + z_tan; 
 	l1 = sqrt(a*a-b*b);   
-  
-	// Adjust l_step downwards to get an integer number of steps
-	stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	l_step = l1 / Numeric(stop);
-  
-	los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
+
+        // A sufficient large distance between platform and tangent point
+        if ( l1 > l_step_max/10 )
+	{
+  	  // Adjust l_step downwards to get an integer number of steps
+	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  l_step = l1 / Numeric(stop);
+	}
+
+        // Ignore downwrd part if platform is very close to tangent point
+        else
+	{
+          l_step = l_step_max;
+          stop   = 0;
+	}
+	  
+        los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
       }
       else
       {
@@ -533,10 +549,21 @@ void los_1za(
         // the sensor by an interpolation
         l1 = interp_lin( z, linspace( 0, l*(z.size()-1) , l ), z_plat );
 
-	// Adjust l_step downwards to get an integer number of steps
-	stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	l_step = l1 / Numeric(stop);
+        // A sufficient large distance between platform and tangent point
+        if ( l1 > l_step_max/10 )
+	{
+  	  // Adjust l_step downwards to get an integer number of steps
+	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  l_step = l1 / Numeric(stop);
+	}
   
+        // Ignore downwrd part if platform is very close to tangent point
+        else
+	{
+          l_step = l_step_max;
+          stop   = 0;
+	}
+
         los_refraction( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
       }
@@ -564,10 +591,21 @@ void los_1za(
 	a  = r_geoid + z_ground;
 	l1 = l1 - sqrt(a*a-b);   
   
-	// Adjust l_step downwards to get an integer number of steps
-	stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	l_step = l1 / Numeric(stop);
+        // A sufficient large distance between platform and ground
+        if ( l1 > l_step_max/10 )
+	{
+	  // Adjust l_step downwards to get an integer number of steps
+	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  l_step = l1 / Numeric(stop);
+	}
   
+        // Ignore downwrd part if platform is very close to ground
+        else
+	{
+          l_step = l_step_max;
+          stop   = 0;
+	}
+
 	za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );
   
 	los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
@@ -575,11 +613,9 @@ void los_1za(
 
       else
       {
-        za_g = RAD2DEG * asin( c / ( (r_geoid+z_ground) ) * 
-                    n_for_z( z_ground, p_abs, z_abs, refr_index, atm_limit ) );
+        za_g = RAD2DEG * asin( c / ( (r_geoid+z_ground) * 
+                  n_for_z( z_ground, p_abs, z_abs, refr_index, atm_limit ) ) );
 
-        // Calculate a first LOS from the ground and up to the sensor
-        // using l_step/refr_lfac as step length
         Numeric   l = l_step / refr_lfac;
         los_refraction( z, psi, l, z_ground, za_g, z_plat+l, r_geoid, 
                                         p_abs, z_abs, refr, 1, refr_index, c );
@@ -588,10 +624,21 @@ void los_1za(
         // the sensor by an interpolation
         l1 = interp_lin( z, linspace( 0, l*(z.size()-1) , l ), z_plat );
 
-	// Adjust l_step downwards to get an integer number of steps
-	stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
-	l_step = l1 / Numeric(stop);
-  
+        // A sufficient large distance between platform and ground
+        if ( l1 > l_step_max/10 )
+	{
+	  // Adjust l_step downwards to get an integer number of steps
+	  stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
+	  l_step = l1 / Numeric(stop);
+	}
+
+        // Ignore downwrd part if platform is very close to ground
+        else
+	{
+          l_step = l_step_max;
+          stop   = 0;
+	}
+
         los_refraction( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
       }

@@ -1,3 +1,26 @@
+2001-06-22  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-179
+
+	* Spectra are now also obtained when standing on the ground and
+	looking downwards which not was the case before. So now spectra
+	shall be obtained for all observation cases.
+
+	* When observing from a point inside the atmosphere and the distance
+	between the sensor and the tangent point, or the ground, is less
+	than l_step/10, the part of the LOS from the sensor and the tangent
+	point, or the ground, is neglected. For these cases, l_step is set to 
+	the value given in the control file, i.e. no adjustment is done as when
+	the distance discussed is > l_step/10.
+
+	* Fixed a bug when calculating the angle of the beam after a
+	ground reflection, when considering refraction. The angle was
+	calculated as asin(c/(Re+z_ground)*n(z_ground)) while the
+	correct expression is asin(c/(Re+z_ground)/n(z_ground))
+
+	* Updated the full.arts control file in examples.
+
+	
 2001-06-22  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
 	* arts-0-0-178

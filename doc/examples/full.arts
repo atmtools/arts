@@ -23,7 +23,7 @@
 tgsDefine           { [
        "O3",
        "ClO",
-       "H2O,H2O-ContRosenkranzForeign,H2O-ContRosenkranzSelf",
+       "H2O,H2O-ContStandardForeign,H2O-ContStandardSelf",
        "N2O",
        "N2-ContRosenkranzSelf" ] }
 wfs_tgsDefine       { ["O3","ClO"] }
@@ -31,7 +31,7 @@ lineshapeDefine     { shape               = "Voigt_Kuntz6"
                       normalizationfactor = "quadratic"
                       cutoff              = -1 } 
 #
-linesReadFromHitran { filename = "/smiles_local/Qpack/Qpack/Samples/Spectroscopy/lines501.4"
+linesReadFromHitran { filename = "/smiles_local/Qpack/Samples/Spectroscopy/lines501.4"
 		      fmin     = 498e9
                       fmax     = 505e9 }
 lines_per_tgCreateFromLines {}  
@@ -39,11 +39,11 @@ lines_per_tgCreateFromLines {}
 cont_descriptionInit{
 }
 cont_descriptionAppend{
-    name       = "H2O-ContRosenkranzSelf"
+    name       = "H2O-ContStandardSelf"
     parameters = [ 17.96e-34, 4.5 ]
 }
 cont_descriptionAppend{
-    name       = "H2O-ContRosenkranzForeign"
+    name       = "H2O-ContStandardForeign"
     parameters = [ 5.43e-35, 0.0 ]
 }
 cont_descriptionAppend{
@@ -285,7 +285,7 @@ ybatchAbsAndRte{
    za_file   = ""
 }
 
-ybatchTRJ{}
+MatrixTRJ( ybatch, ybatch ){}
 #MatrixFillWithVector( ybatch, y ){ 10 }
 
 ybatchAdd{ "ripple" }
