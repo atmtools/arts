@@ -1,3 +1,13 @@
+2002-11-13  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-284
+
+	* src/m_scatproperties.cc (pha_matCalc): Bug fixed in this function. 
+	The off-diagonal elements were calculated wrongly, now the whole phase 
+	matrix is calculated correctly.
+
+	* src/m_scatrte.cc: Only documentation.
+
 2002-11-11  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-283
