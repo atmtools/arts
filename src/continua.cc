@@ -8945,10 +8945,10 @@ void MPM93RainExt( MatrixView         xsec,
       // a_rain and b_rain each depend on frequency by  power laws:
       //  a_rain = Ga * freq ^ Ea
       //  b_rain = Gb * freq ^ Eb
-      Numeric Ga;
-      Numeric Ea;
-      Numeric Gb;
-      Numeric Eb;
+      Numeric Ga = 0.;
+      Numeric Ea = 0.;
+      Numeric Gb = 0.;
+      Numeric Eb = 0.;
       // FIXME Numeric a_rain;
       // FIXME Numeric b_rain;
       // FIXME Numeric ext_rain;
@@ -16276,8 +16276,8 @@ static int cs__0 = 0;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.18 $ */
-/*     created:	        $Date: 2003/12/08 08:45:39 $ */
+/*     revision:	        $Revision: 1.26.2.19 $ */
+/*     created:	        $Date: 2003/12/08 11:02:39 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */
