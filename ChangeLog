@@ -1,3 +1,31 @@
+2002-11-14  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-288
+
+	* src/interpolation.cc (itw2p): Created this function to convert
+	altitudes to pressures.
+	
+	(interp_atmsurface_XXXX and interp_atmfield_XXXX): Changed the name
+	of the special functions to interpolate atmospheric fields and 
+	surfaces, and changed the strategy somewhat. The following functions
+	exist now (use them!):
+
+           void interp_atm_field_gp2itw
+           void interp_atmfield_by_itw
+           void interp_atmfield_by_gp
+           Numeric interp_atmfield_by_gp
+           void interp_atmsurface_gp2itw
+           void interp_atmsurface_by_itw
+           void interp_atmsurface_by_gp
+           Numeric interp_atmsurface_by_gp
+
+	* src/m_ppath.cc (ppath_stepRefractionStd): The WSM to be used in the
+	future for path calculations with refraction, using a basic/standard
+	calculation approach.
+
+	* src/ppath.cc (ppath_step_refr_std_1d): Started on this core function 
+	for 1D path calculations with refraction.
+
 2002-11-14  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-287

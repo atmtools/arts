@@ -108,6 +108,32 @@ Numeric geometrical_ppc( const Numeric& r, const Numeric& za )
 
 
 
+//! refraction_ppc
+/*! 
+   Calculates the propagation path constant for cases with refraction.
+
+   Both positive and negative zenith angles are handled.
+
+   \return         Path constant.
+   \param   r      Radius of the sensor position.
+   \param   za     Zenith angle of the sensor line-of-sight.
+
+   \author Patrick Eriksson
+   \date   2002-05-17
+*/
+Numeric refraction_ppc( 
+        const Numeric& r, 
+	const Numeric& za, 
+	const Numeric& refr_index )
+{
+  assert( r > 0 );
+  assert( fabs(za) <= 180 );
+
+  return r * refr_index * sin( DEG2RAD * fabs(za) );
+}
+
+
+
 //! geompath_za_at_r
 /*! 
    Calculates the zenith angle for a given radius along a geometrical 
@@ -1709,7 +1735,148 @@ void ppath_start_stepping(
 
 
 /*===========================================================================
-  === Core functions for *ppath_step* functions
+  === Help functions for the *ppath_step* functions found below
+  === These functions are mainly pieces of code that are common for at least
+  === two functions (or two places in some function) and for this reason 
+  === there is not much documentation. 
+  ===========================================================================*/
+
+// This function is copied from arts-1 as a temporary solution.
+
+//// refr_index_BoudourisDryAir ///////////////////////////////////////////////
+/**
+   Calculates the refractive index for dry air at microwave frequncies 
+   following Boudouris 1963.
+
+   The expression is also found in Chapter 5 of the Janssen book.
+
+   The atmosphere is assumed to have no water vapour.
+
+   \retval   refr_index  refractive index
+   \param    p_abs       absorption pressure grid
+   \param    t_abs       temperatures at p_abs
+
+   \author Patrick Eriksson
+   \date   2001-02-16
+*/
+void refr_index_BoudourisDryAir (
+             Vector&     refr_index,
+       ConstVectorView   p_abs,
+       ConstVectorView   t_abs )
+{
+  const Index   n = p_abs.nelem();
+  refr_index.resize( n );
+
+  assert ( n == t_abs.nelem() );
+
+  // N = 77.593e-2 * p / t ppm
+  for ( Index i=0; i<n; i++ )
+    refr_index[i] = 1.0 + 77.593e-8 * p_abs[i] / t_abs[i];
+}
+
+
+
+//! ppath_start_1d
+/*! 
+   Internal help function for 1D path calculations.
+
+   The function does the asserts and determined some variables that are common
+   for geometrical and refraction calculations.
+
+   See the code fo details.
+
+   \author Patrick Eriksson
+   \date   2002-11-13
+*/
+void ppath_start_1d(
+	      Index&      imax,
+	      Index&      npl,
+	      Index&      ip,
+              Numeric&    r_start,
+              Numeric&    lat_start,
+              Numeric&    za_start,
+	const Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground )
+{
+  // Number of points in the incoming ppath
+  imax = ppath.np - 1;
+
+  // Number of pressure levels
+  npl = p_grid.nelem();
+
+  // Extract starting radius, zenith angle and latitude
+  r_start   = ppath.pos(imax,0);
+  lat_start = ppath.pos(imax,1);
+  za_start  = ppath.los(imax,0);
+
+  // Asserts
+  assert( npl >= 2 );
+  assert( is_decreasing( p_grid ) );
+  assert( is_size( z_grid, npl ) );
+  assert( is_increasing( z_grid ) );
+  assert( r_geoid > 0 );
+  //
+  assert( ppath.dim == 1 );
+  assert( ppath.np >= 1 );
+  assert( ppath.gp_p[imax].idx >= 0 );
+  assert( ppath.gp_p[imax].idx <= ( npl - 2 ) );
+  assert( ppath.gp_p[imax].fd[0] >= 0 );
+  assert( ppath.gp_p[imax].fd[0] <= 1 );
+  //
+  assert( r_start >= r_geoid + z_ground );
+  assert( za_start >= 0  &&  za_start <= 180 );
+  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 ) && za_start > 90 ) );
+  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], npl-1 )  && 
+                                                            za_start <= 90 ) );
+
+  // Determine index of the pressure surface being the lower limit for the
+  // grid range of interest.
+  //
+  ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
+}
+
+
+
+//! get_refr_index
+/*! 
+   A temporary function to get refractive index for 1D cases.
+
+   See the code fo details.
+
+   \author Patrick Eriksson
+   \date   2002-11-13
+*/
+Numeric get_refr_index_1d(
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        ConstVectorView   t_grid,
+        const Numeric&    z )
+{      
+  ArrayOfGridPos gp(1);
+  gridpos( gp, z_grid, Vector(1,z) );
+
+  Matrix itw(1,2);
+  interpweights( itw, gp );
+
+  Vector p_value(1), t_value(1);
+
+  itw2p( p_value, p_grid, gp, itw );
+  interp( t_value, itw, t_grid, gp );
+
+  Vector refr_index(1);
+
+  refr_index_BoudourisDryAir( refr_index, p_value[0], t_value[0] );
+
+  return refr_index[0];
+}
+
+
+
+/*===========================================================================
+  === Core functions for geometrical *ppath_step* functions
   ===========================================================================*/
 
 //! ppath_step_geom_1d
@@ -1730,7 +1897,6 @@ void ppath_start_stepping(
    For more information read the chapter on propagation paths in AUG.
 
    \param   ppath             Output: A Ppath structure.
-   \param   atmosphere_dim    Atmospheric dimensionality.
    \param   p_grid            Pressure grid.
    \param   z_grid            Geometrical altitudes corresponding to p_grid.
    \param   r_geoid           Geoid radius.
@@ -1742,44 +1908,25 @@ void ppath_start_stepping(
 */
 void ppath_step_geom_1d(
 	      Ppath&      ppath,
-        const Index&      atmosphere_dim,
         ConstVectorView   p_grid,
         ConstVectorView   z_grid,
         const Numeric&    r_geoid,
         const Numeric&    z_ground,
 	const Numeric&    lmax )
 {
-  // Number of points in the incoming ppath
-  const Index imax = ppath.np - 1;
+  // Number of pressure levels and points in the incoming ppath
+  Index npl, imax;
 
-  // Number of pressure levels
-  const Index npl = p_grid.nelem();
+  // Starting radius, zenith angle and latitude
+  Numeric r_start, lat_start, za_start;
 
-  // Extract starting radius, zenith angle and latitude
-  const Numeric r_start   = ppath.pos(imax,0);
-  const Numeric lat_start = ppath.pos(imax,1);
-  const Numeric za_start  = ppath.los(imax,0);
+  // Index of the pressure surface being the lower limit for the
+  // grid range of interest.
+  Index ip;
 
-  // Asserts
-  assert( atmosphere_dim == 1 );
-  assert( npl >= 2 );
-  assert( is_decreasing( p_grid ) );
-  assert( is_size( z_grid, npl ) );
-  assert( is_increasing( z_grid ) );
-  assert( r_geoid > 0 );
-  //
-  assert( ppath.dim == 1 );
-  assert( ppath.np >= 1 );
-  assert( ppath.gp_p[imax].idx >= 0 );
-  assert( ppath.gp_p[imax].idx <= ( npl - 2 ) );
-  assert( ppath.gp_p[imax].fd[0] >= 0 );
-  assert( ppath.gp_p[imax].fd[0] <= 1 );
-  //
-  assert( r_start >= r_geoid + z_ground );
-  assert( za_start >= 0  &&  za_start <= 180 );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], 0 ) && za_start > 90 ) );
-  assert( !( is_gridpos_at_index_i( ppath.gp_p[imax], npl-1 )  && 
-                                                            za_start <= 90 ) );
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( imax, npl, ip, r_start, lat_start, za_start, 
+                                    ppath, p_grid, z_grid, r_geoid, z_ground );
 
 
   // If the field "constant" is negative, this is the first call of the
@@ -1789,12 +1936,6 @@ void ppath_step_geom_1d(
     { ppc = geometrical_ppc( r_start, za_start ); }
   else
     { ppc = ppath.constant; }
-
-
-  // Determine index of the pressure surface being the lower limit for the
-  // grid range of interest.
-  //
-  const Index ip = gridpos2gridrange( ppath.gp_p[imax], za_start<=90 );
 
 
   // Get end radius of the path step (r_end). If looking downwards, it must 
@@ -1846,7 +1987,7 @@ void ppath_step_geom_1d(
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, atmosphere_dim, r_v.nelem() );
+  ppath_init_structure(  ppath, 1, r_v.nelem() );
   //
   if( lmax < 0 )
     { ppath.method     = "1D basic geometrical"; }
@@ -1879,8 +2020,7 @@ void ppath_step_geom_1d(
 
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
-      ppath_step_geom_1d( ppath2, atmosphere_dim, p_grid, z_grid, r_geoid,
-			                                      z_ground, lmax );
+      ppath_step_geom_1d( ppath2, p_grid, z_grid, r_geoid, z_ground, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
@@ -1905,7 +2045,6 @@ void ppath_step_geom_1d(
    of different type.
 
    \param   ppath             Output: A Ppath structure.
-   \param   atmosphere_dim    The atmospheric dimensionality.
    \param   p_grid            Pressure grid.
    \param   lat_grid          Latitude grid.
    \param   z_field           Geometrical altitudes
@@ -1918,7 +2057,6 @@ void ppath_step_geom_1d(
 */
 void ppath_step_geom_2d(
 	      Ppath&      ppath,
-        const Index&      atmosphere_dim,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
@@ -1939,7 +2077,6 @@ void ppath_step_geom_2d(
   const Numeric za_start  = ppath.los(imax,0);
 
   // First asserts (more below)
-  assert( atmosphere_dim == 2 );
   assert( npl >= 2 );
   assert( is_decreasing( p_grid ) );
   assert( nlat >= 2 );
@@ -2227,7 +2364,7 @@ void ppath_step_geom_2d(
 
   // Re-allocate ppath for return results and fill the structure
   //
-  ppath_init_structure(  ppath, atmosphere_dim, r_v.nelem() );
+  ppath_init_structure(  ppath, 2, r_v.nelem() );
   //
   if( lmax < 0 )
     { ppath.method     = "2D basic geometrical"; }
@@ -2279,12 +2416,205 @@ void ppath_step_geom_2d(
       out3 << "  --- Recursive step to include tangent point --------\n"; 
 
       // Call this function recursively
-      ppath_step_geom_2d( ppath2, atmosphere_dim, p_grid, lat_grid, z_field,
+      ppath_step_geom_2d( ppath2, p_grid, lat_grid, z_field,
 			                             r_geoid, z_ground, lmax );
 
       out3 << "  ----------------------------------------------------\n"; 
 
       // Combine ppath and ppath2
       ppath_append( ppath, ppath2 );
+    }
+}
+
+
+
+/*===========================================================================
+  === Core functions for standard refraction *ppath_step* functions
+  ===========================================================================*/
+
+//! ppath_step_refr_std_1d
+/*! 
+   Calculates 1D geometrical propagation path steps.
+
+   This is the core function to determine 1D propagation path steps by pure
+   geometrical calculations. Path points are included for crossings with the 
+   grids, tangent points and points of ground intersections. In addition,
+   points are included in the propgation path to ensure that the distance
+   along the path between the points does not exceed the selected maximum 
+   length (lmax). If lmax is <= 0, this means that no length criterion shall
+   be applied.
+
+   Note that the input variables are here compressed to only hold data for
+   a 1D atmosphere. For example, z_grid is z_field(:,0,0).
+
+   For more information read the chapter on propagation paths in AUG.
+
+   \param   ppath             Output: A Ppath structure.
+   \param   p_grid            Pressure grid.
+   \param   z_grid            Geometrical altitudes corresponding to p_grid.
+   \param   r_geoid           Geoid radius.
+   \param   z_ground          Ground altitude.
+   \param   lmax              Maximum allowed length between the path points.
+
+   \author Patrick Eriksson
+   \date   2002-05-20
+*/
+void ppath_step_refr_std_1d(
+	      Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        ConstVectorView   t_grid,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+	const Numeric&    lmax )
+{
+  // Number of pressure levels and points in the incoming ppath
+  Index npl, imax;
+
+  // Starting radius, zenith angle and latitude
+  Numeric r_start, lat_start, za_start;
+
+  // Index of the pressure surface being the lower limit for the
+  // grid range of interest.
+  Index ip;
+
+  // Determine the variables defined above, and make asserts of input
+  ppath_start_1d( imax, npl, ip, r_start, lat_start, za_start, 
+                                    ppath, p_grid, z_grid, r_geoid, z_ground );
+
+  // Assert not done for geometrical calculations
+  assert( t_grid.nelem() == npl );
+
+  // Determine refractive index at r_start
+  const Numeric n1 = get_refr_index_1d( p_grid, z_grid, t_grid, 
+                                                           r_start - r_geoid );
+
+
+  // If the field "constant" is negative, this is the first call of the
+  // function and the path constant shall be calculated.
+  Numeric ppc;
+  if( ppath.constant < 0 )
+    { 
+      // If the sensor is placed outside the atmosphere, the constant is
+      // already set.
+      
+      ppc = refraction_ppc( r_start, za_start, n1 ); 
+    }
+  else
+    { ppc = ppath.constant; }
+
+
+
+
+  // Get end radius of the path step (r_end). If looking downwards, it must 
+  // be checked if:
+  //    a tangent point is passed
+  //    there is an intersection with the ground
+  //
+  Numeric r_end;
+  bool    tanpoint = false, ground = false;
+  //
+  if( za_start <= 90 )
+    { r_end = r_geoid + z_grid[ ip + 1 ]; }
+  else
+    {
+      // Lowest possible radius for the path step
+      Numeric r_lowest  = r_geoid + z_grid[ ip ];
+
+      // Determine refractive index at r_lowest
+      const Numeric n_lowest = get_refr_index_1d( p_grid, z_grid, t_grid, 
+                                                          r_lowest - r_geoid );
+      // Ground radius
+      Numeric r_ground = r_geoid + z_ground;
+
+      // Determine refractive index at r_ground
+      const Numeric n_ground = get_refr_index_1d( p_grid, z_grid, t_grid, 
+                                                          r_ground - r_geoid );
+
+      if( ( r_lowest > r_ground )  &&  ( r_lowest*n_lowest > ppc ) )
+	{
+	  r_end    = r_lowest;
+	}
+      else if( ppc >= r_ground*n_ground )
+	{
+	  const Numeric dn = ( n1 - n_lowest ) / ( r_start - r_lowest );
+	  
+	  if( fabs(dn) < 1e-15 )   // An arbitrary threshold! 
+	    {                      // dn at ground level is about 2e-8
+	      r_end = ppc / n_lowest;
+	    }
+	  else
+	    {
+	      const Numeric c = ( r_geoid*dn + n_lowest ) / ( 2*dn );
+	      r_end = -c + sign(dn) * sqrt( c*c - (r_geoid*n_lowest-ppc)/dn );
+	    }
+	  NumericPrint(r_end-r_geoid,"tangent altitude");
+	  tanpoint = true;
+	}
+      else
+	{
+	  r_end    = r_ground;
+	  ground   = true;
+	}
+    }
+
+
+  // Calculate basic variables from r_start to r_end.
+  //
+  Vector    r_v, lat_v, za_v;
+  Numeric   lstep;
+  //
+  geompath_from_r1_to_r2( r_v, lat_v, za_v, lstep, ppc, r_start, lat_start, 
+                                                       za_start, r_end, lmax );
+  //
+  const Index ilast = r_v.nelem() - 1;
+
+  // Re-allocate ppath for return results and fill the structure
+  //
+  ppath_init_structure(  ppath, 1, r_v.nelem() );
+  //
+  if( lmax < 0 )
+    { ppath.method     = "1D basic geometrical"; }
+  else
+    { ppath.method     = "1D geometrical with length criterion"; }
+  ppath.refraction = 0;
+  ppath.constant   = ppc;
+  //
+  ppath_fill_1d( ppath, r_v, lat_v, za_v, lstep, r_geoid, z_grid, ip );
+
+
+  // Different options depending on position of end point of step:
+
+  //--- End point is the ground
+  if( ground )
+    { ppath_set_background( ppath, 2 ); }
+
+  //--- End point is a tangent point
+  else if( tanpoint )
+    {
+      ppath.tan_pos.resize(2);
+      ppath.tan_pos[0] = r_v[ilast];
+      ppath.tan_pos[1] = lat_v[ilast];
+
+      // Make part from tangent point and up to the starting pressure level.
+      //
+      Ppath ppath2;
+      ppath_init_structure( ppath2, ppath.dim, ppath.np );
+      ppath_copy( ppath2, ppath );
+
+      out3 << "  --- Recursive step to include tangent point --------\n"; 
+
+      ppath_step_geom_1d( ppath2, p_grid, z_grid, r_geoid, z_ground, lmax );
+
+      out3 << "  ----------------------------------------------------\n"; 
+
+      // Combine ppath and ppath2
+      ppath_append( ppath, ppath2 );
+    }
+
+  //--- End point is on top of a pressure surface
+  else
+    {
+      gridpos_force_end_fd( ppath.gp_p[ilast] );
     }
 }

@@ -194,9 +194,8 @@ void GroundNoScatteringSingleEmissivity(
   ground_refl_coeffs = 0;
 
   // Determine the temperature at the point of the ground reflection
-  Numeric t;
-  interp_atmfield( t, atmosphere_dim, p_grid, lat_grid, lon_grid,
-      	                      t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
+  const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
+                    lon_grid, t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
 
   // Fill ground_emission and ground_refl_coeffs
   for( Index i=0; i<nf; i++ )
@@ -272,9 +271,8 @@ void GroundTreatAsBlackbody(
   ground_emission.resize(nf,stokes_dim);
 
   // Determine the temperature at the point of the ground reflection
-  Numeric t;
-  interp_atmfield( t, atmosphere_dim, p_grid, lat_grid, lon_grid,
-      	                      t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
+  const Numeric t = interp_atmfield_by_gp( atmosphere_dim, p_grid, lat_grid, 
+                    lon_grid, t_field, "t_field", a_gp_p, a_gp_lat, a_gp_lon );
 
   // Fill ground_emission with unpolarised blackbody radiation
   for( Index i=0; i<nf; i++ )

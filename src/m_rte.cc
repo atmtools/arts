@@ -319,7 +319,10 @@ void RteEmissionStd(
         const Vector&         lon_grid,
         const Tensor3&        t_field )
 {
-  // Checks performed in RteCalc do not need to be repeated here.
+  // Checks performed in RteCalc do not need to be repeated here, but there
+  // are some other checks to be done:
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
 
   // Some sizes
   const Index nf      = f_grid.nelem();
@@ -331,8 +334,8 @@ void RteEmissionStd(
     {
       // Determine the atmospheric temperature at each propagation path point
       Vector t_ppath(np);
-      interp_atmfield( t_ppath, atmosphere_dim, p_grid, lat_grid, lon_grid,
-      	          t_field, "t_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
+      interp_atmfield_by_gp( t_ppath, atmosphere_dim, p_grid, lat_grid, 
+        lon_grid, t_field, "t_field", ppath.gp_p, ppath.gp_lat, ppath.gp_lon );
 
       // Absorption
       // So far dummy values are used

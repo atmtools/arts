@@ -351,12 +351,11 @@ void ground_specular_los(
 	{ los[0] = -180 - a_los[0]; }
 
       // Interpolate to get radius for the ground at reflection point.
-      Numeric r_ground, z;
-      interp_atmsurface( r_ground, atmosphere_dim, lat_grid, lon_grid,
-      	                              r_geoid, "r_geoid", a_gp_lat, a_gp_lon );
-      interp_atmsurface( z, atmosphere_dim, lat_grid, lon_grid,
+      const Numeric r_ground =
+          interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
+      	                      r_geoid, "r_geoid", a_gp_lat, a_gp_lon ) +
+          interp_atmsurface_by_gp( atmosphere_dim, lat_grid, lon_grid,
       	                            z_ground, "z_ground", a_gp_lat, a_gp_lon );
-      r_ground += z;
 
       // Calculate ground slope (unit is m/deg).
       Numeric slope = psurface_slope_2d( lat_grid, r_geoid(Range(joker),0), 

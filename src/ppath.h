@@ -83,6 +83,17 @@ bool is_los_downwards_2d(
         const Numeric&   za,
         const Numeric&   tilt );
 
+Numeric psurface_slope_2d(
+	ConstVectorView   lat_grid,	      
+	ConstVectorView   r_geoid,
+	ConstVectorView   z_surf,
+        const GridPos&    gp,
+        const Index&      upwards );
+
+Numeric psurface_tilt_2d(
+        const Numeric&   r,
+        const Numeric&   c );
+
 void ppath_init_structure( 
 	      Ppath&      ppath,
 	const Index&      atmosphere_dim,
@@ -110,7 +121,6 @@ void ppath_start_stepping(
 
 void ppath_step_geom_1d(
 	      Ppath&      ppath,
-        const Index&      atmosphere_dim,
         ConstVectorView   p_grid,
         ConstVectorView   z_grid,
         const Numeric&    r_geoid,
@@ -119,7 +129,6 @@ void ppath_step_geom_1d(
 
 void ppath_step_geom_2d(
 	      Ppath&      ppath,
-        const Index&      atmosphere_dim,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstMatrixView   z_field,
@@ -127,15 +136,13 @@ void ppath_step_geom_2d(
         ConstVectorView   z_ground,
 	const Numeric&    lmax );
 
-Numeric psurface_slope_2d(
-	ConstVectorView   lat_grid,	      
-	ConstVectorView   r_geoid,
-	ConstVectorView   z_surf,
-        const GridPos&    gp,
-        const Index&      upwards );
-
-Numeric psurface_tilt_2d(
-        const Numeric&   r,
-        const Numeric&   c );
+void ppath_step_refr_std_1d(
+	      Ppath&      ppath,
+        ConstVectorView   p_grid,
+        ConstVectorView   z_grid,
+        ConstVectorView   t_grid,
+        const Numeric&    r_geoid,
+        const Numeric&    z_ground,
+	const Numeric&    lmax );
 
 #endif  // ppath_h

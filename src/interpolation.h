@@ -255,27 +255,36 @@ void interp( Tensor6View       	   ia,
 	     const ArrayOfGridPos& rgp,
              const ArrayOfGridPos& cgp);
 
-void interp_atmsurface( 
-              VectorView        x, 
+
+
+/*===========================================================================
+  === Interpolation functions for atmospheric grids, fields and surfaces
+  ===========================================================================*/
+
+void interp_atm_field_gp2itw( 
+              Matrix&           itw, 
         const Index&          	atmosphere_dim,
+        ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_surf,
- 	const String&           x_surf_name,
+        const ArrayOfGridPos&   gp_p,
         const ArrayOfGridPos&   gp_lat,
 	const ArrayOfGridPos&   gp_lon );
 
-void interp_atmsurface( 
-              Numeric&          x, 
+void interp_atmfield_by_itw( 
+              VectorView        x, 
         const Index&          	atmosphere_dim,
+        ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
-	ConstMatrixView         x_field,
+	ConstTensor3View        x_field,
  	const String&           x_field_name,
-        const GridPos&          gp_lat,
-	const GridPos&          gp_lon );
+        const ArrayOfGridPos&   gp_p,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon,
+	ConstMatrixView         itw );
 
-void interp_atmfield( 
+void interp_atmfield_by_gp( 
               VectorView        x, 
         const Index&          	atmosphere_dim,
         ConstVectorView         p_grid,
@@ -287,16 +296,60 @@ void interp_atmfield(
         const ArrayOfGridPos&   gp_lat,
 	const ArrayOfGridPos&   gp_lon );
 
-void interp_atmfield( 
-              Numeric&          x, 
+Numeric interp_atmfield_by_gp( 
         const Index&          	atmosphere_dim,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
 	ConstTensor3View        x_field,
  	const String&           x_field_name,
-        const GridPos&          gp_p,
-        const GridPos&          gp_lat,
-	const GridPos&          gp_lon );
+        const GridPos&   	gp_p,
+        const GridPos&   	gp_lat,
+	const GridPos&   	gp_lon );
+
+void interp_atmsurface_gp2itw( 
+              Matrix&           itw, 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon );
+
+void interp_atmsurface_by_itw(
+              VectorView        x, 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstMatrixView         x_surface,
+ 	const String&           x_surface_name,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon,
+        ConstMatrixView         itw );
+
+void interp_atmsurface_by_gp( 
+              VectorView        x, 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstMatrixView         x_field,
+ 	const String&           x_field_name,
+        const ArrayOfGridPos&   gp_lat,
+	const ArrayOfGridPos&   gp_lon );
+
+Numeric interp_atmsurface_by_gp( 
+        const Index&          	atmosphere_dim,
+        ConstVectorView         lat_grid,
+        ConstVectorView         lon_grid,
+	ConstMatrixView         x_field,
+ 	const String&           x_field_name,
+        const GridPos&   	gp_lat,
+	const GridPos&   	gp_lon );
+
+void itw2p(
+              VectorView       p_values,
+        ConstVectorView        p_grid,
+	const ArrayOfGridPos   gp,
+	ConstMatrixView        itw );
+
 
 #endif // interpolation_h

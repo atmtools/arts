@@ -478,11 +478,11 @@ void ppath_stepGeometric(
   // Note that lmax is here set to -1.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
-                  z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), -1 );
+    { ppath_step_geom_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+                                             r_geoid(0,0), z_ground(0,0), -1 );
     }
   else if( atmosphere_dim == 2 )
-    { ppath_step_geom_2d( ppath_step, atmosphere_dim, p_grid, lat_grid,
+    { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
              z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
                                                 z_ground(Range(joker),0), -1 );
     }
@@ -520,13 +520,97 @@ void ppath_stepGeometricWithLmax(
   // here. This commented in the on-line information for ppath_stepGeometric.
 
   if( atmosphere_dim == 1 )
-    { ppath_step_geom_1d( ppath_step, atmosphere_dim, p_grid, 
-                z_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lmax );
+    { ppath_step_geom_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+                                           r_geoid(0,0), z_ground(0,0), lmax );
     }
   else if( atmosphere_dim == 2 )
-    { ppath_step_geom_2d( ppath_step, atmosphere_dim, p_grid, lat_grid,
+    { ppath_step_geom_2d( ppath_step, p_grid, lat_grid,
              z_field(Range(joker),Range(joker),0), r_geoid(Range(joker),0), 
                                               z_ground(Range(joker),0), lmax );
+    }
+  else
+    {
+      throw runtime_error( "3D propagation path steps are not yet handled." );
+    }
+}
+
+
+
+//! ppath_stepRefractionStd
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-11-14
+*/
+void ppath_stepRefractionStd(
+        // WS Output:
+              Ppath&     ppath_step,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   z_field,
+        const Tensor3&   t_field,
+        const Matrix&    r_geoid,
+        const Matrix&    z_ground )
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. So we perform asserts in the sub-functions, but no checks 
+  // here. This commented in the on-line information.
+
+  // Note that lmax is here set to -1.
+
+  if( atmosphere_dim == 1 )
+    { ppath_step_refr_std_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+                  t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), -1 );
+    }
+  else if( atmosphere_dim == 2 )
+    { 
+      throw runtime_error( "2D propagation path steps are not yet handled." );
+    }
+  else
+    {
+      throw runtime_error( "3D propagation path steps are not yet handled." );
+    }
+}
+
+
+
+//! ppath_stepRefractionStdWithLmax
+/*!
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2002-05-28
+*/
+void ppath_stepRefractionStdWithLmax(
+        // WS Output:
+              Ppath&     ppath_step,
+        // WS Input:
+        const Index&     atmosphere_dim,
+        const Vector&    p_grid,
+        const Vector&    lat_grid,
+        const Vector&    lon_grid,
+        const Tensor3&   z_field,
+        const Tensor3&   t_field,
+        const Matrix&    r_geoid,
+        const Matrix&    z_ground,
+        // Control Parameters:
+        const Numeric&   lmax )
+{
+  // Input checks here would be rather costly as this function is called
+  // many times. So we perform asserts in the sub-functions, but no checks 
+  // here. This commented in the on-line information for ppath_stepGeometric.
+
+  if( atmosphere_dim == 1 )
+    { ppath_step_refr_std_1d( ppath_step, p_grid, z_field(Range(joker),0,0), 
+                t_field(Range(joker),0,0), r_geoid(0,0), z_ground(0,0), lmax );
+    }
+  else if( atmosphere_dim == 2 )
+    { 
+      throw runtime_error( "3D propagation path steps are not yet handled." );
     }
   else
     {
