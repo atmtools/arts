@@ -11,13 +11,26 @@
 # SUBDIRS        = general hmatrix
 
 
-thisdir        = $(pkgdatadir)/aii
+aiidir        = $(pkgdatadir)/aii
 
-this_DATA = \
+aii_DATA = \
 README \
+aii_color_table.pro \
+aii_epilogue.pro \
+aii_klegend_d.pro \
+aii_plot_file.pro \
+aii_plot_legend.pro \
+aii_plotsymbols.pro \
+aii_prologue_l.pro \
+plot_abs_per_tg.pro \
+plot_vmr_per_tg.pro \
 read_artsvar.pro \
 read_datafile.pro \
+read_tag_groups.pro \
+showme.pro \
+sort_abs.pro \
 write_artsvar.pro \
 write_datafile.pro
 
-EXTRA_DIST = $(this_DATA)
+
+EXTRA_DIST = $(aii_DATA)
