@@ -304,9 +304,9 @@ bool Agenda::is_output(Index var) const
 
   \param name The name for the agenda.
 */
-void Agenda::set_name(const String& name)
+void Agenda::set_name(const String& nname)
 {
-  mname = name;
+  mname = nname;
 }
 
 //! Agenda name.
