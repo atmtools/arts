@@ -26,13 +26,13 @@
 %
 %
 \startsymbols
-  & \artsstyle{antenna\_diagram} & The antenna pattern \\
+$w_\mathrm{a}$  & \artsstyle{antenna\_diagram} & The antenna pattern \\
   & \artsstyle{antenna\_dim} & The dimensionality of the antenna pattern \\
   & \artsstyle{f\_backend} & The frequency grid of the backend channels \\
   & \artsstyle{f\_mixer} & Output frequency grid from the mixer \\
   & \artsstyle{lo} & Local oscillator frequency \\
-  & \artsstyle{sensor\_pol} & The sensor polarisation response \\
-  & \artsstyle{sensor\_response} & The total sensor forward matrix \\
+\MtrStl{P} & \artsstyle{sensor\_pol} & The sensor polarisation response \\
+\SnsMtr & \artsstyle{sensor\_response} & The total sensor response matrix \\
   & \artsstyle{sensor\_response\_f} & The sensor frequency grid \\
   & \artsstyle{sensor\_response\_za} & The sensor zenith angle grid \\
   & \artsstyle{sensor\_response\_aa} & The sensor azimuth angle grid \\
@@ -64,6 +64,7 @@ of characteristics.
 %Conversion of radiances to brightness temperatures is also treated
 %here.
 
+%--------------------------
 \levelb{Internal functions}
 Description of the concept with forward matrices. Show pictures?
 
@@ -73,8 +74,9 @@ Decribe how the weighting matrices work and are derived.
 \levelc{Summation}
 Decribe how the summation matrices work and are derived.
 
+%----------------------------------
 \levelb{Instrument characteristics}
-\FIXME rewrite
+\FIXME{rewrite}
 
 In an effort to keep a consitency between the different sensor parts, 
 some general concepts has been determined for the variables and 
@@ -109,53 +111,166 @@ or one set for each case, \textit{complete}.
 How this is implemented for each sensor part will be described in the 
 sections concerning the different sensor parts.
 
-\levelb{Forward matrix set-up}
-Describe the two options, with and with out sensor.
+%--------------------------------------
+\levelb{Sensor response initialisation}
+Even if the monochromatic pencil beam spectrum is studied without any sensor influence, the sensor variables, especially \SnsMtr\ has to be set. The reason is that the WSM \artsstyle{RteCalc} always applies a \SnsMtr\ to the spectrum or spectra. On the other hand if a response from a sensor system should be applied to the spectral values the sensor variables has to be initialised properly. For these tasks there exist two WSMs, \artsstyle{sensorOff} and \artsstyle{sensor\_responseInit}. At least one of these has to be included in the control file.
 
 \levelc{No sensor}
-\artsstyle{sensor\_off}
+If the calculated monochromatic pencil beams is to be studied as is, i.e.~there is no sensor system present in the simulation, only one WSM is needed \artsstyle{sensor\_off}. It sets all the necessary sensor variables so that the monochromatic pencil beams are unchanged. This means setting \SnsMtr\ to be an identity matrix. Other variables that are set by \artsstyle{sensor\_off} are \artsstyle{sensor\_pol}, \artsstyle{sensor\_rot}, \artsstyle{antenna\_dim}, \artsstyle{mblock\_za\_grid}, \artsstyle{mblock\_aa\_grid} and all the \artsstyle{sensor\_response\_}\ldots variables.
+The syntax to disable the sensor in the simulation is simply;
+\begin{verbatim}
+sensorOff{}
+\end{verbatim}
 
 \levelc{Initialisation}
-\artsstyle{sensor\_responseInit}
+When there is a sensor system present in the simulation the sensor response variables has to be set up in a correct way. The WSM \artsstyle{sensor\_responseInit} takes care of this. It sets the \SnsMtr\ to be an identity matrix with size so that is it applicable to the monochromatic pencil beam column vector. It also initialises
+the \artsstyle{sensor\_response\_}\ldots variables, \artsstyle{sensor\_response\_f}, \artsstyle{sensor\_response\_za}, \artsstyle{sensor\_response\_aa} and \artsstyle{sensor\_response\_pol}. These are updated by all succeeding sensor response WSMs, and therefor gives the accurate output grids and values for the frequency and zenith- and azimuth angle grids and number of polarisations. The output grids for the initial sensor response are \artsstyle{f\_grid}, \artsstyle{mblock\_za\_grid} and
+\artsstyle{mblock\_aa\_grid} and the number of polarisation equals \artsstyle{stokes\_dim}. These WSV has to be set prior to calling \artsstyle{sensor\_responseInit} together with the position and line-of-sight of the sensor and the atmosphere dimension.
 
-\levelc{Antenna 1D}
-\artsstyle{sensor\_responseAntenna1D} and connected WSM.
+An example syntax for calling the initialisation method looks like the following. Note that the filesnames used are just examples. First the atmosphere dimension is set, here to 1D, and the sensor position and line-of-sight is defined.
+\begin{verbatim}
+AtmosphereSet1D {}
+ReadXML( sensor_pos ) { "sensor_pos.xml" }
+ReadXML( sensor_los ) { "sensor_los.xml" }
+\end{verbatim}
+Then the required grid are specified. Here they are read from XML-files. The WSM \artsstyle{AntennaSet1D} sets both the antenna dimension and the azimuth angle grid.
+\begin{verbatim}
+ReadXML( f_grid ) { "f_mono.xml" }
+ReadXML( mblock_za_grid ) { "za_pencil.xml" }
+AntennaSet1D {} 
+\end{verbatim}
+Finally, the sensor response is computed
+\begin{verbatim}
+sensor_responseInit {}
+\end{verbatim}
 
-\levelc{Mixer and sideband filter}
-\artsstyle{sensor\_responseMixer}
+%-----------------------------
+\levelb{Polarisation response}
+Taking polarisation into account, and assuming no losses, the measured intensity for a certain direction and frequency , $I_p$, is
+\begin{equation}
+\label{eq:sensor:pol:response}
+  I_\mathrm{p} = \frac{1}{2} \mathbf{p} \mathbf{s}
+\end{equation}
+where $\mathbf{s}$ is the Stokes components of the incoming radiation and $\mathbf{p}$ is a row vector of the same length as $\mathbf{s}$ describing the sensor polarisation response. 
+For an instrument measuring a single polarisation, the first element of $\mathbf{p}$ shall be one and the three last elements shall fulfil $\sum_{i=2}^4 p_i^2 = 1$, where
+$p_i$ is the $i$:th element of $\mathbf{p}$. For example, if vertical polarisation is measured, then $\mathbf{p}=[1\ 1\ 0\ 0]$ and for linear $\pm45^\circ$ polarisation $\mathbf{p}=[1\ 0\ \mp\!\!1\ 0]$.  
 
-\levelc{Backend}
-\artsstyle{sensor\_responseBackend}
+To study different polarisations in ARTS, these has to be defined by the polarisation matrix \MtrStl{P} (\artsstyle{sensor\_pol}). This is a matrix where each row is a row vector $\mathbf{p}$ corresponding to the polarisation to study and the columns matches the Stokes components of the simulation. The number of columns must therefor equal the Stokes dimension of the simulation, see section \ref{sec:polarization} for more information and especially section \ref{sec:polarization:measuring} for examples of some standard polarisations. An example matrix for studying horisontally and right-handed circular polarisation would look like
+\begin{displaymath}
+  \MtrStl{P} = \left[ \begin{array}{c c c c}
+  1 & -1 & 0 & 0 \\ 1 & 0 & 0 & 1 \\ 
+  \end{array} \right].
+\end{displaymath}
+When initialised \MtrStl{P} is set to be the identity matrix, so to study all Stokes
+components nothing more has to be done. As an example the \artsstyle{sensor\_pol} matrix can be read from XML-file;
+\begin{verbatim}
+ReadXML( sensor_pol ) { "sensor_pol.xml" }
+\end{verbatim}
+now it is possible to call the computing function
+\begin{verbatim}
+sensor_responsePolarisation {}
+\end{verbatim}
+and now \SnsMtr\ is updated to include the polarisation response.
 
-\levelc{Auxiliary functions}
+%------------------------
+\levelb{Antenna response}
+\label{sec:sensor:antenna}
+The influence of the antenna can be expressed as a weighting between the antenna response, $w_\mathrm{a}$, as a function of viewing direction and the MPBR field, $I$:
+\begin{equation}
+  I_\mathrm{a} = \int_{4\pi}\!\!\!\!I(\Omega+\Omega_0) 
+  w_\mathrm{a}(\Omega) \; \mathrm{d}\Omega
+  \quad \textrm{with} \quad 
+  \int_{4\pi}\!\!\!\!w_\mathrm{a}(\Omega)\;\mathrm{d}\Omega = 1.
+\end{equation} 
+where $I_\mathrm{a}$ is the apparent radiation intensity after the antenna,
+$\Omega$ is solid angle and $\Omega_0$ is some reference point for the
+antenna pattern, normally the point of highest response.
+In ARTS the pencil beams are calculated for each measurement block at the angles
+given by \artsstyle{mblock\_za\_grid} and \artsstyle{mblock\_aa\_grid} added to the current line-of-sight, \artsstyle{sensor\_los}, as described in \ref{sec:fm_defs:sensorchar}. The weights  $w_\mathrm{a}$ are described by the WSV \artsstyle{antenna\_diagram} that describes the angular dependent antenna pattern. 
+ARTS is prepared to handle a full 3D environment with a 2D antenna, but so far only methods for 1D antennas have been developped. 
+
+\levelc{Antenna diagram}
+\FIXME{Change of concept?}
+
+The antenna diagram $w_\mathrm{a}$ in ARTS is represented by a structure \artsstyle{antenna\_diagram} that consists of an array of arrays of matrices. The reason to use such a complicated structure is to preserve as much variability as possible when describing the antenna pattern. With this structure it is possible to define the antenna response for different viewing angles, polarisations and frequencies. 
+Since there only exists a method 1D antennae, $w_\mathrm{a}$ is so far only defined for 1D antenna patterns. The structure consists of matrices that describe the weights for different angles. The first column in matrices describes the angular grid and the following columns the weights for different frequencies, see figure~\ref{fig:sensor:ant_diag}. Each polarisation is then represented by a separate matrix and each viewing angle by an array of matrices. By using arrays of matrices instead of tensors it is also possible to use different settings for the different polarisations/viewing directions. For each of these sets it is possible to define only one column, matrix or array of matrices, or a full set of columns, matrices or arrays of matrices. E.g.~for the most simple case where the antenna has the same pattern for all directions and frequencies $w_\mathrm{a}$ consists of a single array of matrix with a single two column matrix.
+\begin{figure}[!ht]
+\label{fig:sensor:ant_diag}
+\begin{center}
+  \includegraphics*{Figs/sensor/ant_diag}
+  \caption{Visualisation of the antenna pattern WSV \artsstyle{antenna\_diagram} for   
+  two viewing directions $\varphi_1$ and $\varphi_2$, $\Delta\varphi$ is the relative   
+  angular grid, $f_i$ the $i$:th frequency and $p_j$ the $j$:th polarisation.}
+\end{center}
+\end{figure}
+
+\levelc{1D antenna}
+Here it will be assumed that the variation of $I$ in one angular dimension can be neglected, and that the weighting can be described by an one dimensional integral:
+\begin{eqnarray}
+\label{eq:sensor:antenna:1D}
+  I_\mathrm{a} &=& \int_{-\pi}^\pi\!\!\!\!I(\theta+\theta_0) 
+  w_\mathrm{a}^\theta(\theta)\;\mathrm{d}\theta,\\
+  w_\mathrm{a}^\theta(\theta) &=& \int_0^{2\pi}\!\!\!\!
+  w_\mathrm{a}(\theta,\phi)\cos(\theta)\,\mathrm{d}\phi,
+\end{eqnarray}
+where $\theta_0$ is the reference angle of the antenna.
+
+
+\begin{verbatim}
+AntennaSet1D {}
+
+ReadXML( matrix_1 ) { "ant_diag.xml" }
+ArrayOfMatrixSet( arrayofmatrix_1, matrix_1 ) { element=0 }
+antenna_diagramAppendArray( arrayofmatrix_1 ) {}
+
+ReadXML( vector_1 ) { "antenna_za.xml" }
+
+sensor_responseAntenna1D( vector_1 ) {}
+\end{verbatim}
+
+%------------------------------------------
+\levelb{Mixer and sideband filter response}
+\begin{verbatim}
+ReadXML( lo ) {
+  "../xml/lo.xml"
+}
+
+ReadXML( matrix_1 ) {
+  "../xml/sbfilter.xml"
+}
+
+sensor_responseMixer( matrix_1 ) {}
+\end{verbatim}
+
+%------------------------
+\levelb{Backend response}
+\begin{verbatim}
+ReadXML( matrix_1 ) {
+  "../xml/ac_channel.xml"
+}
+
+ArrayOfMatrixSet( arrayofmatrix_1, matrix_1 ) {
+  element = 0
+}
+
+sensor_responseBackend( arrayofmatrix_1 ) {}
+\end{verbatim}
+
+
+%---------------------------
+\levelb{Auxiliary functions}
 \artsstyle{ConvertIFToRF} \ldots
 
 \levelb{Control file example}
 
 \hrule
 
-\levelb{FIXME old stuff}
 
-\textbf{\artsstyle{antenna\_diagram}}
-For the antenna characteristics we have implemented a separate WSV 
-\artsstyle{antenna\_diagram}. This variable is of the type 
-\typeindex{ArrayOfArrayOfMatrix} to accomplish the diversity antenna
-configurations and characterisations. For example this variable can 
-be used to describe a multi-antenna setup with different viewing 
-directions.
-
-To explain the definition of \artsstyle{antenna\_diagram}, we will go through it backwards, starting with the \artsstyle{Matrix}. The \textit{single or complete} concept applies to this matrix in the way that it describes the angle dependence of the antenna characteristics for one or several frequencies. The basic concept of the matrix is that the first column describes a relative grid of angles and the following column(s) contain the antenna diagram described for the angles given in the first column. Thus if the matrix contains two columns, one with the angular grid and one with weights, the same weights will be used for all frequencies. The other possibility is to provide one column of weights for each frequency, so the total number of columns will be equal the number of frequencies plus one. In the case of a complete description, the order of the columns follows the order of the frequencies.
-
-The next level in the \artsstyle{antenna\_diagram} is then the \typeindex{ArrayOfMatrix}. The array contains the above described matrices, and the reason to stack them into an array is that each element in the array corresponds to different polarisations given by the rows of \artsstyle{sensor\_pol}. Here the a single description implies that the array only contains one matrix, which will be used for all polarisation. The other option is that the array contains equal amount of matrices as polarsations.
-
-The highest level is then the \artsstyle{ArrayOfArrayOfMatrix}, where each array of arrays corresponds to different viewing angles. In this case with a 1D antenna, this means different zenith angles given as generic input to the WSM \artsstyle{sensor\_responseAntenna1D}. As with all instrument characteristics, this array should either contain one \artsstyle{ArrayOfMatrix} or as many as there are zenith angles given to the WSM.
-
-One could think of the \artsstyle{antenna\_diagram} as a 4D tensor, with dimensions as relative angles, frequency, polarisations and zenith angles. But the reason not to store the characteristics as a tensor is that we want to keep the possibility to include antenna diagrams of different sizes, i.e. relative angular grids with different coarseness. The same goes for the polarisations, for each zenith angle the user have the possibility to give a single or complete description of the polarisation dependence.
-
-
+%-------------------------
 \levelb{Workspace methods}
 \label{sec:sensor:WSM}
 
+%------------------------------------------------------
 \levelb{Controlfile implementation(flow, step-by-step)}
 
 

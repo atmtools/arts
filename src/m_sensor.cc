@@ -305,6 +305,7 @@ void sensorOff(
               Index&    antenna_dim,
               Vector&   mblock_za_grid,
               Vector&   mblock_aa_grid,
+              Index&    sensor_norm,
         const Index&    atmosphere_dim,
         const Index&    stokes_dim,
         const Matrix&   sensor_pos,
@@ -342,9 +343,13 @@ void sensorOff(
   out2 << "  Sets *mblock_aa_grid* to be an empty vector.\n";
   mblock_aa_grid.resize(0);
 
+  out2 << "  Sets *sensor_norm* to zero.\n";
+  sensor_norm = 0;
+
   sensor_responseInit( sensor_response, sensor_response_f, sensor_response_za,
     sensor_response_aa, sensor_response_pol, f_grid, mblock_za_grid,
-    mblock_aa_grid, antenna_dim, sensor_pol, atmosphere_dim, stokes_dim, 0 );
+    mblock_aa_grid, antenna_dim, sensor_pol, atmosphere_dim, stokes_dim,
+    sensor_norm );
 }
 
 
@@ -828,6 +833,46 @@ void sensor_responsePolarisation(// WS Output:
   if ( sensor_pol.ncols()!=stokes_dim ) {
     ostringstream os;
     os << "The number of columns in *sensor_pol* does not match *stokes_dim*.";
+    throw runtime_error(os.str());
+  }
+
+  // Check that *sensor_pol* is not a identity matrix. If so this method is
+  // not just unnecessary but also gives wrong output.
+  if( sensor_pol.nrows()==sensor_pol.ncols() ) {
+    bool is_I = true;
+    for( Index it=0; it<stokes_dim; it++ ) {
+      for( Index jt=0; jt<stokes_dim; jt++ ) {
+        if( it==jt && sensor_pol(it,jt)!=1 )
+          is_I = false;
+        else if( it!=jt && sensor_pol(it,jt)!=0 )
+          is_I = false;
+      }
+    }
+    if( is_I ) {
+      ostringstream os;
+      os << "The matrix *sensor_pol* is an identity matrix and this method is\n"
+         << "therfor unnecessary.";
+      throw runtime_error(os.str());
+    }
+  }
+
+  // Check each row of *sensor_pol* so that the first element is 1 and the
+  // sum of the squares of the others also equal 1.
+  bool input_error = false;
+  for( Index it=0; it<sensor_pol.nrows(); it++ ) {
+    if( sensor_pol(it,1)!=1 )
+      input_error = true;
+    Numeric row_sum = 0.0;
+    for( Index jt=1; jt<sensor_pol.ncols(); jt++ )
+      row_sum += pow(sensor_pol(it,jt),2.0);
+    if( row_sum!=1.0 )
+      input_error = true;
+  }
+  if( input_error ) {
+    ostringstream os;
+    os << "The elements in *sensor_pol* are not correct. The first element\n"
+       << "has to be 1 and the sum of the squares of the following should\n"
+       << "also be 1.";
     throw runtime_error(os.str());
   }
 

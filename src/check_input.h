@@ -253,7 +253,7 @@ void chk_size( const String&    x_name,
                const Index&     r,
                const Index&     c );
 
-void chk_y_with_sensor( 
+void chk_y_with_sensor(
               Index&      nf,
               Index&      npol,
               Index&      nspectra, 
@@ -264,6 +264,6 @@ void chk_y_with_sensor(
         ConstVectorView   sensor_response_f,
         ConstVectorView   sensor_response_za,
         ConstVectorView   sensor_response_aa,
-        ConstMatrixView   sensor_pol );
+        const Index&      sensor_response_pol );
 
 #endif  // checkinput_h

@@ -1036,7 +1036,7 @@ void chk_y_with_sensor(
         ConstVectorView   sensor_response_f,
         ConstVectorView   sensor_response_za,
         ConstVectorView   sensor_response_aa,
-        ConstMatrixView   sensor_pol )
+        const Index&      sensor_response_pol )
 {
   const Index   npos = sensor_pos.nrows();
 
@@ -1045,7 +1045,7 @@ void chk_y_with_sensor(
         "The number of rows in *sensor_pos* and *sensor_los* must be equal." );
 
   nf       = sensor_response_f.nelem();
-  npol     = sensor_pol.nrows();
+  npol     = sensor_response_pol;
   nspectra = npos * sensor_response_za.nelem();
   if( sensor_response_aa.nelem() )
     { nspectra *= sensor_response_aa.nelem(); }
@@ -1053,7 +1053,7 @@ void chk_y_with_sensor(
   if( y.nelem() != nf*npol*nspectra )
     {
       ostringstream os;
-      os << "The size of *" << y_name << "* is not consistent with the"
+      os << "The size of *" << y_name << "* is not consistent with the "
          << "sensor variables.";
       throw runtime_error( os.str() );
     }

@@ -1,3 +1,26 @@
+2004-06-17  Mattias Ekström <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-832
+
+	* src/[methods,m_sensor].cc: Added *sensor_norm* to method sensorOff.
+	sensorOff now sets *sensor_norm* to zero since it is not used.
+
+	* src/check_input.cc: Minor change to runtime error string.
+
+	* src/rte.cc: *y* is resized to the number of rows in sensor_response.
+
+	* doc/uguide/sensor.tex: Written sensor stuff.
+
+	* doc/uguide/Figs/sensor/: Added this directory for sensor figures.
+
+	* doc/uguide/Figs/Makefile.am: Added sensor as subdir.
+
+	* doc/uguide/Figs/sensor/Makefile.am: Copied file from interpolations
+	folder.
+
+	* doc/uguide/Figs/sensor/ant_diag.[mp,pdf]: Added figure to describe
+	antenna diagram.
+
 2004-06-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-831

@@ -426,6 +426,7 @@ Makefile
             doc/uguide/Figs/ppath/Makefile 
             doc/uguide/Figs/rte_theory/Makefile 
             doc/uguide/Figs/scattering/Makefile 
+            doc/uguide/Figs/sensor/Makefile 
       doc/examples/Makefile 
           doc/examples/absorption_example.arts
           doc/examples/absorption_lookup_example.arts

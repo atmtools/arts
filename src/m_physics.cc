@@ -157,7 +157,7 @@ void MatrixToTbByPlanck(
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
-        const Matrix&   sensor_pol,
+        const Index&    sensor_response_pol,
         const Matrix&   y_in,
         const String&   y_in_name )
 {
@@ -165,7 +165,7 @@ void MatrixToTbByPlanck(
 
   chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), y_in_name, sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
-                     sensor_response_aa, sensor_pol );
+                     sensor_response_aa, sensor_response_pol );
 
   out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
  
@@ -210,7 +210,7 @@ void MatrixToTbByRJ(
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
-        const Matrix&   sensor_pol,
+        const Index&    sensor_response_pol,
         const Matrix&   y_in,
         const String&   y_in_name )
 {
@@ -218,7 +218,7 @@ void MatrixToTbByRJ(
 
   chk_y_with_sensor( nf, npol, nspectra,  y_in(joker,0), y_in_name, sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
-                     sensor_response_aa, sensor_pol );
+                     sensor_response_aa, sensor_response_pol );
 
   out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
  
@@ -327,15 +327,15 @@ void VectorToTbByPlanck(
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
-        const Matrix&   sensor_pol,
+        const Index&    sensor_response_pol,
         const Vector&   y_in,
         const String&   y_in_name )
 {
   Index   nf, npol, nspectra;
 
-  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos, 
+  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
-                     sensor_response_aa, sensor_pol );
+                     sensor_response_aa, sensor_response_pol );
 
   out2 << "   " << y_out_name << " = inv_of_planck(" << y_in_name << ")\n" ;
 
@@ -373,15 +373,15 @@ void VectorToTbByRJ(
         const Vector&   sensor_response_f,
         const Vector&   sensor_response_za,
         const Vector&   sensor_response_aa,
-        const Matrix&   sensor_pol,
+        const Index&    sensor_response_pol,
         const Vector&   y_in,
         const String&   y_in_name )
 {
   Index   nf, npol, nspectra;
 
-  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos, 
+  chk_y_with_sensor( nf, npol, nspectra,  y_in, y_in_name, sensor_pos,
                      sensor_los, sensor_response_f, sensor_response_za, 
-                     sensor_response_aa, sensor_pol );
+                     sensor_response_aa, sensor_response_pol );
 
   out2 << "   " << y_out_name << " = inv_of_rj(" << y_in_name << ")\n" ;
 

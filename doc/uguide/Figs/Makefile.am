@@ -1,4 +1,4 @@
-#  
+#
 # This file is free software; as a special exception the author gives
 # unlimited permission to copy and/or distribute it, with or without 
 # modifications, as long as this notice is preserved.
@@ -13,6 +13,6 @@
 #	Don't forget to register new files here!
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-SUBDIRS = concept fm_definitions interpolation polarization ppath rte_theory scattering montecarlo
+SUBDIRS = concept fm_definitions interpolation polarization ppath rte_theory scattering montecarlo sensor
 
 

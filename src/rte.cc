@@ -603,14 +603,17 @@ void rte_calc(
   const Index nf      = f_grid.nelem();
   const Index nmblock = sensor_pos.nrows();
   const Index nza     = mblock_za_grid.nelem();
-  
+
   // Number of azimuthal direction for pencil beam calculations
   Index naa = mblock_aa_grid.nelem();
   if( antenna_dim == 1 )
     { naa = 1; }
 
   // Resize *y* to have the correct length.
-  y.resize( nmblock*nf*nza*naa*stokes_dim );
+//   y.resize( nmblock*nf*nza*naa*stokes_dim );
+  // FIXME: this is an ugly solution, but works if appropriate checks are
+  // preformed
+  y.resize( sensor_response.nrows() );
 
   // Create vector for MPB radiances for 1 measurement block.
   Vector ib( nf*nza*naa*stokes_dim );
@@ -818,8 +821,7 @@ void rte_calc(
       // Apply sensor response matrix
       //
       if( apply_sensor )
-          // Multiply ib with sensor_response and store the result in *y*
-          mult( y[Range(nydone,nblock)], sensor_response, ib );
+        mult( y[Range(nydone,nblock)], sensor_response, ib );
       /* FIXME: Should *y* be created even if no sensor is applied?
          NOTE: sensorOff doesn't turn off apply_sensor.
       else
