@@ -42,7 +42,7 @@
 
 void
 filename_xml (String&  filename,
-              const String&  varname );
+              const String&  varname);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -50,44 +50,24 @@ filename_xml (String&  filename,
 ////////////////////////////////////////////////////////////////////////////
 
 void
-open_output_xml (ofstream& file, const String& name);
+xml_open_output_file (ofstream& file, const String& name);
 
 void
-open_input_xml (ifstream& file, const String& name);
+xml_open_input_file (ifstream& file, const String& name);
 
 
 ////////////////////////////////////////////////////////////////////////////
-//   Matrix/Vector IO routines for XML files
+//   IO routines for XML files
 ////////////////////////////////////////////////////////////////////////////
 
-//void write_array_of_matrix_to_stream(ostream& os,
-//                                     const ArrayOfMatrix& am);
+template<typename T> void
+xml_read_from_file (const String& filename,
+                          T&      data);
 
 void
-xml_write_ArrayOfMatrix (const String&        filename,
-                         const ArrayOfMatrix& am);
+xml_read_from_stream (istream& is, Index&   index);
 
 void
-xml_read_ArrayOfMatrix (ArrayOfMatrix& am,
-                        istream&       is);
-
-void
-xml_read_ArrayOfMatrix (ArrayOfMatrix& am,
-                        const String&  filename);
-
-
-
-////////////////////////////////////////////////////////////////////////////
-//   STRING IO routines for XML files
-////////////////////////////////////////////////////////////////////////////
-
-void
-xml_write_ArrayOfString (const String&        filename,
-                         const ArrayOfString& as);
-
-void
-xml_read_ArrayOfString (ArrayOfString& as,
-                        const String&  filename);
-
+xml_read_from_stream (istream& is, Numeric& numeric);
 
 #endif
