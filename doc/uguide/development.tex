@@ -594,10 +594,10 @@ documentation or our own CVS Howto on:
 
 \levelb{Debugging (use of assert)}
 %================================
- \label{sec:development:assert}
-
-This section is taken more or less literally from the GNU tools manual
-of Eleftherios Gkioulekas:
+\label{sec:development:assert}
+ 
+This section draws heavily on the GNU tools manual of Eleftherios
+Gkioulekas:
 \begin{quote}
 {\footnotesize
 \artsstyle{http://www.amath.washington.edu/~lf/tutorials/autoconf/}}
@@ -619,57 +619,54 @@ stopped. If a bug prevents the precondition from being true, then you
 can trace the bug at the point where the precondition breaks down
 instead of further down in execution or not at all.  The \artsstyle{assert} call
 is implemented as a C preprocessor macro, so it can be enabled or
-disabled at will. One way to enable assertions is to include
-\artsstyle{assert.h}.
-\begin{quote}
-  \artsstyle{\#include <assert.h>}
-\end{quote}
-Then it's possible to disable them by defining the `NDEBUG' macro.
+disabled at will. 
 
-%
-% FIXME: Oliver, please update
-%
-%In ARTS, assertions are turned on and off with the global NDEBUG
-%preprocessor macro, which can be set or unset in file
-%\fileindex{arts.h}. In the future there will be also a configure option to
-%achieve this (FIXME: Update this).
+In ARTS, you don't have to do this manually, as long as your source
+file includes \artsstyle{arts.h} either directly or indirectly.
+Instead, assertions are turned on and off with the global NDEBUG
+preprocessor macro, which is set or unset automatically by the
+\artsstyle{configure} script. The relevant \artsstyle{configure}
+options are \artsstyle{--enable-debug} and
+\artsstyle{--disable-debug}. Assertions are also turned on
+automatically by the \artsstyle{--enable-maintainer-mode} option. (And
+this again is set automatically if you run the \artsstyle{autogen.sh}
+script.)
 
-During debugging and testing it is a good idea to leave assertions
-enabled. However, for production runs it's best to disable them. If
-your program crashes at an assertion, then the first thing you should
-do is to find out where the error happens. To do this, run the program
-under the \artsstyle{gdb} debugger. First invoke the debugger:
+If your program is stopped by an assertion failure, then the first
+thing you should do is to find out where the error happens. To do
+this, run the program under the GDB debugger. First invoke
+the debugger:
 \begin{quote}
-\artsstyle{gdb}
+\artsstyle{gdb arts}
 \end{quote}
-Then load the executable and set a breakpoint at the \artsstyle{exit}
-system call:
+You have to give the full path to the ARTS executable.  Then set a
+breakpoint at the assertion failure:
 \begin{quote}
-  \artsstyle{(gdb) file arts}\\
-  \artsstyle{(gdb) break exit} (or \artsstyle{break \_\_assert\_fail})
+  \artsstyle{(gdb) break \_\_assert\_fail}
 \end{quote}
-Now run the program: 
+(Note the two leading underscores!) Now run the program: 
 \begin{quote}
   \artsstyle{(gdb) run}
 \end{quote}
 
-Instead of crashing, under the debugger the program will be paused
-when the \artsstyle{exit} system call is invoked, and you will get back the
-debugger prompt. Now type:
+Instead of just exiting, under the debugger the program will be paused
+when the assertion fails, and you will get back the debugger prompt.
+Now type:
 \begin{quote}
   \artsstyle{(gdb) where} 
 \end{quote}  
-to see where the crash happened. You can use the \artsstyle{print} command to
-look at the contents of variables and you can use the \artsstyle{up} and \artsstyle{down}
-commands to navigate the stack. For more information, see the GDB
-documentation or type \artsstyle{help} at the prompt of gdb.
+to see where the assertion failure happened. You can use the
+\artsstyle{print} command to look at the contents of variables and you
+can use the \artsstyle{up} and \artsstyle{down} commands to navigate
+the stack.  For more information, see the GDB documentation or type
+\artsstyle{help} at the prompt of GDB.
 
-For ARTS, the assertion failures mostly happen inside the Matrix /
-Vector package (usually because you triggered a range check error,
-i.e., you tried to read or write beyond array bounds). In this case the
-\artsstyle{up} command of GDB is particularly useful. If you give this a
-couple of times you will finally end up in the part of your code that
-caused the error.
+For ARTS, the assertion failures mostly happen inside the Tensor /
+Matrix / Vector package (usually because you triggered a range check
+error, i.e., you tried to read or write beyond array bounds). In this
+case the \artsstyle{up} command of GDB is particularly useful. If you
+give this a couple of times you will finally end up in the part of
+your code that caused the error.
 
 Recommendation: In Emacs there is a special GDB mode. With this you
 can very conveniently step through your code.

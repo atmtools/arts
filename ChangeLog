@@ -1,3 +1,14 @@
+2003-01-07  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-360
+
+	* doc/index.html.in: Fixed link to pdf version of Uguide.
+
+	* doc/uguide/development.tex: Updated documentation about using
+	assertions with gdb.
+
+	* src/arts.h: Updated GNU license information.
+
 2003-01-06  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-359
