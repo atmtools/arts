@@ -1,5 +1,13 @@
 2004-03-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
+	* arts-1-0-159
+
+	* ami/hmatrix/hMixerFromFile.m: Corrected change to h_matrix_full.
+	This is the file that calls h_matrix, so this is where you should
+	change to h_matrix_full.
+
+2004-03-05  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
 	* arts-1-0-158
 
 	* ami/hmatrix/h_matrix_full.m: Added this mixer function that preserves
