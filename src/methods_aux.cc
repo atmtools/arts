@@ -217,7 +217,7 @@ void expand_md_data_raw_to_md_data()
 void define_md_map()
 {
   extern const Array<MdRecord> md_data;
-  extern std::map<String, Index> MdMap;
+  extern map<String, Index> MdMap;
   extern const ArrayOfString wsv_group_names;
 
   // Check that md_data and wsv_group_names have already be defined:
@@ -264,7 +264,7 @@ void define_md_map()
 void define_md_raw_map()
 {
   extern const Array<MdRecord> md_data_raw;
-  extern std::map<String, Index> MdRawMap;
+  extern map<String, Index> MdRawMap;
 
   for ( Index i=0 ; i<md_data_raw.nelem() ; ++i)
     {

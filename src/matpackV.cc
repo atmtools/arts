@@ -843,7 +843,7 @@ ConstTensor5View::ConstTensor5View(Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Tensor to print each book in turn. */
-std::ostream& operator<<(std::ostream& os, const ConstTensor5View& v)
+ostream& operator<<(ostream& os, const ConstTensor5View& v)
 {
   // Page iterators:
   ConstIterator5D is = v.begin();

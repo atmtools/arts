@@ -1950,7 +1950,7 @@ Numeric max(const ConstTensor7View& x);
 
 Numeric min(const ConstTensor7View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor7View& v);
+ostream& operator<<(ostream& os, const ConstTensor7View& v);
 
 
 #endif    // matpackVII_h

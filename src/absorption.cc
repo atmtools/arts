@@ -40,7 +40,7 @@
 void define_species_map()
 {
   extern const Array<SpeciesRecord> species_data;
-  extern std::map<String, Index> SpeciesMap;
+  extern map<String, Index> SpeciesMap;
 
   for ( Index i=0 ; i<species_data.nelem() ; ++i)
     {
@@ -387,7 +387,7 @@ Index find_first_species_tg( const ArrayOfArrayOfSpeciesTag& tgs,
 Index species_index_from_species_name( String name )
 {
   // The species map. This is used to find the species id.
-  extern std::map<String, Index> SpeciesMap;
+  extern map<String, Index> SpeciesMap;
 
   // For the return value:
   Index mspecies;
@@ -439,5 +439,5 @@ Index species_index_from_species_name( String name )
   
   \see define_species_map.
 */
-std::map<String, Index> SpeciesMap;
+map<String, Index> SpeciesMap;
 

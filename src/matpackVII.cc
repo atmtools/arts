@@ -1967,7 +1967,7 @@ ConstTensor7View::ConstTensor7View(Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Tensor6 to print each page in turn. */
-std::ostream& operator<<(std::ostream& os, const ConstTensor7View& v)
+ostream& operator<<(ostream& os, const ConstTensor7View& v)
 {
   // Page iterators:
   ConstIterator7D ip=v.begin();

@@ -253,7 +253,7 @@ void mixer_transfer_matrix(
   const Numeric lim_low = max(lo-f_grid[i_low], f_grid[i_high]-lo);
   const Numeric lim_high = min(lo-f_grid[0], f_grid[f_grid.nelem()-1]-lo);
 
-  // Convert sidebands to IF and use std::list to make a unique sorted
+  // Convert sidebands to IF and use list to make a unique sorted
   // vector, this sorted vector is f_mixer.
   list<Numeric> l_mixer;
   for (Index i=0; i<f_grid.nelem(); i++)

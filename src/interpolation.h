@@ -89,7 +89,7 @@ typedef Array<Array<Array<Array<GridPos> > > > ArrayOfArrayOfArrayOfArrayOfGridP
 
 // Function headers (documentation is in .cc file):
 
-std::ostream& operator<<(std::ostream& os, const GridPos& gp);
+ostream& operator<<(ostream& os, const GridPos& gp);
 
 void gridpos( ArrayOfGridPos& gp,
               ConstVectorView old_grid,

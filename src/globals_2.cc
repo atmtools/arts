@@ -66,11 +66,11 @@ Array<MdRecord> md_data_raw;
 Array<MdRecord> md_data;
 
 //! The map associated with md_data.
-std::map<String, Index> MdMap;
+map<String, Index> MdMap;
 
 //! The map associated with md_data_raw.
-std::map<String, Index> MdRawMap;
+map<String, Index> MdRawMap;
 
 //! The map assiciated with agenda_data.
-std::map<String, Index> AgendaMap;
+map<String, Index> AgendaMap;
 

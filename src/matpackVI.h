@@ -971,7 +971,7 @@ Numeric max(const ConstTensor6View& x);
 
 Numeric min(const ConstTensor6View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor6View& v);
+ostream& operator<<(ostream& os, const ConstTensor6View& v);
 
 
 #endif    // matpackVI_h

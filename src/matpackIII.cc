@@ -214,7 +214,7 @@ ConstTensor3View::ConstTensor3View(Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Matrix to print each page in turn. */
-std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v)
+ostream& operator<<(ostream& os, const ConstTensor3View& v)
 {
   // Page iterators:
   ConstIterator3D ip=v.begin();

@@ -48,7 +48,7 @@ using namespace std;
  * Date:   2003-08-20
  */
 template <typename T>
-class IndexComp : public std::binary_function<Index, Index, bool>
+class IndexComp : public binary_function<Index, Index, bool>
 {
    const T	&m_data;
 
@@ -88,7 +88,7 @@ get_sorted_indexes (ArrayOfIndex &sorted, const T &data)
       i++;
     }
 
-  std::sort (sorted.begin(), sorted.end(), IndexComp<T>(data));
+  sort (sorted.begin(), sorted.end(), IndexComp<T>(data));
 }
 
 #endif /* sorting_h */

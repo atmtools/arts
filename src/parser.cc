@@ -700,9 +700,9 @@ void parse_method(Index& id,
   extern const Array<MdRecord> md_data_raw;
   extern const ArrayOfString wsv_group_names;
 
-  extern const std::map<String, Index> MdMap;
-  extern const std::map<String, Index> MdRawMap;
-  extern const std::map<String, Index> WsvMap;
+  extern const map<String, Index> MdMap;
+  extern const map<String, Index> MdRawMap;
+  extern const map<String, Index> WsvMap;
 
   Index wsvid;                  // Workspace variable id, is used to
                                 // access data in wsv_data.

@@ -797,9 +797,9 @@ Numeric min(const ConstMatrixView& x);
 
 Numeric operator*(const ConstVectorView& a, const ConstVectorView& b);
 
-std::ostream& operator<<(std::ostream& os, const ConstVectorView& v);
+ostream& operator<<(ostream& os, const ConstVectorView& v);
 
-std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v);
+ostream& operator<<(ostream& os, const ConstMatrixView& v);
 
 
 #endif    // matpackI_h

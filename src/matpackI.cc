@@ -266,7 +266,7 @@ ConstVectorView::ConstVectorView( Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the vector. The iterators know which part of the vector
     is `active', and also the stride. */
-std::ostream& operator<<(std::ostream& os, const ConstVectorView& v)
+ostream& operator<<(ostream& os, const ConstVectorView& v)
 {
   ConstIterator1D i=v.begin();
   const ConstIterator1D end=v.end();
@@ -854,7 +854,7 @@ ConstMatrixView::ConstMatrixView( Numeric *data,
     the concept, because the formating should look nice. This means
     that the first row, and the first element in each row, have to be
     treated individually. */
-std::ostream& operator<<(std::ostream& os, const ConstMatrixView& v)
+ostream& operator<<(ostream& os, const ConstMatrixView& v)
 {
   // Row iterators:
   ConstIterator2D ir=v.begin();

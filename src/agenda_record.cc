@@ -55,7 +55,7 @@ AgRecord::AgRecord( const char                  name[],
 
 #ifndef NDEBUG
   // The map associated with wsv_data:
-  extern const std::map<String, Index> WsvMap;
+  extern const map<String, Index> WsvMap;
 #endif
 
   // Find returns end() if the name is not found in the map.  If
@@ -72,7 +72,7 @@ AgRecord::AgRecord( const char                  name[],
 void define_agenda_map()
 {
   extern const Array<AgRecord> agenda_data;
-  extern std::map<String, Index> AgendaMap;
+  extern map<String, Index> AgendaMap;
 
   for ( Index i=0 ; i<agenda_data.nelem() ; ++i )
     {
@@ -97,8 +97,8 @@ bool check_agenda_data()
   extern const Array<WsvRecord> wsv_data;
   extern const Array<AgRecord>  agenda_data;
 #ifndef NDEBUG
-  extern const std::map<String, Index> AgendaMap;
-  extern const std::map<String, Index> WsvMap;
+  extern const map<String, Index> AgendaMap;
+  extern const map<String, Index> WsvMap;
 #endif
 
   Index i,j,k;
@@ -240,7 +240,7 @@ ostream& operator<<(ostream& os, const WsvRecord& wr)
       // Agenda.
 
       extern const Array<AgRecord>         agenda_data;
-      extern const std::map<String, Index> AgendaMap;
+      extern const map<String, Index> AgendaMap;
 
       map<String, Index>::const_iterator j =
         AgendaMap.find( wr.Name() );

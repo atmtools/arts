@@ -367,7 +367,7 @@ Numeric max(const ConstTensor3View& x);
 
 Numeric min(const ConstTensor3View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor3View& v);
+ostream& operator<<(ostream& os, const ConstTensor3View& v);
 
 
 #endif    // matpackIII_h

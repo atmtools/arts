@@ -50,13 +50,13 @@
    b) nelem() member function, return the size of the String of type
    Index. 
 
-   The type std::string is just a typedef for
-   std::basic_string<char>. Therefore, to make everything work
-   correctly, we have to derive our own class from std::basic_string,
-   not from std::string directly.
+   The type string is just a typedef for
+   basic_string<char>. Therefore, to make everything work
+   correctly, we have to derive our own class from basic_string,
+   not from string directly.
 */
 template<class charT>
-class my_basic_string : public std::basic_string<charT>
+class my_basic_string : public basic_string<charT>
 {
 public:
   // Constructors:
@@ -83,7 +83,7 @@ public:
   char& operator[](Index n);
 
   /** Define npos: */
-  static const Index npos = static_cast<Index>(std::basic_string<charT>::npos);
+  static const Index npos = static_cast<Index>(basic_string<charT>::npos);
 
   typedef Index size_type;
 };
@@ -96,7 +96,7 @@ public:
 
 /** Default constructor. */
 template<class charT>
-inline my_basic_string<charT>::my_basic_string() : std::basic_string<charT>()  
+inline my_basic_string<charT>::my_basic_string() : basic_string<charT>()  
 { /* Nothing to do here. */ };
 
 /** Constructor setting size. You may give as a second argument a
@@ -108,12 +108,12 @@ inline my_basic_string<charT>::my_basic_string() : std::basic_string<charT>()
 */
 template<class charT>
 inline my_basic_string<charT>::my_basic_string(Index n, char c) :
-  std::basic_string<charT>(n,c) 
+  basic_string<charT>(n,c) 
 { /* Nothing to do here. */ };
 
 /** Construnctor from another my_basic_string. */
 // template<class charT>
-// inline my_basic_string<charT>::my_basic_string(const my_basic_string& A) : std::basic_string<charT>(A) 
+// inline my_basic_string<charT>::my_basic_string(const my_basic_string& A) : basic_string<charT>(A) 
 // { /* Nothing to do here. */ };
 
 /** Construnctor from a basic_string. This is important for handling
@@ -121,7 +121,7 @@ inline my_basic_string<charT>::my_basic_string(Index n, char c) :
 
     String a = b+'.'+c 
 
-    As for std::basic_string, this constructor can also be used to
+    As for basic_string, this constructor can also be used to
     initialize the new string from a subrange of the original string. 
 
     \param A The original string
@@ -140,12 +140,12 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
 //   cout << "pos = " << pos << "\n";
 //   cout << "size = " << A.size() << "\n";
 
-  assert(static_cast<typename std::basic_string<charT>::size_type>(pos)<A.size());      
+  assert(static_cast<typename basic_string<charT>::size_type>(pos)<A.size());      
   // At most the last element of the original string.
 
   assert( numpos==my_basic_string<charT>::npos ||
           ( (numpos >= 0) &&
-            (static_cast<typename std::basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
+            (static_cast<typename basic_string<charT>::size_type>(numpos)<=(A.size()-pos))
             )
           );  // Number of characters to copy must be at the most the
               // number left. -1 means all remaining characters. 
@@ -157,26 +157,26 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
   // case npos -1 (=my_basic_string<charT>::npos) is also handled
   // correctly.)
 
-  std::basic_string<charT>::operator=(std::basic_string<charT>(A,pos,numpos));
+  basic_string<charT>::operator=(basic_string<charT>(A,pos,numpos));
 
 };
 
 /** Constructor from a C-style char array. */
 template<class charT>
-inline my_basic_string<charT>::my_basic_string(const char A[]) : std::basic_string<charT>(A) 
+inline my_basic_string<charT>::my_basic_string(const char A[]) : basic_string<charT>(A) 
 { /* Nothing to do here. */ };
 
 
 /** Assignment from another my_basic_string.
 
     The two partners do not have to have the same size. Size of the
-    target string is adjusted automatically, just as std::string does
+    target string is adjusted automatically, just as string does
     it.
 */
 template<class charT>
 inline my_basic_string<charT>& my_basic_string<charT>::operator=(const my_basic_string<charT>& A)
 {
-  std::basic_string<charT>::operator=(A);
+  basic_string<charT>::operator=(A);
   return *this;
 }
 
@@ -194,7 +194,7 @@ inline Index my_basic_string<charT>::nelem() const
 //     \param c What character to find.
 //     \return Position of c, or npos if not found.
 
-//     Unfortunately, the std::basid_string.find() functions returns npos
+//     Unfortunately, the basid_string.find() functions returns npos
 //     when the character is not found. This is -1, but assigned to a
 //     positive type! Gives a very high number. If you add 1 to this
 //     number you get zero again, so it does indeed bahave like -1 in a
@@ -202,8 +202,8 @@ inline Index my_basic_string<charT>::nelem() const
 // template<class charT>
 // inline Index my_basic_string<charT>::find(char c)
 // {
-//   std::basic_string<charT>::size_type i = std::basic_string<charT>::find(c);
-//   if ( i == std::basic_string<charT>::npos )
+//   basic_string<charT>::size_type i = basic_string<charT>::find(c);
+//   if ( i == basic_string<charT>::npos )
 //     return npos;
 //   else
 //     return static_cast<Index>(i);
@@ -214,7 +214,7 @@ inline Index my_basic_string<charT>::nelem() const
 //     \param c What string to find.
 //     \return Position of c, or npos if not found.
 
-//     Unfortunately, the std::basid_string.find() functions returns npos
+//     Unfortunately, the basid_string.find() functions returns npos
 //     when the character is not found. This is -1, but assigned to a
 //     positive type! Gives a very high number. If you add 1 to this
 //     number you get zero again, so it does indeed bahave like -1 in a
@@ -222,8 +222,8 @@ inline Index my_basic_string<charT>::nelem() const
 // template<class charT>
 // inline Index my_basic_string<charT>::find(const my_basic_string<charT>& c)
 // {
-//   std::basic_string<charT>::size_type i = std::basic_string<charT>::find(c);
-//   if ( i == std::basic_string<charT>::npos )
+//   basic_string<charT>::size_type i = basic_string<charT>::find(c);
+//   if ( i == basic_string<charT>::npos )
 //     return npos;
 //   else
 //     return static_cast<Index>(i);
@@ -237,7 +237,7 @@ inline const char my_basic_string<charT>::operator[](Index n) const
 {
   assert(0<=n);
   assert(n<nelem());
-  return std::basic_string<charT>::operator[](n);
+  return basic_string<charT>::operator[](n);
 }
 
 /** Non-constant index operator. We redifine this here so that we can
@@ -247,13 +247,13 @@ inline char& my_basic_string<charT>::operator[](Index n)
 {
   assert(0<=n);
   assert(n<nelem());
-  return std::basic_string<charT>::operator[](n);
+  return basic_string<charT>::operator[](n);
 }
 
 // Non-member functions:
 
 // /** Output operator. */
-// inline std::ostream& operator<<(std::ostream& os, const my_basic_string& v)
+// inline ostream& operator<<(ostream& os, const my_basic_string& v)
 // {
 //   my_basic_string<base>::const_iterator         i = v.begin();
 //   const my_basic_string<base>::const_iterator end = v.end();
@@ -270,7 +270,7 @@ inline char& my_basic_string<charT>::operator[](Index n)
 //     }
 
 
-//   // Just use the operator of std::string.
+//   // Just use the operator of string.
 //   operator<<(os,v);
 //   return os;
 // }

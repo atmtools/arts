@@ -91,7 +91,7 @@ public:
   Sparse& operator=(const Sparse& m);
 
   // Friends:
-  friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
+  friend ostream& operator<<(ostream& os, const Sparse& v);
   friend void mult (VectorView y, const Sparse& M, ConstVectorView x );
   friend void mult (MatrixView A, const Sparse& B, ConstMatrixView C );
   friend void mult (Sparse& A, const Sparse& B, const Sparse& C );
@@ -102,11 +102,11 @@ public:
 
 private:
   //! The actual data values.
-  std::vector<Numeric> *mdata;
+  vector<Numeric> *mdata;
   //! Row indices.
-  std::vector<Index> *mrowind;
+  vector<Index> *mrowind;
   //! Pointers to first data element for each column.
-  std::vector<Index> *mcolptr;
+  vector<Index> *mcolptr;
   //! Number of rows in the sparse matrix.
   Index mrr;
   //! Number of rows in the sparse matrix.

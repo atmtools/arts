@@ -545,7 +545,7 @@ void lines_per_tgCreateFromLines(// WS Output:
   // the stl vector directly. The other place where this is done is in
   // the function executor in main.cc.
   // FIXME: Fix this when Array<bool> works.
-  std::vector<bool> species_used (species_data.nelem(),false);
+  vector<bool> species_used (species_data.nelem(),false);
       
   // Make lines_per_tg the right size:
   lines_per_tg = ArrayOfArrayOfLineRecord(tgs.nelem());

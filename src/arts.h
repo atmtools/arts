@@ -134,8 +134,8 @@ typedef INDEX Index;
 //typedef string String;
 
 
-//-----------< define a quick output for std::vector<> >----------
-/* A quick hack output for std::vector<>. This is only for
+//-----------< define a quick output for vector<> >----------
+/* A quick hack output for vector<>. This is only for
     debugging purposes.
     \return As for all output operator functions, the output stream is 
             returned.
@@ -143,9 +143,9 @@ typedef INDEX Index;
     \param  v  Vector to print                      
     \author SAB  */  
 // template<class T>
-// ostream& operator<<(ostream& os, const std::vector<T>& v)
+// ostream& operator<<(ostream& os, const vector<T>& v)
 // {
-//   for (std::vector<T>::const_iterator i=v.begin(); i<v.end()-1; ++i)
+//   for (vector<T>::const_iterator i=v.begin(); i<v.end()-1; ++i)
 //     os << *i << ", ";
 //   os << *(v.end()-1);
 //   return os;

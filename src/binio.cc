@@ -26,7 +26,7 @@
 #include <cmath>
 
 #ifdef __QNXNTO__
-   #define pow std::powf
+   #define pow powf
 #endif // __QNXNTO__
 
 // If 'math.h' doesn't define HUGE_VAL, we try to use HUGE instead.
@@ -39,7 +39,7 @@
 /***** Defines *****/
 
 #if BINIO_ENABLE_STRING
-// String buffer size for std::string readString() method
+// String buffer size for string readString() method
 #define STRINGBUFSIZE	256
 #endif
 
@@ -327,10 +327,10 @@ unsigned long binistream::readString(char *str, unsigned long maxlen,
 }
 
 #if BINIO_ENABLE_STRING
-std::string binistream::readString(char delim)
+string binistream::readString(char delim)
 {
   char buf[STRINGBUFSIZE + 1];
-  std::string tempstr;
+  string tempstr;
   unsigned long read;
 
   do {
@@ -664,7 +664,7 @@ unsigned long binostream::writeString(const char *str, unsigned long amount)
 }
 
 #if BINIO_ENABLE_STRING
-unsigned long binostream::writeString(const std::string &str)
+unsigned long binostream::writeString(const string &str)
 {
   return writeString(str.c_str());
 }

@@ -459,7 +459,7 @@ ConstTensor4View::ConstTensor4View(Numeric *data,
 /** Output operator. This demonstrates how iterators can be used to
     traverse the tensor. We use the standard output operator for
     Tensor to print each book in turn. */
-std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v)
+ostream& operator<<(ostream& os, const ConstTensor4View& v)
 {
   // Page iterators:
   ConstIterator4D ib = v.begin();

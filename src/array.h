@@ -90,14 +90,14 @@ typedef Array<Tensor7> ArrayOfTensor7;
     constructors are provided by the derived class MakeArray.
 */
 template<class base>
-class Array : public std::vector<base>
+class Array : public vector<base>
 {
 public:
   // Constructors:
-  Array()                     : std::vector<base>()  { /* Nothing to do here. */ };
-  explicit Array(Index n)     : std::vector<base>(n) { /* Nothing to do here. */ };
-  Array(Index n, const base& fill);
-  Array(const Array<base>& A) : std::vector<base>(A) { /* Nothing to do here. */ };
+  Array()                     : vector<base>()  { /* Nothing to do here. */ };
+  explicit Array(Index n)     : vector<base>(n) { /* Nothing to do here. */ };
+  Array(Index n, const base& fillvalue);
+  Array(const Array<base>& A) : vector<base>(A) { /* Nothing to do here. */ };
 
   // Assignment operators:
   Array& operator=(base x);
@@ -117,11 +117,11 @@ public:
 
 /** Constructor filling with constant value. */
 template<class base>
-inline Array<base>::Array(Index n, const base& fill) :
-  std::vector<base>(n)
+inline Array<base>::Array(Index n, const base& fillvalue) :
+  vector<base>(n)
 {
-  // Use std::fill to fill.
-  std::fill(this->begin(),this->end(),fill);
+  // Use fill to fill.
+  fill(this->begin(),this->end(),fillvalue);
 };
 
 
@@ -129,7 +129,7 @@ inline Array<base>::Array(Index n, const base& fill) :
 template<class base>
 inline Array<base>& Array<base>::operator=(base x) 
 {
-  std::fill(this->begin(),this->end(),x);
+  fill(this->begin(),this->end(),x);
   return *this;
 }
 
@@ -154,7 +154,7 @@ inline Array<base>& Array<base>::operator=(const Array<base>& A)
 {
   //  cout << "size this / A = " << size() << " / " << A.size() << "\n";
   resize(A.size());
-  std::copy( A.begin(), A.end(), this->begin() );
+  copy( A.begin(), A.end(), this->begin() );
   return *this;
 }
 
@@ -174,7 +174,7 @@ inline const base& Array<base>::operator[](Index n) const
 {
   assert(0<=n);
   assert(n<nelem());
-  return std::vector<base>::operator[](n);
+  return vector<base>::operator[](n);
 }
 
 /** Non-constant index operator. We redifine this here so that we can
@@ -184,7 +184,7 @@ inline base& Array<base>::operator[](Index n)
 {
   assert(0<=n);
   assert(n<nelem());
-  return std::vector<base>::operator[](n);
+  return vector<base>::operator[](n);
 }
 
 
@@ -192,7 +192,7 @@ inline base& Array<base>::operator[](Index n)
 
 /** Output operator. */
 template<class base>
-inline std::ostream& operator<<(std::ostream& os, const Array<base>& v)
+inline ostream& operator<<(ostream& os, const Array<base>& v)
 {
   typename Array<base>::const_iterator         i = v.begin();
   const typename Array<base>::const_iterator end = v.end();

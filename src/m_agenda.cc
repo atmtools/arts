@@ -38,7 +38,7 @@ void AgendaSet(// WS Generic Output:
   // Make external data visible
   extern const Array<WsvRecord> wsv_data;
   extern const Array<AgRecord>  agenda_data;
-  extern const std::map<String, Index> AgendaMap;
+  extern const map<String, Index> AgendaMap;
 
   output_agenda.resize(input_agenda.nelem());
   output_agenda = input_agenda;

@@ -36,12 +36,12 @@
 #include "agenda_record.h"
 
 /*! The map assiciated with wsv_data. */
-std::map<String, Index> WsvMap;
+map<String, Index> WsvMap;
 
 void define_wsv_map()
 {
   extern const Array<WsvRecord> wsv_data;
-  extern std::map<String, Index> WsvMap;
+  extern map<String, Index> WsvMap;
 
   for ( Index i=0 ; i<wsv_data.nelem() ; ++i )
     {

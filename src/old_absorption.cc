@@ -282,8 +282,8 @@ bool LineRecord::ReadFromHitranStream(istream& is)
           else
             {
               // See if this is already in warned_missing, use
-              // std::count for that:
-              if ( 0 == std::count(warned_missing.begin(),
+              // count for that:
+              if ( 0 == count(warned_missing.begin(),
                                    warned_missing.end(),
                                    mo) )
                 {
@@ -652,8 +652,8 @@ bool LineRecord::ReadFromMytran2Stream(istream& is)
           else
             {
               // See if this is already in warned_missing, use
-              // std::count for that:
-              if ( 0 == std::count(warned_missing.begin(),
+              // count for that:
+              if ( 0 == count(warned_missing.begin(),
                                    warned_missing.end(),
                                    mo) )
                 {

@@ -113,8 +113,8 @@ void option_methods(const String& methods)
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<String, Index> MdMap;
-  extern const std::map<String, Index> WsvMap;
+  //  extern const map<String, Index> MdMap;
+  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
@@ -289,8 +289,8 @@ void option_input(const String& input)
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<String, Index> MdMap;
-  extern const std::map<String, Index> WsvMap;
+  //  extern const map<String, Index> MdMap;
+  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
@@ -446,8 +446,8 @@ void option_workspacevariables(const String& workspacevariables)
   // Make global data visible:
   extern const Array<MdRecord>  md_data;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<String, Index> MdMap;
-  //  extern const std::map<String, Index> WsvMap;
+  extern const map<String, Index> MdMap;
+  //  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // This is used to count the number of matches to a query, so
@@ -534,8 +534,8 @@ void option_describe(const String& describe)
   // Make global data visible:
   extern const Array<MdRecord>  md_data_raw;
   extern const Array<WsvRecord> wsv_data;
-  extern const std::map<String, Index> MdRawMap;
-  extern const std::map<String, Index> WsvMap;
+  extern const map<String, Index> MdRawMap;
+  extern const map<String, Index> WsvMap;
   //  extern const ArrayOfString wsv_group_names;
 
   // Let's first assume it is a method that the user wants to have
@@ -718,8 +718,8 @@ int main (int argc, char **argv)
   // Make all these data visible:
   //  extern const Array<MdRecord>  md_data;
   //  extern const Array<WsvRecord> wsv_data;
-  //  extern const std::map<String, Index> MdMap;
-  //  extern const std::map<String, Index> WsvMap;
+  //  extern const map<String, Index> MdMap;
+  //  extern const map<String, Index> WsvMap;
   extern const ArrayOfString wsv_group_names;
 
   // Now we are set to deal with the more interesting command line

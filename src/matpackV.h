@@ -469,7 +469,7 @@ Numeric max(const ConstTensor5View& x);
 
 Numeric min(const ConstTensor5View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor5View& v);
+ostream& operator<<(ostream& os, const ConstTensor5View& v);
 
 
 #endif    // matpackV_h

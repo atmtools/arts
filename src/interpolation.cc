@@ -83,7 +83,7 @@ const Numeric sum_check_epsilon = 1e-6;
 
   \return The output stream.
 */
-std::ostream& operator<<(std::ostream& os, const GridPos& gp)
+ostream& operator<<(ostream& os, const GridPos& gp)
 {
   os << gp.idx << " " << gp.fd[0] << " " << gp.fd[1] << "\n";
   return os;

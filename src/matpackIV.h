@@ -401,7 +401,7 @@ Numeric max(const ConstTensor4View& x);
 
 Numeric min(const ConstTensor4View& x);
 
-std::ostream& operator<<(std::ostream& os, const ConstTensor4View& v);
+ostream& operator<<(ostream& os, const ConstTensor4View& v);
 
 
 #endif    // matpackIV_h

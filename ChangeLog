@@ -1,5 +1,32 @@
 2004-03-02  Oliver Lemke  <olemke@linux.net>
 
+	* arts-1-1-792
+
+	* .cvsignore: Added config.guess, config.sub.
+
+	* src/array.h: Renamed second parameter of constructor from fill to
+	fillvalue. Avoid clash with function of same name.
+
+	* src/absorption.cc, src/agenda_record.cc, src/array.h, src/arts.h,
+	src/binio.cc, src/binio.h, src/globals_2.cc, src/interpolation.cc,
+	src/interpolation.h, src/m_abs.cc, src/m_agenda.cc, src/main.cc,
+	src/make_array.h, src/matpackI.cc, src/matpackI.h, src/matpackII.cc,
+	src/matpackII.h, src/matpackIII.cc, src/matpackIII.h, src/matpackIV.cc,
+	src/matpackIV.h, src/matpackV.cc, src/matpackV.h, src/matpackVI.cc,
+	src/matpackVI.h, src/matpackVII.cc, src/matpackVII.h,
+	src/methods_aux.cc, src/mystring.h, src/old_absorption.cc,
+	src/parser.cc, src/sensor.cc, src/sorting.h, src/workspace_aux.cc:
+	Removed all occurences of 'std::'. Either the compiler supports
+	namespaces, then this is covered by 'using namespace std', or the
+	compiler does not know about namespaces. For the latter, everything has
+	global scope and trying to specify the namespace will most likely
+	break the compilation. In this case, the 'using namespace std'
+	directive can be omitted by implementing a macro that utilizes the
+	information gathered by the configure script (AC_CXX_NAMESPACES
+	in 1.1.791).
+
+2004-03-02  Oliver Lemke  <olemke@linux.net>
+
 	* arts-1-1-791
 
 	* autogen.sh: Add m4 directory to aclocal flags.
