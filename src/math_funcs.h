@@ -86,6 +86,14 @@ void log( MATRIX& Y, const MATRIX& X );
 
 MATRIX log( const MATRIX& X );
 
+void log10( VECTOR& y, const VECTOR& x );
+
+VECTOR log10( const VECTOR& x );
+
+void log10( MATRIX& Y, const MATRIX& X );
+
+MATRIX log10( const MATRIX& X );
+
 
 
 //// mean and standard deviation ////////////////////////////////////////////

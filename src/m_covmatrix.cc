@@ -112,14 +112,19 @@ void setup_covmatrix(
   if ( !corrfun )
     out2 << "  Creating a diagonal covariance matrix.\n";
   else
-    out2 << "  Creating a simple covariance matrix.\n";
-  out3 << "    Size                : " << n << "\n";
-  out3 << "    Standard deviation  : " << sdev << "\n";
-  if ( corrfun )
   {
-    out3 << "    Correlation length  : " << clength << "\n";
+    out2 << "  Creating a simple covariance matrix.\n";
+    if ( corrfun == 1 )
+      out2 << "  Tenth function correlation.\n";
+    else if ( corrfun == 2 )
+      out2 << "  Exponential correlation.\n";
+    else if ( corrfun == 3 )
+      out2 << "  Gaussian correlation.\n";
+    //out3 << "    Correlation length  : " << clength << "\n";
     out3 << "    Correlation cut-off : " << cutoff << "\n";
   }
+  out3 << "    Size                : " << n << "\n";
+  //out3 << "    Standard deviation  : " << sdev << "\n";
 
   // Interpolate to get standard deviation and correlation length at
   // each point of k_grid
@@ -362,14 +367,13 @@ void sFromFile(
   if ( am[0].dim(2) != n )
     throw runtime_error("The number of columns of the first matrix must equal the number of matrices - 1.");
 
-  out2 << "  Reading a covariance matrix from file " << filename << ".\n";
-  out3 << "    Summing " << n << " matrices.\n";
+  out2 << "  Summing " << n << " matrices.\n";
   
   // Loop the different covariance matrices
-  for ( i=0; i<n; i++ )
+  for ( i=1; i<=n; i++ )
   {
     // Check if the corrfun flag is an integer
-    if ( (am[0][0][i]-floor(am[0][0][i])) != 0 )
+    if ( (am[0][0][i-1]-floor(am[0][0][i-1])) != 0 )
       throw runtime_error("The first row of matrix 1 shall only contain integers..");
 
     // Move definition values to vectors
@@ -385,13 +389,13 @@ void sFromFile(
     }
 
     if ( i == 1 )
-      setup_covmatrix( s, grid, size_t(am[0][0][i]), am[0][1][i], kp, 
+      setup_covmatrix( s, grid, size_t(am[0][0][i-1]), am[0][1][i-1], kp, 
                                                               sdev, clength );
       
     else
     {
       MATRIX stmp;
-      setup_covmatrix( stmp, grid, size_t(am[0][0][i]), am[0][1][i], kp, 
+      setup_covmatrix( stmp, grid, size_t(am[0][0][i-1]), am[0][1][i-1], kp, 
                                                               sdev, clength );
       s = s + stmp;
     }

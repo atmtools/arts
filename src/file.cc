@@ -402,13 +402,10 @@ void read_array_of_matrix_from_stream(ARRAYofMATRIX& am,
     throw runtime_error("Input finished, but end of stream not reached.");
 
   // Some output to the lowest priority stream:
-  out3 << "  Dimensions: "
-       << am.size() << ", ";
+  out3 << "  Dimensions:\n";
+  out3 << "     "<< am.size() << "\n";
   for ( size_t i=0; i<am.size(); ++i )
-    {
-       out3 << am[i].dim(1) << ", "
-	    << am[i].dim(2) << "\n";
-    }
+    out3 << "     " << am[i].dim(1) << ", " << am[i].dim(2) << "\n";
 }
 
 

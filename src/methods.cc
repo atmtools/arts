@@ -383,6 +383,19 @@ void define_md_data()
 	KEYWORDS( "temp"    ),
 	TYPES(    Numeric_t )));
 
+  md_data.push_back
+    ( MdRecord
+      ( NAME("VectorCalcLog10"),
+  	DESCRIPTION(
+          "Calculates the base 10 logarithm of a vector.\n"
+          "The result can either be stored in the same or another vector."),
+	OUTPUT( ),
+	INPUT( ),
+	GOUTPUT( VECTOR_ ),
+	GINPUT( VECTOR_ ),
+	KEYWORDS(),
+	TYPES()));
+
 
 
 //=== MATRIX ==========================================================

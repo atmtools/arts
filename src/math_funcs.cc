@@ -223,6 +223,71 @@ MATRIX log( const MATRIX& X )            // matrix return version
   return Y; 
 }
 
+// log10
+/** Gives the base 10 logarithm of a vector.
+   
+   \retval   y   the base 10 logarithm of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2001-01-03
+*/
+void log10( VECTOR& y, const VECTOR& x )   // vector parameter version
+{
+  int n = x.size();
+  y.resize(n);
+  for ( int i=1; i<=n; i++ )
+    y(i) = log10(x(i));
+}
+
+/** Gives the base 10 logarithm of a vector (return version).
+   
+   \return       the base 10 logarithm of x
+   \param    x   a vector
+
+   \author Patrick Eriksson
+   \date   2001-01-03
+*/
+VECTOR log10( const VECTOR& x )            // vector return version
+{
+  VECTOR y;
+  log10( y, x );
+  return y; 
+}
+
+/** Gives the base 10 logarithm of a matrix.
+   
+   \retval   y   the base 10 logarithm of x
+   \param    x   a matrix
+
+   \author Patrick Eriksson
+   \date   2001-01-03
+*/
+void log10( MATRIX& Y, const MATRIX& X )   // matrix parameter version
+{
+  int m = X.dim(1);
+  int n = X.dim(2);
+  Y.resize(m,n);
+  for ( int i=1; i<=m; i++ ) {
+    for ( int j=1; j<=n; j++ )
+      Y(i,j) = log10(X(i,j)); }
+}
+
+/** Gives the base 10 logarithm of a matrix (return version).
+   
+   \return       the base 10 logarithm of x
+   \param    x   a matrix
+
+   \author Patrick Eriksson
+   \date   2001-01-03
+*/
+MATRIX log10( const MATRIX& X )            // matrix return version
+{
+  MATRIX Y;
+  log10( Y, X );
+  return Y; 
+}
+
 
 
 //// mean and standard deviation ////////////////////////////////////////////

@@ -1,3 +1,14 @@
+2001-01-03  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-97
+
+	* Bugs in absloswfsCalc and sFromFile due to index change fixed.
+
+	* A function to calaulate the base 10 logarithm exists 
+	(VectorCalcLog10). This function is handy when setting up Sx when
+	using pressure as altitude coordinate.
+	
+
 2001-01-02  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-96

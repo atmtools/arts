@@ -403,7 +403,7 @@ void absloswfs_1pass (
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
-  k.resize( nf, start_index );
+  k.resize( nf, start_index+1 );
 
   // We start here at the LOS point closest to the sensor, that is,
   // reversed order compared to RTE_ITERATE  
@@ -500,12 +500,12 @@ void absloswfs_limb (
         size_t   q;                   // LOS index (same notation as in AUG)
         Numeric  tv, tv1;             // transmission value for q and q-1
 
+  // Resize K
+  k.resize( nf, start_index+1 );
+
   // Calculate the square root of the total transmission
   bl( t1q, start_index, start_index, tr, ground, e_ground );
   t1q = sqrt(t1q);
-
-  // Resize K
-  k.resize( nf, start_index );
 
   // We start at the outermost point
   q  = start_index;       
@@ -538,8 +538,8 @@ void absloswfs_limb (
 
   // The tangent or ground point
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][q]  = -lstep*( (2*yn[iv]*tv+s[iv][1]*(1-2*tv))*t1q[iv]*t1q[iv] +
-                       yn[iv] - s[iv][1] ) * tqn[iv] / 2;
+    k[iv][0]  = -lstep*( (2*yn[iv]*tv+s[iv][0]*(1-2*tv))*t1q[iv]*t1q[iv] +
+                       yn[iv] - s[iv][0] ) * tqn[iv] / 2;
 
   // To check the function
   // Without ground reflection: T1Q=1 and Y=0
@@ -593,7 +593,7 @@ void absloswfs_down (
         VECTOR   tr0;            // see below
 
   // Resize K
-  k.resize( nf, start_index );
+  k.resize( nf, start_index+1 );
 
   // Calculate Y0, the intensity reaching the platform altitude at the far
   // end of LOS, that is, from above.
@@ -603,7 +603,6 @@ void absloswfs_down (
   // Calculate TR0, the transmission from the platform altitude down to the
   // tangent point or the ground, and up to the platform again.
   bl( tr0, stop_index, stop_index, tr, ground, e_ground );
-
 
   // The indeces below STOP_INDEX are handled by the limb sounding function.
   // The limb function is given Y0 instead of cosmic radiation 
@@ -688,7 +687,7 @@ void sourceloswfs_1pass (
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
-  k.resize( nf, start_index );
+  k.resize( nf, start_index+1 );
 
   // We start here at the LOS point closest to the sensor, that is,
   // reversed order compared to RTE_ITERATE  
@@ -768,7 +767,7 @@ void sourceloswfs_limb (
   t1q = sqrt(t1q);
 
   // Resize K
-  k.resize( nf, start_index );
+  k.resize( nf, start_index+1 );
 
   // We start at the outermost point
   q  = start_index;       
@@ -793,7 +792,7 @@ void sourceloswfs_limb (
 
   // The tangent or ground point
   for ( iv=0; iv<nf; iv++ )    
-    k[iv][q]  = ( (1-tr[iv][q])*(1+t1q[iv]*t1q[iv]*tr[iv][q]) ) * tqn[iv] / 2;
+    k[iv][0]  = ( (1-tr[iv][0])*(1+t1q[iv]*t1q[iv]*tr[iv][0]) ) * tqn[iv] / 2;
 }
 
 
@@ -832,7 +831,7 @@ void sourceloswfs_down (
         VECTOR   tr0;            // see below
 
   // Resize K
-  k.resize( nf, start_index );
+  k.resize( nf, start_index+1 );
 
   // Calculate TR0, the transmission from the platform altitude down to the
   // tangent point or the ground, and up to the platform again.
@@ -1566,12 +1565,14 @@ void absloswfsCalc (
       else if ( los.start[i] == los.stop[i] )
         absloswfs_limb( absloswfs[i], yp, y_space, los.start[i], los.l_step[i],
                      trans[i], source[i], los.ground[i], e_ground );
+
       //
       // 1D downward looking
       else 
         absloswfs_down( absloswfs[i], yp, y_space, los.start[i], los.stop[i], 
                         los.l_step[i], trans[i], source[i], los.ground[i], 
                         e_ground, y_ground );
+
     }
   }
   out3 << "\n";

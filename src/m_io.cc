@@ -1051,6 +1051,19 @@ void VectorPlanck(
 
 
 
+void VectorCalcLog10(
+                    VECTOR&   out,
+              const string&   out_name,
+              const VECTOR&   in,
+              const string&   in_name )
+{
+  out2<<"  " << out_name << " = log10( " << in_name << " )\n";
+
+  out = log10( in );
+}
+
+
+
 void VectorRandUniform(
                     VECTOR&   y,
               const string&   y_name,

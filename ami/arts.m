@@ -4,7 +4,7 @@
 %          Runs ARTS from Matlab
 %
 % FORMAT:  arts cfile1 cfile2 cfile3 cfile4 cfile5
-%          or
+%             or
 %          arts(cfile1,cfile2,cfile3,cfile4,cfile5)
 %
 % RETURN:  -
