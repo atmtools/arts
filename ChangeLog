@@ -1,3 +1,15 @@
+2003-01-23  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-418
+
+	* src/bifstream.h src/bifstream.cc: Added class for binary input.
+
+	* src/bofstream.cc: Removed matpackI include.
+
+	* src/bofstream.h: Removed destructor.
+
+	* src/Makefile.am (arts_SOURCES): Added bifstream.{h,cc}.
+
 2003-01-22  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-417
