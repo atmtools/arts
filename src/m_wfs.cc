@@ -1154,7 +1154,7 @@ void sourceloswfs (
                     ArrayOfMatrix&   sourceloswfs,
               const Los&             los,   
               const ArrayOfMatrix&   trans,
-              const Vector&          f_mono,
+              const Vector&          /* f_mono */,
               const Vector&          e_ground )
 {
   const Index  nza = los.start.nelem();   // number of zenith angles  
@@ -1915,25 +1915,25 @@ void k_temp_nohydro (
    \date   2003-04-08
 */
 void kb_spectro(
-		Matrix&                             kb,
-		ArrayOfString&                      kb_names,
-		Matrix&                             kb_aux,
+                Matrix&                             kb,
+                ArrayOfString&                      kb_names,
+                Matrix&                             /* kb_aux */,
                 Matrix&                             S_S,
                 Matrix&                             Mcorr,
-	   const TagGroups&                          wfss_tgs,
-	   const TagGroups&                          tgs,
-	   const Vector&                             f_mono,
-           const Vector&                             p_abs,
-           const Vector&                             t_abs,
-           const Vector&                             h2o_abs,
-           const Matrix&                             vmrs,
-           const ArrayOfArrayOfLineRecord&           lines_per_tg,
-           const ArrayOfLineshapeSpec&               lineshape,
-           const Los&                                los,           
-	   const ArrayOfMatrix&                      absweight,
-	   const Index&                              IndexPar,
-	   const String&                             StrPar,
-           const Numeric&                            corr   
+                const TagGroups&                    wfss_tgs,
+                const TagGroups&                    tgs,
+                const Vector&                       f_mono,
+                const Vector&                       p_abs,
+                const Vector&                       t_abs,
+                const Vector&                       h2o_abs,
+                const Matrix&                       vmrs,
+                const ArrayOfArrayOfLineRecord&     lines_per_tg,
+                const ArrayOfLineshapeSpec&         lineshape,
+                const Los&                          los,           
+                const ArrayOfMatrix&                absweight,
+                const Index&                        IndexPar,
+                const String&                       StrPar,
+                const Numeric&                      corr   
 )
  { 
  // Main sizes
@@ -2257,32 +2257,32 @@ void kb_spectro(
 */
 
 void kSpectro (
-	       Matrix&                               k,
-	       ArrayOfString&                        k_names,
-	       Matrix&                               k_aux,
-               Matrix&                               S_S,
-               Matrix&                               Mcorr,
-	  const TagGroups&                            wfss_tgs,
-	  const TagGroups&                            tgs,
-	  const Vector&                               f_mono,
-	  const Vector&                               p_abs,
-	  const Vector&                               t_abs,
-	  const Vector&                               z_abs,
-	  const Vector&                               h2o_abs,
-	  const Matrix&                               vmrs,
-	  const ArrayOfArrayOfLineRecord&             lines_per_tg,
-	  const ArrayOfLineshapeSpec&                 lineshape,
-	  const Los&                                  los,           
-	  const ArrayOfMatrix&                        absloswfs,
-	  // Keywords
-	  const  Index&                               kw_intens,
-	  const  Index&                               kw_position,
-          const  Index&                               kw_agam,
-          const  Index&                               kw_sgam,
-          const  Index&                               kw_nair,
-          const  Index&                               kw_nself,
-	  const  Index&                               kw_pSift, 
-          const  Numeric&                             corr)
+               Matrix&                          k,
+               ArrayOfString&                   k_names,
+               Matrix&                          /* k_aux */,
+               Matrix&                          S_S,
+               Matrix&                          Mcorr,
+               const TagGroups&                 wfss_tgs,
+               const TagGroups&                 tgs,
+               const Vector&                    f_mono,
+               const Vector&                    p_abs,
+               const Vector&                    t_abs,
+               const Vector&                    z_abs,
+               const Vector&                    h2o_abs,
+               const Matrix&                    vmrs,
+               const ArrayOfArrayOfLineRecord&  lines_per_tg,
+               const ArrayOfLineshapeSpec&      lineshape,
+               const Los&                       los,           
+               const ArrayOfMatrix&             absloswfs,
+               // Keywords
+               const  Index&                    kw_intens,
+               const  Index&                    kw_position,
+               const  Index&                    kw_agam,
+               const  Index&                    kw_sgam,
+               const  Index&                    kw_nair,
+               const  Index&                    kw_nself,
+               const  Index&                    kw_pSift, 
+               const  Numeric&                  corr)
 {
 
   check_if_bool( kw_intens, "do_intens keyword" );
@@ -3603,7 +3603,7 @@ void kCalibration(
               const Vector&          y,
               const Vector&          f_mono,
               const Vector&          y0,
-       	      const String&          name )
+       	      const String&          /* name */ )
 {
   check_lengths( f_mono, "f_mono", y0, "y0" );
 
@@ -3760,7 +3760,7 @@ void kxAllocate (
                     ArrayOfIndex&    kx_lengths,
                     Matrix&          kx_aux,
               const Vector&          y,
-              const String&          y_name,
+              const String&          /* y_name */,
               const Index&             ni,
               const Index&             nx )
 {
