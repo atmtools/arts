@@ -639,8 +639,8 @@ void define_md_data_raw()
               scat_aa_grid_, stokes_dim_, atmosphere_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
-	KEYWORDS( ),
-	TYPES( )));
+	KEYWORDS("epsilon"),
+	TYPES(Vector_t)));
 
   md_data_raw.push_back     
     ( MdRecord
@@ -860,18 +860,17 @@ void define_md_data_raw()
          "calculates *i_field* inside the cloudbox.\n"
          "   " 
         ),
-	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, ext_mat_,
-               abs_vec_, sca_vec_, stokes_vec_, planck_function_, l_step_,
+	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, sca_vec_, 
+               stokes_vec_, planck_function_, l_step_,
                convergence_flag_, pha_mat_part_, pha_mat_spt_, abs_vec_spt_,
-               abs_vec_part_,
-               ext_mat_spt_, ext_mat_part_ ),
+               ext_mat_spt_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, convergence_test_agenda_,
               ppath_step_agenda_, scat_rte_agenda_, 
               amp_mat_, cloudbox_limits_,
               scat_za_grid_, scat_aa_grid_, 
-	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, z_ground_,
-	      r_geoid_, f_grid_, scat_f_index_, part_types_, blackbody_ground_,
-	      stokes_dim_, atmosphere_dim_, pnd_field_),
+	      p_grid_, lat_grid_, lon_grid_, t_field_, z_field_,
+	      r_geoid_, f_grid_, scat_f_index_, 
+	      stokes_dim_, atmosphere_dim_, pnd_field_, part_types_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),
@@ -887,16 +886,15 @@ void define_md_data_raw()
          "in *scat_field*.\n"
          "   " 
         ),
-	OUTPUT(i_field_, ppath_step_, stokes_vec_, ext_mat_, abs_vec_,
-               pha_mat_part_,
-               sca_vec_, planck_function_, l_step_, pha_mat_spt_, abs_vec_spt_,
-               abs_vec_part_, ext_mat_spt_, ext_mat_part_),
+	OUTPUT(i_field_, ppath_step_, stokes_vec_, 
+               sca_vec_, planck_function_, l_step_,
+               abs_vec_spt_, ext_mat_spt_),
 	INPUT(ext_mat_agenda_, abs_vec_agenda_, ppath_step_agenda_,
-              scat_rte_agenda_, i_field_old_, amp_mat_,
-              scat_field_, cloudbox_limits_, scat_za_grid_, scat_aa_grid_,
-              p_grid_, lat_grid_, lon_grid_, t_field_, z_field_, 
-              z_ground_, r_geoid_, f_grid_, scat_f_index_, blackbody_ground_,
-	      pnd_field_, stokes_dim_, atmosphere_dim_),
+              scat_rte_agenda_, amp_mat_, scat_field_, cloudbox_limits_,
+              scat_za_grid_, p_grid_, t_field_, z_field_, 
+              r_geoid_, f_grid_, scat_f_index_,
+	      pnd_field_, stokes_dim_, atmosphere_dim_, part_types_,
+              pha_mat_spt_),
 	GOUTPUT(),
 	GINPUT(),
 	KEYWORDS(),

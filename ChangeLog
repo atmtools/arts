@@ -1,5 +1,21 @@
 2002-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
+	* arts-1-1-156
+
+	* src/m_rtescat.cc (i_fieldUpdate1D) and (i_fieldIterate):
+	Included the functions and agendas for calculating the optical
+	properties. Modified the interfaces of the functions.
+	(convergence_flagAbs): Limiting values for the convergence test
+	are now keywords, which can be specified in the control file.
+	
+	* src/methods.cc: Adapted interfaces according to the changes
+	above.
+
+	* doc/i_field.arts: Added agenda definitions for the calculations
+	of optical properties.
+
+2002-06-20  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
 	* arts-1-1-155
 		
 	* src/m_scatproperties.cc: Fixed and marked some bugs.

@@ -167,6 +167,17 @@ VectorSet (part_types){
 	length = 3
 	value = 1
 	}
+
+MatrixSet (ext_mat_gas){
+	nrows = 4
+	ncols = 4
+	value = 0
+}
+
+VectorSet (abs_vec_gas) {
+	length = 4
+	value = 0
+}
 	
 IndexSet ( scat_f_index ) {
 	value = 1
@@ -186,7 +197,11 @@ AgendaSet( ppath_step_agenda ) { ppath_stepGeometric{} }
 
 AgendaSet( scat_rte_agenda ) { stokes_vecGeneral{} }
 
-AgendaSet( convergence_test_agenda) {convergence_flagAbs{} }
+AgendaSet( convergence_test_agenda) {
+	convergence_flagAbs{
+	epsilon =[1e-20, 1e-21, 1e-21, 1e-21]
+	 }
+	 }
 
 i_fieldIterate{}
 
