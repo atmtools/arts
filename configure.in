@@ -13,7 +13,7 @@ AC_INIT(reconf)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,0.0.216)
+AM_INIT_AUTOMAKE(arts,0.0.217)
 
 # Maintainer mode switch. DOC++, as well as all LaTeX documents (DOC++
 # and AUG) are only processed in maintainer mode. This is necessary so
