@@ -1,3 +1,16 @@
+2003-04-02  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-519
+
+	* src/zeemanproperties.cc: Put a new line shape in the
+	complex refractivity, giving at least provisionary meaningful
+	results for the Zeeman absorption. Full implementation to the level of
+	testing the routines through control files is pending.
+
+	* src/zeemanproperties.h: Updated accordingly.
+
+	* src/test_zeemanproperties.cc: Updated accordingly.	
+	
 2003-04-02  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-518

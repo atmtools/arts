@@ -19,7 +19,11 @@ void Zeeman (Vector& f_grid,
 	     Tensor3& ext_mat_zee,
 	     Matrix& abs_vec_zee,
 	     Matrix& xi_mat,
-	     Matrix& f_z_mat);
+	     Matrix& f_z_mat,
+	     Numeric& N_r,
+	     Numeric& f_c,
+	     Numeric& a1,
+	     Numeric& a2);
  
 
 #endif 
