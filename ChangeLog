@@ -1,3 +1,21 @@
+2003-12-01  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
+	* arts-1-1-727
+	
+	* src/m_scatrte.cc (i_fieldUpdateSeq1D_PlaneParallel): Renamed and
+	modified the planeparallel method to be consistent with the
+	spherical model. The results from planeparallel model are tested
+	and are closer to the spherical case.  
+
+	* src/methods.cc : Renaming of the planeparallel method.
+
+	* src/scatrte.cc : Implemented the new function
+	cloud_ppath_update1D_planeparallel which is consistent with
+	cloud_ppath_update1D.  
+
+	* src/scatrte.h : Added the function
+	cloud_ppath_update1D_planeparallel.	
+	
 2003-12-01  Mattias Ekström  <ekstrom@rss.chalmers.se>
 
 	* arts-1-1-726

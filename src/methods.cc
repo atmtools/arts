@@ -1838,23 +1838,25 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "i_fieldUpdate1D_PlaneParallel" ),
+      ( NAME( "i_fieldUpdateSeq1D_PlaneParallel" ),
         DESCRIPTION
         (
-         "Updates the i_field during the iteration. It performs the RT \n"
+         "Updates the i_field during the iteration sequentially.\n"
+         "It performs the RT \n"
          "calculation using a fixed value for the scattering integral stored \n"
          "in *scat_field*.\n"
-         "   " 
-        ),
-        OUTPUT(i_field_, abs_scalar_gas_, rte_pressure_, rte_temperature_,
-                rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
-               scat_p_index_, ppath_step_),
-        INPUT(i_field_old_, scat_field_, cloudbox_limits_, 
+         "\n" 
+         ),
+        OUTPUT(i_field_, rte_pressure_, rte_temperature_,
+               rte_vmr_list_, scat_za_index_, ext_mat_, abs_vec_,
+               scat_p_index_, ppath_step_, ground_los_, ground_emission_,
+               ground_refl_coeffs_, rte_los_, rte_pos_, rte_gp_p_),
+        INPUT(scat_field_, cloudbox_limits_, 
               scalar_gas_absorption_agenda_,
               vmr_field_, spt_calc_agenda_, scat_za_grid_, 
-              opt_prop_part_agenda_, pnd_field_, opt_prop_gas_agenda_,
+              opt_prop_part_agenda_, opt_prop_gas_agenda_,
               ppath_step_agenda_, p_grid_, z_field_, r_geoid_, t_field_,
-              f_grid_, f_index_),
+              f_grid_, f_index_, ground_refl_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),
