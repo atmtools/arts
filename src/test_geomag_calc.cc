@@ -62,8 +62,6 @@ int main(void)
   cout <<  "Ny" <<  endl;
   cin >>  Ny;
 
-  // Definition of the total field.
-  B_tot = sqrt(B_r * B_r + B_th * B_th + B_ph * B_ph);
 
   // Defining the geocetric radius to the point.
   const Numeric r = a + z;
@@ -71,6 +69,10 @@ int main(void)
   try
     {
       magfield_nk(B_r, B_th, B_ph, r, theta, phi, Ny);
+      
+      // Calculating of the total field.
+      B_tot = sqrt(B_r * B_r + B_th * B_th + B_ph * B_ph);
+
     }
   catch (runtime_error e)
     {

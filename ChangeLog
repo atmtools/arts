@@ -1,5 +1,13 @@
 2003-08-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-674
+	
+	* src/geomag_calc.cc: Cleaning up and debugging.
+
+	* src/test_geomag_calc.cc: Cleaning up and debugging.
+	
+2003-08-26  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-673
 	
 	* src/legendre.cc: Fixed a bug in the normalizazion factor of
