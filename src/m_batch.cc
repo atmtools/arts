@@ -447,7 +447,6 @@ void ybatchFromRadiosonde(// WS Output:
 	      interpp (t_abs, p_raw, t_raw, p_abs);
 	      interpp (z_abs, p_raw, z_raw, p_abs);    
 	      
-	      cout << p_abs << endl;
 	      // Create vmrs:
 	      Vector vmr_raw(n_rows + 1);
 	      
@@ -668,8 +667,7 @@ void ybatchFromRadiosondeGlobal(// WS Output:
 
       // Set z_ground from lowest level of z_abs:
       Numeric z_ground = z_raw[0];
-      //cout << z_raw[0] << endl;
-
+      
       // Calculate refractive index:
       Vector refr_index;
       refrCalc(// Output:
