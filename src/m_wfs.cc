@@ -598,7 +598,7 @@ void absloswfs_rte_limb (
   Vector      t1q;                 // transmission tangent point - q squared
   Vector      tqn(nf,1.0);         // transmission q - sensor
   Index       q;                   // LOS index (same notation as in AUG)
-  Numeric     tv, tv1;             // transmission value for q and q-1
+  Numeric     tv, tv1 = 0.;             // transmission value for q and q-1
   Vector      yn(y_space);         // = y_space
 
   // Matpack can initialize a new Vector from another Vector. See how
