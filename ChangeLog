@@ -1,5 +1,11 @@
 2001-10-15  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
+	* arts-0-1-18
+
+	* /ami/physiscs/za2geomtan.m added
+
+2001-10-15  Carlos Jimenez  <jimenez@rss.chalmers.se>
+
 	* arts-0-1-17
 
 	* /ami/hmatrix/hRedKx.m and hRedLimb.m removed, they
