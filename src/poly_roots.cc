@@ -24,6 +24,9 @@
 
    Contains the code to determine roots of polynomials.
 
+   Code was taken from the GNU Scientific library.
+   http://sources.redhat.com/gsl/
+
    \author Oliver Lemke
    \date 2002-03-06
 */
