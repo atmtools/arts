@@ -209,7 +209,7 @@ function is normalized as follows
 The values of $S(T)$ at reference temperature $T_0$ are contaied in spectroscopic databases. The conversion to different
 temperatures is done by
 \begin{equation}
-S(T)=S(T_0)\frac{T_0}{T}\frac{Q(T_0)}{Q(T)}~~exp~\left[\frac{E_f+E_i}{2kT_0}\left(1-\frac{T_0}{T}\right)\right]
+S(T)=S(T_0)~\frac{Q(T_0)}{Q(T)}~\frac{e^{-E_f/kT} - e^{-E_i/kT}}{e^{-E_f/kT_0} - e^{-E_i/kT_0}}
 \label{}
 \end{equation}
 given the energies $E_f$ and $E_i$ of the two levels between which the
@@ -387,14 +387,14 @@ and to be valid near the line centers throughout the microwave region.
 \levelc{Partition Functions}
 
 The treatment of the partition functions is directly related to the molecular
-energy states and their statistical distribution of during the
+energy states and their statistical distribution during the
 radiation process. 
 
 In any case of spectroscopic interest the free molecules of a gas are
 not ptically thick at all freqeuncies, so the radiation energy is not
 represented by blackbody radiation. The most common assumption made,
 which is sufficient in the case of tropospheric and low stratospheric
-research, is the $local thermodynamic equilibrium$ or $LTE$. According to it,
+research, is the {\textit{local thermodynamic equilibrium\nocorr} or $LTE$. According to it,
 it's possible to find a common temperature, which may vary from place
 to place, that fits the Boltzman energy population distribution and
 the Maxwell velocities distribution. This practically means, that
@@ -405,6 +405,78 @@ radiation. This is the important factor which make natural broadening
 differ quantatively so much from the pressure (collisional), though
 both are described qualitatively almost identical by  Lorentzian line-
 shape functions.
+
+Accordind  to the Maxwell-Boltzman distribution law,in $LTE$ the total number
+of gas particles $N_n$  in a state $E_n$ is given by 
+\begin{equation}
+ N_n=N_0\frac{g_n}{g_0}e^{-E_n/kT}
+\label{}
+\end{equation}
+where $N_0$ is particle number in the ground state, and $g_n$, $g_o$
+are the statistical weights (degeneracies) of the $n-$state and the
+ground state. Thus the total particle number $N$ is given by
+\begin{equation}
+ N=\frac{N_0}{g_0}\sum_{n=0}^\infty e^{-E_n/kT}=\frac{N_0}{g_0}~Q(T)
+\label{}
+\end{equation}
+The quantity $Q(T)$ is {\it{partition function}\nocorrr} of the gas. At
+one hand all thermodynamic quantities can expressed through it, and at
+another it comes into play by the calculation line intensities.\\
+Generally speaking, the partition fuction for a perfect gas can be
+represented by the product of {\it{translational}\nocorr} and {\it{internal}\nocorr} partition functions
+\begin{equation}
+ Q &  = &  Q_{tr}~Q_{int}
+\label{}
+\end{equation}
+bearing in mind that the respective energies are independent of each
+other. The quantitity, however, which we are interested in in (3.13) is
+{\it{internal}\nocorr} partition function (or the  {\it{total internal
+    partition function}\nocorr}). It describes, in general terms, the energy
+distribution and redistribution during the radiation process. 
+
+The internal partition function for free gaseous molecules is  a
+function of the electronic, the vibrational, the rotational, and the
+nuclear spin states. An approximation is used in order to display the
+individual contribution explicitly
+\begin{equation}
+ Q=Q_e~Q_v~Q_r~Q_n
+\label{}
+\end{equation}
+and thus the intraciton betweeen these various states is neglected. For
+practically all polyatomic molecules the excited electronic staates
+are entirely negligable to those of the ground states,
+i.e. $Q_e=1$ . Only for the very few polyatomic molecules with a
+multiplet ground state (NO_2 , ClO_2 , and free radicals) has the
+electronic contibution to be considered.\\
+If we neglect the anharmonicities, the vibratioanal partition
+function, with vibrational levels measured with respect to the ground
+state, the term $\1/2H\omega_n$ is omitted in 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
