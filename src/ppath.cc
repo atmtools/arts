@@ -4627,16 +4627,32 @@ void raytrace_3d_linear_euler(
           const Numeric   sinaa = sin( aa_rad );
           const Numeric   cosaa = cos( aa_rad );
 
-          if( abs( lat ) < 90 )
+
+          if( abs( lat ) < 90  &&  
+                         ( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) )
             {
               if( za == 0  ||  za == 180 )
                 { aa = RAD2DEG * atan2( dndlon, dndlat); }
               else
                 { aa += aterm * sinza * ( cosaa * dndlon - sinaa * dndlat ); }
+              
+              if( aa > 180 )
+                { aa -= 360; }
+              else if( aa < 180 )
+                { aa += 360; }
             }
 
-          za += aterm * ( -sinza * dndr + cos(za_rad) * 
-                                         ( cosaa * dndlat + sinaa * dndlon ) );
+          if( za != 0  &&  abs( za ) != 180 )
+            { za += aterm * ( -sinza * dndr + cos(za_rad) * 
+                                       ( cosaa * dndlat + sinaa * dndlon ) ); }
+          else if( abs( dndlat ) > 1e-15  ||  abs( dndlon ) > 1e-15 ) 
+            { za += aterm * ( cos(za_rad) * 
+                                       ( cosaa * dndlat + sinaa * dndlon ) ); }
+          
+          if( za > 180 )
+            { za = 180 - za; }
+          else if( za < 0 )
+            { za = -za; }
         }
 
       r   = r_new;
@@ -6456,11 +6472,13 @@ void ppath_calc(
   // refraction at the top of the atmosphere is sufficiently close to 1.
   if( ppath.refraction  &&  min( z_field(z_field.npages()-1,0,0) ) < 60e3 )
     {
-      out2 << "  *** WARNING****\n" << 
-      "  The calculated propagation path can be inexact as the atmosphere" <<
-      "\n  only extends to " <<  min( z_field(np-1,0,0) )/1e3 << " km. \n" <<
-      "  The importance of this depends on the observation geometry.\n" <<
-      "  It is recommended that the top of the atmosphere is not below 60 km.";
+      out2 << "  *** WARNING****\n" 
+           << "  The calculated propagation path can be inexact as the "
+           << "atmosphere\n  only extends to " 
+           <<  min( z_field(z_field.npages()-1,0,0) ) << " km. \n" 
+           << "  The importance of this depends on the observation "
+           << "geometry.\n  It is recommended that the top of the atmosphere "
+           << "is not below 60 km.\n";
     }
 }
 

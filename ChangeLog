@@ -1,3 +1,14 @@
+2003-01-21  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-409
+
+	* src/ppath.cc (raytrace_3d_linear_euler): Put in some fixes to 
+	improve the accuracy for zenith and azimuth angles. Included also
+	checks that those angles do not go outside allowed ranges.
+
+	* src/refraction.cc (refr_index_thayer_1974): Finally changed old
+	parameter values (from Boudouris) to the ones from Thayer.
+
 2003-01-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-408

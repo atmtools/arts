@@ -102,8 +102,8 @@ void RefrIndexFieldAndGradients(
 
 
   // Common variables
-  const Index     np = p_values.nelem(); 
-        Index     nlat=1, nlon=1;
+  const Index     np = p_values.nelem(), npgrid = p_grid.nelem(); 
+        Index     nlat=1, nlon=1, nlatgrid = 1, nlongrid = 1;
         Numeric   r, dndr, dndlat, dndlon;
 
   if( atmosphere_dim == 1 )
@@ -112,24 +112,27 @@ void RefrIndexFieldAndGradients(
     }
   else if( atmosphere_dim == 2 )
     {
-      nlat = lat_values.nelem();
+      nlat     = lat_values.nelem();
+      nlatgrid = lat_grid.nelem();
       out.resize(3,np,nlat,1);
     }
   else
     {
-      nlat = lat_values.nelem();
-      nlon = lon_values.nelem();
+      nlat     = lat_values.nelem();
+      nlatgrid = lat_grid.nelem();
+      nlon     = lon_values.nelem();
+      nlongrid = lon_grid.nelem();
       out.resize(4,np,nlat,nlon);
     }
 
   // Create a tensor with radius of the pressure surfaces
-  Tensor3   r_field(np,nlat,nlon);
+  Tensor3   r_field(npgrid,nlatgrid,nlongrid);
   //
-  for( Index ilon=0; ilon<nlon; ilon++ )
+  for( Index ilon=0; ilon<nlongrid; ilon++ )
     {
-      for( Index ilat=0; ilat<nlat; ilat++ )
+      for( Index ilat=0; ilat<nlatgrid; ilat++ )
         {
-          for( Index ip=0; ip<np; ip++ )
+          for( Index ip=0; ip<npgrid; ip++ )
             {
               r_field(ip,ilat,ilon) = r_geoid(ilat,ilon) + 
                                                          z_field(ip,ilat,ilon);

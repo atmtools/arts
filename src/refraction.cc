@@ -584,5 +584,6 @@ void refr_index_thayer_1974(
 {
   const Numeric   e = p * h2o_vmr;
 
-  refr_index = 1 + ( 77.6e-8 * ( p - e ) + ( 72e-8 + 3.754e-3 / t ) * e ) / t;
+  refr_index = 1 + ( 77.6e-8 * ( p - e ) + 
+                                          ( 64.8e-8 + 3.776e-3 / t ) * e ) / t;
 }
