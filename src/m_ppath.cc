@@ -205,8 +205,8 @@ void ppathCalc(
         const Vector&         rte_los )
 {
   ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim, 
-             p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
-                        cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1, 0 );
+              p_grid, lat_grid, lon_grid, z_field, r_geoid, z_surface, 
+              cloudbox_on, cloudbox_limits, rte_pos, rte_los, 1 );
 }
 
 
@@ -640,7 +640,7 @@ void ZaSatOccultation(
     ppath_calc( ppath, ppath_step, ppath_step_agenda, atmosphere_dim,
                 p_grid, lat_grid, lon_grid, z_field, r_geoid,
                 z_surface, 0, ArrayOfIndex(0), Vector(1,r_recieve),
-                Vector(1,za_ref[i]), 1, 0 );
+                Vector(1,za_ref[i]), 1 );
     if ( ppath.tan_pos.nelem() != 0 ) {
       //Calculate the latitude from the recieving sensor, concisting of
       //the latitude of the atmospheric exist point and the geometric
@@ -756,10 +756,9 @@ void rte_pos_and_losFromTangentPressure(
   Index cloudbox_on=0;
   ArrayOfIndex cloudbox_limits(2);
   bool outside_cloudbox=true;
-  Index agenda_verb=1;
   ppath_calc(ppath,ppath_step,ppath_step_agenda,atmosphere_dim,p_grid,lat_grid,
 	     lon_grid,z_field, r_geoid, z_surface,cloudbox_on, cloudbox_limits,
-	     rte_pos, rte_los, outside_cloudbox,agenda_verb);
+	     rte_pos, rte_los, outside_cloudbox);
   rte_pos = ppath.pos(ppath.np-1,Range(0,atmosphere_dim));
   rte_los = ppath.los(ppath.np-1,joker);
   rte_los[0]=180.0-rte_los[0];

@@ -862,6 +862,47 @@ wsv_data.push_back
       GROUP( Index_ )));
 
   wsv_data.push_back
+   (WsvRecord
+    ( NAME( "iy" ),
+      DESCRIPTION
+      (
+       "Monochromatic pencil beam radiance spectrum.\n"
+       "\n"
+       "This variable holds a single spectrum, with values corresponding\n"
+       "to infinite frequency and spatial resolution (compare to *y*).\n"
+       "\n"
+       "The variable is used to represent spectra at all positions of the\n"
+       "propagation path and can e.g. temporarily hold radiation entering\n"
+       "the atmpophere from space. The unit depends on if emission is \n"
+       "considered or not.\n"
+       "\n"
+       "Usage:      Used by radiative transfer methods.\n"
+       "\n"
+       "Unit:       W / (m^2 Hz sr) or optical thickness \n"
+       "\n"
+       "Dimensions: [ f_grid, stokes_dim ]"
+       ),
+      GROUP( Matrix_ )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_cloudbox_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc."
+        ),
+       GROUP(  Agenda_ )));
+
+ wsv_data.push_back
+    (WsvRecord
+     ( NAME( "iy_space_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc."
+        ),
+       GROUP(  Agenda_ )));
+
+  wsv_data.push_back
     (WsvRecord
      ( NAME( "i_field" ), 
        DESCRIPTION
@@ -924,18 +965,22 @@ wsv_data.push_back
         ), 
        GROUP( Vector_ )));
  
-   wsv_data.push_back
+  wsv_data.push_back
    (WsvRecord
     ( NAME( "i_rte" ),
       DESCRIPTION
       (
-       "One spectrum calculated by *rte_agenda*.\n"
+       "Monochromatic pencil beam radiance spectrum.\n"
        "\n"
-       "This matrix holds the Stokes vector for all frequencies obtained\n"
-       "by the monochromatic pencil beam calculations performed by\n"
-       "*rte_agenda*. The unit depends on if emission is considered or not."
+       "This variable holds a single spectrum, with values corresponding\n"
+       "to infinite frequency and spatial resolution (compare to *y*).\n"
        "\n"
-       "Usage:      Output from *rte_agenda*.\n"
+       "The variable is used to represent spectra at all positions of the\n"
+       "propagation path and can e.g. temporarily hold radiation entering\n"
+       "the atmpophere from space. The unit depends on if emission is \n"
+       "considered or not.\n"
+       "\n"
+       "Usage:      Used by radiative transfer methods.\n"
        "\n"
        "Unit:       W / (m^2 Hz sr) or optical thickness \n"
        "\n"
@@ -3070,6 +3115,9 @@ wsv_data.push_back
       (
        "The measurement vector.\n"
        "\n"
+       "This vector holds radiances averaged in frequency and spatially,\n"
+       "and can contain many spectra appended. \n"
+       "\n"
        "Usage: Output from radiative transfer calculations considering\n"
        "       sensor response.\n"
        "\n"
@@ -3085,7 +3133,7 @@ wsv_data.push_back
       (
        "Batch of spectra.\n"
        "\n"
-       "Each column of *ybatch* corresponds to a spectrum. \n"
+       "Each column of *ybatch* corresponds to a spectrum vector *y*. \n"
        "See further *ybatchCalc*.\n"
        "\n"
        "Usage: Most commonly produced by *ybatch*.\n"

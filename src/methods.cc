@@ -3149,7 +3149,7 @@ md_data_raw.push_back
          "successive propagation path points. The same applies to the\n"
          "Planck function values.\n"
          "\n"
-         "See futher the user guide."
+         "See further the user guide."
         ),
         OUTPUT( i_rte_, abs_vec_, ext_mat_, rte_pressure_, rte_temperature_,
                 rte_vmr_list_, f_index_, ppath_index_ ),

@@ -6083,7 +6083,7 @@ void ppath_start_stepping(
    \param lon_grid           The longitude grid.
    \param z_field            The field of geometrical altitudes.
    \param r_geoid            The geoid radius.
-   \param z_surface           Surface altitude.
+   \param z_surface          Surface altitude.
    \param cloudbox_on        Flag to activate the cloud box.
    \param cloudbox_limits    Index limits of the cloud box.
    \param rte_pos            The position of the sensor.
@@ -6094,8 +6094,6 @@ void ppath_start_stepping(
                              1. The value 0 means tracking of a propagation 
                              path inside the cloudbox. The path is then
                              tracked to the cloudbox boundary.
-   \param agenda_verb        This argument is given as input to agendas
-                             to control the verbosity.
 
    \author Patrick Eriksson
    \date   2003-01-08
@@ -6117,8 +6115,7 @@ void ppath_calc(
         const ArrayOfIndex&   cloudbox_limits,
         const Vector&         rte_pos,
         const Vector&         rte_los,
-        const bool&           outside_cloudbox,
-        const Index&          /* agenda_verb */)
+        const bool&           outside_cloudbox )
 {
   // This function is a WSM but it is normally only called from RteCalc. 
   // For that reason, this function does not repeat input checks that are
@@ -6208,7 +6205,6 @@ void ppath_calc(
       istep++;
       //
       ppath_step_agenda.execute(true);
-      //ppath_step_agenda.execute( agenda_verb + ( istep - 1 ) );
 
       // Before everything is tested carefully, we consider more than 5000
       // path points to be an indication on that the calcululations have

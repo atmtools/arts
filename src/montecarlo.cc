@@ -185,7 +185,7 @@ void Cloudbox_ppath_rteCalc(
   sensor_pos(0,joker)=dummy_rte_pos;
   sensor_los(0,joker)=dummy_rte_los;
   //call rte_calc without input checking, sensor stuff, or verbosity
-  rte_calc( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
+  rte_calc_old( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
             rte_gp_lat,
             rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
             ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 
@@ -753,7 +753,7 @@ void montecarloGetIncoming(
   sensor_pos(0,joker)=dummy_rte_pos;
   sensor_los(0,joker)=dummy_rte_los;
   //call rte_calc without input checking, sensor stuff, or verbosity
-  rte_calc( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
+  rte_calc_old( y_dummy, ppath, ppath_step, i_rte, rte_pos, rte_los, rte_gp_p, 
             rte_gp_lat,
             rte_gp_lon,i_space, ground_emission, ground_los, ground_refl_coeffs,
             ppath_step_agenda, rte_agenda, i_space_agenda, ground_refl_agenda, 

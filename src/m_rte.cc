@@ -113,7 +113,7 @@ void RteCalc(
   const bool   check_input = true;
   const bool   apply_sensor = true;
 
-  rte_calc( y, ppath, ppath_step, i_rte, rte_pos, rte_los,
+  rte_calc_old( y, ppath, ppath_step, i_rte, rte_pos, rte_los,
             rte_gp_p, rte_gp_lat, rte_gp_lon, i_space, 
             surface_emission, surface_los, surface_refl_coeffs, 
             ppath_step_agenda, rte_agenda, i_space_agenda, surface_agenda,

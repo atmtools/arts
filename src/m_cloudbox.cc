@@ -1764,7 +1764,7 @@ void CloudboxGetIncoming(// WS Output:
         {
           sensor_los(0,0) =  scat_za_grid[scat_za_index];
 
-          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+          rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                rte_pos, rte_los, rte_gp_p,
                rte_gp_lat, rte_gp_lon,
                i_space, surface_emission, surface_los,
@@ -1794,7 +1794,7 @@ void CloudboxGetIncoming(// WS Output:
         {
           sensor_los(0, 0) =  scat_za_grid[scat_za_index];
 
-          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+          rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                  rte_pos, rte_los, rte_gp_p,
                  rte_gp_lat, rte_gp_lon,
                  i_space, surface_emission, surface_los,
@@ -1888,7 +1888,7 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
                                i_space, surface_emission, surface_los, 
@@ -1942,7 +1942,7 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
                                i_space, surface_emission, surface_los, 
@@ -1995,7 +1995,7 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
                                i_space, surface_emission, surface_los, 
@@ -2048,7 +2048,7 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
                                i_space, surface_emission, surface_los, 
@@ -2101,7 +2101,7 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
                                i_space, surface_emission, surface_los, 
@@ -2154,7 +2154,7 @@ void CloudboxGetIncoming(// WS Output:
                       sensor_los(0,0) = scat_za_grid[scat_za_index];
                       sensor_los(0,1) = aa_grid[scat_aa_index];
                       
-                      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+                      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                                rte_pos, rte_los, rte_gp_p, 
                                rte_gp_lat, rte_gp_lon,
                                i_space, surface_emission, surface_los, 
@@ -2347,7 +2347,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
     {
       sensor_los(0,0) = scat_za_grid[scat_za_index];
       
-      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                 rte_pos, rte_los, rte_gp_p, 
                 rte_gp_lat, rte_gp_lon,
                 i_space, surface_emission, surface_los, 
@@ -2398,7 +2398,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
     {
       sensor_los(0,0) = scat_za_grid[scat_za_index];
       
-      rte_calc( y_dummy, ppath, ppath_step, i_rte,
+      rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                 rte_pos, rte_los, rte_gp_p, 
                 rte_gp_lat, rte_gp_lon,
                 i_space, surface_emission, surface_los, 
@@ -2451,7 +2451,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
         {
           sensor_los(0,0) = scat_za_grid[scat_za_index];
           
-          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+          rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
                     i_space, surface_emission, surface_los, 
@@ -2502,7 +2502,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
           
           sensor_los(0,0) = scat_za_grid[scat_za_index];
           
-          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+          rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
                     i_space, surface_emission, surface_los, 
@@ -2550,7 +2550,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
         {
           sensor_los(0,0) = scat_za_grid[scat_za_index];
           
-          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+          rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
                     i_space, surface_emission, surface_los, 
@@ -2596,7 +2596,7 @@ void CloudboxGetIncoming1DAtm(// WS Output:
         {
           sensor_los(0,0) = scat_za_grid[scat_za_index];
           
-          rte_calc( y_dummy, ppath, ppath_step, i_rte,
+          rte_calc_old( y_dummy, ppath, ppath_step, i_rte,
                     rte_pos, rte_los, rte_gp_p, 
                     rte_gp_lat, rte_gp_lon,
                     i_space, surface_emission, surface_los, 

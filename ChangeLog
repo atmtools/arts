@@ -1,3 +1,51 @@
+2004-09-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-875
+
+	* First step of cleaning up RT part. No changes in control
+	filesyet needed.
+	
+	* src/ppath.cc: Removed not used input argument agenda_verb.
+
+	* src/rte.h: Removed unneccessary headers (one function did not even
+	exist!).
+
+	* src/workspace.cc: 
+	 
+	iy: Added. This WSV will replace i_rte. I had a very hard time to
+	decide the name of this variable. I was not happy with old
+	name. New name is more compact which makes connected aganda and
+	method names nicer, and indicates the connection to *y*. New name
+	not perfect, but better.
+
+	yi_cloudbox_agenda: Added.
+	
+	yi_space_agenda: Added. Will replace i_space_agenda. New standard
+	usage will be (gives cleaner coding and more efficient code than old
+	solution):
+	---
+	MatrixCBR(i_space,f_grid){}
+	AgendaSet(yi_space_agenda){
+   	Ignore(rte_pos){}
+   	Ignore(rte_los){}
+   	Copy(yi,i_space){}
+	}
+	---
+
+	* src/rte.cc:
+
+	(rte_calc_old): Created copy of old version.
+
+	(get_radiative_background_old): Created copy of old version.
+
+	(rte_step): Included code from stokes_vecGeneral to avoid some 
+	calculation repitions. I could not see any use to keep the functions
+	seperated.
+
+	(stokes_vecGeneral): Removed this function.
+
+	(iy_calc): Created this function.
+
 2004-09-16  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-874

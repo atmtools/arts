@@ -144,67 +144,52 @@ void define_agenda_data()
         "Calculates the magnetic field along a given propagation path.\n"
         "\n"
         "The agenda relates the vector of the geomagnetic field to \n"
-	"a specified propagation path. As a result the magnitude of \n"
-	"this vector is calculated in each point of the propagation \n"
-	"path, alongside with the corresponding angle between the \n"
-	"geomagnetic field vector and the propagation direction.  \n"
-	"The output is the WSV *geomag_los*, containing the two \n"
-	"quantities discussed above. \n"
+	    "a specified propagation path. As a result the magnitude of \n"
+	    "this vector is calculated in each point of the propagation \n"
+	    "path, alongside with the corresponding angle between the \n"
+	    "geomagnetic field vector and the propagation direction.  \n"
+        "The output is the WSV *geomag_los*, containing the two \n"
+        "quantities discussed above. \n"
         "\n"
         "Output:    \n"
         "   geomag_los : Magnetic field along LOS plus angle  \n"
         "\n"
         "Input: ppath_   \n"
-	"       geomag_intensitities.xml \n"
+        "       geomag_intensitities.xml \n"
         "\n"
           ),
        OUTPUT( geomag_los_ ),
        INPUT(  )));
 
-
   agenda_data.push_back
     (AgRecord
-     ( NAME( "surface_agenda" ),
+     ( NAME( "iy_cloudbox_agenda" ),
        DESCRIPTION
        (
-        "Describes the properties of the surface to consider when there is a\n"
-        "surface reflection.\n"
+        "Sets *iy* to scattered radiation for given position and LOS.\n"
         "\n"
-        "The surface properties are described by the WSVs\n"
-        "*surface_emission*, *surface_los* and *surface_refl_coeffs*.\n"
+        "The calculations inside the agenda differ depending on scattering\n"
+        "solution method. If DOIT is used, an interpolate of the intensity\n"
+        "field shall be performed. ANother optio is to start backward Monte\n"
+        "Carlos calculations from this point.\n"
         "\n"
-        "The upwelling radiation from the surface is calculated as the sum\n"
-        "of *surface_emission* and the spectra calculated for the directions\n"
-        "given by *surface_los*, multiplicated with the weights in\n"
-        "*surface_refl_coeffs*. Or (for frequency i): \n"
-        "   i_up = i_emission + sum_over_los( W*i_down ) \n"
-        "where i_up is the upwelling radiation, i_emission is row i of\n"
-        "*surface_emission*, W is the reflection matrix in \n"
-        "*surface_refl_coeffs* for the frequency and LOS of concern and \n"
-        "i_down is the downwelling radiation for the LOS given in\n"
-        "*surface_los*. \n"
+        "The main usage of this agenda is to be called from *RteCalc*. \n"
         "\n"
-        "With other words, the scattering properties of the surface are \n"
-        "described by the variables *surface_los* and *surface_refl_coeffs*.\n"
-        "\n"
-        "A function calling this agenda shall set *rte_los* and *rte_gp_XXX*\n"
-        "to match the line-of-sight and position at the surface reflection\n"
-        "point.\n"
-        "\n"
-        "See further the user guide.\n"
+        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "the position and line-of-sight for which the scattered radiation \n"
+        "shall be determined. \n"
         "\n"
         "Usage:   Called from *RteCalc*."
         ),
-       OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_  ),
-       INPUT(  f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
-               rte_los_, r_geoid_, z_surface_, t_field_ )));
+       OUTPUT(  iy_ ),
+       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
 
   agenda_data.push_back
     (AgRecord
-     ( NAME( "i_space_agenda" ),
+     ( NAME( "iy_space_agenda" ),
        DESCRIPTION
        (
-        "Sets the workspace variable *i_space* to match the assumptions \n"
+        "Sets the workspace variable *iy* to match the assumptions \n"
         "regarding the radiation entering the atmosphere at the start of the\n"
         "propagation path. \n"
         "\n"
@@ -216,6 +201,16 @@ void define_agenda_data()
         "for example, when radiation from the sun is considered. \n"
         "\n"
         "Usage:   Called from *RteCalc*."
+        ),
+       OUTPUT(  iy_ ),
+       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "i_space_agenda" ),
+       DESCRIPTION
+       (
+        "Will be obselete."
         ),
        OUTPUT(  i_space_ ),
        INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
@@ -507,7 +502,6 @@ void define_agenda_data()
         INPUT(  i_field_, pnd_field_, scat_za_grid_, scat_aa_grid_, 
                 cloudbox_limits_, pha_mat_spt_agenda_)));
 
-
   agenda_data.push_back
     (AgRecord
      ( NAME( "scat_mono_agenda" ),
@@ -559,7 +553,7 @@ void define_agenda_data()
         "                      method. \n"
         "*i_fieldUpdate{1,3}DPlaneParallel*: The same method as \n"
         "                      *i_fieldUpdateSeq*** but with plane- \n"
-        "                      oarallel geometry. \n"
+        "                      parallel geometry. \n"
         "\n"
         ),
         OUTPUT( i_field_),
@@ -584,6 +578,25 @@ void define_agenda_data()
        OUTPUT(scat_za_grid_opt_, i_field_ ),
        INPUT(scat_za_interp_)));
  
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "i_rte_space_agenda" ),
+       DESCRIPTION
+       (
+        "Sets *i_rte* to match the assumptions regarding the radiation\n"
+        "entering the atmosphere at the start of the propagation path. \n"
+        "\n"
+        "The main usage of this agenda is to be called from *RteCalc*. \n"
+        "\n"
+        "A function calling this agenda shall set *rte_pos* and *rte_los* to\n"
+        "the position and line-of-sight for which the entering radiation \n"
+        "shall be determined. The position and line-of-sight must be known, \n"
+        "for example, when radiation from the sun is considered. \n"
+        "\n"
+        "Usage:   Called from *RteCalc*."
+        ),
+       OUTPUT(  i_rte_ ),
+       INPUT(  f_grid_, stokes_dim_, rte_pos_, rte_los_ )));
 
  agenda_data.push_back
     (AgRecord
@@ -612,6 +625,43 @@ void define_agenda_data()
        INPUT(  abs_vec_spt_, ext_mat_spt_,
                scat_za_index_, scat_aa_index_,
                scat_za_grid_, scat_aa_grid_ )));
+
+  agenda_data.push_back
+    (AgRecord
+     ( NAME( "surface_agenda" ),
+       DESCRIPTION
+       (
+        "Describes the properties of the surface to consider when there is a\n"
+        "surface reflection.\n"
+        "\n"
+        "The surface properties are described by the WSVs\n"
+        "*surface_emission*, *surface_los* and *surface_refl_coeffs*.\n"
+        "\n"
+        "The upwelling radiation from the surface is calculated as the sum\n"
+        "of *surface_emission* and the spectra calculated for the directions\n"
+        "given by *surface_los*, multiplicated with the weights in\n"
+        "*surface_refl_coeffs*. Or (for frequency i): \n"
+        "   i_up = i_emission + sum_over_los( W*i_down ) \n"
+        "where i_up is the upwelling radiation, i_emission is row i of\n"
+        "*surface_emission*, W is the reflection matrix in \n"
+        "*surface_refl_coeffs* for the frequency and LOS of concern and \n"
+        "i_down is the downwelling radiation for the LOS given in\n"
+        "*surface_los*. \n"
+        "\n"
+        "With other words, the scattering properties of the surface are \n"
+        "described by the variables *surface_los* and *surface_refl_coeffs*.\n"
+        "\n"
+        "A function calling this agenda shall set *rte_los* and *rte_gp_XXX*\n"
+        "to match the line-of-sight and position at the surface reflection\n"
+        "point.\n"
+        "\n"
+        "See further the user guide.\n"
+        "\n"
+        "Usage:   Called from *RteCalc*."
+        ),
+       OUTPUT( surface_emission_, surface_los_, surface_refl_coeffs_  ),
+       INPUT(  f_grid_, stokes_dim_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_, 
+               rte_los_, r_geoid_, z_surface_, t_field_ )));
 
 
 
