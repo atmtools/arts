@@ -108,7 +108,8 @@ if isascii
       if ~strcmp(artstype,'AOSIZET')
         error('You wanted a vector/matrix, but the file contains an array.')
       else
-        error('You wanted an index array, but the file contains another type of array.')
+        error(...
+     'You wanted an index array, but the file contains another type of array.')
       end
     end
     x = read_matrix(fid);
@@ -292,10 +293,10 @@ if strcmp(artstype,'INDEX')
 end
 if strcmp(artstype,'AOSIZET') 
   for i = 1:length(x)
-    if x{i} < 0
+    if x(i) < 0
       error('You wanted INDEX values, but the file contains negative values.')
     end     
-    if (x{i}-floor(x{i})) ~= 0
+    if (x(i)-floor(x(i))) ~= 0
       error('You wanted an INDEX values, but the file contains non-integer.')
     end     
   end

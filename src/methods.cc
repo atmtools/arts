@@ -426,6 +426,18 @@ void define_md_data()
 
   md_data.push_back
     ( MdRecord
+      ( NAME("MatrixSet"),
+	DESCRIPTION("Creates a workspace matrix of the specified size\n"
+                    "and initializes the matrix with the given value."),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( MATRIX_ ),
+	GINPUT(),
+	KEYWORDS( "nrows", "ncols", "value"   ),
+	TYPES(    int_t,   int_t,   Numeric_t )));
+
+  md_data.push_back
+    ( MdRecord
       ( NAME("MatrixCopy"),
 	DESCRIPTION("Copies a matrix."),
 	OUTPUT(),

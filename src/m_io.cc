@@ -1360,6 +1360,28 @@ void VectorRandGaussian(
 
 //=== MATRIX ==========================================================
 
+/**
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2001-02-21
+*/
+void MatrixSet(           MATRIX&  x, 
+                    const string&  x_name,
+                    const int&     nrows,
+                    const int&     ncols,
+                    const Numeric& value )
+{
+  resize( x, nrows, ncols );
+  setto( x, value );
+  out2 << "  Creating " << x_name << " as a constant matrix\n"; 
+  out3 << "          nrows : " << nrows << "\n";
+  out3 << "          ncols : " << ncols << "\n";
+  out3 << "          value : " << value << "\n";
+}
+
+
+
 void MatrixCopy(
               MATRIX&   y2,
         const string&   name_y2,

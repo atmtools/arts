@@ -285,31 +285,52 @@ void los_refraction(
   // A safety check
   assert( za <= 90 );
 
-  // Allocate memory for temporary z and psi. To be safe, make vectors double
-  // as long than for the geometric case (z should already contain the 
-  // geometric LOS)
-  INDEX    np = 2*z.size();
+  // Allocate memory for temporary z and psi. To be safe, make vectors 50 %
+  // as long than for the geometric case
+  INDEX np;
+  {
+    // Distance from the lowest point of the LOS to the atmospheric limit
+    double  a    = r_geoid + atm_limit;
+    double  b    = (r_geoid+z_plat) * sin(DEG2RAD*za);
+    double  llim = sqrt( a*a - b*b ) - (r_geoid+z_plat)*cos(DEG2RAD*za) ;
+
+    // Handle the rare case that llim < l_step
+    if ( llim < l_step )         
+      l_step = llim*0.9999;       // *0.9999 to avoid problem in interpolations
+
+    np = INDEX( ceil( 1.5 * ( llim/l_step + 1) ) );
+  }
   VECTOR   zv(np), pv(np); 
 
   // Double is used here instead of Numeric to avoid nuerical problems
   const double l = l_step / refr_lfac;   // Step length of ray tracing
-
-  INDEX    i = refr_lfac;                // Counter for the ray tracing steps
-           	                         // for each LOS step
+  INDEX    i = refr_lfac;                // Ray tracing step counter
   double   z1;                           // Old altitude of the LOS
-  double   z2 = r_geoid + z_plat;        // New altitude of the LOS
+  double   z2 = z_plat;                  // New altitude of the LOS
+  double   rz1, rz2;                     // As z1 and z2 but + r_geoid
   double   psi1;                         // Old angle of the LOS
   double   psi2 = 0;                     // New angle of the LOS
   double   n1, n2;                       // Refractive index at z1 and z2
   double   n;                            // Either n1 or the mean of n1 and n2
   double   c2=c; c2 = c2 * c2;           // Square of the LOS constant
   INDEX    j;                            // See below
+  double   d, e, f;                      // Some temporary values
 
   np = 0;
 
-  n2 = n_for_z( z2 - r_geoid, p_abs, z_abs, refr_index, atm_limit );
+  // To save computational time, the interpolation is handled locally so
+  // the indeces for the refr_index vector can be remembered from one 
+  // interpolation to next.
+  const INDEX   nz = z_abs.size();
+        INDEX   iz; 
+  for ( iz=0; (iz<nz) && (z_abs[iz]<=z2); iz++ ) {}
+  if ( iz < nz )
+    n2 = refr_index[iz-1] + (refr_index[iz]-refr_index[iz-1])*
+                                      (z2-z_abs[iz-1])/(z_abs[iz]-z_abs[iz-1]);
+  else
+    n2 = 1;
 
-  while ( z2 <= r_geoid + atm_limit )
+  while ( z2 <= atm_limit )
   {
 
     z1   = z2;
@@ -318,7 +339,7 @@ void los_refraction(
 
     if ( i == INDEX(refr_lfac) )
     {    
-      zv[np] = z2 - r_geoid;
+      zv[np] = z2;
       pv[np] = RAD2DEG * psi2;
       i     = 1;
       np++;
@@ -342,19 +363,32 @@ void los_refraction(
         n = n1;
       else
         n = ( n1 + n2 ) / 2;
+
+      rz1 = z1 + r_geoid;
+      d   = rz1 * rz1;
+      e   = c2/(n*n);
+      f   = d - e;
  
       // When using float, there have been NaNs here (due to z1 < c/n).
       // So we must make a check to avoid these NaNs.
       // 
-      if ( (z1*z1-c2/(n*n)) <= 0 )
-        z2 = sqrt( l*l + c2/(n*n) );
+      if ( f <= 0 )
+        rz2 = sqrt( l*l + e );
       else
-        z2 = sqrt( pow( l + sqrt(z1*z1-c2/(n*n)), 2 ) + c2/(n*n) );
+        rz2 = sqrt( pow( l + sqrt(f), 2 ) + e );
 
-      n2 = n_for_z( z2 - r_geoid, p_abs, z_abs, refr_index, atm_limit );
+      z2 = rz2 - r_geoid;
+
+      // Determine n at z2
+      for ( ; (iz<nz) && (z_abs[iz]<=z2); iz++ ) {}
+      if ( iz < nz )
+        n2 = refr_index[iz-1] + (refr_index[iz]-refr_index[iz-1])*
+                                      (z2-z_abs[iz-1])/(z_abs[iz]-z_abs[iz-1]);
+      else
+        n2 = 1;
     }
 
-    psi2 = psi1 + acos( (z1*z1+z2*z2-l*l) / (2*z1*z2) ); 
+    psi2 = psi1 + acos( (d+rz2*rz2-l*l) / (2*rz1*rz2) ); 
   }
 
   // Move values from temporary vectors
@@ -458,9 +492,12 @@ void los_1za(
     // Only through the atmosphere
     else if ( z_tan >= z_ground )
     {
-      los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
-
-      if ( refr )
+      if ( !refr )
+      {
+        los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
+        psi0 = za - 90.0;
+      }
+      else
       {
         los_refraction( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
@@ -472,8 +509,6 @@ void los_1za(
 
         psi0 = theta + za - 180.0 + last(psi);
       }
-      else
-        psi0 = za - 90.0;
 
       ground = 0;
       nz     = z.size();
@@ -482,12 +517,16 @@ void los_1za(
     // Intersection with the ground
     else
     {
-      // Determine the "zenith angle" at ground level
-      Numeric za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );
+      // The "zenith angle" at ground level
+      Numeric za_g = RAD2DEG * asin( (r_geoid+z_tan) / (r_geoid+z_ground) );   
 
-      los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
+      if ( !refr )
+      {
+        los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
 
-      if ( refr )
+        psi0 = za + za_g - 180.0;
+      }
+      else
       {
         los_refraction( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
@@ -499,8 +538,6 @@ void los_1za(
 
         psi0 = theta + za - 180.0 + last(psi);
       }
-      else
-        psi0 = za + za_g - 180.0;
 
       ground = 1;
       nz     = z.size();
@@ -516,14 +553,14 @@ void los_1za(
   //=== Inside the atmosphere looking upwards =================================
   else if ( za <= 90 )
   {
-    los_geometric( z, psi, l_step, z_plat, za, atm_limit, r_geoid );
-
-    if ( refr )
+    if ( !refr )
+      los_geometric( z, psi, l_step, z_plat, za, atm_limit, r_geoid );
+    else
       los_refraction( z, psi, l_step, z_plat, za, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
     ground = 0;
     stop   = 0;
-    start = z.size() - 1;
+    start  = z.size() - 1;
   }
 
   //=== Inside the atmosphere looking downwards ===============================
@@ -558,13 +595,11 @@ void los_1za(
   
 	los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
       }
-
       else
       {
         // Calculate a first LOS from the tangent point and up to the sensor
         // using l_step/refr_lfac as step length
         Numeric   l = l_step / refr_lfac;
-        los_geometric( z, psi, l, z_tan, 90.0, z_plat+l, r_geoid );
         los_refraction( z, psi, l, z_tan, 90.0, z_plat+l, r_geoid, 
                                         p_abs, z_abs, refr, 1, refr_index, c );
 
@@ -576,7 +611,6 @@ void los_1za(
 	stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
 	l_step = l1 / Numeric(stop);
   
-	los_geometric( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid );
         los_refraction( z, psi, l_step, z_tan, 90.0, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
       }
@@ -621,7 +655,6 @@ void los_1za(
         // Calculate a first LOS from the ground and up to the sensor
         // using l_step/refr_lfac as step length
         Numeric   l = l_step / refr_lfac;
-        los_geometric( z, psi, l, z_ground, za_g, z_plat+l, r_geoid );
         los_refraction( z, psi, l, z_ground, za_g, z_plat+l, r_geoid, 
                                         p_abs, z_abs, refr, 1, refr_index, c );
 
@@ -633,7 +666,6 @@ void los_1za(
 	stop  = INDEX( ceil( l1 / l_step_max + 1.0 ) - 1 );  
 	l_step = l1 / Numeric(stop);
   
-	los_geometric( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid );
         los_refraction( z, psi, l_step, z_ground, za_g, atm_limit, r_geoid, 
                                 p_abs, z_abs, refr, refr_lfac, refr_index, c );
       }

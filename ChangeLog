@@ -1,3 +1,26 @@
+2001-02-22  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-128
+
+	* There were some problems around the last commit, so this another
+	one just in case.
+	
+
+2001-02-21  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-127
+
+	* The story about LOS seems to never end. Before last commit I only did
+	changes with 1 zenith angle. When I now used refraction for a full
+	scale simulation I noted that the LOS calculation was very slow. The
+	problem turned out to be the interpolation. The interpolation is now
+	done locally in the function where the interpolation index is stored
+	from one interpolation to next and this saves a lot of time. I also
+	did some other changes to improve the speed but with much less impact
+	on the final computational time.
+	The function is now about 50 times faster then before
+	
+
 2001-02-19  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-126

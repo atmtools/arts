@@ -1257,7 +1257,13 @@ void k_contabs (
   resize(k_aux,npoints*np,2);
 
   // Calculate the frequencies of the off-set points
-  nlinspace( fpoints, f_mono[ilow], f_mono[iupp], npoints );
+  if ( npoints > 1 )
+    nlinspace( fpoints, f_mono[ilow], f_mono[iupp], npoints );
+  else
+  {
+    resize( fpoints, 1 );
+    fpoints[0] = ( f_mono[ilow] + f_mono[iupp] ) / 2.0;
+  }  
 
   // The calculations
   // Loop order:
@@ -1825,14 +1831,12 @@ void kContAbsSpecifiedLimits (
         INDEX   i_low, i_high;
   for( i_low=0; i_low<nf && f_mono[i_low] < f_low; i_low++ )
     {}
-  cout << "ilow: " << i_low << "\n";
   if ( i_low == nf )
     throw runtime_error(
        "The lower frequency limit is above all values of f_mono." ); 
 
   for( i_high=i_low; i_high<nf && f_mono[i_high] <= f_high; i_high++ )
     {}
-  cout << "ihigh: " << i_high << "\n";
   if ( i_high == 0 )
     throw runtime_error(
        "The upper frequency limit is below all values of f_mono." ); 
@@ -2220,7 +2224,7 @@ void kxAllocate (
   resize( kx,         ny, nx );
   resize( kx_names,   ni     );
   resize( kx_lengths, ni     );
-  resize( kx_aux,     nx, 3  );
+  resize( kx_aux,     nx, 2  );
 
   for ( int i=0; i<ni; i++ )
     kx_lengths[i] = 0;
