@@ -46,6 +46,9 @@
 #include "array.h"
 #include "auto_md.h"
 #include "check_input.h"
+#include "xml_io.h"
+
+#include "gridded_fields.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -188,6 +191,86 @@ void CloudboxSetManually(
 }
 
 
-// void ParticleTypeInit( //WS Output:
-//                       ArrayOfTensor6& amp_mat_raw
+//! Initialize variables containing information about the particles.
+/*! 
+  Keyword to this method is an Index (*npt*) for the number of particle types
+  which are considered. The varibles *amp_mat_raw* and *pnd_field_raw* are 
+  initialized according to *npt*. 
+  *ParticleTypeInit* has to be executed before executing *ParticleTypeAdd*.
   
+  WS Output:
+  \param amp_mat_raw    Amplitude matrix data.
+  \param pnd_field_raw  Particle number density field data.
+
+  Keyword:
+  \param npt            Number of particle types.
+ */
+void ParticleTypeInit( //WS Output:
+                      ArrayOfTensor6& amp_mat_raw,
+                      ArrayOfTensor3& pnd_field_raw,
+                      // Keyword:
+                      const Index& npt
+                      )
+{
+  amp_mat_raw.resize(npt*7);
+  pnd_field_raw.resize(npt*4);
+}
+
+
+//! Read amplitute matrix and particle number density field from data base.
+/*! 
+  This method allows the user to chose particle types and particle number 
+  density fields. 
+  There is one database for particle number density fields ( ....),
+  which includes the following particle types:
+
+  Another database (....) containes the amplitude matrices for those particle
+  types from which all optical properties can be derived.
+  
+  \param amp_mat_raw Amplitude matrix data.
+  \param pnd_field_raw Particle number density field data.
+  \param particle_types String defining the particle types.
+*/
+void ParticleTypeAdd( //WS Output:
+                 ArrayOfTensor6& amp_mat_raw,
+                 ArrayOfTensor3& pnd_field_raw,
+                 // Keyword:
+                 const ArrayOfString& particle_types)
+{
+  
+  Index npt = particle_types.nelem(); 
+  ArrayOfString part_types_ampmat(npt);
+  ArrayOfTensor6 amp_mat_raw_i;
+  Index i, k;
+  
+  // Loop over the particle types:
+   for (i=0; i<npt; i++)
+     {  
+      // Constructing file name for the amplitude matrix:
+      part_types_ampmat[i] = particle_types[i] + "_ampmat.xml";
+     
+      // Read amplitude matrix data:
+      cout << "Read amplitude matrix_data" << endl;
+      read_gridded_tensor6( part_types_ampmat[i], amp_mat_raw_i);
+   
+      // Put the gridded tensors for each particle type in *amp_mat_raw*.
+      for(k = 0; k < 7; k++)
+        { 
+          amp_mat_raw[6*i+k] = amp_mat_raw_i[k];
+        }
+     }          
+}
+
+   // Constructing file name for pnd field:
+   //       String part_types_pnd =  particle_types[i] + "_pnd.xml";
+   // Read particle number density field:
+   //       xml_read_from_file( part_types_pnd, pnd_field_raw(i) );
+
+    
+  
+  //only for testing
+      // xml_write_to_file ("amp_mat_raw.xml", amp_mat_raw);
+    
+
+
+

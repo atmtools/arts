@@ -1,3 +1,4 @@
+
 Main {
 
   #---< Frequency grid >-------------------------------------------------------
@@ -131,6 +132,14 @@ VectorSet( scat_aa_grid ) {
 
    ArrayOfIndexPrint( cloudbox_limits ) {
    }
+
+#---< Define particle properties >-------------
+
+ParticleTypeInit{1}
+
+ParticleTypeAdd{
+	["sph_200"]
+	}	
 
  #---- <amp_mat> --------------
 	

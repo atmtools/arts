@@ -1210,7 +1210,53 @@ void define_md_data_raw()
 	KEYWORDS( "value"   ),
 	TYPES(    Numeric_t )));
 
+ md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleTypeAdd" ),
+	DESCRIPTION
+        (
+         "This method reads the amplitute matrix and the particle number\n"
+         "density field from a data base. \n"
+         "\n"
+         "The method allows the user to chose particle types and particle \n"
+         "number density fields. \n"
+         "There is one database for particle number density fields ( ....),\n"
+         "which includes the following particle types:\n"
+         "\n"
+         "Another database (....) containes the amplitude matrices for \n"
+         "those particle types from which all optical properties can be \n"
+         "derived.\n"
+  	 ),
+	OUTPUT(amp_mat_raw_, pnd_field_raw_),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("particle_types"),
+	TYPES(Array_String_t)));
+
    md_data_raw.push_back
+    ( MdRecord
+      ( NAME( "ParticleTypeInit" ),
+	DESCRIPTION
+        (
+         "This method initializes variables containing information about\n"
+         "the particles.\n"
+         "\n"
+         "Keyword to this method is an Index (*npt*) for the number of \n"
+         "considered particle types. The varibles *amp_mat_raw* and \n"
+         "*pnd_field_raw* are initialized according to *npt*.\n"
+         "\n"
+         "*ParticleTypeInit* has to be executed before executing \n"
+         "*ParticleTypeAdd*.\n"
+ 	 ),
+	OUTPUT(amp_mat_raw_, pnd_field_raw_),
+	INPUT(),
+	GOUTPUT(),
+	GINPUT(),
+	KEYWORDS("npt"),
+	TYPES(Index_t)));
+
+    md_data_raw.push_back
     ( MdRecord
       ( NAME( "pha_matCalc" ),
 	DESCRIPTION

@@ -36,6 +36,8 @@ arts_SOURCES = \
 	getopt.h \
 	getopt1.c \
 	globals_2.cc \
+	gridded_fields.cc\
+	gridded_field.h\
 	groups.cc \
 	interpolation.cc \
 	interpolation.h \
@@ -132,7 +134,6 @@ noinst_PROGRAMS = \
 	make_auto_wsv_groups_h \
 	make_auto_wsv_h \
 	make_auto_wsv_pointers_cc \
-	test_griddedtensorcheck \
 	test_matpack \
 	test_poly \
 	test_tensor \
@@ -215,11 +216,6 @@ test_tensor_SOURCES = \
 	matpackVII.h \
 	mystring.h \
 	test_tensor.cc
-
-test_griddedtensorcheck_SOURCES = \
-	array.h \
-	matpackVI.h \
-	test_griddedtensorcheck.cc
 
 test_matpack_SOURCES = \
 	array.h \

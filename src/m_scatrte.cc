@@ -42,6 +42,7 @@
 #include "auto_md.h"
 #include "check_input.h"
 #include "matpackI.h"
+#include "matpackIII.h"
 #include "matpackVI.h"
 #include "matpackVII.h"
 #include "cloudbox.h"
@@ -51,6 +52,7 @@
 #include "physics_funcs.h"
 #include "lin_alg.h"
 #include "math_funcs.h"
+
 
 extern const Numeric PI;
 
@@ -108,7 +110,7 @@ void convergence_flagAbs(//WS Output:
 {
   //Check the input:
   assert( convergence_flag == 0 );
-  assert( atmosphere_dim == 1 | atmosphere_dim == 2 );
+  assert( atmosphere_dim == 1 || atmosphere_dim == 3 );
   assert( cloudbox_limits.nelem() == 2*atmosphere_dim);
   assert( 0 < stokes_dim < 5 );
 
@@ -385,19 +387,12 @@ i_fieldIterate(
       }
     
     
-    // Total scattering matrix.
+    // Calculate the scattered field.
+    scat_fieldCalc(scat_field, pha_mat, i_field, pha_mat_spt, pnd_field, 
+                   scat_za_grid, scat_aa_grid, p_grid, lat_grid, lon_grid,
+                   stokes_dim, atmosphere_dim, cloudbox_limits);
     
-
-    //pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
-    //cloudbox_limits, atmosphere_dim, scat_p_index, scat_lat_index, 
-    //                 scat_lon_index);
-    
-    
-    scat_field = i_field;
-    // ---- here will be the function to calculate the scattering integral
-  
-    
-    //Update i_field.
+    // Update i_field.
     if( atmosphere_dim == 1 )
       {
         i_fieldUpdate1D(//Output:
