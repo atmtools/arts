@@ -18,9 +18,9 @@
 
 
 
-/*****************************************************************************
- ***  File description 
- *****************************************************************************/
+/*===========================================================================
+  === File description 
+  ===========================================================================*/
 
 /*!
   \file   m_rte.cc
@@ -35,9 +35,9 @@
 
 
 
-/*****************************************************************************
- *** External declarations
- *****************************************************************************/
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
 
 #include <stdexcept>
 #include "arts.h"
@@ -51,9 +51,9 @@ extern const Numeric COSMIC_BG_TEMP;
 
 
 
-/*****************************************************************************
- *** The functions (in alphabetical order)
- *****************************************************************************/
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 
 
 //! i_spaceCBR
@@ -108,8 +108,8 @@ void RteCalc(
         const Vector&         i_space,
 	const Matrix&         abs,
         const Index&          antenna_dim,
-        const Vector&         za_mblock_grid,
-        const Vector&         aa_mblock_grid,
+        const Vector&         mblock_za_grid,
+        const Vector&         mblock_aa_grid,
 	const Index&          stokes_dim,
         const Matrix&         sensor_pos,
         const Matrix&         sensor_los )
@@ -146,7 +146,7 @@ void RteCalc(
   //
   const Index nf      = f_grid.nelem();
   const Index nmblock = sensor_pos.nrows();
-  const Index nza     = za_mblock_grid.nelem();
+  const Index nza     = mblock_za_grid.nelem();
 
 
   //--- Check input -----------------------------------------------------------
@@ -186,19 +186,19 @@ void RteCalc(
   chk_if_in_range( "antenna_dim", antenna_dim, 1, 2 );
   if( nza == 0 )
     throw runtime_error( "The measurement block zenith angle grid is empty." );
-  chk_if_increasing( "za_mblock_grid", za_mblock_grid );
+  chk_if_increasing( "mblock_za_grid", mblock_za_grid );
   if( antenna_dim == 1 )
     {
-      if( aa_mblock_grid.nelem() != 0 )
+      if( mblock_aa_grid.nelem() != 0 )
 	throw runtime_error( 
 	      "For antenna_dim = 1, the azimuthal angle grid must be empty." );
     }
   else
     {
-      if( aa_mblock_grid.nelem() == 0 )
+      if( mblock_aa_grid.nelem() == 0 )
 	throw runtime_error( 
                       "The measurement block azimuthal angle grid is empty." );
-      chk_if_increasing( "aa_mblock_grid", aa_mblock_grid );
+      chk_if_increasing( "mblock_aa_grid", mblock_aa_grid );
     }
 
   // Stokes
@@ -228,7 +228,7 @@ void RteCalc(
 
   // More sizes
   //
-  Index naa = aa_mblock_grid.nelem();
+  Index naa = mblock_aa_grid.nelem();
   if( antenna_dim == 1 )
     { naa = 1; }
   
@@ -254,9 +254,9 @@ void RteCalc(
 	    {
 	      // LOS
 	      los     = sensor_los( imblock, Range(joker) );
-	      los[0] += za_mblock_grid[iza];
+	      los[0] += mblock_za_grid[iza];
 	      if( antenna_dim == 2 )
-		{ los[1] += aa_mblock_grid[iaa]; }
+		{ los[1] += mblock_aa_grid[iaa]; }
 
 	      // Determine propagation path
 	      ppathCalc( ppath, atmosphere_dim, p_grid, lat_grid, lon_grid, 

@@ -18,9 +18,9 @@
 
 
 
-/*****************************************************************************
- ***  File description 
- *****************************************************************************/
+/*===========================================================================
+  === File description 
+  ===========================================================================*/
 
 /*!
   \file   m_general.cc
@@ -37,9 +37,9 @@
 
 
 
-/*****************************************************************************
- *** External declarations
- *****************************************************************************/
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
 
 #include <stdexcept>
 #include "array.h"
@@ -50,9 +50,9 @@
 
 
 
-/*****************************************************************************
- *** The functions (in alphabetical order)
- *****************************************************************************/
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 
 //! AntennaSet1D
 /*!
@@ -64,10 +64,13 @@
 void AntennaSet1D(
         // WS Output:
               Index&    antenna_dim,
-              Vector&   aa_mblock_grid )
+              Vector&   mblock_aa_grid )
 {
+  out2 << "  Sets the antenna dimensionality to 1.\n";
+  out3 << "    antenna_dim = 1\n";
+  out3 << "    mblock_aa_grid is set to be an empty vector\n";
   antenna_dim = 1;
-  aa_mblock_grid.resize(0);
+  mblock_aa_grid.resize(0);
 }
 
 
@@ -88,6 +91,8 @@ void AntennaSet2D(
   if( atmosphere_dim != 3 )
     throw runtime_error("Antenna dimensionality 2 is only allowed when the "
                                           "atmospheric dimensionality is 3." );
+  out2 << "  Sets the antenna dimensionality to 1.\n";
+  out3 << "    antenna_dim = 2\n";
   antenna_dim = 2;
 }
 

@@ -18,9 +18,9 @@
 
 
 
-/*****************************************************************************
- ***  File description 
- *****************************************************************************/
+/*===========================================================================
+  ===  File description
+  ===========================================================================*/
 
 /*!
   \file   m_basic_types.cc
@@ -41,9 +41,9 @@
 
 
 
-/*****************************************************************************
- *** External declarations
- *****************************************************************************/
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
 
 #include "arts.h"
 #include "array.h"
@@ -55,9 +55,9 @@
 
 
 
-/*****************************************************************************
- *** The functions (in alphabetical order)
- *****************************************************************************/
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 
 //! ArrayOfStringSet
 /*!
@@ -107,7 +107,7 @@ void FlagOn(
        const String&   x_name )
 {
   x = 1;
-  out2 << "  " << x_name << " = 1.\n";
+  out2 << "  " << x_name << " = 1\n";
 }
 
 
@@ -178,8 +178,8 @@ void MatrixFillWithVector(
     {
       out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
            << " as rows.\n";
-      out3 << "        nrows : " << nrows << "\n";
-      out3 << "        ncols : " << nv << "\n";
+      out3 << "             nrows : " << nrows << "\n";
+      out3 << "             ncols : " << nv << "\n";
       m.resize( nrows, nv );
       for( Index i=0; i<nrows; i++ )
         m(i,Range(joker)) = v;
@@ -188,8 +188,8 @@ void MatrixFillWithVector(
     {
       out2 << "  Creates the matrix " << m_name << " by putting in " << v_name
            << " as columns.\n";
-      out3 << "        nrows : " << nv << "\n";
-      out3 << "        ncols : " << ncols << "\n";
+      out3 << "             nrows : " << nv << "\n";
+      out3 << "             ncols : " << ncols << "\n";
       m.resize( nv, ncols );
       for( Index i=0; i<ncols; i++ )
         m(Range(joker),i) = v;
@@ -249,10 +249,9 @@ void MatrixSet(           Matrix&    x,
 {
   x.resize( nrows, ncols );
   x = value;
-  out2 << "  Creating " << x_name << " as a constant matrix.\n"; 
-  out3 << "        nrows : " << nrows << "\n";
-  out3 << "        ncols : " << ncols << "\n";
-  out3 << "        value : " << value << "\n";
+  out2 << "  " << x_name << " = " << value << "\n"; 
+  out3 << "             nrows : " << nrows << "\n";
+  out3 << "             ncols : " << ncols << "\n";
 }
 
 
@@ -295,8 +294,8 @@ void StringSet(           String&  s,
 /*!
    See the the online help (arts -d FUNCTION_NAME)
 
-   \author ???
-   \date   ?-?-?
+   \author Patrick Eriksson
+   \date   2002-05-11
 */
 void Tensor3FillWithVector(
         // WS Generic Output:
@@ -321,9 +320,9 @@ void Tensor3FillWithVector(
     {
       out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
            << "\n  perpendicular to the column dimension.\n";
-      out3 << "          npages : " << npages << "\n";
-      out3 << "          nrows  : " << nrows << "\n";
-      out3 << "          ncols  : " << nv << "\n";
+      out3 << "            npages : " << npages << "\n";
+      out3 << "            nrows  : " << nrows << "\n";
+      out3 << "            ncols  : " << nv << "\n";
       t.resize( npages, nrows, nv );
       for( Index i=0; i<npages; i++ )
 	{
@@ -335,9 +334,9 @@ void Tensor3FillWithVector(
     {
       out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
            << "\n  perpendicular to the row dimension.\n";
-      out3 << "          npages : " << npages << "\n";
-      out3 << "          nrows  : " << nv << "\n";
-      out3 << "          ncols  : " << ncols << "\n";
+      out3 << "            npages : " << npages << "\n";
+      out3 << "            nrows  : " << nv << "\n";
+      out3 << "            ncols  : " << ncols << "\n";
       t.resize( npages, nv, ncols );
       for( Index i=0; i<npages; i++ )
 	{
@@ -349,9 +348,9 @@ void Tensor3FillWithVector(
     {
       out2 << "  Creates the tensor " << t_name << " by putting in " << v_name
            << "\n  perpendicular to the page dimension.\n";
-      out3 << "          npages : " << nv << "\n";
-      out3 << "          nrows  : " << nrows << "\n";
-      out3 << "          ncols  : " << ncols << "\n";
+      out3 << "            npages : " << nv << "\n";
+      out3 << "            nrows  : " << nrows << "\n";
+      out3 << "            ncols  : " << ncols << "\n";
       t.resize( nv, nrows, ncols );
       for( Index i=0; i<nrows; i++ )
 	{
@@ -434,12 +433,12 @@ void VectorLinSpace(      Vector&    x,
 {
   linspace(x,start,stop,step);
   out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
-  out3 << "         length: " << x.nelem() << "\n";
-  out3 << "    first value: " << x[0] << "\n";
+  out3 << "        length : " << x.nelem() << "\n";
+  out3 << "   first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
   {
-    out3 << "      step size: " << x[1]-x[0] << "\n";
-    out3 << "     last value: " << x[x.nelem()-1] << "\n";
+    out3 << "          step size : " << x[1]-x[0] << "\n";
+    out3 << "         last value : " << x[x.nelem()-1] << "\n";
   }
 }
 
@@ -462,13 +461,13 @@ void VectorNLinSpace(     Vector&    x,
     throw runtime_error("The number of points must be > 1."); 
   nlinspace(x,start,stop,n);
   out2 << "  Creating " << x_name << " as linearly spaced vector.\n";
-  out3 << "         length: " << n << "\n";
-  out3 << "    first value: " << x[0] << "\n";
+  out3 << "            length : " << n << "\n";
+  out3 << "       first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
-  {
-    out3 << "      step size: " << x[1]-x[0] << "\n";
-    out3 << "     last value: " << x[x.nelem()-1] << "\n";
-  }
+    {
+      out3 << "         step size : " << x[1]-x[0] << "\n";
+      out3 << "        last value : " << x[x.nelem()-1] << "\n";
+    }
 }
 
 
@@ -494,10 +493,10 @@ void VectorNLogSpace(       Vector&    x,
   x.resize(n);
   x = nlogspace(start,stop,n);
   out2 << "  Creating " << x_name << " as logarithmically spaced vector.\n";
-  out3 << "         length: " << n << "\n";
-  out3 << "    first value: " << x[0] << "\n";
+  out3 << "            length : " << n << "\n";
+  out3 << "       first value : " << x[0] << "\n";
   if ( x.nelem() > 1 )
-    out3 << "     last value: " << x[x.nelem()-1] << "\n";
+    out3 << "        last value : " << x[x.nelem()-1] << "\n";
 }
 
 
@@ -551,8 +550,8 @@ void VectorSet(           Vector&    x,
   x.resize(n);
   x = value;		
   out2 << "  Creating " << x_name << " as a constant vector.\n"; 
-  out3 << "         length : " << n << "\n";
-  out3 << "          value : " << value << "\n";
+  out3 << "            length : " << n << "\n";
+  out3 << "             value : " << value << "\n";
 }
 
 
@@ -575,7 +574,7 @@ void VectorSetTakingLengthFromVector(
   x.resize(n);
   x = value;		
   out2 << "  Creating " << x_name << " as a constant vector.\n"; 
-  out3 << "         length : " << n << "\n";
-  out3 << "          value : " << value << "\n";
+  out3 << "            length : " << n << "\n";
+  out3 << "             value : " << value << "\n";
 }
 

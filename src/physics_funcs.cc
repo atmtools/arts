@@ -19,9 +19,9 @@
 
 
 
-/*****************************************************************************
- ***  File description 
- *****************************************************************************/
+/*===========================================================================
+  === File description 
+  ===========================================================================*/
 
 /*!
    \file   physics_funcs.cc
@@ -34,9 +34,9 @@
 
 
 
-/*****************************************************************************
- *** External declarations
- *****************************************************************************/
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
 
 #include <math.h>
 #include <stdexcept>
@@ -51,9 +51,9 @@ extern const Numeric BOLTZMAN_CONST;
 
 
 
-/*****************************************************************************
- *** The functions (in alphabetical order)
- *****************************************************************************/
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 
 //! invplanck
 /*!
@@ -82,9 +82,9 @@ void invplanck (
     throw runtime_error("The spectrum cannot be in expected intensity unit "
                         "(impossible value detected).");
   
-    c = a*f;
-    d = b*pow(f,3);
-    y = c / ( log(d/y+1) );
+  c = a*f;
+  d = b*pow(f,3);
+  y = c / ( log(d/y+1) );
 }
 
 
@@ -111,12 +111,12 @@ void invrayjean (
         double   b;
 
   // Check input
-	if (y > 1e-4 )  
-	  throw runtime_error("The spectrum is not in expected intensity unit "
-                        "(impossible value detected).");
+  if (y > 1e-4 )  
+    throw runtime_error("The spectrum is not in expected intensity unit "
+                                               "(impossible value detected).");
 	
-	b = a/(f*f);
-	y = b * y;
+  b = a/(f*f);
+  y = b * y;
 }
 
 
@@ -136,9 +136,8 @@ void number_density (
 		     const Numeric p,
 		     const Numeric t )
 {
-  
   // Calculate p / (t*BOLTZMAN_CONST):
-  assert( 0!=t );
+  assert( t > 0 );
   nd = p/(t*BOLTZMAN_CONST);			
 }
 
@@ -166,7 +165,6 @@ void planck (
   const double  c = b/t; 
   
   B = a * f*f*f / ( exp( f*c ) - 1.0 );
- 
 }
 
 

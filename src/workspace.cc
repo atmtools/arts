@@ -98,18 +98,6 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
-    ("aa_mblock_grid",
-     "The azimuthal angle grid for each measurement block.\n"
-     "\n"
-     "Text will be written (PE).\n"
-     "\n"
-     "Usage:      Set by the user.\n"
-     "\n"
-     "Unit:       degrees ",
-     Vector_ ));
-
-  wsv_data.push_back
-   (WsvRecord
     ("antenna_dim",
      "The dimensionality of the antenna pattern (1-2).\n"
      "\n"
@@ -443,6 +431,30 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ("mblock_aa_grid",
+     "The azimuthal angle grid for each measurement block.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       degrees ",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
+    ("mblock_za_grid",
+     "The zenith angle grid for each measurement block.\n"
+     "\n"
+     "Text will be written (PE).\n"
+     "\n"
+     "Usage:      Set by the user.\n"
+     "\n"
+     "Unit:       degrees ",
+     Vector_ ));
+
+  wsv_data.push_back
+   (WsvRecord
     ("p_grid",
      "The pressure grid.\n"
      "\n"
@@ -726,18 +738,6 @@ void define_wsv_data()
      "\n"
      "Unit:       Undefined. Possibilities include: K, W/(m^2 Hz sr) and\n "
      "            optical thickness.",
-     Vector_ ));
-
-  wsv_data.push_back
-   (WsvRecord
-    ("za_mblock_grid",
-     "The zenith angle grid for each measurement block.\n"
-     "\n"
-     "Text will be written (PE).\n"
-     "\n"
-     "Usage:      Set by the user.\n"
-     "\n"
-     "Unit:       degrees ",
      Vector_ ));
 
   wsv_data.push_back

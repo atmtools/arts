@@ -1,3 +1,29 @@
+2002-05-30  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-104
+
+	* Things fixed for this commit, or in 1-1-99:
+	
+	* Some workspace functions have been renamed. 
+	  - The PrintXxx functions now ends with Pring, e.g. NumericPrint.
+	  - The functions to set the atmospheric dimensionality are now called
+	    AtmosphereSet1D etc.
+	This to follow our naming scheme better.
+	
+	* New workspace functions:
+	   FlagOn
+	   FlagOff
+	   i_spaceCBR
+	   e_groundSet
+	   AntennaSet1D
+	   AntennaSet2D
+
+	* Improved the out-messages from some functions, especially in 
+	m_basic_types, but there is more to do here.
+
+	* Started on the RTE part, but found it hard before the agendas are
+	ready. So I leave this for the moment.
+
 2002-05-28 Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 
 	* arts-1-1-103

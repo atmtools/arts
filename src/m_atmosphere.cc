@@ -18,9 +18,9 @@
 
 
 
-/*****************************************************************************
- ***  File description 
- *****************************************************************************/
+/*===========================================================================
+  === File description 
+  ===========================================================================*/
 
 /*!
   \file   m_atmosphere.cc
@@ -35,9 +35,9 @@
 
 
 
-/*****************************************************************************
- *** External declarations
- *****************************************************************************/
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
 
 #include <math.h>
 #include <stdexcept>
@@ -51,9 +51,9 @@ extern const Numeric RAD2DEG;
 
 
 
-/*****************************************************************************
- *** The functions (in alphabetical order)
- *****************************************************************************/
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 
 //! AtmosphereSet1D
 /*!
@@ -68,6 +68,10 @@ void AtmosphereSet1D(
               Vector&   lat_grid,
               Vector&   lon_grid )
 {
+  out2 << "  Sets the atmospheric dimensionality to 1.\n";
+  out3 << "    atmosphere_dim = 1\n";
+  out3 << "    lat_grid is set to be an empty vector\n";
+  out3 << "    lon_grid is set to be an empty vector\n";
   atmosphere_dim = 1;
   lat_grid.resize(0);
   lon_grid.resize(0);
@@ -86,12 +90,17 @@ void AtmosphereSet2D(
         // WS Output:
               Index&    atmosphere_dim,
               Vector&   lon_grid,
-              Numeric&  latitude_1d,
+              Numeric&  lat_1d,
               Numeric&  meridian_angle_1d )
 {
+  out2 << "  Sets the atmospheric dimensionality to 2.\n";
+  out3 << "    atmosphere_dim = 2\n";
+  out3 << "    lon_grid is set to be an empty vector\n";
+  out3 << "    lat_1d = -999\n";
+  out3 << "    meridian_angle_1d = -999\n";
   atmosphere_dim = 2;
   lon_grid.resize(0);
-  latitude_1d = -999;
+  lat_1d = -999;
   meridian_angle_1d = -999;
 }
 
@@ -110,6 +119,10 @@ void AtmosphereSet3D(
               Numeric&  latitude_1d,
               Numeric&  meridian_angle_1d )
 {
+  out2 << "  Sets the atmospheric dimensionality to 2.\n";
+  out3 << "    atmosphere_dim = 3\n";
+  out3 << "    lat_1d = -999\n";
+  out3 << "    meridian_angle_1d = -999\n";
   atmosphere_dim = 3;
   latitude_1d = -999;
   meridian_angle_1d = -999;
@@ -149,10 +162,10 @@ void e_groundSet(
   if( atmosphere_dim < 3 )
     { nlon = 1; }
 
-  out2 << "  Setting *e_ground* to the value " << value << ".\n";
-  out3 << "          npages : " << f_grid.nelem() << "\n";
-  out3 << "          nrows  : " << nlat << "\n";
-  out3 << "          ncols  : " << nlon << "\n";
+  out2 << "  e_ground = " << value << "\n";
+  out3 << "            npages : " << f_grid.nelem() << "\n";
+  out3 << "            nrows  : " << nlat << "\n";
+  out3 << "            ncols  : " << nlon << "\n";
 
   e_ground.resize( f_grid.nelem(), nlat, nlon );
   e_ground = value;
@@ -172,6 +185,11 @@ void GroundSetToBlackbody(
               Index&     blackbody_ground,
               Tensor3&   e_ground )
 {
+  out2 << "  blackbody_ground = 1\n";
+  out2 << "  e_ground = 1\n";
+  out3 << "            npages : 1\n";
+  out3 << "            nrows  : 1\n";
+  out3 << "            ncols  : 1\n";
   blackbody_ground = 1;
   e_ground.resize(1,1,1);
   e_ground(0,0,0) = 1;
@@ -212,6 +230,9 @@ void r_geoidWGS84(
       chk_if_in_range( "latitude_1d", latitude_1d, -90, 90 );
       chk_if_in_range( "azimuth_angle_1d", azimuth_angle_1d, -180, 180 );
 
+      out2 << "  Sets r_geoid to the curvature radius of the WGS-84 "
+           << "reference ellipsiod.\n";
+
       r_geoid.resize(1,1);
 
       // Cosine and sine of the latitude. The values are only used squared.
@@ -232,6 +253,9 @@ void r_geoidWGS84(
 
   else
     {
+      out2 << "  Sets r_geoid to the radius of the WGS-84 "
+           << "reference ellipsiod.\n";
+
       // Number of latitudes
       const Index nlat = lat_grid.nelem();
 
@@ -269,6 +293,8 @@ void r_geoidWGS84(
 	    r_geoid(lat,lon) = rv;
         }
     }
+  out3 << "            nrows  : " << r_geoid.nrows() << "\n";
+  out3 << "            ncols  : " << r_geoid.ncols() << "\n";
 }
 
 
