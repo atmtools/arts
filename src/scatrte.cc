@@ -1832,9 +1832,21 @@ void cloud_ppath_update1D_planeparallel(
 }
 
 
-/*! Optimize the zenith angle grid 
+/*! Optimize the zenith angle grid, 
 
-  This method optimizes the zenith angle grid 
+  This method optimizes the zenith angle grid. For optimization it uses the 
+  interpolation method given by *scat_za_interp* (0 - linear interpolation,
+  1 - cubic interpolation). 
+  As input it needs the intensity field calculated on a very fine zenith angle 
+  grid (*za_grid_fine*). The function picks out as many grid points as required
+  to achieve the required accuracy (*acc* [%]). This methods optimizes only 
+  the intensity (first Stokes component) for 1D cases (first latitude and 
+  longitude of the intensity field.  
+  (Could be modified to optimize all Stokes components at the same time, if we
+  don't want to use the clearsky field for grid optimuzation.)
+
+  \param za_grid_opt Optimized zenith angle grid.
+  \param i_field_opt Optimized intensity field. 
 
   \author Claudia Emde
   \date 2004-04-05
@@ -1878,8 +1890,6 @@ void za_gridOpt(//Output:
 
   while( max_diff > acc )
     {
-      cout << "idx.nelem()" << idx.nelem()<< endl;
-      
       za_reduced.resize(idx.nelem());
       i_field_opt.resize(N_p, idx.nelem());
       max_diff_za = 0.;
@@ -1937,15 +1947,11 @@ void za_gridOpt(//Output:
             }
         }
       
-      cout <<"max_diff_p"<<max_diff_p<< endl; 
-      //Transform in %
-      cout << "i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0) " << i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0) <<endl;
-      max_diff = max_diff_p/i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0)*100.;
-      cout << "max_diff" << max_diff << endl;
-
-      idx.push_back(ind_za[ind_p]);
       
-      cout << "idx" << idx << endl;
+      //Transform in %
+      max_diff = max_diff_p/i_field(ind_p, 0, 0, ind_za[ind_p], 0, 0)*100.;
+      
+      idx.push_back(ind_za[ind_p]);
       idx_unsorted = idx;
 
       i_sort.resize(idx_unsorted.nelem());
@@ -1954,7 +1960,6 @@ void za_gridOpt(//Output:
       for (Index i = 0; i<idx_unsorted.nelem(); i++)
         idx[i] = idx_unsorted[i_sort[i]];
   
-      cout << "idx" << idx << endl;
       za_reduced.resize(idx.nelem());
     }
    
@@ -1962,7 +1967,6 @@ void za_gridOpt(//Output:
   i_field_opt.resize(N_p, idx.nelem());
   for(Index i = 0; i<idx.nelem(); i++)
     {
-      cout << "idx[i]" << idx[i] << endl;
       za_grid_opt[i] = za_grid_fine[idx[i]];
       i_field_opt(joker, i) = i_field(joker, 0, 0, idx[i], 0, 0);
     }

@@ -3413,22 +3413,12 @@ md_data_raw.push_back
          "                  written to files \n"
          "\n"
          ),
-        OUTPUT(scat_za_grid_, i_field_, f_index_, scat_i_p_, scat_i_lat_, 
-               scat_i_lon_,
-               ppath_, ppath_step_,
-               i_rte_, i_space_, ground_emission_, ground_los_,
-               ground_refl_coeffs_,
-               rte_los_, rte_pos_, rte_gp_p_, rte_gp_lat_, rte_gp_lon_),
-        INPUT( scat_mono_agenda_, scat_za_interp_, 
-               cloudbox_limits_, atmosphere_dim_, stokes_dim_, 
-                scat_aa_grid_, f_grid_, ppath_step_agenda_,  rte_agenda_,
-                i_space_agenda_, ground_refl_agenda_, p_grid_, lat_grid_,
-                lon_grid_, z_field_, t_field_, r_geoid_, z_ground_),
-
+        OUTPUT(scat_za_grid_opt_, i_field_),
+        INPUT(i_field_, scat_za_grid_, scat_za_interp_),
         GOUTPUT(),
         GINPUT(),
-        KEYWORDS("np", "accuracy", "write_var"),
-        TYPES(Index_t, Numeric_t, String_t)));
+        KEYWORDS("acc"),
+        TYPES(Numeric_t)));
                                                                                
 md_data_raw.push_back
     ( MdRecord
@@ -3473,6 +3463,26 @@ md_data_raw.push_back
         INPUT(stokes_dim_, atmosphere_dim_, scat_za_grid_, scat_aa_grid_,
               za_grid_size_, 
               cloudbox_limits_, scat_data_raw_),
+        GOUTPUT(),
+        GINPUT(),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
+   ( MdRecord
+      ( NAME( "ScatteringGridOptimization" ),
+        DESCRIPTION
+        (
+         "This methods executes *scat_grid_optimization_agenda*. \n"
+         "\n"
+         "Grid optimization takes a rather long time, as the whole \n"
+         "scattering calculation is performed on a very fine zenith angle \n"
+         "grid. If the number of elements in *f_grid* is greater than 1,\n"
+         "the calculation is cancelled.\n"
+         "\n"
+         ),
+        OUTPUT(),
+        INPUT(f_grid_, scat_grid_optimization_agenda_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

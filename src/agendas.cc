@@ -501,9 +501,7 @@ void define_agenda_data()
        "   amp_mat_raw: Amplitude matrix raw data. \n"
        ""
         ),
-       OUTPUT(scat_i_p_,
-              scat_i_lat_,
-              scat_i_lon_),
+       OUTPUT(i_field_),
        INPUT(scat_i_p_,
              scat_i_lat_,
              scat_i_lon_,
@@ -519,7 +517,7 @@ void define_agenda_data()
        (
         "Radiative transfer calculation in cloudbox. \n"
         "\n"
-        "Differnt methods for the radiative transfer calculation are:\n"
+        "Different methods for the radiative transfer calculation are:\n"
         "*i_fieldUpdate{1,3}D*: 'Normal' function for successive order of\n"
         "                      scattering method. \n"
         "*i_fieldUpdateSeq{1,3}D*: Seqential update of the radiation field. \n"
@@ -534,6 +532,24 @@ void define_agenda_data()
         INPUT(  scalar_gas_absorption_agenda_, spt_calc_agenda_,
                 opt_prop_part_agenda_, opt_prop_gas_agenda_,
                 ppath_step_agenda_)));
+
+ agenda_data.push_back
+    (AgRecord
+     ( NAME( "scat_grid_optimization_agenda" ),
+       DESCRIPTION
+       (
+        "Grid optimization for scattering caclualtions. \n"
+        "\n"
+        "Main WSM: *scat_za_gridOptimize*: \n"
+        "This requires as an input the radiation field computed on a very\n"
+        "fine grid which can be obtained by \n"
+        "      (a) *CloudboxGetIncoming* and *ScatteringMain* or\n "
+        "      (b) by reading a precalculated file \n"
+        "\n"
+        ),
+       OUTPUT(scat_za_grid_opt_, i_field_ ),
+       INPUT(scat_za_interp_)));
+ 
 
  agenda_data.push_back
     (AgRecord

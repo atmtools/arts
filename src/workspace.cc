@@ -916,7 +916,7 @@ wsv_data.push_back
        ),
       GROUP( Tensor6_ )));
 
-  wsv_data.push_back
+   wsv_data.push_back
    (WsvRecord
     ( NAME( "i_rte" ),
       DESCRIPTION
@@ -2126,6 +2126,33 @@ wsv_data.push_back
        "\n"
        ),
       GROUP( Vector_ )));
+
+wsv_data.push_back
+   (WsvRecord
+    ( NAME( "scat_za_grid_opt" ),
+      DESCRIPTION
+      (
+       "Optimized zenith angle grid.\n"
+       "\n"
+       "Output of the method *ScatteringGridOptimization*. It is very \n"
+       "important to use optimized grids  for both, accuracy and speed of \n"
+       "scattering calculations.\n"
+       "\n"
+       "Usage:   Output of *ScatteringGridOptimization*   \n"
+       "\n"
+       "Unit:    degrees "
+       "\n"
+       ),
+      GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+     ( NAME( "scat_grid_optimization_agenda" ),
+       DESCRIPTION
+       (
+        "See agendas.cc."
+        ),
+       GROUP(  Agenda_ )));
 
  wsv_data.push_back
    (WsvRecord

@@ -3301,6 +3301,35 @@ void ScatteringMain(
     }
 }
 
+//! Execute *scat_grid_optimization_agenda*.
+/*! 
+  The methods checks whether *f_grid* contains just one frequency (only 
+  monochromatic grid optimization possible) and executes 
+  *scat_grid_optimization_agenda*.
+  
+  WS Input:
+  \param f_grid Frequency grid. 
+  \param scat_grid_optimization_agenda 
+
+  \author Claudia Emde
+  \date 2003-04-15
+*/
+void ScatteringGridOptimization(
+                                //WS Input
+                                const Vector& f_grid, 
+                                const Agenda& scat_grid_optimization_agenda
+                                )
+{
+  if(f_grid.nelem() > 1)
+    throw runtime_error("*f_grid* contains more than one frequency. \n"
+                        "Grid optimization is only possible for "
+                        "monochromatic calculations. \n"
+                        );
+
+  scat_grid_optimization_agenda.execute();
+}
+ 
+
 
 //! Zenith angle grid optimization for scattering calculation.
 /*! 
@@ -3315,147 +3344,42 @@ void ScatteringMain(
 
    WS Output:
    \param scat_za_grid optimized zenith angle grid
-   Variables needed for CloudboxGetIncoming:
-   \param scat_i_lat 
-   \param scat_i_lon 
-   \param ppath 
-   \param ppath_step 
-   \param i_rte 
-   \param i_space 
-   \param ground_emission 
-   \param ground_los 
-   \param ground_refl_coeffs 
-   \param rte_los 
-   \param rte_pos 
-   \param rte_gp_p 
-   \param rte_gp_lat 
-   \param rte_gp_lon 
+
    WS Input:
    \param scat_mono_agenda Agenda performing monochromatic scattering
    calculation
    \param f_index 
    \param scat_za_interp Interpolation method.
-   Variables needed for CloudboxGetIncoming:
-   \param CloudboxGetIncoming 
-   \param atmosphere_dim 
-   \param stokes_dim 
-   \param scat_za_grid 
-   \param scat_aa_grid 
-   \param f_grid 
-   \param ppath_step_agenda 
-   \param rte_agenda 
-   \param i_space_agenda 
-   \param ground_refl_agenda 
-   \param p_grid 
-   \param lat_grid 
-   \param lon_grid 
-   \param z_field 
-   \param t_field 
-   \param r_geoid 
-   \param z_ground 
-   \param np 
-   \param acc 
-   \param write_var 
+   
+   \author Claudia Emde
+   \date 2003-04-15
  */
 void scat_za_gridOptimize(//WS Output
-                          Vector& scat_za_grid,
+                          Vector& scat_za_grid_opt,
+                          // WS Output and Input:
                           Tensor6& i_field,
-                          Index& f_index,
-                          //Variables needed for CloudboxGetIncoming
-                          Tensor7& scat_i_p,
-                          Tensor7& scat_i_lat,
-                          Tensor7& scat_i_lon,
-                          Ppath& ppath,
-                          Ppath& ppath_step,
-                          Matrix& i_rte,
-                          Matrix& i_space,
-                          Matrix& ground_emission,
-                          Matrix& ground_los,
-                          Tensor4& ground_refl_coeffs,
-                          Vector& rte_los,
-                          Vector& rte_pos,
-                          GridPos& rte_gp_p,
-                          GridPos& rte_gp_lat,
-                          GridPos& rte_gp_lon,
                           //WS Input
-                          const Agenda& scat_mono_agenda,
+                          const Vector& scat_za_grid,
                           const Index& scat_za_interp,
-                          // Variables needed for CloudboxGetIncoming
-                          const ArrayOfIndex& cloudbox_limits,
-                          const Index& atmosphere_dim,
-                          const Index& stokes_dim,
-                          const Vector& scat_aa_grid,
-                          const Vector& f_grid,
-                          const Agenda& ppath_step_agenda,
-                          const Agenda& rte_agenda,
-                          const Agenda& i_space_agenda,
-                          const Agenda& ground_refl_agenda,
-                          const Vector& p_grid,
-                          const Vector& lat_grid,
-                          const Vector& lon_grid,
-                          const Tensor3& z_field,
-                          const Tensor3& t_field,
-                          const Matrix& r_geoid,
-                          const Matrix& z_ground,
                           //Keywords:
-                          const Index& np,
-                          const Numeric& acc,
-                          const String& write_var)
+                          const Numeric& acc
+                          )
 {
-  if(f_grid.nelem() > 1)
-    throw runtime_error("*f_grid* contains more than one frequency. \n"
-                        "Grid optimization is only possibly for "
-                        "monochromatic calculations. \n"
-                        );
- 
-  scat_za_grid.resize(np);
-  
- 
-  nlinspace(scat_za_grid, 0., 180., np);
-    
-  Vector za_grid_opt;
-  
-  CloudboxGetIncoming(scat_i_p, scat_i_lat, scat_i_lon, ppath, ppath_step,
-                      i_rte, i_space, ground_emission,  ground_los, 
-                      ground_refl_coeffs, rte_los, rte_pos, rte_gp_p,
-                      rte_gp_lat, rte_gp_lon, cloudbox_limits,
-                      atmosphere_dim, stokes_dim, scat_za_grid,
-                      scat_aa_grid, f_grid, ppath_step_agenda, rte_agenda,
-                      i_space_agenda, ground_refl_agenda, p_grid, lat_grid,
-                      lon_grid, z_field, t_field, r_geoid, z_ground);
-  
-  f_index = 0;
-
-  scat_mono_agenda.execute();
-
   Matrix i_field_opt_mat;
   i_field_opt_mat = 0.;
   
-
   // Optimize zenith angle grid. 
-  za_gridOpt(za_grid_opt, i_field_opt_mat,
+  za_gridOpt(scat_za_grid_opt, i_field_opt_mat,
              scat_za_grid, i_field, acc,
              scat_za_interp);
  
-  Tensor6 i_field_opt;
-  i_field_opt.resize(i_field_opt_mat.nrows(), 1, 1, i_field_opt_mat.ncols(),
+  i_field.resize(i_field_opt_mat.nrows(), 1, 1, i_field_opt_mat.ncols(),
                       1, 1);
-  i_field_opt = 0;
+  i_field = 0;
   
-
-  i_field_opt(joker, 0, 0, joker, 0, 0) = i_field_opt_mat;
-  
-  if (write_var == "yes")
-    {
-      xml_write_to_file("scat_za_grid_optimized.xml", za_grid_opt);
-      xml_write_to_file("scat_za_grid_fine.xml", scat_za_grid);
-      xml_write_to_file("i_field_optimized.xml", i_field_opt);
-      xml_write_to_file("i_field_fine.xml", i_field);
-    }
-  
-  // Copy optimized grid into WSM scat_za_grid.
-  scat_za_grid = za_grid_opt;    
+  i_field(joker, 0, 0, joker, 0, 0) = i_field_opt_mat;
 }
+
 
 
 

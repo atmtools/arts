@@ -1,4 +1,25 @@
-2004-03-30  Oliver Lemke  <olemke@linux.net>
+2004-04-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+	
+	* arts-1-1-809
+	
+	* src/agendas.cc (scat_grid_optimization_agenda): Included this agenda
+	which allows to perform grid optimization in a modular way. 
+		
+	* src/m_scatrte.cc (ScatteringGridOptimization): Method which exectues
+	*scat_grid_optimization_agenda*.
+	(scat_za_gridOptimze): Modified. Does now only grid optimization, 
+	not the scattering calculation on a very fine grid.
+
+	* src/scatrte.{cc,h} (za_gridOpt): Minor modifications. Removed 
+	debugging output.
+	
+	* src/workspace.cc: Included *scat_za_grid_opt*. A workspace variable 
+	containing the optimized zenith angle grid. 
+
+	* src/methods.cc: Included (ScatteringGridOptimization) and modified
+	(scat_za_gridOptimze).
+	
+2004-04-15  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-808
 
