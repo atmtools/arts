@@ -1,5 +1,17 @@
 2003-04-03  Thomas Kuhn  <tkuhn@uni-bremen.de>
 
+	* arts-1-0-73
+
+	* aii/WaterVaporSatPressure.pro: update, make PTOT as optional
+	input parameter. If no moist air correction is applied then PTOT
+	is not required but if the moist air correction is invoced by
+	corr='yes' then the total atmosperic pressure MUST be provided
+	otherwise the default value of es is given back 
+	(i.e. es = -9.99999e9). An example how the total pressure can be
+	provided is to set the keyword PTOT to PTOT=1010.0E0.
+
+2003-04-03  Thomas Kuhn  <tkuhn@uni-bremen.de>
+
 	* arts-1-0-72
 
 	* aii/aii_startup: added this aii startup batch file which is

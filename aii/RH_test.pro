@@ -134,8 +134,9 @@ for iatm = 0,natm-1 do begin
             
             ph2o = FASCOD_H2O[0,i,0] * FASCOD_H2O[0,i,1] ;; [Pa]
             
-            es1 = WaterVaporSatPressure( TK, p_Pa, phase='WATER', punit='Pa', corr='no'  )
-            es2 = WaterVaporSatPressure( TK, p_Pa, phase='WATER', punit='Pa', corr='yes' )
+            es1 = WaterVaporSatPressure( TK, phase='WATER', corr='no'  )
+;            es1 = WaterVaporSatPressure( TK, phase='WATER', punit='Pa', corr='no'  )
+            es2 = WaterVaporSatPressure( TK, PTOT=p_Pa, phase='WATER', punit='Pa', corr='yes' )
             
             RH[0,j] = (FASCOD_H2O[0,i,0]*1.00000e-2)            ;; pressure [hPa]
             RH[1,j] = TK                                        ;; temperature [K]
