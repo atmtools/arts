@@ -29,6 +29,7 @@
 #include "array.h"
 #include "mystring.h"
 #include "make_array.h"
+#include "bifstream.h"
 
 /** Contains the lookup data for one isotope.
     \author Stefan Buehler */
@@ -194,11 +195,13 @@ public:
 #endif // #ifndef NDEBUG
   }
 
-  const String&               Name()     const { return mname;     }   
-  Index                         Degfr()    const { return mdegfr;    }
+  const String&               Name()     const { return mname;     }
+  Index                       Degfr()    const { return mdegfr;    }
   const Array<IsotopeRecord>& Isotope()  const { return misotope;  }
   Array<IsotopeRecord>&       Isotope()        { return misotope;  }
-  
+
+  friend void xml_read_from_stream (istream&, SpeciesRecord &, bifstream *);
+
 private:
   /** Species name. */
   String mname;
