@@ -15,4 +15,4 @@ thisdoc_DATA         = $(wildcard *.html *.gif *.png *.css)
 
 EXTRA_DIST           = $(wildcard *.html *.gif *.png *.css)
 
-MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.png *.css)
+MAINTAINERCLEANFILES = $(wildcard *.html *.gif *.png *.css graph_legend.dot formula.repository)
