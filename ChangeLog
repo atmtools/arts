@@ -1,3 +1,11 @@
+2002-05-06  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-1-60
+	
+	* src/lin_alg.cc: Include math.h for gcc>=2.96.
+
+	* src/test_tensor.cc: Include math.h for gcc>=2.96.
+
 2002-05-05  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-59
