@@ -18,7 +18,7 @@ AC_INIT(autogen.sh)
 AM_CONFIG_HEADER(config.h)
 
 # The ARTS release number must go here:
-AM_INIT_AUTOMAKE(arts,1.0.154)
+AM_INIT_AUTOMAKE(arts,1.0.155)
 
 AM_MAINTAINER_MODE
 
@@ -129,7 +129,7 @@ AC_ARG_WITH(numeric-type,
        *) AC_MSG_ERROR(bad value ${withval} for --with-numeric-type) ;;
 esac],[ ac_numeric_type=double ])
 
-AC_MSG_RESULT(Setting floating-point type to $ac_numeric_type)
+AC_MSG_RESULT(Setting Numeric type to $ac_numeric_type)
 AC_DEFINE_UNQUOTED(NUMERIC, $ac_numeric_type, Default floating-point type)
 if test x$ac_numeric_type = xdouble; then
   AC_DEFINE_UNQUOTED(USE_DOUBLE,, Whether double precision is in use)
@@ -140,7 +140,7 @@ fi
 # Default integer type
 #
 AC_ARG_WITH(integer-type,
-[  --with-integer-type=ARG    Set integer type (default=long)],
+[  --with-index-type=ARG    Set integer type (default=long)],
 [case "${withval}" in
   short) ac_integer_type=short ;;
   int)  ac_integer_type=int ;;
@@ -149,7 +149,7 @@ AC_ARG_WITH(integer-type,
     *) AC_MSG_ERROR(bad value ${withval} for --with-integer-type) ;;
 esac],[ ac_integer_type=long ])
 
-AC_MSG_RESULT(Setting integer type to $ac_integer_type)
+AC_MSG_RESULT(Setting Index type to $ac_integer_type)
 AC_DEFINE_UNQUOTED(INDEX, $ac_integer_type, Default integer type)
 
 
@@ -379,8 +379,8 @@ AC_MSG_RESULT([              ARTS configuration summary])
 AC_MSG_RESULT()
 AC_MSG_RESULT([  Maintainer mode          : $USE_MAINTAINER_MODE])
 AC_MSG_RESULT([  Debugging                : $ac_debug])
-AC_MSG_RESULT([  Floating-point type      : $ac_numeric_type])
-AC_MSG_RESULT([  Integer type             : $ac_integer_type])
+AC_MSG_RESULT([  Numeric type             : $ac_numeric_type])
+AC_MSG_RESULT([  Index type               : $ac_integer_type])
 AC_MSG_RESULT([  Regenerate documentation : $ac_docgen])
 if test $ac_hdf_support = autodetect; then
   AC_MSG_RESULT([  HDF support              : $ac_hdf (autodetected)])

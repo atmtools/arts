@@ -1,3 +1,13 @@
+2004-02-04  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-0-155
+
+	* autogen.sh: Fixed bug reported by Carlos. Use -o for find because
+	non gnu versions don't support -or.
+
+	* configure.in: Use better names: Numeric instead of floating-point
+	and Index instead of integer.
+
 2004-02-02  Christian Melsheimer <melsheimer@uni-bremen.de>
         
         * arts-1-0-154
