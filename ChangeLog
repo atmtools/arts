@@ -1,3 +1,19 @@
+2003-01-22  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
+	* arts-1-1-415
+
+	* src/zeemanproperties.cc: Added this file, containing the basic
+	routines for calculating the extinction matrix and the
+	absorption vector by the Zeeman effect..
+
+	* src/zeemanproperties.h: Header file for the zeemanproperties.cc.
+
+	* src/test_zeemanproperties.cc: Test file for the Zeeman routines.
+
+	* src/zeeman_intensity_coeff.xml: XML table of the intensity
+	coefficients for the different transitions of the O2 Zeeman
+	effect, used in zeemanproperties.cc.
+	
 2003-01-22  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-414
