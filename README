@@ -21,3 +21,22 @@ to /usr/local. See INSTALL file for more details. For some reason,
 using the `~' to specify the home directory seems not to work in the
 configure option.
 
+There are some ARTS specific configure options:
+
+--without-hdf : Disables HDF support in ARTS. By default, configure
+autodetects the HDF library. Note: Without HDF you will not be able to
+use Qpack.
+
+--with-numeric-type=ARG : ARG could be double or float. Double is the default. At the moment, there is no guaranty that ARTS work correctly with float.
+
+--with-integer-type=ARG : ARG could be short, int, long or size_t. The default is long. Again, ARTS could fail if you choose a non-default type here.
+
+--enable-more-warnings : Makes gcc complain about everything.
+
+--enable-debug : Debug mode is turned on by default. To compile without debugging information call configure with --disable-debug.
+
+--with-arts-data=PATH : Set the path where the arts-data packages is installed.
+
+--enable-maintainer-mode : Call this if you want to modify the sources
+or documentation. This mode requires the following tools:
+doxygen, latex, pdflatex.
