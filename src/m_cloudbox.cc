@@ -1180,10 +1180,7 @@ void scat_iPut(//WS Output:
   Index N_za = scat_za_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
   Index N_p = cloudbox_limits[1] - cloudbox_limits[0] +1;
-  Index N_lat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
-  Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
-  
- 
+
   // Some checks:
   
   assert( f_index < f_grid.nelem() );
@@ -1257,6 +1254,11 @@ void scat_iPut(//WS Output:
       
   if(atmosphere_dim == 3)
     {
+      // Some sizes relevant for 3D atmosphere
+      Index N_lat = cloudbox_limits[3] - cloudbox_limits[2] + 1;
+      Index N_lon = cloudbox_limits[5] - cloudbox_limits[4] + 1;
+
+
       // Check size of i_field.
       
       assert ( is_size( i_field, 
