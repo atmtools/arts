@@ -38,6 +38,7 @@ introduces some terminology. You should read it if you want
 to understand how the program works and how it can be used
 efficiently.
 
+
 \levelb{Introduction}
 %====================
 \label{sec:concept:intro}
@@ -69,6 +70,43 @@ these models have many features in common. Moreover, existing
 models were not easily modifiable and extendable. Hence, it
 was decided to develop a new model which emphasizes
 modularity, extendibility, and generality.
+
+
+\levelb{The scope of ARTS}
+%====================
+\label{sec:concept:scope}
+
+The present version of ARTS is limited to cases where scattering can
+be neglected and local thermodynamic equilibrium applies. ARTS has
+been developed having passive emission measurements in mind, put pure
+transmission (that is, the emission is neglected) observations are
+also handled. The forward model can be used to simulate measurements
+for all (normal?)  observation geometries: ground-based, nadir
+looking, limb sounding and balloon/aircraft measurements. It can be
+noted that ARTS handles measurements from a point inside the
+atmosphere, such as an aircraft or a balloon, in a downward direction.
+ARTS covers so far only monochromatic pencil beam calculations, that
+is, no sensor characteristics can be included. This part is presently
+covered by the AMI (ARTS Matlab interface) set of Matlab functions 
+(see below). Sensor characteristics will be included in ARTS.
+
+Beside providing set of spectra, ARTS calculates weighting functions
+for a number of variables. Analytical expressions for the weighting
+functions are used for species, continuum absorption and ground
+emission, and for temperature if hydrostatic equilibrium is \emph{not}
+assumed. Weighting functions are also provided for pointing off-sets,
+calibration and temperature (with hydrostatic equilibrium).
+
+For Matlab users there are two accompanying packages called AMI and
+Qpack\footnote{AMI is distrubuted by ARTS, while Qpack is a separate
+  package} which extends the usage of ARTS considerably. First of all,
+AMI has functions to include sensor characteristics in the
+calculations. AMI has further functions to read and write ARTS data
+file, and various functions that are of general usage. Qpack is an
+Matlab environment to perform OEM inversions and producing set of
+spectra to test the inversions, where ARTS is used as calculating
+engine.
+
 
 
 \levelb{Enter: ARTS}
@@ -142,6 +180,7 @@ variables, as long as they are of standard types already known to the
 program (for example vectors or matrices).  Section
 \ref{sec:concept:example} gives a short example of a controlfile which
 illustrates the use of both generic and specific methods.
+
 
 \levelb{An example controlfile}
 %=================================

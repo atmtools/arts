@@ -1,3 +1,21 @@
+2001-10-01  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-247
+
+	* Worked on the on-line information for vector and matrix math 
+	functions (such as VectorSet). Removed VectorSetFromArrayofVector
+	as the selection was done by index and we have decided that such
+	functions shall be removed (not safe with selection by index).
+
+	* Wrote a section on the scope of ARTS fof chapter 1 of AUG
+
+	* Work on chapters 2, 4 and 5 of AUG. Some text removed, some text 
+	added. Control file examples added for los/rte calculations. 
+	  
+	* Removed tex-ing warnings in "my" part of the ps-version of AUG 
+	(just 2, out of a large number warnings).
+	
+
 2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-0-246
@@ -11,7 +29,8 @@
 	* Fixed an incorrect error message when a variable of incorrect type
 	is selected as global input or output. 
 
-	* Updated read_datafile to handle ArrayOfIndex (instead of ArrayOfSizet).
+	* Updated read_datafile to handle ArrayOfIndex (instead of 
+	ArrayOfSizet).
 	
 
 2001-09-28  Patrick Eriksson  <patrick@rss.chalmers.se>

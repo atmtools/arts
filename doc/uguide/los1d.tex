@@ -144,8 +144,7 @@ geometrical calculations and when considering refraction.
  the same general functions.  The 2D case exhibits however one
  difference compared to the 1D upward case. For 2D cases there could
  be a ground reflection along the LOS, which is never the case for 1D
- upward looking observations by definition. This question is discussed
- a bit further in Section \ref{sec:los:ground}. Note that if the 1D
+ upward looking observations by definition.  Note that if the 1D
  upward functions are used for 2D simulations, the point of LOS
  closest to the sensor will throughout have index 1.
 
@@ -387,7 +386,7 @@ geometrical calculations and when considering refraction.
   $n$ exists. A possible solution would be to assume that $n$ is a
   piecewise linear function but the solution of Equation \ref{eq:los:gterm}
   is then unfortunately a very lengthy expression (at least the one provided 
-  by Mathematica). However, for a piecewise constant $n$ it is very simple
+  by Mathematica!). However, for a piecewise constant $n$ it is very simple
   to derive a solution of the integral, and thus avoiding the problem
   with singularities:
   \begin{equation}
@@ -452,6 +451,20 @@ geometrical calculations and when considering refraction.
 
  \levelc{Limb sounding}
     
+   \begin{figure}
+    \begin{center}
+      \includegraphics*{Figs/fig_bendingangle}
+      \caption{Bending angle as a function of tangent altitude. The bending
+        angle is the angle between the line from the tangent point and
+        the sensor and the LOS tangent at the tangent point (see also
+        \citet[][Figure 1]{kursinski:97}). Calculated for the FASCODE
+        mid-latitude summer atmosphere. The figure can be compared to
+        \citet[][Figure 3]{kursinski:97} and the agreeemnt is as good as
+        expected.}
+      \label{fig:los:bendingangle} 
+    \end{center} 
+  \end{figure}
+
   The most important factor for limb sounding is to get a correct
   tangent altitude. Fortunately, there is a way to determine the
   tangent altitude directly for 1D cases, without following the LOS
@@ -483,172 +496,9 @@ geometrical calculations and when considering refraction.
   \end{equation}
   where $\theta_{z_{max}}$ and $\psi_{z_{max}}$ are the angles for the
   highest point of the LOS ($\theta$ defined in Figure \ref{fig:los:snell}).
-
-  [* The figure of the bending angles is produced for the WATS study, but
-  is included here as it is a good validation of the ray tracing algorithm.
-  The figure can be compared to Figure 3 in Kursinski et al. JGR-Atmosphere,
-  Vol. 102, D19, pp. 23429, 1997. See the article for a definition of the
-  bending angle. 
-  I will write more text later. PE 2001-08-22. *]
-
-
-   \begin{figure}
-    \begin{center}
-      \includegraphics*{Figs/fig_bendingangle}
-      \caption{Bending angle as a function of tangent altitude for the FASCODE 
-               midlatitude summer atmosphere. } 
-      \label{fig:los:snell} 
-    \end{center} 
-  \end{figure}
-
-
-%  A possible solution for calculating the LOS would be to integrating the
-%  geometrical term as \citep{eriksson:00a}
-%  \begin{eqnarray}
-%    l_1^2 = \int_{z_1}^{z_2}{g(z)\dd z} \nonumber
-%  \end{eqnarray}
-%  where $z_1$ and $z_2$ are two vertical altitudes and $l_1^2$ the length
-%  along the LOS between these two altitudes. However, this approach is
-%  problematic for limb sounding as the geometric factor is
-%  singular at the tangent point (Fig. \ref{fig:los:gfac}). 
-%
-%
-%
-% \levelc{The refraction prolongation factor}
-% 
-%  To avoid the singularity of the geometrical factor at tangent points,
-%  the refraction prolongation factor is here introduced. This factor is 
-%  defined as
-%  \begin{equation}
-%    r(z) = \frac {g(z)} {g_g(z)}
-%   \label{eq:los:refprol1}
-% \end{equation}
-%  where $g_g(z)$ is the geometrical factor for the geometrical LOS
-%  that is parallel with the refracted LOS at the lowest point. The
-%  $c$ constant for $g_g$ equals accordingly $(R_e+z)\sin(\theta)$ for
-%  the lowest altitude of the refracted LOS. If this altitude is
-%  denoted as $z_{min}$, the prolongation factor can be written as
-%  \begin{equation}
-%    r(z) = \frac {n(z)\sqrt{ (R_e+z)^2 - (c/n(z_{min}))^2 }} 
-%                 {\sqrt{ (R_e+z)^2n^2(z) - c^2 }}
-%   \label{eq:los:refprol2}
-%  \end{equation}
-%  The prolongation factor for limb sounding is shown in Figure 
-%  \ref{fig:los:pfac}.
-%  The value of $r$ at tangent points is discussed below.
-%
-%  The factor $r$ gives the relative increase in length of the
-%  refracted LOS $(\Delta l)$ compared to the length of the corresponding
-%  geometrical LOS $(\Delta l_g)$ through a small vertical layer $(\Delta z)$:
-%  \begin{equation}
-%    \Delta l = g(z) \Delta z = r(z) g_g(z) \Delta z = r(z) \Delta l_g.
-%   \label{eq:los:refprol3}
-%  \end{equation}
-%
-%  \begin{figure}
-%   \begin{center}
-%    \includegraphics*[width=0.49\hsize]{Figs/fig_pfac_z}
-%    \includegraphics*[width=0.46\hsize]{Figs/fig_pfac_l}
-%     \caption{Prolongation factors for limb sounding and three tangent
-%              altitudes. The figure to the left shows $r$ as a function
-%              of the vertical altitude, while the right figure shows $r$ as 
-%              a function of the distance along the LOS from the tangent point.
-%              The refraction index is calculated as $n=1+77.9593\ee{-6}p/T$
-%              where the unit of $p$ is hPa (see \citet{elgered:93}).}
-%    \label{fig:los:pfac}
-%   \end{center} 
-%  \end{figure}
-%
-%
-% \levelc{Practical solution}
-%
-%  The scheme applied to determine the LOS with refraction can be 
-%  summarized as:
-%  \begin{enumerate}
-%    \item The lowest point of the LOS and the angle $\theta$ at this point 
-%          are determined. 
-%    \item The geometrical LOS matching this point and angle is calculated
-%          with a step length defined by the user, $\Delta l_r$.
-%    \item The prolongation factor is determined for the altitudes of the
-%          geometrical LOS.
-%    \item The distances along the LOS from the lowest point are calculated
-%          following Eq. \ref{eq:los:refprol3}, where the applied prolongation
-%          factor is the mean of $r$ at the end points of the steps.
-%    \item The obtained distances are interpolated to obtain an equally spaced
-%          refractive LOS with the selected step length $(\Delta l)$.
-%  \end{enumerate}
-%  The altitude and angle in step 1 are directly given by the platform
-%  altitude and the zenith angle for upward observations. Limb sounding
-%  is discussed separately below. The constant $c$ is throughout given
-%  by the zenith angle and the refractive index at the sensor. Figure
-%  \ref{fig:los:pfac} shows that $r$ varies slowly (as a function of $l$) 
-%  and it should suffice to treat $r$ as piecewise linear function as
-%  done here. 
-%
-%  The accuracy of the calculations can be controlled by the step length 
-%  $\Delta l_r$. As the calculations are straightforward and simple a
-%  relatively low value for $\Delta l_r$ can be used without increasing the
-%  total calculation time noteworthily. The described scheme can be said to 
-%  be correct to the first order, as it gives the same result as the pure
-%  geometrical expressions if $n$ is set to 1.
-%
-%   
-% \leveld{Limb sounding}
-% 
-%  The most important step for limb sounding is to get a correct
-%  tangent altitude. Fortunately, there is a way to determine the
-%  tangent altitude directly for 1D cases, without following the LOS
-%  from the top of the atmosphere.
-%
-%  The tangent altitude is given by the relationship
-%  \begin{equation}
-%    (R_e+z_t)n(z_t) = (R_e+z_p)\sin(\view) = c
-%   \label{eq:los:ztan_ref}
-%  \end{equation}
-%  as $\sin(\theta)=1$ at tangent points, the refractive index in space
-%  is 1 and $sin(180^{\circ}-\view)=sin(\view)$. The tangent altitude
-%  is practically determined by finding the highest altitude where
-%  $(R_e+z)n(z)$ exceeds the value of $c$, followed by an interpolation
-%  of the product $(R_e+z)n(z)$ between the found altitude and the
-%  altitude above to find the altitude fulfilling Equation
-%  \ref{eq:los:ztan_ref}.
-% 
-%  For cases with ground reflections, a similar relationship,
-%  \begin{equation}
-%    (R_e+z_g)n(z_g)sin(\theta_g) = (R_e+z_p)\sin(\view) = c,
-%  \end{equation}
-%  gives the angle between the LOS and the ground normal. With this angle
-%  the LOS can be determined with the corresponding upward function.
-%  
-%  The value of the prolongation factor at tangent points cannot be
-%  calculated using Equation \ref{eq:los:refprol2} as the denominator
-%  of this expression is here zero. By using that
-%  $(a^2-b^2)=(a+b)(a-b)$ both in nominator and denominator, Equation
-%  \ref{eq:los:refprol2} can be rewritten as
-%  \begin{eqnarray}
-%    r^2(z) &=& \frac{n^2(z) \left[(R_e+z)^2-(R_e+z_t)^2\right]}
-%                   {(R_e+z)^2n^2(z)-(R_e+z_t)^2n^2(z_t)} = \nonumber \\
-%   &=&  \frac{n^2(z)\left(2R_e+z+z_t\right)}{(R_e+z)n(z)+(R_e+z_t)n(z_t)}
-%        \frac{z-z_t}{(R_e+z)n(z)-(R_e+z_t)n(z_t)} \nonumber
-%  \end{eqnarray}
-%  The first quotient equals $n(z_t)$ at tangent points. By adding $z_tn(z)$
-%  to the denominator, the second term can be
-%  further rewritten as
-%  \begin{eqnarray}
-%     & & \frac{z-z_t}{(R_e+z)n(z)-(R_e+z_t)n(z_t)}= \nonumber \\
-%     &=& \frac{z-z_t}{R_e[n(z)-n(z_t)]+n(z)(z-z_t)+z_t[n(z)-n(z_t)]}= 
-%                                                                 \nonumber \\
-%     &=& \frac{1}{n(z)+R_e\frac{n(z)-n(z_t)}{z-z_t}+
-%                     z_t\frac{n(z)-n(z_t)}{z-z_t}}               \nonumber
-%  \end{eqnarray}
-%  The last expression brings out that the important quantity is 
-%  \begin{equation}
-%    a = \lim_{z \to z_t^+}\frac{n(z)-n(z_t)}{z-z_t}
-%  \end{equation}
-%  The prolongation factor for the tangent point is now determined:
-%  \begin{equation}
-%    r(z_t) = \sqrt{\frac{n(z_t)}{n(z_t)+a(R_e+z_t)}}
-%  \end{equation}
+  
+  Figure \ref{fig:los:bendingangle}) gives a good confirmation of the
+  implemented refraction ray tracing scheme.
 
   
   
@@ -657,20 +507,20 @@ geometrical calculations and when considering refraction.
   
   Ground reflections are indicated by a special flag. This flag is
   zero when there is no ground intersection or gives the index of the
-  LOS point corresponding to the ground, $i_g$. For 1D calculations,
-  $i_g$ is either 0 or 1, as index 1 is here defined to always be the
-  lowest altitude of the LOS. However, to pave the way for 2D
-  calculations, cases where the ground is placed at other positions
-  than index 1 are handled.
+  LOS point corresponding to the ground, $i_g$ (for 1-based indexing).
+  For 1D calculations, $i_g$ is either 0 or 1, as index 1 is here
+  defined to always be the lowest altitude of the LOS. However, to
+  pave the way for 2D calculations, cases where the ground is placed
+  at other positions than index 1 are handled.
   
   For 1D cases, where only half of the total LOS is stored and the
   ground can only have index 1 ($i_g=1$), the effect of a ground
   reflection (Eq. \ref{eq:rte:ground}) is put in when reversing the
-  loop order.  Accordingly, the calculation order is: ... step2, step
+  loop order. Accordingly, the calculation order is: ... step2, step
   1, ground, step 1, step 2, ... Ground reflections for 1D cases are
   treated internally in ARTS by the limb sounding functions.
   
-  \begin{figure}[b]
+  \begin{figure}
    \begin{center}
      \includegraphics*[width=0.75\hsize]{Figs/ground}
     \caption{Schematic of ground reflections for 2D cases. The index 
@@ -680,14 +530,195 @@ geometrical calculations and when considering refraction.
    \end{center}
   \end{figure}
  
-  When solving the radiative transfer (Eq. \ref{eq:rte:iteration}) for
-  2D cases, the ground reflection is treated between evaluating step
-  $i_g$ and $i_{g-1}$ (the iteration goes from $n$ to 1), as shown in
-  Figure \ref{fig:los1d:ground}.
 
+
+\levelb{Control file examples}
+ \label{sec:los:cfe}
+ 
+ The actual calculations are performed by the functions
+ \verb|refrCalc|, \verb|losCalc|, \verb|sourceCalc|, \verb|transCalc|
+ and \verb|yCalc|. All these functions have no global input/output or
+ keyword arguments, and the main task is to define the input for the
+ functions. The sequence {\footnotesize \begin{verbatim}
+refrCalc{}
+losCalc{}
+sourceCalc{}
+transCalc{}
+yCalc{} 
+\end{verbatim} 
+} 
+\noindent 
+must always be used as, for example, the variable \verb|refr_index|
+must be set when calling \verb|losCalc| and \verb|source|
+must be set when calculating spectra by \verb|yCalc|. If refraction
+is not considered, \verb|refrCalc| sets \verb|refr_index| to be empty
+and \verb|sourceCalc| does the same with \verb|source| for transmission
+calculations (\verb|emission| = 0).
+
+
+ \levelc{Ground-based observation}
+
+ The following control file excerpt shows a typical example for
+ simulating a ground-based observation:
+
+ {\footnotesize
+ \begin{verbatim}
+# Set the radius of the geoid to a standard value
+r_geoidStd{
+}
+
+# Set the platform altitude to 50 m
+NumericSet( z_plat ) { 
+   value = 50 
+}
+
+# Measurement in the zenith direction
+VectorSet( za_pencil ) {
+   length = 1
+   value = 0
+} 
+
+# A step length for LOS of 500 m
+NumericSet( l_step ) { 
+   500 
+}
+
+# Here we don't need to care about the ground and refraction
+groundOff{
+}
+refrOff{
+}
+
+# Cosmic radiation
+y_spaceStd{ "cbgr" }
+
+# An emission measurement
+emissionOn {}
+
+# Do the actual calculations 
+refrCalc{
+}
+losCalc{
+}
+sourceCalc{
+}
+transCalc{
+}
+yCalc{
+}
+
+# Convert to Rayleigh-Jean temperature
+yTRJ{}
+
+# Save the spectra
+VectorWriteBinary( y ) { 
+   ""
+}
+
+ \end{verbatim}
+ }
+
+
+
+ \levelc{Limb sounding}
+
+ The following control file excerpt shows a typical example for
+ limb sounding:
+
+ {\footnotesize
+ \begin{verbatim}
+# Set the geoid radius for observation in the S-N direction
+# at latitude 45 degrees 
+r_geoidWGS84{
+   latitude     = 45
+   obsdirection = 0
+}
+
+# Set the platform altitude to 620 km
+NumericSet( z_plat ) { 
+   value = 620e3 
+}
+
+# Five zenith angles between 113.5 and 114.0
+VectorNLinSpace (za_pencil) {
+   start = 113.5
+   stop  = 114.0
+   n     = 5 
+}
+
+# A step length for LOS of 10 km
+NumericSet( l_step ) { 
+   10e3
+}
+
+# A blackbody ground at 200 m
+groundSet{
+   z = 200
+   e = 1
+}
+
+# Turn on refraction, select parameterization for refractive
+# index and set ray tracing step length to 2.5 km
+refrSet{
+  on    = 1
+  model = "Boudouris"
+  lfac  = 4
+}
+
+# An emission measurement
+emissionOn {}
+
+# Cosmic radiation
+y_spaceStd{ "cbgr" }
+
+# Do the actual calculations 
+refrCalc{
+}
+losCalc{
+}
+sourceCalc{
+}
+transCalc{
+}
+yCalc{
+}
+
+# Convert to Rayleigh-Jean temperature
+yTRJ{}
+
+# Save the spectra
+VectorWriteBinary( y ) { 
+   ""
+}
+ \end{verbatim}
+ }
+
+
+
+ \levelc{Limb transmission calculations}
+
+ Simulation of transmission measurements is performed in the same way
+ as emission observations. Compared to the example above, beside that
+ converion to brightness temperatures shall not be done, the only
+ changes are:
+ {\footnotesize
+ \begin{verbatim}
+...
+# Turn off emission
+emissionOff {}
+
+# We don't need y_space here, set to be empty
+VectorSet( y_space ) {
+   length = 0
+   value = 0
+}
+...
+ \end{verbatim}
+ }
+\noindent
 
 
 %%% Local Variables: 
 %%% mode: latex
-%%% TeX-master: "main"
+%%% TeX-master: "uguide"
 %%% End: 

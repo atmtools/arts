@@ -853,32 +853,6 @@ void VectorFlip(
 
 
 
-void VectorCopyFromArrayOfVector(
-                      Vector&          v,
-                const String&          v_name,
-                const ArrayOfVector&   va,
-                const String&          va_name,
-                const Index&             i )
-{
-  if ( i < 0 )
-    throw runtime_error("The index must be >= 0.");
-  if ( Index(i) >= va.nelem() )
-  {
-    ostringstream os;
-    os << "The vector array has only " << va.nelem() << "elements.";
-    throw runtime_error(os.str());
-  }
-
-  out2 << "  Copies " << v_name << " from vector " << i << " in " << va_name
-                                                                   << "\n";
-  v.resize(va[i].nelem());
-  v = va[i];			// Matpack can copy the contents of
-				// vectors like this. The dimensions
-				// must be the same! 
-}
-
-
-
 /**
    See the the online help (arts -d FUNCTION_NAME)
 

@@ -61,23 +61,22 @@
 %
 % Introduction
 %
-This section presents the atmospheric radiative transfer equation
-(RTE) for a non-scattering atmosphere in local thermodynamic
-equilibrium.  However, the calculation scheme described here can
-easily be extended to include effects of e.g. single scattering. The
-radiative transfer equation gives the monochromatic (infinite
-frequency resolution) pencil beam (infinite spatial resolution)
-spectrum. The main problem, in this context, is how to practically and
-accurately estimate the (continuous) integral in the discrete forward
-model.
+This section discusses the solution of the atmospheric radiative
+transfer equation (RTE). A non-scattering atmosphere in local
+thermodynamic equilibrium is assumed. 
+The radiative transfer equation gives the
+monochromatic (infinite frequency resolution) pencil beam (infinite
+spatial resolution) spectrum. The main problem here is
+how to practically and accurately estimate the (continuous) integral
+in the discrete forward model.
  
 The discussion treats mainly measurements of atmospheric emission. The
-forward model can also handle pure absorption measurements /that is,
+forward model can also handle pure absorption measurements (that is,
 emission is neglected) and such observations are discussed last in the
 section.
 
 The equations of this section are valid for monochromatic pencil beam
-spectra, that is, no effects of the sensor are considered. How to
+spectra, no effects of the sensor are considered. How to
 incorporate sensor effects in the spectra is discussed separately
 (Sec. \ref{sec:sensor}).
 
@@ -163,7 +162,7 @@ incorporate sensor effects in the spectra is discussed separately
   
  The next question is when and how to calculate LOS and the associated
  variables. As the determination of weighting functions associated
- with the absorption, e.g. species WFs, needs basically the same
+ with the absorption needs basically the same
  quantities as RTE, it is most efficient to do this procedure only
  once and in such way that the values are suitable for both RTE and
  the weighting functions. Hence, the LOS calculations shall be a
@@ -198,7 +197,7 @@ incorporate sensor effects in the spectra is discussed separately
       The absorption and the source function at the LOS points are
       denoted $\kappa_i$ and $\sigma_i$, respectively, while $\zeta_i$
       is the transmission between the points and $\Psi_i$ is the mean
-      of neighbouring source function values. Only $zeta$ and $\Psi$
+      of neighbouring source function values. Only $\zeta$ and $\Psi$
       are stored for the later calculations. All the points are
       separated by the distance $\Delta l$ (along the LOS). The distance
       between point $i$ and $i+1$ is denoted as step $i$ of the LOS. }
@@ -331,11 +330,8 @@ incorporate sensor effects in the spectra is discussed separately
  It is noteworthy that the multiplication order
  is of no importance, a fact that can be used for 1D limb sounding where
  the conditions are assumed to be symmetrical around the tangent point and
- only one half of the line of sight is stored. The transmission can here be 
- calculated as
- \begin{equation}
-   \zeta^{tot} = \prod_{i=1}^{n-1}\zeta_{i}^2
- \end{equation} 
+ only one half of the line of sight is stored. 
+
  If there is a ground reflection, it is considered as
  \begin{equation}
    \zeta^{tot} = (1-e)\prod_{i=1}^{n-1}\zeta_{i}
@@ -350,7 +346,12 @@ incorporate sensor effects in the spectra is discussed separately
  \end{equation} 
 
  
+
+ \levelb{Control file examples}
+  \label{sec:rte:cfe}
  
+  See Section \ref{sec:los:cfe}.
+
 
 
 %%% Local Variables: 

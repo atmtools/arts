@@ -52,35 +52,37 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME( "FunctionName" ),
-	DESCRIPTION(
-	   "A summary of the function in one sentence.\n"
-           "\n"
-           "A detailed description of the function. Please, try to be as \n"
-           "clear and detailed as possible, this will help both you and \n"
-           "others in the long run. \n"
-           "   Additional paragraphs are indented with three blanks, as \n"
-           "exemplified here.\n"
-           "   The names of workspace variables and other methods\n"
-           "are marked by stars, for example *z_plat*.\n"
-           "   Global input and output, and keywords shall be described \n"
-           "as exemplified below. If there is no variables of a group, \n"
-           "(e.g. global input) remove that part totally. Note that the \n"
-           "on-line help just gives the type of global input/output and the \n"
-           "keyword names, and additional information is for sure needed.\n"
-           "   Leave space and brake lines whem listing input and output \n"
-           "variabales to make the code easier to read. See example below. \n"
-           "\n"
-           "Global input: \n"
-           "   Vector : Vector giving some very important input. Don't \n"
-           "            be too short. Use the type of indention used here. \n"
-           "\n"
-           "Global output: \n"
-           "   Vector : Return vector for the zenith angles. The normal \n"
-           "            options are ZA_PENCIL and ZA_SENSOR. \n"
-           "\n"
-           "Keywords:\n"
-           "   delta_t   : Time increment between observations.\n"
-           "   z_tan_lim : Vector with start and stop tangent altitudes." ),
+	DESCRIPTION
+        (
+	 "A summary of the function in one sentence.\n"
+         "\n"
+         "A detailed description of the function. Please, try to be as \n"
+         "clear and detailed as possible, this will help both you and \n"
+         "others in the long run. \n"
+         "   Additional paragraphs are indented with three blanks, as \n"
+         "exemplified here.\n"
+         "   The names of workspace variables and other methods\n"
+         "are marked by stars, for example *z_plat*.\n"
+         "   Global input and output, and keywords shall be described \n"
+         "as exemplified below. If there is no variables of a group, \n"
+         "(e.g. global input) remove that part totally. Note that the \n"
+         "on-line help just gives the type of global input/output and the \n"
+         "keyword names, and additional information is for sure needed.\n"
+         "   Leave space and brake lines whem listing input and output \n"
+         "variabales to make the code easier to read. See example below. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Vector giving some very important input. Don't \n"
+         "            be too short. Use the type of indention used here. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector for the zenith angles. The normal \n"
+         "            options are ZA_PENCIL and ZA_SENSOR. \n"
+         "\n"
+         "Keywords:\n"
+         "   delta_t   : Time increment between observations.\n"
+         "   z_tan_lim : Vector with start and stop tangent altitudes." 
+        ),
 	OUTPUT(),
 	INPUT( z_plat_, p_abs_, z_abs_, l_step_, refr_, refr_lfac_, 
                refr_index_, r_geoid_, z_ground_ ),
@@ -95,17 +97,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME( "" ),
-	DESCRIPTION(
-	   "\n"
-           "\n"
-           "Global input: \n"
-           "   \n"
-           "\n"
-           "Global output: \n"
-           "   \n"
-           "\n"
-           "Keywords:\n"
-           "   " ),
+	DESCRIPTION
+        (
+	 "\n"
+         "\n"
+         "Global input: \n"
+         "   \n"
+         "\n"
+         "Global output: \n"
+         "   \n"
+         "\n"
+         "Keywords:\n"
+         "   " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(),
@@ -129,7 +133,7 @@ void define_md_data()
 	 "This method is handy if you want to debug one of your\n"
 	 "controlfiles. You can insert it anywhere in the controlfile. When\n"
 	 "it is reached, it will terminate the program."
-	 ),
+	),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( ),
@@ -148,7 +152,7 @@ void define_md_data()
 	 "The implementation is in file m_io.cc. This just saves you the \n"
          "trouble of adding a dummy method everytime you want to try \n"
          "something out quickly."
-	 ),
+	),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( ),
@@ -168,7 +172,16 @@ void define_md_data()
   md_data.push_back     
     ( MdRecord
       ( NAME("IndexSet"),
-	DESCRIPTION("Sets an integer workspace variable to the given value."),
+	DESCRIPTION
+        (
+         "Sets an index workspace variable to the given value. \n"
+         "\n"
+         "Global output: \n"
+         "   Index : The index variable to be set. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : A positive integer." 
+        ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( Index_ ),
@@ -283,7 +296,16 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("NumericSet"),
-	DESCRIPTION("Sets a workspace variable of type Numeric to a value."),
+	DESCRIPTION
+        (
+         "Sets a numeric workspace variable to the given value. \n"
+         "\n"
+         "Global output: \n"
+         "   Numeric : The numeric variable to be set. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : The value." 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Numeric_ ),
@@ -294,9 +316,17 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("NumericCopyFirstOfVector"),
-	DESCRIPTION(
-           "Sets a workspace variable of type Numeric to the value of the"
-           "first element in a vector." ),
+	DESCRIPTION
+        (
+         "Sets a numeric workspace variable to the value of the first \n"
+         "element of a vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Numeric : The numeric variable to be set. \n"
+         "\n"
+         "Global input:\n"
+         "   Vector : The vector from which the value shall be obtained." 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Numeric_ ),
@@ -411,8 +441,18 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorSet"),
-	DESCRIPTION("Creates a workspace vector with the specified length\n"
-                    "and initializes the vector with the given value."),
+	DESCRIPTION
+        (
+         "Creates a workspace vector with the specified length and sets \n"
+         "all values of the vector to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   length : The length of the new vector. \n"
+         "   value  : The value of the vector elements. " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
@@ -423,10 +463,23 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorSetLengthFromVector"),
-	DESCRIPTION("Creates a workspace vector with the same length as the\n"
-		    "given vector and initializes the new vector with the\n"
-                    "given value. For example\n"
-                    " VectorSetLengthFromVector(e_ground,f_mono){value=0.75}"),
+	DESCRIPTION
+        (
+         "Creates a workspace vector with the same length as another vector,\n"
+         "and sets all values of the new vector to the specified value. \n"
+         "\n"
+         "A common usage of the function should be: \n"
+         "  VectorSetLengthFromVector(e_ground,f_mono){value=0.75} \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector specifying the length.. \n"
+         "\n"
+         "Keywords:\n"
+         "   value  : The value of the vector elements. " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
@@ -437,12 +490,24 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorLinSpace"),
-	DESCRIPTION("Creates a linearly spaced vector with defined spacing.\n"
-                    "Format: VectorLinSpace(x){start,stop,step}\n"
-		    "The first element of x is always start.\n"
-		    "The next value is start+step etc.\n"
-		    "Note that the last value can deviate from stop.\n"
-		    "The step can be both positive and negative."),
+	DESCRIPTION
+        (
+         "Creates a vector with linear spacing.\n"
+         "\n"
+         "The first element equals always the start value, and the spacing\n"
+         "equlas always the step value, but note that the last value can  \n"
+         "deviate from the stop value. The keyword step can be both positive\n"
+         "and negative. \n"
+         "   The vector is [start, start+step, start+2*step, ...]\n "  
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. \n"
+         "    stop : The maximum value of the end value. \n"  
+         "    step : The spacing of the vector. " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
@@ -453,9 +518,21 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorNLinSpace"),
-	DESCRIPTION("Creates a vector with defined length, equally spaced\n"
-                    "between the given values.\n"
-		    "The length must be larger than 1."),
+	DESCRIPTION
+        (
+         "Creates a vector with defined length, equally spaced between the \n"
+         "given end values. \n"
+         "\n"
+	 "The length must be larger than 1. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. \n"
+         "    stop : The end value. \n"  
+         "       n : Number of elements of the vector. " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(Vector_),
@@ -466,9 +543,21 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorNLogSpace"),
-	DESCRIPTION("Creates a vector with defined length, logarithmically\n"
-                    "spaced between the given values.\n"
-		    "The length must be larger than 1."),
+	DESCRIPTION
+        (
+         "Creates a vector with defined length, equally logarithmically \n"
+         "spaced between the given end values. \n"
+         "\n"
+	 "The length must be larger than 1. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   start : The start value. \n"
+         "    stop : The end value. \n"  
+         "       n : Number of elements of the vector. " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT(Vector_),
@@ -479,22 +568,24 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorPressuresForLinAltitudes"),
-	DESCRIPTION(
-           "Calculates a set of pressures corresponding to a linear set\n"
-           "of altitudes. \n"
-           "\n"
-           "The linear set of altitudes is defined by an altitude step and \n"
-           "a start and stop pressure. \n"
-           "   The conversions between pressures and altitudes are based on\n"
-           "*p_abs* and *z_abs*. \n"
-           "\n"
-           "Global output: \n"
-           "   Vector : Return vector for the pressure grid created. \n"
-           "\n"
-           "Keywords:\n"
-           "     delta_z : altitude step\n"
-           "     p_start : start pressure\n"
-           "     p_stop  : stop pressure."  ),
+	DESCRIPTION
+        (
+         "Calculates a set of pressures corresponding to a set of\n"
+         "linearly spaced altitudes. \n"
+         "\n"
+         "The linear set of altitudes is defined by an altitude step and \n"
+         "a start and stop pressure. \n"
+         "   The conversions between pressures and altitudes are based on\n"
+         "*p_abs* and *z_abs*. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector for the pressure grid created. \n"
+         "\n"
+         "Keywords:\n"
+         "     delta_z : Altitude step.\n"
+         "     p_start : Start pressure.\n"
+         "     p_stop  : Stop pressure."  
+        ),
 	OUTPUT(),
 	INPUT( p_abs_, z_abs_ ),
 	GOUTPUT( Vector_ ),
@@ -505,7 +596,16 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorCopy"),
-	DESCRIPTION("Copies a vector."),
+	DESCRIPTION
+        (
+         "Creates a copy of a vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector to be copied. "
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
@@ -516,28 +616,22 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorFlip"),
-	DESCRIPTION(
-           "Flips a vector. The result is the vector in reversed order"),
+	DESCRIPTION
+        (
+         "Creates a copy of a vector in reversed order. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector to be copied. "
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Vector_ ),
 	GINPUT( Vector_ ),
 	KEYWORDS(),
 	TYPES()));
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("VectorCopyFromArrayOfVector"),
-	DESCRIPTION("Copies a vector from a vector array.\n"
-          "\n"
-          "Keywords \n"
-          "  index : The index of the vector in the array to copy. " ),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Vector_ ),
-	GINPUT( ArrayOfVector_),
-	KEYWORDS( "index" ),
-	TYPES( Index_t )));
 
   md_data.push_back
     ( MdRecord
@@ -644,10 +738,23 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorPlanck"),
-  	DESCRIPTION(
-          "Sets a vector to the Planck function for the given frequency\n"
-          "vector and temperature. An example:\n"
-          "   VectorPlanck(y_space,f_mono){temp=2.7}"),
+  	DESCRIPTION
+        (
+         "Sets a vector to the Planck function for the given frequencies\n"
+         "and temperature. \n"
+         "\n"
+         "An example:\n"
+         "   VectorPlanck(y_space,f_mono){temp=2.7} \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : The vector to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Input frequencies. \n"
+         "\n"
+         "Keywords:\n"
+         "   temp : The blackbody temperature."  
+        ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( Vector_ ),
@@ -658,9 +765,18 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorCalcLog10"),
-  	DESCRIPTION(
-          "Calculates the base 10 logarithm of a vector.\n"
-          "The result can either be stored in the same or another vector."),
+  	DESCRIPTION
+        (
+         "Calculates the base 10 logarithm of a vector. \n"
+         "\n"
+         "The result can either be stored in the same or another vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Input vector. "
+        ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( Vector_ ),
@@ -671,8 +787,21 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorAdd"),
-  	DESCRIPTION(
-	  "Adds a scalar to all elements of a vector."),
+  	DESCRIPTION
+        (
+         "Adds a scalar to all elements of a vector. \n"
+         "\n"
+         "The result can either be stored in the same or another vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Original vector. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : The value to be added to the vector."  
+        ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( Vector_ ),
@@ -683,8 +812,21 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("VectorScale"),
-  	DESCRIPTION(
-	  "Scales all elements of a vector with the same value."),
+  	DESCRIPTION
+        (
+         "Scales all elements of a vector with the same value. \n"
+         "\n"
+         "The result can either be stored in the same or another vector. \n"
+         "\n"
+         "Global output: \n"
+         "   Vector : Return vector. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : Original vector. \n"
+         "\n"
+         "Keywords:\n"
+         "   value : The value to be multiplicated with the vector."  
+        ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( Vector_ ),
@@ -698,19 +840,39 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixSet"),
-	DESCRIPTION("Creates a workspace matrix of the specified size\n"
-                    "and initializes the matrix with the given value."),
+	DESCRIPTION
+        (
+         "Creates a workspace matrix with the specified size and sets \n"
+         "all values of the matrix to the specified value. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Keywords:\n"
+         "   nrows : The number of rows of the matrix to create. \n"
+         "   ncols : The number of columns of the matrix to create. \n"
+         "   value : The value of the matrix elements. " 
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Matrix_ ),
 	GINPUT(),
 	KEYWORDS( "nrows", "ncols", "value"   ),
-	TYPES(    Index_t,   Index_t,   Numeric_t )));
+	TYPES(    Index_t, Index_t, Numeric_t )));
 
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixCopy"),
-	DESCRIPTION("Copies a matrix."),
+	DESCRIPTION
+        (
+         "Creates a copy of a matrix. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Matrix : The matrix to be copied. "
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Matrix_ ),
@@ -721,8 +883,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixFillWithVector"),
-	DESCRIPTION("Forms a vector with n columns, and put the given.\n"
-                    "in each column."),
+	DESCRIPTION
+        (
+         "Forms a matrix with n columns, and put the given vector in \n"
+         "each column. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Global input: \n"
+         "   Vector : The vector to be copied. \n"
+         "Keyword: \n"
+         "   n : Number of columns in the matrix. "
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Matrix_ ),
@@ -834,14 +1007,51 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("MatrixScale"),
-	DESCRIPTION(
-          "Scales all elements of a matrix with the same value."),
+	DESCRIPTION
+        (
+         "Scales all elements of a matrix with the same value. \n"
+         "\n"
+         "The result can either be stored in the same or another matrix. \n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : Return matrix. \n"
+         "\n"
+         "Global input: \n"
+         "   Matrix : Original matrix. \n"
+         "\n"
+         "Keywords: \n"
+         "   value : The value to be multiplicated with the matrix."  
+        ),
 	OUTPUT(),
 	INPUT(),
 	GOUTPUT( Matrix_ ),
 	GINPUT( Matrix_ ),
 	KEYWORDS( "value" ),
 	TYPES(    Numeric_t   )));
+
+  md_data.push_back
+    ( MdRecord
+      ( NAME("MatrixDiagonal"),
+	DESCRIPTION
+        (
+         "Creates a diagonal matrix. \n"
+         "\n"
+         "All diagonal elements are set to the same value.\n"
+         "\n"
+         "Global output: \n"
+         "   Matrix : The matrix to be created. \n"
+         "\n"
+         "Keywords: \n"
+         "   nrows : The number of rows (and columns) of the matrix to \n"
+         "           create. \n"
+         "   value : The value of the diagonal matrix elements. " 
+        ),
+	OUTPUT(),
+	INPUT(),
+	GOUTPUT( Matrix_ ),
+	GINPUT(),
+	KEYWORDS( "nrows", "value"   ),
+	TYPES(    Index_t,   Numeric_t )));
 
 
 
@@ -1417,18 +1627,6 @@ void define_md_data()
 	KEYWORDS( "filename" ),
 	TYPES(    String_t   )));
 #endif // HDF_SUPPORT
-
-  md_data.push_back
-    ( MdRecord
-      ( NAME("MatrixDiagonal"),
-	DESCRIPTION("Creates a diagonal matrix.\n"
-                    "All diagonal elements are set to the same value."),
-	OUTPUT(),
-	INPUT(),
-	GOUTPUT( Matrix_ ),
-	GINPUT(),
-	KEYWORDS( "nrows", "value"   ),
-	TYPES(    Index_t,   Numeric_t )));
 
 
 
