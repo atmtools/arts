@@ -30,33 +30,8 @@ if ~strcmp (s, '<?xmlversion="1.0"?>')
   error ('Invalid xml header');
 end
 
-%=== Parsing tags
-while ~feof (fid)
-  s = fscanf (fid, '%s', 1);
-
-  if ~size (s)
-    break
-  end
-
-  %=== Tag has to start with bracket
-  if s(1) == '<'
-    %=== Do we have an opening tag here?
-    if s(2) ~= '/'
-      l = size(s);
-      tag = s(2:l(2));
-      
-      attrlist = xmlReadAttributes (fid);
-      
-      switch tag
-       case 'arts'
-       otherwise
-         func = str2func (strcat ('xmlRead', tag));
-         result = feval (func, fid, attrlist);
-      end
-    else %=== or is it a closing tag
-    end
-  end
-end
+%=== Parsing data tag
+result = xmlReadTag(fid);
 
 fclose (fid);
 
