@@ -40,8 +40,6 @@
 #include "matpackVI.h"
 #include "matpackVII.h"
 #include "gridded_fields.h"
-#include "bofstream.h"
-#include "bifstream.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -53,12 +51,8 @@
 
 //! Reads GasAbsLookup from XML input stream
 /*!
-  Checks whether the next tag in input stream is <GasAbsLookup>
-  and if so, verifies the order of the components and writes them
-  to the 'gal' parameter.
-
   \param is_xml  XML Input stream
-  \param gal GasAbsLookup return value
+  \param gal     GasAbsLookup return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -89,8 +83,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GasAbsLookup to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param gas GasAbsLookup
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param gal     GasAbsLookup
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -128,10 +123,6 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads GriddedField from XML input stream
 /*!
-  Checks whether the next tag in input stream is <GriddedField>
-  and if so, verifies the order of the components and writes them
-  to the 'gfield' parameter.
-
   \param is_xml  XML Input stream
   \param gfield  GriddedField return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
@@ -161,6 +152,7 @@ xml_read_from_stream (istream& is_xml,
   \param os_xml  XML Output stream
   \param gfield  GriddedField
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -191,11 +183,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads GridPos from XML input stream
 /*!
-  Checks whether the next tag in input stream is <GridPos>
-  and if so, write the values to 'gpos' parameter.
-
   \param is_xml  XML Input stream
-  \param gpos GridPos return value
+  \param gpos    GridPos return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -219,8 +208,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes GridPos to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param gpos  GridPos
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param gpos    GridPos
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -253,11 +243,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Ppath from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Ppath>
-  and if so, write the values to 'ppath' parameter.
-
   \param is_xml  XML Input stream
-  \param ppath Ppath return value
+  \param ppath   Ppath return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -293,8 +280,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Ppath to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param ppath Ppath
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param ppath   Ppath
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -343,9 +331,6 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads SingleScatteringData from XML input stream
 /*!
-  Checks whether the next tag in input stream is <SingleScatteringData>
-  and if so, write the values to 'ssdata' parameter.
-
   \param is_xml  XML Input stream
   \param ssdata  SingleScatteringData return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
@@ -389,6 +374,7 @@ xml_read_from_stream (istream& is_xml,
   \param os_xml  XML Output stream
   \param ssdata  SingleScatteringData
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -424,9 +410,6 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads SpeciesRecord from XML input stream
 /*!
-  Checks whether the next tag in input stream is <SpeciesRecord>
-  and if so, write the values to 'srecord' parameter.
-
   \param is_xml   XML Input stream
   \param srecord  SpeciesRecord return value
   \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
@@ -456,6 +439,7 @@ xml_read_from_stream (istream& is_xml,
   \param os_xml   XML Output stream
   \param srecord  SpeciesRecord
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -484,12 +468,10 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads SpeciesTag from XML input stream
 /*!
-  Checks whether the next tag in input stream is <SpeciesTag>
-  and if so, write the values to 'stag' parameter.
-
   \param is_xml  XML Input stream
-  \param stag SpeciesTag return value
+  \param stag    SpeciesTag return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+                 Ignored because SpeciesTag is always stored in ASCII format.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -546,8 +528,10 @@ xml_read_from_stream (istream& is_xml,
 //! Writes SpeciesTag to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param stag SpeciesTag
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param stag    SpeciesTag
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+                 Ignore because SpeciesTag is always stored in ASCII format.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,

@@ -33,8 +33,6 @@
 #include "xml_io_basic_types.h"
 #include "xml_io_compound_types.h"
 #include "xml_io_array_types.h"
-#include "bofstream.h"
-#include "bifstream.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -45,10 +43,6 @@
 
 //! Reads SpeciesData from XML input stream
 /*!
-  Checks whether the next tag in input stream is
-  <Array type="SpeciesRecord"> and if so, write the values to 'asrecord'
-  parameter.
-
   \param is_xml    XML Input stream
   \param asrecord  SpeciesData return value
   \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
@@ -94,6 +88,7 @@ xml_read_from_stream (istream& is_xml,
   \param os_xml    XML Output stream
   \param asrecord  SpeciesData
   \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -130,10 +125,6 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfArrayOfSpeciesTag from XML input stream
 /*!
-  Checks whether the next tag in input stream is
-  <Array type="ArrayOfSpeciesTag"> and if so, write the values to 'aastag'
-  parameter.
-
   \param is_xml  XML Input stream
   \param aastag  ArrayOfArrayOfSpeciesTag return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
@@ -176,9 +167,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfArrayOfSpeciesTag to XML output stream
 /*!
-  \param os_xml   XML Output stream
-  \param aastag ArrayOfArrayOfSpeciesTag
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml  XML Output stream
+  \param aastag  ArrayOfArrayOfSpeciesTag
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -215,12 +207,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfArrayOfTensor3 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="ArrayOfTensor3">
-  and if so, write the values to 'aatensor3' parameter.
-
-  \param is_xml  XML Input stream
-  \param aatensor3 ArrayOfArrayOfTensor3 return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml     XML Input stream
+  \param aatensor3  ArrayOfArrayOfTensor3 return value
+  \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -260,9 +249,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfArrayOfTensor3 to XML output stream
 /*!
-  \param os_xml   XML Output stream
-  \param aatensor3 ArrayOfArrayOfTensor3
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml     XML Output stream
+  \param aatensor3  ArrayOfArrayOfTensor3
+  \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+  \param name       Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -299,12 +289,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfArrayOfTensor6 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="ArrayOfTensor6">
-  and if so, write the values to 'aatensor6' parameter.
-
-  \param is_xml  XML Input stream
-  \param aatensor6 ArrayOfArrayOfTensor6 return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml     XML Input stream
+  \param aatensor6  ArrayOfArrayOfTensor6 return value
+  \param pbifs      Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -343,9 +330,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfArrayOfTensor6 to XML output stream
 /*!
-  \param os_xml        XML Output stream
-  \param aatensor6 ArrayOfArrayOfTensor6
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml     XML Output stream
+  \param aatensor6  ArrayOfArrayOfTensor6
+  \param pbofs      Pointer to binary file stream. NULL for ASCII output.
+  \param name       Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -382,11 +370,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfGridPos from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="GridPos">
-  and if so, write the values to 'agpos' parameter.
-
   \param is_xml  XML Input stream
-  \param agpos ArrayOfGridPos return value
+  \param agpos   ArrayOfGridPos return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -427,9 +412,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfGridPos to XML output stream
 /*!
-  \param os_xml    XML Output stream
-  \param agpos ArrayOfGridPos
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml  XML Output stream
+  \param agpos   ArrayOfGridPos
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -466,11 +452,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfIndex from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="Index">
-  and if so, write the values to 'aindex' parameter.
-
   \param is_xml  XML Input stream
-  \param aindex ArrayOfIndex return value
+  \param aindex  ArrayOfIndex return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -511,9 +494,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfIndex to XML output stream
 /*!
-  \param os_xml   XML Output stream
-  \param aindex ArrayOfIndex
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml  XML Output stream
+  \param aindex  ArrayOfIndex
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -549,12 +533,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfMatrix from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="Matrix">
-  and if so, write the values to 'amatrix' parameter.
-
-  \param is_xml  XML Input stream
-  \param amatrix ArrayOfMatrix return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml   XML Input stream
+  \param amatrix  ArrayOfMatrix return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -595,8 +576,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfMatrix to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param amatrix ArrayOfMatrix
+  \param amatrix  ArrayOfMatrix
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -633,11 +615,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfSpeciesTag from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="SpeciesTag">
-  and if so, write the values to 'astag' parameter.
-
   \param is_xml  XML Input stream
-  \param astag ArrayOfSpeciesTag return value
+  \param astag   ArrayOfSpeciesTag return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -677,9 +656,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfSpeciesTag to XML output stream
 /*!
-  \param os_xml   XML Output stream
-  \param astag ArrayOfSpeciesTag
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml  XML Output stream
+  \param astag   ArrayOfSpeciesTag
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -716,12 +696,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfSingleScatteringData from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="SpeciesTag">
-  and if so, write the values to 'astag' parameter.
-
-  \param is_xml  XML Input stream
-  \param assdata ArrayOfSingleScatteringData return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml   XML Input stream
+  \param assdata  ArrayOfSingleScatteringData return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -761,8 +738,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes ArrayOfSpeciesTag to XML output stream
 /*!
   \param os_xml   XML Output stream
-  \param assdata ArrayOfSpeciesTag
+  \param assdata  ArrayOfSpeciesTag
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -799,12 +777,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfTensor3 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="Tensor3">
-  and if so, write the values to 'atensor3' parameter.
-
-  \param is_xml  XML Input stream
-  \param atensor3 ArrayOfTensor3 return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml    XML Input stream
+  \param atensor3  ArrayOfTensor3 return value
+  \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -844,9 +819,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfTensor3 to XML output stream
 /*!
-  \param os_xml  XML Output stream
-  \param atensor3 ArrayOfTensor3
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml    XML Output stream
+  \param atensor3  ArrayOfTensor3
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -883,12 +859,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfTensor6 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="Tensor6">
-  and if so, write the values to 'atensor6' parameter.
-
-  \param is_xml  XML Input stream
-  \param atensor6 ArrayOfTensor6 return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml    XML Input stream
+  \param atensor6  ArrayOfTensor6 return value
+  \param pbifs     Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -927,9 +900,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfTensor6 to XML output stream
 /*!
-  \param os_xml  XML Output stream
-  \param atensor6 ArrayOfTensor6
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param os_xml    XML Output stream
+  \param atensor6  ArrayOfTensor6
+  \param pbofs     Pointer to binary file stream. NULL for ASCII output.
+  \param name      Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -966,12 +940,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfString from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="String">
-  and if so, write the values to 'astring' parameter.
-
-  \param is_xml  XML Input stream
-  \param astring ArrayOfString return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml   XML Input stream
+  \param astring  ArrayOfString return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -1010,9 +981,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfString to XML output stream
 /*!
-  \param os_xml  XML Output stream
-  \param astring ArrayOfString
+  \param os_xml   XML Output stream
+  \param astring  ArrayOfString
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -1048,12 +1020,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads ArrayOfVector from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Array type="Vector">
-  and if so, write the values to 'amatrix' parameter.
-
-  \param is_xml  XML Input stream
-  \param avector ArrayOfVector return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml   XML Input stream
+  \param avector  ArrayOfVector return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -1093,9 +1062,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes ArrayOfVector to XML output stream
 /*!
-  \param os_xml  XML Output stream
-  \param amatrix ArrayOfVector
+  \param os_xml   XML Output stream
+  \param avector  ArrayOfVector
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,

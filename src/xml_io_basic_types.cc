@@ -32,8 +32,6 @@
 #include "xml_io.h"
 #include "xml_io_private.h"
 #include "xml_io_basic_types.h"
-#include "bofstream.h"
-#include "bifstream.h"
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -44,11 +42,8 @@
 
 //! Reads Index from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Index> and if so,
-  write the value to 'index' parameter.
-
   \param is_xml  XML Input stream
-  \param index Index return value
+  \param index   Index return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -86,8 +81,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Index to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param index Index value
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param index   Index value
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -119,11 +115,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Matrix from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Matrix> and if so,
-  write the values to 'matrix' parameter.
-
   \param is_xml  XML Input stream
-  \param matrix Matrix return value
+  \param matrix  Matrix return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -180,8 +173,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Matrix to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param matrix Matrix
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param matrix  Matrix
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -234,12 +228,9 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Numeric from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Numeric> and if so,
-  write the value to 'numeric' parameter.
-
-  \param is_xml  XML Input stream
-  \param numeric Numeric return value
-  \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+  \param is_xml   XML Input stream
+  \param numeric  Numeric return value
+  \param pbifs    Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -275,9 +266,10 @@ xml_read_from_stream (istream& is_xml,
 
 //! Writes Numeric to XML output stream
 /*!
-  \param os_xml  XML Output stream
-  \param numeric Numeric value
+  \param os_xml   XML Output stream
+  \param numeric  Numeric value
   \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param name     Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -311,9 +303,6 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Sparse from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Sparse>
-  and if so, write the next values to 'sparse' parameter.
-
   \param is_xml  XML Input stream
   \param sparse  Sparse return value
   \param pbifs   Pointer to binary input stream, NULL in case of ASCII file.
@@ -424,6 +413,7 @@ xml_read_from_stream (istream& is_xml,
   \param os_xml  XML Output stream
   \param sparse  Sparse
   \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -504,12 +494,10 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads String from XML input stream
 /*!
-  Checks whether the next tag in input stream is <String> and if so,
-  write the value to 'str' parameter.
-
   \param is_xml  XML Input stream
-  \param str String return value
+  \param str     String return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
+                 Ignored because strings are always stored in ASCII format.
 */
 void
 xml_read_from_stream (istream& is_xml,
@@ -566,8 +554,10 @@ xml_read_from_stream (istream& is_xml,
 //! Writes String to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param str String value
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param str     String value
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+                 Ignored because strings are always in ASCII format.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -596,11 +586,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Tensor3 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Tensor3> and if so,
-  write the values to 'tensor' parameter.
-
   \param is_xml  XML Input stream
-  \param tensor Tensor return value
+  \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -663,8 +650,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor3 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param tensor Tensor
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param tensor  Tensor
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -719,11 +707,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Tensor4 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Tensor4> and if so,
-  write the values to 'tensor' parameter.
-
   \param is_xml  XML Input stream
-  \param tensor Tensor return value
+  \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -792,8 +777,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor4 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param tensor Tensor
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param tensor  Tensor
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -852,11 +838,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Tensor5 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Tensor5> and if so,
-  write the values to 'tensor' parameter.
-
   \param is_xml  XML Input stream
-  \param tensor Tensor return value
+  \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -931,8 +914,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor5 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param tensor Tensor
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param tensor  Tensor
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -995,11 +979,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Tensor6 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Tensor6> and if so,
-  write the values to 'tensor' parameter.
-
   \param is_xml  XML Input stream
-  \param tensor Tensor return value
+  \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -1080,8 +1061,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor6 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param tensor Tensor
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param tensor  Tensor
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -1148,11 +1130,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Tensor7 from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Tensor7> and if so,
-  write the values to 'tensor' parameter.
-
   \param is_xml  XML Input stream
-  \param tensor Tensor return value
+  \param tensor  Tensor return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -1239,8 +1218,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Tensor7 to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param tensor Tensor
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param tensor  Tensor
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
@@ -1311,11 +1291,8 @@ xml_write_to_stream (ostream& os_xml,
 
 //! Reads Vector from XML input stream
 /*!
-  Checks whether the next tag in input stream is <Vector> and if so,
-  write the values to 'vector' parameter.
-
   \param is_xml  XML Input stream
-  \param vector Vector return value
+  \param vector  Vector return value
   \param pbifs   Pointer to binary input stream. NULL in case of ASCII file.
 */
 void
@@ -1366,8 +1343,9 @@ xml_read_from_stream (istream& is_xml,
 //! Writes Vector to XML output stream
 /*!
   \param os_xml  XML Output stream
-  \param vector Vector
-  \param pbofs    Pointer to binary file stream. NULL for ASCII output.
+  \param vector  Vector
+  \param pbofs   Pointer to binary file stream. NULL for ASCII output.
+  \param name    Optional name attribute
 */
 void
 xml_write_to_stream (ostream& os_xml,
