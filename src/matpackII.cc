@@ -412,7 +412,7 @@ void transpose( SparseView A,
   // Create a vector with all row indices, sorted in strict ascending order
   std::vector<Index> rowind = *B.mrowind;
   sort(rowind.begin(), rowind.end());
-  Index* last = unique(rowind.begin(), rowind.end());
+  std::vector<Index>::iterator last = unique(rowind.begin(), rowind.end());
   rowind.erase(last+1, rowind.end());
 
   // Loop through rows of B and check them vs columns of C
