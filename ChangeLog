@@ -1,3 +1,19 @@
+2003-03-10  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-495
+
+	* doc/uguide/main.tex: Changed the author list, to only include
+	persons that have contributed to the present version of AUG. As Claudia
+	took the step and broke the alphabetical order, I also moved the 
+	names around with the idea that the author list shall reflect the
+	contribution to the user guide. As a pure coincidence my name ended
+	up first! 
+
+	* doc/uguide/ppath.tex: Included control file examples.
+	Fixed some smaller things that I discovered when working on the 
+	progress report. Commented out figure on spherical/ellipsiodal
+	geoid. The figure is not correct.
+
 2003-03-10  Stefan Buehler  <sbuehler@uni-bremen.de>
 
 	* arts-1-1-494

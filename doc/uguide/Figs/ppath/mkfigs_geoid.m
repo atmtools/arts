@@ -33,7 +33,7 @@ ylabel('Radius difference [m/deg]')
 figure(3)
 clf
 %
-nz       = 81;
+nz       = 161;
 nlat     = 21;
 %
 dim      = 2;
@@ -48,7 +48,7 @@ a_los = 99.8;
 a_pos = [ (6378+90)*1e3 45-(a_los-90)];
 %
 P = arts_ppath( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
-                                       a_pos, a_los, -1, z_ground, [] );
+                                       a_pos, a_los, 20e3, z_ground, [] );
 plot( P.pos(:,2), P.z/1e3, 'b-' );
 %
 hold on
@@ -62,7 +62,7 @@ set_labels( gca, 'FontSize', 12, 'FontWeight', 'bold' );
 r_geoid  = wgs84( 1, P.tan_pos(2), 0 ) * ones(nlat,1);
 %
 P = arts_ppath( dim, p_grid, lat_grid, lon_grid, z_field, r_geoid, ...
-                                           a_pos, a_los, -1, z_ground, [], 0 );
+                                         a_pos, a_los, 20e3, z_ground, [], 0 );
 plot( P.pos(:,2), P.z/1e3, 'r--' );
 
 

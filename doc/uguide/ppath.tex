@@ -3,7 +3,7 @@
 
 
 \starthistory
-  030225 & Written by Patrick Eriksson.\\
+  030310 & First complete version written by Patrick Eriksson.\\
 \stophistory
 
 
@@ -89,12 +89,10 @@ and \artsstyle{ppath\_stepRefractionEuler}.
 \begin{figure}[!t]
  \begin{center}
    \includegraphics*[width=0.98\hsize]{Figs/ppath/ppath_ex2}
-  \caption{As Figure~\ref{fig:ppath:ex1}, but here has a length 
-    criterion, for the distance between the points defining the
-    propagation path, has also been applied, which results in that points
-    are added to the path inside the grid cells. The inclusion of the
-    tangent point is not a result of this length criterion, it is
-    always included among the path points.}
+  \caption{As Figure~\ref{fig:ppath:ex1}, but with a length criterion 
+    for the distance between the points defining the path.
+    The inclusion of the tangent point is not a result of this length
+    criterion, it is always included among the path points.}
   \label{fig:ppath:ex2}  
  \end{center}
 \end{figure}
@@ -821,8 +819,8 @@ interest (Figure~\ref{fig:ppath:ex3}).
 
 Geometrical 3D propagation path steps are determined by the function
 \funcindex{do\_gridcell\_3d}. It was first tested to use different
-analytical expressions to calculate the length from the given point to
-the crossing of a given radius, latitude or longitude. However, the
+analytical expressions to calculate the length between a point and
+the crossing of some radius, latitude or longitude. However, the
 expressions found include the trigonometric functions and the squaring
 of radii, which resulted in a high sensitivity to the numerical
 inaccuracy. It was found that the numerical problems made the created
@@ -904,11 +902,11 @@ spherical $(\Rds,\Lat,\Lon)$ and cartesian $(x,y,z)$ coordinates
 \end{eqnarray}
 and
 \begin{eqnarray}
+ \label{eq:ppath:cart2sph}
   \Rds &=& \sqrt{x^2+y^2+z^2}  \nonumber  \\
   \Lat &=& \arcsin(y/\Rds)                \\
   \Lon &=& \arctan(z/x) \qquad \mathrm{(implemented\ by\ the\ atan2\ function)}
                                \nonumber
- \label{eq:ppath:cart2sph}
 \end{eqnarray}
 The functions performing these transformations are \funcindex{sph2cart} and
 \funcindex{cart2sph}.
@@ -988,10 +986,9 @@ distance $l$ is then simply
   \label{eq:ppath:xdl}
 \end{equation}
 The cartesian viewing vector $[\DiffD x, \DiffD y, \DiffD z]^T$ is
-constant along a geometrical path. The new position is
-converted to spherical coordinates by Equations
-\ref{eq:ppath:cart2sph} and the new spherical viewing vector is
-calculated as
+constant along a geometrical path. The new position is converted to
+spherical coordinates by Equation~\ref{eq:ppath:cart2sph} and the new
+spherical viewing vector is calculated as
 \begin{equation}
  \left[ \begin{array}{c}
   \DiffD \Rds \\
@@ -1052,14 +1049,14 @@ equations:
   \label{eq:ppath:rcoss3Db}
 \end{equation}
 Once $l$ is determined, the latitude and longitude are easily
-calculated by Equation~\ref{eq:ppath:cart2sph}. These calculations are
-implemented in the function \funcindex{psurface\_crossing\_3d}.
-Similar expressions were derived to find the position for the crossing
-of a given latitude or longitude but those expressions were removed
-from the code as they are not used with present
-algorithms.\footnote{The expressions mentioned can be extracted from
-  the function \artsstyle{gridcell\_crossing\_3d} in ARTS version
-  1-1-440.}
+calculated by Equations~\ref{eq:ppath:xdl} and
+\ref{eq:ppath:cart2sph}. These calculations are implemented in the
+function \funcindex{psurface\_crossing\_3d}.  Similar expressions were
+derived to find the position for the crossing of a given latitude or
+longitude but those expressions were removed from the code as they are
+not used with present algorithms.\footnote{The expressions mentioned
+  can be extracted from the function
+  \artsstyle{gridcell\_crossing\_3d} in ARTS version 1-1-440.}
 
 
 
@@ -1092,12 +1089,12 @@ importance but for 2D and 3D calculations this effect must be
 considered. For limb sounding and a fixed zenith angle, the tangent
 point is moved downwards compared to the pure geometrical case
 (Figure~\ref{fig:ppath:ppath_refr1}), resulting in that inclusion of
-refraction in general gives higher intensities. However, the LOS is
-still symmetric around tangent and ground points.
+refraction in general gives higher intensities. However, the
+propagation path is still symmetric around tangent and ground points.
 
 The refraction causes a bending of the path, which gives a deviation
 from the geometrical approximation of propagation along a straight
-line. The bending of the path is 
+line. The bending of the path is obtained by the relationship
 \begin{equation}
   \frac{\DiffD x}{\DiffD l} = \frac{1}{n} \left( \frac{\PartD n}{\PartD y} \right)_x
   \label{eq:ppath:refrbend}
@@ -1125,18 +1122,17 @@ the ray tracing (see below) is made very small, the result can be
 completely wrong due to numerical problems.
 
 The approach taken in \artsstyle{ppath\_stepRefractionEuler} is to
-take a geometrical step from the present point of the path (and in the
-direction of present line-of-sight) to determine the position of the
-next point to describe the path. Refraction is considered only when
-the line-of-sight at the new point is determined
+take a geometrical ray tracing step from the present point of the path
+(and in the direction of present line-of-sight). Refraction is
+considered only when the line-of-sight at the new point is determined
 (Figure~\ref{fig:ppath:euler}). The found line-of-sight is used to
-calculate path step etc. This can be seen as an Euler solution to the
-differential problem given by Equation~\ref{eq:ppath:refrbend}. The
-main difference between handling 1D, 2D or 3D cases is how the
-line-of-sight for the new point is corrected to compensate for the
-bending due to refraction. The calculation of propagation paths
-including the effect of refraction is often denoted as \textindex{ray
-  tracing}.
+calculate the next ray tracing step etc. This can be seen as an Euler
+solution to the differential problem given by
+Equation~\ref{eq:ppath:refrbend}. The main difference between handling
+1D, 2D or 3D cases is how the line-of-sight for the new point is
+corrected to compensate for the bending due to refraction. The
+calculation of propagation paths including the effect of refraction is
+often denoted as \textindex{ray tracing}.
 
 The length of the calculation steps is set by the keyword
 \artsstyle{lraytrace}. This length shall not be confused with the
@@ -1242,11 +1238,12 @@ refractive index.
   \caption{Latitude gradient of the refractive index due to varying radius 
     of the geoid. The gradient is given as the change in refractive
     index over 1~m, which allows direct comparison with the values in
-    the figure above. The wet atmosphere from Figure~\ref{fig:ppath:dndr}
-    was used for all latitudes, and the the plotted gradient is only
-    caused by the fact that the radius of the geoid is not constant.
-    The gradient is positive on the southern hemisphere (shown), and negative
-    on the northern hemisphere.}
+    Figure~\ref{fig:ppath:dndr}e. The wet atmosphere from
+    Figure~\ref{fig:ppath:dndr} was used for all latitudes, and the
+    the plotted gradient is only caused by the fact that the radius of
+    the geoid is not constant.  The gradient is positive on the
+    southern hemisphere (shown), and negative on the northern
+    hemisphere.}
   \label{fig:ppath:dndlat}  
  \end{center}
 \end{figure}
@@ -1282,8 +1279,13 @@ gradients as the change of the refractive index over 1~m. The
 conversion for the latitude gradient corresponds to the $1/\Rds$ term
 found in Equation~\ref{eq:ppath:za2d}, and this term is accordingly
 left out in \funcindex{raytrace\_2d\_linear\_euler}, which is the
-function of this section. Figures~\ref{fig:ppath:dndr} and
-\ref{fig:ppath:dndlat} show example on gradients of the refractive index.
+function of this section. 
+
+The radial and latitudinal gradients of the refractive index are
+calculated in pure numerical way, by shifting the position slightly
+from the position of concern. Figures~\ref{fig:ppath:dndr} and
+\ref{fig:ppath:dndlat} show example on gradients of the refractive
+index.
 
 
 
@@ -1291,7 +1293,7 @@ function of this section. Figures~\ref{fig:ppath:dndr} and
 \levelc{3D}
 \label{sec:ppath:refr3D}
 %----------------------
-For 3D, the expressions of Section~\ref{sec:ppath:3Dgeom} are used to
+For 3D, the geomtrical expressions are used to
 calculate the geometrical zenith and azimuth angles at the end of the
 ray tracing step. Following the methodology for 2D, the geometrical
 zenith and azimuth angles are then corrected to incorporate the
@@ -1366,10 +1368,12 @@ curvature radius differs from the local radius except at the equator
 and an east-west direction. For example, at the equator and a
 north-south direction, the curvature radius is smaller then the local
 radius, while at the poles (for all directions) it is greater (see
-further Figure~\ref{fig:ppath:wgs84radii}). The implications of
-approximating the geoid by the local curvature radius, instead of
-using a complete representation, is exemplified in
-Figure~\ref{fig:ppath:wgs84_dz}.
+further Figure~\ref{fig:ppath:wgs84radii}). 
+
+%The implications of
+%approximating the geoid by the local curvature radius, instead of
+%using a complete representation, is exemplified in
+%Figure~\ref{fig:ppath:wgs84_dz}.
 
 The \textindex{curvature radius}, \aRds{c}, of an ellipsoid is 
 \citep{rodgers:00}
@@ -1433,19 +1437,21 @@ shall rather be valid for a middle point of the propagation paths
  \end{minipage}%
 \end{figure}   
 
-\begin{figure}[!t]
- \begin{center}
-  \includegraphics*[width=0.80\hsize]{Figs/ppath/wgs84_dz}
-  \caption{The altitude above the geoid as a function of latitude
-    when using the WGS84 reference ellipsiod (solid line) and when
-    using a spherical geoid (dashed line). The radius in the latter
-    case is set to the curvature radius of WGS84 at 45\degree. The
-    measurement is simulated to be performed in the north-south
-    direction. The two propagation paths share the same tangent
-    point. }
-  \label{fig:ppath:wgs84_dz}  
- \end{center}
-\end{figure}
+%\begin{figure}[!t]
+% \begin{center}
+%  \includegraphics*[width=0.80\hsize]{Figs/ppath/wgs84_dz}
+%  \caption{The altitude above the geoid as a function of latitude
+%    when using the WGS84 reference ellipsiod (solid line) and when
+%    using a spherical geoid (dashed line). The radius in the latter
+%    case is set to the curvature radius of WGS84 at 45\degree, in the
+%    direction (north-south) of the simulated measurement. The two
+%    propagation paths share the same tangent point (defined by a
+%    zenith angle of 90\degree) at latitude 45\degree, but the lowest
+%    geometrical altitude is slightly shifted from that position with
+%    an ellipsiodal geoid.}
+%  \label{fig:ppath:wgs84_dz}  
+% \end{center}
+%\end{figure}
 % This figure was produced by the Matlab function mkfigs_geoid
 
 
@@ -1519,6 +1525,71 @@ of the reference ellipsoid for the geodetic datums handled by ARTS.
 \levelb{Control file examples}
 %===================
 \label{sec:ppath:cfile}
+
+
+Some examples on how the geoid radius and the ground altitude can be set:
+\begin{verbatim}
+
+# Set the geoid to model WGS84 for 2D and 3D.
+r_geoidWGS84 {
+}
+
+# For 1D, *lat_1d* and *meridian_angle_1d* must be specified 
+# to define the position and direction for which the curvature 
+# radius shall be extracted.
+NumericSet( lat_1d ) {
+  value = 45
+}
+NumericSet( meridian_angle_1d ) {
+  value = 0
+}
+r_geoidWGS84 {
+}
+
+# Set the geoid to be spherical, with a radius of 6370 km
+r_geoidSpherical {
+  r = 6370e3
+}
+
+# Set the geoid to be spherical, with standard radius (defined 
+# in arts.h)
+r_geoidSpherical {
+  r = -1
+}
+
+# Set a constant ground altitude of 1 km
+MatrixSetTakingSizeFromMatrix( z_ground, r_geoid ) {
+  value = 1e3
+}
+
+\end{verbatim}
+
+\noindent
+Different possibilities for the \artsstyle{ppath\_step\_agenda}:
+\begin{verbatim}
+
+# Select geometric calculations, with no length criterion 
+# for path points.
+AgendaSet( ppath_step_agenda ) {
+  ppath_stepGeometric{
+    lmax = -1
+  }
+}
+
+# Consider refraction. The ray tracing step length is 2 km 
+# and the length criterion for path points is 10 km.
+AgendaSet( refr_index_agenda ) {
+  refr_indexThayer{
+  }
+}
+AgendaSet( ppath_step_agenda ) {
+  ppath_stepRefractionEuler{
+    lraytrace = 2e3
+    lmax      = 10e3
+  }
+}
+\end{verbatim}
+
 
 
 
