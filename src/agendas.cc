@@ -387,7 +387,7 @@ void define_agenda_data()
        OUTPUT( i_rte_ ),
        INPUT(  ppath_, atmosphere_dim_, stokes_dim_, f_grid_, p_grid_,
                lat_grid_, lon_grid_, t_field_, vmr_field_,
-               scalar_gas_absorption_agenda, opt_prop_gas_agenda_ )));
+               scalar_gas_absorption_agenda_, opt_prop_gas_agenda_ )));
 
   agenda_data.push_back
     (AgRecord
