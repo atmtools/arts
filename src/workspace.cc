@@ -123,7 +123,7 @@ void define_wsv_data()
   //                     ---------------------------
   wsv_data.push_back
     (WsvRecord
-     ("raw_ptz_1d",
+     ("raw_ptz",
       "Matrix has rows:\n"
       "1. Pressure in Pa\n"
       "2. Temperature in K\n"
@@ -132,7 +132,7 @@ void define_wsv_data()
 
   wsv_data.push_back
     (WsvRecord
-     ("raw_vmrs_1d",
+     ("raw_vmrs",
       "The individual VMR profiles. Each species VMR profile comes with a\n"
       "pressure profile. The different species can hence be on different\n"
       "grids.\n"
@@ -162,49 +162,6 @@ void define_wsv_data()
       "calculating absorption and pencil b",
       Vector_));
     
-
-  //--------------------< 2D Absorption Stuff >--------------------
-  //                     ---------------------
-  wsv_data.push_back
-    (WsvRecord
-     ("t_abs_2d",
-      "2D temperatures associated with the pressures in p_abs [K].\n"
-      "Array coordinate is the profile index, i.e., the horizontal\n"
-      "dimension. This dimension must be consistent with z_abs_2d,\n"
-      "vmr_2d, and abs_2d.", 
-      ArrayOfVector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("z_abs_2d",
-      "2D vertical altitudes associated with the pressures in p_abs [m]."
-      "Array coordinate is the profile index, i.e., the horizontal\n"
-      "dimension. This dimension must be consistent with t_abs_2d,\n"
-      "vmr_2d, and abs_2d.", 
-      ArrayOfVector_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("vmrs_2d",
-      "2D VMRs associated with the pressures in p_abs [absolute number]."
-      "Array coordinate is the profile index, i.e., the horizontal\n"
-      "dimension. This dimension must be consistent with t_abs_2d\n"
-      "z_abs_2d, and abs_2d."
-      "\n"
-      "The matrix dimensions are [tag_groups.nelem(),p_abs.nelem()].", 
-      ArrayOfMatrix_));
-
-  wsv_data.push_back
-    (WsvRecord
-     ("abs_2d",
-      "The array of absorption coefficient matrices."
-      "Array coordinate is the profile index, i.e., the horizontal\n"
-      "dimension. This dimension must be consistent with t_abs_2d\n"
-      "and z_abs_2d."
-      "\n"
-      "The matrix dimensions are [f_mono.nelem(),p_abs.nelem()].", 
-      ArrayOfMatrix_));
-
 
   //--------------------< 1D Absorption Stuff >--------------------
   //                     ---------------------
