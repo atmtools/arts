@@ -127,13 +127,6 @@ arts_SOURCES = \
 	gas_abs_lookup.h \
 	gas_abs_lookup.cc
 
-arts_DEPENDENCIES= \
-	auto_md.cc \
-	auto_md.h \
-	auto_wsv.h \
-	auto_wsv_groups.h \
-	auto_wsv_pointers.cc
-
 methods.o: arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c methods.cc
@@ -141,10 +134,6 @@ methods.o: arts.h make_array.h auto_wsv.h methods.h auto_wsv_groups.h methods.cc
 species_data.o: arts.h make_array.h absorption.h species_data.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
-
-arts$(EXEEXT): $(arts_DEPENDENCIES) $(arts_OBJECTS)
-	@rm -f arts
-	$(CXXLINK) $(arts_LDFLAGS) $(arts_OBJECTS) $(arts_LDADD) $(LIBS)
 
 noinst_PROGRAMS = \
 	make_auto_md_cc \
