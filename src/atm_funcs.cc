@@ -70,6 +70,11 @@ extern const Numeric BOLTZMAN_CONST;
     Adapted to MTL. Gone from 1-based to 0-based. No resize!
     \date 2000-12-26
     \author Stefan Buehler
+
+    Fixed bug: Variables a and b must not be declared as static,
+    otherwise they are only computed for the first function call. 
+    \date   2001-04-03 
+    \author Stefan Buehler
 */
 void planck (
               MATRIX&     B, 
@@ -77,8 +82,8 @@ void planck (
         const VECTOR&     t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
-  static const double a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const double b = PLANCK_CONST/BOLTZMAN_CONST;
+  const double a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  const double b = PLANCK_CONST/BOLTZMAN_CONST;
 
   const size_t    n_f  = f.size();
   const size_t    n_t  = t.size();
@@ -117,19 +122,27 @@ void planck (
     Changed from vector calculations to a simple loop
     \date   2001-01-15 
     \author Patrick Eriksson 
+
+    Fixed bug: Variables a and b must not be declared as static,
+    otherwise they are only computed for the first function call. 
+    \date   2001-04-03 
+    \author Stefan Buehler
 */
 void planck (
              VECTOR&    B,
        const VECTOR&    f,
        const Numeric&   t )
 {
-  static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST/t;
+  const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  const Numeric b = PLANCK_CONST/BOLTZMAN_CONST/t;
 
   assert( B.size()==f.size() );
 
   for ( size_t i=0; i<f.size(); i++ )
-    B[i] = a * f[i]*f[i]*f[i] / ( exp( f[i]*b ) - 1.0 ); 
+    {
+      B[i] = a * f[i]*f[i]*f[i] / ( exp( f[i]*b ) - 1.0 );
+      //      cout << t << "--" << B[i] << "\n";
+    }
 }
 
 

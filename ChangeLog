@@ -1,3 +1,14 @@
+2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
+
+	* arts-0-0-147
+
+	* atm_funcs.cc: Fixed bug in vector and matrix version of function
+	`planck': Variables a and b must not be declared as static,
+        otherwise they are only computed for the first function
+	call. Because of this, we got identical results for subsequent
+	calls of the function with different temperature.
+	
+
 2001-04-02  Stefan Buehler  <sbuehler@uni-bremen.de>  
 
 	* arts-0-0-146
