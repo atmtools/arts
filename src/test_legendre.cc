@@ -1,4 +1,6 @@
 #include <iostream>
+#include <sys/times.h>
+#include <unistd.h>
 #include "legendre.h"
 #include "exceptions.h"
 
@@ -27,6 +29,36 @@ main (int argc, char *argv[])
     {
       cerr << e.what ();
     }
+
+  struct tms cput_start, cput_end;
+  const Index n = 1000000;
+  Index clktck;
+  Vector v2 (n), r2 (n);
+
+  cout << endl << "Timing ("
+    << n << " loops):" << endl;
+
+  for (Index i = 0; i < n; i++)
+    {
+      v2[i] = -1.0 + Numeric (i) / n * 2.0;
+    }
+
+  if ((clktck = sysconf (_SC_CLK_TCK)) < 0)
+    throw runtime_error ("Timer error: Unable to determine CPU clock ticks");
+
+  if (times (&cput_start) == -1)
+    throw runtime_error ("Timer error: Unable to get current CPU time");
+
+  for (Index i = 0; i < n; i++)
+    r2[i] = legendre_polynomial (l, m, v2[i]);
+
+  if (times (&cput_end) == -1)
+    throw runtime_error ("Timer error: Unable to get current CPU time");
+
+  cout << "CPU time: " << setprecision (2)
+    << ((cput_end.tms_stime - cput_start.tms_stime)
+        + (cput_end.tms_utime - cput_start.tms_utime))
+    / (Numeric)clktck << endl;
 
   return (0);
 }
