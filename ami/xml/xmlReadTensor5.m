@@ -16,14 +16,14 @@
 
 function result = xmlReadTensor5(fid, attrlist)
 
-nv = str2num (xmlGetAttrValue (attrlist, 'nvitrines'));
+nv = str2num (xmlGetAttrValue (attrlist, 'nshelves'));
 nb = str2num (xmlGetAttrValue (attrlist, 'nbooks'));
 np = str2num (xmlGetAttrValue (attrlist, 'npages'));
 nr = str2num (xmlGetAttrValue (attrlist, 'nrows'));
 nc = str2num (xmlGetAttrValue (attrlist, 'ncols'));
-nelem =  nv * nb * np * nr * nc;
+nelem =  ns * nb * np * nr * nc;
 
 result = fscanf (fid, '%f', nelem);
 xmlCheckSize (nelem, size (result));
 
-result = permute (reshape (result, [nc nr np nb nv]), [2 1 3 4 5]);
+result = permute (reshape (result, [nc nr np nb ns]), [2 1 3 4 5]);
