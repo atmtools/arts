@@ -1,5 +1,16 @@
 2002-02-08  Patrick Eriksson  <patrick@rss.chalmers.se>
 
+	* arts-1-1-7
+
+	* src/los.cc: 1D interpolation of an absorption Tensor3
+	fixed. Note that is a temporary solution until we have more general
+	ways to obtain the absorption at an arbitrary point.
+	
+	* src/los.cc: Wrote an outline describing my present ideas about how
+	to fix the interpolations.
+	
+2002-02-08  Patrick Eriksson  <patrick@rss.chalmers.se>
+
 	* arts-1-1-6
 
 	* src/los.cc: Started to work on interpolation and assert functions. 

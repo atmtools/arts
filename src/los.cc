@@ -1,3 +1,62 @@
+/*
+Outline of interpolation functions:
+
+There are two types of interpolations that we want to do:
+1. Interpolation of some field at a set of points, for example, along the LOS.
+2. To interpolate an input field to the calculation grids used, for example,
+   to determine the temperatures at the pressure and latitude grid selected
+   from a climatology. The interpolation is here done for all grid crossings.
+
+To distinguish clearly these different cases, the interpolation of the kind in
+case 2 will be denoted as re-sampling, and function names for case 1 will start
+with "interp", while for case the names will start with "resample".
+
+Both interp and resample functions will take index positions as input
+(instead of physical positions). For example, the index position 6.5 means that
+a position is exactly between the points with index 6 and 7, index position 5 
+is exactly at the point with index 5 etc. [! A more stringent description
+should be added. !]
+
+Only linear interpolation will be implemented.
+
+No resizing of vectors, matrices and tensors will be made inside the
+interpolation functions. The functions assert that the arguments have 
+consistent sizes.
+
+Details for interp-functions (case 1):
+The interpolation positions are given as a number of vectors, one for each
+dimension that can exist (for example, pressure/altitude, latitude and
+longitude). The length of these vectors must be equal, with the exception
+that an empty vector (length zero) means that that dimension is not specified.
+   For cases there the interpolation is performed along all dimensions, general
+functions can be made, and these are called interp_1D, interp_2D, interp_3D.
+The output of these functions are throughout a vector, where the length equals
+the number of positions for which interpolation is performed. For example,
+the function interp_3D can be used to interpolate the temperature field
+(stored as a Tensor3) to the LOS. 
+  On the other hand, there are cases when the interpolation is not performed 
+along all dimensions. A typical example is interpolation of the absorption
+tensor to get the absorption at the points along the LOS, where no 
+interpolation is made in the frequency dimension. For such interpolation cases
+special functions will be made (e.g. interp_abs2los). To make general 
+functions would be too messy and inefficient.
+  Both for the general and special cases, the interpolation functions adapt
+automatically to the present dimensionality of the simulations. For example, 
+if the simulations are 2D, indicated by that the vector with longitude 
+positions is empty and the number of pages of the temperature tensor is 1
+(consistency between these two criteria is checked), the longitude dimension is
+ignored during the interpolation.
+
+Details for resample-functions (case 2):
+Resampling corresponds to an interpolation over all involved dimensions. The
+grids are given as individual vectors. An empty vector indicates (as above)
+that the corresponding dimension is not specified. Interpolation is performed
+for all possible combinations between the vectors, that is, all grid crossings
+(as expected). The functions adapt automatically to the dimensionality of the
+simulations (as above).
+*/
+
+
 #include <math.h>
 #include "arts.h"
 #include "matpackI.h"
@@ -28,6 +87,7 @@ struct LOS {
 };
 
 
+
 /** Returns the first value of a vector.
 
     \return       The first value of x.
@@ -40,6 +100,8 @@ Numeric first2( ConstVectorView x )
 {
   return x[0]; 
 }
+
+
 
 /** Returns the last value of a vector.
 
@@ -55,37 +117,87 @@ Numeric last2( ConstVectorView x )
 }
 
 
-void interp_ip_1D (
-	      Vector&     y,
-	ConstVectorView   yi,
-	ConstVectorView   ip_x )
+
+void assert_size( 
+	ConstVectorView   x,
+	const Index&      l ) 
+{
+  assert( x.nelem() == l );
+}
+
+
+
+void assert_size( 
+	ConstMatrixView   x,
+	const Index&      nrows,
+	const Index&      ncols ) 
+{
+  assert( x.ncols() == ncols );
+  assert( x.nrows() == nrows );
+}
+
+
+
+void assert_size( 
+	const Tensor3&    x,
+	const Index&      npages,
+	const Index&      nrows,
+	const Index&      ncols ) 
+{
+  assert( x.ncols() == ncols );
+  assert( x.nrows() == nrows );
+  assert( x.npages() == npages );
+}
+
+
+
+void assert_maxdim_of_tensor(
+	const Tensor3&   x,
+	const Index&     dim )
+{
+  assert( dim >= 1 );
+  assert( dim <= 3 );
+
+  if( dim == 1 )
+    {
+      assert( x.nrows() == 1 );
+      assert( x.npages() == 1 );
+    }
+  else if( dim == 2 )
+    assert( x.npages() == 1 );
+}
+
+
+
+void get_interp_weights (
+	      ArrayOfIndex&   ii,
+	      Vector&         w,
+	ConstVectorView       y,
+	ConstVectorView       ip_x )
 {
   // Sizes
-  const Index   n_in = yi.nelem();
+  const Index   n_y   = y.nelem();
   const Index   n_out = ip_x.nelem();
 
   // Asserts
-  assert( y.nelem() == n_out );
+  assert( ii.nelem() == n_out );
+  assert( w.nelem() == n_out );
 
-  // Interpolate
-  Index i0;    // Index below interpolation point.
-  Numeric w;   // Weight to put on the values at i0+1, a value 0-0.9999999...
   for( Index ix=0; ix<n_out; ix++ )
     {
-      i0 = Index( floor( ip_x[ix] ) );
-      assert( i0 >= 0 );
-      w  = ip_x[ix] - Numeric( i0 );
+      ii[ix] = Index( floor( ip_x[ix] ) );
+      assert( ii[ix] >= 0 );
+      w[ix]  = ip_x[ix] - Numeric( ii[ix] );
       
-      if( w < 1e-6 )   // No interpolation, just copy data for i0
+      // If w is very small (< 1e-6), treat it to be 0.
+      // If w=0, we can be at the end point.
+      if( w[ix] < 1e-6 ) 
 	{
-	  assert( i0 < n_in );
-	  y[ix] = yi[i0];
+	  assert( ii[ix] < n_y );
+	  w[ix] = 0;
 	}
       else
-	{
-	  assert( i0 < n_in-1 );
-	  y[ix] = (1-w)*yi[i0] + w*yi[i0+1];
-	}
+	  assert( ii[ix] < n_y-1 );
     }
 }	     
 
@@ -115,54 +227,32 @@ Index get_dim_for_interp (
 }
 
 
-assert_size( 
-	ConstVectorView   x,
-	const Index&      l ) 
+
+void interp_1D (
+	      Vector&     y,
+	ConstVectorView   yi,
+	ConstVectorView   ip_x )
 {
-  assert( x.nelem() == l );
-}
+  // Sizes
+  const Index   n_in = yi.nelem();
+  const Index   n_out = ip_x.nelem();
 
+  // Asserts
+  assert( y.nelem() == n_out );
 
+  // Interpolatation weights
+  ArrayOfIndex   ii(n_out); 
+  Vector         w(n_out);
+  get_interp_weights( ii, w, yi, ip_x );
 
-assert_size( 
-	ConstMatrixView   x,
-	const Index&      l1,
-	const Index&      l2 ) 
-{
-  assert( x.nrows() == l1 );
-  assert( x.ncols() == l2 );
-}
-
-
-
-assert_size( 
-	const Tensor3&    x,
-	const Index&      l1,
-	const Index&      l2,
-	const Index&      l3 ) 
-{
-  assert( x.nrows() == l1 );
-  assert( x.ncols() == l2 );
-  assert( x.npages() == l3 );
-}
-
-
-
-void assert_maxdim_of_tensor(
-	const Tensor3&   x,
-	const Index&     dim )
-{
-  assert( dim >= 1 );
-  assert( dim <= 3 );
-
-  if( dim == 1 )
+  for( Index ix=0; ix<n_out; ix++ )
     {
-      assert( x.nrows() == 1 );
-      assert( x.npages() == 1 );
+      if( w[ix] == 0 )   // No interpolation, just copy data
+	y[ix] = yi[ii[ix]];
+      else
+	y[ix] = (1-w[ix])*yi[ii[ix]] + w[ix]*yi[ii[ix]+1];
     }
-  else if( dim == 2 )
-    assert( x.npages() == 1 );
-}
+}	     
 
 
 
@@ -180,18 +270,41 @@ void interp_abs2los (
   assert_maxdim_of_tensor( abs_in, dim+1 );
 
   // Check that return matrix has the correct size
-  const Index   np = ip_p.nelem();
-  const Index   nv = abs_in.nrows();
-  assert_size( abs_out, nv, np );
+  const Index   n  = ip_p.nelem();
+  const Index   nv = abs_in.ncols();
+  assert_size( abs_out, n, nv );
+
+  // Get interpolation weights for pressure/altitude dimension
+  ArrayOfIndex   ii1(n); 
+  Vector         w1(n);
+  get_interp_weights( ii1, w1, abs_in(0,Range(joker),0), ip_p );
 
   // Interpolate
+  Index iv;
+  Numeric wv;
   if( dim == 1 )
     {
-      
+      for( Index ix=0; ix<n; ix++ )
+	{
+	  wv = w1[ix];
+	  if( wv == 0 )   // No interpolation, just copy data
+	    {
+	      for( iv=0; iv<nv; iv++ )
+		abs_out(ix,iv) = abs_in(0,ii1[ix],iv);
+	    }
+	  else
+	    {
+	      for( iv=0; iv<nv; iv++ )
+	        abs_out(ix,iv) = (1-wv) * abs_in(0,ii1[ix],iv) +
+	                             wv * abs_in(0,ii1[ix]+1,iv);
+	    }
+	}
     }
   else
     throw runtime_error("Absorption interpolation only implemented for 1D." );
 }
+
+
 
 void los_1d_geom (
 	      Numeric&    z_tan,
@@ -479,7 +592,7 @@ void los_1d (
 
   // Convert altitudes to pressures
   los.p.resize(los.np);
-  interp_ip_1D ( los.p, p_abs, los.ip_p ); 
+  interp_1D ( los.p, p_abs, los.ip_p ); 
 }
 
 
@@ -491,9 +604,9 @@ void test_new_los()
   Numeric z_tan, z_ground, l_max, z_plat, za;
 
   z_ground = 200;
-  l_max    = 10e3;
-  z_plat   = 15e3;
-  za       = 94;
+  l_max    = 500;
+  z_plat   = 1e3;
+  za       = 45;
   
   Vector z_abs( 0, 11, 1e3 );
   Vector p_abs( 0, 11, 1 );
@@ -513,4 +626,16 @@ void test_new_los()
   cout << "ground  = " << los.ground << "\n";
   cout << "i_ground= " << los.i_ground << "\n";
   cout << "z_tan   = " << z_tan/1e3 << " km\n";
+
+
+  Tensor3 abs_in(1,z_abs.nelem(),2,0.0);
+  for ( Index j=0; j<abs_in.nrows(); ++j )
+    for ( Index k=0; k<abs_in.ncols()-1; ++k )
+      abs_in(0,j,k) = j;
+  cout << "abs_in = " << abs_in << "\n";
+
+  Matrix abs_out(los.p.nelem(),2);
+  
+  interp_abs2los( abs_out, abs_in, los.ip_p, los.ip_lat, los.ip_lon );
+  cout << "abs_out = \n" << abs_out << "\n";  
 }
