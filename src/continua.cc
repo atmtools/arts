@@ -1787,7 +1787,7 @@ void PWR93O2AbsModel( MATRIX&           xsec,
 		  }
 		// O2 absorption [Neper/km] 
 		O2ABS = 0.5034e12 * SUM * PRESDA * pow(TH, 3.0) / 3.14159;
-		//cout << "O2ABS=" << O2ABS << "\n";
+		// cout << "O2ABS=" << O2ABS << "\n";
 		// unit conversion x Nepers/km = y 1/m  --->  y = x * 1.000e-3 
 		// xsec [1/m]  1.000e-3
 		xsec[s][i] += 1.000e-3 * O2ABS / vmr[i];
