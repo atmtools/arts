@@ -1,3 +1,33 @@
+2003-01-20  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-404
+
+	* src/refraction.cc: Changes in most functions to change vertical
+	input coordinate from geometric altitude to radius, which is needed
+	to get lat and lon gradients correct. 
+
+	* src/m_refraction.cc (RefrIndexFieldAndGradients): Started on this
+	WSM.
+
+	* src/workspace.cc (define_wsv_data): Introduced tensor3_1 and
+	tensor4_1.
+
+	* src/ppath.cc (do_gridcell_2d): Introduced a more correct setting
+	of the latitude of the end point, for positions between lat1 and lat3.
+
+	* src/refraction.cc: Included input arguments to control the
+	verbosity when calling *refr_index_agenda*, but there is now no
+	way to use this argument as *refr_index_agenda* is called as part
+	of *ppath_step_agenda* and no such argument can be passed from one
+	agenda to next.
+
+	* src/ppath.cc (ppath_start_stepping): Improved the accuracy for
+	sensor positions outside the atmosphere and zenith angles of 180
+	and/or azimuth angles of 0 or 180 degrees.
+
+	* src/refraction.cc (refr_gradients_3d): The variable dndlon was not 
+	set (dndlat was set twice).
+
 2003-01-19  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-1-403

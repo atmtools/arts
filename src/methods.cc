@@ -2416,6 +2416,41 @@ md_data_raw.push_back
 
   md_data_raw.push_back     
     ( MdRecord
+      ( NAME("RefrIndexFieldAndGradients"),
+        DESCRIPTION
+        (
+         "Calculates the field and gradients of the refractive index.\n"
+         "\n"
+         "This function calculates the refractive index and its gradients\n"
+         "for a rectangular grid. \n"
+         "\n"
+         "Calculations are performed for all combinations of the given \n"
+         "vectors, where the first vector shall contain pressure values, the\n"
+         "second latitude values, and the last longitude values. For \n"
+         "dimensions not used, the corresponding position vector is ignored.\n"
+         "\n"
+         "The calculated values for a Tensor4, with size:\n"
+         "   [atmosphere_dim+1, np, nlat, nlon] \n"
+         "where np is the number of pressures given etc. The book of the\n"
+         "tensor with the following index holds:\n"
+         "   0: the refractive index \n"
+         "   1: radial gradient of the refractive index \n"
+         "   2: latitude gradient of the refractive index \n"
+         "   3: longitude gradient of the refractive index \n"
+         "\n"
+         "To calculate these quantities for the atmsopheric mesh, execute:\n"
+         "   RefrIndexFieldAndGradients(tensor4_1,p_grid,lat_grid,lon_grid)"
+        ),
+        OUTPUT( refr_index_, a_pressure_, a_temperature_, a_vmr_list_ ),
+        INPUT( refr_index_agenda_, atmosphere_dim_, p_grid_, lat_grid_, 
+               lon_grid_, r_geoid_, z_field_, t_field_, vmr_field_ ),
+        GOUTPUT( Tensor4_ ),
+        GINPUT( Vector_, Vector_, Vector_  ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back     
+    ( MdRecord
       ( NAME("refr_indexThayer"),
         DESCRIPTION
         (
@@ -2517,7 +2552,7 @@ md_data_raw.push_back
          "global internal varaible *EARTH_RADIUS*, defined in constants.cc.\n"
          "\n"
          "Keywords:\n"
-         "   r : Radius of geoid sphere. See furtjher above."
+         "   r : Radius of geoid sphere. See further above."
         ),
         OUTPUT( r_geoid_ ),
         INPUT( atmosphere_dim_, lat_grid_, lon_grid_ ),

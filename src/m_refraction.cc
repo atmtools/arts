@@ -42,6 +42,7 @@
 #include "absorption.h"
 #include "arts.h"
 #include "auto_md.h"
+#include "check_input.h"
 #include "matpackI.h"
 #include "refraction.h"
 
@@ -50,6 +51,111 @@
 /*===========================================================================
   === WSMs
   ===========================================================================*/
+
+//! RefrIndexFieldAndGradients
+/*! 
+   See the the online help (arts -d FUNCTION_NAME)
+
+   \author Patrick Eriksson
+   \date   2003-01-19
+*/
+void RefrIndexFieldAndGradients(
+      // WS Output:
+            Numeric&                    refr_index,
+            Numeric&                    a_pressure,
+            Numeric&                    a_temperature,
+            Vector&                     a_vmr_list,
+      // WS Generic Output:
+            Tensor4&                    out,
+      // WS Generic Output Names:
+      const String&                     outname,
+      // WS Input:
+      const Agenda&                     refr_index_agenda,
+      const Index&                      atmosphere_dim,
+      const Vector&                     p_grid,
+      const Vector&                     lat_grid,
+      const Vector&                     lon_grid,
+      const Matrix&                     r_geoid,
+      const Tensor3&                    z_field,
+      const Tensor3&                    t_field,
+      const Tensor4&                    vmr_field,
+      // WS Generic Input:
+      const Vector&                     p_values,
+      const Vector&                     lat_values,
+      const Vector&                     lon_values,
+      // WS Generic Input Names:
+      const String&                     p_name,
+      const String&                     lat_names,
+      const String&                     lon_names )
+{
+  // Check input
+  chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
+  chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
+  chk_atm_surface( "r_geoid", r_geoid, atmosphere_dim, lat_grid, lon_grid );
+  chk_atm_field( "z_field", z_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  chk_atm_field( "t_field", t_field, atmosphere_dim, p_grid, lat_grid, 
+                                                                    lon_grid );
+  chk_atm_field( "first book of vmr_field", vmr_field(0,joker,joker,joker), 
+                                  atmosphere_dim, p_grid, lat_grid, lon_grid );
+
+
+  // Common variables
+  const Index     np = p_values.nelem(); 
+        Index     nlat=1, nlon=1;
+        Numeric   r, dndr, dndlat, dndlon;
+
+  if( atmosphere_dim == 1 )
+    {
+      out.resize(2,np,1,1);
+    }
+  else if( atmosphere_dim == 2 )
+    {
+      nlat = lat_values.nelem();
+      out.resize(3,np,nlat,1);
+    }
+  else
+    {
+      nlat = lat_values.nelem();
+      nlon = lon_values.nelem();
+      out.resize(4,np,nlat,nlon);
+    }
+
+  for( Index ip=0; ip<np; ip++ )
+    {
+      for( Index ilat=0; ilat<nlat; ilat++ )
+        {
+          for( Index ilon=0; ilon<nlon; ilon++ )
+            {
+              if( atmosphere_dim == 1 )
+                {
+                }
+
+              else if( atmosphere_dim == 2 )
+                {
+                  refr_gradients_2d( refr_index, dndr, dndlat, a_pressure, 
+                               a_temperature, a_vmr_list, refr_index_agenda, 1,
+                               p_grid, lat_grid, r_geoid(joker,0), 
+                               z_field(joker,joker,0), t_field(joker,joker,0), 
+                               vmr_field(joker,joker,joker,0),
+                                              p_values[ip], lat_values[ilat] );
+                  out(2,ip,ilat,ilon) = dndlat;
+                }
+              
+              else
+                {
+                  out(2,ip,ilat,ilon) = dndlat;
+                  out(3,ip,ilat,ilon) = dndlon;
+                }
+
+              out(0,ip,ilat,ilon) = refr_index;
+              out(1,ip,ilat,ilon) = dndr;
+            }
+        }
+    }
+}
+
+
 
 //! refr_indexThayer
 /*! 
@@ -65,6 +171,10 @@ void refr_indexThayer(
        const Vector&                     a_vmr_list,
        const ArrayOfArrayOfSpeciesTag&   gas_species )
 {
+  if( gas_species.nelem() != a_vmr_list.nelem() )
+    throw runtime_error( "The number of tag groups differ between "
+                                           "*a_vmr_list* and *gas_species*." );
+
   Index   firstH2O = find_first_species_tg( gas_species, 
                                       species_index_from_species_name("H2O") );
 

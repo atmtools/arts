@@ -1728,6 +1728,7 @@ void do_gridcell_2d(
   // for the crossing shall not exceed dlat2end.
   //
   Numeric   dlat2end = 999;
+  Numeric   abs_za_start = abs( za_start );
             endface = 0;
 
 
@@ -1780,7 +1781,7 @@ void do_gridcell_2d(
   // check as there must be a tangent point before a possible crossing.
   //
   if( r_start < rupp  &&  abs(dlat2end) > abs(dlat_endface)  &&  
-                                                        abs( za_start ) < 180 )
+                                                           abs_za_start < 180 )
     {
       // We can here determine by zenith angles if there is a crossing with
       // the pressure surface. This should save some time compared to call
@@ -1812,13 +1813,16 @@ void do_gridcell_2d(
   assert( endface );
 
   // Check there is a tangent point inside the grid cell
-  if( abs(za_start) > 90  &&  ( abs(za_start) - abs(dlat2end) ) <= 90 ) 
+  if( abs_za_start > 90  &&  ( abs_za_start - abs(dlat2end) ) <= 90 ) 
     { 
       tanpoint = 1;
 
       // Check if the tangent point is closer than the end point
-      if( ( abs(za_start) - 90 ) < abs( dlat2end ) )
-        { endface = 0; }
+      if( ( abs_za_start - 90 ) < abs( dlat2end ) )
+        { 
+          endface  = 0; 
+          dlat2end = sign(za_start) * ( abs_za_start - 90 ); 
+        }
     }
   else
     { tanpoint = 0; }
@@ -1850,8 +1854,7 @@ void do_gridcell_2d(
                                                        za_start, r_end, lmax );
 
 
-  // Force end latitude and zenith angle to be exact when we know the 
-  // correct value
+  // Force end latitude and zenith angle to be exact as possible
   if( tanpoint )
     {
       if( za_start >= 0 )
@@ -1864,6 +1867,8 @@ void do_gridcell_2d(
     { lat_v[lat_v.nelem()-1] = lat1; }
   else if( endface == 3 )
     { lat_v[lat_v.nelem()-1] = lat3; }
+  else
+    { lat_v[lat_v.nelem()-1] = lat_start + dlat2end; }
 }
 
 
@@ -4243,8 +4248,8 @@ void raytrace_1d_linear_euler(
       //
       // Refractive index at *r*
       get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                         refr_index_agenda, p_grid, z_field, t_field, 
-                                                      vmr_field, r - r_geoid );
+                         refr_index_agenda, 1, p_grid, r_geoid, z_field, 
+                         t_field, vmr_field, r );
       
       const Numeric   ppc_local = ppc / refr_index; 
 
@@ -4339,10 +4344,9 @@ void raytrace_2d_linear_euler(
         const Numeric&          r1b,
         const Numeric&          rground1,
         const Numeric&          rground3,
-        const Numeric&          r_geoid1,
-        const Numeric&          r_geoid3,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
+        ConstVectorView         r_geoid,
         ConstMatrixView         z_field,
         ConstMatrixView         t_field,
         ConstTensor3View        vmr_field )
@@ -4354,9 +4358,6 @@ void raytrace_2d_linear_euler(
   Vector    r_v, lat_v, za_v;
   Numeric   lstep, dlat = 9999, r_new, lat_new;
 
-  // Latitude slope of the geoid
-  const Numeric   cgeoid = psurface_slope_2d( lat1, lat3, r_geoid1, r_geoid3 );
- 
   while( !ready )
     {
       // Constant for the geometrical step to make
@@ -4399,16 +4400,22 @@ void raytrace_2d_linear_euler(
 
       // Calculate LOS zenith angle at found point.
       if( ready  &&  tanpoint )
-        { za = sign(za) * 90; }
+        { 
+          // It is not totally correct to set *za* to 90 here. We neglect
+          // then the curvature of this ray tracing step, but we don't care
+          // about this for simplicity. This point has been flagged as the
+          // the tangent point and we treat it then it that way.
+          za = sign(za) * 90; 
+        }
       else
         {
                 Numeric   dndr, dndlat;
           const Numeric   za_rad = DEG2RAD * za;
 
           refr_gradients_2d( refr_index, dndr, dndlat, a_pressure, 
-                             a_temperature, a_vmr_list, refr_index_agenda, 
-                             p_grid, lat_grid, z_field, t_field, vmr_field, 
-                             r - ( r_geoid1 + cgeoid*( lat - lat1 ) ), lat );
+                             a_temperature, a_vmr_list, refr_index_agenda, 1, 
+                             p_grid, lat_grid, r_geoid, z_field, t_field, 
+                             vmr_field, r, lat );
 
           za += -dlat + RAD2DEG * lstep / refr_index * ( -sin(za_rad) * dndr +
                                                     cos(za_rad) * dndlat / r );
@@ -4507,13 +4514,10 @@ void raytrace_3d_linear_euler(
         const Numeric&          rground35,
         const Numeric&          rground36,
         const Numeric&          rground16,
-        const Numeric&          r_geoid15,
-        const Numeric&          r_geoid35,
-        const Numeric&          r_geoid36,
-        const Numeric&          r_geoid16,
         ConstVectorView         p_grid,
         ConstVectorView         lat_grid,
         ConstVectorView         lon_grid,
+        ConstMatrixView         r_geoid,
         ConstTensor3View        z_field,
         ConstTensor3View        t_field,
         ConstTensor4View        vmr_field )
@@ -4554,29 +4558,56 @@ void raytrace_3d_linear_euler(
       else
         {
           // Sensor pos and LOS in cartesian coordinates
-          Numeric   x, y, z, dx, dy, dz;
+          Numeric   x, y, z, dx, dy, dz, za_new, aa_new;
           poslos2cart( x, y, z, dx, dy, dz, r, lat, lon, za, aa ); 
 
           lstep = lraytrace;
 
-          cart2poslos( r_new, lat_new, lon_new, za, aa, 
+          cart2poslos( r_new, lat_new, lon_new, za_new, aa_new, 
                               x+dx*lstep, y+dy*lstep, z+dz*lstep, dx, dy, dz );
+
+          // Checks to improve the accuracy for speciel cases.
+          // The checks are only needed for values cacluated locally as
+          // the same checks are made inside *do_gridcell_3d*.
+
+          //--- Set zenith angle to be as accurate as possible
+          if( za == 0  ||  za == 180 )
+            { za_new = za; }
+          else
+            { za_new = geompath_za_at_r( ppc_step, za, r_new ); }
+
+          //--- Set azimuth angle and lon. to be as accurate as possible for
+          //    zenith and nadir observations
+          if( abs( lat ) < 90  &&  ( aa == 0  ||  abs( aa ) == 180 ) )
+            { 
+              aa_new  = aa; 
+              lon_new = lon;
+            }
+
+          // Shall lon values be shifted?
+          resolve_lon( lon_new, lon5, lon6 );
+
+          za = za_new;
+          aa = aa_new;
         }
 
       // Calculate LOS zenith angle at found point.
       if( ready  &&  tanpoint )
-        { za = 90; }
+        {
+          // It is not totally correct to set *za* to 90 here. We neglect
+          // then the curvature of this ray tracing step, but we don't care
+          // about this for simplicity. This point has been flagged as the
+          // the tangent point and we treat it then it that way.
+          za = 90; 
+        }
       else
         {
-                Numeric   dndr, dndlat, dndlon, r_geoid;
-
-          r_geoid = rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                        r_geoid15, r_geoid35, r_geoid36, r_geoid16, lat, lon );
+          Numeric   dndr, dndlat, dndlon;
 
           refr_gradients_3d( refr_index, dndr, dndlat, dndlon, a_pressure, 
-                             a_temperature, a_vmr_list, refr_index_agenda, 
-                             p_grid, lat_grid, lon_grid, z_field, t_field, 
-                             vmr_field, r - r_geoid, lat, lon );
+                             a_temperature, a_vmr_list, refr_index_agenda, 1,
+                             p_grid, lat_grid, lon_grid, r_geoid, z_field, 
+                             t_field, vmr_field, r, lat, lon );
 
           const Numeric   aterm = RAD2DEG * lstep / refr_index;
           const Numeric   za_rad = DEG2RAD * za;
@@ -4687,8 +4718,8 @@ void ppath_step_refr_1d(
   if( ppath.constant < 0 )
     { 
       get_refr_index_1d( refr_index, a_pressure, a_temperature, a_vmr_list, 
-                         refr_index_agenda, p_grid, z_field, t_field, 
-                                                vmr_field, r_start - r_geoid );
+                         refr_index_agenda, 1, p_grid, r_geoid, z_field, 
+                         t_field, vmr_field, r_start );
       ppc = refraction_ppc( r_start, za_start, refr_index ); 
     }
   else
@@ -4839,9 +4870,6 @@ void ppath_step_refr_2d(
 
   // No constant for the path is valid here.
 
-  // Geoid radius at *lat1* and *lat3*
-  const Numeric   r_geoid1 = r_geoid[ilat];
-  const Numeric   r_geoid3 = r_geoid[ilat+1];
 
   // Perform the ray tracing
   //
@@ -4871,7 +4899,7 @@ void ppath_step_refr_2d(
             tanpoint, r_start, lat_start, za_start, a_pressure, a_temperature, 
                     a_vmr_list, refr_index, refr_index_agenda, lraytrace, 
                           lat1, lat3, r1a, r3a, r3b, r1b, rground1, rground3,
-           r_geoid1, r_geoid3, p_grid, lat_grid, z_field, t_field, vmr_field );
+                      p_grid, lat_grid, r_geoid, z_field, t_field, vmr_field );
     }
   else
     {
@@ -4997,11 +5025,6 @@ void ppath_step_refr_3d(
 
   // No constant for the path is valid here.
 
-  // Geoid radius at *lat1*, *lat3*, *lon5* and *lon6*
-  const Numeric   r_geoid15 = r_geoid(ilat,ilon);
-  const Numeric   r_geoid35 = r_geoid(ilat+1,ilon);
-  const Numeric   r_geoid36 = r_geoid(ilat+1,ilon+1);
-  const Numeric   r_geoid16 = r_geoid(ilat,ilon+1);
 
   // Perform the ray tracing
   //
@@ -5037,9 +5060,8 @@ void ppath_step_refr_3d(
                                 lat1, lat3, lon5, lon6, 
                                 r15a, r35a, r36a, r15a, r15b, r35b, r36b, r15b,
                                 rground15, rground35, rground36, rground16,
-                                r_geoid15, r_geoid35, r_geoid36, r_geoid16, 
                                 p_grid, lat_grid, lon_grid, 
-                                                 z_field, t_field, vmr_field );
+                                r_geoid, z_field, t_field, vmr_field );
     }
   else
     {
@@ -6018,6 +6040,17 @@ void ppath_start_stepping(
                   throw runtime_error( os.str() );
                 }
 
+              // Correct found lat and lon for some special cases
+              //
+              if( a_los[0] == 180 )
+                {
+                  lat_top = a_pos[1];
+                  lon_top = a_pos[2];
+                }
+              else if( abs( a_pos[1] ) < 90  && 
+                                ( a_los[1] == 0  ||  abs( a_los[1] ) == 180 ) )
+                { lon_top = a_pos[2]; } 
+
               // Move found values to *ppath*
               //
               // Position
@@ -6041,6 +6074,13 @@ void ppath_start_stepping(
               // LOS
               cart2poslos( r_top, lat_top, lon_top, ppath.los(0,0), 
               ppath.los(0,1), x+dx*l_top, y+dy*l_top, z+dz*l_top, dx, dy, dz );
+              //
+              // Correct found LOS for some special cases
+              if( a_los[0] == 180 )
+                { ppath.los(0,0) = 180; }
+              if( abs( a_pos[1] ) < 90  &&  
+                                ( a_los[1] == 0  ||  abs( a_los[1] ) == 180 ) )
+                { ppath.los(0,1) = a_los[1]; } 
             }
 
         } // else

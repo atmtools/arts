@@ -49,11 +49,13 @@ void get_refr_index_1d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
         ConstVectorView   p_grid,
+        const Numeric&    r_geoid,
         ConstVectorView   z_field,
         ConstVectorView   t_field,
         ConstMatrixView   vmr_field,
-        const Numeric&    z );
+        const Numeric&    r );
 
 void get_refr_index_2d(
               Numeric&    refr_index,
@@ -61,12 +63,14 @@ void get_refr_index_2d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
+        ConstVectorView   r_geoid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
-        const Numeric&    z,
+        const Numeric&    r,
         const Numeric&    lat );
 
 void get_refr_index_3d(
@@ -75,13 +79,15 @@ void get_refr_index_3d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
+        ConstMatrixView   r_geoid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        const Numeric&    z,
+        const Numeric&    r,
         const Numeric&    lat,
         const Numeric&    lon );
 
@@ -93,12 +99,14 @@ void refr_gradients_2d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
+        ConstVectorView   r_geoid,
         ConstMatrixView   z_field,
         ConstMatrixView   t_field,
         ConstTensor3View  vmr_field,
-        const Numeric&    z,
+        const Numeric&    r,
         const Numeric&    lat );
 
 void refr_gradients_3d(
@@ -110,13 +118,15 @@ void refr_gradients_3d(
               Numeric&    a_temperature,
               Vector&     a_vmr_list,
         const Agenda&     refr_index_agenda,
+        const Index&      agenda_verb,
         ConstVectorView   p_grid,
         ConstVectorView   lat_grid,
         ConstVectorView   lon_grid,
+        ConstMatrixView   r_geoid,
         ConstTensor3View  z_field,
         ConstTensor3View  t_field,
         ConstTensor4View  vmr_field,
-        const Numeric&    z,
+        const Numeric&    r,
         const Numeric&    lat,
         const Numeric&    lon );
 

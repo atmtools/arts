@@ -1889,6 +1889,36 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "tensor3_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary Tensor3.\n"
+       "\n"
+       "This variable is a general variable of type Tensor3.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Tensor3_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "tensor4_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary Tensor4.\n"
+       "\n"
+       "This variable is a general variable of type Tensor4.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Tensor4_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "t_field" ),
       DESCRIPTION
       (
@@ -1957,6 +1987,21 @@ void define_wsv_data()
   wsv_data.push_back
    (WsvRecord
     ( NAME( "vector_2" ),
+      DESCRIPTION
+      (
+       "An arbitrary vector.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type Vector.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage: Set by user."
+       ),
+      GROUP( Vector_ )));
+
+  wsv_data.push_back
+   (WsvRecord
+    ( NAME( "vector_3" ),
       DESCRIPTION
       (
        "An arbitrary vector.\n"
