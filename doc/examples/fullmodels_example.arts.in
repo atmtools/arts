@@ -64,14 +64,14 @@ cont_descriptionAppend{
 # Rosenkranz O2 absorption model (line + continuum):
 cont_descriptionAppend{
     tagname        = "O2-PWR93"
-    model         = "RosenkranzContinuum"
+    model         = "Rosenkranz"
     userparameters = [ ]
 }
 #
 # MPM93 O2 absorption model (lines + continuum)
 cont_descriptionAppend{
     tagname        = "O2-MPM93"
-    model         = "MPM93Continuum"
+    model         = "MPM93"
     userparameters = [ ]
 }
 #
