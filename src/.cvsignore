@@ -21,6 +21,7 @@ make_auto_wsv_pointers_cc
 stamp-h
 stamp-h.in
 string.xml
+test_griddedtensorcheck
 test_interpolation
 test_linalg
 test_matpack
