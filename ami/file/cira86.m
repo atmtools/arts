@@ -12,8 +12,10 @@
 %           nhz.dat and are interpolated to the given points. The interpolation
 %           is performed with interp3, where the linear option is used. That
 %           is, 3D linear interpolation. Note that fractional month numbers
-%           are allowed. The interpolated data are returned as tensor of order
-%           3, where the index are (using temperature as example):
+%           are allowed. Allowed month values range from 0 to 13.
+%
+%	    The interpolated data are returned as tensor of order 3, where 
+%	    the index are (using temperature as example):
 %
 %              T(month,latitude,pressure)
 %
@@ -44,7 +46,7 @@ function [T,Z] = cira86(months,lats,p)
 
 
 %=== Check input 
-if any( months < 1 )  |  any( months > 12 )
+if any( months < 0 )  |  any( months > 13 )
   error('Allowed range for month numbers is 1 - 12.');
 end
 if any( lats < -90 )  |  any( lats > 90 )
@@ -74,7 +76,7 @@ cira_path = fullfile( arts_data_path, 'atmosphere', 'cira86' );
 %=== one of the files)
 %
 clats = [-90 -80:5:80 90]';
-cmonths = [1:12]';
+cmonths = [0:13]';
 
 
 
@@ -184,15 +186,18 @@ return
 
 function A = cira_combine( SH, NH )
 
-  A = zeros(12,35,71);
+  A = zeros(14,35,71);
 
   % Data for +-80 are copied to be valid also for +-90
+  % Data for month 1 is copied to month 13, and data for 12 to 0.
 
-  A(:,1,:)     = SH(:,1,:);
-  A(:,35,:)    = NH(:,17,:);
-  A(:,2:18,:)  = SH;
-  A(:,19:34,:) = NH(:,2:17,:);
+  A(2:13,1,:)     = SH(:,1,:);
+  A(2:13,35,:)    = NH(:,17,:);
+  A(2:13,2:18,:)  = SH;
+  A(2:13,19:34,:) = NH(:,2:17,:);
 
+  A(1,:,:)        = A(13,:,:);
+  A(14,:,:)       = A(2,:,:);
 return
 
 

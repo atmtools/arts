@@ -1,3 +1,13 @@
+2002-09-25  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-0-46
+
+	* ami/file/cira86.m: Month number can now be 0-13 (before 1-12). Month
+	number 1 should be interpreted as Jan 15, month 1.5 is Jan 31.
+
+	* ami/general/whoami.m: There is now an error message if you try
+	to use this function on a non-unix system.
+
 2002-09-08  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
 
 	* arts-1-0-45

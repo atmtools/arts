@@ -20,7 +20,7 @@ function uid = whoami
 
 %=== Unix/Linux
 %
-if strcmp(computer,'LNX86') | strcmp(computer,'GLNX86') | strcmp(computer,'SOL2')
+if isunix
   %
   [s,uid] = unix('whoami');
   %
@@ -31,5 +31,5 @@ if strcmp(computer,'LNX86') | strcmp(computer,'GLNX86') | strcmp(computer,'SOL2'
 %=== Unknown system
 %
 else
-  error('Unknown computer type.');
+  error('The function works only for Unix type computers.');
 end
