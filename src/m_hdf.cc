@@ -30,24 +30,22 @@
    \date 2001-09-26 
 */
 
-#if HAVE_CONFIG_H
-#include "config.h"
-#endif	
-
 ////////////////////////////////////////////////////////////////////////////
 //   External declarations
 ////////////////////////////////////////////////////////////////////////////
 
+#include "arts.h"
+
+// This has to be below the include for arts.h, sinde HDF_SUPPORT is
+// defined in config.h, which is loaded by arts.h.
 #ifdef HDF_SUPPORT
 
 #include <hdf.h>
 #include <cmath>
-#include "arts.h"
 #include "math_funcs.h"
 #include "messages.h"
 #include "auto_md.h"
 #include "make_array.h"
-
 
 
 ////////////////////////////////////////////////////////////////////////////

@@ -55,7 +55,7 @@ void give_up(const String& message)
 
   The workspace itself is made visible by an external declaration.
 */
-void Agenda::execute() const
+void Agenda::execute(bool silent) const
 {
   // The workspace:
   extern WorkSpace workspace;
@@ -68,6 +68,20 @@ void Agenda::execute() const
   
   // The array holding the pointers to the getaway functions:
   extern const void (*getaways[])(WorkSpace&, const MRecord&);
+
+    // The messages level. We will manipulate it in this function, if
+  // silent execution is desired.
+  extern Messages messages;
+
+  // Backup for the original message level:
+  Messages messages_original( messages );
+
+  // Manipulate the message level, to allow silent execution:
+  if (silent)
+    {
+      messages.screen = 0;
+      messages.file   = 0;
+    }
 
   out1 << "Executing " << name() << "\n"
        << "{\n";
@@ -147,6 +161,11 @@ void Agenda::execute() const
 
   out1 << "}\n";
 
+  // Restore the original message level:
+  if (silent)
+    {
+      messages = messages_original;
+    }
 }
 
 //! Set size to n.

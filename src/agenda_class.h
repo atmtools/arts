@@ -44,7 +44,7 @@ class MRecord;
 class Agenda {
 public:
   void push_back(MRecord n);
-  void execute() const;
+  void execute(bool silent=false) const;
   void resize(Index n);
   Index nelem() const;
   Agenda& operator=(const Agenda& x);

@@ -1,3 +1,32 @@
+2002-11-25  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-305
+
+	* src/agenda_class.h: Changed declaration of Agenda.
+
+	* src/agenda_class.cc: Implemented an optional argument for
+	Agenda::execute. If the argument is true, the agenda is executed
+	silently, i.e., all output, except level 0 (error messages) is
+	suppressed. 
+
+	If you call Agenda::execute() in a loop, you should call it
+	without argument for the first time, then call it with argument
+	true for the remaining iterations.
+
+	* src/arts.h: Removed the line about NDEBUG. This is set by
+	configure --enable-debug or --disable-debug. Hence, it must not be
+	set explicitly in the code.
+	Moved include for cassert to another position.
+
+	* src/m_hdf.cc: Removed inclusion of config.h. (This is included by
+	arts.h.)
+
+	* src/methods.cc: Removed inclusion of config.h. (This is included by
+	arts.h.)
+
+	* src/main.cc: Removed inclusion of config.h. (This is included by
+	arts.h.)
+
 2002-11-25  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-304
