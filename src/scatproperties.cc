@@ -86,9 +86,9 @@ void amp2ext(MatrixView ext,
   
   const Numeric wavelength = SPEED_OF_LIGHT / freq;
 
-  cout<<"Wavelength corresponding to this frequency"<<wavelength<<"\n";
-  cout<<"Imaginariy part of S11"<<Im_S11<<"\n";
-  cout << "Amplitude matrix " << amp_coeffs  << " \n " ;
+  //cout<<"Wavelength corresponding to this frequency"<<wavelength<<"\n";
+  //  cout<<"Imaginariy part of S11"<<Im_S11<<"\n";
+  //cout << "Amplitude matrix " << amp_coeffs  << " \n " ;
   ext(0, 0) = wavelength * (Im_S11 + Im_S22) * 1e-6; 
   
   if( 1 == stokes_dim ){
@@ -166,8 +166,8 @@ void amp2pha(Tensor4View phasemat,
   }
   Index nza = phasemat.nbooks();
   Index naa = phasemat.npages();
-  
-  assert (is_size(amp_coeffs, nza, naa, 8));
+  //cout<<"\n nza, naa"<<nza<<" "<<naa<<"\n"; 
+  //assert (is_size(amp_coeffs, nza, naa, 8));
   assert (is_size(phasemat, nza, naa, stokes_dim, stokes_dim));
   
   for (Index i = 0; i < nza; ++i)

@@ -1,3 +1,37 @@
+2002-08-09  Sreerekha T.R.  <rekha@uni-bremen.de>
+
+	* arts-1-1-201
+	
+	* src/m_scatrte.cc (i_fieldUpdate1D): The changes made here are
+	mainly with reference to the size of i_field and scat_field.  This
+	comes in all methods which use these variables.  For example, In
+	the previous version the size of i_field was 
+	i_field( N_p, N_lat, N_lon, N_za, N_aa, N_i ) whereas now it is
+	changed to i_field( cloudbox_limits[1] - cloudbox_limits[0]) +1,
+       		        ( cloudbox_limits[3] - cloudbox_limits[2]) +1,
+       			( cloudbox_limits[5] - cloudbox_limits[4]) +1,
+       			 N_za, N_aa, N_i ).
+	The code doesn't look very clean now because i have commented some
+	parts of the code for Claudia to have a look at the changes i have
+	made because she has written them.
+
+	I had quite lot of problem at cloudbox boundaries while taking the
+	average of *i_field* and *scat_field*.  That part has to be for
+	sure rewritten.  But at present I retain them and comments on it
+	will be really helpful.  
+
+	* src/m_scatrte.cc (i_fieldIterate):There is some change in the
+	input to *i_fieldIterate* which I forgot to enter in the Changelog
+	file earlier.  The new input added to this method is scat_aa_grid.
+
+	* src/m_scatrte.cc (scat_fieldCalc): Some bugs are fixed, as usual.
+
+	* src/methods.cc : Changed inputs to i_fieldIterate.
+
+	* src/workspace.cc : Changed the dimensions of i_field,
+	i_field_old and scat_field.  Change the usage of amp_mat as output
+	from amp_matCalc
+
 2002-08-09  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-1-200

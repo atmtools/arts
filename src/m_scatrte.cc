@@ -137,22 +137,25 @@ void convergence_flagAbs(//WS Output:
           for (Index scat_za_index = 0; scat_za_index < N_scat_za;
                scat_za_index++)
             {
-              Numeric diff = fabs( i_field( p_index, 0, 0, scat_za_index,
-                                            0, stokes_index) -
-                                   i_field_old( p_index, 0, 0, scat_za_index,
-                                                0, stokes_index ));
-              
+              Numeric diff = 
+		fabs( i_field(( p_index-cloudbox_limits[0]), //STR
+			      0, 0, scat_za_index, 0, stokes_index) -
+		      i_field_old(( p_index-cloudbox_limits[0]),//STR
+				  0, 0, scat_za_index, 0, stokes_index ));
+             
+	      
               // If the absolute difference of the components is 
               // larger than the pre-defined values, return to
               // *i_fieldIterarte and do another iteration
               if( diff > epsilon[stokes_index])
                 return;
-
+	      cout<<"DIFF"<<diff<<"\n";
             } // End loop scat_za_grid.
         }// End loop p_grid.
+    exit(1);
   } // End 1D atmosphere.
               
-
+  
   //3D atmosphere:
   else if( atmosphere_dim == 3 ){
     
@@ -171,20 +174,24 @@ void convergence_flagAbs(//WS Output:
                       for (Index scat_aa_index = 0; scat_aa_index < N_scat_aa;
                        scat_aa_index++)
                         {
-                          Numeric diff = fabs( i_field( p_index, lat_index,
-                                                        lon_index, 
-                                                        scat_za_index,
-                                                        scat_aa_index, 
-                                                        stokes_index) -
-                                               i_field_old( p_index, lat_index,
-                                                            lon_index, 
-                                                            scat_za_index,
-                                                            scat_aa_index, 
-                                                            stokes_index ));
+                          Numeric diff =
+			    fabs( i_field((p_index-cloudbox_limits[0]),
+					  (lat_index-cloudbox_limits[2]),
+					  (lon_index-cloudbox_limits[4]), 
+					  scat_za_index,
+					  scat_aa_index, 
+					  stokes_index) -
+				  i_field_old((p_index-cloudbox_limits[0]),
+					      (lat_index-cloudbox_limits[2]),
+					      (lon_index-cloudbox_limits[4]), 
+					      scat_za_index,
+					      scat_aa_index, 
+					      stokes_index ));
                           
                           // If the absolute difference of the components is 
                           // larger than the pre-defined values, return to
                           // *i_fieldIterarte and do another iteration
+			  
                           if( diff > epsilon[stokes_index])
                             return;
 
@@ -321,22 +328,33 @@ i_fieldIterate(
     throw runtime_error(
 			"The dimension of stokes vector must be"
 			"1,2,3, or 4");
- 
+  
   if (atmosphere_dim == 3){
- 
+    
     // Does i_field have the right dimension? 
-      assert( is_size( i_field, p_grid.nelem(), lat_grid.nelem(), 
-		       lon_grid.nelem(), scat_za_grid.nelem(), 
-		       scat_aa_grid.nelem(), stokes_dim));
+    // This is changed (STR).  This is because now the dimension of 
+    //i_field is the dimension of the cloudbox
+    
+    assert ( is_size( i_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+		      scat_za_grid.nelem(), 
+		      scat_aa_grid.nelem(),
+		      stokes_dim));
     
     //Dimension of cloudbox_limits
     assert(is_size(cloudbox_limits, 6));
   }
-  
+  //Similar change here also (STR).
   else if (atmosphere_dim == 1 ){
-    assert ( is_size( i_field, p_grid.nelem(), 1, 
-		      1, scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(), stokes_dim));
+    assert ( is_size( i_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+		      stokes_dim));
   }
   
   else if (atmosphere_dim == 2){
@@ -345,22 +363,20 @@ i_fieldIterate(
                         "atmosphere. If you want to do scattering calculations"
                         "*atmosphere_dim* has to be either 1 or 3"
                         );
-      }
-
+  }
+  
   chk_if_in_range( "atmosphere_dim", atmosphere_dim, 1, 3 );
-
+  
   // Grids have to be adapted to atmosphere_dim.
   chk_atm_grids( atmosphere_dim, p_grid, lat_grid, lon_grid );
-
+  
   // Is the frequency index valid?
   assert( scat_f_index <= f_grid.nelem() );
-
-  
-  
+    
   //The following steps are repeated until convergence is reached.
   convergence_flag = 0;
   while(convergence_flag == 0) {
-  
+    
     // 1. Copy i_field to i_field_old.
     i_field_old = i_field;
     
@@ -370,23 +386,39 @@ i_fieldIterate(
     // Resize variables:
     ext_mat_spt.resize(part_types.nelem(), stokes_dim, stokes_dim);
     abs_vec_spt.resize(part_types.nelem(), stokes_dim);
-    pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), 1,
+    pha_mat_spt.resize(part_types.nelem(), scat_za_grid.nelem(), scat_aa_grid.nelem(),//STR
                        stokes_dim, stokes_dim);
     
     // To calculate the scattering integral, pha_mat_spt is required 
     // for all directions. Furthermore is is required to calculate 
     // the absortion vector.
- 
+   
     Index N_scat_za = scat_za_grid.nelem();
+
+    //STR : We need the full azimuth angle grid for calculating absorption 
+    //vector and phase matrix
+    Index N_scat_aa = scat_aa_grid.nelem();
+    
     for(Index scat_za_index = 0; scat_za_index < N_scat_za;
         scat_za_index ++)
       {
-        ext_mat_sptCalc(ext_mat_spt, amp_mat, scat_za_index, 0, 
-                        scat_f_index, f_grid);
-	   
-        pha_mat_sptCalc(pha_mat_spt, amp_mat, scat_za_index, 0);
+	//The loop over azimuth angle (STR).
+	for(Index scat_aa_index = 0; scat_aa_index < N_scat_aa;
+	    scat_aa_index ++)
+	  {
+	    ext_mat_sptCalc(ext_mat_spt, 
+			    amp_mat,
+			    scat_za_index,
+			    scat_aa_index,//STR earlier it was zero
+			    scat_f_index,
+			    f_grid);
+	    
+	    pha_mat_sptCalc(pha_mat_spt,
+			    amp_mat,
+			    scat_za_index,
+			    scat_aa_index);//STR earlier it was zero
+	  }
       }
-    
     
     // Calculate the scattered field.
     scat_fieldCalc(scat_field, pha_mat, i_field, pha_mat_spt, pnd_field, 
@@ -401,10 +433,10 @@ i_fieldIterate(
                         sca_vec, planck_function, l_step,  
                         abs_vec_spt, ext_mat_spt,ext_mat, abs_vec,
                         scat_p_index,
-                        //Input:
+                        //Input://scat_aa_grid by STR
                         ext_mat_agenda, abs_vec_agenda, ppath_step_agenda,
                         scat_rte_agenda,  amp_mat, scat_field,
-                        cloudbox_limits, scat_za_grid, p_grid, 
+                        cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
                         t_field, z_field, r_geoid, f_grid, scat_f_index, 
                         pnd_field, stokes_dim, atmosphere_dim, part_types,
                         pha_mat_spt);
@@ -451,6 +483,7 @@ i_fieldIterate(
                               inside the cloud box.
   \param cloudbox_limits Limits of the cloudbox.
   \param scat_za_grid  Zenith angle grid inside the cloud box.
+  \param scat_aa_grid  Azimuth angle grid inside the cloud box.//STR
   \param p_grid        Pressure grid (is required only for checking the 
                        input).
   \param t_field       Temperature field for all grid points.
@@ -498,6 +531,7 @@ i_fieldUpdate1D(// WS Output:
 		const Tensor6& scat_field,
 		const ArrayOfIndex& cloudbox_limits,
 		const Vector& scat_za_grid,
+		const Vector& scat_aa_grid,//STR
                 const Vector& p_grid,
                 const Tensor3& t_field,
 		const Tensor3& z_field,
@@ -521,65 +555,91 @@ i_fieldUpdate1D(// WS Output:
                         "The dimension of stokes vector must be"
                         "1,2,3, or 4");
   
-  assert ( is_size( i_field, p_grid.nelem(), 1, 
-		    1, scat_za_grid.nelem(), 
-		    1, stokes_dim));
+  assert ( is_size( i_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+		      stokes_dim));
+  assert ( is_size( scat_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+		      stokes_dim));  
   
-  assert ( is_size( scat_field , p_grid.nelem(), 1, 
-		    1, scat_za_grid.nelem(), 
-		    1, stokes_dim));  
-  
-
   // Number of zenith angles.
   const Index N_scat_za = scat_za_grid.nelem();
+  const Index N_scat_aa = scat_aa_grid.nelem();//STR
 
-
- 
   //Loop over all directions, defined by scat_za_grid 
   for(Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
     {
-
+      //STR : this loop
+      for(Index scat_aa_index = 0; scat_aa_index < N_scat_aa; scat_aa_index ++)
+	{
+	
       //Calculate optical properties for single particle types:
     
       //Calculate ext_mat_spt for the direction 
       //corresponding to the outer loop:
-      ext_mat_sptCalc(ext_mat_spt, amp_mat, scat_za_index, 0, scat_f_index, 
+      ext_mat_sptCalc(ext_mat_spt,
+		      amp_mat,
+		      scat_za_index,
+		      scat_aa_index,//STR earlier it was zero
+		      scat_f_index, 
                       f_grid);      
-      cout << "ext_mat_spt is calculated"<<"\n";
-
-
+      //cout << "ext_mat_spt is calculated"<<"\n";
       // For a 1D atmosphere the azimuthal angle grid is not defined. 
       // Only 1 value, which is arbitrary set to 0, is passed into the function
       // abs_vec_sptCalc. 
       // pha_mat_spt is already calculated in i_fieldIterate.
-      Vector scat_aa_grid(1);
-      scat_aa_grid[0] = 0;
-      abs_vec_sptCalc(abs_vec_spt, ext_mat_spt, pha_mat_spt, scat_za_grid, 
+      //next two line commented by STR
+      //Vector scat_aa_grid(1);
+      //scat_aa_grid[0] = 0;
+      abs_vec_sptCalc(abs_vec_spt, 
+		      ext_mat_spt,
+		      pha_mat_spt,
+		      scat_za_grid, 
                       scat_aa_grid);
     
+      //cout << "abs_vec_spt is calculated"<<"\n";
+	}//STR : this loop closing
+    }//STR : this loop closing
+  //STR : this loop starting
+ 
 
+  for(Index scat_za_index = 0; scat_za_index < N_scat_za; scat_za_index ++)
+    {  
       //Loop over all positions inside the cloud box defined by scat_p_grid
+      //STR comment the following p_index loop and add these conditions
+      
       for(Index p_index = cloudbox_limits[0]; p_index
-            <= cloudbox_limits[1]; p_index ++)
+	<= cloudbox_limits[1]; p_index ++)
+	
 	{
+	  
 	  //Print the loop indices (just for testing the function)
-
+	  
 	  cout << "\n loop indices: \n";
 	  cout << "\n scat_za_index ---------"<< scat_za_index;
 	  cout << "\n p_index       ---------"<< p_index;
           cout << "\n stokes_dim    ---------"<< stokes_dim;
-
-          
+	  cout << "\n cloudbox_limits    ---------"<< cloudbox_limits[0]<<" "<<cloudbox_limits[1]<<"\n";
           //Generate Planck function.
 	  Numeric T1 = t_field(p_index, 0, 0);
           Numeric T2 = t_field(p_index + 1, 0, 0); 
 	  Numeric f = f_grid[scat_f_index];
 	  planck_function = 0.5*(planck(f, T1)+planck(f,T2));
-
+	  
 	  
           
           //Initialize ppath for 1D.
 	  ppath_init_structure(ppath_step, 1, 1);
+	  //is it not  ppath_init_structure(ppath_step, 1, 2)
+	  // as the last dimension is same that of np STR
 	  
 	  // Assign value to ppath.pos:
 	  ppath_step.z[0]     = z_field(p_index,0,0);
@@ -598,29 +658,26 @@ i_fieldUpdate1D(// WS Output:
 	  
 	  // Check if the agenda has returned ppath.step with reasonable 
 	  // values. 
-          	  cout << "\n ";
+	  cout << "\n ";
 	  PpathPrint( ppath_step, "ppath");
-
-
-
-
+	  
 	  //Get the coefficients for the radiative transfer:
           // We need the average value for the traversed layer.
-
+	  
           //1.Extinction Matrix.
-
+	  
           // Calculate ext_mat for the given point:
           Matrix ext_mat_0(stokes_dim, stokes_dim); 
           scat_p_index = p_index;
           ext_mat_agenda.execute();
           ext_mat_0 = ext_mat;
-
+	  
           // Calculate ext_mat for the grid point above:
           Matrix ext_mat_above(stokes_dim, stokes_dim);
           scat_p_index = p_index + 1;
           ext_mat_agenda.execute();
           ext_mat_above = ext_mat;
-
+	  
           // Calculate ext_mat for the grid point below:
           Matrix ext_mat_below(stokes_dim, stokes_dim);
           scat_p_index = p_index - 1;
@@ -632,6 +689,7 @@ i_fieldUpdate1D(// WS Output:
             {
             for (Index j=0; j < stokes_dim; j++)
               { 
+		//isn't both these same ?? STR
               if ( ppath_step.z[0] < ppath_step.z[1] )
                 ext_mat = 0.5*( ext_mat_0(i,j) + ext_mat_above(i,j));
               else if ( ppath_step.z[0] > ppath_step.z[1] )
@@ -643,6 +701,7 @@ i_fieldUpdate1D(// WS Output:
                                     );
               }
             }
+	
           
           //3. Absorption Vector.
           
@@ -678,65 +737,152 @@ i_fieldUpdate1D(// WS Output:
                                     );
             }
 	 
+         
           // Get sca_vec and stokes_vec from the fields and calculate
           // the average values for the layer. 
           sca_vec.resize(stokes_dim);
           stokes_vec.resize(stokes_dim);
-          
-          if ( ppath_step.z[0] < ppath_step.z[1] )
+	  //Just tried this way.  more modifications are to be done for 
+	  //sure (STR)
+	  if ( ppath_step.z[0] < ppath_step.z[1] )//upward propating
+	    { 
+	      for (Index i = 0; i < stokes_dim; i++)
+		{
+		  if (p_index == cloudbox_limits[0])
+		    {
+		      sca_vec[i] = scat_field((p_index - cloudbox_limits[0]),
+					      0, 0, scat_za_index, 0, i);
+		      stokes_vec[i] = i_field((p_index - cloudbox_limits[0]),
+					      0, 0, scat_za_index, 0, i);
+		     
+		     
+		      
+		    }
+		  else if (p_index == cloudbox_limits[1])
+		    {
+		      sca_vec[i] = scat_field((p_index - cloudbox_limits[0]) - 1,
+					      0, 0, scat_za_index, 0, i);
+		      stokes_vec[i] = i_field((p_index - cloudbox_limits[0]) - 1,
+					      0, 0, scat_za_index, 0, i);
+		      
+		    }
+		  
+		  else
+		    {
+		      //Extract sca_vec from sca_field.
+		      sca_vec[i] =
+			0.5*( scat_field((p_index-cloudbox_limits[0]), 
+					 0, 0, scat_za_index, 0, i)
+			      + scat_field((p_index-cloudbox_limits[0]) - 1,
+					   0, 0, scat_za_index, 0, i)) ;
+		      //Extract stokes_vec from i_field.
+		      stokes_vec[i] = 
+			0.5*( i_field((p_index-cloudbox_limits[0]), 0, 0,
+				      scat_za_index, 0, i)
+			      +i_field((p_index-cloudbox_limits[0]) -1 ,
+				       0, 0, scat_za_index, 0, i));
+		      
+		      
+		    }
+		}
+	    }
+	 
+	      
+	  else if ( ppath_step.z[0] > ppath_step.z[1] ) //downwrd propagating
+	    {
+	      for (Index i = 0; i < stokes_dim; i++)
+		{
+		  if (p_index == cloudbox_limits[0])
+		    {
+		      sca_vec[i] = scat_field((p_index - cloudbox_limits[0]) + 1,
+					      0, 0, scat_za_index, 0, i); 
+		      stokes_vec[i] = i_field((p_index - cloudbox_limits[0]) + 1,
+					      0, 0, scat_za_index, 0, i);
+		      
+		      
+		      
+		    }
+		  else if (p_index == cloudbox_limits[1])
+		    {
+		      sca_vec[i] = scat_field((p_index - cloudbox_limits[0]),
+					      0, 0, scat_za_index, 0, i); 
+		      stokes_vec[i] = i_field((p_index - cloudbox_limits[0]),
+					      0, 0, scat_za_index, 0, i);
+		      
+		    }
+		  else
+		    {
+		      //Extract sca_vec from sca_field.
+		      sca_vec[i] = 
+			0.5*( scat_field((p_index-cloudbox_limits[0]),
+					 0, 0, scat_za_index, 0, i)
+			      + scat_field((p_index-cloudbox_limits[0]) + 1,
+					   0, 0, scat_za_index, 0, i)) ;
+		      //Extract stokes_vec from i_field.
+		      stokes_vec[i] = 
+			0.5*( i_field((p_index-cloudbox_limits[0]),
+				      0, 0,	scat_za_index, 0, i)
+			      +i_field((p_index-cloudbox_limits[0]) + 1,
+				       0, 0, scat_za_index, 0, i));
+		    }
+		}
+	    }
+	  /*if ( ppath_step.z[0] < ppath_step.z[1] )
             {
-              for (Index i = 0; i < stokes_dim; i++)
-                {
-                  //Extract sca_vec from sca_field.
-                  sca_vec[i] = 0.5*( scat_field(p_index, 0, 0, 
-                                                scat_za_index, 0, i)
-                                     + scat_field(p_index+1, 0, 0, 
-                                                  scat_za_index, 0, i)) ;
-                  //Extract stokes_vec from i_field.
-                  stokes_vec[i] = 0.5*( i_field(p_index, 0, 0,
-                                          scat_za_index, 0, i)
-                                        +i_field(p_index+1, 0, 0,
-                                          scat_za_index, 0, i));
-                }
+	    for (Index i = 0; i < stokes_dim; i++)
+	    {
+	    //Extract sca_vec from sca_field.
+	    sca_vec[i] = 0.5*( scat_field(p_index, 0, 0, 
+	    scat_za_index, 0, i)
+	    + scat_field(p_index+1, 0, 0, 
+	    scat_za_index, 0, i)) ;
+	    //Extract stokes_vec from i_field.
+	    stokes_vec[i] = 0.5*( i_field(p_index, 0, 0,
+	    scat_za_index, 0, i)
+	    +i_field(p_index+1, 0, 0,
+	    scat_za_index, 0, i));
+	    }
             }
           else if ( ppath_step.z[0] > ppath_step.z[1] )
-            {
-              for (Index i = 0; i < stokes_dim; i++)
-                {
-                  //Extract sca_vec from sca_field.
-                  sca_vec[i] = 0.5*( scat_field(p_index, 0, 0, 
-                                                scat_za_index, 0, i)
-                                     + scat_field(p_index-1, 0, 0, 
-                                                  scat_za_index, 0, i)) ;
-                  //Extract stokes_vec from i_field.
-                  stokes_vec[i] = 0.5*( i_field(p_index, 0, 0,
-                                          scat_za_index, 0, i)
-                                        +i_field(p_index-1, 0, 0,
-                                          scat_za_index, 0, i));
-                }
-	     }
-           else if ( ppath_step.z[0] == ppath_step.z[1] )
-             {
-                throw runtime_error(
-                                    "Zenith angle too close to 90°"
-                                    "FIXTHIS!!!!"
-                                    );
-             }
-	
+	  {
+	  for (Index i = 0; i < stokes_dim; i++)
+	  {
+	  //Extract sca_vec from sca_field.
+	  sca_vec[i] = 0.5*( scat_field(p_index, 0, 0, 
+	  scat_za_index, 0, i)
+	  + scat_field(p_index-1, 0, 0, 
+	  scat_za_index, 0, i)) ;
+	  //Extract stokes_vec from i_field.
+	  stokes_vec[i] = 0.5*( i_field(p_index, 0, 0,
+	  scat_za_index, 0, i)
+	  +i_field(p_index-1, 0, 0,
 
+	  scat_za_index, 0, i));
+	  }
+	  }*/
+	  else if ( ppath_step.z[0] == ppath_step.z[1] )
+	    {
+	      throw runtime_error(
+				  "Zenith angle too close to 90°"
+				  "FIXTHIS!!!!"
+				  );
+	    }
+	  
+	  
           // Length of the path between the two layers.
           l_step = ppath_step.l_step[0];
           
           // Call scat_rte_agenda:
           scat_rte_agenda.execute();
-
+	  
 	  // Assign calculated Stokes Vector to i_field. 
-	  i_field(p_index, 0, 0, scat_za_index, 0, Range(joker)) =
-            stokes_vec;
-  
+	  i_field((p_index - cloudbox_limits[0]), 0, 0, scat_za_index, 0, Range(joker)) =
+	  stokes_vec;
+	  
 	  // Close all loops.
 	}
     }
+  cout<<i_field<<"\n";
 }
 
 
@@ -844,21 +990,21 @@ stokes_vecGeneral(//WS Output and Input:
   Then an analytic solution can be found (see AUG for details). 
   
   \param stokes_vec Output and Input: Stokes Vector after traversing a grid
-                 cell/layer. 
+  cell/layer. 
   \param ext_mat Input: Extinction coefficient matrix.
   \param abs_vec Input: Absorption coefficient vector.
   \param sca_vec Input: Scattered field vector.
   \param l_step  Input: Pathlength through a grid cell/ layer.
   \param planck_function  Input: Planck function.
   \param stokes_dim Input: Stokes dimension.
-
+  
   \author Claudia Emde
   \date 2002-06-08
 */
 void
 stokes_vecScalar(//WS Input and Output:
-              Vector& stokes_vec,
-              //WS Input: 
+	      Vector& stokes_vec,
+	      //WS Input: 
 	      const Matrix& ext_mat,
 	      const Vector& abs_vec,
 	      const Vector& sca_vec,
@@ -948,8 +1094,9 @@ scat_fieldCalc(//WS Output:
   Index N_pt = pha_mat_spt.nshelves();
   Index Nza = scat_za_grid.nelem();
   Index Naa = scat_aa_grid.nelem();
-  Tensor3 product_field(Nza, Naa, stokes_dim);
- 
+  Index Np  = i_field.nvitrines();//STR
+  cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
+  Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
   Vector product_field_vec(stokes_dim);
   // scat_field is of the same size as *i_field*
   scat_field.resize( i_field.nvitrines(),
@@ -962,21 +1109,38 @@ scat_fieldCalc(//WS Output:
   //Note that the size of i_field and scat_field are the same 
   if (atmosphere_dim ==3){
     
-    assert ( is_size( i_field, p_grid.nelem(), lat_grid.nelem(), 
-		      lon_grid.nelem(), scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(), stokes_dim));
-    assert ( is_size( scat_field, p_grid.nelem(), lat_grid.nelem(), 
-		      lon_grid.nelem(), scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(), stokes_dim));  
+    assert ( is_size( i_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+		      scat_za_grid.nelem(), 
+		      scat_aa_grid.nelem(),
+		      stokes_dim));
+    assert ( is_size( scat_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      (cloudbox_limits[3] - cloudbox_limits[2]) +1, 
+		      (cloudbox_limits[5] - cloudbox_limits[4]) +1,
+		      scat_za_grid.nelem(), 
+		      scat_aa_grid.nelem(),
+		      stokes_dim));
+    
   }
   
   else if (atmosphere_dim == 1 ){
-    assert ( is_size( i_field, p_grid.nelem(), 1, 
-		      1, scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(), stokes_dim));
-    assert ( is_size( scat_field, p_grid.nelem(), 1, 
-		      1, scat_za_grid.nelem(), 
-		      scat_aa_grid.nelem(), stokes_dim));
+    assert ( is_size( i_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+		      stokes_dim));
+        assert ( is_size( scat_field, 
+		      (cloudbox_limits[1] - cloudbox_limits[0]) +1,
+		      1, 
+		      1,
+		      scat_za_grid.nelem(), 
+		      1,
+		      stokes_dim));
   }
   //When atmospheric dimension , atmosphere_dim = 1
   if( atmosphere_dim == 1 ){
@@ -992,7 +1156,6 @@ scat_fieldCalc(//WS Output:
 	pha_matCalc(pha_mat, pha_mat_spt, pnd_field, 
 		    atmosphere_dim, p_index, 0, 
 		    0);
-	
       }
     
     // Get pha_mat at the grid positions
@@ -1008,47 +1171,66 @@ scat_fieldCalc(//WS Output:
 					      aa_index,
 					      Range(joker),
 					      Range(joker));
-		
-		// ifield_in is a vector of size 4 if stokes_dim =1
-		ConstVectorView ifield_in = i_field(p_index,
+		//cout<<"numer of vitrines"<<i_field.nvitrines()<<"\n";
+		ConstVectorView ifield_in = i_field((p_index-cloudbox_limits[0]),
+						    //changed p_index above
 						    0,0,
 						    za_index,
-						    aa_index,
+						    //aa_index,
+						    0,
 						    Range(joker));
 		
 		// just a multiplication of ifield_in and pha
-		//product_field_vec (i)
-		//= 
-		mult (product_field_vec, pha, ifield_in);
-		// cout << "before"<<endl;
 		
-		//cout << "after"<<endl;
+		mult (product_field_vec, pha, ifield_in);
+		
 		for (Index i = 0; i < stokes_dim; i++)
 		  {
 		    
-		    product_field(za_index, aa_index,i) = product_field_vec[i];
+		    product_field((p_index-cloudbox_limits[0]),//changed p_index
+				  za_index,
+				  aa_index, 
+				  i) = product_field_vec[i];
 		  }
 	      }
-	  }
-	
-	/*integration of the product of ifield_in and pha
-	  over zenith angle and azimuth angle grid. It calls
-	  here the integration routine AngIntegrate_trapezoid*/
-	for (Index i = 0; i < stokes_dim; i++)
-	  {
-	    MatrixView product_field_mat = product_field(Range(joker),
-							 Range(joker),
-							 i);
-	    scat_field(p_index, 0,0, Range(joker), Range(joker), i)  =
-	      AngIntegrate_trapezoid(product_field_mat,
-				     scat_za_grid,
-				     scat_aa_grid);
+	    }
+      }
 	    
-	  }
+	    /*integration of the product of ifield_in and pha
+	      over zenith angle and azimuth angle grid. It calls
+	      here the integration routine AngIntegrate_trapezoid*/
+    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+	 p_index++)
+      {
+	for (Index za_index = 0; za_index < Nza; ++ za_index)
+	  {
+	    for (Index i = 0; i < stokes_dim; i++)
+	      {
+		MatrixView product_field_mat = product_field((p_index-cloudbox_limits[0]),//changed p_index
+							     Range(joker),
+							     Range(joker),
+							     i);
+		
 	
+		scat_field((p_index-cloudbox_limits[0]),//changed p_index
+			   0,
+			   0,
+			   za_index, // by STR
+			   //Range(joker),commented by STR
+			   //Range(joker),commented by STR
+			   0,
+			   i)  =   AngIntegrate_trapezoid(product_field_mat,
+							  scat_za_grid,
+							  scat_aa_grid);
+		
+	      }
+	  }//i closed it here 
 	
       }
   }
+  //cout<<"scat_field"<<scat_field<<"\n";	
+  //exit(1);
+  
   
   //When atmospheric dimension , atmosphere_dim = 3
   if( atmosphere_dim == 3 ){
@@ -1094,46 +1276,71 @@ scat_fieldCalc(//WS Output:
 						      Range(joker));
 			
 			//ifield_in is a vector of size 4 if stokes_dim =1
-			ConstVectorView ifield_in = i_field(p_index,
-							    lat_index,
-							    lon_index,
-							    za_index,
-							    aa_index,
-							    Range(joker));
+			ConstVectorView ifield_in =
+			  i_field((p_index-cloudbox_limits[0]),
+				  //changed p_index above
+				  (lat_index-cloudbox_limits[2]),
+				  //changed lat_index above
+				  (lon_index-cloudbox_limits[4]),
+				  //changed lat_index above
+				  za_index,
+				  aa_index,
+				  Range(joker));
 			
 			// just a multiplication of ifield_in and pha
-			//Vector product_field_vec (za_index, aa_index, Range(joker))
-			//= mult (product_field_vec, pha, ifield_in);
+			
 			mult (product_field_vec, pha, ifield_in);
 			for (Index i = 0; i < stokes_dim; i++)
 			  {
-			    
-			    product_field(za_index, aa_index,i) = product_field_vec[i];
+			    //??? should this inlcude latitude and longitude also 
+			    product_field((p_index-cloudbox_limits[0]),
+					  za_index,
+					  aa_index,
+					  i) = product_field_vec[i];
 			  }
 		      }
 		  }
-		
-		/*integration of the product of ifield_in and pha
-		  over zenith angle and azimuth angle grid. It 
-		  calls here the integration routine 
-		  AngIntegrate_trapezoid*/
+	      }
+	  }
+      }
+    
+    /*integration of the product of ifield_in and pha
+      over zenith angle and azimuth angle grid. It 
+      calls here the integration routine 
+      AngIntegrate_trapezoid*/
+    for (Index p_index = cloudbox_limits[0]; p_index <= cloudbox_limits[1];
+	 p_index++)
+      {
+	for (Index lat_index = cloudbox_limits[2]; lat_index <= 
+	       cloudbox_limits[3]; lat_index++)
+	  {
+	    for (Index lon_index = cloudbox_limits[4]; lon_index <= 
+		   cloudbox_limits[5]; lon_index++)
+	      {
 		for (Index i = 0; i < stokes_dim; i++)
 		  {
-		    MatrixView product_field_mat = product_field(Range(joker),
-								 Range(joker),
-								 i);
+		    MatrixView product_field_mat = 
+		      product_field((p_index-cloudbox_limits[0]),//changed p_index
+				    Range(joker),
+				    Range(joker),
+				    i);
 		    
-		    scat_field(p_index, lat_index, lon_index, Range(joker), Range(joker),i)
+		    scat_field((p_index-cloudbox_limits[0]),//changed p_index
+			       lat_index,
+			       lon_index,
+			       Range(joker),
+			       Range(joker),i)
 		      = AngIntegrate_trapezoid(product_field_mat,
 					       scat_za_grid,
 					       scat_aa_grid);
 		    
-		  
 		  }
 		
 	      }
 	  }
       }
   }
+  
+ 
 }
   

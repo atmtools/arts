@@ -239,7 +239,7 @@ Numeric AngIntegrate_trapezoid(MatrixView Integrand,
   Index m = aa_grid.nelem();
   Vector res1(n);
   assert (is_size(Integrand, n, m));
- 
+  
   for (Index i = 0; i < n ; ++i)
     {
       res1[i] = 0.0;

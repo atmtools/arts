@@ -54,10 +54,10 @@ void ext_mat_sptCalc(
     throw runtime_error(" The dimension of the tensor ext_mat_spt should "
 			"agree to stokes_dim");
   }
-  cout << "The stokes dimension is :" << stokes_dim<<"\n";
-  cout << "The scat_za_index : " << scat_za_index  << " \n " ;
-  cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
-  cout << "Number of particle type : " << npt  << " \n " ;
+  //cout << "The stokes dimension is :" << stokes_dim<<"\n";
+  //cout << "The scat_za_index : " << scat_za_index  << " \n " ;
+  //cout << "The scat_aa_index : " << scat_aa_index  << " \n " ;
+  // cout << "Number of particle type : " << npt  << " \n " ;
   
   
   if (amp_mat.ncols() != 8)
@@ -73,7 +73,7 @@ void ext_mat_sptCalc(
   //find out frequency
   Numeric freq = f_grid[scat_f_index];
 
-  cout << "The frequency: " << freq  << " \n " ;
+  //cout << "The frequency: " << freq  << " \n " ;
   
   for (Index i = 0; i < npt; ++i)
     {
@@ -89,8 +89,8 @@ void ext_mat_sptCalc(
 	      freq);
     }
  
-  cout <<  "The Extinction Matrix for single particle type: " << " \n " 
-       <<ext_mat_spt << " \n " ;
+  //cout <<  "The Extinction Matrix for single particle type: " << " \n " 
+  //   <<ext_mat_spt << " \n " ;
 }
 
 
@@ -115,7 +115,7 @@ void pha_mat_sptCalc(
 {
   Index npt = pha_mat_spt.nshelves();
   Index stokes_dim = pha_mat_spt.nrows();
-
+ 
   if (pha_mat_spt.nrows() != stokes_dim || 
       pha_mat_spt.ncols() != stokes_dim){
     throw runtime_error(" The dimension of the tensor pha_mat_spt should "
@@ -216,8 +216,8 @@ void abs_vec_sptCalc(
 	      scat_za_grid,
 	      scat_aa_grid);
     }	   
- cout <<  "The Absorption Vector for single particle type: " << " \n " 
-       <<abs_vec_spt << " \n " ;
+  // cout <<  "The Absorption Vector for single particle type: " << " \n " 
+  //   <<abs_vec_spt << " \n " ;
 }
 
 
@@ -276,8 +276,8 @@ void ext_mat_partCalc(
 	    }
 	}
     }
-   cout <<  "The Extinction Matrix : " << " \n " 
-       <<ext_mat_part << " \n " ;
+  //cout <<  "The Extinction Matrix : " << " \n " 
+  //   <<ext_mat_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       
@@ -354,7 +354,8 @@ void abs_vec_partCalc(
 	}
     }
   
-  
+  //cout <<  "The Absorption Vector : " << " \n " 
+  //   <<abs_vec_part << " \n " ;
   if (atmosphere_dim == 3)
     {
       // this is a loop over the different particle types

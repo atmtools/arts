@@ -224,7 +224,7 @@ void define_wsv_data()
        "\n"
        "Usage: Input to *ext_mat_agenda*, *abs_vec_agenda*, \n"
        "*sca_mat_agenda*\n"
-       "Output of *get_amp*. \n"    
+       "Output of *amp_matCalc*. \n"    
        "\n"
        "Unit:       m\n"
        "\n"
@@ -703,17 +703,19 @@ void define_wsv_data()
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
-       "              scat_aa_grid, stokes_dim ]"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
        ),
-      GROUP( Tensor6_ )));
+       GROUP( Tensor6_ )));
   
   wsv_data.push_back
     (WsvRecord
      ( NAME( "i_field_dim" ), 
        DESCRIPTION
-      (
-       "Dimension of the radiation field.\n" 
+       (
+	"Dimension of the radiation field.\n" 
        "\n"
        "This variable is important if a 1D atmosphere is considered.\n"
        "1D atmosphere means that all profiles only depend on altitude or \n"
@@ -738,8 +740,10 @@ void define_wsv_data()
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
-       "              scat_aa_grid, stokes_dim ]"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
        ),
       GROUP( Tensor6_ )));
 
@@ -1367,8 +1371,10 @@ void define_wsv_data()
        "\n"
        "Unit: W / (m^2 Hz sr) for each Stokes component.\n"
        "\n"
-       "Dimensions: [ p_grid, lat_grid, lon_grid, scat_za_grid, \n"
-       "              scat_aa_grid, stokes_dim ]"
+       "Size: [(cloudbox_limits[1] - cloudbox_limits[0]) +1, \n"
+       "       (cloudbox_limits[3] - cloudbox_limits[2]) +1, \n"
+       "       (cloudbox_limits[5] - cloudbox_limits[4]) +1, \n"
+       "        N_za, N_aa, N_i ]"
        ),
       GROUP( Tensor6_ )));   
 
