@@ -1,6 +1,44 @@
+2004-03-02  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-791
+
+	* autogen.sh: Add m4 directory to aclocal flags.
+
+	* configure.in: Removed AC_PROG_CC_STDC. Merged into AC_PROG_CC in
+	autoconf >= 2.57. Unknown in autoconf <= 2.13.
+	Removed own check for sstream header. Use macro from cxx_checks.m4
+	instead.
+
+	* m4/cxx_checks.m4: Added macros to test for C++ compiler features.
+	Contains the following macros:
+
+	AC_CXX_HAVE_STD       - Does compiler support ISO C++ Standard
+	                        library? iostream, cmath - Essential for us.
+	AC_CXX_HAVE_SSTREAM   - Check for sstream header, sets a define in
+	                        config.h if it is not found we use our own
+				sstream.h.
+	AC_CXX_NAMESPACES     - Needed by AC_CXX_HAVE_SSTREAM.
+	AC_CXX_STATIC_CAST    - We use static_cast<> in some places.
+	AC_CXX_CONST_CAST     - Needed in one place.
+	AC_CXX_TEMPLATES      - We love templates.
+	AC_CXX_BOOL           - Check whether bool is a built-in type.
+
+	The point in all these checks is to let the user know as soon as
+	possible that he's in trouble if his compiler does not support one of
+	the required features. At the moment, he will just become aware of the
+	problem during compilation with probably not so clear error messages
+	from the compiler.
+	My plan is to give a clear statement at the end of the configure run
+	that the compiler is missing some features instead of exiting
+	the configure with an error message. This gives the user the
+	opportunity to try a compilation in spite of the problems and maybe
+	fix some of the not-so-critical issues (e.g. the {static,const}_cast
+	or the ISO C++ headers which probably just have different names in the
+	respective compiler environment).
+
 2004-02-24  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 		
-	* arts-1-1-790	
+	* arts-1-1-790
 
 	* src/groups.cc: Added GriddedField3 as data type. It is a structure
 	for storing atmospheric fields along with the grids. This new structure
