@@ -138,8 +138,8 @@ void pha_mat_sptCalc(Tensor5& pha_mat_spt,
 }
 
 
-//! this function calculates the absorption coefficient for a single particle type
-// from the extinction matrix and phase matrix.
+//! this function calculates the absorption coefficient for a single particle 
+//type from the extinction matrix and phase matrix.
 /*! 
   
   \param abs_vec_spt  Output : absorption vector for a single particle type

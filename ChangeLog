@@ -1,5 +1,12 @@
 2002-06-25  Sreerekha T.R.  <rekha@uni-bremen.de>
 	
+	* arts-1-1-162
+	
+	* doc/examples/scatproperties_example.arts.in: I
+	forgot to add this file while checking in last time.
+		
+2002-06-25  Sreerekha T.R.  <rekha@uni-bremen.de>
+	
 	* arts-1-1-161
 	
 	* src/m_scatrte.cc: The method scat_integralCalc is 
