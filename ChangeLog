@@ -1,3 +1,10 @@
+2002-01-12  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-1-77
+
+	* ami/hmatrix/h_antenna.m: Allowed the antenna movement to be a 
+	vector. 
+
 2002-01-10  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-0-1-76
