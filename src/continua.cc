@@ -7940,14 +7940,14 @@ struct {
 union {
     struct {
 	double omeg[201], rsi[201], rsigg[201], alfa;
-    } _1;
+    } m_1;
     struct {
 	double omeg[201], rsi[201], rsigg[201], beta;
-    } _2;
+    } m_2;
 } bba_;
 
-#define bba_1 (bba_._1)
-#define bba_2 (bba_._2)
+#define bba_1 (bba_.m_1)
+#define bba_2 (bba_.m_2)
 
 struct {
     int nsol;
@@ -8008,26 +8008,26 @@ struct n2part_2_ {
 union {
     struct {
 	double rsi[401];
-    } _1;
+    } m_1;
     struct {
 	double rsibb[401];
-    } _2;
+    } m_2;
 } bl3_;
 
-#define bl3_1 (bl3_._1)
-#define bl3_2 (bl3_._2)
+#define bl3_1 (bl3_.m_1)
+#define bl3_2 (bl3_.m_2)
 
 union {
     struct {
 	int idelv, iv, ivp, idell, il, ilp;
-    } _1;
+    } m_1;
     struct {
 	int ldelvi, ivi, ivip, ldelel, ll, llp;
-    } _2;
+    } m_2;
 } bbbb_;
 
-#define bbbb_1 (bbbb_._1)
-#define bbbb_2 (bbbb_._2)
+#define bbbb_1 (bbbb_.m_1)
+#define bbbb_2 (bbbb_.m_2)
 
 /* Initialized data */
 
@@ -11159,8 +11159,8 @@ static double c_b125 = 0.;
 /* ############################################################################ */
 /*     path:		$Source: /srv/svn/cvs/cvsroot/arts/src/continua.cc,v $ */
 /*     author:		$Author $ */
-/*     revision:	        $Revision: 1.26.2.3 $ */
-/*     created:	        $Date: 2002/04/10 20:34:04 $ */
+/*     revision:	        $Revision: 1.26.2.4 $ */
+/*     created:	        $Date: 2002/05/31 16:53:44 $ */
 /* ############################################################################ */
 
 /* CKD2.4 TEST */

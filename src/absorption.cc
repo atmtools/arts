@@ -30,6 +30,7 @@
 #include "arts.h"
 #include <map>
 #include <cfloat>
+#include <algorithm>
 #include <math.h>
 #include "absorption.h"
 #include "math_funcs.h"

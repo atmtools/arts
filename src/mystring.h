@@ -28,7 +28,17 @@
 #define string_h
 
 #include <string>
+#include <climits>
+#include <iostream>
 #include "arts.h"
+
+// String stream library. This is included with the ARTS source code
+// for now, because it is missing in gcc <= 2.95.2
+#ifdef HAVE_SSTREAM
+#include <sstream>
+#else
+#include "sstream.h"
+#endif
 
 /**
    The implementation for String, the ARTS string class. 
@@ -129,12 +139,12 @@ inline my_basic_string<charT>::my_basic_string(const basic_string<charT>& A,
 //   cout << "pos = " << pos << "\n";
 //   cout << "size = " << A.size() << "\n";
 
-  assert(static_cast<std::basic_string<charT>::size_type>(pos)<A.size());	
+  assert(static_cast<typename std::basic_string<charT>::size_type>(pos)<A.size());	
   // At most the last element of the original string.
 
   assert( npos==my_basic_string<charT>::npos ||
 	  ( (npos >= 0) &&
-	    (static_cast<std::basic_string<charT>::size_type>(npos)<=(A.size()-pos))
+	    (static_cast<typename std::basic_string<charT>::size_type>(npos)<=(A.size()-pos))
 	    )
 	  );  // Number of characters to copy must be at the most the
 	      // number left. -1 means all remaining characters. 

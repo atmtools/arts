@@ -47,7 +47,7 @@ void define_md_map()
 
 
 ostream& MdRecord::PrintTemplate(ostream& os,
-				 bool show_description=true) const
+				 bool show_description) const
 {
   extern const  ArrayOfString wsv_group_names;
 

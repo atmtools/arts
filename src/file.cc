@@ -67,8 +67,8 @@ void filename_ascii(
 {
   if ( "" == filename )
   {
-    extern const String basename;                       
-    filename = basename+"."+varname+".aa";
+    extern const String out_basename;                       
+    filename = out_basename+"."+varname+".aa";
   }
 }
 
@@ -130,13 +130,10 @@ void open_output_file(ofstream& file, const String& name)
 void open_input_file(ifstream& file, const String& name)
 {
   // Tell the stream that it should throw exceptions.
-  // Badbit means that the entire stream is corrupted, failbit means
-  // that the last operation has failed, but the stream is still
-  // valid. We don't want either to happen!
+  // Badbit means that the entire stream is corrupted.
   // On the other hand, end of file will not lead to an exception, you
   // have to check this manually!
-  file.exceptions(ios::badbit |
-		  ios::failbit);
+  file.exceptions(ios::badbit);
 
   // c_str explicitly converts to c String.
   file.open(name.c_str() );

@@ -34,6 +34,7 @@
 #include "config.h"
 #endif
 
+#include <algorithm>
 #include <map>
 #include "parameters.h"
 #include "messages.h"
@@ -830,12 +831,12 @@ int main (int argc, char **argv)
   // explicitly specified.
   if ( "" == parameters.basename )
     {
-      extern String basename;
-      basename = parameters.controlfiles[0];
+      extern String out_basename;
+      out_basename = parameters.controlfiles[0];
       // Find the last . in the name
-      String::size_type p = basename.rfind('.');
+      String::size_type p = out_basename.rfind('.');
       // Kill everything starting from the `.'
-      basename.erase(p);
+      out_basename.erase(p);
     }
 
   // Set the reporting level, either from reporting command line
@@ -849,11 +850,11 @@ int main (int argc, char **argv)
   // will not exist.
   try
     {
-      extern const String basename;     // Basis for file name
+      extern const String out_basename;     // Basis for file name
       extern ofstream report_file;	// Report file pointer
 
-      //      cout << "rep = " << basename+".rep" << '\n';
-      open_output_file(report_file, basename+".rep");
+      //      cout << "rep = " << out_basename+".rep" << '\n';
+      open_output_file(report_file, out_basename+".rep");
     }
   catch (runtime_error x)
     {

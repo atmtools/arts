@@ -30,6 +30,7 @@
 */
 
 #include <math.h>
+#include <algorithm>
 #include "arts.h"
 #include "matpackI.h"
 #include "array.h"
@@ -786,8 +787,8 @@ void linesWriteAscii(// WS Input:
   // If filename is empty then set the default filename:
   if ( "" == filename )
     {
-      extern const String basename;                       
-      filename = basename+".lines.aa";
+      extern const String out_basename;                       
+      filename = out_basename+".lines.aa";
     }
 
   ofstream os;
@@ -809,8 +810,8 @@ void lines_per_tgWriteAscii(// WS Input:
   // If filename is empty then set the default filename:
   if ( "" == filename )
     {
-      extern const String basename;                       
-      filename = basename+".lines_per_tg.aa";
+      extern const String out_basename;                       
+      filename = out_basename+".lines_per_tg.aa";
     }
 
   ofstream os;

@@ -1,3 +1,63 @@
+2002-05-31  Oliver Lemke  <olemke@uni-bremen.de>
+
+	* arts-1-0-26
+	
+	* Lots of fixes to compile arts with gcc-3.x.
+
+	* configure.in: Added check for sstream.
+	
+	* src/file.cc (open_input_file): Only set badbit for input stream
+	otherwise eof throws exception as well and that is not what we
+	want.
+	
+	* src/test_matpack.cc: Include math.h.
+
+	* src/continua.cc: Renamed all union members _1 and _2 to m_1 and
+	m_2 to avoid conflict with c++ internals.
+
+	* src/main.cc,
+	src/m_abs.cc,
+	src/absorption.cc: Include algorithm.
+
+	* src/getopt.h: Modified to do correct prototyping for HP-UX.
+	
+	* src/m_wfs.cc: Found three occurences of this code:
+
+	Index_var = (Index) floor( Index_var/Index_var );
+	
+	This makes no sense because Index_var/Index_var is an integer
+	division, afterwards it is converted to double and then rounded to
+	the nearest lower integer.
+
+	* src/arts.h: Added 'using namespace std' to fix compile errors
+	with newer, more ansi-compliant gccs (3.1).
+
+	Removed sstream.h include.
+
+	* src/matpackI.h (Range): Default arguments for parameters are
+	only allowed to be declared once. Removed from implementation
+	part.
+	src/array.h: Added keyword typename to several definitions
+	(e.g. typename Array<base>::const_iterator xi;)
+
+	* src/mystring.h: Include climits.
+	
+	* src/messages.cc: Rename global variable basename to out_basename
+	to avoid a conflict with the basename function from the new string
+	standard include file.
+
+	* src/m_hdf.cc (filename_bin),
+	src/main.cc (main),
+	src/m_abs.cc (linesWriteAscii),
+	src/m_abs.cc (lines_per_tgWriteAsci),
+	src/file.cc (filename_ascii): Renamed basename to out_basename.
+
+	* src/methods_aux.cc (PrintTemplate): Removed default for second
+	parameter from implementation part.
+
+	* src/exceptions.h (ParseError): Added dummy virtual destructor
+	including missing throw().
+
 2002-05-31  Patrick Eriksson  <patrick@rss.chalmers.se>
 
 	* arts-1-0-25

@@ -129,7 +129,7 @@ void k_append (
   }
 
   // Calculate the vector length for each identity in K
-  Index l = (Index) floor(nx2/nri2);
+  Index l = nx2/nri2;
 
   // Move K to Kx
   kx( Range(joker), Range(nx1,nx2) )     = k;
@@ -2663,7 +2663,7 @@ void kCalibration(
 
   const Index   ny = y.nelem();
   const Index   nf = f_mono.nelem();
-  const Index   nza = Index( floor(ny/nf) );
+  const Index   nza = ny/nf;
 
   // Make k one-column matrix of the right size:
   k.resize( ny, 1 );
@@ -2909,7 +2909,7 @@ void kxPutInK (
        << "      column " << nx1 << " - " << nx1+nx2-1 << "\n";
  
   // Calculate the vector length for each identity in K
-  Index l = (Index) floor(nx2/ni2);
+  Index l = nx2/ni2;
 
   // Move K to Kx
   kx(     Range(joker),   Range(nx1,nx2) ) = k;
