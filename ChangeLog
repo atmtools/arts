@@ -1,5 +1,11 @@
 2003-03-25  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-506
+
+	* doc/uguide/Makefile.am: Bugfix :-)
+
+2003-03-25  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-505
 
 	* doc/uguide/Makefile.am: arts_groups_to_latex.sh and
