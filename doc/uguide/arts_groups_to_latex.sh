@@ -4,8 +4,8 @@ ARTS=$1
 
 if [ ! -x "$ARTS" ]
 then
-	echo "Error: Unable to execute arts" 1>&2
-	exit 1
+    echo "Error: Unable to execute arts" 1>&2
+    exit 1
 fi
 
 GROUP_LIST=`$ARTS -g | tail +5 | sed 's/^-//' | sed 's/^.-*.$//'`
@@ -25,7 +25,20 @@ echo "\\begin{itemize}"
 
 for i in $GROUP_LIST
 do
-	echo "\\item \\artsstyle{$i}"
+cat << EOF
+\\item \\artsstyle{$i}
+EOF
 done
 
 echo "\\end{itemize}"
+
+# Local variables:
+# mode: ksh
+# ksh-indent: 4
+# ksh-group-offset: -4
+# ksh-brace-offset: -2
+# ksh-case-item-offset: 1
+# ksh-case-indent: 4
+# ksh-tab-always-indent: nil
+# indent-tabs-mode: nil
+# End:
