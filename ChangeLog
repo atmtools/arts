@@ -1,5 +1,21 @@
 2003-06-19  Oliver Lemke  <olemke@uni-bremen.de>
 
+	* arts-1-1-580
+
+	* src/matpackII.h (SparseView), src/gas_abs_lookup.h (GasAbsLookup):
+	Adapt prototyping for xml_read_from_stream.
+
+	* src/xml_io_*_types.{cc,h}: Added an optional parameter to all
+	xml_write_to_stream functions. A descriptive name could be supplied
+	which is added as an attribute to the tag like
+	<Vector name="LatitudeGrid" ...>
+	Only used internally at the moment to document the structure members.
+
+	* src/xml_io_compound_types.cc: Added descriptive names to members of
+	GasAbsLookup, GriddedField3, GridPos and Ppath.
+
+2003-06-19  Oliver Lemke  <olemke@uni-bremen.de>
+
 	* arts-1-1-579
 
 	* ChangeLog: Reformatted oversized lines.
