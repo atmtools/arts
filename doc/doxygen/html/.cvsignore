@@ -5,6 +5,7 @@
 *.map
 *.md5
 *.ps
+*.ttf
 Makefile
 Makefile.in
 doxygen.css

@@ -1,5 +1,13 @@
 2004-06-28  Oliver Lemke  <olemke@linux.net>
 
+	* arts-1-1-837
+
+	* doc/uguide/Figs/{montecarlo, sensor}: Added .cvsignore.
+
+	* doc/doxygen/html/.cvsignore: Added *.ttf.
+
+2004-06-28  Oliver Lemke  <olemke@linux.net>
+
 	* arts-1-1-836
 
 	* Bredbeck AI
