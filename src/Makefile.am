@@ -656,6 +656,7 @@ make_auto_wsv_groups_h_SOURCES = \
 	file.cc \
 	file.h \
 	groups.cc \
+	m_general.h \
 	make_auto_wsv_groups_h.cc \
 	matpackI.cc \
 	matpackI.h \
@@ -670,6 +671,7 @@ make_auto_wsv_h_SOURCES = \
 	file.cc \
 	file.h \
 	groups.cc \
+	m_general.h \
 	make_auto_wsv_h.cc \
 	matpackI.cc \
 	matpackI.h \
