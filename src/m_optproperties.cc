@@ -131,9 +131,11 @@ void ext_mat_sptScat(
                     
 {
 
-  Index npt = pha_mat_spt.nshelves();
-  Index nza = pha_mat_spt.nbooks(); 
+#ifndef NDEBUG
+  Index nza = pha_mat_spt.nbooks();
   Index naa = pha_mat_spt.npages(); 
+#endif
+  Index npt = pha_mat_spt.nshelves();
   Index stokes_dim = pha_mat_spt.nrows();
 
 
@@ -610,9 +612,11 @@ void abs_vec_sptCalc(
                      const Vector& scat_aa_grid)
                      
 {
-  Index npt = abs_vec_spt.nrows();
+#ifndef NDEBUG
   Index nza = pha_mat_spt.nbooks(); 
   Index naa = pha_mat_spt.npages(); 
+#endif
+  Index npt = abs_vec_spt.nrows();
   Index stokes_dim = ext_mat_spt.nrows(); 
 
   assert (is_size(scat_za_grid, nza));
