@@ -1,3 +1,11 @@
+2004-02-20  Oliver Lemke  <olemke@linux.net>
+
+        * arts-1-0-156
+
+	* src/Makefile.am: Use CXXFLAGS_FIXED for compilation of
+	partition_function_data.cc. Fixes compilation problem with enabled
+	optimizations with certain g++ versions.
+
 2004-02-04  Oliver Lemke  <olemke@linux.net>
 
         * arts-1-0-155

@@ -83,6 +83,11 @@ species_data.o: arts.h make_array.h absorption.h species_data.cc
 	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
 	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c species_data.cc
 
+partition_function_data.o: arts.h make_array.h absorption.h partition_function_data.cc
+	$(CXX) $(DEFS) $(INCLUDES) -I.. $(AM_CPPFLAGS) $(CPPFLAGS) \
+	       $(AM_CXXFLAGS) $(CXXFLAGS_FIXED) -c partition_function_data.cc
+
+
 noinst_PROGRAMS = \
 	make_auto_md_cc \
 	make_auto_md_h \
