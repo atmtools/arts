@@ -828,28 +828,32 @@ void scat_iPut(//WS Output:
   \date 2002-09-10
 
  */    
-void y_scatCalc(//WS Output:
-                Matrix& y_scat,
-                //WS Input:
-                const Tensor7& scat_i_p,
-                const Tensor7& scat_i_lat,
-                const Tensor7& scat_i_lon,
-                const Vector& cloudbox_pos,
-                const Vector& cloudbox_los,
-                const ArrayOfIndex& cloudbox_limits,
-                const Index& atmosphere_dim,
-                const Index& stokes_dim,
-                const Vector& scat_za_grid,
-                const Vector& scat_aa_grid,
-                const Vector& f_grid)
+void CloudboxGetOutgoing(// WS Generic Output:
+			 Matrix&   i_out,
+			 // WS Generic Output Names:
+			 const String&   i_out_name,
+                         //WS Specific Input:
+                         const Tensor7& scat_i_p,
+                         const Tensor7& scat_i_lat,
+                         const Tensor7& scat_i_lon,
+                         const GridPos& a_gp_p,
+                         const GridPos& a_gp_lat,
+                         const GridPos& a_gp_lon,
+                         const Vector& a_los,
+                         const ArrayOfIndex& cloudbox_limits,
+                         const Index& atmosphere_dim,
+                         const Index& stokes_dim,
+                         const Vector& scat_za_grid,
+                         const Vector& scat_aa_grid,
+                         const Vector& f_grid)
 {
 
  if(atmosphere_dim == 1)
    {
-     if (cloudbox_pos[0] != cloudbox_limits[0] &&
-         cloudbox_pos[0] != cloudbox_limits[1])
+     if (a_gp_p.idx != cloudbox_limits[0] &&
+         a_gp_p.idx != cloudbox_limits[1])
        throw runtime_error(
-                           "*cloudbox_pos* has to be on the boundary of the "
+                           "Gridpositions have to be on the boundary of the "
                            "cloudbox defined by *cloudbox_limits*."
                            );
      
@@ -857,12 +861,15 @@ void y_scatCalc(//WS Output:
      //defined on scat_za_grid on the requested zenith angle in 
      //*cloudbox_los*.
      Vector zenith_angle(1);
-     zenith_angle[0] = cloudbox_los[0];
+     zenith_angle[0] = a_los[0];
          
      //Array to store grid positions
      ArrayOfGridPos gp(1);
+     gridpos(gp, scat_za_grid, zenith_angle);
+
      //Matrix to store interpolation weights
      Matrix itw(scat_za_grid.nelem(),2);
+     interpweights(itw, gp);
 
      for(Index i = 0; i < stokes_dim; i++)
        {
@@ -871,30 +878,30 @@ void y_scatCalc(//WS Output:
              //This vvariable holds the radiation for a specified frequency.
              //It is neccessairy because the interpolation is done for 
              //each frequency separately.
-             Vector y_scat_f(scat_za_grid.nelem());
+             Vector i_out_f(scat_za_grid.nelem());
 
              //lower boundary
-             if(cloudbox_pos[0] == cloudbox_limits[0])
+             if(a_gp_p.idx == cloudbox_limits[0])
                {
-                 ConstVectorView y_f = scat_i_p(f_index, 0, 0, 0, 
+                 ConstVectorView i_f = scat_i_p(f_index, 0, 0, 0, 
                                                  Range(joker), 0, i);
-                 y_scat_f = y_f;
+                 i_out_f = i_f;
                }
              //upper boundary
-             else if(cloudbox_pos[0] == cloudbox_limits[1])
+             else if(a_gp_p.idx == cloudbox_limits[1])
                {
-                 ConstVectorView y_f = scat_i_p(f_index, 1, 0, 0,
+                 ConstVectorView i_f = scat_i_p(f_index, 1, 0, 0,
                                                  Range(joker), 0, i);
-                 y_scat_f = y_f;
+                 i_out_f = i_f;
                }
              //Define vector for the interpolated radiance.
-             Vector y_scat_los(1);
+             Vector i_out_los(1);
              
              //Do the interpolation:
-             interp(y_scat_los, itw, y_scat_f, gp);
+             interp(i_out_los, itw, i_out_f, gp);
              
              //Put the value into the matrix:
-             y_scat(f_index, i) = y_scat_los[0];
+             i_out(f_index, i) = i_out_los[0];
            }//end frequency loop
        }//end stokes_dim loop
    }// end atmosphere_dim 1

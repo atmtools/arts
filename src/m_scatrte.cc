@@ -290,7 +290,7 @@ void convergence_flagAbs(//WS Output:
                               inside the cloud box.
   \param sca_vec       Scattered field vector.
   \param stokes_vec    Stokes vector.    
-  \param planck_function Planck function.
+  \param a_planck_value Planck function.
   \param l_step        Pathlength step. 
   \param convergence_flag 1 if convergence is reached after an 
                        iteration. 0 else.
@@ -340,7 +340,7 @@ i_fieldIterate(
 		    Tensor6& scat_field,
                     Vector& sca_vec,
                     Vector& stokes_vec,
-                    Numeric& planck_function,
+                    Numeric& a_planck_value,
                     Numeric& l_step,
                     Index& convergence_flag,
                     Tensor4& pha_mat,
@@ -457,7 +457,7 @@ i_fieldIterate(
       {
         i_fieldUpdate1D(//Output:
                         i_field, ppath_step, stokes_vec, 
-                        sca_vec, planck_function, l_step,  
+                        sca_vec, a_planck_value, l_step,  
                         abs_vec_spt, ext_mat_spt, pha_mat_spt, ext_mat,
                         abs_vec,  scat_p_index, scat_za_index, scat_aa_index,
                         //Input:
@@ -493,7 +493,7 @@ i_fieldIterate(
   \param ppath_step    Propagation path step for RT calculation.
   \param stokes_vec    Stokes vector.
   \param sca_vec       Scattered field vector.
-  \param planck_function Planck function.
+  \param a_planck_value Planck function.
   \param l_step        Pathlength step.
   \param abs_vec_spt   Absorption vector for a single particle type.
   \param ext_mat_spt   Extinction matrix for a single particle type.
@@ -543,7 +543,7 @@ i_fieldUpdate1D(// WS Output:
 		Ppath& ppath_step,
                 Vector& stokes_vec,
                 Vector& sca_vec,
-                Numeric& planck_function,
+                Numeric& a_planck_value,
                 Numeric& l_step,
                 Matrix& abs_vec_spt,
                 Tensor3& ext_mat_spt,
@@ -797,19 +797,29 @@ i_fieldUpdate1D(// WS Output:
               Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
                                  T_vector[p_index-cloudbox_limits[0]+1]);
               Numeric f = f_grid[scat_f_index];
-              planck_function = planck(f, T);
+              a_planck_value = planck(f, T);
               
-              cout << "planck: ..." << planck_function << endl;
+              cout << "planck: ..." << a_planck_value << endl;
               cout << "sto_vec:..." << stokes_vec  << endl;
               cout << "sca_vec:..." << sca_vec << endl;
-              cout << "aB+S/K: ..." << (abs_vec[0]*planck_function+sca_vec[0])
+              cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
                 /ext_mat(0,0);
               cout << "sca_vec:..." << sca_vec << endl;
               cout << "abs_vec:..." << abs_vec << endl;
               cout << "ext_mat:..." << ext_mat << endl;
 
-              // Call scat_rte_agenda:
-              scat_rte_agenda.execute();
+              bool singular_K = true;
+              for(Index i=0; i<stokes_dim && singular_K; i++){
+                for(Index j = 0; j<stokes_dim && singular_K; j++){
+                  if(ext_mat(i,j) != 0.)
+                    singular_K = false;
+                }
+              }
+              
+              if ( !singular_K ){ 
+                // Call scat_rte_agenda:
+                scat_rte_agenda.execute();
+              }
               
               cout << "stokes_vec:"<< stokes_vec;
               
@@ -899,12 +909,12 @@ i_fieldUpdate1D(// WS Output:
               Numeric T =  0.5*( T_vector[p_index-cloudbox_limits[0]] +
                                  T_vector[p_index-cloudbox_limits[0]-1]);
               Numeric f = f_grid[scat_f_index];
-              planck_function = planck(f, T);
+              a_planck_value = planck(f, T);
               
-              cout << "planck: ..." << planck_function << endl;
+              cout << "planck: ..." << a_planck_value << endl;
               cout << "sto_vec:..." << stokes_vec  << endl;
               cout << "sca_vec:..." << sca_vec << endl;
-              cout << "aB+S/K: ..." << (abs_vec[0]*planck_function+sca_vec[0])
+              cout << "aB+S/K: ..." << (abs_vec[0]*a_planck_value+sca_vec[0])
                 /ext_mat(0,0);
               cout << "abs_vec:..." << abs_vec << endl;
               cout << "ext_mat:..." << ext_mat << endl;
@@ -973,7 +983,7 @@ i_fieldUpdate1D(// WS Output:
   \param abs_vec Input: Absorption coefficient vector.
   \param sca_vec Input: Scattered field vector.
   \param l_step  Input: Pathlength through a grid cell/ layer.
-  \param planck_function  Input: Planck function.
+  \param a_planck_value  Input: Planck function.
   \param stokes_dim Input: Stokes dimension. 
 
   \author Claudia Emde
@@ -987,7 +997,7 @@ stokes_vecGeneral(//WS Output and Input:
                const Vector& abs_vec,
                const Vector& sca_vec,
                const Numeric& l_step,
-               const Numeric& planck_function,
+               const Numeric& a_planck_value,
                const Index& stokes_dim)
 { 
   // Stokes dimension
@@ -1013,7 +1023,7 @@ stokes_vecGeneral(//WS Output and Input:
 
   Vector B_abs_vec(stokes_dim);
   B_abs_vec = abs_vec;
-  B_abs_vec *= planck_function; 
+  B_abs_vec *= a_planck_value; 
   
   for (Index i=0; i<stokes_dim; i++) 
     b[i] = B_abs_vec[i] + sca_vec[i];  // b = abs_vec * B + sca_vec
@@ -1067,7 +1077,7 @@ stokes_vecGeneral(//WS Output and Input:
   \param abs_vec Input: Absorption coefficient vector.
   \param sca_vec Input: Scattered field vector.
   \param l_step  Input: Pathlength through a grid cell/ layer.
-  \param planck_function  Input: Planck function.
+  \param a_planck_value  Input: Planck function.
   \param stokes_dim Input: Stokes dimension.
   
   \author Claudia Emde
@@ -1081,7 +1091,7 @@ stokes_vecScalar(//WS Input and Output:
 	      const Vector& abs_vec,
 	      const Vector& sca_vec,
 	      const Numeric& l_step,
-	      const Numeric& planck_function,
+	      const Numeric& a_planck_value,
 	      const Index& stokes_dim)
 { 
   //Check if we really consider the scalar case.
@@ -1111,7 +1121,7 @@ stokes_vecScalar(//WS Input and Output:
   
   //Do a radiative transfer step calculation:
   stokes_vec1D = stokes_vec1D * exp(-ext_coeff*l_step) + 
-    (abs_coeff*planck_function+sca_int1D) /
+    (abs_coeff*a_planck_value+sca_int1D) /
     ext_coeff* (1-exp(-ext_coeff*l_step));
  
   //Put the first component back into *sto_vec*:

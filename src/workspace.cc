@@ -313,6 +313,51 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "a_gp_p" ),
+      DESCRIPTION
+      (
+       "A grid position on the pressure grid.\n"
+       "\n"
+       "This variable, *a_gp_lat* and *a_gp_lon* are required fot the \n"
+       "communication between the clearsky calculations and the \n"
+       "calculations inside the cloudbox. The are input to the generic\n"
+       "method *CloudboxGetOutgoing*.\n"
+       "\n"
+       ),
+      GROUP( GridPos_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "a_gp_lat" ),
+      DESCRIPTION
+      (
+       "A grid position on the pressure grid.\n"
+       "\n"
+       "This variable, *a_gp_p* and *a_gp_lon* are required fot the \n"
+       "communication between the clearsky calculations and the \n"
+       "calculations inside the cloudbox. The are input to the generic\n"
+       "method *CloudboxGetOutgoing*.\n"
+       "\n"
+       ),
+      GROUP( GridPos_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "a_gp_lon" ),
+      DESCRIPTION
+      (
+       "A grid position on the pressure grid.\n"
+       "\n"
+       "This variable, *a_gp_p* and *a_gp_lat* are required fot the \n"
+       "communication between the clearsky calculations and the \n"
+       "calculations inside the cloudbox. The are input to the generic\n"
+       "method *CloudboxGetOutgoing*.\n"
+       "\n"
+       ),
+      GROUP( GridPos_ )));
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "a_los" ),
       DESCRIPTION
       (
@@ -336,6 +381,22 @@ void define_wsv_data()
        "Size:  [ 1 or 2 ]"
        ),
       GROUP( Vector_ )));
+
+ wsv_data.push_back
+   (WsvRecord
+    ( NAME( "a_planck_value" ),
+      DESCRIPTION
+      (
+       "A value of the Planck function for a given temperature.\n"
+       "\n"
+       "The Planck function is used in the methods for RT step calculations,\n"
+       "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
+       "\n"
+       "Usage:      Calculated in *i_fieldUpdate1D*.\n"
+       "\n"
+       "Unit:       W\n "
+       ),
+      GROUP( Numeric_ )));
 
   wsv_data.push_back
    (WsvRecord
@@ -455,43 +516,6 @@ void define_wsv_data()
        "Size:  [ 2 * atmosphere_dim ]"
        ),
       GROUP( ArrayOfIndex_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "cloudbox_los" ),
-      DESCRIPTION
-      (
-       "Direction for scattered radiances on the cloudbox boundary.\n"
-       "\n"
-       "This variable is used as input for the method y_scatCalc, \n"
-       "which returns the scattered radiation at a given point on the \n"
-       "boundary of the cloudbox specified by *cloudbox_pos* and \n"
-       "*cloudbox_los*\n. *cloudbox_los* is a vector giving the requested\n"
-       "direction in terms of [zenith angle, azimuth angle].\n"
-       "\n"
-       "Unit: [Degrees, Degrees]\n"
-       "\n"
-       ), 
-      GROUP( Vector_ ))); 
- 
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "cloudbox_pos" ),
-      DESCRIPTION 
-      ( 
-       "Position for scattered radiances on the cloudbox boundary.\n"
-       "\n"
-       "This variable is used as input for the method y_scatCalc, \n"
-       "which returns the scattered radiation at a given point on the \n"
-       "boundary of the cloudbox specified by *cloudbox_pos* and \n"
-       "*cloudbox_los*\n. *cloudbox_pos* is a vector giving the requested\n"
-       "position in terms of [pressure, latitude, longitude].\n"
-       "For 1D only the first element (pressure) has to be specified.\n"
-       "\n"
-       "Unit: [Pa, Degrees, Degrees]\n"
-       "\n"
-      ), 
-      GROUP( Vector_ ))); 
 
  wsv_data.push_back
    (WsvRecord
@@ -1054,6 +1078,23 @@ void define_wsv_data()
 
   wsv_data.push_back
    (WsvRecord
+    ( NAME( "matrix_1" ),
+      DESCRIPTION
+      (
+       "An arbitrary matrix.\n"
+       "\n"
+       "This variable shall be treated as a general variable of type Matrix.\n"
+       "It can be used, for example, when some intermediate data must be\n"
+       "generated or to copy some data.\n"
+       "\n"
+       "Usage:      Set by user."
+       ),
+      GROUP( Matrix_ )));
+
+
+
+  wsv_data.push_back
+   (WsvRecord
     ( NAME( "main_agenda" ),
       DESCRIPTION
       (
@@ -1126,22 +1167,6 @@ void define_wsv_data()
        "Usage:      Set by the user.\n"
        "\n"
        "Unit:       degrees"
-       ),
-      GROUP( Numeric_ )));
-
- wsv_data.push_back
-   (WsvRecord
-    ( NAME( "planck_function" ),
-      DESCRIPTION
-      (
-       "The Planck function.\n"
-       "\n"
-       "The Planck function is used in the methods for RT step calculations, \n"
-       "which are *sto_vecGeneral* and *sto_vecScalar*. \n"
-       "\n"
-       "Usage:      Calculated in *i_fieldUpdate1D*.\n"
-       "\n"
-       "Unit:       W\n "
        ),
       GROUP( Numeric_ )));
 

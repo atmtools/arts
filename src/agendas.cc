@@ -365,7 +365,7 @@ void define_agenda_data()
        "   abs_vec     : Absorption coefficient vector. \n"
        "   sca_vec     : Scattered field vector. \n"
        "   l_step      : Pathlength through a grid cell/ layer.\n"
-       "   planck_function: Planck function. \n"
+       "   a_planck_value: Planck function. \n"
        "   stokes_dim  : Stokes dimension. \n"
        ""
 	),
@@ -374,7 +374,7 @@ void define_agenda_data()
              abs_vec_,
              sca_vec_,
              l_step_,
-             planck_function_,
+             a_planck_value_,
              stokes_dim_)));
 
  agenda_data.push_back

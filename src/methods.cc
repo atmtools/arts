@@ -998,7 +998,7 @@ void define_md_data_raw()
          "      as 2D scattering calculations can not be performed.\n"
          ),
 	OUTPUT(i_field_, ppath_step_, i_field_old_, scat_field_, sca_vec_, 
-               stokes_vec_, planck_function_, l_step_,
+               stokes_vec_, a_planck_value_, l_step_,
                convergence_flag_, pha_mat_, pha_mat_spt_, abs_vec_spt_,
                ext_mat_spt_, ext_mat_, abs_vec_, scat_p_index_, 
                scat_lat_index_, scat_lon_index_, scat_za_index_,
@@ -1083,7 +1083,7 @@ md_data_raw.push_back
          "   " 
         ),
 	OUTPUT(i_field_, ppath_step_, stokes_vec_, 
-               sca_vec_, planck_function_, l_step_,
+               sca_vec_, a_planck_value_, l_step_,
                abs_vec_spt_, ext_mat_spt_, pha_mat_spt_, ext_mat_, abs_vec_,
                scat_p_index_, scat_za_index_, scat_aa_index_),
 	INPUT(spt_calc_agenda_, 
@@ -1923,7 +1923,7 @@ md_data_raw.push_back
          "Then an analytic solution can be found (see AUG for details).\n"
 	),
 	OUTPUT(stokes_vec_),
-	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, planck_function_,
+	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, a_planck_value_,
               stokes_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
@@ -1943,7 +1943,7 @@ md_data_raw.push_back
          "Then an analytic solution can be found (see AUG for details).\n"
 	),
 	OUTPUT(stokes_vec_),
-	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, planck_function_,
+	INPUT(ext_mat_, abs_vec_, sca_vec_, l_step_, a_planck_value_,
               stokes_dim_),
 	GOUTPUT( ),
 	GINPUT( ),
@@ -2528,7 +2528,7 @@ md_data_raw.push_back
 
   md_data_raw.push_back
     ( MdRecord
-      ( NAME( "y_scatCalc" ),
+      ( NAME( "CloudboxGetOutgoing" ),
 	DESCRIPTION
         (
          "Scattered radiance on the cloudbox boundary.\n"
@@ -2538,11 +2538,11 @@ md_data_raw.push_back
          "is a matrix with the dimensions [f_grid, stokes_dim].\n"
          "\n"
          ),
-	OUTPUT( y_scat_ ),
-	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, cloudbox_pos_, 
-               cloudbox_los_, cloudbox_limits_, atmosphere_dim_, stokes_dim_,
-               scat_za_grid_, scat_aa_grid_, f_grid_),
-	GOUTPUT(),
+	OUTPUT(),
+	INPUT( scat_i_p_, scat_i_lat_, scat_i_lon_, a_gp_p_, a_gp_lat_, 
+               a_gp_lon_, a_los_,  cloudbox_limits_, atmosphere_dim_,
+               stokes_dim_, scat_za_grid_, scat_aa_grid_, f_grid_),
+	GOUTPUT(Matrix_),
 	GINPUT(),
 	KEYWORDS(),
 	TYPES()));

@@ -91,6 +91,12 @@ void
 xml_write_to_stream (ostream& os, const ArrayOfVector& avector);
 
 void
+xml_read_from_stream (istream& is, GridPos& gp);
+
+void
+xml_write_to_stream (ostream& os, const GridPos& gp);
+
+void
 xml_read_from_stream (istream& is, Index& index);
 
 void
@@ -2325,6 +2331,9 @@ template void
 xml_read_from_file<ArrayOfVector> (const String&, ArrayOfVector&);
 
 template void
+xml_read_from_file<GridPos> (const String&, GridPos&);
+
+template void
 xml_read_from_file<Index> (const String&, Index&);
 
 template void
@@ -2389,6 +2398,9 @@ xml_write_to_file<ArrayOfString> (const String&, const ArrayOfString&);
 
 template void
 xml_write_to_file<ArrayOfVector> (const String&, const ArrayOfVector&);
+
+template void
+xml_write_to_file<GridPos> (const String&, const GridPos&);
 
 template void
 xml_write_to_file<Index> (const String&, const Index&);
@@ -2464,6 +2476,20 @@ xml_write_to_stream (ostream&     os,
 
 void
 xml_read_from_stream (istream& is,
+                      GridPos& gp)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_write_to_stream (ostream&     os,
+                     const GridPos& gp)
+{
+  throw runtime_error("Method not implemented!");
+}
+
+void
+xml_read_from_stream (istream& is,
                       TagGroups& ataggroup)
 {
   throw runtime_error("Method not implemented!");
@@ -2475,3 +2501,4 @@ xml_write_to_stream (ostream&     os,
 {
   throw runtime_error("Method not implemented!");
 }
+

@@ -161,7 +161,13 @@ int main()
 	  // Define generic output pointers
 	  for (Index j=0; j<vgo.nelem(); ++j)
 	    {
-	      ofs << "  " << wsv_group_names[mdd.GOutput()[j]]
+              // Check by assert whether the group identifier is too
+              // large to correspond to a group. This can easily
+              // happen if somebody puts a variable identifier instead
+              // of a group identifier in the argument of GOUTPUT:
+              assert( vgo[j] < wsv_group_names.nelem() );
+
+	      ofs << "  " << wsv_group_names[vgo[j]]
 		  << " *GO" << j << " = *wsv_pointers[mr.Output()[" << j
 		  << "]];\n";
 	    }
@@ -169,7 +175,13 @@ int main()
 	  // Define generic input pointers
 	  for (Index j=0; j<vgi.nelem(); ++j)
 	    {
-	      ofs << "  " << wsv_group_names[mdd.GInput()[j]]
+              // Check by assert whether the group identifier is too
+              // large to correspond to a group. This can easily
+              // happen if somebody puts a variable identifier instead
+              // of a group identifier in the argument of GINPUT:
+              assert( vgi[j] < wsv_group_names.nelem() );
+
+	      ofs << "  " << wsv_group_names[vgi[j]]
 		  << " *GI" << j << " = *wsv_pointers[mr.Input()[" << j
 		  << "]];\n";
 	    }
