@@ -382,7 +382,7 @@ test_zeemanproperties_SOURCES = \
 	iotraits.h \
 	m_lineshapes.cc \
 	m_agenda.cc \
-        m_atmosphere.cc \
+	m_atmosphere.cc \
 	m_basic_types.cc \
 	m_cloudbox.cc \
 	m_general.cc \
@@ -424,6 +424,8 @@ test_zeemanproperties_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	optproperties.cc \
+	optproperties.h \
 	parameters.cc \
 	parameters.h \
 	parser.cc \
@@ -547,6 +549,8 @@ make_auto_md_h_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	optproperties.cc \
+	optproperties.h \
 	token.cc \
 	token.h \
 	version.cc \
@@ -584,6 +588,8 @@ make_auto_md_cc_SOURCES = \
 	methods.cc \
 	methods.h \
 	methods_aux.cc \
+	optproperties.cc \
+	optproperties.h \
 	token.cc \
 	token.h \
 	version.cc \
