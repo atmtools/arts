@@ -157,14 +157,21 @@ double geompath_za_at_r(
 {
   assert( ppc >= 0 );
   assert( abs(a_za) <= 180 );
-  assert( r >= ppc );
+  assert( r >= ppc - RTOL );
 
-  double za = RAD2DEG * asin( ppc / r );
-  if( abs(a_za) > 90 )
-    { za = 180 - za; }
-  if( a_za < 0 )
-    { za = -za; }
-  return za;
+  if( r > ppc )
+    {
+      double za = RAD2DEG * asin( ppc / r );
+      if( abs(a_za) > 90 )
+        { za = 180 - za; }
+      if( a_za < 0 )
+        { za = -za; }
+      return za;
+    }
+  else
+    {
+      return 90;
+    }
 }
 
 
@@ -2028,8 +2035,8 @@ void do_gridcell_3d(
               if( do_surface )
                 {
                   const double   r_surface = 
-                                  rsurf_at_latlon( lat1, lat3, lon5, lon6, 
-                                  rsurface15, rsurface35, rsurface36, rsurface16, 
+                               rsurf_at_latlon( lat1, lat3, lon5, lon6, 
+                               rsurface15, rsurface35, rsurface36, rsurface16, 
                                                             lat_end, lon_end );
 
                   if( r_surface+RTOL >= rlow  &&  r_end <= r_surface+RTOL )
@@ -2091,8 +2098,8 @@ void do_gridcell_3d(
       else if( endface == 6 )
         { lon_end = lon6; }
       else if( endface == 7 )
-        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15, 
-                         rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
+        { r_end = rsurf_at_latlon( lat1, lat3, lon5, lon6, rsurface15,  
+                      rsurface35, rsurface36, rsurface16, lat_end, lon_end ); }
 
       //--- Tangent point?
       //

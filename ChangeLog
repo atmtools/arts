@@ -1,3 +1,14 @@
+2004-08-09  Patrick Eriksson  <Patrick.Eriksson@rss.chalmers.se>
+
+	* arts-1-1-854
+
+	* src/ppath.cc (geompath_za_at_r): A fix to handle cases ending up
+	below the tangent altitude by numerical inaccuracy. A deviation
+	of RTOL is now allowed.
+
+	An attempt to fix a problem reported by Cory Davis. No test  runs
+	performed.
+
 2004-08-09  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-853
