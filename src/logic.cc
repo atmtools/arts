@@ -32,11 +32,11 @@
 */
 
 
-#include <iostream>
 #include <cmath> 
 #include <algorithm> 
 #include <stdexcept>
 #include "logic.h"
+
 
 // For checking, if a Numeric equal zero we have to take into account the
 // numerical precicion. If a value is smaller than *precision* it is 
@@ -261,12 +261,7 @@ bool is_increasing( ConstVectorView   x )
       for( Index i=1; i<x.nelem(); i++ )
         {
           if( x[i] <= x[i-1] )
-	    {
-              cout.setf (ios::showpoint | ios::fixed);
-              cout << setprecision(15);
-	      cout << "frequencies :" << i <<" " << x[i] << " " << x[i-1] << endl;  
-	    return false;
-	    }
+            return false;
         }
     }
   return true;
