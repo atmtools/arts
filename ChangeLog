@@ -1,3 +1,12 @@
+2001-08-15  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-193
+
+	* whoami.m and amenu.m added to ami/general
+
+	* write_linefile.m updated to ARTSCAT-3. 
+	
+
 2001-08-08  Carlos Jimenez  <jimenez@rss.chalmers.se>
 
 	* arts-0-0-192

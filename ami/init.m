@@ -18,6 +18,7 @@ function init
 %=== It is assumed that this script is executed in the top AMI dir
 addpath([pwd,'/arts']);
 addpath([pwd,'/file']);
+addpath([pwd,'/general']);
 addpath([pwd,'/hmatrix']);
 addpath([pwd,'/math']);
 addpath([pwd,'/path']);
