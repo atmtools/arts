@@ -473,6 +473,553 @@ Index gridpos2gridrange(
 
 
 ////////////////////////////////////////////////////////////////////////////
+//			Red Interpolation
+////////////////////////////////////////////////////////////////////////////
+
+//! Red 1D interpolation weights.
+/*! 
+  "Red" interpolation returns just a scalar, so the weights are stored
+  in a Vector.   
+
+  The length of itw must be consistent with the dimension of the
+  field to be interpolated (2^n).
+
+  \param itw Output: Interpolation weights.
+  \param tc  The grid position for the column dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+void interpweights( VectorView itw,
+               	    const GridPos& tc )
+{
+  assert(is_size(itw,2));	// We must store 2 interpolation
+				// weights.
+
+  // Interpolation weights are stored in this order (l=lower
+  // u=upper, c=column):
+  // 1. l-c
+  // 2. u-c
+
+  Index iti = 0;
+
+  // We could use a straight-forward for loop here:
+  //
+  //       for ( Index c=1; c>=0; --c )
+  // 	{
+  // 	  ti[iti] = tc.fd[c];
+  // 	  ++iti;
+  // 	}
+  //
+  // However, it is slightly faster to use pointers (I tried it,
+  // the speed gain is about 20%). So we should write something
+  // like:
+  //
+  //       for ( const Numeric* c=&tc.fd[1]; c>=&tc.fd[0]; --c )
+  // 	{
+  // 	  ti[iti] = *c;
+  // 	  ++iti;
+  // 	}
+  //
+  // For higher dimensions we have to nest these loops. To avoid
+  // typos and safe typing, I use the LOOPIT macro, which expands
+  // to the for loop above. Note: NO SEMICOLON AFTER THE LOOPIT
+  // COMMAND! 
+
+  LOOPIT(c)
+    {
+      itw[iti] = *c;
+      ++iti;
+    }
+}
+
+//! Red 2D interpolation weights.
+/*! 
+  "Red" interpolation returns just a scalar, so the weights are stored
+  in a Vector.   
+
+  The length of itw must be consistent with the dimension of the
+  field to be interpolated (2^n).
+
+  \param itw Output: Interpolation weights.
+  \param tr  The grid position for the row dimension.
+  \param tc  The grid position for the column dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+void interpweights( VectorView itw,
+               	    const GridPos& tr,
+               	    const GridPos& tc )
+{
+  assert(is_size(itw,4));	// We must store 4 interpolation
+				// weights.
+  Index iti = 0;
+
+  LOOPIT(r)
+  LOOPIT(c)
+    {
+      itw[iti] = (*r) * (*c);
+      ++iti;
+    }
+}
+
+//! Red 3D interpolation weights.
+/*! 
+  "Red" interpolation returns just a scalar, so the weights are stored
+  in a Vector.   
+
+  The length of itw must be consistent with the dimension of the
+  field to be interpolated (2^n).
+
+  \param itw Output: Interpolation weights.
+  \param tp  The grid position for the page    dimension.
+  \param tr  The grid position for the row     dimension.
+  \param tc  The grid position for the column  dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+void interpweights( VectorView itw,
+               	    const GridPos& tp,
+               	    const GridPos& tr,
+               	    const GridPos& tc )
+{
+  assert(is_size(itw,8));	// We must store 8 interpolation
+				// weights.
+  Index iti = 0;
+
+  LOOPIT(p)
+  LOOPIT(r)
+  LOOPIT(c)
+    {
+      itw[iti] = (*p) * (*r) * (*c);
+      ++iti;
+    }
+}
+
+//! Red 4D interpolation weights.
+/*! 
+  "Red" interpolation returns just a scalar, so the weights are stored
+  in a Vector.   
+
+  The length of itw must be consistent with the dimension of the
+  field to be interpolated (2^n).
+
+  \param itw Output: Interpolation weights.
+  \param tb  The grid position for the book    dimension.
+  \param tp  The grid position for the page    dimension.
+  \param tr  The grid position for the row     dimension.
+  \param tc  The grid position for the column  dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+void interpweights( VectorView itw,
+               	    const GridPos& tb,
+               	    const GridPos& tp,
+               	    const GridPos& tr,
+               	    const GridPos& tc )
+{
+  assert(is_size(itw,16));	// We must store 16 interpolation
+				// weights.
+  Index iti = 0;
+
+  LOOPIT(b)
+  LOOPIT(p)
+  LOOPIT(r)
+  LOOPIT(c)
+    {
+      itw[iti] = (*b) * (*p) * (*r) * (*c);
+      ++iti;
+    }
+}
+
+//! Red 5D interpolation weights.
+/*! 
+  "Red" interpolation returns just a scalar, so the weights are stored
+  in a Vector.   
+
+  The length of itw must be consistent with the dimension of the
+  field to be interpolated (2^n).
+
+  \param itw Output: Interpolation weights.
+  \param ts  The grid position for the shelf   dimension.
+  \param tb  The grid position for the book    dimension.
+  \param tp  The grid position for the page    dimension.
+  \param tr  The grid position for the row     dimension.
+  \param tc  The grid position for the column  dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+void interpweights( VectorView itw,
+               	    const GridPos& ts,
+               	    const GridPos& tb,
+               	    const GridPos& tp,
+               	    const GridPos& tr,
+               	    const GridPos& tc )
+{
+  assert(is_size(itw,32));	// We must store 32 interpolation
+				// weights.
+  Index iti = 0;
+
+  LOOPIT(s)
+  LOOPIT(b)
+  LOOPIT(p)
+  LOOPIT(r)
+  LOOPIT(c)
+    {
+      itw[iti] = (*s) * (*b) * (*p) * (*r) * (*c);
+      ++iti;
+    }
+}
+
+//! Red 6D interpolation weights.
+/*! 
+  "Red" interpolation returns just a scalar, so the weights are stored
+  in a Vector.   
+
+  The length of itw must be consistent with the dimension of the
+  field to be interpolated (2^n).
+
+  \param itw Output: Interpolation weights.
+  \param tv  The grid position for the vitrine dimension.
+  \param ts  The grid position for the shelf   dimension.
+  \param tb  The grid position for the book    dimension.
+  \param tp  The grid position for the page    dimension.
+  \param tr  The grid position for the row     dimension.
+  \param tc  The grid position for the column  dimension.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+void interpweights( VectorView itw,
+               	    const GridPos& tv,
+               	    const GridPos& ts,
+               	    const GridPos& tb,
+               	    const GridPos& tp,
+               	    const GridPos& tr,
+               	    const GridPos& tc )
+{
+  assert(is_size(itw,64));	// We must store 64 interpolation
+				// weights.
+  Index iti = 0;
+
+  LOOPIT(v)
+  LOOPIT(s)
+  LOOPIT(b)
+  LOOPIT(p)
+  LOOPIT(r)
+  LOOPIT(c)
+    {
+      itw[iti] = (*v) * (*s) * (*b) * (*p) * (*r) * (*c);
+      ++iti;
+    }
+}
+
+//! Red 1D Interpolate.
+/*! 
+  "Red" interpolation returns just a scalar.
+
+  The dimension of itw must be consistent with the dimension of the
+  interpolation (2^n).
+
+  \param itw  Interpolation weights.
+  \param a    The field to interpolate.
+  \param tc   The grid position for the column dimension.
+
+  \return Interpolated value.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+Numeric interp( ConstVectorView itw,
+		ConstVectorView a,    
+		const GridPos&  tc )
+{
+  assert(is_size(itw,2));	// We need 2 interpolation
+				// weights.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights must always be one. 
+  assert( 1==itw.sum() );
+  
+  // To store interpolated value:
+  Numeric tia = 0;
+
+  Index iti = 0;
+  for ( Index c=0; c<2; ++c )
+    {
+      tia += a[tc.idx+c] * itw[iti];
+      ++iti;
+    }
+
+  return tia;
+}
+
+//! Red 2D Interpolate.
+/*! 
+  "Red" interpolation returns just a scalar.
+
+  The dimension of itw must be consistent with the dimension of the
+  interpolation (2^n).
+
+  \param itw  Interpolation weights.
+  \param a    The field to interpolate.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
+
+  \return Interpolated value.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+Numeric interp( ConstVectorView  itw,
+		ConstMatrixView  a,    
+		const GridPos&   tr,
+		const GridPos&   tc )
+{
+  assert(is_size(itw,4));	// We need 4 interpolation
+				// weights.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights must always be one. 
+  assert( 1==itw.sum() );
+  
+  // To store interpolated value:
+  Numeric tia = 0;
+
+  Index iti = 0;
+  for ( Index r=0; r<2; ++r )
+    for ( Index c=0; c<2; ++c )
+      {
+	tia += a(tr.idx+r,
+		 tc.idx+c) * itw[iti];
+	++iti;
+      }
+
+  return tia;
+}
+
+//! Red 3D Interpolate.
+/*! 
+  "Red" interpolation returns just a scalar.
+
+  The dimension of itw must be consistent with the dimension of the
+  interpolation (2^n).
+
+  \param itw  Interpolation weights.
+  \param a    The field to interpolate.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
+
+  \return Interpolated value.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+Numeric interp( ConstVectorView  itw,
+		ConstTensor3View a,    
+		const GridPos&   tp,
+		const GridPos&   tr,
+		const GridPos&   tc )
+{
+  assert(is_size(itw,8));	// We need 8 interpolation
+				// weights.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights must always be one. 
+  assert( 1==itw.sum() );
+  
+  // To store interpolated value:
+  Numeric tia = 0;
+
+  Index iti = 0;
+  for ( Index p=0; p<2; ++p )
+    for ( Index r=0; r<2; ++r )
+      for ( Index c=0; c<2; ++c )
+	{
+	  tia += a(tp.idx+p,
+		   tr.idx+r,
+		   tc.idx+c) * itw[iti];
+	  ++iti;
+	}
+
+  return tia;
+}
+
+//! Red 4D Interpolate.
+/*! 
+  "Red" interpolation returns just a scalar.
+
+  The dimension of itw must be consistent with the dimension of the
+  interpolation (2^n).
+
+  \param itw  Interpolation weights.
+  \param a    The field to interpolate.
+  \param tb   The grid position for the book    dimension.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
+
+  \return Interpolated value.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+Numeric interp( ConstVectorView  itw,
+		ConstTensor4View a,    
+		const GridPos&   tb,
+		const GridPos&   tp,
+		const GridPos&   tr,
+		const GridPos&   tc )
+{
+  assert(is_size(itw,16));	// We need 16 interpolation
+				// weights.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights must always be one. 
+  assert( 1==itw.sum() );
+  
+  // To store interpolated value:
+  Numeric tia = 0;
+
+  Index iti = 0;
+  for ( Index b=0; b<2; ++b )
+    for ( Index p=0; p<2; ++p )
+      for ( Index r=0; r<2; ++r )
+	for ( Index c=0; c<2; ++c )
+	  {
+	    tia += a(tb.idx+b,
+		     tp.idx+p,
+		     tr.idx+r,
+		     tc.idx+c) * itw[iti];
+	    ++iti;
+	  }
+
+  return tia;
+}
+
+//! Red 5D Interpolate.
+/*! 
+  "Red" interpolation returns just a scalar.
+
+  The dimension of itw must be consistent with the dimension of the
+  interpolation (2^n).
+
+  \param itw  Interpolation weights.
+  \param a    The field to interpolate.
+  \param ts   The grid position for the shelf   dimension.
+  \param tb   The grid position for the book    dimension.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
+
+  \return Interpolated value.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+Numeric interp( ConstVectorView  itw,
+		ConstTensor5View a,    
+		const GridPos&   ts,
+		const GridPos&   tb,
+		const GridPos&   tp,
+		const GridPos&   tr,
+		const GridPos&   tc )
+{
+  assert(is_size(itw,32));	// We need 32 interpolation
+				// weights.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights must always be one. 
+  assert( 1==itw.sum() );
+  
+  // To store interpolated value:
+  Numeric tia = 0;
+
+  Index iti = 0;
+  for ( Index s=0; s<2; ++s )
+    for ( Index b=0; b<2; ++b )
+      for ( Index p=0; p<2; ++p )
+	for ( Index r=0; r<2; ++r )
+	  for ( Index c=0; c<2; ++c )
+	    {
+	      tia += a(ts.idx+s,
+		       tb.idx+b,
+		       tp.idx+p,
+		       tr.idx+r,
+		       tc.idx+c) * itw[iti];
+	      ++iti;
+	    }
+
+  return tia;
+}
+
+//! Red 6D Interpolate.
+/*! 
+  "Red" interpolation returns just a scalar.
+
+  The dimension of itw must be consistent with the dimension of the
+  interpolation (2^n).
+
+  \param itw  Interpolation weights.
+  \param a    The field to interpolate.
+  \param tv   The grid position for the vitrine dimension.
+  \param ts   The grid position for the shelf   dimension.
+  \param tb   The grid position for the book    dimension.
+  \param tp   The grid position for the page    dimension.
+  \param tr   The grid position for the row     dimension.
+  \param tc   The grid position for the column  dimension.
+
+  \return Interpolated value.
+
+  \author Stefan Buehler <sbuehler@uni-bremen.de>
+  \date   Fri Jun 28 10:53:32 2002
+*/
+Numeric interp( ConstVectorView  itw,
+		ConstTensor6View a,    
+		const GridPos&   tv,
+		const GridPos&   ts,
+		const GridPos&   tb,
+		const GridPos&   tp,
+		const GridPos&   tr,
+		const GridPos&   tc )
+{
+  assert(is_size(itw,64));	// We need 64 interpolation
+				// weights.
+
+  // Check that interpolation weights are valid. The sum of all
+  // weights must always be one. 
+  assert( 1==itw.sum() );
+  
+  // To store interpolated value:
+  Numeric tia = 0;
+
+  Index iti = 0;
+  for ( Index v=0; v<2; ++v )
+    for ( Index s=0; s<2; ++s )
+      for ( Index b=0; b<2; ++b )
+	for ( Index p=0; p<2; ++p )
+	  for ( Index r=0; r<2; ++r )
+	    for ( Index c=0; c<2; ++c )
+	      {
+		tia += a(tv.idx+v,
+			 ts.idx+s,
+			 tb.idx+b,
+			 tp.idx+p,
+			 tr.idx+r,
+			 tc.idx+c) * itw[iti];
+		++iti;
+	      }
+
+  return tia;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
 //			Blue interpolation
 ////////////////////////////////////////////////////////////////////////////
 

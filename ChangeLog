@@ -1,3 +1,13 @@
+2002-06-28  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-1-1-175
+
+	* src/interpolation.cc (interpweights): Added "red" interpweights
+	functions for dimensions 1 to 6.
+	(interp): Added "red" interp functions for dimensions 1 to 6.
+	Red interpolation means interpolation to a scalar. This is not yet
+	tested at all.
+
 2002-06-28  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-174
