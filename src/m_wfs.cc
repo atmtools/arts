@@ -399,7 +399,7 @@ void absloswfs_rte_1pass (
               const Numeric&  lstep,        // absloswfs_down
               const MATRIX&   tr,
               const MATRIX&   s,
-              const int&      ground,
+              const INDEX&    ground,
               const VECTOR&   e_ground,
               const VECTOR&   y_ground )
 {
@@ -408,7 +408,7 @@ void absloswfs_rte_1pass (
         VECTOR   t(nf,1.0);           // transmission to the sensor
         size_t   q;                   // LOS index (same notation as in AUG)
 
-  if ( (ground==0) || (ground==int(start_index)) )
+  if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
@@ -430,7 +430,7 @@ void absloswfs_rte_1pass (
   for ( q=stop_index+1; q<start_index; q++ )
   {
     // Not a ground point
-    if ( int(q) != ground )
+    if ( q != (ground-1) )
     {
       for ( iv=0; iv<nf; iv++ )    
       {
@@ -499,7 +499,7 @@ void absloswfs_rte_limb (
               const Numeric&  lstep,
               const MATRIX&   tr,
               const MATRIX&   s,
-              const int&      ground,
+              const INDEX&    ground,
               const VECTOR&   e_ground )
 {
   const size_t   nf = tr.nrows();     // number of frequencies
@@ -595,16 +595,16 @@ void absloswfs_rte_down (
               const Numeric&  lstep,
               const MATRIX&   tr,
               const MATRIX&   s,
-              const int&      ground,
+              const INDEX&    ground,
               const VECTOR&   e_ground,
               const VECTOR&   y_ground )
 {
   const size_t   nf = tr.nrows(); // number of frequencies
-        size_t   iv;             // frequency index
-        size_t   q;              // LOS index (same notation as in AUG)
-        VECTOR   y0;             // see below
-        MATRIX   k2;             // matrix for calling other LOS WFs functions
-        VECTOR   tr0;            // see below
+        size_t   iv;              // frequency index
+        size_t   q;               // LOS index (same notation as in AUG)
+        VECTOR   y0(nf);          // see below
+        MATRIX   k2;              // matrix for calling other LOS WFs functions
+        VECTOR   tr0;             // see below
 
   // Resize K
   resize( k, nf, start_index+1 );
@@ -640,7 +640,7 @@ void absloswfs_rte_down (
   // The platform altitude must be treated seperately
   //
   // Calculate the intensity generated below point q-1, YQQ
-  VECTOR yqq;
+  VECTOR yqq(nf);
   rte( yqq, stop_index-1, stop_index-1, tr, s, VECTOR(nf,0.0), 
                                             ground, e_ground, y_ground );
   //
@@ -708,6 +708,7 @@ void absloswfs_rte (
       if ( los.stop[i]==0 )
         absloswfs_rte_1pass( absloswfs[i], yp, los.start[i], 0, los.l_step[i], 
                      trans[i], source[i], los.ground[i], e_ground, y_ground );
+
       //
       // 1D limb sounding
       else if ( los.start[i] == los.stop[i] )
@@ -846,7 +847,7 @@ void sourceloswfs_1pass (
               const size_t&   start_index,
 	      const size_t&   stop_index,   // this variable is used by 1D down
               const MATRIX&   tr,
-              const int&      ground,
+              const INDEX&    ground,
               const VECTOR&   e_ground )
 {
   const size_t   nf = tr.nrows();     // number of frequencies
@@ -854,7 +855,7 @@ void sourceloswfs_1pass (
         VECTOR   t(nf,1.0);           // transmission to the sensor
         size_t   q;                   // LOS index (same notation as in AUG) 
 
-  if ( (ground==0) || (ground==int(start_index)) )
+  if ( ground && ((ground-1==stop_index) || (ground-1==start_index)) )
     throw logic_error("The ground cannot be at one of the end points."); 
 
   // Resize K
@@ -872,7 +873,7 @@ void sourceloswfs_1pass (
   for ( q=stop_index+1; q<start_index; q++ )
   {
     // Not a ground point
-    if ( int(q) != ground )
+    if ( q != ground )
     {
       for ( iv=0; iv<nf; iv++ )    
       {
@@ -925,7 +926,7 @@ void sourceloswfs_limb (
                     MATRIX&   k,
               const size_t&   start_index,
               const MATRIX&   tr,
-              const int&      ground,
+              const INDEX&    ground,
               const VECTOR&   e_ground )
 {
   const size_t   nf = tr.nrows();      // number of frequencies
@@ -991,7 +992,7 @@ void sourceloswfs_down (
               const size_t&   start_index,
               const size_t&   stop_index,
               const MATRIX&   tr,
-              const int&      ground,
+              const INDEX&    ground,
               const VECTOR&   e_ground )
 {
   const size_t   nf = tr.nrows(); // number of frequencies
@@ -1576,8 +1577,8 @@ void k_temp_nohydro (
 		     const ARRAYofMATRIX&                 trans,
 		     const VECTOR&                        e_ground,
 		     const VECTOR&                        k_grid,
-		     const ARRAYofstring&                 cont_description_names,
-                     const ARRAYofVECTOR& 		  cont_description_parameters )
+		     const ARRAYofstring&         cont_description_names,
+                     const ARRAYofVECTOR& 	  cont_description_parameters )
 {
   // Main sizes
   const size_t  nza = los.start.size();     // number of zenith angles  
@@ -1631,8 +1632,9 @@ void k_temp_nohydro (
   {
     VECTOR dummy(t_abs.size(),1.0);
     add(t_abs,dummy);
-    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, h2o_abs, vmrs, 
-             lines_per_tg, lineshape, cont_description_names, cont_description_parameters );
+    absCalc( abs1k, abs_dummy, tag_groups, f_mono, p_abs, dummy, h2o_abs, 
+             vmrs, lines_per_tg, lineshape, cont_description_names, 
+                                                 cont_description_parameters );
   }
   resize(abs_dummy,0);
   //

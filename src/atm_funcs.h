@@ -91,7 +91,7 @@ void rte (
        const MATRIX&   Tr,
        const MATRIX&   S,
        const VECTOR&   y_space,
-       const int&      ground,
+       const INDEX&    ground,
        const VECTOR&   e_ground,
        const VECTOR&   y_ground );
 
@@ -107,7 +107,7 @@ void bl (
        const size_t&   start_index,
        const size_t&   stop_index,
        const MATRIX&   Tr,
-       const int&      ground,
+       const INDEX&    ground,
        const VECTOR&   e_ground );
 
 

@@ -1,3 +1,20 @@
+2001-04-03  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-0-0-148
+
+	* Fixed some bugs for downward looking observations. The first problem
+	was associated with the indexing of the ground where there still were
+	problems from the change from 1-based to 0-based indexing. Further,
+	some vectors where not given any length before copying data.
+
+	* Made the variables a and b in the planck functions static again
+	and introduced the variable c for the vector version.
+	For the matrix version there were no problem before (or?). The bug
+	was in the vector version where the temperature was included in the
+	static variable b which of course is a stupid thing. 
+	The staic variables a and b should now only contains constants.
+	
+
 2001-04-03  Stefan Buehler  <sbuehler@uni-bremen.de>  
 
 	* arts-0-0-147

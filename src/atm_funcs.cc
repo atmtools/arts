@@ -70,11 +70,6 @@ extern const Numeric BOLTZMAN_CONST;
     Adapted to MTL. Gone from 1-based to 0-based. No resize!
     \date 2000-12-26
     \author Stefan Buehler
-
-    Fixed bug: Variables a and b must not be declared as static,
-    otherwise they are only computed for the first function call. 
-    \date   2001-04-03 
-    \author Stefan Buehler
 */
 void planck (
               MATRIX&     B, 
@@ -82,8 +77,8 @@ void planck (
         const VECTOR&     t )
 {
   // Double must be used here (if not, a becomes 0 when using float)
-  const double a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  const double b = PLANCK_CONST/BOLTZMAN_CONST;
+  static const double a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const double b = PLANCK_CONST/BOLTZMAN_CONST;
 
   const size_t    n_f  = f.size();
   const size_t    n_t  = t.size();
@@ -127,22 +122,27 @@ void planck (
     otherwise they are only computed for the first function call. 
     \date   2001-04-03 
     \author Stefan Buehler
+
+    Introduced c and made a and b static again as they (a and b) now
+    only contains constants.
+    \date   2001-04-04
+    \author Patrick Eriksson
 */
 void planck (
              VECTOR&    B,
        const VECTOR&    f,
        const Numeric&   t )
 {
-  const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
-  const Numeric b = PLANCK_CONST/BOLTZMAN_CONST/t;
+  static const Numeric a = 2.0*PLANCK_CONST/(SPEED_OF_LIGHT*SPEED_OF_LIGHT);
+  static const Numeric b = PLANCK_CONST/BOLTZMAN_CONST;
+         const Numeric c = b/t; 
 
   assert( B.size()==f.size() );
 
   for ( size_t i=0; i<f.size(); i++ )
-    {
-      B[i] = a * f[i]*f[i]*f[i] / ( exp( f[i]*b ) - 1.0 );
-      //      cout << t << "--" << B[i] << "\n";
-    }
+  {
+    B[i] = a * f[i]*f[i]*f[i] / ( exp( f[i]*c ) - 1.0 );
+  }
 }
 
 
@@ -295,7 +295,7 @@ void rte (
        const MATRIX&   tr,
        const MATRIX&   s,
        const VECTOR&   y_space,
-       const int&      ground,
+       const INDEX&    ground,
        const VECTOR&   e_ground,
        const VECTOR&   y_ground )
 {
@@ -418,7 +418,7 @@ void bl (
        const size_t&   start_index,
        const size_t&   stop_index,
        const MATRIX&   tr,
-       const int&      ground,
+       const INDEX&    ground,
        const VECTOR&   e_ground )
 {
   const size_t   nf = tr.nrows();      // number of frequencies
