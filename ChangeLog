@@ -1,3 +1,9 @@
+2004-04-16  Oliver Lemke  <olemke@linux.net>
+
+	* arts-1-1-810
+
+	* configure.in: Fix check for szip.
+
 2004-04-15  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
 	
 	* arts-1-1-809
@@ -18,7 +24,7 @@
 
 	* src/methods.cc: Included (ScatteringGridOptimization) and modified
 	(scat_za_gridOptimze).
-	
+
 2004-04-15  Oliver Lemke  <olemke@linux.net>
 
 	* arts-1-1-808
