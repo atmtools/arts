@@ -29,6 +29,7 @@
 #include "arts.h"
 #include "matpackVII.h"
 
+
 bool is_bool( const Index& x );
 
 bool is_multiple( const Index& x, const Index& y );
@@ -80,6 +81,10 @@ bool is_sorted( ConstVectorView   x );
 bool is_increasing( ConstVectorView   x );
 
 bool is_decreasing( ConstVectorView   x );
+
+bool is_singular( ConstMatrixView A );
+
+bool is_diagonal( ConstMatrixView A );
 
 
 ////////////////////////////////////////////////////////////////////////////

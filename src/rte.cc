@@ -573,24 +573,8 @@ rte_step(//Output and Input:
       // For diagonal ext_mat_gas, we expect abs_vec_gas to only have a
       // non-zero value in position 1.
     
-      bool diagonal = true;
-      //
-      for( Index i=1; diagonal  && i<stokes_dim; i++ )
-	{
-	  for( Index j=0; diagonal && j<i; j++ )
-	    {
-	      if( ext_mat_av(i,j) != 0.  ||  ext_mat_av(j,i) != 0. )
-		{ diagonal = false; }
-	    }
-        }
-
-      for (Index i = 1;  diagonal && i < stokes_dim; i++)
-	  assert( !diagonal  ||  ( diagonal  && abs_vec_av[i] == 0. ) );
-	
-
-
       // Unpolarised
-      if( diagonal )
+      if( is_diagonal(ext_mat_av) )
         {
            // Stokes dim 1
 	  assert( ext_mat_av(0,0) == abs_vec_av[0] );
@@ -600,16 +584,17 @@ rte_step(//Output and Input:
 
 	  // Stokes dims > 1
 	  for( Index i=1; i<stokes_dim; i++ )
-	    { stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); }
+            {
+            assert( abs_vec_av[i] == 0.);
+	    stokes_vec[i] *= exp( -l_step * ext_mat_av(i,i) ); 
+            }
 	}
       
       //General case
       else
         {
-          cout << "stokes_vec vor " <<stokes_vec;
           stokes_vecGeneral(stokes_vec, ext_mat_av, abs_vec_av, sca_vec_av,
                             l_step, a_planck_value);
-          cout << "stokes_vec nach " <<stokes_vec;
         }
     }
 }

@@ -583,8 +583,9 @@ void ext_matAddGas(Tensor3& ext_mat,
 {
   Index stokes_dim = ext_mat.ncols();
   Matrix ext_mat_gas(stokes_dim, stokes_dim,0.0);
-  cout<<"stokes_dim"<<stokes_dim<<endl;
-  //FIXME: After the scalar ags function is ready.
+ 
+  //FIXME: After the scalar ags function is ready. Now it can take only one
+  // absorption value.
   if (atmosphere_dim == 1){
   
     for (Index i =0; i < stokes_dim; ++i)
@@ -594,7 +595,7 @@ void ext_matAddGas(Tensor3& ext_mat,
 	    
 	    if ( i == j){
 	      // Dies ist noch Quatsch!!!
-	      ext_mat_gas(i,j) = abs_scalar_gas[f_index];
+	      ext_mat_gas(i,j) = abs_scalar_gas[0];
 	    }
 	    else{
 	      ext_mat_gas(i,j) = 0.0;
@@ -628,7 +629,7 @@ void abs_vecAddGas(Matrix& abs_vec,
 
   if (atmosphere_dim == 1){
     
-    abs_vec_gas[0] = abs_scalar_gas[f_index];
+    abs_vec_gas[0] = abs_scalar_gas[0];
   
     for (Index i = 1; i < stokes_dim; ++i)
       {
@@ -899,13 +900,15 @@ void amp_matCalc(Tensor6& amp_mat,
   
   Index N_za = scat_za_grid.nelem();
   Index N_aa = scat_aa_grid.nelem();
-  Index N_i = amp_mat_raw [ 0 ] [ 6 ].ncols();
+  Index N_0 = amp_mat_raw [ 0 ] [ 6 ].ncols();
 
-  if (N_i != 8)
+  if (N_0 != 8)
     throw runtime_error(
-			"Amplitude matrix must have 8 columns.");
+			"Amplitude matrix must have 8 columns because there"
+                        "are 4 real and 4 complex components stored"
+                        "separately");
 
-  amp_mat.resize(N_pt, N_za, N_aa, N_za, N_aa, N_i);  
+  amp_mat.resize(N_pt, N_za, N_aa, N_za, N_aa, N_0);  
   /*amp_mat_raw is an ArrayOfArrayOfTensor6 from which we can get the 
     amplitude matrix which is a tensor 6 with size(Nf, Nza, Naa, Nza,Naa,8). 
     This is what is directly read from the database.  As mentioned in 

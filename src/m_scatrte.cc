@@ -715,7 +715,7 @@ i_fieldUpdate1D(// WS Output:
   for(Index p_index = cloudbox_limits[0]; p_index
         <= cloudbox_limits[1]; p_index ++)
     {
-      scalar_gas_absorption_agenda.execute();
+      scalar_gas_absorption_agenda.execute(p_index - cloudbox_limits[0]);
       scalar_gas_array[p_index - cloudbox_limits[0]] = abs_scalar_gas[0];
     }
   
@@ -782,8 +782,10 @@ i_fieldUpdate1D(// WS Output:
            
           // Execute agendas silently, only the first call is output on
           // the screen (no other reason for argument in agenda.execute).
-          opt_prop_gas_agenda.execute(p_index - cloudbox_limits[0]);
-          opt_prop_part_agenda.execute(p_index - cloudbox_limits[0]);
+          opt_prop_gas_agenda.execute((scat_za_index + 
+                                      (p_index - cloudbox_limits[0])) );
+          opt_prop_part_agenda.execute((scat_za_index + 
+                                       (p_index - cloudbox_limits[0])) );
           
           // Store coefficients in arrays for the whole cloudbox.
           abs_vec_array[p_index-cloudbox_limits[0]] = 
@@ -839,7 +841,8 @@ i_fieldUpdate1D(// WS Output:
               ppath_step.gp_p[0].fd[1] = 1;
               
               // Call ppath_step_agenda: 
-              ppath_step_agenda.execute();
+              ppath_step_agenda.execute((scat_za_index + 
+                                      (p_index - cloudbox_limits[0])));
               
               // Length of the path between the two layers.
               l_step = ppath_step.l_step[0];
@@ -903,14 +906,15 @@ i_fieldUpdate1D(// WS Output:
 
               // K  must not be singular
 
-              bool singular_K = true;
-              for(Index i=0; i<stokes_dim && singular_K; i++){
-                for(Index j = 0; j<stokes_dim && singular_K; j++){
-                  if(ext_mat_av(i,j) != 0.)
-                    singular_K = false;
-                }
-              }
-              assert (!singular_K );
+          //     bool singular_K = true;
+//               for(Index i=0; i<stokes_dim && singular_K; i++){
+//                 for(Index j = 0; j<stokes_dim && singular_K; j++){
+//                   if(ext_mat_av(i,j) != 0.)
+//                     singular_K = false;
+//                 }
+//               }
+               assert (!is_singular( ext_mat_av ));
+
                     
               // Radiative transfer step calculation.
               rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
@@ -953,7 +957,8 @@ i_fieldUpdate1D(// WS Output:
               ppath_step.gp_p[0].fd[1] = 1;
               
               // Call ppath_step_agenda: 
-              ppath_step_agenda.execute();
+              ppath_step_agenda.execute((scat_za_index + 
+                                      (p_index - cloudbox_limits[0])));
               
               // Length of the path between the two layers.
               l_step = ppath_step.l_step[0];
@@ -1012,14 +1017,14 @@ i_fieldUpdate1D(// WS Output:
         //       cout << "ext_mat:..." << ext_mat << endl;*/
               
               // K must not be singular
-              bool singular_K = true;
-              for(Index i=0; i<stokes_dim && singular_K; i++){
-                for(Index j = 0; j<stokes_dim && singular_K; j++){
-                  if(ext_mat_av(i,j) != 0.)
-                    singular_K = false;
-                }
-              }
-              assert (!singular_K );
+ //              bool singular_K = true;
+//               for(Index i=0; i<stokes_dim && singular_K; i++){
+//                 for(Index j = 0; j<stokes_dim && singular_K; j++){
+//                   if(ext_mat_av(i,j) != 0.)
+//                     singular_K = false;
+//                 }
+//               }
+              assert ( !is_singular( ext_mat_av ) );
                     
               // Radiative transfer step calculation.
               rte_step(stokes_vec, ext_mat_av, abs_vec_av, 
@@ -1518,7 +1523,7 @@ scat_fieldCalc(//WS Output:
   Index Naa_prop = i_field.ncols();
   Index Np  = i_field.nvitrines();
 
-  cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
+  // cout<<"Naa in the scattering integral routine"<<" "<<Naa<<"\n";
   //Tensor4 product_field(Np,Nza, Naa, stokes_dim);//earlier tensor3; added pressure index STR
   // now tensor5 after za_index_in index
   Tensor3 product_field(Nza, Naa, stokes_dim,0);
@@ -1872,6 +1877,11 @@ void ScatteringMain(//WS Output
                       lon_grid, z_field, r_geoid, z_ground);
 
   
+  // Calculation for monochromatic radiation field inside cloudbox:
+  // We have to define at least 2 frequencies in f_grid, but the scattering
+  // calculation should be done only for 1 frequency.
+  if (f_grid.nelem() == 2) Nf = 1;
+
   for (f_index = 0; f_index < Nf; ++ f_index)
     {
       scat_mono_agenda.execute(); 

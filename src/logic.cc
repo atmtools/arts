@@ -34,8 +34,14 @@
 
 
 #include <math.h> 
+#include <stdexcept>
 #include "logic.h"
 
+
+// For checking, if a Numeric equal zero we have to take into account the
+// numerical precicion. If a value is smaller than *precision* it is 
+// taken to be 0.
+#define precision 0.
 
 
 //! Checks if a variable equals 0 or 1.
@@ -282,3 +288,62 @@ bool is_decreasing( ConstVectorView   x )
 }
 
 
+//! Checks if a square matrix is singular.
+/*! 
+    If one row of a matrix has only 0 values the matrix is singular.
+
+    Due to numerical inaccuracies the values can deviate from 0. 
+    The value for the precision is defined in the file *logic.cc*.
+
+    \return      True if matrix is singular.
+    \param   A   A square matrix.
+*/
+bool is_singular( ConstMatrixView A )
+{
+  assert( A.nrows() == A.ncols() );
+  Numeric temp = 0.;
+    
+  for( Index i=0; i<A.nrows(); i++)
+    {
+      Numeric big = 0.;
+      for( Index j=0; j<A.nrows(); j++)
+        {
+          if ((temp = fabs(A(i,j))) > big)
+            big = temp;
+        }
+      // Due to numerical precision the values can deviate from 0.0
+      if (big < precision)
+        {
+        throw runtime_error ("Matrix is singular.");
+        return true;
+        }
+    }
+  return false;
+}
+
+
+//! Checks if a square matrix is diagonal.
+/*! 
+    If one off diagonal element is nonzero the function returns false.
+
+    Due to numerical inaccuracies the values can deviate from 0. 
+    The value for the precision is defined in the file *logic.cc*.
+
+    \return      True if matrix is diagonal.
+    \param   A   A square matrix.
+*/
+bool is_diagonal( ConstMatrixView A )
+{
+ assert( A.nrows() == A.ncols() );
+ 
+ for( Index i=1; i<A.ncols(); i++ )
+	{
+	  for( Index j=0; j<i; j++ )
+	    {
+	      if( fabs(A(i,j)) > precision ||  
+                  fabs(A(j,i)) > precision )
+		return false;
+	    }
+        }
+ return true;
+}

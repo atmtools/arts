@@ -286,7 +286,8 @@ void ppathCalc(
       out3 << "  path step number     : " << istep << "\n";
       //
       
-      ppath_step_agenda.execute();
+      // (CE:) Included istep here to execute the agenda silently.
+      ppath_step_agenda.execute(istep);
       
       //PpathPrint(ppath_step,"ppath_step");
 

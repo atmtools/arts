@@ -357,7 +357,8 @@ void define_agenda_data()
        (
        "Performs the monochromatic scattering calculation."
        "\n"
-       "Normally this agenda consists of three methods: \n"
+       "Normally this agenda consists of four methods: \n"
+       "   1. amp_matCalc\n"
        "   1. i_fieldSetClearsky or i_fieldSetConst \n"
        "   2. i_fieldIterate (Other solution methods might be implemented\n"
        "      later.) \n"
@@ -369,8 +370,11 @@ void define_agenda_data()
        "\n"
        "Input:\n"
        "   f_grid:       Frequency grid. \n"
-       "   scat_f_index: Frequency index for the ongoing scattering \n"
+       "   f_index: Frequency index for the ongoing scattering \n"
        "                 calculation. \n"
+       "   scat_za_grid: Zenith angle grid. \n"
+       "   scat_aa_grid: Azimuthal angle grid. \n"
+       "   amp_mat_raw: Amplitude matrix raw data. \n"
        ""
 	),
        OUTPUT(scat_i_p_,
@@ -380,7 +384,10 @@ void define_agenda_data()
              scat_i_lat_,
              scat_i_lon_,
              f_grid_,
-             f_index_)));
+             f_index_,
+             scat_za_grid_,
+             scat_aa_grid_,
+             amp_mat_raw_)));
 
  agenda_data.push_back
     (AgRecord

@@ -829,12 +829,12 @@ void scat_iPut(//WS Output:
        assert ( is_size( scat_i_p,
                           N_f, 2, 1, 1, N_za, 1, stokes_dim ));
 
- cout << "before ...." << endl;
+ 
        Tensor6View scat_i_p_view = 
                     scat_i_p(f_index, Range(joker) , Range(joker), 
                              Range(joker), Range(joker), Range(joker),
                              Range(joker));
- cout << "after ...." << endl;
+ 
        for (Index za = 0; za < N_za; za++)
             {
               for (Index i = 0; i < stokes_dim; i++)
@@ -1144,8 +1144,7 @@ void CloudboxGetIncoming(// WS Output:
                     scat_za_index,0,
                     Range(joker)) = i_rte;
           
-          cout << "i_rte lower boundary :" << i_rte <<  endl;
-	        }
+   	        }
 
       // Get scat_i_p at upper boundary
        sensor_pos(0, 0) = r_geoid(0,0)+z_field(cloudbox_limits[1],
@@ -1173,8 +1172,7 @@ void CloudboxGetIncoming(// WS Output:
                     scat_za_index,0,
                     Range(joker)) = i_rte;
           
-          cout << " i_rte upper boundary " << i_rte << endl;
-        } 
+           } 
           
     
           scat_i_lat = 0;
