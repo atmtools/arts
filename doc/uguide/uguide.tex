@@ -12,10 +12,51 @@
 %\includeonly{scattering}
 %
 %
-\usepackage[dvips]{graphicx}    % includegraphics
-\DeclareGraphicsExtensions{.eps}
+% allow us to use if-then-else in TeX macros
+\usepackage{ifthen}
 
-\setcounter{tocdepth}{1}
+% Detect if we're running PDFLaTeX or good 'ol vanilla LaTeX
+\newif\ifpdf
+  \ifx\pdfoutput\undefined
+  \pdffalse
+\else
+  \pdfoutput=1
+  \pdftrue
+\fi
+
+%%% BEGIN PDF/LaTeX specific options
+\ifpdf
+%%% PDFLaTeX -- options for PDF generation
+  \usepackage[pdftex]{graphicx}    % includegraphics
+  \DeclareGraphicsExtensions{.pdf}
+
+  \usepackage{color}
+
+  \usepackage
+    [pdftex,                         % or dvips
+     colorlinks=true,
+     pdftitle={ARTS User Guide},
+     pdfauthor={xyz},
+     pdfsubject={},
+     pdfkeywords={},
+     bookmarks=true,
+     bookmarksopen=false,
+     pdfpagemode=None]
+  {hyperref}
+
+  \setcounter{tocdepth}{3}
+
+\else
+%%% BEGIN LaTeX-specific options
+
+  \usepackage[dvips]{graphicx}    % includegraphics
+  \DeclareGraphicsExtensions{.eps}
+
+  \setcounter{tocdepth}{1}
+
+%%% END of PDF/LaTeX specific options
+\fi
+
 
 \input{main}
 
