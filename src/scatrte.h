@@ -43,11 +43,13 @@ void cloud_fieldsCalc(// Output:
                         Index& scat_lat_index,
                         Index& scat_lon_index, 
                         Tensor3& ext_mat,
-                        Matrix& abs_vec,  
+                        Matrix& abs_vec,
+                        Numeric& rte_temperature,
                         // Input:
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
-                        const ArrayOfIndex& cloudbox_limits
+                        const ArrayOfIndex& cloudbox_limits,
+                        const Tensor3& t_field
                         );
 
 void cloud_ppath_update1D(

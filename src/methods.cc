@@ -3275,10 +3275,10 @@ md_data_raw.push_back
          "the method *pha_matCalc*.  \n"
          ),
         OUTPUT( scat_field_, pha_mat_, pha_mat_spt_, scat_za_index_,
-                scat_aa_index_),
+                scat_aa_index_, rte_temperature_),
         INPUT( pha_mat_spt_agenda_, i_field_, pnd_field_, scat_za_grid_, 
                scat_aa_grid_,  
-               atmosphere_dim_, cloudbox_limits_, za_grid_size_),
+               atmosphere_dim_, cloudbox_limits_, za_grid_size_, t_field_),
         GOUTPUT(),
         GINPUT(),
         KEYWORDS(),

@@ -375,9 +375,11 @@ void opt_prop_sptFromData( // Output and Input:
       Vector itw(4);
       interpweights(itw, freq_gp, t_gp);
      
-      for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages() ; i_za_sca++)
+      for (Index i_za_sca = 0; i_za_sca < ext_mat_data_raw.npages();
+           i_za_sca++)
         {
-          for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows(); i_aa_sca++)
+          for(Index i_aa_sca = 0; i_aa_sca < ext_mat_data_raw.nrows(); 
+              i_aa_sca++)
             {
               //
               // Interpolation of extinction matrix:
@@ -385,15 +387,18 @@ void opt_prop_sptFromData( // Output and Input:
               for (Index i = 0; i < ext_mat_data_raw.ncols(); i++)
                 {
                   ext_mat_data_int(i_za_sca, i_aa_sca, i) =
-                    interp(itw, ext_mat_data_raw(joker, joker, i_za_sca, i_aa_sca, i),
+                    interp(itw, ext_mat_data_raw(joker, joker, 
+                                                 i_za_sca, i_aa_sca, i),
                            freq_gp, t_gp);
                 }
             }
         }
 
-      for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages() ; i_za_sca++)
+      for (Index i_za_sca = 0; i_za_sca < abs_vec_data_raw.npages();
+           i_za_sca++)
         {
-          for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows(); i_aa_sca++)
+          for(Index i_aa_sca = 0; i_aa_sca < abs_vec_data_raw.nrows(); 
+              i_aa_sca++)
             {
               //
               // Interpolation of absorption vector:
@@ -401,7 +406,8 @@ void opt_prop_sptFromData( // Output and Input:
               for (Index i = 0; i < abs_vec_data_raw.ncols(); i++)
                 {
                   abs_vec_data_int(i_za_sca, i_aa_sca, i) =
-                    interp(itw, abs_vec_data_raw(joker, joker, i_za_sca, i_aa_sca, i),
+                    interp(itw, abs_vec_data_raw(joker, joker, i_za_sca, 
+                                                 i_aa_sca, i),
                            freq_gp, t_gp);
                 }
             }
@@ -1086,10 +1092,12 @@ void ScatteringDataPrepareDOITOpt( //Output:
   scat_theta.resize(za_grid.nelem(), N_aa_sca, 
                     za_grid.nelem(),scat_aa_grid.nelem());
   
+  pha_mat_sptDOITOpt.resize(N_pt);
+
   for (Index i_pt = 0; i_pt < N_pt; i_pt++)
     {
       Index N_T = T_datagrid.nelem();
-      pha_mat_sptDOITOpt[i_pt].resize(N_T,  za_grid_size, N_aa_sca, 
+      pha_mat_sptDOITOpt[i_pt].resize(N_T, za_grid_size, N_aa_sca, 
                     za_grid_size, scat_aa_grid.nelem(), 6);
       
       // Frequency interpolation of the data:

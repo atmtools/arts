@@ -1,3 +1,23 @@
+2004-07-30  Claudia Emde  <claudia@sat.physik.uni-bremen.de>
+
+	* arts-1-1-847
+	
+	* src/m_scatrte.cc 
+	(i_fieldUpdateSeq1D,
+	i_fieldUpdateSeq3D,
+	i_fieldUpdateSeq1Dplane_parallel,
+	scat_fieldCalc, 
+	scat_fieldCalcLimb): 
+	Included temperature dependance of single scattering properties into 
+	all these methods.
+
+	* methods.cc: Included *t_field* and *rte_temperature* im methods 
+	above. 
+	
+	* src/scatrte.{cc,h}(cloud_fieldsCalc): Included temperature.
+	
+	* src/m_optproperties.cc (pha_mat_sptFromDataDOITOpt): Minor change.  
+	
 2004-07-16  Cory Davis (rsh)   <cory@fog>
 
 	* arts-1-1-846

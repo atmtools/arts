@@ -1217,13 +1217,13 @@ i_fieldUpdateSeq1D(// WS Output:
       Index scat_lon_index = 0;
 
       // This function has to be called inside the angular loop, as
-      // it spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
+      // spt_calc_agenda takes *scat_za_index* and *scat_aa_index* 
       // from the workspace.
       cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                        scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, 
+                       ext_mat, abs_vec, rte_temperature,
                        spt_calc_agenda, 
-                       opt_prop_part_agenda, cloudbox_limits);
+                       opt_prop_part_agenda, cloudbox_limits, t_field);
       
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -1529,9 +1529,9 @@ void i_fieldUpdate3D(// WS Output:
         {
           cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                            scat_lat_index, scat_lon_index,
-                           ext_mat, abs_vec, 
+                           ext_mat, abs_vec, rte_temperature,
                            spt_calc_agenda, 
-                           opt_prop_part_agenda, cloudbox_limits);
+                           opt_prop_part_agenda, cloudbox_limits, t_field);
         
           //==================================================================
           // Radiative transfer inside the cloudbox
@@ -2154,9 +2154,9 @@ void i_fieldUpdateSeq3D(// WS Output:
           // from the workspace.
           cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                            scat_lat_index, scat_lon_index,
-                           ext_mat, abs_vec, 
+                           ext_mat, abs_vec, rte_temperature,
                            spt_calc_agenda, 
-                           opt_prop_part_agenda, cloudbox_limits);
+                           opt_prop_part_agenda, cloudbox_limits, t_field);
           
 
           Vector stokes_vec(stokes_dim,0.);
@@ -2470,9 +2470,9 @@ i_fieldUpdateSeq1D_PlaneParallel(// WS Output:
       
       cloud_fieldsCalc(ext_mat_field, abs_vec_field, scat_p_index,
                        scat_lat_index, scat_lon_index,
-                       ext_mat, abs_vec, 
+                       ext_mat, abs_vec, rte_temperature,
                        spt_calc_agenda, 
-                       opt_prop_part_agenda, cloudbox_limits);
+                       opt_prop_part_agenda, cloudbox_limits, t_field);
 
       //======================================================================
       // Radiative transfer inside the cloudbox
@@ -2574,6 +2574,7 @@ scat_fieldCalc(//WS Output:
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
                Index& scat_aa_index,
+                Numeric& rte_temperature,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
                const Tensor6& i_field,
@@ -2582,7 +2583,8 @@ scat_fieldCalc(//WS Output:
                const Vector& scat_aa_grid,
                const Index& atmosphere_dim,
                const ArrayOfIndex& cloudbox_limits,
-               const Index& za_grid_size
+               const Index& za_grid_size,
+               const Tensor3& t_field
                )
   
 {
@@ -2634,6 +2636,7 @@ scat_fieldCalc(//WS Output:
     for (Index p_index = 0; p_index <= cloudbox_limits[1]- cloudbox_limits[0] ;
          p_index++)
       {
+        rte_temperature = t_field(p_index + cloudbox_limits[0], 0, 0);
         //There is only loop over zenith angle grid ; no azimuth angle grid.
         for (scat_za_index = 0; scat_za_index < Nza; scat_za_index ++)
           {
@@ -2727,6 +2730,10 @@ scat_fieldCalc(//WS Output:
             for (Index lon_index = 0; lon_index <= 
                    cloudbox_limits[5]-cloudbox_limits[4]; lon_index++)
               {
+                rte_temperature = t_field(p_index + cloudbox_limits[0],
+                                          lat_index + cloudbox_limits[2],
+                                          lon_index + cloudbox_limits[4]);
+                
                 for (scat_aa_index = 1; scat_aa_index < Naa; 
                      scat_aa_index++)
                   {
@@ -2838,7 +2845,7 @@ scat_fieldCalcLimb(//WS Output:
                Tensor5& pha_mat_spt,
                Index& scat_za_index, 
                Index& scat_aa_index,
-               Numeric& t_value,
+               Numeric& rte_temperature,
                //WS Input:
                const Agenda& pha_mat_spt_agenda,
                const Tensor6& i_field,
@@ -2917,7 +2924,7 @@ scat_fieldCalcLimb(//WS Output:
       for (Index p_index = 0; p_index <= cloudbox_limits[1]-cloudbox_limits[0];
            p_index++)
         {
-          t_value = t_field(p_index, 0, 0);
+          rte_temperature = t_field(p_index + cloudbox_limits[0], 0, 0);
           // Interpolate intensity field:
           for (Index i = 0; i < stokes_dim; i++)
             {
@@ -3063,7 +3070,9 @@ scat_fieldCalcLimb(//WS Output:
                    cloudbox_limits[5] - cloudbox_limits[4]; lon_index++)
               {
                 
-                t_value = t_field(p_index, lat_index, lon_index);
+                rte_temperature = t_field(p_index + cloudbox_limits[0],
+                                          lat_index + cloudbox_limits[2],
+                                          lon_index + cloudbox_limits[4]);
                 
                 // Loop over scattered directions
                 for (scat_aa_index = 1; scat_aa_index < Naa; 

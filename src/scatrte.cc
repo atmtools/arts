@@ -89,10 +89,12 @@ void cloud_fieldsCalc(// Output:
                         Index& scat_lon_index, 
                         Tensor3& ext_mat,
                         Matrix& abs_vec,  
+                        Numeric& rte_temperature,
                         // Input:
                         const Agenda& spt_calc_agenda,
                         const Agenda& opt_prop_part_agenda,
-                        const ArrayOfIndex& cloudbox_limits
+                        const ArrayOfIndex& cloudbox_limits,
+                        const Tensor3& t_field
                         )
 {
   
@@ -123,9 +125,6 @@ void cloud_fieldsCalc(// Output:
       lon_up = cloudbox_limits[5]; 
     }
   
-  //Calculate optical properties for single particle types:
-  spt_calc_agenda.execute(true);
-  
   // Calculate ext_mat, abs_vec for all points inside the cloudbox.
   // sca_vec can be obtained from the workspace variable scat_field.
   // As we need the average for each layer, it makes sense to calculte
@@ -134,7 +133,7 @@ void cloud_fieldsCalc(// Output:
   // the point below. 
   // To use special interpolation functions for atmospheric fields we 
   // use ext_mat_field and abs_vec_field:               
-
+  
   // Loop over all positions inside the cloudbox defined by the 
   // cloudbox_limits.
   for(scat_p_index = p_low; scat_p_index <= p_up; scat_p_index ++)
@@ -144,6 +143,11 @@ void cloud_fieldsCalc(// Output:
           for(scat_lon_index = lon_low; scat_lon_index <= lon_up;
               scat_lon_index ++)
             {
+              rte_temperature = 
+                t_field(scat_p_index, scat_lat_index, scat_lon_index);
+                                        
+              //Calculate optical properties for single particle types:
+              spt_calc_agenda.execute(true);
               // Execute agendas silently.
               opt_prop_part_agenda.execute(true);
            
