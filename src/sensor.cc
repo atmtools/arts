@@ -60,7 +60,7 @@
 
    E.g. h*g = integral( f(x)*g(x) dx )
 
-   \return         The multiplication (row) vector.
+   \param   h      The multiplication (row) vector.
    \param   f      The values of function f(x).
    \param   x_f    The grid points of function f(x).
    \param   x_g    The grid points of function g(x).
@@ -68,56 +68,59 @@
    \author Mattias Ekström
    \date   2003-02-13
 */
-Vector sensor_integration_vector(
-        const Vector&   f,
-        const Vector&   x_ftot,
-        const Vector&   x_g )
+void sensor_integration_vector(
+           VectorView   h,
+      ConstVectorView   f,
+      ConstVectorView   x_ftot,
+      ConstVectorView   x_g )
 {
   //Check that vectors are sorted, ascending (no descending?)
 
   //Find x_f points that lies outside the scope of x_g and remove them
-  Index i1_f = 0, i2_f = x_g.nelem()-1;
+  Index i1_f = 0, i2_f = x_ftot.nelem()-1;
   while( x_ftot[i1_f] < x_g[0] ) {
     i1_f++;
   }
   while( x_ftot[i2_f] > x_g[x_g.nelem()-1] ) {
     i2_f--;
   }
-  Vector x_f = x_ftot[Range(i1_f, i2_f)];
+  Vector x_f = x_ftot[Range(i1_f, i2_f-i1_f+1)];
 
   //Create a reference grid vector containing all x_f and x_g
   //strictly sorted by adding the in a sorted way.
-  Vector x_ref( x_f.nelem() + x_g.nelem() );
+  Vector x_reftot( x_f.nelem() + x_g.nelem() );
 
-  Index i_f = 0, i_g = 0;
-  for( Index i=0; i<x_ref.nelem(); i++ ) {
+  Index i_f = 0, i_g = 0, i=0;
+  while( i_f<x_f.nelem() || i_g<x_g.nelem() ) {
     if (x_f[i_f] < x_g[i_g]) {
-      x_ref[i] = x_f[i_f];
+      x_reftot[i] = x_f[i_f];
       i_f++;
     } else if (x_f[i_f] > x_g[i_g]) {
-      x_ref[i] = x_g[i_g];
+      x_reftot[i] = x_g[i_g];
       i_g++;
     } else {
       // x_f and x_g are equal
-      x_ref[i] = x_f[i_f];
+      x_reftot[i] = x_f[i_f];
       i_f++;
       i_g++;
     }
+  i++;
   }
+  Vector x_ref = x_reftot[Range(0,i)];
 
   //Initiate output vector, with equal size as x_g, with zeros.
   //Start calculations
-  Vector h(x_g.nelem(), 0.0);
+  h = 0.0;
   i_f = 0;
   i_g = 0;
   Numeric dx,a0,b0,c0,a1,b1,c1,x3,x2,x1;
-  for( Index i=0; i<x_ref.nelem(); i++ ) {
+  for( Index i=0; i<x_ref.nelem()-1; i++ ) {
     //Find for what index in x_g (which is the same as for h) and f
     //calculation corresponds to
-    while( x_g[i_g+1] < x_ref[i] ) {
+    while( x_g[i_g+1] <= x_ref[i] ) {
       i_g++;
     }
-    while( x_f[i_f+1] < x_ref[i] ) {
+    while( x_f[i_f+1] <= x_ref[i] ) {
      i_f++;
     }
 
@@ -126,7 +129,7 @@ Vector sensor_integration_vector(
     if( x_ref[i] >= x_f[0] && x_ref[i] < x_f[x_f.nelem()-1] ) {
       //Product of steps in x_f and x_g
       dx = (x_f[i_f+1] - x_f[i_f]) * (x_g[i_g+1] - x_g[i_g]);
-      
+
       //Calculate a, b and c coefficients; h[i]=ax^3+bx^2+cx
       a0 = (f[i_f] - f[i_f+1]) / 3;
       b0 = (-f[i_f]*(x_g[i_g+1]+x_f[i_f+1])+f[i_f+1]*(x_g[i_g+1]+x_f[i_f]))/2;
@@ -139,16 +142,85 @@ Vector sensor_integration_vector(
       x3 = pow(x_ref[i+1],3) - pow(x_ref[i],3);
       x2 = pow(x_ref[i+1],2) - pow(x_ref[i],2);
       x1 = x_ref[i+1]-x_ref[i];
-      
+
       //Calculate h[i] and h[i+1] increment
       h[i_g] += (a0*x3+b0*x2+c0*x1) / dx;
       h[i_g+1] += (a1*x3+b1*x2+c1*x1) / dx;
 
     }
   }
-
-  return h;
-
 }
 
+//! antenna_transfer_matrix
+/*!
+   Constructs the matrix that multiplied with the spectral values for
+   one or several line-of-sights models the antenna transfer matrix.
+   The matrix it built up of spaced row vectors, to match the format
+   of the spectral values.
+   
+   The size of the antenna transfer matrix has to be set by the calling
+   function, and it must be set as:
+    nrows = x_f.nelem()
+    ncols = x_f.nelem() * m_za.nelem()
+
+   The number of line-of-sights is determined by the length of the
+   measurement block grid. The number of antenna diagram columns and
+   grid points must match, but they don't need to match the number
+   of frequency grid points. However, the antenna diagram row number
+   must either be equal to one, then we have the same response for all
+   frequencies, or it must equal the length of the frequency grid,
+   where we have different responses for each frequency.
+
+   \param   Hb     The antenna transfer matrix.
+   \param   m_za   The measurement block grid of zenith angles.
+   \param   a      The antenna diagram values.
+   \param   x_a    The antenna diagram grid points.
+   \param   x_f    The frequency grid points.
+
+   \author Mattias Ekström
+   \date   2003-03-06
+*/
+void antenna_transfer_matrix(
+           MatrixView   Hb,
+      ConstVectorView   m_za,
+      ConstMatrixView   a,
+      ConstVectorView   x_a,
+      ConstVectorView   x_f )
+{
+  //FIXME: This part below could be exchanged with an interpolation to
+  //cover all cases:
+  //Check dimension of antenna diagram
+  Index di_a;
+  if ( a.nrows() == 1 ) {
+    //If a only contains one row, the we use the same antenna response
+    //for all frequencies
+    di_a = 0;
+  } else if ( a.nrows() == x_f.nelem() ) {
+    //If a has equally many rows as grid points in the frequency grid
+    //use the corresponding antenna diagram for each frequency.
+    di_a = 1;
+  } else {
+    //FIXME: Should this be an assert instead?
+    ostringstream os;
+    os << "The number of rows in the antenna diagram matrix must equal\n"
+       << "one or the length of the frequency grid.\n";
+    throw runtime_error(os.str());
+  }
+
+  //Assert that the transfer matrix has the right size, and set it to zero
+  assert( Hb.nrows()==x_f.nelem() && Hb.ncols()==m_za.nelem()*x_f.nelem() );
+  Hb = 0.0;
+  
+  //Loop over frequencies to calculate the sensor intergration vector
+  //and put values in the antenna matrix.
+  Index i_a=0;
+  for (Index i=0; i<x_f.nelem(); i++) {
+    sensor_integration_vector( Hb(i, Range(i, m_za.nelem(), x_f.nelem())),
+      a(i_a, Range(joker)), x_a, m_za);
+
+    i_a += di_a;
+  }
+
+
+}
 

@@ -1,3 +1,15 @@
+2003-03-06  Mattias Ekström  <ekstrom@rss.chalmers.se>
+
+	* arts-1-1-481
+
+	* src/m_sensor.cc Remove the old test WSM SensorIntegrationVector
+		and add a new AntennaTransferMatrix.
+    
+	* src/sensor.{cc,h} Added function antenna_transfer_matrix that
+		uses sensor_integration_vector to build up a matrix that covers
+		both frequency and mblocks. Both antenna_transfer_matrix and
+		sensor_integration_vector has been tested for a simple linear case.
+
 2003-03-06  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-480

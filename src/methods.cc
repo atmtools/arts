@@ -443,7 +443,30 @@ void define_md_data_raw()
         KEYWORDS(),
         TYPES()));
 
-  md_data_raw.push_back     
+  md_data_raw.push_back
+    ( MdRecord
+      ( NAME("AntennaTransferMatrix"),
+        DESCRIPTION
+        (
+         "Constructs a antenna transfer matrix.\n"
+         "\n"
+         "Generic output: \n"
+         "   Matrix : The antenna transfer matrix.\n"
+         "\n"
+         "Generic input: \n"
+         "   Vector : The measurement block zenith angle grid.\n"
+         "   Matrix : The antenna diagram.\n"
+         "   Vector : The antenna diagram grid.\n"
+         "   Vector : The frequency grid."
+        ),
+        OUTPUT(),
+        INPUT(),
+        GOUTPUT( Matrix_ ),
+        GINPUT( Vector_, Matrix_, Vector_, Vector_ ),
+        KEYWORDS(),
+        TYPES()));
+
+  md_data_raw.push_back
     ( MdRecord
       ( NAME("ArrayOfIndexPrint"),
         DESCRIPTION
@@ -2762,34 +2785,6 @@ void define_md_data_raw()
         GINPUT(),
         KEYWORDS(),
         TYPES()));
-
-  md_data_raw.push_back
-    ( MdRecord
-      ( NAME("SensorIntegrationVector"),
-        DESCRIPTION
-        (
-         "Returns a vector that approximates an integral of products.\n"
-         "\n"
-         "The output (row) vector multiplied with an unknown (column)\n"
-         "vector approximates the integral of the product between the two\n"
-         "functions corresponding to the two vectors.\n"
-         "\n"
-         "See ARTS User Guide (ver. 1.0.64), chapter 7 Sensor modelling,\n"
-         "section 7.2 Integration as vector multiplication, for more details.\n"
-         "\n"
-         "Generic output: \n"
-         "   Vector: the (row) vector.\n"
-         "Generic input: \n"
-         "   Vector: the values of the known function.\n"
-         "   Vector: the grid of the known function.\n"
-         "   Vector: the grid of the unknown function."
-        ),
-        OUTPUT( ),
-        INPUT( ),
-        GOUTPUT( Vector_ ),
-        GINPUT( Vector_, Vector_, Vector_ ),
-        KEYWORDS( ),
-        TYPES( )));
 
   md_data_raw.push_back
     ( MdRecord

@@ -49,9 +49,17 @@
   === Functions from sensor.cc
   ===========================================================================*/
 
-Vector sensor_integration_vector(
-        const Vector&   f,
-        const Vector&   x_f,
-        const Vector&   x_g );
+void sensor_integration_vector(
+           VectorView   h,
+      ConstVectorView   f,
+      ConstVectorView   x_ftot,
+      ConstVectorView   x_g );
+
+void antenna_transfer_matrix(
+           MatrixView   Hb,
+      ConstVectorView   m_za,
+      ConstMatrixView   a,
+      ConstVectorView   x_a,
+      ConstVectorView   x_f );
 
 #endif  // sensor_h
