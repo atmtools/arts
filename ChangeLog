@@ -3,7 +3,7 @@
 	* arts-1-1-882
 
 	* src/m_cloudbox.cc (iyFromCloudboxField): Just a start for a
-	replecement of CloudboxGetOutgoing.
+	replecement of CloudboxGetOutgoing (time to go home!).
 
 	* src/m_atmosphere.cc (surfaceTreatAsBlackbody): Reintroduced this
 	method. Just for the purpose to get a test case running (needed 
