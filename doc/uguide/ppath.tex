@@ -56,28 +56,64 @@ xxx
 %===================
 \label{sec:ppath:geoids}
 
+The geoid is introduced in Section~\ref{sec:fm_defs:geoid}. [* What more
+to say here? *]
 
 \levelc{Geoid ellipsoids}
 %===================
 \label{sec:ppath:geoid}
 
+All geodetic datums are based on a reference ellipsoid\index{geoid
+  ellipsoid}. The ellipsoid is rotationally symmetric around the
+north-south axis. That is, the ellipsoid radius has no longitude
+variation, it is only a function of latitude. The ellipsoid is
+described by a equatorial radius, \aRds{e}, and a polar radius,
+\aRds{p}. These radii are indicated in Figure~\ref{fig:ppath:lats}.
+The radius of the ellipsoid for a given latitude is
+\begin{equation}
+ \aRds{\odot}(\Lat) = \sqrt{\frac{\aRds{e}^2\aRds{p}^2}
+                    {\aRds{e}^2\sin^2\Lat+\aRds{p}^2\cos^2\Lat}}
+ \label{eq:ppath:ellipsradius} 
+\end{equation}
+The radius given by Equation~\ref{eq:ppath:ellipsradius} can be
+directly applied for 2D and 3D cases. On the other hand, for 1D cases
+the reference geoid is by definition a sphere and the radius of this
+sphere shall be selected in such way that it represents the local
+shape of a reference ellipsoid. This is achieved by setting
+\aRds{\odot} to the radius of curvature of the ellipsoid. The
+curvature radius differs from the local radius except at the equator
+for the east-west direction. For example, at the equator and a
+north-south direction, the curvature radius is smaller then the local
+radius, while at the poles (for all directions) it is greater
+(see further Figure~\ref{fig:ppath:wgs84radii}). 
 
+The \qindex{curvature radius}, \aRds{c}, of an ellipsoid is 
+\citep{rodgers:00}
+\begin{equation}
+ \aRds{c} = \frac{1}{\aRds{ns}^{-1}\cos^2 \Lat + \aRds{ew}^{-1}\sin^2 \Lat}
+ \label{eq:ppath:curvradius} 
+\end{equation}
+where \aRds{ns} and \aRds{ew} are the north-south and east-west curvature radius, respectively,
+\begin{eqnarray}
+ \aRds{ns} &=& \aRds{e}^2\aRds{p}^2 (
+           \aRds{e}^2\cos^2\AzmAng+\aRds{p}^2\sin^2\AzmAng )^{-\frac{3}{2}} \\
+ \aRds{ew} &=& \aRds{e}^2 (
+           \aRds{e}^2\cos^2\AzmAng+\aRds{p}^2\sin^2\AzmAng )^{-\frac{1}{2}} 
+ \label{eq:ppath:rew} 
+\end{eqnarray}
+The azimuth angle, \AzmAng, is defined in
+Section~\ref{sec:fm_defs:los}. The latitude and azimuthal angle to
+apply in Equations \ref{eq:ppath:curvradius}~-~\ref{eq:ppath:rew}
+shall rather be valid for a middle point of the propagation paths
+(such as some tangent point), instead of the sensor position. 
 
-\levelc{Geocentric and geodetic latitudes}
-%===================
-\label{sec:ppath:geolat}
-
-A geocentric latitude is not changed if the shape of the geoid is
-changed.
-
-Define \qindex{zenith} and \qindex{nadir}.
-
-\begin{figure}[!t]
+\begin{figure}[!p]
  \begin{center}
-  \begin{minipage}[c]{0.58\textwidth}
-   \begin{picture}(200,165)
-    \put(30,10){\arc{300}{-1.1}{-0.5}}
-    \put(40,147){{\small geoid ellipsoid}}
+  \begin{minipage}[c]{0.65\textwidth}
+   \begin{center}
+   \begin{picture}(200,165)(0,0)
+    \put(30,10){\arc{301}{-1.05}{-0.55}}
+    \put(43,138){{\small geoid ellipsoid}}
     \put(0,10){\vector(1,0){70}}
     \put(70,4){$x$}
     \put(10,0){\vector(0,1){70}}
@@ -85,31 +121,104 @@ Define \qindex{zenith} and \qindex{nadir}.
     \dottedline(30,10)(170,150)
     \put(30,10){\arc{20}{-.76}{0}}
     \put(40,13){\Lat$^*$}
-    \put(136.07,116.07){\line(1,-1){25}}
-    \put(136.07,116.07){\line(-1,1){25}}
-    \put(162,98){{\small local}}
-    \put(162,90){{\small tangent}}
+    \put(136.07,116.07){\line(1,-1){20}}
+    \put(136.07,116.07){\line(-1,1){20}}
+    \put(158,94){\small\shortstack[l]{local\\tangent}}
     \drawline(10,10)(170,144.4)
     \put(10,10){\arc{20}{-.73}{0}}
     \put(160,130){{\small zenith}}
     \put(20,13){\Lat}
+    %
+    \put(30,10){\arc{310}{-.15}{0.05}}
+    \put(150,10){\vector(1,0){35}}
+    \put(170,14){\aRds{e}}
+    \put(10,10){\arc{290}{-1.6708}{-1.4708}}
+    \put(10,120){\vector(0,1){35}}
+    \put(13,140){\aRds{p}}
    \end{picture}
+   \end{center}
   \end{minipage}%
-  \begin{minipage}[c]{0.42\textwidth}
-   \caption{Definition of geocentric latitude, \Lat, and geodetic latitude, 
-     \Lat$^*$. The dotted line is the normal to the local tangent of
-     the geoid ellipsoid. The zenith and nadir directions, and
-     geometrical altitudes, are here defined to go along the solid
-     line.}
+  \begin{minipage}[c]{0.35\textwidth}
+   \caption{Definition of the ellipsoid radii, \aRds{e} and \aRds{p}, 
+     geocentric latitude, \Lat, and geodetic latitude, \Lat$^*$. The
+     dotted line is the normal to the local tangent of the geoid
+     ellipsoid. The zenith and nadir directions, and geometrical
+     altitudes, are here defined to follow the solid line.}
    \label{fig:ppath:lats}
   \end{minipage}
  \end{center}
-\end{figure}           
+\end{figure}   
+
+\begin{figure}[!p]
+ \begin{minipage}[c]{0.65\textwidth}
+ \includegraphics*[width=0.96\textwidth]{ppath/wgs84_radii}
+ \end{minipage}%
+ \begin{minipage}[c]{0.35\textwidth}
+  \caption{Ellipsoid (\aRds{\odot}) and curvature (\aRds{c}) radii for the
+    WGS-84 reference ellipsoid. The curvature radius is valid for the
+    north-south direction.}
+  \label{fig:ppath:wgs84radii}
+ \end{minipage}%
+\end{figure}   
+        
+\begin{figure}[!p]
+ \begin{minipage}[c]{0.65\textwidth}
+ \includegraphics*[width=0.96\textwidth]{ppath/wgs84_latdiff}
+ \end{minipage}%
+ \begin{minipage}[c]{0.35\textwidth}
+  \caption{The change of the WGS-84 ellipsoid radius for  1\degree\ 
+            latitude differences.}
+  \label{fig:ppath:latdiff}
+ \end{minipage}%
+\end{figure}   
 
 
-%\levelc{Geodetic datums}
+
+\levelc{Geocentric and geodetic latitudes}
 %===================
-%\label{sec:ppath:geodatums}
+\label{sec:ppath:geolat}
+
+The fact that the geoid is an ellipsoid, instead of a sphere, opens up
+for the two different definitions of the latitude. The
+\qindex{geocentric latitude}, which is the the one used here, is the
+angle between the equatorial plane and the vector from the coordinate
+system center to the position of concern. The \qindex{geodetic
+  latitude} is also defined with respect to the equatorial plane, but
+the angle to the normal to the reference ellipsoid is considered here, as
+shown in Figure~\ref{fig:ppath:lats}. It could be mentioned that a
+geocentric latitude does not depend on the geoid ellipsoid used, while
+the geodetic latitudes change if another reference ellipsoid is
+selected. An approximative relationship between the geodetic
+($\Lat^*$) and geocentric (\Lat) latitudes is \citep{montenbruck:00}
+\begin{equation}
+ \Lat^* = \Lat + f\,\sin(2\Lat)  
+ \label{eq:ppath:lats}
+\end{equation}
+where $f$ is the flattening of the ellipse:
+\begin{equation}
+ f = \frac{\aRds{e}-\aRds{p}}{\aRds{e}}
+\end{equation}
+The value of $f$ for the Earth is about 1/298.26. This means that the
+largest differences between \Lat\ and $\Lat^*$ are found at
+mid-latitudes and the maximum value is about 12 arc-minutes.
+
+The \qindex{zenith} and \qindex{nadir} directions shall normally be
+defined to follow the normal to the reference ellipsoid, but, if
+nothing else is mentioned, these directions are here treated to go
+along the vector the center of the coordinate system, as indicated in
+Figure~\ref{fig:ppath:lats}. This latter definition is preferred here
+as it results in that a propagation path in the zenith/nadir direction
+can be described by a single latitude and longitude value. The
+difference in geometrical altitude when using these two possible
+definitions on the zenith direction is proportional to the deviation
+between geocentric and geodetic latitude (Equation~\ref{eq:ppath:lats}).
+For an altitude of 100~km around $\Lat=45\degree$, the difference is
+about 350~m.
+
+
+\levelc{Geodetic datums}
+%===================
+\label{sec:ppath:geodatums}
 
 
 

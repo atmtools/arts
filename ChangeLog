@@ -1,3 +1,12 @@
+2002-04-04  Patrick Eriksson  <patrick@rss.chalmers.se>
+
+	* arts-1-1-45
+
+	* doc/uguide/ppath.tex: Some text about geoid ellipsoids etc. Made some
+	figures.
+
+	* doc/uguide/Figs/ppath: Added this folder and some figure files.
+
 2002-04-04  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-1-1-44

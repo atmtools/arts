@@ -94,11 +94,11 @@
 
 % Vector length (simple)
 \newcommand{\VctLng}        {\ensuremath{n}}  
-\newcommand{\aVctLng}[1]    {\ensuremath{n_#1}}  
+\newcommand{\aVctLng}[1]    {\ensuremath{n_{#1}}}  
 
 % Index (to vector, matrix ...)
 \newcommand{\Ind}           {\ensuremath{i}}  
-\newcommand{\aInd}[1]       {\ensuremath{i_#1}}  
+\newcommand{\aInd}[1]       {\ensuremath{i_{#1}}}  
 
 % Partial derivative symbol
 \newcommand{\PrtDrv}        {\ensuremath{\mathrm{d}}}  
@@ -164,7 +164,7 @@
 \newcommand{\MpiVct}           {\VctStl{i}}  
 
 % Vector of monochromatic pencil beam intensities with subscript
-\newcommand{\aMpiVct}[1]       {\MpiVct\ensuremath{_#1}}
+\newcommand{\aMpiVct}[1]       {\MpiVct\ensuremath{_{#1}}}
 
 % Measurement error vector
 \newcommand{\MsrErrVct}        {\ensuremath{\varepsilon}}  
@@ -179,10 +179,10 @@
 \newcommand{\RtrVct}           {\ensuremath{\hat{\SttVct}}}
 
 % A state vector with subscript
-\newcommand{\aSttVct}[1]       {\SttVct\ensuremath{_#1}}
+\newcommand{\aSttVct}[1]       {\SttVct\ensuremath{_{#1}}}
 
 % A state vector with subscript and transpose
-\newcommand{\aSttVctTrp}[1]    {\SttVct\ensuremath{_#1\Trp}}
+\newcommand{\aSttVctTrp}[1]    {\SttVct\ensuremath{_{#1}\Trp}}
 
 % Forward model parameter vector
 \newcommand{\FrwMdlVct}        {\VctStl{b}}  
@@ -191,10 +191,10 @@
 \newcommand{\AprFrwMdlVct}     {\FrwMdlVct\AprSmb}
 
 % A forward model parameters vector with subscript
-\newcommand{\aFrwMdlVct}[1]    {\FrwMdlVct\ensuremath{_#1}}
+\newcommand{\aFrwMdlVct}[1]    {\FrwMdlVct\ensuremath{_{#1}}}
 
 % A forward model parameters vector with subscript and transpose
-\newcommand{\aFrwMdlVctTrp}[1] {\FrwMdlVct\ensuremath{_#1\Trp}}
+\newcommand{\aFrwMdlVctTrp}[1] {\FrwMdlVct\ensuremath{_{#1}\Trp}}
 
 % Inverse model parameters
 \newcommand{\InvMdlVct}        {\VctStl{c}}  
@@ -203,10 +203,10 @@
 \newcommand{\WfnMtr}           {\MtrStl{K}}
 
 % A weighting function matrix with a subscript
-\newcommand{\aWfnMtr}[1]       {\WfnMtr\ensuremath{_#1}}
+\newcommand{\aWfnMtr}[1]       {\WfnMtr\ensuremath{_{#1}}}
 
 % A weighting function matrix with a subscript and transpose
-\newcommand{\aWfnMtrTrp}[1]    {\WfnMtr\ensuremath{_#1\Trp}}
+\newcommand{\aWfnMtrTrp}[1]    {\WfnMtr\ensuremath{_{#1}\Trp}}
 
 % Contribution function matrix
 \newcommand{\CtrFncMtr}        {\MtrStl{D_y}}  
@@ -215,13 +215,13 @@
 \newcommand{\AvrKrnMtr}        {\MtrStl{A}}  
 
 % A averaging kernel matrix with subscript
-\newcommand{\aAvrKrnMtr}[1]    {\AvrKrnMtr\ensuremath{_#1}}
+\newcommand{\aAvrKrnMtr}[1]    {\AvrKrnMtr\ensuremath{_{#1}}}
 
 % Sensor (and data reduction) matrix
 \newcommand{\SnsMtr}           {\MtrStl{H}} 
 
 % Sensor (and data reduction) matrix with subscript.
-\newcommand{\aSnsMtr}[1]       {\SnsMtr\ensuremath{_#1}} 
+\newcommand{\aSnsMtr}[1]       {\SnsMtr\ensuremath{_{#1}}} 
 
 % Transformation between vector spaces
 \newcommand{\VctTrfMtr}        {\MtrStl{B}}  
@@ -230,19 +230,19 @@
 \newcommand{\PplMtr}           {\MtrStl{\Sigma}}
 
 % A population matrix with a subscript
-\newcommand{\aPplMtr}[1]       {\PplMtr\ensuremath{_#1}}
+\newcommand{\aPplMtr}[1]       {\PplMtr\ensuremath{_{#1}}}
 
 % A population matrix with a subscript and invererse
-\newcommand{\aPplMtrTrp}[1]    {\PplMtr\ensuremath{_#1\Inv}}
+\newcommand{\aPplMtrTrp}[1]    {\PplMtr\ensuremath{_{#1}\Inv}}
 
 % Covariance matrix
 \newcommand{\CvrMtr}           {\MtrStl{S}}
 
 % A covariance matrix with a subscript
-\newcommand{\aCvrMtr}[1]       {\CvrMtr\ensuremath{_#1}}
+\newcommand{\aCvrMtr}[1]       {\CvrMtr\ensuremath{_{#1}}}
 
 % A covariance matrix with a subscript and invererse
-\newcommand{\aCvrMtrTrp}[1]    {\CvrMtr\ensuremath{_#1\Inv}}
+\newcommand{\aCvrMtrTrp}[1]    {\CvrMtr\ensuremath{_{#1}\Inv}}
 
 
 
@@ -259,51 +259,51 @@
 
 % Altitude (above geoid)
 \newcommand{\Alt}        {\ensuremath{z}}  
-\newcommand{\aAlt}[1]    {\ensuremath{z_#1}}  
+\newcommand{\aAlt}[1]    {\ensuremath{z_{#1}}}
 
 % Azimuthal angle
 \newcommand{\AzmAng}     {\ensuremath{\omega}}  
-\newcommand{\aAzmAng}[1] {\ensuremath{\omega_#1}}  
+\newcommand{\aAzmAng}[1] {\ensuremath{\omega_{#1}}}  
 
 % Frequency 
 \newcommand{\Frq}        {\ensuremath{\nu}}  
-\newcommand{\aFrq}[1]    {\ensuremath{\nu_#1}}  
+\newcommand{\aFrq}[1]    {\ensuremath{\nu_{#1}}}  
 
 % Latitude
 \newcommand{\Lat}        {\ensuremath{\alpha}}  
-\newcommand{\aLat}[1]    {\ensuremath{\alpha_#1}}  
+\newcommand{\aLat}[1]    {\ensuremath{\alpha_{#1}}}  
 
 % Longitude
 \newcommand{\Lon}        {\ensuremath{\beta}}  
-\newcommand{\aLon}[1]    {\ensuremath{\beta_#1}}  
+\newcommand{\aLon}[1]    {\ensuremath{\beta_{#1}}}  
 
 % Monochromatic pencil beam intensity
 \newcommand{\Mpi}        {\ensuremath{I}}  
-\newcommand{\aMpi}[1]    {\ensuremath{I_#1}}  
+\newcommand{\aMpi}[1]    {\ensuremath{I_{#1}}}  
 
 % Pressure altitude
 \newcommand{\Oth}        {\ensuremath{\tau}}  
-\newcommand{\aOth}[1]    {\ensuremath{\tau_#1}}  
+\newcommand{\aOth}[1]    {\ensuremath{\tau_{#1}}}  
 
 % Pressure
 \newcommand{\Prs}        {\ensuremath{P}}  
-\newcommand{\aPrs}[1]    {\ensuremath{P_#1}}  
+\newcommand{\aPrs}[1]    {\ensuremath{P_{#1}}}  
 
 % Pressure altitude
 \newcommand{\PrsAlt}     {\ensuremath{\zeta}}  
-\newcommand{\aPrsAlt}[1] {\ensuremath{\zeta_#1}}  
+\newcommand{\aPrsAlt}[1] {\ensuremath{\zeta_{#1}}}  
 
 % Radius
 \newcommand{\Rds}        {\ensuremath{r}}  
-\newcommand{\aRds}[1]    {\ensuremath{r_#1}}  
+\newcommand{\aRds}[1]    {\ensuremath{r_{#1}}}  
 
 % Temperature
 \newcommand{\Tmp}        {\ensuremath{T}}  
-\newcommand{\aTmp}[1]    {\ensuremath{T_#1}}  
+\newcommand{\aTmp}[1]    {\ensuremath{T_{#1}}}  
 
 % Zenith angle
 \newcommand{\ZntAng}     {\ensuremath{\psi}}  
-\newcommand{\aZntAng}[1] {\ensuremath{\psi_#1}}  
+\newcommand{\aZntAng}[1] {\ensuremath{\psi_{#1}}}  
 
 
 
