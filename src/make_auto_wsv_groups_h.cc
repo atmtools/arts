@@ -56,6 +56,7 @@ int main()
           << "#define auto_wsv_groups_h\n\n";
 
       ofs << "#include <iostream>\n"
+          << "#include \"m_general.h\"\n"
           << "#include \"supergeneric.h\"\n"
           << "#include \"ppath.h\"\n"
           << "#include \"absorption.h\"\n\n"
