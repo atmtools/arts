@@ -1,3 +1,11 @@
+2001-09-24  Stefan Buehler  <sbuehler@uni-bremen.de>
+
+	* arts-0-0-223
+
+	* src/methods.cc (define_md_data): Updated online doc for Exit,
+	Test, cont_descriptionInit, and cont_descriptionAppend.
+	
+
 2001-09-24  Oliver Lemke  <olemke@uni-bremen.de>
 
 	* arts-0-0-222

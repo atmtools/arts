@@ -150,3 +150,6 @@ OLE 2001-09-21: Make the HDF part optional. Let the configure script determine
                 whether HDF is installed or not and depending on that include the
                 binary methods. To make this more convient all HDF related functions
                 should be moved into a separate source file.
+
+SAB 2001-09-24: Thomas: Please put in detailed online documentation
+                for cont_description_names.  

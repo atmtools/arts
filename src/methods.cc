@@ -55,8 +55,8 @@ void define_md_data()
            "others in the long run. \n"
            "   Additional paragraphs are indented with three blanks, as \n"
            "exemplified here.\n"
-           "   The name of workspace variables are written by upper case \n"
-           "letters, for example Z_PLAT. \n"
+           "   The names of workspace variables and other methods\n"
+           "are marked by stars, for example *z_plat*.\n"
            "   Global input and output, and keywords shall be described \n"
            "as exemplified below. If there is no variables of a group, \n"
            "(e.g. global input) remove that part totally. Note that the \n"
@@ -117,7 +117,14 @@ void define_md_data()
   md_data.push_back     
     ( MdRecord
       ( NAME("Exit"),
-	DESCRIPTION("Stops the execution and exits ARTS."),
+	DESCRIPTION
+	(
+	 "Stops the execution and exits ARTS.\n"
+	 "\n"
+	 "This method is handy if you want to debug one of your\n"
+	 "controlfiles. You can insert it anywhere in the controlfile. When it\n"
+	 "is reached, it will terminate the program."
+	 ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( ),
@@ -128,7 +135,14 @@ void define_md_data()
   md_data.push_back     
     ( MdRecord
       ( NAME("Test"),
-	DESCRIPTION("A dummy function that can be used for test purposes."),
+	DESCRIPTION
+	(
+	 "A dummy method that can be used for test purposes.\n"
+	 "\n"
+	 "This method can be used by ARTS developers to quickly test stuff. The\n"
+	 "implementation is in file m_io.cc. This just saves you the trouble of\n"
+	 "adding a dummy method everytime you want to try something out quickly."
+	 ),
 	OUTPUT( ),
 	INPUT( ),
 	GOUTPUT( ),
@@ -1685,20 +1699,19 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("cont_descriptionInit"),
-  	DESCRIPTION(
-          "Initializes the two continuum description WSVs,\n"
-	  "`cont_description_names' and `cont_description_parameters'.\n"  
-	  "\n"
-	  "This method does not really do anything, except setting the two\n"
-	  "variables to empty Arrays. It is just necessary\n"
-	  "because the method `cont_descriptionAppend' wants to append to the\n"
-	  "variables.\n"
-	  "\n"
-	  "Formally, the continuum description WSVs are required by the\n"
-	  "absorption calculation methods (e.g., `absCalc'). Therefore you\n"
-	  "always have to call `cont_descriptionInit'.\n"
-	  "\n"
-	  "Usage example: cont_descriptionInit{}"),
+  	DESCRIPTION
+	(
+	 "Initializes the two workspace variables for the continuum description,\n"
+	 "*cont_description_names* and *cont_description_parameters*.\n"
+	 " \n"
+	 "This method does not really do anything, except setting the two\n"
+	 "variables to empty Arrays. It is just necessary because the method\n"
+	 "*cont_descriptionAppend* wants to append to the variables.\n"
+	 "   Formally, the continuum description workspace variables are required\n"
+	 "by the absorption calculation methods (e.g., *absCalc*). Therefore you\n"
+	 "always have to call at least *cont_descriptionInit*, even if you do\n"
+	 "not want to use any continua."
+	 ),
 	OUTPUT( cont_description_names_, cont_description_parameters_ ),
 	INPUT(),
 	GOUTPUT(),
@@ -1709,8 +1722,23 @@ void define_md_data()
   md_data.push_back
     ( MdRecord
       ( NAME("cont_descriptionAppend"),
-  	DESCRIPTION(
-          ""),
+  	DESCRIPTION
+	(
+	 "Appends the description of a continuum model or a complete absorption\n"
+	 "model to *cont_description_names* and *cont_description_parameters*.\n"
+	 "\n"
+	 "See online documentation for *cont_description_names* for a list of\n"
+	 "allowed models and for information what parameters they require. See\n"
+	 "file cont.arts in the doc/examples directory for usage examples and\n"
+	 "default parameters for the various models. \n"
+	 "\n"
+	 "Keywords:\n"
+	 "   name       : The name of a continuum model. Must match one of the models\n"
+	 "                implemented in ARTS. \n"
+	 "   parameters : A Vector containing the required number of parameters\n"
+	 "                for the model given. The meaning of the parameters and\n"
+	 "                how many parameters are required depends on the model."
+	 ),
 	OUTPUT( cont_description_names_, cont_description_parameters_ ),
 	INPUT(  cont_description_names_, cont_description_parameters_ ),
 	GOUTPUT(),
