@@ -49,6 +49,8 @@ EXTRA_DIST = \
 	uguide.ps \
 	uguide_pdf.pdf
 
+if ARTS_GENDOCS
+
 # The dependence of uguide.dvi on configure.in is there to make sure
 # that the documentation is rebuilt when the release number in
 # configure.in is changed. Dependence on version.tex is intentionally
@@ -56,7 +58,7 @@ EXTRA_DIST = \
 # after each run of the `configure' script. version.tex.in does not
 # show up explicitly in EXTRA_DIST, since this is distributed automatically.
 
-uguide.dvi: $(top_srcdir)/configure.in $(texfiles)
+uguide.dvi: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
 	latex  uguide > /dev/null
 	bibtex uguide
 	latex  uguide > /dev/null
@@ -66,7 +68,7 @@ uguide.dvi: $(top_srcdir)/configure.in $(texfiles)
 uguide.ps: uguide.dvi
 	dvips -f uguide > uguide.ps
 
-uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles)
+uguide_pdf.pdf: $(top_srcdir)/configure.in $(texfiles) auto_version.tex
 	pdflatex uguide_pdf > /dev/null
 	bibtex uguide_pdf
 	pdflatex  uguide_pdf > /dev/null
@@ -94,3 +96,40 @@ MAINTAINERCLEANFILES = \
 	uguide_pdf.pdf \
 	main.toc \
 	auto_version.tex
+
+else
+
+uguide.dvi: $(texfiles)
+	@echo
+	@echo "=========================================================="
+	@echo
+	@echo "The documentation is only re-generated in maintainer mode."
+	@echo "To activate maintainer mode call configure with the option"
+	@echo "--enable-maintainer-mode"
+	@echo
+	@echo "=========================================================="
+	@echo
+
+uguide.ps: uguide.dvi
+	@echo
+	@echo "=========================================================="
+	@echo
+	@echo "The documentation is only re-generated in maintainer mode."
+	@echo "To activate maintainer mode call configure with the option"
+	@echo "--enable-maintainer-mode"
+	@echo
+	@echo "=========================================================="
+	@echo
+
+uguide_pdf.pdf:
+	@echo
+	@echo "=========================================================="
+	@echo
+	@echo "The documentation is only re-generated in maintainer mode."
+	@echo "To activate maintainer mode call configure with the option"
+	@echo "--enable-maintainer-mode"
+	@echo
+	@echo "=========================================================="
+	@echo
+
+endif
