@@ -1,5 +1,11 @@
 2002-08-30  Nikolay Koulev  <nkoulev@uni-bremen.de>
 
+	* arts-1-1-227
+
+	* /: Increased ChangeLog number.
+	
+2002-08-30  Nikolay Koulev  <nkoulev@uni-bremen.de>
+
 	* arts-1-1-226
 
 	* src/methods.cc: Added the Doppler line-shape entry.
