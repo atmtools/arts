@@ -30,7 +30,13 @@
 #include <iostream>
 #include "lin_alg.h"
 
-int main(void)
+
+
+//! 
+/*! The function tests the LU-decompusition method for solving a linear equation 
+  system. It uses the functions 'ludcmp' and  'lubacksub'.
+*/
+void test_lusolve(void)
 {
   Matrix a(4,4);
   ArrayOfIndex indx(4);
@@ -174,29 +180,93 @@ int main(void)
        cout << "\n";
        cout << y[i];
      }
-   
-   
-   cout << "\n";
+   cout <<"\n";   
+}   
+
  
   
+//! Test for the matrix exponential function (4D matrix)
+/*! 
+  
+ */
+void test_matrix_exp4D(void)
+{
+  Matrix A(4,4);
+  Matrix F(4,4);
+  A(0,0) = 1;
+  A(0,1) = 3;
+  A(0,2) = 5;
+  A(0,3) = 6;
+  A(1,0) = 2;
+  A(1,1) = 3;
+  A(1,2) = 4;
+  A(1,3) = 4;
+  A(2,0) = 1;
+  A(2,1) = 2;
+  A(2,2) = 5;
+  A(2,3) = 1;
+  A(3,0) = 7;
+  A(3,1) = 2;
+  A(3,2) = 4;
+  A(3,3) = 3;
 
-    /*----------------------------------------------------
-      Test the matrix exponential function 
-   ------------------------------------------------------*/
-    Matrix F(4,4);
-    /* set parameter for accuracy */
-    Index q = 8;
-    matrix_exp(F,a,q);
+  /* set parameter for accuracy */
+  Index q = 8;
+  
+  /*execute matrix exponential function*/
+  matrix_exp(F,A,q);
 
     
-    cout << "\n Exponential of Matrix K";
-    for( Index i = 0; i<4; i++)
-      {
-	cout << "\n";
+  cout << "\n Exponential of Matrix K";
+  for( Index i = 0; i<4; i++)
+    {
+      cout << "\n";
       for (Index j = 0; j<4; j++)
         cout << " " << F(i,j);
-      }
-    cout << "\n";
-     
-   return 0;
+    }
+  cout << "\n";
+ }     
+
+
+//! Test for the matrix exponential function (3D matrix)
+/*! 
+  
+ */
+void test_matrix_exp3D(void)
+{
+  Matrix A(3,3);
+  Matrix F(3,3);
+  A(0,0) = 1;
+  A(0,1) = 3;
+  A(0,2) = 5;
+  A(1,0) = 2;
+  A(1,1) = 3;
+  A(1,2) = 4;
+  A(2,0) = 1;
+  A(2,1) = 2;
+  A(2,2) = 5;
+
+
+  /* set parameter for accuracy */
+  Index q = 8;
+  
+  /*execute matrix exponential function*/
+  matrix_exp(F,A,q);
+
+    
+  cout << "\n Exponential of Matrix K";
+  for( Index i = 0; i<3; i++)
+    {
+      cout << "\n";
+      for (Index j = 0; j<3; j++)
+        cout << " " << F(i,j);
+    }
+   cout << "\n";
+}     
+
+int main(void)
+{
+  // test_lusolve();
+  test_matrix_exp3D();
+  return(0);
 }

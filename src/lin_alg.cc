@@ -221,7 +221,7 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q)
   /*Solve the equation system DF=N for F using LU decomposition,
    use the backsubstitution routung for columns of N*/ 
 
-   /* Noe use X  for the LU decomposition matrix of D.*/
+   /* Now use X  for the LU decomposition matrix of D.*/
   ArrayOfIndex indx(n);
   ludcmp(X, indx, D);
 
