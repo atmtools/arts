@@ -29,32 +29,38 @@
 #ifndef linalg_h
 #define linalg_h
 
-#include <stdexcept>
-#include <math.h>
-#include "arts.h"
-#include "matpackI.h"
-#include "make_vector.h"
-#include "array.h"
-#include "logic.h"
 
+#include "matpackI.h"
 
 // LU decomposition
-void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A); 
+void
+ludcmp(MatrixView LU, 
+       ArrayOfIndex& indx,
+       ConstMatrixView A); 
 
 
 // LU backsubstitution
-void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayOfIndex& indx);
+void 
+lubacksub(VectorView x, 
+	  ConstMatrixView LU,
+	  ConstVectorView b,
+	  const ArrayOfIndex& indx);
 
 
 // Exponential of a Matrix
-void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q);
+void 
+matrix_exp(MatrixView F,
+	   ConstMatrixView A, 
+	   const Index& q);
 
 
 // Maximum absolute row sum norm 
-Numeric norm_inf(ConstMatrixView A);
+Numeric 
+norm_inf(ConstMatrixView A);
 
 
 // Identity Matrix
-void id_mat(MatrixView I);
+void
+id_mat(MatrixView I);
 
 #endif    // linalg_h

@@ -31,8 +31,7 @@
   \brief  Workspace functions releated to the cloud box.
 
   These functions are listed in the doxygen documentation as entries of the
-  file auto_md.h.
-*/
+  file auto_md.h.*/
 
 
 
@@ -44,12 +43,16 @@
 #include <iostream>
 #include "arts.h"
 #include "array.h"
+#include "auto_md.h"
 #include "check_input.h"
 #include "matpackI.h"
 #include "matpackVI.h"
 #include "matpackVII.h"
 #include "cloudbox.h"
 #include "logic.h"
+#include "ppath.h"
+#include "agenda_class.h"
+#include "physics_funcs.h"
 
 /*===========================================================================
   === The functions (in alphabetical order)
@@ -224,7 +227,8 @@ void CloudboxSetManually(
   \param stokes_dim    The number of Stokes components to be calculated.
   \param atmosphere_dim Atmospheric dimension.
 */
-void i_fieldIterate(
+void
+i_fieldIterate(
 		    // WS Output:
 		    Tensor6& i_field,
 		    Ppath& ppath_step,
@@ -281,11 +285,12 @@ void i_fieldIterate(
   //Update i_field.
   if( atmosphere_dim == 1 )
     {
-      i_fieldUpdate1D(i_field, ppath_step, ppath_step_agenda, i_field_old, amp_mat, scat_field,
-		       cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
-		       lat_grid, lon_grid, t_field, z_field, z_ground,
-		       r_geoid, f_grid, scat_f_index, blackbody_ground, 
-		       stokes_dim);
+      i_fieldUpdate1D(i_field, ppath_step, ppath_step_agenda, i_field_old,
+		      amp_mat, scat_field,
+		      cloudbox_limits, scat_za_grid, scat_aa_grid, p_grid, 
+		      lat_grid, lon_grid, t_field, z_field, z_ground,
+		      r_geoid, f_grid, scat_f_index, blackbody_ground, 
+		      stokes_dim);
     }
   
   //Convergence test has to be here.
@@ -329,29 +334,30 @@ void i_fieldIterate(
   \param blackbody_ground Flag to treat ground as blackbody.
   \param stokes_dim    The number of Stokes components to be calculated.
 */
-void i_fieldUpdate1D(// WS Output:
-		     Tensor6& i_field,
-		     Ppath& ppath_step,
-		     // WS Input:
-		     const Agenda& ppath_step_agenda,
-		     const Tensor6& i_field_old,
-		     const Tensor6& amp_mat,
-		     const Tensor6& scat_field,
-		     const ArrayOfIndex& cloudbox_limits,
-		     const Vector& scat_za_grid,
-		     const Vector& scat_aa_grid,
-		     const Vector& p_grid,
-		     const Vector& lat_grid,
-		     const Vector& lon_grid,
-		     const Tensor3& t_field,
-		     const Tensor3& z_field,
-		     const Matrix& z_ground,
-		     const Matrix& r_geoid,
-		     const Vector& f_grid,
-		     const Index& scat_f_index,
-		     const Index& blackbody_ground,
-		     const Index& stokes_dim
-		     )
+void
+i_fieldUpdate1D(// WS Output:
+		Tensor6& i_field,
+		Ppath& ppath_step,
+		// WS Input:
+		const Agenda& ppath_step_agenda,
+		const Tensor6& i_field_old,
+		const Tensor6& amp_mat,
+		const Tensor6& scat_field,
+		const ArrayOfIndex& cloudbox_limits,
+		const Vector& scat_za_grid,
+		const Vector& scat_aa_grid,
+		const Vector& p_grid,
+		const Vector& lat_grid,
+		const Vector& lon_grid,
+		const Tensor3& t_field,
+		const Tensor3& z_field,
+		const Matrix& z_ground,
+		const Matrix& r_geoid,
+		const Vector& f_grid,
+		const Index& scat_f_index,
+		const Index& blackbody_ground,
+		const Index& stokes_dim
+		)
 {
 
   //Check the input
@@ -440,7 +446,8 @@ void i_fieldUpdate1D(// WS Output:
 
 	  if( !ppath_step_agenda.is_output(ppath_step_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must generate ppath_step as an output.");
+	      throw runtime_error("The agenda ppath_step_agenda must generate
+                                  ppathh_step as an output.");
 	    }
 
 	  if( !ppath_step_agenda.is_input(atmosphere_dim_) )
@@ -457,37 +464,43 @@ void i_fieldUpdate1D(// WS Output:
 	  
 	  if( !ppath_step_agenda.is_input(lat_grid_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use lat_grid
+	      throw runtime_error("The agenda ppath_step_agenda must 
+                                   use lat_grid
                                    as an input.");
 	    }
 	  
 	  if( !ppath_step_agenda.is_input(lon_grid_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use lon_grid
+	      throw runtime_error("The agenda ppath_step_agenda must 
+                                   use lon_grid
                                    as an input.");
 	    }
 
 	  if( !ppath_step_agenda.is_input(z_field_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use z_field
+	      throw runtime_error("The agenda ppath_step_agenda must 
+                                   use z_field
                                    as an input.");
 	    }
 	  
 	  if( !ppath_step_agenda.is_input(r_geoid_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use r_geoid
+	      throw runtime_error("The agenda ppath_step_agenda must
+                                   use r_geoid
                                    as an input.");
 	    }
 
 	  if( !ppath_step_agenda.is_input(z_ground_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use z_ground
+	      throw runtime_error("The agenda ppath_step_agenda must 
+                                   use z_ground
                                    as an input.");
 	    }
 
 	  if( !ppath_step_agenda.is_input(blackbody_ground_) )
 	    {
-	      throw runtime_error("The agenda ppath_step_agenda must use blackbody_ground
+	      throw runtime_error("The agenda ppath_step_agenda must
+                                   use blackbody_ground
                                    as an input.");
 	    }
 
@@ -495,12 +508,14 @@ void i_fieldUpdate1D(// WS Output:
 	  // Everything checked. Now call agenda.
 	  ppath_step_agenda.execute();
 	  
-	  // Check if the agenda has returned ppath.step with reasonable values 
+	  // Check if the agenda has returned ppath.step with reasonable 
+	  // values. 
 	  cout << "\n ";
 	  PpathPrint( ppath_step, "ppath");
 	  
 	   Vector sto_vec(4);
-	  //Calculate vector radiative transfer if *stokes_dim* is greater than 1
+	  //Calculate vector radiative transfer if *stokes_dim* is greater
+	   //than 1.
 	  if (stokes_dim != 1 && stokes_dim <= 4){
 	    sto_vecCalc(sto_vec, ext_mat, abs_vec, sca_vec, 
 			   ppath_step.l_step[0], B, stokes_dim); 
@@ -512,7 +527,8 @@ void i_fieldUpdate1D(// WS Output:
 			   ppath_step.l_step[0], B, stokes_dim); 
 	  }
 	  else if (stokes_dim > 4) {
-	    throw runtime_error("The variable *stokes_dim* can not be greater than 4.");
+	    throw runtime_error("The variable *stokes_dim* can not be greater
+                                 than 4.");
 	  }
 
 	  // Assign claculated Stokes Vector to i_field. 

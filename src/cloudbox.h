@@ -28,36 +28,25 @@
 #ifndef cloudbox_h
 #define cloudbox_h
 
-#include <stdexcept>
-#include <math.h>
-#include "lin_alg.h"
-#include "arts.h"
-#include "auto_md.h"
 #include "matpackI.h"
-#include "make_vector.h"
-#include "array.h"
-#include "logic.h"
-#include "ppath.h"
-#include "interpolation.h"
-#include "physics_funcs.h"
 
+void 
+sto_vecCalc(VectorView sto_vec,
+	    ConstMatrixView ext_mat,
+	    ConstVectorView abs_vec,
+	    ConstVectorView sca_vec,
+	    const Numeric& ds,
+	    const Numeric& B,
+	    const Index& stokes_dim);
 
-
-void sto_vecCalc(VectorView sto_vec,
-		 ConstMatrixView ext_mat,
-		 ConstVectorView abs_vec,
-		 ConstVectorView sca_vec,
-		 const Numeric& ds,
-		 const Numeric& B,
-		 const Index& stokes_dim);
-
-void sto_vec1DCalc(VectorView sto_vec,
-		   ConstMatrixView ext_mat,
-		   ConstVectorView abs_vec,
-		   ConstVectorView sca_vec,
-		   const Numeric& ds,
-		   const Numeric& B,
-		   const Index& stokes_dim);
+void 
+sto_vec1DCalc(VectorView sto_vec,
+	      ConstMatrixView ext_mat,
+	      ConstVectorView abs_vec,
+	      ConstVectorView sca_vec,
+	      const Numeric& ds,
+	      const Numeric& B,
+	      const Index& stokes_dim);
 
 
 #endif    // cloudbox_h

@@ -29,11 +29,13 @@
 
 #include <iostream>
 #include "lin_alg.h"
-
+#include "make_vector.h"
+#include "array.h"
 
 
 //! 
-/*! The function tests the LU-decompusition method for solving a linear equation 
+/*! The function tests the LU-decompusition method for solving a 
+  linear equation 
   system. It uses the functions 'ludcmp' and  'lubacksub'.
 */
 void test_lusolve(void)
@@ -64,9 +66,9 @@ void test_lusolve(void)
   a(3,3) = 3;
 
  
-  /* ---------------------------------------------------------------------------
+  /* ------------------------------------------------------------------------
      Test the function ludcmp.
-     --------------------------------------------------------------------------- */
+     ----------------------------------------------------------------------- */
 
   cout << "\n LU decomposition test \n";
   cout << "initial matrix: \n";
@@ -79,8 +81,9 @@ void test_lusolve(void)
    cout << "\n";
 
    /* input: Test-matrix a, 
-      output: Decomposed matrix b (includes uppper and lower triangle, cp. Numerical Recipies)
-              and index which gives information about pivoting. */
+      output: Decomposed matrix b (includes uppper and lower triangle, cp. 
+      Numerical Recipies)
+      and index which gives information about pivoting. */
    ludcmp(b, indx, a);
 
   cout << "\n after decomposition";
@@ -232,10 +235,31 @@ void test_matrix_exp4D(void)
 /*! 
   
  */
+void test_matrix_exp1D(void)
+{
+  Matrix A(1,1);
+  Matrix F(1,1);
+  A(0,0) = 5;
+
+  /* set parameter for accuracy */
+  Index q = 8;
+  
+  /*execute matrix exponential function*/
+  matrix_exp(F,A,q);
+
+   cout << "\n Exponential of Matrix A:\n";
+   cout << F(0,0);
+   cout <<"\n";
+}
+
+//! Test for the matrix exponential function (3D matrix)
+/*!  
+  
+ */ 
 void test_matrix_exp3D(void)
 {
-  Matrix A(3,3);
-  Matrix F(3,3);
+  Matrix A(3,3); 
+  Matrix F(3,3); 
   A(0,0) = 1;
   A(0,1) = 3;
   A(0,2) = 5;
@@ -254,7 +278,7 @@ void test_matrix_exp3D(void)
   matrix_exp(F,A,q);
 
     
-  cout << "\n Exponential of Matrix K";
+  cout << "\n Exponential of Matrix A";
   for( Index i = 0; i<3; i++)
     {
       cout << "\n";
@@ -267,6 +291,6 @@ void test_matrix_exp3D(void)
 int main(void)
 {
   // test_lusolve();
-  test_matrix_exp3D();
+  test_matrix_exp1D();
   return(0);
 }

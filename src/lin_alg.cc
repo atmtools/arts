@@ -29,6 +29,16 @@
 
 #include "lin_alg.h"
 
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
+
+#include <stdexcept>
+#include <math.h>
+#include "arts.h"
+#include "make_vector.h"
+#include "array.h"
+#include "logic.h"
 
 
 //! LU decomposition.
@@ -40,7 +50,10 @@
   \param indx Output: Vector that records the row permutation.
   \param A Input: Matrix for which the LU decomposition is performed
 */
-void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A) 
+void 
+ludcmp(MatrixView LU,
+       ArrayOfIndex& indx, 
+       ConstMatrixView A) 
 {
   Index imax;
   const Numeric TINY=1.0e-20;
@@ -118,7 +131,8 @@ void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A)
 
 //! LU backsubstitution
 /*! 
-  Solves a set of linear equations Ax=b. It is neccessairy to do a LU decomposition using 
+  Solves a set of linear equations Ax=b. It is neccessairy to do a LU          
+  decomposition using 
   the function ludcp before using this function.
   
   \param x Output: Solution vector of the equation system. 
@@ -126,7 +140,11 @@ void ludcmp(MatrixView LU, ArrayOfIndex& indx, ConstMatrixView A)
   \param b  Input: Right-hand-side vector of equation system.
   \param indx Input: Pivoting information (output of function ludcp).
 */
-void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayOfIndex& indx)
+void 
+lubacksub(VectorView x, 
+	  ConstMatrixView LU, 
+	  ConstVectorView b, 
+	  const ArrayOfIndex& indx)
 {
   Index ip,dim;
   Numeric sum;
@@ -174,7 +192,10 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
   \param A Input: arbitrary square matrix
   \param q Input: Parameter for the accuracy of the computation
 */
-void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q)
+void 
+matrix_exp(MatrixView F,
+	   ConstMatrixView A,
+	   const Index& q)
 {
   Numeric A_norm_inf, c;
   Numeric j;
@@ -253,7 +274,8 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q)
   
   \return Maximum absolute row sum norm 
 */
-Numeric norm_inf(ConstMatrixView A)
+Numeric 
+norm_inf(ConstMatrixView A)
 {
   const Index n = A.ncols();  
   Vector row_sum(n);
@@ -278,7 +300,8 @@ Numeric norm_inf(ConstMatrixView A)
 /*! 
   \param I Output: identity matrix
 */
-void id_mat(MatrixView I)
+void 
+id_mat(MatrixView I)
 {
   const Index n = I.ncols();
   I = 0;

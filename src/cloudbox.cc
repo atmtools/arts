@@ -26,8 +26,25 @@
 
 #include "cloudbox.h"
 
+/*===========================================================================
+  === External declarations
+  ===========================================================================*/
+#include <stdexcept>
+#include <math.h>
+#include "lin_alg.h"
+#include "arts.h"
+#include "auto_md.h"
+#include "make_vector.h"
+#include "array.h"
+#include "logic.h"
+#include "ppath.h"
+#include "interpolation.h"
+#include "physics_funcs.h"
 
 
+/*===========================================================================
+  === The functions (in alphabetical order)
+  ===========================================================================*/
 //! Calculate vector radiative transfer with fixed scattering integral
 /*! 
   This function computes the radiative transfer for a thin layer. All
@@ -44,25 +61,29 @@
   \param B       Input: Planck function.
   \param stokes_dim Input: Stokes dimension. 
 */
-void sto_vecCalc(VectorView sto_vec,
-		      ConstMatrixView ext_mat,
-		      ConstVectorView abs_vec,
-		      ConstVectorView sca_vec,
-		      const Numeric& ds,
-		      const Numeric& B,
-		      const Index& stokes_dim)
+void
+sto_vecCalc(VectorView sto_vec,
+	    ConstMatrixView ext_mat,
+	    ConstVectorView abs_vec,
+	    ConstVectorView sca_vec,
+	    const Numeric& ds,
+	    const Numeric& B,
+	    const Index& stokes_dim)
 { 
   // Stokes dimension
-  assert(stokes_dim <= 4 && stokes_dim != 1); 
+  assert(stokes_dim <= 4 && stokes_dim != 1);
  
-  assert(is_size(ext_mat, stokes_dim, stokes_dim)); // check, if ext_mat is quadratic
+  // check, if ext_mat is quadratic
+  assert(is_size(ext_mat, stokes_dim, stokes_dim)); 
   // check if the dimensions agree
   assert(is_size(abs_vec, stokes_dim));
   assert(is_size(sca_vec, stokes_dim));
 
 
-  //Initialize internal variables
-  Matrix LU(stokes_dim,stokes_dim); // used for LU decompostion and as dummy variable
+  //Initialize internal variables:
+
+  // Matrix LU used for LU decompostion and as dummy variable:
+  Matrix LU(stokes_dim,stokes_dim); 
   ArrayOfIndex indx(stokes_dim); // index for pivoting information 
   Vector b(stokes_dim); // dummy variable 
   Vector x(stokes_dim); // solution vector for K^(-1)*b
@@ -127,21 +148,24 @@ void sto_vecCalc(VectorView sto_vec,
   \param B       Input: Planck function.
   \param stokes_dim Input: Stokes dimension.
 */
-void sto_vec1DCalc(VectorView sto_vec,
-		      ConstMatrixView ext_mat,
-		      ConstVectorView abs_vec,
-		      ConstVectorView sca_vec,
-		      const Numeric& ds,
-		      const Numeric& B,
-		      const Index& stokes_dim)
+void
+sto_vec1DCalc(VectorView sto_vec,
+	      ConstMatrixView ext_mat,
+	      ConstVectorView abs_vec,
+	      ConstVectorView sca_vec,
+	      const Numeric& ds,
+	      const Numeric& B,
+	      const Index& stokes_dim)
 { 
   //Check if we really consider the scalar case.
   assert(stokes_dim == 1);
- 
-  assert(is_size(ext_mat, stokes_dim, stokes_dim)); // check, if ext_mat is a scalar
-                                                    // 1x1 matrix
-  assert(is_size(abs_vec, stokes_dim)); // absorption coefficient and scattering coefficients  
-  assert(is_size(sca_vec, stokes_dim)); // coefficients are 1 component vectors.
+
+  // Check, if ext_mat is a scalar, i.e. 1x1 matrix
+  assert(is_size(ext_mat, stokes_dim, stokes_dim)); 
+  // Check, if  absorption coefficient and scattering coefficients   
+  // coefficients are 1 component vectors.                       
+  assert(is_size(abs_vec, stokes_dim)); 
+  assert(is_size(sca_vec, stokes_dim));
 
   //Introduce scalar variables:
   
@@ -156,7 +180,8 @@ void sto_vec1DCalc(VectorView sto_vec,
   Numeric sto_vec1D = sto_vec[0];
   
   //Do a radiative transfer step calculation:
-  sto_vec1D = sto_vec1D * exp(-ext_coeff*ds) + (abs_coeff*B+sca_int1D) / ext_coeff* (1-exp(-ext_coeff*ds));
+  sto_vec1D = sto_vec1D * exp(-ext_coeff*ds) + (abs_coeff*B+sca_int1D) /
+    ext_coeff* (1-exp(-ext_coeff*ds));
  
   //Put the first component back into *sto_vec*:
   sto_vec[0] = sto_vec1D;
